@@ -6,6 +6,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface FormationPlayer {
   id: string;
@@ -21,8 +22,8 @@ interface TacticalFormationProps {
   onFormationChange: (formation: FormationPlayer[], substitutionOrder: Record<string, number>) => void;
 }
 
-const FIELD_WIDTH = 400;
-const FIELD_HEIGHT = 300;
+const FIELD_WIDTH = 300;
+const FIELD_HEIGHT = 200;
 
 export default function TacticalFormation({ players, onFormationChange }: TacticalFormationProps) {
   const [formation, setFormation] = useState<FormationPlayer[]>([]);
@@ -31,6 +32,7 @@ export default function TacticalFormation({ players, onFormationChange }: Tactic
   const [dragPosition, setDragPosition] = useState<{ x: number; y: number } | null>(null);
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const isMobile = useIsMobile();
 
   const saveFormationMutation = useMutation({
     mutationFn: async (data: { formation: FormationPlayer[]; substitutionOrder: Record<string, number> }) => {
@@ -262,20 +264,29 @@ export default function TacticalFormation({ players, onFormationChange }: Tactic
           <CardHeader>
             <CardTitle>Formation Field</CardTitle>
           </CardHeader>
-          <CardContent>
+          <CardContent className="flex justify-center">
             <div 
-              className="relative border-2 border-dashed border-gray-300 bg-green-50 dark:bg-green-900/20"
-              style={{ width: FIELD_WIDTH, height: FIELD_HEIGHT }}
+              className="relative border-4 border-gray-600 bg-green-600 dark:bg-green-800 mx-auto overflow-hidden w-full"
+              style={{ 
+                width: isMobile ? "100%" : FIELD_WIDTH, 
+                height: FIELD_HEIGHT,
+                maxWidth: isMobile ? "280px" : "100%"
+              }}
               onDragOver={handleDragOver}
               onDrop={handleDrop}
             >
               {/* Field markings */}
               <div className="absolute inset-0">
-                <div className="absolute top-0 left-0 right-0 h-px bg-white" />
-                <div className="absolute bottom-0 left-0 right-0 h-px bg-white" />
-                <div className="absolute top-0 bottom-0 left-0 w-px bg-white" />
-                <div className="absolute top-0 bottom-0 right-0 w-px bg-white" />
-                <div className="absolute top-1/2 left-0 right-0 h-px bg-white transform -translate-y-1/2" />
+                <div className="absolute top-0 left-0 right-0 h-0.5 bg-white" />
+                <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-white" />
+                <div className="absolute top-0 bottom-0 left-0 w-0.5 bg-white" />
+                <div className="absolute top-0 bottom-0 right-0 w-0.5 bg-white" />
+                <div className="absolute top-1/2 left-0 right-0 h-0.5 bg-white transform -translate-y-1/2" />
+                <div className="absolute left-1/4 top-0 bottom-0 w-0.5 bg-white opacity-50" />
+                <div className="absolute left-3/4 top-0 bottom-0 w-0.5 bg-white opacity-50" />
+                {/* Goal areas */}
+                <div className="absolute top-1/3 bottom-1/3 left-0 w-8 border-2 border-white border-l-0" />
+                <div className="absolute top-1/3 bottom-1/3 right-0 w-8 border-2 border-white border-r-0" />
               </div>
 
               {/* Positioned Players */}

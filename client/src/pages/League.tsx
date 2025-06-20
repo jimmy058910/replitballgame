@@ -1,10 +1,15 @@
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation } from "@tanstack/react-query";
 import Navigation from "@/components/Navigation";
 import LeagueStandings from "@/components/LeagueStandings";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { apiRequest, queryClient } from "@/lib/queryClient";
+import { useToast } from "@/hooks/use-toast";
 
 export default function League() {
+  const { toast } = useToast();
+  
   const { data: team } = useQuery({
     queryKey: ["/api/teams/my"],
   });
@@ -12,6 +17,29 @@ export default function League() {
   const { data: matches } = useQuery({
     queryKey: ["/api/matches/team", team?.id].filter(Boolean),
     enabled: !!team?.id,
+  });
+
+  const createAITeamsMutation = useMutation({
+    mutationFn: async (division: number) => {
+      return await apiRequest("/api/leagues/create-ai-teams", {
+        method: "POST",
+        body: JSON.stringify({ division }),
+      });
+    },
+    onSuccess: (data: any) => {
+      toast({
+        title: "AI Teams Created",
+        description: `Successfully created ${data.teams?.length || 15} AI teams for the league`,
+      });
+      queryClient.invalidateQueries({ queryKey: ["/api/leagues"] });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Failed to Create AI Teams",
+        description: error.message || "Could not create AI teams",
+        variant: "destructive",
+      });
+    },
   });
 
   const upcomingMatches = matches?.filter((match: any) => 
@@ -28,10 +56,32 @@ export default function League() {
       
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="mb-8">
-          <h1 className="font-orbitron text-3xl font-bold mb-2">League</h1>
-          <p className="text-gray-400">
-            {team ? `Division ${team.division} - Ruby League` : "Loading..."}
-          </p>
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="font-orbitron text-3xl font-bold mb-2">League</h1>
+              <p className="text-gray-400">
+                {team ? `Division ${(team as any).division} - Ruby League` : "Loading..."}
+              </p>
+            </div>
+            <div className="flex gap-2">
+              <Button
+                onClick={() => createAITeamsMutation.mutate(8)}
+                disabled={createAITeamsMutation.isPending}
+                variant="outline"
+                className="text-blue-400 border-blue-400 hover:bg-blue-400 hover:text-white"
+              >
+                {createAITeamsMutation.isPending ? "Creating..." : "Add AI Teams (Div 8)"}
+              </Button>
+              <Button
+                onClick={() => createAITeamsMutation.mutate((team as any)?.division || 8)}
+                disabled={createAITeamsMutation.isPending}
+                variant="outline"
+                className="text-green-400 border-green-400 hover:bg-green-400 hover:text-white"
+              >
+                {createAITeamsMutation.isPending ? "Creating..." : "Fill My Division"}
+              </Button>
+            </div>
+          </div>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">

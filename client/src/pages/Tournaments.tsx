@@ -181,18 +181,20 @@ export default function Tournaments() {
                           disabled={
                             tournament.status !== "open" || 
                             enterTournamentMutation.isPending ||
-                            (team.credits || 0) < tournament.entryFee
+                            !team ||
+                            myEntries?.some((entry: any) => entry.tournamentId === tournament.id)
                           }
                           onClick={() => enterTournamentMutation.mutate(tournament.id)}
                         >
-                          {enterTournamentMutation.isPending ? "Entering..." : "Enter Tournament"}
+                          {enterTournamentMutation.isPending 
+                            ? "Entering..." 
+                            : myEntries?.some((entry: any) => entry.tournamentId === tournament.id)
+                            ? "Already Entered"
+                            : tournament.status === "open" 
+                            ? "Enter Tournament" 
+                            : "Tournament Closed"
+                          }
                         </Button>
-
-                        {(team.credits || 0) < tournament.entryFee && (
-                          <p className="text-sm text-red-400 text-center">
-                            Insufficient credits
-                          </p>
-                        )}
                       </div>
                     </CardContent>
                   </Card>
@@ -202,84 +204,75 @@ export default function Tournaments() {
           </TabsContent>
 
           <TabsContent value="entered" className="space-y-6">
-            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-              {myEntries?.map((entry: any) => (
-                <Card key={entry.id} className="bg-gray-800 border-gray-700">
-                  <CardHeader>
-                    <CardTitle className="text-lg">{entry.tournament.name}</CardTitle>
-                    <CardDescription>
-                      {getDivisionName(entry.tournament.division)}
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-3">
-                      <div className="flex justify-between items-center">
-                        <span className="text-sm text-gray-400">Status:</span>
-                        <Badge className={`${getRarityColor(entry.tournament.status)} text-white`}>
-                          {entry.tournament.status}
-                        </Badge>
-                      </div>
-
-                      {entry.placement && (
-                        <div className="flex justify-between items-center">
-                          <span className="text-sm text-gray-400">Final Position:</span>
-                          <span className="font-semibold text-yellow-400">
-                            #{entry.placement}
-                          </span>
+            {!myEntries || myEntries.length === 0 ? (
+              <Card className="bg-gray-800 border-gray-700">
+                <CardContent className="text-center py-12">
+                  <p className="text-gray-400 text-lg">No tournament entries</p>
+                  <p className="text-gray-500 mt-2">Enter some tournaments to see your entries here</p>
+                </CardContent>
+              </Card>
+            ) : (
+              <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                {myEntries.map((entry: any) => (
+                  <Card key={entry.id} className="bg-gray-800 border-gray-700">
+                    <CardHeader>
+                      <CardTitle className="text-lg">{entry.tournament?.name || "Tournament"}</CardTitle>
+                      <CardDescription>
+                        Entry Status: {entry.status}
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="space-y-2">
+                        <div className="flex justify-between">
+                          <span className="text-sm text-gray-400">Division:</span>
+                          <span>{getDivisionName(entry.tournament?.division || 1)}</span>
                         </div>
-                      )}
-
-                      {entry.prizeWon > 0 && (
-                        <div className="flex justify-between items-center">
-                          <span className="text-sm text-gray-400">Prize Won:</span>
-                          <span className="font-semibold text-green-400">
-                            {entry.prizeWon.toLocaleString()} credits
-                          </span>
+                        <div className="flex justify-between">
+                          <span className="text-sm text-gray-400">Entry Fee:</span>
+                          <span className="text-red-400">{entry.tournament?.entryFee?.toLocaleString() || 0} credits</span>
                         </div>
-                      )}
-
-                      <div className="text-xs text-gray-500">
-                        Entered: {new Date(entry.entryTime).toLocaleDateString()}
                       </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            )}
           </TabsContent>
 
           <TabsContent value="history" className="space-y-6">
-            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-              {tournamentHistory?.map((entry: any) => (
-                <Card key={entry.id} className="bg-gray-800 border-gray-700">
-                  <CardHeader>
-                    <CardTitle className="text-lg">{entry.tournament.name}</CardTitle>
-                    <CardDescription>
-                      {getDivisionName(entry.tournament.division)}
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-3">
-                      <div className="flex justify-between items-center">
-                        <span className="text-sm text-gray-400">Final Position:</span>
-                        <span className="font-semibold">#{entry.placement}</span>
+            {!tournamentHistory || tournamentHistory.length === 0 ? (
+              <Card className="bg-gray-800 border-gray-700">
+                <CardContent className="text-center py-12">
+                  <p className="text-gray-400 text-lg">No tournament history</p>
+                  <p className="text-gray-500 mt-2">Complete some tournaments to see your history here</p>
+                </CardContent>
+              </Card>
+            ) : (
+              <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                {tournamentHistory.map((entry: any) => (
+                  <Card key={entry.id} className="bg-gray-800 border-gray-700">
+                    <CardHeader>
+                      <CardTitle className="text-lg">{entry.tournament?.name || "Tournament"}</CardTitle>
+                      <CardDescription>
+                        Final Position: {entry.finalPosition || "N/A"}
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="space-y-2">
+                        <div className="flex justify-between">
+                          <span className="text-sm text-gray-400">Division:</span>
+                          <span>{getDivisionName(entry.tournament?.division || 1)}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-sm text-gray-400">Rewards:</span>
+                          <span className="text-green-400">{entry.rewards?.toLocaleString() || 0} credits</span>
+                        </div>
                       </div>
-
-                      <div className="flex justify-between items-center">
-                        <span className="text-sm text-gray-400">Prize Won:</span>
-                        <span className="font-semibold text-green-400">
-                          {entry.prizeWon.toLocaleString()} credits
-                        </span>
-                      </div>
-
-                      <div className="text-xs text-gray-500">
-                        Completed: {new Date(entry.tournament.endTime).toLocaleDateString()}
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            )}
           </TabsContent>
         </Tabs>
       </div>

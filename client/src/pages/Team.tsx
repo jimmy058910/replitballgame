@@ -88,7 +88,7 @@ export default function Team() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="mb-8">
           <div className="flex items-center justify-between mb-6">
-            <h1 className="font-orbitron text-3xl font-bold">My Team - {team.name}</h1>
+            <h1 className="font-orbitron text-3xl font-bold">{team.name}</h1>
             <div className="flex space-x-2">
               <Button 
                 variant="outline" 
@@ -112,13 +112,13 @@ export default function Team() {
 
         {/* Main Navigation Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="mb-8">
-          <TabsList className="grid w-full grid-cols-6 bg-gray-800">
-            <TabsTrigger value="roster">Roster</TabsTrigger>
-            <TabsTrigger value="tactics">Tactics</TabsTrigger>
-            <TabsTrigger value="staff">Staff</TabsTrigger>
-            <TabsTrigger value="finances">Finances</TabsTrigger>
-            <TabsTrigger value="contracts">Contracts</TabsTrigger>
-            <TabsTrigger value="recruiting">Recruiting</TabsTrigger>
+          <TabsList className="grid w-full grid-cols-6 bg-gray-800 gap-0.5">
+            <TabsTrigger value="roster" className="border-r border-gray-600 last:border-r-0">Roster</TabsTrigger>
+            <TabsTrigger value="tactics" className="border-r border-gray-600 last:border-r-0">Tactics</TabsTrigger>
+            <TabsTrigger value="staff" className="border-r border-gray-600 last:border-r-0">Staff</TabsTrigger>
+            <TabsTrigger value="finances" className="border-r border-gray-600 last:border-r-0">Finances</TabsTrigger>
+            <TabsTrigger value="contracts" className="border-r border-gray-600 last:border-r-0">Contracts</TabsTrigger>
+            <TabsTrigger value="recruiting" className="border-r border-gray-600 last:border-r-0">Recruiting</TabsTrigger>
           </TabsList>
 
           <TabsContent value="roster">

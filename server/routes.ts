@@ -1303,6 +1303,70 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Create AI teams for leagues
+  app.post('/api/leagues/create-ai-teams', isAuthenticated, async (req, res) => {
+    try {
+      const { division = 8 } = req.body;
+      
+      const aiTeamNames = [
+        "Shadow Hunters", "Storm Riders", "Iron Eagles", "Fire Wolves", 
+        "Thunder Hawks", "Ice Bears", "Lightning Tigers", "Stone Lions",
+        "Wind Falcons", "Flame Panthers", "Steel Sharks", "Dark Ravens",
+        "Frost Wolves", "Electric Dragons", "Mystic Foxes", "Savage Bulls"
+      ];
+
+      const createdTeams = [];
+      
+      for (let i = 0; i < 15; i++) { // Create 15 AI teams
+        const teamName = aiTeamNames[i % aiTeamNames.length] + ` ${Math.floor(Math.random() * 100)}`;
+        
+        // Create AI team
+        const team = await storage.createTeam({
+          name: teamName,
+          userId: `ai-${Date.now()}-${i}`, // Unique AI user ID
+          division: division,
+          wins: Math.floor(Math.random() * 5),
+          losses: Math.floor(Math.random() * 5),
+          draws: Math.floor(Math.random() * 2),
+          points: Math.floor(Math.random() * 15),
+          teamPower: 60 + Math.floor(Math.random() * 20)
+        });
+
+        // Create team finances for AI team
+        await storage.createTeamFinances({
+          teamId: team.id,
+          credits: 10000 + Math.floor(Math.random() * 20000),
+          season: 1
+        });
+
+        // Generate AI players for the team
+        const races = ["Human", "Elf", "Dwarf", "Orc"];
+        const playerNames = [
+          "Aldric", "Thane", "Gorin", "Vex", "Kael", "Drax", "Zara", "Nyx",
+          "Rex", "Blade", "Storm", "Ace", "Phoenix", "Viper", "Ghost", "Steel"
+        ];
+
+        for (let j = 0; j < 10; j++) {
+          const race = races[Math.floor(Math.random() * races.length)];
+          const name = playerNames[Math.floor(Math.random() * playerNames.length)] + 
+                      Math.floor(Math.random() * 100);
+          
+          await storage.createPlayer(generateRandomPlayer(name, race, team.id));
+        }
+
+        createdTeams.push(team);
+      }
+
+      res.json({ 
+        message: `Created ${createdTeams.length} AI teams for Division ${division}`,
+        teams: createdTeams.map(t => ({ id: t.id, name: t.name, division: t.division }))
+      });
+    } catch (error) {
+      console.error("Error creating AI teams:", error);
+      res.status(500).json({ message: "Failed to create AI teams" });
+    }
+  });
+
   // Redemption Codes API Routes
   app.get('/api/redemption-codes/history', isAuthenticated, async (req: any, res) => {
     try {
