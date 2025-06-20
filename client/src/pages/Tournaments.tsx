@@ -19,7 +19,6 @@ export default function Tournaments() {
 
   const { data: tournaments, isLoading: tournamentsLoading } = useQuery({
     queryKey: ["/api/tournaments", selectedDivision],
-    queryFn: () => fetch(`/api/tournaments/${selectedDivision}`).then(res => res.json()),
   });
 
   const { data: myEntries } = useQuery({
@@ -125,9 +124,16 @@ export default function Tournaments() {
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mx-auto"></div>
                 <p className="mt-2 text-gray-400">Loading tournaments...</p>
               </div>
+            ) : !tournaments || tournaments.length === 0 ? (
+              <Card className="bg-gray-800 border-gray-700">
+                <CardContent className="text-center py-12">
+                  <p className="text-gray-400 text-lg">No tournaments available</p>
+                  <p className="text-gray-500 mt-2">Check back later for new tournaments</p>
+                </CardContent>
+              </Card>
             ) : (
               <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-                {tournaments?.map((tournament: any) => (
+                {tournaments.map((tournament: any) => (
                   <Card key={tournament.id} className="bg-gray-800 border-gray-700">
                     <CardHeader>
                       <div className="flex items-center justify-between">

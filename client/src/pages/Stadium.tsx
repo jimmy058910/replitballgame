@@ -9,6 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { Building, Users, Zap, Trophy, Target, DollarSign } from "lucide-react";
+import Navigation from "@/components/Navigation";
 
 export default function Stadium() {
   const [selectedUpgrade, setSelectedUpgrade] = useState<any>(null);
@@ -158,7 +159,9 @@ export default function Stadium() {
   ];
 
   return (
-    <div className="container mx-auto p-6 space-y-6">
+    <div className="min-h-screen bg-gray-900 text-white">
+      <Navigation />
+      <div className="container mx-auto p-6 space-y-6">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold flex items-center gap-2">
@@ -445,6 +448,7 @@ export default function Stadium() {
           </div>
         </TabsContent>
       </Tabs>
+      </div>
     </div>
   );
 }

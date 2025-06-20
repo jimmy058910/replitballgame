@@ -15,9 +15,9 @@ function calculateTeamPower(players: any[]): number {
   
   const totalPower = players.reduce((sum, player) => {
     const playerPower = (
-      player.speed + player.agility + player.power + 
-      player.stamina + player.throwing + player.catching + 
-      player.leadership
+      (player.speed || 0) + (player.agility || 0) + (player.power || 0) + 
+      (player.stamina || 0) + (player.throwing || 0) + (player.catching || 0) + 
+      (player.leadership || 0)
     ) / 7;
     return sum + playerPower;
   }, 0);
@@ -103,7 +103,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: "Team not found" });
       }
 
-      res.json(team);
+      // Get team players and calculate team power
+      const players = await storage.getPlayersByTeamId(team.id);
+      const teamPower = calculateTeamPower(players);
+
+      res.json({ ...team, teamPower });
     } catch (error) {
       console.error("Error fetching team:", error);
       res.status(500).json({ message: "Failed to fetch team" });
@@ -678,13 +682,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: "Player not found or not owned" });
       }
 
-      // Training cost (1000 credits)
-      const trainingCost = 1000;
-      const finances = await storage.getTeamFinances(team.id);
-      if (!finances || finances.credits < trainingCost) {
-        return res.status(400).json({ message: "Insufficient credits for training" });
-      }
-
       // Import abilities system and roll for new ability
       const { rollForAbility } = await import("@shared/abilities");
       const newAbility = rollForAbility(player);
@@ -694,7 +691,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const updatedAbilities = [...currentAbilities, newAbility.id];
         
         await storage.updatePlayer(playerId, { abilities: updatedAbilities });
-        await storage.updateTeamFinances(team.id, { credits: finances.credits - trainingCost });
         
         res.json({ 
           success: true, 
@@ -702,7 +698,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
           message: `${player.name} learned ${newAbility.name}!` 
         });
       } else {
-        await storage.updateTeamFinances(team.id, { credits: finances.credits - trainingCost });
         res.json({ 
           success: false, 
           message: "Training completed but no new ability was learned" 

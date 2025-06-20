@@ -20,6 +20,10 @@ export default function Navigation() {
     queryKey: ["/api/teams/my/finances"],
   });
 
+  const { data: storeData } = useQuery({
+    queryKey: ["/api/store/ads"],
+  });
+
   const navItems = [
     { path: "/", label: "Dashboard", icon: Home },
     { path: "/team", label: "Team", icon: Users },
@@ -33,6 +37,7 @@ export default function Navigation() {
   ];
 
   const credits = finances?.credits || team?.credits || 15000;
+  const premiumCurrency = storeData?.premiumCurrency || 0;
 
   return (
     <nav className="bg-gray-800 border-b border-gray-700 sticky top-0 z-50">
@@ -71,6 +76,13 @@ export default function Navigation() {
 
           {/* Right side - Credits and Actions */}
           <div className="flex items-center space-x-2">
+            {/* Premium Currency Display */}
+            <div className="flex items-center bg-purple-700 px-2 py-1 rounded text-xs font-semibold">
+              <Coins className="h-3 w-3 text-purple-300 mr-1" />
+              <span className="text-white">{premiumCurrency.toLocaleString()}</span>
+              <span className="text-purple-300 ml-1">💎</span>
+            </div>
+            
             {/* Credits Display */}
             <div className="flex items-center bg-gray-700 px-2 py-1 rounded text-xs font-semibold">
               <Coins className="h-3 w-3 text-yellow-400 mr-1" />

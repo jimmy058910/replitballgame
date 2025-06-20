@@ -76,7 +76,7 @@ export default function AbilitiesDisplay({ player, canTrain = false }: Abilities
               disabled={trainAbilitiesMutation.isPending}
               size="sm"
             >
-              {trainAbilitiesMutation.isPending ? "Training..." : "Train Abilities (1000₡)"}
+              {trainAbilitiesMutation.isPending ? "Training..." : "Train Abilities"}
             </Button>
           )}
         </CardTitle>

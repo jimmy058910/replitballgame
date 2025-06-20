@@ -18,6 +18,7 @@ export default function Marketplace() {
   const [raceFilter, setRaceFilter] = useState("all");
   const [roleFilter, setRoleFilter] = useState("all");
   const [priceFilter, setPriceFilter] = useState("all");
+  const [contractFilter, setContractFilter] = useState("all");
   const [searchTerm, setSearchTerm] = useState("");
   const [marketplaceTab, setMarketplaceTab] = useState("players");
   const [equipmentRarityFilter, setEquipmentRarityFilter] = useState("all");
@@ -119,9 +120,18 @@ export default function Marketplace() {
         default: return true;
       }
     })();
+    const matchesContract = contractFilter === "all" || (() => {
+      const contract = player.contractPrice || 0;
+      switch(contractFilter) {
+        case "low": return contract < 5000;
+        case "medium": return contract >= 5000 && contract < 15000;
+        case "high": return contract >= 15000;
+        default: return true;
+      }
+    })();
     const matchesSearch = searchTerm === "" || 
       player.name.toLowerCase().includes(searchTerm.toLowerCase());
-    return matchesRace && matchesRole && matchesPrice && matchesSearch;
+    return matchesRace && matchesRole && matchesPrice && matchesContract && matchesSearch;
   }) || [];
 
   const filteredEquipment = marketplaceEquipment?.filter((item: any) => {
@@ -193,7 +203,7 @@ export default function Marketplace() {
                 <CardTitle>Player Search & Filter</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-300 mb-2">
                       Search Players
@@ -258,6 +268,22 @@ export default function Marketplace() {
                         <SelectItem value="low">Under 50K</SelectItem>
                         <SelectItem value="medium">50K - 200K</SelectItem>
                         <SelectItem value="high">200K+</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-300 mb-2">
+                      Contract Cost
+                    </label>
+                    <Select value={contractFilter} onValueChange={setContractFilter}>
+                      <SelectTrigger className="bg-gray-700 border-gray-600 text-white">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent className="bg-gray-700 border-gray-600">
+                        <SelectItem value="all">All Contracts</SelectItem>
+                        <SelectItem value="low">Under 5K</SelectItem>
+                        <SelectItem value="medium">5K - 15K</SelectItem>
+                        <SelectItem value="high">15K+</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
