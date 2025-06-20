@@ -1,0 +1,83 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 120" width="400" height="120">
+  <defs>
+    <linearGradient id="arenaGradient3" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#DC2626;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#F59E0B;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#DC2626;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="textGradient3" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#FEF3C7;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#FBBF24;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#FEF3C7;stop-opacity:1" />
+    </linearGradient>
+    <filter id="flame">
+      <feGaussianBlur stdDeviation="2" result="coloredBlur"/>
+      <feMerge> 
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+  
+  <!-- Background -->
+  <rect width="400" height="120" fill="#1C1917" rx="8"/>
+  
+  <!-- Arena/Colosseum design -->
+  <g transform="translate(60, 60)">
+    <!-- Arena structure -->
+    <ellipse cx="0" cy="0" rx="40" ry="25" fill="none" stroke="url(#arenaGradient3)" stroke-width="4"/>
+    <ellipse cx="0" cy="0" rx="32" ry="20" fill="none" stroke="url(#arenaGradient3)" stroke-width="2" opacity="0.7"/>
+    
+    <!-- Arena tiers -->
+    <path d="M-35 -20 Q-40 -15 -35 -10 L-30 -12 Q-32 -17 -30 -22 Z" fill="#DC2626" opacity="0.8"/>
+    <path d="M35 -20 Q40 -15 35 -10 L30 -12 Q32 -17 30 -22 Z" fill="#DC2626" opacity="0.8"/>
+    <path d="M-35 20 Q-40 15 -35 10 L-30 12 Q-32 17 -30 22 Z" fill="#DC2626" opacity="0.8"/>
+    <path d="M35 20 Q40 15 35 10 L30 12 Q32 17 30 22 Z" fill="#DC2626" opacity="0.8"/>
+    
+    <!-- Central arena field -->
+    <ellipse cx="0" cy="0" rx="20" ry="12" fill="#065F46" stroke="#10B981" stroke-width="2"/>
+    
+    <!-- Fighting teams representation -->
+    <circle cx="-10" cy="-5" r="3" fill="#3B82F6"/>
+    <circle cx="-10" cy="5" r="3" fill="#3B82F6"/>
+    <circle cx="10" cy="-5" r="3" fill="#EF4444"/>
+    <circle cx="10" cy="5" r="3" fill="#EF4444"/>
+    
+    <!-- Victory flames -->
+    <g transform="translate(0, -30)">
+      <path d="M-5 0 Q-8 -8 -5 -15 Q-2 -12 0 -15 Q2 -12 5 -15 Q8 -8 5 0 Z" 
+            fill="url(#arenaGradient3)" filter="url(#flame)"/>
+    </g>
+    
+    <!-- Championship banners -->
+    <rect x="-45" y="-35" width="8" height="20" fill="#F59E0B"/>
+    <path d="M-45 -35 L-37 -35 L-41 -25 Z" fill="#DC2626"/>
+    
+    <rect x="37" y="-35" width="8" height="20" fill="#F59E0B"/>
+    <path d="M37 -35 L45 -35 L41 -25 Z" fill="#DC2626"/>
+  </g>
+  
+  <!-- Bold warrior-style text -->
+  <text x="140" y="45" font-family="Impact, Arial Black, sans-serif" font-size="32" font-weight="900" 
+        fill="url(#textGradient3)" filter="url(#flame)">REALM</text>
+  <text x="140" y="80" font-family="Impact, Arial Black, sans-serif" font-size="32" font-weight="900" 
+        fill="url(#textGradient3)" filter="url(#flame)">RIVALRY</text>
+  
+  <!-- Battle subtitle -->
+  <text x="140" y="100" font-family="Arial, sans-serif" font-size="12" font-weight="bold"
+        fill="#F87171" opacity="0.9">ARENA OF CHAMPIONS</text>
+        
+  <!-- Decorative weapons -->
+  <g transform="translate(340, 30)">
+    <!-- Sword -->
+    <rect x="-1" y="-15" width="2" height="25" fill="url(#arenaGradient3)"/>
+    <rect x="-3" y="-17" width="6" height="4" fill="url(#arenaGradient3)"/>
+    <circle cx="0" cy="12" r="3" fill="#8B5563"/>
+  </g>
+  
+  <g transform="translate(370, 90)">
+    <!-- Shield -->
+    <path d="M0 -10 L-6 -5 L-6 5 L0 10 L6 5 L6 -5 Z" fill="url(#arenaGradient3)"/>
+    <circle cx="0" cy="0" r="3" fill="#FCD34D"/>
+  </g>
+</svg>

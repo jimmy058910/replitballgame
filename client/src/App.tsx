@@ -11,12 +11,14 @@ import Team from "@/pages/Team";
 import League from "@/pages/League";
 import Marketplace from "@/pages/Marketplace";
 import Match from "@/pages/Match";
+import LogoShowcase from "@/pages/LogoShowcase";
 
 function Router() {
   const { isAuthenticated, isLoading } = useAuth();
 
   return (
     <Switch>
+      <Route path="/logos" component={LogoShowcase} />
       {isLoading || !isAuthenticated ? (
         <Route path="/" component={Landing} />
       ) : (

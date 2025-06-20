@@ -1,0 +1,104 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 120" width="400" height="120">
+  <defs>
+    <linearGradient id="natureGradient5" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#059669;stop-opacity:1" />
+      <stop offset="25%" style="stop-color:#0D9488;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#0891B2;stop-opacity:1" />
+      <stop offset="75%" style="stop-color:#7C3AED;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#BE185D;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="textGradient5" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#F0FDF4;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#22C55E;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#16A34A;stop-opacity:1" />
+    </linearGradient>
+    <filter id="organic">
+      <feGaussianBlur stdDeviation="1.5" result="coloredBlur"/>
+      <feMorphology operator="dilate" radius="1"/>
+      <feMerge> 
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+  
+  <!-- Background -->
+  <rect width="400" height="120" fill="#0F1419" rx="8"/>
+  
+  <!-- Organic tree/realm design -->
+  <g transform="translate(60, 60)">
+    <!-- Tree trunk/realm pillar -->
+    <path d="M-8 25 Q-12 15 -10 0 Q-8 -15 -5 -25 Q0 -35 5 -25 Q8 -15 10 0 Q12 15 8 25 Z" 
+          fill="url(#natureGradient5)" opacity="0.8" filter="url(#organic)"/>
+    
+    <!-- Root system -->
+    <path d="M-8 25 Q-20 30 -25 35 Q-30 40 -25 45" stroke="url(#natureGradient5)" stroke-width="3" fill="none" opacity="0.7"/>
+    <path d="M8 25 Q20 30 25 35 Q30 40 25 45" stroke="url(#natureGradient5)" stroke-width="3" fill="none" opacity="0.7"/>
+    <path d="M0 25 Q-15 35 -10 45" stroke="url(#natureGradient5)" stroke-width="2" fill="none" opacity="0.6"/>
+    <path d="M0 25 Q15 35 10 45" stroke="url(#natureGradient5)" stroke-width="2" fill="none" opacity="0.6"/>
+    
+    <!-- Branch system with race representations -->
+    <!-- Left branch - Sylvan -->
+    <path d="M-5 -15 Q-15 -20 -25 -15 Q-30 -10 -25 -5" stroke="#10B981" stroke-width="4" fill="none"/>
+    <g transform="translate(-25, -10)">
+      <path d="M0 -3 Q-2 -5 0 -7 Q2 -5 0 -3" fill="#22C55E"/>
+      <path d="M0 -3 L0 3" stroke="#22C55E" stroke-width="1"/>
+    </g>
+    
+    <!-- Right branch - Gryll -->
+    <path d="M5 -15 Q15 -20 25 -15 Q30 -10 25 -5" stroke="#6B7280" stroke-width="4" fill="none"/>
+    <g transform="translate(25, -10)">
+      <polygon points="0,-3 -2,0 0,3 2,0" fill="#6B7280"/>
+    </g>
+    
+    <!-- Upper left - Lumina -->
+    <path d="M-3 -25 Q-10 -35 -20 -30 Q-25 -25 -20 -20" stroke="#FCD34D" stroke-width="3" fill="none"/>
+    <g transform="translate(-20, -25)">
+      <circle cx="0" cy="0" r="3" fill="#FCD34D"/>
+      <path d="M0 -4 L0 4" stroke="#FCD34D" stroke-width="1"/>
+      <path d="M-4 0 L4 0" stroke="#FCD34D" stroke-width="1"/>
+    </g>
+    
+    <!-- Upper right - Umbra -->
+    <path d="M3 -25 Q10 -35 20 -30 Q25 -25 20 -20" stroke="#8B5CF6" stroke-width="3" fill="none"/>
+    <g transform="translate(20, -25)">
+      <circle cx="0" cy="0" r="3" fill="#8B5CF6" opacity="0.8"/>
+      <path d="M-4 -1 Q0 -3 4 -1" fill="#5B21B6" opacity="0.6"/>
+    </g>
+    
+    <!-- Central crown - Human -->
+    <g transform="translate(0, -30)">
+      <circle cx="0" cy="0" r="4" fill="#94A3B8"/>
+      <rect x="-2" y="4" width="4" height="6" rx="1" fill="#94A3B8"/>
+    </g>
+    
+    <!-- Mystical energy flowing through -->
+    <path d="M0 -35 Q-10 -20 0 -5 Q10 10 0 25" stroke="url(#natureGradient5)" stroke-width="2" fill="none" opacity="0.5"/>
+  </g>
+  
+  <!-- Elegant organic text -->
+  <text x="140" y="45" font-family="Spectral, serif" font-size="32" font-weight="600" 
+        fill="url(#textGradient5)" filter="url(#organic)">REALM</text>
+  <text x="140" y="78" font-family="Spectral, serif" font-size="32" font-weight="600" 
+        fill="url(#textGradient5)" filter="url(#organic)">RIVALRY</text>
+  
+  <!-- Nature subtitle -->
+  <text x="140" y="100" font-family="Arial, sans-serif" font-size="11" 
+        fill="#6EE7B7" opacity="0.9">HARMONY IN COMPETITION</text>
+        
+  <!-- Floating organic elements -->
+  <g opacity="0.7">
+    <!-- Leaves -->
+    <ellipse cx="320" cy="20" rx="3" ry="6" fill="#22C55E" transform="rotate(30 320 20)"/>
+    <ellipse cx="340" cy="15" rx="2" ry="4" fill="#10B981" transform="rotate(-20 340 15)"/>
+    <ellipse cx="365" cy="25" rx="2.5" ry="5" fill="#059669" transform="rotate(45 365 25)"/>
+    
+    <!-- Petals -->
+    <ellipse cx="325" cy="100" rx="2" ry="4" fill="#EC4899" transform="rotate(60 325 100)"/>
+    <ellipse cx="345" cy="95" rx="2.5" ry="5" fill="#8B5CF6" transform="rotate(-30 345 95)"/>
+    <ellipse cx="370" cy="105" rx="2" ry="4" fill="#7C3AED" transform="rotate(90 370 105)"/>
+  </g>
+  
+  <!-- Organic flow lines -->
+  <path d="M310 60 Q330 50 350 60 Q370 70 390 60" stroke="url(#natureGradient5)" stroke-width="1" opacity="0.4" fill="none"/>
+</svg>
