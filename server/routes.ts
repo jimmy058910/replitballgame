@@ -94,7 +94,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/teams/:id/players', isAuthenticated, async (req, res) => {
     try {
       const { id } = req.params;
+      console.log(`Fetching players for team ID: ${id}`);
       const players = await storage.getPlayersByTeamId(id);
+      console.log(`Found ${players.length} players for team ${id}`);
       res.json(players);
     } catch (error) {
       console.error("Error fetching players:", error);

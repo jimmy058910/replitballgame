@@ -6,26 +6,52 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
+// Helper function to determine player role based on attributes
+function getPlayerRole(player: any): string {
+  const { speed, agility, catching, throwing, power } = player;
+  
+  // Passer: High throwing and leadership
+  const passerScore = (throwing * 2) + (player.leadership * 1.5);
+  
+  // Runner: High speed and agility
+  const runnerScore = (speed * 2) + (agility * 1.5);
+  
+  // Blocker: High power and stamina
+  const blockerScore = (power * 2) + (player.stamina * 1.5);
+  
+  const maxScore = Math.max(passerScore, runnerScore, blockerScore);
+  
+  if (maxScore === passerScore) return "passer";
+  if (maxScore === runnerScore) return "runner";
+  return "blocker";
+}
+
 export default function Team() {
-  const [selectedRace, setSelectedRace] = useState("all");
+  const [selectedRole, setSelectedRole] = useState("all");
 
   const { data: team } = useQuery({
     queryKey: ["/api/teams/my"],
   });
 
   const { data: players, isLoading: playersLoading } = useQuery({
-    queryKey: ["/api/teams", team?.id, "players"].filter(Boolean),
+    queryKey: [`/api/teams/${team?.id}/players`],
     enabled: !!team?.id,
   });
 
-  const filteredPlayers = players?.filter((player: any) => 
-    selectedRace === "all" || player.race === selectedRace
-  ) || [];
+  // Add roles to players and filter
+  const playersWithRoles = players?.map((player: any) => ({
+    ...player,
+    role: getPlayerRole(player)
+  })) || [];
 
-  const raceStats = players?.reduce((acc: any, player: any) => {
-    acc[player.race] = (acc[player.race] || 0) + 1;
+  const filteredPlayers = playersWithRoles.filter((player: any) => 
+    selectedRole === "all" || player.role === selectedRole
+  );
+
+  const roleStats = playersWithRoles.reduce((acc: any, player: any) => {
+    acc[player.role] = (acc[player.role] || 0) + 1;
     return acc;
-  }, {}) || {};
+  }, {});
 
   if (!team) {
     return (
@@ -61,15 +87,13 @@ export default function Team() {
           </div>
         </div>
 
-        {/* Race Filter Tabs */}
-        <Tabs value={selectedRace} onValueChange={setSelectedRace} className="mb-8">
-          <TabsList className="grid w-full grid-cols-6 bg-gray-800">
-            <TabsTrigger value="all">All Races</TabsTrigger>
-            <TabsTrigger value="human">Humans</TabsTrigger>
-            <TabsTrigger value="sylvan">Sylvans</TabsTrigger>
-            <TabsTrigger value="gryll">Gryll</TabsTrigger>
-            <TabsTrigger value="lumina">Lumina</TabsTrigger>
-            <TabsTrigger value="umbra">Umbra</TabsTrigger>
+        {/* Role Filter Tabs */}
+        <Tabs value={selectedRole} onValueChange={setSelectedRole} className="mb-8">
+          <TabsList className="grid w-full grid-cols-4 bg-gray-800">
+            <TabsTrigger value="all">All Players ({playersWithRoles.length})</TabsTrigger>
+            <TabsTrigger value="passer">Passers ({roleStats.passer || 0})</TabsTrigger>
+            <TabsTrigger value="runner">Runners ({roleStats.runner || 0})</TabsTrigger>
+            <TabsTrigger value="blocker">Blockers ({roleStats.blocker || 0})</TabsTrigger>
           </TabsList>
         </Tabs>
 
@@ -79,26 +103,21 @@ export default function Team() {
             <CardTitle>Team Overview</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-2 md:grid-cols-5 gap-4 text-center">
+            <div className="grid grid-cols-3 gap-6 text-center">
               <div>
-                <div className="text-2xl font-bold text-race-human">{raceStats.human || 0}</div>
-                <div className="text-xs text-gray-400">Humans</div>
+                <div className="text-3xl font-bold text-blue-400">{roleStats.passer || 0}</div>
+                <div className="text-sm text-gray-400">Passers</div>
+                <div className="text-xs text-gray-500">Leadership & Throwing</div>
               </div>
               <div>
-                <div className="text-2xl font-bold text-race-sylvan">{raceStats.sylvan || 0}</div>
-                <div className="text-xs text-gray-400">Sylvans</div>
+                <div className="text-3xl font-bold text-green-400">{roleStats.runner || 0}</div>
+                <div className="text-sm text-gray-400">Runners</div>
+                <div className="text-xs text-gray-500">Speed & Agility</div>
               </div>
               <div>
-                <div className="text-2xl font-bold text-race-gryll">{raceStats.gryll || 0}</div>
-                <div className="text-xs text-gray-400">Gryll</div>
-              </div>
-              <div>
-                <div className="text-2xl font-bold text-race-lumina">{raceStats.lumina || 0}</div>
-                <div className="text-xs text-gray-400">Lumina</div>
-              </div>
-              <div>
-                <div className="text-2xl font-bold text-race-umbra">{raceStats.umbra || 0}</div>
-                <div className="text-xs text-gray-400">Umbra</div>
+                <div className="text-3xl font-bold text-red-400">{roleStats.blocker || 0}</div>
+                <div className="text-sm text-gray-400">Blockers</div>
+                <div className="text-xs text-gray-500">Power & Stamina</div>
               </div>
             </div>
           </CardContent>
@@ -137,9 +156,9 @@ export default function Team() {
               No players found
             </h3>
             <p className="text-gray-500">
-              {selectedRace === "all" 
+              {selectedRole === "all" 
                 ? "Your team has no players yet." 
-                : `No ${selectedRace} players in your team.`
+                : `No ${selectedRole} players in your team.`
               }
             </p>
           </div>

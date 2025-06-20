@@ -6,6 +6,27 @@ interface PlayerCardProps {
   compact?: boolean;
 }
 
+// Helper function to determine player role based on attributes
+function getPlayerRole(player: any): string {
+  const { speed, agility, catching, throwing, power } = player;
+  
+  const passerScore = (throwing * 2) + (player.leadership * 1.5);
+  const runnerScore = (speed * 2) + (agility * 1.5);
+  const blockerScore = (power * 2) + (player.stamina * 1.5);
+  
+  const maxScore = Math.max(passerScore, runnerScore, blockerScore);
+  
+  if (maxScore === passerScore) return "Passer";
+  if (maxScore === runnerScore) return "Runner";
+  return "Blocker";
+}
+
+const roleColors = {
+  Passer: "text-blue-400",
+  Runner: "text-green-400", 
+  Blocker: "text-red-400",
+} as const;
+
 const raceColors = {
   human: "race-human",
   sylvan: "race-sylvan",
@@ -34,6 +55,8 @@ export default function PlayerCard({ player, compact = false }: PlayerCardProps)
   const raceColorClass = raceColors[player.race as keyof typeof raceColors] || "race-human";
   const raceIcon = raceIcons[player.race as keyof typeof raceIcons] || "fas fa-user";
   const abilities = raceAbilities[player.race as keyof typeof raceAbilities] || "Unknown";
+  const playerRole = getPlayerRole(player);
+  const roleColorClass = roleColors[playerRole as keyof typeof roleColors] || "text-gray-400";
 
   const renderStars = (potential: string) => {
     const rating = parseFloat(potential);
@@ -87,6 +110,9 @@ export default function PlayerCard({ player, compact = false }: PlayerCardProps)
               <h4 className="font-semibold text-white">{player.name}</h4>
               <p className={`text-xs text-${raceColorClass} font-medium`}>
                 {player.race.charAt(0).toUpperCase() + player.race.slice(1)} • Age {player.age}
+              </p>
+              <p className={`text-xs ${roleColorClass} font-semibold`}>
+                {playerRole}
               </p>
             </div>
           </div>
