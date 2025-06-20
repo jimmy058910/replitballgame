@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80 80" width="80" height="80">
+  <defs>
+    <linearGradient id="sylvanGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#10B981;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#059669;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  
+  <!-- Sylvan figure -->
+  <g transform="translate(40, 40)">
+    <!-- Head with bark-like texture -->
+    <circle cx="0" cy="-20" r="12" fill="url(#sylvanGradient)" stroke="#6EE7B7" stroke-width="1"/>
+    <!-- Leaf crown -->
+    <path d="M-8 -28 Q-5 -32 0 -30 Q5 -32 8 -28" fill="#22C55E" stroke="#10B981" stroke-width="1"/>
+    <path d="M-6 -26 L-3 -30 L0 -26" fill="#16A34A"/>
+    <path d="M6 -26 L3 -30 L0 -26" fill="#16A34A"/>
+    
+    <!-- Body with natural armor -->
+    <rect x="-8" y="-8" width="16" height="20" rx="3" fill="url(#sylvanGradient)" stroke="#6EE7B7" stroke-width="1"/>
+    
+    <!-- Arms with leaf details -->
+    <rect x="-18" y="-5" width="8" height="15" rx="2" fill="url(#sylvanGradient)" stroke="#6EE7B7" stroke-width="1"/>
+    <rect x="10" y="-5" width="8" height="15" rx="2" fill="url(#sylvanGradient)" stroke="#6EE7B7" stroke-width="1"/>
+    <ellipse cx="-14" cy="0" rx="2" ry="3" fill="#22C55E" opacity="0.8"/>
+    <ellipse cx="14" cy="0" rx="2" ry="3" fill="#22C55E" opacity="0.8"/>
+    
+    <!-- Legs -->
+    <rect x="-6" y="12" width="5" height="18" rx="2" fill="url(#sylvanGradient)" stroke="#6EE7B7" stroke-width="1"/>
+    <rect x="1" y="12" width="5" height="18" rx="2" fill="url(#sylvanGradient)" stroke="#6EE7B7" stroke-width="1"/>
+    
+    <!-- Nature details -->
+    <path d="M-4 -2 Q0 -4 4 -2" stroke="#22C55E" stroke-width="2" fill="none"/>
+    <circle cx="-2" cy="5" r="1" fill="#16A34A"/>
+    <circle cx="2" cy="8" r="1" fill="#16A34A"/>
+  </g>
+</svg>

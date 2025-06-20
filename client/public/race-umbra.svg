@@ -1,0 +1,54 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80 80" width="80" height="80">
+  <defs>
+    <linearGradient id="umbraGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#8B5CF6;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#5B21B6;stop-opacity:1" />
+    </linearGradient>
+    <filter id="shadowGlow">
+      <feGaussianBlur stdDeviation="2" result="coloredBlur"/>
+      <feMerge> 
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+  
+  <!-- Umbra figure -->
+  <g transform="translate(40, 40)">
+    <!-- Head with shadowy aura -->
+    <circle cx="0" cy="-20" r="12" fill="url(#umbraGradient)" stroke="#A78BFA" stroke-width="1" filter="url(#shadowGlow)"/>
+    <!-- Shadow hood -->
+    <path d="M-15 -25 Q0 -35 15 -25 Q10 -20 0 -22 Q-10 -20 -15 -25" fill="#4C1D95" opacity="0.8"/>
+    
+    <!-- Body - slim and agile -->
+    <rect x="-7" y="-8" width="14" height="18" rx="3" fill="url(#umbraGradient)" stroke="#A78BFA" stroke-width="1"/>
+    
+    <!-- Arms - sleek -->
+    <rect x="-16" y="-5" width="7" height="14" rx="2" fill="url(#umbraGradient)" stroke="#A78BFA" stroke-width="1"/>
+    <rect x="9" y="-5" width="7" height="14" rx="2" fill="url(#umbraGradient)" stroke="#A78BFA" stroke-width="1"/>
+    
+    <!-- Legs - nimble -->
+    <rect x="-5" y="10" width="4" height="20" rx="2" fill="url(#umbraGradient)" stroke="#A78BFA" stroke-width="1"/>
+    <rect x="1" y="10" width="4" height="20" rx="2" fill="url(#umbraGradient)" stroke="#A78BFA" stroke-width="1"/>
+    
+    <!-- Shadow tendrils and mist -->
+    <path d="M-20 -10 Q-25 -5 -20 0 Q-15 -5 -20 -10" fill="#4C1D95" opacity="0.6"/>
+    <path d="M20 -10 Q25 -5 20 0 Q15 -5 20 -10" fill="#4C1D95" opacity="0.6"/>
+    <path d="M-12 15 Q-18 18 -12 22" fill="#4C1D95" opacity="0.4"/>
+    <path d="M12 15 Q18 18 12 22" fill="#4C1D95" opacity="0.4"/>
+    
+    <!-- Stealth patterns -->
+    <path d="M-3 -2 Q0 0 3 -2" stroke="#A78BFA" stroke-width="1" fill="none" opacity="0.7"/>
+    <circle cx="-2" cy="4" r="0.5" fill="#C4B5FD" opacity="0.8"/>
+    <circle cx="2" cy="6" r="0.5" fill="#C4B5FD" opacity="0.8"/>
+    
+    <!-- Glowing eyes -->
+    <circle cx="-3" cy="-20" r="1.5" fill="#C4B5FD" filter="url(#shadowGlow)"/>
+    <circle cx="3" cy="-20" r="1.5" fill="#C4B5FD" filter="url(#shadowGlow)"/>
+    
+    <!-- Shadow wisp effects -->
+    <circle cx="-25" cy="5" r="2" fill="#4C1D95" opacity="0.3"/>
+    <circle cx="25" cy="8" r="1.5" fill="#4C1D95" opacity="0.3"/>
+    <circle cx="-18" cy="25" r="1" fill="#4C1D95" opacity="0.3"/>
+  </g>
+</svg>

@@ -1,0 +1,41 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+  <defs>
+    <linearGradient id="trophyGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#F59E0B;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#D97706;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  
+  <!-- Trophy and league symbols -->
+  <g transform="translate(32, 32)">
+    <!-- Main trophy -->
+    <ellipse cx="0" cy="-10" rx="8" ry="6" fill="url(#trophyGradient)"/>
+    <rect x="-2" y="-4" width="4" height="8" fill="url(#trophyGradient)"/>
+    <rect x="-6" y="4" width="12" height="3" rx="1" fill="url(#trophyGradient)"/>
+    
+    <!-- Trophy handles -->
+    <path d="M-8 -8 Q-12 -8 -12 -4 Q-12 0 -8 0" fill="none" stroke="#F59E0B" stroke-width="2"/>
+    <path d="M8 -8 Q12 -8 12 -4 Q12 0 8 0" fill="none" stroke="#F59E0B" stroke-width="2"/>
+    
+    <!-- Championship stars -->
+    <g transform="translate(-18, -8)">
+      <polygon points="0,-3 1,-1 3,0 1,1 0,3 -1,1 -3,0 -1,-1" fill="#FCD34D"/>
+    </g>
+    <g transform="translate(18, -8)">
+      <polygon points="0,-3 1,-1 3,0 1,1 0,3 -1,1 -3,0 -1,-1" fill="#FCD34D"/>
+    </g>
+    <g transform="translate(0, -22)">
+      <polygon points="0,-3 1,-1 3,0 1,1 0,3 -1,1 -3,0 -1,-1" fill="#FCD34D"/>
+    </g>
+    
+    <!-- Division levels -->
+    <rect x="-20" y="10" width="8" height="2" fill="#CD853F" opacity="0.8"/>
+    <rect x="-10" y="10" width="8" height="2" fill="#C0C0C0" opacity="0.8"/>
+    <rect x="0" y="10" width="8" height="2" fill="#FFD700" opacity="0.8"/>
+    <rect x="10" y="10" width="8" height="2" fill="#E6E6FA" opacity="0.8"/>
+    
+    <!-- League emblem -->
+    <circle cx="0" cy="18" r="6" fill="none" stroke="#F59E0B" stroke-width="2"/>
+    <text x="0" y="22" text-anchor="middle" font-size="8" font-weight="bold" fill="#F59E0B">L</text>
+  </g>
+</svg>

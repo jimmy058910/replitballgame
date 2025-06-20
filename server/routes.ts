@@ -189,7 +189,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: "Player or team not found" });
       }
 
-      if (userTeam.credits < amount) {
+      if ((userTeam.credits || 0) < amount) {
         return res.status(400).json({ message: "Insufficient credits" });
       }
 

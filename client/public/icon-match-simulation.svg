@@ -1,0 +1,48 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+  <defs>
+    <linearGradient id="fieldGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#22C55E;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#16A34A;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  
+  <!-- Match field and simulation -->
+  <g transform="translate(32, 32)">
+    <!-- Field outline -->
+    <rect x="-20" y="-12" width="40" height="24" rx="2" fill="url(#fieldGradient)" stroke="#15803D" stroke-width="2"/>
+    
+    <!-- Center line -->
+    <path d="M0 -12 L0 12" stroke="#FFFFFF" stroke-width="1"/>
+    <circle cx="0" cy="0" r="6" fill="none" stroke="#FFFFFF" stroke-width="1"/>
+    
+    <!-- Goal posts -->
+    <rect x="-22" y="-4" width="2" height="8" fill="#FFFFFF"/>
+    <rect x="20" y="-4" width="2" height="8" fill="#FFFFFF"/>
+    
+    <!-- Player positions (home team - blue) -->
+    <circle cx="-12" cy="-6" r="2" fill="#3B82F6"/>
+    <circle cx="-12" cy="6" r="2" fill="#3B82F6"/>
+    <circle cx="-6" cy="0" r="2" fill="#3B82F6"/>
+    
+    <!-- Player positions (away team - red) -->
+    <circle cx="12" cy="-6" r="2" fill="#EF4444"/>
+    <circle cx="12" cy="6" r="2" fill="#EF4444"/>
+    <circle cx="6" cy="0" r="2" fill="#EF4444"/>
+    
+    <!-- Ball -->
+    <circle cx="-2" cy="-2" r="1.5" fill="#FFFFFF" stroke="#000000" stroke-width="0.5"/>
+    
+    <!-- Movement indicators -->
+    <path d="M-6 0 Q-3 -3 0 0" fill="none" stroke="#FBBF24" stroke-width="2" opacity="0.7"/>
+    <polygon points="-1,-1 1,-2 1,1" fill="#FBBF24"/>
+    
+    <!-- Simulation controls -->
+    <g transform="translate(0, 18)">
+      <rect x="-8" y="-2" width="16" height="4" rx="2" fill="#1F2937" stroke="#374151" stroke-width="1"/>
+      <polygon points="-4,-1 -1,0 -4,1" fill="#10B981"/>
+      <rect x="0" y="-1" width="1" height="2" fill="#EF4444"/>
+      <rect x="2" y="-1" width="1" height="2" fill="#EF4444"/>
+      <circle cx="5" cy="0" r="1" fill="#F59E0B"/>
+    </g>
+  </g>
+</svg>
