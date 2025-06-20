@@ -37,6 +37,11 @@ export const getQueryFn: <T>(options: {
       return null;
     }
 
+    // For 404 errors on team endpoints, return null instead of throwing
+    if (res.status === 404 && (queryKey[0] as string).includes('/teams/my')) {
+      return null;
+    }
+
     await throwIfResNotOk(res);
     return await res.json();
   };
@@ -47,8 +52,11 @@ export const queryClient = new QueryClient({
       queryFn: getQueryFn({ on401: "throw" }),
       refetchInterval: false,
       refetchOnWindowFocus: false,
+      refetchOnMount: false,
+      refetchOnReconnect: false,
       staleTime: Infinity,
       retry: false,
+      gcTime: Infinity,
     },
     mutations: {
       retry: false,

@@ -10,9 +10,9 @@ export default function Landing() {
         <div className="pt-20 pb-16 text-center">
           <div className="mb-8">
             <img 
-              src="/realm-rivalry-logo.svg" 
+              src="/logo-variant-1.svg" 
               alt="Realm Rivalry" 
-              className="mx-auto mb-4 w-64 h-auto"
+              className="mx-auto mb-4 w-80 h-auto"
             />
           </div>
           <p className="text-xl md:text-2xl text-gray-300 mb-8 max-w-3xl mx-auto">

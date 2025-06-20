@@ -29,15 +29,16 @@ export default function Dashboard() {
     }
   }, [isAuthenticated, isLoading, toast]);
 
-  const { data: team, isLoading: teamLoading } = useQuery({
+  const { data: team, isLoading: teamLoading, error: teamError } = useQuery({
     queryKey: ["/api/teams/my"],
-    retry: false,
   });
 
   const { data: players, isLoading: playersLoading } = useQuery({
     queryKey: ["/api/teams", team?.id, "players"].filter(Boolean),
     enabled: !!team?.id,
     retry: false,
+    staleTime: 5 * 60 * 1000,
+    refetchOnWindowFocus: false,
   });
 
   const { data: liveMatches } = useQuery({
