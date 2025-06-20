@@ -102,80 +102,199 @@ export default function Team() {
         {/* Main Navigation Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="mb-8">
           <TabsList className="grid w-full grid-cols-5 bg-gray-800">
-            <TabsTrigger value="roster">Player Roster</TabsTrigger>
-            <TabsTrigger value="tactics">Tactical Formation</TabsTrigger>
-            <TabsTrigger value="staff">Staff Management</TabsTrigger>
-            <TabsTrigger value="finances">Team Finances</TabsTrigger>
+            <TabsTrigger value="roster">Roster</TabsTrigger>
+            <TabsTrigger value="tactics">Tactics</TabsTrigger>
+            <TabsTrigger value="staff">Staff</TabsTrigger>
+            <TabsTrigger value="finances">Finances</TabsTrigger>
             <TabsTrigger value="contracts">Contracts</TabsTrigger>
           </TabsList>
-        </Tabs>
 
-        {/* Team Summary */}
-        <Card className="bg-gray-800 border-gray-700 mb-8">
-          <CardHeader>
-            <CardTitle>Team Overview</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-3 gap-6 text-center">
-              <div>
-                <div className="text-3xl font-bold text-blue-400">{roleStats.passer || 0}</div>
-                <div className="text-sm text-gray-400">Passers</div>
-                <div className="text-xs text-gray-500">Leadership & Throwing</div>
-              </div>
-              <div>
-                <div className="text-3xl font-bold text-green-400">{roleStats.runner || 0}</div>
-                <div className="text-sm text-gray-400">Runners</div>
-                <div className="text-xs text-gray-500">Speed & Agility</div>
-              </div>
-              <div>
-                <div className="text-3xl font-bold text-red-400">{roleStats.blocker || 0}</div>
-                <div className="text-sm text-gray-400">Blockers</div>
-                <div className="text-xs text-gray-500">Power & Stamina</div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+          <TabsContent value="roster">
+            {/* Role Filter Sub-tabs */}
+            <Tabs value={selectedRole} onValueChange={setSelectedRole} className="mb-6">
+              <TabsList className="grid w-full grid-cols-4 bg-gray-800">
+                <TabsTrigger value="all">All Players ({playersWithRoles.length})</TabsTrigger>
+                <TabsTrigger value="passer">Passers ({roleStats.passer || 0})</TabsTrigger>
+                <TabsTrigger value="runner">Runners ({roleStats.runner || 0})</TabsTrigger>
+                <TabsTrigger value="blocker">Blockers ({roleStats.blocker || 0})</TabsTrigger>
+              </TabsList>
+            </Tabs>
 
-        {/* Player Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-          {playersLoading ? (
-            Array.from({ length: 8 }, (_, i) => (
-              <div key={i} className="bg-gray-800 rounded-lg p-4 animate-pulse">
-                <div className="flex items-center space-x-3 mb-3">
-                  <div className="w-12 h-12 bg-gray-700 rounded-full"></div>
-                  <div className="flex-1">
-                    <div className="h-4 bg-gray-700 rounded mb-2"></div>
-                    <div className="h-3 bg-gray-700 rounded w-2/3"></div>
+            {/* Team Summary */}
+            <Card className="bg-gray-800 border-gray-700 mb-8">
+              <CardHeader>
+                <CardTitle>Team Overview</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-3 gap-6 text-center">
+                  <div>
+                    <div className="text-3xl font-bold text-blue-400">{roleStats.passer || 0}</div>
+                    <div className="text-sm text-gray-400">Passers</div>
+                    <div className="text-xs text-gray-500">Leadership & Throwing</div>
+                  </div>
+                  <div>
+                    <div className="text-3xl font-bold text-green-400">{roleStats.runner || 0}</div>
+                    <div className="text-sm text-gray-400">Runners</div>
+                    <div className="text-xs text-gray-500">Speed & Agility</div>
+                  </div>
+                  <div>
+                    <div className="text-3xl font-bold text-red-400">{roleStats.blocker || 0}</div>
+                    <div className="text-sm text-gray-400">Blockers</div>
+                    <div className="text-xs text-gray-500">Power & Stamina</div>
                   </div>
                 </div>
-                <div className="space-y-2">
-                  {Array.from({ length: 4 }, (_, j) => (
-                    <div key={j} className="h-3 bg-gray-700 rounded"></div>
-                  ))}
-                </div>
-              </div>
-            ))
-          ) : (
-            filteredPlayers.map((player: any) => (
-              <PlayerCard key={player.id} player={player} />
-            ))
-          )}
-        </div>
+              </CardContent>
+            </Card>
 
-        {filteredPlayers.length === 0 && !playersLoading && (
-          <div className="text-center py-16">
-            <i className="fas fa-users text-6xl text-gray-600 mb-4"></i>
-            <h3 className="text-xl font-semibold text-gray-400 mb-2">
-              No players found
-            </h3>
-            <p className="text-gray-500">
-              {selectedRole === "all" 
-                ? "Your team has no players yet." 
-                : `No ${selectedRole} players in your team.`
-              }
-            </p>
-          </div>
-        )}
+            {/* Player Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+              {playersLoading ? (
+                Array.from({ length: 8 }, (_, i) => (
+                  <div key={i} className="bg-gray-800 rounded-lg p-4 animate-pulse">
+                    <div className="flex items-center space-x-3 mb-3">
+                      <div className="w-12 h-12 bg-gray-700 rounded-full"></div>
+                      <div className="flex-1">
+                        <div className="h-4 bg-gray-700 rounded mb-2"></div>
+                        <div className="h-3 bg-gray-700 rounded w-2/3"></div>
+                      </div>
+                    </div>
+                    <div className="space-y-2">
+                      {Array.from({ length: 4 }, (_, j) => (
+                        <div key={j} className="h-3 bg-gray-700 rounded"></div>
+                      ))}
+                    </div>
+                  </div>
+                ))
+              ) : (
+                filteredPlayers.map((player: any) => (
+                  <div
+                    key={player.id}
+                    onClick={() => {
+                      setSelectedPlayer(player);
+                      setShowPlayerModal(true);
+                    }}
+                    className="cursor-pointer hover:transform hover:scale-105 transition-transform"
+                  >
+                    <PlayerCard player={player} />
+                  </div>
+                ))
+              )}
+            </div>
+
+            {filteredPlayers.length === 0 && !playersLoading && (
+              <div className="text-center py-16">
+                <i className="fas fa-users text-6xl text-gray-600 mb-4"></i>
+                <h3 className="text-xl font-semibold text-gray-400 mb-2">
+                  No players found
+                </h3>
+                <p className="text-gray-500">
+                  {selectedRole === "all" 
+                    ? "Your team has no players yet." 
+                    : `No ${selectedRole} players in your team.`
+                  }
+                </p>
+              </div>
+            )}
+          </TabsContent>
+
+          <TabsContent value="tactics">
+            <TacticalFormation
+              players={playersWithRoles}
+              onFormationChange={(formation) => {
+                console.log("Formation saved:", formation);
+              }}
+            />
+          </TabsContent>
+
+          <TabsContent value="staff">
+            <StaffManagement teamId={team?.id} />
+          </TabsContent>
+
+          <TabsContent value="finances">
+            <TeamFinances teamId={team?.id} />
+          </TabsContent>
+
+          <TabsContent value="contracts">
+            <div className="space-y-6">
+              <Card className="bg-gray-800 border-gray-700">
+                <CardHeader>
+                  <CardTitle>Contract Management</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-gray-400 mb-4">
+                    Manage player contracts, negotiate extensions, and track contract expiration dates.
+                  </p>
+                  
+                  {playersWithRoles.length > 0 ? (
+                    <div className="space-y-4">
+                      {playersWithRoles
+                        .filter((player: any) => {
+                          const remaining = (player.contractSeasons || 3) - (player.contractStartSeason || 0);
+                          return remaining <= 2;
+                        })
+                        .map((player: any) => {
+                          const remaining = (player.contractSeasons || 3) - (player.contractStartSeason || 0);
+                          return (
+                            <div key={player.id} className="flex items-center justify-between p-4 border border-gray-700 rounded-lg">
+                              <div>
+                                <h4 className="font-semibold">{player.name}</h4>
+                                <p className="text-sm text-gray-400">
+                                  {remaining} season{remaining !== 1 ? 's' : ''} remaining
+                                </p>
+                              </div>
+                              <div className="flex items-center gap-3">
+                                <Badge variant={remaining <= 1 ? "destructive" : "secondary"}>
+                                  {remaining <= 1 ? "Expiring" : "Moderate"}
+                                </Badge>
+                                <Button
+                                  size="sm"
+                                  onClick={() => {
+                                    setSelectedPlayer(player);
+                                    setShowContractModal(true);
+                                  }}
+                                >
+                                  Negotiate
+                                </Button>
+                              </div>
+                            </div>
+                          );
+                        })}
+                    </div>
+                  ) : (
+                    <p className="text-gray-500 text-center py-8">
+                      No contract negotiations needed at this time.
+                    </p>
+                  )}
+                </CardContent>
+              </Card>
+            </div>
+          </TabsContent>
+
+        {/* Player Detail Modal */}
+        <PlayerDetailModal
+          player={selectedPlayer}
+          isOpen={showPlayerModal}
+          onClose={() => {
+            setShowPlayerModal(false);
+            setSelectedPlayer(null);
+          }}
+          onContractNegotiate={(playerId) => {
+            setShowPlayerModal(false);
+            setShowContractModal(true);
+          }}
+        />
+
+        {/* Contract Negotiation Modal */}
+        <ContractNegotiation
+          player={selectedPlayer}
+          isOpen={showContractModal}
+          onClose={() => {
+            setShowContractModal(false);
+            setSelectedPlayer(null);
+          }}
+          teamId={team?.id}
+        />
+        </Tabs>
       </div>
     </div>
   );

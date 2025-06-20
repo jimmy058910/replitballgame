@@ -209,6 +209,75 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Staff routes
+  app.get("/api/teams/:teamId/staff", isAuthenticated, async (req, res) => {
+    try {
+      const teamId = req.params.teamId;
+      const staff = await storage.getStaffByTeamId(teamId);
+      res.json(staff);
+    } catch (error) {
+      console.error("Error fetching staff:", error);
+      res.status(500).json({ message: "Failed to fetch staff" });
+    }
+  });
+
+  app.post("/api/teams/:teamId/staff", isAuthenticated, async (req, res) => {
+    try {
+      const teamId = req.params.teamId;
+      const staffData = { ...req.body, teamId };
+      const staff = await storage.createStaff(staffData);
+      res.json(staff);
+    } catch (error) {
+      console.error("Error creating staff:", error);
+      res.status(500).json({ message: "Failed to create staff" });
+    }
+  });
+
+  // Team finances routes
+  app.get("/api/teams/:teamId/finances", isAuthenticated, async (req, res) => {
+    try {
+      const teamId = req.params.teamId;
+      const finances = await storage.getTeamFinances(teamId);
+      res.json(finances || {
+        teamId,
+        season: 1,
+        ticketSales: 250000,
+        concessionSales: 75000,
+        jerseySales: 50000,
+        sponsorships: 100000,
+        playerSalaries: 300000,
+        staffSalaries: 150000,
+        facilities: 50000,
+        totalIncome: 475000,
+        totalExpenses: 500000,
+        netIncome: -25000,
+        credits: 975000
+      });
+    } catch (error) {
+      console.error("Error fetching finances:", error);
+      res.status(500).json({ message: "Failed to fetch finances" });
+    }
+  });
+
+  // Contract negotiation
+  app.post("/api/players/:playerId/negotiate", isAuthenticated, async (req, res) => {
+    try {
+      const playerId = req.params.playerId;
+      const { seasons, salary } = req.body;
+      
+      const updatedPlayer = await storage.updatePlayer(playerId, {
+        contractSeasons: seasons,
+        contractStartSeason: 1,
+        salary: salary
+      });
+      
+      res.json(updatedPlayer);
+    } catch (error) {
+      console.error("Error negotiating contract:", error);
+      res.status(500).json({ message: "Failed to negotiate contract" });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }

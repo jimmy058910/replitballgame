@@ -5,6 +5,7 @@ import {
   matches,
   leagues,
   staff,
+  teamFinances,
   type User,
   type UpsertUser,
   type Team,
@@ -17,6 +18,8 @@ import {
   type InsertLeague,
   type Staff,
   type InsertStaff,
+  type TeamFinances,
+  type InsertTeamFinances,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, or, desc, asc, sql } from "drizzle-orm";
@@ -54,6 +57,10 @@ export interface IStorage {
   // Staff operations
   createStaff(staffMember: InsertStaff): Promise<Staff>;
   getStaffByTeamId(teamId: string): Promise<Staff[]>;
+  
+  // Team finances operations
+  getTeamFinances(teamId: string): Promise<TeamFinances | undefined>;
+  createTeamFinances(finances: InsertTeamFinances): Promise<TeamFinances>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -81,6 +88,27 @@ export class DatabaseStorage implements IStorage {
   // Team operations
   async createTeam(team: InsertTeam): Promise<Team> {
     const [newTeam] = await db.insert(teams).values(team).returning();
+    
+    // Create default staff with 3-season contracts
+    await this.createDefaultStaff(newTeam.id);
+    
+    // Create default team finances
+    await this.createTeamFinances({
+      teamId: newTeam.id,
+      season: 1,
+      ticketSales: 250000,
+      concessionSales: 75000,
+      jerseySales: 50000,
+      sponsorships: 100000,
+      playerSalaries: 300000,
+      staffSalaries: 402000, // Total of default staff salaries
+      facilities: 50000,
+      totalIncome: 475000,
+      totalExpenses: 752000,
+      netIncome: -277000,
+      credits: 723000
+    });
+    
     return newTeam;
   }
 
@@ -209,6 +237,137 @@ export class DatabaseStorage implements IStorage {
       .from(staff)
       .where(eq(staff.teamId, teamId))
       .orderBy(asc(staff.type));
+  }
+
+  async getTeamFinances(teamId: string): Promise<TeamFinances | undefined> {
+    const [finances] = await db.select().from(teamFinances).where(eq(teamFinances.teamId, teamId));
+    return finances;
+  }
+
+  async createTeamFinances(financesData: InsertTeamFinances): Promise<TeamFinances> {
+    const [finances] = await db.insert(teamFinances).values(financesData).returning();
+    return finances;
+  }
+
+  private async createDefaultStaff(teamId: string): Promise<void> {
+    const defaultStaff = [
+      {
+        teamId,
+        name: "Alex Recovery",
+        type: "recovery_specialist",
+        level: 1,
+        salary: 60000,
+        recoveryRating: 75,
+        offenseRating: 30,
+        defenseRating: 30,
+        physicalRating: 40,
+        scoutingRating: 20,
+        recruitingRating: 25,
+        coachingRating: 35,
+        contractSeasons: 3,
+        contractStartSeason: 1,
+      },
+      {
+        teamId,
+        name: "Sarah Fitness",
+        type: "trainer",
+        level: 1,
+        salary: 45000,
+        physicalRating: 80,
+        offenseRating: 25,
+        defenseRating: 25,
+        recoveryRating: 40,
+        scoutingRating: 15,
+        recruitingRating: 20,
+        coachingRating: 30,
+        contractSeasons: 3,
+        contractStartSeason: 1,
+      },
+      {
+        teamId,
+        name: "Mike Offense",
+        type: "trainer",
+        level: 1,
+        salary: 50000,
+        offenseRating: 85,
+        defenseRating: 20,
+        physicalRating: 35,
+        recoveryRating: 25,
+        scoutingRating: 30,
+        recruitingRating: 25,
+        coachingRating: 40,
+        contractSeasons: 3,
+        contractStartSeason: 1,
+      },
+      {
+        teamId,
+        name: "Lisa Defense",
+        type: "trainer",
+        level: 1,
+        salary: 50000,
+        defenseRating: 85,
+        offenseRating: 20,
+        physicalRating: 35,
+        recoveryRating: 25,
+        scoutingRating: 30,
+        recruitingRating: 25,
+        coachingRating: 40,
+        contractSeasons: 3,
+        contractStartSeason: 1,
+      },
+      {
+        teamId,
+        name: "Tony Scout",
+        type: "scout",
+        level: 1,
+        salary: 40000,
+        scoutingRating: 90,
+        recruitingRating: 70,
+        offenseRating: 15,
+        defenseRating: 15,
+        physicalRating: 20,
+        recoveryRating: 15,
+        coachingRating: 25,
+        contractSeasons: 3,
+        contractStartSeason: 1,
+      },
+      {
+        teamId,
+        name: "Emma Talent",
+        type: "scout",
+        level: 1,
+        salary: 42000,
+        scoutingRating: 85,
+        recruitingRating: 80,
+        offenseRating: 20,
+        defenseRating: 20,
+        physicalRating: 25,
+        recoveryRating: 20,
+        coachingRating: 30,
+        contractSeasons: 3,
+        contractStartSeason: 1,
+      },
+      {
+        teamId,
+        name: "Coach Williams",
+        type: "head_coach",
+        level: 2,
+        salary: 80000,
+        coachingRating: 90,
+        offenseRating: 70,
+        defenseRating: 70,
+        physicalRating: 40,
+        recoveryRating: 50,
+        scoutingRating: 60,
+        recruitingRating: 65,
+        contractSeasons: 3,
+        contractStartSeason: 1,
+      },
+    ];
+
+    for (const staffMember of defaultStaff) {
+      await this.createStaff(staffMember);
+    }
   }
 }
 
