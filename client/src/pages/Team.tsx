@@ -1,10 +1,18 @@
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation } from "@tanstack/react-query";
+import { queryClient } from "@/lib/queryClient";
 import Navigation from "@/components/Navigation";
 import PlayerCard from "@/components/PlayerCard";
+import TacticalFormation from "@/components/TacticalFormation";
+import PlayerDetailModal from "@/components/PlayerDetailModal";
+import ContractNegotiation from "@/components/ContractNegotiation";
+import StaffManagement from "@/components/StaffManagement";
+import TeamFinances from "@/components/TeamFinances";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Badge } from "@/components/ui/badge";
+import { apiRequest } from "@/lib/queryClient";
 
 // Helper function to determine player role based on attributes
 function getPlayerRole(player: any): string {
@@ -28,6 +36,10 @@ function getPlayerRole(player: any): string {
 
 export default function Team() {
   const [selectedRole, setSelectedRole] = useState("all");
+  const [selectedPlayer, setSelectedPlayer] = useState(null);
+  const [showPlayerModal, setShowPlayerModal] = useState(false);
+  const [showContractModal, setShowContractModal] = useState(false);
+  const [activeTab, setActiveTab] = useState("roster");
 
   const { data: team } = useQuery({
     queryKey: ["/api/teams/my"],
@@ -87,13 +99,14 @@ export default function Team() {
           </div>
         </div>
 
-        {/* Role Filter Tabs */}
-        <Tabs value={selectedRole} onValueChange={setSelectedRole} className="mb-8">
-          <TabsList className="grid w-full grid-cols-4 bg-gray-800">
-            <TabsTrigger value="all">All Players ({playersWithRoles.length})</TabsTrigger>
-            <TabsTrigger value="passer">Passers ({roleStats.passer || 0})</TabsTrigger>
-            <TabsTrigger value="runner">Runners ({roleStats.runner || 0})</TabsTrigger>
-            <TabsTrigger value="blocker">Blockers ({roleStats.blocker || 0})</TabsTrigger>
+        {/* Main Navigation Tabs */}
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="mb-8">
+          <TabsList className="grid w-full grid-cols-5 bg-gray-800">
+            <TabsTrigger value="roster">Player Roster</TabsTrigger>
+            <TabsTrigger value="tactics">Tactical Formation</TabsTrigger>
+            <TabsTrigger value="staff">Staff Management</TabsTrigger>
+            <TabsTrigger value="finances">Team Finances</TabsTrigger>
+            <TabsTrigger value="contracts">Contracts</TabsTrigger>
           </TabsList>
         </Tabs>
 

@@ -79,10 +79,29 @@ export const players = pgTable("players", {
   leadershipPotential: decimal("leadership_potential", { precision: 2, scale: 1 }),
   agilityPotential: decimal("agility_potential", { precision: 2, scale: 1 }),
   
+  // Financial & Contract
   salary: integer("salary").notNull(),
-  contractLength: integer("contract_length").default(1),
+  contractSeasons: integer("contract_seasons").default(3),
+  contractStartSeason: integer("contract_start_season").default(1),
+  contractValue: integer("contract_value").notNull(),
+  
+  // Tactics & Position
+  fieldPosition: jsonb("field_position"), // {x: number, y: number}
+  isStarter: boolean("is_starter").default(false),
+  tacticalRole: varchar("tactical_role"), // passer, runner, blocker
+  
+  // Inventory equipment slots
+  helmetItemId: uuid("helmet_item_id"),
+  chestItemId: uuid("chest_item_id"),
+  shoesItemId: uuid("shoes_item_id"),
+  glovesItemId: uuid("gloves_item_id"),
+  
+  // Player development
   injuries: jsonb("injuries").default([]),
   abilities: jsonb("abilities").default([]),
+  camaraderie: integer("camaraderie").default(50), // team chemistry
+  
+  // Marketplace
   isMarketplace: boolean("is_marketplace").default(false),
   marketplacePrice: integer("marketplace_price"),
   marketplaceEndTime: timestamp("marketplace_end_time"),
@@ -117,6 +136,19 @@ export const matches = pgTable("matches", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
+// Equipment/Items table
+export const items = pgTable("items", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  name: varchar("name").notNull(),
+  type: varchar("type").notNull(), // helmet, chest, shoes, gloves
+  rarity: varchar("rarity").notNull(), // common, rare, epic, legendary
+  statBoosts: jsonb("stat_boosts").default({}), // {speed: 2, power: 1, etc}
+  description: text("description"),
+  marketValue: integer("market_value").default(0),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// Staff management table
 export const staff = pgTable("staff", {
   id: uuid("id").primaryKey().defaultRandom(),
   teamId: uuid("team_id").references(() => teams.id).notNull(),
@@ -124,7 +156,42 @@ export const staff = pgTable("staff", {
   name: varchar("name").notNull(),
   level: integer("level").default(1),
   salary: integer("salary").notNull(),
+  
+  // Staff-specific stats
+  offenseRating: integer("offense_rating").default(0),
+  defenseRating: integer("defense_rating").default(0),
+  physicalRating: integer("physical_rating").default(0),
+  scoutingRating: integer("scouting_rating").default(0),
+  recruitingRating: integer("recruiting_rating").default(0),
+  recoveryRating: integer("recovery_rating").default(0),
+  coachingRating: integer("coaching_rating").default(0),
+  
   abilities: jsonb("abilities").default([]),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// Team finances table
+export const teamFinances = pgTable("team_finances", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  teamId: uuid("team_id").references(() => teams.id).notNull(),
+  season: integer("season").default(1),
+  
+  // Income streams
+  ticketSales: integer("ticket_sales").default(0),
+  concessionSales: integer("concession_sales").default(0),
+  jerseySales: integer("jersey_sales").default(0),
+  sponsorships: integer("sponsorships").default(0),
+  
+  // Expenses
+  playerSalaries: integer("player_salaries").default(0),
+  staffSalaries: integer("staff_salaries").default(0),
+  facilities: integer("facilities").default(0),
+  
+  // Balance
+  totalIncome: integer("total_income").default(0),
+  totalExpenses: integer("total_expenses").default(0),
+  netIncome: integer("net_income").default(0),
+  
   createdAt: timestamp("created_at").defaultNow(),
 });
 
@@ -149,6 +216,33 @@ export const playersRelations = relations(players, ({ one }) => ({
     fields: [players.teamId],
     references: [teams.id],
   }),
+  helmetItem: one(items, {
+    fields: [players.helmetItemId],
+    references: [items.id],
+    relationName: "helmet",
+  }),
+  chestItem: one(items, {
+    fields: [players.chestItemId],
+    references: [items.id],
+    relationName: "chest",
+  }),
+  shoesItem: one(items, {
+    fields: [players.shoesItemId],
+    references: [items.id],
+    relationName: "shoes",
+  }),
+  glovesItem: one(items, {
+    fields: [players.glovesItemId],
+    references: [items.id],
+    relationName: "gloves",
+  }),
+}));
+
+export const itemsRelations = relations(items, ({ many }) => ({
+  playersHelmet: many(players, { relationName: "helmet" }),
+  playersChest: many(players, { relationName: "chest" }),
+  playersShoes: many(players, { relationName: "shoes" }),
+  playersGloves: many(players, { relationName: "gloves" }),
 }));
 
 export const matchesRelations = relations(matches, ({ one }) => ({
@@ -191,3 +285,7 @@ export type League = typeof leagues.$inferSelect;
 export type InsertLeague = typeof leagues.$inferInsert;
 export type Staff = typeof staff.$inferSelect;
 export type InsertStaff = typeof staff.$inferInsert;
+export type Item = typeof items.$inferSelect;
+export type InsertItem = typeof items.$inferInsert;
+export type TeamFinances = typeof teamFinances.$inferSelect;
+export type InsertTeamFinances = typeof teamFinances.$inferInsert;
