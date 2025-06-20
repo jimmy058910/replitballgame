@@ -8,6 +8,7 @@ import PlayerDetailModal from "@/components/PlayerDetailModal";
 import ContractNegotiation from "@/components/ContractNegotiation";
 import StaffManagement from "@/components/StaffManagement";
 import TeamFinances from "@/components/TeamFinances";
+import TryoutSystem from "@/components/TryoutSystem";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -101,12 +102,13 @@ export default function Team() {
 
         {/* Main Navigation Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="mb-8">
-          <TabsList className="grid w-full grid-cols-5 bg-gray-800">
+          <TabsList className="grid w-full grid-cols-6 bg-gray-800">
             <TabsTrigger value="roster">Roster</TabsTrigger>
             <TabsTrigger value="tactics">Tactics</TabsTrigger>
             <TabsTrigger value="staff">Staff</TabsTrigger>
             <TabsTrigger value="finances">Finances</TabsTrigger>
             <TabsTrigger value="contracts">Contracts</TabsTrigger>
+            <TabsTrigger value="recruiting">Recruiting</TabsTrigger>
           </TabsList>
 
           <TabsContent value="roster">
@@ -268,6 +270,10 @@ export default function Team() {
                 </CardContent>
               </Card>
             </div>
+          </TabsContent>
+
+          <TabsContent value="recruiting">
+            <TryoutSystem teamId={team?.id} />
           </TabsContent>
 
         {/* Player Detail Modal */}

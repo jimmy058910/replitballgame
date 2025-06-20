@@ -17,8 +17,8 @@ interface TacticalFormationProps {
   onFormationChange: (formation: FormationPlayer[]) => void;
 }
 
-const FIELD_WIDTH = 400;
-const FIELD_HEIGHT = 600;
+const FIELD_WIDTH = 800;
+const FIELD_HEIGHT = 400;
 
 export default function TacticalFormation({ players, onFormationChange }: TacticalFormationProps) {
   const [formation, setFormation] = useState<FormationPlayer[]>([]);
@@ -163,14 +163,21 @@ export default function TacticalFormation({ players, onFormationChange }: Tactic
               handleDrop(e, x, y);
             }}
           >
-            {/* Field markings */}
+            {/* Field markings - Horizontal Layout */}
             <div className="absolute inset-0">
+              {/* Center line - vertical */}
               <div className="absolute top-0 left-1/2 w-0.5 h-full bg-white dark:bg-gray-300 -translate-x-0.5"></div>
-              <div className="absolute top-1/2 left-0 w-full h-0.5 bg-white dark:bg-gray-300 -translate-y-0.5"></div>
               
-              {/* Goal areas */}
-              <div className="absolute top-0 left-1/4 w-1/2 h-16 border-2 border-white dark:border-gray-300"></div>
-              <div className="absolute bottom-0 left-1/4 w-1/2 h-16 border-2 border-white dark:border-gray-300"></div>
+              {/* Center circle */}
+              <div className="absolute top-1/2 left-1/2 w-16 h-16 border-2 border-white dark:border-gray-300 rounded-full -translate-x-1/2 -translate-y-1/2"></div>
+              
+              {/* Goal areas - left and right */}
+              <div className="absolute top-1/4 left-0 w-16 h-1/2 border-2 border-white dark:border-gray-300 border-l-0"></div>
+              <div className="absolute top-1/4 right-0 w-16 h-1/2 border-2 border-white dark:border-gray-300 border-r-0"></div>
+              
+              {/* Side labels */}
+              <div className="absolute top-2 left-4 text-xs font-bold text-green-700 dark:text-green-300">YOUR SIDE</div>
+              <div className="absolute top-2 right-4 text-xs font-bold text-red-700 dark:text-red-300">OPPONENT SIDE</div>
             </div>
 
             {/* Formation players */}

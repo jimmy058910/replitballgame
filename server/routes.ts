@@ -6,6 +6,22 @@ import { simulateMatch } from "./services/matchSimulation";
 import { generateRandomPlayer } from "./services/leagueService";
 import { z } from "zod";
 
+// Helper function to calculate team power based on player stats
+function calculateTeamPower(players: any[]): number {
+  if (!players || players.length === 0) return 0;
+  
+  const totalPower = players.reduce((sum, player) => {
+    const playerPower = (
+      player.speed + player.agility + player.power + 
+      player.stamina + player.throwing + player.catching + 
+      player.leadership
+    ) / 7;
+    return sum + playerPower;
+  }, 0);
+  
+  return Math.round(totalPower / players.length);
+}
+
 const createTeamSchema = z.object({
   name: z.string().min(1).max(50),
 });
@@ -275,6 +291,76 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error negotiating contract:", error);
       res.status(500).json({ message: "Failed to negotiate contract" });
+    }
+  });
+
+  // Tryout system routes
+  app.post("/api/teams/:teamId/tryouts", isAuthenticated, async (req, res) => {
+    try {
+      const teamId = req.params.teamId;
+      const { type } = req.body;
+      
+      const basicCost = 50000;
+      const advancedCost = 150000;
+      const cost = type === "basic" ? basicCost : advancedCost;
+      const numCandidates = type === "basic" ? 3 : 5;
+      
+      const finances = await storage.getTeamFinances(teamId);
+      if (!finances || (finances.credits || 0) < cost) {
+        return res.status(400).json({ message: "Insufficient credits" });
+      }
+      
+      // Generate tryout candidates
+      const candidates = [];
+      for (let i = 0; i < numCandidates; i++) {
+        const age = Math.floor(Math.random() * 7) + 18; // 18-24 years old
+        const races = ["Human", "Elf", "Dwarf", "Orc"];
+        const names = ["Alex", "Jordan", "Taylor", "Casey", "Riley", "Morgan", "Avery", "Quinn"];
+        
+        const baseStats = type === "advanced" ? 60 : 45;
+        const variance = type === "advanced" ? 25 : 20;
+        
+        candidates.push({
+          id: `candidate_${Date.now()}_${i}`,
+          name: names[Math.floor(Math.random() * names.length)] + " " + 
+                ["Smith", "Jones", "Brown", "Davis", "Miller"][Math.floor(Math.random() * 5)],
+          race: races[Math.floor(Math.random() * races.length)],
+          age,
+          leadership: Math.max(1, Math.min(99, baseStats + Math.floor(Math.random() * variance) - variance/2)),
+          throwing: Math.max(1, Math.min(99, baseStats + Math.floor(Math.random() * variance) - variance/2)),
+          speed: Math.max(1, Math.min(99, baseStats + Math.floor(Math.random() * variance) - variance/2)),
+          agility: Math.max(1, Math.min(99, baseStats + Math.floor(Math.random() * variance) - variance/2)),
+          power: Math.max(1, Math.min(99, baseStats + Math.floor(Math.random() * variance) - variance/2)),
+          stamina: Math.max(1, Math.min(99, baseStats + Math.floor(Math.random() * variance) - variance/2)),
+          marketValue: Math.floor(Math.random() * 200000) + 50000,
+          potential: type === "advanced" && Math.random() > 0.5 ? "High" : 
+                    Math.random() > 0.6 ? "Medium" : "Low"
+        });
+      }
+      
+      // Deduct cost from team finances
+      await storage.updateTeamFinances(teamId, {
+        credits: (finances.credits || 0) - cost
+      });
+      
+      res.json({ type, candidates });
+    } catch (error) {
+      console.error("Error hosting tryout:", error);
+      res.status(500).json({ message: "Failed to host tryout" });
+    }
+  });
+
+  app.post("/api/teams/:teamId/taxi-squad", isAuthenticated, async (req, res) => {
+    try {
+      const teamId = req.params.teamId;
+      const { candidateIds } = req.body;
+      
+      // In a real implementation, you'd store these in a taxi_squad table
+      // For now, just return success
+      res.json({ success: true, addedCount: candidateIds.length });
+    } catch (error) {
+      console.error("Error adding to taxi squad:", error);
+      res.status(500).json({ message: "Failed to add to taxi squad" });
     }
   });
 

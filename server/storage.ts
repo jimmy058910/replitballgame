@@ -61,6 +61,7 @@ export interface IStorage {
   // Team finances operations
   getTeamFinances(teamId: string): Promise<TeamFinances | undefined>;
   createTeamFinances(finances: InsertTeamFinances): Promise<TeamFinances>;
+  updateTeamFinances(teamId: string, updates: Partial<TeamFinances>): Promise<TeamFinances>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -246,6 +247,15 @@ export class DatabaseStorage implements IStorage {
 
   async createTeamFinances(financesData: InsertTeamFinances): Promise<TeamFinances> {
     const [finances] = await db.insert(teamFinances).values(financesData).returning();
+    return finances;
+  }
+
+  async updateTeamFinances(teamId: string, updates: Partial<TeamFinances>): Promise<TeamFinances> {
+    const [finances] = await db
+      .update(teamFinances)
+      .set(updates)
+      .where(eq(teamFinances.teamId, teamId))
+      .returning();
     return finances;
   }
 
