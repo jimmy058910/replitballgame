@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { 
   Home, Users, Trophy, Medal, Gamepad2, ShoppingCart, 
-  Building, Package, Store, Menu, LogOut, Coins 
+  Building, Package, Store, Menu, LogOut, Coins, MessageCircle 
 } from "lucide-react";
 
 export default function Navigation() {
@@ -34,6 +34,7 @@ export default function Navigation() {
     { path: "/stadium", label: "Stadium", icon: Building },
     { path: "/inventory", label: "Inventory", icon: Package },
     { path: "/marketplace", label: "Marketplace", icon: Store },
+    { path: "/community", label: "Community", icon: MessageCircle },
   ];
 
   const credits = finances?.credits || team?.credits || 15000;

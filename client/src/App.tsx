@@ -17,6 +17,7 @@ import Store from "@/pages/Store";
 import Stadium from "@/pages/Stadium";
 import Match from "@/pages/Match";
 import LogoShowcase from "@/pages/LogoShowcase";
+import Community from "@/pages/Community";
 
 function Router() {
   const { isAuthenticated, isLoading } = useAuth();
@@ -38,6 +39,7 @@ function Router() {
           <Route path="/store" component={Store} />
           <Route path="/stadium" component={Stadium} />
           <Route path="/match" component={Match} />
+          <Route path="/community" component={Community} />
         </>
       )}
       <Route component={NotFound} />

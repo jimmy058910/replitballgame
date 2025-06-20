@@ -1225,6 +1225,179 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Referral System API Routes
+  app.get('/api/referrals', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = (req.user as any).claims.sub;
+      
+      // Generate mock referral data for demonstration
+      const referralData = {
+        myCode: `REF${userId.slice(-6).toUpperCase()}`,
+        totalReferrals: Math.floor(Math.random() * 15),
+        creditsEarned: Math.floor(Math.random() * 50000),
+        gemsEarned: Math.floor(Math.random() * 100),
+        activeReferrals: Math.floor(Math.random() * 10),
+        hasUsedReferral: Math.random() > 0.7,
+        recentReferrals: [
+          { username: "Player123", joinedAt: new Date().toISOString(), isActive: true },
+          { username: "Gamer456", joinedAt: new Date(Date.now() - 86400000).toISOString(), isActive: false }
+        ]
+      };
+      
+      res.json(referralData);
+    } catch (error) {
+      console.error("Error fetching referral data:", error);
+      res.status(500).json({ message: "Failed to fetch referral data" });
+    }
+  });
+
+  app.post('/api/referrals/generate', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = (req.user as any).claims.sub;
+      const referralCode = `REF${userId.slice(-6).toUpperCase()}`;
+      
+      res.json({ code: referralCode, message: "Referral code generated successfully" });
+    } catch (error) {
+      console.error("Error generating referral code:", error);
+      res.status(500).json({ message: "Failed to generate referral code" });
+    }
+  });
+
+  app.post('/api/referrals/claim', isAuthenticated, async (req: any, res) => {
+    try {
+      const { code } = req.body;
+      const userId = (req.user as any).claims.sub;
+      
+      if (!code || code.length < 6) {
+        return res.status(400).json({ message: "Invalid referral code" });
+      }
+
+      // Mock validation - in a real app, you'd check against a database
+      if (code === `REF${userId.slice(-6).toUpperCase()}`) {
+        return res.status(400).json({ message: "Cannot use your own referral code" });
+      }
+
+      const team = await storage.getTeamByUserId(userId);
+      if (!team) {
+        return res.status(404).json({ message: "Team not found" });
+      }
+
+      const finances = await storage.getTeamFinances(team.id);
+      if (!finances) {
+        return res.status(404).json({ message: "Team finances not found" });
+      }
+
+      // Add referral bonus
+      await storage.updateTeamFinances(team.id, {
+        credits: (finances.credits || 0) + 10000,
+        premiumCurrency: (finances.premiumCurrency || 0) + 5
+      });
+
+      res.json({ 
+        message: "Referral bonus claimed successfully!",
+        rewards: ["10,000₡", "5💎"]
+      });
+    } catch (error) {
+      console.error("Error claiming referral:", error);
+      res.status(500).json({ message: "Failed to claim referral bonus" });
+    }
+  });
+
+  // Redemption Codes API Routes
+  app.get('/api/redemption-codes/history', isAuthenticated, async (req: any, res) => {
+    try {
+      // Mock redemption history for demonstration
+      const history = [
+        {
+          code: "WELCOME2024",
+          description: "Welcome Bonus Package",
+          redeemedAt: new Date().toISOString(),
+          rewards: [
+            { type: "credits", amount: 5000 },
+            { type: "gems", amount: 10 }
+          ]
+        },
+        {
+          code: "LAUNCH100",
+          description: "Launch Week Special",
+          redeemedAt: new Date(Date.now() - 86400000 * 3).toISOString(),
+          rewards: [
+            { type: "item", itemName: "Elite Training Equipment" },
+            { type: "credits", amount: 2500 }
+          ]
+        }
+      ];
+      
+      res.json(history);
+    } catch (error) {
+      console.error("Error fetching redemption history:", error);
+      res.status(500).json({ message: "Failed to fetch redemption history" });
+    }
+  });
+
+  app.post('/api/redemption-codes/redeem', isAuthenticated, async (req: any, res) => {
+    try {
+      const { code } = req.body;
+      const userId = (req.user as any).claims.sub;
+      
+      if (!code || code.length < 4) {
+        return res.status(400).json({ message: "Invalid redemption code" });
+      }
+
+      const team = await storage.getTeamByUserId(userId);
+      if (!team) {
+        return res.status(404).json({ message: "Team not found" });
+      }
+
+      const finances = await storage.getTeamFinances(team.id);
+      if (!finances) {
+        return res.status(404).json({ message: "Team finances not found" });
+      }
+
+      // Mock code validation and rewards
+      const validCodes: { [key: string]: any } = {
+        "WELCOME2024": {
+          rewards: ["5,000₡", "10💎"],
+          credits: 5000,
+          gems: 10,
+          description: "Welcome Bonus Package"
+        },
+        "NEWPLAYER": {
+          rewards: ["3,000₡", "5💎"],
+          credits: 3000,
+          gems: 5,
+          description: "New Player Bonus"
+        },
+        "COMMUNITY": {
+          rewards: ["2,000₡", "Basic Mystery Box"],
+          credits: 2000,
+          gems: 0,
+          description: "Community Appreciation"
+        }
+      };
+
+      const codeData = validCodes[code.toUpperCase()];
+      if (!codeData) {
+        return res.status(400).json({ message: "Invalid or expired redemption code" });
+      }
+
+      // Apply rewards
+      await storage.updateTeamFinances(team.id, {
+        credits: (finances.credits || 0) + codeData.credits,
+        premiumCurrency: (finances.premiumCurrency || 0) + codeData.gems
+      });
+
+      res.json({ 
+        message: `Code redeemed successfully!`,
+        rewards: codeData.rewards,
+        description: codeData.description
+      });
+    } catch (error) {
+      console.error("Error redeeming code:", error);
+      res.status(500).json({ message: "Failed to redeem code" });
+    }
+  });
+
   function getDivisionName(division: number) {
     const names: { [key: number]: string } = {
       1: "Diamond", 2: "Ruby", 3: "Emerald", 4: "Sapphire",

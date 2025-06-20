@@ -8,6 +8,7 @@ import { Progress } from "@/components/ui/progress";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { ShoppingCart, Clock, Play, Gift, Sparkles, Zap } from "lucide-react";
+import Navigation from "@/components/Navigation";
 
 export default function Store() {
   const [selectedItem, setSelectedItem] = useState<any>(null);
@@ -121,17 +122,20 @@ export default function Store() {
   };
 
   return (
-    <div className="container mx-auto p-6 space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold flex items-center gap-2">
-            <ShoppingCart className="h-8 w-8" />
-            Daily Store
-          </h1>
-          <p className="text-gray-400 mt-1">
-            Fresh items daily, earn rewards through ads, and unlock mystery boxes
-          </p>
-        </div>
+    <div className="min-h-screen bg-gray-900 text-white">
+      <Navigation />
+      
+      <div className="container mx-auto p-6 space-y-6">
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold flex items-center gap-2">
+              <ShoppingCart className="h-8 w-8" />
+              Daily Store
+            </h1>
+            <p className="text-gray-400 mt-1">
+              Fresh items daily, earn rewards through ads, and unlock mystery boxes
+            </p>
+          </div>
         <div className="flex items-center gap-4">
           <div className="flex items-center gap-2 text-sm">
             <Clock className="h-4 w-4" />
@@ -223,12 +227,15 @@ export default function Store() {
               <CardContent className="space-y-4">
                 <div className="space-y-2">
                   <div className="flex justify-between">
-                    <span>Ads watched today:</span>
+                    <span>Ads watched total:</span>
                     <span className="font-bold">
                       {adData?.adsWatchedToday || 0}/50
                     </span>
                   </div>
                   <Progress value={((adData?.adsWatchedToday || 0) / 50) * 100} />
+                  <p className="text-xs text-gray-400">
+                    Counter resets after reaching 50 ads
+                  </p>
                 </div>
                 
                 <Button
@@ -383,6 +390,7 @@ export default function Store() {
           </Card>
         </TabsContent>
       </Tabs>
+      </div>
     </div>
   );
 }
