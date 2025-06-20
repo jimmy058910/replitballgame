@@ -116,7 +116,7 @@ export default function Inventory() {
             <TabsTrigger value="overview">Overview</TabsTrigger>
             <TabsTrigger value="equipment">Equipment</TabsTrigger>
             <TabsTrigger value="trophies">Trophies</TabsTrigger>
-            <TabsTrigger value="tournaments">Tournament Entries</TabsTrigger>
+            <TabsTrigger value="tournaments">Entries</TabsTrigger>
           </TabsList>
 
           <TabsContent value="overview" className="space-y-6">

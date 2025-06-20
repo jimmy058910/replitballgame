@@ -7,6 +7,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Progress } from "@/components/ui/progress";
 import { Separator } from "@/components/ui/separator";
 import { Shield, Shirt, ShirtIcon, Hand } from "lucide-react";
+import AbilitiesDisplay from "@/components/AbilitiesDisplay";
 
 interface PlayerDetailModalProps {
   player: any;
@@ -243,6 +244,10 @@ export default function PlayerDetailModal({
                 );
               })}
             </div>
+          </TabsContent>
+
+          <TabsContent value="abilities" className="space-y-4">
+            <AbilitiesDisplay player={player} canTrain={true} />
           </TabsContent>
 
           <TabsContent value="contract" className="space-y-4">

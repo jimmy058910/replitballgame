@@ -47,6 +47,10 @@ export const teams = pgTable("teams", {
   points: integer("points").default(0),
   teamPower: integer("team_power").default(0),
   credits: integer("credits").default(15000),
+  exhibitionCredits: integer("exhibition_credits").default(3),
+  lastActivityAt: timestamp("last_activity_at").defaultNow(),
+  isPaidUser: boolean("is_paid_user").default(false),
+  seasonsInactive: integer("seasons_inactive").default(0),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });

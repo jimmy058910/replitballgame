@@ -14,7 +14,7 @@ export default function Navigation() {
 
   const navItems = [
     { path: "/", label: "Dashboard", icon: "fas fa-home" },
-    { path: "/team", label: "My Team", icon: "fas fa-users" },
+    { path: "/team", label: "Team", icon: "fas fa-users" },
     { path: "/league", label: "League", icon: "fas fa-trophy" },
     { path: "/tournaments", label: "Tournaments", icon: "fas fa-medal" },
     { path: "/exhibitions", label: "Exhibitions", icon: "fas fa-gamepad" },

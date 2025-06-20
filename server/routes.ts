@@ -499,6 +499,228 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Enhanced Marketplace routes
+  app.get('/api/marketplace', isAuthenticated, async (req, res) => {
+    try {
+      const marketplacePlayers = await storage.getMarketplacePlayers();
+      res.json(marketplacePlayers);
+    } catch (error) {
+      console.error("Error fetching marketplace players:", error);
+      res.status(500).json({ message: "Failed to fetch marketplace players" });
+    }
+  });
+
+  app.post('/api/marketplace/list-player', isAuthenticated, async (req, res) => {
+    try {
+      const userId = req.user?.claims?.sub;
+      const team = await storage.getTeamByUserId(userId);
+      if (!team) {
+        return res.status(404).json({ message: "Team not found" });
+      }
+
+      const { playerId, price, duration } = req.body;
+      const player = await storage.getPlayerById(playerId);
+      
+      if (!player || player.teamId !== team.id) {
+        return res.status(404).json({ message: "Player not found or not owned" });
+      }
+
+      // Check team constraints (must have 10+ players, max 3 on market)
+      const teamPlayers = await storage.getPlayersByTeamId(team.id);
+      const playersOnMarket = teamPlayers.filter(p => p.isMarketplace);
+      
+      if (teamPlayers.length <= 10) {
+        return res.status(400).json({ message: "Cannot list player - team must have at least 10 players" });
+      }
+      
+      if (playersOnMarket.length >= 3) {
+        return res.status(400).json({ message: "Cannot list player - maximum 3 players can be on market" });
+      }
+
+      // List player with listing fee (2% of price)
+      const listingFee = Math.floor(price * 0.02);
+      const finances = await storage.getTeamFinances(team.id);
+      if (!finances || finances.credits < listingFee) {
+        return res.status(400).json({ message: "Insufficient credits for listing fee" });
+      }
+
+      await storage.updateTeamFinances(team.id, { credits: finances.credits - listingFee });
+      
+      const endTime = new Date();
+      endTime.setHours(endTime.getHours() + parseInt(duration));
+
+      await storage.updatePlayer(playerId, {
+        isMarketplace: true,
+        marketplacePrice: price,
+        marketplaceEndTime: endTime
+      });
+
+      res.json({ success: true, message: "Player listed successfully" });
+    } catch (error) {
+      console.error("Error listing player:", error);
+      res.status(500).json({ message: "Failed to list player" });
+    }
+  });
+
+  app.post('/api/marketplace/buy-player', isAuthenticated, async (req, res) => {
+    try {
+      const userId = req.user?.claims?.sub;
+      const team = await storage.getTeamByUserId(userId);
+      if (!team) {
+        return res.status(404).json({ message: "Team not found" });
+      }
+
+      const { playerId } = req.body;
+      const player = await storage.getPlayerById(playerId);
+      
+      if (!player || !player.isMarketplace) {
+        return res.status(404).json({ message: "Player not available for purchase" });
+      }
+
+      // Check team constraints (max 13 players)
+      const teamPlayers = await storage.getPlayersByTeamId(team.id);
+      if (teamPlayers.length >= 13) {
+        return res.status(400).json({ message: "Cannot buy player - team roster is full (13 players max)" });
+      }
+
+      // Check credits and complete purchase
+      const finances = await storage.getTeamFinances(team.id);
+      const totalPrice = player.marketplacePrice + Math.floor(player.marketplacePrice * 0.05); // 5% transaction fee
+      
+      if (!finances || finances.credits < totalPrice) {
+        return res.status(400).json({ message: "Insufficient credits" });
+      }
+
+      // Transfer player and handle payments
+      const sellerTeam = await storage.getTeamById(player.teamId);
+      const sellerFinances = await storage.getTeamFinances(player.teamId);
+      const saleAmount = Math.floor(player.marketplacePrice * 0.95); // 5% marketplace fee
+
+      await storage.updateTeamFinances(team.id, { credits: finances.credits - totalPrice });
+      await storage.updateTeamFinances(player.teamId, { 
+        credits: sellerFinances.credits + saleAmount 
+      });
+
+      await storage.updatePlayer(playerId, {
+        teamId: team.id,
+        isMarketplace: false,
+        marketplacePrice: null,
+        marketplaceEndTime: null
+      });
+
+      res.json({ success: true, message: "Player purchased successfully" });
+    } catch (error) {
+      console.error("Error buying player:", error);
+      res.status(500).json({ message: "Failed to buy player" });
+    }
+  });
+
+  app.post('/api/marketplace/remove-listing', isAuthenticated, async (req, res) => {
+    try {
+      const userId = req.user?.claims?.sub;
+      const team = await storage.getTeamByUserId(userId);
+      if (!team) {
+        return res.status(404).json({ message: "Team not found" });
+      }
+
+      const { playerId } = req.body;
+      const player = await storage.getPlayerById(playerId);
+      
+      if (!player || player.teamId !== team.id || !player.isMarketplace) {
+        return res.status(404).json({ message: "Player not found or not listed" });
+      }
+
+      // Remove listing with penalty fee (1% of listing price)
+      const penaltyFee = Math.floor(player.marketplacePrice * 0.01);
+      const finances = await storage.getTeamFinances(team.id);
+      
+      await storage.updateTeamFinances(team.id, { credits: finances.credits - penaltyFee });
+      await storage.updatePlayer(playerId, {
+        isMarketplace: false,
+        marketplacePrice: null,
+        marketplaceEndTime: null
+      });
+
+      res.json({ success: true, message: "Listing removed successfully" });
+    } catch (error) {
+      console.error("Error removing listing:", error);
+      res.status(500).json({ message: "Failed to remove listing" });
+    }
+  });
+
+  // Abilities system routes
+  app.post('/api/players/:id/train-abilities', isAuthenticated, async (req, res) => {
+    try {
+      const userId = req.user?.claims?.sub;
+      const team = await storage.getTeamByUserId(userId);
+      if (!team) {
+        return res.status(404).json({ message: "Team not found" });
+      }
+
+      const playerId = req.params.id;
+      const player = await storage.getPlayerById(playerId);
+      
+      if (!player || player.teamId !== team.id) {
+        return res.status(404).json({ message: "Player not found or not owned" });
+      }
+
+      // Training cost (1000 credits)
+      const trainingCost = 1000;
+      const finances = await storage.getTeamFinances(team.id);
+      if (!finances || finances.credits < trainingCost) {
+        return res.status(400).json({ message: "Insufficient credits for training" });
+      }
+
+      // Import abilities system and roll for new ability
+      const { rollForAbility } = await import("@shared/abilities");
+      const newAbility = rollForAbility(player);
+      
+      if (newAbility) {
+        const currentAbilities = player.abilities || [];
+        const updatedAbilities = [...currentAbilities, newAbility.id];
+        
+        await storage.updatePlayer(playerId, { abilities: updatedAbilities });
+        await storage.updateTeamFinances(team.id, { credits: finances.credits - trainingCost });
+        
+        res.json({ 
+          success: true, 
+          newAbility: newAbility.name,
+          message: `${player.name} learned ${newAbility.name}!` 
+        });
+      } else {
+        await storage.updateTeamFinances(team.id, { credits: finances.credits - trainingCost });
+        res.json({ 
+          success: false, 
+          message: "Training completed but no new ability was learned" 
+        });
+      }
+    } catch (error) {
+      console.error("Error training player abilities:", error);
+      res.status(500).json({ message: "Failed to train player abilities" });
+    }
+  });
+
+  // Team inactivity tracking
+  app.post('/api/teams/update-activity', isAuthenticated, async (req, res) => {
+    try {
+      const userId = req.user?.claims?.sub;
+      const team = await storage.getTeamByUserId(userId);
+      if (!team) {
+        return res.status(404).json({ message: "Team not found" });
+      }
+
+      await storage.updateTeam(team.id, { 
+        lastActivityAt: new Date(),
+        seasonsInactive: 0 
+      });
+
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Error updating team activity:", error);
+      res.status(500).json({ message: "Failed to update team activity" });
+    }
+  });
+
   function getDivisionName(division: number) {
     const names: { [key: number]: string } = {
       1: "Diamond", 2: "Ruby", 3: "Emerald", 4: "Sapphire",

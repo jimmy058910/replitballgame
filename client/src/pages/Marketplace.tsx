@@ -7,10 +7,22 @@ import MarketplaceItem from "@/components/MarketplaceItem";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
+import { getAbilityById } from "@shared/abilities";
 
 export default function Marketplace() {
   const [raceFilter, setRaceFilter] = useState("all");
   const [searchTerm, setSearchTerm] = useState("");
+  const [marketplaceTab, setMarketplaceTab] = useState("players");
+  const [equipmentFilter, setEquipmentFilter] = useState("all");
+  const [listPlayerDialog, setListPlayerDialog] = useState(false);
+  const [selectedPlayer, setSelectedPlayer] = useState(null);
+  const [listPrice, setListPrice] = useState("");
+  const [listDuration, setListDuration] = useState("24");
   const { toast } = useToast();
   const queryClient = useQueryClient();
 

@@ -19,6 +19,7 @@ export default function Tournaments() {
 
   const { data: tournaments, isLoading: tournamentsLoading } = useQuery({
     queryKey: ["/api/tournaments", selectedDivision],
+    queryFn: () => fetch(`/api/tournaments/${selectedDivision}`).then(res => res.json()),
   });
 
   const { data: myEntries } = useQuery({
