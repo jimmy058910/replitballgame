@@ -11,6 +11,10 @@ import {
   teamInventory,
   leagueStandings,
   exhibitionGames,
+  playerAuctions,
+  auctionBids,
+  notifications,
+  playerInjuries,
   type User,
   type UpsertUser,
   type Team,
@@ -35,6 +39,14 @@ import {
   type InsertLeagueStanding,
   type ExhibitionGame,
   type InsertExhibitionGame,
+  type PlayerAuction,
+  type InsertPlayerAuction,
+  type AuctionBid,
+  type InsertAuctionBid,
+  type Notification,
+  type InsertNotification,
+  type PlayerInjury,
+  type InsertPlayerInjury,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, or, desc, asc, sql } from "drizzle-orm";
@@ -77,6 +89,30 @@ export interface IStorage {
   getTeamFinances(teamId: string): Promise<TeamFinances | undefined>;
   createTeamFinances(finances: InsertTeamFinances): Promise<TeamFinances>;
   updateTeamFinances(teamId: string, updates: Partial<TeamFinances>): Promise<TeamFinances>;
+  
+  // Auction operations
+  createAuction(auction: InsertPlayerAuction): Promise<PlayerAuction>;
+  getActiveAuctions(): Promise<PlayerAuction[]>;
+  getAuctionById(id: string): Promise<PlayerAuction | undefined>;
+  updateAuction(id: string, updates: Partial<PlayerAuction>): Promise<PlayerAuction>;
+  getAuctionsByTeam(teamId: string): Promise<PlayerAuction[]>;
+  
+  // Bid operations
+  createBid(bid: InsertAuctionBid): Promise<AuctionBid>;
+  getBidsByAuction(auctionId: string): Promise<AuctionBid[]>;
+  getTopBidForAuction(auctionId: string): Promise<AuctionBid | undefined>;
+  
+  // Notification operations
+  createNotification(notification: InsertNotification): Promise<Notification>;
+  getUserNotifications(userId: string): Promise<Notification[]>;
+  markNotificationRead(id: string): Promise<void>;
+  markAllNotificationsRead(userId: string): Promise<void>;
+  
+  // Injury operations
+  createInjury(injury: InsertPlayerInjury): Promise<PlayerInjury>;
+  getPlayerInjuries(playerId: string): Promise<PlayerInjury[]>;
+  getActiveInjuries(playerId: string): Promise<PlayerInjury[]>;
+  updateInjury(id: string, updates: Partial<PlayerInjury>): Promise<PlayerInjury>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -393,6 +429,140 @@ export class DatabaseStorage implements IStorage {
     for (const staffMember of defaultStaff) {
       await this.createStaff(staffMember);
     }
+  }
+
+  // Auction operations
+  async createAuction(auction: InsertPlayerAuction): Promise<PlayerAuction> {
+    const [result] = await db
+      .insert(playerAuctions)
+      .values(auction)
+      .returning();
+    return result;
+  }
+
+  async getActiveAuctions(): Promise<PlayerAuction[]> {
+    return await db
+      .select()
+      .from(playerAuctions)
+      .where(eq(playerAuctions.status, "active"))
+      .orderBy(desc(playerAuctions.endTime));
+  }
+
+  async getAuctionById(id: string): Promise<PlayerAuction | undefined> {
+    const [auction] = await db
+      .select()
+      .from(playerAuctions)
+      .where(eq(playerAuctions.id, id));
+    return auction;
+  }
+
+  async updateAuction(id: string, updates: Partial<PlayerAuction>): Promise<PlayerAuction> {
+    const [result] = await db
+      .update(playerAuctions)
+      .set(updates)
+      .where(eq(playerAuctions.id, id))
+      .returning();
+    return result;
+  }
+
+  async getAuctionsByTeam(teamId: string): Promise<PlayerAuction[]> {
+    return await db
+      .select()
+      .from(playerAuctions)
+      .where(eq(playerAuctions.sellerId, teamId))
+      .orderBy(desc(playerAuctions.createdAt));
+  }
+
+  // Bid operations
+  async createBid(bid: InsertAuctionBid): Promise<AuctionBid> {
+    const [result] = await db
+      .insert(auctionBids)
+      .values(bid)
+      .returning();
+    return result;
+  }
+
+  async getBidsByAuction(auctionId: string): Promise<AuctionBid[]> {
+    return await db
+      .select()
+      .from(auctionBids)
+      .where(eq(auctionBids.auctionId, auctionId))
+      .orderBy(desc(auctionBids.bidAmount));
+  }
+
+  async getTopBidForAuction(auctionId: string): Promise<AuctionBid | undefined> {
+    const [bid] = await db
+      .select()
+      .from(auctionBids)
+      .where(eq(auctionBids.auctionId, auctionId))
+      .orderBy(desc(auctionBids.bidAmount))
+      .limit(1);
+    return bid;
+  }
+
+  // Notification operations
+  async createNotification(notification: InsertNotification): Promise<Notification> {
+    const [result] = await db
+      .insert(notifications)
+      .values(notification)
+      .returning();
+    return result;
+  }
+
+  async getUserNotifications(userId: string): Promise<Notification[]> {
+    return await db
+      .select()
+      .from(notifications)
+      .where(eq(notifications.userId, userId))
+      .orderBy(desc(notifications.createdAt))
+      .limit(50);
+  }
+
+  async markNotificationRead(id: string): Promise<void> {
+    await db
+      .update(notifications)
+      .set({ isRead: true })
+      .where(eq(notifications.id, id));
+  }
+
+  async markAllNotificationsRead(userId: string): Promise<void> {
+    await db
+      .update(notifications)
+      .set({ isRead: true })
+      .where(and(eq(notifications.userId, userId), eq(notifications.isRead, false)));
+  }
+
+  // Injury operations
+  async createInjury(injury: InsertPlayerInjury): Promise<PlayerInjury> {
+    const [result] = await db
+      .insert(playerInjuries)
+      .values(injury)
+      .returning();
+    return result;
+  }
+
+  async getPlayerInjuries(playerId: string): Promise<PlayerInjury[]> {
+    return await db
+      .select()
+      .from(playerInjuries)
+      .where(eq(playerInjuries.playerId, playerId))
+      .orderBy(desc(playerInjuries.injuredAt));
+  }
+
+  async getActiveInjuries(playerId: string): Promise<PlayerInjury[]> {
+    return await db
+      .select()
+      .from(playerInjuries)
+      .where(and(eq(playerInjuries.playerId, playerId), eq(playerInjuries.isActive, true)));
+  }
+
+  async updateInjury(id: string, updates: Partial<PlayerInjury>): Promise<PlayerInjury> {
+    const [result] = await db
+      .update(playerInjuries)
+      .set(updates)
+      .where(eq(playerInjuries.id, id))
+      .returning();
+    return result;
   }
 }
 

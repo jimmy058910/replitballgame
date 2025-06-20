@@ -105,14 +105,23 @@ export default function Tournaments() {
           </TabsList>
 
           <TabsContent value="available" className="space-y-6">
-            {/* Division Selector */}
+            {/* Division Selector - Only show divisions within team's range */}
             <div className="flex flex-wrap gap-2 mb-6">
-              {[1, 2, 3, 4, 5, 6, 7, 8].map((division) => (
+              {[1, 2, 3, 4, 5, 6, 7, 8].filter(division => {
+                // Show team's division and one above/below for eligibility
+                const teamDivision = team?.division || 8;
+                return division >= Math.max(1, teamDivision - 1) && 
+                       division <= Math.min(8, teamDivision + 1);
+              }).map((division) => (
                 <Button
                   key={division}
                   variant={selectedDivision === division ? "default" : "outline"}
                   onClick={() => setSelectedDivision(division)}
-                  className="text-sm"
+                  className={`text-sm ${
+                    selectedDivision === division 
+                      ? "bg-blue-600 text-white" 
+                      : "bg-gray-700 text-gray-300 border-gray-600 hover:bg-gray-600 hover:text-white"
+                  }`}
                 >
                   {getDivisionName(division)}
                 </Button>

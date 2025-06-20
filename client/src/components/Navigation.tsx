@@ -3,6 +3,7 @@ import { useLocation } from "wouter";
 import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import NotificationSystem from "@/components/NotificationSystem";
 import { 
   Home, Users, Trophy, Medal, Gamepad2, ShoppingCart, 
   Building, Package, Store, Menu, LogOut, Coins, MessageCircle 
@@ -90,6 +91,9 @@ export default function Navigation() {
               <span className="text-white">{credits.toLocaleString()}</span>
               <span className="text-yellow-400 ml-1">₡</span>
             </div>
+
+            {/* Notifications */}
+            <NotificationSystem />
 
             {/* Desktop Logout */}
             <Button

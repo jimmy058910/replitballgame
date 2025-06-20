@@ -278,6 +278,65 @@ export const exhibitionGames = pgTable("exhibition_games", {
   replayCode: varchar("replay_code"),
 });
 
+// Enhanced marketplace with bidding system
+export const playerAuctions = pgTable("player_auctions", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  playerId: uuid("player_id").references(() => players.id).notNull(),
+  sellerId: uuid("seller_id").references(() => teams.id).notNull(),
+  startingPrice: integer("starting_price").notNull(),
+  currentBid: integer("current_bid").default(0),
+  buyoutPrice: integer("buyout_price"),
+  highestBidderId: uuid("highest_bidder_id").references(() => teams.id),
+  auctionType: varchar("auction_type").default("standard"), // standard, buyout, reserve
+  reservePrice: integer("reserve_price"),
+  startTime: timestamp("start_time").defaultNow(),
+  endTime: timestamp("end_time").notNull(),
+  status: varchar("status").default("active"), // active, completed, cancelled
+  bidsCount: integer("bids_count").default(0),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const auctionBids = pgTable("auction_bids", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  auctionId: uuid("auction_id").references(() => playerAuctions.id).notNull(),
+  bidderId: uuid("bidder_id").references(() => teams.id).notNull(),
+  bidAmount: integer("bid_amount").notNull(),
+  bidType: varchar("bid_type").default("standard"), // standard, auto, buyout
+  maxAutoBid: integer("max_auto_bid"),
+  isWinning: boolean("is_winning").default(false),
+  timestamp: timestamp("timestamp").defaultNow(),
+});
+
+// Push notifications system
+export const notifications = pgTable("notifications", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  userId: varchar("user_id").references(() => users.id).notNull(),
+  type: varchar("type").notNull(), // auction_outbid, match_starting, injury, etc.
+  title: varchar("title").notNull(),
+  message: text("message").notNull(),
+  data: jsonb("data"), // additional data for the notification
+  isRead: boolean("is_read").default(false),
+  priority: varchar("priority").default("normal"), // low, normal, high, urgent
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// Detailed injury and recovery mechanics
+export const playerInjuries = pgTable("player_injuries", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  playerId: uuid("player_id").references(() => players.id).notNull(),
+  injuryType: varchar("injury_type").notNull(), // minor, moderate, severe, career_threatening
+  injuryName: varchar("injury_name").notNull(),
+  description: text("description"),
+  severity: integer("severity").notNull(), // 1-10 scale
+  recoveryTime: integer("recovery_time").notNull(), // days
+  remainingTime: integer("remaining_time").notNull(), // days left
+  statImpact: jsonb("stat_impact"), // which stats are affected and by how much
+  treatmentCost: integer("treatment_cost").default(0),
+  isActive: boolean("is_active").default(true),
+  injuredAt: timestamp("injured_at").defaultNow(),
+  expectedRecovery: timestamp("expected_recovery"),
+});
+
 // Relations
 export const usersRelations = relations(users, ({ many }) => ({
   teams: many(teams),
@@ -382,3 +441,15 @@ export type LeagueStanding = typeof leagueStandings.$inferSelect;
 export type InsertLeagueStanding = typeof leagueStandings.$inferInsert;
 export type ExhibitionGame = typeof exhibitionGames.$inferSelect;
 export type InsertExhibitionGame = typeof exhibitionGames.$inferInsert;
+
+export type PlayerAuction = typeof playerAuctions.$inferSelect;
+export type InsertPlayerAuction = typeof playerAuctions.$inferInsert;
+
+export type AuctionBid = typeof auctionBids.$inferSelect;
+export type InsertAuctionBid = typeof auctionBids.$inferInsert;
+
+export type Notification = typeof notifications.$inferSelect;
+export type InsertNotification = typeof notifications.$inferInsert;
+
+export type PlayerInjury = typeof playerInjuries.$inferSelect;
+export type InsertPlayerInjury = typeof playerInjuries.$inferInsert;

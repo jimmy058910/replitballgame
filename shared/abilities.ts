@@ -1,4 +1,3 @@
-// Player Abilities System
 export interface Ability {
   id: string;
   name: string;
@@ -21,74 +20,63 @@ export interface Ability {
 }
 
 export const ABILITIES: Record<string, Ability> = {
-  // Basic Tier Abilities
-  "quick_feet": {
-    id: "quick_feet",
-    name: "Quick Feet",
-    description: "Enhanced movement speed and acceleration",
+  // BASIC TIER ABILITIES
+  "swift_feet": {
+    id: "swift_feet",
+    name: "Swift Feet",
+    description: "Enhanced running speed and acceleration",
     tier: "basic",
-    raceAffinities: ["sylvan", "lumina"],
+    raceAffinities: ["elf", "fae"],
     positionAffinities: ["runner", "receiver"],
     statBonuses: { speed: 3, agility: 2 }
+  },
+  "iron_grip": {
+    id: "iron_grip",
+    name: "Iron Grip",
+    description: "Exceptional ball handling and catching ability",
+    tier: "basic",
+    raceAffinities: ["dwarf", "orc"],
+    positionAffinities: ["receiver", "quarterback"],
+    statBonuses: { catching: 4 }
   },
   "strong_arm": {
     id: "strong_arm",
     name: "Strong Arm",
     description: "Increased throwing power and accuracy",
     tier: "basic",
-    raceAffinities: ["human", "gryll"],
-    positionAffinities: ["quarterback", "thrower"],
+    raceAffinities: ["orc", "human"],
+    positionAffinities: ["quarterback"],
     statBonuses: { throwing: 4, power: 2 }
   },
   "iron_will": {
     id: "iron_will",
     name: "Iron Will",
-    description: "Mental toughness and improved leadership",
+    description: "Mental fortitude and leadership under pressure",
     tier: "basic",
-    raceAffinities: ["human", "umbra"],
-    positionAffinities: ["captain", "leader"],
-    statBonuses: { leadership: 5, stamina: 2 }
+    raceAffinities: ["human", "dwarf"],
+    positionAffinities: ["captain", "quarterback"],
+    statBonuses: { leadership: 3, stamina: 2 }
   },
-  "sure_hands": {
-    id: "sure_hands",
-    name: "Sure Hands",
-    description: "Reliable catching in all conditions",
+  "nimble_dodge": {
+    id: "nimble_dodge",
+    name: "Nimble Dodge",
+    description: "Enhanced evasion and mobility",
     tier: "basic",
-    raceAffinities: ["sylvan", "lumina"],
-    positionAffinities: ["receiver", "defender"],
-    statBonuses: { catching: 4, agility: 1 }
+    raceAffinities: ["elf", "fae"],
+    positionAffinities: ["runner", "receiver"],
+    statBonuses: { agility: 4, speed: 1 }
   },
-  "endurance": {
-    id: "endurance",
-    name: "Endurance",
-    description: "Superior stamina and recovery",
+  "power_block": {
+    id: "power_block",
+    name: "Power Block",
+    description: "Devastating blocking and tackling strength",
     tier: "basic",
-    raceAffinities: ["gryll", "human"],
-    positionAffinities: ["all"],
-    statBonuses: { stamina: 5 }
+    raceAffinities: ["orc", "dwarf"],
+    positionAffinities: ["blocker", "defender"],
+    statBonuses: { power: 4, stamina: 1 }
   },
 
-  // Advanced Tier Abilities
-  "lightning_reflexes": {
-    id: "lightning_reflexes",
-    name: "Lightning Reflexes",
-    description: "Exceptional reaction time and evasion",
-    tier: "advanced",
-    raceAffinities: ["sylvan", "lumina"],
-    positionAffinities: ["defender", "runner"],
-    statBonuses: { agility: 5, speed: 3 },
-    prerequisites: ["quick_feet"]
-  },
-  "cannon_arm": {
-    id: "cannon_arm",
-    name: "Cannon Arm",
-    description: "Devastating throwing power across the field",
-    tier: "advanced",
-    raceAffinities: ["gryll", "human"],
-    positionAffinities: ["quarterback", "thrower"],
-    statBonuses: { throwing: 6, power: 4 },
-    prerequisites: ["strong_arm"]
-  },
+  // ADVANCED TIER ABILITIES
   "field_general": {
     id: "field_general",
     name: "Field General",
@@ -104,73 +92,117 @@ export const ABILITIES: Record<string, Ability> = {
     name: "Magnetic Hands",
     description: "Nearly impossible to drop catches",
     tier: "advanced",
-    raceAffinities: ["sylvan", "lumina"],
-    positionAffinities: ["receiver", "defender"],
-    statBonuses: { catching: 7, agility: 2 },
-    prerequisites: ["sure_hands"]
+    raceAffinities: ["fae", "lumina"],
+    positionAffinities: ["receiver"],
+    statBonuses: { catching: 8, agility: 2 },
+    prerequisites: ["iron_grip"]
+  },
+  "lightning_step": {
+    id: "lightning_step",
+    name: "Lightning Step",
+    description: "Burst of incredible speed",
+    tier: "advanced",
+    raceAffinities: ["elf", "fae"],
+    positionAffinities: ["runner", "receiver"],
+    statBonuses: { speed: 7, agility: 3 },
+    prerequisites: ["swift_feet", "nimble_dodge"]
+  },
+  "cannon_arm": {
+    id: "cannon_arm",
+    name: "Cannon Arm",
+    description: "Incredible throwing power and precision",
+    tier: "advanced",
+    raceAffinities: ["orc", "titan"],
+    positionAffinities: ["quarterback"],
+    statBonuses: { throwing: 8, power: 3 },
+    prerequisites: ["strong_arm"]
+  },
+  "immovable_object": {
+    id: "immovable_object",
+    name: "Immovable Object",
+    description: "Unstoppable blocking force",
+    tier: "advanced",
+    raceAffinities: ["titan", "dwarf"],
+    positionAffinities: ["blocker"],
+    statBonuses: { power: 8, stamina: 4 },
+    prerequisites: ["power_block"]
+  },
+  "sixth_sense": {
+    id: "sixth_sense",
+    name: "Sixth Sense",
+    description: "Supernatural awareness of field dynamics",
+    tier: "advanced",
+    raceAffinities: ["lumina", "fae"],
+    positionAffinities: ["defender", "captain"],
+    statBonuses: { agility: 5, leadership: 4 },
+    prerequisites: ["nimble_dodge", "iron_will"]
+  },
+
+  // GODLY TIER ABILITIES
+  "omniscience": {
+    id: "omniscience",
+    name: "Omniscience",
+    description: "Perfect field awareness and strategic foresight",
+    tier: "godly",
+    raceAffinities: ["lumina"],
+    positionAffinities: ["captain", "quarterback"],
+    statBonuses: { 
+      leadership: 10, throwing: 5, agility: 5, 
+      speed: 3, catching: 3, stamina: 5 
+    },
+    prerequisites: ["field_general", "sixth_sense"]
+  },
+  "void_hands": {
+    id: "void_hands",
+    name: "Void Hands",
+    description: "Catches that defy physics and reality",
+    tier: "godly",
+    raceAffinities: ["fae", "lumina"],
+    positionAffinities: ["receiver"],
+    statBonuses: { 
+      catching: 12, agility: 6, speed: 4, 
+      throwing: 2, leadership: 2 
+    },
+    prerequisites: ["magnetic_hands", "lightning_step"]
+  },
+  "perfect_accuracy": {
+    id: "perfect_accuracy",
+    name: "Perfect Accuracy",
+    description: "Throws that never miss their intended target",
+    tier: "godly",
+    raceAffinities: ["lumina", "elf"],
+    positionAffinities: ["quarterback"],
+    statBonuses: { 
+      throwing: 12, leadership: 5, speed: 3, 
+      agility: 4, catching: 3 
+    },
+    prerequisites: ["cannon_arm", "field_general"]
   },
   "unstoppable_force": {
     id: "unstoppable_force",
     name: "Unstoppable Force",
-    description: "Overwhelming power breaks through any defense",
-    tier: "advanced",
-    raceAffinities: ["gryll", "umbra"],
-    positionAffinities: ["blocker", "runner"],
-    statBonuses: { power: 6, stamina: 3 }
-  },
-
-  // Godly Tier Abilities
-  "time_warp": {
-    id: "time_warp",
-    name: "Time Warp",
-    description: "Supernatural speed that bends time itself",
+    description: "Nothing can stop this player's advance",
     tier: "godly",
-    raceAffinities: ["sylvan"],
-    positionAffinities: ["runner", "receiver"],
-    statBonuses: { speed: 10, agility: 8 },
-    prerequisites: ["lightning_reflexes"],
-    conflictsWith: ["dimensional_arm"]
+    raceAffinities: ["titan", "orc"],
+    positionAffinities: ["runner", "blocker"],
+    statBonuses: { 
+      power: 12, speed: 6, stamina: 8, 
+      agility: 2, leadership: 3 
+    },
+    prerequisites: ["immovable_object", "lightning_step"]
   },
-  "dimensional_arm": {
-    id: "dimensional_arm",
-    name: "Dimensional Arm",
-    description: "Throws that transcend physical limitations",
+  "divine_transcendence": {
+    id: "divine_transcendence",
+    name: "Divine Transcendence",
+    description: "Mastery of all aspects of the game",
     tier: "godly",
     raceAffinities: ["lumina"],
-    positionAffinities: ["quarterback", "thrower"],
-    statBonuses: { throwing: 12, power: 6 },
-    prerequisites: ["cannon_arm"],
-    conflictsWith: ["time_warp"]
-  },
-  "mind_meld": {
-    id: "mind_meld",
-    name: "Mind Meld",
-    description: "Psychic connection with all teammates",
-    tier: "godly",
-    raceAffinities: ["lumina", "umbra"],
-    positionAffinities: ["captain", "quarterback"],
-    statBonuses: { leadership: 15, catching: 5 },
-    prerequisites: ["field_general"]
-  },
-  "shadow_step": {
-    id: "shadow_step",
-    name: "Shadow Step",
-    description: "Phase through opponents like a shadow",
-    tier: "godly",
-    raceAffinities: ["umbra"],
-    positionAffinities: ["runner", "defender"],
-    statBonuses: { agility: 12, speed: 6 },
-    prerequisites: ["lightning_reflexes"]
-  },
-  "titans_strength": {
-    id: "titans_strength",
-    name: "Titan's Strength",
-    description: "Legendary power of ancient titans",
-    tier: "godly",
-    raceAffinities: ["gryll"],
-    positionAffinities: ["blocker", "runner"],
-    statBonuses: { power: 15, stamina: 8 },
-    prerequisites: ["unstoppable_force"]
+    positionAffinities: ["captain"],
+    statBonuses: { 
+      speed: 8, power: 8, throwing: 8, catching: 8, 
+      kicking: 8, stamina: 8, leadership: 10, agility: 8 
+    },
+    prerequisites: ["omniscience", "void_hands", "perfect_accuracy"]
   }
 };
 
@@ -183,21 +215,33 @@ export function getAbilitiesByTier(tier: "basic" | "advanced" | "godly"): Abilit
 }
 
 export function getAvailableAbilities(player: any): Ability[] {
-  const currentAbilityIds = player.abilities || [];
-  const currentAbilities = currentAbilityIds.map(getAbilityById).filter(Boolean);
+  const playerAbilities = player.abilities || [];
   
   return Object.values(ABILITIES).filter(ability => {
-    // Already has this ability
-    if (currentAbilityIds.includes(ability.id)) return false;
-    
-    // Check conflicts
-    if (ability.conflictsWith?.some(conflictId => currentAbilityIds.includes(conflictId))) return false;
+    // Check if player already has this ability
+    if (playerAbilities.includes(ability.id)) {
+      return false;
+    }
     
     // Check prerequisites
-    if (ability.prerequisites?.some(prereqId => !currentAbilityIds.includes(prereqId))) return false;
+    if (ability.prerequisites) {
+      const hasAllPrereqs = ability.prerequisites.every(prereq => 
+        playerAbilities.includes(prereq)
+      );
+      if (!hasAllPrereqs) {
+        return false;
+      }
+    }
     
-    // Check if player already has 3 abilities
-    if (currentAbilityIds.length >= 3) return false;
+    // Check conflicts
+    if (ability.conflictsWith) {
+      const hasConflict = ability.conflictsWith.some(conflict => 
+        playerAbilities.includes(conflict)
+      );
+      if (hasConflict) {
+        return false;
+      }
+    }
     
     return true;
   });
@@ -206,9 +250,9 @@ export function getAvailableAbilities(player: any): Ability[] {
 export function calculateAbilityChance(ability: Ability, player: any): number {
   let baseChance = 0;
   
-  // Base chances by tier
+  // Base chance by tier
   switch (ability.tier) {
-    case "basic": baseChance = 0.15; break;
+    case "basic": baseChance = 0.25; break;
     case "advanced": baseChance = 0.05; break;
     case "godly": baseChance = 0.01; break;
   }
@@ -219,18 +263,25 @@ export function calculateAbilityChance(ability: Ability, player: any): number {
   }
   
   // Position affinity bonus
-  if (ability.positionAffinities.includes(player.position) || ability.positionAffinities.includes("all")) {
+  const playerRole = getPlayerRole(player);
+  if (ability.positionAffinities.includes(playerRole)) {
     baseChance *= 1.5;
   }
   
-  // Age factor (younger players more likely to gain abilities)
-  if (player.age < 25) {
-    baseChance *= 1.2;
-  } else if (player.age > 30) {
-    baseChance *= 0.8;
-  }
+  return Math.min(baseChance, 0.8); // Cap at 80%
+}
+
+function getPlayerRole(player: any): string {
+  // Simple role determination based on stats
+  const { throwing, speed, power, leadership, catching, agility } = player;
   
-  return Math.min(baseChance, 0.5); // Cap at 50%
+  if (throwing > 70 && leadership > 60) return "quarterback";
+  if (speed > 70 && agility > 65) return "runner";
+  if (catching > 70 && speed > 60) return "receiver";
+  if (power > 70 && agility < 50) return "blocker";
+  if (leadership > 75) return "captain";
+  
+  return "defender";
 }
 
 export function rollForAbility(player: any): Ability | null {

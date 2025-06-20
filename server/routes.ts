@@ -1470,6 +1470,186 @@ export async function registerRoutes(app: Express): Promise<Server> {
     return names[division] || `Division ${division}`;
   }
 
+  // Auction routes
+  app.get('/api/auctions', isAuthenticated, async (req: any, res) => {
+    try {
+      const auctions = await storage.getActiveAuctions();
+      res.json(auctions);
+    } catch (error) {
+      console.error("Error fetching auctions:", error);
+      res.status(500).json({ message: "Failed to fetch auctions" });
+    }
+  });
+
+  app.post('/api/auctions', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const team = await storage.getTeamByUserId(userId);
+      if (!team) {
+        return res.status(404).json({ message: "Team not found" });
+      }
+
+      const { playerId, startingBid, duration } = req.body;
+      
+      const player = await storage.getPlayerById(playerId);
+      if (!player || player.teamId !== team.id) {
+        return res.status(404).json({ message: "Player not found or not owned by team" });
+      }
+
+      const endTime = new Date();
+      endTime.setHours(endTime.getHours() + (duration || 24));
+
+      const auction = await storage.createAuction({
+        playerId,
+        sellerId: team.id,
+        startingBid: startingBid || 1000,
+        currentBid: startingBid || 1000,
+        endTime,
+        status: 'active'
+      });
+
+      res.json(auction);
+    } catch (error) {
+      console.error("Error creating auction:", error);
+      res.status(500).json({ message: "Failed to create auction" });
+    }
+  });
+
+  app.post('/api/auctions/:id/bid', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const team = await storage.getTeamByUserId(userId);
+      if (!team) {
+        return res.status(404).json({ message: "Team not found" });
+      }
+
+      const auctionId = req.params.id;
+      const { amount } = req.body;
+
+      const auction = await storage.getAuctionById(auctionId);
+      if (!auction || auction.status !== 'active') {
+        return res.status(404).json({ message: "Auction not found or not active" });
+      }
+
+      if (auction.sellerId === team.id) {
+        return res.status(400).json({ message: "Cannot bid on your own auction" });
+      }
+
+      const finances = await storage.getTeamFinances(team.id);
+      if (!finances || (finances.credits || 0) < amount) {
+        return res.status(400).json({ message: "Insufficient credits" });
+      }
+
+      const currentTopBid = await storage.getTopBidForAuction(auctionId);
+      if (currentTopBid && amount <= currentTopBid.amount) {
+        return res.status(400).json({ message: "Bid must be higher than current bid" });
+      }
+
+      const bid = await storage.createBid({
+        auctionId,
+        bidderId: team.id,
+        amount
+      });
+
+      await storage.updateAuction(auctionId, {
+        currentBid: amount,
+        topBidderId: team.id
+      });
+
+      // Create notification for seller
+      await storage.createNotification({
+        userId: auction.sellerId,
+        type: 'auction',
+        title: 'New Bid on Your Auction',
+        message: `Your player auction received a bid of ${amount.toLocaleString()} credits`,
+        priority: 'medium'
+      });
+
+      res.json(bid);
+    } catch (error) {
+      console.error("Error placing bid:", error);
+      res.status(500).json({ message: "Failed to place bid" });
+    }
+  });
+
+  // Notification routes
+  app.get('/api/notifications', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const notifications = await storage.getUserNotifications(userId);
+      res.json(notifications);
+    } catch (error) {
+      console.error("Error fetching notifications:", error);
+      res.status(500).json({ message: "Failed to fetch notifications" });
+    }
+  });
+
+  app.patch('/api/notifications/:id/read', isAuthenticated, async (req: any, res) => {
+    try {
+      const notificationId = req.params.id;
+      await storage.markNotificationRead(notificationId);
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Error marking notification as read:", error);
+      res.status(500).json({ message: "Failed to mark notification as read" });
+    }
+  });
+
+  app.patch('/api/notifications/read-all', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      await storage.markAllNotificationsRead(userId);
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Error marking all notifications as read:", error);
+      res.status(500).json({ message: "Failed to mark all notifications as read" });
+    }
+  });
+
+  // Injury routes
+  app.get('/api/injuries/team/:teamId', isAuthenticated, async (req: any, res) => {
+    try {
+      const teamId = req.params.teamId;
+      const players = await storage.getPlayersByTeamId(teamId);
+      
+      const injuries = [];
+      for (const player of players) {
+        const playerInjuries = await storage.getPlayerInjuries(player.id);
+        injuries.push(...playerInjuries.map(injury => ({
+          ...injury,
+          player: {
+            id: player.id,
+            name: player.name,
+            race: player.race,
+            position: player.position
+          }
+        })));
+      }
+      
+      res.json(injuries);
+    } catch (error) {
+      console.error("Error fetching team injuries:", error);
+      res.status(500).json({ message: "Failed to fetch team injuries" });
+    }
+  });
+
+  app.post('/api/injuries/:id/treat', isAuthenticated, async (req: any, res) => {
+    try {
+      const injuryId = req.params.id;
+      const { treatmentType } = req.body;
+
+      const injury = await storage.updateInjury(injuryId, {
+        treatmentType,
+        recoveryProgress: Math.min(100, (injury?.recoveryProgress || 0) + 25)
+      });
+
+      res.json(injury);
+    } catch (error) {
+      console.error("Error treating injury:", error);
+      res.status(500).json({ message: "Failed to treat injury" });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }
