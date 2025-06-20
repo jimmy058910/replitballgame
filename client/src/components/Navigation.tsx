@@ -18,6 +18,8 @@ export default function Navigation() {
     { path: "/league", label: "League", icon: "fas fa-trophy" },
     { path: "/tournaments", label: "Tournaments", icon: "fas fa-medal" },
     { path: "/exhibitions", label: "Exhibitions", icon: "fas fa-gamepad" },
+    { path: "/store", label: "Store", icon: "fas fa-shopping-cart" },
+    { path: "/stadium", label: "Stadium", icon: "fas fa-building" },
     { path: "/inventory", label: "Inventory", icon: "fas fa-box" },
     { path: "/marketplace", label: "Marketplace", icon: "fas fa-store" },
   ];

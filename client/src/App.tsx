@@ -13,6 +13,8 @@ import Tournaments from "@/pages/Tournaments";
 import Exhibitions from "@/pages/Exhibitions";
 import Inventory from "@/pages/Inventory";
 import Marketplace from "@/pages/Marketplace";
+import Store from "@/pages/Store";
+import Stadium from "@/pages/Stadium";
 import Match from "@/pages/Match";
 import LogoShowcase from "@/pages/LogoShowcase";
 
@@ -33,6 +35,8 @@ function Router() {
           <Route path="/exhibitions" component={Exhibitions} />
           <Route path="/inventory" component={Inventory} />
           <Route path="/marketplace" component={Marketplace} />
+          <Route path="/store" component={Store} />
+          <Route path="/stadium" component={Stadium} />
           <Route path="/match" component={Match} />
         </>
       )}

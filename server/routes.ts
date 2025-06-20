@@ -721,6 +721,242 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Store routes
+  app.get('/api/store', isAuthenticated, async (req, res) => {
+    try {
+      // Generate daily rotating store items
+      const today = new Date().toDateString();
+      const storeItems = [
+        {
+          id: "helmet_basic",
+          name: "Basic Helmet",
+          description: "Standard protection headgear",
+          price: 5000,
+          currency: "credits",
+          rarity: "common",
+          icon: "🪖",
+          statBoosts: { power: 2, stamina: 1 }
+        },
+        {
+          id: "shoes_speed",
+          name: "Speed Boots",
+          description: "Lightweight boots for enhanced speed",
+          price: 8000,
+          currency: "credits",
+          rarity: "rare",
+          icon: "👟",
+          statBoosts: { speed: 5, agility: 3 }
+        },
+        {
+          id: "training_credits",
+          name: "Training Package",
+          description: "Credits for player development",
+          price: 10,
+          currency: "currency",
+          rarity: "common",
+          icon: "💰"
+        }
+      ];
+
+      const premiumItems = [
+        {
+          id: "legendary_armor",
+          name: "Legendary Armor Set",
+          description: "Complete protection with massive stat boosts",
+          price: 100,
+          currency: "currency",
+          rarity: "legendary",
+          icon: "⚔️",
+          statBoosts: { power: 10, stamina: 8, leadership: 5 }
+        }
+      ];
+
+      const resetTime = new Date();
+      resetTime.setHours(24, 0, 0, 0); // Next midnight
+
+      res.json({
+        items: storeItems,
+        premiumItems,
+        resetTime
+      });
+    } catch (error) {
+      console.error("Error fetching store:", error);
+      res.status(500).json({ message: "Failed to fetch store" });
+    }
+  });
+
+  app.get('/api/store/ads', isAuthenticated, async (req, res) => {
+    try {
+      const userId = req.user?.claims?.sub;
+      const team = await storage.getTeamByUserId(userId);
+      if (!team) {
+        return res.status(404).json({ message: "Team not found" });
+      }
+
+      // Mock ad data - would track in database
+      res.json({
+        adsWatchedToday: 0,
+        basicBoxes: 0,
+        premiumBoxes: 0
+      });
+    } catch (error) {
+      console.error("Error fetching ad data:", error);
+      res.status(500).json({ message: "Failed to fetch ad data" });
+    }
+  });
+
+  app.post('/api/store/watch-ad', isAuthenticated, async (req, res) => {
+    try {
+      const userId = req.user?.claims?.sub;
+      const team = await storage.getTeamByUserId(userId);
+      if (!team) {
+        return res.status(404).json({ message: "Team not found" });
+      }
+
+      // Simulate ad reward
+      const reward = Math.floor(Math.random() * 400) + 100; // 100-500 credits
+      const finances = await storage.getTeamFinances(team.id);
+      
+      await storage.updateTeamFinances(team.id, { 
+        credits: (finances?.credits || 0) + reward 
+      });
+
+      res.json({ 
+        success: true, 
+        reward: `+${reward} credits earned!` 
+      });
+    } catch (error) {
+      console.error("Error processing ad reward:", error);
+      res.status(500).json({ message: "Failed to process ad reward" });
+    }
+  });
+
+  app.post('/api/store/purchase', isAuthenticated, async (req, res) => {
+    try {
+      const userId = req.user?.claims?.sub;
+      const team = await storage.getTeamByUserId(userId);
+      if (!team) {
+        return res.status(404).json({ message: "Team not found" });
+      }
+
+      const { itemId, currency } = req.body;
+      const finances = await storage.getTeamFinances(team.id);
+
+      // Mock purchase logic - would validate item price and deduct currency
+      res.json({ success: true, message: "Item purchased successfully" });
+    } catch (error) {
+      console.error("Error purchasing item:", error);
+      res.status(500).json({ message: "Failed to purchase item" });
+    }
+  });
+
+  // Stadium routes
+  app.get('/api/stadium', isAuthenticated, async (req, res) => {
+    try {
+      const userId = req.user?.claims?.sub;
+      const team = await storage.getTeamByUserId(userId);
+      if (!team) {
+        return res.status(404).json({ message: "Team not found" });
+      }
+
+      // Mock stadium data - would be stored in database
+      res.json({
+        level: 1,
+        name: "Basic Stadium",
+        totalCapacity: 10000,
+        basicSeating: 8000,
+        premiumSeating: 1500,
+        vipSeating: 400,
+        corporateSeating: 100,
+        fieldSize: "medium",
+        monthlyRevenue: 50000,
+        sponsors: []
+      });
+    } catch (error) {
+      console.error("Error fetching stadium:", error);
+      res.status(500).json({ message: "Failed to fetch stadium" });
+    }
+  });
+
+  app.post('/api/stadium/upgrade', isAuthenticated, async (req, res) => {
+    try {
+      const userId = req.user?.claims?.sub;
+      const team = await storage.getTeamByUserId(userId);
+      if (!team) {
+        return res.status(404).json({ message: "Team not found" });
+      }
+
+      const { type, tier, cost } = req.body;
+      const finances = await storage.getTeamFinances(team.id);
+      
+      if (!finances || (finances.credits || 0) < cost) {
+        return res.status(400).json({ message: "Insufficient credits" });
+      }
+
+      await storage.updateTeamFinances(team.id, { 
+        credits: (finances.credits || 0) - cost 
+      });
+
+      res.json({ success: true, message: "Stadium upgraded successfully" });
+    } catch (error) {
+      console.error("Error upgrading stadium:", error);
+      res.status(500).json({ message: "Failed to upgrade stadium" });
+    }
+  });
+
+  app.post('/api/stadium/field-size', isAuthenticated, async (req, res) => {
+    try {
+      const userId = req.user?.claims?.sub;
+      const team = await storage.getTeamByUserId(userId);
+      if (!team) {
+        return res.status(404).json({ message: "Team not found" });
+      }
+
+      const { fieldSize } = req.body;
+      const cost = 50000;
+      const finances = await storage.getTeamFinances(team.id);
+      
+      if (!finances || (finances.credits || 0) < cost) {
+        return res.status(400).json({ message: "Insufficient credits" });
+      }
+
+      await storage.updateTeamFinances(team.id, { 
+        credits: (finances.credits || 0) - cost 
+      });
+
+      res.json({ success: true, message: "Field size changed successfully" });
+    } catch (error) {
+      console.error("Error changing field size:", error);
+      res.status(500).json({ message: "Failed to change field size" });
+    }
+  });
+
+  app.post('/api/stadium/sponsors', isAuthenticated, async (req, res) => {
+    try {
+      const userId = req.user?.claims?.sub;
+      const team = await storage.getTeamByUserId(userId);
+      if (!team) {
+        return res.status(404).json({ message: "Team not found" });
+      }
+
+      const { sponsorTier, cost, monthlyRevenue } = req.body;
+      const finances = await storage.getTeamFinances(team.id);
+      
+      if (!finances || (finances.credits || 0) < cost) {
+        return res.status(400).json({ message: "Insufficient credits" });
+      }
+
+      await storage.updateTeamFinances(team.id, { 
+        credits: (finances.credits || 0) - cost 
+      });
+
+      res.json({ success: true, message: "Sponsor contract signed successfully" });
+    } catch (error) {
+      console.error("Error managing sponsors:", error);
+      res.status(500).json({ message: "Failed to manage sponsors" });
+    }
+  });
+
   function getDivisionName(division: number) {
     const names: { [key: number]: string } = {
       1: "Diamond", 2: "Ruby", 3: "Emerald", 4: "Sapphire",
