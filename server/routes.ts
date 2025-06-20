@@ -5,6 +5,9 @@ import { setupAuth, isAuthenticated } from "./replitAuth";
 import { simulateMatch } from "./services/matchSimulation";
 import { generateRandomPlayer } from "./services/leagueService";
 import { z } from "zod";
+import { db } from "./db";
+import { items } from "@shared/schema";
+import { eq, isNotNull, gte, lte, and } from "drizzle-orm";
 
 // Helper function to calculate team power based on player stats
 function calculateTeamPower(players: any[]): number {
@@ -252,7 +255,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Team finances routes
   app.get("/api/teams/:teamId/finances", isAuthenticated, async (req, res) => {
     try {
-      const teamId = req.params.teamId;
+      let teamId = req.params.teamId;
+      
+      // Handle "my" keyword by looking up user's team
+      if (teamId === "my") {
+        const userId = (req.user as any)?.claims?.sub;
+        const team = await storage.getTeamByUserId(userId);
+        if (!team) {
+          return res.status(404).json({ message: "Team not found" });
+        }
+        teamId = team.id;
+      }
+      
       const finances = await storage.getTeamFinances(teamId);
       res.json(finances || {
         teamId,
@@ -933,7 +947,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post('/api/stadium/sponsors', isAuthenticated, async (req, res) => {
     try {
-      const userId = req.user?.claims?.sub;
+      const userId = (req.user as any)?.claims?.sub;
       const team = await storage.getTeamByUserId(userId);
       if (!team) {
         return res.status(404).json({ message: "Team not found" });
@@ -954,6 +968,265 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error managing sponsors:", error);
       res.status(500).json({ message: "Failed to manage sponsors" });
+    }
+  });
+
+  // Equipment marketplace routes
+  app.get('/api/marketplace/equipment', isAuthenticated, async (req, res) => {
+    try {
+      // Mock equipment marketplace data
+      const equipment = [
+        {
+          id: "helmet_legendary",
+          name: "Dragon Scale Helmet",
+          description: "Legendary protection forged from ancient dragon scales",
+          price: 150000,
+          rarity: "legendary",
+          slot: "helmet",
+          statBoosts: { power: 8, stamina: 6, leadership: 4 },
+          seller: "Elite Equipment Co."
+        },
+        {
+          id: "boots_rare", 
+          name: "Wind Walker Boots",
+          description: "Enchanted boots that enhance speed and agility",
+          price: 75000,
+          rarity: "rare",
+          slot: "boots",
+          statBoosts: { speed: 6, agility: 5 },
+          seller: "Speed Demons LLC"
+        },
+        {
+          id: "armor_epic",
+          name: "Titan's Plate Armor",
+          description: "Heavy armor providing maximum protection",
+          price: 200000,
+          rarity: "epic", 
+          slot: "armor",
+          statBoosts: { power: 10, stamina: 8, throwing: -2 },
+          seller: "Fortress Gear"
+        },
+        {
+          id: "gloves_common",
+          name: "Grip Master Gloves",
+          description: "Basic gloves with enhanced grip",
+          price: 15000,
+          rarity: "common",
+          slot: "gloves",
+          statBoosts: { catching: 3, throwing: 2 },
+          seller: "Basic Sports"
+        }
+      ];
+
+      res.json(equipment);
+    } catch (error) {
+      console.error("Error fetching equipment marketplace:", error);
+      res.status(500).json({ message: "Failed to fetch equipment marketplace" });
+    }
+  });
+
+  // Formation saving route
+  app.post('/api/teams/:teamId/formation', isAuthenticated, async (req, res) => {
+    try {
+      let teamId = req.params.teamId;
+      
+      if (teamId === "my") {
+        const userId = (req.user as any)?.claims?.sub;
+        const team = await storage.getTeamByUserId(userId);
+        if (!team) {
+          return res.status(404).json({ message: "Team not found" });
+        }
+        teamId = team.id;
+      }
+
+      const { formation, substitutionOrder } = req.body;
+      
+      // Store formation in team data
+      await storage.updateTeam(teamId, { 
+        formation: JSON.stringify(formation),
+        substitutionOrder: JSON.stringify(substitutionOrder || {}),
+        updatedAt: new Date()
+      });
+
+      res.json({ success: true, message: "Formation saved successfully" });
+    } catch (error) {
+      console.error("Error saving formation:", error);
+      res.status(500).json({ message: "Failed to save formation" });
+    }
+  });
+
+  app.get('/api/teams/:teamId/formation', isAuthenticated, async (req, res) => {
+    try {
+      let teamId = req.params.teamId;
+      
+      if (teamId === "my") {
+        const userId = (req.user as any)?.claims?.sub;
+        const team = await storage.getTeamByUserId(userId);
+        if (!team) {
+          return res.status(404).json({ message: "Team not found" });
+        }
+        teamId = team.id;
+      }
+
+      const team = await storage.getTeamById(teamId);
+      if (!team) {
+        return res.status(404).json({ message: "Team not found" });
+      }
+
+      res.json({
+        formation: team.formation ? JSON.parse(team.formation) : null,
+        substitutionOrder: team.substitutionOrder ? JSON.parse(team.substitutionOrder) : {}
+      });
+    } catch (error) {
+      console.error("Error fetching formation:", error);
+      res.status(500).json({ message: "Failed to fetch formation" });
+    }
+  });
+
+  // Equipment marketplace routes
+  app.get('/api/marketplace/equipment', async (req, res) => {
+    try {
+      const { 
+        rarity, 
+        slot, 
+        minPrice, 
+        maxPrice, 
+        sortBy = 'price', 
+        sortOrder = 'asc' 
+      } = req.query;
+
+      let query = db.select().from(items).where(isNotNull(items.marketplacePrice));
+
+      // Apply filters
+      if (rarity) {
+        query = query.where(eq(items.rarity, rarity as string));
+      }
+      if (slot) {
+        query = query.where(eq(items.slot, slot as string));
+      }
+      if (minPrice) {
+        query = query.where(gte(items.marketplacePrice, parseInt(minPrice as string)));
+      }
+      if (maxPrice) {
+        query = query.where(lte(items.marketplacePrice, parseInt(maxPrice as string)));
+      }
+
+      const equipment = await query;
+
+      // Sort results
+      const sortedEquipment = equipment.sort((a, b) => {
+        let aVal, bVal;
+        switch (sortBy) {
+          case 'price':
+            aVal = a.marketplacePrice || 0;
+            bVal = b.marketplacePrice || 0;
+            break;
+          case 'name':
+            aVal = a.name;
+            bVal = b.name;
+            break;
+          case 'rarity':
+            const rarityOrder = { 'common': 1, 'rare': 2, 'epic': 3, 'legendary': 4 };
+            aVal = rarityOrder[a.rarity as keyof typeof rarityOrder] || 0;
+            bVal = rarityOrder[b.rarity as keyof typeof rarityOrder] || 0;
+            break;
+          default:
+            aVal = a.createdAt;
+            bVal = b.createdAt;
+        }
+        
+        if (sortOrder === 'desc') {
+          return aVal < bVal ? 1 : -1;
+        }
+        return aVal > bVal ? 1 : -1;
+      });
+
+      res.json(sortedEquipment);
+    } catch (error) {
+      console.error("Error fetching equipment marketplace:", error);
+      res.status(500).json({ message: "Failed to fetch equipment marketplace" });
+    }
+  });
+
+  app.post('/api/marketplace/equipment/:itemId/buy', isAuthenticated, async (req, res) => {
+    try {
+      const itemId = req.params.itemId;
+      const userId = (req.user as any)?.claims?.sub;
+      
+      const team = await storage.getTeamByUserId(userId);
+      if (!team) {
+        return res.status(404).json({ message: "Team not found" });
+      }
+
+      const item = await db.select().from(items).where(eq(items.id, itemId)).limit(1);
+      if (!item.length || !item[0].marketplacePrice) {
+        return res.status(404).json({ message: "Item not available for purchase" });
+      }
+
+      const equipmentItem = item[0];
+      const finances = await storage.getTeamFinances(team.id);
+      
+      if (!finances || (finances.credits || 0) < equipmentItem.marketplacePrice) {
+        return res.status(400).json({ message: "Insufficient credits" });
+      }
+
+      // Remove from marketplace and add to team inventory
+      await db.update(items)
+        .set({ 
+          marketplacePrice: null,
+          teamId: team.id,
+          updatedAt: new Date()
+        })
+        .where(eq(items.id, itemId));
+
+      // Update team finances
+      await storage.updateTeamFinances(team.id, {
+        credits: (finances.credits || 0) - equipmentItem.marketplacePrice
+      });
+
+      res.json({ success: true, message: `Purchased ${equipmentItem.name}` });
+    } catch (error) {
+      console.error("Error buying equipment:", error);
+      res.status(500).json({ message: "Failed to purchase equipment" });
+    }
+  });
+
+  app.post('/api/marketplace/equipment/:itemId/sell', isAuthenticated, async (req, res) => {
+    try {
+      const itemId = req.params.itemId;
+      const { price } = req.body;
+      const userId = (req.user as any)?.claims?.sub;
+      
+      const team = await storage.getTeamByUserId(userId);
+      if (!team) {
+        return res.status(404).json({ message: "Team not found" });
+      }
+
+      // Verify item ownership
+      const item = await db.select().from(items)
+        .where(and(eq(items.id, itemId), eq(items.teamId, team.id)))
+        .limit(1);
+        
+      if (!item.length) {
+        return res.status(404).json({ message: "Item not found or not owned by your team" });
+      }
+
+      if (price < 100 || price > 50000) {
+        return res.status(400).json({ message: "Price must be between 100 and 50,000 credits" });
+      }
+
+      // List item on marketplace
+      await db.update(items)
+        .set({ 
+          marketplacePrice: price,
+          updatedAt: new Date()
+        })
+        .where(eq(items.id, itemId));
+
+      res.json({ success: true, message: `${item[0].name} listed for ${price} credits` });
+    } catch (error) {
+      console.error("Error listing equipment:", error);
+      res.status(500).json({ message: "Failed to list equipment" });
     }
   });
 

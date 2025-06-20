@@ -1,8 +1,11 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Separator } from "@/components/ui/separator";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { apiRequest } from "@/lib/queryClient";
+import { useToast } from "@/hooks/use-toast";
 
 interface FormationPlayer {
   id: string;
@@ -10,11 +13,12 @@ interface FormationPlayer {
   role: string;
   position: { x: number; y: number };
   isStarter: boolean;
+  substitutionPriority: number;
 }
 
 interface TacticalFormationProps {
   players: any[];
-  onFormationChange: (formation: FormationPlayer[]) => void;
+  onFormationChange: (formation: FormationPlayer[], substitutionOrder: Record<string, number>) => void;
 }
 
 const FIELD_WIDTH = 400;
@@ -22,15 +26,42 @@ const FIELD_HEIGHT = 300;
 
 export default function TacticalFormation({ players, onFormationChange }: TacticalFormationProps) {
   const [formation, setFormation] = useState<FormationPlayer[]>([]);
+  const [substitutionOrder, setSubstitutionOrder] = useState<Record<string, number>>({});
   const [draggedPlayer, setDraggedPlayer] = useState<string | null>(null);
+  const [dragPosition, setDragPosition] = useState<{ x: number; y: number } | null>(null);
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+
+  const saveFormationMutation = useMutation({
+    mutationFn: async (data: { formation: FormationPlayer[]; substitutionOrder: Record<string, number> }) => {
+      await apiRequest("/api/teams/my/formation", {
+        method: "POST",
+        body: JSON.stringify(data),
+      });
+    },
+    onSuccess: () => {
+      toast({
+        title: "Formation Saved",
+        description: "Your tactical formation has been saved successfully!",
+      });
+      queryClient.invalidateQueries({ queryKey: ["/api/teams/my/formation"] });
+    },
+    onError: (error) => {
+      toast({
+        title: "Save Failed",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
 
   // Helper function to get player role
   const getPlayerRole = (player: any): string => {
-    const { speed, agility, catching, throwing, power } = player;
+    const { speed, agility, catching, throwing, power, leadership, stamina } = player;
     
-    const passerScore = (throwing * 2) + (player.leadership * 1.5);
+    const passerScore = (throwing * 2) + (leadership * 1.5);
     const runnerScore = (speed * 2) + (agility * 1.5);
-    const blockerScore = (power * 2) + (player.stamina * 1.5);
+    const blockerScore = (power * 2) + (stamina * 1.5);
     
     const maxScore = Math.max(passerScore, runnerScore, blockerScore);
     
@@ -46,6 +77,108 @@ export default function TacticalFormation({ players, onFormationChange }: Tactic
     acc[role].push({ ...player, role });
     return acc;
   }, {} as Record<string, any[]>);
+
+  // Auto-formation preset
+  const createAutoFormation = () => {
+    const newFormation: FormationPlayer[] = [];
+    const newSubstitutionOrder: Record<string, number> = {};
+    
+    // Select best players for each role
+    const starters = ['Passer', 'Runner', 'Blocker'].flatMap((role, roleIndex) => {
+      const rolePlayers = (playersByRole[role] || []).slice(0, 3);
+      return rolePlayers.map((player: any, index: number) => ({
+        id: player.id,
+        name: player.name,
+        role,
+        position: {
+          x: 50 + (roleIndex * 120),
+          y: 80 + (index * 60)
+        },
+        isStarter: true,
+        substitutionPriority: index + 1
+      }));
+    });
+
+    // Add substitutes
+    let subPriority = 10;
+    Object.entries(playersByRole).forEach(([role, rolePlayers]) => {
+      (rolePlayers as any[]).slice(3).forEach(player => {
+        newSubstitutionOrder[player.id] = subPriority++;
+      });
+    });
+
+    setFormation(starters);
+    setSubstitutionOrder(newSubstitutionOrder);
+    onFormationChange(starters, newSubstitutionOrder);
+  };
+
+  // Drag and drop handlers
+  const handleDragStart = (playerId: string, event: React.DragEvent) => {
+    setDraggedPlayer(playerId);
+    event.dataTransfer.effectAllowed = 'move';
+  };
+
+  const handleDragOver = (event: React.DragEvent) => {
+    event.preventDefault();
+    const rect = event.currentTarget.getBoundingClientRect();
+    setDragPosition({
+      x: event.clientX - rect.left,
+      y: event.clientY - rect.top
+    });
+  };
+
+  const handleDrop = (event: React.DragEvent) => {
+    event.preventDefault();
+    if (!draggedPlayer || !dragPosition) return;
+
+    const rect = event.currentTarget.getBoundingClientRect();
+    const x = Math.max(20, Math.min(FIELD_WIDTH - 20, event.clientX - rect.left));
+    const y = Math.max(20, Math.min(FIELD_HEIGHT - 20, event.clientY - rect.top));
+
+    const existingIndex = formation.findIndex(p => p.id === draggedPlayer);
+    if (existingIndex >= 0) {
+      // Move existing player
+      const updatedFormation = [...formation];
+      updatedFormation[existingIndex].position = { x, y };
+      setFormation(updatedFormation);
+      onFormationChange(updatedFormation, substitutionOrder);
+    } else {
+      // Add new player to formation
+      const player = players.find(p => p.id === draggedPlayer);
+      if (player && formation.length < 11) {
+        const newFormationPlayer: FormationPlayer = {
+          id: player.id,
+          name: player.name,
+          role: getPlayerRole(player),
+          position: { x, y },
+          isStarter: true,
+          substitutionPriority: formation.length + 1
+        };
+        const updatedFormation = [...formation, newFormationPlayer];
+        setFormation(updatedFormation);
+        onFormationChange(updatedFormation, substitutionOrder);
+      }
+    }
+
+    setDraggedPlayer(null);
+    setDragPosition(null);
+  };
+
+  const removeFromFormation = (playerId: string) => {
+    const updatedFormation = formation.filter(p => p.id !== playerId);
+    setFormation(updatedFormation);
+    onFormationChange(updatedFormation, substitutionOrder);
+  };
+
+  const updateSubstitutionPriority = (playerId: string, priority: number) => {
+    const updatedOrder = { ...substitutionOrder, [playerId]: priority };
+    setSubstitutionOrder(updatedOrder);
+    onFormationChange(formation, updatedOrder);
+  };
+
+  const saveFormation = () => {
+    saveFormationMutation.mutate({ formation, substitutionOrder });
+  };
 
   // Check formation requirements
   const getFormationStatus = () => {
@@ -77,178 +210,195 @@ export default function TacticalFormation({ players, onFormationChange }: Tactic
     };
   };
 
-  const handleDragStart = (playerId: string) => {
-    setDraggedPlayer(playerId);
-  };
-
-  const handleDrop = (e: React.DragEvent, x: number, y: number) => {
-    e.preventDefault();
-    if (!draggedPlayer) return;
-
-    const player = players.find(p => p.id === draggedPlayer);
-    if (!player) return;
-
-    const newFormationPlayer: FormationPlayer = {
-      id: player.id,
-      name: player.name,
-      role: getPlayerRole(player),
-      position: { x, y },
-      isStarter: formation.filter(p => p.isStarter).length < 6
-    };
-
-    // Remove player if already in formation, then add to new position
-    const updatedFormation = formation.filter(p => p.id !== draggedPlayer);
-    updatedFormation.push(newFormationPlayer);
-    
-    setFormation(updatedFormation);
-    setDraggedPlayer(null);
-  };
-
-  const togglePlayerStarter = (playerId: string) => {
-    setFormation(prev => prev.map(p => {
-      if (p.id === playerId) {
-        const currentStarters = prev.filter(player => player.isStarter).length;
-        const newIsStarter = !p.isStarter;
-        
-        // Don't allow more than 6 starters
-        if (newIsStarter && currentStarters >= 6) return p;
-        
-        return { ...p, isStarter: newIsStarter };
-      }
-      return p;
-    }));
-  };
-
-  const removeFromFormation = (playerId: string) => {
-    setFormation(prev => prev.filter(p => p.id !== playerId));
-  };
-
   const status = getFormationStatus();
-  const roleColors = {
-    Passer: "bg-blue-500",
-    Runner: "bg-green-500",
-    Blocker: "bg-red-500",
-  };
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-      {/* Formation Field */}
+    <div className="space-y-4">
+      <div className="flex items-center justify-between">
+        <h3 className="text-lg font-semibold">Tactical Formation</h3>
+        <div className="flex gap-2">
+          <Button onClick={createAutoFormation} variant="outline">
+            Auto Formation
+          </Button>
+          <Button 
+            onClick={saveFormation} 
+            disabled={!status.isValid || saveFormationMutation.isPending}
+          >
+            {saveFormationMutation.isPending ? "Saving..." : "Save Formation"}
+          </Button>
+        </div>
+      </div>
+
+      {/* Formation Requirements Status */}
       <Card>
         <CardHeader>
-          <CardTitle>Tactical Formation</CardTitle>
-          <div className="flex gap-2 text-sm">
-            <Badge variant={status.requirements.passers ? "default" : "destructive"}>
-              Passers: {status.passers}/1+
-            </Badge>
-            <Badge variant={status.requirements.runners ? "default" : "destructive"}>
-              Runners: {status.runners}/2+
-            </Badge>
-            <Badge variant={status.requirements.blockers ? "default" : "destructive"}>
-              Blockers: {status.blockers}/2+
-            </Badge>
-            <Badge variant={status.requirements.total ? "default" : "destructive"}>
-              Total: {status.total}/6
-            </Badge>
-          </div>
+          <CardTitle className="text-sm">Formation Requirements</CardTitle>
         </CardHeader>
         <CardContent>
-          <div 
-            className="relative border-2 border-green-600 bg-green-100 dark:bg-green-900/20 rounded-lg"
-            style={{ width: FIELD_WIDTH, height: FIELD_HEIGHT }}
-            onDragOver={(e) => e.preventDefault()}
-            onDrop={(e) => {
-              const rect = e.currentTarget.getBoundingClientRect();
-              const x = e.clientX - rect.left;
-              const y = e.clientY - rect.top;
-              handleDrop(e, x, y);
-            }}
-          >
-            {/* Field markings - Your Side Only */}
-            <div className="absolute inset-0">
-              {/* End line - right edge represents center field */}
-              <div className="absolute top-0 right-0 w-0.5 h-full bg-white dark:bg-gray-300"></div>
-              
-              {/* Goal area - left side */}
-              <div className="absolute top-1/4 left-0 w-16 h-1/2 border-2 border-white dark:border-gray-300 border-l-0"></div>
-              
-              {/* Center circle (partial) */}
-              <div className="absolute top-1/2 right-0 w-8 h-16 border-2 border-white dark:border-gray-300 rounded-l-full border-r-0 -translate-y-1/2"></div>
-              
-              {/* Side label */}
-              <div className="absolute top-2 left-4 text-xs font-bold text-green-700 dark:text-green-300">YOUR SIDE</div>
-              <div className="absolute bottom-2 left-4 text-xs text-gray-500 dark:text-gray-400">Position your players here</div>
+          <div className="grid grid-cols-4 gap-4 text-sm">
+            <div className={`text-center ${status.requirements.passers ? 'text-green-600' : 'text-red-600'}`}>
+              <div className="font-medium">Passers</div>
+              <div>{status.passers}/1+</div>
             </div>
-
-            {/* Formation players */}
-            {formation.map((player) => (
-              <div
-                key={player.id}
-                className={`absolute w-8 h-8 rounded-full border-2 border-white flex items-center justify-center cursor-pointer text-xs font-bold text-white ${
-                  roleColors[player.role as keyof typeof roleColors]
-                } ${player.isStarter ? 'ring-2 ring-yellow-400' : 'opacity-60'}`}
-                style={{
-                  left: player.position.x - 16,
-                  top: player.position.y - 16,
-                }}
-                onClick={() => togglePlayerStarter(player.id)}
-                onDoubleClick={() => removeFromFormation(player.id)}
-                title={`${player.name} (${player.role}) - ${player.isStarter ? 'Starter' : 'Bench'}`}
-              >
-                {player.name.charAt(0)}
-              </div>
-            ))}
+            <div className={`text-center ${status.requirements.runners ? 'text-green-600' : 'text-red-600'}`}>
+              <div className="font-medium">Runners</div>
+              <div>{status.runners}/2+</div>
+            </div>
+            <div className={`text-center ${status.requirements.blockers ? 'text-green-600' : 'text-red-600'}`}>
+              <div className="font-medium">Blockers</div>
+              <div>{status.blockers}/2+</div>
+            </div>
+            <div className={`text-center ${status.requirements.total ? 'text-green-600' : 'text-red-600'}`}>
+              <div className="font-medium">Total</div>
+              <div>{status.total}/6</div>
+            </div>
           </div>
-          
-          {status.isValid && (
-            <Button 
-              onClick={() => onFormationChange(formation)}
-              className="mt-4 w-full"
-            >
-              Save Formation
-            </Button>
-          )}
         </CardContent>
       </Card>
 
-      {/* Player Lists */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Available Players</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          {Object.entries(playersByRole).map(([role, rolePlayers]) => (
-            <div key={role}>
-              <h4 className="font-semibold text-sm mb-2 flex items-center gap-2">
-                <div className={`w-3 h-3 rounded-full ${roleColors[role as keyof typeof roleColors]}`}></div>
-                {role}s ({rolePlayers.length})
-              </h4>
-              <div className="space-y-1">
-                {rolePlayers.map((player) => {
-                  const inFormation = formation.find(p => p.id === player.id);
-                  return (
-                    <div
-                      key={player.id}
-                      draggable
-                      onDragStart={() => handleDragStart(player.id)}
-                      className={`p-2 text-sm rounded border cursor-move hover:bg-gray-50 dark:hover:bg-gray-800 flex items-center justify-between ${
-                        inFormation ? 'bg-gray-100 dark:bg-gray-800 border-gray-300' : 'bg-white dark:bg-gray-900'
-                      }`}
-                    >
-                      <span>{player.name}</span>
-                      {inFormation && (
-                        <Badge variant="outline" size="sm">
-                          {inFormation.isStarter ? 'Starter' : 'Bench'}
-                        </Badge>
-                      )}
-                    </div>
-                  );
-                })}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Formation Field */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Formation Field</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div 
+              className="relative border-2 border-dashed border-gray-300 bg-green-50 dark:bg-green-900/20"
+              style={{ width: FIELD_WIDTH, height: FIELD_HEIGHT }}
+              onDragOver={handleDragOver}
+              onDrop={handleDrop}
+            >
+              {/* Field markings */}
+              <div className="absolute inset-0">
+                <div className="absolute top-0 left-0 right-0 h-px bg-white" />
+                <div className="absolute bottom-0 left-0 right-0 h-px bg-white" />
+                <div className="absolute top-0 bottom-0 left-0 w-px bg-white" />
+                <div className="absolute top-0 bottom-0 right-0 w-px bg-white" />
+                <div className="absolute top-1/2 left-0 right-0 h-px bg-white transform -translate-y-1/2" />
               </div>
-              {role !== 'Blocker' && <Separator className="mt-3" />}
+
+              {/* Positioned Players */}
+              {formation.map((player) => (
+                <div
+                  key={player.id}
+                  className="absolute cursor-move bg-blue-500 text-white rounded-full w-8 h-8 flex items-center justify-center text-xs font-bold transform -translate-x-1/2 -translate-y-1/2 hover:bg-blue-600 shadow-lg"
+                  style={{
+                    left: player.position.x,
+                    top: player.position.y
+                  }}
+                  draggable
+                  onDragStart={(e) => handleDragStart(player.id, e)}
+                  title={`${player.name} (${player.role})`}
+                  onClick={() => removeFromFormation(player.id)}
+                >
+                  {player.name.charAt(0)}
+                </div>
+              ))}
+
+              {/* Drag Preview */}
+              {dragPosition && (
+                <div
+                  className="absolute w-8 h-8 bg-blue-300 rounded-full opacity-50 transform -translate-x-1/2 -translate-y-1/2"
+                  style={{
+                    left: dragPosition.x,
+                    top: dragPosition.y,
+                    pointerEvents: 'none'
+                  }}
+                />
+              )}
             </div>
-          ))}
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
+
+        {/* Player Selection */}
+        <div className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle>Available Players</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {Object.entries(playersByRole).map(([role, rolePlayers]) => (
+                <div key={role}>
+                  <h4 className="font-medium mb-2">{role}s</h4>
+                  <div className="space-y-2">
+                    {(rolePlayers as any[]).map((player: any) => {
+                      const inFormation = formation.some(p => p.id === player.id);
+                      return (
+                        <div
+                          key={player.id}
+                          className={`p-2 border rounded cursor-move ${
+                            inFormation ? 'bg-blue-50 border-blue-200' : 'bg-white hover:bg-gray-50'
+                          }`}
+                          draggable={!inFormation}
+                          onDragStart={(e) => !inFormation && handleDragStart(player.id, e)}
+                        >
+                          <div className="flex items-center justify-between">
+                            <div>
+                              <div className="font-medium">{player.name}</div>
+                              <div className="text-sm text-gray-500">
+                                {player.race} • Age {player.age}
+                              </div>
+                            </div>
+                            <div className="flex gap-1">
+                              <Badge variant="outline">
+                                {Math.round((player.speed + player.agility + player.power + player.throwing + player.catching + player.stamina) / 6)}
+                              </Badge>
+                              {inFormation && (
+                                <Badge variant="secondary">On Field</Badge>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              ))}
+            </CardContent>
+          </Card>
+
+          {/* Substitution Order */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Substitution Order</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-2">
+                {Object.entries(substitutionOrder)
+                  .sort(([, a], [, b]) => a - b)
+                  .map(([playerId, priority]) => {
+                    const player = players.find(p => p.id === playerId);
+                    if (!player) return null;
+                    return (
+                      <div key={playerId} className="flex items-center justify-between p-2 border rounded">
+                        <div>
+                          <div className="font-medium">{player.name}</div>
+                          <div className="text-sm text-gray-500">{getPlayerRole(player)}</div>
+                        </div>
+                        <Select
+                          value={priority.toString()}
+                          onValueChange={(value) => updateSubstitutionPriority(playerId, parseInt(value))}
+                        >
+                          <SelectTrigger className="w-20">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {Array.from({ length: 20 }, (_, i) => i + 1).map(num => (
+                              <SelectItem key={num} value={num.toString()}>
+                                {num}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    );
+                  })}
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
     </div>
   );
 }

@@ -51,6 +51,8 @@ export const teams = pgTable("teams", {
   lastActivityAt: timestamp("last_activity_at").defaultNow(),
   isPaidUser: boolean("is_paid_user").default(false),
   seasonsInactive: integer("seasons_inactive").default(0),
+  formation: text("formation"),
+  substitutionOrder: text("substitution_order"),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
@@ -151,9 +153,12 @@ export const items = pgTable("items", {
   name: varchar("name").notNull(),
   type: varchar("type").notNull(), // helmet, chest, shoes, gloves
   rarity: varchar("rarity").notNull(), // common, rare, epic, legendary
+  slot: varchar("slot"), // equipment slot
   statBoosts: jsonb("stat_boosts").default({}), // {speed: 2, power: 1, etc}
   description: text("description"),
   marketValue: integer("market_value").default(0),
+  marketplacePrice: integer("marketplace_price"), // Current marketplace listing price
+  teamId: uuid("team_id").references(() => teams.id), // Owner team
   createdAt: timestamp("created_at").defaultNow(),
 });
 
