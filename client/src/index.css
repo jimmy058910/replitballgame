@@ -1,0 +1,166 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Inter:wght@300;400;500;600;700&display=swap');
+
+:root {
+  --background: hsl(0, 0%, 100%);
+  --foreground: hsl(20, 14.3%, 4.1%);
+  --muted: hsl(60, 4.8%, 95.9%);
+  --muted-foreground: hsl(25, 5.3%, 44.7%);
+  --popover: hsl(0, 0%, 100%);
+  --popover-foreground: hsl(20, 14.3%, 4.1%);
+  --card: hsl(0, 0%, 100%);
+  --card-foreground: hsl(20, 14.3%, 4.1%);
+  --border: hsl(20, 5.9%, 90%);
+  --input: hsl(20, 5.9%, 90%);
+  --primary: hsl(207, 90%, 54%);
+  --primary-foreground: hsl(211, 100%, 99%);
+  --secondary: hsl(60, 4.8%, 95.9%);
+  --secondary-foreground: hsl(24, 9.8%, 10%);
+  --accent: hsl(60, 4.8%, 95.9%);
+  --accent-foreground: hsl(24, 9.8%, 10%);
+  --destructive: hsl(0, 84.2%, 60.2%);
+  --destructive-foreground: hsl(60, 9.1%, 97.8%);
+  --ring: hsl(20, 14.3%, 4.1%);
+  --radius: 0.5rem;
+  
+  /* Fantasy race colors */
+  --race-human: hsl(200, 12%, 55%);
+  --race-sylvan: hsl(142, 71%, 45%);
+  --race-gryll: hsl(200, 7%, 28%);
+  --race-lumina: hsl(45, 100%, 50%);
+  --race-umbra: hsl(253, 53%, 37%);
+  
+  /* Gold colors */
+  --gold-400: hsl(43, 89%, 70%);
+  --gold-500: hsl(38, 92%, 50%);
+  --gold-600: hsl(32, 95%, 44%);
+}
+
+.dark {
+  --background: hsl(240, 10%, 3.9%);
+  --foreground: hsl(0, 0%, 98%);
+  --muted: hsl(240, 3.7%, 15.9%);
+  --muted-foreground: hsl(240, 5%, 64.9%);
+  --popover: hsl(240, 10%, 3.9%);
+  --popover-foreground: hsl(0, 0%, 98%);
+  --card: hsl(240, 10%, 3.9%);
+  --card-foreground: hsl(0, 0%, 98%);
+  --border: hsl(240, 3.7%, 15.9%);
+  --input: hsl(240, 3.7%, 15.9%);
+  --primary: hsl(207, 90%, 54%);
+  --primary-foreground: hsl(211, 100%, 99%);
+  --secondary: hsl(240, 3.7%, 15.9%);
+  --secondary-foreground: hsl(0, 0%, 98%);
+  --accent: hsl(240, 3.7%, 15.9%);
+  --accent-foreground: hsl(0, 0%, 98%);
+  --destructive: hsl(0, 62.8%, 30.6%);
+  --destructive-foreground: hsl(0, 0%, 98%);
+  --ring: hsl(240, 4.9%, 83.9%);
+  --radius: 0.5rem;
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply font-inter antialiased bg-gray-900 text-gray-100;
+  }
+  
+  .font-orbitron {
+    font-family: 'Orbitron', monospace;
+  }
+  
+  .font-inter {
+    font-family: 'Inter', sans-serif;
+  }
+}
+
+@layer utilities {
+  /* Race-specific colors */
+  .text-race-human { color: var(--race-human); }
+  .text-race-sylvan { color: var(--race-sylvan); }
+  .text-race-gryll { color: var(--race-gryll); }
+  .text-race-lumina { color: var(--race-lumina); }
+  .text-race-umbra { color: var(--race-umbra); }
+  
+  .bg-race-human { background-color: var(--race-human); }
+  .bg-race-sylvan { background-color: var(--race-sylvan); }
+  .bg-race-gryll { background-color: var(--race-gryll); }
+  .bg-race-lumina { background-color: var(--race-lumina); }
+  .bg-race-umbra { background-color: var(--race-umbra); }
+  
+  .border-race-human { border-color: var(--race-human); }
+  .border-race-sylvan { border-color: var(--race-sylvan); }
+  .border-race-gryll { border-color: var(--race-gryll); }
+  .border-race-lumina { border-color: var(--race-lumina); }
+  .border-race-umbra { border-color: var(--race-umbra); }
+  
+  /* Gold colors */
+  .text-gold-400 { color: var(--gold-400); }
+  .text-gold-500 { color: var(--gold-500); }
+  .text-gold-600 { color: var(--gold-600); }
+  
+  .bg-gold-400 { background-color: var(--gold-400); }
+  .bg-gold-500 { background-color: var(--gold-500); }
+  .bg-gold-600 { background-color: var(--gold-600); }
+  
+  .border-gold-400 { border-color: var(--gold-400); }
+  .border-gold-500 { border-color: var(--gold-500); }
+  .border-gold-600 { border-color: var(--gold-600); }
+  
+  /* Hover states for race colors */
+  .hover\:bg-race-human:hover { background-color: var(--race-human); }
+  .hover\:bg-race-sylvan:hover { background-color: var(--race-sylvan); }
+  .hover\:bg-race-gryll:hover { background-color: var(--race-gryll); }
+  .hover\:bg-race-lumina:hover { background-color: var(--race-lumina); }
+  .hover\:bg-race-umbra:hover { background-color: var(--race-umbra); }
+  
+  .hover\:border-race-human:hover { border-color: var(--race-human); }
+  .hover\:border-race-sylvan:hover { border-color: var(--race-sylvan); }
+  .hover\:border-race-gryll:hover { border-color: var(--race-gryll); }
+  .hover\:border-race-lumina:hover { border-color: var(--race-lumina); }
+  .hover\:border-race-umbra:hover { border-color: var(--race-umbra); }
+  
+  /* Custom animations */
+  .animate-pulse-slow {
+    animation: pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  }
+  
+  /* Gradient backgrounds */
+  .bg-gradient-fantasy {
+    background: linear-gradient(135deg, hsl(240, 10%, 3.9%) 0%, hsl(240, 8%, 5%) 50%, hsl(240, 10%, 3.9%) 100%);
+  }
+  
+  /* Field styling */
+  .field-gradient {
+    background: linear-gradient(90deg, #166534 0%, #15803d 50%, #166534 100%);
+  }
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: hsl(240, 3.7%, 15.9%);
+}
+
+::-webkit-scrollbar-thumb {
+  background: hsl(240, 5%, 34%);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: hsl(240, 5%, 44%);
+}
+
+/* Icon styling */
+.fas, .far, .fab {
+  font-family: "Font Awesome 6 Free", "Font Awesome 6 Pro", "Font Awesome 6 Brands";
+}
