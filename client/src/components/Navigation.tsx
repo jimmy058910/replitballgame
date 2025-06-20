@@ -51,14 +51,15 @@ export default function Navigation() {
             <div className="flex items-center space-x-4">
               {team && (
                 <div className="flex items-center space-x-2 bg-gray-700 px-3 py-1 rounded-lg">
-                  <i className="fas fa-coins text-gold-400"></i>
-                  <span className="font-semibold">{team.credits?.toLocaleString()}</span>
+                  <i className="fas fa-coins text-yellow-400"></i>
+                  <span className="font-semibold text-white">{(team.credits || 15000).toLocaleString()}</span>
                 </div>
               )}
               <Button
                 variant="outline"
                 size="sm"
                 onClick={() => window.location.href = '/api/logout'}
+                className="text-red-400 border-red-400 hover:bg-red-400 hover:text-white"
               >
                 <i className="fas fa-sign-out-alt mr-2"></i>Logout
               </Button>

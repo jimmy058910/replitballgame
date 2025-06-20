@@ -90,10 +90,20 @@ export default function Team() {
           <div className="flex items-center justify-between mb-6">
             <h1 className="font-orbitron text-3xl font-bold">My Team - {team.name}</h1>
             <div className="flex space-x-2">
-              <Button variant="outline" size="lg">
+              <Button 
+                variant="outline" 
+                size="lg"
+                onClick={() => setActiveTab("recruiting")}
+                className="text-blue-400 border-blue-400 hover:bg-blue-400 hover:text-white"
+              >
                 <i className="fas fa-plus mr-2"></i>Recruit
               </Button>
-              <Button variant="outline" size="lg">
+              <Button 
+                variant="outline" 
+                size="lg"
+                onClick={() => setActiveTab("tactics")}
+                className="text-green-400 border-green-400 hover:bg-green-400 hover:text-white"
+              >
                 <i className="fas fa-cog mr-2"></i>Tactics
               </Button>
             </div>
