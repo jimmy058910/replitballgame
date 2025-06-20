@@ -9,6 +9,9 @@ import Landing from "@/pages/Landing";
 import Dashboard from "@/pages/Dashboard";
 import Team from "@/pages/Team";
 import League from "@/pages/League";
+import Tournaments from "@/pages/Tournaments";
+import Exhibitions from "@/pages/Exhibitions";
+import Inventory from "@/pages/Inventory";
 import Marketplace from "@/pages/Marketplace";
 import Match from "@/pages/Match";
 import LogoShowcase from "@/pages/LogoShowcase";
@@ -26,6 +29,9 @@ function Router() {
           <Route path="/" component={Dashboard} />
           <Route path="/team" component={Team} />
           <Route path="/league" component={League} />
+          <Route path="/tournaments" component={Tournaments} />
+          <Route path="/exhibitions" component={Exhibitions} />
+          <Route path="/inventory" component={Inventory} />
           <Route path="/marketplace" component={Marketplace} />
           <Route path="/match" component={Match} />
         </>

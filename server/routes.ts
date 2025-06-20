@@ -364,6 +364,149 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Tournament routes
+  app.get('/api/tournaments/:division', isAuthenticated, async (req, res) => {
+    try {
+      const division = parseInt(req.params.division);
+      // Create mock tournaments for now - in production this would come from database
+      const tournaments = [
+        {
+          id: `tournament-${division}-1`,
+          name: `${getDivisionName(division)} Daily Tournament`,
+          division,
+          entryFee: division <= 4 ? 1000 : 500,
+          maxTeams: 8,
+          status: "open",
+          prizes: { first: division <= 4 ? 5000 : 2500, second: division <= 4 ? 2000 : 1000 }
+        }
+      ];
+      res.json(tournaments);
+    } catch (error) {
+      console.error("Error fetching tournaments:", error);
+      res.status(500).json({ message: "Failed to fetch tournaments" });
+    }
+  });
+
+  app.post('/api/tournaments/:id/enter', isAuthenticated, async (req, res) => {
+    try {
+      const userId = req.user?.claims?.sub;
+      const team = await storage.getTeamByUserId(userId);
+      if (!team) {
+        return res.status(404).json({ message: "Team not found" });
+      }
+
+      const finances = await storage.getTeamFinances(team.id);
+      if (!finances || finances.credits < 1000) {
+        return res.status(400).json({ message: "Insufficient credits" });
+      }
+
+      // Deduct entry fee and create tournament entry
+      await storage.updateTeamFinances(team.id, { credits: finances.credits - 1000 });
+      
+      res.json({ success: true, message: "Tournament entry successful" });
+    } catch (error) {
+      console.error("Error entering tournament:", error);
+      res.status(500).json({ message: "Failed to enter tournament" });
+    }
+  });
+
+  app.get('/api/tournaments/my-entries', isAuthenticated, async (req, res) => {
+    try {
+      res.json([]); // Empty for now - would fetch from database in production
+    } catch (error) {
+      console.error("Error fetching tournament entries:", error);
+      res.status(500).json({ message: "Failed to fetch tournament entries" });
+    }
+  });
+
+  app.get('/api/tournaments/history', isAuthenticated, async (req, res) => {
+    try {
+      res.json([]); // Empty for now - would fetch tournament history from database
+    } catch (error) {
+      console.error("Error fetching tournament history:", error);
+      res.status(500).json({ message: "Failed to fetch tournament history" });
+    }
+  });
+
+  // Exhibition routes
+  app.get('/api/exhibitions/stats', isAuthenticated, async (req, res) => {
+    try {
+      const stats = {
+        gamesPlayedToday: 0,
+        totalWins: 0,
+        totalLosses: 0,
+        totalDraws: 0,
+        totalGames: 0,
+        winRate: 0,
+        chemistryGained: 0
+      };
+      res.json(stats);
+    } catch (error) {
+      console.error("Error fetching exhibition stats:", error);
+      res.status(500).json({ message: "Failed to fetch exhibition stats" });
+    }
+  });
+
+  app.post('/api/exhibitions/find-match', isAuthenticated, async (req, res) => {
+    try {
+      const userId = req.user?.claims?.sub;
+      const team = await storage.getTeamByUserId(userId);
+      if (!team) {
+        return res.status(404).json({ message: "Team not found" });
+      }
+
+      // Find a random opponent team for exhibition match
+      const allTeams = await storage.getTeamsByDivision(team.division);
+      const opponents = allTeams.filter(t => t.id !== team.id);
+      
+      if (opponents.length === 0) {
+        return res.status(404).json({ message: "No opponents available" });
+      }
+
+      const opponent = opponents[Math.floor(Math.random() * opponents.length)];
+      
+      // Create exhibition match
+      const match = await storage.createMatch({
+        homeTeamId: team.id,
+        awayTeamId: opponent.id,
+        matchType: "exhibition",
+        status: "live"
+      });
+
+      res.json({ matchId: match.id });
+    } catch (error) {
+      console.error("Error finding exhibition match:", error);
+      res.status(500).json({ message: "Failed to find exhibition match" });
+    }
+  });
+
+  app.get('/api/exhibitions/recent', isAuthenticated, async (req, res) => {
+    try {
+      res.json([]); // Empty for now - would fetch recent exhibition games from database
+    } catch (error) {
+      console.error("Error fetching recent exhibition games:", error);
+      res.status(500).json({ message: "Failed to fetch recent exhibition games" });
+    }
+  });
+
+  // Inventory routes
+  app.get('/api/inventory/:teamId', isAuthenticated, async (req, res) => {
+    try {
+      res.json([]); // Empty for now - would fetch team inventory from database
+    } catch (error) {
+      console.error("Error fetching team inventory:", error);
+      res.status(500).json({ message: "Failed to fetch team inventory" });
+    }
+  });
+
+  function getDivisionName(division: number) {
+    const names: { [key: number]: string } = {
+      1: "Diamond", 2: "Ruby", 3: "Emerald", 4: "Sapphire",
+      5: "Gold", 6: "Silver", 7: "Bronze", 8: "Iron"
+    };
+    return names[division] || `Division ${division}`;
+  }
+
   const httpServer = createServer(app);
   return httpServer;
 }

@@ -6,6 +6,11 @@ import {
   leagues,
   staff,
   teamFinances,
+  tournaments,
+  tournamentEntries,
+  teamInventory,
+  leagueStandings,
+  exhibitionGames,
   type User,
   type UpsertUser,
   type Team,
@@ -20,6 +25,16 @@ import {
   type InsertStaff,
   type TeamFinances,
   type InsertTeamFinances,
+  type Tournament,
+  type InsertTournament,
+  type TournamentEntry,
+  type InsertTournamentEntry,
+  type TeamInventory,
+  type InsertTeamInventory,
+  type LeagueStanding,
+  type InsertLeagueStanding,
+  type ExhibitionGame,
+  type InsertExhibitionGame,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, or, desc, asc, sql } from "drizzle-orm";
@@ -222,7 +237,7 @@ export class DatabaseStorage implements IStorage {
     const [league] = await db
       .select()
       .from(leagues)
-      .where(and(eq(leagues.division, division), eq(leagues.isActive, true)));
+      .where(and(eq(leagues.division, division), eq(leagues.status, "active")));
     return league;
   }
 

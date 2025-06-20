@@ -115,7 +115,9 @@ export const leagues = pgTable("leagues", {
   name: varchar("name").notNull(),
   division: integer("division").notNull(),
   season: integer("season").default(1),
-  isActive: boolean("is_active").default(true),
+  gameDay: integer("game_day").default(1), // Current day of the season (1-14)
+  maxTeams: integer("max_teams").default(8),
+  status: varchar("status").default("active"), // active, completed, upcoming
   startDate: timestamp("start_date"),
   endDate: timestamp("end_date"),
   createdAt: timestamp("created_at").defaultNow(),
@@ -124,13 +126,16 @@ export const leagues = pgTable("leagues", {
 export const matches = pgTable("matches", {
   id: uuid("id").primaryKey().defaultRandom(),
   leagueId: uuid("league_id").references(() => leagues.id),
+  tournamentId: uuid("tournament_id"),
   homeTeamId: uuid("home_team_id").references(() => teams.id).notNull(),
   awayTeamId: uuid("away_team_id").references(() => teams.id).notNull(),
   homeScore: integer("home_score").default(0),
   awayScore: integer("away_score").default(0),
   status: varchar("status").default("scheduled"), // scheduled, live, completed
-  gameData: jsonb("game_data"),
   matchType: varchar("match_type").default("league"), // league, tournament, exhibition
+  gameDay: integer("game_day"), // Which day of the season
+  gameData: jsonb("game_data"),
+  replayCode: varchar("replay_code"), // Code to rewatch the match
   scheduledTime: timestamp("scheduled_time"),
   completedAt: timestamp("completed_at"),
   createdAt: timestamp("created_at").defaultNow(),
@@ -194,6 +199,74 @@ export const teamFinances = pgTable("team_finances", {
   netIncome: integer("net_income").default(0),
   
   createdAt: timestamp("created_at").defaultNow(),
+});
+
+// Tournaments table for daily tournament entries
+export const tournaments = pgTable("tournaments", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  name: varchar("name").notNull(),
+  division: integer("division").notNull(),
+  entryFee: integer("entry_fee").notNull(),
+  maxTeams: integer("max_teams").default(8),
+  status: varchar("status").default("open"), // open, in_progress, completed
+  prizes: jsonb("prizes").default({}), // {first: 5000, second: 2000}
+  startTime: timestamp("start_time"),
+  endTime: timestamp("end_time"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// Tournament entries table
+export const tournamentEntries = pgTable("tournament_entries", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  tournamentId: uuid("tournament_id").references(() => tournaments.id).notNull(),
+  teamId: uuid("team_id").references(() => teams.id).notNull(),
+  entryTime: timestamp("entry_time").defaultNow(),
+  placement: integer("placement"), // Final tournament placement
+  prizeWon: integer("prize_won").default(0),
+});
+
+// Team inventory for equipment, trophies, and tournament entries
+export const teamInventory = pgTable("team_inventory", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  teamId: uuid("team_id").references(() => teams.id).notNull(),
+  itemId: uuid("item_id").references(() => items.id),
+  itemType: varchar("item_type").notNull(), // equipment, trophy, tournament_entry
+  name: varchar("name").notNull(),
+  description: text("description"),
+  rarity: varchar("rarity"), // common, rare, epic, legendary
+  metadata: jsonb("metadata").default({}), // Additional item data
+  quantity: integer("quantity").default(1),
+  acquiredAt: timestamp("acquired_at").defaultNow(),
+});
+
+// League standings table
+export const leagueStandings = pgTable("league_standings", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  leagueId: uuid("league_id").references(() => leagues.id).notNull(),
+  teamId: uuid("team_id").references(() => teams.id).notNull(),
+  wins: integer("wins").default(0),
+  losses: integer("losses").default(0),
+  draws: integer("draws").default(0),
+  points: integer("points").default(0), // 3 for win, 1 for draw
+  goalsFor: integer("goals_for").default(0),
+  goalsAgainst: integer("goals_against").default(0),
+  goalDifference: integer("goal_difference").default(0),
+  position: integer("position").default(1),
+  gamesPlayed: integer("games_played").default(0),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Exhibition games tracking for daily limit
+export const exhibitionGames = pgTable("exhibition_games", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  teamId: uuid("team_id").references(() => teams.id).notNull(),
+  opponentTeamId: uuid("opponent_team_id").references(() => teams.id).notNull(),
+  result: varchar("result"), // win, loss, draw
+  score: varchar("score"), // "2-1"
+  playedDate: timestamp("played_date").defaultNow(),
+  gameData: jsonb("game_data"), // Match simulation data
+  replayCode: varchar("replay_code"),
 });
 
 // Relations
@@ -290,3 +363,13 @@ export type Item = typeof items.$inferSelect;
 export type InsertItem = typeof items.$inferInsert;
 export type TeamFinances = typeof teamFinances.$inferSelect;
 export type InsertTeamFinances = typeof teamFinances.$inferInsert;
+export type Tournament = typeof tournaments.$inferSelect;
+export type InsertTournament = typeof tournaments.$inferInsert;
+export type TournamentEntry = typeof tournamentEntries.$inferSelect;
+export type InsertTournamentEntry = typeof tournamentEntries.$inferInsert;
+export type TeamInventory = typeof teamInventory.$inferSelect;
+export type InsertTeamInventory = typeof teamInventory.$inferInsert;
+export type LeagueStanding = typeof leagueStandings.$inferSelect;
+export type InsertLeagueStanding = typeof leagueStandings.$inferInsert;
+export type ExhibitionGame = typeof exhibitionGames.$inferSelect;
+export type InsertExhibitionGame = typeof exhibitionGames.$inferInsert;

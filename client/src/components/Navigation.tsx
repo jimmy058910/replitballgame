@@ -16,8 +16,10 @@ export default function Navigation() {
     { path: "/", label: "Dashboard", icon: "fas fa-home" },
     { path: "/team", label: "My Team", icon: "fas fa-users" },
     { path: "/league", label: "League", icon: "fas fa-trophy" },
+    { path: "/tournaments", label: "Tournaments", icon: "fas fa-medal" },
+    { path: "/exhibitions", label: "Exhibitions", icon: "fas fa-gamepad" },
+    { path: "/inventory", label: "Inventory", icon: "fas fa-box" },
     { path: "/marketplace", label: "Marketplace", icon: "fas fa-store" },
-    { path: "/match", label: "Matches", icon: "fas fa-play-circle" },
   ];
 
   return (
