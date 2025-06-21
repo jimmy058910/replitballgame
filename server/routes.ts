@@ -1696,21 +1696,44 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { seasonId } = req.params;
       const { division } = req.body;
       
-      // Generate playoff bracket for the division
-      const teams = await storage.getLeagueStandings(division);
-      const topTeams = teams.slice(0, 8); // Top 8 teams make playoffs
+      // Generate playoff bracket for the division - Final 4 teams only
+      const teams = await storage.getTeamsByDivision(division);
+      const sortedTeams = teams.sort((a, b) => {
+        // Sort by wins, then by points differential, then by total points scored
+        const aWins = a.wins || 0;
+        const bWins = b.wins || 0;
+        if (aWins !== bWins) return bWins - aWins;
+        
+        const aPointsDiff = (a.pointsFor || 0) - (a.pointsAgainst || 0);
+        const bPointsDiff = (b.pointsFor || 0) - (b.pointsAgainst || 0);
+        if (aPointsDiff !== bPointsDiff) return bPointsDiff - aPointsDiff;
+        
+        return (b.pointsFor || 0) - (a.pointsFor || 0);
+      });
       
-      const playoffMatches = [];
-      for (let i = 0; i < 4; i++) {
-        playoffMatches.push({
+      const topTeams = sortedTeams.slice(0, 4); // Final 4 teams make tournament
+      
+      // Create semifinals: #1 vs #4, #2 vs #3
+      const playoffMatches = [
+        {
           seasonId,
           division,
-          round: 1,
-          team1Id: topTeams[i].teamId,
-          team2Id: topTeams[7 - i].teamId,
+          round: 1, // Semifinal
+          team1Id: topTeams[0].id,
+          team2Id: topTeams[3].id,
           status: "pending",
-        });
-      }
+          matchName: "Semifinal 1",
+        },
+        {
+          seasonId,
+          division,
+          round: 1, // Semifinal
+          team1Id: topTeams[1].id,
+          team2Id: topTeams[2].id,
+          status: "pending",
+          matchName: "Semifinal 2",
+        }
+      ];
 
       for (const match of playoffMatches) {
         await storage.createPlayoffMatch(match);
@@ -2025,6 +2048,307 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ message: "Failed to fetch draft history" });
     }
   });
+
+  // ===== MATCH SIMULATION & ANIMATION ROUTES =====
+
+  // Get match simulation data with animations
+  app.get("/api/matches/:matchId/simulation", async (req, res) => {
+    try {
+      const { matchId } = req.params;
+      const match = await storage.getMatchById(matchId);
+      
+      if (!match) {
+        return res.status(404).json({ message: "Match not found" });
+      }
+
+      // Generate comprehensive match data with player stats
+      const team1Players = await storage.getPlayersByTeamId(match.team1Id);
+      const team2Players = await storage.getPlayersByTeamId(match.team2Id);
+
+      const simulationData = {
+        ...match,
+        team1: {
+          id: match.team1Id,
+          name: "Team 1", // Will be replaced with actual team data
+          score: match.team1Score || 0,
+          players: team1Players.map(player => ({
+            ...player,
+            fatigue: Math.random() * 100,
+            health: 80 + Math.random() * 20,
+            isInjured: Math.random() < 0.1,
+            stats: {
+              rushing: Math.floor(Math.random() * 100),
+              passing: Math.floor(Math.random() * 100),
+              receiving: Math.floor(Math.random() * 100),
+              tackles: Math.floor(Math.random() * 20),
+              interceptions: Math.floor(Math.random() * 5),
+            }
+          }))
+        },
+        team2: {
+          id: match.team2Id,
+          name: "Team 2",
+          score: match.team2Score || 0,
+          players: team2Players.map(player => ({
+            ...player,
+            fatigue: Math.random() * 100,
+            health: 80 + Math.random() * 20,
+            isInjured: Math.random() < 0.1,
+            stats: {
+              rushing: Math.floor(Math.random() * 100),
+              passing: Math.floor(Math.random() * 100),
+              receiving: Math.floor(Math.random() * 100),
+              tackles: Math.floor(Math.random() * 20),
+              interceptions: Math.floor(Math.random() * 5),
+            }
+          }))
+        },
+        currentQuarter: match.quarter || 1,
+        timeRemaining: match.timeRemaining || 900, // 15 minutes per quarter
+        possession: Math.random() < 0.5 ? match.team1Id : match.team2Id,
+        lastPlay: "Game started",
+        stadium: "Fantasy Stadium",
+        weather: "Clear skies",
+        gameEvents: []
+      };
+
+      res.json(simulationData);
+    } catch (error) {
+      console.error("Error fetching match simulation:", error);
+      res.status(500).json({ message: "Failed to fetch match simulation" });
+    }
+  });
+
+  // Simulate a single play
+  app.post("/api/matches/:matchId/simulate-play", isAuthenticated, async (req, res) => {
+    try {
+      const { matchId } = req.params;
+      const { speed = 1 } = req.body;
+      
+      const match = await storage.getMatchById(matchId);
+      if (!match) {
+        return res.status(404).json({ message: "Match not found" });
+      }
+
+      // Generate random game events based on simulation
+      const eventTypes = [
+        'skill', 'fatigue', 'knockdown', 'pushback', 'celebration',
+        'throwing', 'catching', 'fumble', 'injury', 'running',
+        'tackle', 'block', 'dodge', 'interception', 'touchdown'
+      ];
+
+      const players = await storage.getPlayersByTeamId(match.team1Id);
+      const allPlayers = [...players, ...(await storage.getPlayersByTeamId(match.team2Id))];
+      
+      const events = [];
+      const numEvents = Math.floor(Math.random() * 3) + 1; // 1-3 events per play
+
+      for (let i = 0; i < numEvents; i++) {
+        const randomPlayer = allPlayers[Math.floor(Math.random() * allPlayers.length)];
+        const randomEventType = eventTypes[Math.floor(Math.random() * eventTypes.length)];
+        
+        events.push({
+          id: `event-${Date.now()}-${i}`,
+          type: randomEventType,
+          playerId: randomPlayer.id,
+          playerName: randomPlayer.name,
+          playerRace: randomPlayer.race,
+          description: generateEventDescription(randomEventType, randomPlayer.name),
+          intensity: ['low', 'medium', 'high', 'critical'][Math.floor(Math.random() * 4)],
+          timestamp: Date.now(),
+          position: {
+            x: Math.random() * 800,
+            y: Math.random() * 400
+          },
+          quarter: match.quarter || 1,
+          gameTime: match.timeRemaining || 900
+        });
+      }
+
+      // Update match time and potentially score
+      const newTimeRemaining = Math.max(0, (match.timeRemaining || 900) - (30 * speed));
+      let newQuarter = match.quarter || 1;
+      let finalTime = newTimeRemaining;
+
+      if (newTimeRemaining === 0 && newQuarter < 4) {
+        newQuarter += 1;
+        finalTime = 900; // Reset to 15 minutes
+      }
+
+      // Chance for scoring
+      let team1Score = match.team1Score || 0;
+      let team2Score = match.team2Score || 0;
+      let newStatus = match.status;
+
+      if (events.some(e => e.type === 'touchdown')) {
+        if (Math.random() < 0.5) {
+          team1Score += 7;
+        } else {
+          team2Score += 7;
+        }
+      }
+
+      // Handle game completion and overtime
+      if (newQuarter > 4 && finalTime === 0) {
+        if (team1Score === team2Score) {
+          newStatus = 'overtime';
+          newQuarter = 5; // Overtime quarter
+          finalTime = 900;
+        } else {
+          newStatus = 'completed';
+        }
+      }
+
+      // Update match in database
+      await storage.updateMatch(matchId, {
+        quarter: newQuarter,
+        timeRemaining: finalTime,
+        team1Score,
+        team2Score,
+        status: newStatus,
+        lastPlay: events[0]?.description || "Play completed"
+      });
+
+      res.json({
+        events,
+        matchUpdate: {
+          quarter: newQuarter,
+          timeRemaining: finalTime,
+          team1Score,
+          team2Score,
+          status: newStatus
+        }
+      });
+    } catch (error) {
+      console.error("Error simulating play:", error);
+      res.status(500).json({ message: "Failed to simulate play" });
+    }
+  });
+
+  // Reset match simulation
+  app.post("/api/matches/:matchId/reset", isAuthenticated, async (req, res) => {
+    try {
+      const { matchId } = req.params;
+      
+      await storage.updateMatch(matchId, {
+        quarter: 1,
+        timeRemaining: 900,
+        team1Score: 0,
+        team2Score: 0,
+        status: 'pending',
+        lastPlay: null
+      });
+
+      res.json({ message: "Match reset successfully" });
+    } catch (error) {
+      console.error("Error resetting match:", error);
+      res.status(500).json({ message: "Failed to reset match" });
+    }
+  });
+
+  // Tournament bracket with tie-breaking
+  app.get("/api/tournaments/:division/bracket", async (req, res) => {
+    try {
+      const division = parseInt(req.params.division);
+      const teams = await storage.getTeamsByDivision(division);
+      
+      // Advanced tie-breaking system
+      const sortedTeams = teams.sort((a, b) => {
+        // 1. Most wins
+        const aWins = a.wins || 0;
+        const bWins = b.wins || 0;
+        if (aWins !== bWins) return bWins - aWins;
+        
+        // 2. Head-to-head record (simulated for now)
+        const headToHead = Math.random() - 0.5;
+        if (Math.abs(headToHead) > 0.3) return headToHead > 0 ? -1 : 1;
+        
+        // 3. Point differential
+        const aPointsDiff = (a.points || 0) - ((a.points || 0) * 0.8); // Simulated points against
+        const bPointsDiff = (b.points || 0) - ((b.points || 0) * 0.8);
+        if (Math.abs(aPointsDiff - bPointsDiff) > 10) return bPointsDiff - aPointsDiff;
+        
+        // 4. Total points scored
+        const aTotal = a.points || 0;
+        const bTotal = b.points || 0;
+        if (aTotal !== bTotal) return bTotal - aTotal;
+        
+        // 5. Strength of schedule (simulated)
+        const aStrength = Math.random() * 100;
+        const bStrength = Math.random() * 100;
+        if (Math.abs(aStrength - bStrength) > 5) return bStrength - aStrength;
+        
+        // 6. Random tiebreaker (coin flip)
+        return Math.random() - 0.5;
+      });
+
+      const topFour = sortedTeams.slice(0, 4);
+      
+      const bracket = {
+        semifinals: [
+          {
+            id: 'semi1',
+            name: 'Semifinal 1',
+            team1: topFour[0],
+            team2: topFour[3],
+            seed1: 1,
+            seed2: 4,
+            status: 'pending'
+          },
+          {
+            id: 'semi2',
+            name: 'Semifinal 2',
+            team1: topFour[1],
+            team2: topFour[2],
+            seed1: 2,
+            seed2: 3,
+            status: 'pending'
+          }
+        ],
+        final: {
+          id: 'final',
+          name: 'Championship',
+          team1: null,
+          team2: null,
+          status: 'pending'
+        },
+        tieBreakingRules: [
+          "1. Head-to-head record",
+          "2. Point differential",
+          "3. Total points scored",
+          "4. Strength of schedule",
+          "5. Coin flip"
+        ]
+      };
+
+      res.json(bracket);
+    } catch (error) {
+      console.error("Error generating tournament bracket:", error);
+      res.status(500).json({ message: "Failed to generate tournament bracket" });
+    }
+  });
+
+  function generateEventDescription(eventType: string, playerName: string): string {
+    const descriptions = {
+      skill: `${playerName} activates special ability!`,
+      fatigue: `${playerName} shows signs of fatigue`,
+      knockdown: `${playerName} gets knocked to the ground!`,
+      pushback: `${playerName} forces opponent backward`,
+      celebration: `${playerName} celebrates an amazing play!`,
+      throwing: `${playerName} launches a precise throw`,
+      catching: `${playerName} makes a spectacular catch`,
+      fumble: `${playerName} loses control of the ball!`,
+      injury: `${playerName} suffers an injury on the play`,
+      running: `${playerName} breaks through the defense`,
+      tackle: `${playerName} brings down the ball carrier`,
+      block: `${playerName} delivers a crushing block`,
+      dodge: `${playerName} evades the tackle attempt`,
+      interception: `${playerName} steals the ball away!`,
+      touchdown: `${playerName} scores a magnificent touchdown!`
+    };
+    
+    return descriptions[eventType] || `${playerName} makes a play`;
+  }
 
   const httpServer = createServer(app);
   return httpServer;
