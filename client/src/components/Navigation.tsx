@@ -6,7 +6,8 @@ import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import NotificationSystem from "@/components/NotificationSystem";
 import { 
   Home, Users, Trophy, Medal, Gamepad2, ShoppingCart, 
-  Building, Package, Store, Menu, LogOut, Coins, MessageCircle 
+  Building, Package, Store, Menu, LogOut, Coins, MessageCircle,
+  Crown, FileText, Briefcase, Target
 } from "lucide-react";
 
 export default function Navigation() {
@@ -29,6 +30,10 @@ export default function Navigation() {
     { path: "/", label: "Dashboard", icon: Home },
     { path: "/team", label: "Team", icon: Users },
     { path: "/league", label: "League", icon: Trophy },
+    { path: "/championships", label: "Championships", icon: Crown },
+    { path: "/contracts", label: "Contracts", icon: FileText },
+    { path: "/sponsorships", label: "Sponsorships", icon: Briefcase },
+    { path: "/draft", label: "Draft", icon: Target },
     { path: "/tournaments", label: "Tournaments", icon: Medal },
     { path: "/exhibitions", label: "Exhibitions", icon: Gamepad2 },
     { path: "/store", label: "Store", icon: ShoppingCart },

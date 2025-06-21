@@ -12,6 +12,7 @@ import {
   serial,
 } from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm";
+import { nanoid } from "nanoid";
 
 // Session storage table (mandatory for Replit Auth)
 export const sessions = pgTable(
@@ -453,3 +454,149 @@ export type InsertNotification = typeof notifications.$inferInsert;
 
 export type PlayerInjury = typeof playerInjuries.$inferSelect;
 export type InsertPlayerInjury = typeof playerInjuries.$inferInsert;
+
+// Season Championships & Playoffs
+export const seasons = pgTable("seasons", {
+  id: varchar("id").primaryKey().notNull().$defaultFn(() => nanoid()),
+  name: varchar("name").notNull(),
+  year: integer("year").notNull(),
+  status: varchar("status").default("active"), // active, completed, playoffs
+  startDate: timestamp("start_date").defaultNow(),
+  endDate: timestamp("end_date"),
+  playoffStartDate: timestamp("playoff_start_date"),
+  championTeamId: varchar("champion_team_id"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const playoffs = pgTable("playoffs", {
+  id: varchar("id").primaryKey().notNull().$defaultFn(() => nanoid()),
+  seasonId: varchar("season_id").notNull(),
+  division: integer("division").notNull(),
+  round: integer("round").notNull(), // 1=first round, 2=semifinals, 3=finals
+  matchId: varchar("match_id"),
+  team1Id: varchar("team1_id").notNull(),
+  team2Id: varchar("team2_id").notNull(),
+  winnerId: varchar("winner_id"),
+  status: varchar("status").default("pending"), // pending, completed
+  scheduledDate: timestamp("scheduled_date"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// Contract System
+export const playerContracts = pgTable("player_contracts", {
+  id: varchar("id").primaryKey().notNull().$defaultFn(() => nanoid()),
+  playerId: varchar("player_id").notNull(),
+  teamId: varchar("team_id").notNull(),
+  salary: integer("salary").notNull(),
+  duration: integer("duration").notNull(), // years
+  remainingYears: integer("remaining_years").notNull(),
+  bonuses: jsonb("bonuses"), // performance bonuses
+  contractType: varchar("contract_type").default("standard"), // standard, rookie, veteran
+  signedDate: timestamp("signed_date").defaultNow(),
+  expiryDate: timestamp("expiry_date").notNull(),
+  isActive: boolean("is_active").default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const salaryCap = pgTable("salary_cap", {
+  id: varchar("id").primaryKey().notNull().$defaultFn(() => nanoid()),
+  teamId: varchar("team_id").notNull(),
+  season: integer("season").notNull(),
+  totalSalary: integer("total_salary").default(0),
+  capLimit: integer("cap_limit").default(50000000), // 50M default cap
+  capSpace: integer("cap_space").default(50000000),
+  luxuryTax: integer("luxury_tax").default(0),
+  penalties: integer("penalties").default(0),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Sponsorship & Revenue
+export const sponsorshipDeals = pgTable("sponsorship_deals", {
+  id: varchar("id").primaryKey().notNull().$defaultFn(() => nanoid()),
+  teamId: varchar("team_id").notNull(),
+  sponsorName: varchar("sponsor_name").notNull(),
+  dealType: varchar("deal_type").notNull(), // jersey, stadium, equipment, naming_rights
+  value: integer("value").notNull(),
+  duration: integer("duration").notNull(), // years
+  remainingYears: integer("remaining_years").notNull(),
+  bonusConditions: jsonb("bonus_conditions"), // performance triggers
+  status: varchar("status").default("active"),
+  signedDate: timestamp("signed_date").defaultNow(),
+  expiryDate: timestamp("expiry_date").notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const stadiumRevenue = pgTable("stadium_revenue", {
+  id: varchar("id").primaryKey().notNull().$defaultFn(() => nanoid()),
+  teamId: varchar("team_id").notNull(),
+  season: integer("season").notNull(),
+  ticketSales: integer("ticket_sales").default(0),
+  concessionSales: integer("concession_sales").default(0),
+  merchandiseSales: integer("merchandise_sales").default(0),
+  parkingRevenue: integer("parking_revenue").default(0),
+  corporateBoxes: integer("corporate_boxes").default(0),
+  namingRights: integer("naming_rights").default(0),
+  totalRevenue: integer("total_revenue").default(0),
+  month: integer("month").notNull(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Draft System
+export const drafts = pgTable("drafts", {
+  id: varchar("id").primaryKey().notNull().$defaultFn(() => nanoid()),
+  year: integer("year").notNull(),
+  status: varchar("status").default("upcoming"), // upcoming, active, completed
+  totalRounds: integer("total_rounds").default(3),
+  currentRound: integer("current_round").default(1),
+  currentPick: integer("current_pick").default(1),
+  draftDate: timestamp("draft_date"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const draftPicks = pgTable("draft_picks", {
+  id: varchar("id").primaryKey().notNull().$defaultFn(() => nanoid()),
+  draftId: varchar("draft_id").notNull(),
+  teamId: varchar("team_id").notNull(),
+  round: integer("round").notNull(),
+  pickNumber: integer("pick_number").notNull(),
+  overallPick: integer("overall_pick").notNull(),
+  playerId: varchar("player_id"), // null until picked
+  isTraded: boolean("is_traded").default(false),
+  tradedTo: varchar("traded_to"),
+  pickTime: timestamp("pick_time"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const rookiePlayers = pgTable("rookie_players", {
+  id: varchar("id").primaryKey().notNull().$defaultFn(() => nanoid()),
+  name: varchar("name").notNull(),
+  race: varchar("race").notNull(),
+  position: varchar("position").notNull(),
+  college: varchar("college"),
+  stats: jsonb("stats").notNull(),
+  potential: integer("potential").notNull(), // 1-100 scale
+  draftClass: integer("draft_class").notNull(),
+  isDrafted: boolean("is_drafted").default(false),
+  draftedBy: varchar("drafted_by"),
+  scoutingReports: jsonb("scouting_reports"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export type Season = typeof seasons.$inferSelect;
+export type InsertSeason = typeof seasons.$inferInsert;
+export type Playoff = typeof playoffs.$inferSelect;
+export type InsertPlayoff = typeof playoffs.$inferInsert;
+export type PlayerContract = typeof playerContracts.$inferSelect;
+export type InsertPlayerContract = typeof playerContracts.$inferInsert;
+export type SalaryCap = typeof salaryCap.$inferSelect;
+export type InsertSalaryCap = typeof salaryCap.$inferInsert;
+export type SponsorshipDeal = typeof sponsorshipDeals.$inferSelect;
+export type InsertSponsorshipDeal = typeof sponsorshipDeals.$inferInsert;
+export type StadiumRevenue = typeof stadiumRevenue.$inferSelect;
+export type InsertStadiumRevenue = typeof stadiumRevenue.$inferInsert;
+export type Draft = typeof drafts.$inferSelect;
+export type InsertDraft = typeof drafts.$inferInsert;
+export type DraftPick = typeof draftPicks.$inferSelect;
+export type InsertDraftPick = typeof draftPicks.$inferInsert;
+export type RookiePlayer = typeof rookiePlayers.$inferSelect;
+export type InsertRookiePlayer = typeof rookiePlayers.$inferInsert;

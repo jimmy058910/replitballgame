@@ -1650,6 +1650,382 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // ===== SEASON CHAMPIONSHIPS & PLAYOFFS ROUTES =====
+  
+  // Get current season
+  app.get("/api/seasons/current", async (req, res) => {
+    try {
+      const season = await storage.getCurrentSeason();
+      res.json(season || {});
+    } catch (error) {
+      console.error("Error fetching current season:", error);
+      res.status(500).json({ message: "Failed to fetch current season" });
+    }
+  });
+
+  // Get championship history
+  app.get("/api/seasons/champions", async (req, res) => {
+    try {
+      const history = await storage.getChampionshipHistory();
+      res.json(history);
+    } catch (error) {
+      console.error("Error fetching championship history:", error);
+      res.status(500).json({ message: "Failed to fetch championship history" });
+    }
+  });
+
+  // Get playoffs by division
+  app.get("/api/playoffs/:division", async (req, res) => {
+    try {
+      const division = parseInt(req.params.division);
+      const season = await storage.getCurrentSeason();
+      if (!season) {
+        return res.json([]);
+      }
+      const playoffs = await storage.getPlayoffsByDivision(season.id, division);
+      res.json(playoffs);
+    } catch (error) {
+      console.error("Error fetching playoffs:", error);
+      res.status(500).json({ message: "Failed to fetch playoffs" });
+    }
+  });
+
+  // Start playoffs for a season
+  app.post("/api/seasons/:seasonId/playoffs/start", isAuthenticated, async (req, res) => {
+    try {
+      const { seasonId } = req.params;
+      const { division } = req.body;
+      
+      // Generate playoff bracket for the division
+      const teams = await storage.getLeagueStandings(division);
+      const topTeams = teams.slice(0, 8); // Top 8 teams make playoffs
+      
+      const playoffMatches = [];
+      for (let i = 0; i < 4; i++) {
+        playoffMatches.push({
+          seasonId,
+          division,
+          round: 1,
+          team1Id: topTeams[i].teamId,
+          team2Id: topTeams[7 - i].teamId,
+          status: "pending",
+        });
+      }
+
+      for (const match of playoffMatches) {
+        await storage.createPlayoffMatch(match);
+      }
+
+      res.json({ message: "Playoffs started successfully" });
+    } catch (error) {
+      console.error("Error starting playoffs:", error);
+      res.status(500).json({ message: "Failed to start playoffs" });
+    }
+  });
+
+  // ===== CONTRACT SYSTEM ROUTES =====
+
+  // Get team contracts
+  app.get("/api/contracts/:teamId", async (req, res) => {
+    try {
+      const { teamId } = req.params;
+      const contracts = await storage.getTeamContracts(teamId);
+      res.json(contracts);
+    } catch (error) {
+      console.error("Error fetching contracts:", error);
+      res.status(500).json({ message: "Failed to fetch contracts" });
+    }
+  });
+
+  // Get team salary cap
+  app.get("/api/salary-cap/:teamId", async (req, res) => {
+    try {
+      const { teamId } = req.params;
+      const salaryCap = await storage.getTeamSalaryCap(teamId);
+      res.json(salaryCap || {});
+    } catch (error) {
+      console.error("Error fetching salary cap:", error);
+      res.status(500).json({ message: "Failed to fetch salary cap" });
+    }
+  });
+
+  // Negotiate new contract
+  app.post("/api/contracts/negotiate", isAuthenticated, async (req, res) => {
+    try {
+      const contractData = {
+        ...req.body,
+        signedDate: new Date(),
+        expiryDate: new Date(Date.now() + (req.body.duration * 365 * 24 * 60 * 60 * 1000)),
+        remainingYears: req.body.duration,
+      };
+      const contract = await storage.createPlayerContract(contractData);
+      
+      // Update salary cap
+      await storage.updateSalaryCap(req.body.teamId, {
+        totalSalary: 0, // Will be recalculated
+      });
+
+      res.json(contract);
+    } catch (error) {
+      console.error("Error negotiating contract:", error);
+      res.status(500).json({ message: "Failed to negotiate contract" });
+    }
+  });
+
+  // Renew contract
+  app.post("/api/contracts/:contractId/renew", isAuthenticated, async (req, res) => {
+    try {
+      const { contractId } = req.params;
+      const newTerms = {
+        ...req.body,
+        remainingYears: req.body.duration,
+        expiryDate: new Date(Date.now() + (req.body.duration * 365 * 24 * 60 * 60 * 1000)),
+      };
+      const contract = await storage.renewContract(contractId, newTerms);
+      res.json(contract);
+    } catch (error) {
+      console.error("Error renewing contract:", error);
+      res.status(500).json({ message: "Failed to renew contract" });
+    }
+  });
+
+  // Release player contract
+  app.delete("/api/contracts/:contractId/release", isAuthenticated, async (req, res) => {
+    try {
+      const { contractId } = req.params;
+      await storage.releasePlayerContract(contractId);
+      res.json({ message: "Player released successfully" });
+    } catch (error) {
+      console.error("Error releasing player:", error);
+      res.status(500).json({ message: "Failed to release player" });
+    }
+  });
+
+  // Get contract templates
+  app.get("/api/contracts/templates", async (req, res) => {
+    try {
+      const templates = [
+        { id: "1", name: "Rookie Deal", type: "rookie", duration: 4, avgSalary: 2000000, description: "Standard rookie contract" },
+        { id: "2", name: "Veteran Minimum", type: "veteran", duration: 1, avgSalary: 1500000, description: "Minimum veteran salary" },
+        { id: "3", name: "Star Player", type: "standard", duration: 5, avgSalary: 15000000, description: "Max contract for elite players" },
+        { id: "4", name: "Role Player", type: "standard", duration: 3, avgSalary: 5000000, description: "Mid-tier player contract" },
+      ];
+      res.json(templates);
+    } catch (error) {
+      console.error("Error fetching contract templates:", error);
+      res.status(500).json({ message: "Failed to fetch contract templates" });
+    }
+  });
+
+  // ===== SPONSORSHIP SYSTEM ROUTES =====
+
+  // Get team sponsorships
+  app.get("/api/sponsorships/:teamId", async (req, res) => {
+    try {
+      const { teamId } = req.params;
+      const sponsorships = await storage.getTeamSponsorships(teamId);
+      res.json(sponsorships);
+    } catch (error) {
+      console.error("Error fetching sponsorships:", error);
+      res.status(500).json({ message: "Failed to fetch sponsorships" });
+    }
+  });
+
+  // Get stadium revenue
+  app.get("/api/stadium/revenue/:teamId", async (req, res) => {
+    try {
+      const { teamId } = req.params;
+      const revenue = await storage.getStadiumRevenue(teamId);
+      res.json(revenue);
+    } catch (error) {
+      console.error("Error fetching stadium revenue:", error);
+      res.status(500).json({ message: "Failed to fetch stadium revenue" });
+    }
+  });
+
+  // Negotiate sponsorship deal
+  app.post("/api/sponsorships/negotiate", isAuthenticated, async (req, res) => {
+    try {
+      const dealData = {
+        ...req.body,
+        signedDate: new Date(),
+        expiryDate: new Date(Date.now() + (req.body.duration * 365 * 24 * 60 * 60 * 1000)),
+        remainingYears: req.body.duration,
+        status: "active",
+      };
+      const deal = await storage.createSponsorshipDeal(dealData);
+      res.json(deal);
+    } catch (error) {
+      console.error("Error negotiating sponsorship:", error);
+      res.status(500).json({ message: "Failed to negotiate sponsorship" });
+    }
+  });
+
+  // Renew sponsorship deal
+  app.post("/api/sponsorships/:dealId/renew", isAuthenticated, async (req, res) => {
+    try {
+      const { dealId } = req.params;
+      const newTerms = {
+        ...req.body,
+        remainingYears: req.body.duration,
+        expiryDate: new Date(Date.now() + (req.body.duration * 365 * 24 * 60 * 60 * 1000)),
+      };
+      const deal = await storage.renewSponsorshipDeal(dealId, newTerms);
+      res.json(deal);
+    } catch (error) {
+      console.error("Error renewing sponsorship:", error);
+      res.status(500).json({ message: "Failed to renew sponsorship" });
+    }
+  });
+
+  // Upgrade stadium
+  app.post("/api/stadium/upgrade", isAuthenticated, async (req, res) => {
+    try {
+      const { teamId, cost, revenue } = req.body;
+      
+      // Update stadium revenue potential
+      await storage.updateStadiumRevenue(teamId, {
+        totalRevenue: revenue,
+      });
+
+      res.json({ message: "Stadium upgraded successfully" });
+    } catch (error) {
+      console.error("Error upgrading stadium:", error);
+      res.status(500).json({ message: "Failed to upgrade stadium" });
+    }
+  });
+
+  // Get available sponsors
+  app.get("/api/sponsorships/available", async (req, res) => {
+    try {
+      const sponsors = [
+        { id: "1", name: "TechCorp", industry: "Technology", maxValue: 5000000, preferredDealType: "jersey", minDuration: 2, interestLevel: 8 },
+        { id: "2", name: "SportsDrink Co", industry: "Beverage", maxValue: 3000000, preferredDealType: "stadium", minDuration: 3, interestLevel: 9 },
+        { id: "3", name: "AutoMotive Inc", industry: "Automotive", maxValue: 8000000, preferredDealType: "naming_rights", minDuration: 5, interestLevel: 7 },
+        { id: "4", name: "FoodChain", industry: "Restaurant", maxValue: 2000000, preferredDealType: "equipment", minDuration: 1, interestLevel: 6 },
+      ];
+      res.json(sponsors);
+    } catch (error) {
+      console.error("Error fetching available sponsors:", error);
+      res.status(500).json({ message: "Failed to fetch available sponsors" });
+    }
+  });
+
+  // ===== DRAFT SYSTEM ROUTES =====
+
+  // Get current draft
+  app.get("/api/draft/current", async (req, res) => {
+    try {
+      const draft = await storage.getCurrentDraft();
+      res.json(draft || {});
+    } catch (error) {
+      console.error("Error fetching current draft:", error);
+      res.status(500).json({ message: "Failed to fetch current draft" });
+    }
+  });
+
+  // Get draft board
+  app.get("/api/draft/board/:draftId", async (req, res) => {
+    try {
+      const { draftId } = req.params;
+      const draftBoard = await storage.getDraftBoard(draftId);
+      res.json(draftBoard);
+    } catch (error) {
+      console.error("Error fetching draft board:", error);
+      res.status(500).json({ message: "Failed to fetch draft board" });
+    }
+  });
+
+  // Get rookie class
+  app.get("/api/draft/rookies/:year", async (req, res) => {
+    try {
+      const year = parseInt(req.params.year);
+      const rookies = await storage.getRookieClass(year);
+      res.json(rookies);
+    } catch (error) {
+      console.error("Error fetching rookie class:", error);
+      res.status(500).json({ message: "Failed to fetch rookie class" });
+    }
+  });
+
+  // Get team draft picks
+  app.get("/api/draft/picks/:teamId", async (req, res) => {
+    try {
+      const { teamId } = req.params;
+      const picks = await storage.getTeamDraftPicks(teamId);
+      res.json(picks);
+    } catch (error) {
+      console.error("Error fetching draft picks:", error);
+      res.status(500).json({ message: "Failed to fetch draft picks" });
+    }
+  });
+
+  // Draft a player
+  app.post("/api/draft/pick", isAuthenticated, async (req, res) => {
+    try {
+      const { pickId, playerId } = req.body;
+      const pick = await storage.draftPlayer(pickId, playerId);
+      
+      // Advance draft to next pick
+      const draft = await storage.getCurrentDraft();
+      if (draft) {
+        const nextPick = draft.currentPick + 1;
+        const nextRound = nextPick > 32 ? draft.currentRound + 1 : draft.currentRound;
+        const resetPick = nextPick > 32 ? 1 : nextPick;
+        
+        // Update draft state logic would go here
+      }
+
+      res.json(pick);
+    } catch (error) {
+      console.error("Error drafting player:", error);
+      res.status(500).json({ message: "Failed to draft player" });
+    }
+  });
+
+  // Scout a rookie
+  app.post("/api/draft/scout/:playerId", isAuthenticated, async (req, res) => {
+    try {
+      const { playerId } = req.params;
+      const scoutingData = {
+        summary: "Detailed scouting report completed",
+        strengths: ["Strong arm", "Good vision", "Leadership qualities"],
+        weaknesses: ["Needs work on footwork", "Ball security"],
+        projection: "Solid starter with potential for growth",
+        scoutedAt: new Date(),
+      };
+      
+      const rookie = await storage.scoutRookie(playerId, scoutingData);
+      res.json(rookie);
+    } catch (error) {
+      console.error("Error scouting rookie:", error);
+      res.status(500).json({ message: "Failed to scout rookie" });
+    }
+  });
+
+  // Trade draft pick
+  app.post("/api/draft/trade", isAuthenticated, async (req, res) => {
+    try {
+      const { pickId, targetTeamId } = req.body;
+      const pick = await storage.tradeDraftPick(pickId, targetTeamId);
+      res.json(pick);
+    } catch (error) {
+      console.error("Error trading pick:", error);
+      res.status(500).json({ message: "Failed to trade pick" });
+    }
+  });
+
+  // Get draft history
+  app.get("/api/draft/history", async (req, res) => {
+    try {
+      const history = await storage.getDraftHistory();
+      res.json(history);
+    } catch (error) {
+      console.error("Error fetching draft history:", error);
+      res.status(500).json({ message: "Failed to fetch draft history" });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }

@@ -18,6 +18,11 @@ import Stadium from "@/pages/Stadium";
 import Match from "@/pages/Match";
 import LogoShowcase from "@/pages/LogoShowcase";
 import Community from "@/pages/Community";
+import SeasonChampionships from "@/components/SeasonChampionships";
+import ContractManagement from "@/components/ContractManagement";
+import SponsorshipManagement from "@/components/SponsorshipManagement";
+import DraftSystem from "@/components/DraftSystem";
+import Navigation from "@/components/Navigation";
 
 function Router() {
   const { isAuthenticated, isLoading } = useAuth();
@@ -32,6 +37,10 @@ function Router() {
           <Route path="/" component={Dashboard} />
           <Route path="/team" component={Team} />
           <Route path="/league" component={League} />
+          <Route path="/championships" component={() => <div className="min-h-screen bg-gray-900 text-white"><Navigation /><div className="max-w-7xl mx-auto px-4 py-8"><SeasonChampionships /></div></div>} />
+          <Route path="/contracts" component={() => <div className="min-h-screen bg-gray-900 text-white"><Navigation /><div className="max-w-7xl mx-auto px-4 py-8"><ContractManagement /></div></div>} />
+          <Route path="/sponsorships" component={() => <div className="min-h-screen bg-gray-900 text-white"><Navigation /><div className="max-w-7xl mx-auto px-4 py-8"><SponsorshipManagement /></div></div>} />
+          <Route path="/draft" component={() => <div className="min-h-screen bg-gray-900 text-white"><Navigation /><div className="max-w-7xl mx-auto px-4 py-8"><DraftSystem /></div></div>} />
           <Route path="/tournaments" component={Tournaments} />
           <Route path="/exhibitions" component={Exhibitions} />
           <Route path="/inventory" component={Inventory} />

@@ -518,6 +518,248 @@ export class DatabaseStorage implements IStorage {
       .limit(50);
   }
 
+  // Season Championships & Playoffs
+  async getCurrentSeason(): Promise<Season | undefined> {
+    const [season] = await db
+      .select()
+      .from(seasons)
+      .where(eq(seasons.status, "active"))
+      .limit(1);
+    return season;
+  }
+
+  async createSeason(seasonData: InsertSeason): Promise<Season> {
+    const [season] = await db
+      .insert(seasons)
+      .values(seasonData)
+      .returning();
+    return season;
+  }
+
+  async getPlayoffsByDivision(seasonId: string, division: number): Promise<Playoff[]> {
+    return await db
+      .select()
+      .from(playoffs)
+      .where(and(eq(playoffs.seasonId, seasonId), eq(playoffs.division, division)))
+      .orderBy(playoffs.round, playoffs.matchId);
+  }
+
+  async createPlayoffMatch(playoffData: InsertPlayoff): Promise<Playoff> {
+    const [playoff] = await db
+      .insert(playoffs)
+      .values(playoffData)
+      .returning();
+    return playoff;
+  }
+
+  async updatePlayoffMatch(id: string, winnerId: string): Promise<Playoff> {
+    const [playoff] = await db
+      .update(playoffs)
+      .set({ winnerId, status: "completed" })
+      .where(eq(playoffs.id, id))
+      .returning();
+    return playoff;
+  }
+
+  async getChampionshipHistory(): Promise<Season[]> {
+    return await db
+      .select()
+      .from(seasons)
+      .where(eq(seasons.status, "completed"))
+      .orderBy(desc(seasons.year))
+      .limit(10);
+  }
+
+  // Contract System
+  async getTeamContracts(teamId: string): Promise<PlayerContract[]> {
+    return await db
+      .select()
+      .from(playerContracts)
+      .where(and(eq(playerContracts.teamId, teamId), eq(playerContracts.isActive, true)))
+      .orderBy(desc(playerContracts.salary));
+  }
+
+  async createPlayerContract(contractData: InsertPlayerContract): Promise<PlayerContract> {
+    const [contract] = await db
+      .insert(playerContracts)
+      .values(contractData)
+      .returning();
+    return contract;
+  }
+
+  async renewContract(contractId: string, newTerms: Partial<InsertPlayerContract>): Promise<PlayerContract> {
+    const [contract] = await db
+      .update(playerContracts)
+      .set(newTerms)
+      .where(eq(playerContracts.id, contractId))
+      .returning();
+    return contract;
+  }
+
+  async releasePlayerContract(contractId: string): Promise<void> {
+    await db
+      .update(playerContracts)
+      .set({ isActive: false })
+      .where(eq(playerContracts.id, contractId));
+  }
+
+  async getTeamSalaryCap(teamId: string): Promise<SalaryCap | undefined> {
+    const currentYear = new Date().getFullYear();
+    const [salaryCap] = await db
+      .select()
+      .from(salaryCap)
+      .where(and(eq(salaryCap.teamId, teamId), eq(salaryCap.season, currentYear)))
+      .limit(1);
+    return salaryCap;
+  }
+
+  async updateSalaryCap(teamId: string, capData: Partial<InsertSalaryCap>): Promise<SalaryCap> {
+    const currentYear = new Date().getFullYear();
+    const [cap] = await db
+      .insert(salaryCap)
+      .values({ teamId, season: currentYear, ...capData })
+      .onConflictDoUpdate({
+        target: [salaryCap.teamId, salaryCap.season],
+        set: capData,
+      })
+      .returning();
+    return cap;
+  }
+
+  // Sponsorship System
+  async getTeamSponsorships(teamId: string): Promise<SponsorshipDeal[]> {
+    return await db
+      .select()
+      .from(sponsorshipDeals)
+      .where(eq(sponsorshipDeals.teamId, teamId))
+      .orderBy(desc(sponsorshipDeals.value));
+  }
+
+  async createSponsorshipDeal(dealData: InsertSponsorshipDeal): Promise<SponsorshipDeal> {
+    const [deal] = await db
+      .insert(sponsorshipDeals)
+      .values(dealData)
+      .returning();
+    return deal;
+  }
+
+  async renewSponsorshipDeal(dealId: string, newTerms: Partial<InsertSponsorshipDeal>): Promise<SponsorshipDeal> {
+    const [deal] = await db
+      .update(sponsorshipDeals)
+      .set(newTerms)
+      .where(eq(sponsorshipDeals.id, dealId))
+      .returning();
+    return deal;
+  }
+
+  async getStadiumRevenue(teamId: string): Promise<StadiumRevenue[]> {
+    const currentYear = new Date().getFullYear();
+    return await db
+      .select()
+      .from(stadiumRevenue)
+      .where(and(eq(stadiumRevenue.teamId, teamId), eq(stadiumRevenue.season, currentYear)))
+      .orderBy(stadiumRevenue.month);
+  }
+
+  async updateStadiumRevenue(teamId: string, revenueData: Partial<InsertStadiumRevenue>): Promise<StadiumRevenue> {
+    const currentYear = new Date().getFullYear();
+    const currentMonth = new Date().getMonth() + 1;
+    const [revenue] = await db
+      .insert(stadiumRevenue)
+      .values({ teamId, season: currentYear, month: currentMonth, ...revenueData })
+      .onConflictDoUpdate({
+        target: [stadiumRevenue.teamId, stadiumRevenue.season, stadiumRevenue.month],
+        set: revenueData,
+      })
+      .returning();
+    return revenue;
+  }
+
+  // Draft System
+  async getCurrentDraft(): Promise<Draft | undefined> {
+    const [draft] = await db
+      .select()
+      .from(drafts)
+      .where(eq(drafts.status, "active"))
+      .limit(1);
+    return draft;
+  }
+
+  async createDraft(draftData: InsertDraft): Promise<Draft> {
+    const [draft] = await db
+      .insert(drafts)
+      .values(draftData)
+      .returning();
+    return draft;
+  }
+
+  async getDraftBoard(draftId: string): Promise<DraftPick[]> {
+    return await db
+      .select()
+      .from(draftPicks)
+      .where(eq(draftPicks.draftId, draftId))
+      .orderBy(draftPicks.overallPick);
+  }
+
+  async getTeamDraftPicks(teamId: string): Promise<DraftPick[]> {
+    return await db
+      .select()
+      .from(draftPicks)
+      .where(eq(draftPicks.teamId, teamId))
+      .orderBy(draftPicks.overallPick);
+  }
+
+  async getRookieClass(year: number): Promise<RookiePlayer[]> {
+    return await db
+      .select()
+      .from(rookiePlayers)
+      .where(eq(rookiePlayers.draftClass, year))
+      .orderBy(desc(rookiePlayers.potential));
+  }
+
+  async draftPlayer(pickId: string, playerId: string): Promise<DraftPick> {
+    const [pick] = await db
+      .update(draftPicks)
+      .set({ playerId, pickTime: new Date() })
+      .where(eq(draftPicks.id, pickId))
+      .returning();
+
+    // Mark rookie as drafted
+    await db
+      .update(rookiePlayers)
+      .set({ isDrafted: true })
+      .where(eq(rookiePlayers.id, playerId));
+
+    return pick;
+  }
+
+  async scoutRookie(playerId: string, scoutingData: any): Promise<RookiePlayer> {
+    const [rookie] = await db
+      .update(rookiePlayers)
+      .set({ scoutingReports: scoutingData })
+      .where(eq(rookiePlayers.id, playerId))
+      .returning();
+    return rookie;
+  }
+
+  async tradeDraftPick(pickId: string, targetTeamId: string): Promise<DraftPick> {
+    const [pick] = await db
+      .update(draftPicks)
+      .set({ isTraded: true, tradedTo: targetTeamId })
+      .where(eq(draftPicks.id, pickId))
+      .returning();
+    return pick;
+  }
+
+  async getDraftHistory(): Promise<Draft[]> {
+    return await db
+      .select()
+      .from(drafts)
+      .where(eq(drafts.status, "completed"))
+      .orderBy(desc(drafts.year))
+      .limit(5);
+  }
+
   async markNotificationRead(id: string): Promise<void> {
     await db
       .update(notifications)
