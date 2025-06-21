@@ -41,7 +41,7 @@ export class NotificationService {
   }
 
   // League-related notifications
-  static async notifyMatchStart(homeTeamId: string, awayTeamId: string, matchId: string) {
+  static async notifyMatchStart(homeTeamId: string, awayTeamId: string, matchId: string, minutesUntilStart: number = 10) {
     const homeTeam = await storage.getTeamById(homeTeamId);
     const awayTeam = await storage.getTeamById(awayTeamId);
     
@@ -51,11 +51,11 @@ export class NotificationService {
     
     await this.sendBulkNotifications(userIds, {
       type: "match",
-      title: "Match Starting Soon",
-      message: `${homeTeam.name} vs ${awayTeam.name} begins in 15 minutes`,
+      title: "League Game Starting Soon",
+      message: `League game starts in ${minutesUntilStart} minutes`,
       priority: "medium",
       actionUrl: `/match/${matchId}`,
-      metadata: { matchId, homeTeamId, awayTeamId }
+      metadata: { matchId, homeTeamId, awayTeamId, type: "match_starting" }
     });
   }
 
@@ -65,29 +65,24 @@ export class NotificationService {
     
     if (!homeTeam || !awayTeam) return;
 
-    const winner = homeScore > awayScore ? homeTeam : awayTeam;
-    const loser = homeScore > awayScore ? awayTeam : homeTeam;
+    const userIds = [homeTeam.userId, awayTeam.userId];
     
-    // Notify winner
-    await this.sendNotification({
-      userId: winner.userId,
+    // Send generic notification without revealing result
+    await this.sendBulkNotifications(userIds, {
       type: "match",
-      title: "Victory!",
-      message: `Your team ${winner.name} won ${Math.max(homeScore, awayScore)}-${Math.min(homeScore, awayScore)}!`,
-      priority: "high",
-      actionUrl: `/match/${matchId}`,
-      metadata: { matchId, result: "win" }
-    });
-
-    // Notify loser
-    await this.sendNotification({
-      userId: loser.userId,
-      type: "match",
-      title: "Match Result",
-      message: `Your team ${loser.name} lost ${Math.min(homeScore, awayScore)}-${Math.max(homeScore, awayScore)}`,
+      title: "League Game Complete",
+      message: "League game complete, see the result!",
       priority: "medium",
       actionUrl: `/match/${matchId}`,
-      metadata: { matchId, result: "loss" }
+      metadata: { 
+        matchId, 
+        homeTeamId, 
+        awayTeamId, 
+        homeScore, 
+        awayScore, 
+        type: "match_complete",
+        resultHidden: true 
+      }
     });
   }
 
@@ -122,14 +117,28 @@ export class NotificationService {
   }
 
   // Tournament notifications
+  static async notifyTournamentFilled(division: number, minutesUntilStart: number = 10) {
+    const teams = await storage.getTeamsByDivision(division);
+    const userIds = teams.map(team => team.userId);
+
+    await this.sendBulkNotifications(userIds, {
+      type: "tournament",
+      title: "Tournament Starting Soon",
+      message: `Tournament filled and starts in ${minutesUntilStart} minutes`,
+      priority: "high",
+      actionUrl: "/tournaments",
+      metadata: { division, event: "tournament_filled", minutesUntilStart }
+    });
+  }
+
   static async notifyTournamentStart(division: number) {
     const teams = await storage.getTeamsByDivision(division);
     const userIds = teams.map(team => team.userId);
 
     await this.sendBulkNotifications(userIds, {
       type: "tournament",
-      title: "Tournament Begins!",
-      message: `Division ${division} tournament has started. Good luck!`,
+      title: "Tournament Started",
+      message: "Tournament has begun! Check your first match",
       priority: "high",
       actionUrl: "/tournaments",
       metadata: { division, event: "tournament_start" }
@@ -144,26 +153,38 @@ export class NotificationService {
       userId: team.userId,
       type: "tournament",
       title: "Tournament Progress",
-      message: `${team.name} advances to the ${round}!`,
+      message: `You advanced to the next round! Check your next match`,
       priority: "high",
       actionUrl: "/tournaments",
-      metadata: { teamId, round }
+      metadata: { teamId, round, type: "advancement" }
     });
   }
 
-  static async notifyTournamentChampion(teamId: string, division: number) {
+  static async notifyTournamentResult(teamId: string, isWinner: boolean, division: number) {
     const team = await storage.getTeamById(teamId);
     if (!team) return;
 
-    await this.sendNotification({
-      userId: team.userId,
-      type: "tournament",
-      title: "CHAMPION!",
-      message: `${team.name} wins the Division ${division} Championship!`,
-      priority: "urgent",
-      actionUrl: "/tournaments",
-      metadata: { teamId, division, achievement: "champion" }
-    });
+    if (isWinner) {
+      await this.sendNotification({
+        userId: team.userId,
+        type: "tournament",
+        title: "Tournament Complete",
+        message: "Tournament finished! Check your final results",
+        priority: "high",
+        actionUrl: "/tournaments",
+        metadata: { teamId, division, result: "champion" }
+      });
+    } else {
+      await this.sendNotification({
+        userId: team.userId,
+        type: "tournament",
+        title: "Tournament Complete",
+        message: "Tournament finished! Check your final results",
+        priority: "medium",
+        actionUrl: "/tournaments",
+        metadata: { teamId, division, result: "eliminated" }
+      });
+    }
   }
 
   // Auction/Marketplace notifications
@@ -196,10 +217,11 @@ export class NotificationService {
     if (!auction) return;
 
     const bids = await storage.getBidsByAuction(auctionId);
-    const uniqueBidders = [...new Set(bids.map(bid => bid.teamId))];
+    const bidderIds = bids.map(bid => bid.bidderId);
+    const uniqueBidders = bidderIds.filter((id, index) => bidderIds.indexOf(id) === index);
     
     const teams = await Promise.all(
-      uniqueBidders.map(teamId => storage.getTeamById(teamId))
+      uniqueBidders.map(bidderId => storage.getTeamById(bidderId))
     );
     
     const userIds = teams.filter(team => team).map(team => team!.userId);
@@ -207,10 +229,10 @@ export class NotificationService {
     await this.sendBulkNotifications(userIds, {
       type: "auction",
       title: "Auction Ending Soon",
-      message: `${playerName} auction ends in ${timeRemaining} minutes`,
+      message: `Auction ends in ${timeRemaining} minutes`,
       priority: "medium",
       actionUrl: `/marketplace/auction/${auctionId}`,
-      metadata: { auctionId, timeRemaining }
+      metadata: { auctionId, timeRemaining, playerName }
     });
   }
 

@@ -311,7 +311,7 @@ export const auctionBids = pgTable("auction_bids", {
 // Push notifications system
 export const notifications = pgTable("notifications", {
   id: uuid("id").primaryKey().defaultRandom(),
-  userId: varchar("userId").references(() => users.id).notNull(),
+  userId: varchar("user_id").references(() => users.id).notNull(),
   type: varchar("type").notNull(), // auction_outbid, match_starting, injury, etc.
   title: varchar("title").notNull(),
   message: text("message").notNull(),
