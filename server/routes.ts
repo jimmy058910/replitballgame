@@ -1844,6 +1844,90 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Demo route to create sample notifications
+  app.post('/api/demo/notifications', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const team = await storage.getTeamByUserId(userId);
+      
+      if (!team) {
+        return res.status(404).json({ message: "Team not found" });
+      }
+
+      // Create demo notifications
+      await NotificationService.sendNotification({
+        userId,
+        type: "match",
+        title: "League Game Starting Soon",
+        message: "League game starts in 10 minutes",
+        priority: "medium",
+        actionUrl: "/match/demo-match-1",
+        metadata: { matchId: "demo-match-1", type: "match_starting" }
+      });
+
+      await NotificationService.sendNotification({
+        userId,
+        type: "match",
+        title: "League Game Complete",
+        message: "League game complete, see the result!",
+        priority: "medium",
+        actionUrl: "/match/demo-match-2",
+        metadata: { 
+          matchId: "demo-match-2", 
+          homeScore: 3, 
+          awayScore: 1, 
+          type: "match_complete",
+          resultHidden: true 
+        }
+      });
+
+      await NotificationService.sendNotification({
+        userId,
+        type: "tournament",
+        title: "Tournament Starting Soon",
+        message: "Tournament filled and starts in 10 minutes",
+        priority: "high",
+        actionUrl: "/tournaments",
+        metadata: { division: 1, event: "tournament_filled", minutesUntilStart: 10 }
+      });
+
+      await NotificationService.sendNotification({
+        userId,
+        type: "auction",
+        title: "Outbid!",
+        message: "You've been outbid on Marcus Swift. New bid: $45,000",
+        priority: "medium",
+        actionUrl: "/marketplace/auction/demo-auction-1",
+        metadata: { auctionId: "demo-auction-1", playerName: "Marcus Swift", newBidAmount: 45000 }
+      });
+
+      await NotificationService.sendNotification({
+        userId,
+        type: "injury",
+        title: "Player Injured",
+        message: "Kai Thunderstrike has suffered a moderate hamstring strain",
+        priority: "medium",
+        actionUrl: "/injuries",
+        metadata: { teamId: team.id, playerName: "Kai Thunderstrike", injuryType: "hamstring strain", severity: 5 }
+      });
+
+      await NotificationService.sendNotification({
+        userId,
+        type: "achievement",
+        title: "Achievement Unlocked!",
+        message: "First Victory: Win your first league match",
+        priority: "medium",
+        actionUrl: "/achievements",
+        metadata: { achievementName: "First Victory" }
+      });
+
+      res.json({ message: "Demo notifications created successfully!" });
+    } catch (error) {
+      console.error("Error creating demo notifications:", error);
+      res.status(500).json({ message: "Failed to create demo notifications" });
+    }
+  });
+
   app.patch('/api/notifications/:id/read', isAuthenticated, async (req: any, res) => {
     try {
       const notificationId = req.params.id;

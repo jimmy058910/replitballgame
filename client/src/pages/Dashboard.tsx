@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { isUnauthorizedError } from "@/lib/authUtils";
@@ -9,10 +9,45 @@ import { Button } from "@/components/ui/button";
 import PlayerCard from "@/components/PlayerCard";
 import MatchViewer from "@/components/MatchViewer";
 import LeagueStandings from "@/components/LeagueStandings";
+import NotificationCenter from "@/components/NotificationCenter";
+import { apiRequest } from "@/lib/queryClient";
+import { Bell } from "lucide-react";
 
 export default function Dashboard() {
   const { toast } = useToast();
   const { isAuthenticated, isLoading } = useAuth();
+  const queryClient = useQueryClient();
+
+  const demoNotificationsMutation = useMutation({
+    mutationFn: async () => {
+      return await apiRequest("/api/demo/notifications", "POST");
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/notifications"] });
+      toast({
+        title: "Demo Notifications Created",
+        description: "Check the notification center to see the generic messaging system!",
+      });
+    },
+    onError: (error) => {
+      if (isUnauthorizedError(error)) {
+        toast({
+          title: "Unauthorized",
+          description: "You are logged out. Logging in again...",
+          variant: "destructive",
+        });
+        setTimeout(() => {
+          window.location.href = "/api/login";
+        }, 500);
+        return;
+      }
+      toast({
+        title: "Error",
+        description: "Failed to create demo notifications",
+        variant: "destructive",
+      });
+    },
+  });
 
   // Redirect to home if not authenticated
   useEffect(() => {
@@ -180,6 +215,32 @@ export default function Dashboard() {
           </Card>
 
           <LeagueStandings division={team.division} />
+
+          {/* Notification Demo Section */}
+          <Card className="bg-gray-800 border-gray-700">
+            <CardHeader>
+              <CardTitle className="text-white flex items-center gap-2">
+                <Bell className="w-5 h-5" />
+                Notification System Demo
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="p-6">
+              <div className="flex justify-between items-center mb-4">
+                <div>
+                  <p className="text-gray-300 mb-2">Test the generic notification system with hidden game results</p>
+                  <p className="text-sm text-gray-400">Creates sample notifications for match results, tournaments, auctions, and injuries</p>
+                </div>
+                <Button
+                  onClick={() => demoNotificationsMutation.mutate()}
+                  disabled={demoNotificationsMutation.isPending}
+                  className="bg-blue-600 hover:bg-blue-700"
+                >
+                  {demoNotificationsMutation.isPending ? "Creating..." : "Create Demo Notifications"}
+                </Button>
+              </div>
+              <NotificationCenter />
+            </CardContent>
+          </Card>
         </div>
       </div>
     </div>
