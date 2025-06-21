@@ -26,7 +26,7 @@ export const ABILITIES: Record<string, Ability> = {
     name: "Swift Feet",
     description: "Enhanced running speed and acceleration",
     tier: "basic",
-    raceAffinities: ["elf", "fae"],
+    raceAffinities: ["sylvan", "umbra"],
     positionAffinities: ["runner", "receiver"],
     statBonuses: { speed: 3, agility: 2 }
   },
@@ -35,7 +35,7 @@ export const ABILITIES: Record<string, Ability> = {
     name: "Iron Grip",
     description: "Exceptional ball handling and catching ability",
     tier: "basic",
-    raceAffinities: ["dwarf", "orc"],
+    raceAffinities: ["gryll", "human"],
     positionAffinities: ["receiver", "quarterback"],
     statBonuses: { catching: 4 }
   },
@@ -44,7 +44,7 @@ export const ABILITIES: Record<string, Ability> = {
     name: "Strong Arm",
     description: "Increased throwing power and accuracy",
     tier: "basic",
-    raceAffinities: ["orc", "human"],
+    raceAffinities: ["gryll", "human"],
     positionAffinities: ["quarterback"],
     statBonuses: { throwing: 4, power: 2 }
   },
@@ -53,7 +53,7 @@ export const ABILITIES: Record<string, Ability> = {
     name: "Iron Will",
     description: "Mental fortitude and leadership under pressure",
     tier: "basic",
-    raceAffinities: ["human", "dwarf"],
+    raceAffinities: ["human", "lumina"],
     positionAffinities: ["captain", "quarterback"],
     statBonuses: { leadership: 3, stamina: 2 }
   },
@@ -62,7 +62,7 @@ export const ABILITIES: Record<string, Ability> = {
     name: "Nimble Dodge",
     description: "Enhanced evasion and mobility",
     tier: "basic",
-    raceAffinities: ["elf", "fae"],
+    raceAffinities: ["sylvan", "umbra"],
     positionAffinities: ["runner", "receiver"],
     statBonuses: { agility: 4, speed: 1 }
   },
@@ -132,7 +132,7 @@ export const ABILITIES: Record<string, Ability> = {
     name: "Sixth Sense",
     description: "Supernatural awareness of field dynamics",
     tier: "advanced",
-    raceAffinities: ["lumina", "fae"],
+    raceAffinities: ["lumina", "sylvan"],
     positionAffinities: ["defender", "captain"],
     statBonuses: { agility: 5, leadership: 4 },
     prerequisites: ["nimble_dodge", "iron_will"]
