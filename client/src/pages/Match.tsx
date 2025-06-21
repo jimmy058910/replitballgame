@@ -2,9 +2,11 @@ import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import Navigation from "@/components/Navigation";
 import MatchViewer from "@/components/MatchViewer";
+import LiveMatchViewer from "@/components/LiveMatchViewer";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 export default function Match() {
   const [selectedMatchId, setSelectedMatchId] = useState<string | null>(null);
@@ -47,14 +49,25 @@ export default function Match() {
           </p>
         </div>
 
-        {/* Live Match Viewer */}
-        {selectedMatch && (
-          <div className="mb-8">
-            <MatchViewer match={selectedMatch} />
-          </div>
-        )}
+        <Tabs defaultValue="matches" className="space-y-6">
+          <TabsList className="grid w-full grid-cols-2 bg-gray-800">
+            <TabsTrigger value="matches" className="data-[state=active]:bg-blue-600">
+              Match History
+            </TabsTrigger>
+            <TabsTrigger value="live" className="data-[state=active]:bg-green-600">
+              Live Simulation Demo
+            </TabsTrigger>
+          </TabsList>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          <TabsContent value="matches" className="space-y-6">
+            {/* Live Match Viewer */}
+            {selectedMatch && (
+              <div className="mb-8">
+                <MatchViewer match={selectedMatch} />
+              </div>
+            )}
+
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           {/* Live & Upcoming Matches */}
           <Card className="bg-gray-800 border-gray-700">
             <CardHeader>
@@ -212,6 +225,12 @@ export default function Match() {
             </CardContent>
           </Card>
         </div>
+      </TabsContent>
+
+          <TabsContent value="live" className="space-y-6">
+            <LiveMatchViewer matchId="demo-match-1" />
+          </TabsContent>
+        </Tabs>
       </div>
     </div>
   );

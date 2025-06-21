@@ -2055,6 +2055,123 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/matches/:matchId/simulation", async (req, res) => {
     try {
       const { matchId } = req.params;
+      
+      // Handle demo match
+      if (matchId === "demo-match-1") {
+        const demoMatch = {
+          id: "demo-match-1",
+          team1Id: "demo-team-1",
+          team2Id: "demo-team-2",
+          team1Score: 14,
+          team2Score: 7,
+          status: "live",
+          quarter: 2,
+          timeRemaining: 720,
+          lastPlay: "Touchdown by Grimjaw the Orc!"
+        };
+        
+        const simulationData = {
+          ...demoMatch,
+          team1: {
+            id: "demo-team-1",
+            name: "Thunder Orcs",
+            logo: "🏈",
+            score: 14,
+            players: [
+              {
+                id: "p1",
+                name: "Grimjaw",
+                race: "Orc",
+                position: "Blitzer",
+                overall: 85,
+                fatigue: 35,
+                health: 90,
+                isInjured: false,
+                abilities: ["Mighty Blow", "Block"],
+                stats: { rushing: 45, passing: 12, receiving: 8, tackles: 12, interceptions: 1 }
+              },
+              {
+                id: "p2", 
+                name: "Smasher",
+                race: "Orc",
+                position: "Black Orc",
+                overall: 78,
+                fatigue: 45,
+                health: 95,
+                isInjured: false,
+                abilities: ["Block"],
+                stats: { rushing: 23, passing: 2, receiving: 1, tackles: 18, interceptions: 0 }
+              },
+              {
+                id: "p3",
+                name: "Speedfang",
+                race: "Goblin",
+                position: "Runner",
+                overall: 72,
+                fatigue: 25,
+                health: 65,
+                isInjured: true,
+                abilities: ["Dodge", "Sure Hands"],
+                stats: { rushing: 67, passing: 34, receiving: 23, tackles: 3, interceptions: 2 }
+              }
+            ]
+          },
+          team2: {
+            id: "demo-team-2",
+            name: "Elite Elves",
+            logo: "🏹",
+            score: 7,
+            players: [
+              {
+                id: "p4",
+                name: "Silverwing",
+                race: "Elf",
+                position: "Thrower",
+                overall: 82,
+                fatigue: 20,
+                health: 85,
+                isInjured: false,
+                abilities: ["Pass", "Accurate"],
+                stats: { rushing: 12, passing: 78, receiving: 15, tackles: 4, interceptions: 0 }
+              },
+              {
+                id: "p5",
+                name: "Moonrunner",
+                race: "Elf",
+                position: "Catcher",
+                overall: 79,
+                fatigue: 30,
+                health: 80,
+                isInjured: false,
+                abilities: ["Catch", "Dodge"],
+                stats: { rushing: 34, passing: 8, receiving: 56, tackles: 2, interceptions: 1 }
+              },
+              {
+                id: "p6",
+                name: "Ironleaf",
+                race: "Elf",
+                position: "Lineman",
+                overall: 68,
+                fatigue: 55,
+                health: 70,
+                isInjured: false,
+                abilities: [],
+                stats: { rushing: 15, passing: 5, receiving: 12, tackles: 8, interceptions: 0 }
+              }
+            ]
+          },
+          currentQuarter: 2,
+          timeRemaining: 720,
+          possession: "demo-team-1",
+          lastPlay: "Touchdown by Grimjaw the Orc!",
+          stadium: "Bloodbowl Arena",
+          weather: "Perfect conditions",
+          gameEvents: []
+        };
+        
+        return res.json(simulationData);
+      }
+      
       const match = await storage.getMatchById(matchId);
       
       if (!match) {

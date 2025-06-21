@@ -77,7 +77,7 @@ export default function LiveMatchViewer({ matchId }: { matchId: string }) {
   const queryClient = useQueryClient();
 
   const { data: match, refetch } = useQuery({
-    queryKey: ["/api/matches", matchId],
+    queryKey: ["/api/matches", matchId, "simulation"],
     refetchInterval: isSimulating ? 2000 : false,
   });
 
