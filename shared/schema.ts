@@ -601,3 +601,82 @@ export type DraftPick = typeof draftPicks.$inferSelect;
 export type InsertDraftPick = typeof draftPicks.$inferInsert;
 export type RookiePlayer = typeof rookiePlayers.$inferSelect;
 export type InsertRookiePlayer = typeof rookiePlayers.$inferInsert;
+
+// Injury treatment and recovery tracking
+export const injuryTreatments = pgTable("injury_treatments", {
+  id: varchar("id").primaryKey().notNull().$defaultFn(() => nanoid()),
+  injuryId: varchar("injury_id").notNull().references(() => playerInjuries.id),
+  treatmentType: varchar("treatment_type").notNull(), // rest, therapy, surgery, medication
+  startDate: timestamp("start_date").defaultNow(),
+  endDate: timestamp("end_date"),
+  effectiveness: integer("effectiveness").default(0), // 0-100%
+  cost: integer("cost").default(0),
+  notes: text("notes"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// Medical staff for injury management
+export const medicalStaff = pgTable("medical_staff", {
+  id: varchar("id").primaryKey().notNull().$defaultFn(() => nanoid()),
+  teamId: varchar("team_id").notNull().references(() => teams.id),
+  name: varchar("name").notNull(),
+  specialty: varchar("specialty").notNull(), // doctor, physiotherapist, surgeon, nutritionist
+  experience: integer("experience").default(1), // years
+  effectiveness: integer("effectiveness").default(50), // 0-100%
+  salary: integer("salary").default(50000),
+  contractLength: integer("contract_length").default(1), // years
+  hired: timestamp("hired").defaultNow(),
+});
+
+// Injury prevention and conditioning
+export const playerConditioning = pgTable("player_conditioning", {
+  id: varchar("id").primaryKey().notNull().$defaultFn(() => nanoid()),
+  playerId: varchar("player_id").notNull().references(() => players.id),
+  fitnessLevel: integer("fitness_level").default(100), // 0-100%
+  flexibilityScore: integer("flexibility_score").default(50), // 0-100%
+  strengthScore: integer("strength_score").default(50), // 0-100%
+  enduranceScore: integer("endurance_score").default(50), // 0-100%
+  injuryProneness: integer("injury_proneness").default(50), // 0-100% (lower is better)
+  lastPhysical: timestamp("last_physical"),
+  trainingLoad: integer("training_load").default(50), // 0-100%
+  restDays: integer("rest_days").default(0),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Training facilities and equipment
+export const trainingFacilities = pgTable("training_facilities", {
+  id: varchar("id").primaryKey().notNull().$defaultFn(() => nanoid()),
+  teamId: varchar("team_id").notNull().references(() => teams.id),
+  facilityType: varchar("facility_type").notNull(), // gym, medical_bay, recovery_pool, etc.
+  quality: integer("quality").default(50), // 0-100%
+  capacity: integer("capacity").default(10),
+  maintenanceCost: integer("maintenance_cost").default(1000),
+  injuryReduction: integer("injury_reduction").default(0), // 0-50% reduction
+  recoveryBonus: integer("recovery_bonus").default(0), // 0-50% faster recovery
+  purchased: timestamp("purchased").defaultNow(),
+});
+
+// Injury history and analytics
+export const injuryReports = pgTable("injury_reports", {
+  id: varchar("id").primaryKey().notNull().$defaultFn(() => nanoid()),
+  teamId: varchar("team_id").notNull().references(() => teams.id),
+  season: varchar("season").notNull(),
+  totalInjuries: integer("total_injuries").default(0),
+  severityAverage: integer("severity_average").default(0),
+  recoveryTimeAverage: integer("recovery_time_average").default(0),
+  mostCommonInjury: varchar("most_common_injury"),
+  injuryTrends: jsonb("injury_trends"), // monthly breakdown
+  preventionScore: integer("prevention_score").default(50), // team's injury prevention rating
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export type InjuryTreatment = typeof injuryTreatments.$inferSelect;
+export type InsertInjuryTreatment = typeof injuryTreatments.$inferInsert;
+export type MedicalStaff = typeof medicalStaff.$inferSelect;
+export type InsertMedicalStaff = typeof medicalStaff.$inferInsert;
+export type PlayerConditioning = typeof playerConditioning.$inferSelect;
+export type InsertPlayerConditioning = typeof playerConditioning.$inferInsert;
+export type TrainingFacility = typeof trainingFacilities.$inferSelect;
+export type InsertTrainingFacility = typeof trainingFacilities.$inferInsert;
+export type InjuryReport = typeof injuryReports.$inferSelect;
+export type InsertInjuryReport = typeof injuryReports.$inferInsert;

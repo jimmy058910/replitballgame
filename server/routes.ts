@@ -2,6 +2,7 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { setupAuth, isAuthenticated } from "./replitAuth";
+import { NotificationService } from "./services/notificationService";
 import { simulateMatch } from "./services/matchSimulation";
 import { generateRandomPlayer } from "./services/leagueService";
 import { z } from "zod";
@@ -1569,6 +1570,243 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error placing bid:", error);
       res.status(500).json({ message: "Failed to place bid" });
+    }
+  });
+
+  // Injury Management Routes
+  app.get('/api/injuries/:teamId', isAuthenticated, async (req: any, res) => {
+    try {
+      const { teamId } = req.params;
+      const injuries = await storage.getTeamInjuries(teamId);
+      res.json(injuries);
+    } catch (error) {
+      console.error("Error fetching injuries:", error);
+      res.status(500).json({ message: "Failed to fetch injuries" });
+    }
+  });
+
+  app.post('/api/injuries', isAuthenticated, async (req: any, res) => {
+    try {
+      const injuryData = req.body;
+      const player = await storage.getPlayerById(injuryData.playerId);
+      
+      if (!player) {
+        return res.status(404).json({ message: "Player not found" });
+      }
+
+      const injury = await storage.createInjury({
+        ...injuryData,
+        id: undefined,
+      });
+
+      // Send notification
+      const team = await storage.getTeamById(player.teamId);
+      if (team) {
+        await NotificationService.notifyPlayerInjured(
+          team.id,
+          player.name,
+          injuryData.injuryType,
+          injuryData.severity
+        );
+      }
+
+      res.json(injury);
+    } catch (error) {
+      console.error("Error creating injury:", error);
+      res.status(500).json({ message: "Failed to create injury" });
+    }
+  });
+
+  app.patch('/api/injuries/:id/treatment', isAuthenticated, async (req: any, res) => {
+    try {
+      const { id } = req.params;
+      const treatmentData = req.body;
+      
+      const injury = await storage.updateInjury(id, treatmentData);
+      res.json(injury);
+    } catch (error) {
+      console.error("Error updating treatment:", error);
+      res.status(500).json({ message: "Failed to update treatment" });
+    }
+  });
+
+  // Medical Staff Routes
+  app.get('/api/medical-staff/:teamId', isAuthenticated, async (req: any, res) => {
+    try {
+      const { teamId } = req.params;
+      const staff = await storage.getMedicalStaffByTeam(teamId);
+      res.json(staff);
+    } catch (error) {
+      console.error("Error fetching medical staff:", error);
+      res.status(500).json({ message: "Failed to fetch medical staff" });
+    }
+  });
+
+  app.post('/api/medical-staff', isAuthenticated, async (req: any, res) => {
+    try {
+      const staffData = req.body;
+      const staff = await storage.createMedicalStaff({
+        ...staffData,
+        id: undefined,
+      });
+      res.json(staff);
+    } catch (error) {
+      console.error("Error hiring medical staff:", error);
+      res.status(500).json({ message: "Failed to hire medical staff" });
+    }
+  });
+
+  // Player Conditioning Routes
+  app.get('/api/conditioning/:teamId', isAuthenticated, async (req: any, res) => {
+    try {
+      const { teamId } = req.params;
+      const conditioning = await storage.getPlayerConditioningByTeam(teamId);
+      res.json(conditioning);
+    } catch (error) {
+      console.error("Error fetching conditioning:", error);
+      res.status(500).json({ message: "Failed to fetch conditioning data" });
+    }
+  });
+
+  app.patch('/api/conditioning/:id', isAuthenticated, async (req: any, res) => {
+    try {
+      const { id } = req.params;
+      const updates = req.body;
+      
+      const conditioning = await storage.updatePlayerConditioning(id, updates);
+      res.json(conditioning);
+    } catch (error) {
+      console.error("Error updating conditioning:", error);
+      res.status(500).json({ message: "Failed to update conditioning" });
+    }
+  });
+
+  // Enhanced notification system with automatic triggers
+  app.post('/api/auctions/:id/bid', isAuthenticated, async (req: any, res) => {
+    try {
+      const { id: auctionId } = req.params;
+      const { bidAmount, bidType, maxAutoBid } = req.body;
+      const userId = req.user.claims.sub;
+      
+      const team = await storage.getTeamByUserId(userId);
+      if (!team) {
+        return res.status(404).json({ message: "Team not found" });
+      }
+
+      const auction = await storage.getAuctionById(auctionId);
+      if (!auction) {
+        return res.status(404).json({ message: "Auction not found" });
+      }
+
+      // Get current top bid
+      const currentTopBid = await storage.getTopBidForAuction(auctionId);
+      
+      // Notify previous top bidder they've been outbid
+      if (currentTopBid && currentTopBid.bidderId !== team.id) {
+        const previousTopTeam = await storage.getTeamById(currentTopBid.bidderId);
+        if (previousTopTeam) {
+          const player = await storage.getPlayerById(auction.playerId);
+          if (player) {
+            await NotificationService.notifyOutbid(
+              previousTopTeam.userId,
+              player.name,
+              bidAmount,
+              auctionId
+            );
+          }
+        }
+      }
+
+      const bid = await storage.createBid({
+        id: undefined,
+        auctionId,
+        bidderId: team.id,
+        bidAmount,
+        bidType,
+        maxAutoBid,
+        isWinning: true,
+        timestamp: new Date(),
+      });
+
+      res.json(bid);
+    } catch (error) {
+      console.error("Error placing bid:", error);
+      res.status(500).json({ message: "Failed to place bid" });
+    }
+  });
+
+  // Tournament and league notifications
+  app.post('/api/tournaments/start/:division', isAuthenticated, async (req: any, res) => {
+    try {
+      const { division } = req.params;
+      
+      // Send tournament start notifications
+      await NotificationService.notifyTournamentStart(parseInt(division));
+      
+      res.json({ message: "Tournament started and notifications sent" });
+    } catch (error) {
+      console.error("Error starting tournament:", error);
+      res.status(500).json({ message: "Failed to start tournament" });
+    }
+  });
+
+  // Match result notifications
+  app.patch('/api/matches/:id/complete', isAuthenticated, async (req: any, res) => {
+    try {
+      const { id } = req.params;
+      const { homeScore, awayScore } = req.body;
+      
+      const match = await storage.getMatchById(id);
+      if (!match) {
+        return res.status(404).json({ message: "Match not found" });
+      }
+
+      const updatedMatch = await storage.updateMatch(id, {
+        status: "finished",
+        homeScore,
+        awayScore,
+        endTime: new Date(),
+      });
+
+      // Send match result notifications
+      await NotificationService.notifyMatchResult(
+        match.homeTeamId,
+        match.awayTeamId,
+        homeScore,
+        awayScore,
+        id
+      );
+
+      res.json(updatedMatch);
+    } catch (error) {
+      console.error("Error completing match:", error);
+      res.status(500).json({ message: "Failed to complete match" });
+    }
+  });
+
+  // Contract expiration checks (would typically run as a scheduled job)
+  app.post('/api/system/check-contracts', isAuthenticated, async (req: any, res) => {
+    try {
+      // This would typically be a scheduled job
+      const contracts = await storage.getExpiringContracts(30); // 30 days
+      
+      for (const contract of contracts) {
+        const team = await storage.getTeamById(contract.teamId);
+        const player = await storage.getPlayerById(contract.playerId);
+        
+        if (team && player) {
+          await NotificationService.notifyContractExpiring(
+            team.id,
+            player.name,
+            contract.daysRemaining
+          );
+        }
+      }
+
+      res.json({ message: "Contract notifications sent", count: contracts.length });
+    } catch (error) {
+      console.error("Error checking contracts:", error);
+      res.status(500).json({ message: "Failed to check contracts" });
     }
   });
 
