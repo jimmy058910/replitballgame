@@ -31,12 +31,9 @@ export default function Stadium() {
 
   const upgradeMutation = useMutation({
     mutationFn: async (upgrade: any) => {
-      return await apiRequest("/api/stadium/upgrade", {
-        method: "POST",
-        body: JSON.stringify({
-          upgradeType: upgrade.type,
-          upgradeName: upgrade.name
-        }),
+      return await apiRequest("/api/stadium/upgrade", "POST", {
+        upgradeType: upgrade.type,
+        upgradeName: upgrade.name
       });
     },
     onSuccess: () => {

@@ -463,7 +463,7 @@ export default function TacticalFormation({ players, onFormationChange }: Tactic
                         >
                           <div className="flex items-center justify-between">
                             <div className="flex-1">
-                              <div className="font-medium flex items-center gap-2">
+                              <div className="font-medium flex items-center gap-2 text-gray-900">
                                 {player.name}
                                 {isSelected && (
                                   <span className="text-xs bg-blue-600 text-white px-2 py-0.5 rounded">
@@ -471,10 +471,10 @@ export default function TacticalFormation({ players, onFormationChange }: Tactic
                                   </span>
                                 )}
                               </div>
-                              <div className="text-sm text-gray-500 mt-1">
+                              <div className="text-sm text-gray-600 mt-1">
                                 {player.race} • Age {player.age}
                               </div>
-                              <div className="flex gap-1 mt-1 text-xs">
+                              <div className="flex gap-1 mt-1 text-xs text-gray-700">
                                 <span>SPD: {player.speed}</span>
                                 <span>PWR: {player.power}</span>
                                 <span>AGI: {player.agility}</span>

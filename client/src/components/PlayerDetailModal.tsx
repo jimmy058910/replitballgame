@@ -144,7 +144,7 @@ export default function PlayerDetailModal({
             <TabsTrigger value="abilities">Abilities</TabsTrigger>
             <TabsTrigger value="equipment">Equipment</TabsTrigger>
             <TabsTrigger value="contract">Contract</TabsTrigger>
-            <TabsTrigger value="development">Development</TabsTrigger>
+            <TabsTrigger value="development">Scouting</TabsTrigger>
           </TabsList>
 
           <TabsContent value="stats" className="space-y-4">

@@ -8,6 +8,7 @@ import { useToast } from "@/hooks/use-toast";
 
 interface ContractNegotiationProps {
   player: any;
+  isOpen: boolean;
   onClose: () => void;
 }
 
@@ -34,7 +35,12 @@ const contractResponses = {
   ]
 };
 
-export default function ContractNegotiation({ player, onClose }: ContractNegotiationProps) {
+export default function ContractNegotiation({ player, isOpen, onClose }: ContractNegotiationProps) {
+  // Don't render if not open
+  if (!isOpen) {
+    return null;
+  }
+
   // Early return if player is null or missing required properties
   if (!player || !player.firstName || !player.lastName) {
     return (

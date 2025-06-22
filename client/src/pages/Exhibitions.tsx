@@ -27,9 +27,7 @@ export default function Exhibitions() {
 
   const findMatchMutation = useMutation({
     mutationFn: async () => {
-      return await apiRequest("/api/exhibitions/find-match", {
-        method: "POST",
-      });
+      return await apiRequest("/api/exhibitions/find-match", "POST");
     },
     onSuccess: (data) => {
       if (data.matchId) {

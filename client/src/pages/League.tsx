@@ -21,10 +21,7 @@ export default function League() {
 
   const createAITeamsMutation = useMutation({
     mutationFn: async (division: number) => {
-      return await apiRequest("/api/leagues/create-ai-teams", {
-        method: "POST",
-        body: JSON.stringify({ division }),
-      });
+      return await apiRequest("/api/leagues/create-ai-teams", "POST", { division });
     },
     onSuccess: (data: any) => {
       toast({

@@ -16,9 +16,7 @@ export default function AbilitiesDisplay({ player, canTrain = false }: Abilities
 
   const trainAbilitiesMutation = useMutation({
     mutationFn: async () => {
-      await apiRequest(`/api/players/${player.id}/train-abilities`, {
-        method: "POST",
-      });
+      return await apiRequest(`/api/players/${player.id}/train-abilities`, "POST");
     },
     onSuccess: (data: any) => {
       if (data.success) {
@@ -70,15 +68,6 @@ export default function AbilitiesDisplay({ player, canTrain = false }: Abilities
       <CardHeader>
         <CardTitle className="flex items-center justify-between">
           <span>Player Abilities ({abilities.length}/3)</span>
-          {canTrain && abilities.length < 3 && (
-            <Button
-              onClick={() => trainAbilitiesMutation.mutate()}
-              disabled={trainAbilitiesMutation.isPending}
-              size="sm"
-            >
-              {trainAbilitiesMutation.isPending ? "Training..." : "Train Abilities"}
-            </Button>
-          )}
         </CardTitle>
         <CardDescription>
           Special abilities that enhance player performance
