@@ -20,7 +20,7 @@ export default function Dashboard() {
 
   const demoNotificationsMutation = useMutation({
     mutationFn: async () => {
-      return await apiRequest("/api/demo/notifications", "POST");
+      return await apiRequest("/api/notifications/demo", "POST");
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/notifications"] });
@@ -109,7 +109,17 @@ export default function Dashboard() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Dashboard Overview */}
         <div className="mb-8">
-          <h2 className="font-orbitron text-2xl font-bold mb-6">Team Dashboard</h2>
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="font-orbitron text-2xl font-bold">Team Dashboard</h2>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => demoNotificationsMutation.mutate()}
+              disabled={demoNotificationsMutation.isPending}
+            >
+              {demoNotificationsMutation.isPending ? "Creating..." : "Test Notifications"}
+            </Button>
+          </div>
           
           {/* Stats Cards */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
