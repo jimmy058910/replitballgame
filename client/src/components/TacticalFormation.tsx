@@ -22,13 +22,14 @@ interface TacticalFormationProps {
   onFormationChange: (formation: FormationPlayer[], substitutionOrder: Record<string, number>) => void;
 }
 
-const FIELD_WIDTH = 300;
-const FIELD_HEIGHT = 200;
+const FIELD_WIDTH = 800;
+const FIELD_HEIGHT = 400;
 
 export default function TacticalFormation({ players, onFormationChange }: TacticalFormationProps) {
   const [formation, setFormation] = useState<FormationPlayer[]>([]);
   const [substitutionOrder, setSubstitutionOrder] = useState<Record<string, number>>({});
   const [draggedPlayer, setDraggedPlayer] = useState<string | null>(null);
+  const [selectedPlayer, setSelectedPlayer] = useState<string | null>(null);
   const [dragPosition, setDragPosition] = useState<{ x: number; y: number } | null>(null);
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -77,26 +78,39 @@ export default function TacticalFormation({ players, onFormationChange }: Tactic
     return acc;
   }, {} as Record<string, any[]>);
 
-  // Auto-formation preset
+  // Auto-formation preset for horizontal field (only own half)
   const createAutoFormation = () => {
     const newFormation: FormationPlayer[] = [];
     const newSubstitutionOrder: Record<string, number> = {};
     
-    // Select best players for each role
-    const starters = ['Passer', 'Runner', 'Blocker'].flatMap((role, roleIndex) => {
-      const rolePlayers = (playersByRole[role] || []).slice(0, 3);
-      return rolePlayers.map((player: any, index: number) => ({
-        id: player.id,
-        name: player.name,
-        role,
-        position: {
-          x: 50 + (roleIndex * 120),
-          y: 80 + (index * 60)
-        },
-        isStarter: true,
-        substitutionPriority: index + 1
-      }));
-    });
+    // Position players in own half (left side of horizontal field)
+    const formations = [
+      // Defensive positions (closer to own goal)
+      { x: 80, y: 120 },   // Blocker 1
+      { x: 80, y: 280 },   // Blocker 2
+      { x: 140, y: 200 },  // Runner 1 (center defensive)
+      
+      // Midfield/attacking positions
+      { x: 200, y: 100 },  // Runner 2 (wing)
+      { x: 200, y: 300 },  // Runner 3 (wing)
+      { x: 260, y: 200 },  // Passer (quarterback position)
+    ];
+    
+    // Select best players for formation
+    const bestPlayers = [
+      ...(playersByRole['Blocker'] || []).slice(0, 2),
+      ...(playersByRole['Runner'] || []).slice(0, 2), 
+      ...(playersByRole['Passer'] || []).slice(0, 1),
+    ].slice(0, 6);
+    
+    const starters = bestPlayers.map((player: any, index: number) => ({
+      id: player.id,
+      name: player.name,
+      role: getPlayerRole(player),
+      position: formations[index] || { x: 200, y: 200 },
+      isStarter: true,
+      substitutionPriority: index + 1
+    }));
 
     // Add substitutes
     let subPriority = 10;
@@ -120,19 +134,30 @@ export default function TacticalFormation({ players, onFormationChange }: Tactic
   const handleDragOver = (event: React.DragEvent) => {
     event.preventDefault();
     const rect = event.currentTarget.getBoundingClientRect();
-    setDragPosition({
-      x: event.clientX - rect.left,
-      y: event.clientY - rect.top
-    });
+    const x = event.clientX - rect.left;
+    const y = event.clientY - rect.top;
+    
+    // Only show drag preview in own half (left side)
+    if (x <= FIELD_WIDTH / 2) {
+      setDragPosition({ x, y });
+    } else {
+      setDragPosition(null);
+    }
   };
 
   const handleDrop = (event: React.DragEvent) => {
     event.preventDefault();
-    if (!draggedPlayer || !dragPosition) return;
+    if (!draggedPlayer) return;
 
     const rect = event.currentTarget.getBoundingClientRect();
-    const x = Math.max(20, Math.min(FIELD_WIDTH - 20, event.clientX - rect.left));
-    const y = Math.max(20, Math.min(FIELD_HEIGHT - 20, event.clientY - rect.top));
+    const rawX = event.clientX - rect.left;
+    const rawY = event.clientY - rect.top;
+    
+    // Only allow drop in own half (left side)
+    if (rawX > FIELD_WIDTH / 2) return;
+
+    const x = Math.max(20, Math.min(FIELD_WIDTH / 2 - 20, rawX));
+    const y = Math.max(20, Math.min(FIELD_HEIGHT - 20, rawY));
 
     const existingIndex = formation.findIndex(p => p.id === draggedPlayer);
     if (existingIndex >= 0) {
@@ -144,7 +169,7 @@ export default function TacticalFormation({ players, onFormationChange }: Tactic
     } else {
       // Add new player to formation
       const player = players.find(p => p.id === draggedPlayer);
-      if (player && formation.length < 11) {
+      if (player && formation.length < 6) {
         const newFormationPlayer: FormationPlayer = {
           id: player.id,
           name: player.name,
@@ -161,6 +186,38 @@ export default function TacticalFormation({ players, onFormationChange }: Tactic
 
     setDraggedPlayer(null);
     setDragPosition(null);
+  };
+
+  // Field click handler for selected player placement
+  const handleFieldClick = (event: React.MouseEvent) => {
+    if (!selectedPlayer) return;
+    
+    const rect = event.currentTarget.getBoundingClientRect();
+    const rawX = event.clientX - rect.left;
+    const rawY = event.clientY - rect.top;
+    
+    // Only allow placement in own half (left side)
+    if (rawX > FIELD_WIDTH / 2) return;
+    
+    const x = Math.max(20, Math.min(FIELD_WIDTH / 2 - 20, rawX));
+    const y = Math.max(20, Math.min(FIELD_HEIGHT - 20, rawY));
+    
+    const player = players.find(p => p.id === selectedPlayer);
+    if (player && formation.length < 6) {
+      const newFormationPlayer: FormationPlayer = {
+        id: player.id,
+        name: player.name,
+        role: getPlayerRole(player),
+        position: { x, y },
+        isStarter: true,
+        substitutionPriority: formation.length + 1
+      };
+      const updatedFormation = [...formation, newFormationPlayer];
+      setFormation(updatedFormation);
+      onFormationChange(updatedFormation, substitutionOrder);
+    }
+    
+    setSelectedPlayer(null);
   };
 
   const removeFromFormation = (playerId: string) => {
@@ -256,66 +313,110 @@ export default function TacticalFormation({ players, onFormationChange }: Tactic
       </Card>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Formation Field */}
-        <Card>
+        {/* Formation Field - Horizontal Layout */}
+        <Card className="col-span-full">
           <CardHeader>
-            <CardTitle>Formation Field</CardTitle>
+            <CardTitle>Formation Field - Your Tactical Zone</CardTitle>
+            <p className="text-sm text-muted-foreground">
+              {selectedPlayer ? "Click on the field to place selected player" : "Drag players or select and click to position them"}
+            </p>
           </CardHeader>
-          <CardContent className="flex justify-center">
-            <div 
-              className="relative border-4 border-gray-600 bg-green-600 dark:bg-green-800 mx-auto overflow-hidden w-full"
-              style={{ 
-                width: isMobile ? "100%" : FIELD_WIDTH, 
-                height: FIELD_HEIGHT,
-                maxWidth: isMobile ? "280px" : "100%"
-              }}
-              onDragOver={handleDragOver}
-              onDrop={handleDrop}
-            >
-              {/* Your half of the field - defensive side */}
-              <div className="absolute inset-0">
-                <div className="absolute top-0 left-0 right-0 h-0.5 bg-white" />
-                <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-white" />
-                <div className="absolute top-0 bottom-0 left-0 w-0.5 bg-white" />
-                <div className="absolute top-0 bottom-0 right-0 w-0.5 bg-white" />
-                {/* Only show your defensive half */}
-                <div className="absolute top-1/2 left-0 right-0 h-0.5 bg-white transform -translate-y-1/2" />
-                <div className="absolute left-1/4 top-1/2 bottom-0 w-0.5 bg-white opacity-50" />
-                <div className="absolute left-3/4 top-1/2 bottom-0 w-0.5 bg-white opacity-50" />
-                {/* Your goal area */}
-                <div className="absolute top-1/3 bottom-1/3 left-0 w-8 border-2 border-white border-l-0" />
-                <div className="absolute top-1/3 bottom-1/3 right-0 w-8 border-2 border-white border-r-0" />
-              </div>
-
-              {/* Positioned Players */}
-              {formation.map((player) => (
-                <div
-                  key={player.id}
-                  className="absolute cursor-move bg-blue-500 text-white rounded-full w-8 h-8 flex items-center justify-center text-xs font-bold transform -translate-x-1/2 -translate-y-1/2 hover:bg-blue-600 shadow-lg"
-                  style={{
-                    left: player.position.x,
-                    top: player.position.y
-                  }}
-                  draggable
-                  onDragStart={(e) => handleDragStart(player.id, e)}
-                  title={`${player.name} (${player.role})`}
-                  onClick={() => removeFromFormation(player.id)}
-                >
-                  {player.name.charAt(0)}
+          <CardContent>
+            <div className="flex justify-center">
+              <div 
+                className="relative border-4 border-gray-600 bg-green-600 dark:bg-green-800 mx-auto overflow-hidden cursor-pointer"
+                style={{ 
+                  width: isMobile ? "100%" : FIELD_WIDTH, 
+                  height: FIELD_HEIGHT,
+                  maxWidth: isMobile ? "350px" : "100%"
+                }}
+                onDragOver={handleDragOver}
+                onDrop={handleDrop}
+                onClick={handleFieldClick}
+              >
+                {/* Field markings - Horizontal Layout */}
+                <div className="absolute inset-0">
+                  {/* Field boundaries */}
+                  <div className="absolute top-0 left-0 right-0 h-1 bg-white" />
+                  <div className="absolute bottom-0 left-0 right-0 h-1 bg-white" />
+                  <div className="absolute top-0 bottom-0 left-0 w-1 bg-white" />
+                  <div className="absolute top-0 bottom-0 right-0 w-1 bg-white" />
+                  
+                  {/* Center line - divides own/opponent half */}
+                  <div className="absolute top-0 bottom-0 left-1/2 w-1 bg-white transform -translate-x-1/2" />
+                  
+                  {/* Own Goal Zone (Left side) */}
+                  <div className="absolute top-1/4 bottom-1/4 left-0 w-16 border-2 border-white border-l-0 bg-green-500 bg-opacity-30">
+                    <div className="absolute top-1/3 bottom-1/3 left-0 w-8 border-2 border-white border-l-0 bg-green-400 bg-opacity-50" />
+                  </div>
+                  
+                  {/* Opponent Goal Zone (Right side) - Visual only */}
+                  <div className="absolute top-1/4 bottom-1/4 right-0 w-16 border-2 border-white border-r-0 bg-red-500 bg-opacity-30">
+                    <div className="absolute top-1/3 bottom-1/3 right-0 w-8 border-2 border-white border-r-0 bg-red-400 bg-opacity-50" />
+                  </div>
+                  
+                  {/* Placement zone indicator (Own half only) */}
+                  <div className="absolute top-2 bottom-2 left-2 w-1/2 border-2 border-blue-400 border-dashed opacity-50" />
+                  
+                  {/* Field lines */}
+                  <div className="absolute top-1/4 left-1/4 right-1/4 h-0.5 bg-white opacity-60" />
+                  <div className="absolute bottom-1/4 left-1/4 right-1/4 h-0.5 bg-white opacity-60" />
                 </div>
-              ))}
 
-              {/* Drag Preview */}
-              {dragPosition && (
-                <div
-                  className="absolute w-8 h-8 bg-blue-300 rounded-full opacity-50 transform -translate-x-1/2 -translate-y-1/2"
-                  style={{
-                    left: dragPosition.x,
-                    top: dragPosition.y,
-                    pointerEvents: 'none'
-                  }}
-                />
-              )}
+                {/* No-placement zone overlay */}
+                <div className="absolute top-0 bottom-0 right-0 w-1/2 bg-gray-900 bg-opacity-40 pointer-events-none">
+                  <div className="flex items-center justify-center h-full text-white text-sm font-medium">
+                    Opponent Half
+                  </div>
+                </div>
+
+                {/* Positioned Players */}
+                {formation.map((player) => (
+                  <div
+                    key={player.id}
+                    className={`absolute cursor-move rounded-full w-10 h-10 flex items-center justify-center text-xs font-bold transform -translate-x-1/2 -translate-y-1/2 shadow-lg border-2 ${
+                      player.role === 'Passer' ? 'bg-purple-500 border-purple-300' :
+                      player.role === 'Runner' ? 'bg-blue-500 border-blue-300' :
+                      'bg-green-500 border-green-300'
+                    } text-white hover:scale-110 transition-transform`}
+                    style={{
+                      left: player.position.x,
+                      top: player.position.y
+                    }}
+                    draggable
+                    onDragStart={(e) => handleDragStart(player.id, e)}
+                    title={`${player.name} (${player.role}) - Click to remove`}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      removeFromFormation(player.id);
+                    }}
+                  >
+                    {player.name.charAt(0).toUpperCase()}
+                    <div className="absolute -bottom-6 left-1/2 transform -translate-x-1/2 text-xs bg-black bg-opacity-75 text-white px-1 rounded text-center whitespace-nowrap">
+                      {player.name.split(' ')[0]}
+                    </div>
+                  </div>
+                ))}
+
+                {/* Drag Preview */}
+                {dragPosition && (
+                  <div
+                    className="absolute w-10 h-10 bg-yellow-400 rounded-full opacity-75 transform -translate-x-1/2 -translate-y-1/2 border-2 border-yellow-200"
+                    style={{
+                      left: dragPosition.x,
+                      top: dragPosition.y,
+                      pointerEvents: 'none'
+                    }}
+                  />
+                )}
+
+                {/* Selected player indicator */}
+                {selectedPlayer && (
+                  <div className="absolute top-2 left-2 bg-blue-600 text-white px-2 py-1 rounded text-xs">
+                    Placing: {players.find(p => p.id === selectedPlayer)?.name}
+                  </div>
+                )}
+              </div>
             </div>
           </CardContent>
         </Card>
@@ -325,36 +426,68 @@ export default function TacticalFormation({ players, onFormationChange }: Tactic
           <Card>
             <CardHeader>
               <CardTitle>Available Players</CardTitle>
+              <p className="text-sm text-muted-foreground">
+                Drag players to field or click to select, then click field to place
+              </p>
             </CardHeader>
             <CardContent className="space-y-4">
               {Object.entries(playersByRole).map(([role, rolePlayers]) => (
                 <div key={role}>
-                  <h4 className="font-medium mb-2">{role}s</h4>
+                  <h4 className="font-medium mb-2 flex items-center gap-2">
+                    <span className={`w-3 h-3 rounded-full ${
+                      role === 'Passer' ? 'bg-purple-500' :
+                      role === 'Runner' ? 'bg-blue-500' :
+                      'bg-green-500'
+                    }`} />
+                    {role}s
+                  </h4>
                   <div className="space-y-2">
                     {(rolePlayers as any[]).map((player: any) => {
                       const inFormation = formation.some(p => p.id === player.id);
+                      const isSelected = selectedPlayer === player.id;
                       return (
                         <div
                           key={player.id}
-                          className={`p-2 border rounded cursor-move ${
-                            inFormation ? 'bg-blue-50 border-blue-200' : 'bg-white hover:bg-gray-50'
-                          }`}
+                          className={`p-3 border rounded transition-all duration-200 ${
+                            isSelected ? 'bg-blue-100 border-blue-400 ring-2 ring-blue-300' :
+                            inFormation ? 'bg-gray-100 border-gray-300 opacity-60' : 
+                            'bg-white hover:bg-gray-50 cursor-pointer border-gray-200 hover:border-gray-300'
+                          } ${!inFormation ? 'cursor-move' : ''}`}
                           draggable={!inFormation}
                           onDragStart={(e) => !inFormation && handleDragStart(player.id, e)}
+                          onClick={() => {
+                            if (!inFormation) {
+                              setSelectedPlayer(isSelected ? null : player.id);
+                            }
+                          }}
                         >
                           <div className="flex items-center justify-between">
-                            <div>
-                              <div className="font-medium">{player.name}</div>
-                              <div className="text-sm text-gray-500">
+                            <div className="flex-1">
+                              <div className="font-medium flex items-center gap-2">
+                                {player.name}
+                                {isSelected && (
+                                  <span className="text-xs bg-blue-600 text-white px-2 py-0.5 rounded">
+                                    Selected
+                                  </span>
+                                )}
+                              </div>
+                              <div className="text-sm text-gray-500 mt-1">
                                 {player.race} • Age {player.age}
                               </div>
+                              <div className="flex gap-1 mt-1 text-xs">
+                                <span>SPD: {player.speed}</span>
+                                <span>PWR: {player.power}</span>
+                                <span>AGI: {player.agility}</span>
+                              </div>
                             </div>
-                            <div className="flex gap-1">
-                              <Badge variant="outline">
-                                {Math.round((player.speed + player.agility + player.power + player.throwing + player.catching + player.stamina) / 6)}
+                            <div className="flex flex-col gap-1 items-end">
+                              <Badge variant="outline" className="text-xs">
+                                OVR {Math.round((player.speed + player.agility + player.power + player.throwing + player.catching + player.stamina) / 6)}
                               </Badge>
                               {inFormation && (
-                                <Badge variant="secondary">On Field</Badge>
+                                <Badge variant="secondary" className="text-xs">
+                                  On Field
+                                </Badge>
                               )}
                             </div>
                           </div>
@@ -364,6 +497,16 @@ export default function TacticalFormation({ players, onFormationChange }: Tactic
                   </div>
                 </div>
               ))}
+              
+              {formation.length < 6 && (
+                <div className="mt-4 p-3 bg-amber-50 border border-amber-200 rounded">
+                  <div className="text-sm text-amber-800">
+                    <strong>Need {6 - formation.length} more players</strong>
+                    <br />
+                    Min requirements: 1 Passer, 2 Runners, 2 Blockers
+                  </div>
+                </div>
+              )}
             </CardContent>
           </Card>
 
