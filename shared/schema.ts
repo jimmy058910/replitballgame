@@ -644,3 +644,57 @@ export type TrainingFacility = typeof trainingFacilities.$inferSelect;
 export type InsertTrainingFacility = typeof trainingFacilities.$inferInsert;
 export type InjuryReport = typeof injuryReports.$inferSelect;
 export type InsertInjuryReport = typeof injuryReports.$inferInsert;
+
+// Stadium and facility management
+export const stadiums = pgTable("stadiums", {
+  id: varchar("id").primaryKey().notNull().$defaultFn(() => nanoid()),
+  teamId: varchar("team_id").notNull().references(() => teams.id),
+  name: varchar("name").notNull(),
+  level: integer("level").default(1), // 1-10 stadium levels
+  capacity: integer("capacity").default(5000),
+  fieldType: varchar("field_type").default("standard"), // standard, large, compact, synthetic, natural
+  fieldSize: varchar("field_size").default("regulation"), // regulation, extended, compact
+  lighting: varchar("lighting").default("basic"), // basic, professional, premium
+  surface: varchar("surface").default("grass"), // grass, synthetic, hybrid
+  drainage: varchar("drainage").default("basic"), // basic, advanced, premium
+  facilities: jsonb("facilities").default({}), // parking, concessions, luxury_boxes, etc.
+  upgradeCost: integer("upgrade_cost").default(50000),
+  maintenanceCost: integer("maintenance_cost").default(5000),
+  revenueMultiplier: integer("revenue_multiplier").default(100), // percentage
+  weatherResistance: integer("weather_resistance").default(50), // 0-100%
+  homeAdvantage: integer("home_advantage").default(5), // 0-20% boost
+  constructionDate: timestamp("construction_date").defaultNow(),
+  lastUpgrade: timestamp("last_upgrade"),
+});
+
+export const facilityUpgrades = pgTable("facility_upgrades", {
+  id: varchar("id").primaryKey().notNull().$defaultFn(() => nanoid()),
+  stadiumId: varchar("stadium_id").notNull().references(() => stadiums.id),
+  upgradeType: varchar("upgrade_type").notNull(), // seating, lighting, field, security, etc.
+  name: varchar("name").notNull(),
+  description: varchar("description"),
+  cost: integer("cost").notNull(),
+  effect: jsonb("effect").notNull(), // capacity: +1000, revenue: +10%, etc.
+  requirements: jsonb("requirements"), // level: 3, other upgrades, etc.
+  installed: timestamp("installed").defaultNow(),
+});
+
+export const stadiumEvents = pgTable("stadium_events", {
+  id: varchar("id").primaryKey().notNull().$defaultFn(() => nanoid()),
+  stadiumId: varchar("stadium_id").notNull().references(() => stadiums.id),
+  eventType: varchar("event_type").notNull(), // concert, exhibition, corporate
+  name: varchar("name").notNull(),
+  revenue: integer("revenue").default(0),
+  cost: integer("cost").default(0),
+  attendees: integer("attendees").default(0),
+  eventDate: timestamp("event_date").notNull(),
+  duration: integer("duration").default(1), // hours
+  status: varchar("status").default("scheduled"), // scheduled, active, completed, cancelled
+});
+
+export type Stadium = typeof stadiums.$inferSelect;
+export type InsertStadium = typeof stadiums.$inferInsert;
+export type FacilityUpgrade = typeof facilityUpgrades.$inferSelect;
+export type InsertFacilityUpgrade = typeof facilityUpgrades.$inferInsert;
+export type StadiumEvent = typeof stadiumEvents.$inferSelect;
+export type InsertStadiumEvent = typeof stadiumEvents.$inferInsert;

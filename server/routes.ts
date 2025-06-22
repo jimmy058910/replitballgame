@@ -8,8 +8,8 @@ import { simulateMatch } from "./services/matchSimulation";
 import { generateRandomPlayer } from "./services/leagueService";
 import { z } from "zod";
 import { db } from "./db";
-import { items } from "@shared/schema";
-import { eq, isNotNull, gte, lte, and } from "drizzle-orm";
+import { items, stadiums, facilityUpgrades, stadiumEvents } from "@shared/schema";
+import { eq, isNotNull, gte, lte, and, desc } from "drizzle-orm";
 
 // Helper function to calculate team power based on player stats
 function calculateTeamPower(players: any[]): number {
@@ -1874,6 +1874,145 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Stadium Management Routes
+  app.get('/api/stadium', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const team = await storage.getTeamByUserId(userId);
+      
+      if (!team) {
+        return res.status(404).json({ message: "Team not found" });
+      }
+
+      let stadium = await storage.getTeamStadium(team.id);
+      
+      // Create default stadium if none exists
+      if (!stadium) {
+        stadium = await storage.createStadium({
+          teamId: team.id,
+          name: `${team.name} Stadium`,
+          level: 1,
+          capacity: 5000,
+          fieldType: "standard",
+          fieldSize: "regulation",
+          lighting: "basic",
+          surface: "grass",
+          drainage: "basic",
+          facilities: {},
+          upgradeCost: 50000,
+          maintenanceCost: 5000,
+          revenueMultiplier: 100,
+          weatherResistance: 50,
+          homeAdvantage: 5,
+        });
+      }
+
+      const upgrades = await storage.getStadiumUpgrades(stadium.id);
+      const events = await storage.getStadiumEvents(stadium.id);
+
+      res.json({
+        stadium,
+        upgrades,
+        events,
+        availableUpgrades: getAvailableUpgrades(stadium)
+      });
+    } catch (error) {
+      console.error("Error fetching stadium:", error);
+      res.status(500).json({ message: "Failed to fetch stadium" });
+    }
+  });
+
+  app.post('/api/stadium/upgrade', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const { upgradeType, upgradeName } = req.body;
+      
+      const team = await storage.getTeamByUserId(userId);
+      if (!team) {
+        return res.status(404).json({ message: "Team not found" });
+      }
+
+      const stadium = await storage.getTeamStadium(team.id);
+      if (!stadium) {
+        return res.status(404).json({ message: "Stadium not found" });
+      }
+
+      const finances = await storage.getTeamFinances(team.id);
+      if (!finances) {
+        return res.status(404).json({ message: "Team finances not found" });
+      }
+
+      const upgrade = getUpgradeDetails(upgradeType, upgradeName, stadium);
+      if (!upgrade) {
+        return res.status(400).json({ message: "Invalid upgrade" });
+      }
+
+      if ((finances.credits || 0) < upgrade.cost) {
+        return res.status(400).json({ message: "Insufficient credits" });
+      }
+
+      // Apply upgrade
+      await storage.createFacilityUpgrade({
+        stadiumId: stadium.id,
+        upgradeType,
+        name: upgradeName,
+        description: upgrade.description,
+        cost: upgrade.cost,
+        effect: upgrade.effect,
+      });
+
+      // Update stadium stats
+      const updatedStats = applyUpgradeEffect(stadium, upgrade.effect);
+      await storage.updateStadium(stadium.id, updatedStats);
+
+      // Deduct cost
+      await storage.updateTeamFinances(team.id, {
+        credits: (finances.credits || 0) - upgrade.cost
+      });
+
+      res.json({ message: "Stadium upgraded successfully", upgrade });
+    } catch (error) {
+      console.error("Error upgrading stadium:", error);
+      res.status(500).json({ message: "Failed to upgrade stadium" });
+    }
+  });
+
+  app.post('/api/stadium/event', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const { eventType, name, eventDate } = req.body;
+      
+      const team = await storage.getTeamByUserId(userId);
+      if (!team) {
+        return res.status(404).json({ message: "Team not found" });
+      }
+
+      const stadium = await storage.getTeamStadium(team.id);
+      if (!stadium) {
+        return res.status(404).json({ message: "Stadium not found" });
+      }
+
+      const eventDetails = generateEventDetails(eventType, stadium);
+      
+      const event = await storage.createStadiumEvent({
+        stadiumId: stadium.id,
+        eventType,
+        name,
+        revenue: eventDetails.revenue,
+        cost: eventDetails.cost,
+        attendees: eventDetails.attendees,
+        eventDate: new Date(eventDate),
+        duration: eventDetails.duration,
+        status: "scheduled",
+      });
+
+      res.json({ event, message: "Event scheduled successfully" });
+    } catch (error) {
+      console.error("Error creating stadium event:", error);
+      res.status(500).json({ message: "Failed to create stadium event" });
+    }
+  });
+
   // Notification routes
   app.get('/api/notifications', isAuthenticated, async (req: any, res) => {
     try {
@@ -2895,4 +3034,115 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   const httpServer = createServer(app);
   return httpServer;
+}
+
+// Stadium management helper functions
+function getAvailableUpgrades(stadium: any) {
+  const upgrades = [];
+  
+  // Field upgrades
+  if (stadium.fieldSize === "regulation") {
+    upgrades.push({
+      type: "field",
+      name: "Extended Field",
+      description: "Larger field provides more strategic options",
+      cost: 75000,
+      effect: { fieldSize: "extended", homeAdvantage: 8 }
+    });
+  }
+  
+  if (stadium.surface === "grass") {
+    upgrades.push({
+      type: "field",
+      name: "Hybrid Surface",
+      description: "Weather-resistant hybrid surface",
+      cost: 50000,
+      effect: { surface: "hybrid", weatherResistance: 75 }
+    });
+  }
+  
+  // Lighting upgrades
+  if (stadium.lighting === "basic") {
+    upgrades.push({
+      type: "lighting",
+      name: "Professional Lighting",
+      description: "Better visibility for players",
+      cost: 30000,
+      effect: { lighting: "professional", homeAdvantage: 7 }
+    });
+  }
+  
+  if (stadium.lighting === "professional") {
+    upgrades.push({
+      type: "lighting",
+      name: "Premium LED System",
+      description: "State-of-the-art LED lighting",
+      cost: 60000,
+      effect: { lighting: "premium", homeAdvantage: 10 }
+    });
+  }
+  
+  // Capacity upgrades
+  if (stadium.capacity < 20000) {
+    upgrades.push({
+      type: "seating",
+      name: "Capacity Expansion",
+      description: "Add 5,000 more seats",
+      cost: 100000,
+      effect: { capacity: stadium.capacity + 5000, revenueMultiplier: stadium.revenueMultiplier + 15 }
+    });
+  }
+  
+  return upgrades;
+}
+
+function getUpgradeDetails(upgradeType: string, upgradeName: string, stadium: any) {
+  const availableUpgrades = getAvailableUpgrades(stadium);
+  return availableUpgrades.find(u => u.type === upgradeType && u.name === upgradeName);
+}
+
+function applyUpgradeEffect(stadium: any, effect: any) {
+  const updates: any = {};
+  
+  Object.keys(effect).forEach(key => {
+    updates[key] = effect[key];
+  });
+  
+  updates.lastUpgrade = new Date();
+  return updates;
+}
+
+function generateEventDetails(eventType: string, stadium: any) {
+  const baseAttendees = Math.floor(stadium.capacity * 0.6);
+  
+  switch (eventType) {
+    case "concert":
+      return {
+        revenue: baseAttendees * 25,
+        cost: baseAttendees * 8,
+        attendees: baseAttendees,
+        duration: 4
+      };
+    case "exhibition":
+      return {
+        revenue: baseAttendees * 15,
+        cost: baseAttendees * 5,
+        attendees: baseAttendees,
+        duration: 2
+      };
+    case "corporate":
+      return {
+        revenue: Math.floor(stadium.capacity * 0.3) * 50,
+        cost: Math.floor(stadium.capacity * 0.3) * 15,
+        attendees: Math.floor(stadium.capacity * 0.3),
+        duration: 6
+      };
+    default:
+      return {
+        revenue: baseAttendees * 10,
+        cost: baseAttendees * 3,
+        attendees: baseAttendees,
+        duration: 2
+      };
+  }
 }

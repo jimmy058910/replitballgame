@@ -724,6 +724,74 @@ export class DatabaseStorage implements IStorage {
       .returning();
     return result;
   }
+
+  // Stadium operations
+  async createStadium(stadiumData: InsertStadium): Promise<Stadium> {
+    const [stadium] = await db
+      .insert(stadiums)
+      .values(stadiumData)
+      .returning();
+    return stadium;
+  }
+
+  async getTeamStadium(teamId: string): Promise<Stadium | undefined> {
+    const [stadium] = await db
+      .select()
+      .from(stadiums)
+      .where(eq(stadiums.teamId, teamId))
+      .limit(1);
+    return stadium;
+  }
+
+  async updateStadium(id: string, updates: Partial<Stadium>): Promise<Stadium> {
+    const [stadium] = await db
+      .update(stadiums)
+      .set(updates)
+      .where(eq(stadiums.id, id))
+      .returning();
+    return stadium;
+  }
+
+  async getStadiumUpgrades(stadiumId: string): Promise<FacilityUpgrade[]> {
+    return await db
+      .select()
+      .from(facilityUpgrades)
+      .where(eq(facilityUpgrades.stadiumId, stadiumId))
+      .orderBy(desc(facilityUpgrades.installed));
+  }
+
+  async createFacilityUpgrade(upgradeData: InsertFacilityUpgrade): Promise<FacilityUpgrade> {
+    const [upgrade] = await db
+      .insert(facilityUpgrades)
+      .values(upgradeData)
+      .returning();
+    return upgrade;
+  }
+
+  async getStadiumEvents(stadiumId: string): Promise<StadiumEvent[]> {
+    return await db
+      .select()
+      .from(stadiumEvents)
+      .where(eq(stadiumEvents.stadiumId, stadiumId))
+      .orderBy(desc(stadiumEvents.eventDate));
+  }
+
+  async createStadiumEvent(eventData: InsertStadiumEvent): Promise<StadiumEvent> {
+    const [event] = await db
+      .insert(stadiumEvents)
+      .values(eventData)
+      .returning();
+    return event;
+  }
+
+  async updateStadiumEvent(id: string, updates: Partial<StadiumEvent>): Promise<StadiumEvent> {
+    const [event] = await db
+      .update(stadiumEvents)
+      .set(updates)
+      .where(eq(stadiumEvents.id, id))
+      .returning();
+    return event;
+  }
 }
 
 export const storage = new DatabaseStorage();
