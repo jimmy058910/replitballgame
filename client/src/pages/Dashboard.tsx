@@ -20,7 +20,7 @@ export default function Dashboard() {
 
   const demoNotificationsMutation = useMutation({
     mutationFn: async () => {
-      return await apiRequest("/api/notifications/demo", "POST");
+      return await apiRequest("POST", "/api/notifications/demo");
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/notifications"] });

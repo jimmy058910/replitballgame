@@ -1859,18 +1859,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Demo notifications endpoint
   app.post('/api/notifications/demo', isAuthenticated, async (req: any, res) => {
     try {
+      console.log("Demo notifications request received");
+      console.log("User:", req.user);
+      
       const userId = req.user.claims.sub;
+      console.log("User ID:", userId);
+      
       const team = await storage.getTeamByUserId(userId);
+      console.log("Team found:", team ? team.id : "No team");
       
       if (!team) {
         return res.status(404).json({ message: "Team not found" });
       }
 
+      console.log("Creating demo notifications...");
       await createDemoNotifications(userId, team.id);
+      
+      console.log("Demo notifications created successfully");
       res.json({ message: "Demo notifications created successfully" });
     } catch (error) {
       console.error("Error creating demo notifications:", error);
-      res.status(500).json({ message: "Failed to create demo notifications" });
+      res.status(500).json({ message: "Failed to create demo notifications", error: error.message });
     }
   });
 
