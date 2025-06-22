@@ -33,7 +33,6 @@ export default function Navigation() {
     { path: "/championships", label: "Championships", icon: Crown },
     { path: "/contracts", label: "Contracts", icon: FileText },
     { path: "/sponsorships", label: "Sponsorships", icon: Briefcase },
-    { path: "/draft", label: "Draft", icon: Target },
     { path: "/tournaments", label: "Tournaments", icon: Medal },
     { path: "/exhibitions", label: "Exhibitions", icon: Gamepad2 },
     { path: "/store", label: "Store", icon: ShoppingCart },
