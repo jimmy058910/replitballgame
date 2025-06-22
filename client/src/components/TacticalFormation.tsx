@@ -36,10 +36,7 @@ export default function TacticalFormation({ players, onFormationChange }: Tactic
 
   const saveFormationMutation = useMutation({
     mutationFn: async (data: { formation: FormationPlayer[]; substitutionOrder: Record<string, number> }) => {
-      await apiRequest("/api/teams/my/formation", {
-        method: "POST",
-        body: JSON.stringify(data),
-      });
+      await apiRequest("/api/teams/my/formation", "POST", data);
     },
     onSuccess: () => {
       toast({
@@ -275,16 +272,17 @@ export default function TacticalFormation({ players, onFormationChange }: Tactic
               onDragOver={handleDragOver}
               onDrop={handleDrop}
             >
-              {/* Field markings */}
+              {/* Your half of the field - defensive side */}
               <div className="absolute inset-0">
                 <div className="absolute top-0 left-0 right-0 h-0.5 bg-white" />
                 <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-white" />
                 <div className="absolute top-0 bottom-0 left-0 w-0.5 bg-white" />
                 <div className="absolute top-0 bottom-0 right-0 w-0.5 bg-white" />
+                {/* Only show your defensive half */}
                 <div className="absolute top-1/2 left-0 right-0 h-0.5 bg-white transform -translate-y-1/2" />
-                <div className="absolute left-1/4 top-0 bottom-0 w-0.5 bg-white opacity-50" />
-                <div className="absolute left-3/4 top-0 bottom-0 w-0.5 bg-white opacity-50" />
-                {/* Goal areas */}
+                <div className="absolute left-1/4 top-1/2 bottom-0 w-0.5 bg-white opacity-50" />
+                <div className="absolute left-3/4 top-1/2 bottom-0 w-0.5 bg-white opacity-50" />
+                {/* Your goal area */}
                 <div className="absolute top-1/3 bottom-1/3 left-0 w-8 border-2 border-white border-l-0" />
                 <div className="absolute top-1/3 bottom-1/3 right-0 w-8 border-2 border-white border-r-0" />
               </div>

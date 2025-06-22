@@ -85,6 +85,7 @@ export function generateRandomPlayer(name: string, race: string, teamId: string)
     leadershipPotential: generatePotential().toString(),
     agilityPotential: generatePotential().toString(),
     salary,
+    contractValue: salary * 3, // 3 year contract value
   };
 }
 

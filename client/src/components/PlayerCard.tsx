@@ -22,9 +22,9 @@ function getPlayerRole(player: any): string {
 }
 
 const roleColors = {
-  Passer: "text-blue-400",
-  Runner: "text-green-400", 
-  Blocker: "text-red-400",
+  Passer: "text-yellow-400 bg-yellow-400/10 border-yellow-400/30",
+  Runner: "text-green-400 bg-green-400/10 border-green-400/30", 
+  Blocker: "text-red-400 bg-red-400/10 border-red-400/30",
 } as const;
 
 const raceColors = {
@@ -107,7 +107,7 @@ export default function PlayerCard({ player, compact = false }: PlayerCardProps)
               <i className={`${raceIcon} text-${raceColorClass} text-${compact ? 'sm' : 'lg'}`}></i>
             </div>
             <div>
-              <h4 className="font-semibold text-white">{player.name}</h4>
+              <h4 className="font-semibold text-white">{player.firstName} {player.lastName}</h4>
               <p className={`text-xs text-${raceColorClass} font-medium`}>
                 {player.race.charAt(0).toUpperCase() + player.race.slice(1)} • Age {player.age}
               </p>

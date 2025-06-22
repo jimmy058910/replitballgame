@@ -98,6 +98,7 @@ export const players = pgTable("players", {
   fieldPosition: jsonb("field_position"), // {x: number, y: number}
   isStarter: boolean("is_starter").default(false),
   tacticalRole: varchar("tactical_role"), // passer, runner, blocker
+  isOnTaxi: boolean("is_on_taxi").default(false), // recruited players during season
   
   // Inventory equipment slots
   helmetItemId: uuid("helmet_item_id"),

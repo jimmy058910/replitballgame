@@ -1341,18 +1341,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
 
         // Generate AI players for the team
-        const races = ["Human", "Elf", "Dwarf", "Orc"];
-        const playerNames = [
-          "Aldric", "Thane", "Gorin", "Vex", "Kael", "Drax", "Zara", "Nyx",
-          "Rex", "Blade", "Storm", "Ace", "Phoenix", "Viper", "Ghost", "Steel"
-        ];
+        const races = ["human", "sylvan", "gryll", "lumina", "umbra"];
 
         for (let j = 0; j < 10; j++) {
           const race = races[Math.floor(Math.random() * races.length)];
-          const name = playerNames[Math.floor(Math.random() * playerNames.length)] + 
-                      Math.floor(Math.random() * 100);
           
-          await storage.createPlayer(generateRandomPlayer(name, race, team.id));
+          await storage.createPlayer(generateRandomPlayer("AI Player", race, team.id));
         }
 
         createdTeams.push(team);
