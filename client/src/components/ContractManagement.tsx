@@ -168,19 +168,14 @@ export default function ContractManagement() {
 
   const suggestSalary = (player: any) => {
     if (!player) return 0;
-    const baseSalary = player.overall * 50000; // Base calculation
-    const positionMultiplier = {
-      'Quarterback': 1.5,
-      'Running Back': 1.2,
-      'Wide Receiver': 1.3,
-      'Tight End': 1.1,
-      'Offensive Line': 1.0,
-      'Defensive Line': 1.2,
-      'Linebacker': 1.1,
-      'Cornerback': 1.3,
-      'Safety': 1.2,
+    const totalStats = player.speed + player.power + player.throwing + player.catching + player.kicking;
+    const baseSalary = totalStats * 1000; // Base calculation using total stats
+    const roleMultiplier = {
+      'Runner': 1.2,
+      'Blocker': 1.0,
+      'Passer': 1.3,
     };
-    return Math.round(baseSalary * (positionMultiplier[player.position] || 1.0));
+    return Math.round(baseSalary * (roleMultiplier[player.role] || 1.0));
   };
 
   return (
@@ -554,9 +549,9 @@ export default function ContractManagement() {
               </CardHeader>
               <CardContent>
                 <div className="space-y-3">
-                  {['Quarterback', 'Running Back', 'Wide Receiver', 'Defense'].map((position) => {
+                  {['Runner', 'Blocker', 'Passer'].map((position) => {
                     const positionSalary = contracts
-                      ?.filter((c: PlayerContract) => c.player?.position.includes(position))
+                      ?.filter((c: PlayerContract) => c.player?.role === position)
                       ?.reduce((sum: number, c: PlayerContract) => sum + c.salary, 0) || 0;
                     const percentage = salaryCap ? (positionSalary / salaryCap.totalSalary) * 100 : 0;
                     

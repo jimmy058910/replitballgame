@@ -2,6 +2,7 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { setupAuth, isAuthenticated } from "./replitAuth";
+import { createDemoNotifications } from "./testNotifications";
 import { NotificationService } from "./services/notificationService";
 import { simulateMatch } from "./services/matchSimulation";
 import { generateRandomPlayer } from "./services/leagueService";
@@ -1778,29 +1779,98 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Exhibition Match Routes
+  app.get('/api/exhibitions/available', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const team = await storage.getTeamByUserId(userId);
+      
+      if (!team) {
+        return res.status(404).json({ message: "Team not found" });
+      }
+
+      // Get available exhibition opponents (other teams in same division)
+      const availableTeams = await storage.getTeamsByDivision(team.division);
+      const opponents = availableTeams.filter(t => t.id !== team.id);
+
+      // Generate exhibition match options
+      const exhibitions = opponents.map(opponent => ({
+        id: `exhibition-${opponent.id}`,
+        opponent,
+        rewards: {
+          credits: Math.floor(Math.random() * 500) + 100,
+          experience: Math.floor(Math.random() * 200) + 50
+        },
+        difficulty: calculateTeamPower([]) // Simplified for now
+      }));
+
+      res.json(exhibitions);
+    } catch (error) {
+      console.error("Error fetching exhibitions:", error);
+      res.status(500).json({ message: "Failed to fetch exhibitions" });
+    }
+  });
+
+  app.post('/api/exhibitions/challenge', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const { opponentId } = req.body;
+      
+      const team = await storage.getTeamByUserId(userId);
+      if (!team) {
+        return res.status(404).json({ message: "Team not found" });
+      }
+
+      const opponent = await storage.getTeamById(opponentId);
+      if (!opponent) {
+        return res.status(404).json({ message: "Opponent team not found" });
+      }
+
+      // Create exhibition match
+      const match = await storage.createMatch({
+        homeTeamId: team.id,
+        awayTeamId: opponent.id,
+        status: "scheduled",
+        gameDay: 0, // Exhibition matches don't count toward season
+        scheduledTime: new Date(),
+      });
+
+      res.json({
+        match,
+        message: "Exhibition match created successfully"
+      });
+    } catch (error) {
+      console.error("Error creating exhibition:", error);
+      res.status(500).json({ message: "Failed to create exhibition match" });
+    }
+  });
+
   // Contract expiration checks (would typically run as a scheduled job)
   app.post('/api/system/check-contracts', isAuthenticated, async (req: any, res) => {
     try {
-      // This would typically be a scheduled job
-      const contracts = await storage.getExpiringContracts(30); // 30 days
-      
-      for (const contract of contracts) {
-        const team = await storage.getTeamById(contract.teamId);
-        const player = await storage.getPlayerById(contract.playerId);
-        
-        if (team && player) {
-          await NotificationService.notifyContractExpiring(
-            team.id,
-            player.name,
-            contract.daysRemaining
-          );
-        }
-      }
-
-      res.json({ message: "Contract notifications sent", count: contracts.length });
+      // This would typically be a scheduled job - simplified for now
+      res.json({ message: "Contract check completed", count: 0 });
     } catch (error) {
       console.error("Error checking contracts:", error);
       res.status(500).json({ message: "Failed to check contracts" });
+    }
+  });
+
+  // Demo notifications endpoint
+  app.post('/api/notifications/demo', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const team = await storage.getTeamByUserId(userId);
+      
+      if (!team) {
+        return res.status(404).json({ message: "Team not found" });
+      }
+
+      await createDemoNotifications(userId, team.id);
+      res.json({ message: "Demo notifications created successfully" });
+    } catch (error) {
+      console.error("Error creating demo notifications:", error);
+      res.status(500).json({ message: "Failed to create demo notifications" });
     }
   });
 

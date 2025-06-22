@@ -545,46 +545,7 @@ export const stadiumRevenue = pgTable("stadium_revenue", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
-// Draft System
-export const drafts = pgTable("drafts", {
-  id: varchar("id").primaryKey().notNull().$defaultFn(() => nanoid()),
-  year: integer("year").notNull(),
-  status: varchar("status").default("upcoming"), // upcoming, active, completed
-  totalRounds: integer("total_rounds").default(3),
-  currentRound: integer("current_round").default(1),
-  currentPick: integer("current_pick").default(1),
-  draftDate: timestamp("draft_date"),
-  createdAt: timestamp("created_at").defaultNow(),
-});
-
-export const draftPicks = pgTable("draft_picks", {
-  id: varchar("id").primaryKey().notNull().$defaultFn(() => nanoid()),
-  draftId: varchar("draft_id").notNull(),
-  teamId: varchar("team_id").notNull(),
-  round: integer("round").notNull(),
-  pickNumber: integer("pick_number").notNull(),
-  overallPick: integer("overall_pick").notNull(),
-  playerId: varchar("player_id"), // null until picked
-  isTraded: boolean("is_traded").default(false),
-  tradedTo: varchar("traded_to"),
-  pickTime: timestamp("pick_time"),
-  createdAt: timestamp("created_at").defaultNow(),
-});
-
-export const rookiePlayers = pgTable("rookie_players", {
-  id: varchar("id").primaryKey().notNull().$defaultFn(() => nanoid()),
-  name: varchar("name").notNull(),
-  race: varchar("race").notNull(),
-  position: varchar("position").notNull(),
-  college: varchar("college"),
-  stats: jsonb("stats").notNull(),
-  potential: integer("potential").notNull(), // 1-100 scale
-  draftClass: integer("draft_class").notNull(),
-  isDrafted: boolean("is_drafted").default(false),
-  draftedBy: varchar("drafted_by"),
-  scoutingReports: jsonb("scouting_reports"),
-  createdAt: timestamp("created_at").defaultNow(),
-});
+// Draft System Removed - No longer needed
 
 export type Season = typeof seasons.$inferSelect;
 export type InsertSeason = typeof seasons.$inferInsert;

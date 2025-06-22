@@ -3,7 +3,6 @@ import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
 import Navigation from "@/components/Navigation";
@@ -97,7 +96,7 @@ export default function Inventory() {
               { key: "all", label: "All Items" },
               { key: "equipment", label: "Equipment" },
               { key: "trophy", label: "Trophies" },
-              { key: "tournament_entry", label: "Tournament Entries" }
+              { key: "tournament_entry", label: "Entries" }
             ].map((category) => (
               <Button
                 key={category.key}
@@ -111,222 +110,154 @@ export default function Inventory() {
           </div>
         </div>
 
-        <Tabs defaultValue="overview" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-4 bg-gray-800">
-            <TabsTrigger value="overview">Overview</TabsTrigger>
-            <TabsTrigger value="equipment">Equipment</TabsTrigger>
-            <TabsTrigger value="trophies">Trophies</TabsTrigger>
-            <TabsTrigger value="tournaments">Entries</TabsTrigger>
-          </TabsList>
+        {/* Inventory Summary */}
+        <div className="grid gap-6 md:grid-cols-3 mb-8">
+          <Card className="bg-gray-800 border-gray-700">
+            <CardHeader className="pb-3">
+              <CardTitle className="text-lg flex items-center gap-2">
+                <span>🛡️</span>
+                Equipment
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{equipmentItems.length}</div>
+              <p className="text-sm text-gray-400">Items available</p>
+            </CardContent>
+          </Card>
 
-          <TabsContent value="overview" className="space-y-6">
-            {/* Inventory Summary */}
-            <div className="grid gap-6 md:grid-cols-3">
-              <Card className="bg-gray-800 border-gray-700">
-                <CardHeader className="pb-3">
-                  <CardTitle className="text-lg flex items-center gap-2">
-                    <span>🛡️</span>
-                    Equipment
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold">{equipmentItems.length}</div>
-                  <p className="text-sm text-gray-400">Items available</p>
-                </CardContent>
-              </Card>
+          <Card className="bg-gray-800 border-gray-700">
+            <CardHeader className="pb-3">
+              <CardTitle className="text-lg flex items-center gap-2">
+                <span>🏆</span>
+                Trophies
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{trophyItems.length}</div>
+              <p className="text-sm text-gray-400">Achievements earned</p>
+            </CardContent>
+          </Card>
 
-              <Card className="bg-gray-800 border-gray-700">
-                <CardHeader className="pb-3">
-                  <CardTitle className="text-lg flex items-center gap-2">
-                    <span>🏆</span>
-                    Trophies
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold">{trophyItems.length}</div>
-                  <p className="text-sm text-gray-400">Achievements earned</p>
-                </CardContent>
-              </Card>
+          <Card className="bg-gray-800 border-gray-700">
+            <CardHeader className="pb-3">
+              <CardTitle className="text-lg flex items-center gap-2">
+                <span>🎫</span>
+                Tournament Entries
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{tournamentItems.length}</div>
+              <p className="text-sm text-gray-400">Available entries</p>
+            </CardContent>
+          </Card>
+        </div>
 
-              <Card className="bg-gray-800 border-gray-700">
-                <CardHeader className="pb-3">
-                  <CardTitle className="text-lg flex items-center gap-2">
-                    <span>🎫</span>
-                    Tournament Entries
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold">{tournamentItems.length}</div>
-                  <p className="text-sm text-gray-400">Available entries</p>
-                </CardContent>
-              </Card>
-            </div>
-
-            {/* Recent Items */}
-            <Card className="bg-gray-800 border-gray-700">
-              <CardHeader>
-                <CardTitle>Recently Acquired</CardTitle>
-                <CardDescription>Your latest inventory additions</CardDescription>
-              </CardHeader>
-              <CardContent>
-                {inventoryLoading ? (
-                  <div className="text-center py-8">
-                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mx-auto"></div>
-                    <p className="mt-2 text-gray-400">Loading inventory...</p>
+        {/* All Items Grid */}
+        {inventoryLoading ? (
+          <div className="text-center py-12">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto"></div>
+            <p className="mt-4 text-gray-400">Loading inventory...</p>
+          </div>
+        ) : filteredInventory.length ? (
+          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+            {filteredInventory.map((item: any) => (
+              <Card key={item.id} className="bg-gray-800 border-gray-700">
+                <CardHeader>
+                  <div className="flex items-center justify-between">
+                    <CardTitle className="text-lg flex items-center gap-2">
+                      <span>
+                        {item.itemType === "equipment" 
+                          ? getEquipmentSlotIcon(item.metadata?.slot)
+                          : getCategoryIcon(item.itemType)
+                        }
+                      </span>
+                      {item.name}
+                    </CardTitle>
+                    <Badge className={getRarityColor(item.rarity)}>
+                      {item.rarity}
+                    </Badge>
                   </div>
-                ) : filteredInventory.length ? (
+                  <CardDescription>{item.description}</CardDescription>
+                </CardHeader>
+                <CardContent>
                   <div className="space-y-3">
-                    {filteredInventory.slice(0, 5).map((item: any) => (
-                      <div key={item.id} className="flex items-center justify-between p-3 bg-gray-700 rounded-lg">
-                        <div className="flex items-center gap-3">
-                          <span className="text-2xl">{getCategoryIcon(item.itemType)}</span>
-                          <div>
-                            <div className="font-semibold">{item.name}</div>
-                            <div className="text-sm text-gray-400">{item.description}</div>
-                          </div>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <Badge className={getRarityColor(item.rarity)}>
-                            {item.rarity}
-                          </Badge>
-                          <span className="text-sm text-gray-400">x{item.quantity}</span>
+                    {/* Equipment Stats */}
+                    {item.itemType === "equipment" && item.metadata?.statBoosts && (
+                      <div>
+                        <h4 className="font-semibold text-sm mb-2">Stat Boosts:</h4>
+                        <div className="grid grid-cols-2 gap-2 text-sm">
+                          {Object.entries(item.metadata.statBoosts).map(([stat, boost]: [string, any]) => (
+                            <div key={stat} className="flex justify-between">
+                              <span className="capitalize">{stat}:</span>
+                              <span className="text-green-400">+{boost}</span>
+                            </div>
+                          ))}
                         </div>
                       </div>
-                    ))}
-                  </div>
-                ) : (
-                  <div className="text-center py-8 text-gray-400">
-                    <span className="text-4xl mb-4 block">📦</span>
-                    <p>Your inventory is empty</p>
-                    <p className="text-sm">Win tournaments and matches to earn items!</p>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          </TabsContent>
+                    )}
+                    
+                    {/* Trophy Achievement */}
+                    {item.itemType === "trophy" && item.metadata?.achievement && (
+                      <div className="p-3 bg-gray-700 rounded-lg">
+                        <div className="text-sm font-semibold">Achievement:</div>
+                        <div className="text-sm text-gray-300">{item.metadata.achievement}</div>
+                      </div>
+                    )}
 
-          <TabsContent value="equipment" className="space-y-6">
-            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-              {equipmentItems.map((item: any) => (
-                <Card key={item.id} className="bg-gray-800 border-gray-700">
-                  <CardHeader>
-                    <div className="flex items-center justify-between">
-                      <CardTitle className="text-lg flex items-center gap-2">
-                        <span>{getEquipmentSlotIcon(item.metadata?.slot)}</span>
-                        {item.name}
-                      </CardTitle>
-                      <Badge className={getRarityColor(item.rarity)}>
-                        {item.rarity}
-                      </Badge>
-                    </div>
-                    <CardDescription>{item.description}</CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-3">
-                      {item.metadata?.statBoosts && (
-                        <div>
-                          <h4 className="font-semibold text-sm mb-2">Stat Boosts:</h4>
-                          <div className="grid grid-cols-2 gap-2 text-sm">
-                            {Object.entries(item.metadata.statBoosts).map(([stat, boost]: [string, any]) => (
-                              <div key={stat} className="flex justify-between">
-                                <span className="text-gray-400 capitalize">{stat}:</span>
-                                <span className="text-green-400">+{boost}</span>
-                              </div>
-                            ))}
+                    {/* Tournament Entry Info */}
+                    {item.itemType === "tournament_entry" && (
+                      <div className="space-y-2">
+                        {item.metadata?.tournamentType && (
+                          <div className="text-sm">
+                            <span className="text-gray-400">Type:</span>
+                            <span className="ml-2 capitalize">{item.metadata.tournamentType}</span>
                           </div>
-                        </div>
-                      )}
-                      
-                      <Separator className="bg-gray-700" />
-                      
-                      <div className="flex justify-between items-center">
-                        <span className="text-sm text-gray-400">Quantity:</span>
-                        <span className="font-semibold">x{item.quantity}</span>
+                        )}
+                        {item.metadata?.entryFee && (
+                          <div className="text-sm">
+                            <span className="text-gray-400">Entry Fee:</span>
+                            <span className="ml-2 text-yellow-400">{item.metadata.entryFee} credits</span>
+                          </div>
+                        )}
                       </div>
-                      
+                    )}
+                    
+                    <Separator className="bg-gray-700" />
+                    
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm text-gray-400">Quantity:</span>
+                      <span className="font-semibold">x{item.quantity}</span>
+                    </div>
+                    
+                    {item.itemType === "equipment" && (
                       <Button className="w-full" variant="outline" size="sm">
                         Equip to Player
                       </Button>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          </TabsContent>
-
-          <TabsContent value="trophies" className="space-y-6">
-            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-              {trophyItems.map((item: any) => (
-                <Card key={item.id} className="bg-gray-800 border-gray-700">
-                  <CardHeader>
-                    <div className="flex items-center justify-between">
-                      <CardTitle className="text-lg flex items-center gap-2">
-                        <span>🏆</span>
-                        {item.name}
-                      </CardTitle>
-                      <Badge className={getRarityColor(item.rarity)}>
-                        {item.rarity}
-                      </Badge>
-                    </div>
-                    <CardDescription>{item.description}</CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-3">
-                      <div className="text-sm text-gray-400">
-                        Earned: {new Date(item.acquiredAt).toLocaleDateString()}
-                      </div>
-                      
-                      {item.metadata?.achievement && (
-                        <div className="p-3 bg-gray-700 rounded-lg">
-                          <div className="text-sm font-semibold">Achievement:</div>
-                          <div className="text-sm text-gray-300">{item.metadata.achievement}</div>
-                        </div>
-                      )}
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          </TabsContent>
-
-          <TabsContent value="tournaments" className="space-y-6">
-            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-              {tournamentItems.map((item: any) => (
-                <Card key={item.id} className="bg-gray-800 border-gray-700">
-                  <CardHeader>
-                    <div className="flex items-center justify-between">
-                      <CardTitle className="text-lg flex items-center gap-2">
-                        <span>🎫</span>
-                        {item.name}
-                      </CardTitle>
-                      <Badge className="bg-purple-500">
-                        Entry Ticket
-                      </Badge>
-                    </div>
-                    <CardDescription>{item.description}</CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-3">
-                      <div className="flex justify-between items-center">
-                        <span className="text-sm text-gray-400">Division:</span>
-                        <span className="font-semibold">{item.metadata?.division}</span>
-                      </div>
-                      
-                      <div className="flex justify-between items-center">
-                        <span className="text-sm text-gray-400">Valid Until:</span>
-                        <span className="text-sm">{item.metadata?.expiryDate}</span>
-                      </div>
-                      
-                      <Button className="w-full" size="sm">
-                        Use Entry Ticket
+                    )}
+                    {item.itemType === "tournament_entry" && (
+                      <Button className="w-full" variant="outline" size="sm">
+                        Use Entry
                       </Button>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        ) : (
+          <div className="text-center py-12">
+            <div className="text-gray-400 mb-4">
+              <span className="text-4xl">📦</span>
             </div>
-          </TabsContent>
-        </Tabs>
+            <h3 className="text-xl font-semibold mb-2">No Items Found</h3>
+            <p className="text-gray-400">
+              {selectedCategory === "all" 
+                ? "Your inventory is empty. Complete matches and tournaments to earn items!"
+                : `No ${selectedCategory.replace('_', ' ')} items found. Try adjusting your search or filter.`
+              }
+            </p>
+          </div>
+        )}
       </div>
     </div>
   );

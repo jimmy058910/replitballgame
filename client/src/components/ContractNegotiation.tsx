@@ -36,7 +36,7 @@ const contractResponses = {
 
 export default function ContractNegotiation({ player, onClose }: ContractNegotiationProps) {
   const [currentOffer, setCurrentOffer] = useState({
-    salary: player.salary || 50000,
+    salary: player?.salary || 50000,
     years: 3,
     bonus: 10000
   });
