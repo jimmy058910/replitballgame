@@ -61,7 +61,9 @@ export const teams = pgTable("teams", {
 export const players = pgTable("players", {
   id: uuid("id").primaryKey().defaultRandom(),
   teamId: uuid("team_id").references(() => teams.id),
-  name: varchar("name").notNull(),
+  firstName: varchar("first_name").notNull(),
+  lastName: varchar("last_name").notNull(),
+  name: varchar("name").notNull(), // computed from firstName + lastName
   race: varchar("race").notNull(), // human, sylvan, gryll, lumina, umbra
   age: integer("age").notNull(),
   position: varchar("position").default("player"),

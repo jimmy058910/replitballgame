@@ -1,6 +1,13 @@
 import type { InsertPlayer } from "@shared/schema";
+import { generateRandomName, getFullName } from "@shared/names";
 
 export function generateRandomPlayer(name: string, race: string, teamId: string): InsertPlayer {
+  // Generate race-appropriate name if not provided
+  const { firstName, lastName } = name ? 
+    { firstName: name.split(' ')[0] || name, lastName: name.split(' ')[1] || "Unknown" } :
+    generateRandomName(race);
+  
+  const fullName = getFullName(firstName, lastName);
   const baseAge = 18 + Math.floor(Math.random() * 12); // 18-29 years old
   
   // Generate base attributes (15-35 range)
@@ -63,7 +70,9 @@ export function generateRandomPlayer(name: string, race: string, teamId: string)
 
   return {
     teamId,
-    name,
+    firstName,
+    lastName,
+    name: fullName,
     race,
     age: baseAge,
     ...baseStats,
