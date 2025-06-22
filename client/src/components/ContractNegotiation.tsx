@@ -35,6 +35,23 @@ const contractResponses = {
 };
 
 export default function ContractNegotiation({ player, onClose }: ContractNegotiationProps) {
+  // Early return if player is null or missing required properties
+  if (!player || !player.firstName || !player.lastName) {
+    return (
+      <Card className="max-w-2xl mx-auto">
+        <CardHeader>
+          <CardTitle className="flex items-center justify-between">
+            Contract Negotiation Error
+            <Button variant="outline" size="sm" onClick={onClose}>Close</Button>
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p className="text-center text-gray-500">Player information is not available.</p>
+        </CardContent>
+      </Card>
+    );
+  }
+
   const [currentOffer, setCurrentOffer] = useState({
     salary: player?.salary || 50000,
     years: 3,

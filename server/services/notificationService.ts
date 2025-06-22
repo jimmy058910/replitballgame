@@ -1,5 +1,5 @@
 import { storage } from "../storage";
-import { nanoid } from "nanoid";
+import { randomUUID } from "crypto";
 
 export interface NotificationData {
   userId: string;
@@ -15,7 +15,7 @@ export class NotificationService {
   static async sendNotification(data: NotificationData) {
     try {
       return await storage.createNotification({
-        id: nanoid(),
+        id: randomUUID(),
         userId: data.userId,
         type: data.type,
         title: data.title,
