@@ -375,9 +375,9 @@ export default function TacticalFormation({ players, onFormationChange }: Tactic
                   <div
                     key={player.id}
                     className={`absolute cursor-move rounded-full w-10 h-10 flex items-center justify-center text-xs font-bold transform -translate-x-1/2 -translate-y-1/2 shadow-lg border-2 ${
-                      player.role === 'Passer' ? 'bg-purple-500 border-purple-300' :
-                      player.role === 'Runner' ? 'bg-blue-500 border-blue-300' :
-                      'bg-green-500 border-green-300'
+                      player.role === 'Passer' ? 'bg-yellow-500 border-yellow-300' :
+                      player.role === 'Runner' ? 'bg-green-500 border-green-300' :
+                      'bg-red-500 border-red-300'
                     } text-white hover:scale-110 transition-transform`}
                     style={{
                       left: player.position.x,
@@ -435,9 +435,9 @@ export default function TacticalFormation({ players, onFormationChange }: Tactic
                 <div key={role}>
                   <h4 className="font-medium mb-2 flex items-center gap-2">
                     <span className={`w-3 h-3 rounded-full ${
-                      role === 'Passer' ? 'bg-purple-500' :
-                      role === 'Runner' ? 'bg-blue-500' :
-                      'bg-green-500'
+                      role === 'Passer' ? 'bg-yellow-500' :
+                      role === 'Runner' ? 'bg-green-500' :
+                      'bg-red-500'
                     }`} />
                     {role}s
                   </h4>
