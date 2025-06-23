@@ -580,7 +580,7 @@ export default function SocialIntegration() {
                   </div>
                   <div className="flex items-center justify-between">
                     <div className="flex items-center">
-                      <SiTwitter className="w-4 h-4 mr-2 text-sky-400" />
+                      <SiX className="w-4 h-4 mr-2 text-sky-400" />
                       <span>Twitter</span>
                     </div>
                     <span className="text-sm">{socialStats?.twitter || "17"}%</span>

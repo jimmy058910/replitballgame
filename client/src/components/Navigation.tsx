@@ -30,8 +30,6 @@ export default function Navigation() {
     { path: "/", label: "Dashboard", icon: Home },
     { path: "/team", label: "Team", icon: Users },
     { path: "/league", label: "League", icon: Trophy },
-    { path: "/championships", label: "Championships", icon: Crown },
-    { path: "/contracts", label: "Contracts", icon: FileText },
     { path: "/sponsorships", label: "Sponsorships", icon: Briefcase },
     { path: "/tournaments", label: "Tournaments", icon: Medal },
     { path: "/exhibitions", label: "Exhibitions", icon: Gamepad2 },

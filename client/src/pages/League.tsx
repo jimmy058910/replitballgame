@@ -62,14 +62,6 @@ export default function League() {
             </div>
             <div className="flex gap-2">
               <Button
-                onClick={() => createAITeamsMutation.mutate(8)}
-                disabled={createAITeamsMutation.isPending}
-                variant="outline"
-                className="text-blue-400 border-blue-400 hover:bg-blue-400 hover:text-white"
-              >
-                {createAITeamsMutation.isPending ? "Creating..." : "Add AI Teams (Div 8)"}
-              </Button>
-              <Button
                 onClick={() => createAITeamsMutation.mutate((team as any)?.division || 8)}
                 disabled={createAITeamsMutation.isPending}
                 variant="outline"
@@ -188,6 +180,19 @@ export default function League() {
                 </div>
               )}
             </div>
+          </CardContent>
+        </Card>
+
+        {/* Division Standings */}
+        <Card className="bg-gray-800 border-gray-700">
+          <CardHeader>
+            <CardTitle className="text-white flex items-center gap-2">
+              <i className="fas fa-list-ol"></i>
+              Division {(team as any)?.division || 8} Standings
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <LeagueStandings />
           </CardContent>
         </Card>
       </div>

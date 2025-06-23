@@ -9,7 +9,7 @@ import Navigation from "@/components/Navigation";
 
 export default function Inventory() {
   const [searchTerm, setSearchTerm] = useState("");
-  const [selectedCategory, setSelectedCategory] = useState("all");
+  const [selectedCategory, setSelectedCategory] = useState("equipment");
 
   const { data: team } = useQuery({
     queryKey: ["/api/teams/my"],
@@ -52,7 +52,7 @@ export default function Inventory() {
   const filteredInventory = inventory?.filter((item: any) => {
     const matchesSearch = item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          item.description?.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesCategory = selectedCategory === "all" || item.itemType === selectedCategory;
+    const matchesCategory = item.itemType === selectedCategory;
     return matchesSearch && matchesCategory;
   }) || [];
 
@@ -93,7 +93,6 @@ export default function Inventory() {
           </div>
           <div className="flex gap-2">
             {[
-              { key: "all", label: "All Items" },
               { key: "equipment", label: "Equipment" },
               { key: "trophy", label: "Trophies" },
               { key: "tournament_entry", label: "Entries" }

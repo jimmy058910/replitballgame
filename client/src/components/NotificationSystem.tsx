@@ -37,9 +37,7 @@ export default function NotificationSystem() {
   // Mark notification as read
   const markReadMutation = useMutation({
     mutationFn: async (notificationId: string) => 
-      apiRequest(`/api/notifications/${notificationId}/read`, {
-        method: "PATCH",
-      }),
+      apiRequest(`/api/notifications/${notificationId}/read`, "PATCH"),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/notifications"] });
     },
@@ -48,9 +46,7 @@ export default function NotificationSystem() {
   // Mark all notifications as read
   const markAllReadMutation = useMutation({
     mutationFn: async () => 
-      apiRequest("/api/notifications/mark-all-read", {
-        method: "PATCH",
-      }),
+      apiRequest("/api/notifications/mark-all-read", "PATCH"),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/notifications"] });
     },
@@ -198,8 +194,8 @@ export default function NotificationSystem() {
                     exit={{ opacity: 0, x: 20 }}
                     className={`p-4 rounded-lg border-2 transition-all cursor-pointer hover:shadow-md ${
                       notification.isRead 
-                        ? "border-gray-200 bg-gray-50 opacity-75" 
-                        : getPriorityColor(notification.priority)
+                        ? "border-gray-200 bg-gray-50 opacity-75 text-gray-700" 
+                        : getPriorityColor(notification.priority) + " text-gray-900"
                     }`}
                     onClick={() => {
                       if (!notification.isRead) {
