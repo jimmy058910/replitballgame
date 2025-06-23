@@ -107,6 +107,7 @@ export interface IStorage {
   getUserNotifications(userId: string): Promise<Notification[]>;
   markNotificationRead(id: string): Promise<void>;
   markAllNotificationsRead(userId: string): Promise<void>;
+  deleteNotification(id: string): Promise<void>;
   
   // Injury operations
   createInjury(injury: InsertPlayerInjury): Promise<PlayerInjury>;
@@ -690,6 +691,12 @@ export class DatabaseStorage implements IStorage {
       .update(notifications)
       .set({ isRead: true })
       .where(and(eq(notifications.userId, userId), eq(notifications.isRead, false)));
+  }
+
+  async deleteNotification(id: string): Promise<void> {
+    await db
+      .delete(notifications)
+      .where(eq(notifications.id, id));
   }
 
   // Injury operations

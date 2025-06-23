@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
-import { Bell, X, Clock, Trophy, Users, Target, DollarSign, AlertCircle, CheckCircle } from "lucide-react";
+import { Bell, X, Clock, Trophy, Users, Target, DollarSign, AlertCircle, CheckCircle, Check } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
 interface Notification {
@@ -47,6 +47,15 @@ export default function NotificationSystem() {
   const markAllReadMutation = useMutation({
     mutationFn: async () => 
       apiRequest("/api/notifications/mark-all-read", "PATCH"),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/notifications"] });
+    },
+  });
+
+  // Delete notification
+  const deleteNotificationMutation = useMutation({
+    mutationFn: async (notificationId: string) => 
+      apiRequest(`/api/notifications/${notificationId}`, "DELETE"),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/notifications"] });
     },
@@ -208,12 +217,12 @@ export default function NotificationSystem() {
                   >
                     <div className="flex items-start space-x-3">
                       <div className={`p-2 rounded-full ${
-                        notification.type === "match" ? "bg-blue-100 text-blue-600" :
-                        notification.type === "auction" ? "bg-green-100 text-green-600" :
-                        notification.type === "injury" ? "bg-red-100 text-red-600" :
-                        notification.type === "league" ? "bg-purple-100 text-purple-600" :
-                        notification.type === "achievement" ? "bg-yellow-100 text-yellow-600" :
-                        "bg-gray-100 text-gray-600"
+                        notification.type === "match" ? "bg-blue-600 text-white" :
+                        notification.type === "auction" ? "bg-green-600 text-white" :
+                        notification.type === "injury" ? "bg-red-600 text-white" :
+                        notification.type === "league" ? "bg-purple-600 text-white" :
+                        notification.type === "achievement" ? "bg-yellow-600 text-black" :
+                        "bg-gray-600 text-white"
                       }`}>
                         {getNotificationIcon(notification.type)}
                       </div>
@@ -229,19 +238,34 @@ export default function NotificationSystem() {
                             <span className="text-xs text-gray-500">
                               {formatTimeAgo(notification.createdAt)}
                             </span>
-                            {!notification.isRead && (
+                            <div className="flex space-x-1">
+                              {!notification.isRead && (
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    markReadMutation.mutate(notification.id);
+                                  }}
+                                  className="h-6 w-6 p-0 text-green-600 hover:text-green-700"
+                                  title="Mark as read"
+                                >
+                                  <Check className="h-3 w-3" />
+                                </Button>
+                              )}
                               <Button
                                 variant="ghost"
                                 size="sm"
                                 onClick={(e) => {
                                   e.stopPropagation();
-                                  markReadMutation.mutate(notification.id);
+                                  deleteNotificationMutation.mutate(notification.id);
                                 }}
-                                className="h-6 w-6 p-0"
+                                className="h-6 w-6 p-0 text-red-600 hover:text-red-700"
+                                title="Delete notification"
                               >
                                 <X className="h-3 w-3" />
                               </Button>
-                            )}
+                            </div>
                           </div>
                         </div>
                         <p className={`text-sm mt-1 ${

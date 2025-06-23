@@ -15,11 +15,7 @@ import { Building2, Zap, Users, TrendingUp, Calendar, DollarSign, Wrench, Star }
 export default function Stadium() {
   const { toast } = useToast();
   const [selectedUpgrade, setSelectedUpgrade] = useState<any>(null);
-  const [eventForm, setEventForm] = useState({
-    type: "",
-    name: "",
-    date: ""
-  });
+
 
   const { data: stadiumData, isLoading } = useQuery({
     queryKey: ["/api/stadium"],
@@ -54,29 +50,7 @@ export default function Stadium() {
     },
   });
 
-  const eventMutation = useMutation({
-    mutationFn: async (eventData: any) => {
-      return await apiRequest("/api/stadium/event", {
-        method: "POST",
-        body: JSON.stringify(eventData),
-      });
-    },
-    onSuccess: () => {
-      toast({
-        title: "Event Scheduled",
-        description: "Stadium event has been scheduled successfully!",
-      });
-      queryClient.invalidateQueries({ queryKey: ["/api/stadium"] });
-      setEventForm({ type: "", name: "", date: "" });
-    },
-    onError: (error: any) => {
-      toast({
-        title: "Event Failed",
-        description: error.message || "Could not schedule event",
-        variant: "destructive",
-      });
-    },
-  });
+
 
   if (isLoading) {
     return (
@@ -230,68 +204,7 @@ export default function Stadium() {
 
           {/* Sidebar */}
           <div className="space-y-6">
-            {/* Stadium Events */}
-            <Card className="bg-gray-800 border-gray-700">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Calendar className="w-5 h-5" />
-                  Schedule Event
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  <div>
-                    <Label htmlFor="eventType">Event Type</Label>
-                    <Select
-                      value={eventForm.type}
-                      onValueChange={(value) => setEventForm(prev => ({ ...prev, type: value }))}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select event type" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="concert">Concert</SelectItem>
-                        <SelectItem value="exhibition">Exhibition Match</SelectItem>
-                        <SelectItem value="corporate">Corporate Event</SelectItem>
-                        <SelectItem value="community">Community Event</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  
-                  <div>
-                    <Label htmlFor="eventName">Event Name</Label>
-                    <Input
-                      id="eventName"
-                      value={eventForm.name}
-                      onChange={(e) => setEventForm(prev => ({ ...prev, name: e.target.value }))}
-                      placeholder="Enter event name"
-                    />
-                  </div>
-                  
-                  <div>
-                    <Label htmlFor="eventDate">Event Date</Label>
-                    <Input
-                      id="eventDate"
-                      type="datetime-local"
-                      value={eventForm.date}
-                      onChange={(e) => setEventForm(prev => ({ ...prev, date: e.target.value }))}
-                    />
-                  </div>
-                  
-                  <Button
-                    className="w-full"
-                    onClick={() => eventMutation.mutate({
-                      eventType: eventForm.type,
-                      name: eventForm.name,
-                      eventDate: eventForm.date
-                    })}
-                    disabled={!eventForm.type || !eventForm.name || !eventForm.date || eventMutation.isPending}
-                  >
-                    {eventMutation.isPending ? "Scheduling..." : "Schedule Event"}
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
+
 
             {/* Recent Events */}
             <Card className="bg-gray-800 border-gray-700">
