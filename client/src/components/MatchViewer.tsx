@@ -109,56 +109,72 @@ export default function MatchViewer({ match }: MatchViewerProps) {
       </CardHeader>
       
       <CardContent className="p-6">
-        {/* 2D Field View */}
-        <div className="relative bg-green-800 rounded-lg mx-auto mb-6" style={{ width: '100%', maxWidth: '600px', height: '300px', background: 'linear-gradient(90deg, #166534 0%, #15803d 50%, #166534 100%)' }}>
+        {/* 2D Field View - Enclosed Arena Style */}
+        <div className="relative mx-auto mb-6 rounded-3xl border-4 border-gray-900" style={{ width: '100%', maxWidth: '600px', height: '300px', background: '#22c55e' }}>
           {/* Field markings */}
           <div className="absolute inset-0">
-            {/* End zones */}
-            <div className="absolute left-0 top-0 w-12 h-full bg-primary-500 bg-opacity-30 border-r-2 border-white border-opacity-50"></div>
-            <div className="absolute right-0 top-0 w-12 h-full bg-red-500 bg-opacity-30 border-l-2 border-white border-opacity-50"></div>
+            {/* Scoring zones */}
+            <div className="absolute left-0 top-0 w-16 h-full bg-blue-500 border-r-2 border-black"></div>
+            <div className="absolute right-0 top-0 w-16 h-full bg-red-500 border-l-2 border-black"></div>
             
-            {/* Yard lines */}
-            <div className="absolute left-1/4 top-0 w-0.5 h-full bg-white bg-opacity-30"></div>
-            <div className="absolute left-2/4 top-0 w-1 h-full bg-white bg-opacity-50"></div>
-            <div className="absolute left-3/4 top-0 w-0.5 h-full bg-white bg-opacity-30"></div>
+            {/* Field divisions */}
+            <div className="absolute left-1/4 top-0 w-0.5 h-full bg-black"></div>
+            <div className="absolute left-2/4 top-0 w-1 h-full bg-black"></div>
+            <div className="absolute left-3/4 top-0 w-0.5 h-full bg-black"></div>
             
             {/* Animated Players */}
+            {/* Home team players */}
             {simulationData?.team1?.players?.slice(0, 5).map((player: any, index: number) => (
               <PlayerDot 
                 key={`home-${player.id}`}
                 position={{ 
-                  x: 180 + (index * 20), 
-                  y: 50 + (index * 25) 
+                  x: 100 + (index * 30), 
+                  y: 80 + (index % 3) * 40 
                 }} 
                 team="home" 
                 hasBall={index === 0}
                 name={player.displayName || player.lastName || player.name?.split(' ').pop() || `P${index + 1}`}
               />
-            ))}
+            )) || [
+              // Fallback if no simulation data
+              <PlayerDot key="home-1" position={{ x: 100, y: 80 }} team="home" hasBall={true} name="Player" />,
+              <PlayerDot key="home-2" position={{ x: 130, y: 120 }} team="home" name="P1" />,
+              <PlayerDot key="home-3" position={{ x: 160, y: 160 }} team="home" name="P2" />,
+              <PlayerDot key="home-4" position={{ x: 190, y: 100 }} team="home" name="P3" />,
+              <PlayerDot key="home-5" position={{ x: 220, y: 140 }} team="home" name="P4" />
+            ]}
             
-            {simulationData?.team2?.players?.slice(0, 4).map((player: any, index: number) => (
+            {/* Away team players */}
+            {simulationData?.team2?.players?.slice(0, 5).map((player: any, index: number) => (
               <PlayerDot 
                 key={`away-${player.id}`}
                 position={{ 
-                  x: 320 + (index * 20), 
-                  y: 60 + (index * 20) 
+                  x: 350 + (index * 30), 
+                  y: 80 + (index % 3) * 40 
                 }} 
                 team="away" 
                 name={player.displayName || player.lastName || player.name?.split(' ').pop() || `D${index + 1}`}
               />
-            ))}
+            )) || [
+              // Fallback if no simulation data
+              <PlayerDot key="away-1" position={{ x: 350, y: 80 }} team="away" name="D1" />,
+              <PlayerDot key="away-2" position={{ x: 380, y: 120 }} team="away" name="D2" />,
+              <PlayerDot key="away-3" position={{ x: 410, y: 160 }} team="away" name="D3" />,
+              <PlayerDot key="away-4" position={{ x: 440, y: 100 }} team="away" name="D4" />,
+              <PlayerDot key="away-5" position={{ x: 470, y: 140 }} team="away" name="D5" />
+            ]}
           </div>
           
           {/* Field Legend */}
-          <div className="absolute bottom-4 left-4 bg-black bg-opacity-50 rounded-lg p-2">
+          <div className="absolute bottom-4 left-4 bg-black bg-opacity-80 rounded-lg p-3">
             <div className="text-xs text-white">
-              <div className="flex items-center space-x-2 mb-1">
-                <div className="w-3 h-3 bg-primary-500 rounded-full"></div>
-                <span>{simulationData?.team1?.name || "Home"}</span>
+              <div className="flex items-center space-x-2 mb-2">
+                <div className="w-4 h-4 bg-blue-500 rounded-full border border-white"></div>
+                <span className="font-semibold">{simulationData?.team1?.name || "Home Team"}</span>
               </div>
               <div className="flex items-center space-x-2">
-                <div className="w-3 h-3 bg-red-500 rounded-full"></div>
-                <span>{simulationData?.team2?.name || "Away"}</span>
+                <div className="w-4 h-4 bg-red-500 rounded-full border border-white"></div>
+                <span className="font-semibold">{simulationData?.team2?.name || "Away Team"}</span>
               </div>
             </div>
           </div>

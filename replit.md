@@ -81,6 +81,10 @@ Built as a React + Express web application with PostgreSQL database, using moder
 - ✓ Fixed exhibition match timer to start at 0:00 and progress properly (0:00-10:00 first half, 10:00-20:00 second half)
 - ✓ Added proper team names display instead of "Team 1/Team 2" placeholders
 - ✓ Updated player display to show actual player last names instead of generic P1, D1 labels
+- ✓ Fixed missing opponent team names in exhibition matches
+- ✓ Added fallback player display when simulation data is unavailable
+- ✓ Updated field design to enclosed arena style with proper scoring zones (blue/red end zones)
+- ✓ Enhanced player dots with name labels and better visual design
 
 ### Technical Improvements
 - **Notification System**: Now uses solid background colors (red, blue, green, yellow) with white text for proper visibility
