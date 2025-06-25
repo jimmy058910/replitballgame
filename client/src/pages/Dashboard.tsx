@@ -20,7 +20,7 @@ export default function Dashboard() {
 
   const demoNotificationsMutation = useMutation({
     mutationFn: async () => {
-      return await apiRequest("POST", "/api/notifications/demo");
+      return await apiRequest("/api/notifications/demo", "POST", {});
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/notifications"] });
@@ -76,15 +76,8 @@ export default function Dashboard() {
     refetchOnWindowFocus: true,
   });
 
-  // Debug logging
-  console.log('Dashboard Debug:', { 
-    teamId: team?.id, 
-    teamName: team?.name,
-    playersLoading, 
-    playersCount: players?.length,
-    playersError: playersError?.message,
-    playersData: players?.slice(0, 2) // Show first 2 players for debugging
-  });
+  // Debug logging can be removed in production
+  // console.log('Dashboard Debug:', { teamId: team?.id, teamName: team?.name, playersCount: players?.length });
 
   const { data: liveMatches } = useQuery({
     queryKey: ["/api/matches/live"],

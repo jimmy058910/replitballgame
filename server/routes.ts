@@ -1864,27 +1864,135 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Demo notifications endpoint
+  // Demo notifications endpoint - creates sample notifications directly
   app.post('/api/notifications/demo', isAuthenticated, async (req: any, res) => {
     try {
       console.log("Demo notifications request received");
-      console.log("User:", req.user);
       
       const userId = req.user.claims.sub;
-      console.log("User ID:", userId);
-      
       const team = await storage.getTeamByUserId(userId);
-      console.log("Team found:", team ? team.id : "No team");
       
       if (!team) {
         return res.status(404).json({ message: "Team not found" });
       }
 
       console.log("Creating demo notifications...");
-      await createDemoNotifications(userId, team.id);
+      
+      // Create demo notifications directly using storage
+      const timestamp = Date.now();
+      
+      await storage.createNotification({
+        id: `demo-${timestamp}-1`,
+        userId,
+        type: "match",
+        title: "League Game Starting Soon",
+        message: "League game starts in 10 minutes",
+        priority: "medium",
+        actionUrl: "/match/demo-match-1",
+        metadata: { matchId: "demo-match-1", type: "match_starting" },
+        isRead: false,
+        createdAt: new Date(),
+      });
+
+      await storage.createNotification({
+        id: `demo-${timestamp}-2`,
+        userId,
+        type: "match",
+        title: "League Game Complete",
+        message: "League game complete, see the result!",
+        priority: "medium",
+        actionUrl: "/match/demo-match-2",
+        metadata: { 
+          matchId: "demo-match-2", 
+          homeScore: 3, 
+          awayScore: 1, 
+          type: "match_complete",
+          resultHidden: true 
+        },
+        isRead: false,
+        createdAt: new Date(),
+      });
+
+      await storage.createNotification({
+        id: `demo-${timestamp}-3`,
+        userId,
+        type: "tournament",
+        title: "Tournament Starting Soon",
+        message: "Tournament filled and starts in 10 minutes",
+        priority: "high",
+        actionUrl: "/tournaments",
+        metadata: { division: 1, event: "tournament_filled", minutesUntilStart: 10 },
+        isRead: false,
+        createdAt: new Date(),
+      });
+
+      await storage.createNotification({
+        id: `demo-${timestamp}-4`,
+        userId,
+        type: "auction",
+        title: "Outbid!",
+        message: "You've been outbid on Marcus Swift. New bid: $45,000",
+        priority: "medium",
+        actionUrl: "/marketplace/auction/demo-auction-1",
+        metadata: { auctionId: "demo-auction-1", playerName: "Marcus Swift", newBidAmount: 45000 },
+        isRead: false,
+        createdAt: new Date(),
+      });
+
+      await storage.createNotification({
+        id: `demo-${timestamp}-5`,
+        userId,
+        type: "injury",
+        title: "Player Injured",
+        message: "Kai Thunderstrike has suffered a moderate hamstring strain",
+        priority: "medium",
+        actionUrl: "/injuries",
+        metadata: { teamId: team.id, playerName: "Kai Thunderstrike", injuryType: "hamstring strain", severity: 5 },
+        isRead: false,
+        createdAt: new Date(),
+      });
+
+      await storage.createNotification({
+        id: `demo-${timestamp}-6`,
+        userId,
+        type: "achievement",
+        title: "Achievement Unlocked!",
+        message: "First Victory: Win your first league match",
+        priority: "medium",
+        actionUrl: "/achievements",
+        metadata: { achievementName: "First Victory" },
+        isRead: false,
+        createdAt: new Date(),
+      });
+
+      await storage.createNotification({
+        id: `demo-${timestamp}-7`,
+        userId,
+        type: "contract",
+        title: "Contract Expiring",
+        message: "Viktor Ironshield's contract expires in 7 days",
+        priority: "high",
+        actionUrl: "/contracts",
+        metadata: { teamId: team.id, playerName: "Viktor Ironshield", daysRemaining: 7 },
+        isRead: false,
+        createdAt: new Date(),
+      });
+
+      await storage.createNotification({
+        id: `demo-${timestamp}-8`,
+        userId,
+        type: "league",
+        title: "Promotion!",
+        message: "Your team has been promoted to Division 2!",
+        priority: "high",
+        actionUrl: "/league",
+        metadata: { teamId: team.id, newDivision: 2 },
+        isRead: false,
+        createdAt: new Date(),
+      });
       
       console.log("Demo notifications created successfully");
-      res.json({ message: "Demo notifications created successfully" });
+      res.json({ message: "Demo notifications created successfully", count: 8 });
     } catch (error) {
       console.error("Error creating demo notifications:", error);
       res.status(500).json({ message: "Failed to create demo notifications", error: error.message });

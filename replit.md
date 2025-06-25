@@ -49,6 +49,7 @@ Built as a React + Express web application with PostgreSQL database, using moder
 - ✓ Fixed Dashboard "My Team" tile to properly display player roster with compact mode
 - ✓ Changed medium-range player stats (19-31) to display as white text for better readability
 - ✓ Added enhanced error handling and debugging for Dashboard player data loading
+- ✓ Fixed "Create Demo Notifications" functionality by replacing broken NotificationService calls with direct storage operations
 
 ### Technical Improvements
 - **Notification System**: Now uses solid background colors (red, blue, green, yellow) with white text for proper visibility
