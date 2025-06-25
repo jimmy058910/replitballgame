@@ -7,7 +7,7 @@ interface LeagueStandingsProps {
 
 export default function LeagueStandings({ division }: LeagueStandingsProps) {
   const { data: standings, isLoading } = useQuery({
-    queryKey: ["/api/leagues", division, "standings"],
+    queryKey: [`/api/leagues/${division}/standings`],
   });
 
   const getDivisionName = (div: number) => {
@@ -45,9 +45,9 @@ export default function LeagueStandings({ division }: LeagueStandingsProps) {
             ))}
           </div>
         ) : standings && standings.length > 0 ? (
-          <div className="space-y-3">
+          <div className="space-y-2">
             {standings.map((team: any, index: number) => {
-              const isPlayerTeam = team.userId; // This would need to be checked properly
+              const isPlayerTeam = team.name === "Macomb Cougars"; // Check if it's the player's team
               const position = index + 1;
               
               return (

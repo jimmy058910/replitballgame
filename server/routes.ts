@@ -135,7 +135,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const division = parseInt(req.params.division);
       const teams = await storage.getTeamsByDivision(division);
-      res.json(teams);
+      
+      // Sort teams by league standings (points, then wins, then goals for tie-breaking)
+      const sortedTeams = teams.sort((a, b) => {
+        if (b.points !== a.points) return b.points - a.points;
+        if (b.wins !== a.wins) return b.wins - a.wins;
+        return a.losses - b.losses; // fewer losses is better
+      });
+      
+      res.json(sortedTeams);
     } catch (error) {
       console.error("Error fetching standings:", error);
       res.status(500).json({ message: "Failed to fetch standings" });
