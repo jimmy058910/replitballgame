@@ -2873,9 +2873,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
           id: match.team1Id,
           name: team1?.name || "Home",
           score: match.team1Score || 0,
-          players: team1Players.map(player => ({
+          players: team1Players.slice(0, 6).map(player => ({
             ...player,
-            displayName: player.lastName || (player.name && player.name.includes(' ') ? player.name.split(' ').slice(-1)[0] : player.firstName || player.name || `${player.race}Player`),
+            displayName: player.lastName || player.firstName || (player.name && player.name.includes(' ') ? player.name.split(' ').slice(-1)[0] : player.name) || `P${Math.floor(Math.random() * 99)}`,
             fatigue: Math.random() * 100,
             health: 80 + Math.random() * 20,
             isInjured: Math.random() < 0.1,
@@ -2892,9 +2892,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
           id: match.team2Id,
           name: team2?.name || "Away",
           score: match.team2Score || 0,
-          players: team2Players.map(player => ({
+          players: team2Players.slice(0, 6).map(player => ({
             ...player,
-            displayName: player.lastName || (player.name && player.name.includes(' ') ? player.name.split(' ').slice(-1)[0] : player.firstName || player.name || `${player.race}Player`),
+            displayName: player.lastName || player.firstName || (player.name && player.name.includes(' ') ? player.name.split(' ').slice(-1)[0] : player.name) || `D${Math.floor(Math.random() * 99)}`,
             fatigue: Math.random() * 100,
             health: 80 + Math.random() * 20,
             isInjured: Math.random() < 0.1,
@@ -3195,10 +3195,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const { credits = 50000, premiumCurrency = 100 } = req.body;
 
-      await storage.updateTeamFinances(team.id, {
-        credits: credits,
-        premiumCurrency: premiumCurrency
-      });
+      // Get current finances
+      const currentFinances = await storage.getTeamFinances(team.id);
+      
+      if (!currentFinances) {
+        // Create new finances entry
+        await storage.createTeamFinances({
+          teamId: team.id,
+          credits: credits,
+          premiumCurrency: premiumCurrency,
+          revenue: 0,
+          expenses: 0,
+          salaryCapUsed: 0,
+          salaryCapLimit: 5000000
+        });
+      } else {
+        // Add to existing credits
+        await storage.updateTeamFinances(team.id, {
+          credits: currentFinances.credits + credits,
+          premiumCurrency: (currentFinances.premiumCurrency || 0) + premiumCurrency
+        });
+      }
       
       res.json({ message: `${credits.toLocaleString()} regular credits and ${premiumCurrency} premium credits granted` });
     } catch (error) {

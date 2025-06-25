@@ -113,7 +113,9 @@ export default function MatchViewer({ match }: MatchViewerProps) {
         <div className="relative mx-auto mb-6 rounded-3xl border-4 border-gray-900 overflow-hidden" style={{ width: '100%', maxWidth: '640px', height: '320px', background: '#22c55e' }}>
           {/* Field markings */}
           <div className="absolute inset-4">
-            {/* Scoring zones - removed colored overlays */}
+            {/* Scoring zones */}
+            <div className="absolute left-0 top-0 w-20 h-full bg-blue-500 border-r-2 border-white opacity-30 rounded-l-2xl"></div>
+            <div className="absolute right-0 top-0 w-20 h-full bg-red-500 border-l-2 border-white opacity-30 rounded-r-2xl"></div>
             
             {/* Field divisions */}
             <div className="absolute left-1/4 top-0 w-0.5 h-full bg-black opacity-60"></div>
@@ -122,7 +124,7 @@ export default function MatchViewer({ match }: MatchViewerProps) {
             
             {/* Animated Players */}
             {/* Home team players */}
-            {(simulationData?.team1?.players?.slice(0, 5) || []).map((player: any, index: number) => (
+            {(simulationData?.team1?.players?.slice(0, 6) || []).map((player: any, index: number) => (
               <PlayerDot 
                 key={`home-${player.id || index}`}
                 position={{ 
@@ -136,7 +138,7 @@ export default function MatchViewer({ match }: MatchViewerProps) {
             ))}
             
             {/* Away team players */}
-            {(simulationData?.team2?.players?.slice(0, 5) || []).map((player: any, index: number) => (
+            {(simulationData?.team2?.players?.slice(0, 6) || []).map((player: any, index: number) => (
               <PlayerDot 
                 key={`away-${player.id || index}`}
                 position={{ 

@@ -94,6 +94,11 @@ Built as a React + Express web application with PostgreSQL database, using moder
 - ✓ Fixed exhibition routing - matches now navigate directly to MatchViewer
 - ✓ Removed confusing "Live Simulation Demo" tab to streamline match viewing
 - ✓ Added proper URL routing for individual matches (/match/:matchId)
+- ✓ Fixed Grant Credits functionality to properly add credits instead of setting absolute values
+- ✓ Added back visual scoring zones on field with blue/red end zones at 30% opacity
+- ✓ Fixed player count to show 6 players per team instead of 5
+- ✓ Updated displayName prioritization to show lastName first, then firstName
+- ✓ Fixed Half display to show "First Half"/"Second Half" for exhibitions
 
 ### Technical Improvements
 - **Notification System**: Now uses solid background colors (red, blue, green, yellow) with white text for proper visibility
