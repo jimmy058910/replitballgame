@@ -1,0 +1,31 @@
+The notifications text is still white on white and I cannot read what it says. For example, the notification I'm looking at says "League Game Starting Soon - League game starts in 10 minutes", then I can't see what's after that.
+
+I think I want to revamp on the Dashboard where it says "My Team - Macomb Cougars". There's nothing in that box, except a View All button. I'm not sure this purpose? Please explain.
+
+On the Dashboard, where it shows "Division 8 - Rookie League", please show the team standings/team list here.
+
+On the team page, where it shows Player tiles, I want to color code the stats that are really high and really low. For example, since the scale is 10-40 (I believe), if it's 32-40 make it green, if it's 10-18 make it red. A nice visual indicator showing if they really excel, or opposite.
+
+Please capitalize on the player tiles the race names, and the player roles. For example "Gryll", and "Blocker"
+
+Auto Formation doesn't seem to work. It gave me a 5/6, ineligible lineup.
+
+The substitution order should be by role: Runners, Blockers, and Passers.
+
+In the Contracts page, when negotiating, I want to be able to fine tune it more. For example, a players current salary is 2,697. I can only adjust by -5K and +5K. I want adjustments to be much more refined.
+
+For testing purposes, can you give the Macomb Cougars 250,000 credits so I can test the Player Tryouts and Recruitment. It shouldn't say (Offseason Only), but it should say (Once per season)
+
+"Fill my Division" still isn't working. I really want to get a Division filled to start taking the next steps.
+
+I want to entirely remove the page Sponsorships. Sponsorships should work into the Stadium page. New Deal should not be a feature. Opportunities should arise based on results, player popularity, team camaraderie, etc.
+
+I tried purchasing a "Basic Helmet" from the Store and it gave me a Failed to execute 'fetch' on 'Window': [object Object]' is not a valid HTTP method.
+
+Can you also give Macomb Cougars 500 premium credits for testing purposes?
+
+The Stadium page is still not showing any details or upgrade options etc. I think this may be wrongly placed under the Sponsorships page, which as I said above, needs to me removed and moved to the Stadium page.
+
+On the Community page, can you remove all the testing/for show data? I want to start getting it accurate and towards an actual working page. Under all of the Social Platforms, please remove the amount of members. Please remove the Community Overview stats.
+
+Please remove the Social Media > Community tab and the Engagement tab from the Social Integration Hub

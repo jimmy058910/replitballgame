@@ -230,7 +230,7 @@ export default function NotificationSystem() {
                       <div className="flex-1 min-w-0">
                         <div className="flex items-start justify-between">
                           <h4 className={`font-semibold ${
-                            notification.isRead ? "text-gray-600" : "text-gray-900"
+                            notification.isRead ? "text-gray-600 dark:text-gray-400" : "text-gray-900 dark:text-gray-100"
                           }`}>
                             {notification.title}
                           </h4>
@@ -269,7 +269,7 @@ export default function NotificationSystem() {
                           </div>
                         </div>
                         <p className={`text-sm mt-1 ${
-                          notification.isRead ? "text-gray-500" : "text-gray-700"
+                          notification.isRead ? "text-gray-500 dark:text-gray-400" : "text-gray-900 dark:text-gray-100"
                         }`}>
                           {notification.message}
                         </p>

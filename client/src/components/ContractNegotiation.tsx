@@ -230,21 +230,67 @@ export default function ContractNegotiation({ player, isOpen, onClose }: Contrac
             <div className="grid grid-cols-3 gap-4">
               <div>
                 <label className="text-sm text-gray-500">Salary</label>
-                <div className="flex space-x-1 mt-1">
-                  <Button 
-                    size="sm" 
-                    variant="outline"
-                    onClick={() => setCurrentOffer(prev => ({ ...prev, salary: Math.max(20000, prev.salary - 5000) }))}
-                  >
-                    -5K
-                  </Button>
-                  <Button 
-                    size="sm" 
-                    variant="outline"
-                    onClick={() => setCurrentOffer(prev => ({ ...prev, salary: prev.salary + 5000 }))}
-                  >
-                    +5K
-                  </Button>
+                <div className="flex flex-col gap-1 mt-1">
+                  <div className="flex space-x-1">
+                    <Button 
+                      size="sm" 
+                      variant="outline"
+                      onClick={() => setCurrentOffer(prev => ({ ...prev, salary: Math.max(20000, prev.salary - 1000) }))}
+                    >
+                      -1K
+                    </Button>
+                    <Button 
+                      size="sm" 
+                      variant="outline"
+                      onClick={() => setCurrentOffer(prev => ({ ...prev, salary: Math.max(20000, prev.salary - 500) }))}
+                    >
+                      -500
+                    </Button>
+                    <Button 
+                      size="sm" 
+                      variant="outline"
+                      onClick={() => setCurrentOffer(prev => ({ ...prev, salary: prev.salary + 500 }))}
+                    >
+                      +500
+                    </Button>
+                    <Button 
+                      size="sm" 
+                      variant="outline"
+                      onClick={() => setCurrentOffer(prev => ({ ...prev, salary: prev.salary + 1000 }))}
+                    >
+                      +1K
+                    </Button>
+                  </div>
+                  <div className="flex space-x-1">
+                    <Button 
+                      size="sm" 
+                      variant="outline"
+                      onClick={() => setCurrentOffer(prev => ({ ...prev, salary: Math.max(20000, prev.salary - 100) }))}
+                    >
+                      -100
+                    </Button>
+                    <Button 
+                      size="sm" 
+                      variant="outline"
+                      onClick={() => setCurrentOffer(prev => ({ ...prev, salary: Math.max(20000, prev.salary - 50) }))}
+                    >
+                      -50
+                    </Button>
+                    <Button 
+                      size="sm" 
+                      variant="outline"
+                      onClick={() => setCurrentOffer(prev => ({ ...prev, salary: prev.salary + 50 }))}
+                    >
+                      +50
+                    </Button>
+                    <Button 
+                      size="sm" 
+                      variant="outline"
+                      onClick={() => setCurrentOffer(prev => ({ ...prev, salary: prev.salary + 100 }))}
+                    >
+                      +100
+                    </Button>
+                  </div>
                 </div>
               </div>
               <div>

@@ -224,7 +224,14 @@ export default function Dashboard() {
             </CardContent>
           </Card>
 
-          <LeagueStandings division={team.division} />
+          <Card className="bg-gray-800 border-gray-700">
+            <CardHeader className="border-b border-gray-700">
+              <CardTitle className="font-orbitron text-xl">Division {team.division} - {team.division === 8 ? "Rookie League" : "Advanced League"}</CardTitle>
+            </CardHeader>
+            <CardContent className="p-6">
+              <LeagueStandings division={team.division} />
+            </CardContent>
+          </Card>
 
           {/* Notification Demo Section */}
           <Card className="bg-gray-800 border-gray-700">

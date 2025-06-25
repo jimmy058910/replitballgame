@@ -37,8 +37,7 @@ export default function SocialIntegration() {
       description: "Join our community for real-time discussions, tournaments, and exclusive events",
       url: "https://discord.gg/realm-rivalry",
       buttonText: "Join Server",
-      color: "bg-indigo-600 hover:bg-indigo-700",
-      followers: "15.2K members"
+      color: "bg-indigo-600 hover:bg-indigo-700"
     },
     {
       name: "Facebook",
@@ -46,8 +45,7 @@ export default function SocialIntegration() {
       description: "Follow us for game updates, community highlights, and behind-the-scenes content",
       url: "https://facebook.com/realmrivalry",
       buttonText: "Follow Page",
-      color: "bg-blue-600 hover:bg-blue-700",
-      followers: "8.7K followers"
+      color: "bg-blue-600 hover:bg-blue-700"
     },
     {
       name: "Instagram",
@@ -56,7 +54,7 @@ export default function SocialIntegration() {
       url: "https://instagram.com/realmrivalry",
       buttonText: "Follow",
       color: "bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700",
-      followers: "12.1K followers"
+
     },
     {
       name: "TikTok",
@@ -65,7 +63,7 @@ export default function SocialIntegration() {
       url: "https://tiktok.com/@realmrivalry",
       buttonText: "Follow",
       color: "bg-black hover:bg-gray-800",
-      followers: "25.6K followers"
+
     },
     {
       name: "X (Twitter)",
@@ -74,7 +72,7 @@ export default function SocialIntegration() {
       url: "https://twitter.com/realmrivalry",
       buttonText: "Follow",
       color: "bg-gray-900 hover:bg-gray-800",
-      followers: "18.3K followers"
+
     },
     {
       name: "YouTube",
@@ -83,7 +81,7 @@ export default function SocialIntegration() {
       url: "https://youtube.com/@realmrivalry",
       buttonText: "Subscribe",
       color: "bg-red-600 hover:bg-red-700",
-      followers: "42.1K subscribers"
+
     }
   ];
 

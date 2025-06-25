@@ -1,0 +1,81 @@
+# Realm Rivalry - Fantasy Sports Management Game
+
+## Overview
+Realm Rivalry is an advanced fantasy sports management web application featuring tactical team management with 5 specific fantasy races (Human, Sylvan, Gryll, Lumina, Umbra), comprehensive league systems with division-based tournaments, exhibition matches, advanced 3-tier player abilities system, team inactivity tracking, enhanced marketplace with bidding system, live match simulation with comprehensive game animations, detailed injury and recovery mechanics, mobile-responsive design, and advanced stadium/facility management.
+
+Built as a React + Express web application with PostgreSQL database, using modern UI components and real-time features.
+
+## Project Architecture
+
+### Frontend (React + Vite)
+- **Framework**: React with TypeScript
+- **Routing**: Wouter for client-side routing
+- **UI Components**: shadcn/ui with Tailwind CSS
+- **State Management**: TanStack Query for server state
+- **Forms**: React Hook Form with Zod validation
+- **Icons**: Lucide React and React Icons
+
+### Backend (Express + Node.js)
+- **Server**: Express with TypeScript
+- **Database**: PostgreSQL with Drizzle ORM
+- **Authentication**: Replit Auth with OpenID Connect
+- **Session Management**: PostgreSQL-backed sessions
+
+### Key Features Implemented
+- **Team Management**: Complete roster management with formation system
+- **League System**: 8-division structure with integrated playoffs
+- **Player System**: 5 fantasy races with role-based gameplay (Passer, Runner, Blocker)
+- **Stadium Management**: Multi-level facility upgrades and revenue tracking
+- **Marketplace**: Player trading with bidding system
+- **Notifications**: Real-time notification system with deletion capability
+- **Store System**: In-game purchases and premium currency
+- **Contract Management**: Advanced contract negotiation system
+- **Injury System**: Detailed injury tracking and recovery mechanics
+
+## Recent Changes
+
+### December 25, 2025
+- ✓ Fixed notification text visibility by adding proper contrast colors
+- ✓ Added permanent notification deletion functionality 
+- ✓ Removed Sponsorships page from navigation and routing
+- ✓ Enhanced Dashboard with division standings display
+- ✓ Improved player card statistics with color-coded role badges
+- ✓ Fixed store purchase functionality using proper apiRequest format
+- ✓ Enhanced auto formation system with better role validation and positioning
+- ✓ Improved contract negotiation with more granular salary adjustment controls
+- ✓ Updated TryoutSystem badge from "Offseason Only" to "Once per season"
+- ✓ Cleaned up SocialIntegration component by removing placeholder follower counts
+- ✓ Added proper capitalization for player roles and races in PlayerCard component
+
+### Technical Improvements
+- **Notification System**: Now uses solid background colors (red, blue, green, yellow) with white text for proper visibility
+- **Auto Formation**: Enhanced with role requirements validation (1 passer, 2 runners, 2 blockers minimum)
+- **Contract Negotiation**: Added fine-grained salary controls (+/-50, +/-100, +/-500, +/-1K)
+- **Player Cards**: Stats now color-coded (green for high 32+, red for low 18-, normal for middle)
+- **Store Purchases**: Fixed API request format for proper functionality
+
+## User Preferences
+- Focus on gameplay mechanics over visual polish
+- Prefer comprehensive feature implementation
+- Likes detailed statistics and analytics
+- Values proper game balance and realistic simulation
+- Wants mobile-responsive design
+- Prefers dark theme UI
+
+## Database Schema
+The application uses Drizzle ORM with PostgreSQL, featuring tables for:
+- Users (Replit Auth integration)
+- Teams (8-division league structure)  
+- Players (with abilities, contracts, injuries)
+- Matches (with detailed game simulation)
+- Stadiums (with upgrade systems)
+- Notifications (with deletion capability)
+- Marketplace (with bidding system)
+- Financial tracking
+
+## Development Notes
+- Uses TypeScript throughout for type safety
+- Follows modern React patterns with hooks and functional components
+- Implements real-time features with polling and WebSocket support
+- Mobile-first responsive design approach
+- Comprehensive error handling and user feedback

@@ -36,6 +36,13 @@ const getRoleIcon = (role: string) => {
   }
 };
 
+// Helper function to color-code stats based on value
+const getStatColor = (value: number) => {
+  if (value >= 32) return 'text-green-600 dark:text-green-400'; // High stats
+  if (value <= 18) return 'text-red-600 dark:text-red-400'; // Low stats
+  return 'text-gray-900 dark:text-white'; // Normal stats
+};
+
 const getRaceEmoji = (race: string) => {
   switch (race?.toLowerCase()) {
     case 'human':
@@ -77,10 +84,10 @@ export default function PlayerCard({ player, showActions = false, onAction }: Pl
                 className={`text-xs ${getRoleColor(player.role)} flex items-center gap-1`}
               >
                 {getRoleIcon(player.role)}
-                {player.role || 'Utility'}
+                {player.role?.charAt(0).toUpperCase() + player.role?.slice(1).toLowerCase() || 'Utility'}
               </Badge>
               <Badge variant="secondary" className="text-xs">
-                {player.race} • Age {player.age}
+                {player.race?.charAt(0).toUpperCase() + player.race?.slice(1).toLowerCase() || 'Unknown'} • Age {player.age}
               </Badge>
             </div>
 
@@ -102,23 +109,23 @@ export default function PlayerCard({ player, showActions = false, onAction }: Pl
         {/* Stats Grid */}
         <div className="grid grid-cols-5 gap-2 text-xs mb-3">
           <div className="text-center">
-            <div className="font-semibold">{player.speed}</div>
+            <div className={`font-semibold ${getStatColor(player.speed)}`}>{player.speed}</div>
             <div className="text-gray-500">SPD</div>
           </div>
           <div className="text-center">
-            <div className="font-semibold">{player.power}</div>
+            <div className={`font-semibold ${getStatColor(player.power)}`}>{player.power}</div>
             <div className="text-gray-500">PWR</div>
           </div>
           <div className="text-center">
-            <div className="font-semibold">{player.throwing}</div>
+            <div className={`font-semibold ${getStatColor(player.throwing)}`}>{player.throwing}</div>
             <div className="text-gray-500">THR</div>
           </div>
           <div className="text-center">
-            <div className="font-semibold">{player.catching}</div>
+            <div className={`font-semibold ${getStatColor(player.catching)}`}>{player.catching}</div>
             <div className="text-gray-500">CAT</div>
           </div>
           <div className="text-center">
-            <div className="font-semibold">{player.kicking}</div>
+            <div className={`font-semibold ${getStatColor(player.kicking)}`}>{player.kicking}</div>
             <div className="text-gray-500">KCK</div>
           </div>
         </div>

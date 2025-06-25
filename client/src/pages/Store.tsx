@@ -28,10 +28,7 @@ export default function Store() {
 
   const purchaseItemMutation = useMutation({
     mutationFn: async (purchase: any) => {
-      await apiRequest("/api/store/purchase", {
-        method: "POST",
-        body: JSON.stringify(purchase),
-      });
+      return await apiRequest("/api/store/purchase", "POST", purchase);
     },
     onSuccess: () => {
       toast({

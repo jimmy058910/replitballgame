@@ -119,7 +119,7 @@ export default function TryoutSystem({ teamId }: TryoutSystemProps) {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             Player Tryouts & Recruitment
-            <Badge variant="secondary">Offseason Only</Badge>
+            <Badge variant="secondary">Once per season</Badge>
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">

@@ -78,32 +78,76 @@ export default function TacticalFormation({ players, onFormationChange }: Tactic
     return acc;
   }, {} as Record<string, any[]>);
 
-  // Auto-formation preset for horizontal field (only own half)
+  // Auto-formation preset for horizontal field (only own half) - Improved with role validation
   const createAutoFormation = () => {
-    const newFormation: FormationPlayer[] = [];
-    const newSubstitutionOrder: Record<string, number> = {};
+    if (players.length < 6) {
+      toast({
+        title: "Insufficient Players",
+        description: "You need at least 6 players to create a formation.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Ensure we have required minimum roles: 1 passer, 2 runners, 2 blockers, 1 flex
+    const playersByRole = {
+      passer: players.filter(p => getPlayerRole(p) === 'passer'),
+      runner: players.filter(p => getPlayerRole(p) === 'runner'),
+      blocker: players.filter(p => getPlayerRole(p) === 'blocker')
+    };
+
+    // Select required players with fallbacks
+    const selectedPlayers = [];
     
+    // 1 passer (required)
+    if (playersByRole.passer.length > 0) {
+      selectedPlayers.push(playersByRole.passer[0]);
+    } else {
+      const bestThrower = [...players].sort((a, b) => b.throwing - a.throwing)[0];
+      selectedPlayers.push(bestThrower);
+    }
+    
+    // 2 runners (required) 
+    const availableRunners = playersByRole.runner.filter(p => !selectedPlayers.includes(p));
+    selectedPlayers.push(...availableRunners.slice(0, 2));
+    
+    while (selectedPlayers.filter(p => getPlayerRole(p) === 'runner').length < 2) {
+      const fastestAvailable = players
+        .filter(p => !selectedPlayers.includes(p))
+        .sort((a, b) => b.speed - a.speed)[0];
+      if (fastestAvailable) selectedPlayers.push(fastestAvailable);
+    }
+    
+    // 2 blockers (required)
+    const availableBlockers = playersByRole.blocker.filter(p => !selectedPlayers.includes(p));
+    selectedPlayers.push(...availableBlockers.slice(0, 2));
+    
+    while (selectedPlayers.filter(p => getPlayerRole(p) === 'blocker').length < 2) {
+      const strongestAvailable = players
+        .filter(p => !selectedPlayers.includes(p))
+        .sort((a, b) => b.power - a.power)[0];
+      if (strongestAvailable) selectedPlayers.push(strongestAvailable);
+    }
+    
+    // Fill remaining slot with best available player
+    while (selectedPlayers.length < 6) {
+      const bestAvailable = players
+        .filter(p => !selectedPlayers.includes(p))
+        .sort((a, b) => calculatePlayerPower(b) - calculatePlayerPower(a))[0];
+      if (bestAvailable) selectedPlayers.push(bestAvailable);
+    }
+
     // Position players in own half (left side of horizontal field)
     const formations = [
-      // Defensive positions (closer to own goal)
       { x: 80, y: 120 },   // Blocker 1
       { x: 80, y: 280 },   // Blocker 2
       { x: 140, y: 200 },  // Runner 1 (center defensive)
-      
-      // Midfield/attacking positions
       { x: 200, y: 100 },  // Runner 2 (wing)
       { x: 200, y: 300 },  // Runner 3 (wing)
       { x: 260, y: 200 },  // Passer (quarterback position)
     ];
     
-    // Select best players for formation
-    const bestPlayers = [
-      ...(playersByRole['Blocker'] || []).slice(0, 2),
-      ...(playersByRole['Runner'] || []).slice(0, 2), 
-      ...(playersByRole['Passer'] || []).slice(0, 1),
-    ].slice(0, 6);
-    
-    const starters = bestPlayers.map((player: any, index: number) => ({
+    const starters = selectedPlayers.slice(0, 6).map((player: any, index: number) => ({
       id: player.id,
       name: player.name,
       role: getPlayerRole(player),
@@ -112,17 +156,32 @@ export default function TacticalFormation({ players, onFormationChange }: Tactic
       substitutionPriority: index + 1
     }));
 
-    // Add substitutes
-    let subPriority = 10;
-    Object.entries(playersByRole).forEach(([role, rolePlayers]) => {
-      (rolePlayers as any[]).slice(3).forEach(player => {
-        newSubstitutionOrder[player.id] = subPriority++;
-      });
+    // Create substitution order: Runners first, then Blockers, then Passers
+    const substitutes = players.filter(p => !selectedPlayers.includes(p));
+    const orderedSubs = [
+      ...substitutes.filter(p => getPlayerRole(p) === 'runner'),
+      ...substitutes.filter(p => getPlayerRole(p) === 'blocker'),
+      ...substitutes.filter(p => getPlayerRole(p) === 'passer')
+    ];
+    
+    const newSubstitutionOrder: Record<string, number> = {};
+    orderedSubs.forEach((player, index) => {
+      newSubstitutionOrder[player.id] = index + 1;
     });
 
     setFormation(starters);
     setSubstitutionOrder(newSubstitutionOrder);
     onFormationChange(starters, newSubstitutionOrder);
+    
+    toast({
+      title: "Auto Formation Created",
+      description: "Valid 6-player formation created with proper role distribution.",
+    });
+  };
+
+  // Helper function to calculate player power
+  const calculatePlayerPower = (player: any) => {
+    return (player.speed + player.power + player.throwing + player.catching + player.kicking + player.agility + player.stamina + player.leadership) / 8;
   };
 
   // Drag and drop handlers

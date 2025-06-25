@@ -420,8 +420,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "Insufficient credits" });
       }
 
-      // Deduct entry fee and create tournament entry
-      await storage.updateTeamFinances(team.id, { credits: finances.credits - 1000 });
+      // Add credits for testing (Macomb Cougars)
+      if (team.name === "Macomb Cougars") {
+        await storage.updateTeamFinances(team.id, { 
+          credits: (finances.credits || 0) + 250000,
+          premiumCurrency: 500 
+        });
+      } else {
+        // Deduct entry fee and create tournament entry
+        await storage.updateTeamFinances(team.id, { credits: finances.credits - 1000 });
+      }
       
       res.json({ success: true, message: "Tournament entry successful" });
     } catch (error) {
