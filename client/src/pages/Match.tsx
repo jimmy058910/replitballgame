@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { useParams } from "wouter";
 import Navigation from "@/components/Navigation";
 import MatchViewer from "@/components/MatchViewer";
 import LiveMatchViewer from "@/components/LiveMatchViewer";
@@ -9,6 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 export default function Match() {
+  const { matchId } = useParams();
   const [selectedMatchId, setSelectedMatchId] = useState<string | null>(null);
 
   const { data: team } = useQuery({
@@ -25,9 +27,12 @@ export default function Match() {
     refetchInterval: 5000,
   });
 
-  const selectedMatch = selectedMatchId 
-    ? matches?.find((m: any) => m.id === selectedMatchId)
-    : liveMatches?.[0];
+  // Priority: URL matchId > user-selected match > first live match
+  const selectedMatch = matchId 
+    ? liveMatches?.find((m: any) => m.id === matchId) || matches?.find((m: any) => m.id === matchId)
+    : selectedMatchId 
+      ? matches?.find((m: any) => m.id === selectedMatchId)
+      : liveMatches?.[0];
 
   const upcomingMatches = matches?.filter((match: any) => 
     match.status === "scheduled"
@@ -49,7 +54,7 @@ export default function Match() {
           </p>
         </div>
 
-        <Tabs defaultValue="matches" className="space-y-6">
+        <Tabs defaultValue={matchId ? "matches" : "matches"} className="space-y-6">
           <TabsList className="grid w-full grid-cols-2 bg-gray-800">
             <TabsTrigger value="matches" className="data-[state=active]:bg-blue-600">
               Match History
@@ -64,6 +69,11 @@ export default function Match() {
             {selectedMatch && (
               <div className="mb-8">
                 <MatchViewer match={selectedMatch} />
+                {matchId && (
+                  <div className="mt-4 text-center">
+                    <p className="text-green-400">Exhibition Match in Progress</p>
+                  </div>
+                )}
               </div>
             )}
 

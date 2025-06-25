@@ -77,6 +77,7 @@ Built as a React + Express web application with PostgreSQL database, using moder
 - ✓ Enhanced Dashboard player cards to 2-column layout with larger size and improved stat organization
 - ✓ Modified Dashboard player cards to show Power rating in circle and display player's top 3 stats dynamically
 - ✓ Fixed Dashboard power calculation to match Team page (sum of 5 core stats) and corrected name display
+- ✓ Fixed Exhibitions feature by adding dynamic match route for exhibition match viewing
 
 ### Technical Improvements
 - **Notification System**: Now uses solid background colors (red, blue, green, yellow) with white text for proper visibility

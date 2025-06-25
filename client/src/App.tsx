@@ -42,6 +42,7 @@ function Router() {
           <Route path="/store" component={Store} />
           <Route path="/stadium" component={Stadium} />
           <Route path="/match" component={Match} />
+          <Route path="/match/:matchId" component={Match} />
           <Route path="/community" component={Community} />
           <Route path="/superuser" component={SuperUser} />
         </>
