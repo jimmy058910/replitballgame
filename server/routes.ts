@@ -2182,7 +2182,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.delete('/api/notifications/delete-all', isAuthenticated, async (req: any, res) => {
+  app.delete('/api/notifications-delete-all', isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
       await storage.deleteAllNotifications(userId);

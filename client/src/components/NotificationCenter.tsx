@@ -65,7 +65,7 @@ export default function NotificationCenter() {
 
   const deleteAllMutation = useMutation({
     mutationFn: async () => {
-      return await apiRequest("/api/notifications/delete-all", "DELETE");
+      return await apiRequest("/api/notifications-delete-all", "DELETE");
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/notifications"] });

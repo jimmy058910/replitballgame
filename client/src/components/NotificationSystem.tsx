@@ -61,6 +61,19 @@ export default function NotificationSystem() {
     },
   });
 
+  // Delete all notifications
+  const deleteAllMutation = useMutation({
+    mutationFn: async () => 
+      apiRequest("/api/notifications-delete-all", "DELETE"),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/notifications"] });
+      toast({
+        title: "Success",
+        description: "All notifications deleted",
+      });
+    },
+  });
+
   const unreadCount = notifications?.filter((n: Notification) => !n.isRead).length || 0;
 
   const getNotificationIcon = (type: string) => {
@@ -83,13 +96,13 @@ export default function NotificationSystem() {
   const getPriorityColor = (priority: string) => {
     switch (priority) {
       case "urgent":
-        return "border-red-500 bg-red-50";
+        return "border-red-500 bg-red-600 text-white";
       case "high":
-        return "border-orange-500 bg-orange-50";
+        return "border-orange-500 bg-orange-600 text-white";
       case "medium":
-        return "border-yellow-500 bg-yellow-50";
+        return "border-yellow-500 bg-yellow-600 text-black";
       default:
-        return "border-gray-200 bg-white";
+        return "border-blue-500 bg-blue-600 text-white";
     }
   };
 
@@ -159,17 +172,29 @@ export default function NotificationSystem() {
                 <Badge variant="destructive">{unreadCount} unread</Badge>
               )}
             </DialogTitle>
-            {unreadCount > 0 && (
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => markAllReadMutation.mutate()}
-                disabled={markAllReadMutation.isPending}
-              >
-                <CheckCircle className="h-4 w-4 mr-2" />
-                Mark All Read
-              </Button>
-            )}
+            <div className="flex gap-2">
+              {unreadCount > 0 && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => markAllReadMutation.mutate()}
+                  disabled={markAllReadMutation.isPending}
+                >
+                  <CheckCircle className="h-4 w-4 mr-2" />
+                  Mark All Read
+                </Button>
+              )}
+              {notifications && notifications.length > 0 && (
+                <Button
+                  variant="destructive"
+                  size="sm"
+                  onClick={() => deleteAllMutation.mutate()}
+                  disabled={deleteAllMutation.isPending}
+                >
+                  Delete All
+                </Button>
+              )}
+            </div>
           </DialogHeader>
 
           {/* Filter Tabs */}
@@ -203,8 +228,8 @@ export default function NotificationSystem() {
                     exit={{ opacity: 0, x: 20 }}
                     className={`p-4 rounded-lg border-2 transition-all cursor-pointer hover:shadow-md ${
                       notification.isRead 
-                        ? "border-gray-200 bg-gray-50 opacity-75 text-gray-700" 
-                        : getPriorityColor(notification.priority) + " text-gray-900"
+                        ? "border-gray-200 bg-gray-700 opacity-75 text-gray-300" 
+                        : "border-gray-600 bg-gray-800 text-white"
                     }`}
                     onClick={() => {
                       if (!notification.isRead) {
@@ -230,12 +255,12 @@ export default function NotificationSystem() {
                       <div className="flex-1 min-w-0">
                         <div className="flex items-start justify-between">
                           <h4 className={`font-semibold ${
-                            notification.isRead ? "text-gray-600 dark:text-gray-400" : "text-gray-900 dark:text-gray-100"
+                            notification.isRead ? "text-gray-400" : "text-white"
                           }`}>
                             {notification.title}
                           </h4>
                           <div className="flex items-center space-x-2">
-                            <span className="text-xs text-gray-500">
+                            <span className="text-xs text-gray-400">
                               {formatTimeAgo(notification.createdAt)}
                             </span>
                             <div className="flex space-x-1">
@@ -269,22 +294,12 @@ export default function NotificationSystem() {
                           </div>
                         </div>
                         <p className={`text-sm mt-1 ${
-                          notification.isRead ? "text-gray-500 dark:text-gray-400" : "text-gray-900 dark:text-gray-100"
+                          notification.isRead ? "text-gray-400" : "text-gray-200"
                         }`}>
                           {notification.message}
                         </p>
                         
-                        {notification.priority === "urgent" && (
-                          <Badge variant="destructive" className="mt-2">
-                            Urgent
-                          </Badge>
-                        )}
-                        
-                        {notification.actionUrl && (
-                          <Badge variant="outline" className="mt-2">
-                            Click to view
-                          </Badge>
-                        )}
+
                       </div>
                     </div>
                   </motion.div>
