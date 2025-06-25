@@ -2813,10 +2813,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // For exhibition: 1st half = 0:00-10:00, 2nd half = 10:00-20:00
       let displayTime = 0;
       if (isExhibition) {
-        if (currentQuarter === 1) {
-          displayTime = maxTime - timeRemaining; // 0:00 to 10:00
+        // Real-time compression: 20 game minutes in 6 real minutes
+        // This means 10 seconds real time = 33.33 seconds game time
+        const realTimeElapsed = Math.floor((Date.now() - new Date(match.createdAt).getTime()) / 1000);
+        const gameTimeElapsed = Math.min(realTimeElapsed * 3.33, 1200); // Cap at 20 minutes
+        
+        displayTime = gameTimeElapsed;
+        
+        // Update current quarter and time remaining
+        if (displayTime >= 600) { // After 10 minutes
+          currentQuarter = 2;
+          timeRemaining = 1200 - displayTime;
         } else {
-          displayTime = maxTime + (maxTime - timeRemaining); // 10:00 to 20:00
+          currentQuarter = 1;
+          timeRemaining = 600 - displayTime;
         }
       } else {
         displayTime = maxTime - timeRemaining;
@@ -2828,11 +2838,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         awayTeamName: team2?.name || "Away",
         team1: {
           id: match.team1Id,
-          name: team1?.name || "Home Team",
+          name: team1?.name || "Home",
           score: match.team1Score || 0,
           players: team1Players.map(player => ({
             ...player,
-            displayName: player.lastName || player.name?.split(' ').slice(-1)[0] || player.name,
+            displayName: player.lastName || player.name?.split(' ').slice(-1)[0] || `${player.race || 'Player'}`,
             fatigue: Math.random() * 100,
             health: 80 + Math.random() * 20,
             isInjured: Math.random() < 0.1,
@@ -2847,11 +2857,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         },
         team2: {
           id: match.team2Id,
-          name: team2?.name || "Away Team",
+          name: team2?.name || "Away",
           score: match.team2Score || 0,
           players: team2Players.map(player => ({
             ...player,
-            displayName: player.lastName || player.name?.split(' ').slice(-1)[0] || player.name,
+            displayName: player.lastName || player.name?.split(' ').slice(-1)[0] || `${player.race || 'Player'}`,
             fatigue: Math.random() * 100,
             health: 80 + Math.random() * 20,
             isInjured: Math.random() < 0.1,
