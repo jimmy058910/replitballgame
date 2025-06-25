@@ -108,6 +108,7 @@ export interface IStorage {
   markNotificationRead(id: string): Promise<void>;
   markAllNotificationsRead(userId: string): Promise<void>;
   deleteNotification(id: string): Promise<void>;
+  deleteAllNotifications(userId: string): Promise<void>;
   
   // Injury operations
   createInjury(injury: InsertPlayerInjury): Promise<PlayerInjury>;
@@ -697,6 +698,12 @@ export class DatabaseStorage implements IStorage {
     await db
       .delete(notifications)
       .where(eq(notifications.id, id));
+  }
+
+  async deleteAllNotifications(userId: string): Promise<void> {
+    await db
+      .delete(notifications)
+      .where(eq(notifications.userId, userId));
   }
 
   // Injury operations

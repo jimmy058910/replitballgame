@@ -2182,6 +2182,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.delete('/api/notifications/delete-all', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      await storage.deleteAllNotifications(userId);
+      res.json({ message: "All notifications deleted" });
+    } catch (error) {
+      console.error("Error deleting all notifications:", error);
+      res.status(500).json({ message: "Failed to delete all notifications" });
+    }
+  });
+
   // Demo route to create sample notifications  
   app.post('/api/demo/notifications', isAuthenticated, async (req: any, res) => {
     try {

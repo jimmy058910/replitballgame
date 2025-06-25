@@ -63,6 +63,19 @@ export default function NotificationCenter() {
     },
   });
 
+  const deleteAllMutation = useMutation({
+    mutationFn: async () => {
+      return await apiRequest("/api/notifications/delete-all", "DELETE");
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/notifications"] });
+      toast({
+        title: "Success",
+        description: "All notifications deleted",
+      });
+    },
+  });
+
   const getNotificationIcon = (type: string, priority: string) => {
     const iconClass = priority === "urgent" ? "text-red-400" : 
                       priority === "high" ? "text-orange-400" :
@@ -89,13 +102,13 @@ export default function NotificationCenter() {
   const getPriorityColor = (priority: string) => {
     switch (priority) {
       case "urgent":
-        return "destructive";
+        return "bg-red-600 text-white border-red-500";
       case "high":
-        return "secondary";
+        return "bg-orange-600 text-white border-orange-500";
       case "medium":
-        return "outline";
+        return "bg-yellow-600 text-black border-yellow-500";
       default:
-        return "outline";
+        return "bg-blue-600 text-white border-blue-500";
     }
   };
 
@@ -153,16 +166,28 @@ export default function NotificationCenter() {
               </Badge>
             )}
           </CardTitle>
-          {unreadCount > 0 && (
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => markAllReadMutation.mutate()}
-              disabled={markAllReadMutation.isPending}
-            >
-              Mark All Read
-            </Button>
-          )}
+          <div className="flex gap-2">
+            {unreadCount > 0 && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => markAllReadMutation.mutate()}
+                disabled={markAllReadMutation.isPending}
+              >
+                Mark All Read
+              </Button>
+            )}
+            {notifications.length > 0 && (
+              <Button
+                variant="destructive"
+                size="sm"
+                onClick={() => deleteAllMutation.mutate()}
+                disabled={deleteAllMutation.isPending}
+              >
+                Delete All
+              </Button>
+            )}
+          </div>
         </div>
       </CardHeader>
       <CardContent>
@@ -187,7 +212,7 @@ export default function NotificationCenter() {
                     <div className="flex items-center gap-2">
                       {getNotificationIcon(notification.type, notification.priority)}
                       <h4 className="font-semibold text-white">{notification.title}</h4>
-                      <Badge variant={getPriorityColor(notification.priority)} className="text-xs">
+                      <Badge className={`text-xs ${getPriorityColor(notification.priority)}`}>
                         {notification.priority}
                       </Badge>
                     </div>
