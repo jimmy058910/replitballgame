@@ -191,15 +191,28 @@ export default function Dashboard() {
                   <p className="text-sm text-gray-500">Visit the Team page to add players</p>
                 </div>
               ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {players.slice(0, 4).map((player: any) => (
-                    <PlayerCard key={player.id} player={player} compact />
-                  ))}
-                  {players.length > 4 && (
-                    <div className="col-span-full text-center text-sm text-gray-400">
-                      +{players.length - 4} more players
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-3">
+                  {players.map((player: any) => (
+                    <div key={player.id} className="bg-gray-700 rounded-lg p-3">
+                      <div className="text-center">
+                        <div className="text-sm font-semibold text-white truncate" title={player.name}>
+                          {player.name}
+                        </div>
+                        <div className="text-xs text-gray-400 capitalize">{player.race}</div>
+                        <div className="text-xs text-gray-300 capitalize">{player.role}</div>
+                        <div className="mt-2">
+                          <div className={`text-lg font-bold ${
+                            player.overall >= 32 ? 'text-green-400' : 
+                            player.overall <= 18 ? 'text-red-400' : 
+                            'text-white'
+                          }`}>
+                            {player.overall}
+                          </div>
+                          <div className="text-xs text-gray-400">OVR</div>
+                        </div>
+                      </div>
                     </div>
-                  )}
+                  ))}
                 </div>
               )}
             </CardContent>

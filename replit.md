@@ -70,6 +70,8 @@ Built as a React + Express web application with PostgreSQL database, using moder
 - ✓ Fixed SuperUser "Stop All Games" functionality with proper database operations
 - ✓ Added compact player roster cards to Dashboard layout
 - ✓ Reorganized Dashboard layout with mini player cards for better space utilization
+- ✓ Fixed Dashboard to display all team players instead of just 4
+- ✓ Fixed SuperUser "Stop All Games" route implementation with proper error handling
 
 ### Technical Improvements
 - **Notification System**: Now uses solid background colors (red, blue, green, yellow) with white text for proper visibility

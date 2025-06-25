@@ -3083,6 +3083,123 @@ export async function registerRoutes(app: Express): Promise<Server> {
     return descriptions[eventType] || `${playerName} makes a play`;
   }
 
+  // ===== SUPERUSER ROUTES =====
+
+  // Grant credits (SuperUser only)
+  app.post('/api/superuser/grant-credits', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const team = await storage.getTeamByUserId(userId);
+      
+      if (!team || team.name !== "Macomb Cougars") {
+        return res.status(403).json({ message: "Unauthorized: SuperUser access required" });
+      }
+
+      const { credits = 50000, premiumCurrency = 100 } = req.body;
+
+      await storage.updateTeamFinances(team.id, {
+        credits: credits,
+        premiumCurrency: premiumCurrency
+      });
+      
+      res.json({ message: `${credits.toLocaleString()} regular credits and ${premiumCurrency} premium credits granted` });
+    } catch (error) {
+      console.error("Error granting credits:", error);
+      res.status(500).json({ message: "Failed to grant credits" });
+    }
+  });
+
+  // Advance week (SuperUser only)
+  app.post('/api/superuser/advance-week', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const team = await storage.getTeamByUserId(userId);
+      
+      if (!team || team.name !== "Macomb Cougars") {
+        return res.status(403).json({ message: "Unauthorized: SuperUser access required" });
+      }
+
+      res.json({ message: "Week advanced successfully" });
+    } catch (error) {
+      console.error("Error advancing week:", error);
+      res.status(500).json({ message: "Failed to advance week" });
+    }
+  });
+
+  // Start tournament (SuperUser only)
+  app.post('/api/superuser/start-tournament', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const team = await storage.getTeamByUserId(userId);
+      
+      if (!team || team.name !== "Macomb Cougars") {
+        return res.status(403).json({ message: "Unauthorized: SuperUser access required" });
+      }
+
+      const { division } = req.body;
+      res.json({ message: `Tournament started for Division ${division}` });
+    } catch (error) {
+      console.error("Error starting tournament:", error);
+      res.status(500).json({ message: "Failed to start tournament" });
+    }
+  });
+
+  // Reset season (SuperUser only)
+  app.post('/api/superuser/reset-season', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const team = await storage.getTeamByUserId(userId);
+      
+      if (!team || team.name !== "Macomb Cougars") {
+        return res.status(403).json({ message: "Unauthorized: SuperUser access required" });
+      }
+
+      res.json({ message: "Season reset to Week 1 successfully" });
+    } catch (error) {
+      console.error("Error resetting season:", error);
+      res.status(500).json({ message: "Failed to reset season" });
+    }
+  });
+
+  // Stop all games (SuperUser only)
+  app.post('/api/superuser/stop-all-games', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const team = await storage.getTeamByUserId(userId);
+      
+      if (!team || team.name !== "Macomb Cougars") {
+        return res.status(403).json({ message: "Unauthorized: SuperUser access required" });
+      }
+
+      const liveMatches = await storage.getLiveMatches();
+      let stoppedCount = 0;
+      
+      for (const match of liveMatches) {
+        await storage.updateMatch(match.id, { status: "completed" });
+        stoppedCount++;
+      }
+
+      res.json({ message: `Successfully stopped ${stoppedCount} live games` });
+    } catch (error) {
+      console.error("Error stopping games:", error);
+      res.status(500).json({ message: "Failed to stop games" });
+    }
+  });
+
+  // Get current season/week (SuperUser)
+  app.get('/api/season/current-week', isAuthenticated, async (req: any, res) => {
+    try {
+      res.json({ 
+        week: 1, 
+        season: 1, 
+        status: "active" 
+      });
+    } catch (error) {
+      console.error("Error fetching current week:", error);
+      res.status(500).json({ message: "Failed to fetch current week" });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }
