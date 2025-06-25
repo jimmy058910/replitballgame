@@ -68,12 +68,22 @@ export default function Dashboard() {
     queryKey: ["/api/teams/my"],
   });
 
-  const { data: players, isLoading: playersLoading } = useQuery({
-    queryKey: ["/api/teams", team?.id, "players"].filter(Boolean),
+  const { data: players, isLoading: playersLoading, error: playersError } = useQuery({
+    queryKey: [`/api/teams/${team?.id}/players`],
     enabled: !!team?.id,
-    retry: false,
-    staleTime: 5 * 60 * 1000,
-    refetchOnWindowFocus: false,
+    retry: 1,
+    staleTime: 30 * 1000, // 30 seconds
+    refetchOnWindowFocus: true,
+  });
+
+  // Debug logging
+  console.log('Dashboard Debug:', { 
+    teamId: team?.id, 
+    teamName: team?.name,
+    playersLoading, 
+    playersCount: players?.length,
+    playersError: playersError?.message,
+    playersData: players?.slice(0, 2) // Show first 2 players for debugging
   });
 
   const { data: liveMatches } = useQuery({
@@ -214,11 +224,25 @@ export default function Dashboard() {
                 <div className="flex justify-center py-8">
                   <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-500"></div>
                 </div>
+              ) : playersError ? (
+                <div className="text-center py-8">
+                  <p className="text-red-400">Error loading players: {playersError.message}</p>
+                </div>
+              ) : !players || players.length === 0 ? (
+                <div className="text-center py-8">
+                  <p className="text-gray-400">No players found</p>
+                  <p className="text-sm text-gray-500">Visit the Team page to add players</p>
+                </div>
               ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {players?.slice(0, 4).map((player: any) => (
+                  {players.slice(0, 4).map((player: any) => (
                     <PlayerCard key={player.id} player={player} compact />
                   ))}
+                  {players.length > 4 && (
+                    <div className="col-span-full text-center text-sm text-gray-400">
+                      +{players.length - 4} more players
+                    </div>
+                  )}
                 </div>
               )}
             </CardContent>

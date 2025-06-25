@@ -46,13 +46,17 @@ Built as a React + Express web application with PostgreSQL database, using moder
 - ✓ Updated TryoutSystem badge from "Offseason Only" to "Once per season"
 - ✓ Cleaned up SocialIntegration component by removing placeholder follower counts
 - ✓ Added proper capitalization for player roles and races in PlayerCard component
+- ✓ Fixed Dashboard "My Team" tile to properly display player roster with compact mode
+- ✓ Changed medium-range player stats (19-31) to display as white text for better readability
+- ✓ Added enhanced error handling and debugging for Dashboard player data loading
 
 ### Technical Improvements
 - **Notification System**: Now uses solid background colors (red, blue, green, yellow) with white text for proper visibility
 - **Auto Formation**: Enhanced with role requirements validation (1 passer, 2 runners, 2 blockers minimum)
 - **Contract Negotiation**: Added fine-grained salary controls (+/-50, +/-100, +/-500, +/-1K)
-- **Player Cards**: Stats now color-coded (green for high 32+, red for low 18-, normal for middle)
+- **Player Cards**: Stats color-coded (green for high 32+, red for low 18-, white for medium 19-31) with compact mode support
 - **Store Purchases**: Fixed API request format for proper functionality
+- **Dashboard**: Improved player tile with proper query format and error states
 
 ## User Preferences
 - Focus on gameplay mechanics over visual polish

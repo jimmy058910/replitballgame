@@ -41,7 +41,7 @@ const getRoleIcon = (role: string) => {
 const getStatColor = (value: number) => {
   if (value >= 32) return 'text-green-600 dark:text-green-400'; // High stats
   if (value <= 18) return 'text-red-600 dark:text-red-400'; // Low stats
-  return 'text-gray-900 dark:text-white'; // Normal stats
+  return 'text-white dark:text-white'; // Medium range stats - always white
 };
 
 const getRaceEmoji = (race: string) => {
