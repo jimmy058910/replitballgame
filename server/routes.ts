@@ -151,10 +151,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Match routes
-  app.get('/api/matches/live', async (req, res) => {
+  app.get('/api/matches/live', isAuthenticated, async (req, res) => {
     try {
       const liveMatches = await storage.getLiveMatches();
-      res.json(liveMatches);
+      
+      // Enhance with team names for proper display
+      const enhancedMatches = await Promise.all(liveMatches.map(async (match) => {
+        const homeTeam = await storage.getTeamById(match.homeTeamId);
+        const awayTeam = await storage.getTeamById(match.awayTeamId);
+        
+        return {
+          ...match,
+          homeTeamName: homeTeam?.name || "Home",
+          awayTeamName: awayTeam?.name || "Away"
+        };
+      }));
+      
+      res.json(enhancedMatches);
     } catch (error) {
       console.error("Error fetching live matches:", error);
       res.status(500).json({ message: "Failed to fetch live matches" });
@@ -2807,26 +2820,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // For exhibition matches, use proper timing (10-minute halves)
       const isExhibition = match.matchType === "exhibition";
       const maxTime = isExhibition ? 600 : 900; // 10 minutes for exhibition, 15 for regular
-      const currentQuarter = match.quarter || 1;
+      let currentQuarter = match.quarter || 1;
       let timeRemaining = match.timeRemaining !== undefined ? match.timeRemaining : maxTime;
       
       // For exhibition: 1st half = 0:00-10:00, 2nd half = 10:00-20:00
       let displayTime = 0;
       if (isExhibition) {
-        // Real-time compression: 20 game minutes in 6 real minutes
-        // This means 10 seconds real time = 33.33 seconds game time
-        const realTimeElapsed = Math.floor((Date.now() - new Date(match.createdAt).getTime()) / 1000);
-        const gameTimeElapsed = Math.min(realTimeElapsed * 3.33, 1200); // Cap at 20 minutes
+        // Real-time compression: 20 game minutes (1200 seconds) in 6 real minutes (360 seconds)
+        // Compression ratio: 1200/360 = 3.33x speed
+        const matchStartTime = new Date(match.createdAt).getTime();
+        const realTimeElapsed = Math.floor((Date.now() - matchStartTime) / 1000);
+        const gameTimeElapsed = Math.min(realTimeElapsed * 3.33, 1200); // Cap at 20 minutes (1200 seconds)
         
         displayTime = gameTimeElapsed;
         
-        // Update current quarter and time remaining
-        if (displayTime >= 600) { // After 10 minutes
+        // Update current quarter and time remaining based on game time
+        if (displayTime >= 600) { // After 10 minutes (600 seconds)
           currentQuarter = 2;
-          timeRemaining = 1200 - displayTime;
+          timeRemaining = 1200 - displayTime; // Remaining time in second half
         } else {
           currentQuarter = 1;
-          timeRemaining = 600 - displayTime;
+          timeRemaining = 600 - displayTime; // Remaining time in first half
         }
       } else {
         displayTime = maxTime - timeRemaining;
@@ -2836,13 +2850,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
         ...match,
         homeTeamName: team1?.name || "Home",
         awayTeamName: team2?.name || "Away",
+        currentQuarter: currentQuarter,
+        timeRemaining: Math.max(0, timeRemaining),
+        displayTime: displayTime,
         team1: {
           id: match.team1Id,
           name: team1?.name || "Home",
           score: match.team1Score || 0,
           players: team1Players.map(player => ({
             ...player,
-            displayName: player.lastName || player.name?.split(' ').slice(-1)[0] || `${player.race || 'Player'}`,
+            displayName: player.lastName || (player.name ? player.name.split(' ').slice(-1)[0] : player.firstName || player.race || 'Player'),
             fatigue: Math.random() * 100,
             health: 80 + Math.random() * 20,
             isInjured: Math.random() < 0.1,
@@ -2861,7 +2878,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           score: match.team2Score || 0,
           players: team2Players.map(player => ({
             ...player,
-            displayName: player.lastName || player.name?.split(' ').slice(-1)[0] || `${player.race || 'Player'}`,
+            displayName: player.lastName || (player.name ? player.name.split(' ').slice(-1)[0] : player.firstName || player.race || 'Player'),
             fatigue: Math.random() * 100,
             health: 80 + Math.random() * 20,
             isInjured: Math.random() < 0.1,
@@ -2874,9 +2891,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
             }
           }))
         },
-        currentQuarter,
-        timeRemaining,
-        displayTime, // Add display time for client
         maxTime,
         isExhibition,
         possession: Math.random() < 0.5 ? match.team1Id : match.team2Id,

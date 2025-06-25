@@ -109,14 +109,14 @@ export default function Match() {
                     <div className="flex items-center justify-between">
                       <div className="text-center">
                         <div className="font-semibold text-primary-400">
-                          {match.homeTeamId === team?.id ? team.name : "Opponent"}
+                          {match.homeTeamId === team?.id ? team.name : (match.homeTeamName || "Opponent")}
                         </div>
                         <div className="text-2xl font-bold">{match.homeScore}</div>
                       </div>
                       <div className="text-gray-500 font-bold">-</div>
                       <div className="text-center">
                         <div className="font-semibold">
-                          {match.awayTeamId === team?.id ? team.name : "Opponent"}
+                          {match.awayTeamId === team?.id ? team.name : (match.awayTeamName || "Opponent")}
                         </div>
                         <div className="text-2xl font-bold">{match.awayScore}</div>
                       </div>
@@ -142,14 +142,14 @@ export default function Match() {
                     <div className="flex items-center justify-between">
                       <div className="text-center">
                         <div className="font-semibold text-primary-400">
-                          {match.homeTeamId === team?.id ? team.name : "Opponent"}
+                          {match.homeTeamId === team?.id ? team.name : (match.homeTeamName || "Opponent")}
                         </div>
                         <div className="text-xs text-gray-400">HOME</div>
                       </div>
                       <div className="text-gray-500 font-bold">VS</div>
                       <div className="text-center">
                         <div className="font-semibold">
-                          {match.awayTeamId === team?.id ? team.name : "Opponent"}
+                          {match.awayTeamId === team?.id ? team.name : (match.awayTeamName || "Opponent")}
                         </div>
                         <div className="text-xs text-gray-400">AWAY</div>
                       </div>
@@ -205,7 +205,7 @@ export default function Match() {
                       <div className="text-gray-500 font-bold">-</div>
                       <div className="text-center">
                         <div className="font-semibold">
-                          {match.awayTeamId === team?.id ? team.name : "Opponent"}
+                          {match.awayTeamId === team?.id ? team.name : (match.awayTeamName || "Opponent")}
                         </div>
                         <div className="text-2xl font-bold text-red-400">
                           {match.awayScore}
