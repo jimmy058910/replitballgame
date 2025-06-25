@@ -2827,10 +2827,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       let displayTime = 0;
       if (isExhibition) {
         // Real-time compression: 20 game minutes (1200 seconds) in 6 real minutes (360 seconds)
-        // Compression ratio: 1200/360 = 3.33x speed
+        // Compression ratio: 360/1200 = 0.3, so 1 real second = 3.33 game seconds
         const matchStartTime = new Date(match.createdAt).getTime();
         const realTimeElapsed = Math.floor((Date.now() - matchStartTime) / 1000);
-        const gameTimeElapsed = Math.min(realTimeElapsed * 3.33, 1200); // Cap at 20 minutes (1200 seconds)
+        const gameTimeElapsed = Math.min(realTimeElapsed * (1200/360), 1200); // 1200/360 = 3.33
         
         displayTime = gameTimeElapsed;
         
