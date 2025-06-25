@@ -73,9 +73,14 @@ export default function League() {
           </div>
         </div>
 
+        {/* League Standings - Full Width */}
+        {team && (
+          <div className="mb-8">
+            <LeagueStandings division={team.division} />
+          </div>
+        )}
+
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
-          {/* League Standings */}
-          {team && <LeagueStandings division={team.division} />}
           
           {/* Upcoming Matches */}
           <Card className="bg-gray-800 border-gray-700">

@@ -61,6 +61,9 @@ Built as a React + Express web application with PostgreSQL database, using moder
 - ✓ Added proper team sorting in standings by points, wins, and losses
 - ✓ Removed Community Overview section from Social Integration Hub
 - ✓ Removed Community and Engagement tabs from Social Integration Hub
+- ✓ Created SuperUser page with admin controls for testing
+- ✓ Moved notification and credit systems to SuperUser panel
+- ✓ Fixed redundant Division standings on League page layout
 
 ### Technical Improvements
 - **Notification System**: Now uses solid background colors (red, blue, green, yellow) with white text for proper visibility
