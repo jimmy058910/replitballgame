@@ -2830,17 +2830,33 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // So 1 real second = 1200/360 = 3.33 game seconds
         const matchStartTime = new Date(match.createdAt).getTime();
         const realTimeElapsed = Math.floor((Date.now() - matchStartTime) / 1000);
-        const gameTimeElapsed = Math.min(realTimeElapsed * 3.33, 1200); // 3.33x compression
+        // Apply 3.33x compression factor consistently
+        const gameTimeElapsed = Math.min(Math.floor(realTimeElapsed * 3.333333), 1200);
         
         displayTime = gameTimeElapsed;
         
-        // Update current quarter and time remaining based on game time
-        if (displayTime >= 600) { // After 10 minutes (600 seconds)
+        // Update current quarter based on elapsed game time
+        if (gameTimeElapsed >= 600) { // After 10 minutes (600 seconds)
           currentQuarter = 2;
-          timeRemaining = 1200 - displayTime; // Remaining time in second half
         } else {
           currentQuarter = 1;
-          timeRemaining = 600 - displayTime; // Remaining time in first half
+        }
+        
+        // Calculate time remaining in current half
+        if (currentQuarter === 1) {
+          timeRemaining = Math.max(0, 600 - gameTimeElapsed); // First half
+        } else {
+          timeRemaining = Math.max(0, 1200 - gameTimeElapsed); // Second half
+        }
+        
+        // When time is up, end the match
+        if (gameTimeElapsed >= 1200) {
+          await storage.updateMatch(match.id, {
+            status: "completed",
+            timeRemaining: 0,
+            quarter: 2
+          });
+          return res.json({ message: "Match completed" });
         }
       } else {
         displayTime = maxTime - timeRemaining;

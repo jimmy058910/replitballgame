@@ -200,11 +200,23 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getPlayersByTeamId(teamId: string): Promise<Player[]> {
-    return await db
+    const teamPlayers = await db
       .select()
       .from(players)
       .where(and(eq(players.teamId, teamId), eq(players.isMarketplace, false)))
       .orderBy(asc(players.name));
+    
+    console.log(`Found ${teamPlayers.length} players for team ${teamId}`);
+    if (teamPlayers.length > 0) {
+      console.log('Sample player data:', {
+        id: teamPlayers[0].id,
+        name: teamPlayers[0].name,
+        firstName: teamPlayers[0].firstName,
+        lastName: teamPlayers[0].lastName
+      });
+    }
+    
+    return teamPlayers;
   }
 
   async getPlayerById(id: string): Promise<Player | undefined> {

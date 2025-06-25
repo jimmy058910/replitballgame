@@ -131,7 +131,7 @@ export default function MatchViewer({ match }: MatchViewerProps) {
                 }} 
                 team="home" 
                 hasBall={index === 0}
-                name={player.displayName || player.lastName || player.name?.split(' ').pop() || `P${index + 1}`}
+                name={player.lastName || player.displayName || player.name?.split(' ').pop() || player.firstName || `P${index + 1}`}
               />
             ))}
             
@@ -144,7 +144,7 @@ export default function MatchViewer({ match }: MatchViewerProps) {
                   y: 80 + (index % 3) * 50 
                 }} 
                 team="away" 
-                name={player.displayName || player.lastName || player.name?.split(' ').pop() || `D${index + 1}`}
+                name={player.lastName || player.displayName || player.name?.split(' ').pop() || player.firstName || `D${index + 1}`}
               />
             ))}
             
@@ -166,19 +166,7 @@ export default function MatchViewer({ match }: MatchViewerProps) {
             ]}
           </div>
           
-          {/* Field Legend */}
-          <div className="absolute bottom-4 left-4 bg-black bg-opacity-80 rounded-lg p-3">
-            <div className="text-xs text-white">
-              <div className="flex items-center space-x-2 mb-2">
-                <div className="w-4 h-4 bg-blue-500 rounded-full border border-white"></div>
-                <span className="font-semibold">{simulationData?.homeTeamName || simulationData?.team1?.name}</span>
-              </div>
-              <div className="flex items-center space-x-2">
-                <div className="w-4 h-4 bg-red-500 rounded-full border border-white"></div>
-                <span className="font-semibold">{simulationData?.awayTeamName || simulationData?.team2?.name}</span>
-              </div>
-            </div>
-          </div>
+
         </div>
         
         {/* Match Commentary */}
