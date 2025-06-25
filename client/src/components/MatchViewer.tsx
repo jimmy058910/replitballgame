@@ -135,14 +135,7 @@ export default function MatchViewer({ match }: MatchViewerProps) {
                 hasBall={index === 0}
                 name={player.displayName || player.lastName || player.name?.split(' ').pop() || `P${index + 1}`}
               />
-            )) || [
-              // Fallback if no simulation data
-              <PlayerDot key="home-1" position={{ x: 100, y: 80 }} team="home" hasBall={true} name="Player" />,
-              <PlayerDot key="home-2" position={{ x: 130, y: 120 }} team="home" name="P1" />,
-              <PlayerDot key="home-3" position={{ x: 160, y: 160 }} team="home" name="P2" />,
-              <PlayerDot key="home-4" position={{ x: 190, y: 100 }} team="home" name="P3" />,
-              <PlayerDot key="home-5" position={{ x: 220, y: 140 }} team="home" name="P4" />
-            ]}
+            ))}
             
             {/* Away team players */}
             {simulationData?.team2?.players?.slice(0, 5).map((player: any, index: number) => (
@@ -155,14 +148,7 @@ export default function MatchViewer({ match }: MatchViewerProps) {
                 team="away" 
                 name={player.displayName || player.lastName || player.name?.split(' ').pop() || `D${index + 1}`}
               />
-            )) || [
-              // Fallback if no simulation data
-              <PlayerDot key="away-1" position={{ x: 350, y: 80 }} team="away" name="D1" />,
-              <PlayerDot key="away-2" position={{ x: 380, y: 120 }} team="away" name="D2" />,
-              <PlayerDot key="away-3" position={{ x: 410, y: 160 }} team="away" name="D3" />,
-              <PlayerDot key="away-4" position={{ x: 440, y: 100 }} team="away" name="D4" />,
-              <PlayerDot key="away-5" position={{ x: 470, y: 140 }} team="away" name="D5" />
-            ]}
+            ))}
           </div>
           
           {/* Field Legend */}

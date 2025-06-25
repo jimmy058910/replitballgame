@@ -2830,7 +2830,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           score: match.team1Score || 0,
           players: team1Players.map(player => ({
             ...player,
-            displayName: player.lastName || player.name?.split(' ').pop() || player.name,
+            displayName: player.lastName || player.name?.split(' ').slice(-1)[0] || player.name,
             fatigue: Math.random() * 100,
             health: 80 + Math.random() * 20,
             isInjured: Math.random() < 0.1,
@@ -2849,7 +2849,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           score: match.team2Score || 0,
           players: team2Players.map(player => ({
             ...player,
-            displayName: player.lastName || player.name?.split(' ').pop() || player.name,
+            displayName: player.lastName || player.name?.split(' ').slice(-1)[0] || player.name,
             fatigue: Math.random() * 100,
             health: 80 + Math.random() * 20,
             isInjured: Math.random() < 0.1,
@@ -2868,7 +2868,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         maxTime,
         isExhibition,
         possession: Math.random() < 0.5 ? match.team1Id : match.team2Id,
-        lastPlay: "Game started",
+        lastPlay: generateGameplayEvent(team1Players, team2Players),
         stadium: isExhibition ? "Exhibition Arena" : "Fantasy Stadium",
         weather: "Clear skies",
         gameEvents: []
@@ -2880,6 +2880,33 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ message: "Failed to fetch match simulation" });
     }
   });
+
+  // Helper function to generate realistic gameplay events
+  function generateGameplayEvent(team1Players: any[], team2Players: any[]): string {
+    const events = [
+      // Runner events
+      () => {
+        const runner = [...team1Players, ...team2Players].find(p => p.role === 'runner');
+        return runner ? `${runner.lastName || runner.name} breaks through the defense!` : "Runner charging forward!";
+      },
+      // Passer events
+      () => {
+        const passer = [...team1Players, ...team2Players].find(p => p.role === 'passer');
+        return passer ? `${passer.lastName || passer.name} looks for an opening to pass!` : "Quarterback scanning the field!";
+      },
+      // Blocker events
+      () => {
+        const blocker = [...team1Players, ...team2Players].find(p => p.role === 'blocker');
+        return blocker ? `${blocker.lastName || blocker.name} delivers a crushing block!` : "Massive collision in the trenches!";
+      },
+      // General events
+      () => "Players clash in the center of the arena!",
+      () => "Intense battle for field position!",
+      () => "The crowd roars as action intensifies!"
+    ];
+    
+    return events[Math.floor(Math.random() * events.length)]();
+  }
 
   // Simulate a single play
   app.post("/api/matches/:matchId/simulate-play", isAuthenticated, async (req, res) => {
