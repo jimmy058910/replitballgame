@@ -75,6 +75,7 @@ Built as a React + Express web application with PostgreSQL database, using moder
 - ✓ Enhanced season reset functionality to properly clear all team statistics
 - ✓ Improved Dashboard player cards with better layout and detailed stats display
 - ✓ Enhanced Dashboard player cards to 2-column layout with larger size and improved stat organization
+- ✓ Modified Dashboard player cards to show Power rating in circle and display player's top 3 stats dynamically
 
 ### Technical Improvements
 - **Notification System**: Now uses solid background colors (red, blue, green, yellow) with white text for proper visibility

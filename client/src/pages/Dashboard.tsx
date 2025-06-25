@@ -192,41 +192,52 @@ export default function Dashboard() {
                 </div>
               ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  {players.map((player: any) => (
-                    <div key={player.id} className="bg-gray-700 rounded-lg p-5 border border-gray-600 hover:border-gray-500 transition-colors">
-                      <div className="flex items-center space-x-4">
-                        <div className="flex-shrink-0">
-                          <div className={`w-16 h-16 rounded-full flex items-center justify-center text-white font-bold text-xl ${
-                            player.overall >= 32 ? 'bg-green-600' : 
-                            player.overall <= 18 ? 'bg-red-600' : 
-                            'bg-blue-600'
-                          }`}>
-                            {player.overall || 50}
-                          </div>
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <div className="text-base font-semibold text-white mb-1" title={player.name}>
-                            {player.name}
-                          </div>
-                          <div className="text-sm text-gray-400 capitalize mb-2">{player.race} {player.role}</div>
-                          <div className="grid grid-cols-3 gap-3">
-                            <div className="text-center">
-                              <div className="text-xs text-blue-400 font-medium">SPD</div>
-                              <div className="text-sm text-white font-semibold">{player.speed || 20}</div>
+                  {players.map((player: any) => {
+                    // Get player's top 3 stats
+                    const allStats = [
+                      { name: 'SPD', value: player.speed || 20, color: 'text-blue-400' },
+                      { name: 'PWR', value: player.power || 20, color: 'text-red-400' },
+                      { name: 'AGI', value: player.agility || 20, color: 'text-green-400' },
+                      { name: 'THR', value: player.throwing || 20, color: 'text-purple-400' },
+                      { name: 'CAT', value: player.catching || 20, color: 'text-yellow-400' },
+                      { name: 'KIC', value: player.kicking || 20, color: 'text-orange-400' },
+                      { name: 'STA', value: player.stamina || 20, color: 'text-cyan-400' },
+                      { name: 'LED', value: player.leadership || 20, color: 'text-pink-400' }
+                    ];
+                    
+                    const topStats = allStats.sort((a, b) => b.value - a.value).slice(0, 3);
+                    const powerValue = player.power || 20;
+                    
+                    return (
+                      <div key={player.id} className="bg-gray-700 rounded-lg p-5 border border-gray-600 hover:border-gray-500 transition-colors">
+                        <div className="flex items-center space-x-4">
+                          <div className="flex-shrink-0">
+                            <div className={`w-16 h-16 rounded-full flex items-center justify-center text-white font-bold text-xl ${
+                              powerValue >= 32 ? 'bg-red-600' : 
+                              powerValue <= 18 ? 'bg-gray-600' : 
+                              'bg-red-500'
+                            }`}>
+                              {powerValue}
                             </div>
-                            <div className="text-center">
-                              <div className="text-xs text-red-400 font-medium">PWR</div>
-                              <div className="text-sm text-white font-semibold">{player.power || 20}</div>
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <div className="text-base font-semibold text-white mb-1" title={player.name}>
+                              {player.name}
                             </div>
-                            <div className="text-center">
-                              <div className="text-xs text-green-400 font-medium">AGI</div>
-                              <div className="text-sm text-white font-semibold">{player.agility || 20}</div>
+                            <div className="text-sm text-gray-400 capitalize mb-2">{player.race} {player.role}</div>
+                            <div className="grid grid-cols-3 gap-3">
+                              {topStats.map((stat, index) => (
+                                <div key={index} className="text-center">
+                                  <div className={`text-xs ${stat.color} font-medium`}>{stat.name}</div>
+                                  <div className="text-sm text-white font-semibold">{stat.value}</div>
+                                </div>
+                              ))}
                             </div>
                           </div>
                         </div>
                       </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               )}
             </CardContent>
