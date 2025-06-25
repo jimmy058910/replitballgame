@@ -3154,7 +3154,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(403).json({ message: "Unauthorized: SuperUser access required" });
       }
 
-      res.json({ message: "Season reset to Week 1 successfully" });
+      // Reset all teams' statistics across all divisions
+      const divisions = [1, 2, 3, 4, 5, 6, 7, 8];
+      let totalTeamsReset = 0;
+
+      for (const division of divisions) {
+        const teams = await storage.getTeamsByDivision(division);
+        for (const team of teams) {
+          await storage.updateTeam(team.id, {
+            wins: 0,
+            losses: 0,
+            draws: 0,
+            points: 0
+          });
+          totalTeamsReset++;
+        }
+      }
+
+      res.json({ message: `Season reset successfully! Cleared statistics for ${totalTeamsReset} teams across all divisions.` });
     } catch (error) {
       console.error("Error resetting season:", error);
       res.status(500).json({ message: "Failed to reset season" });

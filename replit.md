@@ -72,6 +72,8 @@ Built as a React + Express web application with PostgreSQL database, using moder
 - ✓ Reorganized Dashboard layout with mini player cards for better space utilization
 - ✓ Fixed Dashboard to display all team players instead of just 4
 - ✓ Fixed SuperUser "Stop All Games" route implementation with proper error handling
+- ✓ Enhanced season reset functionality to properly clear all team statistics
+- ✓ Improved Dashboard player cards with better layout and detailed stats display
 
 ### Technical Improvements
 - **Notification System**: Now uses solid background colors (red, blue, green, yellow) with white text for proper visibility

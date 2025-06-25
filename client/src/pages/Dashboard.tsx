@@ -191,24 +191,29 @@ export default function Dashboard() {
                   <p className="text-sm text-gray-500">Visit the Team page to add players</p>
                 </div>
               ) : (
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-3">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                   {players.map((player: any) => (
-                    <div key={player.id} className="bg-gray-700 rounded-lg p-3">
-                      <div className="text-center">
-                        <div className="text-sm font-semibold text-white truncate" title={player.name}>
-                          {player.name}
-                        </div>
-                        <div className="text-xs text-gray-400 capitalize">{player.race}</div>
-                        <div className="text-xs text-gray-300 capitalize">{player.role}</div>
-                        <div className="mt-2">
-                          <div className={`text-lg font-bold ${
-                            player.overall >= 32 ? 'text-green-400' : 
-                            player.overall <= 18 ? 'text-red-400' : 
-                            'text-white'
+                    <div key={player.id} className="bg-gray-700 rounded-lg p-4 border border-gray-600">
+                      <div className="flex items-center space-x-3">
+                        <div className="flex-shrink-0">
+                          <div className={`w-12 h-12 rounded-full flex items-center justify-center text-white font-bold text-lg ${
+                            player.overall >= 32 ? 'bg-green-600' : 
+                            player.overall <= 18 ? 'bg-red-600' : 
+                            'bg-blue-600'
                           }`}>
-                            {player.overall}
+                            {player.overall || 50}
                           </div>
-                          <div className="text-xs text-gray-400">OVR</div>
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="text-sm font-semibold text-white truncate" title={player.name}>
+                            {player.name}
+                          </div>
+                          <div className="text-xs text-gray-400 capitalize">{player.race} {player.role}</div>
+                          <div className="flex items-center gap-2 mt-1">
+                            <span className="text-xs text-blue-400">SPD: {player.speed || 20}</span>
+                            <span className="text-xs text-red-400">PWR: {player.power || 20}</span>
+                            <span className="text-xs text-green-400">AGI: {player.agility || 20}</span>
+                          </div>
                         </div>
                       </div>
                     </div>
