@@ -64,6 +64,9 @@ Built as a React + Express web application with PostgreSQL database, using moder
 - ✓ Created SuperUser page with admin controls for testing
 - ✓ Moved notification and credit systems to SuperUser panel
 - ✓ Fixed redundant Division standings on League page layout
+- ✓ Added season reset and stop all games functionality to SuperUser panel
+- ✓ Fixed live match speed - games now run 3 real minutes per half (6 minutes total)
+- ✓ Improved match simulation timing for better user experience
 
 ### Technical Improvements
 - **Notification System**: Now uses solid background colors (red, blue, green, yellow) with white text for proper visibility

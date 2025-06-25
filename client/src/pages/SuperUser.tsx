@@ -89,6 +89,50 @@ export default function SuperUser() {
     },
   });
 
+  // Reset season mutation
+  const resetSeasonMutation = useMutation({
+    mutationFn: async () => {
+      return await apiRequest("/api/superuser/reset-season", "POST");
+    },
+    onSuccess: (data: any) => {
+      toast({
+        title: "Season Reset",
+        description: data.message,
+      });
+      queryClient.invalidateQueries({ queryKey: ["/api/season/current-week"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/leagues"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/matches/live"] });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: "Failed to reset season",
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Stop all games mutation
+  const stopAllGamesMutation = useMutation({
+    mutationFn: async () => {
+      return await apiRequest("/api/superuser/stop-all-games", "POST");
+    },
+    onSuccess: (data: any) => {
+      toast({
+        title: "Games Stopped",
+        description: data.message,
+      });
+      queryClient.invalidateQueries({ queryKey: ["/api/matches/live"] });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: "Failed to stop games",
+        variant: "destructive",
+      });
+    },
+  });
+
   // Start tournament mutation
   const startTournamentMutation = useMutation({
     mutationFn: async () => {
@@ -233,14 +277,32 @@ export default function SuperUser() {
                   Season {currentWeek?.season || 1}
                 </div>
               </div>
-              <Button 
-                onClick={() => advanceWeekMutation.mutate()}
-                disabled={advanceWeekMutation.isPending}
-                className="w-full"
-                variant="outline"
-              >
-                {advanceWeekMutation.isPending ? "Advancing..." : "Advance Week"}
-              </Button>
+              <div className="space-y-2">
+                <Button 
+                  onClick={() => advanceWeekMutation.mutate()}
+                  disabled={advanceWeekMutation.isPending}
+                  className="w-full"
+                  variant="outline"
+                >
+                  {advanceWeekMutation.isPending ? "Advancing..." : "Advance Week"}
+                </Button>
+                <Button 
+                  onClick={() => resetSeasonMutation.mutate()}
+                  disabled={resetSeasonMutation.isPending}
+                  className="w-full"
+                  variant="destructive"
+                >
+                  {resetSeasonMutation.isPending ? "Resetting..." : "Reset Season"}
+                </Button>
+                <Button 
+                  onClick={() => stopAllGamesMutation.mutate()}
+                  disabled={stopAllGamesMutation.isPending}
+                  className="w-full"
+                  variant="destructive"
+                >
+                  {stopAllGamesMutation.isPending ? "Stopping..." : "Stop All Games"}
+                </Button>
+              </div>
             </CardContent>
           </Card>
 
