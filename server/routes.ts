@@ -2827,10 +2827,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       let displayTime = 0;
       if (isExhibition) {
         // Real-time compression: 20 game minutes (1200 seconds) in 6 real minutes (360 seconds)
-        // Compression ratio: 360/1200 = 0.3, so 1 real second = 3.33 game seconds
+        // So 1 real second = 1200/360 = 3.33 game seconds
         const matchStartTime = new Date(match.createdAt).getTime();
         const realTimeElapsed = Math.floor((Date.now() - matchStartTime) / 1000);
-        const gameTimeElapsed = Math.min(realTimeElapsed * (1200/360), 1200); // 1200/360 = 3.33
+        const gameTimeElapsed = Math.min(realTimeElapsed * 3.33, 1200); // 3.33x compression
         
         displayTime = gameTimeElapsed;
         
@@ -2859,7 +2859,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           score: match.team1Score || 0,
           players: team1Players.map(player => ({
             ...player,
-            displayName: player.lastName || (player.name ? player.name.split(' ').slice(-1)[0] : player.firstName || player.race || 'Player'),
+            displayName: player.lastName || (player.name && player.name.includes(' ') ? player.name.split(' ').slice(-1)[0] : player.firstName || player.name || `${player.race}Player`),
             fatigue: Math.random() * 100,
             health: 80 + Math.random() * 20,
             isInjured: Math.random() < 0.1,
@@ -2878,7 +2878,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           score: match.team2Score || 0,
           players: team2Players.map(player => ({
             ...player,
-            displayName: player.lastName || (player.name ? player.name.split(' ').slice(-1)[0] : player.firstName || player.race || 'Player'),
+            displayName: player.lastName || (player.name && player.name.includes(' ') ? player.name.split(' ').slice(-1)[0] : player.firstName || player.name || `${player.race}Player`),
             fatigue: Math.random() * 100,
             health: 80 + Math.random() * 20,
             isInjured: Math.random() < 0.1,

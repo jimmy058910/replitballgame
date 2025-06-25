@@ -113,9 +113,7 @@ export default function MatchViewer({ match }: MatchViewerProps) {
         <div className="relative mx-auto mb-6 rounded-3xl border-4 border-gray-900 overflow-hidden" style={{ width: '100%', maxWidth: '640px', height: '320px', background: '#22c55e' }}>
           {/* Field markings */}
           <div className="absolute inset-4">
-            {/* Scoring zones with spacing */}
-            <div className="absolute left-0 top-0 w-20 h-full bg-blue-500 border-r-2 border-black rounded-l-2xl opacity-60"></div>
-            <div className="absolute right-0 top-0 w-20 h-full bg-red-500 border-l-2 border-black rounded-r-2xl opacity-60"></div>
+            {/* Scoring zones - removed colored overlays */}
             
             {/* Field divisions */}
             <div className="absolute left-1/4 top-0 w-0.5 h-full bg-black opacity-60"></div>
