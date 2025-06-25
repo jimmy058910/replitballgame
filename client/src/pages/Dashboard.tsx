@@ -211,7 +211,8 @@ export default function Dashboard() {
                     return (
                       <div key={player.id} className="bg-gray-700 rounded-lg p-5 border border-gray-600 hover:border-gray-500 transition-colors">
                         <div className="flex items-center space-x-4">
-                          <div className="flex-shrink-0">
+                          <div className="flex-shrink-0 text-center">
+                            <div className="text-xs text-red-400 font-medium mb-1">Power</div>
                             <div className={`w-16 h-16 rounded-full flex items-center justify-center text-white font-bold text-xl ${
                               powerValue >= 32 ? 'bg-red-600' : 
                               powerValue <= 18 ? 'bg-gray-600' : 
