@@ -91,6 +91,9 @@ Built as a React + Express web application with PostgreSQL database, using moder
 - ✓ Removed generic "Home Team"/"Away Team" labels from display
 - ✓ Changed exhibition quarter display to "First Half"/"Second Half" format
 - ✓ Enhanced player name extraction to show actual last names from database
+- ✓ Fixed exhibition routing - matches now navigate directly to MatchViewer
+- ✓ Removed confusing "Live Simulation Demo" tab to streamline match viewing
+- ✓ Added proper URL routing for individual matches (/match/:matchId)
 
 ### Technical Improvements
 - **Notification System**: Now uses solid background colors (red, blue, green, yellow) with white text for proper visibility
