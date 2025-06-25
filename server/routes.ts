@@ -10,6 +10,7 @@ import { z } from "zod";
 import { db } from "./db";
 import { items, stadiums, facilityUpgrades, stadiumEvents } from "@shared/schema";
 import { eq, isNotNull, gte, lte, and, desc } from "drizzle-orm";
+import { randomUUID } from "crypto";
 
 // Helper function to calculate team power based on player stats
 function calculateTeamPower(players: any[]): number {
@@ -1879,10 +1880,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log("Creating demo notifications...");
       
       // Create demo notifications directly using storage
-      const timestamp = Date.now();
-      
       await storage.createNotification({
-        id: `demo-${timestamp}-1`,
+        id: randomUUID(),
         userId,
         type: "match",
         title: "League Game Starting Soon",
@@ -1895,7 +1894,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
 
       await storage.createNotification({
-        id: `demo-${timestamp}-2`,
+        id: randomUUID(),
         userId,
         type: "match",
         title: "League Game Complete",
@@ -1914,7 +1913,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
 
       await storage.createNotification({
-        id: `demo-${timestamp}-3`,
+        id: randomUUID(),
         userId,
         type: "tournament",
         title: "Tournament Starting Soon",
@@ -1927,7 +1926,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
 
       await storage.createNotification({
-        id: `demo-${timestamp}-4`,
+        id: randomUUID(),
         userId,
         type: "auction",
         title: "Outbid!",
@@ -1940,7 +1939,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
 
       await storage.createNotification({
-        id: `demo-${timestamp}-5`,
+        id: randomUUID(),
         userId,
         type: "injury",
         title: "Player Injured",
@@ -1953,7 +1952,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
 
       await storage.createNotification({
-        id: `demo-${timestamp}-6`,
+        id: randomUUID(),
         userId,
         type: "achievement",
         title: "Achievement Unlocked!",
@@ -1966,7 +1965,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
 
       await storage.createNotification({
-        id: `demo-${timestamp}-7`,
+        id: randomUUID(),
         userId,
         type: "contract",
         title: "Contract Expiring",
@@ -1979,7 +1978,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
 
       await storage.createNotification({
-        id: `demo-${timestamp}-8`,
+        id: randomUUID(),
         userId,
         type: "league",
         title: "Promotion!",
