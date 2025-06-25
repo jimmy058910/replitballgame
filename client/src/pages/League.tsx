@@ -188,18 +188,7 @@ export default function League() {
           </CardContent>
         </Card>
 
-        {/* Division Standings */}
-        <Card className="bg-gray-800 border-gray-700">
-          <CardHeader>
-            <CardTitle className="text-white flex items-center gap-2">
-              <i className="fas fa-list-ol"></i>
-              Division {(team as any)?.division || 8} Standings
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <LeagueStandings />
-          </CardContent>
-        </Card>
+
       </div>
     </div>
   );

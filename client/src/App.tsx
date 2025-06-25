@@ -17,6 +17,7 @@ import Store from "@/pages/Store";
 import Stadium from "@/pages/Stadium";
 import Match from "@/pages/Match";
 import LogoShowcase from "@/pages/LogoShowcase";
+import SuperUser from "@/pages/SuperUser";
 import Community from "@/pages/Community";
 
 import Navigation from "@/components/Navigation";
@@ -42,6 +43,7 @@ function Router() {
           <Route path="/stadium" component={Stadium} />
           <Route path="/match" component={Match} />
           <Route path="/community" component={Community} />
+          <Route path="/superuser" component={SuperUser} />
         </>
       )}
       <Route component={NotFound} />

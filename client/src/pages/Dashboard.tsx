@@ -18,36 +18,7 @@ export default function Dashboard() {
   const { isAuthenticated, isLoading } = useAuth();
   const queryClient = useQueryClient();
 
-  const demoNotificationsMutation = useMutation({
-    mutationFn: async () => {
-      return await apiRequest("/api/notifications/demo", "POST", {});
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/notifications"] });
-      toast({
-        title: "Demo Notifications Created",
-        description: "Check the notification center to see the generic messaging system!",
-      });
-    },
-    onError: (error) => {
-      if (isUnauthorizedError(error)) {
-        toast({
-          title: "Unauthorized",
-          description: "You are logged out. Logging in again...",
-          variant: "destructive",
-        });
-        setTimeout(() => {
-          window.location.href = "/api/login";
-        }, 500);
-        return;
-      }
-      toast({
-        title: "Error",
-        description: "Failed to create demo notifications",
-        variant: "destructive",
-      });
-    },
-  });
+
 
   // Redirect to home if not authenticated
   useEffect(() => {
@@ -114,14 +85,7 @@ export default function Dashboard() {
         <div className="mb-8">
           <div className="flex items-center justify-between mb-6">
             <h2 className="font-orbitron text-2xl font-bold">Team Dashboard</h2>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => demoNotificationsMutation.mutate()}
-              disabled={demoNotificationsMutation.isPending}
-            >
-              {demoNotificationsMutation.isPending ? "Creating..." : "Test Notifications"}
-            </Button>
+
           </div>
           
           {/* Stats Cards */}
@@ -250,31 +214,29 @@ export default function Dashboard() {
             </CardContent>
           </Card>
 
-          {/* Notification Demo Section */}
-          <Card className="bg-gray-800 border-gray-700">
-            <CardHeader>
-              <CardTitle className="text-white flex items-center gap-2">
-                <Bell className="w-5 h-5" />
-                Notification System Demo
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="p-6">
-              <div className="flex justify-between items-center mb-4">
-                <div>
-                  <p className="text-gray-300 mb-2">Test the generic notification system with hidden game results</p>
-                  <p className="text-sm text-gray-400">Creates sample notifications for match results, tournaments, auctions, and injuries</p>
+          {/* SuperUser Access */}
+          {team?.name === "Macomb Cougars" && (
+            <Card className="bg-gray-800 border-gray-700">
+              <CardHeader>
+                <CardTitle className="text-white flex items-center gap-2">
+                  <Shield className="w-5 h-5 text-red-400" />
+                  SuperUser Panel
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="p-6">
+                <div className="space-y-3">
+                  <p className="text-gray-300 mb-2">Access administrative controls for testing and game management</p>
+                  <Button 
+                    onClick={() => window.location.href = '/superuser'}
+                    variant="outline" 
+                    className="w-full text-red-400 border-red-400 hover:bg-red-400 hover:text-white"
+                  >
+                    Open SuperUser Panel
+                  </Button>
                 </div>
-                <Button
-                  onClick={() => demoNotificationsMutation.mutate()}
-                  disabled={demoNotificationsMutation.isPending}
-                  className="bg-blue-600 hover:bg-blue-700"
-                >
-                  {demoNotificationsMutation.isPending ? "Creating..." : "Create Demo Notifications"}
-                </Button>
-              </div>
-              <NotificationCenter />
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
+          )}
         </div>
       </div>
     </div>
