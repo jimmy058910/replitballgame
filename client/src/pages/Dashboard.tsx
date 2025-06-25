@@ -206,7 +206,13 @@ export default function Dashboard() {
                     ];
                     
                     const topStats = allStats.sort((a, b) => b.value - a.value).slice(0, 3);
-                    const powerValue = player.power || 20;
+                    // Calculate total power like in PlayerCard component
+                    const powerValue = (player.speed || 20) + (player.power || 20) + (player.throwing || 20) + (player.catching || 20) + (player.kicking || 20);
+                    
+                    // Display name like in PlayerCard component
+                    const displayName = player.firstName && player.lastName 
+                      ? `${player.firstName} ${player.lastName}` 
+                      : player.name || 'Unknown Player';
                     
                     return (
                       <div key={player.id} className="bg-gray-700 rounded-lg p-5 border border-gray-600 hover:border-gray-500 transition-colors">
@@ -214,16 +220,16 @@ export default function Dashboard() {
                           <div className="flex-shrink-0 text-center">
                             <div className="text-xs text-red-400 font-medium mb-1">Power</div>
                             <div className={`w-16 h-16 rounded-full flex items-center justify-center text-white font-bold text-xl ${
-                              powerValue >= 32 ? 'bg-red-600' : 
-                              powerValue <= 18 ? 'bg-gray-600' : 
+                              powerValue >= 120 ? 'bg-red-600' : 
+                              powerValue <= 80 ? 'bg-gray-600' : 
                               'bg-red-500'
                             }`}>
                               {powerValue}
                             </div>
                           </div>
                           <div className="flex-1 min-w-0">
-                            <div className="text-base font-semibold text-white mb-1" title={player.name}>
-                              {player.name}
+                            <div className="text-base font-semibold text-white mb-1" title={displayName}>
+                              {displayName}
                             </div>
                             <div className="text-sm text-gray-400 capitalize mb-2">{player.race} {player.role}</div>
                             <div className="grid grid-cols-3 gap-3">
