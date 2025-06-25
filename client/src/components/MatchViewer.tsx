@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 
@@ -9,6 +10,13 @@ interface MatchViewerProps {
 export default function MatchViewer({ match }: MatchViewerProps) {
   const [currentTime, setCurrentTime] = useState(0);
   const [events, setEvents] = useState<any[]>([]);
+
+  // Get simulation data for dynamic content
+  const { data: simulationData } = useQuery({
+    queryKey: ["/api/matches", match.id, "simulation"],
+    refetchInterval: match.status === "live" ? 2000 : false,
+    enabled: !!match.id,
+  });
 
   useEffect(() => {
     if (match?.gameData?.events) {
@@ -29,6 +37,25 @@ export default function MatchViewer({ match }: MatchViewerProps) {
     const minutes = Math.floor(seconds / 60);
     const secs = seconds % 60;
     return `${minutes}:${secs.toString().padStart(2, '0')}`;
+  };
+
+  const getGameTime = () => {
+    if (simulationData?.displayTime !== undefined) {
+      return formatTime(simulationData.displayTime);
+    } else if (match.displayTime !== undefined) {
+      return formatTime(match.displayTime);
+    }
+    return formatTime(currentTime);
+  };
+
+  const getHalfDisplay = () => {
+    const isExhibition = simulationData?.isExhibition || match.isExhibition;
+    const currentQuarter = simulationData?.currentQuarter || match.currentQuarter || 1;
+    
+    if (isExhibition) {
+      return currentQuarter === 1 ? "1st Half" : "2nd Half";
+    }
+    return `Quarter ${currentQuarter}`;
   };
 
   const getStatusBadge = () => {
@@ -53,7 +80,7 @@ export default function MatchViewer({ match }: MatchViewerProps) {
             {getStatusBadge()}
             {match.status === "live" && (
               <span className="text-sm text-gray-400">
-                1st Half - {formatTime(currentTime + 300)}
+                {getHalfDisplay()} - {getGameTime()}
               </span>
             )}
           </div>
@@ -62,14 +89,18 @@ export default function MatchViewer({ match }: MatchViewerProps) {
         {/* Score Display */}
         <div className="flex items-center justify-center mt-4">
           <div className="text-center">
-            <div className="text-sm text-gray-400">Home Team</div>
+            <div className="text-sm text-gray-400">
+              {simulationData?.homeTeamName || match.homeTeamName || "Home Team"}
+            </div>
             <div className="font-orbitron text-3xl font-bold text-primary-400">
               {match.homeScore}
             </div>
           </div>
           <div className="mx-8 text-gray-500">-</div>
           <div className="text-center">
-            <div className="text-sm text-gray-400">Away Team</div>
+            <div className="text-sm text-gray-400">
+              {simulationData?.awayTeamName || match.awayTeamName || "Away Team"}
+            </div>
             <div className="font-orbitron text-3xl font-bold text-red-400">
               {match.awayScore}
             </div>
@@ -92,16 +123,30 @@ export default function MatchViewer({ match }: MatchViewerProps) {
             <div className="absolute left-3/4 top-0 w-0.5 h-full bg-white bg-opacity-30"></div>
             
             {/* Animated Players */}
-            <PlayerDot position={{ x: 200, y: 100 }} team="home" hasBall={true} name="Player" />
-            <PlayerDot position={{ x: 180, y: 50 }} team="home" name="P1" />
-            <PlayerDot position={{ x: 180, y: 150 }} team="home" name="P2" />
-            <PlayerDot position={{ x: 220, y: 75 }} team="home" name="P3" />
-            <PlayerDot position={{ x: 220, y: 125 }} team="home" name="P4" />
+            {simulationData?.team1?.players?.slice(0, 5).map((player: any, index: number) => (
+              <PlayerDot 
+                key={`home-${player.id}`}
+                position={{ 
+                  x: 180 + (index * 20), 
+                  y: 50 + (index * 25) 
+                }} 
+                team="home" 
+                hasBall={index === 0}
+                name={player.displayName || player.lastName || player.name?.split(' ').pop() || `P${index + 1}`}
+              />
+            ))}
             
-            <PlayerDot position={{ x: 320, y: 90 }} team="away" name="D1" />
-            <PlayerDot position={{ x: 340, y: 60 }} team="away" name="D2" />
-            <PlayerDot position={{ x: 340, y: 120 }} team="away" name="D3" />
-            <PlayerDot position={{ x: 360, y: 90 }} team="away" name="D4" />
+            {simulationData?.team2?.players?.slice(0, 4).map((player: any, index: number) => (
+              <PlayerDot 
+                key={`away-${player.id}`}
+                position={{ 
+                  x: 320 + (index * 20), 
+                  y: 60 + (index * 20) 
+                }} 
+                team="away" 
+                name={player.displayName || player.lastName || player.name?.split(' ').pop() || `D${index + 1}`}
+              />
+            ))}
           </div>
           
           {/* Field Legend */}
@@ -109,11 +154,11 @@ export default function MatchViewer({ match }: MatchViewerProps) {
             <div className="text-xs text-white">
               <div className="flex items-center space-x-2 mb-1">
                 <div className="w-3 h-3 bg-primary-500 rounded-full"></div>
-                <span>Home Team</span>
+                <span>{simulationData?.team1?.name || "Home"}</span>
               </div>
               <div className="flex items-center space-x-2">
                 <div className="w-3 h-3 bg-red-500 rounded-full"></div>
-                <span>Away Team</span>
+                <span>{simulationData?.team2?.name || "Away"}</span>
               </div>
             </div>
           </div>

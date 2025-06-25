@@ -506,6 +506,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const match = await storage.createMatch({
         homeTeamId: team.id,
         awayTeamId: opponent.id,
+        team1Id: team.id,
+        team2Id: opponent.id,
         matchType: "exhibition",
         status: "live"
       });
@@ -2794,18 +2796,41 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: "Match not found" });
       }
 
-      // Generate comprehensive match data with player stats
+      // Get actual team data
+      const team1 = await storage.getTeamById(match.team1Id);
+      const team2 = await storage.getTeamById(match.team2Id);
       const team1Players = await storage.getPlayersByTeamId(match.team1Id);
       const team2Players = await storage.getPlayersByTeamId(match.team2Id);
 
+      // For exhibition matches, use proper timing (10-minute halves)
+      const isExhibition = match.matchType === "exhibition";
+      const maxTime = isExhibition ? 600 : 900; // 10 minutes for exhibition, 15 for regular
+      const currentQuarter = match.quarter || 1;
+      let timeRemaining = match.timeRemaining !== undefined ? match.timeRemaining : maxTime;
+      
+      // For exhibition: 1st half = 0:00-10:00, 2nd half = 10:00-20:00
+      let displayTime = 0;
+      if (isExhibition) {
+        if (currentQuarter === 1) {
+          displayTime = maxTime - timeRemaining; // 0:00 to 10:00
+        } else {
+          displayTime = maxTime + (maxTime - timeRemaining); // 10:00 to 20:00
+        }
+      } else {
+        displayTime = maxTime - timeRemaining;
+      }
+
       const simulationData = {
         ...match,
+        homeTeamName: match.homeTeamId === team1?.id ? team1?.name : team2?.name,
+        awayTeamName: match.awayTeamId === team1?.id ? team1?.name : team2?.name,
         team1: {
           id: match.team1Id,
-          name: "Team 1", // Will be replaced with actual team data
+          name: team1?.name || "Home Team",
           score: match.team1Score || 0,
           players: team1Players.map(player => ({
             ...player,
+            displayName: player.lastName || player.name?.split(' ').pop() || player.name,
             fatigue: Math.random() * 100,
             health: 80 + Math.random() * 20,
             isInjured: Math.random() < 0.1,
@@ -2820,10 +2845,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         },
         team2: {
           id: match.team2Id,
-          name: "Team 2",
+          name: team2?.name || "Away Team",
           score: match.team2Score || 0,
           players: team2Players.map(player => ({
             ...player,
+            displayName: player.lastName || player.name?.split(' ').pop() || player.name,
             fatigue: Math.random() * 100,
             health: 80 + Math.random() * 20,
             isInjured: Math.random() < 0.1,
@@ -2836,11 +2862,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
             }
           }))
         },
-        currentQuarter: match.quarter || 1,
-        timeRemaining: match.timeRemaining || 900, // 15 minutes per quarter
+        currentQuarter,
+        timeRemaining,
+        displayTime, // Add display time for client
+        maxTime,
+        isExhibition,
         possession: Math.random() < 0.5 ? match.team1Id : match.team2Id,
         lastPlay: "Game started",
-        stadium: "Fantasy Stadium",
+        stadium: isExhibition ? "Exhibition Arena" : "Fantasy Stadium",
         weather: "Clear skies",
         gameEvents: []
       };

@@ -78,6 +78,9 @@ Built as a React + Express web application with PostgreSQL database, using moder
 - ✓ Modified Dashboard player cards to show Power rating in circle and display player's top 3 stats dynamically
 - ✓ Fixed Dashboard power calculation to match Team page (sum of 5 core stats) and corrected name display
 - ✓ Fixed Exhibitions feature by adding dynamic match route for exhibition match viewing
+- ✓ Fixed exhibition match timer to start at 0:00 and progress properly (0:00-10:00 first half, 10:00-20:00 second half)
+- ✓ Added proper team names display instead of "Team 1/Team 2" placeholders
+- ✓ Updated player display to show actual player last names instead of generic P1, D1 labels
 
 ### Technical Improvements
 - **Notification System**: Now uses solid background colors (red, blue, green, yellow) with white text for proper visibility
