@@ -2824,8 +2824,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const simulationData = {
         ...match,
-        homeTeamName: team1?.name || "Home Team",
-        awayTeamName: team2?.name || "Away Team",
+        homeTeamName: team1?.name || "Home",
+        awayTeamName: team2?.name || "Away",
         team1: {
           id: match.team1Id,
           name: team1?.name || "Home Team",

@@ -88,6 +88,9 @@ Built as a React + Express web application with PostgreSQL database, using moder
 - ✓ Fixed player visibility issues by adding fallback displays and better positioning
 - ✓ Improved field design with rounded corners and proper spacing around scoring zones
 - ✓ Enhanced team name display logic with multiple fallback sources
+- ✓ Removed generic "Home Team"/"Away Team" labels from display
+- ✓ Changed exhibition quarter display to "First Half"/"Second Half" format
+- ✓ Enhanced player name extraction to show actual last names from database
 
 ### Technical Improvements
 - **Notification System**: Now uses solid background colors (red, blue, green, yellow) with white text for proper visibility

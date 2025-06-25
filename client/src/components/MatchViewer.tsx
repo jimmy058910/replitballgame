@@ -53,7 +53,7 @@ export default function MatchViewer({ match }: MatchViewerProps) {
     const currentQuarter = simulationData?.currentQuarter || match.currentQuarter || 1;
     
     if (isExhibition) {
-      return currentQuarter === 1 ? "1st Half" : "2nd Half";
+      return currentQuarter === 1 ? "First Half" : "Second Half";
     }
     return `Quarter ${currentQuarter}`;
   };
@@ -90,7 +90,7 @@ export default function MatchViewer({ match }: MatchViewerProps) {
         <div className="flex items-center justify-center mt-4">
           <div className="text-center">
             <div className="text-sm text-gray-400">
-              {simulationData?.homeTeamName || simulationData?.team1?.name || match.homeTeamName || "Home Team"}
+              {simulationData?.homeTeamName || simulationData?.team1?.name || match.homeTeamName}
             </div>
             <div className="font-orbitron text-3xl font-bold text-primary-400">
               {match.homeScore || simulationData?.team1?.score || 0}
@@ -99,7 +99,7 @@ export default function MatchViewer({ match }: MatchViewerProps) {
           <div className="mx-8 text-gray-500">-</div>
           <div className="text-center">
             <div className="text-sm text-gray-400">
-              {simulationData?.awayTeamName || simulationData?.team2?.name || match.awayTeamName || "Away Team"}
+              {simulationData?.awayTeamName || simulationData?.team2?.name || match.awayTeamName}
             </div>
             <div className="font-orbitron text-3xl font-bold text-red-400">
               {match.awayScore || simulationData?.team2?.score || 0}
@@ -173,11 +173,11 @@ export default function MatchViewer({ match }: MatchViewerProps) {
             <div className="text-xs text-white">
               <div className="flex items-center space-x-2 mb-2">
                 <div className="w-4 h-4 bg-blue-500 rounded-full border border-white"></div>
-                <span className="font-semibold">{simulationData?.homeTeamName || simulationData?.team1?.name || "Home Team"}</span>
+                <span className="font-semibold">{simulationData?.homeTeamName || simulationData?.team1?.name}</span>
               </div>
               <div className="flex items-center space-x-2">
                 <div className="w-4 h-4 bg-red-500 rounded-full border border-white"></div>
-                <span className="font-semibold">{simulationData?.awayTeamName || simulationData?.team2?.name || "Away Team"}</span>
+                <span className="font-semibold">{simulationData?.awayTeamName || simulationData?.team2?.name}</span>
               </div>
             </div>
           </div>
