@@ -85,6 +85,9 @@ Built as a React + Express web application with PostgreSQL database, using moder
 - ✓ Added fallback player display when simulation data is unavailable
 - ✓ Updated field design to enclosed arena style with proper scoring zones (blue/red end zones)
 - ✓ Enhanced player dots with name labels and better visual design
+- ✓ Fixed player visibility issues by adding fallback displays and better positioning
+- ✓ Improved field design with rounded corners and proper spacing around scoring zones
+- ✓ Enhanced team name display logic with multiple fallback sources
 
 ### Technical Improvements
 - **Notification System**: Now uses solid background colors (red, blue, green, yellow) with white text for proper visibility

@@ -509,7 +509,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         team1Id: team.id,
         team2Id: opponent.id,
         matchType: "exhibition",
-        status: "live"
+        status: "live",
+        homeTeamName: team.name,
+        awayTeamName: opponent.name
       });
 
       res.json({ matchId: match.id });

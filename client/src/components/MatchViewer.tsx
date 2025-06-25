@@ -90,19 +90,19 @@ export default function MatchViewer({ match }: MatchViewerProps) {
         <div className="flex items-center justify-center mt-4">
           <div className="text-center">
             <div className="text-sm text-gray-400">
-              {simulationData?.homeTeamName || match.homeTeamName || "Home Team"}
+              {simulationData?.homeTeamName || simulationData?.team1?.name || match.homeTeamName || "Home Team"}
             </div>
             <div className="font-orbitron text-3xl font-bold text-primary-400">
-              {match.homeScore}
+              {match.homeScore || simulationData?.team1?.score || 0}
             </div>
           </div>
           <div className="mx-8 text-gray-500">-</div>
           <div className="text-center">
             <div className="text-sm text-gray-400">
-              {simulationData?.awayTeamName || match.awayTeamName || "Away Team"}
+              {simulationData?.awayTeamName || simulationData?.team2?.name || match.awayTeamName || "Away Team"}
             </div>
             <div className="font-orbitron text-3xl font-bold text-red-400">
-              {match.awayScore}
+              {match.awayScore || simulationData?.team2?.score || 0}
             </div>
           </div>
         </div>
@@ -110,26 +110,26 @@ export default function MatchViewer({ match }: MatchViewerProps) {
       
       <CardContent className="p-6">
         {/* 2D Field View - Enclosed Arena Style */}
-        <div className="relative mx-auto mb-6 rounded-3xl border-4 border-gray-900" style={{ width: '100%', maxWidth: '600px', height: '300px', background: '#22c55e' }}>
+        <div className="relative mx-auto mb-6 rounded-3xl border-4 border-gray-900 overflow-hidden" style={{ width: '100%', maxWidth: '640px', height: '320px', background: '#22c55e' }}>
           {/* Field markings */}
-          <div className="absolute inset-0">
-            {/* Scoring zones */}
-            <div className="absolute left-0 top-0 w-16 h-full bg-blue-500 border-r-2 border-black"></div>
-            <div className="absolute right-0 top-0 w-16 h-full bg-red-500 border-l-2 border-black"></div>
+          <div className="absolute inset-4">
+            {/* Scoring zones with spacing */}
+            <div className="absolute left-0 top-0 w-20 h-full bg-blue-500 border-r-2 border-black rounded-l-2xl"></div>
+            <div className="absolute right-0 top-0 w-20 h-full bg-red-500 border-l-2 border-black rounded-r-2xl"></div>
             
             {/* Field divisions */}
-            <div className="absolute left-1/4 top-0 w-0.5 h-full bg-black"></div>
-            <div className="absolute left-2/4 top-0 w-1 h-full bg-black"></div>
-            <div className="absolute left-3/4 top-0 w-0.5 h-full bg-black"></div>
+            <div className="absolute left-1/4 top-0 w-0.5 h-full bg-black opacity-60"></div>
+            <div className="absolute left-2/4 top-0 w-1 h-full bg-black opacity-80"></div>
+            <div className="absolute left-3/4 top-0 w-0.5 h-full bg-black opacity-60"></div>
             
             {/* Animated Players */}
             {/* Home team players */}
-            {simulationData?.team1?.players?.slice(0, 5).map((player: any, index: number) => (
+            {(simulationData?.team1?.players?.slice(0, 5) || []).map((player: any, index: number) => (
               <PlayerDot 
-                key={`home-${player.id}`}
+                key={`home-${player.id || index}`}
                 position={{ 
-                  x: 100 + (index * 30), 
-                  y: 80 + (index % 3) * 40 
+                  x: 120 + (index * 35), 
+                  y: 80 + (index % 3) * 50 
                 }} 
                 team="home" 
                 hasBall={index === 0}
@@ -138,17 +138,34 @@ export default function MatchViewer({ match }: MatchViewerProps) {
             ))}
             
             {/* Away team players */}
-            {simulationData?.team2?.players?.slice(0, 5).map((player: any, index: number) => (
+            {(simulationData?.team2?.players?.slice(0, 5) || []).map((player: any, index: number) => (
               <PlayerDot 
-                key={`away-${player.id}`}
+                key={`away-${player.id || index}`}
                 position={{ 
-                  x: 350 + (index * 30), 
-                  y: 80 + (index % 3) * 40 
+                  x: 380 + (index * 35), 
+                  y: 80 + (index % 3) * 50 
                 }} 
                 team="away" 
                 name={player.displayName || player.lastName || player.name?.split(' ').pop() || `D${index + 1}`}
               />
             ))}
+            
+            {/* Fallback players if no simulation data */}
+            {(!simulationData?.team1?.players || simulationData.team1.players.length === 0) && [
+              <PlayerDot key="fallback-home-1" position={{ x: 120, y: 80 }} team="home" hasBall={true} name="Player" />,
+              <PlayerDot key="fallback-home-2" position={{ x: 155, y: 130 }} team="home" name="Runner" />,
+              <PlayerDot key="fallback-home-3" position={{ x: 190, y: 180 }} team="home" name="Blocker" />,
+              <PlayerDot key="fallback-home-4" position={{ x: 225, y: 105 }} team="home" name="Passer" />,
+              <PlayerDot key="fallback-home-5" position={{ x: 260, y: 155 }} team="home" name="Guard" />
+            ]}
+            
+            {(!simulationData?.team2?.players || simulationData.team2.players.length === 0) && [
+              <PlayerDot key="fallback-away-1" position={{ x: 380, y: 80 }} team="away" name="Defender" />,
+              <PlayerDot key="fallback-away-2" position={{ x: 415, y: 130 }} team="away" name="Rusher" />,
+              <PlayerDot key="fallback-away-3" position={{ x: 450, y: 180 }} team="away" name="Tackle" />,
+              <PlayerDot key="fallback-away-4" position={{ x: 485, y: 105 }} team="away" name="Safety" />,
+              <PlayerDot key="fallback-away-5" position={{ x: 520, y: 155 }} team="away" name="Corner" />
+            ]}
           </div>
           
           {/* Field Legend */}
@@ -156,11 +173,11 @@ export default function MatchViewer({ match }: MatchViewerProps) {
             <div className="text-xs text-white">
               <div className="flex items-center space-x-2 mb-2">
                 <div className="w-4 h-4 bg-blue-500 rounded-full border border-white"></div>
-                <span className="font-semibold">{simulationData?.team1?.name || "Home Team"}</span>
+                <span className="font-semibold">{simulationData?.homeTeamName || simulationData?.team1?.name || "Home Team"}</span>
               </div>
               <div className="flex items-center space-x-2">
                 <div className="w-4 h-4 bg-red-500 rounded-full border border-white"></div>
-                <span className="font-semibold">{simulationData?.team2?.name || "Away Team"}</span>
+                <span className="font-semibold">{simulationData?.awayTeamName || simulationData?.team2?.name || "Away Team"}</span>
               </div>
             </div>
           </div>
