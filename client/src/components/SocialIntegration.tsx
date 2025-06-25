@@ -197,19 +197,11 @@ export default function SocialIntegration() {
 
   return (
     <div className="max-w-6xl mx-auto space-y-6">
-      <div className="text-center mb-8">
-        <h2 className="font-orbitron text-3xl font-bold mb-4">Social Integration Hub</h2>
-        <p className="text-gray-400 text-lg">
-          Connect, share, and engage with the global Realm Rivalry community
-        </p>
-      </div>
 
       <Tabs defaultValue="platforms" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-4 bg-gray-800">
+        <TabsList className="grid w-full grid-cols-2 bg-gray-800">
           <TabsTrigger value="platforms">Social Platforms</TabsTrigger>
           <TabsTrigger value="share">Share Content</TabsTrigger>
-          <TabsTrigger value="community">Community</TabsTrigger>
-          <TabsTrigger value="analytics">Engagement</TabsTrigger>
         </TabsList>
 
         <TabsContent value="platforms" className="space-y-6">
@@ -252,43 +244,7 @@ export default function SocialIntegration() {
             })}
           </div>
 
-          {/* Community Stats */}
-          <Card className="bg-gray-800 border-gray-700">
-            <CardHeader>
-              <CardTitle className="font-orbitron text-xl flex items-center">
-                <Users className="w-5 h-5 mr-2" />
-                Community Overview
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-2 md:grid-cols-6 gap-4">
-                <div className="text-center">
-                  <div className="text-2xl font-bold text-indigo-400">15.2K</div>
-                  <div className="text-sm text-gray-400">Discord</div>
-                </div>
-                <div className="text-center">
-                  <div className="text-2xl font-bold text-blue-400">8.7K</div>
-                  <div className="text-sm text-gray-400">Facebook</div>
-                </div>
-                <div className="text-center">
-                  <div className="text-2xl font-bold text-pink-400">12.1K</div>
-                  <div className="text-sm text-gray-400">Instagram</div>
-                </div>
-                <div className="text-center">
-                  <div className="text-2xl font-bold text-gray-300">25.6K</div>
-                  <div className="text-sm text-gray-400">TikTok</div>
-                </div>
-                <div className="text-center">
-                  <div className="text-2xl font-bold text-sky-400">18.3K</div>
-                  <div className="text-sm text-gray-400">Twitter</div>
-                </div>
-                <div className="text-center">
-                  <div className="text-2xl font-bold text-red-400">42.1K</div>
-                  <div className="text-sm text-gray-400">YouTube</div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+
         </TabsContent>
 
         <TabsContent value="share" className="space-y-6">

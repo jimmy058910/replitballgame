@@ -59,6 +59,8 @@ Built as a React + Express web application with PostgreSQL database, using moder
 - ✓ Fixed "Fill my Division" by adding proper AI user creation before team creation
 - ✓ Fixed Standings and League pages not showing teams by correcting API endpoint query format
 - ✓ Added proper team sorting in standings by points, wins, and losses
+- ✓ Removed Community Overview section from Social Integration Hub
+- ✓ Removed Community and Engagement tabs from Social Integration Hub
 
 ### Technical Improvements
 - **Notification System**: Now uses solid background colors (red, blue, green, yellow) with white text for proper visibility
