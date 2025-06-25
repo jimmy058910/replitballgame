@@ -58,7 +58,7 @@ export default function Navigation() {
           </div>
 
           {/* Desktop Navigation - Hidden on mobile/tablet */}
-          <div className="hidden xl:flex items-center space-x-1">
+          <div className="hidden lg:flex items-center space-x-1">
             {navItems.map((item) => {
               const IconComponent = item.icon;
               return (
@@ -111,7 +111,7 @@ export default function Navigation() {
             {/* Mobile Menu */}
             <Sheet open={isMobileMenuOpen} onOpenChange={setIsMobileMenuOpen}>
               <SheetTrigger asChild>
-                <Button variant="ghost" size="sm" className="xl:hidden h-8 px-2">
+                <Button variant="ghost" size="sm" className="lg:hidden h-8 px-2">
                   <Menu className="h-4 w-4" />
                 </Button>
               </SheetTrigger>

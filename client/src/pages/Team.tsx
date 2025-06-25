@@ -51,6 +51,11 @@ export default function Team() {
     enabled: !!team?.id,
   });
 
+  const { data: formation } = useQuery({
+    queryKey: [`/api/teams/${team?.id}/formation`],
+    enabled: !!team?.id,
+  });
+
   // Add roles to players and filter
   const playersWithRoles = players?.map((player: any) => ({
     ...player,

@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
@@ -36,25 +37,17 @@ const contractResponses = {
 };
 
 export default function ContractNegotiation({ player, isOpen, onClose }: ContractNegotiationProps) {
-  // Don't render if not open
-  if (!isOpen) {
-    return null;
-  }
-
   // Early return if player is null or missing required properties
   if (!player || !player.firstName || !player.lastName) {
     return (
-      <Card className="max-w-2xl mx-auto">
-        <CardHeader>
-          <CardTitle className="flex items-center justify-between">
-            Contract Negotiation Error
-            <Button variant="outline" size="sm" onClick={onClose}>Close</Button>
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
+      <Dialog open={isOpen} onOpenChange={onClose}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Contract Negotiation Error</DialogTitle>
+          </DialogHeader>
           <p className="text-center text-gray-500">Player information is not available.</p>
-        </CardContent>
-      </Card>
+        </DialogContent>
+      </Dialog>
     );
   }
 
@@ -134,14 +127,12 @@ export default function ContractNegotiation({ player, isOpen, onClose }: Contrac
   });
 
   return (
-    <Card className="max-w-2xl mx-auto">
-      <CardHeader>
-        <CardTitle className="flex items-center justify-between">
-          Contract Negotiation: {player.firstName} {player.lastName}
-          <Button variant="outline" size="sm" onClick={onClose}>Close</Button>
-        </CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-6">
+    <Dialog open={isOpen} onOpenChange={onClose}>
+      <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle>Contract Negotiation: {player.firstName} {player.lastName}</DialogTitle>
+        </DialogHeader>
+        <div className="space-y-6">
         {/* Player Info */}
         <div className="flex items-center space-x-4">
           <div className="flex-1">
@@ -227,94 +218,92 @@ export default function ContractNegotiation({ player, isOpen, onClose }: Contrac
         {negotiationPhase === 'offer' && (
           <div className="border rounded-lg p-4">
             <h4 className="font-medium mb-3">Adjust Offer</h4>
-            <div className="grid grid-cols-3 gap-4">
+            <div className="space-y-4">
               <div>
-                <label className="text-sm text-gray-500">Salary</label>
-                <div className="flex flex-col gap-1 mt-1">
-                  <div className="flex space-x-1">
-                    <Button 
-                      size="sm" 
-                      variant="outline"
-                      onClick={() => setCurrentOffer(prev => ({ ...prev, salary: Math.max(20000, prev.salary - 1000) }))}
-                    >
-                      -1K
-                    </Button>
-                    <Button 
-                      size="sm" 
-                      variant="outline"
-                      onClick={() => setCurrentOffer(prev => ({ ...prev, salary: Math.max(20000, prev.salary - 500) }))}
-                    >
-                      -500
-                    </Button>
-                    <Button 
-                      size="sm" 
-                      variant="outline"
-                      onClick={() => setCurrentOffer(prev => ({ ...prev, salary: prev.salary + 500 }))}
-                    >
-                      +500
-                    </Button>
-                    <Button 
-                      size="sm" 
-                      variant="outline"
-                      onClick={() => setCurrentOffer(prev => ({ ...prev, salary: prev.salary + 1000 }))}
-                    >
-                      +1K
-                    </Button>
-                  </div>
-                  <div className="flex space-x-1">
-                    <Button 
-                      size="sm" 
-                      variant="outline"
-                      onClick={() => setCurrentOffer(prev => ({ ...prev, salary: Math.max(20000, prev.salary - 100) }))}
-                    >
-                      -100
-                    </Button>
-                    <Button 
-                      size="sm" 
-                      variant="outline"
-                      onClick={() => setCurrentOffer(prev => ({ ...prev, salary: Math.max(20000, prev.salary - 50) }))}
-                    >
-                      -50
-                    </Button>
-                    <Button 
-                      size="sm" 
-                      variant="outline"
-                      onClick={() => setCurrentOffer(prev => ({ ...prev, salary: prev.salary + 50 }))}
-                    >
-                      +50
-                    </Button>
-                    <Button 
-                      size="sm" 
-                      variant="outline"
-                      onClick={() => setCurrentOffer(prev => ({ ...prev, salary: prev.salary + 100 }))}
-                    >
-                      +100
-                    </Button>
-                  </div>
+                <label className="text-sm text-gray-500 block mb-2">Salary Adjustments</label>
+                <div className="flex flex-wrap gap-2">
+                  <Button 
+                    size="sm" 
+                    variant="outline"
+                    onClick={() => setCurrentOffer(prev => ({ ...prev, salary: Math.max(20000, prev.salary - 1000) }))}
+                  >
+                    -1K
+                  </Button>
+                  <Button 
+                    size="sm" 
+                    variant="outline"
+                    onClick={() => setCurrentOffer(prev => ({ ...prev, salary: Math.max(20000, prev.salary - 500) }))}
+                  >
+                    -500
+                  </Button>
+                  <Button 
+                    size="sm" 
+                    variant="outline"
+                    onClick={() => setCurrentOffer(prev => ({ ...prev, salary: Math.max(20000, prev.salary - 100) }))}
+                  >
+                    -100
+                  </Button>
+                  <Button 
+                    size="sm" 
+                    variant="outline"
+                    onClick={() => setCurrentOffer(prev => ({ ...prev, salary: Math.max(20000, prev.salary - 50) }))}
+                  >
+                    -50
+                  </Button>
+                  <Button 
+                    size="sm" 
+                    variant="outline"
+                    onClick={() => setCurrentOffer(prev => ({ ...prev, salary: prev.salary + 50 }))}
+                  >
+                    +50
+                  </Button>
+                  <Button 
+                    size="sm" 
+                    variant="outline"
+                    onClick={() => setCurrentOffer(prev => ({ ...prev, salary: prev.salary + 100 }))}
+                  >
+                    +100
+                  </Button>
+                  <Button 
+                    size="sm" 
+                    variant="outline"
+                    onClick={() => setCurrentOffer(prev => ({ ...prev, salary: prev.salary + 500 }))}
+                  >
+                    +500
+                  </Button>
+                  <Button 
+                    size="sm" 
+                    variant="outline"
+                    onClick={() => setCurrentOffer(prev => ({ ...prev, salary: prev.salary + 1000 }))}
+                  >
+                    +1K
+                  </Button>
                 </div>
               </div>
+              
               <div>
-                <label className="text-sm text-gray-500">Years</label>
-                <div className="flex space-x-1 mt-1">
+                <label className="text-sm text-gray-500 block mb-2">Contract Years</label>
+                <div className="flex gap-2">
                   <Button 
                     size="sm" 
                     variant="outline"
                     onClick={() => setCurrentOffer(prev => ({ ...prev, years: Math.max(1, prev.years - 1) }))}
                   >
-                    -1
+                    -1 Year
                   </Button>
                   <Button 
                     size="sm" 
                     variant="outline"
                     onClick={() => setCurrentOffer(prev => ({ ...prev, years: Math.min(5, prev.years + 1) }))}
                   >
-                    +1
+                    +1 Year
                   </Button>
                 </div>
               </div>
+              
               <div>
-                <label className="text-sm text-gray-500">Bonus</label>
-                <div className="flex space-x-1 mt-1">
+                <label className="text-sm text-gray-500 block mb-2">Signing Bonus</label>
+                <div className="flex gap-2">
                   <Button 
                     size="sm" 
                     variant="outline"
@@ -334,7 +323,8 @@ export default function ContractNegotiation({ player, isOpen, onClose }: Contrac
             </div>
           </div>
         )}
-      </CardContent>
-    </Card>
+        </div>
+      </DialogContent>
+    </Dialog>
   );
 }

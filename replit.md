@@ -50,6 +50,13 @@ Built as a React + Express web application with PostgreSQL database, using moder
 - ✓ Changed medium-range player stats (19-31) to display as white text for better readability
 - ✓ Added enhanced error handling and debugging for Dashboard player data loading
 - ✓ Fixed "Create Demo Notifications" functionality by replacing broken NotificationService calls with direct storage operations
+- ✓ Fixed navigation links visibility by changing breakpoint from xl to lg
+- ✓ Removed Auto Formation functionality entirely from TacticalFormation component
+- ✓ Converted ContractNegotiation to popup dialog format with improved layout
+- ✓ Fixed contract salary/years overlap by organizing controls in separate sections
+- ✓ Added formation persistence - formations now save to database and reload properly
+- ✓ Added Grant Test Credits functionality for Macomb Cougars testing
+- ✓ Fixed "Fill my Division" by adding proper AI user creation before team creation
 
 ### Technical Improvements
 - **Notification System**: Now uses solid background colors (red, blue, green, yellow) with white text for proper visibility

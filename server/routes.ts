@@ -1331,10 +1331,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
       for (let i = 0; i < 15; i++) { // Create 15 AI teams
         const teamName = aiTeamNames[i % aiTeamNames.length] + ` ${Math.floor(Math.random() * 100)}`;
         
+        // Create AI user first
+        const aiUserId = `ai-${Date.now()}-${i}`;
+        await storage.upsertUser({
+          id: aiUserId,
+          email: `ai${i}@realm-rivalry.com`,
+          firstName: `AI`,
+          lastName: `Team${i + 1}`,
+          profileImageUrl: null
+        });
+
         // Create AI team
         const team = await storage.createTeam({
           name: teamName,
-          userId: `ai-${Date.now()}-${i}`, // Unique AI user ID
+          userId: aiUserId,
           division: division,
           wins: Math.floor(Math.random() * 5),
           losses: Math.floor(Math.random() * 5),
