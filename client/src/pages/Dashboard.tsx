@@ -11,7 +11,7 @@ import MatchViewer from "@/components/MatchViewer";
 import LeagueStandings from "@/components/LeagueStandings";
 import NotificationCenter from "@/components/NotificationCenter";
 import { apiRequest } from "@/lib/queryClient";
-import { Bell } from "lucide-react";
+import { Bell, Shield } from "lucide-react";
 
 export default function Dashboard() {
   const { toast } = useToast();
