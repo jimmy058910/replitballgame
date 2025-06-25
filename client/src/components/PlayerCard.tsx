@@ -7,6 +7,7 @@ interface PlayerCardProps {
   player: any;
   showActions?: boolean;
   onAction?: (action: string, player: any) => void;
+  compact?: boolean;
 }
 
 // Role-based color system
@@ -60,7 +61,7 @@ const getRaceEmoji = (race: string) => {
   }
 };
 
-export default function PlayerCard({ player, showActions = false, onAction }: PlayerCardProps) {
+export default function PlayerCard({ player, showActions = false, onAction, compact = false }: PlayerCardProps) {
   const displayName = player.firstName && player.lastName 
     ? `${player.firstName} ${player.lastName}` 
     : player.name || 'Unknown Player';
@@ -106,32 +107,40 @@ export default function PlayerCard({ player, showActions = false, onAction }: Pl
           </div>
         </div>
 
-        {/* Stats Grid */}
-        <div className="grid grid-cols-5 gap-2 text-xs mb-3">
-          <div className="text-center">
-            <div className={`font-semibold ${getStatColor(player.speed)}`}>{player.speed}</div>
-            <div className="text-gray-500">SPD</div>
+        {/* Stats Grid - Conditional based on compact mode */}
+        {!compact ? (
+          <div className="grid grid-cols-5 gap-2 text-xs mb-3">
+            <div className="text-center">
+              <div className={`font-semibold ${getStatColor(player.speed)}`}>{player.speed}</div>
+              <div className="text-gray-500">SPD</div>
+            </div>
+            <div className="text-center">
+              <div className={`font-semibold ${getStatColor(player.power)}`}>{player.power}</div>
+              <div className="text-gray-500">PWR</div>
+            </div>
+            <div className="text-center">
+              <div className={`font-semibold ${getStatColor(player.throwing)}`}>{player.throwing}</div>
+              <div className="text-gray-500">THR</div>
+            </div>
+            <div className="text-center">
+              <div className={`font-semibold ${getStatColor(player.catching)}`}>{player.catching}</div>
+              <div className="text-gray-500">CAT</div>
+            </div>
+            <div className="text-center">
+              <div className={`font-semibold ${getStatColor(player.kicking)}`}>{player.kicking}</div>
+              <div className="text-gray-500">KCK</div>
+            </div>
           </div>
-          <div className="text-center">
-            <div className={`font-semibold ${getStatColor(player.power)}`}>{player.power}</div>
-            <div className="text-gray-500">PWR</div>
+        ) : (
+          <div className="flex items-center gap-3 text-xs mb-3">
+            <span className={`font-semibold ${getStatColor(player.speed)}`}>SPD: {player.speed}</span>
+            <span className={`font-semibold ${getStatColor(player.power)}`}>PWR: {player.power}</span>
+            <span className={`font-semibold ${getStatColor(player.throwing)}`}>THR: {player.throwing}</span>
           </div>
-          <div className="text-center">
-            <div className={`font-semibold ${getStatColor(player.throwing)}`}>{player.throwing}</div>
-            <div className="text-gray-500">THR</div>
-          </div>
-          <div className="text-center">
-            <div className={`font-semibold ${getStatColor(player.catching)}`}>{player.catching}</div>
-            <div className="text-gray-500">CAT</div>
-          </div>
-          <div className="text-center">
-            <div className={`font-semibold ${getStatColor(player.kicking)}`}>{player.kicking}</div>
-            <div className="text-gray-500">KCK</div>
-          </div>
-        </div>
+        )}
 
-        {/* Player Abilities */}
-        {player.abilities && player.abilities.length > 0 && (
+        {/* Player Abilities - Hidden in compact mode */}
+        {!compact && player.abilities && player.abilities.length > 0 && (
           <div className="mb-3">
             <div className="text-xs text-gray-500 mb-1">Abilities</div>
             <div className="flex flex-wrap gap-1">
