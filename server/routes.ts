@@ -356,7 +356,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const candidates = [];
       for (let i = 0; i < numCandidates; i++) {
         const age = Math.floor(Math.random() * 7) + 18; // 18-24 years old
-        const races = ["Human", "Elf", "Dwarf", "Orc"];
+        const races = ["Human", "Sylvan", "Gryll", "Lumina", "Umbra"];
         const names = ["Alex", "Jordan", "Taylor", "Casey", "Riley", "Morgan", "Avery", "Quinn"];
         
         // Young players start with lower stats (1-40 range)

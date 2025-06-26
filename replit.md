@@ -116,6 +116,9 @@ Built as a React + Express web application with PostgreSQL database, using moder
 - ✓ Fixed tryout candidate stat generation to keep stats in proper 1-40 range for young players
 - ✓ Added exciting reveal animation system with progress bars and sequential candidate reveals
 - ✓ Enhanced tryout experience with visual effects for high potential players and animated card entries
+- ✓ Fixed race generation to use correct fantasy races (Human, Sylvan, Gryll, Lumina, Umbra) instead of generic races
+- ✓ Enhanced candidate display with universal color-coded stats, power ratings, and proper stat symbols
+- ✓ Removed subjective market value display and added proper accessibility descriptions
 
 ### Technical Improvements
 - **Notification System**: Now uses solid background colors (red, blue, green, yellow) with white text for proper visibility

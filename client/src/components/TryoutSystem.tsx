@@ -3,7 +3,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Progress } from "@/components/ui/progress";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
@@ -20,6 +20,8 @@ interface TryoutCandidate {
   agility: number;
   power: number;
   stamina: number;
+  catching?: number;
+  kicking?: number;
   marketValue: number;
   potential: "High" | "Medium" | "Low";
 }
@@ -256,6 +258,9 @@ export default function TryoutSystem({ teamId }: TryoutSystemProps) {
               <Trophy className="w-6 h-6 text-yellow-500" />
               {tryoutType === "basic" ? "Basic" : "Advanced"} Tryout Results
             </DialogTitle>
+            <DialogDescription>
+              Review and select up to 2 promising candidates to add to your taxi squad for future promotion.
+            </DialogDescription>
           </DialogHeader>
           
           <div className="space-y-6">
@@ -314,7 +319,7 @@ export default function TryoutSystem({ teamId }: TryoutSystemProps) {
                       </Badge>
                     </CardTitle>
                   </CardHeader>
-                  <CardContent className="space-y-2">
+                  <CardContent className="space-y-3">
                     <div className="flex items-center gap-2 text-xs flex-wrap">
                       <Badge variant="secondary">{candidate.race}</Badge>
                       <Badge variant="outline">{getPlayerRole(candidate)}</Badge>
@@ -329,17 +334,52 @@ export default function TryoutSystem({ teamId }: TryoutSystemProps) {
                       </Badge>
                     </div>
                     
-                    <div className="grid grid-cols-2 gap-1 text-xs">
-                      <div>Leadership: {candidate.leadership}</div>
-                      <div>Throwing: {candidate.throwing}</div>
-                      <div>Speed: {candidate.speed}</div>
-                      <div>Agility: {candidate.agility}</div>
-                      <div>Power: {candidate.power}</div>
-                      <div>Stamina: {candidate.stamina}</div>
+                    {/* Power Rating */}
+                    <div className="flex items-center justify-center">
+                      <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white font-bold text-sm">
+                        {Math.round((candidate.speed + candidate.power + candidate.throwing + (candidate.catching || 0) + (candidate.kicking || 0)) / 5)}
+                      </div>
+                      <span className="ml-2 text-xs text-gray-400">Power</span>
                     </div>
                     
-                    <div className="text-xs text-gray-400">
-                      Value: {candidate.marketValue.toLocaleString()} credits
+                    {/* Core Stats with Colors and Symbols */}
+                    <div className="grid grid-cols-2 gap-1 text-xs">
+                      <div className={`flex items-center gap-1 ${
+                        candidate.leadership >= 32 ? 'text-green-400' :
+                        candidate.leadership <= 18 ? 'text-red-400' : 'text-white'
+                      }`}>
+                        <span className="text-yellow-400">👑</span> {candidate.leadership}
+                      </div>
+                      <div className={`flex items-center gap-1 ${
+                        candidate.throwing >= 32 ? 'text-green-400' :
+                        candidate.throwing <= 18 ? 'text-red-400' : 'text-white'
+                      }`}>
+                        <span className="text-blue-400">🎯</span> {candidate.throwing}
+                      </div>
+                      <div className={`flex items-center gap-1 ${
+                        candidate.speed >= 32 ? 'text-green-400' :
+                        candidate.speed <= 18 ? 'text-red-400' : 'text-white'
+                      }`}>
+                        <span className="text-green-400">⚡</span> {candidate.speed}
+                      </div>
+                      <div className={`flex items-center gap-1 ${
+                        candidate.agility >= 32 ? 'text-green-400' :
+                        candidate.agility <= 18 ? 'text-red-400' : 'text-white'
+                      }`}>
+                        <span className="text-pink-400">🏃</span> {candidate.agility}
+                      </div>
+                      <div className={`flex items-center gap-1 ${
+                        candidate.power >= 32 ? 'text-green-400' :
+                        candidate.power <= 18 ? 'text-red-400' : 'text-white'
+                      }`}>
+                        <span className="text-red-400">💪</span> {candidate.power}
+                      </div>
+                      <div className={`flex items-center gap-1 ${
+                        candidate.stamina >= 32 ? 'text-green-400' :
+                        candidate.stamina <= 18 ? 'text-red-400' : 'text-white'
+                      }`}>
+                        <span className="text-cyan-400">🫁</span> {candidate.stamina}
+                      </div>
                     </div>
                   </CardContent>
                 </Card>
