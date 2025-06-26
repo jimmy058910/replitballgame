@@ -3803,6 +3803,61 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get current seasonal cycle day and phase
+  app.get('/api/season/current-cycle', isAuthenticated, async (req: any, res) => {
+    try {
+      // For now, we'll simulate a cycle. In a real implementation, this would be calculated
+      // based on the actual season start date and current time
+      const currentSeason = await storage.getCurrentSeason();
+      
+      // Simulate current day (1-17) - this would be calculated from season start date
+      const seasonStartDate = currentSeason?.startDate || new Date();
+      const currentDate = new Date();
+      const daysSinceStart = Math.floor((currentDate.getTime() - seasonStartDate.getTime()) / (1000 * 60 * 60 * 24));
+      const currentDay = ((daysSinceStart % 17) + 1); // 1-17 cycle
+      
+      let phase: string;
+      let description: string;
+      let details: string;
+      
+      if (currentDay >= 1 && currentDay <= 14) {
+        phase = "Regular Season";
+        description = `Day ${currentDay} - Regular Season Matches`;
+        if (currentDay <= 7) {
+          details = "First half of regular season. Teams play to secure playoff positioning.";
+        } else {
+          details = "Second half of regular season. Every match counts for playoff qualification.";
+        }
+      } else if (currentDay === 15) {
+        phase = "Playoffs";
+        description = "Day 15 - Championship Playoffs";
+        details = "Single-elimination playoffs. Top 4 teams per division compete for promotion.";
+      } else if (currentDay >= 16 && currentDay <= 17) {
+        phase = "Off-Season";
+        description = `Day ${currentDay} - Off-Season Management`;
+        if (currentDay === 16) {
+          details = "Promotion & Relegation processing. League re-shuffle in progress.";
+        } else {
+          details = "Player management phase. Sign free agents, handle contracts, prepare for next season.";
+        }
+      }
+      
+      res.json({
+        currentDay,
+        phase,
+        description,
+        details,
+        season: currentSeason?.name || "Season 1",
+        cycleLength: 17,
+        daysUntilPlayoffs: Math.max(0, 15 - currentDay),
+        daysUntilNewSeason: currentDay >= 17 ? 0 : (17 - currentDay)
+      });
+    } catch (error) {
+      console.error("Error fetching seasonal cycle:", error);
+      res.status(500).json({ message: "Failed to fetch seasonal cycle" });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }

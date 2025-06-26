@@ -36,6 +36,11 @@ export default function Competition() {
     queryKey: ["/api/tournaments"],
   });
 
+  const { data: seasonalCycle } = useQuery({
+    queryKey: ["/api/season/current-cycle"],
+    refetchInterval: 60000, // Refresh every minute
+  });
+
   const { data: divisionTeams } = useQuery({
     queryKey: [`/api/teams/division/${team?.division || 8}`],
     enabled: browsingTeams && !!team,
@@ -88,6 +93,46 @@ export default function Competition() {
           <Trophy className="h-8 w-8 text-yellow-400" />
           <h1 className="text-3xl font-bold font-orbitron">Competition Hub</h1>
         </div>
+
+        {/* Seasonal Cycle Display */}
+        {seasonalCycle && (
+          <Card className="bg-gradient-to-r from-purple-900 to-blue-900 border-purple-700 mb-8">
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-4">
+                  <div className="bg-purple-600 bg-opacity-30 p-3 rounded-full">
+                    <Clock className="h-8 w-8 text-purple-200" />
+                  </div>
+                  <div>
+                    <div className="text-sm text-purple-200 mb-1">{seasonalCycle.season}</div>
+                    <h2 className="text-2xl font-bold text-white mb-1">{seasonalCycle.description}</h2>
+                    <p className="text-purple-100 text-sm">{seasonalCycle.details}</p>
+                  </div>
+                </div>
+                <div className="text-right">
+                  <div className="text-lg font-bold text-white mb-1">Day {seasonalCycle.currentDay}/17</div>
+                  <Badge 
+                    variant={seasonalCycle.phase === "Regular Season" ? "default" : 
+                            seasonalCycle.phase === "Playoffs" ? "destructive" : "secondary"}
+                    className="text-xs"
+                  >
+                    {seasonalCycle.phase}
+                  </Badge>
+                  {seasonalCycle.daysUntilPlayoffs > 0 && (
+                    <div className="text-xs text-purple-200 mt-1">
+                      {seasonalCycle.daysUntilPlayoffs} days to playoffs
+                    </div>
+                  )}
+                  {seasonalCycle.daysUntilNewSeason > 0 && seasonalCycle.phase === "Off-Season" && (
+                    <div className="text-xs text-purple-200 mt-1">
+                      {seasonalCycle.daysUntilNewSeason} days to new season
+                    </div>
+                  )}
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        )}
 
         <Tabs defaultValue="league" className="space-y-6">
           <TabsList className="grid w-full grid-cols-3 bg-gray-800">

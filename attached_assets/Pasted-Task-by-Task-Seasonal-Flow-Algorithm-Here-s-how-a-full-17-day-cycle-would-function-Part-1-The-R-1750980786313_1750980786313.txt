@@ -1,0 +1,76 @@
+Task-by-Task Seasonal Flow & Algorithm
+Here's how a full 17-day cycle would function:
+
+Part 1: The Regular Season (Days 1-14)
+Task 1 (Scheduling): At the start of the season (Day 1), the system generates a schedule for every league.
+
+Divisions 2-8 (8 teams): Each team plays the other 7 teams twice (a double round-robin) for a total of 14 games. This perfectly fits the 14-day, 1-game-per-day schedule.
+
+Division 1 (16 teams): Each team plays a 28-game schedule over 14 days (2 games per day). This allows them to play every other team in their division roughly twice.
+
+Task 2 (Standings): After each game, update the league standings. A standard, proven system works best:
+
+Win: 3 points
+
+Loss: 0 points
+
+Tie (if possible): 1 point
+
+Task 3 (Tie-Breakers): Define a clear tie-breaker system for the final standings. A good standard is:
+
+Head-to-Head Record (between the tied teams)
+
+Score Difference (Total Scores For - Total Scores Against)
+
+Total Scores For
+
+Part 2: The Playoffs (Day 15)
+Task 4 (Qualification): At the end of Day 14, the Top 4 teams from every single league (across all divisions) qualify for their league's playoff.
+
+Task 5 (Playoff Bracket): A simple, high-stakes single-elimination tournament is perfect for a one-day event.
+
+Semifinals: Seed #1 vs. Seed #4, and Seed #2 vs. Seed #3.
+
+Championship: Winners of the semifinal matches play.
+
+The Prize: The winner of the playoff championship is the only team that earns promotion to the division above. This makes the playoffs incredibly meaningful.
+
+Part 3: The Off-Season - Promotion & Relegation (Days 16-17)
+This is where the algorithm does its most important work. This all happens automatically in the background between seasons.
+
+Task 6 (Process Relegations):
+
+Division 1: The Bottom 4 teams are relegated to Division 2. They will be distributed among the Division 2 leagues for the next season.
+
+Divisions 2-7: The Bottom 2 teams in each league are relegated to the division below.
+
+Division 8: No relegation. This is the floor.
+
+Task 7 (Process Promotions):
+
+From Divisions 2-8: The Playoff Champion of each league is promoted to the division above.
+
+Task 8 (The "Great Re-Shuffle" - The Key to Scalability):
+
+After all promotions and relegations are processed, the system re-balances the leagues for the next season.
+
+Example: Imagine you have two Division 3 leagues and one Division 2 league. The 2 playoff winners from Division 3 get promoted. The bottom 2 from Division 2 get relegated. The Division 2 league for the next season is formed from the remaining D2 teams plus the 2 promoted D3 teams. The two empty spots in Division 3 are then filled by the winners from the four Division 4 leagues below them. This cascade continues down the pyramid.
+
+New Teams: Any empty slots that exist in the lowest tier (Division 8) after the shuffle are then filled with brand new user teams who have been waiting to join. If there are more empty slots than new teams, the system can fill them with temporary AI "ghost" teams to ensure all leagues have 8 teams.
+
+Expansion: If all Division 8 leagues are full and there are still new users waiting, the system automatically generates a new parallel Division 8 league for the next season.
+
+Task 9 (Player Management Phase): During the 2-day off-season, users can perform their management actions: sign players from a free agent pool, handle contracts, maybe participate in a draft of new computer-generated players, etc.
+
+Task 10 (Season Rollover): At the end of Day 17, the new season begins, and the schedule for the next 14 days is generated.
+
+Why This System Works (Problem Mitigation)
+Reduces Stagnation: Requiring a playoff win for promotion means the best "regular season" team isn't guaranteed to move up. It rewards clutch performance and prevents the same top teams from easily yo-yo-ing.
+
+Solves Scalability: The dynamic creation of new Division 8 leagues means the game can support an unlimited number of players without breaking the pyramid structure.
+
+Constant Engagement: With 14 games, playoffs, and a short 2-day off-season, there's always something happening or something to prepare for. Every game matters for playoff positioning, and the bottom of the table is always fighting to avoid relegation.
+
+Clear Goals: Players have a simple, clear goal: Win your league's playoff to get promoted. This is a powerful motivator.
+
+This structure provides a robust, fair, and scalable foundation for the competitive aspect of your game.
