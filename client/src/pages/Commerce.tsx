@@ -102,7 +102,7 @@ export default function Commerce() {
       <div className="max-w-7xl mx-auto px-4 py-8">
         <div className="flex items-center gap-3 mb-8">
           <ShoppingCart className="h-8 w-8 text-green-400" />
-          <h1 className="text-3xl font-bold font-orbitron">Commerce Hub</h1>
+          <h1 className="text-3xl font-bold font-orbitron">Store Hub</h1>
         </div>
 
         {/* Currency Display */}
@@ -154,11 +154,11 @@ export default function Commerce() {
           <TabsList className="grid w-full grid-cols-2 bg-gray-800">
             <TabsTrigger value="store" className="flex items-center gap-2">
               <ShoppingCart className="h-4 w-4" />
-              Team Store
+              Store
             </TabsTrigger>
             <TabsTrigger value="marketplace" className="flex items-center gap-2">
               <Store className="h-4 w-4" />
-              Player Marketplace
+              Marketplace
             </TabsTrigger>
           </TabsList>
 

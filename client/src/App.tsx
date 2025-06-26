@@ -37,9 +37,11 @@ function Router() {
         <>
           <Route path="/" component={Dashboard} />
           <Route path="/team" component={Team} />
+          <Route path="/competition" component={Competition} />
           <Route path="/league" component={League} />
           <Route path="/tournaments" component={Tournaments} />
           <Route path="/exhibitions" component={Exhibitions} />
+          <Route path="/commerce" component={Commerce} />
           <Route path="/inventory" component={Inventory} />
           <Route path="/marketplace" component={Marketplace} />
           <Route path="/store" component={Store} />
