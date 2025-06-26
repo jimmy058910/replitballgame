@@ -339,8 +339,19 @@ export default function Competition() {
                       <div className="grid grid-cols-2 gap-2 text-sm">
                         <div className="text-gray-400">Record:</div>
                         <div className="text-white">{challengeTeam.wins || 0}-{challengeTeam.losses || 0}-{challengeTeam.draws || 0}</div>
-                        <div className="text-gray-400">Points:</div>
-                        <div className="text-white">{challengeTeam.points || 0}</div>
+                        <div className="text-gray-400">Challenge:</div>
+                        <div className={`font-medium ${
+                          !challengeTeam.teamPower || !team?.teamPower ? 'text-gray-400' :
+                          Math.abs((challengeTeam.teamPower || 0) - (team.teamPower || 0)) <= 10 ? 'text-yellow-400' :
+                          (challengeTeam.teamPower || 0) > (team.teamPower || 0) ? 'text-red-400' :
+                          'text-green-400'
+                        }`}>
+                          {!challengeTeam.teamPower || !team?.teamPower ? 'Unknown' :
+                           Math.abs((challengeTeam.teamPower || 0) - (team.teamPower || 0)) <= 10 ? 'Even Match' :
+                           (challengeTeam.teamPower || 0) > (team.teamPower || 0) ? 'Hard' :
+                           'Easy'
+                          }
+                        </div>
                         <div className="text-gray-400">Power:</div>
                         <div className="text-white">{challengeTeam.teamPower || 0}</div>
                       </div>
