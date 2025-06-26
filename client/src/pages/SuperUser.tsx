@@ -133,6 +133,27 @@ export default function SuperUser() {
     },
   });
 
+  // Fill division mutation
+  const fillDivisionMutation = useMutation({
+    mutationFn: async () => {
+      return await apiRequest("/api/leagues/create-ai-teams", "POST", { division: team?.division || 8 });
+    },
+    onSuccess: (data: any) => {
+      toast({
+        title: "AI Teams Created",
+        description: `Successfully created ${data.teams?.length || 15} AI teams for the league`,
+      });
+      queryClient.invalidateQueries({ queryKey: ["/api/leagues"] });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Failed to Create AI Teams",
+        description: error.message || "Could not create AI teams",
+        variant: "destructive",
+      });
+    },
+  });
+
   // Start tournament mutation
   const startTournamentMutation = useMutation({
     mutationFn: async () => {
@@ -306,12 +327,12 @@ export default function SuperUser() {
             </CardContent>
           </Card>
 
-          {/* Tournament Management */}
+          {/* League Management */}
           <Card className="bg-gray-800 border-gray-700">
             <CardHeader>
               <CardTitle className="font-orbitron text-xl flex items-center">
                 <Trophy className="w-5 h-5 mr-2 text-yellow-400" />
-                Tournament Management
+                League Management
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -321,14 +342,24 @@ export default function SuperUser() {
                   Division {team?.division || 8}
                 </div>
               </div>
-              <Button 
-                onClick={() => startTournamentMutation.mutate()}
-                disabled={startTournamentMutation.isPending}
-                className="w-full"
-                variant="outline"
-              >
-                {startTournamentMutation.isPending ? "Starting..." : "Manually Start Tournament"}
-              </Button>
+              <div className="space-y-2">
+                <Button 
+                  onClick={() => fillDivisionMutation.mutate()}
+                  disabled={fillDivisionMutation.isPending}
+                  className="w-full"
+                  variant="outline"
+                >
+                  {fillDivisionMutation.isPending ? "Creating..." : "Fill My Division"}
+                </Button>
+                <Button 
+                  onClick={() => startTournamentMutation.mutate()}
+                  disabled={startTournamentMutation.isPending}
+                  className="w-full"
+                  variant="outline"
+                >
+                  {startTournamentMutation.isPending ? "Starting..." : "Manually Start Tournament"}
+                </Button>
+              </div>
             </CardContent>
           </Card>
         </div>
