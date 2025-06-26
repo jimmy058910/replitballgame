@@ -29,7 +29,7 @@ export default function Competition() {
 
   const { data: standings } = useQuery({
     queryKey: [`/api/leagues/${team?.division || 8}/standings`],
-    enabled: !!team?.division,
+    enabled: !!team,
   });
 
   const { data: tournaments } = useQuery({
@@ -37,8 +37,8 @@ export default function Competition() {
   });
 
   const { data: divisionTeams } = useQuery({
-    queryKey: ["/api/teams/division", team?.division || 8],
-    enabled: browsingTeams && !!team?.division,
+    queryKey: [`/api/teams/division/${team?.division || 8}`],
+    enabled: browsingTeams && !!team,
   });
 
   const browseMutation = useMutation({

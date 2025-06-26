@@ -314,7 +314,91 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/teams/division/:division', isAuthenticated, async (req, res) => {
     try {
       const division = parseInt(req.params.division);
-      const teams = await storage.getTeamsByDivision(division);
+      if (isNaN(division) || division < 1 || division > 8) {
+        return res.status(400).json({ message: "Invalid division parameter" });
+      }
+      
+      let teams = await storage.getTeamsByDivision(division);
+      
+      // If no teams exist in this division, create AI teams
+      if (teams.length === 0) {
+        console.log(`Creating AI teams for division ${division} (Browse Teams)`);
+        
+        const aiTeamNames = [
+          "Thunder Hawks", "Storm Eagles", "Fire Dragons", "Ice Wolves", 
+          "Lightning Bolts", "Shadow Panthers", "Golden Lions", "Silver Sharks"
+        ];
+        const races = ["Human", "Sylvan", "Gryll", "Lumina", "Umbra"];
+        
+        for (let i = 0; i < 8; i++) {
+          const teamName = aiTeamNames[i] || `Division ${division} Team ${i + 1}`;
+          
+          // Create AI user first
+          const aiUser = await storage.upsertUser({
+            id: `ai_user_div${division}_team${i}_browse`,
+            email: `ai_div${division}_team${i}_browse@realmrivalry.ai`,
+            firstName: "AI",
+            lastName: "Coach",
+            profileImageUrl: null
+          });
+
+          // Create team
+          const team = await storage.createTeam({
+            name: teamName,
+            userId: aiUser.id,
+            division: division,
+            wins: Math.floor(Math.random() * 5),
+            losses: Math.floor(Math.random() * 5),
+            points: Math.floor(Math.random() * 100),
+            formation: JSON.stringify({
+              starters: [],
+              substitutes: []
+            }),
+            substitutionOrder: JSON.stringify({})
+          });
+
+          // Create team finances
+          await storage.createTeamFinances({
+            teamId: team.id,
+            credits: 50000 + Math.floor(Math.random() * 50000),
+            premiumCurrency: Math.floor(Math.random() * 100)
+          });
+
+          // Create 12 players for each team
+          for (let j = 0; j < 12; j++) {
+            const race = races[Math.floor(Math.random() * races.length)];
+            const positions = ["Passer", "Runner", "Blocker"];
+            const position = positions[Math.floor(Math.random() * positions.length)];
+            
+            await storage.createPlayer({
+              name: `${race} Player ${j + 1}`,
+              firstName: `${race}`,
+              lastName: `Player ${j + 1}`,
+              teamId: team.id,
+              position: position,
+              race: race,
+              age: 18 + Math.floor(Math.random() * 12),
+              speed: 10 + Math.floor(Math.random() * 30),
+              power: 10 + Math.floor(Math.random() * 30),
+              throwing: 10 + Math.floor(Math.random() * 30),
+              catching: 10 + Math.floor(Math.random() * 30),
+              kicking: 10 + Math.floor(Math.random() * 30),
+              stamina: 10 + Math.floor(Math.random() * 30),
+              leadership: 10 + Math.floor(Math.random() * 30),
+              agility: 10 + Math.floor(Math.random() * 30),
+              salary: 25000 + Math.floor(Math.random() * 50000),
+              contractValue: 100000 + Math.floor(Math.random() * 200000),
+              isMarketplace: false,
+              marketplacePrice: null,
+              abilities: JSON.stringify([])
+            });
+          }
+        }
+        
+        teams = await storage.getTeamsByDivision(division);
+        console.log(`Created ${teams.length} AI teams for division ${division} (Browse Teams)`);
+      }
+      
       res.json(teams);
     } catch (error) {
       console.error("Error fetching division teams:", error);
