@@ -40,6 +40,10 @@ export default function Dashboard() {
     queryKey: ["/api/teams/my"],
   });
 
+  const { data: finances } = useQuery({
+    queryKey: ["/api/teams/my/finances"],
+  });
+
   const { data: players, isLoading: playersLoading, error: playersError } = useQuery({
     queryKey: [`/api/teams/${team?.id}/players`],
     enabled: !!team?.id,
@@ -147,7 +151,7 @@ export default function Dashboard() {
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-gray-400 text-sm">Credits</p>
-                    <p className="text-2xl font-bold text-gold-400">{team.credits?.toLocaleString()}</p>
+                    <p className="text-2xl font-bold text-gold-400">{(finances?.credits || team.credits || 0).toLocaleString()}</p>
                     <p className="text-xs text-gray-400">Available funds</p>
                   </div>
                   <div className="bg-gold-400 bg-opacity-20 p-3 rounded-lg">

@@ -36,7 +36,7 @@ export default function Navigation() {
     { path: "/community", label: "Community", icon: MessageCircle },
   ];
 
-  const credits = finances?.credits || team?.credits || 15000;
+  const credits = finances?.credits || team?.credits || 0;
   const premiumCurrency = finances?.premiumCurrency || 0;
 
   return (
