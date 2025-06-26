@@ -6,7 +6,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import { Users, ArrowUp, ArrowDown, Save, RotateCcw } from "lucide-react";
+import { Users, ArrowUp, ArrowDown, Save, RotateCcw, Settings } from "lucide-react";
 
 interface Player {
   id: string;
@@ -164,6 +164,50 @@ export default function TextTacticalManager({ players, savedFormation }: TextTac
     }
   };
 
+  const addToSubstitutes = (playerId: string, role: keyof typeof substitutionOrder) => {
+    setSubstitutionOrder(prev => ({
+      ...prev,
+      [role]: [...prev[role], playerId]
+    }));
+  };
+
+  const removeFromSubstitutes = (playerId: string, role: keyof typeof substitutionOrder) => {
+    setSubstitutionOrder(prev => ({
+      ...prev,
+      [role]: prev[role].filter(id => id !== playerId)
+    }));
+  };
+
+  const moveSubUp = (playerId: string, role: keyof typeof substitutionOrder) => {
+    const currentOrder = substitutionOrder[role];
+    const index = currentOrder.indexOf(playerId);
+    
+    if (index > 0) {
+      const newOrder = [...currentOrder];
+      [newOrder[index], newOrder[index - 1]] = [newOrder[index - 1], newOrder[index]];
+      
+      setSubstitutionOrder(prev => ({
+        ...prev,
+        [role]: newOrder
+      }));
+    }
+  };
+
+  const moveSubDown = (playerId: string, role: keyof typeof substitutionOrder) => {
+    const currentOrder = substitutionOrder[role];
+    const index = currentOrder.indexOf(playerId);
+    
+    if (index < currentOrder.length - 1) {
+      const newOrder = [...currentOrder];
+      [newOrder[index], newOrder[index + 1]] = [newOrder[index + 1], newOrder[index]];
+      
+      setSubstitutionOrder(prev => ({
+        ...prev,
+        [role]: newOrder
+      }));
+    }
+  };
+
   const resetToOptimal = () => {
     // Sort players by power rating
     const sortedPlayers = players.sort((a, b) => getPlayerPower(b.id) - getPlayerPower(a.id));
@@ -292,17 +336,48 @@ export default function TextTacticalManager({ players, savedFormation }: TextTac
             <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
               {starters.map((playerId, index) => {
                 const role = getPlayerRole(playerId);
-                const roleCount = getStartersByRole(role.toLowerCase()).indexOf(playerId) + 1;
-                const isWildcard = index >= 5 || 
-                  (role.toLowerCase() === 'passer' && getStartersByRole('passer').length > 1) ||
-                  (role.toLowerCase() === 'runner' && getStartersByRole('runner').length > 2) ||
-                  (role.toLowerCase() === 'blocker' && getStartersByRole('blocker').length > 2);
+                const roleLower = role.toLowerCase();
+                
+                // Determine if this is a wildcard based on position requirements
+                const passerStarters = getStartersByRole('passer');
+                const runnerStarters = getStartersByRole('runner');
+                const blockerStarters = getStartersByRole('blocker');
+                
+                let isWildcard = false;
+                let roleLabel = role;
+                let positionNumber = 1;
+                
+                if (roleLower === 'passer') {
+                  const passerIndex = passerStarters.indexOf(playerId);
+                  if (passerIndex === 0) {
+                    roleLabel = 'Passer';
+                    positionNumber = 1;
+                  } else {
+                    isWildcard = true;
+                  }
+                } else if (roleLower === 'runner') {
+                  const runnerIndex = runnerStarters.indexOf(playerId);
+                  if (runnerIndex < 2) {
+                    roleLabel = 'Runner';
+                    positionNumber = runnerIndex + 1;
+                  } else {
+                    isWildcard = true;
+                  }
+                } else if (roleLower === 'blocker') {
+                  const blockerIndex = blockerStarters.indexOf(playerId);
+                  if (blockerIndex < 2) {
+                    roleLabel = 'Blocker';
+                    positionNumber = blockerIndex + 1;
+                  } else {
+                    isWildcard = true;
+                  }
+                }
 
                 return (
                   <div key={playerId} className="flex items-center justify-between p-2 border rounded">
                     <div className="flex items-center gap-2">
                       <Badge variant="outline">
-                        {isWildcard ? 'Wildcard' : `${role} ${roleCount}`}
+                        {isWildcard ? 'Wildcard' : `${roleLabel} ${positionNumber}`}
                       </Badge>
                       <span>{getPlayerName(playerId)}</span>
                       <span className="text-sm text-muted-foreground">({getPlayerPower(playerId)})</span>
@@ -316,32 +391,93 @@ export default function TextTacticalManager({ players, savedFormation }: TextTac
             </div>
           </div>
 
-          {/* Available Players */}
+          {/* Substitution Orders */}
           <div className="space-y-4">
             {['Passer', 'Runner', 'Blocker'].map(role => {
               const roleKey = role.toLowerCase() as keyof typeof substitutionOrder;
               const availablePlayers = getPlayersByRole(role).filter(p => !starters.includes(p.id));
               const starterCount = getStartersByRole(role.toLowerCase()).length;
               const maxStarters = role === 'Passer' ? 1 : 2;
+              const substitutes = substitutionOrder[roleKey] || [];
 
               return (
                 <div key={role}>
-                  <h4 className="font-medium mb-2">
+                  <h4 className="font-medium mb-2 flex items-center gap-2">
+                    <Settings className="h-4 w-4" />
                     {role}s ({starterCount}/{maxStarters} starters)
                   </h4>
-                  <div className="space-y-1">
-                    {availablePlayers.map(player => (
-                      <div key={player.id} className="flex items-center justify-between p-2 bg-muted rounded">
-                        <div className="flex items-center gap-2">
-                          <span>{getPlayerName(player.id)}</span>
-                          <span className="text-sm text-muted-foreground">({getPlayerPower(player.id)})</span>
-                        </div>
-                        <Button onClick={() => addStarter(player.id)} variant="outline" size="sm">
-                          Add to Starters
-                        </Button>
+                  
+                  {/* Available players not yet in formation */}
+                  {availablePlayers.filter(p => !substitutes.includes(p.id)).length > 0 && (
+                    <div className="mb-3">
+                      <h5 className="text-sm font-medium text-muted-foreground mb-1">Available Players</h5>
+                      <div className="space-y-1">
+                        {availablePlayers.filter(p => !substitutes.includes(p.id)).map(player => (
+                          <div key={player.id} className="flex items-center justify-between p-2 bg-muted rounded">
+                            <div className="flex items-center gap-2">
+                              <span>{getPlayerName(player.id)}</span>
+                              <span className="text-sm text-muted-foreground">({getPlayerPower(player.id)})</span>
+                            </div>
+                            <div className="space-x-2">
+                              <Button onClick={() => addStarter(player.id)} variant="outline" size="sm">
+                                Add to Starters
+                              </Button>
+                              <Button 
+                                onClick={() => addToSubstitutes(player.id, roleKey)} 
+                                variant="ghost" 
+                                size="sm"
+                              >
+                                Add to Subs
+                              </Button>
+                            </div>
+                          </div>
+                        ))}
                       </div>
-                    ))}
-                  </div>
+                    </div>
+                  )}
+
+                  {/* Substitution order */}
+                  {substitutes.length > 0 && (
+                    <div>
+                      <h5 className="text-sm font-medium text-muted-foreground mb-1">Substitution Order</h5>
+                      <div className="space-y-1">
+                        {substitutes.map((playerId, index) => (
+                          <div key={playerId} className="flex items-center justify-between p-2 border rounded">
+                            <div className="flex items-center gap-2">
+                              <Badge variant="secondary">#{index + 1}</Badge>
+                              <span>{getPlayerName(playerId)}</span>
+                              <span className="text-sm text-muted-foreground">({getPlayerPower(playerId)})</span>
+                            </div>
+                            <div className="flex items-center gap-1">
+                              <Button 
+                                onClick={() => moveSubUp(playerId, roleKey)} 
+                                variant="ghost" 
+                                size="sm"
+                                disabled={index === 0}
+                              >
+                                <ArrowUp className="h-3 w-3" />
+                              </Button>
+                              <Button 
+                                onClick={() => moveSubDown(playerId, roleKey)} 
+                                variant="ghost" 
+                                size="sm"
+                                disabled={index === substitutes.length - 1}
+                              >
+                                <ArrowDown className="h-3 w-3" />
+                              </Button>
+                              <Button 
+                                onClick={() => removeFromSubstitutes(playerId, roleKey)} 
+                                variant="ghost" 
+                                size="sm"
+                              >
+                                Remove
+                              </Button>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                 </div>
               );
             })}

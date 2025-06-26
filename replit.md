@@ -122,6 +122,12 @@ Built as a React + Express web application with PostgreSQL database, using moder
 - ✓ Fixed race generation to use correct fantasy races (Human, Sylvan, Gryll, Lumina, Umbra) instead of generic races
 - ✓ Enhanced candidate display with universal color-coded stats, power ratings, and proper stat symbols
 - ✓ Removed subjective market value display and added proper accessibility descriptions
+- ✓ MAJOR FIX: Completely rebuilt tactical formation system with correct 6-position requirements
+- ✓ Fixed wildcard detection logic to properly show role assignments (1 Passer, 2 Runners, 2 Blockers + 1 Wildcard)
+- ✓ Added comprehensive substitution order management with drag-and-drop functionality
+- ✓ Enhanced tactical interface with position-specific controls and validation
+- ✓ Added ability to reorder substitutes for each position type (Passer, Runner, Blocker)
+- ✓ Implemented proper role labeling system that shows "Passer 1", "Runner 1/2", "Blocker 1/2", "Wildcard"
 
 ### Technical Improvements
 - **Notification System**: Now uses solid background colors (red, blue, green, yellow) with white text for proper visibility
