@@ -295,22 +295,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
         teamId = team.id;
       }
       
-      const finances = await storage.getTeamFinances(teamId);
-      res.json(finances || {
-        teamId,
-        season: 1,
-        ticketSales: 250000,
-        concessionSales: 75000,
-        jerseySales: 50000,
-        sponsorships: 100000,
-        playerSalaries: 300000,
-        staffSalaries: 150000,
-        facilities: 50000,
-        totalIncome: 475000,
-        totalExpenses: 500000,
-        netIncome: -25000,
-        credits: 975000
-      });
+      let finances = await storage.getTeamFinances(teamId);
+      
+      // Create default finances if none exist (using database defaults)
+      if (!finances) {
+        finances = await storage.createTeamFinances({
+          teamId,
+          season: 1,
+          ticketSales: 0,
+          concessionSales: 0,
+          jerseySales: 0,
+          sponsorships: 0,
+          playerSalaries: 0,
+          staffSalaries: 0,
+          facilities: 0,
+          credits: 1000000, // Match database default
+          totalIncome: 0,
+          totalExpenses: 0,
+          netIncome: 0,
+          premiumCurrency: 0
+        });
+      }
+      
+      res.json(finances);
     } catch (error) {
       console.error("Error fetching finances:", error);
       res.status(500).json({ message: "Failed to fetch finances" });

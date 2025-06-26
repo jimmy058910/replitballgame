@@ -100,6 +100,9 @@ Built as a React + Express web application with PostgreSQL database, using moder
 - ✓ Updated displayName prioritization to show lastName first, then firstName
 - ✓ Fixed Half display to show "First Half"/"Second Half" for exhibitions
 - ✓ Fixed premium currency display in navigation to show correct values from team finances
+- ✓ CRITICAL FIX: Resolved credit system display bug where credits appeared to have 15,000 minimum threshold
+- ✓ Removed hardcoded fallback value (975,000) from finances API that was causing display inconsistency
+- ✓ Credits now properly display actual values and can go below any threshold as intended
 - ✓ Moved "Fill My Division" functionality from League page to SuperUser panel for admin controls
 - ✓ Organized SuperUser panel with proper "League Management" section for testing controls
 - ✓ Consolidated navigation by combining League/Tournaments/Exhibitions into "Competition" hub
