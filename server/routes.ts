@@ -12,20 +12,25 @@ import { items, stadiums, facilityUpgrades, stadiumEvents } from "@shared/schema
 import { eq, isNotNull, gte, lte, and, desc } from "drizzle-orm";
 import { randomUUID } from "crypto";
 
-// Helper function to calculate team power based on player stats
+// Helper function to calculate team power based on top 9 players (starters + first substitution)
 function calculateTeamPower(players: any[]): number {
   if (!players || players.length === 0) return 0;
   
-  const totalPower = players.reduce((sum, player) => {
-    const playerPower = (
-      (player.speed || 0) + (player.agility || 0) + (player.power || 0) + 
-      (player.stamina || 0) + (player.throwing || 0) + (player.catching || 0) + 
-      (player.leadership || 0)
-    ) / 7;
-    return sum + playerPower;
-  }, 0);
+  // Calculate individual player power using 5 core stats (same as frontend)
+  const playersWithPower = players.map(player => ({
+    ...player,
+    individualPower: (player.speed || 20) + (player.power || 20) + (player.throwing || 20) + 
+                    (player.catching || 20) + (player.kicking || 20)
+  }));
   
-  return Math.round(totalPower / players.length);
+  // Sort by power and take top 9 players (starters + first substitution)
+  const topPlayers = playersWithPower
+    .sort((a, b) => b.individualPower - a.individualPower)
+    .slice(0, 9);
+  
+  // Calculate team power as average of top 9 players
+  const totalPower = topPlayers.reduce((sum, player) => sum + player.individualPower, 0);
+  return Math.round(totalPower / topPlayers.length);
 }
 
 const createTeamSchema = z.object({
