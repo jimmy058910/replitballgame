@@ -41,7 +41,7 @@ export default function Navigation() {
   ];
 
   const credits = finances?.credits || team?.credits || 15000;
-  const premiumCurrency = storeData?.premiumCurrency || 0;
+  const premiumCurrency = finances?.premiumCurrency || 0;
 
   return (
     <nav className="bg-gray-800 border-b border-gray-700 sticky top-0 z-50">
