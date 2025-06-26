@@ -111,6 +111,8 @@ Built as a React + Express web application with PostgreSQL database, using moder
 - ✓ Implemented position-based tactical management (1 Passer, 2 Runners, 3 Blockers)
 - ✓ Added "Reset to Optimal" functionality based on player power ratings
 - ✓ Maintained API compatibility with existing formation storage system
+- ✓ Fixed TryoutSystem API request format errors for both basic and premium tryouts
+- ✓ Corrected apiRequest function calls to use proper parameter order (url, method, data)
 
 ### Technical Improvements
 - **Notification System**: Now uses solid background colors (red, blue, green, yellow) with white text for proper visibility

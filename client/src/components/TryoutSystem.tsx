@@ -46,10 +46,7 @@ export default function TryoutSystem({ teamId }: TryoutSystemProps) {
 
   const hostTryoutMutation = useMutation({
     mutationFn: async (type: "basic" | "advanced") => {
-      return await apiRequest(`/api/teams/${teamId}/tryouts`, {
-        method: "POST",
-        body: JSON.stringify({ type }),
-      });
+      return await apiRequest(`/api/teams/${teamId}/tryouts`, "POST", { type });
     },
     onSuccess: (data) => {
       setCandidates(data.candidates);
@@ -68,10 +65,7 @@ export default function TryoutSystem({ teamId }: TryoutSystemProps) {
 
   const addToTaxiSquadMutation = useMutation({
     mutationFn: async (candidateIds: string[]) => {
-      return await apiRequest(`/api/teams/${teamId}/taxi-squad`, {
-        method: "POST",
-        body: JSON.stringify({ candidateIds }),
-      });
+      return await apiRequest(`/api/teams/${teamId}/taxi-squad`, "POST", { candidateIds });
     },
     onSuccess: () => {
       toast({
