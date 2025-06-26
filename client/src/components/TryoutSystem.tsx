@@ -7,7 +7,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { Progress } from "@/components/ui/progress";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import { Trophy, Star, Users, Clock } from "lucide-react";
+import { Trophy, Star, Users, Clock, Eye, Search } from "lucide-react";
+import UnifiedPlayerCard from "./UnifiedPlayerCard";
 
 interface TryoutCandidate {
   id: string;
@@ -36,6 +37,7 @@ export default function TryoutSystem({ teamId }: TryoutSystemProps) {
   const [candidates, setCandidates] = useState<TryoutCandidate[]>([]);
   const [selectedCandidates, setSelectedCandidates] = useState<string[]>([]);
   const [taxiSquad, setTaxiSquad] = useState<TryoutCandidate[]>([]);
+  const [scoutQuality, setScoutQuality] = useState(50); // Default scout quality
   
   // Reveal system states
   const [isRevealing, setIsRevealing] = useState(false);
@@ -54,119 +56,124 @@ export default function TryoutSystem({ teamId }: TryoutSystemProps) {
     queryKey: [`/api/teams/${teamId}/finances`],
   });
 
+  // Get team's scout quality (simulate for now - will be from database later)
+  const { data: teamScouts } = useQuery({
+    queryKey: [`/api/teams/${teamId}/scouts`],
+    queryFn: () => {
+      // Simulate scout data - in real implementation this would fetch from API
+      return Promise.resolve([
+        { id: '1', name: 'Head Scout', quality: Math.floor(Math.random() * 40) + 60, specialization: 'general' }
+      ]);
+    }
+  });
+
+  // Calculate effective scout quality
+  const effectiveScoutQuality = teamScouts && teamScouts.length > 0 
+    ? Math.max(...teamScouts.map((scout: any) => scout.quality))
+    : 50;
+
+  const basicCost = 25000;
+  const advancedCost = 75000;
+  const currentCredits = finances?.credits || 0;
+  const canAffordBasic = currentCredits >= basicCost;
+  const canAffordAdvanced = currentCredits >= advancedCost;
+
   const hostTryoutMutation = useMutation({
     mutationFn: async (type: "basic" | "advanced") => {
-      return await apiRequest(`/api/teams/${teamId}/tryouts`, "POST", { type });
+      return apiRequest(`/api/teams/${teamId}/tryouts`, "POST", { type });
     },
     onSuccess: (data) => {
+      setCandidates(data.candidates);
       setTryoutType(data.type);
       setShowTryoutModal(true);
-      startRevealSequence(data.candidates);
+      startRevealAnimation(data.candidates);
       queryClient.invalidateQueries({ queryKey: [`/api/teams/${teamId}/finances`] });
     },
-    onError: (error: any) => {
+    onError: (error) => {
       toast({
         title: "Tryout Failed",
-        description: error.message || "Failed to host tryout",
+        description: error.message,
         variant: "destructive",
       });
     },
   });
 
-  // Reveal sequence function
-  const startRevealSequence = (newCandidates: TryoutCandidate[]) => {
+  const addToTaxiSquadMutation = useMutation({
+    mutationFn: async (candidateIds: string[]) => {
+      return apiRequest(`/api/teams/${teamId}/taxi-squad`, "POST", { candidateIds });
+    },
+    onSuccess: () => {
+      toast({
+        title: "Success!",
+        description: `Added ${selectedCandidates.length} player(s) to your taxi squad.`,
+      });
+      setShowTryoutModal(false);
+      setSelectedCandidates([]);
+      setCandidates([]);
+      setRevealedCandidates([]);
+    },
+    onError: (error) => {
+      toast({
+        title: "Failed to add players",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+
+  const startRevealAnimation = (candidateList: TryoutCandidate[]) => {
     setIsRevealing(true);
     setRevealProgress(0);
     setCurrentRevealIndex(0);
     setRevealedCandidates([]);
-    setCandidates(newCandidates);
-    
-    // Animate progress bar over 3 seconds
-    const totalDuration = 3000;
-    const interval = 50;
-    const increment = (100 / totalDuration) * interval;
-    
-    const progressTimer = setInterval(() => {
-      setRevealProgress(prev => {
-        const newProgress = prev + increment;
-        if (newProgress >= 100) {
-          clearInterval(progressTimer);
-          // Start revealing candidates one by one
-          revealCandidatesSequentially(newCandidates);
-          return 100;
-        }
-        return newProgress;
-      });
-    }, interval);
+
+    const totalDuration = 3000; // 3 seconds total
+    const intervalDuration = 50; // Update every 50ms
+    const totalSteps = totalDuration / intervalDuration;
+    let currentStep = 0;
+
+    const interval = setInterval(() => {
+      currentStep++;
+      const progress = (currentStep / totalSteps) * 100;
+      setRevealProgress(progress);
+
+      if (progress >= 100) {
+        clearInterval(interval);
+        setIsRevealing(false);
+        setRevealedCandidates(candidateList);
+      }
+    }, intervalDuration);
   };
-
-  const revealCandidatesSequentially = (candidatesToReveal: TryoutCandidate[]) => {
-    candidatesToReveal.forEach((candidate, index) => {
-      setTimeout(() => {
-        setRevealedCandidates(prev => [...prev, candidate]);
-        setCurrentRevealIndex(index + 1);
-        
-        // Show exciting effect for high potential players
-        if (candidate.potential === "High") {
-          toast({
-            title: "⭐ High Potential Prospect!",
-            description: `${candidate.name} shows exceptional promise!`,
-          });
-        }
-        
-        // Complete reveal sequence
-        if (index === candidatesToReveal.length - 1) {
-          setTimeout(() => {
-            setIsRevealing(false);
-          }, 500);
-        }
-      }, (index + 1) * 800); // 800ms delay between each reveal
-    });
-  };
-
-  const addToTaxiSquadMutation = useMutation({
-    mutationFn: async (candidateIds: string[]) => {
-      return await apiRequest(`/api/teams/${teamId}/taxi-squad`, "POST", { candidateIds });
-    },
-    onSuccess: () => {
-      toast({
-        title: "Players Added",
-        description: "Selected players added to taxi squad",
-      });
-      setShowTryoutModal(false);
-      setCandidates([]);
-      setSelectedCandidates([]);
-      setRevealedCandidates([]);
-      queryClient.invalidateQueries({ queryKey: [`/api/teams/${teamId}/taxi-squad`] });
-    },
-  });
-
-  const basicCost = 50000;
-  const advancedCost = 150000;
-  const currentCredits = finances?.credits || 0;
-
-  const canAffordBasic = currentCredits >= basicCost;
-  const canAffordAdvanced = currentCredits >= advancedCost;
 
   const toggleCandidateSelection = (candidateId: string) => {
     setSelectedCandidates(prev => {
       if (prev.includes(candidateId)) {
         return prev.filter(id => id !== candidateId);
-      } else if (prev.length < 2) { // Max 2 taxi squad slots
+      } else if (prev.length < 2) {
         return [...prev, candidateId];
+      } else {
+        toast({
+          title: "Selection Limit",
+          description: "You can only select up to 2 candidates for your taxi squad.",
+          variant: "destructive",
+        });
+        return prev;
       }
-      return prev;
     });
   };
 
   const getPlayerRole = (candidate: TryoutCandidate) => {
-    if (candidate.leadership + candidate.throwing > candidate.speed + candidate.agility + candidate.power + candidate.stamina) {
-      return "Passer";
-    } else if (candidate.speed + candidate.agility > candidate.power + candidate.stamina) {
-      return "Runner";
-    } else {
-      return "Blocker";
-    }
+    const stats = {
+      throwing: candidate.throwing,
+      speed: candidate.speed,
+      power: candidate.power,
+      catching: candidate.catching || 20,
+      kicking: candidate.kicking || 20
+    };
+
+    if (stats.throwing >= Math.max(stats.speed, stats.power)) return "Passer";
+    if (stats.speed >= stats.power) return "Runner";
+    return "Blocker";
   };
 
   return (
@@ -226,7 +233,7 @@ export default function TryoutSystem({ teamId }: TryoutSystemProps) {
                   <p>• Higher potential players</p>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-lg font-bold text-yellow-400">
+                  <span className="text-lg font-bold text-blue-400">
                     {advancedCost.toLocaleString()} credits
                   </span>
                   <Button
@@ -293,14 +300,42 @@ export default function TryoutSystem({ teamId }: TryoutSystemProps) {
               </div>
             )}
             
+            {/* Scout Quality Display */}
+            <div className="mb-4 p-3 bg-gray-700 rounded-lg border border-gray-600">
+              <div className="flex items-center justify-between mb-2">
+                <div className="flex items-center gap-2">
+                  <Search className="w-4 h-4 text-blue-400" />
+                  <span className="text-sm font-medium text-white">Scout Report Quality</span>
+                </div>
+                <Badge variant="outline" className={`text-xs ${
+                  effectiveScoutQuality >= 80 ? 'border-green-500 text-green-400' :
+                  effectiveScoutQuality >= 60 ? 'border-yellow-500 text-yellow-400' :
+                  effectiveScoutQuality >= 40 ? 'border-orange-500 text-orange-400' : 
+                  'border-red-500 text-red-400'
+                }`}>
+                  {effectiveScoutQuality}% Accuracy
+                </Badge>
+              </div>
+              <div className="text-xs text-gray-400">
+                {effectiveScoutQuality >= 80 
+                  ? "Excellent scout provides very precise stat ranges and accurate potential ratings"
+                  : effectiveScoutQuality >= 60 
+                  ? "Good scout provides reliable information with moderate accuracy"
+                  : effectiveScoutQuality >= 40 
+                  ? "Average scout provides rough estimates with wider stat ranges"
+                  : "Poor scout provides unreliable information with very wide margins of error"
+                }
+              </div>
+            </div>
+
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {revealedCandidates.map((candidate, index) => (
-                <Card 
+                <div
                   key={candidate.id}
                   className={`cursor-pointer transition-all transform hover:scale-105 animate-in slide-in-from-bottom-4 duration-500 ${
                     selectedCandidates.includes(candidate.id)
-                      ? 'bg-blue-700 border-blue-500 shadow-lg shadow-blue-500/20'
-                      : 'bg-gray-700 border-gray-600 hover:bg-gray-600'
+                      ? 'ring-2 ring-blue-500 shadow-lg shadow-blue-500/20'
+                      : ''
                   } ${candidate.potential === "High" ? 'ring-2 ring-yellow-400/50' : ''}`}
                   onClick={() => toggleCandidateSelection(candidate.id)}
                   style={{ 
@@ -308,81 +343,31 @@ export default function TryoutSystem({ teamId }: TryoutSystemProps) {
                     animationFillMode: 'both'
                   }}
                 >
-                  <CardHeader className="pb-2">
-                    <CardTitle className="text-sm flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        {candidate.potential === "High" && <Star className="w-4 h-4 text-yellow-400" />}
-                        {candidate.name}
-                      </div>
-                      <Badge variant="outline" className="text-xs">
-                        Age {candidate.age}
-                      </Badge>
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-3">
-                    <div className="flex items-center gap-2 text-xs flex-wrap">
-                      <Badge variant="secondary">{candidate.race}</Badge>
-                      <Badge variant="outline">{getPlayerRole(candidate)}</Badge>
-                      <Badge 
-                        variant={
-                          candidate.potential === "High" ? "default" :
-                          candidate.potential === "Medium" ? "secondary" : "outline"
-                        }
-                        className={candidate.potential === "High" ? "bg-yellow-500 text-black font-bold" : ""}
-                      >
-                        {candidate.potential} Potential
-                      </Badge>
-                    </div>
-                    
-                    {/* Power Rating */}
-                    <div className="flex items-center justify-center">
-                      <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white font-bold text-sm">
-                        {Math.round((candidate.speed + candidate.power + candidate.throwing + (candidate.catching || 0) + (candidate.kicking || 0)) / 5)}
-                      </div>
-                      <span className="ml-2 text-xs text-gray-400">Power</span>
-                    </div>
-                    
-                    {/* Core Stats with Colors and Symbols */}
-                    <div className="grid grid-cols-2 gap-1 text-xs">
-                      <div className={`flex items-center gap-1 ${
-                        candidate.leadership >= 32 ? 'text-green-400' :
-                        candidate.leadership <= 18 ? 'text-red-400' : 'text-white'
-                      }`}>
-                        <span className="text-yellow-400">👑</span> {candidate.leadership}
-                      </div>
-                      <div className={`flex items-center gap-1 ${
-                        candidate.throwing >= 32 ? 'text-green-400' :
-                        candidate.throwing <= 18 ? 'text-red-400' : 'text-white'
-                      }`}>
-                        <span className="text-blue-400">🎯</span> {candidate.throwing}
-                      </div>
-                      <div className={`flex items-center gap-1 ${
-                        candidate.speed >= 32 ? 'text-green-400' :
-                        candidate.speed <= 18 ? 'text-red-400' : 'text-white'
-                      }`}>
-                        <span className="text-green-400">⚡</span> {candidate.speed}
-                      </div>
-                      <div className={`flex items-center gap-1 ${
-                        candidate.agility >= 32 ? 'text-green-400' :
-                        candidate.agility <= 18 ? 'text-red-400' : 'text-white'
-                      }`}>
-                        <span className="text-pink-400">🏃</span> {candidate.agility}
-                      </div>
-                      <div className={`flex items-center gap-1 ${
-                        candidate.power >= 32 ? 'text-green-400' :
-                        candidate.power <= 18 ? 'text-red-400' : 'text-white'
-                      }`}>
-                        <span className="text-red-400">💪</span> {candidate.power}
-                      </div>
-                      <div className={`flex items-center gap-1 ${
-                        candidate.stamina >= 32 ? 'text-green-400' :
-                        candidate.stamina <= 18 ? 'text-red-400' : 'text-white'
-                      }`}>
-                        <span className="text-cyan-400">🫁</span> {candidate.stamina}
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
+                  <UnifiedPlayerCard
+                    player={{
+                      ...candidate,
+                      firstName: candidate.name.split(' ')[0],
+                      lastName: candidate.name.split(' ').slice(1).join(' ') || candidate.name,
+                      role: getPlayerRole(candidate),
+                      catching: candidate.catching || 20,
+                      kicking: candidate.kicking || 20
+                    }}
+                    variant="recruiting"
+                    scoutQuality={effectiveScoutQuality}
+                    showActions={true}
+                    onAction={(action, player) => {
+                      if (action === 'recruit') {
+                        toggleCandidateSelection(candidate.id);
+                      } else if (action === 'scout_more') {
+                        // Future enhancement: additional scouting
+                        toast({
+                          title: "Additional Scouting",
+                          description: "This feature will be available soon to improve scout accuracy.",
+                        });
+                      }
+                    }}
+                  />
+                </div>
               ))}
             </div>
 

@@ -10,6 +10,7 @@ import {
   boolean,
   uuid,
   serial,
+  real,
 } from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm";
 import { nanoid } from "nanoid";
@@ -699,3 +700,35 @@ export type FacilityUpgrade = typeof facilityUpgrades.$inferSelect;
 export type InsertFacilityUpgrade = typeof facilityUpgrades.$inferInsert;
 export type StadiumEvent = typeof stadiumEvents.$inferSelect;
 export type InsertStadiumEvent = typeof stadiumEvents.$inferInsert;
+
+// Scouting system tables
+export const scouts = pgTable("scouts", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  teamId: uuid("team_id").references(() => teams.id).notNull(),
+  name: varchar("name").notNull(),
+  quality: integer("quality").default(50), // 1-100, affects scouting accuracy
+  specialization: varchar("specialization"), // "offense", "defense", "general"
+  experience: integer("experience").default(1),
+  salary: integer("salary").default(50000),
+  contractLength: integer("contract_length").default(1),
+  isActive: boolean("is_active").default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const scoutingReports = pgTable("scouting_reports", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  scoutId: uuid("scout_id").references(() => scouts.id).notNull(),
+  playerId: uuid("player_id"), // null for prospect reports
+  prospectData: jsonb("prospect_data"), // for tryout candidates
+  reportType: varchar("report_type").notNull(), // "player", "prospect", "team"
+  confidence: integer("confidence").default(50), // scout's confidence in the report
+  statRanges: jsonb("stat_ranges"), // min/max values for each stat
+  potentialRating: real("potential_rating"), // 0.5 to 5.0 stars
+  notes: text("notes"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export type Scout = typeof scouts.$inferSelect;
+export type InsertScout = typeof scouts.$inferInsert;
+export type ScoutingReport = typeof scoutingReports.$inferSelect;
+export type InsertScoutingReport = typeof scoutingReports.$inferInsert;
