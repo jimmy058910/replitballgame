@@ -404,7 +404,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
         console.log(`Created ${teams.length} AI teams for division ${division} (Browse Teams)`);
       }
       
-      res.json(teams);
+      // Add team power calculations for each team
+      const teamsWithPower = await Promise.all(teams.map(async (team) => {
+        const players = await storage.getPlayersByTeamId(team.id);
+        const teamPower = calculateTeamPower(players);
+        return { ...team, teamPower };
+      }));
+
+      res.json(teamsWithPower);
     } catch (error) {
       console.error("Error fetching division teams:", error);
       res.status(500).json({ message: "Failed to fetch division teams" });
