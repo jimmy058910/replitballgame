@@ -208,7 +208,7 @@ export default function Competition() {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <LeagueStandings />
+                <LeagueStandings division={team?.division || 8} />
               </CardContent>
             </Card>
           </TabsContent>
