@@ -6,8 +6,9 @@ import { isUnauthorizedError } from "@/lib/authUtils";
 import Navigation from "@/components/Navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import PlayerCard from "@/components/PlayerCard";
-import MatchViewer from "@/components/MatchViewer";
+
 import LeagueStandings from "@/components/LeagueStandings";
 import NotificationCenter from "@/components/NotificationCenter";
 import { apiRequest } from "@/lib/queryClient";
@@ -161,7 +162,23 @@ export default function Dashboard() {
         {/* Live Match Section */}
         {liveMatches && liveMatches.length > 0 && (
           <div className="mb-8">
-            <MatchViewer match={liveMatches[0]} />
+            <Card className="bg-gray-800 border-gray-700">
+              <CardContent className="p-4">
+                <div className="flex items-center justify-between">
+                  <div className="space-y-1">
+                    <div className="text-sm font-medium">
+                      {liveMatches[0]?.homeTeamName || "Team 1"} vs {liveMatches[0]?.awayTeamName || "Team 2"}
+                    </div>
+                    <div className="text-xs text-gray-400">
+                      {liveMatches[0]?.status === "live" ? "Live Match" : liveMatches[0]?.status}
+                    </div>
+                  </div>
+                  <Badge className="bg-green-500 text-white">
+                    Text Simulation Available
+                  </Badge>
+                </div>
+              </CardContent>
+            </Card>
           </div>
         )}
 

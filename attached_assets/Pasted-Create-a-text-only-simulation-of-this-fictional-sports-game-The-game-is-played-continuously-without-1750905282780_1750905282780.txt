@@ -1,0 +1,172 @@
+Create a text-only simulation of this fictional sports game. The game is played continuously without stoppages except for when a score occurs. The output should be a dynamic, live, play-by-play text commentary of the game as it unfolds, simulating a live sports broadcast log. The simulation must track player statistics and display them at key moments.
+
+1. Core Game Rules
+The Game: A 6-on-6 team sport played in a dome on a rectangular field with curved edges in the four corners. The objective is to get the ball into the opponent's rectangular end zone for 1 point.
+
+Continuous Play: The game clock runs continuously. There are no stoppages of play or the clock for any reason (e.g., out of bounds, incomplete passes, fumbles) except for when a SCORE occurs. After a dropped pass or fumble, the ball is live and can be recovered by any player.
+
+Teams & Field:
+Two teams
+
+Field: A field that is 1920 units long (-960 to +960 on the X-axis) and 1080 units wide (-540 to +540 on the Y-axis). The center line is at X=0.
+
+Orientation: Team 0 starts on the Left, defends the goal at X = -750, and attacks the goal at X = +750. Team 1 starts on the Right, defends the goal at X = +750, and attacks the goal at X = -750.
+
+Game Time:
+League & Tournament Games: Two 15-minute in-game halves (30 minutes total).
+Exhibition Games: Two 10-minute in-game halves (20 minutes total).
+
+The clock should only stop during the reset sequence after a score and at halftime.
+
+2. Player Data Structure
+Each player must be an object or dictionary with two sets of properties: Permanent Attributes and In-Game Stats.
+
+Permanent Attributes (1-40 scale):
+player_name:
+team_id:
+player_role: String ("Passer", "Runner", "Blocker")
+speed: Base movement speed.
+power: Affects tackling and blocking success.
+throwing: Affects pass speed and accuracy.
+catching: Affects catch success and interception chance.
+kicking: Affects kick distance and accuracy.
+stamina: Governs endurance.
+agility: Affects ability to evade or break tackles.
+leadership: Affects teamwork, camaraderie, and decision making.
+
+Dynamic In-Game Stats (Initialize to 0 at game start):
+
+scores: Integer
+knockdowns_inflicted: Integer
+passes_attempted: Integer
+passes_completed: Integer
+passes_caught
+interceptions: Integer
+yards_gained: Integer (from running with the ball)
+tackles_made: Integer
+Fumbles
+Dropped Passes
+
+3. Core Gameplay Logic (The "Engine")
+This is how to resolve key events in each simulation "turn".
+
+Stamina: When players move at high speed or perform major actions (tackle, block), their current stamina depletes. When moving slowly or idle, it recovers. Low stamina must negatively impact all their actions (slower speed, less power, lower accuracy/catch chance).
+
+Possession & Loose Balls: The ball is either held by a player or it is "loose" at a specific coordinate. A failed catch, fumble from a tackle, or a desperation kick results in a loose ball.
+
+Passing:
+
+When a player passes, track it as passes_attempted for the passer.
+
+The ball has an "air time" based on distance and the passer's throwing stat. During this time, it cannot be recovered.
+
+Accuracy is determined by the throwing stat. A low stat means the ball's final destination has a random offset from the receiver's position.
+
+Catching & Interceptions:
+
+When the ball's "air time" ends, it arrives at its destination. Any player (from either team) within a certain radius of the arrival point can attempt to catch it.
+
+The chance to succeed is based on the player's catching stat.
+
+The intended receiver gets a significant bonus to their catch chance.
+
+Any other player (teammate or opponent) gets a penalty to their catch chance (this represents an interception attempt).
+
+If a catch succeeds:
+
+If it's the intended receiver, increment the passer's passes_completed.
+
+If it's an opponent, increment their interceptions.
+
+If the catch fails, the ball becomes loose at that spot (a "drop").
+
+Tackling & Knockdowns:
+
+When a defender is close to a ball carrier, a tackle is attempted.
+
+Resolve with a contest: Tackler.power vs. Carrier.agility.
+
+On success, increment tackles_made for the tackler. The carrier is knocked down (unable to act for a short duration) and fumbles the ball (it becomes loose).
+
+Blocking & Aggressive Tackles:
+
+Blockers can engage opponents who do not have the ball. When a Blocker gets close to their target, they can attempt an "aggressive tackle."
+
+Resolve with a contest: Blocker.power vs. Target.agility.
+
+On success, increment knockdowns_inflicted for the Blocker, and the target is knocked down.
+
+4. AI Decision-Making
+For each "turn", determine player actions based on their Role and the Game State.
+
+If the ball is LOOSE:
+
+The 2 players closest to the ball move to recover it.
+
+Blockers not pursuing the ball must find the nearest opponent to the ball and move to engage/block them.
+
+Runners & Passers not pursuing must move to a cautious defensive holding position on their team's side of the field, spreading out.
+
+If a TEAMMATE has the ball:
+
+Blockers: Target the most threatening defender near the carrier and move to block them.
+
+Runners: Run routes downfield into open space to become passing targets. Their routes should have variety.
+
+Passers: Move to safe "outlet" positions (lateral or slightly behind the carrier) to offer a safe pass option.
+
+If an OPPONENT has the ball:
+
+All players enter a defensive mode and move to intercept or tackle the carrier. Blockers should be the most aggressive in trying to initiate tackles.
+
+If THIS PLAYER has the ball:
+
+If role is "Runner": Priority is to run towards the goal. Will almost never pass unless extremely pressured (e.g., 10% chance) and has an open teammate.
+
+If role is "Passer": Prioritizes running if very close to the goal. Otherwise, if pressured, they will look for the highest "quality" pass available (a combination of receiver being a Runner, being open, and being downfield). If no good pass is available, they will not force a bad throw and will try to run or move instead.
+
+If role is "Blocker": Immediately looks for a nearby Runner or Passer to make a quick "handoff" pass. If no one is available after a short time (e.g., 2 seconds), they perform a "desperation kick" forward. They never run for the goal.
+
+5. Text-Based Output & Commentary Style
+The output should be a fluid, engaging play-by-play log. Use descriptive language.
+
+Example Commentary Flow:
+
+[15:00] [ball starts at midfield, each team tries to get it]
+[14:58] The ball is loose at midfield! Player 7 and Player 2 are closing in!
+[14:56] Player 7 scoops it up! He's a Runner and looking for a lane!
+[14:55] Player 3 (Blocker) moves to engage the defender Player 9!
+[14:52] Player 7 runs ahead for a 5-yard gain before being slowed by traffic.
+[14:50] Player 7 is under pressure from Player 4! He looks for an open teammate...
+[14:48] He spots Player 8 (Runner) making a break down the sideline! He throws a deep pass over the defenders!
+[14:45] The pass is in the air... Player 8 is open! He makes the CATCH at the 35-yard line! A gain of 20 yards before being tackled!
+
+--- [New Scenario] ---
+[10:22] Player 1 (Passer) drops back, looking... he's under pressure!
+[10:20] He throws to Player 5 downfield... but it's a risky pass into coverage!
+[10:18] INCOMPLETE! The ball is dropped by Player 5 after a big hit from Player 11! The ball is now loose!
+
+--- [Score Scenario] ---
+[01:12] Player 5 is in the open! He's at the 10... the 5...
+[01:09] SCORE TEAM 0! Player 5 punches it in!
+[01:09] Announcer: What a run by Player 5! That's his first score of the game!
+
+[PLAYER CARD DISPLAY]
+*************************
+* PLAYER SCORE: Player 5  *
+* Role: Runner            *
+* Game Stats:             *
+* Scores: 1             *
+* Yards Gained: 78      *
+*************************
+
+[01:09] Resetting for the next play...
+
+--- [End of Half] ---
+[00:00] --- HALFTIME ---
+[00:00] Score: Team 0: 1 - Team 1: 0
+[00:00] --- STATS ---
+[00:00] Player 5 (T0): 1 Score, 78 Yards
+[00:00] Player 9 (T1): 3 Passes Attempted, 1 Completion, 45 Yards
+[00:00] Player 4 (T1): 2 Knockdowns Inflicted
+[00:00] Player 2 (T0): 1 Interception

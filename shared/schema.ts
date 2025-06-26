@@ -210,6 +210,7 @@ export const teamFinances = pgTable("team_finances", {
   totalIncome: integer("total_income").default(0),
   totalExpenses: integer("total_expenses").default(0),
   netIncome: integer("net_income").default(0),
+  premiumCurrency: integer("premium_currency").default(0),
   
   createdAt: timestamp("created_at").defaultNow(),
 });

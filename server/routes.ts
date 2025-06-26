@@ -2685,7 +2685,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // ===== MATCH SIMULATION & ANIMATION ROUTES =====
 
   // Get match simulation data with animations
+  // REMOVED: Live match simulation - replaced with text-based system
   app.get("/api/matches/:matchId/simulation", async (req, res) => {
+    // This endpoint is deprecated - text-based simulation handles match viewing
+    res.status(410).json({ message: "Live simulation removed - use text-based matches instead" });
+  });
+
+  // Original simulation endpoint for reference (to be removed)
+  app.get("/api/matches/:matchId/simulation-old", async (req, res) => {
     try {
       const { matchId } = req.params;
       
@@ -3213,7 +3220,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // Add to existing credits
         await storage.updateTeamFinances(team.id, {
           credits: currentFinances.credits + credits,
-          premiumCurrency: (currentFinances.premiumCurrency || 0) + premiumCurrency
+          premiumCurrency: currentFinances.premiumCurrency + premiumCurrency
         });
       }
       

@@ -35,8 +35,8 @@ export default function Exhibitions() {
           title: "Match Found!",
           description: "Starting exhibition match...",
         });
-        // Navigate to match viewer
-        window.location.href = `/match/${data.matchId}`;
+        // Navigate to text-based match viewer
+        window.location.href = `/text-match/${data.matchId}`;
       }
     },
     onError: (error: Error) => {
@@ -302,10 +302,10 @@ export default function Exhibitions() {
                       <Button 
                         variant="outline" 
                         size="sm"
-                        onClick={() => window.location.href = `/replay/${game.replayCode}`}
+                        onClick={() => window.location.href = `/text-match/${game.id}`}
                       >
                         <i className="fas fa-play mr-1"></i>
-                        Replay
+                        View
                       </Button>
                     )}
                   </div>
