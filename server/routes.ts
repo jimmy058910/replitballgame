@@ -3816,9 +3816,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const daysSinceStart = Math.floor((currentDate.getTime() - seasonStartDate.getTime()) / (1000 * 60 * 60 * 24));
       const currentDay = ((daysSinceStart % 17) + 1); // 1-17 cycle
       
-      let phase: string;
-      let description: string;
-      let details: string;
+      let phase: string = "Regular Season";
+      let description: string = "Day 1 - Regular Season Matches";
+      let details: string = "Teams compete in regular season matches.";
       
       if (currentDay >= 1 && currentDay <= 14) {
         phase = "Regular Season";

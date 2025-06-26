@@ -15,6 +15,7 @@ import {
   auctionBids,
   notifications,
   playerInjuries,
+  seasons,
   type User,
   type UpsertUser,
   type Team,
@@ -47,6 +48,8 @@ import {
   type InsertNotification,
   type PlayerInjury,
   type InsertPlayerInjury,
+  type Season,
+  type InsertSeason,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, or, desc, asc, sql } from "drizzle-orm";
@@ -534,12 +537,28 @@ export class DatabaseStorage implements IStorage {
 
   // Season Championships & Playoffs
   async getCurrentSeason(): Promise<Season | undefined> {
-    const [season] = await db
-      .select()
-      .from(seasons)
-      .where(eq(seasons.status, "active"))
-      .limit(1);
-    return season;
+    try {
+      const [season] = await db
+        .select()
+        .from(seasons)
+        .where(eq(seasons.status, "active"))
+        .limit(1);
+      return season;
+    } catch (error) {
+      // If seasons table doesn't exist, return a default season
+      console.log("Seasons table not found, creating default season");
+      return {
+        id: "default-season-1",
+        name: "Season 1",
+        year: 2024,
+        status: "active",
+        startDate: new Date(),
+        endDate: null,
+        playoffStartDate: null,
+        championTeamId: null,
+        createdAt: new Date()
+      };
+    }
   }
 
   async createSeason(seasonData: InsertSeason): Promise<Season> {
