@@ -28,7 +28,7 @@ export default function LeagueStandings({ division }: LeagueStandingsProps) {
     <Card className="bg-gray-800 border-gray-700">
       <CardHeader>
         <CardTitle className="font-orbitron">
-          Division {division} - {getDivisionName(division)}
+          {getDivisionName(division)}
         </CardTitle>
       </CardHeader>
       <CardContent>

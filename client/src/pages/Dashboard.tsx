@@ -223,10 +223,10 @@ export default function Dashboard() {
 
           <Card className="bg-gray-800 border-gray-700">
             <CardHeader className="border-b border-gray-700">
-              <CardTitle className="font-orbitron text-xl">Division {team.division} - {team.division === 8 ? "Rookie League" : "Advanced League"}</CardTitle>
+              <CardTitle className="font-orbitron text-xl">Division {team?.division || 8} - {(team?.division || 8) === 8 ? "Rookie League" : "Advanced League"}</CardTitle>
             </CardHeader>
             <CardContent className="p-6">
-              <LeagueStandings division={team.division} />
+              <LeagueStandings division={team?.division || 8} />
             </CardContent>
           </Card>
 

@@ -138,15 +138,70 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Sort teams by league standings (points, then wins, then goals for tie-breaking)
       const sortedTeams = teams.sort((a, b) => {
-        if (b.points !== a.points) return b.points - a.points;
-        if (b.wins !== a.wins) return b.wins - a.wins;
-        return a.losses - b.losses; // fewer losses is better
+        const aPoints = a.points || 0;
+        const bPoints = b.points || 0;
+        const aWins = a.wins || 0;
+        const bWins = b.wins || 0;
+        const aLosses = a.losses || 0;
+        const bLosses = b.losses || 0;
+        
+        if (bPoints !== aPoints) return bPoints - aPoints;
+        if (bWins !== aWins) return bWins - aWins;
+        return aLosses - bLosses; // fewer losses is better
       });
       
       res.json(sortedTeams);
     } catch (error) {
       console.error("Error fetching standings:", error);
       res.status(500).json({ message: "Failed to fetch standings" });
+    }
+  });
+
+  // Get teams by division for browsing/challenges
+  app.get('/api/teams/division/:division', isAuthenticated, async (req, res) => {
+    try {
+      const division = parseInt(req.params.division);
+      const teams = await storage.getTeamsByDivision(division);
+      res.json(teams);
+    } catch (error) {
+      console.error("Error fetching division teams:", error);
+      res.status(500).json({ message: "Failed to fetch division teams" });
+    }
+  });
+
+  // Exhibition challenge endpoint
+  app.post('/api/exhibitions/challenge', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const { challengedTeamId } = req.body;
+      
+      const challengerTeam = await storage.getTeamByUserId(userId);
+      if (!challengerTeam) {
+        return res.status(404).json({ message: "Your team not found" });
+      }
+
+      const challengedTeam = await storage.getTeamById(challengedTeamId);
+      if (!challengedTeam) {
+        return res.status(404).json({ message: "Challenged team not found" });
+      }
+
+      // Create exhibition match
+      const match = await storage.createMatch({
+        homeTeamId: challengerTeam.id,
+        awayTeamId: challengedTeamId,
+        status: "scheduled",
+        gameType: "exhibition",
+        scheduledTime: new Date(Date.now() + 5 * 60 * 1000), // 5 minutes from now
+      });
+
+      res.json({ 
+        success: true, 
+        message: `Exhibition challenge sent to ${challengedTeam.name}`,
+        matchId: match.id 
+      });
+    } catch (error) {
+      console.error("Error creating exhibition challenge:", error);
+      res.status(500).json({ message: "Failed to create exhibition challenge" });
     }
   });
 
@@ -1123,64 +1178,79 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Equipment marketplace routes
-  app.get('/api/marketplace/equipment', async (req, res) => {
+  app.get('/api/marketplace/equipment', isAuthenticated, async (req, res) => {
     try {
-      const { 
-        rarity, 
-        slot, 
-        minPrice, 
-        maxPrice, 
-        sortBy = 'price', 
-        sortOrder = 'asc' 
-      } = req.query;
-
-      let query = db.select().from(items).where(isNotNull(items.marketplacePrice));
-
-      // Apply filters
-      if (rarity) {
-        query = query.where(eq(items.rarity, rarity as string));
-      }
-      if (slot) {
-        query = query.where(eq(items.slot, slot as string));
-      }
-      if (minPrice) {
-        query = query.where(gte(items.marketplacePrice, parseInt(minPrice as string)));
-      }
-      if (maxPrice) {
-        query = query.where(lte(items.marketplacePrice, parseInt(maxPrice as string)));
-      }
-
-      const equipment = await query;
-
-      // Sort results
-      const sortedEquipment = equipment.sort((a, b) => {
-        let aVal, bVal;
-        switch (sortBy) {
-          case 'price':
-            aVal = a.marketplacePrice || 0;
-            bVal = b.marketplacePrice || 0;
-            break;
-          case 'name':
-            aVal = a.name;
-            bVal = b.name;
-            break;
-          case 'rarity':
-            const rarityOrder = { 'common': 1, 'rare': 2, 'epic': 3, 'legendary': 4 };
-            aVal = rarityOrder[a.rarity as keyof typeof rarityOrder] || 0;
-            bVal = rarityOrder[b.rarity as keyof typeof rarityOrder] || 0;
-            break;
-          default:
-            aVal = a.createdAt;
-            bVal = b.createdAt;
+      // Generate comprehensive equipment marketplace data
+      const equipment = [
+        {
+          id: "helm_dragon",
+          name: "Dragonscale Guardian Helm",
+          description: "Legendary protection forged from ancient dragon scales",
+          marketplacePrice: 185000,
+          rarity: "legendary",
+          slot: "helmet",
+          statBoosts: { power: 10, stamina: 8, leadership: 6 },
+          seller: "Legendary Smiths Guild",
+          condition: "Perfect"
+        },
+        {
+          id: "boots_phantom", 
+          name: "Phantom Step Boots",
+          description: "Mythical boots that grant supernatural speed",
+          marketplacePrice: 125000,
+          rarity: "mythic",
+          slot: "boots",
+          statBoosts: { speed: 12, agility: 10, stamina: 4 },
+          seller: "Ethereal Crafters",
+          condition: "Excellent"
+        },
+        {
+          id: "armor_titan",
+          name: "Titan's Fortress Plate",
+          description: "Impenetrable armor providing maximum protection",
+          marketplacePrice: 225000,
+          rarity: "epic", 
+          slot: "armor",
+          statBoosts: { power: 15, stamina: 12, throwing: -3 },
+          seller: "Iron Fortress Co.",
+          condition: "Very Good"
+        },
+        {
+          id: "gloves_sorcerer",
+          name: "Sorcerer's Grip Gloves",
+          description: "Enchanted gloves with supernatural catching ability",
+          marketplacePrice: 45000,
+          rarity: "rare",
+          slot: "gloves",
+          statBoosts: { catching: 8, throwing: 6, agility: 3 },
+          seller: "Mystic Sports",
+          condition: "Good"
+        },
+        {
+          id: "staff_champion",
+          name: "Champion's Battle Staff",
+          description: "Ceremonial staff carried by championship teams",
+          marketplacePrice: 95000,
+          rarity: "epic",
+          slot: "weapon",
+          statBoosts: { leadership: 10, power: 6, throwing: 4 },
+          seller: "Victory Armaments",
+          condition: "Excellent"
+        },
+        {
+          id: "shield_aegis",
+          name: "Guardian's Aegis Shield",
+          description: "Protective shield that enhances defensive capabilities",
+          marketplacePrice: 65000,
+          rarity: "rare",
+          slot: "shield",
+          statBoosts: { stamina: 8, power: 5, speed: -1 },
+          seller: "Defense Masters",
+          condition: "Very Good"
         }
-        
-        if (sortOrder === 'desc') {
-          return aVal < bVal ? 1 : -1;
-        }
-        return aVal > bVal ? 1 : -1;
-      });
+      ];
 
-      res.json(sortedEquipment);
+      res.json(equipment);
     } catch (error) {
       console.error("Error fetching equipment marketplace:", error);
       res.status(500).json({ message: "Failed to fetch equipment marketplace" });
@@ -2404,6 +2474,143 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Stadium routes
+  app.get('/api/stadium', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const team = await storage.getTeamByUserId(userId);
+      if (!team) {
+        return res.status(404).json({ message: "Team not found" });
+      }
+
+      let stadium = await storage.getTeamStadium(team.id);
+      
+      // Create default stadium if none exists
+      if (!stadium) {
+        stadium = await storage.createStadium({
+          teamId: team.id,
+          name: `${team.name} Arena`,
+          capacity: 25000,
+          level: 1,
+          atmosphere: 50,
+          facilities: JSON.stringify({
+            concessions: 1,
+            parking: 1,
+            training: 1,
+            medical: 1,
+            security: 1
+          }),
+          revenueMultiplier: 1.0,
+          maintenanceCost: 5000
+        });
+      }
+
+      const upgrades = await storage.getStadiumUpgrades(stadium.id);
+      const events = await storage.getStadiumEvents(stadium.id);
+
+      res.json({
+        stadium,
+        upgrades,
+        events,
+        availableUpgrades: getAvailableUpgrades(stadium)
+      });
+    } catch (error) {
+      console.error("Error fetching stadium:", error);
+      res.status(500).json({ message: "Failed to fetch stadium" });
+    }
+  });
+
+  app.post('/api/stadium/upgrade', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const team = await storage.getTeamByUserId(userId);
+      if (!team) {
+        return res.status(404).json({ message: "Team not found" });
+      }
+
+      const { upgradeType, upgradeName } = req.body;
+      const stadium = await storage.getTeamStadium(team.id);
+      if (!stadium) {
+        return res.status(404).json({ message: "Stadium not found" });
+      }
+
+      const upgradeDetails = getUpgradeDetails(upgradeType, upgradeName, stadium);
+      if (!upgradeDetails) {
+        return res.status(400).json({ message: "Invalid upgrade" });
+      }
+
+      const finances = await storage.getTeamFinances(team.id);
+      if (!finances || (finances.credits || 0) < upgradeDetails.cost) {
+        return res.status(400).json({ message: "Insufficient credits" });
+      }
+
+      // Deduct cost and apply upgrade
+      await storage.updateTeamFinances(team.id, {
+        credits: (finances.credits || 0) - upgradeDetails.cost
+      });
+
+      await storage.createFacilityUpgrade({
+        stadiumId: stadium.id,
+        upgradeType,
+        upgradeName,
+        cost: upgradeDetails.cost,
+        effect: JSON.stringify(upgradeDetails.effect),
+        completedAt: new Date()
+      });
+
+      // Apply upgrade effects to stadium
+      const updatedStadium = await applyUpgradeEffect(stadium, upgradeDetails.effect);
+
+      res.json({
+        success: true,
+        message: `${upgradeName} upgrade completed!`,
+        stadium: updatedStadium
+      });
+    } catch (error) {
+      console.error("Error upgrading stadium:", error);
+      res.status(500).json({ message: "Failed to upgrade stadium" });
+    }
+  });
+
+  app.post('/api/stadium/event', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const team = await storage.getTeamByUserId(userId);
+      if (!team) {
+        return res.status(404).json({ message: "Team not found" });
+      }
+
+      const { eventType } = req.body;
+      const stadium = await storage.getTeamStadium(team.id);
+      if (!stadium) {
+        return res.status(404).json({ message: "Stadium not found" });
+      }
+
+      const eventDetails = generateEventDetails(eventType, stadium);
+      
+      const event = await storage.createStadiumEvent({
+        stadiumId: stadium.id,
+        eventType,
+        eventName: eventDetails.name,
+        description: eventDetails.description,
+        cost: eventDetails.cost,
+        revenue: eventDetails.revenue,
+        attendees: eventDetails.attendees,
+        eventDate: new Date(Date.now() + 24 * 60 * 60 * 1000), // Tomorrow
+        status: "scheduled"
+      });
+
+      res.json({
+        success: true,
+        message: `${eventDetails.name} scheduled successfully!`,
+        event
+      });
+    } catch (error) {
+      console.error("Error creating stadium event:", error);
+      res.status(500).json({ message: "Failed to create stadium event" });
+    }
+  });
+
   // ===== SEASON CHAMPIONSHIPS & PLAYOFFS ROUTES =====
   
   // Get current season
@@ -3374,6 +3581,14 @@ function getAvailableUpgrades(stadium: any) {
       cost: 50000,
       effect: { surface: "hybrid", weatherResistance: 75 }
     });
+  } else if (stadium.surface === "hybrid") {
+    upgrades.push({
+      type: "field",
+      name: "Premium Synthetic Surface",
+      description: "All-weather synthetic surface with optimal performance",
+      cost: 85000,
+      effect: { surface: "synthetic", weatherResistance: 95 }
+    });
   }
   
   // Lighting upgrades
@@ -3398,13 +3613,74 @@ function getAvailableUpgrades(stadium: any) {
   }
   
   // Capacity upgrades
-  if (stadium.capacity < 20000) {
+  if (stadium.capacity < 50000) {
+    const expansionSize = stadium.capacity < 10000 ? 5000 : 
+                         stadium.capacity < 20000 ? 7500 : 10000;
     upgrades.push({
       type: "seating",
       name: "Capacity Expansion",
-      description: "Add 5,000 more seats",
-      cost: 100000,
-      effect: { capacity: stadium.capacity + 5000, revenueMultiplier: stadium.revenueMultiplier + 15 }
+      description: `Add ${expansionSize.toLocaleString()} more seats`,
+      cost: 75000 + (stadium.capacity / 100),
+      effect: { 
+        capacity: stadium.capacity + expansionSize, 
+        revenueMultiplier: stadium.revenueMultiplier + 15,
+        level: Math.min(5, stadium.level + 1)
+      }
+    });
+  }
+  
+  // Weather resistance upgrades
+  if (stadium.weatherResistance < 90) {
+    upgrades.push({
+      type: "weather",
+      name: "Advanced Weather Systems",
+      description: "Install premium weather protection (+25% weather resistance)",
+      cost: 45000,
+      effect: { weatherResistance: Math.min(95, stadium.weatherResistance + 25) }
+    });
+  }
+  
+  // Training facility upgrades
+  const trainingLevel = stadium.facilities?.training || 0;
+  if (trainingLevel < 3) {
+    upgrades.push({
+      type: "training",
+      name: `Training Facility Level ${trainingLevel + 1}`,
+      description: "Enhance player development and recovery systems",
+      cost: 40000 + (trainingLevel * 25000),
+      effect: { 
+        facilities: { ...stadium.facilities, training: trainingLevel + 1 },
+        homeAdvantage: stadium.homeAdvantage + 1
+      }
+    });
+  }
+  
+  // Medical facility upgrades
+  const medicalLevel = stadium.facilities?.medical || 0;
+  if (medicalLevel < 3) {
+    upgrades.push({
+      type: "medical",
+      name: `Medical Center Level ${medicalLevel + 1}`,
+      description: "Improve injury prevention and recovery capabilities",
+      cost: 35000 + (medicalLevel * 20000),
+      effect: { 
+        facilities: { ...stadium.facilities, medical: medicalLevel + 1 }
+      }
+    });
+  }
+  
+  // VIP amenities
+  const vipLevel = stadium.facilities?.vip || 0;
+  if (vipLevel < 2) {
+    upgrades.push({
+      type: "vip",
+      name: `VIP Suite Level ${vipLevel + 1}`,
+      description: "Premium hospitality facilities increase revenue",
+      cost: 90000 + (vipLevel * 50000),
+      effect: { 
+        facilities: { ...stadium.facilities, vip: vipLevel + 1 },
+        revenueMultiplier: stadium.revenueMultiplier + 20
+      }
     });
   }
   
