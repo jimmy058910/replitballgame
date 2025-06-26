@@ -1,11 +1,13 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Progress } from "@/components/ui/progress";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
+import { Trophy, Star, Users, Clock } from "lucide-react";
 
 interface TryoutCandidate {
   id: string;
@@ -33,6 +35,12 @@ export default function TryoutSystem({ teamId }: TryoutSystemProps) {
   const [selectedCandidates, setSelectedCandidates] = useState<string[]>([]);
   const [taxiSquad, setTaxiSquad] = useState<TryoutCandidate[]>([]);
   
+  // Reveal system states
+  const [isRevealing, setIsRevealing] = useState(false);
+  const [revealProgress, setRevealProgress] = useState(0);
+  const [currentRevealIndex, setCurrentRevealIndex] = useState(0);
+  const [revealedCandidates, setRevealedCandidates] = useState<TryoutCandidate[]>([]);
+  
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -49,9 +57,9 @@ export default function TryoutSystem({ teamId }: TryoutSystemProps) {
       return await apiRequest(`/api/teams/${teamId}/tryouts`, "POST", { type });
     },
     onSuccess: (data) => {
-      setCandidates(data.candidates);
       setTryoutType(data.type);
       setShowTryoutModal(true);
+      startRevealSequence(data.candidates);
       queryClient.invalidateQueries({ queryKey: [`/api/teams/${teamId}/finances`] });
     },
     onError: (error: any) => {
@@ -62,6 +70,57 @@ export default function TryoutSystem({ teamId }: TryoutSystemProps) {
       });
     },
   });
+
+  // Reveal sequence function
+  const startRevealSequence = (newCandidates: TryoutCandidate[]) => {
+    setIsRevealing(true);
+    setRevealProgress(0);
+    setCurrentRevealIndex(0);
+    setRevealedCandidates([]);
+    setCandidates(newCandidates);
+    
+    // Animate progress bar over 3 seconds
+    const totalDuration = 3000;
+    const interval = 50;
+    const increment = (100 / totalDuration) * interval;
+    
+    const progressTimer = setInterval(() => {
+      setRevealProgress(prev => {
+        const newProgress = prev + increment;
+        if (newProgress >= 100) {
+          clearInterval(progressTimer);
+          // Start revealing candidates one by one
+          revealCandidatesSequentially(newCandidates);
+          return 100;
+        }
+        return newProgress;
+      });
+    }, interval);
+  };
+
+  const revealCandidatesSequentially = (candidatesToReveal: TryoutCandidate[]) => {
+    candidatesToReveal.forEach((candidate, index) => {
+      setTimeout(() => {
+        setRevealedCandidates(prev => [...prev, candidate]);
+        setCurrentRevealIndex(index + 1);
+        
+        // Show exciting effect for high potential players
+        if (candidate.potential === "High") {
+          toast({
+            title: "⭐ High Potential Prospect!",
+            description: `${candidate.name} shows exceptional promise!`,
+          });
+        }
+        
+        // Complete reveal sequence
+        if (index === candidatesToReveal.length - 1) {
+          setTimeout(() => {
+            setIsRevealing(false);
+          }, 500);
+        }
+      }, (index + 1) * 800); // 800ms delay between each reveal
+    });
+  };
 
   const addToTaxiSquadMutation = useMutation({
     mutationFn: async (candidateIds: string[]) => {
@@ -75,6 +134,7 @@ export default function TryoutSystem({ teamId }: TryoutSystemProps) {
       setShowTryoutModal(false);
       setCandidates([]);
       setSelectedCandidates([]);
+      setRevealedCandidates([]);
       queryClient.invalidateQueries({ queryKey: [`/api/teams/${teamId}/taxi-squad`] });
     },
   });
@@ -192,45 +252,80 @@ export default function TryoutSystem({ teamId }: TryoutSystemProps) {
       <Dialog open={showTryoutModal} onOpenChange={setShowTryoutModal}>
         <DialogContent className="max-w-4xl bg-gray-800 border-gray-700">
           <DialogHeader>
-            <DialogTitle>
+            <DialogTitle className="flex items-center gap-2">
+              <Trophy className="w-6 h-6 text-yellow-500" />
               {tryoutType === "basic" ? "Basic" : "Advanced"} Tryout Results
             </DialogTitle>
           </DialogHeader>
           
-          <div className="space-y-4">
-            <p className="text-gray-400 text-sm">
-              Select up to 2 players to add to your taxi squad. 
-              You can promote them to your main roster next season.
-            </p>
+          <div className="space-y-6">
+            {isRevealing && (
+              <div className="space-y-4 text-center">
+                <div className="flex items-center justify-center gap-3">
+                  <Clock className="w-5 h-5 text-blue-400 animate-spin" />
+                  <span className="text-lg font-semibold text-white">Evaluating Candidates...</span>
+                </div>
+                <Progress value={revealProgress} className="w-full h-3" />
+                <div className="text-gray-300">
+                  {revealProgress < 100 
+                    ? "Analyzing skills and potential..." 
+                    : "Preparing results..."
+                  }
+                </div>
+              </div>
+            )}
 
+            {!isRevealing && revealedCandidates.length > 0 && (
+              <div className="space-y-3">
+                <div className="flex items-center gap-2 text-green-400 font-semibold">
+                  <Users className="w-5 h-5" />
+                  <span>Evaluation Complete!</span>
+                </div>
+                <p className="text-gray-400 text-sm">
+                  Select up to 2 players to add to your taxi squad. 
+                  You can promote them to your main roster next season.
+                </p>
+              </div>
+            )}
+            
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {candidates.map((candidate) => (
+              {revealedCandidates.map((candidate, index) => (
                 <Card 
                   key={candidate.id}
-                  className={`cursor-pointer transition-all ${
+                  className={`cursor-pointer transition-all transform hover:scale-105 animate-in slide-in-from-bottom-4 duration-500 ${
                     selectedCandidates.includes(candidate.id)
-                      ? 'bg-blue-700 border-blue-500'
+                      ? 'bg-blue-700 border-blue-500 shadow-lg shadow-blue-500/20'
                       : 'bg-gray-700 border-gray-600 hover:bg-gray-600'
-                  }`}
+                  } ${candidate.potential === "High" ? 'ring-2 ring-yellow-400/50' : ''}`}
                   onClick={() => toggleCandidateSelection(candidate.id)}
+                  style={{ 
+                    animationDelay: `${index * 200}ms`,
+                    animationFillMode: 'both'
+                  }}
                 >
                   <CardHeader className="pb-2">
                     <CardTitle className="text-sm flex items-center justify-between">
-                      {candidate.name}
+                      <div className="flex items-center gap-2">
+                        {candidate.potential === "High" && <Star className="w-4 h-4 text-yellow-400" />}
+                        {candidate.name}
+                      </div>
                       <Badge variant="outline" className="text-xs">
                         Age {candidate.age}
                       </Badge>
                     </CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-2">
-                    <div className="flex items-center gap-2 text-xs">
+                    <div className="flex items-center gap-2 text-xs flex-wrap">
                       <Badge variant="secondary">{candidate.race}</Badge>
                       <Badge variant="outline">{getPlayerRole(candidate)}</Badge>
-                      <Badge variant={
-                        candidate.potential === "High" ? "default" :
-                        candidate.potential === "Medium" ? "secondary" : "outline"
-                      }>
-                        {candidate.potential}
+                      <Badge 
+                        variant={
+                          candidate.potential === "High" ? "default" :
+                          candidate.potential === "Medium" ? "secondary" : "outline"
+                        }
+                        className={candidate.potential === "High" ? "bg-yellow-500 text-black font-bold" : ""}
+                      >
+                        {candidate.potential} Potential
                       </Badge>
                     </div>
                     

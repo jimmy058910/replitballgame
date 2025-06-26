@@ -359,8 +359,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const races = ["Human", "Elf", "Dwarf", "Orc"];
         const names = ["Alex", "Jordan", "Taylor", "Casey", "Riley", "Morgan", "Avery", "Quinn"];
         
-        const baseStats = type === "advanced" ? 60 : 45;
-        const variance = type === "advanced" ? 25 : 20;
+        // Young players start with lower stats (1-40 range)
+        const baseStats = type === "advanced" ? 20 : 15;
+        const variance = type === "advanced" ? 15 : 12;
         
         candidates.push({
           id: `candidate_${Date.now()}_${i}`,
@@ -368,12 +369,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
                 ["Smith", "Jones", "Brown", "Davis", "Miller"][Math.floor(Math.random() * 5)],
           race: races[Math.floor(Math.random() * races.length)],
           age,
-          leadership: Math.max(1, Math.min(99, baseStats + Math.floor(Math.random() * variance) - variance/2)),
-          throwing: Math.max(1, Math.min(99, baseStats + Math.floor(Math.random() * variance) - variance/2)),
-          speed: Math.max(1, Math.min(99, baseStats + Math.floor(Math.random() * variance) - variance/2)),
-          agility: Math.max(1, Math.min(99, baseStats + Math.floor(Math.random() * variance) - variance/2)),
-          power: Math.max(1, Math.min(99, baseStats + Math.floor(Math.random() * variance) - variance/2)),
-          stamina: Math.max(1, Math.min(99, baseStats + Math.floor(Math.random() * variance) - variance/2)),
+          leadership: Math.max(1, Math.min(40, baseStats + Math.floor(Math.random() * variance))),
+          throwing: Math.max(1, Math.min(40, baseStats + Math.floor(Math.random() * variance))),
+          speed: Math.max(1, Math.min(40, baseStats + Math.floor(Math.random() * variance))),
+          agility: Math.max(1, Math.min(40, baseStats + Math.floor(Math.random() * variance))),
+          power: Math.max(1, Math.min(40, baseStats + Math.floor(Math.random() * variance))),
+          stamina: Math.max(1, Math.min(40, baseStats + Math.floor(Math.random() * variance))),
           marketValue: Math.floor(Math.random() * 200000) + 50000,
           potential: type === "advanced" && Math.random() > 0.5 ? "High" : 
                     Math.random() > 0.6 ? "Medium" : "Low"
