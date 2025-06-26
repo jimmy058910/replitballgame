@@ -102,6 +102,9 @@ Built as a React + Express web application with PostgreSQL database, using moder
 - ✓ Fixed premium currency display in navigation to show correct values from team finances
 - ✓ Moved "Fill My Division" functionality from League page to SuperUser panel for admin controls
 - ✓ Organized SuperUser panel with proper "League Management" section for testing controls
+- ✓ Consolidated navigation by combining League/Tournaments/Exhibitions into "Competition" hub
+- ✓ Combined Store and Marketplace into unified "Commerce" hub for streamlined navigation
+- ✓ Reduced navigation items from 10 to 7 for improved mobile experience and cleaner interface
 
 ### Technical Improvements
 - **Notification System**: Now uses solid background colors (red, blue, green, yellow) with white text for proper visibility

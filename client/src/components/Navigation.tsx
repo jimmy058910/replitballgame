@@ -29,14 +29,10 @@ export default function Navigation() {
   const navItems = [
     { path: "/", label: "Dashboard", icon: Home },
     { path: "/team", label: "Team", icon: Users },
-    { path: "/league", label: "League", icon: Trophy },
-
-    { path: "/tournaments", label: "Tournaments", icon: Medal },
-    { path: "/exhibitions", label: "Exhibitions", icon: Gamepad2 },
-    { path: "/store", label: "Store", icon: ShoppingCart },
+    { path: "/competition", label: "Competition", icon: Trophy },
+    { path: "/commerce", label: "Commerce", icon: ShoppingCart },
     { path: "/stadium", label: "Stadium", icon: Building },
     { path: "/inventory", label: "Inventory", icon: Package },
-    { path: "/marketplace", label: "Marketplace", icon: Store },
     { path: "/community", label: "Community", icon: MessageCircle },
   ];
 
