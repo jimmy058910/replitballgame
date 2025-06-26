@@ -24,84 +24,52 @@ interface Player {
   agility: number;
 }
 
-interface TacticalSetup {
-  starters: {
-    passer: string[];
-    runner: string[];
-    blocker: string[];
-  };
-  substitutionOrder: {
-    passer: string[];
-    runner: string[];
-    blocker: string[];
-  };
-}
-
 interface TextTacticalManagerProps {
   players: Player[];
   savedFormation?: any;
 }
 
 export default function TextTacticalManager({ players, savedFormation }: TextTacticalManagerProps) {
-  const [tacticalSetup, setTacticalSetup] = useState<TacticalSetup>({
-    starters: { passer: [], runner: [], blocker: [] },
-    substitutionOrder: { passer: [], runner: [], blocker: [] }
-  });
-  
+  const [starters, setStarters] = useState<string[]>([]);
+  const [substitutionOrder, setSubstitutionOrder] = useState<{
+    passer: string[];
+    runner: string[];
+    blocker: string[];
+  }>({ passer: [], runner: [], blocker: [] });
+
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
   // Load saved formation on component mount
   useEffect(() => {
     if (savedFormation && savedFormation.formation) {
-      const setup = convertFormationToSetup(savedFormation);
-      setTacticalSetup(setup);
-    }
-  }, [savedFormation]);
-
-  // Convert old formation format to new setup format
-  const convertFormationToSetup = (formation: any): TacticalSetup => {
-    const setup: TacticalSetup = {
-      starters: { passer: [], runner: [], blocker: [] },
-      substitutionOrder: { passer: [], runner: [], blocker: [] }
-    };
-
-    if (formation.formation) {
-      formation.formation.forEach((player: any) => {
-        const role = player.role.toLowerCase() as keyof typeof setup.starters;
-        if (player.isStarter && setup.starters[role].length < getMaxStarters(role)) {
-          setup.starters[role].push(player.id);
+      const savedStarters = savedFormation.formation
+        .filter((p: any) => p.isStarter)
+        .map((p: any) => p.id);
+      setStarters(savedStarters);
+      
+      // Set substitution orders
+      const subs = { passer: [] as string[], runner: [] as string[], blocker: [] as string[] };
+      players.forEach(player => {
+        if (!savedStarters.includes(player.id)) {
+          const role = player.role.toLowerCase() as keyof typeof subs;
+          if (role === 'passer' || role === 'runner' || role === 'blocker') {
+            subs[role].push(player.id);
+          }
         }
       });
+      setSubstitutionOrder(subs);
     }
-
-    // Fill substitution orders with remaining players
-    players.forEach(player => {
-      const role = player.role.toLowerCase() as keyof typeof setup.starters;
-      if (!setup.starters[role].includes(player.id)) {
-        setup.substitutionOrder[role].push(player.id);
-      }
-    });
-
-    return setup;
-  };
-
-  const getMaxStarters = (role: string): number => {
-    switch (role) {
-      case 'passer': return 1;
-      case 'runner': return 2;
-      case 'blocker': return 3;
-      default: return 0;
-    }
-  };
-
-  const getPlayersByRole = (role: string): Player[] => {
-    return players.filter(player => player.role.toLowerCase() === role.toLowerCase());
-  };
+  }, [savedFormation, players]);
 
   const getPlayerName = (playerId: string): string => {
     const player = players.find(p => p.id === playerId);
     return player ? `${player.firstName} ${player.lastName}` : 'Unknown Player';
+  };
+
+  const getPlayerRole = (playerId: string): string => {
+    const player = players.find(p => p.id === playerId);
+    return player ? player.role : 'Unknown';
   };
 
   const getPlayerPower = (playerId: string): number => {
@@ -110,320 +78,273 @@ export default function TextTacticalManager({ players, savedFormation }: TextTac
     return player.speed + player.power + player.throwing + player.catching + player.kicking;
   };
 
-  const moveToStarters = (playerId: string, role: string) => {
-    const roleKey = role.toLowerCase() as keyof typeof tacticalSetup.starters;
-    const maxStarters = getMaxStarters(role);
+  const getPlayersByRole = (role: string): Player[] => {
+    return players.filter(player => player.role.toLowerCase() === role.toLowerCase());
+  };
+
+  const getStartersByRole = (role: string): string[] => {
+    return starters.filter(starterId => {
+      const player = players.find(p => p.id === starterId);
+      return player && player.role.toLowerCase() === role.toLowerCase();
+    });
+  };
+
+  const canAddStarter = (): boolean => {
+    if (starters.length >= 6) return false;
     
-    if (tacticalSetup.starters[roleKey].length >= maxStarters) {
+    const passerCount = getStartersByRole('passer').length;
+    const runnerCount = getStartersByRole('runner').length;
+    const blockerCount = getStartersByRole('blocker').length;
+    
+    // Must have at least 1 passer, 2 runners, 2 blockers
+    return passerCount >= 1 && runnerCount >= 2 && blockerCount >= 2;
+  };
+
+  const addStarter = (playerId: string) => {
+    if (starters.length >= 6) {
       toast({
         title: "Maximum starters reached",
-        description: `You can only have ${maxStarters} ${role} starter${maxStarters > 1 ? 's' : ''}.`,
+        description: "You can only have 6 starters total.",
         variant: "destructive",
       });
       return;
     }
 
-    setTacticalSetup(prev => ({
-      ...prev,
-      starters: {
-        ...prev.starters,
-        [roleKey]: [...prev.starters[roleKey], playerId]
-      },
-      substitutionOrder: {
-        ...prev.substitutionOrder,
-        [roleKey]: prev.substitutionOrder[roleKey].filter(id => id !== playerId)
-      }
-    }));
-  };
+    const player = players.find(p => p.id === playerId);
+    if (!player) return;
 
-  const moveToSubstitutes = (playerId: string, role: string) => {
-    const roleKey = role.toLowerCase() as keyof typeof tacticalSetup.starters;
-    
-    setTacticalSetup(prev => ({
-      ...prev,
-      starters: {
-        ...prev.starters,
-        [roleKey]: prev.starters[roleKey].filter(id => id !== playerId)
-      },
-      substitutionOrder: {
-        ...prev.substitutionOrder,
-        [roleKey]: [...prev.substitutionOrder[roleKey], playerId]
-      }
-    }));
-  };
+    const role = player.role.toLowerCase();
+    const passerCount = getStartersByRole('passer').length;
+    const runnerCount = getStartersByRole('runner').length;
+    const blockerCount = getStartersByRole('blocker').length;
 
-  const movePlayerUp = (playerId: string, role: string, isStarter: boolean) => {
-    const roleKey = role.toLowerCase() as keyof typeof tacticalSetup.starters;
-    const list = isStarter ? tacticalSetup.starters[roleKey] : tacticalSetup.substitutionOrder[roleKey];
-    const index = list.indexOf(playerId);
-    
-    if (index > 0) {
-      const newList = [...list];
-      [newList[index], newList[index - 1]] = [newList[index - 1], newList[index]];
-      
-      setTacticalSetup(prev => ({
-        ...prev,
-        [isStarter ? 'starters' : 'substitutionOrder']: {
-          ...prev[isStarter ? 'starters' : 'substitutionOrder'],
-          [roleKey]: newList
-        }
-      }));
+    // Check role limits
+    if (role === 'passer' && passerCount >= 1 && starters.length >= 5) {
+      toast({
+        title: "Formation complete",
+        description: "Add one more player of any role as wildcard.",
+        variant: "default",
+      });
+    } else if (role === 'runner' && runnerCount >= 2 && starters.length >= 5) {
+      toast({
+        title: "Formation complete", 
+        description: "Add one more player of any role as wildcard.",
+        variant: "default",
+      });
+    } else if (role === 'blocker' && blockerCount >= 2 && starters.length >= 5) {
+      toast({
+        title: "Formation complete",
+        description: "Add one more player of any role as wildcard.",
+        variant: "default",
+      });
     }
+
+    setStarters(prev => [...prev, playerId]);
+    
+    // Remove from substitution order
+    setSubstitutionOrder(prev => ({
+      ...prev,
+      [role]: prev[role as keyof typeof prev]?.filter((id: string) => id !== playerId) || []
+    }));
   };
 
-  const movePlayerDown = (playerId: string, role: string, isStarter: boolean) => {
-    const roleKey = role.toLowerCase() as keyof typeof tacticalSetup.starters;
-    const list = isStarter ? tacticalSetup.starters[roleKey] : tacticalSetup.substitutionOrder[roleKey];
-    const index = list.indexOf(playerId);
+  const removeStarter = (playerId: string) => {
+    const player = players.find(p => p.id === playerId);
+    if (!player) return;
+
+    setStarters(prev => prev.filter(id => id !== playerId));
     
-    if (index < list.length - 1) {
-      const newList = [...list];
-      [newList[index], newList[index + 1]] = [newList[index + 1], newList[index]];
-      
-      setTacticalSetup(prev => ({
+    // Add back to substitution order
+    const role = player.role.toLowerCase() as keyof typeof substitutionOrder;
+    if (role === 'passer' || role === 'runner' || role === 'blocker') {
+      setSubstitutionOrder(prev => ({
         ...prev,
-        [isStarter ? 'starters' : 'substitutionOrder']: {
-          ...prev[isStarter ? 'starters' : 'substitutionOrder'],
-          [roleKey]: newList
-        }
+        [role]: [...prev[role], playerId]
       }));
     }
   };
 
   const resetToOptimal = () => {
-    const newSetup: TacticalSetup = {
-      starters: { passer: [], runner: [], blocker: [] },
-      substitutionOrder: { passer: [], runner: [], blocker: [] }
-    };
-
-    // Get players by role and sort by total power
-    const roles = ['passer', 'runner', 'blocker'] as const;
+    // Sort players by power rating
+    const sortedPlayers = players.sort((a, b) => getPlayerPower(b.id) - getPlayerPower(a.id));
     
-    roles.forEach(role => {
-      const rolePlayers = getPlayersByRole(role)
-        .sort((a, b) => getPlayerPower(b.id) - getPlayerPower(a.id));
-      
-      const maxStarters = getMaxStarters(role);
-      
-      // Assign best players as starters
-      newSetup.starters[role] = rolePlayers.slice(0, maxStarters).map(p => p.id);
-      
-      // Remaining players as substitutes
-      newSetup.substitutionOrder[role] = rolePlayers.slice(maxStarters).map(p => p.id);
+    const newStarters: string[] = [];
+    const newSubs = { passer: [] as string[], runner: [] as string[], blocker: [] as string[] };
+    
+    // Get best players by role
+    const passers = sortedPlayers.filter(p => p.role.toLowerCase() === 'passer');
+    const runners = sortedPlayers.filter(p => p.role.toLowerCase() === 'runner');
+    const blockers = sortedPlayers.filter(p => p.role.toLowerCase() === 'blocker');
+    
+    // Add required starters: 1 passer, 2 runners, 2 blockers
+    if (passers.length > 0) newStarters.push(passers[0].id);
+    if (runners.length >= 2) {
+      newStarters.push(runners[0].id, runners[1].id);
+    }
+    if (blockers.length >= 2) {
+      newStarters.push(blockers[0].id, blockers[1].id);
+    }
+    
+    // Add best remaining player as wildcard
+    const remaining = sortedPlayers.filter(p => !newStarters.includes(p.id));
+    if (remaining.length > 0 && newStarters.length < 6) {
+      newStarters.push(remaining[0].id);
+    }
+    
+    // Set substitution orders
+    passers.forEach(p => {
+      if (!newStarters.includes(p.id)) newSubs.passer.push(p.id);
     });
-
-    setTacticalSetup(newSetup);
+    runners.forEach(p => {
+      if (!newStarters.includes(p.id)) newSubs.runner.push(p.id);
+    });
+    blockers.forEach(p => {
+      if (!newStarters.includes(p.id)) newSubs.blocker.push(p.id);
+    });
+    
+    setStarters(newStarters);
+    setSubstitutionOrder(newSubs);
     
     toast({
-      title: "Formation reset",
-      description: "Optimal formation set based on player abilities.",
+      title: "Formation optimized",
+      description: "Set to best players: 1 passer, 2 runners, 2 blockers, 1 wildcard.",
     });
   };
 
-  const saveFormationMutation = useMutation({
+  const saveFormation = useMutation({
     mutationFn: async () => {
-      // Convert setup back to formation format for API compatibility
-      const formation = [];
-      const substitutionOrder: Record<string, number> = {};
-      
-      Object.entries(tacticalSetup.starters).forEach(([role, playerIds]) => {
-        playerIds.forEach((playerId, index) => {
-          formation.push({
-            id: playerId,
-            role: role,
-            isStarter: true,
-            substitutionPriority: index + 1,
-            position: { x: 0, y: 0 } // Legacy field for API compatibility
-          });
-          substitutionOrder[playerId] = index + 1;
-        });
-      });
+      const formationData = players.map(player => ({
+        id: player.id,
+        role: player.role,
+        isStarter: starters.includes(player.id),
+        substitutionOrder: (() => {
+          const role = player.role.toLowerCase() as keyof typeof substitutionOrder;
+          if (role === 'passer' || role === 'runner' || role === 'blocker') {
+            return substitutionOrder[role].indexOf(player.id);
+          }
+          return -1;
+        })()
+      }));
 
-      Object.entries(tacticalSetup.substitutionOrder).forEach(([role, playerIds]) => {
-        playerIds.forEach((playerId, index) => {
-          formation.push({
-            id: playerId,
-            role: role,
-            isStarter: false,
-            substitutionPriority: index + 1,
-            position: { x: 0, y: 0 } // Legacy field for API compatibility
-          });
-          substitutionOrder[playerId] = index + 1;
-        });
-      });
-
-      await apiRequest("/api/teams/my/formation", "POST", { formation, substitutionOrder });
+      await apiRequest("/api/teams/my/formation", "POST", { formation: formationData });
     },
     onSuccess: () => {
-      toast({
-        title: "Formation saved",
-        description: "Your tactical setup has been saved successfully.",
-      });
+      toast({ title: "Formation saved successfully!" });
       queryClient.invalidateQueries({ queryKey: ["/api/teams/my/formation"] });
     },
     onError: () => {
       toast({
-        title: "Error",
-        description: "Failed to save formation. Please try again.",
+        title: "Failed to save formation",
         variant: "destructive",
       });
     },
   });
 
-  const renderRoleSection = (role: string, roleTitle: string) => {
-    const roleKey = role.toLowerCase() as keyof typeof tacticalSetup.starters;
-    const maxStarters = getMaxStarters(role);
-    const starters = tacticalSetup.starters[roleKey];
-    const substitutes = tacticalSetup.substitutionOrder[roleKey];
-    
-    return (
-      <Card key={role} className="bg-gray-800 border-gray-700">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Users className="h-5 w-5" />
-            {roleTitle} ({starters.length}/{maxStarters} starters)
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          {/* Starters */}
-          <div>
-            <h4 className="font-semibold text-green-400 mb-2">Starters</h4>
-            {starters.length === 0 ? (
-              <p className="text-gray-500 text-sm">No starters selected</p>
-            ) : (
-              <div className="space-y-2">
-                {starters.map((playerId, index) => (
-                  <div key={playerId} className="flex items-center justify-between bg-gray-700 p-3 rounded">
-                    <div className="flex items-center gap-3">
-                      <Badge variant="outline" className="text-green-400 border-green-400">
-                        #{index + 1}
-                      </Badge>
-                      <span className="font-medium">{getPlayerName(playerId)}</span>
-                      <Badge variant="secondary" className="text-xs">
-                        Power: {getPlayerPower(playerId)}
-                      </Badge>
-                    </div>
-                    <div className="flex items-center gap-1">
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        onClick={() => movePlayerUp(playerId, role, true)}
-                        disabled={index === 0}
-                      >
-                        <ArrowUp className="h-4 w-4" />
-                      </Button>
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        onClick={() => movePlayerDown(playerId, role, true)}
-                        disabled={index === starters.length - 1}
-                      >
-                        <ArrowDown className="h-4 w-4" />
-                      </Button>
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => moveToSubstitutes(playerId, role)}
-                      >
-                        To Bench
-                      </Button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
+  const getFormationStatus = () => {
+    const passerCount = getStartersByRole('passer').length;
+    const runnerCount = getStartersByRole('runner').length;
+    const blockerCount = getStartersByRole('blocker').length;
+    const totalCount = starters.length;
 
-          {/* Substitution Order */}
-          <div>
-            <h4 className="font-semibold text-blue-400 mb-2">Substitution Order</h4>
-            {substitutes.length === 0 ? (
-              <p className="text-gray-500 text-sm">No substitutes available</p>
-            ) : (
-              <div className="space-y-2">
-                {substitutes.map((playerId, index) => (
-                  <div key={playerId} className="flex items-center justify-between bg-gray-700 p-3 rounded">
-                    <div className="flex items-center gap-3">
-                      <Badge variant="outline" className="text-blue-400 border-blue-400">
-                        Sub #{index + 1}
-                      </Badge>
-                      <span className="font-medium">{getPlayerName(playerId)}</span>
-                      <Badge variant="secondary" className="text-xs">
-                        Power: {getPlayerPower(playerId)}
-                      </Badge>
-                    </div>
-                    <div className="flex items-center gap-1">
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        onClick={() => movePlayerUp(playerId, role, false)}
-                        disabled={index === 0}
-                      >
-                        <ArrowUp className="h-4 w-4" />
-                      </Button>
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        onClick={() => movePlayerDown(playerId, role, false)}
-                        disabled={index === substitutes.length - 1}
-                      >
-                        <ArrowDown className="h-4 w-4" />
-                      </Button>
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => moveToStarters(playerId, role)}
-                        disabled={starters.length >= maxStarters}
-                      >
-                        To Starter
-                      </Button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-        </CardContent>
-      </Card>
-    );
+    if (totalCount === 6 && passerCount >= 1 && runnerCount >= 2 && blockerCount >= 2) {
+      return { valid: true, message: "Formation complete ✓" };
+    } else if (totalCount < 6) {
+      return { valid: false, message: `Need ${6 - totalCount} more starters` };
+    } else {
+      return { valid: false, message: "Formation invalid" };
+    }
   };
+
+  const status = getFormationStatus();
 
   return (
     <div className="space-y-6">
-      <Card className="bg-gray-800 border-gray-700">
+      <Card>
         <CardHeader>
-          <CardTitle className="flex items-center justify-between">
-            <span>Tactical Management</span>
-            <div className="flex gap-2">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={resetToOptimal}
-              >
-                <RotateCcw className="h-4 w-4 mr-2" />
+          <CardTitle className="flex items-center gap-2">
+            <Users className="h-5 w-5" />
+            Tactical Formation
+          </CardTitle>
+          <div className="flex items-center justify-between">
+            <Badge variant={status.valid ? "default" : "destructive"}>
+              {status.message}
+            </Badge>
+            <div className="space-x-2">
+              <Button onClick={resetToOptimal} variant="outline" size="sm">
+                <RotateCcw className="h-4 w-4 mr-1" />
                 Reset to Optimal
               </Button>
-              <Button
-                onClick={() => saveFormationMutation.mutate()}
-                disabled={saveFormationMutation.isPending}
-                size="sm"
-              >
-                <Save className="h-4 w-4 mr-2" />
-                {saveFormationMutation.isPending ? "Saving..." : "Save Formation"}
+              <Button onClick={() => saveFormation.mutate()} disabled={!status.valid || saveFormation.isPending}>
+                <Save className="h-4 w-4 mr-1" />
+                Save Formation
               </Button>
             </div>
-          </CardTitle>
+          </div>
         </CardHeader>
         <CardContent>
-          <div className="text-sm text-gray-400 mb-4">
-            Configure your starting lineup and substitution order for each position. 
-            Starting formation: 1 Passer, 2 Runners, 3 Blockers.
+          <div className="text-sm text-muted-foreground mb-4">
+            Required: 1 Passer, 2 Runners, 2 Blockers + 1 Wildcard (any role)
           </div>
-          
-          <div className="grid gap-4">
-            {renderRoleSection('passer', 'Passers')}
-            {renderRoleSection('runner', 'Runners')}
-            {renderRoleSection('blocker', 'Blockers')}
+
+          {/* Current Starters */}
+          <div className="mb-6">
+            <h3 className="font-semibold mb-3">Starting Lineup ({starters.length}/6)</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+              {starters.map((playerId, index) => {
+                const role = getPlayerRole(playerId);
+                const roleCount = getStartersByRole(role.toLowerCase()).indexOf(playerId) + 1;
+                const isWildcard = index >= 5 || 
+                  (role.toLowerCase() === 'passer' && getStartersByRole('passer').length > 1) ||
+                  (role.toLowerCase() === 'runner' && getStartersByRole('runner').length > 2) ||
+                  (role.toLowerCase() === 'blocker' && getStartersByRole('blocker').length > 2);
+
+                return (
+                  <div key={playerId} className="flex items-center justify-between p-2 border rounded">
+                    <div className="flex items-center gap-2">
+                      <Badge variant="outline">
+                        {isWildcard ? 'Wildcard' : `${role} ${roleCount}`}
+                      </Badge>
+                      <span>{getPlayerName(playerId)}</span>
+                      <span className="text-sm text-muted-foreground">({getPlayerPower(playerId)})</span>
+                    </div>
+                    <Button onClick={() => removeStarter(playerId)} variant="ghost" size="sm">
+                      Remove
+                    </Button>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Available Players */}
+          <div className="space-y-4">
+            {['Passer', 'Runner', 'Blocker'].map(role => {
+              const roleKey = role.toLowerCase() as keyof typeof substitutionOrder;
+              const availablePlayers = getPlayersByRole(role).filter(p => !starters.includes(p.id));
+              const starterCount = getStartersByRole(role.toLowerCase()).length;
+              const maxStarters = role === 'Passer' ? 1 : 2;
+
+              return (
+                <div key={role}>
+                  <h4 className="font-medium mb-2">
+                    {role}s ({starterCount}/{maxStarters} starters)
+                  </h4>
+                  <div className="space-y-1">
+                    {availablePlayers.map(player => (
+                      <div key={player.id} className="flex items-center justify-between p-2 bg-muted rounded">
+                        <div className="flex items-center gap-2">
+                          <span>{getPlayerName(player.id)}</span>
+                          <span className="text-sm text-muted-foreground">({getPlayerPower(player.id)})</span>
+                        </div>
+                        <Button onClick={() => addStarter(player.id)} variant="outline" size="sm">
+                          Add to Starters
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              );
+            })}
           </div>
         </CardContent>
       </Card>
