@@ -106,6 +106,11 @@ Built as a React + Express web application with PostgreSQL database, using moder
 - ✓ Combined Store and Marketplace into unified "Store" hub for streamlined navigation
 - ✓ Reduced navigation items from 10 to 7 for improved mobile experience and cleaner interface
 - ✓ Fixed routing for Competition and Store hub pages to resolve 404 errors
+- ✓ Completely revamped Tactics tab to text-based interface removing all visual elements
+- ✓ Created TextTacticalManager component with starter selection and substitution orders
+- ✓ Implemented position-based tactical management (1 Passer, 2 Runners, 3 Blockers)
+- ✓ Added "Reset to Optimal" functionality based on player power ratings
+- ✓ Maintained API compatibility with existing formation storage system
 
 ### Technical Improvements
 - **Notification System**: Now uses solid background colors (red, blue, green, yellow) with white text for proper visibility

@@ -3,7 +3,7 @@ import { useQuery, useMutation } from "@tanstack/react-query";
 import { queryClient } from "@/lib/queryClient";
 import Navigation from "@/components/Navigation";
 import PlayerCard from "@/components/PlayerCard";
-import TacticalFormation from "@/components/TacticalFormation";
+import TextTacticalManager from "@/components/TextTacticalManager";
 import PlayerDetailModal from "@/components/PlayerDetailModal";
 import ContractNegotiation from "@/components/ContractNegotiation";
 import StaffManagement from "@/components/StaffManagement";
@@ -215,11 +215,9 @@ export default function Team() {
           </TabsContent>
 
           <TabsContent value="tactics">
-            <TacticalFormation
+            <TextTacticalManager
               players={playersWithRoles}
-              onFormationChange={(formation) => {
-                console.log("Formation saved:", formation);
-              }}
+              savedFormation={formation}
             />
           </TabsContent>
 
