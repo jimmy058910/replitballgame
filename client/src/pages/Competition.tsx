@@ -28,7 +28,8 @@ export default function Competition() {
   });
 
   const { data: standings } = useQuery({
-    queryKey: ["/api/leagues", team?.division || 8, "standings"],
+    queryKey: [`/api/leagues/${team?.division || 8}/standings`],
+    enabled: !!team?.division,
   });
 
   const { data: tournaments } = useQuery({
