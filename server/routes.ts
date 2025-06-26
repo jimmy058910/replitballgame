@@ -297,7 +297,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       let finances = await storage.getTeamFinances(teamId);
       
-      // Create default finances if none exist (using database defaults)
+      // Create default finances if none exist - start with modest amount
       if (!finances) {
         finances = await storage.createTeamFinances({
           teamId,
@@ -309,7 +309,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           playerSalaries: 0,
           staffSalaries: 0,
           facilities: 0,
-          credits: 1000000, // Match database default
+          credits: 50000, // Starting credits for new teams
           totalIncome: 0,
           totalExpenses: 0,
           netIncome: 0,

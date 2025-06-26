@@ -207,7 +207,7 @@ export const teamFinances = pgTable("team_finances", {
   facilities: integer("facilities").default(0),
   
   // Balance
-  credits: integer("credits").default(1000000),
+  credits: integer("credits").default(50000),
   totalIncome: integer("total_income").default(0),
   totalExpenses: integer("total_expenses").default(0),
   netIncome: integer("net_income").default(0),
