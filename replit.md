@@ -154,6 +154,8 @@ Built as a React + Express web application with PostgreSQL database, using moder
 - Values proper game balance and realistic simulation
 - Wants mobile-responsive design
 - Prefers dark theme UI
+- **Mobile Strategy**: React Native conversion for native app store deployment
+- **Monetization**: Interstitial ads (halftime) + Rewarded video ads for premium currency/rewards
 
 ## Database Schema
 The application uses Drizzle ORM with PostgreSQL, featuring tables for:

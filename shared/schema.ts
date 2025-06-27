@@ -424,6 +424,22 @@ export const leaguesRelations = relations(leagues, ({ many }) => ({
 
 export type UpsertUser = typeof users.$inferInsert;
 export type User = typeof users.$inferSelect;
+
+// Ad tracking table for monetization
+export const adViews = pgTable("ad_views", {
+  id: varchar("id").primaryKey().notNull(),
+  userId: varchar("user_id").notNull().references(() => users.id),
+  adType: varchar("ad_type").notNull(), // 'interstitial', 'rewarded_video', 'banner'
+  placement: varchar("placement"), // 'halftime', 'store', 'tryouts', etc.
+  rewardType: varchar("reward_type"), // 'credits', 'premium_currency', 'none'
+  rewardAmount: integer("reward_amount").default(0),
+  completed: boolean("completed").default(false),
+  createdAt: timestamp("created_at").defaultNow(),
+  completedAt: timestamp("completed_at"),
+});
+
+export type AdView = typeof adViews.$inferSelect;
+export type InsertAdView = typeof adViews.$inferInsert;
 export type Team = typeof teams.$inferSelect;
 export type InsertTeam = typeof teams.$inferInsert;
 export type Player = typeof players.$inferSelect;

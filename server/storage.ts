@@ -50,6 +50,9 @@ import {
   type InsertPlayerInjury,
   type Season,
   type InsertSeason,
+  adViews,
+  type AdView,
+  type InsertAdView,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, or, desc, asc, sql, inArray } from "drizzle-orm";
@@ -113,6 +116,11 @@ export interface IStorage {
   markAllNotificationsRead(userId: string): Promise<void>;
   deleteNotification(id: string): Promise<void>;
   deleteAllNotifications(userId: string): Promise<void>;
+
+  // Ad system operations
+  createAdView(adView: InsertAdView): Promise<AdView>;
+  getAdViewsByUser(userId: string): Promise<AdView[]>;
+  getDailyAdViews(userId: string): Promise<number>;
   
   // Injury operations
   createInjury(injury: InsertPlayerInjury): Promise<PlayerInjury>;
@@ -869,6 +877,42 @@ export class DatabaseStorage implements IStorage {
       .where(eq(stadiumEvents.id, id))
       .returning();
     return event;
+  }
+
+  // Ad system implementation
+  async createAdView(adViewData: InsertAdView): Promise<AdView> {
+    const [adView] = await db
+      .insert(adViews)
+      .values({
+        id: nanoid(),
+        ...adViewData
+      })
+      .returning();
+    return adView;
+  }
+
+  async getAdViewsByUser(userId: string): Promise<AdView[]> {
+    return await db
+      .select()
+      .from(adViews)
+      .where(eq(adViews.userId, userId));
+  }
+
+  async getDailyAdViews(userId: string): Promise<number> {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    
+    const adViews = await db
+      .select()
+      .from(adViews)
+      .where(
+        and(
+          eq(adViews.userId, userId),
+          gte(adViews.createdAt, today)
+        )
+      );
+    
+    return adViews.length;
   }
 }
 

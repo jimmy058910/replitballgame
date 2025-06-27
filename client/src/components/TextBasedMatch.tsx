@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Play, Pause, Square, RotateCcw } from "lucide-react";
+import { AdSystem, useAdSystem } from "@/components/AdSystem";
 
 interface Player {
   id: string;
@@ -82,6 +83,10 @@ export default function TextBasedMatch({ team1, team2, isExhibition = false, onM
 
   const [players, setPlayers] = useState<Player[]>([]);
   const logRef = useRef<HTMLDivElement>(null);
+  const [halftimeAdShown, setHalftimeAdShown] = useState(false);
+  
+  // Ad system hook
+  const { showAd } = useAdSystem();
   const gameIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
   // Initialize players from team data
@@ -198,6 +203,21 @@ export default function TextBasedMatch({ team1, team2, isExhibition = false, onM
       // Check for halftime
       if (newGameTime === prev.maxTime / 2 && prev.currentHalf === 1) {
         const timeStr = formatGameTime(newGameTime);
+        
+        // Show halftime interstitial ad
+        if (!halftimeAdShown) {
+          setHalftimeAdShown(true);
+          showAd({
+            adType: 'interstitial',
+            placement: 'halftime',
+            rewardType: 'none',
+            rewardAmount: 0,
+            onAdComplete: () => {
+              console.log('Halftime ad completed');
+            }
+          });
+        }
+        
         return {
           ...prev,
           gameTime: newGameTime,
@@ -744,6 +764,23 @@ export default function TextBasedMatch({ team1, team2, isExhibition = false, onM
               <RotateCcw className="w-4 h-4 mr-2" />
               Reset
             </Button>
+            <Button 
+              onClick={() => showAd({
+                adType: 'rewarded_video',
+                placement: 'match_bonus',
+                rewardType: 'premium_currency',
+                rewardAmount: 10,
+                onAdComplete: (reward) => {
+                  if (reward) {
+                    console.log(`Rewarded ad completed! Got ${reward.amount} ${reward.type}`);
+                  }
+                }
+              })}
+              variant="outline"
+              className="bg-purple-600 hover:bg-purple-700 text-white"
+            >
+              💎 Watch Ad for Rewards
+            </Button>
           </div>
         </CardContent>
       </Card>
@@ -765,6 +802,9 @@ export default function TextBasedMatch({ team1, team2, isExhibition = false, onM
           </ScrollArea>
         </CardContent>
       </Card>
+      
+      {/* Ad System Component */}
+      <AdSystem />
     </div>
   );
 }

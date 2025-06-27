@@ -4236,6 +4236,67 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   const httpServer = createServer(app);
+  // Ad System Routes
+  app.post('/api/ads/view', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const { adType, placement, rewardType, rewardAmount, completed } = req.body;
+
+      // Create ad view record
+      const adView = await storage.createAdView({
+        userId,
+        adType,
+        placement,
+        rewardType,
+        rewardAmount,
+        completed,
+        completedAt: completed ? new Date() : null
+      });
+
+      // Award rewards if ad was completed
+      if (completed && rewardType !== 'none' && rewardAmount > 0) {
+        const team = await storage.getTeamByUserId(userId);
+        if (team) {
+          const finances = await storage.getTeamFinances(team.id);
+          if (finances) {
+            if (rewardType === 'credits') {
+              await storage.updateTeamFinances(team.id, {
+                credits: (finances.credits || 0) + rewardAmount
+              });
+            } else if (rewardType === 'premium_currency') {
+              await storage.updateTeamFinances(team.id, {
+                premiumCurrency: (finances.premiumCurrency || 0) + rewardAmount
+              });
+            }
+          }
+        }
+      }
+
+      res.json({ success: true, adView });
+    } catch (error) {
+      console.error('Error processing ad view:', error);
+      res.status(500).json({ message: 'Failed to process ad view' });
+    }
+  });
+
+  app.get('/api/ads/stats', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      
+      const dailyViews = await storage.getDailyAdViews(userId);
+      const allViews = await storage.getAdViewsByUser(userId);
+      
+      res.json({
+        dailyViews,
+        totalViews: allViews.length,
+        completedViews: allViews.filter(v => v.completed).length
+      });
+    } catch (error) {
+      console.error('Error fetching ad stats:', error);
+      res.status(500).json({ message: 'Failed to fetch ad statistics' });
+    }
+  });
+
   return httpServer;
 }
 
