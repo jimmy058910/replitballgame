@@ -158,7 +158,15 @@ export function AdSystem({
       ]
     };
 
-    return adContents[adType][Math.floor(Math.random() * adContents[adType].length)];
+    const content = adContents[adType];
+    if (!content || content.length === 0) {
+      return {
+        title: "Ad Content Loading...",
+        description: "Please wait while ad content loads.",
+        duration: 3000
+      };
+    }
+    return content[Math.floor(Math.random() * content.length)];
   };
 
   const adContent = getAdContent();

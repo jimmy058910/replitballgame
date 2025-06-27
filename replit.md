@@ -138,6 +138,11 @@ Built as a React + Express web application with PostgreSQL database, using moder
 - ✓ Created comprehensive timezone utility with scheduling functions and server time display
 - ✓ Added ServerTimeDisplay component showing current Eastern time and league game window status
 - ✓ Enhanced SuperUser panel with server time monitoring and scheduling information
+- ✓ Implemented comprehensive taxi squad management system with backend API endpoints
+- ✓ Created TaxiSquadManager component for viewing and managing recruited players
+- ✓ Added "Taxi Squad" tab to Team page with 2-player capacity limit
+- ✓ Updated TryoutSystem to properly send candidate data to backend for taxi squad storage
+- ✓ Added promote/release functionality for taxi squad players with proper roster space validation
 
 ### Technical Improvements
 - **Notification System**: Now uses solid background colors (red, blue, green, yellow) with white text for proper visibility

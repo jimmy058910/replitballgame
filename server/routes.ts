@@ -659,6 +659,103 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Taxi squad management routes
+  app.get("/api/teams/:teamId/taxi-squad", isAuthenticated, async (req: any, res) => {
+    try {
+      const { teamId } = req.params;
+      const userId = req.user.claims.sub;
+
+      // Verify team ownership
+      const team = await storage.getTeamById(teamId);
+      if (!team || team.userId !== userId) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+
+      // Get taxi squad players
+      const players = await storage.getPlayersByTeamId(teamId);
+      const taxiSquadPlayers = players.filter(player => player.isOnTaxi);
+
+      res.json(taxiSquadPlayers);
+    } catch (error) {
+      console.error("Error fetching taxi squad:", error);
+      res.status(500).json({ message: "Failed to fetch taxi squad" });
+    }
+  });
+
+  app.post("/api/teams/:teamId/taxi-squad/:playerId/promote", isAuthenticated, async (req: any, res) => {
+    try {
+      const { teamId, playerId } = req.params;
+      const userId = req.user.claims.sub;
+
+      // Verify team ownership
+      const team = await storage.getTeamById(teamId);
+      if (!team || team.userId !== userId) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+
+      // Get player and verify it's on taxi squad
+      const player = await storage.getPlayerById(playerId);
+      if (!player || player.teamId !== teamId || !player.isOnTaxi) {
+        return res.status(404).json({ message: "Player not found on taxi squad" });
+      }
+
+      // Check roster space
+      const allPlayers = await storage.getPlayersByTeamId(teamId);
+      const activeRosterCount = allPlayers.filter(p => !p.isOnTaxi).length;
+      
+      if (activeRosterCount >= 15) {
+        return res.status(400).json({ message: "Active roster is full (15 players maximum)" });
+      }
+
+      // Promote to main roster
+      const updatedPlayer = await storage.updatePlayer(playerId, {
+        isOnTaxi: false,
+        salary: 5000, // Base salary for promoted players
+        contractValue: 10000,
+        contractSeasons: 2
+      });
+
+      res.json({ 
+        message: "Player promoted to main roster", 
+        player: updatedPlayer 
+      });
+    } catch (error) {
+      console.error("Error promoting player:", error);
+      res.status(500).json({ message: "Failed to promote player" });
+    }
+  });
+
+  app.delete("/api/teams/:teamId/taxi-squad/:playerId", isAuthenticated, async (req: any, res) => {
+    try {
+      const { teamId, playerId } = req.params;
+      const userId = req.user.claims.sub;
+
+      // Verify team ownership
+      const team = await storage.getTeamById(teamId);
+      if (!team || team.userId !== userId) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+
+      // Get player and verify it's on taxi squad
+      const player = await storage.getPlayerById(playerId);
+      if (!player || player.teamId !== teamId || !player.isOnTaxi) {
+        return res.status(404).json({ message: "Player not found on taxi squad" });
+      }
+
+      // Remove player from team (this will effectively release them)
+      await storage.updatePlayer(playerId, {
+        teamId: null,
+        isOnTaxi: false,
+        isMarketplace: false
+      });
+
+      res.json({ message: "Player released from taxi squad" });
+    } catch (error) {
+      console.error("Error releasing player:", error);
+      res.status(500).json({ message: "Failed to release player" });
+    }
+  });
+
   // Tryout system routes
   app.post("/api/teams/:teamId/tryouts", isAuthenticated, async (req, res) => {
     try {
@@ -716,17 +813,188 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Add tryout candidates to taxi squad
+  app.post("/api/teams/:teamId/taxi-squad/add-candidates", isAuthenticated, async (req: any, res) => {
+    try {
+      const { teamId } = req.params;
+      const { candidates } = req.body;
+      const userId = req.user.claims.sub;
+
+      // Verify team ownership
+      const team = await storage.getTeamById(teamId);
+      if (!team || team.userId !== userId) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+
+      // Check taxi squad capacity
+      const players = await storage.getPlayersByTeamId(teamId);
+      const currentTaxiSquadCount = players.filter(p => p.isOnTaxi).length;
+      
+      if (currentTaxiSquadCount + candidates.length > 2) {
+        return res.status(400).json({ message: "Taxi squad capacity exceeded (2 players maximum)" });
+      }
+
+      const addedPlayers = [];
+
+      // Add each candidate to taxi squad
+      for (const candidate of candidates) {
+        // Parse candidate name for firstName and lastName
+        const nameParts = candidate.name.split(' ');
+        const firstName = nameParts[0];
+        const lastName = nameParts.slice(1).join(' ') || firstName;
+
+        const playerData = {
+          name: candidate.name,
+          firstName,
+          lastName,
+          teamId,
+          race: candidate.race,
+          age: candidate.age,
+          speed: candidate.speed,
+          power: candidate.power,
+          throwing: candidate.throwing,
+          catching: candidate.catching || Math.floor(Math.random() * 15) + 15,
+          kicking: candidate.kicking || Math.floor(Math.random() * 15) + 15,
+          stamina: candidate.stamina,
+          leadership: candidate.leadership,
+          agility: candidate.agility,
+          position: "Utility", // Default position for tryout candidates
+          isOnTaxi: true,
+          isMarketplace: false,
+          marketplacePrice: null,
+          salary: 0, // Taxi squad players don't have salary
+          contractValue: 0,
+          contractSeasons: 0,
+          abilities: "[]", // Empty abilities array
+          marketValue: candidate.marketValue || 50000
+        };
+
+        const newPlayer = await storage.createPlayer(playerData);
+        addedPlayers.push(newPlayer);
+      }
+
+      res.json({ 
+        message: `${addedPlayers.length} players added to taxi squad`,
+        players: addedPlayers 
+      });
+    } catch (error) {
+      console.error("Error adding candidates to taxi squad:", error);
+      res.status(500).json({ message: "Failed to add candidates to taxi squad" });
+    }
+  });
+
   app.post("/api/teams/:teamId/taxi-squad", isAuthenticated, async (req, res) => {
     try {
       const teamId = req.params.teamId;
-      const { candidateIds } = req.body;
+      const { candidates } = req.body;
       
-      // In a real implementation, you'd store these in a taxi_squad table
-      // For now, just return success
-      res.json({ success: true, addedCount: candidateIds.length });
+      console.log("Adding to taxi squad:", { teamId, candidates });
+      
+      if (!candidates || candidates.length === 0) {
+        return res.status(400).json({ message: "No candidates provided" });
+      }
+
+      const addedPlayers = [];
+      
+      // Create actual player records for taxi squad candidates
+      for (const candidate of candidates) {
+        const playerData = {
+          teamId: teamId,
+          firstName: candidate.firstName,
+          lastName: candidate.lastName,
+          name: `${candidate.firstName} ${candidate.lastName}`,
+          race: candidate.race,
+          age: candidate.age,
+          position: "player",
+          speed: candidate.speed,
+          power: candidate.power,
+          throwing: candidate.throwing,
+          catching: candidate.catching || 20,
+          kicking: candidate.kicking || 20,
+          stamina: candidate.stamina || 25,
+          leadership: candidate.leadership || 20,
+          agility: candidate.agility || 25,
+          salary: Math.floor(Math.random() * 5000) + 2000, // Random salary 2-7k
+          contractSeasons: 3,
+          contractStartSeason: 1,
+          contractValue: Math.floor(Math.random() * 15000) + 10000,
+          isStarter: false,
+          isOnTaxi: true, // Mark as taxi squad player
+          abilities: "[]"
+        };
+
+        const player = await storage.createPlayer(playerData);
+        addedPlayers.push(player);
+        console.log("Created taxi squad player:", player.firstName, player.lastName);
+      }
+      
+      res.json({ 
+        success: true, 
+        addedCount: addedPlayers.length,
+        players: addedPlayers 
+      });
     } catch (error) {
       console.error("Error adding to taxi squad:", error);
       res.status(500).json({ message: "Failed to add to taxi squad" });
+    }
+  });
+
+  // Get taxi squad players
+  app.get("/api/teams/:teamId/taxi-squad", isAuthenticated, async (req, res) => {
+    try {
+      const teamId = req.params.teamId;
+      const allPlayers = await storage.getPlayersByTeamId(teamId);
+      const taxiSquadPlayers = allPlayers.filter(player => player.isOnTaxi);
+      
+      res.json(taxiSquadPlayers);
+    } catch (error) {
+      console.error("Error getting taxi squad:", error);
+      res.status(500).json({ message: "Failed to get taxi squad" });
+    }
+  });
+
+  // Promote taxi squad player to main roster
+  app.post("/api/teams/:teamId/taxi-squad/:playerId/promote", isAuthenticated, async (req, res) => {
+    try {
+      const playerId = req.params.playerId;
+      
+      const updatedPlayer = await storage.updatePlayer(playerId, {
+        isOnTaxi: false,
+        isStarter: false
+      });
+      
+      res.json({ 
+        success: true, 
+        player: updatedPlayer 
+      });
+    } catch (error) {
+      console.error("Error promoting player:", error);
+      res.status(500).json({ message: "Failed to promote player" });
+    }
+  });
+
+  // Release taxi squad player
+  app.delete("/api/teams/:teamId/taxi-squad/:playerId", isAuthenticated, async (req, res) => {
+    try {
+      const teamId = req.params.teamId;
+      const playerId = req.params.playerId;
+      
+      // In a real system, you might want to soft delete or transfer to free agency
+      // For now, we'll just remove them from the team
+      const players = await storage.getPlayersByTeamId(teamId);
+      const playerToRemove = players.find(p => p.id === playerId && p.isOnTaxi);
+      
+      if (!playerToRemove) {
+        return res.status(404).json({ message: "Taxi squad player not found" });
+      }
+      
+      // Delete the player (or you could set teamId to null for free agency)
+      await storage.updatePlayer(playerId, { teamId: null });
+      
+      res.json({ success: true, message: "Player released from taxi squad" });
+    } catch (error) {
+      console.error("Error releasing player:", error);
+      res.status(500).json({ message: "Failed to release player" });
     }
   });
 

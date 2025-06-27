@@ -100,17 +100,19 @@ export default function TryoutSystem({ teamId }: TryoutSystemProps) {
 
   const addToTaxiSquadMutation = useMutation({
     mutationFn: async (candidateIds: string[]) => {
-      return apiRequest(`/api/teams/${teamId}/taxi-squad`, "POST", { candidateIds });
+      const selectedCandidateData = candidates.filter(c => candidateIds.includes(c.id));
+      return apiRequest(`/api/teams/${teamId}/taxi-squad/add-candidates`, "POST", { candidates: selectedCandidateData });
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
       toast({
         title: "Success!",
-        description: `Added ${selectedCandidates.length} player(s) to your taxi squad.`,
+        description: data.message,
       });
       setShowTryoutModal(false);
       setSelectedCandidates([]);
       setCandidates([]);
       setRevealedCandidates([]);
+      queryClient.invalidateQueries({ queryKey: [`/api/teams/${teamId}/taxi-squad`] });
     },
     onError: (error) => {
       toast({

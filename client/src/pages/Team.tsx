@@ -9,6 +9,7 @@ import ContractNegotiation from "@/components/ContractNegotiation";
 import StaffManagement from "@/components/StaffManagement";
 import TeamFinances from "@/components/TeamFinances";
 import TryoutSystem from "@/components/TryoutSystem";
+import { TaxiSquadManager } from "@/components/TaxiSquadManager";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -117,9 +118,10 @@ export default function Team() {
 
         {/* Main Navigation Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="mb-8">
-          <TabsList className="grid w-full grid-cols-6 bg-gray-800 gap-0.5">
+          <TabsList className="grid w-full grid-cols-7 bg-gray-800 gap-0.5">
             <TabsTrigger value="roster" className="border-r border-gray-600 last:border-r-0">Roster</TabsTrigger>
             <TabsTrigger value="tactics" className="border-r border-gray-600 last:border-r-0">Tactics</TabsTrigger>
+            <TabsTrigger value="taxi-squad" className="border-r border-gray-600 last:border-r-0">Taxi Squad</TabsTrigger>
             <TabsTrigger value="staff" className="border-r border-gray-600 last:border-r-0">Staff</TabsTrigger>
             <TabsTrigger value="finances" className="border-r border-gray-600 last:border-r-0">Finances</TabsTrigger>
             <TabsTrigger value="contracts" className="border-r border-gray-600 last:border-r-0">Contracts</TabsTrigger>
@@ -219,6 +221,10 @@ export default function Team() {
               players={playersWithRoles}
               savedFormation={formation}
             />
+          </TabsContent>
+
+          <TabsContent value="taxi-squad">
+            <TaxiSquadManager teamId={team?.id} />
           </TabsContent>
 
           <TabsContent value="staff">
