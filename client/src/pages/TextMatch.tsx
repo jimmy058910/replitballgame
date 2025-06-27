@@ -5,8 +5,9 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Loader2 } from "lucide-react";
 
 export default function TextMatch() {
-  const [, params] = useRoute("/text-match/:matchId");
-  const matchId = params?.matchId;
+  const [, textMatchParams] = useRoute("/text-match/:matchId");
+  const [, matchParams] = useRoute("/match/:matchId");
+  const matchId = textMatchParams?.matchId || matchParams?.matchId;
 
   const { data: match, isLoading: matchLoading } = useQuery({
     queryKey: [`/api/matches/${matchId}`],
