@@ -59,6 +59,13 @@ export default function Competition() {
       });
       setBrowsingTeams(false);
     },
+    onError: (error: any) => {
+      toast({
+        title: "Challenge Failed",
+        description: error.message || "Failed to send challenge. Please try again.",
+        variant: "destructive",
+      });
+    },
   });
 
   const [divisionTeams, setDivisionTeams] = useState([]);
@@ -345,15 +352,8 @@ export default function Competition() {
       <Dialog open={browsingTeams} onOpenChange={setBrowsingTeams}>
         <DialogContent className="bg-gray-800 border-gray-700 max-w-4xl max-h-[80vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle className="flex items-center justify-between">
-              <span>Division {(team as any)?.division || 8} Teams</span>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setBrowsingTeams(false)}
-              >
-                <X className="h-4 w-4" />
-              </Button>
+            <DialogTitle>
+              Division {(team as any)?.division || 8} Teams
             </DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
