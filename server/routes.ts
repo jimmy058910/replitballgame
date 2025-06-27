@@ -203,6 +203,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.get('/api/teams/:id', isAuthenticated, async (req, res) => {
+    try {
+      const { id } = req.params;
+      const team = await storage.getTeamById(id);
+      
+      if (!team) {
+        return res.status(404).json({ message: "Team not found" });
+      }
+
+      // Get team players and calculate team power
+      const players = await storage.getPlayersByTeamId(team.id);
+      const teamPower = calculateTeamPower(players);
+
+      res.json({ ...team, teamPower });
+    } catch (error) {
+      console.error("Error fetching team:", error);
+      res.status(500).json({ message: "Failed to fetch team" });
+    }
+  });
+
   app.get('/api/teams/:id/players', isAuthenticated, async (req, res) => {
     try {
       const { id } = req.params;

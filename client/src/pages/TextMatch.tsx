@@ -14,24 +14,30 @@ export default function TextMatch() {
     enabled: !!matchId,
   });
 
-  const { data: team1, isLoading: team1Loading } = useQuery({
+  const { data: team1, isLoading: team1Loading, error: team1Error } = useQuery({
     queryKey: [`/api/teams/${match?.homeTeamId}`],
-    enabled: !!match?.homeTeamId,
+    enabled: !!match?.homeTeamId && match?.homeTeamId !== undefined,
+    retry: 1,
+    staleTime: 60000,
   });
 
-  const { data: team2, isLoading: team2Loading } = useQuery({
+  const { data: team2, isLoading: team2Loading, error: team2Error } = useQuery({
     queryKey: [`/api/teams/${match?.awayTeamId}`],
-    enabled: !!match?.awayTeamId,
+    enabled: !!match?.awayTeamId && match?.awayTeamId !== undefined,
+    retry: 1,
+    staleTime: 60000,
   });
 
   const { data: team1Players } = useQuery({
     queryKey: [`/api/teams/${match?.homeTeamId}/players`],
     enabled: !!match?.homeTeamId,
+    retry: false,
   });
 
   const { data: team2Players } = useQuery({
     queryKey: [`/api/teams/${match?.awayTeamId}/players`],
     enabled: !!match?.awayTeamId,
+    retry: false,
   });
 
   if (matchLoading || team1Loading || team2Loading) {
@@ -54,7 +60,13 @@ export default function TextMatch() {
   console.log("Team1 data:", team1);
   console.log("Team2 data:", team2);
   console.log("Match ID:", matchId);
+  console.log("Team1 ID:", match?.homeTeamId);
+  console.log("Team2 ID:", match?.awayTeamId);
+  console.log("Team1 URL:", `/api/teams/${match?.homeTeamId}`);
+  console.log("Team2 URL:", `/api/teams/${match?.awayTeamId}`);
   console.log("Loading states - match:", matchLoading, "team1:", team1Loading, "team2:", team2Loading);
+  console.log("Team1 error:", team1Error);
+  console.log("Team2 error:", team2Error);
 
   if (!match || !team1 || !team2) {
     return (
