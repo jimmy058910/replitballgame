@@ -17,6 +17,7 @@ import { createDemoNotifications } from "./testNotifications";
 import { NotificationService } from "./services/notificationService";
 import { simulateMatch } from "./services/matchSimulation";
 import { generateRandomPlayer } from "./services/leagueService";
+import { matchStateManager } from "./services/matchStateManager";
 import { z } from "zod";
 import { db } from "./db";
 import { items, stadiums, facilityUpgrades, stadiumEvents, teams, players, matches, teamFinances, playerInjuries, staff } from "@shared/schema";
@@ -491,11 +492,47 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (!match) {
         return res.status(404).json({ message: "Match not found" });
       }
+
+      // If match is live, get synchronized state
+      if (match.status === 'live') {
+        const liveState = await matchStateManager.syncMatchState(matchId);
+        if (liveState) {
+          // Return match with live state data for synchronized viewing
+          res.json({
+            ...match,
+            liveState: {
+              gameTime: liveState.gameTime,
+              currentHalf: liveState.currentHalf,
+              team1Score: liveState.team1Score,
+              team2Score: liveState.team2Score,
+              recentEvents: liveState.gameEvents.slice(-10), // Last 10 events
+              maxTime: liveState.maxTime,
+              isRunning: liveState.status === 'live'
+            }
+          });
+          return;
+        }
+      }
       
       res.json(match);
     } catch (error) {
       console.error("Error fetching match:", error);
       res.status(500).json({ message: "Failed to fetch match" });
+    }
+  });
+
+  // Manual match completion endpoint for admin
+  app.post('/api/matches/:matchId/complete-now', isAuthenticated, async (req, res) => {
+    try {
+      const { matchId } = req.params;
+      
+      // Stop the match in state manager
+      await matchStateManager.stopMatch(matchId);
+      
+      res.json({ message: "Match completed successfully" });
+    } catch (error) {
+      console.error("Error completing match:", error);
+      res.status(500).json({ message: "Failed to complete match" });
     }
   });
 
@@ -2498,6 +2535,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         scheduledTime: new Date(),
         matchType: "exhibition"
       });
+
+      // Start the live match in the state manager
+      await matchStateManager.startLiveMatch(match.id, true);
 
       res.json({
         match,

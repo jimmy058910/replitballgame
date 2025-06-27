@@ -12,6 +12,10 @@ export default function TextMatch() {
   const { data: match, isLoading: matchLoading } = useQuery({
     queryKey: [`/api/matches/${matchId}`],
     enabled: !!matchId,
+    refetchInterval: (data) => {
+      // Only refetch live matches every 2 seconds for synchronized viewing
+      return data?.status === 'live' ? 2000 : false;
+    },
   });
 
   const { data: team1, isLoading: team1Loading, error: team1Error } = useQuery({
@@ -93,6 +97,9 @@ export default function TextMatch() {
       team1={team1WithPlayers}
       team2={team2WithPlayers}
       isExhibition={match?.matchType === "exhibition"}
+      matchId={matchId}
+      initialLiveState={match?.liveState}
+      isLiveMatch={match?.status === 'live'}
       onMatchComplete={(result) => {
         console.log("Match completed:", result);
         // Here you could update the match in the database

@@ -61,24 +61,35 @@ interface TextBasedMatchProps {
   team1: any;
   team2: any;
   isExhibition?: boolean;
+  matchId?: string;
+  initialLiveState?: any;
+  isLiveMatch?: boolean;
   onMatchComplete?: (result: any) => void;
 }
 
-export default function TextBasedMatch({ team1, team2, isExhibition = false, onMatchComplete }: TextBasedMatchProps) {
+export default function TextBasedMatch({ 
+  team1, 
+  team2, 
+  isExhibition = false, 
+  matchId,
+  initialLiveState,
+  isLiveMatch = false,
+  onMatchComplete 
+}: TextBasedMatchProps) {
   const [gameState, setGameState] = useState<GameState>({
-    gameTime: 0,
-    maxTime: isExhibition ? 1200 : 1800, // 20 min for exhibition, 30 min for league
-    currentHalf: 1,
-    team1Score: 0,
-    team2Score: 0,
+    gameTime: initialLiveState?.gameTime || 0,
+    maxTime: initialLiveState?.maxTime || (isExhibition ? 1200 : 1800), // 20 min for exhibition, 30 min for league
+    currentHalf: initialLiveState?.currentHalf || 1,
+    team1Score: initialLiveState?.team1Score || 0,
+    team2Score: initialLiveState?.team2Score || 0,
     ballPosition: { x: 0, y: 0 }, // center field
     ballCarrier: null,
     ballInAir: false,
     ballAirTime: 0,
     ballTarget: null,
     ballIntendedReceiver: null,
-    isRunning: false,
-    gameLog: ["Game starting at midfield..."]
+    isRunning: initialLiveState?.isRunning || false,
+    gameLog: initialLiveState?.recentEvents?.map((event: any) => `[${Math.floor(event.time / 60)}:${String(event.time % 60).padStart(2, '0')}] ${event.description}`) || ["Game starting at midfield..."]
   });
 
   const [players, setPlayers] = useState<Player[]>([]);
