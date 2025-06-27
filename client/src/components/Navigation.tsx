@@ -76,30 +76,25 @@ export default function Navigation() {
 
           {/* Right side - Credits and Actions */}
           <div className="flex items-center space-x-2">
-            {/* Premium Currency Display */}
-            <div className="flex items-center bg-purple-700 px-2 py-1 rounded text-xs font-semibold">
+            {/* Premium Currency Display - Clickable */}
+            <button
+              onClick={() => setLocation("/payments")}
+              className="flex items-center bg-purple-700 hover:bg-purple-600 px-2 py-1 rounded text-xs font-semibold transition-colors cursor-pointer"
+            >
               <Coins className="h-3 w-3 text-purple-300 mr-1" />
               <span className="text-white">{premiumCurrency.toLocaleString()}</span>
               <span className="text-purple-300 ml-1">💎</span>
-            </div>
+            </button>
             
-            {/* Credits Display */}
-            <div className="flex items-center bg-gray-700 px-2 py-1 rounded text-xs font-semibold">
+            {/* Credits Display - Clickable */}
+            <button
+              onClick={() => setLocation("/payments")}
+              className="flex items-center bg-gray-700 hover:bg-gray-600 px-2 py-1 rounded text-xs font-semibold transition-colors cursor-pointer"
+            >
               <Coins className="h-3 w-3 text-yellow-400 mr-1" />
               <span className="text-white">{credits.toLocaleString()}</span>
               <span className="text-yellow-400 ml-1">₡</span>
-            </div>
-
-            {/* Buy Credits Button */}
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setLocation("/payments")}
-              className="bg-blue-600 hover:bg-blue-700 border-blue-500 text-white text-xs px-2 py-1 h-auto"
-            >
-              <Coins className="h-3 w-3 mr-1" />
-              Buy Credits
-            </Button>
+            </button>
 
             {/* Notifications */}
             <NotificationSystem />
@@ -127,10 +122,32 @@ export default function Navigation() {
                   {/* Header */}
                   <div className="border-b border-gray-700 pb-4 mb-6">
                     <h2 className="text-xl font-bold text-white">Realm Rivalry</h2>
-                    <div className="flex items-center mt-2 bg-gray-700 px-3 py-2 rounded">
-                      <Coins className="h-4 w-4 text-yellow-400 mr-2" />
-                      <span className="font-semibold text-white">{credits.toLocaleString()}</span>
-                      <span className="text-yellow-400 ml-1">₡</span>
+                    
+                    {/* Mobile Credits - Clickable */}
+                    <div className="flex items-center gap-2 mt-2">
+                      <button
+                        onClick={() => {
+                          setLocation("/payments");
+                          setIsMobileMenuOpen(false);
+                        }}
+                        className="flex items-center bg-purple-700 hover:bg-purple-600 px-3 py-2 rounded transition-colors cursor-pointer"
+                      >
+                        <Coins className="h-4 w-4 text-purple-300 mr-2" />
+                        <span className="font-semibold text-white">{premiumCurrency.toLocaleString()}</span>
+                        <span className="text-purple-300 ml-1">💎</span>
+                      </button>
+                      
+                      <button
+                        onClick={() => {
+                          setLocation("/payments");
+                          setIsMobileMenuOpen(false);
+                        }}
+                        className="flex items-center bg-gray-700 hover:bg-gray-600 px-3 py-2 rounded transition-colors cursor-pointer"
+                      >
+                        <Coins className="h-4 w-4 text-yellow-400 mr-2" />
+                        <span className="font-semibold text-white">{credits.toLocaleString()}</span>
+                        <span className="text-yellow-400 ml-1">₡</span>
+                      </button>
                     </div>
                   </div>
 
