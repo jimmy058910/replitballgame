@@ -4824,7 +4824,252 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // ===== TEAM SCOUTING SYSTEM =====
+
+  // Get team scouting report (based on user's scouting capabilities)
+  app.get("/api/teams/:teamId/scout", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const { teamId } = req.params;
+      const userTeam = await storage.getTeamByUserId(userId);
+      
+      if (!userTeam) {
+        return res.status(404).json({ message: "User team not found" });
+      }
+
+      // Get the target team
+      const targetTeam = await storage.getTeamById(teamId);
+      if (!targetTeam) {
+        return res.status(404).json({ message: "Target team not found" });
+      }
+
+      // Get user's scouting staff to determine accuracy level
+      const userStaff = await storage.getStaffByTeamId(userTeam.id);
+      const scouts = userStaff.filter(staff => 
+        staff.type === 'head_scout' || staff.type === 'recruiting_scout'
+      );
+
+      // Calculate total scouting power (affects accuracy)
+      let scoutingPower = 0;
+      scouts.forEach(scout => {
+        scoutingPower += scout.scoutingRating || 0;
+      });
+
+      // Base scouting level (everyone gets basic info)
+      let scoutingLevel = 1;
+      if (scoutingPower >= 50) scoutingLevel = 2; // Decent scouting
+      if (scoutingPower >= 100) scoutingLevel = 3; // Good scouting
+      if (scoutingPower >= 150) scoutingLevel = 4; // Excellent scouting
+
+      // Get target team data
+      const [targetPlayers, targetStaff, targetFinances, targetStadium] = await Promise.all([
+        storage.getPlayersByTeamId(teamId),
+        storage.getStaffByTeamId(teamId),
+        storage.getTeamFinances(teamId),
+        storage.getTeamStadium(teamId)
+      ]);
+
+      // Generate scouting report based on level
+      const scoutingReport = {
+        teamInfo: {
+          id: targetTeam.id,
+          name: targetTeam.name,
+          division: targetTeam.division,
+          wins: targetTeam.wins,
+          losses: targetTeam.losses,
+          draws: targetTeam.draws,
+          points: targetTeam.points,
+          teamPower: scoutingLevel >= 2 ? targetTeam.teamPower : "Unknown"
+        },
+        scoutingLevel,
+        scoutingPower,
+        confidence: Math.min(95, 40 + scoutingPower / 2), // 40-95% confidence
+        
+        // Stadium info (basic info always available)
+        stadium: targetStadium ? {
+          name: targetStadium.name,
+          capacity: scoutingLevel >= 2 ? targetStadium.capacity : "Unknown",
+          level: scoutingLevel >= 3 ? targetStadium.level : "Unknown",
+          facilities: scoutingLevel >= 4 ? targetStadium.facilities : "Unknown"
+        } : null,
+
+        // Player information (accuracy depends on scouting level)
+        players: targetPlayers.map(player => {
+          const baseInfo = {
+            id: player.id,
+            firstName: player.firstName,
+            lastName: player.lastName,
+            race: player.race,
+            age: scoutingLevel >= 2 ? player.age : "Unknown",
+            position: player.position
+          };
+
+          // Add stat ranges based on scouting level
+          if (scoutingLevel >= 2) {
+            // Level 2: Wide stat ranges (±8 points)
+            const variance = scoutingLevel === 2 ? 8 : scoutingLevel === 3 ? 5 : 2;
+            baseInfo.stats = {
+              speed: getStatRange(player.speed, variance),
+              power: getStatRange(player.power, variance),
+              throwing: getStatRange(player.throwing, variance),
+              catching: getStatRange(player.catching, variance),
+              kicking: getStatRange(player.kicking, variance),
+              stamina: getStatRange(player.stamina, variance),
+              leadership: getStatRange(player.leadership, variance),
+              agility: getStatRange(player.agility, variance)
+            };
+          }
+
+          // Add salary info for higher scouting levels
+          if (scoutingLevel >= 3) {
+            baseInfo.salary = getSalaryRange(player.salary, scoutingLevel);
+          }
+
+          return baseInfo;
+        }),
+
+        // Staff information
+        staff: targetStaff.map(staffMember => {
+          const baseInfo = {
+            name: staffMember.name,
+            type: staffMember.type,
+            level: scoutingLevel >= 2 ? staffMember.level : "Unknown"
+          };
+
+          if (scoutingLevel >= 3) {
+            baseInfo.salary = getSalaryRange(staffMember.salary, scoutingLevel);
+            baseInfo.ratings = {
+              offense: staffMember.offenseRating || 0,
+              defense: staffMember.defenseRating || 0,
+              scouting: staffMember.scoutingRating || 0,
+              recruiting: staffMember.recruitingRating || 0
+            };
+          }
+
+          return baseInfo;
+        }),
+
+        // Financial information (limited)
+        finances: scoutingLevel >= 4 ? {
+          estimatedBudget: targetFinances ? getFinancialRange(targetFinances.credits) : "Unknown",
+          salaryCapUsage: "Unknown" // Could add this later
+        } : null,
+
+        // Scouting report notes
+        notes: generateScoutingNotes(targetTeam, targetPlayers, scoutingLevel),
+        generatedAt: new Date()
+      };
+
+      res.json(scoutingReport);
+    } catch (error) {
+      console.error("Error generating scouting report:", error);
+      res.status(500).json({ message: "Failed to generate scouting report" });
+    }
+  });
+
+  // Get list of teams available for scouting (same division + nearby divisions)
+  app.get("/api/teams/scoutable", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const userTeam = await storage.getTeamByUserId(userId);
+      
+      if (!userTeam) {
+        return res.status(404).json({ message: "User team not found" });
+      }
+
+      // Get teams from same division and adjacent divisions
+      const scoutableDivisions = [
+        userTeam.division,
+        Math.max(1, userTeam.division - 1),
+        Math.min(8, userTeam.division + 1)
+      ].filter((div, index, arr) => arr.indexOf(div) === index); // Remove duplicates
+
+      const scoutableTeams = [];
+      
+      for (const division of scoutableDivisions) {
+        const divisionTeams = await storage.getTeamsByDivision(division);
+        // Filter out user's own team
+        const otherTeams = divisionTeams.filter(team => team.id !== userTeam.id);
+        scoutableTeams.push(...otherTeams.map(team => ({
+          ...team,
+          scoutingCost: division === userTeam.division ? 0 : 1000 // Free for same division
+        })));
+      }
+
+      res.json({
+        teams: scoutableTeams,
+        userDivision: userTeam.division,
+        scoutableDivisions
+      });
+    } catch (error) {
+      console.error("Error fetching scoutabl teams:", error);
+      res.status(500).json({ message: "Failed to fetch scoutabl teams" });
+    }
+  });
+
   return httpServer;
+}
+
+// Helper functions for scouting system
+function getStatRange(actualStat: number, variance: number): string {
+  const min = Math.max(1, actualStat - variance);
+  const max = Math.min(40, actualStat + variance);
+  
+  if (variance <= 2) {
+    // High accuracy scouting
+    return `${min}-${max}`;
+  } else {
+    // Lower accuracy - return broader ranges
+    return `${min}-${max}`;
+  }
+}
+
+function getSalaryRange(actualSalary: number, scoutingLevel: number): string {
+  const variance = scoutingLevel === 4 ? 0.1 : 0.2; // 10% or 20% variance
+  const min = Math.floor(actualSalary * (1 - variance));
+  const max = Math.floor(actualSalary * (1 + variance));
+  
+  return `${min.toLocaleString()} - ${max.toLocaleString()}`;
+}
+
+function getFinancialRange(actualCredits: number): string {
+  // Always give broad financial estimates
+  if (actualCredits < 100000) return "Low (<100K)";
+  if (actualCredits < 500000) return "Moderate (100K-500K)";
+  if (actualCredits < 1000000) return "Good (500K-1M)";
+  return "Excellent (>1M)";
+}
+
+function generateScoutingNotes(team: any, players: any[], scoutingLevel: number): string[] {
+  const notes = [];
+  
+  // Basic notes always available
+  notes.push(`${team.name} competes in Division ${team.division}`);
+  notes.push(`Current record: ${team.wins}W-${team.losses}L-${team.draws}D`);
+  
+  if (scoutingLevel >= 2) {
+    const avgAge = players.reduce((sum, p) => sum + p.age, 0) / players.length;
+    notes.push(`Squad average age: ${avgAge.toFixed(1)} years`);
+    
+    const raceDistribution = {};
+    players.forEach(p => {
+      raceDistribution[p.race] = (raceDistribution[p.race] || 0) + 1;
+    });
+    const dominantRace = Object.entries(raceDistribution).sort((a, b) => b[1] - a[1])[0];
+    notes.push(`Dominant race: ${dominantRace[0]} (${dominantRace[1]} players)`);
+  }
+  
+  if (scoutingLevel >= 3) {
+    const avgPower = players.reduce((sum, p) => sum + (p.speed + p.power + p.throwing + p.catching + p.kicking), 0) / (players.length * 5);
+    notes.push(`Estimated team strength: ${avgPower > 25 ? 'Strong' : avgPower > 20 ? 'Average' : 'Developing'}`);
+  }
+  
+  if (scoutingLevel >= 4) {
+    notes.push("Detailed financial analysis available");
+    notes.push("Complete staff evaluation included");
+  }
+  
+  return notes;
 }
 
 // Stadium management helper functions
