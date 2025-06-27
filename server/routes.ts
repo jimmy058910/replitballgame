@@ -2176,18 +2176,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: "Opponent team not found" });
       }
 
-      // Create exhibition match
+      // Create immediate live exhibition match
       const match = await storage.createMatch({
         homeTeamId: team.id,
         awayTeamId: opponent.id,
-        status: "scheduled",
+        status: "live",
         gameDay: 0, // Exhibition matches don't count toward season
         scheduledTime: new Date(),
+        matchType: "exhibition"
       });
 
       res.json({
         match,
-        message: "Exhibition match created successfully"
+        matchId: match.id,
+        message: "Exhibition match started! Game is now live."
       });
     } catch (error) {
       console.error("Error creating exhibition:", error);

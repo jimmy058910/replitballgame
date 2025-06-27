@@ -47,6 +47,7 @@ function Router() {
           <Route path="/store" component={Store} />
           <Route path="/stadium" component={Stadium} />
           <Route path="/text-match/:matchId" component={TextMatch} />
+          <Route path="/match/:matchId" component={TextMatch} />
           <Route path="/community" component={Community} />
           <Route path="/superuser" component={SuperUser} />
         </>

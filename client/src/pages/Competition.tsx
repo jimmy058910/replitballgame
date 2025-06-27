@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
+import { useLocation } from "wouter";
 import Navigation from "@/components/Navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -15,6 +16,7 @@ import { Trophy, Medal, Gamepad2, Calendar, Users, Clock, X } from "lucide-react
 export default function Competition() {
   const [browsingTeams, setBrowsingTeams] = useState(false);
   const [divisionTeams, setDivisionTeams] = useState([]);
+  const [, setLocation] = useLocation();
   const { toast } = useToast();
   
   const { data: team } = useQuery({
@@ -53,17 +55,22 @@ export default function Competition() {
         opponentId,
       });
     },
-    onSuccess: () => {
+    onSuccess: (data: any) => {
       toast({
-        title: "Challenge Sent",
-        description: "Exhibition match challenge has been sent!",
+        title: "Exhibition Started!",
+        description: "Your exhibition match is now live. Redirecting to match viewer...",
       });
       setBrowsingTeams(false);
+      
+      // Redirect to match viewer after short delay
+      setTimeout(() => {
+        setLocation(`/match/${data.matchId}`);
+      }, 1500);
     },
     onError: (error: any) => {
       toast({
-        title: "Challenge Failed",
-        description: error.message || "Failed to send challenge. Please try again.",
+        title: "Failed to Start Match",
+        description: error.message || "Failed to start exhibition match. Please try again.",
         variant: "destructive",
       });
     },
@@ -312,12 +319,12 @@ export default function Competition() {
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
                     <Trophy className="h-5 w-5 text-gold-400" />
-                    Challenge Teams
+                    Instant Exhibition
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <p className="text-gray-400">
-                    Send exhibition challenges to other teams in your division for friendly competition.
+                    Start an immediate exhibition match against other teams in your division. Games begin instantly!
                   </p>
                   <Button 
                     className="w-full" 
@@ -325,7 +332,7 @@ export default function Competition() {
                     onClick={() => browseMutation.mutate()}
                     disabled={browseMutation.isPending}
                   >
-                    {browseMutation.isPending ? "Loading..." : "Browse Teams"}
+                    {browseMutation.isPending ? "Loading..." : "Choose Opponent"}
                   </Button>
                 </CardContent>
               </Card>
@@ -379,7 +386,7 @@ export default function Competition() {
                         onClick={() => challengeMutation.mutate(challengeTeam.id)}
                         disabled={challengeMutation.isPending}
                       >
-                        {challengeMutation.isPending ? "Sending..." : "Send Challenge"}
+                        {challengeMutation.isPending ? "Starting..." : "Start Match"}
                       </Button>
                     </CardContent>
                   </Card>
