@@ -3899,32 +3899,32 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
-      // Identify user teams vs AI teams
-      const userTeams = allTeams.filter(t => 
-        !t.name.includes('AI ') && 
-        !t.name.includes('Team ') && 
-        !t.name.includes('Thunder Hawks') &&
-        !t.name.includes('Storm Eagles') &&
-        !t.name.includes('Fire Dragons') &&
-        !t.name.includes('Ice Wolves') &&
-        !t.name.includes('Lightning Bolts') &&
-        !t.name.includes('Shadow Panthers') &&
-        !t.name.includes('Golden Lions') &&
-        !t.name.includes('Silver Sharks')
-      );
+      // Debug: Log all team names for analysis
+      console.log('All teams in division:', allTeams.map(t => `"${t.name}"`));
       
-      const aiTeams = allTeams.filter(t => 
-        t.name.includes('AI ') || 
-        t.name.includes('Team ') ||
-        t.name.includes('Thunder Hawks') ||
-        t.name.includes('Storm Eagles') ||
-        t.name.includes('Fire Dragons') ||
-        t.name.includes('Ice Wolves') ||
-        t.name.includes('Lightning Bolts') ||
-        t.name.includes('Shadow Panthers') ||
-        t.name.includes('Golden Lions') ||
-        t.name.includes('Silver Sharks')
-      );
+      // Identify user teams vs AI teams - user teams are those that don't match AI patterns
+      const aiTeamPatterns = [
+        'Thunder Hawks', 'Storm Eagles', 'Fire Dragons', 'Ice Wolves',
+        'Lightning Bolts', 'Shadow Panthers', 'Golden Lions', 'Silver Sharks'
+      ];
+      
+      const userTeams = allTeams.filter(t => {
+        // Check if team name matches any AI pattern (exact match)
+        const isAI = aiTeamPatterns.some(pattern => t.name === pattern) || 
+                     t.name.includes('AI ') || 
+                     t.name.includes('Team ') ||
+                     /^(Thunder Hawks|Storm Eagles|Fire Dragons|Ice Wolves|Lightning Bolts|Shadow Panthers|Golden Lions|Silver Sharks)( \d+)?$/.test(t.name);
+        return !isAI;
+      });
+      
+      const aiTeams = allTeams.filter(t => {
+        // Check if team name matches any AI pattern (exact match or with numbers)
+        const isAI = aiTeamPatterns.some(pattern => t.name === pattern || t.name.startsWith(pattern + ' ')) || 
+                     t.name.includes('AI ') || 
+                     t.name.includes('Team ') ||
+                     /^(Thunder Hawks|Storm Eagles|Fire Dragons|Ice Wolves|Lightning Bolts|Shadow Panthers|Golden Lions|Silver Sharks)( \d+)?$/.test(t.name);
+        return isAI;
+      });
       
       console.log(`User teams: ${userTeams.length}, AI teams: ${aiTeams.length}`);
 
@@ -3938,21 +3938,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Remove excess teams and their associated data
       for (const teamToRemove of teamsToRemove) {
         try {
-          // Get and delete all players for this team
-          const players = await storage.getPlayersByTeamId(teamToRemove.id);
-          for (const player of players) {
-            // Delete player's abilities, injuries, contracts, etc.
-            try {
-              await db.delete(playerInjuries).where(eq(playerInjuries.playerId, player.id));
-              await db.delete(players).where(eq(players.id, player.id));
-            } catch (error) {
-              console.log(`Error deleting player data for ${player.id}:`, error);
-            }
-          }
+          console.log(`Deleting team: ${teamToRemove.name} (${teamToRemove.id})`);
+          
+          // Delete all players for this team first (to handle foreign key constraints)
+          await db.delete(players).where(eq(players.teamId, teamToRemove.id));
+          console.log(`Deleted players for team ${teamToRemove.id}`);
 
           // Delete team finances
           try {
             await db.delete(teamFinances).where(eq(teamFinances.teamId, teamToRemove.id));
+            console.log(`Deleted finances for team ${teamToRemove.id}`);
           } catch (error) {
             console.log(`No finances to delete for team ${teamToRemove.id}`);
           }
@@ -3965,6 +3960,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
                 eq(matches.awayTeamId, teamToRemove.id)
               )
             );
+            console.log(`Deleted matches for team ${teamToRemove.id}`);
           } catch (error) {
             console.log(`Error deleting matches for team ${teamToRemove.id}:`, error);
           }
