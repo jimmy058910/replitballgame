@@ -28,7 +28,8 @@ export default function Competition() {
   });
 
   const { data: teamMatches } = useQuery({
-    queryKey: ["/api/matches/team"],
+    queryKey: ["/api/matches/team", (team as any)?.id],
+    enabled: !!(team as any)?.id,
   });
 
   const { data: tournaments } = useQuery({

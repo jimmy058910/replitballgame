@@ -454,17 +454,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get('/api/matches/team/:teamId', isAuthenticated, async (req, res) => {
-    try {
-      const { teamId } = req.params;
-      const matches = await storage.getMatchesByTeamId(teamId);
-      res.json(matches);
-    } catch (error) {
-      console.error("Error fetching team matches:", error);
-      res.status(500).json({ message: "Failed to fetch team matches" });
-    }
-  });
-
   app.get('/api/matches/:matchId', isAuthenticated, async (req, res) => {
     try {
       const { matchId } = req.params;
@@ -478,6 +467,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error fetching match:", error);
       res.status(500).json({ message: "Failed to fetch match" });
+    }
+  });
+
+  app.get('/api/matches/team/:teamId', isAuthenticated, async (req, res) => {
+    try {
+      const { teamId } = req.params;
+      const matches = await storage.getMatchesByTeamId(teamId);
+      res.json(matches);
+    } catch (error) {
+      console.error("Error fetching team matches:", error);
+      res.status(500).json({ message: "Failed to fetch team matches" });
     }
   });
 
