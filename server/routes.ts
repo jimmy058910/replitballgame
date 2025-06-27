@@ -3858,6 +3858,111 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Season Management endpoints (SuperUser)
+  app.post('/api/superuser/advance-day', isAuthenticated, async (req, res) => {
+    try {
+      const userId = (req.user as any).claims.sub;
+      console.log(`SuperUser advancing day - User: ${userId}`);
+
+      // Get current season
+      const currentSeason = await storage.getCurrentSeason();
+      if (!currentSeason) {
+        return res.status(404).json({ message: "No active season found" });
+      }
+
+      // Calculate next day
+      const seasonStartDate = currentSeason.startDate || new Date();
+      const currentDate = new Date();
+      const daysSinceStart = Math.floor((currentDate.getTime() - seasonStartDate.getTime()) / (1000 * 60 * 60 * 24));
+      const currentDay = ((daysSinceStart % 17) + 1);
+      const nextDay = currentDay >= 17 ? 1 : currentDay + 1;
+
+      // If moving to day 1, start new season cycle
+      if (nextDay === 1) {
+        // Advance season start date by 1 day to move to next day in cycle
+        const newStartDate = new Date(seasonStartDate);
+        newStartDate.setDate(newStartDate.getDate() + 1);
+        
+        await storage.updateSeason(currentSeason.id, {
+          startDate: newStartDate
+        });
+      } else {
+        // Just advance the day by updating start date
+        const newStartDate = new Date(seasonStartDate);
+        newStartDate.setDate(newStartDate.getDate() + 1);
+        
+        await storage.updateSeason(currentSeason.id, {
+          startDate: newStartDate
+        });
+      }
+
+      res.json({ 
+        message: "Day advanced successfully",
+        newDay: nextDay,
+        isNewSeason: nextDay === 1
+      });
+    } catch (error) {
+      console.error("Error advancing day:", error);
+      res.status(500).json({ message: "Failed to advance day" });
+    }
+  });
+
+  app.post('/api/superuser/reset-season', isAuthenticated, async (req, res) => {
+    try {
+      const userId = (req.user as any).claims.sub;
+      console.log(`SuperUser resetting season to Day 1 - User: ${userId}`);
+
+      // Get current season
+      const currentSeason = await storage.getCurrentSeason();
+      if (!currentSeason) {
+        return res.status(404).json({ message: "No active season found" });
+      }
+
+      // Reset season to Day 1 by setting start date to today
+      const newStartDate = new Date();
+      await storage.updateSeason(currentSeason.id, {
+        startDate: newStartDate,
+        endDate: null,
+        playoffStartDate: null,
+        championTeamId: null
+      });
+
+      // Reset all team statistics for new season
+      const allTeams = [];
+      for (let division = 1; division <= 8; division++) {
+        const divisionTeams = await storage.getTeamsByDivision(division);
+        allTeams.push(...divisionTeams);
+      }
+
+      for (const team of allTeams) {
+        await storage.updateTeam(team.id, {
+          wins: 0,
+          losses: 0,
+          draws: 0,
+          points: 0
+        });
+      }
+
+      // Stop all active matches
+      const liveMatches = await storage.getLiveMatches();
+      for (const match of liveMatches) {
+        await storage.updateMatch(match.id, {
+          status: "completed",
+          completedAt: new Date()
+        });
+      }
+
+      res.json({ 
+        message: "Season reset to Day 1 successfully",
+        teamsReset: allTeams.length,
+        matchesStopped: liveMatches.length
+      });
+    } catch (error) {
+      console.error("Error resetting season:", error);
+      res.status(500).json({ message: "Failed to reset season" });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }

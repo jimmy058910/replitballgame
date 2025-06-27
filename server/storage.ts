@@ -536,6 +536,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   // Season Championships & Playoffs
+  updateSeason(seasonId: string, updates: Partial<Season>): Promise<Season>;
   async getCurrentSeason(): Promise<Season | undefined> {
     try {
       const [season] = await db
@@ -565,6 +566,15 @@ export class DatabaseStorage implements IStorage {
     const [season] = await db
       .insert(seasons)
       .values(seasonData)
+      .returning();
+    return season;
+  }
+
+  async updateSeason(seasonId: string, updates: Partial<Season>): Promise<Season> {
+    const [season] = await db
+      .update(seasons)
+      .set(updates)
+      .where(eq(seasons.id, seasonId))
       .returning();
     return season;
   }

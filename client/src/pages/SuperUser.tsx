@@ -22,6 +22,49 @@ export default function SuperUser() {
     queryKey: ["/api/season/current-week"],
   });
 
+  // Season management mutations
+  const advanceDayMutation = useMutation({
+    mutationFn: async () => {
+      return await apiRequest("/api/superuser/advance-day", "POST");
+    },
+    onSuccess: (data: any) => {
+      toast({
+        title: "Day Advanced",
+        description: `Successfully advanced to Day ${data.newDay}${data.isNewSeason ? " (New Season)" : ""}`,
+      });
+      queryClient.invalidateQueries({ queryKey: ["/api/season/current-cycle"] });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: "Failed to advance day",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const resetSeasonMutation = useMutation({
+    mutationFn: async () => {
+      return await apiRequest("/api/superuser/reset-season", "POST");
+    },
+    onSuccess: (data: any) => {
+      toast({
+        title: "Season Reset",
+        description: `Season reset to Day 1. ${data.teamsReset} teams reset, ${data.matchesStopped} matches stopped.`,
+      });
+      queryClient.invalidateQueries({ queryKey: ["/api/season/current-cycle"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/leagues"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/teams/my"] });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: "Failed to reset season",
+        variant: "destructive",
+      });
+    },
+  });
+
   // Demo notifications mutation
   const createNotificationsMutation = useMutation({
     mutationFn: async () => {
@@ -67,50 +110,9 @@ export default function SuperUser() {
     },
   });
 
-  // Advance week mutation
-  const advanceWeekMutation = useMutation({
-    mutationFn: async () => {
-      return await apiRequest("/api/superuser/advance-week", "POST");
-    },
-    onSuccess: (data: any) => {
-      toast({
-        title: "Week Advanced",
-        description: data.message,
-      });
-      queryClient.invalidateQueries({ queryKey: ["/api/season/current-week"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/leagues"] });
-    },
-    onError: (error: any) => {
-      toast({
-        title: "Error",
-        description: "Failed to advance week",
-        variant: "destructive",
-      });
-    },
-  });
 
-  // Reset season mutation
-  const resetSeasonMutation = useMutation({
-    mutationFn: async () => {
-      return await apiRequest("/api/superuser/reset-season", "POST");
-    },
-    onSuccess: (data: any) => {
-      toast({
-        title: "Season Reset",
-        description: data.message,
-      });
-      queryClient.invalidateQueries({ queryKey: ["/api/season/current-week"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/leagues"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/matches/live"] });
-    },
-    onError: (error: any) => {
-      toast({
-        title: "Error",
-        description: "Failed to reset season",
-        variant: "destructive",
-      });
-    },
-  });
+
+
 
   // Stop all games mutation
   const stopAllGamesMutation = useMutation({
@@ -280,52 +282,7 @@ export default function SuperUser() {
             </CardContent>
           </Card>
 
-          {/* Season Management */}
-          <Card className="bg-gray-800 border-gray-700">
-            <CardHeader>
-              <CardTitle className="font-orbitron text-xl flex items-center">
-                <Calendar className="w-5 h-5 mr-2 text-purple-400" />
-                Season Management
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="p-4 bg-gray-700 rounded-lg">
-                <div className="text-sm text-gray-400">Current Week</div>
-                <div className="text-2xl font-bold text-purple-400">
-                  Week {currentWeek?.week || 1}
-                </div>
-                <div className="text-xs text-gray-500">
-                  Season {currentWeek?.season || 1}
-                </div>
-              </div>
-              <div className="space-y-2">
-                <Button 
-                  onClick={() => advanceWeekMutation.mutate()}
-                  disabled={advanceWeekMutation.isPending}
-                  className="w-full"
-                  variant="outline"
-                >
-                  {advanceWeekMutation.isPending ? "Advancing..." : "Advance Week"}
-                </Button>
-                <Button 
-                  onClick={() => resetSeasonMutation.mutate()}
-                  disabled={resetSeasonMutation.isPending}
-                  className="w-full"
-                  variant="destructive"
-                >
-                  {resetSeasonMutation.isPending ? "Resetting..." : "Reset Season"}
-                </Button>
-                <Button 
-                  onClick={() => stopAllGamesMutation.mutate()}
-                  disabled={stopAllGamesMutation.isPending}
-                  className="w-full"
-                  variant="destructive"
-                >
-                  {stopAllGamesMutation.isPending ? "Stopping..." : "Stop All Games"}
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
+
 
           {/* League Management */}
           <Card className="bg-gray-800 border-gray-700">
@@ -363,6 +320,39 @@ export default function SuperUser() {
             </CardContent>
           </Card>
         </div>
+
+        {/* Season Management */}
+        <Card className="bg-gray-800 border-gray-700 mt-8">
+          <CardHeader>
+            <CardTitle className="font-orbitron text-xl flex items-center">
+              <Calendar className="w-5 h-5 mr-2 text-orange-400" />
+              Season Management
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <p className="text-gray-400 text-sm">
+              Manual control over season progression and timing. Current day and season can be managed server-wide.
+            </p>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <Button 
+                onClick={() => advanceDayMutation.mutate()}
+                disabled={advanceDayMutation.isPending}
+                className="w-full"
+                variant="outline"
+              >
+                {advanceDayMutation.isPending ? "Advancing..." : "Advance Day"}
+              </Button>
+              <Button 
+                onClick={() => resetSeasonMutation.mutate()}
+                disabled={resetSeasonMutation.isPending}
+                className="w-full"
+                variant="destructive"
+              >
+                {resetSeasonMutation.isPending ? "Resetting..." : "Reset Season to Day 1"}
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
 
         {/* System Information */}
         <Card className="bg-gray-800 border-gray-700 mt-8">

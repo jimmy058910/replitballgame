@@ -128,6 +128,11 @@ Built as a React + Express web application with PostgreSQL database, using moder
 - ✓ Enhanced tactical interface with position-specific controls and validation
 - ✓ Added ability to reorder substitutes for each position type (Passer, Runner, Blocker)
 - ✓ Implemented proper role labeling system that shows "Passer 1", "Runner 1/2", "Blocker 1/2", "Wildcard"
+- ✓ Fixed relegation system to properly show Division 8 as floor division (no Division 9)
+- ✓ Added manual server-wide day/season management controls to SuperUser panel
+- ✓ Implemented "Advance Day" functionality to manually progress through 17-day seasonal cycle
+- ✓ Added "Reset Season to Day 1" feature that resets all team statistics and stops active matches
+- ✓ Enhanced seasonal cycle display on Dashboard and Competition pages with proper phase tracking
 
 ### Technical Improvements
 - **Notification System**: Now uses solid background colors (red, blue, green, yellow) with white text for proper visibility
