@@ -428,41 +428,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Exhibition challenge endpoint
-  app.post('/api/exhibitions/challenge', isAuthenticated, async (req: any, res) => {
-    try {
-      const userId = req.user.claims.sub;
-      const { challengedTeamId } = req.body;
-      
-      const challengerTeam = await storage.getTeamByUserId(userId);
-      if (!challengerTeam) {
-        return res.status(404).json({ message: "Your team not found" });
-      }
 
-      const challengedTeam = await storage.getTeamById(challengedTeamId);
-      if (!challengedTeam) {
-        return res.status(404).json({ message: "Challenged team not found" });
-      }
-
-      // Create exhibition match
-      const match = await storage.createMatch({
-        homeTeamId: challengerTeam.id,
-        awayTeamId: challengedTeamId,
-        status: "scheduled",
-        gameType: "exhibition",
-        scheduledTime: new Date(Date.now() + 5 * 60 * 1000), // 5 minutes from now
-      });
-
-      res.json({ 
-        success: true, 
-        message: `Exhibition challenge sent to ${challengedTeam.name}`,
-        matchId: match.id 
-      });
-    } catch (error) {
-      console.error("Error creating exhibition challenge:", error);
-      res.status(500).json({ message: "Failed to create exhibition challenge" });
-    }
-  });
 
   // Match routes
   app.get('/api/matches/live', isAuthenticated, async (req, res) => {
@@ -2197,6 +2163,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const userId = req.user.claims.sub;
       const { opponentId } = req.body;
       
+      console.log(`Challenge request: userId=${userId}, opponentId=${opponentId}`);
+      
       const team = await storage.getTeamByUserId(userId);
       if (!team) {
         return res.status(404).json({ message: "Team not found" });
@@ -2204,6 +2172,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const opponent = await storage.getTeamById(opponentId);
       if (!opponent) {
+        console.log(`Opponent not found: ${opponentId}`);
         return res.status(404).json({ message: "Opponent team not found" });
       }
 
@@ -4051,7 +4020,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // based on the actual season start date and current time
       let currentSeason = await storage.getCurrentSeason();
       
-      // Create initial season if none exists
+      // Create initial season if none exists or update existing season to new format
       if (!currentSeason) {
         currentSeason = await storage.createSeason({
           name: "Season 0",
@@ -4059,6 +4028,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
           status: "active",
           startDate: new Date()
         });
+      } else if (currentSeason.name && currentSeason.name.includes("Championship")) {
+        // Update old season format to new format
+        const year = currentSeason.year || 0;
+        await storage.updateSeason(currentSeason.id, {
+          name: `Season ${year}`,
+        });
+        currentSeason.name = `Season ${year}`;
       }
       
       // Simulate current day (1-17) - this would be calculated from season start date

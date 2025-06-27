@@ -14,6 +14,7 @@ import { Trophy, Medal, Gamepad2, Calendar, Users, Clock, X } from "lucide-react
 
 export default function Competition() {
   const [browsingTeams, setBrowsingTeams] = useState(false);
+  const [divisionTeams, setDivisionTeams] = useState([]);
   const { toast } = useToast();
   
   const { data: team } = useQuery({
@@ -67,8 +68,6 @@ export default function Competition() {
       });
     },
   });
-
-  const [divisionTeams, setDivisionTeams] = useState([]);
 
   return (
     <div className="min-h-screen bg-gray-900 text-white">
