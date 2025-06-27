@@ -98,19 +98,19 @@ export default function Team() {
             <div className="flex space-x-2">
               <Button 
                 variant="outline" 
-                size="lg"
+                size="sm"
                 onClick={() => setActiveTab("recruiting")}
-                className="text-blue-400 border-blue-400 hover:bg-blue-400 hover:text-white"
+                className="text-blue-400 border-blue-400 hover:bg-blue-400 hover:text-white text-xs px-3 py-1.5"
               >
-                <i className="fas fa-plus mr-2"></i>Recruit
+                <i className="fas fa-plus mr-1"></i>Recruit
               </Button>
               <Button 
                 variant="outline" 
-                size="lg"
+                size="sm"
                 onClick={() => setActiveTab("tactics")}
-                className="text-green-400 border-green-400 hover:bg-green-400 hover:text-white"
+                className="text-green-400 border-green-400 hover:bg-green-400 hover:text-white text-xs px-3 py-1.5"
               >
-                <i className="fas fa-cog mr-2"></i>Tactics
+                <i className="fas fa-cog mr-1"></i>Tactics
               </Button>
             </div>
           </div>
@@ -118,10 +118,9 @@ export default function Team() {
 
         {/* Main Navigation Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="mb-8">
-          <TabsList className="grid w-full grid-cols-7 bg-gray-800 gap-0.5">
+          <TabsList className="grid w-full grid-cols-6 bg-gray-800 gap-0.5">
             <TabsTrigger value="roster" className="border-r border-gray-600 last:border-r-0">Roster</TabsTrigger>
             <TabsTrigger value="tactics" className="border-r border-gray-600 last:border-r-0">Tactics</TabsTrigger>
-            <TabsTrigger value="taxi-squad" className="border-r border-gray-600 last:border-r-0">Taxi Squad</TabsTrigger>
             <TabsTrigger value="staff" className="border-r border-gray-600 last:border-r-0">Staff</TabsTrigger>
             <TabsTrigger value="finances" className="border-r border-gray-600 last:border-r-0">Finances</TabsTrigger>
             <TabsTrigger value="contracts" className="border-r border-gray-600 last:border-r-0">Contracts</TabsTrigger>
@@ -131,11 +130,12 @@ export default function Team() {
           <TabsContent value="roster">
             {/* Role Filter Sub-tabs */}
             <Tabs value={selectedRole} onValueChange={setSelectedRole} className="mb-6">
-              <TabsList className="grid w-full grid-cols-4 bg-gray-800">
+              <TabsList className="grid w-full grid-cols-5 bg-gray-800">
                 <TabsTrigger value="all">All Players ({playersWithRoles.length})</TabsTrigger>
                 <TabsTrigger value="passer">Passers ({roleStats.passer || 0})</TabsTrigger>
                 <TabsTrigger value="runner">Runners ({roleStats.runner || 0})</TabsTrigger>
                 <TabsTrigger value="blocker">Blockers ({roleStats.blocker || 0})</TabsTrigger>
+                <TabsTrigger value="taxi-squad">Taxi Squad</TabsTrigger>
               </TabsList>
             </Tabs>
 
@@ -165,40 +165,45 @@ export default function Team() {
               </CardContent>
             </Card>
 
-            {/* Player Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-              {playersLoading ? (
-                Array.from({ length: 8 }, (_, i) => (
-                  <div key={i} className="bg-gray-800 rounded-lg p-4 animate-pulse">
-                    <div className="flex items-center space-x-3 mb-3">
-                      <div className="w-12 h-12 bg-gray-700 rounded-full"></div>
-                      <div className="flex-1">
-                        <div className="h-4 bg-gray-700 rounded mb-2"></div>
-                        <div className="h-3 bg-gray-700 rounded w-2/3"></div>
+            {/* Conditional Content Based on Selected Role */}
+            {selectedRole === 'taxi-squad' ? (
+              <TaxiSquadManager teamId={team?.id} />
+            ) : (
+              /* Player Grid */
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                {playersLoading ? (
+                  Array.from({ length: 8 }, (_, i) => (
+                    <div key={i} className="bg-gray-800 rounded-lg p-4 animate-pulse">
+                      <div className="flex items-center space-x-3 mb-3">
+                        <div className="w-12 h-12 bg-gray-700 rounded-full"></div>
+                        <div className="flex-1">
+                          <div className="h-4 bg-gray-700 rounded mb-2"></div>
+                          <div className="h-3 bg-gray-700 rounded w-2/3"></div>
+                        </div>
+                      </div>
+                      <div className="space-y-2">
+                        {Array.from({ length: 4 }, (_, j) => (
+                          <div key={j} className="h-3 bg-gray-700 rounded"></div>
+                        ))}
                       </div>
                     </div>
-                    <div className="space-y-2">
-                      {Array.from({ length: 4 }, (_, j) => (
-                        <div key={j} className="h-3 bg-gray-700 rounded"></div>
-                      ))}
+                  ))
+                ) : (
+                  filteredPlayers.map((player: any) => (
+                    <div
+                      key={player.id}
+                      onClick={() => {
+                        setSelectedPlayer(player);
+                        setShowPlayerModal(true);
+                      }}
+                      className="cursor-pointer hover:transform hover:scale-105 transition-transform"
+                    >
+                      <PlayerCard player={player} />
                     </div>
-                  </div>
-                ))
-              ) : (
-                filteredPlayers.map((player: any) => (
-                  <div
-                    key={player.id}
-                    onClick={() => {
-                      setSelectedPlayer(player);
-                      setShowPlayerModal(true);
-                    }}
-                    className="cursor-pointer hover:transform hover:scale-105 transition-transform"
-                  >
-                    <PlayerCard player={player} />
-                  </div>
-                ))
-              )}
-            </div>
+                  ))
+                )}
+              </div>
+            )}
 
             {filteredPlayers.length === 0 && !playersLoading && (
               <div className="text-center py-16">
@@ -221,10 +226,6 @@ export default function Team() {
               players={playersWithRoles}
               savedFormation={formation}
             />
-          </TabsContent>
-
-          <TabsContent value="taxi-squad">
-            <TaxiSquadManager teamId={team?.id} />
           </TabsContent>
 
           <TabsContent value="staff">

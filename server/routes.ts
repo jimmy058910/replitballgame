@@ -4416,11 +4416,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
         details = "Single-elimination playoffs. Top 4 teams per division compete for promotion.";
       } else if (currentDay >= 16 && currentDay <= 17) {
         phase = "Off-Season";
-        description = `Day ${currentDay} - Off-Season Management`;
         if (currentDay === 16) {
-          details = "Promotion & Relegation processing. League re-shuffle in progress.";
+          description = "Promotion & Relegation";
+          details = "League re-shuffle in progress. Teams move between divisions based on performance.";
         } else {
-          details = "Player management phase. Sign free agents, handle contracts, prepare for next season.";
+          description = "Management Phase";
+          details = "Sign free agents, handle contracts, and prepare for the upcoming season.";
         }
       }
       
