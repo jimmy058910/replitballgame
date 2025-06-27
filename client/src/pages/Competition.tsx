@@ -217,8 +217,17 @@ export default function Competition() {
                   {(liveMatches as any)?.length > 0 ? (
                     <div className="space-y-2">
                       {(liveMatches as any)?.slice(0, 3).map((match: any) => (
-                        <div key={match.id} className="flex justify-between items-center p-2 rounded bg-red-900/20 border border-red-700">
-                          <span className="text-sm">Live Game</span>
+                        <div 
+                          key={match.id} 
+                          className="flex justify-between items-center p-3 rounded bg-red-900/20 border border-red-700 cursor-pointer hover:bg-red-900/30 transition-colors"
+                          onClick={() => setLocation(`/match/${match.id}`)}
+                        >
+                          <div className="flex flex-col">
+                            <span className="text-sm font-medium">
+                              {match.homeTeamName || "Home"} vs {match.awayTeamName || "Away"}
+                            </span>
+                            <span className="text-xs text-gray-400">Click to watch live</span>
+                          </div>
                           <Badge variant="destructive" className="animate-pulse">
                             LIVE
                           </Badge>
