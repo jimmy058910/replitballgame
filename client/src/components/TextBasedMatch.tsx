@@ -190,6 +190,11 @@ export default function TextBasedMatch({ team1, team2, isExhibition = false, onM
 
       const newGameTime = prev.gameTime + 1;
       
+      // Simulate player actions WITHIN the state update with the new time
+      if (newGameTime < prev.maxTime) {
+        simulatePlayerActionsWithState(newGameTime, prev);
+      }
+      
       // Check for halftime
       if (newGameTime === prev.maxTime / 2 && prev.currentHalf === 1) {
         const timeStr = formatGameTime(newGameTime);
@@ -232,10 +237,195 @@ export default function TextBasedMatch({ team1, team2, isExhibition = false, onM
         gameTime: newGameTime
       };
     });
+  };
 
-    // Simulate player actions and game events only if game is still running
-    if (gameState.gameTime < gameState.maxTime) {
-      simulatePlayerActions(gameState.gameTime + 1);
+  const simulatePlayerActionsWithState = (currentTime: number, currentState: any) => {
+    // Generate events with actual player names and team context
+    if (Math.random() < 0.1) { // 10% chance per second for an event
+      const team1Players = players.filter(p => p.teamId === team1.id);
+      const team2Players = players.filter(p => p.teamId === team2.id);
+      const allPlayers = [...team1Players, ...team2Players];
+      
+      if (allPlayers.length === 0) return;
+      
+      const randomPlayer = allPlayers[Math.floor(Math.random() * allPlayers.length)];
+      const playerTeam = randomPlayer.teamId === team1.id ? team1.name : team2.name;
+      const opponentTeam = randomPlayer.teamId === team1.id ? team2.name : team1.name;
+      
+      // Enhanced name selection that handles AI team players better
+      let playerName = "Unknown";
+      if (randomPlayer.lastName && randomPlayer.lastName !== "Player" && randomPlayer.lastName !== "AI") {
+        playerName = randomPlayer.lastName;
+      } else if (randomPlayer.firstName && randomPlayer.firstName !== "AI" && randomPlayer.firstName !== "Player") {
+        playerName = randomPlayer.firstName;
+      } else if (randomPlayer.name && !randomPlayer.name.includes("Player") && !randomPlayer.name.includes("AI")) {
+        playerName = randomPlayer.name;
+      } else {
+        // Generate a better generic name based on role
+        const roleNames = {
+          passer: ["Quarterback", "Playmaker", "Field General"],
+          runner: ["Speedster", "Rusher", "Charger"],
+          blocker: ["Guardian", "Defender", "Wall"]
+        };
+        const names = roleNames[randomPlayer.role as keyof typeof roleNames] || ["Player"];
+        playerName = names[Math.floor(Math.random() * names.length)];
+      }
+      
+      // Calculate player effectiveness and fatigue
+      const playerPower = (randomPlayer.speed + randomPlayer.power + randomPlayer.throwing + 
+                          randomPlayer.catching + randomPlayer.kicking) / 5;
+      const isHighPerformer = playerPower > 25;
+      const isStruggling = playerPower < 15;
+      const isFatigued = currentTime > currentState.maxTime * 0.7; // Fatigue in last 30%
+      
+      // Stat-specific events based on player attributes
+      const statBasedEvents = [];
+      
+      // Speed-based events
+      if (randomPlayer.speed > 32) {
+        statBasedEvents.push(`${playerName} (${playerTeam}) blazes past defenders with lightning speed!`);
+        statBasedEvents.push(`${playerName} uses explosive acceleration to break free!`);
+      } else if (randomPlayer.speed < 15) {
+        statBasedEvents.push(`${playerName} struggles to keep pace with the play`);
+      }
+      
+      // Power-based events
+      if (randomPlayer.power > 32) {
+        statBasedEvents.push(`${playerName} (${playerTeam}) delivers a bone-crushing tackle!`);
+        statBasedEvents.push(`${playerName} bulldozes through the opposition!`);
+        statBasedEvents.push(`${playerName} knocks down an opponent with sheer strength!`);
+      } else if (randomPlayer.power < 15) {
+        statBasedEvents.push(`${playerName} bounces off a stronger opponent`);
+      }
+      
+      // Stamina-based events (fatigue)
+      if (isFatigued) {
+        if (randomPlayer.stamina > 30) {
+          statBasedEvents.push(`${playerName} (${playerTeam}) shows remarkable endurance late in the game!`);
+        } else if (randomPlayer.stamina < 20) {
+          statBasedEvents.push(`${playerName} is visibly winded and slowing down`);
+          statBasedEvents.push(`${playerName} gasps for air between plays`);
+        }
+      }
+      
+      // Agility-based events
+      if (randomPlayer.agility > 32) {
+        statBasedEvents.push(`${playerName} (${playerTeam}) makes an incredible evasive maneuver!`);
+        statBasedEvents.push(`${playerName} dances through traffic with amazing footwork!`);
+      }
+      
+      // Leadership events
+      if (randomPlayer.leadership > 30) {
+        statBasedEvents.push(`${playerName} rallies ${playerTeam} with inspiring leadership!`);
+        statBasedEvents.push(`${playerName} organizes the team's defensive formation!`);
+      }
+      
+      // Enhanced events with momentum and performance feedback
+      const baseEvents = [
+        // General ball movement with consistent team labels
+        `The ball is loose at midfield! ${playerName} dives for it!`,
+        `${playerName} (${playerTeam}) intercepts the pass!`,
+        `${playerName} (${playerTeam}) breaks through the defensive line!`,
+        `Strong defensive pressure from ${playerName} (${playerTeam})!`,
+        
+        // Performance-based events
+        ...(isHighPerformer ? [
+          `${playerName} (${playerTeam}) is playing exceptionally well today!`,
+          `${playerName} dominates the field with superior skills!`,
+          `Outstanding play by ${playerName} (${playerTeam})!`
+        ] : []),
+        
+        ...(isStruggling ? [
+          `${playerName} struggles to find their rhythm`,
+          `${playerName} looks off their game today`,
+          `${playerName} needs to step up their performance`
+        ] : []),
+        
+        // Role-specific events with team context
+        ...(randomPlayer.role === 'passer' ? [
+          `${playerName} (${playerTeam}) looks for an open teammate downfield!`,
+          `${playerName} attempts a long pass across the arena!`,
+          `${playerName} scrambles under pressure from ${opponentTeam}!`,
+          ...(randomPlayer.throwing > 30 ? [`Perfect spiral from ${playerName} (${playerTeam})!`] : []),
+          ...(randomPlayer.throwing < 15 ? [`${playerName}'s pass goes wide of the target!`] : [])
+        ] : []),
+        
+        ...(randomPlayer.role === 'runner' ? [
+          `${playerName} (${playerTeam}) charges forward with the ball!`,
+          `${playerName} breaks through a tackle attempt!`,
+          `${playerName} jukes past a ${opponentTeam} defender!`,
+        ] : []),
+        
+        ...(randomPlayer.role === 'blocker' ? [
+          `${playerName} (${playerTeam}) delivers a crushing block!`,
+          `${playerName} holds the line against ${opponentTeam}!`,
+          `${playerName} creates an opening for ${playerTeam} teammates!`,
+        ] : []),
+        
+        // Add stat-based events to pool
+        ...statBasedEvents,
+        
+        // Team dynamics and momentum
+        `${playerTeam} builds momentum with coordinated plays!`,
+        `${opponentTeam} responds with fierce determination!`,
+        `Intense back-and-forth battle between ${playerTeam} and ${opponentTeam}!`,
+        `The crowd gets excited as the pace picks up!`,
+        `Both teams fighting hard for field position!`
+      ];
+      
+      const randomEvent = baseEvents[Math.floor(Math.random() * baseEvents.length)];
+      const timeStr = formatGameTime(currentTime);
+      
+      // Add to log with correct timestamp
+      setGameState(prevState => ({
+        ...prevState,
+        gameLog: [`[${timeStr}] ${randomEvent}`, ...prevState.gameLog]
+      }));
+      
+      // Enhanced scoring opportunities with better player selection
+      if (Math.random() < 0.008) { // 0.8% chance for scoring
+        const scoringTeam = Math.random() < 0.5 ? team1 : team2;
+        const scoringPlayers = scoringTeam === team1 ? team1Players : team2Players;
+        
+        // Favor high-stat players for scoring
+        const weightedPlayers = scoringPlayers.map(p => ({
+          player: p,
+          weight: (p.speed + p.power + p.agility) / 3
+        })).sort((a, b) => b.weight - a.weight);
+        
+        const scorer = weightedPlayers[Math.floor(Math.random() * Math.min(4, weightedPlayers.length))].player;
+        let scorerName = "Unknown";
+        if (scorer.lastName && scorer.lastName !== "Player" && scorer.lastName !== "AI") {
+          scorerName = scorer.lastName;
+        } else if (scorer.firstName && scorer.firstName !== "AI") {
+          scorerName = scorer.firstName;
+        } else if (scorer.name && !scorer.name.includes("Player")) {
+          scorerName = scorer.name;
+        }
+        
+        setGameState(prevState => ({
+          ...prevState,
+          team1Score: scoringTeam === team1 ? prevState.team1Score + 1 : prevState.team1Score,
+          team2Score: scoringTeam === team2 ? prevState.team2Score + 1 : prevState.team2Score,
+          gameLog: [`[${timeStr}] 🚨 SCORE! ${scorerName} finds the back of the net for ${scoringTeam.name}!`, ...prevState.gameLog]
+        }));
+      }
+      
+      // Momentum shifts and key moments (rare)
+      if (Math.random() < 0.02) { // 2% chance for special moments
+        const momentumEvents = [
+          `The momentum shifts dramatically!`,
+          `A crucial play develops...`,
+          `This could be a turning point in the match!`,
+          `Both teams sense an opportunity!`,
+          `The intensity reaches a new level!`
+        ];
+        const momentumEvent = momentumEvents[Math.floor(Math.random() * momentumEvents.length)];
+        setGameState(prevState => ({
+          ...prevState,
+          gameLog: [`[${timeStr}] ${momentumEvent}`, ...prevState.gameLog]
+        }));
+      }
     }
   };
 
@@ -252,19 +442,73 @@ export default function TextBasedMatch({ team1, team2, isExhibition = false, onM
       const playerTeam = randomPlayer.teamId === team1.id ? team1.name : team2.name;
       const opponentTeam = randomPlayer.teamId === team1.id ? team2.name : team1.name;
       
-      // Better name selection that prioritizes actual names over generic ones
-      const playerName = randomPlayer.lastName && randomPlayer.lastName !== "Player" ? 
-        randomPlayer.lastName : 
-        (randomPlayer.firstName && randomPlayer.firstName !== "AI" ? 
-          randomPlayer.firstName : 
-          (randomPlayer.name && !randomPlayer.name.includes("Player") ? 
-            randomPlayer.name : "Unknown"));
+      // Enhanced name selection that handles AI team players better
+      let playerName = "Unknown";
+      if (randomPlayer.lastName && randomPlayer.lastName !== "Player" && randomPlayer.lastName !== "AI") {
+        playerName = randomPlayer.lastName;
+      } else if (randomPlayer.firstName && randomPlayer.firstName !== "AI" && randomPlayer.firstName !== "Player") {
+        playerName = randomPlayer.firstName;
+      } else if (randomPlayer.name && !randomPlayer.name.includes("Player") && !randomPlayer.name.includes("AI")) {
+        playerName = randomPlayer.name;
+      } else {
+        // Generate a better generic name based on role
+        const roleNames = {
+          passer: ["Quarterback", "Playmaker", "Field General"],
+          runner: ["Speedster", "Rusher", "Charger"],
+          blocker: ["Guardian", "Defender", "Wall"]
+        };
+        const names = roleNames[randomPlayer.role as keyof typeof roleNames] || ["Player"];
+        playerName = names[Math.floor(Math.random() * names.length)];
+      }
       
-      // Calculate player effectiveness based on stats
+      // Calculate player effectiveness and fatigue
       const playerPower = (randomPlayer.speed + randomPlayer.power + randomPlayer.throwing + 
                           randomPlayer.catching + randomPlayer.kicking) / 5;
       const isHighPerformer = playerPower > 25;
       const isStruggling = playerPower < 15;
+      const isFatigued = currentTime && currentTime > gameState.maxTime * 0.7; // Fatigue in last 30%
+      
+      // Stat-specific events based on player attributes
+      const statBasedEvents = [];
+      
+      // Speed-based events
+      if (randomPlayer.speed > 32) {
+        statBasedEvents.push(`${playerName} blazes past defenders with lightning speed!`);
+        statBasedEvents.push(`${playerName} uses explosive acceleration to break free!`);
+      } else if (randomPlayer.speed < 15) {
+        statBasedEvents.push(`${playerName} struggles to keep pace with the play`);
+      }
+      
+      // Power-based events
+      if (randomPlayer.power > 32) {
+        statBasedEvents.push(`${playerName} delivers a bone-crushing tackle!`);
+        statBasedEvents.push(`${playerName} bulldozes through the opposition!`);
+        statBasedEvents.push(`${playerName} knocks down an opponent with sheer strength!`);
+      } else if (randomPlayer.power < 15) {
+        statBasedEvents.push(`${playerName} bounces off a stronger opponent`);
+      }
+      
+      // Stamina-based events (fatigue)
+      if (isFatigued) {
+        if (randomPlayer.stamina > 30) {
+          statBasedEvents.push(`${playerName} shows remarkable endurance late in the game!`);
+        } else if (randomPlayer.stamina < 20) {
+          statBasedEvents.push(`${playerName} is visibly winded and slowing down`);
+          statBasedEvents.push(`${playerName} gasps for air between plays`);
+        }
+      }
+      
+      // Agility-based events
+      if (randomPlayer.agility > 32) {
+        statBasedEvents.push(`${playerName} makes an incredible evasive maneuver!`);
+        statBasedEvents.push(`${playerName} dances through traffic with amazing footwork!`);
+      }
+      
+      // Leadership events
+      if (randomPlayer.leadership > 30) {
+        statBasedEvents.push(`${playerName} rallies ${playerTeam} with inspiring leadership!`);
+        statBasedEvents.push(`${playerName} organizes the team's defensive formation!`);
+      }
       
       // Enhanced events with momentum and performance feedback
       const baseEvents = [
@@ -283,34 +527,33 @@ export default function TextBasedMatch({ team1, team2, isExhibition = false, onM
         
         ...(isStruggling ? [
           `${playerName} struggles to find their rhythm`,
-          `${playerName} looks fatigued on the field`,
-          `${playerName} needs to step up their game`
+          `${playerName} looks off their game today`,
+          `${playerName} needs to step up their performance`
         ] : []),
         
-        // Role-specific events
+        // Role-specific events with team context
         ...(randomPlayer.role === 'passer' ? [
-          `${playerName} looks for an open teammate downfield!`,
+          `${playerName} (${playerTeam}) looks for an open teammate downfield!`,
           `${playerName} attempts a long pass across the arena!`,
-          `${playerName} scrambles under pressure!`,
-          ...(randomPlayer.throwing > 30 ? [`Perfect spiral from ${playerName}!`] : []),
-          ...(randomPlayer.throwing < 15 ? [`${playerName}'s pass goes wide!`] : [])
+          `${playerName} scrambles under pressure from ${opponentTeam}!`,
+          ...(randomPlayer.throwing > 30 ? [`Perfect spiral from ${playerName} (${playerTeam})!`] : []),
+          ...(randomPlayer.throwing < 15 ? [`${playerName}'s pass goes wide of the target!`] : [])
         ] : []),
         
         ...(randomPlayer.role === 'runner' ? [
-          `${playerName} charges forward with the ball!`,
+          `${playerName} (${playerTeam}) charges forward with the ball!`,
           `${playerName} breaks through a tackle attempt!`,
-          `${playerName} jukes past a defender!`,
-          ...(randomPlayer.speed > 30 ? [`${playerName} shows incredible speed!`] : []),
-          ...(randomPlayer.agility > 30 ? [`${playerName} weaves through defenders!`] : [])
+          `${playerName} jukes past a ${opponentTeam} defender!`,
         ] : []),
         
         ...(randomPlayer.role === 'blocker' ? [
-          `${playerName} delivers a crushing block!`,
+          `${playerName} (${playerTeam}) delivers a crushing block!`,
           `${playerName} holds the line against ${opponentTeam}!`,
-          `${playerName} creates an opening for teammates!`,
-          ...(randomPlayer.power > 30 ? [`${playerName} shows tremendous strength!`] : []),
-          ...(randomPlayer.stamina > 30 ? [`${playerName} maintains solid defense!`] : [])
+          `${playerName} creates an opening for ${playerTeam} teammates!`,
         ] : []),
+        
+        // Add stat-based events to pool
+        ...statBasedEvents,
         
         // Team dynamics and momentum
         `${playerTeam} builds momentum with coordinated plays!`,
@@ -335,12 +578,14 @@ export default function TextBasedMatch({ team1, team2, isExhibition = false, onM
         })).sort((a, b) => b.weight - a.weight);
         
         const scorer = weightedPlayers[Math.floor(Math.random() * Math.min(4, weightedPlayers.length))].player;
-        const scorerName = scorer.lastName && scorer.lastName !== "Player" ? 
-          scorer.lastName : 
-          (scorer.firstName && scorer.firstName !== "AI" ? 
-            scorer.firstName : 
-            (scorer.name && !scorer.name.includes("Player") ? 
-              scorer.name : "Unknown"));
+        let scorerName = "Unknown";
+        if (scorer.lastName && scorer.lastName !== "Player" && scorer.lastName !== "AI") {
+          scorerName = scorer.lastName;
+        } else if (scorer.firstName && scorer.firstName !== "AI") {
+          scorerName = scorer.firstName;
+        } else if (scorer.name && !scorer.name.includes("Player")) {
+          scorerName = scorer.name;
+        }
         
         addToLog(`🚨 SCORE! ${scorerName} finds the back of the net for ${scoringTeam.name}!`, currentTime);
         
