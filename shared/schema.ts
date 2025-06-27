@@ -34,6 +34,7 @@ export const users = pgTable("users", {
   lastName: varchar("last_name"),
   profileImageUrl: varchar("profile_image_url"),
   credits: integer("credits").default(10000),
+  stripeCustomerId: varchar("stripe_customer_id"),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
@@ -577,12 +578,6 @@ export type SponsorshipDeal = typeof sponsorshipDeals.$inferSelect;
 export type InsertSponsorshipDeal = typeof sponsorshipDeals.$inferInsert;
 export type StadiumRevenue = typeof stadiumRevenue.$inferSelect;
 export type InsertStadiumRevenue = typeof stadiumRevenue.$inferInsert;
-export type Draft = typeof drafts.$inferSelect;
-export type InsertDraft = typeof drafts.$inferInsert;
-export type DraftPick = typeof draftPicks.$inferSelect;
-export type InsertDraftPick = typeof draftPicks.$inferInsert;
-export type RookiePlayer = typeof rookiePlayers.$inferSelect;
-export type InsertRookiePlayer = typeof rookiePlayers.$inferInsert;
 
 // Injury treatment and recovery tracking
 export const injuryTreatments = pgTable("injury_treatments", {
@@ -748,3 +743,55 @@ export type Scout = typeof scouts.$inferSelect;
 export type InsertScout = typeof scouts.$inferInsert;
 export type ScoutingReport = typeof scoutingReports.$inferSelect;
 export type InsertScoutingReport = typeof scoutingReports.$inferInsert;
+
+// Payment Processing Tables
+export const paymentTransactions = pgTable("payment_transactions", {
+  id: varchar("id").primaryKey().notNull().$defaultFn(() => nanoid()),
+  userId: varchar("user_id").references(() => users.id).notNull(),
+  stripePaymentIntentId: varchar("stripe_payment_intent_id").unique(),
+  stripeCustomerId: varchar("stripe_customer_id"),
+  amount: integer("amount").notNull(), // amount in cents
+  credits: integer("credits").notNull(), // credits purchased
+  status: varchar("status").default("pending"), // pending, completed, failed, refunded
+  currency: varchar("currency").default("usd"),
+  paymentMethod: varchar("payment_method"), // card, etc.
+  failureReason: text("failure_reason"),
+  receiptUrl: varchar("receipt_url"),
+  createdAt: timestamp("created_at").defaultNow(),
+  completedAt: timestamp("completed_at"),
+});
+
+export const creditPackages = pgTable("credit_packages", {
+  id: varchar("id").primaryKey().notNull().$defaultFn(() => nanoid()),
+  name: varchar("name").notNull(),
+  description: text("description"),
+  credits: integer("credits").notNull(),
+  price: integer("price").notNull(), // price in cents
+  bonusCredits: integer("bonus_credits").default(0),
+  isActive: boolean("is_active").default(true),
+  popularTag: boolean("popular_tag").default(false),
+  discountPercent: integer("discount_percent").default(0),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const userSubscriptions = pgTable("user_subscriptions", {
+  id: varchar("id").primaryKey().notNull().$defaultFn(() => nanoid()),
+  userId: varchar("user_id").references(() => users.id).notNull(),
+  stripeSubscriptionId: varchar("stripe_subscription_id").unique(),
+  stripeCustomerId: varchar("stripe_customer_id"),
+  status: varchar("status").notNull(), // active, canceled, past_due, unpaid, etc.
+  planName: varchar("plan_name").notNull(),
+  monthlyCredits: integer("monthly_credits").default(0),
+  currentPeriodStart: timestamp("current_period_start"),
+  currentPeriodEnd: timestamp("current_period_end"),
+  cancelAtPeriodEnd: boolean("cancel_at_period_end").default(false),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export type PaymentTransaction = typeof paymentTransactions.$inferSelect;
+export type InsertPaymentTransaction = typeof paymentTransactions.$inferInsert;
+export type CreditPackage = typeof creditPackages.$inferSelect;
+export type InsertCreditPackage = typeof creditPackages.$inferInsert;
+export type UserSubscription = typeof userSubscriptions.$inferSelect;
+export type InsertUserSubscription = typeof userSubscriptions.$inferInsert;

@@ -1,5 +1,6 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
+import Stripe from "stripe";
 import { storage } from "./storage";
 import { setupAuth, isAuthenticated } from "./replitAuth";
 import { 
@@ -21,6 +22,14 @@ import { db } from "./db";
 import { items, stadiums, facilityUpgrades, stadiumEvents, teams, players, matches, teamFinances, playerInjuries, staff } from "@shared/schema";
 import { eq, isNotNull, gte, lte, and, desc, or } from "drizzle-orm";
 import { randomUUID } from "crypto";
+
+// Initialize Stripe
+if (!process.env.STRIPE_SECRET_KEY) {
+  throw new Error('Missing required Stripe secret: STRIPE_SECRET_KEY');
+}
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
+  apiVersion: "2025-05-28.basil",
+});
 
 // Helper function to calculate team power based on top 9 players (starters + first substitution)
 function calculateTeamPower(players: any[]): number {
@@ -4500,6 +4509,215 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error resetting season:", error);
       res.status(500).json({ message: "Failed to reset season" });
+    }
+  });
+
+  // Stripe Payment Processing Routes
+
+  // Seed default credit packages (run once)
+  app.post('/api/payments/seed-packages', async (req, res) => {
+    try {
+      const defaultPackages = [
+        {
+          name: "Starter Pack",
+          description: "Perfect for getting started",
+          credits: 5000,
+          price: 499, // $4.99 in cents
+          bonusCredits: 0,
+          isActive: true,
+          popularTag: false,
+          discountPercent: 0
+        },
+        {
+          name: "Growth Pack",
+          description: "Great value for active players",
+          credits: 15000,
+          price: 999, // $9.99 in cents
+          bonusCredits: 2000,
+          isActive: true,
+          popularTag: true,
+          discountPercent: 0
+        },
+        {
+          name: "Pro Pack",
+          description: "For serious competitors",
+          credits: 35000,
+          price: 1999, // $19.99 in cents
+          bonusCredits: 8000,
+          isActive: true,
+          popularTag: false,
+          discountPercent: 0
+        },
+        {
+          name: "Elite Pack",
+          description: "Maximum value for champions",
+          credits: 75000,
+          price: 3999, // $39.99 in cents
+          bonusCredits: 20000,
+          isActive: true,
+          popularTag: false,
+          discountPercent: 0
+        }
+      ];
+
+      const createdPackages = [];
+      for (const packageData of defaultPackages) {
+        const pkg = await storage.createCreditPackage(packageData);
+        createdPackages.push(pkg);
+      }
+
+      res.json({ 
+        message: "Credit packages seeded successfully",
+        packages: createdPackages
+      });
+    } catch (error) {
+      console.error("Error seeding credit packages:", error);
+      res.status(500).json({ message: "Failed to seed credit packages" });
+    }
+  });
+
+  // Get available credit packages
+  app.get('/api/payments/packages', async (req, res) => {
+    try {
+      const packages = await storage.getCreditPackages();
+      res.json(packages);
+    } catch (error) {
+      console.error("Error fetching credit packages:", error);
+      res.status(500).json({ message: "Failed to fetch credit packages" });
+    }
+  });
+
+  // Create payment intent for credit purchase
+  app.post("/api/payments/create-payment-intent", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const { packageId } = req.body;
+
+      const creditPackage = await storage.getCreditPackageById(packageId);
+      if (!creditPackage) {
+        return res.status(404).json({ message: "Credit package not found" });
+      }
+
+      const user = await storage.getUser(userId);
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+
+      // Create Stripe customer if not exists
+      let stripeCustomerId = user.stripeCustomerId;
+      if (!stripeCustomerId) {
+        const customer = await stripe.customers.create({
+          email: user.email,
+          metadata: {
+            userId: userId,
+            realmRivalryUser: true
+          }
+        });
+        stripeCustomerId = customer.id;
+      }
+
+      // Create payment intent
+      const paymentIntent = await stripe.paymentIntents.create({
+        amount: creditPackage.price,
+        currency: "usd",
+        customer: stripeCustomerId,
+        metadata: {
+          userId: userId,
+          packageId: packageId,
+          credits: creditPackage.credits.toString(),
+          bonusCredits: creditPackage.bonusCredits?.toString() || "0"
+        },
+      });
+
+      // Store transaction in database
+      await storage.createPaymentTransaction({
+        userId: userId,
+        stripePaymentIntentId: paymentIntent.id,
+        stripeCustomerId: stripeCustomerId,
+        amount: creditPackage.price,
+        credits: creditPackage.credits + (creditPackage.bonusCredits || 0),
+        status: "pending",
+        currency: "usd"
+      });
+
+      res.json({ 
+        clientSecret: paymentIntent.client_secret,
+        packageName: creditPackage.name,
+        totalCredits: creditPackage.credits + (creditPackage.bonusCredits || 0)
+      });
+    } catch (error: any) {
+      console.error("Error creating payment intent:", error);
+      res.status(500).json({ message: "Error creating payment intent: " + error.message });
+    }
+  });
+
+  // Webhook to handle successful payments
+  app.post("/api/payments/webhook", async (req, res) => {
+    const sig = req.headers['stripe-signature'];
+    const endpointSecret = process.env.STRIPE_WEBHOOK_SECRET;
+
+    let event;
+    try {
+      if (endpointSecret) {
+        event = stripe.webhooks.constructEvent(req.body, sig, endpointSecret);
+      } else {
+        event = req.body;
+      }
+    } catch (err: any) {
+      console.log(`Webhook signature verification failed.`, err.message);
+      return res.status(400).send(`Webhook Error: ${err.message}`);
+    }
+
+    if (event.type === 'payment_intent.succeeded') {
+      const paymentIntent = event.data.object;
+      
+      try {
+        // Find the transaction
+        const transaction = await storage.getPaymentTransactionByStripeId(paymentIntent.id);
+        if (!transaction) {
+          console.error("Transaction not found for payment intent:", paymentIntent.id);
+          return res.status(404).json({ message: "Transaction not found" });
+        }
+
+        // Update transaction status
+        await storage.updatePaymentTransaction(transaction.id, {
+          status: "completed",
+          completedAt: new Date(),
+          receiptUrl: paymentIntent.charges?.data?.[0]?.receipt_url
+        });
+
+        // Add credits to user's team
+        const user = await storage.getUser(transaction.userId);
+        if (user) {
+          const team = await storage.getTeamByUserId(user.id);
+          if (team) {
+            const finances = await storage.getTeamFinances(team.id);
+            if (finances) {
+              await storage.updateTeamFinances(team.id, {
+                credits: (finances.credits || 0) + transaction.credits
+              });
+            }
+          }
+        }
+
+        console.log(`Payment completed successfully for user ${transaction.userId}, ${transaction.credits} credits added`);
+      } catch (error) {
+        console.error("Error processing payment success:", error);
+      }
+    }
+
+    res.json({ received: true });
+  });
+
+  // Get user's payment history
+  app.get('/api/payments/history', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const history = await storage.getUserPaymentHistory(userId);
+      res.json(history);
+    } catch (error) {
+      console.error("Error fetching payment history:", error);
+      res.status(500).json({ message: "Failed to fetch payment history" });
     }
   });
 

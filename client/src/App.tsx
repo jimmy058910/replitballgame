@@ -16,6 +16,7 @@ import Commerce from "@/pages/Commerce";
 import Inventory from "@/pages/Inventory";
 import Marketplace from "@/pages/Marketplace";
 import Store from "@/pages/Store";
+import Payments from "@/pages/Payments";
 import Stadium from "@/pages/Stadium";
 
 import LogoShowcase from "@/pages/LogoShowcase";
@@ -45,6 +46,7 @@ function Router() {
           <Route path="/inventory" component={Inventory} />
           <Route path="/marketplace" component={Marketplace} />
           <Route path="/store" component={Store} />
+          <Route path="/payments" component={Payments} />
           <Route path="/stadium" component={Stadium} />
           <Route path="/text-match/:matchId" component={TextMatch} />
           <Route path="/match/:matchId" component={TextMatch} />

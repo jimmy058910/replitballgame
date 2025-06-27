@@ -90,6 +90,17 @@ export default function Navigation() {
               <span className="text-yellow-400 ml-1">₡</span>
             </div>
 
+            {/* Buy Credits Button */}
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setLocation("/payments")}
+              className="bg-blue-600 hover:bg-blue-700 border-blue-500 text-white text-xs px-2 py-1 h-auto"
+            >
+              <Coins className="h-3 w-3 mr-1" />
+              Buy Credits
+            </Button>
+
             {/* Notifications */}
             <NotificationSystem />
 

@@ -16,6 +16,17 @@ import {
   notifications,
   playerInjuries,
   seasons,
+  playoffs,
+  playerContracts,
+  salaryCap,
+  sponsorshipDeals,
+  stadiumRevenue,
+  stadiums,
+  facilityUpgrades,
+  stadiumEvents,
+  paymentTransactions,
+  creditPackages,
+  userSubscriptions,
   type User,
   type UpsertUser,
   type Team,
@@ -50,9 +61,31 @@ import {
   type InsertPlayerInjury,
   type Season,
   type InsertSeason,
+  type Playoff,
+  type InsertPlayoff,
+  type PlayerContract,
+  type InsertPlayerContract,
+  type SalaryCap,
+  type InsertSalaryCap,
+  type SponsorshipDeal,
+  type InsertSponsorshipDeal,
+  type StadiumRevenue,
+  type InsertStadiumRevenue,
+  type Stadium,
+  type InsertStadium,
+  type FacilityUpgrade,
+  type InsertFacilityUpgrade,
+  type StadiumEvent,
+  type InsertStadiumEvent,
   adViews,
   type AdView,
   type InsertAdView,
+  type PaymentTransaction,
+  type InsertPaymentTransaction,
+  type CreditPackage,
+  type InsertCreditPackage,
+  type UserSubscription,
+  type InsertUserSubscription,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, or, desc, asc, sql, inArray } from "drizzle-orm";
@@ -127,6 +160,25 @@ export interface IStorage {
   getPlayerInjuries(playerId: string): Promise<PlayerInjury[]>;
   getActiveInjuries(playerId: string): Promise<PlayerInjury[]>;
   updateInjury(id: string, updates: Partial<PlayerInjury>): Promise<PlayerInjury>;
+
+  // Payment operations
+  createPaymentTransaction(transaction: InsertPaymentTransaction): Promise<PaymentTransaction>;
+  getPaymentTransaction(id: string): Promise<PaymentTransaction | undefined>;
+  getPaymentTransactionByStripeId(stripePaymentIntentId: string): Promise<PaymentTransaction | undefined>;
+  updatePaymentTransaction(id: string, updates: Partial<PaymentTransaction>): Promise<PaymentTransaction>;
+  getUserPaymentHistory(userId: string): Promise<PaymentTransaction[]>;
+  
+  // Credit package operations
+  getCreditPackages(): Promise<CreditPackage[]>;
+  getCreditPackageById(id: string): Promise<CreditPackage | undefined>;
+  createCreditPackage(creditPackage: InsertCreditPackage): Promise<CreditPackage>;
+  updateCreditPackage(id: string, updates: Partial<CreditPackage>): Promise<CreditPackage>;
+  
+  // Subscription operations
+  createUserSubscription(subscription: InsertUserSubscription): Promise<UserSubscription>;
+  getUserSubscription(userId: string): Promise<UserSubscription | undefined>;
+  getUserSubscriptionByStripeId(stripeSubscriptionId: string): Promise<UserSubscription | undefined>;
+  updateUserSubscription(id: string, updates: Partial<UserSubscription>): Promise<UserSubscription>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -913,6 +965,83 @@ export class DatabaseStorage implements IStorage {
       );
     
     return adViews.length;
+  }
+
+  // Payment operations
+  async createPaymentTransaction(transactionData: InsertPaymentTransaction): Promise<PaymentTransaction> {
+    const [transaction] = await db.insert(paymentTransactions).values(transactionData).returning();
+    return transaction;
+  }
+
+  async getPaymentTransaction(id: string): Promise<PaymentTransaction | undefined> {
+    const [transaction] = await db.select().from(paymentTransactions).where(eq(paymentTransactions.id, id));
+    return transaction;
+  }
+
+  async getPaymentTransactionByStripeId(stripePaymentIntentId: string): Promise<PaymentTransaction | undefined> {
+    const [transaction] = await db.select().from(paymentTransactions).where(eq(paymentTransactions.stripePaymentIntentId, stripePaymentIntentId));
+    return transaction;
+  }
+
+  async updatePaymentTransaction(id: string, updates: Partial<PaymentTransaction>): Promise<PaymentTransaction> {
+    const [transaction] = await db.update(paymentTransactions)
+      .set(updates)
+      .where(eq(paymentTransactions.id, id))
+      .returning();
+    return transaction;
+  }
+
+  async getUserPaymentHistory(userId: string): Promise<PaymentTransaction[]> {
+    return await db.select().from(paymentTransactions)
+      .where(eq(paymentTransactions.userId, userId))
+      .orderBy(desc(paymentTransactions.createdAt));
+  }
+
+  // Credit package operations
+  async getCreditPackages(): Promise<CreditPackage[]> {
+    return await db.select().from(creditPackages).where(eq(creditPackages.isActive, true));
+  }
+
+  async getCreditPackageById(id: string): Promise<CreditPackage | undefined> {
+    const [creditPackage] = await db.select().from(creditPackages).where(eq(creditPackages.id, id));
+    return creditPackage;
+  }
+
+  async createCreditPackage(packageData: InsertCreditPackage): Promise<CreditPackage> {
+    const [creditPackage] = await db.insert(creditPackages).values(packageData).returning();
+    return creditPackage;
+  }
+
+  async updateCreditPackage(id: string, updates: Partial<CreditPackage>): Promise<CreditPackage> {
+    const [creditPackage] = await db.update(creditPackages)
+      .set(updates)
+      .where(eq(creditPackages.id, id))
+      .returning();
+    return creditPackage;
+  }
+
+  // Subscription operations
+  async createUserSubscription(subscriptionData: InsertUserSubscription): Promise<UserSubscription> {
+    const [subscription] = await db.insert(userSubscriptions).values(subscriptionData).returning();
+    return subscription;
+  }
+
+  async getUserSubscription(userId: string): Promise<UserSubscription | undefined> {
+    const [subscription] = await db.select().from(userSubscriptions).where(eq(userSubscriptions.userId, userId));
+    return subscription;
+  }
+
+  async getUserSubscriptionByStripeId(stripeSubscriptionId: string): Promise<UserSubscription | undefined> {
+    const [subscription] = await db.select().from(userSubscriptions).where(eq(userSubscriptions.stripeSubscriptionId, stripeSubscriptionId));
+    return subscription;
+  }
+
+  async updateUserSubscription(id: string, updates: Partial<UserSubscription>): Promise<UserSubscription> {
+    const [subscription] = await db.update(userSubscriptions)
+      .set({ ...updates, updatedAt: new Date() })
+      .where(eq(userSubscriptions.id, id))
+      .returning();
+    return subscription;
   }
 }
 
