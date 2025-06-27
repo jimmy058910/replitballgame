@@ -18,7 +18,7 @@ import { simulateMatch } from "./services/matchSimulation";
 import { generateRandomPlayer } from "./services/leagueService";
 import { z } from "zod";
 import { db } from "./db";
-import { items, stadiums, facilityUpgrades, stadiumEvents, teams, players, matches, teamFinances, playerInjuries } from "@shared/schema";
+import { items, stadiums, facilityUpgrades, stadiumEvents, teams, players, matches, teamFinances, playerInjuries, staff } from "@shared/schema";
 import { eq, isNotNull, gte, lte, and, desc, or } from "drizzle-orm";
 import { randomUUID } from "crypto";
 
@@ -3902,28 +3902,32 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Debug: Log all team names for analysis
       console.log('All teams in division:', allTeams.map(t => `"${t.name}"`));
       
-      // Identify user teams vs AI teams - user teams are those that don't match AI patterns
-      const aiTeamPatterns = [
-        'Thunder Hawks', 'Storm Eagles', 'Fire Dragons', 'Ice Wolves',
-        'Lightning Bolts', 'Shadow Panthers', 'Golden Lions', 'Silver Sharks'
-      ];
-      
+      // User teams are only those that don't match AI patterns - most teams are AI generated
+      // AI teams have patterns like "Word Word Number" or specific AI team names
       const userTeams = allTeams.filter(t => {
-        // Check if team name matches any AI pattern (exact match)
-        const isAI = aiTeamPatterns.some(pattern => t.name === pattern) || 
-                     t.name.includes('AI ') || 
-                     t.name.includes('Team ') ||
-                     /^(Thunder Hawks|Storm Eagles|Fire Dragons|Ice Wolves|Lightning Bolts|Shadow Panthers|Golden Lions|Silver Sharks)( \d+)?$/.test(t.name);
-        return !isAI;
+        // Known user team - keep Macomb Cougars
+        if (t.name === 'Macomb Cougars') return true;
+        
+        // AI patterns to identify:
+        // 1. Any team name with format "Word Word Number" (like "Wind Falcons 26")
+        // 2. Specific AI team base names with or without numbers
+        const hasNumberPattern = /^[A-Za-z]+ [A-Za-z]+ \d+$/.test(t.name);
+        const hasAIPrefix = t.name.includes('AI ') || t.name.includes('Team ');
+        const isAITeamName = /^(Thunder Hawks|Storm Eagles|Fire Dragons|Ice Wolves|Lightning Bolts|Shadow Panthers|Golden Lions|Silver Sharks)( \d+)?$/.test(t.name);
+        
+        // If it matches any AI pattern, it's NOT a user team
+        return !(hasNumberPattern || hasAIPrefix || isAITeamName);
       });
       
       const aiTeams = allTeams.filter(t => {
-        // Check if team name matches any AI pattern (exact match or with numbers)
-        const isAI = aiTeamPatterns.some(pattern => t.name === pattern || t.name.startsWith(pattern + ' ')) || 
-                     t.name.includes('AI ') || 
-                     t.name.includes('Team ') ||
-                     /^(Thunder Hawks|Storm Eagles|Fire Dragons|Ice Wolves|Lightning Bolts|Shadow Panthers|Golden Lions|Silver Sharks)( \d+)?$/.test(t.name);
-        return isAI;
+        // Inverse of user team logic - anything that's not a user team is AI
+        if (t.name === 'Macomb Cougars') return false;
+        
+        const hasNumberPattern = /^[A-Za-z]+ [A-Za-z]+ \d+$/.test(t.name);
+        const hasAIPrefix = t.name.includes('AI ') || t.name.includes('Team ');
+        const isAITeamName = /^(Thunder Hawks|Storm Eagles|Fire Dragons|Ice Wolves|Lightning Bolts|Shadow Panthers|Golden Lions|Silver Sharks)( \d+)?$/.test(t.name);
+        
+        return hasNumberPattern || hasAIPrefix || isAITeamName;
       });
       
       console.log(`User teams: ${userTeams.length}, AI teams: ${aiTeams.length}`);
@@ -3943,6 +3947,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
           // Delete all players for this team first (to handle foreign key constraints)
           await db.delete(players).where(eq(players.teamId, teamToRemove.id));
           console.log(`Deleted players for team ${teamToRemove.id}`);
+
+          // Delete team staff (to handle foreign key constraints)
+          try {
+            await db.delete(staff).where(eq(staff.teamId, teamToRemove.id));
+            console.log(`Deleted staff for team ${teamToRemove.id}`);
+          } catch (error) {
+            console.log(`No staff to delete for team ${teamToRemove.id}`);
+          }
 
           // Delete team finances
           try {
