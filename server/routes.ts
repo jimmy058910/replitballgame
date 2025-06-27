@@ -4049,7 +4049,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       // For now, we'll simulate a cycle. In a real implementation, this would be calculated
       // based on the actual season start date and current time
-      const currentSeason = await storage.getCurrentSeason();
+      let currentSeason = await storage.getCurrentSeason();
+      
+      // Create initial season if none exists
+      if (!currentSeason) {
+        currentSeason = await storage.createSeason({
+          name: "Season 0",
+          year: 0,
+          status: "active",
+          startDate: new Date()
+        });
+      }
       
       // Simulate current day (1-17) - this would be calculated from season start date
       const seasonStartDate = currentSeason?.startDate || new Date();
@@ -4088,7 +4098,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         phase,
         description,
         details,
-        season: currentSeason?.name || "Season 1",
+        season: currentSeason?.name || `Season ${currentSeason?.year || 0}`,
         cycleLength: 17,
         daysUntilPlayoffs: Math.max(0, 15 - currentDay),
         daysUntilNewSeason: currentDay >= 17 ? 0 : (17 - currentDay)
@@ -4120,12 +4130,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // If moving to day 1, start new season cycle
       if (nextDay === 1) {
-        // Advance season start date by 1 day to move to next day in cycle
-        const newStartDate = new Date(seasonStartDate);
-        newStartDate.setDate(newStartDate.getDate() + 1);
-        
+        // Complete current season
         await storage.updateSeason(currentSeason.id, {
-          startDate: newStartDate
+          status: "completed",
+          endDate: new Date()
+        });
+        
+        // Create new season with incremented year
+        const newYear = (currentSeason.year || 0) + 1;
+        await storage.createSeason({
+          name: `Season ${newYear}`,
+          year: newYear,
+          status: "active",
+          startDate: new Date()
         });
       } else {
         // Just advance the day by updating start date
