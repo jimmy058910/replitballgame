@@ -174,3 +174,35 @@ export function getServerTimeInfo() {
     timeUntilNextWindow: timeUntilWindow
   };
 }
+
+/**
+ * Generate 4 daily game times with 15-minute intervals within 5-10PM window
+ * Varies the start time each day for variety
+ */
+export function generateDailyGameTimes(day: number): Date[] {
+  const easternTime = getEasternTime();
+  
+  // Vary start time based on day for variety within the 5-10PM window
+  // Start times: 5:30PM, 5:45PM, 6:00PM, 6:15PM, 6:30PM, 6:45PM, 7:00PM
+  const startVariations = [
+    { hour: 17, minute: 30 }, // 5:30PM
+    { hour: 17, minute: 45 }, // 5:45PM  
+    { hour: 18, minute: 0 },  // 6:00PM
+    { hour: 18, minute: 15 }, // 6:15PM
+    { hour: 18, minute: 30 }, // 6:30PM
+    { hour: 18, minute: 45 }, // 6:45PM
+    { hour: 19, minute: 0 },  // 7:00PM
+  ];
+  
+  const dayIndex = (day - 1) % startVariations.length;
+  const { hour, minute } = startVariations[dayIndex];
+  
+  const gameTimes: Date[] = [];
+  
+  for (let i = 0; i < 4; i++) {
+    const gameTime = easternTime.clone().hour(hour).minute(minute + (i * 15)).second(0);
+    gameTimes.push(gameTime.toDate());
+  }
+  
+  return gameTimes;
+}

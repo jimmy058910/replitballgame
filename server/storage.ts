@@ -52,7 +52,7 @@ import {
   type InsertSeason,
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, and, or, desc, asc, sql } from "drizzle-orm";
+import { eq, and, or, desc, asc, sql, inArray } from "drizzle-orm";
 
 export interface IStorage {
   // User operations (mandatory for Replit Auth)
@@ -77,6 +77,7 @@ export interface IStorage {
   createMatch(match: InsertMatch): Promise<Match>;
   getMatchById(id: string): Promise<Match | undefined>;
   getMatchesByTeamId(teamId: string): Promise<Match[]>;
+  getMatchesByDivision(division: number): Promise<Match[]>;
   updateMatch(id: string, updates: Partial<Match>): Promise<Match>;
   getLiveMatches(): Promise<Match[]>;
   
@@ -261,6 +262,28 @@ export class DatabaseStorage implements IStorage {
       .from(matches)
       .where(or(eq(matches.homeTeamId, teamId), eq(matches.awayTeamId, teamId)))
       .orderBy(desc(matches.scheduledTime));
+  }
+
+  async getMatchesByDivision(division: number): Promise<Match[]> {
+    // Get all teams in the division first
+    const divisionTeams = await this.getTeamsByDivision(division);
+    const teamIds = divisionTeams.map(team => team.id);
+    
+    if (teamIds.length === 0) {
+      return [];
+    }
+    
+    // Get matches where both teams are from the same division
+    return await db
+      .select()
+      .from(matches)
+      .where(
+        and(
+          inArray(matches.homeTeamId, teamIds),
+          inArray(matches.awayTeamId, teamIds)
+        )
+      )
+      .orderBy(asc(matches.gameDay), asc(matches.scheduledTime));
   }
 
   async updateMatch(id: string, updates: Partial<Match>): Promise<Match> {

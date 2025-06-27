@@ -5,6 +5,7 @@ import { setupAuth, isAuthenticated } from "./replitAuth";
 import { 
   getServerTimeInfo, 
   generateLeagueGameSchedule, 
+  generateDailyGameTimes,
   getNextLeagueGameSlot,
   isWithinSchedulingWindow,
   formatEasternTime,
@@ -3709,6 +3710,52 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error generating league schedule:", error);
       res.status(500).json({ message: "Failed to generate league schedule" });
+    }
+  });
+
+  // Get daily league schedule
+  app.get('/api/league/daily-schedule', async (req, res) => {
+    try {
+      const currentSeason = await storage.getCurrentSeason();
+      if (!currentSeason) {
+        return res.json({ schedule: [] });
+      }
+
+      // Get all league matches, grouped by day
+      const allMatches = [];
+      for (let division = 1; division <= 8; division++) {
+        const divisionMatches = await storage.getMatchesByDivision(division);
+        allMatches.push(...divisionMatches);
+      }
+
+      // Group matches by game day
+      const scheduleByDay = {};
+      
+      for (let day = 1; day <= 17; day++) {
+        const dayMatches = allMatches.filter(match => match.gameDay === day);
+        
+        if (dayMatches.length > 0) {
+          // Generate 4 daily game times with 15-minute intervals
+          const daySchedule = generateDailyGameTimes(day);
+          
+          scheduleByDay[day] = dayMatches.slice(0, 4).map((match, index) => ({
+            ...match,
+            scheduledTime: daySchedule[index],
+            scheduledTimeFormatted: formatEasternTime(daySchedule[index]),
+            isLive: match.status === 'in_progress',
+            canWatch: match.status === 'in_progress'
+          }));
+        }
+      }
+
+      res.json({ 
+        schedule: scheduleByDay,
+        totalDays: 17,
+        currentDay: currentSeason.currentDay
+      });
+    } catch (error) {
+      console.error("Error getting daily schedule:", error);
+      res.status(500).json({ message: "Failed to get daily schedule" });
     }
   });
 

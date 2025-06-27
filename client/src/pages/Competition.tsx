@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import LeagueStandings from "@/components/LeagueStandings";
+import LeagueSchedule from "@/components/LeagueSchedule";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { Trophy, Medal, Gamepad2, Calendar, Users, Clock, X } from "lucide-react";
@@ -27,23 +28,12 @@ export default function Competition() {
     queryKey: ["/api/matches/team"],
   });
 
-  const { data: standings } = useQuery({
-    queryKey: [`/api/leagues/${team?.division || 8}/standings`],
-    enabled: !!team,
-  });
-
   const { data: tournaments } = useQuery({
     queryKey: ["/api/tournaments"],
   });
 
-  const { data: seasonalCycle } = useQuery({
+  const { data: currentCycle } = useQuery({
     queryKey: ["/api/season/current-cycle"],
-    refetchInterval: 60000, // Refresh every minute
-  });
-
-  const { data: divisionTeams } = useQuery({
-    queryKey: [`/api/teams/division/${team?.division || 8}`],
-    enabled: browsingTeams && !!team,
   });
 
   const browseMutation = useMutation({
@@ -51,83 +41,78 @@ export default function Competition() {
       return await apiRequest(`/api/teams/division/${team?.division || 8}`, "GET");
     },
     onSuccess: (data) => {
+      setDivisionTeams(data);
       setBrowsingTeams(true);
-    },
-    onError: (error: Error) => {
-      toast({
-        title: "Error",
-        description: error.message || "Failed to load teams",
-        variant: "destructive",
-      });
     },
   });
 
   const challengeMutation = useMutation({
-    mutationFn: async (challengedTeamId: string) => {
-      return await apiRequest("/api/exhibitions/challenge", "POST", {
-        challengedTeamId
+    mutationFn: async (opponentId: string) => {
+      return await apiRequest("/api/matches/exhibition", "POST", {
+        opponentId,
       });
     },
-    onSuccess: (data) => {
+    onSuccess: () => {
       toast({
-        title: "Challenge Sent!",
-        description: "Exhibition challenge has been sent to the team.",
+        title: "Challenge Sent",
+        description: "Exhibition match challenge has been sent!",
       });
       setBrowsingTeams(false);
     },
-    onError: (error: Error) => {
-      toast({
-        title: "Challenge Failed",
-        description: error.message || "Failed to send challenge",
-        variant: "destructive",
-      });
-    },
   });
+
+  const [divisionTeams, setDivisionTeams] = useState([]);
 
   return (
     <div className="min-h-screen bg-gray-900 text-white">
       <Navigation />
       
-      <div className="max-w-7xl mx-auto px-4 py-8">
-        <div className="flex items-center gap-3 mb-8">
-          <Trophy className="h-8 w-8 text-yellow-400" />
-          <h1 className="text-3xl font-bold font-orbitron">Competition Hub</h1>
+      <div className="container mx-auto px-4 py-8">
+        <div className="mb-8">
+          <h1 className="text-4xl font-bold mb-4 text-center">Competition Hub</h1>
+          <p className="text-gray-400 text-center max-w-2xl mx-auto">
+            Compete in leagues, tournaments, and exhibition matches. Track your progress and climb the rankings across all divisions.
+          </p>
         </div>
 
-        {/* Seasonal Cycle Display */}
-        {seasonalCycle && (
-          <Card className="bg-gradient-to-r from-purple-900 to-blue-900 border-purple-700 mb-8">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-4">
-                  <div className="bg-purple-600 bg-opacity-30 p-3 rounded-full">
-                    <Clock className="h-8 w-8 text-purple-200" />
-                  </div>
-                  <div>
-                    <div className="text-sm text-purple-200 mb-1">{seasonalCycle.season}</div>
-                    <h2 className="text-2xl font-bold text-white mb-1">{seasonalCycle.description}</h2>
-                    <p className="text-purple-100 text-sm">{seasonalCycle.details}</p>
-                  </div>
+        {/* Season Cycle Info */}
+        {currentCycle && (
+          <Card className="bg-gray-800 border-gray-700 mb-6">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Calendar className="h-5 w-5 text-blue-400" />
+                Current Season Status
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-2">
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                <div>
+                  <span className="text-gray-400">Season:</span>
+                  <div className="font-semibold">{currentCycle?.season || "N/A"}</div>
+                  <div className="text-xs text-gray-500">{currentCycle?.description}</div>
+                  <div className="text-xs text-gray-500">{currentCycle?.details}</div>
                 </div>
-                <div className="text-right">
-                  <div className="text-lg font-bold text-white mb-1">Day {seasonalCycle.currentDay}/17</div>
-                  <Badge 
-                    variant={seasonalCycle.phase === "Regular Season" ? "default" : 
-                            seasonalCycle.phase === "Playoffs" ? "destructive" : "secondary"}
-                    className="text-xs"
-                  >
-                    {seasonalCycle.phase}
+                <div>
+                  <span className="text-gray-400">Day:</span>
+                  <div className="font-semibold">{currentCycle?.currentDay || 1} of 17</div>
+                </div>
+                <div>
+                  <span className="text-gray-400">Phase:</span>
+                  <Badge variant={currentCycle?.phase === "Regular Season" ? "default" : currentCycle?.phase === "Playoffs" ? "destructive" : "secondary"}>
+                    {currentCycle?.phase}
                   </Badge>
-                  {seasonalCycle.daysUntilPlayoffs > 0 && (
-                    <div className="text-xs text-purple-200 mt-1">
-                      {seasonalCycle.daysUntilPlayoffs} days to playoffs
-                    </div>
-                  )}
-                  {seasonalCycle.daysUntilNewSeason > 0 && seasonalCycle.phase === "Off-Season" && (
-                    <div className="text-xs text-purple-200 mt-1">
-                      {seasonalCycle.daysUntilNewSeason} days to new season
-                    </div>
-                  )}
+                </div>
+                <div>
+                  <span className="text-gray-400">
+                    {currentCycle?.phase === "Regular Season" ? "Playoffs in:" : 
+                     currentCycle?.daysUntilPlayoffs ? "Playoffs in:" : 
+                     "New season in:"}
+                  </span>
+                  <div className="font-semibold">
+                    {currentCycle?.daysUntilPlayoffs || 
+                     (currentCycle?.daysUntilNewSeason && currentCycle?.phase === "Off-Season" ? 
+                      `${currentCycle?.daysUntilNewSeason} days` : "TBD")}
+                  </div>
                 </div>
               </div>
             </CardContent>
@@ -164,19 +149,19 @@ export default function Competition() {
                 <CardContent className="space-y-3">
                   <div className="flex justify-between">
                     <span>Team:</span>
-                    <span className="font-semibold text-blue-400">{team?.name}</span>
+                    <span className="font-semibold text-blue-400">{(team as any)?.name}</span>
                   </div>
                   <div className="flex justify-between">
                     <span>Division:</span>
-                    <Badge variant="outline">{team?.division || 8}</Badge>
+                    <Badge variant="outline">{(team as any)?.division || 8}</Badge>
                   </div>
                   <div className="flex justify-between">
                     <span>Record:</span>
-                    <span>{team?.wins || 0}W - {team?.losses || 0}L</span>
+                    <span>{(team as any)?.wins || 0}W - {(team as any)?.losses || 0}L</span>
                   </div>
                   <div className="flex justify-between">
                     <span>Points:</span>
-                    <span className="font-bold text-yellow-400">{team?.points || 0}</span>
+                    <span className="font-bold text-yellow-400">{(team as any)?.points || 0}</span>
                   </div>
                 </CardContent>
               </Card>
@@ -190,20 +175,13 @@ export default function Competition() {
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  {teamMatches && teamMatches.length > 0 ? (
+                  {(teamMatches as any)?.length > 0 ? (
                     <div className="space-y-2">
-                      {teamMatches.slice(0, 3).map((match: any) => (
-                        <div key={match.id} className="flex justify-between items-center p-2 bg-gray-700 rounded">
-                          <div className="text-sm">
-                            <div className="font-semibold">
-                              {match.homeTeamId === team?.id ? 'vs' : '@'} {match.opponentName}
-                            </div>
-                            <div className="text-gray-400 text-xs">
-                              {match.status === 'completed' ? 'Final' : match.status}
-                            </div>
-                          </div>
-                          <Badge variant={match.result === 'win' ? 'default' : match.result === 'loss' ? 'destructive' : 'secondary'}>
-                            {match.result || match.status}
+                      {(teamMatches as any)?.slice(0, 3).map((match: any) => (
+                        <div key={match.id} className="flex justify-between items-center p-2 rounded bg-gray-700">
+                          <span className="text-sm">vs Team {match.id?.slice(0, 8)}</span>
+                          <Badge variant={match.status === 'completed' ? 'outline' : 'default'}>
+                            {match.status}
                           </Badge>
                         </div>
                       ))}
@@ -223,17 +201,14 @@ export default function Competition() {
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  {liveMatches && liveMatches.length > 0 ? (
+                  {(liveMatches as any)?.length > 0 ? (
                     <div className="space-y-2">
-                      {liveMatches.slice(0, 3).map((match: any) => (
-                        <div key={match.id} className="p-2 bg-gray-700 rounded">
-                          <div className="text-sm font-semibold">
-                            {match.homeTeam} vs {match.awayTeam}
-                          </div>
-                          <div className="text-xs text-red-400 flex items-center gap-1">
-                            <div className="w-2 h-2 bg-red-400 rounded-full animate-pulse"></div>
+                      {(liveMatches as any)?.slice(0, 3).map((match: any) => (
+                        <div key={match.id} className="flex justify-between items-center p-2 rounded bg-red-900/20 border border-red-700">
+                          <span className="text-sm">Live Game</span>
+                          <Badge variant="destructive" className="animate-pulse">
                             LIVE
-                          </div>
+                          </Badge>
                         </div>
                       ))}
                     </div>
@@ -249,20 +224,23 @@ export default function Competition() {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Trophy className="h-5 w-5 text-yellow-400" />
-                  Division {team?.division || 8} Standings
+                  Division {(team as any)?.division || 8} Standings
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <LeagueStandings division={team?.division || 8} />
+                <LeagueStandings division={(team as any)?.division || 8} />
               </CardContent>
             </Card>
+
+            {/* League Schedule - Full Width */}
+            <LeagueSchedule />
           </TabsContent>
 
           {/* Tournaments Tab */}
           <TabsContent value="tournaments" className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {tournaments && tournaments.length > 0 ? (
-                tournaments.map((tournament: any) => (
+              {(tournaments as any) && (tournaments as any).length > 0 ? (
+                (tournaments as any).map((tournament: any) => (
                   <Card key={tournament.id} className="bg-gray-800 border-gray-700">
                     <CardHeader>
                       <CardTitle className="flex items-center justify-between">
@@ -338,7 +316,7 @@ export default function Competition() {
                   <Button 
                     className="w-full" 
                     variant="outline"
-                    onClick={() => setBrowsingTeams(true)}
+                    onClick={() => browseMutation.mutate()}
                     disabled={browseMutation.isPending}
                   >
                     {browseMutation.isPending ? "Loading..." : "Browse Teams"}
@@ -365,40 +343,36 @@ export default function Competition() {
 
       {/* Browse Teams Dialog */}
       <Dialog open={browsingTeams} onOpenChange={setBrowsingTeams}>
-        <DialogContent className="max-w-4xl bg-gray-800 border-gray-700">
+        <DialogContent className="bg-gray-800 border-gray-700 max-w-4xl max-h-[80vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle className="text-white flex items-center gap-2">
-              <Users className="h-5 w-5" />
-              Division {team?.division || 8} Teams
+            <DialogTitle className="flex items-center justify-between">
+              <span>Division {(team as any)?.division || 8} Teams</span>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setBrowsingTeams(false)}
+              >
+                <X className="h-4 w-4" />
+              </Button>
             </DialogTitle>
           </DialogHeader>
-          <div className="max-h-96 overflow-y-auto">
-            {divisionTeams && divisionTeams.length > 0 ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {divisionTeams.filter((t: any) => t.id !== team?.id).map((challengeTeam: any) => (
+          <div className="space-y-4">
+            {(divisionTeams as any)?.length > 0 ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {(divisionTeams as any)?.filter((challengeTeam: any) => challengeTeam.id !== (team as any)?.id).map((challengeTeam: any) => (
                   <Card key={challengeTeam.id} className="bg-gray-700 border-gray-600">
-                    <CardHeader className="pb-3">
-                      <CardTitle className="text-white text-lg">{challengeTeam.name}</CardTitle>
-                    </CardHeader>
-                    <CardContent className="space-y-3">
+                    <CardContent className="p-4 space-y-3">
+                      <div className="text-center">
+                        <h3 className="font-semibold text-white">{challengeTeam.name}</h3>
+                        <Badge variant="outline" className="mt-1">
+                          Division {challengeTeam.division}
+                        </Badge>
+                      </div>
                       <div className="grid grid-cols-2 gap-2 text-sm">
                         <div className="text-gray-400">Record:</div>
-                        <div className="text-white">{challengeTeam.wins || 0}-{challengeTeam.losses || 0}-{challengeTeam.draws || 0}</div>
-                        <div className="text-gray-400">Challenge:</div>
-                        <div className={`font-medium ${
-                          !challengeTeam.teamPower || !team?.teamPower ? 'text-gray-400' :
-                          Math.abs((challengeTeam.teamPower || 0) - (team.teamPower || 0)) <= 10 ? 'text-yellow-400' :
-                          (challengeTeam.teamPower || 0) > (team.teamPower || 0) ? 'text-red-400' :
-                          'text-green-400'
-                        }`}>
-                          {!challengeTeam.teamPower || !team?.teamPower ? 'Unknown' :
-                           Math.abs((challengeTeam.teamPower || 0) - (team.teamPower || 0)) <= 10 ? 'Even Match' :
-                           (challengeTeam.teamPower || 0) > (team.teamPower || 0) ? 'Hard' :
-                           'Easy'
-                          }
-                        </div>
+                        <div className="text-white">{challengeTeam.wins || 0}W - {challengeTeam.losses || 0}L</div>
                         <div className="text-gray-400">Power:</div>
-                        <div className="text-white">{challengeTeam.teamPower || 0}</div>
+                        <div className="text-white">{(challengeTeam as any).teamPower || 0}</div>
                       </div>
                       <Button
                         className="w-full"
