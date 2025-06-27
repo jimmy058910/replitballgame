@@ -10,7 +10,7 @@ export default function League() {
   });
 
   const { data: matches } = useQuery({
-    queryKey: ["/api/matches/team", team?.id].filter(Boolean),
+    queryKey: ["/api/team-matches", team?.id].filter(Boolean),
     enabled: !!team?.id,
   });
 

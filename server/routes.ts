@@ -470,7 +470,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get('/api/matches/team/:teamId', isAuthenticated, async (req, res) => {
+  app.get('/api/team-matches/:teamId', isAuthenticated, async (req, res) => {
     try {
       const { teamId } = req.params;
       const matches = await storage.getMatchesByTeamId(teamId);

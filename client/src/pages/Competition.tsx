@@ -28,7 +28,7 @@ export default function Competition() {
   });
 
   const { data: teamMatches } = useQuery({
-    queryKey: ["/api/matches/team", (team as any)?.id],
+    queryKey: ["/api/team-matches", (team as any)?.id],
     enabled: !!(team as any)?.id,
   });
 
