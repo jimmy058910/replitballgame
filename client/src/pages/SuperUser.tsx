@@ -14,6 +14,7 @@ export default function SuperUser() {
   const { toast } = useToast();
   const [creditsAmount, setCreditsAmount] = useState(50000);
   const [premiumAmount, setPremiumAmount] = useState(100);
+  const [divisionToCleanup, setDivisionToCleanup] = useState(8);
 
   const { data: team } = useQuery({
     queryKey: ["/api/teams/my"],
@@ -61,6 +62,26 @@ export default function SuperUser() {
       toast({
         title: "Error",
         description: "Failed to reset season",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const cleanupDivisionMutation = useMutation({
+    mutationFn: async (division: number) => {
+      return await apiRequest("/api/superuser/cleanup-division", "POST", { division });
+    },
+    onSuccess: (data: any) => {
+      toast({
+        title: "Division Cleaned Up",
+        description: `Division ${data.details?.division || divisionToCleanup}: ${data.teamsRemoved} teams removed, ${data.remainingTeams} teams remaining`,
+      });
+      queryClient.invalidateQueries({ queryKey: ["/api/leagues"] });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: "Failed to clean up division",
         variant: "destructive",
       });
     },
@@ -300,7 +321,28 @@ export default function SuperUser() {
                   Division {team?.division || 8}
                 </div>
               </div>
-              <div className="space-y-2">
+              
+              <div className="space-y-3">
+                <div className="flex gap-2 items-center">
+                  <Input
+                    type="number"
+                    min="1"
+                    max="8"
+                    value={divisionToCleanup}
+                    onChange={(e) => setDivisionToCleanup(parseInt(e.target.value))}
+                    className="w-20"
+                    placeholder="Div"
+                  />
+                  <Button 
+                    onClick={() => cleanupDivisionMutation.mutate(divisionToCleanup)}
+                    disabled={cleanupDivisionMutation.isPending}
+                    className="flex-1"
+                    variant="destructive"
+                  >
+                    {cleanupDivisionMutation.isPending ? "Cleaning..." : "Clean Division (Max 8 Teams)"}
+                  </Button>
+                </div>
+                
                 <Button 
                   onClick={() => fillDivisionMutation.mutate()}
                   disabled={fillDivisionMutation.isPending}

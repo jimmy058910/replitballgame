@@ -18,8 +18,8 @@ import { simulateMatch } from "./services/matchSimulation";
 import { generateRandomPlayer } from "./services/leagueService";
 import { z } from "zod";
 import { db } from "./db";
-import { items, stadiums, facilityUpgrades, stadiumEvents } from "@shared/schema";
-import { eq, isNotNull, gte, lte, and, desc } from "drizzle-orm";
+import { items, stadiums, facilityUpgrades, stadiumEvents, teams, players, matches, teamFinances, playerInjuries } from "@shared/schema";
+import { eq, isNotNull, gte, lte, and, desc, or } from "drizzle-orm";
 import { randomUUID } from "crypto";
 
 // Helper function to calculate team power based on top 9 players (starters + first substitution)
@@ -3868,6 +3868,132 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error resetting season:", error);
       res.status(500).json({ message: "Failed to reset season" });
+    }
+  });
+
+  // Clean up division to 8 teams max (SuperUser only)
+  app.post('/api/superuser/cleanup-division', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const team = await storage.getTeamByUserId(userId);
+      
+      if (!team || team.name !== "Macomb Cougars") {
+        return res.status(403).json({ message: "Unauthorized: SuperUser access required" });
+      }
+
+      const { division } = req.body;
+      if (!division || division < 1 || division > 8) {
+        return res.status(400).json({ message: "Invalid division number. Must be 1-8." });
+      }
+
+      // Get all teams in the division
+      const allTeams = await storage.getTeamsByDivision(division);
+      console.log(`Found ${allTeams.length} teams in division ${division}`);
+
+      if (allTeams.length <= 8) {
+        return res.json({
+          success: true,
+          message: `Division ${division} already has ${allTeams.length} teams (within limit)`,
+          teamsRemoved: 0,
+          remainingTeams: allTeams.length
+        });
+      }
+
+      // Identify user teams vs AI teams
+      const userTeams = allTeams.filter(t => 
+        !t.name.includes('AI ') && 
+        !t.name.includes('Team ') && 
+        !t.name.includes('Thunder Hawks') &&
+        !t.name.includes('Storm Eagles') &&
+        !t.name.includes('Fire Dragons') &&
+        !t.name.includes('Ice Wolves') &&
+        !t.name.includes('Lightning Bolts') &&
+        !t.name.includes('Shadow Panthers') &&
+        !t.name.includes('Golden Lions') &&
+        !t.name.includes('Silver Sharks')
+      );
+      
+      const aiTeams = allTeams.filter(t => 
+        t.name.includes('AI ') || 
+        t.name.includes('Team ') ||
+        t.name.includes('Thunder Hawks') ||
+        t.name.includes('Storm Eagles') ||
+        t.name.includes('Fire Dragons') ||
+        t.name.includes('Ice Wolves') ||
+        t.name.includes('Lightning Bolts') ||
+        t.name.includes('Shadow Panthers') ||
+        t.name.includes('Golden Lions') ||
+        t.name.includes('Silver Sharks')
+      );
+      
+      console.log(`User teams: ${userTeams.length}, AI teams: ${aiTeams.length}`);
+
+      // Keep user teams + enough AI teams to total 8
+      const maxAiTeams = Math.max(0, 8 - userTeams.length);
+      const aiTeamsToKeep = aiTeams.slice(0, maxAiTeams);
+      const teamsToRemove = aiTeams.slice(maxAiTeams);
+
+      console.log(`Removing ${teamsToRemove.length} AI teams to maintain 8 teams per division`);
+
+      // Remove excess teams and their associated data
+      for (const teamToRemove of teamsToRemove) {
+        try {
+          // Get and delete all players for this team
+          const players = await storage.getPlayersByTeamId(teamToRemove.id);
+          for (const player of players) {
+            // Delete player's abilities, injuries, contracts, etc.
+            try {
+              await db.delete(playerInjuries).where(eq(playerInjuries.playerId, player.id));
+              await db.delete(players).where(eq(players.id, player.id));
+            } catch (error) {
+              console.log(`Error deleting player data for ${player.id}:`, error);
+            }
+          }
+
+          // Delete team finances
+          try {
+            await db.delete(teamFinances).where(eq(teamFinances.teamId, teamToRemove.id));
+          } catch (error) {
+            console.log(`No finances to delete for team ${teamToRemove.id}`);
+          }
+
+          // Delete team matches
+          try {
+            await db.delete(matches).where(
+              or(
+                eq(matches.homeTeamId, teamToRemove.id),
+                eq(matches.awayTeamId, teamToRemove.id)
+              )
+            );
+          } catch (error) {
+            console.log(`Error deleting matches for team ${teamToRemove.id}:`, error);
+          }
+
+          // Delete the team itself
+          await db.delete(teams).where(eq(teams.id, teamToRemove.id));
+          console.log(`Successfully deleted team: ${teamToRemove.name} (${teamToRemove.id})`);
+        } catch (error) {
+          console.error(`Failed to delete team ${teamToRemove.name}:`, error);
+        }
+      }
+
+      const remainingTeams = await storage.getTeamsByDivision(division);
+      
+      res.json({
+        success: true,
+        message: `Division ${division} cleaned up successfully`,
+        teamsRemoved: teamsToRemove.length,
+        remainingTeams: remainingTeams.length,
+        details: {
+          userTeams: userTeams.length,
+          aiTeamsKept: aiTeamsToKeep.length,
+          aiTeamsRemoved: teamsToRemove.length,
+          removedTeamNames: teamsToRemove.map(t => t.name)
+        }
+      });
+    } catch (error) {
+      console.error("Error cleaning up division:", error);
+      res.status(500).json({ message: "Failed to clean up division" });
     }
   });
 
