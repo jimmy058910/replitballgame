@@ -49,6 +49,13 @@ export default function TextMatch() {
     );
   }
 
+  // Debug logging
+  console.log("Match data:", match);
+  console.log("Team1 data:", team1);
+  console.log("Team2 data:", team2);
+  console.log("Match ID:", matchId);
+  console.log("Loading states - match:", matchLoading, "team1:", team1Loading, "team2:", team2Loading);
+
   if (!match || !team1 || !team2) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -56,6 +63,9 @@ export default function TextMatch() {
           <CardContent className="p-8">
             <div className="text-center text-red-400">
               Match not found or incomplete data
+              <div className="text-sm mt-2 text-gray-400">
+                Match: {match ? "✓" : "✗"} | Team1: {team1 ? "✓" : "✗"} | Team2: {team2 ? "✓" : "✗"}
+              </div>
             </div>
           </CardContent>
         </Card>
