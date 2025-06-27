@@ -135,10 +135,10 @@ export default function TextBasedMatch({ team1, team2, isExhibition = false, onM
     initializePlayers();
   }, [team1, team2]);
 
-  // Auto-scroll log to bottom
+  // Auto-scroll log to top since newest events are at the top
   useEffect(() => {
     if (logRef.current) {
-      logRef.current.scrollTop = logRef.current.scrollHeight;
+      logRef.current.scrollTop = 0;
     }
   }, [gameState.gameLog]);
 
@@ -146,15 +146,24 @@ export default function TextBasedMatch({ team1, team2, isExhibition = false, onM
     const timeStr = formatGameTime(gameState.gameTime);
     setGameState(prev => ({
       ...prev,
-      gameLog: [...prev.gameLog, `[${timeStr}] ${message}`]
+      gameLog: [`[${timeStr}] ${message}`, ...prev.gameLog]
     }));
   };
 
   const formatGameTime = (seconds: number) => {
     const halfTime = gameState.maxTime / 2;
-    const currentHalfTime = gameState.currentHalf === 1 ? seconds : seconds - halfTime;
-    const minutes = Math.floor(currentHalfTime / 60);
-    const secs = Math.floor(currentHalfTime % 60);
+    let displayTime;
+    
+    if (gameState.currentHalf === 1) {
+      // First half: 0:00 to 10:00
+      displayTime = seconds;
+    } else {
+      // Second half: 10:00 to 20:00 (add half time to make it 10:00+)
+      displayTime = halfTime + (seconds - halfTime);
+    }
+    
+    const minutes = Math.floor(displayTime / 60);
+    const secs = Math.floor(displayTime % 60);
     return `${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
   };
 
@@ -173,6 +182,11 @@ export default function TextBasedMatch({ team1, team2, isExhibition = false, onM
 
   const simulateGameTick = () => {
     setGameState(prev => {
+      // Don't continue if game is already finished
+      if (prev.gameTime >= prev.maxTime) {
+        return prev;
+      }
+
       const newGameTime = prev.gameTime + 1;
       
       // Check for halftime
@@ -181,7 +195,7 @@ export default function TextBasedMatch({ team1, team2, isExhibition = false, onM
           ...prev,
           gameTime: newGameTime,
           currentHalf: 2,
-          gameLog: [...prev.gameLog, `[HALFTIME] Score: ${team1?.name || "Team 1"}: ${prev.team1Score} - ${team2?.name || "Team 2"}: ${prev.team2Score}`]
+          gameLog: [`[HALFTIME] Score: ${team1?.name || "Team 1"}: ${prev.team1Score} - ${team2?.name || "Team 2"}: ${prev.team2Score}`, ...prev.gameLog]
         };
       }
       
@@ -189,6 +203,12 @@ export default function TextBasedMatch({ team1, team2, isExhibition = false, onM
       if (newGameTime >= prev.maxTime) {
         const winner = prev.team1Score > prev.team2Score ? team1?.name || "Team 1" : 
                      prev.team2Score > prev.team1Score ? team2?.name || "Team 2" : "Tie";
+        
+        // Stop the game immediately
+        if (gameIntervalRef.current) {
+          clearInterval(gameIntervalRef.current);
+          gameIntervalRef.current = null;
+        }
         
         onMatchComplete?.({
           team1Score: prev.team1Score,
@@ -200,7 +220,7 @@ export default function TextBasedMatch({ team1, team2, isExhibition = false, onM
           ...prev,
           gameTime: newGameTime,
           isRunning: false,
-          gameLog: [...prev.gameLog, `[FINAL] Game Over! Final Score: ${team1?.name || "Team 1"}: ${prev.team1Score} - ${team2?.name || "Team 2"}: ${prev.team2Score}`]
+          gameLog: [`[FINAL] Game Over! Final Score: ${team1?.name || "Team 1"}: ${prev.team1Score} - ${team2?.name || "Team 2"}: ${prev.team2Score}`, ...prev.gameLog]
         };
       }
 
@@ -210,24 +230,76 @@ export default function TextBasedMatch({ team1, team2, isExhibition = false, onM
       };
     });
 
-    // Simulate player actions and game events
-    simulatePlayerActions();
+    // Simulate player actions and game events only if game is still running
+    if (gameState.gameTime < gameState.maxTime) {
+      simulatePlayerActions();
+    }
   };
 
   const simulatePlayerActions = () => {
-    // This is where the core game logic would go
-    // For now, we'll add random events to demonstrate the system
-    if (Math.random() < 0.05) { // 5% chance per second for an event
+    // Generate events with actual player names and team context
+    if (Math.random() < 0.08) { // 8% chance per second for an event
+      const team1Players = players.filter(p => p.teamId === team1.id);
+      const team2Players = players.filter(p => p.teamId === team2.id);
+      const allPlayers = [...team1Players, ...team2Players];
+      
+      if (allPlayers.length === 0) return;
+      
+      const randomPlayer = allPlayers[Math.floor(Math.random() * allPlayers.length)];
+      const playerTeam = randomPlayer.teamId === team1.id ? team1.name : team2.name;
+      const opponentTeam = randomPlayer.teamId === team1.id ? team2.name : team1.name;
+      const playerName = randomPlayer.lastName || randomPlayer.firstName || randomPlayer.name || "Unknown";
+      
+      // Generate role-based events with player names
       const events = [
-        "The ball is loose at midfield! Players converge!",
-        "A quick pass downfield!",
-        "Strong defensive pressure building!",
-        "Breaking through the defensive line!",
-        "Intercepted! Ball changes hands!"
+        // General ball movement
+        `The ball is loose at midfield! ${playerName} dives for it!`,
+        `${playerName} (${playerTeam}) intercepts the pass!`,
+        `${playerName} breaks through the defensive line!`,
+        `Strong defensive pressure from ${playerName}!`,
+        
+        // Role-specific events
+        ...(randomPlayer.role === 'passer' ? [
+          `${playerName} looks for an open teammate downfield!`,
+          `${playerName} attempts a long pass across the arena!`,
+          `${playerName} scrambles under pressure!`
+        ] : []),
+        
+        ...(randomPlayer.role === 'runner' ? [
+          `${playerName} charges forward with the ball!`,
+          `${playerName} breaks through a tackle attempt!`,
+          `${playerName} jukes past a defender!`
+        ] : []),
+        
+        ...(randomPlayer.role === 'blocker' ? [
+          `${playerName} delivers a crushing block!`,
+          `${playerName} holds the line against ${opponentTeam}!`,
+          `${playerName} creates an opening for teammates!`
+        ] : []),
+        
+        // Team dynamics
+        `${playerTeam} pushes forward in formation!`,
+        `${opponentTeam} responds with defensive pressure!`,
+        `Intense clash between ${playerTeam} and ${opponentTeam}!`
       ];
       
       const randomEvent = events[Math.floor(Math.random() * events.length)];
       addToLog(randomEvent);
+      
+      // Occasional scoring opportunities (very rare)
+      if (Math.random() < 0.005) { // 0.5% chance for scoring
+        const scoringTeam = Math.random() < 0.5 ? team1 : team2;
+        const scorer = (scoringTeam === team1 ? team1Players : team2Players)[Math.floor(Math.random() * 6)];
+        const scorerName = scorer?.lastName || scorer?.firstName || scorer?.name || "Unknown";
+        
+        addToLog(`SCORE! ${scorerName} scores for ${scoringTeam.name}!`);
+        
+        setGameState(prev => ({
+          ...prev,
+          team1Score: scoringTeam === team1 ? prev.team1Score + 1 : prev.team1Score,
+          team2Score: scoringTeam === team2 ? prev.team2Score + 1 : prev.team2Score
+        }));
+      }
     }
   };
 
@@ -287,9 +359,7 @@ export default function TextBasedMatch({ team1, team2, isExhibition = false, onM
     };
   }, []);
 
-  const halfTime = gameState.maxTime / 2;
-  const timeInHalf = gameState.currentHalf === 1 ? gameState.gameTime : gameState.gameTime - halfTime;
-  const timeDisplay = formatGameTime(timeInHalf);
+  const timeDisplay = formatGameTime(gameState.gameTime);
 
   return (
     <div className="max-w-6xl mx-auto p-6 space-y-6">
@@ -305,7 +375,10 @@ export default function TextBasedMatch({ team1, team2, isExhibition = false, onM
                 {gameState.isRunning ? "LIVE" : "STOPPED"}
               </Badge>
               <span className="text-sm font-mono">
-                Half {gameState.currentHalf} - {timeDisplay}
+                {isExhibition ? 
+                  (gameState.currentHalf === 1 ? "First Half" : "Second Half") : 
+                  `Half ${gameState.currentHalf}`
+                } - {timeDisplay}
               </span>
             </div>
           </div>
