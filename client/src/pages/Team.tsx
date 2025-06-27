@@ -167,7 +167,10 @@ export default function Team() {
 
             {/* Conditional Content Based on Selected Role */}
             {selectedRole === 'taxi-squad' ? (
-              <TaxiSquadManager teamId={team?.id} />
+              <TaxiSquadManager 
+                teamId={team?.id} 
+                onNavigateToRecruiting={() => setActiveTab('recruiting')}
+              />
             ) : (
               /* Player Grid */
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">

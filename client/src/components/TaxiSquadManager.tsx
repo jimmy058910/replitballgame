@@ -10,9 +10,10 @@ import UnifiedPlayerCard from "@/components/UnifiedPlayerCard";
 
 interface TaxiSquadManagerProps {
   teamId?: string;
+  onNavigateToRecruiting?: () => void;
 }
 
-export function TaxiSquadManager({ teamId }: TaxiSquadManagerProps) {
+export function TaxiSquadManager({ teamId, onNavigateToRecruiting }: TaxiSquadManagerProps) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -181,7 +182,7 @@ export function TaxiSquadManager({ teamId }: TaxiSquadManagerProps) {
             </p>
             <Button 
               variant="outline" 
-              onClick={() => window.location.href = '/team?tab=recruiting'}
+              onClick={onNavigateToRecruiting}
               className="border-orange-600 text-orange-400 hover:bg-orange-600 hover:text-white"
             >
               <UserPlus className="w-4 h-4 mr-2" />
