@@ -2,6 +2,15 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { setupAuth, isAuthenticated } from "./replitAuth";
+import { 
+  getServerTimeInfo, 
+  generateLeagueGameSchedule, 
+  getNextLeagueGameSlot,
+  isWithinSchedulingWindow,
+  formatEasternTime,
+  LEAGUE_GAME_START_HOUR,
+  LEAGUE_GAME_END_HOUR
+} from "@shared/timezone";
 import { createDemoNotifications } from "./testNotifications";
 import { NotificationService } from "./services/notificationService";
 import { simulateMatch } from "./services/matchSimulation";
@@ -3651,6 +3660,57 @@ export async function registerRoutes(app: Express): Promise<Server> {
     
     return descriptions[eventType] || `${playerName} makes a play`;
   }
+
+  // ===== SERVER TIME & SCHEDULING ROUTES =====
+
+  // Get server time information
+  app.get('/api/server/time', (req, res) => {
+    try {
+      const serverTime = getServerTimeInfo();
+      res.json(serverTime);
+    } catch (error) {
+      console.error("Error getting server time:", error);
+      res.status(500).json({ message: "Failed to get server time" });
+    }
+  });
+
+  // Get next available league game slot
+  app.get('/api/league/next-slot', (req, res) => {
+    try {
+      const nextSlot = getNextLeagueGameSlot();
+      res.json({
+        nextSlot: nextSlot ? formatEasternTime(nextSlot) : null,
+        nextSlotDate: nextSlot,
+        isWithinWindow: isWithinSchedulingWindow(),
+        schedulingWindow: `${LEAGUE_GAME_START_HOUR}:00-${LEAGUE_GAME_END_HOUR}:00 Eastern`
+      });
+    } catch (error) {
+      console.error("Error getting next league slot:", error);
+      res.status(500).json({ message: "Failed to get next league slot" });
+    }
+  });
+
+  // Generate league game schedule
+  app.post('/api/league/schedule', (req, res) => {
+    try {
+      const { numberOfGames, startDate } = req.body;
+      const games = numberOfGames || 1;
+      const schedule = generateLeagueGameSchedule(games, startDate ? new Date(startDate) : undefined);
+      
+      res.json({
+        schedule: schedule.map(date => ({
+          scheduledTime: formatEasternTime(date),
+          scheduledDate: date,
+          isWithinWindow: true
+        })),
+        totalGames: games,
+        schedulingWindow: `${LEAGUE_GAME_START_HOUR}:00-${LEAGUE_GAME_END_HOUR}:00 Eastern`
+      });
+    } catch (error) {
+      console.error("Error generating league schedule:", error);
+      res.status(500).json({ message: "Failed to generate league schedule" });
+    }
+  });
 
   // ===== SUPERUSER ROUTES =====
 

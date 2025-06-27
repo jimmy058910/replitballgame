@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import Navigation from "@/components/Navigation";
+import ServerTimeDisplay from "@/components/ServerTimeDisplay";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -354,31 +355,35 @@ export default function SuperUser() {
           </CardContent>
         </Card>
 
-        {/* System Information */}
-        <Card className="bg-gray-800 border-gray-700 mt-8">
-          <CardHeader>
-            <CardTitle className="font-orbitron text-xl flex items-center">
-              <Settings className="w-5 h-5 mr-2 text-gray-400" />
-              System Information
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <div className="text-center">
-                <div className="text-2xl font-bold text-blue-400">{team?.name}</div>
-                <div className="text-sm text-gray-400">SuperUser Team</div>
+        {/* Server Time & System Information */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-8">
+          <ServerTimeDisplay />
+          
+          <Card className="bg-gray-800 border-gray-700">
+            <CardHeader>
+              <CardTitle className="font-orbitron text-xl flex items-center">
+                <Settings className="w-5 h-5 mr-2 text-gray-400" />
+                System Information
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                <div className="text-center">
+                  <div className="text-xl font-bold text-blue-400">{team?.name}</div>
+                  <div className="text-sm text-gray-400">SuperUser Team</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-xl font-bold text-green-400">Division {team?.division}</div>
+                  <div className="text-sm text-gray-400">Current Division</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-xl font-bold text-purple-400">Active</div>
+                  <div className="text-sm text-gray-400">System Status</div>
+                </div>
               </div>
-              <div className="text-center">
-                <div className="text-2xl font-bold text-green-400">Division {team?.division}</div>
-                <div className="text-sm text-gray-400">Current Division</div>
-              </div>
-              <div className="text-center">
-                <div className="text-2xl font-bold text-purple-400">Active</div>
-                <div className="text-sm text-gray-400">System Status</div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
+        </div>
       </div>
     </div>
   );

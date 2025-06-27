@@ -133,6 +133,11 @@ Built as a React + Express web application with PostgreSQL database, using moder
 - ✓ Implemented "Advance Day" functionality to manually progress through 17-day seasonal cycle
 - ✓ Added "Reset Season to Day 1" feature that resets all team statistics and stops active matches
 - ✓ Enhanced seasonal cycle display on Dashboard and Competition pages with proper phase tracking
+- ✓ Implemented Eastern Time (Detroit) server timezone system for league game scheduling
+- ✓ Added 5PM-10PM Eastern scheduling window for optimal live viewing with staggered timing
+- ✓ Created comprehensive timezone utility with scheduling functions and server time display
+- ✓ Added ServerTimeDisplay component showing current Eastern time and league game window status
+- ✓ Enhanced SuperUser panel with server time monitoring and scheduling information
 
 ### Technical Improvements
 - **Notification System**: Now uses solid background colors (red, blue, green, yellow) with white text for proper visibility
