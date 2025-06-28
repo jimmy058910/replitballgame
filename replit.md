@@ -53,6 +53,7 @@ Built as a React + Express web application with PostgreSQL database, using moder
 - ✓ PURPLE GRADIENT HEADERS RESTORED: Added purple gradient seasonal cycle display to Competition page matching Dashboard design for visual consistency
 - ✓ CONTRACT MANAGEMENT COMPLETE FIX: Added new "All Players" tab showing all 11 team players with contract status and ability to sign contracts for players without them
 - ✓ SERVER TIME DISPLAY FIXED: Removed duplicate server time query from Dashboard that was causing "Unable to load server time" error - now uses proper ServerTimeDisplay component
+- ✓ LEAGUE SCHEDULE GENERATION FIX: Fixed endpoint mismatch in SuperUser panel - generateScheduleMutation now calls correct `/api/superuser/generate-season-schedule` route instead of broken `/api/superuser/generate-schedule`
 
 ### December 29, 2025 (Earlier - Comprehensive Commentary System + Complete Stat Boost System)
 - ✓ COMPREHENSIVE GAME COMMENTARY SYSTEM IMPLEMENTED: Created sophisticated 6-category commentary generator according to user specifications

@@ -168,7 +168,7 @@ export default function SuperUser() {
   // Generate Schedule mutation
   const generateScheduleMutation = useMutation({
     mutationFn: async () => {
-      return await apiRequest("/api/superuser/generate-schedule", "POST");
+      return await apiRequest("/api/superuser/generate-season-schedule", "POST");
     },
     onSuccess: (data: any) => {
       toast({

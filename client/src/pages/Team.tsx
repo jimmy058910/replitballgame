@@ -12,6 +12,7 @@ import TryoutSystem from "@/components/TryoutSystem";
 import { TaxiSquadManager } from "@/components/TaxiSquadManager";
 import { InjuryManagement } from "@/components/InjuryManagement";
 import StatBoostManager from "@/components/StatBoostManager";
+import ContractManagement from "@/components/ContractManagement";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -248,59 +249,7 @@ export default function Team() {
           </TabsContent>
 
           <TabsContent value="contracts">
-            <div className="space-y-6">
-              <Card className="bg-gray-800 border-gray-700">
-                <CardHeader>
-                  <CardTitle>Contract Management</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-gray-400 mb-4">
-                    Manage player contracts, negotiate extensions, and track contract expiration dates.
-                  </p>
-                  
-                  {playersWithRoles.length > 0 ? (
-                    <div className="space-y-4">
-                      {playersWithRoles
-                        .filter((player: any) => {
-                          const remaining = (player.contractSeasons || 3) - (player.contractStartSeason || 0);
-                          return remaining <= 2;
-                        })
-                        .map((player: any) => {
-                          const remaining = (player.contractSeasons || 3) - (player.contractStartSeason || 0);
-                          return (
-                            <div key={player.id} className="flex items-center justify-between p-4 border border-gray-700 rounded-lg">
-                              <div>
-                                <h4 className="font-semibold">{player.name}</h4>
-                                <p className="text-sm text-gray-400">
-                                  {remaining} season{remaining !== 1 ? 's' : ''} remaining
-                                </p>
-                              </div>
-                              <div className="flex items-center gap-3">
-                                <Badge variant={remaining <= 1 ? "destructive" : "secondary"}>
-                                  {remaining <= 1 ? "Expiring" : "Moderate"}
-                                </Badge>
-                                <Button
-                                  size="sm"
-                                  onClick={() => {
-                                    setSelectedPlayer(player);
-                                    setShowContractModal(true);
-                                  }}
-                                >
-                                  Negotiate
-                                </Button>
-                              </div>
-                            </div>
-                          );
-                        })}
-                    </div>
-                  ) : (
-                    <p className="text-gray-500 text-center py-8">
-                      No contract negotiations needed at this time.
-                    </p>
-                  )}
-                </CardContent>
-              </Card>
-            </div>
+            <ContractManagement />
           </TabsContent>
 
           <TabsContent value="recruiting">
