@@ -229,6 +229,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ error: "Emergency API failed" });
     }
   });
+
+  // Remove the test stadium route that might be interfering
+  // app.get('/api/stadium/test', async (req, res) => {
+  //   console.log("=== STADIUM TEST API REACHED ===");
+  //   res.json({ test: "Stadium API routes are working", timestamp: new Date().toISOString() });
+  // });
   
   // Auth middleware
   await setupAuth(app);
@@ -5676,19 +5682,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Test Stadium API endpoint for debugging
-  app.get('/api/stadium/test', async (req, res) => {
-    console.log("=== STADIUM TEST API REACHED ===");
-    res.json({ test: "Stadium API routes are working", timestamp: new Date().toISOString() });
-  });
+  // Removed test stadium route to prevent conflicts
 
   // Comprehensive Stadium API - NEW VERSION
   app.get('/api/stadium/full', isAuthenticated, async (req: any, res) => {
     try {
-      console.log("=== STADIUM API DEBUG ===");
-      console.log("User:", req.user);
+      console.log("=== STADIUM FULL API REACHED ===");
+      
+      // Set explicit JSON headers to prevent Vite interference
+      res.setHeader('Content-Type', 'application/json');
+      res.setHeader('Cache-Control', 'no-cache');
+      
       const userId = req.user.claims.sub;
-      console.log("User ID:", userId);
+      console.log("Processing stadium for user:", userId);
       
       const team = await storage.getTeamByUserId(userId);
       console.log("Team found:", team?.id, team?.name);
@@ -5842,7 +5848,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log("Stadium API Response Data:", JSON.stringify(responseData, null, 2));
       console.log("=== END STADIUM API DEBUG ===");
       
+      // Ensure JSON response is properly sent and returned
       res.json(responseData);
+      return;
 
     } catch (error) {
       console.error("=== STADIUM API ERROR ===");
