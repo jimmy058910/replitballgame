@@ -4,7 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { Clock, Calendar } from "lucide-react";
 
 interface ServerTimeInfo {
-  currentTime: string;
+  currentTime: Date;
   formattedTime: string;
   timezone: string;
   isSchedulingWindow: boolean;
@@ -56,9 +56,9 @@ export default function ServerTimeDisplay() {
     );
   }
 
-  const formatTime = (dateString: string) => {
-    const date = new Date(dateString);
-    return date.toLocaleTimeString('en-US', {
+  const formatTime = (date: Date | string) => {
+    const dateObj = typeof date === 'string' ? new Date(date) : date;
+    return dateObj.toLocaleTimeString('en-US', {
       hour: '2-digit',
       minute: '2-digit',
       second: '2-digit',
@@ -67,9 +67,9 @@ export default function ServerTimeDisplay() {
     });
   };
 
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString('en-US', {
+  const formatDate = (date: Date | string) => {
+    const dateObj = typeof date === 'string' ? new Date(date) : date;
+    return dateObj.toLocaleDateString('en-US', {
       weekday: 'short',
       month: 'short',
       day: 'numeric',
