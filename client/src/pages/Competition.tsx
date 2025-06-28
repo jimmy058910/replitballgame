@@ -33,7 +33,9 @@ export default function Competition() {
   });
 
   const { data: tournaments } = useQuery({
-    queryKey: ["/api/tournaments"],
+    queryKey: ["/api/tournaments", (team as any)?.division || 8],
+    enabled: !!(team as any)?.division,
+    queryFn: () => apiRequest(`/api/tournaments/${(team as any)?.division || 8}`, "GET"),
   });
 
   const { data: currentCycle } = useQuery({
@@ -72,6 +74,27 @@ export default function Competition() {
       toast({
         title: "Failed to Start Match",
         description: error.message || "Failed to start exhibition match. Please try again.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const enterTournamentMutation = useMutation({
+    mutationFn: async ({ tournamentId, paymentType }: { tournamentId: string; paymentType: 'credits' | 'entry' }) => {
+      return await apiRequest("/api/tournaments/enter", "POST", { tournamentId, paymentType });
+    },
+    onSuccess: () => {
+      toast({
+        title: "Tournament Entry Successful",
+        description: "You have successfully entered the tournament!",
+      });
+      // Refetch tournaments to update the data
+      window.location.reload();
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Entry Failed",
+        description: error.message || "Failed to enter tournament",
         variant: "destructive",
       });
     },
@@ -283,9 +306,30 @@ export default function Competition() {
                         <span>{tournament.currentTeams || 0}/{tournament.maxTeams}</span>
                       </div>
                       {tournament.status === 'open' && (
-                        <Button className="w-full" variant="outline">
-                          Enter Tournament
-                        </Button>
+                        <div className="space-y-2">
+                          <Button 
+                            className="w-full" 
+                            variant="outline"
+                            onClick={() => enterTournamentMutation.mutate({ 
+                              tournamentId: tournament.id, 
+                              paymentType: 'credits' 
+                            })}
+                            disabled={enterTournamentMutation.isPending}
+                          >
+                            Enter with Credits ({tournament.entryFee?.toLocaleString()} ₡)
+                          </Button>
+                          <Button 
+                            className="w-full" 
+                            variant="secondary"
+                            onClick={() => enterTournamentMutation.mutate({ 
+                              tournamentId: tournament.id, 
+                              paymentType: 'entry' 
+                            })}
+                            disabled={enterTournamentMutation.isPending}
+                          >
+                            Use Tournament Entry
+                          </Button>
+                        </div>
                       )}
                     </CardContent>
                   </Card>

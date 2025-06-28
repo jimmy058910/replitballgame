@@ -1112,22 +1112,68 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Helper function for division names
+  function getDivisionName(division: number) {
+    const names = {
+      1: "Diamond Division",
+      2: "Ruby Division", 
+      3: "Emerald Division",
+      4: "Sapphire Division",
+      5: "Gold Division",
+      6: "Silver Division",
+      7: "Bronze Division",
+      8: "Iron Division"
+    };
+    return names[division as keyof typeof names] || `Division ${division}`;
+  }
+
   // Tournament routes
   app.get('/api/tournaments/:division', isAuthenticated, async (req, res) => {
     try {
       const division = parseInt(req.params.division);
-      // Create mock tournaments for now - in production this would come from database
+      
+      // Create tournaments for the requested division
       const tournaments = [
         {
-          id: `tournament-${division}-1`,
+          id: `tournament-${division}-daily`,
           name: `${getDivisionName(division)} Daily Tournament`,
           division,
           entryFee: division <= 4 ? 1000 : 500,
+          entryCost: {
+            credits: division <= 4 ? 1000 : 500,
+            gems: Math.floor((division <= 4 ? 1000 : 500) / 10)
+          },
           maxTeams: 8,
           status: "open",
-          prizes: { first: division <= 4 ? 5000 : 2500, second: division <= 4 ? 2000 : 1000 }
+          prizes: { 
+            first: division <= 4 ? 5000 : 2500, 
+            second: division <= 4 ? 2000 : 1000,
+            third: division <= 4 ? 1000 : 500
+          },
+          startTime: new Date(Date.now() + 3600000), // 1 hour from now
+          description: `Compete against other ${getDivisionName(division)} teams for glory and prizes!`
+        },
+        {
+          id: `tournament-${division}-weekly`,
+          name: `${getDivisionName(division)} Weekly Championship`,
+          division,
+          entryFee: division <= 4 ? 2500 : 1200,
+          entryCost: {
+            credits: division <= 4 ? 2500 : 1200,
+            gems: Math.floor((division <= 4 ? 2500 : 1200) / 8)
+          },
+          maxTeams: 16,
+          status: "open",
+          prizes: { 
+            first: division <= 4 ? 12000 : 6000, 
+            second: division <= 4 ? 5000 : 2500,
+            third: division <= 4 ? 2500 : 1200
+          },
+          startTime: new Date(Date.now() + 7 * 24 * 3600000), // 1 week from now
+          description: `The ultimate test for ${getDivisionName(division)} teams - bigger prizes, tougher competition!`
         }
       ];
+      
       res.json(tournaments);
     } catch (error) {
       console.error("Error fetching tournaments:", error);
@@ -6164,4 +6210,106 @@ function generateEventDetails(eventType: string, stadium: any) {
         duration: 2
       };
   }
+} */
+
+  // Tournament entry route with multiple payment options
+  app.post('/api/tournaments/:id/enter', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const team = await storage.getTeamByUserId(userId);
+      if (!team) {
+        return res.status(404).json({ message: "Team not found" });
+      }
+
+      const { paymentMethod } = req.body; // 'credits' or 'gems' or 'tournament_entry'
+      const tournamentId = req.params.id;
+      
+      // Extract division and entry costs from tournament ID
+      const divisionMatch = tournamentId.match(/tournament-(\d+)-/);
+      if (!divisionMatch) {
+        return res.status(400).json({ message: "Invalid tournament ID" });
+      }
+      
+      const division = parseInt(divisionMatch[1]);
+      const isDaily = tournamentId.includes('daily');
+      
+      const entryFee = {
+        credits: isDaily ? (division <= 4 ? 1000 : 500) : (division <= 4 ? 2500 : 1200),
+        gems: isDaily ? Math.floor((division <= 4 ? 1000 : 500) / 10) : Math.floor((division <= 4 ? 2500 : 1200) / 8)
+      };
+
+      const finances = await storage.getTeamFinances(team.id);
+      if (!finances) {
+        return res.status(404).json({ message: "Team finances not found" });
+      }
+
+      // Check payment method and deduct accordingly
+      if (paymentMethod === 'credits') {
+        if ((finances.credits || 0) < entryFee.credits) {
+          return res.status(400).json({ 
+            message: `Insufficient credits. Need ${entryFee.credits} ₡, have ${finances.credits || 0} ₡` 
+          });
+        }
+        
+        await storage.updateTeamFinances(team.id, {
+          credits: (finances.credits || 0) - entryFee.credits
+        });
+        
+      } else if (paymentMethod === 'gems') {
+        if ((finances.premiumCurrency || 0) < entryFee.gems) {
+          return res.status(400).json({ 
+            message: `Insufficient gems. Need ${entryFee.gems} 💎, have ${finances.premiumCurrency || 0} 💎` 
+          });
+        }
+        
+        await storage.updateTeamFinances(team.id, {
+          premiumCurrency: (finances.premiumCurrency || 0) - entryFee.gems
+        });
+        
+      } else if (paymentMethod === 'tournament_entry') {
+        // Check for tournament entry items in inventory
+        // This would require implementing inventory system for tournament entries
+        return res.status(400).json({ 
+          message: "Tournament entry items not yet implemented" 
+        });
+      } else {
+        return res.status(400).json({ message: "Invalid payment method" });
+      }
+
+      // Create tournament entry record (would store in database in production)
+      res.json({ 
+        success: true, 
+        message: `Successfully entered ${isDaily ? 'daily' : 'weekly'} tournament!`,
+        tournamentId,
+        paymentMethod,
+        amountPaid: paymentMethod === 'credits' ? entryFee.credits : entryFee.gems
+      });
+
+    } catch (error) {
+      console.error("Error entering tournament:", error);
+      res.status(500).json({ message: "Failed to enter tournament" });
+    }
+  });
+
+  // Simple tournaments endpoint that redirects to division-specific
+  app.get('/api/tournaments', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const team = await storage.getTeamByUserId(userId);
+      if (!team) {
+        return res.status(404).json({ message: "Team not found" });
+      }
+
+      // Redirect to team's division tournaments
+      const division = team.division || 8;
+      res.redirect(`/api/tournaments/${division}`);
+
+    } catch (error) {
+      console.error("Error fetching tournaments:", error);
+      res.status(500).json({ message: "Failed to fetch tournaments" });
+    }
+  });
+
+  const httpServer = createServer(app);
+  return httpServer;
 }
