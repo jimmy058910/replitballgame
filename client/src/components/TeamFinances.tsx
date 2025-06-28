@@ -39,16 +39,16 @@ export default function TeamFinances({ teamId }: TeamFinancesProps) {
   }
 
   const currentFinances = finances || {
-    ticketSales: 85000,
-    concessionSales: 32000,
-    jerseySales: 18000,
-    sponsorships: 45000,
-    playerSalaries: 120000,
-    staffSalaries: 65000,
-    facilities: 25000,
-    totalIncome: 180000,
-    totalExpenses: 210000,
-    netIncome: -30000,
+    ticketSales: 0,
+    concessionSales: 0,
+    jerseySales: 0,
+    sponsorships: 0,
+    playerSalaries: 0,
+    staffSalaries: 0,
+    facilities: 0,
+    totalIncome: 0,
+    totalExpenses: 0,
+    netIncome: 0,
   };
 
   const budgetHealth = ((currentFinances.totalIncome / currentFinances.totalExpenses) * 100);
@@ -113,7 +113,7 @@ export default function TeamFinances({ teamId }: TeamFinancesProps) {
         <div className="text-right">
           <p className="text-sm text-gray-600">Available Credits</p>
           <p className="text-2xl font-bold">
-            ${team?.credits?.toLocaleString() || "0"}
+            {(finances?.credits || 0).toLocaleString()} ₡
           </p>
         </div>
       </div>

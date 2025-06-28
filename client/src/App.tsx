@@ -16,7 +16,7 @@ import Store from "@/pages/Store";
 import Inventory from "@/pages/Inventory";
 import Marketplace from "@/pages/Marketplace";
 
-import Stadium from "@/pages/Stadium";
+import Stadium from "@/pages/StadiumRevamped";
 
 import LogoShowcase from "@/pages/LogoShowcase";
 import SuperUser from "@/pages/SuperUser";

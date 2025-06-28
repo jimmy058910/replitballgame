@@ -2037,8 +2037,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Stadium routes
-  app.get('/api/stadium', isAuthenticated, async (req, res) => {
+  // Stadium routes - OLD REMOVED
+  /* app.get('/api/stadium', isAuthenticated, async (req, res) => {
     try {
       const userId = req.user?.claims?.sub;
       const team = await storage.getTeamByUserId(userId);
@@ -3176,8 +3176,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Stadium Management Routes
-  app.get('/api/stadium', isAuthenticated, async (req: any, res) => {
+  // Stadium Management Routes - OLD REMOVED
+  /* app.get('/api/stadium', isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
       const team = await storage.getTeamByUserId(userId);
@@ -5518,6 +5518,161 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error converting gems to credits:", error);
       res.status(500).json({ message: "Failed to convert gems" });
+    }
+  });
+
+  // Comprehensive Stadium API - NEW VERSION
+  app.get('/api/stadium/full', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const team = await storage.getTeamByUserId(userId);
+      if (!team) {
+        return res.status(404).json({ message: "Team not found" });
+      }
+
+      let stadium = await storage.getTeamStadium(team.id);
+      
+      // Create default stadium if none exists
+      if (!stadium) {
+        stadium = await storage.createStadium({
+          teamId: team.id,
+          name: `${team.name} Arena`,
+          capacity: 15000,
+          level: 1,
+          fieldType: "standard",
+          fieldSize: "regulation",
+          lighting: "basic",
+          surface: "grass",
+          drainage: "basic",
+          facilities: JSON.stringify({
+            seating: 1,
+            concessions: 1,
+            parking: 1,
+            lighting: 1,
+            screens: 1,
+            medical: 1,
+            security: 1,
+            training: 1,
+            vip: 1
+          }),
+          upgradeCost: 100000,
+          maintenanceCost: 10000,
+          revenueMultiplier: 100,
+          weatherResistance: 50,
+          homeAdvantage: 5
+        });
+      }
+
+      // Parse facilities if it's a string
+      if (typeof stadium.facilities === 'string') {
+        stadium.facilities = JSON.parse(stadium.facilities);
+      }
+
+      // Calculate stadium stats
+      const atmosphere = Math.min(100, 
+        stadium.level * 10 + 
+        (stadium.facilities.vip || 0) * 5 + 
+        (stadium.facilities.screens || 0) * 3
+      );
+
+      const revenueBoost = stadium.revenueMultiplier - 100;
+
+      // Generate available upgrades based on current stadium
+      const availableUpgrades = [];
+      
+      // Capacity upgrades
+      if (stadium.capacity < 50000) {
+        availableUpgrades.push({
+          id: 'capacity-expansion',
+          name: 'Capacity Expansion',
+          type: 'seating',
+          cost: stadium.capacity * 10,
+          effect: `+${Math.floor(stadium.capacity * 0.2)} seats`,
+          description: 'Expand seating capacity to accommodate more fans',
+          available: true
+        });
+      }
+
+      // Facility upgrades
+      const facilityTypes = ['concessions', 'parking', 'screens', 'vip', 'security', 'medical'];
+      facilityTypes.forEach(type => {
+        const currentLevel = stadium.facilities[type] || 1;
+        if (currentLevel < 5) {
+          availableUpgrades.push({
+            id: `${type}-upgrade`,
+            name: `${type.charAt(0).toUpperCase() + type.slice(1)} Upgrade`,
+            type: 'facility',
+            cost: currentLevel * 25000,
+            effect: `Level ${currentLevel} → ${currentLevel + 1}`,
+            description: `Improve ${type} facilities for better fan experience`,
+            available: stadium.level >= Math.floor(currentLevel / 2),
+            requirements: stadium.level < Math.floor(currentLevel / 2) ? `Stadium Level ${Math.floor(currentLevel / 2)}` : undefined
+          });
+        }
+      });
+
+      // Field upgrades
+      if (stadium.surface === 'grass' && stadium.level >= 3) {
+        availableUpgrades.push({
+          id: 'hybrid-surface',
+          name: 'Hybrid Surface Installation',
+          type: 'field',
+          cost: 150000,
+          effect: 'Weather resistance +20%',
+          description: 'Install modern hybrid grass for all-weather play',
+          available: true
+        });
+      }
+
+      // Calculate revenue breakdown
+      const baseMatchRevenue = stadium.capacity * 25; // $25 per seat average
+      const revenue = {
+        matchDay: Math.floor(baseMatchRevenue * (stadium.revenueMultiplier / 100)),
+        concessions: Math.floor(stadium.capacity * 8 * (stadium.facilities.concessions || 1)),
+        parking: Math.floor(stadium.capacity * 0.3 * 10 * (stadium.facilities.parking || 1)),
+        vip: Math.floor((stadium.facilities.vip || 1) * 5000),
+        total: 0
+      };
+      revenue.total = revenue.matchDay + revenue.concessions + revenue.parking + revenue.vip;
+
+      // Get recent match history
+      const matches = await storage.getMatchesByTeamId(team.id);
+      const homeMatches = matches
+        .filter(m => m.homeTeamId === team.id && m.status === 'completed')
+        .slice(0, 5)
+        .map(match => ({
+          opponent: match.awayTeamId, // Would need to fetch team name
+          date: match.scheduledTime,
+          result: match.homeScore > match.awayScore ? 'W' : match.homeScore < match.awayScore ? 'L' : 'D',
+          attendance: Math.floor(stadium.capacity * (0.7 + Math.random() * 0.3)),
+          revenue: Math.floor(revenue.total * (0.8 + Math.random() * 0.4)),
+          atmosphere: Math.floor(atmosphere * (0.8 + Math.random() * 0.2))
+        }));
+
+      // Calculate season stats
+      const completedHomeMatches = matches.filter(m => 
+        m.homeTeamId === team.id && m.status === 'completed'
+      );
+      const homeWins = completedHomeMatches.filter(m => m.homeScore > m.awayScore).length;
+      const totalHomeMatches = completedHomeMatches.length || 1;
+
+      res.json({
+        stadium: {
+          ...stadium,
+          atmosphere,
+          revenueBoost,
+          avgAttendance: Math.floor(stadium.capacity * 0.85),
+          seasonRevenue: revenue.total * totalHomeMatches,
+          homeWinRate: Math.floor((homeWins / totalHomeMatches) * 100)
+        },
+        availableUpgrades,
+        revenue,
+        matchHistory: homeMatches
+      });
+
+    } catch (error) {
+      console.error("Error fetching stadium data:", error);
+      res.status(500).json({ message: "Failed to fetch stadium data" });
     }
   });
 
