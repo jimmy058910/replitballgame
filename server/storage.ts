@@ -86,9 +86,19 @@ import {
   type InsertCreditPackage,
   type UserSubscription,
   type InsertUserSubscription,
+  marketplaceListings,
+  marketplaceBids,
+  marketplaceTransactions,
+  type MarketplaceListing,
+  type InsertMarketplaceListing,
+  type MarketplaceBid,
+  type InsertMarketplaceBid,
+  type MarketplaceTransaction,
+  type InsertMarketplaceTransaction,
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, and, or, desc, asc, sql, inArray } from "drizzle-orm";
+import { eq, and, or, desc, asc, sql, inArray, lte } from "drizzle-orm";
+import { nanoid } from "nanoid";
 
 export interface IStorage {
   // User operations (mandatory for Replit Auth)
@@ -187,6 +197,24 @@ export interface IStorage {
   getUserSubscription(userId: string): Promise<UserSubscription | undefined>;
   getUserSubscriptionByStripeId(stripeSubscriptionId: string): Promise<UserSubscription | undefined>;
   updateUserSubscription(id: string, updates: Partial<UserSubscription>): Promise<UserSubscription>;
+  
+  // Marketplace operations
+  createMarketplaceListing(listing: InsertMarketplaceListing): Promise<MarketplaceListing>;
+  getMarketplaceListing(id: string): Promise<MarketplaceListing | undefined>;
+  getActiveMarketplaceListings(): Promise<MarketplaceListing[]>;
+  getTeamListings(teamId: string): Promise<MarketplaceListing[]>;
+  updateMarketplaceListing(id: string, updates: Partial<MarketplaceListing>): Promise<MarketplaceListing>;
+  
+  createMarketplaceBid(bid: InsertMarketplaceBid): Promise<MarketplaceBid>;
+  getListingBids(listingId: string): Promise<MarketplaceBid[]>;
+  getTeamActiveBids(teamId: string): Promise<MarketplaceBid[]>;
+  deactivateBid(bidId: string): Promise<void>;
+  
+  createMarketplaceTransaction(transaction: InsertMarketplaceTransaction): Promise<MarketplaceTransaction>;
+  getMarketplaceTransactionHistory(teamId: string): Promise<MarketplaceTransaction[]>;
+  
+  processExpiredListings(): Promise<void>;
+  convertToOffSeasonMode(): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -1163,6 +1191,158 @@ export class DatabaseStorage implements IStorage {
       .where(eq(userSubscriptions.id, id))
       .returning();
     return subscription;
+  }
+
+  // Marketplace operations
+  async createMarketplaceListing(listing: InsertMarketplaceListing): Promise<MarketplaceListing> {
+    const id = nanoid();
+    const [newListing] = await db.insert(marketplaceListings).values({ ...listing, id }).returning();
+    return newListing;
+  }
+
+  async getMarketplaceListing(id: string): Promise<MarketplaceListing | undefined> {
+    const [listing] = await db.select().from(marketplaceListings).where(eq(marketplaceListings.id, id));
+    return listing;
+  }
+
+  async getActiveMarketplaceListings(): Promise<MarketplaceListing[]> {
+    return await db.select()
+      .from(marketplaceListings)
+      .where(eq(marketplaceListings.isActive, true));
+  }
+
+  async getTeamListings(teamId: string): Promise<MarketplaceListing[]> {
+    return await db.select()
+      .from(marketplaceListings)
+      .where(
+        and(
+          eq(marketplaceListings.sellerTeamId, teamId),
+          eq(marketplaceListings.isActive, true)
+        )
+      );
+  }
+
+  async updateMarketplaceListing(id: string, updates: Partial<MarketplaceListing>): Promise<MarketplaceListing> {
+    const [listing] = await db.update(marketplaceListings)
+      .set(updates)
+      .where(eq(marketplaceListings.id, id))
+      .returning();
+    return listing;
+  }
+
+  async createMarketplaceBid(bid: InsertMarketplaceBid): Promise<MarketplaceBid> {
+    const id = nanoid();
+    const [newBid] = await db.insert(marketplaceBids).values({ ...bid, id }).returning();
+    return newBid;
+  }
+
+  async getListingBids(listingId: string): Promise<MarketplaceBid[]> {
+    return await db.select()
+      .from(marketplaceBids)
+      .where(eq(marketplaceBids.listingId, listingId))
+      .orderBy(desc(marketplaceBids.bidAmount));
+  }
+
+  async getTeamActiveBids(teamId: string): Promise<MarketplaceBid[]> {
+    return await db.select()
+      .from(marketplaceBids)
+      .where(
+        and(
+          eq(marketplaceBids.bidderTeamId, teamId),
+          eq(marketplaceBids.isActive, true)
+        )
+      );
+  }
+
+  async deactivateBid(bidId: string): Promise<void> {
+    await db.update(marketplaceBids)
+      .set({ isActive: false })
+      .where(eq(marketplaceBids.id, bidId));
+  }
+
+  async createMarketplaceTransaction(transaction: InsertMarketplaceTransaction): Promise<MarketplaceTransaction> {
+    const id = nanoid();
+    const [newTransaction] = await db.insert(marketplaceTransactions).values({ ...transaction, id }).returning();
+    return newTransaction;
+  }
+
+  async getMarketplaceTransactionHistory(teamId: string): Promise<MarketplaceTransaction[]> {
+    return await db.select()
+      .from(marketplaceTransactions)
+      .where(
+        or(
+          eq(marketplaceTransactions.buyerTeamId, teamId),
+          eq(marketplaceTransactions.sellerTeamId, teamId)
+        )
+      )
+      .orderBy(desc(marketplaceTransactions.completedAt));
+  }
+
+  async processExpiredListings(): Promise<void> {
+    const now = new Date();
+    const expiredListings = await db.select()
+      .from(marketplaceListings)
+      .where(
+        and(
+          eq(marketplaceListings.isActive, true),
+          lte(marketplaceListings.expiryTimestamp, now)
+        )
+      );
+
+    for (const listing of expiredListings) {
+      // Process auction completion or return player to owner
+      if (listing.currentHighBidderTeamId) {
+        // Complete the auction
+        const tax = Math.floor(listing.currentBid * 0.05); // 5% market tax
+        const sellerProceeds = listing.currentBid - tax;
+
+        // Create transaction record
+        await this.createMarketplaceTransaction({
+          listingId: listing.id,
+          buyerTeamId: listing.currentHighBidderTeamId,
+          sellerTeamId: listing.sellerTeamId,
+          playerId: listing.playerId,
+          transactionType: 'auction',
+          finalPrice: listing.currentBid,
+          marketTax: tax,
+          sellerProceeds: sellerProceeds,
+        });
+
+        // Transfer player
+        await this.updatePlayer(listing.playerId, { teamId: listing.currentHighBidderTeamId });
+
+        // Transfer funds
+        const buyerFinances = await this.getTeamFinances(listing.currentHighBidderTeamId);
+        const sellerFinances = await this.getTeamFinances(listing.sellerTeamId);
+        
+        if (buyerFinances && sellerFinances) {
+          await this.updateTeamFinances(listing.currentHighBidderTeamId, {
+            credits: (buyerFinances.credits || 0) - listing.currentBid
+          });
+          await this.updateTeamFinances(listing.sellerTeamId, {
+            credits: (sellerFinances.credits || 0) + sellerProceeds
+          });
+        }
+      }
+
+      // Mark listing as inactive
+      await this.updateMarketplaceListing(listing.id, { isActive: false });
+    }
+  }
+
+  async convertToOffSeasonMode(): Promise<void> {
+    const activeListings = await this.getActiveMarketplaceListings();
+    
+    for (const listing of activeListings) {
+      if (!listing.buyNowPrice) {
+        // Calculate buy now price if not set
+        const player = await this.getPlayer(listing.playerId);
+        if (player) {
+          const calculatedPrice = Math.max(listing.startBid * 1.5, player.overall * 1000);
+          await this.updateMarketplaceListing(listing.id, { buyNowPrice: Math.floor(calculatedPrice) });
+        }
+      }
+    }
   }
 }
 

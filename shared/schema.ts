@@ -498,6 +498,50 @@ export const adViews = pgTable("ad_views", {
 
 export type AdView = typeof adViews.$inferSelect;
 export type InsertAdView = typeof adViews.$inferInsert;
+
+// Dynamic Player Marketplace
+export const marketplaceListings = pgTable("marketplace_listings", {
+  id: varchar("id").primaryKey().notNull(),
+  playerId: varchar("player_id").notNull().references(() => players.id),
+  sellerTeamId: varchar("seller_team_id").notNull().references(() => teams.id),
+  startBid: integer("start_bid").notNull(),
+  buyNowPrice: integer("buy_now_price"),
+  currentBid: integer("current_bid").notNull(),
+  currentHighBidderTeamId: varchar("current_high_bidder_team_id").references(() => teams.id),
+  expiryTimestamp: timestamp("expiry_timestamp").notNull(),
+  isActive: boolean("is_active").notNull().default(true),
+  listingFee: integer("listing_fee").notNull().default(100),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const marketplaceBids = pgTable("marketplace_bids", {
+  id: varchar("id").primaryKey().notNull(),
+  listingId: varchar("listing_id").notNull().references(() => marketplaceListings.id),
+  bidderTeamId: varchar("bidder_team_id").notNull().references(() => teams.id),
+  bidAmount: integer("bid_amount").notNull(),
+  isActive: boolean("is_active").notNull().default(true), // false when outbid
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const marketplaceTransactions = pgTable("marketplace_transactions", {
+  id: varchar("id").primaryKey().notNull(),
+  listingId: varchar("listing_id").notNull().references(() => marketplaceListings.id),
+  buyerTeamId: varchar("buyer_team_id").notNull().references(() => teams.id),
+  sellerTeamId: varchar("seller_team_id").notNull().references(() => teams.id),
+  playerId: varchar("player_id").notNull().references(() => players.id),
+  transactionType: varchar("transaction_type").notNull(), // 'auction' | 'buy_now'
+  finalPrice: integer("final_price").notNull(),
+  marketTax: integer("market_tax").notNull(),
+  sellerProceeds: integer("seller_proceeds").notNull(),
+  completedAt: timestamp("completed_at").defaultNow().notNull(),
+});
+
+export type MarketplaceListing = typeof marketplaceListings.$inferSelect;
+export type InsertMarketplaceListing = typeof marketplaceListings.$inferInsert;
+export type MarketplaceBid = typeof marketplaceBids.$inferSelect;
+export type InsertMarketplaceBid = typeof marketplaceBids.$inferInsert;
+export type MarketplaceTransaction = typeof marketplaceTransactions.$inferSelect;
+export type InsertMarketplaceTransaction = typeof marketplaceTransactions.$inferInsert;
 export type Team = typeof teams.$inferSelect;
 export type InsertTeam = typeof teams.$inferInsert;
 export type Player = typeof players.$inferSelect;

@@ -3984,6 +3984,375 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // ===== PLAYER MARKETPLACE ROUTES =====
+  
+  // Get active marketplace listings
+  app.get('/api/marketplace/players', isAuthenticated, async (req, res) => {
+    try {
+      const listings = await storage.getActiveMarketplaceListings();
+      
+      // Enrich with player and team data
+      const enrichedListings = await Promise.all(listings.map(async (listing) => {
+        const player = await storage.getPlayerById(listing.playerId);
+        const sellerTeam = await storage.getTeamById(listing.sellerTeamId);
+        
+        return {
+          ...listing,
+          player,
+          sellerTeam
+        };
+      }));
+      
+      res.json(enrichedListings);
+    } catch (error) {
+      console.error("Error fetching marketplace listings:", error);
+      res.status(500).json({ message: "Failed to fetch marketplace listings" });
+    }
+  });
+  
+  // Get team's marketplace listings
+  app.get('/api/marketplace/my-listings', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const team = await storage.getTeamByUserId(userId);
+      
+      if (!team) {
+        return res.status(404).json({ message: "Team not found" });
+      }
+      
+      const listings = await storage.getTeamListings(team.id);
+      
+      // Enrich with player data
+      const enrichedListings = await Promise.all(listings.map(async (listing) => {
+        const player = await storage.getPlayerById(listing.playerId);
+        const bids = await storage.getListingBids(listing.id);
+        
+        return {
+          ...listing,
+          player,
+          bidCount: bids.length
+        };
+      }));
+      
+      res.json(enrichedListings);
+    } catch (error) {
+      console.error("Error fetching team listings:", error);
+      res.status(500).json({ message: "Failed to fetch team listings" });
+    }
+  });
+  
+  // List a player for sale
+  app.post('/api/marketplace/list', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const team = await storage.getTeamByUserId(userId);
+      
+      if (!team) {
+        return res.status(404).json({ message: "Team not found" });
+      }
+      
+      const { playerId, startBid, buyNowPrice, duration } = req.body;
+      
+      // Validate player ownership
+      const player = await storage.getPlayerById(playerId);
+      if (!player || player.teamId !== team.id) {
+        return res.status(400).json({ message: "Player not found or not owned by your team" });
+      }
+      
+      // Check roster size (must have more than 10 players)
+      const players = await storage.getPlayersByTeamId(team.id);
+      if (players.length <= 10) {
+        return res.status(400).json({ message: "Cannot list player - must maintain at least 10 players" });
+      }
+      
+      // Check listing limit (max 3 active listings)
+      const activeListings = await storage.getTeamListings(team.id);
+      if (activeListings.length >= 3) {
+        return res.status(400).json({ message: "Cannot list player - maximum 3 active listings" });
+      }
+      
+      // Get current seasonal cycle
+      const seasonCycle = await storage.getCurrentSeasonalCycle();
+      const currentDay = seasonCycle.currentDay;
+      
+      // Calculate expiry timestamp
+      const expiryDate = new Date();
+      expiryDate.setHours(expiryDate.getHours() + duration);
+      
+      // Prevent listings that would expire after season end (Day 17, 3 AM)
+      const daysUntilSeasonEnd = 17 - currentDay;
+      const maxHours = daysUntilSeasonEnd * 24 - (new Date().getHours() - 3);
+      
+      if (duration > maxHours) {
+        return res.status(400).json({ 
+          message: `Cannot create listing - would expire after season end. Maximum duration: ${maxHours} hours` 
+        });
+      }
+      
+      // Calculate listing fee
+      const listingFee = Math.max(100, Math.floor(startBid * 0.02)); // 2% of starting bid, minimum 100
+      
+      // Check if team has enough credits
+      const finances = await storage.getTeamFinances(team.id);
+      if (!finances || (finances.credits || 0) < listingFee) {
+        return res.status(400).json({ message: `Insufficient credits for listing fee (${listingFee} credits)` });
+      }
+      
+      // Deduct listing fee
+      await storage.updateTeamFinances(team.id, {
+        credits: (finances.credits || 0) - listingFee
+      });
+      
+      // Calculate minimum buy now price if provided
+      let finalBuyNowPrice = buyNowPrice;
+      if (buyNowPrice) {
+        const minBuyNow = Math.max(startBid * 1.5, player.overall * 1000);
+        if (buyNowPrice < minBuyNow) {
+          finalBuyNowPrice = Math.floor(minBuyNow);
+        }
+      }
+      
+      // Create listing
+      const listing = await storage.createMarketplaceListing({
+        playerId,
+        sellerTeamId: team.id,
+        startBid,
+        buyNowPrice: finalBuyNowPrice,
+        currentBid: startBid,
+        currentHighBidderTeamId: null,
+        expiryTimestamp: expiryDate,
+        isActive: true,
+        listingFee
+      });
+      
+      res.json({
+        success: true,
+        message: `${player.name} listed successfully!`,
+        listing,
+        listingFee
+      });
+      
+    } catch (error) {
+      console.error("Error listing player:", error);
+      res.status(500).json({ message: "Failed to list player" });
+    }
+  });
+  
+  // Place a bid
+  app.post('/api/marketplace/bid', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const team = await storage.getTeamByUserId(userId);
+      
+      if (!team) {
+        return res.status(404).json({ message: "Team not found" });
+      }
+      
+      const { listingId, bidAmount } = req.body;
+      
+      // Get listing
+      const listing = await storage.getMarketplaceListing(listingId);
+      if (!listing || !listing.isActive) {
+        return res.status(404).json({ message: "Listing not found or inactive" });
+      }
+      
+      // Check if bidding on own player
+      if (listing.sellerTeamId === team.id) {
+        return res.status(400).json({ message: "Cannot bid on your own player" });
+      }
+      
+      // Validate bid amount
+      if (bidAmount <= listing.currentBid) {
+        return res.status(400).json({ message: `Bid must be higher than current bid (${listing.currentBid})` });
+      }
+      
+      // Check if team has enough credits
+      const finances = await storage.getTeamFinances(team.id);
+      if (!finances || (finances.credits || 0) < bidAmount) {
+        return res.status(400).json({ message: "Insufficient credits" });
+      }
+      
+      // Deactivate any previous bids from this team on this listing
+      const previousBids = await storage.getListingBids(listingId);
+      const teamPreviousBid = previousBids.find(b => b.bidderTeamId === team.id && b.isActive);
+      if (teamPreviousBid) {
+        await storage.deactivateBid(teamPreviousBid.id);
+      }
+      
+      // Create new bid
+      await storage.createMarketplaceBid({
+        listingId,
+        bidderTeamId: team.id,
+        bidAmount,
+        isActive: true
+      });
+      
+      // Update listing with new high bid
+      await storage.updateMarketplaceListing(listingId, {
+        currentBid: bidAmount,
+        currentHighBidderTeamId: team.id
+      });
+      
+      // Anti-sniping: Extend auction if bid placed in last 5 minutes
+      const now = new Date();
+      const timeUntilExpiry = listing.expiryTimestamp.getTime() - now.getTime();
+      const fiveMinutes = 5 * 60 * 1000;
+      
+      if (timeUntilExpiry < fiveMinutes) {
+        const newExpiry = new Date(listing.expiryTimestamp.getTime() + fiveMinutes);
+        await storage.updateMarketplaceListing(listingId, {
+          expiryTimestamp: newExpiry
+        });
+      }
+      
+      // Notify previous high bidder if exists
+      if (listing.currentHighBidderTeamId && listing.currentHighBidderTeamId !== team.id) {
+        const previousBidderTeam = await storage.getTeamById(listing.currentHighBidderTeamId);
+        if (previousBidderTeam) {
+          await storage.createNotification({
+            userId: previousBidderTeam.userId,
+            type: 'marketplace',
+            title: 'Outbid on Player',
+            message: `You have been outbid on ${listing.playerId}`,
+            priority: 'medium',
+            actionUrl: `/marketplace/listing/${listingId}`,
+            metadata: { listingId, playerId: listing.playerId }
+          });
+        }
+      }
+      
+      res.json({
+        success: true,
+        message: "Bid placed successfully!",
+        newBid: bidAmount
+      });
+      
+    } catch (error) {
+      console.error("Error placing bid:", error);
+      res.status(500).json({ message: "Failed to place bid" });
+    }
+  });
+  
+  // Buy now
+  app.post('/api/marketplace/buy-now', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const team = await storage.getTeamByUserId(userId);
+      
+      if (!team) {
+        return res.status(404).json({ message: "Team not found" });
+      }
+      
+      const { listingId } = req.body;
+      
+      // Get listing
+      const listing = await storage.getMarketplaceListing(listingId);
+      if (!listing || !listing.isActive) {
+        return res.status(404).json({ message: "Listing not found or inactive" });
+      }
+      
+      if (!listing.buyNowPrice) {
+        return res.status(400).json({ message: "This listing does not have a buy now price" });
+      }
+      
+      // Check if buying own player
+      if (listing.sellerTeamId === team.id) {
+        return res.status(400).json({ message: "Cannot buy your own player" });
+      }
+      
+      // Check if team has enough credits
+      const finances = await storage.getTeamFinances(team.id);
+      if (!finances || (finances.credits || 0) < listing.buyNowPrice) {
+        return res.status(400).json({ message: "Insufficient credits" });
+      }
+      
+      // Calculate market tax
+      const tax = Math.floor(listing.buyNowPrice * 0.05); // 5% market tax
+      const sellerProceeds = listing.buyNowPrice - tax;
+      
+      // Create transaction record
+      await storage.createMarketplaceTransaction({
+        id: `txn_${Date.now()}_${Math.random().toString(36).substring(7)}`,
+        listingId: listing.id,
+        buyerTeamId: team.id,
+        sellerTeamId: listing.sellerTeamId,
+        playerId: listing.playerId,
+        transactionType: 'buy_now',
+        finalPrice: listing.buyNowPrice,
+        marketTax: tax,
+        sellerProceeds: sellerProceeds
+      });
+      
+      // Transfer player
+      await storage.updatePlayer(listing.playerId, { teamId: team.id });
+      
+      // Transfer funds
+      await storage.updateTeamFinances(team.id, {
+        credits: (finances.credits || 0) - listing.buyNowPrice
+      });
+      
+      const sellerFinances = await storage.getTeamFinances(listing.sellerTeamId);
+      await storage.updateTeamFinances(listing.sellerTeamId, {
+        credits: (sellerFinances?.credits || 0) + sellerProceeds
+      });
+      
+      // Mark listing as inactive
+      await storage.updateMarketplaceListing(listing.id, { isActive: false });
+      
+      // Get player details for response
+      const player = await storage.getPlayerById(listing.playerId);
+      
+      res.json({
+        success: true,
+        message: `Successfully purchased ${player?.name}!`,
+        transaction: {
+          player: player?.name,
+          price: listing.buyNowPrice,
+          tax,
+          total: listing.buyNowPrice
+        }
+      });
+      
+    } catch (error) {
+      console.error("Error buying player:", error);
+      res.status(500).json({ message: "Failed to buy player" });
+    }
+  });
+  
+  // Get marketplace transaction history
+  app.get('/api/marketplace/transactions', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const team = await storage.getTeamByUserId(userId);
+      
+      if (!team) {
+        return res.status(404).json({ message: "Team not found" });
+      }
+      
+      const transactions = await storage.getMarketplaceTransactionHistory(team.id);
+      
+      // Enrich with player and team data
+      const enrichedTransactions = await Promise.all(transactions.map(async (transaction) => {
+        const player = await storage.getPlayerById(transaction.playerId);
+        const buyerTeam = await storage.getTeamById(transaction.buyerTeamId);
+        const sellerTeam = await storage.getTeamById(transaction.sellerTeamId);
+        
+        return {
+          ...transaction,
+          player,
+          buyerTeam,
+          sellerTeam,
+          isBuyer: transaction.buyerTeamId === team.id
+        };
+      }));
+      
+      res.json(enrichedTransactions);
+    } catch (error) {
+      console.error("Error fetching transaction history:", error);
+      res.status(500).json({ message: "Failed to fetch transaction history" });
+    }
+  });
+
   // ===== SEASON CHAMPIONSHIPS & PLAYOFFS ROUTES =====
   
   // Get current season
