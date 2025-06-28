@@ -42,13 +42,20 @@ export default function TextTacticalManager({ players, savedFormation }: TextTac
 
   // Load saved formation on component mount
   useEffect(() => {
-    if (savedFormation && savedFormation.formation) {
+    if (savedFormation && savedFormation.formation && players.length > 0) {
+      console.log("Loading saved formation:", savedFormation);
+      console.log("Available players:", players.map(p => ({ id: p.id, name: `${p.firstName} ${p.lastName}`, role: p.role })));
+      
+      // Get saved starters and filter by valid player IDs
       const savedStarters = savedFormation.formation
         .filter((p: any) => p.isStarter)
-        .map((p: any) => p.id);
+        .map((p: any) => p.id)
+        .filter((id: string) => players.some(player => player.id === id));
+      
+      console.log("Valid saved starters:", savedStarters);
       setStarters(savedStarters);
       
-      // Set substitution orders
+      // Set substitution orders based on current players, not saved formation roles
       const subs = { passer: [] as string[], runner: [] as string[], blocker: [] as string[] };
       players.forEach(player => {
         if (!savedStarters.includes(player.id)) {
@@ -59,6 +66,23 @@ export default function TextTacticalManager({ players, savedFormation }: TextTac
         }
       });
       setSubstitutionOrder(subs);
+      
+      // If we have saved substitution order, use it
+      if (savedFormation.substitutionOrder) {
+        const savedSubs = savedFormation.substitutionOrder;
+        const validSubs = { passer: [] as string[], runner: [] as string[], blocker: [] as string[] };
+        
+        // Only include valid player IDs from saved substitution order
+        Object.keys(savedSubs).forEach(role => {
+          if (role === 'passer' || role === 'runner' || role === 'blocker') {
+            validSubs[role] = savedSubs[role].filter((id: string) => 
+              players.some(player => player.id === id && !savedStarters.includes(id))
+            );
+          }
+        });
+        
+        setSubstitutionOrder(validSubs);
+      }
     }
   }, [savedFormation, players]);
 
