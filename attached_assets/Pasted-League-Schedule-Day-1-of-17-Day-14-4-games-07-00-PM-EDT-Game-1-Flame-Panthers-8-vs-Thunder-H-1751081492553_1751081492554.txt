@@ -1,0 +1,366 @@
+League Schedule
+Day 1 of 17
+Day 14
+4 games
+07:00 PM EDT
+Game 1
+Flame Panthers 8
+vs
+Thunder Hawks 1
+Scheduled
+07:15 PM EDT
+Game 2
+Thunder Hawks 1
+vs
+Flame Panthers 8
+Scheduled
+07:30 PM EDT
+Game 3
+Shadow Hunters 25
+vs
+Flame Panthers 8
+Scheduled
+07:45 PM EDT
+Game 4
+Flame Panthers 8
+vs
+Shadow Hunters 25
+Scheduled
+Day 13
+4 games
+06:45 PM EDT
+Game 1
+Flame Panthers 8
+vs
+Electric Dragons 44
+Scheduled
+07:00 PM EDT
+Game 2
+Shadow Hunters 25
+vs
+Thunder Hawks 1
+Scheduled
+07:15 PM EDT
+Game 3
+Electric Dragons 44
+vs
+Flame Panthers 8
+Scheduled
+07:30 PM EDT
+Game 4
+Thunder Hawks 1
+vs
+Shadow Hunters 25
+Scheduled
+Day 12
+4 games
+06:30 PM EDT
+Game 1
+Electric Dragons 44
+vs
+Shadow Hunters 25
+Scheduled
+06:45 PM EDT
+Game 2
+Shadow Hunters 25
+vs
+Electric Dragons 44
+Scheduled
+07:00 PM EDT
+Game 3
+Thunder Hawks 1
+vs
+Electric Dragons 44
+Scheduled
+07:15 PM EDT
+Game 4
+Electric Dragons 44
+vs
+Thunder Hawks 1
+Scheduled
+Day 11
+4 games
+06:15 PM EDT
+Game 1
+Shadow Hunters 25
+vs
+Mystic Foxes 94
+Scheduled
+06:30 PM EDT
+Game 2
+Flame Panthers 8
+vs
+Mystic Foxes 94
+Scheduled
+06:45 PM EDT
+Game 3
+Mystic Foxes 94
+vs
+Shadow Hunters 25
+Scheduled
+07:00 PM EDT
+Game 4
+Mystic Foxes 94
+vs
+Flame Panthers 8
+Scheduled
+Day 10
+4 games
+06:00 PM EDT
+Game 1
+Electric Dragons 44
+vs
+Mystic Foxes 94
+Scheduled
+06:15 PM EDT
+Game 2
+Thunder Hawks 1
+vs
+Mystic Foxes 94
+Scheduled
+06:30 PM EDT
+Game 3
+Mystic Foxes 94
+vs
+Electric Dragons 44
+Scheduled
+06:45 PM EDT
+Game 4
+Mystic Foxes 94
+vs
+Thunder Hawks 1
+Scheduled
+Day 9
+4 games
+05:45 PM EDT
+Game 1
+Shadow Hunters 25
+vs
+Stone Lions 1
+Scheduled
+06:00 PM EDT
+Game 2
+Stone Lions 1
+vs
+Flame Panthers 8
+Scheduled
+06:15 PM EDT
+Game 3
+Stone Lions 1
+vs
+Shadow Hunters 25
+Scheduled
+06:30 PM EDT
+Game 4
+Flame Panthers 8
+vs
+Stone Lions 1
+Scheduled
+Day 8
+4 games
+05:30 PM EDT
+Game 1
+Stone Lions 1
+vs
+Electric Dragons 44
+Scheduled
+05:45 PM EDT
+Game 2
+Electric Dragons 44
+vs
+Stone Lions 1
+Scheduled
+06:00 PM EDT
+Game 3
+Thunder Hawks 1
+vs
+Stone Lions 1
+Scheduled
+06:15 PM EDT
+Game 4
+Stone Lions 1
+vs
+Thunder Hawks 1
+Scheduled
+Day 7
+4 games
+07:00 PM EDT
+Game 1
+Flame Panthers 8
+vs
+Wind Falcons 26
+Scheduled
+07:15 PM EDT
+Game 2
+Wind Falcons 26
+vs
+Flame Panthers 8
+Scheduled
+07:30 PM EDT
+Game 3
+Stone Lions 1
+vs
+Mystic Foxes 94
+Scheduled
+07:45 PM EDT
+Game 4
+Mystic Foxes 94
+vs
+Stone Lions 1
+Scheduled
+Day 6
+4 games
+06:45 PM EDT
+Game 1
+Wind Falcons 26
+vs
+Thunder Hawks 1
+Scheduled
+07:00 PM EDT
+Game 2
+Wind Falcons 26
+vs
+Shadow Hunters 25
+Scheduled
+07:15 PM EDT
+Game 3
+Thunder Hawks 1
+vs
+Wind Falcons 26
+Scheduled
+07:30 PM EDT
+Game 4
+Shadow Hunters 25
+vs
+Wind Falcons 26
+Scheduled
+Day 5
+4 games
+06:30 PM EDT
+Game 1
+Mystic Foxes 94
+vs
+Wind Falcons 26
+Scheduled
+06:45 PM EDT
+Game 2
+Wind Falcons 26
+vs
+Electric Dragons 44
+Scheduled
+07:00 PM EDT
+Game 3
+Electric Dragons 44
+vs
+Wind Falcons 26
+Scheduled
+07:15 PM EDT
+Game 4
+Wind Falcons 26
+vs
+Mystic Foxes 94
+Scheduled
+Day 4
+4 games
+06:15 PM EDT
+Game 1
+Macomb Cougars
+vs
+Flame Panthers 8
+Scheduled
+06:30 PM EDT
+Game 2
+Stone Lions 1
+vs
+Wind Falcons 26
+Scheduled
+06:45 PM EDT
+Game 3
+Wind Falcons 26
+vs
+Stone Lions 1
+Scheduled
+07:00 PM EDT
+Game 4
+Flame Panthers 8
+vs
+Macomb Cougars
+Scheduled
+Day 3
+4 games
+06:00 PM EDT
+Game 1
+Macomb Cougars
+vs
+Shadow Hunters 25
+Scheduled
+06:15 PM EDT
+Game 2
+Thunder Hawks 1
+vs
+Macomb Cougars
+Scheduled
+06:30 PM EDT
+Game 3
+Macomb Cougars
+vs
+Thunder Hawks 1
+Scheduled
+06:45 PM EDT
+Game 4
+Shadow Hunters 25
+vs
+Macomb Cougars
+Scheduled
+Day 2
+4 games
+05:45 PM EDT
+Game 1
+Electric Dragons 44
+vs
+Macomb Cougars
+Scheduled
+06:00 PM EDT
+Game 2
+Macomb Cougars
+vs
+Electric Dragons 44
+Scheduled
+06:15 PM EDT
+Game 3
+Macomb Cougars
+vs
+Mystic Foxes 94
+Scheduled
+06:30 PM EDT
+Game 4
+Mystic Foxes 94
+vs
+Macomb Cougars
+Scheduled
+Day 1Current
+4 games
+05:30 PM EDT
+Game 1
+Wind Falcons 26
+vs
+Macomb Cougars
+Scheduled
+05:45 PM EDT
+Game 2
+Macomb Cougars
+vs
+Wind Falcons 26
+Scheduled
+06:00 PM EDT
+Game 3
+Stone Lions 1
+vs
+Macomb Cougars
+Scheduled
+06:15 PM EDT
+Game 4
+Macomb Cougars
+vs
+Stone Lions 1
+Scheduled
