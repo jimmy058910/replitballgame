@@ -320,14 +320,14 @@ export default function PlayerDetailModal({
                 <CardContent>
                   <div className="grid grid-cols-2 gap-4">
                     {[
-                      { name: "Speed", potential: player.speedPotential },
-                      { name: "Power", potential: player.powerPotential },
-                      { name: "Throwing", potential: player.throwingPotential },
-                      { name: "Catching", potential: player.catchingPotential },
-                      { name: "Kicking", potential: player.kickingPotential },
-                      { name: "Stamina", potential: player.staminaPotential },
-                      { name: "Leadership", potential: player.leadershipPotential },
-                      { name: "Agility", potential: player.agilityPotential },
+                      { name: "Speed", potential: player.speedPotential || 0 },
+                      { name: "Power", potential: player.powerPotential || 0 },
+                      { name: "Throwing", potential: player.throwingPotential || 0 },
+                      { name: "Catching", potential: player.catchingPotential || 0 },
+                      { name: "Kicking", potential: player.kickingPotential || 0 },
+                      { name: "Stamina", potential: player.staminaPotential || 0 },
+                      { name: "Leadership", potential: player.leadershipPotential || 0 },
+                      { name: "Agility", potential: player.agilityPotential || 0 },
                     ].map((attr) => (
                       <div key={attr.name} className="flex justify-between items-center">
                         <span className="text-sm">{attr.name}</span>
@@ -336,7 +336,7 @@ export default function PlayerDetailModal({
                             <span 
                               key={i} 
                               className={`text-lg ${
-                                i < Math.floor(parseFloat(attr.potential.toString()) || 0) 
+                                i < Math.floor(parseFloat((attr.potential || 0).toString()) || 0) 
                                   ? "text-yellow-400" 
                                   : "text-gray-300"
                               }`}
