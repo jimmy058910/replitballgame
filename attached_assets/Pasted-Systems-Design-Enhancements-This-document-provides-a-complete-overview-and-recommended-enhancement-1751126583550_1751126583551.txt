@@ -1,0 +1,126 @@
+Systems Design & Enhancements
+This document provides a complete overview and recommended enhancements for the game's core systems, including league structure, contract negotiation, and power calculations.
+
+1. Division Names and Subtitles
+Current System:
+
+A clear 8-tier division structure with thematic names, tiers, and descriptions (e.g., Division 1 - Diamond, Division 8 - Stone).
+
+Evaluation & Suggestion:
+
+Verdict: This is excellent. The naming convention provides a strong sense of progression and prestige.
+
+Enhancement: The UI should leverage this heavily. On the standings page for each division, prominently display the Division Name, Tier, and Description. Consider creating simple, unique shield or badge icons for each division tier (Diamond, Platinum, Gold, etc.). This visual reinforcement will make promotion feel more significant and rewarding for the user.
+
+2. Contract Negotiation System
+Current System:
+
+Negotiations are based on a deterministic formula where an offer >= 90% of a calculated marketValue is always accepted.
+
+Evaluation & Suggestion:
+
+Critique: The current system is logical but too predictable. It removes the "human element" of negotiation and reduces strategic depth. A player's decision to re-sign should feel more dynamic.
+
+Proposed Enhancements: Revise the acceptance calculation to be less deterministic by introducing more variables:
+
+Introduce a Willingness to Sign Score (0-100): This score will determine the acceptance threshold, instead of a fixed 90%.
+Acceptance Threshold = 95 - (Willingness to Sign * 0.2)
+(Example: A player with a high Willingness of 80 would accept offers >= 79% of their market value. A demanding player with a low Willingness of 20 would only accept offers >= 91%.)
+
+Calculate Willingness to Sign based on multiple factors:
+
+Base Willingness: Start at 50.
+
+Team Success: +10 to +20 if the team won their league championship last season.
+
+Player Age: +1 for every year over 30 (older players are more likely to stay). -1 for every year under 24 (younger, high-potential players are more demanding).
+
+Player Morale (Future System): A player's happiness could be a major factor.
+
+Leadership: A high-Leadership team captain could provide a small global +5 bonus to all teammates' Willingness to Sign.
+
+Implement Dynamic Counter-Offers:
+
+If an offer is rejected but is within a negotiation window (e.g., 80-90% of the calculated acceptance threshold), the player should make a counter-offer.
+
+Counter-Offer Formula: Counter-Salary = Market Value * randf_range(1.0, 1.1). This creates a realistic, slightly variable counter-demand.
+
+This revised system makes contract negotiations a more engaging minigame of balancing finances with player happiness and team success.
+
+3. Player Power Calculation
+Current System:
+
+Player Power = Speed + Power + Throwing + Catching + Kicking
+
+Excludes Stamina, Leadership, and Agility.
+
+Evaluation & Suggestion:
+
+Critique: Excluding Agility misses a key component of a player's on-field athletic ability, as it's the direct counter to Power. A simple sum can also lead to large, less intuitive numbers.
+
+Proposed Enhancement: The "Core Athleticism Rating" (CAR)
+
+Include Agility: The power calculation should reflect a player's complete athletic profile.
+
+Use an Average: Averaging the stats creates a more grounded and understandable rating on a 1-40 scale.
+
+New Formula:
+Player CAR = (Speed + Power + Throwing + Catching + Kicking + Agility) / 6
+
+Rename "Player Power" to "Core Athleticism Rating" (CAR) in the UI to better reflect that it measures athletic prowess, while Stamina (endurance) and Leadership (intangibles) are separate but equally important factors.
+
+4. Team Power Calculation
+Current System:
+
+Average power of the top 9 players.
+
+A single, static tier description: "Building strength".
+
+Evaluation & Suggestion:
+
+Critique: The calculation method is solid, but the presentation lacks impact and feedback for the user.
+
+Proposed Enhancements:
+
+Formalize Power Tiers: Implement the tiered system you suggested and give them evocative names.
+
+Team Power (CAR Average)
+
+Tier Name
+
+Description
+
+1-15
+
+"Foundation"
+
+Rebuilding for the future
+
+16-20
+
+"Developing"
+
+Showing signs of promise
+
+21-25
+
+"Competitive"
+
+Can challenge any team
+
+26-30
+
+"Contender"
+
+A true championship threat
+
+31+
+
+"Elite"
+
+A powerhouse of the league
+
+2.  **Integrate Tiers into Commentary:** Use these tiers to generate more dynamic pre-game and in-game commentary.
+    * **Pre-Game:** `"[GAME START] A tough matchup today as the 'Elite' Team A faces off against the up-and-coming 'Competitive' Team C!"`
+    * **In-Game (for upsets):** `"[05:12] What an effort! The underdog 'Developing' team is really taking the fight to this 'Contender' squad today!"`
+3.  **AI Influence (Future):** In the future, the Team Power differential could subtly influence AI behavior. A significantly weaker AI team might play more conservatively or be more prone to mistakes against an "Elite" powerhouse.

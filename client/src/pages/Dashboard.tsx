@@ -17,7 +17,16 @@ import { apiRequest } from "@/lib/queryClient";
 import { Bell, Shield, Calendar } from "lucide-react";
 import { getDivisionName, getDivisionInfo, getFullDivisionTitle } from "@shared/divisions";
 
-
+// Helper function to get team power tier description
+function getTeamPowerTier(teamPower: number): string {
+  if (teamPower >= 30) return "Elite contender";
+  if (teamPower >= 28) return "Championship ready";
+  if (teamPower >= 26) return "Strong competitor";
+  if (teamPower >= 24) return "Playoff caliber";
+  if (teamPower >= 22) return "Developing team";
+  if (teamPower >= 20) return "Building strength";
+  return "Rebuilding phase";
+}
 
 export default function Dashboard() {
   const { toast } = useToast();
@@ -181,9 +190,9 @@ export default function Dashboard() {
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-gray-400 text-sm">Team Power</p>
+                    <p className="text-gray-400 text-sm">Team CAR</p>
                     <p className="text-2xl font-bold text-primary-400">{team.teamPower}</p>
-                    <p className="text-xs text-green-400">Building strength</p>
+                    <p className="text-xs text-green-400">{getTeamPowerTier(team.teamPower)}</p>
                   </div>
                   <div className="bg-primary-400 bg-opacity-20 p-3 rounded-lg">
                     <i className="fas fa-bolt text-primary-400 text-xl"></i>

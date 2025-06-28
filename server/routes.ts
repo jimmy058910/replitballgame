@@ -38,21 +38,23 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
 function calculateTeamPower(players: any[]): number {
   if (!players || players.length === 0) return 0;
   
-  // Calculate individual player power using 5 core stats (same as frontend)
-  const playersWithPower = players.map(player => ({
+  // Calculate individual player Core Athleticism Rating (CAR) - average of 6 core stats
+  const playersWithCAR = players.map(player => ({
     ...player,
-    individualPower: (player.speed || 20) + (player.power || 20) + (player.throwing || 20) + 
-                    (player.catching || 20) + (player.kicking || 20)
+    individualCAR: Math.round(
+      ((player.speed || 20) + (player.power || 20) + (player.throwing || 20) + 
+       (player.catching || 20) + (player.kicking || 20) + (player.agility || 20)) / 6
+    )
   }));
   
-  // Sort by power and take top 9 players (starters + first substitution)
-  const topPlayers = playersWithPower
-    .sort((a, b) => b.individualPower - a.individualPower)
+  // Sort by CAR and take top 9 players (starters + first substitution)
+  const topPlayers = playersWithCAR
+    .sort((a, b) => b.individualCAR - a.individualCAR)
     .slice(0, 9);
   
-  // Calculate team power as average of top 9 players
-  const totalPower = topPlayers.reduce((sum, player) => sum + player.individualPower, 0);
-  return Math.round(totalPower / topPlayers.length);
+  // Calculate team power as average of top 9 players' CAR
+  const totalCAR = topPlayers.reduce((sum, player) => sum + player.individualCAR, 0);
+  return Math.round(totalCAR / topPlayers.length);
 }
 
 const createTeamSchema = z.object({

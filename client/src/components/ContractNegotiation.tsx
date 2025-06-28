@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 
@@ -59,8 +59,14 @@ export default function ContractNegotiation({ player, isOpen, onClose, teamId }:
   });
   const [playerResponse, setPlayerResponse] = useState<string | null>(null);
   const [negotiationPhase, setNegotiationPhase] = useState<'offer' | 'response' | 'counter'>('offer');
+  const [negotiationData, setNegotiationData] = useState<{ willingnessToSign?: number; acceptanceThreshold?: number } | null>(null);
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  
+  // Get team data for willingness calculation
+  const { data: team } = useQuery({
+    queryKey: ["/api/teams/my"],
+  });
 
   const generateResponse = (offerQuality: number, isAccepted: boolean) => {
     let responseType: keyof typeof contractResponses;
@@ -78,26 +84,73 @@ export default function ContractNegotiation({ player, isOpen, onClose, teamId }:
     return responses[Math.floor(Math.random() * responses.length)];
   };
 
+  // Calculate Willingness to Sign score (0-100)
+  const calculateWillingnessToSign = () => {
+    let willingness = 50; // Base willingness
+
+    // Team Success factor (+10 to +20)
+    // For now, we'll add based on current position (future: use championship wins)
+    if (team?.wins && team?.losses) {
+      const winRate = team.wins / (team.wins + team.losses + (team.draws || 0));
+      if (winRate > 0.7) willingness += 20;
+      else if (winRate > 0.5) willingness += 10;
+    }
+
+    // Age factor
+    if (player.age > 30) {
+      willingness += (player.age - 30); // +1 for every year over 30
+    } else if (player.age < 24) {
+      willingness -= (24 - player.age); // -1 for every year under 24
+    }
+
+    // Leadership bonus (if team has high leadership captain)
+    // This would need team captain data in future
+    // For now, use player's own leadership
+    if (player.leadership >= 35) {
+      willingness += 5;
+    }
+
+    // Ensure willingness stays within 0-100
+    return Math.max(0, Math.min(100, willingness));
+  };
+
   const negotiateMutation = useMutation({
     mutationFn: async (offer: typeof currentOffer) => {
       const marketValue = player.salary * 1.1; // 10% above current
-      const offerQuality = offer.salary / marketValue;
-      const isAccepted = offerQuality >= 0.9;
+      const offerQuality = (offer.salary / marketValue) * 100; // Convert to percentage
       
-      const response = generateResponse(offerQuality, isAccepted);
+      const willingnessToSign = calculateWillingnessToSign();
+      const acceptanceThreshold = 95 - (willingnessToSign * 0.2);
+      
+      const isAccepted = offerQuality >= acceptanceThreshold;
+      
+      const response = generateResponse(offerQuality / 100, isAccepted);
+      
+      // Dynamic counter-offer if within negotiation window
+      let counterOffer = null;
+      if (!isAccepted && offerQuality >= (acceptanceThreshold - 10)) {
+        const counterMultiplier = 1.0 + (Math.random() * 0.1); // Random 1.0-1.1x
+        counterOffer = {
+          salary: Math.floor(marketValue * counterMultiplier),
+          years: offer.years,
+          bonus: Math.floor(marketValue * counterMultiplier * 0.2)
+        };
+      }
       
       return { 
         success: isAccepted,
         response,
-        counterOffer: !isAccepted && offerQuality >= 0.8 ? {
-          salary: Math.floor(marketValue),
-          years: offer.years,
-          bonus: Math.floor(marketValue * 0.2)
-        } : null
+        counterOffer,
+        willingnessToSign,
+        acceptanceThreshold
       };
     },
     onSuccess: (data) => {
       setPlayerResponse(data.response);
+      setNegotiationData({
+        willingnessToSign: data.willingnessToSign,
+        acceptanceThreshold: data.acceptanceThreshold
+      });
       
       if (data.success) {
         toast({
@@ -150,6 +203,32 @@ export default function ContractNegotiation({ player, isOpen, onClose, teamId }:
             <Badge variant="outline">Current Salary: {player.salary?.toLocaleString()}/season</Badge>
           </div>
         </div>
+
+        {/* Willingness to Sign Indicator */}
+        {negotiationData?.willingnessToSign !== undefined && (
+          <div className="border rounded-lg p-4 bg-gradient-to-r from-purple-50 to-blue-50 dark:from-purple-900/20 dark:to-blue-900/20">
+            <h4 className="font-medium mb-2">Willingness to Sign</h4>
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-gray-600 dark:text-gray-400">Player Mood</span>
+                <span className="font-semibold">
+                  {negotiationData.willingnessToSign >= 70 ? '😊 Very Willing' : 
+                   negotiationData.willingnessToSign >= 50 ? '😐 Neutral' : 
+                   '😕 Demanding'}
+                </span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-gray-600 dark:text-gray-400">Acceptance Threshold</span>
+                <span className="font-semibold">{negotiationData.acceptanceThreshold.toFixed(1)}% of market value</span>
+              </div>
+              <div className="text-xs text-gray-500 dark:text-gray-400 mt-2">
+                Factors: {team?.wins ? `Team Win Rate (${(team.wins / (team.wins + team.losses + (team.draws || 0)) * 100).toFixed(0)}%)` : 'Team Performance'}, 
+                Age ({player.age} years), 
+                {player.leadership >= 35 ? ' Leadership Bonus' : ''}
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Current Offer */}
         <div className="border rounded-lg p-4">
