@@ -1706,6 +1706,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Main store endpoint with comprehensive item database
   app.get('/api/store', isAuthenticated, async (req: any, res) => {
+    // Disable caching for debugging
+    res.set('Cache-Control', 'no-cache, no-store, must-revalidate');
+    res.set('Pragma', 'no-cache');
+    res.set('Expires', '0');
     try {
       const userId = req.user?.claims?.sub;
       const team = await storage.getTeamByUserId(userId);
@@ -1873,11 +1877,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log('Entries count:', entries.length);
       console.log('Gem packages count:', gemPackages.length);
 
+      // Get team finances
+      const teamFinances = await storage.getTeamFinances(team.id);
+
       // Format response
       res.json({
         finances: {
-          credits: finances?.credits || 0,
-          premiumCurrency: finances?.premiumCurrency || 0
+          credits: teamFinances?.credits || 0,
+          premiumCurrency: teamFinances?.premiumCurrency || 0
         },
         equipment: equipment.map(item => ({
           ...item,
