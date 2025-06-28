@@ -20,6 +20,15 @@ export async function apiRequest(
   });
 
   await throwIfResNotOk(res);
+  
+  // Check if response is actually JSON
+  const contentType = res.headers.get("content-type");
+  if (!contentType || !contentType.includes("application/json")) {
+    const text = await res.text();
+    console.error("Expected JSON but got:", contentType, "Response:", text.substring(0, 200));
+    throw new Error(`Server returned ${contentType} instead of JSON`);
+  }
+  
   return await res.json();
 }
 

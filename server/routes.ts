@@ -2234,24 +2234,35 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Formation saving route
   app.post('/api/teams/:teamId/formation', isAuthenticated, async (req, res) => {
+    console.log("=== FORMATION SAVE REQUEST ===");
+    console.log("Request method:", req.method);
+    console.log("Request URL:", req.url);
+    console.log("Content-Type:", req.headers['content-type']);
+    console.log("User authenticated:", req.isAuthenticated());
+    console.log("Request body:", req.body);
+    
     try {
       let teamId = req.params.teamId;
       
       if (teamId === "my") {
         const userId = (req.user as any)?.claims?.sub;
+        console.log("Looking up team for user:", userId);
         const team = await storage.getTeamByUserId(userId);
         if (!team) {
+          console.log("Team not found for user:", userId);
           return res.status(404).json({ message: "Team not found" });
         }
         teamId = team.id;
+        console.log("Found team:", teamId);
       }
 
       const { formation, substitutionOrder } = req.body;
       
-      console.log("Formation data received:", { formation, substitutionOrder });
+      console.log("Formation data received:", { formationLength: formation?.length, substitutionOrder });
       
       // Validate formation data
       if (!formation || !Array.isArray(formation)) {
+        console.log("Invalid formation data");
         return res.status(400).json({ message: "Invalid formation data" });
       }
       
@@ -2262,6 +2273,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
 
       console.log("Formation saved successfully for team:", teamId);
+      console.log("Sending JSON response");
+      res.setHeader('Content-Type', 'application/json');
       res.json({ success: true, message: "Formation saved successfully" });
     } catch (error) {
       console.error("Error saving formation:", error);
