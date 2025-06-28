@@ -34,10 +34,11 @@ export function TaxiSquadManager({ teamId, onNavigateToRecruiting }: TaxiSquadMa
       queryClient.invalidateQueries({ queryKey: [`/api/teams/${teamId}/taxi-squad`] });
       queryClient.invalidateQueries({ queryKey: [`/api/teams/${teamId}/players`] });
     },
-    onError: (error) => {
+    onError: (error: any) => {
+      const errorMessage = error?.response?.data?.message || error?.message || "Failed to promote player";
       toast({
         title: "Promotion Failed",
-        description: error.message,
+        description: errorMessage,
         variant: "destructive",
       });
     },

@@ -733,6 +733,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { teamId, playerId } = req.params;
       const userId = req.user.claims.sub;
 
+      // Check if we're in off-season (Day 16 or 17)
+      const currentSeason = await storage.getCurrentSeason();
+      if (!currentSeason) {
+        return res.status(400).json({ message: "No active season found" });
+      }
+
+      const seasonStartDate = currentSeason.startDate || new Date();
+      const currentDate = new Date();
+      const daysSinceStart = Math.floor((currentDate.getTime() - seasonStartDate.getTime()) / (1000 * 60 * 60 * 24));
+      const currentDay = ((daysSinceStart % 17) + 1);
+
+      if (currentDay < 16 || currentDay > 17) {
+        return res.status(400).json({ 
+          message: "Player promotion is only allowed during off-season (Days 16-17)",
+          currentDay: currentDay,
+          allowedDays: "16-17"
+        });
+      }
+
       // Verify team ownership
       const team = await storage.getTeamById(teamId);
       if (!team || team.userId !== userId) {
@@ -999,25 +1018,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Promote taxi squad player to main roster
-  app.post("/api/teams/:teamId/taxi-squad/:playerId/promote", isAuthenticated, async (req, res) => {
-    try {
-      const playerId = req.params.playerId;
-      
-      const updatedPlayer = await storage.updatePlayer(playerId, {
-        isOnTaxi: false,
-        isStarter: false
-      });
-      
-      res.json({ 
-        success: true, 
-        player: updatedPlayer 
-      });
-    } catch (error) {
-      console.error("Error promoting player:", error);
-      res.status(500).json({ message: "Failed to promote player" });
-    }
-  });
+
 
   // Release taxi squad player
   app.delete("/api/teams/:teamId/taxi-squad/:playerId", isAuthenticated, async (req, res) => {
