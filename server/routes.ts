@@ -208,6 +208,159 @@ async function createAITeamsForDivision(division: number) {
 
 export async function registerRoutes(app: Express): Promise<Server> {
   
+  // PRIORITY: Stadium API - moved to top to prevent route conflicts
+  app.get('/api/stadium/full', isAuthenticated, async (req: any, res) => {
+    try {
+      console.log("=== STADIUM FULL API REACHED ===");
+      
+      // Set explicit JSON headers to prevent Vite interference
+      res.setHeader('Content-Type', 'application/json');
+      res.setHeader('Cache-Control', 'no-cache');
+      
+      const userId = req.user.claims.sub;
+      console.log("Processing stadium for user:", userId);
+      
+      const team = await storage.getTeamByUserId(userId);
+      console.log("Team found:", team?.id, team?.name);
+      
+      if (!team) {
+        console.log("No team found for user");
+        return res.status(404).json({ message: "Team not found" });
+      }
+
+      let stadium = await storage.getTeamStadium(team.id);
+      
+      // Create default stadium if none exists
+      if (!stadium) {
+        stadium = await storage.createStadium({
+          teamId: team.id,
+          name: `${team.name} Arena`,
+          capacity: 15000,
+          level: 1,
+          fieldType: "standard",
+          fieldSize: "regulation",
+          lighting: "basic",
+          surface: "grass",
+          drainage: "basic",
+          facilities: JSON.stringify({
+            seating: 1,
+            concessions: 1,
+            parking: 1,
+            lighting: 1,
+            screens: 1,
+            vip: 1,
+            merchandising: 1
+          }),
+          revenueMultiplier: 100
+        });
+      }
+
+      // Calculate atmosphere based on team performance and stadium level
+      const matches = await storage.getMatchesByTeamId(team.id);
+      const homeMatches = matches.filter(m => m.homeTeamId === team.id && m.status === 'completed');
+      const winRate = homeMatches.length > 0 ? 
+        homeMatches.filter(m => m.homeScore > m.awayScore).length / homeMatches.length : 0.5;
+      
+      const atmosphere = Math.min(95, 30 + (stadium.level * 10) + (winRate * 40));
+      const revenueBoost = stadium.level * 5;
+
+      // Parse facilities if they're stored as JSON string
+      const facilities = typeof stadium.facilities === 'string' ? 
+        JSON.parse(stadium.facilities) : stadium.facilities || {};
+
+      // Get available upgrades
+      const availableUpgrades = [
+        {
+          id: "capacity-1",
+          name: "Expand Seating",
+          type: "capacity",
+          cost: 50000,
+          effect: "Increase capacity by 5,000",
+          description: "Add more general seating areas",
+          available: stadium.capacity < 50000
+        },
+        {
+          id: "concessions-1", 
+          name: "Premium Concessions",
+          type: "facility",
+          cost: 30000,
+          effect: "Boost concession revenue by 25%",
+          description: "Upgrade food and beverage options",
+          available: facilities.concessions < 3
+        },
+        {
+          id: "parking-1",
+          name: "Expand Parking",
+          type: "facility", 
+          cost: 25000,
+          effect: "Increase parking revenue by 20%",
+          description: "Add more parking spaces",
+          available: facilities.parking < 3
+        }
+      ].filter(upgrade => upgrade.available);
+
+      // Calculate revenue breakdown
+      const baseMatchRevenue = stadium.capacity * 25; // $25 per seat average
+      const revenue = {
+        matchDay: Math.floor(baseMatchRevenue * (stadium.revenueMultiplier / 100)),
+        concessions: Math.floor(stadium.capacity * 8 * (facilities.concessions || 1)),
+        parking: Math.floor(stadium.capacity * 0.3 * 10 * (facilities.parking || 1)),
+        vip: Math.floor((facilities.vip || 1) * 5000),
+        apparel: Math.floor(stadium.capacity * 3 * (facilities.merchandising || 1)),
+        total: 0
+      };
+      revenue.total = revenue.matchDay + revenue.concessions + revenue.parking + revenue.vip + revenue.apparel;
+
+      // Get recent match history
+      const homeMatches_history = matches
+        .filter(m => m.homeTeamId === team.id && m.status === 'completed')
+        .slice(0, 5)
+        .map(match => ({
+          opponent: match.awayTeamId,
+          date: match.scheduledTime,
+          result: match.homeScore > match.awayScore ? 'W' : match.homeScore < match.awayScore ? 'L' : 'D',
+          attendance: Math.floor(stadium.capacity * (0.7 + Math.random() * 0.3)),
+          revenue: Math.floor(revenue.total * (0.8 + Math.random() * 0.4)),
+          atmosphere: Math.floor(atmosphere * (0.8 + Math.random() * 0.2))
+        }));
+
+      // Calculate season stats
+      const completedHomeMatches = matches.filter(m => 
+        m.homeTeamId === team.id && m.status === 'completed'
+      );
+      const homeWins = completedHomeMatches.filter(m => m.homeScore > m.awayScore).length;
+      const totalHomeMatches = completedHomeMatches.length || 1;
+
+      const responseData = {
+        stadium: {
+          ...stadium,
+          atmosphere,
+          revenueBoost,
+          avgAttendance: Math.floor(stadium.capacity * 0.85),
+          seasonRevenue: revenue.total * totalHomeMatches,
+          homeWinRate: Math.floor((homeWins / totalHomeMatches) * 100)
+        },
+        availableUpgrades,
+        revenue,
+        matchHistory: homeMatches_history
+      };
+      
+      console.log("Stadium API Response Data:", JSON.stringify(responseData, null, 2));
+      console.log("=== END STADIUM API DEBUG ===");
+      
+      // Ensure JSON response is properly sent and returned
+      res.json(responseData);
+      return;
+
+    } catch (error) {
+      console.error("=== STADIUM API ERROR ===");
+      console.error("Error fetching stadium data:", error);
+      console.error("Error stack:", error.stack);
+      console.error("=== END STADIUM API ERROR ===");
+      res.status(500).json({ message: "Failed to fetch stadium data" });
+    }
+  });
+  
   // Emergency Stadium API bypass - direct route without auth for testing
   app.get('/api/stadium/emergency', async (req, res) => {
     try {
