@@ -1869,13 +1869,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
         ));
 
       // Debug logging
-      console.log('Store API Debug:');
+      console.log('=== STORE API DEBUG ===');
+      console.log('Equipment total:', equipment.length);
+      console.log('Consumables total:', consumables.length);
+      console.log('Equipment premium items:', equipment.filter(item => item.isPremium).length);
+      console.log('Equipment credit items:', equipment.filter(item => !item.isPremium).length);
+      console.log('Consumables premium items:', consumables.filter(item => item.isPremium).length);
+      console.log('Consumables credit items:', consumables.filter(item => !item.isPremium).length);
       console.log('Premium items count:', premiumItems.length);
       console.log('Credit items count:', creditItems.length);
       console.log('Daily premium items:', dailyPremiumItems.length);
       console.log('Daily credit items:', dailyCreditItems.length);
       console.log('Entries count:', entries.length);
       console.log('Gem packages count:', gemPackages.length);
+      console.log('Day of year:', dayOfYear);
+      console.log('=====================');
 
       // Get team finances
       const teamFinances = await storage.getTeamFinances(team.id);
