@@ -60,7 +60,7 @@ Built as a React + Express web application with PostgreSQL database, using moder
 - ✓ Enhanced scouting to show varied potential ranges (e.g., 22/35, 26/31) unique to each player
 - ✓ Added Generate Season Schedule functionality to SuperUser panel for creating league matches
 - ✓ Updated season numbering to start from "Season 0" and increment by 1 each cycle
-- ✓ Replaced Dashboard competition hub tile with user-provided custom image that links to Competition page
+- ✓ Updated Competition Hub to match Dashboard's purple gradient seasonal cycle display design for visual consistency
 
 ### December 25, 2025
 - ✓ Fixed notification text visibility by adding proper contrast colors
