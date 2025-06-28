@@ -11,6 +11,7 @@ import TeamFinances from "@/components/TeamFinances";
 import TryoutSystem from "@/components/TryoutSystem";
 import { TaxiSquadManager } from "@/components/TaxiSquadManager";
 import { InjuryManagement } from "@/components/InjuryManagement";
+import StatBoostManager from "@/components/StatBoostManager";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -119,13 +120,14 @@ export default function Team() {
 
         {/* Main Navigation Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="mb-8">
-          <TabsList className="grid w-full grid-cols-7 bg-gray-800 gap-0.5">
+          <TabsList className="grid w-full grid-cols-8 bg-gray-800 gap-0.5">
             <TabsTrigger value="roster" className="border-r border-gray-600 last:border-r-0">Roster</TabsTrigger>
             <TabsTrigger value="tactics" className="border-r border-gray-600 last:border-r-0">Tactics</TabsTrigger>
             <TabsTrigger value="injuries" className="border-r border-gray-600 last:border-r-0">Injuries</TabsTrigger>
             <TabsTrigger value="staff" className="border-r border-gray-600 last:border-r-0">Staff</TabsTrigger>
             <TabsTrigger value="finances" className="border-r border-gray-600 last:border-r-0">Finances</TabsTrigger>
             <TabsTrigger value="contracts" className="border-r border-gray-600 last:border-r-0">Contracts</TabsTrigger>
+            <TabsTrigger value="stat-boosts" className="border-r border-gray-600 last:border-r-0">Stat Boosts</TabsTrigger>
             <TabsTrigger value="recruiting" className="border-r border-gray-600 last:border-r-0">Recruiting</TabsTrigger>
           </TabsList>
 
@@ -305,6 +307,11 @@ export default function Team() {
             <TryoutSystem teamId={team?.id} />
           </TabsContent>
 
+          <TabsContent value="stat-boosts">
+            <StatBoostManager />
+          </TabsContent>
+        </Tabs>
+
         {/* Player Detail Modal */}
         <PlayerDetailModal
           player={selectedPlayer}
@@ -329,7 +336,6 @@ export default function Team() {
           }}
           teamId={team?.id}
         />
-        </Tabs>
       </div>
     </div>
   );
