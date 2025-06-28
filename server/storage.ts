@@ -109,6 +109,14 @@ export interface IStorage {
   updatePlayer(id: string, updates: Partial<Player>): Promise<Player>;
   getMarketplacePlayers(): Promise<Player[]>;
   
+  // Injury & Stamina operations
+  updatePlayerInjury(id: string, injuryStatus: string, recoveryPointsNeeded: number): Promise<Player>;
+  updatePlayerStamina(id: string, dailyStaminaLevel: number): Promise<Player>;
+  applyRecoveryPoints(id: string, points: number): Promise<Player>;
+  incrementPlayerItemUsage(id: string): Promise<Player>;
+  resetAllPlayersDailyItems(): Promise<void>;
+  performDailyRecovery(): Promise<void>;
+  
   // Match operations
   createMatch(match: InsertMatch): Promise<Match>;
   getMatchById(id: string): Promise<Match | undefined>;
@@ -303,6 +311,119 @@ export class DatabaseStorage implements IStorage {
       .from(players)
       .where(eq(players.isMarketplace, true))
       .orderBy(asc(players.marketplaceEndTime));
+  }
+
+  // Injury & Stamina operations
+  async updatePlayerInjury(id: string, injuryStatus: string, recoveryPointsNeeded: number): Promise<Player> {
+    const [player] = await db
+      .update(players)
+      .set({ 
+        injuryStatus,
+        injuryRecoveryPointsNeeded: recoveryPointsNeeded,
+        injuryRecoveryPointsCurrent: 0,
+        updatedAt: new Date() 
+      })
+      .where(eq(players.id, id))
+      .returning();
+    return player;
+  }
+
+  async updatePlayerStamina(id: string, dailyStaminaLevel: number): Promise<Player> {
+    const [player] = await db
+      .update(players)
+      .set({ 
+        dailyStaminaLevel: Math.max(0, Math.min(100, dailyStaminaLevel)),
+        updatedAt: new Date() 
+      })
+      .where(eq(players.id, id))
+      .returning();
+    return player;
+  }
+
+  async applyRecoveryPoints(id: string, points: number): Promise<Player> {
+    const player = await this.getPlayerById(id);
+    if (!player) throw new Error("Player not found");
+
+    const newRecoveryPoints = (player.injuryRecoveryPointsCurrent || 0) + points;
+    const updates: any = {
+      injuryRecoveryPointsCurrent: newRecoveryPoints,
+      updatedAt: new Date()
+    };
+
+    // Check if injury is healed
+    if (newRecoveryPoints >= (player.injuryRecoveryPointsNeeded || 0)) {
+      updates.injuryStatus = "Healthy";
+      updates.injuryRecoveryPointsNeeded = 0;
+      updates.injuryRecoveryPointsCurrent = 0;
+    }
+
+    const [updatedPlayer] = await db
+      .update(players)
+      .set(updates)
+      .where(eq(players.id, id))
+      .returning();
+    return updatedPlayer;
+  }
+
+  async incrementPlayerItemUsage(id: string): Promise<Player> {
+    const player = await this.getPlayerById(id);
+    if (!player) throw new Error("Player not found");
+
+    const [updatedPlayer] = await db
+      .update(players)
+      .set({ 
+        dailyItemsUsed: (player.dailyItemsUsed || 0) + 1,
+        updatedAt: new Date() 
+      })
+      .where(eq(players.id, id))
+      .returning();
+    return updatedPlayer;
+  }
+
+  async resetAllPlayersDailyItems(): Promise<void> {
+    await db
+      .update(players)
+      .set({ dailyItemsUsed: 0 });
+  }
+
+  async performDailyRecovery(): Promise<void> {
+    // Reset daily item usage for all players
+    await this.resetAllPlayersDailyItems();
+
+    // Get all players
+    const allPlayers = await db.select().from(players);
+
+    for (const player of allPlayers) {
+      const updates: any = {};
+
+      // Natural injury recovery (50 RP per day)
+      if (player.injuryStatus !== "Healthy") {
+        const newRecoveryPoints = (player.injuryRecoveryPointsCurrent || 0) + 50;
+        updates.injuryRecoveryPointsCurrent = newRecoveryPoints;
+
+        // Check if injury is healed
+        if (newRecoveryPoints >= (player.injuryRecoveryPointsNeeded || 0)) {
+          updates.injuryStatus = "Healthy";
+          updates.injuryRecoveryPointsNeeded = 0;
+          updates.injuryRecoveryPointsCurrent = 0;
+        }
+      }
+
+      // Natural stamina recovery based on stamina stat
+      const baseStaminaRecovery = 20;
+      const statBonusRecovery = (player.stamina || 0) * 0.5;
+      const totalRecovery = baseStaminaRecovery + statBonusRecovery;
+      const currentStamina = player.dailyStaminaLevel || 100;
+      updates.dailyStaminaLevel = Math.min(100, currentStamina + totalRecovery);
+
+      // Apply updates if needed
+      if (Object.keys(updates).length > 0) {
+        await db
+          .update(players)
+          .set({ ...updates, updatedAt: new Date() })
+          .where(eq(players.id, player.id));
+      }
+    }
   }
 
   // Match operations

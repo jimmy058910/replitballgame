@@ -3550,20 +3550,63 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post('/api/injuries/:id/treat', isAuthenticated, async (req: any, res) => {
+  app.post('/api/injuries/:playerId/use-recovery-item', isAuthenticated, async (req: any, res) => {
     try {
-      const injuryId = req.params.id;
-      const { treatmentType } = req.body;
+      const { playerId } = req.params;
+      const { itemType, recoveryPoints } = req.body;
+      const userId = req.user.claims.sub;
 
-      const injury = await storage.updateInjury(injuryId, {
-        treatmentType,
-        recoveryProgress: Math.min(100, (injury?.recoveryProgress || 0) + 25)
+      // Get team and player
+      const team = await storage.getTeamByUserId(userId);
+      if (!team) {
+        return res.status(404).json({ message: "Team not found" });
+      }
+
+      const player = await storage.getPlayerById(playerId);
+      if (!player || player.teamId !== team.id) {
+        return res.status(404).json({ message: "Player not found or doesn't belong to your team" });
+      }
+
+      // Check daily item usage limit
+      if ((player.dailyItemsUsed || 0) >= 3) {
+        return res.status(400).json({ message: "Player has reached daily item limit (3 items)" });
+      }
+
+      // Apply recovery points and increment usage
+      const updatedPlayer = await storage.applyRecoveryPoints(playerId, recoveryPoints);
+      await storage.incrementPlayerItemUsage(playerId);
+
+      res.json({
+        success: true,
+        message: `Applied ${recoveryPoints} recovery points to ${player.name}`,
+        player: updatedPlayer,
+        itemsUsedToday: (player.dailyItemsUsed || 0) + 1
       });
-
-      res.json(injury);
     } catch (error) {
-      console.error("Error treating injury:", error);
-      res.status(500).json({ message: "Failed to treat injury" });
+      console.error("Error using recovery item:", error);
+      res.status(500).json({ message: "Failed to use recovery item" });
+    }
+  });
+
+  app.get('/api/team/:teamId/injured-players', isAuthenticated, async (req: any, res) => {
+    try {
+      const { teamId } = req.params;
+      const userId = req.user.claims.sub;
+
+      const team = await storage.getTeamByUserId(userId);
+      if (!team || team.id !== teamId) {
+        return res.status(403).json({ message: "Unauthorized to view this team" });
+      }
+
+      const players = await storage.getPlayersByTeamId(teamId);
+      const injuredPlayers = players.filter(p => 
+        p.injuryStatus && p.injuryStatus !== "Healthy" && (p.recoveryPointsNeeded || 0) > 0
+      );
+
+      res.json(injuredPlayers);
+    } catch (error) {
+      console.error("Error fetching injured players:", error);
+      res.status(500).json({ message: "Failed to fetch injured players" });
     }
   });
 
@@ -4293,6 +4336,78 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const randomPlayer = allPlayers[Math.floor(Math.random() * allPlayers.length)];
         const randomEventType = eventTypes[Math.floor(Math.random() * eventTypes.length)];
         
+        // Handle tackle event with injury calculation
+        if (randomEventType === 'tackle' && match.type !== 'exhibition') {
+          const tackler = randomPlayer;
+          const carrier = allPlayers[Math.floor(Math.random() * allPlayers.length)];
+          
+          if (tackler.id !== carrier.id) {
+            // Calculate injury chance based on game mode
+            let baseInjuryChance = 0;
+            if (match.type === 'league') {
+              baseInjuryChance = 20;
+            } else if (match.type === 'tournament') {
+              baseInjuryChance = 5;
+            } // Exhibition matches have 0% chance (already handled)
+            
+            // Calculate power modifier
+            const powerModifier = ((tackler.power || 20) - (carrier.agility || 20)) * 0.5;
+            
+            // Calculate stamina modifier
+            let staminaModifier = 0;
+            if ((carrier.dailyStaminaLevel || 100) < 50) {
+              staminaModifier = 10;
+            }
+            
+            const finalInjuryChance = baseInjuryChance + powerModifier + staminaModifier;
+            const injuryRoll = Math.random() * 100;
+            
+            if (injuryRoll <= finalInjuryChance) {
+              // Injury occurs - determine severity
+              const severityRoll = Math.random() * 100;
+              let injuryStatus = "Minor Injury";
+              let recoveryPointsNeeded = 100;
+              
+              if (severityRoll > 95) {
+                injuryStatus = "Severe Injury";
+                recoveryPointsNeeded = 750;
+              } else if (severityRoll > 70) {
+                injuryStatus = "Moderate Injury";
+                recoveryPointsNeeded = 300;
+              }
+              
+              // Update player injury status
+              await storage.updatePlayerInjury(carrier.id, injuryStatus, recoveryPointsNeeded);
+              
+              // Add injury event with special description
+              events.push({
+                id: `event-${Date.now()}-${i}`,
+                type: 'injury',
+                playerId: carrier.id,
+                playerName: carrier.name,
+                playerRace: carrier.race,
+                description: `[${formatGameTime(match.timeRemaining || 900)}] ${carrier.name} is leveled by a powerful tackle from ${tackler.name}! He's slow to get up... the team trainer reports a ${injuryStatus.toLowerCase()}.`,
+                intensity: 'critical',
+                timestamp: Date.now(),
+                position: {
+                  x: Math.random() * 800,
+                  y: Math.random() * 400
+                },
+                quarter: match.quarter || 1,
+                gameTime: match.timeRemaining || 900,
+                injuryDetails: {
+                  injuryStatus,
+                  recoveryPointsNeeded,
+                  tackler: tackler.name,
+                  carrier: carrier.name
+                }
+              });
+              
+              continue; // Skip normal tackle event
+            }
+          }
+        }
+        
         events.push({
           id: `event-${Date.now()}-${i}`,
           type: randomEventType,
@@ -4494,6 +4609,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
     };
     
     return descriptions[eventType] || `${playerName} makes a play`;
+  }
+
+  function formatGameTime(seconds: number): string {
+    const minutes = Math.floor((900 - seconds) / 60);
+    const secs = Math.floor((900 - seconds) % 60);
+    return `${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
   }
 
   // ===== SERVER TIME & SCHEDULING ROUTES =====
@@ -5091,6 +5212,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
           startDate: newStartDate
         });
       }
+
+      // Perform daily reset operations
+      await storage.resetAllPlayersDailyItems();
+      await storage.performDailyRecovery();
 
       res.json({ 
         message: "Day advanced successfully",

@@ -109,11 +109,18 @@ export const players = pgTable("players", {
   glovesItemId: uuid("gloves_item_id"),
   
   // Player development
-  currentStamina: integer("current_stamina").default(100), // 0-100
+  currentStamina: integer("current_stamina").default(100), // 0-100 (deprecated - kept for compatibility)
   maxStamina: integer("max_stamina").default(100),
   injuries: jsonb("injuries").default([]),
   abilities: jsonb("abilities").default([]),
   camaraderie: integer("camaraderie").default(50), // team chemistry
+  
+  // Injury & Stamina System
+  dailyStaminaLevel: integer("daily_stamina_level").default(100), // 0-100, persistent stamina
+  injuryStatus: varchar("injury_status").default("Healthy"), // Healthy, Minor Injury, Moderate Injury, Severe Injury
+  injuryRecoveryPointsNeeded: integer("injury_recovery_points_needed").default(0),
+  injuryRecoveryPointsCurrent: integer("injury_recovery_points_current").default(0),
+  dailyItemsUsed: integer("daily_items_used").default(0), // Reset daily at 3 AM
   
   // Marketplace
   isMarketplace: boolean("is_marketplace").default(false),
