@@ -165,6 +165,27 @@ export default function SuperUser() {
 
 
 
+  // Generate Schedule mutation
+  const generateScheduleMutation = useMutation({
+    mutationFn: async () => {
+      return await apiRequest("/api/superuser/generate-schedule", "POST");
+    },
+    onSuccess: (data: any) => {
+      toast({
+        title: "Schedule Generated",
+        description: data.message,
+      });
+      queryClient.invalidateQueries({ queryKey: ["/api/league/daily-schedule"] });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: "Failed to generate schedule",
+        variant: "destructive",
+      });
+    },
+  });
+
   // Stop all games mutation
   const stopAllGamesMutation = useMutation({
     mutationFn: async () => {
@@ -437,7 +458,15 @@ export default function SuperUser() {
             <p className="text-gray-400 text-sm">
               Manual control over season progression and timing. Current day and season can be managed server-wide.
             </p>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <Button 
+                onClick={() => generateScheduleMutation.mutate()}
+                disabled={generateScheduleMutation.isPending}
+                className="w-full"
+                variant="default"
+              >
+                {generateScheduleMutation.isPending ? "Generating..." : "Generate Season Schedule"}
+              </Button>
               <Button 
                 onClick={() => advanceDayMutation.mutate()}
                 disabled={advanceDayMutation.isPending}

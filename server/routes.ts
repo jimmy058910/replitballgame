@@ -4643,6 +4643,76 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Generate Season Schedule (SuperUser only)
+  app.post('/api/superuser/generate-schedule', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const team = await storage.getTeamByUserId(userId);
+      
+      if (!team || team.name !== "Macomb Cougars") {
+        return res.status(403).json({ message: "Unauthorized: SuperUser access required" });
+      }
+
+      const currentSeason = await storage.getCurrentSeason();
+      if (!currentSeason) {
+        return res.status(400).json({ message: "No active season found" });
+      }
+
+      let totalMatches = 0;
+
+      // Generate matches for each division (1-8)
+      for (let division = 1; division <= 8; division++) {
+        const teams = await storage.getTeamsByDivision(division);
+        console.log(`Generating matches for Division ${division} with ${teams.length} teams`);
+        
+        if (teams.length < 2) continue;
+
+        // Create league for this division if it doesn't exist
+        let league = await storage.getActiveLeagueByDivision(division);
+        if (!league) {
+          league = await storage.createLeague({
+            name: `Division ${division} League`,
+            division: division,
+            seasonId: currentSeason.id,
+            status: 'active'
+          });
+        }
+
+        // Generate round-robin schedule (each team plays every other team twice)
+        for (let i = 0; i < teams.length; i++) {
+          for (let j = i + 1; j < teams.length; j++) {
+            const homeTeam = teams[i];
+            const awayTeam = teams[j];
+
+            // Create two matches (home and away)
+            for (let round = 0; round < 2; round++) {
+              const isFirstRound = round === 0;
+              const gameDay = Math.floor(Math.random() * 14) + 1; // Random day 1-14
+              
+              await storage.createMatch({
+                leagueId: league.id,
+                homeTeamId: isFirstRound ? homeTeam.id : awayTeam.id,
+                awayTeamId: isFirstRound ? awayTeam.id : homeTeam.id,
+                status: 'scheduled',
+                gameDay: gameDay,
+                scheduledTime: null
+              });
+              totalMatches++;
+            }
+          }
+        }
+      }
+
+      res.json({ 
+        message: `Season schedule generated successfully! Created ${totalMatches} matches across all divisions.`,
+        totalMatches
+      });
+    } catch (error) {
+      console.error("Error generating schedule:", error);
+      res.status(500).json({ message: "Failed to generate schedule" });
+    }
+  });
+
   // Reset season (SuperUser only)
   app.post('/api/superuser/reset-season', isAuthenticated, async (req: any, res) => {
     try {
@@ -4912,7 +4982,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         phase,
         description,
         details,
-        season: currentSeason?.name || `Season ${currentSeason?.year || 0}`,
+        season: currentSeason?.name || `Season ${currentSeason?.year || 2025}`,
         cycleLength: 17,
         daysUntilPlayoffs: Math.max(0, 15 - currentDay),
         daysUntilNewSeason: currentDay >= 17 ? 0 : (17 - currentDay)
