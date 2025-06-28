@@ -53,6 +53,11 @@ Built as a React + Express web application with PostgreSQL database, using moder
 - ✓ Added new exhibition API endpoints: instant-match, available-opponents, challenge-opponent
 - ✓ Created opponent selection interface showing up to 8 teams from same division with stats and challenge buttons
 - ✓ Enhanced exhibitions UI with dual-option system for better user experience
+- ✓ CRITICAL FIX: Resolved PlayerDetailModal scouting system showing capped stats (26/26) instead of proper potential ranges
+- ✓ Fixed ".toFixed is not a function" errors that crashed player details for certain players
+- ✓ Implemented dynamic potential calculation system based on player age, current stats, and race characteristics
+- ✓ Added race-based potential bonuses (Lumina and Sylvan races receive higher growth potential)
+- ✓ Enhanced scouting to show varied potential ranges (e.g., 22/35, 26/31) unique to each player
 
 ### December 25, 2025
 - ✓ Fixed notification text visibility by adding proper contrast colors
