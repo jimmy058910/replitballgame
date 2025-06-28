@@ -57,7 +57,8 @@ Built as a React + Express web application with PostgreSQL database, using moder
 - ✓ CONTRACT SYSTEM SIMPLIFIED: Removed complex ContractManagement component with unwanted salary cap management and tabs - reverted to simple contract display showing all 11 players with negotiate buttons as requested
 - ✓ CONTRACT NEGOTIATION UI FIXED: Fixed white-on-white text contrast in player response section by adding proper dark mode text colors
 - ✓ CONTRACT CACHE INVALIDATION FIXED: Updated ContractNegotiation component to properly invalidate the correct query cache after successful contract updates so the contract list refreshes immediately
-- ✓ CONTRACT NEGOTIATION LOGIC FIXED: Aligned success threshold with response generation - accepted offers now show accepting responses instead of mismatched demanding/considering messages
+- ✓ CONTRACT NEGOTIATION LOGIC FIXED: Aligned success threshold with response generation - accepted offers now show accepting responses instead of mismatched demanding/considering messages  
+- ✓ CONTRACT FINALIZATION API FIXED: Updated ContractNegotiation component to call correct `/api/players/:playerId/negotiate` endpoint instead of non-existent `/api/players/:playerId/contract` route
 
 ### December 29, 2025 (Earlier - Comprehensive Commentary System + Complete Stat Boost System)
 - ✓ COMPREHENSIVE GAME COMMENTARY SYSTEM IMPLEMENTED: Created sophisticated 6-category commentary generator according to user specifications

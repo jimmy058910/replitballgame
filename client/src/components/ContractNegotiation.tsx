@@ -116,10 +116,9 @@ export default function ContractNegotiation({ player, isOpen, onClose, teamId }:
 
   const finalizeContractMutation = useMutation({
     mutationFn: async () => {
-      await apiRequest(`/api/players/${player.id}/contract`, "POST", {
-        salary: currentOffer.salary,
-        years: currentOffer.years,
-        bonus: currentOffer.bonus
+      await apiRequest(`/api/players/${player.id}/negotiate`, "POST", {
+        seasons: currentOffer.years,
+        salary: currentOffer.salary
       });
     },
     onSuccess: () => {
