@@ -414,22 +414,7 @@ export default function PlayerDetailModal({
                 </CardContent>
               </Card>
 
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-lg">Training Focus</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-sm text-gray-500 mb-3">
-                    Select training focus to improve specific attributes over time.
-                  </div>
-                  <div className="grid grid-cols-2 gap-2">
-                    <Button variant="outline" size="sm">Focus on Speed</Button>
-                    <Button variant="outline" size="sm">Focus on Power</Button>
-                    <Button variant="outline" size="sm">Focus on Technique</Button>
-                    <Button variant="outline" size="sm">Focus on Leadership</Button>
-                  </div>
-                </CardContent>
-              </Card>
+
             </div>
           </TabsContent>
         </Tabs>

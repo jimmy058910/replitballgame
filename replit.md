@@ -34,7 +34,11 @@ Built as a React + Express web application with PostgreSQL database, using moder
 
 ## Recent Changes
 
-### December 29, 2025 (Player Skills System Fully Implemented)
+### December 29, 2025 (UI Cleanup + Player Skills System Fully Implemented)
+- ✓ TRAINING FOCUS REMOVAL: Completely removed "Training Focus" feature and buttons from PlayerDetailModal Scouting tab
+- ✓ GAME DAY ADVANCEMENT INFO: Added "Game Day advances at 3AM EST" text below ServerTimeDisplay for user clarity
+
+### December 29, 2025 (Earlier - Player Skills System Fully Implemented)
 - ✓ SKILLS DATABASE SCHEMA: Created skills and playerSkills tables with UUID support to match existing player infrastructure
 - ✓ COMPREHENSIVE SKILLS DATA: Seeded database with 16 skills covering Universal, Role-specific, and Race-specific categories
 - ✓ SKILLS API ENDPOINTS: Implemented routes for viewing skills, adding skills to players, upgrading skills, and checking available skills

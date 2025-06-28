@@ -23,12 +23,17 @@ export default function ServerTimeDisplay() {
   };
 
   return (
-    <div className="flex items-center gap-2 text-sm text-gray-400">
-      <Clock className="w-4 h-4" />
-      <span>Server Time</span>
-      <span className="font-mono text-white">
-        {formatTime()}
-      </span>
+    <div className="space-y-1">
+      <div className="flex items-center gap-2 text-sm text-gray-400">
+        <Clock className="w-4 h-4" />
+        <span>Server Time</span>
+        <span className="font-mono text-white">
+          {formatTime()}
+        </span>
+      </div>
+      <div className="text-xs text-gray-500 pl-6">
+        Game Day advances at 3AM EST
+      </div>
     </div>
   );
 }
