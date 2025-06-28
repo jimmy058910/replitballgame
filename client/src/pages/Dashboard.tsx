@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
@@ -8,6 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import UnifiedPlayerCard from "@/components/UnifiedPlayerCard";
+import PlayerDetailModal from "@/components/PlayerDetailModal";
 
 import LeagueStandings from "@/components/LeagueStandings";
 import NotificationCenter from "@/components/NotificationCenter";
@@ -65,6 +66,18 @@ export default function Dashboard() {
   const { toast } = useToast();
   const { isAuthenticated, isLoading } = useAuth();
   const queryClient = useQueryClient();
+
+  // Player modal state
+  const [selectedPlayer, setSelectedPlayer] = useState(null);
+  const [showPlayerModal, setShowPlayerModal] = useState(false);
+
+  // Handler for player card clicks
+  const handlePlayerAction = (action: string, player: any) => {
+    if (action === 'view' || action === 'click') {
+      setSelectedPlayer(player);
+      setShowPlayerModal(true);
+    }
+  };
 
 
 
@@ -311,11 +324,12 @@ export default function Dashboard() {
               ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   {players.map((player: any) => (
-                    <UnifiedPlayerCard
-                      key={player.id}
-                      player={player}
-                      variant="dashboard"
-                    />
+                    <div key={player.id} onClick={() => handlePlayerAction('view', player)} className="cursor-pointer">
+                      <UnifiedPlayerCard
+                        player={player}
+                        variant="dashboard"
+                      />
+                    </div>
                   ))}
                 </div>
               )}
@@ -356,6 +370,13 @@ export default function Dashboard() {
           )}
         </div>
       </div>
+
+      {/* Player Detail Modal */}
+      <PlayerDetailModal
+        player={selectedPlayer}
+        isOpen={showPlayerModal}
+        onClose={() => setShowPlayerModal(false)}
+      />
     </div>
   );
 }

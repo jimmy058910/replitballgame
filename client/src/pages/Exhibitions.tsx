@@ -12,6 +12,7 @@ import Navigation from "@/components/Navigation";
 export default function Exhibitions() {
   const { toast } = useToast();
   const [isSearching, setIsSearching] = useState(false);
+  const [showOpponentSelection, setShowOpponentSelection] = useState(false);
 
   const { data: team } = useQuery({
     queryKey: ["/api/teams/my"],
@@ -25,18 +26,22 @@ export default function Exhibitions() {
     queryKey: ["/api/exhibitions/recent"],
   });
 
-  const findMatchMutation = useMutation({
+  const { data: availableOpponents } = useQuery({
+    queryKey: ["/api/exhibitions/available-opponents"],
+    enabled: showOpponentSelection,
+  });
+
+  const instantMatchMutation = useMutation({
     mutationFn: async () => {
-      return await apiRequest("/api/exhibitions/find-match", "POST");
+      return await apiRequest("/api/exhibitions/instant-match", "POST");
     },
     onSuccess: (data) => {
       if (data.matchId) {
         toast({
-          title: "Match Found!",
+          title: "Instant Match Found!",
           description: "Starting exhibition match...",
         });
-        // Navigate to text-based match viewer
-        window.location.href = `/text-match/${data.matchId}`;
+        window.location.href = `/match/${data.matchId}`;
       }
     },
     onError: (error: Error) => {
@@ -49,7 +54,29 @@ export default function Exhibitions() {
     },
   });
 
-  const handleFindMatch = () => {
+  const challengeOpponentMutation = useMutation({
+    mutationFn: async (opponentId: string) => {
+      return await apiRequest("/api/exhibitions/challenge-opponent", "POST", { opponentId });
+    },
+    onSuccess: (data) => {
+      if (data.matchId) {
+        toast({
+          title: "Challenge Accepted!",
+          description: "Starting exhibition match...",
+        });
+        window.location.href = `/match/${data.matchId}`;
+      }
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Challenge Failed",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+
+  const handleInstantMatch = () => {
     if (exhibitionStats?.gamesPlayedToday >= 3) {
       toast({
         title: "Daily Limit Reached",
@@ -60,7 +87,20 @@ export default function Exhibitions() {
     }
     
     setIsSearching(true);
-    findMatchMutation.mutate();
+    instantMatchMutation.mutate();
+  };
+
+  const handleChallengeOpponent = (opponentId: string) => {
+    if (exhibitionStats?.gamesPlayedToday >= 3) {
+      toast({
+        title: "Daily Limit Reached",
+        description: "You can only play 3 exhibition games per day.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    challengeOpponentMutation.mutate(opponentId);
   };
 
   const getResultColor = (result: string) => {
@@ -102,6 +142,77 @@ export default function Exhibitions() {
           <p className="text-gray-400">Practice matches for training and team chemistry</p>
         </div>
 
+        {/* Opponent Selection Modal */}
+        {showOpponentSelection && (
+          <Card className="bg-gray-800 border-gray-700 mb-6">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                🎯 Choose Your Opponent
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  onClick={() => setShowOpponentSelection(false)}
+                  className="ml-auto"
+                >
+                  ✕
+                </Button>
+              </CardTitle>
+              <CardDescription>
+                Select from 8 teams in your division for exhibition match
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              {availableOpponents?.length ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {availableOpponents.map((opponent: any) => (
+                    <div key={opponent.id} className="border border-gray-600 rounded-lg p-4 hover:border-gray-500 transition-colors">
+                      <div className="flex justify-between items-start mb-3">
+                        <div>
+                          <h3 className="font-semibold">{opponent.name}</h3>
+                          <p className="text-sm text-gray-400">Division {opponent.division}</p>
+                        </div>
+                        <div className="text-right">
+                          <div className="text-lg font-bold text-blue-400">{opponent.teamPower || 0}</div>
+                          <div className="text-xs text-gray-400">Power</div>
+                        </div>
+                      </div>
+                      
+                      <div className="grid grid-cols-3 gap-2 text-center text-xs mb-3">
+                        <div>
+                          <div className="text-green-400 font-semibold">{opponent.wins || 0}</div>
+                          <div className="text-gray-400">W</div>
+                        </div>
+                        <div>
+                          <div className="text-red-400 font-semibold">{opponent.losses || 0}</div>
+                          <div className="text-gray-400">L</div>
+                        </div>
+                        <div>
+                          <div className="text-yellow-400 font-semibold">{opponent.draws || 0}</div>
+                          <div className="text-gray-400">D</div>
+                        </div>
+                      </div>
+
+                      <Button 
+                        className="w-full" 
+                        size="sm"
+                        onClick={() => handleChallengeOpponent(opponent.id)}
+                        disabled={challengeOpponentMutation.isPending}
+                      >
+                        {challengeOpponentMutation.isPending ? "Challenging..." : "Challenge"}
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-8 text-gray-400">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+                  <p>Loading available opponents...</p>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        )}
+
         <div className="grid gap-6 lg:grid-cols-3">
           {/* Daily Exhibition Status */}
           <Card className="bg-gray-800 border-gray-700">
@@ -138,24 +249,35 @@ export default function Exhibitions() {
                 </ul>
               </div>
 
-              <Button 
-                className="w-full" 
-                onClick={handleFindMatch}
-                disabled={
-                  isSearching || 
-                  findMatchMutation.isPending ||
-                  (exhibitionStats?.gamesPlayedToday >= 3)
-                }
-              >
-                {isSearching ? (
-                  <div className="flex items-center gap-2">
-                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                    Finding Match...
-                  </div>
-                ) : (
-                  "Find Exhibition Match"
-                )}
-              </Button>
+              <div className="space-y-3">
+                <Button 
+                  className="w-full" 
+                  onClick={handleInstantMatch}
+                  disabled={
+                    isSearching || 
+                    instantMatchMutation.isPending ||
+                    (exhibitionStats?.gamesPlayedToday >= 3)
+                  }
+                >
+                  {isSearching && !showOpponentSelection ? (
+                    <div className="flex items-center gap-2">
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                      Finding Match...
+                    </div>
+                  ) : (
+                    "⚡ Instant Match"
+                  )}
+                </Button>
+
+                <Button 
+                  className="w-full" 
+                  variant="outline"
+                  onClick={() => setShowOpponentSelection(!showOpponentSelection)}
+                  disabled={exhibitionStats?.gamesPlayedToday >= 3}
+                >
+                  🎯 Choose Opponent
+                </Button>
+              </div>
             </CardContent>
           </Card>
 

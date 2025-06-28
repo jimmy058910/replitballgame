@@ -1203,7 +1203,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post('/api/exhibitions/find-match', isAuthenticated, async (req, res) => {
+  // New instant match endpoint
+  app.post('/api/exhibitions/instant-match', isAuthenticated, async (req, res) => {
     try {
       const userId = req.user?.claims?.sub;
       const team = await storage.getTeamByUserId(userId);
@@ -1211,12 +1212,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: "Team not found" });
       }
 
-      // Find a random opponent team for exhibition match
+      // Find a random opponent team for exhibition match from same division
       const allTeams = await storage.getTeamsByDivision(team.division);
       const opponents = allTeams.filter(t => t.id !== team.id);
       
       if (opponents.length === 0) {
-        return res.status(404).json({ message: "No opponents available" });
+        return res.status(404).json({ message: "No opponents available in your division" });
       }
 
       const opponent = opponents[Math.floor(Math.random() * opponents.length)];
@@ -1225,18 +1226,75 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const match = await storage.createMatch({
         homeTeamId: team.id,
         awayTeamId: opponent.id,
-        team1Id: team.id,
-        team2Id: opponent.id,
         matchType: "exhibition",
         status: "live",
-        homeTeamName: team.name,
-        awayTeamName: opponent.name
+        scheduledTime: new Date()
       });
 
       res.json({ matchId: match.id });
     } catch (error) {
-      console.error("Error finding exhibition match:", error);
-      res.status(500).json({ message: "Failed to find exhibition match" });
+      console.error("Error finding instant exhibition match:", error);
+      res.status(500).json({ message: "Failed to find instant exhibition match" });
+    }
+  });
+
+  // Get available opponents for selection
+  app.get('/api/exhibitions/available-opponents', isAuthenticated, async (req, res) => {
+    try {
+      const userId = req.user?.claims?.sub;
+      const team = await storage.getTeamByUserId(userId);
+      if (!team) {
+        return res.status(404).json({ message: "Team not found" });
+      }
+
+      // Get all teams in same division (excluding player's team)
+      const allTeams = await storage.getTeamsByDivision(team.division);
+      const opponents = allTeams.filter(t => t.id !== team.id);
+      
+      // Return up to 8 opponents
+      const availableOpponents = opponents.slice(0, 8);
+
+      res.json(availableOpponents);
+    } catch (error) {
+      console.error("Error fetching available opponents:", error);
+      res.status(500).json({ message: "Failed to fetch available opponents" });
+    }
+  });
+
+  // Challenge specific opponent
+  app.post('/api/exhibitions/challenge-opponent', isAuthenticated, async (req, res) => {
+    try {
+      const userId = req.user?.claims?.sub;
+      const { opponentId } = req.body;
+
+      const team = await storage.getTeamByUserId(userId);
+      if (!team) {
+        return res.status(404).json({ message: "Team not found" });
+      }
+
+      const opponent = await storage.getTeamById(opponentId);
+      if (!opponent) {
+        return res.status(404).json({ message: "Opponent team not found" });
+      }
+
+      // Verify opponent is in same division
+      if (opponent.division !== team.division) {
+        return res.status(400).json({ message: "Can only challenge teams in your division" });
+      }
+
+      // Create exhibition match
+      const match = await storage.createMatch({
+        homeTeamId: team.id,
+        awayTeamId: opponent.id,
+        matchType: "exhibition",
+        status: "live",
+        scheduledTime: new Date()
+      });
+
+      res.json({ matchId: match.id });
+    } catch (error) {
+      console.error("Error challenging opponent:", error);
+      res.status(500).json({ message: "Failed to challenge opponent" });
     }
   });
 

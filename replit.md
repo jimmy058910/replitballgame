@@ -48,6 +48,11 @@ Built as a React + Express web application with PostgreSQL database, using moder
 - ✓ Fixed store API to provide comprehensive item catalogs with proper categorization
 - ✓ Cleared redemption history mock data to show proper empty state
 - ✓ Updated all store sections to display actual purchasable content instead of placeholders
+- ✓ MAJOR: Implemented Dashboard player navigation - players are now clickable and show full PlayerDetailModal
+- ✓ MAJOR: Completely overhauled exhibitions system - replaced Quick Match with "Instant Match" and "Choose Opponent"
+- ✓ Added new exhibition API endpoints: instant-match, available-opponents, challenge-opponent
+- ✓ Created opponent selection interface showing up to 8 teams from same division with stats and challenge buttons
+- ✓ Enhanced exhibitions UI with dual-option system for better user experience
 
 ### December 25, 2025
 - ✓ Fixed notification text visibility by adding proper contrast colors
