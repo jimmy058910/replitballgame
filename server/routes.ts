@@ -2248,6 +2248,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const { formation, substitutionOrder } = req.body;
       
+      console.log("Formation data received:", { formation, substitutionOrder });
+      
+      // Validate formation data
+      if (!formation || !Array.isArray(formation)) {
+        return res.status(400).json({ message: "Invalid formation data" });
+      }
+      
       // Store formation in team data
       await storage.updateTeam(teamId, { 
         formation: JSON.stringify(formation),
@@ -2255,6 +2262,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         updatedAt: new Date()
       });
 
+      console.log("Formation saved successfully for team:", teamId);
       res.json({ success: true, message: "Formation saved successfully" });
     } catch (error) {
       console.error("Error saving formation:", error);

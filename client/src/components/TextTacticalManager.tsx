@@ -270,13 +270,22 @@ export default function TextTacticalManager({ players, savedFormation }: TextTac
         })()
       }));
 
-      await apiRequest("/api/teams/my/formation", "POST", { formation: formationData });
+      console.log("Sending formation data:", { formation: formationData, substitutionOrder });
+      
+      const response = await apiRequest("/api/teams/my/formation", "POST", { 
+        formation: formationData, 
+        substitutionOrder 
+      });
+      
+      console.log("Formation save response:", response);
+      return response;
     },
     onSuccess: () => {
       toast({ title: "Formation saved successfully!" });
       queryClient.invalidateQueries({ queryKey: ["/api/teams/my/formation"] });
     },
-    onError: () => {
+    onError: (error) => {
+      console.error("Formation save error:", error);
       toast({
         title: "Failed to save formation",
         variant: "destructive",
