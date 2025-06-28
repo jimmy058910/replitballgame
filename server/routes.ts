@@ -208,7 +208,38 @@ async function createAITeamsForDivision(division: number) {
 
 export async function registerRoutes(app: Express): Promise<Server> {
   
-  // PRIORITY: Stadium API - moved to top to prevent route conflicts
+  // Emergency Stadium API bypass - direct route without auth for testing
+  app.get('/api/stadium/emergency', async (req, res) => {
+    try {
+      console.log("=== EMERGENCY STADIUM API REACHED ===");
+      res.setHeader('Content-Type', 'application/json');
+      res.json({ 
+        test: "Emergency stadium API working", 
+        timestamp: new Date().toISOString(),
+        stadium: {
+          level: 1,
+          name: "Default Stadium",
+          capacity: 5000,
+          atmosphere: 50,
+          revenueBoost: 0
+        }
+      });
+    } catch (error) {
+      console.error("Emergency stadium API error:", error);
+      res.status(500).json({ error: "Emergency API failed" });
+    }
+  });
+
+  // Remove the test stadium route that might be interfering
+  // app.get('/api/stadium/test', async (req, res) => {
+  //   console.log("=== STADIUM TEST API REACHED ===");
+  //   res.json({ test: "Stadium API routes are working", timestamp: new Date().toISOString() });
+  // });
+  
+  // Auth middleware
+  await setupAuth(app);
+
+  // PRIORITY: Stadium API - placed after auth setup to prevent route conflicts
   app.get('/api/stadium/full', isAuthenticated, async (req: any, res) => {
     try {
       console.log("=== STADIUM FULL API REACHED ===");
@@ -259,10 +290,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const matches = await storage.getMatchesByTeamId(team.id);
       const homeMatches = matches.filter(m => m.homeTeamId === team.id && m.status === 'completed');
       const winRate = homeMatches.length > 0 ? 
-        homeMatches.filter(m => m.homeScore > m.awayScore).length / homeMatches.length : 0.5;
+        homeMatches.filter(m => (m.homeScore || 0) > (m.awayScore || 0)).length / homeMatches.length : 0.5;
       
-      const atmosphere = Math.min(95, 30 + (stadium.level * 10) + (winRate * 40));
-      const revenueBoost = stadium.level * 5;
+      const atmosphere = Math.min(95, 30 + ((stadium.level || 1) * 10) + (winRate * 40));
+      const revenueBoost = (stadium.level || 1) * 5;
 
       // Parse facilities if they're stored as JSON string
       const facilities = typeof stadium.facilities === 'string' ? 
@@ -277,7 +308,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           cost: 50000,
           effect: "Increase capacity by 5,000",
           description: "Add more general seating areas",
-          available: stadium.capacity < 50000
+          available: (stadium.capacity || 0) < 50000
         },
         {
           id: "concessions-1", 
@@ -286,7 +317,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           cost: 30000,
           effect: "Boost concession revenue by 25%",
           description: "Upgrade food and beverage options",
-          available: facilities.concessions < 3
+          available: (facilities.concessions || 0) < 3
         },
         {
           id: "parking-1",
@@ -295,18 +326,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
           cost: 25000,
           effect: "Increase parking revenue by 20%",
           description: "Add more parking spaces",
-          available: facilities.parking < 3
+          available: (facilities.parking || 0) < 3
         }
       ].filter(upgrade => upgrade.available);
 
       // Calculate revenue breakdown
-      const baseMatchRevenue = stadium.capacity * 25; // $25 per seat average
+      const baseMatchRevenue = (stadium.capacity || 0) * 25; // $25 per seat average
       const revenue = {
-        matchDay: Math.floor(baseMatchRevenue * (stadium.revenueMultiplier / 100)),
-        concessions: Math.floor(stadium.capacity * 8 * (facilities.concessions || 1)),
-        parking: Math.floor(stadium.capacity * 0.3 * 10 * (facilities.parking || 1)),
+        matchDay: Math.floor(baseMatchRevenue * ((stadium.revenueMultiplier || 100) / 100)),
+        concessions: Math.floor((stadium.capacity || 0) * 8 * (facilities.concessions || 1)),
+        parking: Math.floor((stadium.capacity || 0) * 0.3 * 10 * (facilities.parking || 1)),
         vip: Math.floor((facilities.vip || 1) * 5000),
-        apparel: Math.floor(stadium.capacity * 3 * (facilities.merchandising || 1)),
+        apparel: Math.floor((stadium.capacity || 0) * 3 * (facilities.merchandising || 1)),
         total: 0
       };
       revenue.total = revenue.matchDay + revenue.concessions + revenue.parking + revenue.vip + revenue.apparel;
@@ -318,8 +349,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         .map(match => ({
           opponent: match.awayTeamId,
           date: match.scheduledTime,
-          result: match.homeScore > match.awayScore ? 'W' : match.homeScore < match.awayScore ? 'L' : 'D',
-          attendance: Math.floor(stadium.capacity * (0.7 + Math.random() * 0.3)),
+          result: (match.homeScore || 0) > (match.awayScore || 0) ? 'W' : (match.homeScore || 0) < (match.awayScore || 0) ? 'L' : 'D',
+          attendance: Math.floor((stadium.capacity || 0) * (0.7 + Math.random() * 0.3)),
           revenue: Math.floor(revenue.total * (0.8 + Math.random() * 0.4)),
           atmosphere: Math.floor(atmosphere * (0.8 + Math.random() * 0.2))
         }));
@@ -328,7 +359,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const completedHomeMatches = matches.filter(m => 
         m.homeTeamId === team.id && m.status === 'completed'
       );
-      const homeWins = completedHomeMatches.filter(m => m.homeScore > m.awayScore).length;
+      const homeWins = completedHomeMatches.filter(m => (m.homeScore || 0) > (m.awayScore || 0)).length;
       const totalHomeMatches = completedHomeMatches.length || 1;
 
       const responseData = {
@@ -336,7 +367,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           ...stadium,
           atmosphere,
           revenueBoost,
-          avgAttendance: Math.floor(stadium.capacity * 0.85),
+          avgAttendance: Math.floor((stadium.capacity || 0) * 0.85),
           seasonRevenue: revenue.total * totalHomeMatches,
           homeWinRate: Math.floor((homeWins / totalHomeMatches) * 100)
         },
@@ -355,42 +386,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("=== STADIUM API ERROR ===");
       console.error("Error fetching stadium data:", error);
-      console.error("Error stack:", error.stack);
+      console.error("Error stack:", (error as any).stack);
       console.error("=== END STADIUM API ERROR ===");
       res.status(500).json({ message: "Failed to fetch stadium data" });
     }
   });
-  
-  // Emergency Stadium API bypass - direct route without auth for testing
-  app.get('/api/stadium/emergency', async (req, res) => {
-    try {
-      console.log("=== EMERGENCY STADIUM API REACHED ===");
-      res.setHeader('Content-Type', 'application/json');
-      res.json({ 
-        test: "Emergency stadium API working", 
-        timestamp: new Date().toISOString(),
-        stadium: {
-          level: 1,
-          name: "Default Stadium",
-          capacity: 5000,
-          atmosphere: 50,
-          revenueBoost: 0
-        }
-      });
-    } catch (error) {
-      console.error("Emergency stadium API error:", error);
-      res.status(500).json({ error: "Emergency API failed" });
-    }
-  });
-
-  // Remove the test stadium route that might be interfering
-  // app.get('/api/stadium/test', async (req, res) => {
-  //   console.log("=== STADIUM TEST API REACHED ===");
-  //   res.json({ test: "Stadium API routes are working", timestamp: new Date().toISOString() });
-  // });
-  
-  // Auth middleware
-  await setupAuth(app);
 
   // CRITICAL: Formation routes must be first to prevent conflicts
   // Formation saving route
