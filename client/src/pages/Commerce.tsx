@@ -18,6 +18,10 @@ export default function Commerce() {
   const [bidAmount, setBidAmount] = useState<{ [key: string]: number }>({});
 
   const { data: storeData } = useQuery({
+    queryKey: ["/api/store"],
+  });
+
+  const { data: adData } = useQuery({
     queryKey: ["/api/store/ads"],
   });
 
@@ -168,7 +172,7 @@ export default function Commerce() {
               <TabsList className="bg-gray-800">
                 <TabsTrigger value="premium">Premium Items</TabsTrigger>
                 <TabsTrigger value="equipment">Equipment</TabsTrigger>
-                <TabsTrigger value="boosts">Boosts</TabsTrigger>
+                <TabsTrigger value="boosts">Entries</TabsTrigger>
               </TabsList>
 
               <TabsContent value="premium" className="space-y-4">
@@ -235,21 +239,120 @@ export default function Commerce() {
               </TabsContent>
 
               <TabsContent value="equipment" className="space-y-4">
-                <Card className="bg-gray-800 border-gray-700">
-                  <CardContent className="text-center py-8">
-                    <Shield className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                    <p className="text-gray-400">Equipment store coming soon</p>
-                  </CardContent>
-                </Card>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {storeData?.items?.map((item: any) => (
+                    <Card key={item.id} className="bg-gray-800 border-gray-700 hover:border-green-500 transition-colors">
+                      <CardHeader>
+                        <CardTitle className="flex items-center justify-between">
+                          <div className="flex items-center gap-2">
+                            <span className="text-2xl">{item.icon}</span>
+                            <span className="text-lg">{item.name}</span>
+                          </div>
+                          <Badge className={getRarityColor(item.rarity)}>
+                            {item.rarity}
+                          </Badge>
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent className="space-y-4">
+                        <p className="text-gray-400 text-sm">{item.description}</p>
+                        
+                        {item.statBoosts && (
+                          <div className="space-y-1">
+                            <p className="text-sm font-semibold">Stat Boosts:</p>
+                            <div className="flex flex-wrap gap-1">
+                              {Object.entries(item.statBoosts).map(([stat, value]) => (
+                                <Badge key={stat} variant="outline" className="text-xs">
+                                  {stat} +{value}
+                                </Badge>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                        
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-1">
+                            <span className="font-bold text-lg text-green-400">
+                              {item.price.toLocaleString()}
+                            </span>
+                            <span className="text-sm text-green-400">
+                              {item.currency === 'credits' ? '₡' : '💎'}
+                            </span>
+                          </div>
+                          <Button
+                            onClick={() => purchaseItemMutation.mutate({
+                              itemId: item.id,
+                              currency: item.currency
+                            })}
+                            disabled={purchaseItemMutation.isPending}
+                            variant="outline"
+                            className="border-green-500 text-green-400 hover:bg-green-500 hover:text-white"
+                          >
+                            {purchaseItemMutation.isPending ? "Purchasing..." : "Buy Equipment"}
+                          </Button>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  )) || (
+                    <Card className="bg-gray-800 border-gray-700">
+                      <CardContent className="text-center py-8">
+                        <Shield className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                        <p className="text-gray-400">Loading equipment...</p>
+                      </CardContent>
+                    </Card>
+                  )}
+                </div>
               </TabsContent>
 
               <TabsContent value="boosts" className="space-y-4">
-                <Card className="bg-gray-800 border-gray-700">
-                  <CardContent className="text-center py-8">
-                    <Zap className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                    <p className="text-gray-400">Performance boosts coming soon</p>
-                  </CardContent>
-                </Card>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {storeData?.tournamentEntries?.map((entry: any) => (
+                    <Card key={entry.id} className="bg-gray-800 border-gray-700 hover:border-blue-500 transition-colors">
+                      <CardHeader>
+                        <CardTitle className="flex items-center justify-between">
+                          <div className="flex items-center gap-2">
+                            <span className="text-2xl">{entry.icon}</span>
+                            <span className="text-lg">{entry.name}</span>
+                          </div>
+                          <Badge className={getRarityColor(entry.rarity)}>
+                            {entry.rarity}
+                          </Badge>
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent className="space-y-4">
+                        <p className="text-gray-400 text-sm">{entry.description}</p>
+                        
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-1">
+                            <span className="font-bold text-lg text-blue-400">
+                              {entry.price.toLocaleString()}
+                            </span>
+                            <span className="text-sm text-blue-400">
+                              {entry.currency === 'credits' ? '₡' : '💎'}
+                            </span>
+                          </div>
+                          <Button
+                            onClick={() => purchaseItemMutation.mutate({
+                              itemId: entry.id,
+                              currency: entry.currency
+                            })}
+                            disabled={purchaseItemMutation.isPending}
+                            variant="outline"
+                            className="border-blue-500 text-blue-400 hover:bg-blue-500 hover:text-white"
+                          >
+                            {purchaseItemMutation.isPending ? "Purchasing..." : "Enter Tournament"}
+                          </Button>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  )) || (
+                    <Card className="bg-gray-800 border-gray-700">
+                      <CardContent className="text-center py-8">
+                        <Trophy className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                        <p className="text-gray-400">Loading tournament entries...</p>
+                      </CardContent>
+                    </Card>
+                  )}
+                </div>
               </TabsContent>
             </Tabs>
           </TabsContent>

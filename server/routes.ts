@@ -1499,6 +1499,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
           statBoosts: { speed: 5, agility: 3 }
         },
         {
+          id: "gloves_grip",
+          name: "Grip Gloves",
+          description: "Enhanced grip for better ball handling",
+          price: 6000,
+          currency: "credits",
+          rarity: "common",
+          icon: "🧤",
+          statBoosts: { catching: 3, throwing: 2 }
+        },
+        {
+          id: "armor_light",
+          name: "Light Combat Armor",
+          description: "Flexible protection that doesn't slow you down",
+          price: 12000,
+          currency: "credits",
+          rarity: "rare",
+          icon: "🦺",
+          statBoosts: { power: 3, stamina: 2, agility: 1 }
+        },
+        {
           id: "training_credits",
           name: "Training Package",
           description: "Credits for player development",
@@ -1519,6 +1539,63 @@ export async function registerRoutes(app: Express): Promise<Server> {
           rarity: "legendary",
           icon: "⚔️",
           statBoosts: { power: 10, stamina: 8, leadership: 5 }
+        },
+        {
+          id: "premium_scout",
+          name: "Elite Scout Package",
+          description: "Advanced scouting reports revealing all opponent stats",
+          price: 50,
+          currency: "currency",
+          rarity: "epic",
+          icon: "🔍"
+        },
+        {
+          id: "stamina_boost",
+          name: "Team Energy Boost",
+          description: "Instantly restore full stamina to all players",
+          price: 25,
+          currency: "currency",
+          rarity: "rare",
+          icon: "⚡"
+        },
+        {
+          id: "injury_protection",
+          name: "Divine Protection",
+          description: "Prevent all injuries for the next 5 matches",
+          price: 75,
+          currency: "currency",
+          rarity: "legendary",
+          icon: "🛡️"
+        }
+      ];
+
+      const tournamentEntries = [
+        {
+          id: "exhibition_entry",
+          name: "Exhibition Tournament",
+          description: "Enter weekly exhibition matches for extra rewards",
+          price: 15000,
+          currency: "credits",
+          rarity: "common",
+          icon: "🏆"
+        },
+        {
+          id: "regional_championship",
+          name: "Regional Championship",
+          description: "Compete against top teams for massive prize pools",
+          price: 50000,
+          currency: "credits",
+          rarity: "epic",
+          icon: "👑"
+        },
+        {
+          id: "prestige_league",
+          name: "Prestige League Entry",
+          description: "Elite competition with exclusive rewards",
+          price: 150,
+          currency: "currency",
+          rarity: "legendary",
+          icon: "💎"
         }
       ];
 
@@ -1528,6 +1605,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json({
         items: storeItems,
         premiumItems,
+        tournamentEntries,
         resetTime
       });
     } catch (error) {
@@ -1987,18 +2065,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const userId = (req.user as any).claims.sub;
       
-      // Generate mock referral data for demonstration
+      // Clean referral data - no mock statistics
       const referralData = {
         myCode: `REF${userId.slice(-6).toUpperCase()}`,
-        totalReferrals: Math.floor(Math.random() * 15),
-        creditsEarned: Math.floor(Math.random() * 50000),
-        gemsEarned: Math.floor(Math.random() * 100),
-        activeReferrals: Math.floor(Math.random() * 10),
-        hasUsedReferral: Math.random() > 0.7,
-        recentReferrals: [
-          { username: "Player123", joinedAt: new Date().toISOString(), isActive: true },
-          { username: "Gamer456", joinedAt: new Date(Date.now() - 86400000).toISOString(), isActive: false }
-        ]
+        totalReferrals: 0,
+        creditsEarned: 0,
+        gemsEarned: 0,
+        activeReferrals: 0,
+        hasUsedReferral: false,
+        recentReferrals: []
       };
       
       res.json(referralData);
@@ -2131,27 +2206,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Redemption Codes API Routes
   app.get('/api/redemption-codes/history', isAuthenticated, async (req: any, res) => {
     try {
-      // Mock redemption history for demonstration
-      const history = [
-        {
-          code: "WELCOME2024",
-          description: "Welcome Bonus Package",
-          redeemedAt: new Date().toISOString(),
-          rewards: [
-            { type: "credits", amount: 5000 },
-            { type: "gems", amount: 10 }
-          ]
-        },
-        {
-          code: "LAUNCH100",
-          description: "Launch Week Special",
-          redeemedAt: new Date(Date.now() - 86400000 * 3).toISOString(),
-          rewards: [
-            { type: "item", itemName: "Elite Training Equipment" },
-            { type: "credits", amount: 2500 }
-          ]
-        }
-      ];
+      // Clean redemption history - no mock entries
+      const history = [];
       
       res.json(history);
     } catch (error) {

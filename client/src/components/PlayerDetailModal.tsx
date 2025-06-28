@@ -72,8 +72,8 @@ export default function PlayerDetailModal({
     gloves: player.glovesItem || { name: "Basic Gloves", rarity: "common", statBoosts: {} },
   };
 
-  const renderStatsBar = (label: string, current: number, potential: number) => {
-    const potentialNum = parseFloat(potential.toString()) || 0;
+  const renderStatsBar = (label: string, current: number, potential: number | null) => {
+    const potentialNum = potential ? parseFloat(potential.toString()) : 0;
     const maxPossible = Math.min(40, current + (potentialNum * 5)); // Rough calculation
     
     return (
@@ -120,11 +120,15 @@ export default function PlayerDetailModal({
           <DialogTitle className="flex items-center gap-3">
             <div className={`w-12 h-12 bg-${raceColorClass} bg-opacity-20 rounded-full border-2 border-${raceColorClass} flex items-center justify-center`}>
               <span className={`text-lg font-bold text-${raceColorClass}`}>
-                {player.name.charAt(0)}
+                {(player.firstName || player.name || "P").charAt(0)}
               </span>
             </div>
             <div>
-              <h2 className="text-xl font-bold">{player.name}</h2>
+              <h2 className="text-xl font-bold">
+                {player.firstName && player.lastName 
+                  ? `${player.firstName} ${player.lastName}` 
+                  : player.name || "Unknown Player"}
+              </h2>
               <div className="flex items-center gap-2">
                 <Badge className={roleColors[playerRole as keyof typeof roleColors]}>
                   {playerRole}
