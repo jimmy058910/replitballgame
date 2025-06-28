@@ -8,6 +8,7 @@ import { Separator } from "@/components/ui/separator";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import Navigation from "@/components/Navigation";
+import { getDivisionName, getDivisionInfo, getFullDivisionTitle } from "@shared/divisions";
 
 export default function Tournaments() {
   const { toast } = useToast();
@@ -53,19 +54,7 @@ export default function Tournaments() {
     },
   });
 
-  const getDivisionName = (division: number) => {
-    const names = {
-      1: "Diamond Division",
-      2: "Ruby Division", 
-      3: "Emerald Division",
-      4: "Sapphire Division",
-      5: "Gold Division",
-      6: "Silver Division",
-      7: "Bronze Division",
-      8: "Iron Division"
-    };
-    return names[division as keyof typeof names] || `Division ${division}`;
-  };
+  // Using unified division naming system
 
   const getRarityColor = (status: string) => {
     switch (status) {

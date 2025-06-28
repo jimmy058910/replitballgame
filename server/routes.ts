@@ -18,6 +18,7 @@ import { NotificationService } from "./services/notificationService";
 import { simulateMatch } from "./services/matchSimulation";
 import { generateRandomPlayer } from "./services/leagueService";
 import { matchStateManager } from "./services/matchStateManager";
+import { getDivisionName, getDivisionInfo, getFullDivisionTitle } from "../shared/divisions";
 import { z } from "zod";
 import { db } from "./db";
 import { items, stadiums, facilityUpgrades, stadiumEvents, teams, players, matches, teamFinances, playerInjuries, staff, teamInventory } from "@shared/schema";
@@ -1112,20 +1113,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Helper function for division names
-  function getDivisionName(division: number) {
-    const names = {
-      1: "Diamond Division",
-      2: "Ruby Division", 
-      3: "Emerald Division",
-      4: "Sapphire Division",
-      5: "Gold Division",
-      6: "Silver Division",
-      7: "Bronze Division",
-      8: "Iron Division"
-    };
-    return names[division as keyof typeof names] || `Division ${division}`;
-  }
+  // Helper function for division names - now using unified division system
 
   // Tournament routes
   app.get('/api/tournaments/:division', isAuthenticated, async (req, res) => {
@@ -2683,13 +2671,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  function getDivisionName(division: number) {
-    const names: { [key: number]: string } = {
-      1: "Diamond", 2: "Ruby", 3: "Emerald", 4: "Sapphire",
-      5: "Gold", 6: "Silver", 7: "Bronze", 8: "Iron"
-    };
-    return names[division] || `Division ${division}`;
-  }
+  // Division names now handled by unified division system
 
   // Auction routes
   app.get('/api/auctions', isAuthenticated, async (req: any, res) => {

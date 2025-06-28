@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import TeamInfoDialog from "@/components/TeamInfoDialog";
+import { getDivisionName, getDivisionInfo, getFullDivisionTitle } from "@shared/divisions";
 
 interface LeagueStandingsProps {
   division: number;
@@ -25,19 +26,7 @@ export default function LeagueStandings({ division }: LeagueStandingsProps) {
     setSelectedTeamId(null);
   };
 
-  const getDivisionName = (div: number) => {
-    const names = {
-      1: "Diamond League",
-      2: "Platinum League", 
-      3: "Gold League",
-      4: "Silver League",
-      5: "Bronze League",
-      6: "Iron League",
-      7: "Stone League",
-      8: "Rookie League",
-    };
-    return names[div as keyof typeof names] || `Division ${div}`;
-  };
+  // Using unified division naming system
 
   return (
     <>

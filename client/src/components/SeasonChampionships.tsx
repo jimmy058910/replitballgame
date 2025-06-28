@@ -9,6 +9,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Progress } from "@/components/ui/progress";
 import { Trophy, Crown, Calendar, Users, Target, Medal, Zap, TrendingUp } from "lucide-react";
 import { FloatingNotification, PulseWrapper, HoverCard, AnimatedCounter } from "@/components/MicroInteractions";
+import { getDivisionName, getDivisionInfo, getFullDivisionTitle } from "@shared/divisions";
 
 interface Season {
   id: string;
@@ -83,15 +84,7 @@ export default function SeasonChampionships() {
     return names[round] || `Round ${round}`;
   };
 
-  const getDivisionName = (division: number) => {
-    const names = {
-      1: "Mythic Division",
-      2: "Legendary Division", 
-      3: "Epic Division",
-      4: "Heroic Division"
-    };
-    return names[division] || `Division ${division}`;
-  };
+  // Using unified division naming system
 
   const getSeasonProgress = () => {
     if (!currentSeason) return 0;
