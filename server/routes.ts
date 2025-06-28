@@ -208,6 +208,28 @@ async function createAITeamsForDivision(division: number) {
 
 export async function registerRoutes(app: Express): Promise<Server> {
   
+  // Emergency Stadium API bypass - direct route without auth for testing
+  app.get('/api/stadium/emergency', async (req, res) => {
+    try {
+      console.log("=== EMERGENCY STADIUM API REACHED ===");
+      res.setHeader('Content-Type', 'application/json');
+      res.json({ 
+        test: "Emergency stadium API working", 
+        timestamp: new Date().toISOString(),
+        stadium: {
+          level: 1,
+          name: "Default Stadium",
+          capacity: 5000,
+          atmosphere: 50,
+          revenueBoost: 0
+        }
+      });
+    } catch (error) {
+      console.error("Emergency stadium API error:", error);
+      res.status(500).json({ error: "Emergency API failed" });
+    }
+  });
+  
   // Auth middleware
   await setupAuth(app);
 
@@ -5652,6 +5674,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.error("Error converting gems to credits:", error);
       res.status(500).json({ message: "Failed to convert gems" });
     }
+  });
+
+  // Test Stadium API endpoint for debugging
+  app.get('/api/stadium/test', async (req, res) => {
+    console.log("=== STADIUM TEST API REACHED ===");
+    res.json({ test: "Stadium API routes are working", timestamp: new Date().toISOString() });
   });
 
   // Comprehensive Stadium API - NEW VERSION

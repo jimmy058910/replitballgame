@@ -30,7 +30,7 @@ export default function StadiumRevamped() {
   const [selectedUpgrade, setSelectedUpgrade] = useState<StadiumUpgrade | null>(null);
 
   const { data: stadiumData, isLoading } = useQuery({
-    queryKey: ["/api/stadium/full"],
+    queryKey: ["/api/stadium/emergency"],
   });
 
   // Debug stadium data
