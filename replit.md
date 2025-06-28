@@ -34,7 +34,18 @@ Built as a React + Express web application with PostgreSQL database, using moder
 
 ## Recent Changes
 
-### December 29, 2025 (Dashboard & Competition Hub UI Fixes Complete)
+### December 29, 2025 (Player Marketplace System Complete + Navigation Update)
+- ✓ PLAYER MARKETPLACE FULLY IMPLEMENTED: Complete marketplace system with all API endpoints and comprehensive UI
+- ✓ MARKETPLACE API ROUTES: Browse listings, my listings, list player, place bid, buy now, transaction history endpoints
+- ✓ COMPREHENSIVE MARKETPLACE UI: Three-tab interface with Browse, My Listings, and Transaction History
+- ✓ ANTI-SNIPING PROTECTION: Auctions extend by 5 minutes when bids placed in final minutes
+- ✓ DUAL PURCHASE OPTIONS: Full auction bidding system plus instant Buy Now functionality
+- ✓ MARKETPLACE BUSINESS LOGIC: 5% market tax, 2% listing fees, 3-listing limit, roster protection (min 10 players)
+- ✓ MARKET NAVIGATION ADDED: Added "Market" link to main navigation bar with ShoppingBag icon for easy access
+- ✓ SMART PRICING SYSTEM: Buy Now prices 50% higher than starting bid, minimum prices based on player overall
+- ✓ TRANSACTION TRACKING: Complete history of purchases and sales with financial updates
+
+### December 29, 2025 (Earlier - Dashboard & Competition Hub UI Fixes Complete)
 - ✓ DASHBOARD PURPLE GRADIENT HEADER RESTORED: Fixed seasonal cycle display showing "Season 0 - Regular Season Day 1" with proper purple gradient styling
 - ✓ SERVER TIME DISPLAY FIXED: Replaced complex API-dependent ServerTimeDisplay with simple real-time Eastern timezone clock
 - ✓ COMPETITION HUB HEADER RESTORED: Added matching purple gradient seasonal cycle header to Competition page for visual consistency
