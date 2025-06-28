@@ -82,7 +82,7 @@ export default function Navigation() {
           <div className="flex items-center space-x-2">
             {/* Premium Currency Display - Clickable */}
             <button
-              onClick={() => setLocation("/payments")}
+              onClick={() => setLocation("/store?tab=gems")}
               className="flex items-center bg-purple-700 hover:bg-purple-600 px-2 py-1 rounded text-xs font-semibold transition-colors cursor-pointer"
             >
               <Coins className="h-3 w-3 text-purple-300 mr-1" />
@@ -92,7 +92,7 @@ export default function Navigation() {
             
             {/* Credits Display - Clickable */}
             <button
-              onClick={() => setLocation("/payments")}
+              onClick={() => setLocation("/store?tab=gems")}
               className="flex items-center bg-gray-700 hover:bg-gray-600 px-2 py-1 rounded text-xs font-semibold transition-colors cursor-pointer"
             >
               <Coins className="h-3 w-3 text-yellow-400 mr-1" />
@@ -131,7 +131,7 @@ export default function Navigation() {
                     <div className="flex items-center gap-2 mt-2">
                       <button
                         onClick={() => {
-                          setLocation("/payments");
+                          setLocation("/store?tab=gems");
                           setIsMobileMenuOpen(false);
                         }}
                         className="flex items-center bg-purple-700 hover:bg-purple-600 px-3 py-2 rounded transition-colors cursor-pointer"
@@ -143,7 +143,7 @@ export default function Navigation() {
                       
                       <button
                         onClick={() => {
-                          setLocation("/payments");
+                          setLocation("/store?tab=gems");
                           setIsMobileMenuOpen(false);
                         }}
                         className="flex items-center bg-gray-700 hover:bg-gray-600 px-3 py-2 rounded transition-colors cursor-pointer"

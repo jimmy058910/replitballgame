@@ -1,5 +1,6 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
+import { useLocation } from "wouter";
 import Navigation from "@/components/Navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -14,6 +15,17 @@ import {
 
 export default function Store() {
   const { toast } = useToast();
+  const [location] = useLocation();
+  const [activeTab, setActiveTab] = useState("credits");
+
+  // Handle URL parameters for tab navigation
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const tab = urlParams.get("tab");
+    if (tab) {
+      setActiveTab(tab);
+    }
+  }, [location]);
 
   const { data: storeData } = useQuery({
     queryKey: ["/api/store"],
@@ -106,7 +118,7 @@ export default function Store() {
           </Card>
         </div>
 
-        <Tabs defaultValue="premium" className="space-y-6">
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
           <TabsList className="grid w-full grid-cols-4 bg-gray-800">
             <TabsTrigger value="premium" className="flex items-center gap-2">
               <Gem className="h-4 w-4" />
@@ -130,7 +142,7 @@ export default function Store() {
           <TabsContent value="premium" className="space-y-4">
             <h2 className="text-xl font-semibold mb-4">Premium Items (Gems Only)</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {storeData?.premiumItems?.map((item: any) => (
+              {storeData?.dailyPremiumItems?.map((item: any) => (
                 <Card key={item.itemId} className="bg-gray-800 border-gray-700 hover:border-purple-500 transition-colors">
                   <CardHeader>
                     <CardTitle className="flex items-center justify-between">
@@ -196,7 +208,7 @@ export default function Store() {
           <TabsContent value="credits" className="space-y-4">
             <h2 className="text-xl font-semibold mb-4">Credit Items</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {storeData?.items?.filter((item: any) => !item.isPremium)?.map((item: any) => (
+              {storeData?.dailyCreditItems?.map((item: any) => (
                 <Card key={item.itemId} className="bg-gray-800 border-gray-700 hover:border-yellow-500 transition-colors">
                   <CardHeader>
                     <CardTitle className="flex items-center justify-between">
@@ -237,50 +249,6 @@ export default function Store() {
                         className="bg-yellow-600 hover:bg-yellow-700"
                       >
                         {item.owned ? "Owned" : "Purchase"}
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-
-            {/* Consumables Section */}
-            <h3 className="text-lg font-semibold mt-8 mb-4">Consumables</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {storeData?.consumables?.filter((item: any) => !item.isPremium).map((item: any) => (
-                <Card key={item.itemId} className="bg-gray-800 border-gray-700 hover:border-green-500 transition-colors">
-                  <CardHeader>
-                    <CardTitle className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <span className="text-2xl">{item.icon}</span>
-                        <span className="text-lg">{item.name}</span>
-                      </div>
-                      <Badge className={getRarityColor(item.rarity)}>
-                        {item.rarity}
-                      </Badge>
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    <p className="text-gray-400 text-sm">{item.description}</p>
-                    
-                    {item.quantityOwned > 0 && (
-                      <Badge variant="outline" className="text-xs">
-                        Owned: {item.quantityOwned}
-                      </Badge>
-                    )}
-                    
-                    <div className="flex justify-between items-center pt-2">
-                      <div className="flex items-center gap-1">
-                        <Coins className="h-4 w-4 text-yellow-400" />
-                        <span className="font-bold text-yellow-400">{item.creditPrice?.toLocaleString()} ₡</span>
-                      </div>
-                      <Button
-                        onClick={() => handlePurchase(item.itemId, "credits")}
-                        disabled={(finances?.credits || 0) < item.creditPrice}
-                        size="sm"
-                        className="bg-yellow-600 hover:bg-yellow-700"
-                      >
-                        Purchase
                       </Button>
                     </div>
                   </CardContent>

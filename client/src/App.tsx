@@ -15,7 +15,7 @@ import Tournaments from "@/pages/Tournaments";
 import Store from "@/pages/Store";
 import Inventory from "@/pages/Inventory";
 import Marketplace from "@/pages/Marketplace";
-import Payments from "@/pages/Payments";
+
 import Stadium from "@/pages/Stadium";
 
 import LogoShowcase from "@/pages/LogoShowcase";
@@ -45,7 +45,7 @@ function Router() {
           <Route path="/store" component={Store} />
           <Route path="/inventory" component={Inventory} />
           <Route path="/marketplace" component={Marketplace} />
-          <Route path="/payments" component={Payments} />
+
           <Route path="/stadium" component={Stadium} />
           <Route path="/text-match/:matchId" component={TextMatch} />
           <Route path="/match/:matchId" component={TextMatch} />
