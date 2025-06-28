@@ -75,25 +75,33 @@ export default function PlayerDetailModal({
   };
 
   const renderStatsBar = (label: string, current: number, potential: number | null) => {
+    const currentStat = current || 0;
     const potentialNum = potential ? parseFloat(potential.toString()) : 0;
-    const maxPossible = Math.min(40, current + (potentialNum * 5)); // Rough calculation
+    const maxPossible = Math.min(40, currentStat + (potentialNum * 5)); // Potential growth calculation
     
     return (
       <div className="space-y-1">
         <div className="flex justify-between text-sm">
           <span>{label}</span>
-          <span className="font-semibold">{current}/{Math.floor(maxPossible)}</span>
+          <span className="font-semibold">{currentStat}/40</span>
         </div>
         <div className="relative">
-          <Progress value={(current / 40) * 100} className="h-2" />
-          <div 
-            className="absolute top-0 h-2 bg-yellow-400/30 rounded-full"
-            style={{ 
-              left: `${(current / 40) * 100}%`,
-              width: `${((maxPossible - current) / 40) * 100}%`
-            }}
-          />
+          <Progress value={(currentStat / 40) * 100} className="h-2" />
+          {potentialNum > 0 && (
+            <div 
+              className="absolute top-0 h-2 bg-yellow-400/30 rounded-full"
+              style={{ 
+                left: `${(currentStat / 40) * 100}%`,
+                width: `${((maxPossible - currentStat) / 40) * 100}%`
+              }}
+            />
+          )}
         </div>
+        {potentialNum > 0 && (
+          <div className="text-xs text-yellow-400">
+            Growth potential: {potentialNum.toFixed(1)} stars
+          </div>
+        )}
       </div>
     );
   };
@@ -320,33 +328,53 @@ export default function PlayerDetailModal({
                 <CardContent>
                   <div className="grid grid-cols-2 gap-4">
                     {[
-                      { name: "Speed", potential: player.speedPotential || 0 },
-                      { name: "Power", potential: player.powerPotential || 0 },
-                      { name: "Throwing", potential: player.throwingPotential || 0 },
-                      { name: "Catching", potential: player.catchingPotential || 0 },
-                      { name: "Kicking", potential: player.kickingPotential || 0 },
-                      { name: "Stamina", potential: player.staminaPotential || 0 },
-                      { name: "Leadership", potential: player.leadershipPotential || 0 },
-                      { name: "Agility", potential: player.agilityPotential || 0 },
-                    ].map((attr) => (
-                      <div key={attr.name} className="flex justify-between items-center">
-                        <span className="text-sm">{attr.name}</span>
-                        <div className="flex">
-                          {Array.from({ length: 5 }, (_, i) => (
-                            <span 
-                              key={i} 
-                              className={`text-lg ${
-                                i < Math.floor(parseFloat((attr.potential || 0).toString()) || 0) 
-                                  ? "text-yellow-400" 
-                                  : "text-gray-300"
-                              }`}
-                            >
-                              ★
+                      { name: "Speed", potential: player.speedPotential },
+                      { name: "Power", potential: player.powerPotential },
+                      { name: "Throwing", potential: player.throwingPotential },
+                      { name: "Catching", potential: player.catchingPotential },
+                      { name: "Kicking", potential: player.kickingPotential },
+                      { name: "Stamina", potential: player.staminaPotential },
+                      { name: "Leadership", potential: player.leadershipPotential },
+                      { name: "Agility", potential: player.agilityPotential },
+                    ].map((attr) => {
+                      // Calculate potential based on player stats if not available
+                      let potentialRating = attr.potential;
+                      if (!potentialRating || potentialRating === 0) {
+                        // Generate a reasonable potential based on current stat and age
+                        const currentStat = player[attr.name.toLowerCase()] || 0;
+                        const age = player.age || 25;
+                        const ageFactor = Math.max(0.1, (35 - age) / 10); // Younger players have more potential
+                        const statFactor = Math.max(0.5, (40 - currentStat) / 40); // Room for growth
+                        potentialRating = Math.min(5, Math.max(0.5, ageFactor * statFactor * 5));
+                      }
+                      
+                      return (
+                        <div key={attr.name} className="flex justify-between items-center">
+                          <span className="text-sm">{attr.name}</span>
+                          <div className="flex items-center gap-1">
+                            <div className="flex">
+                              {Array.from({ length: 5 }, (_, i) => (
+                                <span 
+                                  key={i} 
+                                  className={`text-lg ${
+                                    i < Math.floor(potentialRating) 
+                                      ? "text-yellow-400" 
+                                      : (i === Math.floor(potentialRating) && potentialRating % 1 >= 0.5)
+                                        ? "text-yellow-400/60"
+                                        : "text-gray-300"
+                                  }`}
+                                >
+                                  ★
+                                </span>
+                              ))}
+                            </div>
+                            <span className="text-xs text-gray-400 ml-1">
+                              ({potentialRating.toFixed(1)})
                             </span>
-                          ))}
+                          </div>
                         </div>
-                      </div>
-                    ))}
+                      );
+                    })}
                   </div>
                 </CardContent>
               </Card>
