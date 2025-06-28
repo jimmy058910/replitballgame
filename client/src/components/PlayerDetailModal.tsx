@@ -77,10 +77,29 @@ export default function PlayerDetailModal({
   const renderStatsBar = (label: string, current: number, potential: number | null) => {
     const currentStat = current || 0;
     
-    // Calculate max potential based on the potential star rating (1-5 stars)
-    // Each star represents roughly 2-3 points of potential growth
-    const potentialStars = potential ? parseFloat(potential.toString()) : 0;
-    const potentialGrowth = Math.floor(potentialStars * 2.5); // 2.5 points per star
+    // Generate potential if not available - each player should have varied potential
+    let potentialStars = potential ? parseFloat(potential.toString()) : 0;
+    if (!potentialStars || potentialStars === 0) {
+      // Generate based on player characteristics for consistent results
+      const age = player.age || 25;
+      const playerSeed = parseInt(player.id.slice(-4), 16) % 100;
+      const statSeed = (label.charCodeAt(0) * 13 + playerSeed) % 100;
+      
+      // Age factor: younger = more potential (20-35 range)
+      const ageFactor = Math.max(0.2, (35 - age) / 15);
+      // Room for growth factor
+      const growthFactor = Math.max(0.3, (40 - currentStat) / 40);
+      // Race bonus
+      const raceBonus = player.race === 'lumina' ? 0.4 : player.race === 'sylvan' ? 0.2 : 0;
+      
+      // Consistent randomization based on player
+      const randomness = (statSeed / 100) * 0.8 + 0.6; // 0.6-1.4 range
+      
+      potentialStars = Math.min(5, Math.max(1, (ageFactor + growthFactor + raceBonus) * randomness * 4));
+    }
+    
+    // Calculate max potential based on stars (each star = 2-4 points growth)
+    const potentialGrowth = Math.floor(potentialStars * 3); // 3 points per star average
     const maxPossible = Math.min(40, currentStat + potentialGrowth);
     
     return (
@@ -355,8 +374,8 @@ export default function PlayerDetailModal({
                         potentialRating = Math.min(5, Math.max(1, (ageFactor + statFactor + raceBonus) * randomFactor * 3));
                       }
                       
-                      // Consistent display - remove randomization for stable display
-                      const displayRating = potentialRating;
+                      // Ensure displayRating is always a number
+                      const displayRating = typeof potentialRating === 'number' ? potentialRating : parseFloat(potentialRating) || 0;
                       
                       return (
                         <div key={attr.name} className="flex justify-between items-center">
