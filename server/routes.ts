@@ -207,6 +207,14 @@ async function createAITeamsForDivision(division: number) {
 }
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  
+  // Debug middleware to catch all formation requests
+  app.use('/api/teams/*/formation', (req, res, next) => {
+    console.log("🔍 Formation route intercepted:", req.method, req.url);
+    console.log("🔍 Headers:", req.headers);
+    console.log("🔍 Body:", req.body);
+    next();
+  });
   // Auth middleware
   await setupAuth(app);
 
