@@ -26,6 +26,11 @@ export default function Navigation() {
     queryKey: ["/api/store/ads"],
   });
 
+  const { data: serverTime } = useQuery({
+    queryKey: ["/api/server/time"],
+    refetchInterval: 30000, // Update every 30 seconds
+  });
+
   const navItems = [
     { path: "/", label: "Dashboard", icon: Home },
     { path: "/team", label: "Team", icon: Users },
@@ -39,6 +44,40 @@ export default function Navigation() {
 
   const credits = finances?.credits || team?.credits || 0;
   const premiumCurrency = finances?.premiumCurrency || 0;
+
+  // Format server time for display
+  const formatServerTime = () => {
+    if (!serverTime?.currentTime) return "Loading...";
+    
+    const time = new Date(serverTime.currentTime);
+    const easternTime = time.toLocaleString("en-US", {
+      timeZone: "America/New_York",
+      hour: "numeric",
+      minute: "2-digit",
+      hour12: true
+    });
+    
+    return easternTime;
+  };
+
+  const getTimeUntilNextDay = () => {
+    if (!serverTime?.currentTime) return "";
+    
+    const now = new Date(serverTime.currentTime);
+    const nextDay = new Date(now);
+    nextDay.setDate(nextDay.getDate() + 1);
+    nextDay.setHours(3, 0, 0, 0); // 3 AM EST
+    
+    const timeUntil = nextDay.getTime() - now.getTime();
+    const hours = Math.floor(timeUntil / (1000 * 60 * 60));
+    const minutes = Math.floor((timeUntil % (1000 * 60 * 60)) / (1000 * 60));
+    
+    if (hours > 0) {
+      return `Next day: ${hours}h ${minutes}m`;
+    } else {
+      return `Next day: ${minutes}m`;
+    }
+  };
 
   return (
     <nav className="bg-gray-800 border-b border-gray-700 sticky top-0 z-50">
@@ -97,6 +136,12 @@ export default function Navigation() {
               <span className="text-yellow-400 ml-1">₡</span>
             </button>
 
+            {/* Server Time Display */}
+            <div className="hidden sm:flex flex-col items-center bg-blue-800 px-2 py-1 rounded text-xs">
+              <div className="text-blue-200 font-medium">EST: {formatServerTime()}</div>
+              <div className="text-blue-300 text-[10px]">{getTimeUntilNextDay()}</div>
+            </div>
+
             {/* Notifications */}
             <NotificationSystem />
 
@@ -149,6 +194,12 @@ export default function Navigation() {
                         <span className="font-semibold text-white">{credits.toLocaleString()}</span>
                         <span className="text-yellow-400 ml-1">₡</span>
                       </button>
+                    </div>
+                    
+                    {/* Mobile Server Time */}
+                    <div className="mt-3 bg-blue-800 px-3 py-2 rounded">
+                      <div className="text-blue-200 font-medium text-sm">EST: {formatServerTime()}</div>
+                      <div className="text-blue-300 text-xs">{getTimeUntilNextDay()}</div>
                     </div>
                   </div>
 
