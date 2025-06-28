@@ -105,6 +105,8 @@ export default function ContractNegotiation({ player, isOpen, onClose, teamId }:
           description: `${player.firstName} ${player.lastName} has agreed to the terms.`,
         });
         setNegotiationPhase('response');
+        // Automatically finalize the accepted contract
+        finalizeContractMutation.mutate();
       } else if (data.counterOffer) {
         setCurrentOffer(data.counterOffer);
         setNegotiationPhase('counter');
