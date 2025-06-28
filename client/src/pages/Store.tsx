@@ -21,6 +21,9 @@ export default function Store() {
     cacheTime: 0, // Don't cache
   });
 
+  // Debug logging to see actual data structure
+  console.log('Store data received:', storeData);
+
   const { data: finances } = useQuery({
     queryKey: ["/api/teams/my/finances"],
   });
@@ -127,7 +130,7 @@ export default function Store() {
           <TabsContent value="premium" className="space-y-4">
             <h2 className="text-xl font-semibold mb-4">Premium Items (Gems Only)</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {storeData?.dailyPremiumItems?.map((item: any) => (
+              {storeData?.premiumItems?.map((item: any) => (
                 <Card key={item.itemId} className="bg-gray-800 border-gray-700 hover:border-purple-500 transition-colors">
                   <CardHeader>
                     <CardTitle className="flex items-center justify-between">
@@ -193,7 +196,7 @@ export default function Store() {
           <TabsContent value="credits" className="space-y-4">
             <h2 className="text-xl font-semibold mb-4">Credit Items</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {storeData?.dailyCreditItems?.map((item: any) => (
+              {storeData?.items?.filter((item: any) => !item.isPremium)?.map((item: any) => (
                 <Card key={item.itemId} className="bg-gray-800 border-gray-700 hover:border-yellow-500 transition-colors">
                   <CardHeader>
                     <CardTitle className="flex items-center justify-between">

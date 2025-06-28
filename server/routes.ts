@@ -1574,142 +1574,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
     return { equipment, consumables };
   };
 
-  // Store routes - Enhanced for comprehensive item system
-  app.get('/api/store', isAuthenticated, async (req: any, res) => {
-    try {
-      const userId = req.user.claims.sub;
-      const team = await storage.getTeamByUserId(userId);
-      
-      if (!team) {
-        return res.status(404).json({ message: "Team not found" });
-      }
-      
-      // Get comprehensive item database
-      const { equipment, consumables } = initializeItemDatabase();
-      
-      // Get user's race for filtering race-restricted items
-      const userRace = team.race;
-      
-      // Filter items available to this user
-      const availableEquipment = equipment.filter(item => 
-        item.isUniversal || item.raceRestrictions.includes(userRace)
-      );
-      
-      const availableConsumables = consumables;
-      
-      // Get team finances
-      const finances = await storage.getTeamFinances(team.id);
-      
-      // Get team inventory to check what items they already own
-      const inventory = await db.select().from(teamInventory).where(eq(teamInventory.teamId, team.id));
-      
-      // Separate items by currency type
-      const premiumItems = availableEquipment.filter(item => item.isPremium);
-      const creditItems = availableEquipment.filter(item => !item.isPremium);
-      
-      // Map races for frontend
-      const raceMap: { [key: number]: string } = {
-        1: "Human",
-        2: "Sylvan", 
-        3: "Gryll",
-        4: "Lumina",
-        5: "Umbra"
-      };
-      
-      // Tournament entries (always available)
-      const tournamentEntries = [
-        {
-          id: "exhibition_game",
-          name: "Exhibition Bonus Game",
-          description: "Challenge another team in a friendly match. Win rewards based on performance!",
-          creditPrice: 5000,
-          gemPrice: 5,
-          icon: "🏟️",
-          type: "entry",
-          dailyLimit: 3,
-          purchasesToday: 0 // TODO: Track daily purchases
-        },
-        {
-          id: "tournament_entry",
-          name: "Tournament Entry",
-          description: "Enter the weekly tournament for a chance at glory and massive prizes!",
-          creditPrice: 10000,
-          gemPrice: 10,
-          icon: "🏆",
-          type: "entry",
-          dailyLimit: 1,
-          purchasesToday: 0 // TODO: Track daily purchases
-        }
-      ];
-      
-      res.json({
-        finances: {
-          credits: finances?.credits || 0,
-          premiumCurrency: finances?.premiumCurrency || 0
-        },
-        inventoryCount: inventory.length,
-        premiumItems: premiumItems.map(item => ({
-          ...item,
-          icon: getRarityIcon(item.rarity),
-          owned: inventory.some(inv => inv.itemId === item.itemId),
-          price: item.gemPrice,
-          currency: "gems",
-          raceRestriction: item.raceRestrictions.length > 0 ? 
-            item.raceRestrictions.map(r => raceMap[r]).join(", ") : null
-        })),
-        items: creditItems.map(item => ({
-          ...item,
-          icon: getRarityIcon(item.rarity),
-          owned: inventory.some(inv => inv.itemId === item.itemId),
-          price: item.creditPrice,
-          currency: "credits",
-          raceRestriction: item.raceRestrictions.length > 0 ? 
-            item.raceRestrictions.map(r => raceMap[r]).join(", ") : null
-        })),
-        consumables: availableConsumables.map(item => ({
-          ...item,
-          icon: getConsumableIcon(item.itemType),
-          owned: false, // Consumables are single-use
-          price: item.isPremium ? item.gemPrice : item.creditPrice,
-          currency: item.isPremium ? "gems" : "credits"
-        })),
-        tournamentEntries
-      });
-    } catch (error) {
-      console.error("Store error:", error);
-      res.status(500).json({ message: "Failed to load store data" });
-    }
+
+
+  // Test endpoint to force debug output
+  app.get('/api/store/debug', isAuthenticated, async (req: any, res) => {
+    console.log('=== FORCE DEBUG TEST ===');
+    console.log('Store debug endpoint hit at:', new Date().toISOString());
+    res.json({ message: 'Debug endpoint working', timestamp: Date.now() });
   });
-  
-  // Helper functions for store
-  function getRarityIcon(rarity: string): string {
-    const icons: { [key: string]: string } = {
-      common: "⚪",
-      uncommon: "🟢",
-      rare: "🔵",
-      epic: "🟣",
-      legendary: "🟡",
-      mythic: "🔴",
-      divine: "✨"
-    };
-    return icons[rarity] || "⚪";
-  }
-  
-  function getConsumableIcon(itemType: string): string {
-    const icons: { [key: string]: string } = {
-      injury_recovery: "🩹",
-      stamina_recovery: "⚡",
-      stat_boost: "💪"
-    };
-    return icons[itemType] || "💊";
-  }
 
   // Main store endpoint with comprehensive item database
   app.get('/api/store', isAuthenticated, async (req: any, res) => {
-    // Disable caching for debugging
-    res.set('Cache-Control', 'no-cache, no-store, must-revalidate');
+    // Force fresh response every time
+    res.set('Cache-Control', 'no-cache, no-store, must-revalidate, max-age=0');
     res.set('Pragma', 'no-cache');
     res.set('Expires', '0');
+    res.set('ETag', Date.now().toString()); // Force unique response
     try {
       const userId = req.user?.claims?.sub;
       const team = await storage.getTeamByUserId(userId);
