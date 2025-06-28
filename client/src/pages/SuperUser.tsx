@@ -487,6 +487,49 @@ export default function SuperUser() {
           </CardContent>
         </Card>
 
+        {/* Skills Management */}
+        <Card className="bg-gray-800 border-gray-700 mt-8">
+          <CardHeader>
+            <CardTitle className="font-orbitron text-xl flex items-center">
+              <Trophy className="w-5 h-5 mr-2 text-yellow-400" />
+              Skills Management
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <p className="text-gray-400 text-sm">
+              Manage the player skills system. Players can have up to 3 skills with 4 tiers each.
+            </p>
+            <Button 
+              onClick={async () => {
+                try {
+                  const response = await apiRequest("/api/skills", "GET");
+                  const skills = await response.json();
+                  toast({
+                    title: "Skills System",
+                    description: `Found ${skills.length} skills in the system (Universal, Role, and Race specific)`,
+                  });
+                } catch (error: any) {
+                  toast({
+                    title: "Error",
+                    description: "Failed to fetch skills",
+                    variant: "destructive",
+                  });
+                }
+              }}
+              className="w-full"
+              variant="outline"
+            >
+              Check Available Skills
+            </Button>
+            <p className="text-xs text-gray-500">
+              • Players can have max 3 skills<br />
+              • Skills have 4 tiers (I-IV)<br />
+              • Skills are Universal, Role-specific, or Race-specific<br />
+              • To add skills to players: Team → Player Details → Skills tab
+            </p>
+          </CardContent>
+        </Card>
+
         {/* Server Time & System Information */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-8">
           <ServerTimeDisplay />

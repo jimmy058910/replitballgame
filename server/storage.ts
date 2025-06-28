@@ -95,6 +95,12 @@ import {
   type InsertMarketplaceBid,
   type MarketplaceTransaction,
   type InsertMarketplaceTransaction,
+  skills,
+  playerSkills,
+  type Skill,
+  type InsertSkill,
+  type PlayerSkill,
+  type InsertPlayerSkill,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, or, desc, asc, sql, inArray, lte } from "drizzle-orm";
@@ -215,6 +221,18 @@ export interface IStorage {
   
   processExpiredListings(): Promise<void>;
   convertToOffSeasonMode(): Promise<void>;
+  
+  // Skills operations
+  getAllSkills(): Promise<Skill[]>;
+  getSkillById(id: string): Promise<Skill | undefined>;
+  createSkill(skill: InsertSkill): Promise<Skill>;
+  
+  // Player skills operations
+  getPlayerSkills(playerId: string): Promise<PlayerSkill[]>;
+  addPlayerSkill(playerSkill: InsertPlayerSkill): Promise<PlayerSkill>;
+  upgradePlayerSkill(playerId: string, skillId: string): Promise<PlayerSkill>;
+  getPlayerSkillCount(playerId: string): Promise<number>;
+  processEndOfSeasonSkills(teamId: string): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -1298,6 +1316,7 @@ export class DatabaseStorage implements IStorage {
 
         // Create transaction record
         await this.createMarketplaceTransaction({
+          id: nanoid(),
           listingId: listing.id,
           buyerTeamId: listing.currentHighBidderTeamId,
           sellerTeamId: listing.sellerTeamId,
@@ -1336,13 +1355,153 @@ export class DatabaseStorage implements IStorage {
     for (const listing of activeListings) {
       if (!listing.buyNowPrice) {
         // Calculate buy now price if not set
-        const player = await this.getPlayer(listing.playerId);
+        const player = await this.getPlayerById(listing.playerId);
         if (player) {
           const calculatedPrice = Math.max(listing.startBid * 1.5, player.overall * 1000);
           await this.updateMarketplaceListing(listing.id, { buyNowPrice: Math.floor(calculatedPrice) });
         }
       }
     }
+  }
+
+  // Skills operations
+  async getAllSkills(): Promise<Skill[]> {
+    return await db.select().from(skills);
+  }
+
+  async getSkillById(id: string): Promise<Skill | undefined> {
+    const [skill] = await db.select().from(skills).where(eq(skills.id, id));
+    return skill;
+  }
+
+  async createSkill(skill: Omit<InsertSkill, 'id'>): Promise<Skill> {
+    const [newSkill] = await db.insert(skills).values(skill).returning();
+    return newSkill;
+  }
+
+  // Player skills operations
+  async getPlayerSkills(playerId: string): Promise<PlayerSkill[]> {
+    return await db
+      .select()
+      .from(playerSkills)
+      .where(eq(playerSkills.playerId, playerId))
+      .orderBy(desc(playerSkills.acquiredAt));
+  }
+
+  async addPlayerSkill(playerSkill: InsertPlayerSkill): Promise<PlayerSkill> {
+    const [newPlayerSkill] = await db
+      .insert(playerSkills)
+      .values(playerSkill)
+      .returning();
+    return newPlayerSkill;
+  }
+
+  async upgradePlayerSkill(playerId: string, skillId: string): Promise<PlayerSkill> {
+    const [existingPlayerSkill] = await db
+      .select()
+      .from(playerSkills)
+      .where(and(
+        eq(playerSkills.playerId, playerId),
+        eq(playerSkills.skillId, skillId)
+      ));
+    
+    if (!existingPlayerSkill) {
+      throw new Error('Player does not have this skill');
+    }
+    
+    const newTier = Math.min(existingPlayerSkill.currentTier + 1, 4);
+    const [updatedSkill] = await db
+      .update(playerSkills)
+      .set({ 
+        currentTier: newTier,
+        lastUpgraded: new Date()
+      })
+      .where(eq(playerSkills.id, existingPlayerSkill.id))
+      .returning();
+    
+    return updatedSkill;
+  }
+
+  async getPlayerSkillCount(playerId: string): Promise<number> {
+    const skills = await this.getPlayerSkills(playerId);
+    return skills.length;
+  }
+
+  async processEndOfSeasonSkills(teamId: string): Promise<void> {
+    const players = await this.getPlayersByTeamId(teamId);
+    const BASE_CHANCE = 5;
+    const LEADERSHIP_MODIFIER = 0.25;
+    
+    for (const player of players) {
+      const chance = BASE_CHANCE + (player.leadership * LEADERSHIP_MODIFIER);
+      const roll = Math.random() * 100;
+      
+      if (roll < chance) {
+        const playerSkillCount = await this.getPlayerSkillCount(player.id);
+        
+        if (playerSkillCount < 3) {
+          // Add a new skill
+          const eligibleSkills = await this.getEligibleSkillsForPlayer(player);
+          if (eligibleSkills.length > 0) {
+            const randomSkill = eligibleSkills[Math.floor(Math.random() * eligibleSkills.length)];
+            await this.addPlayerSkill({
+              playerId: player.id,
+              skillId: randomSkill.id,
+              currentTier: 1
+            });
+            
+            // Create notification
+            await this.createNotification({
+              userId: player.teamId, // Using teamId as userId for now
+              type: 'skill_acquired',
+              title: 'New Skill Acquired!',
+              message: `${player.name} has learned the skill: ${randomSkill.name}`,
+              metadata: { playerId: player.id, skillId: randomSkill.id },
+              priority: 'high'
+            });
+          }
+        } else {
+          // Upgrade an existing skill
+          const existingSkills = await this.getPlayerSkills(player.id);
+          const upgradeableSkills = existingSkills.filter(ps => ps.currentTier < 4);
+          
+          if (upgradeableSkills.length > 0) {
+            const skillToUpgrade = upgradeableSkills[Math.floor(Math.random() * upgradeableSkills.length)];
+            await this.upgradePlayerSkill(player.id, skillToUpgrade.skillId);
+            
+            const skill = await this.getSkillById(skillToUpgrade.skillId);
+            if (skill) {
+              await this.createNotification({
+                userId: player.teamId,
+                type: 'skill_upgraded',
+                title: 'Skill Upgraded!',
+                message: `${player.name}'s ${skill.name} skill has been upgraded to Tier ${skillToUpgrade.currentTier + 1}`,
+                metadata: { playerId: player.id, skillId: skill.id },
+                priority: 'high'
+              });
+            }
+          }
+        }
+      }
+    }
+  }
+
+  private async getEligibleSkillsForPlayer(player: Player): Promise<Skill[]> {
+    const allSkills = await this.getAllSkills();
+    const playerSkills = await this.getPlayerSkills(player.id);
+    const playerSkillIds = playerSkills.map(ps => ps.skillId);
+    
+    return allSkills.filter(skill => {
+      // Check if player already has this skill
+      if (playerSkillIds.includes(skill.id)) return false;
+      
+      // Check category restrictions
+      if (skill.category === 'Universal') return true;
+      if (skill.category === 'Role' && skill.roleRestriction === player.role) return true;
+      if (skill.category === 'Race' && skill.raceRestriction === player.race) return true;
+      
+      return false;
+    });
   }
 }
 

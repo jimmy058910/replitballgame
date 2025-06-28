@@ -8,6 +8,7 @@ import { Progress } from "@/components/ui/progress";
 import { Separator } from "@/components/ui/separator";
 import { Shield, Shirt, ShirtIcon, Hand } from "lucide-react";
 import AbilitiesDisplay from "@/components/AbilitiesDisplay";
+import PlayerSkillsDisplay from "@/components/PlayerSkillsDisplay";
 
 interface PlayerDetailModalProps {
   player: any;
@@ -171,8 +172,9 @@ export default function PlayerDetailModal({
         </DialogHeader>
 
         <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="grid w-full grid-cols-5">
+          <TabsList className="grid w-full grid-cols-6">
             <TabsTrigger value="stats">Stats</TabsTrigger>
+            <TabsTrigger value="skills">Skills</TabsTrigger>
             <TabsTrigger value="abilities">Abilities</TabsTrigger>
             <TabsTrigger value="equipment">Equipment</TabsTrigger>
             <TabsTrigger value="contract">Contract</TabsTrigger>
@@ -258,7 +260,7 @@ export default function PlayerDetailModal({
                             {Object.entries(item.statBoosts || {}).map(([stat, boost]) => (
                               <div key={stat} className="text-sm flex justify-between">
                                 <span>{stat}:</span>
-                                <span className="text-green-400">+{boost}</span>
+                                <span className="text-green-400">+{boost as React.ReactNode}</span>
                               </div>
                             ))}
                           </div>
@@ -277,6 +279,10 @@ export default function PlayerDetailModal({
                 );
               })}
             </div>
+          </TabsContent>
+
+          <TabsContent value="skills" className="space-y-4">
+            <PlayerSkillsDisplay playerId={player.id} />
           </TabsContent>
 
           <TabsContent value="abilities" className="space-y-4">

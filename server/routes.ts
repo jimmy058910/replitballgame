@@ -7247,6 +7247,199 @@ function generateEventDetails(eventType: string, stadium: any) {
     }
   });
 
+  // Skills API Routes
+  app.get('/api/skills', async (req, res) => {
+    try {
+      const allSkills = await storage.getAllSkills();
+      res.json(allSkills);
+    } catch (error) {
+      console.error("Error fetching skills:", error);
+      res.status(500).json({ message: "Failed to fetch skills" });
+    }
+  });
+
+  // Get skills for a specific player
+  app.get('/api/players/:playerId/skills', async (req, res) => {
+    try {
+      const { playerId } = req.params;
+      const playerSkills = await storage.getPlayerSkills(playerId);
+      
+      // Get full skill details for each player skill
+      const skillsWithDetails = await Promise.all(
+        playerSkills.map(async (ps) => {
+          const skill = await storage.getSkillById(ps.skillId);
+          return {
+            ...ps,
+            skill
+          };
+        })
+      );
+      
+      res.json(skillsWithDetails);
+    } catch (error) {
+      console.error("Error fetching player skills:", error);
+      res.status(500).json({ message: "Failed to fetch player skills" });
+    }
+  });
+
+  // Seed skills (admin endpoint)
+  app.post('/api/skills/seed', async (req, res) => {
+    try {
+      const { seedSkills } = await import('./seedSkills');
+      await seedSkills();
+      res.json({ success: true, message: "Skills seeded successfully" });
+    } catch (error) {
+      console.error("Error seeding skills:", error);
+      res.status(500).json({ message: "Failed to seed skills" });
+    }
+  });
+
+  // Process end of season skills for a team
+  app.post('/api/teams/:teamId/process-skills', isAuthenticated, async (req, res) => {
+    try {
+      const { teamId } = req.params;
+      const userId = req.user?.id;
+      
+      // Verify team ownership
+      const team = await storage.getTeamById(teamId);
+      if (!team || team.userId !== userId) {
+        return res.status(403).json({ message: "Unauthorized" });
+      }
+      
+      await storage.processEndOfSeasonSkills(teamId);
+      res.json({ success: true, message: "End of season skills processed" });
+    } catch (error) {
+      console.error("Error processing end of season skills:", error);
+      res.status(500).json({ message: "Failed to process skills" });
+    }
+  });
+
+  // Get available skills for a player
+  app.get("/api/players/:playerId/available-skills", async (req, res) => {
+    try {
+      const { playerId } = req.params;
+      
+      // Get player details
+      const player = await storage.getPlayerById(playerId);
+      if (!player) {
+        return res.status(404).json({ error: "Player not found" });
+      }
+      
+      // Get all skills
+      const allSkills = await storage.getAllSkills();
+      
+      // Get player's current skills
+      const playerSkills = await storage.getPlayerSkills(playerId);
+      const playerSkillIds = new Set(playerSkills.map(ps => ps.skillId));
+      
+      // Filter available skills based on player's role and race
+      const availableSkills = allSkills.filter(skill => {
+        // Skip if player already has this skill
+        if (playerSkillIds.has(skill.id)) return false;
+        
+        // Check role restriction
+        if (skill.roleRestriction && skill.roleRestriction !== player.role) {
+          return false;
+        }
+        
+        // Check race restriction
+        if (skill.raceRestriction && skill.raceRestriction !== player.race) {
+          return false;
+        }
+        
+        return true;
+      });
+      
+      res.json(availableSkills);
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  // Add skill to player
+  app.post("/api/players/:playerId/skills", isAuthenticated, async (req, res) => {
+    try {
+      const { playerId } = req.params;
+      const { skillId } = req.body;
+      
+      if (!req.user) {
+        return res.status(401).json({ error: "Not authenticated" });
+      }
+      
+      // Get player and verify ownership
+      const player = await storage.getPlayerById(playerId);
+      if (!player) {
+        return res.status(404).json({ error: "Player not found" });
+      }
+      
+      const team = await storage.getTeamByUserId(req.user.id);
+      if (!team || player.teamId !== team.id) {
+        return res.status(403).json({ error: "Not your player" });
+      }
+      
+      // Check skill limit (max 3 skills)
+      const currentSkillCount = await storage.getPlayerSkillCount(playerId);
+      if (currentSkillCount >= 3) {
+        return res.status(400).json({ error: "Player already has maximum skills (3)" });
+      }
+      
+      // Verify skill exists and is available for this player
+      const skill = await storage.getSkillById(skillId);
+      if (!skill) {
+        return res.status(404).json({ error: "Skill not found" });
+      }
+      
+      // Check role/race restrictions
+      if (skill.roleRestriction && skill.roleRestriction !== player.role) {
+        return res.status(400).json({ error: "Skill not available for player's role" });
+      }
+      
+      if (skill.raceRestriction && skill.raceRestriction !== player.race) {
+        return res.status(400).json({ error: "Skill not available for player's race" });
+      }
+      
+      // Add skill to player
+      const playerSkill = await storage.addPlayerSkill({
+        playerId,
+        skillId,
+        currentTier: 1
+      });
+      
+      res.json({ success: true, playerSkill });
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  // Upgrade player skill
+  app.post("/api/players/:playerId/skills/:skillId/upgrade", isAuthenticated, async (req, res) => {
+    try {
+      const { playerId, skillId } = req.params;
+      
+      if (!req.user) {
+        return res.status(401).json({ error: "Not authenticated" });
+      }
+      
+      // Get player and verify ownership
+      const player = await storage.getPlayerById(playerId);
+      if (!player) {
+        return res.status(404).json({ error: "Player not found" });
+      }
+      
+      const team = await storage.getTeamByUserId(req.user.id);
+      if (!team || player.teamId !== team.id) {
+        return res.status(403).json({ error: "Not your player" });
+      }
+      
+      // Upgrade the skill
+      const upgradedSkill = await storage.upgradePlayerSkill(playerId, skillId);
+      
+      res.json({ success: true, upgradedSkill });
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }

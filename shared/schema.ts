@@ -896,3 +896,31 @@ export type CreditPackage = typeof creditPackages.$inferSelect;
 export type InsertCreditPackage = typeof creditPackages.$inferInsert;
 export type UserSubscription = typeof userSubscriptions.$inferSelect;
 export type InsertUserSubscription = typeof userSubscriptions.$inferInsert;
+
+// Player Skills System Tables
+export const skills = pgTable("skills", {
+  id: uuid("id").primaryKey().notNull().$defaultFn(() => crypto.randomUUID()),
+  name: varchar("name").notNull(),
+  description: text("description").notNull(),
+  type: varchar("type").notNull(), // "Passive" or "Active"
+  category: varchar("category").notNull(), // "Universal", "Role", or "Race"
+  roleRestriction: varchar("role_restriction"), // null for Universal, specific role for Role skills
+  raceRestriction: varchar("race_restriction"), // null for non-race skills, specific race for Race skills
+  tierEffects: jsonb("tier_effects").notNull(), // Effects for each tier (1-4)
+  triggerCondition: text("trigger_condition"), // For active skills
+});
+
+export const playerSkills = pgTable("player_skills", {
+  id: uuid("id").primaryKey().notNull().$defaultFn(() => crypto.randomUUID()),
+  playerId: uuid("player_id").notNull().references(() => players.id),
+  skillId: uuid("skill_id").notNull().references(() => skills.id),
+  currentTier: integer("current_tier").notNull().default(1), // 1-4
+  acquiredAt: timestamp("acquired_at").defaultNow(),
+  lastUpgraded: timestamp("last_upgraded"),
+  triggerCount: integer("trigger_count").default(0), // How many times the skill has triggered
+});
+
+export type Skill = typeof skills.$inferSelect;
+export type InsertSkill = typeof skills.$inferInsert;
+export type PlayerSkill = typeof playerSkills.$inferSelect;
+export type InsertPlayerSkill = typeof playerSkills.$inferInsert;
