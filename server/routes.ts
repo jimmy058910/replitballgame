@@ -3634,51 +3634,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Stadium routes
-  app.get('/api/stadium', isAuthenticated, async (req: any, res) => {
-    try {
-      const userId = req.user.claims.sub;
-      const team = await storage.getTeamByUserId(userId);
-      if (!team) {
-        return res.status(404).json({ message: "Team not found" });
-      }
-
-      let stadium = await storage.getTeamStadium(team.id);
-      
-      // Create default stadium if none exists
-      if (!stadium) {
-        stadium = await storage.createStadium({
-          teamId: team.id,
-          name: `${team.name} Arena`,
-          capacity: 25000,
-          level: 1,
-          atmosphere: 50,
-          facilities: JSON.stringify({
-            concessions: 1,
-            parking: 1,
-            training: 1,
-            medical: 1,
-            security: 1
-          }),
-          revenueMultiplier: 1.0,
-          maintenanceCost: 5000
-        });
-      }
-
-      const upgrades = await storage.getStadiumUpgrades(stadium.id);
-      const events = await storage.getStadiumEvents(stadium.id);
-
-      res.json({
-        stadium,
-        upgrades,
-        events,
-        availableUpgrades: getAvailableUpgrades(stadium)
-      });
-    } catch (error) {
-      console.error("Error fetching stadium:", error);
-      res.status(500).json({ message: "Failed to fetch stadium" });
-    }
-  });
+  // Stadium routes - REMOVED: Duplicate route that conflicts with /api/stadium/full
 
   app.post('/api/stadium/upgrade', isAuthenticated, async (req: any, res) => {
     try {
@@ -5861,7 +5817,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json(responseData);
 
     } catch (error) {
+      console.error("=== STADIUM API ERROR ===");
       console.error("Error fetching stadium data:", error);
+      console.error("Error stack:", error.stack);
+      console.error("=== END STADIUM API ERROR ===");
       res.status(500).json({ message: "Failed to fetch stadium data" });
     }
   });
@@ -6368,7 +6327,7 @@ function generateEventDetails(eventType: string, stadium: any) {
         duration: 2
       };
   }
-} */
+}*/
 
   // Tournament entry route with multiple payment options
   app.post('/api/tournaments/enter', isAuthenticated, async (req: any, res) => {
