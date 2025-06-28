@@ -3664,57 +3664,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Stadium routes - REMOVED: Duplicate route that conflicts with /api/stadium/full
 
-  app.post('/api/stadium/upgrade', isAuthenticated, async (req: any, res) => {
-    try {
-      const userId = req.user.claims.sub;
-      const team = await storage.getTeamByUserId(userId);
-      if (!team) {
-        return res.status(404).json({ message: "Team not found" });
-      }
-
-      const { upgradeType, upgradeName } = req.body;
-      const stadium = await storage.getTeamStadium(team.id);
-      if (!stadium) {
-        return res.status(404).json({ message: "Stadium not found" });
-      }
-
-      const upgradeDetails = getUpgradeDetails(upgradeType, upgradeName, stadium);
-      if (!upgradeDetails) {
-        return res.status(400).json({ message: "Invalid upgrade" });
-      }
-
-      const finances = await storage.getTeamFinances(team.id);
-      if (!finances || (finances.credits || 0) < upgradeDetails.cost) {
-        return res.status(400).json({ message: "Insufficient credits" });
-      }
-
-      // Deduct cost and apply upgrade
-      await storage.updateTeamFinances(team.id, {
-        credits: (finances.credits || 0) - upgradeDetails.cost
-      });
-
-      await storage.createFacilityUpgrade({
-        stadiumId: stadium.id,
-        upgradeType,
-        upgradeName,
-        cost: upgradeDetails.cost,
-        effect: JSON.stringify(upgradeDetails.effect),
-        completedAt: new Date()
-      });
-
-      // Apply upgrade effects to stadium
-      const updatedStadium = await applyUpgradeEffect(stadium, upgradeDetails.effect);
-
-      res.json({
-        success: true,
-        message: `${upgradeName} upgrade completed!`,
-        stadium: updatedStadium
-      });
-    } catch (error) {
-      console.error("Error upgrading stadium:", error);
-      res.status(500).json({ message: "Failed to upgrade stadium" });
-    }
-  });
+  // REMOVED: Duplicate stadium upgrade route - conflicts with earlier definition
 
   app.post('/api/stadium/event', isAuthenticated, async (req: any, res) => {
     try {
