@@ -21,7 +21,7 @@ import { matchStateManager } from "./services/matchStateManager";
 import { getDivisionName, getDivisionInfo, getFullDivisionTitle } from "../shared/divisions";
 import { z } from "zod";
 import { db } from "./db";
-import { items, stadiums, facilityUpgrades, stadiumEvents, teams, players, matches, teamFinances, playerInjuries, staff, teamInventory } from "@shared/schema";
+import { items, stadiums, facilityUpgrades, stadiumEvents, teams, players, matches, teamFinances, playerInjuries, staff, teamInventory, itemStatBoostDetails, activeStatBoosts } from "@shared/schema";
 import { eq, isNotNull, gte, lte, and, desc, or } from "drizzle-orm";
 import { randomUUID } from "crypto";
 
@@ -6575,6 +6575,180 @@ function generateEventDetails(eventType: string, stadium: any) {
     } catch (error) {
       console.error("Error fetching tournaments:", error);
       res.status(500).json({ message: "Failed to fetch tournaments" });
+    }
+  });
+
+  // ===== SINGLE-GAME STAT BOOST SYSTEM =====
+  
+  // Get available stat boost items for team
+  app.get('/api/stat-boosts/available', isAuthenticated, async (req, res) => {
+    try {
+      const userId = (req.user as any)?.claims?.sub;
+      const team = await storage.getTeamByUserId(userId);
+      if (!team) return res.status(404).json({ message: "Team not found" });
+
+      // Get stat boost items from team inventory
+      const statBoostItems = [
+        { itemId: 3001, name: "Speed Boost Tonic", description: "+5 Speed for next game", attributeName: "speed", boostValue: 5, rarity: "uncommon" },
+        { itemId: 3002, name: "Power Surge Potion", description: "+5 Power for next game", attributeName: "power", boostValue: 5, rarity: "uncommon" },
+        { itemId: 3003, name: "Champion's Blessing", description: "+3 to all stats for next game", attributeName: "all_stats", boostValue: 3, rarity: "epic" }
+      ];
+
+      res.json(statBoostItems);
+    } catch (error) {
+      console.error("Error fetching available stat boosts:", error);
+      res.status(500).json({ message: "Failed to fetch available stat boosts" });
+    }
+  });
+
+  // View active stat boosts for team's next game
+  app.get('/api/stat-boosts/active', isAuthenticated, async (req, res) => {
+    try {
+      const userId = (req.user as any)?.claims?.sub;
+      const team = await storage.getTeamByUserId(userId);
+      if (!team) return res.status(404).json({ message: "Team not found" });
+
+      const activeBoosts = await db.select()
+        .from(activeStatBoosts)
+        .where(eq(activeStatBoosts.teamId, team.id));
+
+      res.json(activeBoosts);
+    } catch (error) {
+      console.error("Error fetching active boosts:", error);
+      res.status(500).json({ message: "Failed to fetch active boosts" });
+    }
+  });
+
+  // Activate a stat boost for a player
+  app.post('/api/stat-boosts/activate', isAuthenticated, async (req, res) => {
+    try {
+      const { itemId, playerId } = req.body;
+      const userId = (req.user as any)?.claims?.sub;
+      
+      const team = await storage.getTeamByUserId(userId);
+      if (!team) return res.status(404).json({ message: "Team not found" });
+
+      // Check 3-item limit
+      const currentBoosts = await db.select()
+        .from(activeStatBoosts)
+        .where(eq(activeStatBoosts.teamId, team.id));
+
+      if (currentBoosts.length >= 3) {
+        return res.status(400).json({ 
+          message: "Error: You can only have 3 active game boosts per match." 
+        });
+      }
+
+      // Get stat boost details
+      const boostDetails = await db.select()
+        .from(itemStatBoostDetails)
+        .where(eq(itemStatBoostDetails.itemId, itemId))
+        .limit(1);
+
+      if (!boostDetails.length) {
+        return res.status(404).json({ message: "Stat boost item not found" });
+      }
+
+      const boost = boostDetails[0];
+      const player = await storage.getPlayerById(playerId);
+      if (!player) return res.status(404).json({ message: "Player not found" });
+
+      // Get item name
+      const itemNames = {
+        3001: "Speed Boost Tonic",
+        3002: "Power Surge Potion", 
+        3003: "Champion's Blessing"
+      };
+
+      // Activate the boost
+      await db.insert(activeStatBoosts).values({
+        teamId: team.id,
+        playerId: playerId,
+        itemId: itemId,
+        itemName: itemNames[itemId] || "Unknown Item",
+        attributeName: boost.attributeName,
+        boostValue: boost.boostValue,
+        gameType: "league"
+      });
+
+      res.json({ 
+        success: true, 
+        message: `Success! ${itemNames[itemId]} is now active for ${player.name} in your next League game.`
+      });
+    } catch (error) {
+      console.error("Error activating stat boost:", error);
+      res.status(500).json({ message: "Failed to activate stat boost" });
+    }
+  });
+
+  // Cancel/deactivate a stat boost
+  app.delete('/api/stat-boosts/:boostId', isAuthenticated, async (req, res) => {
+    try {
+      const { boostId } = req.params;
+      const userId = (req.user as any)?.claims?.sub;
+      
+      const team = await storage.getTeamByUserId(userId);
+      if (!team) return res.status(404).json({ message: "Team not found" });
+
+      // Remove the boost
+      await db.delete(activeStatBoosts)
+        .where(and(
+          eq(activeStatBoosts.id, boostId),
+          eq(activeStatBoosts.teamId, team.id)
+        ));
+
+      res.json({ success: true, message: "Stat boost cancelled successfully" });
+    } catch (error) {
+      console.error("Error cancelling stat boost:", error);
+      res.status(500).json({ message: "Failed to cancel stat boost" });
+    }
+  });
+
+  // Get boosted stats for a team during match simulation (internal use)
+  app.get('/api/stat-boosts/apply/:teamId', async (req, res) => {
+    try {
+      const { teamId } = req.params;
+      
+      const activeBoosts = await db.select()
+        .from(activeStatBoosts)
+        .where(eq(activeStatBoosts.teamId, teamId));
+
+      // Group boosts by player
+      const playerBoosts = {};
+      activeBoosts.forEach(boost => {
+        if (!playerBoosts[boost.playerId]) {
+          playerBoosts[boost.playerId] = {};
+        }
+        
+        if (boost.attributeName === 'all_stats') {
+          // Apply to all stats
+          ['speed', 'power', 'throwing', 'catching', 'kicking', 'stamina', 'leadership', 'agility'].forEach(stat => {
+            playerBoosts[boost.playerId][stat] = (playerBoosts[boost.playerId][stat] || 0) + boost.boostValue;
+          });
+        } else {
+          playerBoosts[boost.playerId][boost.attributeName] = (playerBoosts[boost.playerId][boost.attributeName] || 0) + boost.boostValue;
+        }
+      });
+
+      res.json(playerBoosts);
+    } catch (error) {
+      console.error("Error applying stat boosts:", error);
+      res.status(500).json({ message: "Failed to apply stat boosts" });
+    }
+  });
+
+  // Clear all active boosts after a match (post-game cleanup)
+  app.post('/api/stat-boosts/cleanup/:teamId', async (req, res) => {
+    try {
+      const { teamId } = req.params;
+      
+      await db.delete(activeStatBoosts)
+        .where(eq(activeStatBoosts.teamId, teamId));
+
+      res.json({ success: true, message: "Active boosts cleared after match" });
+    } catch (error) {
+      console.error("Error cleaning up stat boosts:", error);
+      res.status(500).json({ message: "Failed to cleanup stat boosts" });
     }
   });
 

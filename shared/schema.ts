@@ -221,6 +221,28 @@ export const staff = pgTable("staff", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
+// Item Stat Boost Details table - Links consumable items to specific stat boosts
+export const itemStatBoostDetails = pgTable("item_stat_boost_details", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  itemId: integer("item_id").notNull(), // Links to Items.item_id
+  attributeName: varchar("attribute_name").notNull(), // speed, power, throwing, catching, etc.
+  boostValue: integer("boost_value").notNull(), // The temporary bonus points (+5, +3, etc.)
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// Active Stat Boosts table - Tracks activated boosts per team for next game
+export const activeStatBoosts = pgTable("active_stat_boosts", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  teamId: uuid("team_id").references(() => teams.id).notNull(),
+  playerId: uuid("player_id").references(() => players.id).notNull(),
+  itemId: integer("item_id").notNull(),
+  itemName: varchar("item_name").notNull(),
+  attributeName: varchar("attribute_name").notNull(),
+  boostValue: integer("boost_value").notNull(),
+  activatedAt: timestamp("activated_at").defaultNow(),
+  gameType: varchar("game_type").default("league"), // only for league games
+});
+
 // Team finances table
 export const teamFinances = pgTable("team_finances", {
   id: uuid("id").primaryKey().defaultRandom(),
