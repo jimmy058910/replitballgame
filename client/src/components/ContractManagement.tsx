@@ -255,8 +255,9 @@ export default function ContractManagement() {
 
       <Tabs defaultValue="active" className="space-y-4">
         <div className="flex items-center justify-between">
-          <TabsList className="grid w-full max-w-md grid-cols-3">
+          <TabsList className="grid w-full max-w-md grid-cols-4">
             <TabsTrigger value="active">Active Contracts</TabsTrigger>
+            <TabsTrigger value="all-players">All Players</TabsTrigger>
             <TabsTrigger value="negotiate">Negotiate</TabsTrigger>
             <TabsTrigger value="analytics">Analytics</TabsTrigger>
           </TabsList>
@@ -490,6 +491,67 @@ export default function ContractManagement() {
                 </CardContent>
               </Card>
             ))}
+          </div>
+        </TabsContent>
+
+        <TabsContent value="all-players" className="space-y-4">
+          <div className="grid gap-4">
+            <Card>
+              <CardHeader>
+                <CardTitle>All Team Players ({players?.length || 0})</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid gap-4">
+                  {players?.map((player: any) => {
+                    const hasContract = contracts?.some((c: any) => c.playerId === player.id);
+                    const contract = contracts?.find((c: any) => c.playerId === player.id);
+                    
+                    return (
+                      <Card key={player.id} className="bg-gray-800/50">
+                        <CardContent className="p-4">
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-3">
+                              <div>
+                                <p className="font-medium">{player.name}</p>
+                                <p className="text-sm text-gray-400">
+                                  {player.position} • Overall: {player.overall} • Power: {player.speed + player.power + player.throwing + player.catching + player.kicking}
+                                </p>
+                              </div>
+                            </div>
+                            <div className="text-right space-y-1">
+                              {hasContract ? (
+                                <div>
+                                  <p className="font-bold text-green-400">
+                                    ${(contract.salary / 1000000).toFixed(1)}M/year
+                                  </p>
+                                  <Badge variant="default" className="text-xs">
+                                    {contract.remainingYears} years left
+                                  </Badge>
+                                </div>
+                              ) : (
+                                <div>
+                                  <p className="text-gray-400 text-sm">No Contract</p>
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => {
+                                      setSelectedPlayer(player.id);
+                                      setShowNegotiationDialog(true);
+                                    }}
+                                  >
+                                    Sign Contract
+                                  </Button>
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    );
+                  })}
+                </div>
+              </CardContent>
+            </Card>
           </div>
         </TabsContent>
 

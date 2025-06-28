@@ -82,11 +82,6 @@ export default function Dashboard() {
     refetchInterval: 60000, // Refresh every minute
   });
 
-  const { data: serverTime } = useQuery({
-    queryKey: ["/api/server/time"],
-    refetchInterval: 30000, // Update every 30 seconds
-  });
-
   if (isLoading || teamLoading) {
     return (
       <div className="min-h-screen bg-gray-900 flex items-center justify-center">
