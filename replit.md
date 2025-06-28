@@ -34,7 +34,18 @@ Built as a React + Express web application with PostgreSQL database, using moder
 
 ## Recent Changes
 
-### December 28, 2025 (Later)  
+### December 28, 2025 (Stadium System Fixed)
+- ✓ CRITICAL FIX: Completely resolved stadium API routing and database schema issues
+- ✓ Fixed Drizzle ORM schema mismatch - updated all stadium column names from snake_case to camelCase to match database
+- ✓ Positioned stadium route correctly after authentication middleware setup to prevent crashes
+- ✓ Stadium now displays proper data: 15,000 capacity, Level 2, 50% atmosphere, 10% revenue boost
+- ✓ Enhanced facilities system showing all upgrade levels (Seating, Concessions, Parking, etc.)
+- ✓ Added automatic stadium upgrade logic that improves existing stadiums with better defaults
+- ✓ Fixed stadium data persistence and retrieval from PostgreSQL database
+- ✓ Stadium upgrades system now functional with 3 available upgrade options
+- ✓ Revenue calculation and match history display working correctly
+
+### December 28, 2025 (Earlier)  
 - ✓ UNIFIED DIVISION NAMING: Implemented consistent division tier system across all 8 divisions
 - ✓ Created shared/divisions.ts utility with standardized naming (Diamond, Platinum, Gold, Silver, Bronze, Copper, Iron, Stone)
 - ✓ Updated server routes and frontend components to use unified division system instead of inconsistent local naming
