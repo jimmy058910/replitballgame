@@ -2258,8 +2258,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Store formation in team data
       await storage.updateTeam(teamId, { 
         formation: JSON.stringify(formation),
-        substitutionOrder: JSON.stringify(substitutionOrder || {}),
-        updatedAt: new Date()
+        substitutionOrder: JSON.stringify(substitutionOrder || {})
       });
 
       console.log("Formation saved successfully for team:", teamId);

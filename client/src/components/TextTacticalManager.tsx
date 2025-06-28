@@ -272,24 +272,39 @@ export default function TextTacticalManager({ players, savedFormation }: TextTac
 
       console.log("Sending formation data:", { formation: formationData, substitutionOrder });
       
-      const response = await apiRequest("/api/teams/my/formation", "POST", { 
-        formation: formationData, 
-        substitutionOrder 
-      });
-      
-      console.log("Formation save response:", response);
-      return response;
+      try {
+        const response = await apiRequest("/api/teams/my/formation", "POST", { 
+          formation: formationData, 
+          substitutionOrder 
+        });
+        
+        console.log("Formation save response:", response);
+        return response;
+      } catch (error) {
+        console.error("API Request failed:", error);
+        throw error;
+      }
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
+      console.log("Formation save success:", data);
       toast({ title: "Formation saved successfully!" });
       queryClient.invalidateQueries({ queryKey: ["/api/teams/my/formation"] });
     },
     onError: (error) => {
       console.error("Formation save error:", error);
-      toast({
-        title: "Failed to save formation",
-        variant: "destructive",
-      });
+      // Check if it's actually an error or just empty response
+      if (error && error.message) {
+        toast({
+          title: "Failed to save formation",
+          description: error.message,
+          variant: "destructive",
+        });
+      } else {
+        // Might be a false positive error
+        console.log("Possible false positive error, checking if formation was actually saved");
+        queryClient.invalidateQueries({ queryKey: ["/api/teams/my/formation"] });
+        toast({ title: "Formation may have been saved - please check!" });
+      }
     },
   });
 
