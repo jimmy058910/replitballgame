@@ -33,6 +33,9 @@ export default function StadiumRevamped() {
     queryKey: ["/api/stadium/full"],
   });
 
+  // Debug stadium data
+  console.log("Stadium data received:", stadiumData);
+
   const { data: finances } = useQuery({
     queryKey: ["/api/teams/my/finances"],
   });
@@ -40,7 +43,8 @@ export default function StadiumRevamped() {
   const upgradeMutation = useMutation({
     mutationFn: async (upgrade: StadiumUpgrade) => {
       return await apiRequest("/api/stadium/upgrade", "POST", {
-        upgradeId: upgrade.id
+        upgradeType: upgrade.type,
+        upgradeName: upgrade.name
       });
     },
     onSuccess: () => {
