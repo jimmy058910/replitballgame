@@ -595,13 +595,52 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // League routes
+  // Helper function to calculate team streak
+  function calculateStreak(matches: any[], teamId: string): string {
+    // Get last 5 completed matches for this team, sorted by completion date
+    const recentMatches = matches
+      .filter(match => 
+        (match.homeTeamId === teamId || match.awayTeamId === teamId) && 
+        match.status === 'completed'
+      )
+      .sort((a, b) => new Date(b.completedAt || b.updatedAt).getTime() - new Date(a.completedAt || a.updatedAt).getTime())
+      .slice(0, 5);
+
+    if (recentMatches.length === 0) return "-";
+
+    let streak = "";
+    let streakType = "";
+    let streakCount = 0;
+
+    for (const match of recentMatches) {
+      const isHome = match.homeTeamId === teamId;
+      const teamScore = isHome ? match.homeScore : match.awayScore;
+      const opponentScore = isHome ? match.awayScore : match.homeScore;
+      
+      let result = "";
+      if (teamScore > opponentScore) result = "W";
+      else if (teamScore === opponentScore) result = "T";
+      else result = "L";
+
+      if (streakType === "" || streakType === result) {
+        streakType = result;
+        streakCount++;
+      } else {
+        break;
+      }
+    }
+
+    return `${streakType}${streakCount}`;
+  }
+
+  // Comprehensive League Standings API
   app.get('/api/leagues/:division/standings', isAuthenticated, async (req, res) => {
     try {
       const division = parseInt(req.params.division);
       if (isNaN(division) || division < 1 || division > 8) {
         return res.status(400).json({ message: "Invalid division parameter" });
       }
+      
       let teams = await storage.getTeamsByDivision(division);
       
       // If no teams exist in this division, create AI teams
@@ -682,24 +721,77 @@ export async function registerRoutes(app: Express): Promise<Server> {
         teams = await storage.getTeamsByDivision(division);
         console.log(`Created ${teams.length} AI teams for division ${division}`);
       }
+
+      // Get all completed matches for this division
+      const divisionMatches = await storage.getMatchesByDivision(division);
       
-      // Sort teams by league standings (points, then wins, then goals for tie-breaking)
-      const sortedTeams = teams.sort((a, b) => {
-        const aPoints = a.points || 0;
-        const bPoints = b.points || 0;
-        const aWins = a.wins || 0;
-        const bWins = b.wins || 0;
-        const aLosses = a.losses || 0;
-        const bLosses = b.losses || 0;
+      // Calculate comprehensive statistics for each team
+      const teamStats = teams.map(team => {
+        const teamMatches = divisionMatches.filter(match => 
+          match.homeTeamId === team.id || match.awayTeamId === team.id
+        );
+
+        const completedMatches = teamMatches.filter(match => match.status === 'completed');
         
-        if (bPoints !== aPoints) return bPoints - aPoints;
-        if (bWins !== aWins) return bWins - aWins;
-        return aLosses - bLosses; // fewer losses is better
+        let wins = 0, losses = 0, ties = 0;
+        let pointsFor = 0, pointsAgainst = 0;
+
+        completedMatches.forEach(match => {
+          const isHome = match.homeTeamId === team.id;
+          const teamScore = isHome ? (match.homeScore || 0) : (match.awayScore || 0);
+          const opponentScore = isHome ? (match.awayScore || 0) : (match.homeScore || 0);
+          
+          pointsFor += teamScore;
+          pointsAgainst += opponentScore;
+          
+          if (teamScore > opponentScore) {
+            wins++;
+          } else if (teamScore === opponentScore) {
+            ties++;
+          } else {
+            losses++;
+          }
+        });
+
+        const leaguePoints = (wins * 3) + (ties * 1); // Win=3, Tie=1, Loss=0
+        const pointDifferential = pointsFor - pointsAgainst;
+        const streak = calculateStreak(completedMatches, team.id);
+
+        return {
+          id: team.id,
+          name: team.name,
+          wins,
+          losses,
+          ties,
+          points: leaguePoints,
+          pointsFor,
+          pointsAgainst,
+          pointDifferential,
+          streak,
+          // Keep original team data for compatibility
+          division: team.division,
+          userId: team.userId
+        };
       });
+
+      // Sort teams by comprehensive league standings
+      // Primary: League Points (PTS), Secondary: Point Differential (DIFF), Tertiary: Points For (PF)
+      const sortedTeams = teamStats.sort((a, b) => {
+        if ((b.points || 0) !== (a.points || 0)) return (b.points || 0) - (a.points || 0);
+        if ((b.pointDifferential || 0) !== (a.pointDifferential || 0)) return (b.pointDifferential || 0) - (a.pointDifferential || 0);
+        if ((b.pointsFor || 0) !== (a.pointsFor || 0)) return (b.pointsFor || 0) - (a.pointsFor || 0);
+        return (a.pointsAgainst || 0) - (b.pointsAgainst || 0); // fewer points against is better
+      });
+
+      // Add ranking position
+      const rankedTeams = sortedTeams.map((team, index) => ({
+        ...team,
+        rank: index + 1
+      }));
       
-      res.json(sortedTeams);
+      res.json(rankedTeams);
     } catch (error) {
-      console.error("Error fetching standings:", error);
+      console.error("Error fetching comprehensive standings:", error);
       res.status(500).json({ message: "Failed to fetch standings" });
     }
   });
