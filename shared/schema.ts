@@ -700,19 +700,19 @@ export const stadiums = pgTable("stadiums", {
   name: varchar("name").notNull(),
   level: integer("level").default(1), // 1-10 stadium levels
   capacity: integer("capacity").default(5000),
-  fieldType: varchar("field_type").default("standard"), // standard, large, compact, synthetic, natural
-  fieldSize: varchar("field_size").default("regulation"), // regulation, extended, compact
+  fieldType: varchar("fieldType").default("standard"), // standard, large, compact, synthetic, natural
+  fieldSize: varchar("fieldSize").default("regulation"), // regulation, extended, compact
   lighting: varchar("lighting").default("basic"), // basic, professional, premium
   surface: varchar("surface").default("grass"), // grass, synthetic, hybrid
   drainage: varchar("drainage").default("basic"), // basic, advanced, premium
   facilities: jsonb("facilities").default({}), // parking, concessions, luxury_boxes, etc.
-  upgradeCost: integer("upgrade_cost").default(50000),
-  maintenanceCost: integer("maintenance_cost").default(5000),
-  revenueMultiplier: integer("revenue_multiplier").default(100), // percentage
-  weatherResistance: integer("weather_resistance").default(50), // 0-100%
-  homeAdvantage: integer("home_advantage").default(5), // 0-20% boost
-  constructionDate: timestamp("construction_date").defaultNow(),
-  lastUpgrade: timestamp("last_upgrade"),
+  upgradeCost: integer("upgradeCost").default(50000),
+  maintenanceCost: integer("maintenanceCost").default(5000),
+  revenueMultiplier: integer("revenueMultiplier").default(100), // percentage
+  weatherResistance: integer("weatherResistance").default(50), // 0-100%
+  homeAdvantage: integer("homeAdvantage").default(5), // 0-20% boost
+  constructionDate: timestamp("constructionDate").defaultNow(),
+  lastUpgrade: timestamp("lastUpgrade"),
 });
 
 export const facilityUpgrades = pgTable("facility_upgrades", {
