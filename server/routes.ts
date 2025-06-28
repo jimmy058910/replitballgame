@@ -1475,8 +1475,161 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Store routes
   app.get('/api/store', isAuthenticated, async (req, res) => {
     try {
-      // Generate daily rotating store items
-      const today = new Date().toDateString();
+      // Generate daily rotating store items (rotates at 3AM server time)
+      const now = new Date();
+      const rotationDate = new Date(now);
+      if (now.getHours() < 3) {
+        rotationDate.setDate(now.getDate() - 1);
+      }
+      const dayKey = rotationDate.toDateString();
+      
+      // Create a seed from the date for consistent daily rotation
+      const seed = dayKey.split('').reduce((a, b) => a + b.charCodeAt(0), 0);
+      
+      // All available premium items
+      const allPremiumItems = [
+        {
+          id: "legendary_helmet",
+          name: "Crown of Champions",
+          description: "Legendary headgear that inspires greatness",
+          price: 50,
+          currency: "gems",
+          rarity: "legendary",
+          icon: "👑",
+          statBoosts: { leadership: 8, power: 5, stamina: 4 }
+        },
+        {
+          id: "mythic_boots",
+          name: "Wings of Victory",
+          description: "Mythical boots that grant supernatural speed",
+          price: 75,
+          currency: "gems", 
+          rarity: "mythic",
+          icon: "🪶",
+          statBoosts: { speed: 10, agility: 8, kicking: 3 }
+        },
+        {
+          id: "epic_armor",
+          name: "Dragonscale Vest",
+          description: "Armor forged from ancient dragon scales",
+          price: 60,
+          currency: "gems",
+          rarity: "epic",
+          icon: "🐉",
+          statBoosts: { power: 7, stamina: 6, catching: -1 }
+        },
+        {
+          id: "rare_gloves",
+          name: "Midas Touch Gloves",
+          description: "Golden gloves that never miss a catch",
+          price: 35,
+          currency: "gems",
+          rarity: "rare",
+          icon: "✨",
+          statBoosts: { catching: 6, throwing: 4, leadership: 2 }
+        },
+        {
+          id: "divine_amulet",
+          name: "Amulet of Endless Energy",
+          description: "Divine artifact that grants infinite stamina",
+          price: 100,
+          currency: "gems",
+          rarity: "divine",
+          icon: "🔮",
+          statBoosts: { stamina: 12, speed: 4, agility: 4 }
+        },
+        {
+          id: "speed_essence",
+          name: "Lightning Essence",
+          description: "Pure speed crystallized into wearable form",
+          price: 45,
+          currency: "gems",
+          rarity: "epic",
+          icon: "⚡",
+          statBoosts: { speed: 8, agility: 6, stamina: 2 }
+        }
+      ];
+      
+      // All available equipment items  
+      const allEquipment = [
+        {
+          id: "pro_helmet",
+          name: "Pro League Helmet",
+          description: "Professional grade protection with enhanced visibility",
+          price: 25000,
+          currency: "credits",
+          rarity: "rare",
+          icon: "🪖",
+          statBoosts: { power: 4, stamina: 3, leadership: 2 }
+        },
+        {
+          id: "speed_cleats",
+          name: "Velocity Cleats",
+          description: "High-tech cleats engineered for maximum speed",
+          price: 18000,
+          currency: "credits",
+          rarity: "uncommon",
+          icon: "👟",
+          statBoosts: { speed: 6, agility: 4 }
+        },
+        {
+          id: "power_gloves",
+          name: "Titan Grip Gloves",
+          description: "Heavy-duty gloves that enhance throwing power",
+          price: 15000,
+          currency: "credits",
+          rarity: "uncommon",
+          icon: "🧤",
+          statBoosts: { throwing: 5, power: 3, catching: 2 }
+        },
+        {
+          id: "agility_shorts",
+          name: "Windrunner Shorts",
+          description: "Aerodynamic shorts that improve mobility",
+          price: 12000,
+          currency: "credits",
+          rarity: "common",
+          icon: "🩳",
+          statBoosts: { agility: 5, speed: 2 }
+        },
+        {
+          id: "endurance_vest",
+          name: "Marathon Vest",
+          description: "Advanced compression vest for sustained performance",
+          price: 22000,
+          currency: "credits",
+          rarity: "rare",
+          icon: "🦺",
+          statBoosts: { stamina: 6, power: 2, leadership: 1 }
+        },
+        {
+          id: "precision_visor",
+          name: "Eagle Eye Visor",
+          description: "High-tech visor that enhances accuracy and focus",
+          price: 20000,
+          currency: "credits",
+          rarity: "rare",
+          icon: "🥽",
+          statBoosts: { throwing: 6, catching: 4, leadership: 2 }
+        }
+      ];
+      
+      // Select 3 premium items and 4 equipment items for daily rotation
+      const seedRandom = (seed: number) => {
+        return function() {
+          seed = (seed * 9301 + 49297) % 233280;
+          return seed / 233280;
+        };
+      };
+      
+      const rng = seedRandom(seed);
+      const shuffledPremium = [...allPremiumItems].sort(() => rng() - 0.5);
+      const shuffledEquipment = [...allEquipment].sort(() => rng() - 0.5);
+      
+      const dailyPremiumItems = shuffledPremium.slice(0, 3);
+      const dailyEquipment = shuffledEquipment.slice(0, 4);
+      
+      // Static items that don't rotate
       const storeItems = [
         {
           id: "helmet_basic",
@@ -1529,46 +1682,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       ];
 
-      const premiumItems = [
-        {
-          id: "legendary_armor",
-          name: "Legendary Armor Set",
-          description: "Complete protection with massive stat boosts",
-          price: 100,
-          currency: "currency",
-          rarity: "legendary",
-          icon: "⚔️",
-          statBoosts: { power: 10, stamina: 8, leadership: 5 }
-        },
-        {
-          id: "premium_scout",
-          name: "Elite Scout Package",
-          description: "Advanced scouting reports revealing all opponent stats",
-          price: 50,
-          currency: "currency",
-          rarity: "epic",
-          icon: "🔍"
-        },
-        {
-          id: "stamina_boost",
-          name: "Team Energy Boost",
-          description: "Instantly restore full stamina to all players",
-          price: 25,
-          currency: "currency",
-          rarity: "rare",
-          icon: "⚡"
-        },
-        {
-          id: "injury_protection",
-          name: "Divine Protection",
-          description: "Prevent all injuries for the next 5 matches",
-          price: 75,
-          currency: "currency",
-          rarity: "legendary",
-          icon: "🛡️"
-        }
-      ];
-
       const tournamentEntries = [
         {
           id: "exhibition_bonus_games",
@@ -1596,14 +1709,71 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       ];
 
+      // Credit packages for purchasing Premium Gems with real money
+      const creditPackages = [
+        {
+          id: "gems_starter",
+          name: "Starter Gem Pack",
+          description: "Perfect for new managers getting started",
+          price: 499, // $4.99 in cents
+          currency: "usd",
+          gems: 50,
+          rarity: "common",
+          icon: "💎",
+          bonus: 0
+        },
+        {
+          id: "gems_regular",
+          name: "Regular Gem Pack",
+          description: "Great value for regular purchases",
+          price: 999, // $9.99 in cents
+          currency: "usd",
+          gems: 110,
+          rarity: "rare",
+          icon: "💎",
+          bonus: 10 // 10 bonus gems
+        },
+        {
+          id: "gems_premium",
+          name: "Premium Gem Pack",
+          description: "Best value pack for serious managers",
+          price: 1999, // $19.99 in cents
+          currency: "usd",
+          gems: 250,
+          rarity: "epic",
+          icon: "💎",
+          bonus: 50 // 50 bonus gems
+        },
+        {
+          id: "gems_ultimate",
+          name: "Ultimate Gem Pack",
+          description: "Maximum value for championship teams",
+          price: 4999, // $49.99 in cents
+          currency: "usd",
+          gems: 700,
+          rarity: "legendary",
+          icon: "💎",
+          bonus: 200 // 200 bonus gems
+        }
+      ];
+
       const resetTime = new Date();
-      resetTime.setHours(24, 0, 0, 0); // Next midnight
+      resetTime.setHours(3, 0, 0, 0); // Next 3AM
+      if (resetTime <= now) {
+        resetTime.setDate(resetTime.getDate() + 1);
+      }
 
       res.json({
         items: storeItems,
-        premiumItems,
+        premiumItems: dailyPremiumItems,
+        equipment: dailyEquipment,
         tournamentEntries,
-        resetTime
+        creditPackages,
+        resetTime,
+        rotationInfo: {
+          currentDay: dayKey,
+          nextRotationTime: resetTime.toISOString()
+        }
       });
     } catch (error) {
       console.error("Error fetching store:", error);
@@ -4674,6 +4844,96 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // SuperUser Player Management
+  app.post('/api/superuser/add-players', isAuthenticated, async (req, res) => {
+    try {
+      const userId = (req.user as any)?.claims?.sub;
+      if (userId !== "44010914") {
+        return res.status(403).json({ message: "Unauthorized: SuperUser access required" });
+      }
+
+      const { teamId, count = 3 } = req.body;
+      const createdPlayers = [];
+
+      const races = ['human', 'sylvan', 'gryll', 'lumina', 'umbra'];
+      const firstNames = {
+        human: ['Alex', 'Jordan', 'Casey', 'Morgan', 'Riley'],
+        sylvan: ['Elarian', 'Thalanis', 'Silviana', 'Vaelthore', 'Nimrodel'],
+        gryll: ['Grimjaw', 'Thokgar', 'Urdnot', 'Grimaxe', 'Thorgrim'],
+        lumina: ['Celestine', 'Aurelius', 'Luminara', 'Radiance', 'Stellaris'],
+        umbra: ['Shadowbane', 'Voidwhisper', 'Darkstorm', 'Nightfall', 'Vex']
+      };
+      const lastNames = {
+        human: ['Stone', 'River', 'Hill', 'Cross', 'Vale'],
+        sylvan: ['Moonwhisper', 'Starleaf', 'Windrunner', 'Dawnblade', 'Nightshade'],
+        gryll: ['Ironhide', 'Stormfist', 'Rockbreaker', 'Wildaxe', 'Bloodfang'],
+        lumina: ['Starshard', 'Lightbringer', 'Dawnfire', 'Brightblade', 'Sunward'],
+        umbra: ['Voidstep', 'Darkbane', 'Shadowweaver', 'Nightblade', 'Grimheart']
+      };
+
+      for (let i = 0; i < count; i++) {
+        const race = races[Math.floor(Math.random() * races.length)];
+        const firstName = firstNames[race][Math.floor(Math.random() * firstNames[race].length)];
+        const lastName = lastNames[race][Math.floor(Math.random() * lastNames[race].length)];
+        const name = `${firstName} ${lastName}`;
+
+        // Generate random stats (18-35 range for balanced players)
+        const speed = 18 + Math.floor(Math.random() * 18);
+        const power = 18 + Math.floor(Math.random() * 18);
+        const throwing = 18 + Math.floor(Math.random() * 18);
+        const catching = 18 + Math.floor(Math.random() * 18);
+        const kicking = 18 + Math.floor(Math.random() * 18);
+        const stamina = 18 + Math.floor(Math.random() * 18);
+        const leadership = 18 + Math.floor(Math.random() * 18);
+        const agility = 18 + Math.floor(Math.random() * 18);
+
+        // Determine tactical role based on stats
+        const passerScore = (throwing * 2) + (leadership * 1.5);
+        const runnerScore = (speed * 2) + (agility * 1.5);
+        const blockerScore = (power * 2) + (stamina * 1.5);
+        const maxScore = Math.max(passerScore, runnerScore, blockerScore);
+        
+        let tacticalRole = "Blocker";
+        if (maxScore === passerScore) tacticalRole = "Passer";
+        else if (maxScore === runnerScore) tacticalRole = "Runner";
+
+        const player = await storage.createPlayer({
+          teamId: teamId,
+          firstName: firstName,
+          lastName: lastName,
+          name: name,
+          race: race,
+          speed: speed,
+          power: power,
+          throwing: throwing,
+          catching: catching,
+          kicking: kicking,
+          stamina: stamina,
+          leadership: leadership,
+          agility: agility,
+          age: 18 + Math.floor(Math.random() * 10),
+          position: tacticalRole,
+          tacticalRole: tacticalRole,
+          salary: 30000 + Math.floor(Math.random() * 25000),
+          contractSeasons: 3,
+          contractStartSeason: 0,
+          isStarter: false,
+          isMarketplace: false
+        });
+        
+        createdPlayers.push(player);
+      }
+
+      res.json({ 
+        message: `Successfully created ${count} players`,
+        players: createdPlayers
+      });
+    } catch (error) {
+      console.error("Error creating players:", error);
+      res.status(500).json({ message: "Failed to create players" });
+    }
+  });
+
   // Stripe Payment Processing Routes
 
   // Seed default credit packages (run once)
@@ -4880,6 +5140,97 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error fetching payment history:", error);
       res.status(500).json({ message: "Failed to fetch payment history" });
+    }
+  });
+
+  // Premium Gem purchase with Stripe
+  app.post("/api/payments/purchase-gems", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const { packageId } = req.body;
+
+      // Find the gem package
+      const gemPackages = [
+        { id: "gems_starter", price: 499, gems: 50, bonus: 0 },
+        { id: "gems_regular", price: 999, gems: 110, bonus: 10 },
+        { id: "gems_premium", price: 1999, gems: 250, bonus: 50 },
+        { id: "gems_ultimate", price: 4999, gems: 700, bonus: 200 }
+      ];
+
+      const gemPackage = gemPackages.find(pkg => pkg.id === packageId);
+      if (!gemPackage) {
+        return res.status(404).json({ message: "Gem package not found" });
+      }
+
+      const user = await storage.getUser(userId);
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+
+      // Create payment intent for gems
+      const paymentIntent = await stripe.paymentIntents.create({
+        amount: gemPackage.price,
+        currency: "usd",
+        metadata: {
+          userId: userId,
+          packageId: packageId,
+          gems: gemPackage.gems.toString(),
+          bonusGems: gemPackage.bonus.toString(),
+          type: "gem_purchase"
+        }
+      });
+
+      res.json({ 
+        clientSecret: paymentIntent.client_secret,
+        paymentIntentId: paymentIntent.id
+      });
+    } catch (error: any) {
+      console.error("Error creating gem payment intent:", error);
+      res.status(500).json({ message: "Error creating payment intent: " + error.message });
+    }
+  });
+
+  // Premium Gem to Credits conversion
+  app.post("/api/store/convert-gems", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const { gemsAmount } = req.body;
+
+      if (!gemsAmount || gemsAmount < 1) {
+        return res.status(400).json({ message: "Invalid gems amount" });
+      }
+
+      const team = await storage.getTeamByUserId(userId);
+      if (!team) {
+        return res.status(404).json({ message: "Team not found" });
+      }
+
+      const finances = await storage.getTeamFinances(team.id);
+      if (!finances) {
+        return res.status(404).json({ message: "Team finances not found" });
+      }
+
+      if ((finances.premiumCurrency || 0) < gemsAmount) {
+        return res.status(400).json({ message: "Insufficient Premium Gems" });
+      }
+
+      // Conversion rate: 1 gem = 1000 credits
+      const creditsToAdd = gemsAmount * 1000;
+
+      await storage.updateTeamFinances(team.id, {
+        premiumCurrency: (finances.premiumCurrency || 0) - gemsAmount,
+        credits: (finances.credits || 0) + creditsToAdd
+      });
+
+      res.json({ 
+        success: true,
+        gemsSpent: gemsAmount,
+        creditsGained: creditsToAdd,
+        message: `Converted ${gemsAmount} Premium Gems to ${creditsToAdd} Credits`
+      });
+    } catch (error) {
+      console.error("Error converting gems to credits:", error);
+      res.status(500).json({ message: "Failed to convert gems" });
     }
   });
 

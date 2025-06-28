@@ -8,13 +8,14 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import { Settings, Calendar, Trophy, CreditCard, Bell, Shield } from "lucide-react";
+import { Settings, Calendar, Trophy, CreditCard, Bell, Shield, Users } from "lucide-react";
 
 export default function SuperUser() {
   const { toast } = useToast();
   const [creditsAmount, setCreditsAmount] = useState(50000);
   const [premiumAmount, setPremiumAmount] = useState(100);
   const [divisionToCleanup, setDivisionToCleanup] = useState(8);
+  const [playerCount, setPlayerCount] = useState(3);
 
   const { data: team } = useQuery({
     queryKey: ["/api/teams/my"],
@@ -127,6 +128,34 @@ export default function SuperUser() {
       toast({
         title: "Error",
         description: "Failed to grant credits",
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Add players mutation
+  const addPlayersMutation = useMutation({
+    mutationFn: async () => {
+      if (!team?.id) {
+        throw new Error("No team found");
+      }
+      return await apiRequest("/api/superuser/add-players", "POST", {
+        teamId: team.id,
+        count: playerCount
+      });
+    },
+    onSuccess: (data: any) => {
+      toast({
+        title: "Players Added",
+        description: `Successfully created ${playerCount} players for your team`,
+      });
+      queryClient.invalidateQueries({ queryKey: ["/api/teams/ee12a2d3-f175-42da-bf89-97948494de8a/players"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/teams/my"] });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: "Failed to add players",
         variant: "destructive",
       });
     },
@@ -304,7 +333,39 @@ export default function SuperUser() {
             </CardContent>
           </Card>
 
-
+          {/* Player Management */}
+          <Card className="bg-gray-800 border-gray-700">
+            <CardHeader>
+              <CardTitle className="font-orbitron text-xl flex items-center">
+                <Users className="w-5 h-5 mr-2 text-purple-400" />
+                Player Management
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <p className="text-gray-400 text-sm">
+                Add balanced players to teams that are below the 10-player minimum for testing.
+              </p>
+              <div>
+                <label className="block text-sm font-medium mb-2">Number of Players</label>
+                <Input
+                  type="number"
+                  min="1"
+                  max="10"
+                  value={playerCount}
+                  onChange={(e) => setPlayerCount(Number(e.target.value))}
+                  className="bg-gray-700 border-gray-600"
+                />
+              </div>
+              <Button 
+                onClick={() => addPlayersMutation.mutate()}
+                disabled={addPlayersMutation.isPending || !team?.id}
+                className="w-full"
+                variant="outline"
+              >
+                {addPlayersMutation.isPending ? "Adding Players..." : `Add ${playerCount} Players`}
+              </Button>
+            </CardContent>
+          </Card>
 
           {/* League Management */}
           <Card className="bg-gray-800 border-gray-700">
