@@ -696,7 +696,7 @@ export type InsertInjuryReport = typeof injuryReports.$inferInsert;
 // Stadium and facility management
 export const stadiums = pgTable("stadiums", {
   id: varchar("id").primaryKey().notNull().$defaultFn(() => nanoid()),
-  teamId: varchar("team_id").notNull().references(() => teams.id),
+  teamId: varchar("teamId").notNull().references(() => teams.id),
   name: varchar("name").notNull(),
   level: integer("level").default(1), // 1-10 stadium levels
   capacity: integer("capacity").default(5000),
