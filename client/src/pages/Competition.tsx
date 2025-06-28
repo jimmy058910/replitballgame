@@ -52,7 +52,7 @@ export default function Competition() {
 
   const challengeMutation = useMutation({
     mutationFn: async (opponentId: string) => {
-      return await apiRequest("/api/exhibitions/challenge", "POST", {
+      return await apiRequest("/api/exhibitions/challenge-opponent", "POST", {
         opponentId,
       });
     },
@@ -312,15 +312,34 @@ export default function Competition() {
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
                     <Gamepad2 className="h-5 w-5 text-purple-400" />
-                    Quick Match
+                    ⚡ Instant Match
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <p className="text-gray-400">
-                    Challenge AI teams or practice with your current roster. Exhibition matches don't affect your league standing.
+                    Automatically find a match against a team in your division. Games begin instantly!
                   </p>
-                  <Button className="w-full" variant="outline">
-                    Start Exhibition Match
+                  <Button 
+                    className="w-full" 
+                    onClick={() => {
+                      apiRequest("/api/exhibitions/instant-match", "POST")
+                        .then((data: any) => {
+                          toast({
+                            title: "Instant Match Found!",
+                            description: "Starting exhibition match...",
+                          });
+                          setLocation(`/match/${data.matchId}`);
+                        })
+                        .catch((error: any) => {
+                          toast({
+                            title: "Match Finding Failed",
+                            description: error.message,
+                            variant: "destructive",
+                          });
+                        });
+                    }}
+                  >
+                    ⚡ Instant Match
                   </Button>
                 </CardContent>
               </Card>
@@ -329,12 +348,12 @@ export default function Competition() {
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
                     <Trophy className="h-5 w-5 text-gold-400" />
-                    Instant Exhibition
+                    🎯 Choose Opponent
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <p className="text-gray-400">
-                    Start an immediate exhibition match against other teams in your division. Games begin instantly!
+                    Select from up to 8 teams in your division for exhibition match. Pick your challenge!
                   </p>
                   <Button 
                     className="w-full" 
@@ -342,7 +361,7 @@ export default function Competition() {
                     onClick={() => browseMutation.mutate()}
                     disabled={browseMutation.isPending}
                   >
-                    {browseMutation.isPending ? "Loading..." : "Choose Opponent"}
+                    {browseMutation.isPending ? "Loading..." : "🎯 Choose Opponent"}
                   </Button>
                 </CardContent>
               </Card>

@@ -1827,21 +1827,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const dayOfYear = Math.floor((now.getTime() - new Date(now.getFullYear(), 0, 0).getTime()) / 86400000);
       
       // Filter items for daily rotation
-      const premiumEquipment = equipment.filter(item => item.isPremium);
-      const creditEquipment = equipment.filter(item => !item.isPremium);
+      const premiumItems = [...equipment.filter(item => item.isPremium), ...consumables.filter(item => item.isPremium)];
+      const creditItems = [...equipment.filter(item => !item.isPremium), ...consumables.filter(item => !item.isPremium)];
       
-      // Rotate 3 premium items daily
+      // Rotate 6 premium items daily (mix of equipment and consumables)
       const dailyPremiumItems = [];
-      for (let i = 0; i < 3; i++) {
-        const index = (dayOfYear + i) % premiumEquipment.length;
-        dailyPremiumItems.push(premiumEquipment[index]);
+      for (let i = 0; i < 6; i++) {
+        const index = (dayOfYear + i) % premiumItems.length;
+        dailyPremiumItems.push(premiumItems[index]);
       }
       
-      // Rotate 5 credit items daily
+      // Rotate 6 credit items daily (mix of equipment and consumables)
       const dailyCreditItems = [];
-      for (let i = 0; i < 5; i++) {
-        const index = (dayOfYear + i) % creditEquipment.length;
-        dailyCreditItems.push(creditEquipment[index]);
+      for (let i = 0; i < 6; i++) {
+        const index = (dayOfYear + i) % creditItems.length;
+        dailyCreditItems.push(creditItems[index]);
       }
 
       // Check daily purchase limits
@@ -1852,16 +1852,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
         .from(teamInventory)
         .where(and(
           eq(teamInventory.teamId, team.id),
-          eq(teamInventory.itemId, "entry_exhibition"),
-          gte(teamInventory.purchasedAt, today)
+          eq(teamInventory.name, "Exhibition Match Entry"),
+          gte(teamInventory.acquiredAt, today)
         ));
         
       const tournamentPurchases = await db.select()
         .from(teamInventory)
         .where(and(
           eq(teamInventory.teamId, team.id),
-          eq(teamInventory.itemId, "entry_tournament"),
-          gte(teamInventory.purchasedAt, today)
+          eq(teamInventory.name, "Tournament Entry"),
+          gte(teamInventory.acquiredAt, today)
         ));
 
       // Format response
@@ -2015,10 +2015,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Add item to inventory
       await db.insert(teamInventory).values({
         teamId: team.id,
-        itemId: itemId,
         itemType: item.itemType,
+        name: item.name,
+        description: item.description || "",
+        rarity: item.rarity || "common",
         quantity: 1,
-        purchasedAt: new Date()
+        acquiredAt: new Date()
       });
 
       // Create notification
@@ -2026,8 +2028,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         userId: userId,
         type: 'purchase',
         title: 'Purchase Successful',
-        message: `You purchased ${item.name} for ${cost} ${currency === "credits" ? "credits" : "gems"}`,
-        data: { itemId, itemName: item.name, cost, currency }
+        message: `You purchased ${item.name} for ${cost} ${currency === "credits" ? "credits" : "gems"}`
       });
 
       res.json({ 
