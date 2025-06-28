@@ -1864,8 +1864,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
           gte(teamInventory.acquiredAt, today)
         ));
 
+      // Debug logging
+      console.log('Store API Debug:');
+      console.log('Premium items count:', premiumItems.length);
+      console.log('Credit items count:', creditItems.length);
+      console.log('Daily premium items:', dailyPremiumItems.length);
+      console.log('Daily credit items:', dailyCreditItems.length);
+      console.log('Entries count:', entries.length);
+      console.log('Gem packages count:', gemPackages.length);
+
       // Format response
       res.json({
+        finances: {
+          credits: finances?.credits || 0,
+          premiumCurrency: finances?.premiumCurrency || 0
+        },
         equipment: equipment.map(item => ({
           ...item,
           icon: getRarityIcon(item.rarity),
