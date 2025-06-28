@@ -4816,7 +4816,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const scheduleByDay = {};
       
       for (let day = 1; day <= 17; day++) {
-        const dayMatches = allMatches.filter(match => match.gameDay === day);
+        const dayMatches = allMatches.filter(match => match.game_day === day);
         
         if (dayMatches.length > 0) {
           // Ensure exactly 4 games per League Day
@@ -4828,13 +4828,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
           // Populate team names for each match
           const matchesWithTeamNames = await Promise.all(
             selectedMatches.map(async (match, index) => {
-              const homeTeam = await storage.getTeamById(match.homeTeamId);
-              const awayTeam = await storage.getTeamById(match.awayTeamId);
+              const homeTeam = await storage.getTeamById(match.home_team_id);
+              const awayTeam = await storage.getTeamById(match.away_team_id);
               
               return {
                 ...match,
-                homeTeamName: homeTeam?.name || `Team ${match.homeTeamId.slice(0, 8)}`,
-                awayTeamName: awayTeam?.name || `Team ${match.awayTeamId.slice(0, 8)}`,
+                homeTeamName: homeTeam?.name || `Team ${match.home_team_id.slice(0, 8)}`,
+                awayTeamName: awayTeam?.name || `Team ${match.away_team_id.slice(0, 8)}`,
                 scheduledTime: daySchedule[index],
                 scheduledTimeFormatted: formatEasternTime(daySchedule[index]),
                 isLive: match.status === 'in_progress',

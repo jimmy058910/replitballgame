@@ -1,0 +1,521 @@
+Only see 6 players on the Contract Management Page and only have 9 players on my team (10 is minimum). Can you investigate thoroughly how these things occurred and provide a permanent fix?
+
+My EST (server time) is stuck on Loading...
+
+I believe I had a league schedule set, and now it's blank as well if you can investigate that
+
+---------
+
+System Design for Single-Game Stat Boost Items
+
+Project Goal:
+Integrate a new class of consumable items that provide temporary, single-game stat boosts to players. These items are used before a match to gain a tactical advantage, are limited in use, and only apply to League Games.
+
+1. New Item Type & Data Structure
+We need to define a new type of consumable and how its data is stored.
+
+A. New Consumable effect_type:
+In the Item_ConsumableDetails table, we will add a new effect_type:
+
+"SingleGameStatBoost": This identifies the item as a temporary, pre-game boost.
+
+B. New Stat Boost Data Table:
+Because these boosts target specific attributes, we need a new table to link the consumable item to the stat it affects.
+
+Table 6: Item_StatBoostDetails
+This table has a one-to-one relationship with consumable items that have the SingleGameStatBoost effect type.
+
+Column Name
+
+Data Type
+
+Description
+
+Example
+
+item_id
+
+INTEGER (PK,FK)
+
+Links directly to Items.item_id.
+
+301
+
+attribute_id
+
+INTEGER (FK)
+
+Links to the Attribute Types table. Which stat is boosted.
+
+1 (Speed)
+
+boost_value
+
+INTEGER
+
+The temporary bonus points added to the stat for one game.
+
+5
+
+C. Example Items in Database:
+
+Items Table (Master List - New Entries):
+| item_id | name | description | rarity_id | item_type | icon_path |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| 301 | "Fleetfoot" Energy Drink | "Gives you wings for a single match." | 3 | "Consumable" | res://icons/boost_speed.png |
+| 302 | "Rockhide" Liniment | "Temporarily hardens skin to stone." | 3 | "Consumable" | res://icons/boost_power.png |
+| 303 | "Sure-Grip" Resin | "A sticky pine tar for flawless catching." | 2 | "Consumable" | res://icons/boost_catch.png |
+
+Item_ConsumableDetails Table (New Entries):
+| item_id | effect_type | effect_value | duration_sec |
+| :--- | :--- | :--- | :--- |
+| 301 | "SingleGameStatBoost" | null | null |
+| 302 | "SingleGameStatBoost" | null | null |
+| 303 | "SingleGameStatBoost" | null | null |
+(Note: effect_value and duration_sec are not needed for this item type, as the details are in the new table).
+
+Item_StatBoostDetails Table (New Table):
+| item_id | attribute_id | boost_value |
+| :--- | :--- | :--- |
+| 301 | 1 (Speed) | 5 |
+| 302 | 2 (Power) | 4 |
+| 303 | 4 (Catching) | 6 |
+
+2. User Management: Activating Boosts
+This system works outside of a live match, as part of a user's pre-game preparation.
+
+A. Tracking Active Boosts:
+The game needs a temporary list or data structure to hold the boosts that have been activated for the next League game.
+
+active_boosts Data Structure (per user/team):
+
+A list of dictionaries, where each dictionary contains:
+
+player_name: The player receiving the boost.
+
+item_name: The name of the item used.
+
+attribute_boosted: e.g., "Speed".
+
+boost_value: e.g., 5.
+
+B. Command Structure:
+
+The user should have a command like: activate_boost [item_id] on [player_name]
+
+C. Activation Algorithm:
+When a user executes the command, the system performs these checks:
+
+Check Item Type: Is the item's effect_type "SingleGameStatBoost"? If not, reject.
+
+Check Item Ownership: Does the user have the item? If not, reject.
+
+Check Game Limit: Is the count of items in the active_boosts list less than 3?
+
+If len(active_boosts) >= 3, return "Error: You can only have 3 active game boosts per match."
+
+Apply Boost (Activation):
+
+If all checks pass:
+
+Add the boost details to the active_boosts list for the team.
+
+Remove one instance of the item from the user's inventory.
+
+return "Success! [Item Name] is now active for [Player Name] in your next League game."
+
+D. Viewing and Canceling Boosts:
+
+Users should have a command like view_boosts to see the list of active boosts for their next match.
+
+Users should be able to cancel an activated boost, which would return the item to their inventory and remove it from the active_boosts list.
+
+3. In-Game Implementation
+A. Pre-Game Setup (League Games Only):
+
+Before a League Game simulation begins, the system checks the user's active_boosts list.
+
+For each boost in the list, it temporarily modifies the affected player's stats for the duration of that single match.
+
+Example: If Player 5 (Speed: 30) has the "Fleetfoot" boost (+5 Speed) active, for this one game, his effective Speed is 35.
+
+Important: This is a temporary modification. The player's permanent stats stored in the database are not changed.
+
+B. Post-Game Cleanup:
+
+After the League Game simulation is complete, the active_boosts list is cleared automatically. The boosts are consumed and gone.
+
+C. Commentary Integration:
+The commentary should reflect when a stat boost makes a difference in a key play.
+
+Commentary Examples:
+
+"[12:30] Player 5 hits the seam and turns on the jets! He looks even faster than usual today, leaving the defender behind for a huge gain!"
+
+"[05:15] What a catch by Player 11! He snags a difficult pass with authority—that 'Sure-Grip' Resin is clearly paying off."
+
+"[03:40] Player 2 bounces off a tackle attempt! The Rockhide Liniment he applied before the game seems to have given him that extra edge in power."
+
+This system creates a clear separation between permanent recovery items and temporary tactical boosts, adding a layer of strategic preparation before important League matches.
+
+--------------------------------------
+
+System Design for a Dynamic Player Marketplace
+Project Goal:
+Implement a fully functional, asynchronous player marketplace where users can list their players for sale, and other users can bid on them in an auction format or purchase them directly. The system must operate within a fixed 17-day season cycle, with special rules for the off-season.
+
+1. Core Concepts & Rules
+Auction & Buy Now: Players are listed with both a starting bid price and an optional "Buy Now" price.
+
+Listing Limits: A user cannot list a player if doing so would leave them with 10 or fewer players on their roster. A user can have a maximum of 3 players listed on the marketplace at any one time.
+
+Listing Fee: A small, non-refundable fee in game credits is charged for listing a player to discourage market flooding.
+
+Auction Durations: Users can select from several auction lengths: 12 hours, 24 hours, 3 days, or 7 days.
+
+End-of-Season Deadline: The system must prevent auctions from being created that would end after the server reset on Day 17 at 3 AM. For example, on Day 15, a user could not select a 3-day or 7-day auction.
+
+Off-Season Market (Days 16-17): During the 2-day off-season, auctions are disabled. All listings are automatically converted to Buy Now only. Any player not sold by the end of Day 17 is automatically delisted and returned to their original owner.
+
+2. Database Schema: MarketplaceListings Table
+A new table is required to manage all active listings.
+
+Column Name
+
+Data Type
+
+Description
+
+Example
+
+listing_id
+
+INTEGER (PK)
+
+Unique ID for this specific auction listing.
+
+1001
+
+player_id
+
+INTEGER (FK)
+
+ID of the player being sold.
+
+5 (Player 5)
+
+seller_team_id
+
+INTEGER (FK)
+
+ID of the team selling the player.
+
+24
+
+start_bid
+
+INTEGER
+
+The minimum starting bid amount.
+
+1000
+
+buy_now_price
+
+INTEGER (null)
+
+The optional instant purchase price.
+
+15000
+
+current_bid
+
+INTEGER
+
+The current highest bid amount. Defaults to start_bid.
+
+1250
+
+current_high_bidder_team_id
+
+INTEGER (null)
+
+ID of the team with the current high bid.
+
+77
+
+expiry_timestamp
+
+DATETIME
+
+The exact date and time the auction will end.
+
+"2025-06-30 14:30:00"
+
+is_active
+
+BOOLEAN
+
+true if the auction is running, false if completed/expired.
+
+true
+
+3. User Commands & Interactions
+list_player [player_id] start_bid [amount] duration [hours] buy_now [optional_amount]
+
+view_listings (with filters for role, stats, etc.)
+
+bid [listing_id] [amount]
+
+buy_now [listing_id]
+
+view_my_listings
+
+4. System Logic & Algorithms
+A. Listing a Player (list_player command):
+
+Validation:
+
+Does the player belong to the user's team?
+
+Does the user's team have > 10 players?
+
+Does the user have < 3 players already listed?
+
+Is the chosen duration valid and does the calculated expiry_timestamp occur before Day 17, 3 AM?
+
+If a buy_now price is provided, is it above the system-generated minimum?
+
+Minimum Buy Now Price: Should be automatically calculated to prevent market manipulation. Formula suggestion: (Starting Bid * 1.5) OR (Player's internal 'Value' * 0.75), whichever is higher.
+
+Execution:
+
+If all checks pass:
+
+Deduct the listing fee from the user's account.
+
+Mark the player as "on the market" (they cannot be used in games or for item applications).
+
+Create a new entry in the MarketplaceListings table with all the relevant data.
+
+Return Success! [Player Name] has been listed for auction.
+
+B. Placing a Bid (bid command):
+
+Validation:
+
+Does the listing_id exist and is it is_active?
+
+Is the bid amount greater than current_bid?
+
+Does the user have enough credits?
+
+Execution:
+
+If checks pass:
+
+Escrow System: Hold the user's bid amount in escrow. If they are outbid, their previous bid is returned to them.
+
+Update the MarketplaceListings entry with the new current_bid and current_high_bidder_team_id.
+
+Anti-Sniping (Recommended): If a bid is placed in the final minutes of an auction (e.g., last 5 minutes), automatically extend the expiry_timestamp by another 5 minutes.
+
+Notify the previous high bidder they have been outbid.
+
+Return Success! You are the new high bidder for [Player Name].
+
+C. Buy Now (buy_now command):
+
+Validation:
+
+Does the listing_id exist and is it is_active?
+
+Does the listing have a buy_now_price?
+
+Does the user have enough credits for the buy_now_price?
+
+Execution (This ends the auction immediately):
+
+Deduct buy_now_price from the buyer.
+
+Transfer buy_now_price (minus a small market tax, e.g., 5%) to the seller.
+
+Transfer the player_id from the seller's roster to the buyer's roster.
+
+Set is_active = false for the listing.
+
+Return Congratulations! You have purchased [Player Name]!
+
+D. Off-Season Logic (Triggered on Day 16, 3 AM):
+
+Iterate through all active listings.
+
+For any listing with an auction component (start_bid), remove the auction capability. The listing remains active but can only be purchased via buy_now. If no buy_now_price was set, one is automatically generated based on the player's value.
+
+5. Daily Server Process (3 AM Reset)
+The server checks for any listings where expiry_timestamp has passed and is_active is true.
+
+For each expired auction:
+
+If there was a high bidder: Process the transaction (transfer player to winner, transfer credits to seller, return any outbid funds from escrow).
+
+If there were no bids: The player is returned to the original owner.
+
+On Day 17 at 3 AM: All remaining active market listings are cancelled and players are returned to their owners before the new season's leagues are generated.
+
+--------------------------------------
+
+Individual Player Stats
+
+Offensive Stats
+Scores: (From your list) The most important stat. Absolutely essential.
+
+Passing Attempts: To track how often a player tries to pass.
+
+Passes Completed: (From your list) Crucial for measuring a Passer's effectiveness.
+
+Passing Percentage: (From your list) A calculated stat (Completions / Attempts) that immediately shows efficiency.
+
+Passing Yards: (New Suggestion) Tracking the total yards gained on completed passes gives a great measure of a Passer's impact, distinguishing short-yardage passers from those who make big plays.
+
+Rushing Yards: (Refinement of "Yards Gained") Specifically tracks yards gained while running with the ball.
+
+Catches:
+
+Receiving Yards: (New Suggestion) The yards gained after making a catch. This is a key stat for Runners.
+
+Drops & Fumbles: (New Suggestion) A negative stat that adds a lot of depth. Tracks when a player fails a catch check on a good pass, or fumbles after a tackle. High numbers here can be a liability.
+
+Defensive Stats
+Tackles: (From your list) A successful tackle that stops the ball carrier.
+
+Knockdowns Inflicted: (Refinement of your "Knock downs" & "Injuries enforced") This is a perfect stat for your Blocker role. It should count any time they successfully knock down an opponent, whether that opponent has the ball or not (via their "aggressive tackle" ability). This makes their disruptive play quantifiable.
+
+Interceptions: (From your list) A game-changing defensive play. Essential.
+
+Passes Defended: (New Suggestion) This is for when a defender doesn't make an interception but causes an incompletion, perhaps by getting close enough to disrupt the catch. It gives value to defenders who aren't necessarily great catchers.
+
+Team Stats
+Total Score (obvious)
+
+Total Offensive Yards (Rushing + Passing)
+
+Passing Yards
+
+Rushing Yards
+
+Time of Possession: (New Suggestion) In a non-stop game, this is a huge indicator of which team is controlling the flow and wearing the other team down. You'd track the cumulative game time each team possesses the ball.
+
+Turnovers: A simple count of Interceptions Thrown + Fumbles Lost. This is a critical stat for determining why a team won or lost.
+
+Total Knockdowns: A measure of the team's overall physical dominance, great for seeing if a team of Blockers is having an impact.
+
+------------------
+
+Updated standings, including:
+Rank: Simple numerical ranking, 1st, 2nd, 3rd, etc. This is the most immediate feedback for the user on their standing.
+
+Team Name: Self-explanatory.
+
+W / L / T (Wins, Losses, Ties): The fundamental record of the team. This is the most classic and easily understood sports statistic.
+
+PTS (Points): The league points accumulated, which should be the primary sorting mechanism for the rankings. This is more meaningful than just win percentage, especially if you want to reward wins heavily.
+
+Win: 3 points
+
+Tie: 1 point
+
+Loss: 0 points
+
+PF (Points For): The total number of scores your team has made throughout the season. This is the best at-a-glance measure of your team's offensive power.
+
+PA (Points Against): The total number of scores your team has allowed opponents to make. This is the best at-a-glance measure of your team's defensive strength.
+
+DIFF (Point Differential): Calculated as PF - PA. This is arguably the single most important secondary stat. It quickly tells the story of a team's dominance. A team with a high DIFF isn't just winning; they are winning decisively. It's also an excellent tie-breaker.
+
+Streak: A short string indicating the team's current run of form (e.g., "W3" for 3 wins in a row, "L1" for 1 loss, "T1" for a tie). This adds a great narrative element, showing which teams are hot and which are slumping heading into the next game.
+
+--------------
+
+Game Commentary Additions for Database. Please review all prompts and add/build off of this:
+
+Game Commentary Generation
+Category 1: General Play & Game Flow
+Goal: Create commentary that describes the general flow, especially during periods without a major event. This makes the game feel continuous and not just a series of big plays.
+
+Prompts:
+
+"Write 10 variations of commentary for a team patiently advancing the ball into the opponent's half. Mention the team controlling the flow."
+
+"Generate 10 lines of commentary for a back-and-forth midfield battle where neither team can gain a clear advantage."
+
+"Create 5 commentary lines that describe a team being pushed back into their own defensive zone under heavy pressure."
+
+"Write 5 commentary lines that mention the game clock ticking down near the end of a half, creating a sense of urgency."
+
+"Generate commentary describing a player with low in_game_stamina who looks visibly tired on the field."
+
+Category 2: The Ball Carrier (Running)
+Goal: Describe the ball carrier's movement, linking it to their stats, role, and potentially abilities.
+
+Prompts:
+
+"Write 10 commentary lines for a 'Runner' role player with high Speed breaking away for a long gain. Emphasize their explosive acceleration."
+
+"Generate 10 lines for a 'Runner' with high Agility successfully evading a tackle attempt with a juke or spin move."
+
+"Create 10 commentary lines for a player with high Power running through a defender's tackle attempt, showing their strength."
+
+"Write 5 commentary lines for a player with low Stamina getting caught from behind by a defender they would normally outrun."
+
+"Generate commentary for a 'Passer' role player who is forced to run with the ball and looks uncomfortable or awkward doing so."
+
+Category 3: The Passing Game (Passing & Catching)
+Goal: Create exciting and detailed text for pass plays, from the throw to the reception.
+
+Prompts:
+
+"Generate 10 variations for a 'Passer' with high Throwing making a perfect, accurate pass to a receiver downfield. Describe the pass as a 'frozen rope' or 'a thing of beauty'."
+
+"Write 10 lines for a 'Passer' with low Throwing making an inaccurate or wobbly pass that makes the catch difficult for the receiver."
+
+"Create commentary for a successful catch by a receiver with high Catching, describing it as 'plucking it out of the air' or 'a secure catch in traffic'."
+
+"Generate 10 commentary lines for a dropped pass due to a low Catching stat. Mention the ball hitting their hands and bouncing away."
+
+"Write 5 lines for a successful interception. Describe the defender jumping the route or snatching the ball from the intended receiver. Increment the defender's interceptions stat."
+
+Category 4: Defense & Aggression (Blockers & Tackling)
+Goal: Make the defensive side feel brutal and impactful, as you envisioned.
+
+Prompts:
+
+"Write 15 lines of commentary for a 'Blocker' delivering a huge, painful-sounding hit on an opponent who does not have the ball. Describe the opponent being 'de-cleated' or 'pancaked'. This should increment the Blocker's knockdowns_inflicted stat."
+
+"Generate 10 lines for a successful tackle by a player with high Power. Describe the impact as 'vicious', 'bone-rattling', or 'a thunderous hit'."
+
+"Create 5 lines for a tackle that causes an injury. The commentary should note the player staying down and the severity of the injury (e.g., '...and he stays down, grabbing his knee. That does not look good.')."
+
+"Write commentary for a tackle that results in a fumble, where the ball is knocked loose from the carrier's grip."
+
+"Generate 5 lines for a missed tackle, where a defender lunges and misses, allowing the runner to continue."
+
+Category 5: Scoring & Post-Score Events
+Goal: Make scoring feel like the absolute peak of a possession.
+
+Prompts:
+
+"Write 10 exciting commentary lines for a player scoring a point. Use a variety of descriptions like 'He's in!', 'Score!', 'They've done it!', 'A brilliant individual effort!'"
+
+"Generate a template for a Post-Score Player Card. It should prominently display the player's name, their role, and their key stats for the current game, for example: Scores: 1, Yards Gained: 112."
+
+"Create commentary for the brief moment after a score, describing the celebration and the teams getting ready for the reset."
+
+Category 6: Game States (Halftime & End of Game)
+Goal: Provide meaningful summaries that wrap up the action.
+
+Prompts:
+
+"Generate a template for a Halftime Report. It should include the score, total possession time for each team, and highlight one 'MVP' from each team based on their stats (e.g., most yards, most knockdowns, etc.)."
+
+"Write 5 different templates for an End-of-Game Summary. It should include the final score and a concluding sentence about the key to victory (e.g., 'In the end, Team 1's defense was just too powerful,' or 'A masterful passing performance from "Player Name" secured the win for "Team Name".')."
