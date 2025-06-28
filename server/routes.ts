@@ -112,27 +112,94 @@ async function createAITeamsForDivision(division: number) {
     });
 
     // Create 12 players for each team (6 starters + 6 subs)
+    const positions = ["Passer", "Runner", "Blocker"];
+    const { generateRandomName } = await import("@shared/names");
+    const { ABILITIES, rollForAbility } = await import("@shared/abilities");
+    
     for (let j = 0; j < 12; j++) {
       const race = races[Math.floor(Math.random() * races.length)];
-      const positions = ["Passer", "Runner", "Blocker"];
       const position = positions[Math.floor(Math.random() * positions.length)];
       
+      // Generate proper name for the race
+      const nameData = generateRandomName(race.toLowerCase());
+      const playerName = `${nameData.firstName} ${nameData.lastName}`;
+      
+      // Generate position-based stats with some variance
+      let baseStats = {
+        speed: 15 + Math.floor(Math.random() * 20),
+        power: 15 + Math.floor(Math.random() * 20),
+        throwing: 15 + Math.floor(Math.random() * 20),
+        catching: 15 + Math.floor(Math.random() * 20),
+        kicking: 15 + Math.floor(Math.random() * 20),
+        stamina: 15 + Math.floor(Math.random() * 20),
+        leadership: 15 + Math.floor(Math.random() * 20),
+        agility: 15 + Math.floor(Math.random() * 20),
+      };
+      
+      // Enhance stats based on position
+      switch (position) {
+        case "Passer":
+          baseStats.throwing += 5 + Math.floor(Math.random() * 10);
+          baseStats.leadership += 3 + Math.floor(Math.random() * 7);
+          baseStats.agility += 2 + Math.floor(Math.random() * 6);
+          break;
+        case "Runner":
+          baseStats.speed += 5 + Math.floor(Math.random() * 10);
+          baseStats.agility += 4 + Math.floor(Math.random() * 8);
+          baseStats.catching += 3 + Math.floor(Math.random() * 7);
+          break;
+        case "Blocker":
+          baseStats.power += 5 + Math.floor(Math.random() * 10);
+          baseStats.stamina += 4 + Math.floor(Math.random() * 8);
+          baseStats.leadership += 2 + Math.floor(Math.random() * 6);
+          break;
+      }
+      
+      // Cap stats at 40
+      Object.keys(baseStats).forEach(key => {
+        baseStats[key] = Math.min(40, baseStats[key]);
+      });
+      
+      // Create player object for ability generation
+      const playerObj = {
+        ...baseStats,
+        race: race,
+        position: position,
+        age: 18 + Math.floor(Math.random() * 15)
+      };
+      
+      // Roll for abilities (AI players get 1-3 abilities)
+      const playerAbilities = [];
+      const abilityRolls = 1 + Math.floor(Math.random() * 3); // 1-3 abilities
+      
+      for (let k = 0; k < abilityRolls; k++) {
+        const ability = rollForAbility(playerObj);
+        if (ability && !playerAbilities.includes(ability.id)) {
+          playerAbilities.push(ability.id);
+        }
+      }
+      
       await storage.createPlayer({
-        name: `${race} Player ${j + 1}`,
+        name: playerName,
+        firstName: nameData.firstName,
+        lastName: nameData.lastName,
         teamId: team.id,
         position: position,
         race: race,
-        speed: 10 + Math.floor(Math.random() * 30),
-        power: 10 + Math.floor(Math.random() * 30),
-        throwing: 10 + Math.floor(Math.random() * 30),
-        catching: 10 + Math.floor(Math.random() * 30),
-        kicking: 10 + Math.floor(Math.random() * 30),
-        stamina: 10 + Math.floor(Math.random() * 30),
-        leadership: 10 + Math.floor(Math.random() * 30),
-        agility: 10 + Math.floor(Math.random() * 30),
+        age: playerObj.age,
+        speed: baseStats.speed,
+        power: baseStats.power,
+        throwing: baseStats.throwing,
+        catching: baseStats.catching,
+        kicking: baseStats.kicking,
+        stamina: baseStats.stamina,
+        leadership: baseStats.leadership,
+        agility: baseStats.agility,
+        salary: 1000 + Math.floor(Math.random() * 4000),
+        contractValue: 5000 + Math.floor(Math.random() * 20000),
         isMarketplace: false,
         marketplacePrice: null,
-        abilities: JSON.stringify([])
+        abilities: JSON.stringify(playerAbilities)
       });
     }
   }

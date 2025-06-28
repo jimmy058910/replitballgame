@@ -24,6 +24,48 @@ export default function TeamInfoDialog({ teamId, isOpen, onClose }: TeamInfoDial
     enabled: !!teamId && isOpen,
   });
 
+  const { data: myTeam } = useQuery({
+    queryKey: ["/api/teams/my"],
+    enabled: isOpen,
+  });
+
+  // Check if this is an opponent team (not user's team)
+  const isOpponentTeam = myTeam?.id !== teamId;
+  
+  // Basic scouting level - for now we'll use a fixed level, later can be enhanced with staff
+  const scoutingLevel = 1; // 1 = basic, 2 = advanced, 3 = elite
+
+  // Scouting functions to show stat ranges instead of exact values for opponents
+  const getStatRange = (actualStat: number, scoutingLevel: number): string => {
+    if (!isOpponentTeam) return actualStat.toString(); // Show exact for own team
+    
+    let variance = 0;
+    switch (scoutingLevel) {
+      case 1: variance = 6; break;  // ±6 range (e.g., 25 shows as "19-31")
+      case 2: variance = 3; break;  // ±3 range (e.g., 25 shows as "22-28")
+      case 3: variance = 1; break;  // ±1 range (e.g., 25 shows as "24-26")
+      default: variance = 6;
+    }
+    
+    const min = Math.max(1, actualStat - variance);
+    const max = Math.min(40, actualStat + variance);
+    return `${min}-${max}`;
+  };
+
+  const getScoutedPlayerName = (player: any): string => {
+    if (!isOpponentTeam) {
+      return `${player.firstName} ${player.lastName}`;
+    }
+    
+    // For opponents, show varying levels of name detail based on scouting
+    switch (scoutingLevel) {
+      case 1: return `${player.firstName} ${player.lastName?.charAt(0)}.`; // "John D."
+      case 2: return `${player.firstName} ${player.lastName}`;  // Full name
+      case 3: return `${player.firstName} ${player.lastName}`;  // Full name + more details
+      default: return `${player.firstName} ${player.lastName?.charAt(0)}.`;
+    }
+  };
+
   const getPositionColor = (position: string) => {
     switch (position) {
       case "Passer":
@@ -141,18 +183,20 @@ export default function TeamInfoDialog({ teamId, isOpen, onClose }: TeamInfoDial
                           <div className="flex items-center justify-between mb-2">
                             <div>
                               <div className="font-semibold text-white">
-                                {player.firstName} {player.lastName}
+                                {getScoutedPlayerName(player)}
                               </div>
                               <div className="text-sm text-gray-400">
-                                Age {player.age} • <span className={getRaceColor(player.race)}>{player.race}</span>
+                                Age {player.age} • <span className={getRaceColor(player.race)}>{player.race.charAt(0).toUpperCase() + player.race.slice(1)}</span>
                               </div>
                             </div>
                             <div className="flex items-center gap-2">
-                              <Badge className={getPositionColor(player.position || "Unknown")}>
-                                {player.position || "Unknown"}
+                              <Badge className={getPositionColor(player.position || "Player")}>
+                                {player.position || "Player"}
                               </Badge>
                               <div className="text-right">
-                                <div className="text-sm font-bold text-white">{playerPower}</div>
+                                <div className="text-sm font-bold text-white">
+                                  {isOpponentTeam ? getStatRange(playerPower, scoutingLevel) : playerPower}
+                                </div>
                                 <div className="text-xs text-gray-400">Power</div>
                               </div>
                             </div>
@@ -162,31 +206,31 @@ export default function TeamInfoDialog({ teamId, isOpen, onClose }: TeamInfoDial
                           <div className="grid grid-cols-5 gap-2 text-xs">
                             <div className="text-center">
                               <div className={`font-bold ${getStatColor(player.speed)}`}>
-                                {player.speed}
+                                {getStatRange(player.speed, scoutingLevel)}
                               </div>
                               <div className="text-gray-400">SPD</div>
                             </div>
                             <div className="text-center">
                               <div className={`font-bold ${getStatColor(player.power)}`}>
-                                {player.power}
+                                {getStatRange(player.power, scoutingLevel)}
                               </div>
                               <div className="text-gray-400">POW</div>
                             </div>
                             <div className="text-center">
                               <div className={`font-bold ${getStatColor(player.throwing)}`}>
-                                {player.throwing}
+                                {getStatRange(player.throwing, scoutingLevel)}
                               </div>
                               <div className="text-gray-400">THR</div>
                             </div>
                             <div className="text-center">
                               <div className={`font-bold ${getStatColor(player.catching)}`}>
-                                {player.catching}
+                                {getStatRange(player.catching, scoutingLevel)}
                               </div>
                               <div className="text-gray-400">CAT</div>
                             </div>
                             <div className="text-center">
                               <div className={`font-bold ${getStatColor(player.kicking)}`}>
-                                {player.kicking}
+                                {getStatRange(player.kicking, scoutingLevel)}
                               </div>
                               <div className="text-gray-400">KIC</div>
                             </div>

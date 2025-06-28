@@ -10,12 +10,11 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import { Building2, Zap, Users, TrendingUp, Calendar, DollarSign, Wrench, Star } from "lucide-react";
+import { Building2, Zap, Users, TrendingUp, Calendar, DollarSign, Wrench, Star, Coins, ArrowUp, Shield, Home, Gauge } from "lucide-react";
 
 export default function Stadium() {
   const { toast } = useToast();
   const [selectedUpgrade, setSelectedUpgrade] = useState<any>(null);
-
 
   const { data: stadiumData, isLoading } = useQuery({
     queryKey: ["/api/stadium"],
@@ -23,6 +22,10 @@ export default function Stadium() {
 
   const { data: finances } = useQuery({
     queryKey: ["/api/teams/my/finances"],
+  });
+
+  const { data: teamData } = useQuery({
+    queryKey: ["/api/teams/my"],
   });
 
   const upgradeMutation = useMutation({
@@ -49,6 +52,10 @@ export default function Stadium() {
       });
     },
   });
+
+  const formatCredits = (amount: number) => {
+    return `${amount?.toLocaleString()} 💰`;
+  };
 
 
 
@@ -185,7 +192,7 @@ export default function Stadium() {
                         </div>
                         <p className="text-sm text-gray-400 mb-3">{upgrade.description}</p>
                         <div className="flex justify-between items-center">
-                          <span className="font-bold text-yellow-400">${upgrade.cost.toLocaleString()}</span>
+                          <span className="font-bold text-yellow-400">{formatCredits(upgrade.cost)}</span>
                           <Button
                             size="sm"
                             onClick={() => setSelectedUpgrade(upgrade)}
@@ -246,7 +253,7 @@ export default function Stadium() {
                   <div className="flex justify-between">
                     <span className="text-gray-400">Available Credits:</span>
                     <span className="font-bold text-green-400">
-                      ${finances?.credits?.toLocaleString() || 0}
+                      {formatCredits(finances?.credits || 0)}
                     </span>
                   </div>
                   <div className="flex justify-between">
@@ -282,7 +289,7 @@ export default function Stadium() {
                   <div className="flex justify-between">
                     <span>Cost:</span>
                     <span className="font-bold text-yellow-400">
-                      ${selectedUpgrade.cost.toLocaleString()}
+                      {formatCredits(selectedUpgrade.cost)}
                     </span>
                   </div>
                   
