@@ -260,9 +260,9 @@ export default function LeagueStandings({ division, compact = false }: LeagueSta
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs text-gray-400">
                 <div className="space-y-1">
                   <div><strong className="text-white">PTS:</strong> League Points (Win=3, Tie=1, Loss=0)</div>
-                  <div><strong className="text-white">PF:</strong> Points For (total scores made)</div>
-                  <div><strong className="text-white">PA:</strong> Points Against (total scores allowed)</div>
-                  <div><strong className="text-white">DIFF:</strong> Point Differential (PF - PA)</div>
+                  <div><strong className="text-white">SF:</strong> Scores For (total scores made)</div>
+                  <div><strong className="text-white">SA:</strong> Scores Against (total scores allowed)</div>
+                  <div><strong className="text-white">DIFF:</strong> Point Differential (SF - SA)</div>
                 </div>
                 <div className="space-y-1">
                   {division > 1 && (

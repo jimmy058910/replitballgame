@@ -47,6 +47,10 @@ Built as a React + Express web application with PostgreSQL database, using moder
 - ✓ Dashboard compact standings: Shows W/L/T, PTS, DIFF, and Streak without SF/SA to save space
 - ✓ Competition League full standings: Shows all columns including SF and SA for comprehensive statistics
 - ✓ All teams now properly display 0-0-0 records, 0 points, and "-" streaks when no games have been played
+- ✓ CRITICAL CONTRACT MANAGEMENT FIX: Fixed API endpoint from `/api/players/team/${teamId}` to `/api/teams/${teamId}/players` - now shows all 11 players instead of only 8
+- ✓ SERVER TIME FIXED: Resolved "Loading..." issue by properly importing ServerTimeDisplay component instead of broken inline implementation
+- ✓ LEAGUE SCHEDULE RESTORED: Generated new season schedule after clearing fake data - league games now properly scheduled
+- ✓ PURPLE GRADIENT HEADERS RESTORED: Added purple gradient seasonal cycle display to Competition page matching Dashboard design for visual consistency
 
 ### December 29, 2025 (Earlier - Comprehensive Commentary System + Complete Stat Boost System)
 - ✓ COMPREHENSIVE GAME COMMENTARY SYSTEM IMPLEMENTED: Created sophisticated 6-category commentary generator according to user specifications

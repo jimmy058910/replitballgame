@@ -23,6 +23,10 @@ export default function Competition() {
     queryKey: ["/api/teams/my"],
   });
 
+  const { data: seasonalCycle } = useQuery({
+    queryKey: ["/api/season/current-cycle"],
+  });
+
   const { data: liveMatches } = useQuery({
     queryKey: ["/api/matches/live"],
   });
@@ -111,6 +115,30 @@ export default function Competition() {
             Compete in leagues, tournaments, and exhibition matches. Track your progress and climb the rankings across all divisions.
           </p>
         </div>
+
+        {/* Seasonal Cycle Display */}
+        {(seasonalCycle as any) && (
+          <Card className="bg-gradient-to-r from-purple-900 to-blue-900 border-purple-700 mb-6">
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-4">
+                  <div className="bg-purple-600 bg-opacity-30 p-3 rounded-full">
+                    <Calendar className="h-8 w-8 text-purple-200" />
+                  </div>
+                  <div>
+                    <div className="text-sm text-purple-200 mb-1">{(seasonalCycle as any).season}</div>
+                    <h2 className="text-2xl font-bold text-white mb-1">{(seasonalCycle as any).description}</h2>
+                    <p className="text-purple-100 text-sm">{(seasonalCycle as any).details}</p>
+                  </div>
+                </div>
+                <div className="text-right">
+                  <div className="text-sm text-purple-200">Day {(seasonalCycle as any).currentDay} of 17</div>
+                  <div className="text-lg font-semibold text-white">{(seasonalCycle as any).phase}</div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        )}
 
         {/* Season Cycle Info - Match Dashboard Style */}
         {currentCycle && (

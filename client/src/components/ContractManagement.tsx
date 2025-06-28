@@ -77,7 +77,7 @@ export default function ContractManagement() {
   });
 
   const { data: players } = useQuery({
-    queryKey: ["/api/players/team", team?.id],
+    queryKey: ["/api/teams", team?.id, "players"],
     enabled: !!team?.id,
   });
 

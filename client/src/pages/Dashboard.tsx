@@ -12,56 +12,12 @@ import PlayerDetailModal from "@/components/PlayerDetailModal";
 
 import LeagueStandings from "@/components/LeagueStandings";
 import NotificationCenter from "@/components/NotificationCenter";
+import ServerTimeDisplay from "@/components/ServerTimeDisplay";
 import { apiRequest } from "@/lib/queryClient";
 import { Bell, Shield, Calendar } from "lucide-react";
 import { getDivisionName, getDivisionInfo, getFullDivisionTitle } from "@shared/divisions";
 
-// Server Time Display Component
-function ServerTimeDisplay({ serverTime }: { serverTime: any }) {
-  const formatServerTime = () => {
-    if (!serverTime?.currentTime) return "Loading...";
-    
-    const time = new Date(serverTime.currentTime);
-    const easternTime = time.toLocaleString("en-US", {
-      timeZone: "America/New_York",
-      hour: "numeric",
-      minute: "2-digit",
-      hour12: true
-    });
-    
-    return easternTime;
-  };
 
-  const getTimeUntilNextDay = () => {
-    if (!serverTime?.currentTime) return "";
-    
-    const now = new Date(serverTime.currentTime);
-    const nextDay = new Date(now);
-    nextDay.setDate(nextDay.getDate() + 1);
-    nextDay.setHours(3, 0, 0, 0); // 3 AM EST
-    
-    const timeUntil = nextDay.getTime() - now.getTime();
-    const hours = Math.floor(timeUntil / (1000 * 60 * 60));
-    const minutes = Math.floor((timeUntil % (1000 * 60 * 60)) / (1000 * 60));
-    
-    if (hours > 0) {
-      return `Next day: ${hours}h ${minutes}m`;
-    } else {
-      return `Next day: ${minutes}m`;
-    }
-  };
-
-  return (
-    <Card className="bg-blue-900 border-blue-700">
-      <CardContent className="p-2">
-        <div className="text-center">
-          <div className="text-blue-200 font-medium text-sm">EST: {formatServerTime()}</div>
-          <div className="text-blue-300 text-xs">{getTimeUntilNextDay()}</div>
-        </div>
-      </CardContent>
-    </Card>
-  );
-}
 
 export default function Dashboard() {
   const { toast } = useToast();
@@ -161,7 +117,7 @@ export default function Dashboard() {
         <div className="mb-8">
           <div className="flex items-center justify-between mb-6">
             <h2 className="font-orbitron text-2xl font-bold">Team Dashboard</h2>
-            <ServerTimeDisplay serverTime={serverTime} />
+            <ServerTimeDisplay />
           </div>
 
           {/* Seasonal Cycle Display */}
