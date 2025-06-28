@@ -76,18 +76,22 @@ export default function PlayerDetailModal({
 
   const renderStatsBar = (label: string, current: number, potential: number | null) => {
     const currentStat = current || 0;
-    const potentialNum = potential ? parseFloat(potential.toString()) : 0;
-    const maxPossible = Math.min(40, currentStat + (potentialNum * 5)); // Potential growth calculation
+    
+    // Calculate max potential based on the potential star rating (1-5 stars)
+    // Each star represents roughly 2-3 points of potential growth
+    const potentialStars = potential ? parseFloat(potential.toString()) : 0;
+    const potentialGrowth = Math.floor(potentialStars * 2.5); // 2.5 points per star
+    const maxPossible = Math.min(40, currentStat + potentialGrowth);
     
     return (
       <div className="space-y-1">
         <div className="flex justify-between text-sm">
           <span>{label}</span>
-          <span className="font-semibold">{currentStat}/40</span>
+          <span className="font-semibold">{currentStat}/{maxPossible}</span>
         </div>
         <div className="relative">
           <Progress value={(currentStat / 40) * 100} className="h-2" />
-          {potentialNum > 0 && (
+          {maxPossible > currentStat && (
             <div 
               className="absolute top-0 h-2 bg-yellow-400/30 rounded-full"
               style={{ 
@@ -97,11 +101,6 @@ export default function PlayerDetailModal({
             />
           )}
         </div>
-        {potentialNum > 0 && (
-          <div className="text-xs text-yellow-400">
-            Growth potential: {potentialNum.toFixed(1)} stars
-          </div>
-        )}
       </div>
     );
   };
@@ -328,25 +327,36 @@ export default function PlayerDetailModal({
                 <CardContent>
                   <div className="grid grid-cols-2 gap-4">
                     {[
-                      { name: "Speed", potential: player.speedPotential },
-                      { name: "Power", potential: player.powerPotential },
-                      { name: "Throwing", potential: player.throwingPotential },
-                      { name: "Catching", potential: player.catchingPotential },
-                      { name: "Kicking", potential: player.kickingPotential },
-                      { name: "Stamina", potential: player.staminaPotential },
-                      { name: "Leadership", potential: player.leadershipPotential },
-                      { name: "Agility", potential: player.agilityPotential },
+                      { name: "Speed", current: player.speed, potential: player.speedPotential },
+                      { name: "Power", current: player.power, potential: player.powerPotential },
+                      { name: "Throwing", current: player.throwing, potential: player.throwingPotential },
+                      { name: "Catching", current: player.catching, potential: player.catchingPotential },
+                      { name: "Kicking", current: player.kicking, potential: player.kickingPotential },
+                      { name: "Stamina", current: player.stamina, potential: player.staminaPotential },
+                      { name: "Leadership", current: player.leadership, potential: player.leadershipPotential },
+                      { name: "Agility", current: player.agility, potential: player.agilityPotential },
                     ].map((attr) => {
-                      // Calculate potential based on player stats if not available
+                      // Generate consistent potential based on player characteristics
                       let potentialRating = attr.potential;
                       if (!potentialRating || potentialRating === 0) {
-                        // Generate a reasonable potential based on current stat and age
-                        const currentStat = player[attr.name.toLowerCase()] || 0;
+                        const currentStat = attr.current || 0;
                         const age = player.age || 25;
-                        const ageFactor = Math.max(0.1, (35 - age) / 10); // Younger players have more potential
-                        const statFactor = Math.max(0.5, (40 - currentStat) / 40); // Room for growth
-                        potentialRating = Math.min(5, Math.max(0.5, ageFactor * statFactor * 5));
+                        const raceBonus = player.race === 'lumina' ? 0.5 : player.race === 'sylvan' ? 0.3 : 0;
+                        
+                        // Younger players and higher stats have more potential variation
+                        const ageFactor = Math.max(0.2, (35 - age) / 15);
+                        const statFactor = Math.max(0.3, (40 - currentStat) / 40);
+                        
+                        // Use player ID for consistent randomization
+                        const playerSeed = parseInt(player.id.slice(-6), 16) % 1000;
+                        const statSeed = attr.name.length * 7 + playerSeed;
+                        const randomFactor = ((statSeed % 100) / 100) * 0.6 + 0.7; // 0.7-1.3 range
+                        
+                        potentialRating = Math.min(5, Math.max(1, (ageFactor + statFactor + raceBonus) * randomFactor * 3));
                       }
+                      
+                      // Consistent display - remove randomization for stable display
+                      const displayRating = potentialRating;
                       
                       return (
                         <div key={attr.name} className="flex justify-between items-center">
@@ -357,9 +367,9 @@ export default function PlayerDetailModal({
                                 <span 
                                   key={i} 
                                   className={`text-lg ${
-                                    i < Math.floor(potentialRating) 
+                                    i < Math.floor(displayRating) 
                                       ? "text-yellow-400" 
-                                      : (i === Math.floor(potentialRating) && potentialRating % 1 >= 0.5)
+                                      : (i === Math.floor(displayRating) && displayRating % 1 >= 0.5)
                                         ? "text-yellow-400/60"
                                         : "text-gray-300"
                                   }`}
@@ -369,7 +379,7 @@ export default function PlayerDetailModal({
                               ))}
                             </div>
                             <span className="text-xs text-gray-400 ml-1">
-                              ({potentialRating.toFixed(1)})
+                              ({displayRating.toFixed(1)})
                             </span>
                           </div>
                         </div>
