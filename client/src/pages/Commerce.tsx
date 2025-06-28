@@ -321,26 +321,57 @@ export default function Commerce() {
                       <CardContent className="space-y-4">
                         <p className="text-gray-400 text-sm">{entry.description}</p>
                         
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-1">
-                            <span className="font-bold text-lg text-blue-400">
-                              {entry.price.toLocaleString()}
-                            </span>
-                            <span className="text-sm text-blue-400">
-                              {entry.currency === 'credits' ? '₡' : '💎'}
-                            </span>
+                        <div className="space-y-2">
+                          <div className="flex items-center justify-between text-sm text-gray-400">
+                            <span>Daily Limit: {entry.dailyLimit}</span>
+                            <span>Available: {entry.maxPurchases || entry.dailyLimit}</span>
                           </div>
-                          <Button
-                            onClick={() => purchaseItemMutation.mutate({
-                              itemId: entry.id,
-                              currency: entry.currency
-                            })}
-                            disabled={purchaseItemMutation.isPending}
-                            variant="outline"
-                            className="border-blue-500 text-blue-400 hover:bg-blue-500 hover:text-white"
-                          >
-                            {purchaseItemMutation.isPending ? "Purchasing..." : "Enter Tournament"}
-                          </Button>
+                          
+                          <div className="flex flex-col gap-2">
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center gap-1">
+                                <span className="font-bold text-lg text-blue-400">
+                                  {entry.price.toLocaleString()}
+                                </span>
+                                <span className="text-sm text-blue-400">₡</span>
+                              </div>
+                              <Button
+                                onClick={() => purchaseItemMutation.mutate({
+                                  itemId: entry.id,
+                                  currency: 'credits'
+                                })}
+                                disabled={purchaseItemMutation.isPending}
+                                variant="outline"
+                                className="border-blue-500 text-blue-400 hover:bg-blue-500 hover:text-white"
+                                size="sm"
+                              >
+                                {purchaseItemMutation.isPending ? "Buying..." : "Buy with Credits"}
+                              </Button>
+                            </div>
+                            
+                            {entry.priceGems && (
+                              <div className="flex items-center justify-between">
+                                <div className="flex items-center gap-1">
+                                  <span className="font-bold text-lg text-purple-400">
+                                    {entry.priceGems}
+                                  </span>
+                                  <span className="text-sm text-purple-400">💎</span>
+                                </div>
+                                <Button
+                                  onClick={() => purchaseItemMutation.mutate({
+                                    itemId: entry.id,
+                                    currency: 'gems'
+                                  })}
+                                  disabled={purchaseItemMutation.isPending}
+                                  variant="outline"
+                                  className="border-purple-500 text-purple-400 hover:bg-purple-500 hover:text-white"
+                                  size="sm"
+                                >
+                                  {purchaseItemMutation.isPending ? "Buying..." : "Buy with Gems"}
+                                </Button>
+                              </div>
+                            )}
+                          </div>
                         </div>
                       </CardContent>
                     </Card>

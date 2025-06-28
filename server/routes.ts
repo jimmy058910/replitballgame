@@ -1571,31 +1571,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const tournamentEntries = [
         {
-          id: "exhibition_entry",
-          name: "Exhibition Tournament",
-          description: "Enter weekly exhibition matches for extra rewards",
-          price: 15000,
-          currency: "credits",
+          id: "exhibition_bonus_games",
+          name: "Exhibition Bonus Games",
+          description: "Play additional exhibition matches for extra rewards (3 max per day)",
+          price: 5000,
+          priceGems: 15,
+          currency: "credits", // Can be purchased with credits OR gems
           rarity: "common",
-          icon: "🏆"
+          icon: "🎮",
+          dailyLimit: 3,
+          maxPurchases: 3
         },
         {
-          id: "regional_championship",
-          name: "Regional Championship",
-          description: "Compete against top teams for massive prize pools",
-          price: 50000,
-          currency: "credits",
-          rarity: "epic",
-          icon: "👑"
-        },
-        {
-          id: "prestige_league",
-          name: "Prestige League Entry",
-          description: "Elite competition with exclusive rewards",
-          price: 150,
-          currency: "currency",
-          rarity: "legendary",
-          icon: "💎"
+          id: "tournament_entry",
+          name: "Tournament Entry",
+          description: "Enter official tournament competition (1 max per day)",
+          price: 25000,
+          priceGems: 50,
+          currency: "credits", // Can be purchased with credits OR gems
+          rarity: "rare",
+          icon: "🏆",
+          dailyLimit: 1,
+          maxPurchases: 1
         }
       ];
 

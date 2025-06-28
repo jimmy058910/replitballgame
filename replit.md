@@ -34,6 +34,21 @@ Built as a React + Express web application with PostgreSQL database, using moder
 
 ## Recent Changes
 
+### December 28, 2025
+- ✓ Fixed PlayerDetailModal crash errors by adding comprehensive null checks for player data
+- ✓ Enhanced getPlayerRole function with default values to prevent null reference errors
+- ✓ Fixed player race field display with proper fallback for null/undefined values
+- ✓ Added proper error handling for age and other player fields that could be null
+- ✓ Populated Store system with actual items replacing all placeholder content
+- ✓ Enhanced Commerce page with Premium Items, Equipment, and Tournament Entries tabs
+- ✓ Updated Tournament Entries to show only Exhibition Bonus Games and Tournament Entry
+- ✓ Implemented dual currency support for entries (Credits OR Premium Gems)
+- ✓ Added daily purchase limits (3 Exhibition games, 1 Tournament entry per day)
+- ✓ Enhanced entry cards with dual pricing display and separate purchase buttons
+- ✓ Fixed store API to provide comprehensive item catalogs with proper categorization
+- ✓ Cleared redemption history mock data to show proper empty state
+- ✓ Updated all store sections to display actual purchasable content instead of placeholders
+
 ### December 25, 2025
 - ✓ Fixed notification text visibility by adding proper contrast colors
 - ✓ Added permanent notification deletion functionality 
