@@ -5808,9 +5808,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         concessions: Math.floor(stadium.capacity * 8 * (stadium.facilities.concessions || 1)),
         parking: Math.floor(stadium.capacity * 0.3 * 10 * (stadium.facilities.parking || 1)),
         vip: Math.floor((stadium.facilities.vip || 1) * 5000),
+        apparel: Math.floor(stadium.capacity * 3 * (stadium.facilities.merchandising || 1)), // New apparel revenue
         total: 0
       };
-      revenue.total = revenue.matchDay + revenue.concessions + revenue.parking + revenue.vip;
+      revenue.total = revenue.matchDay + revenue.concessions + revenue.parking + revenue.vip + revenue.apparel;
 
       // Get recent match history
       const matches = await storage.getMatchesByTeamId(team.id);
@@ -6285,6 +6286,20 @@ function getAvailableUpgrades(stadium: any) {
       effect: { 
         facilities: { ...stadium.facilities, vip: vipLevel + 1 },
         revenueMultiplier: stadium.revenueMultiplier + 20
+      }
+    });
+  }
+  
+  // Merchandising facilities
+  const merchandisingLevel = stadium.facilities?.merchandising || 0;
+  if (merchandisingLevel < 3) {
+    upgrades.push({
+      type: "merchandising",
+      name: `Team Store Level ${merchandisingLevel + 1}`,
+      description: "Enhanced apparel and merchandise sales facilities",
+      cost: 30000 + (merchandisingLevel * 15000),
+      effect: { 
+        facilities: { ...stadium.facilities, merchandising: merchandisingLevel + 1 }
       }
     });
   }
