@@ -4,7 +4,7 @@ import { apiRequest } from "@/lib/queryClient";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Clock, UserPlus, UserMinus, TrendingUp } from "lucide-react";
+import { Clock, UserPlus, UserMinus, TrendingUp, Star, StarHalf } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import UnifiedPlayerCard from "@/components/UnifiedPlayerCard";
 
@@ -12,6 +12,42 @@ interface TaxiSquadManagerProps {
   teamId?: string;
   onNavigateToRecruiting?: () => void;
 }
+
+// Calculate potential stars based on total stats
+const getPotentialStars = (player: any) => {
+  const totalStats = (player.speed || 20) + (player.power || 20) + (player.throwing || 20) + 
+                    (player.catching || 20) + (player.kicking || 20) + (player.agility || 20) + 
+                    (player.stamina || 20) + (player.leadership || 20);
+  
+  // Base potential calculation (young players have more potential)
+  const ageFactor = player.age ? Math.max(0.5, (30 - player.age) / 10) : 1;
+  const statFactor = Math.min(totalStats / 300, 1); // Normalize to 0-1
+  const basePotential = (statFactor * 3.5 + ageFactor * 1.5);
+  
+  return Math.max(0.5, Math.min(5, basePotential));
+};
+
+// Render star rating
+const renderStars = (rating: number) => {
+  const fullStars = Math.floor(rating);
+  const hasHalfStar = rating % 1 >= 0.5;
+  const stars = [];
+  
+  for (let i = 0; i < fullStars; i++) {
+    stars.push(<Star key={i} className="w-3 h-3 fill-yellow-400 text-yellow-400" />);
+  }
+  
+  if (hasHalfStar) {
+    stars.push(<StarHalf key="half" className="w-3 h-3 fill-yellow-400 text-yellow-400" />);
+  }
+  
+  const emptyStars = 5 - Math.ceil(rating);
+  for (let i = 0; i < emptyStars; i++) {
+    stars.push(<Star key={`empty-${i}`} className="w-3 h-3 text-gray-400" />);
+  }
+  
+  return stars;
+};
 
 export function TaxiSquadManager({ teamId, onNavigateToRecruiting }: TaxiSquadManagerProps) {
   const { toast } = useToast();
@@ -136,13 +172,26 @@ export function TaxiSquadManager({ teamId, onNavigateToRecruiting }: TaxiSquadMa
           </CardHeader>
           <CardContent>
             <div className="grid gap-4">
-              {taxiSquadPlayers.map((player: any) => (
-                <div key={player.id} className="flex items-center gap-4 p-4 border border-gray-600 rounded-lg">
-                  <div className="flex-1">
-                    <UnifiedPlayerCard player={player} variant="roster" />
-                  </div>
-                  
-                  <div className="flex gap-2">
+              {taxiSquadPlayers.map((player: any) => {
+                const potentialRating = getPotentialStars(player);
+                return (
+                  <div key={player.id} className="flex items-center gap-4 p-4 border border-gray-600 rounded-lg">
+                    <div className="flex-1">
+                      <UnifiedPlayerCard player={player} variant="roster" />
+                    </div>
+                    
+                    {/* Potential Rating Display */}
+                    <div className="text-center mr-4">
+                      <div className="text-xs text-gray-400 mb-1">Potential</div>
+                      <div className="flex items-center gap-1 justify-center">
+                        {renderStars(potentialRating)}
+                      </div>
+                      <div className="text-xs text-gray-400 mt-1">
+                        ({potentialRating.toFixed(1)}/5.0)
+                      </div>
+                    </div>
+                    
+                    <div className="flex gap-2">
                     <Button
                       variant="outline"
                       size="sm"
@@ -166,7 +215,8 @@ export function TaxiSquadManager({ teamId, onNavigateToRecruiting }: TaxiSquadMa
                     </Button>
                   </div>
                 </div>
-              ))}
+                );
+              })}
             </div>
           </CardContent>
         </Card>
