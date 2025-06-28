@@ -51,11 +51,10 @@ function ServerTimeDisplay({ serverTime }: { serverTime: any }) {
 
   return (
     <Card className="bg-blue-900 border-blue-700">
-      <CardContent className="p-4">
+      <CardContent className="p-2">
         <div className="text-center">
-          <div className="text-blue-200 font-medium text-lg">EST: {formatServerTime()}</div>
-          <div className="text-blue-300 text-sm">{getTimeUntilNextDay()}</div>
-          <div className="text-blue-400 text-xs mt-1">Days advance at 3 AM EST</div>
+          <div className="text-blue-200 font-medium text-sm">EST: {formatServerTime()}</div>
+          <div className="text-blue-300 text-xs">{getTimeUntilNextDay()}</div>
         </div>
       </CardContent>
     </Card>
