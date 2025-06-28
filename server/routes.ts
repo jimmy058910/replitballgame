@@ -4982,7 +4982,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         phase,
         description,
         details,
-        season: currentSeason?.name || `Season ${currentSeason?.year || 2025}`,
+        season: currentSeason?.name || `Season ${currentSeason?.year || 0}`,
         cycleLength: 17,
         daysUntilPlayoffs: Math.max(0, 15 - currentDay),
         daysUntilNewSeason: currentDay >= 17 ? 0 : (17 - currentDay)

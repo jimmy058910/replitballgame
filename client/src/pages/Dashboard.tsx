@@ -163,44 +163,18 @@ export default function Dashboard() {
             <ServerTimeDisplay serverTime={serverTime} />
           </div>
 
-          {/* Seasonal Cycle Display */}
+          {/* Competition Hub Tile */}
           {(seasonalCycle as any) && (
-            <Card className="bg-gradient-to-r from-purple-900 to-blue-900 border-purple-700 mb-6">
-              <CardContent className="p-6">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-4">
-                    <div className="bg-purple-600 bg-opacity-30 p-3 rounded-full">
-                      <Calendar className="h-8 w-8 text-purple-200" />
-                    </div>
-                    <div>
-                      <div className="text-sm text-purple-200 mb-1">{(seasonalCycle as any).season}</div>
-                      <h2 className="text-2xl font-bold text-white mb-1">{(seasonalCycle as any).description}</h2>
-                      <p className="text-purple-100 text-sm">{(seasonalCycle as any).details}</p>
-                    </div>
-                  </div>
-                  <div className="text-right">
-                    <div className="text-lg font-bold text-white mb-1">Day {(seasonalCycle as any).currentDay}/17</div>
-                    <Badge 
-                      variant={(seasonalCycle as any).phase === "Regular Season" ? "default" : 
-                              (seasonalCycle as any).phase === "Playoffs" ? "destructive" : "secondary"}
-                      className="text-xs"
-                    >
-                      {(seasonalCycle as any).phase}
-                    </Badge>
-                    {(seasonalCycle as any).daysUntilPlayoffs > 0 && (
-                      <div className="text-xs text-purple-200 mt-1">
-                        {(seasonalCycle as any).daysUntilPlayoffs} days to playoffs
-                      </div>
-                    )}
-                    {(seasonalCycle as any).daysUntilNewSeason > 0 && (seasonalCycle as any).phase === "Off-Season" && (
-                      <div className="text-xs text-purple-200 mt-1">
-                        {(seasonalCycle as any).daysUntilNewSeason} days to new season
-                      </div>
-                    )}
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+            <div 
+              className="mb-6 cursor-pointer transition-transform hover:scale-105"
+              onClick={() => window.location.href = '/competition'}
+            >
+              <img 
+                src="@assets/image_1751080761123.png" 
+                alt="Competition Hub - Season Status"
+                className="w-full h-auto rounded-lg shadow-lg"
+              />
+            </div>
           )}
           
           {/* Stats Cards */}
