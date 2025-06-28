@@ -62,13 +62,17 @@ export default function ContractNegotiation({ player, isOpen, onClose, teamId }:
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  const generateResponse = (offerQuality: number) => {
+  const generateResponse = (offerQuality: number, isAccepted: boolean) => {
     let responseType: keyof typeof contractResponses;
     
-    if (offerQuality >= 1.2) responseType = 'happy';
-    else if (offerQuality >= 1.0) responseType = 'considering';
-    else if (offerQuality >= 0.8) responseType = 'demanding';
-    else responseType = 'rejecting';
+    if (isAccepted) {
+      // If offer is accepted, use happy responses regardless of quality
+      responseType = 'happy';
+    } else if (offerQuality >= 0.8) {
+      responseType = 'demanding';
+    } else {
+      responseType = 'rejecting';
+    }
 
     const responses = contractResponses[responseType];
     return responses[Math.floor(Math.random() * responses.length)];
@@ -78,13 +82,14 @@ export default function ContractNegotiation({ player, isOpen, onClose, teamId }:
     mutationFn: async (offer: typeof currentOffer) => {
       const marketValue = player.salary * 1.1; // 10% above current
       const offerQuality = offer.salary / marketValue;
+      const isAccepted = offerQuality >= 0.9;
       
-      const response = generateResponse(offerQuality);
+      const response = generateResponse(offerQuality, isAccepted);
       
       return { 
-        success: offerQuality >= 0.9,
+        success: isAccepted,
         response,
-        counterOffer: offerQuality < 0.9 ? {
+        counterOffer: !isAccepted && offerQuality >= 0.8 ? {
           salary: Math.floor(marketValue),
           years: offer.years,
           bonus: Math.floor(marketValue * 0.2)
