@@ -4524,7 +4524,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const currentSeason = await storage.getCurrentSeason();
       if (!currentSeason) {
-        return res.json({ schedule: [] });
+        return res.json({ schedule: {} });
       }
 
       // Get all league matches, grouped by day
@@ -4534,30 +4534,46 @@ export async function registerRoutes(app: Express): Promise<Server> {
         allMatches.push(...divisionMatches);
       }
 
-      // Group matches by game day
+      // Group matches by game day and populate team names
       const scheduleByDay = {};
       
       for (let day = 1; day <= 17; day++) {
         const dayMatches = allMatches.filter(match => match.gameDay === day);
         
         if (dayMatches.length > 0) {
+          // Ensure exactly 4 games per League Day
+          const selectedMatches = dayMatches.slice(0, 4);
+          
           // Generate 4 daily game times with 15-minute intervals
           const daySchedule = generateDailyGameTimes(day);
           
-          scheduleByDay[day] = dayMatches.slice(0, 4).map((match, index) => ({
-            ...match,
-            scheduledTime: daySchedule[index],
-            scheduledTimeFormatted: formatEasternTime(daySchedule[index]),
-            isLive: match.status === 'in_progress',
-            canWatch: match.status === 'in_progress'
-          }));
+          // Populate team names for each match
+          const matchesWithTeamNames = await Promise.all(
+            selectedMatches.map(async (match, index) => {
+              const homeTeam = await storage.getTeamById(match.homeTeamId);
+              const awayTeam = await storage.getTeamById(match.awayTeamId);
+              
+              return {
+                ...match,
+                homeTeamName: homeTeam?.name || `Team ${match.homeTeamId.slice(0, 8)}`,
+                awayTeamName: awayTeam?.name || `Team ${match.awayTeamId.slice(0, 8)}`,
+                scheduledTime: daySchedule[index],
+                scheduledTimeFormatted: formatEasternTime(daySchedule[index]),
+                isLive: match.status === 'in_progress',
+                canWatch: match.status === 'in_progress' || match.status === 'scheduled',
+                watchUrl: `/match/${match.id}`
+              };
+            })
+          );
+          
+          scheduleByDay[day] = matchesWithTeamNames;
         }
       }
 
       res.json({ 
         schedule: scheduleByDay,
         totalDays: 17,
-        currentDay: currentSeason.currentDay
+        currentDay: currentSeason.currentDay || 1
       });
     } catch (error) {
       console.error("Error getting daily schedule:", error);
@@ -4678,29 +4694,39 @@ export async function registerRoutes(app: Express): Promise<Server> {
           });
         }
 
-        // Generate round-robin schedule (each team plays every other team twice)
+        // Generate balanced schedule (each team plays every other team twice)
+        const matches = [];
         for (let i = 0; i < teams.length; i++) {
           for (let j = i + 1; j < teams.length; j++) {
             const homeTeam = teams[i];
             const awayTeam = teams[j];
 
             // Create two matches (home and away)
-            for (let round = 0; round < 2; round++) {
-              const isFirstRound = round === 0;
-              const gameDay = Math.floor(Math.random() * 14) + 1; // Random day 1-14
-              
-              await storage.createMatch({
-                leagueId: league.id,
-                homeTeamId: isFirstRound ? homeTeam.id : awayTeam.id,
-                awayTeamId: isFirstRound ? awayTeam.id : homeTeam.id,
-                status: 'scheduled',
-                gameDay: gameDay,
-                scheduledTime: null
-              });
-              totalMatches++;
-            }
+            matches.push({ homeTeam, awayTeam });
+            matches.push({ homeTeam: awayTeam, awayTeam: homeTeam });
           }
         }
+
+        // Distribute matches evenly across 14 game days (regular season)
+        // We want exactly 4 games per League Day maximum
+        const gamesPerDay = 4;
+        const totalGameDays = 14; // Days 1-14 are regular season
+        
+        matches.forEach((match, index) => {
+          const gameDay = Math.floor(index / gamesPerDay) + 1;
+          // Ensure we don't exceed 14 days by wrapping around
+          const finalGameDay = Math.min(gameDay, totalGameDays);
+          
+          storage.createMatch({
+            leagueId: league.id,
+            homeTeamId: match.homeTeam.id,
+            awayTeamId: match.awayTeam.id,
+            status: 'scheduled',
+            gameDay: finalGameDay,
+            scheduledTime: null
+          });
+          totalMatches++;
+        });
       }
 
       res.json({ 
