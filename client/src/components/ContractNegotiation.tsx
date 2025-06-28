@@ -120,7 +120,8 @@ export default function ContractNegotiation({ player, isOpen, onClose, teamId }:
     mutationFn: async () => {
       await apiRequest(`/api/players/${player.id}/negotiate`, "POST", {
         seasons: currentOffer.years,
-        salary: currentOffer.salary
+        salary: currentOffer.salary,
+        bonus: currentOffer.bonus
       });
     },
     onSuccess: () => {
@@ -129,6 +130,7 @@ export default function ContractNegotiation({ player, isOpen, onClose, teamId }:
         description: "The new contract has been officially signed!",
       });
       queryClient.invalidateQueries({ queryKey: [`/api/teams/${teamId}/players`] });
+      queryClient.invalidateQueries({ queryKey: [`/api/teams/my/finances`] });
       onClose();
     }
   });

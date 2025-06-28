@@ -60,6 +60,7 @@ Built as a React + Express web application with PostgreSQL database, using moder
 - ✓ CONTRACT NEGOTIATION LOGIC FIXED: Aligned success threshold with response generation - accepted offers now show accepting responses instead of mismatched demanding/considering messages  
 - ✓ CONTRACT FINALIZATION API FIXED: Updated ContractNegotiation component to call correct `/api/players/:playerId/negotiate` endpoint instead of non-existent `/api/players/:playerId/contract` route
 - ✓ CONTRACT AUTO-FINALIZATION ADDED: Fixed critical missing step where accepted contracts weren't being finalized - now automatically calls finalization when player accepts offer
+- ✓ SIGNING BONUS DEDUCTION FIXED: Added missing financial transaction logic to contract negotiation endpoint - signing bonuses now properly deducted from team credits with immediate UI refresh
 
 ### December 29, 2025 (Earlier - Comprehensive Commentary System + Complete Stat Boost System)
 - ✓ COMPREHENSIVE GAME COMMENTARY SYSTEM IMPLEMENTED: Created sophisticated 6-category commentary generator according to user specifications

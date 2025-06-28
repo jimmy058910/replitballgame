@@ -1131,13 +1131,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/players/:playerId/negotiate", isAuthenticated, async (req, res) => {
     try {
       const playerId = req.params.playerId;
-      const { seasons, salary } = req.body;
+      const { seasons, salary, bonus } = req.body;
       
+      // Update player contract
       const updatedPlayer = await storage.updatePlayer(playerId, {
         contractSeasons: seasons,
         contractStartSeason: 1,
         salary: salary
       });
+      
+      // If there's a signing bonus, deduct it from team credits
+      if (bonus && bonus > 0) {
+        const player = await storage.getPlayerById(playerId);
+        if (player && player.teamId) {
+          const teamFinances = await storage.getTeamFinances(player.teamId);
+          if (teamFinances) {
+            const newCredits = Math.max(0, (teamFinances.credits || 0) - bonus);
+            await storage.updateTeamFinances(player.teamId, {
+              credits: newCredits
+            });
+          }
+        }
+      }
       
       res.json(updatedPlayer);
     } catch (error) {
