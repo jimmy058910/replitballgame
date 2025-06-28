@@ -109,6 +109,8 @@ export const players = pgTable("players", {
   glovesItemId: uuid("gloves_item_id"),
   
   // Player development
+  currentStamina: integer("current_stamina").default(100), // 0-100
+  maxStamina: integer("max_stamina").default(100),
   injuries: jsonb("injuries").default([]),
   abilities: jsonb("abilities").default([]),
   camaraderie: integer("camaraderie").default(50), // team chemistry
@@ -153,18 +155,40 @@ export const matches = pgTable("matches", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
-// Equipment/Items table
+// Equipment/Items table - Enhanced for comprehensive item system
 export const items = pgTable("items", {
   id: uuid("id").primaryKey().defaultRandom(),
+  itemId: integer("item_id").notNull().unique(), // Matches item database ID
   name: varchar("name").notNull(),
-  type: varchar("type").notNull(), // helmet, chest, shoes, gloves
-  rarity: varchar("rarity").notNull(), // common, rare, epic, legendary
-  slot: varchar("slot"), // equipment slot
+  type: varchar("type").notNull(), // Equipment, Consumable
+  itemType: varchar("item_type").notNull(), // helmet, armor, gloves, footwear, stamina_recovery, injury_recovery
+  rarity: varchar("rarity").notNull(), // common, uncommon, rare, epic, legendary
+  rarityId: integer("rarity_id").notNull(), // 1-5
+  slot: varchar("slot"), // For equipment: helmet, armor, gloves, footwear
+  slotId: integer("slot_id"), // 1-4
   statBoosts: jsonb("stat_boosts").default({}), // {speed: 2, power: 1, etc}
   description: text("description"),
-  marketValue: integer("market_value").default(0),
-  marketplacePrice: integer("marketplace_price"), // Current marketplace listing price
-  teamId: uuid("team_id").references(() => teams.id), // Owner team
+  iconPath: varchar("icon_path"),
+  
+  // For consumables
+  effectType: varchar("effect_type"), // InjuryRecovery, StaminaRecovery, StaminaAndInjury
+  effectValue: integer("effect_value"), // How much to recover
+  duration: integer("duration").default(0), // Duration in seconds (0 for instant)
+  
+  // Restrictions
+  isUniversal: boolean("is_universal").default(true),
+  raceRestrictions: jsonb("race_restrictions").default([]), // Array of race IDs
+  
+  // Pricing
+  creditPrice: integer("credit_price"), // Price in regular credits
+  gemPrice: integer("gem_price"), // Price in premium gems
+  isPremium: boolean("is_premium").default(false), // True if Premium Gems only
+  
+  // Ownership
+  teamId: uuid("team_id").references(() => teams.id), // Owner team (null if in store)
+  playerId: uuid("player_id").references(() => players.id), // Equipped player
+  quantity: integer("quantity").default(1), // For stackable consumables
+  
   createdAt: timestamp("created_at").defaultNow(),
 });
 
@@ -343,7 +367,11 @@ export const playerInjuries = pgTable("player_injuries", {
   isActive: boolean("is_active").default(true),
   injuredAt: timestamp("injured_at").defaultNow(),
   expectedRecovery: timestamp("expected_recovery"),
+  gameType: varchar("game_type"), // league, tournament, exhibition
+  matchId: uuid("match_id").references(() => matches.id), // Which match caused injury
 });
+
+// Remove duplicate - teamInventory already defined above
 
 // Relations
 export const usersRelations = relations(users, ({ many }) => ({

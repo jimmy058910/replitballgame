@@ -20,7 +20,7 @@ import { generateRandomPlayer } from "./services/leagueService";
 import { matchStateManager } from "./services/matchStateManager";
 import { z } from "zod";
 import { db } from "./db";
-import { items, stadiums, facilityUpgrades, stadiumEvents, teams, players, matches, teamFinances, playerInjuries, staff } from "@shared/schema";
+import { items, stadiums, facilityUpgrades, stadiumEvents, teams, players, matches, teamFinances, playerInjuries, staff, teamInventory } from "@shared/schema";
 import { eq, isNotNull, gte, lte, and, desc, or } from "drizzle-orm";
 import { randomUUID } from "crypto";
 
@@ -1472,312 +1472,515 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Store routes
-  app.get('/api/store', isAuthenticated, async (req, res) => {
+  // Initialize comprehensive item database
+  const initializeItemDatabase = () => {
+    // Equipment items based on provided database
+    const equipment = [
+      // Helmets
+      { itemId: 101, name: "Standard Leather Helmet", type: "Equipment", itemType: "helmet", rarity: "common", rarityId: 1, slot: "helmet", slotId: 1, description: "Standard issue. Better than nothing.", statBoosts: { stamina: 1 }, isUniversal: true, raceRestrictions: [], creditPrice: 5000, gemPrice: null, isPremium: false },
+      { itemId: 102, name: "Gryllstone Plated Helm", type: "Equipment", itemType: "helmet", rarity: "rare", rarityId: 3, slot: "helmet", slotId: 1, description: "Incredibly durable, but heavy.", statBoosts: { power: 4, speed: -2 }, isUniversal: false, raceRestrictions: [3], creditPrice: null, gemPrice: 25, isPremium: true },
+      { itemId: 103, name: "Sylvan Barkwood Circlet", type: "Equipment", itemType: "helmet", rarity: "rare", rarityId: 3, slot: "helmet", slotId: 1, description: "Imbued with the resilience of an ancient tree.", statBoosts: { stamina: 5 }, isUniversal: false, raceRestrictions: [2], creditPrice: null, gemPrice: 30, isPremium: true },
+      { itemId: 104, name: "Umbral Cowl", type: "Equipment", itemType: "helmet", rarity: "epic", rarityId: 4, slot: "helmet", slotId: 1, description: "A light hood that seems to absorb light and sound.", statBoosts: { agility: 3 }, isUniversal: false, raceRestrictions: [5], creditPrice: null, gemPrice: 45, isPremium: true },
+      { itemId: 105, name: "Helm of Command", type: "Equipment", itemType: "helmet", rarity: "legendary", rarityId: 5, slot: "helmet", slotId: 1, description: "A helmet worn by legendary Human captains.", statBoosts: { leadership: 3, throwing: 3 }, isUniversal: false, raceRestrictions: [1], creditPrice: null, gemPrice: 75, isPremium: true },
+      
+      // Armor
+      { itemId: 201, name: "Padded Leather Armor", type: "Equipment", itemType: "armor", rarity: "common", rarityId: 1, slot: "armor", slotId: 2, description: "Standard issue, offers minimal protection.", statBoosts: { power: 1 }, isUniversal: true, raceRestrictions: [], creditPrice: 5000, gemPrice: null, isPremium: false },
+      { itemId: 202, name: "Lumina's Radiant Aegis", type: "Equipment", itemType: "armor", rarity: "legendary", rarityId: 5, slot: "armor", slotId: 2, description: "Glows with a soft, protective light.", statBoosts: { stamina: 7, agility: 3 }, isUniversal: false, raceRestrictions: [4], creditPrice: null, gemPrice: 100, isPremium: true },
+      { itemId: 203, name: "Gryll Forged Plate", type: "Equipment", itemType: "armor", rarity: "epic", rarityId: 4, slot: "armor", slotId: 2, description: "Unyieldingly solid, designed for head-on collisions.", statBoosts: { power: 6 }, isUniversal: false, raceRestrictions: [3], creditPrice: null, gemPrice: 60, isPremium: true },
+      
+      // Gloves
+      { itemId: 301, name: "Standard Leather Gloves", type: "Equipment", itemType: "gloves", rarity: "common", rarityId: 1, slot: "gloves", slotId: 3, description: "Provides basic grip.", statBoosts: { catching: 1 }, isUniversal: true, raceRestrictions: [], creditPrice: 3000, gemPrice: null, isPremium: false },
+      { itemId: 302, name: "Sylvan Gripping Vines", type: "Equipment", itemType: "gloves", rarity: "epic", rarityId: 4, slot: "gloves", slotId: 3, description: "Living vines wrap around the hands for an uncanny grip.", statBoosts: { catching: 6 }, isUniversal: false, raceRestrictions: [2], creditPrice: null, gemPrice: 50, isPremium: true },
+      { itemId: 303, name: "Umbral Shadowgrips", type: "Equipment", itemType: "gloves", rarity: "rare", rarityId: 3, slot: "gloves", slotId: 3, description: "Dark gloves that help quiet the sound of catching a ball.", statBoosts: { catching: 3, agility: 2 }, isUniversal: false, raceRestrictions: [5], creditPrice: null, gemPrice: 35, isPremium: true },
+      
+      // Footwear
+      { itemId: 401, name: "Worn Cleats", type: "Equipment", itemType: "footwear", rarity: "common", rarityId: 1, slot: "footwear", slotId: 4, description: "Standard issue footwear.", statBoosts: { speed: 1 }, isUniversal: true, raceRestrictions: [], creditPrice: 4000, gemPrice: null, isPremium: false },
+      { itemId: 402, name: "Boots of the Gryll", type: "Equipment", itemType: "footwear", rarity: "uncommon", rarityId: 2, slot: "footwear", slotId: 4, description: "Heavy and stable, providing an unmovable base.", statBoosts: { power: 3, speed: -1 }, isUniversal: false, raceRestrictions: [3], creditPrice: 8000, gemPrice: null, isPremium: false },
+      { itemId: 403, name: "Lumina's Light-Treads", type: "Equipment", itemType: "footwear", rarity: "epic", rarityId: 4, slot: "footwear", slotId: 4, description: "Footwear that seems to almost float over the ground.", statBoosts: { speed: 4, agility: 2 }, isUniversal: false, raceRestrictions: [4], creditPrice: null, gemPrice: 55, isPremium: true }
+    ];
+    
+    // Consumable items
+    const consumables = [
+      // Injury recovery
+      { itemId: 501, name: "Salve Pouch", type: "Consumable", itemType: "injury_recovery", rarity: "common", rarityId: 1, description: "A simple herbal remedy.", effectType: "InjuryRecovery", effectValue: 15, duration: 0, creditPrice: 2000, gemPrice: null, isPremium: false },
+      { itemId: 504, name: "Gryllstone Dust", type: "Consumable", itemType: "injury_recovery", rarity: "rare", rarityId: 3, description: "A potent but gritty powder that knits wounds.", effectType: "InjuryRecovery", effectValue: 50, duration: 0, creditPrice: null, gemPrice: 20, isPremium: true },
+      
+      // Stamina recovery
+      { itemId: 502, name: "Energy Bar", type: "Consumable", itemType: "stamina_recovery", rarity: "common", rarityId: 1, description: "Packed with nutrients for a quick boost.", effectType: "StaminaRecovery", effectValue: 20, duration: 0, creditPrice: 1500, gemPrice: null, isPremium: false },
+      { itemId: 503, name: "Sylvan Sap", type: "Consumable", itemType: "stamina_recovery", rarity: "uncommon", rarityId: 2, description: "A thick, sweet sap that revitalizes the weary.", effectType: "StaminaRecovery", effectValue: 40, duration: 0, creditPrice: 5000, gemPrice: null, isPremium: false },
+      
+      // Combined recovery
+      { itemId: 505, name: "Lumina's Radiance", type: "Consumable", itemType: "stamina_recovery", rarity: "epic", rarityId: 4, description: "A captured mote of pure light that restores both body and energy.", effectType: "StaminaAndInjury", effectValue: 35, duration: 0, creditPrice: null, gemPrice: 30, isPremium: true }
+    ];
+    
+    return { equipment, consumables };
+  };
+
+  // Store routes - Enhanced for comprehensive item system
+  app.get('/api/store', isAuthenticated, async (req: any, res) => {
     try {
-      // Generate daily rotating store items (rotates at 3AM server time)
-      const now = new Date();
-      const rotationDate = new Date(now);
-      if (now.getHours() < 3) {
-        rotationDate.setDate(now.getDate() - 1);
+      const userId = req.user.claims.sub;
+      const team = await storage.getTeamByUserId(userId);
+      
+      if (!team) {
+        return res.status(404).json({ message: "Team not found" });
       }
-      const dayKey = rotationDate.toDateString();
       
-      // Create a seed from the date for consistent daily rotation
-      const seed = dayKey.split('').reduce((a, b) => a + b.charCodeAt(0), 0);
+      // Get comprehensive item database
+      const { equipment, consumables } = initializeItemDatabase();
       
-      // All available premium items
-      const allPremiumItems = [
-        {
-          id: "legendary_helmet",
-          name: "Crown of Champions",
-          description: "Legendary headgear that inspires greatness",
-          price: 50,
-          currency: "gems",
-          rarity: "legendary",
-          icon: "👑",
-          statBoosts: { leadership: 8, power: 5, stamina: 4 }
-        },
-        {
-          id: "mythic_boots",
-          name: "Wings of Victory",
-          description: "Mythical boots that grant supernatural speed",
-          price: 75,
-          currency: "gems", 
-          rarity: "mythic",
-          icon: "🪶",
-          statBoosts: { speed: 10, agility: 8, kicking: 3 }
-        },
-        {
-          id: "epic_armor",
-          name: "Dragonscale Vest",
-          description: "Armor forged from ancient dragon scales",
-          price: 60,
-          currency: "gems",
-          rarity: "epic",
-          icon: "🐉",
-          statBoosts: { power: 7, stamina: 6, catching: -1 }
-        },
-        {
-          id: "rare_gloves",
-          name: "Midas Touch Gloves",
-          description: "Golden gloves that never miss a catch",
-          price: 35,
-          currency: "gems",
-          rarity: "rare",
-          icon: "✨",
-          statBoosts: { catching: 6, throwing: 4, leadership: 2 }
-        },
-        {
-          id: "divine_amulet",
-          name: "Amulet of Endless Energy",
-          description: "Divine artifact that grants infinite stamina",
-          price: 100,
-          currency: "gems",
-          rarity: "divine",
-          icon: "🔮",
-          statBoosts: { stamina: 12, speed: 4, agility: 4 }
-        },
-        {
-          id: "speed_essence",
-          name: "Lightning Essence",
-          description: "Pure speed crystallized into wearable form",
-          price: 45,
-          currency: "gems",
-          rarity: "epic",
-          icon: "⚡",
-          statBoosts: { speed: 8, agility: 6, stamina: 2 }
-        }
-      ];
+      // Get user's race for filtering race-restricted items
+      const userRace = team.race;
       
-      // All available equipment items  
-      const allEquipment = [
-        {
-          id: "pro_helmet",
-          name: "Pro League Helmet",
-          description: "Professional grade protection with enhanced visibility",
-          price: 25000,
-          currency: "credits",
-          rarity: "rare",
-          icon: "🪖",
-          statBoosts: { power: 4, stamina: 3, leadership: 2 }
-        },
-        {
-          id: "speed_cleats",
-          name: "Velocity Cleats",
-          description: "High-tech cleats engineered for maximum speed",
-          price: 18000,
-          currency: "credits",
-          rarity: "uncommon",
-          icon: "👟",
-          statBoosts: { speed: 6, agility: 4 }
-        },
-        {
-          id: "power_gloves",
-          name: "Titan Grip Gloves",
-          description: "Heavy-duty gloves that enhance throwing power",
-          price: 15000,
-          currency: "credits",
-          rarity: "uncommon",
-          icon: "🧤",
-          statBoosts: { throwing: 5, power: 3, catching: 2 }
-        },
-        {
-          id: "agility_shorts",
-          name: "Windrunner Shorts",
-          description: "Aerodynamic shorts that improve mobility",
-          price: 12000,
-          currency: "credits",
-          rarity: "common",
-          icon: "🩳",
-          statBoosts: { agility: 5, speed: 2 }
-        },
-        {
-          id: "endurance_vest",
-          name: "Marathon Vest",
-          description: "Advanced compression vest for sustained performance",
-          price: 22000,
-          currency: "credits",
-          rarity: "rare",
-          icon: "🦺",
-          statBoosts: { stamina: 6, power: 2, leadership: 1 }
-        },
-        {
-          id: "precision_visor",
-          name: "Eagle Eye Visor",
-          description: "High-tech visor that enhances accuracy and focus",
-          price: 20000,
-          currency: "credits",
-          rarity: "rare",
-          icon: "🥽",
-          statBoosts: { throwing: 6, catching: 4, leadership: 2 }
-        }
-      ];
+      // Filter items available to this user
+      const availableEquipment = equipment.filter(item => 
+        item.isUniversal || item.raceRestrictions.includes(userRace)
+      );
       
-      // Select 3 premium items and 4 equipment items for daily rotation
-      const seedRandom = (seed: number) => {
-        return function() {
-          seed = (seed * 9301 + 49297) % 233280;
-          return seed / 233280;
-        };
+      const availableConsumables = consumables;
+      
+      // Get team finances
+      const finances = await storage.getTeamFinances(team.id);
+      
+      // Get team inventory to check what items they already own
+      const inventory = await db.select().from(teamInventory).where(eq(teamInventory.teamId, team.id));
+      
+      // Separate items by currency type
+      const premiumItems = availableEquipment.filter(item => item.isPremium);
+      const creditItems = availableEquipment.filter(item => !item.isPremium);
+      
+      // Map races for frontend
+      const raceMap: { [key: number]: string } = {
+        1: "Human",
+        2: "Sylvan", 
+        3: "Gryll",
+        4: "Lumina",
+        5: "Umbra"
       };
       
-      const rng = seedRandom(seed);
-      const shuffledPremium = [...allPremiumItems].sort(() => rng() - 0.5);
-      const shuffledEquipment = [...allEquipment].sort(() => rng() - 0.5);
-      
-      const dailyPremiumItems = shuffledPremium.slice(0, 3);
-      const dailyEquipment = shuffledEquipment.slice(0, 4);
-      
-      // Static items that don't rotate
-      const storeItems = [
-        {
-          id: "helmet_basic",
-          name: "Basic Helmet",
-          description: "Standard protection headgear",
-          price: 5000,
-          currency: "credits",
-          rarity: "common",
-          icon: "🪖",
-          statBoosts: { power: 2, stamina: 1 }
-        },
-        {
-          id: "shoes_speed",
-          name: "Speed Boots",
-          description: "Lightweight boots for enhanced speed",
-          price: 8000,
-          currency: "credits",
-          rarity: "rare",
-          icon: "👟",
-          statBoosts: { speed: 5, agility: 3 }
-        },
-        {
-          id: "gloves_grip",
-          name: "Grip Gloves",
-          description: "Enhanced grip for better ball handling",
-          price: 6000,
-          currency: "credits",
-          rarity: "common",
-          icon: "🧤",
-          statBoosts: { catching: 3, throwing: 2 }
-        },
-        {
-          id: "armor_light",
-          name: "Light Combat Armor",
-          description: "Flexible protection that doesn't slow you down",
-          price: 12000,
-          currency: "credits",
-          rarity: "rare",
-          icon: "🦺",
-          statBoosts: { power: 3, stamina: 2, agility: 1 }
-        },
-        {
-          id: "training_credits",
-          name: "Training Package",
-          description: "Credits for player development",
-          price: 10,
-          currency: "currency",
-          rarity: "common",
-          icon: "💰"
-        }
-      ];
-
+      // Tournament entries (always available)
       const tournamentEntries = [
         {
-          id: "exhibition_bonus_games",
-          name: "Exhibition Bonus Games",
-          description: "Play additional exhibition matches for extra rewards (3 max per day)",
-          price: 5000,
-          priceGems: 15,
-          currency: "credits", // Can be purchased with credits OR gems
-          rarity: "common",
-          icon: "🎮",
+          id: "exhibition_game",
+          name: "Exhibition Bonus Game",
+          description: "Challenge another team in a friendly match. Win rewards based on performance!",
+          creditPrice: 5000,
+          gemPrice: 5,
+          icon: "🏟️",
+          type: "entry",
           dailyLimit: 3,
-          maxPurchases: 3
+          purchasesToday: 0 // TODO: Track daily purchases
         },
         {
           id: "tournament_entry",
           name: "Tournament Entry",
-          description: "Enter official tournament competition (1 max per day)",
-          price: 25000,
-          priceGems: 50,
-          currency: "credits", // Can be purchased with credits OR gems
-          rarity: "rare",
+          description: "Enter the weekly tournament for a chance at glory and massive prizes!",
+          creditPrice: 10000,
+          gemPrice: 10,
           icon: "🏆",
+          type: "entry",
           dailyLimit: 1,
-          maxPurchases: 1
+          purchasesToday: 0 // TODO: Track daily purchases
         }
       ];
-
-      // Credit packages for purchasing Premium Gems with real money
-      const creditPackages = [
-        {
-          id: "gems_starter",
-          name: "Starter Gem Pack",
-          description: "Perfect for new managers getting started",
-          price: 499, // $4.99 in cents
-          currency: "usd",
-          gems: 50,
-          rarity: "common",
-          icon: "💎",
-          bonus: 0
-        },
-        {
-          id: "gems_regular",
-          name: "Regular Gem Pack",
-          description: "Great value for regular purchases",
-          price: 999, // $9.99 in cents
-          currency: "usd",
-          gems: 110,
-          rarity: "rare",
-          icon: "💎",
-          bonus: 10 // 10 bonus gems
-        },
-        {
-          id: "gems_premium",
-          name: "Premium Gem Pack",
-          description: "Best value pack for serious managers",
-          price: 1999, // $19.99 in cents
-          currency: "usd",
-          gems: 250,
-          rarity: "epic",
-          icon: "💎",
-          bonus: 50 // 50 bonus gems
-        },
-        {
-          id: "gems_ultimate",
-          name: "Ultimate Gem Pack",
-          description: "Maximum value for championship teams",
-          price: 4999, // $49.99 in cents
-          currency: "usd",
-          gems: 700,
-          rarity: "legendary",
-          icon: "💎",
-          bonus: 200 // 200 bonus gems
-        }
-      ];
-
-      const resetTime = new Date();
-      resetTime.setHours(3, 0, 0, 0); // Next 3AM
-      if (resetTime <= now) {
-        resetTime.setDate(resetTime.getDate() + 1);
-      }
-
+      
       res.json({
-        items: storeItems,
-        premiumItems: dailyPremiumItems,
-        equipment: dailyEquipment,
-        tournamentEntries,
-        creditPackages,
-        resetTime,
-        rotationInfo: {
-          currentDay: dayKey,
-          nextRotationTime: resetTime.toISOString()
-        }
+        finances: {
+          credits: finances?.credits || 0,
+          premiumCurrency: finances?.premiumCurrency || 0
+        },
+        inventoryCount: inventory.length,
+        premiumItems: premiumItems.map(item => ({
+          ...item,
+          icon: getRarityIcon(item.rarity),
+          owned: inventory.some(inv => inv.itemId === item.itemId),
+          price: item.gemPrice,
+          currency: "gems",
+          raceRestriction: item.raceRestrictions.length > 0 ? 
+            item.raceRestrictions.map(r => raceMap[r]).join(", ") : null
+        })),
+        items: creditItems.map(item => ({
+          ...item,
+          icon: getRarityIcon(item.rarity),
+          owned: inventory.some(inv => inv.itemId === item.itemId),
+          price: item.creditPrice,
+          currency: "credits",
+          raceRestriction: item.raceRestrictions.length > 0 ? 
+            item.raceRestrictions.map(r => raceMap[r]).join(", ") : null
+        })),
+        consumables: availableConsumables.map(item => ({
+          ...item,
+          icon: getConsumableIcon(item.itemType),
+          owned: false, // Consumables are single-use
+          price: item.isPremium ? item.gemPrice : item.creditPrice,
+          currency: item.isPremium ? "gems" : "credits"
+        })),
+        tournamentEntries
       });
     } catch (error) {
-      console.error("Error fetching store:", error);
-      res.status(500).json({ message: "Failed to fetch store" });
+      console.error("Store error:", error);
+      res.status(500).json({ message: "Failed to load store data" });
+    }
+  });
+  
+  // Helper functions for store
+  function getRarityIcon(rarity: string): string {
+    const icons: { [key: string]: string } = {
+      common: "⚪",
+      uncommon: "🟢",
+      rare: "🔵",
+      epic: "🟣",
+      legendary: "🟡",
+      mythic: "🔴",
+      divine: "✨"
+    };
+    return icons[rarity] || "⚪";
+  }
+  
+  function getConsumableIcon(itemType: string): string {
+    const icons: { [key: string]: string } = {
+      injury_recovery: "🩹",
+      stamina_recovery: "⚡",
+      stat_boost: "💪"
+    };
+    return icons[itemType] || "💊";
+  }
+
+  // Main store endpoint with comprehensive item database
+  app.get('/api/store', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user?.claims?.sub;
+      const team = await storage.getTeamByUserId(userId);
+      
+      if (!team) {
+        return res.status(404).json({ message: "Team not found" });
+      }
+
+      // Get team's inventory
+      const inventory = await db.select()
+        .from(teamInventory)
+        .where(eq(teamInventory.teamId, team.id));
+
+      // Equipment database
+      const equipment = [
+        // Helmets
+        { itemId: "101", name: "Standard Leather Helmet", description: "Standard issue. Better than nothing.", slot: "helmet", rarity: "common", isPremium: false, creditPrice: 1000, gemPrice: 0, statBoosts: { stamina: 1 } },
+        { itemId: "102", name: "Gryllstone Plated Helm", description: "Incredibly durable, but heavy.", slot: "helmet", rarity: "rare", isPremium: false, creditPrice: 5000, gemPrice: 10, statBoosts: { power: 4, speed: -2 }, raceRestrictions: ["Gryll"] },
+        { itemId: "103", name: "Sylvan Barkwood Circlet", description: "Imbued with the resilience of an ancient tree.", slot: "helmet", rarity: "rare", isPremium: false, creditPrice: 5000, gemPrice: 10, statBoosts: { stamina: 5 }, raceRestrictions: ["Sylvan"] },
+        { itemId: "104", name: "Umbral Cowl", description: "A light hood that seems to absorb light and sound.", slot: "helmet", rarity: "epic", isPremium: true, creditPrice: 0, gemPrice: 25, statBoosts: { agility: 3 }, raceRestrictions: ["Umbra"] },
+        { itemId: "105", name: "Helm of Command", description: "A helmet worn by legendary Human captains.", slot: "helmet", rarity: "legendary", isPremium: true, creditPrice: 0, gemPrice: 50, statBoosts: { leadership: 3, throwing: 3 }, raceRestrictions: ["Human"] },
+        
+        // Armor
+        { itemId: "201", name: "Padded Leather Armor", description: "Standard issue, offers minimal protection.", slot: "armor", rarity: "common", isPremium: false, creditPrice: 1000, gemPrice: 0, statBoosts: { power: 1 } },
+        { itemId: "202", name: "Lumina's Radiant Aegis", description: "Glows with a soft, protective light.", slot: "armor", rarity: "legendary", isPremium: true, creditPrice: 0, gemPrice: 50, statBoosts: { stamina: 7, agility: 3 }, raceRestrictions: ["Lumina"] },
+        { itemId: "203", name: "Gryll Forged Plate", description: "Unyieldingly solid, designed for head-on collisions.", slot: "armor", rarity: "epic", isPremium: true, creditPrice: 0, gemPrice: 25, statBoosts: { power: 6 }, raceRestrictions: ["Gryll"] },
+        
+        // Gloves
+        { itemId: "301", name: "Standard Leather Gloves", description: "Provides basic grip.", slot: "gloves", rarity: "common", isPremium: false, creditPrice: 1000, gemPrice: 0, statBoosts: { catching: 1 } },
+        { itemId: "302", name: "Sylvan Gripping Vines", description: "Living vines wrap around the hands for an uncanny grip.", slot: "gloves", rarity: "epic", isPremium: true, creditPrice: 0, gemPrice: 25, statBoosts: { catching: 6 }, raceRestrictions: ["Sylvan"] },
+        { itemId: "303", name: "Umbral Shadowgrips", description: "Dark gloves that help quiet the sound of catching a ball.", slot: "gloves", rarity: "rare", isPremium: false, creditPrice: 5000, gemPrice: 10, statBoosts: { catching: 3, agility: 2 }, raceRestrictions: ["Umbra"] },
+        
+        // Footwear
+        { itemId: "401", name: "Worn Cleats", description: "Standard issue footwear.", slot: "footwear", rarity: "common", isPremium: false, creditPrice: 1000, gemPrice: 0, statBoosts: { speed: 1 } },
+        { itemId: "402", name: "Boots of the Gryll", description: "Heavy and stable, providing an unmovable base.", slot: "footwear", rarity: "uncommon", isPremium: false, creditPrice: 2500, gemPrice: 5, statBoosts: { power: 3, speed: -1 }, raceRestrictions: ["Gryll"] },
+        { itemId: "403", name: "Lumina's Light-Treads", description: "Footwear that seems to almost float over the ground.", slot: "footwear", rarity: "epic", isPremium: true, creditPrice: 0, gemPrice: 25, statBoosts: { speed: 4, agility: 2 }, raceRestrictions: ["Lumina"] }
+      ];
+
+      // Consumables database
+      const consumables = [
+        // Stamina Recovery
+        { itemId: "1001", name: "Basic Energy Drink", description: "Restores 20 stamina points.", itemType: "stamina_recovery", rarity: "common", isPremium: false, creditPrice: 500, gemPrice: 0, effect: { stamina: 20 } },
+        { itemId: "1002", name: "Advanced Recovery Serum", description: "Restores 50 stamina points.", itemType: "stamina_recovery", rarity: "rare", isPremium: false, creditPrice: 2000, gemPrice: 5, effect: { stamina: 50 } },
+        { itemId: "1003", name: "Phoenix Elixir", description: "Fully restores stamina.", itemType: "stamina_recovery", rarity: "legendary", isPremium: true, creditPrice: 0, gemPrice: 20, effect: { stamina: 100 } },
+        
+        // Injury Recovery
+        { itemId: "2001", name: "Basic Medical Kit", description: "Reduces injury time by 1 day.", itemType: "injury_recovery", rarity: "common", isPremium: false, creditPrice: 1000, gemPrice: 0, effect: { daysReduced: 1 } },
+        { itemId: "2002", name: "Advanced Treatment", description: "Reduces injury time by 3 days.", itemType: "injury_recovery", rarity: "rare", isPremium: false, creditPrice: 3000, gemPrice: 10, effect: { daysReduced: 3 } },
+        { itemId: "2003", name: "Miracle Cure", description: "Instantly heals all injuries.", itemType: "injury_recovery", rarity: "legendary", isPremium: true, creditPrice: 0, gemPrice: 30, effect: { instantHeal: true } },
+        
+        // Temporary Stat Boosts
+        { itemId: "3001", name: "Speed Boost Tonic", description: "+5 Speed for next game.", itemType: "stat_boost", rarity: "uncommon", isPremium: false, creditPrice: 1500, gemPrice: 3, effect: { speed: 5, duration: 1 } },
+        { itemId: "3002", name: "Power Surge Potion", description: "+5 Power for next game.", itemType: "stat_boost", rarity: "uncommon", isPremium: false, creditPrice: 1500, gemPrice: 3, effect: { power: 5, duration: 1 } },
+        { itemId: "3003", name: "Champion's Blessing", description: "+3 to all stats for next game.", itemType: "stat_boost", rarity: "epic", isPremium: true, creditPrice: 0, gemPrice: 15, effect: { allStats: 3, duration: 1 } }
+      ];
+
+      // Entries (Exhibition and Tournament)
+      const entries = [
+        {
+          itemId: "entry_exhibition",
+          name: "Exhibition Match Entry",
+          description: "Challenge another team to a friendly match. Win rewards based on performance!",
+          itemType: "entry",
+          rarity: "common",
+          creditPrice: 5000,
+          gemPrice: 5,
+          dailyLimit: 3
+        },
+        {
+          itemId: "entry_tournament",
+          name: "Tournament Entry",
+          description: "Enter the weekly tournament for massive prizes and glory!",
+          itemType: "entry",
+          rarity: "rare",
+          creditPrice: 10000,
+          gemPrice: 10,
+          dailyLimit: 1
+        }
+      ];
+
+      // Gem Packages
+      const gemPackages = [
+        {
+          itemId: "gems_50",
+          name: "Small Gem Pack",
+          description: "50 Premium Gems",
+          price: 4.99,
+          gems: 50,
+          bonus: null
+        },
+        {
+          itemId: "gems_120",
+          name: "Medium Gem Pack",
+          description: "120 Premium Gems",
+          price: 9.99,
+          gems: 120,
+          bonus: "20% Bonus"
+        },
+        {
+          itemId: "gems_300",
+          name: "Large Gem Pack",
+          description: "300 Premium Gems",
+          price: 19.99,
+          gems: 300,
+          bonus: "50% Bonus"
+        },
+        {
+          itemId: "gems_1000",
+          name: "Mega Gem Pack",
+          description: "1000 Premium Gems",
+          price: 49.99,
+          gems: 1000,
+          bonus: "BEST VALUE"
+        }
+      ];
+
+      // Daily rotation logic
+      const now = new Date();
+      const dayOfYear = Math.floor((now.getTime() - new Date(now.getFullYear(), 0, 0).getTime()) / 86400000);
+      
+      // Filter items for daily rotation
+      const premiumEquipment = equipment.filter(item => item.isPremium);
+      const creditEquipment = equipment.filter(item => !item.isPremium);
+      
+      // Rotate 3 premium items daily
+      const dailyPremiumItems = [];
+      for (let i = 0; i < 3; i++) {
+        const index = (dayOfYear + i) % premiumEquipment.length;
+        dailyPremiumItems.push(premiumEquipment[index]);
+      }
+      
+      // Rotate 5 credit items daily
+      const dailyCreditItems = [];
+      for (let i = 0; i < 5; i++) {
+        const index = (dayOfYear + i) % creditEquipment.length;
+        dailyCreditItems.push(creditEquipment[index]);
+      }
+
+      // Check daily purchase limits
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      
+      const exhibitionPurchases = await db.select()
+        .from(teamInventory)
+        .where(and(
+          eq(teamInventory.teamId, team.id),
+          eq(teamInventory.itemId, "entry_exhibition"),
+          gte(teamInventory.purchasedAt, today)
+        ));
+        
+      const tournamentPurchases = await db.select()
+        .from(teamInventory)
+        .where(and(
+          eq(teamInventory.teamId, team.id),
+          eq(teamInventory.itemId, "entry_tournament"),
+          gte(teamInventory.purchasedAt, today)
+        ));
+
+      // Format response
+      res.json({
+        equipment: equipment.map(item => ({
+          ...item,
+          icon: getRarityIcon(item.rarity),
+          owned: inventory.some(inv => inv.itemId === item.itemId)
+        })),
+        consumables: consumables.map(item => ({
+          ...item,
+          icon: getConsumableIcon(item.itemType),
+          quantityOwned: inventory.filter(inv => inv.itemId === item.itemId).length
+        })),
+        dailyPremiumItems: dailyPremiumItems.map(item => ({
+          ...item,
+          icon: getRarityIcon(item.rarity),
+          owned: inventory.some(inv => inv.itemId === item.itemId)
+        })),
+        dailyCreditItems: dailyCreditItems.map(item => ({
+          ...item,
+          icon: getRarityIcon(item.rarity),
+          owned: inventory.some(inv => inv.itemId === item.itemId)
+        })),
+        entries: entries.map(entry => ({
+          ...entry,
+          icon: entry.itemType === "entry" ? (entry.itemId.includes("exhibition") ? "🏟️" : "🏆") : "🎮",
+          purchasedToday: entry.itemId === "entry_exhibition" ? exhibitionPurchases.length : tournamentPurchases.length,
+          canPurchase: entry.itemId === "entry_exhibition" 
+            ? exhibitionPurchases.length < entry.dailyLimit
+            : tournamentPurchases.length < entry.dailyLimit
+        })),
+        gemPackages,
+        nextRotation: new Date(today.getTime() + 86400000).toISOString()
+      });
+    } catch (error) {
+      console.error("Store error:", error);
+      res.status(500).json({ message: "Failed to load store" });
+    }
+  });
+
+  // Store purchase endpoint
+  app.post('/api/store/purchase', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user?.claims?.sub;
+      const { itemId, currency } = req.body;
+      
+      const team = await storage.getTeamByUserId(userId);
+      if (!team) {
+        return res.status(404).json({ message: "Team not found" });
+      }
+
+      const finances = await storage.getTeamFinances(team.id);
+      if (!finances) {
+        return res.status(404).json({ message: "Team finances not found" });
+      }
+
+      // Get all item data
+      const allItems = [
+        // Equipment
+        { itemId: "101", name: "Standard Leather Helmet", itemType: "equipment", creditPrice: 1000, gemPrice: 0, isPremium: false },
+        { itemId: "102", name: "Gryllstone Plated Helm", itemType: "equipment", creditPrice: 5000, gemPrice: 10, isPremium: false },
+        { itemId: "103", name: "Sylvan Barkwood Circlet", itemType: "equipment", creditPrice: 5000, gemPrice: 10, isPremium: false },
+        { itemId: "104", name: "Umbral Cowl", itemType: "equipment", creditPrice: 0, gemPrice: 25, isPremium: true },
+        { itemId: "105", name: "Helm of Command", itemType: "equipment", creditPrice: 0, gemPrice: 50, isPremium: true },
+        { itemId: "201", name: "Padded Leather Armor", itemType: "equipment", creditPrice: 1000, gemPrice: 0, isPremium: false },
+        { itemId: "202", name: "Lumina's Radiant Aegis", itemType: "equipment", creditPrice: 0, gemPrice: 50, isPremium: true },
+        { itemId: "203", name: "Gryll Forged Plate", itemType: "equipment", creditPrice: 0, gemPrice: 25, isPremium: true },
+        { itemId: "301", name: "Standard Leather Gloves", itemType: "equipment", creditPrice: 1000, gemPrice: 0, isPremium: false },
+        { itemId: "302", name: "Sylvan Gripping Vines", itemType: "equipment", creditPrice: 0, gemPrice: 25, isPremium: true },
+        { itemId: "303", name: "Umbral Shadowgrips", itemType: "equipment", creditPrice: 5000, gemPrice: 10, isPremium: false },
+        { itemId: "401", name: "Worn Cleats", itemType: "equipment", creditPrice: 1000, gemPrice: 0, isPremium: false },
+        { itemId: "402", name: "Boots of the Gryll", itemType: "equipment", creditPrice: 2500, gemPrice: 5, isPremium: false },
+        { itemId: "403", name: "Lumina's Light-Treads", itemType: "equipment", creditPrice: 0, gemPrice: 25, isPremium: true },
+        // Consumables
+        { itemId: "1001", name: "Basic Energy Drink", itemType: "consumable", creditPrice: 500, gemPrice: 0, isPremium: false },
+        { itemId: "1002", name: "Advanced Recovery Serum", itemType: "consumable", creditPrice: 2000, gemPrice: 5, isPremium: false },
+        { itemId: "1003", name: "Phoenix Elixir", itemType: "consumable", creditPrice: 0, gemPrice: 20, isPremium: true },
+        { itemId: "2001", name: "Basic Medical Kit", itemType: "consumable", creditPrice: 1000, gemPrice: 0, isPremium: false },
+        { itemId: "2002", name: "Advanced Treatment", itemType: "consumable", creditPrice: 3000, gemPrice: 10, isPremium: false },
+        { itemId: "2003", name: "Miracle Cure", itemType: "consumable", creditPrice: 0, gemPrice: 30, isPremium: true },
+        { itemId: "3001", name: "Speed Boost Tonic", itemType: "consumable", creditPrice: 1500, gemPrice: 3, isPremium: false },
+        { itemId: "3002", name: "Power Surge Potion", itemType: "consumable", creditPrice: 1500, gemPrice: 3, isPremium: false },
+        { itemId: "3003", name: "Champion's Blessing", itemType: "consumable", creditPrice: 0, gemPrice: 15, isPremium: true },
+        // Entries
+        { itemId: "entry_exhibition", name: "Exhibition Match Entry", itemType: "entry", creditPrice: 5000, gemPrice: 5, isPremium: false, dailyLimit: 3 },
+        { itemId: "entry_tournament", name: "Tournament Entry", itemType: "entry", creditPrice: 10000, gemPrice: 10, isPremium: false, dailyLimit: 1 }
+      ];
+
+      const item = allItems.find(i => i.itemId === itemId);
+      if (!item) {
+        return res.status(404).json({ message: "Item not found" });
+      }
+
+      // Check daily purchase limits for entries
+      if (item.itemType === "entry" && item.dailyLimit) {
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        
+        const todayPurchases = await db.select()
+          .from(teamInventory)
+          .where(and(
+            eq(teamInventory.teamId, team.id),
+            eq(teamInventory.itemId, itemId),
+            gte(teamInventory.purchasedAt, today)
+          ));
+          
+        if (todayPurchases.length >= item.dailyLimit) {
+          return res.status(400).json({ message: `Daily limit reached for ${item.name}` });
+        }
+      }
+
+      // Check equipment isn't already owned
+      if (item.itemType === "equipment") {
+        const existing = await db.select()
+          .from(teamInventory)
+          .where(and(
+            eq(teamInventory.teamId, team.id),
+            eq(teamInventory.itemId, itemId)
+          ));
+          
+        if (existing.length > 0) {
+          return res.status(400).json({ message: "You already own this equipment" });
+        }
+      }
+
+      // Check currency and deduct payment
+      let cost = 0;
+      if (currency === "credits") {
+        cost = item.creditPrice;
+        if (cost === 0 || item.isPremium) {
+          return res.status(400).json({ message: "This item cannot be purchased with credits" });
+        }
+        if ((finances.credits || 0) < cost) {
+          return res.status(400).json({ message: "Insufficient credits" });
+        }
+        await storage.updateTeamCredits(team.id, (finances.credits || 0) - cost);
+      } else if (currency === "gems") {
+        cost = item.gemPrice;
+        if (cost === 0) {
+          return res.status(400).json({ message: "This item cannot be purchased with gems" });
+        }
+        if ((finances.premiumCurrency || 0) < cost) {
+          return res.status(400).json({ message: "Insufficient premium gems" });
+        }
+        await storage.updateTeamPremiumCurrency(team.id, (finances.premiumCurrency || 0) - cost);
+      } else {
+        return res.status(400).json({ message: "Invalid currency type" });
+      }
+
+      // Add item to inventory
+      await db.insert(teamInventory).values({
+        teamId: team.id,
+        itemId: itemId,
+        itemType: item.itemType,
+        quantity: 1,
+        purchasedAt: new Date()
+      });
+
+      // Create notification
+      await storage.createNotification({
+        userId: userId,
+        type: 'purchase',
+        title: 'Purchase Successful',
+        message: `You purchased ${item.name} for ${cost} ${currency === "credits" ? "credits" : "gems"}`,
+        data: { itemId, itemName: item.name, cost, currency }
+      });
+
+      res.json({ 
+        success: true, 
+        message: `Purchased ${item.name}`,
+        remainingCredits: currency === "credits" ? (finances.credits || 0) - cost : finances.credits,
+        remainingGems: currency === "gems" ? (finances.premiumCurrency || 0) - cost : finances.premiumCurrency
+      });
+    } catch (error) {
+      console.error("Purchase error:", error);
+      res.status(500).json({ message: "Failed to complete purchase" });
     }
   });
 

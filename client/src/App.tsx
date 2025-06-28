@@ -12,10 +12,9 @@ import Competition from "@/pages/Competition";
 import League from "@/pages/League";
 import Tournaments from "@/pages/Tournaments";
 import Exhibitions from "@/pages/Exhibitions";
-import Commerce from "@/pages/Commerce";
+import Store from "@/pages/Store";
 import Inventory from "@/pages/Inventory";
 import Marketplace from "@/pages/Marketplace";
-import Store from "@/pages/Store";
 import Payments from "@/pages/Payments";
 import Stadium from "@/pages/Stadium";
 
@@ -43,10 +42,9 @@ function Router() {
           <Route path="/league" component={League} />
           <Route path="/tournaments" component={Tournaments} />
           <Route path="/exhibitions" component={Exhibitions} />
-          <Route path="/commerce" component={Commerce} />
+          <Route path="/store" component={Store} />
           <Route path="/inventory" component={Inventory} />
           <Route path="/marketplace" component={Marketplace} />
-          <Route path="/store" component={Store} />
           <Route path="/payments" component={Payments} />
           <Route path="/stadium" component={Stadium} />
           <Route path="/text-match/:matchId" component={TextMatch} />
