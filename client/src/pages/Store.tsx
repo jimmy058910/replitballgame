@@ -111,7 +111,7 @@ export default function Store() {
                   <span>Premium Gems</span>
                 </div>
                 <span className="font-bold text-xl text-purple-400">
-                  {finances?.premiumCurrency || 0} 💎
+                  {finances?.gems || finances?.premiumCurrency || 0} 💎
                 </span>
               </div>
             </CardContent>

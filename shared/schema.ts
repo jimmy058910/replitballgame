@@ -49,7 +49,8 @@ export const teams = pgTable("teams", {
   draws: integer("draws").default(0),
   points: integer("points").default(0),
   teamPower: integer("team_power").default(0),
-  credits: integer("credits").default(15000),
+  credits: integer("credits").default(50000), // Starting credits increased to 50k
+  gems: integer("gems").default(0), // Premium currency (randomized on creation)
   exhibitionCredits: integer("exhibition_credits").default(3),
   lastActivityAt: timestamp("last_activity_at").defaultNow(),
   isPaidUser: boolean("is_paid_user").default(false),
@@ -57,6 +58,13 @@ export const teams = pgTable("teams", {
   formation: text("formation"),
   substitutionOrder: text("substitution_order"),
   camaraderie: integer("camaraderie").default(50), // Team chemistry (0-100)
+  // Income tracking
+  lastTicketRevenue: integer("last_ticket_revenue").default(0),
+  lastConcessionRevenue: integer("last_concession_revenue").default(0),
+  lastParkingRevenue: integer("last_parking_revenue").default(0),
+  lastVipRevenue: integer("last_vip_revenue").default(0),
+  lastApparelRevenue: integer("last_apparel_revenue").default(0),
+  totalSeasonRevenue: integer("total_season_revenue").default(0),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });

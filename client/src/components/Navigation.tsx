@@ -40,7 +40,7 @@ export default function Navigation() {
   ];
 
   const credits = finances?.credits || team?.credits || 0;
-  const premiumCurrency = finances?.premiumCurrency || 0;
+  const premiumCurrency = finances?.gems || finances?.premiumCurrency || 0;
 
 
 

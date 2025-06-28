@@ -351,14 +351,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       ].filter(upgrade => upgrade.available);
 
-      // Calculate revenue breakdown
-      const baseMatchRevenue = (stadium.capacity || 0) * 25; // $25 per seat average
+      // Calculate revenue breakdown - Updated with new economy values
+      const baseMatchRevenue = (stadium.capacity || 0) * 30; // $30 per seat (updated from $25)
       const revenue = {
         matchDay: Math.floor(baseMatchRevenue * ((stadium.revenueMultiplier || 100) / 100)),
-        concessions: Math.floor((stadium.capacity || 0) * 8 * (facilities.concessions || 1)),
+        concessions: Math.floor((stadium.capacity || 0) * 16 * (facilities.concessions || 1)), // $16 per seat (updated from $8)
         parking: Math.floor((stadium.capacity || 0) * 0.3 * 10 * (facilities.parking || 1)),
         vip: Math.floor((facilities.vip || 1) * 5000),
-        apparel: Math.floor((stadium.capacity || 0) * 3 * (facilities.merchandising || 1)),
+        apparel: Math.floor((stadium.capacity || 0) * 5 * (facilities.merchandising || 1)), // $5 per seat (updated from $3)
         total: 0
       };
       revenue.total = revenue.matchDay + revenue.concessions + revenue.parking + revenue.vip + revenue.apparel;
@@ -1247,7 +1247,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
       
-      res.json(finances);
+      // Get team data for gems and income breakdown
+      const team = await storage.getTeamById(teamId);
+      const enrichedFinances = {
+        ...finances,
+        gems: team?.gems || 0,
+        incomeBreakdown: {
+          ticketRevenue: team?.lastTicketRevenue || 0,
+          concessionRevenue: team?.lastConcessionRevenue || 0,
+          parkingRevenue: team?.lastParkingRevenue || 0,
+          vipRevenue: team?.lastVipRevenue || 0,
+          apparelRevenue: team?.lastApparelRevenue || 0,
+          totalSeasonRevenue: team?.totalSeasonRevenue || 0
+        }
+      };
+      
+      res.json(enrichedFinances);
     } catch (error) {
       console.error("Error fetching finances:", error);
       res.status(500).json({ message: "Failed to fetch finances" });
@@ -1636,22 +1651,38 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const division = parseInt(req.params.division);
       
       // Create tournaments for the requested division
+      // Entry fees based on division: Diamond/Platinum: 2,500₡, Gold/Silver: 1,500₡, Bronze/Copper: 1,000₡, Iron/Stone: 500₡
+      const getEntryFee = (division: number, isWeekly: boolean = false) => {
+        const baseFees = {
+          1: 2500, // Diamond
+          2: 2500, // Platinum
+          3: 1500, // Gold
+          4: 1500, // Silver
+          5: 1000, // Bronze
+          6: 1000, // Copper
+          7: 500,  // Iron
+          8: 500   // Stone
+        };
+        const baseFee = baseFees[division] || 500;
+        return isWeekly ? baseFee * 2 : baseFee; // Weekly tournaments cost double
+      };
+
       const tournaments = [
         {
           id: `tournament-${division}-daily`,
           name: `${getDivisionName(division)} Daily Tournament`,
           division,
-          entryFee: division <= 4 ? 1000 : 500,
+          entryFee: getEntryFee(division),
           entryCost: {
-            credits: division <= 4 ? 1000 : 500,
-            gems: Math.floor((division <= 4 ? 1000 : 500) / 10)
+            credits: getEntryFee(division),
+            gems: Math.floor(getEntryFee(division) / 50) // 50₡ per gem
           },
           maxTeams: 8,
           status: "open",
           prizes: { 
-            first: division <= 4 ? 5000 : 2500, 
-            second: division <= 4 ? 2000 : 1000,
-            third: division <= 4 ? 1000 : 500
+            first: getEntryFee(division) * 4,  // 4x entry fee
+            second: getEntryFee(division) * 2, // 2x entry fee
+            third: getEntryFee(division)       // 1x entry fee
           },
           startTime: new Date(Date.now() + 3600000), // 1 hour from now
           description: `Compete against other ${getDivisionName(division)} teams for glory and prizes!`
@@ -1660,17 +1691,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
           id: `tournament-${division}-weekly`,
           name: `${getDivisionName(division)} Weekly Championship`,
           division,
-          entryFee: division <= 4 ? 2500 : 1200,
+          entryFee: getEntryFee(division, true),
           entryCost: {
-            credits: division <= 4 ? 2500 : 1200,
-            gems: Math.floor((division <= 4 ? 2500 : 1200) / 8)
+            credits: getEntryFee(division, true),
+            gems: Math.floor(getEntryFee(division, true) / 50)
           },
           maxTeams: 16,
           status: "open",
           prizes: { 
-            first: division <= 4 ? 12000 : 6000, 
-            second: division <= 4 ? 5000 : 2500,
-            third: division <= 4 ? 2500 : 1200
+            first: getEntryFee(division, true) * 5,  // 5x entry fee
+            second: getEntryFee(division, true) * 3, // 3x entry fee
+            third: getEntryFee(division, true) * 2  // 2x entry fee
           },
           startTime: new Date(Date.now() + 7 * 24 * 3600000), // 1 week from now
           description: `The ultimate test for ${getDivisionName(division)} teams - bigger prizes, tougher competition!`
@@ -2397,34 +2428,37 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: "Team finances not found" });
       }
 
-      // Get all item data
+      // Get all item data - Updated with new economy pricing
       const allItems = [
-        // Equipment
+        // Equipment - Helmets
         { itemId: "101", name: "Standard Leather Helmet", itemType: "equipment", creditPrice: 1000, gemPrice: 0, isPremium: false },
         { itemId: "102", name: "Gryllstone Plated Helm", itemType: "equipment", creditPrice: 5000, gemPrice: 10, isPremium: false },
         { itemId: "103", name: "Sylvan Barkwood Circlet", itemType: "equipment", creditPrice: 5000, gemPrice: 10, isPremium: false },
-        { itemId: "104", name: "Umbral Cowl", itemType: "equipment", creditPrice: 0, gemPrice: 25, isPremium: true },
-        { itemId: "105", name: "Helm of Command", itemType: "equipment", creditPrice: 0, gemPrice: 50, isPremium: true },
+        { itemId: "104", name: "Umbral Cowl", itemType: "equipment", creditPrice: 40000, gemPrice: 25, isPremium: false },
+        { itemId: "105", name: "Helm of Command", itemType: "equipment", creditPrice: 0, gemPrice: 50, isPremium: true }, // Cosmetic only
         { itemId: "201", name: "Padded Leather Armor", itemType: "equipment", creditPrice: 1000, gemPrice: 0, isPremium: false },
         { itemId: "202", name: "Lumina's Radiant Aegis", itemType: "equipment", creditPrice: 0, gemPrice: 50, isPremium: true },
         { itemId: "203", name: "Gryll Forged Plate", itemType: "equipment", creditPrice: 0, gemPrice: 25, isPremium: true },
         { itemId: "301", name: "Standard Leather Gloves", itemType: "equipment", creditPrice: 1000, gemPrice: 0, isPremium: false },
         { itemId: "302", name: "Sylvan Gripping Vines", itemType: "equipment", creditPrice: 0, gemPrice: 25, isPremium: true },
         { itemId: "303", name: "Umbral Shadowgrips", itemType: "equipment", creditPrice: 5000, gemPrice: 10, isPremium: false },
+        // Equipment - Footwear
         { itemId: "401", name: "Worn Cleats", itemType: "equipment", creditPrice: 1000, gemPrice: 0, isPremium: false },
         { itemId: "402", name: "Boots of the Gryll", itemType: "equipment", creditPrice: 2500, gemPrice: 5, isPremium: false },
-        { itemId: "403", name: "Lumina's Light-Treads", itemType: "equipment", creditPrice: 0, gemPrice: 25, isPremium: true },
-        // Consumables
+        { itemId: "403", name: "Lumina's Light-Treads", itemType: "equipment", creditPrice: 40000, gemPrice: 25, isPremium: false },
+        // Recovery Consumables
         { itemId: "1001", name: "Basic Energy Drink", itemType: "consumable", creditPrice: 500, gemPrice: 0, isPremium: false },
         { itemId: "1002", name: "Advanced Recovery Serum", itemType: "consumable", creditPrice: 2000, gemPrice: 5, isPremium: false },
-        { itemId: "1003", name: "Phoenix Elixir", itemType: "consumable", creditPrice: 0, gemPrice: 20, isPremium: true },
+        { itemId: "1003", name: "Phoenix Elixir", itemType: "consumable", creditPrice: 30000, gemPrice: 20, isPremium: false },
+        // Medical Kits
         { itemId: "2001", name: "Basic Medical Kit", itemType: "consumable", creditPrice: 1000, gemPrice: 0, isPremium: false },
         { itemId: "2002", name: "Advanced Treatment", itemType: "consumable", creditPrice: 3000, gemPrice: 10, isPremium: false },
-        { itemId: "2003", name: "Miracle Cure", itemType: "consumable", creditPrice: 0, gemPrice: 30, isPremium: true },
+        { itemId: "2003", name: "Miracle Cure", itemType: "consumable", creditPrice: 45000, gemPrice: 30, isPremium: false },
+        // Performance Boosters
         { itemId: "3001", name: "Speed Boost Tonic", itemType: "consumable", creditPrice: 1500, gemPrice: 3, isPremium: false },
         { itemId: "3002", name: "Power Surge Potion", itemType: "consumable", creditPrice: 1500, gemPrice: 3, isPremium: false },
-        { itemId: "3003", name: "Champion's Blessing", itemType: "consumable", creditPrice: 0, gemPrice: 15, isPremium: true },
-        // Entries
+        { itemId: "3003", name: "Champion's Blessing", itemType: "consumable", creditPrice: 25000, gemPrice: 15, isPremium: false },
+        // Game Entries
         { itemId: "entry_exhibition", name: "Exhibition Match Entry", itemType: "entry", creditPrice: 5000, gemPrice: 5, isPremium: false, dailyLimit: 3 },
         { itemId: "entry_tournament", name: "Tournament Entry", itemType: "entry", creditPrice: 10000, gemPrice: 10, isPremium: false, dailyLimit: 1 }
       ];
@@ -2482,10 +2516,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
         if (cost === 0) {
           return res.status(400).json({ message: "This item cannot be purchased with gems" });
         }
-        if ((finances.premiumCurrency || 0) < cost) {
+        // Use gems from team data
+        const teamData = await storage.getTeamById(team.id);
+        const currentGems = teamData?.gems || 0;
+        if (currentGems < cost) {
           return res.status(400).json({ message: "Insufficient premium gems" });
         }
-        await storage.updateTeamPremiumCurrency(team.id, (finances.premiumCurrency || 0) - cost);
+        // Update gems in teams table
+        await db.update(teams)
+          .set({ gems: currentGems - cost })
+          .where(eq(teams.id, team.id));
       } else {
         return res.status(400).json({ message: "Invalid currency type" });
       }
@@ -2567,22 +2607,61 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post('/api/store/purchase', isAuthenticated, async (req, res) => {
+  // Gem to Credit Exchange
+  app.post('/api/store/exchange-gems', isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user?.claims?.sub;
+      const { gemAmount } = req.body;
+      
       const team = await storage.getTeamByUserId(userId);
       if (!team) {
         return res.status(404).json({ message: "Team not found" });
       }
 
-      const { itemId, currency } = req.body;
-      const finances = await storage.getTeamFinances(team.id);
+      // Tiered exchange rates from economy document
+      const exchangeRates = [
+        { gems: 10, credits: 4500, ratio: 450 },
+        { gems: 50, credits: 25000, ratio: 500 },
+        { gems: 300, credits: 165000, ratio: 550 },
+        { gems: 1000, credits: 600000, ratio: 600 }
+      ];
 
-      // Mock purchase logic - would validate item price and deduct currency
-      res.json({ success: true, message: "Item purchased successfully" });
+      // Find applicable rate
+      const rate = exchangeRates.find(r => r.gems === gemAmount);
+      if (!rate) {
+        return res.status(400).json({ message: "Invalid gem amount. Valid amounts: 10, 50, 300, 1000" });
+      }
+
+      // Check if team has enough gems
+      if ((team.gems || 0) < gemAmount) {
+        return res.status(400).json({ message: "Insufficient gems" });
+      }
+
+      // Update team gems and credits
+      await db.update(teams)
+        .set({ 
+          gems: (team.gems || 0) - gemAmount,
+          credits: (team.credits || 0) + rate.credits 
+        })
+        .where(eq(teams.id, team.id));
+
+      // Create notification
+      await storage.createNotification({
+        userId: userId,
+        type: 'exchange',
+        title: 'Gem Exchange Successful',
+        message: `Exchanged ${gemAmount} gems for ${rate.credits.toLocaleString()} credits`
+      });
+
+      res.json({ 
+        success: true, 
+        message: `Exchanged ${gemAmount} gems for ${rate.credits.toLocaleString()} credits`,
+        newGemBalance: (team.gems || 0) - gemAmount,
+        newCreditBalance: (team.credits || 0) + rate.credits
+      });
     } catch (error) {
-      console.error("Error purchasing item:", error);
-      res.status(500).json({ message: "Failed to purchase item" });
+      console.error("Error exchanging gems:", error);
+      res.status(500).json({ message: "Failed to exchange gems" });
     }
   });
 
@@ -5938,11 +6017,58 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const currentDay = ((daysSinceStart % 17) + 1);
       const nextDay = currentDay >= 17 ? 1 : currentDay + 1;
 
-      // If on Day 17, run end-of-season progression before advancing
+      // If on Day 17, run end-of-season progression and distribute league rewards
       if (currentDay === 17) {
         const { runSeasonEndProgression } = await import('./services/progressionService');
         await runSeasonEndProgression();
         console.log("End-of-season progression completed");
+        
+        // Distribute league rewards based on final standings
+        for (let division = 1; division <= 8; division++) {
+          const teams = await storage.getTeamsByDivision(division);
+          const sortedTeams = teams.sort((a, b) => {
+            const aWins = a.wins || 0;
+            const bWins = b.wins || 0;
+            if (aWins !== bWins) return bWins - aWins;
+            
+            const aPointsDiff = (a.pointsFor || 0) - (a.pointsAgainst || 0);
+            const bPointsDiff = (b.pointsFor || 0) - (b.pointsAgainst || 0);
+            if (aPointsDiff !== bPointsDiff) return bPointsDiff - aPointsDiff;
+            
+            return (b.pointsFor || 0) - (a.pointsFor || 0);
+          });
+          
+          // Calculate base reward based on division (higher divisions get more)
+          const divisionMultiplier = 9 - division; // Diamond (8x) to Stone (1x)
+          const baseReward = 5000; // Base reward amount
+          
+          // Distribute rewards to top 4 teams
+          for (let i = 0; i < Math.min(4, sortedTeams.length); i++) {
+            const team = sortedTeams[i];
+            const positionMultiplier = [4, 3, 2, 1][i]; // 1st place gets 4x, 4th gets 1x
+            const reward = baseReward * divisionMultiplier * positionMultiplier;
+            
+            const finances = await storage.getTeamFinances(team.id);
+            await storage.updateTeamFinances(team.id, {
+              credits: (finances?.credits || 0) + reward
+            });
+            
+            // Create notification for the team
+            await storage.createNotification({
+              userId: team.userId,
+              type: 'reward',
+              title: 'Season Rewards',
+              message: `Congratulations! You finished ${['1st', '2nd', '3rd', '4th'][i]} in ${getDivisionName(division)} Division and earned ${reward.toLocaleString()} ₡!`,
+              priority: 'high',
+              actionUrl: '/finances',
+              metadata: { reward, position: i + 1, division }
+            });
+            
+            console.log(`Awarded ${reward} credits to ${team.name} (${['1st', '2nd', '3rd', '4th'][i]} in Division ${division})`);
+          }
+        }
+        
+        console.log("League rewards distributed");
       }
 
       // If moving to day 1, start new season cycle
@@ -7135,9 +7261,24 @@ function generateEventDetails(eventType: string, stadium: any) {
       const division = parseInt(divisionMatch[1]);
       const isDaily = tournamentId.includes('daily');
       
+      const getEntryFee = (division: number, isWeekly: boolean = false) => {
+        const baseFees = {
+          1: 2500, // Diamond
+          2: 2500, // Platinum
+          3: 1500, // Gold
+          4: 1500, // Silver
+          5: 1000, // Bronze
+          6: 1000, // Copper
+          7: 500,  // Iron
+          8: 500   // Stone
+        };
+        const baseFee = baseFees[division] || 500;
+        return isWeekly ? baseFee * 2 : baseFee; // Weekly tournaments cost double
+      };
+      
       const entryFee = {
-        credits: isDaily ? (division <= 4 ? 1000 : 500) : (division <= 4 ? 2500 : 1200),
-        gems: isDaily ? Math.floor((division <= 4 ? 1000 : 500) / 10) : Math.floor((division <= 4 ? 2500 : 1200) / 8)
+        credits: getEntryFee(division, !isDaily),
+        gems: Math.floor(getEntryFee(division, !isDaily) / 50) // 50₡ per gem
       };
 
       const finances = await storage.getTeamFinances(team.id);

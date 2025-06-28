@@ -49,6 +49,16 @@ export default function TeamFinances({ teamId }: TeamFinancesProps) {
     totalIncome: 0,
     totalExpenses: 0,
     netIncome: 0,
+    credits: 0,
+    premiumCurrency: 0,
+    incomeBreakdown: {
+      ticketRevenue: 0,
+      concessionRevenue: 0,
+      parkingRevenue: 0,
+      vipRevenue: 0,
+      apparelRevenue: 0,
+      totalSeasonRevenue: 0
+    }
   };
 
   const budgetHealth = ((currentFinances.totalIncome / currentFinances.totalExpenses) * 100);
