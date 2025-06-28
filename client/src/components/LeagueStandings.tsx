@@ -85,8 +85,10 @@ export default function LeagueStandings({ division, compact = false }: LeagueSta
                     </div>
                   </div>
                   <div className="text-right">
-                    <div className="font-bold text-sm text-yellow-400">{team.points || 0}</div>
-                    <div className="text-xs text-gray-400">pts</div>
+                    <div className="text-xs text-gray-400 mb-1">
+                      {team.points || 0} PTS • {(team.pointDifferential || 0) > 0 ? '+' : ''}{team.pointDifferential || 0}
+                    </div>
+                    <div className="text-xs text-gray-500">{team.streak || '-'}</div>
                   </div>
                 </div>
               );
@@ -138,13 +140,13 @@ export default function LeagueStandings({ division, compact = false }: LeagueSta
           ) : standingsArray && standingsArray.length > 0 ? (
             <>
               {/* Table Header */}
-              <div className="grid grid-cols-9 gap-4 mb-3 px-3 py-2 bg-gray-700 rounded-lg font-semibold text-sm text-gray-300">
+              <div className="grid grid-cols-9 gap-2 mb-3 px-3 py-2 bg-gray-700 rounded-lg font-semibold text-xs text-gray-300">
                 <div className="text-center">RANK</div>
-                <div className="col-span-2">TEAM</div>
+                <div className="col-span-2 min-w-0">TEAM</div>
                 <div className="text-center">W/L/T</div>
                 <div className="text-center">PTS</div>
-                <div className="text-center">PF</div>
-                <div className="text-center">PA</div>
+                <div className="text-center">SF</div>
+                <div className="text-center">SA</div>
                 <div className="text-center">DIFF</div>
                 <div className="text-center">STREAK</div>
               </div>
@@ -159,7 +161,7 @@ export default function LeagueStandings({ division, compact = false }: LeagueSta
                   return (
                     <div 
                       key={team.id} 
-                      className={`grid grid-cols-9 gap-4 p-3 rounded-lg transition-colors ${
+                      className={`grid grid-cols-9 gap-2 p-3 rounded-lg transition-colors ${
                         rank === 1 
                           ? "bg-yellow-500 bg-opacity-10 border border-yellow-500 border-opacity-30"
                           : isPlayerTeam
@@ -169,7 +171,7 @@ export default function LeagueStandings({ division, compact = false }: LeagueSta
                     >
                       {/* Rank */}
                       <div className="flex items-center justify-center">
-                        <div className={`w-8 h-8 rounded-full flex items-center justify-center text-white font-bold text-sm ${
+                        <div className={`w-7 h-7 rounded-full flex items-center justify-center text-white font-bold text-xs ${
                           rank === 1 ? "bg-yellow-500" : rank <= 2 ? "bg-green-500" : rank >= standingsArray.length - 1 ? "bg-red-500" : "bg-gray-600"
                         }`}>
                           {rank}

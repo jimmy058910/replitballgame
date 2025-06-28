@@ -34,7 +34,21 @@ Built as a React + Express web application with PostgreSQL database, using moder
 
 ## Recent Changes
 
-### December 29, 2025 (Comprehensive Commentary System + Complete Stat Boost System)
+### December 29, 2025 (League Standings System Enhanced + Fake Data Cleared)
+- ✓ COMPREHENSIVE LEAGUE STANDINGS REDESIGNED: Updated both compact and full standings displays with all requested columns
+- ✓ Fixed database schema mismatches - corrected field names from team1Id/team2Id to homeTeamId/awayTeamId in standings API
+- ✓ Updated field references - now properly uses homeScore/awayScore instead of team1Score/team2Score for accurate calculations
+- ✓ Enhanced standings display format: Win/Loss/Tie, Points, SF (Scores For), SA (Scores Against), DIFF (point differential), Streak
+- ✓ Fixed TypeScript errors - added proper array type checking and null value handling in LeagueStandings component
+- ✓ Updated calculateStreak function to use correct database field names for proper streak calculation
+- ✓ Enhanced standings sorting logic with null value protection for comprehensive point calculations
+- ✓ CRITICAL DATA CLEANUP: Removed 63 fake/test matches that were causing incorrect standings display (7 pts, T5 streak with no games played)
+- ✓ Improved header layout - fixed spillover issues with better column sizing and responsive design
+- ✓ Dashboard compact standings: Shows W/L/T, PTS, DIFF, and Streak without SF/SA to save space
+- ✓ Competition League full standings: Shows all columns including SF and SA for comprehensive statistics
+- ✓ All teams now properly display 0-0-0 records, 0 points, and "-" streaks when no games have been played
+
+### December 29, 2025 (Earlier - Comprehensive Commentary System + Complete Stat Boost System)
 - ✓ COMPREHENSIVE GAME COMMENTARY SYSTEM IMPLEMENTED: Created sophisticated 6-category commentary generator according to user specifications
 - ✓ Created CommentaryGenerator class with 100+ unique commentary variations covering all game situations
 - ✓ Category 1 - General Play & Game Flow: 35+ variations for advancing ball, midfield battles, defensive pressure, time urgency, low stamina
