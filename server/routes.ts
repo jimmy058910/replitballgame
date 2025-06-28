@@ -5701,9 +5701,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Comprehensive Stadium API - NEW VERSION
   app.get('/api/stadium/full', isAuthenticated, async (req: any, res) => {
     try {
+      console.log("=== STADIUM API DEBUG ===");
+      console.log("User:", req.user);
       const userId = req.user.claims.sub;
+      console.log("User ID:", userId);
+      
       const team = await storage.getTeamByUserId(userId);
+      console.log("Team found:", team?.id, team?.name);
+      
       if (!team) {
+        console.log("No team found for user");
         return res.status(404).json({ message: "Team not found" });
       }
 
@@ -5834,7 +5841,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const homeWins = completedHomeMatches.filter(m => m.homeScore > m.awayScore).length;
       const totalHomeMatches = completedHomeMatches.length || 1;
 
-      res.json({
+      const responseData = {
         stadium: {
           ...stadium,
           atmosphere,
@@ -5846,7 +5853,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
         availableUpgrades,
         revenue,
         matchHistory: homeMatches
-      });
+      };
+      
+      console.log("Stadium API Response Data:", JSON.stringify(responseData, null, 2));
+      console.log("=== END STADIUM API DEBUG ===");
+      
+      res.json(responseData);
 
     } catch (error) {
       console.error("Error fetching stadium data:", error);
