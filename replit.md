@@ -34,6 +34,25 @@ Built as a React + Express web application with PostgreSQL database, using moder
 
 ## Recent Changes
 
+### December 29, 2025 (Comprehensive Commentary System + Complete Stat Boost System)
+- ✓ COMPREHENSIVE GAME COMMENTARY SYSTEM IMPLEMENTED: Created sophisticated 6-category commentary generator according to user specifications
+- ✓ Created CommentaryGenerator class with 100+ unique commentary variations covering all game situations
+- ✓ Category 1 - General Play & Game Flow: 35+ variations for advancing ball, midfield battles, defensive pressure, time urgency, low stamina
+- ✓ Category 2 - Ball Carrier: 25+ variations for runners with high speed/agility/power, low stamina, passers forced to run
+- ✓ Category 3 - Passing Game: 30+ variations for accurate/inaccurate passes, catches, drops, interceptions based on player stats
+- ✓ Category 4 - Defense & Aggression: 30+ variations for brutal hits, tackles, injuries, fumbles, missed tackles with visceral descriptions
+- ✓ Category 5 - Scoring & Post-Score Events: 10+ variations for scoring celebrations and post-score action
+- ✓ Category 6 - Game States: Halftime reports and end-game summaries with MVP tracking and key victory factors
+- ✓ Enhanced match simulation to use sophisticated commentary based on real-time game state and player statistics
+- ✓ Commentary now contextually aware of time remaining, quarter, score, player stamina, and stat-based performance
+- ✓ Replaced basic "Runner breaks through defense" with stat-based narratives like "Lightning-fast acceleration from Marcus as he breaks free!"
+- ✓ COMPLETE STAT BOOST SYSTEM FINALIZED: Created full backend API, database tables, and React frontend component
+- ✓ Implemented all 6 API endpoints for stat boost management (available, active, activate, cancel, apply, cleanup)
+- ✓ Created StatBoostManager React component with beautiful UI, item selection dialogs, and comprehensive error handling
+- ✓ Integrated StatBoostManager as new "Stat Boosts" tab in Team page for easy access to boost management
+- ✓ All game mechanics working: 3-item limit enforcement, League Games only restriction, temporary stat modifications
+- ✓ Enhanced live match viewing with dynamic, context-aware commentary that responds to game flow and player performance
+
 ### December 28, 2025 (Stadium System Fixed)
 - ✓ CRITICAL FIX: Completely resolved stadium API routing and database schema issues
 - ✓ Fixed Drizzle ORM schema mismatch - updated all stadium column names from snake_case to camelCase to match database

@@ -21,6 +21,7 @@ import { matchStateManager } from "./services/matchStateManager";
 import { getDivisionName, getDivisionInfo, getFullDivisionTitle } from "../shared/divisions";
 import { z } from "zod";
 import { db } from "./db";
+import { commentaryGenerator } from "./services/commentaryGenerator";
 import { items, stadiums, facilityUpgrades, stadiumEvents, teams, players, matches, teamFinances, playerInjuries, staff, teamInventory, itemStatBoostDetails, activeStatBoosts } from "@shared/schema";
 import { eq, isNotNull, gte, lte, and, desc, or } from "drizzle-orm";
 import { randomUUID } from "crypto";
@@ -4397,7 +4398,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
         maxTime,
         isExhibition,
         possession: Math.random() < 0.5 ? match.team1Id : match.team2Id,
-        lastPlay: generateGameplayEvent(team1Players, team2Players),
+        lastPlay: generateGameplayEvent(team1Players, team2Players, {
+          timeRemaining: Math.max(0, timeRemaining),
+          currentQuarter: currentQuarter,
+          team1Score: match.team1Score || 0,
+          team2Score: match.team2Score || 0
+        }),
         stadium: isExhibition ? "Exhibition Arena" : "Fantasy Stadium",
         weather: "Clear skies",
         gameEvents: []
@@ -4410,31 +4416,44 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Helper function to generate realistic gameplay events
-  function generateGameplayEvent(team1Players: any[], team2Players: any[]): string {
-    const events = [
-      // Runner events
-      () => {
-        const runner = [...team1Players, ...team2Players].find(p => p.role === 'runner');
-        return runner ? `${runner.lastName || runner.name} breaks through the defense!` : "Runner charging forward!";
-      },
-      // Passer events
-      () => {
-        const passer = [...team1Players, ...team2Players].find(p => p.role === 'passer');
-        return passer ? `${passer.lastName || passer.name} looks for an opening to pass!` : "Quarterback scanning the field!";
-      },
-      // Blocker events
-      () => {
-        const blocker = [...team1Players, ...team2Players].find(p => p.role === 'blocker');
-        return blocker ? `${blocker.lastName || blocker.name} delivers a crushing block!` : "Massive collision in the trenches!";
-      },
-      // General events
-      () => "Players clash in the center of the arena!",
-      () => "Intense battle for field position!",
-      () => "The crowd roars as action intensifies!"
-    ];
+  // Enhanced function to generate realistic gameplay events with sophisticated commentary
+  function generateGameplayEvent(team1Players: any[], team2Players: any[], gameState?: any): string {
+    const allPlayers = [...team1Players, ...team2Players];
+    const eventTypes = ['general', 'ballCarrier', 'passing', 'defense'];
+    const eventType = eventTypes[Math.floor(Math.random() * eventTypes.length)];
     
-    return events[Math.floor(Math.random() * events.length)]();
+    const currentGameState = {
+      timeRemaining: gameState?.timeRemaining || 600,
+      quarter: gameState?.currentQuarter || 1,
+      homeScore: gameState?.team1Score || 0,
+      awayScore: gameState?.team2Score || 0,
+      possession: Math.random() > 0.5 ? 'home' : 'away'
+    };
+
+    switch (eventType) {
+      case 'general':
+        return commentaryGenerator.generateCommentary('general', currentGameState);
+        
+      case 'ballCarrier':
+        const ballCarrier = allPlayers[Math.floor(Math.random() * allPlayers.length)];
+        return commentaryGenerator.generateCommentary('ballCarrier', currentGameState, ballCarrier);
+        
+      case 'passing':
+        const passer = allPlayers.find(p => p.role === 'passer') || allPlayers[0];
+        const receiver = allPlayers.filter(p => p.role !== 'passer')[Math.floor(Math.random() * (allPlayers.length - 1))];
+        const passResults = ['accurate', 'inaccurate', 'caught', 'dropped'];
+        const passResult = passResults[Math.floor(Math.random() * passResults.length)];
+        return commentaryGenerator.generateCommentary('passing', currentGameState, passer, receiver, { action: passResult as any });
+        
+      case 'defense':
+        const defender = allPlayers.filter(p => p.role === 'blocker')[0] || allPlayers[0];
+        const defenseActions = ['hit', 'tackle', 'miss'];
+        const defenseAction = defenseActions[Math.floor(Math.random() * defenseActions.length)];
+        return commentaryGenerator.generateCommentary('defense', currentGameState, defender, undefined, { action: defenseAction as any });
+        
+      default:
+        return commentaryGenerator.generateCommentary('general', currentGameState);
+    }
   }
 
   // Simulate a single play
