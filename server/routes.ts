@@ -208,15 +208,88 @@ async function createAITeamsForDivision(division: number) {
 
 export async function registerRoutes(app: Express): Promise<Server> {
   
-  // Debug middleware to catch all formation requests
-  app.use('/api/teams/*/formation', (req, res, next) => {
-    console.log("🔍 Formation route intercepted:", req.method, req.url);
-    console.log("🔍 Headers:", req.headers);
-    console.log("🔍 Body:", req.body);
-    next();
-  });
   // Auth middleware
   await setupAuth(app);
+
+  // CRITICAL: Formation routes must be first to prevent conflicts
+  // Formation saving route
+  app.post('/api/teams/:teamId/formation', isAuthenticated, async (req, res) => {
+    console.log("=== FORMATION SAVE REQUEST ===");
+    console.log("Request method:", req.method);
+    console.log("Request URL:", req.url);
+    console.log("Content-Type:", req.headers['content-type']);
+    console.log("User authenticated:", req.isAuthenticated());
+    console.log("Request body:", req.body);
+    
+    try {
+      let teamId = req.params.teamId;
+      
+      if (teamId === "my") {
+        const userId = (req.user as any)?.claims?.sub;
+        console.log("Looking up team for user:", userId);
+        const team = await storage.getTeamByUserId(userId);
+        if (!team) {
+          console.log("Team not found for user:", userId);
+          return res.status(404).json({ message: "Team not found" });
+        }
+        teamId = team.id;
+        console.log("Found team:", teamId);
+      }
+
+      const { formation, substitutionOrder } = req.body;
+      
+      console.log("Formation data received:", { formationLength: formation?.length, substitutionOrder });
+      
+      // Validate formation data
+      if (!formation || !Array.isArray(formation)) {
+        console.log("Invalid formation data");
+        return res.status(400).json({ message: "Invalid formation data" });
+      }
+      
+      // Store formation in team data
+      await storage.updateTeam(teamId, { 
+        formation: JSON.stringify(formation),
+        substitutionOrder: JSON.stringify(substitutionOrder || {})
+      });
+
+      console.log("Formation saved successfully for team:", teamId);
+      console.log("Sending JSON response");
+      res.setHeader('Content-Type', 'application/json');
+      res.json({ success: true, message: "Formation saved successfully" });
+    } catch (error) {
+      console.error("Error saving formation:", error);
+      res.status(500).json({ message: "Failed to save formation" });
+    }
+  });
+
+  // Formation loading route
+  app.get('/api/teams/:teamId/formation', isAuthenticated, async (req, res) => {
+    try {
+      let teamId = req.params.teamId;
+      
+      if (teamId === "my") {
+        const userId = (req.user as any)?.claims?.sub;
+        const team = await storage.getTeamByUserId(userId);
+        if (!team) {
+          return res.status(404).json({ message: "Team not found" });
+        }
+        teamId = team.id;
+      }
+
+      const team = await storage.getTeamById(teamId);
+      if (!team) {
+        return res.status(404).json({ message: "Team not found" });
+      }
+
+      res.json({
+        formation: team.formation ? JSON.parse(team.formation) : null,
+        substitutionOrder: team.substitutionOrder ? JSON.parse(team.substitutionOrder) : null
+      });
+    } catch (error) {
+      console.error("Error fetching formation:", error);
+      res.status(500).json({ message: "Failed to fetch formation" });
+    }
+  });
 
   // Auth routes
   app.get('/api/auth/user', isAuthenticated, async (req: any, res) => {
@@ -2240,83 +2313,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Formation saving route
-  app.post('/api/teams/:teamId/formation', isAuthenticated, async (req, res) => {
-    console.log("=== FORMATION SAVE REQUEST ===");
-    console.log("Request method:", req.method);
-    console.log("Request URL:", req.url);
-    console.log("Content-Type:", req.headers['content-type']);
-    console.log("User authenticated:", req.isAuthenticated());
-    console.log("Request body:", req.body);
-    
-    try {
-      let teamId = req.params.teamId;
-      
-      if (teamId === "my") {
-        const userId = (req.user as any)?.claims?.sub;
-        console.log("Looking up team for user:", userId);
-        const team = await storage.getTeamByUserId(userId);
-        if (!team) {
-          console.log("Team not found for user:", userId);
-          return res.status(404).json({ message: "Team not found" });
-        }
-        teamId = team.id;
-        console.log("Found team:", teamId);
-      }
-
-      const { formation, substitutionOrder } = req.body;
-      
-      console.log("Formation data received:", { formationLength: formation?.length, substitutionOrder });
-      
-      // Validate formation data
-      if (!formation || !Array.isArray(formation)) {
-        console.log("Invalid formation data");
-        return res.status(400).json({ message: "Invalid formation data" });
-      }
-      
-      // Store formation in team data
-      await storage.updateTeam(teamId, { 
-        formation: JSON.stringify(formation),
-        substitutionOrder: JSON.stringify(substitutionOrder || {})
-      });
-
-      console.log("Formation saved successfully for team:", teamId);
-      console.log("Sending JSON response");
-      res.setHeader('Content-Type', 'application/json');
-      res.json({ success: true, message: "Formation saved successfully" });
-    } catch (error) {
-      console.error("Error saving formation:", error);
-      res.status(500).json({ message: "Failed to save formation" });
-    }
-  });
-
-  app.get('/api/teams/:teamId/formation', isAuthenticated, async (req, res) => {
-    try {
-      let teamId = req.params.teamId;
-      
-      if (teamId === "my") {
-        const userId = (req.user as any)?.claims?.sub;
-        const team = await storage.getTeamByUserId(userId);
-        if (!team) {
-          return res.status(404).json({ message: "Team not found" });
-        }
-        teamId = team.id;
-      }
-
-      const team = await storage.getTeamById(teamId);
-      if (!team) {
-        return res.status(404).json({ message: "Team not found" });
-      }
-
-      res.json({
-        formation: team.formation ? JSON.parse(team.formation) : null,
-        substitutionOrder: team.substitutionOrder ? JSON.parse(team.substitutionOrder) : {}
-      });
-    } catch (error) {
-      console.error("Error fetching formation:", error);
-      res.status(500).json({ message: "Failed to fetch formation" });
-    }
-  });
 
   // Equipment marketplace routes
   app.get('/api/marketplace/equipment', isAuthenticated, async (req, res) => {
