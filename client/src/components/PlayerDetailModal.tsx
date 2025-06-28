@@ -6,9 +6,11 @@ import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Progress } from "@/components/ui/progress";
 import { Separator } from "@/components/ui/separator";
-import { Shield, Shirt, ShirtIcon, Hand } from "lucide-react";
+import { Shield, Shirt, ShirtIcon, Hand, TrendingUp, Star, Clock } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
 import AbilitiesDisplay from "@/components/AbilitiesDisplay";
 import PlayerSkillsDisplay from "@/components/PlayerSkillsDisplay";
+import ProgressionDisplay from "@/components/ProgressionDisplay";
 
 interface PlayerDetailModalProps {
   player: any;
@@ -172,8 +174,9 @@ export default function PlayerDetailModal({
         </DialogHeader>
 
         <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="grid w-full grid-cols-6">
+          <TabsList className="grid w-full grid-cols-7">
             <TabsTrigger value="stats">Stats</TabsTrigger>
+            <TabsTrigger value="progression">Progression</TabsTrigger>
             <TabsTrigger value="skills">Skills</TabsTrigger>
             <TabsTrigger value="abilities">Abilities</TabsTrigger>
             <TabsTrigger value="equipment">Equipment</TabsTrigger>
@@ -235,6 +238,10 @@ export default function PlayerDetailModal({
                 </div>
               </CardContent>
             </Card>
+          </TabsContent>
+
+          <TabsContent value="progression" className="space-y-4">
+            <ProgressionDisplay playerId={player.id} playerAge={player.age} />
           </TabsContent>
 
           <TabsContent value="equipment" className="space-y-4">

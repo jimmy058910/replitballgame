@@ -433,6 +433,9 @@ export class DatabaseStorage implements IStorage {
   }
 
   async performDailyRecovery(): Promise<void> {
+    // Import progression functions
+    const { runDailyProgression, getEnhancedRecoveryRate } = await import('./services/progressionService');
+    
     // Reset daily item usage for all players
     await this.resetAllPlayersDailyItems();
 
@@ -442,9 +445,11 @@ export class DatabaseStorage implements IStorage {
     for (const player of allPlayers) {
       const updates: any = {};
 
-      // Natural injury recovery (50 RP per day)
-      if (player.injuryStatus !== "Healthy") {
-        const newRecoveryPoints = (player.injuryRecoveryPointsCurrent || 0) + 50;
+      // Natural injury recovery with staff effects
+      if (player.injuryStatus !== "Healthy" && player.teamId) {
+        // Get enhanced recovery rate based on recovery specialist
+        const recoveryRate = await getEnhancedRecoveryRate(player.teamId);
+        const newRecoveryPoints = (player.injuryRecoveryPointsCurrent || 0) + recoveryRate;
         updates.injuryRecoveryPointsCurrent = newRecoveryPoints;
 
         // Check if injury is healed
@@ -470,6 +475,9 @@ export class DatabaseStorage implements IStorage {
           .where(eq(players.id, player.id));
       }
     }
+
+    // Run daily player progression
+    await runDailyProgression();
   }
 
   // Match operations

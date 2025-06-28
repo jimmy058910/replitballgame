@@ -34,7 +34,17 @@ Built as a React + Express web application with PostgreSQL database, using moder
 
 ## Recent Changes
 
-### December 29, 2025 (UI Cleanup + Player Skills System Fully Implemented)
+### December 29, 2025 (Player Progression System Fully Implemented)
+- ✓ PLAYER PROGRESSION BACKEND: Implemented comprehensive player progression service with daily (3AM) and seasonal (Day 17) progression mechanics
+- ✓ STAT CAP SYSTEM: Converted player potential to 10-point scale with stat caps calculated as 10 + (potential * 3)
+- ✓ AGE-BASED PROGRESSION: Young players (18-23) get +15% growth bonus and 3% daily chance, veterans (31+) face -20% growth penalty and physical decline risk
+- ✓ STAFF EFFECTS SYSTEM: Head coach, trainers, and recovery specialists now provide functional bonuses to player development, not just UI displays
+- ✓ TEAM CAMARADERIE: Added team chemistry system (0-100) that affects passing and blocking performance when above 60
+- ✓ PROGRESSION TAB: Created new "Progression" tab in PlayerDetailModal showing stat caps, growth potential, and staff effects
+- ✓ API ENDPOINTS: Added /api/players/:id/progression and /api/teams/:teamId/staff-effects endpoints for frontend integration
+- ✓ DATABASE UPDATE: Added camaraderie column to teams table for team chemistry tracking
+
+### December 29, 2025 (Earlier - UI Cleanup + Player Skills System Fully Implemented)
 - ✓ TRAINING FOCUS REMOVAL: Completely removed "Training Focus" feature and buttons from PlayerDetailModal Scouting tab
 - ✓ GAME DAY ADVANCEMENT INFO: Added "Game Day advances at 3AM EST" text below ServerTimeDisplay for user clarity
 

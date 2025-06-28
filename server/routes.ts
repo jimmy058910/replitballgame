@@ -1061,6 +1061,131 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Player progression endpoints
+  app.get('/api/players/:playerId/progression', isAuthenticated, async (req, res) => {
+    try {
+      const player = await storage.getPlayerById(req.params.playerId);
+      if (!player) {
+        return res.status(404).json({ message: "Player not found" });
+      }
+
+      // Convert potential to 10-point scale and calculate stat caps
+      const progressionData = {
+        stats: [
+          {
+            name: 'speed',
+            current: player.speed,
+            potential: Number(player.speedPotential) || 6,
+            potential10Point: player.speedPotential ? Math.round(Number(player.speedPotential) * 2) : 6,
+            cap: 10 + (player.speedPotential ? Math.round(Number(player.speedPotential) * 2) * 3 : 18)
+          },
+          {
+            name: 'power',
+            current: player.power,
+            potential: Number(player.powerPotential) || 6,
+            potential10Point: player.powerPotential ? Math.round(Number(player.powerPotential) * 2) : 6,
+            cap: 10 + (player.powerPotential ? Math.round(Number(player.powerPotential) * 2) * 3 : 18)
+          },
+          {
+            name: 'throwing',
+            current: player.throwing,
+            potential: Number(player.throwingPotential) || 6,
+            potential10Point: player.throwingPotential ? Math.round(Number(player.throwingPotential) * 2) : 6,
+            cap: 10 + (player.throwingPotential ? Math.round(Number(player.throwingPotential) * 2) * 3 : 18)
+          },
+          {
+            name: 'catching',
+            current: player.catching,
+            potential: Number(player.catchingPotential) || 6,
+            potential10Point: player.catchingPotential ? Math.round(Number(player.catchingPotential) * 2) : 6,
+            cap: 10 + (player.catchingPotential ? Math.round(Number(player.catchingPotential) * 2) * 3 : 18)
+          },
+          {
+            name: 'kicking',
+            current: player.kicking,
+            potential: Number(player.kickingPotential) || 6,
+            potential10Point: player.kickingPotential ? Math.round(Number(player.kickingPotential) * 2) : 6,
+            cap: 10 + (player.kickingPotential ? Math.round(Number(player.kickingPotential) * 2) * 3 : 18)
+          },
+          {
+            name: 'stamina',
+            current: player.stamina,
+            potential: Number(player.staminaPotential) || 6,
+            potential10Point: player.staminaPotential ? Math.round(Number(player.staminaPotential) * 2) : 6,
+            cap: 10 + (player.staminaPotential ? Math.round(Number(player.staminaPotential) * 2) * 3 : 18)
+          },
+          {
+            name: 'leadership',
+            current: player.leadership,
+            potential: Number(player.leadershipPotential) || 6,
+            potential10Point: player.leadershipPotential ? Math.round(Number(player.leadershipPotential) * 2) : 6,
+            cap: 10 + (player.leadershipPotential ? Math.round(Number(player.leadershipPotential) * 2) * 3 : 18)
+          },
+          {
+            name: 'agility',
+            current: player.agility,
+            potential: Number(player.agilityPotential) || 6,
+            potential10Point: player.agilityPotential ? Math.round(Number(player.agilityPotential) * 2) : 6,
+            cap: 10 + (player.agilityPotential ? Math.round(Number(player.agilityPotential) * 2) * 3 : 18)
+          }
+        ],
+        ageBonus: player.age <= 23 ? 'Young (+15% growth)' : player.age <= 27 ? 'Prime (+5% growth)' : player.age >= 31 ? 'Veteran (-20% growth)' : 'Peak (0% growth)',
+        dailyProgressChance: player.age >= 18 && player.age <= 23 ? 3 : player.age >= 31 ? -4 : 1,
+        declineRisk: player.age >= 31 ? `${(player.age - 30) * 5}% chance of physical decline` : null
+      };
+
+      res.json(progressionData);
+    } catch (error) {
+      console.error("Error fetching player progression:", error);
+      res.status(500).json({ message: "Failed to fetch player progression" });
+    }
+  });
+
+  // Get team staff effects
+  app.get('/api/teams/:teamId/staff-effects', isAuthenticated, async (req, res) => {
+    try {
+      const teamStaff = await storage.getStaffByTeamId(req.params.teamId);
+      const team = await storage.getTeamById(req.params.teamId);
+      
+      if (!team) {
+        return res.status(404).json({ message: "Team not found" });
+      }
+
+      const headCoach = teamStaff.find(s => s.type === 'head_coach');
+      const recoverySpec = teamStaff.find(s => s.type === 'recovery_specialist');
+      const offenseTrainer = teamStaff.find(s => s.type === 'trainer_offense');
+      const defenseTrainer = teamStaff.find(s => s.type === 'trainer_defense');
+      const physicalTrainer = teamStaff.find(s => s.type === 'trainer_physical');
+
+      const effects = {
+        headCoach: headCoach ? {
+          motivationBonus: `+${(headCoach.motivation || 20) * 0.1}% to all progression`,
+          developmentMultiplier: `${100 + (headCoach.development || 20)}% trainer effectiveness`,
+          tacticsBonus: `+${Math.floor((headCoach.tactics || 20) / 10)} to team coordination`,
+          camaraderieGrowth: `+${(headCoach.motivation || 20) + (headCoach.yearsOnTeam || 0)} per season`
+        } : null,
+        recoverySpec: recoverySpec ? {
+          injuryRecovery: `${50 + (recoverySpec.physiology || 20) * 1.5} RP per day`,
+          rehabBonus: `+${Math.floor((recoverySpec.rehabilitation || 20) / 5)}% injury prevention`
+        } : null,
+        trainers: {
+          offense: offenseTrainer ? `+${(offenseTrainer.teaching || 20) * 0.15}% to throwing, catching, agility` : null,
+          defense: defenseTrainer ? `+${(defenseTrainer.teaching || 20) * 0.15}% to stamina, leadership` : null,
+          physical: physicalTrainer ? `+${(physicalTrainer.teaching || 20) * 0.15}% to speed, power` : null
+        },
+        teamCamaraderie: {
+          current: team.camaraderie || 50,
+          effect: team.camaraderie && team.camaraderie > 60 ? '+5% pass success, +3% blocking' : 'No bonus (need 60+)'
+        }
+      };
+
+      res.json(effects);
+    } catch (error) {
+      console.error("Error fetching staff effects:", error);
+      res.status(500).json({ message: "Failed to fetch staff effects" });
+    }
+  });
+
   // Staff routes
   app.get("/api/teams/:teamId/staff", isAuthenticated, async (req, res) => {
     try {
@@ -5812,6 +5937,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const daysSinceStart = Math.floor((currentDate.getTime() - seasonStartDate.getTime()) / (1000 * 60 * 60 * 24));
       const currentDay = ((daysSinceStart % 17) + 1);
       const nextDay = currentDay >= 17 ? 1 : currentDay + 1;
+
+      // If on Day 17, run end-of-season progression before advancing
+      if (currentDay === 17) {
+        const { runSeasonEndProgression } = await import('./services/progressionService');
+        await runSeasonEndProgression();
+        console.log("End-of-season progression completed");
+      }
 
       // If moving to day 1, start new season cycle
       if (nextDay === 1) {

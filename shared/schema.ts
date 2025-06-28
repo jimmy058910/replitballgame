@@ -56,6 +56,7 @@ export const teams = pgTable("teams", {
   seasonsInactive: integer("seasons_inactive").default(0),
   formation: text("formation"),
   substitutionOrder: text("substitution_order"),
+  camaraderie: integer("camaraderie").default(50), // Team chemistry (0-100)
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
@@ -205,10 +206,30 @@ export const staff = pgTable("staff", {
   teamId: uuid("team_id").references(() => teams.id).notNull(),
   type: varchar("type").notNull(), // head_coach, trainer_offense, trainer_defense, trainer_physical, head_scout, recruiting_scout, recovery_specialist
   name: varchar("name").notNull(),
+  age: integer("age").default(35),
   level: integer("level").default(1),
   salary: integer("salary").notNull(),
+  yearsOnTeam: integer("years_on_team").default(0),
   
-  // Staff-specific stats
+  // New attribute-based system (1-40 scale)
+  // Head Coach attributes
+  motivation: integer("motivation").default(20),
+  tactics: integer("tactics").default(20),
+  development: integer("development").default(20),
+  
+  // Trainer attributes
+  teaching: integer("teaching").default(20),
+  specialization: integer("specialization").default(20),
+  
+  // Scout attributes
+  talentIdentification: integer("talent_identification").default(20),
+  potentialAssessment: integer("potential_assessment").default(20),
+  
+  // Recovery Specialist attributes
+  physiology: integer("physiology").default(20),
+  rehabilitation: integer("rehabilitation").default(20),
+  
+  // Legacy ratings (for backward compatibility)
   offenseRating: integer("offense_rating").default(0),
   defenseRating: integer("defense_rating").default(0),
   physicalRating: integer("physical_rating").default(0),

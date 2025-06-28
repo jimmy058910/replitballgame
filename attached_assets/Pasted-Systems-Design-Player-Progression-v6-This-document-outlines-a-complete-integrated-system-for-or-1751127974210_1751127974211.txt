@@ -1,0 +1,108 @@
+Systems Design & Player Progression (v6)
+This document outlines a complete, integrated system for organic player and staff progression, replacing a traditional XP/leveling system with a more dynamic, attribute-based development model. It eliminates individual training focus in favor of a more automated, staff-driven approach.
+
+1. Player Progression System: Organic Growth
+This system governs all aspects of how a player's stats change over time. Progression occurs in two phases: small, daily checks and a major end-of-season development event.
+
+A. Revised Potential & Stat Cap System
+
+The 1-5 star system is now a 10-point scale to accommodate half-stars (e.g., a rating of 7 represents 3.5 stars). The stat caps have been re-balanced to be less top-heavy.
+
+Stat Cap Formula:
+StatCap = 10 + (PotentialRating_out_of_10 * 3)
+
+Example Stat Caps:
+
+1 Star (Rating 2): Max stat of 16
+
+2 Stars (Rating 4): Max stat of 22
+
+3 Stars (Rating 6): Max stat of 28
+
+4 Stars (Rating 8): Max stat of 34
+
+5 Stars (Rating 10): Max stat of 40
+
+B. Daily Progression Check (3 AM Reset)
+
+A small, daily chance for a player to improve a single stat.
+
+Logic: At the 3 AM daily reset, for each player on a team:
+
+Calculate DailyProgressChance = BaseDailyChance + AgeModifier
+
+BaseDailyChance = 1%
+
+AgeModifier: +2% for Ages 18-23; 0% for Ages 24-30; -5% for Ages 31+.
+
+If randf_range(0, 100) < DailyProgressChance, a single, random attribute that is not yet at its cap increases by +1.
+
+C. End-of-Season Development (Day 17 Event)
+
+This is the primary event where players see significant growth.
+
+Logic: For each player, for each of their 8 core attributes, perform a Progression Check.
+
+Progression Check Formula:
+ProgressionChance = BaseChance + PotentialModifier + AgeModifier + UsageModifier + TrainerBonus
+
+PotentialModifier (Revised): Based on the 10-point potential rating for that specific stat.
+
+Rating 1-2 (1 star): +5% bonus chance
+
+Rating 3-4 (2 stars): +10% bonus chance
+
+Rating 5-6 (3 stars): +20% bonus chance
+
+Rating 7-8 (4 stars): +30% bonus chance
+
+Rating 9-10 (5 stars): +40% bonus chance
+
+All other modifiers (BaseChance, AgeModifier, UsageModifier, TrainerBonus) remain the same as in v5.
+
+D. Age-Related Decline
+
+(No Change) The system for age-related decline (running at the end of the season for players 31+) remains an excellent core mechanic.
+
+2. Staff System: Attributes & Progression
+Staff are now dynamic entities with their own attributes that progress over time.
+
+A. Staff Attributes (1-40 Scale)
+
+Head Coach: Motivation, Tactics, Development
+
+Trainers (Offense, Defense, Physical): Teaching, Specialization (e.g., how good the Offense Trainer is with Throwing vs. Catching)
+
+Scouts (Head, Recruiting): Talent_Identification, Potential_Assessment
+
+Recovery Specialist: Physiology, Rehabilitation
+
+B. Staff Progression
+
+Logic: At the end of each season, every staff member has a chance to increase a key attribute by +1. This chance is influenced by their age and team success.
+
+StaffProgressChance = 10% + (TeamWinPercentage * 10) (A team that won 7 of 14 games (50%) gives a 10% + 5% = 15% chance).
+
+Decline: Staff members over age 55 have a chance to see their stats decline each season.
+
+C. Staff Effects (Backend Implementation)
+
+Head Coach:
+
+Motivation: Increases the BaseChance for all player progression checks. FinalBaseChance = BaseChance + (Motivation_Stat * 0.1%). (A coach with 30 Motivation provides a +3% boost).
+
+Development: Directly influences the TrainerBonus provided by all other trainers. FinalTrainerBonus = BaseTrainerBonus * (1 + (Development_Stat / 100)). (A coach with 25 Development provides a +25% boost to the trainers' effectiveness).
+
+Team Camaraderie (New): At the end of each season, increase a persistent team stat called camaraderie by HeadCoach.Leadership + (Years_on_Team). Camaraderie can provide small in-game bonuses, like a slightly higher chance for successful passes or better blocking coordination.
+
+Trainers:
+
+Effect: The TrainerBonus in the player progression formula is now derived from the trainer's Teaching attribute.
+
+Formula: TrainerBonus = Teaching_Stat * 0.15%. (A trainer with a 30 Teaching stat provides a +4.5% bonus chance to their related attributes).
+
+Recovery Specialist:
+
+Effect: Boosts natural injury recovery rate.
+
+Formula: total_recovery_points = base_daily_recovery + (Physiology_Stat * 1.5). (A specialist with 20 Physiology adds +30 RP per day to the base recovery).
