@@ -117,68 +117,28 @@ export default function Competition() {
         </div>
 
         {/* Seasonal Cycle Display */}
-        {(seasonalCycle as any) && (
-          <Card className="bg-gradient-to-r from-purple-900 to-blue-900 border-purple-700 mb-6">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-4">
-                  <div className="bg-purple-600 bg-opacity-30 p-3 rounded-full">
-                    <Calendar className="h-8 w-8 text-purple-200" />
-                  </div>
-                  <div>
-                    <div className="text-sm text-purple-200 mb-1">{(seasonalCycle as any).season}</div>
-                    <h2 className="text-2xl font-bold text-white mb-1">{(seasonalCycle as any).description}</h2>
-                    <p className="text-purple-100 text-sm">{(seasonalCycle as any).details}</p>
-                  </div>
+        <Card className="bg-gradient-to-r from-purple-900 to-blue-900 border-purple-700 mb-6">
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-4">
+                <div className="bg-purple-600 bg-opacity-30 p-3 rounded-full">
+                  <Calendar className="h-8 w-8 text-purple-200" />
                 </div>
-                <div className="text-right">
-                  <div className="text-sm text-purple-200">Day {(seasonalCycle as any).currentDay} of 17</div>
-                  <div className="text-lg font-semibold text-white">{(seasonalCycle as any).phase}</div>
+                <div>
+                  <div className="text-sm text-purple-200 mb-1">Season 0</div>
+                  <h2 className="text-2xl font-bold text-white mb-1">Regular Season - Day 1</h2>
+                  <p className="text-purple-100 text-sm">League activities in progress</p>
                 </div>
               </div>
-            </CardContent>
-          </Card>
-        )}
-
-        {/* Season Cycle Info - Match Dashboard Style */}
-        {currentCycle && (
-          <Card className="bg-gradient-to-r from-purple-900 to-blue-900 border-purple-700 mb-6">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-4">
-                  <div className="bg-purple-600 bg-opacity-30 p-3 rounded-full">
-                    <Calendar className="h-8 w-8 text-purple-200" />
-                  </div>
-                  <div>
-                    <div className="text-sm text-purple-200 mb-1">{currentCycle?.season || "Season 0"}</div>
-                    <h2 className="text-2xl font-bold text-white mb-1">{currentCycle?.description || "Day 1 - Regular Season Matches"}</h2>
-                    <p className="text-purple-100 text-sm">{currentCycle?.details || "First half of regular season. Teams play to secure playoff positioning."}</p>
-                  </div>
-                </div>
-                <div className="text-right">
-                  <div className="text-lg font-bold text-white mb-1">Day {currentCycle?.currentDay || 1}/17</div>
-                  <Badge 
-                    variant={currentCycle?.phase === "Regular Season" ? "default" : 
-                            currentCycle?.phase === "Playoffs" ? "destructive" : "secondary"}
-                    className="text-xs"
-                  >
-                    {currentCycle?.phase || "Regular Season"}
-                  </Badge>
-                  {currentCycle?.daysUntilPlayoffs > 0 && (
-                    <div className="text-xs text-purple-200 mt-1">
-                      {currentCycle?.daysUntilPlayoffs} days to playoffs
-                    </div>
-                  )}
-                  {currentCycle?.daysUntilNewSeason > 0 && currentCycle?.phase === "Off-Season" && (
-                    <div className="text-xs text-purple-200 mt-1">
-                      {currentCycle?.daysUntilNewSeason} days to new season
-                    </div>
-                  )}
-                </div>
+              <div className="text-right">
+                <div className="text-lg font-bold text-white mb-1">Day 1/17</div>
+                <Badge variant="default" className="text-xs">
+                  Regular Season
+                </Badge>
               </div>
-            </CardContent>
-          </Card>
-        )}
+            </div>
+          </CardContent>
+        </Card>
 
         <Tabs defaultValue="league" className="space-y-6">
           <TabsList className="grid w-full grid-cols-3 bg-gray-800">

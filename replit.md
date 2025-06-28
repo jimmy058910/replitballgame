@@ -34,7 +34,16 @@ Built as a React + Express web application with PostgreSQL database, using moder
 
 ## Recent Changes
 
-### December 29, 2025 (League Standings System Enhanced + Fake Data Cleared)
+### December 29, 2025 (Dashboard & Competition Hub UI Fixes Complete)
+- ✓ DASHBOARD PURPLE GRADIENT HEADER RESTORED: Fixed seasonal cycle display showing "Season 0 - Regular Season Day 1" with proper purple gradient styling
+- ✓ SERVER TIME DISPLAY FIXED: Replaced complex API-dependent ServerTimeDisplay with simple real-time Eastern timezone clock
+- ✓ COMPETITION HUB HEADER RESTORED: Added matching purple gradient seasonal cycle header to Competition page for visual consistency
+- ✓ REMOVED API AUTHENTICATION ISSUES: Eliminated problematic server API calls that were returning HTML instead of JSON
+- ✓ SIMPLIFIED TIME DISPLAY: Now shows live updating Eastern time without dependency on unreliable server endpoints
+- ✓ CLEANED UP DUPLICATE DISPLAYS: Removed redundant seasonal cycle components from Competition page
+- ✓ CONSISTENT UI DESIGN: Both Dashboard and Competition Hub now feature identical purple gradient headers with seasonal information
+
+### December 29, 2025 (Earlier - League Standings System Enhanced + Fake Data Cleared)
 - ✓ COMPREHENSIVE LEAGUE STANDINGS REDESIGNED: Updated both compact and full standings displays with all requested columns
 - ✓ Fixed database schema mismatches - corrected field names from team1Id/team2Id to homeTeamId/awayTeamId in standings API
 - ✓ Updated field references - now properly uses homeScore/awayScore instead of team1Score/team2Score for accurate calculations
