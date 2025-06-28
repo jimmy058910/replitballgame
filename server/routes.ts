@@ -284,6 +284,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
           }),
           revenueMultiplier: 100
         });
+      } else {
+        // Update existing stadium to have better defaults if needed
+        if (stadium.capacity && stadium.capacity < 10000) {
+          stadium = await storage.updateStadium(stadium.id, {
+            capacity: 15000,
+            level: 2,
+            revenueMultiplier: 120,
+            facilities: JSON.stringify({
+              seating: 2,
+              concessions: 2,
+              parking: 2,
+              lighting: 2,
+              screens: 1,
+              vip: 1,
+              merchandising: 2
+            })
+          });
+        }
       }
 
       // Calculate atmosphere based on team performance and stadium level
