@@ -1574,7 +1574,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
     return { equipment, consumables };
   };
 
-
+  // Helper functions for store (must be defined before use)
+  function getRarityIcon(rarity: string): string {
+    const icons: { [key: string]: string } = {
+      common: "⚪",
+      uncommon: "🟢",
+      rare: "🔵",
+      epic: "🟣",
+      legendary: "🟡",
+      mythic: "🔴",
+      divine: "✨"
+    };
+    return icons[rarity] || "⚪";
+  }
+  
+  function getConsumableIcon(itemType: string): string {
+    const icons: { [key: string]: string } = {
+      injury_recovery: "🩹",
+      stamina_recovery: "⚡",
+      stat_boost: "💪"
+    };
+    return icons[itemType] || "💊";
+  }
 
   // Test endpoint to force debug output
   app.get('/api/store/debug', isAuthenticated, async (req: any, res) => {
