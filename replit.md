@@ -55,6 +55,8 @@ Built as a React + Express web application with PostgreSQL database, using moder
 - ✓ SERVER TIME DISPLAY FIXED: Removed duplicate server time query from Dashboard that was causing "Unable to load server time" error - now uses proper ServerTimeDisplay component
 - ✓ LEAGUE SCHEDULE GENERATION FIX: Fixed endpoint mismatch in SuperUser panel - generateScheduleMutation now calls correct `/api/superuser/generate-season-schedule` route instead of broken `/api/superuser/generate-schedule`
 - ✓ CONTRACT SYSTEM SIMPLIFIED: Removed complex ContractManagement component with unwanted salary cap management and tabs - reverted to simple contract display showing all 11 players with negotiate buttons as requested
+- ✓ CONTRACT NEGOTIATION UI FIXED: Fixed white-on-white text contrast in player response section by adding proper dark mode text colors
+- ✓ CONTRACT CACHE INVALIDATION FIXED: Updated ContractNegotiation component to properly invalidate the correct query cache after successful contract updates so the contract list refreshes immediately
 
 ### December 29, 2025 (Earlier - Comprehensive Commentary System + Complete Stat Boost System)
 - ✓ COMPREHENSIVE GAME COMMENTARY SYSTEM IMPLEMENTED: Created sophisticated 6-category commentary generator according to user specifications

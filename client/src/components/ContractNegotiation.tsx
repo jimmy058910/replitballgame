@@ -11,6 +11,7 @@ interface ContractNegotiationProps {
   player: any;
   isOpen: boolean;
   onClose: () => void;
+  teamId: string;
 }
 
 const contractResponses = {
@@ -36,7 +37,7 @@ const contractResponses = {
   ]
 };
 
-export default function ContractNegotiation({ player, isOpen, onClose }: ContractNegotiationProps) {
+export default function ContractNegotiation({ player, isOpen, onClose, teamId }: ContractNegotiationProps) {
   // Early return if player is null or missing required properties
   if (!player || !player.firstName || !player.lastName) {
     return (
@@ -121,7 +122,7 @@ export default function ContractNegotiation({ player, isOpen, onClose }: Contrac
         title: "Contract Finalized",
         description: "The new contract has been officially signed!",
       });
-      queryClient.invalidateQueries({ queryKey: ["/api/teams/my/players"] });
+      queryClient.invalidateQueries({ queryKey: [`/api/teams/${teamId}/players`] });
       onClose();
     }
   });
@@ -164,8 +165,8 @@ export default function ContractNegotiation({ player, isOpen, onClose }: Contrac
         {/* Player Response */}
         {playerResponse && (
           <div className="border rounded-lg p-4 bg-blue-50 dark:bg-blue-900/20">
-            <h4 className="font-medium mb-2">{player.firstName}'s Response:</h4>
-            <p className="italic">"{playerResponse}"</p>
+            <h4 className="font-medium mb-2 text-gray-900 dark:text-gray-100">{player.firstName}'s Response:</h4>
+            <p className="italic text-gray-800 dark:text-gray-200">"{playerResponse}"</p>
           </div>
         )}
 
