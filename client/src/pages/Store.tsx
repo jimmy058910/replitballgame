@@ -16,7 +16,7 @@ export default function Store() {
   const { toast } = useToast();
 
   const { data: storeData } = useQuery({
-    queryKey: ["/api/store"],
+    queryKey: ["/api/store", Date.now()], // Cache busting for debugging
   });
 
   const { data: finances } = useQuery({
