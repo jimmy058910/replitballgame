@@ -7,23 +7,23 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Progress } from "@/components/ui/progress";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
-import { ShoppingCart, Clock, Play, Gift, Sparkles, Zap } from "lucide-react";
+import { ShoppingCart, Clock, Play, Gift, Sparkles, Zap, Star, Crown, Shield, Coins } from "lucide-react";
 import Navigation from "@/components/Navigation";
 
 export default function Store() {
   const [selectedItem, setSelectedItem] = useState<any>(null);
   const { toast } = useToast();
 
-  const { data: storeData } = useQuery({
-    queryKey: ["/api/store"],
-  });
-
-  const { data: adData } = useQuery({
-    queryKey: ["/api/store/ads"],
-  });
-
   const { data: finances } = useQuery({
     queryKey: ["/api/teams/my/finances"],
+  });
+
+  const { data: creditPackages } = useQuery({
+    queryKey: ["/api/payments/packages"],
+  });
+
+  const { data: storeData } = useQuery({
+    queryKey: ["/api/store/items"],
   });
 
   const purchaseItemMutation = useMutation({
@@ -47,47 +47,20 @@ export default function Store() {
     },
   });
 
-  const watchAdMutation = useMutation({
-    mutationFn: async () => {
-      await apiRequest("/api/store/watch-ad", {
-        method: "POST",
-      });
+  const purchaseCreditPackage = useMutation({
+    mutationFn: async (packageId: string) => {
+      return await apiRequest("/api/payments/purchase", "POST", { packageId });
     },
-    onSuccess: (data: any) => {
+    onSuccess: () => {
       toast({
-        title: "Ad Reward Earned",
-        description: data.reward,
+        title: "Credits Purchased!",
+        description: "Credits have been added to your account.",
       });
-      queryClient.invalidateQueries({ queryKey: ["/api/store/ads"] });
       queryClient.invalidateQueries({ queryKey: ["/api/teams/my/finances"] });
     },
     onError: (error: Error) => {
       toast({
-        title: "Ad Failed",
-        description: error.message,
-        variant: "destructive",
-      });
-    },
-  });
-
-  const openMysteryBoxMutation = useMutation({
-    mutationFn: async (boxType: string) => {
-      await apiRequest("/api/store/mystery-box", {
-        method: "POST",
-        body: JSON.stringify({ boxType }),
-      });
-    },
-    onSuccess: (data: any) => {
-      toast({
-        title: "Mystery Box Opened",
-        description: `You received: ${data.reward}`,
-      });
-      queryClient.invalidateQueries({ queryKey: ["/api/store/ads"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/teams/my/finances"] });
-    },
-    onError: (error: Error) => {
-      toast({
-        title: "Box Opening Failed",
+        title: "Purchase Failed",
         description: error.message,
         variant: "destructive",
       });
@@ -104,19 +77,108 @@ export default function Store() {
     }
   };
 
-  const getTimeUntilReset = () => {
-    if (!storeData?.resetTime) return "Loading...";
-    const now = new Date();
-    const reset = new Date(storeData.resetTime);
-    const diff = reset.getTime() - now.getTime();
-    
-    if (diff <= 0) return "Resetting...";
-    
-    const hours = Math.floor(diff / (1000 * 60 * 60));
-    const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-    
-    return `${hours}h ${minutes}m`;
-  };
+  // Mock data for store items since we need content
+  const premiumItems = [
+    {
+      id: "premium-scout",
+      name: "Premium Scout",
+      description: "Unlock advanced scouting reports with detailed player analytics",
+      icon: "🔍",
+      price: 2500,
+      currency: "credits",
+      rarity: "epic",
+      type: "service"
+    },
+    {
+      id: "energy-boost",
+      name: "Team Energy Boost",
+      description: "Instantly restore 50% stamina to all players",
+      icon: "⚡",
+      price: 1000,
+      currency: "credits",
+      rarity: "rare",
+      type: "consumable"
+    },
+    {
+      id: "injury-protection",
+      name: "Injury Protection",
+      description: "Reduce injury risk by 75% for next 3 matches",
+      icon: "🛡️",
+      price: 3000,
+      currency: "credits",
+      rarity: "legendary",
+      type: "protection"
+    }
+  ];
+
+  const equipmentItems = [
+    {
+      id: "speed-boots",
+      name: "Speed Boots",
+      description: "Increase player speed by +3 for all positions",
+      icon: "👟",
+      price: 5000,
+      currency: "credits",
+      rarity: "epic",
+      statBoosts: { speed: 3 },
+      type: "equipment"
+    },
+    {
+      id: "power-gloves",
+      name: "Power Gloves",
+      description: "Boost throwing and catching by +2",
+      icon: "🧤",
+      price: 4000,
+      currency: "credits",
+      rarity: "rare",
+      statBoosts: { throwing: 2, catching: 2 },
+      type: "equipment"
+    },
+    {
+      id: "training-weights",
+      name: "Training Weights",
+      description: "Increase power and stamina by +2",
+      icon: "🏋️",
+      price: 3500,
+      currency: "credits",
+      rarity: "rare",
+      statBoosts: { power: 2, stamina: 2 },
+      type: "equipment"
+    }
+  ];
+
+  const entryItems = [
+    {
+      id: "tournament-entry",
+      name: "Premium Tournament Entry",
+      description: "Enter exclusive tournaments with higher rewards",
+      icon: "🏆",
+      price: 10000,
+      currency: "credits",
+      rarity: "legendary",
+      type: "entry"
+    },
+    {
+      id: "exhibition-pass",
+      name: "Exhibition Pass",
+      description: "Play unlimited exhibition matches for 24 hours",
+      icon: "🎮",
+      price: 2000,
+      currency: "credits",
+      rarity: "rare",
+      type: "entry"
+    },
+    {
+      id: "league-promotion",
+      name: "League Promotion Boost",
+      description: "Double points earned in next 5 league matches",
+      icon: "📈",
+      price: 7500,
+      currency: "credits",
+      rarity: "epic",
+      type: "entry"
+    }
+  ];
 
   return (
     <div className="min-h-screen bg-gray-900 text-white">
@@ -127,266 +189,233 @@ export default function Store() {
           <div>
             <h1 className="text-3xl font-bold flex items-center gap-2">
               <ShoppingCart className="h-8 w-8" />
-              Daily Store
+              Store Hub
             </h1>
             <p className="text-gray-400 mt-1">
-              Fresh items daily, earn rewards through ads, and unlock mystery boxes
+              Purchase items, equipment, entries, and credits to enhance your team
             </p>
           </div>
-        <div className="flex items-center gap-4">
-          <div className="flex items-center gap-2 text-sm">
-            <Clock className="h-4 w-4" />
-            <span>Resets in: {getTimeUntilReset()}</span>
-          </div>
-          <div className="flex items-center gap-1">
-            <span className="text-green-400 font-bold">
-              {finances?.credits?.toLocaleString() || 0}₡
-            </span>
+          <div className="flex items-center gap-4">
+            <div className="flex items-center gap-1">
+              <Coins className="h-4 w-4 text-yellow-400" />
+              <span className="text-green-400 font-bold">
+                {finances?.credits?.toLocaleString() || 0}₡
+              </span>
+            </div>
+            <div className="flex items-center gap-1">
+              <Crown className="h-4 w-4 text-purple-400" />
+              <span className="text-purple-400 font-bold">
+                {finances?.premiumCurrency?.toLocaleString() || 0}💎
+              </span>
+            </div>
           </div>
         </div>
-      </div>
 
-      <Tabs defaultValue="store" className="w-full">
-        <TabsList className="grid w-full grid-cols-3">
-          <TabsTrigger value="store">Store Items</TabsTrigger>
-          <TabsTrigger value="ads">Ad Rewards</TabsTrigger>
-          <TabsTrigger value="premium">Premium Items</TabsTrigger>
-        </TabsList>
+        <Tabs defaultValue="premium" className="w-full">
+          <TabsList className="grid w-full grid-cols-4">
+            <TabsTrigger value="premium">Premium Items</TabsTrigger>
+            <TabsTrigger value="equipment">Equipment</TabsTrigger>
+            <TabsTrigger value="entries">Entries</TabsTrigger>
+            <TabsTrigger value="credits">Credit Store</TabsTrigger>
+          </TabsList>
 
-        <TabsContent value="store" className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {storeData?.items?.map((item: any) => (
-              <Card key={item.id} className="hover:shadow-lg transition-shadow">
-                <CardHeader>
-                  <CardTitle className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <span className="text-2xl">{item.icon}</span>
-                      <span>{item.name}</span>
-                    </div>
-                    <Badge className={getRarityColor(item.rarity)}>
-                      {item.rarity}
-                    </Badge>
-                  </CardTitle>
-                  <CardDescription>{item.description}</CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  {item.statBoosts && (
-                    <div className="space-y-1">
-                      <p className="text-sm font-semibold">Stat Boosts:</p>
-                      <div className="flex flex-wrap gap-1">
-                        {Object.entries(item.statBoosts).map(([stat, value]) => (
-                          <Badge key={stat} variant="outline" className="text-xs">
-                            {stat}: +{value}
-                          </Badge>
-                        ))}
+          <TabsContent value="premium" className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {premiumItems.map((item) => (
+                <Card key={item.id} className="hover:shadow-lg transition-shadow bg-gray-800 border-gray-700">
+                  <CardHeader>
+                    <CardTitle className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <span className="text-2xl">{item.icon}</span>
+                        <span className="text-white">{item.name}</span>
                       </div>
-                    </div>
-                  )}
-                  
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-1">
-                      <span className="font-bold text-lg">
-                        {item.price.toLocaleString()}
-                      </span>
-                      <span className="text-sm text-gray-400">
-                        {item.currency === "credits" ? "₡" : "💎"}
-                      </span>
-                    </div>
-                    <Button
-                      onClick={() => purchaseItemMutation.mutate({
-                        itemId: item.id,
-                        currency: item.currency
-                      })}
-                      disabled={purchaseItemMutation.isPending}
-                      size="sm"
-                    >
-                      Buy Now
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        </TabsContent>
-
-        <TabsContent value="ads" className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Play className="h-5 w-5" />
-                  Watch Ads for Rewards
-                </CardTitle>
-                <CardDescription>
-                  Earn credits and mystery boxes by watching advertisements
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="space-y-2">
-                  <div className="flex justify-between">
-                    <span>Ads watched total:</span>
-                    <span className="font-bold">
-                      {adData?.adsWatchedToday || 0}/50
-                    </span>
-                  </div>
-                  <Progress value={((adData?.adsWatchedToday || 0) / 50) * 100} />
-                  <p className="text-xs text-gray-400">
-                    Counter resets after reaching 50 ads
-                  </p>
-                </div>
-                
-                <Button
-                  onClick={() => watchAdMutation.mutate()}
-                  disabled={watchAdMutation.isPending || (adData?.adsWatchedToday || 0) >= 50}
-                  className="w-full"
-                >
-                  <Play className="mr-2 h-4 w-4" />
-                  Watch Ad (100-500₡)
-                </Button>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Gift className="h-5 w-5" />
-                  Mystery Boxes
-                </CardTitle>
-                <CardDescription>
-                  Unlock boxes earned through ad rewards
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="space-y-3">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <Gift className="h-4 w-4 text-gray-400" />
-                      <span>Basic Boxes</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Badge variant="outline">
-                        {adData?.basicBoxes || 0}
-                      </Badge>
-                      <Button
-                        onClick={() => openMysteryBoxMutation.mutate("basic")}
-                        disabled={openMysteryBoxMutation.isPending || (adData?.basicBoxes || 0) === 0}
-                        size="sm"
-                      >
-                        Open
-                      </Button>
-                    </div>
-                  </div>
-                  
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <Sparkles className="h-4 w-4 text-yellow-400" />
-                      <span>Premium Boxes</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Badge variant="outline" className="bg-yellow-500/20">
-                        {adData?.premiumBoxes || 0}
-                      </Badge>
-                      <Button
-                        onClick={() => openMysteryBoxMutation.mutate("premium")}
-                        disabled={openMysteryBoxMutation.isPending || (adData?.premiumBoxes || 0) === 0}
-                        size="sm"
-                        variant="outline"
-                        className="border-yellow-500"
-                      >
-                        Open
-                      </Button>
-                    </div>
-                  </div>
-                </div>
-                
-                <div className="text-xs text-gray-400 p-3 bg-gray-800 rounded">
-                  <p>• Basic boxes: Earned every 5 ads watched</p>
-                  <p>• Premium boxes: Earned after 50 ads watched</p>
-                  <p>• Contains credits, items, and rare abilities</p>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-        </TabsContent>
-
-        <TabsContent value="premium" className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {storeData?.premiumItems?.map((item: any) => (
-              <Card key={item.id} className="border-yellow-500/50 hover:shadow-lg transition-shadow">
-                <CardHeader>
-                  <CardTitle className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <span className="text-2xl">{item.icon}</span>
-                      <span>{item.name}</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Zap className="h-4 w-4 text-yellow-400" />
                       <Badge className={getRarityColor(item.rarity)}>
                         {item.rarity}
                       </Badge>
-                    </div>
-                  </CardTitle>
-                  <CardDescription>{item.description}</CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  {item.statBoosts && (
-                    <div className="space-y-1">
-                      <p className="text-sm font-semibold">Stat Boosts:</p>
-                      <div className="flex flex-wrap gap-1">
-                        {Object.entries(item.statBoosts).map(([stat, value]) => (
-                          <Badge key={stat} variant="outline" className="text-xs">
-                            {stat}: +{value}
-                          </Badge>
-                        ))}
+                    </CardTitle>
+                    <CardDescription className="text-gray-300">{item.description}</CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-1">
+                        <span className="font-bold text-lg text-white">
+                          {item.price.toLocaleString()}
+                        </span>
+                        <span className="text-sm text-gray-400">₡</span>
                       </div>
+                      <Button
+                        onClick={() => purchaseItemMutation.mutate({
+                          itemId: item.id,
+                          currency: item.currency
+                        })}
+                        disabled={purchaseItemMutation.isPending}
+                        className="bg-blue-600 hover:bg-blue-700"
+                      >
+                        {purchaseItemMutation.isPending ? "Purchasing..." : "Purchase"}
+                      </Button>
                     </div>
-                  )}
-                  
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-1">
-                      <span className="font-bold text-lg text-yellow-400">
-                        {item.price}
-                      </span>
-                      <span className="text-sm text-yellow-400">💎</span>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          </TabsContent>
+
+          <TabsContent value="equipment" className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {equipmentItems.map((item) => (
+                <Card key={item.id} className="hover:shadow-lg transition-shadow bg-gray-800 border-gray-700">
+                  <CardHeader>
+                    <CardTitle className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <span className="text-2xl">{item.icon}</span>
+                        <span className="text-white">{item.name}</span>
+                      </div>
+                      <Badge className={getRarityColor(item.rarity)}>
+                        {item.rarity}
+                      </Badge>
+                    </CardTitle>
+                    <CardDescription className="text-gray-300">{item.description}</CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    {item.statBoosts && (
+                      <div className="space-y-1">
+                        <p className="text-sm font-semibold text-gray-300">Stat Boosts:</p>
+                        <div className="flex flex-wrap gap-1">
+                          {Object.entries(item.statBoosts).map(([stat, value]) => (
+                            <Badge key={stat} variant="outline" className="text-xs text-green-400 border-green-400">
+                              {stat}: +{value}
+                            </Badge>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                    
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-1">
+                        <span className="font-bold text-lg text-white">
+                          {item.price.toLocaleString()}
+                        </span>
+                        <span className="text-sm text-gray-400">₡</span>
+                      </div>
+                      <Button
+                        onClick={() => purchaseItemMutation.mutate({
+                          itemId: item.id,
+                          currency: item.currency
+                        })}
+                        disabled={purchaseItemMutation.isPending}
+                        className="bg-green-600 hover:bg-green-700"
+                      >
+                        {purchaseItemMutation.isPending ? "Purchasing..." : "Purchase"}
+                      </Button>
                     </div>
-                    <Button
-                      onClick={() => purchaseItemMutation.mutate({
-                        itemId: item.id,
-                        currency: item.currency
-                      })}
-                      disabled={purchaseItemMutation.isPending}
-                      variant="outline"
-                      className="border-yellow-500 text-yellow-400"
-                    >
-                      Buy with 💎
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-          
-          <Card className="border-yellow-500/50">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Sparkles className="h-5 w-5 text-yellow-400" />
-                Premium Currency
-              </CardTitle>
-              <CardDescription>
-                Premium gems can be earned through tournaments, achievements, or special events
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="flex items-center justify-between">
-                <span>Your Premium Gems:</span>
-                <span className="font-bold text-yellow-400 text-lg">
-                  {finances?.premiumCurrency || 0} 💎
-                </span>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          </TabsContent>
+
+          <TabsContent value="entries" className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {entryItems.map((item) => (
+                <Card key={item.id} className="hover:shadow-lg transition-shadow bg-gray-800 border-gray-700">
+                  <CardHeader>
+                    <CardTitle className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <span className="text-2xl">{item.icon}</span>
+                        <span className="text-white">{item.name}</span>
+                      </div>
+                      <Badge className={getRarityColor(item.rarity)}>
+                        {item.rarity}
+                      </Badge>
+                    </CardTitle>
+                    <CardDescription className="text-gray-300">{item.description}</CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-1">
+                        <span className="font-bold text-lg text-white">
+                          {item.price.toLocaleString()}
+                        </span>
+                        <span className="text-sm text-gray-400">₡</span>
+                      </div>
+                      <Button
+                        onClick={() => purchaseItemMutation.mutate({
+                          itemId: item.id,
+                          currency: item.currency
+                        })}
+                        disabled={purchaseItemMutation.isPending}
+                        className="bg-purple-600 hover:bg-purple-700"
+                      >
+                        {purchaseItemMutation.isPending ? "Purchasing..." : "Purchase"}
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          </TabsContent>
+
+          <TabsContent value="credits" className="space-y-4">
+            <div className="mb-6">
+              <h2 className="text-2xl font-bold mb-2">Purchase Credits</h2>
+              <p className="text-gray-400">Get more credits to purchase items, equipment, and entries</p>
+            </div>
+            
+            {creditPackages ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                {creditPackages.map((pkg: any) => (
+                  <Card key={pkg.id} className={`hover:shadow-lg transition-shadow bg-gray-800 border-gray-700 ${pkg.popularTag ? 'ring-2 ring-blue-500' : ''}`}>
+                    <CardHeader>
+                      <CardTitle className="flex items-center justify-between">
+                        <span className="text-white">{pkg.name}</span>
+                        {pkg.popularTag && (
+                          <Badge className="bg-blue-600">
+                            <Star className="h-3 w-3 mr-1" />
+                            Popular
+                          </Badge>
+                        )}
+                      </CardTitle>
+                      {pkg.description && (
+                        <CardDescription className="text-gray-300">{pkg.description}</CardDescription>
+                      )}
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      <div className="text-center">
+                        <div className="text-3xl font-bold text-green-400">
+                          {pkg.credits?.toLocaleString()}₡
+                        </div>
+                        {pkg.bonusCredits > 0 && (
+                          <div className="text-sm text-yellow-400">
+                            +{pkg.bonusCredits?.toLocaleString()} bonus!
+                          </div>
+                        )}
+                      </div>
+                      
+                      <div className="text-center">
+                        <div className="text-2xl font-bold text-white">
+                          ${(pkg.price / 100).toFixed(2)}
+                        </div>
+                        <div className="text-sm text-gray-400">USD</div>
+                      </div>
+                      
+                      <Button
+                        onClick={() => purchaseCreditPackage.mutate(pkg.id)}
+                        disabled={purchaseCreditPackage.isPending}
+                        className="w-full bg-green-600 hover:bg-green-700"
+                      >
+                        {purchaseCreditPackage.isPending ? "Processing..." : "Purchase"}
+                      </Button>
+                    </CardContent>
+                  </Card>
+                ))}
               </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-      </Tabs>
+            ) : (
+              <div className="text-center py-8">
+                <div className="text-gray-400">Loading credit packages...</div>
+              </div>
+            )}
+          </TabsContent>
+        </Tabs>
       </div>
     </div>
   );

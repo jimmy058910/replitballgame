@@ -23,7 +23,7 @@ import LogoShowcase from "@/pages/LogoShowcase";
 import SuperUser from "@/pages/SuperUser";
 import TextMatch from "@/pages/TextMatch";
 import Community from "@/pages/Community";
-import Scouting from "@/pages/Scouting";
+
 
 import Navigation from "@/components/Navigation";
 
@@ -49,7 +49,6 @@ function Router() {
           <Route path="/store" component={Store} />
           <Route path="/payments" component={Payments} />
           <Route path="/stadium" component={Stadium} />
-          <Route path="/scouting" component={Scouting} />
           <Route path="/text-match/:matchId" component={TextMatch} />
           <Route path="/match/:matchId" component={TextMatch} />
           <Route path="/community" component={Community} />
