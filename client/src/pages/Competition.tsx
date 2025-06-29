@@ -89,33 +89,51 @@ export default function Competition() {
           </p>
         </div>
 
-        {/* Season Cycle Info */}
+        {/* Seasonal Cycle Display */}
         {currentCycle && (
-          <Card className="bg-gray-800 border-gray-700 mb-6">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Calendar className="h-5 w-5 text-blue-400" />
-                Current Season Status
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-2">
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-                <div>
-                  <span className="text-gray-400">Season:</span>
-                  <div className="font-semibold">{currentCycle?.season || "N/A"}</div>
-                  <div className="text-xs text-gray-500">{currentCycle?.description}</div>
-                  <div className="text-xs text-gray-500">{currentCycle?.details}</div>
+          <Card className="bg-gradient-to-r from-purple-900 to-blue-900 border-purple-700 mb-6">
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-4">
+                  <div className="bg-purple-600 bg-opacity-30 p-3 rounded-full">
+                    <Calendar className="h-8 w-8 text-purple-200" />
+                  </div>
+                  <div>
+                    <div className="text-sm text-purple-200 mb-1">{currentCycle?.season}</div>
+                    <h2 className="text-2xl font-bold text-white mb-1">{currentCycle?.description}</h2>
+                    <p className="text-purple-100 text-sm">{currentCycle?.details}</p>
+                  </div>
                 </div>
-                <div>
-                  <span className="text-gray-400">Day:</span>
-                  <div className="font-semibold">{currentCycle?.currentDay || 1} of 17</div>
-                </div>
-                <div>
-                  <span className="text-gray-400">Phase:</span>
-                  <Badge variant={currentCycle?.phase === "Regular Season" ? "default" : currentCycle?.phase === "Playoffs" ? "destructive" : "secondary"}>
+                <div className="text-right">
+                  <div className="text-lg font-bold text-white mb-1">Day {currentCycle?.currentDay}/17</div>
+                  <Badge 
+                    variant={currentCycle?.phase === "Regular Season" ? "default" : 
+                            currentCycle?.phase === "Playoffs" ? "destructive" : "secondary"}
+                    className="text-xs"
+                  >
                     {currentCycle?.phase}
                   </Badge>
+                  {currentCycle?.daysUntilPlayoffs > 0 && (
+                    <div className="text-xs text-purple-200 mt-1">
+                      {currentCycle?.daysUntilPlayoffs} days to playoffs
+                    </div>
+                  )}
+                  {currentCycle?.daysUntilNewSeason > 0 && currentCycle?.phase === "Off-Season" && (
+                    <div className="text-xs text-purple-200 mt-1">
+                      {currentCycle?.daysUntilNewSeason} days to new season
+                    </div>
+                  )}
                 </div>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Rest of season info */}
+        {currentCycle && (
+          <Card className="bg-gray-800 border-gray-700 mb-6">
+            <CardContent className="p-4">
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
                 <div>
                   <span className="text-gray-400">
                     {currentCycle?.phase === "Regular Season" ? "Playoffs in:" : 
