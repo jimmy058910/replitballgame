@@ -219,24 +219,7 @@ export default function Dashboard() {
               </CardContent>
             </Card>
             
-            <Card className="bg-gray-800 border-gray-700">
-              <CardContent className="p-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-gray-400 text-sm">Win Rate</p>
-                    <p className="text-2xl font-bold text-green-400">
-                      {team.wins + team.losses + team.draws > 0 
-                        ? Math.round((team.wins / (team.wins + team.losses + team.draws)) * 100)
-                        : 0}%
-                    </p>
-                    <p className="text-xs text-gray-400">{team.points} points</p>
-                  </div>
-                  <div className="bg-green-400 bg-opacity-20 p-3 rounded-lg">
-                    <i className="fas fa-chart-line text-green-400 text-xl"></i>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+
             
             <Card className="bg-gray-800 border-gray-700">
               <CardContent className="p-6">

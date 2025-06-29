@@ -49,16 +49,28 @@ router.post('/', isAuthenticated, async (req: any, res: Response, next: NextFunc
     });
 
     const races = ["human", "sylvan", "gryll", "lumina", "umbra"];
+    const positions = ["passer", "runner", "blocker"];
     const playerNames = [
       "Thorek", "Elysian", "Luxaria", "Shadowex", "Marcus",
       "Whisperwind", "Ironhold", "Brightbane", "Voidwalker", "Sarah"
     ];
 
+    // Generate 10 players with varied positions and races
     for (let i = 0; i < 10; i++) {
       const race = races[i % races.length];
-      const playerData = generateRandomPlayer(playerNames[i], race, team.id);
-      await playerStorage.createPlayer(playerData); // Use playerStorage
+      const position = positions[i % positions.length];
+      
+      try {
+        const playerData = generateRandomPlayer(playerNames[i], race, team.id);
+        // Set the position for the player
+        playerData.position = position;
+        await playerStorage.createPlayer(playerData);
+      } catch (playerError) {
+        console.error(`Error creating player ${i + 1}:`, playerError);
+      }
     }
+
+
 
     res.status(201).json(team);
   } catch (error) {
