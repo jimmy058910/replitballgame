@@ -10,7 +10,7 @@ const router = Router();
 router.get('/', isAuthenticated, async (req: any, res: Response, next: NextFunction) => {
   try {
     const userId = req.user.claims.sub;
-    const userNotifications = await storage.getUserNotifications(userId);
+    const userNotifications = await storage.notifications.getUserNotifications(userId);
     res.json(userNotifications);
   } catch (error) {
     console.error("Error fetching notifications:", error);
@@ -27,7 +27,7 @@ router.patch('/:id/read', isAuthenticated, async (req: any, res: Response, next:
     // const notification = await storage.getNotificationByIdAndUser(notificationId, userId);
     // if (!notification) return res.status(404).json({ message: "Notification not found or not yours." });
 
-    await storage.markNotificationRead(notificationId);
+    await storage.notifications.markNotificationRead(notificationId);
     res.json({ success: true, message: "Notification marked as read." });
   } catch (error) {
     console.error("Error marking notification as read:", error);
@@ -38,7 +38,7 @@ router.patch('/:id/read', isAuthenticated, async (req: any, res: Response, next:
 router.patch('/mark-all-read', isAuthenticated, async (req: any, res: Response, next: NextFunction) => {
   try {
     const userId = req.user.claims.sub;
-    await storage.markAllNotificationsRead(userId);
+    await storage.notifications.markAllNotificationsRead(userId);
     res.json({ success: true, message: "All notifications marked as read." });
   } catch (error) {
     console.error("Error marking all notifications as read:", error);
@@ -55,7 +55,7 @@ router.delete('/:id', isAuthenticated, async (req: any, res: Response, next: Nex
     // const notification = await storage.getNotificationByIdAndUser(notificationId, userId);
     // if (!notification) return res.status(404).json({ message: "Notification not found or not yours." });
 
-    await storage.deleteNotification(notificationId);
+    await storage.notifications.deleteNotification(notificationId);
     res.json({ success: true, message: "Notification deleted." });
   } catch (error) {
     console.error("Error deleting notification:", error);
@@ -66,7 +66,7 @@ router.delete('/:id', isAuthenticated, async (req: any, res: Response, next: Nex
 router.delete('/delete-all', isAuthenticated, async (req: any, res: Response, next: NextFunction) => {
   try {
     const userId = req.user.claims.sub;
-    await storage.deleteAllNotifications(userId);
+    await storage.notifications.deleteAllUserNotifications(userId);
     res.json({ success: true, message: "All notifications for the user have been deleted." });
   } catch (error) {
     console.error("Error deleting all notifications for user:", error);
@@ -78,7 +78,7 @@ router.delete('/delete-all', isAuthenticated, async (req: any, res: Response, ne
 router.post('/demo', isAuthenticated, async (req: any, res: Response, next: NextFunction) => {
   try {
     const userId = req.user.claims.sub;
-    const team = await storage.getTeamByUserId(userId);
+    const team = await storage.teams.getTeamByUserId(userId);
 
     if (!team) {
       // Though a user might exist without a team, some demo notifications might rely on team context.
@@ -102,7 +102,7 @@ router.post('/demo', isAuthenticated, async (req: any, res: Response, next: Next
 
     let createdCount = 0;
     for (const notif of demoNotifications) {
-      await storage.createNotification({
+      await storage.notifications.createNotification({
         id: randomUUID(),
         userId,
         type: notif.type,
