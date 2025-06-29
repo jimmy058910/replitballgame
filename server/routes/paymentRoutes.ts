@@ -1,4 +1,4 @@
-import { Router, type Request, type Response, type NextFunction } from "express";
+import express, { Router, type Request, type Response, type NextFunction } from "express";
 import Stripe from "stripe";
 import { storage } from "../storage"; // Adjusted path
 import { isAuthenticated } from "../replitAuth"; // Adjusted path

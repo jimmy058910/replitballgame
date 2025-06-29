@@ -92,38 +92,25 @@ export function generateRandomPlayer(name: string, race: string, teamId: string)
 }
 
 export function calculatePlayerValue(player: any): number {
-    lastName,
-    name: fullName,
-    race,
-    age: baseAge,
-    ...baseStats,
-    speedPotential: generatePotential().toString(),
-    powerPotential: generatePotential().toString(),
-    throwingPotential: generatePotential().toString(),
-    catchingPotential: generatePotential().toString(),
-    kickingPotential: generatePotential().toString(),
-    staminaPotential: generatePotential().toString(),
-    leadershipPotential: generatePotential().toString(),
-    agilityPotential: generatePotential().toString(),
-    salary,
-    contractValue: salary * 3, // 3 year contract value
-  };
-}
-
-export function calculatePlayerValue(player: any): number {
   const avgStat = (
     player.speed + player.power + player.throwing + player.catching +
     player.kicking + player.stamina + player.leadership + player.agility
   ) / 8;
   
   const avgPotential = (
-    parseFloat(player.speedPotential) + parseFloat(player.powerPotential) +
-    parseFloat(player.throwingPotential) + parseFloat(player.catchingPotential) +
-    parseFloat(player.kickingPotential) + parseFloat(player.staminaPotential) +
-    parseFloat(player.leadershipPotential) + parseFloat(player.agilityPotential)
+    parseFloat(player.speedPotential || "25") + parseFloat(player.powerPotential || "25") +
+    parseFloat(player.throwingPotential || "25") + parseFloat(player.catchingPotential || "25") +
+    parseFloat(player.kickingPotential || "25") + parseFloat(player.staminaPotential || "25") +
+    parseFloat(player.leadershipPotential || "25") + parseFloat(player.agilityPotential || "25")
   ) / 8;
-
-  const ageFactor = player.age < 25 ? 1.2 : player.age > 30 ? 0.8 : 1.0;
   
-  return Math.floor((avgStat * 200) + (avgPotential * 1000) * ageFactor);
+  // Base value calculation
+  const baseValue = avgStat * 1000 + avgPotential * 500;
+  
+  // Age factor (younger players worth more)
+  const ageFactor = Math.max(0.5, (35 - player.age) / 20);
+  
+  return Math.floor(baseValue * ageFactor);
 }
+
+
