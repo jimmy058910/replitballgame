@@ -1,7 +1,7 @@
 import { Router, type Request, type Response, type NextFunction } from "express";
 import { matchStorage } from "../storage/matchStorage";
-import { teamStorage } from "../storage/teamStorage";
-import { playerStorage } from "../storage/playerStorage";
+import { storage } from "../storage/index";
+// playerStorage imported via storage index
 import { isAuthenticated } from "../replitAuth";
 import { simulateMatch as fullMatchSimulation } from "../services/matchSimulation";
 import { matchStateManager } from "../services/matchStateManager";
@@ -16,8 +16,8 @@ router.get('/live', isAuthenticated, async (req: Request, res: Response, next: N
     // Team names should now be populated by getLiveMatches if implemented in matchStorage
     // If not, the mapping here is still okay.
     const enhancedMatches = await Promise.all(liveMatches.map(async (match) => {
-      const homeTeamName = match.homeTeamName || (await teamStorage.getTeamById(match.homeTeamId))?.name || "Home Team";
-      const awayTeamName = match.awayTeamName || (await teamStorage.getTeamById(match.awayTeamId))?.name || "Away Team";
+      const homeTeamName = match.homeTeamName || (await storage.teams.getTeamById(match.homeTeamId))?.name || "Home Team";
+      const awayTeamName = match.awayTeamName || (await storage.teams.getTeamById(match.awayTeamId))?.name || "Away Team";
       return { ...match, homeTeamName, awayTeamName };
     }));
 
@@ -38,8 +38,8 @@ router.get('/:matchId', isAuthenticated, async (req: Request, res: Response, nex
     }
 
     // matchStorage.getMatchById might already enhance with team names.
-    const homeTeamName = match.homeTeamName || (await teamStorage.getTeamById(match.homeTeamId))?.name || "Home";
-    const awayTeamName = match.awayTeamName || (await teamStorage.getTeamById(match.awayTeamId))?.name || "Away";
+    const homeTeamName = match.homeTeamName || (await storage.teams.getTeamById(match.homeTeamId))?.name || "Home";
+    const awayTeamName = match.awayTeamName || (await storage.teams.getTeamById(match.awayTeamId))?.name || "Away";
 
     if (match.status === 'live') {
       const liveState = await matchStateManager.syncMatchState(matchId);
@@ -92,12 +92,12 @@ router.post('/:id/simulate', isAuthenticated, async (req: Request, res: Response
 
     if (!match) return res.status(404).json({ message: "Match not found" });
 
-    const homeTeam = await teamStorage.getTeamById(match.homeTeamId); // Use teamStorage
-    const awayTeam = await teamStorage.getTeamById(match.awayTeamId); // Use teamStorage
+    const homeTeam = await storage.teams.getTeamById(match.homeTeamId); // Use teamStorage
+    const awayTeam = await storage.teams.getTeamById(match.awayTeamId); // Use teamStorage
     if (!homeTeam || !awayTeam) return res.status(404).json({ message: "One or both teams for the match not found." });
 
-    const homeTeamPlayers = await playerStorage.getPlayersByTeamId(match.homeTeamId); // Use playerStorage
-    const awayTeamPlayers = await playerStorage.getPlayersByTeamId(match.awayTeamId); // Use playerStorage
+    const homeTeamPlayers = await storage.players.getPlayersByTeamId(match.homeTeamId); // Use playerStorage
+    const awayTeamPlayers = await storage.players.getPlayersByTeamId(match.awayTeamId); // Use playerStorage
     if (homeTeamPlayers.length < 1 || awayTeamPlayers.length < 1) {
         return res.status(400).json({ message: "One or both teams do not have enough players to simulate." });
     }
@@ -134,8 +134,8 @@ router.post('/:matchId/simulate-play', isAuthenticated, async (req: Request, res
 
     const eventTypes = ['pass', 'run', 'tackle', 'score', 'foul', 'interception'];
     const randomEventType = eventTypes[Math.floor(Math.random() * eventTypes.length)];
-    const homePlayers = await playerStorage.getPlayersByTeamId(match.homeTeamId); // Use playerStorage
-    const awayPlayers = await playerStorage.getPlayersByTeamId(match.awayTeamId); // Use playerStorage
+    const homePlayers = await storage.players.getPlayersByTeamId(match.homeTeamId); // Use playerStorage
+    const awayPlayers = await storage.players.getPlayersByTeamId(match.awayTeamId); // Use playerStorage
     const allPlayers = [...homePlayers, ...awayPlayers];
     const randomPlayer = allPlayers.length > 0 ? allPlayers[Math.floor(Math.random() * allPlayers.length)] : { name: "Player", race: "Unknown", id: "unknown" };
 

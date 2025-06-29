@@ -1,5 +1,5 @@
 import { Router, type Request, type Response, type NextFunction } from "express";
-import { teamStorage } from "../storage/teamStorage";
+import { storage } from "../storage/index";
 import { stadiumStorage } from "../storage/stadiumStorage";
 import { teamFinancesStorage } from "../storage/teamFinancesStorage";
 import { sponsorshipStorage } from "../storage/sponsorshipStorage"; // For stadium revenue
@@ -56,7 +56,7 @@ function generateEventDetails(eventType: string, stadium: Stadium | undefined) {
 router.get('/', isAuthenticated, async (req: any, res: Response, next: NextFunction) => {
   try {
     const userId = req.user.claims.sub;
-    const team = await teamStorage.getTeamByUserId(userId);
+    const team = await storage.teams.getTeamByUserId(userId);
     if (!team) return res.status(404).json({ message: "Team not found for current user." });
 
     let stadium = await stadiumStorage.getTeamStadium(team.id);
@@ -92,7 +92,7 @@ router.post('/upgrade', isAuthenticated, async (req: any, res: Response, next: N
     const userId = req.user.claims.sub;
     const { upgradeType, upgradeName } = upgradeSchema.parse(req.body);
 
-    const team = await teamStorage.getTeamByUserId(userId);
+    const team = await storage.teams.getTeamByUserId(userId);
     if (!team) return res.status(404).json({ message: "Team not found." });
 
     const stadium = await stadiumStorage.getTeamStadium(team.id);
@@ -139,7 +139,7 @@ const fieldSizeSchema = z.object({
 router.post('/field-size', isAuthenticated, async (req: any, res: Response, next: NextFunction) => {
   try {
     const userId = req.user.claims.sub;
-    const team = await teamStorage.getTeamByUserId(userId);
+    const team = await storage.teams.getTeamByUserId(userId);
     if (!team) return res.status(404).json({ message: "Team not found" });
 
     const { fieldSize } = fieldSizeSchema.parse(req.body);
@@ -168,7 +168,7 @@ const sponsorSchema = z.object({
 router.post('/sponsors', isAuthenticated, async (req: any, res: Response, next: NextFunction) => {
   try {
     const userId = req.user.claims.sub;
-    const team = await teamStorage.getTeamByUserId(userId);
+    const team = await storage.teams.getTeamByUserId(userId);
     if (!team) return res.status(404).json({ message: "Team not found" });
 
     const { sponsorTier } = sponsorSchema.parse(req.body);
@@ -198,7 +198,7 @@ router.post('/event', isAuthenticated, async (req: any, res: Response, next: Nex
     const userId = req.user.claims.sub;
     const { eventType, name, eventDate } = eventSchema.parse(req.body);
 
-    const team = await teamStorage.getTeamByUserId(userId);
+    const team = await storage.teams.getTeamByUserId(userId);
     if (!team) return res.status(404).json({ message: "Team not found." });
 
     const stadium = await stadiumStorage.getTeamStadium(team.id);

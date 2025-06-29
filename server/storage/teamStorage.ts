@@ -63,7 +63,9 @@ export class TeamStorage {
   }
 
   private async createDefaultStaffForTeam(teamId: string): Promise<void> {
+    console.log(`Creating ${this.defaultStaffMembers.length} staff members for team ${teamId}`);
     for (const staffMember of this.defaultStaffMembers) {
+      console.log(`Creating staff member: ${staffMember.name} (${staffMember.type})`);
       // Explicitly construct the InsertStaff object to ensure all fields are covered
       const staffToCreate: InsertStaff = {
         ...staffMember,
@@ -71,8 +73,14 @@ export class TeamStorage {
         abilities: JSON.stringify([]), // Default empty abilities
         // id, createdAt, updatedAt will be handled by Drizzle/DB
       };
-      await staffStorage.createStaff(staffToCreate);
+      try {
+        const createdStaff = await staffStorage.createStaff(staffToCreate);
+        console.log(`Successfully created staff: ${createdStaff.name}`);
+      } catch (error) {
+        console.error(`Failed to create staff ${staffMember.name}:`, error);
+      }
     }
+    console.log(`Finished creating staff for team ${teamId}`);
   }
 
   private async createDefaultFinancesForTeam(teamId: string): Promise<void> {

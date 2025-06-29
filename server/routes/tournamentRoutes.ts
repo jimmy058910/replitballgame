@@ -1,5 +1,5 @@
 import { Router, type Request, type Response, type NextFunction } from "express";
-import { teamStorage } from "../storage/teamStorage";
+import { storage } from "../storage/index";
 import { teamFinancesStorage } from "../storage/teamFinancesStorage";
 import { tournamentStorage } from "../storage/tournamentStorage";
 import { isAuthenticated } from "../replitAuth";
@@ -46,7 +46,7 @@ router.post('/:id/enter', isAuthenticated, async (req: any, res: Response, next:
   try {
     const { id: tournamentId } = enterTournamentParamsSchema.parse(req.params);
     const userId = req.user.claims.sub;
-    const team = await teamStorage.getTeamByUserId(userId);
+    const team = await storage.teams.getTeamByUserId(userId);
     if (!team || !team.id) return res.status(404).json({ message: "Team not found." });
 
     const tournament = await tournamentStorage.getTournamentById(tournamentId);
@@ -83,7 +83,7 @@ router.post('/:id/enter', isAuthenticated, async (req: any, res: Response, next:
 router.get('/my-entries', isAuthenticated, async (req: any, res: Response, next: NextFunction) => {
   try {
     const userId = req.user.claims.sub;
-    const team = await teamStorage.getTeamByUserId(userId);
+    const team = await storage.teams.getTeamByUserId(userId);
     if (!team || !team.id) return res.json([]);
 
     const entries = await tournamentStorage.getEntriesByTeam(team.id);
@@ -97,7 +97,7 @@ router.get('/my-entries', isAuthenticated, async (req: any, res: Response, next:
 router.get('/history', isAuthenticated, async (req: Request, res: Response, next: NextFunction) => {
   try {
     const userId = req.user.claims.sub;
-    const team = await teamStorage.getTeamByUserId(userId);
+    const team = await storage.teams.getTeamByUserId(userId);
     if (!team || !team.id) return res.json([]);
 
     // Fetch completed tournaments the team participated in
@@ -131,7 +131,7 @@ router.get('/:division/bracket', isAuthenticated, async (req: Request, res: Resp
 
     // TODO: Fetch actual teams for a *specific* tournament, not just any team in division
     // This would involve getting teams that *entered* a specific tournament.
-    const teamsInDivision = await teamStorage.getTeamsByDivision(division);
+    const teamsInDivision = await storage.teams.getTeamsByDivision(division);
 
     if (teamsInDivision.length < 4) {
         return res.status(400).json({ message: `Not enough teams in Division ${division} to form a 4-team bracket.` });

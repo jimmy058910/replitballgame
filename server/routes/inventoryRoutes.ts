@@ -1,5 +1,5 @@
 import { Router, type Request, type Response, type NextFunction } from "express";
-import { teamStorage } from "../storage/teamStorage";
+import { storage } from "../storage/index";
 import { itemStorage } from "../storage/itemStorage";
 // import { teamInventoryStorage } from "../storage/teamInventoryStorage"; // If you create this
 import { isAuthenticated } from "../replitAuth";
@@ -18,13 +18,13 @@ router.get('/:teamId', isAuthenticated, async (req: any, res: Response, next: Ne
     let teamToViewId = requestedTeamId;
 
     if (requestedTeamId === 'my') {
-        const userTeam = await teamStorage.getTeamByUserId(userId); // Use teamStorage
+        const userTeam = await storage.teams.getTeamByUserId(userId); // Use teamStorage
         if (!userTeam || !userTeam.id) { // Check for team.id as well
             return res.status(404).json({ message: "Your team not found." });
         }
         teamToViewId = userTeam.id;
     } else {
-        const teamExists = await teamStorage.getTeamById(requestedTeamId); // Use teamStorage
+        const teamExists = await storage.teams.getTeamById(requestedTeamId); // Use teamStorage
         if (!teamExists) {
             return res.status(404).json({ message: "Team not found."});
         }
@@ -59,10 +59,10 @@ router.get('/:teamId', isAuthenticated, async (req: any, res: Response, next: Ne
 //     const teamIdParam = req.params.teamId;
 //     const { playerId, itemId, slot } = req.body; // Validate these inputs
 
-//     const teamId = teamIdParam === 'my' ? (await teamStorage.getTeamByUserId(userId))?.id : teamIdParam;
+//     const teamId = teamIdParam === 'my' ? (await storage.teams.getTeamByUserId(userId))?.id : teamIdParam;
 //     if (!teamId) return res.status(404).json({ message: "Team not found." });
 
-//     const player = await playerStorage.getPlayerById(playerId);
+//     const player = await storage.players.getPlayerById(playerId);
 //     if (!player || player.teamId !== teamId) return res.status(404).json({ message: "Player not on this team."});
 
 //     const item = await itemStorage.getItemById(itemId);
@@ -70,7 +70,7 @@ router.get('/:teamId', isAuthenticated, async (req: any, res: Response, next: Ne
 //     if (item.slot !== slot) return res.status(400).json({ message: `Item does not fit in ${slot} slot.`});
 
 //     // Logic to unequip previous item in slot, then equip new item
-//     // await playerStorage.updatePlayer(playerId, { [`${slot}ItemId`]: itemId });
+//     // await storage.players.updatePlayer(playerId, { [`${slot}ItemId`]: itemId });
 //     // await itemStorage.updateItem(itemId, { isEquipped: true, equippedByPlayerId: playerId }); // Example fields
 
 //     res.json({ success: true, message: `${item.name} equipped to ${player.name} in ${slot} slot.` });

@@ -1,6 +1,6 @@
 import { Router, type Request, type Response, type NextFunction } from "express";
-import { teamStorage } from "../storage/teamStorage";
-import { playerStorage } from "../storage/playerStorage";
+import { storage } from "../storage/index";
+// playerStorage imported via storage index
 import { matchStorage } from "../storage/matchStorage";
 import { exhibitionGameStorage } from "../storage/exhibitionGameStorage";
 import { isAuthenticated } from "../replitAuth";
@@ -32,7 +32,7 @@ const challengeSchema = z.object({
 router.get('/stats', isAuthenticated, async (req: any, res: Response, next: NextFunction) => {
   try {
     const userId = req.user.claims.sub;
-    const team = await teamStorage.getTeamByUserId(userId);
+    const team = await storage.teams.getTeamByUserId(userId);
     if (!team || !team.id) return res.status(404).json({ message: "Team not found." });
 
     const gamesPlayedToday = await exhibitionGameStorage.getExhibitionGamesPlayedTodayByTeam(team.id);
@@ -67,10 +67,10 @@ router.get('/stats', isAuthenticated, async (req: any, res: Response, next: Next
 router.get('/available-opponents', isAuthenticated, async (req: any, res: Response, next: NextFunction) => {
   try {
     const userId = req.user.claims.sub;
-    const team = await teamStorage.getTeamByUserId(userId);
+    const team = await storage.teams.getTeamByUserId(userId);
     if (!team || team.division === undefined) return res.status(404).json({ message: "Team or team division not found." });
 
-    const divisionTeams = await teamStorage.getTeamsByDivision(team.division);
+    const divisionTeams = await storage.teams.getTeamsByDivision(team.division);
     const opponents = divisionTeams.filter(t => t.id !== team.id && t.userId !== userId);
 
     if (opponents.length === 0) {
@@ -78,7 +78,7 @@ router.get('/available-opponents', isAuthenticated, async (req: any, res: Respon
     }
 
     const opponentsWithDetails = await Promise.all(opponents.map(async (opponent) => {
-        const oppPlayers = await playerStorage.getPlayersByTeamId(opponent.id);
+        const oppPlayers = await storage.players.getPlayersByTeamId(opponent.id);
         const opponentPower = calculateTeamPower(oppPlayers);
         return {
             id: opponent.id, name: opponent.name, division: opponent.division,
@@ -98,10 +98,10 @@ router.post('/challenge', isAuthenticated, async (req: any, res: Response, next:
     const userId = req.user.claims.sub;
     const { opponentId } = challengeSchema.parse(req.body);
 
-    const userTeam = await teamStorage.getTeamByUserId(userId);
+    const userTeam = await storage.teams.getTeamByUserId(userId);
     if (!userTeam || !userTeam.id) return res.status(404).json({ message: "Your team not found." });
 
-    const opponentTeam = await teamStorage.getTeamById(opponentId);
+    const opponentTeam = await storage.teams.getTeamById(opponentId);
     if (!opponentTeam) return res.status(404).json({ message: "Opponent team not found." });
     if (opponentTeam.id === userTeam.id) return res.status(400).json({ message: "Cannot challenge your own team." });
 
@@ -142,7 +142,7 @@ router.post('/challenge', isAuthenticated, async (req: any, res: Response, next:
 router.get('/recent', isAuthenticated, async (req: any, res: Response, next: NextFunction) => {
   try {
     const userId = req.user.claims.sub;
-    const team = await teamStorage.getTeamByUserId(userId);
+    const team = await storage.teams.getTeamByUserId(userId);
     if (!team || !team.id) return res.json([]);
 
     // Fetch from exhibitionGames table directly for this team

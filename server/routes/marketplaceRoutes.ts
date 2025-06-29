@@ -1,6 +1,6 @@
 import { Router, type Request, type Response, type NextFunction } from "express";
-import { playerStorage } from "../storage/playerStorage";
-import { teamStorage } from "../storage/teamStorage";
+// playerStorage imported via storage index
+import { storage } from "../storage/index";
 import { teamFinancesStorage } from "../storage/teamFinancesStorage";
 import { itemStorage } from "../storage/itemStorage";
 import { isAuthenticated } from "../replitAuth";
@@ -34,7 +34,7 @@ const equipmentPriceSchema = z.object({
 // Player Marketplace routes
 router.get('/players', isAuthenticated, async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const marketplacePlayers = await playerStorage.getMarketplacePlayers();
+    const marketplacePlayers = await storage.players.getMarketplacePlayers();
     res.json(marketplacePlayers);
   } catch (error) {
     console.error("Error fetching marketplace players:", error);
@@ -47,8 +47,8 @@ router.post('/players/bid', isAuthenticated, async (req: any, res: Response, nex
     const userId = req.user.claims.sub;
     const { playerId, amount } = bidPlayerSchema.parse(req.body);
 
-    const player = await playerStorage.getPlayerById(playerId);
-    const userTeam = await teamStorage.getTeamByUserId(userId);
+    const player = await storage.players.getPlayerById(playerId);
+    const userTeam = await storage.teams.getTeamByUserId(userId);
 
     if (!player || !userTeam) return res.status(404).json({ message: "Player or your team not found" });
     if (!player.isMarketplace) return res.status(400).json({ message: "Player is not on the marketplace." });
@@ -57,7 +57,7 @@ router.post('/players/bid', isAuthenticated, async (req: any, res: Response, nex
     if (!finances || (finances.credits || 0) < amount) return res.status(400).json({ message: "Insufficient credits" });
 
     if (!player.marketplacePrice || amount > player.marketplacePrice) {
-      await playerStorage.updatePlayer(playerId, {
+      await storage.players.updatePlayer(playerId, {
         marketplacePrice: amount,
       });
        return res.json({ message: "Offer placed. If it's the highest, it might be accepted or update listing." });
@@ -74,17 +74,17 @@ router.post('/players/bid', isAuthenticated, async (req: any, res: Response, nex
 router.post('/players/list', isAuthenticated, async (req: any, res: Response, next: NextFunction) => {
   try {
     const userId = req.user.claims.sub;
-    const team = await teamStorage.getTeamByUserId(userId);
+    const team = await storage.teams.getTeamByUserId(userId);
     if (!team) return res.status(404).json({ message: "Your team not found" });
 
     const { playerId, price, duration } = listPlayerSchema.parse(req.body);
-    const player = await playerStorage.getPlayerById(playerId);
+    const player = await storage.players.getPlayerById(playerId);
 
     if (!player || player.teamId !== team.id) return res.status(404).json({ message: "Player not found on your team or does not exist." });
     if (player.isMarketplace) return res.status(400).json({ message: "Player is already listed." });
 
-    const teamPlayers = await playerStorage.getPlayersByTeamId(team.id);
-    const playersOnMarket = (await playerStorage.getAllPlayersByTeamId(team.id)).filter(p => p.isMarketplace).length;
+    const teamPlayers = await storage.players.getPlayersByTeamId(team.id);
+    const playersOnMarket = (await storage.players.getAllPlayersByTeamId(team.id)).filter(p => p.isMarketplace).length;
 
     if (teamPlayers.length <= 10) return res.status(400).json({ message: "Team must have at least 10 active players to list one." });
     if (playersOnMarket >= 3) return res.status(400).json({ message: "Maximum 3 players from your team can be on market." });
@@ -98,7 +98,7 @@ router.post('/players/list', isAuthenticated, async (req: any, res: Response, ne
     const endTime = new Date();
     endTime.setHours(endTime.getHours() + duration);
 
-    await playerStorage.updatePlayer(playerId, {
+    await storage.players.updatePlayer(playerId, {
       isMarketplace: true, marketplacePrice: price, marketplaceEndTime: endTime, updatedAt: new Date(),
     });
     res.json({ success: true, message: "Player listed successfully." });
@@ -112,16 +112,16 @@ router.post('/players/list', isAuthenticated, async (req: any, res: Response, ne
 router.post('/players/buy', isAuthenticated, async (req: any, res: Response, next: NextFunction) => {
   try {
     const buyerUserId = req.user.claims.sub;
-    const buyerTeam = await teamStorage.getTeamByUserId(buyerUserId);
+    const buyerTeam = await storage.teams.getTeamByUserId(buyerUserId);
     if (!buyerTeam) return res.status(404).json({ message: "Your team not found." });
 
     const { playerId } = buyPlayerSchema.parse(req.body);
-    const playerToBuy = await playerStorage.getPlayerById(playerId);
+    const playerToBuy = await storage.players.getPlayerById(playerId);
 
     if (!playerToBuy || !playerToBuy.isMarketplace || !playerToBuy.marketplacePrice) return res.status(404).json({ message: "Player not available for purchase or price not set." });
     if (playerToBuy.teamId === buyerTeam.id) return res.status(400).json({ message: "Cannot buy a player already on your team."});
 
-    const buyerTeamPlayers = await playerStorage.getPlayersByTeamId(buyerTeam.id);
+    const buyerTeamPlayers = await storage.players.getPlayersByTeamId(buyerTeam.id);
     if (buyerTeamPlayers.length >= 15) return res.status(400).json({ message: "Your team roster is full (15 players max)." });
 
     const buyerFinances = await teamFinancesStorage.getTeamFinances(buyerTeam.id);
@@ -132,7 +132,7 @@ router.post('/players/buy', isAuthenticated, async (req: any, res: Response, nex
     if (!buyerFinances || (buyerFinances.credits || 0) < totalPrice) return res.status(400).json({ message: `Insufficient credits. Required: ${totalPrice}, Available: ${buyerFinances.credits || 0}` });
 
     if (playerToBuy.teamId) {
-        const sellerTeam = await teamStorage.getTeamById(playerToBuy.teamId);
+        const sellerTeam = await storage.teams.getTeamById(playerToBuy.teamId);
         if (sellerTeam) {
             const sellerFinances = await teamFinancesStorage.getTeamFinances(sellerTeam.id);
             const saleAmountForSeller = price;
@@ -146,7 +146,7 @@ router.post('/players/buy', isAuthenticated, async (req: any, res: Response, nex
 
     await teamFinancesStorage.updateTeamFinances(buyerTeam.id, { credits: (buyerFinances.credits || 0) - totalPrice });
 
-    await playerStorage.updatePlayer(playerId, {
+    await storage.players.updatePlayer(playerId, {
       teamId: buyerTeam.id, isMarketplace: false, marketplacePrice: null, marketplaceEndTime: null, updatedAt: new Date(),
     });
     res.json({ success: true, message: `${playerToBuy.name} purchased successfully!` });
@@ -160,11 +160,11 @@ router.post('/players/buy', isAuthenticated, async (req: any, res: Response, nex
 router.post('/players/:playerId/remove-listing', isAuthenticated, async (req: any, res: Response, next: NextFunction) => {
   try {
     const userId = req.user.claims.sub;
-    const team = await teamStorage.getTeamByUserId(userId);
+    const team = await storage.teams.getTeamByUserId(userId);
     if (!team) return res.status(404).json({ message: "Your team not found." });
 
     const { playerId } = req.params;
-    const player = await playerStorage.getPlayerById(playerId);
+    const player = await storage.players.getPlayerById(playerId);
 
     if (!player || player.teamId !== team.id || !player.isMarketplace) return res.status(404).json({ message: "Player not found on your listings." });
 
@@ -174,7 +174,7 @@ router.post('/players/:playerId/remove-listing', isAuthenticated, async (req: an
     if (finances && (finances.credits || 0) < penaltyFee) return res.status(400).json({ message: `Insufficient credits for penalty fee of ${penaltyFee}.`});
     if (finances) await teamFinancesStorage.updateTeamFinances(team.id, { credits: (finances.credits || 0) - penaltyFee });
 
-    await playerStorage.updatePlayer(playerId, {
+    await storage.players.updatePlayer(playerId, {
       isMarketplace: false, marketplacePrice: null, marketplaceEndTime: null, updatedAt: new Date(),
     });
     res.json({ success: true, message: "Player listing removed successfully." });
@@ -201,7 +201,7 @@ router.post('/equipment/:itemId/buy', isAuthenticated, async (req: any, res: Res
     const { itemId } = req.params;
     const buyerUserId = req.user.claims.sub;
 
-    const buyerTeam = await teamStorage.getTeamByUserId(buyerUserId);
+    const buyerTeam = await storage.teams.getTeamByUserId(buyerUserId);
     if (!buyerTeam) return res.status(404).json({ message: "Your team not found." });
 
     const itemToBuy = await itemStorage.getItemById(itemId);
@@ -213,7 +213,7 @@ router.post('/equipment/:itemId/buy', isAuthenticated, async (req: any, res: Res
     if (!buyerFinances || (buyerFinances.credits || 0) < price) return res.status(400).json({ message: `Insufficient credits. Required: ${price}, Available: ${buyerFinances.credits || 0}` });
 
     if (itemToBuy.teamId) {
-        const sellerTeam = await teamStorage.getTeamById(itemToBuy.teamId);
+        const sellerTeam = await storage.teams.getTeamById(itemToBuy.teamId);
         if (sellerTeam) {
             const sellerFinances = await teamFinancesStorage.getTeamFinances(sellerTeam.id);
             if (sellerFinances) await teamFinancesStorage.updateTeamFinances(sellerTeam.id, { credits: (sellerFinances.credits || 0) + price });
@@ -235,7 +235,7 @@ router.post('/equipment/:itemId/sell', isAuthenticated, async (req: any, res: Re
     const { price } = equipmentPriceSchema.parse(req.body);
     const sellerUserId = req.user.claims.sub;
 
-    const sellerTeam = await teamStorage.getTeamByUserId(sellerUserId);
+    const sellerTeam = await storage.teams.getTeamByUserId(sellerUserId);
     if (!sellerTeam) return res.status(404).json({ message: "Your team not found." });
 
     const itemToSell = await itemStorage.getItemById(itemId);

@@ -1,6 +1,6 @@
 import { Router, type Request, type Response, type NextFunction } from "express";
-import { teamStorage } from "../storage/teamStorage";
-import { playerStorage } from "../storage/playerStorage";
+import { storage } from "../storage/index";
+// playerStorage imported via storage index
 import { userStorage } from "../storage/userStorage";
 import { teamFinancesStorage } from "../storage/teamFinancesStorage";
 import { leagueStorage } from "../storage/leagueStorage"; // For currentSeason
@@ -40,7 +40,7 @@ async function createAITeamsForDivision(division: number) {
       profileImageUrl: null
     });
 
-    const team = await teamStorage.createTeam({ // Use teamStorage
+    const team = await storage.teams.createTeam({ // Use teamStorage
       name: teamName,
       userId: aiUser.id,
       division: division,
@@ -52,7 +52,7 @@ async function createAITeamsForDivision(division: number) {
       substitutionOrder: JSON.stringify({})
     });
 
-    // teamStorage.createTeam should handle default finances, but if specific AI finances:
+    // storage.teams.createTeam should handle default finances, but if specific AI finances:
     // await teamFinancesStorage.createTeamFinances({ // Use teamFinancesStorage
     //   teamId: team.id,
     //   credits: 50000 + Math.floor(Math.random() * 50000),
@@ -71,7 +71,7 @@ async function createAITeamsForDivision(division: number) {
         team.id
       );
 
-      await playerStorage.createPlayer({ // Use playerStorage
+      await storage.players.createPlayer({ // Use playerStorage
         ...playerData,
         position: ["Passer", "Runner", "Blocker"][Math.floor(Math.random() * 3)],
         abilities: JSON.stringify([])
@@ -103,11 +103,11 @@ router.get('/:division/standings', isAuthenticated, async (req: Request, res: Re
     if (isNaN(division) || division < 1 || division > 8) {
       return res.status(400).json({ message: "Invalid division parameter" });
     }
-    let teamsInDivision = await teamStorage.getTeamsByDivision(division); // Use teamStorage
+    let teamsInDivision = await storage.teams.getTeamsByDivision(division); // Use teamStorage
 
     if (teamsInDivision.length === 0) {
       await createAITeamsForDivision(division);
-      teamsInDivision = await teamStorage.getTeamsByDivision(division); // Use teamStorage
+      teamsInDivision = await storage.teams.getTeamsByDivision(division); // Use teamStorage
     }
 
     const sortedTeams = teamsInDivision.sort((a, b) => {
@@ -137,15 +137,15 @@ router.get('/teams/:division', isAuthenticated, async (req: Request, res: Respon
       return res.status(400).json({ message: "Invalid division parameter" });
     }
 
-    let teamsInDivision = await teamStorage.getTeamsByDivision(division); // Use teamStorage
+    let teamsInDivision = await storage.teams.getTeamsByDivision(division); // Use teamStorage
 
     if (teamsInDivision.length === 0) {
       await createAITeamsForDivision(division);
-      teamsInDivision = await teamStorage.getTeamsByDivision(division); // Use teamStorage
+      teamsInDivision = await storage.teams.getTeamsByDivision(division); // Use teamStorage
     }
 
     const teamsWithPower = await Promise.all(teamsInDivision.map(async (team) => {
-      const teamPlayers = await playerStorage.getPlayersByTeamId(team.id); // Use playerStorage
+      const teamPlayers = await storage.players.getPlayersByTeamId(team.id); // Use playerStorage
       const teamPower = calculateTeamPower(teamPlayers);
       return { ...team, teamPower };
     }));
@@ -181,7 +181,7 @@ router.post('/create-ai-teams', isAuthenticated, async (req: Request, res: Respo
         profileImageUrl: null
       });
 
-      const team = await teamStorage.createTeam({ // Use teamStorage
+      const team = await storage.teams.createTeam({ // Use teamStorage
         name: teamName,
         userId: aiUser.id,
         division: division,
@@ -192,9 +192,9 @@ router.post('/create-ai-teams', isAuthenticated, async (req: Request, res: Respo
         teamPower: 60 + Math.floor(Math.random() * 20)
       });
       const calculatedPoints = (team.wins || 0) * 3 + (team.draws || 0);
-      await teamStorage.updateTeam(team.id, { points: calculatedPoints }); // Use teamStorage
+      await storage.teams.updateTeam(team.id, { points: calculatedPoints }); // Use teamStorage
 
-      // teamStorage.createTeam handles default finances
+      // storage.teams.createTeam handles default finances
       // await teamFinancesStorage.createTeamFinances({ // Use teamFinancesStorage
       //   teamId: team.id,
       //   credits: 100000 + Math.floor(Math.random() * 100000),
@@ -204,7 +204,7 @@ router.post('/create-ai-teams', isAuthenticated, async (req: Request, res: Respo
       const races = ["human", "sylvan", "gryll", "lumina", "umbra"];
       for (let j = 0; j < 12; j++) {
         const race = races[Math.floor(Math.random() * races.length)];
-        await playerStorage.createPlayer(generateRandomPlayer("AI Player", race, team.id)); // Use playerStorage
+        await storage.players.createPlayer(generateRandomPlayer("AI Player", race, team.id)); // Use playerStorage
       }
       createdTeams.push(team);
     }

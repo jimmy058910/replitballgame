@@ -1,5 +1,5 @@
 import { Router, type Request, type Response, type NextFunction } from "express";
-import { teamStorage } from "../storage/teamStorage";
+import { storage } from "../storage/index";
 import { teamFinancesStorage } from "../storage/teamFinancesStorage";
 import { adSystemStorage } from "../storage/adSystemStorage";
 // import { itemStorage } from "../storage/itemStorage"; // For fetching actual item details
@@ -95,7 +95,7 @@ router.get('/ads', isAuthenticated, async (req: any, res: Response, next: NextFu
 router.post('/watch-ad', isAuthenticated, async (req: any, res: Response, next: NextFunction) => {
   try {
     const userId = req.user.claims.sub;
-    const team = await teamStorage.getTeamByUserId(userId);
+    const team = await storage.teams.getTeamByUserId(userId);
     if (!team) return res.status(404).json({ message: "Team not found to process ad reward." });
 
     // Reward logic should be server-defined based on placement/adType, not client-sent.
@@ -136,7 +136,7 @@ router.post('/watch-ad', isAuthenticated, async (req: any, res: Response, next: 
 router.post('/purchase', isAuthenticated, async (req: any, res: Response, next: NextFunction) => {
   try {
     const userId = req.user.claims.sub;
-    const team = await teamStorage.getTeamByUserId(userId);
+    const team = await storage.teams.getTeamByUserId(userId);
     if (!team) return res.status(404).json({ message: "Team not found." });
 
     const { itemId, currency, expectedPrice } = storePurchaseSchema.parse(req.body);
@@ -186,7 +186,7 @@ router.post('/convert-gems', isAuthenticated, async (req: any, res: Response, ne
     const userId = req.user.claims.sub;
     const { gemsAmount } = convertGemsSchema.parse(req.body);
 
-    const team = await teamStorage.getTeamByUserId(userId);
+    const team = await storage.teams.getTeamByUserId(userId);
     if (!team) return res.status(404).json({ message: "Team not found." });
 
     const finances = await teamFinancesStorage.getTeamFinances(team.id);

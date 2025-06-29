@@ -1,6 +1,6 @@
 import { Router, type Request, type Response, type NextFunction } from "express";
-import { playerStorage } from "../storage/playerStorage"; // Updated import
-import { teamStorage } from "../storage/teamStorage"; // Updated import
+// playerStorage imported via storage index // Updated import
+import { storage } from "../storage/index"; // Updated import
 import { isAuthenticated } from "../replitAuth";
 import { z } from "zod";
 
@@ -18,12 +18,12 @@ router.post('/:playerId/negotiate', isAuthenticated, async (req: any, res: Respo
     const { seasons, salary } = contractNegotiationSchema.parse(req.body);
 
     const userId = req.user.claims.sub;
-    const userTeam = await teamStorage.getTeamByUserId(userId);
+    const userTeam = await storage.teams.getTeamByUserId(userId);
     if (!userTeam) {
         return res.status(404).json({ message: "Your team was not found." });
     }
 
-    const player = await playerStorage.getPlayerById(playerId);
+    const player = await storage.players.getPlayerById(playerId);
     if (!player || player.teamId !== userTeam.id) {
       return res.status(404).json({ message: "Player not found on your team or does not exist." });
     }
@@ -33,7 +33,7 @@ router.post('/:playerId/negotiate', isAuthenticated, async (req: any, res: Respo
     // - Player happiness/willingness to sign
     // - Rival offers?
 
-    const updatedPlayer = await playerStorage.updatePlayer(playerId, {
+    const updatedPlayer = await storage.players.updatePlayer(playerId, {
       contractSeasons: seasons,
       // contractStartSeason: currentSeasonNumber, // This would require fetching current season from seasonStorage
       salary: salary,
@@ -57,13 +57,13 @@ router.post('/:playerId/negotiate', isAuthenticated, async (req: any, res: Respo
 router.post('/:id/train-abilities', isAuthenticated, async (req: any, res: Response, next: NextFunction) => {
   try {
     const userId = req.user.claims.sub;
-    const team = await teamStorage.getTeamByUserId(userId); // Use teamStorage
+    const team = await storage.teams.getTeamByUserId(userId); // Use teamStorage
     if (!team) {
       return res.status(404).json({ message: "Team not found for current user." });
     }
 
     const playerId = req.params.id;
-    const player = await playerStorage.getPlayerById(playerId); // Use playerStorage
+    const player = await storage.players.getPlayerById(playerId); // Use playerStorage
 
     if (!player || player.teamId !== team.id) {
       return res.status(404).json({ message: "Player not found or not owned by your team." });
@@ -88,7 +88,7 @@ router.post('/:id/train-abilities', isAuthenticated, async (req: any, res: Respo
 
       const updatedAbilities = [...currentAbilities, newAbility.id];
 
-      await playerStorage.updatePlayer(playerId, { abilities: updatedAbilities as any, updatedAt: new Date() }); // Use playerStorage
+      await storage.players.updatePlayer(playerId, { abilities: updatedAbilities as any, updatedAt: new Date() }); // Use playerStorage
 
       res.json({
         success: true,
