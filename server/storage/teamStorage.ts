@@ -8,6 +8,17 @@ import type { InsertTeamFinances, TeamFinances } from "@shared/schema"; // Added
 
 
 export class TeamStorage {
+  // Define default staff as a class property
+  private readonly defaultStaffMembers: Omit<InsertStaff, 'id' | 'teamId' | 'createdAt' | 'updatedAt' | 'abilities'>[] = [
+    { name: "Alex Recovery", type: "recovery_specialist", level: 1, salary: 60000, recoveryRating: 75, coachingRating: 35, offenseRating: 0, defenseRating: 0, physicalRating: 0, scoutingRating: 0, recruitingRating: 0 },
+    { name: "Sarah Fitness", type: "trainer", level: 1, salary: 45000, physicalRating: 80, coachingRating: 30, offenseRating: 0, defenseRating: 0, recoveryRating: 0, scoutingRating: 0, recruitingRating: 0 },
+    { name: "Mike Offense", type: "trainer", level: 1, salary: 50000, offenseRating: 85, coachingRating: 40, defenseRating: 0, physicalRating: 0, recoveryRating: 0, scoutingRating: 0, recruitingRating: 0 },
+    { name: "Lisa Defense", type: "trainer", level: 1, salary: 50000, defenseRating: 85, coachingRating: 40, offenseRating: 0, physicalRating: 0, recoveryRating: 0, scoutingRating: 0, recruitingRating: 0 },
+    { name: "Tony Scout", type: "scout", level: 1, salary: 40000, scoutingRating: 90, recruitingRating: 70, offenseRating: 0, defenseRating: 0, physicalRating: 0, recoveryRating: 0, coachingRating: 0 },
+    { name: "Emma Talent", type: "scout", level: 1, salary: 42000, scoutingRating: 85, recruitingRating: 80, offenseRating: 0, defenseRating: 0, physicalRating: 0, recoveryRating: 0, coachingRating: 0 },
+    { name: "Coach Williams", type: "head_coach", level: 2, salary: 80000, coachingRating: 90, offenseRating: 70, defenseRating: 70, physicalRating: 0, recoveryRating: 0, scoutingRating: 0, recruitingRating: 0 },
+  ];
+
   async createTeam(teamData: InsertTeam): Promise<Team> {
     const [newTeam] = await db.insert(teams).values(teamData).returning();
 
@@ -52,17 +63,7 @@ export class TeamStorage {
   }
 
   private async createDefaultStaffForTeam(teamId: string): Promise<void> {
-    const defaultStaffMembers: Omit<InsertStaff, 'id' | 'teamId' | 'createdAt' | 'updatedAt' | 'abilities'>[] = [
-      { name: "Alex Recovery", type: "recovery_specialist", level: 1, salary: 60000, recoveryRating: 75, coachingRating: 35, offenseRating: 0, defenseRating: 0, physicalRating: 0, scoutingRating: 0, recruitingRating: 0 },
-      { name: "Sarah Fitness", type: "trainer", level: 1, salary: 45000, physicalRating: 80, coachingRating: 30, offenseRating: 0, defenseRating: 0, recoveryRating: 0, scoutingRating: 0, recruitingRating: 0 },
-      { name: "Mike Offense", type: "trainer", level: 1, salary: 50000, offenseRating: 85, coachingRating: 40, defenseRating: 0, physicalRating: 0, recoveryRating: 0, scoutingRating: 0, recruitingRating: 0 },
-      { name: "Lisa Defense", type: "trainer", level: 1, salary: 50000, defenseRating: 85, coachingRating: 40, offenseRating: 0, physicalRating: 0, recoveryRating: 0, scoutingRating: 0, recruitingRating: 0 },
-      { name: "Tony Scout", type: "scout", level: 1, salary: 40000, scoutingRating: 90, recruitingRating: 70, offenseRating: 0, defenseRating: 0, physicalRating: 0, recoveryRating: 0, coachingRating: 0 },
-      { name: "Emma Talent", type: "scout", level: 1, salary: 42000, scoutingRating: 85, recruitingRating: 80, offenseRating: 0, defenseRating: 0, physicalRating: 0, recoveryRating: 0, coachingRating: 0 },
-      { name: "Coach Williams", type: "head_coach", level: 2, salary: 80000, coachingRating: 90, offenseRating: 70, defenseRating: 70, physicalRating: 0, recoveryRating: 0, scoutingRating: 0, recruitingRating: 0 },
-    ];
-
-    for (const staffMember of defaultStaffMembers) {
+    for (const staffMember of this.defaultStaffMembers) {
       // Explicitly construct the InsertStaff object to ensure all fields are covered
       const staffToCreate: InsertStaff = {
         ...staffMember,
@@ -94,7 +95,7 @@ export class TeamStorage {
       premiumCurrency: 50,
     };
      // Recalculate staffSalaries based on the actual list
-    const actualStaffSalaries = defaultStaffMembers.reduce((sum, s) => sum + s.salary, 0);
+    const actualStaffSalaries = this.defaultStaffMembers.reduce((sum: number, s: any) => sum + s.salary, 0);
     defaultFinances.staffSalaries = actualStaffSalaries;
     defaultFinances.totalExpenses = actualStaffSalaries + (defaultFinances.facilities || 0) + (defaultFinances.playerSalaries || 0);
     defaultFinances.netIncome = (defaultFinances.totalIncome || 0) - defaultFinances.totalExpenses;
