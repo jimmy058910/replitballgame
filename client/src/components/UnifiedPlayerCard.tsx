@@ -347,6 +347,12 @@ export default function UnifiedPlayerCard({
                 <Badge variant="secondary" className="text-xs">
                   {player.race?.charAt(0).toUpperCase() + player.race?.slice(1).toLowerCase()} • Age {player.age}
                 </Badge>
+                <Badge variant="outline" className="text-xs border-cyan-700 text-cyan-400 dark:border-cyan-600 dark:text-cyan-300">
+                  Camaraderie: {player.camaraderie ?? 50}
+                </Badge>
+                <Badge variant="outline" className="text-xs border-lime-700 text-lime-400 dark:border-lime-600 dark:text-lime-300">
+                  Loyalty: {player.yearsOnTeam ?? 0} yr{player.yearsOnTeam === 1 ? '' : 's'}
+                </Badge>
               </div>
             </div>
             {player.isCaptain && <Crown className="w-4 h-4 text-yellow-500" />}

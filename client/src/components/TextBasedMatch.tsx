@@ -97,7 +97,7 @@ export default function TextBasedMatch({
   const [halftimeAdShown, setHalftimeAdShown] = useState(false);
   
   // Ad system hook
-  const { showAd } = useAdSystem();
+  const { showRewardedVideoAd, closeAd, adConfig } = useAdSystem();
   const gameIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
   // Initialize players from team data
@@ -215,18 +215,35 @@ export default function TextBasedMatch({
       if (newGameTime === prev.maxTime / 2 && prev.currentHalf === 1) {
         const timeStr = formatGameTime(newGameTime);
         
-        // Show halftime interstitial ad
+        // Show halftime rewarded video ad
         if (!halftimeAdShown) {
           setHalftimeAdShown(true);
-          showAd({
-            adType: 'interstitial',
-            placement: 'halftime',
-            rewardType: 'none',
-            rewardAmount: 0,
-            onAdComplete: () => {
-              console.log('Halftime ad completed');
+          // Pause game for ad
+          if (gameIntervalRef.current) {
+            clearInterval(gameIntervalRef.current);
+            gameIntervalRef.current = null;
+          }
+          const currentIsRunning = prev.isRunning; // Store if game was running
+
+          showRewardedVideoAd(
+            'halftime',
+            'credits',
+            100, // Example: 100 credits for watching halftime ad
+            (reward) => {
+              if (reward) {
+                addToLog(`Watched halftime ad and earned ${reward.amount} ${reward.type}!`);
+                // Here you would typically also update user's credits via an API call or state management
+              } else {
+                addToLog("Halftime ad skipped or failed to complete.");
+              }
+              setGameState(innerPrev => ({...innerPrev, isRunning: currentIsRunning })); // Resume game state
+              // Only restart interval if game was running before ad
+              if (currentIsRunning && !gameIntervalRef.current && innerPrev.gameTime < innerPrev.maxTime) {
+                 gameIntervalRef.current = setInterval(simulateGameTick, 300);
+              }
+              closeAd(); // Close the ad dialog
             }
-          });
+          );
         }
         
         return {
@@ -814,8 +831,18 @@ export default function TextBasedMatch({
         </CardContent>
       </Card>
       
-      {/* Ad System Component */}
-      <AdSystem />
+      {/* Ad System Component - Render based on adConfig from useAdSystem */}
+      {adConfig && adConfig.isOpen && (
+        <AdSystem
+          isOpen={adConfig.isOpen}
+          onClose={closeAd}
+          adType={adConfig.adType}
+          placement={adConfig.placement}
+          rewardType={adConfig.rewardType}
+          rewardAmount={adConfig.rewardAmount}
+          onAdComplete={adConfig.onAdComplete}
+        />
+      )}
     </div>
   );
 }

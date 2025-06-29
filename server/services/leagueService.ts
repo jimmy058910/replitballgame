@@ -86,6 +86,27 @@ export function generateRandomPlayer(name: string, race: string, teamId: string)
     agilityPotential: generatePotential().toString(),
     salary,
     contractValue: salary * 3, // 3 year contract value
+    camaraderie: 50, // Initial camaraderie
+    yearsOnTeam: 0,  // New player, 0 years on team
+  };
+}
+
+export function calculatePlayerValue(player: any): number {
+    lastName,
+    name: fullName,
+    race,
+    age: baseAge,
+    ...baseStats,
+    speedPotential: generatePotential().toString(),
+    powerPotential: generatePotential().toString(),
+    throwingPotential: generatePotential().toString(),
+    catchingPotential: generatePotential().toString(),
+    kickingPotential: generatePotential().toString(),
+    staminaPotential: generatePotential().toString(),
+    leadershipPotential: generatePotential().toString(),
+    agilityPotential: generatePotential().toString(),
+    salary,
+    contractValue: salary * 3, // 3 year contract value
   };
 }
 

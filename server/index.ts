@@ -1,11 +1,14 @@
 import express, { type Request, Response, NextFunction } from "express";
-import { registerRoutes } from "./routes";
+import { createServer } from "http"; // Import createServer
+import { setupAuth } from "./replitAuth"; // Import setupAuth
+import { registerAllRoutes } from "./routes/index"; // Updated import
 import { setupVite, serveStatic, log } from "./vite";
 
 const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
+// Logging middleware (remains the same)
 app.use((req, res, next) => {
   const start = Date.now();
   const path = req.path;
@@ -37,34 +40,37 @@ app.use((req, res, next) => {
 });
 
 (async () => {
-  const server = await registerRoutes(app);
+  // Setup Replit Auth first
+  await setupAuth(app);
 
+  // Register all modular routes
+  registerAllRoutes(app);
+
+  // Create HTTP server instance from the Express app
+  const httpServer = createServer(app);
+
+  // Global error handler (remains the same)
   app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
     const status = err.status || err.statusCode || 500;
     const message = err.message || "Internal Server Error";
-
-    res.status(status).json({ message });
-    throw err;
+    console.error("Global error handler caught:", err); // Added more logging
+    res.status(status).json({ message, error: err.stack }); // Include stack in dev
+    // throw err; // Re-throwing might terminate the process if unhandled by server framework
   });
 
-  // importantly only setup vite in development and after
-  // setting up all the other routes so the catch-all route
-  // doesn't interfere with the other routes
+  // Vite setup (remains similar, but uses httpServer)
   if (app.get("env") === "development") {
-    await setupVite(app, server);
+    await setupVite(app, httpServer); // Pass httpServer to setupVite
   } else {
     serveStatic(app);
   }
 
-  // ALWAYS serve the app on port 5000
-  // this serves both the API and the client.
-  // It is the only port that is not firewalled.
   const port = 5000;
-  server.listen({
+  httpServer.listen({ // Use httpServer to listen
     port,
     host: "0.0.0.0",
     reusePort: true,
   }, () => {
-    log(`serving on port ${port}`);
+    log(`Server listening on port ${port}`);
   });
 })();

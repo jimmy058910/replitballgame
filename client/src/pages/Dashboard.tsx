@@ -12,7 +12,17 @@ import UnifiedPlayerCard from "@/components/UnifiedPlayerCard";
 import LeagueStandings from "@/components/LeagueStandings";
 import NotificationCenter from "@/components/NotificationCenter";
 import { apiRequest } from "@/lib/queryClient";
-import { Bell, Shield, Calendar } from "lucide-react";
+import { Bell, Shield, Calendar, Users as UsersIcon } from "lucide-react"; // Added UsersIcon
+
+// Helper function for Camaraderie Description
+function getTeamCamaraderieDescription(camaraderie: number | undefined | null): string {
+  if (camaraderie === undefined || camaraderie === null) return "Overall team cohesion.";
+  if (camaraderie > 75) return "Excellent: Team is in sync!";
+  if (camaraderie > 60) return "Good: Strong team bonds.";
+  if (camaraderie > 40) return "Average: Room for improvement.";
+  if (camaraderie > 25) return "Low: Some friction in the ranks.";
+  return "Poor: Team spirit is suffering.";
+}
 
 // Server Time Display Component
 function ServerTimeDisplay({ serverTime }: { serverTime: any }) {
@@ -253,6 +263,23 @@ export default function Dashboard() {
                   </div>
                   <div className="bg-gold-400 bg-opacity-20 p-3 rounded-lg">
                     <i className="fas fa-coins text-gold-400 text-xl"></i>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className="bg-gray-800 border-gray-700">
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-gray-400 text-sm">Team Camaraderie</p>
+                    <p className="text-2xl font-bold text-teal-400">{team?.teamCamaraderie ?? 'N/A'}</p>
+                    <p className="text-xs text-gray-500">
+                      {getTeamCamaraderieDescription(team?.teamCamaraderie)}
+                    </p>
+                  </div>
+                  <div className="bg-teal-400 bg-opacity-20 p-3 rounded-lg">
+                    <UsersIcon className="text-teal-400 text-xl" />
                   </div>
                 </div>
               </CardContent>

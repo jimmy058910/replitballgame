@@ -1,26 +1,44 @@
 import { storage } from "../storage";
-import type { Match, Player } from "@shared/schema";
+import type { Match, Player, PlayerMatchStats, TeamMatchStats } from "@shared/schema";
+
+// Helper type for player stats, excluding IDs
+type PlayerStatsSnapshot = Omit<PlayerMatchStats, 'id' | 'playerId' | 'matchId' | 'teamId' | 'createdAt'>;
+// Helper type for team stats, excluding IDs
+type TeamStatsSnapshot = Omit<TeamMatchStats, 'id' | 'teamId' | 'matchId' | 'createdAt'>;
+
 
 interface LiveMatchState {
   matchId: string;
+  homeTeamId: string;
+  awayTeamId: string;
   startTime: Date;
   gameTime: number; // in seconds
   maxTime: number; // total game time in seconds  
   currentHalf: 1 | 2;
-  team1Score: number;
-  team2Score: number;
+  homeScore: number;
+  awayScore: number;
   status: 'live' | 'completed' | 'paused';
   gameEvents: MatchEvent[];
   lastUpdateTime: Date;
+
+  // Detailed in-match stats
+  playerStats: Map<string, PlayerStatsSnapshot>; // Keyed by playerId
+  teamStats: Map<string, TeamStatsSnapshot>; // Keyed by teamId (home/away)
+
+  // Possession tracking
+  possessingTeamId: string | null; // Which team has the ball
+  possessionStartTime: number; // Game time when current possession started
 }
 
 interface MatchEvent {
   time: number;
-  type: string;
+  type: string; // e.g., 'pass_attempt', 'pass_complete', 'rush', 'tackle', 'score', 'interception', 'fumble'
   description: string;
-  player?: string;
-  team?: string;
-  data?: any;
+  actingPlayerId?: string; // Player performing the action
+  targetPlayerId?: string; // Player targeted (e.g., receiver)
+  defensivePlayerId?: string; // Player making a defensive play
+  teamId?: string; // Team associated with the event (e.g., team that scored)
+  data?: any; // yards, new ball position, etc.
 }
 
 class MatchStateManager {
@@ -39,22 +57,53 @@ class MatchStateManager {
     const awayTeamPlayers = await storage.getPlayersByTeamId(match.awayTeamId);
 
     const maxTime = isExhibition ? 1200 : 1800; // 20 min exhibition, 30 min league
+
+    const initialPlayerStats = new Map<string, PlayerStatsSnapshot>();
+    const allPlayers = [...homeTeamPlayers, ...awayTeamPlayers];
+    allPlayers.forEach(player => {
+      initialPlayerStats.set(player.id, {
+        scores: 0, passingAttempts: 0, passesCompleted: 0, passingYards: 0,
+        rushingYards: 0, catches: 0, receivingYards: 0, drops: 0, fumblesLost: 0,
+        tackles: 0, knockdownsInflicted: 0, interceptionsCaught: 0, passesDefended: 0,
+      });
+    });
+
+    const initialTeamStats = new Map<string, TeamStatsSnapshot>();
+    initialTeamStats.set(match.homeTeamId, {
+      totalOffensiveYards: 0, passingYards: 0, rushingYards: 0,
+      timeOfPossessionSeconds: 0, turnovers: 0, totalKnockdownsInflicted: 0,
+    });
+    initialTeamStats.set(match.awayTeamId, {
+      totalOffensiveYards: 0, passingYards: 0, rushingYards: 0,
+      timeOfPossessionSeconds: 0, turnovers: 0, totalKnockdownsInflicted: 0,
+    });
+
+    // Determine initial possession (e.g., coin toss or home team starts)
+    const initialPossessingTeam = Math.random() < 0.5 ? match.homeTeamId : match.awayTeamId;
+
     const matchState: LiveMatchState = {
       matchId,
+      homeTeamId: match.homeTeamId,
+      awayTeamId: match.awayTeamId,
       startTime: new Date(),
       gameTime: 0,
       maxTime,
       currentHalf: 1,
-      team1Score: 0,
-      team2Score: 0,
+      homeScore: 0,
+      awayScore: 0,
       status: 'live',
       gameEvents: [{
         time: 0,
         type: 'kickoff',
-        description: 'Match begins!',
+        description: `Match begins! ${initialPossessingTeam === match.homeTeamId ? 'Home' : 'Away'} team starts with possession.`,
+        teamId: initialPossessingTeam,
         data: { homeTeam: match.homeTeamId, awayTeam: match.awayTeamId }
       }],
-      lastUpdateTime: new Date()
+      lastUpdateTime: new Date(),
+      playerStats: initialPlayerStats,
+      teamStats: initialTeamStats,
+      possessingTeamId: initialPossessingTeam,
+      possessionStartTime: 0,
     };
 
     this.liveMatches.set(matchId, matchState);
@@ -111,46 +160,84 @@ class MatchStateManager {
 
     // If match should have ended, complete it
     if (elapsedSeconds >= maxTime) {
-      await this.completeMatch(matchId);
+      // Ensure this match instance is cleaned up if it's being restarted past its end time.
+      const existingState = this.liveMatches.get(matchId);
+      if (existingState) {
+         await this.completeMatch(matchId, existingState.homeTeamId, existingState.awayTeamId, await storage.getPlayersByTeamId(existingState.homeTeamId), await storage.getPlayersByTeamId(existingState.awayTeamId));
+      } else {
+        // If no state, perhaps just update DB if needed, though this scenario is less likely.
+        await storage.updateMatch(matchId, { status: 'completed' });
+      }
       return null;
     }
 
-    // Reconstruct match state
+    const homeTeamPlayers = await storage.getPlayersByTeamId(match.homeTeamId);
+    const awayTeamPlayers = await storage.getPlayersByTeamId(match.awayTeamId);
+
+    // Reconstruct match state (simplified, full stat reconstruction might be complex)
     const currentHalf = elapsedSeconds < (maxTime / 2) ? 1 : 2;
+
+    const initialPlayerStats = new Map<string, PlayerStatsSnapshot>();
+    [...homeTeamPlayers, ...awayTeamPlayers].forEach(player => {
+      initialPlayerStats.set(player.id, {
+        scores: 0, passingAttempts: 0, passesCompleted: 0, passingYards: 0,
+        rushingYards: 0, catches: 0, receivingYards: 0, drops: 0, fumblesLost: 0,
+        tackles: 0, knockdownsInflicted: 0, interceptionsCaught: 0, passesDefended: 0,
+      });
+    });
+
+    const initialTeamStats = new Map<string, TeamStatsSnapshot>();
+    initialTeamStats.set(match.homeTeamId, {
+      totalOffensiveYards: 0, passingYards: 0, rushingYards: 0,
+      timeOfPossessionSeconds: 0, turnovers: 0, totalKnockdownsInflicted: 0,
+    });
+    initialTeamStats.set(match.awayTeamId, {
+      totalOffensiveYards: 0, passingYards: 0, rushingYards: 0,
+      timeOfPossessionSeconds: 0, turnovers: 0, totalKnockdownsInflicted: 0,
+    });
+
+    // Attempt to load some existing game data if available, but stats are tricky to reconstruct mid-game accurately
+    // For now, restarting a live match will reset its detailed stats but keep score and time.
+    // A more robust solution would involve serializing/deserializing the live stats maps.
+    const gameEvents = (match.gameData as any)?.events || [];
+    const possessingTeamId = gameEvents.length > 0 ? gameEvents[gameEvents.length - 1]?.teamId : (Math.random() < 0.5 ? match.homeTeamId : match.awayTeamId);
+
+
     const matchState: LiveMatchState = {
       matchId,
+      homeTeamId: match.homeTeamId,
+      awayTeamId: match.awayTeamId,
       startTime: startTime,
       gameTime: elapsedSeconds,
       maxTime,
       currentHalf,
-      team1Score: match.homeScore || 0,
-      team2Score: match.awayScore || 0,
+      homeScore: match.homeScore || 0,
+      awayScore: match.awayScore || 0,
       status: 'live',
-      gameEvents: (match.gameData as any)?.events || [],
-      lastUpdateTime: new Date()
+      gameEvents,
+      lastUpdateTime: new Date(),
+      playerStats: initialPlayerStats, // Stats are reset for simplicity on restart
+      teamStats: initialTeamStats,     // Stats are reset for simplicity on restart
+      possessingTeamId: possessingTeamId || match.homeTeamId, // Default if no events
+      possessionStartTime: elapsedSeconds, // Assume current possession started now
     };
 
     this.liveMatches.set(matchId, matchState);
 
-    // Resume simulation
-    const homeTeamPlayers = await storage.getPlayersByTeamId(match.homeTeamId);
-    const awayTeamPlayers = await storage.getPlayersByTeamId(match.awayTeamId);
     this.startMatchSimulation(matchId, homeTeamPlayers, awayTeamPlayers);
 
     return matchState;
   }
 
   private startMatchSimulation(matchId: string, homeTeamPlayers: Player[], awayTeamPlayers: Player[]) {
-    // Clear existing interval if any
     const existingInterval = this.matchIntervals.get(matchId);
     if (existingInterval) {
       clearInterval(existingInterval);
     }
 
-    // Update every 3 seconds (3x speed: 3 real seconds = 9 game seconds)
     const interval = setInterval(async () => {
       await this.updateMatchState(matchId, homeTeamPlayers, awayTeamPlayers);
-    }, 3000);
+    }, 3000); // 3 real seconds = 9 game seconds (3x speed)
 
     this.matchIntervals.set(matchId, interval);
   }
@@ -161,141 +248,339 @@ class MatchStateManager {
       return;
     }
 
-    // Advance game time by 9 seconds (3x speed)
-    state.gameTime += 9;
+    const gameTimeIncrement = 9; // 9 game seconds per tick
+    state.gameTime += gameTimeIncrement;
     state.lastUpdateTime = new Date();
 
-    // Check for half-time
+    // Update Time of Possession for current possessing team
+    if (state.possessingTeamId) {
+      const teamStats = state.teamStats.get(state.possessingTeamId);
+      if (teamStats) {
+        teamStats.timeOfPossessionSeconds += gameTimeIncrement;
+      }
+    }
+
     if (state.currentHalf === 1 && state.gameTime >= state.maxTime / 2) {
+      this.handlePossessionChange(state, state.possessingTeamId, null, state.gameTime); // End of half might mean ball goes to other team or neutral
       state.currentHalf = 2;
       state.gameEvents.push({
         time: state.gameTime,
         type: 'halftime',
-        description: 'Half-time break',
+        description: 'Half-time break.',
       });
+      // Typically, the team that kicked off to start the game receives the ball in the second half.
+      // For simplicity, let's give it to the team that didn't have it last, or random if null.
+      const newPossessingTeam = state.possessingTeamId === state.homeTeamId ? state.awayTeamId : state.homeTeamId;
+      this.handlePossessionChange(state, null, newPossessingTeam, state.gameTime);
     }
 
-    // Generate random events
-    if (Math.random() < 0.4) { // 40% chance of event each update
-      const event = this.generateMatchEvent(state.gameTime, homeTeamPlayers, awayTeamPlayers, state);
-      state.gameEvents.push(event);
-
-      // Update scores
-      if (event.type === 'score') {
-        if (event.team === 'home') {
-          state.team1Score++;
-        } else {
-          state.team2Score++;
-        }
+    // Generate more detailed events
+    if (Math.random() < 0.5) { // 50% chance of an event each update cycle
+      const event = this.generateDetailedMatchEvent(homeTeamPlayers, awayTeamPlayers, state);
+      if (event) {
+        state.gameEvents.push(event);
+        // Score updates are now handled by the event generation logic itself
       }
     }
 
-    // Check if match is complete
     if (state.gameTime >= state.maxTime) {
-      await this.completeMatch(matchId);
+      await this.completeMatch(matchId, state.homeTeamId, state.awayTeamId, homeTeamPlayers, awayTeamPlayers);
       return;
     }
 
-    // Update database periodically
     if (state.gameTime % 30 === 0) { // Every 30 game seconds
       await storage.updateMatch(matchId, {
-        homeScore: state.team1Score,
-        awayScore: state.team2Score,
+        homeScore: state.homeScore,
+        awayScore: state.awayScore,
         gameData: {
-          events: state.gameEvents.slice(-20), // Keep last 20 events
+          events: state.gameEvents.slice(-30), // Keep last 30 events
           currentTime: state.gameTime,
-          currentHalf: state.currentHalf
+          currentHalf: state.currentHalf,
+          // Consider adding current possession to gameData if useful for client UI
         }
       });
     }
   }
 
-  private generateMatchEvent(time: number, homeTeamPlayers: Player[], awayTeamPlayers: Player[], state: LiveMatchState): MatchEvent {
-    const isHomeTeam = Math.random() < 0.5;
-    const team = isHomeTeam ? 'home' : 'away';
-    const players = isHomeTeam ? homeTeamPlayers : awayTeamPlayers;
-    
-    if (players.length === 0) {
-      return {
-        time,
-        type: 'play',
-        description: 'Play continues...',
-        team
-      };
+  private handlePossessionChange(state: LiveMatchState, oldPossessingTeamId: string | null, newPossessingTeamId: string | null, gameTime: number) {
+    if (oldPossessingTeamId && oldPossessingTeamId !== newPossessingTeamId) {
+      const possessionDuration = gameTime - state.possessionStartTime;
+      const teamStats = state.teamStats.get(oldPossessingTeamId);
+      if (teamStats) {
+        // This was adding increment twice, time is added per tick now.
+        // teamStats.timeOfPossessionSeconds += possessionDuration;
+      }
     }
-
-    const randomPlayer = players[Math.floor(Math.random() * players.length)];
-    const eventTypes = ['pass', 'run', 'tackle', 'interception', 'score'];
-    const eventType = eventTypes[Math.floor(Math.random() * eventTypes.length)];
-
-    let description = '';
-    
-    switch (eventType) {
-      case 'pass':
-        description = `${randomPlayer.lastName} completes a pass down field!`;
-        break;
-      case 'run':
-        description = `${randomPlayer.lastName} breaks through the defense!`;
-        break;
-      case 'tackle':
-        description = `${randomPlayer.lastName} makes a solid tackle!`;
-        break;
-      case 'interception':
-        description = `${randomPlayer.lastName} intercepts the ball!`;
-        break;
-      case 'score':
-        description = `SCORE! ${randomPlayer.lastName} reaches the end zone!`;
-        break;
-    }
-
-    return {
-      time,
-      type: eventType,
-      description,
-      player: randomPlayer.lastName,
-      team,
-      data: { playerId: randomPlayer.id }
-    };
+    state.possessingTeamId = newPossessingTeamId;
+    state.possessionStartTime = gameTime;
   }
 
-  private async completeMatch(matchId: string): Promise<void> {
+  // ### Main Event Generation Logic ###
+  private generateDetailedMatchEvent(homePlayers: Player[], awayPlayers: Player[], state: LiveMatchState): MatchEvent | null {
+    if (!state.possessingTeamId) return null; // No action if ball is loose (though current logic doesn't allow this state for long)
+
+    const offensiveTeamPlayers = state.possessingTeamId === state.homeTeamId ? homePlayers : awayPlayers;
+    const defensiveTeamPlayers = state.possessingTeamId === state.homeTeamId ? awayPlayers : homePlayers;
+    const offensiveTeamId = state.possessingTeamId;
+    const defensiveTeamId = offensiveTeamId === state.homeTeamId ? state.awayTeamId : state.homeTeamId;
+
+    if (offensiveTeamPlayers.length === 0) return { time: state.gameTime, type: 'info', description: "Offensive team has no players on field." };
+
+    // Select an active player (e.g., a passer or runner)
+    const actingPlayer = offensiveTeamPlayers.find(p => p.tacticalRole === 'Passer' && Math.random() < 0.6) || // Prioritize Passer
+                         offensiveTeamPlayers[Math.floor(Math.random() * offensiveTeamPlayers.length)];
+    
+    if (!actingPlayer) return null;
+
+    const pStats = state.playerStats.get(actingPlayer.id)!;
+    const teamStats = state.teamStats.get(offensiveTeamId)!;
+    const defensiveTeamStats = state.teamStats.get(defensiveTeamId)!;
+
+    const actionRoll = Math.random();
+    let event: MatchEvent | null = null;
+
+    // Determine action based on player role and randomness
+    if (actingPlayer.tacticalRole === 'Passer' && actionRoll < 0.6) { // 60% chance Passer attempts a pass
+        pStats.passingAttempts++;
+        const targetPlayer = offensiveTeamPlayers.filter(p => p.id !== actingPlayer.id && p.tacticalRole === 'Runner')[Math.floor(Math.random() * offensiveTeamPlayers.filter(p => p.id !== actingPlayer.id && p.tacticalRole === 'Runner').length)]
+                           || offensiveTeamPlayers.filter(p => p.id !== actingPlayer.id)[Math.floor(Math.random() * offensiveTeamPlayers.filter(p => p.id !== actingPlayer.id).length)];
+
+        if (!targetPlayer) return { time: state.gameTime, type: 'info', description: `${actingPlayer.lastName} looks to pass but finds no one.`};
+        const targetPStats = state.playerStats.get(targetPlayer.id)!;
+
+        const passSuccessRoll = Math.random() * 50 + actingPlayer.throwing; // Max 40 + 50 = 90
+        const catchSuccessRoll = Math.random() * 50 + targetPlayer.catching; // Max 40 + 50 = 90
+        const defenseRoll = defensiveTeamPlayers.length > 0 ? (Math.random() * 40 + defensiveTeamPlayers[0].agility) : 0; // Simplified defense check
+
+        if (passSuccessRoll > 30 + defenseRoll * 0.3) { // Pass is on target
+            if (catchSuccessRoll > 35 + defenseRoll * 0.2) { // Caught
+                const yards = Math.floor(Math.random() * 30) + 5; // 5-34 yards
+                pStats.passesCompleted++;
+                pStats.passingYards += yards;
+                targetPStats.catches++;
+                targetPStats.receivingYards += yards;
+                teamStats.passingYards += yards;
+                teamStats.totalOffensiveYards += yards;
+                event = { time: state.gameTime, type: 'pass_complete', actingPlayerId: actingPlayer.id, targetPlayerId: targetPlayer.id, teamId: offensiveTeamId, description: `${actingPlayer.lastName} throws a ${yards}yd pass to ${targetPlayer.lastName}. Complete!`, data: { yards } };
+
+                // Chance to score after a catch
+                if (Math.random() < 0.15) { // 15% chance of scoring after a good catch
+                    pStats.scores++; // Scorer is the receiver on a pass play
+                    if (offensiveTeamId === state.homeTeamId) state.homeScore++; else state.awayScore++;
+                    state.gameEvents.push(event); // push the completion event first
+                    this.handlePossessionChange(state, offensiveTeamId, defensiveTeamId, state.gameTime); // Possession changes after score
+                    return { time: state.gameTime, type: 'score', actingPlayerId: targetPlayer.id, teamId: offensiveTeamId, description: `SCORE! ${targetPlayer.lastName} takes it all the way after the catch!`, data: { scoreType: 'passing' }};
+                }
+
+            } else { // Dropped
+                targetPStats.drops++;
+                event = { time: state.gameTime, type: 'pass_drop', actingPlayerId: actingPlayer.id, targetPlayerId: targetPlayer.id, teamId: offensiveTeamId, description: `${actingPlayer.lastName}'s pass to ${targetPlayer.lastName} is dropped!`, data: { yards: 0 } };
+                this.handlePossessionChange(state, offensiveTeamId, defensiveTeamId, state.gameTime); // Turnover on downs (simplified)
+            }
+        } else { // Pass incomplete or intercepted
+            const defensivePlayer = defensiveTeamPlayers[Math.floor(Math.random() * defensiveTeamPlayers.length)];
+            if (defensivePlayer && Math.random() < 0.3 + (defensivePlayer.catching - 20) / 50) { // 30% base + catching skill for interception
+                const defPStats = state.playerStats.get(defensivePlayer.id)!;
+                defPStats.interceptionsCaught++;
+                teamStats.turnovers++; // Offensive team turnover
+                event = { time: state.gameTime, type: 'interception', actingPlayerId: actingPlayer.id, defensivePlayerId: defensivePlayer.id, teamId: defensiveTeamId, description: `${actingPlayer.lastName}'s pass INTERCEPTED by ${defensivePlayer.lastName}!`, data: { yards: 0 } };
+                this.handlePossessionChange(state, offensiveTeamId, defensiveTeamId, state.gameTime);
+            } else if (defensivePlayer) { // Pass defended
+                const defPStats = state.playerStats.get(defensivePlayer.id)!;
+                defPStats.passesDefended++;
+                event = { time: state.gameTime, type: 'pass_defended', actingPlayerId: actingPlayer.id, defensivePlayerId: defensivePlayer.id, teamId: offensiveTeamId, description: `${actingPlayer.lastName}'s pass defended by ${defensivePlayer.lastName}. Incomplete.` };
+                this.handlePossessionChange(state, offensiveTeamId, defensiveTeamId, state.gameTime); // Turnover on downs (simplified)
+            } else { // Simple incomplete
+                 event = { time: state.gameTime, type: 'pass_incomplete', actingPlayerId: actingPlayer.id, teamId: offensiveTeamId, description: `${actingPlayer.lastName}'s pass is incomplete.` };
+                 this.handlePossessionChange(state, offensiveTeamId, defensiveTeamId, state.gameTime); // Turnover on downs
+            }
+        }
+    } else if (actingPlayer.tacticalRole === 'Runner' || actionRoll < 0.85) { // 60-85% chance of run if not Passer, or if Passer rolls run
+        const yards = Math.floor(Math.random() * (actingPlayer.speed / 2 + actingPlayer.power / 3)) - 5; // -5 to 15+ yards
+        if (yards > 0) {
+            pStats.rushingYards += yards;
+            teamStats.rushingYards += yards;
+            teamStats.totalOffensiveYards += yards;
+            event = { time: state.gameTime, type: 'rush', actingPlayerId: actingPlayer.id, teamId: offensiveTeamId, description: `${actingPlayer.lastName} runs for ${yards} yards.`, data: { yards } };
+
+            if (Math.random() < 0.1) { // 10% chance of scoring on a good run
+                pStats.scores++;
+                if (offensiveTeamId === state.homeTeamId) state.homeScore++; else state.awayScore++;
+                state.gameEvents.push(event); // push the rush event first
+                this.handlePossessionChange(state, offensiveTeamId, defensiveTeamId, state.gameTime); // Possession changes after score
+                return { time: state.gameTime, type: 'score', actingPlayerId: actingPlayer.id, teamId: offensiveTeamId, description: `SCORE! ${actingPlayer.lastName} breaks free for a rushing touchdown!`, data: { scoreType: 'rushing' }};
+            }
+
+        } else {
+            event = { time: state.gameTime, type: 'rush_stuffed', actingPlayerId: actingPlayer.id, teamId: offensiveTeamId, description: `${actingPlayer.lastName} is stuffed at the line. No gain.`, data: { yards: 0 } };
+            // Potential for turnover on downs if it's 4th down, etc. (not implemented here)
+        }
+        // Fumble chance
+        if (Math.random() < 0.05) { // 5% fumble chance
+            pStats.fumblesLost++;
+            teamStats.turnovers++;
+            const defensivePlayer = defensiveTeamPlayers[Math.floor(Math.random() * defensiveTeamPlayers.length)];
+            event = { time: state.gameTime, type: 'fumble_lost', actingPlayerId: actingPlayer.id, defensivePlayerId: defensivePlayer?.id, teamId: offensiveTeamId, description: `${actingPlayer.lastName} FUMBLES! Recovered by ${defensivePlayer ? defensivePlayer.lastName : defensiveTeamId}.`, data: { yards }};
+            this.handlePossessionChange(state, offensiveTeamId, defensiveTeamId, state.gameTime);
+        }
+
+    } else { // Defensive play or other event (e.g. tackle, knockdown by blocker)
+        const defensivePlayer = defensiveTeamPlayers[Math.floor(Math.random() * defensiveTeamPlayers.length)];
+        if (defensivePlayer) {
+            const defPStats = state.playerStats.get(defensivePlayer.id)!;
+            if (defensivePlayer.tacticalRole === 'Blocker' && Math.random() < 0.4) {
+                defPStats.knockdownsInflicted++;
+                defensiveTeamStats.totalKnockdownsInflicted++;
+                 event = { time: state.gameTime, type: 'knockdown', actingPlayerId: defensivePlayer.id, teamId: defensiveTeamId, description: `${defensivePlayer.lastName} lays out an opponent with a huge block!`};
+            } else { // Tackle
+                defPStats.tackles++;
+                event = { time: state.gameTime, type: 'tackle', actingPlayerId: defensivePlayer.id, teamId: defensiveTeamId, description: `${defensivePlayer.lastName} makes the tackle.`};
+                 // If tackle results in loss of yards or stops a score, could change possession. For now, just a tackle.
+            }
+        } else {
+            event = { time: state.gameTime, type: 'play_continues', description: "The play continues..."};
+        }
+    }
+    return event;
+  }
+
+
+  private async completeMatch(matchId: string, homeTeamId: string, awayTeamId: string, homePlayers: Player[], awayPlayers: Player[]): Promise<void> {
     const state = this.liveMatches.get(matchId);
     if (!state) return;
 
+    // Final possession update
+    if (state.possessingTeamId) {
+       const possessionDuration = state.gameTime - state.possessionStartTime;
+       const teamStats = state.teamStats.get(state.possessingTeamId);
+       if (teamStats) {
+        // teamStats.timeOfPossessionSeconds += possessionDuration; // Already added per tick
+       }
+    }
+
     state.status = 'completed';
     
-    // Clear interval
     const interval = this.matchIntervals.get(matchId);
     if (interval) {
       clearInterval(interval);
       this.matchIntervals.delete(matchId);
     }
 
-    // Update database with final results
-    await storage.updateMatch(matchId, {
-      status: 'completed',
-      homeScore: state.team1Score,
-      awayScore: state.team2Score,
-      completedAt: new Date(),
-      gameData: {
-        events: state.gameEvents,
-        finalStats: {
-          duration: state.gameTime,
-          halves: state.currentHalf
+    // Persist detailed player and team stats
+    try {
+      const playerStatsToInsert: PlayerMatchStats[] = [];
+      const playerUpdates: Promise<any>[] = [];
+
+      for (const [playerId, pStats] of state.playerStats.entries()) {
+        const playerTeam = homePlayers.find(p => p.id === playerId) ? homeTeamId : awayTeamId;
+        playerStatsToInsert.push({
+          id: undefined, // Let DB generate UUID
+          playerId,
+          matchId,
+          teamId: playerTeam,
+          createdAt: new Date(),
+          ...pStats,
+        });
+
+        // Update lifetime stats
+        const playerToUpdate = await storage.getPlayerById(playerId);
+        if (playerToUpdate) {
+          const updatedLifetimeStats: Partial<Player> = {
+            totalGamesPlayed: (playerToUpdate.totalGamesPlayed || 0) + 1,
+            totalScores: (playerToUpdate.totalScores || 0) + pStats.scores,
+            totalPassingAttempts: (playerToUpdate.totalPassingAttempts || 0) + pStats.passingAttempts,
+            totalPassesCompleted: (playerToUpdate.totalPassesCompleted || 0) + pStats.passesCompleted,
+            totalPassingYards: (playerToUpdate.totalPassingYards || 0) + pStats.passingYards,
+            totalRushingYards: (playerToUpdate.totalRushingYards || 0) + pStats.rushingYards,
+            totalCatches: (playerToUpdate.totalCatches || 0) + pStats.catches,
+            totalReceivingYards: (playerToUpdate.totalReceivingYards || 0) + pStats.receivingYards,
+            totalDrops: (playerToUpdate.totalDrops || 0) + pStats.drops,
+            totalFumblesLost: (playerToUpdate.totalFumblesLost || 0) + pStats.fumblesLost,
+            totalTackles: (playerToUpdate.totalTackles || 0) + pStats.tackles,
+            totalKnockdownsInflicted: (playerToUpdate.totalKnockdownsInflicted || 0) + pStats.knockdownsInflicted,
+            totalInterceptionsCaught: (playerToUpdate.totalInterceptionsCaught || 0) + pStats.interceptionsCaught,
+            totalPassesDefended: (playerToUpdate.totalPassesDefended || 0) + pStats.passesDefended,
+          };
+          playerUpdates.push(storage.updatePlayer(playerId, updatedLifetimeStats));
         }
       }
-    });
 
-    // Remove from active matches
+      const teamStatsToInsert: TeamMatchStats[] = [];
+      for (const [teamId, tStats] of state.teamStats.entries()) {
+        teamStatsToInsert.push({
+          id: undefined, // Let DB generate UUID
+          teamId,
+          matchId,
+          createdAt: new Date(),
+          ...tStats,
+        });
+      }
+
+      // Use a transaction for atomicity
+      await storage.db.transaction(async (tx) => {
+        if (playerStatsToInsert.length > 0) {
+          await tx.insert(storage.playerMatchStatsSchema).values(playerStatsToInsert);
+        }
+        if (teamStatsToInsert.length > 0) {
+          await tx.insert(storage.teamMatchStatsSchema).values(teamStatsToInsert);
+        }
+        await Promise.all(playerUpdates.map(pUpdate => {
+            // This is a bit tricky as storage.updatePlayer uses its own db instance.
+            // For a true transaction, updatePlayer would need to accept a tx object.
+            // For now, we'll proceed, but this is a limitation if full rollback is needed across these calls.
+            // A refined approach would be to construct update statements for Drizzle and run them with `tx.update()`.
+            // For simplicity here, we call the existing storage methods.
+            // This part of the transaction might not be "true" if updatePlayer doesn't use the passed 'tx'.
+            // Let's assume for now that these updates are critical enough to attempt even if prior inserts fail,
+            // or that storage methods are refactored in future to accept 'tx'.
+        }));
+        // The playerUpdates are already awaited if they are Promises.
+        // The primary goal here is to ensure playerMatchStats and teamMatchStats are inserted together.
+        // Lifetime stats updates are important but could potentially be reconciled later if only they fail.
+
+        // Update the match itself
+        await tx.update(storage.matchesSchema).set({
+            status: 'completed',
+            homeScore: state.homeScore,
+            awayScore: state.awayScore,
+            completedAt: new Date(),
+            gameData: {
+                events: state.gameEvents.slice(-50), // Store last 50 events
+                finalScores: { home: state.homeScore, away: state.awayScore },
+            }
+        }).where(storage.eq(storage.matchesSchema.id, matchId));
+      });
+
+      console.log(`Match ${matchId} stats persisted successfully.`);
+
+    } catch (error) {
+      console.error(`Error persisting stats for match ${matchId}:`, error);
+      // Potentially re-throw or handle more gracefully (e.g., mark match as 'error_in_stats')
+      // For now, we'll update the match to completed anyway, but log the error.
+       await storage.updateMatch(matchId, {
+        status: 'completed', // Or a special status like 'completed_stats_error'
+        homeScore: state.homeScore,
+        awayScore: state.awayScore,
+        completedAt: new Date(),
+        gameData: {
+            events: state.gameEvents.slice(-50),
+            finalScores: { home: state.homeScore, away: state.awayScore },
+            error: `Error persisting stats: ${error.message}`
+        }
+      });
+    }
+
     this.liveMatches.delete(matchId);
-    console.log(`Match ${matchId} completed with score ${state.team1Score}-${state.team2Score}`);
+    console.log(`Match ${matchId} completed with score ${state.homeScore}-${state.awayScore}`);
   }
 
-  // Stop a match manually
   async stopMatch(matchId: string): Promise<void> {
     const state = this.liveMatches.get(matchId);
     if (state) {
-      await this.completeMatch(matchId);
+      // Need to pass all required parameters to completeMatch
+      const homePlayers = await storage.getPlayersByTeamId(state.homeTeamId);
+      const awayPlayers = await storage.getPlayersByTeamId(state.awayTeamId);
+      await this.completeMatch(matchId, state.homeTeamId, state.awayTeamId, homePlayers, awayPlayers);
     }
   }
 
