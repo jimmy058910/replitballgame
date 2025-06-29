@@ -1,6 +1,5 @@
 import { Router, type Request, type Response, type NextFunction } from "express";
-import { teamStorage } from "../storage/teamStorage"; // Updated import
-import { playerStorage } from "../storage/playerStorage"; // Updated import
+import { storage } from "../storage/index";
 import { isAuthenticated } from "../replitAuth";
 import { generateRandomPlayer } from "../services/leagueService";
 import { z } from "zod";
@@ -36,13 +35,13 @@ router.post('/', isAuthenticated, async (req: any, res: Response, next: NextFunc
     const userId = req.user.claims.sub;
     const { name } = createTeamSchema.parse(req.body);
 
-    const existingTeam = await teamStorage.getTeamByUserId(userId); // Use teamStorage
+    const existingTeam = await storage.teams.getTeamByUserId(userId); // Use teamStorage
     if (existingTeam) {
       return res.status(400).json({ message: "User already has a team" });
     }
 
-    // teamStorage.createTeam now handles default staff and finances
-    const team = await teamStorage.createTeam({ // Use teamStorage
+    // storage.teams.createTeam now handles default staff and finances
+    const team = await storage.teams.createTeam({ // Use teamStorage
       userId,
       name,
       division: 8,
@@ -69,7 +68,7 @@ router.post('/', isAuthenticated, async (req: any, res: Response, next: NextFunc
         // Set the position for the player
         playerData.position = position;
         console.log("Creating player in database...");
-        await playerStorage.createPlayer(playerData);
+        await storage.players.createPlayer(playerData);
         console.log(`Successfully created player ${i + 1}`);
       } catch (playerError) {
         console.error(`Error creating player ${i + 1}:`, playerError);
@@ -93,13 +92,13 @@ router.post('/', isAuthenticated, async (req: any, res: Response, next: NextFunc
 router.get('/my', isAuthenticated, async (req: any, res: Response, next: NextFunction) => {
   try {
     const userId = req.user.claims.sub;
-    const team = await teamStorage.getTeamByUserId(userId); // Use teamStorage
+    const team = await storage.teams.getTeamByUserId(userId); // Use teamStorage
 
     if (!team) {
       return res.status(404).json({ message: "Team not found" });
     }
 
-    const teamPlayers = await playerStorage.getPlayersByTeamId(team.id); // Use playerStorage
+    const teamPlayers = await storage.players.getPlayersByTeamId(team.id); // Use playerStorage
     const teamPower = calculateTeamPower(teamPlayers);
 
     res.json({ ...team, teamPower });
@@ -112,13 +111,13 @@ router.get('/my', isAuthenticated, async (req: any, res: Response, next: NextFun
 router.get('/:id', isAuthenticated, async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { id } = req.params;
-    const team = await teamStorage.getTeamById(id); // Use teamStorage
+    const team = await storage.teams.getTeamById(id); // Use teamStorage
 
     if (!team) {
       return res.status(404).json({ message: "Team not found" });
     }
 
-    const teamPlayers = await playerStorage.getPlayersByTeamId(team.id); // Use playerStorage
+    const teamPlayers = await storage.players.getPlayersByTeamId(team.id); // Use playerStorage
     const teamPower = calculateTeamPower(teamPlayers);
 
     res.json({ ...team, teamPower });
@@ -131,7 +130,7 @@ router.get('/:id', isAuthenticated, async (req: Request, res: Response, next: Ne
 router.get('/:id/players', isAuthenticated, async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { id } = req.params;
-    const teamPlayers = await playerStorage.getPlayersByTeamId(id); // Use playerStorage
+    const teamPlayers = await storage.players.getPlayersByTeamId(id); // Use playerStorage
     res.json(teamPlayers);
   } catch (error) {
     console.error("Error fetching players:", error);
@@ -146,13 +145,13 @@ router.post('/:teamId/formation', isAuthenticated, async (req: any, res: Respons
 
     if (teamId === "my") {
       const userId = req.user?.claims?.sub;
-      const team = await teamStorage.getTeamByUserId(userId); // Use teamStorage
+      const team = await storage.teams.getTeamByUserId(userId); // Use teamStorage
       if (!team) {
         return res.status(404).json({ message: "Team not found for current user" });
       }
       teamId = team.id;
     } else {
-      const teamToUpdate = await teamStorage.getTeamById(teamId); // Use teamStorage
+      const teamToUpdate = await storage.teams.getTeamById(teamId); // Use teamStorage
       if (!teamToUpdate || teamToUpdate.userId !== req.user?.claims?.sub) {
           return res.status(403).json({ message: "Forbidden: You do not own this team." });
       }
@@ -167,7 +166,7 @@ router.post('/:teamId/formation', isAuthenticated, async (req: any, res: Respons
         return res.status(400).json({ message: "Invalid substitution order data" });
     }
 
-    await teamStorage.updateTeam(teamId, { // Use teamStorage
+    await storage.teams.updateTeam(teamId, { // Use teamStorage
       formation: JSON.stringify(formation),
       substitutionOrder: substitutionOrder ? JSON.stringify(substitutionOrder) : JSON.stringify({}),
       updatedAt: new Date()
@@ -180,20 +179,48 @@ router.post('/:teamId/formation', isAuthenticated, async (req: any, res: Respons
   }
 });
 
+// Get staff members for a team
+router.get('/:teamId/staff', isAuthenticated, async (req: any, res: Response, next: NextFunction) => {
+  try {
+    let teamId = req.params.teamId;
+
+    if (teamId === "my") {
+      const userId = req.user?.claims?.sub;
+      const team = await storage.teams.getTeamByUserId(userId);
+      if (!team) {
+        return res.status(404).json({ message: "Team not found for current user" });
+      }
+      teamId = team.id;
+    } else {
+      // Verify user owns this team
+      const team = await storage.teams.getTeamById(teamId);
+      if (!team || team.userId !== req.user?.claims?.sub) {
+        return res.status(403).json({ message: "Forbidden: You do not own this team." });
+      }
+    }
+
+    const staff = await storage.staff.getStaffByTeamId(teamId);
+    res.json(staff);
+  } catch (error) {
+    console.error("Error fetching staff:", error);
+    next(error);
+  }
+});
+
 router.get('/:teamId/formation', isAuthenticated, async (req: any, res: Response, next: NextFunction) => {
   try {
     let teamId = req.params.teamId;
 
     if (teamId === "my") {
       const userId = req.user?.claims?.sub;
-      const team = await teamStorage.getTeamByUserId(userId); // Use teamStorage
+      const team = await storage.teams.getTeamByUserId(userId); // Use teamStorage
       if (!team) {
         return res.status(404).json({ message: "Team not found for current user" });
       }
       teamId = team.id;
     }
 
-    const team = await teamStorage.getTeamById(teamId); // Use teamStorage
+    const team = await storage.teams.getTeamById(teamId); // Use teamStorage
     if (!team) {
       return res.status(404).json({ message: "Team not found" });
     }
@@ -218,12 +245,12 @@ router.get('/:teamId/formation', isAuthenticated, async (req: any, res: Response
 router.post('/update-activity', isAuthenticated, async (req: any, res: Response, next: NextFunction) => {
   try {
     const userId = req.user.claims.sub;
-    const team = await teamStorage.getTeamByUserId(userId); // Use teamStorage
+    const team = await storage.teams.getTeamByUserId(userId); // Use teamStorage
     if (!team) {
       return res.status(404).json({ message: "Team not found" });
     }
 
-    await teamStorage.updateTeam(team.id, { // Use teamStorage
+    await storage.teams.updateTeam(team.id, { // Use teamStorage
       lastActivityAt: new Date(),
       seasonsInactive: 0
     });
