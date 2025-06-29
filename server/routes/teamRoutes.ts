@@ -56,19 +56,27 @@ router.post('/', isAuthenticated, async (req: any, res: Response, next: NextFunc
     ];
 
     // Generate 10 players with varied positions and races
+    console.log("Starting player generation for team:", team.id);
     for (let i = 0; i < 10; i++) {
       const race = races[i % races.length];
       const position = positions[i % positions.length];
       
       try {
+        console.log(`Generating player ${i + 1}: ${playerNames[i]}, race: ${race}, position: ${position}`);
         const playerData = generateRandomPlayer(playerNames[i], race, team.id);
+        console.log("Generated player data:", playerData);
+        
         // Set the position for the player
         playerData.position = position;
+        console.log("Creating player in database...");
         await playerStorage.createPlayer(playerData);
+        console.log(`Successfully created player ${i + 1}`);
       } catch (playerError) {
         console.error(`Error creating player ${i + 1}:`, playerError);
+        console.error("Player data that failed:", playerData);
       }
     }
+    console.log("Finished player generation");
 
 
 
