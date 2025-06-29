@@ -38,12 +38,12 @@ router.post('/seed-packages', isAuthenticated, async (req: any, res: Response, n
       { name: "Pro Pack", description: "For serious competitors", credits: 35000, price: 1999, bonusCredits: 8000, isActive: true, popularTag: false, discountPercent: 0 },
       { name: "Elite Pack", description: "Maximum value for champions", credits: 75000, price: 3999, bonusCredits: 20000, isActive: true, popularTag: false, discountPercent: 0 }
     ];
-    const existingPackages = await storage.getCreditPackages();
-    const packagesToCreate = defaultPackages.filter(dp => !existingPackages.find(ep => ep.name === dp.name));
+    const existingPackages = await storage.payments.getAllCreditPackages();
+    const packagesToCreate = defaultPackages.filter(dp => !existingPackages.find((ep: any) => ep.name === dp.name));
 
     const createdPackages = [];
     for (const packageData of packagesToCreate) {
-      const pkg = await storage.createCreditPackage(packageData);
+      const pkg = await storage.payments.createCreditPackage(packageData);
       createdPackages.push(pkg);
     }
     res.status(201).json({ message: `Seeded ${createdPackages.length} new credit packages. ${existingPackages.length} already existed.`, packages: createdPackages });
@@ -56,7 +56,7 @@ router.post('/seed-packages', isAuthenticated, async (req: any, res: Response, n
 // Get available credit packages
 router.get('/packages', isAuthenticated, async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const packages = await storage.getCreditPackages(); // Assumes this fetches only active ones by default
+    const packages = await storage.payments.getActiveCreditPackages(); // Assumes this fetches only active ones by default
     res.json(packages);
   } catch (error) {
     console.error("Error fetching credit packages:", error);
@@ -70,12 +70,12 @@ router.post("/create-payment-intent", isAuthenticated, async (req: any, res: Res
     const userId = req.user.claims.sub;
     const { packageId } = createPaymentIntentSchema.parse(req.body);
 
-    const creditPackage = await storage.getCreditPackageById(packageId);
+    const creditPackage = await storage.payments.getCreditPackageById(packageId);
     if (!creditPackage || !creditPackage.isActive) {
       return res.status(404).json({ message: "Credit package not found or not active." });
     }
 
-    const user = await storage.getUser(userId);
+    const user = await storage.users.getUser(userId);
     if (!user) return res.status(404).json({ message: "User not found." });
 
     let stripeCustomerId = user.stripeCustomerId;
@@ -86,7 +86,7 @@ router.post("/create-payment-intent", isAuthenticated, async (req: any, res: Res
         metadata: { realmRivalryUserId: userId }
       });
       stripeCustomerId = customer.id;
-      await storage.upsertUser({ id: userId, stripeCustomerId }); // Save customer ID
+      await storage.users.upsertUser({ id: userId, stripeCustomerId }); // Save customer ID
     }
 
     const paymentIntent = await stripe.paymentIntents.create({
@@ -103,7 +103,7 @@ router.post("/create-payment-intent", isAuthenticated, async (req: any, res: Res
       automatic_payment_methods: { enabled: true },
     });
 
-    await storage.createPaymentTransaction({
+    await storage.payments.createPaymentTransaction({
       userId: userId,
       stripePaymentIntentId: paymentIntent.id,
       stripeCustomerId: stripeCustomerId, // Store for reference
@@ -111,7 +111,7 @@ router.post("/create-payment-intent", isAuthenticated, async (req: any, res: Res
       credits: creditPackage.credits + (creditPackage.bonusCredits || 0),
       status: "pending", // Initial status
       currency: "usd",
-      packageId: packageId, // Link transaction to package
+
     });
 
     res.json({
@@ -147,14 +147,14 @@ router.post("/purchase-gems", isAuthenticated, async (req: any, res: Response, n
       return res.status(404).json({ message: "Gem package not found." });
     }
 
-    const user = await storage.getUser(userId);
+    const user = await storage.users.getUser(userId);
     if (!user) return res.status(404).json({ message: "User not found." });
 
     let stripeCustomerId = user.stripeCustomerId;
     if (!stripeCustomerId) {
       const customer = await stripe.customers.create({ email: user.email || undefined, metadata: { realmRivalryUserId: userId } });
       stripeCustomerId = customer.id;
-      await storage.upsertUser({ id: userId, stripeCustomerId });
+      await storage.users.upsertUser({ id: userId, stripeCustomerId });
     }
 
     const paymentIntent = await stripe.paymentIntents.create({
@@ -171,15 +171,14 @@ router.post("/purchase-gems", isAuthenticated, async (req: any, res: Response, n
       automatic_payment_methods: { enabled: true },
     });
 
-    await storage.createPaymentTransaction({
+    await storage.payments.createPaymentTransaction({
       userId: userId,
       stripePaymentIntentId: paymentIntent.id,
       stripeCustomerId: stripeCustomerId,
       amount: gemPackage.price,
-      premiumCurrencyGranted: gemPackage.gems + gemPackage.bonus, // Store granted gems
+      credits: gemPackage.gems + gemPackage.bonus, // Store granted gems as credits
       status: "pending",
       currency: "usd",
-      packageId: packageId, // Link transaction to package
     });
 
     res.json({
@@ -221,7 +220,7 @@ router.post("/webhook", express.raw({type: 'application/json'}), async (req: Req
     console.log(`PaymentIntent ${paymentIntent.id} succeeded.`);
 
     try {
-      const transaction = await storage.getPaymentTransactionByStripeId(paymentIntent.id);
+      const transaction = await storage.payments.getPaymentTransactionByStripeIntentId(paymentIntent.id);
       if (!transaction) {
         console.error(`Transaction not found in DB for successful PaymentIntent: ${paymentIntent.id}`);
         return res.status(404).json({ message: "Transaction not found for PI, but Stripe payment succeeded." });
@@ -231,28 +230,25 @@ router.post("/webhook", express.raw({type: 'application/json'}), async (req: Req
         return res.json({ received: true, message: "Already processed." });
       }
 
-      await storage.updatePaymentTransaction(transaction.id, {
+      await storage.payments.updatePaymentTransaction(transaction.id, {
         status: "completed",
         completedAt: new Date(),
-        receiptUrl: paymentIntent.charges?.data?.[0]?.receipt_url || null,
+        receiptUrl: paymentIntent.latest_charge ? (paymentIntent.latest_charge as any).receipt_url : null,
         paymentMethod: paymentIntent.payment_method_types?.[0] || 'unknown',
       });
 
-      const user = await storage.getUser(transaction.userId);
+      const user = await storage.users.getUser(transaction.userId);
       if (user) {
-        const team = await storage.getTeamByUserId(user.id);
+        const team = await storage.teams.getTeamByUserId(user.id);
         if (team) {
-          const finances = await storage.getTeamFinances(team.id);
+          const finances = await storage.teamFinances.getTeamFinances(team.id);
           if (finances) {
             const updates: Partial<typeof finances> = {};
             if (transaction.credits && transaction.credits > 0) {
                 updates.credits = (finances.credits || 0) + transaction.credits;
             }
-            if (transaction.premiumCurrencyGranted && transaction.premiumCurrencyGranted > 0) {
-                updates.premiumCurrency = (finances.premiumCurrency || 0) + transaction.premiumCurrencyGranted;
-            }
             if (Object.keys(updates).length > 0) {
-                await storage.updateTeamFinances(team.id, updates);
+                await storage.teamFinances.updateTeamFinances(team.id, updates);
                 console.log(`User ${transaction.userId} (Team ${team.id}) granted resources for transaction ${transaction.id}.`);
             }
           }
@@ -266,9 +262,9 @@ router.post("/webhook", express.raw({type: 'application/json'}), async (req: Req
     const paymentIntent = event.data.object as Stripe.PaymentIntent;
     console.log(`PaymentIntent ${paymentIntent.id} failed.`);
     try {
-        const transaction = await storage.getPaymentTransactionByStripeId(paymentIntent.id);
+        const transaction = await storage.payments.getPaymentTransactionByStripeIntentId(paymentIntent.id);
         if (transaction && transaction.status !== 'failed') {
-             await storage.updatePaymentTransaction(transaction.id, {
+             await storage.payments.updatePaymentTransaction(transaction.id, {
                 status: "failed",
                 failureReason: paymentIntent.last_payment_error?.message || "Unknown Stripe failure",
             });
@@ -286,7 +282,7 @@ router.post("/webhook", express.raw({type: 'application/json'}), async (req: Req
 router.get('/history', isAuthenticated, async (req: any, res: Response, next: NextFunction) => {
   try {
     const userId = req.user.claims.sub;
-    const history = await storage.getUserPaymentHistory(userId);
+    const history = await storage.payments.getUserPaymentHistory(userId);
     res.json(history);
   } catch (error) {
     console.error("Error fetching payment history:", error);
