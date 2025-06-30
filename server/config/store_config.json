@@ -1,0 +1,43 @@
+{
+  "itemPrices": {
+    "helmet_basic": { "credits": 5000, "gems": 50 },
+    "training_credits_small": { "gems": 10 },
+    "training_credits_medium": { "gems": 45 },
+    "training_credits_large": { "gems": 80 },
+    "stamina_potion_small": { "credits": 1000 },
+    "stamina_potion_large": { "credits": 2500, "gems": 20 },
+    "contract_extension_basic": { "credits": 10000, "gems": 100 },
+    "scouting_report_tier1": {"credits": 2000}
+  },
+  "creditsPerGem": 1000,
+  "adSystem": {
+    "dailyTotalAdsLimit": 10,
+    "dailyRewardedAdsLimit": 3,
+    "rewards": {
+      "stamina_boost": { "credits": 200 },
+      "daily_bonus": { "credits": 500 },
+      "generic_watch": { "credits": 100 }
+    }
+  },
+  "storeSections": {
+    "staticItems": [
+      { "itemId": "helmet_basic", "name": "Basic Helmet", "description": "A standard issue helmet." },
+      { "itemId": "stamina_potion_small", "name": "Small Stamina Potion", "description": "Recovers a small amount of stamina." }
+    ],
+    "premiumItems": [
+      { "itemId": "training_credits_small", "name": "Small Training Credits Pack", "description": "A small pack of training credits." },
+      { "itemId": "training_credits_medium", "name": "Medium Training Credits Pack", "description": "A medium pack of training credits." },
+      { "itemId": "training_credits_large", "name": "Large Training Credits Pack", "description": "A large pack of training credits." },
+      { "itemId": "contract_extension_basic", "name": "Basic Contract Extension", "description": "Extend a player's contract." }
+    ],
+    "equipment": [
+      { "itemId": "helmet_basic", "name": "Basic Helmet", "description": "A standard issue helmet." },
+      { "itemId": "gloves_standard", "name": "Standard Gloves", "description": "Improves catching." },
+      { "itemId": "boots_speed", "name": "Speed Boots", "description": "Slightly increases player speed." }
+    ],
+    "tournamentEntries": [
+      { "itemId": "bronze_tournament_ticket", "name": "Bronze Tournament Ticket", "description": "Entry to a Bronze Tier tournament." },
+      { "itemId": "silver_tournament_ticket", "name": "Silver Tournament Ticket", "description": "Entry to a Silver Tier tournament." }
+    ]
+  }
+}

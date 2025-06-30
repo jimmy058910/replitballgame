@@ -5,6 +5,7 @@ import { adSystemStorage } from "../storage/adSystemStorage";
 // import { itemStorage } from "../storage/itemStorage"; // For fetching actual item details
 import { isAuthenticated } from "../replitAuth";
 import { z } from "zod";
+import storeConfig from "../config/store_config.json";
 
 const router = Router();
 
@@ -38,20 +39,23 @@ router.get('/', isAuthenticated, async (req: Request, res: Response, next: NextF
       return _ / 233280;
     };
 
-    // TODO: Fetch actual item definitions from itemStorage or a game config service
-    // For now, using placeholder structure from original file
-    const allPremiumItems = [ /* ... as defined before ... */ ];
-    const allEquipment = [ /* ... as defined before ... */ ];
+    // Load items from config
+    const allPremiumItems = storeConfig.storeSections.premiumItems || [];
+    const allEquipment = storeConfig.storeSections.equipment || [];
+    const staticStoreItems = storeConfig.storeSections.staticItems || [];
+    const tournamentEntriesItems = storeConfig.storeSections.tournamentEntries || [];
 
     const rng = seededRandom(seed);
-    const shuffledPremium = [...allPremiumItems].sort(() => 0.5 - rng()); // Use rng()
-    const shuffledEquipment = [...allEquipment].sort(() => 0.5 - rng()); // Use rng()
+    const shuffledPremium = [...allPremiumItems].sort(() => 0.5 - rng());
+    const shuffledEquipment = [...allEquipment].sort(() => 0.5 - rng());
 
-    const dailyPremiumItems = shuffledPremium.slice(0, 3);
-    const dailyEquipment = shuffledEquipment.slice(0, 4);
-    const staticStoreItems = [ /* ... */ ];
-    const tournamentEntriesItems = [ /* ... */ ];
-    const creditPackagesForGems = [ /* ... these are for REAL money purchases, handled by /payments endpoint ... */ ];
+    // Select a subset for daily rotation, ensure not to select more than available
+    const dailyPremiumItemsCount = Math.min(3, shuffledPremium.length);
+    const dailyEquipmentCount = Math.min(4, shuffledEquipment.length);
+
+    const dailyPremiumItems = shuffledPremium.slice(0, dailyPremiumItemsCount);
+    const dailyEquipment = shuffledEquipment.slice(0, dailyEquipmentCount);
+    // const creditPackagesForGems = [ /* ... these are for REAL money purchases, handled by /payments endpoint ... */ ];
 
     const resetTime = new Date(rotationDate);
     resetTime.setUTCDate(rotationDate.getUTCDate() + 1);
@@ -76,15 +80,13 @@ router.get('/ads', isAuthenticated, async (req: any, res: Response, next: NextFu
     const dailyAdsWatched = await adSystemStorage.getDailyAdViewsCountByUser(userId);
     const dailyRewardedCompleted = await adSystemStorage.getDailyCompletedRewardedAdViewsCountByUser(userId);
 
-    // Example limits (these should be configurable)
-    const dailyTotalAdsLimit = 10;
-    const dailyRewardedAdsLimit = 3;
+    const { dailyTotalAdsLimit, dailyRewardedAdsLimit } = storeConfig.adSystem;
 
     res.json({
       adsWatchedToday: dailyAdsWatched,
       rewardedAdsCompletedToday: dailyRewardedCompleted,
-      adsRemainingToday: Math.max(0, dailyTotalAdsLimit - dailyAdsWatched),
-      rewardedAdsRemainingToday: Math.max(0, dailyRewardedAdsLimit - dailyRewardedCompleted),
+      adsRemainingToday: Math.max(0, (dailyTotalAdsLimit || 10) - dailyAdsWatched), // Fallback if not in config
+      rewardedAdsRemainingToday: Math.max(0, (dailyRewardedAdsLimit || 3) - dailyRewardedCompleted), // Fallback
     });
   } catch (error) {
     console.error("Error fetching ad data:", error);
@@ -100,13 +102,9 @@ router.post('/watch-ad', isAuthenticated, async (req: any, res: Response, next: 
 
     // Reward logic should be server-defined based on placement/adType, not client-sent.
     const { adType, placement } = req.body; // Client might indicate context
-    let rewardAmount = 0;
-    let rewardType = 'none';
 
-    // Example server-defined rewards
-    if (placement === 'stamina_boost') { rewardAmount = 200; rewardType = 'credits'; }
-    else if (placement === 'daily_bonus') { rewardAmount = 500; rewardType = 'credits'; }
-    else { rewardAmount = 100; rewardType = 'credits'; } // Default fallback
+    let rewardAmount = storeConfig.adSystem.rewards[placement]?.credits || storeConfig.adSystem.rewards.generic_watch.credits || 0;
+    let rewardType = 'credits'; // Assuming credits for now, can be expanded in config
 
     const finances = await teamFinancesStorage.getTeamFinances(team.id);
     if (!finances) return res.status(404).json({ message: "Team finances not found." });
@@ -147,16 +145,17 @@ router.post('/purchase', isAuthenticated, async (req: any, res: Response, next: 
     // TODO: Fetch actual item details from itemStorage or config service using itemId
     // const itemDetails = await itemStorage.getStoreItemDetails(itemId);
     // if (!itemDetails) return res.status(404).json({ message: "Item not found in store."});
-    // const actualPrice = itemDetails.prices[currency]; // Assuming itemDetails has price for each currency
-    // if (actualPrice === undefined) return res.status(400).json({ message: `Item not available for ${currency}.`});
-    // if (expectedPrice !== undefined && expectedPrice !== actualPrice) return res.status(409).json({ message: "Price mismatch. Please refresh store."});
 
-    const MOCK_ITEM_PRICES:any = { "helmet_basic": {credits: 5000}, "training_credits": {gems: 10} };
-    const itemDetails = MOCK_ITEM_PRICES[itemId];
-    if(!itemDetails) return res.status(404).json({message: "Mock item not found"});
-    const actualPrice = itemDetails[currency === "premium_currency" ? "gems" : currency];
-    if(actualPrice === undefined) return res.status(400).json({message: `Item not available for ${currency}`});
+    const itemPriceInfo = storeConfig.itemPrices[itemId];
+    if (!itemPriceInfo) return res.status(404).json({ message: "Item not found in store configuration." });
 
+    const actualPrice = itemPriceInfo[currency === "premium_currency" ? "gems" : currency];
+    if (actualPrice === undefined) return res.status(400).json({ message: `Item not available for ${currency}.` });
+
+    if (expectedPrice !== undefined && expectedPrice !== actualPrice) {
+      // Optional: could log this attempt or handle differently
+      return res.status(409).json({ message: "Price mismatch. Please refresh store data."});
+    }
 
     let message = "";
     if (currency === "credits") {
@@ -193,8 +192,8 @@ router.post('/convert-gems', isAuthenticated, async (req: any, res: Response, ne
     if (!finances) return res.status(404).json({ message: "Team finances not found." });
     if ((finances.premiumCurrency || 0) < gemsAmount) return res.status(400).json({ message: "Insufficient Premium Gems." });
 
-    const CREDITS_PER_GEM = 1000; // TODO: Move to a game config file
-    const creditsToAdd = gemsAmount * CREDITS_PER_GEM;
+    const creditsPerGem = storeConfig.creditsPerGem || 1000; // Fallback if not in config
+    const creditsToAdd = gemsAmount * creditsPerGem;
 
     await teamFinancesStorage.updateTeamFinances(team.id, {
       premiumCurrency: (finances.premiumCurrency || 0) - gemsAmount,
