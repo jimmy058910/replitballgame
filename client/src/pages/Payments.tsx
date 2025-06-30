@@ -10,6 +10,19 @@ import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { CreditCard, Crown, Zap, Star, CheckCircle, History } from "lucide-react";
 import Navigation from "@/components/Navigation";
+import type { Team, CreditPackage, PaymentTransaction, UserSubscription } from "shared/schema"; // Import relevant types
+
+// Interfaces for API responses and local state
+interface CreatePaymentIntentResponse {
+  clientSecret: string;
+  message?: string; // Optional error/info message
+}
+
+interface UserCreditsData {
+  credits: number;
+  // Add other finance-related fields if they exist
+}
+
 
 // Make sure to call `loadStripe` outside of a component's render to avoid
 // recreating the `Stripe` object on every render.
@@ -18,7 +31,7 @@ if (!import.meta.env.VITE_STRIPE_PUBLIC_KEY) {
 }
 const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLIC_KEY);
 
-const CheckoutForm = ({ packageData, onSuccess }: { packageData: any, onSuccess: () => void }) => {
+const CheckoutForm = ({ packageData, onSuccess }: { packageData: CreditPackage, onSuccess: () => void }) => {
   const stripe = useStripe();
   const elements = useElements();
   const { toast } = useToast();
@@ -67,9 +80,9 @@ const CheckoutForm = ({ packageData, onSuccess }: { packageData: any, onSuccess:
         </div>
         <div className="flex justify-between items-center text-sm text-gray-400">
           <span>Credits: {packageData.credits.toLocaleString()}</span>
-          {packageData.bonusCredits > 0 && (
+          {(packageData.bonusCredits ?? 0) > 0 && (
             <span className="text-green-400">
-              +{packageData.bonusCredits.toLocaleString()} bonus
+              +{(packageData.bonusCredits ?? 0).toLocaleString()} bonus
             </span>
           )}
         </div>
@@ -77,7 +90,7 @@ const CheckoutForm = ({ packageData, onSuccess }: { packageData: any, onSuccess:
           <div className="flex justify-between items-center font-semibold">
             <span>Total Credits:</span>
             <span className="text-blue-400">
-              {(packageData.credits + (packageData.bonusCredits || 0)).toLocaleString()}₡
+              {(packageData.credits + (packageData.bonusCredits ?? 0)).toLocaleString()}₡
             </span>
           </div>
         </div>
@@ -96,22 +109,21 @@ const CheckoutForm = ({ packageData, onSuccess }: { packageData: any, onSuccess:
   );
 };
 
-const PaymentCheckout = ({ selectedPackage, onBack }: { selectedPackage: any, onBack: () => void }) => {
-  const [clientSecret, setClientSecret] = useState("");
+const PaymentCheckout = ({ selectedPackage, onBack }: { selectedPackage: CreditPackage, onBack: () => void }) => {
+  const [clientSecret, setClientSecret] = useState<string | null>(null);
   const { toast } = useToast();
 
   useEffect(() => {
     // Create PaymentIntent when component loads
-    apiRequest("/api/payments/create-payment-intent", "POST", { packageId: selectedPackage.id })
-      .then((res) => res.json())
-      .then((data) => {
+    apiRequest<CreatePaymentIntentResponse>("/api/payments/create-payment-intent", "POST", { packageId: selectedPackage.id })
+      .then((data) => { // apiRequest now directly returns typed data
         if (data.clientSecret) {
           setClientSecret(data.clientSecret);
         } else {
           throw new Error(data.message || "Failed to create payment intent");
         }
       })
-      .catch((error) => {
+      .catch((error: Error) => { // Explicitly type error
         toast({
           title: "Error",
           description: error.message || "Failed to initialize payment",
@@ -156,31 +168,38 @@ const PaymentCheckout = ({ selectedPackage, onBack }: { selectedPackage: any, on
 };
 
 export default function Payments() {
-  const [selectedPackage, setSelectedPackage] = useState<any>(null);
+  const [selectedPackage, setSelectedPackage] = useState<CreditPackage | null>(null);
   const { toast } = useToast();
 
-  const { data: packages, isLoading } = useQuery({
-    queryKey: ["/api/payments/packages"],
+  const packagesQuery = useQuery({
+    queryKey: ["creditPackages"],
+    queryFn: (): Promise<CreditPackage[]> => apiRequest("/api/payments/packages"),
   });
+  const packages = packagesQuery.data as CreditPackage[] | undefined;
+  const isLoadingPackages = packagesQuery.isLoading;
 
-  const { data: paymentHistory } = useQuery({
-    queryKey: ["/api/payments/history"],
+  const paymentHistoryQuery = useQuery({
+    queryKey: ["paymentHistory"],
+    queryFn: (): Promise<PaymentTransaction[]> => apiRequest("/api/payments/history"),
   });
+  const paymentHistory = paymentHistoryQuery.data as PaymentTransaction[] | undefined;
 
-  const { data: finances } = useQuery({
-    queryKey: ["/api/teams/my/finances"],
+  const financesQuery = useQuery({
+    queryKey: ["myTeamFinances"], // Consistent query key
+    queryFn: (): Promise<UserCreditsData> => apiRequest("/api/teams/my/finances"),
   });
+  const finances = financesQuery.data as UserCreditsData | undefined;
 
   const seedPackagesMutation = useMutation({
-    mutationFn: async () => {
-      return await apiRequest("/api/payments/seed-packages", "POST", {});
+    mutationFn: async (): Promise<void> => { // Assuming no specific data is returned on success
+      return apiRequest<void>("/api/payments/seed-packages", "POST", {});
     },
     onSuccess: () => {
       toast({
         title: "Success",
         description: "Credit packages have been set up!",
       });
-      queryClient.invalidateQueries({ queryKey: ["/api/payments/packages"] });
+      queryClient.invalidateQueries({ queryKey: ["creditPackages"] });
     },
     onError: (error: Error) => {
       toast({
@@ -238,13 +257,13 @@ export default function Payments() {
             </TabsList>
 
             <TabsContent value="packages" className="space-y-6">
-              {isLoading && (
+              {isLoadingPackages && (
                 <div className="h-64 flex items-center justify-center">
                   <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full" aria-label="Loading"/>
                 </div>
               )}
 
-              {!isLoading && (!packages || packages.length === 0) && (
+              {!isLoadingPackages && (!packages || packages.length === 0) && (
                 <div className="text-center py-12">
                   <p className="text-gray-400 mb-4">No credit packages available yet.</p>
                   <Button 
@@ -259,7 +278,7 @@ export default function Payments() {
 
               {packages && packages.length > 0 && (
                 <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
-                  {packages.map((pkg: any) => (
+                  {packages.map((pkg: CreditPackage) => (
                     <Card 
                       key={pkg.id} 
                       className={`bg-gray-800 border-gray-700 hover:border-blue-500 transition-colors relative ${
@@ -294,10 +313,10 @@ export default function Payments() {
                             <span className="font-semibold">{pkg.credits.toLocaleString()}₡</span>
                           </div>
                           
-                          {pkg.bonusCredits > 0 && (
+                          {(pkg.bonusCredits ?? 0) > 0 && (
                             <div className="flex justify-between items-center text-green-400">
                               <span>Bonus Credits:</span>
-                              <span className="font-semibold">+{pkg.bonusCredits.toLocaleString()}₡</span>
+                              <span className="font-semibold">+{ (pkg.bonusCredits ?? 0).toLocaleString()}₡</span>
                             </div>
                           )}
                           
@@ -305,13 +324,13 @@ export default function Payments() {
                             <div className="flex justify-between items-center font-bold">
                               <span>Total Credits:</span>
                               <span className="text-blue-400">
-                                {(pkg.credits + (pkg.bonusCredits || 0)).toLocaleString()}₡
+                                {(pkg.credits + (pkg.bonusCredits ?? 0)).toLocaleString()}₡
                               </span>
                             </div>
                           </div>
 
                           <div className="text-xs text-gray-500 text-center">
-                            Value: {Math.round(((pkg.credits + (pkg.bonusCredits || 0)) / pkg.price) * 100)} credits per cent
+                            Value: {Math.round(((pkg.credits + (pkg.bonusCredits ?? 0)) / pkg.price) * 100)} credits per cent
                           </div>
                         </div>
 
@@ -342,14 +361,19 @@ export default function Payments() {
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  {!paymentHistory || paymentHistory.length === 0 ? (
+                  {paymentHistoryQuery.isLoading && (
+                    <div className="h-40 flex items-center justify-center">
+                      <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full" aria-label="Loading history"/>
+                    </div>
+                  )}
+                  {!paymentHistoryQuery.isLoading && (!paymentHistory || paymentHistory.length === 0) ? (
                     <div className="text-center py-12 text-gray-400">
                       <History className="w-12 h-12 mx-auto mb-4 opacity-50" />
                       <p>No purchases yet. Buy your first credit package above!</p>
                     </div>
                   ) : (
                     <div className="space-y-4">
-                      {paymentHistory.map((transaction: any) => (
+                      {paymentHistory?.map((transaction: PaymentTransaction) => (
                         <div 
                           key={transaction.id}
                           className="flex justify-between items-center p-4 bg-gray-700 rounded-lg"
@@ -357,7 +381,7 @@ export default function Payments() {
                           <div>
                             <p className="font-semibold">{transaction.credits.toLocaleString()}₡ Credits</p>
                             <p className="text-sm text-gray-400">
-                              {new Date(transaction.createdAt).toLocaleDateString()}
+                              {transaction.createdAt ? new Date(transaction.createdAt).toLocaleDateString() : 'Date N/A'}
                             </p>
                           </div>
                           <div className="text-right">

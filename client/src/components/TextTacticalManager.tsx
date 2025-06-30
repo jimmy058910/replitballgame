@@ -42,20 +42,13 @@ export default function TextTacticalManager({ players, savedFormation }: TextTac
 
   // Load saved formation on component mount
   useEffect(() => {
-    if (savedFormation && savedFormation.formation && players.length > 0) {
-      console.log("Loading saved formation:", savedFormation);
-      console.log("Available players:", players.map(p => ({ id: p.id, name: `${p.firstName} ${p.lastName}`, role: p.role })));
-      
-      // Get saved starters and filter by valid player IDs
+    if (savedFormation && savedFormation.formation) {
       const savedStarters = savedFormation.formation
         .filter((p: any) => p.isStarter)
-        .map((p: any) => p.id)
-        .filter((id: string) => players.some(player => player.id === id));
-      
-      console.log("Valid saved starters:", savedStarters);
+        .map((p: any) => p.id);
       setStarters(savedStarters);
       
-      // Set substitution orders based on current players, not saved formation roles
+      // Set substitution orders
       const subs = { passer: [] as string[], runner: [] as string[], blocker: [] as string[] };
       players.forEach(player => {
         if (!savedStarters.includes(player.id)) {
@@ -66,23 +59,6 @@ export default function TextTacticalManager({ players, savedFormation }: TextTac
         }
       });
       setSubstitutionOrder(subs);
-      
-      // If we have saved substitution order, use it
-      if (savedFormation.substitutionOrder) {
-        const savedSubs = savedFormation.substitutionOrder;
-        const validSubs = { passer: [] as string[], runner: [] as string[], blocker: [] as string[] };
-        
-        // Only include valid player IDs from saved substitution order
-        Object.keys(savedSubs).forEach(role => {
-          if (role === 'passer' || role === 'runner' || role === 'blocker') {
-            validSubs[role] = savedSubs[role].filter((id: string) => 
-              players.some(player => player.id === id && !savedStarters.includes(id))
-            );
-          }
-        });
-        
-        setSubstitutionOrder(validSubs);
-      }
     }
   }, [savedFormation, players]);
 
@@ -294,41 +270,17 @@ export default function TextTacticalManager({ players, savedFormation }: TextTac
         })()
       }));
 
-      console.log("Sending formation data:", { formation: formationData, substitutionOrder });
-      
-      try {
-        const response = await apiRequest("/api/teams/my/formation", "POST", { 
-          formation: formationData, 
-          substitutionOrder 
-        });
-        
-        console.log("Formation save response:", response);
-        return response;
-      } catch (error) {
-        console.error("API Request failed:", error);
-        throw error;
-      }
+      await apiRequest("/api/teams/my/formation", "POST", { formation: formationData });
     },
-    onSuccess: (data) => {
-      console.log("Formation save success:", data);
+    onSuccess: () => {
       toast({ title: "Formation saved successfully!" });
       queryClient.invalidateQueries({ queryKey: ["/api/teams/my/formation"] });
     },
-    onError: (error) => {
-      console.error("Formation save error:", error);
-      // Check if it's actually an error or just empty response
-      if (error && error.message) {
-        toast({
-          title: "Failed to save formation",
-          description: error.message,
-          variant: "destructive",
-        });
-      } else {
-        // Might be a false positive error
-        console.log("Possible false positive error, checking if formation was actually saved");
-        queryClient.invalidateQueries({ queryKey: ["/api/teams/my/formation"] });
-        toast({ title: "Formation may have been saved - please check!" });
-      }
+    onError: () => {
+      toast({
+        title: "Failed to save formation",
+        variant: "destructive",
+      });
     },
   });
 

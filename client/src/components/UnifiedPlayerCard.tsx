@@ -132,11 +132,8 @@ export default function UnifiedPlayerCard({
     ? `${player.firstName} ${player.lastName}` 
     : player.name || 'Unknown Player';
 
-  // Core Athleticism Rating (CAR) - average of 6 core stats
-  const playerCAR = Math.round(
-    ((player.speed || 20) + (player.power || 20) + (player.throwing || 20) + 
-     (player.catching || 20) + (player.kicking || 20) + (player.agility || 20)) / 6
-  );
+  const playerPower = (player.speed || 20) + (player.power || 20) + (player.throwing || 20) + 
+                     (player.catching || 20) + (player.kicking || 20);
 
   // Scouting data for recruiting variant
   const scoutedStats = variant === 'recruiting' ? {
@@ -170,13 +167,13 @@ export default function UnifiedPlayerCard({
         <CardContent className="p-5">
           <div className="flex items-center space-x-4">
             <div className="flex-shrink-0 text-center">
-              <div className="text-xs text-red-400 font-medium mb-1">CAR</div>
+              <div className="text-xs text-red-400 font-medium mb-1">Power</div>
               <div className={`w-16 h-16 rounded-full flex items-center justify-center text-white font-bold text-xl ${
-                playerCAR >= 30 ? 'bg-red-600' : 
-                playerCAR <= 20 ? 'bg-gray-600' : 
+                playerPower >= 120 ? 'bg-red-600' : 
+                playerPower <= 80 ? 'bg-gray-600' : 
                 'bg-red-500'
               }`}>
-                {playerCAR}
+                {playerPower}
               </div>
             </div>
             <div className="flex-1 min-w-0">
@@ -243,9 +240,9 @@ export default function UnifiedPlayerCard({
             </div>
 
             <div className="text-right">
-              <div className="text-sm text-gray-400 mb-1">CAR Range</div>
+              <div className="text-sm text-gray-400 mb-1">Power Range</div>
               <div className="text-lg font-bold text-blue-400">
-                {scoutedPowerRange ? `${Math.round(scoutedPowerRange.min / 6)}-${Math.round(scoutedPowerRange.max / 6)}` : playerCAR}
+                {scoutedPowerRange ? `${scoutedPowerRange.min}-${scoutedPowerRange.max}` : playerPower}
               </div>
             </div>
           </div>
@@ -357,9 +354,9 @@ export default function UnifiedPlayerCard({
 
           <div className="text-right">
             <div className="text-2xl font-bold text-blue-400">
-              {playerCAR}
+              {playerPower}
             </div>
-            <div className="text-xs text-gray-400">CAR</div>
+            <div className="text-xs text-gray-400">Power</div>
           </div>
         </div>
 

@@ -170,6 +170,7 @@ export function AdSystem({
   };
 
   const adContent = getAdContent();
+  const ctaText = 'cta' in adContent ? adContent.cta : "Continue";
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -201,7 +202,7 @@ export function AdSystem({
                 <h3 className="text-lg font-bold mb-2">{adContent.title}</h3>
                 <p className="text-sm opacity-90 mb-4">{adContent.description}</p>
                 <Button variant="secondary" size="sm" disabled>
-                  {adContent.cta}
+                  {ctaText}
                 </Button>
               </div>
 
@@ -287,7 +288,7 @@ export function useAdSystem() {
     placement: string, 
     rewardType: 'credits' | 'premium_currency', 
     rewardAmount: number,
-    onComplete?: (reward: { type: string; amount: number }) => void
+    onComplete?: (reward?: { type: string; amount: number }) => void // Made reward parameter optional
   ) => {
     setAdConfig({
       isOpen: true,

@@ -5,46 +5,71 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+// Input, Label, Select components are not used in the provided fixed version, so commented out.
+// import { Input } from "@/components/ui/input";
+// import { Label } from "@/components/ui/label";
+// import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { Building2, Zap, Users, TrendingUp, Calendar, DollarSign, Wrench, Star, Coins, ArrowUp, Shield, Home, Gauge } from "lucide-react";
+import type { Stadium as SharedStadium, FacilityUpgrade as SharedFacilityUpgrade, StadiumEvent as SharedStadiumEvent, Team, TeamFinances } from "shared/schema";
+
+// Define interfaces for the page data
+interface ClientStadium extends SharedStadium {}
+interface ClientFacilityUpgrade extends SharedFacilityUpgrade {}
+interface ClientStadiumEvent extends SharedStadiumEvent {}
+
+interface StadiumPageData {
+  stadium: ClientStadium;
+  availableUpgrades: ClientFacilityUpgrade[];
+  events: ClientStadiumEvent[];
+}
+
+interface UpgradePayload {
+  upgradeType: string;
+  upgradeName: string;
+}
+
+interface UserCreditsData {
+  credits: number;
+}
 
 export default function Stadium() {
   const { toast } = useToast();
-  const [selectedUpgrade, setSelectedUpgrade] = useState<any>(null);
+  const [selectedUpgrade, setSelectedUpgrade] = useState<ClientFacilityUpgrade | null>(null);
 
-  const { data: stadiumData, isLoading } = useQuery({
-    queryKey: ["/api/stadium"],
+  const stadiumPageQuery = useQuery({
+    queryKey: ["stadiumPageData"],
+    queryFn: (): Promise<StadiumPageData> => apiRequest("/api/stadium/my"),
   });
+  const stadiumData = stadiumPageQuery.data as StadiumPageData | undefined;
+  const isLoadingStadium = stadiumPageQuery.isLoading;
 
-  const { data: finances } = useQuery({
-    queryKey: ["/api/teams/my/finances"],
+  const financesQuery = useQuery({
+    queryKey: ["myTeamFinances"],
+    queryFn: (): Promise<UserCreditsData> => apiRequest("/api/teams/my/finances"),
   });
+  const finances = financesQuery.data as UserCreditsData | undefined;
 
-  const { data: teamData } = useQuery({
-    queryKey: ["/api/teams/my"],
+  const teamQuery = useQuery({
+    queryKey: ["myTeam"],
+    queryFn: (): Promise<Team> => apiRequest("/api/teams/my"),
   });
 
   const upgradeMutation = useMutation({
-    mutationFn: async (upgrade: any) => {
-      return await apiRequest("/api/stadium/upgrade", "POST", {
-        upgradeType: upgrade.type,
-        upgradeName: upgrade.name
-      });
+    mutationFn: async (upgradeDetails: UpgradePayload): Promise<void> => {
+      return apiRequest<void>("/api/stadium/upgrade", "POST", upgradeDetails);
     },
     onSuccess: () => {
       toast({
         title: "Stadium Upgraded",
         description: "Your stadium has been successfully upgraded!",
       });
-      queryClient.invalidateQueries({ queryKey: ["/api/stadium"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/teams/my/finances"] });
+      queryClient.invalidateQueries({ queryKey: ["stadiumPageData"] });
+      queryClient.invalidateQueries({ queryKey: ["myTeamFinances"] });
       setSelectedUpgrade(null);
     },
-    onError: (error: any) => {
+    onError: (error: Error) => {
       toast({
         title: "Upgrade Failed",
         description: error.message || "Could not upgrade stadium",
@@ -53,18 +78,16 @@ export default function Stadium() {
     },
   });
 
-  const formatCredits = (amount: number) => {
-    return `${amount?.toLocaleString()} 💰`;
+  const formatCredits = (amount: number | null | undefined) => {
+    return `${(amount ?? 0).toLocaleString()} 💰`;
   };
 
-
-
-  if (isLoading) {
+  if (isLoadingStadium) {
     return (
       <div className="min-h-screen bg-gray-900 text-white">
         <Navigation />
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <div className="text-center">Loading stadium...</div>
+          <div className="text-center">Loading stadium data...</div>
         </div>
       </div>
     );
@@ -74,21 +97,21 @@ export default function Stadium() {
   const availableUpgrades = stadiumData?.availableUpgrades || [];
   const events = stadiumData?.events || [];
 
-  const getFieldSizeDescription = (size: string) => {
+  const getFieldSizeDescription = (size: string | null | undefined) => {
     switch (size) {
       case "regulation": return "Standard field size";
       case "extended": return "Larger field with strategic advantages";
       case "compact": return "Smaller field for faster gameplay";
-      default: return size;
+      default: return size || "N/A";
     }
   };
 
-  const getSurfaceDescription = (surface: string) => {
+  const getSurfaceDescription = (surface: string | null | undefined) => {
     switch (surface) {
       case "grass": return "Natural grass surface";
       case "synthetic": return "All-weather synthetic surface";
       case "hybrid": return "Weather-resistant hybrid surface";
-      default: return surface;
+      default: return surface || "N/A";
     }
   };
 
@@ -103,31 +126,30 @@ export default function Stadium() {
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Stadium Overview */}
           <div className="lg:col-span-2">
             <Card className="bg-gray-800 border-gray-700 mb-6">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Building2 className="w-5 h-5" />
-                  {stadium?.name}
+                  {stadium?.name ?? 'Your Stadium'}
                 </CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                   <div className="text-center">
-                    <div className="text-2xl font-bold text-blue-400">{stadium?.level}</div>
+                    <div className="text-2xl font-bold text-blue-400">{stadium?.level ?? 0}</div>
                     <div className="text-sm text-gray-400">Stadium Level</div>
                   </div>
                   <div className="text-center">
-                    <div className="text-2xl font-bold text-green-400">{stadium?.capacity?.toLocaleString()}</div>
+                    <div className="text-2xl font-bold text-green-400">{(stadium?.capacity ?? 0).toLocaleString()}</div>
                     <div className="text-sm text-gray-400">Capacity</div>
                   </div>
                   <div className="text-center">
-                    <div className="text-2xl font-bold text-yellow-400">{stadium?.homeAdvantage}%</div>
+                    <div className="text-2xl font-bold text-yellow-400">{stadium?.homeAdvantage ?? 0}%</div>
                     <div className="text-sm text-gray-400">Home Advantage</div>
                   </div>
                   <div className="text-center">
-                    <div className="text-2xl font-bold text-purple-400">{stadium?.revenueMultiplier}%</div>
+                    <div className="text-2xl font-bold text-purple-400">{stadium?.revenueMultiplier ?? 0}%</div>
                     <div className="text-sm text-gray-400">Revenue Boost</div>
                   </div>
                 </div>
@@ -146,7 +168,7 @@ export default function Stadium() {
                       </div>
                       <div className="flex justify-between">
                         <span className="text-gray-400">Lighting:</span>
-                        <Badge variant="outline" className="capitalize">{stadium?.lighting}</Badge>
+                        <Badge variant="outline" className="capitalize">{stadium?.lighting ?? 'N/A'}</Badge>
                       </div>
                     </div>
                   </div>
@@ -157,13 +179,13 @@ export default function Stadium() {
                       <div>
                         <div className="flex justify-between text-sm mb-1">
                           <span>Weather Resistance</span>
-                          <span>{stadium?.weatherResistance}%</span>
+                          <span>{stadium?.weatherResistance ?? 0}%</span>
                         </div>
-                        <Progress value={stadium?.weatherResistance} className="h-2" />
+                        <Progress value={stadium?.weatherResistance ?? 0} className="h-2" />
                       </div>
                       <div className="flex justify-between">
                         <span className="text-gray-400">Maintenance Cost:</span>
-                        <span className="text-red-400">${stadium?.maintenanceCost?.toLocaleString()}/season</span>
+                        <span className="text-red-400">${(stadium?.maintenanceCost ?? 0).toLocaleString()}/season</span>
                       </div>
                     </div>
                   </div>
@@ -171,7 +193,6 @@ export default function Stadium() {
               </CardContent>
             </Card>
 
-            {/* Available Upgrades */}
             <Card className="bg-gray-800 border-gray-700">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
@@ -184,11 +205,11 @@ export default function Stadium() {
                   <p className="text-gray-400">No upgrades available at this time.</p>
                 ) : (
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {availableUpgrades.map((upgrade: any, index: number) => (
-                      <div key={index} className="border border-gray-600 rounded-lg p-4">
+                    {availableUpgrades.map((upgrade: ClientFacilityUpgrade) => (
+                      <div key={upgrade.id} className="border border-gray-600 rounded-lg p-4">
                         <div className="flex justify-between items-start mb-2">
                           <h4 className="font-medium">{upgrade.name}</h4>
-                          <Badge className="capitalize">{upgrade.type}</Badge>
+                          <Badge className="capitalize">{upgrade.upgradeType}</Badge>
                         </div>
                         <p className="text-sm text-gray-400 mb-3">{upgrade.description}</p>
                         <div className="flex justify-between items-center">
@@ -196,7 +217,7 @@ export default function Stadium() {
                           <Button
                             size="sm"
                             onClick={() => setSelectedUpgrade(upgrade)}
-                            disabled={(finances?.credits || 0) < upgrade.cost || upgradeMutation.isPending}
+                            disabled={(finances?.credits ?? 0) < upgrade.cost || upgradeMutation.isPending}
                           >
                             Upgrade
                           </Button>
@@ -209,11 +230,7 @@ export default function Stadium() {
             </Card>
           </div>
 
-          {/* Sidebar */}
           <div className="space-y-6">
-
-
-            {/* Recent Events */}
             <Card className="bg-gray-800 border-gray-700">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
@@ -226,12 +243,12 @@ export default function Stadium() {
                   <p className="text-gray-400">No events scheduled.</p>
                 ) : (
                   <div className="space-y-3">
-                    {events.slice(0, 5).map((event: any) => (
+                    {events.slice(0, 5).map((event: ClientStadiumEvent) => (
                       <div key={event.id} className="border-l-4 border-blue-500 pl-3">
                         <div className="font-medium">{event.name}</div>
                         <div className="text-sm text-gray-400">{event.eventType}</div>
                         <div className="text-sm text-green-400">
-                          Revenue: ${event.revenue?.toLocaleString()}
+                          Revenue: ${(event.revenue ?? 0).toLocaleString()}
                         </div>
                       </div>
                     ))}
@@ -240,7 +257,6 @@ export default function Stadium() {
               </CardContent>
             </Card>
 
-            {/* Finances Summary */}
             <Card className="bg-gray-800 border-gray-700">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
@@ -253,18 +269,18 @@ export default function Stadium() {
                   <div className="flex justify-between">
                     <span className="text-gray-400">Available Credits:</span>
                     <span className="font-bold text-green-400">
-                      {formatCredits(finances?.credits || 0)}
+                      {formatCredits(finances?.credits)}
                     </span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-gray-400">Maintenance Cost:</span>
                     <span className="text-red-400">
-                      ${stadium?.maintenanceCost?.toLocaleString()}/season
+                      ${(stadium?.maintenanceCost ?? 0).toLocaleString()}/season
                     </span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-gray-400">Revenue Boost:</span>
-                    <span className="text-blue-400">{stadium?.revenueMultiplier}%</span>
+                    <span className="text-blue-400">{stadium?.revenueMultiplier ?? 0}%</span>
                   </div>
                 </div>
               </CardContent>
@@ -272,7 +288,6 @@ export default function Stadium() {
           </div>
         </div>
 
-        {/* Upgrade Confirmation Modal */}
         {selectedUpgrade && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
             <Card className="bg-gray-800 border-gray-700 w-96">
@@ -303,7 +318,14 @@ export default function Stadium() {
                     </Button>
                     <Button
                       className="flex-1"
-                      onClick={() => upgradeMutation.mutate(selectedUpgrade)}
+                      onClick={() => {
+                        // Ensure upgradeType and name are present before mutating
+                        if (selectedUpgrade.upgradeType && selectedUpgrade.name) {
+                           upgradeMutation.mutate({ upgradeType: selectedUpgrade.upgradeType, upgradeName: selectedUpgrade.name })
+                        } else {
+                           toast({title: "Error", description: "Upgrade details are incomplete.", variant: "destructive"})
+                        }
+                      }}
                       disabled={upgradeMutation.isPending}
                     >
                       {upgradeMutation.isPending ? "Upgrading..." : "Confirm"}

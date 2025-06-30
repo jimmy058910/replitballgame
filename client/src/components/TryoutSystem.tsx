@@ -7,24 +7,35 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { Progress } from "@/components/ui/progress";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import { Trophy, Star, Users, Clock, Eye, Search } from "lucide-react";
+import { Trophy, Users, Clock, Search } from "lucide-react"; // Removed Star, Eye as they are not directly used by TryoutSystem
 import UnifiedPlayerCard from "./UnifiedPlayerCard";
+import { TeamFinances as TeamFinancesData, Scout, Player } from "shared/schema"; // Added Player
 
-interface TryoutCandidate {
+// Adjusted TryoutCandidate to be more aligned with Player, but keeping specific fields like 'potential'
+interface TryoutCandidate extends Partial<Player> {
+  // Fields that MUST exist and are not optional from Player, or are specific to TryoutCandidate
   id: string;
-  name: string;
-  race: string;
-  age: number;
+  name: string; // Usually composed of firstName, lastName from Player
+  age: number;   // Assuming age is always present for a tryout candidate
+
+  // Core stats expected for a candidate, ensure they are numbers
   leadership: number;
   throwing: number;
   speed: number;
   agility: number;
   power: number;
   stamina: number;
-  catching?: number;
-  kicking?: number;
+  catching: number; // Assuming these are also essential, even if 0
+  kicking: number;  // Assuming these are also essential, even if 0
+
+  // Fields specific to TryoutCandidate
   marketValue: number;
   potential: "High" | "Medium" | "Low";
+
+  // Other fields from Player (like firstName, lastName, race) will be optional via Partial<Player>
+  // unless listed here as non-optional.
+  // For UnifiedPlayerCard, ensure `firstName` and `lastName` are handled if `name` isn't split.
+  // The current code splits `candidate.name` for UnifiedPlayerCard, so `name` field is important.
 }
 
 interface TryoutSystemProps {
@@ -48,48 +59,57 @@ export default function TryoutSystem({ teamId }: TryoutSystemProps) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  const { data: team } = useQuery({
-    queryKey: [`/api/teams/${teamId}`],
-  });
-
-  const { data: finances } = useQuery({
+  // Removed unused 'team' query. Credits are fetched from 'financesData'.
+  const { data: financesData, isLoading: financesLoading } = useQuery<TeamFinancesData, Error>({
     queryKey: [`/api/teams/${teamId}/finances`],
+    queryFn: () => apiRequest(`/api/teams/${teamId}/finances`),
+    enabled: !!teamId,
   });
 
-  // Get team's scout quality (simulate for now - will be from database later)
-  const { data: teamScouts } = useQuery({
+  // Get team's scout quality
+  const { data: teamScouts, isLoading: scoutsLoading } = useQuery<Scout[], Error>({
     queryKey: [`/api/teams/${teamId}/scouts`],
-    queryFn: () => {
+    queryFn: async () => {
       // Simulate scout data - in real implementation this would fetch from API
-      return Promise.resolve([
-        { id: '1', name: 'Head Scout', quality: Math.floor(Math.random() * 40) + 60, specialization: 'general' }
-      ]);
-    }
+      // Ensure the simulated data matches the Scout type
+      await new Promise(resolve => setTimeout(resolve, 500)); // Simulate network delay
+      const quality = Math.floor(Math.random() * 40) + 60;
+      return [
+        // Corrected createdAt to be a Date object
+        { id: 'simulated-scout-1', teamId: teamId, name: 'Head Scout', quality: quality, specialization: 'general', experience: 5, salary: 60000, contractLength: 3, isActive: true, createdAt: new Date() }
+      ];
+    },
+    enabled: !!teamId,
   });
 
   // Calculate effective scout quality
-  const effectiveScoutQuality = teamScouts && teamScouts.length > 0 
-    ? Math.max(...teamScouts.map((scout: any) => scout.quality))
+  const effectiveScoutQuality = teamScouts && teamScouts?.length > 0
+    ? Math.max(...teamScouts.map((scout: Scout) => scout.quality ?? 50))
     : 50;
 
   const basicCost = 25000;
   const advancedCost = 75000;
-  const currentCredits = finances?.credits || 0;
+  const currentCredits = financesData?.credits ?? 0;
   const canAffordBasic = currentCredits >= basicCost;
   const canAffordAdvanced = currentCredits >= advancedCost;
 
-  const hostTryoutMutation = useMutation({
+  interface HostTryoutResponse {
+    candidates: TryoutCandidate[];
+    type: "basic" | "advanced";
+  }
+
+  const hostTryoutMutation = useMutation<HostTryoutResponse, Error, "basic" | "advanced">({
     mutationFn: async (type: "basic" | "advanced") => {
       return apiRequest(`/api/teams/${teamId}/tryouts`, "POST", { type });
     },
     onSuccess: (data) => {
       setCandidates(data.candidates);
-      setTryoutType(data.type);
+      setTryoutType(data.type); // data.type should exist based on HostTryoutResponse
       setShowTryoutModal(true);
       startRevealAnimation(data.candidates);
       queryClient.invalidateQueries({ queryKey: [`/api/teams/${teamId}/finances`] });
     },
-    onError: (error) => {
+    onError: (error: Error) => { // Typed error
       toast({
         title: "Tryout Failed",
         description: error.message,
@@ -98,15 +118,22 @@ export default function TryoutSystem({ teamId }: TryoutSystemProps) {
     },
   });
 
-  const addToTaxiSquadMutation = useMutation({
-    mutationFn: async (candidateIds: string[]) => {
-      const selectedCandidateData = candidates.filter(c => candidateIds.includes(c.id));
-      return apiRequest(`/api/teams/${teamId}/taxi-squad/add-candidates`, "POST", { candidates: selectedCandidateData });
+  interface AddToTaxiResponse {
+    message: string;
+    // include other fields if the API returns more
+  }
+
+  const addToTaxiSquadMutation = useMutation<AddToTaxiResponse, Error, string[]>({ // Input is string[] (candidate IDs)
+    mutationFn: async (candidateIds: string[]) => { // Parameter is string[]
+      // Find the full candidate objects based on IDs.
+      // This assumes `candidates` state variable holds the currently displayed candidates from hostTryoutMutation.
+      const selectedFullCandidates = candidates.filter(c => candidateIds.includes(c.id));
+      return apiRequest(`/api/teams/${teamId}/taxi-squad/add-candidates`, "POST", { candidates: selectedFullCandidates });
     },
     onSuccess: (data) => {
       toast({
         title: "Success!",
-        description: data.message,
+        description: data.message, // data.message should exist based on AddToTaxiResponse
       });
       setShowTryoutModal(false);
       setSelectedCandidates([]);
@@ -114,7 +141,7 @@ export default function TryoutSystem({ teamId }: TryoutSystemProps) {
       setRevealedCandidates([]);
       queryClient.invalidateQueries({ queryKey: [`/api/teams/${teamId}/taxi-squad`] });
     },
-    onError: (error) => {
+    onError: (error: Error) => { // Typed error
       toast({
         title: "Failed to add players",
         description: error.message,
@@ -164,19 +191,33 @@ export default function TryoutSystem({ teamId }: TryoutSystemProps) {
     });
   };
 
-  const getPlayerRole = (candidate: TryoutCandidate) => {
+  const getPlayerRole = (candidate: TryoutCandidate): Player['position'] => {
     const stats = {
-      throwing: candidate.throwing,
-      speed: candidate.speed,
-      power: candidate.power,
-      catching: candidate.catching || 20,
-      kicking: candidate.kicking || 20
+      throwing: candidate.throwing ?? 0,
+      speed: candidate.speed ?? 0,
+      power: candidate.power ?? 0,
+      // catching and kicking might not be on TryoutCandidate if not on Player by default
+      // but UnifiedPlayerCard might need them.
+      // Assuming they are optional on Player or TryoutCandidate includes them.
+      catching: candidate.catching ?? 20,
+      kicking: candidate.kicking ?? 20
     };
 
-    if (stats.throwing >= Math.max(stats.speed, stats.power)) return "Passer";
-    if (stats.speed >= stats.power) return "Runner";
-    return "Blocker";
+    if (stats.throwing >= Math.max(stats.speed, stats.power)) return "Passer"; // Assuming 'Passer' is a valid Player['position']
+    if (stats.speed >= stats.power) return "Runner"; // Assuming 'Runner' is a valid Player['position']
+    return "Blocker"; // Assuming 'Blocker' is a valid Player['position']
   };
+
+  const isLoading = financesLoading || scoutsLoading; // Combine loading states
+
+  if (isLoading) {
+    return (
+      <Card className="bg-gray-800 border-gray-700">
+        <CardHeader><CardTitle>Loading Tryout System...</CardTitle></CardHeader>
+        <CardContent><Progress value={50} className="animate-pulse" /></CardContent>
+      </Card>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -214,7 +255,7 @@ export default function TryoutSystem({ teamId }: TryoutSystemProps) {
                     disabled={!canAffordBasic || hostTryoutMutation.isPending}
                     variant={canAffordBasic ? "default" : "secondary"}
                   >
-                    {hostTryoutMutation.isPending ? "Hosting..." : "Host Basic Tryout"}
+                    {hostTryoutMutation.isPending && hostTryoutMutation.variables === "basic" ? "Hosting..." : "Host Basic Tryout"}
                   </Button>
                 </div>
                 {!canAffordBasic && (
@@ -243,7 +284,7 @@ export default function TryoutSystem({ teamId }: TryoutSystemProps) {
                     disabled={!canAffordAdvanced || hostTryoutMutation.isPending}
                     variant={canAffordAdvanced ? "default" : "secondary"}
                   >
-                    {hostTryoutMutation.isPending ? "Hosting..." : "Host Advanced Tryout"}
+                    {hostTryoutMutation.isPending && hostTryoutMutation.variables === "advanced" ? "Hosting..." : "Host Advanced Tryout"}
                   </Button>
                 </div>
                 {!canAffordAdvanced && (
@@ -392,7 +433,7 @@ export default function TryoutSystem({ teamId }: TryoutSystemProps) {
                   onClick={() => addToTaxiSquadMutation.mutate(selectedCandidates)}
                   disabled={selectedCandidates.length === 0 || addToTaxiSquadMutation.isPending}
                 >
-                  Add to Taxi Squad
+                  {addToTaxiSquadMutation.isPending ? "Adding..." : "Add to Taxi Squad"}
                 </Button>
               </div>
             </div>

@@ -11,11 +11,13 @@ import { useToast } from "@/hooks/use-toast";
 import { AlertTriangle, Heart, Clock, Zap, TrendingUp, User, Activity, Shield } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
+type InjurySeverity = "minor" | "moderate" | "major" | "career_threatening";
+
 interface PlayerInjury {
   id: string;
   playerId: string;
   injuryType: string;
-  severity: "minor" | "moderate" | "major" | "career_threatening";
+  severity: InjurySeverity; // Use the defined type
   injuredAt: string;
   estimatedRecoveryDays: number;
   remainingRecoveryDays: number;
@@ -47,34 +49,42 @@ export default function InjurySystem() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
+  // Define a simple Player type for this component's context
+  interface Player {
+    id: string;
+    name: string;
+    race: string;
+    position: string;
+    age: number;
+    stamina: number;
+    // Add other relevant player properties if needed by getInjuryRisk
+  }
+
   // Fetch team players with injury data
-  const { data: players } = useQuery({
+  const { data: players = [] } = useQuery<Player[]>({ // Typed and default to empty array
     queryKey: ["/api/players/my-team"],
   });
 
   // Fetch active injuries
-  const { data: activeInjuries } = useQuery({
+  const { data: activeInjuries = [] } = useQuery<PlayerInjury[]>({ // Typed and default
     queryKey: ["/api/injuries/active"],
     refetchInterval: 30000, // Update every 30 seconds
   });
 
   // Fetch injury history
-  const { data: injuryHistory } = useQuery({
+  const { data: injuryHistory = [] } = useQuery<PlayerInjury[]>({ // Typed and default
     queryKey: ["/api/injuries/history"],
   });
 
   // Fetch available treatments
-  const { data: treatments } = useQuery({
+  const { data: treatments = [] } = useQuery<RecoveryTreatment[]>({ // Typed and default
     queryKey: ["/api/treatments"],
   });
 
   // Apply treatment mutation
   const applyTreatmentMutation = useMutation({
-    mutationFn: async ({ injuryId, treatmentId }: any) => 
-      apiRequest(`/api/injuries/${injuryId}/treatment`, {
-        method: "POST",
-        body: JSON.stringify({ treatmentId }),
-      }),
+    mutationFn: async ({ injuryId, treatmentId }: { injuryId: string; treatmentId: string }) =>
+      apiRequest(`/api/injuries/${injuryId}/treatment`, "POST", { treatmentId }), // Corrected apiRequest
     onSuccess: () => {
       toast({
         title: "Treatment Applied",
@@ -88,9 +98,7 @@ export default function InjurySystem() {
   // Rush recovery mutation (premium option)
   const rushRecoveryMutation = useMutation({
     mutationFn: async (injuryId: string) => 
-      apiRequest(`/api/injuries/${injuryId}/rush-recovery`, {
-        method: "POST",
-      }),
+      apiRequest(`/api/injuries/${injuryId}/rush-recovery`, "POST"), // Corrected apiRequest
     onSuccess: () => {
       toast({
         title: "Recovery Rushed",
@@ -101,7 +109,7 @@ export default function InjurySystem() {
     },
   });
 
-  const getSeverityColor = (severity: string) => {
+  const getSeverityColor = (severity: InjurySeverity) => { // Use InjurySeverity type
     switch (severity) {
       case "minor":
         return "bg-yellow-100 text-yellow-800 border-yellow-200";
@@ -112,11 +120,13 @@ export default function InjurySystem() {
       case "career_threatening":
         return "bg-purple-100 text-purple-800 border-purple-200";
       default:
+        // Exhaustive check: should not happen if severity is correctly typed
+        const _exhaustiveCheck: never = severity;
         return "bg-gray-100 text-gray-800 border-gray-200";
     }
   };
 
-  const getInjuryIcon = (injuryType: string) => {
+  const getInjuryIcon = (injuryType: string) => { // injuryType can remain string if it's free text
     const iconClass = "h-5 w-5";
     switch (injuryType.toLowerCase()) {
       case "muscle_strain":

@@ -1,7 +1,9 @@
 import { useState } from "react";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import Navigation from "@/components/Navigation";
-import ServerTimeDisplay from "@/components/ServerTimeDisplay";
+// Assuming ServerTimeDisplay is correctly typed and imported if used, or remove if not.
+// For now, I will assume it's not directly used or will be handled if it causes errors later.
+// import ServerTimeDisplay from "@/components/ServerTimeDisplay";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -9,6 +11,74 @@ import { Input } from "@/components/ui/input";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { Settings, Calendar, Trophy, CreditCard, Bell, Shield, Users } from "lucide-react";
+import type { Team } from "shared/schema";
+
+// Define interfaces for API responses and mutation payloads
+interface CurrentWeekData {
+  currentDay: number;
+  currentSeason: number;
+  phase: string;
+  // Add other relevant fields from your API if any
+}
+
+interface AdvanceDayResponse {
+  newDay: number;
+  isNewSeason?: boolean;
+  message?: string;
+}
+
+interface ResetSeasonResponse {
+  teamsReset: number;
+  matchesStopped: number;
+  message?: string;
+}
+
+interface CleanupDivisionPayload {
+  division: number;
+}
+interface CleanupDivisionResponse {
+  details?: { division: number };
+  teamsRemoved: number;
+  remainingTeams: number;
+  message?: string;
+}
+
+interface GrantCreditsPayload {
+  credits: number;
+  premiumCurrency: number;
+}
+interface GrantCreditsResponse {
+  message: string;
+}
+
+interface AddPlayersPayload {
+  teamId: string;
+  count: number;
+}
+interface AddPlayersResponse {
+  message: string;
+  count?: number;
+}
+
+interface StopGamesResponse {
+  message: string;
+}
+
+interface FillDivisionPayload {
+  division: number;
+}
+interface FillDivisionResponse {
+  teams?: { id: string, name: string }[];
+  message?: string;
+}
+
+interface StartTournamentPayload {
+  division: number;
+}
+interface StartTournamentResponse {
+  message: string;
+}
+
 
 export default function SuperUser() {
   const { toast } = useToast();
@@ -17,209 +87,173 @@ export default function SuperUser() {
   const [divisionToCleanup, setDivisionToCleanup] = useState(8);
   const [playerCount, setPlayerCount] = useState(3);
 
-  const { data: team } = useQuery({
-    queryKey: ["/api/teams/my"],
+  const teamQuery = useQuery({
+    queryKey: ["myTeam"],
+    queryFn: (): Promise<Team> => apiRequest("/api/teams/my"),
   });
+  const team = teamQuery.data as Team | undefined;
 
-  const { data: currentWeek } = useQuery({
-    queryKey: ["/api/season/current-week"],
-  });
+  // Example: If currentWeek is needed, type it appropriately
+  // const currentWeekQuery = useQuery({
+  //   queryKey: ["currentWeek"],
+  //   queryFn: (): Promise<CurrentWeekData> => apiRequest("/api/season/current-week"),
+  // });
+  // const currentWeek = currentWeekQuery.data as CurrentWeekData | undefined;
 
-  // Season management mutations
+
   const advanceDayMutation = useMutation({
-    mutationFn: async () => {
-      return await apiRequest("/api/superuser/advance-day", "POST");
-    },
-    onSuccess: (data: any) => {
+    mutationFn: (): Promise<AdvanceDayResponse> =>
+      apiRequest("/api/superuser/advance-day", "POST"),
+    onSuccess: (data: AdvanceDayResponse) => {
       toast({
         title: "Day Advanced",
-        description: `Successfully advanced to Day ${data.newDay}${data.isNewSeason ? " (New Season)" : ""}`,
+        description: data.message || `Successfully advanced to Day ${data.newDay}${data.isNewSeason ? " (New Season)" : ""}`,
       });
-      queryClient.invalidateQueries({ queryKey: ["/api/season/current-cycle"] });
+      queryClient.invalidateQueries({ queryKey: ["currentSeasonCycle"] });
     },
-    onError: (error: any) => {
+    onError: (error: Error) => {
       toast({
         title: "Error",
-        description: "Failed to advance day",
+        description: error.message || "Failed to advance day",
         variant: "destructive",
       });
     },
   });
 
   const resetSeasonMutation = useMutation({
-    mutationFn: async () => {
-      return await apiRequest("/api/superuser/reset-season", "POST");
-    },
-    onSuccess: (data: any) => {
+    mutationFn: (): Promise<ResetSeasonResponse> =>
+      apiRequest("/api/superuser/reset-season", "POST"),
+    onSuccess: (data: ResetSeasonResponse) => {
       toast({
         title: "Season Reset",
-        description: `Season reset to Day 1. ${data.teamsReset} teams reset, ${data.matchesStopped} matches stopped.`,
+        description: data.message || `Season reset to Day 1. ${data.teamsReset} teams reset, ${data.matchesStopped} matches stopped.`,
       });
-      queryClient.invalidateQueries({ queryKey: ["/api/season/current-cycle"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/leagues"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/teams/my"] });
+      queryClient.invalidateQueries({ queryKey: ["currentSeasonCycle"] });
+      queryClient.invalidateQueries({ queryKey: ["allLeagues"] });
+      queryClient.invalidateQueries({ queryKey: ["myTeam"] });
     },
-    onError: (error: any) => {
+    onError: (error: Error) => {
       toast({
         title: "Error",
-        description: "Failed to reset season",
+        description: error.message || "Failed to reset season",
         variant: "destructive",
       });
     },
   });
 
   const cleanupDivisionMutation = useMutation({
-    mutationFn: async (division: number) => {
-      return await apiRequest("/api/superuser/cleanup-division", "POST", { division });
-    },
-    onSuccess: (data: any) => {
+    mutationFn: (payload: CleanupDivisionPayload): Promise<CleanupDivisionResponse> =>
+      apiRequest("/api/superuser/cleanup-division", "POST", payload),
+    onSuccess: (data: CleanupDivisionResponse) => {
       toast({
         title: "Division Cleaned Up",
-        description: `Division ${data.details?.division || divisionToCleanup}: ${data.teamsRemoved} teams removed, ${data.remainingTeams} teams remaining`,
+        description: data.message || `Division ${data.details?.division || divisionToCleanup}: ${data.teamsRemoved} teams removed, ${data.remainingTeams} teams remaining`,
       });
-      queryClient.invalidateQueries({ queryKey: ["/api/leagues"] });
+      queryClient.invalidateQueries({ queryKey: ["allLeagues"] });
     },
-    onError: (error: any) => {
+    onError: (error: Error) => {
       toast({
         title: "Error",
-        description: "Failed to clean up division",
+        description: error.message || "Failed to clean up division",
         variant: "destructive",
       });
     },
   });
 
-  // Demo notifications mutation
   const createNotificationsMutation = useMutation({
-    mutationFn: async () => {
-      return await apiRequest("/api/demo/notifications", "POST");
-    },
+    mutationFn: (): Promise<void> =>
+      apiRequest("/api/demo/notifications", "POST"),
     onSuccess: () => {
       toast({
         title: "Demo Notifications Created",
         description: "Check your notification bell to see the new notifications.",
       });
-      queryClient.invalidateQueries({ queryKey: ["/api/notifications"] });
+      queryClient.invalidateQueries({ queryKey: ["userNotifications"] });
     },
-    onError: (error: any) => {
+    onError: (error: Error) => {
       toast({
         title: "Error",
-        description: "Failed to create demo notifications",
+        description: error.message || "Failed to create demo notifications",
         variant: "destructive",
       });
     },
   });
 
-  // Grant credits mutation
   const grantCreditsMutation = useMutation({
-    mutationFn: async () => {
-      return await apiRequest("/api/superuser/grant-credits", "POST", {
-        credits: creditsAmount,
-        premiumCurrency: premiumAmount
-      });
-    },
-    onSuccess: (data: any) => {
+    mutationFn: (payload: GrantCreditsPayload): Promise<GrantCreditsResponse> =>
+      apiRequest("/api/superuser/grant-credits", "POST", payload),
+    onSuccess: (data: GrantCreditsResponse) => {
       toast({
         title: "Credits Granted",
         description: data.message,
       });
-      queryClient.invalidateQueries({ queryKey: ["/api/teams/my/finances"] });
+      queryClient.invalidateQueries({ queryKey: ["myTeamFinances"] });
     },
-    onError: (error: any) => {
+    onError: (error: Error) => {
       toast({
         title: "Error",
-        description: "Failed to grant credits",
+        description: error.message || "Failed to grant credits",
         variant: "destructive",
       });
     },
   });
 
-  // Add players mutation
   const addPlayersMutation = useMutation({
-    mutationFn: async () => {
-      if (!team?.id) {
-        throw new Error("No team found");
+    mutationFn: (payload: AddPlayersPayload): Promise<AddPlayersResponse> => {
+      if (!payload.teamId) {
+        return Promise.reject(new Error("No team ID provided to add players."));
       }
-      return await apiRequest("/api/superuser/add-players", "POST", {
-        teamId: team.id,
-        count: playerCount
-      });
+      return apiRequest("/api/superuser/add-players", "POST", payload);
     },
-    onSuccess: (data: any) => {
+    onSuccess: (data: AddPlayersResponse) => {
       toast({
         title: "Players Added",
-        description: `Successfully created ${playerCount} players for your team`,
+        description: data.message || `Successfully created ${data.count || playerCount} players for your team`,
       });
-      queryClient.invalidateQueries({ queryKey: ["/api/teams/ee12a2d3-f175-42da-bf89-97948494de8a/players"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/teams/my"] });
+      if (team?.id) {
+        queryClient.invalidateQueries({ queryKey: ["teamPlayers", team.id] });
+      }
+      queryClient.invalidateQueries({ queryKey: ["myTeam"] });
     },
-    onError: (error: any) => {
+    onError: (error: Error) => {
       toast({
         title: "Error",
-        description: "Failed to add players",
+        description: error.message || "Failed to add players",
         variant: "destructive",
       });
     },
   });
 
-
-
-
-
-  // Generate Schedule mutation
-  const generateScheduleMutation = useMutation({
-    mutationFn: async () => {
-      return await apiRequest("/api/superuser/generate-season-schedule", "POST");
-    },
-    onSuccess: (data: any) => {
-      toast({
-        title: "Schedule Generated",
-        description: data.message,
-      });
-      queryClient.invalidateQueries({ queryKey: ["/api/league/daily-schedule"] });
-    },
-    onError: (error: any) => {
-      toast({
-        title: "Error",
-        description: "Failed to generate schedule",
-        variant: "destructive",
-      });
-    },
-  });
-
-  // Stop all games mutation
   const stopAllGamesMutation = useMutation({
-    mutationFn: async () => {
-      return await apiRequest("/api/superuser/stop-all-games", "POST");
-    },
-    onSuccess: (data: any) => {
+    mutationFn: (): Promise<StopGamesResponse> =>
+      apiRequest("/api/superuser/stop-all-games", "POST"),
+    onSuccess: (data: StopGamesResponse) => {
       toast({
         title: "Games Stopped",
         description: data.message,
       });
-      queryClient.invalidateQueries({ queryKey: ["/api/matches/live"] });
+      queryClient.invalidateQueries({ queryKey: ["liveMatches"] });
     },
-    onError: (error: any) => {
+    onError: (error: Error) => {
       toast({
         title: "Error",
-        description: "Failed to stop games",
+        description: error.message || "Failed to stop games",
         variant: "destructive",
       });
     },
   });
 
-  // Fill division mutation
   const fillDivisionMutation = useMutation({
-    mutationFn: async () => {
-      return await apiRequest("/api/leagues/create-ai-teams", "POST", { division: team?.division || 8 });
-    },
-    onSuccess: (data: any) => {
+    mutationFn: (payload: FillDivisionPayload): Promise<FillDivisionResponse> =>
+      apiRequest("/api/leagues/create-ai-teams", "POST", payload),
+    onSuccess: (data: FillDivisionResponse) => {
       toast({
         title: "AI Teams Created",
-        description: `Successfully created ${data.teams?.length || 15} AI teams for the league`,
+        description: data.message || `Successfully created ${data.teams?.length || 0} AI teams for the league`,
       });
-      queryClient.invalidateQueries({ queryKey: ["/api/leagues"] });
+      queryClient.invalidateQueries({ queryKey: ["allLeagues"] });
     },
-    onError: (error: any) => {
+    onError: (error: Error) => {
       toast({
         title: "Failed to Create AI Teams",
         description: error.message || "Could not create AI teams",
@@ -228,31 +262,34 @@ export default function SuperUser() {
     },
   });
 
-  // Start tournament mutation
   const startTournamentMutation = useMutation({
-    mutationFn: async () => {
-      return await apiRequest("/api/superuser/start-tournament", "POST", {
-        division: team?.division || 8
-      });
-    },
-    onSuccess: (data: any) => {
+    mutationFn: (payload: StartTournamentPayload): Promise<StartTournamentResponse> =>
+      apiRequest("/api/superuser/start-tournament", "POST", payload),
+    onSuccess: (data: StartTournamentResponse) => {
       toast({
         title: "Tournament Started",
         description: data.message,
       });
-      queryClient.invalidateQueries({ queryKey: ["/api/tournaments"] });
+      queryClient.invalidateQueries({ queryKey: ["allTournaments"] });
     },
-    onError: (error: any) => {
+    onError: (error: Error) => {
       toast({
         title: "Error",
-        description: "Failed to start tournament",
+        description: error.message || "Failed to start tournament",
         variant: "destructive",
       });
     },
   });
 
-  // Check if user is superuser (only for Macomb Cougars)
   const isSuperUser = team?.name === "Macomb Cougars";
+
+  if (teamQuery.isLoading) { // Added loading state for initial team check
+    return (
+        <div className="min-h-screen bg-gray-900 text-white flex items-center justify-center">
+            <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-primary-500"></div>
+        </div>
+    );
+  }
 
   if (!isSuperUser) {
     return (
@@ -293,7 +330,6 @@ export default function SuperUser() {
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          {/* Notification System */}
           <Card className="bg-gray-800 border-gray-700">
             <CardHeader>
               <CardTitle className="font-orbitron text-xl flex items-center">
@@ -316,7 +352,6 @@ export default function SuperUser() {
             </CardContent>
           </Card>
 
-          {/* Credits Management */}
           <Card className="bg-gray-800 border-gray-700">
             <CardHeader>
               <CardTitle className="font-orbitron text-xl flex items-center">
@@ -344,7 +379,7 @@ export default function SuperUser() {
                 />
               </div>
               <Button 
-                onClick={() => grantCreditsMutation.mutate()}
+                onClick={() => grantCreditsMutation.mutate({ credits: creditsAmount, premiumCurrency: premiumAmount })}
                 disabled={grantCreditsMutation.isPending}
                 className="w-full"
                 variant="outline"
@@ -354,7 +389,6 @@ export default function SuperUser() {
             </CardContent>
           </Card>
 
-          {/* Player Management */}
           <Card className="bg-gray-800 border-gray-700">
             <CardHeader>
               <CardTitle className="font-orbitron text-xl flex items-center">
@@ -378,7 +412,13 @@ export default function SuperUser() {
                 />
               </div>
               <Button 
-                onClick={() => addPlayersMutation.mutate()}
+                onClick={() => {
+                  if (team?.id) {
+                    addPlayersMutation.mutate({ teamId: team.id, count: playerCount });
+                  } else {
+                    toast({ title: "Error", description: "Team ID is not available.", variant: "destructive" });
+                  }
+                }}
                 disabled={addPlayersMutation.isPending || !team?.id}
                 className="w-full"
                 variant="outline"
@@ -388,7 +428,6 @@ export default function SuperUser() {
             </CardContent>
           </Card>
 
-          {/* League Management */}
           <Card className="bg-gray-800 border-gray-700">
             <CardHeader>
               <CardTitle className="font-orbitron text-xl flex items-center">
@@ -400,7 +439,7 @@ export default function SuperUser() {
               <div className="p-4 bg-gray-700 rounded-lg">
                 <div className="text-sm text-gray-400">Target Division</div>
                 <div className="text-xl font-bold text-yellow-400">
-                  Division {team?.division || 8}
+                  Division {team?.division ?? 8}
                 </div>
               </div>
               
@@ -416,7 +455,7 @@ export default function SuperUser() {
                     placeholder="Div"
                   />
                   <Button 
-                    onClick={() => cleanupDivisionMutation.mutate(divisionToCleanup)}
+                    onClick={() => cleanupDivisionMutation.mutate({ division: divisionToCleanup })}
                     disabled={cleanupDivisionMutation.isPending}
                     className="flex-1"
                     variant="destructive"
@@ -426,16 +465,28 @@ export default function SuperUser() {
                 </div>
                 
                 <Button 
-                  onClick={() => fillDivisionMutation.mutate()}
-                  disabled={fillDivisionMutation.isPending}
+                  onClick={() => {
+                    if (team?.division !== null && team?.division !== undefined) {
+                      fillDivisionMutation.mutate({ division: team.division });
+                    } else {
+                       toast({ title: "Error", description: "Team division is not available.", variant: "destructive" });
+                    }
+                  }}
+                  disabled={fillDivisionMutation.isPending || team?.division === null || team?.division === undefined}
                   className="w-full"
                   variant="outline"
                 >
                   {fillDivisionMutation.isPending ? "Creating..." : "Fill My Division"}
                 </Button>
                 <Button 
-                  onClick={() => startTournamentMutation.mutate()}
-                  disabled={startTournamentMutation.isPending}
+                  onClick={() => {
+                     if (team?.division !== null && team?.division !== undefined) {
+                      startTournamentMutation.mutate({ division: team.division });
+                    } else {
+                      toast({ title: "Error", description: "Team division is not available.", variant: "destructive" });
+                    }
+                  }}
+                  disabled={startTournamentMutation.isPending || team?.division === null || team?.division === undefined}
                   className="w-full"
                   variant="outline"
                 >
@@ -446,7 +497,6 @@ export default function SuperUser() {
           </Card>
         </div>
 
-        {/* Season Management */}
         <Card className="bg-gray-800 border-gray-700 mt-8">
           <CardHeader>
             <CardTitle className="font-orbitron text-xl flex items-center">
@@ -458,15 +508,7 @@ export default function SuperUser() {
             <p className="text-gray-400 text-sm">
               Manual control over season progression and timing. Current day and season can be managed server-wide.
             </p>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <Button 
-                onClick={() => generateScheduleMutation.mutate()}
-                disabled={generateScheduleMutation.isPending}
-                className="w-full"
-                variant="default"
-              >
-                {generateScheduleMutation.isPending ? "Generating..." : "Generate Season Schedule"}
-              </Button>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <Button 
                 onClick={() => advanceDayMutation.mutate()}
                 disabled={advanceDayMutation.isPending}
@@ -487,52 +529,12 @@ export default function SuperUser() {
           </CardContent>
         </Card>
 
-        {/* Skills Management */}
-        <Card className="bg-gray-800 border-gray-700 mt-8">
-          <CardHeader>
-            <CardTitle className="font-orbitron text-xl flex items-center">
-              <Trophy className="w-5 h-5 mr-2 text-yellow-400" />
-              Skills Management
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <p className="text-gray-400 text-sm">
-              Manage the player skills system. Players can have up to 3 skills with 4 tiers each.
-            </p>
-            <Button 
-              onClick={async () => {
-                try {
-                  const response = await apiRequest("/api/skills", "GET");
-                  const skills = await response.json();
-                  toast({
-                    title: "Skills System",
-                    description: `Found ${skills.length} skills in the system (Universal, Role, and Race specific)`,
-                  });
-                } catch (error: any) {
-                  toast({
-                    title: "Error",
-                    description: "Failed to fetch skills",
-                    variant: "destructive",
-                  });
-                }
-              }}
-              className="w-full"
-              variant="outline"
-            >
-              Check Available Skills
-            </Button>
-            <p className="text-xs text-gray-500">
-              • Players can have max 3 skills<br />
-              • Skills have 4 tiers (I-IV)<br />
-              • Skills are Universal, Role-specific, or Race-specific<br />
-              • To add skills to players: Team → Player Details → Skills tab
-            </p>
-          </CardContent>
-        </Card>
-
-        {/* Server Time & System Information */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-8">
-          <ServerTimeDisplay />
+          {/* <ServerTimeDisplay /> Commented out as it's not defined/imported in current context */}
+          <Card className="bg-gray-800 border-gray-700">
+             <CardHeader><CardTitle>Server Time (Placeholder)</CardTitle></CardHeader>
+             <CardContent><p>Server time display would go here.</p></CardContent>
+          </Card>
           
           <Card className="bg-gray-800 border-gray-700">
             <CardHeader>
@@ -544,11 +546,11 @@ export default function SuperUser() {
             <CardContent>
               <div className="space-y-4">
                 <div className="text-center">
-                  <div className="text-xl font-bold text-blue-400">{team?.name}</div>
+                  <div className="text-xl font-bold text-blue-400">{team?.name ?? 'N/A'}</div>
                   <div className="text-sm text-gray-400">SuperUser Team</div>
                 </div>
                 <div className="text-center">
-                  <div className="text-xl font-bold text-green-400">Division {team?.division}</div>
+                  <div className="text-xl font-bold text-green-400">Division {team?.division ?? 'N/A'}</div>
                   <div className="text-sm text-gray-400">Current Division</div>
                 </div>
                 <div className="text-center">

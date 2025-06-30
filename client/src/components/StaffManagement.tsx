@@ -14,13 +14,23 @@ interface StaffMember {
   type: string;
   level: number;
   salary: number;
-  offenseRating: number;
-  defenseRating: number;
-  physicalRating: number;
-  scoutingRating: number;
-  recruitingRating: number;
-  recoveryRating: number;
-  coachingRating: number;
+  offenseRating?: number; // Made optional as not all staff types have all ratings
+  defenseRating?: number;
+  physicalRating?: number;
+  scoutingRating?: number;
+  recruitingRating?: number;
+  recoveryRating?: number;
+  coachingRating?: number;
+}
+
+interface StaffTypeDefinition {
+  type: string;
+  name: string;
+  icon: React.ElementType;
+  description: string;
+  maxLevel: number;
+  primaryStats: (keyof StaffMember)[]; // Use keyof for better type safety
+  baseSalary: number;
 }
 
 interface StaffManagementProps {
@@ -30,35 +40,31 @@ interface StaffManagementProps {
 export default function StaffManagement({ teamId }: StaffManagementProps) {
   const [selectedStaff, setSelectedStaff] = useState<StaffMember | null>(null);
 
-  const { data: staff, isLoading } = useQuery({
+  const { data: staff, isLoading } = useQuery<StaffMember[], Error>({ // Typed useQuery
     queryKey: [`/api/teams/${teamId}/staff`],
+    queryFn: () => apiRequest(`/api/teams/${teamId}/staff`),
     enabled: !!teamId,
   });
 
-  const hireMutation = useMutation({
-    mutationFn: async (staffData: any) => {
-      return apiRequest(`/api/teams/${teamId}/staff`, {
-        method: "POST",
-        body: JSON.stringify(staffData),
-      });
+  const hireMutation = useMutation<StaffMember, Error, Partial<StaffMember>>({ // Typed useMutation
+    mutationFn: async (staffData: Partial<StaffMember>) => { // Typed staffData
+      return apiRequest(`/api/teams/${teamId}/staff`, "POST", staffData); // Corrected apiRequest call
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [`/api/teams/${teamId}/staff`] });
     },
   });
 
-  const fireStaffMutation = useMutation({
+  const fireStaffMutation = useMutation<unknown, Error, string>({ // Added types for mutation
     mutationFn: async (staffId: string) => {
-      return apiRequest(`/api/teams/${teamId}/staff/${staffId}`, {
-        method: "DELETE",
-      });
+      return apiRequest(`/api/teams/${teamId}/staff/${staffId}`, "DELETE"); // Corrected apiRequest call
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [`/api/teams/${teamId}/staff`] });
     },
   });
 
-  const staffTypes = [
+  const staffTypes: StaffTypeDefinition[] = [ // Typed staffTypes array
     {
       type: "head_coach",
       name: "Head Coach",
@@ -79,7 +85,7 @@ export default function StaffManagement({ teamId }: StaffManagementProps) {
     },
     {
       type: "trainer_defense",
-      name: "Defense Trainer", 
+      name: "Defense Trainer",
       icon: Shield,
       description: "Enhances blocking, power, and stamina",
       maxLevel: 4,
@@ -124,16 +130,16 @@ export default function StaffManagement({ teamId }: StaffManagementProps) {
     },
   ];
 
-  const getStaffByType = (type: string) => {
+  const getStaffByType = (type: string): StaffMember | undefined => { // Typed return value
     return staff?.find((member: StaffMember) => member.type === type);
   };
 
-  const calculateSalary = (type: string, level: number) => {
+  const calculateSalary = (type: string, level: number): number => { // Typed return value
     const staffType = staffTypes.find(s => s.type === type);
     return (staffType?.baseSalary || 5000) * level;
   };
 
-  const renderStaffSlot = (staffType: any) => {
+  const renderStaffSlot = (staffType: StaffTypeDefinition) => { // Typed staffType parameter
     const currentStaff = getStaffByType(staffType.type);
     const Icon = staffType.icon;
 
@@ -157,12 +163,13 @@ export default function StaffManagement({ teamId }: StaffManagementProps) {
               </div>
               
               <div className="space-y-2">
-                {staffType.primaryStats.map((stat: string) => {
-                  const value = currentStaff[stat as keyof StaffMember] as number;
+                {staffType.primaryStats.map((statKey: keyof StaffMember) => {
+                  // Ensure currentStaff and the specific stat property exist and are numbers
+                  const value = typeof currentStaff?.[statKey] === 'number' ? currentStaff[statKey] as number : 0;
                   return (
-                    <div key={stat}>
+                    <div key={statKey as string}>
                       <div className="flex justify-between text-sm">
-                        <span className="capitalize">{stat.replace('Rating', '')}</span>
+                        <span className="capitalize">{(statKey as string).replace('Rating', '')}</span>
                         <span>{value}/100</span>
                       </div>
                       <Progress value={value} className="h-2" />
@@ -189,13 +196,17 @@ export default function StaffManagement({ teamId }: StaffManagementProps) {
               <p className="text-gray-500 mb-3">No {staffType.name} hired</p>
               <Button
                 onClick={() => {
-                  const newStaff = {
+                  const newStaff: Partial<StaffMember> = { // Explicitly type newStaff
                     type: staffType.type,
-                    name: `${staffType.name} ${Math.floor(Math.random() * 999)}`,
+                    name: `${staffType.name} Candidate ${Math.floor(Math.random() * 999)}`, // More descriptive name
                     level: 1,
                     salary: calculateSalary(staffType.type, 1),
-                    [staffType.primaryStats[0]]: 60 + Math.floor(Math.random() * 20),
                   };
+                  // Assign primary stat dynamically and ensure it's a known key
+                  const primaryStatKey = staffType.primaryStats[0];
+                  if (primaryStatKey) {
+                    (newStaff as any)[primaryStatKey] = 60 + Math.floor(Math.random() * 20);
+                  }
                   hireMutation.mutate(newStaff);
                 }}
                 disabled={hireMutation.isPending}
@@ -236,7 +247,7 @@ export default function StaffManagement({ teamId }: StaffManagementProps) {
         <div className="text-right">
           <p className="text-sm text-gray-600">Total Staff Salaries</p>
           <p className="text-xl font-bold">
-            ${staff?.reduce((total: number, member: StaffMember) => total + member.salary, 0).toLocaleString()}/season
+            ${(staff?.reduce((total: number, member: StaffMember) => total + (member.salary || 0), 0) || 0).toLocaleString()}/season
           </p>
         </div>
       </div>
@@ -263,30 +274,30 @@ export default function StaffManagement({ teamId }: StaffManagementProps) {
                 <div>
                   <h4 className="font-semibold mb-2">Offense Training</h4>
                   <div className="text-sm text-gray-600">
-                    {getStaffByType("trainer_offense") ? (
+                    {getStaffByType("trainer_offense")?.offenseRating ? (
                       `+${Math.floor((getStaffByType("trainer_offense")?.offenseRating || 0) / 10)}% to throwing, catching, agility progression`
                     ) : (
-                      "No offense trainer hired"
+                      "No offense trainer hired or rating unavailable"
                     )}
                   </div>
                 </div>
                 <div>
                   <h4 className="font-semibold mb-2">Defense Training</h4>
                   <div className="text-sm text-gray-600">
-                    {getStaffByType("trainer_defense") ? (
+                    {getStaffByType("trainer_defense")?.defenseRating ? (
                       `+${Math.floor((getStaffByType("trainer_defense")?.defenseRating || 0) / 10)}% to power, stamina progression`
                     ) : (
-                      "No defense trainer hired"
+                      "No defense trainer hired or rating unavailable"
                     )}
                   </div>
                 </div>
                 <div>
                   <h4 className="font-semibold mb-2">Physical Training</h4>
                   <div className="text-sm text-gray-600">
-                    {getStaffByType("trainer_physical") ? (
+                    {getStaffByType("trainer_physical")?.physicalRating ? (
                       `+${Math.floor((getStaffByType("trainer_physical")?.physicalRating || 0) / 10)}% to speed, power progression`
                     ) : (
-                      "No physical trainer hired"
+                      "No physical trainer hired or rating unavailable"
                     )}
                   </div>
                 </div>
@@ -301,30 +312,30 @@ export default function StaffManagement({ teamId }: StaffManagementProps) {
                 <div>
                   <h4 className="font-semibold mb-2">Scouting Accuracy</h4>
                   <div className="text-sm text-gray-600">
-                    {getStaffByType("head_scout") ? (
+                    {getStaffByType("head_scout")?.scoutingRating ? (
                       `${Math.floor((getStaffByType("head_scout")?.scoutingRating || 0) / 2)}% more accurate player ratings revealed`
                     ) : (
-                      "Basic scouting accuracy"
+                      "Basic scouting accuracy or head scout rating unavailable"
                     )}
                   </div>
                 </div>
                 <div>
                   <h4 className="font-semibold mb-2">Injury Prevention</h4>
                   <div className="text-sm text-gray-600">
-                    {getStaffByType("recovery_specialist") ? (
+                    {getStaffByType("recovery_specialist")?.recoveryRating ? (
                       `${Math.floor((getStaffByType("recovery_specialist")?.recoveryRating || 0) / 5)}% reduced injury risk`
                     ) : (
-                      "No injury prevention specialist"
+                      "No injury prevention specialist or rating unavailable"
                     )}
                   </div>
                 </div>
                 <div>
                   <h4 className="font-semibold mb-2">Team Chemistry</h4>
                   <div className="text-sm text-gray-600">
-                    {getStaffByType("head_coach") ? (
+                    {getStaffByType("head_coach")?.coachingRating ? (
                       `+${Math.floor((getStaffByType("head_coach")?.coachingRating || 0) / 8)}/season camaraderie for all players`
                     ) : (
-                      "No head coach benefits"
+                      "No head coach benefits or rating unavailable"
                     )}
                   </div>
                 </div>

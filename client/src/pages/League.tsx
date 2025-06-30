@@ -3,26 +3,47 @@ import Navigation from "@/components/Navigation";
 import LeagueStandings from "@/components/LeagueStandings";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { apiRequest } from "@/lib/queryClient";
+import type { Team, Match as SharedMatch } from "shared/schema"; // Renamed Match to avoid conflict
+
+// Use SharedMatch for match data
+interface Match extends SharedMatch {
+  // Add any additional client-side specific fields if necessary in the future
+}
 
 export default function League() {
-  const { data: team } = useQuery({
-    queryKey: ["/api/teams/my"],
+  const teamQuery = useQuery({
+    queryKey: ["myTeam"],
+    queryFn: (): Promise<Team> => apiRequest("/api/teams/my"),
   });
+  const team = teamQuery.data as Team | undefined;
+  const isLoadingTeam = teamQuery.isLoading;
 
-  const { data: matches } = useQuery({
-    queryKey: ["/api/team-matches", team?.id].filter(Boolean),
+  const matchesQuery = useQuery({
+    queryKey: ["teamMatches", team?.id],
+    queryFn: (): Promise<Match[]> => apiRequest(`/api/team-matches${team?.id ? `?teamId=${team.id}` : ''}`),
     enabled: !!team?.id,
   });
+  const matches = matchesQuery.data as Match[] | undefined;
+  // const isLoadingMatches = matchesQuery.isLoading; // If needed for a loading state for matches
 
-
-
-  const upcomingMatches = matches?.filter((match: any) => 
+  const upcomingMatches = matches?.filter((match: Match) =>
     match.status === "scheduled"
   ).slice(0, 5) || [];
 
-  const recentMatches = matches?.filter((match: any) => 
+  const recentMatches = matches?.filter((match: Match) =>
     match.status === "completed"
   ).slice(0, 5) || [];
+
+
+  if (isLoadingTeam) {
+    return (
+      <div className="min-h-screen bg-gray-900 text-white flex items-center justify-center">
+        <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-primary-500"></div>
+        <p className="ml-4">Loading team data...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-900 text-white">
@@ -34,15 +55,14 @@ export default function League() {
             <div>
               <h1 className="font-orbitron text-3xl font-bold mb-2">League</h1>
               <p className="text-gray-400">
-                {team ? `Division ${(team as any).division} - Ruby League` : "Loading..."}
+                {team ? `Division ${team.division ?? 'N/A'} - ${team.name}` : "Loading..."}
               </p>
             </div>
-
           </div>
         </div>
 
         {/* League Standings - Full Width */}
-        {team && (
+        {team && team.division !== null && team.division !== undefined && (
           <div className="mb-8">
             <LeagueStandings division={team.division} />
           </div>
@@ -58,27 +78,27 @@ export default function League() {
             <CardContent>
               <div className="space-y-4">
                 {upcomingMatches.length > 0 ? (
-                  upcomingMatches.map((match: any) => (
+                  upcomingMatches.map((match: Match) => (
                     <div key={match.id} className="bg-gray-700 rounded-lg p-4">
                       <div className="flex items-center justify-between mb-2">
                         <span className="text-sm text-gray-400">
-                          {new Date(match.scheduledTime).toLocaleDateString()}
+                          {match.scheduledTime ? new Date(match.scheduledTime).toLocaleDateString() : 'TBD'}
                         </span>
                         <Badge variant={match.matchType === "tournament" ? "default" : "secondary"}>
-                          {match.matchType.toUpperCase()}
+                          {match.matchType?.toUpperCase() || 'N/A'}
                         </Badge>
                       </div>
                       <div className="flex items-center justify-between">
                         <div className="text-center">
                           <div className="font-semibold text-primary-400">
-                            {match.homeTeamId === team.id ? team.name : "Opponent"}
+                            {match.homeTeamId === team?.id ? team?.name : "Opponent"}
                           </div>
                           <div className="text-xs text-gray-400">HOME</div>
                         </div>
                         <div className="text-gray-500 font-bold">VS</div>
                         <div className="text-center">
                           <div className="font-semibold">
-                            {match.awayTeamId === team.id ? team.name : "Opponent"}
+                            {match.awayTeamId === team?.id ? team?.name : "Opponent"}
                           </div>
                           <div className="text-xs text-gray-400">AWAY</div>
                         </div>
@@ -104,44 +124,46 @@ export default function League() {
           <CardContent>
             <div className="space-y-4">
               {recentMatches.length > 0 ? (
-                recentMatches.map((match: any) => (
+                recentMatches.map((match: Match) => (
                   <div key={match.id} className="bg-gray-700 rounded-lg p-4">
                     <div className="flex items-center justify-between mb-2">
                       <span className="text-sm text-gray-400">
-                        {new Date(match.completedAt).toLocaleDateString()}
+                        {match.completedAt ? new Date(match.completedAt).toLocaleDateString() : 'N/A'}
                       </span>
                       <Badge variant={match.matchType === "tournament" ? "default" : "secondary"}>
-                        {match.matchType.toUpperCase()}
+                        {match.matchType?.toUpperCase() || 'N/A'}
                       </Badge>
                     </div>
                     <div className="flex items-center justify-between">
                       <div className="text-center">
                         <div className="font-semibold">
-                          {match.homeTeamId === team?.id ? team.name : "Opponent"}
+                          {match.homeTeamId === team?.id ? team?.name : "Opponent"}
                         </div>
                         <div className="text-2xl font-bold text-primary-400">
-                          {match.homeScore}
+                          {match.homeScore ?? '-'}
                         </div>
                       </div>
                       <div className="text-gray-500 font-bold">-</div>
                       <div className="text-center">
                         <div className="font-semibold">
-                          {match.awayTeamId === team?.id ? team.name : "Opponent"}
+                          {match.awayTeamId === team?.id ? team?.name : "Opponent"}
                         </div>
                         <div className="text-2xl font-bold text-red-400">
-                          {match.awayScore}
+                          {match.awayScore ?? '-'}
                         </div>
                       </div>
                     </div>
                     {/* Result indicator */}
                     <div className="mt-3 text-center">
-                      {((match.homeTeamId === team?.id && match.homeScore > match.awayScore) ||
-                        (match.awayTeamId === team?.id && match.awayScore > match.homeScore)) ? (
-                        <Badge className="bg-green-600 text-white">WIN</Badge>
-                      ) : match.homeScore === match.awayScore ? (
-                        <Badge className="bg-yellow-600 text-white">DRAW</Badge>
-                      ) : (
-                        <Badge className="bg-red-600 text-white">LOSS</Badge>
+                      {match.homeScore !== null && match.awayScore !== null && team?.id && (
+                        ((match.homeTeamId === team.id && match.homeScore > match.awayScore) ||
+                         (match.awayTeamId === team.id && match.awayScore > match.homeScore)) ? (
+                          <Badge className="bg-green-600 text-white">WIN</Badge>
+                        ) : match.homeScore === match.awayScore ? (
+                          <Badge className="bg-yellow-600 text-white">DRAW</Badge>
+                        ) : (
+                          <Badge className="bg-red-600 text-white">LOSS</Badge>
+                        )
                       )}
                     </div>
                   </div>

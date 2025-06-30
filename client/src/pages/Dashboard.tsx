@@ -1,51 +1,77 @@
-import { useEffect, useState } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useEffect } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
-import { isUnauthorizedError } from "@/lib/authUtils";
 import Navigation from "@/components/Navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import UnifiedPlayerCard from "@/components/UnifiedPlayerCard";
-import PlayerDetailModal from "@/components/PlayerDetailModal";
-
 import LeagueStandings from "@/components/LeagueStandings";
-import NotificationCenter from "@/components/NotificationCenter";
-import ServerTimeDisplay from "@/components/ServerTimeDisplay";
 import { apiRequest } from "@/lib/queryClient";
 import { Bell, Shield, Calendar } from "lucide-react";
-import { getDivisionName, getDivisionInfo, getFullDivisionTitle } from "@shared/divisions";
+import type { Team, Player, TeamFinances, Match, Season } from "shared/schema";
 
-// Helper function to get team power tier description
-function getTeamPowerTier(teamPower: number): string {
-  if (teamPower >= 30) return "Elite contender";
-  if (teamPower >= 28) return "Championship ready";
-  if (teamPower >= 26) return "Strong competitor";
-  if (teamPower >= 24) return "Playoff caliber";
-  if (teamPower >= 22) return "Developing team";
-  if (teamPower >= 20) return "Building strength";
-  return "Rebuilding phase";
+// Define interfaces for data structures
+interface ServerTime {
+  currentTime: string;
+}
+
+interface LiveMatchData extends Match {
+  homeTeamName?: string;
+  awayTeamName?: string;
+}
+
+// Server Time Display Component
+function ServerTimeDisplay({ serverTime }: { serverTime: ServerTime | undefined }) {
+  const formatServerTime = () => {
+    if (!serverTime?.currentTime) return "Loading...";
+
+    const time = new Date(serverTime.currentTime);
+    const easternTime = time.toLocaleString("en-US", {
+      timeZone: "America/New_York",
+      hour: "numeric",
+      minute: "2-digit",
+      hour12: true
+    });
+
+    return easternTime;
+  };
+
+  const getTimeUntilNextDay = () => {
+    if (!serverTime?.currentTime) return "";
+
+    const now = new Date(serverTime.currentTime);
+    const nextDay = new Date(now);
+    nextDay.setDate(nextDay.getDate() + 1);
+    nextDay.setHours(3, 0, 0, 0); // 3 AM EST
+
+    const timeUntil = nextDay.getTime() - now.getTime();
+    const hours = Math.floor(timeUntil / (1000 * 60 * 60));
+    const minutes = Math.floor((timeUntil % (1000 * 60 * 60)) / (1000 * 60));
+
+    if (hours > 0) {
+      return `Next day: ${hours}h ${minutes}m`;
+    } else {
+      return `Next day: ${minutes}m`;
+    }
+  };
+
+  return (
+    <Card className="bg-blue-900 border-blue-700">
+      <CardContent className="p-2">
+        <div className="text-center">
+          <div className="text-blue-200 font-medium text-sm">EST: {formatServerTime()}</div>
+          <div className="text-blue-300 text-xs">{getTimeUntilNextDay()}</div>
+        </div>
+      </CardContent>
+    </Card>
+  );
 }
 
 export default function Dashboard() {
   const { toast } = useToast();
   const { isAuthenticated, isLoading } = useAuth();
-  const queryClient = useQueryClient();
-
-  // Player modal state
-  const [selectedPlayer, setSelectedPlayer] = useState(null);
-  const [showPlayerModal, setShowPlayerModal] = useState(false);
-
-  // Handler for player card clicks
-  const handlePlayerAction = (action: string, player: any) => {
-    if (action === 'view' || action === 'click') {
-      setSelectedPlayer(player);
-      setShowPlayerModal(true);
-    }
-  };
-
-
 
   // Redirect to home if not authenticated
   useEffect(() => {
@@ -62,34 +88,53 @@ export default function Dashboard() {
     }
   }, [isAuthenticated, isLoading, toast]);
 
-  const { data: team, isLoading: teamLoading, error: teamError } = useQuery({
-    queryKey: ["/api/teams/my"],
+  const teamQuery = useQuery({
+    queryKey: ["myTeam"],
+    queryFn: (): Promise<Team> => apiRequest("/api/teams/my"), // Removed <Team> from apiRequest
   });
+  const team = teamQuery.data as Team | undefined;
+  const teamLoading = teamQuery.isLoading;
 
-  const { data: finances } = useQuery({
-    queryKey: ["/api/teams/my/finances"],
+  const financesQuery = useQuery({
+    queryKey: ["myTeamFinances"],
+    queryFn: (): Promise<TeamFinances> => apiRequest("/api/teams/my/finances"), // Removed <TeamFinances>
+    enabled: !!team,
   });
+  const finances = financesQuery.data as TeamFinances | undefined;
 
-  const { data: players, isLoading: playersLoading, error: playersError } = useQuery({
-    queryKey: [`/api/teams/${team?.id}/players`],
+  const playersQuery = useQuery({
+    queryKey: ["teamPlayers", team?.id],
+    queryFn: (): Promise<Player[]> => apiRequest(`/api/teams/${team!.id}/players`), // Removed <Player[]>
     enabled: !!team?.id,
     retry: 1,
     staleTime: 30 * 1000, // 30 seconds
     refetchOnWindowFocus: true,
   });
+  const players = playersQuery.data as Player[] | undefined;
+  const playersLoading = playersQuery.isLoading;
+  const playersError = playersQuery.error;
 
-  // Debug logging can be removed in production
-  // console.log('Dashboard Debug:', { teamId: team?.id, teamName: team?.name, playersCount: players?.length });
-
-  const { data: liveMatches } = useQuery({
-    queryKey: ["/api/matches/live"],
+  const liveMatchesQuery = useQuery({
+    queryKey: ["liveMatches"],
+    queryFn: (): Promise<LiveMatchData[]> => apiRequest("/api/matches/live"), // Removed <LiveMatchData[]>
     refetchInterval: 5000, // Refresh every 5 seconds for live matches
   });
+  const liveMatches = liveMatchesQuery.data as LiveMatchData[] | undefined;
 
-  const { data: seasonalCycle } = useQuery({
-    queryKey: ["/api/season/current-cycle"],
+  const seasonalCycleQuery = useQuery({
+    queryKey: ["currentSeasonCycle"],
+    queryFn: (): Promise<Season> => apiRequest("/api/season/current-cycle"), // Removed <Season>
     refetchInterval: 60000, // Refresh every minute
   });
+  const seasonalCycle = seasonalCycleQuery.data as Season | undefined;
+
+  const serverTimeQuery = useQuery({
+    queryKey: ["serverTime"],
+    queryFn: (): Promise<ServerTime> => apiRequest("/api/server/time"), // Removed <ServerTime>
+    refetchInterval: 30000, // Update every 30 seconds
+  });
+  const serverTime = serverTimeQuery.data as ServerTime | undefined;
+
 
   if (isLoading || teamLoading) {
     return (
@@ -115,39 +160,58 @@ export default function Dashboard() {
   return (
     <div className="min-h-screen bg-gray-900 text-white">
       <Navigation />
-      
+
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Dashboard Overview */}
         <div className="mb-8">
           <div className="flex items-center justify-between mb-6">
             <h2 className="font-orbitron text-2xl font-bold">Team Dashboard</h2>
-            <ServerTimeDisplay />
+            <ServerTimeDisplay serverTime={serverTime} />
           </div>
 
           {/* Seasonal Cycle Display */}
-          <Card className="bg-gradient-to-r from-purple-900 to-blue-900 border-purple-700 mb-6">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-4">
-                  <div className="bg-purple-600 bg-opacity-30 p-3 rounded-full">
-                    <Calendar className="h-8 w-8 text-purple-200" />
+          {seasonalCycle && (
+            <Card className="bg-gradient-to-r from-purple-900 to-blue-900 border-purple-700 mb-6">
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-4">
+                    <div className="bg-purple-600 bg-opacity-30 p-3 rounded-full">
+                      <Calendar className="h-8 w-8 text-purple-200" />
+                    </div>
+                    <div>
+                      {/* Assuming SeasonalCycle (now Season) has 'year' and 'name' or similar */}
+                      <div className="text-sm text-purple-200 mb-1">Season {seasonalCycle.year} - {seasonalCycle.name}</div>
+                      {/* TODO: Update Season type if description/details/phase/currentDay etc. are needed directly */}
+                      {/* For now, using placeholder or removing to avoid errors if not in Season type */}
+                      <h2 className="text-2xl font-bold text-white mb-1">{ (seasonalCycle as any).description || "Current Phase"}</h2>
+                      <p className="text-purple-100 text-sm">{ (seasonalCycle as any).details || "More info soon..."}</p>
+                    </div>
                   </div>
-                  <div>
-                    <div className="text-sm text-purple-200 mb-1">Season 0</div>
-                    <h2 className="text-2xl font-bold text-white mb-1">Regular Season - Day 1</h2>
-                    <p className="text-purple-100 text-sm">League activities in progress</p>
+                  <div className="text-right">
+                    <div className="text-lg font-bold text-white mb-1">Day {(seasonalCycle as any).currentDay ?? 'N/A'}/17</div>
+                    <Badge
+                      variant={(seasonalCycle as any).phase === "Regular Season" ? "default" :
+                              (seasonalCycle as any).phase === "Playoffs" ? "destructive" : "secondary"}
+                      className="text-xs"
+                    >
+                      {(seasonalCycle as any).phase || "Upcoming"}
+                    </Badge>
+                    {(seasonalCycle as any).daysUntilPlayoffs > 0 && (
+                      <div className="text-xs text-purple-200 mt-1">
+                        {(seasonalCycle as any).daysUntilPlayoffs} days to playoffs
+                      </div>
+                    )}
+                    {(seasonalCycle as any).daysUntilNewSeason > 0 && (seasonalCycle as any).phase === "Off-Season" && (
+                      <div className="text-xs text-purple-200 mt-1">
+                        {(seasonalCycle as any).daysUntilNewSeason} days to new season
+                      </div>
+                    )}
                   </div>
                 </div>
-                <div className="text-right">
-                  <div className="text-lg font-bold text-white mb-1">Day 1/17</div>
-                  <Badge variant="default" className="text-xs">
-                    Regular Season
-                  </Badge>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-          
+              </CardContent>
+            </Card>
+          )}
+
           {/* Stats Cards */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
             <Card className="bg-gray-800 border-gray-700">
@@ -156,9 +220,9 @@ export default function Dashboard() {
                   <div>
                     <p className="text-gray-400 text-sm">Division Rank</p>
                     <p className="text-2xl font-bold text-gold-400">
-                      {team.division === 8 ? "New" : `Div ${team.division}`}
+                      {team.division === 8 ? "New" : `Div ${team.division ?? 'N/A'}`}
                     </p>
-                    <p className="text-xs text-gray-400">{team.wins}W - {team.losses}L - {team.draws}D</p>
+                    <p className="text-xs text-gray-400">{team.wins ?? 0}W - {team.losses ?? 0}L - {team.draws ?? 0}D</p>
                   </div>
                   <div className="bg-gold-400 bg-opacity-20 p-3 rounded-lg">
                     <i className="fas fa-trophy text-gold-400 text-xl"></i>
@@ -166,18 +230,18 @@ export default function Dashboard() {
                 </div>
               </CardContent>
             </Card>
-            
+
             <Card className="bg-gray-800 border-gray-700">
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-gray-400 text-sm">Win Rate</p>
                     <p className="text-2xl font-bold text-green-400">
-                      {team.wins + team.losses + team.draws > 0 
-                        ? Math.round((team.wins / (team.wins + team.losses + team.draws)) * 100)
+                      {(team.wins ?? 0) + (team.losses ?? 0) + (team.draws ?? 0) > 0
+                        ? Math.round(((team.wins ?? 0) / ((team.wins ?? 0) + (team.losses ?? 0) + (team.draws ?? 0))) * 100)
                         : 0}%
                     </p>
-                    <p className="text-xs text-gray-400">{team.points} points</p>
+                    <p className="text-xs text-gray-400">{team.points ?? 0} points</p>
                   </div>
                   <div className="bg-green-400 bg-opacity-20 p-3 rounded-lg">
                     <i className="fas fa-chart-line text-green-400 text-xl"></i>
@@ -185,14 +249,14 @@ export default function Dashboard() {
                 </div>
               </CardContent>
             </Card>
-            
+
             <Card className="bg-gray-800 border-gray-700">
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-gray-400 text-sm">Team CAR</p>
-                    <p className="text-2xl font-bold text-primary-400">{team.teamPower}</p>
-                    <p className="text-xs text-green-400">{getTeamPowerTier(team.teamPower)}</p>
+                    <p className="text-gray-400 text-sm">Team Power</p>
+                    <p className="text-2xl font-bold text-primary-400">{team.teamPower ?? 0}</p>
+                    <p className="text-xs text-green-400">Building strength</p>
                   </div>
                   <div className="bg-primary-400 bg-opacity-20 p-3 rounded-lg">
                     <i className="fas fa-bolt text-primary-400 text-xl"></i>
@@ -200,13 +264,13 @@ export default function Dashboard() {
                 </div>
               </CardContent>
             </Card>
-            
+
             <Card className="bg-gray-800 border-gray-700">
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-gray-400 text-sm">Credits</p>
-                    <p className="text-2xl font-bold text-gold-400">{(finances?.credits || team.credits || 0).toLocaleString()}</p>
+                    <p className="text-2xl font-bold text-gold-400">{(finances?.credits ?? team.credits ?? 0).toLocaleString()}</p>
                     <p className="text-xs text-gray-400">Available funds</p>
                   </div>
                   <div className="bg-gold-400 bg-opacity-20 p-3 rounded-lg">
@@ -219,17 +283,17 @@ export default function Dashboard() {
         </div>
 
         {/* Live Match Section */}
-        {liveMatches && liveMatches.length > 0 && (
+        {liveMatches && liveMatches.length > 0 && liveMatches[0] &&  (
           <div className="mb-8">
             <Card className="bg-gray-800 border-gray-700">
               <CardContent className="p-4">
                 <div className="flex items-center justify-between">
                   <div className="space-y-1">
                     <div className="text-sm font-medium">
-                      {liveMatches[0]?.homeTeamName || "Team 1"} vs {liveMatches[0]?.awayTeamName || "Team 2"}
+                      {liveMatches[0].homeTeamName || "Team 1"} vs {liveMatches[0].awayTeamName || "Team 2"}
                     </div>
                     <div className="text-xs text-gray-400">
-                      {liveMatches[0]?.status === "live" ? "Live Match" : liveMatches[0]?.status}
+                      {liveMatches[0].status === "live" ? "Live Match" : liveMatches[0].status}
                     </div>
                   </div>
                   <Badge className="bg-green-500 text-white">
@@ -259,7 +323,7 @@ export default function Dashboard() {
                 </div>
               ) : playersError ? (
                 <div className="text-center py-8">
-                  <p className="text-red-400">Error loading players: {playersError.message}</p>
+                  <p className="text-red-400">Error loading players: {(playersError as Error).message}</p>
                 </div>
               ) : !players || players.length === 0 ? (
                 <div className="text-center py-8">
@@ -268,13 +332,12 @@ export default function Dashboard() {
                 </div>
               ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  {players.map((player: any) => (
-                    <div key={player.id} onClick={() => handlePlayerAction('view', player)} className="cursor-pointer">
-                      <UnifiedPlayerCard
-                        player={player}
-                        variant="dashboard"
-                      />
-                    </div>
+                  {players.map((player: Player) => (
+                    <UnifiedPlayerCard
+                      key={player.id}
+                      player={player}
+                      variant="dashboard"
+                    />
                   ))}
                 </div>
               )}
@@ -283,15 +346,10 @@ export default function Dashboard() {
 
           <Card className="bg-gray-800 border-gray-700">
             <CardHeader className="border-b border-gray-700">
-              <CardTitle className="font-orbitron text-xl">
-                Division {team?.division || 8} - {getDivisionName(team?.division || 8)}
-                <div className="text-sm font-normal text-gray-400 mt-1">
-                  {getDivisionInfo(team?.division || 8).description}
-                </div>
-              </CardTitle>
+              <CardTitle className="font-orbitron text-xl">Division {team?.division ?? 8} - {(team?.division ?? 8) === 8 ? "Rookie League" : "Advanced League"}</CardTitle>
             </CardHeader>
             <CardContent className="p-6">
-              <LeagueStandings division={team?.division || 8} />
+              <LeagueStandings division={team?.division ?? 8} />
             </CardContent>
           </Card>
 
@@ -320,13 +378,6 @@ export default function Dashboard() {
           )}
         </div>
       </div>
-
-      {/* Player Detail Modal */}
-      <PlayerDetailModal
-        player={selectedPlayer}
-        isOpen={showPlayerModal}
-        onClose={() => setShowPlayerModal(false)}
-      />
     </div>
   );
 }

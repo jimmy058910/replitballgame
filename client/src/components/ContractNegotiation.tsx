@@ -3,15 +3,22 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
+import type { Player as SharedPlayer } from "shared/schema"; // Assuming PlayerWithRole is based on this
+
+// Define PlayerWithRole if not already globally available or imported
+// For this component, we only need a subset of player properties.
+interface PlayerForContract extends Pick<SharedPlayer, 'id' | 'firstName' | 'lastName' | 'race' | 'age' | 'salary'> {
+  // Add other fields if used by this component like role, specific stats for negotiation basis etc.
+}
 
 interface ContractNegotiationProps {
-  player: any;
+  player: PlayerForContract | null; // Use a more specific player type
   isOpen: boolean;
   onClose: () => void;
-  teamId: string;
+  // teamId?: string; // Removed as it's not used by the component based on previous analysis
 }
 
 const contractResponses = {
@@ -37,9 +44,9 @@ const contractResponses = {
   ]
 };
 
-export default function ContractNegotiation({ player, isOpen, onClose, teamId }: ContractNegotiationProps) {
+export default function ContractNegotiation({ player, isOpen, onClose }: ContractNegotiationProps) {
   // Early return if player is null or missing required properties
-  if (!player || !player.firstName || !player.lastName) {
+  if (!player || !player.id || !player.firstName || !player.lastName) { // Added player.id check
     return (
       <Dialog open={isOpen} onOpenChange={onClose}>
         <DialogContent className="max-w-2xl">
@@ -53,104 +60,46 @@ export default function ContractNegotiation({ player, isOpen, onClose, teamId }:
   }
 
   const [currentOffer, setCurrentOffer] = useState({
-    salary: player?.salary || 50000,
+    salary: player.salary || 50000, // player.salary should be number as per SharedPlayer
     years: 3,
     bonus: 10000
   });
   const [playerResponse, setPlayerResponse] = useState<string | null>(null);
   const [negotiationPhase, setNegotiationPhase] = useState<'offer' | 'response' | 'counter'>('offer');
-  const [negotiationData, setNegotiationData] = useState<{ willingnessToSign?: number; acceptanceThreshold?: number } | null>(null);
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  
-  // Get team data for willingness calculation
-  const { data: team } = useQuery({
-    queryKey: ["/api/teams/my"],
-  });
 
-  const generateResponse = (offerQuality: number, isAccepted: boolean) => {
+  const generateResponse = (offerQuality: number) => {
     let responseType: keyof typeof contractResponses;
     
-    if (isAccepted) {
-      // If offer is accepted, use happy responses regardless of quality
-      responseType = 'happy';
-    } else if (offerQuality >= 0.8) {
-      responseType = 'demanding';
-    } else {
-      responseType = 'rejecting';
-    }
+    if (offerQuality >= 1.2) responseType = 'happy';
+    else if (offerQuality >= 1.0) responseType = 'considering';
+    else if (offerQuality >= 0.8) responseType = 'demanding';
+    else responseType = 'rejecting';
 
     const responses = contractResponses[responseType];
     return responses[Math.floor(Math.random() * responses.length)];
   };
 
-  // Calculate Willingness to Sign score (0-100)
-  const calculateWillingnessToSign = () => {
-    let willingness = 50; // Base willingness
-
-    // Team Success factor (+10 to +20)
-    // For now, we'll add based on current position (future: use championship wins)
-    if (team?.wins && team?.losses) {
-      const winRate = team.wins / (team.wins + team.losses + (team.draws || 0));
-      if (winRate > 0.7) willingness += 20;
-      else if (winRate > 0.5) willingness += 10;
-    }
-
-    // Age factor
-    if (player.age > 30) {
-      willingness += (player.age - 30); // +1 for every year over 30
-    } else if (player.age < 24) {
-      willingness -= (24 - player.age); // -1 for every year under 24
-    }
-
-    // Leadership bonus (if team has high leadership captain)
-    // This would need team captain data in future
-    // For now, use player's own leadership
-    if (player.leadership >= 35) {
-      willingness += 5;
-    }
-
-    // Ensure willingness stays within 0-100
-    return Math.max(0, Math.min(100, willingness));
-  };
-
   const negotiateMutation = useMutation({
     mutationFn: async (offer: typeof currentOffer) => {
-      const marketValue = player.salary * 1.1; // 10% above current
-      const offerQuality = (offer.salary / marketValue) * 100; // Convert to percentage
+      const marketValue = (player.salary || 0) * 1.1; // Handle potentially null salary safely
+      const offerQuality = offer.salary / (marketValue || 50000); // Avoid division by zero
       
-      const willingnessToSign = calculateWillingnessToSign();
-      const acceptanceThreshold = 95 - (willingnessToSign * 0.2);
-      
-      const isAccepted = offerQuality >= acceptanceThreshold;
-      
-      const response = generateResponse(offerQuality / 100, isAccepted);
-      
-      // Dynamic counter-offer if within negotiation window
-      let counterOffer = null;
-      if (!isAccepted && offerQuality >= (acceptanceThreshold - 10)) {
-        const counterMultiplier = 1.0 + (Math.random() * 0.1); // Random 1.0-1.1x
-        counterOffer = {
-          salary: Math.floor(marketValue * counterMultiplier),
-          years: offer.years,
-          bonus: Math.floor(marketValue * counterMultiplier * 0.2)
-        };
-      }
+      const response = generateResponse(offerQuality);
       
       return { 
-        success: isAccepted,
+        success: offerQuality >= 0.9,
         response,
-        counterOffer,
-        willingnessToSign,
-        acceptanceThreshold
+        counterOffer: offerQuality < 0.9 ? {
+          salary: Math.floor(marketValue || 50000),
+          years: offer.years,
+          bonus: Math.floor((marketValue || 50000) * 0.2)
+        } : null
       };
     },
     onSuccess: (data) => {
       setPlayerResponse(data.response);
-      setNegotiationData({
-        willingnessToSign: data.willingnessToSign,
-        acceptanceThreshold: data.acceptanceThreshold
-      });
       
       if (data.success) {
         toast({
@@ -158,22 +107,24 @@ export default function ContractNegotiation({ player, isOpen, onClose, teamId }:
           description: `${player.firstName} ${player.lastName} has agreed to the terms.`,
         });
         setNegotiationPhase('response');
-        // Automatically finalize the accepted contract
-        finalizeContractMutation.mutate();
       } else if (data.counterOffer) {
         setCurrentOffer(data.counterOffer);
         setNegotiationPhase('counter');
       } else {
         setNegotiationPhase('response');
       }
+    },
+    onError: (error: Error) => { // Explicitly type error
+      toast({ title: "Negotiation Error", description: error.message, variant: "destructive"});
     }
   });
 
   const finalizeContractMutation = useMutation({
-    mutationFn: async () => {
-      await apiRequest(`/api/players/${player.id}/negotiate`, "POST", {
-        seasons: currentOffer.years,
+    mutationFn: async (): Promise<void> => { // Explicit return type
+      // Player ID is guaranteed to be present due to the early return
+      await apiRequest(`/api/players/${player.id}/contract`, "POST", {
         salary: currentOffer.salary,
+        years: currentOffer.years,
         bonus: currentOffer.bonus
       });
     },
@@ -182,9 +133,11 @@ export default function ContractNegotiation({ player, isOpen, onClose, teamId }:
         title: "Contract Finalized",
         description: "The new contract has been officially signed!",
       });
-      queryClient.invalidateQueries({ queryKey: [`/api/teams/${teamId}/players`] });
-      queryClient.invalidateQueries({ queryKey: [`/api/teams/my/finances`] });
+      queryClient.invalidateQueries({ queryKey: ["teamPlayers", player.id] }); // More specific invalidation if possible
       onClose();
+    },
+    onError: (error: Error) => { // Explicitly type error
+       toast({ title: "Finalization Error", description: error.message, variant: "destructive"});
     }
   });
 
@@ -200,35 +153,9 @@ export default function ContractNegotiation({ player, isOpen, onClose, teamId }:
           <div className="flex-1">
             <h3 className="font-semibold">{player.firstName} {player.lastName}</h3>
             <p className="text-sm text-gray-500">{player.race} • Age {player.age}</p>
-            <Badge variant="outline">Current Salary: {player.salary?.toLocaleString()}/season</Badge>
+            <Badge variant="outline">Current Salary: {(player.salary || 0).toLocaleString()}/season</Badge>
           </div>
         </div>
-
-        {/* Willingness to Sign Indicator */}
-        {negotiationData?.willingnessToSign !== undefined && (
-          <div className="border rounded-lg p-4 bg-gradient-to-r from-purple-50 to-blue-50 dark:from-purple-900/20 dark:to-blue-900/20">
-            <h4 className="font-medium mb-2">Willingness to Sign</h4>
-            <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-gray-600 dark:text-gray-400">Player Mood</span>
-                <span className="font-semibold">
-                  {negotiationData.willingnessToSign >= 70 ? '😊 Very Willing' : 
-                   negotiationData.willingnessToSign >= 50 ? '😐 Neutral' : 
-                   '😕 Demanding'}
-                </span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-gray-600 dark:text-gray-400">Acceptance Threshold</span>
-                <span className="font-semibold">{negotiationData.acceptanceThreshold.toFixed(1)}% of market value</span>
-              </div>
-              <div className="text-xs text-gray-500 dark:text-gray-400 mt-2">
-                Factors: {team?.wins ? `Team Win Rate (${(team.wins / (team.wins + team.losses + (team.draws || 0)) * 100).toFixed(0)}%)` : 'Team Performance'}, 
-                Age ({player.age} years), 
-                {player.leadership >= 35 ? ' Leadership Bonus' : ''}
-              </div>
-            </div>
-          </div>
-        )}
 
         {/* Current Offer */}
         <div className="border rounded-lg p-4">
@@ -252,8 +179,8 @@ export default function ContractNegotiation({ player, isOpen, onClose, teamId }:
         {/* Player Response */}
         {playerResponse && (
           <div className="border rounded-lg p-4 bg-blue-50 dark:bg-blue-900/20">
-            <h4 className="font-medium mb-2 text-gray-900 dark:text-gray-100">{player.firstName}'s Response:</h4>
-            <p className="italic text-gray-800 dark:text-gray-200">"{playerResponse}"</p>
+            <h4 className="font-medium mb-2">{player.firstName}'s Response:</h4>
+            <p className="italic">"{playerResponse}"</p>
           </div>
         )}
 

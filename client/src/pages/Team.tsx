@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useQuery, useMutation } from "@tanstack/react-query";
+import { useQuery, useMutation } from "@tanstack/react-query"; // useMutation is not used, can be removed if not planned
 import { queryClient } from "@/lib/queryClient";
 import Navigation from "@/components/Navigation";
 import PlayerCard from "@/components/PlayerCard";
@@ -10,27 +10,36 @@ import StaffManagement from "@/components/StaffManagement";
 import TeamFinances from "@/components/TeamFinances";
 import TryoutSystem from "@/components/TryoutSystem";
 import { TaxiSquadManager } from "@/components/TaxiSquadManager";
-import { InjuryManagement } from "@/components/InjuryManagement";
-import StatBoostManager from "@/components/StatBoostManager";
-
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { apiRequest } from "@/lib/queryClient";
+import type { Team as SharedTeam, Player as SharedPlayer } from "shared/schema";
+import { DetailedPlayer } from "@/components/PlayerDetailModal"; // Changed to regular import
+
+// Define Player with Role
+interface PlayerWithRole extends SharedPlayer {
+  role: string;
+}
+
+type FormationData = any; // Keep as any for now, or define specific structure if known
 
 // Helper function to determine player role based on attributes
-function getPlayerRole(player: any): string {
-  const { speed, agility, catching, throwing, power } = player;
+function getPlayerRole(player: SharedPlayer): string {
+  const { speed, agility, catching, throwing, power, leadership, stamina } = player;
   
-  // Passer: High throwing and leadership
-  const passerScore = (throwing * 2) + (player.leadership * 1.5);
-  
-  // Runner: High speed and agility
-  const runnerScore = (speed * 2) + (agility * 1.5);
-  
-  // Blocker: High power and stamina
-  const blockerScore = (power * 2) + (player.stamina * 1.5);
+  const numSpeed = Number(speed) || 0;
+  const numAgility = Number(agility) || 0;
+  // catching, throwing, power, leadership, stamina are already numbers in SharedPlayer
+  const numThrowing = Number(throwing) || 0;
+  const numPower = Number(power) || 0;
+  const numLeadership = Number(leadership) || 0;
+  const numStamina = Number(stamina) || 0;
+
+  const passerScore = (numThrowing * 2) + (numLeadership * 1.5);
+  const runnerScore = (numSpeed * 2) + (numAgility * 1.5);
+  const blockerScore = (numPower * 2) + (numStamina * 1.5);
   
   const maxScore = Math.max(passerScore, runnerScore, blockerScore);
   
@@ -39,41 +48,56 @@ function getPlayerRole(player: any): string {
   return "blocker";
 }
 
-export default function Team() {
-  const [selectedRole, setSelectedRole] = useState("all");
-  const [selectedPlayer, setSelectedPlayer] = useState(null);
+export default function TeamPage() {
+  const [selectedRole, setSelectedRole] = useState<string>("all");
+  const [selectedPlayer, setSelectedPlayer] = useState<PlayerWithRole | null>(null);
   const [showPlayerModal, setShowPlayerModal] = useState(false);
   const [showContractModal, setShowContractModal] = useState(false);
   const [activeTab, setActiveTab] = useState("roster");
 
-  const { data: team } = useQuery({
-    queryKey: ["/api/teams/my"],
+  const teamQuery = useQuery({
+    queryKey: ["myTeam"],
+    queryFn: (): Promise<SharedTeam> => apiRequest("/api/teams/my"),
   });
+  const team = teamQuery.data as SharedTeam | undefined;
+  const isLoadingTeam = teamQuery.isLoading;
 
-  const { data: players, isLoading: playersLoading } = useQuery({
-    queryKey: [`/api/teams/${team?.id}/players`],
+  const playersQuery = useQuery({
+    queryKey: ["teamPlayers", team?.id],
+    queryFn: (): Promise<SharedPlayer[]> => apiRequest(`/api/teams/${team!.id}/players`),
     enabled: !!team?.id,
   });
+  const players = playersQuery.data as SharedPlayer[] | undefined;
+  const playersLoading = playersQuery.isLoading;
 
-  const { data: formation } = useQuery({
-    queryKey: [`/api/teams/${team?.id}/formation`],
+  const formationQuery = useQuery({
+    queryKey: ["teamFormation", team?.id],
+    queryFn: (): Promise<FormationData> => apiRequest(`/api/teams/${team!.id}/formation`),
     enabled: !!team?.id,
   });
+  const formation = formationQuery.data as FormationData | undefined;
 
-  // Add roles to players and filter
-  const playersWithRoles = players?.map((player: any) => ({
+  const playersWithRoles: PlayerWithRole[] = players?.map((player: SharedPlayer) => ({
     ...player,
     role: getPlayerRole(player)
   })) || [];
 
-  const filteredPlayers = playersWithRoles.filter((player: any) => 
+  const filteredPlayers: PlayerWithRole[] = playersWithRoles.filter((player: PlayerWithRole) =>
     selectedRole === "all" || player.role === selectedRole
   );
 
-  const roleStats = playersWithRoles.reduce((acc: any, player: any) => {
+  const roleStats: Record<string, number> = playersWithRoles.reduce((acc: Record<string, number>, player: PlayerWithRole) => {
     acc[player.role] = (acc[player.role] || 0) + 1;
     return acc;
   }, {});
+
+  if (isLoadingTeam) {
+    return (
+      <div className="min-h-screen bg-gray-900 text-white flex items-center justify-center">
+        <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-primary-500"></div>
+      </div>
+    );
+  }
 
   if (!team) {
     return (
@@ -89,6 +113,38 @@ export default function Team() {
       </div>
     );
   }
+
+  // Function to adapt PlayerWithRole to DetailedPlayer
+  const adaptPlayerForDetailModal = (player: PlayerWithRole | null): DetailedPlayer | null => {
+    if (!player) return null;
+    return {
+      ...player,
+      speed: Number(player.speed),
+      power: Number(player.power),
+      throwing: Number(player.throwing),
+      catching: Number(player.catching),
+      kicking: Number(player.kicking),
+      stamina: Number(player.stamina),
+      leadership: Number(player.leadership),
+      agility: Number(player.agility),
+      salary: Number(player.salary),
+      contractSeasons: player.contractSeasons ?? 0, // Default if null
+      contractStartSeason: player.contractStartSeason ?? 0, // Default if null
+      contractValue: Number(player.contractValue),
+      camaraderie: player.camaraderie ?? 50,
+      // Ensure potential fields are string | null
+      speedPotential: player.speedPotential?.toString() ?? null,
+      powerPotential: player.powerPotential?.toString() ?? null,
+      throwingPotential: player.throwingPotential?.toString() ?? null,
+      catchingPotential: player.catchingPotential?.toString() ?? null,
+      kickingPotential: player.kickingPotential?.toString() ?? null,
+      staminaPotential: player.staminaPotential?.toString() ?? null,
+      leadershipPotential: player.leadershipPotential?.toString() ?? null,
+      agilityPotential: player.agilityPotential?.toString() ?? null,
+      // helmetItem, chestItem etc. are not part of SharedPlayer, they are added in PlayerDetailModal
+    };
+  };
+
 
   return (
     <div className="min-h-screen bg-gray-900 text-white">
@@ -119,21 +175,17 @@ export default function Team() {
           </div>
         </div>
 
-        {/* Main Navigation Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="mb-8">
-          <TabsList className="grid w-full grid-cols-8 bg-gray-800 gap-0.5">
+          <TabsList className="grid w-full grid-cols-6 bg-gray-800 gap-0.5">
             <TabsTrigger value="roster" className="border-r border-gray-600 last:border-r-0">Roster</TabsTrigger>
             <TabsTrigger value="tactics" className="border-r border-gray-600 last:border-r-0">Tactics</TabsTrigger>
-            <TabsTrigger value="injuries" className="border-r border-gray-600 last:border-r-0">Injuries</TabsTrigger>
             <TabsTrigger value="staff" className="border-r border-gray-600 last:border-r-0">Staff</TabsTrigger>
             <TabsTrigger value="finances" className="border-r border-gray-600 last:border-r-0">Finances</TabsTrigger>
             <TabsTrigger value="contracts" className="border-r border-gray-600 last:border-r-0">Contracts</TabsTrigger>
-            <TabsTrigger value="stat-boosts" className="border-r border-gray-600 last:border-r-0">Stat Boosts</TabsTrigger>
             <TabsTrigger value="recruiting" className="border-r border-gray-600 last:border-r-0">Recruiting</TabsTrigger>
           </TabsList>
 
           <TabsContent value="roster">
-            {/* Role Filter Sub-tabs */}
             <Tabs value={selectedRole} onValueChange={setSelectedRole} className="mb-6">
               <TabsList className="grid w-full grid-cols-5 bg-gray-800">
                 <TabsTrigger value="all">All Players ({playersWithRoles.length})</TabsTrigger>
@@ -144,7 +196,6 @@ export default function Team() {
               </TabsList>
             </Tabs>
 
-            {/* Team Summary */}
             <Card className="bg-gray-800 border-gray-700 mb-8">
               <CardHeader>
                 <CardTitle>Team Overview</CardTitle>
@@ -170,14 +221,12 @@ export default function Team() {
               </CardContent>
             </Card>
 
-            {/* Conditional Content Based on Selected Role */}
             {selectedRole === 'taxi-squad' ? (
               <TaxiSquadManager 
                 teamId={team?.id} 
                 onNavigateToRecruiting={() => setActiveTab('recruiting')}
               />
             ) : (
-              /* Player Grid */
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                 {playersLoading ? (
                   Array.from({ length: 8 }, (_, i) => (
@@ -197,7 +246,7 @@ export default function Team() {
                     </div>
                   ))
                 ) : (
-                  filteredPlayers.map((player: any) => (
+                  filteredPlayers.map((player: PlayerWithRole) => (
                     <div
                       key={player.id}
                       onClick={() => {
@@ -213,7 +262,7 @@ export default function Team() {
               </div>
             )}
 
-            {filteredPlayers.length === 0 && !playersLoading && (
+            {filteredPlayers.length === 0 && !playersLoading && selectedRole !== 'taxi-squad' && (
               <div className="text-center py-16">
                 <i className="fas fa-users text-6xl text-gray-600 mb-4"></i>
                 <h3 className="text-xl font-semibold text-gray-400 mb-2">
@@ -234,10 +283,6 @@ export default function Team() {
               players={playersWithRoles}
               savedFormation={formation}
             />
-          </TabsContent>
-
-          <TabsContent value="injuries">
-            <InjuryManagement teamId={team?.id} />
           </TabsContent>
 
           <TabsContent value="staff">
@@ -261,37 +306,42 @@ export default function Team() {
                   
                   {playersWithRoles.length > 0 ? (
                     <div className="space-y-4">
-                      {playersWithRoles.map((player: any) => {
-                        const remaining = (player.contractSeasons || 3) - (player.contractStartSeason || 0);
-                        return (
-                          <div key={player.id} className="flex items-center justify-between p-4 border border-gray-700 rounded-lg">
-                            <div>
-                              <h4 className="font-semibold">{player.name}</h4>
-                              <p className="text-sm text-gray-400">
-                                {getPlayerRole(player)} • {remaining} season{remaining !== 1 ? 's' : ''} remaining
-                              </p>
+                      {playersWithRoles
+                        .filter((player: PlayerWithRole) => {
+                          const remaining = (player.contractSeasons ?? 3) - (player.contractStartSeason ?? 0);
+                          return remaining <= 2;
+                        })
+                        .map((player: PlayerWithRole) => {
+                          const remaining = (player.contractSeasons ?? 3) - (player.contractStartSeason ?? 0);
+                          return (
+                            <div key={player.id} className="flex items-center justify-between p-4 border border-gray-700 rounded-lg">
+                              <div>
+                                <h4 className="font-semibold">{player.name}</h4>
+                                <p className="text-sm text-gray-400">
+                                  {remaining} season{remaining !== 1 ? 's' : ''} remaining
+                                </p>
+                              </div>
+                              <div className="flex items-center gap-3">
+                                <Badge variant={remaining <= 1 ? "destructive" : "secondary"}>
+                                  {remaining <= 1 ? "Expiring" : "Moderate"}
+                                </Badge>
+                                <Button
+                                  size="sm"
+                                  onClick={() => {
+                                    setSelectedPlayer(player);
+                                    setShowContractModal(true);
+                                  }}
+                                >
+                                  Negotiate
+                                </Button>
+                              </div>
                             </div>
-                            <div className="flex items-center gap-3">
-                              <Badge variant={remaining <= 1 ? "destructive" : remaining <= 2 ? "secondary" : "default"}>
-                                {remaining <= 1 ? "Expiring" : remaining <= 2 ? "Moderate" : "Stable"}
-                              </Badge>
-                              <Button
-                                size="sm"
-                                onClick={() => {
-                                  setSelectedPlayer(player);
-                                  setShowContractModal(true);
-                                }}
-                              >
-                                Negotiate
-                              </Button>
-                            </div>
-                          </div>
-                        );
-                      })}
+                          );
+                        })}
                     </div>
                   ) : (
                     <p className="text-gray-500 text-center py-8">
-                      No players found.
+                      No contract negotiations needed at this time.
                     </p>
                   )}
                 </CardContent>
@@ -303,35 +353,42 @@ export default function Team() {
             <TryoutSystem teamId={team?.id} />
           </TabsContent>
 
-          <TabsContent value="stat-boosts">
-            <StatBoostManager />
-          </TabsContent>
-        </Tabs>
-
         {/* Player Detail Modal */}
         <PlayerDetailModal
-          player={selectedPlayer}
+          player={adaptPlayerForDetailModal(selectedPlayer)}
           isOpen={showPlayerModal}
           onClose={() => {
             setShowPlayerModal(false);
             setSelectedPlayer(null);
           }}
-          onContractNegotiate={(playerId) => {
+          onContractNegotiate={(playerId) => { // playerId is string
             setShowPlayerModal(false);
-            setShowContractModal(true);
+            const playerToNegotiate = playersWithRoles.find(p => p.id === playerId);
+            if (playerToNegotiate) {
+              setSelectedPlayer(playerToNegotiate);
+              setShowContractModal(true);
+            }
           }}
         />
 
         {/* Contract Negotiation Modal */}
         <ContractNegotiation
-          player={selectedPlayer}
+          player={selectedPlayer ? { // Pass only needed subset for PlayerForContract
+            id: selectedPlayer.id,
+            firstName: selectedPlayer.firstName,
+            lastName: selectedPlayer.lastName,
+            race: selectedPlayer.race,
+            age: selectedPlayer.age, // age is number | string in PlayerWithRole, ContractNegotiation expects string | number
+            salary: selectedPlayer.salary, // salary is number in PlayerWithRole, ContractNegotiation expects number
+          } : null}
           isOpen={showContractModal}
           onClose={() => {
             setShowContractModal(false);
             setSelectedPlayer(null);
           }}
-          teamId={team?.id}
+          // teamId prop removed
         />
+        </Tabs>
       </div>
     </div>
   );

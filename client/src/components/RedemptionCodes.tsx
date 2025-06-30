@@ -8,29 +8,45 @@ import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { Gift, Check, Clock, Star } from "lucide-react";
 
+interface RedemptionReward {
+  type: "credits" | "gems" | "item" | "player"; // More specific types
+  amount?: number;
+  itemName?: string;
+  playerName?: string;
+  description?: string; // For rewards that are just descriptive
+}
+
+interface RedemptionHistoryItem {
+  code: string;
+  description: string;
+  redeemedAt: string; // Assuming string from API, will be parsed to Date
+  rewards: RedemptionReward[];
+}
+
+interface RedeemCodeResponse { // Added interface for mutation response
+  rewards: string[];
+}
+
 export default function RedemptionCodes() {
   const [redemptionCode, setRedemptionCode] = useState("");
   const { toast } = useToast();
 
-  const { data: redemptionHistory } = useQuery({
+  const { data: redemptionHistory = [] } = useQuery<RedemptionHistoryItem[]>({ // Typed and default
     queryKey: ["/api/redemption-codes/history"],
+    queryFn: () => apiRequest<RedemptionHistoryItem[]>("/api/redemption-codes/history"), // Added queryFn
   });
 
   const redeemCodeMutation = useMutation({
-    mutationFn: async (code: string) => {
-      const response = await apiRequest("/api/redemption-codes/redeem", {
-        method: "POST",
-        body: JSON.stringify({ code }),
-      });
-      return response;
+    mutationFn: async (code: string): Promise<RedeemCodeResponse> => { // Typed mutationFn
+      return apiRequest<RedeemCodeResponse>("/api/redemption-codes/redeem", "POST", { code });
     },
-    onSuccess: (data) => {
+    onSuccess: (data: RedeemCodeResponse) => { // Typed data in onSuccess
       toast({
         title: "Code Redeemed Successfully!",
         description: `You received: ${data.rewards.join(", ")}`,
       });
       queryClient.invalidateQueries({ queryKey: ["/api/redemption-codes/history"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/teams/my/finances"] });
+      queryClient.invalidateQueries({ queryKey: ["myTeamFinances"] }); // Use the actual query key used in useQuery
       setRedemptionCode("");
     },
     onError: (error: Error) => {
@@ -42,20 +58,20 @@ export default function RedemptionCodes() {
     },
   });
 
-  const formatReward = (reward: any) => {
-    if (reward.type === "credits") {
+  const formatReward = (reward: RedemptionReward): string => { // Typed reward
+    if (reward.type === "credits" && reward.amount !== undefined) {
       return `${reward.amount.toLocaleString()}₡`;
-    } else if (reward.type === "gems") {
+    } else if (reward.type === "gems" && reward.amount !== undefined) {
       return `${reward.amount}💎`;
-    } else if (reward.type === "item") {
+    } else if (reward.type === "item" && reward.itemName) {
       return reward.itemName;
-    } else if (reward.type === "player") {
+    } else if (reward.type === "player" && reward.playerName) {
       return `${reward.playerName} (Player)`;
     }
-    return reward.description;
+    return reward.description || "Unknown Reward"; // Fallback
   };
 
-  const getRewardTypeColor = (type: string) => {
+  const getRewardTypeColor = (type: RedemptionReward['type']) => { // Typed type
     switch (type) {
       case "credits": return "bg-green-600";
       case "gems": return "bg-yellow-600";
@@ -137,9 +153,9 @@ export default function RedemptionCodes() {
           </CardHeader>
           <CardContent>
             <div className="space-y-3">
-              {redemptionHistory.map((redemption: any, index: number) => (
+              {redemptionHistory?.map((redemption: RedemptionHistoryItem, index: number) => ( // Used RedemptionHistoryItem
                 <div
-                  key={index}
+                  key={index} // Using index as key is okay if list is static or items don't have unique IDs
                   className="flex items-center justify-between p-3 bg-gray-800 rounded-lg"
                 >
                   <div className="flex items-center gap-3">
@@ -154,7 +170,7 @@ export default function RedemptionCodes() {
                     </div>
                   </div>
                   <div className="flex gap-2">
-                    {redemption.rewards.map((reward: any, rewardIndex: number) => (
+                    {redemption.rewards.map((reward: RedemptionReward, rewardIndex: number) => ( // Used RedemptionReward
                       <Badge
                         key={rewardIndex}
                         className={`${getRewardTypeColor(reward.type)} text-white`}

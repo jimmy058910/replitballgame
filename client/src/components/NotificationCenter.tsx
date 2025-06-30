@@ -19,25 +19,18 @@ import {
 } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
+import type { Notification as NotificationType } from "@shared/schema"; // Import the shared Notification type
 
-interface Notification {
-  id: string;
-  type: string;
-  title: string;
-  message: string;
-  metadata?: any;
-  isRead: boolean;
-  priority: string;
-  actionUrl?: string;
-  createdAt: string;
-}
+// The local Notification interface can be removed if NotificationType from schema is sufficient
+// If local one is kept, ensure it's compatible or used appropriately.
+// For now, I'll assume NotificationType from schema is the source of truth.
 
 export default function NotificationCenter() {
   const [showResults, setShowResults] = useState<Record<string, boolean>>({});
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  const { data: notifications = [], isLoading } = useQuery({
+  const { data: notifications = [], isLoading } = useQuery<NotificationType[]>({ // Typed useQuery
     queryKey: ["/api/notifications"],
   });
 
@@ -112,18 +105,21 @@ export default function NotificationCenter() {
     }
   };
 
-  const canRevealResult = (notification: Notification) => {
-    return notification.metadata?.resultHidden && 
+  const canRevealResult = (notification: NotificationType) => {
+    // Safely access metadata and its properties
+    const metadata = notification.metadata as { resultHidden?: boolean;[key: string]: any } | null | undefined;
+    return metadata?.resultHidden &&
            (notification.type === "match" || notification.type === "tournament");
   };
 
-  const getRevealedMessage = (notification: Notification) => {
-    if (notification.type === "match" && notification.metadata) {
-      const { homeScore, awayScore, homeTeamId, awayTeamId } = notification.metadata;
-      return `Final Score: ${homeScore} - ${awayScore}`;
+  const getRevealedMessage = (notification: NotificationType) => {
+    const metadata = notification.metadata as any; // Keep as any for flexibility or define specific metadata types per notification.type
+    if (notification.type === "match" && metadata) {
+      const { homeScore, awayScore } = metadata;
+      return `Final Score: ${homeScore ?? '?' } - ${awayScore ?? '?'}`;
     }
-    if (notification.type === "tournament" && notification.metadata) {
-      const { result } = notification.metadata;
+    if (notification.type === "tournament" && metadata) {
+      const { result } = metadata;
       if (result === "champion") {
         return "🏆 You won the tournament! Congratulations!";
       } else if (result === "eliminated") {
@@ -141,7 +137,7 @@ export default function NotificationCenter() {
     markReadMutation.mutate(notificationId);
   };
 
-  const unreadCount = notifications.filter((n: Notification) => !n.isRead).length;
+  const unreadCount = notifications.filter((n: NotificationType) => !n.isRead).length; // Use NotificationType
 
   if (isLoading) {
     return (
@@ -199,7 +195,7 @@ export default function NotificationCenter() {
         ) : (
           <ScrollArea className="h-96">
             <div className="space-y-3">
-              {notifications.map((notification: Notification) => (
+              {notifications.map((notification: NotificationType) => ( // Use NotificationType
                 <div
                   key={notification.id}
                   className={`p-4 rounded-lg border transition-colors ${
@@ -210,9 +206,9 @@ export default function NotificationCenter() {
                 >
                   <div className="flex justify-between items-start mb-2">
                     <div className="flex items-center gap-2">
-                      {getNotificationIcon(notification.type, notification.priority)}
+                      {getNotificationIcon(notification.type, notification.priority as string)} {/* Cast priority for now */}
                       <h4 className="font-semibold text-white">{notification.title}</h4>
-                      <Badge className={`text-xs ${getPriorityColor(notification.priority)}`}>
+                      <Badge className={`text-xs ${getPriorityColor(notification.priority as string)}`}> {/* Cast priority for now */}
                         {notification.priority}
                       </Badge>
                     </div>
@@ -255,7 +251,7 @@ export default function NotificationCenter() {
                   </div>
 
                   <div className="flex justify-between items-center text-xs text-gray-400">
-                    <span>{new Date(notification.createdAt).toLocaleString()}</span>
+                    <span>{notification.createdAt ? new Date(notification.createdAt).toLocaleString() : 'Date unknown'}</span>
                     {notification.actionUrl && (
                       <Button
                         variant="link"

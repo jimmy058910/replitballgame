@@ -10,7 +10,7 @@ import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Progress } from "@/components/ui/progress";
+import { Progress } from "@/components/ui/progress"; // Keep Progress if it's used, remove if not. Assuming it might be in future.
 import { Building2, TrendingUp, DollarSign, Award, Users, Target, Calendar, Briefcase } from "lucide-react";
 import { AnimatedCounter, PulseWrapper, HoverCard, InteractiveButton } from "@/components/MicroInteractions";
 
@@ -22,7 +22,7 @@ interface SponsorshipDeal {
   value: number;
   duration: number;
   remainingYears: number;
-  bonusConditions?: any;
+  bonusConditions?: Record<string, number>; // More specific type for bonusConditions
   status: string;
   signedDate: string;
   expiryDate: string;
@@ -42,6 +42,26 @@ interface StadiumRevenue {
   month: number;
 }
 
+interface TeamData {
+  id: string;
+  stadiumCapacity?: number;
+  averageAttendance?: number;
+}
+
+interface AvailableSponsor {
+  id: string;
+  name: string;
+  industry: string;
+  maxValue: number;
+  preferredDealType: string;
+  minDuration: number;
+  interestLevel: number;
+}
+
+type NegotiateSponsorshipPayload = Omit<SponsorshipDeal, "id" | "status" | "signedDate" | "expiryDate" | "remainingYears">;
+type RenewSponsorshipPayload = { dealId: string; newTerms: Partial<Pick<SponsorshipDeal, 'duration' | 'value' | 'bonusConditions'>> }; // More specific
+type StadiumUpgradePayload = { name: string; cost: number; revenue: number; description: string }; // Example type
+
 export default function SponsorshipManagement() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -58,115 +78,130 @@ export default function SponsorshipManagement() {
     }
   });
 
-  const { data: team } = useQuery({
+  const { data: team, isLoading: teamLoading } = useQuery<TeamData, Error>({
     queryKey: ["/api/teams/my"],
+    queryFn: () => apiRequest("/api/teams/my"),
   });
 
-  const { data: sponsorshipDeals } = useQuery({
+  const { data: sponsorshipDeals = [], isLoading: dealsLoading } = useQuery<SponsorshipDeal[], Error>({
     queryKey: ["/api/sponsorships", team?.id],
+    queryFn: () => apiRequest(`/api/sponsorships?teamId=${team!.id}`),
     enabled: !!team?.id,
   });
 
-  const { data: stadiumRevenue } = useQuery({
+  const { data: stadiumRevenue = [], isLoading: revenueLoading } = useQuery<StadiumRevenue[], Error>({
     queryKey: ["/api/stadium/revenue", team?.id],
+    queryFn: () => apiRequest(`/api/stadium/revenue?teamId=${team!.id}`),
     enabled: !!team?.id,
   });
 
-  const { data: availableSponsors } = useQuery({
+  const { data: availableSponsors = [], isLoading: sponsorsLoading } = useQuery<AvailableSponsor[], Error>({
     queryKey: ["/api/sponsorships/available"],
+    queryFn: () => apiRequest("/api/sponsorships/available"),
   });
 
-  const { data: revenueAnalytics } = useQuery({
+  // Assuming revenueAnalytics returns a specific structure, for now 'any'
+  const { data: revenueAnalytics, isLoading: analyticsLoading } = useQuery<any, Error>({
     queryKey: ["/api/stadium/analytics", team?.id],
+    queryFn: () => apiRequest(`/api/stadium/analytics?teamId=${team!.id}`),
     enabled: !!team?.id,
   });
 
-  const negotiateSponsorshipMutation = useMutation({
-    mutationFn: (data: any) =>
-      apiRequest(`/api/sponsorships/negotiate`, {
-        method: "POST",
-        body: JSON.stringify(data),
-      }),
+  const negotiateSponsorshipMutation = useMutation<SponsorshipDeal, Error, NegotiateSponsorshipPayload>({
+    mutationFn: (data) => apiRequest(`/api/sponsorships/negotiate`, "POST", data),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/sponsorships"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/sponsorships", team?.id] });
       setShowDealDialog(false);
       toast({
         title: "Sponsorship Deal Signed!",
         description: "New sponsorship agreement has been successfully negotiated.",
       });
     },
+    onError: (error: Error) => {
+      toast({ title: "Negotiation Failed", description: error.message, variant: "destructive" });
+    }
   });
 
-  const renewSponsorshipMutation = useMutation({
-    mutationFn: (data: { dealId: string; newTerms: any }) =>
-      apiRequest(`/api/sponsorships/${data.dealId}/renew`, {
-        method: "POST",
-        body: JSON.stringify(data.newTerms),
-      }),
+  const renewSponsorshipMutation = useMutation<SponsorshipDeal, Error, RenewSponsorshipPayload>({
+    mutationFn: (data) => apiRequest(`/api/sponsorships/${data.dealId}/renew`, "POST", data.newTerms),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/sponsorships"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/sponsorships", team?.id] });
       toast({
         title: "Sponsorship Renewed",
         description: "Sponsorship deal has been successfully renewed.",
       });
     },
+    onError: (error: Error) => {
+      toast({ title: "Renewal Failed", description: error.message, variant: "destructive" });
+    }
   });
 
-  const updateStadiumMutation = useMutation({
-    mutationFn: (data: any) =>
-      apiRequest(`/api/stadium/upgrade`, {
-        method: "POST",
-        body: JSON.stringify(data),
-      }),
+  const updateStadiumMutation = useMutation<any, Error, StadiumUpgradePayload>({
+    mutationFn: (data) => apiRequest(`/api/stadium/upgrade`, "POST", data),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/stadium/revenue"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/stadium/revenue", team?.id] });
+      queryClient.invalidateQueries({ queryKey: ["/api/stadium/analytics", team?.id] });
       toast({
         title: "Stadium Upgraded",
         description: "Stadium improvements will increase revenue potential.",
       });
     },
+    onError: (error: Error) => {
+      toast({ title: "Upgrade Failed", description: error.message, variant: "destructive" });
+    }
   });
 
-  const getDealTypeColor = (dealType: string) => {
-    const colors = {
+  type DealType = "jersey" | "stadium" | "equipment" | "naming_rights";
+  const getDealTypeColor = (dealType: DealType | string) => {
+    const colors: Record<DealType, string> = {
       jersey: "bg-blue-500",
       stadium: "bg-green-500",
       equipment: "bg-purple-500",
       naming_rights: "bg-yellow-500",
     };
-    return colors[dealType] || "bg-gray-500";
+    return colors[dealType as DealType] || "bg-gray-500";
   };
 
-  const getDealTypeIcon = (dealType: string) => {
-    const icons = {
+  const getDealTypeIcon = (dealType: DealType | string) => {
+    const icons: Record<DealType, React.ComponentType<any>> = {
       jersey: Users,
       stadium: Building2,
       equipment: Target,
       naming_rights: Award,
     };
-    return icons[dealType] || Briefcase;
+    return icons[dealType as DealType] || Briefcase;
   };
 
   const calculateTotalSponsorshipValue = () => {
     return sponsorshipDeals?.reduce((sum: number, deal: SponsorshipDeal) => 
-      deal.status === "active" ? sum + deal.value : sum, 0) || 0;
+      deal.status === "active" ? sum + (deal.value ?? 0) : sum, 0) || 0;
   };
 
   const calculateMonthlyRevenue = () => {
-    const currentMonth = stadiumRevenue?.find((r: StadiumRevenue) => r.month === new Date().getMonth() + 1);
-    return currentMonth?.totalRevenue || 0;
+    const currentMonthRevenue = stadiumRevenue?.find((r: StadiumRevenue) => r.month === new Date().getMonth() + 1);
+    return currentMonthRevenue?.totalRevenue || 0;
   };
 
   const getRevenueGrowth = () => {
     if (!stadiumRevenue || stadiumRevenue.length < 2) return 0;
     const current = stadiumRevenue[stadiumRevenue.length - 1]?.totalRevenue || 0;
     const previous = stadiumRevenue[stadiumRevenue.length - 2]?.totalRevenue || 0;
-    return previous > 0 ? ((current - previous) / previous) * 100 : 0;
+    if (previous === 0) return current > 0 ? 100 : 0;
+    return ((current - previous) / previous) * 100;
   };
 
   const handleNegotiateDeal = () => {
+    const currentTeamId = team?.id;
+    if (!currentTeamId) {
+      toast({
+        title: "Error",
+        description: "Team information not available to negotiate deal.",
+        variant: "destructive",
+      });
+      return;
+    }
     negotiateSponsorshipMutation.mutate({
-      teamId: team.id,
+      teamId: currentTeamId,
       sponsorName: dealForm.sponsorName,
       dealType: dealForm.dealType,
       value: dealForm.value,
@@ -174,6 +209,18 @@ export default function SponsorshipManagement() {
       bonusConditions: dealForm.bonusConditions,
     });
   };
+
+  const isLoading = teamLoading || dealsLoading || revenueLoading || sponsorsLoading || analyticsLoading;
+
+  if (isLoading) {
+    return (
+      <div className="space-y-6">
+         {Array.from({ length: 4 }).map((_, i) => (
+          <Card key={i} className="animate-pulse"><CardHeader><div className="h-6 bg-gray-700 rounded w-3/4"></div></CardHeader><CardContent><div className="h-10 bg-gray-700 rounded"></div></CardContent></Card>
+        ))}
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -187,10 +234,8 @@ export default function SponsorshipManagement() {
             <CardContent>
               <AnimatedCounter 
                 value={calculateTotalSponsorshipValue()} 
-                className="text-2xl font-bold text-green-400" 
                 prefix="$" 
                 suffix="M"
-                decimals={1}
               />
               <p className="text-xs text-gray-500 mt-1">
                 {sponsorshipDeals?.filter((d: SponsorshipDeal) => d.status === "active").length || 0} active deals
@@ -207,10 +252,8 @@ export default function SponsorshipManagement() {
             <CardContent>
               <AnimatedCounter 
                 value={calculateMonthlyRevenue()} 
-                className="text-2xl font-bold text-blue-400" 
                 prefix="$" 
                 suffix="K"
-                decimals={0}
               />
               <div className="flex items-center mt-1">
                 <TrendingUp className="h-3 w-3 text-green-400 mr-1" />
@@ -230,18 +273,16 @@ export default function SponsorshipManagement() {
             <CardContent>
               <AnimatedCounter 
                 value={team?.stadiumCapacity || 50000} 
-                className="text-2xl font-bold text-purple-400" 
                 suffix="K"
-                decimals={0}
               />
               <p className="text-xs text-gray-500 mt-1">
-                {((team?.averageAttendance || 35000) / (team?.stadiumCapacity || 50000) * 100).toFixed(1)}% avg attendance
+                {(((team?.averageAttendance ?? 35000) / (team?.stadiumCapacity ?? 50000)) * 100).toFixed(1)}% avg attendance
               </p>
             </CardContent>
           </Card>
         </HoverCard>
 
-        <PulseWrapper pulse={sponsorshipDeals?.some((d: SponsorshipDeal) => d.remainingYears <= 1)}>
+        <PulseWrapper pulse={(sponsorshipDeals?.some((d: SponsorshipDeal) => d.remainingYears <= 1)) ?? false}>
           <Card>
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-medium text-gray-400">Expiring Deals</CardTitle>
@@ -371,7 +412,7 @@ export default function SponsorshipManagement() {
               <DialogFooter>
                 <Button
                   onClick={handleNegotiateDeal}
-                  disabled={!dealForm.sponsorName || dealForm.value === 0 || negotiateSponsorshipMutation.isPending}
+                  disabled={!team?.id || !dealForm.sponsorName || dealForm.value === 0 || negotiateSponsorshipMutation.isPending}
                   className="w-full"
                 >
                   {negotiateSponsorshipMutation.isPending ? "Negotiating..." : "Sign Deal"}
@@ -404,7 +445,7 @@ export default function SponsorshipManagement() {
                         <p className="font-bold text-green-400">
                           ${(deal.value / 1000000).toFixed(1)}M/year
                         </p>
-                        <Badge variant={deal.remainingYears <= 1 ? "destructive" : "default"} size="sm">
+                        <Badge variant={deal.remainingYears <= 1 ? "destructive" : "default"}>
                           {deal.remainingYears} years left
                         </Badge>
                       </div>
@@ -415,10 +456,10 @@ export default function SponsorshipManagement() {
                           onClick={() => {
                             renewSponsorshipMutation.mutate({
                               dealId: deal.id,
-                              newTerms: { duration: deal.duration + 1, value: deal.value * 1.1 }
+                              newTerms: { duration: (deal.duration ?? 0) + 1, value: (deal.value ?? 0) * 1.1 }
                             });
                           }}
-                          disabled={renewSponsorshipMutation.isPending}
+                          disabled={renewSponsorshipMutation.isPending && renewSponsorshipMutation.variables?.dealId === deal.id}
                         >
                           Renew
                         </Button>
@@ -462,7 +503,7 @@ export default function SponsorshipManagement() {
                     { name: 'Corporate Boxes', value: stadiumRevenue?.[0]?.corporateBoxes || 0, color: 'bg-yellow-500' },
                   ].map((item) => {
                     const total = stadiumRevenue?.[0]?.totalRevenue || 1;
-                    const percentage = (item.value / total) * 100;
+                    const percentage = total > 0 ? (item.value / total) * 100 : 0;
                     
                     return (
                       <div key={item.name} className="space-y-1">
@@ -508,7 +549,7 @@ export default function SponsorshipManagement() {
                           variant="outline"
                           size="sm"
                           onClick={() => updateStadiumMutation.mutate(upgrade)}
-                          disabled={updateStadiumMutation.isPending}
+                          disabled={updateStadiumMutation.isPending && updateStadiumMutation.variables?.name === upgrade.name}
                         >
                           Upgrade
                         </Button>
@@ -527,7 +568,7 @@ export default function SponsorshipManagement() {
 
         <TabsContent value="opportunities" className="space-y-4">
           <div className="grid gap-4 md:grid-cols-2">
-            {availableSponsors?.map((sponsor: any) => (
+            {availableSponsors?.map((sponsor: AvailableSponsor) => (
               <Card key={sponsor.id} className="cursor-pointer hover:bg-gray-800/50">
                 <CardContent className="p-4">
                   <div className="flex items-center justify-between">
@@ -546,7 +587,7 @@ export default function SponsorshipManagement() {
                       <p className="font-bold text-green-400">
                         ${(sponsor.maxValue / 1000000).toFixed(1)}M
                       </p>
-                      <Badge variant="outline" size="sm">
+                      <Badge variant="outline">
                         {sponsor.preferredDealType}
                       </Badge>
                     </div>
@@ -572,6 +613,7 @@ export default function SponsorshipManagement() {
                         dealType: sponsor.preferredDealType,
                         value: sponsor.maxValue * 0.8,
                         duration: sponsor.minDuration,
+                        bonusConditions: { playoffBonus: 0, championshipBonus: 0, attendanceThreshold: 0 }
                       }));
                       setShowDealDialog(true);
                     }}

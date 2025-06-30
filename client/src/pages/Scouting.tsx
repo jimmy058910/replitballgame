@@ -18,104 +18,146 @@ import {
   BarChart3
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { apiRequest } from "@/lib/queryClient";
+import type { Team as SharedTeam, ScoutingReport as SharedScoutingReport, Player as SharedPlayer, Staff as SharedStaff } from "shared/schema";
 
-interface ScoutingReport {
-  teamInfo: {
-    id: string;
-    name: string;
-    division: number;
-    wins: number;
-    losses: number;
-    draws: number;
-    points: number;
-    teamPower: number | string;
-  };
+// Client-side specific ScoutingReport
+interface ClientScoutingReportPlayerStats {
+  speed: string;
+  power: string;
+  throwing: string;
+  catching: string;
+  kicking: string;
+  stamina: string;
+  leadership: string;
+  agility: string;
+}
+interface ClientScoutingReportPlayer {
+  id: string;
+  firstName: string;
+  lastName: string;
+  race: string;
+  age: number | string;
+  position: string;
+  stats?: ClientScoutingReportPlayerStats;
+  salary?: string;
+}
+
+interface ClientScoutingReportStaffRatings {
+  offense: number;
+  defense: number;
+  scouting: number;
+  recruiting: number;
+}
+interface ClientScoutingReportStaff {
+  name: string;
+  type: string;
+  level: number | string;
+  salary?: string;
+  ratings?: ClientScoutingReportStaffRatings;
+}
+
+interface ClientScoutingReportTeamInfo {
+  id: string;
+  name: string;
+  division: number;
+  wins: number;
+  losses: number;
+  draws: number;
+  points: number;
+  teamPower: number | string;
+}
+
+interface ClientScoutingReportStadium {
+  name: string;
+  capacity: number | string;
+  level: number | string;
+  facilities: any;
+}
+
+interface ClientScoutingReportFinances {
+  estimatedBudget: string;
+  salaryCapUsage: string;
+}
+interface ClientScoutingReport {
+  teamInfo: ClientScoutingReportTeamInfo;
   scoutingLevel: number;
   scoutingPower: number;
   confidence: number;
-  stadium: {
-    name: string;
-    capacity: number | string;
-    level: number | string;
-    facilities: any;
-  } | null;
-  players: Array<{
-    id: string;
-    firstName: string;
-    lastName: string;
-    race: string;
-    age: number | string;
-    position: string;
-    stats?: {
-      speed: string;
-      power: string;
-      throwing: string;
-      catching: string;
-      kicking: string;
-      stamina: string;
-      leadership: string;
-      agility: string;
-    };
-    salary?: string;
-  }>;
-  staff: Array<{
-    name: string;
-    type: string;
-    level: number | string;
-    salary?: string;
-    ratings?: {
-      offense: number;
-      defense: number;
-      scouting: number;
-      recruiting: number;
-    };
-  }>;
-  finances: {
-    estimatedBudget: string;
-    salaryCapUsage: string;
-  } | null;
+  stadium: ClientScoutingReportStadium | null;
+  players: ClientScoutingReportPlayer[];
+  staff: ClientScoutingReportStaff[];
+  finances: ClientScoutingReportFinances | null;
   notes: string[];
   generatedAt: string;
 }
 
+interface ScoutableTeam {
+  id: string;
+  name: string;
+  division: number;
+  wins: number;
+  losses: number;
+  draws: number;
+  points: number;
+  scoutingCost: number;
+}
+
+interface ScoutableDivisionInfo {
+  division: number;
+  cost: number;
+}
+
+interface ScoutingPageData {
+  scoutableDivisions: ScoutableDivisionInfo[];
+  teams: ScoutableTeam[];
+}
+
+
 export default function Scouting() {
   const [selectedTeam, setSelectedTeam] = useState<string | null>(null);
-  const [scoutingReport, setScoutingReport] = useState<ScoutingReport | null>(null);
+  const [scoutingReport, setScoutingReport] = useState<ClientScoutingReport | null>(null);
   const { toast } = useToast();
 
-  // Get list of scoutabl teams
-  const { data: scoutingData, isLoading: teamsLoading } = useQuery({
-    queryKey: ["/api/teams/scoutable"],
+  const scoutingDataQuery = useQuery({
+    queryKey: ["scoutableTeamsData"],
+    queryFn: (): Promise<ScoutingPageData> => apiRequest("/api/teams/scoutable"),
   });
+  const scoutingData = scoutingDataQuery.data as ScoutingPageData | undefined;
+  const teamsLoading = scoutingDataQuery.isLoading;
 
-  // Get scouting report for selected team
-  const { data: reportData, isLoading: reportLoading, refetch: refetchReport } = useQuery({
-    queryKey: [`/api/teams/${selectedTeam}/scout`],
+  const reportDataQuery = useQuery({
+    queryKey: ["scoutReport", selectedTeam],
+    queryFn: (): Promise<ClientScoutingReport> => apiRequest(`/api/teams/${selectedTeam}/scout`),
     enabled: !!selectedTeam,
   });
 
   const handleScoutTeam = async (teamId: string) => {
     setSelectedTeam(teamId);
     try {
-      const result = await refetchReport();
-      if (result.data) {
-        setScoutingReport(result.data);
+      const { data: fetchedReportData, isSuccess, error } = await reportDataQuery.refetch();
+
+      if (isSuccess && fetchedReportData) {
+        setScoutingReport(fetchedReportData);
         toast({
           title: "Scouting Report Generated",
-          description: "Intelligence gathered on target team",
+          description: `Intelligence gathered on ${fetchedReportData.teamInfo.name}`,
         });
+      } else if (error) {
+        throw error;
       }
-    } catch (error) {
+    } catch (err) {
       toast({
         title: "Scouting Failed",
-        description: "Unable to gather intelligence on this team",
+        description: (err as Error).message || "Unable to gather intelligence on this team.",
         variant: "destructive",
       });
+      setScoutingReport(null);
     }
   };
 
   const getScoutingLevelBadge = (level: number) => {
-    const levels = {
+    const levels: Record<number, { label: string; color: string }> = {
       1: { label: "Basic", color: "bg-gray-500" },
       2: { label: "Decent", color: "bg-blue-500" },
       3: { label: "Good", color: "bg-green-500" },
@@ -130,8 +172,8 @@ export default function Scouting() {
     return "text-red-400";
   };
 
-  const getRoleColor = (position: string) => {
-    switch (position.toLowerCase()) {
+  const getRoleColor = (position: string | undefined) => {
+    switch (position?.toLowerCase()) {
       case 'passer': return 'bg-blue-600';
       case 'runner': return 'bg-green-600';
       case 'blocker': return 'bg-red-600';
@@ -155,7 +197,6 @@ export default function Scouting() {
   return (
     <div className="min-h-screen bg-gray-900 text-white p-6">
       <div className="max-w-7xl mx-auto space-y-6">
-        {/* Header */}
         <div className="text-center mb-8">
           <h1 className="text-4xl font-bold mb-2 bg-gradient-to-r from-blue-400 to-purple-500 bg-clip-text text-transparent">
             Team Scouting
@@ -166,7 +207,6 @@ export default function Scouting() {
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Available Teams */}
           <div className="lg:col-span-1">
             <Card className="bg-gray-800 border-gray-700">
               <CardHeader>
@@ -175,11 +215,11 @@ export default function Scouting() {
                   Available Targets
                 </CardTitle>
                 <p className="text-sm text-gray-400">
-                  {scoutingData?.scoutableDivisions?.length} divisions accessible
+                  {scoutingData?.scoutableDivisions?.length || 0} divisions accessible
                 </p>
               </CardHeader>
               <CardContent className="space-y-3">
-                {scoutingData?.teams?.map((team: any) => (
+                {scoutingData?.teams?.map((team: ScoutableTeam) => (
                   <div
                     key={team.id}
                     className={`p-3 rounded-lg border cursor-pointer transition-all ${
@@ -217,9 +257,8 @@ export default function Scouting() {
             </Card>
           </div>
 
-          {/* Scouting Report */}
           <div className="lg:col-span-2">
-            {!scoutingReport ? (
+            {!scoutingReport && !reportDataQuery.isLoading && (
               <Card className="bg-gray-800 border-gray-700 h-96 flex items-center justify-center">
                 <div className="text-center">
                   <Eye className="w-12 h-12 mx-auto mb-4 text-gray-500" />
@@ -231,9 +270,14 @@ export default function Scouting() {
                   </p>
                 </div>
               </Card>
-            ) : (
+            )}
+            {reportDataQuery.isLoading && (
+              <Card className="bg-gray-800 border-gray-700 h-96 flex items-center justify-center">
+                 <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-400"></div>
+              </Card>
+            )}
+            {scoutingReport && !reportDataQuery.isLoading && (
               <div className="space-y-6">
-                {/* Report Header */}
                 <Card className="bg-gray-800 border-gray-700">
                   <CardHeader>
                     <div className="flex justify-between items-start">
@@ -282,7 +326,6 @@ export default function Scouting() {
                   </CardContent>
                 </Card>
 
-                {/* Report Details */}
                 <Tabs defaultValue="players" className="w-full">
                   <TabsList className="grid w-full grid-cols-4 bg-gray-800">
                     <TabsTrigger value="players">Players</TabsTrigger>
@@ -301,8 +344,8 @@ export default function Scouting() {
                       </CardHeader>
                       <CardContent>
                         <div className="grid gap-4">
-                          {scoutingReport.players.map((player, idx) => (
-                            <div key={player.id} className="p-4 bg-gray-700 rounded-lg">
+                          {scoutingReport.players.map((player: ClientScoutingReportPlayer, idx) => (
+                            <div key={player.id || idx} className="p-4 bg-gray-700 rounded-lg">
                               <div className="flex justify-between items-start mb-3">
                                 <div>
                                   <h4 className="font-semibold text-white">
@@ -363,7 +406,7 @@ export default function Scouting() {
                       </CardHeader>
                       <CardContent>
                         <div className="space-y-4">
-                          {scoutingReport.staff.map((staffMember, idx) => (
+                          {scoutingReport.staff.map((staffMember: ClientScoutingReportStaff, idx) => (
                             <div key={idx} className="p-4 bg-gray-700 rounded-lg">
                               <div className="flex justify-between items-start">
                                 <div>
@@ -430,7 +473,7 @@ export default function Scouting() {
                               </div>
                               <div className="text-center p-4 bg-gray-700 rounded-lg">
                                 <div className="text-xl font-bold text-blue-400">
-                                  {scoutingReport.stadium.capacity}
+                                  {typeof scoutingReport.stadium.capacity === 'number' ? scoutingReport.stadium.capacity.toLocaleString() : scoutingReport.stadium.capacity}
                                 </div>
                                 <div className="text-sm text-gray-400">Capacity</div>
                               </div>
@@ -442,13 +485,13 @@ export default function Scouting() {
                               </div>
                             </div>
                             
-                            {scoutingReport.stadium.facilities !== "Unknown" && (
+                            {scoutingReport.stadium.facilities && scoutingReport.stadium.facilities !== "Unknown" && (
                               <div className="p-4 bg-gray-700 rounded-lg">
                                 <h5 className="font-semibold text-white mb-2">Facilities</h5>
-                                <div className="text-sm text-gray-300">
+                                <div className="text-sm text-gray-300 whitespace-pre-wrap">
                                   {typeof scoutingReport.stadium.facilities === 'object' 
                                     ? JSON.stringify(scoutingReport.stadium.facilities, null, 2)
-                                    : scoutingReport.stadium.facilities
+                                    : String(scoutingReport.stadium.facilities)
                                   }
                                 </div>
                               </div>

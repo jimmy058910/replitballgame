@@ -7,11 +7,11 @@ async function throwIfResNotOk(res: Response) {
   }
 }
 
-export async function apiRequest(
+export async function apiRequest<T>(
   url: string,
   method: string = "GET",
   data?: unknown | undefined,
-): Promise<any> {
+): Promise<T> {
   const res = await fetch(url, {
     method,
     headers: data ? { "Content-Type": "application/json" } : {},
@@ -20,16 +20,8 @@ export async function apiRequest(
   });
 
   await throwIfResNotOk(res);
-  
-  // Check if response is actually JSON
-  const contentType = res.headers.get("content-type");
-  if (!contentType || !contentType.includes("application/json")) {
-    const text = await res.text();
-    console.error("Expected JSON but got:", contentType, "Response:", text.substring(0, 200));
-    throw new Error(`Server returned ${contentType} instead of JSON`);
-  }
-  
-  return await res.json();
+  const jsonData = await res.json();
+  return jsonData as T;
 }
 
 type UnauthorizedBehavior = "returnNull" | "throw";

@@ -26,7 +26,18 @@ export default function SocialIntegration() {
   const [shareText, setShareText] = useState("");
   const [selectedPlatform, setSelectedPlatform] = useState<string>("");
 
-  const { data: socialStats } = useQuery({
+  interface SocialStatsData {
+    totalShares?: number;
+    weeklyShares?: number;
+    topPlatform?: string;
+    engagementRate?: number;
+    discord?: number;
+    instagram?: number;
+    tiktok?: number;
+    twitter?: number;
+  }
+
+  const { data: socialStats } = useQuery<SocialStatsData>({ // Typed socialStats
     queryKey: ["/api/social/stats"],
   });
 
@@ -88,10 +99,7 @@ export default function SocialIntegration() {
   // Social sharing functions
   const shareToSocial = useMutation({
     mutationFn: async (data: { platform: string; content: string; type: string }) => {
-      return await apiRequest("/api/social/share", {
-        method: "POST",
-        body: JSON.stringify(data),
-      });
+      return await apiRequest("/api/social/share", "POST", data); // Corrected apiRequest
     },
     onSuccess: () => {
       toast({

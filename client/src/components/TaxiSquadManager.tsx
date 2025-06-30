@@ -7,20 +7,31 @@ import { Badge } from "@/components/ui/badge";
 import { Clock, UserPlus, UserMinus, TrendingUp, Star, StarHalf } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import UnifiedPlayerCard from "@/components/UnifiedPlayerCard";
+import { Player } from "shared/schema"; // Corrected import
 
 interface TaxiSquadManagerProps {
   teamId?: string;
   onNavigateToRecruiting?: () => void;
 }
 
+// More specific type for taxi squad players if needed, or use SharedPlayer directly
+// For now, let's assume TaxiPlayer is similar enough to Player or can extend it.
+// If UnifiedPlayerCard expects more specific props, this might need adjustment.
+type TaxiPlayer = Player & {
+  // any specific fields for taxi players not in Player?
+  // For now, assume Player is sufficient for what's used.
+};
+
+
 // Calculate potential stars based on total stats
-const getPotentialStars = (player: any) => {
-  const totalStats = (player.speed || 20) + (player.power || 20) + (player.throwing || 20) + 
-                    (player.catching || 20) + (player.kicking || 20) + (player.agility || 20) + 
-                    (player.stamina || 20) + (player.leadership || 20);
+const getPotentialStars = (player: TaxiPlayer) => {
+  const totalStats = (player.speed ?? 20) + (player.power ?? 20) + (player.throwing ?? 20) +
+                    (player.catching ?? 20) + (player.kicking ?? 20) + (player.agility ?? 20) +
+                    (player.stamina ?? 20) + (player.leadership ?? 20);
   
   // Base potential calculation (young players have more potential)
-  const ageFactor = player.age ? Math.max(0.5, (30 - player.age) / 10) : 1;
+  // Player.age is number, so no need for typeof check
+  const ageFactor = player.age != null ? Math.max(0.5, (30 - player.age) / 10) : 1;
   const statFactor = Math.min(totalStats / 300, 1); // Normalize to 0-1
   const basePotential = (statFactor * 3.5 + ageFactor * 1.5);
   
@@ -53,12 +64,13 @@ export function TaxiSquadManager({ teamId, onNavigateToRecruiting }: TaxiSquadMa
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  const { data: taxiSquadPlayers, isLoading, error } = useQuery({
+  const { data: taxiSquadPlayers, isLoading, error } = useQuery<TaxiPlayer[], Error>({
     queryKey: [`/api/teams/${teamId}/taxi-squad`],
+    queryFn: () => apiRequest(`/api/teams/${teamId}/taxi-squad`),
     enabled: !!teamId,
   });
 
-  const promotePlayerMutation = useMutation({
+  const promotePlayerMutation = useMutation<unknown, Error, string>({
     mutationFn: async (playerId: string) => {
       return apiRequest(`/api/teams/${teamId}/taxi-squad/${playerId}/promote`, "POST");
     },
@@ -70,8 +82,8 @@ export function TaxiSquadManager({ teamId, onNavigateToRecruiting }: TaxiSquadMa
       queryClient.invalidateQueries({ queryKey: [`/api/teams/${teamId}/taxi-squad`] });
       queryClient.invalidateQueries({ queryKey: [`/api/teams/${teamId}/players`] });
     },
-    onError: (error: any) => {
-      const errorMessage = error?.response?.data?.message || error?.message || "Failed to promote player";
+    onError: (error: Error) => { // Typed error
+      const errorMessage = (error as any)?.response?.data?.message || error?.message || "Failed to promote player";
       toast({
         title: "Promotion Failed",
         description: errorMessage,
@@ -80,7 +92,7 @@ export function TaxiSquadManager({ teamId, onNavigateToRecruiting }: TaxiSquadMa
     },
   });
 
-  const releasePlayerMutation = useMutation({
+  const releasePlayerMutation = useMutation<unknown, Error, string>({
     mutationFn: async (playerId: string) => {
       return apiRequest(`/api/teams/${teamId}/taxi-squad/${playerId}`, "DELETE");
     },
@@ -91,10 +103,10 @@ export function TaxiSquadManager({ teamId, onNavigateToRecruiting }: TaxiSquadMa
       });
       queryClient.invalidateQueries({ queryKey: [`/api/teams/${teamId}/taxi-squad`] });
     },
-    onError: (error) => {
+    onError: (error: Error) => { // Typed error
       toast({
         title: "Release Failed",
-        description: error.message,
+        description: error.message, // error.message is fine for Error type
         variant: "destructive",
       });
     },
@@ -172,7 +184,7 @@ export function TaxiSquadManager({ teamId, onNavigateToRecruiting }: TaxiSquadMa
           </CardHeader>
           <CardContent>
             <div className="grid gap-4">
-              {taxiSquadPlayers.map((player: any) => {
+              {taxiSquadPlayers?.map((player: TaxiPlayer) => { // Typed player and optional chaining
                 const potentialRating = getPotentialStars(player);
                 return (
                   <div key={player.id} className="flex items-center gap-4 p-4 border border-gray-600 rounded-lg">

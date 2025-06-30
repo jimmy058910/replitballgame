@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -8,42 +8,80 @@ import { Separator } from "@/components/ui/separator";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import Navigation from "@/components/Navigation";
-import { getDivisionName, getDivisionInfo, getFullDivisionTitle } from "@shared/divisions";
+import type { Team as SharedTeam, Tournament as SharedTournament, TournamentEntry as SharedTournamentEntry } from "shared/schema";
 
-export default function Tournaments() {
+// Define interfaces for the page data
+interface PrizeInfo {
+  first?: number;
+  second?: number;
+  // Add other prize places if applicable
+}
+
+interface ClientTournament extends SharedTournament {
+  prizes: PrizeInfo | null; // prizes from schema is not optional, but can be null if DB stores it so
+}
+
+interface MyTournamentEntry extends SharedTournamentEntry {
+  tournament?: ClientTournament | null; // Tournament details might be nested
+  status?: string; // Status of the entry itself, or from the joined tournament
+}
+
+interface TournamentHistoryEntry extends SharedTournamentEntry {
+  tournament?: ClientTournament | null;
+  finalPosition?: number | string | null; // Can be number or string like "N/A"
+  rewards?: number | null;
+}
+
+interface EnterTournamentResponse {
+  success: boolean;
+  message?: string;
+  // Potentially other fields like updated entry list or finances
+}
+
+
+export default function TournamentsPage() { // Renamed component
   const { toast } = useToast();
-  const [selectedDivision, setSelectedDivision] = useState(1);
+  const [selectedDivision, setSelectedDivision] = useState<number>(8); // Default to a valid division
 
-  const { data: team } = useQuery({
-    queryKey: ["/api/teams/my"],
+  const teamQuery = useQuery({
+    queryKey: ["myTeam"],
+    queryFn: (): Promise<SharedTeam> => apiRequest("/api/teams/my"),
   });
+  const team = teamQuery.data as SharedTeam | undefined;
 
-  const { data: tournaments, isLoading: tournamentsLoading } = useQuery({
-    queryKey: ["/api/tournaments", selectedDivision],
+  const tournamentsQuery = useQuery({
+    queryKey: ["tournaments", selectedDivision],
+    queryFn: (): Promise<ClientTournament[]> => apiRequest(`/api/tournaments?division=${selectedDivision}`),
   });
+  const tournaments = tournamentsQuery.data as ClientTournament[] | undefined;
+  const tournamentsLoading = tournamentsQuery.isLoading;
 
-  const { data: myEntries } = useQuery({
-    queryKey: ["/api/tournaments/my-entries"],
+  const myEntriesQuery = useQuery({
+    queryKey: ["myTournamentEntries"],
+    queryFn: (): Promise<MyTournamentEntry[]> => apiRequest("/api/tournaments/my-entries"),
   });
+  const myEntries = myEntriesQuery.data as MyTournamentEntry[] | undefined;
 
-  const { data: tournamentHistory } = useQuery({
-    queryKey: ["/api/tournaments/history"],
+  const tournamentHistoryQuery = useQuery({
+    queryKey: ["tournamentHistory"],
+    queryFn: (): Promise<TournamentHistoryEntry[]> => apiRequest("/api/tournaments/history"),
   });
+  const tournamentHistory = tournamentHistoryQuery.data as TournamentHistoryEntry[] | undefined;
 
   const enterTournamentMutation = useMutation({
-    mutationFn: async (tournamentId: string) => {
-      return await apiRequest(`/api/tournaments/${tournamentId}/enter`, {
-        method: "POST",
-      });
+    mutationFn: async (tournamentId: string): Promise<EnterTournamentResponse> => {
+      // Corrected apiRequest call: method is 2nd arg, body is 3rd.
+      // If no body, pass undefined or null for the third argument.
+      return apiRequest<EnterTournamentResponse>(`/api/tournaments/${tournamentId}/enter`, "POST");
     },
-    onSuccess: () => {
+    onSuccess: (data: EnterTournamentResponse) => {
       toast({
-        title: "Tournament Entry Successful",
-        description: "You've successfully entered the tournament!",
+        title: data.success ? "Tournament Entry Successful" : "Entry Information",
+        description: data.message || "You've successfully entered the tournament!",
       });
-      queryClient.invalidateQueries({ queryKey: ["/api/tournaments"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/tournaments/my-entries"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/teams/my"] });
+      queryClient.invalidateQueries({ queryKey: ["tournaments", selectedDivision] });
+      queryClient.invalidateQueries({ queryKey: ["myTournamentEntries"] });
+      queryClient.invalidateQueries({ queryKey: ["myTeamFinances"] }); // Invalidate finances as entry might cost
     },
     onError: (error: Error) => {
       toast({
@@ -54,9 +92,17 @@ export default function Tournaments() {
     },
   });
 
-  // Using unified division naming system
+  const getDivisionName = (division: number | null | undefined): string => {
+    if (division === null || division === undefined) return "N/A";
+    const names: Record<number, string> = {
+      1: "Diamond Division", 2: "Ruby Division", 3: "Emerald Division",
+      4: "Sapphire Division", 5: "Gold Division", 6: "Silver Division",
+      7: "Bronze Division", 8: "Iron Division"
+    };
+    return names[division] || `Division ${division}`;
+  };
 
-  const getRarityColor = (status: string) => {
+  const getStatusColor = (status: string | null | undefined): string => {
     switch (status) {
       case "open": return "bg-green-500";
       case "in_progress": return "bg-yellow-500";
@@ -65,10 +111,27 @@ export default function Tournaments() {
     }
   };
 
-  if (!team) {
+  // Set selectedDivision to team's division once team data is loaded
+  useEffect(() => {
+    if (team?.division) {
+      setSelectedDivision(team.division);
+    }
+  }, [team?.division]);
+
+
+  if (teamQuery.isLoading) {
     return (
       <div className="min-h-screen bg-gray-900 text-white flex items-center justify-center">
-        <div className="text-center">
+        <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-primary-500"></div>
+      </div>
+    );
+  }
+
+  if (!team) {
+    return (
+      <div className="min-h-screen bg-gray-900 text-white">
+        <Navigation />
+        <div className="max-w-4xl mx-auto px-4 py-16 text-center">
           <h2 className="text-2xl font-bold mb-4">No Team Found</h2>
           <p className="text-gray-400">You need to create a team first to access tournaments.</p>
         </div>
@@ -94,11 +157,9 @@ export default function Tournaments() {
           </TabsList>
 
           <TabsContent value="available" className="space-y-6">
-            {/* Division Selector - Only show divisions within team's range */}
             <div className="flex flex-wrap gap-2 mb-6">
               {[1, 2, 3, 4, 5, 6, 7, 8].filter(division => {
-                // Show team's division and one above/below for eligibility
-                const teamDivision = team?.division || 8;
+                const teamDivision = team?.division ?? 8; // Default to 8 if team.division is null/undefined
                 return division >= Math.max(1, teamDivision - 1) && 
                        division <= Math.min(8, teamDivision + 1);
               }).map((division) => (
@@ -125,19 +186,19 @@ export default function Tournaments() {
             ) : !tournaments || tournaments.length === 0 ? (
               <Card className="bg-gray-800 border-gray-700">
                 <CardContent className="text-center py-12">
-                  <p className="text-gray-400 text-lg">No tournaments available</p>
-                  <p className="text-gray-500 mt-2">Check back later for new tournaments</p>
+                  <p className="text-gray-400 text-lg">No tournaments available for {getDivisionName(selectedDivision)}</p>
+                  <p className="text-gray-500 mt-2">Check back later or select a different division.</p>
                 </CardContent>
               </Card>
             ) : (
               <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-                {tournaments.map((tournament: any) => (
+                {tournaments.map((tournament: ClientTournament) => (
                   <Card key={tournament.id} className="bg-gray-800 border-gray-700">
                     <CardHeader>
                       <div className="flex items-center justify-between">
                         <CardTitle className="text-lg">{tournament.name}</CardTitle>
-                        <Badge className={`${getRarityColor(tournament.status)} text-white`}>
-                          {tournament.status}
+                        <Badge className={`${getStatusColor(tournament.status)} text-white`}>
+                          {tournament.status?.replace("_", " ").toUpperCase()}
                         </Badge>
                       </div>
                       <CardDescription>
@@ -149,13 +210,13 @@ export default function Tournaments() {
                         <div className="flex justify-between items-center">
                           <span className="text-sm text-gray-400">Entry Fee:</span>
                           <span className="font-semibold text-red-400">
-                            {tournament.entryFee?.toLocaleString()} credits
+                            {(tournament.entryFee ?? 0).toLocaleString()} credits
                           </span>
                         </div>
                         
                         <div className="flex justify-between items-center">
                           <span className="text-sm text-gray-400">Max Teams:</span>
-                          <span>{tournament.maxTeams}</span>
+                          <span>{tournament.maxTeams ?? 'N/A'}</span>
                         </div>
 
                         <div className="space-y-2">
@@ -163,11 +224,11 @@ export default function Tournaments() {
                           <div className="text-sm space-y-1">
                             <div className="flex justify-between">
                               <span>🥇 1st Place:</span>
-                              <span className="text-yellow-400">{tournament.prizes?.first?.toLocaleString() || '5,000'} credits</span>
+                              <span className="text-yellow-400">{(tournament.prizes?.first ?? 0).toLocaleString()} credits</span>
                             </div>
                             <div className="flex justify-between">
                               <span>🥈 2nd Place:</span>
-                              <span className="text-gray-300">{tournament.prizes?.second?.toLocaleString() || '2,000'} credits</span>
+                              <span className="text-gray-300">{(tournament.prizes?.second ?? 0).toLocaleString()} credits</span>
                             </div>
                           </div>
                         </div>
@@ -180,13 +241,13 @@ export default function Tournaments() {
                             tournament.status !== "open" || 
                             enterTournamentMutation.isPending ||
                             !team ||
-                            myEntries?.some((entry: any) => entry.tournamentId === tournament.id)
+                            myEntries?.some((entry: MyTournamentEntry) => entry.tournamentId === tournament.id)
                           }
                           onClick={() => enterTournamentMutation.mutate(tournament.id)}
                         >
                           {enterTournamentMutation.isPending 
                             ? "Entering..." 
-                            : myEntries?.some((entry: any) => entry.tournamentId === tournament.id)
+                            : myEntries?.some((entry: MyTournamentEntry) => entry.tournamentId === tournament.id)
                             ? "Already Entered"
                             : tournament.status === "open" 
                             ? "Enter Tournament" 
@@ -202,7 +263,9 @@ export default function Tournaments() {
           </TabsContent>
 
           <TabsContent value="entered" className="space-y-6">
-            {!myEntries || myEntries.length === 0 ? (
+            {myEntriesQuery.isLoading ? (
+              <div className="text-center py-8"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mx-auto"></div></div>
+            ) : !myEntries || myEntries.length === 0 ? (
               <Card className="bg-gray-800 border-gray-700">
                 <CardContent className="text-center py-12">
                   <p className="text-gray-400 text-lg">No tournament entries</p>
@@ -211,23 +274,23 @@ export default function Tournaments() {
               </Card>
             ) : (
               <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-                {myEntries.map((entry: any) => (
+                {myEntries.map((entry: MyTournamentEntry) => (
                   <Card key={entry.id} className="bg-gray-800 border-gray-700">
                     <CardHeader>
                       <CardTitle className="text-lg">{entry.tournament?.name || "Tournament"}</CardTitle>
                       <CardDescription>
-                        Entry Status: {entry.status}
+                        Entry Status: {entry.status || entry.tournament?.status?.replace("_", " ").toUpperCase() || "PENDING"}
                       </CardDescription>
                     </CardHeader>
                     <CardContent>
                       <div className="space-y-2">
                         <div className="flex justify-between">
                           <span className="text-sm text-gray-400">Division:</span>
-                          <span>{getDivisionName(entry.tournament?.division || 1)}</span>
+                          <span>{getDivisionName(entry.tournament?.division)}</span>
                         </div>
                         <div className="flex justify-between">
                           <span className="text-sm text-gray-400">Entry Fee:</span>
-                          <span className="text-red-400">{entry.tournament?.entryFee?.toLocaleString() || 0} credits</span>
+                          <span className="text-red-400">{(entry.tournament?.entryFee ?? 0).toLocaleString()} credits</span>
                         </div>
                       </div>
                     </CardContent>
@@ -238,7 +301,9 @@ export default function Tournaments() {
           </TabsContent>
 
           <TabsContent value="history" className="space-y-6">
-            {!tournamentHistory || tournamentHistory.length === 0 ? (
+            {tournamentHistoryQuery.isLoading ? (
+              <div className="text-center py-8"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mx-auto"></div></div>
+            ) :!tournamentHistory || tournamentHistory.length === 0 ? (
               <Card className="bg-gray-800 border-gray-700">
                 <CardContent className="text-center py-12">
                   <p className="text-gray-400 text-lg">No tournament history</p>
@@ -247,7 +312,7 @@ export default function Tournaments() {
               </Card>
             ) : (
               <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-                {tournamentHistory.map((entry: any) => (
+                {tournamentHistory.map((entry: TournamentHistoryEntry) => (
                   <Card key={entry.id} className="bg-gray-800 border-gray-700">
                     <CardHeader>
                       <CardTitle className="text-lg">{entry.tournament?.name || "Tournament"}</CardTitle>
@@ -259,11 +324,11 @@ export default function Tournaments() {
                       <div className="space-y-2">
                         <div className="flex justify-between">
                           <span className="text-sm text-gray-400">Division:</span>
-                          <span>{getDivisionName(entry.tournament?.division || 1)}</span>
+                          <span>{getDivisionName(entry.tournament?.division)}</span>
                         </div>
                         <div className="flex justify-between">
                           <span className="text-sm text-gray-400">Rewards:</span>
-                          <span className="text-green-400">{entry.rewards?.toLocaleString() || 0} credits</span>
+                          <span className="text-green-400">{(entry.rewards ?? 0).toLocaleString()} credits</span>
                         </div>
                       </div>
                     </CardContent>

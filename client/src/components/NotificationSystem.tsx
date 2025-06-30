@@ -9,18 +9,13 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { useToast } from "@/hooks/use-toast";
 import { Bell, X, Clock, Trophy, Users, Target, DollarSign, AlertCircle, CheckCircle, Check } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import type { Notification as NotificationType } from "@shared/schema"; // Import shared Notification type
 
-interface Notification {
-  id: string;
-  type: "match" | "auction" | "injury" | "league" | "system" | "achievement";
-  title: string;
-  message: string;
-  isRead: boolean;
-  createdAt: string;
-  priority: "low" | "medium" | "high" | "urgent";
-  actionUrl?: string;
-  metadata?: any;
-}
+// Local Notification interface can be removed if SharedPlayer is sufficient or adapted
+// For now, we'll use NotificationType from schema for the query.
+// The local 'Notification' interface might be used by a part of the component
+// that expects slightly different structure, or it's redundant.
+// Let's assume for now that the API returns data compatible with NotificationType.
 
 export default function NotificationSystem() {
   const [isOpen, setIsOpen] = useState(false);
@@ -29,7 +24,7 @@ export default function NotificationSystem() {
   const queryClient = useQueryClient();
 
   // Fetch notifications
-  const { data: notifications, isLoading } = useQuery({
+  const { data: notifications = [], isLoading } = useQuery<NotificationType[]>({ // Typed query and default to empty array
     queryKey: ["/api/notifications"],
     refetchInterval: 10000, // Check for new notifications every 10 seconds
   });
@@ -74,9 +69,9 @@ export default function NotificationSystem() {
     },
   });
 
-  const unreadCount = notifications?.filter((n: Notification) => !n.isRead).length || 0;
+  const unreadCount = notifications?.filter((n: NotificationType) => !n.isRead).length || 0;
 
-  const getNotificationIcon = (type: string) => {
+  const getNotificationIcon = (type: string | null) => { // Allow type to be null
     switch (type) {
       case "match":
         return <Trophy className="h-4 w-4" />;
@@ -93,7 +88,7 @@ export default function NotificationSystem() {
     }
   };
 
-  const getPriorityColor = (priority: string) => {
+  const getPriorityColor = (priority: string | null) => { // Allow priority to be null
     switch (priority) {
       case "urgent":
         return "border-red-500 bg-red-600 text-white";
@@ -106,7 +101,8 @@ export default function NotificationSystem() {
     }
   };
 
-  const formatTimeAgo = (dateString: string) => {
+  const formatTimeAgo = (dateString: string | null | Date) => { // Allow dateString to be null or Date
+    if (!dateString) return "Unknown time";
     const date = new Date(dateString);
     const now = new Date();
     const diffMs = now.getTime() - date.getTime();
@@ -120,7 +116,7 @@ export default function NotificationSystem() {
     return `${diffDays}d ago`;
   };
 
-  const filteredNotifications = notifications?.filter((n: Notification) => {
+  const filteredNotifications = notifications?.filter((n: NotificationType) => { // Use NotificationType
     if (filter === "all") return true;
     if (filter === "unread") return !n.isRead;
     return n.type === filter;
@@ -130,10 +126,10 @@ export default function NotificationSystem() {
   useEffect(() => {
     if (notifications) {
       const newUrgentNotifications = notifications.filter(
-        (n: Notification) => !n.isRead && n.priority === "urgent"
+        (n: NotificationType) => !n.isRead && n.priority === "urgent" // Use NotificationType
       );
       
-      newUrgentNotifications.forEach((notification: Notification) => {
+      newUrgentNotifications.forEach((notification: NotificationType) => { // Use NotificationType
         toast({
           title: notification.title,
           description: notification.message,
@@ -220,7 +216,7 @@ export default function NotificationSystem() {
           <ScrollArea className="flex-1 min-h-0">
             <div className="space-y-2 p-2">
               <AnimatePresence>
-                {filteredNotifications.map((notification: Notification) => (
+                {filteredNotifications.map((notification: NotificationType) => ( // Use NotificationType
                   <motion.div
                     key={notification.id}
                     initial={{ opacity: 0, x: -20 }}

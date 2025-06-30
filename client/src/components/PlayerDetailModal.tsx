@@ -6,14 +6,48 @@ import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Progress } from "@/components/ui/progress";
 import { Separator } from "@/components/ui/separator";
-import { Shield, Shirt, ShirtIcon, Hand, TrendingUp, Star, Clock } from "lucide-react";
-import { useQuery } from "@tanstack/react-query";
+import { Shield, Shirt, ShirtIcon, Hand } from "lucide-react";
 import AbilitiesDisplay from "@/components/AbilitiesDisplay";
-import PlayerSkillsDisplay from "@/components/PlayerSkillsDisplay";
-import ProgressionDisplay from "@/components/ProgressionDisplay";
+import type { Player as SharedPlayer } from "@shared/schema"; // Import base Player type
+
+// Extend Player type for detailed view if necessary, or use SharedPlayer directly
+export interface DetailedPlayer extends SharedPlayer { // Ensure export
+  // Potentials must align with SharedPlayer (string | null) from schema.
+  speedPotential: string | null;
+  powerPotential: string | null;
+  throwingPotential: string | null;
+  catchingPotential: string | null;
+  kickingPotential: string | null;
+  staminaPotential: string | null;
+  leadershipPotential: string | null;
+  agilityPotential: string | null;
+  // These are number in SharedPlayer due to .default()
+  contractSeasons: number;
+  contractStartSeason: number;
+  camaraderie: number;
+  // UUIDs are string | null by default
+  helmetItemId: string | null;
+  chestItemId: string | null;
+  shoesItemId: string | null;
+  glovesItemId: string | null;
+  // The actual item objects like helmetItem below are for local display logic,
+  // they are not part of the SharedPlayer extension directly for these ID fields.
+  helmetItem?: EquipmentItem | null;
+  chestItem?: EquipmentItem | null;
+  shoesItem?: EquipmentItem | null;
+  glovesItem?: EquipmentItem | null;
+  role?: string; // Calculated property
+  // isInjured might be a property to add if it comes from API or is calculated before passing
+}
+
+interface EquipmentItem {
+  name: string;
+  rarity: string;
+  statBoosts?: Record<string, number>;
+}
 
 interface PlayerDetailModalProps {
-  player: any;
+  player: DetailedPlayer | null; // Make player prop explicitly DetailedPlayer or null
   isOpen: boolean;
   onClose: () => void;
   onContractNegotiate?: (playerId: string) => void;
@@ -46,10 +80,18 @@ export default function PlayerDetailModal({
   if (!player) return null;
 
   // Helper function to determine player role
-  const getPlayerRole = (player: any): string => {
-    if (!player) return "Player";
-    
-    const { speed = 0, agility = 0, catching = 0, throwing = 0, power = 0, leadership = 0, stamina = 0 } = player;
+  const getPlayerRole = (p: DetailedPlayer): string => {
+    // No need for !p check as it's done above
+    // Defaulting individual stats to 0 if they are undefined/null coming from player prop
+    const {
+      speed = 0,
+      agility = 0,
+      catching = 0,
+      throwing = 0,
+      power = 0,
+      leadership = 0,
+      stamina = 0
+    } = p;
     
     const passerScore = (throwing * 2) + (leadership * 1.5);
     const runnerScore = (speed * 2) + (agility * 1.5);
@@ -77,51 +119,25 @@ export default function PlayerDetailModal({
     gloves: player.glovesItem || { name: "Basic Gloves", rarity: "common", statBoosts: {} },
   };
 
-  const renderStatsBar = (label: string, current: number, potential: number | null) => {
-    const currentStat = current || 0;
-    
-    // Generate potential if not available - each player should have varied potential
-    let potentialStars = potential ? parseFloat(potential.toString()) : 0;
-    if (!potentialStars || potentialStars === 0) {
-      // Generate based on player characteristics for consistent results
-      const age = player.age || 25;
-      const playerSeed = parseInt(player.id.slice(-4), 16) % 100;
-      const statSeed = (label.charCodeAt(0) * 13 + playerSeed) % 100;
-      
-      // Age factor: younger = more potential (20-35 range)
-      const ageFactor = Math.max(0.2, (35 - age) / 15);
-      // Room for growth factor
-      const growthFactor = Math.max(0.3, (40 - currentStat) / 40);
-      // Race bonus
-      const raceBonus = player.race === 'lumina' ? 0.4 : player.race === 'sylvan' ? 0.2 : 0;
-      
-      // Consistent randomization based on player
-      const randomness = (statSeed / 100) * 0.8 + 0.6; // 0.6-1.4 range
-      
-      potentialStars = Math.min(5, Math.max(1, (ageFactor + growthFactor + raceBonus) * randomness * 4));
-    }
-    
-    // Calculate max potential based on stars (each star = 2-4 points growth)
-    const potentialGrowth = Math.floor(potentialStars * 3); // 3 points per star average
-    const maxPossible = Math.min(40, currentStat + potentialGrowth);
+  const renderStatsBar = (label: string, current: number, potential: string | null) => { // Potential is string | null
+    const potentialNum = potential ? parseFloat(potential) : 0;
+    const maxPossible = Math.min(40, current + (potentialNum * 5)); // Rough calculation
     
     return (
       <div className="space-y-1">
         <div className="flex justify-between text-sm">
           <span>{label}</span>
-          <span className="font-semibold">{currentStat}/{maxPossible}</span>
+          <span className="font-semibold">{current}/{Math.floor(maxPossible)}</span>
         </div>
         <div className="relative">
-          <Progress value={(currentStat / 40) * 100} className="h-2" />
-          {maxPossible > currentStat && (
-            <div 
-              className="absolute top-0 h-2 bg-yellow-400/30 rounded-full"
-              style={{ 
-                left: `${(currentStat / 40) * 100}%`,
-                width: `${((maxPossible - currentStat) / 40) * 100}%`
-              }}
-            />
-          )}
+          <Progress value={(current / 40) * 100} className="h-2" />
+          <div 
+            className="absolute top-0 h-2 bg-yellow-400/30 rounded-full"
+            style={{ 
+              left: `${(current / 40) * 100}%`,
+              width: `${((maxPossible - current) / 40) * 100}%`
+            }}
+          />
         </div>
       </div>
     );
@@ -174,10 +190,8 @@ export default function PlayerDetailModal({
         </DialogHeader>
 
         <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="grid w-full grid-cols-7">
+          <TabsList className="grid w-full grid-cols-5">
             <TabsTrigger value="stats">Stats</TabsTrigger>
-            <TabsTrigger value="progression">Progression</TabsTrigger>
-            <TabsTrigger value="skills">Skills</TabsTrigger>
             <TabsTrigger value="abilities">Abilities</TabsTrigger>
             <TabsTrigger value="equipment">Equipment</TabsTrigger>
             <TabsTrigger value="contract">Contract</TabsTrigger>
@@ -240,10 +254,6 @@ export default function PlayerDetailModal({
             </Card>
           </TabsContent>
 
-          <TabsContent value="progression" className="space-y-4">
-            <ProgressionDisplay playerId={player.id} playerAge={player.age} />
-          </TabsContent>
-
           <TabsContent value="equipment" className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
               {equipmentSlots.map(({ key, icon: Icon, label }) => {
@@ -267,7 +277,7 @@ export default function PlayerDetailModal({
                             {Object.entries(item.statBoosts || {}).map(([stat, boost]) => (
                               <div key={stat} className="text-sm flex justify-between">
                                 <span>{stat}:</span>
-                                <span className="text-green-400">+{boost as React.ReactNode}</span>
+                                <span className="text-green-400">+{boost}</span>
                               </div>
                             ))}
                           </div>
@@ -286,10 +296,6 @@ export default function PlayerDetailModal({
                 );
               })}
             </div>
-          </TabsContent>
-
-          <TabsContent value="skills" className="space-y-4">
-            <PlayerSkillsDisplay playerId={player.id} />
           </TabsContent>
 
           <TabsContent value="abilities" className="space-y-4">
@@ -359,69 +365,53 @@ export default function PlayerDetailModal({
                 <CardContent>
                   <div className="grid grid-cols-2 gap-4">
                     {[
-                      { name: "Speed", current: player.speed, potential: player.speedPotential },
-                      { name: "Power", current: player.power, potential: player.powerPotential },
-                      { name: "Throwing", current: player.throwing, potential: player.throwingPotential },
-                      { name: "Catching", current: player.catching, potential: player.catchingPotential },
-                      { name: "Kicking", current: player.kicking, potential: player.kickingPotential },
-                      { name: "Stamina", current: player.stamina, potential: player.staminaPotential },
-                      { name: "Leadership", current: player.leadership, potential: player.leadershipPotential },
-                      { name: "Agility", current: player.agility, potential: player.agilityPotential },
-                    ].map((attr) => {
-                      // Generate consistent potential based on player characteristics
-                      let potentialRating = attr.potential;
-                      if (!potentialRating || potentialRating === 0) {
-                        const currentStat = attr.current || 0;
-                        const age = player.age || 25;
-                        const raceBonus = player.race === 'lumina' ? 0.5 : player.race === 'sylvan' ? 0.3 : 0;
-                        
-                        // Younger players and higher stats have more potential variation
-                        const ageFactor = Math.max(0.2, (35 - age) / 15);
-                        const statFactor = Math.max(0.3, (40 - currentStat) / 40);
-                        
-                        // Use player ID for consistent randomization
-                        const playerSeed = parseInt(player.id.slice(-6), 16) % 1000;
-                        const statSeed = attr.name.length * 7 + playerSeed;
-                        const randomFactor = ((statSeed % 100) / 100) * 0.6 + 0.7; // 0.7-1.3 range
-                        
-                        potentialRating = Math.min(5, Math.max(1, (ageFactor + statFactor + raceBonus) * randomFactor * 3));
-                      }
-                      
-                      // Ensure displayRating is always a number
-                      const displayRating = typeof potentialRating === 'number' ? potentialRating : parseFloat(potentialRating) || 0;
-                      
-                      return (
-                        <div key={attr.name} className="flex justify-between items-center">
-                          <span className="text-sm">{attr.name}</span>
-                          <div className="flex items-center gap-1">
-                            <div className="flex">
-                              {Array.from({ length: 5 }, (_, i) => (
-                                <span 
-                                  key={i} 
-                                  className={`text-lg ${
-                                    i < Math.floor(displayRating) 
-                                      ? "text-yellow-400" 
-                                      : (i === Math.floor(displayRating) && displayRating % 1 >= 0.5)
-                                        ? "text-yellow-400/60"
-                                        : "text-gray-300"
-                                  }`}
-                                >
-                                  ★
-                                </span>
-                              ))}
-                            </div>
-                            <span className="text-xs text-gray-400 ml-1">
-                              ({displayRating.toFixed(1)})
+                      { name: "Speed", potential: player.speedPotential || 0 },
+                      { name: "Power", potential: player.powerPotential || 0 },
+                      { name: "Throwing", potential: player.throwingPotential || 0 },
+                      { name: "Catching", potential: player.catchingPotential || 0 },
+                      { name: "Kicking", potential: player.kickingPotential || 0 },
+                      { name: "Stamina", potential: player.staminaPotential || 0 },
+                      { name: "Leadership", potential: player.leadershipPotential || 0 },
+                      { name: "Agility", potential: player.agilityPotential || 0 },
+                    ].map((attr) => (
+                      <div key={attr.name} className="flex justify-between items-center">
+                        <span className="text-sm">{attr.name}</span>
+                        <div className="flex">
+                          {Array.from({ length: 5 }, (_, i) => (
+                            <span 
+                              key={i} 
+                              className={`text-lg ${
+                                i < Math.floor(parseFloat((attr.potential || 0).toString()) || 0) 
+                                  ? "text-yellow-400" 
+                                  : "text-gray-300"
+                              }`}
+                            >
+                              ★
                             </span>
-                          </div>
+                          ))}
                         </div>
-                      );
-                    })}
+                      </div>
+                    ))}
                   </div>
                 </CardContent>
               </Card>
 
-
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-lg">Training Focus</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-sm text-gray-500 mb-3">
+                    Select training focus to improve specific attributes over time.
+                  </div>
+                  <div className="grid grid-cols-2 gap-2">
+                    <Button variant="outline" size="sm">Focus on Speed</Button>
+                    <Button variant="outline" size="sm">Focus on Power</Button>
+                    <Button variant="outline" size="sm">Focus on Technique</Button>
+                    <Button variant="outline" size="sm">Focus on Leadership</Button>
+                  </div>
+                </CardContent>
+              </Card>
             </div>
           </TabsContent>
         </Tabs>

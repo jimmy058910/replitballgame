@@ -8,23 +8,40 @@ import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { Users, Gift, Copy, Share2, Trophy } from "lucide-react";
 
+interface ReferralData {
+  myCode: string | null;
+  totalReferrals: number;
+  creditsEarned: number;
+  gemsEarned: number;
+  activeReferrals: number;
+  hasUsedReferral: boolean;
+  recentReferrals: Array<{
+    username: string;
+    joinedAt: string; // Assuming string date from API
+    isActive: boolean;
+  }>;
+}
+
+interface UserData {
+  // Define user properties if needed, e.g., for checking if they can generate a code
+  id: string;
+}
+
 export default function ReferralSystem() {
   const [referralCode, setReferralCode] = useState("");
   const { toast } = useToast();
 
-  const { data: referralData } = useQuery({
+  const { data: referralData } = useQuery<ReferralData>({ // Typed referralData
     queryKey: ["/api/referrals"],
   });
 
-  const { data: user } = useQuery({
+  const { data: user } = useQuery<UserData>({ // Typed user data
     queryKey: ["/api/auth/user"],
   });
 
   const generateCodeMutation = useMutation({
     mutationFn: async () => {
-      await apiRequest("/api/referrals/generate", {
-        method: "POST",
-      });
+      await apiRequest("/api/referrals/generate", "POST"); // Corrected apiRequest
     },
     onSuccess: () => {
       toast({
@@ -44,10 +61,8 @@ export default function ReferralSystem() {
 
   const claimReferralMutation = useMutation({
     mutationFn: async (code: string) => {
-      await apiRequest("/api/referrals/claim", {
-        method: "POST",
-        body: JSON.stringify({ code }),
-      });
+      // Corrected apiRequest call
+      await apiRequest("/api/referrals/claim", "POST", { code });
     },
     onSuccess: () => {
       toast({
@@ -68,6 +83,10 @@ export default function ReferralSystem() {
   });
 
   const copyToClipboard = (text: string) => {
+    if (text === null) { // Should not happen if called correctly, but good for type safety
+      toast({ title: "Error", description: "No code to copy.", variant: "destructive" });
+      return;
+    }
     navigator.clipboard.writeText(text);
     toast({
       title: "Copied to Clipboard",
@@ -106,13 +125,18 @@ export default function ReferralSystem() {
               <div className="space-y-3">
                 <div className="flex items-center gap-2">
                   <Input
-                    value={referralData.myCode}
+                    value={referralData.myCode || ""} // Fallback for null to prevent error with input value
                     readOnly
                     className="bg-gray-700 border-gray-600"
                   />
                   <Button
                     size="sm"
-                    onClick={() => copyToClipboard(referralData.myCode)}
+                    onClick={() => {
+                      if (referralData?.myCode) {
+                        copyToClipboard(referralData.myCode);
+                      }
+                    }}
+                    disabled={!referralData?.myCode}
                     className="shrink-0"
                   >
                     <Copy className="h-4 w-4" />
@@ -122,6 +146,7 @@ export default function ReferralSystem() {
                   onClick={shareReferral}
                   className="w-full"
                   variant="outline"
+                  disabled={!referralData?.myCode} // Disable if no code
                 >
                   <Share2 className="mr-2 h-4 w-4" />
                   Share with Friends

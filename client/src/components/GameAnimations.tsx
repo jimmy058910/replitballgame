@@ -3,8 +3,12 @@ import { motion, AnimatePresence } from "framer-motion";
 import { 
   Zap, Heart, ShieldX, ArrowDown, Trophy, Target, 
   Hand, AlertTriangle, Activity, Footprints, 
-  Clock, Star, Users, Crown
+  Clock, Star, Users, Crown, LucideProps
 } from "lucide-react";
+import { ForwardRefExoticComponent, RefAttributes } from "react";
+
+// Define a more specific type for Lucide icons
+type LucideIconType = ForwardRefExoticComponent<Omit<LucideProps, "ref"> & RefAttributes<SVGSVGElement>>;
 
 interface GameEvent {
   id: string;
@@ -52,8 +56,8 @@ export default function GameAnimations({ events, isLive, fieldDimensions }: Game
     }
   }, [events, isLive]);
 
-  const getDefaultDuration = (type: string): number => {
-    const durations = {
+  const getDefaultDuration = (type: GameEvent['type']): number => {
+    const durations: Record<GameEvent['type'], number> = {
       skill: 2000,
       fatigue: 3000,
       knockdown: 2500,
@@ -73,8 +77,15 @@ export default function GameAnimations({ events, isLive, fieldDimensions }: Game
     return durations[type] || 2000;
   };
 
-  const getAnimationVariants = (eventType: string) => {
-    const variants = {
+  const getAnimationVariants = (eventType: GameEvent['type']) => {
+    // Define a default animation to satisfy Record type for missing keys
+    const defaultAnimation = {
+      initial: { opacity: 0, scale: 0.5 },
+      animate: { opacity: [0, 1, 0], scale: [0.5, 1, 0.5] },
+      transition: { duration: 1.5 }
+    };
+
+    const variants: Record<GameEvent['type'], any> = {
       skill: {
         initial: { scale: 0, rotate: 0, opacity: 0 },
         animate: { 
@@ -178,13 +189,18 @@ export default function GameAnimations({ events, isLive, fieldDimensions }: Game
           opacity: [0, 1, 1, 0.9, 0]
         },
         transition: { duration: 6, ease: "easeOut" }
-      }
+      },
+      // Add missing types with default animation
+      tackle: defaultAnimation,
+      block: defaultAnimation,
+      dodge: defaultAnimation,
+      interception: defaultAnimation,
     };
-    return variants[eventType] || variants.skill;
+    return variants[eventType] || variants.skill; // Default to 'skill' animation if not found
   };
 
-  const getEventIcon = (eventType: string) => {
-    const icons = {
+  const getEventIcon = (eventType: GameEvent['type']): LucideIconType => {
+    const icons: Record<GameEvent['type'], LucideIconType> = {
       skill: Zap,
       fatigue: Clock,
       knockdown: ShieldX,
@@ -201,11 +217,11 @@ export default function GameAnimations({ events, isLive, fieldDimensions }: Game
       interception: Hand,
       touchdown: Crown,
     };
-    return icons[eventType] || Star;
+    return icons[eventType] || Star; // Default to Star icon if not found
   };
 
-  const getEventColor = (eventType: string, intensity: string) => {
-    const baseColors = {
+  const getEventColor = (eventType: GameEvent['type'], intensity: GameEvent['intensity']) => {
+    const baseColors: Record<GameEvent['type'], string> = {
       skill: "text-blue-400",
       fatigue: "text-yellow-400",
       knockdown: "text-red-500",
@@ -230,11 +246,14 @@ export default function GameAnimations({ events, isLive, fieldDimensions }: Game
       critical: "opacity-100 animate-pulse"
     };
 
-    return `${baseColors[eventType] || "text-white"} ${intensityModifiers[intensity]}`;
+    return `${baseColors[eventType] || "text-white"} ${intensityModifiers[intensity] || "opacity-100"}`; // Default intensity modifier
   };
 
-  const getRaceSpecificAnimation = (race: string, baseAnimation: any) => {
-    const raceModifiers = {
+  // Define PlayerRace type based on keys used in raceModifiers
+  type PlayerRace = "Human" | "Elf" | "Dwarf" | "Dark Elf" | "Orc" | "Goblin" | "Undead" | "Skaven";
+
+  const getRaceSpecificAnimation = (race: PlayerRace, baseAnimation: any) => {
+    const raceModifiers: Record<PlayerRace, { scale: number; speed: number }> = {
       Human: { scale: 1, speed: 1 },
       Elf: { scale: 0.9, speed: 1.3 },
       Dwarf: { scale: 1.2, speed: 0.8 },
@@ -245,7 +264,7 @@ export default function GameAnimations({ events, isLive, fieldDimensions }: Game
       Skaven: { scale: 0.8, speed: 1.5 }
     };
 
-    const modifier = raceModifiers[race] || raceModifiers.Human;
+    const modifier = raceModifiers[race] || raceModifiers["Human"]; // Ensure key is valid
     return {
       ...baseAnimation,
       transition: {
@@ -277,7 +296,8 @@ export default function GameAnimations({ events, isLive, fieldDimensions }: Game
       <AnimatePresence>
         {activeEvents.map((event) => {
           const IconComponent = getEventIcon(event.type);
-          const variants = getRaceSpecificAnimation(event.playerRace, getAnimationVariants(event.type));
+          const playerRaceKey = event.playerRace as PlayerRace; // Assume event.playerRace is a valid key or handled by getRaceSpecificAnimation
+          const variants = getRaceSpecificAnimation(playerRaceKey, getAnimationVariants(event.type));
           const colorClass = getEventColor(event.type, event.intensity);
 
           return (

@@ -7,22 +7,41 @@ import NotificationSystem from "@/components/NotificationSystem";
 import { 
   Home, Users, Trophy, Medal, Gamepad2, ShoppingCart, 
   Building, Package, Store, Menu, LogOut, Coins, MessageCircle,
-  Crown, FileText, Briefcase, Target, ShoppingBag
+  Crown, FileText, Briefcase, Target
 } from "lucide-react";
+
+// Define interfaces for useQuery data
+interface TeamData {
+  id: string;
+  name: string;
+  credits?: number; // credits might also be on team directly
+  // Add other relevant team properties
+}
+
+interface TeamFinancesData {
+  credits: number;
+  premiumCurrency: number;
+  // Add other finance properties if needed
+}
+
+interface StoreAdData {
+  // Define properties for store ad data if used, otherwise can be any
+  [key: string]: any;
+}
 
 export default function Navigation() {
   const [location, setLocation] = useLocation();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
-  const { data: team } = useQuery({
+  const { data: team } = useQuery<TeamData>({ // Typed team data
     queryKey: ["/api/teams/my"],
   });
 
-  const { data: finances } = useQuery({
+  const { data: finances } = useQuery<TeamFinancesData>({ // Typed finances data
     queryKey: ["/api/teams/my/finances"],
   });
 
-  const { data: storeData } = useQuery({
+  const { data: storeData } = useQuery<StoreAdData>({ // Typed store ad data
     queryKey: ["/api/store/ads"],
   });
 
@@ -32,15 +51,14 @@ export default function Navigation() {
     { path: "/", label: "Dashboard", icon: Home },
     { path: "/team", label: "Team", icon: Users },
     { path: "/competition", label: "Competition", icon: Trophy },
-    { path: "/store", label: "Store", icon: ShoppingCart },
-    { path: "/marketplace", label: "Market", icon: ShoppingBag },
+    { path: "/commerce", label: "Store", icon: ShoppingCart },
     { path: "/stadium", label: "Stadium", icon: Building },
     { path: "/inventory", label: "Inventory", icon: Package },
     { path: "/community", label: "Community", icon: MessageCircle },
   ];
 
   const credits = finances?.credits || team?.credits || 0;
-  const premiumCurrency = finances?.gems || finances?.premiumCurrency || 0;
+  const premiumCurrency = finances?.premiumCurrency || 0;
 
 
 
@@ -83,7 +101,7 @@ export default function Navigation() {
           <div className="flex items-center space-x-2">
             {/* Premium Currency Display - Clickable */}
             <button
-              onClick={() => setLocation("/store?tab=gems")}
+              onClick={() => setLocation("/payments")}
               className="flex items-center bg-purple-700 hover:bg-purple-600 px-2 py-1 rounded text-xs font-semibold transition-colors cursor-pointer"
             >
               <Coins className="h-3 w-3 text-purple-300 mr-1" />
@@ -93,7 +111,7 @@ export default function Navigation() {
             
             {/* Credits Display - Clickable */}
             <button
-              onClick={() => setLocation("/store?tab=gems")}
+              onClick={() => setLocation("/payments")}
               className="flex items-center bg-gray-700 hover:bg-gray-600 px-2 py-1 rounded text-xs font-semibold transition-colors cursor-pointer"
             >
               <Coins className="h-3 w-3 text-yellow-400 mr-1" />
@@ -132,7 +150,7 @@ export default function Navigation() {
                     <div className="flex items-center gap-2 mt-2">
                       <button
                         onClick={() => {
-                          setLocation("/store?tab=gems");
+                          setLocation("/payments");
                           setIsMobileMenuOpen(false);
                         }}
                         className="flex items-center bg-purple-700 hover:bg-purple-600 px-3 py-2 rounded transition-colors cursor-pointer"
@@ -144,7 +162,7 @@ export default function Navigation() {
                       
                       <button
                         onClick={() => {
-                          setLocation("/store?tab=gems");
+                          setLocation("/payments");
                           setIsMobileMenuOpen(false);
                         }}
                         className="flex items-center bg-gray-700 hover:bg-gray-600 px-3 py-2 rounded transition-colors cursor-pointer"

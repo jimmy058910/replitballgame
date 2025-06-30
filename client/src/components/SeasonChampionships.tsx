@@ -8,8 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Progress } from "@/components/ui/progress";
 import { Trophy, Crown, Calendar, Users, Target, Medal, Zap, TrendingUp } from "lucide-react";
-import { FloatingNotification, PulseWrapper, HoverCard, AnimatedCounter } from "@/components/MicroInteractions";
-import { getDivisionName, getDivisionInfo, getFullDivisionTitle } from "@shared/divisions";
+import { FloatingNotification, PulseWrapper, HoverCard, AnimatedCounter } from "@/components/MicroInteractions"; // Removed AnimatedNotificationProps
 
 interface Season {
   id: string;
@@ -42,28 +41,37 @@ export default function SeasonChampionships() {
   const [selectedDivision, setSelectedDivision] = useState(1);
   const [showNotification, setShowNotification] = useState(false);
 
-  const { data: currentSeason } = useQuery({
+  interface ChampionTeam {
+    id: string;
+    name: string;
+    division: number;
+  }
+  interface ChampionshipSeason extends Season {
+    teamName?: string; // For recent champions display
+    championTeam?: ChampionTeam; // For history display
+  }
+
+  const { data: currentSeason } = useQuery<Season>({ // Typed currentSeason
     queryKey: ["/api/seasons/current"],
   });
 
-  const { data: playoffs } = useQuery({
+  const { data: playoffs = [] } = useQuery<PlayoffMatch[]>({ // Typed playoffs, default to empty array
     queryKey: ["/api/playoffs", selectedDivision],
+    enabled: !!selectedDivision, // Ensure selectedDivision is not null/undefined
   });
 
-  const { data: leagueStandings } = useQuery({
+  const { data: leagueStandings = [] } = useQuery<any[]>({ // Typed leagueStandings, default to empty array
     queryKey: ["/api/league/standings", selectedDivision],
+    enabled: !!selectedDivision,
   });
 
-  const { data: championshipHistory } = useQuery({
+  const { data: championshipHistory = [] } = useQuery<ChampionshipSeason[]>({ // Typed championshipHistory, default to empty array
     queryKey: ["/api/seasons/champions"],
   });
 
   const startPlayoffsMutation = useMutation({
     mutationFn: (data: { seasonId: string; division: number }) =>
-      apiRequest(`/api/seasons/${data.seasonId}/playoffs/start`, {
-        method: "POST",
-        body: JSON.stringify({ division: data.division }),
-      }),
+      apiRequest(`/api/seasons/${data.seasonId}/playoffs/start`, "POST", { division: data.division }), // Corrected apiRequest
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/playoffs"] });
       queryClient.invalidateQueries({ queryKey: ["/api/seasons/current"] });
@@ -81,10 +89,18 @@ export default function SeasonChampionships() {
       2: "Semifinals", 
       3: "Championship Final"
     };
-    return names[round] || `Round ${round}`;
+    return names[round as keyof typeof names] || `Round ${round}`; // Added type assertion
   };
 
-  // Using unified division naming system
+  const getDivisionName = (division: number) => {
+    const names = {
+      1: "Mythic Division",
+      2: "Legendary Division", 
+      3: "Epic Division",
+      4: "Heroic Division"
+    };
+    return names[division as keyof typeof names] || `Division ${division}`; // Added type assertion
+  };
 
   const getSeasonProgress = () => {
     if (!currentSeason) return 0;
@@ -96,12 +112,15 @@ export default function SeasonChampionships() {
 
   return (
     <div className="space-y-6">
-      <FloatingNotification
-        show={showNotification}
-        message="Playoffs have started!"
-        type="success"
-        onComplete={() => setShowNotification(false)}
-      />
+      {/* Corrected usage of FloatingNotification: it likely controls its own visibility based on a 'message' prop or similar */}
+      {showNotification && (
+        <FloatingNotification
+          message="Playoffs have started!"
+          type="success"
+          onClose={() => setShowNotification(false)} // Assuming onClose is the prop to hide it
+          // duration={3000} // Example: if it auto-hides
+        />
+      )}
 
       {/* Season Overview */}
       <div className="grid gap-6 md:grid-cols-3">
@@ -144,13 +163,14 @@ export default function SeasonChampionships() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              {championshipHistory?.slice(0, 3).map((champion: any, index: number) => (
+              {championshipHistory?.slice(0, 3).map((champion: ChampionshipSeason, index: number) => (
                 <div key={champion.id} className="flex items-center justify-between py-2">
                   <div className="flex items-center gap-2">
                     <Medal className={`h-4 w-4 ${index === 0 ? 'text-yellow-500' : index === 1 ? 'text-gray-400' : 'text-amber-600'}`} />
                     <span className="text-sm">{champion.year}</span>
                   </div>
-                  <span className="text-sm font-medium">{champion.teamName}</span>
+                  {/* teamName was an ad-hoc addition, actual champion team data might be in championTeamId -> championTeam */}
+                  <span className="text-sm font-medium">{champion.championTeam?.name || champion.teamName || "Unknown"}</span>
                 </div>
               ))}
             </CardContent>
@@ -280,7 +300,7 @@ export default function SeasonChampionships() {
         <TabsContent value="standings" className="space-y-4">
           <h3 className="text-lg font-semibold">{getDivisionName(selectedDivision)} Standings</h3>
           <div className="space-y-2">
-            {leagueStandings?.map((team: any, index: number) => (
+            {leagueStandings?.map((team: any, index: number) => ( // Assuming leagueStandings items have at least id, name, wins, losses, draws, points
               <Card key={team.id}>
                 <CardContent className="p-4">
                   <div className="flex items-center justify-between">
@@ -296,7 +316,7 @@ export default function SeasonChampionships() {
                       </div>
                     </div>
                     <div className="text-right">
-                      <AnimatedCounter value={team.points} className="font-bold" />
+                      <AnimatedCounter value={team.points || 0} /> {/* Removed className, added fallback for points */}
                       <p className="text-xs text-gray-400">points</p>
                     </div>
                   </div>
@@ -309,7 +329,7 @@ export default function SeasonChampionships() {
         <TabsContent value="history" className="space-y-4">
           <h3 className="text-lg font-semibold">Championship History</h3>
           <div className="grid gap-4">
-            {championshipHistory?.map((season: any) => (
+            {championshipHistory?.map((season: ChampionshipSeason) => ( // Used ChampionshipSeason type
               <Card key={season.id}>
                 <CardContent className="p-4">
                   <div className="flex items-center justify-between">

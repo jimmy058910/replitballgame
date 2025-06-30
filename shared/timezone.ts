@@ -161,32 +161,18 @@ export function getTimeUntilNextLeagueWindow(): { hours: number; minutes: number
  * Get current server time info
  */
 export function getServerTimeInfo() {
-  try {
-    const easternTime = getEasternTime();
-    const isSchedulingTime = isWithinSchedulingWindow();
-    const timeUntilWindow = getTimeUntilNextLeagueWindow();
-    
-    return {
-      currentTime: easternTime.toDate(),
-      formattedTime: easternTime.format('YYYY-MM-DD HH:mm:ss z'),
-      timezone: EASTERN_TIMEZONE,
-      isSchedulingWindow: isSchedulingTime,
-      schedulingWindow: `${LEAGUE_GAME_START_HOUR}:00-${LEAGUE_GAME_END_HOUR}:00 Eastern`,
-      timeUntilNextWindow: timeUntilWindow
-    };
-  } catch (error) {
-    console.error('Error in getServerTimeInfo:', error);
-    // Fallback to basic Date if moment-timezone fails
-    const now = new Date();
-    return {
-      currentTime: now,
-      formattedTime: now.toLocaleString('en-US', { timeZone: 'America/Detroit' }),
-      timezone: EASTERN_TIMEZONE,
-      isSchedulingWindow: false,
-      schedulingWindow: `${LEAGUE_GAME_START_HOUR}:00-${LEAGUE_GAME_END_HOUR}:00 Eastern`,
-      timeUntilNextWindow: { hours: 0, minutes: 0 }
-    };
-  }
+  const easternTime = getEasternTime();
+  const isSchedulingTime = isWithinSchedulingWindow();
+  const timeUntilWindow = getTimeUntilNextLeagueWindow();
+  
+  return {
+    currentTime: easternTime.toDate(),
+    formattedTime: easternTime.format('YYYY-MM-DD HH:mm:ss z'),
+    timezone: EASTERN_TIMEZONE,
+    isSchedulingWindow: isSchedulingTime,
+    schedulingWindow: `${LEAGUE_GAME_START_HOUR}:00-${LEAGUE_GAME_END_HOUR}:00 Eastern`,
+    timeUntilNextWindow: timeUntilWindow
+  };
 }
 
 /**

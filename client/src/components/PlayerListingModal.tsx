@@ -10,8 +10,23 @@ import { useMutation } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 
+// Define a basic Player type for this modal's needs
+interface PlayerForListing {
+  id: string;
+  name: string;
+  race: string;
+  age: number;
+  role: string; // Assuming role is a string like "Passer", "Runner", etc.
+  leadership: number;
+  throwing: number;
+  speed: number;
+  agility: number;
+  power: number;
+  stamina: number;
+}
+
 interface PlayerListingModalProps {
-  player: any;
+  player: PlayerForListing; // Use the defined type
   isOpen: boolean;
   onClose: () => void;
 }
@@ -23,13 +38,11 @@ export default function PlayerListingModal({ player, isOpen, onClose }: PlayerLi
 
   const listPlayerMutation = useMutation({
     mutationFn: async () => {
-      await apiRequest("/api/marketplace/list-player", {
-        method: "POST",
-        body: JSON.stringify({
-          playerId: player.id,
-          price: parseInt(price),
-          duration: parseInt(duration)
-        }),
+      // Corrected apiRequest call
+      await apiRequest("/api/marketplace/list-player", "POST", {
+        playerId: player.id,
+        price: parseInt(price),
+        duration: parseInt(duration)
       });
     },
     onSuccess: () => {

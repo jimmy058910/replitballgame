@@ -97,7 +97,7 @@ export default function TextBasedMatch({
   const [halftimeAdShown, setHalftimeAdShown] = useState(false);
   
   // Ad system hook
-  const { showAd } = useAdSystem();
+  const { showInterstitialAd, showRewardedVideoAd } = useAdSystem(); // Correctly destructure ad functions
   const gameIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
   // Initialize players from team data
@@ -218,14 +218,8 @@ export default function TextBasedMatch({
         // Show halftime interstitial ad
         if (!halftimeAdShown) {
           setHalftimeAdShown(true);
-          showAd({
-            adType: 'interstitial',
-            placement: 'halftime',
-            rewardType: 'none',
-            rewardAmount: 0,
-            onAdComplete: () => {
-              console.log('Halftime ad completed');
-            }
+          showInterstitialAd('halftime', () => { // Use showInterstitialAd
+            console.log('Halftime ad completed');
           });
         }
         
@@ -373,7 +367,7 @@ export default function TextBasedMatch({
         ] : []),
         
         // Role-specific events with team context
-        ...(randomPlayer.role === 'passer' ? [
+        ...(randomPlayer.role.toLowerCase() === 'passer' ? [
           `${playerName} (${playerTeam}) looks for an open teammate downfield!`,
           `${playerName} attempts a long pass across the arena!`,
           `${playerName} scrambles under pressure from ${opponentTeam}!`,
@@ -381,13 +375,13 @@ export default function TextBasedMatch({
           ...(randomPlayer.throwing < 15 ? [`${playerName}'s pass goes wide of the target!`] : [])
         ] : []),
         
-        ...(randomPlayer.role === 'runner' ? [
+        ...(randomPlayer.role.toLowerCase() === 'runner' ? [
           `${playerName} (${playerTeam}) charges forward with the ball!`,
           `${playerName} breaks through a tackle attempt!`,
           `${playerName} jukes past a ${opponentTeam} defender!`,
         ] : []),
         
-        ...(randomPlayer.role === 'blocker' ? [
+        ...(randomPlayer.role.toLowerCase() === 'blocker' ? [
           `${playerName} (${playerTeam}) delivers a crushing block!`,
           `${playerName} holds the line against ${opponentTeam}!`,
           `${playerName} creates an opening for ${playerTeam} teammates!`,
@@ -563,7 +557,7 @@ export default function TextBasedMatch({
         ] : []),
         
         // Role-specific events with team context
-        ...(randomPlayer.role === 'passer' ? [
+        ...(randomPlayer.role.toLowerCase() === 'passer' ? [
           `${playerName} (${playerTeam}) looks for an open teammate downfield!`,
           `${playerName} attempts a long pass across the arena!`,
           `${playerName} scrambles under pressure from ${opponentTeam}!`,
@@ -571,13 +565,13 @@ export default function TextBasedMatch({
           ...(randomPlayer.throwing < 15 ? [`${playerName}'s pass goes wide of the target!`] : [])
         ] : []),
         
-        ...(randomPlayer.role === 'runner' ? [
+        ...(randomPlayer.role.toLowerCase() === 'runner' ? [
           `${playerName} (${playerTeam}) charges forward with the ball!`,
           `${playerName} breaks through a tackle attempt!`,
           `${playerName} jukes past a ${opponentTeam} defender!`,
         ] : []),
         
-        ...(randomPlayer.role === 'blocker' ? [
+        ...(randomPlayer.role.toLowerCase() === 'blocker' ? [
           `${playerName} (${playerTeam}) delivers a crushing block!`,
           `${playerName} holds the line against ${opponentTeam}!`,
           `${playerName} creates an opening for ${playerTeam} teammates!`,
@@ -776,17 +770,16 @@ export default function TextBasedMatch({
               Reset
             </Button>
             <Button 
-              onClick={() => showAd({
-                adType: 'rewarded_video',
-                placement: 'match_bonus',
-                rewardType: 'premium_currency',
-                rewardAmount: 10,
-                onAdComplete: (reward) => {
+              onClick={() => showRewardedVideoAd( // Use showRewardedVideoAd
+                'match_bonus',
+                'premium_currency',
+                10,
+                (reward?: { type: string; amount: number }) => { // Typed reward parameter
                   if (reward) {
                     console.log(`Rewarded ad completed! Got ${reward.amount} ${reward.type}`);
                   }
                 }
-              })}
+              )}
               variant="outline"
               className="bg-purple-600 hover:bg-purple-700 text-white"
             >
@@ -814,8 +807,8 @@ export default function TextBasedMatch({
         </CardContent>
       </Card>
       
-      {/* Ad System Component */}
-      <AdSystem />
+      {/* AdSystem component is managed by useAdSystem hook, so direct rendering is not needed here */}
+      {/* <AdSystem /> */}
     </div>
   );
 }

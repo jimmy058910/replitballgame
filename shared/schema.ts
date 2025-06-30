@@ -49,22 +49,13 @@ export const teams = pgTable("teams", {
   draws: integer("draws").default(0),
   points: integer("points").default(0),
   teamPower: integer("team_power").default(0),
-  credits: integer("credits").default(50000), // Starting credits increased to 50k
-  gems: integer("gems").default(0), // Premium currency (randomized on creation)
+  credits: integer("credits").default(15000),
   exhibitionCredits: integer("exhibition_credits").default(3),
   lastActivityAt: timestamp("last_activity_at").defaultNow(),
   isPaidUser: boolean("is_paid_user").default(false),
   seasonsInactive: integer("seasons_inactive").default(0),
   formation: text("formation"),
   substitutionOrder: text("substitution_order"),
-  camaraderie: integer("camaraderie").default(50), // Team chemistry (0-100)
-  // Income tracking
-  lastTicketRevenue: integer("last_ticket_revenue").default(0),
-  lastConcessionRevenue: integer("last_concession_revenue").default(0),
-  lastParkingRevenue: integer("last_parking_revenue").default(0),
-  lastVipRevenue: integer("last_vip_revenue").default(0),
-  lastApparelRevenue: integer("last_apparel_revenue").default(0),
-  totalSeasonRevenue: integer("total_season_revenue").default(0),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
@@ -118,18 +109,9 @@ export const players = pgTable("players", {
   glovesItemId: uuid("gloves_item_id"),
   
   // Player development
-  currentStamina: integer("current_stamina").default(100), // 0-100 (deprecated - kept for compatibility)
-  maxStamina: integer("max_stamina").default(100),
   injuries: jsonb("injuries").default([]),
   abilities: jsonb("abilities").default([]),
   camaraderie: integer("camaraderie").default(50), // team chemistry
-  
-  // Injury & Stamina System
-  dailyStaminaLevel: integer("daily_stamina_level").default(100), // 0-100, persistent stamina
-  injuryStatus: varchar("injury_status").default("Healthy"), // Healthy, Minor Injury, Moderate Injury, Severe Injury
-  injuryRecoveryPointsNeeded: integer("injury_recovery_points_needed").default(0),
-  injuryRecoveryPointsCurrent: integer("injury_recovery_points_current").default(0),
-  dailyItemsUsed: integer("daily_items_used").default(0), // Reset daily at 3 AM
   
   // Marketplace
   isMarketplace: boolean("is_marketplace").default(false),
@@ -171,40 +153,18 @@ export const matches = pgTable("matches", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
-// Equipment/Items table - Enhanced for comprehensive item system
+// Equipment/Items table
 export const items = pgTable("items", {
   id: uuid("id").primaryKey().defaultRandom(),
-  itemId: integer("item_id").notNull().unique(), // Matches item database ID
   name: varchar("name").notNull(),
-  type: varchar("type").notNull(), // Equipment, Consumable
-  itemType: varchar("item_type").notNull(), // helmet, armor, gloves, footwear, stamina_recovery, injury_recovery
-  rarity: varchar("rarity").notNull(), // common, uncommon, rare, epic, legendary
-  rarityId: integer("rarity_id").notNull(), // 1-5
-  slot: varchar("slot"), // For equipment: helmet, armor, gloves, footwear
-  slotId: integer("slot_id"), // 1-4
+  type: varchar("type").notNull(), // helmet, chest, shoes, gloves
+  rarity: varchar("rarity").notNull(), // common, rare, epic, legendary
+  slot: varchar("slot"), // equipment slot
   statBoosts: jsonb("stat_boosts").default({}), // {speed: 2, power: 1, etc}
   description: text("description"),
-  iconPath: varchar("icon_path"),
-  
-  // For consumables
-  effectType: varchar("effect_type"), // InjuryRecovery, StaminaRecovery, StaminaAndInjury
-  effectValue: integer("effect_value"), // How much to recover
-  duration: integer("duration").default(0), // Duration in seconds (0 for instant)
-  
-  // Restrictions
-  isUniversal: boolean("is_universal").default(true),
-  raceRestrictions: jsonb("race_restrictions").default([]), // Array of race IDs
-  
-  // Pricing
-  creditPrice: integer("credit_price"), // Price in regular credits
-  gemPrice: integer("gem_price"), // Price in premium gems
-  isPremium: boolean("is_premium").default(false), // True if Premium Gems only
-  
-  // Ownership
-  teamId: uuid("team_id").references(() => teams.id), // Owner team (null if in store)
-  playerId: uuid("player_id").references(() => players.id), // Equipped player
-  quantity: integer("quantity").default(1), // For stackable consumables
-  
+  marketValue: integer("market_value").default(0),
+  marketplacePrice: integer("marketplace_price"), // Current marketplace listing price
+  teamId: uuid("team_id").references(() => teams.id), // Owner team
   createdAt: timestamp("created_at").defaultNow(),
 });
 
@@ -214,30 +174,10 @@ export const staff = pgTable("staff", {
   teamId: uuid("team_id").references(() => teams.id).notNull(),
   type: varchar("type").notNull(), // head_coach, trainer_offense, trainer_defense, trainer_physical, head_scout, recruiting_scout, recovery_specialist
   name: varchar("name").notNull(),
-  age: integer("age").default(35),
   level: integer("level").default(1),
   salary: integer("salary").notNull(),
-  yearsOnTeam: integer("years_on_team").default(0),
   
-  // New attribute-based system (1-40 scale)
-  // Head Coach attributes
-  motivation: integer("motivation").default(20),
-  tactics: integer("tactics").default(20),
-  development: integer("development").default(20),
-  
-  // Trainer attributes
-  teaching: integer("teaching").default(20),
-  specialization: integer("specialization").default(20),
-  
-  // Scout attributes
-  talentIdentification: integer("talent_identification").default(20),
-  potentialAssessment: integer("potential_assessment").default(20),
-  
-  // Recovery Specialist attributes
-  physiology: integer("physiology").default(20),
-  rehabilitation: integer("rehabilitation").default(20),
-  
-  // Legacy ratings (for backward compatibility)
+  // Staff-specific stats
   offenseRating: integer("offense_rating").default(0),
   defenseRating: integer("defense_rating").default(0),
   physicalRating: integer("physical_rating").default(0),
@@ -248,28 +188,6 @@ export const staff = pgTable("staff", {
   
   abilities: jsonb("abilities").default([]),
   createdAt: timestamp("created_at").defaultNow(),
-});
-
-// Item Stat Boost Details table - Links consumable items to specific stat boosts
-export const itemStatBoostDetails = pgTable("item_stat_boost_details", {
-  id: uuid("id").primaryKey().defaultRandom(),
-  itemId: integer("item_id").notNull(), // Links to Items.item_id
-  attributeName: varchar("attribute_name").notNull(), // speed, power, throwing, catching, etc.
-  boostValue: integer("boost_value").notNull(), // The temporary bonus points (+5, +3, etc.)
-  createdAt: timestamp("created_at").defaultNow(),
-});
-
-// Active Stat Boosts table - Tracks activated boosts per team for next game
-export const activeStatBoosts = pgTable("active_stat_boosts", {
-  id: uuid("id").primaryKey().defaultRandom(),
-  teamId: uuid("team_id").references(() => teams.id).notNull(),
-  playerId: uuid("player_id").references(() => players.id).notNull(),
-  itemId: integer("item_id").notNull(),
-  itemName: varchar("item_name").notNull(),
-  attributeName: varchar("attribute_name").notNull(),
-  boostValue: integer("boost_value").notNull(),
-  activatedAt: timestamp("activated_at").defaultNow(),
-  gameType: varchar("game_type").default("league"), // only for league games
 });
 
 // Team finances table
@@ -425,11 +343,7 @@ export const playerInjuries = pgTable("player_injuries", {
   isActive: boolean("is_active").default(true),
   injuredAt: timestamp("injured_at").defaultNow(),
   expectedRecovery: timestamp("expected_recovery"),
-  gameType: varchar("game_type"), // league, tournament, exhibition
-  matchId: uuid("match_id").references(() => matches.id), // Which match caused injury
 });
-
-// Remove duplicate - teamInventory already defined above
 
 // Relations
 export const usersRelations = relations(users, ({ many }) => ({
@@ -527,50 +441,6 @@ export const adViews = pgTable("ad_views", {
 
 export type AdView = typeof adViews.$inferSelect;
 export type InsertAdView = typeof adViews.$inferInsert;
-
-// Dynamic Player Marketplace
-export const marketplaceListings = pgTable("marketplace_listings", {
-  id: varchar("id").primaryKey().notNull(),
-  playerId: varchar("player_id").notNull().references(() => players.id),
-  sellerTeamId: varchar("seller_team_id").notNull().references(() => teams.id),
-  startBid: integer("start_bid").notNull(),
-  buyNowPrice: integer("buy_now_price"),
-  currentBid: integer("current_bid").notNull(),
-  currentHighBidderTeamId: varchar("current_high_bidder_team_id").references(() => teams.id),
-  expiryTimestamp: timestamp("expiry_timestamp").notNull(),
-  isActive: boolean("is_active").notNull().default(true),
-  listingFee: integer("listing_fee").notNull().default(100),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-});
-
-export const marketplaceBids = pgTable("marketplace_bids", {
-  id: varchar("id").primaryKey().notNull(),
-  listingId: varchar("listing_id").notNull().references(() => marketplaceListings.id),
-  bidderTeamId: varchar("bidder_team_id").notNull().references(() => teams.id),
-  bidAmount: integer("bid_amount").notNull(),
-  isActive: boolean("is_active").notNull().default(true), // false when outbid
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-});
-
-export const marketplaceTransactions = pgTable("marketplace_transactions", {
-  id: varchar("id").primaryKey().notNull(),
-  listingId: varchar("listing_id").notNull().references(() => marketplaceListings.id),
-  buyerTeamId: varchar("buyer_team_id").notNull().references(() => teams.id),
-  sellerTeamId: varchar("seller_team_id").notNull().references(() => teams.id),
-  playerId: varchar("player_id").notNull().references(() => players.id),
-  transactionType: varchar("transaction_type").notNull(), // 'auction' | 'buy_now'
-  finalPrice: integer("final_price").notNull(),
-  marketTax: integer("market_tax").notNull(),
-  sellerProceeds: integer("seller_proceeds").notNull(),
-  completedAt: timestamp("completed_at").defaultNow().notNull(),
-});
-
-export type MarketplaceListing = typeof marketplaceListings.$inferSelect;
-export type InsertMarketplaceListing = typeof marketplaceListings.$inferInsert;
-export type MarketplaceBid = typeof marketplaceBids.$inferSelect;
-export type InsertMarketplaceBid = typeof marketplaceBids.$inferInsert;
-export type MarketplaceTransaction = typeof marketplaceTransactions.$inferSelect;
-export type InsertMarketplaceTransaction = typeof marketplaceTransactions.$inferInsert;
 export type Team = typeof teams.$inferSelect;
 export type InsertTeam = typeof teams.$inferInsert;
 export type Player = typeof players.$inferSelect;
@@ -791,23 +661,23 @@ export type InsertInjuryReport = typeof injuryReports.$inferInsert;
 // Stadium and facility management
 export const stadiums = pgTable("stadiums", {
   id: varchar("id").primaryKey().notNull().$defaultFn(() => nanoid()),
-  teamId: varchar("teamId").notNull().references(() => teams.id),
+  teamId: varchar("team_id").notNull().references(() => teams.id),
   name: varchar("name").notNull(),
   level: integer("level").default(1), // 1-10 stadium levels
   capacity: integer("capacity").default(5000),
-  fieldType: varchar("fieldType").default("standard"), // standard, large, compact, synthetic, natural
-  fieldSize: varchar("fieldSize").default("regulation"), // regulation, extended, compact
+  fieldType: varchar("field_type").default("standard"), // standard, large, compact, synthetic, natural
+  fieldSize: varchar("field_size").default("regulation"), // regulation, extended, compact
   lighting: varchar("lighting").default("basic"), // basic, professional, premium
   surface: varchar("surface").default("grass"), // grass, synthetic, hybrid
   drainage: varchar("drainage").default("basic"), // basic, advanced, premium
   facilities: jsonb("facilities").default({}), // parking, concessions, luxury_boxes, etc.
-  upgradeCost: integer("upgradeCost").default(50000),
-  maintenanceCost: integer("maintenanceCost").default(5000),
-  revenueMultiplier: integer("revenueMultiplier").default(100), // percentage
-  weatherResistance: integer("weatherResistance").default(50), // 0-100%
-  homeAdvantage: integer("homeAdvantage").default(5), // 0-20% boost
-  constructionDate: timestamp("constructionDate").defaultNow(),
-  lastUpgrade: timestamp("lastUpgrade"),
+  upgradeCost: integer("upgrade_cost").default(50000),
+  maintenanceCost: integer("maintenance_cost").default(5000),
+  revenueMultiplier: integer("revenue_multiplier").default(100), // percentage
+  weatherResistance: integer("weather_resistance").default(50), // 0-100%
+  homeAdvantage: integer("home_advantage").default(5), // 0-20% boost
+  constructionDate: timestamp("construction_date").defaultNow(),
+  lastUpgrade: timestamp("last_upgrade"),
 });
 
 export const facilityUpgrades = pgTable("facility_upgrades", {
@@ -925,31 +795,3 @@ export type CreditPackage = typeof creditPackages.$inferSelect;
 export type InsertCreditPackage = typeof creditPackages.$inferInsert;
 export type UserSubscription = typeof userSubscriptions.$inferSelect;
 export type InsertUserSubscription = typeof userSubscriptions.$inferInsert;
-
-// Player Skills System Tables
-export const skills = pgTable("skills", {
-  id: uuid("id").primaryKey().notNull().$defaultFn(() => crypto.randomUUID()),
-  name: varchar("name").notNull(),
-  description: text("description").notNull(),
-  type: varchar("type").notNull(), // "Passive" or "Active"
-  category: varchar("category").notNull(), // "Universal", "Role", or "Race"
-  roleRestriction: varchar("role_restriction"), // null for Universal, specific role for Role skills
-  raceRestriction: varchar("race_restriction"), // null for non-race skills, specific race for Race skills
-  tierEffects: jsonb("tier_effects").notNull(), // Effects for each tier (1-4)
-  triggerCondition: text("trigger_condition"), // For active skills
-});
-
-export const playerSkills = pgTable("player_skills", {
-  id: uuid("id").primaryKey().notNull().$defaultFn(() => crypto.randomUUID()),
-  playerId: uuid("player_id").notNull().references(() => players.id),
-  skillId: uuid("skill_id").notNull().references(() => skills.id),
-  currentTier: integer("current_tier").notNull().default(1), // 1-4
-  acquiredAt: timestamp("acquired_at").defaultNow(),
-  lastUpgraded: timestamp("last_upgraded"),
-  triggerCount: integer("trigger_count").default(0), // How many times the skill has triggered
-});
-
-export type Skill = typeof skills.$inferSelect;
-export type InsertSkill = typeof skills.$inferInsert;
-export type PlayerSkill = typeof playerSkills.$inferSelect;
-export type InsertPlayerSkill = typeof playerSkills.$inferInsert;

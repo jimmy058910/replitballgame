@@ -49,23 +49,28 @@ export default function EnhancedMarketplace() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
+  // Define Team type for useQuery
+  interface TeamData {
+    id: string;
+    name: string;
+    credits?: number;
+    // Add other relevant team properties
+  }
+
   // Fetch active auctions
-  const { data: auctions, isLoading } = useQuery({
+  const { data: auctions, isLoading } = useQuery<AuctionPlayer[]>({ // Typed auctions
     queryKey: ["/api/auctions/active"],
     refetchInterval: 5000, // Real-time updates
   });
 
   // Fetch user team data
-  const { data: team } = useQuery({
+  const { data: team } = useQuery<TeamData>({ // Typed team
     queryKey: ["/api/teams/my"],
   });
 
   // Create auction mutation
   const createAuctionMutation = useMutation({
-    mutationFn: async (data: any) => apiRequest("/api/auctions", {
-      method: "POST",
-      body: JSON.stringify(data),
-    }),
+    mutationFn: async (data: any) => apiRequest("/api/auctions", "POST", data), // Corrected apiRequest
     onSuccess: () => {
       toast({
         title: "Auction Created",
@@ -78,10 +83,7 @@ export default function EnhancedMarketplace() {
   // Place bid mutation
   const placeBidMutation = useMutation({
     mutationFn: async ({ auctionId, amount, type }: any) => 
-      apiRequest(`/api/auctions/${auctionId}/bid`, {
-        method: "POST",
-        body: JSON.stringify({ bidAmount: amount, bidType: type }),
-      }),
+      apiRequest(`/api/auctions/${auctionId}/bid`, "POST", { bidAmount: amount, bidType: type }), // Corrected apiRequest
     onSuccess: () => {
       toast({
         title: "Bid Placed",
@@ -96,9 +98,7 @@ export default function EnhancedMarketplace() {
   // Buyout mutation
   const buyoutMutation = useMutation({
     mutationFn: async (auctionId: string) => 
-      apiRequest(`/api/auctions/${auctionId}/buyout`, {
-        method: "POST",
-      }),
+      apiRequest(`/api/auctions/${auctionId}/buyout`, "POST"), // Corrected apiRequest
     onSuccess: () => {
       toast({
         title: "Player Acquired",
