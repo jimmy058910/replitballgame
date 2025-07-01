@@ -7,7 +7,7 @@ import NotificationSystem from "@/components/NotificationSystem";
 import { 
   Home, Users, Trophy, Medal, Gamepad2, ShoppingCart, 
   Building, Package, Store, Menu, LogOut, Coins, MessageCircle,
-  Crown, FileText, Briefcase, Target
+  Crown, FileText, Briefcase, Target, BarChart3
 } from "lucide-react";
 
 export default function Navigation() {
@@ -32,6 +32,7 @@ export default function Navigation() {
     { path: "/", label: "Dashboard", icon: Home },
     { path: "/team", label: "Team", icon: Users },
     { path: "/competition", label: "Competition", icon: Trophy },
+    { path: "/stats", label: "Stats", icon: BarChart3 },
     { path: "/commerce", label: "Store", icon: ShoppingCart },
     { path: "/stadium", label: "Stadium", icon: Building },
     { path: "/inventory", label: "Inventory", icon: Package },

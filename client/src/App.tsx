@@ -24,6 +24,7 @@ import SuperUser from "@/pages/SuperUser";
 import TextMatch from "@/pages/TextMatch";
 import Community from "@/pages/Community";
 import Camaraderie from "@/pages/Camaraderie";
+import Stats from "@/pages/Stats";
 
 import Navigation from "@/components/Navigation";
 
@@ -53,6 +54,7 @@ function Router() {
           <Route path="/match/:matchId" component={TextMatch} />
           <Route path="/community" component={Community} />
           <Route path="/camaraderie" component={Camaraderie} />
+          <Route path="/stats" component={Stats} />
           <Route path="/superuser" component={SuperUser} />
         </>
       )}
