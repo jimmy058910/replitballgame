@@ -142,7 +142,7 @@ export default function Navigation() {
                 <Button
                   size="sm"
                   variant="ghost"
-                  onClick={() => window.location.href = '/api/auth/login'}
+                  onClick={() => window.location.href = '/api/login'}
                   className="hidden sm:flex h-8 px-3 text-xs text-blue-400 hover:bg-blue-400 hover:text-white"
                 >
                   <LogIn className="h-3 w-3 mr-1" />
@@ -152,7 +152,7 @@ export default function Navigation() {
                 <Button
                   size="sm"
                   variant="outline"
-                  onClick={() => window.location.href = '/api/auth/login'}
+                  onClick={() => window.location.href = '/api/login'}
                   className="hidden sm:flex h-8 px-3 text-xs border-blue-400 text-blue-400 hover:bg-blue-400 hover:text-white"
                 >
                   <UserPlus className="h-3 w-3 mr-1" />
@@ -206,7 +206,7 @@ export default function Navigation() {
                       <div className="flex flex-col gap-2 mt-2">
                         <Button
                           variant="outline"
-                          onClick={() => window.location.href = '/api/auth/login'}
+                          onClick={() => window.location.href = '/api/login'}
                           className="w-full border-blue-400 text-blue-400 hover:bg-blue-400 hover:text-white"
                         >
                           <LogIn className="h-4 w-4 mr-2" />
@@ -214,7 +214,7 @@ export default function Navigation() {
                         </Button>
                         
                         <Button
-                          onClick={() => window.location.href = '/api/auth/login'}
+                          onClick={() => window.location.href = '/api/login'}
                           className="w-full bg-blue-600 hover:bg-blue-700 text-white"
                         >
                           <UserPlus className="h-4 w-4 mr-2" />
