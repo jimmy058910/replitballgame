@@ -93,7 +93,7 @@ router.post('/player/:playerId/use-item', isAuthenticated, async (req: any, res:
       return res.status(404).json({ message: "Player not found" });
     }
 
-    const team = await db.select().from(teams).where(eq(teams.id, player[0].teamId)).limit(1);
+    const team = await db.select().from(teams).where(eq(teams.id, player[0].teamId!)).limit(1);
     if (!team.length || team[0].userId !== userId) {
       return res.status(403).json({ message: "Unauthorized access to player" });
     }
@@ -130,7 +130,7 @@ router.post('/simulate-tackle-injury', isAuthenticated, async (req: any, res: Re
       return res.status(404).json({ message: "Player not found" });
     }
 
-    const team = await db.select().from(teams).where(eq(teams.id, player[0].teamId)).limit(1);
+    const team = await db.select().from(teams).where(eq(teams.id, player[0].teamId!)).limit(1);
     if (!team.length || team[0].userId !== userId) {
       return res.status(403).json({ message: "Unauthorized access to player" });
     }
@@ -252,8 +252,8 @@ router.get('/system/stats', isAuthenticated, async (req: any, res: Response, nex
     const stats = {
       totalPlayers: totalPlayers.length,
       injuredPlayers: totalPlayers.filter(p => p.injuryStatus !== 'Healthy').length,
-      lowStaminaPlayers: totalPlayers.filter(p => p.dailyStaminaLevel < 50).length,
-      playersUsedItemsToday: totalPlayers.filter(p => p.dailyItemsUsed > 0).length,
+      lowStaminaPlayers: totalPlayers.filter(p => (p.dailyStaminaLevel ?? 100) < 50).length,
+      playersUsedItemsToday: totalPlayers.filter(p => (p.dailyItemsUsed ?? 0) > 0).length,
       
       injuryBreakdown: {
         minor: totalPlayers.filter(p => p.injuryStatus === 'Minor Injury').length,
@@ -262,10 +262,10 @@ router.get('/system/stats', isAuthenticated, async (req: any, res: Response, nex
       },
       
       staminaBreakdown: {
-        fresh: totalPlayers.filter(p => p.dailyStaminaLevel >= 75).length,
-        tired: totalPlayers.filter(p => p.dailyStaminaLevel >= 50 && p.dailyStaminaLevel < 75).length,
-        fatigued: totalPlayers.filter(p => p.dailyStaminaLevel >= 25 && p.dailyStaminaLevel < 50).length,
-        exhausted: totalPlayers.filter(p => p.dailyStaminaLevel < 25).length
+        fresh: totalPlayers.filter(p => (p.dailyStaminaLevel ?? 100) >= 75).length,
+        tired: totalPlayers.filter(p => (p.dailyStaminaLevel ?? 100) >= 50 && (p.dailyStaminaLevel ?? 100) < 75).length,
+        fatigued: totalPlayers.filter(p => (p.dailyStaminaLevel ?? 100) >= 25 && (p.dailyStaminaLevel ?? 100) < 50).length,
+        exhausted: totalPlayers.filter(p => (p.dailyStaminaLevel ?? 100) < 25).length
       }
     };
 

@@ -342,8 +342,8 @@ export class PlayerSkillsService {
       if (skill.type === 'Passive' && statBonus) {
         // Apply passive effects
         Object.keys(statBonus).forEach(key => {
-          if (passiveEffects.hasOwnProperty(key)) {
-            passiveEffects[key] += statBonus[key];
+          if (key in passiveEffects) {
+            passiveEffects[key as keyof typeof passiveEffects] += statBonus[key];
           }
         });
       } else if (skill.type === 'Active') {

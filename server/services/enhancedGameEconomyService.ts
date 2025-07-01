@@ -48,7 +48,7 @@ export class EnhancedGameEconomyService {
       }
 
       const [team] = await db.select().from(teams).where(eq(teams.id, teamId));
-      if (!team || team.gems < gemAmount) {
+      if (!team || (team.gems ?? 0) < gemAmount) {
         return { success: false, error: 'Insufficient gems' };
       }
 
@@ -56,7 +56,7 @@ export class EnhancedGameEconomyService {
 
       // Update team finances
       await db.update(teams)
-        .set({ gems: team.gems - gemAmount })
+        .set({ gems: (team.gems ?? 0) - gemAmount })
         .where(eq(teams.id, teamId));
 
       const [teamFinance] = await db.select().from(teamFinances).where(eq(teamFinances.teamId, teamId));
@@ -214,7 +214,7 @@ export class EnhancedGameEconomyService {
 
       switch (upgradeType) {
         case 'capacity':
-          cost = this.calculateUpgradeCost('capacity', 0, stadium.capacity);
+          cost = this.calculateUpgradeCost('capacity', 0, stadium.capacity ?? 10000);
           updateData.capacity = (stadium.capacity || 10000) + 5000;
           newLevel = updateData.capacity;
           break;
@@ -318,7 +318,7 @@ export class EnhancedGameEconomyService {
    */
   static getStoreItems(category?: string) {
     if (category) {
-      return this.STORE_ITEMS[category] || [];
+      return (this.STORE_ITEMS as any)[category] || [];
     }
     return this.STORE_ITEMS;
   }
@@ -388,7 +388,7 @@ export class EnhancedGameEconomyService {
     rewardType: 'champion' | 'runnerUp' | 'regularWinner' | 'promotion'
   ): Promise<{ success: boolean; rewards?: { credits: number; gems: number }; error?: string }> {
     try {
-      const divisionRewards = this.DIVISION_REWARDS[division];
+      const divisionRewards = (this.DIVISION_REWARDS as any)[division];
       if (!divisionRewards) {
         return { success: false, error: 'Invalid division' };
       }

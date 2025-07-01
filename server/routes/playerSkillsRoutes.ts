@@ -138,7 +138,7 @@ router.post('/player/:playerId/upgrade/:skillId', isAuthenticated, async (req, r
 // Process end-of-season skill progression for user's team
 router.post('/team/season-progression', isAuthenticated, async (req, res) => {
   try {
-    const userId = req.user?.id;
+    const userId = req.user?.claims?.sub;
     if (!userId) {
       return res.status(401).json({ error: 'User not authenticated' });
     }
@@ -164,7 +164,7 @@ router.post('/team/season-progression', isAuthenticated, async (req, res) => {
 // Get skill progression summary for user's team
 router.get('/team/progression-summary', isAuthenticated, async (req, res) => {
   try {
-    const userId = req.user?.id;
+    const userId = req.user?.claims?.sub;
     if (!userId) {
       return res.status(401).json({ error: 'User not authenticated' });
     }

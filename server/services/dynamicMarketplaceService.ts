@@ -133,7 +133,7 @@ export class DynamicMarketplaceService {
         .from(teamFinances)
         .where(eq(teamFinances.teamId, teamId));
 
-      if (!teamFinance || teamFinance.credits < listingFee) {
+      if (!teamFinance || (teamFinance.credits ?? 0) < listingFee) {
         return { success: false, error: 'Insufficient credits for listing fee' };
       }
 
@@ -143,7 +143,7 @@ export class DynamicMarketplaceService {
       // Deduct listing fee
       await db
         .update(teamFinances)
-        .set({ credits: teamFinance.credits - listingFee })
+        .set({ credits: (teamFinance.credits ?? 0) - listingFee })
         .where(eq(teamFinances.teamId, teamId));
 
       // Create listing
@@ -219,7 +219,7 @@ export class DynamicMarketplaceService {
         .from(teamFinances)
         .where(eq(teamFinances.teamId, teamId));
 
-      if (!teamFinance || teamFinance.credits < bidAmount) {
+      if (!teamFinance || (teamFinance.credits ?? 0) < bidAmount) {
         return { success: false, error: 'Insufficient credits for bid' };
       }
 
@@ -239,7 +239,7 @@ export class DynamicMarketplaceService {
       // Deduct credits from bidder (escrow)
       await db
         .update(teamFinances)
-        .set({ credits: teamFinance.credits - bidAmount })
+        .set({ credits: (teamFinance.credits ?? 0) - bidAmount })
         .where(eq(teamFinances.teamId, teamId));
 
       // Anti-sniping: Check if bid is in final 5 minutes
@@ -329,7 +329,7 @@ export class DynamicMarketplaceService {
         .from(teamFinances)
         .where(eq(teamFinances.teamId, teamId));
 
-      if (!buyerFinance || buyerFinance.credits < listing.buyNowPrice) {
+      if (!buyerFinance || (buyerFinance.credits ?? 0) < listing.buyNowPrice) {
         return { success: false, error: 'Insufficient credits for buy-now purchase' };
       }
 
@@ -383,7 +383,7 @@ export class DynamicMarketplaceService {
     if (sellerFinance) {
       await db
         .update(teamFinances)
-        .set({ credits: sellerFinance.credits + sellerAmount })
+        .set({ credits: (sellerFinance.credits ?? 0) + sellerAmount })
         .where(eq(teamFinances.teamId, listing.sellerTeamId));
     }
 
@@ -400,7 +400,7 @@ export class DynamicMarketplaceService {
       if (buyerFinance) {
         await db
           .update(teamFinances)
-          .set({ credits: buyerFinance.credits - finalPrice })
+          .set({ credits: (buyerFinance.credits ?? 0) - finalPrice })
           .where(eq(teamFinances.teamId, winnerTeamId));
       }
     }
@@ -451,7 +451,7 @@ export class DynamicMarketplaceService {
     if (teamFinance) {
       await db
         .update(teamFinances)
-        .set({ credits: teamFinance.credits + escrow.escrowAmount })
+        .set({ credits: (teamFinance.credits ?? 0) + escrow.escrowAmount })
         .where(eq(teamFinances.teamId, teamId));
     }
 

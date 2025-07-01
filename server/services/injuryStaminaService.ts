@@ -249,7 +249,7 @@ export class InjuryStaminaService {
       // Natural stamina recovery (stat-based)
       const statBonusRecovery = player.stamina * 0.5;
       const totalRecovery = this.settings.baseStaminaRecovery + statBonusRecovery;
-      const currentStamina = player.dailyStaminaLevel || 0;
+      const currentStamina = player.dailyStaminaLevel ?? 100;
       updates.dailyStaminaLevel = Math.min(100, currentStamina + totalRecovery);
 
       // Apply updates if any changes needed
