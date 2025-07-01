@@ -1,0 +1,81 @@
+System Design for a Dynamic Player Marketplace
+Goal: To implement a fully functional, asynchronous player marketplace where users can list their players for sale, and other users can bid on them in an auction format or purchase them directly. The system must operate within a fixed 17-day season cycle, with special rules for the off-season.
+1. Core Concepts & Rules
+Auction & Buy Now: Players are listed with both a starting bid price and an optional "Buy Now" price.
+Listing Limits: A user cannot list a player if doing so would leave them with 10 or fewer players on their roster. A user can have a maximum of 3 players listed on the marketplace at any one time.
+Listing Fee: A small, non-refundable fee in game credits (e.g., 2% of the starting bid) is charged for listing a player to discourage market flooding.
+Auction Durations: Users can select from several auction lengths: 12 hours, 24 hours, 3 days, or 7 days.
+End-of-Season Deadline: The system must prevent auctions from being created that would end after the server reset on Day 17 at 3 AM. For example, on Day 15, a user could not select a 3-day or 7-day auction.
+Off-Season Market (Days 16-17): During the 2-day off-season, auctions are disabled. All listings are automatically converted to Buy Now only. Any player not sold by the end of Day 17 is automatically delisted and returned to their original owner.
+2. Database Schema: MarketplaceListings Table
+A new table is required to manage all active listings.
+Column Name
+Data Type
+Description
+Example
+listing_id
+INTEGER (PK)
+Unique ID for this specific auction listing.
+1001
+player_id
+INTEGER (FK)
+ID of the player being sold.
+5 (Player 5)
+seller_team_id
+INTEGER (FK)
+ID of the team selling the player.
+24
+start_bid
+INTEGER
+The minimum starting bid amount.
+1000
+buy_now_price
+INTEGER (null)
+The optional instant purchase price.
+15000
+current_bid
+INTEGER
+The current highest bid amount. Defaults to start_bid.
+1250
+current_high_bidder_team_id
+INTEGER (null)
+ID of the team with the current high bid.
+77
+expiry_timestamp
+DATETIME
+The exact date and time the auction will end.
+"2025-06-30 14:30:00"
+is_active
+BOOLEAN
+true if the auction is running, false if completed/expired.
+true
+
+3. System Logic & Algorithms
+A. Listing a Player (list_player command):
+Validation:
+Does the player belong to the user's team?
+Does the user's team have > 10 players?
+Does the user have < 3 players already listed?
+Is the chosen duration valid and does the calculated expiry_timestamp occur before Day 17, 3 AM?
+If a buy_now price is provided, is it above the system-generated minimum?
+Minimum Buy Now Price: This is crucial to prevent market tampering. The formula should be based on the player's true value.
+Suggested Formula: Minimum Buy Now = (Player's CAR * 1000) + (Player's Potential * 2000). This formula values both current ability and future potential. (e.g., A player with a CAR of 25 and 4-star potential (rating 8) would have a minimum Buy Now price of (25 * 1000) + (8 * 2000) = 25,000 + 16,000 = 41,000 Credits).
+Execution:
+If all checks pass, deduct the listing fee, mark the player as "on the market," create the new listing in the database, and notify the user.
+B. Placing a Bid (bid command):
+Validation: Check if the listing is active, the bid is higher than the current bid, and the user has enough credits.
+Execution:
+Use an Escrow System: Hold the bidder's credits. When they are outbid, their credits are returned.
+Update the listing with the new current_bid and current_high_bidder_team_id.
+Anti-Sniping: If a bid is placed in the final 5 minutes of an auction, extend the auction's expiry_timestamp by another 5 minutes.
+C. Buy Now (buy_now command):
+Validation: Check if the listing is active, has a buy_now_price, and the user has enough credits.
+Execution: This ends the auction immediately.
+Deduct the buy_now_price from the buyer.
+Transfer the credits (minus a small market tax, e.g., 5%) to the seller.
+Transfer the player to the buyer's roster.
+Set is_active = false for the listing.
+D. Daily Server Process (3 AM Reset)
+The server checks for any listings where expiry_timestamp has passed.
+It processes the outcome: transfers the player and credits for successful auctions, or returns the player for expired, un-bid-on auctions.
+

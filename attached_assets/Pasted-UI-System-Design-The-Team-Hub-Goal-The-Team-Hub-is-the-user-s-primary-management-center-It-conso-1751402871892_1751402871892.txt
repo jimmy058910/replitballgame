@@ -1,0 +1,56 @@
+UI System Design: The Team Hub
+Goal: The Team Hub is the user's primary management center. It consolidates all aspects of their internal assets—players, staff, finances, and infrastructure—into one organized location.
+1. Top-Level Tabs
+The Team Hub will feature a clear set of top-level tabs for navigation:
+Roster
+Staff
+Tactics & Stadium
+Finances
+Inventory
+2. Tab Content Breakdown
+A. Roster Tab
+Purpose: View, filter, and manage all players on the team.
+Sub-Tabs / Filters:
+All Players: A list of every player on the roster.
+Passers | Runners | Blockers: Filtered lists showing only players with that specific role.
+Taxi Squad (or "Reserves"): A place for developmental players who don't count against the main roster limit but also don't play in games (a potential future feature).
+UI:
+Each player is represented by a row in a table or a player card.
+Key info at a glance: Name, Role, Age, Core Athleticism Rating (CAR), Injury Status.
+Clicking on a player row opens their Detailed Player Profile.
+Player Profile Screen:
+Shows the player's portrait, name, role, race, and age.
+Displays all 8 core attributes (Speed, Power, etc.) and their current values.
+Shows their learned Skills and their current tier.
+Displays their season and career stats.
+Action Buttons: View Contract, Apply Item, Add to Marketplace.
+B. Staff Tab
+Purpose: Manage the team's coaching and support staff.
+Sub-Tabs:
+Current Staff: Displays the user's hired staff members, their level, key attributes (e.g., Head Coach's Motivation), and their current salary.
+Hire New Staff: Shows a list of available staff for hire, acting as a "Free Agent" pool for staff. Users can see their stats and hiring costs.
+UI: Similar to the Roster, a list of cards or rows for each staff member. Clicking provides more detail and the option to "Extend Contract" or "Fire".
+C. Tactics & Stadium Tab
+Purpose: A consolidated hub for strategic team setup and long-term infrastructure investment.
+Sub-Tabs:
+Game Plan:
+A UI with dropdowns or radio buttons for the user to select their Team-Wide Tactical Focus (e.g., "Balanced", "All-Out Attack", "Defensive Wall") for their next match.
+Field Size:
+A simple selection screen showing the three field types ("Standard", "Large", "Small") with descriptions of their effects. This is where the user makes their once-per-season home field choice.
+Facility Upgrades:
+A visual representation of the stadium and its facilities (Seating, Concessions, Parking, etc.).
+Each facility shows its current level and an "Upgrade" button with the credit cost for the next level.
+D. Finances Tab
+Purpose: Provide a clear and detailed overview of the team's financial situation.
+Sub-Tabs:
+Revenue: A breakdown of income sources from the last game and for the season-to-date (Ticket Sales, Concessions, etc.).
+Expenses: A breakdown of costs (Player Salaries, Staff Salaries, Facility Maintenance, Marketplace Fees).
+Projections: A simple projection of the team's financial health for the rest of the season based on current income and expenses.
+E. Inventory Tab
+Purpose: View and manage all non-player assets owned by the user.
+Filter Buttons:
+Equipment: Shows all helmets, armor, gloves, and footwear.
+Consumables: Shows all recovery items and single-game boosters.
+Trophies: A display case for championship trophies and other awards.
+UI: A grid of item icons. Clicking an item shows its description, stats, and provides an option to "Apply to Player" (for consumables) or "Equip on Player" (for equipment).
+

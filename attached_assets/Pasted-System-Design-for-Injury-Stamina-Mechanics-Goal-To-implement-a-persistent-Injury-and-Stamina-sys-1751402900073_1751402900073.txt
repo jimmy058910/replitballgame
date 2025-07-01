@@ -1,0 +1,70 @@
+System Design for Injury & Stamina Mechanics
+Goal: To implement a persistent Injury and Stamina system for a text-based sports management game. This system must handle how players get injured and recover based on game mode and player stats (Power, Stamina). Users must be able to manage their team's health using a limited number of consumable items per day.
+1. Core Concepts & Data Model
+A. Stamina System: Stamina is represented by two distinct values:
+in_game_stamina (0-100): A temporary value used during a single match. It depletes with actions and affects performance within that match. It is discarded after the match ends.
+daily_stamina_level (0-100): A persistent "freshness" stat that carries over from day to day. It determines the starting in_game_stamina for League and Tournament games and is depleted by playing in those modes.
+B. Injury System: Injuries are persistent and have a severity measured in "Recovery Points" (RP).
+Injury Status: "Healthy", "Minor Injury" (100 RP to heal), "Moderate Injury" (300 RP to heal), "Severe Injury" (750 RP to heal).
+Injury Effects:
+Minor: Small debuff to speed and agility during a game.
+Moderate: Significant debuff to speed, agility, and power.
+Severe: Player is unplayable in League and Tournament matches.
+C. New Player Data Properties: Each player object must have these persistent properties:
+daily_stamina_level: INTEGER (0-100, default: 100)
+injury_status: TEXT (Default: "Healthy")
+injury_recovery_points_needed: INTEGER (Default: 0)
+injury_recovery_points_current: INTEGER (Default: 0)
+daily_items_used: INTEGER (Default: 0)
+2. Game Modes: Impact on Injury & Stamina
+The consequences of playing a match depend entirely on the game mode.
+Game Mode
+Lasting Injury Chance
+Post-Game daily_stamina_level Depletion
+Starting in_game_stamina
+League
+Normal
+High (e.g., -30 points)
+Player's daily_stamina_level
+Tournament
+Low
+Minimal (e.g., -10 points)
+Player's daily_stamina_level
+Exhibition
+None (In-game effects only, never persist)
+None
+Always 100%
+
+3. Gameplay Mechanics & Implementation
+A. How Injuries Occur (The Tackle Event): When a tackle succeeds in-game, calculate the chance of a lasting injury.
+Injury Check Algorithm:
+Determine base_injury_chance based on game mode:
+League Game: 20%
+Tournament Game: 5%
+Exhibition Game: 0% (in-game effects might happen, but no persistent injury is recorded).
+Calculate power_modifier: The difference between Tackler.power and Carrier.agility. This modifier can be positive or negative. Formula: (Tackler.power - Carrier.agility) * 0.5.
+Calculate stamina_modifier: If the carrier's in_game_stamina is below 50%, add a penalty. Formula: if Carrier.stamina < 50: bonus_chance = 10.
+final_injury_chance = base_injury_chance + power_modifier + stamina_modifier.
+Roll a 1-100 die. If the roll is less than or equal to final_injury_chance, an injury occurs. Determine severity randomly (e.g., 70% Minor, 25% Moderate, 5% Severe) and update the player's persistent data.
+B. The Daily Reset (Scheduled for 3 AM) This global event manages natural recovery.
+Daily Reset Algorithm:
+Reset daily_items_used to 0 for all players.
+Natural Injury Recovery: Add a base recovery amount (e.g., +50 RP) to injury_recovery_points_current for all injured players.
+Natural Stamina Recovery (Stat-Based): A player's Stamina attribute now determines their recovery rate.
+base_stamina_recovery = 20
+stat_bonus_recovery = player.stamina * 0.5 (e.g., a player with 30 Stamina gets +15 bonus recovery).
+total_recovery = base_stamina_recovery + stat_bonus_recovery
+Update player.daily_stamina_level = min(100, player.daily_stamina_level + total_recovery).
+Check for injury status improvements after recovery points are added.
+4. User Management: Item Usage
+The logic for using an item remains the same, but is now contextualized by the new rules. The user can apply 1 or 2 items per player per day.
+Command: use_item [item_id] on [player_name]
+Algorithm:
+Check if user owns the item.
+Check if player.daily_items_used < 2. If not, reject.
+Check if item is appropriate (e.g., no injury salves on healthy players).
+Apply the item's effect_value to the player's persistent daily_stamina_level or injury_recovery_points_current.
+Increment player.daily_items_used by 1.
+Remove the item from inventory.
+Provide success/failure feedback to the user.
+

@@ -1,0 +1,63 @@
+Advanced Team Tactics & Strategy System
+Goal: To implement a multi-layered tactical system that allows users to define their team's core strategy through field choice and tactical focus, and to have the AI dynamically adjust its behavior based on the in-game situation (score, time), influenced by coaching and team morale.
+1. Field Size Specialization
+This system allows a user to choose their "home field" type once per season, creating a distinct home-field advantage that favors a specific playstyle. This choice is made during the off-season (Days 16-17) or on Day 1 before the schedule is set.
+Field Size
+Description
+Strategic Focus
+Gameplay Effects
+Standard
+The default, balanced field.
+All-around
+No special modifiers. The baseline experience.
+Large
+A wider and longer field.
+Speed & Passing.
+(+) The AI's calculation for route distances and maximum effective pass range is increased.<br>(-) The rate of in_game_stamina depletion for all players is increased due to more ground to cover.
+Small
+A cramped, narrow field.
+Power & Defense.
+(+) Blocker engagement radius is larger (easier to find targets).<br>(+) All players receive a small bonus to their power attribute for any tackle contests.<br>(-) Long passes and kicks suffer a significant accuracy penalty in the simulation's outcome calculation.
+
+Implementation Notes:
+A field_size property should be stored for each team in the database.
+When a match simulation begins, the logic should check the home team's field_size and apply these modifiers to the relevant formulas (e.g., stamina depletion, pass range checks, tackle contests) for the duration of that match.
+2. Team-Wide Tactical Focus
+This is a pre-game setting that dictates the team's overall philosophy for the upcoming match. This would be set in the "Game Plan" sub-tab of your proposed UI.
+Focus
+Description
+AI Behavior & Effects
+Balanced
+Standard approach.
+The default AI behavior we have currently implemented.
+All-Out Attack
+High-risk, high-reward offense.
+(+) Runner AI targets deeper routes. Passer AI is more willing to attempt lower-quality passes. Blocker AI pushes further upfield to engage defenders.<br>(-) The team's default defensive positioning logic uses a line closer to midfield, making them highly vulnerable to counter-attacks after a turnover.
+Defensive Wall
+A conservative, low-risk approach.
+(+) The team maintains a deeper default defensive line, making them harder to score against. Players are less likely to be pulled out of position.<br>(-) Runner AI runs shorter, safer routes. Passer AI will almost never attempt a risky pass, preferring to hold the ball or find a safe outlet.
+
+Implementation Notes:
+The chosen tactical focus should be a parameter passed into the match simulation function.
+The AI decision-making algorithms must contain conditional logic that alters their behavior based on this parameter. For example, the function that determines a pass target would lower its "minimum quality score" threshold when the "All-Out Attack" tactic is active.
+3. Situational Tactics (Dynamic In-Game AI Adjustments)
+This system makes the AI react dynamically to the score and time remaining in the match, with its effectiveness influenced by the team's "soft stats."
+Situation
+AI Behavior & Effects
+Winning Big<br>(e.g., up by 2+ scores in 2nd half)
+"Protect the Lead"<br>The AI becomes conservative. It will heavily prioritize low-risk running plays and short passes to control the ball and run down the clock. It will not attempt risky deep passes. Defensively, it will adopt a less aggressive posture to prevent giving up a big play.
+Losing Big<br>(e.g., down by 2+ scores in 2nd half)
+"Desperate Measures"<br>The AI automatically switches to an "All-Out Attack" mode, regardless of the pre-game setting. Passers will attempt very risky passes to any open receiver. Runners will try to break tackles more often, even at the cost of a higher fumble chance.
+Late & Close Game<br>(e.g., score is tied or within 1 point in the final 3 minutes)
+"Clutch Time"<br>This is where Leadership and Team Camaraderie have their biggest impact. <br>High Camaraderie/Leadership: Players receive a buff. The probability check for pass accuracy, catch success, and tackle success is modified in their favor. They execute better under pressure. <br>Low Camaraderie/Leadership: Players suffer a penalty (the "choke" factor). The probability check for these actions is modified against them, making mistakes more likely.
+
+4. Head Coach & Camaraderie Integration
+The Head Coach and team's morale directly influence the effectiveness of these tactics.
+Head Coach Tactics Stat:
+This attribute acts as a modifier on the chosen Team-Wide Tactical Focus.
+A coach with high Tactics will amplify the benefits and reduce the negatives of a chosen focus (e.g., in "All-Out Attack", the offensive boost is increased while the defensive positioning penalty is slightly reduced).
+A coach with low Tactics will do the opposite. They get less of a bonus from their chosen focus and suffer a greater penalty. This makes hiring a good coach a critical strategic decision.
+Team Camaraderie:
+As detailed in its own system design, TeamCamaraderie directly impacts the outcome of "Clutch Time". A well-managed, cohesive team will perform better when the game is on the line, while a dysfunctional team will be more likely to make mistakes.
+This layered tactical system provides a framework for deep strategic gameplay. Users must choose a home field that suits their roster, set a game plan with clear trade-offs, and watch as their team's AI adapts to the changing circumstances of the match, with its success or failure being directly influenced by the quality of their coach and the morale of their locker room.
+

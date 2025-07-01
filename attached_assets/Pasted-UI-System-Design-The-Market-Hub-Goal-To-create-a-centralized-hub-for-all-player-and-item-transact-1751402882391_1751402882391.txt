@@ -1,0 +1,38 @@
+UI System Design: The Market Hub
+Goal: To create a centralized hub for all player and item transactions. This is where users spend their earned currency to acquire new assets, creating a dynamic player-driven economy.
+1. Top-Level Tabs
+The Market Hub consolidates all transactional activities into three clear categories:
+Player Marketplace
+Recruiting
+Store
+2. Tab Content Breakdown
+A. Player Marketplace Tab
+Purpose: The primary hub for user-to-user player trading.
+Sub-Tabs:
+Auctions: The main view. A searchable and filterable list of all players currently up for auction.
+Buy Now: A filtered view showing only players who have a "Buy Now" price available.
+My Listings: Shows the status of players the current user has put up for sale.
+My Bids: Shows all auctions the user is currently bidding on, clearly indicating if they are the high bidder or have been outbid.
+UI - Main View (Auctions):
+Filters: Must have robust filtering options: Role (Passer, Runner, Blocker), Race, Age Range, Core Athleticism Rating (CAR) Range, Specific Attribute (e.g., show me players with Power > 25).
+List View: Each player is a row showing Name, Role, Age, CAR, Current Bid, Buy Now Price (if available), and Time Remaining.
+Player Details: Clicking a player opens a detailed view showing all their stats and skills. This view has prominent "Place Bid" and "Buy Now" buttons.
+B. Recruiting Tab
+Purpose: The interface for generating new, young players directly from the game system (PvE transaction).
+Sub-Tabs:
+Basic Tryout:
+Description: Clearly states this tryout provides a selection of rookie players with standard potential.
+Cost Display: Cost: 25,000 ₡
+Action Button: [Hold to Confirm Purchase] - A hold-to-confirm button prevents accidental high-cost purchases.
+Advanced Tryout:
+Description: Explains that this tryout offers more candidates with a higher chance of elite potential.
+Cost Display: Cost: 150,000 ₡
+Action Button: [Hold to Confirm Purchase]
+Post-Purchase UI: After a purchase, the user is presented with the generated players (3 for Basic, 5 for Advanced) and can choose which ones to sign to their roster (up to their roster limit).
+C. Store Tab
+Purpose: The hub for all direct game-to-player transactions, including both premium and standard currency purchases.
+Sub-Tabs:
+Gem Packs: The real-money transaction interface. Displays the available Gem packages and their prices (e.g., "50 💎 for $4.99"). This section must be clear and integrate with the respective platform's payment processing system.
+Credit Exchange: The interface for converting Gems to Credits. It should clearly display the tiered conversion rates and the "bulk bonus" a player receives for converting larger amounts.
+Game Items: A shop where users can buy consumable items (Recovery Items, Boosters, Game Entries) directly from the system using either Credits or Gems, based on the prices defined in the economy design.
+
