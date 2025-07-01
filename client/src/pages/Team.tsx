@@ -9,6 +9,8 @@ import StaffManagement from "@/components/StaffManagement";
 import TeamFinances from "@/components/TeamFinances";
 import TryoutSystem from "@/components/TryoutSystem";
 import { TaxiSquadManager } from "@/components/TaxiSquadManager";
+import Stadium from "@/pages/Stadium";
+import Inventory from "@/pages/Inventory";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -103,7 +105,7 @@ export default function Team() {
 
         {/* Main Navigation Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="mb-8">
-          <TabsList className="grid w-full grid-cols-6 bg-gray-800 gap-0.5">
+          <TabsList className="grid w-full grid-cols-8 bg-gray-800 gap-0.5 text-xs">
             <TabsTrigger value="roster" className="border-r border-gray-600 last:border-r-0 flex items-center gap-1">
               Roster
               <HelpIcon content="Manage your active players. View their stats, assign positions, and make strategic decisions about your lineup." />
@@ -119,6 +121,14 @@ export default function Team() {
             <TabsTrigger value="finances" className="border-r border-gray-600 last:border-r-0 flex items-center gap-1">
               Finances
               <HelpIcon content="Track income and expenses. Balance your budget between player salaries, staff costs, and facility upgrades." />
+            </TabsTrigger>
+            <TabsTrigger value="stadium" className="border-r border-gray-600 last:border-r-0 flex items-center gap-1">
+              Stadium
+              <HelpIcon content="Manage your stadium facilities. Upgrade infrastructure to increase revenue and improve team performance." />
+            </TabsTrigger>
+            <TabsTrigger value="inventory" className="border-r border-gray-600 last:border-r-0 flex items-center gap-1">
+              Inventory
+              <HelpIcon content="View and manage your consumable items. Use stat bonuses and special items to enhance team performance." />
             </TabsTrigger>
             <TabsTrigger value="contracts" className="border-r border-gray-600 last:border-r-0 flex items-center gap-1">
               Contracts
@@ -293,6 +303,14 @@ export default function Team() {
                 </CardContent>
               </Card>
             </div>
+          </TabsContent>
+
+          <TabsContent value="stadium">
+            <Stadium />
+          </TabsContent>
+
+          <TabsContent value="inventory">
+            <Inventory />
           </TabsContent>
 
           <TabsContent value="recruiting">

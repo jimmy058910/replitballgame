@@ -3,7 +3,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import ReferralSystem from "@/components/ReferralSystem";
 import SocialIntegration from "@/components/SocialIntegration";
 import RedemptionCodes from "@/components/RedemptionCodes";
-import { Users, Share2, Gift, MessageCircle } from "lucide-react";
+import HelpManual from "@/pages/HelpManual";
+import { Users, Share2, Gift, MessageCircle, HelpCircle } from "lucide-react";
 
 export default function Community() {
   return (
@@ -20,7 +21,7 @@ export default function Community() {
         </div>
 
         <Tabs defaultValue="social" className="w-full">
-          <TabsList className="grid w-full grid-cols-3">
+          <TabsList className="grid w-full grid-cols-4">
             <TabsTrigger value="social" className="flex items-center gap-2">
               <MessageCircle className="h-4 w-4" />
               Social Media
@@ -32,6 +33,10 @@ export default function Community() {
             <TabsTrigger value="codes" className="flex items-center gap-2">
               <Gift className="h-4 w-4" />
               Redeem Codes
+            </TabsTrigger>
+            <TabsTrigger value="help" className="flex items-center gap-2">
+              <HelpCircle className="h-4 w-4" />
+              Help
             </TabsTrigger>
           </TabsList>
 
@@ -45,6 +50,10 @@ export default function Community() {
 
           <TabsContent value="codes" className="mt-6">
             <RedemptionCodes />
+          </TabsContent>
+
+          <TabsContent value="help" className="mt-6">
+            <HelpManual />
           </TabsContent>
         </Tabs>
       </div>

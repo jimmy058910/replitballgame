@@ -12,6 +12,8 @@ import Competition from "@/pages/Competition";
 import League from "@/pages/League";
 import Tournaments from "@/pages/Tournaments";
 import Exhibitions from "@/pages/Exhibitions";
+import Market from "@/pages/Market";
+import World from "@/pages/World";
 
 import Inventory from "@/pages/Inventory";
 import Marketplace from "@/pages/Marketplace";
@@ -43,20 +45,24 @@ function Router() {
           <Route path="/" component={Dashboard} />
           <Route path="/team" component={Team} />
           <Route path="/competition" component={Competition} />
+          <Route path="/market" component={Market} />
+          <Route path="/world" component={World} />
+          
+          {/* Legacy routes - keep for backwards compatibility */}
           <Route path="/league" component={League} />
           <Route path="/tournaments" component={Tournaments} />
           <Route path="/exhibitions" component={Exhibitions} />
-
           <Route path="/inventory" component={Inventory} />
           <Route path="/marketplace" component={Marketplace} />
           <Route path="/store" component={Store} />
           <Route path="/payments" component={Payments} />
           <Route path="/stadium" component={Stadium} />
+          <Route path="/stats" component={Stats} />
+          
           <Route path="/text-match/:matchId" component={TextMatch} />
           <Route path="/match/:matchId" component={TextMatch} />
           <Route path="/community" component={Community} />
           <Route path="/camaraderie" component={Camaraderie} />
-          <Route path="/stats" component={Stats} />
           <Route path="/superuser" component={SuperUser} />
           <Route path="/help" component={HelpManual} />
         </>

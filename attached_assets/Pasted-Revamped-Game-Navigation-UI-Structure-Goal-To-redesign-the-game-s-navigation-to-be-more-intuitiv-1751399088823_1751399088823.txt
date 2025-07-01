@@ -1,0 +1,145 @@
+Revamped Game Navigation & UI Structure
+Goal: To redesign the game's navigation to be more intuitive, concise, and scalable. This design consolidates top-level menu items into logical hubs, creating a cleaner user experience and a more direct path to key management tasks.
+
+1. The Core Problem & Design Philosophy
+Problem: The current navigation has too many top-level items (Dashboard, Team, Competition, Stats, Store, Stadium, Inventory, etc.), which can be overwhelming and creates functional overlap.
+
+Solution: We will consolidate these into fewer, more powerful top-level hubs. The new philosophy is:
+
+Dashboard: Your landing page for at-a-glance info and urgent tasks.
+
+Team Hub: Everything related to managing your assets (players, staff, stadium, items).
+
+Competition Hub: Everything related to playing matches.
+
+Market Hub: Everything related to transactions (buying/selling players and items).
+
+World Hub: Everything related to the wider game world (all leagues, leaderboards).
+
+2. Proposed Top-Level Navigation Bar
+The main navigation bar will be simplified to these core items:
+
+(Logo) -> Links to Dashboard
+
+Dashboard
+
+Team
+
+Competition
+
+Market
+
+World
+
+Community
+
+3. Detailed Page & Tab Structure
+This is how the old pages will be reorganized under the new, cleaner top-level navigation.
+
+A. Dashboard (The Hub)
+This is the first screen the user sees. It provides a summary and quick links to important actions.
+
+Next Match Countdown: Shows the user's next scheduled League game and a countdown timer.
+
+Notifications: A dynamic list of important updates (e.g., "Player X has recovered from injury," "Contract for Player Y expires in 3 days," "Your bid on Player Z was outbid").
+
+Quick Stats: A small panel showing current Credits, Gems, and Team Record (W-L-T).
+
+Quick Links (Buttons): "Play Next Exhibition," "Visit Marketplace," "Manage Roster."
+
+B. Team (Your Management Center)
+This is the new, consolidated hub for everything you own and manage internally.
+
+Roster Tab:
+
+Sub-Tabs: All Players | Passers | Runners | Blockers | Taxi Squad
+
+This is where you view your players. Clicking a player opens their detailed profile where you can view stats, skills, and initiate Contract negotiations.
+
+Staff Tab:
+
+Sub-Tabs: Current Staff | Hire New Staff
+
+View your current staff and their effects. Browse and hire available staff from a pool.
+
+Tactics & Stadium Tab:
+
+Sub-Tabs: Game Plan | Field Size | Facility Upgrades
+
+Game Plan: Set your team's offensive and defensive focus for upcoming matches.
+
+Field Size: Choose your home field type for the season (Standard, Large, Small).
+
+Facility Upgrades: All stadium and facility management and upgrades are handled here.
+
+Finances Tab:
+
+Sub-Tabs: Revenue | Expenses | Projections
+
+A detailed breakdown of your team's financial health.
+
+Inventory Tab:
+
+Filter Buttons: Equipment | Consumables | Trophies
+
+View and manage all your owned items.
+
+C. Competition (Where You Play)
+This hub is dedicated solely to initiating matches.
+
+League Tab: Displays your team's personal league schedule, current league standings, and a button to "Play Next League Game."
+
+Tournaments Tab: The entry point for all available tournaments (Daily, Weekly). Shows entry fees, prize pools, and your current status.
+
+Exhibitions Tab: The page to start an exhibition match and use Exhibition Entry items.
+
+D. Market (All Transactions)
+This new hub combines all forms of player and item acquisition.
+
+Player Marketplace Tab:
+
+Sub-Tabs: Auctions | Buy Now
+
+The primary hub for bidding on, buying, and selling players with other users.
+
+Recruiting Tab:
+
+Sub-Tabs: Basic Tryout | Advanced Tryout
+
+The interface for spending Credits to generate new rookie players for your team.
+
+Store Tab:
+
+Sub-Tabs: Keep the same as now?
+
+This is the in-game shop for real-money purchases (Gems), converting Gems to Credits, and buying items directly from the game with credits.
+
+E. World (The Global View)
+This hub replaces the old "Stats" page and provides a view of the entire game world beyond just your own league.
+
+Divisions Tab: View the standings for all divisions and their respective parallel leagues.
+
+Leaderboards Tab:
+
+Sub-Tabs: Player Stats | Team Stats
+
+Shows the top-ranked players and teams across the entire game in various statistical categories.
+
+Lookup Tab:
+
+Sub-Tabs: Player Search | Team Search
+
+Functionality to search for any player or team in the game and view their public profile.
+
+F. Community
+(No Change) This grouping is good. It can contain:
+
+Social Media
+
+Referrals
+
+Redeem Codes
+
+Help/Guide: The "Help" page can be integrated here as a "Game Guide" tab.
+
+This revamped structure is more logical, reduces clutter, and aligns with modern UX practices in simulation games, making it easier for players to find what they need and manage their team effectively.
