@@ -31,7 +31,7 @@ function ServerTimeDisplay({ serverTime }: { serverTime: any }) {
     
     const time = new Date(serverTime.currentTime);
     const easternTime = time.toLocaleString("en-US", {
-      timeZone: "America/New_York",
+      timeZone: "America/Detroit", // Use Detroit for consistency with backend
       hour: "numeric",
       minute: "2-digit",
       hour12: true
@@ -40,22 +40,13 @@ function ServerTimeDisplay({ serverTime }: { serverTime: any }) {
     return easternTime;
   };
 
-  const getTimeUntilNextDay = () => {
-    if (!serverTime?.currentTime) return "";
+  const getSchedulingWindowStatus = () => {
+    if (!serverTime) return "";
     
-    const now = new Date(serverTime.currentTime);
-    const nextDay = new Date(now);
-    nextDay.setDate(nextDay.getDate() + 1);
-    nextDay.setHours(3, 0, 0, 0); // 3 AM EST
-    
-    const timeUntil = nextDay.getTime() - now.getTime();
-    const hours = Math.floor(timeUntil / (1000 * 60 * 60));
-    const minutes = Math.floor((timeUntil % (1000 * 60 * 60)) / (1000 * 60));
-    
-    if (hours > 0) {
-      return `Next day: ${hours}h ${minutes}m`;
+    if (serverTime.isSchedulingWindow) {
+      return "Games: OPEN";
     } else {
-      return `Next day: ${minutes}m`;
+      return `Next: ${serverTime.timeUntilNextWindow?.hours || 0}h ${serverTime.timeUntilNextWindow?.minutes || 0}m`;
     }
   };
 
@@ -64,7 +55,7 @@ function ServerTimeDisplay({ serverTime }: { serverTime: any }) {
       <CardContent className="p-2">
         <div className="text-center">
           <div className="text-blue-200 font-medium text-sm">EST: {formatServerTime()}</div>
-          <div className="text-blue-300 text-xs">{getTimeUntilNextDay()}</div>
+          <div className="text-blue-300 text-xs">{getSchedulingWindowStatus()}</div>
         </div>
       </CardContent>
     </Card>

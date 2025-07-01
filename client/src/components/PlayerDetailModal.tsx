@@ -43,8 +43,36 @@ export default function PlayerDetailModal({
   if (!player) return null;
 
   // Helper function to determine player role
-  // Import the centralized player role function
-  const { getPlayerRole, getRaceDisplayName } = require("../../../shared/playerUtils");;
+  // Centralized player role function
+  const getPlayerRole = (player: any): string => {
+    if (!player) return "Player";
+    
+    const { 
+      speed = 0, 
+      agility = 0, 
+      catching = 0, 
+      throwing = 0, 
+      power = 0, 
+      leadership = 0, 
+      stamina = 0 
+    } = player;
+    
+    // Calculate role scores based on relevant stats
+    const passerScore = (throwing * 2) + (leadership * 1.5);
+    const runnerScore = (speed * 2) + (agility * 1.5);
+    const blockerScore = (power * 2) + (stamina * 1.5);
+    
+    const maxScore = Math.max(passerScore, runnerScore, blockerScore);
+    
+    if (maxScore === passerScore) return "Passer";
+    if (maxScore === runnerScore) return "Runner";
+    return "Blocker";
+  };
+
+  const getRaceDisplayName = (race: string): string => {
+    if (!race) return "Unknown";
+    return race.charAt(0).toUpperCase() + race.slice(1).toLowerCase();
+  };;
 
   const playerRole = getPlayerRole(player);
   const raceColorClass = raceColors[player.race as keyof typeof raceColors] || "race-human";

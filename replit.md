@@ -45,6 +45,11 @@ Built as a React + Express web application with PostgreSQL database, using moder
 - ✓ Enhanced TacticalFormation component with consistent role logic and color coding
 - ✓ Updated shared/abilities.ts to use centralized getPlayerRole function with proper Player typing
 - ✓ Application ready for comprehensive testing with complete database structure
+- ✓ RESTORED MISSING FEATURES: Fixed purple gradient header display and server time loading issues
+- ✓ Added missing `/api/season/current-cycle` endpoint that provides game day cycle information
+- ✓ Fixed `/api/server/time` routing by registering systemRoutes under both `/api/system` and `/api/server`
+- ✓ Enhanced Dashboard ServerTimeDisplay to show proper Eastern time and scheduling window status
+- ✓ Purple gradient headers now properly display seasonal cycle information on both Dashboard and Competition pages
 
 ### Previous Updates (December 29, 2025)
 - ✓ CRITICAL IMPORT SYSTEM OVERHAUL: Fixed inconsistent storage imports across all route files

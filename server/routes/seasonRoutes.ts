@@ -5,6 +5,9 @@ import { z } from "zod"; // For validation
 
 const router = Router();
 
+// Import timezone utilities for current cycle calculation
+import { getServerTimeInfo } from "@shared/timezone";
+
 // Zod Schemas for validation
 const playoffStartSchema = z.object({
     division: z.number().min(1).max(8),
@@ -40,6 +43,62 @@ router.get('/current', isAuthenticated, async (req: Request, res: Response, next
     res.json(season);
   } catch (error) {
     console.error("Error fetching current season:", error);
+    next(error);
+  }
+});
+
+// Get current season cycle (day-by-day info)
+router.get('/current-cycle', isAuthenticated, async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const currentSeason = await storage.getCurrentSeason();
+    if (!currentSeason) {
+      return res.status(404).json({ message: "No active season found." });
+    }
+
+    // Calculate the current day in the 17-day cycle
+    const seasonStartDate = currentSeason.startDateOriginal || currentSeason.startDate || new Date();
+    const daysSinceStart = Math.floor((new Date().getTime() - seasonStartDate.getTime()) / (1000 * 60 * 60 * 24));
+    const currentDayInCycle = (daysSinceStart % 17) + 1;
+
+    // Determine the phase based on current day in cycle
+    let phase = "Regular Season";
+    let description = "Regular Season - Teams compete in their divisions";
+    let details = "League matches are being played daily";
+    let daysUntilPlayoffs = 0;
+    let daysUntilNewSeason = 0;
+
+    if (currentDayInCycle >= 1 && currentDayInCycle <= 10) {
+      phase = "Regular Season";
+      description = "Regular Season - Teams compete in their divisions";
+      details = "League matches are being played daily";
+      daysUntilPlayoffs = 11 - currentDayInCycle;
+    } else if (currentDayInCycle >= 11 && currentDayInCycle <= 14) {
+      phase = "Playoffs";
+      description = "Division Playoffs - Compete for championship";
+      details = "Elimination rounds determine division champions";
+      daysUntilPlayoffs = 0;
+      daysUntilNewSeason = 15 - currentDayInCycle;
+    } else if (currentDayInCycle >= 15 && currentDayInCycle <= 17) {
+      phase = "Off-Season";
+      description = "Off-Season - Recruit and prepare for next season";
+      details = "Team building, tryouts, and strategic planning";
+      daysUntilPlayoffs = 0;
+      daysUntilNewSeason = 18 - currentDayInCycle;
+    }
+
+    res.json({
+      season: currentSeason.name || `Season ${currentSeason.year || new Date().getFullYear()}`,
+      currentDay: currentDayInCycle,
+      phase,
+      description,
+      details,
+      daysUntilPlayoffs,
+      daysUntilNewSeason,
+      seasonYear: currentSeason.year || new Date().getFullYear(),
+      seasonStatus: currentSeason.status || "active"
+    });
+  } catch (error) {
+    console.error("Error fetching current season cycle:", error);
     next(error);
   }
 });

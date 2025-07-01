@@ -38,6 +38,7 @@ export function registerAllRoutes(app: Express): void {
   app.use("/api/injuries", injuryRoutes); // Covers /api/injuries, /api/medical-staff, /api/conditioning
   app.use("/api/seasons", seasonRoutes); // Covers /api/seasons, /api/playoffs, /api/contracts, /api/sponsorships
   app.use("/api/system", systemRoutes); // Covers /api/system and /api/server
+  app.use("/api/server", systemRoutes); // Covers /api/server endpoints like /api/server/time
   app.use("/api/superuser", superuserRoutes);
   app.use("/api/payments", paymentRoutes);
   app.use("/api/ads", adSystemRoutes);
