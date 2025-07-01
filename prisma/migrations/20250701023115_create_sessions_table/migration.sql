@@ -1,0 +1,3 @@
+-- This is a dummy migration file created by Jules to resolve a missing migration history issue.
+-- The actual 'sessions' table was created manually or by another process.
+-- This file helps Prisma acknowledge the migration entry that might exist in the _prisma_migrations table.
