@@ -15,6 +15,7 @@ import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { apiRequest } from "@/lib/queryClient";
+import { HelpIcon } from "@/components/help";
 
 // Helper function to determine player role based on attributes
 import { getPlayerRole as centralizedGetPlayerRole } from "../../../shared/playerUtils";
@@ -106,12 +107,30 @@ export default function Team() {
         {/* Main Navigation Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="mb-8">
           <TabsList className="grid w-full grid-cols-6 bg-gray-800 gap-0.5">
-            <TabsTrigger value="roster" className="border-r border-gray-600 last:border-r-0">Roster</TabsTrigger>
-            <TabsTrigger value="tactics" className="border-r border-gray-600 last:border-r-0">Tactics</TabsTrigger>
-            <TabsTrigger value="staff" className="border-r border-gray-600 last:border-r-0">Staff</TabsTrigger>
-            <TabsTrigger value="finances" className="border-r border-gray-600 last:border-r-0">Finances</TabsTrigger>
-            <TabsTrigger value="contracts" className="border-r border-gray-600 last:border-r-0">Contracts</TabsTrigger>
-            <TabsTrigger value="recruiting" className="border-r border-gray-600 last:border-r-0">Recruiting</TabsTrigger>
+            <TabsTrigger value="roster" className="border-r border-gray-600 last:border-r-0 flex items-center gap-1">
+              Roster
+              <HelpIcon content="Manage your active players. View their stats, assign positions, and make strategic decisions about your lineup." />
+            </TabsTrigger>
+            <TabsTrigger value="tactics" className="border-r border-gray-600 last:border-r-0 flex items-center gap-1">
+              Tactics
+              <HelpIcon content="Set your team formation and game strategy. Choose starters, substitutes, and tactical approach for matches." />
+            </TabsTrigger>
+            <TabsTrigger value="staff" className="border-r border-gray-600 last:border-r-0 flex items-center gap-1">
+              Staff
+              <HelpIcon content="Manage your coaching staff. Hire specialists to improve training, recovery, and scouting effectiveness." />
+            </TabsTrigger>
+            <TabsTrigger value="finances" className="border-r border-gray-600 last:border-r-0 flex items-center gap-1">
+              Finances
+              <HelpIcon content="Track income and expenses. Balance your budget between player salaries, staff costs, and facility upgrades." />
+            </TabsTrigger>
+            <TabsTrigger value="contracts" className="border-r border-gray-600 last:border-r-0 flex items-center gap-1">
+              Contracts
+              <HelpIcon content="Negotiate player contracts. Manage salaries and contract lengths to keep your best players happy." />
+            </TabsTrigger>
+            <TabsTrigger value="recruiting" className="border-r border-gray-600 last:border-r-0 flex items-center gap-1">
+              Recruiting
+              <HelpIcon content="Scout and tryout new players. Use credits or gems to find talent that fits your team's needs." />
+            </TabsTrigger>
           </TabsList>
 
           <TabsContent value="roster">

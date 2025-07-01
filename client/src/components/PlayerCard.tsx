@@ -2,6 +2,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Crown, Zap, Shield, Target } from "lucide-react";
+import { StatHelpIcon } from "@/components/help";
 
 interface PlayerCardProps {
   player: any;
@@ -100,23 +101,23 @@ export default function PlayerCard({ player, showActions = false, onAction, comp
           <div className="grid grid-cols-5 gap-2 text-xs mb-3">
             <div className="text-center">
               <div className={`font-semibold ${getStatColor(player.speed)}`}>{player.speed}</div>
-              <div className="text-gray-500">SPD</div>
+              <div className="text-gray-500 flex items-center justify-center">SPD<StatHelpIcon stat="speed" /></div>
             </div>
             <div className="text-center">
               <div className={`font-semibold ${getStatColor(player.power)}`}>{player.power}</div>
-              <div className="text-gray-500">PWR</div>
+              <div className="text-gray-500 flex items-center justify-center">PWR<StatHelpIcon stat="power" /></div>
             </div>
             <div className="text-center">
               <div className={`font-semibold ${getStatColor(player.throwing)}`}>{player.throwing}</div>
-              <div className="text-gray-500">THR</div>
+              <div className="text-gray-500 flex items-center justify-center">THR<StatHelpIcon stat="throwing" /></div>
             </div>
             <div className="text-center">
               <div className={`font-semibold ${getStatColor(player.catching)}`}>{player.catching}</div>
-              <div className="text-gray-500">CAT</div>
+              <div className="text-gray-500 flex items-center justify-center">CAT<StatHelpIcon stat="catching" /></div>
             </div>
             <div className="text-center">
               <div className={`font-semibold ${getStatColor(player.kicking)}`}>{player.kicking}</div>
-              <div className="text-gray-500">KCK</div>
+              <div className="text-gray-500 flex items-center justify-center">KCK<StatHelpIcon stat="kicking" /></div>
             </div>
           </div>
         ) : (

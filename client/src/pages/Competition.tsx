@@ -12,6 +12,7 @@ import LeagueSchedule from "@/components/LeagueSchedule";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { Trophy, Medal, Gamepad2, Calendar, Users, Clock, X } from "lucide-react";
+import { HelpIcon } from "@/components/help";
 
 export default function Competition() {
   const [browsingTeams, setBrowsingTeams] = useState(false);
@@ -176,6 +177,7 @@ export default function Competition() {
                   <CardTitle className="flex items-center gap-2">
                     <Users className="h-5 w-5 text-blue-400" />
                     My Team Status
+                    <HelpIcon content="Your team's current league standing. Division 1 is elite, Division 8 is for new teams. Win matches to earn points and climb the rankings!" />
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-3">

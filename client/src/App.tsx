@@ -25,8 +25,10 @@ import TextMatch from "@/pages/TextMatch";
 import Community from "@/pages/Community";
 import Camaraderie from "@/pages/Camaraderie";
 import Stats from "@/pages/Stats";
+import HelpManual from "@/pages/HelpManual";
 
 import Navigation from "@/components/Navigation";
+import { ContextualHelp } from "@/components/help";
 
 function Router() {
   const { isAuthenticated, isLoading } = useAuth();
@@ -56,6 +58,7 @@ function Router() {
           <Route path="/camaraderie" component={Camaraderie} />
           <Route path="/stats" component={Stats} />
           <Route path="/superuser" component={SuperUser} />
+          <Route path="/help" component={HelpManual} />
         </>
       )}
       <Route component={NotFound} />
@@ -71,6 +74,7 @@ function App() {
           <Navigation />
           <Router />
           <Toaster />
+          <ContextualHelp />
         </div>
       </TooltipProvider>
     </QueryClientProvider>

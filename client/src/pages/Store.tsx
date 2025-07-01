@@ -15,6 +15,7 @@ import { ShoppingCart, Clock, Play, Gift, Sparkles, Zap, Star, Crown, Shield, Co
 import Navigation from "@/components/Navigation";
 import PaymentHistory from "@/components/PaymentHistory";
 import { AdRewardSystem } from "@/components/AdRewardSystem";
+import { HelpIcon } from "@/components/help";
 
 // Initialize Stripe
 const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLIC_KEY);
@@ -188,11 +189,13 @@ export default function Store() {
               <Coins className="w-5 h-5 text-yellow-500" />
               <span className="font-semibold">{finances?.credits?.toLocaleString() || 0}</span>
               <span className="text-sm text-muted-foreground">Credits</span>
+              <HelpIcon content="Credits are the main currency in Realm Rivalry. Earn credits by winning matches, selling players, and completing tournaments. Use them to buy equipment, scout new players, and upgrade your stadium." />
             </div>
             <div className="flex items-center gap-2">
               <Gem className="w-5 h-5 text-purple-500" />
               <span className="font-semibold">{finances?.premiumCurrency || 0}</span>
               <span className="text-sm text-muted-foreground">Premium Gems</span>
+              <HelpIcon content="Premium Gems are the special currency. Purchase them with real money or earn them through achievements. Use them for elite equipment, instant upgrades, and exclusive content. You can also convert them to credits." />
               <Button 
                 size="sm" 
                 variant="outline" 

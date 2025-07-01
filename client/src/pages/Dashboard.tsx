@@ -14,6 +14,8 @@ import LeagueStandings from "@/components/LeagueStandings";
 import NotificationCenter from "@/components/NotificationCenter";
 import { apiRequest } from "@/lib/queryClient";
 import { Bell, Shield, Calendar, Users as UsersIcon } from "lucide-react"; // Added UsersIcon
+import { HelpIcon } from "@/components/help";
+import { useContextualHelp } from "@/hooks/useContextualHelp";
 
 // Helper function for Camaraderie Description
 function getTeamCamaraderieDescription(camaraderie: number | undefined | null): string {
@@ -141,7 +143,7 @@ export default function Dashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-900 text-white">
+    <div className="min-h-screen bg-gray-900 text-white dashboard-container">
       <Navigation />
       
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -198,7 +200,10 @@ export default function Dashboard() {
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-gray-400 text-sm">Division Rank</p>
+                    <div className="flex items-center gap-2">
+                      <p className="text-gray-400 text-sm">Division Rank</p>
+                      <HelpIcon content="Your team's current division. New teams start in Division 8. Top 2 teams promote, bottom 2 relegate each season." />
+                    </div>
                     <p className="text-2xl font-bold text-gold-400">
                       {team.division === 8 ? "New" : `Div ${team.division}`}
                     </p>
@@ -217,7 +222,10 @@ export default function Dashboard() {
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-gray-400 text-sm">Team Power</p>
+                    <div className="flex items-center gap-2">
+                      <p className="text-gray-400 text-sm">Team Power</p>
+                      <HelpIcon content="Combined power rating of all your players. Higher power means stronger overall team performance." />
+                    </div>
                     <p className="text-2xl font-bold text-primary-400">{team.teamPower}</p>
                     <p className="text-xs text-green-400">Building strength</p>
                   </div>
@@ -232,7 +240,10 @@ export default function Dashboard() {
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-gray-400 text-sm">Credits</p>
+                    <div className="flex items-center gap-2">
+                      <p className="text-gray-400 text-sm">Credits</p>
+                      <HelpIcon content="Primary game currency. Earn through matches, achievements, and season rewards. Use for salaries and purchases." />
+                    </div>
                     <p className="text-2xl font-bold text-gold-400">{(finances?.credits || team.credits || 0).toLocaleString()}</p>
                     <p className="text-xs text-gray-400">Available funds</p>
                   </div>
@@ -247,7 +258,10 @@ export default function Dashboard() {
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-gray-400 text-sm">Team Camaraderie</p>
+                    <div className="flex items-center gap-2">
+                      <p className="text-gray-400 text-sm">Team Camaraderie</p>
+                      <HelpIcon content="Team chemistry (0-100). High camaraderie provides in-game bonuses, injury resistance, and better contract negotiations." />
+                    </div>
                     <p className="text-2xl font-bold text-teal-400">{team?.teamCamaraderie ?? 'N/A'}</p>
                     <p className="text-xs text-gray-500">
                       {getTeamCamaraderieDescription(team?.teamCamaraderie)}
@@ -296,7 +310,7 @@ export default function Dashboard() {
                 </Button>
               </div>
             </CardHeader>
-            <CardContent className="p-6">
+            <CardContent className="p-6 player-roster">
               {playersLoading ? (
                 <div className="flex justify-center py-8">
                   <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-500"></div>
