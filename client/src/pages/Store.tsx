@@ -12,7 +12,6 @@ import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { ShoppingCart, Clock, Play, Gift, Sparkles, Zap, Star, Crown, Shield, Coins, ArrowRightLeft, Gem, History } from "lucide-react";
-import Navigation from "@/components/Navigation";
 import PaymentHistory from "@/components/PaymentHistory";
 import { AdRewardSystem } from "@/components/AdRewardSystem";
 import { HelpIcon } from "@/components/help";
@@ -177,7 +176,6 @@ export default function Store() {
 
   return (
     <div className="min-h-screen bg-background">
-      <Navigation />
       <div className="container mx-auto px-4 py-8">
         <div className="flex items-center justify-between mb-8">
           <div>

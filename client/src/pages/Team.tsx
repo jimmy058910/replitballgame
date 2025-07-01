@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { queryClient } from "@/lib/queryClient";
-import Navigation from "@/components/Navigation";
 import PlayerCard from "@/components/PlayerCard";
 import TacticalManager from "@/components/TacticalManager";
 import PlayerDetailModal from "@/components/PlayerDetailModal";
@@ -63,7 +62,6 @@ export default function Team() {
   if (!team) {
     return (
       <div className="min-h-screen bg-gray-900 text-white">
-        <Navigation />
         <div className="max-w-4xl mx-auto px-4 py-16 text-center">
           <h1 className="font-orbitron text-3xl font-bold mb-6">No Team Found</h1>
           <p className="text-gray-300 mb-8">Please create a team first.</p>
@@ -77,7 +75,6 @@ export default function Team() {
 
   return (
     <div className="min-h-screen bg-gray-900 text-white">
-      <Navigation />
       
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="mb-8">

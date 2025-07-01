@@ -145,14 +145,24 @@ export function useContextualHelp() {
   const [hasSeenTutorial, setHasSeenTutorial] = useState(false);
 
   useEffect(() => {
-    // Check if user has seen tutorial
+    // Check if user has seen tutorial for their current team
     const seen = localStorage.getItem("realm-rivalry-tutorial-seen");
     if (!seen) {
-      setShowTutorial(true);
+      setHasSeenTutorial(false);
+      // Tutorial will be triggered when team is created
     } else {
       setHasSeenTutorial(true);
     }
   }, []);
+
+  // Function to trigger tutorial after team creation
+  const startTutorialAfterTeamCreation = () => {
+    const seen = localStorage.getItem("realm-rivalry-tutorial-seen");
+    if (!seen) {
+      setShowTutorial(true);
+      setCurrentStep(0);
+    }
+  };
 
   const completeTutorial = () => {
     localStorage.setItem("realm-rivalry-tutorial-seen", "true");
@@ -213,6 +223,7 @@ export function useContextualHelp() {
     previousStep,
     skipTutorial,
     resetTutorial,
+    startTutorialAfterTeamCreation,
     
     // Help state
     showHelp,

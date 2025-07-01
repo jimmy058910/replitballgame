@@ -7,7 +7,7 @@ import NotificationSystem from "@/components/NotificationSystem";
 import { 
   Home, Users, Trophy, Medal, Gamepad2, ShoppingCart, 
   Building, Package, Store, Menu, LogOut, Coins, MessageCircle,
-  Crown, FileText, Briefcase, Target, BarChart3
+  Crown, FileText, Briefcase, Target, BarChart3, HelpCircle
 } from "lucide-react";
 
 export default function Navigation() {
@@ -37,6 +37,7 @@ export default function Navigation() {
     { path: "/stadium", label: "Stadium", icon: Building },
     { path: "/inventory", label: "Inventory", icon: Package },
     { path: "/community", label: "Community", icon: MessageCircle },
+    { path: "/help", label: "Help", icon: HelpCircle },
   ];
 
   const credits = finances?.credits || team?.credits || 0;

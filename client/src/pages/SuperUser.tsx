@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { useMutation, useQuery } from "@tanstack/react-query";
-import Navigation from "@/components/Navigation";
 import ServerTimeDisplay from "@/components/ServerTimeDisplay";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -236,7 +235,6 @@ export default function SuperUser() {
   if (!isSuperUser) {
     return (
       <div className="min-h-screen bg-gray-900 text-white">
-        <Navigation />
         <div className="max-w-4xl mx-auto px-4 py-16 text-center">
           <Shield className="w-16 h-16 mx-auto mb-6 text-red-400" />
           <h1 className="font-orbitron text-3xl font-bold mb-6">Access Denied</h1>
@@ -251,7 +249,6 @@ export default function SuperUser() {
 
   return (
     <div className="min-h-screen bg-gray-900 text-white">
-      <Navigation />
       
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="mb-8">

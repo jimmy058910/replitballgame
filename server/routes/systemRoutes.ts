@@ -54,16 +54,24 @@ router.get('/error-demo/:type', asyncHandler(async (req: Request, res: Response)
 
 // Server time endpoint (existing functionality)
 router.get('/time', asyncHandler(async (req: Request, res: Response) => {
-  const currentTime = new Date().toISOString();
+  const { getServerTimeInfo } = await import("@shared/timezone");
+  const timeInfo = getServerTimeInfo();
   
   logInfo("Server time requested", { 
-    currentTime,
+    currentTime: timeInfo.currentTime,
     requestId: req.requestId 
   });
   
   res.json({ 
     success: true,
-    data: { currentTime }
+    data: {
+      currentTime: timeInfo.currentTime.toISOString(),
+      formattedTime: timeInfo.formattedTime,
+      timezone: timeInfo.timezone,
+      isSchedulingWindow: timeInfo.isSchedulingWindow,
+      schedulingWindow: timeInfo.schedulingWindow,
+      timeUntilNextWindow: timeInfo.timeUntilNextWindow
+    }
   });
 }));
 

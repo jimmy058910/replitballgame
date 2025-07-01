@@ -3,7 +3,6 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { isUnauthorizedError } from "@/lib/authUtils";
-import Navigation from "@/components/Navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -30,9 +29,10 @@ function getTeamCamaraderieDescription(camaraderie: number | undefined | null): 
 // Server Time Display Component
 function ServerTimeDisplay({ serverTime }: { serverTime: any }) {
   const formatServerTime = () => {
-    if (!serverTime?.currentTime) return "Loading...";
+    const timeData = serverTime?.data || serverTime;
+    if (!timeData?.currentTime) return "Loading...";
     
-    const time = new Date(serverTime.currentTime);
+    const time = new Date(timeData.currentTime);
     const easternTime = time.toLocaleString("en-US", {
       timeZone: "America/Detroit", // Use Detroit for consistency with backend
       hour: "numeric",
@@ -44,12 +44,13 @@ function ServerTimeDisplay({ serverTime }: { serverTime: any }) {
   };
 
   const getSchedulingWindowStatus = () => {
-    if (!serverTime) return "";
+    const timeData = serverTime?.data || serverTime;
+    if (!timeData) return "";
     
-    if (serverTime.isSchedulingWindow) {
+    if (timeData.isSchedulingWindow) {
       return "Games: OPEN";
     } else {
-      return `Next: ${serverTime.timeUntilNextWindow?.hours || 0}h ${serverTime.timeUntilNextWindow?.minutes || 0}m`;
+      return `Next: ${timeData.timeUntilNextWindow?.hours || 0}h ${timeData.timeUntilNextWindow?.minutes || 0}m`;
     }
   };
 
@@ -132,7 +133,6 @@ export default function Dashboard() {
   if (!team) {
     return (
       <div className="min-h-screen bg-gray-900 text-white">
-        <Navigation />
         <div className="max-w-4xl mx-auto px-4 py-16 text-center">
           <h1 className="font-orbitron text-3xl font-bold mb-6">Welcome to Realm Rivalry!</h1>
           <p className="text-gray-300 mb-8">Create your team to start your journey to glory.</p>
@@ -144,7 +144,6 @@ export default function Dashboard() {
 
   return (
     <div className="min-h-screen bg-gray-900 text-white dashboard-container">
-      <Navigation />
       
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Dashboard Overview */}
@@ -378,6 +377,8 @@ export default function Dashboard() {
 
 function TeamCreationForm() {
   const { toast } = useToast();
+  const queryClient = useQueryClient();
+  const { startTutorialAfterTeamCreation } = useContextualHelp();
   const [teamName, setTeamName] = useState("");
   const [isValid, setIsValid] = useState(false);
   const [sanitizedName, setSanitizedName] = useState("");
@@ -420,8 +421,14 @@ function TeamCreationForm() {
         description: "Your team has been created with 10 starting players.",
       });
 
-      // Refresh the page to show the new team
-      window.location.reload();
+      // Invalidate queries to refetch team data
+      queryClient.invalidateQueries({ queryKey: ["/api/teams/my"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/teams/my/finances"] });
+      
+      // Start tutorial for new team
+      setTimeout(() => {
+        startTutorialAfterTeamCreation();
+      }, 1000); // Small delay to let the UI update
     } catch (error: any) {
       console.error('Error creating team:', error);
       toast({
