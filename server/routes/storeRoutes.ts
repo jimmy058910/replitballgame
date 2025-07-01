@@ -159,7 +159,7 @@ router.post('/purchase', isAuthenticated, async (req: any, res: Response, next: 
     // const itemDetails = await itemStorage.getStoreItemDetails(itemId);
     // if (!itemDetails) return res.status(404).json({ message: "Item not found in store."});
 
-    const itemPriceInfo = storeConfig.itemPrices[itemId];
+    const itemPriceInfo = (storeConfig.itemPrices as any)[itemId];
     if (!itemPriceInfo) return res.status(404).json({ message: "Item not found in store configuration." });
 
     const actualPrice = itemPriceInfo[currency === "premium_currency" ? "gems" : currency];

@@ -11,7 +11,7 @@ interface PlayerCardProps {
   scoutQuality?: number; // 1-100, affects accuracy of scouting data
 }
 
-import { getRoleBackgroundColor, getRoleTextColor, getPlayerRole, getPlayerDisplayName, getRaceDisplayName } from "@shared/playerUtils";
+import { getRoleBackgroundColor, getRoleTextColor, getRoleColor, getPlayerRole, getPlayerDisplayName, getRaceDisplayName } from "@shared/playerUtils";
 
 const getRoleIcon = (role: string) => {
   switch (role?.toLowerCase()) {
