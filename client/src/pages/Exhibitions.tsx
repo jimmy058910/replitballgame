@@ -5,12 +5,15 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Separator } from "@/components/ui/separator";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
+import { Gamepad2, Target, Zap, Users } from "lucide-react";
 
 export default function Exhibitions() {
   const { toast } = useToast();
   const [isSearching, setIsSearching] = useState(false);
+  const [showOpponentSelect, setShowOpponentSelect] = useState(false);
 
   const { data: team } = useQuery({
     queryKey: ["/api/teams/my"],
@@ -20,9 +23,29 @@ export default function Exhibitions() {
     queryKey: ["/api/exhibitions/stats"],
   });
 
+  const { data: liveMatches } = useQuery({
+    queryKey: ["/api/matches/live"],
+    refetchInterval: 5000,
+  });
+
+  const { data: availableOpponents } = useQuery({
+    queryKey: ["/api/exhibitions/available-opponents"],
+    enabled: showOpponentSelect,
+  });
+
   const { data: recentGames } = useQuery({
     queryKey: ["/api/exhibitions/recent"],
   });
+
+  // Calculate remaining games
+  const gamesPlayedToday = exhibitionStats?.gamesPlayedToday || 0;
+  const freeGamesRemaining = Math.max(0, 3 - gamesPlayedToday);
+  const exhibitionEntriesUsed = exhibitionStats?.exhibitionEntriesUsedToday || 0;
+  const entryGamesRemaining = Math.max(0, 3 - exhibitionEntriesUsed);
+  const totalGamesRemaining = freeGamesRemaining + entryGamesRemaining;
+
+  // Check if there's a live exhibition match
+  const hasLiveExhibition = liveMatches?.some((match: any) => match.type === 'exhibition');
 
   const findMatchMutation = useMutation({
     mutationFn: async () => {
@@ -32,10 +55,9 @@ export default function Exhibitions() {
       if (data.matchId) {
         toast({
           title: "Match Found!",
-          description: "Starting exhibition match...",
+          description: "Starting exhibition match against division opponent...",
         });
-        // Navigate to text-based match viewer
-        window.location.href = `/text-match/${data.matchId}`;
+        window.location.href = `/match/${data.matchId}`;
       }
     },
     onError: (error: Error) => {
@@ -48,11 +70,43 @@ export default function Exhibitions() {
     },
   });
 
+  const selectOpponentMutation = useMutation({
+    mutationFn: async (opponentId: string) => {
+      return await apiRequest("/api/exhibitions/challenge-opponent", "POST", { opponentId });
+    },
+    onSuccess: (data) => {
+      if (data.matchId) {
+        toast({
+          title: "Challenge Sent!",
+          description: "Starting exhibition match...",
+        });
+        setShowOpponentSelect(false);
+        window.location.href = `/match/${data.matchId}`;
+      }
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Challenge Failed",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+
   const handleFindMatch = () => {
-    if (exhibitionStats?.gamesPlayedToday >= 3) {
+    if (hasLiveExhibition) {
+      toast({
+        title: "Exhibition Already Running",
+        description: "You can only have one live exhibition match at a time.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (totalGamesRemaining <= 0) {
       toast({
         title: "Daily Limit Reached",
-        description: "You can only play 3 exhibition games per day.",
+        description: "You've used all your exhibition games for today.",
         variant: "destructive",
       });
       return;
@@ -60,6 +114,28 @@ export default function Exhibitions() {
     
     setIsSearching(true);
     findMatchMutation.mutate();
+  };
+
+  const handleChooseOpponent = () => {
+    if (hasLiveExhibition) {
+      toast({
+        title: "Exhibition Already Running",
+        description: "You can only have one live exhibition match at a time.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (totalGamesRemaining <= 0) {
+      toast({
+        title: "Daily Limit Reached",
+        description: "You've used all your exhibition games for today.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setShowOpponentSelect(true);
   };
 
   const getResultColor = (result: string) => {
@@ -93,33 +169,61 @@ export default function Exhibitions() {
 
   return (
     <div className="min-h-screen bg-gray-900 text-white">
-      
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="mb-8">
           <h1 className="font-orbitron text-3xl font-bold mb-2">Exhibition Arena</h1>
           <p className="text-gray-400">Practice matches for training and team chemistry</p>
         </div>
 
-        <div className="grid gap-6 lg:grid-cols-3">
-          {/* Daily Exhibition Status */}
+        {hasLiveExhibition && (
+          <Card className="bg-orange-900 border-orange-700 mb-6">
+            <CardContent className="p-4">
+              <div className="flex items-center gap-3">
+                <div className="animate-pulse">
+                  <Zap className="h-5 w-5 text-orange-400" />
+                </div>
+                <div>
+                  <p className="font-semibold text-orange-200">Live Exhibition Match Running</p>
+                  <p className="text-sm text-orange-300">Only one exhibition match allowed at a time</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        <div className="grid gap-6 lg:grid-cols-2">
+          {/* Daily Games Remaining */}
           <Card className="bg-gray-800 border-gray-700">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                <i className="fas fa-calendar-day text-blue-400"></i>
-                Daily Exhibitions
+                <Gamepad2 className="h-5 w-5 text-blue-400" />
+                Daily Exhibition Games
               </CardTitle>
               <CardDescription>
-                Risk-free training matches (3 per day)
+                Track your remaining exhibition opportunities
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div className="text-center p-3 bg-gray-700 rounded-lg">
+                  <div className="text-2xl font-bold text-green-400">{freeGamesRemaining}</div>
+                  <div className="text-xs text-gray-400">Free Games Left</div>
+                  <div className="text-xs text-gray-500">({gamesPlayedToday}/3 used)</div>
+                </div>
+                <div className="text-center p-3 bg-gray-700 rounded-lg">
+                  <div className="text-2xl font-bold text-purple-400">{entryGamesRemaining}</div>
+                  <div className="text-xs text-gray-400">Entry Games Left</div>
+                  <div className="text-xs text-gray-500">({exhibitionEntriesUsed}/3 used)</div>
+                </div>
+              </div>
+
               <div className="space-y-2">
                 <div className="flex justify-between text-sm">
-                  <span>Games Played Today</span>
-                  <span>{exhibitionStats?.gamesPlayedToday || 0} / 3</span>
+                  <span>Total Games Remaining Today</span>
+                  <span className="font-semibold">{totalGamesRemaining}</span>
                 </div>
                 <Progress 
-                  value={((exhibitionStats?.gamesPlayedToday || 0) / 3) * 100} 
+                  value={((6 - totalGamesRemaining) / 6) * 100} 
                   className="h-2"
                 />
               </div>
@@ -127,134 +231,125 @@ export default function Exhibitions() {
               <Separator className="bg-gray-700" />
 
               <div className="space-y-2">
-                <h4 className="font-semibold text-sm">Benefits:</h4>
+                <h4 className="font-semibold text-sm">Exhibition Benefits:</h4>
                 <ul className="text-sm text-gray-400 space-y-1">
                   <li>• No injury risk</li>
                   <li>• Minimal stamina loss</li>
                   <li>• Team chemistry boost</li>
                   <li>• Tactical practice</li>
+                  <li>• No league standing impact</li>
                 </ul>
               </div>
-
-              <Button 
-                className="w-full" 
-                onClick={handleFindMatch}
-                disabled={
-                  isSearching || 
-                  findMatchMutation.isPending ||
-                  (exhibitionStats?.gamesPlayedToday >= 3)
-                }
-              >
-                {isSearching ? (
-                  <div className="flex items-center gap-2">
-                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                    Finding Match...
-                  </div>
-                ) : (
-                  "Find Exhibition Match"
-                )}
-              </Button>
             </CardContent>
           </Card>
 
-          {/* Exhibition Statistics */}
+          {/* Exhibition Options */}
           <Card className="bg-gray-800 border-gray-700">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                <i className="fas fa-chart-bar text-green-400"></i>
-                Exhibition Stats
+                <Target className="h-5 w-5 text-purple-400" />
+                Exhibition Options
               </CardTitle>
               <CardDescription>
-                Your exhibition performance
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-3 gap-4 text-center">
-                <div>
-                  <div className="text-2xl font-bold text-green-400">
-                    {exhibitionStats?.totalWins || 0}
-                  </div>
-                  <div className="text-xs text-gray-400">Wins</div>
-                </div>
-                <div>
-                  <div className="text-2xl font-bold text-red-400">
-                    {exhibitionStats?.totalLosses || 0}
-                  </div>
-                  <div className="text-xs text-gray-400">Losses</div>
-                </div>
-                <div>
-                  <div className="text-2xl font-bold text-yellow-400">
-                    {exhibitionStats?.totalDraws || 0}
-                  </div>
-                  <div className="text-xs text-gray-400">Draws</div>
-                </div>
-              </div>
-
-              <Separator className="bg-gray-700" />
-
-              <div className="space-y-2">
-                <div className="flex justify-between">
-                  <span className="text-sm text-gray-400">Win Rate:</span>
-                  <span className="font-semibold">
-                    {exhibitionStats?.winRate ? `${exhibitionStats.winRate}%` : "0%"}
-                  </span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-sm text-gray-400">Total Games:</span>
-                  <span className="font-semibold">
-                    {exhibitionStats?.totalGames || 0}
-                  </span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-sm text-gray-400">Chemistry Gained:</span>
-                  <span className="font-semibold text-blue-400">
-                    +{exhibitionStats?.chemistryGained || 0}
-                  </span>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Match Settings */}
-          <Card className="bg-gray-800 border-gray-700">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <i className="fas fa-cogs text-purple-400"></i>
-                Match Settings
-              </CardTitle>
-              <CardDescription>
-                Exhibition game configuration
+                Choose your exhibition match type
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="space-y-3">
-                <div className="flex justify-between items-center">
-                  <span className="text-sm text-gray-400">Match Duration:</span>
-                  <Badge variant="outline">2 x 10 minutes</Badge>
-                </div>
-                
-                <div className="flex justify-between items-center">
-                  <span className="text-sm text-gray-400">Injury Risk:</span>
-                  <Badge className="bg-green-500">None</Badge>
-                </div>
-                
-                <div className="flex justify-between items-center">
-                  <span className="text-sm text-gray-400">Stamina Loss:</span>
-                  <Badge className="bg-blue-500">Minimal</Badge>
-                </div>
-                
-                <div className="flex justify-between items-center">
-                  <span className="text-sm text-gray-400">Matchmaking:</span>
-                  <Badge className="bg-purple-500">Auto</Badge>
-                </div>
+                <Button 
+                  className="w-full justify-start h-auto p-4" 
+                  variant="outline"
+                  onClick={handleFindMatch}
+                  disabled={
+                    isSearching || 
+                    findMatchMutation.isPending ||
+                    hasLiveExhibition ||
+                    totalGamesRemaining <= 0
+                  }
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="bg-blue-500 p-2 rounded">
+                      <Zap className="h-4 w-4" />
+                    </div>
+                    <div className="text-left">
+                      <div className="font-semibold">Find a Match</div>
+                      <div className="text-sm text-gray-400">Auto-match vs division opponent</div>
+                    </div>
+                  </div>
+                  {isSearching && (
+                    <div className="ml-auto">
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                    </div>
+                  )}
+                </Button>
+
+                <Dialog open={showOpponentSelect} onOpenChange={setShowOpponentSelect}>
+                  <DialogTrigger asChild>
+                    <Button 
+                      className="w-full justify-start h-auto p-4" 
+                      variant="outline"
+                      onClick={handleChooseOpponent}
+                      disabled={hasLiveExhibition || totalGamesRemaining <= 0}
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className="bg-purple-500 p-2 rounded">
+                          <Users className="h-4 w-4" />
+                        </div>
+                        <div className="text-left">
+                          <div className="font-semibold">Choose Opponent</div>
+                          <div className="text-sm text-gray-400">Select from 6 similar teams</div>
+                        </div>
+                      </div>
+                    </Button>
+                  </DialogTrigger>
+                  
+                  <DialogContent className="bg-gray-800 border-gray-700 max-w-2xl">
+                    <DialogHeader>
+                      <DialogTitle>Choose Your Opponent</DialogTitle>
+                      <DialogDescription>
+                        Select a team with similar power rating for a balanced match
+                      </DialogDescription>
+                    </DialogHeader>
+                    
+                    <div className="grid gap-3 max-h-96 overflow-y-auto">
+                      {availableOpponents?.map((opponent: any) => (
+                        <Button
+                          key={opponent.id}
+                          variant="outline"
+                          className="h-auto p-4 justify-start"
+                          onClick={() => selectOpponentMutation.mutate(opponent.id)}
+                          disabled={selectOpponentMutation.isPending}
+                        >
+                          <div className="flex items-center justify-between w-full">
+                            <div className="flex items-center gap-3">
+                              <div className="text-left">
+                                <div className="font-semibold">{opponent.name}</div>
+                                <div className="text-sm text-gray-400">
+                                  Division {opponent.division} • Power: {opponent.teamPower}
+                                </div>
+                              </div>
+                            </div>
+                            <div className="text-right">
+                              <Badge variant="outline">
+                                {opponent.record || "0-0-0"}
+                              </Badge>
+                            </div>
+                          </div>
+                        </Button>
+                      ))}
+                    </div>
+                  </DialogContent>
+                </Dialog>
               </div>
 
-              <Separator className="bg-gray-700" />
-
-              <div className="text-xs text-gray-500">
-                Exhibition matches are automatically saved and can be reviewed 
-                for tactical analysis. Perfect for testing new formations and strategies.
-              </div>
+              {(hasLiveExhibition || totalGamesRemaining <= 0) && (
+                <div className="text-sm text-gray-500 p-3 bg-gray-700 rounded">
+                  {hasLiveExhibition ? 
+                    "Complete your current exhibition match before starting another." :
+                    "You've reached your daily exhibition limit. Reset at 3AM Eastern."
+                  }
+                </div>
+              )}
             </CardContent>
           </Card>
         </div>
@@ -267,7 +362,7 @@ export default function Exhibitions() {
               Recent Exhibition Games
             </CardTitle>
             <CardDescription>
-              Your last 10 exhibition matches
+              Your recent exhibition match results
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -300,7 +395,7 @@ export default function Exhibitions() {
                       <Button 
                         variant="outline" 
                         size="sm"
-                        onClick={() => window.location.href = `/text-match/${game.id}`}
+                        onClick={() => window.location.href = `/match/${game.id}`}
                       >
                         <i className="fas fa-play mr-1"></i>
                         View
@@ -311,7 +406,7 @@ export default function Exhibitions() {
               </div>
             ) : (
               <div className="text-center py-8 text-gray-400">
-                <i className="fas fa-gamepad text-4xl mb-4"></i>
+                <Gamepad2 className="h-12 w-12 mx-auto mb-4" />
                 <p>No exhibition games played yet</p>
                 <p className="text-sm">Start your first exhibition match above!</p>
               </div>
