@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import Navigation from "@/components/Navigation";
+
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -142,7 +142,6 @@ export default function HelpManual() {
 
   return (
     <div className="min-h-screen bg-gray-900 text-white">
-      <Navigation />
       
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="mb-8">

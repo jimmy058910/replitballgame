@@ -1,5 +1,4 @@
 import { useQuery } from "@tanstack/react-query";
-import Navigation from "@/components/Navigation";
 import LeagueStandings from "@/components/LeagueStandings";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -26,7 +25,6 @@ export default function League() {
 
   return (
     <div className="min-h-screen bg-gray-900 text-white">
-      <Navigation />
       
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="mb-8">

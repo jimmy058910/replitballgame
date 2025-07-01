@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useLocation } from "wouter";
-import Navigation from "@/components/Navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
@@ -80,7 +79,6 @@ export default function Competition() {
 
   return (
     <div className="min-h-screen bg-gray-900 text-white">
-      <Navigation />
       
       <div className="container mx-auto px-4 py-8">
         <div className="mb-8">

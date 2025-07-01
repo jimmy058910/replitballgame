@@ -1,5 +1,5 @@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import Navigation from "@/components/Navigation";
+
 import ReferralSystem from "@/components/ReferralSystem";
 import SocialIntegration from "@/components/SocialIntegration";
 import RedemptionCodes from "@/components/RedemptionCodes";
@@ -8,7 +8,6 @@ import { Users, Share2, Gift, MessageCircle } from "lucide-react";
 export default function Community() {
   return (
     <div className="min-h-screen bg-gray-900 text-white">
-      <Navigation />
       <div className="container mx-auto p-6 space-y-6">
         <div className="text-center space-y-2">
           <h1 className="text-4xl font-bold flex items-center justify-center gap-3">

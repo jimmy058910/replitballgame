@@ -9,7 +9,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { CreditCard, Crown, Zap, Star, CheckCircle, History } from "lucide-react";
-import Navigation from "@/components/Navigation";
 
 // Make sure to call `loadStripe` outside of a component's render to avoid
 // recreating the `Stripe` object on every render.
@@ -198,7 +197,6 @@ export default function Payments() {
   if (selectedPackage) {
     return (
       <div className="min-h-screen bg-gray-900 text-white">
-        <Navigation />
         <div className="container mx-auto px-4 py-8">
           <PaymentCheckout 
             selectedPackage={selectedPackage} 
@@ -211,7 +209,6 @@ export default function Payments() {
 
   return (
     <div className="min-h-screen bg-gray-900 text-white">
-      <Navigation />
       <div className="container mx-auto px-4 py-8">
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-8">
