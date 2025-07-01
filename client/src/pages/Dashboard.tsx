@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
@@ -8,6 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import UnifiedPlayerCard from "@/components/UnifiedPlayerCard";
+import { TeamNameInput } from "@/components/TeamNameInput";
 
 import LeagueStandings from "@/components/LeagueStandings";
 import NotificationCenter from "@/components/NotificationCenter";
@@ -363,22 +364,41 @@ export default function Dashboard() {
 
 function TeamCreationForm() {
   const { toast } = useToast();
+  const [teamName, setTeamName] = useState("");
+  const [isValid, setIsValid] = useState(false);
+  const [sanitizedName, setSanitizedName] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const handleValidationChange = (valid: boolean, sanitized?: string) => {
+    setIsValid(valid);
+    setSanitizedName(sanitized || "");
+  };
 
   const handleCreateTeam = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    const formData = new FormData(e.currentTarget);
-    const name = formData.get('name') as string;
+    
+    if (!isValid || !sanitizedName) {
+      toast({
+        title: "Invalid Team Name",
+        description: "Please fix the team name issues before creating your team.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsSubmitting(true);
 
     try {
       const response = await fetch('/api/teams', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
-        body: JSON.stringify({ name }),
+        body: JSON.stringify({ name: sanitizedName }),
       });
 
       if (!response.ok) {
-        throw new Error('Failed to create team');
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Failed to create team');
       }
 
       toast({
@@ -388,13 +408,15 @@ function TeamCreationForm() {
 
       // Refresh the page to show the new team
       window.location.reload();
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error creating team:', error);
       toast({
         title: "Error",
-        description: "Failed to create team. Please try again.",
+        description: error.message || "Failed to create team. Please try again.",
         variant: "destructive",
       });
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -404,23 +426,19 @@ function TeamCreationForm() {
         <CardTitle className="font-orbitron">Create Your Team</CardTitle>
       </CardHeader>
       <CardContent>
-        <form onSubmit={handleCreateTeam} className="space-y-4">
-          <div>
-            <label htmlFor="name" className="block text-sm font-medium text-gray-300 mb-2">
-              Team Name
-            </label>
-            <input
-              type="text"
-              id="name"
-              name="name"
-              required
-              maxLength={50}
-              className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-primary-500"
-              placeholder="Enter your team name"
-            />
-          </div>
-          <Button type="submit" className="w-full bg-primary-600 hover:bg-primary-700">
-            Create Team
+        <form onSubmit={handleCreateTeam} className="space-y-6">
+          <TeamNameInput
+            value={teamName}
+            onChange={setTeamName}
+            onValidationChange={handleValidationChange}
+            showRules={true}
+          />
+          <Button 
+            type="submit" 
+            className="w-full bg-primary-600 hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed"
+            disabled={!isValid || isSubmitting}
+          >
+            {isSubmitting ? "Creating Team..." : "Create Team"}
           </Button>
         </form>
       </CardContent>

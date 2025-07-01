@@ -4,6 +4,7 @@ import { isAuthenticated } from "../replitAuth";
 import { generateRandomPlayer } from "../services/leagueService";
 import { z } from "zod";
 import { ErrorCreators, asyncHandler, logInfo } from "../services/errorService";
+import { TeamNameValidator } from "../services/teamNameValidation";
 // import { players as playersTable } from "@shared/schema"; // Not directly used here anymore
 
 const router = Router();
@@ -37,15 +38,24 @@ router.post('/', isAuthenticated, asyncHandler(async (req: any, res: Response) =
   // Validate input using Zod - errors will be automatically converted by the error handler
   const { name } = createTeamSchema.parse(req.body);
 
+  // Comprehensive team name validation
+  const validationResult = await TeamNameValidator.validateTeamName(name);
+  if (!validationResult.isValid) {
+    throw ErrorCreators.validation(validationResult.error || "Invalid team name");
+  }
+
   const existingTeam = await storage.teams.getTeamByUserId(userId); // Use teamStorage
   if (existingTeam) {
     throw ErrorCreators.conflict("User already has a team");
   }
 
+  // Use the sanitized name from validation
+  const sanitizedName = validationResult.sanitizedName || name;
+
   // storage.teams.createTeam now handles default staff and finances
   const team = await storage.teams.createTeam({ // Use teamStorage
     userId,
-    name,
+    name: sanitizedName,
     division: 8,
   });
 

@@ -20,6 +20,7 @@ import adSystemRoutes from "./adSystemRoutes";
 import scoutingRoutes from "./scoutingRoutes";
 import camaraderieRoutes from "./camaraderieRoutes";
 import statsRoutes from "./statsRoutes";
+import teamNameRoutes from "./teamNameRoutes";
 
 // This function will be called by server/index.ts to set up all routes.
 // It replaces the direct app.use calls that would have been in server/index.ts
@@ -48,6 +49,7 @@ export function registerAllRoutes(app: Express): void {
   app.use("/api/scouting", scoutingRoutes); // Covers /api/teams/:teamId/scout and /api/teams/scoutable
   app.use("/api/camaraderie", camaraderieRoutes); // Covers team and player camaraderie management
   app.use("/api/stats", statsRoutes); // Covers comprehensive player and team statistics
+  app.use("/api/team-names", teamNameRoutes); // Covers team name validation and suggestions
 
   // Reminder: The original server/routes.ts also contained helper functions and Stripe init.
   // Stripe init is now in paymentRoutes.ts.
