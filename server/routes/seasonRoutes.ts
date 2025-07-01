@@ -67,18 +67,18 @@ router.get('/current-cycle', isAuthenticated, async (req: Request, res: Response
     let daysUntilPlayoffs = 0;
     let daysUntilNewSeason = 0;
 
-    if (currentDayInCycle >= 1 && currentDayInCycle <= 10) {
+    if (currentDayInCycle >= 1 && currentDayInCycle <= 14) {
       phase = "Regular Season";
       description = "Regular Season - Teams compete in their divisions";
       details = "League matches are being played daily";
-      daysUntilPlayoffs = 11 - currentDayInCycle;
-    } else if (currentDayInCycle >= 11 && currentDayInCycle <= 14) {
+      daysUntilPlayoffs = 15 - currentDayInCycle;
+    } else if (currentDayInCycle === 15) {
       phase = "Playoffs";
       description = "Division Playoffs - Compete for championship";
       details = "Elimination rounds determine division champions";
       daysUntilPlayoffs = 0;
-      daysUntilNewSeason = 15 - currentDayInCycle;
-    } else if (currentDayInCycle >= 15 && currentDayInCycle <= 17) {
+      daysUntilNewSeason = 16 - currentDayInCycle;
+    } else if (currentDayInCycle >= 16 && currentDayInCycle <= 17) {
       phase = "Off-Season";
       description = "Off-Season - Recruit and prepare for next season";
       details = "Team building, tryouts, and strategic planning";
