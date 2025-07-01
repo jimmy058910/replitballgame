@@ -228,11 +228,37 @@ export default function TextBasedMatch({
           showRewardedVideoAd(
             'halftime',
             'credits',
-            100, // Example: 100 credits for watching halftime ad
-            (reward) => {
+            Math.floor(Math.random() * 300) + 150, // 150-450 credits for halftime ad
+            async (reward) => {
               if (reward) {
-                addToLog(`Watched halftime ad and earned ${reward.amount} ${reward.type}!`);
-                // Here you would typically also update user's credits via an API call or state management
+                try {
+                  // Record ad view with enhanced tracking
+                  const response = await apiRequest('/api/store/ads/view', 'POST', {
+                    adType: 'interstitial',
+                    placement: 'halftime', 
+                    rewardType: 'credits',
+                    rewardAmount: reward.amount,
+                    completed: true
+                  });
+                  
+                  if (response.tracking) {
+                    let message = `Halftime ad: ${reward.amount} credits earned!`;
+                    message += ` Daily: ${response.tracking.dailyCount}/20`;
+                    
+                    if (response.tracking.premiumRewardEarned) {
+                      message += ` | PREMIUM REWARD UNLOCKED!`;
+                    } else if (response.tracking.premiumProgress > 0) {
+                      message += ` | Premium: ${response.tracking.premiumProgress}/50`;
+                    }
+                    
+                    addToLog(message);
+                  } else {
+                    addToLog(`Halftime ad: ${reward.amount} credits earned!`);
+                  }
+                } catch (error) {
+                  console.error('Failed to record halftime ad:', error);
+                  addToLog(`Halftime ad: ${reward.amount} credits earned!`);
+                }
               } else {
                 addToLog("Halftime ad skipped or failed to complete.");
               }

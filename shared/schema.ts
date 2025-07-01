@@ -37,6 +37,8 @@ export const users = pgTable("users", {
   stripeCustomerId: varchar("stripe_customer_id"),
   dailyAdWatchCount: integer("daily_ad_watch_count").default(0),
   lastAdWatchDate: timestamp("last_ad_watch_date"),
+  totalAdWatchCount: integer("total_ad_watch_count").default(0),
+  premiumRewardProgress: integer("premium_reward_progress").default(0),
   role: varchar("role", { length: 20 }).default("user"),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),

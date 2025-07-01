@@ -1,6 +1,7 @@
 import { Router, type Request, type Response, type NextFunction } from "express";
 import { storage } from "../storage"; // Adjusted path
 import { isAuthenticated } from "../replitAuth"; // Adjusted path
+import { adSystemStorage } from "../storage/adSystemStorage";
 import { z } from "zod"; // For validation
 
 const router = Router();
@@ -23,50 +24,59 @@ router.post('/view', isAuthenticated, async (req: any, res: Response, next: Next
     const userId = req.user.claims.sub;
     const adData = adViewSchema.parse(req.body);
 
-    // Create ad view record
-    const adView = await storage.createAdView({
+    // Use the enhanced tracking system
+    const result = await adSystemStorage.processAdWatch(
       userId,
-      adType: adData.adType,
-      placement: adData.placement || 'unknown',
-      rewardType: adData.rewardType || 'none',
-      rewardAmount: adData.rewardAmount || 0,
-      completed: adData.completed,
-      completedAt: adData.completed ? new Date() : null,
-    });
+      adData.adType,
+      adData.placement || 'unknown',
+      adData.rewardType || 'none',
+      adData.rewardAmount || 0
+    );
 
-    let rewardMessage = "Ad view recorded.";
-    // Award rewards if ad was completed and reward is specified
+    // Award base rewards to team finances
     if (adData.completed && adData.rewardType && adData.rewardType !== 'none' && adData.rewardAmount && adData.rewardAmount > 0) {
-      const team = await storage.getTeamByUserId(userId);
+      const team = await storage.teams.getByUserId(userId);
       if (team) {
-        const finances = await storage.getTeamFinances(team.id);
+        const finances = await storage.teamFinances.getByTeamId(team.id);
         if (finances) {
-          let updatePerformed = false;
           if (adData.rewardType === 'credits') {
-            await storage.updateTeamFinances(team.id, {
-              credits: (finances.credits || 0) + adData.rewardAmount
-            });
-            updatePerformed = true;
+            await storage.teamFinances.updateCredits(team.id, adData.rewardAmount);
           } else if (adData.rewardType === 'premium_currency') {
-            await storage.updateTeamFinances(team.id, {
-              premiumCurrency: (finances.premiumCurrency || 0) + adData.rewardAmount
-            });
-            updatePerformed = true;
+            await storage.teamFinances.updatePremiumCurrency(team.id, adData.rewardAmount);
           }
-          // TODO: Handle 'item' rewardType - would need item ID and logic to add to inventory
-
-          if (updatePerformed) {
-            rewardMessage = `Ad completed! You earned ${adData.rewardAmount} ${adData.rewardType.replace('_', ' ')}.`;
-          }
-        } else {
-            console.warn(`Ad reward: User ${userId} team ${team.id} has no finances record.`);
         }
-      } else {
-          console.warn(`Ad reward: User ${userId} has no team to apply rewards to.`);
       }
     }
 
-    res.status(201).json({ success: true, adViewId: adView.id, message: rewardMessage });
+    // Prepare response with enhanced tracking data
+    let rewardMessage = `Ad completed! Daily: ${result.dailyCount}/20`;
+    
+    if (result.premiumRewardEarned && result.premiumReward) {
+      // Award premium reward to team
+      const team = await storage.teams.getByUserId(userId);  
+      if (team && result.premiumReward.type === 'credits') {
+        await storage.teamFinances.updateCredits(team.id, result.premiumReward.amount);
+        rewardMessage += ` | PREMIUM REWARD: ${result.premiumReward.amount} Credits!`;
+      } else if (team && result.premiumReward.type === 'premium_currency') {
+        await storage.teamFinances.updatePremiumCurrency(team.id, result.premiumReward.amount);
+        rewardMessage += ` | PREMIUM REWARD: ${result.premiumReward.amount} Gems!`;
+      }
+    } else if (result.premiumRewardProgress > 0) {
+      rewardMessage += ` | Premium Progress: ${result.premiumRewardProgress}/50`;
+    }
+
+    res.status(201).json({ 
+      success: true, 
+      adViewId: result.adView.id, 
+      message: rewardMessage,
+      tracking: {
+        dailyCount: result.dailyCount,
+        totalCount: result.totalCount,
+        premiumProgress: result.premiumRewardProgress,
+        premiumRewardEarned: result.premiumRewardEarned,
+        premiumReward: result.premiumReward
+      }
+    });
   } catch (error) {
     console.error('Error processing ad view:', error);
     if (error instanceof z.ZodError) {
@@ -76,29 +86,85 @@ router.post('/view', isAuthenticated, async (req: any, res: Response, next: Next
   }
 });
 
+// Get user ad statistics with enhanced tracking
 router.get('/stats', isAuthenticated, async (req: any, res: Response, next: NextFunction) => {
   try {
     const userId = req.user.claims.sub;
-
-    const dailyViewsCount = await storage.getDailyAdViews(userId); // Total ads viewed today
-    const allUserViews = await storage.getAdViewsByUser(userId); // All ads ever viewed by user
-
-    // Example: Calculate remaining ad opportunities based on some limits
-    const dailyRewardedLimit = 5; // Max 5 rewarded ads per day
-    const rewardedAdsWatchedToday = allUserViews.filter(v =>
-        v.completed && v.rewardType !== 'none' &&
-        v.completedAt && new Date(v.completedAt).toDateString() === new Date().toDateString()
-    ).length;
-
+    const stats = await adSystemStorage.getUserAdStats(userId);
+    
     res.json({
-      dailyTotalViews: dailyViewsCount,
-      totalViewsAllTime: allUserViews.length,
-      totalCompletedViews: allUserViews.filter(v => v.completed).length,
-      rewardedAdsWatchedToday: rewardedAdsWatchedToday,
-      rewardedAdsRemainingToday: Math.max(0, dailyRewardedLimit - rewardedAdsWatchedToday),
+      dailyCount: stats.dailyCount,
+      totalCount: stats.totalCount,
+      premiumProgress: stats.premiumProgress,
+      canWatchMore: stats.canWatchMore,
+      dailyLimit: 20,
+      premiumThreshold: 50,
+      resetTime: stats.resetTime
     });
   } catch (error) {
     console.error('Error fetching ad stats:', error);
+    next(error);
+  }
+});
+
+// Manual ad watch endpoint (for additional watch button)
+router.post('/watch', isAuthenticated, async (req: any, res: Response, next: NextFunction) => {
+  try {
+    const userId = req.user.claims.sub;
+    
+    // Check if user can watch more ads
+    const stats = await adSystemStorage.getUserAdStats(userId);
+    if (!stats.canWatchMore) {
+      return res.status(429).json({ 
+        success: false, 
+        message: "Daily ad limit reached (20/20). Reset in a few hours." 
+      });
+    }
+
+    // Process ad watch with standard rewards
+    const rewardAmount = Math.floor(Math.random() * 500) + 250; // 250-750 credits
+    const result = await adSystemStorage.processAdWatch(
+      userId,
+      'rewarded_video',
+      'manual_watch', 
+      'credits',
+      rewardAmount
+    );
+
+    // Award credits to team
+    const team = await storage.teams.getByUserId(userId);
+    if (team) {
+      await storage.teamFinances.updateCredits(team.id, rewardAmount);
+    }
+
+    // Handle premium reward
+    let message = `Earned ${rewardAmount} credits! Daily: ${result.dailyCount}/20`;
+    
+    if (result.premiumRewardEarned && result.premiumReward) {
+      if (team && result.premiumReward.type === 'credits') {
+        await storage.teamFinances.updateCredits(team.id, result.premiumReward.amount);
+        message += ` | PREMIUM REWARD: ${result.premiumReward.amount} Credits!`;
+      } else if (team && result.premiumReward.type === 'premium_currency') {
+        await storage.teamFinances.updatePremiumCurrency(team.id, result.premiumReward.amount);
+        message += ` | PREMIUM REWARD: ${result.premiumReward.amount} Gems!`;
+      }
+    } else {
+      message += ` | Premium: ${result.premiumRewardProgress}/50`;
+    }
+
+    res.json({ 
+      success: true, 
+      message,
+      tracking: {
+        dailyCount: result.dailyCount,
+        totalCount: result.totalCount,
+        premiumProgress: result.premiumRewardProgress,
+        premiumRewardEarned: result.premiumRewardEarned,
+        premiumReward: result.premiumReward
+      }
+    });
+  } catch (error) {
+    console.error('Error processing manual ad watch:', error);
     next(error);
   }
 });

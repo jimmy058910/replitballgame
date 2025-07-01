@@ -218,33 +218,7 @@ export class AwardsService {
         createdAt: new Date()
       });
 
-      // Rookie of the Year (best performance among players age 22 or under)
-      const rookies = seasonStats.filter(p => p.player.age <= 22);
-      if (rookies.length > 0) {
-        const rookieOfYear = rookies.reduce((best, current) => {
-          const currentScore = (current.goals * 10) + (current.assists * 5) + 
-                             (current.passes * 0.5) + (current.rushingYards * 0.1) +
-                             (current.blocks * 2) + (current.tackles * 1.5);
-          const bestScore = (best.goals * 10) + (best.assists * 5) + 
-                           (best.passes * 0.5) + (best.rushingYards * 0.1) +
-                           (best.blocks * 2) + (best.tackles * 1.5);
-          return currentScore > bestScore ? current : best;
-        });
 
-        awards.push({
-          id: nanoid(),
-          playerId: rookieOfYear.playerId,
-          teamId: rookieOfYear.teamId,
-          seasonId,
-          awardType: "Rookie of the Year",
-          awardCategory: "individual",
-          statValue: (rookieOfYear.goals * 10) + (rookieOfYear.assists * 5) + 
-                    (rookieOfYear.passes * 0.5) + (rookieOfYear.rushingYards * 0.1) +
-                    (rookieOfYear.blocks * 2) + (rookieOfYear.tackles * 1.5),
-          awardDate: new Date(),
-          createdAt: new Date()
-        });
-      }
 
       // Statistical Awards
       // Top Scorer
@@ -295,18 +269,18 @@ export class AwardsService {
         createdAt: new Date()
       });
 
-      // Best Defender
-      const bestDefender = seasonStats.reduce((best, current) => 
+      // Best Blocker
+      const bestBlocker = seasonStats.reduce((best, current) => 
         (current.blocks + current.tackles) > (best.blocks + best.tackles) ? current : best
       );
       awards.push({
         id: nanoid(),
-        playerId: bestDefender.playerId,
-        teamId: bestDefender.teamId,
+        playerId: bestBlocker.playerId,
+        teamId: bestBlocker.teamId,
         seasonId,
-        awardType: "Best Defender",
+        awardType: "Best Blocker",
         awardCategory: "positional",
-        statValue: bestDefender.blocks + bestDefender.tackles,
+        statValue: bestBlocker.blocks + bestBlocker.tackles,
         awardDate: new Date(),
         createdAt: new Date()
       });
