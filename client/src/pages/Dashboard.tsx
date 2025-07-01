@@ -113,6 +113,9 @@ export default function Dashboard() {
     refetchInterval: 60000, // Refresh every minute
   });
 
+  // Debug seasonal cycle data
+  console.log('Dashboard seasonalCycle data:', seasonalCycle);
+
   const { data: serverTime } = useQuery({
     queryKey: ["/api/server/time"],
     refetchInterval: 30000, // Update every 30 seconds

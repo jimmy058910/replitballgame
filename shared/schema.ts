@@ -549,6 +549,8 @@ export const seasons = pgTable("seasons", {
   playoffStartDate: timestamp("playoff_start_date"),
   championTeamId: varchar("champion_team_id"),
   createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+  startDateOriginal: timestamp("start_date_original"),
 });
 
 export const playoffs = pgTable("playoffs", {
