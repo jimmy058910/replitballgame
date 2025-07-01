@@ -11,14 +11,20 @@
     "boots_legendary": { "credits": 25000, "gems": 200 },
     "armor_basic": { "credits": 6000, "gems": 60 },
     "armor_reinforced": { "credits": 16000, "gems": 130 },
-
+    "training_credits_small": { "gems": 10 },
+    "training_credits_medium": { "gems": 45 },
+    "training_credits_large": { "gems": 80 },
+    "training_credits_mega": { "gems": 150 },
     "stamina_potion_small": { "credits": 1000 },
     "stamina_potion_large": { "credits": 2500, "gems": 20 },
     "stamina_potion_ultra": { "gems": 35 },
     "contract_extension_basic": { "credits": 10000, "gems": 100 },
     "contract_extension_premium": { "gems": 180 },
-
+    "scouting_report_tier1": { "credits": 2000 },
+    "scouting_report_tier2": { "credits": 5000, "gems": 40 },
+    "scouting_report_tier3": { "gems": 75 },
     "injury_recovery_kit": { "credits": 3500, "gems": 30 },
+    "performance_enhancer": { "gems": 50 },
 
     "exhibition_ticket": { "credits": 1500, "gems": 15 },
     "exhibition_premium": { "credits": 3000, "gems": 25 },

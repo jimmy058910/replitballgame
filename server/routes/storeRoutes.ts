@@ -2,6 +2,7 @@ import { Router, type Request, type Response, type NextFunction } from "express"
 import { storage } from "../storage/index";
 import { teamFinancesStorage } from "../storage/teamFinancesStorage";
 import { adSystemStorage } from "../storage/adSystemStorage";
+import { consumableStorage } from "../storage/consumableStorage";
 // import { itemStorage } from "../storage/itemStorage"; // For fetching actual item details
 import { isAuthenticated } from "../replitAuth";
 import { z } from "zod";
@@ -183,7 +184,17 @@ router.post('/purchase', isAuthenticated, async (req: any, res: Response, next: 
         return res.status(400).json({ message: "Unsupported currency type for this item." });
     }
 
-    // TODO: Add item to teamInventory using itemStorage.addItemToInventory(team.id, itemId, quantity);
+    // Check if the item is a consumable and add to inventory
+    const storeItems = [...storeConfig.premiumItems, ...storeConfig.items];
+    const purchasedItem = storeItems.find((item: any) => item.id === itemId);
+    const isConsumable = purchasedItem?.category === "consumables";
+    
+    if (isConsumable) {
+      // Add consumable to team inventory
+      await consumableStorage.addConsumableToInventory(team.id, itemId, 1);
+      message += " Consumable added to your inventory.";
+    }
+    
     res.json({ success: true, message });
   } catch (error) {
     console.error("Error purchasing item:", error);

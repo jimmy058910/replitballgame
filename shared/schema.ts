@@ -362,6 +362,18 @@ export const teamInventory = pgTable("team_inventory", {
   acquiredAt: timestamp("acquired_at").defaultNow(),
 });
 
+export const matchConsumables = pgTable("match_consumables", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  matchId: uuid("match_id").references(() => matches.id).notNull(),
+  teamId: uuid("team_id").references(() => teams.id).notNull(),
+  consumableId: varchar("consumable_id").notNull(), // References store item id
+  consumableName: varchar("consumable_name").notNull(),
+  effectType: varchar("effect_type").notNull(), // "stat_boost", "training_credits", "scouting"
+  effectData: jsonb("effect_data").notNull(), // Contains stat bonuses or other effect data
+  activatedAt: timestamp("activated_at").defaultNow(),
+  usedInMatch: boolean("used_in_match").default(false),
+});
+
 export const leagueStandings = pgTable("league_standings", {
   id: uuid("id").primaryKey().defaultRandom(),
   leagueId: uuid("league_id").references(() => leagues.id).notNull(),
@@ -590,6 +602,9 @@ export const leaguesRelations = relations(leagues, ({ many }) => ({
 
 export type UpsertUser = typeof users.$inferInsert;
 export type User = typeof users.$inferSelect;
+
+export type MatchConsumable = typeof matchConsumables.$inferSelect;
+export type InsertMatchConsumable = typeof matchConsumables.$inferInsert;
 
 export const adViews = pgTable("ad_views", {
   id: varchar("id").primaryKey().notNull(),
