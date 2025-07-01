@@ -8,6 +8,7 @@ import { Progress } from "@/components/ui/progress";
 import { Separator } from "@/components/ui/separator";
 import { Shield, Shirt, ShirtIcon, Hand } from "lucide-react";
 import AbilitiesDisplay from "@/components/AbilitiesDisplay";
+import { PlayerAwards } from "./PlayerAwards";
 
 interface PlayerDetailModalProps {
   player: any;
@@ -160,11 +161,12 @@ export default function PlayerDetailModal({
         </DialogHeader>
 
         <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="grid w-full grid-cols-5">
+          <TabsList className="grid w-full grid-cols-6">
             <TabsTrigger value="stats">Stats</TabsTrigger>
             <TabsTrigger value="abilities">Abilities</TabsTrigger>
             <TabsTrigger value="equipment">Equipment</TabsTrigger>
             <TabsTrigger value="contract">Contract</TabsTrigger>
+            <TabsTrigger value="awards">Awards</TabsTrigger>
             <TabsTrigger value="development">Scouting</TabsTrigger>
           </TabsList>
 
@@ -383,6 +385,10 @@ export default function PlayerDetailModal({
                 </CardContent>
               </Card>
             </div>
+          </TabsContent>
+
+          <TabsContent value="awards" className="space-y-4">
+            <PlayerAwards playerId={player.id} />
           </TabsContent>
         </Tabs>
       </DialogContent>

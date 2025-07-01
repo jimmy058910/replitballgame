@@ -766,6 +766,71 @@ export type InsertFacilityUpgrade = typeof facilityUpgrades.$inferInsert;
 export type StadiumEvent = typeof stadiumEvents.$inferSelect;
 export type InsertStadiumEvent = typeof stadiumEvents.$inferInsert;
 
+// MVP Awards - One per regular season/playoff match
+export const mvpAwards = pgTable("mvp_awards", {
+  id: text("id").primaryKey().$defaultFn(() => nanoid()),
+  matchId: uuid("match_id").notNull().references(() => matches.id, { onDelete: "cascade" }),
+  playerId: uuid("player_id").notNull().references(() => players.id, { onDelete: "cascade" }),
+  teamId: uuid("team_id").notNull().references(() => teams.id, { onDelete: "cascade" }),
+  seasonId: varchar("season_id").references(() => seasons.id, { onDelete: "cascade" }),
+  awardDate: timestamp("award_date", { withTimezone: true }).defaultNow().notNull(),
+  matchType: text("match_type").notNull(), // "regular", "playoff", "championship"
+  performanceStats: jsonb("performance_stats"), // Key stats that earned MVP
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+});
+
+// Season Awards - End of season recognition
+export const seasonAwards = pgTable("season_awards", {
+  id: text("id").primaryKey().$defaultFn(() => nanoid()),
+  playerId: uuid("player_id").notNull().references(() => players.id, { onDelete: "cascade" }),
+  teamId: uuid("team_id").notNull().references(() => teams.id, { onDelete: "cascade" }),
+  seasonId: varchar("season_id").references(() => seasons.id, { onDelete: "cascade" }),
+  awardType: text("award_type").notNull(), // "Player of the Year", "Rookie of the Year", "Best Passer", etc.
+  awardCategory: text("award_category").notNull(), // "individual", "positional", "statistical"
+  statValue: real("stat_value"), // The stat value that earned the award
+  awardDate: timestamp("award_date", { withTimezone: true }).defaultNow().notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+});
+
+// Team Season History - Complete season records
+export const teamSeasonHistory = pgTable("team_season_history", {
+  id: text("id").primaryKey().$defaultFn(() => nanoid()),
+  teamId: uuid("team_id").notNull().references(() => teams.id, { onDelete: "cascade" }),
+  seasonId: varchar("season_id").references(() => seasons.id, { onDelete: "cascade" }),
+  seasonNumber: integer("season_number").notNull(),
+  divisionId: text("division_id").notNull(),
+  finalPosition: integer("final_position"), // 1st, 2nd, 3rd, etc. in division
+  wins: integer("wins").default(0).notNull(),
+  losses: integer("losses").default(0).notNull(),
+  goalsFor: integer("goals_for").default(0).notNull(),
+  goalsAgainst: integer("goals_against").default(0).notNull(),
+  playoffResult: text("playoff_result"), // "champion", "finalist", "semifinalist", "eliminated", "missed"
+  specialAchievements: text("special_achievements").array(), // ["Most Goals Scored", "Best Defense", etc.]
+  totalPoints: integer("total_points").default(0).notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+});
+
+// Team Awards - Season-end team recognition
+export const teamAwards = pgTable("team_awards", {
+  id: text("id").primaryKey().$defaultFn(() => nanoid()),
+  teamId: uuid("team_id").notNull().references(() => teams.id, { onDelete: "cascade" }),
+  seasonId: varchar("season_id").references(() => seasons.id, { onDelete: "cascade" }),
+  awardType: text("award_type").notNull(), // "Division Champion", "League Champion", "Most Goals Scored", etc.
+  awardCategory: text("award_category").notNull(), // "championship", "statistical", "achievement"
+  statValue: real("stat_value"), // The stat value if applicable
+  awardDate: timestamp("award_date", { withTimezone: true }).defaultNow().notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+});
+
+export type MvpAward = typeof mvpAwards.$inferSelect;
+export type InsertMvpAward = typeof mvpAwards.$inferInsert;
+export type SeasonAward = typeof seasonAwards.$inferSelect;
+export type InsertSeasonAward = typeof seasonAwards.$inferInsert;
+export type TeamSeasonHistory = typeof teamSeasonHistory.$inferSelect;
+export type InsertTeamSeasonHistory = typeof teamSeasonHistory.$inferInsert;
+export type TeamAward = typeof teamAwards.$inferSelect;
+export type InsertTeamAward = typeof teamAwards.$inferInsert;
+
 export const scouts = pgTable("scouts", {
   id: uuid("id").primaryKey().defaultRandom(),
   teamId: uuid("team_id").references(() => teams.id).notNull(),
