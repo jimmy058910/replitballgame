@@ -1,13 +1,36 @@
 {
   "itemPrices": {
     "helmet_basic": { "credits": 5000, "gems": 50 },
+    "helmet_advanced": { "credits": 15000, "gems": 120 },
+    "helmet_elite": { "credits": 35000, "gems": 250 },
+    "gloves_standard": { "credits": 3000, "gems": 30 },
+    "gloves_pro": { "credits": 8000, "gems": 70 },
+    "gloves_elite": { "credits": 18000, "gems": 150 },
+    "boots_speed": { "credits": 4000, "gems": 40 },
+    "boots_pro": { "credits": 10000, "gems": 80 },
+    "boots_legendary": { "credits": 25000, "gems": 200 },
+    "armor_basic": { "credits": 6000, "gems": 60 },
+    "armor_reinforced": { "credits": 16000, "gems": 130 },
     "training_credits_small": { "gems": 10 },
     "training_credits_medium": { "gems": 45 },
     "training_credits_large": { "gems": 80 },
+    "training_credits_mega": { "gems": 150 },
     "stamina_potion_small": { "credits": 1000 },
     "stamina_potion_large": { "credits": 2500, "gems": 20 },
+    "stamina_potion_ultra": { "gems": 35 },
     "contract_extension_basic": { "credits": 10000, "gems": 100 },
-    "scouting_report_tier1": {"credits": 2000}
+    "contract_extension_premium": { "gems": 180 },
+    "scouting_report_tier1": { "credits": 2000 },
+    "scouting_report_tier2": { "credits": 5000, "gems": 40 },
+    "scouting_report_tier3": { "gems": 75 },
+    "injury_recovery_kit": { "credits": 3500, "gems": 30 },
+    "performance_enhancer": { "gems": 50 },
+    "exhibition_ticket": { "credits": 1500, "gems": 15 },
+    "exhibition_premium": { "credits": 3000, "gems": 25 },
+    "tournament_entry_bronze": { "credits": 2500, "gems": 20 },
+    "tournament_entry_silver": { "credits": 5000, "gems": 40 },
+    "tournament_entry_gold": { "credits": 10000, "gems": 75 },
+    "tournament_entry_elite": { "gems": 120 }
   },
   "creditsPerGem": 1000,
   "adSystem": {
@@ -21,23 +44,270 @@
   },
   "storeSections": {
     "staticItems": [
-      { "itemId": "helmet_basic", "name": "Basic Helmet", "description": "A standard issue helmet." },
-      { "itemId": "stamina_potion_small", "name": "Small Stamina Potion", "description": "Recovers a small amount of stamina." }
+      { 
+        "id": "helmet_basic",
+        "name": "Basic Helmet", 
+        "description": "Standard protective headgear for rookie players.",
+        "price": 5000,
+        "rarity": "common",
+        "category": "equipment",
+        "statBoosts": { "defense": 2 }
+      },
+      { 
+        "id": "gloves_standard",
+        "name": "Standard Gloves", 
+        "description": "Improves ball handling and catching ability.",
+        "price": 3000,
+        "rarity": "common",
+        "category": "equipment",
+        "statBoosts": { "catching": 3, "agility": 1 }
+      },
+      { 
+        "id": "boots_speed",
+        "name": "Speed Boots", 
+        "description": "Lightweight boots that enhance movement speed.",
+        "price": 4000,
+        "rarity": "common",
+        "category": "equipment",
+        "statBoosts": { "speed": 3, "agility": 2 }
+      },
+      { 
+        "id": "stamina_potion_small",
+        "name": "Small Stamina Potion", 
+        "description": "Restores player energy during training sessions.",
+        "price": 1000,
+        "rarity": "common",
+        "category": "consumable"
+      },
+      { 
+        "id": "injury_recovery_kit",
+        "name": "Injury Recovery Kit", 
+        "description": "Accelerates healing from minor injuries.",
+        "price": 3500,
+        "rarity": "rare",
+        "category": "medical"
+      },
+      { 
+        "id": "scouting_report_tier1",
+        "name": "Basic Scouting Report", 
+        "description": "Reveals detailed information about available players.",
+        "price": 2000,
+        "rarity": "common",
+        "category": "intel"
+      }
     ],
     "premiumItems": [
-      { "itemId": "training_credits_small", "name": "Small Training Credits Pack", "description": "A small pack of training credits." },
-      { "itemId": "training_credits_medium", "name": "Medium Training Credits Pack", "description": "A medium pack of training credits." },
-      { "itemId": "training_credits_large", "name": "Large Training Credits Pack", "description": "A large pack of training credits." },
-      { "itemId": "contract_extension_basic", "name": "Basic Contract Extension", "description": "Extend a player's contract." }
+      { 
+        "id": "helmet_elite",
+        "name": "Elite Combat Helmet", 
+        "description": "Advanced protective gear with integrated HUD display.",
+        "priceGems": 250,
+        "rarity": "legendary",
+        "category": "equipment",
+        "statBoosts": { "defense": 8, "awareness": 5, "power": 3 }
+      },
+      { 
+        "id": "gloves_elite",
+        "name": "Pro Catching Gloves", 
+        "description": "Professional-grade gloves with enhanced grip technology.",
+        "priceGems": 150,
+        "rarity": "epic",
+        "category": "equipment",
+        "statBoosts": { "catching": 7, "agility": 4 }
+      },
+      { 
+        "id": "boots_legendary",
+        "name": "Lightning Dash Boots", 
+        "description": "Legendary footwear that provides supernatural speed.",
+        "priceGems": 200,
+        "rarity": "legendary",
+        "category": "equipment",
+        "statBoosts": { "speed": 10, "agility": 6, "power": 2 }
+      },
+      { 
+        "id": "training_credits_mega",
+        "name": "Mega Training Package", 
+        "description": "Massive credit boost for extensive team development.",
+        "priceGems": 150,
+        "rarity": "epic",
+        "category": "currency",
+        "creditValue": 200000
+      },
+      { 
+        "id": "contract_extension_premium",
+        "name": "Premium Contract Extension", 
+        "description": "Extends any player contract by 3 seasons with loyalty bonus.",
+        "priceGems": 180,
+        "rarity": "epic",
+        "category": "contract"
+      },
+      { 
+        "id": "performance_enhancer",
+        "name": "Performance Enhancement Serum", 
+        "description": "Temporarily boosts all player stats for next match.",
+        "priceGems": 50,
+        "rarity": "rare",
+        "category": "consumable"
+      }
     ],
     "equipment": [
-      { "itemId": "helmet_basic", "name": "Basic Helmet", "description": "A standard issue helmet." },
-      { "itemId": "gloves_standard", "name": "Standard Gloves", "description": "Improves catching." },
-      { "itemId": "boots_speed", "name": "Speed Boots", "description": "Slightly increases player speed." }
+      { 
+        "id": "helmet_advanced",
+        "name": "Advanced Helmet", 
+        "description": "Reinforced helmet with impact absorption technology.",
+        "price": 15000,
+        "priceGems": 120,
+        "rarity": "rare",
+        "category": "equipment",
+        "statBoosts": { "defense": 5, "awareness": 2 }
+      },
+      { 
+        "id": "gloves_pro",
+        "name": "Pro Gloves", 
+        "description": "Professional gloves with superior grip and flexibility.",
+        "price": 8000,
+        "priceGems": 70,
+        "rarity": "rare",
+        "category": "equipment",
+        "statBoosts": { "catching": 5, "agility": 3 }
+      },
+      { 
+        "id": "boots_pro",
+        "name": "Pro Athletic Boots", 
+        "description": "High-performance boots designed for competitive play.",
+        "price": 10000,
+        "priceGems": 80,
+        "rarity": "rare",
+        "category": "equipment",
+        "statBoosts": { "speed": 6, "agility": 4, "power": 1 }
+      },
+      { 
+        "id": "armor_basic",
+        "name": "Protective Padding", 
+        "description": "Basic body armor that reduces injury risk.",
+        "price": 6000,
+        "priceGems": 60,
+        "rarity": "common",
+        "category": "equipment",
+        "statBoosts": { "defense": 4, "power": 1 }
+      },
+      { 
+        "id": "armor_reinforced",
+        "name": "Reinforced Battle Armor", 
+        "description": "Heavy-duty protection for aggressive players.",
+        "price": 16000,
+        "priceGems": 130,
+        "rarity": "epic",
+        "category": "equipment",
+        "statBoosts": { "defense": 7, "power": 4, "catching": -1 }
+      },
+      { 
+        "id": "stamina_potion_ultra",
+        "name": "Ultra Stamina Elixir", 
+        "description": "Premium energy restoration for peak performance.",
+        "priceGems": 35,
+        "rarity": "epic",
+        "category": "consumable"
+      }
     ],
     "tournamentEntries": [
-      { "itemId": "bronze_tournament_ticket", "name": "Bronze Tournament Ticket", "description": "Entry to a Bronze Tier tournament." },
-      { "itemId": "silver_tournament_ticket", "name": "Silver Tournament Ticket", "description": "Entry to a Silver Tier tournament." }
+      { 
+        "id": "exhibition_ticket",
+        "name": "Exhibition Match Entry", 
+        "description": "Enter a casual exhibition match for practice and rewards.",
+        "price": 1500,
+        "priceGems": 15,
+        "rarity": "common",
+        "category": "entry",
+        "dailyLimit": 3
+      },
+      { 
+        "id": "exhibition_premium",
+        "name": "Premium Exhibition Entry", 
+        "description": "High-stakes exhibition with enhanced rewards.",
+        "price": 3000,
+        "priceGems": 25,
+        "rarity": "rare",
+        "category": "entry",
+        "dailyLimit": 2
+      },
+      { 
+        "id": "tournament_entry_bronze",
+        "name": "Bronze Tournament Entry", 
+        "description": "Compete in the Bronze Division tournament.",
+        "price": 2500,
+        "priceGems": 20,
+        "rarity": "common",
+        "category": "tournament",
+        "dailyLimit": 1
+      },
+      { 
+        "id": "tournament_entry_silver",
+        "name": "Silver Tournament Entry", 
+        "description": "Join the competitive Silver Division tournament.",
+        "price": 5000,
+        "priceGems": 40,
+        "rarity": "rare",
+        "category": "tournament",
+        "dailyLimit": 1
+      },
+      { 
+        "id": "tournament_entry_gold",
+        "name": "Gold Tournament Entry", 
+        "description": "Elite competition in the Gold Division.",
+        "price": 10000,
+        "priceGems": 75,
+        "rarity": "epic",
+        "category": "tournament",
+        "dailyLimit": 1
+      },
+      { 
+        "id": "tournament_entry_elite",
+        "name": "Elite Championship Entry", 
+        "description": "Ultimate tournament for the most skilled teams.",
+        "priceGems": 120,
+        "rarity": "legendary",
+        "category": "tournament",
+        "dailyLimit": 1
+      }
+    ],
+    "creditPackages": [
+      {
+        "id": "gems_starter",
+        "name": "Starter Gem Pack",
+        "description": "Perfect for new managers getting started",
+        "gems": 100,
+        "price": 4.99,
+        "rarity": "common",
+        "bonusGems": 0
+      },
+      {
+        "id": "gems_standard",
+        "name": "Standard Gem Pack",
+        "description": "Great value for regular purchases",
+        "gems": 250,
+        "price": 9.99,
+        "rarity": "common",
+        "bonusGems": 25
+      },
+      {
+        "id": "gems_premium",
+        "name": "Premium Gem Pack",
+        "description": "Enhanced value with bonus gems",
+        "gems": 600,
+        "price": 19.99,
+        "rarity": "rare",
+        "bonusGems": 100
+      },
+      {
+        "id": "gems_elite",
+        "name": "Elite Gem Pack",
+        "description": "Maximum value for serious competitors",
+        "gems": 1300,
+        "price": 39.99,
+        "rarity": "epic",
+        "bonusGems": 300
+      }
     ]
   }
 }

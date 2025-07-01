@@ -241,7 +241,7 @@ export default function Dashboard() {
               </CardContent>
             </Card>
             
-            <Link href="/payments">
+            <Link href="/team?tab=finances">
               <Card className="bg-gray-800 border-gray-700 hover:bg-gray-700 transition-colors cursor-pointer">
                 <CardContent className="p-6">
                   <div className="flex items-center justify-between">
