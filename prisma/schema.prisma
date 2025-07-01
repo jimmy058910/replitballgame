@@ -1,21 +1,25 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
 generator client {
   provider = "prisma-client-js"
-  output   = "../generated/prisma" // Using your specified output path
+  output   = "../generated/prisma"
 }
 
 datasource db {
   provider = "postgresql"
-  url      = env("DATABASE_URL") // Takes the DATABASE_URL from your .env file
+  url      = env("DATABASE_URL")
 }
 
-// Define your UserProfile model below
 model UserProfile {
   id        Int      @id @default(autoincrement())
-  userId    String   @unique // Assuming you might have user IDs from an auth system
-  bio       String?  // Optional text for the user's biography
+  userId    String   @unique
+  bio       String?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+}
+
+model Session {
+  sid    String   @id @unique
+  sess   Json
+  expire DateTime
+
+  @@index([expire])
 }
