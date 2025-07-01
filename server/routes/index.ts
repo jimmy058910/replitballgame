@@ -12,6 +12,7 @@ import tournamentRoutes from "./tournamentRoutes";
 import exhibitionRoutes from "./exhibitionRoutes";
 import notificationRoutes from "./notificationRoutes";
 import injuryRoutes from "./injuryRoutes";
+import injuryStaminaRoutes from "./injuryStaminaRoutes";
 import seasonRoutes from "./seasonRoutes";
 import { systemRoutes } from "./systemRoutes";
 import superuserRoutes from "./superuserRoutes";
@@ -44,6 +45,7 @@ export function registerAllRoutes(app: Express): void {
   app.use("/api/exhibitions", exhibitionRoutes);
   app.use("/api/notifications", notificationRoutes); // Covers /api/notifications and /api/demo/notifications
   app.use("/api/injuries", injuryRoutes); // Covers /api/injuries, /api/medical-staff, /api/conditioning
+  app.use("/api/injury-stamina", injuryStaminaRoutes); // Covers comprehensive injury & stamina system
   app.use("/api/seasons", seasonRoutes); // Covers /api/seasons, /api/playoffs, /api/contracts, /api/sponsorships
   app.use("/api/season", seasonRoutes); // Frontend calls /api/season/current-cycle
   app.use("/api/system", systemRoutes); // Covers /api/system and /api/server

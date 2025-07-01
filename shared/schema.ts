@@ -56,7 +56,8 @@ export const teams = pgTable("teams", {
   teamPower: integer("team_power").default(0),
   teamCamaraderie: integer("team_camaraderie").default(50),
   championshipsWon: integer("championships_won").default(0),
-  credits: integer("credits").default(15000),
+  credits: integer("credits").default(50000),
+  gems: integer("gems").default(0),
   exhibitionCredits: integer("exhibition_credits").default(3),
   lastActivityAt: timestamp("last_activity_at").defaultNow(),
   isPaidUser: boolean("is_paid_user").default(false),
@@ -122,6 +123,14 @@ export const players = pgTable("players", {
   // Aging system fields
   careerInjuries: integer("career_injuries").default(0),
   gamesPlayedLastSeason: integer("games_played_last_season").default(0),
+  
+  // Injury & Stamina System (dual stamina mechanics)
+  inGameStamina: integer("in_game_stamina").default(100),
+  dailyStaminaLevel: integer("daily_stamina_level").default(100),
+  injuryStatus: varchar("injury_status", { length: 20 }).default("Healthy"),
+  injuryRecoveryPointsNeeded: integer("injury_recovery_points_needed").default(0),
+  injuryRecoveryPointsCurrent: integer("injury_recovery_points_current").default(0),
+  dailyItemsUsed: integer("daily_items_used").default(0),
   
   isMarketplace: boolean("is_marketplace").default(false),
   marketplacePrice: integer("marketplace_price"),

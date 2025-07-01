@@ -9,6 +9,7 @@ import StaffManagement from "@/components/StaffManagement";
 import TeamFinances from "@/components/TeamFinances";
 import TryoutSystem from "@/components/TryoutSystem";
 import { TaxiSquadManager } from "@/components/TaxiSquadManager";
+import { InjuryStaminaManager } from "@/components/InjuryStaminaManager";
 import Stadium from "@/pages/Stadium";
 import Inventory from "@/pages/Inventory";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -140,7 +141,7 @@ export default function Team() {
 
         {/* Main Navigation Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="mb-8">
-          <TabsList className="grid w-full grid-cols-8 bg-gray-800 gap-0.5 text-xs">
+          <TabsList className="grid w-full grid-cols-9 bg-gray-800 gap-0.5 text-xs">
             <TabsTrigger value="roster" className="border-r border-gray-600 last:border-r-0 flex items-center gap-1">
               Roster
               <HelpIcon content="Manage your active players. View their stats, assign positions, and make strategic decisions about your lineup." />
@@ -172,6 +173,10 @@ export default function Team() {
             <TabsTrigger value="recruiting" className="border-r border-gray-600 last:border-r-0 flex items-center gap-1">
               Recruiting
               <HelpIcon content="Scout and tryout new players. Use credits or gems to find talent that fits your team's needs." />
+            </TabsTrigger>
+            <TabsTrigger value="injury-stamina" className="border-r border-gray-600 last:border-r-0 flex items-center gap-1">
+              Health
+              <HelpIcon content="Monitor player injuries and stamina levels. Use recovery items and manage player health for optimal performance." />
             </TabsTrigger>
           </TabsList>
 
@@ -350,6 +355,10 @@ export default function Team() {
 
           <TabsContent value="recruiting">
             <TryoutSystem teamId={team?.id} />
+          </TabsContent>
+
+          <TabsContent value="injury-stamina">
+            <InjuryStaminaManager teamId={team?.id} />
           </TabsContent>
 
         {/* Player Detail Modal */}

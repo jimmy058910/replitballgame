@@ -1,0 +1,278 @@
+import { Router, Response, NextFunction } from 'express';
+import { isAuthenticated } from '../replitAuth';
+import { injuryStaminaService } from '../services/injuryStaminaService';
+import { db } from '../db';
+import { players, teams } from '../../shared/schema';
+import { eq, and } from 'drizzle-orm';
+
+const router = Router();
+
+/**
+ * Get injury and stamina status for team's players
+ */
+router.get('/team/:teamId/status', isAuthenticated, async (req: any, res: Response, next: NextFunction) => {
+  try {
+    const { teamId } = req.params;
+    const userId = req.user.claims.sub;
+
+    // Verify team ownership
+    const team = await db.select().from(teams).where(eq(teams.id, teamId)).limit(1);
+    if (!team.length || team[0].userId !== userId) {
+      return res.status(403).json({ message: "Unauthorized access to team" });
+    }
+
+    // Get all players with injury/stamina data
+    const teamPlayers = await db.select({
+      id: players.id,
+      name: players.name,
+      dailyStaminaLevel: players.dailyStaminaLevel,
+      injuryStatus: players.injuryStatus,
+      injuryRecoveryPointsNeeded: players.injuryRecoveryPointsNeeded,
+      injuryRecoveryPointsCurrent: players.injuryRecoveryPointsCurrent,
+      dailyItemsUsed: players.dailyItemsUsed,
+      stamina: players.stamina
+    }).from(players).where(eq(players.teamId, teamId));
+
+    // Calculate recovery estimates and status summaries
+    const playersWithStatus = teamPlayers.map(player => {
+      const isInjured = player.injuryStatus !== 'Healthy';
+      const recoveryProgress = isInjured 
+        ? Math.round((player.injuryRecoveryPointsCurrent / player.injuryRecoveryPointsNeeded) * 100)
+        : 100;
+      
+      const staminaStatus = player.dailyStaminaLevel >= 75 ? 'Fresh' :
+                           player.dailyStaminaLevel >= 50 ? 'Tired' :
+                           player.dailyStaminaLevel >= 25 ? 'Fatigued' : 'Exhausted';
+      
+      const canPlay = injuryStaminaService.canPlayInCompetitive(player.injuryStatus);
+      const injuryEffects = injuryStaminaService.getInjuryEffects(player.injuryStatus);
+
+      return {
+        ...player,
+        isInjured,
+        recoveryProgress,
+        staminaStatus,
+        canPlay,
+        injuryEffects,
+        canUseItems: player.dailyItemsUsed < 2
+      };
+    });
+
+    res.json({
+      players: playersWithStatus,
+      teamSummary: {
+        totalPlayers: teamPlayers.length,
+        injuredPlayers: playersWithStatus.filter(p => p.isInjured).length,
+        exhaustedPlayers: playersWithStatus.filter(p => p.dailyStaminaLevel < 25).length,
+        playersCannotPlay: playersWithStatus.filter(p => !p.canPlay).length
+      }
+    });
+  } catch (error) {
+    console.error("Error getting injury/stamina status:", error);
+    next(error);
+  }
+});
+
+/**
+ * Use a recovery item on a player
+ */
+router.post('/player/:playerId/use-item', isAuthenticated, async (req: any, res: Response, next: NextFunction) => {
+  try {
+    const { playerId } = req.params;
+    const { itemType, effectValue } = req.body;
+    const userId = req.user.claims.sub;
+
+    // Verify player ownership through team
+    const player = await db.select({
+      id: players.id,
+      teamId: players.teamId
+    }).from(players).where(eq(players.id, playerId)).limit(1);
+
+    if (!player.length) {
+      return res.status(404).json({ message: "Player not found" });
+    }
+
+    const team = await db.select().from(teams).where(eq(teams.id, player[0].teamId)).limit(1);
+    if (!team.length || team[0].userId !== userId) {
+      return res.status(403).json({ message: "Unauthorized access to player" });
+    }
+
+    // Use the item
+    const result = await injuryStaminaService.useRecoveryItem(playerId, itemType, effectValue);
+    
+    if (result.success) {
+      res.json({ success: true, message: result.message });
+    } else {
+      res.status(400).json({ success: false, message: result.message });
+    }
+  } catch (error) {
+    console.error("Error using recovery item:", error);
+    next(error);
+  }
+});
+
+/**
+ * Simulate tackle injury (for testing purposes)
+ */
+router.post('/simulate-tackle-injury', isAuthenticated, async (req: any, res: Response, next: NextFunction) => {
+  try {
+    const { playerId, tacklePower, carrierAgility, carrierStamina, gameMode } = req.body;
+    const userId = req.user.claims.sub;
+
+    // Verify player ownership
+    const player = await db.select({
+      id: players.id,
+      teamId: players.teamId
+    }).from(players).where(eq(players.id, playerId)).limit(1);
+
+    if (!player.length) {
+      return res.status(404).json({ message: "Player not found" });
+    }
+
+    const team = await db.select().from(teams).where(eq(teams.id, player[0].teamId)).limit(1);
+    if (!team.length || team[0].userId !== userId) {
+      return res.status(403).json({ message: "Unauthorized access to player" });
+    }
+
+    // Calculate injury
+    const injuryResult = await injuryStaminaService.calculateTackleInjury(
+      tacklePower, carrierAgility, carrierStamina, gameMode
+    );
+
+    // Apply injury if it occurred
+    if (injuryResult.hasInjury && injuryResult.injuryType && injuryResult.recoveryPoints) {
+      await injuryStaminaService.applyInjury(playerId, injuryResult.injuryType, injuryResult.recoveryPoints);
+    }
+
+    res.json(injuryResult);
+  } catch (error) {
+    console.error("Error simulating tackle injury:", error);
+    next(error);
+  }
+});
+
+/**
+ * Prepare team for match (set starting stamina based on game mode)
+ */
+router.post('/team/:teamId/prepare-match', isAuthenticated, async (req: any, res: Response, next: NextFunction) => {
+  try {
+    const { teamId } = req.params;
+    const { gameMode } = req.body;
+    const userId = req.user.claims.sub;
+
+    // Verify team ownership
+    const team = await db.select().from(teams).where(eq(teams.id, teamId)).limit(1);
+    if (!team.length || team[0].userId !== userId) {
+      return res.status(403).json({ message: "Unauthorized access to team" });
+    }
+
+    // Get all team players
+    const teamPlayers = await db.select({ id: players.id }).from(players).where(eq(players.teamId, teamId));
+
+    // Set match start stamina for each player
+    for (const player of teamPlayers) {
+      await injuryStaminaService.setMatchStartStamina(player.id, gameMode);
+    }
+
+    res.json({ 
+      success: true, 
+      message: `Team prepared for ${gameMode} match`,
+      playersAffected: teamPlayers.length
+    });
+  } catch (error) {
+    console.error("Error preparing team for match:", error);
+    next(error);
+  }
+});
+
+/**
+ * Complete match (apply stamina depletion)
+ */
+router.post('/team/:teamId/complete-match', isAuthenticated, async (req: any, res: Response, next: NextFunction) => {
+  try {
+    const { teamId } = req.params;
+    const { gameMode } = req.body;
+    const userId = req.user.claims.sub;
+
+    // Verify team ownership
+    const team = await db.select().from(teams).where(eq(teams.id, teamId)).limit(1);
+    if (!team.length || team[0].userId !== userId) {
+      return res.status(403).json({ message: "Unauthorized access to team" });
+    }
+
+    // Get all team players
+    const teamPlayers = await db.select({ id: players.id }).from(players).where(eq(players.teamId, teamId));
+
+    // Apply stamina depletion for each player
+    for (const player of teamPlayers) {
+      await injuryStaminaService.depleteStaminaAfterMatch(player.id, gameMode);
+    }
+
+    res.json({ 
+      success: true, 
+      message: `Match completed, stamina effects applied for ${gameMode}`,
+      playersAffected: teamPlayers.length
+    });
+  } catch (error) {
+    console.error("Error completing match:", error);
+    next(error);
+  }
+});
+
+/**
+ * Manual daily reset (admin only)
+ */
+router.post('/admin/daily-reset', isAuthenticated, async (req: any, res: Response, next: NextFunction) => {
+  try {
+    const userId = req.user.claims.sub;
+    
+    // Simple admin check (you may want to enhance this)
+    if (userId !== '44010914') {
+      return res.status(403).json({ message: "Admin access required" });
+    }
+
+    await injuryStaminaService.performDailyReset();
+    
+    res.json({ success: true, message: "Daily reset completed for all players" });
+  } catch (error) {
+    console.error("Error performing daily reset:", error);
+    next(error);
+  }
+});
+
+/**
+ * Get injury/stamina system settings and statistics
+ */
+router.get('/system/stats', isAuthenticated, async (req: any, res: Response, next: NextFunction) => {
+  try {
+    // Get overall system statistics
+    const totalPlayers = await db.select().from(players);
+    
+    const stats = {
+      totalPlayers: totalPlayers.length,
+      injuredPlayers: totalPlayers.filter(p => p.injuryStatus !== 'Healthy').length,
+      lowStaminaPlayers: totalPlayers.filter(p => p.dailyStaminaLevel < 50).length,
+      playersUsedItemsToday: totalPlayers.filter(p => p.dailyItemsUsed > 0).length,
+      
+      injuryBreakdown: {
+        minor: totalPlayers.filter(p => p.injuryStatus === 'Minor Injury').length,
+        moderate: totalPlayers.filter(p => p.injuryStatus === 'Moderate Injury').length,
+        severe: totalPlayers.filter(p => p.injuryStatus === 'Severe Injury').length
+      },
+      
+      staminaBreakdown: {
+        fresh: totalPlayers.filter(p => p.dailyStaminaLevel >= 75).length,
+        tired: totalPlayers.filter(p => p.dailyStaminaLevel >= 50 && p.dailyStaminaLevel < 75).length,
+        fatigued: totalPlayers.filter(p => p.dailyStaminaLevel >= 25 && p.dailyStaminaLevel < 50).length,
+        exhausted: totalPlayers.filter(p => p.dailyStaminaLevel < 25).length
+      }
+    };
+
+    res.json(stats);
+  } catch (error) {
+    console.error("Error getting system stats:", error);
+    next(error);
+  }
+});
+
+export default router;
