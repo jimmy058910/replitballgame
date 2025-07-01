@@ -60,7 +60,7 @@ router.get('/', isAuthenticated, async (req: Request, res: Response, next: NextF
     const shuffledEquipment = [...allEquipment].sort(() => 0.5 - seededRandom());
 
     // Select a subset for daily rotation, ensure not to select more than available
-    const dailyPremiumItemsCount = Math.min(3, shuffledPremium.length);
+    const dailyPremiumItemsCount = Math.min(4, shuffledPremium.length);
     const dailyEquipmentCount = Math.min(4, shuffledEquipment.length);
 
     const dailyPremiumItems = shuffledPremium.slice(0, dailyPremiumItemsCount);

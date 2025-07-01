@@ -11,10 +11,66 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
-import { ShoppingCart, Clock, Play, Gift, Sparkles, Zap, Star, Crown, Shield, Coins, ArrowRightLeft, Gem, History } from "lucide-react";
+import { ShoppingCart, Clock, Play, Gift, Sparkles, Zap, Star, Crown, Shield, Coins, ArrowRightLeft, Gem, History, Footprints, Shirt, Coffee, Heart, Eye, Dumbbell } from "lucide-react";
 import PaymentHistory from "@/components/PaymentHistory";
 import { AdRewardSystem } from "@/components/AdRewardSystem";
 import { HelpIcon } from "@/components/help";
+
+// Utility functions for item visuals
+const getItemIcon = (category: string, itemId: string) => {
+  if (itemId.includes('helmet')) return Shield;
+  if (itemId.includes('gloves')) return Shirt;
+  if (itemId.includes('boots')) return Footprints;
+  if (itemId.includes('armor')) return Shield;
+  if (itemId.includes('stamina')) return Heart;
+  if (itemId.includes('training')) return Dumbbell;
+  if (itemId.includes('scouting')) return Eye;
+  if (itemId.includes('contract')) return Star;
+  if (itemId.includes('performance')) return Zap;
+  if (itemId.includes('exhibition')) return Play;
+  if (itemId.includes('tournament')) return Crown;
+  
+  // Fallback by category
+  switch (category) {
+    case 'equipment': return Shield;
+    case 'consumable': return Coffee;
+    case 'currency': return Coins;
+    case 'contract': return Star;
+    case 'intel': return Eye;
+    case 'tournament': return Crown;
+    default: return Gift;
+  }
+};
+
+const getRarityColor = (rarity: string) => {
+  switch (rarity?.toLowerCase()) {
+    case 'common': return 'from-gray-500 to-gray-600';
+    case 'rare': return 'from-blue-500 to-blue-600';
+    case 'epic': return 'from-purple-500 to-purple-600';
+    case 'legendary': return 'from-orange-500 to-yellow-500';
+    default: return 'from-gray-500 to-gray-600';
+  }
+};
+
+const getRarityBorder = (rarity: string) => {
+  switch (rarity?.toLowerCase()) {
+    case 'common': return 'border-gray-300';
+    case 'rare': return 'border-blue-400';
+    case 'epic': return 'border-purple-400';
+    case 'legendary': return 'border-orange-400';
+    default: return 'border-gray-300';
+  }
+};
+
+const getRarityBadge = (rarity: string) => {
+  switch (rarity?.toLowerCase()) {
+    case 'common': return 'bg-gray-100 text-gray-800';
+    case 'rare': return 'bg-blue-100 text-blue-800';
+    case 'epic': return 'bg-purple-100 text-purple-800';
+    case 'legendary': return 'bg-orange-100 text-orange-800';
+    default: return 'bg-gray-100 text-gray-800';
+  }
+};
 
 // Initialize Stripe
 const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLIC_KEY);
@@ -230,141 +286,202 @@ export default function Store() {
           </TabsList>
 
           <TabsContent value="gems" className="space-y-6">
-            <div className="flex items-center gap-4 p-4 bg-purple-50 dark:bg-purple-900/20 rounded-lg border border-purple-200">
+            <div className="flex items-center gap-4 p-4 bg-gradient-to-r from-slate-50 to-purple-50 dark:from-slate-900 dark:to-purple-900/20 rounded-lg border border-slate-200">
               <Gem className="w-5 h-5 text-purple-500" />
               <div>
-                <p className="font-medium text-purple-800 dark:text-purple-200">Premium Gem Items</p>
-                <p className="text-sm text-purple-600 dark:text-purple-300">
-                  4 rare rotating items • Next refresh: {hoursUntilReset}h {minutesUntilReset}m (3:00 AM EST)
+                <p className="font-medium text-slate-800 dark:text-slate-200">Premium Gem Items</p>
+                <p className="text-sm text-slate-600 dark:text-slate-300">
+                  4 elite rotating items • Next refresh: {hoursUntilReset}h {minutesUntilReset}m (3:00 AM EST)
                 </p>
               </div>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {storeData?.premiumItems?.slice(0, 4).map((item: any) => (
-                <Card key={item.id} className="hover:shadow-lg transition-shadow border-purple-200 dark:border-purple-700">
-                  <CardHeader>
-                    <div className="flex items-center justify-between">
-                      <CardTitle className="text-lg text-purple-800 dark:text-purple-200">{item.name}</CardTitle>
-                      <Badge className={getRarityColor(item.rarity)}>
-                        {getRarityIcon(item.rarity)}
-                        {item.rarity}
-                      </Badge>
-                    </div>
-                    <CardDescription className="text-purple-700 dark:text-purple-300">{item.description}</CardDescription>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    <div className="flex justify-between items-center">
-                      <div className="flex items-center gap-2">
-                        <Gem className="w-5 h-5 text-purple-500" />
-                        <span className="font-bold text-purple-600 dark:text-purple-400 text-lg">{item.priceGems} Gems</span>
+              {storeData?.premiumItems?.slice(0, 4).map((item: any) => {
+                const ItemIcon = getItemIcon(item.category, item.id);
+                return (
+                  <Card key={item.id} className={`hover:shadow-lg transition-shadow ${getRarityBorder(item.rarity)} border-2`}>
+                    <CardHeader>
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                          <div className={`w-12 h-12 rounded-lg bg-gradient-to-br ${getRarityColor(item.rarity)} flex items-center justify-center`}>
+                            <ItemIcon className="w-6 h-6 text-white" />
+                          </div>
+                          <div>
+                            <CardTitle className="text-lg">{item.name}</CardTitle>
+                            <Badge className={getRarityBadge(item.rarity)} variant="secondary">
+                              {item.rarity?.toUpperCase()}
+                            </Badge>
+                          </div>
+                        </div>
                       </div>
-                      <Button 
-                        className="bg-purple-600 hover:bg-purple-700 text-white"
-                        onClick={() => purchaseItemMutation.mutate({ itemId: item.id, currency: 'gems' })}
-                        disabled={!finances?.premiumCurrency || finances.premiumCurrency < item.priceGems}
-                      >
-                        Buy Now
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
+                      <CardDescription>{item.description}</CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      {item.statBoosts && (
+                        <div className="text-xs text-muted-foreground">
+                          <p className="font-medium">Stat Boosts:</p>
+                          <div className="flex flex-wrap gap-1 mt-1">
+                            {Object.entries(item.statBoosts).map(([stat, value]: [string, any]) => (
+                              <span key={stat} className="bg-muted px-2 py-1 rounded">
+                                +{value} {stat}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                      <div className="flex justify-between items-center">
+                        <div className="flex items-center gap-2">
+                          <Gem className="w-5 h-5 text-purple-500" />
+                          <span className="font-bold text-lg">{item.priceGems} Gems</span>
+                        </div>
+                        <Button 
+                          className={`bg-gradient-to-r ${getRarityColor(item.rarity)} text-white hover:opacity-90 transition-opacity`}
+                          onClick={() => purchaseItemMutation.mutate({ itemId: item.id, currency: 'gems' })}
+                          disabled={!finances?.premiumCurrency || finances.premiumCurrency < item.priceGems}
+                        >
+                          Buy Now
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
+                );
+              })}
             </div>
           </TabsContent>
 
           <TabsContent value="credits" className="space-y-6">
-            <div className="flex items-center gap-4 p-4 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg border border-yellow-200">
+            <div className="flex items-center gap-4 p-4 bg-gradient-to-r from-amber-50 to-yellow-50 dark:from-amber-900 dark:to-yellow-900/20 rounded-lg border border-amber-200">
               <Coins className="w-5 h-5 text-yellow-500" />
               <div>
-                <p className="font-medium text-yellow-800 dark:text-yellow-200">Credit Items</p>
-                <p className="text-sm text-yellow-600 dark:text-yellow-300">
-                  6 common rotating items • Next refresh: {hoursUntilReset}h {minutesUntilReset}m (3:00 AM EST)
+                <p className="font-medium text-amber-800 dark:text-amber-200">Credit Items</p>
+                <p className="text-sm text-amber-600 dark:text-amber-300">
+                  6 rotating items • Next refresh: {hoursUntilReset}h {minutesUntilReset}m (3:00 AM EST)
                 </p>
               </div>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              {storeData?.items?.slice(0, 6).map((item: any) => (
-                <Card key={item.id} className="hover:shadow-lg transition-shadow border-yellow-200 dark:border-yellow-700">
-                  <CardHeader>
-                    <div className="flex items-center justify-between">
-                      <CardTitle className="text-lg text-yellow-800 dark:text-yellow-200">{item.name}</CardTitle>
-                      <Badge className={getRarityColor(item.rarity)}>
-                        {getRarityIcon(item.rarity)}
-                        {item.rarity}
-                      </Badge>
-                    </div>
-                    <CardDescription className="text-yellow-700 dark:text-yellow-300">{item.description}</CardDescription>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    <div className="flex justify-between items-center">
-                      <div className="flex items-center gap-2">
-                        <Coins className="w-5 h-5 text-yellow-500" />
-                        <span className="font-bold text-yellow-600 dark:text-yellow-400 text-lg">{item.price?.toLocaleString()} Credits</span>
+              {storeData?.items?.slice(0, 6).map((item: any) => {
+                const ItemIcon = getItemIcon(item.category, item.id);
+                return (
+                  <Card key={item.id} className={`hover:shadow-lg transition-shadow ${getRarityBorder(item.rarity)} border-2`}>
+                    <CardHeader>
+                      <div className="flex items-center gap-3">
+                        <div className={`w-10 h-10 rounded-lg bg-gradient-to-br ${getRarityColor(item.rarity)} flex items-center justify-center`}>
+                          <ItemIcon className="w-5 h-5 text-white" />
+                        </div>
+                        <div>
+                          <CardTitle className="text-lg">{item.name}</CardTitle>
+                          <Badge className={getRarityBadge(item.rarity)} variant="secondary">
+                            {item.rarity?.toUpperCase()}
+                          </Badge>
+                        </div>
                       </div>
-                      <Button 
-                        className="bg-yellow-600 hover:bg-yellow-700 text-white"
-                        onClick={() => purchaseItemMutation.mutate({ itemId: item.id, currency: 'credits' })}
-                        disabled={!finances?.credits || finances.credits < item.price}
-                      >
-                        Buy Now
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
+                      <CardDescription>{item.description}</CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      {item.statBoosts && (
+                        <div className="text-xs text-muted-foreground">
+                          <p className="font-medium">Stat Boosts:</p>
+                          <div className="flex flex-wrap gap-1 mt-1">
+                            {Object.entries(item.statBoosts).map(([stat, value]: [string, any]) => (
+                              <span key={stat} className="bg-muted px-2 py-1 rounded">
+                                +{value} {stat}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                      <div className="flex justify-between items-center">
+                        <div className="flex items-center gap-2">
+                          <Coins className="w-5 h-5 text-yellow-500" />
+                          <span className="font-bold text-lg">{item.price?.toLocaleString()} Credits</span>
+                        </div>
+                        <Button 
+                          className={`bg-gradient-to-r ${getRarityColor(item.rarity)} text-white hover:opacity-90 transition-opacity`}
+                          onClick={() => purchaseItemMutation.mutate({ itemId: item.id, currency: 'credits' })}
+                          disabled={!finances?.credits || finances.credits < item.price}
+                        >
+                          Buy Now
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
+                );
+              })}
             </div>
           </TabsContent>
 
-          <TabsContent value="entries">
+          <TabsContent value="entries" className="space-y-6">
+            <div className="flex items-center gap-4 p-4 bg-gradient-to-r from-emerald-50 to-blue-50 dark:from-emerald-900 dark:to-blue-900/20 rounded-lg border border-emerald-200">
+              <Crown className="w-5 h-5 text-emerald-500" />
+              <div>
+                <p className="font-medium text-emerald-800 dark:text-emerald-200">Division Tournament Entries</p>
+                <p className="text-sm text-emerald-600 dark:text-emerald-300">
+                  2 division-specific tournament options • Daily limits apply
+                </p>
+              </div>
+            </div>
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {storeData?.tournamentEntries?.map((entry: any) => (
-                <Card key={entry.id} className="hover:shadow-lg transition-shadow">
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      <Play className="w-5 h-5" />
-                      {entry.name}
-                    </CardTitle>
-                    <CardDescription>{entry.description}</CardDescription>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    <div className="flex justify-between">
-                      <div className="space-y-2">
-                        <div className="flex items-center gap-2">
-                          <Coins className="w-4 h-4 text-yellow-500" />
-                          <span>{entry.price?.toLocaleString()} Credits</span>
+              {storeData?.tournamentEntries?.filter((entry: any) => entry.category === 'tournament').map((entry: any) => {
+                const ItemIcon = getItemIcon(entry.category, entry.id);
+                return (
+                  <Card key={entry.id} className={`hover:shadow-lg transition-shadow ${getRarityBorder(entry.rarity)} border-2`}>
+                    <CardHeader>
+                      <div className="flex items-center gap-3">
+                        <div className={`w-12 h-12 rounded-lg bg-gradient-to-br ${getRarityColor(entry.rarity)} flex items-center justify-center`}>
+                          <ItemIcon className="w-6 h-6 text-white" />
                         </div>
-                        <div className="text-sm text-muted-foreground">OR</div>
-                        <div className="flex items-center gap-2">
-                          <Gem className="w-4 h-4 text-purple-500" />
-                          <span>{entry.priceGems} Premium Gems</span>
+                        <div>
+                          <CardTitle className="text-lg">{entry.name}</CardTitle>
+                          <Badge className={getRarityBadge(entry.rarity)} variant="secondary">
+                            {entry.rarity?.toUpperCase()}
+                          </Badge>
                         </div>
                       </div>
-                      <div className="space-y-2">
-                        <Button 
-                          size="sm"
-                          onClick={() => purchaseItemMutation.mutate({ itemId: entry.id, currency: 'credits' })}
-                          disabled={!finances?.credits || finances.credits < entry.price}
-                        >
-                          Buy with Credits
-                        </Button>
-                        <Button 
-                          size="sm" 
-                          variant="outline"
-                          onClick={() => purchaseItemMutation.mutate({ itemId: entry.id, currency: 'gems' })}
-                          disabled={!finances?.premiumCurrency || finances.premiumCurrency < entry.priceGems}
-                        >
-                          Buy with Gems
-                        </Button>
+                      <CardDescription>{entry.description}</CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      <div className="flex justify-between items-center">
+                        <div className="space-y-2">
+                          <div className="flex items-center gap-2">
+                            <Coins className="w-4 h-4 text-yellow-500" />
+                            <span className="font-semibold">{entry.price?.toLocaleString()} Credits</span>
+                          </div>
+                          <div className="text-sm text-muted-foreground text-center">OR</div>
+                          <div className="flex items-center gap-2">
+                            <Gem className="w-4 h-4 text-purple-500" />
+                            <span className="font-semibold">{entry.priceGems} Premium Gems</span>
+                          </div>
+                        </div>
+                        <div className="space-y-2">
+                          <Button 
+                            size="sm"
+                            className={`bg-gradient-to-r ${getRarityColor(entry.rarity)} text-white hover:opacity-90 transition-opacity`}
+                            onClick={() => purchaseItemMutation.mutate({ itemId: entry.id, currency: 'credits' })}
+                            disabled={!finances?.credits || finances.credits < entry.price}
+                          >
+                            Buy with Credits
+                          </Button>
+                          <Button 
+                            size="sm" 
+                            variant="outline"
+                            onClick={() => purchaseItemMutation.mutate({ itemId: entry.id, currency: 'gems' })}
+                            disabled={!finances?.premiumCurrency || finances.premiumCurrency < entry.priceGems}
+                          >
+                            Buy with Gems
+                          </Button>
+                        </div>
                       </div>
-                    </div>
-                    <div className="text-sm text-muted-foreground">
-                      Daily limit: {entry.dailyLimit}
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
+                      <div className="text-sm text-muted-foreground">
+                        Daily limit: {entry.dailyLimit} entry per day
+                      </div>
+                    </CardContent>
+                  </Card>
+                );
+              })}
             </div>
           </TabsContent>
 

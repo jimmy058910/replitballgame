@@ -27,10 +27,8 @@
     "performance_enhancer": { "gems": 50 },
     "exhibition_ticket": { "credits": 1500, "gems": 15 },
     "exhibition_premium": { "credits": 3000, "gems": 25 },
-    "tournament_entry_bronze": { "credits": 2500, "gems": 20 },
-    "tournament_entry_silver": { "credits": 5000, "gems": 40 },
-    "tournament_entry_gold": { "credits": 10000, "gems": 75 },
-    "tournament_entry_elite": { "gems": 120 }
+    "division_tournament_entry": { "credits": 5000, "gems": 40 },
+    "division_championship_entry": { "credits": 12000, "gems": 85 }
   },
   "creditsPerGem": 1000,
   "adSystem": {
@@ -232,19 +230,9 @@
         "dailyLimit": 2
       },
       { 
-        "id": "tournament_entry_bronze",
-        "name": "Bronze Tournament Entry", 
-        "description": "Compete in the Bronze Division tournament.",
-        "price": 2500,
-        "priceGems": 20,
-        "rarity": "common",
-        "category": "tournament",
-        "dailyLimit": 1
-      },
-      { 
-        "id": "tournament_entry_silver",
-        "name": "Silver Tournament Entry", 
-        "description": "Join the competitive Silver Division tournament.",
+        "id": "division_tournament_entry",
+        "name": "Division Tournament Entry", 
+        "description": "Enter your current division's main tournament competition.",
         "price": 5000,
         "priceGems": 40,
         "rarity": "rare",
@@ -252,21 +240,12 @@
         "dailyLimit": 1
       },
       { 
-        "id": "tournament_entry_gold",
-        "name": "Gold Tournament Entry", 
-        "description": "Elite competition in the Gold Division.",
-        "price": 10000,
-        "priceGems": 75,
+        "id": "division_championship_entry",
+        "name": "Division Championship Entry", 
+        "description": "Premium entry for your division's championship tournament with enhanced rewards.",
+        "price": 12000,
+        "priceGems": 85,
         "rarity": "epic",
-        "category": "tournament",
-        "dailyLimit": 1
-      },
-      { 
-        "id": "tournament_entry_elite",
-        "name": "Elite Championship Entry", 
-        "description": "Ultimate tournament for the most skilled teams.",
-        "priceGems": 120,
-        "rarity": "legendary",
         "category": "tournament",
         "dailyLimit": 1
       }
