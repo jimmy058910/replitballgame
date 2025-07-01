@@ -4,17 +4,9 @@ import { teamFinancesStorage } from "../storage/teamFinancesStorage";
 import { tournamentStorage } from "../storage/tournamentStorage";
 import { isAuthenticated } from "../replitAuth";
 import { z } from "zod";
+import { getDivisionName } from "../../shared/divisionUtils";
 
 const router = Router();
-
-// TODO: Move to a shared utility or keep if only used here
-function getDivisionName(division: number): string {
-  const names: { [key: number]: string } = {
-    1: "Diamond", 2: "Ruby", 3: "Emerald", 4: "Sapphire",
-    5: "Gold", 6: "Silver", 7: "Bronze", 8: "Iron"
-  };
-  return names[division] || `Division ${division}`;
-}
 
 const enterTournamentParamsSchema = z.object({
     id: z.string().uuid("Invalid tournament ID format"), // Assuming tournament IDs are UUIDs

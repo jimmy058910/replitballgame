@@ -44,6 +44,8 @@ Built as a React + Express web application with PostgreSQL database, using moder
 - ✓ Fixed Server Time Display: Corrected server time endpoint to properly show Eastern time and scheduling window status
 - ✓ Cleaned Navigation Architecture: Navigation now renders only once globally in App.tsx, eliminated all duplicate Navigation components from individual pages
 - ✓ Improved User Experience: Single consistent navigation bar and interactive Dashboard elements throughout entire application
+- ✓ DASHBOARD UI REFINEMENTS: Changed team name display from "My Team - Oakland Cougars" to just "Oakland Cougars" and reduced Power figure size from 64px to 48px to prevent player name overflow
+- ✓ CENTRALIZED DIVISION NAMING SYSTEM: Created shared/divisionUtils.ts to fix inconsistent division names across application, restored proper names like "Stone League" for Division 7 instead of generic "Rookie League"
 
 ### January 1, 2025 - COMPREHENSIVE PLAYER AGING SYSTEM IMPLEMENTATION (Previous)
 - ✓ ADVANCED AGING MECHANICS: Implemented comprehensive player aging system with realistic age progression and career lifecycle management
