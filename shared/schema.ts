@@ -40,6 +40,8 @@ export const users = pgTable("users", {
   totalAdWatchCount: integer("total_ad_watch_count").default(0),
   premiumRewardProgress: integer("premium_reward_progress").default(0),
   role: varchar("role", { length: 20 }).default("user"),
+  replitId: varchar("replit_id"),
+  claims: jsonb("claims"),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
@@ -55,6 +57,7 @@ export const teams = pgTable("teams", {
   points: integer("points").default(0),
   teamPower: integer("team_power").default(0),
   teamCamaraderie: integer("team_camaraderie").default(50),
+  camaraderie: integer("camaraderie").default(50),
   championshipsWon: integer("championships_won").default(0),
   credits: integer("credits").default(50000),
   gems: integer("gems").default(0),
@@ -208,6 +211,7 @@ export const staff = pgTable("staff", {
   name: varchar("name").notNull(),
   level: integer("level").default(1),
   salary: integer("salary").notNull(),
+  position: varchar("position"),
   
   offenseRating: integer("offense_rating").default(0),
   defenseRating: integer("defense_rating").default(0),
@@ -216,6 +220,7 @@ export const staff = pgTable("staff", {
   recruitingRating: integer("recruiting_rating").default(0),
   recoveryRating: integer("recovery_rating").default(0),
   coachingRating: integer("coaching_rating").default(0),
+  tactics: integer("tactics").default(0),
   
   abilities: jsonb("abilities").default([]),
   createdAt: timestamp("created_at").defaultNow(),

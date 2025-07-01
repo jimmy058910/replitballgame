@@ -484,7 +484,7 @@ export class EnhancedGameEconomyService {
     const maintenanceCosts = await this.calculateMaintenanceCosts(teamId);
 
     const nextUpgradeCosts = stadium ? {
-      capacity: this.calculateUpgradeCost('capacity', 0, stadium.capacity),
+      capacity: this.calculateUpgradeCost('capacity', 0, stadium.capacity ?? 10000),
       concessions: this.calculateUpgradeCost('concessions', stadium.concessionsLevel || 1),
       parking: this.calculateUpgradeCost('parking', stadium.parkingLevel || 1),
       vipSuites: this.calculateUpgradeCost('vip_suites', stadium.vipSuitesLevel || 0),

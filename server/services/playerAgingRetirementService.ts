@@ -77,7 +77,7 @@ export class PlayerAgingRetirementService {
     
     // Get potential modifier based on stat's potential rating
     const statPotential = this.getStatPotential(player, statName);
-    const potentialModifier = this.DEVELOPMENT_CONFIG.POTENTIAL_MODIFIERS[statPotential] || 0;
+    const potentialModifier = (this.DEVELOPMENT_CONFIG.POTENTIAL_MODIFIERS as any)[statPotential] || 0;
     
     // Age modifier
     const age = player.age || 20;
@@ -134,7 +134,7 @@ export class PlayerAgingRetirementService {
     if (age < 35) return 0;
     if (age >= 45) return 100;
     
-    const baseChance = this.RETIREMENT_CHANCES[age] || 0;
+    const baseChance = (this.RETIREMENT_CHANCES as any)[age] || 0;
     const injuryModifier = careerInjuries * 2;
     
     let playingTimeModifier = 0;
@@ -170,7 +170,7 @@ export class PlayerAgingRetirementService {
     const coreStats = ['speed', 'agility', 'power', 'throwing', 'catching', 'kicking', 'leadership', 'stamina'];
     
     for (const statName of coreStats) {
-      const currentValue = player[statName] || 0;
+      const currentValue = (player as any)[statName] || 0;
       const potentialRating = this.getStatPotential(player, statName);
       const statCap = this.getStatCap(potentialRating);
       

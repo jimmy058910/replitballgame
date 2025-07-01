@@ -198,7 +198,7 @@ export class AdvancedTacticalEffectsService {
 
     // Get tactical focus effects
     const tacticalFocus = team.tacticalFocus || 'Balanced';
-    const baseTacticalEffects = this.TACTICAL_FOCUS_EFFECTS[tacticalFocus];
+    const baseTacticalEffects = (this.TACTICAL_FOCUS_EFFECTS as any)[tacticalFocus];
 
     // Get head coach tactics rating
     const headCoach = await db
@@ -209,7 +209,7 @@ export class AdvancedTacticalEffectsService {
         eq(staff.position, 'Head Coach')
       ));
 
-    const coachTacticsRating = headCoach[0]?.tactics || 50;
+    const coachTacticsRating = (headCoach[0] as any)?.tactics || 50;
 
     // Calculate game situation
     const gameSituation = this.calculateGameSituation(
@@ -220,7 +220,7 @@ export class AdvancedTacticalEffectsService {
     const situationalEffects = this.applySituationalModifiers(
       baseTacticalEffects.effects,
       gameSituation,
-      team.camaraderie || 50,
+      (team as any).camaraderie || 50,
       coachTacticsRating
     );
 
