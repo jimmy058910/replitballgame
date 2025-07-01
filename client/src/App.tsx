@@ -23,7 +23,7 @@ import LogoShowcase from "@/pages/LogoShowcase";
 import SuperUser from "@/pages/SuperUser";
 import TextMatch from "@/pages/TextMatch";
 import Community from "@/pages/Community";
-
+import Camaraderie from "@/pages/Camaraderie";
 
 import Navigation from "@/components/Navigation";
 
@@ -52,6 +52,7 @@ function Router() {
           <Route path="/text-match/:matchId" component={TextMatch} />
           <Route path="/match/:matchId" component={TextMatch} />
           <Route path="/community" component={Community} />
+          <Route path="/camaraderie" component={Camaraderie} />
           <Route path="/superuser" component={SuperUser} />
         </>
       )}
@@ -64,8 +65,11 @@ function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
-        <Toaster />
-        <Router />
+        <div className="min-h-screen bg-background">
+          <Navigation />
+          <Router />
+          <Toaster />
+        </div>
       </TooltipProvider>
     </QueryClientProvider>
   );

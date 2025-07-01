@@ -1,5 +1,5 @@
 import type { Player, Team } from "@shared/schema";
-import { getTeamCamaraderie } from "./camaraderieService"; // From jules
+import { CamaraderieService } from "./camaraderieService";
 
 interface MatchEvent {
   time: number;
@@ -39,10 +39,10 @@ export async function simulateMatch(
   let awayTeamCamaraderie = 50;
 
   if (homeTeamId) {
-    homeTeamCamaraderie = await getTeamCamaraderie(homeTeamId) || 50;
+    homeTeamCamaraderie = await CamaraderieService.getTeamCamaraderie(homeTeamId) || 50;
   }
   if (awayTeamId) {
-    awayTeamCamaraderie = await getTeamCamaraderie(awayTeamId) || 50;
+    awayTeamCamaraderie = await CamaraderieService.getTeamCamaraderie(awayTeamId) || 50;
   }
 
   let tempHomeTeamPlayers = homeTeamPlayers.map(p => ({ ...p }));

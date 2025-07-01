@@ -61,6 +61,10 @@ export class TeamStorage {
     return team;
   }
 
+  async getTeams(): Promise<Team[]> {
+    return await db.select().from(teams);
+  }
+
   async getTeamsByDivision(division: number): Promise<Team[]> {
     return await db
       .select()

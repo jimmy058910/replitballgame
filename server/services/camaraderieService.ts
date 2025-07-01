@@ -1,240 +1,400 @@
-// server/services/camaraderieService.ts
 import { db } from "../db";
-import { players, teams, staff } from "@shared/schema";
+import { logInfo, logError, ErrorCreators } from "./errorService";
 import { eq, sql } from "drizzle-orm";
-import type { Player, Team, Staff } from "@shared/schema";
+import * as schema from "@shared/schema";
 
 /**
- * Clamps a number between a minimum and maximum value.
- * @param value The number to clamp.
- * @param min The minimum value.
- * @param max The maximum value.
- * @returns The clamped number.
+ * Comprehensive Team & Player Camaraderie System
+ * 
+ * Manages individual player camaraderie and team-wide effects including:
+ * - End-of-season camaraderie updates based on team performance
+ * - Contract negotiation willingness adjustments
+ * - In-game stat bonuses/penalties
+ * - Player development and injury risk modifications
  */
-function clamp(value: number, min: number, max: number): number {
-  return Math.max(min, Math.min(value, max));
+
+export interface CamaraderieEffects {
+  teamCamaraderie: number;
+  status: 'in_sync' | 'neutral' | 'out_of_sorts';
+  contractNegotiationBonus: number;
+  inGameStatBonus: {
+    catching: number;
+    agility: number;
+    passAccuracy: number;
+  };
+  developmentBonus: number;
+  injuryReduction: number;
 }
 
-interface PlayerWithTeamAndCoach extends Player {
-  team: Team;
-  headCoach?: Staff | null; // Assuming head coach is fetched separately or joined
+export interface SeasonEndCamaraderieUpdate {
+  playerId: string;
+  oldCamaraderie: number;
+  newCamaraderie: number;
+  factors: {
+    decay: number;
+    loyaltyBonus: number;
+    winningBonus: number;
+    championshipBonus: number;
+    coachBonus: number;
+    losingPenalty: number;
+  };
 }
 
-/**
- * Updates the individual camaraderie score for a single player at the end of a season.
- * This function will be called as part of the "End of Season (Day 17)" event.
- */
-export async function updatePlayerCamaraderieEndOfSeason(
-  playerId: string,
-  teamWinPercentage: number,
-  teamWonChampionship: boolean,
-  headCoachLeadership: number = 0 // Default to 0 if no coach or leadership stat
-): Promise<void> {
-  const player = await db.select().from(players).where(eq(players.id, playerId)).limit(1).then(res => res[0]);
-
-  if (!player) {
-    console.error(`Player with ID ${playerId} not found for camaraderie update.`);
-    return;
+export class CamaraderieService {
+  
+  /**
+   * Calculate team camaraderie as average of all player camaraderie scores
+   */
+  static async getTeamCamaraderie(teamId: string): Promise<number> {
+    try {
+      const result = await db
+        .select({
+          avgCamaraderie: sql<number>`COALESCE(AVG(${schema.players.camaraderie}), 50)`
+        })
+        .from(schema.players)
+        .where(eq(schema.players.teamId, teamId));
+      
+      return Math.round(result[0]?.avgCamaraderie || 50);
+    } catch (error) {
+      logError(error as Error, undefined, { teamId, operation: 'getTeamCamaraderie' });
+      return 50; // Default neutral camaraderie
+    }
   }
-
-  let currentCamaraderie = player.camaraderie || 50;
-  let camaraderieBonus = 0;
-
-  // 1. Apply Small Annual Decay
-  currentCamaraderie -= 5;
-
-  // 2. Apply Positive Modifiers
-  // Years with Team (Loyalty Bonus)
-  const yearsOnTeam = player.yearsOnTeam || 0;
-  camaraderieBonus += yearsOnTeam * 2;
-
-  // Team Success (Winning)
-  if (teamWinPercentage >= 0.60) {
-    camaraderieBonus += 10;
+  
+  /**
+   * Get comprehensive camaraderie effects for a team
+   */
+  static async getCamaraderieEffects(teamId: string): Promise<CamaraderieEffects> {
+    const teamCamaraderie = await this.getTeamCamaraderie(teamId);
+    
+    // Determine status
+    let status: 'in_sync' | 'neutral' | 'out_of_sorts' = 'neutral';
+    if (teamCamaraderie > 75) status = 'in_sync';
+    else if (teamCamaraderie < 35) status = 'out_of_sorts';
+    
+    // Contract negotiation effects
+    const contractNegotiationBonus = (teamCamaraderie - 50) * 0.2;
+    
+    // In-game stat effects
+    let catching = 0, agility = 0, passAccuracy = 0;
+    if (status === 'in_sync') {
+      catching = 2;
+      agility = 2;
+      passAccuracy = 2; // Reduced pass inaccuracy
+    } else if (status === 'out_of_sorts') {
+      catching = -2;
+      agility = -1;
+      passAccuracy = -2; // Increased pass inaccuracy
+    }
+    
+    // Development bonus for high camaraderie teams
+    const developmentBonus = teamCamaraderie > 75 ? 5 : 0; // 5% boost to progression
+    
+    // Injury reduction for very high camaraderie
+    const injuryReduction = teamCamaraderie > 80 ? 2 : 0; // 2% reduction in injury chance
+    
+    return {
+      teamCamaraderie,
+      status,
+      contractNegotiationBonus,
+      inGameStatBonus: { catching, agility, passAccuracy },
+      developmentBonus,
+      injuryReduction
+    };
   }
-  if (teamWonChampionship) {
-    camaraderieBonus += 25; // This is a huge bonding moment!
-  }
-
-  // Head Coach Influence (Leadership)
-  camaraderieBonus += headCoachLeadership * 0.5;
-
-  // 3. Apply Negative Modifiers
-  // Team Failure (Losing)
-  if (teamWinPercentage <= 0.40) {
-    // Note: This was camaraderie_bonus -= 10 in the spec, applying to the bonus.
-    // If it's meant to be a direct penalty to current camaraderie, it should be:
-    // currentCamaraderie -= 10;
-    // For now, interpreting as reducing the positive bonus accumulation for the year.
-    camaraderieBonus -= 10;
-  }
-
-  // 4. Final Calculation
-  let newCamaraderie = currentCamaraderie + camaraderieBonus;
-  newCamaraderie = clamp(newCamaraderie, 0, 100);
-
-  await db.update(players)
-    .set({
-      camaraderie: newCamaraderie,
-      yearsOnTeam: (player.yearsOnTeam || 0) + 1 // Increment years on team
-    })
-    .where(eq(players.id, playerId));
-
-  console.log(`Player ${player.name} (${playerId}) camaraderie updated to ${newCamaraderie}. Years on team: ${ (player.yearsOnTeam || 0) + 1}`);
-}
-
-/**
- * Calculates and updates the overall team camaraderie score based on its players.
- * This should be called whenever team composition changes or individual player camaraderie is updated.
- */
-export async function updateTeamCamaraderie(teamId: string): Promise<void> {
-  const teamPlayers = await db.select({ camaraderie: players.camaraderie })
-    .from(players)
-    .where(eq(players.teamId, teamId));
-
-  if (teamPlayers.length === 0) {
-    await db.update(teams).set({ teamCamaraderie: 50 }).where(eq(teams.id, teamId)); // Default for empty team
-    console.log(`Team ${teamId} has no players. Camaraderie set to default 50.`);
-    return;
-  }
-
-  const totalCamaraderie = teamPlayers.reduce((sum, player) => sum + (player.camaraderie || 0), 0);
-  const averageCamaraderie = totalCamaraderie / teamPlayers.length;
-  const finalTeamCamaraderie = clamp(Math.round(averageCamaraderie), 0, 100);
-
-  await db.update(teams)
-    .set({ teamCamaraderie: finalTeamCamaraderie })
-    .where(eq(teams.id, teamId));
-
-  console.log(`Team ${teamId} camaraderie updated to ${finalTeamCamaraderie}.`);
-}
-
-// Placeholder for End of Season event function that would iterate through players
-/**
- * Simulates the end-of-season process for updating camaraderie for all players on a team.
- */
-export async function processEndOfSeasonCamaraderieForTeam(teamId: string): Promise<void> {
-  const teamData = await db.select().from(teams).where(eq(teams.id, teamId)).limit(1).then(res => res[0]);
-  if (!teamData) {
-    console.error(`Team ${teamId} not found for end-of-season camaraderie processing.`);
-    return;
-  }
-
-  const teamPlayers = await db.select({ id: players.id }).from(players).where(eq(players.teamId, teamId));
-
-  // Calculate win percentage (assuming wins and losses are tracked on the team object)
-  const gamesPlayed = (teamData.wins || 0) + (teamData.losses || 0) + (teamData.draws || 0);
-  const winPercentage = gamesPlayed > 0 ? (teamData.wins || 0) / gamesPlayed : 0;
-
-  // Fetch Head Coach - Assuming 'head_coach' is a type in the staff table
-  // This part needs to be adapted based on how head coach is actually linked or identified.
-  // For now, let's assume we can query the staff table for a head coach.
-  const headCoach = await db.select().from(staff)
-    .where(sql`${staff.teamId} = ${teamId} AND ${staff.type} = 'head_coach'`)
-    .limit(1).then(res => res[0]);
-
-  const headCoachLeadership = headCoach?.coachingRating || 0; // Assuming 'coachingRating' holds leadership value
-
-  // Determine if championship was won (this needs to be set elsewhere in game logic)
-  // For this example, let's use the new `championshipsWon` field, assuming it's for the current season.
-  // A more robust system would check if teamData.championshipsWon increased this season.
-  // For now, if championshipsWon > 0, let's assume they won *this* season for simplicity in this function.
-  // This should ideally be a flag passed in, e.g., `wonChampionshipThisSeason`.
-  const teamWonChampionship = (teamData.championshipsWon || 0) > 0; // Simplified: needs proper season tracking
-
-  console.log(`Processing End of Season for Team ${teamId}: Win% ${winPercentage.toFixed(2)}, Won Champ: ${teamWonChampionship}, Coach Leadership: ${headCoachLeadership}`);
-
-  for (const player of teamPlayers) {
-    await updatePlayerCamaraderieEndOfSeason(player.id, winPercentage, teamWonChampionship, headCoachLeadership);
-  }
-
-  // After all players are updated, recalculate the overall team camaraderie
-  await updateTeamCamaraderie(teamId);
-
-  // Reset seasonal stats like wins/losses for the new season (example)
-  // This might be part of a larger end-of-season service
-  // await db.update(teams).set({ wins: 0, losses: 0, draws: 0 }).where(eq(teams.id, teamId));
-}
-
-/**
- * Retrieves the current team camaraderie score.
- */
-export async function getTeamCamaraderie(teamId: string): Promise<number | null> {
-  const team = await db.select({ teamCamaraderie: teams.teamCamaraderie })
-    .from(teams)
-    .where(eq(teams.id, teamId))
-    .limit(1)
-    .then(res => res[0]);
-
-  return team?.teamCamaraderie ?? null;
-}
-
-/**
- * Retrieves a player's individual camaraderie score.
- */
-export async function getPlayerCamaraderie(playerId: string): Promise<number | null> {
-  const player = await db.select({ camaraderie: players.camaraderie })
-    .from(players)
-    .where(eq(players.id, playerId))
-    .limit(1)
-    .then(res => res[0]);
-
-  return player?.camaraderie ?? null;
-}
-
-// TODO:
-// - Integrate `processEndOfSeasonCamaraderieForTeam` into the actual end-of-season game event.
-// - Ensure `championshipsWon` is correctly updated and reflects *this season's* win for the bonus.
-// - Refine head coach fetching and leadership stat usage.
-// - Call `updateTeamCamaraderie` whenever a player is traded, signed, or released.
-
-/**
- * Applies end-of-season player progression, potentially boosted by team camaraderie.
- * This is a placeholder and needs integration with actual progression mechanics.
- */
-export async function applyEndOfSeasonPlayerProgression(teamId: string): Promise<void> {
-  const teamCamaraderie = await getTeamCamaraderie(teamId);
-  const teamPlayers = await db.select().from(players).where(eq(players.teamId, teamId));
-
-  if (teamPlayers.length === 0) {
-    console.log(`Team ${teamId} has no players for progression.`);
-    return;
-  }
-
-  const isHighCamaraderie = teamCamaraderie !== null && teamCamaraderie > 75;
-  console.log(`Processing EoS Player Progression for Team ${teamId}. Camaraderie: ${teamCamaraderie}, High Camaraderie Boost: ${isHighCamaraderie}`);
-
-  for (const player of teamPlayers) {
-    if (player.age < 24) {
-      let progressionChance = 0.20; // Base 20% progression chance (EXAMPLE VALUE)
-      if (isHighCamaraderie) {
-        progressionChance += 0.05; // +5% boost
-        console.log(`Player ${player.name} (Age ${player.age}) gets camaraderie progression boost. New chance: ${progressionChance.toFixed(2)}`);
+  
+  /**
+   * Update individual player camaraderie based on end-of-season factors
+   */
+  static async updatePlayerCamaraderieEndOfSeason(
+    playerId: string,
+    teamPerformance: {
+      winPercentage: number;
+      wonChampionship: boolean;
+    },
+    headCoachLeadership: number
+  ): Promise<SeasonEndCamaraderieUpdate> {
+    
+    try {
+      // Get current player data
+      const player = await db.query.players.findFirst({
+        where: eq(schema.players.id, playerId),
+        columns: { 
+          id: true, 
+          camaraderie: true, 
+          yearsOnTeam: true 
+        }
+      });
+      
+      if (!player) {
+        throw ErrorCreators.notFound(`Player ${playerId} not found`);
       }
-
-      // TODO: Actual progression roll and stat update logic
-      // This part needs to be defined:
-      // - How is progression determined beyond this chance?
-      // - Which stats improve? By how much? Based on potential?
-      if (Math.random() < progressionChance) {
-        console.log(`Player ${player.name} (ID: ${player.id}) progressed! (Stat update logic TBD)`);
-        // Example: await db.update(players).set({ speed: (player.speed || 0) + 1 }).where(eq(players.id, player.id));
-      } else {
-        console.log(`Player ${player.name} (ID: ${player.id}) did not progress this season.`);
+      
+      const oldCamaraderie = player.camaraderie || 50;
+      let newCamaraderie = oldCamaraderie;
+      
+      // Initialize factor tracking
+      const factors = {
+        decay: -5,
+        loyaltyBonus: 0,
+        winningBonus: 0,
+        championshipBonus: 0,
+        coachBonus: 0,
+        losingPenalty: 0
+      };
+      
+      // 1. Apply annual decay
+      newCamaraderie -= 5;
+      
+      // 2. Years with team loyalty bonus
+      const yearsBonus = (player.yearsOnTeam || 0) * 2;
+      factors.loyaltyBonus = yearsBonus;
+      newCamaraderie += yearsBonus;
+      
+      // 3. Team success bonuses
+      if (teamPerformance.wonChampionship) {
+        factors.championshipBonus = 25;
+        newCamaraderie += 25;
+      } else if (teamPerformance.winPercentage >= 0.60) {
+        factors.winningBonus = 10;
+        newCamaraderie += 10;
       }
+      
+      // 4. Head coach leadership influence
+      const coachBonus = Math.round(headCoachLeadership * 0.5);
+      factors.coachBonus = coachBonus;
+      newCamaraderie += coachBonus;
+      
+      // 5. Team failure penalty
+      if (teamPerformance.winPercentage <= 0.40) {
+        factors.losingPenalty = -10;
+        newCamaraderie -= 10;
+      }
+      
+      // 6. Clamp to valid range (0-100)
+      newCamaraderie = Math.max(0, Math.min(100, newCamaraderie));
+      
+      // Update player camaraderie in database
+      await db.update(schema.players)
+        .set({ camaraderie: newCamaraderie })
+        .where(eq(schema.players.id, playerId));
+      
+      logInfo("Player camaraderie updated", {
+        playerId,
+        oldCamaraderie,
+        newCamaraderie,
+        factors
+      });
+      
+      return {
+        playerId,
+        oldCamaraderie,
+        newCamaraderie,
+        factors
+      };
+      
+    } catch (error) {
+      logError(error as Error, undefined, { 
+        playerId, 
+        operation: 'updatePlayerCamaraderieEndOfSeason' 
+      });
+      throw error;
+    }
+  }
+  
+  /**
+   * Update camaraderie for all players on a team at end of season
+   */
+  static async updateTeamCamaraderieEndOfSeason(teamId: string): Promise<SeasonEndCamaraderieUpdate[]> {
+    try {
+      // Get team performance data
+      const team = await db.query.teams.findFirst({
+        where: eq(schema.teams.id, teamId),
+        columns: { 
+          wins: true, 
+          losses: true, 
+          draws: true 
+        }
+      });
+      
+      if (!team) {
+        throw ErrorCreators.notFound(`Team ${teamId} not found`);
+      }
+      
+      // Calculate win percentage
+      const totalGames = (team.wins || 0) + (team.losses || 0) + (team.draws || 0);
+      const winPercentage = totalGames > 0 ? (team.wins || 0) / totalGames : 0;
+      
+      // Get head coach leadership (using coachingRating)
+      const headCoach = await db.query.staff.findFirst({
+        where: eq(schema.staff.teamId, teamId),
+        columns: { coachingRating: true }
+      });
+      
+      const headCoachLeadership = headCoach?.coachingRating || 20; // Default coaching rating
+      
+      // Determine if team won championship (placeholder - would need tournament/playoff data)
+      const wonChampionship = false; // TODO: Integrate with playoff/tournament system
+      
+      // Get all players on the team
+      const players = await db.query.players.findMany({
+        where: eq(schema.players.teamId, teamId),
+        columns: { id: true }
+      });
+      
+      // Update each player's camaraderie
+      const updates: SeasonEndCamaraderieUpdate[] = [];
+      for (const player of players) {
+        const update = await this.updatePlayerCamaraderieEndOfSeason(
+          player.id,
+          { winPercentage, wonChampionship },
+          headCoachLeadership
+        );
+        updates.push(update);
+      }
+      
+      logInfo("Team camaraderie updated for end of season", {
+        teamId,
+        playersUpdated: updates.length,
+        teamPerformance: { winPercentage, wonChampionship }
+      });
+      
+      return updates;
+      
+    } catch (error) {
+      logError(error as Error, undefined, { 
+        teamId, 
+        operation: 'updateTeamCamaraderieEndOfSeason' 
+      });
+      throw error;
+    }
+  }
+  
+  /**
+   * Apply camaraderie effects to contract negotiation
+   */
+  static applyContractNegotiationEffects(
+    playerId: string,
+    playerCamaraderie: number,
+    baseWillingnessToSign: number
+  ): number {
+    const camaraderieBonus = (playerCamaraderie - 50) * 0.2;
+    const adjustedWillingness = baseWillingnessToSign + camaraderieBonus;
+    
+    logInfo("Contract negotiation camaraderie effect applied", {
+      playerId,
+      playerCamaraderie,
+      camaraderieBonus,
+      baseWillingnessToSign,
+      adjustedWillingness
+    });
+    
+    return Math.max(0, Math.min(100, adjustedWillingness));
+  }
+  
+  /**
+   * Apply temporary in-game stat modifications based on team camaraderie
+   */
+  static async applyMatchStatModifications(teamId: string): Promise<{
+    catching: number;
+    agility: number;
+    passAccuracy: number;
+    status: string;
+  }> {
+    const effects = await this.getCamaraderieEffects(teamId);
+    
+    logInfo("Match stat modifications applied", {
+      teamId,
+      teamCamaraderie: effects.teamCamaraderie,
+      status: effects.status,
+      statBonuses: effects.inGameStatBonus
+    });
+    
+    return {
+      ...effects.inGameStatBonus,
+      status: effects.status
+    };
+  }
+  
+  /**
+   * Check if team qualifies for development bonus
+   */
+  static async getProgressionBonus(teamId: string): Promise<number> {
+    const effects = await this.getCamaraderieEffects(teamId);
+    return effects.developmentBonus;
+  }
+  
+  /**
+   * Get injury risk reduction for high-camaraderie teams
+   */
+  static async getInjuryReduction(teamId: string): Promise<number> {
+    const effects = await this.getCamaraderieEffects(teamId);
+    return effects.injuryReduction;
+  }
+  
+  /**
+   * Increment years on team for all players (called during season transitions)
+   */
+  static async incrementYearsOnTeam(teamId: string): Promise<void> {
+    try {
+      await db.update(schema.players)
+        .set({ 
+          yearsOnTeam: sql`${schema.players.yearsOnTeam} + 1` 
+        })
+        .where(eq(schema.players.teamId, teamId));
+      
+      logInfo("Years on team incremented", { teamId });
+    } catch (error) {
+      logError(error as Error, undefined, { 
+        teamId, 
+        operation: 'incrementYearsOnTeam' 
+      });
+      throw error;
+    }
+  }
+  
+  /**
+   * Get camaraderie summary for team management UI
+   */
+  static async getCamaraderieSummary(teamId: string): Promise<{
+    teamCamaraderie: number;
+    status: string;
+    playerCount: number;
+    highMoraleCount: number;
+    lowMoraleCount: number;
+    averageYearsOnTeam: number;
+    effects: CamaraderieEffects;
+  }> {
+    try {
+      const effects = await this.getCamaraderieEffects(teamId);
+      
+      const playerStats = await db
+        .select({
+          playerCount: sql<number>`COUNT(*)`,
+          highMoraleCount: sql<number>`COUNT(CASE WHEN ${schema.players.camaraderie} >= 75 THEN 1 END)`,
+          lowMoraleCount: sql<number>`COUNT(CASE WHEN ${schema.players.camaraderie} <= 35 THEN 1 END)`,
+          avgYearsOnTeam: sql<number>`COALESCE(AVG(${schema.players.yearsOnTeam}), 0)`
+        })
+        .from(schema.players)
+        .where(eq(schema.players.teamId, teamId));
+      
+      const stats = playerStats[0];
+      
+      return {
+        teamCamaraderie: effects.teamCamaraderie,
+        status: effects.status,
+        playerCount: Number(stats.playerCount),
+        highMoraleCount: Number(stats.highMoraleCount),
+        lowMoraleCount: Number(stats.lowMoraleCount),
+        averageYearsOnTeam: Math.round(Number(stats.avgYearsOnTeam) * 10) / 10,
+        effects
+      };
+    } catch (error) {
+      logError(error as Error, undefined, { 
+        teamId, 
+        operation: 'getCamaraderieSummary' 
+      });
+      throw error;
     }
   }
 }
-
-// Extend processEndOfSeasonCamaraderieForTeam to include progression
-export async function processFullEndOfSeason(teamId: string): Promise<void> {
-  console.log(`Starting Full End of Season Process for Team ${teamId}`);
-  await processEndOfSeasonCamaraderieForTeam(teamId); // Updates camaraderie and yearsOnTeam
-  await applyEndOfSeasonPlayerProgression(teamId); // Applies progression checks
-  console.log(`Full End of Season Process for Team ${teamId} Completed.`);
-  // Potentially reset seasonal stats like wins/losses here if not done elsewhere
-  // await db.update(teams).set({ wins: 0, losses: 0, draws: 0, championshipsWonThisSeason: false (if such a field exists) }).where(eq(teams.id, teamId));
-}
-
-
-console.log("Camaraderie service initialized with progression placeholders.");
