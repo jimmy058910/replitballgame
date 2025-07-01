@@ -128,27 +128,7 @@ export default function Competition() {
           </Card>
         )}
 
-        {/* Rest of season info */}
-        {currentCycle && (
-          <Card className="bg-gray-800 border-gray-700 mb-6">
-            <CardContent className="p-4">
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-                <div>
-                  <span className="text-gray-400">
-                    {currentCycle?.phase === "Regular Season" ? "Playoffs in:" : 
-                     currentCycle?.daysUntilPlayoffs ? "Playoffs in:" : 
-                     "New season in:"}
-                  </span>
-                  <div className="font-semibold">
-                    {currentCycle?.daysUntilPlayoffs || 
-                     (currentCycle?.daysUntilNewSeason && currentCycle?.phase === "Off-Season" ? 
-                      `${currentCycle?.daysUntilNewSeason} days` : "TBD")}
-                  </div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        )}
+
 
         <Tabs defaultValue="league" className="space-y-6">
           <TabsList className="grid w-full grid-cols-3 bg-gray-800">
