@@ -13,6 +13,20 @@ app.use(express.urlencoded({ extended: false }));
 // Add request ID middleware early in the chain
 app.use(requestIdMiddleware);
 
+// Add cache-busting and CORS headers for Replit preview
+app.use((req, res, next) => {
+  res.header('Cache-Control', 'no-cache, no-store, must-revalidate');
+  res.header('Pragma', 'no-cache');
+  res.header('Expires', '0');
+  res.header('Access-Control-Allow-Origin', '*');
+  next();
+});
+
+// Health check endpoint for Replit preview detection
+app.get('/health', (req, res) => {
+  res.status(200).json({ status: 'ok', timestamp: new Date().toISOString() });
+});
+
 // Enhanced logging middleware with structured logging
 app.use((req, res, next) => {
   const start = Date.now();
