@@ -15,17 +15,8 @@ import {
   ChevronRight,
   Play
 } from "lucide-react";
-import { useState } from "react";
 
 export default function Landing() {
-  const [selectedLogo, setSelectedLogo] = useState("/logo-modern-1.svg");
-
-  const logos = [
-    { src: "/logo-modern-1.svg", name: "Modern Gaming" },
-    { src: "/logo-modern-2.svg", name: "Athletic Badge" },
-    { src: "/logo-modern-3.svg", name: "Tech Nexus" },
-    { src: "/logo-modern-4.svg", name: "Championship Shield" }
-  ];
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-indigo-900">
@@ -37,29 +28,14 @@ export default function Landing() {
         <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-purple-500/10 rounded-full blur-3xl"></div>
         
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-20 pb-32">
-          {/* Logo Selector */}
+          {/* Logo */}
           <div className="text-center mb-8">
             <div className="mb-6">
               <img 
-                src={selectedLogo} 
+                src="/logo-modern-2.svg" 
                 alt="Realm Rivalry" 
                 className="mx-auto w-80 h-auto drop-shadow-2xl"
               />
-            </div>
-            <div className="flex justify-center gap-2 mb-8">
-              {logos.map((logo, index) => (
-                <button
-                  key={index}
-                  onClick={() => setSelectedLogo(logo.src)}
-                  className={`px-3 py-1 text-xs rounded-full transition-all ${
-                    selectedLogo === logo.src 
-                      ? 'bg-blue-600 text-white' 
-                      : 'bg-white/10 text-gray-300 hover:bg-white/20'
-                  }`}
-                >
-                  {logo.name}
-                </button>
-              ))}
             </div>
           </div>
 
@@ -67,7 +43,7 @@ export default function Landing() {
           <div className="text-center text-white">
             <div className="mb-6">
               <Badge className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-4 py-2 text-sm font-semibold">
-                🏆 #1 Fantasy Sports Experience
+                🏆 #1 Fantasy Sports Simulation
               </Badge>
             </div>
             
@@ -99,25 +75,11 @@ export default function Landing() {
                 className="border-2 border-white/30 text-white hover:bg-white/10 px-8 py-4 text-lg font-semibold rounded-xl transition-all duration-300"
               >
                 <Play className="w-5 h-5 mr-2" />
-                Watch Demo
+                Game Features
               </Button>
             </div>
 
-            {/* Trust Indicators */}
-            <div className="flex flex-wrap justify-center items-center gap-8 text-blue-200 text-sm">
-              <div className="flex items-center gap-2">
-                <Star className="w-4 h-4 text-yellow-400" />
-                <span>4.9/5 Player Rating</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <Users className="w-4 h-4" />
-                <span>10,000+ Active Managers</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <Shield className="w-4 h-4" />
-                <span>100% Secure</span>
-              </div>
-            </div>
+
           </div>
         </div>
       </div>
@@ -182,7 +144,7 @@ export default function Landing() {
                 </div>
                 <CardTitle className="text-white text-xl">Dynamic Economy</CardTitle>
                 <CardDescription className="text-slate-300">
-                  Trade players in real-time auctions, upgrade stadiums, manage finances with dual currency system (Credits & Gems).
+                  Negotiate player and staff contracts, build up your stadium and fan base, manage finances with dual currency system (Credits & Gems).
                 </CardDescription>
               </CardHeader>
             </Card>
@@ -208,7 +170,7 @@ export default function Landing() {
                 </div>
                 <CardTitle className="text-white text-xl">8-Division System</CardTitle>
                 <CardDescription className="text-slate-300">
-                  Compete across 8 competitive divisions with playoffs, tournaments, exhibitions, and seasonal progression rewards.
+                  Manage your team and fight your way to the top! Battle through 8 competitive divisions with playoffs, promotions, and championship glory.
                 </CardDescription>
               </CardHeader>
             </Card>
@@ -245,6 +207,13 @@ export default function Landing() {
             </div>
             <p className="text-blue-200 text-sm">
               This application requires authentication to save your progress. Please ensure cookies are enabled and avoid using incognito/private browsing mode.
+            </p>
+          </div>
+
+          {/* Manual Link */}
+          <div className="mt-8 text-center">
+            <p className="text-blue-300 text-sm">
+              Still not decided? <a href="/help" className="text-blue-200 hover:text-white underline font-semibold">Check out our full game manual!</a>
             </p>
           </div>
         </div>
