@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { Link } from "wouter";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { isUnauthorizedError } from "@/lib/authUtils";
@@ -8,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import UnifiedPlayerCard from "@/components/UnifiedPlayerCard";
 import { TeamNameInput } from "@/components/TeamNameInput";
+import PlayerDetailModal from "@/components/PlayerDetailModal";
 
 import LeagueStandings from "@/components/LeagueStandings";
 import NotificationCenter from "@/components/NotificationCenter";
@@ -70,6 +72,8 @@ export default function Dashboard() {
   const { toast } = useToast();
   const { isAuthenticated, isLoading } = useAuth();
   const queryClient = useQueryClient();
+  const [selectedPlayer, setSelectedPlayer] = useState(null);
+  const [showPlayerModal, setShowPlayerModal] = useState(false);
 
 
 
@@ -195,25 +199,27 @@ export default function Dashboard() {
           
           {/* Stats Cards */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-            <Card className="bg-gray-800 border-gray-700">
-              <CardContent className="p-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <p className="text-gray-400 text-sm">Division Rank</p>
-                      <HelpIcon content="Your team's current division. New teams start in Division 8. Top 2 teams promote, bottom 2 relegate each season." />
+            <Link href="/competition">
+              <Card className="bg-gray-800 border-gray-700 hover:bg-gray-700 transition-colors cursor-pointer">
+                <CardContent className="p-6">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <p className="text-gray-400 text-sm">Division Rank</p>
+                        <HelpIcon content="Your team's current division. New teams start in Division 8. Top 2 teams promote, bottom 2 relegate each season. Click to view detailed standings." />
+                      </div>
+                      <p className="text-2xl font-bold text-gold-400">
+                        {team.division === 8 ? "New" : `Div ${team.division}`}
+                      </p>
+                      <p className="text-xs text-gray-400">{team.wins}W - {team.losses}L - {team.draws}D</p>
                     </div>
-                    <p className="text-2xl font-bold text-gold-400">
-                      {team.division === 8 ? "New" : `Div ${team.division}`}
-                    </p>
-                    <p className="text-xs text-gray-400">{team.wins}W - {team.losses}L - {team.draws}D</p>
+                    <div className="bg-gold-400 bg-opacity-20 p-3 rounded-lg">
+                      <i className="fas fa-trophy text-gold-400 text-xl"></i>
+                    </div>
                   </div>
-                  <div className="bg-gold-400 bg-opacity-20 p-3 rounded-lg">
-                    <i className="fas fa-trophy text-gold-400 text-xl"></i>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+                </CardContent>
+              </Card>
+            </Link>
             
 
             
@@ -235,23 +241,25 @@ export default function Dashboard() {
               </CardContent>
             </Card>
             
-            <Card className="bg-gray-800 border-gray-700">
-              <CardContent className="p-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <p className="text-gray-400 text-sm">Credits</p>
-                      <HelpIcon content="Primary game currency. Earn through matches, achievements, and season rewards. Use for salaries and purchases." />
+            <Link href="/payments">
+              <Card className="bg-gray-800 border-gray-700 hover:bg-gray-700 transition-colors cursor-pointer">
+                <CardContent className="p-6">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <p className="text-gray-400 text-sm">Credits</p>
+                        <HelpIcon content="Primary game currency. Earn through matches, achievements, and season rewards. Use for salaries and purchases. Click to view financial details." />
+                      </div>
+                      <p className="text-2xl font-bold text-gold-400">{(finances?.credits || team.credits || 0).toLocaleString()}</p>
+                      <p className="text-xs text-gray-400">Available funds</p>
                     </div>
-                    <p className="text-2xl font-bold text-gold-400">{(finances?.credits || team.credits || 0).toLocaleString()}</p>
-                    <p className="text-xs text-gray-400">Available funds</p>
+                    <div className="bg-gold-400 bg-opacity-20 p-3 rounded-lg">
+                      <i className="fas fa-coins text-gold-400 text-xl"></i>
+                    </div>
                   </div>
-                  <div className="bg-gold-400 bg-opacity-20 p-3 rounded-lg">
-                    <i className="fas fa-coins text-gold-400 text-xl"></i>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+                </CardContent>
+              </Card>
+            </Link>
 
             <Card className="bg-gray-800 border-gray-700">
               <CardContent className="p-6">
@@ -326,11 +334,19 @@ export default function Dashboard() {
               ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   {players.map((player: any) => (
-                    <UnifiedPlayerCard
+                    <div 
                       key={player.id}
-                      player={player}
-                      variant="dashboard"
-                    />
+                      onClick={() => {
+                        setSelectedPlayer(player);
+                        setShowPlayerModal(true);
+                      }}
+                      className="cursor-pointer"
+                    >
+                      <UnifiedPlayerCard
+                        player={player}
+                        variant="dashboard"
+                      />
+                    </div>
                   ))}
                 </div>
               )}
@@ -371,6 +387,18 @@ export default function Dashboard() {
           )}
         </div>
       </div>
+
+      {/* Player Detail Modal */}
+      {selectedPlayer && (
+        <PlayerDetailModal
+          player={selectedPlayer}
+          isOpen={showPlayerModal}
+          onClose={() => {
+            setShowPlayerModal(false);
+            setSelectedPlayer(null);
+          }}
+        />
+      )}
     </div>
   );
 }
