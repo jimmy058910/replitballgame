@@ -59,6 +59,8 @@ router.get('/current-cycle', isAuthenticated, async (req: Request, res: Response
     const seasonStartDate = currentSeason.startDateOriginal || currentSeason.startDate || new Date();
     const daysSinceStart = Math.floor((new Date().getTime() - seasonStartDate.getTime()) / (1000 * 60 * 60 * 24));
     const currentDayInCycle = (daysSinceStart % 17) + 1;
+    
+
 
     // Determine the phase based on current day in cycle
     let phase = "Regular Season";
