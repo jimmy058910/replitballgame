@@ -69,9 +69,23 @@ export default function Stadium() {
     );
   }
 
-  const stadium = stadiumData?.stadium;
-  const availableUpgrades = stadiumData?.availableUpgrades || [];
-  const events = stadiumData?.events || [];
+  const stadium = stadiumData?.data?.stadium;
+  const availableUpgrades = stadiumData?.data?.availableUpgrades || [];
+  const events = stadiumData?.data?.events || [];
+  const atmosphere = stadiumData?.data?.atmosphere;
+
+  if (!stadium) {
+    return (
+      <div className="min-h-screen bg-gray-900 text-white">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <div className="text-center">
+            <h2 className="text-xl font-semibold mb-4">No Stadium Found</h2>
+            <p className="text-gray-400">Unable to load stadium data. Please try refreshing the page.</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   const getFieldSizeDescription = (size: string) => {
     switch (size) {
