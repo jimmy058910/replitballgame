@@ -1,82 +1,106 @@
-import { Router, type Request, type Response, type NextFunction } from "express";
-import { storage } from "../storage/index";
-import { stadiumStorage } from "../storage/stadiumStorage";
-import { teamFinancesStorage } from "../storage/teamFinancesStorage";
-import { sponsorshipStorage } from "../storage/sponsorshipStorage"; // For stadium revenue
-import { isAuthenticated } from "../replitAuth";
-import { z } from "zod";
-import type { Stadium } from "@shared/schema"; // Import Stadium type
+import { Router, Response, NextFunction } from 'express';
+import { z } from 'zod';
+import { db } from '../db';
+import { eq, desc } from 'drizzle-orm';
+import {
+  teams,
+  stadiums,
+  teamFinances,
+  facilityUpgrades,
+  stadiumEvents
+} from '@shared/schema';
+import { isAuthenticated } from '../replitAuth';
+import {
+  calculateFanLoyalty,
+  calculateHomeAdvantage,
+  calculateAttendance,
+  calculateGameRevenue,
+  getAvailableFacilityUpgrades,
+  calculateFacilityQuality,
+  getAtmosphereDescription
+} from "@shared/stadiumSystem";
 
 const router = Router();
 
-// TODO: These helper functions should ideally be part of a StadiumService
-function getAvailableUpgrades(stadium: Stadium | undefined) {
-  const upgrades = [];
-  if (!stadium || typeof stadium !== 'object') return upgrades;
-
-  const currentFacilities = stadium.facilities && typeof stadium.facilities === 'string' ?
-                           JSON.parse(stadium.facilities) :
-                           (stadium.facilities || {});
-  // ... (rest of the function remains largely the same, ensure stadium properties are accessed safely, e.g., stadium.fieldSize)
-   if (stadium.fieldSize === "regulation") {
-    upgrades.push({ type: "field", name: "Extended Field", description: "Larger field provides more strategic options", cost: 75000, effect: { fieldSize: "extended", homeAdvantage: (stadium.homeAdvantage || 5) + 2 } });
-  }
-  // ... (other upgrade logic) ...
-  return upgrades;
-}
-
-function getUpgradeDetails(upgradeType: string, upgradeName: string, stadium: Stadium | undefined) {
-  const availableUpgrades = getAvailableUpgrades(stadium);
-  return availableUpgrades.find(u => u.type === upgradeType && u.name === upgradeName);
-}
-
-function applyUpgradeEffect(stadium: Stadium, effect: any): Partial<Stadium> {
-  const updates: Partial<Stadium> = { ...effect };
-  if (effect.facilities && stadium.facilities) {
-      const currentFacilities = typeof stadium.facilities === 'string' ? JSON.parse(stadium.facilities) : stadium.facilities;
-      updates.facilities = JSON.stringify({ ...currentFacilities, ...effect.facilities}) as any; // Cast to any if type conflict
-  } else if (effect.facilities) {
-      updates.facilities = JSON.stringify(effect.facilities) as any; // Cast to any
-  }
-  updates.lastUpgrade = new Date();
-  return updates;
-}
-
-function generateEventDetails(eventType: string, stadium: Stadium | undefined) {
-  if (!stadium) return { name: "Error", revenue: 0, cost: 0, attendees: 0, duration: 0, description: "Stadium data missing."};
-  const baseAttendees = Math.floor((stadium.capacity || 5000) * 0.6);
-  // ... (rest of the function) ...
-  switch (eventType) {
-    case "concert": return { name: "Major Concert", revenue: baseAttendees * 25, cost: baseAttendees * 8, attendees: baseAttendees, duration: 4, description: "Host a major concert event." };
-    default: return { name: "Local Tournament", revenue: baseAttendees * 10, cost: baseAttendees * 3, attendees: baseAttendees, duration: 2, description: "Host a local tournament." };
-  }
-}
-
-
+// Get stadium data for authenticated user
 router.get('/', isAuthenticated, async (req: any, res: Response, next: NextFunction) => {
   try {
     const userId = req.user.claims.sub;
-    const team = await storage.teams.getTeamByUserId(userId);
-    if (!team) return res.status(404).json({ message: "Team not found for current user." });
-
-    let stadium = await stadiumStorage.getTeamStadium(team.id);
-    if (!stadium) {
-      stadium = await stadiumStorage.createStadium({
-        teamId: team.id, name: `${team.name} Stadium`, level: 1, capacity: 5000,
-        fieldType: "standard", fieldSize: "regulation", lighting: "basic", surface: "grass",
-        drainage: "basic", facilities: { concessions: 1, parking: 1, training: 1, medical: 1, security: 1 },
-        upgradeCost: 50000, maintenanceCost: 5000, revenueMultiplier: 100,
-        weatherResistance: 50, homeAdvantage: 5,
-        // constructionDate and lastUpgrade are handled by storage/DB
+    
+    // Get user's team
+    const team = await db.query.teams.findFirst({
+      where: eq(teams.userId, userId)
+    });
+    
+    if (!team) {
+      return res.status(404).json({ 
+        success: false, 
+        message: "No team found for current user" 
       });
     }
 
-    const upgrades = await stadiumStorage.getStadiumUpgrades(stadium.id);
-    const events = await stadiumStorage.getStadiumEvents(stadium.id);
+    // Get or create stadium
+    let stadium = await db.query.stadiums.findFirst({
+      where: eq(stadiums.teamId, team.id)
+    });
+
+    if (!stadium) {
+      // Create default stadium
+      const [newStadium] = await db.insert(stadiums).values({
+        teamId: team.id,
+        name: `${team.name} Stadium`,
+        level: 1,
+        capacity: 15000,
+        fieldSize: 'standard',
+        lightingLevel: 1,
+        concessionsLevel: 1,
+        parkingLevel: 1,
+        merchandisingLevel: 1,
+        vipSuitesLevel: 1,
+        screensLevel: 1,
+        securityLevel: 1,
+        maintenanceCost: 5000
+      }).returning();
+      
+      stadium = newStadium;
+    }
+
+    // Get available upgrades
+    const availableUpgrades = getAvailableFacilityUpgrades(stadium);
+    
+    // Get stadium events (last 10)
+    const events = await db.query.stadiumEvents.findMany({
+      where: eq(stadiumEvents.stadiumId, stadium.id),
+      orderBy: [desc(stadiumEvents.eventDate)],
+      limit: 10
+    });
+
+    // Calculate stadium atmosphere and fan loyalty
+    const facilityQuality = calculateFacilityQuality(stadium);
+    const teamRecord = `${team.wins || 0}-${team.losses || 0}-${team.draws || 0}`;
+    const fanLoyalty = calculateFanLoyalty(
+      50, // Start with 50 base loyalty 
+      teamRecord,
+      facilityQuality,
+      0, // winStreak
+      50 // Assume mid-season performance for now
+    );
+    const homeAdvantage = calculateHomeAdvantage(stadium, fanLoyalty);
+    const atmosphereDescription = getAtmosphereDescription(fanLoyalty, facilityQuality);
 
     res.json({
-      stadium: { ...stadium, facilities: stadium.facilities ? JSON.parse(stadium.facilities as string) : {} },
-      upgrades, events, availableUpgrades: getAvailableUpgrades(stadium)
+      success: true,
+      data: {
+        stadium,
+        availableUpgrades,
+        events,
+        atmosphere: {
+          fanLoyalty,
+          homeAdvantage,
+          facilityQuality,
+          description: atmosphereDescription
+        }
+      }
     });
   } catch (error) {
     console.error("Error fetching stadium data:", error);
@@ -84,154 +108,250 @@ router.get('/', isAuthenticated, async (req: any, res: Response, next: NextFunct
   }
 });
 
+// Facility upgrade route
 const upgradeSchema = z.object({
-    upgradeType: z.string().min(1), upgradeName: z.string().min(1),
+  facilityType: z.enum(['concessions', 'parking', 'merchandising', 'vipSuites', 'screens', 'lighting', 'security']),
+  upgradeLevel: z.number().int().min(1).max(5)
 });
+
 router.post('/upgrade', isAuthenticated, async (req: any, res: Response, next: NextFunction) => {
   try {
     const userId = req.user.claims.sub;
-    const { upgradeType, upgradeName } = upgradeSchema.parse(req.body);
+    const { facilityType, upgradeLevel } = upgradeSchema.parse(req.body);
 
-    const team = await storage.teams.getTeamByUserId(userId);
-    if (!team) return res.status(404).json({ message: "Team not found." });
-
-    const stadium = await stadiumStorage.getTeamStadium(team.id);
-    if (!stadium) return res.status(404).json({ message: "Stadium not found." });
-
-    const finances = await teamFinancesStorage.getTeamFinances(team.id);
-    if (!finances) return res.status(404).json({ message: "Team finances not found." });
-
-    const upgradeDetails = getUpgradeDetails(upgradeType, upgradeName, stadium);
-    if (!upgradeDetails) return res.status(400).json({ message: "Invalid upgrade selected or not available." });
-
-    if ((finances.credits || 0) < upgradeDetails.cost) {
-      return res.status(400).json({ message: `Insufficient credits. Cost: ${upgradeDetails.cost}, Available: ${finances.credits || 0}` });
+    // Get user's team
+    const team = await db.query.teams.findFirst({
+      where: eq(teams.userId, userId)
+    });
+    
+    if (!team) {
+      return res.status(404).json({ 
+        success: false, 
+        message: "No team found for current user" 
+      });
     }
 
-    await stadiumStorage.createFacilityUpgrade({
-      stadiumId: stadium.id, upgradeType, name: upgradeName,
-      description: upgradeDetails.description, cost: upgradeDetails.cost,
-      effect: upgradeDetails.effect,
+    // Get stadium
+    const stadium = await db.query.stadiums.findFirst({
+      where: eq(stadiums.teamId, team.id)
     });
 
-    const stadiumUpdates = applyUpgradeEffect(stadium, upgradeDetails.effect);
-    const updatedStadium = await stadiumStorage.updateStadium(stadium.id, stadiumUpdates);
+    if (!stadium) {
+      return res.status(404).json({ 
+        success: false, 
+        message: "No stadium found for team" 
+      });
+    }
 
-    await teamFinancesStorage.updateTeamFinances(team.id, {
-      credits: (finances.credits || 0) - upgradeDetails.cost
+    // Get team finances
+    const finances = await db.query.teamFinances.findFirst({
+      where: eq(teamFinances.teamId, team.id)
     });
+
+    if (!finances) {
+      return res.status(404).json({ 
+        success: false, 
+        message: "Team finances not found" 
+      });
+    }
+
+    // Get available upgrades and find the specific one
+    const availableUpgrades = getAvailableFacilityUpgrades(stadium);
+    const upgrade = availableUpgrades.find(u => 
+      u.name.toLowerCase().includes(facilityType.toLowerCase()) && 
+      u.level === upgradeLevel
+    );
+
+    if (!upgrade) {
+      return res.status(400).json({ 
+        success: false, 
+        message: "Upgrade not available or invalid" 
+      });
+    }
+
+    // Check if team has enough credits
+    if ((finances.credits || 0) < upgrade.upgradeCost) {
+      return res.status(400).json({ 
+        success: false, 
+        message: `Insufficient credits. Cost: ${upgrade.upgradeCost}, Available: ${finances.credits || 0}` 
+      });
+    }
+
+    // Apply the upgrade
+    const facilityColumn = `${facilityType}Level`;
+    const updateData: any = { 
+      [facilityColumn]: upgradeLevel,
+      updatedAt: new Date()
+    };
+
+    // Update stadium
+    await db.update(stadiums)
+      .set(updateData)
+      .where(eq(stadiums.id, stadium.id));
+
+    // Deduct credits
+    await db.update(teamFinances)
+      .set({ 
+        credits: (finances.credits || 0) - upgrade.upgradeCost 
+      })
+      .where(eq(teamFinances.teamId, team.id));
 
     res.json({
-        message: `${upgradeDetails.name} upgraded successfully!`,
-        stadium: updatedStadium ? { ...updatedStadium, facilities: updatedStadium.facilities ? JSON.parse(updatedStadium.facilities as string) : {} } : null,
-        remainingCredits: (finances.credits || 0) - upgradeDetails.cost
+      success: true,
+      message: `${upgrade.name} upgraded successfully!`,
+      remainingCredits: (finances.credits || 0) - upgrade.upgradeCost
     });
   } catch (error) {
     console.error("Error upgrading stadium facility:", error);
-    if (error instanceof z.ZodError) return res.status(400).json({ message: "Invalid upgrade data", errors: error.errors });
+    if (error instanceof z.ZodError) {
+      return res.status(400).json({ 
+        success: false, 
+        message: "Invalid upgrade data", 
+        errors: error.errors 
+      });
+    }
     next(error);
   }
 });
 
-const fieldSizeSchema = z.object({
-    fieldSize: z.enum(["regulation", "extended", "compact"]),
+// Field size change route  
+const fieldSizeSchema = z.object({ 
+  fieldSize: z.enum(["standard", "large", "small"]) 
 });
+
 router.post('/field-size', isAuthenticated, async (req: any, res: Response, next: NextFunction) => {
   try {
     const userId = req.user.claims.sub;
-    const team = await storage.teams.getTeamByUserId(userId);
-    if (!team) return res.status(404).json({ message: "Team not found" });
-
     const { fieldSize } = fieldSizeSchema.parse(req.body);
 
-    const stadium = await stadiumStorage.getTeamStadium(team.id);
-    if (!stadium) return res.status(404).json({ message: "Stadium not found." });
+    // Get user's team
+    const team = await db.query.teams.findFirst({
+      where: eq(teams.userId, userId)
+    });
+    
+    if (!team) {
+      return res.status(404).json({ 
+        success: false, 
+        message: "No team found for current user" 
+      });
+    }
 
-    const cost = 50000;
-    const finances = await teamFinancesStorage.getTeamFinances(team.id);
-    if (!finances || (finances.credits || 0) < cost) return res.status(400).json({ message: "Insufficient credits for changing field size." });
+    // Get stadium
+    const stadium = await db.query.stadiums.findFirst({
+      where: eq(stadiums.teamId, team.id)
+    });
 
-    await teamFinancesStorage.updateTeamFinances(team.id, { credits: (finances.credits || 0) - cost });
-    await stadiumStorage.updateStadium(stadium.id, { fieldSize });
+    if (!stadium) {
+      return res.status(404).json({ 
+        success: false, 
+        message: "No stadium found for team" 
+      });
+    }
 
-    res.json({ success: true, message: `Field size changed to ${fieldSize} successfully.` });
+    // Get team finances
+    const finances = await db.query.teamFinances.findFirst({
+      where: eq(teamFinances.teamId, team.id)
+    });
+
+    if (!finances) {
+      return res.status(404).json({ 
+        success: false, 
+        message: "Team finances not found" 
+      });
+    }
+
+    const changeCost = 75000;
+    if ((finances.credits || 0) < changeCost) {
+      return res.status(400).json({ 
+        success: false, 
+        message: `Insufficient credits. Cost: ${changeCost}, Available: ${finances.credits || 0}` 
+      });
+    }
+
+    // Update stadium field size
+    await db.update(stadiums)
+      .set({ fieldSize, updatedAt: new Date() })
+      .where(eq(stadiums.id, stadium.id));
+
+    // Deduct credits
+    await db.update(teamFinances)
+      .set({ 
+        credits: (finances.credits || 0) - changeCost 
+      })
+      .where(eq(teamFinances.teamId, team.id));
+
+    res.json({
+      success: true,
+      message: `Field size changed to ${fieldSize} successfully!`,
+      remainingCredits: (finances.credits || 0) - changeCost
+    });
   } catch (error) {
     console.error("Error changing field size:", error);
-    if (error instanceof z.ZodError) return res.status(400).json({ message: "Invalid field size data", errors: error.errors });
+    if (error instanceof z.ZodError) {
+      return res.status(400).json({ 
+        success: false, 
+        message: "Invalid field size data", 
+        errors: error.errors 
+      });
+    }
     next(error);
   }
 });
 
-const sponsorSchema = z.object({
-    sponsorTier: z.string().min(1),
-});
-router.post('/sponsors', isAuthenticated, async (req: any, res: Response, next: NextFunction) => {
+// Revenue calculation route
+router.get('/revenue/:teamId', isAuthenticated, async (req: any, res: Response, next: NextFunction) => {
   try {
-    const userId = req.user.claims.sub;
-    const team = await storage.teams.getTeamByUserId(userId);
-    if (!team) return res.status(404).json({ message: "Team not found" });
-
-    const { sponsorTier } = sponsorSchema.parse(req.body);
-    const sponsorDetails = { cost: 0, monthlyRevenue: 0, name: "Generic Sponsor" };
-    if (sponsorTier === "bronze") { sponsorDetails.monthlyRevenue = 5000; sponsorDetails.name="Bronze Corp";}
-    else if (sponsorTier === "silver") { sponsorDetails.monthlyRevenue = 15000; sponsorDetails.name="Silver Inc";}
-    else if (sponsorTier === "gold") { sponsorDetails.monthlyRevenue = 30000; sponsorDetails.name="Gold United";}
-    else return res.status(400).json({ message: "Invalid sponsor tier."});
-
-    // TODO: Actual sponsorship creation logic using sponsorshipStorage
-    // await sponsorshipStorage.createSponsorshipDeal({ teamId: team.id, sponsorName: sponsorDetails.name, ... });
-    res.json({ success: true, message: `Sponsor contract for ${sponsorDetails.name} (${sponsorTier}) signed successfully (mock).` });
-  } catch (error) {
-    console.error("Error managing sponsors:", error);
-    if (error instanceof z.ZodError) return res.status(400).json({ message: "Invalid sponsor data", errors: error.errors });
-    next(error);
-  }
-});
-
-const eventSchema = z.object({
-    eventType: z.string().min(1),
-    name: z.string().min(3).max(100).optional(),
-    eventDate: z.string().datetime(),
-});
-router.post('/event', isAuthenticated, async (req: any, res: Response, next: NextFunction) => {
-  try {
-    const userId = req.user.claims.sub;
-    const { eventType, name, eventDate } = eventSchema.parse(req.body);
-
-    const team = await storage.teams.getTeamByUserId(userId);
-    if (!team) return res.status(404).json({ message: "Team not found." });
-
-    const stadium = await stadiumStorage.getTeamStadium(team.id);
-    if (!stadium) return res.status(404).json({ message: "Stadium not found." });
-
-    const eventDetails = generateEventDetails(eventType, stadium);
-    const finalEventName = name || eventDetails.name;
-
-    const event = await stadiumStorage.createStadiumEvent({
-      stadiumId: stadium.id, eventType, name: finalEventName,
-      revenue: eventDetails.revenue, cost: eventDetails.cost, attendees: eventDetails.attendees,
-      eventDate: new Date(eventDate), duration: eventDetails.duration,
+    const teamId = req.params.teamId;
+    
+    // Get stadium
+    const stadium = await db.query.stadiums.findFirst({
+      where: eq(stadiums.teamId, teamId)
     });
-    res.status(201).json({ event, message: `${finalEventName} scheduled successfully.` });
-  } catch (error) {
-    console.error("Error creating stadium event:", error);
-    if (error instanceof z.ZodError) return res.status(400).json({ message: "Invalid event data", errors: error.errors });
-    next(error);
-  }
-});
 
-router.get('/revenue/:teamId', isAuthenticated, async (req: Request, res: Response, next: NextFunction) => {
-  try {
-    const { teamId } = req.params;
-    // TODO: Get current season year for filtering revenue
-    const currentSeason = await leagueStorage.getCurrentSeason();
-    const seasonYear = currentSeason?.year || new Date().getFullYear();
+    if (!stadium) {
+      return res.status(404).json({ 
+        success: false, 
+        message: "No stadium found for team" 
+      });
+    }
 
-    const revenue = await sponsorshipStorage.getStadiumRevenueForTeamBySeason(teamId, seasonYear);
-    if (!revenue || revenue.length === 0) return res.json({ message: "No revenue data found for this team for the current season.", data: [] });
-    res.json(revenue);
+    // Get team for fan loyalty calculation
+    const team = await db.query.teams.findFirst({
+      where: eq(teams.id, teamId)
+    });
+
+    if (!team) {
+      return res.status(404).json({ 
+        success: false, 
+        message: "Team not found" 
+      });
+    }
+
+    // Calculate revenue for a hypothetical match
+    const facilityQuality = calculateFacilityQuality(stadium);
+    const teamRecord = `${team.wins || 0}-${team.losses || 0}-${team.draws || 0}`;
+    const fanLoyalty = calculateFanLoyalty(
+      50, // Start with 50 base loyalty 
+      teamRecord,
+      facilityQuality,
+      0, // winStreak
+      50 // Assume mid-season performance for now
+    );
+
+    const attendanceData = calculateAttendance(stadium, fanLoyalty, 50, false, 'good');
+    const revenue = calculateGameRevenue(stadium, attendanceData.attendance, fanLoyalty);
+
+    res.json({
+      success: true,
+      data: {
+        stadium,
+        fanLoyalty,
+        projectedAttendance: attendanceData,
+        projectedRevenue: revenue
+      }
+    });
   } catch (error) {
-    console.error("Error fetching stadium revenue:", error);
+    console.error("Error calculating stadium revenue:", error);
     next(error);
   }
 });

@@ -234,6 +234,99 @@ export const teamFinances = pgTable("team_finances", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
+export const stadiums = pgTable("stadiums", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  teamId: uuid("team_id").references(() => teams.id).notNull().unique(),
+  name: varchar("name").notNull(),
+  level: integer("level").default(1),
+  capacity: integer("capacity").default(15000),
+  fanLoyalty: integer("fan_loyalty").default(50), // 0-100 scale
+  
+  // Field Configuration
+  fieldSize: varchar("field_size", { length: 20 }).default("standard"), // standard, large, small
+  surface: varchar("surface", { length: 20 }).default("grass"), // grass, synthetic, hybrid
+  lighting: varchar("lighting", { length: 20 }).default("basic"), // basic, improved, premium
+  
+  // Facility Levels (1-5 scale)
+  concessionsLevel: integer("concessions_level").default(1),
+  parkingLevel: integer("parking_level").default(1),
+  merchandisingLevel: integer("merchandising_level").default(1),
+  vipSuitesLevel: integer("vip_suites_level").default(0),
+  screensLevel: integer("screens_level").default(1),
+  lightingLevel: integer("lighting_level").default(1),
+  securityLevel: integer("security_level").default(1),
+  
+  // Calculated Values
+  homeAdvantage: integer("home_advantage").default(5), // 0-100 scale
+  revenueMultiplier: integer("revenue_multiplier").default(100), // percentage
+  maintenanceCost: integer("maintenance_cost").default(5000),
+  weatherResistance: integer("weather_resistance").default(50),
+  
+  // Season Tracking
+  lastSeasonRecord: varchar("last_season_record").default("0-0-0"),
+  lastThreeGamesRecord: varchar("last_three_games_record").default("0-0-0"),
+  currentWinStreak: integer("current_win_streak").default(0),
+  
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const stadiumRevenue = pgTable("stadium_revenue", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  teamId: uuid("team_id").references(() => teams.id).notNull(),
+  stadiumId: uuid("stadium_id").references(() => stadiums.id).notNull(),
+  matchId: uuid("match_id").references(() => matches.id),
+  
+  // Game Details
+  isHomeGame: boolean("is_home_game").notNull(),
+  attendance: integer("attendance").default(0),
+  attendanceRate: real("attendance_rate").default(0.35), // 0.0 - 1.0
+  intimidationFactor: real("intimidation_factor").default(0), // 0-10 scale
+  
+  // Revenue Breakdown
+  ticketSales: integer("ticket_sales").default(0),
+  concessionSales: integer("concession_sales").default(0),
+  parkingRevenue: integer("parking_revenue").default(0),
+  apparelSales: integer("apparel_sales").default(0),
+  vipSuiteRevenue: integer("vip_suite_revenue").default(0),
+  atmosphereBonus: integer("atmosphere_bonus").default(0),
+  totalRevenue: integer("total_revenue").default(0),
+  
+  // Costs
+  maintenanceCost: integer("maintenance_cost").default(0),
+  eventCosts: integer("event_costs").default(0),
+  
+  gameDate: timestamp("game_date").defaultNow(),
+  season: integer("season").default(1),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const facilityUpgrades = pgTable("facility_upgrades", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  stadiumId: uuid("stadium_id").references(() => stadiums.id).notNull(),
+  upgradeType: varchar("upgrade_type").notNull(), // concessions, parking, vip_suites, etc.
+  upgradeName: varchar("upgrade_name").notNull(),
+  level: integer("level").notNull(),
+  cost: integer("cost").notNull(),
+  description: text("description"),
+  effects: jsonb("effects"), // JSON object with the upgrade effects
+  installedAt: timestamp("installed_at").defaultNow(),
+});
+
+export const stadiumEvents = pgTable("stadium_events", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  stadiumId: uuid("stadium_id").references(() => stadiums.id).notNull(),
+  eventType: varchar("event_type").notNull(),
+  name: varchar("name").notNull(),
+  revenue: integer("revenue").default(0),
+  cost: integer("cost").default(0),
+  attendees: integer("attendees").default(0),
+  eventDate: timestamp("event_date").notNull(),
+  duration: integer("duration").default(1),
+  status: varchar("status").default("scheduled"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
 export const tournaments = pgTable("tournaments", {
   id: uuid("id").primaryKey().defaultRandom(),
   name: varchar("name").notNull(),
@@ -548,6 +641,14 @@ export type Notification = typeof notifications.$inferSelect;
 export type InsertNotification = typeof notifications.$inferInsert;
 export type PlayerInjury = typeof playerInjuries.$inferSelect;
 export type InsertPlayerInjury = typeof playerInjuries.$inferInsert;
+export type Stadium = typeof stadiums.$inferSelect;
+export type InsertStadium = typeof stadiums.$inferInsert;
+export type StadiumRevenue = typeof stadiumRevenue.$inferSelect;
+export type InsertStadiumRevenue = typeof stadiumRevenue.$inferInsert;
+export type FacilityUpgrade = typeof facilityUpgrades.$inferSelect;
+export type InsertFacilityUpgrade = typeof facilityUpgrades.$inferInsert;
+export type StadiumEvent = typeof stadiumEvents.$inferSelect;
+export type InsertStadiumEvent = typeof stadiumEvents.$inferInsert;
 
 export const seasons = pgTable("seasons", {
   id: varchar("id").primaryKey().notNull().$defaultFn(() => nanoid()),
@@ -619,21 +720,6 @@ export const sponsorshipDeals = pgTable("sponsorship_deals", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
-export const stadiumRevenue = pgTable("stadium_revenue", {
-  id: varchar("id").primaryKey().notNull().$defaultFn(() => nanoid()),
-  teamId: varchar("team_id").notNull(),
-  season: integer("season").notNull(),
-  ticketSales: integer("ticket_sales").default(0),
-  concessionSales: integer("concession_sales").default(0),
-  merchandiseSales: integer("merchandise_sales").default(0),
-  parkingRevenue: integer("parking_revenue").default(0),
-  corporateBoxes: integer("corporate_boxes").default(0),
-  namingRights: integer("naming_rights").default(0),
-  totalRevenue: integer("total_revenue").default(0),
-  month: integer("month").notNull(),
-  updatedAt: timestamp("updated_at").defaultNow(),
-});
-
 export type Season = typeof seasons.$inferSelect;
 export type InsertSeason = typeof seasons.$inferInsert;
 export type Playoff = typeof playoffs.$inferSelect;
@@ -644,8 +730,6 @@ export type SalaryCap = typeof salaryCap.$inferSelect;
 export type InsertSalaryCap = typeof salaryCap.$inferInsert;
 export type SponsorshipDeal = typeof sponsorshipDeals.$inferSelect;
 export type InsertSponsorshipDeal = typeof sponsorshipDeals.$inferInsert;
-export type StadiumRevenue = typeof stadiumRevenue.$inferSelect;
-export type InsertStadiumRevenue = typeof stadiumRevenue.$inferInsert;
 
 export const injuryTreatments = pgTable("injury_treatments", {
   id: varchar("id").primaryKey().notNull().$defaultFn(() => nanoid()),
@@ -721,58 +805,7 @@ export type InsertTrainingFacility = typeof trainingFacilities.$inferInsert;
 export type InjuryReport = typeof injuryReports.$inferSelect;
 export type InsertInjuryReport = typeof injuryReports.$inferInsert;
 
-export const stadiums = pgTable("stadiums", {
-  id: varchar("id").primaryKey().notNull().$defaultFn(() => nanoid()),
-  teamId: varchar("team_id").notNull().references(() => teams.id),
-  name: varchar("name").notNull(),
-  level: integer("level").default(1),
-  capacity: integer("capacity").default(5000),
-  fieldType: varchar("field_type").default("standard"),
-  fieldSize: varchar("field_size").default("regulation"),
-  lighting: varchar("lighting").default("basic"),
-  surface: varchar("surface").default("grass"),
-  drainage: varchar("drainage").default("basic"),
-  facilities: jsonb("facilities").default({}),
-  upgradeCost: integer("upgrade_cost").default(50000),
-  maintenanceCost: integer("maintenance_cost").default(5000),
-  revenueMultiplier: integer("revenue_multiplier").default(100),
-  weatherResistance: integer("weather_resistance").default(50),
-  homeAdvantage: integer("home_advantage").default(5),
-  constructionDate: timestamp("construction_date").defaultNow(),
-  lastUpgrade: timestamp("last_upgrade"),
-});
 
-export const facilityUpgrades = pgTable("facility_upgrades", {
-  id: varchar("id").primaryKey().notNull().$defaultFn(() => nanoid()),
-  stadiumId: varchar("stadium_id").notNull().references(() => stadiums.id),
-  upgradeType: varchar("upgrade_type").notNull(),
-  name: varchar("name").notNull(),
-  description: varchar("description"),
-  cost: integer("cost").notNull(),
-  effect: jsonb("effect").notNull(),
-  requirements: jsonb("requirements"),
-  installed: timestamp("installed").defaultNow(),
-});
-
-export const stadiumEvents = pgTable("stadium_events", {
-  id: varchar("id").primaryKey().notNull().$defaultFn(() => nanoid()),
-  stadiumId: varchar("stadium_id").notNull().references(() => stadiums.id),
-  eventType: varchar("event_type").notNull(),
-  name: varchar("name").notNull(),
-  revenue: integer("revenue").default(0),
-  cost: integer("cost").default(0),
-  attendees: integer("attendees").default(0),
-  eventDate: timestamp("event_date").notNull(),
-  duration: integer("duration").default(1),
-  status: varchar("status").default("scheduled"),
-});
-
-export type Stadium = typeof stadiums.$inferSelect;
-export type InsertStadium = typeof stadiums.$inferInsert;
-export type FacilityUpgrade = typeof facilityUpgrades.$inferSelect;
-export type InsertFacilityUpgrade = typeof facilityUpgrades.$inferInsert;
-export type StadiumEvent = typeof stadiumEvents.$inferSelect;
-export type InsertStadiumEvent = typeof stadiumEvents.$inferInsert;
 
 // MVP Awards - One per regular season/playoff match
 export const mvpAwards = pgTable("mvp_awards", {
