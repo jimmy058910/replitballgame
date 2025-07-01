@@ -26,7 +26,7 @@ export function AdRewardSystem() {
 
   const fetchAdStats = async () => {
     try {
-      const stats = await apiRequest('/api/store/ads/stats', 'GET');
+      const stats = await apiRequest('/api/ads/stats', 'GET');
       setAdStats(stats);
     } catch (error) {
       console.error('Failed to fetch ad stats:', error);
@@ -66,7 +66,13 @@ export function AdRewardSystem() {
 
       await new Promise(resolve => setTimeout(resolve, adDuration));
 
-      const result = await apiRequest('/api/store/ads/watch', 'POST');
+      const result = await apiRequest('/api/ads/view', 'POST', {
+        adType: 'rewarded_video',
+        placement: 'store_bonus',
+        rewardType: 'credits',
+        rewardAmount: Math.floor(Math.random() * 500) + 250, // 250-750 credits
+        completed: true
+      });
       
       if (result.success) {
         toast({

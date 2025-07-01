@@ -51,8 +51,8 @@ interface PaymentHistoryProps {
 export default function PaymentHistory({ className }: PaymentHistoryProps) {
   const [filters, setFilters] = useState({
     currencyFilter: "both" as "credits" | "gems" | "both",
-    transactionType: "",
-    status: "",
+    transactionType: "all",
+    status: "all",
     limit: 50,
     offset: 0,
   });
@@ -237,7 +237,7 @@ export default function PaymentHistory({ className }: PaymentHistoryProps) {
                   <SelectValue placeholder="All Types" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">All Types</SelectItem>
+                  <SelectItem value="all">All Types</SelectItem>
                   <SelectItem value="purchase">Purchase</SelectItem>
                   <SelectItem value="refund">Refund</SelectItem>
                   <SelectItem value="reward">Reward</SelectItem>
@@ -257,7 +257,7 @@ export default function PaymentHistory({ className }: PaymentHistoryProps) {
                   <SelectValue placeholder="All Statuses" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">All Statuses</SelectItem>
+                  <SelectItem value="all">All Statuses</SelectItem>
                   <SelectItem value="completed">Completed</SelectItem>
                   <SelectItem value="pending">Pending</SelectItem>
                   <SelectItem value="failed">Failed</SelectItem>

@@ -207,137 +207,108 @@ export default function Store() {
           </div>
         </div>
 
-        <Tabs defaultValue="daily" className="space-y-6">
+        <Tabs defaultValue="gems" className="space-y-6">
           <TabsList className="grid grid-cols-6 w-full">
-            <TabsTrigger value="daily">Daily Rotation</TabsTrigger>
-            <TabsTrigger value="regular">Regular Items</TabsTrigger>
-            <TabsTrigger value="entries">Tournament Entries</TabsTrigger>
+            <TabsTrigger value="gems">
+              <Gem className="h-4 w-4 mr-2" />
+              Gems
+            </TabsTrigger>
+            <TabsTrigger value="credits">
+              <Coins className="h-4 w-4 mr-2" />
+              Credits
+            </TabsTrigger>
+            <TabsTrigger value="entries">Entries</TabsTrigger>
             <TabsTrigger value="ads">
               <Play className="h-4 w-4 mr-2" />
               Ad Rewards
             </TabsTrigger>
-            <TabsTrigger value="gems">Premium Gems</TabsTrigger>
-            <TabsTrigger value="history">
+            <TabsTrigger value="buy-gems">Buy Gems</TabsTrigger>
+            <TabsTrigger value="transactions">
               <History className="h-4 w-4 mr-2" />
-              Payment History
+              Transactions
             </TabsTrigger>
           </TabsList>
 
-          <TabsContent value="daily" className="space-y-6">
-            <div className="flex items-center gap-4 p-4 bg-muted rounded-lg">
-              <Clock className="w-5 h-5" />
+          <TabsContent value="gems" className="space-y-6">
+            <div className="flex items-center gap-4 p-4 bg-purple-50 dark:bg-purple-900/20 rounded-lg border border-purple-200">
+              <Gem className="w-5 h-5 text-purple-500" />
               <div>
-                <p className="font-medium">Daily Rotation</p>
-                <p className="text-sm text-muted-foreground">
-                  Next refresh: {hoursUntilReset}h {minutesUntilReset}m (3:00 AM EST)
+                <p className="font-medium text-purple-800 dark:text-purple-200">Premium Gem Items</p>
+                <p className="text-sm text-purple-600 dark:text-purple-300">
+                  4 rare rotating items • Next refresh: {hoursUntilReset}h {minutesUntilReset}m (3:00 AM EST)
                 </p>
               </div>
             </div>
 
-            <div className="space-y-6">
-              <div>
-                <h3 className="text-xl font-semibold mb-4 flex items-center gap-2">
-                  <Sparkles className="w-5 h-5 text-purple-500" />
-                  Premium Items
-                </h3>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  {storeData?.premiumItems?.map((item: any) => (
-                    <Card key={item.id} className="hover:shadow-lg transition-shadow">
-                      <CardHeader>
-                        <div className="flex items-center justify-between">
-                          <CardTitle className="text-lg">{item.name}</CardTitle>
-                          <Badge className={getRarityColor(item.rarity)}>
-                            {getRarityIcon(item.rarity)}
-                            {item.rarity}
-                          </Badge>
-                        </div>
-                        <CardDescription>{item.description}</CardDescription>
-                      </CardHeader>
-                      <CardContent className="space-y-4">
-                        <div className="flex justify-between items-center">
-                          <div className="flex items-center gap-2">
-                            <Gem className="w-4 h-4 text-purple-500" />
-                            <span className="font-bold">{item.priceGems}</span>
-                          </div>
-                          <Button 
-                            onClick={() => purchaseItemMutation.mutate({ itemId: item.id, currency: 'gems' })}
-                            disabled={!finances?.premiumCurrency || finances.premiumCurrency < item.priceGems}
-                          >
-                            Buy Now
-                          </Button>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  ))}
-                </div>
-              </div>
-
-              <div>
-                <h3 className="text-xl font-semibold mb-4 flex items-center gap-2">
-                  <Shield className="w-5 h-5 text-blue-500" />
-                  Equipment
-                </h3>
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                  {storeData?.equipment?.map((item: any) => (
-                    <Card key={item.id} className="hover:shadow-lg transition-shadow">
-                      <CardHeader>
-                        <div className="flex items-center justify-between">
-                          <CardTitle className="text-sm">{item.name}</CardTitle>
-                          <Badge className={getRarityColor(item.rarity)}>
-                            {item.rarity}
-                          </Badge>
-                        </div>
-                        <CardDescription className="text-xs">{item.description}</CardDescription>
-                      </CardHeader>
-                      <CardContent className="space-y-3">
-                        <div className="text-xs space-y-1">
-                          {Object.entries(item.statBoosts || {}).map(([stat, boost]: [string, any]) => (
-                            <div key={stat} className="flex justify-between">
-                              <span className="capitalize">{stat}:</span>
-                              <span className="text-green-600">+{boost}</span>
-                            </div>
-                          ))}
-                        </div>
-                        <div className="flex justify-between items-center">
-                          <div className="flex items-center gap-2">
-                            <Coins className="w-4 h-4 text-yellow-500" />
-                            <span className="font-bold text-sm">{item.price?.toLocaleString()}</span>
-                          </div>
-                          <Button 
-                            size="sm"
-                            onClick={() => purchaseItemMutation.mutate({ itemId: item.id, currency: 'credits' })}
-                            disabled={!finances?.credits || finances.credits < item.price}
-                          >
-                            Buy
-                          </Button>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  ))}
-                </div>
-              </div>
-            </div>
-          </TabsContent>
-
-          <TabsContent value="regular">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {storeData?.items?.map((item: any) => (
-                <Card key={item.id} className="hover:shadow-lg transition-shadow">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {storeData?.premiumItems?.slice(0, 4).map((item: any) => (
+                <Card key={item.id} className="hover:shadow-lg transition-shadow border-purple-200 dark:border-purple-700">
                   <CardHeader>
-                    <CardTitle>{item.name}</CardTitle>
-                    <CardDescription>{item.description}</CardDescription>
+                    <div className="flex items-center justify-between">
+                      <CardTitle className="text-lg text-purple-800 dark:text-purple-200">{item.name}</CardTitle>
+                      <Badge className={getRarityColor(item.rarity)}>
+                        {getRarityIcon(item.rarity)}
+                        {item.rarity}
+                      </Badge>
+                    </div>
+                    <CardDescription className="text-purple-700 dark:text-purple-300">{item.description}</CardDescription>
                   </CardHeader>
                   <CardContent className="space-y-4">
                     <div className="flex justify-between items-center">
                       <div className="flex items-center gap-2">
-                        <Coins className="w-4 h-4 text-yellow-500" />
-                        <span className="font-bold">{item.price?.toLocaleString()}</span>
+                        <Gem className="w-5 h-5 text-purple-500" />
+                        <span className="font-bold text-purple-600 dark:text-purple-400 text-lg">{item.priceGems} Gems</span>
                       </div>
                       <Button 
+                        className="bg-purple-600 hover:bg-purple-700 text-white"
+                        onClick={() => purchaseItemMutation.mutate({ itemId: item.id, currency: 'gems' })}
+                        disabled={!finances?.premiumCurrency || finances.premiumCurrency < item.priceGems}
+                      >
+                        Buy Now
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          </TabsContent>
+
+          <TabsContent value="credits" className="space-y-6">
+            <div className="flex items-center gap-4 p-4 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg border border-yellow-200">
+              <Coins className="w-5 h-5 text-yellow-500" />
+              <div>
+                <p className="font-medium text-yellow-800 dark:text-yellow-200">Credit Items</p>
+                <p className="text-sm text-yellow-600 dark:text-yellow-300">
+                  6 common rotating items • Next refresh: {hoursUntilReset}h {minutesUntilReset}m (3:00 AM EST)
+                </p>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              {storeData?.items?.slice(0, 6).map((item: any) => (
+                <Card key={item.id} className="hover:shadow-lg transition-shadow border-yellow-200 dark:border-yellow-700">
+                  <CardHeader>
+                    <div className="flex items-center justify-between">
+                      <CardTitle className="text-lg text-yellow-800 dark:text-yellow-200">{item.name}</CardTitle>
+                      <Badge className={getRarityColor(item.rarity)}>
+                        {getRarityIcon(item.rarity)}
+                        {item.rarity}
+                      </Badge>
+                    </div>
+                    <CardDescription className="text-yellow-700 dark:text-yellow-300">{item.description}</CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="flex justify-between items-center">
+                      <div className="flex items-center gap-2">
+                        <Coins className="w-5 h-5 text-yellow-500" />
+                        <span className="font-bold text-yellow-600 dark:text-yellow-400 text-lg">{item.price?.toLocaleString()} Credits</span>
+                      </div>
+                      <Button 
+                        className="bg-yellow-600 hover:bg-yellow-700 text-white"
                         onClick={() => purchaseItemMutation.mutate({ itemId: item.id, currency: 'credits' })}
                         disabled={!finances?.credits || finances.credits < item.price}
                       >
-                        Purchase
+                        Buy Now
                       </Button>
                     </div>
                   </CardContent>
@@ -397,7 +368,7 @@ export default function Store() {
             </div>
           </TabsContent>
 
-          <TabsContent value="gems">
+          <TabsContent value="buy-gems">
             <div className="space-y-6">
               <div className="text-center space-y-2">
                 <h2 className="text-2xl font-bold">Premium Gem Packages</h2>
@@ -457,7 +428,7 @@ export default function Store() {
             <AdRewardSystem />
           </TabsContent>
 
-          <TabsContent value="history">
+          <TabsContent value="transactions">
             <PaymentHistory />
           </TabsContent>
         </Tabs>
