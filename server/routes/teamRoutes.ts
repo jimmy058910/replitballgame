@@ -5,6 +5,8 @@ import { generateRandomPlayer } from "../services/leagueService";
 import { z } from "zod";
 import { ErrorCreators, asyncHandler, logInfo } from "../services/errorService";
 import { TeamNameValidator } from "../services/teamNameValidation";
+import { AgingService } from "../services/agingService";
+import { generateRandomName } from "@shared/names";
 // import { players as playersTable } from "@shared/schema"; // Not directly used here anymore
 
 const router = Router();
@@ -302,6 +304,118 @@ router.post('/update-activity', isAuthenticated, async (req: any, res: Response,
     next(error);
   }
 });
+
+// Generate random tryout candidate
+function generateTryoutCandidate(type: 'basic' | 'advanced'): any {
+  const races = ["human", "sylvan", "gryll", "lumina", "umbra"];
+  const race = races[Math.floor(Math.random() * races.length)];
+  const { firstName, lastName } = generateRandomName(race);
+  
+  // Use AgingService for proper age generation (16-20 for tryouts)
+  const age = AgingService.generatePlayerAge('tryout');
+  
+  // Enhanced stats for advanced tryouts
+  const statBonus = type === 'advanced' ? 5 : 0;
+  const minStat = type === 'advanced' ? 15 : 8;
+  const maxStat = type === 'advanced' ? 35 : 30;
+  
+  const baseStats = {
+    speed: Math.floor(Math.random() * (maxStat - minStat + 1)) + minStat + statBonus,
+    power: Math.floor(Math.random() * (maxStat - minStat + 1)) + minStat + statBonus,
+    throwing: Math.floor(Math.random() * (maxStat - minStat + 1)) + minStat + statBonus,
+    catching: Math.floor(Math.random() * (maxStat - minStat + 1)) + minStat + statBonus,
+    kicking: Math.floor(Math.random() * (maxStat - minStat + 1)) + minStat + statBonus,
+    stamina: Math.floor(Math.random() * (maxStat - minStat + 1)) + minStat + statBonus,
+    leadership: Math.floor(Math.random() * (maxStat - minStat + 1)) + minStat + statBonus,
+    agility: Math.floor(Math.random() * (maxStat - minStat + 1)) + minStat + statBonus,
+  };
+
+  // Generate potential (higher for advanced tryouts)
+  const potentialRoll = Math.random();
+  let potential: "High" | "Medium" | "Low";
+  if (type === 'advanced') {
+    potential = potentialRoll < 0.4 ? "High" : potentialRoll < 0.8 ? "Medium" : "Low";
+  } else {
+    potential = potentialRoll < 0.2 ? "High" : potentialRoll < 0.6 ? "Medium" : "Low";
+  }
+
+  const avgStat = Object.values(baseStats).reduce((a, b) => a + b, 0) / 8;
+  const marketValue = Math.floor(1000 + (avgStat * 50) + (Math.random() * 500));
+
+  return {
+    id: Math.random().toString(36).substr(2, 9),
+    name: `${firstName} ${lastName}`,
+    race,
+    age,
+    ...baseStats,
+    marketValue,
+    potential
+  };
+}
+
+// Tryout System endpoint
+const tryoutSchema = z.object({
+  type: z.enum(['basic', 'advanced']),
+});
+
+router.post('/:teamId/tryouts', isAuthenticated, asyncHandler(async (req: any, res: Response) => {
+  const userId = req.user.claims.sub;
+  const { teamId } = req.params;
+  const { type } = tryoutSchema.parse(req.body);
+
+  // Verify team ownership
+  let team;
+  if (teamId === "my") {
+    team = await storage.teams.getTeamByUserId(userId);
+  } else {
+    team = await storage.teams.getTeamById(teamId);
+    if (!team || team.userId !== userId) {
+      throw ErrorCreators.forbidden("You do not own this team");
+    }
+  }
+  
+  if (!team) {
+    throw ErrorCreators.notFound("Team not found");
+  }
+
+  // Get team finances
+  const finances = await storage.teamFinances.getTeamFinances(team.id);
+  if (!finances) {
+    throw ErrorCreators.notFound("Team finances not found");
+  }
+
+  // Check costs and affordability
+  const costs = { basic: 25000, advanced: 75000 };
+  const cost = costs[type];
+
+  if ((finances.credits || 0) < cost) {
+    throw ErrorCreators.validation(`Insufficient credits. Required: ${cost}, Available: ${finances.credits || 0}`);
+  }
+
+  // Generate candidates
+  const candidateCount = type === 'basic' ? 3 : 5;
+  const candidates = Array.from({ length: candidateCount }, () => generateTryoutCandidate(type));
+
+  // Deduct cost
+  await storage.teamFinances.updateTeamFinances(team.id, {
+    credits: (finances.credits || 0) - cost
+  });
+
+  logInfo(`Tryout hosted successfully`, {
+    teamId: team.id,
+    type,
+    cost,
+    candidatesGenerated: candidates.length,
+    requestId: req.requestId
+  });
+
+  res.json({
+    type,
+    candidates,
+    cost,
+    message: `${type === 'basic' ? 'Basic' : 'Advanced'} tryout completed successfully!`
+  });
+}));
 
 
 export default router;

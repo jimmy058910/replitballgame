@@ -24,6 +24,7 @@ import teamNameRoutes from "./teamNameRoutes";
 import paymentHistoryRoutes from "./paymentHistoryRoutes";
 import tacticalRoutes from "./tacticalRoutes";
 import helpRoutes from "./helpRoutes";
+import agingRoutes from "./agingRoutes";
 
 // This function will be called by server/index.ts to set up all routes.
 // It replaces the direct app.use calls that would have been in server/index.ts
@@ -56,6 +57,7 @@ export function registerAllRoutes(app: Express): void {
   app.use("/api/payment-history", paymentHistoryRoutes); // Covers payment transaction history and tracking
   app.use("/api/tactics", tacticalRoutes); // Covers team tactical system and strategy management
   app.use("/api/help", helpRoutes); // Covers help documentation and manual
+  app.use("/api/aging", agingRoutes); // Covers player aging system and progression mechanics
 
   // Reminder: The original server/routes.ts also contained helper functions and Stripe init.
   // Stripe init is now in paymentRoutes.ts.

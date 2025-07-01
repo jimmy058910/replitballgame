@@ -119,6 +119,10 @@ export const players = pgTable("players", {
   camaraderie: integer("camaraderie").default(50),
   yearsOnTeam: integer("years_on_team").default(0),
   
+  // Aging system fields
+  careerInjuries: integer("career_injuries").default(0),
+  gamesPlayedLastSeason: integer("games_played_last_season").default(0),
+  
   isMarketplace: boolean("is_marketplace").default(false),
   marketplacePrice: integer("marketplace_price"),
   marketplaceEndTime: timestamp("marketplace_end_time"),
