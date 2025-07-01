@@ -224,18 +224,18 @@ export default function Dashboard() {
 
             
             <Card className="bg-gray-800 border-gray-700">
-              <CardContent className="p-6">
+              <CardContent className="p-4">
                 <div className="flex items-center justify-between">
                   <div>
                     <div className="flex items-center gap-2">
                       <p className="text-gray-400 text-sm">Team Power</p>
                       <HelpIcon content="Combined power rating of all your players. Higher power means stronger overall team performance." />
                     </div>
-                    <p className="text-2xl font-bold text-primary-400">{team.teamPower}</p>
+                    <p className="text-xl font-bold text-primary-400">{team.teamPower}</p>
                     <p className="text-xs text-green-400">Building strength</p>
                   </div>
-                  <div className="bg-primary-400 bg-opacity-20 p-3 rounded-lg">
-                    <i className="fas fa-bolt text-primary-400 text-xl"></i>
+                  <div className="bg-primary-400 bg-opacity-20 p-2 rounded-lg">
+                    <i className="fas fa-bolt text-primary-400 text-lg"></i>
                   </div>
                 </div>
               </CardContent>
@@ -262,20 +262,20 @@ export default function Dashboard() {
             </Link>
 
             <Card className="bg-gray-800 border-gray-700">
-              <CardContent className="p-6">
+              <CardContent className="p-4">
                 <div className="flex items-center justify-between">
                   <div>
                     <div className="flex items-center gap-2">
                       <p className="text-gray-400 text-sm">Team Camaraderie</p>
                       <HelpIcon content="Team chemistry (0-100). High camaraderie provides in-game bonuses, injury resistance, and better contract negotiations." />
                     </div>
-                    <p className="text-2xl font-bold text-teal-400">{team?.teamCamaraderie ?? 'N/A'}</p>
+                    <p className="text-xl font-bold text-teal-400">{team?.teamCamaraderie ?? 'N/A'}</p>
                     <p className="text-xs text-gray-500">
                       {getTeamCamaraderieDescription(team?.teamCamaraderie)}
                     </p>
                   </div>
-                  <div className="bg-teal-400 bg-opacity-20 p-3 rounded-lg">
-                    <UsersIcon className="text-teal-400 text-xl" />
+                  <div className="bg-teal-400 bg-opacity-20 p-2 rounded-lg">
+                    <UsersIcon className="text-teal-400 text-lg" />
                   </div>
                 </div>
               </CardContent>
