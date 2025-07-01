@@ -67,6 +67,7 @@ export const teams = pgTable("teams", {
   cumulativeTeamAdWatchCount: integer("cumulative_team_ad_watch_count").default(0),
   fieldSize: varchar("field_size", { length: 20 }).default("standard"),
   tacticalFocus: varchar("tactical_focus", { length: 20 }).default("balanced"),
+  fanLoyalty: integer("fan_loyalty").default(50), // 0-100 scale for Stadium Atmosphere System
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
@@ -1062,3 +1063,38 @@ export type MarketplaceBid = typeof marketplaceBids.$inferSelect;
 export type InsertMarketplaceBid = typeof marketplaceBids.$inferInsert;
 export type MarketplaceEscrow = typeof marketplaceEscrow.$inferSelect;
 export type InsertMarketplaceEscrow = typeof marketplaceEscrow.$inferInsert;
+
+// Enhanced Player Development System
+export const playerDevelopmentHistory = pgTable('player_development_history', {
+  id: serial('id').primaryKey(),
+  playerId: uuid('player_id').references(() => players.id, { onDelete: 'cascade' }).notNull(),
+  season: integer('season').notNull(),
+  developmentType: varchar('development_type', { length: 50 }).notNull(), // 'progression', 'decline', 'retirement'
+  statChanged: varchar('stat_changed', { length: 50 }), // Which stat was affected
+  oldValue: integer('old_value'),
+  newValue: integer('new_value'),
+  progressionChance: real('progression_chance'), // The calculated chance that was rolled
+  actualRoll: real('actual_roll'), // The random number that was rolled
+  success: boolean('success').notNull(),
+  ageAtTime: integer('age_at_time').notNull(),
+  gamesPlayedLastSeason: integer('games_played_last_season').default(0).notNull(),
+  potentialAtTime: real('potential_at_time'), // Player's potential rating when this occurred
+  createdAt: timestamp('created_at').defaultNow(),
+});
+
+export const playerCareerMilestones = pgTable('player_career_milestones', {
+  id: serial('id').primaryKey(),
+  playerId: uuid('player_id').references(() => players.id, { onDelete: 'cascade' }).notNull(),
+  milestoneType: varchar('milestone_type', { length: 100 }).notNull(), // 'peak_performance', 'retirement', 'injury_prone', etc.
+  milestoneDate: timestamp('milestone_date').defaultNow(),
+  season: integer('season').notNull(),
+  description: text('description').notNull(),
+  statsSnapshot: jsonb('stats_snapshot'), // Player stats at the time of milestone
+  significance: integer('significance').default(1).notNull(), // 1-5 rating of milestone importance
+  createdAt: timestamp('created_at').defaultNow(),
+});
+
+export type PlayerDevelopmentHistory = typeof playerDevelopmentHistory.$inferSelect;
+export type InsertPlayerDevelopmentHistory = typeof playerDevelopmentHistory.$inferInsert;
+export type PlayerCareerMilestone = typeof playerCareerMilestones.$inferSelect;
+export type InsertPlayerCareerMilestone = typeof playerCareerMilestones.$inferInsert;
