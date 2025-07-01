@@ -31,6 +31,7 @@ import playerSkillsRoutes from "./playerSkillsRoutes";
 import dynamicMarketplaceRoutes from "./dynamicMarketplaceRoutes";
 import playerAgingRetirementRoutes from "./playerAgingRetirementRoutes";
 import stadiumAtmosphereRoutes from "./stadiumAtmosphereRoutes";
+import seasonalFlowRoutes from "./seasonalFlowRoutes";
 
 // This function will be called by server/index.ts to set up all routes.
 // It replaces the direct app.use calls that would have been in server/index.ts
@@ -70,6 +71,7 @@ export function registerAllRoutes(app: Express): void {
   app.use("/api/dynamic-marketplace", dynamicMarketplaceRoutes); // Covers dynamic auction marketplace with bidding
   app.use("/api/player-aging", playerAgingRetirementRoutes); // Covers player aging, progression, and retirement system
   app.use("/api/stadium-atmosphere", stadiumAtmosphereRoutes); // Covers integrated stadium, finance & atmosphere system
+  app.use("/api/seasonal-flow", seasonalFlowRoutes); // Covers seasonal flow algorithm for 17-day competitive cycles
 
   // Reminder: The original server/routes.ts also contained helper functions and Stripe init.
   // Stripe init is now in paymentRoutes.ts.
