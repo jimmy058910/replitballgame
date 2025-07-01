@@ -125,7 +125,31 @@ export default function StaffManagement({ teamId }: StaffManagementProps) {
   ];
 
   const getStaffByType = (type: string) => {
-    return staff?.find((member: StaffMember) => member.type === type);
+    // Handle mapping between UI types and database types
+    switch (type) {
+      case "trainer_offense":
+        return staff?.find((member: StaffMember) => 
+          member.type === "trainer" && member.name === "Mike Offense"
+        );
+      case "trainer_defense":
+        return staff?.find((member: StaffMember) => 
+          member.type === "trainer" && member.name === "Lisa Defense"
+        );
+      case "trainer_physical":
+        return staff?.find((member: StaffMember) => 
+          member.type === "trainer" && member.name === "Sarah Fitness"
+        );
+      case "head_scout":
+        return staff?.find((member: StaffMember) => 
+          member.type === "scout" && member.name === "Tony Scout"
+        );
+      case "recruiting_scout":
+        return staff?.find((member: StaffMember) => 
+          member.type === "scout" && member.name === "Emma Talent"
+        );
+      default:
+        return staff?.find((member: StaffMember) => member.type === type);
+    }
   };
 
   const calculateSalary = (type: string, level: number) => {
