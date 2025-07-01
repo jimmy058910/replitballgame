@@ -64,6 +64,8 @@ export const teams = pgTable("teams", {
   formation: text("formation"),
   substitutionOrder: text("substitution_order"),
   cumulativeTeamAdWatchCount: integer("cumulative_team_ad_watch_count").default(0),
+  fieldSize: varchar("field_size", { length: 20 }).default("standard"),
+  tacticalFocus: varchar("tactical_focus", { length: 20 }).default("balanced"),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });

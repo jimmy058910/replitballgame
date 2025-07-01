@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Play, Pause, Square, RotateCcw } from "lucide-react";
 import { AdSystem, useAdSystem } from "@/components/AdSystem";
+import { calculateTacticalModifiers, determineGameSituation, type TacticalModifiers, type GameState as TacticalGameState, type TeamTacticalInfo } from "../../../shared/tacticalSystem";
 
 interface Player {
   id: string;
@@ -93,6 +94,10 @@ export default function TextBasedMatch({
   });
 
   const [players, setPlayers] = useState<Player[]>([]);
+  const [tacticalModifiers, setTacticalModifiers] = useState<{
+    team1: TacticalModifiers;
+    team2: TacticalModifiers;
+  } | null>(null);
   const logRef = useRef<HTMLDivElement>(null);
   const [halftimeAdShown, setHalftimeAdShown] = useState(false);
   
@@ -146,10 +151,48 @@ export default function TextBasedMatch({
       }));
 
       setPlayers([...team1Players, ...team2Players]);
+      
+      // Initialize tactical modifiers
+      const initializeTacticalModifiers = () => {
+        const tacticalGameState: TacticalGameState = {
+          homeScore: gameState.team1Score,
+          awayScore: gameState.team2Score,
+          gameTime: gameState.gameTime,
+          maxTime: gameState.maxTime,
+          currentHalf: gameState.currentHalf,
+        };
+
+        // Create team tactical info (using defaults if not specified)
+        const team1TacticalInfo: TeamTacticalInfo = {
+          fieldSize: (team1?.fieldSize || "standard") as any,
+          tacticalFocus: (team1?.tacticalFocus || "balanced") as any,
+          camaraderie: team1?.teamCamaraderie || 50,
+          headCoachTactics: team1?.staff?.find((s: any) => s.type === "Head Coach")?.coachingRating || 50,
+          isHomeTeam: true,
+        };
+
+        const team2TacticalInfo: TeamTacticalInfo = {
+          fieldSize: "standard" as any, // Away team doesn't get field size advantage
+          tacticalFocus: (team2?.tacticalFocus || "balanced") as any,
+          camaraderie: team2?.teamCamaraderie || 50,
+          headCoachTactics: team2?.staff?.find((s: any) => s.type === "Head Coach")?.coachingRating || 50,
+          isHomeTeam: false,
+        };
+
+        const team1Modifiers = calculateTacticalModifiers(team1TacticalInfo, tacticalGameState, true);
+        const team2Modifiers = calculateTacticalModifiers(team2TacticalInfo, tacticalGameState, false);
+
+        setTacticalModifiers({
+          team1: team1Modifiers,
+          team2: team2Modifiers,
+        });
+      };
+
+      initializeTacticalModifiers();
     };
 
     initializePlayers();
-  }, [team1, team2]);
+  }, [team1, team2, gameState.team1Score, gameState.team2Score, gameState.gameTime, gameState.currentHalf]);
 
   // Auto-scroll log to top since newest events are at the top
   useEffect(() => {

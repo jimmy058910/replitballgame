@@ -34,7 +34,24 @@ Built as a React + Express web application with PostgreSQL database, using moder
 
 ## Recent Changes
 
-### January 1, 2025 - MVP & SEASON AWARDS SYSTEM WITH TEAM HISTORY TRACKING IMPLEMENTATION
+### January 1, 2025 - ADVANCED TEAM TACTICS & STRATEGY SYSTEM IMPLEMENTATION
+- ✓ COMPREHENSIVE TACTICAL FRAMEWORK: Implemented multi-layered tactical system with field size specialization and tactical focus settings
+- ✓ Field Size Specialization: Three distinct field types (Standard, Large, Small) with unique strategic advantages and gameplay effects
+- ✓ Team-Wide Tactical Focus: Pre-game strategy selection (Balanced, All-Out Attack, Defensive Wall) affecting AI behavior and team positioning
+- ✓ Situational Tactics: Dynamic in-game AI adjustments based on score and time (Winning Big, Losing Big, Late & Close Game scenarios)
+- ✓ Coach & Camaraderie Integration: Head coach tactics skill and team camaraderie directly influence tactical effectiveness and clutch performance
+- ✓ Database Schema Enhancement: Added fieldSize and tacticalFocus columns to teams table with proper defaults and constraints
+- ✓ Tactical System Utility: Created comprehensive shared/tacticalSystem.ts with modifiers calculation, effectiveness analysis, and game situation detection
+- ✓ Professional API Routes: Complete tactical management API with endpoints for setup retrieval, field size updates, tactical focus changes, and effectiveness analysis
+- ✓ Advanced Tactical Manager Component: Full-featured React interface with tabbed design for current setup, effectiveness analysis, and optimization recommendations
+- ✓ Team Page Integration: Replaced existing tactical interface with comprehensive TacticalManager component in Team page Tactics tab
+- ✓ Match Simulation Integration: Enhanced TextBasedMatch component with tactical modifiers affecting stamina depletion, pass accuracy, power bonuses, and AI behavior
+- ✓ Real-Time Tactical Effects: Field size advantages only apply to home team, tactical focus influences AI decision-making, and situational adjustments occur dynamically
+- ✓ Effectiveness Analysis: Complete tactical combination analysis showing optimal setups based on roster composition and coach skill
+- ✓ Strategic Depth: Field size locked during season (changeable only Days 16-17 or Day 1), tactical focus adjustable before each match
+- ✓ Home Field Advantage: Meaningful strategic choices with clear trade-offs and authentic gameplay impact
+
+### January 1, 2025 - MVP & SEASON AWARDS SYSTEM WITH TEAM HISTORY TRACKING IMPLEMENTATION (Previous)
 - ✓ COMPREHENSIVE MVP AWARDS SYSTEM: Built automatic MVP selection for each regular season and playoff match based on performance stats
 - ✓ MVP Calculation Engine: Advanced scoring algorithm using scores (10pts), catches (3pts), passing attempts (0.5pts), rushing yards (0.1pts), knockdowns (2pts), tackles (1.5pts)
 - ✓ Season Awards Recognition: Comprehensive end-of-season awards including Player of the Year, Rookie of the Year, Top Scorer, Best Passer, Best Runner, Best Defender
