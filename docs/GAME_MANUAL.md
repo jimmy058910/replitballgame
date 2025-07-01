@@ -6,84 +6,77 @@
    - 1.1 [Creating Your Account](#11-creating-your-account)
    - 1.2 [Team Creation](#12-team-creation)
    - 1.3 [Understanding the Dashboard](#13-understanding-the-dashboard)
-   - 1.4 [Navigation Overview](#14-navigation-overview)
-   - 1.5 [Game Currency System](#15-game-currency-system)
+   - 1.4 [Hub-Based Navigation](#14-hub-based-navigation)
+   - 1.5 [Dual Currency System](#15-dual-currency-system)
 
 ### 2. Understanding the Game World
    - 2.1 [The Five Fantasy Races](#21-the-five-fantasy-races)
    - 2.2 [Player Positions and Roles](#22-player-positions-and-roles)
-   - 2.3 [The League System](#23-the-league-system)
-   - 2.4 [Season Structure](#24-season-structure)
-   - 2.5 [Game Time and Scheduling](#25-game-time-and-scheduling)
+   - 2.3 [8-Division League System](#23-8-division-league-system)
+   - 2.4 [17-Day Season Structure](#24-17-day-season-structure)
+   - 2.5 [Eastern Time Scheduling](#25-eastern-time-scheduling)
 
-### 3. Team Management
+### 3. Team Management Hub
    - 3.1 [Roster Management](#31-roster-management)
-   - 3.2 [Player Statistics Explained](#32-player-statistics-explained)
-   - 3.3 [Contract Negotiations](#33-contract-negotiations)
-   - 3.4 [Team Camaraderie System](#34-team-camaraderie-system)
-   - 3.5 [Taxi Squad Management](#35-taxi-squad-management)
-   - 3.6 [Staff Management](#36-staff-management)
+   - 3.2 [Player Skills System](#32-player-skills-system)
+   - 3.3 [Injury & Stamina Management](#33-injury--stamina-management)
+   - 3.4 [Advanced Tactical Effects](#34-advanced-tactical-effects)
+   - 3.5 [Staff Management](#35-staff-management)
+   - 3.6 [Stadium & Atmosphere](#36-stadium--atmosphere)
+   - 3.7 [Financial Management](#37-financial-management)
+   - 3.8 [Contract Negotiations](#38-contract-negotiations)
+   - 3.9 [Recruiting & Tryouts](#39-recruiting--tryouts)
+   - 3.10 [Inventory Management](#310-inventory-management)
 
-### 4. Player Development
-   - 4.1 [Understanding Player Potential](#41-understanding-player-potential)
-   - 4.2 [Player Abilities System](#42-player-abilities-system)
-   - 4.3 [Injury and Recovery](#43-injury-and-recovery)
-   - 4.4 [Player Conditioning](#44-player-conditioning)
-   - 4.5 [Tryout System](#45-tryout-system)
+### 4. Player Development Systems
+   - 4.1 [16-Skill Progression System](#41-16-skill-progression-system)
+   - 4.2 [Dynamic Player Aging & Retirement](#42-dynamic-player-aging--retirement)
+   - 4.3 [Dual-Stamina Mechanics](#43-dual-stamina-mechanics)
+   - 4.4 [Career Milestone Tracking](#44-career-milestone-tracking)
+   - 4.5 [Development History](#45-development-history)
 
-### 5. Tactical Systems
-   - 5.1 [Formation Setup](#51-formation-setup)
-   - 5.2 [Field Size Specialization](#52-field-size-specialization)
-   - 5.3 [Tactical Focus Settings](#53-tactical-focus-settings)
-   - 5.4 [Substitution Management](#54-substitution-management)
-   - 5.5 [Situational Tactics](#55-situational-tactics)
+### 5. Advanced Game Systems
+   - 5.1 [Enhanced Game Economy](#51-enhanced-game-economy)
+   - 5.2 [Stadium Revenue Engine](#52-stadium-revenue-engine)
+   - 5.3 [Fan Loyalty System](#53-fan-loyalty-system)
+   - 5.4 [Home Field Advantage](#54-home-field-advantage)
+   - 5.5 [Team Power Tiers](#55-team-power-tiers)
 
-### 6. Competition
-   - 6.1 [Regular Season Matches](#61-regular-season-matches)
-   - 6.2 [Playoffs System](#62-playoffs-system)
-   - 6.3 [Exhibition Games](#63-exhibition-games)
-   - 6.4 [Tournament Play](#64-tournament-play)
-   - 6.5 [Match Simulation](#65-match-simulation)
+### 6. Competition Hub
+   - 6.1 [League Standings & Promotion/Relegation](#61-league-standings--promotionrelegation)
+   - 6.2 [Tournament Systems](#62-tournament-systems)
+   - 6.3 [Exhibition Matches](#63-exhibition-matches)
+   - 6.4 [Enhanced Live Match Simulation](#64-enhanced-live-match-simulation)
+   - 6.5 [Season Management](#65-season-management)
 
-### 7. Stadium & Facilities
-   - 7.1 [Stadium Overview](#71-stadium-overview)
-   - 7.2 [Facility Upgrades](#72-facility-upgrades)
-   - 7.3 [Training Facilities](#73-training-facilities)
-   - 7.4 [Medical Facilities](#74-medical-facilities)
-   - 7.5 [Revenue Generation](#75-revenue-generation)
+### 7. Market Hub
+   - 7.1 [Dynamic Marketplace](#71-dynamic-marketplace)
+   - 7.2 [Advanced Auction Engine](#72-advanced-auction-engine)
+   - 7.3 [Store System](#73-store-system)
+   - 7.4 [Recruiting System](#74-recruiting-system)
 
-### 8. Marketplace & Trading
-   - 8.1 [Player Auctions](#81-player-auctions)
-   - 8.2 [Bidding System](#82-bidding-system)
-   - 8.3 [Trading Players](#83-trading-players)
-   - 8.4 [Scouting Reports](#84-scouting-reports)
-   - 8.5 [Market Valuation](#85-market-valuation)
+### 8. World Hub
+   - 8.1 [Division Overview](#81-division-overview)
+   - 8.2 [Leaderboards](#82-leaderboards)
+   - 8.3 [Player & Team Lookup](#83-player--team-lookup)
 
-### 9. Store & Premium Features
-   - 9.1 [Credit System](#91-credit-system)
-   - 9.2 [Premium Gems](#92-premium-gems)
-   - 9.3 [Store Items](#93-store-items)
-   - 9.4 [Premium Features](#94-premium-features)
-   - 9.5 [Payment History](#95-payment-history)
+### 9. Community Hub
+   - 9.1 [Social Integration](#91-social-integration)
+   - 9.2 [Referral System](#92-referral-system)
+   - 9.3 [Redeem Codes](#93-redeem-codes)
+   - 9.4 [Help System](#94-help-system)
 
-### 10. Statistics & Awards
-   - 10.1 [Player Statistics](#101-player-statistics)
-   - 10.2 [Team Statistics](#102-team-statistics)
-   - 10.3 [Leaderboards](#103-leaderboards)
-   - 10.4 [MVP Awards](#104-mvp-awards)
-   - 10.5 [Season Awards](#105-season-awards)
+### 10. Advanced Strategies
+   - 10.1 [Team Building with Skills](#101-team-building-with-skills)
+   - 10.2 [Tactical Optimization](#102-tactical-optimization)
+   - 10.3 [Financial Strategy](#103-financial-strategy)
+   - 10.4 [Marketplace Strategy](#104-marketplace-strategy)
+   - 10.5 [Championship Path](#105-championship-path)
 
-### 11. Advanced Strategies
-   - 11.1 [Team Building Strategies](#111-team-building-strategies)
-   - 11.2 [Race Synergies](#112-race-synergies)
-   - 11.3 [Financial Management](#113-financial-management)
-   - 11.4 [Development Planning](#114-development-planning)
-   - 11.5 [Championship Tactics](#115-championship-tactics)
-
-### 12. Troubleshooting & FAQ
-   - 12.1 [Common Issues](#121-common-issues)
-   - 12.2 [Frequently Asked Questions](#122-frequently-asked-questions)
-   - 12.3 [Support Contact](#123-support-contact)
+### 11. Troubleshooting & FAQ
+   - 11.1 [Common Issues](#111-common-issues)
+   - 11.2 [Frequently Asked Questions](#112-frequently-asked-questions)
+   - 11.3 [Support Contact](#113-support-contact)
 
 ---
 
@@ -93,9 +86,9 @@
 
 Welcome to Realm Rivalry! To begin your journey as a fantasy sports manager:
 
-1. Visit the game website and click "Sign In" or "Create Account"
+1. Visit the game website and click "LOG IN" in the top navigation
 2. Use Replit authentication to create your account
-3. Once logged in, you'll be prompted to create your first team
+3. Once logged in, you'll see the full game navigation and be prompted to create your first team
 
 ### 1.2 Team Creation
 
@@ -106,53 +99,55 @@ Creating your team is your first major decision:
    - Only letters, numbers, and spaces allowed
    - Must be unique across all teams
    - Cannot contain profanity or reserved names
+   - Advanced validation prevents impersonation and inappropriate content
 
 2. **Initial Resources**:
-   - 15,000 Credits (starting budget)
-   - 3 Exhibition Game Credits
-   - 10 Starting Players (mixed races)
-   - 7 Staff Members
+   - 50,000 Credits (starting budget)
+   - 0 Premium Gems
+   - 10 Starting Players (mixed races and roles)
+   - 7 Complete Staff Members
+   - Basic stadium with 15,000 capacity
 
 3. **Division Placement**:
-   - New teams start in Division 8
-   - Work your way up through promotions
+   - New teams start in Division 8 (Copper League)
+   - Work your way up through the 8-division system
 
 ### 1.3 Understanding the Dashboard
 
-The Dashboard is your command center:
+The Dashboard is your command center with enhanced interactivity:
 
-- **Team Overview**: Shows your team's current status
-- **Player Roster**: Quick view of your players with power ratings
-- **Financial Status**: Credits and premium gems display
-- **Server Time**: Shows current Eastern time and game scheduling
-- **Quick Actions**: Navigate to key features
-- **Notifications**: Important updates and alerts
+- **Team Overview**: Shows power rating, division rank (clickable to Competition Hub)
+- **Player Roster**: Interactive player cards with detailed stats and role colors
+- **Financial Status**: Credits and gems (credits clickable to payments)
+- **Server Time**: Eastern time with 3AM reset timing and 5PM-10PM game window
+- **Division Standings**: Current league position and points
+- **Notifications**: Real-time updates with deletion capability
 
-### 1.4 Navigation Overview
+### 1.4 Hub-Based Navigation
 
-The main navigation includes:
+The game uses a streamlined hub-based navigation system:
 
-- **Dashboard**: Your home base
-- **Team**: Detailed roster and management
-- **Competition**: League, tournaments, and exhibitions
-- **Store**: Purchase items and premium features
-- **Stadium**: Manage facilities and upgrades
-- **Community**: Social features and interactions
-- **Stats**: Comprehensive statistics and leaderboards
+- **Dashboard**: Your home base and overview
+- **Team**: Comprehensive 10-tab team management system
+- **Competition**: League, tournaments, exhibitions, and season management
+- **Market**: Dynamic marketplace, store, and recruiting
+- **World**: Division overview, leaderboards, and lookup tools
+- **Community**: Social features, referrals, codes, and help
 
-### 1.5 Game Currency System
+### 1.5 Dual Currency System
 
-Two types of currency:
+Two types of currency with dynamic exchange rates:
 
-1. **Credits**:
+1. **Credits (₡)**:
    - Primary game currency
-   - Earned through matches, sponsorships, and achievements
-   - Used for player salaries, transfers, and basic items
+   - Earned through matches, stadium revenue, and achievements
+   - Used for salaries, marketplace, basic items, and facility upgrades
 
-2. **Premium Gems**:
+2. **Premium Gems (💎)**:
    - Premium currency
-   - Purchased with real money or earned through special events
-   - Used for premium features and exclusive items
+   - Earned through division rewards and special achievements
+   - Exchange rate: 450-600 credits per gem (dynamic pricing)
+   - Used for premium items and enhanced features
 
 ---
 
@@ -160,1116 +155,904 @@ Two types of currency:
 
 ### 2.1 The Five Fantasy Races
 
-Each race has unique characteristics and tendencies:
+Each race has unique characteristics and special abilities:
 
 #### Human
 - **Characteristics**: Balanced, reliable, versatile
 - **Strengths**: Well-rounded stats, good leadership
+- **Special Skill**: Adaptable - can learn any skill more easily
 - **Common Roles**: All positions equally
-- **Special Traits**: Adaptable to any tactical system
+- **Development**: Steady progression across all stats
 
 #### Sylvan
 - **Characteristics**: Agile, nature-connected, swift
 - **Strengths**: High speed and agility
-- **Common Roles**: Runners and Passers
-- **Special Traits**: Enhanced stamina in outdoor conditions
+- **Special Skill**: Photosynthesis - enhanced stamina recovery
+- **Common Roles**: Runners and agile Passers
+- **Development**: Excels in speed and agility stats
 
 #### Gryll
 - **Characteristics**: Tough, defensive, powerful
 - **Strengths**: High power and stamina
-- **Common Roles**: Blockers
-- **Special Traits**: Natural defensive instincts
+- **Special Skills**: Unshakeable (injury resistance), Master Craftsman (equipment bonuses)
+- **Common Roles**: Blockers and defensive specialists
+- **Development**: Strong in power and stamina
 
 #### Lumina
 - **Characteristics**: Radiant, high-energy, charismatic
 - **Strengths**: Leadership and catching ability
+- **Special Skill**: Healing Light - team stamina boost
 - **Common Roles**: Passers and team leaders
-- **Special Traits**: Boost team morale
+- **Development**: High leadership and catching stats
 
 #### Umbra
 - **Characteristics**: Mysterious, shadow-based, tactical
-- **Strengths**: Strategic thinking and deception
+- **Strengths**: Strategic thinking and stealth
+- **Special Skill**: Shadow Step - evasion abilities
 - **Common Roles**: Varied tactical positions
-- **Special Traits**: Unpredictable gameplay style
+- **Development**: Unpredictable but powerful
 
 ### 2.2 Player Positions and Roles
 
-Three main roles in your team:
+Three main roles with universal color coding:
 
 #### Passer (Yellow)
-- **Primary Stats**: Throwing, Leadership
-- **Field Position**: Usually in the backfield
-- **Responsibilities**: Distribute the ball, call plays
-- **Ideal Races**: Lumina, Human
+- **Primary Stats**: Throwing, Leadership, Catching
+- **Role**: Quarterback-like position controlling game flow
+- **Key Skills**: Deadeye (precision), Pocket Presence (composure)
+- **Formation Requirements**: Minimum 1 per team
 
 #### Runner (Green)
-- **Primary Stats**: Speed, Agility
-- **Field Position**: Mid-field positions
-- **Responsibilities**: Carry the ball, create openings
-- **Ideal Races**: Sylvan, Umbra
+- **Primary Stats**: Speed, Agility, Stamina
+- **Role**: Ball carriers and speed-based plays
+- **Key Skills**: Juke Move (evasion), Truck Stick (power running)
+- **Formation Requirements**: Minimum 2 per team
 
 #### Blocker (Red)
-- **Primary Stats**: Power, Stamina
-- **Field Position**: Front line positions
-- **Responsibilities**: Protect teammates, stop opponents
-- **Ideal Races**: Gryll, Human
+- **Primary Stats**: Power, Stamina, Leadership
+- **Role**: Defensive specialists and protection
+- **Key Skills**: Pancake Block (devastating hits), Bodyguard (protection)
+- **Formation Requirements**: Minimum 2 per team
 
-### 2.3 The League System
+### 2.3 8-Division League System
 
-8 divisions create a competitive hierarchy:
+Hierarchical league structure with mineral-based naming:
 
-- **Division 1**: Elite teams (top 8)
-- **Division 2-7**: Competitive tiers
-- **Division 8**: New teams start here
+1. **Division 1**: Diamond League (Elite)
+2. **Division 2**: Platinum League (Championship)
+3. **Division 3**: Gold League (Professional)
+4. **Division 4**: Silver League (Semi-Professional)
+5. **Division 5**: Bronze League (Advanced Amateur)
+6. **Division 6**: Iron League (Intermediate)
+7. **Division 7**: Stone League (Developing)
+8. **Division 8**: Copper League (Foundation)
 
-**Promotion/Relegation**:
-- Top 2 teams promote to higher division
+**Promotion/Relegation Rules**:
+- Each division has multiple leagues of 8 teams each
+- Top 2 teams from each league promote to higher division
 - Bottom 2 teams relegate to lower division
-- Playoffs determine some promotions
+- Playoffs can affect final positions for promotion/relegation
+- Division 1 winners become overall champions
+- Division 8 is the floor (no relegation below)
 
-### 2.4 Season Structure
+### 2.4 17-Day Season Structure
 
-Each season lasts 17 days:
+Comprehensive seasonal cycle:
 
-- **Days 1-14**: Regular Season
-  - Daily matches against division opponents
-  - Build standings for playoff positioning
-  
-- **Day 15**: Playoffs
-  - Top teams compete for championships
-  - Promotion/relegation decided
-  
-- **Days 16-17**: Off-Season
-  - Contract negotiations
-  - Facility upgrades
-  - Strategic planning
+- **Days 1-14**: Regular Season (14 match days)
+- **Day 15**: Playoffs and Finals
+- **Days 16-17**: Off-Season (transfers, promotions, preparations)
 
-### 2.5 Game Time and Scheduling
+**Season Progression**:
+- Each team plays other teams in their league twice
+- Standings determined by points (3 for win, 1 for draw, 0 for loss)
+- Playoffs determine final positions within each league
+- Promotion/relegation based on final league positions
 
-- **Server Time**: Eastern Time (Detroit)
-- **Game Window**: 5 PM - 10 PM ET daily
-- **Match Duration**: 6 minutes real-time (3 minutes per half)
-- **Scheduling**: Staggered start times for optimal viewing
+### 2.5 Eastern Time Scheduling
+
+Game operates on Eastern Time (Detroit timezone):
+
+- **Daily Reset**: 3:00 AM Eastern
+- **Game Window**: 5:00 PM - 10:00 PM Eastern (optimal viewing)
+- **Live Match Scheduling**: Staggered during game window
+- **Season Progression**: Automatic daily advancement
 
 ---
 
-## 3. Team Management
+## 3. Team Management Hub
 
 ### 3.1 Roster Management
 
-Your roster consists of:
-
-- **Active Roster**: 6-8 players
-- **Starting Formation**: 6 players (1 Passer, 2 Runners, 2 Blockers, 1 Wildcard)
-- **Substitutes**: Backup players for each position
-- **Taxi Squad**: 2 additional development players
-
-**Key Management Tasks**:
-- Monitor player fitness and injuries
-- Rotate players to prevent fatigue
-- Balance experience with potential
-- Maintain position depth
-
-### 3.2 Player Statistics Explained
-
-Core statistics (1-40 scale):
-
-- **Speed**: How fast a player moves
-- **Power**: Physical strength and impact
-- **Throwing**: Passing accuracy and distance
-- **Catching**: Ball reception ability
-- **Kicking**: Field goal and punt ability
-- **Stamina**: Endurance throughout matches
-- **Leadership**: Team influence and morale boost
-- **Agility**: Dodging and direction changes
-
-**Power Rating**: Sum of Speed + Power + Throwing + Catching + Kicking
-
-**Stat Colors**:
-- Green (32+): Elite level
-- White (19-31): Average level
-- Red (≤18): Below average
-
-### 3.3 Contract Negotiations
-
-Managing player contracts:
-
-1. **Contract Elements**:
-   - Salary: Annual payment in credits
-   - Years: Contract duration (1-5 years)
-   - Willingness: Player's desire to sign
-
-2. **Negotiation Factors**:
-   - Player performance
-   - Team success
-   - Camaraderie level
-   - Market value
-
-3. **Tips**:
-   - Start with lower offers
-   - Use incremental adjustments (+50, +100, +500)
-   - Consider long-term value
-   - Factor in player age and potential
-
-### 3.4 Team Camaraderie System
-
-Camaraderie affects performance:
-
-- **Range**: 0-100 points per player
-- **Team Average**: Overall chemistry rating
-
-**Factors Affecting Camaraderie**:
-- Years on team (+2 per year)
-- Team success (+10 for >60% wins)
-- Championships (+25 bonus)
-- Coach influence (coaching rating × 0.5)
-- Annual decay (-5 per year)
-
-**Benefits of High Camaraderie (>75)**:
-- +2 Catching and Agility in matches
-- Better injury resistance
-- Higher contract willingness
-- Development bonuses for young players
-
-### 3.5 Taxi Squad Management
-
-Development system for prospects:
-
-- **Capacity**: 2 players maximum
-- **Purpose**: Develop young talent without roster pressure
-- **Acquisition**: Through tryout system
-- **Promotion**: Move to active roster when ready
-- **Release**: Free up space for new prospects
-
-### 3.6 Staff Management
-
-Your support team includes:
-
-1. **Head Coach**:
-   - Influences tactics effectiveness
-   - Boosts player camaraderie
-   - Provides strategic bonuses
-
-2. **Recovery Specialist**:
-   - Reduces injury recovery time
-   - Improves player conditioning
-
-3. **Trainers** (3):
-   - Develop player skills
-   - Prevent injuries
-   - Maintain fitness
-
-4. **Scouts** (2):
-   - Find new talent
-   - Provide opponent analysis
-   - Improve tryout quality
-
----
-
-## 4. Player Development
-
-### 4.1 Understanding Player Potential
-
-Player growth system:
-
-- **Age Range**: 18-35 years
-- **Peak Years**: 24-29 typically
-- **Potential Stars**: 2.0-5.0 rating
-- **Development Rate**: Based on potential and training
-
-**Potential Indicators**:
-- ⭐⭐: Limited growth potential
-- ⭐⭐⭐: Average development
-- ⭐⭐⭐⭐: High potential
-- ⭐⭐⭐⭐⭐: Elite prospect
-
-### 4.2 Player Abilities System
-
-Three-tier ability system:
-
-#### Basic Abilities
-- Common skills
-- No prerequisites
-- Minor stat bonuses
-- Examples: Quick Feet (+2 Speed), Strong Arm (+2 Throwing)
-
-#### Advanced Abilities
-- Require basic abilities
-- Moderate stat bonuses
-- Position-specific benefits
-- Examples: Lightning Sprint (+5 Speed), Precision Passer (+5 Throwing)
-
-#### Godly Abilities
-- Rare and powerful
-- Multiple prerequisites
-- Major gameplay impact
-- Examples: Time Dilation (slow perception), Thunderous Charge (knockback)
-
-**Ability Acquisition**:
-- Random chance based on performance
-- Higher chance with race/position affinity
-- Can gain 1-3 abilities maximum
-
-### 4.3 Injury and Recovery
-
-Injury management:
-
-**Injury Types**:
-- Minor (1-3 days): Bruises, strains
-- Moderate (4-7 days): Pulls, sprains
-- Severe (8-14 days): Tears, fractures
-- Career-threatening (15+ days): Major injuries
-
-**Recovery Factors**:
-- Medical staff quality
-- Facility level
-- Player age
-- Treatment options
-
-**Prevention**:
-- Proper rotation
-- Conditioning programs
-- Quality training facilities
-- Camaraderie bonuses
-
-### 4.4 Player Conditioning
-
-Fitness management:
-
-- **Stamina Bar**: Shows current fitness
-- **Recovery Rate**: Based on age and facilities
-- **Overuse Risk**: Playing tired increases injury chance
-- **Optimal Usage**: 70-90% stamina range
-
-**Conditioning Programs**:
-- Light: Maintenance mode
-- Normal: Standard development
-- Intensive: Rapid improvement, higher injury risk
-
-### 4.5 Tryout System
-
-Finding new talent:
-
-**Basic Tryout** (1,000 Credits):
-- 3 random candidates
-- Mixed quality prospects
-- Once per season limit
-
-**Premium Tryout** (100 Gems):
-- 5 candidates
-- Higher quality guarantee
-- Better potential ratings
-- Can use multiple times
-
-**Evaluation Process**:
-1. Review candidate stats
-2. Check potential rating
-3. Consider team needs
-4. Sign to taxi squad or pass
-
----
-
-## 5. Tactical Systems
-
-### 5.1 Formation Setup
-
-Creating your game plan:
-
-**Required Positions**:
-- 1 Passer (quarterback role)
-- 2 Runners (offensive threats)
-- 2 Blockers (defensive line)
-- 1 Wildcard (any role)
-
-**Formation Principles**:
-- Balance offensive and defensive capabilities
-- Consider player stamina for substitutions
-- Match formation to opponent style
-- Utilize player special abilities
-
-### 5.2 Field Size Specialization
-
-Three field configurations:
-
-#### Standard Field
-- **Size**: Normal dimensions
-- **Benefits**: Balanced gameplay
-- **Best For**: Versatile teams
-- **Strategy**: Flexible tactics
-
-#### Large Field
-- **Size**: 20% larger
-- **Benefits**: +3 Speed, +2 Stamina for home team
-- **Best For**: Fast, agile teams
-- **Strategy**: Spread formations, running plays
-
-#### Small Field
-- **Size**: 20% smaller
-- **Benefits**: +3 Power, +2 Leadership for home team
-- **Best For**: Physical, defensive teams
-- **Strategy**: Tight formations, power plays
-
-**Important**: Field size can only be changed during off-season (Days 16-17) or Day 1
-
-### 5.3 Tactical Focus Settings
-
-Pre-match strategy selection:
-
-#### Balanced
-- **Approach**: 50/50 run-pass mix
-- **Benefits**: Unpredictable, adaptable
-- **Drawbacks**: No specialized bonuses
-- **When to Use**: Against similar-strength opponents
-
-#### All-Out Attack
-- **Approach**: 70% passing plays
-- **Benefits**: +2 Throwing accuracy, aggressive AI
-- **Drawbacks**: -10% defensive stability
-- **When to Use**: When trailing or against weak defenses
-
-#### Defensive Wall
-- **Approach**: 70% defensive focus
-- **Benefits**: +15% tackle success, conservative AI
-- **Drawbacks**: -2 offensive initiative
-- **When to Use**: Protecting leads or against strong offenses
-
-### 5.4 Substitution Management
-
-Managing player rotation:
-
-**Substitution Order**:
-- Set backup priority for each position
-- Automatic substitution at 50% stamina
-- Manual changes during timeouts
-
-**Strategic Substitutions**:
-- Fresh legs for final quarter
-- Matchup advantages
-- Injury prevention
-- Tactical shifts
-
-### 5.5 Situational Tactics
-
-Dynamic in-game adjustments:
-
-**Winning Big (>3 goals)**:
-- AI becomes conservative
-- Focuses on possession
-- Reduces injury risk
-
-**Losing Big (>3 goals)**:
-- AI becomes aggressive
-- Takes more risks
-- Increases passing attempts
-
-**Late & Close (<2 minutes, ≤1 goal)**:
-- Maximum intensity
-- Clutch performance bonuses
-- Camaraderie effects doubled
-
----
-
-## 6. Competition
-
-### 6.1 Regular Season Matches
-
-Daily league competition:
-
-**Match Schedule**:
-- One match per day (Days 1-14)
-- Automated opponent selection
-- Home/away rotation
-
-**Match Preparation**:
-- Check opponent roster
-- Set tactical focus
-- Verify formation
-- Monitor player fitness
-
-**During Matches**:
-- 6-minute duration (3 per half)
-- Live score updates
-- Event commentary
-- Real-time statistics
-
-### 6.2 Playoffs System
-
-Championship determination:
-
-**Qualification**:
-- Top 4 teams per division
-- Based on regular season record
-
-**Format**:
-- Single elimination
-- Higher seed hosts
-- Winners promote (if applicable)
-
-**Rewards**:
-- Championship trophy
-- Promotion to higher division
-- Bonus credits
-- Camaraderie boost
-
-### 6.3 Exhibition Games
-
-Practice and earn extras:
-
-**Cost**: 500 Credits or 50 Gems per game
-**Daily Limit**: 3 games
-**Benefits**:
-- Extra revenue
-- Player experience
-- Test formations
-- No relegation risk
-
-**Opponents**:
-- Random selection
-- Similar strength teams
-- No division restrictions
-
-### 6.4 Tournament Play
-
-Special competitions:
-
-**Entry Fee**: 2,000 Credits or 200 Gems
-**Format**: Varies by tournament
-**Rewards**: 
-- Large credit prizes
-- Exclusive items
-- Special achievements
-
-**Tournament Types**:
-- Open: All divisions
-- Restricted: Specific divisions
-- Themed: Race or role specific
-
-### 6.5 Match Simulation
-
-Understanding the game engine:
-
-**Simulation Factors**:
-- Player stats
-- Formation matchups
-- Tactical settings
-- Home field advantage
-- Fatigue levels
-- Weather conditions
-
-**Key Moments**:
-- Kickoff positioning
-- Possession battles
-- Scoring opportunities
-- Defensive stands
-- Clutch plays
-
----
-
-## 7. Stadium & Facilities
-
-### 7.1 Stadium Overview
-
-Your home advantage:
-
-**Components**:
-- Seating capacity
-- Field type selection
-- Facility integration
-- Revenue generation
-
-**Importance**:
-- Generates match day income
-- Provides tactical advantages
-- Improves player morale
-- Attracts better players
-
-### 7.2 Facility Upgrades
-
-Investment opportunities:
-
-#### Seating Expansion
-- **Levels**: 5,000 to 50,000 capacity
-- **Cost**: Scales with size
-- **Benefit**: Increased ticket revenue
-- **ROI**: 10-15 matches typically
-
-#### Field Improvements
-- **Grass Quality**: Affects injury rates
-- **Drainage**: All-weather capability
-- **Lighting**: Evening match quality
-- **Technology**: VAR and analytics
-
-### 7.3 Training Facilities
-
-Player development infrastructure:
-
-#### Basic Gym
-- **Cost**: 10,000 Credits
-- **Effect**: +1 to physical stat growth
-- **Maintenance**: 500/week
-
-#### Advanced Complex
-- **Cost**: 50,000 Credits
-- **Effect**: +2 to all stat growth
-- **Features**: Multiple training areas
-- **Maintenance**: 2,000/week
-
-#### Elite Center
-- **Cost**: 200,000 Credits
-- **Effect**: +3 growth, injury prevention
-- **Features**: Cutting-edge technology
-- **Maintenance**: 5,000/week
-
-### 7.4 Medical Facilities
-
-Injury management:
-
-#### Basic Medical Room
-- **Recovery**: Standard rates
-- **Capacity**: 2 players
-- **Cost**: 5,000 Credits
-
-#### Professional Clinic
-- **Recovery**: 25% faster
-- **Capacity**: 4 players
-- **Cost**: 25,000 Credits
-- **Staff**: Dedicated medical team
-
-#### State-of-the-Art Hospital
-- **Recovery**: 50% faster
-- **Capacity**: 6 players
-- **Cost**: 100,000 Credits
-- **Features**: Regeneration technology
-
-### 7.5 Revenue Generation
-
-Stadium income streams:
-
-**Ticket Sales**:
-- Base price × Attendance
-- Affected by team performance
-- Division level multiplier
-
-**Concessions**:
-- 20-30% of ticket revenue
-- Upgradeable facilities
-- Fan satisfaction bonus
-
-**Sponsorships**:
-- Stadium naming rights
-- Facility partnerships
-- Performance bonuses
-
-**Special Events**:
-- Host exhibition matches
-- Tournament venues
-- Community events
-
----
-
-## 8. Marketplace & Trading
-
-### 8.1 Player Auctions
-
-Acquiring new talent:
-
-**Auction Types**:
-- **Daily Auctions**: Regular player listings
-- **Special Auctions**: Rare players/prospects
-- **Emergency Sales**: Distressed teams
-
-**Bidding Process**:
-1. Browse available players
-2. Analyze stats and potential
-3. Place initial bid
-4. Monitor competing bids
-5. Adjust strategy as needed
-
-### 8.2 Bidding System
-
-Strategic acquisition:
-
-**Bid Increments**:
-- Minimum: 5% over current bid
-- Maximum: No limit
-- Time Extension: 30 seconds after new bid
-
-**Strategies**:
-- **Early Bird**: Bid high early to discourage competition
-- **Sniper**: Wait until final seconds
-- **Incremental**: Steady small increases
-- **Psychological**: Round number intimidation
-
-### 8.3 Trading Players
-
-Direct negotiations:
-
-**Trade Components**:
-- Players
-- Credits
-- Future considerations
-- Draft picks (if applicable)
-
-**Trade Evaluation**:
-- Compare player values
-- Consider team needs
-- Factor in salaries
-- Check chemistry fit
-
-**Trade Window**:
-- Open most of season
-- Closed during playoffs
-- Special rules in off-season
-
-### 8.4 Scouting Reports
-
-Information advantage:
-
-**Report Contents**:
-- Detailed statistics
-- Ability analysis
-- Injury history
-- Personality traits
-- Market value estimate
-
-**Obtaining Reports**:
-- Scout generation (daily)
-- Purchase from store
-- Trade with other teams
-- Special events
-
-### 8.5 Market Valuation
-
-Understanding player worth:
-
-**Value Factors**:
-- Current statistics
-- Age and potential
-- Race and abilities
-- Contract status
-- Recent performance
-
-**Market Trends**:
-- Position scarcity
-- Division demand
-- Seasonal fluctuations
-- Meta changes
-
----
-
-## 9. Store & Premium Features
-
-### 9.1 Credit System
-
-Primary currency management:
-
-**Earning Credits**:
-- Match victories: 1,000-3,000
-- Season placement: 5,000-50,000
-- Achievements: Various amounts
-- Daily login: 100-500
-
-**Spending Credits**:
-- Player salaries (largest expense)
-- Facility maintenance
-- Exhibition games
-- Basic store items
-
-### 9.2 Premium Gems
-
-Premium currency benefits:
-
-**Obtaining Gems**:
-- Purchase with real money
-- Special promotions
-- Achievement rewards
-- Tournament prizes
-
-**Gem Advantages**:
-- Exclusive items
-- Convenience features
-- Additional tryouts
-- Priority access
-
-### 9.3 Store Items
-
-Available purchases:
-
-#### Equipment
-- **Training Gear**: Improves development
-- **Medical Supplies**: Faster recovery
-- **Tactical Tools**: Better analysis
-
-#### Boosts
-- **XP Boosts**: Faster player growth
-- **Credit Multipliers**: Increased earnings
-- **Stamina Recovery**: Instant refresh
-
-#### Cosmetics
-- **Team Logos**: Unique designs
-- **Stadium Themes**: Visual upgrades
-- **Player Uniforms**: Custom colors
-
-### 9.4 Premium Features
-
-Exclusive benefits:
-
-**Premium Tryouts**:
-- Better candidate quality
-- More options
-- Guaranteed minimums
-
-**Advanced Analytics**:
-- Detailed statistics
-- Predictive modeling
-- Historical tracking
-
-**Quality of Life**:
-- Auto-management options
-- Extended queues
-- Priority support
-
-### 9.5 Payment History
-
-Transaction tracking:
-
-**History Features**:
-- Complete transaction log
-- Filtering options
-- Export capability
-- Running balances
-
-**Transaction Types**:
-- Purchases
-- Sales
-- Rewards
-- Refunds
-
----
-
-## 10. Statistics & Awards
-
-### 10.1 Player Statistics
-
-Individual performance tracking:
-
-**Offensive Stats**:
-- Goals scored
-- Assists
-- Pass completion %
-- Yards gained
-- Successful catches
-
-**Defensive Stats**:
-- Tackles made
-- Interceptions
-- Knockdowns
-- Blocks
-- Forced fumbles
-
-**Advanced Metrics**:
-- Efficiency rating
-- Win contribution
-- Clutch performance
-- Consistency score
-
-### 10.2 Team Statistics
-
-Collective performance:
-
-**Team Metrics**:
-- Win/Loss record
-- Goals for/against
-- Possession percentage
-- Formation effectiveness
-- Home/Away performance
-
-**Comparative Stats**:
-- Division ranking
-- Historical performance
-- Versus records
-- Trend analysis
-
-### 10.3 Leaderboards
-
-Competitive rankings:
-
-**Categories**:
-- Top Scorers
-- Best Passers
-- Defensive Leaders
-- Team Rankings
-- Rising Stars
-
-**Filters**:
-- By division
-- By race
-- By position
-- By age group
-- Season/All-time
-
-### 10.4 MVP Awards
-
-Match recognition:
-
-**MVP Calculation**:
-- Goals: 10 points each
-- Catches: 3 points each
-- Pass attempts: 0.5 points each
-- Rushing yards: 0.1 per yard
-- Knockdowns: 2 points each
-- Tackles: 1.5 points each
-
-**MVP Benefits**:
-- Trophy collection
-- Stat bonuses
-- Marketability increase
-- Fan favorite status
-
-### 10.5 Season Awards
-
-Annual recognition:
-
-**Award Categories**:
-- Player of the Year
-- Rookie of the Year
-- Top Scorer
-- Best Passer
-- Best Runner
-- Best Defender
-- Most Improved
-- Team of the Year
-
-**Selection Process**:
-- Statistical achievement
-- Team contribution
-- Consistency
-- Clutch performance
-
----
-
-## 11. Advanced Strategies
-
-### 11.1 Team Building Strategies
-
-Championship philosophy:
-
-**Balanced Approach**:
-- Mix of veterans and youth
-- All positions covered
-- Flexible tactics
-- Steady growth
-
-**Star Power**:
-- 2-3 elite players
-- Supporting cast
-- High risk/reward
+Comprehensive player management with enhanced features:
+
+**Player Cards**: Universal color-coded by role (Red/Yellow/Green)
+**Power Ratings**: Calculated from 5 core stats (Speed, Power, Throwing, Catching, Stamina)
+**Formation System**: 6-player formations (1 Passer, 2 Runners, 2 Blockers, 1 Wildcard)
+**Substitution Orders**: Position-specific substitute management
+
+**Formation Requirements**:
+- Must have exactly 6 active players
+- Minimum role requirements must be met
+- Wildcard position can be any role
+- Substitutes organized by position type
+
+### 3.2 Player Skills System
+
+16-skill progression system with 4-tier advancement:
+
+**Universal Skills** (Available to all players):
+- Second Wind (stamina boost)
+- Clutch Performer (pressure situations)
+- Durable (injury resistance)
+- Quick Recovery (faster healing)
+
+**Role-Specific Skills**:
+- **Passer**: Deadeye (accuracy), Pocket Presence (composure)
+- **Runner**: Juke Move (evasion), Truck Stick (power)
+- **Blocker**: Pancake Block (devastating hits), Bodyguard (protection)
+
+**Race-Specific Skills**:
+- **Human**: Adaptable (skill learning bonus)
+- **Sylvan**: Photosynthesis (stamina recovery)
+- **Gryll**: Unshakeable, Master Craftsman
+- **Lumina**: Healing Light (team boost)
+- **Umbra**: Shadow Step (evasion)
+
+**Skill Progression**:
+- 4 tiers per skill (Bronze, Silver, Gold, Platinum)
+- Maximum 3 skills per player
+- Leadership-based acquisition system
+- Season-end progression opportunities
+
+### 3.3 Injury & Stamina Management
+
+Dual-stamina system with comprehensive injury mechanics:
+
+**Stamina Types**:
+- **In-Game Stamina**: Temporary per-match value (0-100)
+- **Daily Stamina Level**: Persistent day-to-day stamina (0-100)
+
+**Injury Status Levels**:
+- Healthy: No limitations
+- Minor Injury: Slight stat penalties
+- Moderate Injury: Significant impact
+- Severe Injury: Major limitations
+
+**Recovery System**:
+- Daily recovery points accumulation
+- Consumable items for faster healing
+- Medical staff effectiveness
+- Rest vs. participation decisions
+
+**Daily Limits**:
+- Maximum 2 consumable items per day per player
+- Recovery items vs. performance enhancers
+- Strategic item usage planning
+
+### 3.4 Advanced Tactical Effects
+
+Multi-layered tactical system with real gameplay impact:
+
+**Field Size Specialization** (Home team advantage only):
+- **Standard Field**: Balanced gameplay, +1 stamina bonus
+- **Large Field**: Speed/agility bonuses (+2 speed, +1 agility)
+- **Small Field**: Power advantages (+2 power bonus)
+
+**Tactical Focus** (Adjustable before each match):
+- **Balanced**: No specific bonuses or penalties
+- **All-Out Attack**: Enhanced offense, defensive vulnerability
+- **Defensive Wall**: Strong defense, reduced offensive power
+
+**Coach & Camaraderie Effects**:
+- Head coach tactics skill influences effectiveness
+- Team camaraderie affects tactical success
+- Situational AI adjustments based on game state
+
+**Home Field Advantage**:
+- Field size benefits only apply to home team
+- Fan loyalty affects crowd noise and intimidation
+- Atmospheric effects impact away team performance
+
+### 3.5 Staff Management
+
+Complete 7-member staff system:
+
+**Staff Positions**:
+- **Head Coach**: Tactics skill, overall team leadership
+- **Offense Trainer**: Offensive skill development
+- **Defense Trainer**: Defensive skill development
+- **Physical Trainer**: Stamina and conditioning
+- **Head Scout**: Player evaluation and discovery
+- **Recruiting Scout**: Tryout candidate quality
+- **Recovery Specialist**: Injury treatment and prevention
+
+**Staff Impact**:
+- Training effectiveness based on staff ratings
+- Salary costs affect team budget
+- Staff upgrades through marketplace
+- Performance affects player development
+
+### 3.6 Stadium & Atmosphere
+
+Integrated stadium, finance, and atmosphere system:
+
+**Fan Loyalty System**:
+- Persistent 0-100 loyalty rating
+- Based on performance, form, and facilities
+- Updated at end of each season
+
+**Dynamic Attendance**:
+- Base attendance: 35% of capacity
+- Loyalty bonus: up to 50% additional
+- Win streak bonus: up to 15% additional
+- Total attendance affects revenue and atmosphere
+
+**Stadium Revenue Streams**:
+- **Ticket Sales**: Capacity × 25₡
+- **Concessions**: Capacity × 8₡ × Level
+- **Parking**: (Capacity × 0.3) × 10₡ × Level
+- **VIP Suites**: Level × 5,000₡
+- **Apparel**: Capacity × 3₡ × Level
+
+**Facility Upgrades**:
+- Capacity expansion (expensive but high revenue impact)
+- Concessions improvements
+- Parking facilities
+- VIP suite construction
+- Merchandising capabilities
+- Lighting and atmosphere enhancements
+
+### 3.7 Financial Management
+
+Comprehensive financial tracking and management:
+
+**Revenue Sources**:
+- Stadium attendance (variable based on performance)
+- Facility revenue (concessions, parking, VIP, apparel)
+- Division rewards (end of season)
+- Exhibition bonuses
+- Marketplace sales
+
+**Expenses**:
+- Player salaries (weekly payments)
+- Staff salaries (weekly payments)
+- Stadium maintenance (0.5% of facility value daily)
+- Marketplace listing fees
+- Store purchases
+
+**Financial Strategy**:
+- Budget planning for long-term success
+- Investment in facilities vs. player acquisition
+- Market timing for player sales
 - Salary cap management
 
-**Youth Development**:
-- Focus on potential
-- Long-term vision
-- Lower costs
-- Higher volatility
+### 3.8 Contract Negotiations
 
-**Moneyball**:
-- Statistical efficiency
-- Undervalued players
-- System over stars
-- Marginal gains
+Advanced contract system with realistic negotiations:
 
-### 11.2 Race Synergies
+**Contract Elements**:
+- Base salary (primary cost)
+- Contract length (1-4 years)
+- Performance bonuses
+- Loyalty clauses
 
-Optimal combinations:
+**Negotiation Factors**:
+- Player camaraderie affects willingness to sign
+- Team success influences player demands
+- Market value determines fair offers
+- Player age affects contract length preferences
 
-**Speed Teams** (Sylvan/Human):
-- Large field advantage
-- Fast-paced tactics
-- High-scoring games
-- Stamina management crucial
+**Strategic Considerations**:
+- Long-term vs. short-term contracts
+- Salary budget allocation
+- Player retention planning
+- Free agent market timing
 
-**Power Teams** (Gryll/Human):
-- Small field dominance
-- Physical gameplay
-- Strong defense
-- Grinding victories
+### 3.9 Recruiting & Tryouts
 
-**Balanced Teams** (Mixed races):
-- Tactical flexibility
-- Unpredictable
-- No major weaknesses
-- Adaptable strategies
+Comprehensive player acquisition system:
 
-**Specialist Teams** (Single race focus):
-- Maximum synergy
-- Predictable strengths
-- Exploitable weaknesses
-- High ceiling/floor
+**Tryout System**:
+- Once per season limitation
+- Basic tryouts: 5 candidates, 50,000₡
+- Premium tryouts: 8 candidates, 5 gems or 250,000₡
+- Age range: 16-20 years (high potential)
 
-### 11.3 Financial Management
+**Candidate Evaluation**:
+- Stat ranges appropriate for age
+- Potential ratings visible
+- Race-specific stat tendencies
+- Role suitability analysis
 
-Economic strategy:
+**Taxi Squad**:
+- 2-player capacity for prospects
+- Promotion to main roster when space available
+- Release unwanted candidates
+- Development tracking
 
-**Budget Allocation**:
-- 60% Player salaries
-- 20% Facilities
-- 15% Transfers
-- 5% Emergency fund
+### 3.10 Inventory Management
+
+Complete item and equipment system:
+
+**Item Categories**:
+- **Helmets**: Stat bonuses and protection
+- **Footwear**: Speed and agility enhancements
+- **Consumables**: Temporary performance boosts
+- **Recovery Items**: Healing and stamina restoration
+
+**Item Effects**:
+- Permanent equipment bonuses
+- Temporary consumable effects
+- Daily usage limitations
+- Strategic timing considerations
+
+**Inventory Limits**:
+- Storage capacity constraints
+- Item expiration dates
+- Usage cooldowns
+- Transfer restrictions
+
+---
+
+## 4. Player Development Systems
+
+### 4.1 16-Skill Progression System
+
+Comprehensive skill development with authentic progression:
+
+**Skill Categories**:
+- **Universal**: Available to all players regardless of role or race
+- **Role-Specific**: Limited to specific positions
+- **Race-Specific**: Unique to each fantasy race
+
+**Progression Mechanics**:
+- Leadership-based acquisition (higher leadership = better skill chances)
+- Season-end progression opportunities
+- 4-tier advancement system per skill
+- Maximum 3 skills per player creates strategic choices
+
+**Skill Effects in Matches**:
+- Active bonuses during live simulations
+- Enhanced commentary for skill usage
+- Statistical tracking of skill effectiveness
+- Strategic importance in team building
+
+### 4.2 Dynamic Player Aging & Retirement
+
+Realistic career lifecycle management:
+
+**Age Ranges & Career Phases**:
+- **16-20**: Tryout prospects (high potential)
+- **18-35**: Active career phase
+- **31+**: Potential stat decline phase
+- **45**: Mandatory retirement age
+
+**Progression Formula**:
+BaseChance + PotentialModifier + AgeModifier + UsageModifier
+
+**Age-Based Decline**:
+- Physical stats (Speed, Agility, Power) decline for players 31+
+- Weighted selection based on current stat levels
+- Mental stats (Leadership, Throwing) more stable
+
+**Retirement Calculation**:
+- Age-based base chances
+- Injury history modifiers
+- Playing time considerations
+- Career milestone achievements
+
+### 4.3 Dual-Stamina Mechanics
+
+Sophisticated stamina management affecting all aspects:
+
+**Stamina Types**:
+- **In-Game**: Affects match performance, recovers between games
+- **Daily**: Persistent stamina affecting training and availability
+
+**Stamina Impact**:
+- Match performance penalties when low
+- Training effectiveness affected
+- Injury susceptibility increases
+- Recovery time lengthens
+
+**Management Strategies**:
+- Rest vs. participation decisions
+- Consumable item usage
+- Staff effectiveness utilization
+- Long-term player health planning
+
+### 4.4 Career Milestone Tracking
+
+Complete achievement and milestone system:
+
+**Milestone Categories**:
+- Performance achievements (scoring, passing, defensive)
+- Career longevity markers
+- Team success contributions
+- Individual accolades
+
+**Tracking System**:
+- Automatic milestone detection
+- Historical achievement records
+- Peak performance identification
+- Legacy value calculations
+
+### 4.5 Development History
+
+Comprehensive audit trail of player progression:
+
+**Tracked Elements**:
+- All stat changes and reasons
+- Skill acquisitions and upgrades
+- Injury incidents and recoveries
+- Contract negotiations and changes
+- Performance highlights
+
+**Historical Analysis**:
+- Development patterns
+- Training effectiveness
+- Career trajectory prediction
+- Investment return analysis
+
+---
+
+## 5. Advanced Game Systems
+
+### 5.1 Enhanced Game Economy
+
+Sophisticated dual-currency economic system:
+
+**Currency Exchange**:
+- Dynamic exchange rates (450-600 credits per gem)
+- Market-based pricing adjustments
+- Economic balance considerations
 
 **Revenue Optimization**:
-- Maximize attendance
-- Win bonuses
-- Tournament participation
-- Sponsorship deals
+- Stadium capacity vs. upgrade costs
+- Fan loyalty investment returns
+- Market timing strategies
+- Long-term financial planning
 
-**Cost Control**:
-- Salary structure
-- Youth development
-- Facility efficiency
-- Smart transfers
+**Economic Strategy**:
+- Facility investment priorities
+- Player acquisition budgeting
+- Market participation timing
+- Risk vs. reward calculations
 
-### 11.4 Development Planning
+### 5.2 Stadium Revenue Engine
 
-Long-term success:
+Advanced revenue calculation with multiple streams:
 
-**Player Pipeline**:
-- Regular tryouts
-- Taxi squad usage
-- Gradual integration
-- Succession planning
+**Revenue Calculation**:
+- Attendance-based variable income
+- Facility level multipliers
+- Loyalty and performance bonuses
+- Weather and seasonal factors
 
-**Facility Roadmap**:
-- Prioritize training
-- Medical importance
-- Stadium expansion
-- Revenue generation
+**Investment Analysis**:
+- Upgrade cost vs. revenue increase
+- Payback period calculations
+- Capacity vs. facility level optimization
+- Market demand considerations
 
-**Competitive Cycles**:
-- Building phase
-- Competing phase
-- Transition phase
-- Rebuild triggers
+**Revenue Maximization**:
+- Optimal facility upgrade paths
+- Fan loyalty building strategies
+- Performance impact planning
+- Long-term facility roadmaps
 
-### 11.5 Championship Tactics
+### 5.3 Fan Loyalty System
 
-Winning when it matters:
+Dynamic fan engagement affecting multiple game aspects:
 
-**Regular Season**:
-- Consistency over brilliance
-- Manage fatigue
-- Build chemistry
-- Secure playoff spot
+**Loyalty Factors**:
+- Team performance (>60% wins = +10 loyalty)
+- Championship success (+25 loyalty)
+- Coach effectiveness (rating × 0.5)
+- Facility quality impact
+- Annual decay (-5 loyalty)
 
-**Playoff Preparation**:
-- Peak fitness
-- Scout opponents
-- Mental readiness
-- Tactical surprises
+**Loyalty Effects**:
+- Attendance bonuses (up to 50%)
+- Revenue increases
+- Home field advantage
+- Intimidation factor for opponents
+- Market value perception
 
-**Big Game Approach**:
-- Start strong
-- Weather storms
-- Clutch substitutions
-- Experience matters
+**Building Loyalty**:
+- Consistent performance
+- Facility investments
+- Championship pursuits
+- Long-term strategic planning
 
-**Pressure Management**:
-- Team talks
-- Rotation policy
-- Media handling
+### 5.4 Home Field Advantage
+
+Realistic home field effects with strategic depth:
+
+**Field Size Benefits** (Home team only):
+- Stadium specialization provides tactical advantages
+- Opponent adaptation challenges
+- Strategic field selection
+
+**Atmospheric Effects**:
+- Crowd noise affects opponent concentration
+- Intimidation factors reduce opponent performance
+- Fan loyalty directly impacts home advantage
+
+**Strategic Considerations**:
+- Field size locking during season
+- Opponent preparation challenges
+- Tactical system optimization
+- Investment in fan experience
+
+### 5.5 Team Power Tiers
+
+5-tier classification system based on Combined Adjusted Rating (CAR):
+
+**Power Tiers**:
+1. **Foundation** (Bottom tier)
+2. **Developing** (Growth phase)
+3. **Competitive** (Middle tier)
+4. **Contender** (High tier)
+5. **Elite** (Top tier)
+
+**Tier Effects**:
+- Expected performance levels
+- Marketplace valuation
 - Fan expectations
+- Media attention
+- Sponsorship opportunities
 
 ---
 
-## 12. Troubleshooting & FAQ
+## 6. Competition Hub
 
-### 12.1 Common Issues
+### 6.1 League Standings & Promotion/Relegation
 
-**Authentication Problems**:
-- Clear browser cache
-- Check Replit login
-- Verify account status
-- Contact support if persistent
+Complex promotion/relegation system with multiple factors:
+
+**League Structure**:
+- Each division contains multiple 8-team leagues
+- Teams play each other twice (14 matches)
+- Points system: 3 for win, 1 for draw, 0 for loss
+
+**Promotion/Relegation Math**:
+The math is more complex than "top 2 promote, bottom 2 relegate":
+
+1. **Regular Season Standings**: Initial positioning based on points
+2. **Head-to-Head Records**: Tiebreaker for equal points
+3. **Goal Difference**: Secondary tiebreaker
+4. **Playoff Impact**: Playoffs can significantly affect final positions
+5. **Cross-League Competition**: Playoff results determine actual promotion/relegation spots
+6. **Division Champions**: League winners get automatic promotion
+7. **Relegation Playoffs**: Bottom teams may play relegation matches
+
+**Actual Process**:
+- Regular season determines playoff seeding
+- Playoffs determine final league positions
+- Top-performing league winners get promoted
+- Worst-performing teams across leagues get relegated
+- Playoff performance can override regular season position
+- Cross-divisional playoff matches possible for borderline teams
+
+### 6.2 Tournament Systems
+
+Multiple tournament formats with varying rewards:
+
+**Tournament Types**:
+- Division-specific tournaments
+- Cross-division competitions
+- Special event tournaments
+- Championship series
+
+**Entry Requirements**:
+- Team eligibility based on division/performance
+- Entry fees in credits or gems
+- Minimum roster requirements
+- Season timing restrictions
+
+### 6.3 Exhibition Matches
+
+Practice and entertainment matches with rewards:
+
+**Exhibition Benefits**:
+- Player development opportunities
+- Revenue generation
+- Strategy testing
+- Fan engagement
+
+**Exhibition Limitations**:
+- Daily purchase limits (3 per day)
+- Cost considerations
+- Player fatigue accumulation
+- Season timing strategy
+
+### 6.4 Enhanced Live Match Simulation
+
+Advanced live match simulation with sophisticated mechanics:
+
+**Simulation Features**:
+- Pre-game modifier calculation based on team setup
+- Home field advantage from stadium size and fan loyalty
+- Player skills effects during matches (Juke Move, Deadeye, etc.)
+- Dynamic commentary with 200+ variations
+- Atmospheric effects and crowd impact
+- Turn-based action resolution with realistic outcomes
+- Real-time stamina and fatigue tracking
+- Game phase detection (early/middle/late/clutch)
+- Halftime ads and credit rewards
+
+**Stadium Upgrades Impact**:
+- Stadium capacity affects attendance and revenue
+- Upgrade levels: Basic → Standard → Advanced → Elite → Legendary
+- Each level provides multiplicative benefits to revenue streams
+
+**Capacity Upgrade Costs**:
+- 20,000 capacity: 500,000₡
+- 25,000 capacity: 1,250,000₡
+- 30,000 capacity: 2,500,000₡
+- 35,000 capacity: 5,000,000₡
+- 40,000 capacity: 10,000,000₡
+
+### 6.5 Season Management
+
+Administrative control over seasonal progression:
+
+**Season Controls** (Admin):
+- Manual day advancement
+- Season reset functionality
+- Schedule generation
+- Playoff bracket creation
+
+**Season Information**:
+- Current day tracking (1-17)
+- Phase identification
+- Scheduling windows
+- Progression automation
+
+---
+
+## 7. Market Hub
+
+### 7.1 Dynamic Marketplace
+
+Advanced player marketplace with auction mechanics:
+
+**Marketplace Rules**:
+- Minimum 10 players required to list
+- Maximum 3 active listings per team
+- Season timing restrictions (not during playoffs)
+- Listing fees (2% of starting bid)
+
+**Listing Requirements**:
+- Minimum starting bid
+- Optional buy-now price
+- Auction duration selection
+- Player availability confirmation
+
+### 7.2 Advanced Auction Engine
+
+Sophisticated bidding system with anti-abuse features:
+
+**Bidding Mechanics**:
+- Credit escrow system
+- Automatic bid validation
+- Anti-sniping (5-minute extensions)
+- Minimum bid increments
+
+**Market Protection**:
+- Buy-now minimum pricing based on player value
+- Market tax (5% default) on all sales
+- Expired auction processing
+- Credit hold and release system
+
+**Strategic Elements**:
+- Market timing considerations
+- Player valuation analysis
+- Bidding strategy development
+- Portfolio management
+
+### 7.3 Store System
+
+Comprehensive item store with dual-currency pricing:
+
+**Item Categories**:
+- **Helmets**: Stat bonuses and protection
+- **Footwear**: Speed and agility enhancements
+- **Consumables**: Temporary performance boosts
+- **Performance Items**: Training and recovery aids
+- **Tournament Entries**: Exhibition and special event access
+
+**Pricing Structure**:
+- Credits for basic items
+- Gems for premium items
+- Dual pricing options for some items
+- Dynamic pricing based on demand
+
+**Purchase Limits**:
+- Daily limits on certain items
+- Usage restrictions
+- Inventory capacity constraints
+- Strategic purchase timing
+
+### 7.4 Recruiting System
+
+Comprehensive player acquisition through tryouts:
+
+**Tryout Mechanics**:
+- Once per season opportunity
+- Age-appropriate candidates (16-20)
+- Stat range validation for realism
+- Potential visibility for informed decisions
+
+**Candidate Quality**:
+- Race-specific stat tendencies
+- Role suitability indicators
+- Development potential assessment
+- Cost vs. value analysis
+
+---
+
+## 8. World Hub
+
+### 8.1 Division Overview
+
+Comprehensive league structure visualization:
+
+**Division Information**:
+- 8-tier mineral-based naming system
+- League composition within divisions
+- Promotion/relegation flow
+- Historical performance data
+
+**Division Characteristics**:
+- Team quality expectations
+- Competition level indicators
+- Revenue potential by division
+- Championship pathways
+
+### 8.2 Leaderboards
+
+Comprehensive ranking systems across multiple categories:
+
+**Player Leaderboards**:
+- Scoring leaders
+- Passing statistics
+- Rushing yards
+- Defensive statistics
+- Multi-category rankings
+
+**Team Leaderboards**:
+- Division standings
+- Cross-division power rankings
+- Revenue leaders
+- Facility rankings
+- Historical performance
+
+### 8.3 Player & Team Lookup
+
+Advanced search and analysis tools:
+
+**Search Capabilities**:
+- Player name and stat searches
+- Team performance analysis
+- Historical data access
+- Comparison tools
+
+**Analysis Features**:
+- Performance trend analysis
+- Development tracking
+- Market value assessment
+- Strategic intelligence
+
+---
+
+## 9. Community Hub
+
+### 9.1 Social Integration
+
+Community features for player interaction:
+
+**Social Features**:
+- League community discussions
+- Performance sharing
+- Strategy discussions
+- Achievement showcasing
+
+### 9.2 Referral System
+
+Player growth incentive system:
+
+**Referral Benefits**:
+- Credit bonuses for successful referrals
+- Growth tracking
+- Community building rewards
+- Long-term loyalty incentives
+
+### 9.3 Redeem Codes
+
+Special promotion and event system:
+
+**Code Types**:
+- Credit bonuses
+- Premium items
+- Special access codes
+- Event participation codes
+
+### 9.4 Help System
+
+Comprehensive support and guidance:
+
+**Help Features**:
+- Complete game manual
+- Tutorial system
+- Contextual help tooltips
+- FAQ system
+- Support contact information
+
+---
+
+## 10. Troubleshooting & FAQ
+
+### 10.1 Common Issues
+
+**Login and Authentication**:
+- Use Replit authentication system
+- Clear browser cache if login issues occur
+- Contact support for persistent problems
 
 **Game Performance**:
-- Close unnecessary tabs
-- Update browser
-- Check internet connection
-- Lower graphics settings
+- Refresh page if navigation issues occur
+- Check internet connection for live features
+- Report persistent bugs through support
 
-**Transaction Errors**:
-- Verify sufficient funds
-- Check item availability
-- Confirm no pending transactions
-- Retry after refresh
+**Financial Issues**:
+- Check credit balance in dashboard
+- Verify purchase history in payments
+- Contact support for transaction issues
 
-**Match Issues**:
-- Ensure valid formation
-- Check player fitness
-- Verify tactical settings
-- Report persistent bugs
+### 10.2 Frequently Asked Questions
 
-### 12.2 Frequently Asked Questions
+**Q: How often do games reset?**
+A: Daily at 3:00 AM Eastern Time. The game operates on a 17-day seasonal cycle.
 
-**Q: How do I get more credits quickly?**
-A: Win matches, complete achievements, participate in tournaments, and manage finances efficiently.
+**Q: How do I get promoted to a higher division?**
+A: Finish in the top 2 positions of your league. Playoffs can affect final positions, so strong playoff performance is crucial.
+
+**Q: What's the difference between credits and gems?**
+A: Credits are the primary currency earned through gameplay. Gems are premium currency with a dynamic exchange rate of 450-600 credits per gem.
+
+**Q: How do player skills work?**
+A: Players can learn up to 3 skills from a pool of 16. Skills are acquired based on leadership rating and provide active bonuses during matches.
 
 **Q: Can I change my team name?**
-A: Currently, team names are permanent after creation. Choose carefully!
+A: Team names are permanent once created to maintain league integrity and prevent confusion.
 
-**Q: Why can't I sign a player?**
-A: Check roster space, available funds, and player willingness. Some players may refuse low offers.
+**Q: How does the marketplace work?**
+A: You can list players for auction with starting bids and optional buy-now prices. All sales include a 5% market tax.
 
-**Q: How does promotion/relegation work?**
-A: Top 2 teams promote, bottom 2 relegate. Playoffs can affect final positions.
+**Q: What determines home field advantage?**
+A: Your stadium's field size, fan loyalty rating, attendance levels, and atmospheric effects all contribute to home field advantage.
 
-**Q: When do players develop abilities?**
-A: Randomly after good performances, with higher chances for race/position-appropriate abilities.
+**Q: How do I increase fan loyalty?**
+A: Win more than 60% of your games (+10 loyalty), win championships (+25 loyalty), upgrade facilities, and maintain good performance.
 
-**Q: Can I play on mobile?**
-A: Yes! The game is mobile-responsive and works on most modern devices.
+**Q: When can I use the tryout system?**
+A: Once per season, you can purchase either basic tryouts (5 candidates, 50,000₡) or premium tryouts (8 candidates, 5 gems or 250,000₡).
 
-**Q: How do I report bugs?**
-A: Use the in-game support system or contact Replit support directly.
+**Q: How does player aging work?**
+A: Players aged 31+ may experience physical stat decline. Retirement becomes possible at 35+ with mandatory retirement at 45.
 
-**Q: Are there any cheats or hacks?**
-A: No. Using exploits risks account suspension. Play fair!
+### 10.3 Support Contact
 
-**Q: How often do seasons reset?**
-A: Every 17 days automatically, maintaining team progress.
+For additional support:
 
-**Q: Can I have multiple teams?**
-A: One team per account to ensure fair play.
-
-### 12.3 Support Contact
-
-**Getting Help**:
-- In-game support tickets (fastest)
-- Replit community forums
-- Official Discord server
-- Email support (for account issues)
-
-**Before Contacting Support**:
-- Check this manual
-- Search community forums
-- Try basic troubleshooting
-- Gather error details
-
-**Providing Information**:
-- Account/team name
-- Browser and device
-- Steps to reproduce
-- Screenshots if applicable
+- Check this manual for comprehensive information
+- Use the in-game help system for contextual guidance
+- Report bugs through the feedback system
+- Contact Replit support for account-related issues
 
 ---
 
-## Conclusion
-
-Realm Rivalry offers deep strategic gameplay with endless possibilities. Master the basics, experiment with advanced tactics, and build your championship dynasty!
-
-Remember: Success comes from understanding all systems, making smart decisions, and adapting to challenges. Every manager's journey is unique.
-
-Good luck, and may your team rise to glory!
-
----
-
-*Manual Version 1.0 - Last Updated: January 2025*
+*Last Updated: July 1, 2025 - Comprehensive Systems Implementation*
