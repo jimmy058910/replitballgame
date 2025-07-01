@@ -7,6 +7,44 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { useIsMobile } from "@/hooks/use-mobile";
+// Centralized player role function
+const getPlayerRole = (player: any): string => {
+  if (!player) return "Player";
+  
+  const { 
+    speed = 0, 
+    agility = 0, 
+    catching = 0, 
+    throwing = 0, 
+    power = 0, 
+    leadership = 0, 
+    stamina = 0 
+  } = player;
+  
+  // Calculate role scores based on relevant stats
+  const passerScore = (throwing * 2) + (leadership * 1.5);
+  const runnerScore = (speed * 2) + (agility * 1.5);
+  const blockerScore = (power * 2) + (stamina * 1.5);
+  
+  const maxScore = Math.max(passerScore, runnerScore, blockerScore);
+  
+  if (maxScore === passerScore) return "Passer";
+  if (maxScore === runnerScore) return "Runner";
+  return "Blocker";
+};
+
+const getRoleColor = (role: string): string => {
+  switch (role.toLowerCase()) {
+    case "passer":
+      return "bg-yellow-500";
+    case "runner":
+      return "bg-green-500";
+    case "blocker":
+      return "bg-red-500";
+    default:
+      return "bg-gray-500";
+  }
+};
 
 interface FormationPlayer {
   id: string;
@@ -63,21 +101,6 @@ export default function TacticalFormation({ players, savedFormation, onFormation
       });
     },
   });
-
-  // Helper function to get player role
-  const getPlayerRole = (player: any): string => {
-    const { speed, agility, catching, throwing, power, leadership, stamina } = player;
-    
-    const passerScore = (throwing * 2) + (leadership * 1.5);
-    const runnerScore = (speed * 2) + (agility * 1.5);
-    const blockerScore = (power * 2) + (stamina * 1.5);
-    
-    const maxScore = Math.max(passerScore, runnerScore, blockerScore);
-    
-    if (maxScore === passerScore) return "Passer";
-    if (maxScore === runnerScore) return "Runner";
-    return "Blocker";
-  };
 
   // Group players by role
   const playersByRole = players.reduce((acc, player) => {

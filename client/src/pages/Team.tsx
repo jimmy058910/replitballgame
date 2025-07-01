@@ -17,23 +17,10 @@ import { Badge } from "@/components/ui/badge";
 import { apiRequest } from "@/lib/queryClient";
 
 // Helper function to determine player role based on attributes
+import { getPlayerRole as centralizedGetPlayerRole } from "../../../shared/playerUtils";
+
 function getPlayerRole(player: any): string {
-  const { speed, agility, catching, throwing, power } = player;
-  
-  // Passer: High throwing and leadership
-  const passerScore = (throwing * 2) + (player.leadership * 1.5);
-  
-  // Runner: High speed and agility
-  const runnerScore = (speed * 2) + (agility * 1.5);
-  
-  // Blocker: High power and stamina
-  const blockerScore = (power * 2) + (player.stamina * 1.5);
-  
-  const maxScore = Math.max(passerScore, runnerScore, blockerScore);
-  
-  if (maxScore === passerScore) return "passer";
-  if (maxScore === runnerScore) return "runner";
-  return "blocker";
+  return centralizedGetPlayerRole(player);
 }
 
 export default function Team() {

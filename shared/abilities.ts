@@ -1,3 +1,6 @@
+import type { Player } from "./schema";
+import { getPlayerRole as getPlayerRoleUtil } from "./playerUtils";
+
 export interface Ability {
   id: string;
   name: string;
@@ -88,17 +91,8 @@ export function calculateAbilityChance(ability: Ability, player: any): number {
   return Math.min(baseChance, 0.8); // Cap at 80%
 }
 
-function getPlayerRole(player: any): string {
-  // Simple role determination based on stats
-  const { throwing, speed, power, leadership, catching, agility } = player;
-  
-  if (throwing > 70 && leadership > 60) return "quarterback";
-  if (speed > 70 && agility > 65) return "runner";
-  if (catching > 70 && speed > 60) return "receiver";
-  if (power > 70 && agility < 50) return "blocker";
-  if (leadership > 75) return "captain";
-  
-  return "defender";
+function getPlayerRole(player: Player): string {
+  return getPlayerRoleUtil(player);
 }
 
 export function rollForAbility(player: any): Ability | null {
