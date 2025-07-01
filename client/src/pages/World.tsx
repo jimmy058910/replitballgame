@@ -5,10 +5,18 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Globe, TrendingUp, Users, Search } from "lucide-react";
 import LeagueStandings from "@/components/LeagueStandings";
 
+// Type interface for API response
+interface Team {
+  division: number;
+}
+
 function DivisionsView() {
-  const { data: team } = useQuery({
+  const { data: rawTeam } = useQuery<Team>({
     queryKey: ["/api/teams/my"],
   });
+
+  // Type assertion to fix property access issue
+  const team = (rawTeam || {}) as Team;
 
   return (
     <div className="space-y-6">

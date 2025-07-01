@@ -9,9 +9,9 @@ import { eq } from "drizzle-orm";
 const router = Router();
 
 // Get team's consumable inventory
-router.get("/team/:teamId", isAuthenticated, asyncHandler(async (req: Request, res: Response) => {
+router.get("/team/:teamId", isAuthenticated, asyncHandler(async (req: any, res: Response) => {
   const { teamId } = req.params;
-  const userId = req.user?.id;
+  const userId = req.user?.claims?.sub;
 
   if (!userId) {
     return res.status(401).json({ error: "Unauthorized" });
@@ -22,9 +22,9 @@ router.get("/team/:teamId", isAuthenticated, asyncHandler(async (req: Request, r
 }));
 
 // Get consumables activated for a specific match
-router.get("/match/:matchId/team/:teamId", isAuthenticated, asyncHandler(async (req: Request, res: Response) => {
+router.get("/match/:matchId/team/:teamId", isAuthenticated, asyncHandler(async (req: any, res: Response) => {
   const { matchId, teamId } = req.params;
-  const userId = req.user?.id;
+  const userId = req.user?.claims?.sub;
 
   if (!userId) {
     return res.status(401).json({ error: "Unauthorized" });
@@ -41,9 +41,9 @@ router.get("/match/:matchId/team/:teamId", isAuthenticated, asyncHandler(async (
 }));
 
 // Activate a consumable for a match
-router.post("/activate", isAuthenticated, asyncHandler(async (req: Request, res: Response) => {
+router.post("/activate", isAuthenticated, asyncHandler(async (req: any, res: Response) => {
   const { matchId, teamId, consumableId, consumableName, effectType, effectData } = req.body;
-  const userId = req.user?.id;
+  const userId = req.user?.claims?.sub;
 
   if (!userId) {
     return res.status(401).json({ error: "Unauthorized" });
@@ -86,9 +86,9 @@ router.post("/activate", isAuthenticated, asyncHandler(async (req: Request, res:
 }));
 
 // Deactivate a consumable (remove from match)
-router.delete("/:consumableId/team/:teamId", isAuthenticated, asyncHandler(async (req: Request, res: Response) => {
+router.delete("/:consumableId/team/:teamId", isAuthenticated, asyncHandler(async (req: any, res: Response) => {
   const { consumableId, teamId } = req.params;
-  const userId = req.user?.id;
+  const userId = req.user?.claims?.sub;
 
   if (!userId) {
     return res.status(401).json({ error: "Unauthorized" });
@@ -104,9 +104,9 @@ router.delete("/:consumableId/team/:teamId", isAuthenticated, asyncHandler(async
 }));
 
 // Get all consumables for a match (for match simulation)
-router.get("/match/:matchId/all", isAuthenticated, asyncHandler(async (req: Request, res: Response) => {
+router.get("/match/:matchId/all", isAuthenticated, asyncHandler(async (req: any, res: Response) => {
   const { matchId } = req.params;
-  const userId = req.user?.id;
+  const userId = req.user?.claims?.sub;
 
   if (!userId) {
     return res.status(401).json({ error: "Unauthorized" });
@@ -117,9 +117,9 @@ router.get("/match/:matchId/all", isAuthenticated, asyncHandler(async (req: Requ
 }));
 
 // Mark consumables as used after match completion (internal endpoint)
-router.post("/match/:matchId/mark-used", isAuthenticated, asyncHandler(async (req: Request, res: Response) => {
+router.post("/match/:matchId/mark-used", isAuthenticated, asyncHandler(async (req: any, res: Response) => {
   const { matchId } = req.params;
-  const userId = req.user?.id;
+  const userId = req.user?.claims?.sub;
 
   if (!userId) {
     return res.status(401).json({ error: "Unauthorized" });

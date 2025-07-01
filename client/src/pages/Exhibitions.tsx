@@ -10,32 +10,53 @@ import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { Gamepad2, Target, Zap, Users } from "lucide-react";
 
+interface Team {
+  id: string;
+  name: string;
+}
+
+interface ExhibitionStats {
+  gamesPlayedToday: number;
+  exhibitionEntriesUsedToday: number;
+}
+
+interface Match {
+  id: string;
+  type: string;
+  status: string;
+}
+
 export default function Exhibitions() {
   const { toast } = useToast();
   const [isSearching, setIsSearching] = useState(false);
   const [showOpponentSelect, setShowOpponentSelect] = useState(false);
 
-  const { data: team } = useQuery({
+  const { data: rawTeam } = useQuery({
     queryKey: ["/api/teams/my"],
   });
+  const team = (rawTeam || {}) as Team;
 
-  const { data: exhibitionStats } = useQuery({
+  const { data: rawExhibitionStats } = useQuery({
     queryKey: ["/api/exhibitions/stats"],
   });
+  const exhibitionStats = (rawExhibitionStats || {}) as ExhibitionStats;
 
-  const { data: liveMatches } = useQuery({
+  const { data: rawLiveMatches } = useQuery({
     queryKey: ["/api/matches/live"],
     refetchInterval: 5000,
   });
+  const liveMatches = (rawLiveMatches || []) as Match[];
 
-  const { data: availableOpponents } = useQuery({
+  const { data: rawAvailableOpponents } = useQuery({
     queryKey: ["/api/exhibitions/available-opponents"],
     enabled: showOpponentSelect,
   });
+  const availableOpponents = (rawAvailableOpponents || []) as Team[];
 
-  const { data: recentGames } = useQuery({
+  const { data: rawRecentGames } = useQuery({
     queryKey: ["/api/exhibitions/recent"],
   });
+  const recentGames = (rawRecentGames || []) as Match[];
 
   // Calculate remaining games
   const gamesPlayedToday = exhibitionStats?.gamesPlayedToday || 0;

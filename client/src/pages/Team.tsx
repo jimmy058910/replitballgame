@@ -18,6 +18,41 @@ import { Badge } from "@/components/ui/badge";
 import { apiRequest } from "@/lib/queryClient";
 import { HelpIcon } from "@/components/help";
 
+// Type interfaces for API responses
+interface Team {
+  id: string;
+  name: string;
+  division: number;
+  wins: number;
+  losses: number;
+  draws: number;
+  points: number;
+  teamPower: number;
+  teamCamaraderie: number;
+  credits: number;
+}
+
+interface Player {
+  id: string;
+  name: string;
+  firstName: string;
+  lastName: string;
+  race: string;
+  age: number;
+  speed: number;
+  power: number;
+  throwing: number;
+  catching: number;
+  kicking: number;
+  stamina: number;
+  leadership: number;
+  agility: number;
+}
+
+interface Formation {
+  [key: string]: any;
+}
+
 // Helper function to determine player role based on attributes
 import { getPlayerRole as centralizedGetPlayerRole } from "../../../shared/playerUtils";
 
@@ -32,16 +67,16 @@ export default function Team() {
   const [showContractModal, setShowContractModal] = useState(false);
   const [activeTab, setActiveTab] = useState("roster");
 
-  const { data: team } = useQuery({
+  const { data: team } = useQuery<Team>({
     queryKey: ["/api/teams/my"],
   });
 
-  const { data: players, isLoading: playersLoading } = useQuery({
+  const { data: players, isLoading: playersLoading } = useQuery<Player[]>({
     queryKey: [`/api/teams/${team?.id}/players`],
     enabled: !!team?.id,
   });
 
-  const { data: formation } = useQuery({
+  const { data: formation } = useQuery<Formation>({
     queryKey: [`/api/teams/${team?.id}/formation`],
     enabled: !!team?.id,
   });
@@ -339,7 +374,6 @@ export default function Team() {
             setShowContractModal(false);
             setSelectedPlayer(null);
           }}
-          teamId={team?.id}
         />
         </Tabs>
       </div>

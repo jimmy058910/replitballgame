@@ -8,19 +8,36 @@ import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ConsumableManager } from "@/components/ConsumableManager";
 
+interface Team {
+  id: string;
+  name: string;
+}
+
+interface InventoryItem {
+  id: string;
+  itemType: string;
+  name: string;
+  description: string;
+  rarity: string;
+  quantity: number;
+  metadata: any;
+}
+
 export default function Inventory() {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("equipment");
   const [activeTab, setActiveTab] = useState("inventory");
 
-  const { data: team } = useQuery({
+  const { data: rawTeam } = useQuery({
     queryKey: ["/api/teams/my"],
   });
+  const team = (rawTeam || {}) as Team;
 
-  const { data: inventory, isLoading: inventoryLoading } = useQuery({
+  const { data: rawInventory, isLoading: inventoryLoading } = useQuery({
     queryKey: ["/api/inventory", team?.id],
     enabled: !!team?.id,
   });
+  const inventory = (rawInventory || []) as InventoryItem[];
 
   const getRarityColor = (rarity: string) => {
     switch (rarity) {

@@ -30,17 +30,15 @@ interface StaffManagementProps {
 export default function StaffManagement({ teamId }: StaffManagementProps) {
   const [selectedStaff, setSelectedStaff] = useState<StaffMember | null>(null);
 
-  const { data: staff, isLoading } = useQuery({
+  const { data: rawStaff, isLoading } = useQuery({
     queryKey: [`/api/teams/${teamId}/staff`],
     enabled: !!teamId,
   });
+  const staff = (rawStaff || []) as StaffMember[];
 
   const hireMutation = useMutation({
     mutationFn: async (staffData: any) => {
-      return apiRequest(`/api/teams/${teamId}/staff`, {
-        method: "POST",
-        body: JSON.stringify(staffData),
-      });
+      return apiRequest(`/api/teams/${teamId}/staff`, "POST", staffData);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [`/api/teams/${teamId}/staff`] });
@@ -49,9 +47,7 @@ export default function StaffManagement({ teamId }: StaffManagementProps) {
 
   const fireStaffMutation = useMutation({
     mutationFn: async (staffId: string) => {
-      return apiRequest(`/api/teams/${teamId}/staff/${staffId}`, {
-        method: "DELETE",
-      });
+      return apiRequest(`/api/teams/${teamId}/staff/${staffId}`, "DELETE");
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [`/api/teams/${teamId}/staff`] });

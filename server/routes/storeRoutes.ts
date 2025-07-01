@@ -185,13 +185,21 @@ router.post('/purchase', isAuthenticated, async (req: any, res: Response, next: 
     }
 
     // Check if the item is a consumable and add to inventory
-    const storeItems = [...storeConfig.premiumItems, ...storeConfig.items];
+    const storeItems = [...storeConfig.storeSections.premiumItems, ...storeConfig.storeSections.staticItems];
     const purchasedItem = storeItems.find((item: any) => item.id === itemId);
-    const isConsumable = purchasedItem?.category === "consumables";
+    const isConsumable = purchasedItem?.category === "consumable";
     
     if (isConsumable) {
       // Add consumable to team inventory
-      await consumableStorage.addConsumableToInventory(team.id, itemId, 1);
+      await consumableStorage.addConsumableToInventory(
+        team.id,
+        itemId,
+        purchasedItem.name || itemId,
+        purchasedItem.description || "Store purchased item",
+        purchasedItem.rarity || "common",
+        purchasedItem.statBoosts || {},
+        1
+      );
       message += " Consumable added to your inventory.";
     }
     

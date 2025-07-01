@@ -13,32 +13,59 @@ import { useToast } from "@/hooks/use-toast";
 import { Trophy, Medal, Gamepad2, Calendar, Users, Clock, X } from "lucide-react";
 import { HelpIcon } from "@/components/help";
 
+// Type interfaces for API responses
+interface Team {
+  id: string;
+  name: string;
+  division: number;
+  wins: number;
+  losses: number;
+  draws: number;
+  points: number;
+  teamPower: number;
+  teamCamaraderie: number;
+  credits: number;
+}
+
+interface SeasonalCycle {
+  season: string;
+  currentDay: number;
+  phase: string;
+  description: string;
+  details: string;
+  daysUntilPlayoffs: number;
+  daysUntilNewSeason: number;
+}
+
 export default function Competition() {
   const [browsingTeams, setBrowsingTeams] = useState(false);
   const [divisionTeams, setDivisionTeams] = useState([]);
   const [, setLocation] = useLocation();
   const { toast } = useToast();
   
-  const { data: team } = useQuery({
+  const { data: team } = useQuery<Team>({
     queryKey: ["/api/teams/my"],
   });
 
-  const { data: liveMatches } = useQuery({
+  const { data: liveMatches } = useQuery<any[]>({
     queryKey: ["/api/matches/live"],
   });
 
-  const { data: teamMatches } = useQuery({
-    queryKey: ["/api/team-matches", (team as any)?.id],
-    enabled: !!(team as any)?.id,
+  const { data: teamMatches } = useQuery<any[]>({
+    queryKey: ["/api/team-matches", team?.id],
+    enabled: !!team?.id,
   });
 
-  const { data: tournaments } = useQuery({
+  const { data: tournaments } = useQuery<any[]>({
     queryKey: ["/api/tournaments"],
   });
 
-  const { data: currentCycle } = useQuery({
+  const { data: rawCurrentCycle } = useQuery<SeasonalCycle>({
     queryKey: ["/api/season/current-cycle"],
   });
+
+  // Type assertion to fix property access issues
+  const currentCycle = (rawCurrentCycle || {}) as SeasonalCycle;
 
   const browseMutation = useMutation({
     mutationFn: async () => {
@@ -112,12 +139,12 @@ export default function Competition() {
                   >
                     {currentCycle?.phase}
                   </Badge>
-                  {currentCycle?.daysUntilPlayoffs > 0 && (
+                  {(currentCycle?.daysUntilPlayoffs || 0) > 0 && (
                     <div className="text-xs text-purple-200 mt-1">
                       {currentCycle?.daysUntilPlayoffs} days to playoffs
                     </div>
                   )}
-                  {currentCycle?.daysUntilNewSeason > 0 && currentCycle?.phase === "Off-Season" && (
+                  {(currentCycle?.daysUntilNewSeason || 0) > 0 && currentCycle?.phase === "Off-Season" && (
                     <div className="text-xs text-purple-200 mt-1">
                       {currentCycle?.daysUntilNewSeason} days to new season
                     </div>

@@ -123,8 +123,6 @@ export default function AgingManager() {
         </div>
         <StatHelpIcon 
           stat="aging"
-          title="Player Aging System"
-          description="Comprehensive aging mechanics with retirement calculations, stat decline for players 31+, and career progression tracking"
         />
       </div>
 

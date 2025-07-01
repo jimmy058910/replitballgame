@@ -9,19 +9,37 @@ import {
   Menu, LogOut, Coins
 } from "lucide-react";
 
+// Type interfaces for API responses
+interface Team {
+  id: string;
+  name: string;
+  credits: number;
+}
+
+interface Finances {
+  credits: number;
+  premiumCurrency: number;
+}
+
+interface StoreData {
+  adsWatchedToday: number;
+  rewardedAdsCompletedToday: number;
+}
+
 export default function Navigation() {
   const [location, setLocation] = useLocation();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
-  const { data: team } = useQuery({
+  const { data: team } = useQuery<Team>({
     queryKey: ["/api/teams/my"],
   });
 
-  const { data: finances } = useQuery({
-    queryKey: ["/api/teams/my/finances"],
+  const { data: finances } = useQuery<Finances>({
+    queryKey: [`/api/teams/${team?.id}/finances`],
+    enabled: !!team?.id,
   });
 
-  const { data: storeData } = useQuery({
+  const { data: storeData } = useQuery<StoreData>({
     queryKey: ["/api/store/ads"],
   });
 

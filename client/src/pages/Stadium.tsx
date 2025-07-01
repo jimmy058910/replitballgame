@@ -12,21 +12,47 @@ import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { Building2, Zap, Users, TrendingUp, Calendar, DollarSign, Wrench, Star, Coins, ArrowUp, Shield, Home, Gauge } from "lucide-react";
 
+// Type interfaces for API responses
+interface StadiumData {
+  data: {
+    stadium: any;
+    availableUpgrades: any[];
+    events: any[];
+    atmosphere: any;
+  };
+}
+
+interface Finances {
+  credits: number;
+  premiumCurrency: number;
+}
+
+interface TeamData {
+  id: string;
+  name: string;
+  credits: number;
+}
+
 export default function Stadium() {
   const { toast } = useToast();
   const [selectedUpgrade, setSelectedUpgrade] = useState<any>(null);
 
-  const { data: stadiumData, isLoading } = useQuery({
+  const { data: rawStadiumData, isLoading } = useQuery<StadiumData>({
     queryKey: ["/api/stadium"],
   });
 
-  const { data: finances } = useQuery({
+  const { data: rawFinances } = useQuery<Finances>({
     queryKey: ["/api/teams/my/finances"],
   });
 
-  const { data: teamData } = useQuery({
+  const { data: rawTeamData } = useQuery<TeamData>({
     queryKey: ["/api/teams/my"],
   });
+
+  // Type assertions to fix property access issues
+  const stadiumData = (rawStadiumData || {}) as StadiumData;
+  const finances = (rawFinances || {}) as Finances;
+  const teamData = (rawTeamData || {}) as TeamData;
 
   const upgradeMutation = useMutation({
     mutationFn: async (upgrade: any) => {

@@ -8,13 +8,24 @@ interface LeagueStandingsProps {
   division: number;
 }
 
+interface Team {
+  id: string;
+  name: string;
+  wins: number;
+  losses: number;
+  draws: number;
+  points: number;
+  division: number;
+}
+
 export default function LeagueStandings({ division }: LeagueStandingsProps) {
   const [selectedTeamId, setSelectedTeamId] = useState<string | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
 
-  const { data: standings, isLoading } = useQuery({
+  const { data: rawStandings, isLoading } = useQuery({
     queryKey: [`/api/leagues/${division}/standings`],
   });
+  const standings = (rawStandings || []) as Team[];
 
   const handleTeamClick = (teamId: string) => {
     setSelectedTeamId(teamId);

@@ -9,31 +9,53 @@ import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { getDivisionName } from "@shared/divisionUtils";
 
+interface Team {
+  id: string;
+  name: string;
+  division: number;
+}
+
+interface Tournament {
+  id: string;
+  name: string;
+  division: number;
+  status: string;
+  entries: any[];
+}
+
+interface TournamentEntry {
+  id: string;
+  tournamentId: string;
+  teamId: string;
+}
+
 export default function Tournaments() {
   const { toast } = useToast();
   const [selectedDivision, setSelectedDivision] = useState(1);
 
-  const { data: team } = useQuery({
+  const { data: rawTeam } = useQuery({
     queryKey: ["/api/teams/my"],
   });
+  const team = (rawTeam || {}) as Team;
 
-  const { data: tournaments, isLoading: tournamentsLoading } = useQuery({
+  const { data: rawTournaments, isLoading: tournamentsLoading } = useQuery({
     queryKey: ["/api/tournaments", selectedDivision],
   });
+  const tournaments = (rawTournaments || []) as Tournament[];
 
-  const { data: myEntries } = useQuery({
+  const { data: rawMyEntries } = useQuery({
     queryKey: ["/api/tournaments/my-entries"],
   });
+  const myEntries = (rawMyEntries || []) as TournamentEntry[];
 
-  const { data: tournamentHistory } = useQuery({
+  const { data: rawTournamentHistory } = useQuery({
     queryKey: ["/api/tournaments/history"],
   });
+  const tournamentHistory = (rawTournamentHistory || []) as Tournament[];
 
   const enterTournamentMutation = useMutation({
     mutationFn: async (tournamentId: string) => {
-      return await apiRequest(`/api/tournaments/${tournamentId}/enter`, {
-        method: "POST",
-      });
+      return await apiRequest(`/api/tournaments/${tournamentId}/enter`, "POST");
     },
     onSuccess: () => {
       toast({

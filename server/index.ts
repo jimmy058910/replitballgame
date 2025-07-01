@@ -76,6 +76,18 @@ app.use((req, res, next) => {
   // Register all modular routes
   registerAllRoutes(app);
 
+  // Add explicit API route handling to prevent Vite interception
+  app.use('/api/*', (req, res, next) => {
+    // If we reach here, it means no API route matched
+    // This should not happen with proper route registration
+    console.warn(`Unmatched API route: ${req.method} ${req.originalUrl}`);
+    res.status(404).json({ 
+      error: 'API endpoint not found',
+      path: req.originalUrl,
+      method: req.method
+    });
+  });
+
   // Create HTTP server instance from the Express app
   const httpServer = createServer(app);
 

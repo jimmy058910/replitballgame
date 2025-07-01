@@ -86,9 +86,9 @@ router.get('/my-entries', isAuthenticated, async (req: any, res: Response, next:
   }
 });
 
-router.get('/history', isAuthenticated, async (req: Request, res: Response, next: NextFunction) => {
+router.get('/history', isAuthenticated, async (req: any, res: Response, next: NextFunction) => {
   try {
-    const userId = req.user.claims.sub;
+    const userId = req.user?.claims?.sub;
     const team = await storage.teams.getTeamByUserId(userId);
     if (!team || !team.id) return res.json([]);
 

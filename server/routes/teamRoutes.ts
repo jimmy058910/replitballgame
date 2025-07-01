@@ -1,5 +1,6 @@
 import { Router, type Request, type Response, type NextFunction } from "express";
 import { storage } from "../storage/index";
+import { teamFinancesStorage } from "../storage/teamFinancesStorage";
 import { isAuthenticated } from "../replitAuth";
 import { generateRandomPlayer } from "../services/leagueService";
 import { z } from "zod";
@@ -119,7 +120,8 @@ router.post('/', isAuthenticated, asyncHandler(async (req: any, res: Response) =
       const playerData = generateRandomPlayer("", race, team.id, position);
       await storage.players.createPlayer(playerData);
     } catch (playerError) {
-      throw ErrorCreators.database(`Failed to create player ${i + 1}: ${playerError.message}`);
+      const errorMessage = playerError instanceof Error ? playerError.message : String(playerError);
+      throw ErrorCreators.database(`Failed to create player ${i + 1}: ${errorMessage}`);
     }
   }
 
@@ -415,6 +417,35 @@ router.post('/:teamId/tryouts', isAuthenticated, asyncHandler(async (req: any, r
     cost,
     message: `${type === 'basic' ? 'Basic' : 'Advanced'} tryout completed successfully!`
   });
+}));
+
+// Team finances endpoint
+router.get('/:teamId/finances', isAuthenticated, asyncHandler(async (req: any, res: Response) => {
+  const userId = req.user.claims.sub;
+  const { teamId } = req.params;
+
+  // Verify team ownership
+  let team;
+  if (teamId === "my") {
+    team = await storage.teams.getTeamByUserId(userId);
+  } else {
+    team = await storage.teams.getTeamById(teamId);
+    if (!team || team.userId !== userId) {
+      throw ErrorCreators.forbidden("You do not own this team");
+    }
+  }
+  
+  if (!team) {
+    throw ErrorCreators.notFound("Team not found");
+  }
+
+  // Get team finances
+  const finances = await teamFinancesStorage.getTeamFinances(team.id);
+  if (!finances) {
+    throw ErrorCreators.notFound("Team finances not found");
+  }
+
+  res.json(finances);
 }));
 
 

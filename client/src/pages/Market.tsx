@@ -5,6 +5,13 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ShoppingCart, Search, Store as StoreIcon } from "lucide-react";
 import TryoutSystem from "@/components/TryoutSystem";
 
+// Type interface for API response
+interface Team {
+  id: string;
+  name: string;
+  credits: number;
+}
+
 // Import existing components that will be moved here
 // For now, using placeholders until we reorganize the content
 
@@ -47,9 +54,12 @@ function Store() {
 export default function Market() {
   const [activeTab, setActiveTab] = useState("marketplace");
 
-  const { data: team } = useQuery({
+  const { data: rawTeam } = useQuery<Team>({
     queryKey: ["/api/teams/my"],
   });
+
+  // Type assertion to fix property access issue
+  const team = (rawTeam || {}) as Team;
 
   return (
     <div className="container mx-auto px-4 py-6">

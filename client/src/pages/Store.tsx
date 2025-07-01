@@ -16,6 +16,26 @@ import PaymentHistory from "@/components/PaymentHistory";
 import { AdRewardSystem } from "@/components/AdRewardSystem";
 import { HelpIcon } from "@/components/help";
 
+// Type interfaces for API responses
+interface Team {
+  id: string;
+  name: string;
+  credits: number;
+}
+
+interface Finances {
+  credits: number;
+  premiumCurrency: number;
+}
+
+interface StoreData {
+  resetTime: string;
+  premiumItems: any[];
+  items: any[];
+  tournamentEntries: any[];
+  creditPackages: any[];
+}
+
 // Utility functions for item visuals
 const getItemIcon = (category: string, itemId: string) => {
   if (itemId.includes('helmet')) return Shield;
@@ -142,13 +162,22 @@ export default function Store() {
   const [gemsToConvert, setGemsToConvert] = useState(1);
   const { toast } = useToast();
 
-  const { data: finances } = useQuery({
-    queryKey: ["/api/teams/my/finances"],
+  const { data: team } = useQuery<Team>({
+    queryKey: ["/api/teams/my"],
   });
 
-  const { data: storeData } = useQuery({
+  const { data: rawFinances } = useQuery<Finances>({
+    queryKey: [`/api/teams/${team?.id}/finances`],
+    enabled: !!team?.id,
+  });
+
+  const { data: rawStoreData } = useQuery<StoreData>({
     queryKey: ["/api/store"],
   });
+
+  // Type assertions to fix property access issues
+  const finances = rawFinances as Finances;
+  const storeData = rawStoreData as StoreData;
 
   const purchaseItemMutation = useMutation({
     mutationFn: async (purchase: any) => {

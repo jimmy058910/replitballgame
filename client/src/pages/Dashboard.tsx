@@ -17,6 +17,52 @@ import { apiRequest } from "@/lib/queryClient";
 import { Bell, Shield, Calendar, Users as UsersIcon } from "lucide-react"; // Added UsersIcon
 import { HelpIcon } from "@/components/help";
 import { useContextualHelp } from "@/hooks/useContextualHelp";
+
+// Type interfaces for API responses
+interface Team {
+  id: string;
+  name: string;
+  division: number;
+  wins: number;
+  losses: number;
+  draws: number;
+  points: number;
+  teamPower: number;
+  teamCamaraderie: number;
+  credits: number;
+}
+
+interface Player {
+  id: string;
+  name: string;
+  firstName: string;
+  lastName: string;
+  race: string;
+  age: number;
+  speed: number;
+  power: number;
+  throwing: number;
+  catching: number;
+  kicking: number;
+  stamina: number;
+  leadership: number;
+  agility: number;
+}
+
+interface Finances {
+  credits: number;
+  premiumCurrency: number;
+}
+
+interface SeasonalCycle {
+  season: string;
+  currentDay: number;
+  phase: string;
+  description: string;
+  details: string;
+  daysUntilPlayoffs?: number;
+  daysUntilNewSeason?: number;
+}
 // Division naming utilities
 const DIVISION_NAMES = {
   1: "Diamond League",
@@ -126,15 +172,16 @@ export default function Dashboard() {
     }
   }, [isAuthenticated, isLoading, toast]);
 
-  const { data: team, isLoading: teamLoading, error: teamError } = useQuery({
+  const { data: team, isLoading: teamLoading, error: teamError } = useQuery<Team>({
     queryKey: ["/api/teams/my"],
   });
 
-  const { data: finances } = useQuery({
-    queryKey: ["/api/teams/my/finances"],
+  const { data: finances } = useQuery<Finances>({
+    queryKey: [`/api/teams/${team?.id}/finances`],
+    enabled: !!team?.id,
   });
 
-  const { data: players, isLoading: playersLoading, error: playersError } = useQuery({
+  const { data: players, isLoading: playersLoading, error: playersError } = useQuery<Player[]>({
     queryKey: [`/api/teams/${team?.id}/players`],
     enabled: !!team?.id,
     retry: 1,
@@ -145,17 +192,17 @@ export default function Dashboard() {
   // Debug logging can be removed in production
   // console.log('Dashboard Debug:', { teamId: team?.id, teamName: team?.name, playersCount: players?.length });
 
-  const { data: liveMatches } = useQuery({
+  const { data: liveMatches } = useQuery<any[]>({
     queryKey: ["/api/matches/live"],
     refetchInterval: 5000, // Refresh every 5 seconds for live matches
   });
 
-  const { data: seasonalCycle } = useQuery({
+  const { data: seasonalCycle } = useQuery<SeasonalCycle>({
     queryKey: ["/api/season/current-cycle"],
     refetchInterval: 60000, // Refresh every minute
   });
 
-  const { data: serverTime } = useQuery({
+  const { data: serverTime } = useQuery<any>({
     queryKey: ["/api/server/time"],
     refetchInterval: 30000, // Update every 30 seconds
   });

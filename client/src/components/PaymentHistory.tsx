@@ -48,6 +48,18 @@ interface PaymentHistoryProps {
   className?: string;
 }
 
+interface PaymentHistoryData {
+  transactions: PaymentTransaction[];
+  total: number;
+}
+
+interface PaymentSummary {
+  totalCreditsEarned: number;
+  totalCreditsSpent: number;
+  totalGemsEarned: number;
+  totalSpentUSD: number;
+}
+
 export default function PaymentHistory({ className }: PaymentHistoryProps) {
   const [filters, setFilters] = useState({
     currencyFilter: "both" as "credits" | "gems" | "both",
@@ -60,20 +72,21 @@ export default function PaymentHistory({ className }: PaymentHistoryProps) {
   const [searchTerm, setSearchTerm] = useState("");
 
   // Fetch payment history
-  const { data: historyData, isLoading: historyLoading, refetch: refetchHistory } = useQuery({
+  const { data: rawHistoryData, isLoading: historyLoading, refetch: refetchHistory } = useQuery({
     queryKey: ["/api/payment-history", filters],
     enabled: true,
   });
+  const historyData = (rawHistoryData || {}) as PaymentHistoryData;
 
   // Fetch transaction summary
-  const { data: summaryData, isLoading: summaryLoading } = useQuery({
+  const { data: rawSummaryData, isLoading: summaryLoading } = useQuery({
     queryKey: ["/api/payment-history/summary"],
     enabled: true,
   });
+  const summary = (rawSummaryData || {}) as PaymentSummary;
 
   const transactions = historyData?.transactions || [];
   const totalTransactions = historyData?.total || 0;
-  const summary = summaryData || {};
 
   // Filter transactions by search term
   const filteredTransactions = transactions.filter((transaction: PaymentTransaction) =>

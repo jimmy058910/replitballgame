@@ -9,6 +9,19 @@ import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { Settings, Calendar, Trophy, CreditCard, Bell, Shield, Users } from "lucide-react";
 
+// Type interfaces for API responses
+interface Team {
+  id: string;
+  name: string;
+  division: number;
+  credits: number;
+}
+
+interface CurrentWeek {
+  week: number;
+  season: string;
+}
+
 export default function SuperUser() {
   const { toast } = useToast();
   const [creditsAmount, setCreditsAmount] = useState(50000);
@@ -16,13 +29,17 @@ export default function SuperUser() {
   const [divisionToCleanup, setDivisionToCleanup] = useState(8);
   const [playerCount, setPlayerCount] = useState(3);
 
-  const { data: team } = useQuery({
+  const { data: rawTeam } = useQuery<Team>({
     queryKey: ["/api/teams/my"],
   });
 
-  const { data: currentWeek } = useQuery({
+  const { data: rawCurrentWeek } = useQuery<CurrentWeek>({
     queryKey: ["/api/season/current-week"],
   });
+
+  // Type assertions to fix property access issues
+  const team = (rawTeam || {}) as Team;
+  const currentWeek = (rawCurrentWeek || {}) as CurrentWeek;
 
   // Season management mutations
   const advanceDayMutation = useMutation({

@@ -33,6 +33,14 @@ interface ConsumableManagerProps {
   onConsumableActivated?: (consumable: MatchConsumable) => void;
 }
 
+interface Match {
+  id: string;
+  status: string;
+  matchType: string;
+  homeTeamId: string;
+  awayTeamId: string;
+}
+
 const getConsumableIcon = (name: string) => {
   if (name.toLowerCase().includes('training')) return Target;
   if (name.toLowerCase().includes('scouting')) return Shield;
@@ -71,16 +79,18 @@ export function ConsumableManager({ teamId, onConsumableActivated }: ConsumableM
   const queryClient = useQueryClient();
 
   // Fetch team consumables inventory
-  const { data: inventory = [], isLoading: inventoryLoading } = useQuery({
+  const { data: rawInventory = [], isLoading: inventoryLoading } = useQuery({
     queryKey: [`/api/consumables/team/${teamId}`],
     enabled: !!teamId
   });
+  const inventory = (rawInventory || []) as TeamInventory[];
 
   // Fetch league matches for consumable activation
-  const { data: leagueMatches = [] } = useQuery({
+  const { data: rawLeagueMatches = [] } = useQuery({
     queryKey: [`/api/matches/team/${teamId}`],
     enabled: !!teamId
   });
+  const leagueMatches = (rawLeagueMatches || []) as Match[];
 
   // Get upcoming league matches
   const upcomingLeagueMatches = leagueMatches.filter((match: any) => 
