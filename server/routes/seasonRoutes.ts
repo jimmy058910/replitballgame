@@ -35,7 +35,7 @@ const sponsorshipNegotiationSchema = z.object({
 // ===== SEASON CHAMPIONSHIPS & PLAYOFFS ROUTES =====
 router.get('/current', isAuthenticated, async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const season = await storage.getCurrentSeason(); // Assumes this returns the active season
+    const season = await storage.seasons.getCurrentSeason(); // Assumes this returns the active season
     if (!season) {
         // If no active season, might create one or return specific status
         return res.status(404).json({ message: "No active season found. Please start a new season." });
@@ -50,7 +50,7 @@ router.get('/current', isAuthenticated, async (req: Request, res: Response, next
 // Get current season cycle (day-by-day info)
 router.get('/current-cycle', isAuthenticated, async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const currentSeason = await storage.getCurrentSeason();
+    const currentSeason = await storage.seasons.getCurrentSeason();
     if (!currentSeason) {
       return res.status(404).json({ message: "No active season found." });
     }
