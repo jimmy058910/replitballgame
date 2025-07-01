@@ -11,8 +11,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
-import { ShoppingCart, Clock, Play, Gift, Sparkles, Zap, Star, Crown, Shield, Coins, ArrowRightLeft, Gem } from "lucide-react";
+import { ShoppingCart, Clock, Play, Gift, Sparkles, Zap, Star, Crown, Shield, Coins, ArrowRightLeft, Gem, History } from "lucide-react";
 import Navigation from "@/components/Navigation";
+import PaymentHistory from "@/components/PaymentHistory";
 
 // Initialize Stripe
 const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLIC_KEY);
@@ -205,11 +206,15 @@ export default function Store() {
         </div>
 
         <Tabs defaultValue="daily" className="space-y-6">
-          <TabsList className="grid grid-cols-4 w-full">
+          <TabsList className="grid grid-cols-5 w-full">
             <TabsTrigger value="daily">Daily Rotation</TabsTrigger>
             <TabsTrigger value="regular">Regular Items</TabsTrigger>
             <TabsTrigger value="entries">Tournament Entries</TabsTrigger>
             <TabsTrigger value="gems">Premium Gems</TabsTrigger>
+            <TabsTrigger value="history">
+              <History className="h-4 w-4 mr-2" />
+              Payment History
+            </TabsTrigger>
           </TabsList>
 
           <TabsContent value="daily" className="space-y-6">
@@ -440,6 +445,10 @@ export default function Store() {
                 </ul>
               </div>
             </div>
+          </TabsContent>
+
+          <TabsContent value="history">
+            <PaymentHistory />
           </TabsContent>
         </Tabs>
       </div>

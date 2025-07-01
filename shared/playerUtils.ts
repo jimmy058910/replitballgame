@@ -30,7 +30,8 @@ export function getPlayerRole(player: Player | any): string {
 }
 
 /**
- * Get role color for UI consistency
+ * Get role background color for UI consistency - Universal Color Scheme
+ * Red for Blockers, Yellow for Passers, Green for Runners
  */
 export function getRoleColor(role: string): string {
   switch (role.toLowerCase()) {
@@ -42,6 +43,70 @@ export function getRoleColor(role: string): string {
       return "bg-red-500";
     default:
       return "bg-gray-500";
+  }
+}
+
+/**
+ * Get role text color for UI consistency
+ */
+export function getRoleTextColor(role: string): string {
+  switch (role.toLowerCase()) {
+    case "passer":
+      return "text-yellow-600 dark:text-yellow-400";
+    case "runner":
+      return "text-green-600 dark:text-green-400";
+    case "blocker":
+      return "text-red-600 dark:text-red-400";
+    default:
+      return "text-gray-600 dark:text-gray-400";
+  }
+}
+
+/**
+ * Get role background color with opacity for cards
+ */
+export function getRoleBackgroundColor(role: string): string {
+  switch (role.toLowerCase()) {
+    case "passer":
+      return "bg-yellow-100 dark:bg-yellow-900/20";
+    case "runner":
+      return "bg-green-100 dark:bg-green-900/20";
+    case "blocker":
+      return "bg-red-100 dark:bg-red-900/20";
+    default:
+      return "bg-gray-100 dark:bg-gray-900/20";
+  }
+}
+
+/**
+ * Get role border color for UI consistency
+ */
+export function getRoleBorderColor(role: string): string {
+  switch (role.toLowerCase()) {
+    case "passer":
+      return "border-yellow-500";
+    case "runner":
+      return "border-green-500";
+    case "blocker":
+      return "border-red-500";
+    default:
+      return "border-gray-500";
+  }
+}
+
+/**
+ * Get role hex color for direct color usage
+ */
+export function getRoleHexColor(role: string): string {
+  switch (role.toLowerCase()) {
+    case "passer":
+      return "#EAB308"; // yellow-500
+    case "runner":
+      return "#22C55E"; // green-500
+    case "blocker":
+      return "#EF4444"; // red-500
+    default:
+      return "#6B7280"; // gray-500
   }
 }
 

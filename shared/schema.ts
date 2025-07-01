@@ -800,15 +800,21 @@ export type InsertScoutingReport = typeof scoutingReports.$inferInsert;
 export const paymentTransactions = pgTable("payment_transactions", {
   id: varchar("id").primaryKey().notNull().$defaultFn(() => nanoid()),
   userId: varchar("user_id").references(() => users.id).notNull(),
+  teamId: varchar("team_id").references(() => teams.id),
+  transactionType: varchar("transaction_type").notNull(), // "purchase", "refund", "reward", "admin_grant"
+  itemType: varchar("item_type"), // "credits", "gems", "player", "item", "entry", "upgrade"
+  itemName: varchar("item_name"), // Name/description of what was purchased
+  amount: integer("amount"), // Real money amount (cents)
+  creditsChange: integer("credits_change").default(0), // Credits gained/lost
+  gemsChange: integer("gems_change").default(0), // Gems gained/lost
+  status: varchar("status").default("completed"), // "completed", "pending", "failed", "refunded"
+  currency: varchar("currency").default("usd"),
+  paymentMethod: varchar("payment_method"), // "stripe", "admin", "reward", "system"
   stripePaymentIntentId: varchar("stripe_payment_intent_id").unique(),
   stripeCustomerId: varchar("stripe_customer_id"),
-  amount: integer("amount").notNull(),
-  credits: integer("credits").notNull(),
-  status: varchar("status").default("pending"),
-  currency: varchar("currency").default("usd"),
-  paymentMethod: varchar("payment_method"),
   failureReason: text("failure_reason"),
   receiptUrl: varchar("receipt_url"),
+  metadata: jsonb("metadata"), // Additional transaction details
   createdAt: timestamp("created_at").defaultNow(),
   completedAt: timestamp("completed_at"),
 });
