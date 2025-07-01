@@ -35,8 +35,8 @@ router.get('/', isAuthenticated, async (req: Request, res: Response, next: NextF
     }
 
     const seededRandom = (s: number) => {
-      let_ = (s * 9301 + 49297) % 233280; // Corrected simple LCG
-      return _ / 233280;
+      let state = (s * 9301 + 49297) % 233280; // Corrected simple LCG
+      return state / 233280;
     };
 
     // Load items from config
