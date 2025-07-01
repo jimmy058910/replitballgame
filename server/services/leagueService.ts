@@ -1,7 +1,7 @@
 import type { InsertPlayer } from "@shared/schema";
 import { generateRandomName, getFullName } from "@shared/names";
 
-export function generateRandomPlayer(name: string, race: string, teamId: string): InsertPlayer {
+export function generateRandomPlayer(name: string, race: string, teamId: string, position?: string): InsertPlayer {
   // Generate race-appropriate name if not provided
   const { firstName, lastName } = name ? 
     { firstName: name.split(' ')[0] || name, lastName: name.split(' ')[1] || "Unknown" } :
@@ -74,6 +74,7 @@ export function generateRandomPlayer(name: string, race: string, teamId: string)
     lastName,
     name: fullName,
     race,
+    position: position || "runner", // Default to runner if no position specified
     age: baseAge,
     ...baseStats,
     speedPotential: generatePotential().toString(),

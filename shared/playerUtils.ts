@@ -96,7 +96,7 @@ export function getPlayerDisplayName(player: Player | any): string {
  * Standardize race name display
  */
 export function getRaceDisplayName(race: string): string {
-  if (!race) return "Unknown";
+  if (!race) return "Human";
   
   // Capitalize first letter, lowercase rest
   return race.charAt(0).toUpperCase() + race.slice(1).toLowerCase();

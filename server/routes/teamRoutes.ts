@@ -48,31 +48,59 @@ router.post('/', isAuthenticated, async (req: any, res: Response, next: NextFunc
     });
 
     const races = ["human", "sylvan", "gryll", "lumina", "umbra"];
-    const positions = ["passer", "runner", "blocker"];
-    const playerNames = [
-      "Thorek", "Elysian", "Luxaria", "Shadowex", "Marcus",
-      "Whisperwind", "Ironhold", "Brightbane", "Voidwalker", "Sarah"
+    
+    // Define required position distribution: 2 passers, 3 runners, 3 blockers, 2 additional
+    const requiredPositions = [
+      "passer", "passer", // 2 passers
+      "runner", "runner", "runner", // 3 runners  
+      "blocker", "blocker", "blocker" // 3 blockers
     ];
+    
+    // For the remaining 2 players, ensure we don't exceed limits
+    const additionalPositions = ["passer", "runner", "blocker"];
+    for (let i = 0; i < 2; i++) {
+      let position = additionalPositions[Math.floor(Math.random() * additionalPositions.length)];
+      
+      // Count current positions
+      const currentCount = requiredPositions.filter(p => p === position).length;
+      
+      // Prevent overstocking: max 3 passers, max 4 runners, max 4 blockers
+      if ((position === "passer" && currentCount >= 3) ||
+          (position === "runner" && currentCount >= 4) ||
+          (position === "blocker" && currentCount >= 4)) {
+        // Try other positions
+        const alternatives = additionalPositions.filter(p => {
+          const count = requiredPositions.filter(pos => pos === p).length;
+          return (p === "passer" && count < 3) ||
+                 (p === "runner" && count < 4) ||
+                 (p === "blocker" && count < 4);
+        });
+        if (alternatives.length > 0) {
+          position = alternatives[Math.floor(Math.random() * alternatives.length)];
+        }
+      }
+      
+      requiredPositions.push(position);
+    }
 
-    // Generate 10 players with varied positions and races
+    // Generate 10 players with proper position distribution
     console.log("Starting player generation for team:", team.id);
+    console.log("Position distribution:", requiredPositions);
+    
     for (let i = 0; i < 10; i++) {
-      const race = races[i % races.length];
-      const position = positions[i % positions.length];
+      const race = races[Math.floor(Math.random() * races.length)];
+      const position = requiredPositions[i];
       
       try {
-        console.log(`Generating player ${i + 1}: ${playerNames[i]}, race: ${race}, position: ${position}`);
-        const playerData = generateRandomPlayer(playerNames[i], race, team.id);
+        console.log(`Generating player ${i + 1}: race: ${race}, position: ${position}`);
+        const playerData = generateRandomPlayer("", race, team.id, position);
         console.log("Generated player data:", playerData);
         
-        // Set the position for the player
-        playerData.position = position;
         console.log("Creating player in database...");
         await storage.players.createPlayer(playerData);
         console.log(`Successfully created player ${i + 1}`);
       } catch (playerError) {
         console.error(`Error creating player ${i + 1}:`, playerError);
-        console.error("Player data that failed:", playerData);
       }
     }
     console.log("Finished player generation");
