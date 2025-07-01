@@ -52,6 +52,16 @@ const getRarityColor = (rarity: string) => {
   }
 };
 
+const getRarityButtonColor = (rarity: string) => {
+  switch (rarity?.toLowerCase()) {
+    case 'common': return 'bg-slate-700 hover:bg-slate-800 text-white';
+    case 'rare': return 'bg-blue-700 hover:bg-blue-800 text-white';
+    case 'epic': return 'bg-purple-700 hover:bg-purple-800 text-white';
+    case 'legendary': return 'bg-amber-600 hover:bg-amber-700 text-white';
+    default: return 'bg-slate-700 hover:bg-slate-800 text-white';
+  }
+};
+
 const getRarityBorder = (rarity: string) => {
   switch (rarity?.toLowerCase()) {
     case 'common': return 'border-slate-400 dark:border-slate-500';
@@ -206,15 +216,7 @@ export default function Store() {
     createGemPaymentMutation.mutate(gemPackage.id);
   };
 
-  const getRarityColor = (rarity: string) => {
-    switch (rarity) {
-      case "common": return "text-gray-600 bg-gray-100";
-      case "rare": return "text-blue-600 bg-blue-100";
-      case "epic": return "text-purple-600 bg-purple-100";
-      case "legendary": return "text-yellow-600 bg-yellow-100";
-      default: return "text-gray-600 bg-gray-100";
-    }
-  };
+
 
   const getRarityIcon = (rarity: string) => {
     switch (rarity) {
@@ -336,7 +338,7 @@ export default function Store() {
                           <span className="font-bold text-lg">{item.priceGems} Gems</span>
                         </div>
                         <Button 
-                          className={`bg-gradient-to-r ${getRarityColor(item.rarity)} text-white font-semibold border-0 hover:opacity-90 transition-opacity shadow-md`}
+                          className={`${getRarityButtonColor(item.rarity)} font-semibold border-0 shadow-md`}
                           onClick={() => purchaseItemMutation.mutate({ itemId: item.id, currency: 'gems' })}
                           disabled={!finances?.premiumCurrency || finances.premiumCurrency < item.priceGems}
                         >
@@ -399,7 +401,7 @@ export default function Store() {
                           <span className="font-bold text-lg">{item.price?.toLocaleString()} Credits</span>
                         </div>
                         <Button 
-                          className={`bg-gradient-to-r ${getRarityColor(item.rarity)} text-white font-semibold border-0 hover:opacity-90 transition-opacity shadow-md`}
+                          className={`${getRarityButtonColor(item.rarity)} font-semibold border-0 shadow-md`}
                           onClick={() => purchaseItemMutation.mutate({ itemId: item.id, currency: 'credits' })}
                           disabled={!finances?.credits || finances.credits < item.price}
                         >
@@ -459,7 +461,7 @@ export default function Store() {
                         <div className="space-y-2">
                           <Button 
                             size="sm"
-                            className={`bg-gradient-to-r ${getRarityColor(entry.rarity)} text-white font-semibold border-0 hover:opacity-90 transition-opacity shadow-md`}
+                            className={`${getRarityButtonColor(entry.rarity)} font-semibold border-0 shadow-md`}
                             onClick={() => purchaseItemMutation.mutate({ itemId: entry.id, currency: 'credits' })}
                             disabled={!finances?.credits || finances.credits < entry.price}
                           >
