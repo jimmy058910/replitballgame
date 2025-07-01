@@ -92,11 +92,12 @@ export default function Team() {
   })) || [];
 
   const filteredPlayers = playersWithRoles.filter((player: any) => 
-    selectedRole === "all" || player.role === selectedRole
+    selectedRole === "all" || player.role.toLowerCase() === selectedRole
   );
 
   const roleStats = playersWithRoles.reduce((acc: any, player: any) => {
-    acc[player.role] = (acc[player.role] || 0) + 1;
+    const roleLowercase = player.role.toLowerCase();
+    acc[roleLowercase] = (acc[roleLowercase] || 0) + 1;
     return acc;
   }, {});
 
