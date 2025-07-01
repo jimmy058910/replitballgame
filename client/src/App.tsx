@@ -38,6 +38,8 @@ function Router() {
   return (
     <Switch>
       <Route path="/logos" component={LogoShowcase} />
+      {/* Help manual accessible to everyone */}
+      <Route path="/help" component={HelpManual} />
       {isLoading || !isAuthenticated ? (
         <Route path="/" component={Landing} />
       ) : (
@@ -64,7 +66,6 @@ function Router() {
           <Route path="/community" component={Community} />
           <Route path="/camaraderie" component={Camaraderie} />
           <Route path="/superuser" component={SuperUser} />
-          <Route path="/help" component={HelpManual} />
         </>
       )}
       <Route component={NotFound} />
