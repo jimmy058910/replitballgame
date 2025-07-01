@@ -983,3 +983,82 @@ export type CreditPackage = typeof creditPackages.$inferSelect;
 export type InsertCreditPackage = typeof creditPackages.$inferInsert;
 export type UserSubscription = typeof userSubscriptions.$inferSelect;
 export type InsertUserSubscription = typeof userSubscriptions.$inferInsert;
+
+// Player Skills System
+export const skills = pgTable('skills', {
+  id: serial('id').primaryKey(),
+  name: varchar('name', { length: 100 }).notNull(),
+  description: text('description').notNull(),
+  type: varchar('type', { length: 20 }).notNull(), // "Passive" or "Active"
+  category: varchar('category', { length: 20 }).notNull(), // "Universal", "Role", or "Race"
+  roleRequirement: varchar('role_requirement', { length: 50 }), // Required role for Role-specific skills
+  raceRequirement: varchar('race_requirement', { length: 50 }), // Required race for Race-specific skills
+  tier1Effect: text('tier1_effect').notNull(),
+  tier2Effect: text('tier2_effect').notNull(),
+  tier3Effect: text('tier3_effect').notNull(),
+  tier4Effect: text('tier4_effect').notNull(),
+  tier1StatBonus: jsonb('tier1_stat_bonus'), // JSON object for stat bonuses at tier 1
+  tier2StatBonus: jsonb('tier2_stat_bonus'),
+  tier3StatBonus: jsonb('tier3_stat_bonus'),
+  tier4StatBonus: jsonb('tier4_stat_bonus'),
+  createdAt: timestamp('created_at').defaultNow(),
+});
+
+export const playerSkills = pgTable('player_skills', {
+  id: serial('id').primaryKey(),
+  playerId: uuid('player_id').references(() => players.id, { onDelete: 'cascade' }).notNull(),
+  skillId: integer('skill_id').references(() => skills.id, { onDelete: 'cascade' }).notNull(),
+  currentTier: integer('current_tier').default(1).notNull(), // 1-4
+  acquiredAt: timestamp('acquired_at').defaultNow(),
+  lastUpgraded: timestamp('last_upgraded'),
+});
+
+export type Skill = typeof skills.$inferSelect;
+export type InsertSkill = typeof skills.$inferInsert;
+export type PlayerSkill = typeof playerSkills.$inferSelect;
+export type InsertPlayerSkill = typeof playerSkills.$inferInsert;
+
+// Dynamic Marketplace System
+export const marketplaceListings = pgTable('marketplace_listings', {
+  id: serial('id').primaryKey(),
+  playerId: uuid('player_id').references(() => players.id, { onDelete: 'cascade' }).notNull(),
+  sellerTeamId: uuid('seller_team_id').references(() => teams.id, { onDelete: 'cascade' }).notNull(),
+  startBid: integer('start_bid').notNull(),
+  buyNowPrice: integer('buy_now_price'), // Optional instant purchase price
+  currentBid: integer('current_bid').notNull(),
+  currentHighBidderTeamId: uuid('current_high_bidder_team_id').references(() => teams.id, { onDelete: 'set null' }),
+  expiryTimestamp: timestamp('expiry_timestamp').notNull(),
+  isActive: boolean('is_active').default(true).notNull(),
+  listingFee: integer('listing_fee').notNull(), // Fee paid by seller
+  marketTax: integer('market_tax').default(5).notNull(), // Tax percentage (default 5%)
+  auctionExtensions: integer('auction_extensions').default(0).notNull(), // Number of anti-sniping extensions
+  createdAt: timestamp('created_at').defaultNow(),
+  completedAt: timestamp('completed_at'),
+});
+
+export const marketplaceBids = pgTable('marketplace_bids', {
+  id: serial('id').primaryKey(),
+  listingId: integer('listing_id').references(() => marketplaceListings.id, { onDelete: 'cascade' }).notNull(),
+  bidderTeamId: uuid('bidder_team_id').references(() => teams.id, { onDelete: 'cascade' }).notNull(),
+  bidAmount: integer('bid_amount').notNull(),
+  isActive: boolean('is_active').default(true).notNull(), // false when outbid or auction ends
+  bidTimestamp: timestamp('bid_timestamp').defaultNow(),
+});
+
+export const marketplaceEscrow = pgTable('marketplace_escrow', {
+  id: serial('id').primaryKey(),
+  teamId: uuid('team_id').references(() => teams.id, { onDelete: 'cascade' }).notNull(),
+  listingId: integer('listing_id').references(() => marketplaceListings.id, { onDelete: 'cascade' }).notNull(),
+  escrowAmount: integer('escrow_amount').notNull(),
+  escrowType: varchar('escrow_type', { length: 20 }).notNull(), // 'bid' or 'buy_now'
+  isReleased: boolean('is_released').default(false).notNull(),
+  createdAt: timestamp('created_at').defaultNow(),
+  releasedAt: timestamp('released_at'),
+});
+
+export type MarketplaceListing = typeof marketplaceListings.$inferSelect;
+export type InsertMarketplaceListing = typeof marketplaceListings.$inferInsert;
+export type MarketplaceBid = typeof marketplaceBids.$inferSelect;
+export type InsertMarketplaceBid = typeof marketplaceBids.$inferInsert;
+export type MarketplaceEscrow = typeof marketplaceEscrow.$inferSelect;
+export type InsertMarketplaceEscrow = typeof marketplaceEscrow.$inferInsert;

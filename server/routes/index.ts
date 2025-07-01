@@ -27,6 +27,8 @@ import tacticalRoutes from "./tacticalRoutes";
 import helpRoutes from "./helpRoutes";
 import agingRoutes from "./agingRoutes";
 import consumableRoutes from "./consumableRoutes";
+import playerSkillsRoutes from "./playerSkillsRoutes";
+import dynamicMarketplaceRoutes from "./dynamicMarketplaceRoutes";
 
 // This function will be called by server/index.ts to set up all routes.
 // It replaces the direct app.use calls that would have been in server/index.ts
@@ -62,6 +64,8 @@ export function registerAllRoutes(app: Express): void {
   app.use("/api/help", helpRoutes); // Covers help documentation and manual
   app.use("/api/aging", agingRoutes); // Covers player aging system and progression mechanics
   app.use("/api/consumables", consumableRoutes); // Covers consumable system for league game enhancements
+  app.use("/api/player-skills", playerSkillsRoutes); // Covers player skills system and progression
+  app.use("/api/dynamic-marketplace", dynamicMarketplaceRoutes); // Covers dynamic auction marketplace with bidding
 
   // Reminder: The original server/routes.ts also contained helper functions and Stripe init.
   // Stripe init is now in paymentRoutes.ts.
