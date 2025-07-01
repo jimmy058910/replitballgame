@@ -4,6 +4,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ShoppingCart, Search, Store as StoreIcon } from "lucide-react";
 import TryoutSystem from "@/components/TryoutSystem";
+import DynamicMarketplaceManager from "@/components/DynamicMarketplaceManager";
+import EnhancedGameEconomyManager from "@/components/EnhancedGameEconomyManager";
 
 // Type interface for API response
 interface Team {
@@ -15,41 +17,7 @@ interface Team {
 // Import existing components that will be moved here
 // For now, using placeholders until we reorganize the content
 
-function PlayerMarketplace() {
-  return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Search className="h-5 w-5" />
-          Player Marketplace
-        </CardTitle>
-      </CardHeader>
-      <CardContent>
-        <p className="text-gray-600 dark:text-gray-400">
-          Player trading marketplace coming soon. This will include auctions and buy-now options.
-        </p>
-      </CardContent>
-    </Card>
-  );
-}
-
-function Store() {
-  return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <StoreIcon className="h-5 w-5" />
-          In-Game Store
-        </CardTitle>
-      </CardHeader>
-      <CardContent>
-        <p className="text-gray-600 dark:text-gray-400">
-          Store functionality will be moved here. Premium purchases, credit packages, and items.
-        </p>
-      </CardContent>
-    </Card>
-  );
-}
+// Placeholder components are no longer needed - using comprehensive system components
 
 export default function Market() {
   const [activeTab, setActiveTab] = useState("marketplace");
@@ -82,7 +50,7 @@ export default function Market() {
           </TabsList>
 
           <TabsContent value="marketplace">
-            <PlayerMarketplace />
+            <DynamicMarketplaceManager teamId={team?.id} />
           </TabsContent>
 
           <TabsContent value="recruiting">
@@ -100,7 +68,7 @@ export default function Market() {
           </TabsContent>
 
           <TabsContent value="store">
-            <Store />
+            <EnhancedGameEconomyManager teamId={team?.id} />
           </TabsContent>
         </Tabs>
       </div>

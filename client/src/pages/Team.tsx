@@ -12,6 +12,9 @@ import { TaxiSquadManager } from "@/components/TaxiSquadManager";
 import { InjuryStaminaManager } from "@/components/InjuryStaminaManager";
 import Stadium from "@/pages/Stadium";
 import Inventory from "@/pages/Inventory";
+import PlayerSkillsManager from "@/components/PlayerSkillsManager";
+import AdvancedTacticalEffectsManager from "@/components/AdvancedTacticalEffectsManager";
+import StadiumAtmosphereManager from "@/components/StadiumAtmosphereManager";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -141,14 +144,18 @@ export default function Team() {
 
         {/* Main Navigation Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="mb-8">
-          <TabsList className="grid w-full grid-cols-9 bg-gray-800 gap-0.5 text-xs">
+          <TabsList className="grid w-full grid-cols-10 bg-gray-800 gap-0.5 text-xs">
             <TabsTrigger value="roster" className="border-r border-gray-600 last:border-r-0 flex items-center gap-1">
               Roster
               <HelpIcon content="Manage your active players. View their stats, assign positions, and make strategic decisions about your lineup." />
             </TabsTrigger>
+            <TabsTrigger value="skills" className="border-r border-gray-600 last:border-r-0 flex items-center gap-1">
+              Skills
+              <HelpIcon content="Advanced player skills system with 16 unique abilities across universal, role-specific, and race-specific categories." />
+            </TabsTrigger>
             <TabsTrigger value="tactics" className="border-r border-gray-600 last:border-r-0 flex items-center gap-1">
               Tactics
-              <HelpIcon content="Set your team formation and game strategy. Choose starters, substitutes, and tactical approach for matches." />
+              <HelpIcon content="Advanced tactical effects with field size specialization and strategic focus settings for enhanced gameplay." />
             </TabsTrigger>
             <TabsTrigger value="staff" className="border-r border-gray-600 last:border-r-0 flex items-center gap-1">
               Staff
@@ -160,7 +167,7 @@ export default function Team() {
             </TabsTrigger>
             <TabsTrigger value="stadium" className="border-r border-gray-600 last:border-r-0 flex items-center gap-1">
               Stadium
-              <HelpIcon content="Manage your stadium facilities. Upgrade infrastructure to increase revenue and improve team performance." />
+              <HelpIcon content="Integrated stadium, finance, and atmosphere system with fan loyalty, dynamic attendance, and home field advantage." />
             </TabsTrigger>
             <TabsTrigger value="inventory" className="border-r border-gray-600 last:border-r-0 flex items-center gap-1">
               Inventory
@@ -277,8 +284,12 @@ export default function Team() {
             )}
           </TabsContent>
 
+          <TabsContent value="skills">
+            <PlayerSkillsManager teamId={team?.id} />
+          </TabsContent>
+
           <TabsContent value="tactics">
-            <TacticalManager />
+            <AdvancedTacticalEffectsManager teamId={team?.id} />
           </TabsContent>
 
           <TabsContent value="staff">
@@ -346,7 +357,7 @@ export default function Team() {
           </TabsContent>
 
           <TabsContent value="stadium">
-            <Stadium />
+            <StadiumAtmosphereManager teamId={team?.id} />
           </TabsContent>
 
           <TabsContent value="inventory">
