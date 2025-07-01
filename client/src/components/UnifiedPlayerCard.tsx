@@ -168,7 +168,7 @@ export default function UnifiedPlayerCard({
           <div className="flex items-center space-x-4">
             <div className="flex-shrink-0 text-center">
               <div className="text-xs text-red-400 font-medium mb-1">Power</div>
-              <div className={`w-16 h-16 rounded-full flex items-center justify-center text-white font-bold text-xl ${getPowerColor(playerPower)}`}>
+              <div className={`w-12 h-12 rounded-full flex items-center justify-center text-white font-bold text-lg ${getPowerColor(playerPower)}`}>
                 {playerPower}
               </div>
             </div>
