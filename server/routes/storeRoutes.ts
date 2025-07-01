@@ -9,6 +9,14 @@ import storeConfig from "../config/store_config.json";
 
 const router = Router();
 
+// Simple seeded random function for daily rotation
+function seededRandom(seed: number) {
+  return function() {
+    seed = (seed * 9301 + 49297) % 233280;
+    return seed / 233280;
+  };
+}
+
 const storePurchaseSchema = z.object({
     itemId: z.string().min(1),
     currency: z.enum(["credits", "gems", "premium_currency"]), // Allow "premium_currency" as alias for "gems"
@@ -103,7 +111,8 @@ router.post('/watch-ad', isAuthenticated, async (req: any, res: Response, next: 
     // Reward logic should be server-defined based on placement/adType, not client-sent.
     const { adType, placement } = req.body; // Client might indicate context
 
-    let rewardAmount = storeConfig.adSystem.rewards[placement]?.credits || storeConfig.adSystem.rewards.generic_watch.credits || 0;
+    const rewards = storeConfig.adSystem.rewards as Record<string, any>;
+    let rewardAmount = rewards[placement]?.credits || rewards.generic_watch?.credits || 0;
     let rewardType = 'credits'; // Assuming credits for now, can be expanded in config
 
     const finances = await teamFinancesStorage.getTeamFinances(team.id);

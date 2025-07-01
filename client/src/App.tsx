@@ -12,7 +12,7 @@ import Competition from "@/pages/Competition";
 import League from "@/pages/League";
 import Tournaments from "@/pages/Tournaments";
 import Exhibitions from "@/pages/Exhibitions";
-import Commerce from "@/pages/Commerce";
+
 import Inventory from "@/pages/Inventory";
 import Marketplace from "@/pages/Marketplace";
 import Store from "@/pages/Store";
@@ -46,7 +46,7 @@ function Router() {
           <Route path="/league" component={League} />
           <Route path="/tournaments" component={Tournaments} />
           <Route path="/exhibitions" component={Exhibitions} />
-          <Route path="/commerce" component={Commerce} />
+
           <Route path="/inventory" component={Inventory} />
           <Route path="/marketplace" component={Marketplace} />
           <Route path="/store" component={Store} />
