@@ -37,15 +37,16 @@ router.get('/team/:teamId/status', isAuthenticated, async (req: any, res: Respon
     const playersWithStatus = teamPlayers.map(player => {
       const isInjured = player.injuryStatus !== 'Healthy';
       const recoveryProgress = isInjured 
-        ? Math.round((player.injuryRecoveryPointsCurrent / player.injuryRecoveryPointsNeeded) * 100)
+        ? Math.round(((player.injuryRecoveryPointsCurrent || 0) / (player.injuryRecoveryPointsNeeded || 1)) * 100)
         : 100;
       
-      const staminaStatus = player.dailyStaminaLevel >= 75 ? 'Fresh' :
-                           player.dailyStaminaLevel >= 50 ? 'Tired' :
-                           player.dailyStaminaLevel >= 25 ? 'Fatigued' : 'Exhausted';
+      const dailyStamina = player.dailyStaminaLevel || 100;
+      const staminaStatus = dailyStamina >= 75 ? 'Fresh' :
+                           dailyStamina >= 50 ? 'Tired' :
+                           dailyStamina >= 25 ? 'Fatigued' : 'Exhausted';
       
-      const canPlay = injuryStaminaService.canPlayInCompetitive(player.injuryStatus);
-      const injuryEffects = injuryStaminaService.getInjuryEffects(player.injuryStatus);
+      const canPlay = injuryStaminaService.canPlayInCompetitive(player.injuryStatus || 'Healthy');
+      const injuryEffects = injuryStaminaService.getInjuryEffects(player.injuryStatus || 'Healthy');
 
       return {
         ...player,
@@ -54,7 +55,7 @@ router.get('/team/:teamId/status', isAuthenticated, async (req: any, res: Respon
         staminaStatus,
         canPlay,
         injuryEffects,
-        canUseItems: player.dailyItemsUsed < 2
+        canUseItems: (player.dailyItemsUsed || 0) < 2
       };
     });
 
@@ -63,7 +64,7 @@ router.get('/team/:teamId/status', isAuthenticated, async (req: any, res: Respon
       teamSummary: {
         totalPlayers: teamPlayers.length,
         injuredPlayers: playersWithStatus.filter(p => p.isInjured).length,
-        exhaustedPlayers: playersWithStatus.filter(p => p.dailyStaminaLevel < 25).length,
+        exhaustedPlayers: playersWithStatus.filter(p => (p.dailyStaminaLevel || 100) < 25).length,
         playersCannotPlay: playersWithStatus.filter(p => !p.canPlay).length
       }
     });
