@@ -13,7 +13,7 @@ import exhibitionRoutes from "./exhibitionRoutes";
 import notificationRoutes from "./notificationRoutes";
 import injuryRoutes from "./injuryRoutes";
 import seasonRoutes from "./seasonRoutes";
-import systemRoutes from "./systemRoutes";
+import { systemRoutes } from "./systemRoutes";
 import superuserRoutes from "./superuserRoutes";
 import paymentRoutes from "./paymentRoutes";
 import adSystemRoutes from "./adSystemRoutes";

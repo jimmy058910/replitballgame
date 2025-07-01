@@ -3,6 +3,7 @@ import { storage } from "../storage/index";
 import { isAuthenticated } from "../replitAuth";
 import { generateRandomPlayer } from "../services/leagueService";
 import { z } from "zod";
+import { ErrorCreators, asyncHandler, logInfo } from "../services/errorService";
 // import { players as playersTable } from "@shared/schema"; // Not directly used here anymore
 
 const router = Router();
@@ -29,93 +30,95 @@ const createTeamSchema = z.object({
   name: z.string().min(1).max(50),
 });
 
-// Team routes
-router.post('/', isAuthenticated, async (req: any, res: Response, next: NextFunction) => {
-  try {
-    const userId = req.user.claims.sub;
-    const { name } = createTeamSchema.parse(req.body);
+// Team routes  
+router.post('/', isAuthenticated, asyncHandler(async (req: any, res: Response) => {
+  const userId = req.user.claims.sub;
+  
+  // Validate input using Zod - errors will be automatically converted by the error handler
+  const { name } = createTeamSchema.parse(req.body);
 
-    const existingTeam = await storage.teams.getTeamByUserId(userId); // Use teamStorage
-    if (existingTeam) {
-      return res.status(400).json({ message: "User already has a team" });
-    }
-
-    // storage.teams.createTeam now handles default staff and finances
-    const team = await storage.teams.createTeam({ // Use teamStorage
-      userId,
-      name,
-      division: 8,
-    });
-
-    const races = ["human", "sylvan", "gryll", "lumina", "umbra"];
-    
-    // Define required position distribution: 2 passers, 3 runners, 3 blockers, 2 additional
-    const requiredPositions = [
-      "passer", "passer", // 2 passers
-      "runner", "runner", "runner", // 3 runners  
-      "blocker", "blocker", "blocker" // 3 blockers
-    ];
-    
-    // For the remaining 2 players, ensure we don't exceed limits
-    const additionalPositions = ["passer", "runner", "blocker"];
-    for (let i = 0; i < 2; i++) {
-      let position = additionalPositions[Math.floor(Math.random() * additionalPositions.length)];
-      
-      // Count current positions
-      const currentCount = requiredPositions.filter(p => p === position).length;
-      
-      // Prevent overstocking: max 3 passers, max 4 runners, max 4 blockers
-      if ((position === "passer" && currentCount >= 3) ||
-          (position === "runner" && currentCount >= 4) ||
-          (position === "blocker" && currentCount >= 4)) {
-        // Try other positions
-        const alternatives = additionalPositions.filter(p => {
-          const count = requiredPositions.filter(pos => pos === p).length;
-          return (p === "passer" && count < 3) ||
-                 (p === "runner" && count < 4) ||
-                 (p === "blocker" && count < 4);
-        });
-        if (alternatives.length > 0) {
-          position = alternatives[Math.floor(Math.random() * alternatives.length)];
-        }
-      }
-      
-      requiredPositions.push(position);
-    }
-
-    // Generate 10 players with proper position distribution
-    console.log("Starting player generation for team:", team.id);
-    console.log("Position distribution:", requiredPositions);
-    
-    for (let i = 0; i < 10; i++) {
-      const race = races[Math.floor(Math.random() * races.length)];
-      const position = requiredPositions[i];
-      
-      try {
-        console.log(`Generating player ${i + 1}: race: ${race}, position: ${position}`);
-        const playerData = generateRandomPlayer("", race, team.id, position);
-        console.log("Generated player data:", playerData);
-        
-        console.log("Creating player in database...");
-        await storage.players.createPlayer(playerData);
-        console.log(`Successfully created player ${i + 1}`);
-      } catch (playerError) {
-        console.error(`Error creating player ${i + 1}:`, playerError);
-      }
-    }
-    console.log("Finished player generation");
-
-
-
-    res.status(201).json(team);
-  } catch (error) {
-    console.error("Error creating team:", error);
-    if (error instanceof z.ZodError) {
-      return res.status(400).json({ message: "Invalid team data", errors: error.errors });
-    }
-    next(error);
+  const existingTeam = await storage.teams.getTeamByUserId(userId); // Use teamStorage
+  if (existingTeam) {
+    throw ErrorCreators.conflict("User already has a team");
   }
-});
+
+  // storage.teams.createTeam now handles default staff and finances
+  const team = await storage.teams.createTeam({ // Use teamStorage
+    userId,
+    name,
+    division: 8,
+  });
+
+  logInfo("Team created successfully", { 
+    teamId: team.id, 
+    teamName: team.name, 
+    userId,
+    requestId: req.requestId 
+  });
+
+  const races = ["human", "sylvan", "gryll", "lumina", "umbra"];
+  
+  // Define required position distribution: 2 passers, 3 runners, 3 blockers, 2 additional
+  const requiredPositions = [
+    "passer", "passer", // 2 passers
+    "runner", "runner", "runner", // 3 runners  
+    "blocker", "blocker", "blocker" // 3 blockers
+  ];
+  
+  // For the remaining 2 players, ensure we don't exceed limits
+  const additionalPositions = ["passer", "runner", "blocker"];
+  for (let i = 0; i < 2; i++) {
+    let position = additionalPositions[Math.floor(Math.random() * additionalPositions.length)];
+    
+    // Count current positions
+    const currentCount = requiredPositions.filter(p => p === position).length;
+    
+    // Prevent overstocking: max 3 passers, max 4 runners, max 4 blockers
+    if ((position === "passer" && currentCount >= 3) ||
+        (position === "runner" && currentCount >= 4) ||
+        (position === "blocker" && currentCount >= 4)) {
+      // Try other positions
+      const alternatives = additionalPositions.filter(p => {
+        const count = requiredPositions.filter(pos => pos === p).length;
+        return (p === "passer" && count < 3) ||
+               (p === "runner" && count < 4) ||
+               (p === "blocker" && count < 4);
+      });
+      if (alternatives.length > 0) {
+        position = alternatives[Math.floor(Math.random() * alternatives.length)];
+      }
+    }
+    
+    requiredPositions.push(position);
+  }
+
+  // Generate 10 players with proper position distribution
+  logInfo("Starting player generation", { 
+    teamId: team.id, 
+    positionDistribution: requiredPositions,
+    requestId: req.requestId 
+  });
+  
+  for (let i = 0; i < 10; i++) {
+    const race = races[Math.floor(Math.random() * races.length)];
+    const position = requiredPositions[i];
+    
+    try {
+      const playerData = generateRandomPlayer("", race, team.id, position);
+      await storage.players.createPlayer(playerData);
+    } catch (playerError) {
+      throw ErrorCreators.database(`Failed to create player ${i + 1}: ${playerError.message}`);
+    }
+  }
+
+  logInfo("Team creation completed", { 
+    teamId: team.id, 
+    playersCreated: 10,
+    requestId: req.requestId 
+  });
+
+  res.status(201).json({ success: true, data: team });
+}));
 
 router.get('/my', isAuthenticated, async (req: any, res: Response, next: NextFunction) => {
   try {
