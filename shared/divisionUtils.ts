@@ -18,6 +18,30 @@ export function getDivisionName(division: number): string {
   return DIVISION_NAMES[division as keyof typeof DIVISION_NAMES] || `Division ${division}`;
 }
 
+// Sub-division names for Division 8 (Copper League) to add uniqueness
+const DIVISION_8_SUBDIVISIONS = [
+  "Alpha", "Beta", "Gamma", "Delta", "Epsilon", "Zeta", "Eta", "Theta",
+  "Iota", "Kappa", "Lambda", "Mu", "Nu", "Xi", "Omicron", "Pi",
+  "Rho", "Sigma", "Tau", "Upsilon", "Phi", "Chi", "Psi", "Omega"
+];
+
+export function getDivisionNameWithSubdivision(division: number, teamId?: string): string {
+  const baseName = getDivisionName(division);
+  
+  if (division === 8 && teamId) {
+    // Generate consistent sub-division based on team ID
+    const hash = teamId.split('').reduce((a, b) => {
+      a = ((a << 5) - a) + b.charCodeAt(0);
+      return a & a;
+    }, 0);
+    const subDivisionIndex = Math.abs(hash) % DIVISION_8_SUBDIVISIONS.length;
+    const subDivision = DIVISION_8_SUBDIVISIONS[subDivisionIndex];
+    return `${baseName} - ${subDivision}`;
+  }
+  
+  return baseName;
+}
+
 export function getDivisionColor(division: number): string {
   const colors = {
     1: "text-blue-400",      // Diamond
@@ -41,7 +65,7 @@ export function getDivisionBadgeColor(division: number): string {
     5: "bg-orange-600",      // Bronze
     6: "bg-gray-700",        // Iron
     7: "bg-stone-600",       // Stone
-    8: "bg-green-600",       // Rookie
+    8: "bg-green-600",       // Copper
   };
   return colors[division as keyof typeof colors] || "bg-gray-600";
 }

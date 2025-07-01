@@ -17,6 +17,40 @@ import { apiRequest } from "@/lib/queryClient";
 import { Bell, Shield, Calendar, Users as UsersIcon } from "lucide-react"; // Added UsersIcon
 import { HelpIcon } from "@/components/help";
 import { useContextualHelp } from "@/hooks/useContextualHelp";
+// Division naming utilities
+const DIVISION_NAMES = {
+  1: "Diamond League",
+  2: "Platinum League", 
+  3: "Gold League",
+  4: "Silver League",
+  5: "Bronze League",
+  6: "Iron League",
+  7: "Stone League",
+  8: "Copper League",
+} as const;
+
+const DIVISION_8_SUBDIVISIONS = [
+  "Alpha", "Beta", "Gamma", "Delta", "Epsilon", "Zeta", "Eta", "Theta",
+  "Iota", "Kappa", "Lambda", "Mu", "Nu", "Xi", "Omicron", "Pi",
+  "Rho", "Sigma", "Tau", "Upsilon", "Phi", "Chi", "Psi", "Omega"
+];
+
+function getDivisionNameWithSubdivision(division: number, teamId?: string): string {
+  const baseName = DIVISION_NAMES[division as keyof typeof DIVISION_NAMES] || `Division ${division}`;
+  
+  if (division === 8 && teamId) {
+    // Generate consistent sub-division based on team ID
+    const hash = teamId.split('').reduce((a, b) => {
+      a = ((a << 5) - a) + b.charCodeAt(0);
+      return a & a;
+    }, 0);
+    const subDivisionIndex = Math.abs(hash) % DIVISION_8_SUBDIVISIONS.length;
+    const subDivision = DIVISION_8_SUBDIVISIONS[subDivisionIndex];
+    return `${baseName} - ${subDivision}`;
+  }
+  
+  return baseName;
+}
 
 // Helper function for Camaraderie Description
 function getTeamCamaraderieDescription(camaraderie: number | undefined | null): string {
@@ -355,7 +389,7 @@ export default function Dashboard() {
 
           <Card className="bg-gray-800 border-gray-700">
             <CardHeader className="border-b border-gray-700">
-              <CardTitle className="font-orbitron text-xl">Division {team?.division || 8} - {(team?.division || 8) === 8 ? "Rookie League" : "Advanced League"}</CardTitle>
+              <CardTitle className="font-orbitron text-xl">Division {team?.division || 8} - {getDivisionNameWithSubdivision(team?.division || 8, team?.id)}</CardTitle>
             </CardHeader>
             <CardContent className="p-6">
               <LeagueStandings division={team?.division || 8} />
