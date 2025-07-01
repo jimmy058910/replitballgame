@@ -6,6 +6,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Play, Pause, Square, RotateCcw } from "lucide-react";
 import { AdSystem, useAdSystem } from "@/components/AdSystem";
 import { calculateTacticalModifiers, determineGameSituation, type TacticalModifiers, type GameState as TacticalGameState, type TeamTacticalInfo } from "../../../shared/tacticalSystem";
+import { apiRequest } from '@/lib/queryClient';
 
 interface Player {
   id: string;
@@ -307,7 +308,7 @@ export default function TextBasedMatch({
               }
               setGameState(innerPrev => ({...innerPrev, isRunning: currentIsRunning })); // Resume game state
               // Only restart interval if game was running before ad
-              if (currentIsRunning && !gameIntervalRef.current && innerPrev.gameTime < innerPrev.maxTime) {
+              if (currentIsRunning && !gameIntervalRef.current && gameState.gameTime < gameState.maxTime) {
                  gameIntervalRef.current = setInterval(simulateGameTick, 300);
               }
               closeAd(); // Close the ad dialog
@@ -459,7 +460,7 @@ export default function TextBasedMatch({
         ] : []),
         
         // Role-specific events with team context
-        ...(randomPlayer.role === 'passer' ? [
+        ...(randomPlayer.role === 'Passer' ? [
           `${playerName} (${playerTeam}) looks for an open teammate downfield!`,
           `${playerName} attempts a long pass across the arena!`,
           `${playerName} scrambles under pressure from ${opponentTeam}!`,
@@ -467,13 +468,13 @@ export default function TextBasedMatch({
           ...(randomPlayer.throwing < 15 ? [`${playerName}'s pass goes wide of the target!`] : [])
         ] : []),
         
-        ...(randomPlayer.role === 'runner' ? [
+        ...(randomPlayer.role === 'Runner' ? [
           `${playerName} (${playerTeam}) charges forward with the ball!`,
           `${playerName} breaks through a tackle attempt!`,
           `${playerName} jukes past a ${opponentTeam} defender!`,
         ] : []),
         
-        ...(randomPlayer.role === 'blocker' ? [
+        ...(randomPlayer.role === 'Blocker' ? [
           `${playerName} (${playerTeam}) delivers a crushing block!`,
           `${playerName} holds the line against ${opponentTeam}!`,
           `${playerName} creates an opening for ${playerTeam} teammates!`,
@@ -649,7 +650,7 @@ export default function TextBasedMatch({
         ] : []),
         
         // Role-specific events with team context
-        ...(randomPlayer.role === 'passer' ? [
+        ...(randomPlayer.role === 'Passer' ? [
           `${playerName} (${playerTeam}) looks for an open teammate downfield!`,
           `${playerName} attempts a long pass across the arena!`,
           `${playerName} scrambles under pressure from ${opponentTeam}!`,
@@ -657,13 +658,13 @@ export default function TextBasedMatch({
           ...(randomPlayer.throwing < 15 ? [`${playerName}'s pass goes wide of the target!`] : [])
         ] : []),
         
-        ...(randomPlayer.role === 'runner' ? [
+        ...(randomPlayer.role === 'Runner' ? [
           `${playerName} (${playerTeam}) charges forward with the ball!`,
           `${playerName} breaks through a tackle attempt!`,
           `${playerName} jukes past a ${opponentTeam} defender!`,
         ] : []),
         
-        ...(randomPlayer.role === 'blocker' ? [
+        ...(randomPlayer.role === 'Blocker' ? [
           `${playerName} (${playerTeam}) delivers a crushing block!`,
           `${playerName} holds the line against ${opponentTeam}!`,
           `${playerName} creates an opening for ${playerTeam} teammates!`,
@@ -862,12 +863,12 @@ export default function TextBasedMatch({
               Reset
             </Button>
             <Button 
-              onClick={() => showAd({
+              onClick={() => showRewardedVideoAd({
                 adType: 'rewarded_video',
                 placement: 'match_bonus',
                 rewardType: 'premium_currency',
                 rewardAmount: 10,
-                onAdComplete: (reward) => {
+                onAdComplete: (reward: any) => {
                   if (reward) {
                     console.log(`Rewarded ad completed! Got ${reward.amount} ${reward.type}`);
                   }
