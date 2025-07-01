@@ -42,9 +42,11 @@ router.get('/', isAuthenticated, async (req: Request, res: Response, next: NextF
         seed = (seed * 31 + dayKey.charCodeAt(i)) & 0xFFFFFFFF; // Simple hash for seed
     }
 
-    const seededRandom = (s: number) => {
-      let state = (s * 9301 + 49297) % 233280; // Corrected simple LCG
-      return state / 233280;
+    // Create stateful seeded random function
+    let randomState = seed;
+    const seededRandom = () => {
+      randomState = (randomState * 9301 + 49297) % 233280;
+      return randomState / 233280;
     };
 
     // Load items from config
@@ -52,10 +54,10 @@ router.get('/', isAuthenticated, async (req: Request, res: Response, next: NextF
     const allEquipment = storeConfig.storeSections.equipment || [];
     const staticStoreItems = storeConfig.storeSections.staticItems || [];
     const tournamentEntriesItems = storeConfig.storeSections.tournamentEntries || [];
+    const creditPackages = storeConfig.storeSections.creditPackages || [];
 
-    const rng = seededRandom(seed);
-    const shuffledPremium = [...allPremiumItems].sort(() => 0.5 - rng());
-    const shuffledEquipment = [...allEquipment].sort(() => 0.5 - rng());
+    const shuffledPremium = [...allPremiumItems].sort(() => 0.5 - seededRandom());
+    const shuffledEquipment = [...allEquipment].sort(() => 0.5 - seededRandom());
 
     // Select a subset for daily rotation, ensure not to select more than available
     const dailyPremiumItemsCount = Math.min(3, shuffledPremium.length);
@@ -70,9 +72,11 @@ router.get('/', isAuthenticated, async (req: Request, res: Response, next: NextF
     resetTime.setUTCHours(8, 0, 0, 0); // Next 8 AM UTC
 
     res.json({
-      items: staticStoreItems, premiumItems: dailyPremiumItems, equipment: dailyEquipment,
+      items: staticStoreItems, 
+      premiumItems: dailyPremiumItems, 
+      equipment: dailyEquipment,
       tournamentEntries: tournamentEntriesItems,
-      // creditPackages: creditPackagesForGems, // This lists "gem for USD" packages, payments route handles actual purchase
+      creditPackages: creditPackages,
       resetTime: resetTime.toISOString(),
       rotationInfo: { currentDayKey: dayKey, nextRotationTime: resetTime.toISOString() }
     });

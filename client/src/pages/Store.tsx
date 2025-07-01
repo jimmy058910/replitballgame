@@ -81,7 +81,7 @@ export default function Store() {
   });
 
   const { data: storeData } = useQuery({
-    queryKey: ["/api/store/items"],
+    queryKey: ["/api/store"],
   });
 
   const purchaseItemMutation = useMutation({
