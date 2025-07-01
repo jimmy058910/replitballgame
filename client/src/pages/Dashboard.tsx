@@ -52,7 +52,7 @@ function ServerTimeDisplay({ serverTime }: { serverTime: any }) {
     if (timeData.isSchedulingWindow) {
       return "Games: OPEN";
     } else {
-      return `Next: ${timeData.timeUntilNextWindow?.hours || 0}h ${timeData.timeUntilNextWindow?.minutes || 0}m`;
+      return `Next Game Day: ${timeData.timeUntilNextWindow?.hours || 0}h ${timeData.timeUntilNextWindow?.minutes || 0}m`;
     }
   };
 

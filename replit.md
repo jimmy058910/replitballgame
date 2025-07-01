@@ -46,6 +46,8 @@ Built as a React + Express web application with PostgreSQL database, using moder
 - ✓ Improved User Experience: Single consistent navigation bar and interactive Dashboard elements throughout entire application
 - ✓ DASHBOARD UI REFINEMENTS: Changed team name display from "My Team - Oakland Cougars" to just "Oakland Cougars" and reduced Power figure size from 64px to 48px to prevent player name overflow
 - ✓ CENTRALIZED DIVISION NAMING SYSTEM: Created shared/divisionUtils.ts to fix inconsistent division names across application, restored proper names like "Stone League" for Division 7 instead of generic "Rookie League"
+- ✓ DIVISION NAMING CONSISTENCY: Changed "Rookie League" to "Copper League" for consistent mineral-based naming convention across all 8 divisions
+- ✓ GAME DAY RESET TIMING FIX: Fixed server reset time display to show "Next Game Day: Xh XXm" and calculate time until 3AM Eastern reset instead of 5PM league window timing
 
 ### January 1, 2025 - COMPREHENSIVE PLAYER AGING SYSTEM IMPLEMENTATION (Previous)
 - ✓ ADVANCED AGING MECHANICS: Implemented comprehensive player aging system with realistic age progression and career lifecycle management
