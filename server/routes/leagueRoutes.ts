@@ -16,21 +16,18 @@ import {
   LEAGUE_GAME_END_HOUR
 } from "@shared/timezone";
 import { generateRandomPlayer } from "../services/leagueService";
+import gameConfig from "../config/game_config.json";
 // import { ABILITIES, rollForAbility } from "@shared/abilities"; // Only if used directly in AI team gen
 
 const router = Router();
 
 // TODO: Move to AiTeamService
 async function createAITeamsForDivision(division: number) {
-  const aiTeamNames = [
-    "Thunder Hawks", "Storm Eagles", "Fire Dragons", "Ice Wolves",
-    "Lightning Bolts", "Shadow Panthers", "Golden Lions", "Silver Sharks",
-    "Crimson Tigers", "Azure Phoenix", "Emerald Serpents", "Violet Raptors"
-  ];
+  const aiTeamNames = gameConfig.aiTeamNames;
   const races = ["Human", "Sylvan", "Gryll", "Lumina", "Umbra"];
 
   for (let i = 0; i < 8; i++) {
-    const teamName = aiTeamNames[i] || `Division ${division} Team ${i + 1}`;
+    const teamName = aiTeamNames[i % aiTeamNames.length] || `Division ${division} Team ${i + 1}`;
 
     const aiUser = await userStorage.upsertUser({ // Use userStorage
       id: `ai_user_div${division}_team${i}_${Date.now()}`,
@@ -161,13 +158,7 @@ router.post('/create-ai-teams', isAuthenticated, async (req: Request, res: Respo
   try {
     const { division = 8, count = 15 } = req.body;
 
-    const aiTeamBaseNames = [
-      "Shadow Hunters", "Storm Riders", "Iron Eagles", "Fire Wolves",
-      "Thunder Hawks", "Ice Bears", "Lightning Tigers", "Stone Lions",
-      "Wind Falcons", "Flame Panthers", "Steel Sharks", "Dark Ravens",
-      "Frost Wolves", "Electric Dragons", "Mystic Foxes", "Savage Bulls",
-      "Desert Vipers", "Mountain Giants", "River Serpents", "Forest Guardians"
-    ];
+    const aiTeamBaseNames = gameConfig.aiTeamNames;
     const createdTeams = [];
 
     for (let i = 0; i < count; i++) {

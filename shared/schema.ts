@@ -92,6 +92,7 @@ export const players = pgTable("players", {
   staminaPotential: decimal("stamina_potential", { precision: 2, scale: 1 }),
   leadershipPotential: decimal("leadership_potential", { precision: 2, scale: 1 }),
   agilityPotential: decimal("agility_potential", { precision: 2, scale: 1 }),
+  overallPotentialStars: decimal("overall_potential_stars", { precision: 2, scale: 1 }),
   
   salary: integer("salary").notNull(),
   contractSeasons: integer("contract_seasons").default(3),

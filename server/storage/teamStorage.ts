@@ -5,19 +5,26 @@ import { staffStorage } from "./staffStorage"; // Correct import
 import { teamFinancesStorage } from "./teamFinancesStorage"; // Correct import
 import type { InsertStaff, Staff } from "@shared/schema"; // Added Staff type
 import type { InsertTeamFinances, TeamFinances } from "@shared/schema"; // Added TeamFinances type
+import gameConfig from "../config/game_config.json";
 
 
 export class TeamStorage {
-  // Define default staff as a class property
-  private readonly defaultStaffMembers: Omit<InsertStaff, 'id' | 'teamId' | 'createdAt' | 'updatedAt' | 'abilities'>[] = [
-    { name: "Alex Recovery", type: "recovery_specialist", level: 1, salary: 60000, recoveryRating: 75, coachingRating: 35, offenseRating: 0, defenseRating: 0, physicalRating: 0, scoutingRating: 0, recruitingRating: 0 },
-    { name: "Sarah Fitness", type: "trainer", level: 1, salary: 45000, physicalRating: 80, coachingRating: 30, offenseRating: 0, defenseRating: 0, recoveryRating: 0, scoutingRating: 0, recruitingRating: 0 },
-    { name: "Mike Offense", type: "trainer", level: 1, salary: 50000, offenseRating: 85, coachingRating: 40, defenseRating: 0, physicalRating: 0, recoveryRating: 0, scoutingRating: 0, recruitingRating: 0 },
-    { name: "Lisa Defense", type: "trainer", level: 1, salary: 50000, defenseRating: 85, coachingRating: 40, offenseRating: 0, physicalRating: 0, recoveryRating: 0, scoutingRating: 0, recruitingRating: 0 },
-    { name: "Tony Scout", type: "scout", level: 1, salary: 40000, scoutingRating: 90, recruitingRating: 70, offenseRating: 0, defenseRating: 0, physicalRating: 0, recoveryRating: 0, coachingRating: 0 },
-    { name: "Emma Talent", type: "scout", level: 1, salary: 42000, scoutingRating: 85, recruitingRating: 80, offenseRating: 0, defenseRating: 0, physicalRating: 0, recoveryRating: 0, coachingRating: 0 },
-    { name: "Coach Williams", type: "head_coach", level: 2, salary: 80000, coachingRating: 90, offenseRating: 70, defenseRating: 70, physicalRating: 0, recoveryRating: 0, scoutingRating: 0, recruitingRating: 0 },
-  ];
+  // Load default staff from configuration
+  private getDefaultStaffMembers(): Omit<InsertStaff, 'id' | 'teamId' | 'createdAt' | 'updatedAt' | 'abilities'>[] {
+    return gameConfig.gameParameters.staffSettings.defaultStaff.map(staff => ({
+      name: staff.name,
+      type: staff.type as any,
+      level: staff.level,
+      salary: staff.salary,
+      recoveryRating: staff.recoveryRating || 0,
+      coachingRating: staff.coachingRating || 0,
+      offenseRating: staff.offenseRating || 0,
+      defenseRating: staff.defenseRating || 0,
+      physicalRating: staff.physicalRating || 0,
+      scoutingRating: staff.scoutingRating || 0,
+      recruitingRating: staff.recruitingRating || 0
+    }));
+  }
 
   async createTeam(teamData: InsertTeam): Promise<Team> {
     const [newTeam] = await db.insert(teams).values(teamData).returning();
@@ -63,8 +70,9 @@ export class TeamStorage {
   }
 
   private async createDefaultStaffForTeam(teamId: string): Promise<void> {
-    console.log(`Creating ${this.defaultStaffMembers.length} staff members for team ${teamId}`);
-    for (const staffMember of this.defaultStaffMembers) {
+    const defaultStaffMembers = this.getDefaultStaffMembers();
+    console.log(`Creating ${defaultStaffMembers.length} staff members for team ${teamId}`);
+    for (const staffMember of defaultStaffMembers) {
       console.log(`Creating staff member: ${staffMember.name} (${staffMember.type})`);
       // Explicitly construct the InsertStaff object to ensure all fields are covered
       const staffToCreate: InsertStaff = {
@@ -103,7 +111,8 @@ export class TeamStorage {
       premiumCurrency: 50,
     };
      // Recalculate staffSalaries based on the actual list
-    const actualStaffSalaries = this.defaultStaffMembers.reduce((sum: number, s: any) => sum + s.salary, 0);
+    const defaultStaffMembers = this.getDefaultStaffMembers();
+    const actualStaffSalaries = defaultStaffMembers.reduce((sum: number, s: any) => sum + s.salary, 0);
     defaultFinances.staffSalaries = actualStaffSalaries;
     defaultFinances.totalExpenses = actualStaffSalaries + (defaultFinances.facilities || 0) + (defaultFinances.playerSalaries || 0);
     defaultFinances.netIncome = (defaultFinances.totalIncome || 0) - defaultFinances.totalExpenses;

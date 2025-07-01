@@ -39,9 +39,21 @@ const getRoleIcon = (role: string) => {
 };
 
 const getStatColor = (value: number) => {
-  if (value >= 32) return 'text-green-600 dark:text-green-400';
-  if (value <= 18) return 'text-red-600 dark:text-red-400';
-  return 'text-white dark:text-white';
+  if (value >= 35) return 'text-green-400';      // Elite
+  if (value >= 28) return 'text-blue-400';       // Excellent  
+  if (value >= 20) return 'text-yellow-400';     // Good
+  if (value >= 15) return 'text-orange-400';     // Below Average
+  return 'text-red-400';                         // Poor
+};
+
+// Power color coding for circular display
+const getPowerColor = (power: number) => {
+  if (power >= 200) return 'bg-purple-600';      // Elite (200+)
+  if (power >= 180) return 'bg-green-600';       // Excellent (180-199)
+  if (power >= 160) return 'bg-blue-600';        // Good (160-179)
+  if (power >= 140) return 'bg-yellow-600';      // Average (140-159)
+  if (power >= 120) return 'bg-orange-600';      // Below Average (120-139)
+  return 'bg-red-600';                           // Poor (Under 120)
 };
 
 const getRaceEmoji = (race: string) => {
@@ -168,11 +180,7 @@ export default function UnifiedPlayerCard({
           <div className="flex items-center space-x-4">
             <div className="flex-shrink-0 text-center">
               <div className="text-xs text-red-400 font-medium mb-1">Power</div>
-              <div className={`w-16 h-16 rounded-full flex items-center justify-center text-white font-bold text-xl ${
-                playerPower >= 120 ? 'bg-red-600' : 
-                playerPower <= 80 ? 'bg-gray-600' : 
-                'bg-red-500'
-              }`}>
+              <div className={`w-16 h-16 rounded-full flex items-center justify-center text-white font-bold text-xl ${getPowerColor(playerPower)}`}>
                 {playerPower}
               </div>
             </div>
@@ -183,6 +191,15 @@ export default function UnifiedPlayerCard({
               <div className="text-sm text-gray-400 capitalize mb-2">
                 {getRaceEmoji(player.race)} {player.race} {player.role}
               </div>
+              {/* Overall Potential Stars */}
+              {player.overallPotentialStars && (
+                <div className="flex items-center gap-1 mb-2">
+                  {renderStars(parseFloat(player.overallPotentialStars))}
+                  <span className="text-xs text-gray-400 ml-1">
+                    ({parseFloat(player.overallPotentialStars).toFixed(1)})
+                  </span>
+                </div>
+              )}
               <div className="grid grid-cols-3 gap-3">
                 {topStats.map((stat, index) => (
                   <div key={index} className="text-center">

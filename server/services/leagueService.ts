@@ -1,5 +1,6 @@
 import type { InsertPlayer } from "@shared/schema";
 import { generateRandomName, getFullName } from "@shared/names";
+import gameConfig from "../config/game_config.json";
 
 export function generateRandomPlayer(name: string, race: string, teamId: string, position?: string): InsertPlayer {
   // Generate race-appropriate name if not provided
@@ -8,18 +9,21 @@ export function generateRandomPlayer(name: string, race: string, teamId: string,
     generateRandomName(race);
   
   const fullName = getFullName(firstName, lastName);
-  const baseAge = 18 + Math.floor(Math.random() * 12); // 18-29 years old
+  const ageConfig = gameConfig.gameParameters.playerGeneration.ageRange;
+  const statConfig = gameConfig.gameParameters.playerGeneration.statRange;
+  const baseAge = ageConfig.min + Math.floor(Math.random() * (ageConfig.max - ageConfig.min + 1));
   
-  // Generate base attributes (15-35 range)
+  // Generate base attributes using configurable ranges
+  const statRange = statConfig.max - statConfig.min;
   const baseStats = {
-    speed: 15 + Math.floor(Math.random() * 20),
-    power: 15 + Math.floor(Math.random() * 20),
-    throwing: 15 + Math.floor(Math.random() * 20),
-    catching: 15 + Math.floor(Math.random() * 20),
-    kicking: 15 + Math.floor(Math.random() * 20),
-    stamina: 15 + Math.floor(Math.random() * 20),
-    leadership: 15 + Math.floor(Math.random() * 20),
-    agility: 15 + Math.floor(Math.random() * 20),
+    speed: statConfig.min + Math.floor(Math.random() * statRange),
+    power: statConfig.min + Math.floor(Math.random() * statRange),
+    throwing: statConfig.min + Math.floor(Math.random() * statRange),
+    catching: statConfig.min + Math.floor(Math.random() * statRange),
+    kicking: statConfig.min + Math.floor(Math.random() * statRange),
+    stamina: statConfig.min + Math.floor(Math.random() * statRange),
+    leadership: statConfig.min + Math.floor(Math.random() * statRange),
+    agility: statConfig.min + Math.floor(Math.random() * statRange),
   };
 
   // Apply racial modifiers
@@ -59,13 +63,62 @@ export function generateRandomPlayer(name: string, race: string, teamId: string,
     baseStats[key as keyof typeof baseStats] = Math.min(40, baseStats[key as keyof typeof baseStats]);
   });
 
-  // Generate potential (2.0-5.0 stars)
-  const generatePotential = () => 2.0 + Math.random() * 3.0;
+  // Generate potential using configurable range
+  const potentialConfig = gameConfig.gameParameters.playerGeneration.potentialRange;
+  const generatePotential = () => potentialConfig.min + Math.random() * (potentialConfig.max - potentialConfig.min);
 
-  // Calculate salary based on stats and age
+  // Calculate overall potential stars based on position and individual potentials
+  const potentials = {
+    speed: generatePotential(),
+    power: generatePotential(),
+    throwing: generatePotential(),
+    catching: generatePotential(),
+    kicking: generatePotential(),
+    stamina: generatePotential(),
+    leadership: generatePotential(),
+    agility: generatePotential()
+  };
+  
+  // Calculate weighted average based on position
+  let weightedPotential = 0;
+  switch (position) {
+    case "passer":
+      weightedPotential = (
+        potentials.throwing * 3 +
+        potentials.leadership * 2 +
+        potentials.agility * 1.5 +
+        potentials.stamina * 1 +
+        (potentials.speed + potentials.power + potentials.catching + potentials.kicking) * 0.5
+      ) / 9.5;
+      break;
+    case "runner":
+      weightedPotential = (
+        potentials.speed * 3 +
+        potentials.agility * 2.5 +
+        potentials.catching * 2 +
+        potentials.stamina * 1.5 +
+        (potentials.power + potentials.throwing + potentials.leadership + potentials.kicking) * 0.5
+      ) / 11;
+      break;
+    case "blocker":
+      weightedPotential = (
+        potentials.power * 3 +
+        potentials.stamina * 2.5 +
+        potentials.agility * 1.5 +
+        potentials.leadership * 1 +
+        (potentials.speed + potentials.throwing + potentials.catching + potentials.kicking) * 0.5
+      ) / 10;
+      break;
+    default:
+      // Balanced for unknown positions
+      weightedPotential = Object.values(potentials).reduce((sum, val) => sum + val, 0) / 8;
+  }
+  
+  // Calculate salary based on stats and age using configurable parameters
+  const salaryConfig = gameConfig.gameParameters.playerGeneration.salaryMultipliers;
   const avgStat = Object.values(baseStats).reduce((a, b) => a + b, 0) / 8;
-  const baseSalary = 1000 + (avgStat * 50) + (Math.random() * 500);
-  const ageFactor = baseAge > 25 ? 0.9 : 1.1; // Younger players cost more
+  const baseSalary = 1000 + (avgStat * salaryConfig.basePerStat) + (Math.random() * salaryConfig.randomVariance);
+  const ageFactor = baseAge > 25 ? salaryConfig.veteranPenalty : salaryConfig.youngPlayerBonus;
   const salary = Math.floor(baseSalary * ageFactor);
 
   return {
@@ -77,14 +130,15 @@ export function generateRandomPlayer(name: string, race: string, teamId: string,
     position: position || "runner", // Default to runner if no position specified
     age: baseAge,
     ...baseStats,
-    speedPotential: generatePotential().toString(),
-    powerPotential: generatePotential().toString(),
-    throwingPotential: generatePotential().toString(),
-    catchingPotential: generatePotential().toString(),
-    kickingPotential: generatePotential().toString(),
-    staminaPotential: generatePotential().toString(),
-    leadershipPotential: generatePotential().toString(),
-    agilityPotential: generatePotential().toString(),
+    speedPotential: potentials.speed.toString(),
+    powerPotential: potentials.power.toString(),
+    throwingPotential: potentials.throwing.toString(),
+    catchingPotential: potentials.catching.toString(),
+    kickingPotential: potentials.kicking.toString(),
+    staminaPotential: potentials.stamina.toString(),
+    leadershipPotential: potentials.leadership.toString(),
+    agilityPotential: potentials.agility.toString(),
+    overallPotentialStars: weightedPotential.toFixed(1),
     salary,
     contractValue: salary * 3, // 3 year contract value
     camaraderie: 50, // Initial camaraderie
