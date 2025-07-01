@@ -40,9 +40,6 @@ export default function Competition() {
     queryKey: ["/api/season/current-cycle"],
   });
 
-  // Debug current cycle data
-  console.log('Competition currentCycle data:', currentCycle);
-
   const browseMutation = useMutation({
     mutationFn: async () => {
       return await apiRequest(`/api/teams/division/${team?.division || 8}`, "GET");

@@ -50,11 +50,8 @@ router.get('/current', isAuthenticated, async (req: Request, res: Response, next
 // Get current season cycle (day-by-day info)
 router.get('/current-cycle', isAuthenticated, async (req: Request, res: Response, next: NextFunction) => {
   try {
-    console.log('Getting current season...');
     const currentSeason = await storage.seasons.getCurrentSeason();
-    console.log('Current season result:', currentSeason);
     if (!currentSeason) {
-      console.log('No active season found');
       return res.status(404).json({ message: "No active season found." });
     }
 
