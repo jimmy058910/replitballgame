@@ -48,7 +48,8 @@ Built as a React + Express web application with PostgreSQL database, using moder
 - ✓ **Development Auto-Promotion System**: Added automatic admin promotion for jimmy058910@gmail.com during development to bypass manual promotion requirements before app publication
 - ✓ **SuperUser Access Fix**: Replaced hardcoded "Macomb Cougars" check with proper RBAC system + "Oakland Cougars" team name fallback for immediate access
 - ✓ **ServerTimeDisplay Error Fix**: Fixed JavaScript error in ServerTimeDisplay component with proper null checking for timeUntilNextWindow object
-- ✓ **RBAC SQL Issue Resolution**: Updated promoteToAdmin function to use direct SQL instead of Drizzle ORM to resolve "syntax error at end of input"
+- ✓ **RBAC SQL Issue Resolution**: Updated promoteToAdmin function to use proper Drizzle ORM eq operator to resolve SQL parameter binding issues
+- ✓ **Manual Admin Promotion Button**: Added "Promote to Admin" button to SuperUser panel for immediate admin permission upgrade
 
 #### ✅ DYNAMIC ROOKIE GENERATION SYSTEM COMPLETE OVERHAUL
 - ✓ **TAP System Implementation**: Completely rebuilt tryout generation using Total Attribute Points system (BasePoints + Potential×4)

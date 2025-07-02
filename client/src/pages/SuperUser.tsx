@@ -109,6 +109,27 @@ export default function SuperUser() {
     },
   });
 
+  // Promote to admin mutation
+  const promoteToAdminMutation = useMutation({
+    mutationFn: async () => {
+      return await apiRequest("/api/auth/promote-to-admin", "POST");
+    },
+    onSuccess: (data: any) => {
+      toast({
+        title: "Promotion Successful",
+        description: data.message,
+      });
+      queryClient.invalidateQueries({ queryKey: ["/api/auth/admin-status"] });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: "Failed to promote to admin",
+        variant: "destructive",
+      });
+    },
+  });
+
   // Demo notifications mutation
   const createNotificationsMutation = useMutation({
     mutationFn: async () => {
@@ -291,6 +312,29 @@ export default function SuperUser() {
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          {/* Admin Promotion */}
+          <Card className="bg-gray-800 border-gray-700">
+            <CardHeader>
+              <CardTitle className="font-orbitron text-xl flex items-center">
+                <Shield className="w-5 h-5 mr-2 text-red-400" />
+                Admin Promotion
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <p className="text-gray-400 text-sm">
+                Promote your account to admin status for full administrative access.
+              </p>
+              <Button 
+                onClick={() => promoteToAdminMutation.mutate()}
+                disabled={promoteToAdminMutation.isPending}
+                className="w-full"
+                variant="destructive"
+              >
+                {promoteToAdminMutation.isPending ? "Promoting..." : "Promote to Admin"}
+              </Button>
+            </CardContent>
+          </Card>
+
           {/* Notification System */}
           <Card className="bg-gray-800 border-gray-700">
             <CardHeader>

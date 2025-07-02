@@ -1,6 +1,6 @@
 import { db } from "../db";
 import { logInfo, ErrorCreators, asyncHandler } from "./errorService";
-import { eq, and } from "drizzle-orm";
+import { eq, and, sql } from "drizzle-orm";
 import * as schema from "@shared/schema";
 
 /**
@@ -251,18 +251,17 @@ export class RBACService {
    */
   static async promoteToAdmin(userEmail: string): Promise<void> {
     try {
-      // Direct SQL approach to avoid Drizzle ORM issues
-      const result = await db.execute(`
-        UPDATE users 
-        SET role = 'admin' 
-        WHERE email = $1 
-        RETURNING id, email
-      `, [userEmail]);
+      // Use Drizzle ORM with eq operator for proper parameter binding
+      const result = await db
+        .update(schema.users)
+        .set({ role: 'admin' })
+        .where(eq(schema.users.email, userEmail))
+        .returning({ id: schema.users.id, email: schema.users.email });
         
-      if (result.rows && result.rows.length > 0) {
+      if (result.length > 0) {
         logInfo("User promoted to admin", { 
-          userId: result.rows[0].id, 
-          email: result.rows[0].email 
+          userId: result[0].id, 
+          email: result[0].email 
         });
       } else {
         logInfo("User not found for admin promotion", { email: userEmail });
@@ -271,7 +270,7 @@ export class RBACService {
     } catch (error) {
       logInfo("Failed to promote user to admin", { 
         email: userEmail, 
-        error: error.message 
+        error: (error as Error).message 
       });
     }
   }
