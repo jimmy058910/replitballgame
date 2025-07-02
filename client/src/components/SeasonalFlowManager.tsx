@@ -21,7 +21,8 @@ import {
   Zap,
   CheckCircle,
   AlertCircle,
-  Info
+  Info,
+  Star
 } from 'lucide-react';
 
 interface SeasonalPhase {
