@@ -6,9 +6,10 @@ import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Progress } from "@/components/ui/progress";
 import { Separator } from "@/components/ui/separator";
-import { Shield, Shirt, ShirtIcon, Hand } from "lucide-react";
+import { Shield, Shirt, ShirtIcon, Hand, Star, Trophy, Calendar, FileText, Zap, User, Crown } from "lucide-react";
 import AbilitiesDisplay from "@/components/AbilitiesDisplay";
 import { PlayerAwards } from "./PlayerAwards";
+import { getPlayerRole, getRaceDisplayName, getRoleColor, getRoleTextColor } from "@shared/playerUtils";
 
 interface PlayerDetailModalProps {
   player: any;
@@ -18,18 +19,51 @@ interface PlayerDetailModalProps {
   onEquipmentChange?: (playerId: string, slot: string, itemId: string) => void;
 }
 
-const roleColors = {
-  Passer: "text-blue-400 border-blue-400",
-  Runner: "text-green-400 border-green-400", 
-  Blocker: "text-red-400 border-red-400",
+// Helper function to get race emoji
+const getRaceEmoji = (race: string): string => {
+  const raceEmojis = {
+    'human': '👤',
+    'sylvan': '🌿',
+    'gryll': '⚒️',
+    'lumina': '✨',
+    'umbra': '🌑'
+  };
+  return raceEmojis[race?.toLowerCase() as keyof typeof raceEmojis] || '👤';
 };
 
-const raceColors = {
-  human: "race-human",
-  sylvan: "race-sylvan",
-  gryll: "race-gryll",
-  lumina: "race-lumina",
-  umbra: "race-umbra",
+// Helper function to get stat color based on value
+const getStatColor = (value: number): string => {
+  if (value >= 35) return "text-blue-400";
+  if (value >= 26) return "text-green-400";
+  if (value >= 16) return "text-white";
+  return "text-red-400";
+};
+
+// Helper function to render star rating
+const renderStarRating = (rating: number): JSX.Element[] => {
+  const stars = [];
+  const fullStars = Math.floor(rating);
+  const hasHalfStar = rating % 1 >= 0.5;
+  
+  for (let i = 0; i < fullStars; i++) {
+    stars.push(<Star key={i} className="w-4 h-4 fill-yellow-400 text-yellow-400" />);
+  }
+  
+  if (hasHalfStar) {
+    stars.push(
+      <div key="half" className="relative w-4 h-4">
+        <Star className="w-4 h-4 text-yellow-400" />
+        <Star className="w-4 h-4 fill-yellow-400 text-yellow-400 absolute top-0 left-0" style={{ clipPath: 'inset(0 50% 0 0)' }} />
+      </div>
+    );
+  }
+  
+  const emptyStars = 5 - Math.ceil(rating);
+  for (let i = 0; i < emptyStars; i++) {
+    stars.push(<Star key={`empty-${i}`} className="w-4 h-4 text-gray-400" />);
+  }
+  
+  return stars;
 };
 
 export default function PlayerDetailModal({ 
@@ -39,79 +73,50 @@ export default function PlayerDetailModal({
   onContractNegotiate,
   onEquipmentChange 
 }: PlayerDetailModalProps) {
-  const [activeTab, setActiveTab] = useState("stats");
+  const [activeTab, setActiveTab] = useState("overview");
 
   if (!player) return null;
 
-  // Helper function to determine player role
-  // Centralized player role function
-  const getPlayerRole = (player: any): string => {
-    if (!player) return "Player";
-    
-    const { 
-      speed = 0, 
-      agility = 0, 
-      catching = 0, 
-      throwing = 0, 
-      power = 0, 
-      leadership = 0, 
-      stamina = 0 
-    } = player;
-    
-    // Calculate role scores based on relevant stats
-    const passerScore = (throwing * 2) + (leadership * 1.5);
-    const runnerScore = (speed * 2) + (agility * 1.5);
-    const blockerScore = (power * 2) + (stamina * 1.5);
-    
-    const maxScore = Math.max(passerScore, runnerScore, blockerScore);
-    
-    if (maxScore === passerScore) return "Passer";
-    if (maxScore === runnerScore) return "Runner";
-    return "Blocker";
+  const playerRole = getPlayerRole(player);
+  const displayName = player.firstName && player.lastName 
+    ? `${player.firstName} ${player.lastName}` 
+    : player.name || "Unknown Player";
+
+  // Calculate potential for each stat (using overallPotentialStars as base)
+  const basePotential = player.overallPotentialStars || 3.0;
+  const getMaxPotential = (currentStat: number) => {
+    // Convert star rating to potential points (each star = 8 potential points)
+    const potentialPoints = basePotential * 8;
+    return Math.min(40, currentStat + Math.floor(potentialPoints * 0.3));
   };
 
-  const getRaceDisplayName = (race: string): string => {
-    if (!race) return "Unknown";
-    return race.charAt(0).toUpperCase() + race.slice(1).toLowerCase();
-  };;
-
-  const playerRole = getPlayerRole(player);
-  const raceColorClass = raceColors[player.race as keyof typeof raceColors] || "race-human";
-
-  // Calculate contract status
+  // Contract status calculation
   const contractRemaining = (player.contractSeasons || 3) - (player.contractStartSeason || 0);
-  const contractStatus = contractRemaining <= 1 ? "expiring" : contractRemaining <= 2 ? "moderate" : "stable";
+  const isContractExpiring = contractRemaining <= 1;
 
-  // Mock equipment data - this would come from the database
+  // Mock Head Scout level for scouting accuracy (this would come from team data)
+  const headScoutLevel = 3; // This should be fetched from team staff
+  const scoutingAccuracy = Math.min(100, 40 + (headScoutLevel * 15)); // 40% base + 15% per level
+
+  // Calculate potential display based on scouting accuracy
+  const getPotentialDisplay = () => {
+    if (scoutingAccuracy >= 90) {
+      return `${basePotential.toFixed(1)} Stars`;
+    } else if (scoutingAccuracy >= 70) {
+      const variance = 0.5;
+      return `${(basePotential - variance).toFixed(1)} - ${(basePotential + variance).toFixed(1)} Stars`;
+    } else {
+      const variance = 1.0;
+      return `${Math.max(0, basePotential - variance).toFixed(1)} - ${Math.min(5, basePotential + variance).toFixed(1)} Stars`;
+    }
+  };
+
+  // Mock equipment data
   const equipment = {
     helmet: player.helmetItem || { name: "Basic Helmet", rarity: "common", statBoosts: {} },
     chest: player.chestItem || { name: "Basic Chest Armor", rarity: "common", statBoosts: {} },
     shoes: player.shoesItem || { name: "Basic Shoes", rarity: "common", statBoosts: {} },
     gloves: player.glovesItem || { name: "Basic Gloves", rarity: "common", statBoosts: {} },
-  };
-
-  const renderStatsBar = (label: string, current: number, potential: number | null) => {
-    const potentialNum = potential ? parseFloat(potential.toString()) : 0;
-    const maxPossible = Math.min(40, current + (potentialNum * 5)); // Rough calculation
-    
-    return (
-      <div className="space-y-1">
-        <div className="flex justify-between text-sm">
-          <span>{label}</span>
-          <span className="font-semibold">{current}/{Math.floor(maxPossible)}</span>
-        </div>
-        <div className="relative">
-          <Progress value={(current / 40) * 100} className="h-2" />
-          <div 
-            className="absolute top-0 h-2 bg-yellow-400/30 rounded-full"
-            style={{ 
-              left: `${(current / 40) * 100}%`,
-              width: `${((maxPossible - current) / 40) * 100}%`
-            }}
-          />
-        </div>
-      </div>
-    );
   };
 
   const equipmentSlots = [
@@ -131,103 +136,197 @@ export default function PlayerDetailModal({
     }
   };
 
+  // Render single stat bar with new format
+  const renderStatBar = (label: string, current: number) => {
+    const maxPotential = getMaxPotential(current);
+    const percentage = (current / 40) * 100;
+    
+    return (
+      <div className="space-y-2">
+        <div className="flex justify-between items-center">
+          <span className="text-sm font-medium">{label}</span>
+          <span className={`text-sm font-bold ${getStatColor(current)}`}>
+            {current}/{maxPotential}
+          </span>
+        </div>
+        <Progress value={percentage} className="h-2" />
+      </div>
+    );
+  };
+
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-3">
-            <div className={`w-12 h-12 bg-${raceColorClass} bg-opacity-20 rounded-full border-2 border-${raceColorClass} flex items-center justify-center`}>
-              <span className={`text-lg font-bold text-${raceColorClass}`}>
-                {(player.firstName || player.name || "P").charAt(0)}
-              </span>
+            <div className="w-12 h-12 bg-gray-600 bg-opacity-20 rounded-full border-2 border-gray-500 flex items-center justify-center">
+              <User className="w-6 h-6 text-gray-300" />
             </div>
             <div>
-              <h2 className="text-xl font-bold">
-                {player.firstName && player.lastName 
-                  ? `${player.firstName} ${player.lastName}` 
-                  : player.name || "Unknown Player"}
-              </h2>
               <div className="flex items-center gap-2">
-                <Badge className={roleColors[playerRole as keyof typeof roleColors]}>
-                  {playerRole}
+                <h2 className="text-xl font-bold">{displayName}</h2>
+                {player.isCaptain && <Crown className="w-5 h-5 text-yellow-500" />}
+              </div>
+              <div className="flex items-center gap-2 mt-1">
+                <Badge className={`text-xs ${getRoleColor(playerRole)}`}>
+                  {playerRole.toUpperCase()}
                 </Badge>
-                <Badge variant="outline">
-                  {player.race ? player.race.charAt(0).toUpperCase() + player.race.slice(1) : "Unknown"}
+                <Badge variant="outline" className="text-xs">
+                  {getRaceEmoji(player.race)} {getRaceDisplayName(player.race)}
                 </Badge>
-                <Badge variant="outline">Age {player.age || "Unknown"}</Badge>
+                <Badge variant="outline" className="text-xs">
+                  Age {player.age || "Unknown"}
+                </Badge>
               </div>
             </div>
           </DialogTitle>
         </DialogHeader>
 
         <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="grid w-full grid-cols-6">
-            <TabsTrigger value="stats">Stats</TabsTrigger>
-            <TabsTrigger value="abilities">Abilities</TabsTrigger>
-            <TabsTrigger value="equipment">Equipment</TabsTrigger>
-            <TabsTrigger value="contract">Contract</TabsTrigger>
-            <TabsTrigger value="awards">Awards</TabsTrigger>
-            <TabsTrigger value="development">Scouting</TabsTrigger>
+          <TabsList className="grid w-full grid-cols-4">
+            <TabsTrigger value="overview" className="flex items-center gap-2">
+              <User className="w-4 h-4" />
+              Overview
+            </TabsTrigger>
+            <TabsTrigger value="abilities" className="flex items-center gap-2">
+              <Zap className="w-4 h-4" />
+              Abilities & Skills
+            </TabsTrigger>
+            <TabsTrigger value="equipment" className="flex items-center gap-2">
+              <Shield className="w-4 h-4" />
+              Equipment
+            </TabsTrigger>
+            <TabsTrigger value="gamelogsawards" className="flex items-center gap-2">
+              <Trophy className="w-4 h-4" />
+              Game Logs & Awards
+            </TabsTrigger>
           </TabsList>
 
-          <TabsContent value="stats" className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
+          <TabsContent value="overview" className="space-y-4">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+              {/* Core Attributes Section */}
               <Card>
                 <CardHeader>
-                  <CardTitle className="text-lg">Core Attributes</CardTitle>
+                  <CardTitle className="text-lg flex items-center gap-2">
+                    <FileText className="w-5 h-5" />
+                    Core Attributes
+                  </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  {renderStatsBar("Speed", player.speed, player.speedPotential)}
-                  {renderStatsBar("Power", player.power, player.powerPotential)}
-                  {renderStatsBar("Throwing", player.throwing, player.throwingPotential)}
-                  {renderStatsBar("Catching", player.catching, player.catchingPotential)}
+                  {renderStatBar("Speed", player.speed || 0)}
+                  {renderStatBar("Power", player.power || 0)}
+                  {renderStatBar("Throwing", player.throwing || 0)}
+                  {renderStatBar("Catching", player.catching || 0)}
+                  {renderStatBar("Kicking", player.kicking || 0)}
+                  {renderStatBar("Stamina", player.stamina || 0)}
+                  {renderStatBar("Leadership", player.leadership || 0)}
+                  {renderStatBar("Agility", player.agility || 0)}
                 </CardContent>
               </Card>
 
+              {/* Potential & Scouting Section */}
               <Card>
                 <CardHeader>
-                  <CardTitle className="text-lg">Secondary Attributes</CardTitle>
+                  <CardTitle className="text-lg flex items-center gap-2">
+                    <Star className="w-5 h-5" />
+                    Potential & Scouting
+                  </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  {renderStatsBar("Kicking", player.kicking, player.kickingPotential)}
-                  {renderStatsBar("Stamina", player.stamina, player.staminaPotential)}
-                  {renderStatsBar("Leadership", player.leadership, player.leadershipPotential)}
-                  {renderStatsBar("Agility", player.agility, player.agilityPotential)}
+                  <div className="text-center">
+                    <div className="flex justify-center gap-1 mb-2">
+                      {renderStarRating(basePotential)}
+                    </div>
+                    <div className="text-lg font-bold text-yellow-400">
+                      {getPotentialDisplay()}
+                    </div>
+                    <div className="text-sm text-gray-400 mt-1">
+                      Scouting Accuracy: {scoutingAccuracy}%
+                    </div>
+                  </div>
+                  
+                  <Separator />
+                  
+                  <div>
+                    <h4 className="font-semibold mb-2">Scouting Notes</h4>
+                    <div className="text-sm text-gray-300 space-y-1">
+                      <div>• Strong in {playerRole.toLowerCase()} position</div>
+                      <div>• {player.age < 25 ? "Young with room to grow" : player.age < 30 ? "In prime years" : "Veteran experience"}</div>
+                      <div>• {basePotential >= 4 ? "Elite potential" : basePotential >= 3 ? "Solid potential" : "Limited potential"}</div>
+                    </div>
+                  </div>
                 </CardContent>
               </Card>
             </div>
 
+            {/* Contract & Camaraderie Section */}
             <Card>
               <CardHeader>
-                <CardTitle className="text-lg">Performance Summary</CardTitle>
+                <CardTitle className="text-lg flex items-center gap-2">
+                  <Calendar className="w-5 h-5" />
+                  Contract & Camaraderie
+                </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="grid grid-cols-3 gap-4 text-center">
-                  <div>
-                    <div className="text-2xl font-bold text-blue-400">
-                      {Math.round((player.throwing + player.leadership + player.catching) / 3)}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="space-y-4">
+                    <div>
+                      <label className="text-sm text-gray-400">Current Salary</label>
+                      <div className="text-2xl font-bold text-green-400">
+                        ₡{(player.salary || 0).toLocaleString()}/season
+                      </div>
                     </div>
-                    <div className="text-sm text-gray-500">Passing Rating</div>
+                    <div>
+                      <label className="text-sm text-gray-400">Contract Status</label>
+                      <div className="flex items-center gap-2 mt-1">
+                        <Badge variant={isContractExpiring ? "destructive" : "default"}>
+                          {contractRemaining} seasons remaining
+                        </Badge>
+                        {isContractExpiring && (
+                          <span className="text-xs text-red-400">Expiring Soon!</span>
+                        )}
+                      </div>
+                    </div>
                   </div>
-                  <div>
-                    <div className="text-2xl font-bold text-green-400">
-                      {Math.round((player.speed + player.agility + player.stamina) / 3)}
+
+                  <div className="space-y-4">
+                    <div>
+                      <label className="text-sm text-gray-400">Player Camaraderie</label>
+                      <div className="mt-1 space-y-1">
+                        <Progress value={player.camaraderie || 50} className="h-3" />
+                        <div className="text-sm text-gray-400">
+                          {player.camaraderie || 50}/100 - {
+                            (player.camaraderie || 50) >= 80 ? "Excellent" :
+                            (player.camaraderie || 50) >= 60 ? "Good" :
+                            (player.camaraderie || 50) >= 40 ? "Average" : "Poor"
+                          }
+                        </div>
+                      </div>
                     </div>
-                    <div className="text-sm text-gray-500">Mobility Rating</div>
-                  </div>
-                  <div>
-                    <div className="text-2xl font-bold text-red-400">
-                      {Math.round((player.power + player.stamina + player.leadership) / 3)}
-                    </div>
-                    <div className="text-sm text-gray-500">Blocking Rating</div>
                   </div>
                 </div>
+
+                {isContractExpiring && (
+                  <div className="mt-6 pt-4 border-t border-gray-600">
+                    <Button 
+                      onClick={() => onContractNegotiate?.(player.id)}
+                      className="w-full"
+                      size="lg"
+                    >
+                      Negotiate Contract Extension
+                    </Button>
+                  </div>
+                )}
               </CardContent>
             </Card>
           </TabsContent>
 
+          <TabsContent value="abilities" className="space-y-4">
+            <AbilitiesDisplay player={player} canTrain={true} />
+          </TabsContent>
+
           <TabsContent value="equipment" className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {equipmentSlots.map(({ key, icon: Icon, label }) => {
                 const item = equipment[key as keyof typeof equipment];
                 return (
@@ -270,125 +369,36 @@ export default function PlayerDetailModal({
             </div>
           </TabsContent>
 
-          <TabsContent value="abilities" className="space-y-4">
-            <AbilitiesDisplay player={player} canTrain={true} />
-          </TabsContent>
-
-          <TabsContent value="contract" className="space-y-4">
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-lg">Contract Details</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="text-sm text-gray-500">Current Salary</label>
-                    <div className="text-xl font-bold text-green-400">
-                      ${player.salary?.toLocaleString()}/season
-                    </div>
-                  </div>
-                  <div>
-                    <label className="text-sm text-gray-500">Contract Status</label>
-                    <div className="flex items-center gap-2">
-                      <Badge variant={
-                        contractStatus === "expiring" ? "destructive" : 
-                        contractStatus === "moderate" ? "secondary" : "default"
-                      }>
-                        {contractRemaining} seasons remaining
-                      </Badge>
-                    </div>
-                  </div>
-                </div>
-
-                <Separator />
-
-                <div>
-                  <label className="text-sm text-gray-500">Team Camaraderie</label>
-                  <div className="mt-1">
-                    <Progress value={player.camaraderie || 50} className="h-3" />
-                    <div className="text-sm text-gray-500 mt-1">
-                      {player.camaraderie || 50}/100 - {
-                        (player.camaraderie || 50) >= 80 ? "Excellent" :
-                        (player.camaraderie || 50) >= 60 ? "Good" :
-                        (player.camaraderie || 50) >= 40 ? "Average" : "Poor"
-                      }
-                    </div>
-                  </div>
-                </div>
-
-                {contractRemaining <= 1 && (
-                  <Button 
-                    onClick={() => onContractNegotiate?.(player.id)}
-                    className="w-full"
-                  >
-                    Negotiate Contract Extension
-                  </Button>
-                )}
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          <TabsContent value="development" className="space-y-4">
+          <TabsContent value="gamelogsawards" className="space-y-4">
             <div className="grid grid-cols-1 gap-4">
+              {/* Game Logs Section */}
               <Card>
                 <CardHeader>
-                  <CardTitle className="text-lg">Growth Potential</CardTitle>
+                  <CardTitle className="text-lg flex items-center gap-2">
+                    <Calendar className="w-5 h-5" />
+                    Recent Game Logs
+                  </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="grid grid-cols-2 gap-4">
-                    {[
-                      { name: "Speed", potential: player.speedPotential || 0 },
-                      { name: "Power", potential: player.powerPotential || 0 },
-                      { name: "Throwing", potential: player.throwingPotential || 0 },
-                      { name: "Catching", potential: player.catchingPotential || 0 },
-                      { name: "Kicking", potential: player.kickingPotential || 0 },
-                      { name: "Stamina", potential: player.staminaPotential || 0 },
-                      { name: "Leadership", potential: player.leadershipPotential || 0 },
-                      { name: "Agility", potential: player.agilityPotential || 0 },
-                    ].map((attr) => (
-                      <div key={attr.name} className="flex justify-between items-center">
-                        <span className="text-sm">{attr.name}</span>
-                        <div className="flex">
-                          {Array.from({ length: 5 }, (_, i) => (
-                            <span 
-                              key={i} 
-                              className={`text-lg ${
-                                i < Math.floor(parseFloat((attr.potential || 0).toString()) || 0) 
-                                  ? "text-yellow-400" 
-                                  : "text-gray-300"
-                              }`}
-                            >
-                              ★
-                            </span>
-                          ))}
-                        </div>
-                      </div>
-                    ))}
+                  <div className="text-sm text-gray-400 text-center py-8">
+                    Game logs feature coming soon...
                   </div>
                 </CardContent>
               </Card>
 
+              {/* Awards Section */}
               <Card>
                 <CardHeader>
-                  <CardTitle className="text-lg">Training Focus</CardTitle>
+                  <CardTitle className="text-lg flex items-center gap-2">
+                    <Trophy className="w-5 h-5" />
+                    Player Awards
+                  </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="text-sm text-gray-500 mb-3">
-                    Select training focus to improve specific attributes over time.
-                  </div>
-                  <div className="grid grid-cols-2 gap-2">
-                    <Button variant="outline" size="sm">Focus on Speed</Button>
-                    <Button variant="outline" size="sm">Focus on Power</Button>
-                    <Button variant="outline" size="sm">Focus on Technique</Button>
-                    <Button variant="outline" size="sm">Focus on Leadership</Button>
-                  </div>
+                  <PlayerAwards playerId={player.id} />
                 </CardContent>
               </Card>
             </div>
-          </TabsContent>
-
-          <TabsContent value="awards" className="space-y-4">
-            <PlayerAwards playerId={player.id} />
           </TabsContent>
         </Tabs>
       </DialogContent>

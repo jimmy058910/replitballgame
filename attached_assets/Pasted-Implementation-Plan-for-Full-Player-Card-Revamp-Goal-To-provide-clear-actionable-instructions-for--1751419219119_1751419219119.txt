@@ -1,0 +1,49 @@
+Implementation Plan for Full Player Card Revamp
+Goal: To provide clear, actionable instructions for updating the detailed Player Card pop-up to align with the latest game design decisions. This involves consolidating tabs, changing how stats are displayed, and removing obsolete systems.
+
+1. Required Changes to Tab Structure
+The current six tabs (Stats, Abilities, Equipment, Contract, Awards, Scouting) must be consolidated into four tabs.
+
+Stats + Contract + Scouting => Overview (New Default Tab): These three tabs must be merged into a single, comprehensive "Overview" tab. This will be the first tab a user sees.
+
+Abilities => Abilities & Skills: This tab remains but should be renamed for clarity.
+
+Equipment => Equipment: This tab remains.
+
+Awards => Game Logs & Awards: This tab will now contain two sub-sections for a player's awards and their recent game-by-game statistics.
+
+2. Detailed Implementation for the "Overview" Tab
+This is the most significant change. The new "Overview" tab must be built with the following components, replacing the old content from the Stats, Contract, and Scouting tabs:
+
+A. Core Attributes Section:
+
+REMOVE Dual-Bar System: The current system showing two bars (blue and brownish-yellow) for each stat must be completely removed.
+
+IMPLEMENT Single Bar System: Replace it with a single progress bar for each of the 8 attributes.
+
+IMPLEMENT Text Label: The text for each stat must display the current value out of the potential-defined maximum (e.g., Speed: 27/38).
+
+IMPLEMENT Stat Color-Coding: The numerical value (27 in the example) must be color-coded based on its value (Red: 1-15, White: 16-25, Green: 26-34, Blue: 35-40).
+
+B. Potential & Scouting Section:
+
+REMOVE Individual Potential Bars: The brownish-yellow potential bars next to each stat must be removed.
+
+IMPLEMENT Single Potential Rating: Add a new, prominent section that displays a single "Potential" rating for the player.
+
+IMPLEMENT Star System: This rating must be displayed using a 0 to 5-star system, including half-stars.
+
+IMPLEMENT Scouting Logic: The accuracy of the star rating must be tied to the user's Head Scout level. A low-level scout should show a range (e.g., "Potential: 2.5 - 4.0 Stars"), while a high-level scout shows a precise rating ("Potential: 3.5 Stars").
+
+C. Contract & Camaraderie Section:
+
+MOVE FROM OLD TAB: The Current Salary and Contract Status information must be moved from the old Contract tab to this section.
+
+REMOVE Team Camaraderie: The "Team Camaraderie" bar must be removed from this individual player card. It is a team-level stat.
+
+IMPLEMENT Player Camaraderie: It should be replaced with a bar for "Player Camaraderie," showing the individual player's morale/happiness score (e.g., 50/100).
+
+IMPLEMENT Negotiate Contract Button: A prominent button must be present in this section. It should be active and clickable only when the player is in the final year of their contract.
+
+3. Removal of Obsolete Systems
+REMOVE "Training Focus": The user has decided to simplify the game and remove micromanagement. Any UI elements, backend logic, or database fields related to a "Training Focus" system must be completely removed from the game. Players will now progress organically based on the new systems.
