@@ -251,15 +251,18 @@ export class RBACService {
    */
   static async promoteToAdmin(userEmail: string): Promise<void> {
     try {
-      const result = await db.update(schema.users)
-        .set({ role: UserRole.ADMIN })
-        .where(eq(schema.users.email, userEmail))
-        .returning({ id: true, email: true });
+      // Direct SQL approach to avoid Drizzle ORM issues
+      const result = await db.execute(`
+        UPDATE users 
+        SET role = 'admin' 
+        WHERE email = $1 
+        RETURNING id, email
+      `, [userEmail]);
         
-      if (result.length > 0) {
+      if (result.rows && result.rows.length > 0) {
         logInfo("User promoted to admin", { 
-          userId: result[0].id, 
-          email: result[0].email 
+          userId: result.rows[0].id, 
+          email: result.rows[0].email 
         });
       } else {
         logInfo("User not found for admin promotion", { email: userEmail });

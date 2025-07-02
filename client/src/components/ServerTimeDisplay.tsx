@@ -111,7 +111,7 @@ export default function ServerTimeDisplay() {
             Window: {serverTime.schedulingWindow}
           </div>
           
-          {!serverTime.isSchedulingWindow && (
+          {!serverTime.isSchedulingWindow && serverTime.timeUntilNextWindow && (
             <div className="text-xs text-gray-500">
               Next window opens in: {serverTime.timeUntilNextWindow.hours}h {serverTime.timeUntilNextWindow.minutes}m
             </div>

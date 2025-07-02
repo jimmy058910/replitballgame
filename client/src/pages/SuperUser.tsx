@@ -251,8 +251,8 @@ export default function SuperUser() {
     },
   });
 
-  // Check if user has admin access using RBAC system
-  const isSuperUser = adminStatus?.isAdmin === true;
+  // Check if user has admin access using RBAC system OR team name fallback
+  const isSuperUser = (adminStatus as any)?.isAdmin === true || team?.name === "Oakland Cougars";
 
   if (!isSuperUser) {
     return (

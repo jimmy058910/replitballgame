@@ -46,6 +46,9 @@ Built as a React + Express web application with PostgreSQL database, using moder
 - ✓ **Syntax Error Resolution**: Fixed React Fragment syntax and component prop issues in PlayerDetailModal
 - ✓ **Dashboard UI Consistency**: Fixed Team Power and Team Camaraderie tile vertical sizing to match Division Rank and Credits tiles
 - ✓ **Development Auto-Promotion System**: Added automatic admin promotion for jimmy058910@gmail.com during development to bypass manual promotion requirements before app publication
+- ✓ **SuperUser Access Fix**: Replaced hardcoded "Macomb Cougars" check with proper RBAC system + "Oakland Cougars" team name fallback for immediate access
+- ✓ **ServerTimeDisplay Error Fix**: Fixed JavaScript error in ServerTimeDisplay component with proper null checking for timeUntilNextWindow object
+- ✓ **RBAC SQL Issue Resolution**: Updated promoteToAdmin function to use direct SQL instead of Drizzle ORM to resolve "syntax error at end of input"
 
 #### ✅ DYNAMIC ROOKIE GENERATION SYSTEM COMPLETE OVERHAUL
 - ✓ **TAP System Implementation**: Completely rebuilt tryout generation using Total Attribute Points system (BasePoints + Potential×4)
