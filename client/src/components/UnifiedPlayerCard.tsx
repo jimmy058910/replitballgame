@@ -244,15 +244,15 @@ export default function UnifiedPlayerCard({
                 </div>
                 <div className="text-xs text-gray-400 mb-3">Power</div>
                 
-                {/* Race/Age and Potential Stars on same line */}
-                <div className="flex items-center justify-between gap-3">
-                  <span className="text-xs text-gray-400 flex items-center gap-1">
+                {/* Race/Age and Potential on same line */}
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-1 text-xs text-gray-400">
                     <span>{getRaceEmoji(player.race)}</span>
-                    {getRaceDisplayName(player.race)} • Age {player.age}
-                  </span>
-                  <div className="flex flex-col items-end">
+                    <span>{getRaceDisplayName(player.race)} • Age {player.age}</span>
+                  </div>
+                  <div className="flex items-center gap-2">
                     {renderStarRating(potential)}
-                    <div className="text-xs text-gray-400 mt-1">Potential</div>
+                    <span className="text-xs text-gray-400">Potential</span>
                   </div>
                 </div>
               </div>
