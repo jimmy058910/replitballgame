@@ -609,6 +609,7 @@ router.post('/:teamId/taxi-squad/add-candidates', isAuthenticated, asyncHandler(
       agility: candidate.agility,
       overallPotentialStars: candidate.overallPotentialStars,
       marketValue: candidate.marketValue || 0,
+      salary: 0, // Taxi squad players don't earn salary
       teamId: team.id,
       isOnTaxi: true,
       isMarketplace: false,

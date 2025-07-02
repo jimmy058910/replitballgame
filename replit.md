@@ -34,7 +34,7 @@ Built as a React + Express web application with PostgreSQL database, using moder
 
 ## Recent Changes
 
-### July 2, 2025 - COMPREHENSIVE FIXES: PLAYER MODAL REVAMP & TRYOUT SYSTEM OVERHAUL + DEVELOPMENT AUTO-PROMOTION COMPLETE
+### July 2, 2025 - COMPREHENSIVE FIXES: SUPERUSER FUNCTIONALITY + TAXI SQUAD SYSTEM COMPLETE
 
 #### ✅ PLAYER DETAIL MODAL CONTRACT NEGOTIATION & TAXI SQUAD INTEGRATION COMPLETE
 - ✓ **Contract Negotiation Button**: Added prominent "Negotiate Contract" button with dollar sign icon to PlayerDetailModal header
