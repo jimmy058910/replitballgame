@@ -1,406 +1,239 @@
-import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Crown, Zap, Shield, Target, Star, StarHalf } from "lucide-react";
+import { Badge } from '@/components/ui/badge';
+import { Card, CardContent } from '@/components/ui/card';
+import { Progress } from '@/components/ui/progress';
+import { Button } from '@/components/ui/button';
+import { Crown, Heart, AlertTriangle } from 'lucide-react';
+import { getPlayerRole, getRaceDisplayName, getPlayerDisplayName } from '@shared/playerUtils';
 
 interface PlayerCardProps {
   player: any;
   showActions?: boolean;
   onAction?: (action: string, player: any) => void;
   variant?: 'dashboard' | 'roster' | 'recruiting';
-  scoutQuality?: number; // 1-100, affects accuracy of scouting data
+  scoutQuality?: number;
+  onClick?: () => void;
 }
 
-import { getRoleBackgroundColor, getRoleTextColor, getRoleColor, getPlayerRole, getPlayerDisplayName, getRaceDisplayName } from "@shared/playerUtils";
+// Role-specific stat mappings according to specification
+const ROLE_STATS = {
+  'Passer': [
+    { key: 'throwing', abbr: 'THR' },
+    { key: 'agility', abbr: 'AGI' },
+    { key: 'speed', abbr: 'SPD' },
+    { key: 'catching', abbr: 'CAT' },
+    { key: 'stamina', abbr: 'STA' },
+    { key: 'leadership', abbr: 'LDR' }
+  ],
+  'Runner': [
+    { key: 'speed', abbr: 'SPD' },
+    { key: 'agility', abbr: 'AGI' },
+    { key: 'power', abbr: 'PWR' },
+    { key: 'catching', abbr: 'CAT' },
+    { key: 'stamina', abbr: 'STA' },
+    { key: 'kicking', abbr: 'KCK' }
+  ],
+  'Blocker': [
+    { key: 'power', abbr: 'PWR' },
+    { key: 'agility', abbr: 'AGI' },
+    { key: 'speed', abbr: 'SPD' },
+    { key: 'stamina', abbr: 'STA' },
+    { key: 'leadership', abbr: 'LDR' },
+    { key: 'catching', abbr: 'CAT' }
+  ]
+};
 
-const getRoleIcon = (role: string) => {
+// Get race emoji for visual appeal
+function getRaceEmoji(race: string): string {
+  const raceEmojis = {
+    'human': '👤',
+    'sylvan': '🌿',
+    'gryll': '⚒️',
+    'lumina': '✨',
+    'umbra': '🌑'
+  };
+  return raceEmojis[race?.toLowerCase() as keyof typeof raceEmojis] || '👤';
+}
+
+// High-contrast role tag styles according to specification
+function getRoleTagStyle(role: string): string {
   switch (role?.toLowerCase()) {
     case 'blocker':
-      return <Shield className="w-3 h-3" />;
+      return 'bg-red-600 text-white border-red-600';
     case 'runner':
-      return <Zap className="w-3 h-3" />;
+      return 'bg-green-600 text-white border-green-600';
     case 'passer':
-      return <Target className="w-3 h-3" />;
+      return 'bg-yellow-500 text-black border-yellow-500';
     default:
-      return null;
+      return 'bg-gray-600 text-white border-gray-600';
   }
-};
+}
 
-const getStatColor = (value: number) => {
-  if (value >= 35) return 'text-green-400';      // Elite
-  if (value >= 28) return 'text-blue-400';       // Excellent  
-  if (value >= 20) return 'text-yellow-400';     // Good
-  if (value >= 15) return 'text-orange-400';     // Below Average
-  return 'text-red-400';                         // Poor
-};
+// Power rating color coding according to specification
+function getPowerColor(power: number): string {
+  if (power >= 35) return 'text-blue-400';
+  if (power >= 26) return 'text-green-400';
+  if (power >= 16) return 'text-white';
+  return 'text-red-400';
+}
 
-// Power color coding for circular display
-const getPowerColor = (power: number) => {
-  if (power >= 200) return 'bg-purple-600';      // Elite (200+)
-  if (power >= 180) return 'bg-green-600';       // Excellent (180-199)
-  if (power >= 160) return 'bg-blue-600';        // Good (160-179)
-  if (power >= 140) return 'bg-yellow-600';      // Average (140-159)
-  if (power >= 120) return 'bg-orange-600';      // Below Average (120-139)
-  return 'bg-red-600';                           // Poor (Under 120)
-};
+// Individual stat color coding for role-specific stats
+function getStatColor(statValue: number): string {
+  if (statValue >= 32) return 'text-green-400';
+  if (statValue >= 19) return 'text-white';
+  return 'text-red-400';
+}
 
-const getRaceEmoji = (race: string) => {
-  switch (race?.toLowerCase()) {
-    case 'human':
-      return '👤';
-    case 'sylvan':
-      return '🧝‍♂️';
-    case 'gryll':
-      return '🛡️';
-    case 'lumina':
-      return '✨';
-    case 'umbra':
-      return '🌙';
-    default:
-      return '⚡';
-  }
-};
+// Calculate overall power as average of 6 core athletic stats
+function calculateOverallPower(player: any): number {
+  const coreStats = [
+    player.speed || 20,
+    player.power || 20,
+    player.agility || 20,
+    player.throwing || 20,
+    player.catching || 20,
+    player.kicking || 20
+  ];
+  return Math.round(coreStats.reduce((sum, stat) => sum + stat, 0) / coreStats.length);
+}
 
-// Calculate scout accuracy and stat ranges
-const getScoutedStat = (actualStat: number, scoutQuality: number = 50, statName: string) => {
-  // Higher scout quality = more accurate ranges
-  const accuracy = Math.max(10, scoutQuality); // Minimum 10% accuracy
-  const errorMargin = Math.floor((100 - accuracy) / 10); // Error margin based on scout quality
-  
-  const minStat = Math.max(1, actualStat - errorMargin);
-  const maxStat = Math.min(40, actualStat + errorMargin);
-  
-  return { min: minStat, max: maxStat, actual: actualStat };
-};
-
-// Calculate potential stars based on total stats and scout quality
-const getPotentialStars = (player: any, scoutQuality: number = 50) => {
-  const totalStats = (player.speed || 20) + (player.power || 20) + (player.throwing || 20) + 
-                    (player.catching || 20) + (player.kicking || 20) + (player.agility || 20) + 
-                    (player.stamina || 20) + (player.leadership || 20);
-  
-  // Base potential calculation
-  let basePotential = 0;
-  if (totalStats >= 240) basePotential = 5;
-  else if (totalStats >= 200) basePotential = 4;
-  else if (totalStats >= 160) basePotential = 3;
-  else if (totalStats >= 120) basePotential = 2;
-  else basePotential = 1;
-  
-  // Scout accuracy affects potential accuracy
-  const accuracy = scoutQuality / 100;
-  const errorChance = Math.random();
-  
-  if (errorChance > accuracy) {
-    // Less accurate scouts might be off by 0.5-1 star
-    const error = Math.random() > 0.5 ? 0.5 : 1;
-    basePotential += Math.random() > 0.5 ? error : -error;
-  }
-  
-  return Math.max(0.5, Math.min(5, basePotential));
-};
-
-const renderStars = (rating: number) => {
-  const fullStars = Math.floor(rating);
-  const hasHalfStar = rating % 1 >= 0.5;
+// Render star rating for potential
+function renderStarRating(potential: number): JSX.Element {
   const stars = [];
-  
-  for (let i = 0; i < fullStars; i++) {
-    stars.push(<Star key={i} className="w-3 h-3 fill-yellow-400 text-yellow-400" />);
+  const fullStars = Math.floor(potential);
+  const hasHalfStar = potential % 1 >= 0.5;
+
+  for (let i = 0; i < 5; i++) {
+    if (i < fullStars) {
+      stars.push(<span key={i} className="text-yellow-400">★</span>);
+    } else if (i === fullStars && hasHalfStar) {
+      stars.push(<span key={i} className="text-yellow-400">☆</span>);
+    } else {
+      stars.push(<span key={i} className="text-gray-600">☆</span>);
+    }
   }
-  
-  if (hasHalfStar) {
-    stars.push(<StarHalf key="half" className="w-3 h-3 fill-yellow-400 text-yellow-400" />);
-  }
-  
-  const emptyStars = 5 - Math.ceil(rating);
-  for (let i = 0; i < emptyStars; i++) {
-    stars.push(<Star key={`empty-${i}`} className="w-3 h-3 text-gray-400" />);
-  }
-  
-  return stars;
-};
+
+  return <div className="flex items-center text-sm">{stars}</div>;
+}
 
 export default function UnifiedPlayerCard({ 
   player, 
   showActions = false, 
   onAction, 
   variant = 'roster',
-  scoutQuality = 50 
+  onClick
 }: PlayerCardProps) {
-  const displayName = player.firstName && player.lastName 
-    ? `${player.firstName} ${player.lastName}` 
-    : player.name || 'Unknown Player';
+  const displayName = getPlayerDisplayName(player);
+  const role = getPlayerRole(player);
+  const overallPower = calculateOverallPower(player);
+  const potential = parseFloat(player.overallPotentialStars || '0');
+  
+  // Get role-specific stats
+  const roleStats = ROLE_STATS[role as keyof typeof ROLE_STATS] || ROLE_STATS['Passer'];
+  
+  // Status checks
+  const hasInjury = player.injuryStatus && player.injuryStatus !== 'Healthy';
+  const isContractExpiring = player.contractSeasons && player.contractSeasons <= 1;
 
-  const playerPower = (player.speed || 20) + (player.power || 20) + (player.throwing || 20) + 
-                     (player.catching || 20) + (player.kicking || 20);
+  const handleCardClick = () => {
+    if (onClick) {
+      onClick();
+    } else if (onAction) {
+      onAction('view', player);
+    }
+  };
 
-  // Scouting data for recruiting variant
-  const scoutedStats = variant === 'recruiting' ? {
-    speed: getScoutedStat(player.speed || 20, scoutQuality, 'speed'),
-    power: getScoutedStat(player.power || 20, scoutQuality, 'power'),
-    throwing: getScoutedStat(player.throwing || 20, scoutQuality, 'throwing'),
-    catching: getScoutedStat(player.catching || 20, scoutQuality, 'catching'),
-    kicking: getScoutedStat(player.kicking || 20, scoutQuality, 'kicking'),
-  } : null;
-
-  const scoutedPowerRange = scoutedStats ? {
-    min: Object.values(scoutedStats).reduce((sum, stat) => sum + stat.min, 0),
-    max: Object.values(scoutedStats).reduce((sum, stat) => sum + stat.max, 0)
-  } : null;
-
-  const potentialRating = variant === 'recruiting' ? getPotentialStars(player, scoutQuality) : null;
-
-  // Different layouts based on variant
-  if (variant === 'dashboard') {
-    const allStats = [
-      { name: 'SPD', value: player.speed || 20, color: 'text-blue-400' },
-      { name: 'PWR', value: player.power || 20, color: 'text-red-400' },
-      { name: 'AGI', value: player.agility || 20, color: 'text-green-400' },
-      { name: 'THR', value: player.throwing || 20, color: 'text-purple-400' },
-      { name: 'CAT', value: player.catching || 20, color: 'text-yellow-400' }
-    ];
-    const topStats = allStats.sort((a, b) => b.value - a.value).slice(0, 3);
-
-    return (
-      <Card className="bg-gray-700 border-gray-600 hover:border-gray-500 transition-colors">
-        <CardContent className="p-5">
-          <div className="flex items-center space-x-4">
-            <div className="flex-shrink-0 text-center">
-              <div className="text-xs text-red-400 font-medium mb-1">Power</div>
-              <div className={`w-12 h-12 rounded-full flex items-center justify-center text-white font-bold text-lg ${getPowerColor(playerPower)}`}>
-                {playerPower}
-              </div>
-            </div>
-            <div className="flex-1 min-w-0">
-              <div className="text-base font-semibold text-white mb-1" title={displayName}>
-                {displayName}
-              </div>
-              <div className="text-sm text-gray-400 capitalize mb-2">
-                {getRaceEmoji(player.race)} {player.race} {player.role}
-              </div>
-              {/* Overall Potential Stars */}
-              {player.overallPotentialStars && (
-                <div className="flex items-center gap-1 mb-2">
-                  {renderStars(parseFloat(player.overallPotentialStars))}
-                  <span className="text-xs text-gray-400 ml-1">
-                    ({parseFloat(player.overallPotentialStars).toFixed(1)})
-                  </span>
-                </div>
-              )}
-              <div className="grid grid-cols-3 gap-3">
-                {topStats.map((stat, index) => (
-                  <div key={index} className="text-center">
-                    <div className={`text-xs ${stat.color} font-medium`}>{stat.name}</div>
-                    <div className="text-sm text-white font-semibold">{stat.value}</div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-    );
-  }
-
-  if (variant === 'recruiting') {
-    return (
-      <Card className="hover:shadow-md transition-shadow bg-gray-800 border-gray-700">
-        <CardContent className="p-4">
-          <div className="flex items-start justify-between mb-3">
-            <div className="flex-1">
-              <div className="flex items-center gap-2 mb-2">
-                <span className="text-lg">{getRaceEmoji(player.race)}</span>
-                <h3 className="font-semibold text-lg text-white">{displayName}</h3>
-                <Badge variant="secondary" className="text-xs">
-                  Age {player.age}
-                </Badge>
-              </div>
-              
-              <div className="flex items-center gap-2 mb-3">
-                <Badge 
-                  variant="outline" 
-                  className={`text-xs ${getRoleColor(player.role)} flex items-center gap-1`}
-                >
-                  {getRoleIcon(player.role)}
-                  {player.role?.charAt(0).toUpperCase() + player.role?.slice(1).toLowerCase() || 'Utility'}
-                </Badge>
-                <Badge variant="outline" className="text-xs">
-                  {player.race?.charAt(0).toUpperCase() + player.race?.slice(1).toLowerCase()}
-                </Badge>
-              </div>
-
-              {/* Potential Rating */}
-              {potentialRating && (
-                <div className="mb-3">
-                  <div className="text-xs text-gray-400 mb-1">Potential</div>
-                  <div className="flex items-center gap-1">
-                    {renderStars(potentialRating)}
-                    <span className="text-xs text-gray-400 ml-1">
-                      ({potentialRating.toFixed(1)}/5.0)
-                    </span>
-                  </div>
-                </div>
-              )}
-            </div>
-
-            <div className="text-right">
-              <div className="text-sm text-gray-400 mb-1">Power Range</div>
-              <div className="text-lg font-bold text-blue-400">
-                {scoutedPowerRange ? `${scoutedPowerRange.min}-${scoutedPowerRange.max}` : playerPower}
-              </div>
-            </div>
-          </div>
-
-          {/* Scouted Stats Grid */}
-          {scoutedStats && (
-            <div className="grid grid-cols-5 gap-2 text-xs mb-3">
-              <div className="text-center">
-                <div className="text-blue-400 font-semibold">
-                  {scoutedStats.speed.min}-{scoutedStats.speed.max}
-                </div>
-                <div className="text-gray-500">SPD</div>
-              </div>
-              <div className="text-center">
-                <div className="text-red-400 font-semibold">
-                  {scoutedStats.power.min}-{scoutedStats.power.max}
-                </div>
-                <div className="text-gray-500">PWR</div>
-              </div>
-              <div className="text-center">
-                <div className="text-purple-400 font-semibold">
-                  {scoutedStats.throwing.min}-{scoutedStats.throwing.max}
-                </div>
-                <div className="text-gray-500">THR</div>
-              </div>
-              <div className="text-center">
-                <div className="text-yellow-400 font-semibold">
-                  {scoutedStats.catching.min}-{scoutedStats.catching.max}
-                </div>
-                <div className="text-gray-500">CAT</div>
-              </div>
-              <div className="text-center">
-                <div className="text-orange-400 font-semibold">
-                  {scoutedStats.kicking.min}-{scoutedStats.kicking.max}
-                </div>
-                <div className="text-gray-500">KCK</div>
-              </div>
-            </div>
-          )}
-
-          {/* Scout Quality Indicator */}
-          <div className="mb-3">
-            <div className="text-xs text-gray-400 mb-1">Scout Confidence</div>
-            <div className="flex items-center gap-2">
-              <div className="flex-1 bg-gray-700 rounded-full h-2">
-                <div 
-                  className={`h-2 rounded-full ${
-                    scoutQuality >= 80 ? 'bg-green-500' :
-                    scoutQuality >= 60 ? 'bg-yellow-500' :
-                    scoutQuality >= 40 ? 'bg-orange-500' : 'bg-red-500'
-                  }`}
-                  style={{ width: `${scoutQuality}%` }}
-                />
-              </div>
-              <span className="text-xs text-gray-400">{scoutQuality}%</span>
-            </div>
-          </div>
-
-          {/* Action Buttons */}
-          {showActions && onAction && (
-            <div className="flex gap-2 mt-3">
-              <Button
-                size="sm"
-                variant="outline"
-                onClick={() => onAction('recruit', player)}
-                className="flex-1 text-xs"
-              >
-                Recruit
-              </Button>
-              <Button
-                size="sm"
-                variant="ghost"
-                onClick={() => onAction('scout_more', player)}
-                className="flex-1 text-xs"
-              >
-                Scout More
-              </Button>
-            </div>
-          )}
-        </CardContent>
-      </Card>
-    );
-  }
-
-  // Default roster variant
   return (
-    <Card className="hover:shadow-md transition-shadow bg-gray-800 border-gray-700">
+    <Card 
+      className="bg-gray-800 border-gray-700 hover:border-gray-600 transition-all duration-200 cursor-pointer hover:shadow-lg"
+      onClick={handleCardClick}
+    >
       <CardContent className="p-4">
-        <div className="flex items-center justify-between mb-3">
-          <div className="flex items-center gap-3">
-            <span className="text-lg">{getRaceEmoji(player.race)}</span>
-            <div>
-              <h3 className="font-semibold text-white">{displayName}</h3>
-              <div className="flex items-center gap-2 mt-1">
-                <Badge 
-                  variant="outline" 
-                  className={`text-xs ${getRoleColor(player.role)} flex items-center gap-1`}
-                >
-                  {getRoleIcon(player.role)}
-                  {player.role?.charAt(0).toUpperCase() + player.role?.slice(1).toLowerCase() || 'Utility'}
-                </Badge>
-                <Badge variant="secondary" className="text-xs">
-                  {player.race?.charAt(0).toUpperCase() + player.race?.slice(1).toLowerCase()} • Age {player.age}
-                </Badge>
-                <Badge variant="outline" className="text-xs border-cyan-700 text-cyan-400 dark:border-cyan-600 dark:text-cyan-300">
-                  Camaraderie: {player.camaraderie ?? 50}
-                </Badge>
-                <Badge variant="outline" className="text-xs border-lime-700 text-lime-400 dark:border-lime-600 dark:text-lime-300">
-                  Loyalty: {player.yearsOnTeam ?? 0} yr{player.yearsOnTeam === 1 ? '' : 's'}
-                </Badge>
-              </div>
+        {/* Header Section */}
+        <div className="flex items-start justify-between mb-3">
+          <div className="flex-1">
+            {/* Player Name */}
+            <div className="flex items-center gap-2 mb-2">
+              <h3 className="font-semibold text-white text-base">{displayName}</h3>
+              {player.isCaptain && <Crown className="w-4 h-4 text-yellow-500" />}
             </div>
-            {player.isCaptain && <Crown className="w-4 h-4 text-yellow-500" />}
+            
+            {/* Role Tag & Race/Age Info */}
+            <div className="flex items-center gap-2 mb-2">
+              <Badge className={`text-xs font-medium px-3 py-1 ${getRoleTagStyle(role)}`}>
+                {role.toUpperCase()}
+              </Badge>
+              <span className="text-xs text-gray-400 flex items-center gap-1">
+                <span>{getRaceEmoji(player.race)}</span>
+                {getRaceDisplayName(player.race)} • Age {player.age}
+              </span>
+            </div>
           </div>
 
+          {/* Core Ratings Section */}
           <div className="text-right">
-            <div className="text-2xl font-bold text-blue-400">
-              {playerPower}
+            {/* Overall Power */}
+            <div className={`text-2xl font-bold ${getPowerColor(overallPower)}`}>
+              {overallPower}
             </div>
-            <div className="text-xs text-gray-400">Power</div>
+            <div className="text-xs text-gray-400 mb-2">Power</div>
+            
+            {/* Potential Stars */}
+            <div className="flex flex-col items-end">
+              {renderStarRating(potential)}
+              <div className="text-xs text-gray-400 mt-1">Potential</div>
+            </div>
           </div>
         </div>
 
-        {/* Stats Grid */}
-        <div className="grid grid-cols-5 gap-2 text-xs mb-3">
-          <div className="text-center">
-            <div className={`font-semibold ${getStatColor(player.speed || 20)}`}>{player.speed || 20}</div>
-            <div className="text-gray-500">SPD</div>
-          </div>
-          <div className="text-center">
-            <div className={`font-semibold ${getStatColor(player.power || 20)}`}>{player.power || 20}</div>
-            <div className="text-gray-500">PWR</div>
-          </div>
-          <div className="text-center">
-            <div className={`font-semibold ${getStatColor(player.throwing || 20)}`}>{player.throwing || 20}</div>
-            <div className="text-gray-500">THR</div>
-          </div>
-          <div className="text-center">
-            <div className={`font-semibold ${getStatColor(player.catching || 20)}`}>{player.catching || 20}</div>
-            <div className="text-gray-500">CAT</div>
-          </div>
-          <div className="text-center">
-            <div className={`font-semibold ${getStatColor(player.kicking || 20)}`}>{player.kicking || 20}</div>
-            <div className="text-gray-500">KCK</div>
-          </div>
+        {/* Role-Dependent Key Stats Section */}
+        <div className="grid grid-cols-6 gap-1 mb-3">
+          {roleStats.map((stat, index) => {
+            const statValue = player[stat.key] || 20;
+            return (
+              <div key={index} className="text-center">
+                <div className={`text-sm font-semibold ${getStatColor(statValue)}`}>
+                  {statValue}
+                </div>
+                <div className="text-xs text-gray-500">{stat.abbr}</div>
+              </div>
+            );
+          })}
         </div>
 
-        {/* Salary Information */}
-        {player.salary && (
-          <div className="text-xs text-gray-400 mb-2">
-            Salary: {player.salary.toLocaleString()}/season
+        {/* Contract & Status Section */}
+        <div className="space-y-2">
+          {/* Contract Information */}
+          {player.salary && (
+            <div className="flex items-center justify-between text-xs">
+              <span className="text-gray-400">Salary:</span>
+              <span className="text-white">₡{player.salary.toLocaleString()} / season</span>
+            </div>
+          )}
+          
+          {player.contractSeasons && (
+            <div className="flex items-center justify-between text-xs">
+              <span className="text-gray-400">Contract:</span>
+              <span className="text-white">{player.contractSeasons} seasons remaining</span>
+            </div>
+          )}
+
+          {/* Status Icons */}
+          <div className="flex items-center gap-3">
+            {hasInjury && (
+              <div className="flex items-center gap-1">
+                <Heart className="w-4 h-4 text-red-500" />
+                <span className="text-xs text-red-400">{player.injuryStatus}</span>
+              </div>
+            )}
+            
+            {isContractExpiring && (
+              <div className="flex items-center gap-1">
+                <AlertTriangle className="w-4 h-4 text-yellow-500" />
+                <span className="text-xs text-yellow-400">Contract Expiring</span>
+              </div>
+            )}
           </div>
-        )}
+        </div>
 
         {/* Action Buttons */}
         {showActions && onAction && (
@@ -408,7 +241,10 @@ export default function UnifiedPlayerCard({
             <Button
               size="sm"
               variant="outline"
-              onClick={() => onAction('view', player)}
+              onClick={(e) => {
+                e.stopPropagation();
+                onAction('view', player);
+              }}
               className="flex-1 text-xs"
             >
               View Details
@@ -416,12 +252,24 @@ export default function UnifiedPlayerCard({
             {player.marketplacePrice && (
               <Button
                 size="sm"
-                onClick={() => onAction('buy', player)}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onAction('buy', player);
+                }}
                 className="flex-1 text-xs"
               >
-                Buy - {player.marketplacePrice.toLocaleString()}
+                Buy - ₡{player.marketplacePrice.toLocaleString()}
               </Button>
             )}
+          </div>
+        )}
+
+        {/* Taxi Squad Indicator */}
+        {player.isOnTaxi && (
+          <div className="mt-2">
+            <Badge variant="outline" className="text-xs bg-orange-100 text-orange-800 border-orange-200 dark:bg-orange-900/20 dark:text-orange-400 dark:border-orange-800">
+              Taxi Squad
+            </Badge>
           </div>
         )}
       </CardContent>

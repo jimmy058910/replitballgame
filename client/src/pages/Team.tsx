@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { queryClient } from "@/lib/queryClient";
-import PlayerCard from "@/components/PlayerCard";
+import UnifiedPlayerCard from "@/components/UnifiedPlayerCard";
 import TacticalManager from "@/components/TacticalManager";
 import PlayerDetailModal from "@/components/PlayerDetailModal";
 import ContractNegotiation from "@/components/ContractNegotiation";
@@ -254,16 +254,15 @@ export default function Team() {
                   ))
                 ) : (
                   filteredPlayers.map((player: any) => (
-                    <div
+                    <UnifiedPlayerCard 
                       key={player.id}
+                      player={player} 
+                      variant="roster"
                       onClick={() => {
                         setSelectedPlayer(player);
                         setShowPlayerModal(true);
                       }}
-                      className="cursor-pointer hover:transform hover:scale-105 transition-transform"
-                    >
-                      <PlayerCard player={player} />
-                    </div>
+                    />
                   ))
                 )}
               </div>
