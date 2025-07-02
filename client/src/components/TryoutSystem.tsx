@@ -13,6 +13,8 @@ import UnifiedPlayerCard from "./UnifiedPlayerCard";
 interface TryoutCandidate {
   id: string;
   name: string;
+  firstName: string;
+  lastName: string;
   race: string;
   age: number;
   leadership: number;
@@ -25,6 +27,7 @@ interface TryoutCandidate {
   kicking?: number;
   marketValue: number;
   potential: "High" | "Medium" | "Low";
+  overallPotentialStars: number; // This is the missing field!
 }
 
 interface TryoutSystemProps {
