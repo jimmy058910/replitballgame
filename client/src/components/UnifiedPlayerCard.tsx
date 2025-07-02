@@ -122,12 +122,8 @@ export default function UnifiedPlayerCard({
   variant = 'roster',
   onClick
 }: PlayerCardProps) {
-  // Prioritize actual player name over generated fallbacks
-  const displayName = player.lastName && player.lastName !== "Player" && player.lastName !== "AI" 
-    ? player.lastName 
-    : player.firstName && player.firstName !== "Player" && player.firstName !== "AI" 
-    ? player.firstName 
-    : getPlayerDisplayName(player);
+  // Use the centralized name display function
+  const displayName = getPlayerDisplayName(player);
   const role = getPlayerRole(player);
   const overallPower = calculateOverallPower(player);
   const potential = parseFloat(player.overallPotentialStars || '0');
@@ -152,43 +148,82 @@ export default function UnifiedPlayerCard({
       className="bg-gray-800 border-gray-700 hover:border-gray-600 transition-all duration-200 cursor-pointer hover:shadow-lg"
       onClick={handleCardClick}
     >
-      <CardContent className="p-4">
-        {/* Header Section */}
-        <div className="flex items-start justify-between mb-3">
-          <div className="flex-1">
-            {/* Player Name */}
-            <div className="flex items-center gap-2 mb-2">
-              <h3 className="font-semibold text-white text-base">{displayName}</h3>
-              {player.isCaptain && <Crown className="w-4 h-4 text-yellow-500" />}
+      <CardContent className={variant === 'dashboard' ? "p-3" : "p-4"}>
+        {variant === 'dashboard' ? (
+          /* Compact Dashboard Layout */
+          <>
+            {/* Header Row: Name and Power */}
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center gap-2">
+                <h3 className="font-semibold text-white text-lg">{displayName}</h3>
+                {player.isCaptain && <Crown className="w-4 h-4 text-yellow-500" />}
+              </div>
+              <div className={`text-3xl font-bold ${getPowerColor(overallPower)}`}>
+                {overallPower}
+              </div>
             </div>
-            
-            {/* Role Tag & Race/Age Info */}
-            <div className="flex items-center gap-2 mb-2">
-              <Badge className={`text-xs font-medium px-3 py-1 ${getRoleTagStyle(role)}`}>
+
+            {/* Role and Race Row */}
+            <div className="flex items-center justify-between mb-3">
+              <Badge className={`text-xs font-medium px-2 py-1 ${getRoleTagStyle(role)}`}>
                 {role.toUpperCase()}
               </Badge>
-              <span className="text-xs text-gray-400 flex items-center gap-1">
+              <div className="flex items-center gap-2 text-xs text-gray-400">
                 <span>{getRaceEmoji(player.race)}</span>
-                {getRaceDisplayName(player.race)} • Age {player.age}
-              </span>
+                <span>{getRaceDisplayName(player.race)} • Age {player.age}</span>
+              </div>
             </div>
-          </div>
 
-          {/* Core Ratings Section */}
-          <div className="text-right">
-            {/* Overall Power */}
-            <div className={`text-2xl font-bold ${getPowerColor(overallPower)}`}>
-              {overallPower}
+            {/* Power and Potential Row */}
+            <div className="flex items-center justify-between mb-3">
+              <div className="text-xs text-gray-400">Power</div>
+              <div className="flex items-center gap-2">
+                {renderStarRating(potential)}
+                <span className="text-xs text-gray-400">Potential</span>
+              </div>
             </div>
-            <div className="text-xs text-gray-400 mb-2">Power</div>
-            
-            {/* Potential Stars */}
-            <div className="flex flex-col items-end">
-              {renderStarRating(potential)}
-              <div className="text-xs text-gray-400 mt-1">Potential</div>
+          </>
+        ) : (
+          /* Full Roster Layout */
+          <>
+            {/* Header Section */}
+            <div className="flex items-start justify-between mb-3">
+              <div className="flex-1">
+                {/* Player Name */}
+                <div className="flex items-center gap-2 mb-2">
+                  <h3 className="font-semibold text-white text-base">{displayName}</h3>
+                  {player.isCaptain && <Crown className="w-4 h-4 text-yellow-500" />}
+                </div>
+                
+                {/* Role Tag & Race/Age Info */}
+                <div className="flex items-center gap-2 mb-2">
+                  <Badge className={`text-xs font-medium px-3 py-1 ${getRoleTagStyle(role)}`}>
+                    {role.toUpperCase()}
+                  </Badge>
+                  <span className="text-xs text-gray-400 flex items-center gap-1">
+                    <span>{getRaceEmoji(player.race)}</span>
+                    {getRaceDisplayName(player.race)} • Age {player.age}
+                  </span>
+                </div>
+              </div>
+
+              {/* Core Ratings Section */}
+              <div className="text-right">
+                {/* Overall Power */}
+                <div className={`text-2xl font-bold ${getPowerColor(overallPower)}`}>
+                  {overallPower}
+                </div>
+                <div className="text-xs text-gray-400 mb-2">Power</div>
+                
+                {/* Potential Stars */}
+                <div className="flex flex-col items-end">
+                  {renderStarRating(potential)}
+                  <div className="text-xs text-gray-400 mt-1">Potential</div>
+                </div>
+              </div>
             </div>
-          </div>
-        </div>
+          </>
+        )}
 
         {/* Role-Dependent Key Stats Section */}
         {variant === 'dashboard' ? (
