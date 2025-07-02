@@ -16,10 +16,13 @@ interface ServerTimeInfo {
 }
 
 export default function ServerTimeDisplay() {
-  const { data: serverTime, isLoading } = useQuery<ServerTimeInfo>({
+  const { data: serverTimeResponse, isLoading } = useQuery<{data: ServerTimeInfo}>({
     queryKey: ["/api/server/time"],
     refetchInterval: 30000, // Update every 30 seconds
   });
+
+  // Extract the actual server time data from the nested API response
+  const serverTime = serverTimeResponse?.data;
 
   if (isLoading) {
     return (
@@ -53,7 +56,7 @@ export default function ServerTimeDisplay() {
           <p className="text-sm text-gray-500">Unable to load server time</p>
         </CardContent>
       </Card>
-    );
+    );  
   }
 
   const formatTime = (dateString: string) => {
@@ -113,7 +116,7 @@ export default function ServerTimeDisplay() {
           
           {!serverTime.isSchedulingWindow && serverTime.timeUntilNextWindow && (
             <div className="text-xs text-gray-500">
-              Next window opens in: {serverTime.timeUntilNextWindow.hours}h {serverTime.timeUntilNextWindow.minutes}m
+              Next window opens in: {serverTime.timeUntilNextWindow.hours || 0}h {serverTime.timeUntilNextWindow.minutes || 0}m
             </div>
           )}
         </div>
