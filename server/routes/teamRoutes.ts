@@ -448,5 +448,148 @@ router.get('/:teamId/finances', isAuthenticated, asyncHandler(async (req: any, r
   res.json(finances);
 }));
 
+// Taxi Squad endpoints
+router.get('/:teamId/taxi-squad', isAuthenticated, asyncHandler(async (req: any, res: Response) => {
+  const userId = req.user.claims.sub;
+  const { teamId } = req.params;
+
+  // Verify team ownership
+  let team;
+  if (teamId === "my") {
+    team = await storage.teams.getTeamByUserId(userId);
+  } else {
+    team = await storage.teams.getTeamById(teamId);
+    if (!team || team.userId !== userId) {
+      throw ErrorCreators.forbidden("You do not own this team");
+    }
+  }
+  
+  if (!team) {
+    throw ErrorCreators.notFound("Team not found");
+  }
+
+  // Get taxi squad players
+  const taxiSquadPlayers = await storage.players.getTaxiSquadPlayersByTeamId(team.id);
+
+  logInfo("Taxi squad retrieved", {
+    teamId: team.id,
+    playersCount: taxiSquadPlayers.length,
+    requestId: req.requestId
+  });
+
+  res.json(taxiSquadPlayers);
+}));
+
+router.post('/:teamId/taxi-squad/:playerId/promote', isAuthenticated, asyncHandler(async (req: any, res: Response) => {
+  const userId = req.user.claims.sub;
+  const { teamId, playerId } = req.params;
+
+  // Verify team ownership
+  let team;
+  if (teamId === "my") {
+    team = await storage.teams.getTeamByUserId(userId);
+  } else {
+    team = await storage.teams.getTeamById(teamId);
+    if (!team || team.userId !== userId) {
+      throw ErrorCreators.forbidden("You do not own this team");
+    }
+  }
+  
+  if (!team) {
+    throw ErrorCreators.notFound("Team not found");
+  }
+
+  // Check if player exists and is on taxi squad
+  const player = await storage.players.getPlayerById(playerId);
+  if (!player) {
+    throw ErrorCreators.notFound("Player not found");
+  }
+
+  if (player.teamId !== team.id) {
+    throw ErrorCreators.forbidden("Player does not belong to your team");
+  }
+
+  if (!player.isOnTaxi) {
+    throw ErrorCreators.validation("Player is not on taxi squad");
+  }
+
+  // Check roster space (assuming max 10 main roster players)
+  const mainRosterPlayers = await storage.players.getPlayersByTeamId(team.id);
+  const activeMainRosterPlayers = mainRosterPlayers.filter(p => !p.isOnTaxi);
+  
+  if (activeMainRosterPlayers.length >= 10) {
+    throw ErrorCreators.validation("Main roster is full (maximum 10 players)");
+  }
+
+  // Promote player
+  const promotedPlayer = await storage.players.promotePlayerFromTaxiSquad(playerId);
+
+  logInfo("Player promoted from taxi squad", {
+    teamId: team.id,
+    playerId: playerId,
+    playerName: player.name,
+    requestId: req.requestId
+  });
+
+  res.json({
+    success: true,
+    message: "Player promoted to main roster",
+    player: promotedPlayer
+  });
+}));
+
+router.delete('/:teamId/taxi-squad/:playerId', isAuthenticated, asyncHandler(async (req: any, res: Response) => {
+  const userId = req.user.claims.sub;
+  const { teamId, playerId } = req.params;
+
+  // Verify team ownership
+  let team;
+  if (teamId === "my") {
+    team = await storage.teams.getTeamByUserId(userId);
+  } else {
+    team = await storage.teams.getTeamById(teamId);
+    if (!team || team.userId !== userId) {
+      throw ErrorCreators.forbidden("You do not own this team");
+    }
+  }
+  
+  if (!team) {
+    throw ErrorCreators.notFound("Team not found");
+  }
+
+  // Check if player exists and is on taxi squad
+  const player = await storage.players.getPlayerById(playerId);
+  if (!player) {
+    throw ErrorCreators.notFound("Player not found");
+  }
+
+  if (player.teamId !== team.id) {
+    throw ErrorCreators.forbidden("Player does not belong to your team");
+  }
+
+  if (!player.isOnTaxi) {
+    throw ErrorCreators.validation("Player is not on taxi squad");
+  }
+
+  // Release player
+  const released = await storage.players.releasePlayerFromTaxiSquad(playerId);
+
+  if (!released) {
+    throw ErrorCreators.internal("Failed to release player");
+  }
+
+  logInfo("Player released from taxi squad", {
+    teamId: team.id,
+    playerId: playerId,
+    playerName: player.name,
+    requestId: req.requestId
+  });
+
+  res.json({
+    success: true,
+    message: "Player released from taxi squad"
+  });
+}));
+
 
 export default router;

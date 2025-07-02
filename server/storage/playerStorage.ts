@@ -88,6 +88,25 @@ export class PlayerStorage {
       .where(and(eq(players.teamId, teamId), eq(players.isOnTaxi, true)))
       .orderBy(asc(players.name));
   }
+
+  async promotePlayerFromTaxiSquad(playerId: string): Promise<Player | null> {
+    const result = await db
+      .update(players)
+      .set({ isOnTaxi: false })
+      .where(eq(players.id, playerId))
+      .returning();
+    
+    return result[0] || null;
+  }
+
+  async releasePlayerFromTaxiSquad(playerId: string): Promise<boolean> {
+    const result = await db
+      .delete(players)
+      .where(eq(players.id, playerId))
+      .returning();
+    
+    return result.length > 0;
+  }
 }
 
 export const playerStorage = new PlayerStorage();
