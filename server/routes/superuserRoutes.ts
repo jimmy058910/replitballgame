@@ -94,18 +94,16 @@ router.post('/advance-day', RBACService.requirePermission(Permission.MANAGE_SEAS
     const newSeasonYear = (currentSeason.year || new Date().getFullYear()) + 1;
     const newSeasonName = `Season ${newSeasonYear}`;
     
-    await storage.updateSeason(currentSeason.id, { status: "completed", endDate: new Date() });
-    await storage.createSeason({
-      name: newSeasonName,
-      year: newSeasonYear,
+    await storage.seasons.updateSeason(currentSeason.id, { status: "completed", endDate: new Date() });
+    await storage.seasons.createSeason({
+      yearInput: newSeasonYear,
       status: "active",
       startDate: newStartDate,
-      startDateOriginal: newStartDate,
     });
     
     message = `New season started: ${newSeasonName}`;
   } else {
-    await storage.updateSeason(currentSeason.id, { startDate: newStartDate });
+    await storage.seasons.updateSeason(currentSeason.id, { startDate: newStartDate });
   }
 
   res.json({ 
@@ -152,11 +150,10 @@ router.post('/reset-season', RBACService.requireSuperAdmin(), asyncHandler(async
     .set({ status: 'cancelled' })
     .where(eq(matchesTable.status, 'in_progress'));
 
-  const currentSeason = await storage.getCurrentSeason();
+  const currentSeason = await storage.seasons.getCurrentSeason();
   if (currentSeason) {
-    await storage.updateSeason(currentSeason.id, {
+    await storage.seasons.updateSeason(currentSeason.id, {
       startDate: new Date(),
-      startDateOriginal: new Date()
     });
   }
 
@@ -205,8 +202,8 @@ router.post('/cleanup-division', RBACService.requireSuperAdmin(), asyncHandler(a
   logInfo("Super admin cleaning up division", { adminUserId: userId, division, requestId });
 
   // Remove AI teams from division
-  const divisionTeams = await storage.getTeamsByDivision(division);
-  const aiTeams = divisionTeams.filter(team => !team.userId);
+  const divisionTeams = await storage.teams.getTeamsByDivision(division);
+  const aiTeams = divisionTeams.filter((team: any) => !team.userId);
   
   for (const team of aiTeams) {
     // Remove team and associated data
@@ -225,7 +222,7 @@ router.post('/cleanup-division', RBACService.requireSuperAdmin(), asyncHandler(a
 
 // Get current cycle info - Admin permission required
 router.get('/season/current-cycle-info', RBACService.requirePermission(Permission.VIEW_FINANCES), asyncHandler(async (req: any, res: Response) => {
-  const currentSeason = await storage.getCurrentSeason();
+  const currentSeason = await storage.seasons.getCurrentSeason();
   if (!currentSeason) {
     throw ErrorCreators.notFound("No active season found");
   }
@@ -262,15 +259,15 @@ router.post('/add-players', RBACService.requirePermission(Permission.MANAGE_LEAG
 
   logInfo("Admin adding players to team", { adminUserId: userId, teamId, playerCount, requestId });
 
-  const team = await storage.getTeamById(teamId);
+  const team = await storage.teams.getTeamById(teamId);
   if (!team) {
     throw ErrorCreators.notFound("Team not found");
   }
 
   const newPlayers = [];
   for (let i = 0; i < playerCount; i++) {
-    const player = generatePlayerForTeam(teamId);
-    await storage.createPlayer(player);
+    const player = generatePlayerForTeam(teamId, "human", "Passer", 25);
+    await storage.players.createPlayer(player);
     newPlayers.push(player);
   }
 
