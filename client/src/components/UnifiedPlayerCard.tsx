@@ -228,11 +228,15 @@ export default function UnifiedPlayerCard({
                   {player.isCaptain && <Crown className="w-4 h-4 text-yellow-500" />}
                 </div>
                 
-                {/* Role Tag */}
-                <div className="mb-3">
+                {/* Role Tag and Race */}
+                <div className="flex items-center gap-2 mb-3">
                   <Badge className={`text-xs font-medium px-3 py-1 ${getRoleTagStyle(role)}`}>
                     {role.toUpperCase()}
                   </Badge>
+                  <span className="text-xs text-gray-400 flex items-center gap-1">
+                    <span>{getRaceEmoji(player.race)}</span>
+                    {getRaceDisplayName(player.race)}
+                  </span>
                 </div>
 
                 {/* Age and Potential on same line */}
