@@ -8,10 +8,10 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import LeagueStandings from "@/components/LeagueStandings";
 import LeagueSchedule from "@/components/LeagueSchedule";
-import SeasonalFlowManager from "@/components/SeasonalFlowManager";
+
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import { Trophy, Medal, Gamepad2, Calendar, Users, Clock, X, Settings } from "lucide-react";
+import { Trophy, Medal, Gamepad2, Calendar, Users, Clock, X } from "lucide-react";
 import { HelpIcon } from "@/components/help";
 
 // Type interfaces for API responses
@@ -159,7 +159,7 @@ export default function Competition() {
 
 
         <Tabs defaultValue="league" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-4 bg-gray-800">
+          <TabsList className="grid w-full grid-cols-3 bg-gray-800">
             <TabsTrigger value="league" className="flex items-center gap-2">
               <Trophy className="h-4 w-4" />
               League
@@ -171,10 +171,6 @@ export default function Competition() {
             <TabsTrigger value="exhibitions" className="flex items-center gap-2">
               <Gamepad2 className="h-4 w-4" />
               Exhibitions
-            </TabsTrigger>
-            <TabsTrigger value="seasonal" className="flex items-center gap-2">
-              <Settings className="h-4 w-4" />
-              Season Manager
             </TabsTrigger>
           </TabsList>
 
@@ -392,10 +388,7 @@ export default function Competition() {
             </Card>
           </TabsContent>
 
-          {/* Season Manager Tab */}
-          <TabsContent value="seasonal">
-            <SeasonalFlowManager />
-          </TabsContent>
+
         </Tabs>
       </div>
 
