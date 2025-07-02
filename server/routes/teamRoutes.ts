@@ -558,6 +558,84 @@ router.get('/:teamId/taxi-squad', isAuthenticated, asyncHandler(async (req: any,
   res.json(taxiSquadPlayers);
 }));
 
+router.post('/:teamId/taxi-squad/add-candidates', isAuthenticated, asyncHandler(async (req: any, res: Response) => {
+  const userId = req.user.claims.sub;
+  const { teamId } = req.params;
+  const { candidates } = req.body;
+
+  // Verify team ownership
+  let team;
+  if (teamId === "my") {
+    team = await storage.teams.getTeamByUserId(userId);
+  } else {
+    team = await storage.teams.getTeamById(teamId);
+    if (!team || team.userId !== userId) {
+      throw ErrorCreators.forbidden("You do not own this team");
+    }
+  }
+  
+  if (!team) {
+    throw ErrorCreators.notFound("Team not found");
+  }
+
+  if (!candidates || !Array.isArray(candidates)) {
+    throw ErrorCreators.validation("Candidates array is required");
+  }
+
+  // Check taxi squad capacity (max 2 players)
+  const currentTaxiSquadPlayers = await storage.players.getTaxiSquadPlayersByTeamId(team.id);
+  
+  if (currentTaxiSquadPlayers.length + candidates.length > 2) {
+    throw ErrorCreators.validation(`Taxi squad full. Can only add ${2 - currentTaxiSquadPlayers.length} more players`);
+  }
+
+  const addedPlayers = [];
+  
+  for (const candidate of candidates) {
+    // Convert candidate to player format for taxi squad
+    const playerData = {
+      firstName: candidate.firstName,
+      lastName: candidate.lastName,
+      name: `${candidate.firstName} ${candidate.lastName}`,
+      race: candidate.race,
+      age: candidate.age,
+      speed: candidate.speed,
+      power: candidate.power,
+      throwing: candidate.throwing,
+      catching: candidate.catching,
+      kicking: candidate.kicking,
+      stamina: candidate.stamina,
+      leadership: candidate.leadership,
+      agility: candidate.agility,
+      overallPotentialStars: candidate.overallPotentialStars,
+      marketValue: candidate.marketValue || 0,
+      teamId: team.id,
+      isOnTaxi: true,
+      isMarketplace: false,
+      contractSeasons: 1,
+      contractValue: 0,
+      abilities: JSON.stringify([]),
+      position: "player"
+    };
+
+    const newPlayer = await storage.players.createPlayer(playerData);
+    addedPlayers.push(newPlayer);
+  }
+
+  logInfo("Candidates added to taxi squad", {
+    teamId: team.id,
+    candidatesCount: candidates.length,
+    addedPlayersCount: addedPlayers.length,
+    requestId: req.requestId
+  });
+
+  res.json({
+    success: true,
+    message: `${addedPlayers.length} players added to taxi squad`,
+    players: addedPlayers
+  });
+}));
+
 router.post('/:teamId/taxi-squad/:playerId/promote', isAuthenticated, asyncHandler(async (req: any, res: Response) => {
   const userId = req.user.claims.sub;
   const { teamId, playerId } = req.params;
