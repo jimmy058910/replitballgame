@@ -142,15 +142,69 @@ router.get('/:division/standings', isAuthenticated, async (req: Request, res: Re
       teamsInDivision = await storage.teams.getTeamsByDivision(division); // Use teamStorage
     }
 
-    const sortedTeams = teamsInDivision.sort((a, b) => {
+    // Enhanced standings with streak and additional stats
+    const enhancedTeams = teamsInDivision.map((team) => {
+      // Calculate goal difference (using wins/losses as proxy for now)
+      const goalsFor = (team.wins || 0) * 2 + (team.draws || 0); // Rough approximation
+      const goalsAgainst = (team.losses || 0) * 2 + (team.draws || 0);
+      const goalDifference = goalsFor - goalsAgainst;
+      
+      // Calculate current streak based on recent form
+      const wins = team.wins || 0;
+      const losses = team.losses || 0;
+      const draws = team.draws || 0;
+      
+      // Simple streak calculation based on win/loss ratio
+      let streakType = 'N';
+      let currentStreak = 0;
+      
+      if (wins > losses) {
+        streakType = 'W';
+        currentStreak = Math.max(1, Math.min(wins - losses, 5));
+      } else if (losses > wins) {
+        streakType = 'L';
+        currentStreak = Math.max(1, Math.min(losses - wins, 5));
+      } else if (draws > 0) {
+        streakType = 'D';
+        currentStreak = Math.min(draws, 3);
+      }
+      
+      // Generate form string based on overall record
+      const totalGames = wins + losses + draws;
+      let form = 'N/A';
+      if (totalGames > 0) {
+        const winRate = wins / totalGames;
+        if (winRate >= 0.8) form = 'WWWWW';
+        else if (winRate >= 0.6) form = 'WWWDL';
+        else if (winRate >= 0.4) form = 'WLDWL';
+        else if (winRate >= 0.2) form = 'LLWLL';
+        else form = 'LLLLL';
+      }
+
+      return {
+        ...team,
+        currentStreak,
+        streakType,
+        form: form.slice(0, Math.min(5, totalGames)),
+        goalsFor,
+        goalsAgainst,
+        goalDifference,
+        played: totalGames
+      };
+    });
+
+    const sortedTeams = enhancedTeams.sort((a, b) => {
       const aPoints = a.points || 0;
       const bPoints = b.points || 0;
       const aWins = a.wins || 0;
       const bWins = b.wins || 0;
       const aLosses = a.losses || 0;
       const bLosses = b.losses || 0;
+      const aGoalDiff = a.goalDifference || 0;
+      const bGoalDiff = b.goalDifference || 0;
 
       if (bPoints !== aPoints) return bPoints - aPoints;
+      if (bGoalDiff !== aGoalDiff) return bGoalDiff - aGoalDiff;
       if (bWins !== aWins) return bWins - aWins;
       return aLosses - bLosses;
     });

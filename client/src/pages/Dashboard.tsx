@@ -129,11 +129,8 @@ function ServerTimeDisplay({ serverTime }: { serverTime: any }) {
     const timeData = serverTime?.data || serverTime;
     if (!timeData) return "";
     
-    if (timeData.isSchedulingWindow) {
-      return "Games: OPEN";
-    } else {
-      return `Next Game Day: ${timeData.timeUntilNextWindow?.hours || 0}h ${timeData.timeUntilNextWindow?.minutes || 0}m`;
-    }
+    // Always show the Game Day countdown instead of "Games: OPEN"
+    return `Next Game Day: ${timeData.timeUntilNextWindow?.hours || 0}h ${timeData.timeUntilNextWindow?.minutes || 0}m`;
   };
 
   return (

@@ -16,6 +16,13 @@ interface Team {
   draws: number;
   points: number;
   division: number;
+  currentStreak: number;
+  streakType: string;
+  form: string;
+  goalsFor: number;
+  goalsAgainst: number;
+  goalDifference: number;
+  played: number;
 }
 
 export default function LeagueStandings({ division }: LeagueStandingsProps) {
@@ -83,7 +90,7 @@ export default function LeagueStandings({ division }: LeagueStandingsProps) {
                       }`}>
                         {position}
                       </div>
-                      <div>
+                      <div className="flex-1">
                         <div 
                           className={`font-semibold cursor-pointer hover:underline ${
                             isPlayerTeam ? "text-primary-400" : "text-white"
@@ -93,8 +100,38 @@ export default function LeagueStandings({ division }: LeagueStandingsProps) {
                         >
                           {team.name}
                         </div>
-                        <div className="text-xs text-gray-400">
-                          {team.wins}-{team.losses}-{team.draws} • {team.points} pts
+                        <div className="text-xs text-gray-400 space-y-1">
+                          <div>{team.wins}-{team.losses}-{team.draws} • {team.points} pts • {team.played} played</div>
+                          <div className="flex items-center space-x-3">
+                            <span>GD: {team.goalDifference > 0 ? '+' : ''}{team.goalDifference}</span>
+                            {team.streakType !== 'N' && (
+                              <span className={`px-1 py-0.5 rounded text-xs font-medium ${
+                                team.streakType === 'W' ? 'bg-green-600 text-white' :
+                                team.streakType === 'L' ? 'bg-red-600 text-white' :
+                                'bg-yellow-600 text-black'
+                              }`}>
+                                {team.streakType}{team.currentStreak}
+                              </span>
+                            )}
+                            {team.form !== 'N/A' && (
+                              <div className="flex space-x-0.5">
+                                {team.form.split('').map((result, idx) => (
+                                  <div 
+                                    key={idx}
+                                    className={`w-2 h-2 rounded-full ${
+                                      result === 'W' ? 'bg-green-500' :
+                                      result === 'L' ? 'bg-red-500' :
+                                      'bg-yellow-500'
+                                    }`}
+                                    title={
+                                      result === 'W' ? 'Win' :
+                                      result === 'L' ? 'Loss' : 'Draw'
+                                    }
+                                  />
+                                ))}
+                              </div>
+                            )}
+                          </div>
                         </div>
                       </div>
                     </div>
