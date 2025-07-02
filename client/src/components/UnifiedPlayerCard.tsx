@@ -197,21 +197,22 @@ export default function UnifiedPlayerCard({
             </div>
 
             {/* Role and Race Row */}
-            <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center justify-between mb-2">
               <Badge className={`text-xs font-medium px-2 py-1 ${getRoleTagStyle(role)}`}>
                 {role.toUpperCase()}
               </Badge>
               <div className="flex items-center gap-2 text-xs text-gray-400">
                 <span>{getRaceEmoji(player.race)}</span>
-                <span>{getRaceDisplayName(player.race)} • Age {player.age}</span>
+                <span>{getRaceDisplayName(player.race)}</span>
               </div>
             </div>
 
-            {/* Potential Row */}
+            {/* Age and Potential Row */}
             <div className="flex items-center justify-between mb-3">
-              <div className="text-xs text-gray-400">Potential</div>
+              <div className="text-xs text-gray-400">Age {player.age}</div>
               <div className="flex items-center gap-2">
                 {renderStarRating(potential)}
+                <span className="text-xs text-gray-400">Potential</span>
               </div>
             </div>
           </>
