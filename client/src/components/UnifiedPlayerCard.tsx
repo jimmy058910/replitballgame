@@ -122,32 +122,33 @@ export default function UnifiedPlayerCard({
   variant = 'roster',
   onClick
 }: PlayerCardProps) {
-  // Prioritize lastName for display, with debugging info
+  // Use full name for display - prioritize the complete name field
   const displayName = (() => {
-    console.log('Player data:', { 
-      firstName: player.firstName, 
-      lastName: player.lastName, 
-      name: player.name 
-    });
+    // Use the full name field if available and valid
+    if (player.name && player.name.trim() && 
+        !player.name.includes("Player") && !player.name.includes("AI") && 
+        player.name !== "Unknown") {
+      return player.name;
+    }
     
-    // Prioritize lastName specifically
+    // Construct full name from firstName + lastName
+    if (player.firstName && player.lastName && 
+        player.firstName.trim() && player.lastName.trim() &&
+        player.firstName !== "Player" && player.firstName !== "AI" && 
+        player.lastName !== "Player" && player.lastName !== "AI") {
+      return `${player.firstName} ${player.lastName}`;
+    }
+    
+    // Fall back to lastName only
     if (player.lastName && player.lastName.trim() && 
-        player.lastName !== "Player" && player.lastName !== "AI" && 
-        player.lastName !== "Unknown") {
+        player.lastName !== "Player" && player.lastName !== "AI") {
       return player.lastName;
     }
     
-    // Fall back to firstName
+    // Fall back to firstName only
     if (player.firstName && player.firstName.trim() && 
-        player.firstName !== "Player" && player.firstName !== "AI" && 
-        player.firstName !== "Unknown") {
+        player.firstName !== "Player" && player.firstName !== "AI") {
       return player.firstName;
-    }
-    
-    // Use name field if others aren't available
-    if (player.name && player.name.trim() && 
-        !player.name.includes("Player") && !player.name.includes("AI")) {
-      return player.name;
     }
     
     // Final fallback
