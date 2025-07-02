@@ -32,6 +32,22 @@ router.get('/user', isAuthenticated, async (req: any, res: Response, next: NextF
   }
 });
 
+// Check if user has admin access
+router.get('/admin-status', isAuthenticated, async (req: any, res: Response, next: NextFunction) => {
+  try {
+    const userId = req.user.claims.sub;
+    const isAdmin = await RBACService.isAdmin(userId);
+    
+    res.json({ 
+      isAdmin,
+      hasAdminAccess: isAdmin
+    });
+  } catch (error) {
+    console.error("Error checking admin status:", error);
+    next(error);
+  }
+});
+
 // Promote self to admin (for testing/setup purposes)
 router.post('/promote-to-admin', isAuthenticated, async (req: any, res: Response, next: NextFunction) => {
   try {

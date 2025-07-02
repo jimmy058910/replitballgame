@@ -37,6 +37,11 @@ export default function SuperUser() {
     queryKey: ["/api/season/current-week"],
   });
 
+  // Check admin status using RBAC system
+  const { data: adminStatus } = useQuery({
+    queryKey: ["/api/auth/admin-status"],
+  });
+
   // Type assertions to fix property access issues
   const team = (rawTeam || {}) as Team;
   const currentWeek = (rawCurrentWeek || {}) as CurrentWeek;
@@ -246,8 +251,8 @@ export default function SuperUser() {
     },
   });
 
-  // Check if user is superuser (only for Macomb Cougars)
-  const isSuperUser = team?.name === "Macomb Cougars";
+  // Check if user has admin access using RBAC system
+  const isSuperUser = adminStatus?.isAdmin === true;
 
   if (!isSuperUser) {
     return (
