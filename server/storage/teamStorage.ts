@@ -106,13 +106,11 @@ export class TeamStorage {
       staffSalaries: 317000, // Sum of default staff: 60+45+50+50+40+42+80 = 367k (Corrected: 60+45+50+50+40+42+80 = 367000)
       // staffSalaries: 367000, // Corrected sum
       facilities: 50000,
-      credits: 50000, // Standard starting credits
+      credits: 50000, // Standard starting credits - DO NOT ADD NET INCOME
       totalIncome: 475000,
       totalExpenses: 417000, // staff + facilities (player salaries TBD)
-      // totalExpenses: 417000, // Corrected sum
-      netIncome: 58000, // Corrected
-      // netIncome: 58000,
-      premiumCurrency: 50,
+      netIncome: 58000, // This is for display only, not added to starting credits
+      premiumCurrency: 0, // Teams start with 0 gems
     };
      // Recalculate staffSalaries based on the actual list
     const defaultStaffMembers = this.getDefaultStaffMembers();
@@ -120,8 +118,7 @@ export class TeamStorage {
     defaultFinances.staffSalaries = actualStaffSalaries;
     defaultFinances.totalExpenses = actualStaffSalaries + (defaultFinances.facilities || 0) + (defaultFinances.playerSalaries || 0);
     defaultFinances.netIncome = (defaultFinances.totalIncome || 0) - defaultFinances.totalExpenses;
-    // Ensure credits are reasonable after these defaults
-    defaultFinances.credits = (defaultFinances.credits || 50000) + defaultFinances.netIncome;
+    // Keep starting credits at exactly 50,000 - do NOT add net income
 
 
     await teamFinancesStorage.createTeamFinances({

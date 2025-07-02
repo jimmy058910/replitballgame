@@ -51,6 +51,12 @@ Built as a React + Express web application with PostgreSQL database, using moder
 - ✓ **Color-Coded Power Ratings**: Implemented 4-tier color system (Blue: 35-40, Green: 26-34, White: 16-25, Red: 1-15) for instant quality assessment
 - ✓ **Professional Visual Design**: Added progress bars, improved spacing, and enhanced visual feedback throughout roster and dashboard views
 
+#### ✅ TEAM CREATION FINANCIAL FIXES COMPLETE
+- ✓ **Fixed Starting Credits Issue**: Corrected team creation logic that was incorrectly adding 58,000 net income bonus to starting credits (108,000 total instead of 50,000)
+- ✓ **Fixed Starting Gems Issue**: Changed default starting gems from 50 to 0 as intended for new teams
+- ✓ **Corrected Team Role Distribution**: Updated AI team creation to use proper position requirements (2 passers, 3 runners, 3 blockers minimum)
+- ✓ **Financial Logic Separation**: Net income calculations now used for display purposes only, not added to starting team resources
+
 ### July 1, 2025 - ENHANCED LIVE MATCH SIMULATION & COMPREHENSIVE MANUAL REVISION COMPLETE (Previous)
 
 #### ✅ COMPREHENSIVE ENHANCED LIVE MATCH SIMULATION SYSTEM COMPLETE
