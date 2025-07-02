@@ -34,7 +34,16 @@ Built as a React + Express web application with PostgreSQL database, using moder
 
 ## Recent Changes
 
-### July 2, 2025 - COMPREHENSIVE FIXES: SUPERUSER FUNCTIONALITY + TAXI SQUAD SYSTEM COMPLETE
+### July 2, 2025 - COMPREHENSIVE FIXES: ROSTER CAPACITY + MARKETPLACE ERROR RESOLUTION COMPLETE
+
+#### ✅ ROSTER CAPACITY UPDATE & MARKETPLACE ERROR FIXES COMPLETE
+- ✓ **Roster Capacity Increase**: Updated roster limit from 10 to 13 players to match game specifications
+- ✓ **Fixed Taxi Squad Promotion**: Updated main roster space validation to allow 13 players instead of 10
+- ✓ **Marketplace API Structure Fix**: Resolved `listings?.find is not a function` error by accessing `listings?.listings?.find()` 
+- ✓ **API Response Handling**: Fixed all references to marketplace listings to properly access nested `listings` array within response object
+- ✓ **Data Structure Alignment**: Corrected frontend component to match backend API response format `{listings: [...]}` instead of direct array access
+
+### July 2, 2025 - COMPREHENSIVE FIXES: SUPERUSER FUNCTIONALITY + TAXI SQUAD SYSTEM COMPLETE (Previous)
 
 #### ✅ PLAYER DETAIL MODAL CONTRACT NEGOTIATION & TAXI SQUAD INTEGRATION COMPLETE
 - ✓ **Contract Negotiation Button**: Added prominent "Negotiate Contract" button with dollar sign icon to PlayerDetailModal header

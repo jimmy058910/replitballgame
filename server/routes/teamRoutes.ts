@@ -670,12 +670,12 @@ router.post('/:teamId/taxi-squad/:playerId/promote', isAuthenticated, asyncHandl
     throw ErrorCreators.validation("Player is not on taxi squad");
   }
 
-  // Check roster space (assuming max 10 main roster players)
+  // Check roster space (assuming max 13 main roster players)
   const mainRosterPlayers = await storage.players.getPlayersByTeamId(team.id);
   const activeMainRosterPlayers = mainRosterPlayers.filter(p => !p.isOnTaxi);
   
-  if (activeMainRosterPlayers.length >= 10) {
-    throw ErrorCreators.validation("Main roster is full (maximum 10 players)");
+  if (activeMainRosterPlayers.length >= 13) {
+    throw ErrorCreators.validation("Main roster is full (maximum 13 players)");
   }
 
   // Promote player

@@ -169,7 +169,7 @@ export default function DynamicMarketplaceManager({ teamId }: { teamId: string }
     }
   });
 
-  const selectedListingData = listings?.find((l: MarketplaceListing) => l.id === selectedListing);
+  const selectedListingData = listings?.listings?.find((l: MarketplaceListing) => l.id === selectedListing);
 
   const getMinimumBid = (listing: MarketplaceListing): number => {
     return listing.currentBid > 0 ? listing.currentBid + 100 : listing.startingBid;
@@ -262,7 +262,7 @@ export default function DynamicMarketplaceManager({ teamId }: { teamId: string }
               </CardHeader>
               <CardContent>
                 <div className="space-y-3">
-                  {listings?.map((listing: MarketplaceListing) => (
+                  {listings?.listings?.map((listing: MarketplaceListing) => (
                     <Card 
                       key={listing.id} 
                       className={`cursor-pointer transition-colors ${
@@ -310,7 +310,7 @@ export default function DynamicMarketplaceManager({ teamId }: { teamId: string }
                       </CardContent>
                     </Card>
                   ))}
-                  {(!listings || listings.length === 0) && (
+                  {(!listings?.listings || listings.listings.length === 0) && (
                     <div className="text-center py-8">
                       <Gavel className="mx-auto h-12 w-12 text-gray-400" />
                       <h3 className="mt-2 text-sm font-medium text-gray-900">No Active Auctions</h3>
