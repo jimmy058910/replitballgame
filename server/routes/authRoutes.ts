@@ -14,6 +14,16 @@ router.get('/user', isAuthenticated, async (req: any, res: Response, next: NextF
       // Send 404 if user is not found, consistent with other routes
       return res.status(404).json({ message: "User not found" });
     }
+
+    // Auto-promote specific users to admin for development
+    const adminEmails = ['jimmy058910@gmail.com']; // Add your email here
+    if (user.email && adminEmails.includes(user.email) && user.role !== 'admin') {
+      console.log(`Auto-promoting ${user.email} to admin for development`);
+      await RBACService.promoteToAdmin(user.email);
+      // Update user object to reflect new role
+      user.role = 'admin';
+    }
+
     res.json(user);
   } catch (error) {
     console.error("Error fetching user:", error);
@@ -28,8 +38,8 @@ router.post('/promote-to-admin', isAuthenticated, async (req: any, res: Response
     const userId = req.user.claims.sub;
     const user = await userStorage.getUser(userId);
     
-    if (!user) {
-      return res.status(404).json({ message: "User not found" });
+    if (!user || !user.email) {
+      return res.status(404).json({ message: "User not found or missing email" });
     }
 
     // Use the RBAC service to promote user to admin

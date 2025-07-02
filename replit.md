@@ -34,7 +34,7 @@ Built as a React + Express web application with PostgreSQL database, using moder
 
 ## Recent Changes
 
-### July 2, 2025 - COMPREHENSIVE FIXES: PLAYER MODAL REVAMP & TRYOUT SYSTEM OVERHAUL COMPLETE
+### July 2, 2025 - COMPREHENSIVE FIXES: PLAYER MODAL REVAMP & TRYOUT SYSTEM OVERHAUL + DEVELOPMENT AUTO-PROMOTION COMPLETE
 
 #### ✅ PLAYER DETAIL MODAL CONTRACT NEGOTIATION & TAXI SQUAD INTEGRATION COMPLETE
 - ✓ **Contract Negotiation Button**: Added prominent "Negotiate Contract" button with dollar sign icon to PlayerDetailModal header
@@ -45,6 +45,7 @@ Built as a React + Express web application with PostgreSQL database, using moder
 - ✓ **Fixed 404 Errors**: Resolved taxi squad 404 errors with proper route registration and team ownership verification
 - ✓ **Syntax Error Resolution**: Fixed React Fragment syntax and component prop issues in PlayerDetailModal
 - ✓ **Dashboard UI Consistency**: Fixed Team Power and Team Camaraderie tile vertical sizing to match Division Rank and Credits tiles
+- ✓ **Development Auto-Promotion System**: Added automatic admin promotion for jimmy058910@gmail.com during development to bypass manual promotion requirements before app publication
 
 #### ✅ DYNAMIC ROOKIE GENERATION SYSTEM COMPLETE OVERHAUL
 - ✓ **TAP System Implementation**: Completely rebuilt tryout generation using Total Attribute Points system (BasePoints + Potential×4)
