@@ -154,7 +154,11 @@ export default function SuperUser() {
   // Grant credits mutation
   const grantCreditsMutation = useMutation({
     mutationFn: async () => {
+      if (!team?.id) {
+        throw new Error("No team found");
+      }
       return await apiRequest("/api/superuser/grant-credits", "POST", {
+        teamId: team.id,
         credits: creditsAmount,
         premiumCurrency: premiumAmount
       });
