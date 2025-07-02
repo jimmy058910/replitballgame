@@ -29,23 +29,34 @@ router.post('/grant-credits', RBACService.requirePermission(Permission.GRANT_CRE
 
   // Find target team
   const teamToCredit = targetTeamId 
-    ? await storage.getTeamById(targetTeamId) 
-    : await storage.getTeamByUserId(userId);
+    ? await storage.teams.getTeamById(targetTeamId) 
+    : await storage.teams.getTeamByUserId(userId);
 
   if (!teamToCredit) {
     throw ErrorCreators.notFound("Target team not found");
   }
 
   // Update team finances
-  const currentFinances = await storage.getTeamFinances(teamToCredit.id);
+  const currentFinances = await storage.teamFinances.getTeamFinances(teamToCredit.id);
   if (!currentFinances) {
-    await storage.createTeamFinances({
+    await storage.teamFinances.createTeamFinances({
       teamId: teamToCredit.id,
       credits: credits,
       premiumCurrency: premiumCurrency,
+      season: 1, // Default season
+      ticketSales: 0,
+      concessionSales: 0,
+      jerseySales: 0,
+      sponsorships: 0,
+      playerSalaries: 0,
+      staffSalaries: 0,
+      facilities: 0,
+      totalIncome: 0,
+      totalExpenses: 0,
+      netIncome: 0,
     });
   } else {
-    await storage.updateTeamFinances(teamToCredit.id, {
+    await storage.teamFinances.updateTeamFinances(teamToCredit.id, {
       credits: (currentFinances.credits || 0) + credits,
       premiumCurrency: (currentFinances.premiumCurrency || 0) + premiumCurrency
     });
