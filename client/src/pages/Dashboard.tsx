@@ -278,10 +278,10 @@ export default function Dashboard() {
           {/* Stats Cards */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
             <Link href="/competition">
-              <Card className="bg-gray-800 border-gray-700 hover:bg-gray-700 transition-colors cursor-pointer">
-                <CardContent className="p-6">
-                  <div className="flex items-center justify-between">
-                    <div>
+              <Card className="bg-gray-800 border-gray-700 hover:bg-gray-700 transition-colors cursor-pointer h-32">
+                <CardContent className="p-6 h-full">
+                  <div className="flex items-center justify-between h-full">
+                    <div className="flex flex-col justify-center">
                       <div className="flex items-center gap-2">
                         <p className="text-gray-400 text-sm">Division Rank</p>
                         <HelpIcon content="Your team's current division. New teams start in Division 8. Top 2 teams promote, bottom 2 relegate each season. Click to view detailed standings." />
@@ -301,15 +301,15 @@ export default function Dashboard() {
             
 
             
-            <Card className="bg-gray-800 border-gray-700">
-              <CardContent className="p-6">
-                <div className="flex items-center justify-between">
-                  <div>
+            <Card className="bg-gray-800 border-gray-700 h-32">
+              <CardContent className="p-6 h-full">
+                <div className="flex items-center justify-between h-full">
+                  <div className="flex flex-col justify-center">
                     <div className="flex items-center gap-2">
                       <p className="text-gray-400 text-sm">Team Power</p>
                       <HelpIcon content="Combined power rating of all your players. Higher power means stronger overall team performance." />
                     </div>
-                    <p className="text-xl font-bold text-primary-400">{team.teamPower}</p>
+                    <p className="text-2xl font-bold text-primary-400">{team.teamPower}</p>
                     <p className="text-xs text-green-400">Building strength</p>
                   </div>
                   <div className="bg-primary-400 bg-opacity-20 p-3 rounded-lg">
@@ -320,10 +320,10 @@ export default function Dashboard() {
             </Card>
             
             <Link href="/team?tab=finances">
-              <Card className="bg-gray-800 border-gray-700 hover:bg-gray-700 transition-colors cursor-pointer">
-                <CardContent className="p-6">
-                  <div className="flex items-center justify-between">
-                    <div>
+              <Card className="bg-gray-800 border-gray-700 hover:bg-gray-700 transition-colors cursor-pointer h-32">
+                <CardContent className="p-6 h-full">
+                  <div className="flex items-center justify-between h-full">
+                    <div className="flex flex-col justify-center">
                       <div className="flex items-center gap-2">
                         <p className="text-gray-400 text-sm">Credits</p>
                         <HelpIcon content="Primary game currency. Earn through matches, achievements, and season rewards. Use for salaries and purchases. Click to view financial details." />
@@ -339,15 +339,15 @@ export default function Dashboard() {
               </Card>
             </Link>
 
-            <Card className="bg-gray-800 border-gray-700">
-              <CardContent className="p-6">
-                <div className="flex items-center justify-between">
-                  <div>
+            <Card className="bg-gray-800 border-gray-700 h-32">
+              <CardContent className="p-6 h-full">
+                <div className="flex items-center justify-between h-full">
+                  <div className="flex flex-col justify-center">
                     <div className="flex items-center gap-2">
                       <p className="text-gray-400 text-sm">Team Camaraderie</p>
                       <HelpIcon content="Team chemistry (0-100). High camaraderie provides in-game bonuses, injury resistance, and better contract negotiations." />
                     </div>
-                    <p className="text-xl font-bold text-teal-400">{team?.teamCamaraderie ?? 'N/A'}</p>
+                    <p className="text-2xl font-bold text-teal-400">{team?.teamCamaraderie ?? 'N/A'}</p>
                     <p className="text-xs text-gray-500">
                       {getTeamCamaraderieDescription(team?.teamCamaraderie)}
                     </p>
