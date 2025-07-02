@@ -122,8 +122,37 @@ export default function UnifiedPlayerCard({
   variant = 'roster',
   onClick
 }: PlayerCardProps) {
-  // Use the centralized name display function
-  const displayName = getPlayerDisplayName(player);
+  // Prioritize lastName for display, with debugging info
+  const displayName = (() => {
+    console.log('Player data:', { 
+      firstName: player.firstName, 
+      lastName: player.lastName, 
+      name: player.name 
+    });
+    
+    // Prioritize lastName specifically
+    if (player.lastName && player.lastName.trim() && 
+        player.lastName !== "Player" && player.lastName !== "AI" && 
+        player.lastName !== "Unknown") {
+      return player.lastName;
+    }
+    
+    // Fall back to firstName
+    if (player.firstName && player.firstName.trim() && 
+        player.firstName !== "Player" && player.firstName !== "AI" && 
+        player.firstName !== "Unknown") {
+      return player.firstName;
+    }
+    
+    // Use name field if others aren't available
+    if (player.name && player.name.trim() && 
+        !player.name.includes("Player") && !player.name.includes("AI")) {
+      return player.name;
+    }
+    
+    // Final fallback
+    return getPlayerDisplayName(player);
+  })();
   const role = getPlayerRole(player);
   const overallPower = calculateOverallPower(player);
   const potential = parseFloat(player.overallPotentialStars || '0');
