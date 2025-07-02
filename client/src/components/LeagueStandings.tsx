@@ -78,7 +78,7 @@ export default function LeagueStandings({ division }: LeagueStandingsProps) {
                     <th className="text-center py-2 w-12">W</th>
                     <th className="text-center py-2 w-12">D</th>
                     <th className="text-center py-2 w-12">L</th>
-                    <th className="text-center py-2 w-16">GD</th>
+                    <th className="text-center py-2 w-16">SD</th>
                     <th className="text-center py-2 w-12">Pts</th>
                     <th className="text-center py-2 w-16">Streak</th>
                     <th className="text-center py-2 w-24">Form</th>
@@ -97,7 +97,7 @@ export default function LeagueStandings({ division }: LeagueStandingsProps) {
                           position === 1 
                             ? "bg-gold-400 bg-opacity-10" 
                             : isPlayerTeam
-                              ? "bg-primary-500 bg-opacity-15"
+                              ? "border-l-2 border-l-primary-400"
                               : ""
                         }`}
                       >
