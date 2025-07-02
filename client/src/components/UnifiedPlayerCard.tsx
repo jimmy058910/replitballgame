@@ -228,33 +228,32 @@ export default function UnifiedPlayerCard({
                   {player.isCaptain && <Crown className="w-4 h-4 text-yellow-500" />}
                 </div>
                 
-                {/* Role Tag Only */}
-                <div className="flex items-center gap-2 mb-2">
+                {/* Role Tag */}
+                <div className="mb-3">
                   <Badge className={`text-xs font-medium px-3 py-1 ${getRoleTagStyle(role)}`}>
                     {role.toUpperCase()}
                   </Badge>
                 </div>
-              </div>
 
-              {/* Core Ratings Section */}
-              <div className="text-right">
-                {/* Overall Power */}
-                <div className={`text-2xl font-bold ${getPowerColor(overallPower)}`}>
-                  {overallPower}
-                </div>
-                <div className="text-xs text-gray-400 mb-3">Power</div>
-                
-                {/* Race/Age and Potential on same line */}
+                {/* Age and Potential on same line */}
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-1 text-xs text-gray-400">
                     <span>{getRaceEmoji(player.race)}</span>
-                    <span>{getRaceDisplayName(player.race)} • Age {player.age}</span>
+                    <span>Age {player.age}</span>
                   </div>
                   <div className="flex items-center gap-2">
                     {renderStarRating(potential)}
                     <span className="text-xs text-gray-400">Potential</span>
                   </div>
                 </div>
+              </div>
+
+              {/* Power Rating */}
+              <div className="text-right">
+                <div className={`text-2xl font-bold ${getPowerColor(overallPower)}`}>
+                  {overallPower}
+                </div>
+                <div className="text-xs text-gray-400">Power</div>
               </div>
             </div>
           </>
