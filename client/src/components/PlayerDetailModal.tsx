@@ -83,7 +83,7 @@ export default function PlayerDetailModal({
     : player.name || "Unknown Player";
 
   // Calculate potential for each stat (using overallPotentialStars as base)
-  const basePotential = player.overallPotentialStars || 3.0;
+  const basePotential = Number(player.overallPotentialStars) || 3.0;
   const getMaxPotential = (currentStat: number) => {
     // Convert star rating to potential points (each star = 8 potential points)
     const potentialPoints = basePotential * 8;
