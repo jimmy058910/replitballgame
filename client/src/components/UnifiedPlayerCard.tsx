@@ -122,7 +122,12 @@ export default function UnifiedPlayerCard({
   variant = 'roster',
   onClick
 }: PlayerCardProps) {
-  const displayName = getPlayerDisplayName(player);
+  // Prioritize actual player name over generated fallbacks
+  const displayName = player.lastName && player.lastName !== "Player" && player.lastName !== "AI" 
+    ? player.lastName 
+    : player.firstName && player.firstName !== "Player" && player.firstName !== "AI" 
+    ? player.firstName 
+    : getPlayerDisplayName(player);
   const role = getPlayerRole(player);
   const overallPower = calculateOverallPower(player);
   const potential = parseFloat(player.overallPotentialStars || '0');
@@ -186,54 +191,92 @@ export default function UnifiedPlayerCard({
         </div>
 
         {/* Role-Dependent Key Stats Section */}
-        <div className="grid grid-cols-6 gap-1 mb-3">
-          {roleStats.map((stat, index) => {
-            const statValue = player[stat.key] || 20;
-            return (
-              <div key={index} className="text-center">
-                <div className={`text-sm font-semibold ${getStatColor(statValue)}`}>
-                  {statValue}
+        {variant === 'dashboard' ? (
+          // Compact 4-stat layout for Dashboard
+          <div className="grid grid-cols-4 gap-2 mb-3">
+            {roleStats.slice(0, 4).map((stat, index) => {
+              const statValue = player[stat.key] || 20;
+              return (
+                <div key={index} className="text-center">
+                  <div className={`text-sm font-semibold ${getStatColor(statValue)}`}>
+                    {statValue}
+                  </div>
+                  <div className="text-xs text-gray-500">{stat.abbr}</div>
                 </div>
-                <div className="text-xs text-gray-500">{stat.abbr}</div>
-              </div>
-            );
-          })}
-        </div>
+              );
+            })}
+          </div>
+        ) : (
+          // Full 6-stat layout for Roster and other variants
+          <div className="grid grid-cols-6 gap-1 mb-3">
+            {roleStats.map((stat, index) => {
+              const statValue = player[stat.key] || 20;
+              return (
+                <div key={index} className="text-center">
+                  <div className={`text-sm font-semibold ${getStatColor(statValue)}`}>
+                    {statValue}
+                  </div>
+                  <div className="text-xs text-gray-500">{stat.abbr}</div>
+                </div>
+              );
+            })}
+          </div>
+        )}
 
         {/* Contract & Status Section */}
-        <div className="space-y-2">
-          {/* Contract Information */}
-          {player.salary && (
-            <div className="flex items-center justify-between text-xs">
-              <span className="text-gray-400">Salary:</span>
-              <span className="text-white">₡{player.salary.toLocaleString()} / season</span>
-            </div>
-          )}
-          
-          {player.contractSeasons && (
-            <div className="flex items-center justify-between text-xs">
-              <span className="text-gray-400">Contract:</span>
-              <span className="text-white">{player.contractSeasons} seasons remaining</span>
-            </div>
-          )}
-
-          {/* Status Icons */}
-          <div className="flex items-center gap-3">
+        {variant === 'dashboard' ? (
+          // Compact status-only layout for Dashboard
+          <div className="flex items-center justify-center gap-3">
             {hasInjury && (
               <div className="flex items-center gap-1">
                 <Heart className="w-4 h-4 text-red-500" />
-                <span className="text-xs text-red-400">{player.injuryStatus}</span>
+                <span className="text-xs text-red-400">Injured</span>
               </div>
             )}
             
             {isContractExpiring && (
               <div className="flex items-center gap-1">
                 <AlertTriangle className="w-4 h-4 text-yellow-500" />
-                <span className="text-xs text-yellow-400">Contract Expiring</span>
+                <span className="text-xs text-yellow-400">Expiring</span>
               </div>
             )}
           </div>
-        </div>
+        ) : (
+          // Full contract & status layout for Roster and other variants
+          <div className="space-y-2">
+            {/* Contract Information */}
+            {player.salary && (
+              <div className="flex items-center justify-between text-xs">
+                <span className="text-gray-400">Salary:</span>
+                <span className="text-white">₡{player.salary.toLocaleString()} / season</span>
+              </div>
+            )}
+            
+            {player.contractSeasons && (
+              <div className="flex items-center justify-between text-xs">
+                <span className="text-gray-400">Contract:</span>
+                <span className="text-white">{player.contractSeasons} seasons remaining</span>
+              </div>
+            )}
+
+            {/* Status Icons */}
+            <div className="flex items-center gap-3">
+              {hasInjury && (
+                <div className="flex items-center gap-1">
+                  <Heart className="w-4 h-4 text-red-500" />
+                  <span className="text-xs text-red-400">{player.injuryStatus}</span>
+                </div>
+              )}
+              
+              {isContractExpiring && (
+                <div className="flex items-center gap-1">
+                  <AlertTriangle className="w-4 h-4 text-yellow-500" />
+                  <span className="text-xs text-yellow-400">Contract Expiring</span>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
 
         {/* Action Buttons */}
         {showActions && onAction && (
