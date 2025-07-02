@@ -241,9 +241,8 @@ export default function UnifiedPlayerCard({
 
                 {/* Age and Potential on same line */}
                 <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-1 text-xs text-gray-400">
-                    <span>{getRaceEmoji(player.race)}</span>
-                    <span>Age {player.age}</span>
+                  <div className="text-xs text-gray-400">
+                    Age {player.age}
                   </div>
                   <div className="flex items-center gap-2">
                     {renderStarRating(potential)}
