@@ -58,9 +58,44 @@ async function createAITeamsForDivision(division: number) {
 
     const { generateRandomName } = await import("@shared/names");
 
+    // Define required position distribution: 2 passers, 3 runners, 3 blockers, 4 additional
+    const requiredPositions = [
+      "Passer", "Passer", // 2 passers
+      "Runner", "Runner", "Runner", // 3 runners  
+      "Blocker", "Blocker", "Blocker" // 3 blockers
+    ];
+    
+    // For the remaining 4 players (12 total - 8 required), ensure we don't exceed limits
+    const additionalPositions = ["Passer", "Runner", "Blocker"];
+    for (let i = 0; i < 4; i++) {
+      let position = additionalPositions[Math.floor(Math.random() * additionalPositions.length)];
+      
+      // Count current positions
+      const currentCount = requiredPositions.filter(p => p === position).length;
+      
+      // Prevent overstocking: max 3 passers, max 4 runners, max 4 blockers
+      if ((position === "Passer" && currentCount >= 3) ||
+          (position === "Runner" && currentCount >= 4) ||
+          (position === "Blocker" && currentCount >= 4)) {
+        // Try other positions
+        const alternatives = additionalPositions.filter(p => {
+          const count = requiredPositions.filter(pos => pos === p).length;
+          return (p === "Passer" && count < 3) ||
+                 (p === "Runner" && count < 4) ||
+                 (p === "Blocker" && count < 4);
+        });
+        if (alternatives.length > 0) {
+          position = alternatives[Math.floor(Math.random() * alternatives.length)];
+        }
+      }
+      
+      requiredPositions.push(position);
+    }
+
     for (let j = 0; j < 12; j++) {
       const playerRace = races[Math.floor(Math.random() * races.length)];
       const nameData = generateRandomName(playerRace.toLowerCase());
+      const position = requiredPositions[j];
 
       const playerData = generateRandomPlayer(
         `${nameData.firstName} ${nameData.lastName}`,
@@ -70,7 +105,7 @@ async function createAITeamsForDivision(division: number) {
 
       await storage.players.createPlayer({ // Use playerStorage
         ...playerData,
-        position: ["Passer", "Runner", "Blocker"][Math.floor(Math.random() * 3)],
+        position: position,
         abilities: JSON.stringify([])
       });
     }
