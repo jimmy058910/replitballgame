@@ -50,6 +50,8 @@ Built as a React + Express web application with PostgreSQL database, using moder
 - ✓ **ServerTimeDisplay Error Fix**: Fixed JavaScript error in ServerTimeDisplay component with proper null checking for timeUntilNextWindow object
 - ✓ **RBAC SQL Issue Resolution**: Updated promoteToAdmin function to use proper Drizzle ORM eq operator to resolve SQL parameter binding issues
 - ✓ **Manual Admin Promotion Button**: Added "Promote to Admin" button to SuperUser panel for immediate admin permission upgrade
+- ✓ **Seasonal Taxi Squad Restrictions**: Implemented offseason-only promotion restrictions - Promote button disabled during regular season (Days 1-15), only enabled during offseason (Days 16-17)
+- ✓ **Enhanced Taxi Squad UI**: Added visual indicators for promotion availability with grayed-out buttons, tooltips, and dynamic status messages
 
 #### ✅ DYNAMIC ROOKIE GENERATION SYSTEM COMPLETE OVERHAUL
 - ✓ **TAP System Implementation**: Completely rebuilt tryout generation using Total Attribute Points system (BasePoints + Potential×4)

@@ -58,6 +58,14 @@ export function TaxiSquadManager({ teamId, onNavigateToRecruiting }: TaxiSquadMa
     enabled: !!teamId,
   });
 
+  // Get current season cycle to determine if promotions are allowed
+  const { data: seasonCycle } = useQuery({
+    queryKey: ['/api/season/current-cycle'],
+  });
+
+  // Promotions only allowed during offseason (Days 16-17)
+  const isOffseason = seasonCycle?.currentDay >= 16;
+
   const promotePlayerMutation = useMutation({
     mutationFn: async (playerId: string) => {
       return apiRequest(`/api/teams/${teamId}/taxi-squad/${playerId}/promote`, "POST");
@@ -158,7 +166,9 @@ export function TaxiSquadManager({ teamId, onNavigateToRecruiting }: TaxiSquadMa
               <div className="flex items-center gap-2">
                 <TrendingUp className="w-4 h-4 text-green-400" />
                 <span className="text-sm font-medium text-green-300">Next Season:</span>
-                <span className="text-sm text-white">Players can be promoted during offseason</span>
+                <span className={`text-sm ${isOffseason ? 'text-green-400' : 'text-orange-400'}`}>
+                  {isOffseason ? 'Promotions available now!' : 'Players can be promoted during offseason (Days 16-17)'}
+                </span>
               </div>
             </div>
           </div>
@@ -196,8 +206,12 @@ export function TaxiSquadManager({ teamId, onNavigateToRecruiting }: TaxiSquadMa
                       variant="outline"
                       size="sm"
                       onClick={() => promotePlayerMutation.mutate(player.id)}
-                      disabled={promotePlayerMutation.isPending}
-                      className="bg-green-600 hover:bg-green-700 text-white border-green-600"
+                      disabled={promotePlayerMutation.isPending || !isOffseason}
+                      className={`${!isOffseason 
+                        ? "bg-gray-600 text-gray-400 border-gray-600 cursor-not-allowed" 
+                        : "bg-green-600 hover:bg-green-700 text-white border-green-600"
+                      }`}
+                      title={!isOffseason ? "Player promotions only allowed during offseason (Days 16-17)" : "Promote player to main roster"}
                     >
                       <UserPlus className="w-4 h-4 mr-1" />
                       Promote
