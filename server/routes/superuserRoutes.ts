@@ -76,7 +76,7 @@ router.post('/advance-day', RBACService.requirePermission(Permission.MANAGE_SEAS
   
   logInfo("Admin advancing game day", { adminUserId: userId, requestId });
 
-  const currentSeason = await storage.getCurrentSeason();
+  const currentSeason = await storage.seasons.getCurrentSeason();
   if (!currentSeason) {
     throw ErrorCreators.notFound("No active season found");
   }
