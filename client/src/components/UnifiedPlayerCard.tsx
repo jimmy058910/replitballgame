@@ -224,7 +224,7 @@ export default function UnifiedPlayerCard({
               <div className="flex-1">
                 {/* Player Name */}
                 <div className="flex items-center gap-2 mb-2">
-                  <h3 className="font-semibold text-white text-lg">{displayName}</h3>
+                  <h3 className="font-semibold text-white text-base">{displayName}</h3>
                   {player.isCaptain && <Crown className="w-4 h-4 text-yellow-500" />}
                 </div>
                 
