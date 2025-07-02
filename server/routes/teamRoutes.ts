@@ -316,42 +316,120 @@ function generateTryoutCandidate(type: 'basic' | 'advanced'): any {
   // Use AgingService for proper age generation (16-20 for tryouts)
   const age = AgingService.generatePlayerAge('tryout');
   
-  // Enhanced stats for advanced tryouts
-  const statBonus = type === 'advanced' ? 5 : 0;
-  const minStat = type === 'advanced' ? 15 : 8;
-  const maxStat = type === 'advanced' ? 35 : 30;
+  // Step 1: Determine Player Potential (1.0-5.0 stars in 0.5 increments)
+  let overallPotentialStars: number;
+  const potentialRoll = Math.random();
+  
+  if (type === 'advanced') {
+    // Advanced: High chance of 2.5-4 stars, moderate chance of 4.5-5 stars
+    if (potentialRoll < 0.05) overallPotentialStars = 5.0;      // 5% chance
+    else if (potentialRoll < 0.15) overallPotentialStars = 4.5; // 10% chance
+    else if (potentialRoll < 0.40) overallPotentialStars = 4.0; // 25% chance
+    else if (potentialRoll < 0.65) overallPotentialStars = 3.5; // 25% chance
+    else if (potentialRoll < 0.85) overallPotentialStars = 3.0; // 20% chance
+    else if (potentialRoll < 0.95) overallPotentialStars = 2.5; // 10% chance
+    else overallPotentialStars = 2.0; // 5% chance
+  } else {
+    // Basic: High chance of 1-2.5 stars, low chance of 3-4 stars, very rare 4.5+
+    if (potentialRoll < 0.01) overallPotentialStars = 4.5;      // 1% chance
+    else if (potentialRoll < 0.05) overallPotentialStars = 4.0; // 4% chance
+    else if (potentialRoll < 0.15) overallPotentialStars = 3.5; // 10% chance
+    else if (potentialRoll < 0.25) overallPotentialStars = 3.0; // 10% chance
+    else if (potentialRoll < 0.45) overallPotentialStars = 2.5; // 20% chance
+    else if (potentialRoll < 0.70) overallPotentialStars = 2.0; // 25% chance
+    else if (potentialRoll < 0.90) overallPotentialStars = 1.5; // 20% chance
+    else overallPotentialStars = 1.0; // 10% chance
+  }
+  
+  // Step 2: Calculate Total Attribute Points (TAP)
+  let basePoints: number;
+  if (type === 'advanced') {
+    basePoints = Math.floor(Math.random() * 26) + 60; // 60-85
+  } else {
+    basePoints = Math.floor(Math.random() * 21) + 40; // 40-60
+  }
+  
+  const potentialBonus = overallPotentialStars * 4;
+  const totalAttributePoints = basePoints + potentialBonus;
+  
+  // Step 3: Assign baseline stats (3 each) and determine role
+  const roles = ['Passer', 'Runner', 'Blocker'];
+  const assignedRole = roles[Math.floor(Math.random() * roles.length)];
   
   const baseStats = {
-    speed: Math.floor(Math.random() * (maxStat - minStat + 1)) + minStat + statBonus,
-    power: Math.floor(Math.random() * (maxStat - minStat + 1)) + minStat + statBonus,
-    throwing: Math.floor(Math.random() * (maxStat - minStat + 1)) + minStat + statBonus,
-    catching: Math.floor(Math.random() * (maxStat - minStat + 1)) + minStat + statBonus,
-    kicking: Math.floor(Math.random() * (maxStat - minStat + 1)) + minStat + statBonus,
-    stamina: Math.floor(Math.random() * (maxStat - minStat + 1)) + minStat + statBonus,
-    leadership: Math.floor(Math.random() * (maxStat - minStat + 1)) + minStat + statBonus,
-    agility: Math.floor(Math.random() * (maxStat - minStat + 1)) + minStat + statBonus,
+    speed: 3,
+    power: 3,
+    throwing: 3,
+    catching: 3,
+    kicking: 3,
+    stamina: 3,
+    leadership: 3,
+    agility: 3,
   };
-
-  // Generate potential (higher for advanced tryouts)
-  const potentialRoll = Math.random();
-  let potential: "High" | "Medium" | "Low";
-  if (type === 'advanced') {
-    potential = potentialRoll < 0.4 ? "High" : potentialRoll < 0.8 ? "Medium" : "Low";
-  } else {
-    potential = potentialRoll < 0.2 ? "High" : potentialRoll < 0.6 ? "Medium" : "Low";
+  
+  // Calculate remaining points after baseline allocation
+  const baselineTotal = 8 * 3; // 24 points
+  const remainingPoints = totalAttributePoints - baselineTotal;
+  
+  // Distribute remaining points based on role
+  const stats = { ...baseStats };
+  let pointsToDistribute = remainingPoints;
+  
+  // Role-based distribution (60% to primary stats, 40% to others)
+  const primaryPoints = Math.floor(pointsToDistribute * 0.6);
+  const secondaryPoints = pointsToDistribute - primaryPoints;
+  
+  let primaryStats: string[] = [];
+  let secondaryStats: string[] = [];
+  
+  if (assignedRole === 'Passer') {
+    primaryStats = ['throwing', 'agility', 'leadership'];
+    secondaryStats = ['speed', 'power', 'catching', 'kicking', 'stamina'];
+  } else if (assignedRole === 'Runner') {
+    primaryStats = ['speed', 'agility', 'catching'];
+    secondaryStats = ['power', 'throwing', 'kicking', 'stamina', 'leadership'];
+  } else { // Blocker
+    primaryStats = ['power', 'stamina', 'agility'];
+    secondaryStats = ['speed', 'throwing', 'catching', 'kicking', 'leadership'];
   }
+  
+  // Distribute primary points
+  for (let i = 0; i < primaryPoints; i++) {
+    const randomStat = primaryStats[Math.floor(Math.random() * primaryStats.length)];
+    stats[randomStat as keyof typeof stats]++;
+  }
+  
+  // Distribute secondary points
+  for (let i = 0; i < secondaryPoints; i++) {
+    const randomStat = secondaryStats[Math.floor(Math.random() * secondaryStats.length)];
+    stats[randomStat as keyof typeof stats]++;
+  }
+  
+  // Apply racial modifiers and cap at 40
+  Object.keys(stats).forEach(stat => {
+    stats[stat as keyof typeof stats] = Math.min(40, stats[stat as keyof typeof stats]);
+  });
+  
+  // Convert potential to legacy format for compatibility
+  let potential: "High" | "Medium" | "Low";
+  if (overallPotentialStars >= 4.0) potential = "High";
+  else if (overallPotentialStars >= 2.5) potential = "Medium";
+  else potential = "Low";
 
-  const avgStat = Object.values(baseStats).reduce((a, b) => a + b, 0) / 8;
-  const marketValue = Math.floor(1000 + (avgStat * 50) + (Math.random() * 500));
+  const avgStat = Object.values(stats).reduce((a, b) => a + b, 0) / 8;
+  const marketValue = Math.floor(500 + (avgStat * 25) + (Math.random() * 300)); // Lower market value for rookies
 
   return {
     id: Math.random().toString(36).substr(2, 9),
     name: `${firstName} ${lastName}`,
+    firstName,
+    lastName,
     race,
     age,
-    ...baseStats,
+    ...stats,
+    overallPotentialStars, // This is the key field that was missing!
     marketValue,
-    potential
+    potential // Legacy field for compatibility
   };
 }
 

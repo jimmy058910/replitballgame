@@ -34,7 +34,30 @@ Built as a React + Express web application with PostgreSQL database, using moder
 
 ## Recent Changes
 
-### July 1, 2025 - PLAYER CARD UI/UX REVAMP & ENHANCED LIVE MATCH SIMULATION COMPLETE
+### July 2, 2025 - COMPREHENSIVE FIXES: PLAYER MODAL REVAMP & TRYOUT SYSTEM OVERHAUL COMPLETE
+
+#### ✅ PLAYER DETAIL MODAL CONTRACT NEGOTIATION & TAXI SQUAD INTEGRATION COMPLETE
+- ✓ **Contract Negotiation Button**: Added prominent "Negotiate Contract" button with dollar sign icon to PlayerDetailModal header
+- ✓ **Complete Taxi Squad API Backend**: Implemented full API endpoints for taxi squad functionality:
+  - GET /api/teams/:teamId/taxi-squad (retrieve taxi squad players)  
+  - POST /api/teams/:teamId/taxi-squad/:playerId/promote (promote to main roster)
+  - DELETE /api/teams/:teamId/taxi-squad/:playerId (release player)
+- ✓ **Fixed 404 Errors**: Resolved taxi squad 404 errors with proper route registration and team ownership verification
+- ✓ **Syntax Error Resolution**: Fixed React Fragment syntax and component prop issues in PlayerDetailModal
+- ✓ **Dashboard UI Consistency**: Fixed Team Power and Team Camaraderie tile vertical sizing to match Division Rank and Credits tiles
+
+#### ✅ DYNAMIC ROOKIE GENERATION SYSTEM COMPLETE OVERHAUL
+- ✓ **TAP System Implementation**: Completely rebuilt tryout generation using Total Attribute Points system (BasePoints + Potential×4)
+- ✓ **Proper Rookie Stats**: Fixed massively inflated rookie stats - now start with baseline 3 + distributed points instead of 15-35 range
+- ✓ **Star Potential System**: Fixed missing overallPotentialStars field (1.0-5.0 stars) that was causing empty potential display
+- ✓ **Realistic Stat Distribution**: Implemented role-based point allocation (60% primary stats, 40% secondary stats)
+- ✓ **Balanced Tryout Types**: 
+  - Basic Tryout: 40-60 base points, higher chance of 1-2.5 star potential
+  - Advanced Tryout: 60-85 base points, higher chance of 2.5-4+ star potential
+- ✓ **Age-Appropriate Stats**: Rookies now generate with appropriately low stats (typically 3-15 range) reflecting their inexperience
+- ✓ **Market Value Adjustment**: Reduced market values for rookies to reflect their raw talent status
+
+### July 1, 2025 - PLAYER CARD UI/UX REVAMP & ENHANCED LIVE MATCH SIMULATION COMPLETE (Previous)
 
 #### ✅ COMPREHENSIVE PLAYER CARD UI/UX REVAMP COMPLETE
 - ✓ **Complete Design Overhaul**: Redesigned PlayerCard component according to detailed specification for improved roster management
