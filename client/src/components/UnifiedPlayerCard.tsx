@@ -224,19 +224,15 @@ export default function UnifiedPlayerCard({
               <div className="flex-1">
                 {/* Player Name */}
                 <div className="flex items-center gap-2 mb-2">
-                  <h3 className="font-semibold text-white text-base">{displayName}</h3>
+                  <h3 className="font-semibold text-white text-lg">{displayName}</h3>
                   {player.isCaptain && <Crown className="w-4 h-4 text-yellow-500" />}
                 </div>
                 
-                {/* Role Tag & Race/Age Info */}
+                {/* Role Tag Only */}
                 <div className="flex items-center gap-2 mb-2">
                   <Badge className={`text-xs font-medium px-3 py-1 ${getRoleTagStyle(role)}`}>
                     {role.toUpperCase()}
                   </Badge>
-                  <span className="text-xs text-gray-400 flex items-center gap-1">
-                    <span>{getRaceEmoji(player.race)}</span>
-                    {getRaceDisplayName(player.race)} • Age {player.age}
-                  </span>
                 </div>
               </div>
 
@@ -248,10 +244,16 @@ export default function UnifiedPlayerCard({
                 </div>
                 <div className="text-xs text-gray-400 mb-2">Power</div>
                 
-                {/* Potential Stars */}
-                <div className="flex flex-col items-end">
-                  {renderStarRating(potential)}
-                  <div className="text-xs text-gray-400 mt-1">Potential</div>
+                {/* Potential Stars and Race/Age */}
+                <div className="flex items-center justify-between">
+                  <span className="text-xs text-gray-400 flex items-center gap-1 mr-3">
+                    <span>{getRaceEmoji(player.race)}</span>
+                    {getRaceDisplayName(player.race)} • Age {player.age}
+                  </span>
+                  <div className="flex flex-col items-end">
+                    {renderStarRating(potential)}
+                    <div className="text-xs text-gray-400 mt-1">Potential</div>
+                  </div>
                 </div>
               </div>
             </div>
