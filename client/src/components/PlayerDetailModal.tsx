@@ -6,9 +6,10 @@ import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Progress } from "@/components/ui/progress";
 import { Separator } from "@/components/ui/separator";
-import { Shield, Shirt, ShirtIcon, Hand, Star, Trophy, Calendar, FileText, Zap, User, Crown } from "lucide-react";
+import { Shield, Shirt, ShirtIcon, Hand, Star, Trophy, Calendar, FileText, Zap, User, Crown, DollarSign } from "lucide-react";
 import AbilitiesDisplay from "@/components/AbilitiesDisplay";
 import { PlayerAwards } from "./PlayerAwards";
+import ContractNegotiation from "./ContractNegotiation";
 import { getPlayerRole, getRaceDisplayName, getRoleColor, getRoleTextColor } from "@shared/playerUtils";
 
 interface PlayerDetailModalProps {
@@ -74,6 +75,7 @@ export default function PlayerDetailModal({
   onEquipmentChange 
 }: PlayerDetailModalProps) {
   const [activeTab, setActiveTab] = useState("overview");
+  const [showContractNegotiation, setShowContractNegotiation] = useState(false);
 
   if (!player) return null;
 
@@ -155,30 +157,42 @@ export default function PlayerDetailModal({
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
+    <>
+      <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-3">
-            <div className="w-12 h-12 bg-gray-600 bg-opacity-20 rounded-full border-2 border-gray-500 flex items-center justify-center">
-              <User className="w-6 h-6 text-gray-300" />
-            </div>
-            <div>
-              <div className="flex items-center gap-2">
-                <h2 className="text-xl font-bold">{displayName}</h2>
-                {player.isCaptain && <Crown className="w-5 h-5 text-yellow-500" />}
+          <DialogTitle className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="w-12 h-12 bg-gray-600 bg-opacity-20 rounded-full border-2 border-gray-500 flex items-center justify-center">
+                <User className="w-6 h-6 text-gray-300" />
               </div>
-              <div className="flex items-center gap-2 mt-1">
-                <Badge className={`text-xs ${getRoleColor(playerRole)}`}>
-                  {playerRole.toUpperCase()}
-                </Badge>
-                <Badge variant="outline" className="text-xs">
-                  {getRaceEmoji(player.race)} {getRaceDisplayName(player.race)}
-                </Badge>
-                <Badge variant="outline" className="text-xs">
-                  Age {player.age || "Unknown"}
-                </Badge>
+              <div>
+                <div className="flex items-center gap-2">
+                  <h2 className="text-xl font-bold">{displayName}</h2>
+                  {player.isCaptain && <Crown className="w-5 h-5 text-yellow-500" />}
+                </div>
+                <div className="flex items-center gap-2 mt-1">
+                  <Badge className={`text-xs ${getRoleColor(playerRole)}`}>
+                    {playerRole.toUpperCase()}
+                  </Badge>
+                  <Badge variant="outline" className="text-xs">
+                    {getRaceEmoji(player.race)} {getRaceDisplayName(player.race)}
+                  </Badge>
+                  <Badge variant="outline" className="text-xs">
+                    Age {player.age || "Unknown"}
+                  </Badge>
+                </div>
               </div>
             </div>
+            <Button 
+              variant="outline" 
+              size="sm"
+              onClick={() => setShowContractNegotiation(true)}
+              className="flex items-center gap-2"
+            >
+              <DollarSign className="w-4 h-4" />
+              Negotiate Contract
+            </Button>
           </DialogTitle>
         </DialogHeader>
 
@@ -402,6 +416,14 @@ export default function PlayerDetailModal({
           </TabsContent>
         </Tabs>
       </DialogContent>
-    </Dialog>
+      </Dialog>
+
+      {/* Contract Negotiation Dialog */}
+      <ContractNegotiation
+        player={player}
+        isOpen={showContractNegotiation}
+        onClose={() => setShowContractNegotiation(false)}
+      />
+    </>
   );
 }
