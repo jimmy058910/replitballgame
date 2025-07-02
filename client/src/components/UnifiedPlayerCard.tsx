@@ -242,11 +242,11 @@ export default function UnifiedPlayerCard({
                 <div className={`text-2xl font-bold ${getPowerColor(overallPower)}`}>
                   {overallPower}
                 </div>
-                <div className="text-xs text-gray-400 mb-2">Power</div>
+                <div className="text-xs text-gray-400 mb-3">Power</div>
                 
-                {/* Potential Stars and Race/Age */}
-                <div className="flex items-center justify-between">
-                  <span className="text-xs text-gray-400 flex items-center gap-1 mr-3">
+                {/* Race/Age and Potential Stars on same line */}
+                <div className="flex items-center justify-between gap-3">
+                  <span className="text-xs text-gray-400 flex items-center gap-1">
                     <span>{getRaceEmoji(player.race)}</span>
                     {getRaceDisplayName(player.race)} • Age {player.age}
                   </span>
