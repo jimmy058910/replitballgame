@@ -183,13 +183,16 @@ export default function UnifiedPlayerCard({
           /* Compact Dashboard Layout */
           <>
             {/* Header Row: Name and Power */}
-            <div className="flex items-center justify-between mb-3">
-              <div className="flex items-center gap-2">
-                <h3 className="font-semibold text-white text-lg">{displayName}</h3>
+            <div className="flex items-start justify-between mb-3">
+              <div className="flex items-center gap-2 flex-1">
+                <h3 className="font-semibold text-white text-base">{displayName}</h3>
                 {player.isCaptain && <Crown className="w-4 h-4 text-yellow-500" />}
               </div>
-              <div className={`text-3xl font-bold ${getPowerColor(overallPower)}`}>
-                {overallPower}
+              <div className="text-right">
+                <div className={`text-3xl font-bold ${getPowerColor(overallPower)}`}>
+                  {overallPower}
+                </div>
+                <div className="text-xs text-gray-400">Power</div>
               </div>
             </div>
 
@@ -204,12 +207,11 @@ export default function UnifiedPlayerCard({
               </div>
             </div>
 
-            {/* Power and Potential Row */}
+            {/* Potential Row */}
             <div className="flex items-center justify-between mb-3">
-              <div className="text-xs text-gray-400">Power</div>
+              <div className="text-xs text-gray-400">Potential</div>
               <div className="flex items-center gap-2">
                 {renderStarRating(potential)}
-                <span className="text-xs text-gray-400">Potential</span>
               </div>
             </div>
           </>
@@ -257,9 +259,9 @@ export default function UnifiedPlayerCard({
 
         {/* Role-Dependent Key Stats Section */}
         {variant === 'dashboard' ? (
-          // Compact 4-stat layout for Dashboard
-          <div className="grid grid-cols-4 gap-2 mb-3">
-            {roleStats.slice(0, 4).map((stat, index) => {
+          // Expanded 6-stat layout for Dashboard
+          <div className="grid grid-cols-6 gap-1 mb-3">
+            {roleStats.slice(0, 6).map((stat, index) => {
               const statValue = player[stat.key] || 20;
               return (
                 <div key={index} className="text-center">
