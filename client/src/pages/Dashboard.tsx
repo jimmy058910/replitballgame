@@ -302,7 +302,7 @@ export default function Dashboard() {
 
             
             <Card className="bg-gray-800 border-gray-700">
-              <CardContent className="p-4">
+              <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
                     <div className="flex items-center gap-2">
@@ -312,8 +312,8 @@ export default function Dashboard() {
                     <p className="text-xl font-bold text-primary-400">{team.teamPower}</p>
                     <p className="text-xs text-green-400">Building strength</p>
                   </div>
-                  <div className="bg-primary-400 bg-opacity-20 p-2 rounded-lg">
-                    <i className="fas fa-bolt text-primary-400 text-lg"></i>
+                  <div className="bg-primary-400 bg-opacity-20 p-3 rounded-lg">
+                    <i className="fas fa-bolt text-primary-400 text-xl"></i>
                   </div>
                 </div>
               </CardContent>
@@ -340,7 +340,7 @@ export default function Dashboard() {
             </Link>
 
             <Card className="bg-gray-800 border-gray-700">
-              <CardContent className="p-4">
+              <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
                     <div className="flex items-center gap-2">
@@ -352,8 +352,8 @@ export default function Dashboard() {
                       {getTeamCamaraderieDescription(team?.teamCamaraderie)}
                     </p>
                   </div>
-                  <div className="bg-teal-400 bg-opacity-20 p-2 rounded-lg">
-                    <UsersIcon className="text-teal-400 text-lg" />
+                  <div className="bg-teal-400 bg-opacity-20 p-3 rounded-lg">
+                    <UsersIcon className="text-teal-400 text-xl" />
                   </div>
                 </div>
               </CardContent>
