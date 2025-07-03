@@ -1509,6 +1509,34 @@ export default function EnhancedMatchSimulation({
   const { showRewardedVideoAd, closeAd, adConfig } = useAdSystem();
   const gameIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
+  // Sync with backend match state
+  useEffect(() => {
+    if (initialLiveState) {
+      console.log("Syncing with backend match state:", initialLiveState);
+      setGameState(prevState => ({
+        ...prevState,
+        gameTime: initialLiveState.gameTime || prevState.gameTime,
+        maxTime: initialLiveState.maxTime || prevState.maxTime,
+        currentHalf: initialLiveState.currentHalf || prevState.currentHalf,
+        team1Score: initialLiveState.team1Score || prevState.team1Score,
+        team2Score: initialLiveState.team2Score || prevState.team2Score,
+        isRunning: initialLiveState.isRunning || false,
+        gameLog: initialLiveState.recentEvents?.map((event: any) => 
+          `[${Math.floor(event.time / 60)}:${String(event.time % 60).padStart(2, '0')}] ${event.description}`
+        ) || prevState.gameLog,
+      }));
+      
+      // Stop local simulation if match is completed
+      if (initialLiveState.status === 'completed') {
+        console.log("Match completed, stopping local simulation");
+        if (gameIntervalRef.current) {
+          clearInterval(gameIntervalRef.current);
+          gameIntervalRef.current = null;
+        }
+      }
+    }
+  }, [initialLiveState]);
+
   // Initialize enhanced players and simulation engine
   useEffect(() => {
     const initializeEnhancedSimulation = () => {

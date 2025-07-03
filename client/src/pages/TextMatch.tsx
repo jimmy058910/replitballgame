@@ -12,35 +12,35 @@ export default function TextMatch() {
   const { data: match, isLoading: matchLoading } = useQuery({
     queryKey: [`/api/matches/${matchId}`],
     enabled: !!matchId,
-    refetchInterval: (data) => {
+    refetchInterval: (data: any) => {
       // Only refetch live matches every 2 seconds for synchronized viewing
       return data?.status === 'live' ? 2000 : false;
     },
-  });
+  }) as { data: any, isLoading: boolean };
 
   const { data: team1, isLoading: team1Loading, error: team1Error } = useQuery({
     queryKey: [`/api/teams/${match?.homeTeamId}`],
-    enabled: !!match?.homeTeamId && match?.homeTeamId !== undefined,
+    enabled: !!(match as any)?.homeTeamId && (match as any)?.homeTeamId !== undefined,
     retry: 1,
     staleTime: 60000,
   });
 
   const { data: team2, isLoading: team2Loading, error: team2Error } = useQuery({
     queryKey: [`/api/teams/${match?.awayTeamId}`],
-    enabled: !!match?.awayTeamId && match?.awayTeamId !== undefined,
+    enabled: !!(match as any)?.awayTeamId && (match as any)?.awayTeamId !== undefined,
     retry: 1,
     staleTime: 60000,
   });
 
   const { data: team1Players } = useQuery({
     queryKey: [`/api/teams/${match?.homeTeamId}/players`],
-    enabled: !!match?.homeTeamId,
+    enabled: !!(match as any)?.homeTeamId,
     retry: false,
   });
 
   const { data: team2Players } = useQuery({
     queryKey: [`/api/teams/${match?.awayTeamId}/players`],
-    enabled: !!match?.awayTeamId,
+    enabled: !!(match as any)?.awayTeamId,
     retry: false,
   });
 
@@ -97,10 +97,10 @@ export default function TextMatch() {
       <EnhancedMatchSimulation
         team1={team1WithPlayers}
         team2={team2WithPlayers}
-        isExhibition={match?.matchType === "exhibition"}
+        isExhibition={(match as any)?.matchType === "exhibition"}
         matchId={matchId}
-        initialLiveState={match?.liveState}
-        isLiveMatch={match?.status === 'live'}
+        initialLiveState={(match as any)?.liveState}
+        isLiveMatch={(match as any)?.status === 'live'}
         onMatchComplete={(result) => {
           console.log("Match completed:", result);
         }}
