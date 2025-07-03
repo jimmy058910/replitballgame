@@ -67,6 +67,18 @@ export default function Exhibitions() {
 
   // Check if there's a live exhibition match
   const hasLiveExhibition = liveMatches?.some((match: any) => match.type === 'exhibition');
+  
+  // Debug logging
+  console.log("Exhibition Debug Info:", {
+    gamesPlayedToday,
+    freeGamesRemaining,
+    exhibitionEntriesUsed,
+    entryGamesRemaining,
+    totalGamesRemaining,
+    hasLiveExhibition,
+    liveMatches: liveMatches?.length || 0,
+    exhibitionStats
+  });
 
   const instantExhibitionMutation = useMutation({
     mutationFn: async () => {

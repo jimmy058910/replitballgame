@@ -924,5 +924,46 @@ router.get('/:teamId/seasonal-data', isAuthenticated, asyncHandler(async (req: a
   });
 }));
 
+// Get teams by division endpoint
+router.get('/division/:division', isAuthenticated, asyncHandler(async (req: any, res: Response) => {
+  const { division } = req.params;
+  const divisionNumber = parseInt(division);
+  
+  if (isNaN(divisionNumber) || divisionNumber < 1 || divisionNumber > 8) {
+    throw ErrorCreators.validation("Division must be a number between 1 and 8");
+  }
+
+  // Get all teams in the specified division
+  const teams = await storage.teams.getTeamsByDivision(divisionNumber);
+
+  // Get team details with player counts and power ratings
+  const teamsWithDetails = await Promise.all(
+    teams.map(async (team) => {
+      const players = await storage.players.getPlayersByTeamId(team.id);
+      const teamPower = calculateTeamPower(players);
+      
+      return {
+        id: team.id,
+        name: team.name,
+        division: team.division,
+        teamPower,
+        playerCount: players.length,
+        wins: team.wins || 0,
+        losses: team.losses || 0,
+        draws: team.draws || 0,
+        isUserTeam: !!team.userId
+      };
+    })
+  );
+
+  logInfo("Teams by division retrieved", {
+    division: divisionNumber,
+    teamsCount: teamsWithDetails.length,
+    requestId: req.requestId
+  });
+
+  res.json(teamsWithDetails);
+}));
+
 
 export default router;
