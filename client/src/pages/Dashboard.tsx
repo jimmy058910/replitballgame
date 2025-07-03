@@ -120,6 +120,29 @@ function getTeamPowerDescription(teamPower: number | undefined | null): string {
   return "Building for the future.";
 }
 
+// Helper function to get team's current ranking position
+function getTeamRankPosition(standings: any[], teamId: string): string {
+  if (!standings || !teamId) return "";
+  
+  const teamPosition = standings.findIndex(team => team.id === teamId);
+  if (teamPosition === -1) return "";
+  
+  const position = teamPosition + 1;
+  const teamPoints = standings[teamPosition]?.points || 0;
+  
+  // Check for ties by looking at teams with same points
+  const teamsWithSamePoints = standings.filter(team => team.points === teamPoints);
+  const isTie = teamsWithSamePoints.length > 1;
+  
+  // Format position with proper suffix
+  let suffix = "th";
+  if (position % 10 === 1 && position % 100 !== 11) suffix = "st";
+  else if (position % 10 === 2 && position % 100 !== 12) suffix = "nd";
+  else if (position % 10 === 3 && position % 100 !== 13) suffix = "rd";
+  
+  return isTie ? `T-${position}${suffix}` : `${position}${suffix}`;
+}
+
 // Server Time Display Component
 function ServerTimeDisplay({ serverTime }: { serverTime: any }) {
   const formatServerTime = () => {
@@ -216,6 +239,11 @@ export default function Dashboard() {
     refetchInterval: 30000, // Update every 30 seconds
   });
 
+  const { data: standings } = useQuery<any[]>({
+    queryKey: [`/api/leagues/${team?.division || 8}/standings`],
+    enabled: !!team?.division,
+  });
+
   if (isLoading || teamLoading) {
     return (
       <div className="min-h-screen bg-gray-900 flex items-center justify-center">
@@ -299,9 +327,11 @@ export default function Dashboard() {
                         <HelpIcon content="Your team's current division. New teams start in Division 8. Top 2 teams promote, bottom 2 relegate each season. Click to view detailed standings." />
                       </div>
                       <p className="text-2xl font-bold text-gold-400">
-                        {team.division === 8 ? "New" : `Div ${team.division}`}
+                        Division {team.division}
                       </p>
-                      <p className="text-xs text-gray-400">{team.wins}W - {team.losses}L - {team.draws}D</p>
+                      <p className="text-xs text-gray-400">
+                        {getTeamRankPosition(standings, team.id)} | {team.wins}W - {team.losses}L - {team.draws}D
+                      </p>
                     </div>
                     <div className="bg-gold-400 bg-opacity-20 p-3 rounded-lg">
                       <i className="fas fa-trophy text-gold-400 text-xl"></i>
