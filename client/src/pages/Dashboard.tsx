@@ -109,6 +109,17 @@ function getTeamCamaraderieDescription(camaraderie: number | undefined | null): 
   return "Poor: Team spirit is suffering.";
 }
 
+// Helper function for Team Power Tier Description
+function getTeamPowerDescription(teamPower: number | undefined | null): string {
+  if (teamPower === undefined || teamPower === null) return "Building for the future.";
+  
+  if (teamPower >= 31) return "A powerhouse of the league.";
+  if (teamPower >= 26) return "A true championship threat.";
+  if (teamPower >= 21) return "Can challenge any team on a good day.";
+  if (teamPower >= 16) return "Showing signs of promise.";
+  return "Building for the future.";
+}
+
 // Server Time Display Component
 function ServerTimeDisplay({ serverTime }: { serverTime: any }) {
   const formatServerTime = () => {
@@ -311,7 +322,7 @@ export default function Dashboard() {
                       <HelpIcon content="Combined power rating of all your players. Higher power means stronger overall team performance." />
                     </div>
                     <p className="text-2xl font-bold text-primary-400">{team.teamPower}</p>
-                    <p className="text-xs text-green-400">Building strength</p>
+                    <p className="text-xs text-green-400">{getTeamPowerDescription(team.teamPower)}</p>
                   </div>
                   <div className="bg-primary-400 bg-opacity-20 p-3 rounded-lg">
                     <i className="fas fa-bolt text-primary-400 text-xl"></i>
