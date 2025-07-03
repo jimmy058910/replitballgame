@@ -2,6 +2,7 @@ import { useRoute } from "wouter";
 import { useQuery } from "@tanstack/react-query";
 import EnhancedMatchSimulation from "@/components/EnhancedMatchSimulation";
 import { Loader2 } from "lucide-react";
+import { Card, CardContent } from "@/components/ui/card";
 
 export default function TextMatch() {
   const [, textMatchParams] = useRoute("/text-match/:matchId");

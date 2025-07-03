@@ -82,9 +82,13 @@ export default function Exhibitions() {
 
   const instantExhibitionMutation = useMutation({
     mutationFn: async () => {
-      return await apiRequest("/api/exhibitions/instant-match", "POST");
+      console.log("Making instant exhibition API call...");
+      const result = await apiRequest("/api/exhibitions/instant-match", "POST");
+      console.log("Instant exhibition API response:", result);
+      return result;
     },
     onSuccess: (data) => {
+      console.log("Instant exhibition success:", data);
       if (data.matchId) {
         const homeAway = data.isHome ? "home" : "away";
         toast({
@@ -92,9 +96,17 @@ export default function Exhibitions() {
           description: `Starting ${homeAway} match against ${data.opponentName}`,
         });
         window.location.href = `/match/${data.matchId}`;
+      } else {
+        console.error("No matchId in response:", data);
+        toast({
+          title: "Match Creation Failed",
+          description: "No match ID received from server",
+          variant: "destructive",
+        });
       }
     },
     onError: (error: Error) => {
+      console.error("Instant exhibition error:", error);
       toast({
         title: "Match Failed",
         description: error.message,
