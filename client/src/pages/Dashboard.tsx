@@ -102,11 +102,11 @@ function getDivisionNameWithSubdivision(division: number, teamId?: string): stri
 // Helper function for Camaraderie Description
 function getTeamCamaraderieDescription(camaraderie: number | undefined | null): string {
   if (camaraderie === undefined || camaraderie === null) return "Overall team cohesion.";
-  if (camaraderie > 75) return "Excellent: Team is in sync!";
-  if (camaraderie > 60) return "Good: Strong team bonds.";
-  if (camaraderie > 40) return "Average: Room for improvement.";
-  if (camaraderie > 25) return "Low: Some friction in the ranks.";
-  return "Poor: Team spirit is suffering.";
+  if (camaraderie >= 91) return "Excellent (91-100): Team is in perfect sync!";
+  if (camaraderie >= 76) return "Good (76-90): Strong team bonds.";
+  if (camaraderie >= 41) return "Average (41-75): Room for improvement.";
+  if (camaraderie >= 26) return "Low (26-40): Some friction in the ranks.";
+  return "Poor (0-25): Team spirit is suffering.";
 }
 
 // Helper function for Team Power Tier Description

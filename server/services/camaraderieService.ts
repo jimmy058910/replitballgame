@@ -15,15 +15,21 @@ import * as schema from "@shared/schema";
 
 export interface CamaraderieEffects {
   teamCamaraderie: number;
-  status: 'in_sync' | 'neutral' | 'out_of_sorts';
+  status: 'excellent' | 'good' | 'average' | 'low' | 'poor';
   contractNegotiationBonus: number;
   inGameStatBonus: {
     catching: number;
     agility: number;
     passAccuracy: number;
+    fumbleRisk: number; // New: fumble risk for poor camaraderie
   };
-  developmentBonus: number;
+  developmentBonus: number; // Now percentage bonus to progression chance
   injuryReduction: number;
+  tier: {
+    name: string;
+    range: string;
+    description: string;
+  };
 }
 
 export interface SeasonEndCamaraderieUpdate {
@@ -63,43 +69,89 @@ export class CamaraderieService {
   
   /**
    * Get comprehensive camaraderie effects for a team
+   * Enhanced tier system with more detailed effects
    */
   static async getCamaraderieEffects(teamId: string): Promise<CamaraderieEffects> {
     const teamCamaraderie = await this.getTeamCamaraderie(teamId);
     
-    // Determine status
-    let status: 'in_sync' | 'neutral' | 'out_of_sorts' = 'neutral';
-    if (teamCamaraderie > 75) status = 'in_sync';
-    else if (teamCamaraderie < 35) status = 'out_of_sorts';
+    // Determine tier and status based on enhanced system
+    let status: 'excellent' | 'good' | 'average' | 'low' | 'poor';
+    let tier: { name: string; range: string; description: string };
+    let catching = 0, agility = 0, passAccuracy = 0, fumbleRisk = 0;
+    let injuryReduction = 0;
     
-    // Contract negotiation effects
-    const contractNegotiationBonus = (teamCamaraderie - 50) * 0.2;
-    
-    // In-game stat effects
-    let catching = 0, agility = 0, passAccuracy = 0;
-    if (status === 'in_sync') {
+    if (teamCamaraderie >= 91) {
+      // Excellent (91-100): Maximum bonuses
+      status = 'excellent';
+      tier = { 
+        name: 'Excellent', 
+        range: '91-100', 
+        description: 'Team is in perfect sync!' 
+      };
       catching = 2;
       agility = 2;
-      passAccuracy = 2; // Reduced pass inaccuracy
-    } else if (status === 'out_of_sorts') {
-      catching = -2;
+      passAccuracy = 3; // Significant accuracy boost
+      injuryReduction = 3; // 3% injury reduction
+    } else if (teamCamaraderie >= 76) {
+      // Good (76-90): Solid bonuses
+      status = 'good';
+      tier = { 
+        name: 'Good', 
+        range: '76-90', 
+        description: 'Strong team bonds.' 
+      };
+      catching = 1;
+      agility = 1;
+      passAccuracy = 1; // Minor accuracy boost
+      injuryReduction = 1.5; // 1.5% injury reduction
+    } else if (teamCamaraderie >= 41) {
+      // Average (41-75): No bonuses or penalties
+      status = 'average';
+      tier = { 
+        name: 'Average', 
+        range: '41-75', 
+        description: 'Room for improvement.' 
+      };
+      // All remain 0 (no bonuses or penalties)
+    } else if (teamCamaraderie >= 26) {
+      // Low (26-40): Minor penalties
+      status = 'low';
+      tier = { 
+        name: 'Low', 
+        range: '26-40', 
+        description: 'Some friction in the ranks.' 
+      };
+      catching = -1;
       agility = -1;
-      passAccuracy = -2; // Increased pass inaccuracy
+      passAccuracy = -1; // Minor accuracy penalty
+    } else {
+      // Poor (0-25): Major penalties and fumble risk
+      status = 'poor';
+      tier = { 
+        name: 'Poor', 
+        range: '0-25', 
+        description: 'Team spirit is suffering.' 
+      };
+      catching = -2;
+      agility = -2;
+      passAccuracy = -3; // Significant accuracy penalty
+      fumbleRisk = 2; // 2% chance of miscommunication fumbles
     }
     
-    // Development bonus for high camaraderie teams
-    const developmentBonus = teamCamaraderie > 75 ? 5 : 0; // 5% boost to progression
+    // Enhanced contract negotiation effects using the formula from requirements
+    const contractNegotiationBonus = (teamCamaraderie - 50) * 0.2;
     
-    // Injury reduction for very high camaraderie
-    const injuryReduction = teamCamaraderie > 80 ? 2 : 0; // 2% reduction in injury chance
+    // Enhanced development bonus using the new formula: (TeamCamaraderie - 50) * 0.1
+    const developmentBonus = (teamCamaraderie - 50) * 0.1;
     
     return {
       teamCamaraderie,
       status,
       contractNegotiationBonus,
-      inGameStatBonus: { catching, agility, passAccuracy },
+      inGameStatBonus: { catching, agility, passAccuracy, fumbleRisk },
       developmentBonus,
-      injuryReduction
+      injuryReduction,
+      tier
     };
   }
   
@@ -299,7 +351,9 @@ export class CamaraderieService {
     catching: number;
     agility: number;
     passAccuracy: number;
+    fumbleRisk: number;
     status: string;
+    tier: string;
   }> {
     const effects = await this.getCamaraderieEffects(teamId);
     
@@ -307,17 +361,35 @@ export class CamaraderieService {
       teamId,
       teamCamaraderie: effects.teamCamaraderie,
       status: effects.status,
-      statBonuses: effects.inGameStatBonus
+      statBonuses: effects.inGameStatBonus,
+      tier: effects.tier.name
     });
     
     return {
       ...effects.inGameStatBonus,
-      status: effects.status
+      status: effects.status,
+      tier: effects.tier.name
     };
   }
   
   /**
+   * Get progression bonus for a specific player based on age and team camaraderie
+   * Enhanced formula: ProgressionChance += (TeamCamaraderie - 50) * 0.1
+   */
+  static async getPlayerProgressionBonus(teamId: string, playerAge: number): Promise<number> {
+    const effects = await this.getCamaraderieEffects(teamId);
+    
+    // Only apply development bonus to young players (23 and under)
+    if (playerAge <= 23) {
+      return effects.developmentBonus;
+    }
+    
+    return 0; // No bonus for older players
+  }
+  
+  /**
    * Check if team qualifies for development bonus
+   * @deprecated Use getPlayerProgressionBonus instead for age-specific bonuses
    */
   static async getProgressionBonus(teamId: string): Promise<number> {
     const effects = await this.getCamaraderieEffects(teamId);

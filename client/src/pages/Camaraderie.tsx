@@ -21,15 +21,21 @@ interface Player {
 
 interface CamaraderieEffects {
   teamCamaraderie: number;
-  status: 'in_sync' | 'neutral' | 'out_of_sorts';
+  status: 'excellent' | 'good' | 'average' | 'low' | 'poor';
   contractNegotiationBonus: number;
   inGameStatBonus: {
     catching: number;
     agility: number;
     passAccuracy: number;
+    fumbleRisk: number;
   };
   developmentBonus: number;
   injuryReduction: number;
+  tier: {
+    name: string;
+    range: string;
+    description: string;
+  };
 }
 
 interface CamaraderieSummary {
@@ -54,12 +60,18 @@ const getCamaraderieColor = (camaraderie: number): string => {
 
 const getCamaraderieStatusBadge = (status: string) => {
   switch (status) {
-    case 'in_sync':
-      return <Badge variant="default" className="bg-green-100 text-green-800">In Sync</Badge>;
-    case 'out_of_sorts':
-      return <Badge variant="destructive">Out of Sorts</Badge>;
+    case 'excellent':
+      return <Badge variant="default" className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100">Excellent</Badge>;
+    case 'good':
+      return <Badge variant="default" className="bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-100">Good</Badge>;
+    case 'average':
+      return <Badge variant="outline" className="border-yellow-400 text-yellow-600 dark:text-yellow-400">Average</Badge>;
+    case 'low':
+      return <Badge variant="default" className="bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-100">Low</Badge>;
+    case 'poor':
+      return <Badge variant="destructive">Poor</Badge>;
     default:
-      return <Badge variant="outline">Neutral</Badge>;
+      return <Badge variant="outline">Unknown</Badge>;
   }
 };
 
@@ -184,7 +196,32 @@ export default function Camaraderie() {
         </Card>
       </div>
 
-      {/* Effects Breakdown */}
+      {/* Tier Information */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Award className="h-5 w-5" />
+            Camaraderie Tier
+          </CardTitle>
+          <CardDescription>
+            Your team's current camaraderie tier and its effects
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="flex items-center justify-between mb-4">
+            <div>
+              <h3 className="text-xl font-bold">{effects.tier?.name || "Unknown"}</h3>
+              <p className="text-sm text-gray-600">{effects.tier?.range || "N/A"}</p>
+              <p className="text-sm text-gray-500 mt-1">{effects.tier?.description || "No description available"}</p>
+            </div>
+            <div className="text-right">
+              {getCamaraderieStatusBadge(effects.status)}
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Enhanced Effects Breakdown */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
@@ -192,35 +229,66 @@ export default function Camaraderie() {
             Performance Effects
           </CardTitle>
           <CardDescription>
-            How team camaraderie affects your players' performance
+            Detailed breakdown of how camaraderie affects your team's performance
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            <div className="text-center p-4 bg-blue-50 rounded-lg">
-              <div className="text-lg font-semibold text-blue-600">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {/* In-Game Stat Bonuses */}
+            <div className="text-center p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+              <div className="text-lg font-semibold text-blue-600 dark:text-blue-400">
                 {effects.inGameStatBonus.catching > 0 ? "+" : ""}{effects.inGameStatBonus.catching}
               </div>
-              <div className="text-sm text-gray-600">Catching Bonus</div>
+              <div className="text-sm text-gray-600 dark:text-gray-400">Catching Bonus</div>
             </div>
-            <div className="text-center p-4 bg-green-50 rounded-lg">
-              <div className="text-lg font-semibold text-green-600">
+            <div className="text-center p-4 bg-green-50 dark:bg-green-900/20 rounded-lg">
+              <div className="text-lg font-semibold text-green-600 dark:text-green-400">
                 {effects.inGameStatBonus.agility > 0 ? "+" : ""}{effects.inGameStatBonus.agility}
               </div>
-              <div className="text-sm text-gray-600">Agility Bonus</div>
+              <div className="text-sm text-gray-600 dark:text-gray-400">Agility Bonus</div>
             </div>
-            <div className="text-center p-4 bg-purple-50 rounded-lg">
-              <div className="text-lg font-semibold text-purple-600">
-                {effects.developmentBonus > 0 ? "+" : ""}{Math.round(effects.developmentBonus * 100)}%
+            <div className="text-center p-4 bg-purple-50 dark:bg-purple-900/20 rounded-lg">
+              <div className="text-lg font-semibold text-purple-600 dark:text-purple-400">
+                {effects.inGameStatBonus.passAccuracy > 0 ? "+" : ""}{effects.inGameStatBonus.passAccuracy}
               </div>
-              <div className="text-sm text-gray-600">Development Rate</div>
+              <div className="text-sm text-gray-600 dark:text-gray-400">Pass Accuracy</div>
             </div>
-            <div className="text-center p-4 bg-orange-50 rounded-lg">
-              <div className="text-lg font-semibold text-orange-600">
-                -{Math.round(effects.injuryReduction * 100)}%
+            
+            {/* Development & Injury Effects */}
+            <div className="text-center p-4 bg-indigo-50 dark:bg-indigo-900/20 rounded-lg">
+              <div className="text-lg font-semibold text-indigo-600 dark:text-indigo-400">
+                {effects.developmentBonus > 0 ? "+" : ""}{Math.round(effects.developmentBonus * 10) / 10}%
               </div>
-              <div className="text-sm text-gray-600">Injury Risk</div>
+              <div className="text-sm text-gray-600 dark:text-gray-400">Player Development</div>
+              <div className="text-xs text-gray-500 mt-1">(Players ≤23 years)</div>
             </div>
+            <div className="text-center p-4 bg-orange-50 dark:bg-orange-900/20 rounded-lg">
+              <div className="text-lg font-semibold text-orange-600 dark:text-orange-400">
+                -{Math.round(effects.injuryReduction * 10) / 10}%
+              </div>
+              <div className="text-sm text-gray-600 dark:text-gray-400">Injury Risk</div>
+            </div>
+            
+            {/* Fumble Risk (Poor Camaraderie Only) */}
+            {effects.inGameStatBonus.fumbleRisk > 0 && (
+              <div className="text-center p-4 bg-red-50 dark:bg-red-900/20 rounded-lg">
+                <div className="text-lg font-semibold text-red-600 dark:text-red-400">
+                  +{effects.inGameStatBonus.fumbleRisk}%
+                </div>
+                <div className="text-sm text-gray-600 dark:text-gray-400">Fumble Risk</div>
+                <div className="text-xs text-gray-500 mt-1">(Miscommunication)</div>
+              </div>
+            )}
+          </div>
+          
+          {/* Enhanced Contract Negotiation */}
+          <Separator />
+          <div className="text-center p-4 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg">
+            <div className="text-lg font-semibold text-yellow-600 dark:text-yellow-400">
+              {effects.contractNegotiationBonus > 0 ? "+" : ""}{Math.round(effects.contractNegotiationBonus * 10) / 10}
+            </div>
+            <div className="text-sm text-gray-600 dark:text-gray-400">Contract Willingness Modifier</div>
+            <div className="text-xs text-gray-500 mt-1">Formula: (Camaraderie - 50) × 0.2</div>
           </div>
         </CardContent>
       </Card>
