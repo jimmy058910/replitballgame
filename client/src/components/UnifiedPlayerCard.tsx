@@ -185,7 +185,10 @@ export default function UnifiedPlayerCard({
             {/* Header Row: Name and Power */}
             <div className="flex items-start justify-between mb-3">
               <div className="flex items-center gap-2 flex-1">
-                <h3 className="font-semibold text-white text-base">{displayName}</h3>
+                <div className="text-left">
+                  <div className="font-semibold text-white text-sm">{player.firstName || 'Unknown'}</div>
+                  <div className="font-semibold text-white text-sm">{player.lastName || 'Player'}</div>
+                </div>
                 {player.isCaptain && <Crown className="w-4 h-4 text-yellow-500" />}
               </div>
               <div className="text-right">
@@ -297,22 +300,8 @@ export default function UnifiedPlayerCard({
 
         {/* Contract & Status Section */}
         {variant === 'dashboard' ? (
-          // Compact status-only layout for Dashboard
-          <div className="flex items-center justify-center gap-3">
-            {hasInjury && (
-              <div className="flex items-center gap-1">
-                <Heart className="w-4 h-4 text-red-500" />
-                <span className="text-xs text-red-400">Injured</span>
-              </div>
-            )}
-            
-            {isContractExpiring && (
-              <div className="flex items-center gap-1">
-                <AlertTriangle className="w-4 h-4 text-yellow-500" />
-                <span className="text-xs text-yellow-400">Expiring</span>
-              </div>
-            )}
-          </div>
+          // Clean layout for Dashboard - no status indicators for universal look
+          null
         ) : (
           // Full contract & status layout for Roster and other variants
           <div className="space-y-2">
@@ -379,8 +368,8 @@ export default function UnifiedPlayerCard({
           </div>
         )}
 
-        {/* Taxi Squad Indicator */}
-        {player.isOnTaxi && (
+        {/* Taxi Squad Indicator - only show in non-dashboard variants */}
+        {player.isOnTaxi && variant !== 'dashboard' && (
           <div className="mt-2">
             <Badge variant="outline" className="text-xs bg-orange-100 text-orange-800 border-orange-200 dark:bg-orange-900/20 dark:text-orange-400 dark:border-orange-800">
               Taxi Squad

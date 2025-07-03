@@ -678,19 +678,33 @@ router.post('/:teamId/taxi-squad/:playerId/promote', isAuthenticated, asyncHandl
     throw ErrorCreators.validation("Main roster is full (maximum 13 players)");
   }
 
-  // Promote player
+  // Promote player with 3-year contract starting next season
   const promotedPlayer = await storage.players.promotePlayerFromTaxiSquad(playerId);
+  
+  // Calculate appropriate salary based on player stats and age
+  const baseSalary = Math.max(5000, Math.min(50000, 
+    ((player.speed + player.power + player.throwing + player.catching + player.agility + player.stamina) / 6) * 1000
+  ));
+  
+  // Update player with 3-year contract
+  await storage.players.updatePlayer(playerId, {
+    contractSeasons: 3, // 3-year contract as requested
+    salary: baseSalary,
+    updatedAt: new Date(),
+  });
 
-  logInfo("Player promoted from taxi squad", {
+  logInfo("Player promoted from taxi squad with 3-year contract", {
     teamId: team.id,
     playerId: playerId,
     playerName: player.name,
+    contractSeasons: 3,
+    salary: baseSalary,
     requestId: req.requestId
   });
 
   res.json({
     success: true,
-    message: "Player promoted to main roster",
+    message: "Player promoted to main roster with 3-year contract",
     player: promotedPlayer
   });
 }));
