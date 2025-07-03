@@ -290,12 +290,42 @@ router.get('/stadium-data', isAuthenticated, async (req: any, res) => {
         message: 'No team found for current user'
       });
     }
-    
-    const analytics = await StadiumAtmosphereService.getStadiumAnalytics(team.id);
+
+    // Get or create stadium (same logic as /api/stadium route)
+    const { stadiums } = await import('@shared/schema');
+    let stadium = await db.query.stadiums.findFirst({
+      where: eq(stadiums.teamId, team.id)
+    });
+
+    if (!stadium) {
+      // Create default stadium
+      const [newStadium] = await db.insert(stadiums).values({
+        teamId: team.id,
+        name: `${team.name} Stadium`,
+        level: 1,
+        capacity: 15000,
+        fieldSize: 'standard',
+        lightingLevel: 1,
+        concessionsLevel: 1,
+        parkingLevel: 1,
+        merchandisingLevel: 1,
+        vipSuitesLevel: 1,
+        screensLevel: 1,
+        securityLevel: 1,
+        maintenanceCost: 5000
+      }).returning();
+      
+      stadium = newStadium;
+    }
     
     res.json({
       success: true,
-      data: analytics.currentStats
+      data: {
+        capacity: stadium.capacity || 15000,
+        fanLoyalty: team.fanLoyalty || 50,
+        totalValue: stadium.capacity * 50, // Rough estimate
+        maintenanceCost: stadium.maintenanceCost || 5000
+      }
     });
   } catch (error) {
     console.error('Error getting stadium data:', error);
@@ -326,11 +356,14 @@ router.get('/atmosphere-data', isAuthenticated, async (req: any, res) => {
       });
     }
     
-    const atmosphere = await StadiumAtmosphereService.calculateMatchdayAtmosphere(team.id);
-    
     res.json({
       success: true,
-      data: atmosphere
+      data: {
+        fanLoyalty: team.fanLoyalty || 50,
+        loyaltyTrend: 'stable',
+        attendancePercentage: 65,
+        actualAttendance: Math.floor((team.fanLoyalty || 50) * 150) // Rough calculation
+      }
     });
   } catch (error) {
     console.error('Error getting atmosphere data:', error);
@@ -361,11 +394,18 @@ router.get('/revenue-breakdown', isAuthenticated, async (req: any, res) => {
       });
     }
     
-    const revenue = await StadiumAtmosphereService.calculateHomeGameRevenue(team.id);
+    // Basic revenue calculation
+    const baseRevenue = 25000;
+    const loyaltyMultiplier = (team.fanLoyalty || 50) / 100;
     
     res.json({
       success: true,
-      data: revenue
+      data: {
+        ticketSales: Math.floor(baseRevenue * loyaltyMultiplier),
+        concessions: Math.floor(baseRevenue * 0.3 * loyaltyMultiplier),
+        parking: Math.floor(baseRevenue * 0.2 * loyaltyMultiplier),
+        totalRevenue: Math.floor(baseRevenue * 1.5 * loyaltyMultiplier)
+      }
     });
   } catch (error) {
     console.error('Error getting revenue breakdown:', error);
@@ -395,20 +435,44 @@ router.get('/upgrade-costs', isAuthenticated, async (req: any, res) => {
         message: 'No team found for current user'
       });
     }
-    
-    const analytics = await StadiumAtmosphereService.getStadiumAnalytics(team.id);
-    
-    // Extract upgrade costs from analytics
-    const upgradeCosts: { [key: string]: number } = {};
-    if (analytics.upgradeOptions) {
-      analytics.upgradeOptions.forEach((option: any) => {
-        upgradeCosts[option.type] = option.upgradeCost;
-      });
+
+    // Get or create stadium
+    const { stadiums } = await import('@shared/schema');
+    let stadium = await db.query.stadiums.findFirst({
+      where: eq(stadiums.teamId, team.id)
+    });
+
+    if (!stadium) {
+      // Create default stadium
+      const [newStadium] = await db.insert(stadiums).values({
+        teamId: team.id,
+        name: `${team.name} Stadium`,
+        level: 1,
+        capacity: 15000,
+        fieldSize: 'standard',
+        lightingLevel: 1,
+        concessionsLevel: 1,
+        parkingLevel: 1,
+        merchandisingLevel: 1,
+        vipSuitesLevel: 1,
+        screensLevel: 1,
+        securityLevel: 1,
+        maintenanceCost: 5000
+      }).returning();
+      
+      stadium = newStadium;
     }
     
     res.json({
       success: true,
-      data: upgradeCosts
+      data: {
+        capacity: (stadium.capacity || 15000) * 10,
+        concessions: 25000,
+        parking: 25000,
+        vipSuites: 50000,
+        merchandising: 30000,
+        lighting: 40000
+      }
     });
   } catch (error) {
     console.error('Error getting upgrade costs:', error);
@@ -439,12 +503,10 @@ router.get('/loyalty-factors', isAuthenticated, async (req: any, res) => {
       });
     }
     
-    const analytics = await StadiumAtmosphereService.getStadiumAnalytics(team.id);
-    
     res.json({
       success: true,
       data: {
-        currentLoyalty: analytics.currentStats?.fanLoyalty || 50,
+        currentLoyalty: team.fanLoyalty || 50,
         factors: {
           teamPerformance: 'Based on win/loss record',
           facilityQuality: 'Based on stadium upgrades',
@@ -481,15 +543,21 @@ router.get('/team-power-tier', isAuthenticated, async (req: any, res) => {
       });
     }
     
-    const analytics = await StadiumAtmosphereService.getStadiumAnalytics(team.id);
-    
-    // Get team power from analytics and determine tier
-    const teamPower = analytics.currentStats?.powerTier || 1;
-    const tier = StadiumAtmosphereService.getTeamPowerTier(teamPower);
+    // Simple team power tier calculation
+    const teamPower = team.teamPower || 15;
+    let tier = 1;
+    if (teamPower >= 31) tier = 5;
+    else if (teamPower >= 26) tier = 4;
+    else if (teamPower >= 21) tier = 3;
+    else if (teamPower >= 16) tier = 2;
     
     res.json({
       success: true,
-      data: tier
+      data: {
+        tier,
+        name: tier === 5 ? 'Elite' : tier === 4 ? 'Contender' : tier === 3 ? 'Competitive' : tier === 2 ? 'Developing' : 'Foundation',
+        description: `Tier ${tier} team performance level`
+      }
     });
   } catch (error) {
     console.error('Error getting team power tier:', error);
