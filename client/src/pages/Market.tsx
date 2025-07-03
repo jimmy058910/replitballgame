@@ -1,9 +1,11 @@
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { useToast } from "@/hooks/use-toast";
+import { apiRequest } from "@/lib/queryClient";
 import { ShoppingCart, Coins, Gem, TrendingUp, Building, Trophy, Gift, Star, Crown } from "lucide-react";
 import TryoutSystem from "@/components/TryoutSystem";
 import DynamicMarketplaceManager from "@/components/DynamicMarketplaceManager";
@@ -222,6 +224,8 @@ const getDivisionColor = (division: number): string => {
 export default function Market() {
   const [activeTab, setActiveTab] = useState("marketplace");
   const [storeTab, setStoreTab] = useState("featured");
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
 
   const { data: rawTeam } = useQuery<Team>({
     queryKey: ["/api/teams/my"],
@@ -233,6 +237,55 @@ export default function Market() {
   });
 
   const team = (rawTeam || {}) as Team;
+
+  // Purchase mutations
+  const purchaseWithGemsMutation = useMutation({
+    mutationFn: (itemId: string) =>
+      apiRequest(`/api/store/purchase/${itemId}`, 'POST', { currency: 'gems' }),
+    onSuccess: (data, itemId) => {
+      const item = [...featuredItems, ...creditStoreItems].find(i => i.id === itemId);
+      toast({
+        title: "Purchase Successful!",
+        description: `You purchased ${item?.name} with gems.`,
+      });
+      queryClient.invalidateQueries({ queryKey: ["/api/teams"] });
+    },
+    onError: () => {
+      toast({
+        title: "Purchase Failed",
+        description: "Not enough gems or item unavailable.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const purchaseWithCreditsMutation = useMutation({
+    mutationFn: (itemId: string) =>
+      apiRequest(`/api/store/purchase/${itemId}`, 'POST', { currency: 'credits' }),
+    onSuccess: (data, itemId) => {
+      const item = [...featuredItems, ...creditStoreItems].find(i => i.id === itemId);
+      toast({
+        title: "Purchase Successful!",
+        description: `You purchased ${item?.name} with credits.`,
+      });
+      queryClient.invalidateQueries({ queryKey: ["/api/teams"] });
+    },
+    onError: () => {
+      toast({
+        title: "Purchase Failed",
+        description: "Not enough credits or item unavailable.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const handlePurchase = (itemId: string, currency: 'gems' | 'credits') => {
+    if (currency === 'gems') {
+      purchaseWithGemsMutation.mutate(itemId);
+    } else {
+      purchaseWithCreditsMutation.mutate(itemId);
+    }
+  };
 
   return (
     <div className="container mx-auto px-4 py-6">
@@ -330,7 +383,7 @@ export default function Market() {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Gift className="h-5 w-5" />
-                  Team Store
+                  Store
                 </CardTitle>
                 <p className="text-sm text-gray-600 dark:text-gray-400">
                   Purchase equipment, consumables, and training items
@@ -339,7 +392,7 @@ export default function Market() {
               <CardContent>
                 <Tabs value={storeTab} onValueChange={setStoreTab} className="space-y-4">
                   <TabsList className="grid w-full grid-cols-2">
-                    <TabsTrigger value="featured">Featured Items</TabsTrigger>
+                    <TabsTrigger value="featured">Gem Store</TabsTrigger>
                     <TabsTrigger value="credit">Credit Store</TabsTrigger>
                   </TabsList>
 
@@ -375,12 +428,23 @@ export default function Market() {
                             </p>
                             <div className="flex gap-2">
                               {item.gems && (
-                                <Button size="sm" className="flex-1">
+                                <Button 
+                                  size="sm" 
+                                  className="flex-1"
+                                  onClick={() => handlePurchase(item.id, 'gems')}
+                                  disabled={purchaseWithGemsMutation.isPending}
+                                >
                                   Buy with Gems
                                 </Button>
                               )}
                               {item.credits && (
-                                <Button size="sm" variant="outline" className="flex-1">
+                                <Button 
+                                  size="sm" 
+                                  variant="outline" 
+                                  className="flex-1"
+                                  onClick={() => handlePurchase(item.id, 'credits')}
+                                  disabled={purchaseWithCreditsMutation.isPending}
+                                >
                                   Buy with Credits
                                 </Button>
                               )}
@@ -421,7 +485,12 @@ export default function Market() {
                             <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">
                               {item.description}
                             </p>
-                            <Button size="sm" className="w-full">
+                            <Button 
+                              size="sm" 
+                              className="w-full"
+                              onClick={() => handlePurchase(item.id, 'credits')}
+                              disabled={purchaseWithCreditsMutation.isPending}
+                            >
                               Purchase
                             </Button>
                             {item.dailyLimit && (
