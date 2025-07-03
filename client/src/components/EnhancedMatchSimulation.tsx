@@ -15,6 +15,7 @@ interface Player {
   lastName: string;
   role: "Passer" | "Runner" | "Blocker";
   teamId: string;
+  race?: string; // Race for race-based commentary (human, sylvan, gryll, lumina, umbra)
   // Permanent Attributes (1-40 scale)
   speed: number;
   power: number;
@@ -83,7 +84,7 @@ interface EnhancedMatchProps {
   onMatchComplete?: (result: any) => void;
 }
 
-// Enhanced Commentary Generation System
+// Enhanced Commentary Generation System - 200+ Comprehensive Prompts
 class CommentaryEngine {
   private gameState: GameState;
   private players: Player[];
@@ -97,68 +98,200 @@ class CommentaryEngine {
     this.team2 = team2;
   }
 
+  // 1. Game State & Flow Commentary
+  generatePreGameCommentary(): string {
+    const homeTeamPower = this.getTeamPowerTier(this.team1);
+    const awayTeamPower = this.getTeamPowerTier(this.team2);
+    const homeTactical = this.team1.tacticalFocus || "Balanced";
+    const awayTactical = this.team2.tacticalFocus || "Balanced";
+
+    const preGameCommentary = [
+      `Welcome to the dome, folks! A tense atmosphere here as the '${homeTeamPower}' ${this.team1.name} prepares to face the '${awayTeamPower}' ${this.team2.name}!`,
+      `Both teams are on the field, and the energy from this home crowd is absolutely electric!`,
+      `The stage is set for a classic showdown. ${this.team1.name} is coming out with their '${homeTactical}' strategy, looking to dominate from the start.`,
+      `${this.team2.name} has opted for a '${awayTactical}' formation today, a clear tactical decision for this matchup.`,
+      `It's a clash of styles today! We'll see if ${this.team1.name}'s aggressive tactics can break down the disciplined approach of ${this.team2.name}.`,
+      `The players are set. The ball is live. Here we go!`
+    ];
+    return preGameCommentary[Math.floor(Math.random() * preGameCommentary.length)];
+  }
+
+  generateMidGameFlowCommentary(): string {
+    const flowCommentary = [
+      `We're seeing a real midfield battle unfold. The ball has changed hands three times in the last minute alone.`,
+      `${this.getCurrentPossessionTeam()} is putting together a long spell of possession now, patiently working the ball and testing the defense for any sign of weakness.`,
+      `The pace of this game is relentless! Non-stop action from end to end with no stoppages.`,
+      `A real war of attrition in the center of the field. Neither team is giving an inch.`,
+      `You can feel the momentum starting to shift in favor of ${this.getCurrentPossessionTeam()}. They've controlled the ball for the last two minutes of game time.`,
+      `Just a chaotic scramble for possession right now, the ball is a pinball out there.`,
+      `The physicality of this game is off the charts. Every yard is being earned the hard way.`,
+      `${this.getCurrentPossessionTeam()} seems to be controlling the tempo, forcing their opponent to react.`
+    ];
+    return flowCommentary[Math.floor(Math.random() * flowCommentary.length)];
+  }
+
+  generateUrgencyCommentary(): string {
+    const timeRemaining = this.gameState.maxTime - this.gameState.gameTime;
+    const isClutchTime = this.gameState.gamePhase === "clutch";
+    const teamName = this.getCurrentPossessionTeam();
+
+    if (timeRemaining < 120 && this.gameState.currentHalf === 1) {
+      const halfEndCommentary = [
+        `Just two minutes left in the half! ${teamName} needs to make something happen quickly if they want to score before the break.`,
+        `With the clock winding down, they're trying to force the issue, looking for any opening.`,
+        `Time is becoming a factor now. ${teamName} is playing with a real sense of urgency.`,
+        `The first half comes to a close! A frantic pace right to the end.`
+      ];
+      return halfEndCommentary[Math.floor(Math.random() * halfEndCommentary.length)];
+    }
+
+    if (isClutchTime) {
+      const clutchCommentary = [
+        `We're in the final minute of the game! Every second counts!`,
+        `They need to hurry if they want to get one more possession.`,
+        `This is it! Make or break time for both teams!`
+      ];
+      return clutchCommentary[Math.floor(Math.random() * clutchCommentary.length)];
+    }
+
+    return "";
+  }
+
+  // 2. The Loose Ball Commentary
+  generateLooseBallCommentary(cause: "tackle" | "drop", player?: Player): string {
+    const playerName = player ? this.getPlayerDisplayName(player) : "the player";
+
+    if (cause === "tackle") {
+      const tackleCommentary = [
+        `HUGE HIT! The ball comes loose! It's a fumble and anyone's game!`,
+        `Powerful tackle dislodges the ball! It's on the turf!`,
+        `${playerName} couldn't hang on after that vicious hit! The ball is LIVE!`,
+        `He coughed it up! A massive forced fumble by the defense!`,
+        `Stripped! The ball is ripped free from ${playerName}'s grasp!`,
+        `The ball pops free after a gang tackle!`,
+        `He never had control! The ball is loose on the ground!`
+      ];
+      return tackleCommentary[Math.floor(Math.random() * tackleCommentary.length)];
+    } else {
+      const dropCommentary = [
+        `The pass is on target but it's DROPPED by ${playerName}! The ball is live on the turf!`,
+        `Right through his hands! ${playerName} can't hang on and the ball is up for grabs!`,
+        `A perfect pass, but it's a brutal drop by ${playerName} at a critical moment.`,
+        `Oh, he has to catch that! The ball bounces off the receiver's chest and is loose!`,
+        `An unforced error there, as ${playerName} simply drops the ball.`,
+        `The pass is deflected at the last second and falls incomplete... no, it's a live ball!`,
+        `A difficult catch, and ${playerName} can't bring it in. The ball is loose.`
+      ];
+      return dropCommentary[Math.floor(Math.random() * dropCommentary.length)];
+    }
+  }
+
+  generateScrambleCommentary(recoverer?: Player): string {
+    if (recoverer) {
+      const recoveryCommentary = [
+        `${this.getPlayerDisplayName(recoverer)} emerges from the pile with the ball! A huge turnover for ${this.getPlayerTeamName(recoverer)}!`,
+        `Quick thinking by ${this.getPlayerDisplayName(recoverer)} to scoop up the loose ball before the defense could react!`,
+        `What a recovery! ${this.getPlayerDisplayName(recoverer)} dives on the ball to secure possession for his team!`,
+        `The offense manages to recover their own fumble! A lucky break for them.`,
+        `And it's the defense that comes up with it! A massive momentum swing!`
+      ];
+      return recoveryCommentary[Math.floor(Math.random() * recoveryCommentary.length)];
+    } else {
+      const scrambleCommentary = [
+        `Chaos around the ball! A mad scramble as multiple players dive for it!`,
+        `A pile-up for the loose ball near midfield!`
+      ];
+      return scrambleCommentary[Math.floor(Math.random() * scrambleCommentary.length)];
+    }
+  }
+
+  // 3. Enhanced Run Play Commentary
   generateRunPlayCommentary(runner: Player, yards: number, tackler?: Player, hasSkill?: string): string {
-    const teamName = runner.teamId === this.team1.id ? this.team1.name : this.team2.name;
     const runnerName = this.getPlayerDisplayName(runner);
-    
+    const teamName = this.getPlayerTeamName(runner);
+
+    // Race-Based Runs
+    if (runner.race) {
+      const raceCommentary = this.generateRaceBasedRunCommentary(runner, yards);
+      if (raceCommentary) return raceCommentary;
+    }
+
+    // Skill-Based Runs
     if (hasSkill === "Juke Move" && yards > 5) {
       const jukeCommentary = [
-        `${runnerName} (${teamName}) makes a defender miss with a spectacular juke move! Gains ${yards} yards!`,
-        `Incredible footwork by ${runnerName}! The defender is left grasping at air as he picks up ${yards} yards!`,
-        `${runnerName} shows off those shifty moves, leaving the defender behind for a ${yards}-yard gain!`,
-        `What a move! ${runnerName} cuts left, then right, dancing through traffic for ${yards} yards!`
+        `Incredible footwork by ${runnerName}! He uses his Juke Move to leave the defender grasping at air for ${yards} yards!`,
+        `What a move! ${runnerName} cuts left, then right, dancing through traffic for a ${yards}-yard gain!`,
+        `The defender thought he had him, but ${runnerName}'s juke was just too quick! ${yards} yards!`,
+        `${runnerName} shows off those shifty moves, leaving the defender behind for a ${yards}-yard gain!`
       ];
       return jukeCommentary[Math.floor(Math.random() * jukeCommentary.length)];
     }
 
     if (hasSkill === "Truck Stick" && yards > 3) {
       const truckCommentary = [
-        `${runnerName} (${teamName}) powers through the tackle with brute force! ${yards} yards and a defender left on the ground!`,
-        `Devastating power by ${runnerName}! He runs right over the defender for ${yards} yards!`,
-        `${runnerName} shows no mercy, bulldozing his way forward for ${yards} yards!`,
-        `Pure strength on display! ${runnerName} trucks the defender and picks up ${yards} yards!`
+        `${runnerName} lowers his shoulder and uses Truck Stick, running right over the would-be tackler for ${yards} extra yards!`,
+        `Devastating power by ${runnerName}! He trucks the defender and refuses to go down for ${yards} yards!`,
+        `Pure strength on display! ${runnerName} just bulldozed his way through the tackle attempt for ${yards} yards!`,
+        `${runnerName} shows no mercy, bulldozing his way forward for ${yards} yards!`
       ];
       return truckCommentary[Math.floor(Math.random() * truckCommentary.length)];
     }
 
+    // Breakaway Runs (High Speed)
     if (yards > 15) {
       const breakawayCommentary = [
-        `BREAKAWAY! ${runnerName} (${teamName}) finds a seam and races downfield for ${yards} yards!`,
-        `${runnerName} breaks free! He's in the open field now, sprinting for ${yards} yards!`,
+        `He finds a seam! ${runnerName} turns on the jets and is in open space for a massive ${yards}-yard gain!`,
         `Explosive speed! ${runnerName} leaves the defense in the dust with a ${yards}-yard burst!`,
-        `The crowd is on their feet! ${runnerName} turns on the jets for ${yards} yards!`
+        `The crowd is on their feet! ${runnerName} hits top gear and is sprinting downfield for ${yards} yards!`,
+        `There's no catching him! ${runnerName} shows off that world-class speed for ${yards} yards!`,
+        `A stunning breakaway run! He was a blur as he raced past the defense for ${yards} yards!`,
+        `He just has a gear that nobody else on the field possesses! ${yards} yards!`
       ];
       return breakawayCommentary[Math.floor(Math.random() * breakawayCommentary.length)];
     }
 
-    if (yards <= 2) {
+    // Standard Runs
+    if (yards <= 3) {
       const shortRunCommentary = [
-        `${runnerName} (${teamName}) grinds it out for ${yards} tough yards up the middle.`,
-        `Hard-nosed running by ${runnerName}, churning forward for ${yards} yards.`,
-        `${runnerName} meets the defense head-on, managing ${yards} yards before going down.`,
-        `${runnerName} fights for every inch, gaining ${yards} yards in heavy traffic.`
+        `${runnerName} grinds it out for ${yards} tough yards up the middle.`,
+        `${runnerName} finds a small crease and picks up ${yards} yards.`,
+        `He follows his blockers and pushes the pile for a ${yards}-yard gain.`,
+        `A smart, patient run from ${runnerName} to find the opening for ${yards} yards.`
       ];
       return shortRunCommentary[Math.floor(Math.random() * shortRunCommentary.length)];
     }
 
     const standardRunCommentary = [
-      `${runnerName} (${teamName}) carries the ball forward for ${yards} yards.`,
-      `Solid running by ${runnerName}, picking up ${yards} yards on the carry.`,
-      `${runnerName} finds some running room, advancing ${yards} yards.`,
-      `${runnerName} slashes through the defense for ${yards} yards.`
+      `${runnerName} finds a small crease and picks up a solid ${yards} yards.`,
+      `A quick dash by ${runnerName} for a ${yards}-yard gain.`,
+      `${runnerName} slashes through the defense for ${yards} yards.`,
+      `${runnerName} carries the ball forward for ${yards} yards.`,
+      `A smart, patient run from ${runnerName} to find the opening.`
     ];
     return standardRunCommentary[Math.floor(Math.random() * standardRunCommentary.length)];
   }
 
+  // 4. Enhanced Pass Play Commentary
   generatePassPlayCommentary(passer: Player, receiver: Player, completion: boolean, yards?: number, hasSkill?: string): string {
-    const passerTeam = passer.teamId === this.team1.id ? this.team1.name : this.team2.name;
     const passerName = this.getPlayerDisplayName(passer);
     const receiverName = this.getPlayerDisplayName(receiver);
+    const teamName = this.getPlayerTeamName(passer);
 
+    // Race-Based Passes
+    if (passer.race === "lumina") {
+      const luminaCommentary = [
+        `That's the precision you expect from a Lumina passer! A beautiful, accurate throw from ${passerName}.`
+      ];
+      if (completion && Math.random() < 0.3) {
+        return luminaCommentary[0];
+      }
+    }
+
+    // Skill-Based Passes
     if (hasSkill === "Pocket Presence") {
       const pocketCommentary = [
-        `${passerName} (${passerTeam}) shows incredible poise in the pocket, gracefully stepping up before delivering the pass!`,
-        `Masterful pocket awareness by ${passerName}! He feels the pressure and slides away beautifully!`,
+        `Masterful awareness by ${passerName}! He feels the pressure and slides away, buying just enough time to deliver the pass!`,
+        `Incredible poise in the pocket from ${passerName}, stepping up gracefully before delivering a strike!`,
         `${passerName} displays veteran composure, calmly avoiding the rush before making his throw!`
       ];
       return pocketCommentary[Math.floor(Math.random() * pocketCommentary.length)];
@@ -166,16 +299,29 @@ class CommentaryEngine {
 
     if (hasSkill === "Deadeye" && completion && yards && yards > 10) {
       const deadeyeCommentary = [
-        `LASER BEAM! ${passerName} (${passerTeam}) threads the needle with pinpoint accuracy to ${receiverName} for ${yards} yards!`,
-        `Perfect precision! ${passerName} drops it in the bucket to ${receiverName} for ${yards} yards!`,
-        `Surgical accuracy by ${passerName}! The pass finds ${receiverName} in stride for ${yards} yards!`
+        `A frozen rope from ${passerName}! He threads the needle between two defenders to hit ${receiverName} in stride! That's a 'Deadeye' pass if I've ever seen one.`,
+        `Surgical accuracy by ${passerName}! The pass is placed where only his receiver could get it.`,
+        `Perfect precision! ${passerName} drops it in the bucket to ${receiverName} for ${yards} yards!`
       ];
       return deadeyeCommentary[Math.floor(Math.random() * deadeyeCommentary.length)];
     }
 
+    // Deep Passes
+    if (completion && yards && yards > 20) {
+      const deepPassCommentary = [
+        `He's going deep! ${passerName} launches one downfield for ${receiverName} and connects for ${yards} yards!`,
+        `What a strike! ${passerName} connects with ${receiverName} on a beautiful ${yards}-yard completion!`,
+        `The defense was caught sleeping! ${receiverName} is wide open for a huge ${yards}-yard gain!`,
+        `${passerName} airs it out! A perfect spiral finds its target for ${yards} yards!`,
+        `A perfect spiral from ${passerName} finds his target deep in enemy territory for ${yards} yards.`
+      ];
+      return deepPassCommentary[Math.floor(Math.random() * deepPassCommentary.length)];
+    }
+
+    // Incompletions
     if (!completion) {
       const incompletionCommentary = [
-        `${passerName} (${passerTeam}) fires a pass to ${receiverName}, but it falls incomplete.`,
+        `${passerName} fires a pass to ${receiverName}, but it falls incomplete.`,
         `Pass attempt by ${passerName} is off target, sailing past ${receiverName}.`,
         `${passerName} tries to connect with ${receiverName}, but the timing is off.`,
         `Miscommunication between ${passerName} and ${receiverName} results in an incomplete pass.`
@@ -183,54 +329,117 @@ class CommentaryEngine {
       return incompletionCommentary[Math.floor(Math.random() * incompletionCommentary.length)];
     }
 
-    if (completion && yards && yards > 20) {
-      const longPassCommentary = [
-        `TOUCHDOWN CONNECTION! ${passerName} (${passerTeam}) finds ${receiverName} downfield for ${yards} yards!`,
-        `What a strike! ${passerName} connects with ${receiverName} on a beautiful ${yards}-yard completion!`,
-        `${passerName} goes deep to ${receiverName}! ${yards} yards and the crowd erupts!`
-      ];
-      return longPassCommentary[Math.floor(Math.random() * longPassCommentary.length)];
-    }
-
+    // Standard Completions
     const standardPassCommentary = [
-      `${passerName} (${passerTeam}) completes the pass to ${receiverName} for ${yards || 'a few'} yards.`,
-      `Nice connection between ${passerName} and ${receiverName} for ${yards || 'a short'} gain.`,
-      `${passerName} finds ${receiverName} in the flat for ${yards || 'minimal'} yardage.`
+      `${passerName} connects with ${receiverName} on the sideline for a gain of ${yards || 'several'}.`,
+      `A quick pass from ${passerName} to ${receiverName} to move the chains.`,
+      `Nice connection between ${passerName} and ${receiverName} for a solid gain.`,
+      `${passerName} finds his outlet and completes the pass.`,
+      `A well-designed play results in an easy completion for ${passerName}.`,
+      `He finds his check-down receiver for a safe and easy ${yards || '7'} yards.`
     ];
     return standardPassCommentary[Math.floor(Math.random() * standardPassCommentary.length)];
   }
 
+  // 5. Defense & Aggression Commentary
   generateTackleCommentary(tackler: Player, ballCarrier: Player, hasSkill?: string): string {
-    const tacklerTeam = tackler.teamId === this.team1.id ? this.team1.name : this.team2.name;
     const tacklerName = this.getPlayerDisplayName(tackler);
     const carrierName = this.getPlayerDisplayName(ballCarrier);
 
+    // Skill-Based Defense
     if (hasSkill === "Pancake Block") {
       const pancakeCommentary = [
-        `PANCAKED! ${tacklerName} (${tacklerTeam}) absolutely levels ${carrierName}! He's sent into next week!`,
-        `Devastating hit by ${tacklerName}! ${carrierName} is demolished and slow to get up!`,
+        `PANCAKED! ${tacklerName} absolutely levels an opponent with a devastating block, clearing a path for his teammate!`,
+        `Bone-rattling hit! ${tacklerName} knocks ${carrierName} completely off his feet!`,
         `${tacklerName} delivers a crushing blow to ${carrierName}! The crowd feels that one!`,
-        `Bone-rattling hit! ${tacklerName} knocks ${carrierName} completely off his feet!`
+        `${tacklerName} is just looking to inflict pain! He lays a huge hit on an unsuspecting opponent away from the ball! With no referees, that's a smart, brutal play.`
       ];
       return pancakeCommentary[Math.floor(Math.random() * pancakeCommentary.length)];
     }
 
+    // High Power / Blocker Tackles
+    if (tackler.role === "Blocker" || tackler.power > 30) {
+      const powerTackleCommentary = [
+        `A thunderous tackle by ${tacklerName}! You could hear that one from up here.`,
+        `Vicious hit! ${tacklerName} completely stops the runner's momentum.`,
+        `${tacklerName} wraps up ${carrierName} for the tackle after delivering a crushing blow.`
+      ];
+      return powerTackleCommentary[Math.floor(Math.random() * powerTackleCommentary.length)];
+    }
+
+    // Clutch Tackles
     if (this.gameState.gamePhase === "clutch") {
       const clutchTackleCommentary = [
-        `CRITICAL TACKLE! ${tacklerName} (${tacklerTeam}) makes a game-saving stop on ${carrierName}!`,
+        `CRITICAL TACKLE! ${tacklerName} makes a game-saving stop on ${carrierName}!`,
         `Clutch defense by ${tacklerName}! He brings down ${carrierName} when it matters most!`,
         `${tacklerName} rises to the occasion with a crucial tackle on ${carrierName}!`
       ];
       return clutchTackleCommentary[Math.floor(Math.random() * clutchTackleCommentary.length)];
     }
 
+    // Standard Tackles
     const standardTackleCommentary = [
-      `${tacklerName} (${tacklerTeam}) wraps up ${carrierName} for the tackle.`,
+      `${tacklerName} wraps up ${carrierName} for the tackle after a short gain.`,
       `Solid defense by ${tacklerName}, bringing down ${carrierName}.`,
-      `${tacklerName} makes the stop on ${carrierName}.`,
-      `${tacklerName} closes in and tackles ${carrierName}.`
+      `${tacklerName} closes in and makes the stop.`,
+      `Nowhere to go! ${carrierName} is smothered by the defense.`,
+      `A textbook tackle by ${tacklerName}.`
     ];
     return standardTackleCommentary[Math.floor(Math.random() * standardTackleCommentary.length)];
+  }
+
+  generateInterceptionCommentary(defender: Player): string {
+    const defenderName = this.getPlayerDisplayName(defender);
+    const interceptionCommentary = [
+      `The pass is picked off! ${defenderName} read the play perfectly and stepped in front of the receiver!`,
+      `What a play! ${defenderName} makes a diving interception!`,
+      `He threw it right to the defense! An easy interception for ${defenderName}.`,
+      `Great coverage by ${defenderName}, forcing the turnover.`
+    ];
+    return interceptionCommentary[Math.floor(Math.random() * interceptionCommentary.length)];
+  }
+
+  // 6. Contextual & Atmospheric Commentary
+  generateInjuryCommentary(player: Player, severity: string): string {
+    const playerName = this.getPlayerDisplayName(player);
+    
+    const injuryCommentary = [
+      `${playerName} is leveled by a powerful tackle! He's slow to get up... and the team trainer is signaling from the sideline. That looks like a **${severity}**.`,
+      `${playerName} is still out there, but you can see he's favoring that leg. His agility is clearly hampered by that earlier injury.`
+    ];
+    return injuryCommentary[Math.floor(Math.random() * injuryCommentary.length)];
+  }
+
+  generateStaminaCommentary(player: Player): string {
+    const playerName = this.getPlayerDisplayName(player);
+    
+    if (player.currentStamina < 15) {
+      const fatigueCommentary = [
+        `${playerName} tries to turn the corner but just doesn't have the legs, brought down after a short gain. You can see the fatigue setting in.`,
+        `A wobbly pass from ${playerName}, who looks exhausted after that long possession. The ball sails wide!`,
+        `${playerName} looks absolutely exhausted out there, a step slower than usual.`,
+        `You can see the fatigue setting in for ${playerName} - he's breathing heavily.`,
+        `${playerName} is running on fumes at this point in the game.`,
+        `The energy levels are dropping for ${playerName} - fatigue is clearly a factor.`
+      ];
+      return fatigueCommentary[Math.floor(Math.random() * fatigueCommentary.length)];
+    }
+    return "";
+  }
+
+  generateSkillCommentary(player: Player, skill: string): string {
+    const playerName = this.getPlayerDisplayName(player);
+    
+    const skillCommentary: { [key: string]: string[] } = {
+      "Second Wind": [`${playerName} looked exhausted, but he just got his Second Wind! He looks ready to go again.`],
+      "Photosynthesis": [`Despite the frantic pace, the Sylvan player ${playerName} looks remarkably fresh out there.`],
+      "Healing Light": [`${playerName} scores, and you can see a wave of light wash over his teammate on the sideline! That should help with his recovery.`]
+    };
+    
+    if (skillCommentary[skill]) {
+      return skillCommentary[skill][0];
+    }
+    return "";
   }
 
   generateAtmosphericCommentary(): string {
@@ -238,31 +447,102 @@ class CommentaryEngine {
     
     if (crowdNoise > 80) {
       const crowdCommentary = [
-        `The home crowd is deafening! You can feel the stadium shaking!`,
+        `The home crowd is deafening right now, and it looks like the away team is having trouble with their timing!`,
         `Listen to that crowd! The noise is absolutely electric in here!`,
         `The fans are on their feet! This place is rocking!`,
         `What an atmosphere! The crowd noise is affecting communication on the field!`
       ];
       return crowdCommentary[Math.floor(Math.random() * crowdCommentary.length)];
     }
-
     return "";
   }
 
-  generateStaminaCommentary(player: Player): string {
-    if (player.currentStamina < 15) {
-      const fatigueCommentary = [
-        `${this.getPlayerDisplayName(player)} looks absolutely exhausted out there, a step slower than usual.`,
-        `You can see the fatigue setting in for ${this.getPlayerDisplayName(player)} - he's breathing heavily.`,
-        `${this.getPlayerDisplayName(player)} is running on fumes at this point in the game.`,
-        `The energy levels are dropping for ${this.getPlayerDisplayName(player)} - fatigue is clearly a factor.`
-      ];
-      return fatigueCommentary[Math.floor(Math.random() * fatigueCommentary.length)];
+  generateCamaraderieCommentary(team: any, isPositive: boolean): string {
+    const teamName = team.name;
+    
+    if (isPositive) {
+      return `You can see the chemistry on display! A perfectly timed block springs the runner for extra yards!`;
+    } else {
+      return `A miscommunication on offense! The passer and receiver were not on the same page, and the pass falls harmlessly to the ground.`;
     }
-    return "";
   }
 
-  private getPlayerDisplayName(player: Player): string {
+  generateScoringCommentary(scorer: Player): string {
+    const scorerName = this.getPlayerDisplayName(scorer);
+    const teamName = this.getPlayerTeamName(scorer);
+    
+    const scoringCommentary = [
+      `He's in! ${scorerName} fights through the defense and crosses the line! A Score for ${teamName}!`,
+      `SCORE! A brilliant individual effort by ${scorerName}!`,
+      `${scorerName} connects in the end zone for the score!`,
+      `He walks it in! The defense couldn't lay a hand on him!`,
+      `A hard-fought score, pushing through a pile of players at the goal line!`
+    ];
+    return scoringCommentary[Math.floor(Math.random() * scoringCommentary.length)];
+  }
+
+  // Race-Based Commentary
+  generateRaceBasedRunCommentary(runner: Player, yards: number): string | null {
+    const runnerName = this.getPlayerDisplayName(runner);
+    
+    if (runner.race === "umbra" && yards > 8) {
+      return `Where did he go?! ${runnerName} seems to vanish for a moment with his Shadow Step, and the defender is left tackling empty space for ${yards} yards!`;
+    } else if (runner.race === "sylvan" && yards > 6) {
+      return `The Sylvan runner shows off that natural agility, weaving through defenders with ease for ${yards} yards.`;
+    } else if (runner.race === "gryll" && yards <= 4) {
+      return `It's like trying to tackle a boulder! The Gryll runner ${runnerName} simply shrugs off the hit and keeps moving for ${yards} tough yards.`;
+    }
+    
+    return null;
+  }
+
+  // Pass Defense Commentary
+  generatePassDefenseCommentary(defender: Player): string {
+    const defenderName = this.getPlayerDisplayName(defender);
+    
+    if (defender.race === "gryll") {
+      return `The pass is batted down at the line by the powerful Gryll defender, ${defenderName}!`;
+    }
+    
+    const defenseCommentary = [
+      `Great coverage by ${defenderName}, forcing the drop.`,
+      `${defenderName} breaks up the pass at the last second!`,
+      `Excellent defensive play by ${defenderName}!`
+    ];
+    return defenseCommentary[Math.floor(Math.random() * defenseCommentary.length)];
+  }
+
+  // Helper Methods
+  getTeamPowerTier(team: any): string {
+    const teamPower = team.teamPower || team.power || 20;
+    
+    if (teamPower >= 35) return "Elite";
+    if (teamPower >= 30) return "Contender";
+    if (teamPower >= 25) return "Competitive";
+    if (teamPower >= 20) return "Developing";
+    return "Foundation";
+  }
+
+  getCurrentPossessionTeam(): string {
+    const ballCarrier = this.getBallCarrier();
+    if (ballCarrier) {
+      return ballCarrier.teamId === this.team1.id ? this.team1.name : this.team2.name;
+    }
+    return this.team1.name; // Default fallback
+  }
+
+  getPlayerTeamName(player: Player): string {
+    return player.teamId === this.team1.id ? this.team1.name : this.team2.name;
+  }
+
+  getBallCarrier(): Player | null {
+    if (this.gameState.ballCarrier) {
+      return this.players.find(p => p.id === this.gameState.ballCarrier) || null;
+    }
+    return null;
+  }
+
+  getPlayerDisplayName(player: Player): string {
     if (player.lastName && player.lastName !== "Player" && player.lastName !== "AI") {
       return player.lastName;
     } else if (player.firstName && player.firstName !== "AI" && player.firstName !== "Player") {

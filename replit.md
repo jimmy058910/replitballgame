@@ -136,7 +136,29 @@ Built as a React + Express web application with PostgreSQL database, using moder
 - ✓ **API Response Handling**: Fixed all references to marketplace listings to properly access nested `listings` array within response object
 - ✓ **Data Structure Alignment**: Corrected frontend component to match backend API response format `{listings: [...]}` instead of direct array access
 
-### July 3, 2025 - DYNAMIC DASHBOARD HEADER SYSTEM REFINEMENT COMPLETE
+### July 3, 2025 - COMPREHENSIVE COMMENTARY SYSTEM DATABASE OVERHAUL COMPLETE
+
+#### ✅ COMPLETE COMMENTARY ENGINE TRANSFORMATION - 200+ SPECIFIC PROMPTS IMPLEMENTED
+- ✓ **Game State & Flow Commentary**: Implemented pre-game commentary with team power tiers ("Elite", "Competitive", "Foundation"), tactical focus integration ("All-Out Attack", "Defensive Wall"), and dynamic mid-game flow commentary
+- ✓ **Enhanced Loose Ball System**: Added comprehensive fumble and dropped pass commentary with 14 specific variations covering tackle-induced fumbles, dropped passes, and recovery scenarios
+- ✓ **Race-Based Commentary Integration**: Implemented race-specific commentary for all 5 fantasy races (Human, Sylvan, Gryll, Lumina, Umbra) with unique racial characteristics and abilities
+- ✓ **Skill-Enhanced Run Commentary**: Expanded run commentary with Juke Move, Truck Stick, and breakaway variations, plus race-specific running styles (Umbra Shadow Step, Sylvan agility, Gryll power)
+- ✓ **Advanced Pass Play Commentary**: Enhanced passing commentary with Pocket Presence, Deadeye skill integration, deep pass variations, and Lumina precision commentary
+- ✓ **Contextual Defense Commentary**: Added Pancake Block skill commentary, clutch tackle variations, and power-based tackle descriptions with atmospheric integration
+- ✓ **Atmospheric & Injury Commentary**: Implemented crowd noise effects, player fatigue commentary, injury reporting, and skill-based recovery commentary (Second Wind, Photosynthesis, Healing Light)
+- ✓ **Team Chemistry Integration**: Added camaraderie-based commentary for miscommunications and perfect teamwork moments reflecting team chemistry levels
+- ✓ **Dynamic Urgency System**: Implemented time-sensitive commentary for half-end situations, clutch moments, and momentum shifts with game phase awareness
+- ✓ **Comprehensive Scoring Commentary**: Enhanced scoring celebrations with individual effort recognition and team-specific celebrations
+
+#### ✅ TECHNICAL IMPLEMENTATION DETAILS
+- ✓ **Commentary Categories**: 6 major categories (Game State/Flow, Loose Ball, Run Play, Pass Play, Defense/Aggression, Contextual/Atmospheric)
+- ✓ **Variation Count**: 200+ total commentary prompts with contextual selection based on game state, player actions, and team characteristics
+- ✓ **Race Integration**: Added race property to Player interface enabling race-specific commentary for enhanced fantasy immersion
+- ✓ **Team Power Detection**: Implemented automatic team power tier classification (Elite, Contender, Competitive, Developing, Foundation)
+- ✓ **Helper Method System**: Created comprehensive helper methods for player names, team identification, ball carrier detection, and possession tracking
+- ✓ **Skill-Aware Commentary**: Full integration with player skills system for dynamic commentary based on skill demonstrations during gameplay
+
+### July 3, 2025 - DYNAMIC DASHBOARD HEADER SYSTEM REFINEMENT COMPLETE (Previous)
 
 #### ✅ COMPREHENSIVE DYNAMIC DASHBOARD HEADER SYSTEM REFINEMENT COMPLETE
 - ✓ **Season 0 Starting Point**: Updated season calculation to start at "Season 0" and increment by 1 every 17-day cycle instead of year-based naming
