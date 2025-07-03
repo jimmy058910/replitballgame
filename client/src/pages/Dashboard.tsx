@@ -275,7 +275,7 @@ export default function Dashboard() {
             <ServerTimeDisplay serverTime={serverTime} />
           </div>
 
-          {/* Seasonal Cycle Display */}
+          {/* Enhanced Dynamic Dashboard Header */}
           {(seasonalCycle as any) && (
             <Card className="bg-gradient-to-r from-purple-900 to-blue-900 border-purple-700 mb-6">
               <CardContent className="p-6">
@@ -284,27 +284,42 @@ export default function Dashboard() {
                     <div className="bg-purple-600 bg-opacity-30 p-3 rounded-full">
                       <Calendar className="h-8 w-8 text-purple-200" />
                     </div>
-                    <div>
+                    <div className="flex-1">
                       <div className="text-sm text-purple-200 mb-1">{(seasonalCycle as any).season}</div>
-                      <h2 className="text-2xl font-bold text-white mb-1">{(seasonalCycle as any).description}</h2>
-                      <p className="text-purple-100 text-sm">{(seasonalCycle as any).details}</p>
+                      <h2 className="text-2xl font-bold text-white mb-1">
+                        {(seasonalCycle as any).phaseTitle || (seasonalCycle as any).description}
+                      </h2>
+                      <p className="text-purple-100 text-sm mb-2">
+                        {(seasonalCycle as any).description}
+                      </p>
+                      <p className="text-purple-200 text-sm font-medium">
+                        {(seasonalCycle as any).dynamicDetail || (seasonalCycle as any).details}
+                      </p>
                     </div>
                   </div>
-                  <div className="text-right">
+                  <div className="text-right min-w-[140px]">
                     <div className="text-lg font-bold text-white mb-1">Day {(seasonalCycle as any).currentDay}/17</div>
                     <Badge 
                       variant={(seasonalCycle as any).phase === "Regular Season" ? "default" : 
                               (seasonalCycle as any).phase === "Playoffs" ? "destructive" : "secondary"}
-                      className="text-xs"
+                      className={`text-xs mb-2 ${
+                        (seasonalCycle as any).phase === "Playoffs" ? "bg-yellow-600 text-yellow-100" : ""
+                      }`}
                     >
                       {(seasonalCycle as any).phase}
                     </Badge>
-                    {(seasonalCycle as any).daysUntilPlayoffs > 0 && (
+                    {(seasonalCycle as any).countdownText && (
+                      <div className="text-xs text-purple-200 mt-1 font-semibold">
+                        {(seasonalCycle as any).countdownText}
+                      </div>
+                    )}
+                    {/* Legacy countdown fallbacks */}
+                    {!(seasonalCycle as any).countdownText && (seasonalCycle as any).daysUntilPlayoffs > 0 && (
                       <div className="text-xs text-purple-200 mt-1">
                         {(seasonalCycle as any).daysUntilPlayoffs} days to playoffs
                       </div>
                     )}
-                    {(seasonalCycle as any).daysUntilNewSeason > 0 && (seasonalCycle as any).phase === "Off-Season" && (
+                    {!(seasonalCycle as any).countdownText && (seasonalCycle as any).daysUntilNewSeason > 0 && (seasonalCycle as any).phase === "Off-Season" && (
                       <div className="text-xs text-purple-200 mt-1">
                         {(seasonalCycle as any).daysUntilNewSeason} days to new season
                       </div>

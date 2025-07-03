@@ -55,49 +55,85 @@ router.get('/current-cycle', isAuthenticated, async (req: Request, res: Response
       return res.status(404).json({ message: "No active season found." });
     }
 
-    // Calculate the current day in the 17-day cycle
+    // Calculate the current day in the 17-day cycle and season number
     const seasonStartDate = currentSeason.startDateOriginal || currentSeason.startDate || new Date();
     const daysSinceStart = Math.floor((new Date().getTime() - seasonStartDate.getTime()) / (1000 * 60 * 60 * 24));
     const currentDayInCycle = (daysSinceStart % 17) + 1;
     
-
-
-    // Determine the phase based on current day in cycle
+    // Calculate season number starting from Season 0, incrementing every 17 days
+    const seasonNumber = Math.floor(daysSinceStart / 17);
+    
+    // Determine the phase and dynamic content based on current day in cycle
     let phase = "Regular Season";
-    let description = "Regular Season - Teams compete in their divisions";
-    let details = "League matches are being played daily";
+    let phaseTitle = "Regular Season";
+    let description = "";
+    let dynamicDetail = "";
     let daysUntilPlayoffs = 0;
     let daysUntilNewSeason = 0;
+    let countdownText = "";
 
     if (currentDayInCycle >= 1 && currentDayInCycle <= 14) {
+      // Phase 1: Regular Season (Days 1-14)
       phase = "Regular Season";
-      description = "Regular Season - Teams compete in their divisions";
-      details = "League matches are being played daily";
+      phaseTitle = "Regular Season";
+      description = "Compete in your division to earn a spot in the playoffs.";
+      
+      // Dynamic detail based on specific day
+      if (currentDayInCycle === 1) {
+        dynamicDetail = "A new season begins! Your first match is today.";
+      } else if (currentDayInCycle === 14) {
+        dynamicDetail = "Final day of the regular season! Secure your playoff spot!";
+      } else {
+        dynamicDetail = "The league grind continues. Every game counts.";
+      }
+      
       daysUntilPlayoffs = 15 - currentDayInCycle;
+      countdownText = `${daysUntilPlayoffs} Days Until Playoffs`;
+      
     } else if (currentDayInCycle === 15) {
+      // Phase 2: Playoffs (Day 15)
       phase = "Playoffs";
-      description = "Division Playoffs - Compete for championship";
-      details = "Elimination rounds determine division champions";
+      phaseTitle = "Championship Day";
+      description = "The top 4 teams from each league compete for the title.";
+      dynamicDetail = "It's win or go home! Semifinals and the Championship will be decided today.";
       daysUntilPlayoffs = 0;
-      daysUntilNewSeason = 16 - currentDayInCycle;
+      daysUntilNewSeason = 2; // Days 16-17 remaining
+      countdownText = "Next Round Simulates In: [HH:MM:SS]"; // TODO: Add real-time countdown
+      
     } else if (currentDayInCycle >= 16 && currentDayInCycle <= 17) {
+      // Phase 3: Off-Season (Days 16-17)
       phase = "Off-Season";
-      description = "Off-Season - Recruit and prepare for next season";
-      details = "Team building, tryouts, and strategic planning";
+      phaseTitle = "Off-Season: Management Phase";
+      description = "Build your dynasty. Sign contracts, recruit new talent, and set your strategy.";
+      
+      // Dynamic detail based on specific day
+      if (currentDayInCycle === 16) {
+        dynamicDetail = "Contract negotiations are open! Secure your key players for next season.";
+        daysUntilNewSeason = 1;
+      } else if (currentDayInCycle === 17) {
+        dynamicDetail = "Final day to prepare. The league re-shuffle and new season schedule will be announced at 3 AM.";
+        daysUntilNewSeason = 0;
+      }
+      
       daysUntilPlayoffs = 0;
-      daysUntilNewSeason = 18 - currentDayInCycle;
+      countdownText = daysUntilNewSeason > 0 ? `New Season Begins In: ${daysUntilNewSeason} Days` : "New Season Begins Tomorrow at 3 AM";
     }
 
     res.json({
-      season: currentSeason.name || `Season ${currentSeason.year || new Date().getFullYear()}`,
+      season: `Season ${seasonNumber}`,
+      seasonNumber,
       currentDay: currentDayInCycle,
       phase,
+      phaseTitle,
       description,
-      details,
+      dynamicDetail,
+      countdownText,
       daysUntilPlayoffs,
       daysUntilNewSeason,
-      seasonYear: currentSeason.year || new Date().getFullYear(),
-      seasonStatus: currentSeason.status || "active"
+      seasonYear: seasonNumber,
+      seasonStatus: currentSeason.status || "active",
+      // Legacy fields for backward compatibility
+      details: dynamicDetail
     });
   } catch (error) {
     console.error("Error fetching current season cycle:", error);

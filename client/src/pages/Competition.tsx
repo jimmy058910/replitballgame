@@ -116,7 +116,7 @@ export default function Competition() {
           </p>
         </div>
 
-        {/* Seasonal Cycle Display */}
+        {/* Enhanced Dynamic Dashboard Header */}
         {currentCycle && (
           <Card className="bg-gradient-to-r from-purple-900 to-blue-900 border-purple-700 mb-6">
             <CardContent className="p-6">
@@ -125,27 +125,57 @@ export default function Competition() {
                   <div className="bg-purple-600 bg-opacity-30 p-3 rounded-full">
                     <Calendar className="h-8 w-8 text-purple-200" />
                   </div>
-                  <div>
+                  <div className="flex-1">
                     <div className="text-sm text-purple-200 mb-1">{currentCycle?.season}</div>
-                    <h2 className="text-2xl font-bold text-white mb-1">{currentCycle?.description}</h2>
-                    <p className="text-purple-100 text-sm">{currentCycle?.details}</p>
+                    <h2 className="text-2xl font-bold text-white mb-1">
+                      {(currentCycle as any)?.phaseTitle || currentCycle?.description}
+                    </h2>
+                    <p className="text-purple-100 text-sm mb-2">
+                      {currentCycle?.description}
+                    </p>
+                    <p className="text-purple-200 text-sm font-medium">
+                      {(currentCycle as any)?.dynamicDetail || currentCycle?.details}
+                    </p>
+                    {/* Progress bar for Regular Season */}
+                    {currentCycle?.phase === "Regular Season" && (
+                      <div className="mt-3">
+                        <div className="flex justify-between text-xs text-purple-200 mb-1">
+                          <span>Regular Season Progress</span>
+                          <span>Day {currentCycle?.currentDay}/14</span>
+                        </div>
+                        <div className="w-full bg-purple-800 bg-opacity-50 rounded-full h-2">
+                          <div 
+                            className="bg-purple-300 h-2 rounded-full transition-all duration-300"
+                            style={{ width: `${(currentCycle?.currentDay / 14) * 100}%` }}
+                          ></div>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </div>
-                <div className="text-right">
+                <div className="text-right min-w-[140px]">
                   <div className="text-lg font-bold text-white mb-1">Day {currentCycle?.currentDay}/17</div>
                   <Badge 
                     variant={currentCycle?.phase === "Regular Season" ? "default" : 
                             currentCycle?.phase === "Playoffs" ? "destructive" : "secondary"}
-                    className="text-xs"
+                    className={`text-xs mb-2 ${
+                      currentCycle?.phase === "Playoffs" ? "bg-yellow-600 text-yellow-100" : ""
+                    }`}
                   >
                     {currentCycle?.phase}
                   </Badge>
-                  {(currentCycle?.daysUntilPlayoffs || 0) > 0 && (
+                  {(currentCycle as any)?.countdownText && (
+                    <div className="text-xs text-purple-200 mt-1 font-semibold">
+                      {(currentCycle as any)?.countdownText}
+                    </div>
+                  )}
+                  {/* Legacy countdown fallbacks */}
+                  {!(currentCycle as any)?.countdownText && (currentCycle?.daysUntilPlayoffs || 0) > 0 && (
                     <div className="text-xs text-purple-200 mt-1">
                       {currentCycle?.daysUntilPlayoffs} days to playoffs
                     </div>
                   )}
-                  {(currentCycle?.daysUntilNewSeason || 0) > 0 && currentCycle?.phase === "Off-Season" && (
+                  {!(currentCycle as any)?.countdownText && (currentCycle?.daysUntilNewSeason || 0) > 0 && currentCycle?.phase === "Off-Season" && (
                     <div className="text-xs text-purple-200 mt-1">
                       {currentCycle?.daysUntilNewSeason} days to new season
                     </div>
