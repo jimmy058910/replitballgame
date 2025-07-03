@@ -1,6 +1,6 @@
 import { useRoute } from "wouter";
 import { useQuery } from "@tanstack/react-query";
-import EnhancedMatchSimulation from "@/components/EnhancedMatchSimulation";
+import { LiveMatchSimulation } from "@/components/LiveMatchSimulation";
 import { Loader2 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 
@@ -94,15 +94,13 @@ export default function TextMatch() {
 
   return (
     <div className="min-h-screen bg-gray-900 text-white">
-      <EnhancedMatchSimulation
+      <LiveMatchSimulation
+        matchId={matchId!}
         team1={team1WithPlayers}
         team2={team2WithPlayers}
-        isExhibition={(match as any)?.matchType === "exhibition"}
-        matchId={matchId}
         initialLiveState={(match as any)?.liveState}
-        isLiveMatch={(match as any)?.status === 'live'}
-        onMatchComplete={(result) => {
-          console.log("Match completed:", result);
+        onMatchComplete={() => {
+          console.log("Match completed");
         }}
       />
     </div>
