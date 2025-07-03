@@ -47,7 +47,7 @@ class MatchStateManager {
 
   // Start a new live match with server-side state management
   async startLiveMatch(matchId: string, isExhibition: boolean = false): Promise<LiveMatchState> {
-    const match = await storage.getMatchById(matchId);
+    const match = await storage.matches.getMatchById(matchId);
     if (!match) {
       throw new Error("Match not found");
     }
