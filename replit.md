@@ -159,7 +159,9 @@ Built as a React + Express web application with PostgreSQL database, using moder
 ### July 3, 2025 - COMPREHENSIVE RACIAL SYSTEMS & MATCH SIMULATION DOCUMENTATION COMPLETE
 
 #### ✅ COMPLETE GAME MECHANICS DOCUMENTATION CREATION
-- ✓ **Racial Systems Documentation**: Created comprehensive `docs/RACIAL_SYSTEMS_DOCUMENTATION.md` covering all 5 fantasy races with detailed stat modifiers, abilities, and strategic positioning
+- ✓ **Separated Documentation Structure**: Created two specialized documentation files for better organization and accessibility
+- ✓ **Racial Systems Documentation**: Created comprehensive `docs/RACIAL_SYSTEMS.md` covering all 5 fantasy races with detailed stat modifiers, abilities, and strategic positioning
+- ✓ **Match Simulation Documentation**: Created detailed `docs/MATCH_SIMULATION_MECHANICS.md` covering Enhanced Live Match Simulation, commentary engine, and all game mechanics
 - ✓ **Fantasy Race Breakdown**: Human (+1 all stats), Sylvan (+3 Speed/+4 Agility/-2 Power), Gryll (+5 Power/+3 Stamina/-3 Speed/-2 Agility), Lumina (+4 Throwing/+3 Leadership/-1 Stamina), Umbra (+2 Speed/+3 Agility/-3 Power/-1 Leadership)
 - ✓ **Match Simulation Mechanics**: Complete documentation of Enhanced Live Match Simulation including pre-game setup, home field advantage calculations, and atmospheric effects
 - ✓ **Camaraderie Integration**: Detailed tier-based effects (Excellent: +2/+2/+3 bonuses, Poor: -2/-2/-3 penalties + 2% fumble risk)
