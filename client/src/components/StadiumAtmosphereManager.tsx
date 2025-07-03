@@ -145,6 +145,12 @@ export default function StadiumAtmosphereManager({ teamId }: { teamId: string })
     enabled: !!teamId
   });
 
+  // Debug logging
+  console.log('StadiumAtmosphereManager - Stadium Data:', stadiumData);
+  console.log('StadiumAtmosphereManager - Atmosphere Data:', atmosphereData);
+  console.log('StadiumAtmosphereManager - Stadium Capacity:', stadiumData?.capacity);
+  console.log('StadiumAtmosphereManager - Data Structure:', stadiumData?.data);
+
   // Stadium upgrade mutation
   const upgradeStadiumMutation = useMutation({
     mutationFn: (upgradeType: string) =>
