@@ -116,6 +116,7 @@ export default function Exhibitions() {
   });
 
   const handleInstantExhibition = () => {
+    console.log("Instant Exhibition button clicked");
     if (hasLiveExhibition) {
       toast({
         title: "Exhibition Already Running",
@@ -134,10 +135,12 @@ export default function Exhibitions() {
       return;
     }
     
+    console.log("Starting instant exhibition mutation");
     instantExhibitionMutation.mutate();
   };
 
   const handleChooseOpponent = () => {
+    console.log("Choose Opponent button clicked");
     if (hasLiveExhibition) {
       toast({
         title: "Exhibition Already Running",
@@ -156,6 +159,7 @@ export default function Exhibitions() {
       return;
     }
 
+    console.log("Opening opponent selection dialog");
     setShowOpponentSelect(true);
   };
 
@@ -356,10 +360,8 @@ export default function Exhibitions() {
                                   </div>
                                 </div>
                               </div>
-                              <div className="text-right">
-                                <Badge variant="outline">
-                                  {opponent.record || "0-0-0"}
-                                </Badge>
+                              <div className="text-right text-sm text-gray-400">
+                                {opponent.record || "0-0-0"}
                               </div>
                             </div>
                           </Button>
