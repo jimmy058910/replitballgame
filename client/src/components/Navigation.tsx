@@ -104,11 +104,13 @@ export default function Navigation() {
               <>
                 {/* Premium Currency Display - Clickable */}
                 <button
-                  onClick={() => setLocation("/payments")}
+                  onClick={() => setLocation("/store")}
                   className="flex items-center bg-purple-700 hover:bg-purple-600 px-2 py-1 rounded text-xs font-semibold transition-colors cursor-pointer"
                 >
                   <Coins className="h-3 w-3 text-purple-300 mr-1" />
-                  <span className="text-white">{premiumCurrency.toLocaleString()}</span>
+                  <span className="text-white">
+                    {premiumCurrency === 0 ? "BUY" : premiumCurrency.toLocaleString()}
+                  </span>
                   <span className="text-purple-300 ml-1">💎</span>
                 </button>
                 
@@ -179,13 +181,15 @@ export default function Navigation() {
                       <div className="flex items-center gap-2 mt-2">
                         <button
                           onClick={() => {
-                            setLocation("/payments");
+                            setLocation("/store");
                             setIsMobileMenuOpen(false);
                           }}
                           className="flex items-center bg-purple-700 hover:bg-purple-600 px-3 py-2 rounded transition-colors cursor-pointer"
                         >
                           <Coins className="h-4 w-4 text-purple-300 mr-2" />
-                          <span className="font-semibold text-white">{premiumCurrency.toLocaleString()}</span>
+                          <span className="font-semibold text-white">
+                            {premiumCurrency === 0 ? "BUY" : premiumCurrency.toLocaleString()}
+                          </span>
                           <span className="text-purple-300 ml-1">💎</span>
                         </button>
                         

@@ -325,9 +325,19 @@ export default function Market() {
                   <Gem className="h-6 w-6 text-blue-300 mr-2" />
                   <span className="text-white font-medium">Premium Gems</span>
                 </div>
-                <div className="text-2xl font-bold text-blue-300">
+                <div className="text-2xl font-bold text-blue-300 mb-2">
                   💎{(teamFinances?.gems || 0).toLocaleString()}
                 </div>
+                {(teamFinances?.gems || 0) <= 10 && (
+                  <Button
+                    size="sm"
+                    onClick={() => window.location.href = '/store'}
+                    className="bg-blue-600 hover:bg-blue-700 text-white text-xs px-3 py-1"
+                  >
+                    <Gem className="h-3 w-3 mr-1" />
+                    Buy Gems
+                  </Button>
+                )}
               </div>
               <div className="text-center">
                 <div className="flex items-center justify-center mb-2">
