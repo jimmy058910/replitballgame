@@ -115,27 +115,53 @@ export default function EnhancedGameEconomyManager({ teamId }: { teamId: string 
   const queryClient = useQueryClient();
   const [exchangeAmount, setExchangeAmount] = useState<string>('');
 
-  // Fetch economy overview
-  const { data: overview, isLoading: loadingOverview } = useQuery({
-    queryKey: ['/api/enhanced-game-economy/overview', teamId],
+  // Fetch team finances for credits and gems
+  const { data: finances, isLoading: loadingFinances } = useQuery({
+    queryKey: ['/api/teams', teamId, 'finances'],
     enabled: !!teamId
   });
 
-  // Fetch store catalog
-  const { data: storeCatalog } = useQuery({
-    queryKey: ['/api/enhanced-game-economy/store-catalog']
-  });
-
-  // Fetch division rewards
-  const { data: divisionRewards } = useQuery({
-    queryKey: ['/api/enhanced-game-economy/division-rewards']
-  });
-
-  // Fetch exchange rates
-  const { data: exchangeRates } = useQuery({
-    queryKey: ['/api/enhanced-game-economy/exchange-rates', teamId],
+  // Fetch stadium data
+  const { data: stadiumData, isLoading: loadingStadium } = useQuery({
+    queryKey: ['/api/stadium-atmosphere/stadium-data'],
     enabled: !!teamId
   });
+
+  // Fetch revenue breakdown
+  const { data: revenueData } = useQuery({
+    queryKey: ['/api/stadium-atmosphere/revenue-breakdown'],
+    enabled: !!teamId
+  });
+
+  // Create overview object from available data
+  const overview: EconomyOverview = {
+    credits: (finances as any)?.credits || 0,
+    gems: (finances as any)?.gems || 0,
+    stadiumRevenue: {
+      ticketSales: (revenueData as any)?.data?.ticketSales || 0,
+      concessions: (revenueData as any)?.data?.concessions || 0,
+      parking: (revenueData as any)?.data?.parking || 0,
+      vipSuites: 0,
+      apparel: 0,
+      total: (revenueData as any)?.data?.totalRevenue || 0
+    },
+    maintenanceCosts: (stadiumData as any)?.data?.maintenanceCost || 5000,
+    netRevenue: ((revenueData as any)?.data?.totalRevenue || 0) - ((stadiumData as any)?.data?.maintenanceCost || 5000),
+    recentTransactions: []
+  };
+
+  // Stub data for missing variables
+  const storeCatalog: any[] = [];
+  const divisionRewards: any[] = [];
+  const exchangeRates = {
+    creditsPerGem: 500,
+    minimumExchange: 1,
+    maximumExchange: 100,
+    dailyLimit: 100,
+    currentExchangeToday: 0
+  };
+
+  const loadingOverview = loadingFinances || loadingStadium;
 
   // Purchase item mutation
   const purchaseItemMutation = useMutation({
@@ -378,6 +404,21 @@ export default function EnhancedGameEconomyManager({ teamId }: { teamId: string 
                   <CardContent className="p-4">
                     <div className="flex items-center justify-between">
                       <div>
+                        <div className="text-sm text-gray-600">Stadium Capacity</div>
+                        <div className="text-lg font-bold">{(stadiumData as any)?.data?.capacity?.toLocaleString() || '15,000'}</div>
+                      </div>
+                      <Building className="w-8 h-8 text-blue-500" />
+                    </div>
+                    <div className="mt-2 text-xs text-gray-500">
+                      Maximum attendance per game
+                    </div>
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardContent className="p-4">
+                    <div className="flex items-center justify-between">
+                      <div>
                         <div className="text-sm text-gray-600">Ticket Sales</div>
                         <div className="text-lg font-bold">₡{overview?.stadiumRevenue?.ticketSales?.toLocaleString() || 0}</div>
                       </div>
@@ -542,7 +583,7 @@ export default function EnhancedGameEconomyManager({ teamId }: { teamId: string 
                               onClick={() => purchaseItemMutation.mutate(item.id)}
                               disabled={
                                 purchaseItemMutation.isPending ||
-                                (item.purchaseLimit && (item.purchased || 0) >= item.purchaseLimit)
+                                (!!item.purchaseLimit && (item.purchased || 0) >= item.purchaseLimit)
                               }
                             >
                               Purchase
