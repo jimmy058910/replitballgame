@@ -20,6 +20,7 @@ interface Team {
 interface TeamFinances {
   credits: number;
   gems: number;
+  premiumCurrency: number;
   netRevenue: number;
   stadiumRevenue: number;
   maintenanceCosts: number;
@@ -326,12 +327,12 @@ export default function Market() {
                   <span className="text-white font-medium">Premium Gems</span>
                 </div>
                 <div className="text-2xl font-bold text-blue-300 mb-2">
-                  💎{(teamFinances?.gems || 0).toLocaleString()}
+                  💎{(teamFinances?.premiumCurrency || teamFinances?.gems || 0).toLocaleString()}
                 </div>
-                {(teamFinances?.gems || 0) <= 10 && (
+                {(teamFinances?.premiumCurrency || teamFinances?.gems || 0) <= 10 && (
                   <Button
                     size="sm"
-                    onClick={() => window.location.href = '/store'}
+                    onClick={() => setActiveTab('gems')}
                     className="bg-blue-600 hover:bg-blue-700 text-white text-xs px-3 py-1"
                   >
                     <Gem className="h-3 w-3 mr-1" />
@@ -362,12 +363,15 @@ export default function Market() {
         </Card>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="grid w-full grid-cols-5">
+          <TabsList className="grid w-full grid-cols-8">
             <TabsTrigger value="marketplace">Player Marketplace</TabsTrigger>
             <TabsTrigger value="recruiting">Recruiting</TabsTrigger>
             <TabsTrigger value="store">Store</TabsTrigger>
-            <TabsTrigger value="rewards">Division Rewards</TabsTrigger>
-            <TabsTrigger value="exchange">Currency Exchange</TabsTrigger>
+            <TabsTrigger value="entries">Entries</TabsTrigger>
+            <TabsTrigger value="tournaments">Tournament Entries</TabsTrigger>
+            <TabsTrigger value="ads">Ad Rewards</TabsTrigger>
+            <TabsTrigger value="gems">Buy Gems</TabsTrigger>
+            <TabsTrigger value="history">Transaction History</TabsTrigger>
           </TabsList>
 
           <TabsContent value="marketplace">
@@ -569,6 +573,296 @@ export default function Market() {
                       </CardContent>
                     </Card>
                   ))}
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="entries">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Trophy className="h-5 w-5" />
+                  Exhibition Game Entries
+                </CardTitle>
+                <p className="text-sm text-gray-600 dark:text-gray-400">
+                  Purchase additional exhibition games for extra practice and rewards
+                </p>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <Card className="border-2 border-blue-200">
+                    <CardHeader>
+                      <CardTitle className="text-lg">Single Exhibition Game</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="space-y-3">
+                        <div className="text-2xl font-bold text-blue-600">₡25,000</div>
+                        <ul className="text-sm space-y-1">
+                          <li>• One additional exhibition match</li>
+                          <li>• Extra player experience</li>
+                          <li>• Match revenue opportunity</li>
+                          <li>• Daily limit: 3 purchases</li>
+                        </ul>
+                        <Button className="w-full">Purchase Entry</Button>
+                      </div>
+                    </CardContent>
+                  </Card>
+                  
+                  <Card className="border-2 border-purple-200">
+                    <CardHeader>
+                      <CardTitle className="text-lg">Premium Exhibition Package</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="space-y-3">
+                        <div className="text-2xl font-bold text-purple-600">💎5 Gems</div>
+                        <ul className="text-sm space-y-1">
+                          <li>• Three exhibition matches</li>
+                          <li>• Bonus experience rewards</li>
+                          <li>• Enhanced match revenue</li>
+                          <li>• Daily limit: 1 purchase</li>
+                        </ul>
+                        <Button className="w-full bg-purple-600 hover:bg-purple-700">Purchase Package</Button>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="tournaments">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Crown className="h-5 w-5" />
+                  Tournament Entries
+                </CardTitle>
+                <p className="text-sm text-gray-600 dark:text-gray-400">
+                  Enter special tournaments for exclusive rewards
+                </p>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <Card className="border-2 border-orange-200">
+                    <CardHeader>
+                      <CardTitle className="text-lg">Weekly Tournament</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="space-y-3">
+                        <div className="text-2xl font-bold text-orange-600">₡100,000</div>
+                        <ul className="text-sm space-y-1">
+                          <li>• Single elimination tournament</li>
+                          <li>• 8-team bracket</li>
+                          <li>• Winner: ₡500,000 + 💎25</li>
+                          <li>• Weekly limit: 1 entry</li>
+                        </ul>
+                        <Button className="w-full bg-orange-600 hover:bg-orange-700">Enter Tournament</Button>
+                      </div>
+                    </CardContent>
+                  </Card>
+                  
+                  <Card className="border-2 border-gold-200">
+                    <CardHeader>
+                      <CardTitle className="text-lg">Championship Series</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="space-y-3">
+                        <div className="text-2xl font-bold text-yellow-600">💎50 Gems</div>
+                        <ul className="text-sm space-y-1">
+                          <li>• Elite tournament competition</li>
+                          <li>• 16-team double elimination</li>
+                          <li>• Winner: ₡2M + 💎200</li>
+                          <li>• Monthly limit: 1 entry</li>
+                        </ul>
+                        <Button className="w-full bg-yellow-600 hover:bg-yellow-700">Enter Championship</Button>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="ads">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Gift className="h-5 w-5" />
+                  Ad Rewards
+                </CardTitle>
+                <p className="text-sm text-gray-600 dark:text-gray-400">
+                  Watch ads to earn bonus credits and gems
+                </p>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <Card className="bg-green-50 border-green-200">
+                      <CardContent className="p-4">
+                        <div className="text-center">
+                          <h3 className="font-semibold text-green-800 mb-2">Daily Ad Rewards</h3>
+                          <div className="text-lg font-bold text-green-600">₡10,000</div>
+                          <p className="text-sm text-green-700 mt-1">Per ad watched</p>
+                          <p className="text-xs text-green-600 mt-2">Daily limit: 5 ads</p>
+                          <Button className="w-full mt-3 bg-green-600 hover:bg-green-700">Watch Ad</Button>
+                        </div>
+                      </CardContent>
+                    </Card>
+                    
+                    <Card className="bg-purple-50 border-purple-200">
+                      <CardContent className="p-4">
+                        <div className="text-center">
+                          <h3 className="font-semibold text-purple-800 mb-2">Premium Ad Rewards</h3>
+                          <div className="text-lg font-bold text-purple-600">💎2 Gems</div>
+                          <p className="text-sm text-purple-700 mt-1">Per premium ad</p>
+                          <p className="text-xs text-purple-600 mt-2">Daily limit: 2 ads</p>
+                          <Button className="w-full mt-3 bg-purple-600 hover:bg-purple-700">Watch Premium Ad</Button>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </div>
+                  
+                  <Card className="bg-blue-50 border-blue-200">
+                    <CardContent className="p-4">
+                      <h3 className="font-semibold text-blue-800 mb-3">Today's Progress</h3>
+                      <div className="space-y-2">
+                        <div className="flex justify-between items-center">
+                          <span className="text-sm">Regular Ads (0/5)</span>
+                          <span className="text-sm font-bold text-green-600">₡0 earned</span>
+                        </div>
+                        <div className="flex justify-between items-center">
+                          <span className="text-sm">Premium Ads (0/2)</span>
+                          <span className="text-sm font-bold text-purple-600">💎0 earned</span>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="gems">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Gem className="h-5 w-5" />
+                  Buy Premium Gems
+                </CardTitle>
+                <p className="text-sm text-gray-600 dark:text-gray-400">
+                  Purchase Premium Gems with real money for exclusive content
+                </p>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                  <Card className="border-2 hover:border-blue-400 transition-colors">
+                    <CardHeader className="text-center">
+                      <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-2">
+                        <Gem className="w-6 h-6 text-blue-600" />
+                      </div>
+                      <CardTitle className="text-lg">Starter Pack</CardTitle>
+                    </CardHeader>
+                    <CardContent className="text-center space-y-3">
+                      <div className="text-2xl font-bold">$4.99</div>
+                      <div className="text-lg font-semibold text-blue-600">100 💎</div>
+                      <Button className="w-full">Purchase</Button>
+                    </CardContent>
+                  </Card>
+                  
+                  <Card className="border-2 hover:border-purple-400 transition-colors">
+                    <CardHeader className="text-center">
+                      <div className="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-2">
+                        <Gem className="w-6 h-6 text-purple-600" />
+                      </div>
+                      <CardTitle className="text-lg">Value Pack</CardTitle>
+                    </CardHeader>
+                    <CardContent className="text-center space-y-3">
+                      <div className="text-2xl font-bold">$9.99</div>
+                      <div className="text-lg font-semibold text-purple-600">250 💎</div>
+                      <div className="text-sm text-green-600">+50 Bonus!</div>
+                      <Button className="w-full bg-purple-600 hover:bg-purple-700">Purchase</Button>
+                    </CardContent>
+                  </Card>
+                  
+                  <Card className="border-2 border-orange-400 ring-2 ring-orange-200">
+                    <CardHeader className="text-center">
+                      <Badge className="mb-2 bg-orange-600">Most Popular</Badge>
+                      <div className="w-12 h-12 bg-orange-100 rounded-full flex items-center justify-center mx-auto mb-2">
+                        <Gem className="w-6 h-6 text-orange-600" />
+                      </div>
+                      <CardTitle className="text-lg">Power Pack</CardTitle>
+                    </CardHeader>
+                    <CardContent className="text-center space-y-3">
+                      <div className="text-2xl font-bold">$19.99</div>
+                      <div className="text-lg font-semibold text-orange-600">600 💎</div>
+                      <div className="text-sm text-green-600">+150 Bonus!</div>
+                      <Button className="w-full bg-orange-600 hover:bg-orange-700">Purchase</Button>
+                    </CardContent>
+                  </Card>
+                  
+                  <Card className="border-2 hover:border-yellow-400 transition-colors">
+                    <CardHeader className="text-center">
+                      <div className="w-12 h-12 bg-yellow-100 rounded-full flex items-center justify-center mx-auto mb-2">
+                        <Crown className="w-6 h-6 text-yellow-600" />
+                      </div>
+                      <CardTitle className="text-lg">Elite Pack</CardTitle>
+                    </CardHeader>
+                    <CardContent className="text-center space-y-3">
+                      <div className="text-2xl font-bold">$49.99</div>
+                      <div className="text-lg font-semibold text-yellow-600">1,800 💎</div>
+                      <div className="text-sm text-green-600">+600 Bonus!</div>
+                      <Button className="w-full bg-yellow-600 hover:bg-yellow-700">Purchase</Button>
+                    </CardContent>
+                  </Card>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="history">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Star className="h-5 w-5" />
+                  Transaction History
+                </CardTitle>
+                <p className="text-sm text-gray-600 dark:text-gray-400">
+                  View your purchase and transaction history
+                </p>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <Card className="bg-green-50 border-green-200">
+                      <CardContent className="p-4 text-center">
+                        <h3 className="font-semibold text-green-800">Total Spent</h3>
+                        <div className="text-2xl font-bold text-green-600">$0.00</div>
+                      </CardContent>
+                    </Card>
+                    <Card className="bg-blue-50 border-blue-200">
+                      <CardContent className="p-4 text-center">
+                        <h3 className="font-semibold text-blue-800">Gems Purchased</h3>
+                        <div className="text-2xl font-bold text-blue-600">💎0</div>
+                      </CardContent>
+                    </Card>
+                    <Card className="bg-purple-50 border-purple-200">
+                      <CardContent className="p-4 text-center">
+                        <h3 className="font-semibold text-purple-800">Total Transactions</h3>
+                        <div className="text-2xl font-bold text-purple-600">0</div>
+                      </CardContent>
+                    </Card>
+                  </div>
+                  
+                  <Card>
+                    <CardContent className="p-6">
+                      <div className="text-center py-8">
+                        <Star className="w-12 h-12 mx-auto mb-4 text-gray-400" />
+                        <p className="text-gray-500 text-lg">No transactions yet</p>
+                        <p className="text-gray-400 text-sm mt-2">Your purchase history will appear here</p>
+                      </div>
+                    </CardContent>
+                  </Card>
                 </div>
               </CardContent>
             </Card>
