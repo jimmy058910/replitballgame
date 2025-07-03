@@ -326,15 +326,18 @@ export default function Dashboard() {
                         <p className="text-gray-400 text-sm">Division Rank</p>
                         <HelpIcon content="Your team's current division. New teams start in Division 8. Top 2 teams promote, bottom 2 relegate each season. Click to view detailed standings." />
                       </div>
-                      <p className="text-2xl font-bold text-gold-400">
+                      <p className="text-lg font-bold text-gold-400">
                         Division {team.division}
                       </p>
+                      <p className="text-sm text-gold-300">
+                        {getTeamRankPosition(standings || [], team.id) || "1st"} Place
+                      </p>
                       <p className="text-xs text-gray-400">
-                        {getTeamRankPosition(standings, team.id)} | {team.wins}W - {team.losses}L - {team.draws}D
+                        {team.wins}W - {team.losses}L - {team.draws}D
                       </p>
                     </div>
-                    <div className="bg-gold-400 bg-opacity-20 p-3 rounded-lg">
-                      <i className="fas fa-trophy text-gold-400 text-xl"></i>
+                    <div className={`${team.division === 8 ? 'bg-orange-600' : 'bg-gold-400'} bg-opacity-20 p-3 rounded-lg`}>
+                      <i className={`fas ${team.division === 8 ? 'fa-shield-alt text-orange-600' : 'fa-trophy text-gold-400'} text-xl`}></i>
                     </div>
                   </div>
                 </CardContent>
