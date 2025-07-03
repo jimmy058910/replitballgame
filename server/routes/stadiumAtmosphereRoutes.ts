@@ -2,6 +2,9 @@ import { Router } from 'express';
 import { StadiumAtmosphereService } from '../services/stadiumAtmosphereService';
 import { isAuthenticated } from '../replitAuth';
 import { RBACService } from '../services/rbacService';
+import { db } from '../db';
+import { teams } from '@shared/schema';
+import { eq } from 'drizzle-orm';
 
 const router = Router();
 
@@ -264,6 +267,235 @@ router.post('/apply-crowd-debuff', isAuthenticated, async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Failed to apply crowd debuff',
+      error: error instanceof Error ? error.message : 'Unknown error'
+    });
+  }
+});
+
+/**
+ * GET /api/stadium-atmosphere/stadium-data
+ * Get stadium data for current user's team
+ */
+router.get('/stadium-data', isAuthenticated, async (req: any, res) => {
+  try {
+    const userId = req.user.claims.sub;
+    
+    const team = await db.query.teams.findFirst({
+      where: eq(teams.userId, userId)
+    });
+    
+    if (!team) {
+      return res.status(404).json({
+        success: false,
+        message: 'No team found for current user'
+      });
+    }
+    
+    const analytics = await StadiumAtmosphereService.getStadiumAnalytics(team.id);
+    
+    res.json({
+      success: true,
+      data: analytics.currentStats
+    });
+  } catch (error) {
+    console.error('Error getting stadium data:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to get stadium data',
+      error: error instanceof Error ? error.message : 'Unknown error'
+    });
+  }
+});
+
+/**
+ * GET /api/stadium-atmosphere/atmosphere-data
+ * Get atmosphere data for current user's team
+ */
+router.get('/atmosphere-data', isAuthenticated, async (req: any, res) => {
+  try {
+    const userId = req.user.claims.sub;
+    
+    const team = await db.query.teams.findFirst({
+      where: eq(teams.userId, userId)
+    });
+    
+    if (!team) {
+      return res.status(404).json({
+        success: false,
+        message: 'No team found for current user'
+      });
+    }
+    
+    const atmosphere = await StadiumAtmosphereService.calculateMatchdayAtmosphere(team.id);
+    
+    res.json({
+      success: true,
+      data: atmosphere
+    });
+  } catch (error) {
+    console.error('Error getting atmosphere data:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to get atmosphere data',
+      error: error instanceof Error ? error.message : 'Unknown error'
+    });
+  }
+});
+
+/**
+ * GET /api/stadium-atmosphere/revenue-breakdown
+ * Get revenue breakdown for current user's team
+ */
+router.get('/revenue-breakdown', isAuthenticated, async (req: any, res) => {
+  try {
+    const userId = req.user.claims.sub;
+    
+    const team = await db.query.teams.findFirst({
+      where: eq(teams.userId, userId)
+    });
+    
+    if (!team) {
+      return res.status(404).json({
+        success: false,
+        message: 'No team found for current user'
+      });
+    }
+    
+    const revenue = await StadiumAtmosphereService.calculateHomeGameRevenue(team.id);
+    
+    res.json({
+      success: true,
+      data: revenue
+    });
+  } catch (error) {
+    console.error('Error getting revenue breakdown:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to get revenue breakdown',
+      error: error instanceof Error ? error.message : 'Unknown error'
+    });
+  }
+});
+
+/**
+ * GET /api/stadium-atmosphere/upgrade-costs
+ * Get upgrade costs for current user's team
+ */
+router.get('/upgrade-costs', isAuthenticated, async (req: any, res) => {
+  try {
+    const userId = req.user.claims.sub;
+    
+    const team = await db.query.teams.findFirst({
+      where: eq(teams.userId, userId)
+    });
+    
+    if (!team) {
+      return res.status(404).json({
+        success: false,
+        message: 'No team found for current user'
+      });
+    }
+    
+    const analytics = await StadiumAtmosphereService.getStadiumAnalytics(team.id);
+    
+    // Extract upgrade costs from analytics
+    const upgradeCosts: { [key: string]: number } = {};
+    if (analytics.upgradeOptions) {
+      analytics.upgradeOptions.forEach((option: any) => {
+        upgradeCosts[option.type] = option.upgradeCost;
+      });
+    }
+    
+    res.json({
+      success: true,
+      data: upgradeCosts
+    });
+  } catch (error) {
+    console.error('Error getting upgrade costs:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to get upgrade costs',
+      error: error instanceof Error ? error.message : 'Unknown error'
+    });
+  }
+});
+
+/**
+ * GET /api/stadium-atmosphere/loyalty-factors
+ * Get loyalty factors for current user's team
+ */
+router.get('/loyalty-factors', isAuthenticated, async (req: any, res) => {
+  try {
+    const userId = req.user.claims.sub;
+    
+    const team = await db.query.teams.findFirst({
+      where: eq(teams.userId, userId)
+    });
+    
+    if (!team) {
+      return res.status(404).json({
+        success: false,
+        message: 'No team found for current user'
+      });
+    }
+    
+    const analytics = await StadiumAtmosphereService.getStadiumAnalytics(team.id);
+    
+    res.json({
+      success: true,
+      data: {
+        currentLoyalty: analytics.currentStats?.fanLoyalty || 50,
+        factors: {
+          teamPerformance: 'Based on win/loss record',
+          facilityQuality: 'Based on stadium upgrades',
+          seasonPerformance: 'Based on league standing'
+        }
+      }
+    });
+  } catch (error) {
+    console.error('Error getting loyalty factors:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to get loyalty factors',
+      error: error instanceof Error ? error.message : 'Unknown error'
+    });
+  }
+});
+
+/**
+ * GET /api/stadium-atmosphere/team-power-tier
+ * Get team power tier for current user's team
+ */
+router.get('/team-power-tier', isAuthenticated, async (req: any, res) => {
+  try {
+    const userId = req.user.claims.sub;
+    
+    const team = await db.query.teams.findFirst({
+      where: eq(teams.userId, userId)
+    });
+    
+    if (!team) {
+      return res.status(404).json({
+        success: false,
+        message: 'No team found for current user'
+      });
+    }
+    
+    const analytics = await StadiumAtmosphereService.getStadiumAnalytics(team.id);
+    
+    // Get team power from analytics and determine tier
+    const teamPower = analytics.currentStats?.powerTier || 1;
+    const tier = StadiumAtmosphereService.getTeamPowerTier(teamPower);
+    
+    res.json({
+      success: true,
+      data: tier
+    });
+  } catch (error) {
+    console.error('Error getting team power tier:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to get team power tier',
       error: error instanceof Error ? error.message : 'Unknown error'
     });
   }
