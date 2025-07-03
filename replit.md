@@ -32,6 +32,87 @@ Built as a React + Express web application with PostgreSQL database, using moder
 - **Contract Management**: Advanced contract negotiation system
 - **Injury System**: Detailed injury tracking and recovery mechanics
 
+## Core Game Mechanics & Systems
+
+### 1. Player Generation & Attributes
+**Attribute Scale**: All 8 player attributes (Speed, Power, Throwing, Catching, Kicking, Stamina, Leadership, Agility) use a 1-40 scale with racial modifiers applied after base generation (final cap of 40).
+
+**Racial Modifiers**:
+- **Human**: +1 to all stats
+- **Sylvan**: +3 Speed, +4 Agility, -2 Power
+- **Gryll**: +5 Power, +3 Stamina, -3 Speed, -2 Agility
+- **Lumina**: +4 Throwing, +3 Leadership, -1 Stamina
+- **Umbra**: +2 Speed, +3 Agility, -3 Power, -1 Leadership
+
+**Rookie Generation (Tryouts)**:
+- **Age**: 16-20 years old
+- **Potential**: Single overall rating on 10-point scale (0.5 to 5 stars)
+- **Total Attribute Points (TAP)**: BasePoints + (PotentialRating × 4)
+  - Basic Tryout BasePoints: 40-60
+  - Advanced Tryout BasePoints: 60-85
+- **Point Distribution**: 3 baseline to each attribute (24 total), remaining TAP distributed by role (60% primary stats, 40% secondary)
+
+**Free Agent Generation**: Ages 18-35 with wider TAP variance for hidden gems and veterans.
+
+### 2. Player Progression, Aging & Retirement
+**Daily Progression (3 AM Reset)**: Each player has small chance (1% + AgeModifier) to gain +1 in random eligible attribute.
+
+**End-of-Season Progression (Day 17)**: Primary development event with ProgressionChance calculated as:
+`BaseChance + PotentialModifier + AgeModifier + UsageModifier + TrainerBonus`
+
+**Age-Related Decline**: Players 31+ have chance to lose 1 point in physical stats (Speed, Agility, Power).
+`DeclineChance = (player.age - 30) × 2.5%`
+
+**Retirement System**: Players 35+ have retirement chance, automatic at age 45.
+`RetirementChance = BaseAgeChance + (CareerInjuries × 2%) + LowPlayingTimeModifier`
+
+### 3. Staff System & Effects
+**Staff Attributes**: All staff use 1-40 scale with specific roles:
+- **Head Coach** (Motivation, Development): Increases BaseChance for player progression, boosts trainer effectiveness, contributes to Team Camaraderie
+- **Trainers** (Teaching): Provide TrainerBonus to ProgressionChance for specific attribute groups during end-of-season development
+- **Recovery Specialist** (Physiology): Increases Injury Recovery Points healed per day
+- **Scouts** (Talent_Identification, Potential_Assessment): Reduce "fog of war" for tryout and marketplace player evaluations
+
+### 4. Power & Camaraderie Calculations
+**Player Power (CAR)**: Core Athleticism Rating displayed as "Power" in UI
+`Power (CAR) = Average(Speed, Power, Agility, Throwing, Catching, Kicking)`
+
+**Team Power**: Average Power rating of top 9 players on roster, assigned descriptive tier (Foundation, Developing, Competitive, Contender, Elite)
+
+**Team Camaraderie**: Average of individual player camaraderie scores, updated end-of-season based on team success, player loyalty (years on team), and Head Coach leadership
+
+### 5. Stadium, Finance & Atmosphere
+**Fan Loyalty (0-100)**: Persistent team score updated end-of-season, influenced by win percentage, championships, and stadium facilities (Lighting, Screens)
+
+**Attendance Rate**: Primarily driven by FanLoyalty with small bonus for winning streaks
+`Actual Attendance = StadiumCapacity × AttendanceRate`
+
+**Revenue Calculation (Per Home Game)**:
+- Ticket Sales: ActualAttendance × 25₡
+- Concessions: ActualAttendance × 8₡ × ConcessionsLevel
+- Parking: (ActualAttendance × 0.3) × 10₡ × ParkingLevel
+- Apparel Sales: ActualAttendance × 3₡ × MerchandisingLevel
+- VIP Suites: VIPSuitesLevel × 5000₡
+- Atmosphere Bonus: Small credit bonus per attendee if FanLoyalty very high
+
+**Home Field Advantage**: Intimidation Factor based on ActualAttendance and FanLoyalty applies temporary debuff to away team's Catching/Throwing stats
+
+### 6. Marketplace & Store
+**Marketplace Rules**:
+- 10-player roster minimum requirement
+- 3-player listing limit per team
+- 2% listing fee on starting bid
+- Anti-sniping system with 5-minute extensions
+- Buy-now pricing formula: (Player CAR × 1000) + (Potential × 2000)
+
+**Store System (No Pay-to-Win)**:
+- All gameplay-affecting items (equipment, consumables) available for Credits
+- Gem-exclusive items are purely cosmetic (e.g., "Helm of Command")
+- **Credit Store**: Daily rotating Common/Uncommon items
+- **Featured Store**: Daily rotating Rare/Epic/Legendary items for Gems or high Credits
+- **Race-Specific Equipment**: Thematic gear matching the 5 fantasy races
+- **Consumables**: Recovery items and single-game performance boosters only
+
 ## Recent Changes
 
 ### July 2, 2025 - COMPREHENSIVE MARKET HUB UI/UX REVAMP & CRITICAL FIXES COMPLETE
@@ -713,13 +794,16 @@ Built as a React + Express web application with PostgreSQL database, using moder
 
 ## User Preferences
 - Focus on gameplay mechanics over visual polish
-- Prefer comprehensive feature implementation
+- Prefer comprehensive feature implementation with detailed documentation
 - Likes detailed statistics and analytics
 - Values proper game balance and realistic simulation
 - Wants mobile-responsive design
 - Prefers dark theme UI
+- **No Pay-to-Win Policy**: All gameplay-affecting items must be purchasable with Credits (₡), Gems (💎) only for convenience/cosmetics
+- **Documentation Consistency**: Maintain comprehensive game mechanics documentation with exact formulas and system specifications
 - **Mobile Strategy**: React Native conversion for native app store deployment
 - **Monetization**: Interstitial ads (halftime) + Rewarded video ads for premium currency/rewards
+- **Game Design Philosophy**: Organic progression systems, balanced economies, realistic player development cycles
 
 ## Database Schema
 The application uses Drizzle ORM with PostgreSQL, featuring tables for:
