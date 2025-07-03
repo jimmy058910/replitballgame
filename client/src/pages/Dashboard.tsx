@@ -109,6 +109,26 @@ function getTeamCamaraderieDescription(camaraderie: number | undefined | null): 
   return "Poor (0-25): Team spirit is suffering.";
 }
 
+// Helper function for Camaraderie Tier Name Only
+function getTeamCamaraderieTier(camaraderie: number | undefined | null): string {
+  if (camaraderie === undefined || camaraderie === null) return "Unknown";
+  if (camaraderie >= 91) return "Excellent";
+  if (camaraderie >= 76) return "Good";
+  if (camaraderie >= 41) return "Average";
+  if (camaraderie >= 26) return "Low";
+  return "Poor";
+}
+
+// Helper function for Camaraderie Description Only
+function getTeamCamaraderieDescriptionOnly(camaraderie: number | undefined | null): string {
+  if (camaraderie === undefined || camaraderie === null) return "Overall team cohesion";
+  if (camaraderie >= 91) return "Team is in perfect sync!";
+  if (camaraderie >= 76) return "Strong team bonds";
+  if (camaraderie >= 41) return "Room for improvement";
+  if (camaraderie >= 26) return "Some friction in the ranks";
+  return "Team spirit is suffering";
+}
+
 // Helper function for Team Power Tier Description
 function getTeamPowerDescription(teamPower: number | undefined | null): string {
   if (teamPower === undefined || teamPower === null) return "Building for the future.";
@@ -408,8 +428,11 @@ export default function Dashboard() {
                       <HelpIcon content="Team chemistry (0-100). High camaraderie provides in-game bonuses, injury resistance, and better contract negotiations." />
                     </div>
                     <p className="text-2xl font-bold text-teal-400">{team?.teamCamaraderie ?? 'N/A'}</p>
-                    <p className="text-xs text-gray-500">
-                      {getTeamCamaraderieDescription(team?.teamCamaraderie)}
+                    <p className="text-sm text-teal-300 font-medium">
+                      {getTeamCamaraderieTier(team?.teamCamaraderie)}
+                    </p>
+                    <p className="text-xs text-gray-400">
+                      {getTeamCamaraderieDescriptionOnly(team?.teamCamaraderie)}
                     </p>
                   </div>
                   <div className="bg-teal-400 bg-opacity-20 p-3 rounded-lg">
