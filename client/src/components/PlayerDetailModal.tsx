@@ -84,8 +84,8 @@ export default function PlayerDetailModal({
     ? `${player.firstName} ${player.lastName}` 
     : player.name || "Unknown Player";
 
-  // Calculate potential for each stat (using overallPotentialStars as base)
-  const basePotential = Number(player.overallPotentialStars) || 3.0;
+  // Calculate potential for each stat (using overallPotentialStars as base, capped at 5.0)
+  const basePotential = Math.min(5.0, Number(player.overallPotentialStars) || 3.0);
   const getMaxPotential = (currentStat: number) => {
     // Convert star rating to potential points (each star = 8 potential points)
     const potentialPoints = basePotential * 8;
@@ -362,7 +362,7 @@ export default function PlayerDetailModal({
                             {Object.entries(item.statBoosts || {}).map(([stat, boost]) => (
                               <div key={stat} className="text-sm flex justify-between">
                                 <span>{stat}:</span>
-                                <span className="text-green-400">+{boost}</span>
+                                <span className="text-green-400">+{boost as number}</span>
                               </div>
                             ))}
                           </div>
