@@ -8,7 +8,7 @@ import { eq } from 'drizzle-orm';
 const router = Router();
 
 // Get active marketplace listings
-router.get('/listings', isAuthenticated, async (req, res) => {
+router.get('/listings', isAuthenticated, async (req: any, res) => {
   try {
     const limit = parseInt(req.query.limit as string) || 50;
     const offset = parseInt(req.query.offset as string) || 0;
@@ -23,7 +23,7 @@ router.get('/listings', isAuthenticated, async (req, res) => {
 });
 
 // Get specific listing details with bid history
-router.get('/listings/:listingId', isAuthenticated, async (req, res) => {
+router.get('/listings/:listingId', isAuthenticated, async (req: any, res) => {
   try {
     const listingId = parseInt(req.params.listingId);
     const listing = await DynamicMarketplaceService.getListingDetails(listingId);
@@ -40,9 +40,9 @@ router.get('/listings/:listingId', isAuthenticated, async (req, res) => {
 });
 
 // Get user's team listings
-router.get('/my-listings', isAuthenticated, async (req, res) => {
+router.get('/my-listings', isAuthenticated, async (req: any, res) => {
   try {
-    const userId = req.user?.replitId;
+    const userId = req.user.claims.sub;
     if (!userId) {
       return res.status(401).json({ error: 'User not authenticated' });
     }
@@ -63,9 +63,9 @@ router.get('/my-listings', isAuthenticated, async (req, res) => {
 });
 
 // List a player for auction
-router.post('/list-player', isAuthenticated, async (req, res) => {
+router.post('/list-player', isAuthenticated, async (req: any, res) => {
   try {
-    const userId = req.user?.replitId;
+    const userId = req.user.claims.sub;
     if (!userId) {
       return res.status(401).json({ error: 'User not authenticated' });
     }
@@ -119,9 +119,9 @@ router.post('/list-player', isAuthenticated, async (req, res) => {
 });
 
 // Place a bid on a listing
-router.post('/listings/:listingId/bid', isAuthenticated, async (req, res) => {
+router.post('/listings/:listingId/bid', isAuthenticated, async (req: any, res) => {
   try {
-    const userId = req.user?.replitId;
+    const userId = req.user.claims.sub;
     if (!userId) {
       return res.status(401).json({ error: 'User not authenticated' });
     }
@@ -164,9 +164,9 @@ router.post('/listings/:listingId/bid', isAuthenticated, async (req, res) => {
 });
 
 // Buy now - instant purchase
-router.post('/listings/:listingId/buy-now', isAuthenticated, async (req, res) => {
+router.post('/listings/:listingId/buy-now', isAuthenticated, async (req: any, res) => {
   try {
-    const userId = req.user?.replitId;
+    const userId = req.user.claims.sub;
     if (!userId) {
       return res.status(401).json({ error: 'User not authenticated' });
     }
@@ -199,7 +199,7 @@ router.post('/listings/:listingId/buy-now', isAuthenticated, async (req, res) =>
 });
 
 // Calculate minimum buy-now price for a player (helper endpoint)
-router.get('/calculate-min-price/:playerId', isAuthenticated, async (req, res) => {
+router.get('/calculate-min-price/:playerId', isAuthenticated, async (req: any, res) => {
   try {
     const { playerId } = req.params;
     
@@ -220,9 +220,9 @@ router.get('/calculate-min-price/:playerId', isAuthenticated, async (req, res) =
 });
 
 // Get team's marketplace stats
-router.get('/team-stats', isAuthenticated, async (req, res) => {
+router.get('/team-stats', isAuthenticated, async (req: any, res) => {
   try {
-    const userId = req.user?.replitId;
+    const userId = req.user.claims.sub;
     if (!userId) {
       return res.status(401).json({ error: 'User not authenticated' });
     }
@@ -249,8 +249,41 @@ router.get('/team-stats', isAuthenticated, async (req, res) => {
   }
 });
 
+// Get general marketplace statistics
+router.get('/stats', isAuthenticated, async (req: any, res) => {
+  try {
+    const stats = await DynamicMarketplaceService.getMarketplaceStats();
+    res.json(stats);
+  } catch (error) {
+    console.error('Error fetching marketplace stats:', error);
+    res.status(500).json({ error: 'Failed to fetch marketplace stats' });
+  }
+});
+
+// Get user's bids
+router.get('/my-bids', isAuthenticated, async (req: any, res) => {
+  try {
+    const userId = req.user.claims.sub;
+    if (!userId) {
+      return res.status(401).json({ error: 'User not authenticated' });
+    }
+
+    // Get user's team
+    const [team] = await db.select().from(teams).where(eq(teams.userId, userId));
+    if (!team) {
+      return res.status(404).json({ error: 'Team not found' });
+    }
+
+    const bids = await DynamicMarketplaceService.getUserBids(team.id);
+    res.json({ bids });
+  } catch (error) {
+    console.error('Error fetching user bids:', error);
+    res.status(500).json({ error: 'Failed to fetch user bids' });
+  }
+});
+
 // Admin endpoint: Process expired auctions
-router.post('/admin/process-expired', isAuthenticated, async (req, res) => {
+router.post('/admin/process-expired', isAuthenticated, async (req: any, res) => {
   try {
     // Add admin permission check here if needed
     const results = await DynamicMarketplaceService.processExpiredAuctions();

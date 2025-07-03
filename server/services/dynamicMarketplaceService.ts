@@ -640,4 +640,79 @@ export class DynamicMarketplaceService {
       bidHistory
     };
   }
+
+  /**
+   * Get general marketplace statistics
+   */
+  static async getMarketplaceStats(): Promise<any> {
+    try {
+      // Get total active listings
+      const [totalActiveListingsResult] = await db
+        .select({ count: count() })
+        .from(marketplaceListings)
+        .where(eq(marketplaceListings.isActive, true));
+
+      // Get total bids placed
+      const [totalBidsResult] = await db
+        .select({ count: count() })
+        .from(marketplaceBids);
+
+      // Get average and highest current bid
+      const [bidStatsResult] = await db
+        .select({
+          avgBid: sql<number>`AVG(${marketplaceListings.currentBid})`,
+          maxBid: sql<number>`MAX(${marketplaceListings.currentBid})`
+        })
+        .from(marketplaceListings)
+        .where(eq(marketplaceListings.isActive, true));
+
+      return {
+        totalActiveListings: totalActiveListingsResult?.count || 0,
+        totalBidsPlaced: totalBidsResult?.count || 0,
+        averageCurrentBid: Math.round(bidStatsResult?.avgBid || 0),
+        highestBid: bidStatsResult?.maxBid || 0,
+        myActiveListings: 0, // This would be calculated per user in the route
+        myActiveBids: 0 // This would be calculated per user in the route
+      };
+    } catch (error) {
+      console.error('Error getting marketplace stats:', error);
+      return {
+        totalActiveListings: 0,
+        totalBidsPlaced: 0,
+        averageCurrentBid: 0,
+        highestBid: 0,
+        myActiveListings: 0,
+        myActiveBids: 0
+      };
+    }
+  }
+
+  /**
+   * Get user's bid history
+   */
+  static async getUserBids(teamId: string): Promise<any[]> {
+    try {
+      const bids = await db
+        .select({
+          id: marketplaceBids.id,
+          listingId: marketplaceBids.listingId,
+          bidAmount: marketplaceBids.bidAmount,
+          bidTimestamp: marketplaceBids.bidTimestamp,
+          isActive: marketplaceListings.isActive,
+          playerName: sql<string>`${players.firstName} || ' ' || ${players.lastName}`,
+          currentBid: marketplaceListings.currentBid,
+          expiryTimestamp: marketplaceListings.expiryTimestamp
+        })
+        .from(marketplaceBids)
+        .innerJoin(marketplaceListings, eq(marketplaceBids.listingId, marketplaceListings.id))
+        .innerJoin(players, eq(marketplaceListings.playerId, players.id))
+        .where(eq(marketplaceBids.bidderTeamId, teamId))
+        .orderBy(desc(marketplaceBids.bidTimestamp));
+
+      return bids;
+    } catch (error) {
+      console.error('Error getting user bids:', error);
+      return [];
+    }
+  }
 }
