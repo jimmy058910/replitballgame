@@ -205,7 +205,7 @@ export function TaxiSquadManager({ teamId, onNavigateToRecruiting }: TaxiSquadMa
                               <Badge variant="outline" className="bg-yellow-600 text-black text-xs px-2 py-0.5">
                                 {playerRole.toUpperCase()}
                               </Badge>
-                              <span className="text-sm text-gray-400">{getRaceEmoji(player.race)} {player.race}</span>
+                              <span className="text-sm text-gray-400">{getRaceEmoji(player.race)} {player.race?.charAt(0).toUpperCase() + player.race?.slice(1)}</span>
                               <span className="text-sm text-gray-400">Age {player.age}</span>
                             </div>
                           </div>
@@ -247,7 +247,7 @@ export function TaxiSquadManager({ teamId, onNavigateToRecruiting }: TaxiSquadMa
                           </div>
                         </div>
 
-                        {/* Power Rating & Contract */}
+                        {/* Power Rating */}
                         <div className="flex items-center justify-between">
                           <div className="flex items-center gap-2">
                             <span className="text-sm text-gray-400">Power:</span>
@@ -258,8 +258,7 @@ export function TaxiSquadManager({ teamId, onNavigateToRecruiting }: TaxiSquadMa
                           </div>
                           
                           <div className="text-right">
-                            <div className="text-xs text-gray-400">Contract: <span className="text-yellow-400">{player.contractSeasons || 1} seasons remaining</span></div>
-                            <Badge variant="secondary" className="text-xs mt-1">Taxi Squad</Badge>
+                            <Badge variant="secondary" className="text-xs">Taxi Squad</Badge>
                           </div>
                         </div>
                       </div>

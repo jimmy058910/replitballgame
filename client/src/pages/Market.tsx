@@ -368,7 +368,7 @@ export default function Market() {
             <TabsTrigger value="store">Store</TabsTrigger>
             <TabsTrigger value="ads">Ad Rewards</TabsTrigger>
             <TabsTrigger value="gems">Buy Gems</TabsTrigger>
-            <TabsTrigger value="history">Transaction History</TabsTrigger>
+            <TabsTrigger value="history">Transactions</TabsTrigger>
           </TabsList>
 
           <TabsContent value="marketplace">
@@ -828,23 +828,30 @@ export default function Market() {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Star className="h-5 w-5" />
-                  Transaction History
+                  Transactions
                 </CardTitle>
                 <p className="text-sm text-gray-600 dark:text-gray-400">
-                  View your gem and credit transactions from the last 68 days (4 season cycles)
+                  View your gem and credit transactions from the past four seasons
                 </p>
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  <div className="flex gap-2 mb-4">
-                    <Button variant="outline" size="sm">All</Button>
-                    <Button variant="outline" size="sm">💎 Gems</Button>
-                    <Button variant="outline" size="sm">₡ Credits</Button>
+                  <div className="flex gap-2 mb-4 flex-wrap">
+                    <div className="flex gap-2">
+                      <Button variant="outline" size="sm">All</Button>
+                      <Button variant="outline" size="sm">💎 Gems</Button>
+                      <Button variant="outline" size="sm">₡ Credits</Button>
+                    </div>
+                    <div className="flex gap-2 ml-4">
+                      <Button variant="outline" size="sm">All Seasons</Button>
+                      <Button variant="outline" size="sm">Current Season</Button>
+                      <Button variant="outline" size="sm">Previous Season</Button>
+                    </div>
                   </div>
                   
                   <Card className="bg-purple-50 border-purple-200">
                     <CardContent className="p-4 text-center">
-                      <h3 className="font-semibold text-purple-800">Total Transactions (68 days)</h3>
+                      <h3 className="font-semibold text-purple-800">Total Transactions (Past Four Seasons)</h3>
                       <div className="text-2xl font-bold text-purple-600">0</div>
                     </CardContent>
                   </Card>
@@ -858,7 +865,7 @@ export default function Market() {
                         <div className="mt-4 text-xs text-gray-400">
                           <p>• Gem purchases and spending</p>
                           <p>• Credit acquisitions and expenditures</p>
-                          <p>• Showing last 68 days only</p>
+                          <p>• Showing past four seasons only</p>
                         </div>
                       </div>
                     </CardContent>
