@@ -1,6 +1,6 @@
 import { db } from '../db.js';
-import { players, playerDevelopmentHistory, playerCareerMilestones, staff } from '../../shared/schema.js';
-import { eq, and, gte, lte } from 'drizzle-orm';
+import { players, playerDevelopmentHistory, playerCareerMilestones, staff, InsertPlayerDevelopmentHistory } from '../../shared/schema.js';
+import { eq, and, gte, lte, not, isNull } from 'drizzle-orm';
 
 export class PlayerAgingRetirementService {
 
@@ -108,16 +108,16 @@ export class PlayerAgingRetirementService {
         let relevantTrainerRating = 0;
         if (this.DEVELOPMENT_CONFIG.PHYSICAL_STATS.includes(statName)) {
           // Physical stats improved by Physical Trainer
-          const physicalTrainer = trainers.find(t => t.specialty === 'physical');
-          relevantTrainerRating = physicalTrainer?.rating || 0;
+          const physicalTrainer = trainers.find(t => t.type === 'trainer' && t.physicalRating);
+          relevantTrainerRating = physicalTrainer?.physicalRating || 0;
         } else if (['throwing', 'catching'].includes(statName)) {
           // Passing stats improved by Offensive Trainer  
-          const offensiveTrainer = trainers.find(t => t.specialty === 'offensive');
-          relevantTrainerRating = offensiveTrainer?.rating || 0;
+          const offensiveTrainer = trainers.find(t => t.type === 'trainer' && t.offenseRating);
+          relevantTrainerRating = offensiveTrainer?.offenseRating || 0;
         } else if (['leadership', 'kicking'].includes(statName)) {
           // Mental/special stats improved by Defensive Trainer
-          const defensiveTrainer = trainers.find(t => t.specialty === 'defensive');
-          relevantTrainerRating = defensiveTrainer?.rating || 0;
+          const defensiveTrainer = trainers.find(t => t.type === 'trainer' && t.defenseRating);
+          relevantTrainerRating = defensiveTrainer?.defenseRating || 0;
         }
         
         // TrainerBonus = (TrainerRating / 40) * 10% max bonus
@@ -216,14 +216,14 @@ export class PlayerAgingRetirementService {
       const isPhysicalStat = this.DEVELOPMENT_CONFIG.PHYSICAL_STATS.includes(statName);
       if (isPhysicalStat && player.age >= 34) continue;
       
-      const progressionChance = this.calculateProgressionChance(player, statName, gamesPlayedLastSeason);
+      const progressionChance = await this.calculateProgressionChance(player, statName, gamesPlayedLastSeason);
       const roll = Math.random() * 100;
       
       const success = roll < progressionChance;
       const newValue = success ? Math.min(statCap, currentValue + 1) : currentValue;
       
       // Record development history
-      await db.insert(playerDevelopmentHistory).values({
+      const developmentRecord: InsertPlayerDevelopmentHistory = {
         playerId,
         season,
         developmentType: 'progression',
@@ -235,8 +235,9 @@ export class PlayerAgingRetirementService {
         success,
         ageAtTime: player.age || 20,
         gamesPlayedLastSeason,
-        potentialAtTime: player.overallPotentialStars
-      });
+        potentialAtTime: typeof player.overallPotentialStars === 'number' ? player.overallPotentialStars : parseFloat(player.overallPotentialStars) || 0
+      };
+      await db.insert(playerDevelopmentHistory).values(developmentRecord);
       
       if (success) {
         progressions.push({
@@ -286,7 +287,7 @@ export class PlayerAgingRetirementService {
       throw new Error('Player not found');
     }
 
-    const declines = [];
+    const declines: Array<{stat: string, oldValue: number, newValue: number, chance: number, roll: number}> = [];
     const age = player.age || 20;
     
     if (age < 31) return { declines };
@@ -296,20 +297,20 @@ export class PlayerAgingRetirementService {
     
     if (roll < declineChance) {
       // Select random physical stat to decline, weighted
-      const weightedStats = [];
+      const weightedStats: string[] = [];
       this.DEVELOPMENT_CONFIG.PHYSICAL_STATS.forEach(stat => {
-        const weight = this.DEVELOPMENT_CONFIG.DECLINE_WEIGHTS[stat] || 1;
+        const weight = this.DEVELOPMENT_CONFIG.DECLINE_WEIGHTS[stat as keyof typeof this.DEVELOPMENT_CONFIG.DECLINE_WEIGHTS] || 1;
         for (let i = 0; i < weight; i++) {
           weightedStats.push(stat);
         }
       });
       
       const selectedStat = weightedStats[Math.floor(Math.random() * weightedStats.length)];
-      const currentValue = player[selectedStat] || 0;
+      const currentValue = (player as any)[selectedStat] || 0;
       const newValue = Math.max(1, currentValue - 1);
       
       // Record decline
-      await db.insert(playerDevelopmentHistory).values({
+      const declineRecord: InsertPlayerDevelopmentHistory = {
         playerId,
         season,
         developmentType: 'decline',
@@ -321,8 +322,9 @@ export class PlayerAgingRetirementService {
         success: true,
         ageAtTime: age,
         gamesPlayedLastSeason: 0,
-        potentialAtTime: player.overallPotentialStars
-      });
+        potentialAtTime: typeof player.overallPotentialStars === 'number' ? player.overallPotentialStars : parseFloat(player.overallPotentialStars) || 0
+      };
+      await db.insert(playerDevelopmentHistory).values(declineRecord);
       
       // Update player stat
       await db.update(players)
@@ -382,8 +384,8 @@ export class PlayerAgingRetirementService {
     const roll = Math.random() * 100;
     const retired = roll < retirementChance;
     
+    let reason = 'voluntary_retirement';
     if (retired) {
-      let reason = 'voluntary_retirement';
       if (careerInjuries >= 5) reason = 'injury_forced';
       if (gamesPlayedLastSeason < 5) reason = 'lack_of_playing_time';
       
@@ -391,7 +393,7 @@ export class PlayerAgingRetirementService {
     }
     
     // Record retirement attempt
-    await db.insert(playerDevelopmentHistory).values({
+    const retirementRecord: InsertPlayerDevelopmentHistory = {
       playerId,
       season,
       developmentType: 'retirement',
@@ -403,8 +405,9 @@ export class PlayerAgingRetirementService {
       success: retired,
       ageAtTime: age,
       gamesPlayedLastSeason,
-      potentialAtTime: player.overallPotentialStars
-    });
+      potentialAtTime: typeof player.overallPotentialStars === 'number' ? player.overallPotentialStars : parseFloat(player.overallPotentialStars) || 0
+    };
+    await db.insert(playerDevelopmentHistory).values(retirementRecord);
     
     return {
       retired,
@@ -443,10 +446,9 @@ export class PlayerAgingRetirementService {
       significance: reason === 'mandatory_age' ? 2 : reason === 'injury_forced' ? 4 : 3
     });
     
-    // Set retirement status
+    // Remove player from team (retirement)
     await db.update(players)
       .set({ 
-        status: 'retired',
         teamId: null // Remove from team
       })
       .where(eq(players.id, playerId));
@@ -468,10 +470,7 @@ export class PlayerAgingRetirementService {
     const teamPlayers = await db
       .select()
       .from(players)
-      .where(and(
-        eq(players.teamId, teamId),
-        eq(players.status, 'active')
-      ));
+      .where(eq(players.teamId, teamId));
 
     const results = {
       totalPlayers: teamPlayers.length,
@@ -547,7 +546,7 @@ export class PlayerAgingRetirementService {
     const allActivePlayers = await db
       .select()
       .from(players)
-      .where(eq(players.status, 'active'));
+      .where(not(isNull(players.teamId)));
 
     const results = {
       teamsProcessed: 0,

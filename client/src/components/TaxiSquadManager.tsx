@@ -65,7 +65,7 @@ export function TaxiSquadManager({ teamId, onNavigateToRecruiting }: TaxiSquadMa
   });
 
   // Promotions only allowed during offseason (Days 16-17)
-  const isOffseason = seasonCycle?.currentDay >= 16;
+  const isOffseason = seasonCycle?.data?.currentDay >= 16;
 
   const promotePlayerMutation = useMutation({
     mutationFn: async (playerId: string) => {
@@ -147,7 +147,7 @@ export function TaxiSquadManager({ teamId, onNavigateToRecruiting }: TaxiSquadMa
           <CardTitle className="flex items-center gap-2">
             <Clock className="w-5 h-5 text-orange-500" />
             Taxi Squad Management
-            <Badge variant="secondary">{taxiSquadPlayers?.length || 0}/2</Badge>
+            <Badge variant="secondary">{taxiSquadPlayers?.data?.length || 0}/2</Badge>
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -161,7 +161,7 @@ export function TaxiSquadManager({ teamId, onNavigateToRecruiting }: TaxiSquadMa
               <div className="flex items-center gap-2">
                 <UserPlus className="w-4 h-4 text-blue-400" />
                 <span className="text-sm font-medium text-blue-300">Capacity:</span>
-                <span className="text-sm text-white">{taxiSquadPlayers?.length || 0} of 2 slots used</span>
+                <span className="text-sm text-white">{taxiSquadPlayers?.data?.length || 0} of 2 slots used</span>
               </div>
               
               <div className="flex items-center gap-2">
@@ -176,18 +176,18 @@ export function TaxiSquadManager({ teamId, onNavigateToRecruiting }: TaxiSquadMa
         </CardContent>
       </Card>
 
-      {taxiSquadPlayers && taxiSquadPlayers.length > 0 ? (
+      {taxiSquadPlayers?.data && taxiSquadPlayers.data.length > 0 ? (
         <Card className="bg-gray-800 border-gray-700">
           <CardHeader>
             <CardTitle>Current Taxi Squad Players</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="grid gap-4">
-              {taxiSquadPlayers.map((player: any) => {
+              {taxiSquadPlayers.data.map((player: any) => {
                 const potentialRating = getPotentialStars(player);
                 const playerRole = getPlayerRole(player);
                 const getRaceEmoji = (race: string) => {
-                  const raceEmojis = { 'human': '👤', 'sylvan': '🌿', 'gryll': '⚒️', 'lumina': '☀️', 'umbra': '🌙' };
+                  const raceEmojis: Record<string, string> = { 'human': '👤', 'sylvan': '🌿', 'gryll': '⚒️', 'lumina': '☀️', 'umbra': '🌙' };
                   return raceEmojis[race?.toLowerCase()] || '👤';
                 };
                 
