@@ -198,7 +198,7 @@ router.post('/instant-match', isAuthenticated, async (req: any, res: Response, n
   }
 });
 
-router.post('/challenge', isAuthenticated, async (req: any, res: Response, next: NextFunction) => {
+router.post('/challenge-opponent', isAuthenticated, async (req: any, res: Response, next: NextFunction) => {
   try {
     const userId = req.user.claims.sub;
     const { opponentId } = challengeSchema.parse(req.body);

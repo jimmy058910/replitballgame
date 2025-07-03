@@ -319,17 +319,16 @@ export default function Exhibitions() {
                   <p className="text-gray-400 text-sm mb-4">
                     Choose from 6 opponents in your division to play your Exhibition match against.
                   </p>
+                  <Button 
+                    className="w-full" 
+                    variant="outline"
+                    onClick={handleChooseOpponent}
+                    disabled={hasLiveExhibition || totalGamesRemaining <= 0}
+                  >
+                    Choose Opponent
+                  </Button>
+                  
                   <Dialog open={showOpponentSelect} onOpenChange={setShowOpponentSelect}>
-                    <DialogTrigger asChild>
-                      <Button 
-                        className="w-full" 
-                        variant="outline"
-                        onClick={handleChooseOpponent}
-                        disabled={hasLiveExhibition || totalGamesRemaining <= 0}
-                      >
-                        Choose Opponent
-                      </Button>
-                    </DialogTrigger>
                   
                     <DialogContent className="bg-gray-800 border-gray-700 max-w-2xl">
                       <DialogHeader>
