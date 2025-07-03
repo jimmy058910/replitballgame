@@ -365,7 +365,13 @@ export default function Team() {
           </TabsContent>
 
           <TabsContent value="recruiting">
-            <TryoutSystem teamId={team?.id} />
+            <TryoutSystem 
+              teamId={team?.id} 
+              onNavigateToTaxiSquad={() => {
+                setActiveTab("roster");
+                setSelectedRole("taxi-squad");
+              }}
+            />
           </TabsContent>
 
           <TabsContent value="injury-stamina">

@@ -32,9 +32,10 @@ interface TryoutCandidate {
 
 interface TryoutSystemProps {
   teamId: string;
+  onNavigateToTaxiSquad?: () => void;
 }
 
-export default function TryoutSystem({ teamId }: TryoutSystemProps) {
+export default function TryoutSystem({ teamId, onNavigateToTaxiSquad }: TryoutSystemProps) {
   const [showTryoutModal, setShowTryoutModal] = useState(false);
   const [tryoutType, setTryoutType] = useState<"basic" | "advanced" | null>(null);
   const [candidates, setCandidates] = useState<TryoutCandidate[]>([]);
@@ -211,6 +212,20 @@ export default function TryoutSystem({ teamId }: TryoutSystemProps) {
                 ⚠️ Seasonal Restriction: You can only host tryouts ONCE per season (17-day cycle). Choose wisely!
               </p>
             </div>
+            
+            {/* View Taxi Players Button */}
+            {onNavigateToTaxiSquad && (
+              <div className="flex justify-center">
+                <Button
+                  variant="outline"
+                  onClick={onNavigateToTaxiSquad}
+                  className="border-blue-600 text-blue-400 hover:bg-blue-600 hover:text-white"
+                >
+                  <i className="fas fa-users mr-2"></i>
+                  View Taxi Players
+                </Button>
+              </div>
+            )}
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
