@@ -8,6 +8,9 @@ import { ErrorCreators, asyncHandler, logInfo } from "../services/errorService";
 import { TeamNameValidator } from "../services/teamNameValidation";
 import { AgingService } from "../services/agingService";
 import { generateRandomName } from "@shared/names";
+import { db } from "../db";
+import { staff } from "@shared/schema";
+import { eq, and, or } from "drizzle-orm";
 // import { players as playersTable } from "@shared/schema"; // Not directly used here anymore
 
 const router = Router();
@@ -509,9 +512,62 @@ router.post('/:teamId/tryouts', isAuthenticated, asyncHandler(async (req: any, r
     throw ErrorCreators.validation(`Insufficient credits. Required: ${cost}, Available: ${finances.credits || 0}`);
   }
 
+  // Get team scouts to calculate "fog of war" reduction
+  let scoutEffectiveness = 0;
+  try {
+    const scouts = await db.select()
+      .from(staff)
+      .where(and(
+        eq(staff.teamId, team.id),
+        or(
+          eq(staff.type, 'scout'),
+          eq(staff.type, 'head_scout'),
+          eq(staff.type, 'recruiting_scout')
+        )
+      ));
+    
+    // Calculate scout effectiveness (average of scouting and recruiting ratings)
+    if (scouts.length > 0) {
+      const avgScouting = scouts.reduce((sum: number, s: any) => sum + (s.scoutingRating || 0), 0) / scouts.length;
+      const avgRecruiting = scouts.reduce((sum: number, s: any) => sum + (s.recruitingRating || 0), 0) / scouts.length;
+      scoutEffectiveness = (avgScouting + avgRecruiting) / 2;
+    }
+  } catch (error) {
+    console.error('Error calculating scout effectiveness:', error);
+  }
+
   // Generate candidates
   const candidateCount = type === 'basic' ? 3 : 5;
-  const candidates = Array.from({ length: candidateCount }, () => generateTryoutCandidate(type));
+  const rawCandidates = Array.from({ length: candidateCount }, () => generateTryoutCandidate(type));
+  
+  // Apply scout "fog of war" reduction to candidate information
+  const candidates = rawCandidates.map(candidate => {
+    // Scout effectiveness affects information accuracy (0-40 scale)
+    // Poor scouts (0-15): High variance, hidden potential
+    // Average scouts (16-25): Moderate accuracy 
+    // Good scouts (26-35): Low variance, accurate potential
+    // Excellent scouts (36-40): Very precise information
+    
+    const fogOfWarFactor = Math.max(0, Math.min(1, scoutEffectiveness / 40));
+    const baseVariance = 3; // Base stat uncertainty
+    const variance = baseVariance * (1 - fogOfWarFactor); // Better scouts reduce uncertainty
+    
+    // Apply stat range uncertainty for display purposes
+    const scoutedCandidate = { ...candidate };
+    
+    // Add scout-influenced data for UI display
+    scoutedCandidate.scoutData = {
+      effectiveness: scoutEffectiveness,
+      statVariance: variance,
+      potentialAccuracy: fogOfWarFactor,
+      // Scouts with 30+ effectiveness can reveal exact potential
+      canRevealExactPotential: scoutEffectiveness >= 30,
+      // Scouts with 20+ effectiveness provide stat ranges
+      canProvideStatRanges: scoutEffectiveness >= 20
+    };
+    
+    return scoutedCandidate;
+  });
 
   // Deduct cost
   await storage.teamFinances.updateTeamFinances(team.id, {

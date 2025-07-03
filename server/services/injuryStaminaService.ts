@@ -1,6 +1,6 @@
 import { db } from '../db';
-import { players } from '../../shared/schema';
-import { eq, sql } from 'drizzle-orm';
+import { players, staff } from '../../shared/schema';
+import { eq, sql, and } from 'drizzle-orm';
 
 export interface InjuryStaminaSettings {
   // Game mode base injury chances
@@ -231,10 +231,34 @@ export class InjuryStaminaService {
     for (const player of allPlayers) {
       const updates: any = {};
 
-      // Natural injury recovery
+      // Natural injury recovery with Recovery Specialist bonus
       if (player.injuryStatus !== 'Healthy') {
         const currentRecovery = player.injuryRecoveryPointsCurrent || 0;
-        const newRecoveryPoints = currentRecovery + this.settings.baseInjuryRecovery;
+        
+        // Calculate recovery bonus from Recovery Specialist
+        let recoveryBonus = 0;
+        try {
+          if (player.teamId) {
+            const recoverySpecialist = await db.select()
+              .from(staff)
+              .where(and(
+                eq(staff.teamId, player.teamId),
+                eq(staff.type, 'recovery_specialist')
+              ))
+              .limit(1);
+            
+            if (recoverySpecialist.length > 0) {
+              const specialist = recoverySpecialist[0];
+              // Recovery Specialist bonus: (PhysicalRating / 40) * 2 additional recovery points
+              recoveryBonus = (specialist.physicalRating || 0) / 40 * 2;
+            }
+          }
+        } catch (error) {
+          console.error('Error calculating Recovery Specialist bonus:', error);
+        }
+        
+        const totalRecovery = this.settings.baseInjuryRecovery + recoveryBonus;
+        const newRecoveryPoints = currentRecovery + totalRecovery;
         updates.injuryRecoveryPointsCurrent = newRecoveryPoints;
 
         // Check if injury is healed

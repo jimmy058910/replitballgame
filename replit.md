@@ -136,9 +136,22 @@ Built as a React + Express web application with PostgreSQL database, using moder
 - ✓ **API Response Handling**: Fixed all references to marketplace listings to properly access nested `listings` array within response object
 - ✓ **Data Structure Alignment**: Corrected frontend component to match backend API response format `{listings: [...]}` instead of direct array access
 
-### July 3, 2025 - CRITICAL GAME MECHANICS IMPLEMENTATION AUDIT & FIXES COMPLETE
+### July 3, 2025 - COMPREHENSIVE STAFF SYSTEM GAMEPLAY EFFECTS & SCOUT FOG OF WAR IMPLEMENTATION COMPLETE
 
-#### ✅ MAJOR GAME MECHANICS COMPLIANCE FIXES COMPLETE
+#### ✅ COMPLETE STAFF SYSTEM GAMEPLAY EFFECTS IMPLEMENTATION
+- ✓ **Recovery Specialist Injury Healing Bonus**: Implemented physicalRating-based bonus to daily injury recovery points (up to 25% boost for 40-rated specialists)
+- ✓ **Scout "Fog of War" Reduction System**: Added comprehensive scout effectiveness calculation affecting tryout candidate information accuracy
+- ✓ **Scout Effectiveness Formula**: (scoutingRating + recruitingRating) / 2, applied to tryout candidate information precision
+- ✓ **Database Integration**: Fixed all missing imports for staff table and drizzle-orm operators (and, or, eq) across injury and team route services
+- ✓ **TypeScript Compilation Fixes**: Resolved all field name mismatches and import issues for clean production deployment
+
+#### ✅ SCOUT EFFECTIVENESS IMPLEMENTATION DETAILS
+- ✓ **Tryout Information Accuracy**: Scout effectiveness (0-40 scale) reduces "fog of war" for candidate evaluations
+- ✓ **Information Tiers**: Poor scouts (0-15) provide high variance, Excellent scouts (36-40) provide very precise information
+- ✓ **Frontend Integration**: TryoutSystem displays Scout Report Quality with percentage accuracy and descriptive explanations
+- ✓ **User Experience Enhancement**: Clear visual indicators show how scout quality affects tryout candidate information reliability
+
+#### ✅ MAJOR GAME MECHANICS COMPLIANCE FIXES COMPLETE (Previous)
 - ✓ **CRITICAL FIX: Missing Racial Modifiers in Tryout Generation**: Added complete racial modifier system to generateTryoutCandidate function (Human +1 all, Sylvan +3 Speed +4 Agility -2 Power, etc.)
 - ✓ **CRITICAL FIX: Inconsistent Power (CAR) Calculation**: Fixed all Team Power calculations across 4 files (teamRoutes, leagueRoutes, exhibitionRoutes, scoutingRoutes) to use correct formula: Average(Speed, Power, Agility, Throwing, Catching, Kicking)
 - ✓ **CRITICAL FIX: TaxiSquadManager Power Formula**: Corrected Power calculation to use Kicking instead of Stamina to match CAR specification

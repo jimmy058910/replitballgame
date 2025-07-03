@@ -10,6 +10,14 @@ import { useToast } from "@/hooks/use-toast";
 import { Trophy, Star, Users, Clock, Eye, Search } from "lucide-react";
 import UnifiedPlayerCard from "./UnifiedPlayerCard";
 
+interface ScoutData {
+  effectiveness: number;
+  statVariance: number;
+  potentialAccuracy: number;
+  canRevealExactPotential: boolean;
+  canProvideStatRanges: boolean;
+}
+
 interface TryoutCandidate {
   id: string;
   name: string;
@@ -27,7 +35,8 @@ interface TryoutCandidate {
   kicking?: number;
   marketValue: number;
   potential: "High" | "Medium" | "Low";
-  overallPotentialStars: number; // This is the missing field!
+  overallPotentialStars: number;
+  scoutData?: ScoutData;
 }
 
 interface TryoutSystemProps {
