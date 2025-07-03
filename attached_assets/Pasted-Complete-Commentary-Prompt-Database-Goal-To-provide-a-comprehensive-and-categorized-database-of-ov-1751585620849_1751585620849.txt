@@ -1,0 +1,144 @@
+Complete Commentary Prompt Database
+Goal: To provide a comprehensive and categorized database of over 200 specific commentary prompts for the text-based simulation of "Realm Rivalry." This document will serve as the creative source for generating dynamic, engaging, and context-aware play-by-play text.
+1. Game State & Flow Commentary
+Goal: Establish the narrative and pace of the match.
+Pre-Game
+"Welcome to the dome, folks! A tense atmosphere here as the 'Elite' [HomeTeamName] prepares to face the 'Competitive' [AwayTeamName]!"
+"Both teams are on the field, and the energy from this home crowd is absolutely electric!"
+"The stage is set for a classic showdown. [HomeTeamName] is coming out with their 'All-Out Attack' strategy, looking to overwhelm [AwayTeamName] from the start."
+"[AwayTeamName] has opted for a 'Defensive Wall' formation today, a clear sign of respect for the home team's powerful offense."
+"It's a clash of styles today! We'll see if [HomeTeamName]'s aggressive tactics can break down the disciplined defense of [AwayTeamName]."
+"The players are set. The ball is live. Here we go!"
+Mid-Game Flow
+"We're seeing a real midfield battle unfold. The ball has changed hands three times in the last minute alone."
+"[TeamName] is putting together a long spell of possession now, patiently working the ball and testing the defense for any sign of weakness."
+"The pace of this game is relentless! Non-stop action from end to end with no stoppages."
+"A real war of attrition in the center of the field. Neither team is giving an inch."
+"You can feel the momentum starting to shift in favor of [TeamName]. They've controlled the ball for the last two minutes of game time."
+"Just a chaotic scramble for possession right now, the ball is a pinball out there."
+"The physicality of this game is off the charts. Every yard is being earned the hard way."
+"[TeamName] seems to be controlling the tempo, forcing their opponent to react."
+Urgency & Clock Management
+"Just two minutes left in the half! [TeamName] needs to make something happen quickly if they want to score before the break."
+"With the clock winding down, [PlayerName] is trying to force the issue, looking for any opening."
+"Time is becoming a factor now. [TeamName] is playing with a real sense of urgency."
+"The first half comes to a close! A frantic pace right to the end."
+"We're in the final minute of the game! Every second counts!"
+"They need to hurry if they want to get one more possession."
+2. The Loose Ball
+Goal: Convey the chaos and opportunity of a turnover.
+Caused by a Tackle/Fumble
+"HUGE HIT by [TacklerName]! The ball comes loose! It's a fumble and anyone's game!"
+"Powerful tackle from [TacklerName] dislodges the ball! It's on the turf!"
+"[CarrierName] couldn't hang on after that vicious hit! The ball is LIVE!"
+"He coughed it up! A massive forced fumble by the defense!"
+"Stripped! [TacklerName] rips the ball free from [CarrierName]'s grasp!"
+"The ball pops free after a gang tackle!"
+"He never had control! The ball is loose on the ground!"
+Caused by a Dropped Pass
+"The pass is on target but it's DROPPED by [ReceiverName]! The ball is live on the turf!"
+"Right through his hands! [ReceiverName] can't hang on and the ball is up for grabs!"
+"A perfect pass from [PasserName], but it's a brutal drop by [ReceiverName] at a critical moment."
+"Oh, he has to catch that! The ball bounces off the receiver's chest and is loose!"
+"An unforced error there, as [ReceiverName] simply drops the ball."
+"The pass is deflected at the last second and falls incomplete... no, it's a live ball!"
+"A difficult catch, and [ReceiverName] can't bring it in. The ball is loose."
+The Scramble & Recovery
+"Chaos around the ball! A mad scramble as multiple players dive for it!"
+"A pile-up for the loose ball near midfield!"
+"[PlayerName] emerges from the pile with the ball! A huge turnover for [TeamName]!"
+"Quick thinking by [PlayerName] to scoop up the loose ball before the defense could react!"
+"What a recovery! [PlayerName] dives on the ball to secure possession for his team!"
+"The offense manages to recover their own fumble! A lucky break for them."
+"And it's the defense that comes up with it! A massive momentum swing!"
+3. The Run Play
+Goal: Describe running plays with language that reflects the player's role, stats, and skills.
+Standard Runs
+"[RunnerName] grinds it out for 3 tough yards up the middle."
+"[RunnerName] finds a small crease and picks up a solid 8 yards."
+"A quick dash by [RunnerName] for a 5-yard gain."
+"[RunnerName] slashes through the defense for 9 yards."
+"[RunnerName] carries the ball forward for a handful of yards."
+"He follows his blockers and pushes the pile for a short gain."
+"A smart, patient run from [RunnerName] to find the opening."
+Breakaway Runs (High Speed)
+"He finds a seam! [RunnerName] turns on the jets and is in open space for a massive gain!"
+"Explosive speed! [RunnerName] leaves the defense in the dust with a 40-yard burst!"
+"The crowd is on their feet! [RunnerName] hits top gear and is sprinting downfield!"
+"There's no catching him! [RunnerName] shows off that world-class speed!"
+"A stunning breakaway run! He was a blur as he raced past the defense."
+"He just has a gear that nobody else on the field possesses!"
+Skill-Based Runs (Runner Role)
+(Juke Move): "Incredible footwork by [RunnerName]! He uses his Juke Move to leave the defender grasping at air!"
+(Juke Move): "What a move! [RunnerName] cuts left, then right, dancing through traffic for a big gain!"
+(Juke Move): "[DefenderName] thought he had him, but [RunnerName]'s juke was just too quick!"
+(Truck Stick): "[RunnerName] lowers his shoulder and uses Truck Stick, running right over the would-be tackler for extra yards!"
+(Truck Stick): "Devastating power by [RunnerName]! He trucks the defender and refuses to go down!"
+(Truck Stick): "Pure strength on display! [RunnerName] just bulldozed his way through the tackle attempt!"
+Race-Based Runs
+(Umbra Shadow Step): "Where did he go?! [Umbra Player] seems to vanish for a moment with his Shadow Step, and the defender is left tackling empty space!"
+(Sylvan Agility): "The Sylvan runner shows off that natural agility, weaving through defenders with ease."
+(Gryll Power): "It's like trying to tackle a boulder! The Gryll runner [PlayerName] simply shrugs off the hit and keeps moving."
+4. The Pass Play
+Goal: Make passing feel strategic and skill-based.
+Standard Completions
+"[PasserName] connects with [ReceiverName] on the sideline for a gain of 12."
+"A quick pass from [PasserName] to [ReceiverName] to move the chains."
+"Nice connection between [PasserName] and [ReceiverName] for a solid gain."
+"[PasserName] finds his outlet and completes the pass."
+"A well-designed play results in an easy completion for [PasserName]."
+"He finds his check-down receiver for a safe and easy 7 yards."
+Deep Passes
+"He's going deep! [PasserName] launches one downfield for [ReceiverName]!"
+"What a strike! [PasserName] connects with [ReceiverName] on a beautiful 35-yard completion!"
+"The defense was caught sleeping! [ReceiverName] is wide open for a huge gain!"
+"[PasserName] airs it out! It's a jump ball situation downfield!"
+"A perfect spiral from [PasserName] finds his target deep in enemy territory."
+Skill-Based Passes (Passer Role)
+(Pocket Presence): "Masterful awareness by [PasserName]! He feels the pressure and slides away, buying just enough time to deliver the pass!"
+(Pocket Presence): "Incredible poise in the pocket from [PasserName], stepping up gracefully before delivering a strike!"
+(Deadeye): "A frozen rope from [PasserName]! He threads the needle between two defenders to hit [ReceiverName] in stride! That's a 'Deadeye' pass if I've ever seen one."
+(Deadeye): "Surgical accuracy by [PasserName]! The pass is placed where only his receiver could get it."
+Race-Based Passes
+(Lumina Throwing): "That's the precision you expect from a Lumina passer! A beautiful, accurate throw from [PlayerName]."
+5. Defense & Aggression
+Goal: Emphasize the brutal, physical nature of the game.
+Standard Tackles
+"[TacklerName] wraps up [CarrierName] for the tackle after a short gain."
+"Solid defense by [TacklerName], bringing down [CarrierName]."
+"[TacklerName] closes in and makes the stop."
+"Nowhere to go! [CarrierName] is smothered by the defense."
+"A textbook tackle by [TacklerName]."
+High Power / Blocker Tackles
+"A thunderous tackle by [DefenderName]! You could hear that one from up here."
+"Vicious hit! [TacklerName] completely stops the runner's momentum."
+(Pancake Block Skill): "PANCAKED! [BlockerName] absolutely levels an opponent with a devastating block, clearing a path for his teammate!"
+(Pancake Block Skill): "Bone-rattling hit! [BlockerName] knocks [OpponentName] completely off his feet!"
+(Aggressive Tackle on Non-Carrier): "[BlockerName] is just looking to inflict pain! He lays a huge hit on an unsuspecting opponent away from the ball! With no referees, that's a smart, brutal play."
+Interceptions & Pass Defense
+"The pass is picked off! [DefenderName] read the play perfectly and stepped in front of the receiver!"
+"What a play! [DefenderName] makes a diving interception!"
+"He threw it right to the defense! An easy interception for [DefenderName]."
+"The pass is batted down at the line by the powerful Gryll defender, [PlayerName]!"
+"Great coverage by [DefenderName], forcing the drop."
+6. Contextual & Atmospheric Commentary
+Goal: Make the game feel alive by reacting to the situation.
+Injury & Fatigue
+(Injury from Tackle): "[CarrierName] is leveled by a powerful tackle from [TacklerName]! He's slow to get up... and the team trainer is signaling from the sideline. That looks like a **Minor Injury**."
+(Playing Through Injury): "[PlayerName] is still out there, but you can see he's favoring that leg. His agility is clearly hampered by that earlier injury."
+(Low Stamina): "[RunnerName] tries to turn the corner but just doesn't have the legs, brought down after a short gain. You can see the fatigue setting in."
+(Low Stamina Pass): "A wobbly pass from [PasserName], who looks exhausted after that long possession. The ball sails wide and is now a loose ball!"
+(Second Wind Skill): "[PlayerName] looked exhausted, but he just got his Second Wind! He looks ready to go again."
+(Photosynthesis Skill): "Despite the frantic pace, the Sylvan player [PlayerName] looks remarkably fresh out there."
+Atmosphere & Team Effects
+(High IntimidationFactor): "The home crowd is deafening right now, and it looks like the away team is having trouble with their timing!"
+(High Camaraderie): "You can see the chemistry on display! A perfectly timed block by [BlockerName] springs [RunnerName] for extra yards!"
+(Low Camaraderie): "A miscommunication on offense! [PasserName] and [ReceiverName] were not on the same page, and the pass falls harmlessly to the ground."
+(Lumina Healing Light Skill): "[Lumina Player] scores, and you can see a wave of light wash over his teammate [Injured Player] on the sideline! That should help with his recovery."
+Scoring
+"He's in! [PlayerName] fights through the defense and crosses the line! A Score for [TeamName]!"
+"SCORE! A brilliant individual effort by [PlayerName]!"
+"They've done it! [PasserName] connects with [ReceiverName] in the end zone for the score!"
+"He walks it in! The defense couldn't lay a hand on him!"
+"A hard-fought score, pushing through a pile of players at the goal line!"
+(This list of 108 prompts provides a robust foundation. You can easily expand this by creating 2-3 variations of each line to reach the 200+ goal.)

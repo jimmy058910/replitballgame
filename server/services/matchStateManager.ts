@@ -2,6 +2,7 @@ import { db } from "../db";
 import { players, matches, playerMatchStats, teamMatchStats } from "@shared/schema";
 import { eq, and, or } from "drizzle-orm";
 import type { Match, Player, PlayerMatchStats, TeamMatchStats } from "@shared/schema";
+import { commentaryService } from "./commentaryService.js";
 
 // Helper type for player stats, excluding IDs
 type PlayerStatsSnapshot = Omit<PlayerMatchStats, 'id' | 'playerId' | 'matchId' | 'teamId' | 'createdAt'>;
@@ -365,7 +366,14 @@ class MatchStateManager {
                 targetPStats.receivingYards += yards;
                 teamStats.passingYards += yards;
                 teamStats.totalOffensiveYards += yards;
-                event = { time: state.gameTime, type: 'pass_complete', actingPlayerId: actingPlayer.id, targetPlayerId: targetPlayer.id, teamId: offensiveTeamId, description: `${actingPlayer.lastName} throws a ${yards}yd pass to ${targetPlayer.lastName}. Complete!`, data: { yards } };
+                // Generate comprehensive commentary for successful pass
+                const passCommentary = commentaryService.generatePassPlayCommentary(
+                  actingPlayer,
+                  targetPlayer,
+                  true,
+                  yards
+                );
+                event = { time: state.gameTime, type: 'pass_complete', actingPlayerId: actingPlayer.id, targetPlayerId: targetPlayer.id, teamId: offensiveTeamId, description: passCommentary, data: { yards } };
 
                 // Chance to score after a catch
                 if (Math.random() < 0.15) { // 15% chance of scoring after a good catch
@@ -373,12 +381,14 @@ class MatchStateManager {
                     if (offensiveTeamId === state.homeTeamId) state.homeScore++; else state.awayScore++;
                     state.gameEvents.push(event); // push the completion event first
                     this.handlePossessionChange(state, offensiveTeamId, defensiveTeamId, state.gameTime); // Possession changes after score
-                    return { time: state.gameTime, type: 'score', actingPlayerId: targetPlayer.id, teamId: offensiveTeamId, description: `SCORE! ${targetPlayer.lastName} takes it all the way after the catch!`, data: { scoreType: 'passing' }};
+                    const scoringCommentary = commentaryService.generateScoringCommentary(targetPlayer, offensiveTeamId === state.homeTeamId ? "Home Team" : "Away Team", "passing");
+                    return { time: state.gameTime, type: 'score', actingPlayerId: targetPlayer.id, teamId: offensiveTeamId, description: scoringCommentary, data: { scoreType: 'passing' }};
                 }
 
             } else { // Dropped
                 targetPStats.drops++;
-                event = { time: state.gameTime, type: 'pass_drop', actingPlayerId: actingPlayer.id, targetPlayerId: targetPlayer.id, teamId: offensiveTeamId, description: `${actingPlayer.lastName}'s pass to ${targetPlayer.lastName} is dropped!`, data: { yards: 0 } };
+                const dropCommentary = commentaryService.generateLooseBallCommentary('drop', undefined, undefined, targetPlayer);
+                event = { time: state.gameTime, type: 'pass_drop', actingPlayerId: actingPlayer.id, targetPlayerId: targetPlayer.id, teamId: offensiveTeamId, description: dropCommentary, data: { yards: 0 } };
                 this.handlePossessionChange(state, offensiveTeamId, defensiveTeamId, state.gameTime); // Turnover on downs (simplified)
             }
         } else { // Pass incomplete or intercepted
@@ -387,7 +397,8 @@ class MatchStateManager {
                 const defPStats = state.playerStats.get(defensivePlayer.id)!;
                 defPStats.interceptionsCaught++;
                 teamStats.turnovers++; // Offensive team turnover
-                event = { time: state.gameTime, type: 'interception', actingPlayerId: actingPlayer.id, defensivePlayerId: defensivePlayer.id, teamId: defensiveTeamId, description: `${actingPlayer.lastName}'s pass INTERCEPTED by ${defensivePlayer.lastName}!`, data: { yards: 0 } };
+                const interceptionCommentary = commentaryService.generateInterceptionCommentary(defensivePlayer, actingPlayer);
+                event = { time: state.gameTime, type: 'interception', actingPlayerId: actingPlayer.id, defensivePlayerId: defensivePlayer.id, teamId: defensiveTeamId, description: interceptionCommentary, data: { yards: 0 } };
                 this.handlePossessionChange(state, offensiveTeamId, defensiveTeamId, state.gameTime);
             } else if (defensivePlayer) { // Pass defended
                 const defPStats = state.playerStats.get(defensivePlayer.id)!;
@@ -405,7 +416,9 @@ class MatchStateManager {
             pStats.rushingYards += yards;
             teamStats.rushingYards += yards;
             teamStats.totalOffensiveYards += yards;
-            event = { time: state.gameTime, type: 'rush', actingPlayerId: actingPlayer.id, teamId: offensiveTeamId, description: `${actingPlayer.lastName} runs for ${yards} yards.`, data: { yards } };
+            // Generate comprehensive run commentary
+            const runCommentary = commentaryService.generateRunPlayCommentary(actingPlayer, yards);
+            event = { time: state.gameTime, type: 'rush', actingPlayerId: actingPlayer.id, teamId: offensiveTeamId, description: runCommentary, data: { yards } };
 
             if (Math.random() < 0.1) { // 10% chance of scoring on a good run
                 pStats.scores++;

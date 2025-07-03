@@ -1928,36 +1928,51 @@ export default function EnhancedMatchSimulation({
             </Card>
           </div>
           
-          {/* Enhanced Controls */}
-          <div className="flex flex-wrap gap-2">
-            <Button
-              onClick={gameState.isRunning ? pauseGame : startGame}
-              variant={gameState.isRunning ? "secondary" : "default"}
-              disabled={gameState.gameTime >= gameState.maxTime}
-            >
-              {gameState.isRunning ? (
-                <>
-                  <Pause className="w-4 h-4 mr-2" />
-                  Pause Enhanced Sim
-                </>
-              ) : (
-                <>
-                  <Play className="w-4 h-4 mr-2" />
-                  Start Enhanced Sim
-                </>
-              )}
-            </Button>
-            
-            <Button onClick={stopGame} variant="outline">
-              <Square className="w-4 h-4 mr-2" />
-              Stop
-            </Button>
-            
-            <Button onClick={resetGame} variant="outline">
-              <RotateCcw className="w-4 h-4 mr-2" />
-              Reset
-            </Button>
-          </div>
+          {/* Enhanced Controls - Only show for non-live matches */}
+          {!isLiveMatch && (
+            <div className="flex flex-wrap gap-2">
+              <Button
+                onClick={gameState.isRunning ? pauseGame : startGame}
+                variant={gameState.isRunning ? "secondary" : "default"}
+                disabled={gameState.gameTime >= gameState.maxTime}
+              >
+                {gameState.isRunning ? (
+                  <>
+                    <Pause className="w-4 h-4 mr-2" />
+                    Pause Replay
+                  </>
+                ) : (
+                  <>
+                    <Play className="w-4 h-4 mr-2" />
+                    Start Replay
+                  </>
+                )}
+              </Button>
+              
+              <Button onClick={stopGame} variant="outline">
+                <Square className="w-4 h-4 mr-2" />
+                Stop Replay
+              </Button>
+              
+              <Button onClick={resetGame} variant="outline">
+                <RotateCcw className="w-4 h-4 mr-2" />
+                Reset Replay
+              </Button>
+            </div>
+          )}
+
+          {/* Live Match Status */}
+          {isLiveMatch && (
+            <div className="bg-red-900/30 border border-red-600 rounded-lg p-4">
+              <div className="flex items-center gap-2">
+                <div className="w-3 h-3 bg-red-500 rounded-full animate-pulse"></div>
+                <span className="text-red-400 font-semibold">LIVE SERVER MATCH</span>
+              </div>
+              <p className="text-sm text-gray-400 mt-1">
+                This match is running on the server. Watch the live commentary as events unfold!
+              </p>
+            </div>
+          )}
         </div>
 
         {/* Enhanced Game Log */}

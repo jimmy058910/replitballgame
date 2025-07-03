@@ -158,7 +158,7 @@ Built as a React + Express web application with PostgreSQL database, using moder
 - ✓ **Helper Method System**: Created comprehensive helper methods for player names, team identification, ball carrier detection, and possession tracking
 - ✓ **Skill-Aware Commentary**: Full integration with player skills system for dynamic commentary based on skill demonstrations during gameplay
 
-### July 3, 2025 - EXHIBITION SYSTEM CRITICAL FIXES & MATCH SIMULATION ENGINE STABILITY COMPLETE
+### July 3, 2025 - COMPREHENSIVE COMMENTARY SYSTEM IMPLEMENTATION & EXHIBITION FIXES COMPLETE
 
 #### ✅ EXHIBITION SYSTEM COMPREHENSIVE FUNCTIONALITY RESTORATION COMPLETE
 - ✓ **Critical Storage Interface Overhaul**: Successfully replaced all storage interface method calls in `matchStateManager.ts` with direct database calls using proper Drizzle ORM syntax
@@ -173,6 +173,17 @@ Built as a React + Express web application with PostgreSQL database, using moder
 - ✓ **Live Match Viewer Synchronization**: Added useEffect hook to properly sync frontend with backend match data every 2 seconds, ensuring real-time display of actual match events and commentary
 - ✓ **Match State Consistency**: Frontend now correctly displays backend match progression, scores, and events instead of showing stuck local simulation (0-0 vs actual backend scores)
 - ✓ **TypeScript Error Resolution**: Fixed all match data typing issues in TextMatch.tsx to ensure proper data flow from backend to frontend simulation component
+
+#### ✅ COMPREHENSIVE COMMENTARY SYSTEM IMPLEMENTATION COMPLETE
+- ✓ **200+ Commentary Prompts Database**: Created complete commentary service with over 200 specific commentary variations categorized into Game State/Flow, Loose Ball, Run Play, Pass Play, Defense/Aggression, and Contextual/Atmospheric
+- ✓ **Race-Based Commentary Integration**: Implemented race-specific commentary for all 5 fantasy races (Umbra Shadow Step, Sylvan agility, Gryll power, Lumina precision, Human adaptability) with contextual triggering
+- ✓ **Enhanced Run Commentary**: Added breakaway runs (15+ yards), skill-based runs (Juke Move, Truck Stick), and race-specific running styles with comprehensive variation database
+- ✓ **Advanced Pass Commentary**: Implemented deep pass variations, skill-based commentary (Pocket Presence, Deadeye), and completion/incompletion/interception specific prompts
+- ✓ **Comprehensive Defense Commentary**: Added power-based tackles, skill-aware commentary (Pancake Block), and defensive action descriptions with intimidation factors
+- ✓ **Contextual Commentary System**: Implemented injury commentary, fatigue reporting, atmospheric effects (crowd noise, intimidation), and team chemistry-based commentary
+- ✓ **Live Match Controls Fix**: Removed pause/stop/reset buttons from live server matches - controls now only appear for replay matches with proper "Live Server Match" indicator
+- ✓ **Backend Commentary Integration**: Replaced basic commentary ("Lightning runs for 7 yards") with comprehensive commentary service generating contextual, race-aware, skill-based commentary
+- ✓ **Single Simulation Engine**: Eliminated dual simulation system - frontend now properly displays rich backend commentary instead of running separate local simulation
 
 #### ✅ COMPREHENSIVE MATCH SIMULATION MECHANICS INTEGRATION ACHIEVEMENT (Previous)
 - ✓ **1. Consumables System Full Integration**: Implemented complete applySingleGameBoosts() method with 3-per-match limits, store system integration, and active consumables loading from database
