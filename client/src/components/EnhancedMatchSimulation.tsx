@@ -664,9 +664,91 @@ class EnhancedSimulationEngine {
     });
   }
 
-  private applySingleGameBoosts(): void {
+  private async applySingleGameBoosts(): Promise<void> {
     // Apply any active single-game boosts from items/consumables
-    // This would integrate with the store system for performance items
+    try {
+      // Get consumables for both teams if this is a league match
+      const team1Consumables = await this.getTeamConsumables(this.team1.id);
+      const team2Consumables = await this.getTeamConsumables(this.team2.id);
+      
+      // Apply consumable effects to team 1 players
+      this.applyConsumablesToTeam(this.team1.id, team1Consumables);
+      
+      // Apply consumable effects to team 2 players
+      this.applyConsumablesToTeam(this.team2.id, team2Consumables);
+      
+    } catch (error) {
+      console.error("Error applying single-game boosts:", error);
+    }
+  }
+
+  private async getTeamConsumables(teamId: string): Promise<any[]> {
+    try {
+      // For now, get consumables from team inventory that are activated
+      // In a real implementation, this would fetch from matchConsumables table
+      const response = await fetch(`/api/consumables/team/${teamId}`);
+      if (response.ok) {
+        const consumables = await response.json();
+        return consumables.filter((c: any) => c.quantity > 0);
+      }
+      return [];
+    } catch (error) {
+      console.error("Error fetching team consumables:", error);
+      return [];
+    }
+  }
+
+  private applyConsumablesToTeam(teamId: string, consumables: any[]): void {
+    const teamPlayers = this.players.filter(p => p.teamId === teamId);
+    
+    consumables.forEach(consumable => {
+      const effectData = this.parseConsumableEffect(consumable);
+      
+      teamPlayers.forEach(player => {
+        if (effectData.statBoosts) {
+          Object.entries(effectData.statBoosts).forEach(([stat, boost]: [string, any]) => {
+            if (typeof boost === 'number') {
+              player.temporaryBoosts[stat] = (player.temporaryBoosts[stat] || 0) + boost;
+            }
+          });
+        }
+        
+        // Apply special effects
+        if (effectData.staminaBonus) {
+          player.currentStamina = Math.min(player.baseStamina, player.currentStamina + effectData.staminaBonus);
+        }
+      });
+    });
+  }
+
+  private parseConsumableEffect(consumable: any): any {
+    // Parse consumable effects based on name and metadata
+    const effects: any = { statBoosts: {}, staminaBonus: 0 };
+    
+    const name = consumable.name || consumable.consumableName || '';
+    
+    if (name.includes('Speed Boost') || name.includes('speed')) {
+      effects.statBoosts.speed = 3;
+      effects.statBoosts.agility = 2;
+    } else if (name.includes('Power Surge') || name.includes('power')) {
+      effects.statBoosts.power = 4;
+      effects.statBoosts.stamina = 2;
+    } else if (name.includes('Champion') || name.includes('blessing')) {
+      effects.statBoosts.speed = 1;
+      effects.statBoosts.power = 1;
+      effects.statBoosts.throwing = 2;
+      effects.statBoosts.catching = 2;
+    } else if (name.includes('Stamina') || name.includes('recovery')) {
+      effects.staminaBonus = 10;
+      effects.statBoosts.stamina = 2;
+    }
+    
+    // Parse metadata if available
+    if (consumable.metadata?.statBoosts) {
+      Object.assign(effects.statBoosts, consumable.metadata.statBoosts);
+    }
+    
+    return effects;
   }
 
   private calculateAtmosphericEffects(): void {
@@ -682,6 +764,77 @@ class EnhancedSimulationEngine {
     const scoreDiff = this.gameState.team1Score - this.gameState.team2Score;
     this.gameState.momentum.team1 = Math.max(0, Math.min(100, 50 + scoreDiff * 10));
     this.gameState.momentum.team2 = 100 - this.gameState.momentum.team1;
+    
+    // Apply staff effects to enhance atmospheric pressure and player performance
+    this.applyStaffEffects();
+  }
+
+  private applyStaffEffects(): void {
+    // Apply head coach tactical effectiveness
+    const team1Coach = this.team1?.staff?.find((s: any) => s.type === "Head Coach");
+    const team2Coach = this.team2?.staff?.find((s: any) => s.type === "Head Coach");
+    
+    if (team1Coach) {
+      const coachEffectiveness = (team1Coach.coachingRating || 20) / 40; // 0-1 scale
+      // Enhanced coaching improves team coordination and reduces stamina loss
+      this.players.filter(p => p.teamId === this.team1.id).forEach(player => {
+        player.temporaryBoosts.leadership = (player.temporaryBoosts.leadership || 0) + Math.floor(coachEffectiveness * 3);
+        player.temporaryBoosts.stamina = (player.temporaryBoosts.stamina || 0) + Math.floor(coachEffectiveness * 2);
+      });
+    }
+    
+    if (team2Coach) {
+      const coachEffectiveness = (team2Coach.coachingRating || 20) / 40; // 0-1 scale
+      this.players.filter(p => p.teamId === this.team2.id).forEach(player => {
+        player.temporaryBoosts.leadership = (player.temporaryBoosts.leadership || 0) + Math.floor(coachEffectiveness * 3);
+        player.temporaryBoosts.stamina = (player.temporaryBoosts.stamina || 0) + Math.floor(coachEffectiveness * 2);
+      });
+    }
+
+    // Apply recovery specialist effects (faster stamina recovery during breaks)
+    const team1Recovery = this.team1?.staff?.find((s: any) => s.type === "Recovery Specialist");
+    const team2Recovery = this.team2?.staff?.find((s: any) => s.type === "Recovery Specialist");
+    
+    if (team1Recovery) {
+      const recoveryBonus = Math.floor((team1Recovery.physiologyRating || 20) / 10); // 2-4 bonus
+      this.players.filter(p => p.teamId === this.team1.id).forEach(player => {
+        if (player.currentStamina < player.baseStamina) {
+          player.currentStamina = Math.min(player.baseStamina, player.currentStamina + recoveryBonus);
+        }
+      });
+    }
+    
+    if (team2Recovery) {
+      const recoveryBonus = Math.floor((team2Recovery.physiologyRating || 20) / 10); // 2-4 bonus
+      this.players.filter(p => p.teamId === this.team2.id).forEach(player => {
+        if (player.currentStamina < player.baseStamina) {
+          player.currentStamina = Math.min(player.baseStamina, player.currentStamina + recoveryBonus);
+        }
+      });
+    }
+
+    // Apply trainer effects (enhanced skill performance)
+    const team1Trainers = this.team1?.staff?.filter((s: any) => s.type === "Trainer") || [];
+    const team2Trainers = this.team2?.staff?.filter((s: any) => s.type === "Trainer") || [];
+    
+    team1Trainers.forEach((trainer: any) => {
+      const trainerBonus = Math.floor((trainer.teachingRating || 20) / 20); // 1-2 bonus
+      this.players.filter(p => p.teamId === this.team1.id).forEach(player => {
+        // Trainers improve general athletic performance
+        player.temporaryBoosts.speed = (player.temporaryBoosts.speed || 0) + trainerBonus;
+        player.temporaryBoosts.agility = (player.temporaryBoosts.agility || 0) + trainerBonus;
+        player.temporaryBoosts.power = (player.temporaryBoosts.power || 0) + trainerBonus;
+      });
+    });
+    
+    team2Trainers.forEach((trainer: any) => {
+      const trainerBonus = Math.floor((trainer.teachingRating || 20) / 20); // 1-2 bonus
+      this.players.filter(p => p.teamId === this.team2.id).forEach(player => {
+        player.temporaryBoosts.speed = (player.temporaryBoosts.speed || 0) + trainerBonus;
+        player.temporaryBoosts.agility = (player.temporaryBoosts.agility || 0) + trainerBonus;
+        player.temporaryBoosts.power = (player.temporaryBoosts.power || 0) + trainerBonus;
+      });
+    });
   }
 
   // Enhanced Turn-Based Simulation
@@ -749,8 +902,15 @@ class EnhancedSimulationEngine {
       throwing: player.throwing + (player.temporaryBoosts.throwing || 0),
       catching: player.catching + (player.temporaryBoosts.catching || 0),
       agility: player.agility + (player.temporaryBoosts.agility || 0),
-      stamina: player.currentStamina
+      stamina: player.currentStamina,
+      leadership: player.leadership + (player.temporaryBoosts.leadership || 0)
     };
+    
+    // Apply race-based gameplay effects
+    this.applyRaceBasedEffects(player, effective);
+    
+    // Apply camaraderie effects
+    this.applyCamaraderieEffects(player, effective);
     
     // Apply fatigue penalties
     if (player.currentStamina < 20) {
@@ -763,15 +923,110 @@ class EnhancedSimulationEngine {
     return effective;
   }
 
+  private applyRaceBasedEffects(player: Player, stats: any): void {
+    const race = player.race?.toLowerCase();
+    
+    switch (race) {
+      case 'sylvan':
+        // Sylvan: Enhanced speed and agility, natural stamina recovery
+        stats.speed += 2;
+        stats.agility += 3;
+        if (player.currentStamina < player.baseStamina && Math.random() < 0.1) {
+          player.currentStamina = Math.min(player.baseStamina, player.currentStamina + 2); // Photosynthesis effect
+        }
+        break;
+        
+      case 'gryll':
+        // Gryll: Superior power and stamina, reduced speed
+        stats.power += 4;
+        stats.stamina += 2;
+        stats.speed -= 1;
+        // Unshakeable effect - resistance to knockdowns
+        if (player.isKnockedDown && Math.random() < 0.3) {
+          player.knockdownTimer = Math.max(0, player.knockdownTimer - 5);
+        }
+        break;
+        
+      case 'lumina':
+        // Lumina: Enhanced throwing and leadership
+        stats.throwing += 3;
+        stats.leadership += 2;
+        // Healing Light effect - team stamina boost chance
+        if (Math.random() < 0.05) {
+          const teammates = this.players.filter(p => p.teamId === player.teamId && p.id !== player.id);
+          teammates.forEach(teammate => {
+            teammate.currentStamina = Math.min(teammate.baseStamina, teammate.currentStamina + 1);
+          });
+        }
+        break;
+        
+      case 'umbra':
+        // Umbra: Enhanced speed and agility, shadow step evasion
+        stats.speed += 1;
+        stats.agility += 2;
+        // Shadow Step effect - chance to avoid tackles
+        if (player.role === "Runner" && Math.random() < 0.15) {
+          stats.agility += 5; // Temporary evasion boost
+        }
+        break;
+        
+      case 'human':
+        // Human: Adaptable - small bonus to all stats
+        stats.speed += 1;
+        stats.power += 1;
+        stats.throwing += 1;
+        stats.catching += 1;
+        stats.agility += 1;
+        stats.leadership += 1;
+        break;
+    }
+  }
+
+  private applyCamaraderieEffects(player: Player, stats: any): void {
+    const teamCamaraderie = player.teamId === this.team1.id ? 
+      (this.team1?.teamCamaraderie || 50) : (this.team2?.teamCamaraderie || 50);
+    
+    // Apply camaraderie-based stat modifications
+    if (teamCamaraderie >= 91) {
+      // Excellent camaraderie (91-100): +2 catching/agility, +3 pass accuracy
+      stats.catching += 2;
+      stats.agility += 2;
+      stats.throwing += 3;
+    } else if (teamCamaraderie >= 76) {
+      // Good camaraderie (76-90): +1 catching/agility, +2 pass accuracy
+      stats.catching += 1;
+      stats.agility += 1;
+      stats.throwing += 2;
+    } else if (teamCamaraderie <= 25) {
+      // Poor camaraderie (0-25): -2 catching/agility, -3 pass accuracy
+      stats.catching -= 2;
+      stats.agility -= 2;
+      stats.throwing -= 3;
+    } else if (teamCamaraderie <= 40) {
+      // Low camaraderie (26-40): -1 catching/agility, -2 pass accuracy
+      stats.catching -= 1;
+      stats.agility -= 1;
+      stats.throwing -= 2;
+    }
+    
+    // Ensure stats don't go below 1
+    Object.keys(stats).forEach(key => {
+      stats[key] = Math.max(1, stats[key]);
+    });
+  }
+
   private executeRunPlay(runner: Player, stats: any): { action: string; commentary?: string; result?: any } {
     const yards = this.calculateRunYards(runner, stats);
     const hasJukeMove = runner.skills.includes("Juke Move");
     const hasTruckStick = runner.skills.includes("Truck Stick");
     
     let skillUsed = undefined;
+    let commentary = "";
     
-    // Check for skill usage
-    if (hasJukeMove && Math.random() < 0.3 && stats.agility > 25) {
+    // Check for skill usage with race bonuses
+    const raceBonus = runner.race?.toLowerCase() === "umbra" ? 0.1 : 0; // Umbra get Shadow Step bonus
+    
+    if (hasJukeMove && Math.random() < (0.3 + raceBonus) && stats.agility > 25) {
       skillUsed = "Juke Move";
       runner.breakawayRuns++;
     } else if (hasTruckStick && Math.random() < 0.25 && stats.power > 28) {
@@ -781,12 +1036,36 @@ class EnhancedSimulationEngine {
     
     runner.yardsGained += yards;
     
-    const commentary = this.commentaryEngine.generateRunPlayCommentary(runner, yards, undefined, skillUsed);
+    // Apply team chemistry effects to running commentary
+    const teamCamaraderie = runner.teamId === this.team1.id ? 
+      (this.team1?.teamCamaraderie || 50) : (this.team2?.teamCamaraderie || 50);
+    
+    // Generate enhanced commentary based on yards, skills, race, and team chemistry
+    if (yards > 15) {
+      // Try race-based commentary for breakaway runs first
+      commentary = this.commentaryEngine.generateRaceBasedRunCommentary(runner, yards) ||
+        this.commentaryEngine.generateRunPlayCommentary(runner, yards, undefined, skillUsed);
+    } else if (teamCamaraderie >= 80 && Math.random() < 0.2) {
+      // High chemistry enables team coordination commentary
+      commentary = this.commentaryEngine.generateCamaraderieCommentary(
+        runner.teamId === this.team1.id ? this.team1 : this.team2, 
+        true
+      );
+    } else if (teamCamaraderie <= 30 && Math.random() < 0.15) {
+      // Poor chemistry can cause miscommunication
+      commentary = this.commentaryEngine.generateCamaraderieCommentary(
+        runner.teamId === this.team1.id ? this.team1 : this.team2, 
+        false
+      );
+    } else {
+      // Standard run commentary with skills
+      commentary = this.commentaryEngine.generateRunPlayCommentary(runner, yards, undefined, skillUsed);
+    }
     
     return {
       action: "run",
       commentary,
-      result: { yards, skillUsed }
+      result: { yards, skillUsed, player: runner }
     };
   }
 
@@ -796,6 +1075,11 @@ class EnhancedSimulationEngine {
       return { action: "pass", commentary: `${this.getPlayerDisplayName(passer)} can't find an open receiver.` };
     }
     
+    // Apply team chemistry effects to passing accuracy
+    const teamCamaraderie = passer.teamId === this.team1.id ? 
+      (this.team1?.teamCamaraderie || 50) : (this.team2?.teamCamaraderie || 50);
+    
+    // Apply effective stats with camaraderie already included from getEffectiveStats
     const completion = this.calculatePassSuccess(passer, target, stats);
     const yards = completion ? this.calculatePassYards(passer, target) : 0;
     
@@ -803,10 +1087,14 @@ class EnhancedSimulationEngine {
     const hasPocketPresence = passer.skills.includes("Pocket Presence");
     
     let skillUsed = undefined;
+    let commentary = "";
     
-    if (hasPocketPresence && Math.random() < 0.2) {
+    // Enhanced skill usage with race bonuses
+    const raceBonus = passer.race?.toLowerCase() === "lumina" ? 0.1 : 0; // Lumina get precision bonus
+    
+    if (hasPocketPresence && Math.random() < (0.2 + raceBonus)) {
       skillUsed = "Pocket Presence";
-    } else if (hasDeadeye && completion && Math.random() < 0.3) {
+    } else if (hasDeadeye && completion && Math.random() < (0.3 + raceBonus)) {
       skillUsed = "Deadeye";
       passer.perfectPasses++;
     }
@@ -816,16 +1104,34 @@ class EnhancedSimulationEngine {
       passer.passesCompleted++;
       target.passesCaught++;
       target.yardsGained += yards;
+      
+      // Generate enhanced commentary with team chemistry consideration
+      if (teamCamaraderie >= 80 && Math.random() < 0.25) {
+        commentary = this.commentaryEngine.generateCamaraderieCommentary(
+          passer.teamId === this.team1.id ? this.team1 : this.team2, 
+          true
+        );
+      } else {
+        commentary = this.commentaryEngine.generatePassPlayCommentary(passer, target, completion, yards, skillUsed);
+      }
     } else {
       target.droppedPasses++;
+      
+      // Poor chemistry can cause miscommunication on failed passes
+      if (teamCamaraderie <= 30 && Math.random() < 0.2) {
+        commentary = this.commentaryEngine.generateCamaraderieCommentary(
+          passer.teamId === this.team1.id ? this.team1 : this.team2, 
+          false
+        );
+      } else {
+        commentary = this.commentaryEngine.generatePassPlayCommentary(passer, target, completion, yards, skillUsed);
+      }
     }
-    
-    const commentary = this.commentaryEngine.generatePassPlayCommentary(passer, target, completion, yards, skillUsed);
     
     return {
       action: "pass",
       commentary,
-      result: { completion, yards, target: target.id, skillUsed }
+      result: { completion, yards, target: target.id, skillUsed, player: passer, receiver: target }
     };
   }
 
@@ -928,7 +1234,9 @@ class EnhancedSimulationEngine {
   }
 
   private resolveActionConsequences(actionResult: any): void {
-    // Handle scoring
+    // Enhanced event detection and processing
+    
+    // Handle scoring with enhanced commentary
     if (actionResult.result?.yards && actionResult.result.yards > 20) {
       // Potential scoring play
       if (Math.random() < 0.3) {
@@ -940,17 +1248,134 @@ class EnhancedSimulationEngine {
           } else {
             this.gameState.team2Score++;
           }
+          
+          // Generate enhanced scoring commentary
+          const commentary = this.commentaryEngine.generateScoringCommentary(scorer);
+          if (commentary) {
+            this.gameState.gameLog.unshift(commentary);
+          }
         }
       }
     }
     
-    // Handle turnovers
+    // Handle turnovers with enhanced detection
     if (actionResult.action === "pass" && !actionResult.result?.completion && Math.random() < 0.1) {
       // Interception chance
       const interceptor = this.findInterceptor();
       if (interceptor) {
         interceptor.interceptions++;
         this.gameState.ballCarrier = interceptor.id;
+        
+        // Generate interception commentary
+        const commentary = this.commentaryEngine.generateInterceptionCommentary(interceptor);
+        if (commentary) {
+          this.gameState.gameLog.unshift(commentary);
+        }
+      }
+    }
+    
+    // Handle fumbles with enhanced detection
+    if (actionResult.action === "run" && Math.random() < 0.05) {
+      const ballCarrier = this.getBallCarrier();
+      if (ballCarrier) {
+        // Check for camaraderie-based fumble risk
+        const teamCamaraderie = ballCarrier.teamId === this.team1.id ? 
+          (this.team1?.teamCamaraderie || 50) : (this.team2?.teamCamaraderie || 50);
+        
+        const fumbleChance = teamCamaraderie < 30 ? 0.08 : 0.05; // Poor camaraderie increases fumble risk
+        
+        if (Math.random() < fumbleChance) {
+          ballCarrier.fumbles++;
+          this.gameState.ballCarrier = null;
+          
+          // Generate fumble commentary
+          const commentary = this.commentaryEngine.generateLooseBallCommentary("tackle", ballCarrier);
+          if (commentary) {
+            this.gameState.gameLog.unshift(commentary);
+          }
+          
+          // Look for fumble recovery
+          const recoverer = this.findInterceptor();
+          if (recoverer) {
+            this.gameState.ballCarrier = recoverer.id;
+            const scrambleCommentary = this.commentaryEngine.generateScrambleCommentary(recoverer);
+            if (scrambleCommentary) {
+              this.gameState.gameLog.unshift(scrambleCommentary);
+            }
+          }
+        }
+      }
+    }
+    
+    // Handle injury events
+    if (Math.random() < 0.01) { // 1% chance of injury per action
+      const allActivePlayers = this.players.filter(p => !p.isKnockedDown && p.currentStamina > 5);
+      if (allActivePlayers.length > 0) {
+        const injuredPlayer = allActivePlayers[Math.floor(Math.random() * allActivePlayers.length)];
+        const severity = Math.random() < 0.1 ? "severe" : "minor";
+        
+        injuredPlayer.isKnockedDown = true;
+        injuredPlayer.knockdownTimer = severity === "severe" ? 30 : 15;
+        injuredPlayer.currentStamina = Math.max(1, injuredPlayer.currentStamina - 10);
+        
+        // Generate injury commentary
+        const commentary = this.commentaryEngine.generateInjuryCommentary(injuredPlayer, severity);
+        if (commentary) {
+          this.gameState.gameLog.unshift(commentary);
+        }
+      }
+    }
+    
+    // Handle breakaway runs
+    if (actionResult.action === "run" && actionResult.result?.yards > 15) {
+      const runner = this.getBallCarrier();
+      if (runner) {
+        runner.breakawayRuns++;
+        
+        // Generate race-based run commentary for breakaways
+        const raceCommentary = this.commentaryEngine.generateRaceBasedRunCommentary(runner, actionResult.result.yards);
+        if (raceCommentary) {
+          this.gameState.gameLog.unshift(raceCommentary);
+        }
+      }
+    }
+    
+    // Check for camaraderie-based team chemistry events
+    this.checkCamaraderieEvents();
+  }
+
+  private checkCamaraderieEvents(): void {
+    // Check for team chemistry moments based on recent actions
+    const team1Camaraderie = this.team1?.teamCamaraderie || 50;
+    const team2Camaraderie = this.team2?.teamCamaraderie || 50;
+    
+    // Poor camaraderie teams have chance for miscommunication
+    if (team1Camaraderie < 30 && Math.random() < 0.02) {
+      const commentary = this.commentaryEngine.generateCamaraderieCommentary(this.team1, false);
+      if (commentary) {
+        this.gameState.gameLog.unshift(commentary);
+      }
+    }
+    
+    if (team2Camaraderie < 30 && Math.random() < 0.02) {
+      const commentary = this.commentaryEngine.generateCamaraderieCommentary(this.team2, false);
+      if (commentary) {
+        this.gameState.gameLog.unshift(commentary);
+      }
+    }
+    
+    // High camaraderie teams have chance for perfect teamwork
+    if (team1Camaraderie > 80 && Math.random() < 0.01) {
+      const commentary = this.commentaryEngine.generateCamaraderieCommentary(this.team1, true);
+      if (commentary) {
+        this.gameState.gameLog.unshift(commentary);
+      }
+    }
+    
+    if (team2Camaraderie > 80 && Math.random() < 0.01) {
+      const commentary = this.commentaryEngine.generateCamaraderieCommentary(this.team2, true);
+      if (commentary) {
+        this.gameState.gameLog.unshift(commentary);
       }
     }
   }
@@ -1115,7 +1540,7 @@ export default function EnhancedMatchSimulation({
         knockdownTimer: 0,
         lastAction: "ready",
         actionCooldown: 0,
-        skills: [] // Would be loaded from player skills system
+        skills: p.playerSkills?.map((ps: any) => ps.name || ps.skill?.name).filter(Boolean) || []
       }));
 
       const team2Players = (team2?.players || []).slice(0, 6).map((p: any, index: number) => ({
@@ -1146,7 +1571,7 @@ export default function EnhancedMatchSimulation({
         knockdownTimer: 0,
         lastAction: "ready",
         actionCooldown: 0,
-        skills: [] // Would be loaded from player skills system
+        skills: p.playerSkills?.map((ps: any) => ps.name || ps.skill?.name).filter(Boolean) || []
       }));
 
       const allPlayers = [...team1Players, ...team2Players];
