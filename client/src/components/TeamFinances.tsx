@@ -301,9 +301,9 @@ export default function TeamFinances({ teamId }: TeamFinancesProps) {
                   <h4 className="font-semibold mb-3">Cost Management</h4>
                   <div className="space-y-2 text-sm">
                     <div className="flex justify-between">
-                      <span>Salary Efficiency:</span>
-                      <span className={salaryCapUsed > 85 ? "text-red-600" : "text-green-600"}>
-                        {salaryCapUsed > 85 ? "Over budget" : "Within budget"}
+                      <span>Player Compensation:</span>
+                      <span className="text-blue-600">
+                        ₡{(((currentFinances as any).playerSalaries || 0) / 1000).toFixed(0)}k total
                       </span>
                     </div>
                     <div className="flex justify-between">
@@ -321,8 +321,8 @@ export default function TeamFinances({ teamId }: TeamFinancesProps) {
               <div className="border-t pt-4">
                 <div className="text-center">
                   <div className="text-lg font-semibold mb-2">Projected End-of-Season</div>
-                  <div className={`text-2xl font-bold ${currentFinances.netIncome >= 0 ? "text-green-600" : "text-red-600"}`}>
-                    {currentFinances.netIncome >= 0 ? "+" : ""}${(currentFinances.netIncome * 1.2).toLocaleString()} profit
+                  <div className={`text-2xl font-bold ${(currentFinances as any).netIncome >= 0 ? "text-green-600" : "text-red-600"}`}>
+                    {(currentFinances as any).netIncome >= 0 ? "+" : ""}₡{((currentFinances as any).netIncome * 1.2).toLocaleString()} profit
                   </div>
                   <p className="text-sm text-gray-600 mt-1">
                     Based on current performance trends
