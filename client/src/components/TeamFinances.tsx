@@ -51,8 +51,7 @@ export default function TeamFinances({ teamId }: TeamFinancesProps) {
     netIncome: -30000,
   };
 
-  const budgetHealth = ((currentFinances.totalIncome / currentFinances.totalExpenses) * 100);
-  const salaryCapUsed = ((currentFinances.playerSalaries / 200000) * 100); // Assume 200k salary cap
+  const budgetHealth = (((currentFinances as any).totalIncome / (currentFinances as any).totalExpenses) * 100);
 
   const incomeStreams = [
     {
@@ -113,7 +112,7 @@ export default function TeamFinances({ teamId }: TeamFinancesProps) {
         <div className="text-right">
           <p className="text-sm text-gray-600">Available Credits</p>
           <p className="text-2xl font-bold">
-            ${team?.credits?.toLocaleString() || "0"}
+            ₡{team?.credits?.toLocaleString() || "0"}
           </p>
         </div>
       </div>
@@ -129,7 +128,7 @@ export default function TeamFinances({ teamId }: TeamFinancesProps) {
           </CardHeader>
           <CardContent>
             <div className="text-3xl font-bold text-green-600">
-              ${currentFinances.totalIncome.toLocaleString()}
+              ₡{(currentFinances as any).totalIncome.toLocaleString()}
             </div>
             <p className="text-sm text-gray-600 mt-1">This season</p>
           </CardContent>
@@ -144,7 +143,7 @@ export default function TeamFinances({ teamId }: TeamFinancesProps) {
           </CardHeader>
           <CardContent>
             <div className="text-3xl font-bold text-red-600">
-              ${currentFinances.totalExpenses.toLocaleString()}
+              ₡{(currentFinances as any).totalExpenses.toLocaleString()}
             </div>
             <p className="text-sm text-gray-600 mt-1">This season</p>
           </CardContent>
@@ -158,8 +157,8 @@ export default function TeamFinances({ teamId }: TeamFinancesProps) {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className={`text-3xl font-bold ${currentFinances.netIncome >= 0 ? "text-green-600" : "text-red-600"}`}>
-              {currentFinances.netIncome >= 0 ? "+" : ""}${currentFinances.netIncome.toLocaleString()}
+            <div className={`text-3xl font-bold ${(currentFinances as any).netIncome >= 0 ? "text-green-600" : "text-red-600"}`}>
+              {(currentFinances as any).netIncome >= 0 ? "+" : ""}₡{(currentFinances as any).netIncome.toLocaleString()}
             </div>
             <p className="text-sm text-gray-600 mt-1">Profit/Loss</p>
           </CardContent>
@@ -193,20 +192,16 @@ export default function TeamFinances({ teamId }: TeamFinancesProps) {
 
         <Card>
           <CardHeader>
-            <CardTitle className="text-lg">Salary Cap Usage</CardTitle>
+            <CardTitle className="text-lg">Player Salaries</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <div>
               <div className="flex justify-between mb-2">
-                <span className="text-sm font-medium">Player Salaries</span>
-                <span className="text-sm">{salaryCapUsed.toFixed(1)}%</span>
+                <span className="text-sm font-medium">Total Player Compensation</span>
+                <span className="text-sm font-bold">₡{((currentFinances as any).playerSalaries || 0).toLocaleString()}</span>
               </div>
-              <Progress 
-                value={salaryCapUsed} 
-                className="h-3"
-              />
               <div className="text-xs text-gray-500 mt-1">
-                ${(200000 - currentFinances.playerSalaries).toLocaleString()} remaining cap space
+                {((currentFinances as any).playerSalaries / (currentFinances as any).totalExpenses * 100).toFixed(1)}% of total expenses
               </div>
             </div>
           </CardContent>

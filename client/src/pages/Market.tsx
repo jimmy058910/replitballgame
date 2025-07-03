@@ -921,16 +921,16 @@ export default function Market() {
                   <h4 className="font-semibold">Exchange Credits</h4>
                   <div className="flex gap-4 items-end">
                     <div className="flex-1">
-                      <label className="block text-sm font-medium mb-2">Credits to Exchange</label>
+                      <label className="block text-sm font-medium mb-2 text-gray-900 dark:text-gray-100">Credits to Exchange</label>
                       <input 
                         type="number" 
-                        className="w-full p-2 border rounded" 
+                        className="w-full p-2 border rounded bg-white dark:bg-slate-700 text-gray-900 dark:text-white border-gray-300 dark:border-gray-600 placeholder-gray-500 dark:placeholder-gray-400" 
                         placeholder="Enter amount..." 
                       />
                     </div>
                     <div className="flex-1">
-                      <label className="block text-sm font-medium mb-2">Gems Received</label>
-                      <div className="p-2 bg-gray-100 dark:bg-gray-800 border rounded">
+                      <label className="block text-sm font-medium mb-2 text-gray-900 dark:text-gray-100">Gems Received</label>
+                      <div className="p-2 bg-slate-100 dark:bg-slate-700 border rounded text-gray-900 dark:text-white border-gray-300 dark:border-gray-600">
                         💎0
                       </div>
                     </div>

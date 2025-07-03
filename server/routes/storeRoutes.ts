@@ -145,25 +145,45 @@ router.post('/watch-ad', isAuthenticated, async (req: any, res: Response, next: 
   }
 });
 
-router.post('/purchase', isAuthenticated, async (req: any, res: Response, next: NextFunction) => {
+router.post('/purchase/:itemId', isAuthenticated, async (req: any, res: Response, next: NextFunction) => {
   try {
     const userId = req.user.claims.sub;
     const team = await storage.teams.getTeamByUserId(userId);
     if (!team) return res.status(404).json({ message: "Team not found." });
 
-    const { itemId, currency, expectedPrice } = storePurchaseSchema.parse(req.body);
+    const itemId = req.params.itemId;
+    const { currency, expectedPrice } = req.body;
 
     const finances = await teamFinancesStorage.getTeamFinances(team.id);
     if (!finances) return res.status(404).json({ message: "Team finances not found." });
 
-    // TODO: Fetch actual item details from itemStorage or config service using itemId
-    // const itemDetails = await itemStorage.getStoreItemDetails(itemId);
-    // if (!itemDetails) return res.status(404).json({ message: "Item not found in store."});
-
-    const itemPriceInfo = (storeConfig.itemPrices as any)[itemId];
-    if (!itemPriceInfo) return res.status(404).json({ message: "Item not found in store configuration." });
-
-    const actualPrice = itemPriceInfo[currency === "premium_currency" ? "gems" : currency];
+    // Find the item in store sections first
+    const allStoreItems = [
+      ...(storeConfig.storeSections.premiumItems || []),
+      ...(storeConfig.storeSections.staticItems || []),
+      ...(storeConfig.storeSections.equipment || []),
+      ...(storeConfig.storeSections.tournamentEntries || [])
+    ];
+    
+    const storeItem = allStoreItems.find((item: any) => item.id === itemId) as any;
+    
+    // If not found in store sections, fall back to itemPrices
+    let actualPrice;
+    if (storeItem) {
+      // Get price from store item directly (use type assertion for flexible property access)
+      const item = storeItem as any;
+      if (currency === "credits") {
+        actualPrice = item.price || item.credits;
+      } else if (currency === "gems" || currency === "premium_currency") {
+        actualPrice = item.priceGems || item.gems;
+      }
+    } else {
+      // Fall back to itemPrices section
+      const itemPriceInfo = (storeConfig.itemPrices as any)[itemId];
+      if (!itemPriceInfo) return res.status(404).json({ message: "Item not found in store configuration." });
+      actualPrice = itemPriceInfo[currency === "premium_currency" ? "gems" : currency];
+    }
+    
     if (actualPrice === undefined) return res.status(400).json({ message: `Item not available for ${currency}.` });
 
     if (expectedPrice !== undefined && expectedPrice !== actualPrice) {
