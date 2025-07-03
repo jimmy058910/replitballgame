@@ -95,7 +95,7 @@ router.get('/available-opponents', isAuthenticated, async (req: any, res: Respon
 });
 
 // Auto-find and start match against similar USER team
-router.post('/find-match', isAuthenticated, async (req: any, res: Response, next: NextFunction) => {
+router.post('/instant-match', isAuthenticated, async (req: any, res: Response, next: NextFunction) => {
   try {
     const userId = req.user.claims.sub;
     const userTeam = await storage.teams.getTeamByUserId(userId);
@@ -159,10 +159,15 @@ router.post('/find-match', isAuthenticated, async (req: any, res: Response, next
       return res.status(404).json({ message: "No suitable opponents found. Try again later or use manual opponent selection." });
     }
 
+    // Randomize home/away team assignments
+    const isHome = Math.random() < 0.5;
+    const homeTeamId = isHome ? userTeam.id : bestOpponent.id;
+    const awayTeamId = isHome ? bestOpponent.id : userTeam.id;
+
     // Create and start the match
     const match = await matchStorage.createMatch({
-      homeTeamId: userTeam.id,
-      awayTeamId: bestOpponent.id,
+      homeTeamId,
+      awayTeamId,
       matchType: "exhibition",
       status: "scheduled",
       scheduledTime: new Date(),
@@ -184,6 +189,7 @@ router.post('/find-match', isAuthenticated, async (req: any, res: Response, next
       message: `Exhibition match against ${bestOpponent.name} started!`,
       opponentType: isUserTeam ? 'user' : 'ai',
       opponentName: bestOpponent.name,
+      isHome,
       liveState: liveMatchState
     });
   } catch (error) {
@@ -209,11 +215,18 @@ router.post('/challenge', isAuthenticated, async (req: any, res: Response, next:
     // if ((teamFinances?.exhibitionCredits || 0) <= 0) { /* ... */ }
     // await teamFinancesStorage.updateTeamFinances(userTeam.id, { exhibitionCredits: (teamFinances?.exhibitionCredits || 0) - 1 });
 
+    // Randomize home/away team assignments for challenge opponent too
+    const isHome = Math.random() < 0.5;
+    const homeTeamId = isHome ? userTeam.id : opponentTeam.id;
+    const awayTeamId = isHome ? opponentTeam.id : userTeam.id;
+
     const match = await matchStorage.createMatch({
-      homeTeamId: userTeam.id, awayTeamId: opponentTeam.id,
-      matchType: "exhibition", status: "scheduled",
-      homeTeamName: userTeam.name, awayTeamName: opponentTeam.name, // Denormalize names
-      scheduledTime: new Date(), gameDay: 0,
+      homeTeamId,
+      awayTeamId,
+      matchType: "exhibition", 
+      status: "scheduled",
+      scheduledTime: new Date(), 
+      gameDay: 0,
     });
 
     const liveMatchState = await matchStateManager.startLiveMatch(match.id, true);
@@ -222,13 +235,13 @@ router.post('/challenge', isAuthenticated, async (req: any, res: Response, next:
     await exhibitionGameStorage.createExhibitionGame({
         teamId: userTeam.id, // The team initiating the challenge
         opponentTeamId: opponentTeam.id,
-        matchId: match.id, // Link to the match table if needed
-        // result and score will be updated upon match completion
     });
 
     res.status(201).json({
       matchId: match.id,
       message: `Exhibition match against ${opponentTeam.name} started! Game is now live.`,
+      opponentName: opponentTeam.name,
+      isHome,
       liveState: liveMatchState
     });
   } catch (error) {
@@ -247,13 +260,16 @@ router.get('/recent', isAuthenticated, async (req: any, res: Response, next: Nex
     // Fetch from exhibitionGames table directly for this team
     const recentExhibitionGames = await exhibitionGameStorage.getExhibitionGamesByTeam(team.id, 10);
 
-    // If more details are needed (like opponent name not stored in exhibitionGames), fetch from matches
-    const detailedGames = await Promise.all(recentExhibitionGames.map(async (eg) => {
-        if (eg.matchId) {
-            const matchDetails = await matchStorage.getMatchById(eg.matchId);
-            return { ...eg, ...matchDetails, opponentName: matchDetails?.awayTeamId === team.id ? matchDetails?.homeTeamName : matchDetails?.awayTeamName };
-        }
-        return eg;
+    // Enhance with opponent team names
+    const detailedGames = await Promise.all(recentExhibitionGames.map(async (game) => {
+        const opponentTeam = await storage.teams.getTeamById(game.opponentTeamId);
+        return { 
+            id: game.id,
+            result: game.result,
+            score: game.score,
+            playedDate: game.playedDate,
+            opponentName: opponentTeam?.name || 'Unknown Opponent'
+        };
     }));
 
     res.json(detailedGames);

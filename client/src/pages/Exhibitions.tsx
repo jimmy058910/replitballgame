@@ -68,27 +68,26 @@ export default function Exhibitions() {
   // Check if there's a live exhibition match
   const hasLiveExhibition = liveMatches?.some((match: any) => match.type === 'exhibition');
 
-  const findMatchMutation = useMutation({
+  const instantExhibitionMutation = useMutation({
     mutationFn: async () => {
-      return await apiRequest("/api/exhibitions/find-match", "POST");
+      return await apiRequest("/api/exhibitions/instant-match", "POST");
     },
     onSuccess: (data) => {
       if (data.matchId) {
-        const opponentType = data.opponentType === 'user' ? 'user team' : 'AI team';
+        const homeAway = data.isHome ? "home" : "away";
         toast({
-          title: "Match Found!",
-          description: `Starting exhibition match against ${data.opponentName} (${opponentType})`,
+          title: "Instant Exhibition Started!",
+          description: `Starting ${homeAway} match against ${data.opponentName}`,
         });
         window.location.href = `/match/${data.matchId}`;
       }
     },
     onError: (error: Error) => {
       toast({
-        title: "Match Finding Failed",
+        title: "Match Failed",
         description: error.message,
         variant: "destructive",
       });
-      setIsSearching(false);
     },
   });
 
@@ -98,9 +97,10 @@ export default function Exhibitions() {
     },
     onSuccess: (data) => {
       if (data.matchId) {
+        const homeAway = data.isHome ? "home" : "away";
         toast({
-          title: "Challenge Sent!",
-          description: "Starting exhibition match...",
+          title: "Exhibition Match Started!",
+          description: `Starting ${homeAway} match against ${data.opponentName}`,
         });
         setShowOpponentSelect(false);
         window.location.href = `/match/${data.matchId}`;
@@ -115,7 +115,7 @@ export default function Exhibitions() {
     },
   });
 
-  const handleFindMatch = () => {
+  const handleInstantExhibition = () => {
     if (hasLiveExhibition) {
       toast({
         title: "Exhibition Already Running",
@@ -134,8 +134,7 @@ export default function Exhibitions() {
       return;
     }
     
-    setIsSearching(true);
-    findMatchMutation.mutate();
+    instantExhibitionMutation.mutate();
   };
 
   const handleChooseOpponent = () => {
@@ -287,91 +286,89 @@ export default function Exhibitions() {
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="space-y-3">
-                <Button 
-                  className="w-full justify-start h-auto p-4" 
-                  variant="outline"
-                  onClick={handleFindMatch}
-                  disabled={
-                    isSearching || 
-                    findMatchMutation.isPending ||
-                    hasLiveExhibition ||
-                    totalGamesRemaining <= 0
-                  }
-                >
-                  <div className="flex items-center gap-3">
-                    <div className="bg-blue-500 p-2 rounded">
-                      <Zap className="h-4 w-4" />
-                    </div>
-                    <div className="text-left">
-                      <div className="font-semibold">Start Exhibition Match</div>
-                      <div className="text-sm text-gray-400">Auto-match vs similar user team</div>
-                    </div>
-                  </div>
-                  {isSearching && (
-                    <div className="ml-auto">
-                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                    </div>
-                  )}
-                </Button>
+              <div className="space-y-4">
+                {/* Option 1: Instant Exhibition */}
+                <div className="p-4 bg-gray-700 rounded-lg">
+                  <h3 className="font-semibold text-lg mb-2 flex items-center gap-2">
+                    <Zap className="h-5 w-5 text-blue-400" />
+                    1) Instant Exhibition
+                  </h3>
+                  <p className="text-gray-400 text-sm mb-4">
+                    Start an immediate exhibition match against other teams in your division, near your power level, or AI. Games begin instantly!
+                  </p>
+                  <Button 
+                    className="w-full" 
+                    variant="default"
+                    onClick={handleInstantExhibition}
+                    disabled={
+                      instantExhibitionMutation.isPending ||
+                      hasLiveExhibition ||
+                      totalGamesRemaining <= 0
+                    }
+                  >
+                    {instantExhibitionMutation.isPending ? "Finding Opponent..." : "Start Instant Exhibition"}
+                  </Button>
+                </div>
 
-                <Dialog open={showOpponentSelect} onOpenChange={setShowOpponentSelect}>
-                  <DialogTrigger asChild>
-                    <Button 
-                      className="w-full justify-start h-auto p-4" 
-                      variant="outline"
-                      onClick={handleChooseOpponent}
-                      disabled={hasLiveExhibition || totalGamesRemaining <= 0}
-                    >
-                      <div className="flex items-center gap-3">
-                        <div className="bg-purple-500 p-2 rounded">
-                          <Users className="h-4 w-4" />
-                        </div>
-                        <div className="text-left">
-                          <div className="font-semibold">Choose Opponent</div>
-                          <div className="text-sm text-gray-400">Select from 6 similar teams</div>
-                        </div>
-                      </div>
-                    </Button>
-                  </DialogTrigger>
+                {/* Option 2: Exhibition Match */}
+                <div className="p-4 bg-gray-700 rounded-lg">
+                  <h3 className="font-semibold text-lg mb-2 flex items-center gap-2">
+                    <Users className="h-5 w-5 text-purple-400" />
+                    2) Exhibition Match
+                  </h3>
+                  <p className="text-gray-400 text-sm mb-4">
+                    Choose from 6 opponents in your division to play your Exhibition match against.
+                  </p>
+                  <Dialog open={showOpponentSelect} onOpenChange={setShowOpponentSelect}>
+                    <DialogTrigger asChild>
+                      <Button 
+                        className="w-full" 
+                        variant="outline"
+                        onClick={handleChooseOpponent}
+                        disabled={hasLiveExhibition || totalGamesRemaining <= 0}
+                      >
+                        Choose Opponent
+                      </Button>
+                    </DialogTrigger>
                   
-                  <DialogContent className="bg-gray-800 border-gray-700 max-w-2xl">
-                    <DialogHeader>
-                      <DialogTitle>Choose Your Opponent</DialogTitle>
-                      <DialogDescription>
-                        Select a team with similar power rating for a balanced match
-                      </DialogDescription>
-                    </DialogHeader>
-                    
-                    <div className="grid gap-3 max-h-96 overflow-y-auto">
-                      {availableOpponents?.map((opponent: any) => (
-                        <Button
-                          key={opponent.id}
-                          variant="outline"
-                          className="h-auto p-4 justify-start"
-                          onClick={() => selectOpponentMutation.mutate(opponent.id)}
-                          disabled={selectOpponentMutation.isPending}
-                        >
-                          <div className="flex items-center justify-between w-full">
-                            <div className="flex items-center gap-3">
-                              <div className="text-left">
-                                <div className="font-semibold">{opponent.name}</div>
-                                <div className="text-sm text-gray-400">
-                                  Division {opponent.division} • Power: {opponent.teamPower}
+                    <DialogContent className="bg-gray-800 border-gray-700 max-w-2xl">
+                      <DialogHeader>
+                        <DialogTitle>Choose Your Opponent</DialogTitle>
+                        <DialogDescription>
+                          Select a team with similar power rating for a balanced match
+                        </DialogDescription>
+                      </DialogHeader>
+                      
+                      <div className="grid gap-3 max-h-96 overflow-y-auto">
+                        {availableOpponents?.map((opponent: any) => (
+                          <Button
+                            key={opponent.id}
+                            variant="outline"
+                            className="h-auto p-4 justify-start"
+                            onClick={() => selectOpponentMutation.mutate(opponent.id)}
+                            disabled={selectOpponentMutation.isPending}
+                          >
+                            <div className="flex items-center justify-between w-full">
+                              <div className="flex items-center gap-3">
+                                <div className="text-left">
+                                  <div className="font-semibold">{opponent.name}</div>
+                                  <div className="text-sm text-gray-400">
+                                    Division {opponent.division} • Power: {opponent.teamPower}
+                                  </div>
                                 </div>
                               </div>
+                              <div className="text-right">
+                                <Badge variant="outline">
+                                  {opponent.record || "0-0-0"}
+                                </Badge>
+                              </div>
                             </div>
-                            <div className="text-right">
-                              <Badge variant="outline">
-                                {opponent.record || "0-0-0"}
-                              </Badge>
-                            </div>
-                          </div>
-                        </Button>
-                      ))}
-                    </div>
-                  </DialogContent>
-                </Dialog>
+                          </Button>
+                        ))}
+                      </div>
+                    </DialogContent>
+                  </Dialog>
+                </div>
               </div>
 
               {(hasLiveExhibition || totalGamesRemaining <= 0) && (
