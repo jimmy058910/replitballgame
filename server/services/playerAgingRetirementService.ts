@@ -1,5 +1,5 @@
 import { db } from '../db.js';
-import { players, playerDevelopmentHistory, playerCareerMilestones } from '../../shared/schema.js';
+import { players, playerDevelopmentHistory, playerCareerMilestones, staff } from '../../shared/schema.js';
 import { eq, and, gte, lte } from 'drizzle-orm';
 
 export class PlayerAgingRetirementService {
@@ -68,11 +68,11 @@ export class PlayerAgingRetirementService {
   /**
    * Calculate progression chance for a specific stat
    */
-  static calculateProgressionChance(
+  static async calculateProgressionChance(
     player: any,
     statName: string,
     gamesPlayedLastSeason: number = 0
-  ): number {
+  ): Promise<number> {
     const baseChance = this.DEVELOPMENT_CONFIG.BASE_PROGRESSION_CHANCE;
     
     // Get potential modifier based on stat's potential rating
@@ -93,7 +93,42 @@ export class PlayerAgingRetirementService {
     // Usage modifier based on games played
     const usageModifier = Math.min(gamesPlayedLastSeason, 14) / 14 * this.DEVELOPMENT_CONFIG.USAGE_MODIFIER_RATE;
     
-    const totalChance = baseChance + potentialModifier + ageModifier + usageModifier;
+    // TrainerBonus - Get team trainers and calculate bonus based on their effectiveness
+    let trainerBonus = 0;
+    if (player.teamId) {
+      try {
+        const trainers = await db.select()
+          .from(staff)
+          .where(and(
+            eq(staff.teamId, player.teamId),
+            eq(staff.type, 'trainer')
+          ));
+        
+        // Calculate trainer effectiveness based on stat type
+        let relevantTrainerRating = 0;
+        if (this.DEVELOPMENT_CONFIG.PHYSICAL_STATS.includes(statName)) {
+          // Physical stats improved by Physical Trainer
+          const physicalTrainer = trainers.find(t => t.specialty === 'physical');
+          relevantTrainerRating = physicalTrainer?.rating || 0;
+        } else if (['throwing', 'catching'].includes(statName)) {
+          // Passing stats improved by Offensive Trainer  
+          const offensiveTrainer = trainers.find(t => t.specialty === 'offensive');
+          relevantTrainerRating = offensiveTrainer?.rating || 0;
+        } else if (['leadership', 'kicking'].includes(statName)) {
+          // Mental/special stats improved by Defensive Trainer
+          const defensiveTrainer = trainers.find(t => t.specialty === 'defensive');
+          relevantTrainerRating = defensiveTrainer?.rating || 0;
+        }
+        
+        // TrainerBonus = (TrainerRating / 40) * 10% max bonus
+        trainerBonus = (relevantTrainerRating / 40) * 10;
+      } catch (error) {
+        console.error('Error calculating trainer bonus:', error);
+        // Continue with 0 trainer bonus if error occurs
+      }
+    }
+    
+    const totalChance = baseChance + potentialModifier + ageModifier + usageModifier + trainerBonus;
     return Math.max(0, Math.min(100, totalChance));
   }
 

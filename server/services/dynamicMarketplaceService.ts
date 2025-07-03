@@ -16,7 +16,8 @@ export class DynamicMarketplaceService {
    * Formula: (Player's CAR * 1000) + (Player's Potential * 2000)
    */
   static calculateMinimumBuyNowPrice(player: any): number {
-    const car = (player.speed + player.power + player.throwing + player.catching + player.kicking) / 5;
+    // CAR = Core Athleticism Rating: Average(Speed, Power, Agility, Throwing, Catching, Kicking)
+    const car = (player.speed + player.power + player.agility + player.throwing + player.catching + player.kicking) / 6;
     const potentialStars = player.overallPotentialStars || 0;
     return Math.floor((car * 1000) + (potentialStars * 2000));
   }
