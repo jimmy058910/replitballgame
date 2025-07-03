@@ -71,7 +71,7 @@ router.get('/available-opponents', isAuthenticated, async (req: any, res: Respon
     const team = await storage.teams.getTeamByUserId(userId);
     if (!team || team.division === undefined) return res.status(404).json({ message: "Team or team division not found." });
 
-    const divisionTeams = await storage.teams.getTeamsByDivision(team.division);
+    const divisionTeams = await storage.teams.getTeamsByDivision(team.division || 1);
     const opponents = divisionTeams.filter(t => t.id !== team.id && t.userId !== userId);
 
     if (opponents.length === 0) {
@@ -90,6 +90,104 @@ router.get('/available-opponents', isAuthenticated, async (req: any, res: Respon
     res.json(opponentsWithDetails);
   } catch (error) {
     console.error("Error fetching available exhibition opponents:", error);
+    next(error);
+  }
+});
+
+// Auto-find and start match against similar USER team
+router.post('/find-match', isAuthenticated, async (req: any, res: Response, next: NextFunction) => {
+  try {
+    const userId = req.user.claims.sub;
+    const userTeam = await storage.teams.getTeamByUserId(userId);
+    if (!userTeam || !userTeam.id) return res.status(404).json({ message: "Team not found." });
+
+    // Calculate user team power
+    const userPlayers = await storage.players.getPlayersByTeamId(userTeam.id);
+    const userTeamPower = calculateTeamPower(userPlayers);
+
+    // Find potential opponents - prioritize USER teams (teams with real userId)
+    const allTeams = await storage.teams.getTeams();
+    const userTeams = allTeams.filter((t: any) => 
+      t.id !== userTeam.id && 
+      t.userId && 
+      t.userId !== userId &&
+      t.userId !== null && 
+      !t.userId.startsWith('ai_') // Exclude AI teams
+    );
+
+    let bestOpponent = null;
+    let bestScore = Infinity;
+
+    // Find best match based on Division and Power Rating similarity
+    for (const opponent of userTeams) {
+      const opponentPlayers = await storage.players.getPlayersByTeamId(opponent.id);
+      const opponentPower = calculateTeamPower(opponentPlayers);
+      
+      // Scoring: prefer same division, similar power rating
+      let score = 0;
+      
+      // Division matching (heavily weighted)
+      if (opponent.division === (userTeam.division || 1)) {
+        score += 0; // Perfect match
+      } else {
+        score += Math.abs((opponent.division || 1) - (userTeam.division || 1)) * 50; // Heavy penalty for different divisions
+      }
+      
+      // Power rating similarity
+      score += Math.abs(opponentPower - userTeamPower) * 2;
+      
+      if (score < bestScore) {
+        bestScore = score;
+        bestOpponent = opponent;
+      }
+    }
+
+    // If no good user teams found, fall back to AI teams in same division
+    if (!bestOpponent) {
+      const divisionTeams = await storage.teams.getTeamsByDivision(userTeam.division || 1);
+      const aiTeams = divisionTeams.filter(t => 
+        t.id !== userTeam.id && 
+        (!t.userId || t.userId.startsWith('ai_'))
+      );
+      
+      if (aiTeams.length > 0) {
+        bestOpponent = aiTeams[Math.floor(Math.random() * aiTeams.length)];
+      }
+    }
+
+    if (!bestOpponent) {
+      return res.status(404).json({ message: "No suitable opponents found. Try again later or use manual opponent selection." });
+    }
+
+    // Create and start the match
+    const match = await matchStorage.createMatch({
+      homeTeamId: userTeam.id,
+      awayTeamId: bestOpponent.id,
+      matchType: "exhibition",
+      status: "scheduled",
+      scheduledTime: new Date(),
+      gameDay: 0,
+    });
+
+    const liveMatchState = await matchStateManager.startLiveMatch(match.id, true);
+
+    // Create exhibition game record
+    await exhibitionGameStorage.createExhibitionGame({
+      teamId: userTeam.id,
+      opponentTeamId: bestOpponent.id,
+    });
+
+    const isUserTeam = bestOpponent.userId && !bestOpponent.userId.startsWith('ai_');
+    
+    res.status(201).json({
+      matchId: match.id,
+      message: `Exhibition match against ${bestOpponent.name} started!`,
+      opponentType: isUserTeam ? 'user' : 'ai',
+      opponentName: bestOpponent.name,
+      liveState: liveMatchState
+    });
+  } catch (error) {
+    console.error("Error finding exhibition match:", error);
     next(error);
   }
 });

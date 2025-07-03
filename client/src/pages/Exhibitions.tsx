@@ -74,9 +74,10 @@ export default function Exhibitions() {
     },
     onSuccess: (data) => {
       if (data.matchId) {
+        const opponentType = data.opponentType === 'user' ? 'user team' : 'AI team';
         toast({
           title: "Match Found!",
-          description: "Starting exhibition match against division opponent...",
+          description: `Starting exhibition match against ${data.opponentName} (${opponentType})`,
         });
         window.location.href = `/match/${data.matchId}`;
       }
@@ -193,7 +194,7 @@ export default function Exhibitions() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="mb-8">
           <h1 className="font-orbitron text-3xl font-bold mb-2">Exhibition Arena</h1>
-          <p className="text-gray-400">Practice matches for training and team chemistry</p>
+          <p className="text-gray-400">Challenge other users' teams for practice matches and team chemistry</p>
         </div>
 
         {hasLiveExhibition && (
@@ -252,14 +253,24 @@ export default function Exhibitions() {
               <Separator className="bg-gray-700" />
 
               <div className="space-y-2">
-                <h4 className="font-semibold text-sm">Exhibition Benefits:</h4>
+                <h4 className="font-semibold text-sm">Exhibition Benefits & Rewards:</h4>
                 <ul className="text-sm text-gray-400 space-y-1">
-                  <li>• No injury risk</li>
-                  <li>• Minimal stamina loss</li>
-                  <li>• Team chemistry boost</li>
-                  <li>• Tactical practice</li>
-                  <li>• No league standing impact</li>
+                  <li>• Credits earned for wins/draws</li>
+                  <li>• Player experience points</li>
+                  <li>• Team chemistry improvement</li>
+                  <li>• Tactical practice & strategy testing</li>
+                  <li>• Minimal injury risk & stamina loss</li>
+                  <li>• No impact on league standings</li>
                 </ul>
+                
+                <div className="mt-3 p-2 bg-blue-900/30 rounded border border-blue-700">
+                  <div className="text-xs font-semibold text-blue-300">Daily Limits:</div>
+                  <div className="text-xs text-blue-200">
+                    • 3 FREE exhibition games per day<br/>
+                    • 3 additional games with Exhibition Entry items<br/>
+                    • Purchase entries in Market &gt; Store &gt; Entries tab
+                  </div>
+                </div>
               </div>
             </CardContent>
           </Card>
@@ -293,8 +304,8 @@ export default function Exhibitions() {
                       <Zap className="h-4 w-4" />
                     </div>
                     <div className="text-left">
-                      <div className="font-semibold">Find a Match</div>
-                      <div className="text-sm text-gray-400">Auto-match vs division opponent</div>
+                      <div className="font-semibold">Start Exhibition Match</div>
+                      <div className="text-sm text-gray-400">Auto-match vs similar user team</div>
                     </div>
                   </div>
                   {isSearching && (
