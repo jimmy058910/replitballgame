@@ -18,8 +18,9 @@ function calculateTeamPower(players: any[]): number {
 
   const playersWithPower = players.map(player => ({
     ...player,
-    individualPower: (player.speed || 20) + (player.power || 20) + (player.throwing || 20) +
-                    (player.catching || 20) + (player.kicking || 20)
+    // CAR = Average(Speed, Power, Agility, Throwing, Catching, Kicking)
+    individualPower: Math.round(((player.speed || 20) + (player.power || 20) + (player.agility || 20) + 
+                                (player.throwing || 20) + (player.catching || 20) + (player.kicking || 20)) / 6)
   }));
 
   const topPlayers = playersWithPower
@@ -405,9 +406,45 @@ function generateTryoutCandidate(type: 'basic' | 'advanced'): any {
     stats[randomStat as keyof typeof stats]++;
   }
   
-  // Apply racial modifiers and cap at 40
+  // Apply racial modifiers
+  switch (race) {
+    case "human":
+      // Human: +1 to all stats
+      Object.keys(stats).forEach(stat => {
+        stats[stat as keyof typeof stats] += 1;
+      });
+      break;
+    case "sylvan":
+      // Sylvan: +3 Speed, +4 Agility, -2 Power
+      stats.speed += 3;
+      stats.agility += 4;
+      stats.power -= 2;
+      break;
+    case "gryll":
+      // Gryll: +5 Power, +3 Stamina, -3 Speed, -2 Agility
+      stats.power += 5;
+      stats.stamina += 3;
+      stats.speed -= 3;
+      stats.agility -= 2;
+      break;
+    case "lumina":
+      // Lumina: +4 Throwing, +3 Leadership, -1 Stamina
+      stats.throwing += 4;
+      stats.leadership += 3;
+      stats.stamina -= 1;
+      break;
+    case "umbra":
+      // Umbra: +2 Speed, +3 Agility, -3 Power, -1 Leadership
+      stats.speed += 2;
+      stats.agility += 3;
+      stats.power -= 3;
+      stats.leadership -= 1;
+      break;
+  }
+  
+  // Cap all stats at 40 and minimum at 1
   Object.keys(stats).forEach(stat => {
-    stats[stat as keyof typeof stats] = Math.min(40, stats[stat as keyof typeof stats]);
+    stats[stat as keyof typeof stats] = Math.max(1, Math.min(40, stats[stat as keyof typeof stats]));
   });
   
   // Convert potential to legacy format for compatibility

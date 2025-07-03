@@ -253,7 +253,7 @@ export function TaxiSquadManager({ teamId, onNavigateToRecruiting }: TaxiSquadMa
                             <span className="text-sm text-gray-400">Power:</span>
                             <span className="text-xl font-bold text-red-400">
                               {Math.round(((player.speed || 0) + (player.power || 0) + (player.throwing || 0) + 
-                                          (player.catching || 0) + (player.agility || 0) + (player.stamina || 0)) / 6)}
+                                          (player.catching || 0) + (player.agility || 0) + (player.kicking || 0)) / 6)}
                             </span>
                           </div>
                           

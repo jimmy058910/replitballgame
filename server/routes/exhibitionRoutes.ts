@@ -12,8 +12,9 @@ function calculateTeamPower(players: any[]): number {
   if (!players || players.length === 0) return 0;
   const playersWithPower = players.map(player => ({
     ...player,
-    individualPower: (player.speed || 20) + (player.power || 20) + (player.throwing || 20) +
-                    (player.catching || 20) + (player.kicking || 20)
+    // CAR = Average(Speed, Power, Agility, Throwing, Catching, Kicking)
+    individualPower: Math.round(((player.speed || 20) + (player.power || 20) + (player.agility || 20) + 
+                                (player.throwing || 20) + (player.catching || 20) + (player.kicking || 20)) / 6)
   }));
   const topPlayers = playersWithPower
     .sort((a, b) => b.individualPower - a.individualPower)

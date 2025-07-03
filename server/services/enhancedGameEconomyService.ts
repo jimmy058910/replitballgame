@@ -86,7 +86,7 @@ export class EnhancedGameEconomyService {
       parking: number;
       vipSuites: number;
       apparelSales: number;
-      sponsorships: number;
+      atmosphereBonus: number;
     };
   }> {
     const [stadium] = await db.select().from(stadiums).where(eq(stadiums.teamId, teamId));
@@ -100,7 +100,7 @@ export class EnhancedGameEconomyService {
           parking: 0,
           vipSuites: 0,
           apparelSales: 0,
-          sponsorships: 0
+          atmosphereBonus: 0
         }
       };
     }
@@ -114,24 +114,29 @@ export class EnhancedGameEconomyService {
     // Revenue only applies on home game days
     const multiplier = isHomeGameDay ? 1 : 0;
 
+    // Calculate actual attendance (would need fan loyalty and attendance calculation)
+    // For now using capacity * attendance rate assumption, but should use actual attendance
+    const attendanceRate = 0.75; // Default 75% attendance rate
+    const actualAttendance = Math.floor(capacity * attendanceRate);
+    
     const breakdown = {
-      // Ticket Sales: Stadium Capacity * 25 ₡
-      ticketSales: Math.floor(capacity * 25 * multiplier),
+      // Ticket Sales: ActualAttendance × 25₡
+      ticketSales: Math.floor(actualAttendance * 25 * multiplier),
       
-      // Concessions: Stadium Capacity * 8 ₡ * Concessions Level
-      concessions: Math.floor(capacity * 8 * concessionsLevel * multiplier),
+      // Concessions: ActualAttendance × 8₡ × ConcessionsLevel
+      concessions: Math.floor(actualAttendance * 8 * concessionsLevel * multiplier),
       
-      // Parking: (Stadium Capacity * 0.3) * 10 ₡ * Parking Level
-      parking: Math.floor(capacity * 0.3 * 10 * parkingLevel * multiplier),
+      // Parking: (ActualAttendance × 0.3) × 10₡ × ParkingLevel
+      parking: Math.floor(actualAttendance * 0.3 * 10 * parkingLevel * multiplier),
       
-      // VIP Suites: VIP Suites Level * 5000 ₡
+      // VIP Suites: VIPSuitesLevel × 5000₡
       vipSuites: Math.floor(vipSuitesLevel * 5000 * multiplier),
       
-      // Apparel Sales: Stadium Capacity * 3 ₡ * Merchandising Level
-      apparelSales: Math.floor(capacity * 3 * merchandisingLevel * multiplier),
+      // Apparel Sales: ActualAttendance × 3₡ × MerchandisingLevel
+      apparelSales: Math.floor(actualAttendance * 3 * merchandisingLevel * multiplier),
       
-      // Sponsorships: Future system - placeholder
-      sponsorships: 0
+      // Atmosphere Bonus: Small credit bonus per attendee if FanLoyalty very high
+      atmosphereBonus: 0 // TODO: Implement based on fan loyalty
     };
 
     const totalRevenue = Object.values(breakdown).reduce((sum, val) => sum + val, 0);
