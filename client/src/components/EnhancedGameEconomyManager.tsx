@@ -133,6 +133,12 @@ export default function EnhancedGameEconomyManager({ teamId }: { teamId: string 
     enabled: !!teamId
   });
 
+  // Debug logging
+  console.log('Stadium Data:', stadiumData);
+  console.log('Stadium Capacity:', (stadiumData as any)?.data?.capacity);
+  console.log('Revenue Data:', revenueData);
+  console.log('Finances:', finances);
+
   // Create overview object from available data
   const overview: EconomyOverview = {
     credits: (finances as any)?.credits || 0,
