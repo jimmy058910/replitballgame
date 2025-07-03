@@ -523,7 +523,28 @@ router.get('/:teamId/finances', isAuthenticated, asyncHandler(async (req: any, r
     throw ErrorCreators.notFound("Team finances not found");
   }
 
-  res.json(finances);
+  // Calculate actual player salaries from contracts
+  const players = await storage.players.getPlayersByTeamId(team.id);
+  const totalPlayerSalaries = players.reduce((total, player) => {
+    return total + (player.salary || 0);
+  }, 0);
+
+  // Calculate actual staff salaries
+  const staff = await storage.staff.getStaffByTeamId(team.id);
+  const totalStaffSalaries = staff.reduce((total, staffMember) => {
+    return total + (staffMember.salary || 0);
+  }, 0);
+
+  // Return finances with calculated values
+  const calculatedFinances = {
+    ...finances,
+    playerSalaries: totalPlayerSalaries,
+    staffSalaries: totalStaffSalaries,
+    totalExpenses: totalPlayerSalaries + totalStaffSalaries + (finances.facilities || 0),
+    netIncome: (finances.totalIncome || 0) - (totalPlayerSalaries + totalStaffSalaries + (finances.facilities || 0))
+  };
+
+  res.json(calculatedFinances);
 }));
 
 // Taxi Squad endpoints
