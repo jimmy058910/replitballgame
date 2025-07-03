@@ -51,21 +51,20 @@ router.get('/', isAuthenticated, async (req: Request, res: Response, next: NextF
     };
 
     // Load items from config
-    const allPremiumItems = storeConfig.storeSections.premiumItems || [];
     const allEquipment = storeConfig.storeSections.equipment || [];
-    const staticStoreItems = storeConfig.storeSections.staticItems || [];
-    const tournamentEntriesItems = storeConfig.storeSections.tournamentEntries || [];
-    const creditPackages = storeConfig.storeSections.creditPackages || [];
+    const allConsumables = storeConfig.storeSections.consumables || [];
+    const allEntries = storeConfig.storeSections.entries || [];
+    const gemPackages = storeConfig.storeSections.gemPackages || [];
 
-    const shuffledPremium = [...allPremiumItems].sort(() => 0.5 - seededRandom());
     const shuffledEquipment = [...allEquipment].sort(() => 0.5 - seededRandom());
+    const shuffledConsumables = [...allConsumables].sort(() => 0.5 - seededRandom());
 
     // Select a subset for daily rotation, ensure not to select more than available
-    const dailyPremiumItemsCount = Math.min(4, shuffledPremium.length);
     const dailyEquipmentCount = Math.min(4, shuffledEquipment.length);
+    const dailyConsumablesCount = Math.min(4, shuffledConsumables.length);
 
-    const dailyPremiumItems = shuffledPremium.slice(0, dailyPremiumItemsCount);
     const dailyEquipment = shuffledEquipment.slice(0, dailyEquipmentCount);
+    const dailyConsumables = shuffledConsumables.slice(0, dailyConsumablesCount);
     // const creditPackagesForGems = [ /* ... these are for REAL money purchases, handled by /payments endpoint ... */ ];
 
     const resetTime = new Date(rotationDate);
@@ -73,11 +72,10 @@ router.get('/', isAuthenticated, async (req: Request, res: Response, next: NextF
     resetTime.setUTCHours(8, 0, 0, 0); // Next 8 AM UTC
 
     res.json({
-      items: staticStoreItems, 
-      premiumItems: dailyPremiumItems, 
       equipment: dailyEquipment,
-      tournamentEntries: tournamentEntriesItems,
-      creditPackages: creditPackages,
+      consumables: dailyConsumables,
+      entries: allEntries,
+      gemPackages: gemPackages,
       resetTime: resetTime.toISOString(),
       rotationInfo: { currentDayKey: dayKey, nextRotationTime: resetTime.toISOString() }
     });
@@ -93,13 +91,13 @@ router.get('/ads', isAuthenticated, async (req: any, res: Response, next: NextFu
     const dailyAdsWatched = await adSystemStorage.getDailyAdViewsCountByUser(userId);
     const dailyRewardedCompleted = await adSystemStorage.getDailyCompletedRewardedAdViewsCountByUser(userId);
 
-    const { dailyTotalAdsLimit, dailyRewardedAdsLimit } = storeConfig.adSystem;
+    const { dailyWatchLimit } = storeConfig.adSystem;
 
     res.json({
       adsWatchedToday: dailyAdsWatched,
       rewardedAdsCompletedToday: dailyRewardedCompleted,
-      adsRemainingToday: Math.max(0, (dailyTotalAdsLimit || 10) - dailyAdsWatched), // Fallback if not in config
-      rewardedAdsRemainingToday: Math.max(0, (dailyRewardedAdsLimit || 3) - dailyRewardedCompleted), // Fallback
+      adsRemainingToday: Math.max(0, (dailyWatchLimit || 10) - dailyAdsWatched),
+      rewardedAdsRemainingToday: Math.max(0, (dailyWatchLimit || 10) - dailyRewardedCompleted),
     });
   } catch (error) {
     console.error("Error fetching ad data:", error);
@@ -116,8 +114,19 @@ router.post('/watch-ad', isAuthenticated, async (req: any, res: Response, next: 
     // Reward logic should be server-defined based on placement/adType, not client-sent.
     const { adType, placement } = req.body; // Client might indicate context
 
-    const rewards = storeConfig.adSystem.rewards as Record<string, any>;
-    let rewardAmount = rewards[placement]?.credits || rewards.generic_watch?.credits || 0;
+    // Use new ad rewards system with randomization
+    const adRewards = storeConfig.adSystem.adRewards;
+    const random = Math.random() * 100;
+    let cumulativeChance = 0;
+    let rewardAmount = 250; // Default fallback
+    
+    for (const reward of adRewards) {
+      cumulativeChance += reward.chance;
+      if (random <= cumulativeChance) {
+        rewardAmount = reward.credits;
+        break;
+      }
+    }
     let rewardType = 'credits'; // Assuming credits for now, can be expanded in config
 
     const finances = await teamFinancesStorage.getTeamFinances(team.id);
@@ -159,10 +168,9 @@ router.post('/purchase/:itemId', isAuthenticated, async (req: any, res: Response
 
     // Find the item in store sections first
     const allStoreItems = [
-      ...(storeConfig.storeSections.premiumItems || []),
-      ...(storeConfig.storeSections.staticItems || []),
       ...(storeConfig.storeSections.equipment || []),
-      ...(storeConfig.storeSections.tournamentEntries || [])
+      ...(storeConfig.storeSections.consumables || []),
+      ...(storeConfig.storeSections.entries || [])
     ];
     
     const storeItem = allStoreItems.find((item: any) => item.id === itemId) as any;
@@ -205,9 +213,9 @@ router.post('/purchase/:itemId', isAuthenticated, async (req: any, res: Response
     }
 
     // Check if the item is a consumable and add to inventory
-    const storeItems = [...storeConfig.storeSections.premiumItems, ...storeConfig.storeSections.staticItems];
+    const storeItems = [...storeConfig.storeSections.equipment, ...storeConfig.storeSections.consumables, ...storeConfig.storeSections.entries];
     const purchasedItem = storeItems.find((item: any) => item.id === itemId);
-    const isConsumable = purchasedItem?.category === "consumable";
+    const isConsumable = purchasedItem?.category === "recovery" || purchasedItem?.category === "performance";
     
     if (isConsumable) {
       // Add consumable to team inventory
