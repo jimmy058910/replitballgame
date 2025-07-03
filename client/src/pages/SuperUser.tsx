@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import { Settings, Calendar, Trophy, CreditCard, Bell, Shield, Users } from "lucide-react";
+import { Settings, Calendar, Trophy, CreditCard, Bell, Shield, Users, Search } from "lucide-react";
 
 // Type interfaces for API responses
 interface Team {
@@ -104,6 +104,27 @@ export default function SuperUser() {
       toast({
         title: "Error",
         description: "Failed to clean up division",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const resetTryoutRestrictionsMutation = useMutation({
+    mutationFn: async () => {
+      return await apiRequest("/api/superuser/reset-tryout-restrictions", "POST");
+    },
+    onSuccess: (data: any) => {
+      toast({
+        title: "Tryout Restrictions Reset",
+        description: "You can now host tryouts again for testing purposes",
+      });
+      queryClient.invalidateQueries({ queryKey: [`/api/teams/${team?.id}/seasonal-data`] });
+      queryClient.invalidateQueries({ queryKey: [`/api/teams/${team?.id}/taxi-squad`] });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: "Failed to reset tryout restrictions",
         variant: "destructive",
       });
     },
@@ -430,6 +451,34 @@ export default function SuperUser() {
                 variant="outline"
               >
                 {addPlayersMutation.isPending ? "Adding Players..." : `Add ${playerCount} Players`}
+              </Button>
+            </CardContent>
+          </Card>
+
+          {/* Tryout System Testing */}
+          <Card className="bg-gray-800 border-gray-700">
+            <CardHeader>
+              <CardTitle className="font-orbitron text-xl flex items-center">
+                <Trophy className="w-5 h-5 mr-2 text-blue-400" />
+                Tryout System Testing
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <p className="text-gray-400 text-sm">
+                Reset seasonal tryout restrictions to allow additional tryouts for testing purposes.
+              </p>
+              <div className="p-3 bg-yellow-900/50 border border-yellow-600 rounded-lg">
+                <p className="text-yellow-200 text-xs">
+                  ⚠️ This will clear your taxi squad and reset the "once per season" restriction
+                </p>
+              </div>
+              <Button 
+                onClick={() => resetTryoutRestrictionsMutation.mutate()}
+                disabled={resetTryoutRestrictionsMutation.isPending}
+                className="w-full"
+                variant="outline"
+              >
+                {resetTryoutRestrictionsMutation.isPending ? "Resetting..." : "Reset Tryout Restrictions"}
               </Button>
             </CardContent>
           </Card>

@@ -84,7 +84,11 @@ router.post('/advance-day', RBACService.requirePermission(Permission.MANAGE_SEAS
   const newStartDate = new Date(currentSeason.startDate || Date.now());
   newStartDate.setDate(newStartDate.getDate() + 1);
 
-  const daysSinceStart = Math.floor((newStartDate.getTime() - (currentSeason.startDateOriginal || currentSeason.startDate).getTime()) / (1000 * 60 * 60 * 24));
+  const startDate = currentSeason.startDateOriginal || currentSeason.startDate;
+  if (!startDate) {
+    throw ErrorCreators.internal("Season start date not found");
+  }
+  const daysSinceStart = Math.floor((newStartDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24));
   const currentDayInCycle = (daysSinceStart % 17) + 1;
 
   let message = "Day advanced successfully";
@@ -227,7 +231,11 @@ router.get('/season/current-cycle-info', RBACService.requirePermission(Permissio
     throw ErrorCreators.notFound("No active season found");
   }
 
-  const daysSinceStart = Math.floor((Date.now() - (currentSeason.startDateOriginal || currentSeason.startDate).getTime()) / (1000 * 60 * 60 * 24));
+  const seasonStartDate = currentSeason.startDateOriginal || currentSeason.startDate;
+  if (!seasonStartDate) {
+    throw ErrorCreators.internal("Season start date not found");
+  }
+  const daysSinceStart = Math.floor((Date.now() - seasonStartDate.getTime()) / (1000 * 60 * 60 * 24));
   const currentDayInCycle = (daysSinceStart % 17) + 1;
 
   let phase = "Regular Season";
@@ -266,7 +274,7 @@ router.post('/add-players', RBACService.requirePermission(Permission.MANAGE_LEAG
 
   const newPlayers = [];
   for (let i = 0; i < playerCount; i++) {
-    const player = generatePlayerForTeam(teamId, "human", "Passer", 25);
+    const player = generatePlayerForTeam(teamId, "human", "Passer", "25");
     await storage.players.createPlayer(player);
     newPlayers.push(player);
   }
@@ -275,6 +283,39 @@ router.post('/add-players', RBACService.requirePermission(Permission.MANAGE_LEAG
     success: true,
     message: `${playerCount} players added to ${team.name}`,
     data: { teamName: team.name, playersAdded: playerCount, newPlayers }
+  });
+}));
+
+// Reset tryout restrictions - Admin permission required for testing
+router.post('/reset-tryout-restrictions', RBACService.requirePermission(Permission.MANAGE_LEAGUES), asyncHandler(async (req: any, res: Response) => {
+  const requestId = req.requestId;
+  const userId = req.user.claims.sub;
+  
+  logInfo("Admin resetting tryout restrictions for testing", { adminUserId: userId, requestId });
+
+  // Get the admin's team
+  const team = await storage.teams.getTeamByUserId(userId);
+  if (!team) {
+    throw ErrorCreators.notFound("Admin team not found");
+  }
+
+  // Clear taxi squad players to reset the seasonal restriction
+  const taxiSquadPlayers = await storage.players.getTaxiSquadPlayersByTeamId(team.id);
+  let playersRemoved = 0;
+  
+  for (const player of taxiSquadPlayers) {
+    await storage.players.releasePlayerFromTaxiSquad(player.id);
+    playersRemoved++;
+  }
+
+  res.json({ 
+    success: true,
+    message: `Tryout restrictions reset for testing. ${playersRemoved} taxi squad players removed.`,
+    data: { 
+      teamName: team.name, 
+      taxiPlayersRemoved: playersRemoved,
+      canHostTryoutsNow: true
+    }
   });
 }));
 
