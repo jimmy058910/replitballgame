@@ -80,7 +80,7 @@ export default function Competition() {
 
   const challengeMutation = useMutation({
     mutationFn: async (opponentId: string) => {
-      return await apiRequest("/api/exhibitions/challenge", "POST", {
+      return await apiRequest("/api/exhibitions/challenge-opponent", "POST", {
         opponentId,
       });
     },
