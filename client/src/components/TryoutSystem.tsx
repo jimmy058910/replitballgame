@@ -59,6 +59,11 @@ export default function TryoutSystem({ teamId }: TryoutSystemProps) {
     queryKey: [`/api/teams/${teamId}/finances`],
   });
 
+  // Check if tryouts have been used this season
+  const { data: seasonalData } = useQuery({
+    queryKey: [`/api/teams/${teamId}/seasonal-data`],
+  });
+
   // Get team's scout quality (simulate for now - will be from database later)
   const { data: teamScouts } = useQuery({
     queryKey: [`/api/teams/${teamId}/scouts`],
@@ -77,9 +82,13 @@ export default function TryoutSystem({ teamId }: TryoutSystemProps) {
 
   const basicCost = 25000;
   const advancedCost = 75000;
-  const currentCredits = finances?.credits || 0;
+  const currentCredits = (finances as any)?.credits || 0;
   const canAffordBasic = currentCredits >= basicCost;
   const canAffordAdvanced = currentCredits >= advancedCost;
+  
+  // Check if tryouts have been used this season
+  const tryoutsUsedThisSeason = (seasonalData as any)?.data?.tryoutsUsed || false;
+  const canHostTryouts = !tryoutsUsedThisSeason;
 
   const hostTryoutMutation = useMutation({
     mutationFn: async (type: "basic" | "advanced") => {
@@ -91,6 +100,7 @@ export default function TryoutSystem({ teamId }: TryoutSystemProps) {
       setShowTryoutModal(true);
       startRevealAnimation(data.candidates);
       queryClient.invalidateQueries({ queryKey: [`/api/teams/${teamId}/finances`] });
+      queryClient.invalidateQueries({ queryKey: [`/api/teams/${teamId}/seasonal-data`] });
     },
     onError: (error) => {
       toast({
@@ -191,10 +201,17 @@ export default function TryoutSystem({ teamId }: TryoutSystemProps) {
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          <p className="text-gray-400 text-sm">
-            Host tryouts to recruit young talent (18-24 years old) for your taxi squad. 
-            You can keep up to 2 players on taxi squad and promote them next season.
-          </p>
+          <div className="space-y-2">
+            <p className="text-gray-400 text-sm">
+              Host tryouts to recruit young talent (18-24 years old) for your taxi squad. 
+              You can keep up to 2 players on taxi squad and promote them next season.
+            </p>
+            <div className="bg-yellow-900/50 border border-yellow-600 rounded-lg p-3">
+              <p className="text-yellow-200 text-sm font-medium">
+                ⚠️ Seasonal Restriction: You can only host tryouts ONCE per season (17-day cycle). Choose wisely!
+              </p>
+            </div>
+          </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {/* Basic Tryout */}
@@ -214,14 +231,17 @@ export default function TryoutSystem({ teamId }: TryoutSystemProps) {
                   </span>
                   <Button
                     onClick={() => hostTryoutMutation.mutate("basic")}
-                    disabled={!canAffordBasic || hostTryoutMutation.isPending}
-                    variant={canAffordBasic ? "default" : "secondary"}
+                    disabled={!canAffordBasic || !canHostTryouts || hostTryoutMutation.isPending}
+                    variant={canAffordBasic && canHostTryouts ? "default" : "secondary"}
                   >
                     {hostTryoutMutation.isPending ? "Hosting..." : "Host Basic Tryout"}
                   </Button>
                 </div>
                 {!canAffordBasic && (
                   <p className="text-red-400 text-xs">Insufficient credits</p>
+                )}
+                {!canHostTryouts && (
+                  <p className="text-yellow-400 text-xs">Already used this season</p>
                 )}
               </CardContent>
             </Card>
@@ -243,14 +263,17 @@ export default function TryoutSystem({ teamId }: TryoutSystemProps) {
                   </span>
                   <Button
                     onClick={() => hostTryoutMutation.mutate("advanced")}
-                    disabled={!canAffordAdvanced || hostTryoutMutation.isPending}
-                    variant={canAffordAdvanced ? "default" : "secondary"}
+                    disabled={!canAffordAdvanced || !canHostTryouts || hostTryoutMutation.isPending}
+                    variant={canAffordAdvanced && canHostTryouts ? "default" : "secondary"}
                   >
                     {hostTryoutMutation.isPending ? "Hosting..." : "Host Advanced Tryout"}
                   </Button>
                 </div>
                 {!canAffordAdvanced && (
                   <p className="text-red-400 text-xs">Insufficient credits</p>
+                )}
+                {!canHostTryouts && (
+                  <p className="text-yellow-400 text-xs">Already used this season</p>
                 )}
               </CardContent>
             </Card>

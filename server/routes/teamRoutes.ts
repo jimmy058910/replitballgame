@@ -748,5 +748,43 @@ router.delete('/:teamId/taxi-squad/:playerId', isAuthenticated, asyncHandler(asy
   });
 }));
 
+// Get seasonal data for team (tryout usage tracking)
+router.get('/:teamId/seasonal-data', isAuthenticated, asyncHandler(async (req: any, res: Response) => {
+  const userId = req.user.claims.sub;
+  const { teamId } = req.params;
+
+  // Verify team ownership
+  let team;
+  if (teamId === "my") {
+    team = await storage.teams.getTeamByUserId(userId);
+  } else {
+    team = await storage.teams.getTeamById(teamId);
+    if (!team || team.userId !== userId) {
+      throw ErrorCreators.forbidden("You do not own this team");
+    }
+  }
+  
+  if (!team) {
+    throw ErrorCreators.notFound("Team not found");
+  }
+
+  // For now, check if there are any taxi squad players as indicator of tryouts used
+  // In a full implementation, this would track actual tryout usage per season
+  const taxiSquadPlayers = await storage.players.getTaxiSquadPlayersByTeamId(team.id);
+  const tryoutsUsed = taxiSquadPlayers.length > 0;
+
+  res.json({
+    success: true,
+    data: {
+      tryoutsUsed: tryoutsUsed,
+      taxiSquadCount: taxiSquadPlayers.length,
+      seasonalData: {
+        tryoutDate: tryoutsUsed ? new Date().toISOString() : null,
+        currentSeasonDay: 1 // Would be from season tracking system
+      }
+    }
+  });
+}));
+
 
 export default router;
