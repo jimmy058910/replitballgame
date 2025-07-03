@@ -1,4 +1,6 @@
-import { storage } from "../storage";
+import { db } from "../db";
+import { players, matches, playerMatchStats, teamMatchStats } from "@shared/schema";
+import { eq, and, or } from "drizzle-orm";
 import type { Match, Player, PlayerMatchStats, TeamMatchStats } from "@shared/schema";
 
 // Helper type for player stats, excluding IDs
@@ -47,14 +49,14 @@ class MatchStateManager {
 
   // Start a new live match with server-side state management
   async startLiveMatch(matchId: string, isExhibition: boolean = false): Promise<LiveMatchState> {
-    const match = await storage.matches.getMatchById(matchId);
+    const [match] = await db.select().from(matches).where(eq(matches.id, matchId)).limit(1);
     if (!match) {
       throw new Error("Match not found");
     }
 
     // Get team players for simulation
-    const homeTeamPlayers = await storage.getPlayersByTeamId(match.homeTeamId);
-    const awayTeamPlayers = await storage.getPlayersByTeamId(match.awayTeamId);
+    const homeTeamPlayers = await db.select().from(players).where(and(eq(players.teamId, match.homeTeamId), eq(players.isMarketplace, false)));
+    const awayTeamPlayers = await db.select().from(players).where(and(eq(players.teamId, match.awayTeamId), eq(players.isMarketplace, false)));
 
     const maxTime = isExhibition ? 1200 : 1800; // 20 min exhibition, 30 min league
 
@@ -112,10 +114,10 @@ class MatchStateManager {
     this.startMatchSimulation(matchId, homeTeamPlayers, awayTeamPlayers);
     
     // Update match status in database
-    await storage.updateMatch(matchId, { 
+    await db.update(matches).set({ 
       status: 'live',
       scheduledTime: new Date()
-    });
+    }).where(eq(matches.id, matchId));
 
     return matchState;
   }
@@ -130,7 +132,7 @@ class MatchStateManager {
     const state = this.liveMatches.get(matchId);
     if (!state) {
       // Check if match exists in database but not in memory
-      const match = await storage.getMatchById(matchId);
+      const [match] = await db.select().from(matches).where(eq(matches.id, matchId)).limit(1);
       if (match && match.status === 'live') {
         // Restart the match state from database
         return await this.restartMatchFromDatabase(matchId);
@@ -144,7 +146,7 @@ class MatchStateManager {
   }
 
   private async restartMatchFromDatabase(matchId: string): Promise<LiveMatchState | null> {
-    const match = await storage.getMatchById(matchId);
+    const [match] = await db.select().from(matches).where(eq(matches.id, matchId)).limit(1);
     if (!match || match.status !== 'live') {
       return null;
     }
@@ -163,16 +165,18 @@ class MatchStateManager {
       // Ensure this match instance is cleaned up if it's being restarted past its end time.
       const existingState = this.liveMatches.get(matchId);
       if (existingState) {
-         await this.completeMatch(matchId, existingState.homeTeamId, existingState.awayTeamId, await storage.getPlayersByTeamId(existingState.homeTeamId), await storage.getPlayersByTeamId(existingState.awayTeamId));
+         const homeTeamPlayers = await db.select().from(players).where(and(eq(players.teamId, existingState.homeTeamId), eq(players.isMarketplace, false)));
+         const awayTeamPlayers = await db.select().from(players).where(and(eq(players.teamId, existingState.awayTeamId), eq(players.isMarketplace, false)));
+         await this.completeMatch(matchId, existingState.homeTeamId, existingState.awayTeamId, homeTeamPlayers, awayTeamPlayers);
       } else {
         // If no state, perhaps just update DB if needed, though this scenario is less likely.
-        await storage.updateMatch(matchId, { status: 'completed' });
+        await db.update(matches).set({ status: 'completed' }).where(eq(matches.id, matchId));
       }
       return null;
     }
 
-    const homeTeamPlayers = await storage.getPlayersByTeamId(match.homeTeamId);
-    const awayTeamPlayers = await storage.getPlayersByTeamId(match.awayTeamId);
+    const homeTeamPlayers = await db.select().from(players).where(and(eq(players.teamId, match.homeTeamId), eq(players.isMarketplace, false)));
+    const awayTeamPlayers = await db.select().from(players).where(and(eq(players.teamId, match.awayTeamId), eq(players.isMarketplace, false)));
 
     // Reconstruct match state (simplified, full stat reconstruction might be complex)
     const currentHalf = elapsedSeconds < (maxTime / 2) ? 1 : 2;
@@ -289,7 +293,7 @@ class MatchStateManager {
     }
 
     if (state.gameTime % 30 === 0) { // Every 30 game seconds
-      await storage.updateMatch(matchId, {
+      await db.update(matches).set({
         homeScore: state.homeScore,
         awayScore: state.awayScore,
         gameData: {
@@ -298,7 +302,7 @@ class MatchStateManager {
           currentHalf: state.currentHalf,
           // Consider adding current possession to gameData if useful for client UI
         }
-      });
+      }).where(eq(matches.id, matchId));
     }
   }
 
@@ -483,7 +487,7 @@ class MatchStateManager {
         });
 
         // Update lifetime stats
-        const playerToUpdate = await storage.getPlayerById(playerId);
+        const [playerToUpdate] = await db.select().from(players).where(eq(players.id, playerId)).limit(1);
         if (playerToUpdate) {
           const updatedLifetimeStats: Partial<Player> = {
             totalGamesPlayed: (playerToUpdate.totalGamesPlayed || 0) + 1,
@@ -501,7 +505,7 @@ class MatchStateManager {
             totalInterceptionsCaught: (playerToUpdate.totalInterceptionsCaught || 0) + pStats.interceptionsCaught,
             totalPassesDefended: (playerToUpdate.totalPassesDefended || 0) + pStats.passesDefended,
           };
-          playerUpdates.push(storage.updatePlayer(playerId, updatedLifetimeStats));
+          playerUpdates.push(db.update(players).set(updatedLifetimeStats).where(eq(players.id, playerId)));
         }
       }
 
@@ -517,12 +521,12 @@ class MatchStateManager {
       }
 
       // Use a transaction for atomicity
-      await storage.db.transaction(async (tx) => {
+      await db.transaction(async (tx) => {
         if (playerStatsToInsert.length > 0) {
-          await tx.insert(storage.playerMatchStatsSchema).values(playerStatsToInsert);
+          await tx.insert(playerMatchStats).values(playerStatsToInsert);
         }
         if (teamStatsToInsert.length > 0) {
-          await tx.insert(storage.teamMatchStatsSchema).values(teamStatsToInsert);
+          await tx.insert(teamMatchStats).values(teamStatsToInsert);
         }
         await Promise.all(playerUpdates.map(pUpdate => {
             // This is a bit tricky as storage.updatePlayer uses its own db instance.
@@ -539,7 +543,7 @@ class MatchStateManager {
         // Lifetime stats updates are important but could potentially be reconciled later if only they fail.
 
         // Update the match itself
-        await tx.update(storage.matchesSchema).set({
+        await tx.update(matches).set({
             status: 'completed',
             homeScore: state.homeScore,
             awayScore: state.awayScore,
@@ -548,7 +552,7 @@ class MatchStateManager {
                 events: state.gameEvents.slice(-50), // Store last 50 events
                 finalScores: { home: state.homeScore, away: state.awayScore },
             }
-        }).where(storage.eq(storage.matchesSchema.id, matchId));
+        }).where(eq(matches.id, matchId));
       });
 
       console.log(`Match ${matchId} stats persisted successfully.`);
@@ -557,7 +561,7 @@ class MatchStateManager {
       console.error(`Error persisting stats for match ${matchId}:`, error);
       // Potentially re-throw or handle more gracefully (e.g., mark match as 'error_in_stats')
       // For now, we'll update the match to completed anyway, but log the error.
-       await storage.updateMatch(matchId, {
+       await db.update(matches).set({
         status: 'completed', // Or a special status like 'completed_stats_error'
         homeScore: state.homeScore,
         awayScore: state.awayScore,
@@ -565,9 +569,9 @@ class MatchStateManager {
         gameData: {
             events: state.gameEvents.slice(-50),
             finalScores: { home: state.homeScore, away: state.awayScore },
-            error: `Error persisting stats: ${error.message}`
+            error: `Error persisting stats: ${(error as Error).message}`
         }
-      });
+      }).where(eq(matches.id, matchId));
     }
 
     this.liveMatches.delete(matchId);
@@ -578,8 +582,8 @@ class MatchStateManager {
     const state = this.liveMatches.get(matchId);
     if (state) {
       // Need to pass all required parameters to completeMatch
-      const homePlayers = await storage.getPlayersByTeamId(state.homeTeamId);
-      const awayPlayers = await storage.getPlayersByTeamId(state.awayTeamId);
+      const homePlayers = await db.select().from(players).where(eq(players.teamId, state.homeTeamId));
+      const awayPlayers = await db.select().from(players).where(eq(players.teamId, state.awayTeamId));
       await this.completeMatch(matchId, state.homeTeamId, state.awayTeamId, homePlayers, awayPlayers);
     }
   }
@@ -600,7 +604,9 @@ class MatchStateManager {
       if (!state) continue;
       if (state.lastUpdateTime < cutoff) {
         console.log(`Cleaning up abandoned match: ${matchId}`);
-        await this.completeMatch(matchId);
+        const homePlayers = await db.select().from(players).where(eq(players.teamId, state.homeTeamId));
+        const awayPlayers = await db.select().from(players).where(eq(players.teamId, state.awayTeamId));
+        await this.completeMatch(matchId, state.homeTeamId, state.awayTeamId, homePlayers, awayPlayers);
       }
     }
   }
