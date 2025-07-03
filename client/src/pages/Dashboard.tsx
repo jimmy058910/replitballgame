@@ -10,6 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import UnifiedPlayerCard from "@/components/UnifiedPlayerCard";
 import { TeamNameInput } from "@/components/TeamNameInput";
 import PlayerDetailModal from "@/components/PlayerDetailModal";
+import { TermsAcceptance } from "@/components/TermsOfService";
 
 import LeagueStandings from "@/components/LeagueStandings";
 import NotificationCenter from "@/components/NotificationCenter";
@@ -489,6 +490,7 @@ function TeamCreationForm() {
   const [isValid, setIsValid] = useState(false);
   const [sanitizedName, setSanitizedName] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [termsAccepted, setTermsAccepted] = useState(false);
 
   const handleValidationChange = (valid: boolean, sanitized?: string) => {
     setIsValid(valid);
@@ -502,6 +504,15 @@ function TeamCreationForm() {
       toast({
         title: "Invalid Team Name",
         description: "Please fix the team name issues before creating your team.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (!termsAccepted) {
+      toast({
+        title: "Terms of Service Required",
+        description: "You must accept the Terms of Service and End-User License Agreement to create an account.",
         variant: "destructive",
       });
       return;
@@ -560,10 +571,14 @@ function TeamCreationForm() {
             onValidationChange={handleValidationChange}
             showRules={true}
           />
+          <TermsAcceptance 
+            accepted={termsAccepted}
+            onAcceptanceChange={setTermsAccepted}
+          />
           <Button 
             type="submit" 
             className="w-full bg-primary-600 hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed"
-            disabled={!isValid || isSubmitting}
+            disabled={!isValid || !termsAccepted || isSubmitting}
           >
             {isSubmitting ? "Creating Team..." : "Create Team"}
           </Button>

@@ -58,7 +58,8 @@ export default function Navigation() {
     { path: "/community", label: "Community", icon: MessageCircle },
   ];
 
-  const credits = finances?.credits || team?.credits || 0;
+  // Use only team finances for consistency - no fallback to team table
+  const credits = finances?.credits || 0;
   const premiumCurrency = finances?.premiumCurrency || 0;
 
 

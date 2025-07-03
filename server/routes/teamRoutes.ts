@@ -529,11 +529,18 @@ router.get('/:teamId/finances', isAuthenticated, asyncHandler(async (req: any, r
     return total + (player.salary || 0);
   }, 0);
 
-  // Calculate actual staff salaries
-  const staff = await storage.staff.getStaffByTeamId(team.id);
-  const totalStaffSalaries = staff.reduce((total, staffMember) => {
-    return total + (staffMember.salary || 0);
-  }, 0);
+  // Calculate actual staff salaries - use fallback in case of database issues
+  let totalStaffSalaries = 0;
+  try {
+    const staff = await storage.staff.getStaffByTeamId(team.id);
+    totalStaffSalaries = staff.reduce((total, staffMember) => {
+      return total + (staffMember.salary || 0);
+    }, 0);
+  } catch (error) {
+    console.error('Error fetching staff for salary calculation:', error);
+    // Use fallback salary calculation from finances table
+    totalStaffSalaries = finances.staffSalaries || 0;
+  }
 
   // Return finances with calculated values
   const calculatedFinances = {
