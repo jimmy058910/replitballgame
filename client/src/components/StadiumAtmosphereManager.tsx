@@ -145,11 +145,7 @@ export default function StadiumAtmosphereManager({ teamId }: { teamId: string })
     enabled: !!teamId
   });
 
-  // Debug logging
-  console.log('StadiumAtmosphereManager - Stadium Data:', stadiumData);
-  console.log('StadiumAtmosphereManager - Atmosphere Data:', atmosphereData);
-  console.log('StadiumAtmosphereManager - Stadium Capacity:', stadiumData?.capacity);
-  console.log('StadiumAtmosphereManager - Data Structure:', stadiumData?.data);
+
 
   // Stadium upgrade mutation
   const upgradeStadiumMutation = useMutation({
@@ -232,7 +228,7 @@ export default function StadiumAtmosphereManager({ teamId }: { teamId: string })
                 <Building className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">{stadiumData?.capacity?.toLocaleString() || 0}</div>
+                <div className="text-2xl font-bold">{stadiumData?.data?.capacity?.toLocaleString() || 0}</div>
                 <p className="text-xs text-muted-foreground">Total seats</p>
               </CardContent>
             </Card>
@@ -243,11 +239,11 @@ export default function StadiumAtmosphereManager({ teamId }: { teamId: string })
                 <Heart className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold text-red-600">{atmosphereData?.fanLoyalty || 50}%</div>
+                <div className="text-2xl font-bold text-red-600">{atmosphereData?.data?.fanLoyalty || 50}%</div>
                 <div className="flex items-center space-x-1">
-                  {getTrendIcon(atmosphereData?.loyaltyTrend || 'stable')}
+                  {getTrendIcon(atmosphereData?.data?.loyaltyTrend || 'stable')}
                   <p className="text-xs text-muted-foreground capitalize">
-                    {atmosphereData?.loyaltyTrend || 'stable'}
+                    {atmosphereData?.data?.loyaltyTrend || 'stable'}
                   </p>
                 </div>
               </CardContent>
@@ -259,9 +255,9 @@ export default function StadiumAtmosphereManager({ teamId }: { teamId: string })
                 <Users className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">{atmosphereData?.attendancePercentage || 0}%</div>
+                <div className="text-2xl font-bold">{atmosphereData?.data?.attendancePercentage || 0}%</div>
                 <p className="text-xs text-muted-foreground">
-                  {atmosphereData?.actualAttendance?.toLocaleString() || 0} fans
+                  {atmosphereData?.data?.actualAttendance?.toLocaleString() || 0} fans
                 </p>
               </CardContent>
             </Card>
@@ -272,9 +268,9 @@ export default function StadiumAtmosphereManager({ teamId }: { teamId: string })
                 <DollarSign className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">{formatCurrency(stadiumData?.totalValue || 0)}</div>
+                <div className="text-2xl font-bold">{formatCurrency(stadiumData?.data?.totalValue || 0)}</div>
                 <p className="text-xs text-muted-foreground">
-                  Daily cost: {formatCurrency(stadiumData?.maintenanceCost || 0)}
+                  Daily cost: {formatCurrency(stadiumData?.data?.maintenanceCost || 0)}
                 </p>
               </CardContent>
             </Card>
@@ -348,32 +344,32 @@ export default function StadiumAtmosphereManager({ teamId }: { teamId: string })
                 <div className="text-center p-3 border rounded">
                   <Building className="w-6 h-6 mx-auto mb-1 text-blue-500" />
                   <div className="text-xs text-gray-600">Capacity</div>
-                  <div className="font-medium">{stadiumData?.capacity?.toLocaleString()}</div>
+                  <div className="font-medium">{stadiumData?.data?.capacity?.toLocaleString()}</div>
                 </div>
                 <div className="text-center p-3 border rounded">
                   <DollarSign className="w-6 h-6 mx-auto mb-1 text-green-500" />
                   <div className="text-xs text-gray-600">Concessions</div>
-                  <div className="font-medium">Level {stadiumData?.concessionLevel || 1}</div>
+                  <div className="font-medium">Level {stadiumData?.data?.concessionLevel || 1}</div>
                 </div>
                 <div className="text-center p-3 border rounded">
                   <Home className="w-6 h-6 mx-auto mb-1 text-orange-500" />
                   <div className="text-xs text-gray-600">Parking</div>
-                  <div className="font-medium">Level {stadiumData?.parkingLevel || 1}</div>
+                  <div className="font-medium">Level {stadiumData?.data?.parkingLevel || 1}</div>
                 </div>
                 <div className="text-center p-3 border rounded">
                   <Trophy className="w-6 h-6 mx-auto mb-1 text-purple-500" />
                   <div className="text-xs text-gray-600">VIP Suites</div>
-                  <div className="font-medium">Level {stadiumData?.vipSuitesLevel || 1}</div>
+                  <div className="font-medium">Level {stadiumData?.data?.vipSuitesLevel || 1}</div>
                 </div>
                 <div className="text-center p-3 border rounded">
                   <Star className="w-6 h-6 mx-auto mb-1 text-yellow-500" />
                   <div className="text-xs text-gray-600">Merchandise</div>
-                  <div className="font-medium">Level {stadiumData?.merchandisingLevel || 1}</div>
+                  <div className="font-medium">Level {stadiumData?.data?.merchandisingLevel || 1}</div>
                 </div>
                 <div className="text-center p-3 border rounded">
                   <Zap className="w-6 h-6 mx-auto mb-1 text-red-500" />
                   <div className="text-xs text-gray-600">Lighting</div>
-                  <div className="font-medium">Level {stadiumData?.lightingLevel || 1}</div>
+                  <div className="font-medium">Level {stadiumData?.data?.lightingLevel || 1}</div>
                 </div>
               </div>
             </CardContent>
