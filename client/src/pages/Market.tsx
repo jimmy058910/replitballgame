@@ -128,16 +128,7 @@ const featuredItems: StoreItem[] = [
     category: "Consumable",
     dailyLimit: 3
   },
-  {
-    id: "premium_training_1",
-    name: "Advanced Training Session",
-    description: "Permanent +2 to a random stat for selected player",
-    gems: 50,
-    credits: 30000,
-    tier: "Epic",
-    category: "Training",
-    dailyLimit: 1
-  }
+
 ];
 
 const creditStoreItems: StoreItem[] = [
@@ -177,15 +168,7 @@ const creditStoreItems: StoreItem[] = [
     category: "Medical",
     dailyLimit: 3
   },
-  {
-    id: "basic_training_1", 
-    name: "Basic Training Session",
-    description: "Permanent +1 to a random stat for selected player",
-    credits: 8000,
-    tier: "Uncommon",
-    category: "Training",
-    dailyLimit: 2
-  },
+
   {
     id: "basic_stamina_1",
     name: "Stamina Drink",
