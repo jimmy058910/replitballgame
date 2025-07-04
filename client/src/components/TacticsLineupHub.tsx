@@ -110,18 +110,20 @@ export default function TacticsLineupHub({ teamId }: TacticsLineupHubProps) {
   // Initialize lineup from formation data
   useEffect(() => {
     if (players.length > 0) {
-      // Filter healthy players
-      const healthyPlayers = players.filter(p => p.injuryStatus === "Healthy");
+      // Filter healthy players and ensure all have roles
+      const healthyPlayers = players
+        .filter(p => p.injuryStatus === "Healthy")
+        .map(ensurePlayerRole);
       
       if (formation?.starters && formation.starters.length > 0) {
-        // Use existing formation
-        const formationStarters = formation.starters.slice(0, 6);
+        // Use existing formation with role assignments
+        const formationStarters = formation.starters.slice(0, 6).map(ensurePlayerRole);
         const newStarters = Array(6).fill(null);
         formationStarters.forEach((player, index) => {
           if (index < 6) newStarters[index] = player;
         });
         setStarters(newStarters);
-        setSubstitutes(formation.substitutes || []);
+        setSubstitutes((formation.substitutes || []).map(ensurePlayerRole));
         
         // Set available players (healthy players not in formation)
         const usedPlayerIds = [
@@ -149,8 +151,34 @@ export default function TacticsLineupHub({ teamId }: TacticsLineupHubProps) {
     return Math.round((player.speed + player.power + player.agility + player.throwing + player.catching + player.kicking) / 6);
   };
 
+  // Determine player role based on stats if not already assigned
+  const determinePlayerRole = (player: Player): string => {
+    if (player.role) return player.role;
+    
+    // Calculate role scores based on relevant stats
+    const passerScore = (player.throwing + player.leadership) / 2;
+    const runnerScore = (player.speed + player.agility) / 2;
+    const blockerScore = (player.power + player.stamina) / 2;
+    
+    // Assign role based on highest score
+    if (passerScore >= runnerScore && passerScore >= blockerScore) {
+      return "passer";
+    } else if (runnerScore >= blockerScore) {
+      return "runner";
+    } else {
+      return "blocker";
+    }
+  };
+
+  // Ensure player has role assigned
+  const ensurePlayerRole = (player: Player): Player => ({
+    ...player,
+    role: determinePlayerRole(player)
+  });
+
   // Get role icon
-  const getRoleIcon = (role: string) => {
+  const getRoleIcon = (role: string | undefined | null) => {
+    if (!role) return "👤";
     switch (role.toLowerCase()) {
       case "passer": return "🎯";
       case "runner": return "⚡";
@@ -160,7 +188,8 @@ export default function TacticsLineupHub({ teamId }: TacticsLineupHubProps) {
   };
 
   // Get role color
-  const getRoleColor = (role: string) => {
+  const getRoleColor = (role: string | undefined | null) => {
+    if (!role) return "bg-gray-600";
     switch (role.toLowerCase()) {
       case "passer": return "bg-yellow-600";
       case "runner": return "bg-green-600";
