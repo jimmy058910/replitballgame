@@ -254,7 +254,7 @@ export default function TacticsLineupHub({ teamId }: TacticsLineupHubProps) {
     if (player) return player;
     
     // Check starters
-    player = starterSlots.find(slot => slot.player?.id === id)?.player;
+    player = starterSlots.find(slot => slot.player?.id === id)?.player || null;
     if (player) return player;
     
     // Check substitutes
@@ -363,9 +363,9 @@ export default function TacticsLineupHub({ teamId }: TacticsLineupHubProps) {
             <div className="flex items-center justify-between">
               <div className="flex-1">
                 <div className="flex items-center gap-2 mb-1">
-                  <span className="font-medium text-sm">{player.firstName} {player.lastName}</span>
+                  <span className="font-medium text-sm text-gray-900 dark:text-white">{player.firstName} {player.lastName}</span>
                   {hasMinorInjury && (
-                    <AlertTriangle className="w-4 h-4 text-yellow-500" title="Minor Injury" />
+                    <AlertTriangle className="w-4 h-4 text-yellow-500" />
                   )}
                 </div>
                 <div className="flex items-center gap-2 mb-2">
@@ -381,7 +381,7 @@ export default function TacticsLineupHub({ teamId }: TacticsLineupHubProps) {
                   <div className="flex-1">
                     <div className="flex justify-between text-xs mb-1">
                       <span className="text-gray-600 dark:text-gray-400">Stamina</span>
-                      <span className="font-medium">{stamina}%</span>
+                      <span className="font-medium text-gray-900 dark:text-white">{stamina}%</span>
                     </div>
                     <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
                       <div 
@@ -419,7 +419,7 @@ export default function TacticsLineupHub({ teamId }: TacticsLineupHubProps) {
                 {slot.isWildcard && <Star className="inline w-4 h-4 ml-1" />}
               </h4>
               {!slot.isWildcard && slot.requiredRole && (
-                <p className="text-xs text-gray-500">{getRoleIcon(slot.requiredRole)} {slot.requiredRole} only</p>
+                <p className="text-xs text-gray-500 dark:text-gray-400">{getRoleIcon(slot.requiredRole)} {slot.requiredRole} only</p>
               )}
               {slot.isWildcard && (
                 <p className="text-xs text-purple-600 dark:text-purple-400">Any role accepted</p>
@@ -449,7 +449,7 @@ export default function TacticsLineupHub({ teamId }: TacticsLineupHubProps) {
       <div className="bg-white dark:bg-gray-800 border rounded-lg p-4">
         <div className="flex items-center gap-2 mb-3">
           <Icon className="w-4 h-4" />
-          <h4 className="font-medium text-sm">{title}</h4>
+          <h4 className="font-medium text-sm text-gray-900 dark:text-white">{title}</h4>
           <Badge variant="outline" className="text-xs">{players.length}</Badge>
         </div>
         
@@ -463,8 +463,8 @@ export default function TacticsLineupHub({ teamId }: TacticsLineupHubProps) {
               }`}
             >
               {players.length === 0 ? (
-                <div className="flex items-center justify-center h-20 text-gray-400">
-                  <span className="text-xs">Drop {role} here</span>
+                <div className="flex items-center justify-center h-20">
+                  <span className="text-xs text-gray-500 dark:text-gray-400">Drop {role} here</span>
                 </div>
               ) : (
                 <div className="space-y-2">
