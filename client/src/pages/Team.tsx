@@ -7,14 +7,10 @@ import PlayerDetailModal from "@/components/PlayerDetailModal";
 import ContractNegotiation from "@/components/ContractNegotiation";
 import StaffManagement from "@/components/StaffManagement";
 import TeamFinances from "@/components/TeamFinances";
-import TryoutSystem from "@/components/TryoutSystem";
 import { TaxiSquadManager } from "@/components/TaxiSquadManager";
 import { InjuryStaminaManager } from "@/components/InjuryStaminaManager";
-import Stadium from "@/pages/Stadium";
 import Inventory from "@/pages/Inventory";
-import PlayerSkillsManager from "@/components/PlayerSkillsManager";
 import AdvancedTacticalEffectsManager from "@/components/AdvancedTacticalEffectsManager";
-import StadiumAtmosphereManager from "@/components/StadiumAtmosphereManager";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -70,6 +66,11 @@ export default function Team() {
   const [showPlayerModal, setShowPlayerModal] = useState(false);
   const [showContractModal, setShowContractModal] = useState(false);
   const [activeTab, setActiveTab] = useState("roster");
+  const [rosterSubTab, setRosterSubTab] = useState("players");
+  const [staffSubTab, setStaffSubTab] = useState("current");
+  const [tacticsSubTab, setTacticsSubTab] = useState("gameplan");
+  const [financesSubTab, setFinancesSubTab] = useState("overview");
+  const [inventoryFilter, setInventoryFilter] = useState("equipment");
 
   const { data: team } = useQuery<Team>({
     queryKey: ["/api/teams/my"],
@@ -143,62 +144,50 @@ export default function Team() {
           </div>
         </div>
 
-        {/* Main Navigation Tabs */}
+        {/* Main Navigation Tabs - Consolidated 5-Tab Structure */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="mb-8">
-          <TabsList className="grid w-full grid-cols-10 bg-gray-800 gap-0.5 text-xs">
+          <TabsList className="grid w-full grid-cols-5 bg-gray-800 gap-0.5">
             <TabsTrigger value="roster" className="border-r border-gray-600 last:border-r-0 flex items-center gap-1">
               Roster
-              <HelpIcon content="Manage your active players. View their stats, assign positions, and make strategic decisions about your lineup." />
-            </TabsTrigger>
-            <TabsTrigger value="skills" className="border-r border-gray-600 last:border-r-0 flex items-center gap-1">
-              Skills
-              <HelpIcon content="Advanced player skills system with 16 unique abilities across universal, role-specific, and race-specific categories." />
-            </TabsTrigger>
-            <TabsTrigger value="tactics" className="border-r border-gray-600 last:border-r-0 flex items-center gap-1">
-              Tactics
-              <HelpIcon content="Advanced tactical effects with field size specialization and strategic focus settings for enhanced gameplay." />
+              <HelpIcon content="Central hub for all player management. View roster, manage health and injuries in Medical Center." />
             </TabsTrigger>
             <TabsTrigger value="staff" className="border-r border-gray-600 last:border-r-0 flex items-center gap-1">
               Staff
-              <HelpIcon content="Manage your coaching staff. Hire specialists to improve training, recovery, and scouting effectiveness." />
+              <HelpIcon content="Manage your coaching staff. View current staff and hire new specialists to improve team performance." />
+            </TabsTrigger>
+            <TabsTrigger value="tactics" className="border-r border-gray-600 last:border-r-0 flex items-center gap-1">
+              Tactics
+              <HelpIcon content="Set your team's strategic approach. Configure game plan and analyze tactical effectiveness." />
             </TabsTrigger>
             <TabsTrigger value="finances" className="border-r border-gray-600 last:border-r-0 flex items-center gap-1">
               Finances
-              <HelpIcon content="Track income and expenses. Balance your budget between player salaries, staff costs, and facility upgrades." />
-            </TabsTrigger>
-            <TabsTrigger value="stadium" className="border-r border-gray-600 last:border-r-0 flex items-center gap-1">
-              Stadium
-              <HelpIcon content="Integrated stadium, finance, and atmosphere system with fan loyalty, dynamic attendance, and home field advantage." />
+              <HelpIcon content="Consolidated financial management. Track income, expenses, and manage all player contracts." />
             </TabsTrigger>
             <TabsTrigger value="inventory" className="border-r border-gray-600 last:border-r-0 flex items-center gap-1">
               Inventory
-              <HelpIcon content="View and manage your consumable items. Use stat bonuses and special items to enhance team performance." />
-            </TabsTrigger>
-            <TabsTrigger value="contracts" className="border-r border-gray-600 last:border-r-0 flex items-center gap-1">
-              Contracts
-              <HelpIcon content="Negotiate player contracts. Manage salaries and contract lengths to keep your best players happy." />
-            </TabsTrigger>
-            <TabsTrigger value="recruiting" className="border-r border-gray-600 last:border-r-0 flex items-center gap-1">
-              Recruiting
-              <HelpIcon content="Scout and tryout new players. Use credits or gems to find talent that fits your team's needs." />
-            </TabsTrigger>
-            <TabsTrigger value="injury-stamina" className="border-r border-gray-600 last:border-r-0 flex items-center gap-1">
-              Health
-              <HelpIcon content="Monitor player injuries and stamina levels. Use recovery items and manage player health for optimal performance." />
+              <HelpIcon content="View and manage all owned items. Equipment, consumables, and trophy collection." />
             </TabsTrigger>
           </TabsList>
 
           <TabsContent value="roster">
-            {/* Role Filter Sub-tabs */}
-            <Tabs value={selectedRole} onValueChange={setSelectedRole} className="mb-6">
-              <TabsList className="grid w-full grid-cols-5 bg-gray-800">
-                <TabsTrigger value="all">All Players ({playersWithRoles.length})</TabsTrigger>
-                <TabsTrigger value="passer">Passers ({roleStats.passer || 0})</TabsTrigger>
-                <TabsTrigger value="runner">Runners ({roleStats.runner || 0})</TabsTrigger>
-                <TabsTrigger value="blocker">Blockers ({roleStats.blocker || 0})</TabsTrigger>
-                <TabsTrigger value="taxi-squad">Taxi Squad</TabsTrigger>
+            {/* Roster Sub-tabs: Players and Medical Center */}
+            <Tabs value={rosterSubTab} onValueChange={setRosterSubTab} className="mb-6">
+              <TabsList className="grid w-full grid-cols-2 bg-gray-800">
+                <TabsTrigger value="players">Players</TabsTrigger>
+                <TabsTrigger value="medical">Medical Center</TabsTrigger>
               </TabsList>
-            </Tabs>
+
+              <TabsContent value="players">
+                {/* Role Filter Sub-tabs */}
+                <Tabs value={selectedRole} onValueChange={setSelectedRole} className="mb-6">
+                  <TabsList className="grid w-full grid-cols-5 bg-gray-800">
+                    <TabsTrigger value="all">All Players ({playersWithRoles.length})</TabsTrigger>
+                    <TabsTrigger value="passer">Passers ({roleStats.passer || 0})</TabsTrigger>
+                    <TabsTrigger value="runner">Runners ({roleStats.runner || 0})</TabsTrigger>
+                    <TabsTrigger value="blocker">Blockers ({roleStats.blocker || 0})</TabsTrigger>
+                    <TabsTrigger value="taxi-squad">Taxi Squad</TabsTrigger>
+                  </TabsList>
+                </Tabs>
 
             {/* Team Summary */}
             <Card className="bg-gray-800 border-gray-700 mb-8">
@@ -268,114 +257,156 @@ export default function Team() {
               </div>
             )}
 
-            {filteredPlayers.length === 0 && !playersLoading && (
-              <div className="text-center py-16">
-                <i className="fas fa-users text-6xl text-gray-600 mb-4"></i>
-                <h3 className="text-xl font-semibold text-gray-400 mb-2">
-                  No players found
-                </h3>
-                <p className="text-gray-500">
-                  {selectedRole === "all" 
-                    ? "Your team has no players yet." 
-                    : `No ${selectedRole} players in your team.`
-                  }
-                </p>
-              </div>
-            )}
-          </TabsContent>
+                {filteredPlayers.length === 0 && !playersLoading && (
+                  <div className="text-center py-16">
+                    <i className="fas fa-users text-6xl text-gray-600 mb-4"></i>
+                    <h3 className="text-xl font-semibold text-gray-400 mb-2">
+                      No players found
+                    </h3>
+                    <p className="text-gray-500">
+                      {selectedRole === "all" 
+                        ? "Your team has no players yet." 
+                        : `No ${selectedRole} players in your team.`
+                      }
+                    </p>
+                  </div>
+                )}
+              </TabsContent>
 
-          <TabsContent value="skills">
-            <PlayerSkillsManager teamId={team?.id} />
-          </TabsContent>
-
-          <TabsContent value="tactics">
-            <AdvancedTacticalEffectsManager teamId={team?.id} />
+              <TabsContent value="medical">
+                <InjuryStaminaManager teamId={team?.id} />
+              </TabsContent>
+            </Tabs>
           </TabsContent>
 
           <TabsContent value="staff">
-            <StaffManagement teamId={team?.id} />
+            {/* Staff Sub-tabs: Current Staff and Hire New Staff */}
+            <Tabs value={staffSubTab} onValueChange={setStaffSubTab} className="mb-6">
+              <TabsList className="grid w-full grid-cols-2 bg-gray-800">
+                <TabsTrigger value="current">Current Staff</TabsTrigger>
+                <TabsTrigger value="hire">Hire New Staff</TabsTrigger>
+              </TabsList>
+
+              <TabsContent value="current">
+                <StaffManagement teamId={team?.id} />
+              </TabsContent>
+
+              <TabsContent value="hire">
+                <Card className="bg-gray-800 border-gray-700">
+                  <CardHeader>
+                    <CardTitle>Hire New Staff</CardTitle>
+                    <p className="text-gray-400">Find and recruit new coaching staff to improve your team performance</p>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-gray-500 text-center py-8">
+                      Staff hiring system coming soon. Current staff can be viewed in the Current Staff tab.
+                    </p>
+                  </CardContent>
+                </Card>
+              </TabsContent>
+            </Tabs>
+          </TabsContent>
+
+          <TabsContent value="tactics">
+            {/* Tactics Sub-tabs: Game Plan and Effectiveness */}
+            <Tabs value={tacticsSubTab} onValueChange={setTacticsSubTab} className="mb-6">
+              <TabsList className="grid w-full grid-cols-2 bg-gray-800">
+                <TabsTrigger value="gameplan">Game Plan</TabsTrigger>
+                <TabsTrigger value="effectiveness">Effectiveness</TabsTrigger>
+              </TabsList>
+
+              <TabsContent value="gameplan">
+                <TacticalManager teamId={team?.id} />
+              </TabsContent>
+
+              <TabsContent value="effectiveness">
+                <AdvancedTacticalEffectsManager teamId={team?.id} />
+              </TabsContent>
+            </Tabs>
           </TabsContent>
 
           <TabsContent value="finances">
-            <TeamFinances teamId={team?.id} />
-          </TabsContent>
+            {/* Finances Sub-tabs: Overview and Contracts */}
+            <Tabs value={financesSubTab} onValueChange={setFinancesSubTab} className="mb-6">
+              <TabsList className="grid w-full grid-cols-2 bg-gray-800">
+                <TabsTrigger value="overview">Overview</TabsTrigger>
+                <TabsTrigger value="contracts">Contracts</TabsTrigger>
+              </TabsList>
 
-          <TabsContent value="contracts">
-            <div className="space-y-6">
-              <Card className="bg-gray-800 border-gray-700">
-                <CardHeader>
-                  <CardTitle>Contract Management</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-gray-400 mb-4">
-                    Manage player contracts, negotiate extensions, and track contract expiration dates.
-                  </p>
-                  
-                  {playersWithRoles.length > 0 ? (
-                    <div className="space-y-4">
-                      {playersWithRoles
-                        .filter((player: any) => {
-                          const remaining = (player.contractSeasons || 3) - (player.contractStartSeason || 0);
-                          return remaining <= 2;
-                        })
-                        .map((player: any) => {
-                          const remaining = (player.contractSeasons || 3) - (player.contractStartSeason || 0);
-                          return (
-                            <div key={player.id} className="flex items-center justify-between p-4 border border-gray-700 rounded-lg">
-                              <div>
-                                <h4 className="font-semibold">{player.name}</h4>
-                                <p className="text-sm text-gray-400">
-                                  {remaining} season{remaining !== 1 ? 's' : ''} remaining
-                                </p>
-                              </div>
-                              <div className="flex items-center gap-3">
-                                <Badge variant={remaining <= 1 ? "destructive" : "secondary"}>
-                                  {remaining <= 1 ? "Expiring" : "Moderate"}
-                                </Badge>
-                                <Button
-                                  size="sm"
-                                  onClick={() => {
-                                    setSelectedPlayer(player);
-                                    setShowContractModal(true);
-                                  }}
-                                >
-                                  Negotiate
-                                </Button>
-                              </div>
+              <TabsContent value="overview">
+                <TeamFinances teamId={team?.id} />
+              </TabsContent>
+
+              <TabsContent value="contracts">
+                <Card className="bg-gray-800 border-gray-700">
+                  <CardHeader>
+                    <CardTitle>Active Contracts</CardTitle>
+                    <p className="text-gray-400">Manage player contracts and negotiations</p>
+                  </CardHeader>
+                  <CardContent>
+                    {playersWithRoles && playersWithRoles.length > 0 ? (
+                      <div className="space-y-4">
+                        {playersWithRoles.map((player) => (
+                          <div key={player.id} className="flex items-center justify-between p-4 bg-gray-700 rounded-lg">
+                            <div>
+                              <h3 className="font-semibold">{player.firstName} {player.lastName}</h3>
+                              <p className="text-sm text-gray-400">
+                                {getPlayerRole(player)} • {player.race}
+                              </p>
                             </div>
-                          );
-                        })}
-                    </div>
-                  ) : (
-                    <p className="text-gray-500 text-center py-8">
-                      No contract negotiations needed at this time.
-                    </p>
-                  )}
-                </CardContent>
-              </Card>
-            </div>
-          </TabsContent>
-
-          <TabsContent value="stadium">
-            <StadiumAtmosphereManager teamId={team?.id} />
+                            <div className="text-right">
+                              <p className="font-semibold text-green-400">
+                                {player.salary?.toLocaleString()}₡
+                              </p>
+                              <p className="text-sm text-gray-400">
+                                {player.contractLength} seasons
+                              </p>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <p className="text-gray-500 text-center py-8">
+                        No active player contracts.
+                      </p>
+                    )}
+                  </CardContent>
+                </Card>
+              </TabsContent>
+            </Tabs>
           </TabsContent>
 
           <TabsContent value="inventory">
-            <Inventory />
-          </TabsContent>
+            {/* Inventory Filters: Equipment, Consumables, Trophies */}
+            <Tabs value={inventoryFilter} onValueChange={setInventoryFilter} className="mb-6">
+              <TabsList className="grid w-full grid-cols-3 bg-gray-800">
+                <TabsTrigger value="equipment">Equipment</TabsTrigger>
+                <TabsTrigger value="consumables">Consumables</TabsTrigger>
+                <TabsTrigger value="trophies">Trophies</TabsTrigger>
+              </TabsList>
 
-          <TabsContent value="recruiting">
-            <TryoutSystem 
-              teamId={team?.id} 
-              onNavigateToTaxiSquad={() => {
-                setActiveTab("roster");
-                setSelectedRole("taxi-squad");
-              }}
-            />
-          </TabsContent>
+              <TabsContent value="equipment">
+                <Inventory />
+              </TabsContent>
 
-          <TabsContent value="injury-stamina">
-            <InjuryStaminaManager teamId={team?.id} />
+              <TabsContent value="consumables">
+                <Inventory />
+              </TabsContent>
+
+              <TabsContent value="trophies">
+                <Card className="bg-gray-800 border-gray-700">
+                  <CardHeader>
+                    <CardTitle>Trophy Collection</CardTitle>
+                    <p className="text-gray-400">Your achievements and awards</p>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-gray-500 text-center py-8">
+                      No trophies earned yet. Win championships and tournaments to build your collection!
+                    </p>
+                  </CardContent>
+                </Card>
+              </TabsContent>
+            </Tabs>
           </TabsContent>
 
         {/* Player Detail Modal */}
