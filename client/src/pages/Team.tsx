@@ -12,6 +12,7 @@ import { InjuryStaminaManager } from "@/components/InjuryStaminaManager";
 import Inventory from "@/pages/Inventory";
 import AdvancedTacticalEffectsManager from "@/components/AdvancedTacticalEffectsManager";
 import UnifiedInventoryHub from "@/components/UnifiedInventoryHub";
+import TacticsLineupHub from "@/components/TacticsLineupHub";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -309,21 +310,7 @@ export default function Team() {
           </TabsContent>
 
           <TabsContent value="tactics">
-            {/* Tactics Sub-tabs: Game Plan and Effectiveness */}
-            <Tabs value={tacticsSubTab} onValueChange={setTacticsSubTab} className="mb-6">
-              <TabsList className="grid w-full grid-cols-2 bg-gray-800">
-                <TabsTrigger value="gameplan">Game Plan</TabsTrigger>
-                <TabsTrigger value="effectiveness">Effectiveness</TabsTrigger>
-              </TabsList>
-
-              <TabsContent value="gameplan">
-                <TacticalManager teamId={team?.id} />
-              </TabsContent>
-
-              <TabsContent value="effectiveness">
-                <AdvancedTacticalEffectsManager teamId={team?.id} />
-              </TabsContent>
-            </Tabs>
+            <TacticsLineupHub teamId={team?.id || ''} />
           </TabsContent>
 
           <TabsContent value="finances">

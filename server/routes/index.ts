@@ -15,6 +15,7 @@ import notificationRoutes from "./notificationRoutes";
 import injuryRoutes from "./injuryRoutes";
 import injuryStaminaRoutes from "./injuryStaminaRoutes";
 import seasonRoutes from "./seasonRoutes";
+import inventoryRoutes from "./inventoryRoutes";
 import { systemRoutes } from "./systemRoutes";
 import superuserRoutes from "./superuserRoutes";
 import paymentRoutes from "./paymentRoutes";
@@ -57,6 +58,7 @@ export function registerAllRoutes(app: Express): void {
   app.use("/api/injuries", injuryRoutes); // Covers /api/injuries, /api/medical-staff, /api/conditioning
   app.use("/api/injury-stamina", injuryStaminaRoutes); // Covers comprehensive injury & stamina system
   app.use("/api/seasons", seasonRoutes); // Covers /api/seasons, /api/playoffs, /api/contracts, /api/sponsorships
+  app.use("/api/inventory", inventoryRoutes); // Covers team inventory management
   app.use("/api/season", seasonRoutes); // Frontend calls /api/season/current-cycle
   app.use("/api/system", systemRoutes); // Covers /api/system and /api/server
   app.use("/api/server", systemRoutes); // Covers /api/server endpoints like /api/server/time

@@ -1,82 +1,121 @@
-import { Router, type Request, type Response, type NextFunction } from "express";
-import { storage } from "../storage/index";
-import { itemStorage } from "../storage/itemStorage";
-// import { teamInventoryStorage } from "../storage/teamInventoryStorage"; // If you create this
+import { Router, Request, Response, NextFunction } from "express";
+import { db } from "../db";
+import { teams, teamInventory, players } from "../../shared/schema";
+import { eq, and } from "drizzle-orm";
 import { isAuthenticated } from "../replitAuth";
-// import { db } from "../db"; // Avoid direct db access here
-// import { items as itemsTable, teamInventory as teamInventoryTable } from "@shared/schema";
-import { eq, and } from "drizzle-orm"; // Keep if used for complex queries not in storage
 
 const router = Router();
 
-// Inventory routes
+// Get team inventory
 router.get('/:teamId', isAuthenticated, async (req: any, res: Response, next: NextFunction) => {
   try {
-    const userId = req.user.claims.sub;
-    const requestedTeamId = req.params.teamId;
+    let teamId = req.params.teamId;
 
-    let teamToViewId = requestedTeamId;
-
-    if (requestedTeamId === 'my') {
-        const userTeam = await storage.teams.getTeamByUserId(userId); // Use teamStorage
-        if (!userTeam || !userTeam.id) { // Check for team.id as well
-            return res.status(404).json({ message: "Your team not found." });
-        }
-        teamToViewId = userTeam.id;
+    // Handle "my" team ID
+    if (teamId === "my") {
+      const userId = req.user?.claims?.sub;
+      const team = await db.select().from(teams).where(eq(teams.userId, userId)).limit(1);
+      if (!team.length) {
+        return res.status(404).json({ error: "Team not found for current user" });
+      }
+      teamId = team[0].id;
     } else {
-        const teamExists = await storage.teams.getTeamById(requestedTeamId); // Use teamStorage
-        if (!teamExists) {
-            return res.status(404).json({ message: "Team not found."});
-        }
-        // Optional: Permission check if viewing other team's inventory is restricted
-        // if (teamExists.userId !== userId && !userIsAdmin(req.user)) {
-        //     return res.status(403).json({ message: "Forbidden to view this team's inventory." });
-        // }
+      // Verify user owns this team
+      const team = await db.select().from(teams).where(eq(teams.id, teamId)).limit(1);
+      if (!team.length || team[0].userId !== req.user?.claims?.sub) {
+        return res.status(403).json({ error: "Forbidden: You do not own this team." });
+      }
     }
 
-    // Fetches items where items.teamId matches teamToViewId
-    const ownedEquipment = await itemStorage.getItemsByTeam(teamToViewId); // Use itemStorage
+    // Get team inventory
+    const inventory = await db.select().from(teamInventory).where(eq(teamInventory.teamId, teamId));
 
-    // If you have a separate teamInventory table for consumables, trophies, etc.
-    // const otherInventoryItems = await teamInventoryStorage.getItemsByTeam(teamToViewId);
+    // Transform inventory data to match expected format
+    const formattedInventory = inventory.map(item => ({
+      id: item.id,
+      itemType: item.itemType,
+      name: item.name,
+      description: `${item.name.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())} - Team inventory item`,
+      rarity: item.rarity || "common",
+      quantity: item.quantity,
+      metadata: item.metadata || {}
+    }));
 
-    res.json({
-        teamId: teamToViewId,
-        equipment: ownedEquipment, // Items from `items` table linked by teamId
-        // otherItems: otherInventoryItems,
-    });
-
+    res.json(formattedInventory);
   } catch (error) {
     console.error("Error fetching team inventory:", error);
-    next(error);
+    res.status(500).json({ error: "Failed to fetch team inventory" });
   }
 });
 
-// Example: Route to equip an item (would involve playerStorage and itemStorage)
-// router.post('/:teamId/equip', isAuthenticated, async (req: any, res: Response, next: NextFunction) => {
-//   try {
-//     const userId = req.user.claims.sub;
-//     const teamIdParam = req.params.teamId;
-//     const { playerId, itemId, slot } = req.body; // Validate these inputs
+// Use inventory item
+router.post('/:teamId/use-item', isAuthenticated, async (req: any, res: Response, next: NextFunction) => {
+  try {
+    let teamId = req.params.teamId;
+    const { itemId, playerId, itemType } = req.body;
 
-//     const teamId = teamIdParam === 'my' ? (await storage.teams.getTeamByUserId(userId))?.id : teamIdParam;
-//     if (!teamId) return res.status(404).json({ message: "Team not found." });
+    // Handle "my" team ID
+    if (teamId === "my") {
+      const userId = req.user?.claims?.sub;
+      const team = await db.select().from(teams).where(eq(teams.userId, userId)).limit(1);
+      if (!team.length) {
+        return res.status(404).json({ error: "Team not found for current user" });
+      }
+      teamId = team[0].id;
+    } else {
+      // Verify user owns this team
+      const team = await db.select().from(teams).where(eq(teams.id, teamId)).limit(1);
+      if (!team.length || team[0].userId !== req.user?.claims?.sub) {
+        return res.status(403).json({ error: "Forbidden: You do not own this team." });
+      }
+    }
 
-//     const player = await storage.players.getPlayerById(playerId);
-//     if (!player || player.teamId !== teamId) return res.status(404).json({ message: "Player not on this team."});
+    // Find the inventory item
+    const inventoryItem = await db.select().from(teamInventory).where(
+      and(eq(teamInventory.teamId, teamId), eq(teamInventory.id, itemId))
+    ).limit(1);
 
-//     const item = await itemStorage.getItemById(itemId);
-//     if (!item || item.teamId !== teamId) return res.status(404).json({ message: "Item not in team inventory."});
-//     if (item.slot !== slot) return res.status(400).json({ message: `Item does not fit in ${slot} slot.`});
+    if (!inventoryItem.length) {
+      return res.status(404).json({ error: "Item not found in inventory" });
+    }
 
-//     // Logic to unequip previous item in slot, then equip new item
-//     // await storage.players.updatePlayer(playerId, { [`${slot}ItemId`]: itemId });
-//     // await itemStorage.updateItem(itemId, { isEquipped: true, equippedByPlayerId: playerId }); // Example fields
+    const item = inventoryItem[0];
 
-//     res.json({ success: true, message: `${item.name} equipped to ${player.name} in ${slot} slot.` });
-//   } catch (error) {
-//     next(error);
-//   }
-// });
+    if (item.quantity <= 0) {
+      return res.status(400).json({ error: "Item is out of stock" });
+    }
+
+    // Verify player belongs to team if playerId is provided
+    if (playerId) {
+      const player = await db.select().from(players).where(
+        and(eq(players.id, playerId), eq(players.teamId, teamId))
+      ).limit(1);
+
+      if (!player.length) {
+        return res.status(404).json({ error: "Player not found on your team" });
+      }
+    }
+
+    // Reduce item quantity
+    await db.update(teamInventory)
+      .set({ quantity: item.quantity - 1 })
+      .where(eq(teamInventory.id, itemId));
+
+    // Remove item if quantity reaches 0
+    if (item.quantity - 1 <= 0) {
+      await db.delete(teamInventory).where(eq(teamInventory.id, itemId));
+    }
+
+    res.json({ 
+      success: true, 
+      message: "Item used successfully",
+      remainingQuantity: Math.max(0, item.quantity - 1)
+    });
+
+  } catch (error) {
+    console.error("Error using inventory item:", error);
+    res.status(500).json({ error: "Failed to use inventory item" });
+  }
+});
 
 export default router;

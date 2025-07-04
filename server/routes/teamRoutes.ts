@@ -206,18 +206,75 @@ router.post('/:teamId/formation', isAuthenticated, async (req: any, res: Respons
       }
     }
 
-    const { formation, substitutionOrder } = req.body;
+    const { starters, substitutes, formationData } = req.body;
 
-    if (typeof formation !== 'object' || formation === null) {
-        return res.status(400).json({ message: "Invalid formation data" });
+    // Validate that starters and substitutes are arrays
+    if (!Array.isArray(starters)) {
+        return res.status(400).json({ message: "Starters must be an array" });
     }
-     if (substitutionOrder && (typeof substitutionOrder !== 'object' || substitutionOrder === null)) {
-        return res.status(400).json({ message: "Invalid substitution order data" });
+    if (!Array.isArray(substitutes)) {
+        return res.status(400).json({ message: "Substitutes must be an array" });
     }
+
+    // Create formation object in the expected database format
+    const formation = {
+      starters: starters.map((player: any) => ({ id: player.id, role: player.role })),
+      substitutes: substitutes.map((player: any) => ({ id: player.id, role: player.role })),
+      ...formationData
+    };
 
     await storage.teams.updateTeam(teamId, { // Use teamStorage
       formation: JSON.stringify(formation),
-      substitutionOrder: substitutionOrder ? JSON.stringify(substitutionOrder) : JSON.stringify({}),
+      substitutionOrder: JSON.stringify({}), // Keep for compatibility
+      updatedAt: new Date()
+    });
+
+    res.json({ success: true, message: "Formation saved successfully" });
+  } catch (error) {
+    console.error("Error saving formation:", error);
+    next(error);
+  }
+});
+
+// Formation PUT route for TacticsLineupHub
+router.put('/:teamId/formation', isAuthenticated, async (req: any, res: Response, next: NextFunction) => {
+  try {
+    let teamId = req.params.teamId;
+
+    if (teamId === "my") {
+      const userId = req.user?.claims?.sub;
+      const team = await storage.teams.getTeamByUserId(userId); // Use teamStorage
+      if (!team) {
+        return res.status(404).json({ message: "Team not found for current user" });
+      }
+      teamId = team.id;
+    } else {
+      const teamToUpdate = await storage.teams.getTeamById(teamId); // Use teamStorage
+      if (!teamToUpdate || teamToUpdate.userId !== req.user?.claims?.sub) {
+          return res.status(403).json({ message: "Forbidden: You do not own this team." });
+      }
+    }
+
+    const { starters, substitutes, formationData } = req.body;
+
+    // Validate that starters and substitutes are arrays
+    if (!Array.isArray(starters)) {
+        return res.status(400).json({ message: "Starters must be an array" });
+    }
+    if (!Array.isArray(substitutes)) {
+        return res.status(400).json({ message: "Substitutes must be an array" });
+    }
+
+    // Create formation object in the expected database format
+    const formation = {
+      starters: starters.map((player: any) => ({ id: player.id, role: player.role })),
+      substitutes: substitutes.map((player: any) => ({ id: player.id, role: player.role })),
+      ...formationData
+    };
+
+    await storage.teams.updateTeam(teamId, { // Use teamStorage
+      formation: JSON.stringify(formation),
+      substitutionOrder: JSON.stringify({}), // Keep for compatibility
       updatedAt: new Date()
     });
 
@@ -274,12 +331,47 @@ router.get('/:teamId/formation', isAuthenticated, async (req: any, res: Response
       return res.status(404).json({ message: "Team not found" });
     }
 
+    // Get all team players
+    const allPlayers = await storage.players.getPlayersByTeamId(teamId);
+    
     const formationData = team.formation ? JSON.parse(team.formation as string) : null;
     const substitutionOrderData = team.substitutionOrder ? JSON.parse(team.substitutionOrder as string) : {};
 
+    let starters = [];
+    let substitutes = [];
+
+    if (formationData && formationData.starters) {
+      // Match starter IDs to actual player objects
+      const starterIds = formationData.starters.map((s: any) => s.id || s);
+      starters = allPlayers.filter((player: any) => starterIds.includes(player.id));
+    }
+
+    if (formationData && formationData.substitutes) {
+      // Match substitute IDs to actual player objects
+      const substituteIds = formationData.substitutes.map((s: any) => s.id || s);
+      substitutes = allPlayers.filter((player: any) => substituteIds.includes(player.id));
+    }
+
+    // Calculate power ratings for players
+    const enhancedPlayers = allPlayers.map((player: any) => ({
+      ...player,
+      overallRating: Math.round((player.speed + player.power + player.agility + player.throwing + player.catching + player.kicking) / 6)
+    }));
+
+    const enhancedStarters = starters.map((player: any) => ({
+      ...player,
+      overallRating: Math.round((player.speed + player.power + player.agility + player.throwing + player.catching + player.kicking) / 6)
+    }));
+
+    const enhancedSubstitutes = substitutes.map((player: any) => ({
+      ...player,
+      overallRating: Math.round((player.speed + player.power + player.agility + player.throwing + player.catching + player.kicking) / 6)
+    }));
+
     res.json({
-      formation: formationData,
-      substitutionOrder: substitutionOrderData
+      starters: enhancedStarters,
+      substitutes: enhancedSubstitutes,
+      formation_data: formationData
     });
   } catch (error) {
     console.error("Error fetching formation:", error);
