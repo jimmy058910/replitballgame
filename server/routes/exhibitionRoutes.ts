@@ -36,8 +36,23 @@ router.get('/stats', isAuthenticated, async (req: any, res: Response, next: Next
     const team = await storage.teams.getTeamByUserId(userId);
     if (!team || !team.id) return res.status(404).json({ message: "Team not found." });
 
-    // Get all exhibition games created today (both pending and completed)
+    // Get exhibition games from exhibition_games table (completed games)
     const gamesCreatedToday = await exhibitionGameStorage.getExhibitionGamesPlayedTodayByTeam(team.id);
+    
+    // ALSO get pending exhibition matches from matches table created today
+    const allMatches = await storage.matches.getMatchesByTeamId(team.id);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const tomorrow = new Date(today);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    
+    const pendingExhibitionMatchesToday = allMatches.filter(match => 
+      match.matchType === 'exhibition' && 
+      (match.status === 'scheduled' || match.status === 'in_progress') &&
+      match.createdAt && 
+      new Date(match.createdAt) >= today && 
+      new Date(match.createdAt) < tomorrow
+    );
     
     // Get all exhibition games for historical stats
     const allExhibitionGames = await exhibitionGameStorage.getExhibitionGamesByTeam(team.id, 1000);
@@ -53,8 +68,8 @@ router.get('/stats', isAuthenticated, async (req: any, res: Response, next: Next
     const totalGames = wins + losses + draws;
     const winRate = totalGames > 0 ? Math.round((wins / totalGames) * 100) : 0;
 
-    // Calculate games used today - all games created today count toward daily limit
-    const totalGamesUsedToday = gamesCreatedToday.length;
+    // Calculate games used today - completed games + pending matches created today
+    const totalGamesUsedToday = gamesCreatedToday.length + pendingExhibitionMatchesToday.length;
     const freeGamesLimit = 3;
     const exhibitionEntriesUsedToday = Math.max(0, totalGamesUsedToday - freeGamesLimit);
 
