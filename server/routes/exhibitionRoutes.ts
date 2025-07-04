@@ -36,30 +36,30 @@ router.get('/stats', isAuthenticated, async (req: any, res: Response, next: Next
     const team = await storage.teams.getTeamByUserId(userId);
     if (!team || !team.id) return res.status(404).json({ message: "Team not found." });
 
-    const gamesPlayedToday = await exhibitionGameStorage.getExhibitionGamesPlayedTodayByTeam(team.id);
-    // Further stats like wins/losses would require storing results in exhibitionGames table
-    // or linking them to the generic 'matches' table if they are also stored there.
-    // For now, providing a simplified version.
-    const allExhibitionGames = await exhibitionGameStorage.getExhibitionGamesByTeam(team.id, 1000); // Get all for win rate
+    // Get all exhibition games created today (both pending and completed)
+    const gamesCreatedToday = await exhibitionGameStorage.getExhibitionGamesPlayedTodayByTeam(team.id);
+    
+    // Get all exhibition games for historical stats
+    const allExhibitionGames = await exhibitionGameStorage.getExhibitionGamesByTeam(team.id, 1000);
 
     let wins = 0;
     let losses = 0;
     let draws = 0;
     allExhibitionGames.forEach(game => {
-        if (game.result === 'win') wins++; // Assuming 'result' field exists
+        if (game.result === 'win') wins++;
         else if (game.result === 'loss') losses++;
         else if (game.result === 'draw') draws++;
     });
     const totalGames = wins + losses + draws;
     const winRate = totalGames > 0 ? Math.round((wins / totalGames) * 100) : 0;
 
-    // Get exhibition entries used today (if we track them separately)
-    // For now, assume entries used = games played beyond free limit
+    // Calculate games used today - all games created today count toward daily limit
+    const totalGamesUsedToday = gamesCreatedToday.length;
     const freeGamesLimit = 3;
-    const exhibitionEntriesUsedToday = Math.max(0, gamesPlayedToday.length - freeGamesLimit);
+    const exhibitionEntriesUsedToday = Math.max(0, totalGamesUsedToday - freeGamesLimit);
 
     res.json({
-      gamesPlayedToday: gamesPlayedToday.length,
+      gamesPlayedToday: totalGamesUsedToday, // Total games used today (pending + completed)
       exhibitionEntriesUsedToday: exhibitionEntriesUsedToday,
       totalWins: wins, 
       totalLosses: losses, 
