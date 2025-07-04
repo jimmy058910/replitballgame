@@ -330,28 +330,71 @@ export default function Team() {
                   <CardHeader>
                     <CardTitle>Active Contracts</CardTitle>
                     <p className="text-gray-400">Manage player contracts and negotiations</p>
+                    {playersWithRoles && playersWithRoles.length > 0 && (
+                      <div className="mt-4 p-4 bg-gray-700 rounded-lg">
+                        <p className="text-sm text-gray-400">Total Season Salary</p>
+                        <p className="text-2xl font-bold text-green-400">
+                          ₡{playersWithRoles.reduce((total, player) => total + (player.salary || 0), 0).toLocaleString()}
+                        </p>
+                      </div>
+                    )}
                   </CardHeader>
                   <CardContent>
                     {playersWithRoles && playersWithRoles.length > 0 ? (
                       <div className="space-y-4">
-                        {playersWithRoles.map((player) => (
-                          <div key={player.id} className="flex items-center justify-between p-4 bg-gray-700 rounded-lg">
-                            <div>
-                              <h3 className="font-semibold">{player.firstName} {player.lastName}</h3>
-                              <p className="text-sm text-gray-400">
-                                {getPlayerRole(player)} • {player.race}
-                              </p>
+                        {playersWithRoles.map((player) => {
+                          const role = getPlayerRole(player);
+                          const getRoleStyle = (role: string) => {
+                            switch (role.toLowerCase()) {
+                              case "passer":
+                                return "bg-yellow-500 text-black";
+                              case "runner":
+                                return "bg-green-500 text-white";
+                              case "blocker":
+                                return "bg-red-500 text-white";
+                              default:
+                                return "bg-gray-500 text-white";
+                            }
+                          };
+                          
+                          return (
+                            <div key={player.id} className="flex items-center justify-between p-4 bg-gray-700 rounded-lg">
+                              <div className="flex-1">
+                                <h3 className="font-semibold">{player.firstName} {player.lastName}</h3>
+                                <div className="flex items-center gap-2 mt-1">
+                                  <span className={`px-2 py-1 rounded-md text-xs font-medium ${getRoleStyle(role)}`}>
+                                    {role}
+                                  </span>
+                                  <span className="text-sm text-gray-400">
+                                    {player.race ? player.race.charAt(0).toUpperCase() + player.race.slice(1).toLowerCase() : 'Unknown'}
+                                  </span>
+                                </div>
+                              </div>
+                              <div className="text-right">
+                                <p className="font-semibold text-green-400">
+                                  ₡{(player.salary || 0).toLocaleString()}
+                                </p>
+                                <p className="text-sm text-gray-400">
+                                  {(player.contractLength || 1)} seasons remaining
+                                </p>
+                              </div>
+                              <div className="ml-4">
+                                <Button 
+                                  variant="outline" 
+                                  size="sm"
+                                  onClick={() => {
+                                    // Navigate to contract negotiation
+                                    // This could open a modal or navigate to a contract page
+                                    console.log(`Negotiate contract for ${player.firstName} ${player.lastName}`);
+                                  }}
+                                  className="text-xs"
+                                >
+                                  Negotiate
+                                </Button>
+                              </div>
                             </div>
-                            <div className="text-right">
-                              <p className="font-semibold text-green-400">
-                                {player.salary?.toLocaleString()}₡
-                              </p>
-                              <p className="text-sm text-gray-400">
-                                {player.contractLength} seasons
-                              </p>
-                            </div>
-                          </div>
-                        ))}
+                          );
+                        })}
                       </div>
                     ) : (
                       <p className="text-gray-500 text-center py-8">
