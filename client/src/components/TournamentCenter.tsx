@@ -55,7 +55,7 @@ const TournamentCenter: React.FC<TournamentCenterProps> = ({ teamId }) => {
 
   // Fetch team info
   const { data: teamInfo } = useQuery<TeamInfo>({
-    queryKey: ["/api/teams", teamId],
+    queryKey: ["/api/teams/my"],
     enabled: !!teamId,
   });
 
