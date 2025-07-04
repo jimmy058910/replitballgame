@@ -11,8 +11,9 @@ import LeagueSchedule from "@/components/LeagueSchedule";
 
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import { Trophy, Medal, Gamepad2, Calendar, Users, Clock, X, Target, Zap } from "lucide-react";
+import { Trophy, Medal, Gamepad2, Calendar, Users, Clock, X, Target, Zap, HelpCircle } from "lucide-react";
 import { HelpIcon } from "@/components/help";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Progress } from "@/components/ui/progress";
 import { Separator } from "@/components/ui/separator";
 
@@ -239,28 +240,19 @@ function ExhibitionsTab() {
             </p>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
-              <div className="text-center p-3 bg-gray-700 rounded-lg">
-                <div className="text-2xl font-bold text-green-400">{freeGamesRemaining}</div>
-                <div className="text-xs text-gray-400">Free Games Left</div>
-                <div className="text-xs text-gray-500">({gamesPlayedToday}/3 used)</div>
-              </div>
-              <div className="text-center p-3 bg-gray-700 rounded-lg">
-                <div className="text-2xl font-bold text-purple-400">{entryGamesRemaining}</div>
-                <div className="text-xs text-gray-400">Entry Games Left</div>
-                <div className="text-xs text-gray-500">({exhibitionEntriesUsed}/3 used)</div>
-              </div>
-            </div>
-
-            <div className="space-y-2">
+            <div className="space-y-3 p-4 bg-gray-700 rounded-lg">
               <div className="flex justify-between text-sm">
-                <span>Total Games Remaining Today</span>
-                <span className="font-semibold">{totalGamesRemaining}</span>
+                <span className="text-gray-300">Free Games Remaining Today:</span>
+                <span className="font-semibold text-green-400">{freeGamesRemaining}</span>
               </div>
-              <Progress 
-                value={((6 - totalGamesRemaining) / 6) * 100} 
-                className="h-2"
-              />
+              <div className="flex justify-between text-sm">
+                <span className="text-gray-300">Entry Items Available:</span>
+                <span className="font-semibold text-purple-400">{entryGamesRemaining}</span>
+              </div>
+              <div className="flex justify-between text-sm border-t border-gray-600 pt-3">
+                <span className="text-gray-300">Total Games Remaining Today:</span>
+                <span className="font-semibold text-blue-400">{totalGamesRemaining}</span>
+              </div>
             </div>
 
             <Separator className="bg-gray-700" />
@@ -268,12 +260,11 @@ function ExhibitionsTab() {
             <div className="space-y-2">
               <h4 className="font-semibold text-sm">Exhibition Benefits & Rewards:</h4>
               <ul className="text-sm text-gray-400 space-y-1">
-                <li>• Credits earned for wins/draws</li>
-                <li>• Player experience points</li>
-                <li>• Team chemistry improvement</li>
-                <li>• Tactical practice & strategy testing</li>
-                <li>• Minimal injury risk & stamina loss</li>
-                <li>• No impact on league standings</li>
+                <li>• <span className="text-blue-300">Test Tactics & Lineups:</span> Safely experiment with new strategies before important matches</li>
+                <li>• <span className="text-green-300">Earn Credits:</span> Gain a small but consistent amount of Credits for playing</li>
+                <li>• <span className="text-purple-300">Build Team Camaraderie:</span> Winning exhibition games provides a small boost to team morale</li>
+                <li>• <span className="text-orange-300">Contribute to Ad Rewards:</span> Watching the halftime ad counts towards your daily and milestone ad rewards</li>
+                <li>• <span className="text-cyan-300">Risk-Free:</span> No impact on player stamina, injury status, or league standings</li>
               </ul>
               
               <div className="mt-3 p-2 bg-blue-900/30 rounded border border-blue-700">
@@ -300,16 +291,25 @@ function ExhibitionsTab() {
             </p>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="space-y-4">
-              {/* Option 1: Instant Exhibition */}
-              <div className="p-4 bg-gray-700 rounded-lg">
-                <h3 className="font-semibold text-lg mb-2 flex items-center gap-2">
-                  <Zap className="h-5 w-5 text-blue-400" />
-                  1) Instant Exhibition
-                </h3>
-                <p className="text-gray-400 text-sm mb-4">
-                  Start an immediate exhibition match against other teams in your division, near your power level, or AI. Games begin instantly!
-                </p>
+            <TooltipProvider>
+              <div className="space-y-4">
+                {/* Option 1: Instant Exhibition */}
+                <div className="p-4 bg-gray-700 rounded-lg">
+                  <h3 className="font-semibold text-lg mb-2 flex items-center gap-2">
+                    <Zap className="h-5 w-5 text-blue-400" />
+                    1) Instant Exhibition
+                    <Tooltip>
+                      <TooltipTrigger>
+                        <HelpCircle className="h-4 w-4 text-gray-400 hover:text-blue-400" />
+                      </TooltipTrigger>
+                      <TooltipContent className="max-w-xs">
+                        <p>Quick automatic matchmaking. System finds the best available opponent based on division and power rating. Perfect for immediate play without browsing.</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </h3>
+                  <p className="text-gray-400 text-sm mb-4">
+                    Start an immediate exhibition match against other teams in your division, near your power level, or AI. Games begin instantly!
+                  </p>
                 <Button 
                   className="w-full" 
                   variant="default"
@@ -329,6 +329,14 @@ function ExhibitionsTab() {
                 <h3 className="font-semibold text-lg mb-2 flex items-center gap-2">
                   <Users className="h-5 w-5 text-purple-400" />
                   2) Exhibition Match
+                  <Tooltip>
+                    <TooltipTrigger>
+                      <HelpCircle className="h-4 w-4 text-gray-400 hover:text-purple-400" />
+                    </TooltipTrigger>
+                    <TooltipContent className="max-w-xs">
+                      <p>Manual opponent selection. Browse available teams, compare power ratings, and strategically choose your matchup. Perfect for testing specific tactics.</p>
+                    </TooltipContent>
+                  </Tooltip>
                 </h3>
                 <p className="text-gray-400 text-sm mb-4">
                   Browse and select from available opponents in your division for a strategic exhibition match.
@@ -355,6 +363,7 @@ function ExhibitionsTab() {
                 </div>
               )}
             </div>
+            </TooltipProvider>
           </CardContent>
         </Card>
       </div>
@@ -389,10 +398,13 @@ function ExhibitionsTab() {
                   
                   <div className="text-right">
                     <div className={`font-bold ${getResultColor(game.result)}`}>
-                      {game.score}
+                      {game.score || (game.result === 'pending' ? 'In Progress' : 'Not Started')}
                     </div>
                     <div className="text-sm text-gray-400">
-                      {game.result?.toUpperCase() || 'PENDING'}
+                      {game.result === 'win' ? 'Victory' : 
+                       game.result === 'loss' ? 'Defeat' : 
+                       game.result === 'draw' ? 'Draw' : 
+                       'Live Match'}
                     </div>
                   </div>
                   

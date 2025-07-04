@@ -1,0 +1,40 @@
+Exhibition Game Mode Revamp (v3)
+Goal: To refine and clearly define the purpose, mechanics, and rewards for the Exhibition Game mode. This system is designed to be a low-risk, moderately-rewarding gameplay loop that encourages tactical testing and rewards active players without devaluing competitive modes.
+1. Core Philosophy & Mechanics (Revised)
+Exhibition games are the team's "scrimmage" or "practice" mode. They are for risk-free experimentation with small, tangible rewards.
+Risk-Free Gameplay: This is the most important principle.
+No Lasting Injuries: No injuries from an exhibition match will ever carry over to a player's permanent record.
+No daily_stamina_level Cost: Playing an exhibition match does not deplete a player's persistent daily_stamina_level. Players always start with 100% in_game_stamina.
+No Direct Progression: This mode does not contribute to the end-of-season stat progression checks. The ActivityScore in the player_progression_master_v2 document is explicitly calculated from League and Tournament games only, preserving their importance.
+2. Revamped "Exhibition Benefits & Rewards"
+The benefits list must be updated to accurately reflect the mode's purpose within the new progression system.
+Test Tactics & Lineups: Safely experiment with new strategies before important matches.
+Earn Credits: Gain a small but consistent amount of Credits for playing.
+Build Team Camaraderie: Winning exhibition games provides a small boost to team morale.
+Contribute to Ad Rewards: Watching the halftime ad counts towards your daily and milestone ad rewards.
+Risk-Free: No impact on player stamina, injury status, or league standings.
+3. Detailed Rewards Structure
+A. Credit Rewards (Unchanged) The rewards remain modest to keep the focus on competitive play for primary income.
+Win: 500 Credits
+Tie: 200 Credits
+Loss: 100 Credits
+B. Team Camaraderie Reward (Unchanged)
+Logic: Upon winning an exhibition match, each player on the winning team gains a small, temporary boost to their individual camaraderie score. This boost is factored in during the end-of-season camaraderie calculation.
+Effect: This provides a way for active users to slightly offset the natural seasonal decay of camaraderie, making their daily play feel impactful.
+C. Halftime Ad Integration (Unchanged)
+Logic: The ad shown at halftime of an exhibition game must count towards the user's daily ad watch limit and their Premium Box milestone counter.
+4. UI & UX Enhancements for the Exhibition Page
+The previously suggested UI enhancements remain critical for clarity.
+A. Revise the "Exhibition Benefits & Rewards" Text:
+The list must be updated with the new bullet points from Section 2 of this document.
+B. Clarify Daily Game Count Display:
+Replace the confusing progress bars with simple text counters:
+Free Games Remaining Today: 3
+Entry Items Available: 3
+C. Add Tooltips to "Exhibition Options":
+Add (?) icons with tooltips explaining the difference between "Instant Exhibition" and "Choose Opponent."
+D. Update "Recent Exhibition Games" Display:
+Replace "PENDING" with the final score and result, e.g., vs. Stone Lions - Win (3 - 1).
+This revamped design ensures that the Exhibition Mode has a clear and valuable purpose within your game's ecosystem, rewarding activity without interfering with the core progression loop driven by competitive matches.
+
+
