@@ -368,6 +368,8 @@ export default function Team() {
                                   <span className="text-sm text-gray-400">
                                     {player.race ? player.race.charAt(0).toUpperCase() + player.race.slice(1).toLowerCase() : 'Unknown'}
                                   </span>
+                                  <span className="text-sm text-gray-400">•</span>
+                                  <span className="text-sm text-gray-400">Age {player.age}</span>
                                 </div>
                               </div>
                               <div className="text-right">
@@ -383,9 +385,11 @@ export default function Team() {
                                   variant="outline" 
                                   size="sm"
                                   onClick={() => {
-                                    // Navigate to contract negotiation
-                                    // This could open a modal or navigate to a contract page
-                                    console.log(`Negotiate contract for ${player.firstName} ${player.lastName}`);
+                                    // Navigate to Roster tab and open player detail modal
+                                    setActiveTab("roster");
+                                    setRosterSubTab("players");
+                                    setSelectedPlayer(player);
+                                    setShowPlayerModal(true);
                                   }}
                                   className="text-xs"
                                 >
