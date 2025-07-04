@@ -144,6 +144,82 @@ router.get('/stats', isAuthenticated, async (req: any, res: Response, next: Next
   }
 });
 
+// Get team's current tournament entries
+router.get('/team/:teamId', isAuthenticated, async (req: any, res: Response, next: NextFunction) => {
+  try {
+    const { teamId } = req.params;
+    const userId = req.user.claims.sub;
+    
+    // Verify team ownership
+    const team = await storage.teams.getTeamByUserId(userId);
+    if (!team || team.id !== teamId) {
+      return res.status(403).json({ message: "Access denied" });
+    }
+
+    // Get current tournament entries
+    const currentEntries = await db
+      .select({
+        id: tournamentEntries.id,
+        tournamentId: tournamentEntries.tournamentId,
+        teamId: tournamentEntries.teamId,
+        entryTime: tournamentEntries.entryTime,
+        placement: tournamentEntries.placement,
+        eliminated: tournamentEntries.eliminated
+      })
+      .from(tournamentEntries)
+      .where(eq(tournamentEntries.teamId, teamId))
+      .orderBy(desc(tournamentEntries.entryTime));
+
+    res.json(currentEntries);
+  } catch (error) {
+    console.error("Error fetching team tournament entries:", error);
+    next(error);
+  }
+});
+
+// Get team's tournament history
+router.get('/team/:teamId/history', isAuthenticated, async (req: any, res: Response, next: NextFunction) => {
+  try {
+    const { teamId } = req.params;
+    const userId = req.user.claims.sub;
+    
+    // Verify team ownership
+    const team = await storage.teams.getTeamByUserId(userId);
+    if (!team || team.id !== teamId) {
+      return res.status(403).json({ message: "Access denied" });
+    }
+
+    // Get tournament history with tournament details
+    const history = await db
+      .select({
+        id: tournamentEntries.id,
+        tournamentId: tournamentEntries.tournamentId,
+        placement: tournamentEntries.placement,
+        creditsWon: tournamentEntries.creditsWon,
+        gemsWon: tournamentEntries.gemsWon,
+        entryTime: tournamentEntries.entryTime,
+        tournament: {
+          name: tournaments.name,
+          type: tournaments.type,
+          gameDay: tournaments.gameDay
+        }
+      })
+      .from(tournamentEntries)
+      .innerJoin(tournaments, eq(tournamentEntries.tournamentId, tournaments.id))
+      .where(and(
+        eq(tournamentEntries.teamId, teamId),
+        eq(tournamentEntries.eliminated, true) // Only completed tournaments
+      ))
+      .orderBy(desc(tournamentEntries.entryTime))
+      .limit(20);
+
+    res.json(history);
+  } catch (error) {
+    console.error("Error fetching team tournament history:", error);
+    next(error);
+  }
+});
+
 // Get tournament details by ID
 router.get('/:tournamentId', isAuthenticated, async (req: any, res: Response, next: NextFunction) => {
   try {
