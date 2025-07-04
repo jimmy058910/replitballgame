@@ -73,12 +73,14 @@ const TournamentCenter: React.FC<TournamentCenterProps> = ({ teamId }) => {
   // Fetch team's tournament history
   const { data: tournamentHistory } = useQuery<TournamentEntry[]>({
     queryKey: ["/api/new-tournaments/team", teamId, "history"],
+    queryFn: () => apiRequest(`/api/new-tournaments/team/${teamId}/history`),
     enabled: !!teamId,
   });
 
   // Fetch team's current tournament entries
   const { data: myTournaments } = useQuery({
     queryKey: ["/api/new-tournaments/team", teamId],
+    queryFn: () => apiRequest(`/api/new-tournaments/team/${teamId}`),
     enabled: !!teamId,
   });
 
