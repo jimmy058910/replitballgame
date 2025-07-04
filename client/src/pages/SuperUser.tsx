@@ -298,6 +298,49 @@ export default function SuperUser() {
     },
   });
 
+  // Create league schedule mutation
+  const createLeagueScheduleMutation = useMutation({
+    mutationFn: async () => {
+      return await apiRequest("/api/superuser/create-league-schedule", "POST");
+    },
+    onSuccess: (data: any) => {
+      toast({
+        title: "League Schedule Created",
+        description: `${data.data?.matchesScheduled} matches scheduled for Day ${data.data?.currentDay}`,
+      });
+      queryClient.invalidateQueries({ queryKey: ["/api/matches"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/league/daily-schedule"] });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: "Failed to create league schedule",
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Start all league games mutation
+  const startAllLeagueGamesMutation = useMutation({
+    mutationFn: async () => {
+      return await apiRequest("/api/superuser/start-all-league-games", "POST");
+    },
+    onSuccess: (data: any) => {
+      toast({
+        title: "League Games Started",
+        description: `${data.data?.gamesStarted} games started concurrently for Day ${data.data?.currentDay}`,
+      });
+      queryClient.invalidateQueries({ queryKey: ["/api/matches/live"] });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: "Failed to start league games",
+        variant: "destructive",
+      });
+    },
+  });
+
   // Check if user has admin access using RBAC system OR team name fallback
   const isSuperUser = (adminStatus as any)?.isAdmin === true || team?.name === "Oakland Cougars";
 
@@ -541,6 +584,42 @@ export default function SuperUser() {
             </CardContent>
           </Card>
         </div>
+
+        {/* League Schedule Management */}
+        <Card className="bg-gray-800 border-gray-700 mt-8">
+          <CardHeader>
+            <CardTitle className="font-orbitron text-xl flex items-center">
+              <Calendar className="w-5 h-5 mr-2 text-indigo-400" />
+              League Schedule Management
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <p className="text-gray-400 text-sm">
+              Create league schedules and start all league games for testing purposes. Only works during regular season (Days 1-14).
+            </p>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <Button 
+                onClick={() => createLeagueScheduleMutation.mutate()}
+                disabled={createLeagueScheduleMutation.isPending}
+                className="w-full"
+                variant="outline"
+              >
+                {createLeagueScheduleMutation.isPending ? "Creating..." : "Create League Schedule"}
+              </Button>
+              <Button 
+                onClick={() => startAllLeagueGamesMutation.mutate()}
+                disabled={startAllLeagueGamesMutation.isPending}
+                className="w-full"
+                variant="secondary"
+              >
+                {startAllLeagueGamesMutation.isPending ? "Starting..." : "Start All League Games"}
+              </Button>
+            </div>
+            <div className="text-xs text-gray-500 mt-2">
+              Creates round-robin matches for all 8 divisions and starts them concurrently for the current day.
+            </div>
+          </CardContent>
+        </Card>
 
         {/* Season Management */}
         <Card className="bg-gray-800 border-gray-700 mt-8">

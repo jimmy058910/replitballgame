@@ -3,7 +3,7 @@ import { storage } from "../storage";
 import { isAuthenticated } from "../replitAuth";
 import { db } from "../db";
 import { players, teams, staff, teamFinances, matches as matchesTable } from "@shared/schema";
-import { eq, or } from "drizzle-orm";
+import { eq, or, and } from "drizzle-orm";
 import { generateRandomPlayer as generatePlayerForTeam } from "../services/leagueService";
 import { RBACService, Permission, UserRole } from "../services/rbacService";
 import { ErrorCreators, asyncHandler, logInfo } from "../services/errorService";
@@ -315,6 +315,156 @@ router.post('/reset-tryout-restrictions', RBACService.requirePermission(Permissi
       teamName: team.name, 
       taxiPlayersRemoved: playersRemoved,
       canHostTryoutsNow: true
+    }
+  });
+}));
+
+// Create league schedule - Admin permission required
+router.post('/create-league-schedule', RBACService.requirePermission(Permission.MANAGE_LEAGUES), asyncHandler(async (req: any, res: Response) => {
+  const requestId = req.requestId;
+  const userId = req.user.claims.sub;
+  
+  logInfo("Admin creating league schedule", { adminUserId: userId, requestId });
+
+  // Get current season and calculate current day
+  const currentSeason = await storage.seasons.getCurrentSeason();
+  if (!currentSeason) {
+    throw ErrorCreators.notFound("No active season found");
+  }
+
+  const seasonStartDate = currentSeason.startDateOriginal || currentSeason.startDate;
+  if (!seasonStartDate) {
+    throw ErrorCreators.internal("Season start date not found");
+  }
+  
+  const daysSinceStart = Math.floor((Date.now() - seasonStartDate.getTime()) / (1000 * 60 * 60 * 24));
+  const currentDayInCycle = (daysSinceStart % 17) + 1;
+
+  // Only create schedule for regular season days (1-14)
+  if (currentDayInCycle < 1 || currentDayInCycle > 14) {
+    throw ErrorCreators.validation("League schedule can only be created during regular season (Days 1-14)");
+  }
+
+  let scheduledMatches = 0;
+  
+  // Get all leagues and create matches for current day
+  for (let division = 1; division <= 8; division++) {
+    const teams = await storage.teams.getTeamsByDivision(division);
+    
+    if (teams.length < 2) continue; // Need at least 2 teams
+    
+    // Create round-robin style matches for the current day
+    const matchesPerDay = Math.floor(teams.length / 2);
+    const shuffledTeams = [...teams].sort(() => Math.random() - 0.5);
+    
+    for (let i = 0; i < matchesPerDay; i++) {
+      const homeTeam = shuffledTeams[i * 2];
+      const awayTeam = shuffledTeams[i * 2 + 1];
+      
+      if (homeTeam && awayTeam) {
+        // Check if match already exists for today using direct query
+        const existingMatches = await db
+          .select()
+          .from(matchesTable)
+          .where(
+            and(
+              eq(matchesTable.homeTeamId, homeTeam.id),
+              eq(matchesTable.awayTeamId, awayTeam.id),
+              eq(matchesTable.gameDay, currentDayInCycle)
+            )
+          );
+        
+        if (existingMatches.length === 0) {
+          const matchData = {
+            homeTeamId: homeTeam.id,
+            awayTeamId: awayTeam.id,
+            gameDay: currentDayInCycle,
+            status: 'scheduled',
+            matchType: 'league',
+            leagueId: `league-division-${division}`,
+            scheduledTime: new Date()
+          };
+          
+          await storage.matches.createMatch(matchData);
+          scheduledMatches++;
+        }
+      }
+    }
+  }
+
+  res.json({ 
+    success: true,
+    message: `League schedule created for Day ${currentDayInCycle}`,
+    data: { 
+      currentDay: currentDayInCycle,
+      matchesScheduled: scheduledMatches,
+      divisionsProcessed: 8
+    }
+  });
+}));
+
+// Start all scheduled league games - Admin permission required
+router.post('/start-all-league-games', RBACService.requirePermission(Permission.MANAGE_LEAGUES), asyncHandler(async (req: any, res: Response) => {
+  const requestId = req.requestId;
+  const userId = req.user.claims.sub;
+  
+  logInfo("Admin starting all scheduled league games", { adminUserId: userId, requestId });
+
+  // Get current season and calculate current day
+  const currentSeason = await storage.seasons.getCurrentSeason();
+  if (!currentSeason) {
+    throw ErrorCreators.notFound("No active season found");
+  }
+
+  const seasonStartDate = currentSeason.startDateOriginal || currentSeason.startDate;
+  if (!seasonStartDate) {
+    throw ErrorCreators.internal("Season start date not found");
+  }
+  
+  const daysSinceStart = Math.floor((Date.now() - seasonStartDate.getTime()) / (1000 * 60 * 60 * 24));
+  const currentDayInCycle = (daysSinceStart % 17) + 1;
+
+  // Get all scheduled league matches for current day
+  const scheduledMatches = await db
+    .select()
+    .from(matchesTable)
+    .where(
+      eq(matchesTable.status, 'scheduled')
+    );
+
+  let gamesStarted = 0;
+  const startPromises = [];
+
+  for (const match of scheduledMatches) {
+    if (match.matchType === 'league' || match.leagueId) {
+      // Start match by updating status to 'in_progress'
+      const startPromise = db
+        .update(matchesTable)
+        .set({ 
+          status: 'in_progress'
+        })
+        .where(eq(matchesTable.id, match.id))
+        .then(() => {
+          logInfo("League game started", { matchId: match.id, homeTeamId: match.homeTeamId, awayTeamId: match.awayTeamId });
+          return match.id;
+        });
+      
+      startPromises.push(startPromise);
+      gamesStarted++;
+    }
+  }
+
+  // Execute all match starts concurrently
+  const startedMatchIds = await Promise.all(startPromises);
+
+  res.json({ 
+    success: true,
+    message: `${gamesStarted} league games started concurrently for Day ${currentDayInCycle}`,
+    data: { 
+      currentDay: currentDayInCycle,
+      gamesStarted,
+      matchIds: startedMatchIds,
+      totalScheduledMatches: scheduledMatches.length
     }
   });
 }));
