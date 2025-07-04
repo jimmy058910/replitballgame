@@ -1,0 +1,84 @@
+Tournament Center UI & UX Revamp
+Goal: To redesign the /competition > Tournaments tab, consolidating the confusing multi-tab layout into a single, intuitive, and functional hub. This new design is inspired by the successful layout of the Exhibitions page and provides clear, at-a-glance information for all tournament-related activities.
+
+1. Core Design Philosophy
+Single-Page Hub: All tournament information—available events, entry, and history—will be presented on one scrollable page. The five sub-tabs (Overview, Available, My Tournaments, History, Statistics) are REMOVED.
+
+Clear Separation of Events: The two distinct tournament types, the "Mid-Season Classic" and the "Daily Divisional Cup," will be presented in their own dedicated, card-style sections.
+
+Dynamic & Contextual Content: The information displayed will change dynamically based on the current day of the season, ensuring the page is always relevant to the user.
+
+2. Proposed Tournament Center Layout
+The new single-page layout will be organized into three distinct sections, similar to your Exhibitions page:
+
+The Mid-Season Classic Panel (High-Priority Event)
+
+Daily Divisional Cup Panel (Daily Activity)
+
+Tournament History (Recent Results)
+
+3. Detailed Component Breakdown
+A. The Mid-Season Classic Panel
+This panel is for the special, once-per-season event. Its content changes based on the season day.
+
+During most of the season (Days 1-5 & 8-17): The panel acts as an informational banner.
+
+Title: The Mid-Season Classic
+
+Description: "The premier tournament of the season. Compete against the best in your division for a massive prize and a permanent trophy."
+
+Countdown: A large timer displaying Registration Opens In: [X] Days, HH:MM:SS.
+
+Prize Preview: A small section showing the top prize for the user's division (e.g., "Div 8 Prize: 15,000 ₡, 5 💎, Trophy").
+
+On Registration Day (Day 6): The panel becomes active and actionable.
+
+Title: Mid-Season Classic: Registration OPEN!
+
+Countdown: The timer now shows Registration Closes In: [HH:MM:SS].
+
+Action Button: A prominent button appears: [ Enter Tournament (10,000 ₡ / 20 💎) ]. This button is disabled if the user cannot afford the fee.
+
+On Tournament Day (Day 7): The panel transforms into a live bracket view.
+
+Title: Mid-Season Classic: In Progress
+
+UI: A visual 16-team tournament bracket is displayed, showing all matchups. As games complete, the bracket updates in real-time, showing who advances.
+
+B. Daily Divisional Cup Panel
+This panel handles the daily tournament and should mirror the style of your "Exhibition Options" card.
+
+Title: The title should be dynamic based on the user's division, e.g., Stone Division Daily Cup.
+
+Description: "Test your team in a daily, low-risk tournament for a chance to win Credits and Gems."
+
+Information Section:
+
+Entry Fee: Requires: 1x Tournament Entry Item
+
+Top Prize: Champion's Reward: 1,500 ₡ (value updates based on division).
+
+Registration Deadline: Registration Closes In: [HH:MM:SS]
+
+Action Button:
+
+A clear [ Enter Daily Cup ] button.
+
+If the user has already entered for the day, the button should be disabled and read [ Entered ].
+
+C. Tournament History Section
+This section replaces the old History tab and provides a clean record of past participation.
+
+Title: Recent Tournament Results
+
+UI: A scrollable list of the user's past tournament entries.
+
+Content per Entry: Each entry should clearly show:
+
+The name of the tournament (e.g., "Mid-Season Classic (Season 2)", "Daily Divisional Cup").
+
+The date the tournament was played.
+
+The user's final result (e.g., Champion, Runner-Up, Eliminated in Semifinals).
+
+This consolidated design makes the Tournament Center much easier to understand and use, providing all necessary information on a single, dynamic page that respects the user's time and attention.

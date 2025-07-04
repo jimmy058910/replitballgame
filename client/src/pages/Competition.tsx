@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import LeagueStandings from "@/components/LeagueStandings";
 import LeagueSchedule from "@/components/LeagueSchedule";
-import ComprehensiveTournamentManager from "@/components/ComprehensiveTournamentManager";
+import TournamentCenter from "@/components/TournamentCenter";
 
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
@@ -1171,7 +1171,7 @@ export default function Competition() {
 
           {/* Tournaments Tab */}
           <TabsContent value="tournaments" className="space-y-6">
-            <ComprehensiveTournamentManager teamId={team?.id} />
+            <TournamentCenter teamId={team?.id} />
           </TabsContent>
 
           {/* Exhibitions Tab */}
