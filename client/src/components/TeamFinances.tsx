@@ -35,6 +35,13 @@ export default function TeamFinances({ teamId }: TeamFinancesProps) {
     enabled: !!teamId,
   });
 
+  // Ensure we have financial data access
+  const creditsAmount = finances && typeof finances === 'object' && 'credits' in finances 
+    ? (finances as any).credits 
+    : team && typeof team === 'object' && 'credits' in team 
+      ? (team as any).credits 
+      : 0;
+
   if (isLoading) {
     return (
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -131,7 +138,7 @@ export default function TeamFinances({ teamId }: TeamFinancesProps) {
         <div className="text-right">
           <p className="text-sm text-gray-600 dark:text-gray-400">Available Credits</p>
           <p className="text-2xl font-bold text-gray-900 dark:text-white">
-            ₡{((finances as any)?.credits || (team as any)?.credits || 0).toLocaleString()}
+            ₡{creditsAmount.toLocaleString()}
           </p>
         </div>
       </div>
