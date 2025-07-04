@@ -11,6 +11,7 @@ import { TaxiSquadManager } from "@/components/TaxiSquadManager";
 import { InjuryStaminaManager } from "@/components/InjuryStaminaManager";
 import Inventory from "@/pages/Inventory";
 import AdvancedTacticalEffectsManager from "@/components/AdvancedTacticalEffectsManager";
+import UnifiedInventoryHub from "@/components/UnifiedInventoryHub";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -377,36 +378,7 @@ export default function Team() {
           </TabsContent>
 
           <TabsContent value="inventory">
-            {/* Inventory Filters: Equipment, Consumables, Trophies */}
-            <Tabs value={inventoryFilter} onValueChange={setInventoryFilter} className="mb-6">
-              <TabsList className="grid w-full grid-cols-3 bg-gray-800">
-                <TabsTrigger value="equipment">Equipment</TabsTrigger>
-                <TabsTrigger value="consumables">Consumables</TabsTrigger>
-                <TabsTrigger value="trophies">Trophies</TabsTrigger>
-              </TabsList>
-
-              <TabsContent value="equipment">
-                <Inventory />
-              </TabsContent>
-
-              <TabsContent value="consumables">
-                <Inventory />
-              </TabsContent>
-
-              <TabsContent value="trophies">
-                <Card className="bg-gray-800 border-gray-700">
-                  <CardHeader>
-                    <CardTitle>Trophy Collection</CardTitle>
-                    <p className="text-gray-400">Your achievements and awards</p>
-                  </CardHeader>
-                  <CardContent>
-                    <p className="text-gray-500 text-center py-8">
-                      No trophies earned yet. Win championships and tournaments to build your collection!
-                    </p>
-                  </CardContent>
-                </Card>
-              </TabsContent>
-            </Tabs>
+            <UnifiedInventoryHub teamId={team?.id || ''} />
           </TabsContent>
 
         {/* Player Detail Modal */}

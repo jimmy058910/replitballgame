@@ -1,0 +1,89 @@
+Project Brief: Team Inventory UI & UX Revamp
+Goal: To redesign the /team > Inventory tab, consolidating the confusing multi-tab layout into a single, intuitive, and functional hub. This new design provides a clear overview of all owned assets and simplifies the process of using and activating items.
+
+1. Core Design Philosophy
+Unified View: The primary Equipment & Items and Consumables tabs are REMOVED. All items will be displayed on a single page, managed by a clear filtering system.
+
+Action-Oriented Design: The confusing "Activate for Matches" sub-tab is eliminated. Activating a single-game boost will be done directly from the item itself.
+
+Clarity and Consistency: The layout will be inspired by the effective design of the Exhibitions page, using clear cards and panels to present information logically.
+
+2. Proposed Inventory Hub Layout
+The new single-page layout will be organized into three distinct sections:
+
+Filter Bar: To easily sort through different item types.
+
+Item Grid: The main display showing all owned items.
+
+Active Boosts Panel: A dedicated area to see which single-game boosts are queued for the next match.
+
+3. Detailed Component Breakdown
+A. Filter Bar
+This replaces the top-level tabs and allows the user to easily view their assets.
+
+UI: A row of toggle buttons at the top of the page.
+
+Buttons:
+
+All Items (Default view)
+
+Equipment (Helmets, Armor, Gloves, Footwear)
+
+Consumables (Recovery & Booster items)
+
+Game Entries (Exhibition & Tournament entry items)
+
+Trophies (Mid-Season Classic & League Championship trophies)
+
+B. Item Grid
+This is the main content area, displaying all items the user owns based on the selected filter.
+
+UI: A responsive grid of item cards.
+
+Item Card Content: Each card should clearly display:
+
+The item's icon.
+
+The item's name (e.g., "Advanced Recovery Serum").
+
+The quantity owned (e.g., "x3").
+
+The item's rarity, indicated by a colored border (Grey, Green, Blue, Purple, Gold).
+
+Interaction: Clicking on any item card opens a detailed pop-up.
+
+C. Item Interaction Pop-up
+When an item card is clicked, a pop-up appears with details and a context-sensitive action button.
+
+For Equipment (e.g., "Gryllstone Plated Helm"):
+
+Details: Shows description, stat bonuses, and any race restrictions.
+
+Action Button: [ Equip on Player ] - This would open a list of eligible players on the roster to equip the item to.
+
+For Recovery Consumables (e.g., "Basic Medical Kit"):
+
+Details: Shows description ("Instantly heals 25 Injury Recovery Points").
+
+Action Button: [ Use on Player ] - This would open a list of injured players, allowing the user to apply the item immediately.
+
+For Single-Game Boosters (e.g., "Speed Boost Tonic"):
+
+Details: Shows description ("+3 Speed for one league match").
+
+Action Button: [ Activate for Next League Match ] - Clicking this adds the boost to the "Active Boosts" panel and consumes one of the three available slots for that match.
+
+D. Active Boosts Panel (NEW)
+This dedicated panel solves the problem of not knowing which boosts are active.
+
+UI: A small, distinct panel, perhaps on the right side of the screen.
+
+Title: Next Match Boosts (1/3) - The title dynamically updates to show how many of the 3 available slots are filled.
+
+Content: Displays a simple list of the boosts the user has activated for their next league game.
+
+Example Entry: Speed Boost Tonic on Player 5 (+3 Speed)
+
+Functionality: Each entry should have a small (x) button to allow the user to cancel an activated boost, which would return the item to their inventory and free up the slot.
+
+This revamped design makes the inventory system significantly more user-friendly, logically organizes all assets, and provides clear, intuitive ways for players to interact with their items.
