@@ -678,38 +678,38 @@ export default function Market() {
                   </Card>
                   
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <Card className="bg-blue-50 border-blue-200">
+                    <Card className="bg-slate-800 border-slate-600 dark:bg-slate-800 dark:border-slate-600">
                       <CardContent className="p-4">
-                        <h3 className="font-semibold text-blue-800 mb-3">Today's Progress</h3>
+                        <h3 className="font-semibold text-blue-300 mb-3">Today's Progress</h3>
                         <div className="space-y-2">
                           <div className="flex justify-between items-center">
-                            <span className="text-sm">Ads Watched Today</span>
-                            <span className="text-sm font-bold text-green-600">0/20</span>
+                            <span className="text-sm text-white">Ads Watched Today</span>
+                            <span className="text-sm font-bold text-green-400">0/20</span>
                           </div>
                           <div className="flex justify-between items-center">
-                            <span className="text-sm">Credits Earned Today</span>
-                            <span className="text-sm font-bold text-green-600">₡0</span>
+                            <span className="text-sm text-white">Credits Earned Today</span>
+                            <span className="text-sm font-bold text-green-400">₡0</span>
                           </div>
-                          <div className="w-full bg-gray-200 rounded-full h-2">
-                            <div className="bg-green-600 h-2 rounded-full" style={{width: '0%'}}></div>
+                          <div className="w-full bg-gray-600 rounded-full h-2">
+                            <div className="bg-green-500 h-2 rounded-full" style={{width: '0%'}}></div>
                           </div>
                         </div>
                       </CardContent>
                     </Card>
                     
-                    <Card className="bg-purple-50 border-purple-200">
+                    <Card className="bg-slate-800 border-slate-600 dark:bg-slate-800 dark:border-slate-600">
                       <CardContent className="p-4">
-                        <h3 className="font-semibold text-purple-800 mb-3">Premium Box Progress</h3>
+                        <h3 className="font-semibold text-purple-300 mb-3">Premium Box Progress</h3>
                         <div className="space-y-2">
                           <div className="flex justify-between items-center">
-                            <span className="text-sm">Total Ads Watched</span>
-                            <span className="text-sm font-bold text-purple-600">0/50</span>
+                            <span className="text-sm text-white">Total Ads Watched</span>
+                            <span className="text-sm font-bold text-purple-400">0/50</span>
                           </div>
-                          <div className="text-xs text-purple-600">
+                          <div className="text-xs text-purple-300">
                             Premium box contains: Rare items, bonus credits, special equipment
                           </div>
-                          <div className="w-full bg-gray-200 rounded-full h-2">
-                            <div className="bg-purple-600 h-2 rounded-full" style={{width: '0%'}}></div>
+                          <div className="w-full bg-gray-600 rounded-full h-2">
+                            <div className="bg-purple-500 h-2 rounded-full" style={{width: '0%'}}></div>
                           </div>
                         </div>
                       </CardContent>
