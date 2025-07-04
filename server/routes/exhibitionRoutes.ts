@@ -53,9 +53,19 @@ router.get('/stats', isAuthenticated, async (req: any, res: Response, next: Next
     const totalGames = wins + losses + draws;
     const winRate = totalGames > 0 ? Math.round((wins / totalGames) * 100) : 0;
 
+    // Get exhibition entries used today (if we track them separately)
+    // For now, assume entries used = games played beyond free limit
+    const freeGamesLimit = 3;
+    const exhibitionEntriesUsedToday = Math.max(0, gamesPlayedToday.length - freeGamesLimit);
+
     res.json({
       gamesPlayedToday: gamesPlayedToday.length,
-      totalWins: wins, totalLosses: losses, totalDraws: draws, totalGames, winRate,
+      exhibitionEntriesUsedToday: exhibitionEntriesUsedToday,
+      totalWins: wins, 
+      totalLosses: losses, 
+      totalDraws: draws, 
+      totalGames, 
+      winRate,
       chemistryGained: 0, // Placeholder
       rewardsEarned: { credits: 0, items: 0 } // Placeholder
     });

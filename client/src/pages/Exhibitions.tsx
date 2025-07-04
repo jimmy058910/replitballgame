@@ -221,7 +221,7 @@ export default function Exhibitions() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="mb-8">
           <h1 className="font-orbitron text-3xl font-bold mb-2">Exhibition Arena</h1>
-          <p className="text-gray-400">Challenge other users' teams for practice matches and team chemistry</p>
+          <p className="text-gray-400">Auto-match vs similar user teams or choose specific opponents for practice matches</p>
         </div>
 
         {hasLiveExhibition && (
@@ -345,7 +345,7 @@ export default function Exhibitions() {
                     2) Exhibition Match
                   </h3>
                   <p className="text-gray-400 text-sm mb-4">
-                    Choose from 6 opponents in your division to play your Exhibition match against.
+                    Browse and select from available opponents in your division for a strategic exhibition match.
                   </p>
                   <Button 
                     className="w-full" 
