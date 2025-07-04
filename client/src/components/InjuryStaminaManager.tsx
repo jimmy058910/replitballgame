@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Heart, Zap, Pill, Activity, AlertTriangle } from "lucide-react";
+import { Heart, Zap, Pill, Activity, AlertTriangle, Package, Beaker } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 
@@ -20,6 +20,16 @@ interface Player {
   inGameStamina: number;
   dailyStaminaLevel: number;
   dailyItemsUsed: number;
+}
+
+interface InventoryItem {
+  id: string;
+  itemType: string;
+  name: string;
+  description: string;
+  rarity: string;
+  quantity: number;
+  metadata: any;
 }
 
 interface InjuryStaminaManagerProps {
@@ -42,6 +52,24 @@ export function InjuryStaminaManager({ teamId }: InjuryStaminaManagerProps) {
     queryKey: ['/api/injury-stamina/system/stats'],
     queryFn: () => apiRequest('/api/injury-stamina/system/stats'),
   });
+
+  // Fetch team inventory for recovery items
+  const { data: rawInventory } = useQuery({
+    queryKey: ['/api/inventory', teamId],
+    queryFn: () => apiRequest(`/api/inventory/${teamId}`),
+    enabled: !!teamId,
+  });
+  const inventory = (rawInventory || []) as InventoryItem[];
+
+  // Filter recovery/consumable items from inventory
+  const recoveryItems = inventory.filter(item => 
+    item.itemType === 'consumable' && 
+    item.quantity > 0 &&
+    (item.name.includes('recovery') || 
+     item.name.includes('medical') || 
+     item.name.includes('stamina') ||
+     item.name.includes('heal'))
+  );
 
   // Use recovery item mutation
   const useItemMutation = useMutation({
@@ -99,6 +127,48 @@ export function InjuryStaminaManager({ teamId }: InjuryStaminaManagerProps) {
     if (level >= 50) return 'bg-yellow-500';
     if (level >= 25) return 'bg-orange-500';
     return 'bg-red-500';
+  };
+
+  const getRecoveryItemEffect = (itemName: string) => {
+    const effects: Record<string, { type: string; effectValue: number; description: string; icon: any }> = {
+      'basic_medical_kit': {
+        type: 'injury',
+        effectValue: 25,
+        description: 'Heals minor injuries (+25 Recovery Points)',
+        icon: Pill
+      },
+      'advanced_treatment': {
+        type: 'injury',
+        effectValue: 50,
+        description: 'Heals moderate injuries (+50 Recovery Points)',
+        icon: Activity
+      },
+      'phoenix_elixir': {
+        type: 'injury',
+        effectValue: 100,
+        description: 'Fully heals any injury (+100 Recovery Points)',
+        icon: Heart
+      },
+      'basic_stamina_drink': {
+        type: 'stamina',
+        effectValue: 25,
+        description: 'Restores stamina (+25%)',
+        icon: Zap
+      },
+      'advanced_recovery_serum': {
+        type: 'stamina',
+        effectValue: 50,
+        description: 'Restores significant stamina (+50%)',
+        icon: Beaker
+      }
+    };
+    
+    return effects[itemName] || {
+      type: 'stamina',
+      effectValue: 20,
+      description: 'Provides recovery benefits',
+      icon: Package
+    };
   };
 
   if (isLoading) {
@@ -186,48 +256,69 @@ export function InjuryStaminaManager({ teamId }: InjuryStaminaManagerProps) {
             <CardContent className="space-y-4">
               <div className="grid gap-4">
                 <div>
-                  <label className="block text-sm font-medium mb-2">Select Player</label>
+                  <label className="block text-sm font-medium mb-2 text-white dark:text-white">Select Player</label>
                   <select 
                     value={selectedPlayer}
                     onChange={(e) => setSelectedPlayer(e.target.value)}
-                    className="w-full p-2 border rounded"
+                    className="w-full p-2 border rounded bg-gray-800 dark:bg-gray-700 text-white dark:text-white border-gray-600 dark:border-gray-500"
                   >
-                    <option value="">Choose a player...</option>
+                    <option value="" className="bg-gray-800 text-white">Choose a player...</option>
                     {players.map((player) => (
-                      <option key={player.id} value={player.id}>
+                      <option key={player.id} value={player.id} className="bg-gray-800 text-white">
                         {player.firstName} {player.lastName} - {player.injuryStatus}
                       </option>
                     ))}
                   </select>
                 </div>
 
-                <div className="flex gap-2">
-                  <Button
-                    onClick={() => selectedPlayer && useItemMutation.mutate({
-                      playerId: selectedPlayer,
-                      itemType: 'injury',
-                      effectValue: 25
-                    })}
-                    disabled={!selectedPlayer || useItemMutation.isPending}
-                    variant="outline"
-                  >
-                    <Pill className="h-4 w-4 mr-2" />
-                    Minor Recovery (+25 RP)
-                  </Button>
-                  
-                  <Button
-                    onClick={() => selectedPlayer && useItemMutation.mutate({
-                      playerId: selectedPlayer,
-                      itemType: 'stamina',
-                      effectValue: 30
-                    })}
-                    disabled={!selectedPlayer || useItemMutation.isPending}
-                    variant="outline"
-                  >
-                    <Zap className="h-4 w-4 mr-2" />
-                    Stamina Boost (+30%)
-                  </Button>
-                </div>
+                {/* Recovery Items from Inventory */}
+                {recoveryItems.length > 0 ? (
+                  <div className="space-y-3">
+                    <h4 className="text-sm font-medium text-white dark:text-white">Available Recovery Items</h4>
+                    <div className="grid gap-2">
+                      {recoveryItems.map((item) => {
+                        const effect = getRecoveryItemEffect(item.name);
+                        const Icon = effect.icon;
+                        return (
+                          <div key={item.id} className="flex items-center justify-between p-3 bg-gray-700 dark:bg-gray-800 rounded-lg">
+                            <div className="flex items-center gap-3">
+                              <Icon className="h-5 w-5 text-blue-400" />
+                              <div>
+                                <div className="font-medium text-white">{item.name.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}</div>
+                                <div className="text-sm text-gray-300">{effect.description}</div>
+                              </div>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <Badge variant="outline" className="text-gray-300">{item.quantity} available</Badge>
+                              <Button
+                                size="sm"
+                                onClick={() => selectedPlayer && useItemMutation.mutate({
+                                  playerId: selectedPlayer,
+                                  itemType: effect.type,
+                                  effectValue: effect.effectValue
+                                })}
+                                disabled={!selectedPlayer || useItemMutation.isPending}
+                                variant="outline"
+                              >
+                                Use Item
+                              </Button>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                ) : (
+                  <Card className="bg-gray-700 dark:bg-gray-800 border-gray-600">
+                    <CardContent className="p-6 text-center">
+                      <Package className="w-12 h-12 mx-auto mb-4 text-gray-400" />
+                      <p className="text-gray-300">No recovery items in inventory</p>
+                      <p className="text-sm text-gray-400 mt-2">
+                        Visit the Market → Store to purchase medical kits, stamina drinks, and recovery items
+                      </p>
+                    </CardContent>
+                  </Card>
+                )}
               </div>
             </CardContent>
           </Card>
@@ -242,15 +333,15 @@ export function InjuryStaminaManager({ teamId }: InjuryStaminaManagerProps) {
             <CardContent className="space-y-4">
               <div className="grid gap-4">
                 <div>
-                  <label className="block text-sm font-medium mb-2">Select Player for Injury Test</label>
+                  <label className="block text-sm font-medium mb-2 text-white dark:text-white">Select Player for Injury Test</label>
                   <select 
                     value={selectedPlayer}
                     onChange={(e) => setSelectedPlayer(e.target.value)}
-                    className="w-full p-2 border rounded"
+                    className="w-full p-2 border rounded bg-gray-800 dark:bg-gray-700 text-white dark:text-white border-gray-600 dark:border-gray-500"
                   >
-                    <option value="">Choose a player...</option>
+                    <option value="" className="bg-gray-800 text-white">Choose a player...</option>
                     {players.map((player) => (
-                      <option key={player.id} value={player.id}>
+                      <option key={player.id} value={player.id} className="bg-gray-800 text-white">
                         {player.firstName} {player.lastName}
                       </option>
                     ))}
