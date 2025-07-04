@@ -15,15 +15,21 @@ const registerTournamentSchema = z.object({
   tournamentId: z.string().uuid("Invalid tournament ID format"),
 });
 
+const dailyTournamentRegisterSchema = z.object({
+  division: z.number().min(2).max(8),
+});
+
+const midSeasonRegisterSchema = z.object({
+  division: z.number().min(1).max(8),
+  paymentType: z.enum(["credits", "gems"]),
+});
+
 // Get available tournaments for team's division
 router.get('/available', isAuthenticated, async (req: any, res: Response, next: NextFunction) => {
   try {
     const userId = req.user.claims.sub;
     const team = await storage.teams.getTeamByUserId(userId);
     if (!team) return res.status(404).json({ message: "Team not found" });
-
-    // First, ensure tournaments are created for today
-    await tournamentService.ensureTournamentsExist(team.division);
 
     const availableTournaments = await tournamentService.getAvailableTournaments(team.id);
     
@@ -79,6 +85,69 @@ router.post('/register', isAuthenticated, async (req: any, res: Response, next: 
       return res.status(400).json({ message: error.message });
     }
     
+    next(error);
+  }
+});
+
+// Register for Daily Divisional Tournament (on-demand creation)
+router.post('/daily-tournament/register', isAuthenticated, async (req: any, res: Response, next: NextFunction) => {
+  try {
+    const userId = req.user.claims.sub;
+    const team = await storage.teams.getTeamByUserId(userId);
+    if (!team) return res.status(404).json({ message: "Team not found" });
+
+    const { division } = dailyTournamentRegisterSchema.parse(req.body);
+    
+    const tournamentId = await tournamentService.createOrJoinDailyTournament(team.id, division);
+    
+    res.json({ 
+      success: true, 
+      message: "Successfully registered for Daily Divisional Tournament!",
+      tournamentId
+    });
+  } catch (error) {
+    console.error("Error registering for daily tournament:", error);
+    if (error instanceof z.ZodError) {
+      return res.status(400).json({ 
+        message: "Invalid request data", 
+        errors: error.errors 
+      });
+    }
+    if (error instanceof Error) {
+      return res.status(400).json({ message: error.message });
+    }
+    next(error);
+  }
+});
+
+// Register for Mid-Season Classic (on-demand creation)
+router.post('/mid-season/register', isAuthenticated, async (req: any, res: Response, next: NextFunction) => {
+  try {
+    const userId = req.user.claims.sub;
+    const team = await storage.teams.getTeamByUserId(userId);
+    if (!team) return res.status(404).json({ message: "Team not found" });
+
+    const { division, paymentType } = midSeasonRegisterSchema.parse(req.body);
+    
+    const tournamentId = await tournamentService.createOrJoinMidSeasonClassic(team.id, division, paymentType);
+    
+    res.json({ 
+      success: true, 
+      message: "Successfully registered for Mid-Season Classic!",
+      tournamentId,
+      paymentType
+    });
+  } catch (error) {
+    console.error("Error registering for mid-season tournament:", error);
+    if (error instanceof z.ZodError) {
+      return res.status(400).json({ 
+        message: "Invalid request data", 
+        errors: error.errors 
+      });
+    }
+    if (error instanceof Error) {
+      return res.status(400).json({ message: error.message });
+    }
     next(error);
   }
 });

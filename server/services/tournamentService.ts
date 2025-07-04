@@ -149,6 +149,7 @@ export class TournamentService {
       division,
       season,
       gameDay,
+      entryFee: 0, // Add this for database compatibility
       entryFeeCredits: 0,
       entryFeeGems: 0,
       requiresEntryItem: true,
@@ -180,6 +181,7 @@ export class TournamentService {
       division,
       season,
       gameDay,
+      entryFee: 10000, // Add this for database compatibility  
       entryFeeCredits: 10000,
       entryFeeGems: 20, // Alternative payment
       requiresEntryItem: false,
@@ -433,6 +435,95 @@ export class TournamentService {
       trophiesWon,
       winRate: totalTournaments > 0 ? (wins / totalTournaments) * 100 : 0
     };
+  }
+
+  async createOrJoinDailyTournament(teamId: string, division: number): Promise<string> {
+    const gameDay = this.getCurrentGameDay();
+    const season = this.getCurrentSeason();
+
+    // Check if tournament already exists for this division/day
+    const existingTournament = await db.select()
+      .from(tournaments)
+      .where(and(
+        eq(tournaments.division, division),
+        eq(tournaments.type, "daily_divisional_cup"),
+        eq(tournaments.gameDay, gameDay),
+        eq(tournaments.season, season),
+        eq(tournaments.status, "open")
+      ))
+      .limit(1);
+
+    let tournamentId: string;
+
+    if (existingTournament.length > 0) {
+      // Tournament exists, join it
+      tournamentId = existingTournament[0].id;
+    } else {
+      // Create new tournament
+      tournamentId = await this.createDailyCupTournament(division);
+    }
+
+    // Register the team (this will check for entry items and handle payments)
+    await this.registerForTournament(teamId, tournamentId);
+
+    return tournamentId;
+  }
+
+  async createOrJoinMidSeasonClassic(teamId: string, division: number, paymentType: "credits" | "gems"): Promise<string> {
+    const season = this.getCurrentSeason();
+
+    // Check if tournament already exists for this division
+    const existingTournament = await db.select()
+      .from(tournaments)
+      .where(and(
+        eq(tournaments.division, division),
+        eq(tournaments.type, "mid_season_classic"),
+        eq(tournaments.season, season),
+        eq(tournaments.status, "open")
+      ))
+      .limit(1);
+
+    let tournamentId: string;
+
+    if (existingTournament.length > 0) {
+      // Tournament exists, join it
+      tournamentId = existingTournament[0].id;
+    } else {
+      // Create new tournament
+      tournamentId = await this.createMidSeasonClassic(division);
+    }
+
+    // Handle payment based on user choice
+    const team = await db.select().from(teams).where(eq(teams.id, teamId)).limit(1);
+    if (team.length === 0) {
+      throw new Error("Team not found");
+    }
+
+    if (paymentType === "credits") {
+      if (team[0].credits < 10000) {
+        throw new Error("Insufficient credits for Mid-Season Classic entry (10,000₡ required)");
+      }
+      await db.update(teams)
+        .set({ credits: team[0].credits - 10000 })
+        .where(eq(teams.id, teamId));
+    } else if (paymentType === "gems") {
+      if (team[0].gems < 20) {
+        throw new Error("Insufficient gems for Mid-Season Classic entry (20💎 required)");
+      }
+      await db.update(teams)
+        .set({ gems: team[0].gems - 20 })
+        .where(eq(teams.id, teamId));
+    }
+
+    // Create tournament entry directly (payment already handled above)
+    await db.insert(tournamentEntries).values({
+      id: randomUUID(),
+      tournamentId,
+      teamId,
+      entryTime: new Date()
+    });
+
+    return tournamentId;
   }
 }
 

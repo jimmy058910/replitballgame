@@ -106,6 +106,50 @@ const TournamentCenter: React.FC<TournamentCenterProps> = ({ teamId }) => {
     },
   });
 
+  // Daily Tournament registration mutation
+  const registerDailyTournamentMutation = useMutation({
+    mutationFn: async () => {
+      return await apiRequest(`/api/new-tournaments/daily-tournament/register`, "POST", { division: teamInfo?.division });
+    },
+    onSuccess: () => {
+      toast({
+        title: "Success!",
+        description: "Successfully registered for Daily Divisional Tournament!"
+      });
+      queryClient.invalidateQueries({ queryKey: ["/api/new-tournaments"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/teams", teamId] });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Registration Failed",
+        description: error.message,
+        variant: "destructive"
+      });
+    }
+  });
+
+  // Mid-Season Classic registration mutation
+  const registerMidSeasonMutation = useMutation({
+    mutationFn: async (paymentType: "credits" | "gems") => {
+      return await apiRequest(`/api/new-tournaments/mid-season/register`, "POST", { division: teamInfo?.division, paymentType });
+    },
+    onSuccess: () => {
+      toast({
+        title: "Success!",
+        description: "Successfully registered for Mid-Season Classic!"
+      });
+      queryClient.invalidateQueries({ queryKey: ["/api/new-tournaments"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/teams", teamId] });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Registration Failed",
+        description: error.message,
+        variant: "destructive"
+      });
+    }
+  });
+
   const getDivisionName = (division: number): string => {
     const names = ['', 'Diamond', 'Platinum', 'Gold', 'Silver', 'Bronze', 'Copper', 'Stone', 'Copper'];
     return names[division] || 'Unknown';
@@ -195,7 +239,7 @@ const TournamentCenter: React.FC<TournamentCenterProps> = ({ teamId }) => {
                 <div className="flex items-center justify-center space-x-4 mt-2">
                   <div className="flex items-center space-x-1">
                     <Coins className="w-4 h-4 text-blue-600" />
-                    <span className="font-bold">15,000₡</span>
+                    <span className="font-bold text-blue-800 dark:text-blue-200">15,000₡</span>
                   </div>
                   <div className="flex items-center space-x-1">
                     <Gem className="w-4 h-4 text-purple-600" />
@@ -204,24 +248,18 @@ const TournamentCenter: React.FC<TournamentCenterProps> = ({ teamId }) => {
                 </div>
               </div>
 
-              {!dailyDivisionalCup ? (
-                <div className="space-y-2">
-                  <Badge variant="outline" className="bg-orange-50 text-orange-700 border-orange-300">
-                    Creating today's tournament...
-                  </Badge>
-                  <p className="text-xs text-blue-600 dark:text-blue-400">
-                    Purchase Tournament Entry items in Market → Store → Entries
-                  </p>
-                </div>
-              ) : (
+              <div className="space-y-2">
                 <Button 
-                  onClick={() => enterTournamentMutation.mutate(dailyDivisionalCup.id)}
-                  disabled={enterTournamentMutation.isPending}
+                  onClick={() => registerDailyTournamentMutation.mutate()}
+                  disabled={registerDailyTournamentMutation.isPending}
                   className="bg-blue-600 hover:bg-blue-700"
                 >
-                  {enterTournamentMutation.isPending ? "Entering..." : "Enter Tournament"}
+                  {registerDailyTournamentMutation.isPending ? "Registering..." : "Register for Daily Tournament"}
                 </Button>
-              )}
+                <p className="text-xs text-blue-600 dark:text-blue-400">
+                  Requires Tournament Entry item - Purchase in Market → Store → Entries
+                </p>
+              </div>
             </div>
           </CardContent>
         </Card>
@@ -286,19 +324,22 @@ const TournamentCenter: React.FC<TournamentCenterProps> = ({ teamId }) => {
                     <Badge variant="outline" className="bg-green-50 text-green-700 border-green-300">
                       Registration Open
                     </Badge>
-                    <Button 
-                      onClick={() => {
-                        // Create Mid-Season Cup tournament entry
-                        toast({
-                          title: "Registration Submitted",
-                          description: "You will be entered when the Mid-Season Cup tournament is created.",
-                        });
-                      }}
-                      disabled={enterTournamentMutation.isPending || teamInfo.credits < 10000}
-                      className="bg-purple-600 hover:bg-purple-700 mt-2"
-                    >
-                      Register (10,000₡ or 20💎)
-                    </Button>
+                    <div className="space-y-2">
+                      <Button 
+                        onClick={() => registerMidSeasonMutation.mutate("credits")}
+                        disabled={registerMidSeasonMutation.isPending || teamInfo.credits < 10000}
+                        className="bg-purple-600 hover:bg-purple-700 w-full"
+                      >
+                        {registerMidSeasonMutation.isPending ? "Registering..." : "Register with 10,000₡"}
+                      </Button>
+                      <Button 
+                        onClick={() => registerMidSeasonMutation.mutate("gems")}
+                        disabled={registerMidSeasonMutation.isPending || teamInfo.gems < 20}
+                        className="bg-purple-600 hover:bg-purple-700 w-full"
+                      >
+                        {registerMidSeasonMutation.isPending ? "Registering..." : "Register with 20💎"}
+                      </Button>
+                    </div>
                   </div>
                 )}
               </div>
