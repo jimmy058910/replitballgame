@@ -9,6 +9,7 @@ import auctionRoutes from "./auctionRoutes";
 import storeRoutes from "./storeRoutes";
 import stadiumRoutes from "./stadiumRoutes";
 import tournamentRoutes from "./tournamentRoutes";
+import newTournamentRoutes from "./newTournamentRoutes";
 import exhibitionRoutes from "./exhibitionRoutes";
 import notificationRoutes from "./notificationRoutes";
 import injuryRoutes from "./injuryRoutes";
@@ -50,6 +51,7 @@ export function registerAllRoutes(app: Express): void {
   app.use("/api/stadium", stadiumRoutes); // Covers /api/stadium and /api/stadium/revenue
   app.use("/api/tournaments", tournamentRoutes);
   app.use("/api/daily-tournaments", dailyTournamentRoutes);
+  app.use("/api/new-tournaments", newTournamentRoutes);
   app.use("/api/exhibitions", exhibitionRoutes);
   app.use("/api/notifications", notificationRoutes); // Covers /api/notifications and /api/demo/notifications
   app.use("/api/injuries", injuryRoutes); // Covers /api/injuries, /api/medical-staff, /api/conditioning

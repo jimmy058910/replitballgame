@@ -345,13 +345,19 @@ export const stadiumEvents = pgTable("stadium_events", {
 export const tournaments = pgTable("tournaments", {
   id: uuid("id").primaryKey().defaultRandom(),
   name: varchar("name").notNull(),
+  type: varchar("type").notNull(), // "daily_divisional_cup" or "mid_season_classic"
   division: integer("division").notNull(),
-  entryFee: integer("entry_fee").notNull(),
-  maxTeams: integer("max_teams").default(8),
-  status: varchar("status").default("open"),
-  prizes: jsonb("prizes").default({}),
-  startTime: timestamp("start_time"),
-  endTime: timestamp("end_time"),
+  season: integer("season").notNull(), // Track which season this tournament belongs to
+  gameDay: integer("game_day"), // Day 7 for Mid-Season Classic, daily for Divisional Cups
+  entryFeeCredits: integer("entry_fee_credits").default(0),
+  entryFeeGems: integer("entry_fee_gems").default(0),
+  requiresEntryItem: boolean("requires_entry_item").default(false), // For Daily Divisional Cups
+  maxTeams: integer("max_teams").default(16),
+  status: varchar("status").default("open"), // "open", "in_progress", "completed"
+  prizes: jsonb("prizes").default({}), // Enhanced prize structure with credits, gems, trophies
+  registrationDeadline: timestamp("registration_deadline"),
+  tournamentStartTime: timestamp("tournament_start_time"),
+  completedAt: timestamp("completed_at"),
   createdAt: timestamp("created_at").defaultNow(),
 });
 
@@ -360,8 +366,13 @@ export const tournamentEntries = pgTable("tournament_entries", {
   tournamentId: uuid("tournament_id").references(() => tournaments.id).notNull(),
   teamId: uuid("team_id").references(() => teams.id).notNull(),
   entryTime: timestamp("entry_time").defaultNow(),
-  placement: integer("placement"),
-  prizeWon: integer("prize_won").default(0),
+  placement: integer("placement"), // Final placement in tournament (1st, 2nd, etc.)
+  creditsWon: integer("credits_won").default(0),
+  gemsWon: integer("gems_won").default(0),
+  trophyWon: varchar("trophy_won"), // Trophy name for Mid-Season Classic winners
+  matchesPlayed: integer("matches_played").default(0),
+  eliminated: boolean("eliminated").default(false),
+  eliminatedInRound: varchar("eliminated_in_round"), // "Round 1", "Semifinals", "Finals"
 });
 
 export const teamInventory = pgTable("team_inventory", {

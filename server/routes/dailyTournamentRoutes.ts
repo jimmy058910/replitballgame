@@ -35,17 +35,10 @@ router.get("/stats", isAuthenticated, async (req: any, res: Response, next: Next
         )
       );
 
-    // Count tournament entries used today - using teamInventory
-    const tournamentEntriesUsedToday = await db
-      .select()
-      .from(teamInventory)
-      .where(
-        and(
-          eq(teamInventory.teamId, team.id),
-          eq(teamInventory.itemType, "Tournament Entry"),
-          gte(teamInventory.lastUsed, todayStart)
-        )
-      );
+    // Count tournament entries used today - check tournament matches created today
+    const tournamentEntriesUsedToday = tournamentMatchesToday.filter(match => 
+      match.createdAt && match.createdAt >= todayStart
+    );
 
     res.json({
       gamesPlayedToday: tournamentMatchesToday.length,
