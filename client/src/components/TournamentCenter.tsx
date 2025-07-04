@@ -130,7 +130,7 @@ const TournamentCenter: React.FC<TournamentCenterProps> = ({ teamId }) => {
 
   // Mid-Season Classic registration mutation
   const registerMidSeasonMutation = useMutation({
-    mutationFn: async (paymentType: "credits" | "gems") => {
+    mutationFn: async (paymentType: "credits" | "gems" | "both") => {
       return await apiRequest(`/api/new-tournaments/mid-season/register`, "POST", { division: teamInfo?.division, paymentType });
     },
     onSuccess: () => {
@@ -227,8 +227,8 @@ const TournamentCenter: React.FC<TournamentCenterProps> = ({ teamId }) => {
                 <div className="text-sm text-blue-700 dark:text-blue-300">
                   • Tournament Entry Item required<br/>
                   • Available for Divisions 2-8<br/>
-                  • 5% injury risk, -10 stamina<br/>
-                  • Daily entries available
+                  • Low injury risk and low stamina reduction<br/>
+                  • 1 free entry per day. Can also use a Tournament Entry once per day
                 </div>
               </div>
               
@@ -243,7 +243,7 @@ const TournamentCenter: React.FC<TournamentCenterProps> = ({ teamId }) => {
                   </div>
                   <div className="flex items-center space-x-1">
                     <Gem className="w-4 h-4 text-purple-600" />
-                    <span className="font-bold">25💎</span>
+                    <span className="font-bold text-blue-800 dark:text-blue-200">25💎</span>
                   </div>
                 </div>
               </div>
@@ -285,9 +285,9 @@ const TournamentCenter: React.FC<TournamentCenterProps> = ({ teamId }) => {
                     Tournament Details
                   </p>
                   <div className="text-sm text-purple-700 dark:text-purple-300">
-                    • Entry: 10,000₡ or 20💎<br/>
+                    • Entry: 10,000₡ AND 20💎<br/>
                     • Tournament Day: Day 7 at 1PM<br/>
-                    • 20% injury risk, -30 stamina
+                    • Moderate injury risk and moderate stamina reduction
                   </div>
                 </div>
                 <div className="bg-purple-100 dark:bg-purple-800/30 p-4 rounded-lg">
@@ -324,22 +324,13 @@ const TournamentCenter: React.FC<TournamentCenterProps> = ({ teamId }) => {
                     <Badge variant="outline" className="bg-green-50 text-green-700 border-green-300">
                       Registration Open
                     </Badge>
-                    <div className="space-y-2">
-                      <Button 
-                        onClick={() => registerMidSeasonMutation.mutate("credits")}
-                        disabled={registerMidSeasonMutation.isPending || teamInfo.credits < 10000}
-                        className="bg-purple-600 hover:bg-purple-700 w-full"
-                      >
-                        {registerMidSeasonMutation.isPending ? "Registering..." : "Register with 10,000₡"}
-                      </Button>
-                      <Button 
-                        onClick={() => registerMidSeasonMutation.mutate("gems")}
-                        disabled={registerMidSeasonMutation.isPending || teamInfo.gems < 20}
-                        className="bg-purple-600 hover:bg-purple-700 w-full"
-                      >
-                        {registerMidSeasonMutation.isPending ? "Registering..." : "Register with 20💎"}
-                      </Button>
-                    </div>
+                    <Button 
+                      onClick={() => registerMidSeasonMutation.mutate("both")}
+                      disabled={registerMidSeasonMutation.isPending || teamInfo.credits < 10000 || teamInfo.gems < 20}
+                      className="bg-purple-600 hover:bg-purple-700 w-full"
+                    >
+                      {registerMidSeasonMutation.isPending ? "Registering..." : "Register (10,000₡ + 20💎)"}
+                    </Button>
                   </div>
                 )}
               </div>

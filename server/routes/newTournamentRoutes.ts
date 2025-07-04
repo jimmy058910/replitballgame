@@ -21,7 +21,7 @@ const dailyTournamentRegisterSchema = z.object({
 
 const midSeasonRegisterSchema = z.object({
   division: z.number().min(1).max(8),
-  paymentType: z.enum(["credits", "gems"]),
+  paymentType: z.enum(["credits", "gems", "both"]),
 });
 
 // Get available tournaments for team's division

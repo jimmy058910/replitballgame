@@ -173,7 +173,7 @@ Built as a React + Express web application with PostgreSQL database, using moder
 - ✓ **Database Schema Enhancement**: Added missing tournament columns (type, season, game_day, entry_fee_credits, entry_fee_gems, requires_entry_item, registration_deadline, tournament_start_time, completed_at)
 - ✓ **Tournament Type Classification**: Daily Divisional Cups (divisions 2-8) and Mid-Season Classic (all divisions) with distinct mechanics
 - ✓ **Entry Requirements System**: Tournament Entry items required for Daily Cups, credits/gems for Mid-Season Classic
-- ✓ **Risk/Reward Structure**: 5% injury risk/-10 stamina for Daily Cups, 20% injury risk/-30 stamina for Mid-Season Classic
+- ✓ **Risk/Reward Structure**: Low injury risk and low stamina reduction for Daily Cups, Moderate injury risk and moderate stamina reduction for Mid-Season Classic
 - ✓ **Registration Management**: Time-based registration windows (Day 6 for Mid-Season Classic, daily for Divisional Cups)
 - ✓ **Tournament Progression**: Complete bracket system with elimination rounds and prize distribution
 
@@ -183,6 +183,9 @@ Built as a React + Express web application with PostgreSQL database, using moder
 - ✓ **API Integration**: Complete integration with tournament service endpoints for available tournaments, entry history, and team tournament status
 - ✓ **Division Integration**: Proper division-based tournament filtering and reward calculation based on team division
 - ✓ **Tournament Entry Flow**: Mutation-based tournament entry with credit/gem validation and entry item requirements
+- ✓ **Mid-Season Cup Dual-Currency System**: Implemented "both" payment type requiring 10,000₡ AND 20💎 simultaneously for enhanced premium tournament positioning
+- ✓ **Percentage-Free UI Text**: Removed all percentage-based risk text ("5% injury", "20% injury") and replaced with descriptive language for better user experience
+- ✓ **Daily Tournament Entry Refinement**: Updated text to "1 free entry per day. Can also use a Tournament Entry once per day" for clarity on daily limits
 
 ### July 4, 2025 - COMPREHENSIVE EXHIBITION GAME MODE REVAMP WITH REALISTIC RISK-FREE MECHANICS & UI ACCESSIBILITY FIX COMPLETE (Previous)
 

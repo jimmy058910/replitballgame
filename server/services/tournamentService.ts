@@ -181,9 +181,8 @@ export class TournamentService {
       division,
       season,
       gameDay,
-      entryFee: 10000, // Add this for database compatibility  
       entryFeeCredits: 10000,
-      entryFeeGems: 20, // Alternative payment
+      entryFeeGems: 20,
       requiresEntryItem: false,
       maxTeams: 16,
       status: "open" as const,
@@ -286,7 +285,7 @@ export class TournamentService {
   }
 
   // Register team for tournament
-  async registerForTournament(teamId: string, tournamentId: string): Promise<void> {
+  async registerForTournament(teamId: string, tournamentId: string, paymentType?: "credits" | "gems" | "both"): Promise<void> {
     const [tournament] = await db.select().from(tournaments).where(eq(tournaments.id, tournamentId)).limit(1);
     if (!tournament) throw new Error("Tournament not found");
 
@@ -334,26 +333,52 @@ export class TournamentService {
           .where(eq(teamInventory.id, entryItem.id));
       }
     } else {
-      // Mid-Season Classic - requires credits or gems
+      // Mid-Season Classic - requires credits, gems, or both
       const entryFeeCredits = tournament.entryFeeCredits || 0;
       const entryFeeGems = tournament.entryFeeGems || 0;
       const teamCredits = team.credits || 0;
       const teamGems = team.gems || 0;
       
-      if (teamCredits >= entryFeeCredits) {
-        // Pay with credits
+      if (paymentType === "both") {
+        // Require BOTH credits and gems
+        if (teamCredits < entryFeeCredits || teamGems < entryFeeGems) {
+          throw new Error("Insufficient credits AND gems for entry fee");
+        }
+        // Charge both
+        await db
+          .update(teams)
+          .set({ 
+            credits: teamCredits - entryFeeCredits,
+            gems: teamGems - entryFeeGems 
+          })
+          .where(eq(teams.id, teamId));
+      } else if (paymentType === "credits" && teamCredits >= entryFeeCredits) {
+        // Pay with credits only
         await db
           .update(teams)
           .set({ credits: teamCredits - entryFeeCredits })
           .where(eq(teams.id, teamId));
-      } else if (teamGems >= entryFeeGems) {
-        // Pay with gems
+      } else if (paymentType === "gems" && teamGems >= entryFeeGems) {
+        // Pay with gems only
         await db
           .update(teams)
           .set({ gems: teamGems - entryFeeGems })
           .where(eq(teams.id, teamId));
       } else {
-        throw new Error("Insufficient credits or gems for entry fee");
+        // Legacy: try credits first, then gems (backwards compatibility)
+        if (teamCredits >= entryFeeCredits) {
+          await db
+            .update(teams)
+            .set({ credits: teamCredits - entryFeeCredits })
+            .where(eq(teams.id, teamId));
+        } else if (teamGems >= entryFeeGems) {
+          await db
+            .update(teams)
+            .set({ gems: teamGems - entryFeeGems })
+            .where(eq(teams.id, teamId));
+        } else {
+          throw new Error("Insufficient credits or gems for entry fee");
+        }
       }
     }
 
@@ -469,7 +494,7 @@ export class TournamentService {
     return tournamentId;
   }
 
-  async createOrJoinMidSeasonClassic(teamId: string, division: number, paymentType: "credits" | "gems"): Promise<string> {
+  async createOrJoinMidSeasonClassic(teamId: string, division: number, paymentType: "credits" | "gems" | "both"): Promise<string> {
     const season = this.getCurrentSeason();
 
     // Check if tournament already exists for this division
@@ -500,18 +525,28 @@ export class TournamentService {
     }
 
     if (paymentType === "credits") {
-      if (team[0].credits < 10000) {
+      if ((team[0].credits || 0) < 10000) {
         throw new Error("Insufficient credits for Mid-Season Classic entry (10,000₡ required)");
       }
       await db.update(teams)
-        .set({ credits: team[0].credits - 10000 })
+        .set({ credits: (team[0].credits || 0) - 10000 })
         .where(eq(teams.id, teamId));
     } else if (paymentType === "gems") {
-      if (team[0].gems < 20) {
+      if ((team[0].gems || 0) < 20) {
         throw new Error("Insufficient gems for Mid-Season Classic entry (20💎 required)");
       }
       await db.update(teams)
-        .set({ gems: team[0].gems - 20 })
+        .set({ gems: (team[0].gems || 0) - 20 })
+        .where(eq(teams.id, teamId));
+    } else if (paymentType === "both") {
+      if ((team[0].credits || 0) < 10000 || (team[0].gems || 0) < 20) {
+        throw new Error("Insufficient credits AND gems for Mid-Season Classic entry (10,000₡ AND 20💎 required)");
+      }
+      await db.update(teams)
+        .set({ 
+          credits: (team[0].credits || 0) - 10000,
+          gems: (team[0].gems || 0) - 20
+        })
         .where(eq(teams.id, teamId));
     }
 
