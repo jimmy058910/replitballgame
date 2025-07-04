@@ -373,10 +373,14 @@ export default function Competition() {
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <p className="text-gray-400">
-                    Challenge AI teams or practice with your current roster. Exhibition matches don't affect your league standing.
+                    Auto-match against similar teams or choose specific opponents. Exhibition matches don't affect your league standing.
                   </p>
-                  <Button className="w-full" variant="outline">
-                    Start Exhibition Match
+                  <Button 
+                    className="w-full" 
+                    variant="outline"
+                    onClick={() => setLocation("/exhibitions")}
+                  >
+                    Go to Exhibition Arena
                   </Button>
                 </CardContent>
               </Card>
@@ -385,20 +389,19 @@ export default function Competition() {
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
                     <Trophy className="h-5 w-5 text-gold-400" />
-                    Instant Exhibition
+                    Exhibition Options
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <p className="text-gray-400">
-                    Start an immediate exhibition match against other teams in your division. Games begin instantly!
+                    Access the full Exhibition Arena with instant matches, opponent selection, daily limits tracking, and recent match history.
                   </p>
                   <Button 
                     className="w-full" 
                     variant="outline"
-                    onClick={() => browseMutation.mutate()}
-                    disabled={browseMutation.isPending}
+                    onClick={() => setLocation("/exhibitions")}
                   >
-                    {browseMutation.isPending ? "Loading..." : "Choose Opponent"}
+                    Open Exhibition Arena
                   </Button>
                 </CardContent>
               </Card>

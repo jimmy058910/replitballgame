@@ -441,7 +441,7 @@ export default function Exhibitions() {
                         {game.score}
                       </div>
                       <div className="text-sm text-gray-400">
-                        {game.result.toUpperCase()}
+                        {game.result?.toUpperCase() || 'PENDING'}
                       </div>
                     </div>
                     
