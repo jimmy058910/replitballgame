@@ -26,11 +26,11 @@ export interface InjuryStaminaSettings {
 const DEFAULT_SETTINGS: InjuryStaminaSettings = {
   leagueInjuryChance: 20,
   tournamentInjuryChance: 5,
-  exhibitionInjuryChance: 0,
+  exhibitionInjuryChance: 15, // Allow injuries during match for realism
   
   leagueStaminaDepletion: 30,
   tournamentStaminaDepletion: 10,
-  exhibitionStaminaDepletion: 0,
+  exhibitionStaminaDepletion: 0, // No persistent daily stamina cost
   
   baseInjuryRecovery: 50,
   baseStaminaRecovery: 20,
@@ -56,7 +56,7 @@ export class InjuryStaminaService {
     carrierAgility: number,
     carrierInGameStamina: number,
     gameMode: 'league' | 'tournament' | 'exhibition'
-  ): Promise<{ hasInjury: boolean; injuryType?: string; recoveryPoints?: number }> {
+  ): Promise<{ hasInjury: boolean; injuryType?: string; recoveryPoints?: number; isTemporary?: boolean }> {
     
     // Get base injury chance based on game mode
     let baseInjuryChance = 0;
@@ -85,8 +85,29 @@ export class InjuryStaminaService {
     const roll = Math.random() * 100;
     const hasInjury = roll <= finalInjuryChance;
 
-    if (!hasInjury || gameMode === 'exhibition') {
+    if (!hasInjury) {
       return { hasInjury: false };
+    }
+
+    // For exhibition matches, allow injury calculation but mark as temporary
+    if (gameMode === 'exhibition') {
+      // Determine injury severity for match simulation but don't persist
+      const severityRoll = Math.random() * 100;
+      let injuryType: string;
+      let recoveryPoints: number;
+
+      if (severityRoll <= 70) {
+        injuryType = 'Minor Injury (Temporary)';
+        recoveryPoints = this.settings.minorInjuryRP;
+      } else if (severityRoll <= 95) {
+        injuryType = 'Moderate Injury (Temporary)';
+        recoveryPoints = this.settings.moderateInjuryRP;
+      } else {
+        injuryType = 'Severe Injury (Temporary)';
+        recoveryPoints = this.settings.severeInjuryRP;
+      }
+
+      return { hasInjury: true, injuryType, recoveryPoints, isTemporary: true };
     }
 
     // Determine injury severity (70% Minor, 25% Moderate, 5% Severe)
