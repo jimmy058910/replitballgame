@@ -195,6 +195,61 @@ export class TournamentService {
     return created.id;
   }
 
+  // Ensure tournaments exist for current day and division
+  async ensureTournamentsExist(division: number): Promise<void> {
+    const season = this.getCurrentSeason();
+    const gameDay = this.getCurrentGameDay();
+
+    // Check if Daily Divisional Cup exists for this division and day
+    if (division >= 2 && division <= 8) {
+      const existingDailyCup = await db
+        .select()
+        .from(tournaments)
+        .where(
+          and(
+            eq(tournaments.type, "daily_divisional_cup"),
+            eq(tournaments.division, division),
+            eq(tournaments.season, season),
+            eq(tournaments.gameDay, gameDay)
+          )
+        )
+        .limit(1);
+
+      if (existingDailyCup.length === 0) {
+        try {
+          await this.createDailyCupTournament(division);
+          console.log(`Created Daily Divisional Cup for Division ${division}, Day ${gameDay}`);
+        } catch (error) {
+          console.error(`Failed to create Daily Divisional Cup for Division ${division}:`, error);
+        }
+      }
+    }
+
+    // Check if Mid-Season Classic exists for this division (only create on Day 1-6)
+    if (gameDay <= 6) {
+      const existingMidSeason = await db
+        .select()
+        .from(tournaments)
+        .where(
+          and(
+            eq(tournaments.type, "mid_season_classic"),
+            eq(tournaments.division, division),
+            eq(tournaments.season, season)
+          )
+        )
+        .limit(1);
+
+      if (existingMidSeason.length === 0) {
+        try {
+          await this.createMidSeasonClassic(division);
+          console.log(`Created Mid-Season Classic for Division ${division}, Season ${season}`);
+        } catch (error) {
+          console.error(`Failed to create Mid-Season Classic for Division ${division}:`, error);
+        }
+      }
+    }
+  }
+
   // Get available tournaments for a team
   async getAvailableTournaments(teamId: string) {
     const team = await db.select().from(teams).where(eq(teams.id, teamId)).limit(1);

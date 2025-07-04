@@ -22,6 +22,9 @@ router.get('/available', isAuthenticated, async (req: any, res: Response, next: 
     const team = await storage.teams.getTeamByUserId(userId);
     if (!team) return res.status(404).json({ message: "Team not found" });
 
+    // First, ensure tournaments are created for today
+    await tournamentService.ensureTournamentsExist(team.division);
+
     const availableTournaments = await tournamentService.getAvailableTournaments(team.id);
     
     // Format tournaments with additional info

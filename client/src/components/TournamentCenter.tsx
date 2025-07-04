@@ -161,13 +161,13 @@ const TournamentCenter: React.FC<TournamentCenterProps> = ({ teamId }) => {
       {/* Side by Side Layout */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         
-        {/* Daily Divisional Cup - LEFT SIDE */}
+        {/* Daily Divisional Tournament - LEFT SIDE */}
         <Card className="border-2 border-blue-300 dark:border-blue-700 bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-blue-900/30 dark:to-indigo-900/30">
           <CardHeader className="text-center">
             <div className="flex items-center justify-center space-x-2 mb-2">
               <Calendar className="w-8 h-8 text-blue-600" />
               <CardTitle className="text-xl text-blue-800 dark:text-blue-200">
-                Daily Divisional Cup
+                Daily Divisional Tournament
               </CardTitle>
             </div>
             <p className="text-blue-700 dark:text-blue-300">
@@ -175,39 +175,45 @@ const TournamentCenter: React.FC<TournamentCenterProps> = ({ teamId }) => {
             </p>
           </CardHeader>
           <CardContent className="text-center">
-            {!dailyDivisionalCup ? (
-              <div className="space-y-4">
-                <div className="bg-blue-100 dark:bg-blue-800/30 p-4 rounded-lg">
-                  <p className="font-semibold text-blue-800 dark:text-blue-200 mb-2">
-                    Entry Requirements
-                  </p>
-                  <div className="text-sm text-blue-700 dark:text-blue-300">
-                    • Tournament Entry Item required<br/>
-                    • Available for Divisions 2-8<br/>
-                    • 5% injury risk, -10 stamina
-                  </div>
+            <div className="space-y-4">
+              <div className="bg-blue-100 dark:bg-blue-800/30 p-4 rounded-lg">
+                <p className="font-semibold text-blue-800 dark:text-blue-200 mb-2">
+                  Entry Requirements
+                </p>
+                <div className="text-sm text-blue-700 dark:text-blue-300">
+                  • Tournament Entry Item required<br/>
+                  • Available for Divisions 2-8<br/>
+                  • 5% injury risk, -10 stamina<br/>
+                  • Daily entries available
                 </div>
-                <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-300">
-                  No tournament available today
-                </Badge>
               </div>
-            ) : (
-              <div className="space-y-4">
-                <div className="bg-blue-100 dark:bg-blue-800/30 p-4 rounded-lg">
-                  <p className="font-semibold text-blue-800 dark:text-blue-200">
-                    Entry Fee: Tournament Entry Item
-                  </p>
-                  <div className="flex items-center justify-center space-x-4 mt-2">
-                    <div className="flex items-center space-x-1">
-                      <Coins className="w-4 h-4 text-blue-600" />
-                      <span className="font-bold">15,000₡</span>
-                    </div>
-                    <div className="flex items-center space-x-1">
-                      <Gem className="w-4 h-4 text-purple-600" />
-                      <span className="font-bold">25💎</span>
-                    </div>
+              
+              <div className="bg-blue-100 dark:bg-blue-800/30 p-4 rounded-lg">
+                <p className="font-semibold text-blue-800 dark:text-blue-200 mb-2">
+                  {getDivisionName(teamInfo.division)} Division Prize Preview
+                </p>
+                <div className="flex items-center justify-center space-x-4 mt-2">
+                  <div className="flex items-center space-x-1">
+                    <Coins className="w-4 h-4 text-blue-600" />
+                    <span className="font-bold">15,000₡</span>
+                  </div>
+                  <div className="flex items-center space-x-1">
+                    <Gem className="w-4 h-4 text-purple-600" />
+                    <span className="font-bold">25💎</span>
                   </div>
                 </div>
+              </div>
+
+              {!dailyDivisionalCup ? (
+                <div className="space-y-2">
+                  <Badge variant="outline" className="bg-orange-50 text-orange-700 border-orange-300">
+                    Creating today's tournament...
+                  </Badge>
+                  <p className="text-xs text-blue-600 dark:text-blue-400">
+                    Purchase Tournament Entry items in Market → Store → Entries
+                  </p>
+                </div>
+              ) : (
                 <Button 
                   onClick={() => enterTournamentMutation.mutate(dailyDivisionalCup.id)}
                   disabled={enterTournamentMutation.isPending}
@@ -215,8 +221,8 @@ const TournamentCenter: React.FC<TournamentCenterProps> = ({ teamId }) => {
                 >
                   {enterTournamentMutation.isPending ? "Entering..." : "Enter Tournament"}
                 </Button>
-              </div>
-            )}
+              )}
+            </div>
           </CardContent>
         </Card>
 
@@ -253,15 +259,15 @@ const TournamentCenter: React.FC<TournamentCenterProps> = ({ teamId }) => {
                   <div className="flex items-center justify-center space-x-4 mt-2">
                     <div className="flex items-center space-x-1">
                       <Coins className="w-4 h-4 text-purple-600" />
-                      <span className="font-bold">50,000₡</span>
+                      <span className="font-bold text-purple-800 dark:text-purple-200">50,000₡</span>
                     </div>
                     <div className="flex items-center space-x-1">
                       <Gem className="w-4 h-4 text-purple-600" />
-                      <span className="font-bold">100💎</span>
+                      <span className="font-bold text-purple-800 dark:text-purple-200">100💎</span>
                     </div>
                     <div className="flex items-center space-x-1">
                       <Trophy className="w-4 h-4 text-purple-600" />
-                      <span className="font-bold">Trophy</span>
+                      <span className="font-bold text-purple-800 dark:text-purple-200">Trophy</span>
                     </div>
                   </div>
                 </div>
@@ -280,6 +286,19 @@ const TournamentCenter: React.FC<TournamentCenterProps> = ({ teamId }) => {
                     <Badge variant="outline" className="bg-green-50 text-green-700 border-green-300">
                       Registration Open
                     </Badge>
+                    <Button 
+                      onClick={() => {
+                        // Create Mid-Season Cup tournament entry
+                        toast({
+                          title: "Registration Submitted",
+                          description: "You will be entered when the Mid-Season Cup tournament is created.",
+                        });
+                      }}
+                      disabled={enterTournamentMutation.isPending || teamInfo.credits < 10000}
+                      className="bg-purple-600 hover:bg-purple-700 mt-2"
+                    >
+                      Register (10,000₡ or 20💎)
+                    </Button>
                   </div>
                 )}
               </div>
@@ -292,11 +311,11 @@ const TournamentCenter: React.FC<TournamentCenterProps> = ({ teamId }) => {
                   <div className="flex items-center justify-center space-x-4 mt-2">
                     <div className="flex items-center space-x-1">
                       <Coins className="w-4 h-4 text-purple-600" />
-                      <span className="font-bold">50,000₡</span>
+                      <span className="font-bold text-purple-800 dark:text-purple-200">50,000₡</span>
                     </div>
                     <div className="flex items-center space-x-1">
                       <Gem className="w-4 h-4 text-purple-600" />
-                      <span className="font-bold">100💎</span>
+                      <span className="font-bold text-purple-800 dark:text-purple-200">100💎</span>
                     </div>
                   </div>
                 </div>
@@ -314,15 +333,15 @@ const TournamentCenter: React.FC<TournamentCenterProps> = ({ teamId }) => {
       </div>
 
       {/* Tournament History Section */}
-      {tournamentHistory && tournamentHistory.length > 0 && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center space-x-2">
-              <Trophy className="w-5 h-5" />
-              <span>Tournament History</span>
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center space-x-2">
+            <Trophy className="w-5 h-5" />
+            <span>Tournament History</span>
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          {tournamentHistory && tournamentHistory.length > 0 ? (
             <div className="space-y-3">
               {tournamentHistory.slice(0, 5).map((entry) => (
                 <div key={entry.id} className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
@@ -351,18 +370,15 @@ const TournamentCenter: React.FC<TournamentCenterProps> = ({ teamId }) => {
                 </div>
               ))}
             </div>
-          </CardContent>
-        </Card>
-      )}
-
-      {/* Current Status */}
-      <Card>
-        <CardContent className="pt-6">
-          <div className="text-center">
-            <p className="text-sm text-gray-600 dark:text-gray-400">
-              Current Day: {currentGameDay} | Game Phase: {isTournamentDay ? "Tournament Day" : "Regular Season"}
-            </p>
-          </div>
+          ) : (
+            <div className="text-center py-8">
+              <Trophy className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+              <p className="text-gray-600 dark:text-gray-400">No tournament history yet</p>
+              <p className="text-sm text-gray-500 dark:text-gray-500 mt-2">
+                Enter tournaments to build your competitive record
+              </p>
+            </div>
+          )}
         </CardContent>
       </Card>
     </div>
