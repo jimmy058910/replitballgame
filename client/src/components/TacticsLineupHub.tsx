@@ -6,8 +6,9 @@ import { Button } from "./ui/button";
 import { Badge } from "./ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
 import { Progress } from "./ui/progress";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "./ui/dialog";
 import { useToast } from "@/hooks/use-toast";
-import { Users, Target, Shield, Zap, Trophy, TrendingUp, Activity, AlertTriangle, Star } from "lucide-react";
+import { Users, Target, Shield, Zap, Trophy, TrendingUp, Activity, AlertTriangle, Star, Smartphone, Monitor } from "lucide-react";
 
 interface Player {
   id: string;
@@ -75,8 +76,25 @@ export default function TacticsLineupHub({ teamId }: TacticsLineupHubProps) {
   const [selectedFieldSize, setSelectedFieldSize] = useState<string>("standard");
   const [selectedTacticalFocus, setSelectedTacticalFocus] = useState<string>("balanced");
   
+  // Mobile interface state
+  const [isMobileMode, setIsMobileMode] = useState(false);
+  const [selectedPlayer, setSelectedPlayer] = useState<Player | null>(null);
+  const [showPositionDialog, setShowPositionDialog] = useState(false);
+  
   const { toast } = useToast();
   const queryClient = useQueryClient();
+
+  // Mobile detection
+  useEffect(() => {
+    const checkMobile = () => {
+      const isMobile = window.innerWidth <= 768 || 'ontouchstart' in window;
+      setIsMobileMode(isMobile);
+    };
+    
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
 
   // Fetch team players
   const { data: rawPlayers = [] } = useQuery({
@@ -254,8 +272,8 @@ export default function TacticsLineupHub({ teamId }: TacticsLineupHubProps) {
     if (player) return player;
     
     // Check starters
-    player = starterSlots.find(slot => slot.player?.id === id)?.player || null;
-    if (player) return player;
+    const starterSlot = starterSlots.find(slot => slot.player?.id === id);
+    if (starterSlot?.player) return starterSlot.player as Player;
     
     // Check substitutes
     const allSubs = [...substitutes.blockers, ...substitutes.runners, ...substitutes.passers];
@@ -343,12 +361,188 @@ export default function TacticsLineupHub({ teamId }: TacticsLineupHubProps) {
     }
   };
 
-  // Render enhanced player card
+  // Mobile-friendly selection handlers
+  const handlePlayerSelect = (player: Player) => {
+    if (isMobileMode) {
+      setSelectedPlayer(player);
+      setShowPositionDialog(true);
+    }
+  };
+
+  const assignPlayerToStarterSlot = (slotIndex: number) => {
+    if (!selectedPlayer) return;
+    
+    const targetSlot = starterSlots[slotIndex];
+    
+    // Check role compatibility (except for wildcard)
+    if (!targetSlot.isWildcard && targetSlot.requiredRole && selectedPlayer.role !== targetSlot.requiredRole) {
+      toast({ 
+        title: "Invalid Position", 
+        description: `${selectedPlayer.role}s cannot be placed in ${targetSlot.requiredRole} positions.`,
+        variant: "destructive" 
+      });
+      return;
+    }
+
+    // Find source and remove player
+    const playerSource = findPlayerSource(selectedPlayer);
+    if (playerSource) {
+      removePlayerFromSource(selectedPlayer, playerSource);
+    }
+    
+    // If slot is occupied, return that player to available
+    if (targetSlot.player) {
+      setAvailablePlayers(prev => [...prev, targetSlot.player!]);
+    }
+    
+    // Place player in slot
+    const newSlots = [...starterSlots];
+    newSlots[slotIndex] = { ...targetSlot, player: selectedPlayer };
+    setStarterSlots(newSlots);
+    
+    setSelectedPlayer(null);
+    setShowPositionDialog(false);
+    
+    toast({ 
+      title: "Player Assigned", 
+      description: `${selectedPlayer.firstName} ${selectedPlayer.lastName} assigned to ${targetSlot.label}` 
+    });
+  };
+
+  const assignPlayerToSubstitute = (role: keyof PositionalSubstitutes) => {
+    if (!selectedPlayer) return;
+    
+    // Check role compatibility
+    const playerRole = selectedPlayer.role + "s"; // Convert "blocker" to "blockers"
+    if (playerRole !== role) {
+      toast({ 
+        title: "Invalid Position", 
+        description: `${selectedPlayer.role}s cannot be substitutes for ${role}.`,
+        variant: "destructive" 
+      });
+      return;
+    }
+
+    // Find source and remove player
+    const playerSource = findPlayerSource(selectedPlayer);
+    if (playerSource) {
+      removePlayerFromSource(selectedPlayer, playerSource);
+    }
+    
+    // Add to substitutes
+    setSubstitutes(prev => ({
+      ...prev,
+      [role]: [...prev[role], selectedPlayer]
+    }));
+    
+    setSelectedPlayer(null);
+    setShowPositionDialog(false);
+    
+    toast({ 
+      title: "Substitute Assigned", 
+      description: `${selectedPlayer.firstName} ${selectedPlayer.lastName} added to ${role} substitutes` 
+    });
+  };
+
+  const returnPlayerToAvailable = () => {
+    if (!selectedPlayer) return;
+    
+    const playerSource = findPlayerSource(selectedPlayer);
+    if (playerSource) {
+      removePlayerFromSource(selectedPlayer, playerSource);
+    }
+    
+    setAvailablePlayers(prev => [...prev, selectedPlayer]);
+    setSelectedPlayer(null);
+    setShowPositionDialog(false);
+    
+    toast({ 
+      title: "Player Returned", 
+      description: `${selectedPlayer.firstName} ${selectedPlayer.lastName} returned to available players` 
+    });
+  };
+
+  const findPlayerSource = (player: Player) => {
+    // Check available players
+    if (availablePlayers.find(p => p.id === player.id)) {
+      return { droppableId: "available" };
+    }
+    
+    // Check starters
+    const starterIndex = starterSlots.findIndex(slot => slot.player?.id === player.id);
+    if (starterIndex !== -1) {
+      return { droppableId: `starter-${starterIndex}` };
+    }
+    
+    // Check substitutes
+    for (const [role, players] of Object.entries(substitutes)) {
+      if ((players as Player[]).find((p: Player) => p.id === player.id)) {
+        return { droppableId: `substitute-${role}` };
+      }
+    }
+    
+    return null;
+  };
+
+  // Render enhanced player card with dual interface support
   const renderPlayerCard = (player: Player, index: number, isDragDisabled = false) => {
     const powerRating = calculatePlayerPower(player);
     const stamina = player.dailyStaminaLevel || 100;
     const hasMinorInjury = player.injuryStatus === "Minor Injury";
     
+    // Mobile-friendly card without drag-and-drop
+    if (isMobileMode) {
+      return (
+        <div
+          key={player.id}
+          onClick={() => handlePlayerSelect(player)}
+          className={`p-3 bg-white dark:bg-gray-800 border rounded-lg cursor-pointer transition-all duration-200 hover:shadow-md ${
+            selectedPlayer?.id === player.id ? "ring-2 ring-blue-500 bg-blue-50 dark:bg-blue-900/20" : ""
+          }`}
+        >
+          <div className="flex items-center justify-between">
+            <div className="flex-1">
+              <div className="flex items-center gap-2 mb-1">
+                <span className="font-medium text-sm text-gray-900 dark:text-white">{player.firstName} {player.lastName}</span>
+                {hasMinorInjury && (
+                  <AlertTriangle className="w-4 h-4 text-yellow-500" />
+                )}
+              </div>
+              <div className="flex items-center gap-2 mb-2">
+                <Badge className={`text-xs ${getRoleColor(player.role)} text-white`}>
+                  {getRoleIcon(player.role)} {player.role}
+                </Badge>
+                <span className="text-xs text-gray-600 dark:text-gray-400">PWR: {powerRating}</span>
+              </div>
+              
+              {/* Stamina Bar */}
+              <div className="flex items-center gap-2">
+                <Activity className="w-3 h-3 text-blue-500" />
+                <div className="flex-1">
+                  <div className="flex justify-between text-xs mb-1">
+                    <span className="text-gray-600 dark:text-gray-400">Stamina</span>
+                    <span className="font-medium text-gray-900 dark:text-white">{stamina}%</span>
+                  </div>
+                  <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+                    <div 
+                      className={`h-2 rounded-full ${getStaminaColor(stamina)}`}
+                      style={{ width: `${stamina}%` }}
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+            {selectedPlayer?.id === player.id && (
+              <div className="ml-2 text-blue-500">
+                <Smartphone className="w-4 h-4" />
+              </div>
+            )}
+          </div>
+        </div>
+      );
+    }
+    
+    // Desktop drag-and-drop card
     return (
       <Draggable key={player.id} draggableId={player.id} index={index} isDragDisabled={isDragDisabled}>
         {(provided, snapshot) => (
@@ -486,6 +680,41 @@ export default function TacticsLineupHub({ teamId }: TacticsLineupHubProps) {
           <div>
             <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Lineup & Tactics Hub</h2>
             <p className="text-gray-600 dark:text-gray-300">Manage your starting lineup and tactical setup</p>
+            
+            {/* Interface Mode Indicator */}
+            <div className="flex items-center gap-2 mt-2">
+              <Badge 
+                variant={isMobileMode ? "default" : "outline"} 
+                className={`text-xs ${isMobileMode ? "bg-blue-500 text-white" : ""}`}
+              >
+                <Smartphone className="w-3 h-3 mr-1" />
+                Mobile
+              </Badge>
+              <Badge 
+                variant={!isMobileMode ? "default" : "outline"}
+                className={`text-xs ${!isMobileMode ? "bg-green-500 text-white" : ""}`}
+              >
+                <Monitor className="w-3 h-3 mr-1" />
+                Desktop
+              </Badge>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setIsMobileMode(!isMobileMode)}
+                className="text-xs h-6 px-2"
+              >
+                Switch
+              </Button>
+            </div>
+            
+            {isMobileMode && (
+              <div className="mt-2 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded p-2 text-xs text-blue-800 dark:text-blue-200 max-w-sm">
+                <div className="flex items-center gap-1">
+                  <Smartphone className="w-3 h-3 flex-shrink-0" />
+                  <span>Tap players to select, then assign positions</span>
+                </div>
+              </div>
+            )}
           </div>
           <Button 
             onClick={() => saveFormationMutation.mutate()}
@@ -560,6 +789,135 @@ export default function TacticsLineupHub({ teamId }: TacticsLineupHubProps) {
           </div>
         </div>
       </div>
+
+      {/* Mobile Position Assignment Dialog */}
+      <Dialog open={showPositionDialog} onOpenChange={setShowPositionDialog}>
+        <DialogContent className="sm:max-w-[425px] max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Smartphone className="w-5 h-5" />
+              Assign Player Position
+            </DialogTitle>
+            {selectedPlayer && (
+              <div className="text-sm text-gray-600 dark:text-gray-400">
+                <span className="font-medium">{selectedPlayer.firstName} {selectedPlayer.lastName}</span>
+                <Badge className={`ml-2 text-xs ${getRoleColor(selectedPlayer.role)} text-white`}>
+                  {selectedPlayer.role}
+                </Badge>
+              </div>
+            )}
+          </DialogHeader>
+          
+          <div className="space-y-4">
+            {/* Starter Positions */}
+            <div>
+              <h4 className="font-medium text-sm mb-2 text-gray-900 dark:text-white">Starter Positions</h4>
+              <div className="grid grid-cols-1 gap-2">
+                {starterSlots.map((slot, index) => {
+                  const isCompatible = !slot.requiredRole || slot.isWildcard || 
+                    (selectedPlayer && selectedPlayer.role === slot.requiredRole);
+                  
+                  return (
+                    <Button
+                      key={slot.id}
+                      variant={isCompatible ? "outline" : "ghost"}
+                      className={`w-full justify-between text-left h-auto p-3 ${
+                        !isCompatible ? "opacity-50 cursor-not-allowed" : ""
+                      }`}
+                      disabled={!isCompatible}
+                      onClick={() => assignPlayerToStarterSlot(index)}
+                    >
+                      <div className="flex flex-col items-start">
+                        <span className="font-medium">{slot.label}</span>
+                        {slot.player ? (
+                          <span className="text-xs text-gray-500">
+                            Currently: {slot.player.firstName} {slot.player.lastName}
+                          </span>
+                        ) : (
+                          <span className="text-xs text-gray-400">Empty</span>
+                        )}
+                      </div>
+                      {slot.isWildcard ? (
+                        <Star className="w-4 h-4" />
+                      ) : (
+                        getRoleIcon(slot.requiredRole || "")
+                      )}
+                    </Button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Substitute Positions */}
+            <div>
+              <h4 className="font-medium text-sm mb-2 text-gray-900 dark:text-white">Substitute Positions</h4>
+              <div className="grid grid-cols-1 gap-2">
+                {Object.entries(substitutes).map(([role, players]) => {
+                  const playerRole = selectedPlayer?.role + "s";
+                  const isCompatible = playerRole === role;
+                  
+                  return (
+                    <Button
+                      key={role}
+                      variant={isCompatible ? "outline" : "ghost"}
+                      className={`w-full justify-between text-left h-auto p-3 ${
+                        !isCompatible ? "opacity-50 cursor-not-allowed" : ""
+                      }`}
+                      disabled={!isCompatible}
+                      onClick={() => assignPlayerToSubstitute(role as keyof PositionalSubstitutes)}
+                    >
+                      <div className="flex flex-col items-start">
+                        <span className="font-medium">
+                          {role.charAt(0).toUpperCase() + role.slice(1)} Substitutes
+                        </span>
+                        <span className="text-xs text-gray-500">
+                          {players.length} player{players.length !== 1 ? 's' : ''}
+                        </span>
+                      </div>
+                      {getRoleIcon(role.slice(0, -1))}
+                    </Button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Return to Available */}
+            <div>
+              <h4 className="font-medium text-sm mb-2 text-gray-900 dark:text-white">Other Actions</h4>
+              <Button
+                variant="secondary"
+                className="w-full justify-between text-left h-auto p-3"
+                onClick={returnPlayerToAvailable}
+              >
+                <div className="flex flex-col items-start">
+                  <span className="font-medium">Return to Available Players</span>
+                  <span className="text-xs text-gray-500">
+                    Make player available for assignment
+                  </span>
+                </div>
+                <Users className="w-4 h-4" />
+              </Button>
+            </div>
+
+            {/* Interface Mode Toggle */}
+            <div className="pt-2 border-t">
+              <Button
+                variant="ghost"
+                size="sm"
+                className="w-full text-xs"
+                onClick={() => {
+                  setIsMobileMode(!isMobileMode);
+                  setShowPositionDialog(false);
+                  setSelectedPlayer(null);
+                }}
+              >
+                <Monitor className="w-3 h-3 mr-1" />
+                Switch to {isMobileMode ? 'Desktop' : 'Mobile'} Mode
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </DragDropContext>
   );
 }
