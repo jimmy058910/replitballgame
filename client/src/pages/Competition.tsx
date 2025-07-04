@@ -264,7 +264,7 @@ function ExhibitionsTab() {
                 <li>• <span className="text-green-300">Earn Credits:</span> Gain a small but consistent amount of Credits for playing</li>
                 <li>• <span className="text-purple-300">Build Team Camaraderie:</span> Winning exhibition games provides a small boost to team morale</li>
                 <li>• <span className="text-orange-300">Contribute to Ad Rewards:</span> Watching the halftime ad counts towards your daily and milestone ad rewards</li>
-                <li>• <span className="text-cyan-300">Risk-Free:</span> No impact on player stamina, injury status, or league standings</li>
+                <li>• <span className="text-cyan-300">Risk-Free:</span> No impact on player stamina, injury status, or league standings (minimal player development only)</li>
               </ul>
               
               <div className="mt-3 p-2 bg-blue-900/30 rounded border border-blue-700">

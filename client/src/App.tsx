@@ -10,7 +10,7 @@ import Dashboard from "@/pages/Dashboard";
 import Team from "@/pages/Team";
 import Competition from "@/pages/Competition";
 import League from "@/pages/League";
-import Tournaments from "@/pages/Tournaments";
+
 
 import Market from "@/pages/Market";
 import World from "@/pages/World";
@@ -51,7 +51,6 @@ function Router() {
           
           {/* Legacy routes - keep for backwards compatibility */}
           <Route path="/league" component={League} />
-          <Route path="/tournaments" component={Tournaments} />
 
           <Route path="/inventory" component={Inventory} />
           <Route path="/marketplace" component={Marketplace} />

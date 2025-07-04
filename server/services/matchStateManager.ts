@@ -1,8 +1,9 @@
 import { db } from "../db";
-import { players, matches, playerMatchStats, teamMatchStats } from "@shared/schema";
-import { eq, and, or } from "drizzle-orm";
+import { players, matches, playerMatchStats, teamMatchStats, teams } from "@shared/schema";
+import { eq, and, or, sql } from "drizzle-orm";
 import type { Match, Player, PlayerMatchStats, TeamMatchStats } from "@shared/schema";
 import { commentaryService } from "./commentaryService.js";
+import { injuryStaminaService } from "./injuryStaminaService";
 
 // Helper type for player stats, excluding IDs
 type PlayerStatsSnapshot = Omit<PlayerMatchStats, 'id' | 'playerId' | 'matchId' | 'teamId' | 'createdAt'>;
@@ -110,6 +111,12 @@ class MatchStateManager {
     };
 
     this.liveMatches.set(matchId, matchState);
+    
+    // Set appropriate stamina levels for match type (risk-free for exhibitions)
+    const gameMode = isExhibition ? 'exhibition' : match.matchType === 'tournament' ? 'tournament' : 'league';
+    for (const player of allPlayers) {
+      await injuryStaminaService.setMatchStartStamina(player.id, gameMode);
+    }
     
     // Start the match simulation loop
     this.startMatchSimulation(matchId, homeTeamPlayers, awayTeamPlayers);
@@ -466,6 +473,10 @@ class MatchStateManager {
     const state = this.liveMatches.get(matchId);
     if (!state) return;
 
+    // Get match details to check if it's an exhibition match
+    const [matchDetails] = await db.select().from(matches).where(eq(matches.id, matchId)).limit(1);
+    const isExhibitionMatch = matchDetails?.matchType === 'exhibition';
+
     // Final possession update
     if (state.possessingTeamId) {
        const possessionDuration = state.gameTime - state.possessionStartTime;
@@ -499,26 +510,28 @@ class MatchStateManager {
           ...pStats,
         });
 
-        // Update lifetime stats
-        const [playerToUpdate] = await db.select().from(players).where(eq(players.id, playerId)).limit(1);
-        if (playerToUpdate) {
-          const updatedLifetimeStats: Partial<Player> = {
-            totalGamesPlayed: (playerToUpdate.totalGamesPlayed || 0) + 1,
-            totalScores: (playerToUpdate.totalScores || 0) + pStats.scores,
-            totalPassingAttempts: (playerToUpdate.totalPassingAttempts || 0) + pStats.passingAttempts,
-            totalPassesCompleted: (playerToUpdate.totalPassesCompleted || 0) + pStats.passesCompleted,
-            totalPassingYards: (playerToUpdate.totalPassingYards || 0) + pStats.passingYards,
-            totalRushingYards: (playerToUpdate.totalRushingYards || 0) + pStats.rushingYards,
-            totalCatches: (playerToUpdate.totalCatches || 0) + pStats.catches,
-            totalReceivingYards: (playerToUpdate.totalReceivingYards || 0) + pStats.receivingYards,
-            totalDrops: (playerToUpdate.totalDrops || 0) + pStats.drops,
-            totalFumblesLost: (playerToUpdate.totalFumblesLost || 0) + pStats.fumblesLost,
-            totalTackles: (playerToUpdate.totalTackles || 0) + pStats.tackles,
-            totalKnockdownsInflicted: (playerToUpdate.totalKnockdownsInflicted || 0) + pStats.knockdownsInflicted,
-            totalInterceptionsCaught: (playerToUpdate.totalInterceptionsCaught || 0) + pStats.interceptionsCaught,
-            totalPassesDefended: (playerToUpdate.totalPassesDefended || 0) + pStats.passesDefended,
-          };
-          playerUpdates.push(db.update(players).set(updatedLifetimeStats).where(eq(players.id, playerId)));
+        // Update lifetime stats (skip for exhibition matches to maintain risk-free gameplay)
+        if (!isExhibitionMatch) {
+          const [playerToUpdate] = await db.select().from(players).where(eq(players.id, playerId)).limit(1);
+          if (playerToUpdate) {
+            const updatedLifetimeStats: Partial<Player> = {
+              totalGamesPlayed: (playerToUpdate.totalGamesPlayed || 0) + 1,
+              totalScores: (playerToUpdate.totalScores || 0) + (pStats.scores || 0),
+              totalPassingAttempts: (playerToUpdate.totalPassingAttempts || 0) + (pStats.passingAttempts || 0),
+              totalPassesCompleted: (playerToUpdate.totalPassesCompleted || 0) + (pStats.passesCompleted || 0),
+              totalPassingYards: (playerToUpdate.totalPassingYards || 0) + (pStats.passingYards || 0),
+              totalRushingYards: (playerToUpdate.totalRushingYards || 0) + (pStats.rushingYards || 0),
+              totalCatches: (playerToUpdate.totalCatches || 0) + (pStats.catches || 0),
+              totalReceivingYards: (playerToUpdate.totalReceivingYards || 0) + (pStats.receivingYards || 0),
+              totalDrops: (playerToUpdate.totalDrops || 0) + (pStats.drops || 0),
+              totalFumblesLost: (playerToUpdate.totalFumblesLost || 0) + (pStats.fumblesLost || 0),
+              totalTackles: (playerToUpdate.totalTackles || 0) + (pStats.tackles || 0),
+              totalKnockdownsInflicted: (playerToUpdate.totalKnockdownsInflicted || 0) + (pStats.knockdownsInflicted || 0),
+              totalInterceptionsCaught: (playerToUpdate.totalInterceptionsCaught || 0) + (pStats.interceptionsCaught || 0),
+              totalPassesDefended: (playerToUpdate.totalPassesDefended || 0) + (pStats.passesDefended || 0),
+            };
+            playerUpdates.push(db.update(players).set(updatedLifetimeStats).where(eq(players.id, playerId)));
+          }
         }
       }
 
@@ -587,8 +600,19 @@ class MatchStateManager {
       }).where(eq(matches.id, matchId));
     }
 
+    // Apply stamina depletion after match completion (skip for exhibition matches)
+    if (!isExhibitionMatch) {
+      const gameMode = matchDetails?.matchType === 'tournament' ? 'tournament' : 'league';
+      for (const player of [...homePlayers, ...awayPlayers]) {
+        await injuryStaminaService.depleteStaminaAfterMatch(player.id, gameMode);
+      }
+    } else {
+      // Award exhibition credits and team camaraderie for risk-free matches
+      await this.awardExhibitionRewards(state.homeTeamId, state.awayTeamId, state.homeScore, state.awayScore);
+    }
+
     this.liveMatches.delete(matchId);
-    console.log(`Match ${matchId} completed with score ${state.homeScore}-${state.awayScore}`);
+    console.log(`Match ${matchId} completed with score ${state.homeScore}-${state.awayScore}${isExhibitionMatch ? ' (Exhibition - Risk-Free)' : ''}`);
   }
 
   async stopMatch(matchId: string): Promise<void> {
@@ -604,6 +628,53 @@ class MatchStateManager {
   // Get all active matches
   getActiveMatches(): LiveMatchState[] {
     return Array.from(this.liveMatches.values());
+  }
+
+  /**
+   * Award exhibition match rewards based on match result
+   * Rewards structure: Win: 500₡, Tie: 200₡, Loss: 100₡
+   * Also provides team camaraderie boost for winning teams
+   */
+  private async awardExhibitionRewards(homeTeamId: string, awayTeamId: string, homeScore: number, awayScore: number): Promise<void> {
+    try {
+      let homeCredits = 100; // Default for loss
+      let awayCredits = 100; // Default for loss
+      let winningTeamId: string | null = null;
+
+      // Determine match result and credit rewards
+      if (homeScore > awayScore) {
+        homeCredits = 500; // Win
+        winningTeamId = homeTeamId;
+      } else if (awayScore > homeScore) {
+        awayCredits = 500; // Win
+        winningTeamId = awayTeamId;
+      } else {
+        // Tie - both teams get 200 credits
+        homeCredits = 200;
+        awayCredits = 200;
+      }
+
+      // Award credits to both teams
+      await db.update(teams)
+        .set({ credits: sql`${teams.credits} + ${homeCredits}` })
+        .where(eq(teams.id, homeTeamId));
+
+      await db.update(teams)
+        .set({ credits: sql`${teams.credits} + ${awayCredits}` })
+        .where(eq(teams.id, awayTeamId));
+
+      // Award team camaraderie boost to winning team players (if not a tie)
+      if (winningTeamId) {
+        await db.update(players)
+          .set({ camaraderie: sql`LEAST(100, ${players.camaraderie} + 2)` })
+          .where(eq(players.teamId, winningTeamId));
+      }
+
+      console.log(`Exhibition rewards awarded: Home Team (${homeScore}): ${homeCredits}₡, Away Team (${awayScore}): ${awayCredits}₡${winningTeamId ? ` + camaraderie boost` : ''}`);
+
+    } catch (error) {
+      console.error('Error awarding exhibition rewards:', error);
+    }
   }
 
   // Clean up old matches (run periodically)
