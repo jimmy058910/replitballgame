@@ -30,6 +30,7 @@ import consumableRoutes from "./consumableRoutes";
 import playerSkillsRoutes from "./playerSkillsRoutes";
 import dynamicMarketplaceRoutes from "./dynamicMarketplaceRoutes";
 import playerAgingRetirementRoutes from "./playerAgingRetirementRoutes";
+import { dailyProgressionRoutes } from "./dailyProgressionRoutes";
 import stadiumAtmosphereRoutes from "./stadiumAtmosphereRoutes";
 import seasonalFlowRoutes from "./seasonalFlowRoutes";
 
@@ -72,6 +73,7 @@ export function registerAllRoutes(app: Express): void {
   app.use("/api/player-aging", playerAgingRetirementRoutes); // Covers player aging, progression, and retirement system
   app.use("/api/stadium-atmosphere", stadiumAtmosphereRoutes); // Covers integrated stadium, finance & atmosphere system
   app.use("/api/seasonal-flow", seasonalFlowRoutes); // Covers seasonal flow algorithm for 17-day competitive cycles
+  app.use("/api/daily-progression", dailyProgressionRoutes); // Covers daily player progression and development system
 
   // Reminder: The original server/routes.ts also contained helper functions and Stripe init.
   // Stripe init is now in paymentRoutes.ts.

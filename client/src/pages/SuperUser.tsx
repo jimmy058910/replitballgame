@@ -7,7 +7,8 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import { Settings, Calendar, Trophy, CreditCard, Bell, Shield, Users, Search } from "lucide-react";
+import { Settings, Calendar, Trophy, CreditCard, Bell, Shield, Users, Search, TrendingUp } from "lucide-react";
+import DailyProgressionTest from "@/components/DailyProgressionTest";
 
 // Type interfaces for API responses
 interface Team {
@@ -570,6 +571,21 @@ export default function SuperUser() {
               >
                 {resetSeasonMutation.isPending ? "Resetting..." : "Reset Season to Day 1"}
               </Button>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Daily Progression System Testing */}
+        <Card className="bg-gray-800 border-gray-700 mt-8">
+          <CardHeader>
+            <CardTitle className="font-orbitron text-xl flex items-center">
+              <TrendingUp className="w-5 h-5 mr-2 text-orange-400" />
+              Daily Player Progression System
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="p-4">
+              <DailyProgressionTest />
             </div>
           </CardContent>
         </Card>
