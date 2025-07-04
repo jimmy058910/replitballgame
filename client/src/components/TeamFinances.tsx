@@ -67,39 +67,36 @@ export default function TeamFinances({ teamId }: TeamFinancesProps) {
     credits: 0,
   };
 
-  // Safe financial data access with type assertion
-  const financeData = currentFinances as any;
-  
   // Calculate budget health safely (avoid division by zero)
-  const budgetHealth = financeData.totalExpenses > 0 
-    ? Math.round((financeData.totalIncome / financeData.totalExpenses) * 100)
-    : financeData.totalIncome > 0 ? 100 : 0;
+  const budgetHealth = (currentFinances as any).totalExpenses > 0 
+    ? Math.round(((currentFinances as any).totalIncome / (currentFinances as any).totalExpenses) * 100)
+    : (currentFinances as any).totalIncome > 0 ? 100 : 0;
 
   const incomeStreams = [
     {
       name: "Ticket Sales",
-      amount: financeData.ticketSales || 0,
+      amount: (currentFinances as any).ticketSales || 0,
       icon: Users,
       description: "Revenue from match attendance",
       growth: "+12%"
     },
     {
       name: "Concessions",
-      amount: financeData.concessionSales || 0,
+      amount: (currentFinances as any).concessionSales || 0,
       icon: ShoppingBag,
       description: "Food and beverage sales",
       growth: "+8%"
     },
     {
       name: "Jersey Sales",
-      amount: financeData.jerseySales || 0,
+      amount: (currentFinances as any).jerseySales || 0,
       icon: Shirt,
       description: "Team merchandise revenue",
       growth: "+15%"
     },
     {
       name: "Sponsorships",
-      amount: financeData.sponsorships || 0,
+      amount: (currentFinances as any).sponsorships || 0,
       icon: DollarSign,
       description: "Corporate sponsorship deals",
       growth: "+5%"
@@ -109,21 +106,21 @@ export default function TeamFinances({ teamId }: TeamFinancesProps) {
   const expenses = [
     {
       name: "Player Salaries",
-      amount: financeData.playerSalaries || 0,
+      amount: (currentFinances as any).playerSalaries || 0,
       description: "Total player compensation",
-      percentage: financeData.totalExpenses > 0 ? ((financeData.playerSalaries || 0) / financeData.totalExpenses) * 100 : 0
+      percentage: (currentFinances as any).totalExpenses > 0 ? (((currentFinances as any).playerSalaries || 0) / (currentFinances as any).totalExpenses) * 100 : 0
     },
     {
       name: "Staff Salaries",
-      amount: financeData.staffSalaries || 0,
+      amount: (currentFinances as any).staffSalaries || 0,
       description: "Coaching and support staff",
-      percentage: financeData.totalExpenses > 0 ? ((financeData.staffSalaries || 0) / financeData.totalExpenses) * 100 : 0
+      percentage: (currentFinances as any).totalExpenses > 0 ? (((currentFinances as any).staffSalaries || 0) / (currentFinances as any).totalExpenses) * 100 : 0
     },
     {
       name: "Facilities",
-      amount: financeData.facilities || 0,
+      amount: (currentFinances as any).facilities || 0,
       description: "Stadium and training ground costs",
-      percentage: financeData.totalExpenses > 0 ? ((financeData.facilities || 0) / financeData.totalExpenses) * 100 : 0
+      percentage: (currentFinances as any).totalExpenses > 0 ? (((currentFinances as any).facilities || 0) / (currentFinances as any).totalExpenses) * 100 : 0
     },
   ];
 
@@ -134,7 +131,7 @@ export default function TeamFinances({ teamId }: TeamFinancesProps) {
         <div className="text-right">
           <p className="text-sm text-gray-600 dark:text-gray-400">Available Credits</p>
           <p className="text-2xl font-bold text-gray-900 dark:text-white">
-            ₡{(financeData.credits || (team as any)?.credits || 0).toLocaleString()}
+            ₡{((finances as any)?.credits || (team as any)?.credits || 0).toLocaleString()}
           </p>
         </div>
       </div>
@@ -150,7 +147,7 @@ export default function TeamFinances({ teamId }: TeamFinancesProps) {
           </CardHeader>
           <CardContent>
             <div className="text-3xl font-bold text-green-600">
-              ₡{(financeData.totalIncome || 0).toLocaleString()}
+              ₡{((currentFinances as any).totalIncome || 0).toLocaleString()}
             </div>
             <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">This season</p>
           </CardContent>
@@ -165,7 +162,7 @@ export default function TeamFinances({ teamId }: TeamFinancesProps) {
           </CardHeader>
           <CardContent>
             <div className="text-3xl font-bold text-red-600">
-              ₡{(financeData.totalExpenses || 0).toLocaleString()}
+              ₡{((currentFinances as any).totalExpenses || 0).toLocaleString()}
             </div>
             <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">This season</p>
           </CardContent>
@@ -174,13 +171,13 @@ export default function TeamFinances({ teamId }: TeamFinancesProps) {
         <Card>
           <CardHeader className="pb-3">
             <CardTitle className="text-lg flex items-center gap-2">
-              <DollarSign className={(financeData.netIncome || 0) >= 0 ? "text-green-600" : "text-red-600"} size={20} />
+              <DollarSign className={((currentFinances as any).netIncome || 0) >= 0 ? "text-green-600" : "text-red-600"} size={20} />
               Net Income
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className={`text-3xl font-bold ${(financeData.netIncome || 0) >= 0 ? "text-green-600" : "text-red-600"}`}>
-              {(financeData.netIncome || 0) >= 0 ? "+" : ""}₡{Math.abs(financeData.netIncome || 0).toLocaleString()}
+            <div className={`text-3xl font-bold ${((currentFinances as any).netIncome || 0) >= 0 ? "text-green-600" : "text-red-600"}`}>
+              {((currentFinances as any).netIncome || 0) >= 0 ? "+" : ""}₡{Math.abs((currentFinances as any).netIncome || 0).toLocaleString()}
             </div>
             <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">Profit/Loss</p>
           </CardContent>
@@ -260,7 +257,7 @@ export default function TeamFinances({ teamId }: TeamFinancesProps) {
                       </Badge>
                     </div>
                     <div className="text-sm text-gray-500 mt-1">
-                      {financeData.totalIncome > 0 ? ((stream.amount / financeData.totalIncome) * 100).toFixed(1) : 0}% of total income
+                      {(currentFinances as any).totalIncome > 0 ? ((stream.amount / (currentFinances as any).totalIncome) * 100).toFixed(1) : 0}% of total income
                     </div>
                   </CardContent>
                 </Card>
