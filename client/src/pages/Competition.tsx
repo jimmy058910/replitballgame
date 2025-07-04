@@ -46,6 +46,11 @@ interface ExhibitionStats {
   exhibitionEntriesUsedToday: number;
 }
 
+interface TournamentStats {
+  gamesPlayedToday: number;
+  tournamentEntriesUsedToday: number;
+}
+
 interface ExhibitionMatch {
   id: string;
   type: string;
@@ -55,6 +60,412 @@ interface ExhibitionMatch {
   opponentTeam?: { name: string };
   playedDate?: string;
   replayCode?: string;
+}
+
+function TournamentsTab() {
+  const { toast } = useToast();
+  const [showOpponentSelect, setShowOpponentSelect] = useState(false);
+
+  const { data: rawTournamentStats } = useQuery({
+    queryKey: ["/api/daily-tournaments/stats"],
+  });
+  const tournamentStats = (rawTournamentStats || {}) as TournamentStats;
+
+  const { data: rawLiveMatches } = useQuery({
+    queryKey: ["/api/matches/live"],
+    refetchInterval: 5000,
+  });
+  const liveMatches = (rawLiveMatches || []) as ExhibitionMatch[];
+
+  const { data: rawAvailableOpponents } = useQuery({
+    queryKey: ["/api/daily-tournaments/available-opponents"],
+    enabled: showOpponentSelect,
+  });
+  const availableOpponents = (rawAvailableOpponents || []) as Team[];
+
+  const { data: rawRecentGames } = useQuery({
+    queryKey: ["/api/daily-tournaments/recent"],
+  });
+  const recentGames = (rawRecentGames || []) as ExhibitionMatch[];
+
+  // Calculate remaining games - Tournament system: 1 free + 1 with entry item
+  const gamesPlayedToday = (tournamentStats as TournamentStats)?.gamesPlayedToday || 0;
+  const freeGamesRemaining = Math.max(0, 1 - gamesPlayedToday);
+  const tournamentEntriesUsed = (tournamentStats as TournamentStats)?.tournamentEntriesUsedToday || 0;
+  const entryGamesRemaining = Math.max(0, 1 - tournamentEntriesUsed);
+  const totalGamesRemaining = freeGamesRemaining + entryGamesRemaining;
+
+  // Check if there's a live tournament match
+  const hasLiveTournament = liveMatches?.some((match: any) => match.type === 'tournament');
+
+  const instantTournamentMutation = useMutation({
+    mutationFn: async () => {
+      const result = await apiRequest("/api/daily-tournaments/instant-match", "POST");
+      return result;
+    },
+    onSuccess: (data) => {
+      if (data.matchId) {
+        const homeAway = data.isHome ? "home" : "away";
+        toast({
+          title: "Instant Tournament Started!",
+          description: `Starting ${homeAway} match against ${data.opponentName}`,
+        });
+        window.location.href = `/match/${data.matchId}`;
+      } else {
+        toast({
+          title: "Match Creation Failed",
+          description: "No match ID received from server",
+          variant: "destructive",
+        });
+      }
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Tournament Failed",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+
+  const selectOpponentMutation = useMutation({
+    mutationFn: async (opponentId: string) => {
+      return await apiRequest("/api/daily-tournaments/challenge-opponent", "POST", { opponentId });
+    },
+    onSuccess: (data) => {
+      if (data.matchId) {
+        const homeAway = data.isHome ? "home" : "away";
+        toast({
+          title: "Tournament Match Started!",
+          description: `Starting ${homeAway} match against ${data.opponentName}`,
+        });
+        setShowOpponentSelect(false);
+        window.location.href = `/match/${data.matchId}`;
+      }
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Challenge Failed",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+
+  const handleInstantTournament = () => {
+    if (hasLiveTournament) {
+      toast({
+        title: "Tournament Already Running",
+        description: "You can only have one live tournament match at a time.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (totalGamesRemaining <= 0) {
+      toast({
+        title: "Daily Limit Reached",
+        description: "You've used all your tournament games for today.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    instantTournamentMutation.mutate();
+  };
+
+  const handleChooseOpponent = () => {
+    if (hasLiveTournament) {
+      toast({
+        title: "Tournament Already Running",
+        description: "You can only have one live tournament match at a time.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (totalGamesRemaining <= 0) {
+      toast({
+        title: "Daily Limit Reached",
+        description: "You've used all your tournament games for today.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setShowOpponentSelect(true);
+  };
+
+  const getResultColor = (result: string) => {
+    switch (result) {
+      case "win": return "text-green-400";
+      case "loss": return "text-red-400";
+      case "draw": return "text-yellow-400";
+      default: return "text-gray-400";
+    }
+  };
+
+  const getResultIcon = (result: string) => {
+    switch (result) {
+      case "win": return "🏆";
+      case "loss": return "❌";
+      case "draw": return "🤝";
+      default: return "⚪";
+    }
+  };
+
+  return (
+    <div className="space-y-6">
+      {hasLiveTournament && (
+        <Card className="bg-yellow-900 border-yellow-700">
+          <CardContent className="p-4">
+            <div className="flex items-center gap-3">
+              <div className="animate-pulse">
+                <Trophy className="h-5 w-5 text-yellow-400" />
+              </div>
+              <div>
+                <p className="font-semibold text-yellow-200">Live Tournament Match Running</p>
+                <p className="text-sm text-yellow-300">Only one tournament match allowed at a time</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      <div className="grid gap-6 lg:grid-cols-2">
+        {/* Daily Tournament Games */}
+        <Card className="bg-gray-800 border-gray-700">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Trophy className="h-5 w-5 text-yellow-400" />
+              Daily Tournament Games
+            </CardTitle>
+            <p className="text-sm text-gray-400">
+              Track your remaining tournament opportunities
+            </p>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="space-y-3 p-4 bg-gray-700 rounded-lg">
+              <div className="flex justify-between text-sm">
+                <span className="text-gray-300">Free Games Remaining Today:</span>
+                <span className="font-semibold text-green-400">{freeGamesRemaining}</span>
+              </div>
+              <div className="flex justify-between text-sm">
+                <span className="text-gray-300">Entry Items Available:</span>
+                <span className="font-semibold text-purple-400">{entryGamesRemaining}</span>
+              </div>
+              <div className="flex justify-between text-sm border-t border-gray-600 pt-3">
+                <span className="text-gray-300">Total Games Remaining Today:</span>
+                <span className="font-semibold text-yellow-400">{totalGamesRemaining}</span>
+              </div>
+            </div>
+
+            <Separator className="bg-gray-700" />
+
+            <div className="space-y-2">
+              <h4 className="font-semibold text-sm">Tournament Benefits & Rewards:</h4>
+              <ul className="text-sm text-gray-400 space-y-1">
+                <li>• <span className="text-yellow-300">Competitive Environment:</span> Face skilled opponents in high-stakes matches</li>
+                <li>• <span className="text-green-300">Premium Credits:</span> Earn significantly more credits than exhibitions (750₡ win, 300₡ tie, 150₡ loss)</li>
+                <li>• <span className="text-purple-300">Tournament Ranking:</span> Build your tournament record and climb competitive leaderboards</li>
+                <li>• <span className="text-orange-300">Contribute to Ad Rewards:</span> Watching the halftime ad counts towards your daily and milestone ad rewards</li>
+                <li>• <span className="text-cyan-300">Meaningful Stakes:</span> Player stamina and development affected - choose your strategy wisely</li>
+              </ul>
+              
+              <div className="mt-3 p-2 bg-yellow-900/30 rounded border border-yellow-700">
+                <div className="text-xs font-semibold text-yellow-300">Daily Limits:</div>
+                <div className="text-xs text-yellow-200">
+                  • 1 FREE tournament game per day<br/>
+                  • 1 additional game with Tournament Entry item<br/>
+                  • Purchase entries in Market &gt; Store &gt; Entries tab
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Tournament Options */}
+        <Card className="bg-gray-800 border-gray-700">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Medal className="h-5 w-5 text-yellow-400" />
+              Tournament Options
+            </CardTitle>
+            <p className="text-sm text-gray-400">
+              Choose your tournament match type
+            </p>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <TooltipProvider>
+              <div className="space-y-4">
+                {/* Option 1: Instant Tournament */}
+                <div className="p-4 bg-gray-700 rounded-lg">
+                  <h3 className="font-semibold text-lg mb-2 flex items-center gap-2">
+                    <Zap className="h-5 w-5 text-yellow-400" />
+                    1) Instant Tournament
+                    <Tooltip>
+                      <TooltipTrigger>
+                        <HelpCircle className="h-4 w-4 text-gray-400 hover:text-yellow-400" />
+                      </TooltipTrigger>
+                      <TooltipContent className="max-w-xs">
+                        <p>Quick competitive matchmaking. System finds the best available opponent based on division and tournament ranking. Perfect for immediate competitive play.</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </h3>
+                  <p className="text-gray-400 text-sm mb-4">
+                    Start an immediate tournament match against other competitive teams in your division. Games have meaningful consequences!
+                  </p>
+                <Button 
+                  className="w-full bg-yellow-600 hover:bg-yellow-700" 
+                  variant="default"
+                  onClick={handleInstantTournament}
+                  disabled={
+                    instantTournamentMutation.isPending ||
+                    hasLiveTournament ||
+                    totalGamesRemaining <= 0
+                  }
+                >
+                  {instantTournamentMutation.isPending ? "Finding Opponent..." : "Start Instant Tournament"}
+                </Button>
+              </div>
+
+              {/* Option 2: Tournament Challenge */}
+              <div className="p-4 bg-gray-700 rounded-lg">
+                <h3 className="font-semibold text-lg mb-2 flex items-center gap-2">
+                  <Medal className="h-5 w-5 text-yellow-400" />
+                  2) Tournament Challenge
+                  <Tooltip>
+                    <TooltipTrigger>
+                      <HelpCircle className="h-4 w-4 text-gray-400 hover:text-yellow-400" />
+                    </TooltipTrigger>
+                    <TooltipContent className="max-w-xs">
+                      <p>Strategic opponent selection. Browse available teams, compare tournament records, and choose your competitive matchup. Perfect for targeted challenges.</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </h3>
+                <p className="text-gray-400 text-sm mb-4">
+                  Browse and select from available tournament opponents in your division for a strategic competitive match.
+                </p>
+                <Button 
+                  className="w-full" 
+                  variant="outline"
+                  onClick={handleChooseOpponent}
+                  disabled={
+                    hasLiveTournament ||
+                    totalGamesRemaining <= 0
+                  }
+                >
+                  Choose Opponent
+                </Button>
+              </div>
+
+              {(hasLiveTournament || totalGamesRemaining <= 0) && (
+                <div className="text-sm text-gray-500 p-3 bg-gray-700 rounded">
+                  {hasLiveTournament ? 
+                    "Complete your current tournament match before starting another." :
+                    "You've reached your daily tournament limit. Reset at 3AM Eastern."
+                  }
+                </div>
+              )}
+            </div>
+            </TooltipProvider>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Recent Tournament Games */}
+      <Card className="bg-gray-800 border-gray-700">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Trophy className="h-4 w-4 text-gray-400" />
+            Recent Tournament Games
+          </CardTitle>
+          <p className="text-sm text-gray-400">
+            Your recent competitive tournament results
+          </p>
+        </CardHeader>
+        <CardContent>
+          {recentGames?.length ? (
+            <div className="space-y-3">
+              {recentGames.map((game: any) => (
+                <div key={game.id} className="flex items-center justify-between p-3 bg-gray-700 rounded-lg">
+                  <div className="flex items-center gap-3">
+                    <span className="text-2xl">{getResultIcon(game.result)}</span>
+                    <div>
+                      <div className="font-semibold">
+                        vs {game.opponentTeam?.name}
+                      </div>
+                      <div className="text-sm text-gray-400">
+                        {new Date(game.playedDate).toLocaleDateString()}
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div className="text-right">
+                    <div className={`font-bold ${getResultColor(game.result)}`}>
+                      {game.score || (game.result === 'pending' ? 'In Progress' : 'Not Started')}
+                    </div>
+                    <div className="text-sm text-gray-400">
+                      {game.result === 'win' ? 'Victory' : 
+                       game.result === 'loss' ? 'Defeat' : 
+                       game.result === 'draw' ? 'Draw' : 
+                       'Live Match'}
+                    </div>
+                  </div>
+                  
+                  {game.replayCode && (
+                    <Button 
+                      variant="ghost" 
+                      size="sm"
+                      onClick={() => window.location.href = `/replay/${game.replayCode}`}
+                    >
+                      Replay
+                    </Button>
+                  )}
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-8">
+              <Trophy className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+              <p className="text-gray-400">No recent tournament games</p>
+              <p className="text-sm text-gray-500">Start your first tournament match to build your competitive record!</p>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Opponent Selection Dialog */}
+      <Dialog open={showOpponentSelect} onOpenChange={setShowOpponentSelect}>
+        <DialogContent className="max-w-4xl bg-gray-800 border-gray-700">
+          <DialogHeader>
+            <DialogTitle className="text-white">Choose Tournament Opponent</DialogTitle>
+          </DialogHeader>
+          <div className="grid gap-4 max-h-96 overflow-y-auto">
+            {availableOpponents?.map((opponent) => (
+              <Card key={opponent.id} className="bg-gray-700 border-gray-600 hover:bg-gray-600 transition-colors cursor-pointer"
+                    onClick={() => selectOpponentMutation.mutate(opponent.id)}>
+                <CardContent className="p-4">
+                  <div className="flex justify-between items-center">
+                    <div>
+                      <h3 className="font-bold text-white">{opponent.name}</h3>
+                      <p className="text-sm text-gray-400">Division {opponent.division}</p>
+                    </div>
+                    <div className="text-right">
+                      <div className="text-lg font-bold text-yellow-400">Power: {opponent.teamPower}</div>
+                      <div className="text-sm text-gray-400">
+                        {opponent.wins}W - {opponent.losses}L - {opponent.draws}D
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </DialogContent>
+      </Dialog>
+    </div>
+  );
 }
 
 function ExhibitionsTab() {
@@ -759,48 +1170,7 @@ export default function Competition() {
 
           {/* Tournaments Tab */}
           <TabsContent value="tournaments" className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {(tournaments as any) && (tournaments as any).length > 0 ? (
-                (tournaments as any).map((tournament: any) => (
-                  <Card key={tournament.id} className="bg-gray-800 border-gray-700">
-                    <CardHeader>
-                      <CardTitle className="flex items-center justify-between">
-                        <span>{tournament.name}</span>
-                        <Badge className={tournament.status === 'open' ? 'bg-green-600' : 'bg-gray-600'}>
-                          {tournament.status}
-                        </Badge>
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent className="space-y-3">
-                      <div className="flex justify-between">
-                        <span>Division:</span>
-                        <Badge variant="outline">{tournament.division}</Badge>
-                      </div>
-                      <div className="flex justify-between">
-                        <span>Entry Fee:</span>
-                        <span className="text-yellow-400">{tournament.entryFee?.toLocaleString()} ₡</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span>Teams:</span>
-                        <span>{tournament.currentTeams || 0}/{tournament.maxTeams}</span>
-                      </div>
-                      {tournament.status === 'open' && (
-                        <Button className="w-full" variant="outline">
-                          Enter Tournament
-                        </Button>
-                      )}
-                    </CardContent>
-                  </Card>
-                ))
-              ) : (
-                <Card className="bg-gray-800 border-gray-700 col-span-full">
-                  <CardContent className="text-center py-8">
-                    <Medal className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                    <p className="text-gray-400">No tournaments available</p>
-                  </CardContent>
-                </Card>
-              )}
-            </div>
+            <TournamentsTab />
           </TabsContent>
 
           {/* Exhibitions Tab */}

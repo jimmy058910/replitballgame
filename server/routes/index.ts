@@ -33,6 +33,7 @@ import playerAgingRetirementRoutes from "./playerAgingRetirementRoutes";
 import { dailyProgressionRoutes } from "./dailyProgressionRoutes";
 import stadiumAtmosphereRoutes from "./stadiumAtmosphereRoutes";
 import seasonalFlowRoutes from "./seasonalFlowRoutes";
+import dailyTournamentRoutes from "./dailyTournamentRoutes";
 
 // This function will be called by server/index.ts to set up all routes.
 // It replaces the direct app.use calls that would have been in server/index.ts
@@ -48,6 +49,7 @@ export function registerAllRoutes(app: Express): void {
   app.use("/api/store", storeRoutes);
   app.use("/api/stadium", stadiumRoutes); // Covers /api/stadium and /api/stadium/revenue
   app.use("/api/tournaments", tournamentRoutes);
+  app.use("/api/daily-tournaments", dailyTournamentRoutes);
   app.use("/api/exhibitions", exhibitionRoutes);
   app.use("/api/notifications", notificationRoutes); // Covers /api/notifications and /api/demo/notifications
   app.use("/api/injuries", injuryRoutes); // Covers /api/injuries, /api/medical-staff, /api/conditioning
