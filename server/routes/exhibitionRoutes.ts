@@ -50,9 +50,7 @@ router.get('/stats', isAuthenticated, async (req: any, res: Response, next: Next
     const tomorrow = new Date(today);
     tomorrow.setDate(tomorrow.getDate() + 1);
     
-    console.log(`[EXHIBITION DEBUG] Team ${team.id}: Exhibition games today: ${gamesCreatedToday.length}, Total matches: ${allMatches.length}`);
-    
-    // Get ALL exhibition matches from today (pending + completed)
+    // Get ALL exhibition matches from today (pending + completed) using EST timezone
     const allExhibitionMatchesToday = allMatches.filter(match => {
       if (match.matchType !== 'exhibition') return false;
       if (!match.createdAt) return false;
@@ -63,19 +61,8 @@ router.get('/stats', isAuthenticated, async (req: any, res: Response, next: Next
       const matchDateOnly = new Date(matchEstDate.getFullYear(), matchEstDate.getMonth(), matchEstDate.getDate());
       const isToday = matchDateOnly.getTime() === today.getTime();
       
-      console.log(`[EXHIBITION DEBUG] Match ${match.id}: status=${match.status}, EST date=${matchEstDate.toDateString()}, isToday=${isToday}`);
       return isToday;
     });
-    
-    const pendingExhibitionMatchesToday = allExhibitionMatchesToday.filter(match => 
-      match.status === 'scheduled' || match.status === 'in_progress'
-    );
-    
-    const completedExhibitionMatchesToday = allExhibitionMatchesToday.filter(match =>
-      match.status === 'completed'
-    );
-    
-    console.log(`[EXHIBITION DEBUG] Found ${pendingExhibitionMatchesToday.length} pending, ${completedExhibitionMatchesToday.length} completed exhibition matches today`);
     
     // Get all exhibition games for historical stats
     const allExhibitionGames = await exhibitionGameStorage.getExhibitionGamesByTeam(team.id, 1000);
@@ -95,8 +82,6 @@ router.get('/stats', isAuthenticated, async (req: any, res: Response, next: Next
     const totalGamesUsedToday = allExhibitionMatchesToday.length;
     const freeGamesLimit = 3;
     const exhibitionEntriesUsedToday = Math.max(0, totalGamesUsedToday - freeGamesLimit);
-    
-    console.log(`[EXHIBITION DEBUG] Total games today: ${totalGamesUsedToday}, Free limit: ${freeGamesLimit}, Entries used: ${exhibitionEntriesUsedToday}`);
 
     res.json({
       gamesPlayedToday: totalGamesUsedToday, // Total games used today (pending + completed)

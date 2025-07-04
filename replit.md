@@ -158,7 +158,18 @@ Built as a React + Express web application with PostgreSQL database, using moder
 - ✓ **Helper Method System**: Created comprehensive helper methods for player names, team identification, ball carrier detection, and possession tracking
 - ✓ **Skill-Aware Commentary**: Full integration with player skills system for dynamic commentary based on skill demonstrations during gameplay
 
-### July 3, 2025 - COMPREHENSIVE COMMENTARY SYSTEM IMPLEMENTATION & EXHIBITION FIXES COMPLETE
+### July 4, 2025 - EXHIBITION DAILY COUNTER TIMEZONE FIX & ARCHITECTURE CLEANUP COMPLETE
+
+#### ✅ EXHIBITION DAILY COUNTER TIMEZONE BUG RESOLUTION COMPLETE
+- ✓ **Root Cause Identification**: Discovered critical timezone issue where server used UTC (July 4th) but game day logic needed EST (July 3rd)
+- ✓ **Complete Timezone Standardization**: Fixed exhibition stats calculation to use Eastern Time consistently for game day logic across all systems
+- ✓ **Enhanced Date Filtering Logic**: Updated match creation time filtering to properly convert UTC timestamps to EST for accurate daily game counting
+- ✓ **Complete Match Type Integration**: Fixed stats calculation to count both completed exhibition games AND pending exhibition matches from today's date
+- ✓ **Accurate Daily Counter Display**: Counter now correctly shows "0 Free Games Left" when 4 games used (exceeding 3 free limit) instead of incorrect "3 Free Games Left"
+- ✓ **Comprehensive Testing Verification**: User confirmed fix working - display now shows accurate "0 Free Games Left", "2 Entry Games Left", "Total Games Remaining Today: 2"
+- ✓ **Production Code Cleanup**: Removed debug logging after successful verification, maintaining clean production codebase
+
+### July 3, 2025 - COMPREHENSIVE COMMENTARY SYSTEM IMPLEMENTATION & EXHIBITION FIXES COMPLETE (Previous)
 
 #### ✅ EXHIBITION SYSTEM COMPREHENSIVE FUNCTIONALITY RESTORATION COMPLETE
 - ✓ **Critical Storage Interface Overhaul**: Successfully replaced all storage interface method calls in `matchStateManager.ts` with direct database calls using proper Drizzle ORM syntax
