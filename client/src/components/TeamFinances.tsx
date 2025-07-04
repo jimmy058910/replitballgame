@@ -137,7 +137,7 @@ export default function TeamFinances({ teamId }: TeamFinancesProps) {
         <h2 className="text-2xl font-bold">Team Finances</h2>
         <div className="text-right">
           <p className="text-sm text-gray-600 dark:text-gray-400">Available Credits</p>
-          <p className="text-2xl font-bold text-gray-900 dark:text-white">
+          <p className="text-2xl font-bold text-green-600 dark:text-green-400">
             ₡{creditsAmount.toLocaleString()}
           </p>
         </div>
