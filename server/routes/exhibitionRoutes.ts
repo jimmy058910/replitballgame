@@ -267,18 +267,40 @@ router.get('/recent', isAuthenticated, async (req: any, res: Response, next: Nex
     const team = await storage.teams.getTeamByUserId(userId);
     if (!team || !team.id) return res.json([]);
 
-    // Fetch from exhibitionGames table directly for this team
-    const recentExhibitionGames = await exhibitionGameStorage.getExhibitionGamesByTeam(team.id, 10);
+    // Fetch all matches for this team and filter for exhibitions
+    const allMatches = await storage.matches.getMatchesByTeamId(team.id);
+    const recentMatches = allMatches
+      .filter(match => match.matchType === 'exhibition')
+      .slice(0, 10);
 
-    // Enhance with opponent team names
-    const detailedGames = await Promise.all(recentExhibitionGames.map(async (game) => {
-        const opponentTeam = await storage.teams.getTeamById(game.opponentTeamId);
+    // Enhance with opponent team names and determine result
+    const detailedGames = await Promise.all(recentMatches.map(async (match: any) => {
+        const isHome = match.homeTeamId === team.id;
+        const opponentTeamId = isHome ? match.awayTeamId : match.homeTeamId;
+        const opponentTeam = await storage.teams.getTeamById(opponentTeamId);
+        
+        let result = 'pending';
+        let score = '';
+        
+        if (match.status === 'completed') {
+          const homeScore = match.homeScore || 0;
+          const awayScore = match.awayScore || 0;
+          score = `${homeScore} - ${awayScore}`;
+          
+          if (isHome) {
+            result = homeScore > awayScore ? 'win' : homeScore < awayScore ? 'loss' : 'draw';
+          } else {
+            result = awayScore > homeScore ? 'win' : awayScore < homeScore ? 'loss' : 'draw';
+          }
+        }
+        
         return { 
-            id: game.id,
-            result: game.result,
-            score: game.score,
-            playedDate: game.playedDate,
-            opponentName: opponentTeam?.name || 'Unknown Opponent'
+            id: match.id,
+            result: result,
+            score: score,
+            playedDate: match.scheduledTime,
+            opponentName: opponentTeam?.name || 'Unknown Opponent',
+            opponentTeam: { name: opponentTeam?.name || 'Unknown Opponent' }
         };
     }));
 
