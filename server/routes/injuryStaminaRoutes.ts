@@ -24,13 +24,17 @@ router.get('/team/:teamId/status', isAuthenticated, async (req: any, res: Respon
     // Get all players with injury/stamina data
     const teamPlayers = await db.select({
       id: players.id,
+      firstName: players.firstName,
+      lastName: players.lastName,
       name: players.name,
+      role: players.position,
       dailyStaminaLevel: players.dailyStaminaLevel,
       injuryStatus: players.injuryStatus,
       injuryRecoveryPointsNeeded: players.injuryRecoveryPointsNeeded,
       injuryRecoveryPointsCurrent: players.injuryRecoveryPointsCurrent,
       dailyItemsUsed: players.dailyItemsUsed,
-      stamina: players.stamina
+      stamina: players.stamina,
+      inGameStamina: players.inGameStamina
     }).from(players).where(eq(players.teamId, teamId));
 
     // Calculate recovery estimates and status summaries
