@@ -1,29 +1,19 @@
 import { db } from '../db';
 import { teams } from '../../shared/schema';
 import { sql, and, ne } from 'drizzle-orm';
+import { profanity } from '@2toad/profanity';
 
-// Profanity filter - comprehensive list of inappropriate terms
-const PROFANITY_LIST = [
-  // Basic profanity
-  'fuck', 'shit', 'damn', 'hell', 'ass', 'bitch', 'bastard', 'crap',
-  // Hate speech and slurs (partial list for safety)
-  'nazi', 'hitler', 'terrorist', 'jihad', 'isis', 'kill', 'die', 'death',
-  // Sexual content
-  'sex', 'porn', 'nude', 'naked', 'penis', 'vagina', 'boob', 'tit',
-  // Leetspeak variations
-  'f*ck', 'f**k', 'sh*t', 'sh**', 'b*tch', 'b**ch', 'a**', 'a55',
-  'fuk', 'fck', 'sht', 'btch', 'b1tch', 'fvck', 'phuck',
-  // Drug references
-  'weed', 'cocaine', 'heroin', 'meth', 'drugs', 'dealer', 'addict',
-  // Violence
-  'murder', 'suicide', 'bomb', 'gun', 'weapon', 'violence', 'hurt',
-  // Spam/nonsense
+// Configure the profanity filter
+profanity.addWords([
+  // Additional gaming-specific inappropriate terms
+  'noob', 'scrub', 'trash', 'garbage', 'sucks', 'loser', 'troll', 'toxic',
+  // Spam/nonsense patterns
   'aaa', 'bbb', 'ccc', 'ddd', 'eee', 'fff', 'ggg', 'hhh', 'iii',
   'jjj', 'kkk', 'lll', 'mmm', 'nnn', 'ooo', 'ppp', 'qqq', 'rrr',
   'sss', 'ttt', 'uuu', 'vvv', 'www', 'xxx', 'yyy', 'zzz',
   '111', '222', '333', '444', '555', '666', '777', '888', '999',
   'test', 'testing', 'temp', 'temporary', 'delete', 'remove'
-];
+]);
 
 // Reserved names - staff roles and system terms
 const RESERVED_NAMES = [
@@ -169,18 +159,14 @@ export class TeamNameValidator {
   }
   
   /**
-   * Validates against profanity list
+   * Validates against profanity using @2toad/profanity library
    */
   private static validateProfanity(name: string): TeamNameValidationResult {
-    const lowerName = name.toLowerCase();
-    
-    for (const word of PROFANITY_LIST) {
-      if (lowerName.includes(word.toLowerCase())) {
-        return {
-          isValid: false,
-          error: 'This name is not available. Please choose a different name.'
-        };
-      }
+    if (profanity.exists(name)) {
+      return {
+        isValid: false,
+        error: 'Team name contains inappropriate language.'
+      };
     }
     
     return { isValid: true };
