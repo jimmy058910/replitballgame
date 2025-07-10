@@ -120,19 +120,27 @@ Built as a React + Express web application with PostgreSQL database, using moder
 #### ✅ DIVISION 8 OVERFLOW BUG RESOLUTION COMPLETE
 - ✓ **Critical Bug Identified**: Division 8 had 9 teams instead of maximum 8, violating game mechanics
 - ✓ **Root Cause Fixed**: Team creation logic was hardcoded to always assign new teams to Division 8 without capacity checking
-- ✓ **Sub-Division System Implementation**: Created intelligent sub-division system using integer multipliers (8, 80, 800, 8000, 80000)
+- ✓ **Sub-Division System Implementation**: Created intelligent sub-division system using proper subdivision field ("main", "alpha", "beta", "gamma", "delta")
+- ✓ **Database Schema Enhancement**: Added subdivision VARCHAR(50) column to teams table with "main" as default
 - ✓ **Database Validation**: SQL queries confirmed 9 teams in Division 8, bug successfully replicated and fixed
 - ✓ **Division Naming Enhancement**: Updated `getDivisionNameWithSubdivision()` to properly display sub-divisions:
   - Division 8: "Copper League - Main" (8 teams max)
-  - Division 80: "Copper League - Alpha" (8 teams max)  
-  - Division 800: "Copper League - Beta" (8 teams max)
-  - Division 8000: "Copper League - Gamma" (8 teams max)
-  - Division 80000: "Copper League - Delta" (8 teams max)
+  - Division 8: "Copper League - Alpha" (8 teams max)  
+  - Division 8: "Copper League - Beta" (8 teams max)
+  - Division 8: "Copper League - Gamma" (8 teams max)
+  - Division 8: "Copper League - Delta" (8 teams max)
 - ✓ **Team Creation Logic Overhaul**: Implemented sophisticated capacity checking that finds next available sub-division with room for new teams
 - ✓ **Color System Integration**: All sub-divisions maintain consistent Copper League visual identity with proper color scheme
-- ✓ **Production Fix Applied**: Moved "Steel Phoenix" team from Division 8 to Division 80, establishing proper 8-team limit compliance
+- ✓ **Production Fix Applied**: Moved "Steel Phoenix" team to Division 8 subdivision "alpha", establishing proper 8-team limit compliance
 - ✓ **Technical Implementation**: Enhanced `teamRoutes.ts` with comprehensive division capacity validation and sub-division assignment logic
-- ✓ **Game Balance Preservation**: Maintains competitive integrity by ensuring all divisions have exactly 8 teams maximum
+- ✓ **Game Balance Preservation**: Maintains competitive integrity by ensuring all divisions have exactly 8 teams maximum per subdivision
+
+#### ✅ CRITICAL STAFF CREATION BUG FIX COMPLETE
+- ✓ **Oakland Cougars Staff Issue Resolved**: Identified and fixed missing staff for user's team that was created without default staff members
+- ✓ **Manual Staff Creation**: Created all 7 default staff members (Coach Johnson, Alex Recovery, Sarah Fitness, Mike Offense, Lisa Defense, Emma Talent, Tony Scout) totaling $367,000 in salaries
+- ✓ **Team Finances Update**: Updated team finances to reflect correct staff salaries and expense calculations
+- ✓ **Error Handling Enhancement**: Improved staff creation error handling in `teamStorage.ts` to better catch and report staff creation failures
+- ✓ **Prevention Measures**: Enhanced logging and error reporting to prevent future occurrences of missing staff during team creation
 
 #### ✅ METICULOUS GAME MECHANICS INTEGRATION ACHIEVEMENT
 - ✓ **Contract Negotiation System**: All sub-divisions tie into existing contract negotiation formulas and thresholds

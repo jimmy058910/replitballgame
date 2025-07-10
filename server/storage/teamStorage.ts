@@ -90,6 +90,8 @@ export class TeamStorage {
         console.log(`Successfully created staff: ${createdStaff.name}`);
       } catch (error) {
         console.error(`Failed to create staff ${staffMember.name}:`, error);
+        // Continue creating other staff members even if one fails
+        throw error; // Re-throw to ensure the team creation process is aware of failures
       }
     }
     console.log(`Finished creating staff for team ${teamId}`);
