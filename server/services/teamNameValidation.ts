@@ -162,11 +162,44 @@ export class TeamNameValidator {
    * Validates against profanity using @2toad/profanity library
    */
   private static validateProfanity(name: string): TeamNameValidationResult {
+    // Check the full name
     if (profanity.exists(name)) {
       return {
         isValid: false,
         error: 'Team name contains inappropriate language.'
       };
+    }
+    
+    // Check individual words separated by spaces
+    const words = name.toLowerCase().split(/\s+/);
+    for (const word of words) {
+      if (profanity.exists(word)) {
+        return {
+          isValid: false,
+          error: 'Team name contains inappropriate language.'
+        };
+      }
+    }
+    
+    // Check for profane words embedded within compound words
+    // This uses a more comprehensive approach to catch profanity within compound names
+    const lowerName = name.toLowerCase();
+    
+    // Common profane words that might be embedded in team names
+    const embeddedProfanityCheck = [
+      'damn', 'fuck', 'shit', 'bitch', 'ass', 'hell', 'crap', 'bastard',
+      'piss', 'cock', 'dick', 'pussy', 'tits', 'boobs', 'porn', 'sex',
+      'nazi', 'hitler', 'kill', 'die', 'murder', 'suicide', 'bomb',
+      'weed', 'drug', 'meth', 'cocaine', 'heroin'
+    ];
+    
+    for (const word of embeddedProfanityCheck) {
+      if (lowerName.includes(word)) {
+        return {
+          isValid: false,
+          error: 'Team name contains inappropriate language.'
+        };
+      }
     }
     
     return { isValid: true };

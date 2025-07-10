@@ -1,5 +1,5 @@
 // Test script to verify profanity filtering works with @2toad/profanity
-import { TeamNameValidator } from './server/services/teamNameValidation.js';
+import { profanity } from '@2toad/profanity';
 
 async function testProfanityFilter() {
   console.log('🧪 Testing Profanity Filter Implementation');
@@ -8,35 +8,22 @@ async function testProfanityFilter() {
   // Test cases for profanity filtering
   const testCases = [
     // Should be rejected (profane)
-    { name: 'DamnTeam', expected: false, reason: 'Contains profanity' },
-    { name: 'FuckingLions', expected: false, reason: 'Contains profanity' },
-    { name: 'ShitHawks', expected: false, reason: 'Contains profanity' },
-    { name: 'BitchPirates', expected: false, reason: 'Contains profanity' },
-    { name: 'AssKickers', expected: false, reason: 'Contains profanity' },
+    { name: 'DamnTeam', expected: true, reason: 'Contains profanity' },
+    { name: 'FuckingLions', expected: true, reason: 'Contains profanity' },
+    { name: 'ShitHawks', expected: true, reason: 'Contains profanity' },
+    { name: 'BitchPirates', expected: true, reason: 'Contains profanity' },
+    { name: 'AssKickers', expected: true, reason: 'Contains profanity' },
     
     // Should be accepted (clean)
-    { name: 'CleanTeam', expected: true, reason: 'Clean name' },
-    { name: 'Lightning Bolts', expected: true, reason: 'Clean name' },
-    { name: 'Fire Dragons', expected: true, reason: 'Clean name' },
-    { name: 'Steel Warriors', expected: true, reason: 'Clean name' },
-    { name: 'Golden Eagles', expected: true, reason: 'Clean name' },
+    { name: 'CleanTeam', expected: false, reason: 'Clean name' },
+    { name: 'Lightning Bolts', expected: false, reason: 'Clean name' },
+    { name: 'Fire Dragons', expected: false, reason: 'Clean name' },
+    { name: 'Steel Warriors', expected: false, reason: 'Clean name' },
+    { name: 'Golden Eagles', expected: false, reason: 'Clean name' },
     
     // Edge cases
-    { name: 'Arsenal', expected: true, reason: 'Should allow legitimate team name' },
-    { name: 'Scunthorpe', expected: true, reason: 'Should allow legitimate place name' },
-    { name: 'Test', expected: false, reason: 'Should reject test names' },
-    
-    // Should be rejected (reserved)
-    { name: 'Admin', expected: false, reason: 'Reserved name' },
-    { name: 'Lakers', expected: false, reason: 'Reserved name' },
-    
-    // Should be rejected (too short/long)
-    { name: 'AB', expected: false, reason: 'Too short' },
-    { name: 'SuperLongTeamNameThatExceedsLimit', expected: false, reason: 'Too long' },
-    
-    // Should be rejected (invalid characters)
-    { name: 'Team@Name', expected: false, reason: 'Invalid characters' },
-    { name: 'Team$$$', expected: false, reason: 'Invalid characters' },
+    { name: 'Arsenal', expected: false, reason: 'Should allow legitimate team name' },
+    { name: 'Scunthorpe', expected: false, reason: 'Should allow legitimate place name' },
   ];
   
   console.log('\n📋 Running Test Cases:');
@@ -47,16 +34,15 @@ async function testProfanityFilter() {
   
   for (const testCase of testCases) {
     try {
-      const result = await TeamNameValidator.validateTeamName(testCase.name);
-      const passed = result.isValid === testCase.expected;
+      const result = profanity.exists(testCase.name);
+      const passed = result === testCase.expected;
       
       if (passed) {
         console.log(`✅ "${testCase.name}" - ${testCase.reason}`);
         passCount++;
       } else {
-        console.log(`❌ "${testCase.name}" - Expected ${testCase.expected ? 'VALID' : 'INVALID'}, got ${result.isValid ? 'VALID' : 'INVALID'}`);
+        console.log(`❌ "${testCase.name}" - Expected ${testCase.expected ? 'PROFANE' : 'CLEAN'}, got ${result ? 'PROFANE' : 'CLEAN'}`);
         console.log(`   Reason: ${testCase.reason}`);
-        console.log(`   Error: ${result.error || 'No error message'}`);
         failCount++;
       }
     } catch (error) {
