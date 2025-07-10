@@ -2,6 +2,7 @@ import type { Express } from "express";
 import authRoutes from "./authRoutes";
 import teamRoutes from "./teamRoutes";
 import playerRoutes from "./playerRoutes";
+import staffRoutes from "./staffRoutes";
 import leagueRoutes from "./leagueRoutes";
 import matchRoutes from "./matchRoutes";
 import marketplaceRoutes from "./marketplaceRoutes";
@@ -44,6 +45,7 @@ export function registerAllRoutes(app: Express): void {
   app.use("/api/auth", authRoutes);
   app.use("/api/teams", teamRoutes); // Note: some routes like /api/teams/division/:division were moved to leagueRoutes
   app.use("/api/players", playerRoutes);
+  app.use("/api/staff", staffRoutes);
   app.use("/api/leagues", leagueRoutes); // This will also cover /api/teams/division/:division if it's there
   app.use("/api/matches", matchRoutes);
   app.use("/api/marketplace", marketplaceRoutes);

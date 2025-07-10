@@ -3,15 +3,54 @@ import { Router, type Request, type Response, type NextFunction } from "express"
 import { storage } from "../storage/index"; // Updated import
 import { isAuthenticated } from "../replitAuth";
 import { z } from "zod";
+import { ContractService } from "../services/contractService";
 
 const router = Router();
 
 const contractNegotiationSchema = z.object({
     seasons: z.number().min(1, "Contract must be for at least 1 season.").max(5, "Contract cannot exceed 5 seasons."),
-    salary: z.number().min(1000, "Salary must be at least 1000.").max(10000000, "Salary cannot exceed 10,000,000."), // Example limits
+    salary: z.number().min(1000, "Salary must be at least 1000.").max(50000000, "Salary cannot exceed 50,000,000."),
 });
 
+/**
+ * GET /api/players/:playerId/contract-value
+ * Get contract value calculation for a player using Universal Value Formula
+ */
+router.get('/:playerId/contract-value', isAuthenticated, async (req: any, res: Response, next: NextFunction) => {
+  try {
+    const { playerId } = req.params;
+    const userId = req.user.claims.sub;
+    
+    const userTeam = await storage.teams.getTeamByUserId(userId);
+    if (!userTeam) {
+        return res.status(404).json({ message: "Your team was not found." });
+    }
 
+    const player = await storage.players.getPlayerById(playerId);
+    if (!player || player.teamId !== userTeam.id) {
+      return res.status(404).json({ message: "Player not found on your team or does not exist." });
+    }
+
+    const contractCalc = ContractService.calculateContractValue(player);
+    const recommendations = ContractService.getContractRecommendations(contractCalc);
+
+    res.json({
+      success: true,
+      data: {
+        ...contractCalc,
+        recommendations
+      }
+    });
+  } catch (error) {
+    console.error("Error calculating contract value:", error);
+    next(error);
+  }
+});
+
+/**
+ * POST /api/players/:playerId/negotiate
+ * Negotiate a contract with a player using the Universal Value Formula system
+ */
 router.post('/:playerId/negotiate', isAuthenticated, async (req: any, res: Response, next: NextFunction) => {
   try {
     const { playerId } = req.params;
@@ -28,22 +67,28 @@ router.post('/:playerId/negotiate', isAuthenticated, async (req: any, res: Respo
       return res.status(404).json({ message: "Player not found on your team or does not exist." });
     }
 
-    // TODO: Add more complex negotiation logic:
-    // - Check against team's salary cap (requires salaryCapStorage)
-    // - Player happiness/willingness to sign
-    // - Rival offers?
+    // Use the new UVF-based contract negotiation system
+    const negotiationResult = await ContractService.negotiatePlayerContract(playerId, salary, seasons);
 
-    const updatedPlayer = await storage.players.updatePlayer(playerId, {
-      contractSeasons: seasons,
-      // contractStartSeason: currentSeasonNumber, // This would require fetching current season from seasonStorage
-      salary: salary,
-      updatedAt: new Date(),
-    });
+    if (negotiationResult.accepted) {
+      // Update the player's contract
+      const updatedPlayer = await ContractService.updatePlayerContract(playerId, salary, seasons);
+      
+      if (!updatedPlayer) {
+        return res.status(500).json({ message: "Failed to update player contract details." });
+      }
 
-    if (!updatedPlayer) {
-        return res.status(404).json({ message: "Failed to update player contract details."})
+      res.json({
+        success: true,
+        negotiationResult,
+        player: updatedPlayer
+      });
+    } else {
+      res.json({
+        success: false,
+        negotiationResult
+      });
     }
-    res.json(updatedPlayer);
   } catch (error) {
     console.error("Error negotiating contract:", error);
     if (error instanceof z.ZodError) {

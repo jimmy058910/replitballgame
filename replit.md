@@ -115,7 +115,7 @@ Built as a React + Express web application with PostgreSQL database, using moder
 
 ## Recent Changes
 
-### July 10, 2025 - CRITICAL DIVISION SYSTEM BUG FIX & SUB-DIVISION IMPLEMENTATION COMPLETE
+### July 10, 2025 - CRITICAL DIVISION SYSTEM BUG FIX & UNIVERSAL VALUE FORMULA (UVF) CONTRACT SYSTEM IMPLEMENTATION COMPLETE
 
 #### ✅ DIVISION 8 OVERFLOW BUG RESOLUTION COMPLETE
 - ✓ **Critical Bug Identified**: Division 8 had 9 teams instead of maximum 8, violating game mechanics
@@ -142,13 +142,31 @@ Built as a React + Express web application with PostgreSQL database, using moder
 - ✓ **Error Handling Enhancement**: Improved staff creation error handling in `teamStorage.ts` to better catch and report staff creation failures
 - ✓ **Prevention Measures**: Enhanced logging and error reporting to prevent future occurrences of missing staff during team creation
 
+#### ✅ UNIVERSAL VALUE FORMULA (UVF) CONTRACT SYSTEM IMPLEMENTATION COMPLETE
+- ✓ **Complete Contract System Overhaul**: Replaced basic salary negotiation with comprehensive Universal Value Formula system
+- ✓ **UVF Formula Implementation**: Base Salary = (AttributeValue + PotentialValue) * AgeModifier with precise calculations:
+  - **Players**: Sum of 8 attributes * 50₡ + overallPotentialStars * 1000₡
+  - **Staff**: Sum of staff attributes * 150₡ + level * 500₡
+- ✓ **Age Modifier System**: Youth (16-23): 0.8, Prime (24-30): 1.2, Veteran (31-34): 1.0, Declining (35+): 0.7
+- ✓ **Advanced Negotiation Logic**: Market Value replaces player.salary * 1.1, minimum offer = 70% of MarketValue
+- ✓ **Dynamic Counter-Offers**: MarketValue * (1.05 + random 0.0-0.1) with 10-20% signing bonus
+- ✓ **Camaraderie Integration**: Individual player camaraderie affects contract negotiation willingness
+- ✓ **Staff Simplification**: Staff accept >= 95% of market value, no counter-offers for streamlined management
+- ✓ **Contract Service Creation**: Comprehensive `ContractService` class with calculation, negotiation, and update methods
+- ✓ **API Enhancement**: New endpoints `/api/players/:id/contract-value` and `/api/staff/:id/contract-value` for UVF calculations
+- ✓ **Salary Cap Compliance**: Increased maximum salary from 10M to 50M₡ to accommodate high-value elite players
+- ✓ **Contract Recommendations**: Fair/Good/Excellent offer suggestions based on market value calculations
+- ✓ **Production Testing**: Comprehensive test suite validates all UVF calculations and negotiation logic
+
 #### ✅ METICULOUS GAME MECHANICS INTEGRATION ACHIEVEMENT
-- ✓ **Contract Negotiation System**: All sub-divisions tie into existing contract negotiation formulas and thresholds
+- ✓ **Contract Negotiation System**: All sub-divisions tie into new UVF contract negotiation formulas and thresholds
 - ✓ **League Standings Integration**: Division standings properly display sub-division names and maintain competitive structure
 - ✓ **Playoff System Compatibility**: Sub-divisions integrate seamlessly with existing playoff and tournament systems
 - ✓ **Staff & Stadium Effects**: All sub-divisions maintain full integration with staff effectiveness and stadium atmosphere systems
 - ✓ **Financial System Integration**: Sub-divisions properly integrate with division rewards, marketplace, and economic systems
 - ✓ **Player Development Integration**: Sub-divisions maintain compatibility with player aging, progression, and retirement systems
+- ✓ **UVF Economic Balance**: Contract system ensures fair compensation tied to individual value, resolving salary imbalances
+- ✓ **Unified Salary Structure**: Both players and staff use single UVF formula for consistent and scalable compensation
 
 ### July 2, 2025 - COMPREHENSIVE MARKET HUB UI/UX REVAMP & CRITICAL FIXES COMPLETE
 
