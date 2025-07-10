@@ -41,6 +41,7 @@ async function createAITeamsForDivision(division: number) {
       name: teamName,
       userId: aiUser.id,
       division: division,
+      subdivision: "main", // AI teams default to main subdivision
       wins: Math.floor(Math.random() * 5),
       losses: Math.floor(Math.random() * 5),
       draws: Math.floor(Math.random() * 2),

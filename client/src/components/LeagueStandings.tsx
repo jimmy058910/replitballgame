@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import TeamInfoDialog from "@/components/TeamInfoDialog";
-import { getDivisionName } from "@shared/divisionUtils";
+import { getDivisionName, getDivisionNameWithSubdivision } from "@shared/divisionUtils";
 
 interface LeagueStandingsProps {
   division: number;
@@ -16,6 +16,7 @@ interface Team {
   draws: number;
   points: number;
   division: number;
+  subdivision?: string;
   currentStreak: number;
   streakType: string;
   form: string;
@@ -51,7 +52,10 @@ export default function LeagueStandings({ division }: LeagueStandingsProps) {
       <Card className="bg-gray-800 border-gray-700">
         <CardHeader>
           <CardTitle className="font-orbitron">
-            {getDivisionName(division)}
+            {standings.length > 0 && standings[0].subdivision 
+              ? getDivisionNameWithSubdivision(division, standings[0].subdivision)
+              : getDivisionName(division)
+            }
           </CardTitle>
         </CardHeader>
         <CardContent>

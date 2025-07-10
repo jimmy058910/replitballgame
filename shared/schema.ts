@@ -51,6 +51,7 @@ export const teams = pgTable("teams", {
   userId: varchar("user_id").references(() => users.id).notNull(),
   name: varchar("name").notNull(),
   division: integer("division").default(8),
+  subdivision: varchar("subdivision", { length: 50 }).default("main"),
   wins: integer("wins").default(0),
   losses: integer("losses").default(0),
   draws: integer("draws").default(0),

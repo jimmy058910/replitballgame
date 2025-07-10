@@ -62,44 +62,35 @@ router.post('/', isAuthenticated, asyncHandler(async (req: any, res: Response) =
   // Check how many teams are already in division 8 to determine sub-division
   const division8Teams = await storage.teams.getTeamsByDivision(8);
   let assignedDivision = 8;
+  let assignedSubdivision = "main";
   
-  // If division 8 already has 8 teams, create a sub-division using integer multipliers
+  // If division 8 main sub-division already has 8 teams, create a new sub-division
   if (division8Teams.length >= 8) {
-    // Check for existing sub-divisions: 8, 80, 800, 8000, etc.
-    const existingSubDivisions = new Set();
+    // Get all teams in division 8 grouped by subdivision
+    const allDivision8Teams = await db.select().from(teams).where(eq(teams.division, 8));
     
-    // Get all teams with division values that are multiples of 8
-    const allDivision8Teams = await db.select().from(teams).where(
-      or(
-        eq(teams.division, 8),
-        eq(teams.division, 80),
-        eq(teams.division, 800),
-        eq(teams.division, 8000),
-        eq(teams.division, 80000)
-      )
-    );
-    
-    // Group teams by their division values
-    const divisionCounts: Record<number, number> = {};
+    // Group teams by their subdivision values
+    const subdivisionCounts: Record<string, number> = {};
     allDivision8Teams.forEach(team => {
-      const divisionValue = team.division || 8;
-      divisionCounts[divisionValue] = (divisionCounts[divisionValue] || 0) + 1;
+      const subdivisionValue = team.subdivision || "main";
+      subdivisionCounts[subdivisionValue] = (subdivisionCounts[subdivisionValue] || 0) + 1;
     });
     
     // Find the next available sub-division that has room (less than 8 teams)
-    const possibleDivisions = [8, 80, 800, 8000, 80000];
-    for (const divisionValue of possibleDivisions) {
-      const teamCount = divisionCounts[divisionValue] || 0;
+    const possibleSubdivisions = ["main", "alpha", "beta", "gamma", "delta", "epsilon", "zeta", "eta"];
+    for (const subdivisionValue of possibleSubdivisions) {
+      const teamCount = subdivisionCounts[subdivisionValue] || 0;
       if (teamCount < 8) {
-        assignedDivision = divisionValue;
+        assignedSubdivision = subdivisionValue;
         break;
       }
     }
     
     logInfo("Assigning to sub-division", { 
       division: assignedDivision,
-      existingTeamsInDivision: divisionCounts[assignedDivision] || 0,
-      allDivisionCounts: divisionCounts,
+      subdivision: assignedSubdivision,
+      existingTeamsInSubdivision: subdivisionCounts[assignedSubdivision] || 0,
+      allSubdivisionCounts: subdivisionCounts,
       requestId: req.requestId 
     });
   }
@@ -109,6 +100,7 @@ router.post('/', isAuthenticated, asyncHandler(async (req: any, res: Response) =
     userId,
     name: sanitizedName,
     division: assignedDivision,
+    subdivision: assignedSubdivision,
   });
 
   logInfo("Team created successfully", { 
