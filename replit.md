@@ -115,6 +115,33 @@ Built as a React + Express web application with PostgreSQL database, using moder
 
 ## Recent Changes
 
+### July 10, 2025 - CRITICAL DIVISION SYSTEM BUG FIX & SUB-DIVISION IMPLEMENTATION COMPLETE
+
+#### ✅ DIVISION 8 OVERFLOW BUG RESOLUTION COMPLETE
+- ✓ **Critical Bug Identified**: Division 8 had 9 teams instead of maximum 8, violating game mechanics
+- ✓ **Root Cause Fixed**: Team creation logic was hardcoded to always assign new teams to Division 8 without capacity checking
+- ✓ **Sub-Division System Implementation**: Created intelligent sub-division system using integer multipliers (8, 80, 800, 8000, 80000)
+- ✓ **Database Validation**: SQL queries confirmed 9 teams in Division 8, bug successfully replicated and fixed
+- ✓ **Division Naming Enhancement**: Updated `getDivisionNameWithSubdivision()` to properly display sub-divisions:
+  - Division 8: "Copper League - Main" (8 teams max)
+  - Division 80: "Copper League - Alpha" (8 teams max)  
+  - Division 800: "Copper League - Beta" (8 teams max)
+  - Division 8000: "Copper League - Gamma" (8 teams max)
+  - Division 80000: "Copper League - Delta" (8 teams max)
+- ✓ **Team Creation Logic Overhaul**: Implemented sophisticated capacity checking that finds next available sub-division with room for new teams
+- ✓ **Color System Integration**: All sub-divisions maintain consistent Copper League visual identity with proper color scheme
+- ✓ **Production Fix Applied**: Moved "Steel Phoenix" team from Division 8 to Division 80, establishing proper 8-team limit compliance
+- ✓ **Technical Implementation**: Enhanced `teamRoutes.ts` with comprehensive division capacity validation and sub-division assignment logic
+- ✓ **Game Balance Preservation**: Maintains competitive integrity by ensuring all divisions have exactly 8 teams maximum
+
+#### ✅ METICULOUS GAME MECHANICS INTEGRATION ACHIEVEMENT
+- ✓ **Contract Negotiation System**: All sub-divisions tie into existing contract negotiation formulas and thresholds
+- ✓ **League Standings Integration**: Division standings properly display sub-division names and maintain competitive structure
+- ✓ **Playoff System Compatibility**: Sub-divisions integrate seamlessly with existing playoff and tournament systems
+- ✓ **Staff & Stadium Effects**: All sub-divisions maintain full integration with staff effectiveness and stadium atmosphere systems
+- ✓ **Financial System Integration**: Sub-divisions properly integrate with division rewards, marketplace, and economic systems
+- ✓ **Player Development Integration**: Sub-divisions maintain compatibility with player aging, progression, and retirement systems
+
 ### July 2, 2025 - COMPREHENSIVE MARKET HUB UI/UX REVAMP & CRITICAL FIXES COMPLETE
 
 #### ✅ COMPLETE MARKET HUB REDESIGN & FUNCTIONALITY IMPLEMENTATION

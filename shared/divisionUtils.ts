@@ -28,14 +28,23 @@ const DIVISION_8_SUBDIVISIONS = [
 export function getDivisionNameWithSubdivision(division: number, teamId?: string): string {
   const baseName = getDivisionName(division);
   
-  if (division === 8 && teamId) {
-    // Generate consistent sub-division based on team ID
-    const hash = teamId.split('').reduce((a, b) => {
-      a = ((a << 5) - a) + b.charCodeAt(0);
-      return a & a;
-    }, 0);
-    const subDivisionIndex = Math.abs(hash) % DIVISION_8_SUBDIVISIONS.length;
-    const subDivision = DIVISION_8_SUBDIVISIONS[subDivisionIndex];
+  // Handle the new sub-division system for Division 8 (Copper League)
+  if (division === 8) {
+    return `${baseName} - Main`;
+  } else if (division === 80) {
+    return `${baseName} - Alpha`;
+  } else if (division === 800) {
+    return `${baseName} - Beta`;
+  } else if (division === 8000) {
+    return `${baseName} - Gamma`;
+  } else if (division === 80000) {
+    return `${baseName} - Delta`;
+  }
+  
+  // For any other division 8 sub-divisions, use a fallback naming
+  if (division.toString().startsWith('8') && division !== 8) {
+    const subDivisionNumber = Math.floor(Math.log10(division / 8));
+    const subDivision = DIVISION_8_SUBDIVISIONS[subDivisionNumber - 1] || `Sub-${subDivisionNumber}`;
     return `${baseName} - ${subDivision}`;
   }
   
@@ -51,8 +60,14 @@ export function getDivisionColor(division: number): string {
     5: "text-orange-600",    // Bronze
     6: "text-gray-600",      // Iron
     7: "text-stone-500",     // Stone
-    8: "text-green-400",     // Rookie
+    8: "text-green-400",     // Copper
   };
+  
+  // All Division 8 sub-divisions use the same color as Division 8 (Copper League)
+  if (division === 8 || division === 80 || division === 800 || division === 8000 || division === 80000) {
+    return colors[8];
+  }
+  
   return colors[division as keyof typeof colors] || "text-gray-300";
 }
 
@@ -67,5 +82,11 @@ export function getDivisionBadgeColor(division: number): string {
     7: "bg-stone-600",       // Stone
     8: "bg-green-600",       // Copper
   };
+  
+  // All Division 8 sub-divisions use the same color as Division 8 (Copper League)
+  if (division === 8 || division === 80 || division === 800 || division === 8000 || division === 80000) {
+    return colors[8];
+  }
+  
   return colors[division as keyof typeof colors] || "bg-gray-600";
 }

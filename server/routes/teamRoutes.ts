@@ -9,7 +9,7 @@ import { TeamNameValidator } from "../services/teamNameValidation";
 import { AgingService } from "../services/agingService";
 import { generateRandomName } from "@shared/names";
 import { db } from "../db";
-import { staff } from "@shared/schema";
+import { staff, teams } from "@shared/schema";
 import { eq, and, or } from "drizzle-orm";
 // import { players as playersTable } from "@shared/schema"; // Not directly used here anymore
 
@@ -59,11 +59,56 @@ router.post('/', isAuthenticated, asyncHandler(async (req: any, res: Response) =
   // Use the sanitized name from validation
   const sanitizedName = validationResult.sanitizedName || name;
 
+  // Check how many teams are already in division 8 to determine sub-division
+  const division8Teams = await storage.teams.getTeamsByDivision(8);
+  let assignedDivision = 8;
+  
+  // If division 8 already has 8 teams, create a sub-division using integer multipliers
+  if (division8Teams.length >= 8) {
+    // Check for existing sub-divisions: 8, 80, 800, 8000, etc.
+    const existingSubDivisions = new Set();
+    
+    // Get all teams with division values that are multiples of 8
+    const allDivision8Teams = await db.select().from(teams).where(
+      or(
+        eq(teams.division, 8),
+        eq(teams.division, 80),
+        eq(teams.division, 800),
+        eq(teams.division, 8000),
+        eq(teams.division, 80000)
+      )
+    );
+    
+    // Group teams by their division values
+    const divisionCounts: Record<number, number> = {};
+    allDivision8Teams.forEach(team => {
+      const divisionValue = team.division || 8;
+      divisionCounts[divisionValue] = (divisionCounts[divisionValue] || 0) + 1;
+    });
+    
+    // Find the next available sub-division that has room (less than 8 teams)
+    const possibleDivisions = [8, 80, 800, 8000, 80000];
+    for (const divisionValue of possibleDivisions) {
+      const teamCount = divisionCounts[divisionValue] || 0;
+      if (teamCount < 8) {
+        assignedDivision = divisionValue;
+        break;
+      }
+    }
+    
+    logInfo("Assigning to sub-division", { 
+      division: assignedDivision,
+      existingTeamsInDivision: divisionCounts[assignedDivision] || 0,
+      allDivisionCounts: divisionCounts,
+      requestId: req.requestId 
+    });
+  }
+
   // storage.teams.createTeam now handles default staff and finances
   const team = await storage.teams.createTeam({ // Use teamStorage
     userId,
     name: sanitizedName,
-    division: 8,
+    division: assignedDivision,
   });
 
   logInfo("Team created successfully", { 
