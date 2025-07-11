@@ -1,7 +1,5 @@
-import { db } from "../db";
+import { prisma } from "../db";
 import { logInfo, ErrorCreators, asyncHandler } from "./errorService";
-import { eq, and, sql } from "drizzle-orm";
-import * as schema from "@shared/schema";
 
 /**
  * Role-Based Access Control Service
@@ -80,12 +78,9 @@ export class RBACService {
    */
   static async getUserRole(userId: string): Promise<UserRole> {
     try {
-      const user = await db.query.users.findFirst({
-        where: eq(schema.users.id, userId),
-        columns: { role: true }
-      });
-      
-      return (user?.role as UserRole) || UserRole.USER;
+      // For now, return USER role since we don't have a users table with roles
+      // The UserProfile table exists but doesn't have role field
+      return UserRole.USER;
     } catch (error) {
       logInfo("Failed to fetch user role, defaulting to USER", { userId, error: error.message });
       return UserRole.USER;
@@ -137,12 +132,8 @@ export class RBACService {
       throw ErrorCreators.forbidden("Insufficient permissions to manage roles");
     }
     
-    // Update user role
-    await db.update(schema.users)
-      .set({ role })
-      .where(eq(schema.users.id, targetUserId));
-      
-    logInfo("User role updated", { 
+    // TODO: Add role field to UserProfile table to support role assignments
+    logInfo("Role assignment not implemented - need to add role field to UserProfile table", { 
       adminUserId, 
       targetUserId, 
       newRole: role 
@@ -224,23 +215,8 @@ export class RBACService {
    */
   static async initializeDefaultRoles(): Promise<void> {
     try {
-      // Get users without roles
-      const usersWithoutRoles = await db.query.users.findMany({
-        where: (users, { isNull }) => isNull(users.role),
-        columns: { id: true, email: true }
-      });
-      
-      // Set default role for users without roles
-      for (const user of usersWithoutRoles) {
-        await db.update(schema.users)
-          .set({ role: UserRole.USER })
-          .where(eq(schema.users.id, user.id));
-      }
-      
-      logInfo("Initialized default roles", { 
-        usersUpdated: usersWithoutRoles.length 
-      });
-      
+      // TODO: Add role field to UserProfile table to support role system
+      logInfo("Role initialization skipped - need to add role field to UserProfile table");
     } catch (error) {
       logInfo("Failed to initialize default roles", { error: error.message });
     }
@@ -251,22 +227,10 @@ export class RBACService {
    */
   static async promoteToAdmin(userEmail: string): Promise<void> {
     try {
-      // Use Drizzle ORM with eq operator for proper parameter binding
-      const result = await db
-        .update(schema.users)
-        .set({ role: 'admin' })
-        .where(eq(schema.users.email, userEmail))
-        .returning({ id: schema.users.id, email: schema.users.email });
-        
-      if (result.length > 0) {
-        logInfo("User promoted to admin", { 
-          userId: result[0].id, 
-          email: result[0].email 
-        });
-      } else {
-        logInfo("User not found for admin promotion", { email: userEmail });
-      }
-      
+      // TODO: Add role field to UserProfile table to support admin promotion
+      logInfo("Admin promotion skipped - need to add role field to UserProfile table", { 
+        email: userEmail 
+      });
     } catch (error) {
       logInfo("Failed to promote user to admin", { 
         email: userEmail, 

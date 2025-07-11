@@ -1,15 +1,37 @@
-import { db } from "../db";
-import { players, matches, playerMatchStats, teamMatchStats, teams, stadiums } from "@shared/schema";
-import { eq, and, or, sql } from "drizzle-orm";
-import type { Match, Player, PlayerMatchStats, TeamMatchStats, Stadium } from "@shared/schema";
+import { prisma } from "../db";
+import type { Game, Player, Stadium, Team } from "../../generated/prisma";
 import { commentaryService } from "./commentaryService.js";
 import { injuryStaminaService } from "./injuryStaminaService";
 import { simulateEnhancedMatch } from "./matchSimulation";
 
-// Helper type for player stats, excluding IDs
-type PlayerStatsSnapshot = Omit<PlayerMatchStats, 'id' | 'playerId' | 'matchId' | 'teamId' | 'createdAt'>;
-// Helper type for team stats, excluding IDs
-type TeamStatsSnapshot = Omit<TeamMatchStats, 'id' | 'teamId' | 'matchId' | 'createdAt'>;
+// Helper type for player stats snapshot
+type PlayerStatsSnapshot = {
+  scores: number;
+  passingAttempts: number;
+  passesCompleted: number;
+  passingYards: number;
+  rushingYards: number;
+  catches: number;
+  receivingYards: number;
+  drops: number;
+  fumblesLost: number;
+  tackles: number;
+  knockdownsInflicted: number;
+  interceptionsCaught: number;
+  passesDefended: number;
+};
+
+// Helper type for team stats snapshot
+type TeamStatsSnapshot = {
+  possessionTime: number;
+  turnovers: number;
+  totalYards: number;
+  passYards: number;
+  rushYards: number;
+  firstDowns: number;
+  penalties: number;
+  penaltyYards: number;
+};
 
 
 interface LiveMatchState {
@@ -52,21 +74,35 @@ class MatchStateManager {
 
   // Start a new live match with server-side state management
   async startLiveMatch(matchId: string, isExhibition: boolean = false): Promise<LiveMatchState> {
-    const [match] = await db.select().from(matches).where(eq(matches.id, matchId)).limit(1);
+    const match = await prisma.game.findUnique({
+      where: { id: parseInt(matchId) }
+    });
+    
     if (!match) {
       throw new Error("Match not found");
     }
 
     // Get team players for simulation
-    const homeTeamPlayers = await db.select().from(players).where(and(eq(players.teamId, match.homeTeamId), eq(players.isMarketplace, false)));
-    const awayTeamPlayers = await db.select().from(players).where(and(eq(players.teamId, match.awayTeamId), eq(players.isMarketplace, false)));
+    const homeTeamPlayers = await prisma.player.findMany({
+      where: { 
+        teamId: match.homeTeamId,
+        isOnMarket: false
+      }
+    });
+    
+    const awayTeamPlayers = await prisma.player.findMany({
+      where: { 
+        teamId: match.awayTeamId,
+        isOnMarket: false
+      }
+    });
 
     const maxTime = isExhibition ? 1200 : 1800; // 20 min exhibition, 30 min league
 
     const initialPlayerStats = new Map<string, PlayerStatsSnapshot>();
     const allPlayers = [...homeTeamPlayers, ...awayTeamPlayers];
     allPlayers.forEach(player => {
-      initialPlayerStats.set(player.id, {
+      initialPlayerStats.set(player.id.toString(), {
         scores: 0, passingAttempts: 0, passesCompleted: 0, passingYards: 0,
         rushingYards: 0, catches: 0, receivingYards: 0, drops: 0, fumblesLost: 0,
         tackles: 0, knockdownsInflicted: 0, interceptionsCaught: 0, passesDefended: 0,
