@@ -9,6 +9,7 @@ import StaffManagement from "@/components/StaffManagement";
 import TeamFinances from "@/components/TeamFinances";
 import { TaxiSquadManager } from "@/components/TaxiSquadManager";
 import { InjuryStaminaManager } from "@/components/InjuryStaminaManager";
+import CamaraderieManagement from "@/components/CamaraderieManagement";
 import Inventory from "@/pages/Inventory";
 import AdvancedTacticalEffectsManager from "@/components/AdvancedTacticalEffectsManager";
 import UnifiedInventoryHub from "@/components/UnifiedInventoryHub";
@@ -282,11 +283,12 @@ export default function Team() {
           </TabsContent>
 
           <TabsContent value="staff">
-            {/* Staff Sub-tabs: Current Staff and Hire New Staff */}
+            {/* Staff Sub-tabs: Current Staff, Hire New Staff, and Team Chemistry */}
             <Tabs value={staffSubTab} onValueChange={setStaffSubTab} className="mb-6">
-              <TabsList className="grid w-full grid-cols-2 bg-gray-800">
+              <TabsList className="grid w-full grid-cols-3 bg-gray-800">
                 <TabsTrigger value="current">Current Staff</TabsTrigger>
                 <TabsTrigger value="hire">Hire New Staff</TabsTrigger>
+                <TabsTrigger value="camaraderie">Team Chemistry</TabsTrigger>
               </TabsList>
 
               <TabsContent value="current">
@@ -305,6 +307,10 @@ export default function Team() {
                     </p>
                   </CardContent>
                 </Card>
+              </TabsContent>
+
+              <TabsContent value="camaraderie">
+                <CamaraderieManagement teamId={team?.id || ''} />
               </TabsContent>
             </Tabs>
           </TabsContent>

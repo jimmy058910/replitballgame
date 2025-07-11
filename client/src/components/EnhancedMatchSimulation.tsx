@@ -986,27 +986,27 @@ class EnhancedSimulationEngine {
     const teamCamaraderie = player.teamId === this.team1.id ? 
       (this.team1?.teamCamaraderie || 50) : (this.team2?.teamCamaraderie || 50);
     
-    // Apply camaraderie-based stat modifications
+    // Apply camaraderie-based stat modifications - ALIGNED WITH BACKEND CamaraderieService.ts
     if (teamCamaraderie >= 91) {
       // Excellent camaraderie (91-100): +2 catching/agility, +3 pass accuracy
       stats.catching += 2;
       stats.agility += 2;
       stats.throwing += 3;
     } else if (teamCamaraderie >= 76) {
-      // Good camaraderie (76-90): +1 catching/agility, +2 pass accuracy
+      // Good camaraderie (76-90): +1 catching/agility, +1 pass accuracy (FIXED: was +2)
       stats.catching += 1;
       stats.agility += 1;
-      stats.throwing += 2;
+      stats.throwing += 1;
     } else if (teamCamaraderie <= 25) {
       // Poor camaraderie (0-25): -2 catching/agility, -3 pass accuracy
       stats.catching -= 2;
       stats.agility -= 2;
       stats.throwing -= 3;
     } else if (teamCamaraderie <= 40) {
-      // Low camaraderie (26-40): -1 catching/agility, -2 pass accuracy
+      // Low camaraderie (26-40): -1 catching/agility, -1 pass accuracy (FIXED: was -2)
       stats.catching -= 1;
       stats.agility -= 1;
-      stats.throwing -= 2;
+      stats.throwing -= 1;
     }
     
     // Ensure stats don't go below 1

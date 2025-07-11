@@ -44,12 +44,9 @@ router.get('/team/:teamId', asyncHandler(async (req: any, res: Response) => {
     throw ErrorCreators.forbidden("Cannot access team camaraderie data");
   }
   
-  const summary = await CamaraderieService.getCamaraderieSummary(teamId);
+  const effects = await CamaraderieService.getCamaraderieEffects(teamId);
   
-  res.json({
-    success: true,
-    data: summary
-  });
+  res.json(effects);
 }));
 
 /**

@@ -371,6 +371,127 @@ export class CamaraderieService {
       tier: effects.tier.name
     };
   }
+
+  /**
+   * Get comprehensive camaraderie summary for a team
+   */
+  static async getCamaraderieSummary(teamId: string): Promise<{
+    teamId: string;
+    teamName: string;
+    averageCamaraderie: number;
+    playerCount: number;
+    highCamaraderieCount: number;
+    lowCamaraderieCount: number;
+    effects: CamaraderieEffects;
+    topPlayers: any[];
+    concernPlayers: any[];
+  }> {
+    try {
+      // Get team information
+      const team = await db.query.teams.findFirst({
+        where: eq(schema.teams.id, teamId),
+        columns: { id: true, name: true }
+      });
+      
+      if (!team) {
+        throw ErrorCreators.notFound(`Team ${teamId} not found`);
+      }
+      
+      // Get all players on the team
+      const players = await db.query.players.findMany({
+        where: eq(schema.players.teamId, teamId),
+        columns: { 
+          id: true, 
+          firstName: true, 
+          lastName: true, 
+          camaraderie: true,
+          role: true,
+          age: true,
+          race: true,
+          yearsOnTeam: true
+        }
+      });
+      
+      // Calculate team camaraderie stats
+      const playerCount = players.length;
+      const averageCamaraderie = playerCount > 0 ? 
+        players.reduce((sum, player) => sum + (player.camaraderie || 50), 0) / playerCount : 50;
+      
+      const highCamaraderieCount = players.filter(p => (p.camaraderie || 50) >= 80).length;
+      const lowCamaraderieCount = players.filter(p => (p.camaraderie || 50) <= 30).length;
+      
+      // Get top performers (high camaraderie)
+      const topPlayers = players
+        .filter(p => (p.camaraderie || 50) >= 80)
+        .sort((a, b) => (b.camaraderie || 50) - (a.camaraderie || 50))
+        .slice(0, 5);
+      
+      // Get players of concern (low camaraderie)
+      const concernPlayers = players
+        .filter(p => (p.camaraderie || 50) <= 30)
+        .sort((a, b) => (a.camaraderie || 50) - (b.camaraderie || 50))
+        .slice(0, 5);
+      
+      // Get camaraderie effects
+      const effects = await this.getCamaraderieEffects(teamId);
+      
+      return {
+        teamId,
+        teamName: team.name,
+        averageCamaraderie: Math.round(averageCamaraderie),
+        playerCount,
+        highCamaraderieCount,
+        lowCamaraderieCount,
+        effects,
+        topPlayers,
+        concernPlayers
+      };
+      
+    } catch (error) {
+      logError(error as Error, undefined, { 
+        teamId, 
+        operation: 'getCamaraderieSummary' 
+      });
+      throw error;
+    }
+  }
+
+  /**
+   * Get progression bonus for a team based on camaraderie
+   */
+  static async getProgressionBonus(teamId: string): Promise<number> {
+    const effects = await this.getCamaraderieEffects(teamId);
+    return effects.developmentBonus;
+  }
+
+  /**
+   * Get injury reduction for a team based on camaraderie
+   */
+  static async getInjuryReduction(teamId: string): Promise<number> {
+    const effects = await this.getCamaraderieEffects(teamId);
+    return effects.injuryReduction;
+  }
+
+  /**
+   * Increment years on team for all players in a team
+   */
+  static async incrementYearsOnTeam(teamId: string): Promise<void> {
+    try {
+      await db.update(schema.players)
+        .set({ yearsOnTeam: sql`${schema.players.yearsOnTeam} + 1` })
+        .where(eq(schema.players.teamId, teamId));
+        
+      logInfo("Years on team incremented for all players", {
+        teamId
+      });
+    } catch (error) {
+      logError(error as Error, undefined, { 
+        teamId, 
+        operation: 'incrementYearsOnTeam' 
+      });
+      throw error;
+    }
+  }
   
   /**
    * Get progression bonus for a specific player based on age and team camaraderie
