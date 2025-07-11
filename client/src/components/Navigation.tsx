@@ -42,8 +42,8 @@ export default function Navigation() {
     enabled: !!team?.id && isAuthenticated,
   });
 
-  // Use credits from team data if finances API fails, convert string to number
-  const credits = parseInt(finances?.credits || team?.finances?.credits || "0");
+  // Use credits from finances API, convert string to number
+  const credits = parseInt(String(finances?.credits || "0"));
 
   const { data: storeData } = useQuery<StoreData>({
     queryKey: ["/api/store/ads"],

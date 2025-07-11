@@ -36,11 +36,8 @@ export default function TeamFinances({ teamId }: TeamFinancesProps) {
   });
 
   // Ensure we have financial data access
-  const creditsAmount = finances && typeof finances === 'object' && 'credits' in finances 
-    ? (finances as any).credits 
-    : team && typeof team === 'object' && 'credits' in team 
-      ? (team as any).credits 
-      : 0;
+  // Convert credits from string to number for display
+  const creditsAmount = finances?.credits ? parseInt(String(finances.credits)) : 0;
 
   if (isLoading) {
     return (

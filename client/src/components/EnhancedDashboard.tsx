@@ -21,6 +21,10 @@ import PlayerCard from "./PlayerCard";
 
 export default function EnhancedDashboard() {
   const { data: team } = useQuery({ queryKey: ["/api/teams/my"] });
+  const { data: finances } = useQuery({ 
+    queryKey: [`/api/teams/${team?.id}/finances`],
+    enabled: !!team?.id,
+  });
   const { data: liveMatches } = useQuery({ queryKey: ["/api/matches/live"] });
   const { data: notifications } = useQuery({ queryKey: ["/api/notifications"] });
   const { data: leagues } = useQuery({ queryKey: ["/api/leagues"] });
@@ -83,7 +87,7 @@ export default function EnhancedDashboard() {
                 <DollarSign className="w-8 h-8 text-green-500" />
                 <div>
                   <div className="text-2xl font-bold">
-                    {team?.finances?.credits?.toLocaleString() || '0'}
+                    {finances?.credits ? parseInt(String(finances.credits)).toLocaleString() : '0'}
                   </div>
                   <div className="text-sm text-gray-500">Credits</div>
                 </div>
