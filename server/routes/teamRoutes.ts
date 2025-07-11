@@ -8,6 +8,7 @@ import { ErrorCreators, asyncHandler, logInfo } from "../services/errorService";
 import { TeamNameValidator } from "../services/teamNameValidation";
 import { AgingService } from "../services/agingService";
 import { generateRandomName } from "@shared/names";
+import { Race, PlayerRole, InjuryStatus } from "../../generated/prisma";
 // Database operations handled through storage layer
 
 const router = Router();
@@ -140,7 +141,30 @@ router.post('/', isAuthenticated, asyncHandler(async (req: any, res: Response) =
     
     try {
       const playerData = generateRandomPlayer("", race, team.id, position);
-      await storage.players.createPlayer(playerData);
+      
+      // Extract only the fields that the PlayerStorage expects
+      const cleanPlayerData = {
+        teamId: parseInt(playerData.teamId),
+        firstName: playerData.firstName,
+        lastName: playerData.lastName,
+        race: playerData.race.toUpperCase() as Race,
+        age: playerData.age,
+        role: playerData.role as PlayerRole,
+        speed: playerData.speed,
+        power: playerData.power,
+        throwing: playerData.throwing,
+        catching: playerData.catching,
+        kicking: playerData.kicking,
+        staminaAttribute: playerData.staminaAttribute,
+        leadership: playerData.leadership,
+        agility: playerData.agility,
+        potentialRating: playerData.potentialRating,
+        dailyStaminaLevel: 100,
+        injuryStatus: 'HEALTHY' as InjuryStatus,
+        camaraderieScore: playerData.camaraderie || 75.0,
+      };
+      
+      await storage.players.createPlayer(cleanPlayerData);
     } catch (playerError) {
       const errorMessage = playerError instanceof Error ? playerError.message : String(playerError);
       throw ErrorCreators.database(`Failed to create player ${i + 1}: ${errorMessage}`);

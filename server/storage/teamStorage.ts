@@ -1,6 +1,5 @@
 import { db } from '../db';
 import { PrismaClient, Team, Race } from '../../generated/prisma';
-import { db } from '../db';
 
 const prisma = db; // Use shared Prisma instance
 
@@ -63,6 +62,20 @@ export class TeamStorage {
         staff: true
       }
     });
+    
+    // Convert BigInt fields to strings for JSON serialization
+    if (team && team.finances) {
+      team.finances = {
+        ...team.finances,
+        credits: team.finances.credits.toString(),
+        projectedIncome: team.finances.projectedIncome.toString(),
+        projectedExpenses: team.finances.projectedExpenses.toString(),
+        lastSeasonRevenue: team.finances.lastSeasonRevenue.toString(),
+        lastSeasonExpenses: team.finances.lastSeasonExpenses.toString(),
+        facilitiesMaintenanceCost: team.finances.facilitiesMaintenanceCost.toString(),
+      };
+    }
+    
     return team;
   }
 
@@ -76,6 +89,20 @@ export class TeamStorage {
         staff: true
       }
     });
+    
+    // Convert BigInt fields to strings for JSON serialization
+    if (team && team.finances) {
+      team.finances = {
+        ...team.finances,
+        credits: team.finances.credits.toString(),
+        projectedIncome: team.finances.projectedIncome.toString(),
+        projectedExpenses: team.finances.projectedExpenses.toString(),
+        lastSeasonRevenue: team.finances.lastSeasonRevenue.toString(),
+        lastSeasonExpenses: team.finances.lastSeasonExpenses.toString(),
+        facilitiesMaintenanceCost: team.finances.facilitiesMaintenanceCost.toString(),
+      };
+    }
+    
     return team;
   }
 
@@ -99,7 +126,7 @@ export class TeamStorage {
   }
 
   async getTeams(): Promise<Team[]> {
-    return await prisma.team.findMany({
+    const teams = await prisma.team.findMany({
       include: {
         finances: true,
         stadium: true,
@@ -111,6 +138,22 @@ export class TeamStorage {
         { points: 'desc' },
         { wins: 'desc' }
       ]
+    });
+    
+    // Convert BigInt fields to strings for JSON serialization
+    return teams.map(team => {
+      if (team.finances) {
+        team.finances = {
+          ...team.finances,
+          credits: team.finances.credits.toString(),
+          projectedIncome: team.finances.projectedIncome.toString(),
+          projectedExpenses: team.finances.projectedExpenses.toString(),
+          lastSeasonRevenue: team.finances.lastSeasonRevenue.toString(),
+          lastSeasonExpenses: team.finances.lastSeasonExpenses.toString(),
+          facilitiesMaintenanceCost: team.finances.facilitiesMaintenanceCost.toString(),
+        };
+      }
+      return team;
     });
   }
 
