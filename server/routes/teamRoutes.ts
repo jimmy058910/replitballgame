@@ -789,26 +789,34 @@ router.get('/:teamId/finances', isAuthenticated, asyncHandler(async (req: any, r
     return total + (player.salary || 0);
   }, 0);
 
-  // Calculate actual staff salaries - use fallback in case of database issues
+  // Calculate actual staff salaries - use level-based calculation
   let totalStaffSalaries = 0;
   try {
     const staff = await storage.staff.getStaffByTeamId(team.id);
     totalStaffSalaries = staff.reduce((total, staffMember) => {
-      return total + (staffMember.salary || 0);
+      // Staff salary calculation: level * base salary (varies by type)
+      const baseSalary = 50000; // Base salary for all staff
+      const levelMultiplier = staffMember.level || 1;
+      const calculatedSalary = baseSalary * levelMultiplier;
+      return total + calculatedSalary;
     }, 0);
   } catch (error) {
     console.error('Error fetching staff for salary calculation:', error);
     // Use fallback salary calculation from finances table
-    totalStaffSalaries = finances.staffSalaries || 0;
+    totalStaffSalaries = parseInt(String(finances.staffSalaries || '0'));
   }
 
   // Return finances with calculated values
+  const facilitiesCost = parseInt(String(finances.facilitiesMaintenanceCost || '0'));
+  const projectedIncome = parseInt(String(finances.projectedIncome || '0'));
+  const totalExpenses = totalPlayerSalaries + totalStaffSalaries + facilitiesCost;
+  
   const calculatedFinances = {
     ...finances,
     playerSalaries: totalPlayerSalaries,
     staffSalaries: totalStaffSalaries,
-    totalExpenses: totalPlayerSalaries + totalStaffSalaries + (finances.facilities || 0),
-    netIncome: (finances.totalIncome || 0) - (totalPlayerSalaries + totalStaffSalaries + (finances.facilities || 0))
+    totalExpenses: totalExpenses,
+    netIncome: projectedIncome - totalExpenses
   };
 
   res.json(calculatedFinances);
