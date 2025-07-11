@@ -154,7 +154,7 @@ export default function UnifiedPlayerCard({
     // Final fallback
     return getPlayerDisplayName(player);
   })();
-  const role = getPlayerRole(player);
+  const role = player.role || getPlayerRole(player); // Use database role first, fallback to calculated
   const overallPower = calculateOverallPower(player);
   const potential = parseFloat(player.potentialRating || '0');
   
