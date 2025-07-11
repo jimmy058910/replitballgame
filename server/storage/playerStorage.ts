@@ -55,19 +55,9 @@ export class PlayerStorage {
       include: {
         team: { select: { name: true } },
         contract: true,
-        skills: { include: { skill: true } },
-        playerContracts: {
-          where: { isActive: true },
-          orderBy: { createdAt: 'desc' },
-          take: 1
-        }
+        skills: { include: { skill: true } }
       }
     });
-    
-    // Add active contract details to player object
-    if (player && player.playerContracts && player.playerContracts.length > 0) {
-      (player as any).activeContract = player.playerContracts[0];
-    }
     
     return player;
   }
@@ -82,23 +72,12 @@ export class PlayerStorage {
       include: {
         team: { select: { name: true } },
         contract: true,
-        skills: { include: { skill: true } },
-        playerContracts: {
-          where: { isActive: true },
-          orderBy: { createdAt: 'desc' },
-          take: 1
-        }
+        skills: { include: { skill: true } }
       },
       orderBy: { firstName: 'asc' }
     });
 
-    // Add active contract details to each player object
-    return players.map(player => {
-      if (player.playerContracts && player.playerContracts.length > 0) {
-        (player as any).activeContract = player.playerContracts[0];
-      }
-      return player;
-    });
+    return players;
   }
 
   async getAllPlayersByTeamId(teamId: number): Promise<Player[]> {
