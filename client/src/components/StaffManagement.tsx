@@ -61,7 +61,7 @@ export default function StaffManagement({ teamId }: StaffManagementProps) {
       icon: Award,
       description: "Accelerates player progression and team camaraderie",
       maxLevel: 5,
-      primaryStats: ["coachingRating"],
+      primaryStats: ["motivation", "development", "tactics"],
       baseSalary: 15000,
     },
     {
@@ -70,7 +70,7 @@ export default function StaffManagement({ teamId }: StaffManagementProps) {
       icon: TrendingUp,
       description: "Improves throwing, catching, and agility skills",
       maxLevel: 4,
-      primaryStats: ["offenseRating"],
+      primaryStats: ["teaching"],
       baseSalary: 8000,
     },
     {
@@ -79,7 +79,7 @@ export default function StaffManagement({ teamId }: StaffManagementProps) {
       icon: Shield,
       description: "Enhances blocking, power, and stamina",
       maxLevel: 4,
-      primaryStats: ["defenseRating"],
+      primaryStats: ["teaching"],
       baseSalary: 8000,
     },
     {
@@ -88,7 +88,7 @@ export default function StaffManagement({ teamId }: StaffManagementProps) {
       icon: Users,
       description: "Focuses on speed, power, and injury prevention",
       maxLevel: 4,
-      primaryStats: ["physicalRating"],
+      primaryStats: ["teaching"],
       baseSalary: 8000,
     },
     {
@@ -97,7 +97,7 @@ export default function StaffManagement({ teamId }: StaffManagementProps) {
       icon: Search,
       description: "Provides accurate player ratings and potential analysis",
       maxLevel: 5,
-      primaryStats: ["scoutingRating"],
+      primaryStats: ["talentIdentification", "potentialAssessment"],
       baseSalary: 12000,
     },
     {
@@ -106,7 +106,7 @@ export default function StaffManagement({ teamId }: StaffManagementProps) {
       icon: UserCheck,
       description: "Attracts better talent for tryouts and marketplace",
       maxLevel: 4,
-      primaryStats: ["recruitingRating"],
+      primaryStats: ["talentIdentification", "potentialAssessment"],
       baseSalary: 10000,
     },
     {
@@ -115,7 +115,7 @@ export default function StaffManagement({ teamId }: StaffManagementProps) {
       icon: Shield,
       description: "Reduces injury risk and improves recovery time",
       maxLevel: 4,
-      primaryStats: ["recoveryRating"],
+      primaryStats: ["physiology"],
       baseSalary: 9000,
     },
   ];
@@ -161,6 +161,19 @@ export default function StaffManagement({ teamId }: StaffManagementProps) {
     return (staffType?.baseSalary || 5000) * level;
   };
 
+  const getStatDisplayName = (statName: string) => {
+    const statMap = {
+      'motivation': 'Motivation',
+      'development': 'Development',
+      'tactics': 'Tactics',
+      'teaching': 'Teaching',
+      'physiology': 'Physiology',
+      'talentIdentification': 'Talent ID',
+      'potentialAssessment': 'Potential Analysis'
+    };
+    return statMap[statName as keyof typeof statMap] || statName;
+  };
+
   const renderStaffSlot = (staffType: any) => {
     const currentStaff = getStaffByType(staffType.type);
     const Icon = staffType.icon;
@@ -190,10 +203,10 @@ export default function StaffManagement({ teamId }: StaffManagementProps) {
                   return (
                     <div key={stat}>
                       <div className="flex justify-between text-sm">
-                        <span className="capitalize">{stat.replace('Rating', '')}</span>
-                        <span>{value}/100</span>
+                        <span>{getStatDisplayName(stat)}</span>
+                        <span>{value || 0}/40</span>
                       </div>
-                      <Progress value={value} className="h-2" />
+                      <Progress value={((value || 0) / 40) * 100} className="h-2" />
                     </div>
                   );
                 })}

@@ -158,6 +158,8 @@ Built as a React + Express web application with PostgreSQL database, using moder
 - ✓ **Player Role Display Fixed**: Team.tsx now uses database role field directly (player.role) instead of calculating roles, ensuring correct display of 3 Passers, 3 Runners, 4 Blockers
 - ✓ **Database Verification**: Confirmed database contains correct player composition and all staff members (Coach Johnson, Alex Recovery, Sarah Passer, Mike Runner, Lisa Blocker, Emma Talent, Tony Scout)
 - ✓ **Potential Stars Display**: UnifiedPlayerCard uses potentialRating field for star ratings (3.9, 3.7, 3.3 stars displayed correctly)
+- ✓ **Staff Rating System Integration**: Fixed rating display to use correct database fields (motivation, development, tactics, teaching, physiology, talentIdentification, potentialAssessment) instead of non-existent fields
+- ✓ **Staff Rating Scale Standardization**: Updated progress bars to use correct 1-40 scale instead of incorrect 1-100 scale for proper game mechanics integration
 - ✓ **Error Handling Enhanced**: Added proper error states and loading indicators for staff management interface
 
 #### ✅ COMPREHENSIVE GAME SYSTEMS ALIGNMENT INTEGRATION IMPLEMENTATION COMPLETE
