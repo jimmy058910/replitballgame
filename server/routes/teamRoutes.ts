@@ -8,10 +8,7 @@ import { ErrorCreators, asyncHandler, logInfo } from "../services/errorService";
 import { TeamNameValidator } from "../services/teamNameValidation";
 import { AgingService } from "../services/agingService";
 import { generateRandomName } from "@shared/names";
-import { db } from "../db";
-import { staff, teams, playerContracts } from "@shared/schema";
-import { eq, and, or } from "drizzle-orm";
-// import { players as playersTable } from "@shared/schema"; // Not directly used here anymore
+// Database operations handled through storage layer
 
 const router = Router();
 
@@ -60,40 +57,24 @@ router.post('/', isAuthenticated, asyncHandler(async (req: any, res: Response) =
   const sanitizedName = validationResult.sanitizedName || name;
 
   // Check how many teams are already in division 8 to determine sub-division
-  const division8Teams = await storage.teams.getTeamsByDivision(8);
   let assignedDivision = 8;
   let assignedSubdivision = "main";
   
-  // If division 8 main sub-division already has 8 teams, create a new sub-division
-  if (division8Teams.length >= 8) {
-    // Get all teams in division 8 grouped by subdivision
-    const allDivision8Teams = await db.select().from(teams).where(eq(teams.division, 8));
-    
-    // Group teams by their subdivision values
-    const subdivisionCounts: Record<string, number> = {};
-    allDivision8Teams.forEach(team => {
-      const subdivisionValue = team.subdivision || "main";
-      subdivisionCounts[subdivisionValue] = (subdivisionCounts[subdivisionValue] || 0) + 1;
-    });
-    
-    // Find the next available sub-division that has room (less than 8 teams)
-    const possibleSubdivisions = ["main", "alpha", "beta", "gamma", "delta", "epsilon", "zeta", "eta"];
-    for (const subdivisionValue of possibleSubdivisions) {
-      const teamCount = subdivisionCounts[subdivisionValue] || 0;
-      if (teamCount < 8) {
-        assignedSubdivision = subdivisionValue;
-        break;
-      }
+  // Find the next available sub-division that has room (less than 8 teams)
+  const possibleSubdivisions = ["main", "alpha", "beta", "gamma", "delta", "epsilon", "zeta", "eta"];
+  for (const subdivisionValue of possibleSubdivisions) {
+    const teamsInSubdivision = await storage.teams.getTeamsByDivisionAndSubdivision(8, subdivisionValue);
+    if (teamsInSubdivision.length < 8) {
+      assignedSubdivision = subdivisionValue;
+      break;
     }
-    
-    logInfo("Assigning to sub-division", { 
-      division: assignedDivision,
-      subdivision: assignedSubdivision,
-      existingTeamsInSubdivision: subdivisionCounts[assignedSubdivision] || 0,
-      allSubdivisionCounts: subdivisionCounts,
-      requestId: req.requestId 
-    });
   }
+  
+  logInfo("Assigning to sub-division", { 
+    division: assignedDivision,
+    subdivision: assignedSubdivision,
+    requestId: req.requestId 
+  });
 
   // storage.teams.createTeam now handles default staff and finances
   const team = await storage.teams.createTeam({ // Use teamStorage

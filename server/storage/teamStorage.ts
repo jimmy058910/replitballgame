@@ -5,12 +5,16 @@ const prisma = new PrismaClient();
 export class TeamStorage {
   async createTeam(teamData: {
     name: string;
-    userProfileId: number;
+    userId: string;
+    division?: number;
+    subdivision?: string;
   }): Promise<Team> {
     const newTeam = await prisma.team.create({
       data: {
         name: teamData.name,
-        userProfileId: teamData.userProfileId,
+        userProfileId: parseInt(teamData.userId),
+        division: teamData.division || 8,
+        subdivision: teamData.subdivision || "main",
         camaraderie: 50.0,
         fanLoyalty: 50.0,
       },
@@ -29,9 +33,9 @@ export class TeamStorage {
     return newTeam;
   }
 
-  async getTeamByUserId(userProfileId: number): Promise<Team | null> {
+  async getTeamByUserId(userId: string): Promise<Team | null> {
     const team = await prisma.team.findFirst({
-      where: { userProfileId: parseInt(userProfileId.toString()) },
+      where: { userProfileId: parseInt(userId) },
       include: {
         finances: true,
         stadium: true,
@@ -93,6 +97,25 @@ export class TeamStorage {
   async getTeamsByDivision(division: number): Promise<Team[]> {
     return await prisma.team.findMany({
       where: { division },
+      include: {
+        finances: true,
+        stadium: true,
+        players: true,
+        staff: true
+      },
+      orderBy: [
+        { points: 'desc' },
+        { wins: 'desc' }
+      ]
+    });
+  }
+
+  async getTeamsByDivisionAndSubdivision(division: number, subdivision: string): Promise<Team[]> {
+    return await prisma.team.findMany({
+      where: { 
+        division,
+        subdivision
+      },
       include: {
         finances: true,
         stadium: true,

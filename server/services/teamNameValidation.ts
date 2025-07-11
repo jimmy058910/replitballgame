@@ -1,7 +1,7 @@
-import { db } from '../db';
-import { teams } from '../../shared/schema';
-import { sql, and, ne } from 'drizzle-orm';
+import { PrismaClient } from '../../generated/prisma';
 import { profanity } from '@2toad/profanity';
+
+const prisma = new PrismaClient();
 
 // Configure the profanity filter
 profanity.addWords([
@@ -244,19 +244,26 @@ export class TeamNameValidator {
    */
   private static async validateUniqueness(name: string, excludeTeamId?: string): Promise<TeamNameValidationResult> {
     try {
-      const conditions = [sql`LOWER(${teams.name}) = LOWER(${name})`];
+      // Use Prisma to query the Team table
+      const whereClause: any = {
+        name: {
+          equals: name,
+          mode: 'insensitive'
+        }
+      };
       
-      // Exclude current team if updating
       if (excludeTeamId) {
-        conditions.push(ne(teams.id, excludeTeamId));
+        whereClause.id = {
+          not: parseInt(excludeTeamId)
+        };
       }
       
-      const existingTeams = await db
-        .select()
-        .from(teams)
-        .where(and(...conditions));
+      const existingTeam = await prisma.team.findFirst({
+        where: whereClause,
+        select: { id: true, name: true }
+      });
       
-      if (existingTeams.length > 0) {
+      if (existingTeam) {
         return {
           isValid: false,
           error: 'This team name is already taken. Please choose a different name.'
