@@ -91,7 +91,7 @@ router.post('/player/:playerId/use-item', isAuthenticated, async (req: any, res:
 
     // Verify player ownership through team
     const player = await prisma.player.findFirst({
-      where: { id: playerId },
+      where: { id: parseInt(playerId) },
       select: { id: true, teamId: true }
     });
 
@@ -130,7 +130,7 @@ router.post('/simulate-tackle-injury', isAuthenticated, async (req: any, res: Re
 
     // Verify player ownership
     const player = await prisma.player.findFirst({
-      where: { id: playerId },
+      where: { id: parseInt(playerId) },
       select: { id: true, teamId: true }
     });
 

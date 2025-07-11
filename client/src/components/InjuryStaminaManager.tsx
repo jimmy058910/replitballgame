@@ -96,14 +96,24 @@ export function InjuryStaminaManager({ teamId }: InjuryStaminaManagerProps) {
     mutationFn: async ({ playerId, tacklerPower }: { playerId: string; tacklerPower: number }) => {
       return apiRequest('/api/injury-stamina/simulate-tackle-injury', 'POST', {
         playerId,
-        tacklerPower
+        tacklePower: tacklerPower, // Backend expects tacklePower
+        carrierAgility: 30, // Default testing values
+        carrierStamina: 80,
+        gameMode: 'league'
       });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/injury-stamina/team', teamId, 'status'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/injury-stamina/system/stats'] });
       toast({
         title: "Injury Simulation Complete",
         description: "Check player status for results"
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to simulate injury"
       });
     }
   });
@@ -352,7 +362,7 @@ export function InjuryStaminaManager({ teamId }: InjuryStaminaManagerProps) {
                   disabled={!selectedPlayer || simulateInjuryMutation.isPending}
                   variant="destructive"
                 >
-                  Simulate Tackle Injury (Power 35)
+                  {simulateInjuryMutation.isPending ? 'Simulating...' : 'Simulate Tackle Injury (Power 35)'}
                 </Button>
               </div>
 
