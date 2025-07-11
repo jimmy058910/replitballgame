@@ -29,14 +29,13 @@ router.get('/team/:teamId/status', isAuthenticated, async (req: any, res: Respon
         id: true,
         firstName: true,
         lastName: true,
-        name: true,
         role: true,
         dailyStaminaLevel: true,
         injuryStatus: true,
         injuryRecoveryPointsNeeded: true,
         injuryRecoveryPointsCurrent: true,
         dailyItemsUsed: true,
-        stamina: true,
+        staminaAttribute: true,
         inGameStamina: true
       }
     });

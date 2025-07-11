@@ -63,12 +63,8 @@ export function InjuryStaminaManager({ teamId }: InjuryStaminaManagerProps) {
 
   // Filter recovery/consumable items from inventory
   const recoveryItems = inventory.filter(item => 
-    item.itemType === 'consumable' && 
-    item.quantity > 0 &&
-    (item.name.includes('recovery') || 
-     item.name.includes('medical') || 
-     item.name.includes('stamina') ||
-     item.name.includes('heal'))
+    item.itemType === 'CONSUMABLE_RECOVERY' && 
+    item.quantity > 0
   );
 
   // Use recovery item mutation
