@@ -87,7 +87,7 @@ router.get('/', isAuthenticated, async (req: Request, res: Response, next: NextF
 
 router.get('/ads', isAuthenticated, async (req: any, res: Response, next: NextFunction) => {
   try {
-    const userId = req.user.id;
+    const userId = req.user.claims.sub;
     
     // Check if adSystem exists
     if (!storage.adSystem) {
@@ -100,8 +100,8 @@ router.get('/ads', isAuthenticated, async (req: any, res: Response, next: NextFu
       });
     }
     
-    const dailyAdsWatched = await storage.adSystem.getDailyAdViewsCountByUser(userId) || 0;
-    const dailyRewardedCompleted = await storage.adSystem.getDailyCompletedRewardedAdViewsCountByUser(userId) || 0;
+    const dailyAdsWatched = Number(await storage.adSystem.getDailyAdViewsCountByUser(userId)) || 0;
+    const dailyRewardedCompleted = Number(await storage.adSystem.getDailyCompletedRewardedAdViewsCountByUser(userId)) || 0;
 
     const dailyWatchLimit = storeConfig.adSystem?.dailyWatchLimit || 10;
 

@@ -44,35 +44,45 @@ export class AdSystemStorage {
   }
 
   async getDailyAdViewsCountByUser(userId: string): Promise<number> {
-    const todayStart = new Date();
-    todayStart.setHours(0, 0, 0, 0);
+    try {
+      const todayStart = new Date();
+      todayStart.setHours(0, 0, 0, 0);
 
-    const count = await prisma.adView.count({
-      where: {
-        userId,
-        createdAt: {
-          gte: todayStart
+      const count = await prisma.adView.count({
+        where: {
+          userId,
+          createdAt: {
+            gte: todayStart
+          }
         }
-      }
-    });
-    return count;
+      });
+      return count || 0;
+    } catch (error) {
+      console.error('Error getting daily ad views count:', error);
+      return 0;
+    }
   }
 
   async getDailyCompletedRewardedAdViewsCountByUser(userId: string): Promise<number> {
-    const todayStart = new Date();
-    todayStart.setHours(0, 0, 0, 0);
+    try {
+      const todayStart = new Date();
+      todayStart.setHours(0, 0, 0, 0);
 
-    const count = await prisma.adView.count({
-      where: {
-        userId,
-        completed: true,
-        rewardAmount: { gt: 0 },
-        createdAt: {
-          gte: todayStart
+      const count = await prisma.adView.count({
+        where: {
+          userId,
+          completed: true,
+          rewardAmount: { gt: 0 },
+          createdAt: {
+            gte: todayStart
+          }
         }
-      }
-    });
-    return count;
+      });
+      return count || 0;
+    } catch (error) {
+      console.error('Error getting daily completed rewarded ad views count:', error);
+      return 0;
+    }
   }
 
 
@@ -106,13 +116,18 @@ export class AdSystemStorage {
   }
 
   async getTotalAdViewsCountByUser(userId: string): Promise<number> {
-    const count = await prisma.adView.count({
-      where: {
-        userId,
-        completed: true
-      }
-    });
-    return count;
+    try {
+      const count = await prisma.adView.count({
+        where: {
+          userId,
+          completed: true
+        }
+      });
+      return count || 0;
+    } catch (error) {
+      console.error('Error getting total ad views count:', error);
+      return 0;
+    }
   }
 
   async markAdCompleted(id: number, rewardAmount: number = 0): Promise<AdView | null> {

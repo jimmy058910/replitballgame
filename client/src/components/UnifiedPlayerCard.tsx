@@ -306,17 +306,17 @@ export default function UnifiedPlayerCard({
           // Full contract & status layout for Roster and other variants
           <div className="space-y-2">
             {/* Contract Information */}
-            {player.salary && (
+            {player.contract?.salary && (
               <div className="flex items-center justify-between text-xs">
                 <span className="text-gray-400">Salary:</span>
-                <span className="text-white">₡{player.salary.toLocaleString()} / season</span>
+                <span className="text-white">₡{player.contract.salary.toLocaleString()} / season</span>
               </div>
             )}
             
-            {player.contractSeasons && (
+            {player.contract?.length && (
               <div className="flex items-center justify-between text-xs">
                 <span className="text-gray-400">Contract:</span>
-                <span className="text-white">{player.contractSeasons} seasons remaining</span>
+                <span className="text-white">{player.contract.length} seasons remaining</span>
               </div>
             )}
 

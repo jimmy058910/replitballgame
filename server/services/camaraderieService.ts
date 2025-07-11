@@ -53,14 +53,14 @@ export class CamaraderieService {
     try {
       const result = await prisma.player.aggregate({
         where: {
-          teamId: teamId
+          teamId: parseInt(teamId)
         },
         _avg: {
-          camaraderie: true
+          camaraderieScore: true
         }
       });
       
-      const teamCamaraderie = Math.round(Number(result._avg.camaraderie) || 50);
+      const teamCamaraderie = Math.round(Number(result._avg.camaraderieScore) || 50);
       
       logInfo("Team camaraderie calculated", {
         teamId,
@@ -588,25 +588,43 @@ export class CamaraderieService {
     try {
       const effects = await this.getCamaraderieEffects(teamId);
       
-      const playerStats = await db
-        .select({
-          playerCount: sql<number>`COUNT(*)`,
-          highMoraleCount: sql<number>`COUNT(CASE WHEN ${schema.players.camaraderie} >= 75 THEN 1 END)`,
-          lowMoraleCount: sql<number>`COUNT(CASE WHEN ${schema.players.camaraderie} <= 35 THEN 1 END)`,
-          avgYearsOnTeam: sql<number>`COALESCE(AVG(${schema.players.yearsOnTeam}), 0)`
-        })
-        .from(schema.players)
-        .where(eq(schema.players.teamId, teamId));
+      const playerStats = await prisma.player.aggregate({
+        where: {
+          teamId: parseInt(teamId)
+        },
+        _count: {
+          id: true
+        },
+        _avg: {
+          yearsOnTeam: true
+        }
+      });
       
-      const stats = playerStats[0];
+      const highMoraleCount = await prisma.player.count({
+        where: {
+          teamId: parseInt(teamId),
+          camaraderieScore: {
+            gte: 75
+          }
+        }
+      });
+      
+      const lowMoraleCount = await prisma.player.count({
+        where: {
+          teamId: parseInt(teamId),
+          camaraderieScore: {
+            lte: 35
+          }
+        }
+      });
       
       return {
         teamCamaraderie: effects.teamCamaraderie,
         status: effects.status,
-        playerCount: Number(stats.playerCount),
-        highMoraleCount: Number(stats.highMoraleCount),
-        lowMoraleCount: Number(stats.lowMoraleCount),
-        averageYearsOnTeam: Math.round(Number(stats.avgYearsOnTeam) * 10) / 10,
+        playerCount: Number(playerStats._count.id),
+        highMoraleCount: Number(highMoraleCount),
+        lowMoraleCount: Number(lowMoraleCount),
+        averageYearsOnTeam: Math.round(Number(playerStats._avg.yearsOnTeam || 0) * 10) / 10,
         effects
       };
     } catch (error) {

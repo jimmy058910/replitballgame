@@ -96,11 +96,11 @@ export default function Team() {
   })) || [];
 
   const filteredPlayers = playersWithRoles.filter((player: any) => 
-    selectedRole === "all" || player.role.toLowerCase() === selectedRole
+    selectedRole === "all" || player.role?.toLowerCase() === selectedRole
   );
 
   const roleStats = playersWithRoles.reduce((acc: any, player: any) => {
-    const roleLowercase = player.role.toLowerCase();
+    const roleLowercase = player.role?.toLowerCase() || 'unknown';
     acc[roleLowercase] = (acc[roleLowercase] || 0) + 1;
     return acc;
   }, {});
@@ -349,7 +349,7 @@ export default function Team() {
                     {playersWithRoles && playersWithRoles.length > 0 ? (
                       <div className="space-y-4">
                         {playersWithRoles.map((player) => {
-                          const role = getPlayerRole(player);
+                          const role = player.role || getPlayerRole(player); // Use database role first
                           const getRoleStyle = (role: string) => {
                             switch (role.toLowerCase()) {
                               case "passer":
