@@ -260,10 +260,9 @@ export class PlayerSkillsService {
     }>;
   }> {
     // Get all players on the team
-    const teamPlayers = await db
-      .select()
-      .from(players)
-      .where(eq(players.teamId, teamId));
+    const teamPlayers = await prisma.player.findMany({
+      where: { teamId }
+    });
 
     const results = [];
     let skillUpsOccurred = 0;

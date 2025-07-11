@@ -135,7 +135,9 @@ export class SeasonalFlowService {
     
     // Insert matches into database
     if (matches.length > 0) {
-      await db.insert(matches).values(matches);
+      await prisma.game.createMany({
+        data: matches
+      });
     }
     
     return matches;
@@ -203,7 +205,9 @@ export class SeasonalFlowService {
     
     // Insert matches into database
     if (matches.length > 0) {
-      await db.insert(matches).values(matches);
+      await prisma.game.createMany({
+        data: matches
+      });
     }
     
     return matches;
@@ -559,7 +563,9 @@ export class SeasonalFlowService {
         ];
         
         // Insert playoff matches
-        await db.insert(matches).values(playoffMatches);
+        await prisma.game.createMany({
+          data: playoffMatches
+        });
         
         bracketsByLeague.push({
           leagueId: league.id,
@@ -731,12 +737,14 @@ export class SeasonalFlowService {
       // Create additional leagues if needed
       const leaguesToCreate = requiredLeagues - existingLeagues.length;
       for (let i = 0; i < leaguesToCreate; i++) {
-        await db.insert(leagues).values({
-          name: `Division ${division} League ${existingLeagues.length + i + 1}`,
-          division,
-          season: season + 1,
-          maxTeams: requiredTeamsPerLeague,
-          status: 'active'
+        await prisma.league.create({
+          data: {
+            name: `Division ${division} League ${existingLeagues.length + i + 1}`,
+            division,
+            season: season + 1,
+            maxTeams: requiredTeamsPerLeague,
+            status: 'active'
+          }
         });
         newLeaguesCreated++;
       }

@@ -356,16 +356,19 @@ class MatchStateManager {
     }
 
     if (state.gameTime % 30 === 0) { // Every 30 game seconds
-      await db.update(matches).set({
-        homeScore: state.homeScore,
-        awayScore: state.awayScore,
-        gameData: {
-          events: state.gameEvents.slice(-30), // Keep last 30 events
-          currentTime: state.gameTime,
-          currentHalf: state.currentHalf,
-          // Consider adding current possession to gameData if useful for client UI
+      await prisma.game.update({
+        where: { id: matchId },
+        data: {
+          homeScore: state.homeScore,
+          awayScore: state.awayScore,
+          gameData: {
+            events: state.gameEvents.slice(-30), // Keep last 30 events
+            currentTime: state.gameTime,
+            currentHalf: state.currentHalf,
+            // Consider adding current possession to gameData if useful for client UI
+          }
         }
-      }).where(eq(matches.id, matchId));
+      });
     }
   }
 
@@ -529,7 +532,9 @@ class MatchStateManager {
     if (!state) return;
 
     // Get match details to check if it's an exhibition match
-    const [matchDetails] = await db.select().from(matches).where(eq(matches.id, matchId)).limit(1);
+    const matchDetails = await prisma.game.findFirst({
+      where: { id: matchId }
+    });
     const isExhibitionMatch = matchDetails?.matchType === 'exhibition';
 
     // Final possession update
@@ -567,7 +572,9 @@ class MatchStateManager {
 
         // Update lifetime stats (skip for exhibition matches to maintain risk-free gameplay)
         if (!isExhibitionMatch) {
-          const [playerToUpdate] = await db.select().from(players).where(eq(players.id, playerId)).limit(1);
+          const playerToUpdate = await prisma.player.findFirst({
+            where: { id: playerId }
+          });
           if (playerToUpdate) {
             const updatedLifetimeStats: Partial<Player> = {
               totalGamesPlayed: (playerToUpdate.totalGamesPlayed || 0) + 1,
@@ -585,7 +592,10 @@ class MatchStateManager {
               totalInterceptionsCaught: (playerToUpdate.totalInterceptionsCaught || 0) + (pStats.interceptionsCaught || 0),
               totalPassesDefended: (playerToUpdate.totalPassesDefended || 0) + (pStats.passesDefended || 0),
             };
-            playerUpdates.push(db.update(players).set(updatedLifetimeStats).where(eq(players.id, playerId)));
+            playerUpdates.push(prisma.player.update({
+              where: { id: playerId },
+              data: updatedLifetimeStats
+            }));
           }
         }
       }
@@ -601,39 +611,38 @@ class MatchStateManager {
         });
       }
 
-      // Use a transaction for atomicity
-      await db.transaction(async (tx) => {
-        if (playerStatsToInsert.length > 0) {
-          await tx.insert(playerMatchStats).values(playerStatsToInsert);
-        }
-        if (teamStatsToInsert.length > 0) {
-          await tx.insert(teamMatchStats).values(teamStatsToInsert);
-        }
-        await Promise.all(playerUpdates.map(pUpdate => {
-            // This is a bit tricky as storage.updatePlayer uses its own db instance.
-            // For a true transaction, updatePlayer would need to accept a tx object.
-            // For now, we'll proceed, but this is a limitation if full rollback is needed across these calls.
-            // A refined approach would be to construct update statements for Drizzle and run them with `tx.update()`.
-            // For simplicity here, we call the existing storage methods.
-            // This part of the transaction might not be "true" if updatePlayer doesn't use the passed 'tx'.
-            // Let's assume for now that these updates are critical enough to attempt even if prior inserts fail,
-            // or that storage methods are refactored in future to accept 'tx'.
-        }));
-        // The playerUpdates are already awaited if they are Promises.
-        // The primary goal here is to ensure playerMatchStats and teamMatchStats are inserted together.
-        // Lifetime stats updates are important but could potentially be reconciled later if only they fail.
+      // Insert player match stats
+      if (playerStatsToInsert.length > 0) {
+        await prisma.playerMatchStats.createMany({
+          data: playerStatsToInsert
+        });
+      }
+      
+      // Insert team match stats
+      if (teamStatsToInsert.length > 0) {
+        await prisma.teamMatchStats.createMany({
+          data: teamStatsToInsert
+        });
+      }
 
-        // Update the match itself
-        await tx.update(matches).set({
-            status: 'completed',
-            homeScore: state.homeScore,
-            awayScore: state.awayScore,
-            completedAt: new Date(),
-            gameData: {
-                events: state.gameEvents.slice(-50), // Store last 50 events
-                finalScores: { home: state.homeScore, away: state.awayScore },
-            }
-        }).where(eq(matches.id, matchId));
+      // Update player lifetime stats if not exhibition
+      if (playerUpdates.length > 0 && !isExhibitionMatch) {
+        await Promise.all(playerUpdates);
+      }
+
+      // Update the match itself
+      await prisma.game.update({
+        where: { id: matchId },
+        data: {
+          status: 'completed',
+          homeScore: state.homeScore,
+          awayScore: state.awayScore,
+          completedAt: new Date(),
+          gameData: {
+            events: state.gameEvents.slice(-50), // Store last 50 events
+            finalScores: { home: state.homeScore, away: state.awayScore },
+          }
+        }
       });
 
       console.log(`Match ${matchId} stats persisted successfully.`);
@@ -642,17 +651,20 @@ class MatchStateManager {
       console.error(`Error persisting stats for match ${matchId}:`, error);
       // Potentially re-throw or handle more gracefully (e.g., mark match as 'error_in_stats')
       // For now, we'll update the match to completed anyway, but log the error.
-       await db.update(matches).set({
-        status: 'completed', // Or a special status like 'completed_stats_error'
-        homeScore: state.homeScore,
-        awayScore: state.awayScore,
-        completedAt: new Date(),
-        gameData: {
+       await prisma.game.update({
+        where: { id: matchId },
+        data: {
+          status: 'completed', // Or a special status like 'completed_stats_error'
+          homeScore: state.homeScore,
+          awayScore: state.awayScore,
+          completedAt: new Date(),
+          gameData: {
             events: state.gameEvents.slice(-50),
             finalScores: { home: state.homeScore, away: state.awayScore },
             error: `Error persisting stats: ${(error as Error).message}`
+          }
         }
-      }).where(eq(matches.id, matchId));
+      });
     }
 
     // Apply stamina depletion after match completion (skip for exhibition matches)
@@ -674,8 +686,12 @@ class MatchStateManager {
     const state = this.liveMatches.get(matchId);
     if (state) {
       // Need to pass all required parameters to completeMatch
-      const homePlayers = await db.select().from(players).where(eq(players.teamId, state.homeTeamId));
-      const awayPlayers = await db.select().from(players).where(eq(players.teamId, state.awayTeamId));
+      const homePlayers = await prisma.player.findMany({
+        where: { teamId: state.homeTeamId }
+      });
+      const awayPlayers = await prisma.player.findMany({
+        where: { teamId: state.awayTeamId }
+      });
       await this.completeMatch(matchId, state.homeTeamId, state.awayTeamId, homePlayers, awayPlayers);
     }
   }
@@ -710,19 +726,39 @@ class MatchStateManager {
       }
 
       // Award credits to both teams
-      await db.update(teams)
-        .set({ credits: sql`${teams.credits} + ${homeCredits}` })
-        .where(eq(teams.id, homeTeamId));
+      await prisma.team.update({
+        where: { id: parseInt(homeTeamId) },
+        data: {
+          credits: {
+            increment: homeCredits
+          }
+        }
+      });
 
-      await db.update(teams)
-        .set({ credits: sql`${teams.credits} + ${awayCredits}` })
-        .where(eq(teams.id, awayTeamId));
+      await prisma.team.update({
+        where: { id: parseInt(awayTeamId) },
+        data: {
+          credits: {
+            increment: awayCredits
+          }
+        }
+      });
 
       // Award team camaraderie boost to winning team players (if not a tie)
       if (winningTeamId) {
-        await db.update(players)
-          .set({ camaraderie: sql`LEAST(100, ${players.camaraderie} + 2)` })
-          .where(eq(players.teamId, winningTeamId));
+        // Get all players for the winning team and update their camaraderie
+        const winningPlayers = await prisma.player.findMany({
+          where: { teamId: parseInt(winningTeamId) }
+        });
+        
+        for (const player of winningPlayers) {
+          await prisma.player.update({
+            where: { id: player.id },
+            data: {
+              camaraderie: Math.min(100, (player.camaraderie || 0) + 2)
+            }
+          });
+        }
       }
 
       console.log(`Exhibition rewards awarded: Home Team (${homeScore}): ${homeCredits}₡, Away Team (${awayScore}): ${awayCredits}₡${winningTeamId ? ` + camaraderie boost` : ''}`);
@@ -743,8 +779,12 @@ class MatchStateManager {
       if (!state) continue;
       if (state.lastUpdateTime < cutoff) {
         console.log(`Cleaning up abandoned match: ${matchId}`);
-        const homePlayers = await db.select().from(players).where(eq(players.teamId, state.homeTeamId));
-        const awayPlayers = await db.select().from(players).where(eq(players.teamId, state.awayTeamId));
+        const homePlayers = await prisma.player.findMany({
+          where: { teamId: state.homeTeamId }
+        });
+        const awayPlayers = await prisma.player.findMany({
+          where: { teamId: state.awayTeamId }
+        });
         await this.completeMatch(matchId, state.homeTeamId, state.awayTeamId, homePlayers, awayPlayers);
       }
     }

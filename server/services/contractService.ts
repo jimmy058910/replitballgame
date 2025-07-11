@@ -326,19 +326,20 @@ export class ContractService {
     salary: number
   ): Promise<Staff | null> {
     // Get staff info first
-    const [staffMember] = await db.select().from(staff).where(eq(staff.id, staffId)).limit(1);
+    const staffMember = await prisma.staff.findUnique({
+      where: { id: staffId }
+    });
     if (!staffMember) {
       throw new Error("Staff member not found");
     }
 
-    const [updatedStaff] = await db
-      .update(staff)
-      .set({
+    const updatedStaff = await prisma.staff.update({
+      where: { id: staffId },
+      data: {
         salary: salary,
         updatedAt: new Date()
-      })
-      .where(eq(staff.id, staffId))
-      .returning();
+      }
+    });
 
     // Update team finances with new staff salary totals
     if (updatedStaff) {

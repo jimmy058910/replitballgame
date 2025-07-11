@@ -20,8 +20,8 @@ router.get('/', isAuthenticated, async (req: any, res: Response, next: NextFunct
     const userId = req.user.claims.sub;
     
     // Get user's team
-    const team = await db.query.teams.findFirst({
-      where: eq(teams.userId, userId)
+    const team = await prisma.team.findFirst({
+      where: { userId: userId }
     });
     
     if (!team) {
@@ -32,13 +32,14 @@ router.get('/', isAuthenticated, async (req: any, res: Response, next: NextFunct
     }
 
     // Get or create stadium
-    let stadium = await db.query.stadiums.findFirst({
-      where: eq(stadiums.teamId, team.id)
+    let stadium = await prisma.stadium.findFirst({
+      where: { teamId: team.id }
     });
 
     if (!stadium) {
       // Create default stadium
-      const [newStadium] = await db.insert(stadiums).values({
+      const newStadium = await prisma.stadium.create({
+        data: {
         teamId: team.id,
         name: `${team.name} Stadium`,
         level: 1,
@@ -52,7 +53,8 @@ router.get('/', isAuthenticated, async (req: any, res: Response, next: NextFunct
         screensLevel: 1,
         securityLevel: 1,
         maintenanceCost: 5000
-      }).returning();
+        }
+      });
       
       stadium = newStadium;
     }

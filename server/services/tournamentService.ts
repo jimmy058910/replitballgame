@@ -159,7 +159,9 @@ export class TournamentService {
       createdAt: new Date()
     };
 
-    const [created] = await db.insert(tournaments).values(tournament).returning();
+    const created = await prisma.tournament.create({
+      data: tournament
+    });
     return created.id;
   }
 
@@ -190,7 +192,9 @@ export class TournamentService {
       createdAt: new Date()
     };
 
-    const [created] = await db.insert(tournaments).values(tournament).returning();
+    const created = await prisma.tournament.create({
+      data: tournament
+    });
     return created.id;
   }
 
@@ -383,11 +387,13 @@ export class TournamentService {
     }
 
     // Create tournament entry
-    await db.insert(tournamentEntries).values({
-      id: randomUUID(),
-      tournamentId,
-      teamId,
-      entryTime: new Date()
+    await prisma.tournamentEntry.create({
+      data: {
+        id: randomUUID(),
+        tournamentId,
+        teamId,
+        entryTime: new Date()
+      }
     });
   }
 
@@ -537,27 +543,31 @@ export class TournamentService {
       if ((team[0].gems || 0) < 20) {
         throw new Error("Insufficient gems for Mid-Season Classic entry (20💎 required)");
       }
-      await db.update(teams)
-        .set({ gems: (team[0].gems || 0) - 20 })
-        .where(eq(teams.id, teamId));
+      await prisma.team.update({
+        where: { id: teamId },
+        data: { gems: (team.gems || 0) - 20 }
+      });
     } else if (paymentType === "both") {
       if ((team[0].credits || 0) < 10000 || (team[0].gems || 0) < 20) {
         throw new Error("Insufficient credits AND gems for Mid-Season Classic entry (10,000₡ AND 20💎 required)");
       }
-      await db.update(teams)
-        .set({ 
-          credits: (team[0].credits || 0) - 10000,
-          gems: (team[0].gems || 0) - 20
-        })
-        .where(eq(teams.id, teamId));
+      await prisma.team.update({
+        where: { id: teamId },
+        data: { 
+          credits: (team.credits || 0) - 10000,
+          gems: (team.gems || 0) - 20
+        }
+      });
     }
 
     // Create tournament entry directly (payment already handled above)
-    await db.insert(tournamentEntries).values({
-      id: randomUUID(),
-      tournamentId,
-      teamId,
-      entryTime: new Date()
+    await prisma.tournamentEntry.create({
+      data: {
+        id: randomUUID(),
+        tournamentId,
+        teamId,
+        entryTime: new Date()
+      }
     });
 
     return tournamentId;

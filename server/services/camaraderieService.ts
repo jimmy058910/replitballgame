@@ -557,11 +557,12 @@ export class CamaraderieService {
    */
   static async incrementYearsOnTeam(teamId: string): Promise<void> {
     try {
-      await db.update(schema.players)
-        .set({ 
-          yearsOnTeam: sql`${schema.players.yearsOnTeam} + 1` 
-        })
-        .where(eq(schema.players.teamId, teamId));
+      await prisma.player.updateMany({
+        where: { teamId: teamId },
+        data: { 
+          yearsOnTeam: { increment: 1 }
+        }
+      });
       
       logInfo("Years on team incremented", { teamId });
     } catch (error) {

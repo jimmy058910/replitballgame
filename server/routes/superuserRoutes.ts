@@ -138,19 +138,21 @@ router.post('/reset-season', RBACService.requireSuperAdmin(), asyncHandler(async
   logInfo("Super admin resetting season", { adminUserId: userId, requestId });
 
   // Reset all team statistics
-  await db.update(teams)
-    .set({
+  await prisma.team.updateMany({
+    data: {
       wins: 0,
       losses: 0,
       draws: 0,
       points: 0,
       teamPower: 0
-    });
+    }
+  });
 
   // Stop all active matches
-  await db.update(matchesTable)
-    .set({ status: 'cancelled' })
-    .where(eq(matchesTable.status, 'in_progress'));
+  await prisma.game.updateMany({
+    where: { status: 'in_progress' },
+    data: { status: 'cancelled' }
+  });
 
   const currentSeason = await storage.seasons.getCurrentSeason();
   if (currentSeason) {
@@ -173,21 +175,20 @@ router.post('/stop-all-games', RBACService.requirePermission(Permission.STOP_MAT
   
   logInfo("Admin stopping all matches", { adminUserId: userId, requestId });
 
-  const result = await db.update(matchesTable)
-    .set({ 
+  const result = await prisma.game.updateMany({
+    where: { 
+      status: { in: ['in_progress', 'scheduled'] }
+    },
+    data: { 
       status: 'cancelled',
       completedAt: new Date()
-    })
-    .where(or(
-      eq(matchesTable.status, 'in_progress'),
-      eq(matchesTable.status, 'scheduled')
-    ))
-    .returning({ id: true });
+    }
+  });
 
   res.json({ 
     success: true,
-    message: `${result.length} matches stopped successfully`,
-    data: { matchesStopped: result.length }
+    message: `${result.count} matches stopped successfully`,
+    data: { matchesStopped: result.count }
   });
 }));
 
@@ -209,10 +210,10 @@ router.post('/cleanup-division', RBACService.requireSuperAdmin(), asyncHandler(a
   
   for (const team of aiTeams) {
     // Remove team and associated data
-    await db.delete(players).where(eq(players.teamId, team.id));
-    await db.delete(staff).where(eq(staff.teamId, team.id));
-    await db.delete(teamFinances).where(eq(teamFinances.teamId, team.id));
-    await db.delete(teams).where(eq(teams.id, team.id));
+    await prisma.player.deleteMany({ where: { teamId: team.id } });
+    await prisma.staff.deleteMany({ where: { teamId: team.id } });
+    await prisma.teamFinances.deleteMany({ where: { teamId: team.id } });
+    await prisma.team.delete({ where: { id: team.id } });
   }
 
   res.json({ 

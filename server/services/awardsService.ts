@@ -20,28 +20,24 @@ export class AwardsService {
   async awardMatchMVP(matchId: string): Promise<MvpAward | null> {
     try {
       // Check if MVP already awarded for this match
-      const existingMvp = await db
-        .select()
-        .from(mvpAwards)
-        .where(eq(mvpAwards.matchId, matchId))
-        .limit(1);
+      const existingMvp = await prisma.mvpAward.findFirst({
+        where: { matchId }
+      });
 
-      if (existingMvp.length > 0) {
-        return existingMvp[0];
+      if (existingMvp) {
+        return existingMvp;
       }
 
       // Get match details to determine type
-      const match = await db
-        .select()
-        .from(matches)
-        .where(eq(matches.id, matchId))
-        .limit(1);
+      const match = await prisma.game.findFirst({
+        where: { id: matchId }
+      });
 
-      if (!match.length) {
+      if (!match) {
         throw new Error("Match not found");
       }
 
-      const matchData = match[0];
+      const matchData = match;
       
       // Skip MVP for exhibition games and tournaments
       if (matchData.matchType === "exhibition" || matchData.matchType === "tournament") {
@@ -49,25 +45,18 @@ export class AwardsService {
       }
 
       // Get all player stats for this match
-      const playerStats = await db
-        .select({
-          playerId: playerMatchStats.playerId,
-          teamId: playerMatchStats.teamId,
-          scores: playerMatchStats.scores,
-          catches: playerMatchStats.catches,
-          passingAttempts: playerMatchStats.passingAttempts,
-          rushingYards: playerMatchStats.rushingYards,
-          knockdownsInflicted: playerMatchStats.knockdownsInflicted,
-          tackles: playerMatchStats.tackles,
+      const playerStats = await prisma.playerMatchStats.findMany({
+        where: { matchId },
+        include: {
           player: {
-            firstName: players.firstName,
-            lastName: players.lastName,
-            race: players.race
+            select: {
+              firstName: true,
+              lastName: true,
+              race: true
+            }
           }
-        })
-        .from(playerMatchStats)
-        .innerJoin(players, eq(playerMatchStats.playerId, players.id))
-        .where(eq(playerMatchStats.matchId, matchId));
+        }
+      });
 
       if (!playerStats.length) {
         return null;
@@ -121,8 +110,10 @@ export class AwardsService {
         createdAt: new Date()
       };
 
-      const result = await db.insert(mvpAwards).values(mvpAward).returning();
-      return result[0];
+      const result = await prisma.mvpAward.create({
+        data: mvpAward
+      });
+      return result;
 
     } catch (error) {
       console.error("Error awarding MVP:", error);
@@ -136,10 +127,9 @@ export class AwardsService {
   async calculateSeasonAwards(seasonId: string): Promise<SeasonAward[]> {
     try {
       // Check if season awards already calculated
-      const existingAwards = await db
-        .select()
-        .from(seasonAwards)
-        .where(eq(seasonAwards.seasonId, seasonId));
+      const existingAwards = await prisma.seasonAward.findMany({
+        where: { seasonId }
+      });
 
       if (existingAwards.length > 0) {
         return existingAwards;
@@ -148,41 +138,66 @@ export class AwardsService {
       const awards: InsertSeasonAward[] = [];
 
       // Get all player stats for the season (regular season + playoffs only)
-      const seasonStats = await db
-        .select({
-          playerId: playerMatchStats.playerId,
-          teamId: playerMatchStats.teamId,
-          goals: sum(playerMatchStats.goals).mapWith(Number),
-          assists: sum(playerMatchStats.assists).mapWith(Number),
-          passes: sum(playerMatchStats.passes).mapWith(Number),
-          rushingYards: sum(playerMatchStats.rushingYards).mapWith(Number),
-          blocks: sum(playerMatchStats.blocks).mapWith(Number),
-          tackles: sum(playerMatchStats.tackles).mapWith(Number),
-          gamesPlayed: count(playerMatchStats.matchId).mapWith(Number),
-          player: {
-            firstName: players.firstName,
-            lastName: players.lastName,
-            race: players.race,
-            age: players.age
+      const seasonStats = await prisma.playerMatchStats.groupBy({
+        by: ['playerId', 'teamId'],
+        where: {
+          match: {
+            seasonId,
+            matchType: 'regular'
           }
-        })
-        .from(playerMatchStats)
-        .innerJoin(players, eq(playerMatchStats.playerId, players.id))
-        .innerJoin(matches, eq(playerMatchStats.matchId, matches.id))
-        .where(
-          and(
-            eq(matches.seasonId, seasonId),
-            eq(matches.matchType, "regular") // Only regular season for awards
-          )
-        )
-        .groupBy(playerMatchStats.playerId, playerMatchStats.teamId, players.firstName, players.lastName, players.race, players.age);
+        },
+        _sum: {
+          goals: true,
+          assists: true,
+          passes: true,
+          rushingYards: true,
+          blocks: true,
+          tackles: true
+        },
+        _count: {
+          matchId: true
+        }
+      });
 
-      if (!seasonStats.length) {
+      // Get player details for each player
+      const playersDetails = await prisma.player.findMany({
+        where: {
+          id: {
+            in: seasonStats.map(s => s.playerId)
+          }
+        },
+        select: {
+          id: true,
+          firstName: true,
+          lastName: true,
+          race: true,
+          age: true
+        }
+      });
+
+      // Combine stats with player details
+      const enrichedSeasonStats = seasonStats.map(stat => {
+        const playerDetail = playersDetails.find(p => p.id === stat.playerId);
+        return {
+          playerId: stat.playerId,
+          teamId: stat.teamId,
+          goals: stat._sum.goals || 0,
+          assists: stat._sum.assists || 0,
+          passes: stat._sum.passes || 0,
+          rushingYards: stat._sum.rushingYards || 0,
+          blocks: stat._sum.blocks || 0,
+          tackles: stat._sum.tackles || 0,
+          gamesPlayed: stat._count.matchId || 0,
+          player: playerDetail
+        };
+      });
+
+      if (!enrichedSeasonStats.length) {
         return [];
       }
 
       // Player of the Year (highest overall performance)
-      const playerOfYear = seasonStats.reduce((best, current) => {
+      const playerOfYear = enrichedSeasonStats.reduce((best, current) => {
         const currentScore = (current.goals * 10) + (current.assists * 5) + 
                            (current.passes * 0.5) + (current.rushingYards * 0.1) +
                            (current.blocks * 2) + (current.tackles * 1.5);
@@ -226,7 +241,7 @@ export class AwardsService {
       });
 
       // Best Passer
-      const bestPasser = seasonStats.reduce((best, current) => 
+      const bestPasser = enrichedSeasonStats.reduce((best, current) => 
         current.passes > best.passes ? current : best
       );
       awards.push({
@@ -242,7 +257,7 @@ export class AwardsService {
       });
 
       // Best Runner
-      const bestRunner = seasonStats.reduce((best, current) => 
+      const bestRunner = enrichedSeasonStats.reduce((best, current) => 
         current.rushingYards > best.rushingYards ? current : best
       );
       awards.push({
@@ -258,7 +273,7 @@ export class AwardsService {
       });
 
       // Best Blocker
-      const bestBlocker = seasonStats.reduce((best, current) => 
+      const bestBlocker = enrichedSeasonStats.reduce((best, current) => 
         (current.blocks + current.tackles) > (best.blocks + best.tackles) ? current : best
       );
       awards.push({
@@ -274,8 +289,14 @@ export class AwardsService {
       });
 
       // Insert all awards
-      const result = await db.insert(seasonAwards).values(awards).returning();
-      return result;
+      const result = await prisma.seasonAward.createMany({
+        data: awards
+      });
+      
+      // Return the created awards
+      return await prisma.seasonAward.findMany({
+        where: { seasonId }
+      });
 
     } catch (error) {
       console.error("Error calculating season awards:", error);
@@ -287,22 +308,20 @@ export class AwardsService {
    * Get all MVP awards for a player
    */
   async getPlayerMVPAwards(playerId: string): Promise<MvpAward[]> {
-    return await db
-      .select()
-      .from(mvpAwards)
-      .where(eq(mvpAwards.playerId, playerId))
-      .orderBy(desc(mvpAwards.awardDate));
+    return await prisma.mvpAward.findMany({
+      where: { playerId },
+      orderBy: { awardDate: 'desc' }
+    });
   }
 
   /**
    * Get all season awards for a player
    */
   async getPlayerSeasonAwards(playerId: string): Promise<SeasonAward[]> {
-    return await db
-      .select()
-      .from(seasonAwards)
-      .where(eq(seasonAwards.playerId, playerId))
-      .orderBy(desc(seasonAwards.awardDate));
+    return await prisma.seasonAward.findMany({
+      where: { playerId },
+      orderBy: { awardDate: 'desc' }
+    });
   }
 
   /**
@@ -325,24 +344,35 @@ export class AwardsService {
    */
   async createTeamSeasonHistory(teamId: string, seasonId: string, seasonNumber: number, divisionId: string): Promise<TeamSeasonHistory> {
     // Get team's season statistics
-    const teamStats = await db
-      .select({
-        wins: sum(sql`CASE WHEN ${teamMatchStats.goalsFor} > ${teamMatchStats.goalsAgainst} THEN 1 ELSE 0 END`).mapWith(Number),
-        losses: sum(sql`CASE WHEN ${teamMatchStats.goalsFor} < ${teamMatchStats.goalsAgainst} THEN 1 ELSE 0 END`).mapWith(Number),
-        goalsFor: sum(teamMatchStats.goalsFor).mapWith(Number),
-        goalsAgainst: sum(teamMatchStats.goalsAgainst).mapWith(Number)
-      })
-      .from(teamMatchStats)
-      .innerJoin(matches, eq(teamMatchStats.matchId, matches.id))
-      .where(
-        and(
-          eq(teamMatchStats.teamId, teamId),
-          eq(matches.seasonId, seasonId),
-          eq(matches.matchType, "regular")
-        )
-      );
+    const teamStatsRaw = await prisma.teamMatchStats.findMany({
+      where: {
+        teamId,
+        match: {
+          seasonId,
+          matchType: "regular"
+        }
+      },
+      select: {
+        goalsFor: true,
+        goalsAgainst: true
+      }
+    });
 
-    const stats = teamStats[0] || { wins: 0, losses: 0, goalsFor: 0, goalsAgainst: 0 };
+    // Calculate stats from raw data
+    let wins = 0;
+    let losses = 0;
+    let goalsFor = 0;
+    let goalsAgainst = 0;
+
+    teamStatsRaw.forEach(stat => {
+      if (stat.goalsFor > stat.goalsAgainst) wins++;
+      else if (stat.goalsFor < stat.goalsAgainst) losses++;
+      
+      goalsFor += stat.goalsFor;
+      goalsAgainst += stat.goalsAgainst;
+    });
+
+    const stats = { wins, losses, goalsFor, goalsAgainst };
     const totalPoints = stats.wins * 3; // 3 points per win
 
     const historyRecord: InsertTeamSeasonHistory = {
@@ -362,19 +392,20 @@ export class AwardsService {
       createdAt: new Date()
     };
 
-    const result = await db.insert(teamSeasonHistory).values(historyRecord).returning();
-    return result[0];
+    const result = await prisma.teamSeasonHistory.create({
+      data: historyRecord
+    });
+    return result;
   }
 
   /**
    * Get team's complete season history
    */
   async getTeamSeasonHistory(teamId: string): Promise<TeamSeasonHistory[]> {
-    return await db
-      .select()
-      .from(teamSeasonHistory)
-      .where(eq(teamSeasonHistory.teamId, teamId))
-      .orderBy(desc(teamSeasonHistory.seasonNumber));
+    return await prisma.teamSeasonHistory.findMany({
+      where: { teamId },
+      orderBy: { seasonNumber: 'desc' }
+    });
   }
 
   /**
@@ -385,22 +416,39 @@ export class AwardsService {
       const awards: InsertTeamAward[] = [];
 
       // Get all team stats for the season
-      const teamStats = await db
-        .select({
-          teamId: teamMatchStats.teamId,
-          goalsFor: sum(teamMatchStats.goalsFor).mapWith(Number),
-          goalsAgainst: sum(teamMatchStats.goalsAgainst).mapWith(Number),
-          gamesPlayed: count(teamMatchStats.matchId).mapWith(Number)
-        })
-        .from(teamMatchStats)
-        .innerJoin(matches, eq(teamMatchStats.matchId, matches.id))
-        .where(
-          and(
-            eq(matches.seasonId, seasonId),
-            eq(matches.matchType, "regular")
-          )
-        )
-        .groupBy(teamMatchStats.teamId);
+      const teamStatsRaw = await prisma.teamMatchStats.findMany({
+        where: {
+          match: {
+            seasonId,
+            matchType: "regular"
+          }
+        },
+        select: {
+          teamId: true,
+          goalsFor: true,
+          goalsAgainst: true,
+          matchId: true
+        }
+      });
+
+      // Group and calculate stats manually
+      const teamStatsMap = new Map();
+      teamStatsRaw.forEach(stat => {
+        if (!teamStatsMap.has(stat.teamId)) {
+          teamStatsMap.set(stat.teamId, {
+            teamId: stat.teamId,
+            goalsFor: 0,
+            goalsAgainst: 0,
+            gamesPlayed: 0
+          });
+        }
+        const team = teamStatsMap.get(stat.teamId);
+        team.goalsFor += stat.goalsFor;
+        team.goalsAgainst += stat.goalsAgainst;
+        team.gamesPlayed += 1;
+      });
+
+      const teamStats = Array.from(teamStatsMap.values());
 
       if (!teamStats.length) {
         return [];
@@ -437,8 +485,14 @@ export class AwardsService {
       });
 
       // Insert team awards
-      const result = await db.insert(teamAwards).values(awards).returning();
-      return result;
+      await prisma.teamAward.createMany({
+        data: awards
+      });
+      
+      // Return the created awards
+      return await prisma.teamAward.findMany({
+        where: { seasonId }
+      });
 
     } catch (error) {
       console.error("Error calculating team awards:", error);
@@ -450,11 +504,10 @@ export class AwardsService {
    * Get all awards for a team
    */
   async getTeamAwards(teamId: string): Promise<TeamAward[]> {
-    return await db
-      .select()
-      .from(teamAwards)
-      .where(eq(teamAwards.teamId, teamId))
-      .orderBy(desc(teamAwards.awardDate));
+    return await prisma.teamAward.findMany({
+      where: { teamId },
+      orderBy: { awardDate: 'desc' }
+    });
   }
 }
 

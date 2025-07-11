@@ -1,4 +1,4 @@
-import { db } from '../db';
+import { prisma } from '../db.js';
 import { Player } from '@prisma/client';
 import { ContractService } from './contractService';
 
@@ -10,14 +10,14 @@ export class PlayerContractInitializer {
     console.log(`[PlayerContractInitializer] Assigning initial contracts for team ${teamId}`);
     
     // Get all players on the team
-    const players = await db.player.findMany({
+    const players = await prisma.player.findMany({
       where: { teamId: teamId }
     });
     
     console.log(`[PlayerContractInitializer] Found ${players.length} players on team ${teamId}`);
     
     // Get existing active contracts for these players
-    const existingContracts = await db.contract.findMany({
+    const existingContracts = await prisma.contract.findMany({
       where: {
         playerId: { in: players.map(p => p.id) }
       }
@@ -78,7 +78,7 @@ export class PlayerContractInitializer {
     console.log(`[PlayerContractInitializer] Starting global initial contract assignment`);
     
     // Get all teams
-    const teams = await db.team.findMany({
+    const teams = await prisma.team.findMany({
       select: { id: true, name: true }
     });
     

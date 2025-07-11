@@ -131,14 +131,17 @@ export class InjuryStaminaService {
    * Apply injury to a player
    */
   async applyInjury(playerId: string, injuryType: string, recoveryPoints: number): Promise<void> {
-    await db.update(players)
-      .set({
+    await prisma.player.update({
+      where: { id: playerId },
+      data: {
         injuryStatus: injuryType,
         injuryRecoveryPointsNeeded: recoveryPoints,
         injuryRecoveryPointsCurrent: 0,
-        careerInjuries: sql`${players.careerInjuries} + 1`
-      })
-      .where(eq(players.id, playerId));
+        careerInjuries: {
+          increment: 1
+        }
+      }
+    });
   }
 
   /**
@@ -157,11 +160,21 @@ export class InjuryStaminaService {
         return; // No persistent stamina depletion for exhibitions
     }
 
-    await db.update(players)
-      .set({
-        dailyStaminaLevel: sql`GREATEST(0, ${players.dailyStaminaLevel} - ${depletion})`
-      })
-      .where(eq(players.id, playerId));
+    // Get current player data to calculate new stamina level
+    const player = await prisma.player.findUnique({
+      where: { id: playerId },
+      select: { dailyStaminaLevel: true }
+    });
+    
+    if (player) {
+      const newStaminaLevel = Math.max(0, (player.dailyStaminaLevel || 100) - depletion);
+      await prisma.player.update({
+        where: { id: playerId },
+        data: {
+          dailyStaminaLevel: newStaminaLevel
+        }
+      });
+    }
   }
 
   /**
@@ -170,14 +183,23 @@ export class InjuryStaminaService {
   async setMatchStartStamina(playerId: string, gameMode: 'league' | 'tournament' | 'exhibition'): Promise<void> {
     if (gameMode === 'exhibition') {
       // Exhibitions always start at 100% stamina
-      await db.update(players)
-        .set({ inGameStamina: 100 })
-        .where(eq(players.id, playerId));
+      await prisma.player.update({
+        where: { id: playerId },
+        data: { inGameStamina: 100 }
+      });
     } else {
       // League and tournament use daily stamina level
-      await db.update(players)
-        .set({ inGameStamina: sql`${players.dailyStaminaLevel}` })
-        .where(eq(players.id, playerId));
+      const player = await prisma.player.findUnique({
+        where: { id: playerId },
+        select: { dailyStaminaLevel: true }
+      });
+      
+      if (player) {
+        await prisma.player.update({
+          where: { id: playerId },
+          data: { inGameStamina: player.dailyStaminaLevel || 100 }
+        });
+      }
     }
   }
 
@@ -191,12 +213,12 @@ export class InjuryStaminaService {
   ): Promise<{ success: boolean; message: string }> {
     
     // Get current player state
-    const player = await db.select().from(players).where(eq(players.id, playerId)).limit(1);
-    if (!player.length) {
+    const currentPlayer = await prisma.player.findUnique({
+      where: { id: playerId }
+    });
+    if (!currentPlayer) {
       return { success: false, message: "Player not found" };
     }
-
-    const currentPlayer = player[0];
     
     // Check daily item usage limit
     const dailyItemsUsed = currentPlayer.dailyItemsUsed || 0;
@@ -231,7 +253,10 @@ export class InjuryStaminaService {
       }
     }
 
-    await db.update(players).set(updateData).where(eq(players.id, playerId));
+    await prisma.player.update({
+      where: { id: playerId },
+      data: updateData
+    });
     
     return { success: true, message: `${itemType} item applied successfully` };
   }
@@ -242,10 +267,12 @@ export class InjuryStaminaService {
    */
   async performDailyReset(): Promise<void> {
     // Reset daily items used for all players
-    await db.update(players).set({ dailyItemsUsed: 0 });
+    await prisma.player.updateMany({
+      data: { dailyItemsUsed: 0 }
+    });
 
     // Get all players for individual processing
-    const allPlayers = await db.select().from(players);
+    const allPlayers = await prisma.player.findMany();
 
     for (const player of allPlayers) {
       const updates: any = {};
@@ -258,18 +285,16 @@ export class InjuryStaminaService {
         let recoveryBonus = 0;
         try {
           if (player.teamId) {
-            const recoverySpecialist = await db.select()
-              .from(staff)
-              .where(and(
-                eq(staff.teamId, player.teamId),
-                eq(staff.type, 'recovery_specialist')
-              ))
-              .limit(1);
+            const recoverySpecialist = await prisma.staff.findFirst({
+              where: {
+                teamId: player.teamId,
+                type: 'RECOVERY_SPECIALIST'
+              }
+            });
             
-            if (recoverySpecialist.length > 0) {
-              const specialist = recoverySpecialist[0];
+            if (recoverySpecialist) {
               // Recovery Specialist bonus: (PhysicalRating / 40) * 2 additional recovery points
-              recoveryBonus = (specialist.physicalRating || 0) / 40 * 2;
+              recoveryBonus = (recoverySpecialist.physiology || 0) / 40 * 2;
             }
           }
         } catch (error) {
@@ -297,7 +322,10 @@ export class InjuryStaminaService {
 
       // Apply updates if any changes needed
       if (Object.keys(updates).length > 0) {
-        await db.update(players).set(updates).where(eq(players.id, player.id));
+        await prisma.player.update({
+          where: { id: player.id },
+          data: updates
+        });
       }
     }
   }

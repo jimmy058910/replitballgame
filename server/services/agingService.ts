@@ -126,7 +126,7 @@ export class AgingService {
     console.log('Starting end-of-season aging process...');
     
     // Get all players in the system
-    const allPlayers = await db.select().from(players);
+    const allPlayers = await prisma.player.findMany();
     console.log(`Processing aging for ${allPlayers.length} players`);
 
     const results: AgingResult[] = [];
@@ -147,8 +147,9 @@ export class AgingService {
     }
 
     // Reset games played last season for all players
-    await db.update(players)
-      .set({ gamesPlayedLastSeason: 0 });
+    await prisma.player.updateMany({
+      data: { gamesPlayedLastSeason: 0 }
+    });
 
     console.log(`Aging process complete. Processed ${results.length} players`);
     return results;
@@ -166,14 +167,15 @@ export class AgingService {
       
       if (retirementCalc.willRetire) {
         // Mark player as retired by removing from team
-        await db.update(players)
-          .set({ 
+        await prisma.player.update({
+          where: { id: player.id },
+          data: { 
             teamId: null,
             isStarter: false,
             isOnTaxi: false,
             age: player.age + 1
-          })
-          .where(eq(players.id, player.id));
+          }
+        });
 
         return {
           playerId: player.id,
@@ -206,18 +208,20 @@ export class AgingService {
             updateData[declineCalc.affectedStat] = declineCalc.statValue;
         }
         
-        await db.update(players)
-          .set(updateData)
-          .where(eq(players.id, player.id));
+        await prisma.player.update({
+          where: { id: player.id },
+          data: updateData
+        });
 
         declineDetails = `${declineCalc.affectedStat} declined to ${declineCalc.statValue}`;
       }
     }
 
     // Step 3: Increment age for all non-retired players
-    await db.update(players)
-      .set({ age: player.age + 1 })
-      .where(eq(players.id, player.id));
+    await prisma.player.update({
+      where: { id: player.id },
+      data: { age: player.age + 1 }
+    });
 
     return {
       playerId: player.id,
@@ -231,11 +235,14 @@ export class AgingService {
    * Update career injuries when a player gets injured
    */
   static async incrementCareerInjuries(playerId: string): Promise<void> {
-    const currentPlayer = await db.select().from(players).where(eq(players.id, playerId)).limit(1);
-    if (currentPlayer.length > 0) {
-      await db.update(players)
-        .set({ careerInjuries: (currentPlayer[0].careerInjuries || 0) + 1 })
-        .where(eq(players.id, playerId));
+    const currentPlayer = await prisma.player.findFirst({
+      where: { id: playerId }
+    });
+    if (currentPlayer) {
+      await prisma.player.update({
+        where: { id: playerId },
+        data: { careerInjuries: (currentPlayer.careerInjuries || 0) + 1 }
+      });
     }
   }
 
@@ -243,11 +250,14 @@ export class AgingService {
    * Update games played this season
    */
   static async incrementGamesPlayed(playerId: string): Promise<void> {
-    const currentPlayer = await db.select().from(players).where(eq(players.id, playerId)).limit(1);
-    if (currentPlayer.length > 0) {
-      await db.update(players)
-        .set({ gamesPlayedLastSeason: (currentPlayer[0].gamesPlayedLastSeason || 0) + 1 })
-        .where(eq(players.id, playerId));
+    const currentPlayer = await prisma.player.findFirst({
+      where: { id: playerId }
+    });
+    if (currentPlayer) {
+      await prisma.player.update({
+        where: { id: playerId },
+        data: { gamesPlayedLastSeason: (currentPlayer.gamesPlayedLastSeason || 0) + 1 }
+      });
     }
   }
 
@@ -261,7 +271,7 @@ export class AgingService {
     averageAge: number;
     ageDistribution: Record<string, number>;
   }> {
-    const allPlayers = await db.select().from(players);
+    const allPlayers = await prisma.player.findMany();
     
     const totalPlayers = allPlayers.length;
     const retirementEligible = allPlayers.filter(p => p.age >= 35).length;

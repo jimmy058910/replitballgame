@@ -17,9 +17,15 @@ Built as a React + Express web application with PostgreSQL database, using moder
 
 ### Backend (Express + Node.js)
 - **Server**: Express with TypeScript
-- **Database**: PostgreSQL with Drizzle ORM
+- **Database**: PostgreSQL with Prisma ORM (100% Prisma syntax only)
 - **Authentication**: Replit Auth with OpenID Connect
 - **Session Management**: PostgreSQL-backed sessions
+
+### Code Standards
+- **Database Operations**: Use Prisma Client exclusively - no Drizzle syntax allowed
+- **Query Patterns**: Use prisma.model.findMany(), prisma.model.create(), etc.
+- **Error Handling**: Always include try-catch blocks for database operations
+- **Type Safety**: Use Prisma-generated types for all database interactions
 
 ### Key Features Implemented
 - **Team Management**: Complete roster management with formation system

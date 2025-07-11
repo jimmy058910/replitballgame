@@ -164,7 +164,9 @@ router.post("/instant-match", isAuthenticated, async (req: any, res: Response, n
       scheduledTime: new Date(),
     };
 
-    const [newMatch] = await db.insert(matches).values(matchData).returning();
+    const newMatch = await prisma.game.create({
+      data: matchData
+    });
 
     // Use tournament entry item if no free games remaining
     if (freeGamesRemaining <= 0) {
@@ -198,10 +200,12 @@ router.post("/instant-match", isAuthenticated, async (req: any, res: Response, n
       }
 
       // Record tournament entry usage
-      await db.insert(tournamentEntries).values({
-        tournamentId: null, // Daily tournaments don't have formal tournament IDs
-        teamId: team.id,
-        entryTime: new Date(),
+      await prisma.tournamentEntry.create({
+        data: {
+          tournamentId: null, // Daily tournaments don't have formal tournament IDs
+          teamId: team.id,
+          entryTime: new Date(),
+        }
       });
     }
 
@@ -289,7 +293,9 @@ router.post("/challenge-opponent", isAuthenticated, async (req: any, res: Respon
       scheduledTime: new Date(),
     };
 
-    const [newMatch] = await db.insert(matches).values(matchData).returning();
+    const newMatch = await prisma.game.create({
+      data: matchData
+    });
 
     // Use tournament entry item if no free games remaining
     if (freeGamesRemaining <= 0) {
@@ -320,10 +326,12 @@ router.post("/challenge-opponent", isAuthenticated, async (req: any, res: Respon
           .where(eq(teamInventory.id, entryItem.id));
       }
 
-      await db.insert(tournamentEntries).values({
-        tournamentId: null,
-        teamId: team.id,
-        entryTime: new Date(),
+      await prisma.tournamentEntry.create({
+        data: {
+          tournamentId: null,
+          teamId: team.id,
+          entryTime: new Date(),
+        }
       });
     }
 

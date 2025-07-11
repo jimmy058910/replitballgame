@@ -533,12 +533,13 @@ export class PlayerAgingRetirementService {
         }
 
         // 4. Age increment and reset games played
-        await db.update(players)
-          .set({
+        await prisma.player.update({
+          where: { id: player.id },
+          data: {
             age: (player.age || 20) + 1,
             gamesPlayedLastSeason: 0
-          })
-          .where(eq(players.id, player.id));
+          }
+        });
 
       } catch (error) {
         console.error(`Error processing development for player ${player.id}:`, error);
@@ -559,10 +560,13 @@ export class PlayerAgingRetirementService {
     totalRetirements: number;
     retirementsByReason: Record<string, number>;
   }> {
-    const allActivePlayers = await db
-      .select()
-      .from(players)
-      .where(not(isNull(players.teamId)));
+    const allActivePlayers = await prisma.player.findMany({
+      where: {
+        teamId: {
+          not: null
+        }
+      }
+    });
 
     const results = {
       teamsProcessed: 0,
@@ -633,15 +637,13 @@ export class PlayerAgingRetirementService {
     developmentHistory: any[];
     careerMilestones: any[];
   }> {
-    const history = await db
-      .select()
-      .from(playerDevelopmentHistory)
-      .where(eq(playerDevelopmentHistory.playerId, playerId));
+    const history = await prisma.playerDevelopmentHistory.findMany({
+      where: { playerId }
+    });
 
-    const milestones = await db
-      .select()
-      .from(playerCareerMilestones)
-      .where(eq(playerCareerMilestones.playerId, playerId));
+    const milestones = await prisma.playerCareerMilestone.findMany({
+      where: { playerId }
+    });
 
     const progressions = history.filter(h => h.developmentType === 'progression' && h.success);
     const declines = history.filter(h => h.developmentType === 'decline' && h.success);

@@ -72,7 +72,7 @@ export class NotificationStorage {
   // async getNotificationsByDrizzleUserId(drizzleUserId: string, limit: number = 20): Promise<Notification[]> {
   //   console.warn("Attempting to fetch notifications by Drizzle user ID, this may not work if UserProfile link is missing or different.");
   //   // This is problematic as Notification is linked to Team (Int ID), which is linked to UserProfile (Int ID)
-  //   // A direct lookup from drizzleUserId (string) to Prisma Notification is not straightforward without joining through UserProfile -> Team.
+  //   // A direct lookup from userId (string) to Prisma Notification requires joining through UserProfile -> Team.
   //   // For now, this function will likely fail or return empty if not adapted further.
   //   const userProfile = await prisma.userProfile.findUnique({ where: { userId: drizzleUserId }});
   //   if (!userProfile) return [];

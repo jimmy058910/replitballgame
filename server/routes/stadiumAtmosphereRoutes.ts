@@ -278,8 +278,8 @@ router.get('/stadium-data', isAuthenticated, async (req: any, res) => {
   try {
     const userId = req.user.claims.sub;
     
-    const team = await db.query.teams.findFirst({
-      where: eq(teams.userId, userId)
+    const team = await prisma.team.findFirst({
+      where: { userId: userId }
     });
     
     if (!team) {
@@ -290,14 +290,14 @@ router.get('/stadium-data', isAuthenticated, async (req: any, res) => {
     }
 
     // Get or create stadium (same logic as /api/stadium route)
-    const { stadiums } = await import('@shared/schema');
-    let stadium = await db.query.stadiums.findFirst({
-      where: eq(stadiums.teamId, team.id)
+    let stadium = await prisma.stadium.findFirst({
+      where: { teamId: team.id }
     });
 
     if (!stadium) {
       // Create default stadium
-      const [newStadium] = await db.insert(stadiums).values({
+      const newStadium = await prisma.stadium.create({
+        data: {
         teamId: team.id,
         name: `${team.name} Stadium`,
         level: 1,
@@ -311,7 +311,8 @@ router.get('/stadium-data', isAuthenticated, async (req: any, res) => {
         screensLevel: 1,
         securityLevel: 1,
         maintenanceCost: 5000
-      }).returning();
+        }
+      });
       
       stadium = newStadium;
     }
@@ -343,8 +344,8 @@ router.get('/atmosphere-data', isAuthenticated, async (req: any, res) => {
   try {
     const userId = req.user.claims.sub;
     
-    const team = await db.query.teams.findFirst({
-      where: eq(teams.userId, userId)
+    const team = await prisma.team.findFirst({
+      where: { userId: userId }
     });
     
     if (!team) {
@@ -381,8 +382,8 @@ router.get('/revenue-breakdown', isAuthenticated, async (req: any, res) => {
   try {
     const userId = req.user.claims.sub;
     
-    const team = await db.query.teams.findFirst({
-      where: eq(teams.userId, userId)
+    const team = await prisma.team.findFirst({
+      where: { userId: userId }
     });
     
     if (!team) {
@@ -423,8 +424,8 @@ router.get('/upgrade-costs', isAuthenticated, async (req: any, res) => {
   try {
     const userId = req.user.claims.sub;
     
-    const team = await db.query.teams.findFirst({
-      where: eq(teams.userId, userId)
+    const team = await prisma.team.findFirst({
+      where: { userId: userId }
     });
     
     if (!team) {
@@ -435,14 +436,14 @@ router.get('/upgrade-costs', isAuthenticated, async (req: any, res) => {
     }
 
     // Get or create stadium
-    const { stadiums } = await import('@shared/schema');
-    let stadium = await db.query.stadiums.findFirst({
-      where: eq(stadiums.teamId, team.id)
+    let stadium = await prisma.stadium.findFirst({
+      where: { teamId: team.id }
     });
 
     if (!stadium) {
       // Create default stadium
-      const [newStadium] = await db.insert(stadiums).values({
+      const newStadium = await prisma.stadium.create({
+        data: {
         teamId: team.id,
         name: `${team.name} Stadium`,
         level: 1,
@@ -456,7 +457,8 @@ router.get('/upgrade-costs', isAuthenticated, async (req: any, res) => {
         screensLevel: 1,
         securityLevel: 1,
         maintenanceCost: 5000
-      }).returning();
+        }
+      });
       
       stadium = newStadium;
     }
@@ -490,8 +492,8 @@ router.get('/loyalty-factors', isAuthenticated, async (req: any, res) => {
   try {
     const userId = req.user.claims.sub;
     
-    const team = await db.query.teams.findFirst({
-      where: eq(teams.userId, userId)
+    const team = await prisma.team.findFirst({
+      where: { userId: userId }
     });
     
     if (!team) {
@@ -530,8 +532,8 @@ router.get('/team-power-tier', isAuthenticated, async (req: any, res) => {
   try {
     const userId = req.user.claims.sub;
     
-    const team = await db.query.teams.findFirst({
-      where: eq(teams.userId, userId)
+    const team = await prisma.team.findFirst({
+      where: { userId: userId }
     });
     
     if (!team) {

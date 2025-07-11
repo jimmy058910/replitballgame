@@ -203,10 +203,9 @@ export class DynamicMarketplaceService {
       }
 
       // Check team has enough credits
-      const [teamFinance] = await db
-        .select()
-        .from(teamFinances)
-        .where(eq(teamFinances.teamId, teamId));
+      const teamFinance = await prisma.teamFinances.findFirst({
+        where: { teamId }
+      });
 
       if (!teamFinance || (teamFinance.credits ?? 0) < bidAmount) {
         return { success: false, error: 'Insufficient credits for bid' };
@@ -218,18 +217,20 @@ export class DynamicMarketplaceService {
       }
 
       // Create new escrow for this bid
-      await db.insert(marketplaceEscrow).values({
-        teamId,
-        listingId,
-        escrowAmount: bidAmount,
-        escrowType: 'bid',
+      await prisma.marketplaceEscrow.create({
+        data: {
+          teamId,
+          listingId,
+          escrowAmount: bidAmount,
+          escrowType: 'bid',
+        }
       });
 
       // Deduct credits from bidder (escrow)
-      await db
-        .update(teamFinances)
-        .set({ credits: (teamFinance.credits ?? 0) - bidAmount })
-        .where(eq(teamFinances.teamId, teamId));
+      await prisma.teamFinances.update({
+        where: { teamId },
+        data: { credits: (teamFinance.credits ?? 0) - bidAmount }
+      });
 
       // Anti-sniping: Check if bid is in final 5 minutes
       const timeUntilExpiry = listing.expiryTimestamp.getTime() - Date.now();
@@ -240,29 +241,31 @@ export class DynamicMarketplaceService {
         // Extend auction by 5 minutes
         newExpiryTime = new Date(Date.now() + fiveMinutesMs);
         
-        await db
-          .update(marketplaceListings)
-          .set({ 
+        await prisma.marketplaceListing.update({
+          where: { id: listingId },
+          data: { 
             auctionExtensions: listing.auctionExtensions + 1,
             expiryTimestamp: newExpiryTime
-          })
-          .where(eq(marketplaceListings.id, listingId));
+          }
+        });
       }
 
       // Update listing with new bid
-      await db
-        .update(marketplaceListings)
-        .set({
+      await prisma.marketplaceListing.update({
+        where: { id: listingId },
+        data: {
           currentBid: bidAmount,
           currentHighBidderTeamId: teamId,
-        })
-        .where(eq(marketplaceListings.id, listingId));
+        }
+      });
 
       // Record bid
-      await db.insert(marketplaceBids).values({
-        listingId,
-        bidderTeamId: teamId,
-        bidAmount,
+      await prisma.marketplaceBid.create({
+        data: {
+          listingId,
+          bidderTeamId: teamId,
+          bidAmount,
+        }
       });
 
       return { 
@@ -290,13 +293,12 @@ export class DynamicMarketplaceService {
   }> {
     try {
       // Get listing details
-      const [listing] = await db
-        .select()
-        .from(marketplaceListings)
-        .where(and(
-          eq(marketplaceListings.id, listingId),
-          eq(marketplaceListings.isActive, true)
-        ));
+      const listing = await prisma.marketplaceListing.findFirst({
+        where: {
+          id: listingId,
+          isActive: true
+        }
+      });
 
       if (!listing || !listing.buyNowPrice) {
         return { success: false, error: 'Buy-now not available for this listing' };
@@ -313,10 +315,9 @@ export class DynamicMarketplaceService {
       }
 
       // Check buyer has enough credits
-      const [buyerFinance] = await db
-        .select()
-        .from(teamFinances)
-        .where(eq(teamFinances.teamId, teamId));
+      const buyerFinance = await prisma.teamFinances.findFirst({
+        where: { teamId }
+      });
 
       if (!buyerFinance || (buyerFinance.credits ?? 0) < listing.buyNowPrice) {
         return { success: false, error: 'Insufficient credits for buy-now purchase' };
@@ -350,30 +351,28 @@ export class DynamicMarketplaceService {
     sellerAmount: number,
     isBuyNow: boolean = false
   ): Promise<void> {
-    const [listing] = await db
-      .select()
-      .from(marketplaceListings)
-      .where(eq(marketplaceListings.id, listingId));
+    const listing = await prisma.marketplaceListing.findFirst({
+      where: { id: listingId }
+    });
 
     if (!listing) return;
 
     // Transfer player to winner
-    await db
-      .update(players)
-      .set({ teamId: winnerTeamId })
-      .where(eq(players.id, listing.playerId));
+    await prisma.player.update({
+      where: { id: listing.playerId },
+      data: { teamId: winnerTeamId }
+    });
 
     // Pay seller (minus tax)
-    const [sellerFinance] = await db
-      .select()
-      .from(teamFinances)
-      .where(eq(teamFinances.teamId, listing.sellerTeamId));
+    const sellerFinance = await prisma.teamFinances.findFirst({
+      where: { teamId: listing.sellerTeamId }
+    });
 
     if (sellerFinance) {
-      await db
-        .update(teamFinances)
-        .set({ credits: (sellerFinance.credits ?? 0) + sellerAmount })
-        .where(eq(teamFinances.teamId, listing.sellerTeamId));
+      await prisma.teamFinances.update({
+        where: { teamId: listing.sellerTeamId },
+        data: { credits: (sellerFinance.credits ?? 0) + sellerAmount }
+      });
     }
 
     // If not buy-now, release escrow for winner
@@ -381,16 +380,15 @@ export class DynamicMarketplaceService {
       await this.releaseEscrow(winnerTeamId, listingId);
     } else {
       // For buy-now, deduct credits from buyer
-      const [buyerFinance] = await db
-        .select()
-        .from(teamFinances)
-        .where(eq(teamFinances.teamId, winnerTeamId));
+      const buyerFinance = await prisma.teamFinances.findFirst({
+        where: { teamId: winnerTeamId }
+      });
 
       if (buyerFinance) {
-        await db
-          .update(teamFinances)
-          .set({ credits: (buyerFinance.credits ?? 0) - finalPrice })
-          .where(eq(teamFinances.teamId, winnerTeamId));
+        await prisma.teamFinances.update({
+          where: { teamId: winnerTeamId },
+          data: { credits: (buyerFinance.credits ?? 0) - finalPrice }
+        });
       }
     }
 
@@ -400,19 +398,19 @@ export class DynamicMarketplaceService {
     }
 
     // Mark listing as completed
-    await db
-      .update(marketplaceListings)
-      .set({ 
+    await prisma.marketplaceListing.update({
+      where: { id: listingId },
+      data: { 
         isActive: false,
         completedAt: new Date()
-      })
-      .where(eq(marketplaceListings.id, listingId));
+      }
+    });
 
     // Mark all bids as inactive
-    await db
-      .update(marketplaceBids)
-      .set({ isActive: false })
-      .where(eq(marketplaceBids.listingId, listingId));
+    await prisma.marketplaceBid.updateMany({
+      where: { listingId },
+      data: { isActive: false }
+    });
   }
 
   /**
@@ -420,38 +418,36 @@ export class DynamicMarketplaceService {
    */
   static async releaseEscrow(teamId: string, listingId: number): Promise<void> {
     // Get active escrow
-    const [escrow] = await db
-      .select()
-      .from(marketplaceEscrow)
-      .where(and(
-        eq(marketplaceEscrow.teamId, teamId),
-        eq(marketplaceEscrow.listingId, listingId),
-        eq(marketplaceEscrow.isReleased, false)
-      ));
+    const escrow = await prisma.marketplaceEscrow.findFirst({
+      where: {
+        teamId,
+        listingId,
+        isReleased: false
+      }
+    });
 
     if (!escrow) return;
 
     // Return credits to team
-    const [teamFinance] = await db
-      .select()
-      .from(teamFinances)
-      .where(eq(teamFinances.teamId, teamId));
+    const teamFinance = await prisma.teamFinances.findFirst({
+      where: { teamId }
+    });
 
     if (teamFinance) {
-      await db
-        .update(teamFinances)
-        .set({ credits: (teamFinance.credits ?? 0) + escrow.escrowAmount })
-        .where(eq(teamFinances.teamId, teamId));
+      await prisma.teamFinances.update({
+        where: { teamId },
+        data: { credits: (teamFinance.credits ?? 0) + escrow.escrowAmount }
+      });
     }
 
     // Mark escrow as released
-    await db
-      .update(marketplaceEscrow)
-      .set({ 
+    await prisma.marketplaceEscrow.update({
+      where: { id: escrow.id },
+      data: { 
         isReleased: true,
         releasedAt: new Date()
-      })
-      .where(eq(marketplaceEscrow.id, escrow.id));
+      }
+    });
   }
 
   /**
@@ -465,13 +461,14 @@ export class DynamicMarketplaceService {
     const now = new Date();
     
     // Get all expired active listings
-    const expiredListings = await db
-      .select()
-      .from(marketplaceListings)
-      .where(and(
-        eq(marketplaceListings.isActive, true),
-        lt(marketplaceListings.expiryTimestamp, now)
-      ));
+    const expiredListings = await prisma.marketplaceListing.findMany({
+      where: {
+        isActive: true,
+        expiryTimestamp: {
+          lt: now
+        }
+      }
+    });
 
     let completedSales = 0;
     let returnedListings = 0;
@@ -493,13 +490,13 @@ export class DynamicMarketplaceService {
         completedSales++;
       } else {
         // No bids or only starting bid - return player to seller
-        await db
-          .update(marketplaceListings)
-          .set({ 
+        await prisma.marketplaceListing.update({
+          where: { id: listing.id },
+          data: { 
             isActive: false,
             completedAt: new Date()
-          })
-          .where(eq(marketplaceListings.id, listing.id));
+          }
+        });
         
         returnedListings++;
       }
@@ -516,117 +513,155 @@ export class DynamicMarketplaceService {
    * Get active marketplace listings with player details
    */
   static async getActiveListings(limit: number = 50, offset: number = 0): Promise<any[]> {
-    const listings = await db
-      .select({
-        listingId: marketplaceListings.id,
-        playerId: marketplaceListings.playerId,
-        sellerTeamId: marketplaceListings.sellerTeamId,
-        startBid: marketplaceListings.startBid,
-        buyNowPrice: marketplaceListings.buyNowPrice,
-        currentBid: marketplaceListings.currentBid,
-        expiryTimestamp: marketplaceListings.expiryTimestamp,
-        auctionExtensions: marketplaceListings.auctionExtensions,
-        createdAt: marketplaceListings.createdAt,
-        // Player details
-        playerName: sql<string>`CONCAT(${players.firstName}, ' ', ${players.lastName})`,
-        race: players.race,
-        speed: players.speed,
-        power: players.power,
-        throwing: players.throwing,
-        catching: players.catching,
-        kicking: players.kicking,
-        // Seller team name
-        sellerTeamName: teams.name,
-      })
-      .from(marketplaceListings)
-      .innerJoin(players, eq(marketplaceListings.playerId, players.id))
-      .innerJoin(teams, eq(marketplaceListings.sellerTeamId, teams.id))
-      .where(eq(marketplaceListings.isActive, true))
-      .orderBy(desc(marketplaceListings.createdAt))
-      .limit(limit)
-      .offset(offset);
+    const listings = await prisma.marketplaceListing.findMany({
+      where: { isActive: true },
+      include: {
+        player: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            race: true,
+            speed: true,
+            power: true,
+            throwing: true,
+            catching: true,
+            kicking: true
+          }
+        },
+        sellerTeam: {
+          select: {
+            name: true
+          }
+        }
+      },
+      orderBy: { createdAt: 'desc' },
+      take: limit,
+      skip: offset
+    });
 
-    return listings;
+    return listings.map(listing => ({
+      listingId: listing.id,
+      playerId: listing.playerId,
+      sellerTeamId: listing.sellerTeamId,
+      startBid: listing.startBid,
+      buyNowPrice: listing.buyNowPrice,
+      currentBid: listing.currentBid,
+      expiryTimestamp: listing.expiryTimestamp,
+      auctionExtensions: listing.auctionExtensions,
+      createdAt: listing.createdAt,
+      playerName: `${listing.player.firstName} ${listing.player.lastName}`,
+      race: listing.player.race,
+      speed: listing.player.speed,
+      power: listing.player.power,
+      throwing: listing.player.throwing,
+      catching: listing.player.catching,
+      kicking: listing.player.kicking,
+      sellerTeamName: listing.sellerTeam.name
+    }));
   }
 
   /**
    * Get team's listings (both active and completed)
    */
   static async getTeamListings(teamId: string): Promise<any[]> {
-    const listings = await db
-      .select({
-        listingId: marketplaceListings.id,
-        playerId: marketplaceListings.playerId,
-        startBid: marketplaceListings.startBid,
-        buyNowPrice: marketplaceListings.buyNowPrice,
-        currentBid: marketplaceListings.currentBid,
-        expiryTimestamp: marketplaceListings.expiryTimestamp,
-        isActive: marketplaceListings.isActive,
-        listingFee: marketplaceListings.listingFee,
-        createdAt: marketplaceListings.createdAt,
-        completedAt: marketplaceListings.completedAt,
-        // Player details
-        playerName: sql<string>`CONCAT(${players.firstName}, ' ', ${players.lastName})`,
-        race: players.race,
-      })
-      .from(marketplaceListings)
-      .innerJoin(players, eq(marketplaceListings.playerId, players.id))
-      .where(eq(marketplaceListings.sellerTeamId, teamId))
-      .orderBy(desc(marketplaceListings.createdAt));
+    const listings = await prisma.marketplaceListing.findMany({
+      where: { sellerTeamId: teamId },
+      include: {
+        player: {
+          select: {
+            firstName: true,
+            lastName: true,
+            race: true
+          }
+        }
+      },
+      orderBy: { createdAt: 'desc' }
+    });
 
-    return listings;
+    return listings.map(listing => ({
+      listingId: listing.id,
+      playerId: listing.playerId,
+      startBid: listing.startBid,
+      buyNowPrice: listing.buyNowPrice,
+      currentBid: listing.currentBid,
+      expiryTimestamp: listing.expiryTimestamp,
+      isActive: listing.isActive,
+      listingFee: listing.listingFee,
+      createdAt: listing.createdAt,
+      completedAt: listing.completedAt,
+      playerName: `${listing.player.firstName} ${listing.player.lastName}`,
+      race: listing.player.race
+    }));
   }
 
   /**
    * Get listing details with bid history
    */
   static async getListingDetails(listingId: number): Promise<any> {
-    const [listing] = await db
-      .select({
-        listingId: marketplaceListings.id,
-        playerId: marketplaceListings.playerId,
-        sellerTeamId: marketplaceListings.sellerTeamId,
-        startBid: marketplaceListings.startBid,
-        buyNowPrice: marketplaceListings.buyNowPrice,
-        currentBid: marketplaceListings.currentBid,
-        currentHighBidderTeamId: marketplaceListings.currentHighBidderTeamId,
-        expiryTimestamp: marketplaceListings.expiryTimestamp,
-        isActive: marketplaceListings.isActive,
-        auctionExtensions: marketplaceListings.auctionExtensions,
-        createdAt: marketplaceListings.createdAt,
-        // Player details
-        playerName: sql<string>`CONCAT(${players.firstName}, ' ', ${players.lastName})`,
-        race: players.race,
-        speed: players.speed,
-        power: players.power,
-        throwing: players.throwing,
-        catching: players.catching,
-        kicking: players.kicking,
-        // Seller team name
-        sellerTeamName: teams.name,
-      })
-      .from(marketplaceListings)
-      .innerJoin(players, eq(marketplaceListings.playerId, players.id))
-      .innerJoin(teams, eq(marketplaceListings.sellerTeamId, teams.id))
-      .where(eq(marketplaceListings.id, listingId));
+    const listing = await prisma.marketplaceListing.findFirst({
+      where: { id: listingId },
+      include: {
+        player: {
+          select: {
+            firstName: true,
+            lastName: true,
+            race: true,
+            speed: true,
+            power: true,
+            throwing: true,
+            catching: true,
+            kicking: true
+          }
+        },
+        sellerTeam: {
+          select: {
+            name: true
+          }
+        }
+      }
+    });
 
     if (!listing) return null;
 
     // Get bid history
-    const bidHistory = await db
-      .select({
-        bidAmount: marketplaceBids.bidAmount,
-        bidTimestamp: marketplaceBids.bidTimestamp,
-        bidderTeamName: teams.name,
-      })
-      .from(marketplaceBids)
-      .innerJoin(teams, eq(marketplaceBids.bidderTeamId, teams.id))
-      .where(eq(marketplaceBids.listingId, listingId))
-      .orderBy(desc(marketplaceBids.bidTimestamp));
+    const bidHistory = await prisma.marketplaceBid.findMany({
+      where: { listingId },
+      include: {
+        bidderTeam: {
+          select: {
+            name: true
+          }
+        }
+      },
+      orderBy: { bidTimestamp: 'desc' }
+    });
 
     return {
-      ...listing,
-      bidHistory
+      listingId: listing.id,
+      playerId: listing.playerId,
+      sellerTeamId: listing.sellerTeamId,
+      startBid: listing.startBid,
+      buyNowPrice: listing.buyNowPrice,
+      currentBid: listing.currentBid,
+      currentHighBidderTeamId: listing.currentHighBidderTeamId,
+      expiryTimestamp: listing.expiryTimestamp,
+      isActive: listing.isActive,
+      auctionExtensions: listing.auctionExtensions,
+      createdAt: listing.createdAt,
+      playerName: `${listing.player.firstName} ${listing.player.lastName}`,
+      race: listing.player.race,
+      speed: listing.player.speed,
+      power: listing.player.power,
+      throwing: listing.player.throwing,
+      catching: listing.player.catching,
+      kicking: listing.player.kicking,
+      sellerTeamName: listing.sellerTeam.name,
+      bidHistory: bidHistory.map(bid => ({
+        bidAmount: bid.bidAmount,
+        bidTimestamp: bid.bidTimestamp,
+        bidderTeamName: bid.bidderTeam.name
+      }))
     };
   }
 
@@ -636,30 +671,29 @@ export class DynamicMarketplaceService {
   static async getMarketplaceStats(): Promise<any> {
     try {
       // Get total active listings
-      const [totalActiveListingsResult] = await db
-        .select({ count: count() })
-        .from(marketplaceListings)
-        .where(eq(marketplaceListings.isActive, true));
+      const totalActiveListings = await prisma.marketplaceListing.count({
+        where: { isActive: true }
+      });
 
       // Get total bids placed
-      const [totalBidsResult] = await db
-        .select({ count: count() })
-        .from(marketplaceBids);
+      const totalBidsPlaced = await prisma.marketplaceBid.count();
 
       // Get average and highest current bid
-      const [bidStatsResult] = await db
-        .select({
-          avgBid: sql<number>`AVG(${marketplaceListings.currentBid})`,
-          maxBid: sql<number>`MAX(${marketplaceListings.currentBid})`
-        })
-        .from(marketplaceListings)
-        .where(eq(marketplaceListings.isActive, true));
+      const bidStats = await prisma.marketplaceListing.aggregate({
+        where: { isActive: true },
+        _avg: {
+          currentBid: true
+        },
+        _max: {
+          currentBid: true
+        }
+      });
 
       return {
-        totalActiveListings: totalActiveListingsResult?.count || 0,
-        totalBidsPlaced: totalBidsResult?.count || 0,
-        averageCurrentBid: Math.round(bidStatsResult?.avgBid || 0),
-        highestBid: bidStatsResult?.maxBid || 0,
+        totalActiveListings: totalActiveListings || 0,
+        totalBidsPlaced: totalBidsPlaced || 0,
+        averageCurrentBid: Math.round(bidStats._avg.currentBid || 0),
+        highestBid: bidStats._max.currentBid || 0,
         myActiveListings: 0, // This would be calculated per user in the route
         myActiveBids: 0 // This would be calculated per user in the route
       };
@@ -681,24 +715,33 @@ export class DynamicMarketplaceService {
    */
   static async getUserBids(teamId: string): Promise<any[]> {
     try {
-      const bids = await db
-        .select({
-          id: marketplaceBids.id,
-          listingId: marketplaceBids.listingId,
-          bidAmount: marketplaceBids.bidAmount,
-          bidTimestamp: marketplaceBids.bidTimestamp,
-          isActive: marketplaceListings.isActive,
-          playerName: sql<string>`${players.firstName} || ' ' || ${players.lastName}`,
-          currentBid: marketplaceListings.currentBid,
-          expiryTimestamp: marketplaceListings.expiryTimestamp
-        })
-        .from(marketplaceBids)
-        .innerJoin(marketplaceListings, eq(marketplaceBids.listingId, marketplaceListings.id))
-        .innerJoin(players, eq(marketplaceListings.playerId, players.id))
-        .where(eq(marketplaceBids.bidderTeamId, teamId))
-        .orderBy(desc(marketplaceBids.bidTimestamp));
+      const bids = await prisma.marketplaceBid.findMany({
+        where: { bidderTeamId: teamId },
+        include: {
+          listing: {
+            include: {
+              player: {
+                select: {
+                  firstName: true,
+                  lastName: true
+                }
+              }
+            }
+          }
+        },
+        orderBy: { bidTimestamp: 'desc' }
+      });
 
-      return bids;
+      return bids.map(bid => ({
+        id: bid.id,
+        listingId: bid.listingId,
+        bidAmount: bid.bidAmount,
+        bidTimestamp: bid.bidTimestamp,
+        isActive: bid.listing.isActive,
+        playerName: `${bid.listing.player.firstName} ${bid.listing.player.lastName}`,
+        currentBid: bid.listing.currentBid,
+        expiryTimestamp: bid.listing.expiryTimestamp
+      }));
     } catch (error) {
       console.error('Error getting user bids:', error);
       return [];

@@ -95,15 +95,19 @@ export class StadiumAtmosphereService {
     };
   }> {
     // Get current team data
-    const team = await db.select().from(teams).where(eq(teams.id, teamId)).limit(1);
-    if (!team.length) throw new Error('Team not found');
+    const team = await prisma.team.findFirst({
+      where: { id: parseInt(teamId) }
+    });
+    if (!team) throw new Error('Team not found');
     
-    const stadium = await db.select().from(stadiums).where(eq(stadiums.teamId, teamId)).limit(1);
-    if (!stadium.length) throw new Error('Stadium not found');
+    const stadium = await prisma.stadium.findFirst({
+      where: { teamId: parseInt(teamId) }
+    });
+    if (!stadium) throw new Error('Stadium not found');
     
-    const oldLoyalty = team[0].fanLoyalty || 50; // Default starting loyalty
-    const wins = team[0].wins || 0;
-    const losses = team[0].losses || 0;
+    const oldLoyalty = team.fanLoyalty || 50; // Default starting loyalty
+    const wins = team.wins || 0;
+    const losses = team.losses || 0;
     const totalGames = wins + losses;
     const winPercentage = totalGames > 0 ? wins / totalGames : 0;
     
@@ -116,17 +120,14 @@ export class StadiumAtmosphereService {
     }
     
     // Form modifier - check last 3 games of season
-    const lastThreeGames = await db
-      .select()
-      .from(matches)
-      .where(
-        and(
-          eq(matches.season, season),
-          eq(matches.status, 'completed')
-        )
-      )
-      .orderBy(desc(matches.gameDay))
-      .limit(3);
+    const lastThreeGames = await prisma.game.findMany({
+      where: {
+        season,
+        status: 'completed'
+      },
+      orderBy: { gameDay: 'desc' },
+      take: 3
+    });
     
     const formModifier = this.calculateFormModifier(lastThreeGames, teamId);
     
@@ -190,14 +191,18 @@ export class StadiumAtmosphereService {
     atmosphereBonus: boolean;
   }> {
     // Get team and stadium data
-    const team = await db.select().from(teams).where(eq(teams.id, homeTeamId)).limit(1);
-    if (!team.length) throw new Error('Team not found');
+    const team = await prisma.team.findFirst({
+      where: { id: parseInt(homeTeamId) }
+    });
+    if (!team) throw new Error('Team not found');
     
-    const stadium = await db.select().from(stadiums).where(eq(stadiums.teamId, homeTeamId)).limit(1);
-    if (!stadium.length) throw new Error('Stadium not found');
+    const stadium = await prisma.stadium.findFirst({
+      where: { teamId: parseInt(homeTeamId) }
+    });
+    if (!stadium) throw new Error('Stadium not found');
     
-    const fanLoyalty = team[0].fanLoyalty || 50;
-    const capacity = stadium[0].capacity || 15000;
+    const fanLoyalty = team.fanLoyalty || 50;
+    const capacity = stadium.capacity || 15000;
     
     // Calculate base attendance from fan loyalty
     const baseAttendance = this.LOYALTY_CONFIG.BASE_ATTENDANCE + 
@@ -280,29 +285,33 @@ export class StadiumAtmosphereService {
     actualAttendance: number;
   }> {
     const atmosphere = await this.calculateMatchdayAtmosphere(homeTeamId);
-    const stadium = await db.select().from(stadiums).where(eq(stadiums.teamId, homeTeamId)).limit(1);
-    const team = await db.select().from(teams).where(eq(teams.id, homeTeamId)).limit(1);
+    const stadium = await prisma.stadium.findFirst({
+      where: { teamId: parseInt(homeTeamId) }
+    });
+    const team = await prisma.team.findFirst({
+      where: { id: parseInt(homeTeamId) }
+    });
     
-    if (!stadium.length || !team.length) {
+    if (!stadium || !team) {
       throw new Error('Stadium or team not found');
     }
     
     const actualAttendance = atmosphere.actualAttendance;
-    const fanLoyalty = team[0].fanLoyalty || 50;
+    const fanLoyalty = team.fanLoyalty || 50;
     
     // Calculate revenue components
     const ticketSales = actualAttendance * this.LOYALTY_CONFIG.BASE_TICKET_PRICE;
     
     const concessions = actualAttendance * this.LOYALTY_CONFIG.CONCESSION_MULTIPLIER * 
-                       (stadium[0].concessionsLevel || 1);
+                       (stadium.concessionsLevel || 1);
     
     const parking = (actualAttendance * this.LOYALTY_CONFIG.PARKING_USAGE) * 
-                   this.LOYALTY_CONFIG.PARKING_RATE * (stadium[0].parkingLevel || 1);
+                   this.LOYALTY_CONFIG.PARKING_RATE * (stadium.parkingLevel || 1);
     
     const apparel = actualAttendance * this.LOYALTY_CONFIG.APPAREL_MULTIPLIER * 
-                   (stadium[0].merchandisingLevel || 1);
+                   (stadium.merchandisingLevel || 1);
     
-    const vipSuites = (stadium[0].vipSuitesLevel || 0) * this.LOYALTY_CONFIG.VIP_SUITE_REVENUE;
+    const vipSuites = (stadium.vipSuitesLevel || 0) * this.LOYALTY_CONFIG.VIP_SUITE_REVENUE;
     
     const atmosphereBonus = atmosphere.atmosphereBonus ? 
                            actualAttendance * this.LOYALTY_CONFIG.ATMOSPHERE_BONUS_MULTIPLIER : 0;
@@ -421,7 +430,7 @@ export class StadiumAtmosphereService {
       change: number;
     }>;
   }> {
-    const allTeams = await db.select().from(teams);
+    const allTeams = await prisma.team.findMany();
     const loyaltyUpdates = [];
     let totalChange = 0;
     
@@ -469,29 +478,33 @@ export class StadiumAtmosphereService {
       effect: string;
     }>;
   }> {
-    const team = await db.select().from(teams).where(eq(teams.id, teamId)).limit(1);
-    const stadium = await db.select().from(stadiums).where(eq(stadiums.teamId, teamId)).limit(1);
+    const team = await prisma.team.findFirst({
+      where: { id: parseInt(teamId) }
+    });
+    const stadium = await prisma.stadium.findFirst({
+      where: { teamId: parseInt(teamId) }
+    });
     
-    if (!team.length || !stadium.length) {
+    if (!team || !stadium) {
       throw new Error('Team or stadium not found');
     }
     
     const atmosphere = await this.calculateMatchdayAtmosphere(teamId);
     const revenue = await this.calculateHomeGameRevenue(teamId);
-    const powerTier = this.getTeamPowerTier(team[0].teamPower || 0);
+    const powerTier = this.getTeamPowerTier(team.teamPower || 0);
     
     // Calculate upgrade options
     const upgradeOptions = [
       {
         type: 'capacity',
-        currentLevel: Math.floor((stadium[0].capacity || 15000) / 5000),
-        upgradeCost: this.calculateUpgradeCost('capacity', 0, stadium[0].capacity || 15000),
+        currentLevel: Math.floor((stadium.capacity || 15000) / 5000),
+        upgradeCost: this.calculateUpgradeCost('capacity', 0, stadium.capacity || 15000),
         effect: `+${this.UPGRADE_CONFIG.CAPACITY_INCREMENT.toLocaleString()} seats, increased revenue potential`
       },
       {
         type: 'concessions',
-        currentLevel: stadium[0].concessionsLevel || 1,
-        upgradeCost: this.calculateUpgradeCost('concessions', stadium[0].concessionsLevel || 1),
+        currentLevel: stadium.concessionsLevel || 1,
+        upgradeCost: this.calculateUpgradeCost('concessions', stadium.concessionsLevel || 1),
         effect: `Increases concession revenue per attendee`
       },
       {

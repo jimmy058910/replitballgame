@@ -317,10 +317,10 @@ export class AdvancedTacticalEffectsService {
         };
       }
 
-      await db
-        .update(teams)
-        .set({ fieldSize })
-        .where(eq(teams.id, teamId));
+      await prisma.team.update({
+        where: { id: teamId },
+        data: { fieldSize }
+      });
 
       return { success: true };
     } catch (error) {
