@@ -1,6 +1,7 @@
+import { db } from '../db';
 import { PrismaClient, Staff, StaffType } from '../../generated/prisma';
 
-const prisma = new PrismaClient();
+const prisma = db; // Use shared Prisma instance
 
 export class StaffStorage {
   async createStaff(staffData: {

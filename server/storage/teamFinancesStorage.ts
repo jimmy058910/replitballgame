@@ -1,6 +1,7 @@
+import { db } from '../db';
 import { PrismaClient, TeamFinances } from '../../generated/prisma';
 
-const prisma = new PrismaClient();
+const prisma = db; // Use shared Prisma instance
 
 export class TeamFinancesStorage {
   async getTeamFinances(teamId: number): Promise<TeamFinances | null> {

@@ -1,6 +1,7 @@
+import { db } from '../db';
 import { PrismaClient, Player } from '../../generated/prisma';
 
-const prisma = new PrismaClient();
+const prisma = db; // Use shared Prisma instance
 
 export class InjuryStorage {
   async updatePlayerInjury(playerId: number, injuryStatus: string, recoveryPointsNeeded?: number, recoveryPointsCurrent?: number): Promise<Player | null> {

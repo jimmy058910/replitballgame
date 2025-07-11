@@ -11,14 +11,8 @@ router.get('/', isAuthenticated, async (req: any, res: Response, next: NextFunct
   try {
     const userId = req.user.claims.sub;
     
-    // Get user profile first
-    const userProfile = await storage.users.getUser(userId);
-    if (!userProfile) {
-      return res.status(404).json({ message: "User profile not found" });
-    }
-    
-    // Get team by userProfileId
-    const team = await storage.teams.getTeamByUserId(userProfile.id);
+    // Get team by userId (string)
+    const team = await storage.teams.getTeamByUserId(userId);
     if (!team) {
       return res.status(404).json({ message: "Team not found for user" });
     }
@@ -51,14 +45,8 @@ router.patch('/mark-all-read', isAuthenticated, async (req: any, res: Response, 
   try {
     const userId = req.user.claims.sub;
     
-    // Get user profile first
-    const userProfile = await storage.users.getUser(userId);
-    if (!userProfile) {
-      return res.status(404).json({ message: "User profile not found" });
-    }
-    
-    // Get team by userProfileId
-    const team = await storage.teams.getTeamByUserId(userProfile.id);
+    // Get team by userId (string)
+    const team = await storage.teams.getTeamByUserId(userId);
     if (!team) {
       return res.status(404).json({ message: "Team not found for user" });
     }

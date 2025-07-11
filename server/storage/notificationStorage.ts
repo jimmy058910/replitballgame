@@ -1,6 +1,8 @@
+import { db } from '../db';
 import { PrismaClient, Notification, NotificationType } from '../../generated/prisma';
+import { db } from '../db';
 
-const prisma = new PrismaClient();
+const prisma = db; // Use the shared Prisma instance
 
 // The old NotificationData interface and randomUUID are no longer needed
 // as Prisma handles ID generation and the service layer defines data structure.

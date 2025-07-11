@@ -1,6 +1,7 @@
+import { db } from '../db';
 import { PrismaClient, Item, InventoryItem } from '../../generated/prisma';
 
-const prisma = new PrismaClient();
+const prisma = db; // Use shared Prisma instance
 
 export class ItemStorage {
   async createItem(itemData: {
