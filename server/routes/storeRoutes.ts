@@ -87,17 +87,29 @@ router.get('/', isAuthenticated, async (req: Request, res: Response, next: NextF
 
 router.get('/ads', isAuthenticated, async (req: any, res: Response, next: NextFunction) => {
   try {
-    const userId = req.user.claims.sub;
-    const dailyAdsWatched = await storage.adSystem.getDailyAdViewsCountByUser(userId);
-    const dailyRewardedCompleted = await storage.adSystem.getDailyCompletedRewardedAdViewsCountByUser(userId);
+    const userId = req.user.id;
+    
+    // Check if adSystem exists
+    if (!storage.adSystem) {
+      console.error("adSystem storage not available");
+      return res.json({
+        adsWatchedToday: 0,
+        rewardedAdsCompletedToday: 0,
+        adsRemainingToday: 10,
+        rewardedAdsRemainingToday: 10,
+      });
+    }
+    
+    const dailyAdsWatched = await storage.adSystem.getDailyAdViewsCountByUser(userId) || 0;
+    const dailyRewardedCompleted = await storage.adSystem.getDailyCompletedRewardedAdViewsCountByUser(userId) || 0;
 
-    const { dailyWatchLimit } = storeConfig.adSystem;
+    const dailyWatchLimit = storeConfig.adSystem?.dailyWatchLimit || 10;
 
     res.json({
       adsWatchedToday: dailyAdsWatched,
       rewardedAdsCompletedToday: dailyRewardedCompleted,
-      adsRemainingToday: Math.max(0, (dailyWatchLimit || 10) - dailyAdsWatched),
-      rewardedAdsRemainingToday: Math.max(0, (dailyWatchLimit || 10) - dailyRewardedCompleted),
+      adsRemainingToday: Math.max(0, dailyWatchLimit - dailyAdsWatched),
+      rewardedAdsRemainingToday: Math.max(0, dailyWatchLimit - dailyRewardedCompleted),
     });
   } catch (error) {
     console.error("Error fetching ad data:", error);

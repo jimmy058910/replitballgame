@@ -130,8 +130,8 @@ export class ContractService {
     offerSalary: number, 
     offerSeasons: number
   ): Promise<NegotiationResult> {
-    const player = await db.query.players.findFirst({
-      where: eq(players.id, playerId)
+    const player = await prisma.player.findUnique({
+      where: { id: playerId }
     });
     
     if (!player) {
@@ -199,8 +199,8 @@ export class ContractService {
     staffId: string, 
     offerSalary: number
   ): Promise<NegotiationResult> {
-    const staffMember = await db.query.staff.findFirst({
-      where: eq(staff.id, staffId)
+    const staffMember = await prisma.staff.findUnique({
+      where: { id: staffId }
     });
     
     if (!staffMember) {
@@ -237,7 +237,7 @@ export class ContractService {
     seasons: number
   ): Promise<Player | null> {
     // Get player info first using Prisma
-    const player = await db.player.findUnique({
+    const player = await prisma.player.findUnique({
       where: { id: playerId }
     });
     if (!player) {

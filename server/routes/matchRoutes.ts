@@ -310,4 +310,47 @@ router.patch('/:id/complete', isAuthenticated, async (req: any, res: Response, n
   }
 });
 
+// Get next league game for a team
+router.get('/next-league-game/:teamId', isAuthenticated, async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const { teamId } = req.params;
+    
+    // Get the team to ensure it exists
+    const team = await storage.teams.getTeamById(teamId);
+    if (!team) {
+      return res.status(404).json({ message: "Team not found" });
+    }
+
+    // Get upcoming matches for this team
+    const upcomingMatches = await matchStorage.getUpcomingMatches(teamId);
+    
+    // Filter for league games (non-exhibition, non-tournament)
+    const nextLeagueGame = upcomingMatches.find(match => 
+      match.matchType === 'league' || match.matchType === 'regular_season'
+    );
+
+    if (!nextLeagueGame) {
+      return res.status(404).json({ message: "No upcoming league games found" });
+    }
+
+    // Get team names for the match
+    const homeTeamName = nextLeagueGame.homeTeamName || 
+      (await storage.teams.getTeamById(nextLeagueGame.homeTeamId))?.name || "Home Team";
+    const awayTeamName = nextLeagueGame.awayTeamName || 
+      (await storage.teams.getTeamById(nextLeagueGame.awayTeamId))?.name || "Away Team";
+
+    const enhancedMatch = {
+      ...nextLeagueGame,
+      homeTeamName,
+      awayTeamName,
+      isHomeGame: nextLeagueGame.homeTeamId === team.id
+    };
+
+    res.json(enhancedMatch);
+  } catch (error) {
+    console.error("Error fetching next league game:", error);
+    next(error);
+  }
+});
+
 export default router;

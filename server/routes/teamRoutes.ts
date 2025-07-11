@@ -9,6 +9,7 @@ import { TeamNameValidator } from "../services/teamNameValidation";
 import { AgingService } from "../services/agingService";
 import { generateRandomName } from "@shared/names";
 import { Race, PlayerRole, InjuryStatus } from "../../generated/prisma";
+import { prisma } from '../db';
 // Database operations handled through storage layer
 
 const router = Router();
@@ -784,13 +785,13 @@ router.get('/:teamId/finances', isAuthenticated, asyncHandler(async (req: any, r
   }
 
   // Calculate actual player salaries from contracts
-  const players = await db.player.findMany({
+  const players = await prisma.player.findMany({
     where: { teamId: team.id },
     select: { id: true }
   });
   const playerIds = players.map(p => p.id);
   
-  const contracts = await db.contract.findMany({
+  const contracts = await prisma.contract.findMany({
     where: {
       playerId: { in: playerIds }
     },
@@ -798,12 +799,9 @@ router.get('/:teamId/finances', isAuthenticated, asyncHandler(async (req: any, r
       salary: true
     }
   });
-  console.log(`[Team Finances] Found ${contracts.length} contracts for team ${team.id}`);
   const totalPlayerSalaries = contracts.reduce((total, contract) => {
-    console.log(`[Team Finances] Contract salary: ${contract.salary}`);
     return total + (contract.salary || 0);
   }, 0);
-  console.log(`[Team Finances] Total player salaries: ${totalPlayerSalaries}`);
 
   // Calculate actual staff salaries - use level-based calculation
   let totalStaffSalaries = 0;

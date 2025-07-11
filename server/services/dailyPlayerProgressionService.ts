@@ -108,15 +108,15 @@ export class DailyPlayerProgressionService {
     
     try {
       // Get all players on active rosters (not on taxi squad)
-      const activePlayers = await db
-        .select({
-          id: players.id,
-          teamId: players.teamId,
-          firstName: players.firstName,
-          lastName: players.lastName
-        })
-        .from(players)
-        .where(eq(players.isOnTaxi, false));
+      const activePlayers = await prisma.player.findMany({
+        where: { isOnTaxi: false },
+        select: {
+          id: true,
+          teamId: true,
+          firstName: true,
+          lastName: true
+        }
+      });
       
       console.log(`[DAILY PROGRESSION] Found ${activePlayers.length} active players to process`);
       
@@ -161,7 +161,7 @@ export class DailyPlayerProgressionService {
   /**
    * Process daily progression for a single player
    */
-  static async processPlayerDailyProgression(playerId: string): Promise<{
+  static async processPlayerDailyProgression(playerId: number): Promise<{
     progressions: Array<{ 
       stat: string; 
       oldValue: number; 
@@ -176,7 +176,9 @@ export class DailyPlayerProgressionService {
     performanceBonus: boolean;
   }> {
     // Get player data
-    const [player] = await db.select().from(players).where(eq(players.id, playerId));
+    const player = await prisma.player.findUnique({
+      where: { id: playerId }
+    });
     if (!player) {
       throw new Error('Player not found');
     }
@@ -217,12 +219,13 @@ export class DailyPlayerProgressionService {
         const newValue = Math.min(statCap, currentValue + 1);
         
         // Update player stat in database
-        await db.update(players)
-          .set({ [randomStat]: newValue } as any)
-          .where(eq(players.id, playerId));
+        await prisma.player.update({
+          where: { id: playerId },
+          data: { [randomStat]: newValue }
+        });
         
         // Record development history
-        const developmentRecord: InsertPlayerDevelopmentHistory = {
+        const developmentRecord = {
           playerId,
           season: 0, // Default season for daily progression
           developmentType: 'daily_progression',
@@ -237,7 +240,9 @@ export class DailyPlayerProgressionService {
           potentialAtTime: player.overallPotentialStars ? Number(player.overallPotentialStars) : 0
         };
         
-        await db.insert(playerDevelopmentHistory).values(developmentRecord);
+        await prisma.playerDevelopmentHistory.create({
+          data: developmentRecord
+        });
         
         progressions.push({
           stat: randomStat,
@@ -262,7 +267,7 @@ export class DailyPlayerProgressionService {
   /**
    * Calculate daily activity score based on games played yesterday
    */
-  private static async calculateActivityScore(playerId: string): Promise<{
+  private static async calculateActivityScore(playerId: number): Promise<{
     activityScore: number;
     performanceBonus: boolean;
     gamesBreakdown: {
@@ -277,25 +282,24 @@ export class DailyPlayerProgressionService {
     const yesterdayEnd = yesterday.clone().endOf('day').toDate();
     
     // Get all matches the player participated in yesterday
-    const matchStats = await db
-      .select({
-        matchId: playerMatchStats.matchId,
-        matchType: matches.matchType,
-        scores: playerMatchStats.scores,
-        knockdownsInflicted: playerMatchStats.knockdownsInflicted,
-        tackles: playerMatchStats.tackles,
-        passingYards: playerMatchStats.passingYards,
-        rushingYards: playerMatchStats.rushingYards
-      })
-      .from(playerMatchStats)
-      .innerJoin(matches, eq(playerMatchStats.matchId, matches.id))
-      .where(
-        and(
-          eq(playerMatchStats.playerId, playerId),
-          gte(matches.createdAt, yesterdayStart),
-          lt(matches.createdAt, yesterdayEnd)
-        )
-      );
+    const matchStats = await prisma.playerMatchStats.findMany({
+      where: {
+        playerId,
+        game: {
+          createdAt: {
+            gte: yesterdayStart,
+            lt: yesterdayEnd
+          }
+        }
+      },
+      include: {
+        game: {
+          select: {
+            matchType: true
+          }
+        }
+      }
+    });
     
     // Count games by type
     const gamesBreakdown = {
@@ -308,11 +312,11 @@ export class DailyPlayerProgressionService {
     
     for (const stat of matchStats) {
       // Count game types
-      if (stat.matchType === 'league') {
+      if (stat.game.matchType === 'league') {
         gamesBreakdown.leagueGames++;
-      } else if (stat.matchType === 'tournament') {
+      } else if (stat.game.matchType === 'tournament') {
         gamesBreakdown.tournamentGames++;
-      } else if (stat.matchType === 'exhibition') {
+      } else if (stat.game.matchType === 'exhibition') {
         gamesBreakdown.exhibitionGames++;
       }
       
@@ -394,27 +398,22 @@ export class DailyPlayerProgressionService {
   /**
    * Calculate staff modifier for progression
    */
-  private static async calculateStaffModifier(teamId: string, statName: string): Promise<number> {
+  private static async calculateStaffModifier(teamId: number, statName: string): Promise<number> {
     // Get team staff
-    const teamStaff = await db
-      .select()
-      .from(staff)
-      .where(eq(staff.teamId, teamId));
+    const teamStaff = await prisma.staff.findMany({
+      where: { teamId }
+    });
     
     let trainerBonus = 0;
     let headCoachDevelopment = 0;
     
     // Find relevant trainer and head coach
     for (const staffMember of teamStaff) {
-      if (staffMember.type === 'head_coach') {
-        headCoachDevelopment = staffMember.coachingRating || 0;
-      } else if (staffMember.type === 'trainer') {
-        // Map stat to trainer specialty - use physical/offense/defense ratings
-        const trainerRating = Math.max(
-          staffMember.physicalRating || 0,
-          staffMember.offenseRating || 0,
-          staffMember.defenseRating || 0
-        );
+      if (staffMember.type === 'HEAD_COACH') {
+        headCoachDevelopment = staffMember.development || 0;
+      } else if (staffMember.type === 'PASSER_TRAINER' || staffMember.type === 'RUNNER_TRAINER' || staffMember.type === 'BLOCKER_TRAINER') {
+        // Map stat to trainer specialty - use teaching rating
+        const trainerRating = staffMember.teaching || 0;
         trainerBonus = Math.max(trainerBonus, trainerRating);
       }
     }
@@ -465,16 +464,15 @@ export class DailyPlayerProgressionService {
     const easternTime = getEasternTime();
     const startDate = easternTime.clone().subtract(days, 'days').startOf('day').toDate();
     
-    const progressions = await db
-      .select()
-      .from(playerDevelopmentHistory)
-      .where(
-        and(
-          eq(playerDevelopmentHistory.developmentType, 'daily_progression'),
-          eq(playerDevelopmentHistory.success, true),
-          gte(playerDevelopmentHistory.createdAt, startDate)
-        )
-      );
+    const progressions = await prisma.playerDevelopmentHistory.findMany({
+      where: {
+        developmentType: 'daily_progression',
+        success: true,
+        createdAt: {
+          gte: startDate
+        }
+      }
+    });
     
     const progressionsByAge: Record<number, number> = {};
     const progressionsByStat: Record<string, number> = {};

@@ -75,6 +75,13 @@ export class AdSystemStorage {
     return count;
   }
 
+  async getTotalAdViewsCountByUser(userId: string): Promise<number> {
+    const count = await prisma.adView.count({
+      where: { userId }
+    });
+    return count;
+  }
+
   async getTotalRewardsByUser(userId: string, timeframe?: 'today' | 'week' | 'month'): Promise<number> {
     let dateFilter: Date | undefined;
     
