@@ -23,6 +23,7 @@ export class PlayerStorage {
     dailyStaminaLevel?: number;
     injuryStatus?: InjuryStatus;
     camaraderieScore?: number;
+    [key: string]: any; // Allow additional fields
   }): Promise<Player> {
     const newPlayer = await prisma.player.create({
       data: {

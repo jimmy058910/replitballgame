@@ -121,15 +121,32 @@ export function generateRandomPlayer(name: string, race: string, teamId: string,
   const ageFactor = baseAge > 25 ? salaryConfig.veteranPenalty : salaryConfig.youngPlayerBonus;
   const salary = Math.floor(baseSalary * ageFactor);
 
+  // Map position to PlayerRole enum
+  const getPlayerRole = (position: string) => {
+    switch (position) {
+      case "passer":
+        return "PASSER";
+      case "runner":
+        return "RUNNER";
+      case "blocker":
+        return "BLOCKER";
+      default:
+        return "RUNNER"; // Default to runner
+    }
+  };
+
   return {
     teamId,
     firstName,
     lastName,
     name: fullName,
     race,
+    role: getPlayerRole(position || "runner"),
     position: position || "runner", // Default to runner if no position specified
     age: baseAge,
     ...baseStats,
+    staminaAttribute: baseStats.stamina, // Map stamina to staminaAttribute
+    potentialRating: parseFloat(weightedPotential.toFixed(1)),
     speedPotential: potentials.speed.toString(),
     powerPotential: potentials.power.toString(),
     throwingPotential: potentials.throwing.toString(),
