@@ -9,15 +9,20 @@ datasource db {
 }
 
 model UserProfile {
-  id            Int                @id @default(autoincrement())
-  userId        String             @unique
-  bio           String?
-  createdAt     DateTime           @default(now())
-  updatedAt     DateTime           @updatedAt
-  Team          Team?
-  referralCode  String?            @unique
-  referredBy    String? // Stores the referral code of the user who referred them
-  redeemedCodes RedeemCodeRecord[]
+  id                Int                 @id @default(autoincrement())
+  userId            String              @unique
+  email             String?             @unique
+  firstName         String?
+  lastName          String?
+  profileImageUrl   String?
+  bio               String?
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+  Team              Team?
+  referralCode      String?             @unique
+  referredBy        String?
+  redeemedCodes     RedeemCodeRecord[]
+  adRewardMilestone AdRewardMilestone? // <<<< ADDED THIS RELATION
 }
 
 model Session {
@@ -158,7 +163,7 @@ model Skill {
   description String
   type        SkillType
   category    SkillCategory
-  tiers       Json // Example: {"I": {"effect": "+2 SPD"}, "II": {"effect": "+4 SPD"}}
+  tiers       Json
   playerLinks PlayerSkillLink[]
 }
 
@@ -179,7 +184,7 @@ model PlayerSkillLink {
   player      Player   @relation(fields: [playerId], references: [id])
   skillId     Int
   skill       Skill    @relation(fields: [skillId], references: [id])
-  currentTier Int      @default(1) // 1-4
+  currentTier Int      @default(1)
   acquiredAt  DateTime @default(now())
 
   @@unique([playerId, skillId])
@@ -250,11 +255,11 @@ model Item {
   type              ItemType
   slot              EquipmentSlot?
   raceRestriction   Race?
-  statEffects       Json? // Example: {"speed": 2, "power": -1}
+  statEffects       Json?
   rarity            ItemRarity        @default(COMMON)
   creditPrice       BigInt?
   gemPrice          Int?
-  effectValue       Json? // Example: {"staminaRestore": 20} or {"injuryHealRP": 25}
+  effectValue       Json?
   inventoryItems    InventoryItem[]
   activeBoosts      ActiveBoost[]
   PlayerEquipment   PlayerEquipment[]
@@ -545,10 +550,12 @@ enum RewardType {
 }
 
 model AdRewardMilestone {
-  id              Int       @id @default(autoincrement())
-  userProfileId   Int       @unique
-  adsWatchedCount Int       @default(0)
-  lastAdWatchedAt DateTime?
+  id                Int         @id @default(autoincrement())
+  userProfileId     Int         @unique
+  userProfile       UserProfile @relation(fields: [userProfileId], references: [id]) // <<<< ADDED THIS RELATION
+  totalAdsWatched   Int         @default(0) // <<<< RENAMED/CHANGED from adsWatchedCount
+  adsWatchedToday   Int         @default(0) // <<<< ADDED THIS FIELD
+  lastAdWatchedAt   DateTime?
 }
 
 model PremiumBoxReward {

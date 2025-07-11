@@ -6,7 +6,7 @@ import session from "express-session";
 import type { Express, RequestHandler } from "express";
 import memoize from "memoizee";
 import connectPg from "connect-pg-simple";
-import { storage } from "./storage";
+import { storage } from "./storage"; // Assuming this now points to your Prisma-based userStorage
 
 if (!process.env.REPLIT_DOMAINS) {
   throw new Error("Environment variable REPLIT_DOMAINS not provided");
@@ -27,9 +27,9 @@ export function getSession() {
   const pgStore = connectPg(session);
   const sessionStore = new pgStore({
     conString: process.env.DATABASE_URL,
-    createTableIfMissing: false,
+    createTableIfMissing: false, // Should be false as Prisma handles table creation
     ttl: sessionTtl,
-    tableName: "sessions",
+    tableName: "Session", // Corrected to match Prisma model
   });
   return session({
     secret: process.env.SESSION_SECRET!,
@@ -57,8 +57,10 @@ function updateUserSession(
 async function upsertUser(
   claims: any,
 ) {
+  // Call storage.users.upsertUser which now expects PrismaUpsertUserData
+  // Ensure the field name matches what userStorage.upsertUser expects for Replit user ID
   await storage.users.upsertUser({
-    id: claims["sub"],
+    userId: claims["sub"], // Corrected: 'userId' instead of 'id'
     email: claims["email"],
     firstName: claims["first_name"],
     lastName: claims["last_name"],
@@ -78,7 +80,7 @@ export async function setupAuth(app: Express) {
     tokens: client.TokenEndpointResponse & client.TokenEndpointResponseHelpers,
     verified: passport.AuthenticateCallback
   ) => {
-    const user = {};
+    const user = {}; // This will be populated on req.user by passport
     updateUserSession(user, tokens);
     await upsertUser(tokens.claims());
     verified(null, user);

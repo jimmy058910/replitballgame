@@ -1,94 +1,83 @@
-import { db } from "../db";
-import { notifications, type Notification, type InsertNotification } from "@shared/schema";
-import { eq, and, desc, sql } from "drizzle-orm"; // Added sql
-import { randomUUID } from "crypto";
+import { PrismaClient, Notification, NotificationType } from '../../generated/prisma';
+
+const prisma = new PrismaClient();
+
+// The old NotificationData interface and randomUUID are no longer needed
+// as Prisma handles ID generation and the service layer defines data structure.
 
 export class NotificationStorage {
-  async createNotification(notificationData: Omit<InsertNotification, 'id' | 'createdAt' | 'isRead' | 'updatedAt'>): Promise<Notification> {
-    const dataToInsert: InsertNotification = {
-      id: randomUUID(),
-      ...notificationData,
-      isRead: false,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-      // Ensure metadata is handled correctly, Drizzle's jsonb should handle objects directly
-      metadata: notificationData.metadata || null,
-    };
-    const [newNotification] = await db.insert(notifications).values(dataToInsert).returning();
-    return newNotification;
+  async createNotification(data: {
+    teamId: number;
+    message: string;
+    type: NotificationType;
+    linkTo?: string | null;
+    // isRead is handled by default in Prisma schema
+    // createdAt is handled by default in Prisma schema
+  }): Promise<Notification> {
+    return prisma.notification.create({
+      data: {
+        teamId: data.teamId,
+        message: data.message,
+        type: data.type,
+        linkTo: data.linkTo,
+        // isRead and createdAt will use Prisma defaults
+      },
+    });
   }
 
-  async getNotificationById(id: string): Promise<Notification | undefined> {
-    const [notification] = await db.select().from(notifications).where(eq(notifications.id, id)).limit(1);
-    return notification;
-  }
-
-  async getUserNotifications(userId: string, limit: number = 50, offset: number = 0): Promise<Notification[]> {
-    return await db
-      .select()
-      .from(notifications)
-      .where(eq(notifications.userId, userId))
-      .orderBy(desc(notifications.createdAt))
-      .limit(limit)
-      .offset(offset);
-  }
-
-  async getUnreadUserNotifications(userId: string, limit: number = 50): Promise<Notification[]> {
-    return await db
-      .select()
-      .from(notifications)
-      .where(and(eq(notifications.userId, userId), eq(notifications.isRead, false)))
-      .orderBy(desc(notifications.createdAt))
-      .limit(limit);
-  }
-
-  async countUnreadUserNotifications(userId: string): Promise<number> {
-    const result = await db
-      .select({ count: sql<number>`count(*)::int` }) // Ensure count is integer
-      .from(notifications)
-      .where(and(eq(notifications.userId, userId), eq(notifications.isRead, false)));
-    return result[0]?.count || 0;
-  }
-
-
-  async markNotificationRead(id: string, userId?: string): Promise<Notification | undefined> {
-    const conditions = [eq(notifications.id, id)];
-    if (userId) {
-        conditions.push(eq(notifications.userId, userId));
+  async markNotificationRead(notificationId: number): Promise<Notification | null> {
+    try {
+      return await prisma.notification.update({
+        where: { id: notificationId },
+        data: { isRead: true, updatedAt: new Date() }, // Assuming you might want an updatedAt field
+      });
+    } catch (error) {
+      // P2025: Record to update not found
+      if ((error as any).code === 'P2025') {
+        console.warn(`Notification ${notificationId} not found to mark as read.`);
+        return null;
+      }
+      throw error;
     }
-    const [updatedNotification] = await db
-      .update(notifications)
-      .set({ isRead: true, updatedAt: new Date() })
-      .where(and(...conditions))
-      .returning();
-    return updatedNotification;
   }
 
-  async markAllNotificationsRead(userId: string): Promise<number> {
-    const result = await db
-      .update(notifications)
-      .set({ isRead: true, updatedAt: new Date() })
-      .where(and(eq(notifications.userId, userId), eq(notifications.isRead, false)))
-      .returning({ id: notifications.id });
-    return result.length;
+  async markAllNotificationsRead(teamId: number): Promise<{ count: number }> {
+    // Prisma's updateMany returns a count of affected records
+    return prisma.notification.updateMany({
+      where: { 
+        teamId: teamId, 
+        isRead: false 
+      },
+      data: { isRead: true, updatedAt: new Date() },
+    });
   }
 
-  async deleteNotification(id: string, userId?: string): Promise<boolean> {
-    const conditions = [eq(notifications.id, id)];
-    if (userId) {
-        conditions.push(eq(notifications.userId, userId));
-    }
-    const result = await db.delete(notifications).where(and(...conditions)).returning({id: notifications.id});
-    return result.length > 0;
+  async getUserNotifications(teamId: number, limit: number = 20, includeRead: boolean = false): Promise<Notification[]> {
+    // Changed from userId to teamId to align with Prisma schema and service layer
+    return prisma.notification.findMany({
+      where: {
+        teamId: teamId,
+        ...(includeRead ? {} : { isRead: false }), // Conditionally include isRead filter
+      },
+      orderBy: {
+        createdAt: 'desc',
+      },
+      take: limit,
+    });
   }
 
-  async deleteAllUserNotifications(userId: string): Promise<number> { // Renamed for clarity
-    const result = await db
-      .delete(notifications)
-      .where(eq(notifications.userId, userId))
-      .returning({id: notifications.id});
-    return result.length;
-  }
+  // Method for fetching by old string UUID user_id (if needed during transition, but ideally remove)
+  // async getNotificationsByDrizzleUserId(drizzleUserId: string, limit: number = 20): Promise<Notification[]> {
+  //   console.warn("Attempting to fetch notifications by Drizzle user ID, this may not work if UserProfile link is missing or different.");
+  //   // This is problematic as Notification is linked to Team (Int ID), which is linked to UserProfile (Int ID)
+  //   // A direct lookup from drizzleUserId (string) to Prisma Notification is not straightforward without joining through UserProfile -> Team.
+  //   // For now, this function will likely fail or return empty if not adapted further.
+  //   const userProfile = await prisma.userProfile.findUnique({ where: { userId: drizzleUserId }});
+  //   if (!userProfile) return [];
+  //   const team = await prisma.team.findUnique({ where: { userProfileId: userProfile.id }});
+  //   if (!team) return [];
+  //   return this.getUserNotifications(team.id, limit);
+  // }
 }
 
 export const notificationStorage = new NotificationStorage();
