@@ -17,7 +17,7 @@ interface Player {
   injuryStatus: string;
   injuryRecoveryPointsCurrent: number;
   injuryRecoveryPointsNeeded: number;
-  inGameStamina: number;
+  staminaAttribute: number;
   dailyStaminaLevel: number;
   dailyItemsUsed: number;
 }
