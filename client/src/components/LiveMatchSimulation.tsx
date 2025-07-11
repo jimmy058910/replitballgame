@@ -14,6 +14,12 @@ interface LiveMatchSimulationProps {
   team2: any;
   initialLiveState?: any;
   onMatchComplete?: () => void;
+  enhancedData?: {
+    atmosphereEffects?: any;
+    tacticalEffects?: any;
+    playerStats?: any;
+    mvpPlayers?: any;
+  };
 }
 
 interface Player {
@@ -61,7 +67,7 @@ interface KeyPerformer {
   statValue: number;
 }
 
-export function LiveMatchSimulation({ matchId, team1, team2, initialLiveState, onMatchComplete }: LiveMatchSimulationProps) {
+export function LiveMatchSimulation({ matchId, team1, team2, initialLiveState, onMatchComplete, enhancedData }: LiveMatchSimulationProps) {
   const [liveState, setLiveState] = useState<LiveMatchState | null>(initialLiveState || null);
   const [halftimeAdShown, setHalftimeAdShown] = useState(false);
   const { showRewardedVideoAd, closeAd, adConfig } = useAdSystem();
@@ -126,37 +132,66 @@ export function LiveMatchSimulation({ matchId, team1, team2, initialLiveState, o
   };
 
   const getAttendanceData = () => {
-    // Mock data - in real implementation, this would come from team's stadium data
-    const capacity = 15000;
-    const attendance = Math.floor(capacity * 0.8); // 80% attendance
-    const fanLoyalty = 78;
-    const intimidationEffect = Math.floor(fanLoyalty / 20);
+    // Use enhanced atmosphere data if available, otherwise use defaults
+    const atmosphereData = enhancedData?.atmosphereEffects || {};
+    const capacity = atmosphereData.attendance ? Math.floor(atmosphereData.attendance / 0.8) : 15000;
+    const attendance = atmosphereData.attendance || Math.floor(capacity * 0.8);
+    const fanLoyalty = atmosphereData.fanLoyalty || 78;
+    const intimidationEffect = atmosphereData.intimidationFactor || Math.floor(fanLoyalty / 20);
     
     return {
       attendance,
       capacity,
       percentage: Math.floor((attendance / capacity) * 100),
       fanLoyalty,
-      intimidationEffect
+      intimidationEffect,
+      fieldSize: atmosphereData.fieldSize || 'Standard',
+      homeFieldAdvantage: atmosphereData.homeFieldAdvantage || 5
     };
   };
 
   const getKeyPerformers = (): { home: KeyPerformer | null; away: KeyPerformer | null } => {
-    // Mock key performers - in real implementation, this would calculate from match stats
-    return {
-      home: {
+    // Use enhanced MVP data if available
+    const mvpPlayers = enhancedData?.mvpPlayers || {};
+    const playerStats = enhancedData?.playerStats || {};
+    
+    // Find top performers from actual stats if available
+    let homePerformer = null;
+    let awayPerformer = null;
+    
+    if (mvpPlayers.home && mvpPlayers.home !== 'N/A') {
+      homePerformer = {
+        playerId: "mvp-home",
+        playerName: mvpPlayers.home,
+        statLabel: "MVP",
+        statValue: 100
+      };
+    } else {
+      homePerformer = {
         playerId: "player1",
         playerName: team1?.players?.[0]?.lastName || "Player",
         statLabel: "Rushing Yards",
         statValue: 85
-      },
-      away: {
+      };
+    }
+    
+    if (mvpPlayers.away && mvpPlayers.away !== 'N/A') {
+      awayPerformer = {
+        playerId: "mvp-away",
+        playerName: mvpPlayers.away,
+        statLabel: "MVP",
+        statValue: 100
+      };
+    } else {
+      awayPerformer = {
         playerId: "player2", 
         playerName: team2?.players?.[0]?.lastName || "Player",
         statLabel: "Tackles",
         statValue: 4
-      }
-    };
+      };
+    }
+    
+    return { home: homePerformer, away: awayPerformer };
   };
 
   if (!liveState) {
@@ -295,11 +330,11 @@ export function LiveMatchSimulation({ matchId, team1, team2, initialLiveState, o
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
             <div>
               <div className="text-xs text-muted-foreground">Your Tactic</div>
-              <div className="font-semibold">{team1?.tacticalFocus || "Balanced"}</div>
+              <div className="font-semibold">{enhancedData?.tacticalEffects?.homeTeamFocus || team1?.tacticalFocus || "Balanced"}</div>
             </div>
             <div>
               <div className="text-xs text-muted-foreground">Opponent Tactic</div>
-              <div className="font-semibold">{team2?.tacticalFocus || "Balanced"}</div>
+              <div className="font-semibold">{enhancedData?.tacticalEffects?.awayTeamFocus || team2?.tacticalFocus || "Balanced"}</div>
             </div>
             <div>
               <div className="text-xs text-muted-foreground">Team Camaraderie</div>
@@ -308,6 +343,14 @@ export function LiveMatchSimulation({ matchId, team1, team2, initialLiveState, o
               </div>
             </div>
           </div>
+          {enhancedData && (
+            <div className="mt-3 pt-3 border-t">
+              <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                <Zap className="h-3 w-3 text-yellow-500" />
+                Enhanced Simulation Active - Real-time tactical effects and race bonuses applied
+              </div>
+            </div>
+          )}
         </CardContent>
       </Card>
 

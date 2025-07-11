@@ -44,6 +44,14 @@ export default function TextMatch() {
     retry: false,
   });
 
+  // Fetch enhanced simulation data
+  const { data: enhancedData } = useQuery({
+    queryKey: [`/api/matches/${matchId}/enhanced-data`],
+    enabled: !!matchId && match?.status === 'live',
+    retry: false,
+    staleTime: 5000,
+  });
+
   if (matchLoading || team1Loading || team2Loading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -99,6 +107,7 @@ export default function TextMatch() {
         team1={team1WithPlayers}
         team2={team2WithPlayers}
         initialLiveState={(match as any)?.liveState}
+        enhancedData={enhancedData}
         onMatchComplete={() => {
           console.log("Match completed");
         }}

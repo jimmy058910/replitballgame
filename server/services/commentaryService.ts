@@ -64,6 +64,155 @@ export class CommentaryService {
     return "clutch";
   }
 
+  // Enhanced Event Commentary
+  generateEventCommentary(event: any, player: any, context: CommentaryContext): string {
+    const playerName = this.getPlayerDisplayName(player);
+    const race = player.race || 'human';
+    const gamePhase = this.determineGamePhase(context);
+    
+    switch (event.type) {
+      case 'pass_complete':
+        return this.generatePassCommentary(event, playerName, race, gamePhase, context);
+      case 'run_positive':
+        return this.generateRunCommentary(event, playerName, race, gamePhase, context);
+      case 'score':
+        return this.generateScoreCommentary(event, playerName, race, gamePhase, context);
+      case 'interception':
+        return this.generateDefenseCommentary(event, playerName, race, gamePhase, context);
+      case 'tackle':
+        return this.generateTackleCommentary(event, playerName, race, gamePhase, context);
+      default:
+        return this.generateGeneralCommentary(event, playerName, race, gamePhase, context);
+    }
+  }
+
+  private generatePassCommentary(event: any, playerName: string, race: string, gamePhase: string, context: CommentaryContext): string {
+    const baseCommentary = [
+      `${playerName} finds his target downfield!`,
+      `A precise pass from ${playerName} moves the chains!`,
+      `${playerName} threads the needle with that throw!`,
+      `Beautiful ball placement by ${playerName}!`
+    ];
+
+    // Race-specific commentary
+    if (race === 'lumina') {
+      baseCommentary.push(`${playerName}'s radiant precision lights up the field!`);
+      baseCommentary.push(`The Lumina's natural throwing ability shines through!`);
+    } else if (race === 'human') {
+      baseCommentary.push(`${playerName} adapts beautifully to the defense!`);
+    }
+
+    // Game phase specific
+    if (gamePhase === 'clutch') {
+      baseCommentary.push(`Under pressure in crunch time, ${playerName} delivers!`);
+      baseCommentary.push(`When it matters most, ${playerName} comes through!`);
+    }
+
+    return baseCommentary[Math.floor(Math.random() * baseCommentary.length)];
+  }
+
+  private generateRunCommentary(event: any, playerName: string, race: string, gamePhase: string, context: CommentaryContext): string {
+    const yards = event.yardsGained || 0;
+    const baseCommentary = [
+      `${playerName} finds a gap and picks up ${yards} yards!`,
+      `${playerName} churns forward for a ${yards}-yard gain!`,
+      `Nice vision by ${playerName} for ${yards} yards!`
+    ];
+
+    // Race-specific commentary
+    if (race === 'sylvan') {
+      baseCommentary.push(`${playerName} uses Sylvan agility to dance through the defense for ${yards} yards!`);
+      baseCommentary.push(`Like wind through the trees, ${playerName} glides for ${yards} yards!`);
+    } else if (race === 'gryll') {
+      baseCommentary.push(`${playerName} powers through with Gryll strength for ${yards} yards!`);
+      baseCommentary.push(`The Gryll's raw power breaks tackles for ${yards} yards!`);
+    } else if (race === 'umbra') {
+      baseCommentary.push(`${playerName} slips through shadows for ${yards} yards!`);
+      baseCommentary.push(`Like a shadow, ${playerName} evades defenders for ${yards} yards!`);
+    }
+
+    // Breakaway commentary
+    if (yards >= 12) {
+      baseCommentary.push(`BREAKAWAY! ${playerName} breaks free for a huge ${yards}-yard run!`);
+      baseCommentary.push(`${playerName} is loose! That's a ${yards}-yard gallop!`);
+    }
+
+    return baseCommentary[Math.floor(Math.random() * baseCommentary.length)];
+  }
+
+  private generateScoreCommentary(event: any, playerName: string, race: string, gamePhase: string, context: CommentaryContext): string {
+    const scoreCommentary = [
+      `TOUCHDOWN! ${playerName} crosses the goal line!`,
+      `SIX POINTS! ${playerName} finds the end zone!`,
+      `SCORE! ${playerName} caps off the drive beautifully!`,
+      `TOUCHDOWN ${playerName}! What a finish!`
+    ];
+
+    // Race-specific scoring commentary
+    if (race === 'lumina') {
+      scoreCommentary.push(`TOUCHDOWN! ${playerName}'s radiant power illuminates the end zone!`);
+    } else if (race === 'gryll') {
+      scoreCommentary.push(`TOUCHDOWN! ${playerName} powers through with Gryll determination!`);
+    } else if (race === 'sylvan') {
+      scoreCommentary.push(`TOUCHDOWN! ${playerName} dances into the end zone with Sylvan grace!`);
+    } else if (race === 'umbra') {
+      scoreCommentary.push(`TOUCHDOWN! ${playerName} slips into the shadows of the end zone!`);
+    }
+
+    // Clutch time commentary
+    if (gamePhase === 'clutch') {
+      scoreCommentary.push(`CLUTCH TOUCHDOWN! ${playerName} delivers when it matters most!`);
+      scoreCommentary.push(`IN THE CLUTCH! ${playerName} rises to the occasion!`);
+    }
+
+    return scoreCommentary[Math.floor(Math.random() * scoreCommentary.length)];
+  }
+
+  private generateDefenseCommentary(event: any, playerName: string, race: string, gamePhase: string, context: CommentaryContext): string {
+    const defenseCommentary = [
+      `INTERCEPTION! ${playerName} picks it off!`,
+      `${playerName} reads the pass perfectly and intercepts!`,
+      `TURNOVER! ${playerName} comes down with the ball!`,
+      `Great defensive play by ${playerName}!`
+    ];
+
+    // Race-specific defense commentary
+    if (race === 'gryll') {
+      defenseCommentary.push(`${playerName} uses Gryll instincts to snatch that pass!`);
+    } else if (race === 'sylvan') {
+      defenseCommentary.push(`${playerName} shows Sylvan reflexes on that interception!`);
+    }
+
+    return defenseCommentary[Math.floor(Math.random() * defenseCommentary.length)];
+  }
+
+  private generateTackleCommentary(event: any, playerName: string, race: string, gamePhase: string, context: CommentaryContext): string {
+    const tackleCommentary = [
+      `${playerName} wraps up for the tackle!`,
+      `Solid defensive play by ${playerName}!`,
+      `${playerName} brings down the runner!`,
+      `Nice tackle by ${playerName} to limit the damage!`
+    ];
+
+    // Race-specific tackle commentary
+    if (race === 'gryll') {
+      tackleCommentary.push(`${playerName} delivers a crushing Gryll tackle!`);
+      tackleCommentary.push(`The Gryll's power stops the runner cold!`);
+    }
+
+    return tackleCommentary[Math.floor(Math.random() * tackleCommentary.length)];
+  }
+
+  private generateGeneralCommentary(event: any, playerName: string, race: string, gamePhase: string, context: CommentaryContext): string {
+    const generalCommentary = [
+      `${playerName} makes a play!`,
+      `Good effort by ${playerName}!`,
+      `${playerName} stays involved in the action!`
+    ];
+
+    return generalCommentary[Math.floor(Math.random() * generalCommentary.length)];
+  }
+
   // 1. Game State & Flow Commentary
   generatePreGameCommentary(homeTeam: Team, awayTeam: Team, homeFieldSize?: string, tacticalFocus?: string): string {
     const homeTeamName = homeTeam.name;

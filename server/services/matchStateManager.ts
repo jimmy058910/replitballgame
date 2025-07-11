@@ -1,9 +1,10 @@
 import { db } from "../db";
-import { players, matches, playerMatchStats, teamMatchStats, teams } from "@shared/schema";
+import { players, matches, playerMatchStats, teamMatchStats, teams, stadiums } from "@shared/schema";
 import { eq, and, or, sql } from "drizzle-orm";
-import type { Match, Player, PlayerMatchStats, TeamMatchStats } from "@shared/schema";
+import type { Match, Player, PlayerMatchStats, TeamMatchStats, Stadium } from "@shared/schema";
 import { commentaryService } from "./commentaryService.js";
 import { injuryStaminaService } from "./injuryStaminaService";
+import { simulateEnhancedMatch } from "./matchSimulation";
 
 // Helper type for player stats, excluding IDs
 type PlayerStatsSnapshot = Omit<PlayerMatchStats, 'id' | 'playerId' | 'matchId' | 'teamId' | 'createdAt'>;
