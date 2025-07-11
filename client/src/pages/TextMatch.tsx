@@ -45,11 +45,15 @@ export default function TextMatch() {
   });
 
   // Fetch enhanced simulation data
-  const { data: enhancedData } = useQuery({
+  const { data: enhancedData, isLoading: enhancedLoading } = useQuery({
     queryKey: [`/api/matches/${matchId}/enhanced-data`],
     enabled: !!matchId && match?.status === 'live',
     retry: false,
     staleTime: 5000,
+    refetchInterval: (data: any) => {
+      // Refetch enhanced data every 5 seconds for live matches
+      return match?.status === 'live' ? 5000 : false;
+    },
   });
 
   if (matchLoading || team1Loading || team2Loading) {
@@ -69,6 +73,8 @@ export default function TextMatch() {
 
   // Debug logging
   console.log("Match data:", match);
+  console.log("Enhanced data:", enhancedData);
+  console.log("Enhanced loading:", enhancedLoading);
   console.log("Team1 data:", team1);
   console.log("Team2 data:", team2);
   console.log("Match ID:", matchId);

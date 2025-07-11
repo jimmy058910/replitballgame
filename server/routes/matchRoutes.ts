@@ -48,7 +48,7 @@ router.get('/:matchId', isAuthenticated, async (req: Request, res: Response, nex
           ...match, homeTeamName, awayTeamName,
           liveState: {
             gameTime: liveState.gameTime, currentHalf: liveState.currentHalf,
-            team1Score: liveState.team1Score, team2Score: liveState.team2Score,
+            team1Score: liveState.homeScore, team2Score: liveState.awayScore,
             recentEvents: liveState.gameEvents.slice(-10),
             maxTime: liveState.maxTime, isRunning: liveState.status === 'live'
           }
@@ -58,6 +58,106 @@ router.get('/:matchId', isAuthenticated, async (req: Request, res: Response, nex
     res.json({ ...match, homeTeamName, awayTeamName });
   } catch (error) {
     console.error("Error fetching match:", error);
+    next(error);
+  }
+});
+
+// Enhanced match data endpoint for real-time simulation data
+router.get('/:matchId/enhanced-data', isAuthenticated, async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const { matchId } = req.params;
+    const match = await matchStorage.getMatchById(matchId);
+    
+    if (!match) {
+      return res.status(404).json({ message: "Match not found" });
+    }
+
+    // Get live match state if available
+    const liveState = await matchStateManager.syncMatchState(matchId);
+    
+    if (!liveState) {
+      return res.status(404).json({ message: "Enhanced data not available for this match" });
+    }
+
+    // Get team data for enhanced atmospheric effects
+    const homeTeam = await storage.teams.getTeamById(match.homeTeamId);
+    const awayTeam = await storage.teams.getTeamById(match.awayTeamId);
+    
+    // Get stadium data for atmospheric effects
+    const homeStadium = homeTeam ? await storage.stadiums.getStadiumByTeamId(homeTeam.id) : null;
+    
+    // Calculate atmospheric effects
+    const atmosphereEffects = {
+      homeFieldAdvantage: homeStadium ? Math.min(homeStadium.capacity / 1000, 10) : 0,
+      crowdNoise: Math.floor(Math.random() * 40) + 60, // 60-100%
+      intimidationFactor: Math.floor(Math.random() * 20) + 10, // 10-30
+      fieldSize: homeStadium?.fieldSize || "Standard",
+      attendance: homeStadium ? Math.floor(homeStadium.capacity * 0.8) : 12000,
+      fanLoyalty: Math.floor(Math.random() * 30) + 70 // 70-100%
+    };
+
+    // Get tactical effects (basic implementation)
+    const tacticalEffects = {
+      homeTeamFocus: homeTeam?.tacticalFocus || "Balanced",
+      awayTeamFocus: awayTeam?.tacticalFocus || "Balanced",
+      homeTeamModifiers: {
+        passing: homeTeam?.tacticalFocus === "Passing" ? 2 : 0,
+        rushing: homeTeam?.tacticalFocus === "Rushing" ? 2 : 0,
+        defense: homeTeam?.tacticalFocus === "Defense" ? 2 : 0
+      },
+      awayTeamModifiers: {
+        passing: awayTeam?.tacticalFocus === "Passing" ? 2 : 0,
+        rushing: awayTeam?.tacticalFocus === "Rushing" ? 2 : 0,
+        defense: awayTeam?.tacticalFocus === "Defense" ? 2 : 0
+      }
+    };
+
+    // Get player stats from live state
+    const playerStats = {};
+    liveState.playerStats.forEach((stats, playerId) => {
+      playerStats[playerId] = {
+        scores: stats.scores,
+        passingAttempts: stats.passingAttempts,
+        passesCompleted: stats.passesCompleted,
+        passingYards: stats.passingYards,
+        rushingYards: stats.rushingYards,
+        catches: stats.catches,
+        receivingYards: stats.receivingYards,
+        drops: stats.drops,
+        tackles: stats.tackles,
+        knockdownsInflicted: stats.knockdownsInflicted,
+        interceptionsCaught: stats.interceptionsCaught,
+        fumblesLost: stats.fumblesLost
+      };
+    });
+
+    // Identify MVP players (basic implementation)
+    const mvpPlayers = {
+      home: "TBD", // Could be calculated based on stats
+      away: "TBD"
+    };
+
+    const enhancedData = {
+      atmosphereEffects,
+      tacticalEffects,
+      playerStats,
+      mvpPlayers,
+      gamePhase: liveState.gameTime < (liveState.maxTime * 0.33) ? "early" : 
+                 liveState.gameTime < (liveState.maxTime * 0.66) ? "mid" : 
+                 liveState.gameTime < (liveState.maxTime * 0.9) ? "late" : "clutch",
+      possession: {
+        teamId: liveState.possessingTeamId,
+        startTime: liveState.possessionStartTime
+      },
+      teamStats: {
+        home: liveState.teamStats.get(match.homeTeamId) || {},
+        away: liveState.teamStats.get(match.awayTeamId) || {}
+      }
+    };
+
+    res.json(enhancedData);
+  } catch (error) {
+    console.error("Error fetching enhanced match data:", error);
     next(error);
   }
 });

@@ -134,10 +134,13 @@ export function LiveMatchSimulation({ matchId, team1, team2, initialLiveState, o
   const getAttendanceData = () => {
     // Use enhanced atmosphere data if available, otherwise use defaults
     const atmosphereData = enhancedData?.atmosphereEffects || {};
+    
+    // Calculate attendance and capacity
+    const attendance = atmosphereData.attendance || 12000;
     const capacity = atmosphereData.attendance ? Math.floor(atmosphereData.attendance / 0.8) : 15000;
-    const attendance = atmosphereData.attendance || Math.floor(capacity * 0.8);
     const fanLoyalty = atmosphereData.fanLoyalty || 78;
     const intimidationEffect = atmosphereData.intimidationFactor || Math.floor(fanLoyalty / 20);
+    const homeFieldAdvantage = atmosphereData.homeFieldAdvantage || Math.floor(fanLoyalty / 15);
     
     return {
       attendance,
@@ -146,7 +149,8 @@ export function LiveMatchSimulation({ matchId, team1, team2, initialLiveState, o
       fanLoyalty,
       intimidationEffect,
       fieldSize: atmosphereData.fieldSize || 'Standard',
-      homeFieldAdvantage: atmosphereData.homeFieldAdvantage || 5
+      homeFieldAdvantage,
+      crowdNoise: atmosphereData.crowdNoise || Math.floor(Math.random() * 30) + 70
     };
   };
 
@@ -308,6 +312,16 @@ export function LiveMatchSimulation({ matchId, team1, team2, initialLiveState, o
                 <div className="font-semibold">{attendanceData.fanLoyalty}%</div>
               </div>
             </div>
+            <div className="grid grid-cols-2 gap-2 text-sm">
+              <div>
+                <div className="text-xs text-muted-foreground">Crowd Noise</div>
+                <div className="font-semibold text-green-600">{attendanceData.crowdNoise}%</div>
+              </div>
+              <div>
+                <div className="text-xs text-muted-foreground">Field Size</div>
+                <div className="font-semibold">{attendanceData.fieldSize}</div>
+              </div>
+            </div>
             <div className="pt-2 border-t">
               <div className="text-xs text-muted-foreground">Away Team Effect</div>
               <div className="text-sm font-semibold text-red-600">
@@ -331,16 +345,37 @@ export function LiveMatchSimulation({ matchId, team1, team2, initialLiveState, o
             <div>
               <div className="text-xs text-muted-foreground">Your Tactic</div>
               <div className="font-semibold">{enhancedData?.tacticalEffects?.homeTeamFocus || team1?.tacticalFocus || "Balanced"}</div>
+              {enhancedData?.tacticalEffects?.homeTeamModifiers && (
+                <div className="text-xs text-green-600">
+                  {Object.entries(enhancedData.tacticalEffects.homeTeamModifiers)
+                    .filter(([_, value]) => value > 0)
+                    .map(([key, value]) => `+${value} ${key}`)
+                    .join(", ")}
+                </div>
+              )}
             </div>
             <div>
               <div className="text-xs text-muted-foreground">Opponent Tactic</div>
               <div className="font-semibold">{enhancedData?.tacticalEffects?.awayTeamFocus || team2?.tacticalFocus || "Balanced"}</div>
+              {enhancedData?.tacticalEffects?.awayTeamModifiers && (
+                <div className="text-xs text-blue-600">
+                  {Object.entries(enhancedData.tacticalEffects.awayTeamModifiers)
+                    .filter(([_, value]) => value > 0)
+                    .map(([key, value]) => `+${value} ${key}`)
+                    .join(", ")}
+                </div>
+              )}
             </div>
             <div>
               <div className="text-xs text-muted-foreground">Team Camaraderie</div>
               <div className="font-semibold text-green-600">
                 In Sync! ({team1?.camaraderie || 50})
               </div>
+              {enhancedData?.gamePhase && (
+                <div className="text-xs text-purple-600">
+                  Game Phase: {enhancedData.gamePhase}
+                </div>
+              )}
             </div>
           </div>
           {enhancedData && (
