@@ -41,17 +41,17 @@ export class ContractService {
     
     if (isPlayer) {
       const player = individual as Player;
-      // Players: Sum of all 8 attributes * 50₡
+      // Players: Sum of all 8 attributes * 50₡ (updated for database schema)
       attributeSum = player.speed + player.power + player.throwing + player.catching + 
-                    player.kicking + player.stamina + player.leadership + player.agility;
+                    player.kicking + player.staminaAttribute + player.leadership + player.agility;
       attributeValue = attributeSum * 50;
     } else {
       const staffMember = individual as Staff;
-      // Staff: Sum of all staff attributes * 150₡
-      attributeSum = (staffMember.offenseRating || 0) + (staffMember.defenseRating || 0) + 
-                    (staffMember.physicalRating || 0) + (staffMember.scoutingRating || 0) + 
-                    (staffMember.recruitingRating || 0) + (staffMember.recoveryRating || 0) + 
-                    (staffMember.coachingRating || 0);
+      // Staff: Sum of all staff attributes * 150₡ (updated for database schema)
+      attributeSum = (staffMember.motivation || 0) + (staffMember.development || 0) + 
+                    (staffMember.teaching || 0) + (staffMember.physiology || 0) + 
+                    (staffMember.talentIdentification || 0) + (staffMember.potentialAssessment || 0) + 
+                    (staffMember.tactics || 0);
       attributeValue = attributeSum * 150;
     }
     
@@ -61,8 +61,8 @@ export class ContractService {
     
     if (isPlayer) {
       const player = individual as Player;
-      // Player's overallPotentialStars * 1000₡
-      potentialRating = parseFloat(player.overallPotentialStars?.toString() || '0');
+      // Player's potentialRating * 1000₡ (updated for database schema)
+      potentialRating = parseFloat(player.potentialRating?.toString() || '0');
       potentialValue = potentialRating * 1000;
     } else {
       // Staff don't have potential ratings - use level as proxy
@@ -236,8 +236,10 @@ export class ContractService {
     salary: number, 
     seasons: number
   ): Promise<Player | null> {
-    // Get player info first
-    const [player] = await db.select().from(players).where(eq(players.id, playerId)).limit(1);
+    // Get player info first using Prisma
+    const player = await db.player.findUnique({
+      where: { id: playerId }
+    });
     if (!player) {
       throw new Error("Player not found");
     }
@@ -246,40 +248,34 @@ export class ContractService {
     const { storage } = await import("../storage");
 
     // Deactivate any existing active contracts for this player
-    await db
-      .update(playerContracts)
-      .set({ isActive: false })
-      .where(and(eq(playerContracts.playerId, playerId), eq(playerContracts.isActive, true)));
+    await db.contract.deleteMany({
+      where: {
+        playerId: playerId
+      }
+    });
 
     // Create new active contract
     const expiryDate = new Date();
     expiryDate.setFullYear(expiryDate.getFullYear() + seasons);
     
-    const newContract = await db
-      .insert(playerContracts)
-      .values({
+    const newContract = await db.contract.create({
+      data: {
         playerId: playerId,
-        teamId: player.teamId,
         salary: salary,
-        duration: seasons,
-        remainingYears: seasons,
-        expiryDate: expiryDate,
-        isActive: true,
-        contractType: "standard"
-      })
-      .returning();
+        length: seasons,
+        signingBonus: 0,
+        startDate: new Date(),
+        isActive: true
+      }
+    });
 
     // Update player's contract fields for backward compatibility
-    const [updatedPlayer] = await db
-      .update(players)
-      .set({
-        salary: salary,
-        contractSeasons: seasons,
-        contractValue: salary * seasons,
+    const updatedPlayer = await db.player.update({
+      where: { id: playerId },
+      data: {
         updatedAt: new Date()
-      })
-      .where(eq(players.id, playerId))
-      .returning();
+      }
+    });
 
     // Update team salary cap based on all active player contracts
     await this.updateTeamSalaryCap(player.teamId);
@@ -292,12 +288,20 @@ export class ContractService {
    */
   static async updateTeamSalaryCap(teamId: number): Promise<void> {
     // Calculate total salary from all active player contracts
-    const activeContracts = await db
-      .select()
-      .from(playerContracts)
-      .where(and(eq(playerContracts.teamId, teamId), eq(playerContracts.isActive, true)));
+    const activeContracts = await db.contract.findMany({
+      where: {
+        isActive: true,
+        playerId: { not: null },
+        player: {
+          teamId: teamId
+        }
+      },
+      include: {
+        player: true
+      }
+    });
 
-    const totalSalary = activeContracts.reduce((sum, contract) => sum + contract.salary, 0);
+    const totalSalary = activeContracts.reduce((sum, contract) => sum + Number(contract.salary), 0);
     const salaryCap = 5000000; // 5M salary cap
     const capSpace = salaryCap - totalSalary;
 

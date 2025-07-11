@@ -784,10 +784,26 @@ router.get('/:teamId/finances', isAuthenticated, asyncHandler(async (req: any, r
   }
 
   // Calculate actual player salaries from contracts
-  const players = await storage.players.getPlayersByTeamId(team.id);
-  const totalPlayerSalaries = players.reduce((total, player) => {
-    return total + (player.salary || 0);
+  const players = await db.player.findMany({
+    where: { teamId: team.id },
+    select: { id: true }
+  });
+  const playerIds = players.map(p => p.id);
+  
+  const contracts = await db.contract.findMany({
+    where: {
+      playerId: { in: playerIds }
+    },
+    select: {
+      salary: true
+    }
+  });
+  console.log(`[Team Finances] Found ${contracts.length} contracts for team ${team.id}`);
+  const totalPlayerSalaries = contracts.reduce((total, contract) => {
+    console.log(`[Team Finances] Contract salary: ${contract.salary}`);
+    return total + (contract.salary || 0);
   }, 0);
+  console.log(`[Team Finances] Total player salaries: ${totalPlayerSalaries}`);
 
   // Calculate actual staff salaries - use level-based calculation
   let totalStaffSalaries = 0;

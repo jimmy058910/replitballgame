@@ -37,6 +37,7 @@ import { dailyProgressionRoutes } from "./dailyProgressionRoutes";
 import stadiumAtmosphereRoutes from "./stadiumAtmosphereRoutes";
 import seasonalFlowRoutes from "./seasonalFlowRoutes";
 import dailyTournamentRoutes from "./dailyTournamentRoutes";
+import contractInitializerRoutes from "./contractInitializerRoutes";
 
 // This function will be called by server/index.ts to set up all routes.
 // It replaces the direct app.use calls that would have been in server/index.ts
@@ -82,6 +83,7 @@ export function registerAllRoutes(app: Express): void {
   app.use("/api/stadium-atmosphere", stadiumAtmosphereRoutes); // Covers integrated stadium, finance & atmosphere system
   app.use("/api/seasonal-flow", seasonalFlowRoutes); // Covers seasonal flow algorithm for 17-day competitive cycles
   app.use("/api/daily-progression", dailyProgressionRoutes); // Covers daily player progression and development system
+  app.use("/api/contracts", contractInitializerRoutes); // Covers contract initialization and management
 
   // Reminder: The original server/routes.ts also contained helper functions and Stripe init.
   // Stripe init is now in paymentRoutes.ts.
