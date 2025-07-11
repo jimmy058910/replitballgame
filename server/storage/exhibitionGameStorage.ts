@@ -1,64 +1,96 @@
-import { db } from "../db";
-import {
-    exhibitionGames,
-    // teams, // For fetching team names if needed - better done at service layer
-    type ExhibitionGame, type InsertExhibitionGame
-} from "@shared/schema";
-import { eq, and, or, desc, gte, lte } from "drizzle-orm"; // Added lte
-import { randomUUID } from "crypto";
+import { PrismaClient, Game } from '../../generated/prisma';
+
+const prisma = new PrismaClient();
 
 export class ExhibitionGameStorage {
-  async createExhibitionGame(gameData: Omit<InsertExhibitionGame, 'id' | 'playedDate'>): Promise<ExhibitionGame> {
-    const dataToInsert: InsertExhibitionGame = {
-      id: randomUUID(),
-      ...gameData,
-      playedDate: new Date(),
-      gameData: typeof gameData.gameData === 'object' ? gameData.gameData : gameData.gameData || {},
-    };
-    const [newGame] = await db.insert(exhibitionGames).values(dataToInsert).returning();
+  async createExhibitionGame(gameData: {
+    homeTeamId: number;
+    awayTeamId: number;
+    gameDate?: Date;
+    isExhibition?: boolean;
+  }): Promise<Game> {
+    const newGame = await prisma.game.create({
+      data: {
+        homeTeamId: gameData.homeTeamId,
+        awayTeamId: gameData.awayTeamId,
+        gameDate: gameData.gameDate || new Date(),
+        status: 'PENDING',
+        isExhibition: gameData.isExhibition || true,
+      },
+      include: {
+        homeTeam: { select: { name: true } },
+        awayTeam: { select: { name: true } }
+      }
+    });
     return newGame;
   }
 
-  async getExhibitionGameById(id: string): Promise<ExhibitionGame | undefined> {
-    const [game] = await db.select().from(exhibitionGames).where(eq(exhibitionGames.id, id)).limit(1);
+  async getExhibitionGameById(id: number): Promise<Game | null> {
+    const game = await prisma.game.findUnique({
+      where: { id, isExhibition: true },
+      include: {
+        homeTeam: { select: { name: true } },
+        awayTeam: { select: { name: true } }
+      }
+    });
     return game;
   }
 
-  async getExhibitionGamesByTeam(teamId: string, limit: number = 10): Promise<ExhibitionGame[]> {
-    // This assumes `teamId` in exhibitionGames is the primary team that initiated or is focused on.
-    // If it means "games involving this team", the query would be different (using OR for teamId and opponentTeamId).
-    // The original schema had `teamId` and `opponentTeamId`.
-    // Assuming `teamId` is the one we are querying for.
-    return await db
-      .select()
-      .from(exhibitionGames)
-      .where(eq(exhibitionGames.teamId, teamId))
-      .orderBy(desc(exhibitionGames.playedDate))
-      .limit(limit);
+  async getExhibitionGamesByTeam(teamId: number, limit: number = 10): Promise<Game[]> {
+    return await prisma.game.findMany({
+      where: {
+        isExhibition: true,
+        OR: [
+          { homeTeamId: teamId },
+          { awayTeamId: teamId }
+        ]
+      },
+      include: {
+        homeTeam: { select: { name: true } },
+        awayTeam: { select: { name: true } }
+      },
+      orderBy: { gameDate: 'desc' },
+      take: limit
+    });
   }
 
-  async getExhibitionGamesPlayedTodayByTeam(teamId: string): Promise<ExhibitionGame[]> {
+  async getExhibitionGamesPlayedTodayByTeam(teamId: number): Promise<Game[]> {
     const todayStart = new Date();
     todayStart.setHours(0, 0, 0, 0);
 
     const todayEnd = new Date();
     todayEnd.setHours(23, 59, 59, 999);
 
-    return await db
-      .select()
-      .from(exhibitionGames)
-      .where(and(
-        eq(exhibitionGames.teamId, teamId), // Games initiated by this team
-        gte(exhibitionGames.playedDate, todayStart),
-        lte(exhibitionGames.playedDate, todayEnd)
-      ))
-      .orderBy(desc(exhibitionGames.playedDate));
+    return await prisma.game.findMany({
+      where: {
+        isExhibition: true,
+        OR: [
+          { homeTeamId: teamId },
+          { awayTeamId: teamId }
+        ],
+        gameDate: {
+          gte: todayStart,
+          lte: todayEnd
+        }
+      },
+      include: {
+        homeTeam: { select: { name: true } },
+        awayTeam: { select: { name: true } }
+      },
+      orderBy: { gameDate: 'desc' }
+    });
   }
 
-
-  async deleteExhibitionGame(id: string): Promise<boolean> {
-    const result = await db.delete(exhibitionGames).where(eq(exhibitionGames.id, id)).returning({id: exhibitionGames.id});
-    return result.length > 0;
+  async deleteExhibitionGame(id: number): Promise<boolean> {
+    try {
+      await prisma.game.delete({
+        where: { id, isExhibition: true }
+      });
+      return true;
+    } catch (error) {
+      console.warn(`Exhibition game with ID ${id} not found for deletion.`);
+      return false;
+    }
   }
 }
 

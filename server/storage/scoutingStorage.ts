@@ -1,111 +1,161 @@
-import { db } from "../db";
-import {
-    scouts,
-    scoutingReports,
-    type Scout, type InsertScout,
-    type ScoutingReport, type InsertScoutingReport
-} from "@shared/schema";
-import { eq, and, desc, asc, inArray } from "drizzle-orm"; // Added inArray
-import { randomUUID } from "crypto";
+import { PrismaClient, Player, Team } from '../../generated/prisma';
+
+const prisma = new PrismaClient();
 
 export class ScoutingStorage {
+  async generateTryoutCandidate(candidateData: {
+    firstName: string;
+    lastName: string;
+    age: number;
+    race: string;
+    role: string;
+    overallPotentialStars: number;
+    speed: number;
+    power: number;
+    agility: number;
+    throwing: number;
+    catching: number;
+    kicking: number;
+    stamina: number;
+    leadership: number;
+  }): Promise<Player> {
+    const newCandidate = await prisma.player.create({
+      data: {
+        teamId: 0, // Taxi squad placeholder
+        firstName: candidateData.firstName,
+        lastName: candidateData.lastName,
+        age: candidateData.age,
+        race: candidateData.race,
+        role: candidateData.role,
+        overallPotentialStars: candidateData.overallPotentialStars,
+        speed: candidateData.speed,
+        power: candidateData.power,
+        agility: candidateData.agility,
+        throwing: candidateData.throwing,
+        catching: candidateData.catching,
+        kicking: candidateData.kicking,
+        stamina: candidateData.stamina,
+        leadership: candidateData.leadership,
+        injuryStatus: 'Healthy',
+        inGameStamina: 100,
+        dailyStaminaLevel: 100,
+        camaraderie: 50.0,
+      }
+    });
+    return newCandidate;
+  }
 
-  // Scout Operations
-  async createScout(scoutData: Omit<InsertScout, 'id' | 'createdAt' | 'updatedAt'>): Promise<Scout> {
-    const dataToInsert: InsertScout = {
-      id: randomUUID(),
-      ...scoutData,
-      isActive: scoutData.isActive === undefined ? true : scoutData.isActive,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-      quality: scoutData.quality || 50,
-      experience: scoutData.experience || 1,
-      salary: scoutData.salary || 30000,
-      contractLength: scoutData.contractLength || 1,
+  async getTryoutCandidates(teamId: number): Promise<Player[]> {
+    return await prisma.player.findMany({
+      where: { 
+        teamId: 0 // Taxi squad candidates
+      },
+      orderBy: [
+        { overallPotentialStars: 'desc' },
+        { lastName: 'asc' }
+      ]
+    });
+  }
+
+  async promoteTryoutCandidate(playerId: number, teamId: number): Promise<Player | null> {
+    try {
+      const promotedPlayer = await prisma.player.update({
+        where: { id: playerId },
+        data: { teamId },
+        include: {
+          team: { select: { name: true } }
+        }
+      });
+      return promotedPlayer;
+    } catch (error) {
+      console.warn(`Player with ID ${playerId} not found for promotion.`);
+      return null;
+    }
+  }
+
+  async releaseTryoutCandidate(playerId: number): Promise<boolean> {
+    try {
+      await prisma.player.delete({
+        where: { 
+          id: playerId,
+          teamId: 0 // Only allow deletion of taxi squad candidates
+        }
+      });
+      return true;
+    } catch (error) {
+      console.warn(`Tryout candidate with ID ${playerId} not found for release.`);
+      return false;
+    }
+  }
+
+  async getScoutingReport(teamId: number, targetTeamId: number): Promise<{
+    team: Team | null;
+    players: Player[];
+    scoutQuality: string;
+  }> {
+    const targetTeam = await prisma.team.findUnique({
+      where: { id: targetTeamId },
+      include: {
+        players: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            age: true,
+            race: true,
+            role: true,
+            overallPotentialStars: true,
+            speed: true,
+            power: true,
+            agility: true,
+            throwing: true,
+            catching: true,
+            kicking: true,
+            stamina: true,
+            leadership: true,
+            injuryStatus: true,
+          }
+        },
+        staff: {
+          where: { type: 'SCOUT' },
+          select: {
+            talentIdentification: true,
+            potentialAssessment: true
+          }
+        }
+      }
+    });
+
+    if (!targetTeam) {
+      return {
+        team: null,
+        players: [],
+        scoutQuality: 'No Data'
+      };
+    }
+
+    // Calculate scout quality based on team's scout staff
+    const scoutEffectiveness = targetTeam.staff.length > 0 
+      ? (targetTeam.staff[0].talentIdentification + targetTeam.staff[0].potentialAssessment) / 2
+      : 10; // Default poor scouting
+
+    let scoutQuality = 'Poor';
+    if (scoutEffectiveness >= 35) scoutQuality = 'Excellent';
+    else if (scoutEffectiveness >= 25) scoutQuality = 'Good';
+    else if (scoutEffectiveness >= 15) scoutQuality = 'Average';
+
+    return {
+      team: targetTeam,
+      players: targetTeam.players,
+      scoutQuality
     };
-    const [newScout] = await db.insert(scouts).values(dataToInsert).returning();
-    return newScout;
   }
 
-  async getScoutById(id: string): Promise<Scout | undefined> {
-    const [scout] = await db.select().from(scouts).where(eq(scouts.id, id)).limit(1);
-    return scout;
-  }
-
-  async getScoutsByTeam(teamId: string, activeOnly: boolean = true): Promise<Scout[]> {
-    const conditions = [eq(scouts.teamId, teamId)];
-    if (activeOnly) {
-      conditions.push(eq(scouts.isActive, true));
-    }
-    return await db.select().from(scouts)
-      .where(and(...conditions))
-      .orderBy(desc(scouts.quality));
-  }
-
-  async updateScout(id: string, updates: Partial<Omit<InsertScout, 'id' | 'teamId' | 'createdAt' | 'updatedAt'>>): Promise<Scout | undefined> {
-    const existing = await this.getScoutById(id);
-    if (!existing) {
-        console.warn(`Scout with ID ${id} not found for update.`);
-        return undefined;
-    }
-    const [updatedScout] = await db.update(scouts)
-      .set({ ...updates, updatedAt: new Date() })
-      .where(eq(scouts.id, id))
-      .returning();
-    return updatedScout;
-  }
-
-  // ScoutingReport Operations
-  async createScoutingReport(reportData: Omit<InsertScoutingReport, 'id' | 'createdAt'>): Promise<ScoutingReport> {
-    const dataToInsert: InsertScoutingReport = {
-      id: randomUUID(),
-      ...reportData,
-      // Ensure all required fields from InsertScoutingReport are covered
-      scoutId: reportData.scoutId, // Must be provided
-      reportType: reportData.reportType, // Must be provided
-      confidence: reportData.confidence || 50,
-      prospectData: typeof reportData.prospectData === 'object' ? reportData.prospectData : reportData.prospectData || null, // Null if not applicable
-      statRanges: typeof reportData.statRanges === 'object' ? reportData.statRanges : reportData.statRanges || null, // Null if not applicable
-      // playerId can be null for prospect reports
-      createdAt: new Date(),
-    };
-    const [newReport] = await db.insert(scoutingReports).values(dataToInsert).returning();
-    return newReport;
-  }
-
-  async getScoutingReportById(id: string): Promise<ScoutingReport | undefined> {
-    const [report] = await db.select().from(scoutingReports).where(eq(scoutingReports.id, id)).limit(1);
-    return report;
-  }
-
-  async getScoutingReportsByScout(scoutId: string, limit: number = 20): Promise<ScoutingReport[]> {
-    return await db.select().from(scoutingReports)
-      .where(eq(scoutingReports.scoutId, scoutId))
-      .orderBy(desc(scoutingReports.createdAt))
-      .limit(limit);
-  }
-
-  async getScoutingReportsForPlayer(playerId: string, limit: number = 5): Promise<ScoutingReport[]> {
-    return await db.select().from(scoutingReports)
-      .where(eq(scoutingReports.playerId, playerId)) // Ensure playerId is not null for this query
-      .orderBy(desc(scoutingReports.createdAt))
-      .limit(limit);
-  }
-
-  async getScoutingReportsByTeamScouts(teamId: string, reportType?: 'player' | 'prospect' | 'team', limit: number = 20): Promise<ScoutingReport[]> {
-    const teamScouts = await this.getScoutsByTeam(teamId, false);
-    if (teamScouts.length === 0) return [];
-
-    const scoutIds = teamScouts.map(s => s.id);
-    const conditions = [inArray(scoutingReports.scoutId, scoutIds)];
-    if (reportType) {
-        conditions.push(eq(scoutingReports.reportType, reportType));
-    }
-
-    return await db.select().from(scoutingReports)
-      .where(and(...conditions))
-      .orderBy(desc(scoutingReports.createdAt))
-      .limit(limit);
+  async clearTaxiSquad(teamId: number): Promise<number> {
+    const result = await prisma.player.deleteMany({
+      where: { teamId: 0 } // Clear all taxi squad candidates
+    });
+    return result.count;
   }
 }
 

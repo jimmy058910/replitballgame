@@ -1,111 +1,184 @@
-import { db } from "../db";
-import { players, type Player, type InsertPlayer } from "@shared/schema";
-import { eq, and, asc, desc } from "drizzle-orm"; // Added desc
+import { PrismaClient, Player, Race, PlayerRole, InjuryStatus } from '../../generated/prisma';
+
+const prisma = new PrismaClient();
 
 export class PlayerStorage {
-  async createPlayer(playerData: InsertPlayer): Promise<Player> {
-    // Ensure all required fields are provided or have schema defaults
-    const dataToInsert = {
-        ...playerData,
-        name: `${playerData.firstName} ${playerData.lastName}`, // Ensure name is composed
-        // Example: Ensure abilities is a string if schema expects jsonb but receives array
-        abilities: Array.isArray(playerData.abilities) ? JSON.stringify(playerData.abilities) : playerData.abilities || JSON.stringify([]),
-        // Ensure other non-nullable fields have defaults if not provided
-        // position: playerData.position || 'player',
-        // contractSeasons: playerData.contractSeasons || 0,
-        // contractValue: playerData.contractValue || 0,
-    };
-    const [newPlayer] = await db.insert(players).values(dataToInsert).returning();
+  async createPlayer(playerData: {
+    teamId: number;
+    firstName: string;
+    lastName: string;
+    race: Race;
+    age: number;
+    role: PlayerRole;
+    speed: number;
+    power: number;
+    throwing: number;
+    catching: number;
+    kicking: number;
+    staminaAttribute: number;
+    leadership: number;
+    agility: number;
+    potentialRating: number;
+    dailyStaminaLevel?: number;
+    injuryStatus?: InjuryStatus;
+    camaraderieScore?: number;
+  }): Promise<Player> {
+    const newPlayer = await prisma.player.create({
+      data: {
+        teamId: playerData.teamId,
+        firstName: playerData.firstName,
+        lastName: playerData.lastName,
+        race: playerData.race,
+        age: playerData.age,
+        role: playerData.role,
+        speed: playerData.speed,
+        power: playerData.power,
+        throwing: playerData.throwing,
+        catching: playerData.catching,
+        kicking: playerData.kicking,
+        staminaAttribute: playerData.staminaAttribute,
+        leadership: playerData.leadership,
+        agility: playerData.agility,
+        potentialRating: playerData.potentialRating,
+        dailyStaminaLevel: playerData.dailyStaminaLevel || 100,
+        injuryStatus: playerData.injuryStatus || InjuryStatus.HEALTHY,
+        camaraderieScore: playerData.camaraderieScore || 75.0,
+      },
+    });
     return newPlayer;
   }
 
-  async getPlayerById(id: string): Promise<Player | undefined> {
-    const [player] = await db.select().from(players).where(eq(players.id, id)).limit(1);
+  async getPlayerById(id: number): Promise<Player | null> {
+    const player = await prisma.player.findUnique({
+      where: { id },
+      include: {
+        team: { select: { name: true } },
+        contract: true,
+        skills: { include: { skill: true } }
+      }
+    });
     return player;
   }
 
-  async getPlayersByTeamId(teamId: string): Promise<Player[]> {
+  async getPlayersByTeamId(teamId: number): Promise<Player[]> {
     // Typically, you'd fetch non-marketplace players for a team's roster
-    return await db
-      .select()
-      .from(players)
-      .where(and(eq(players.teamId, teamId), eq(players.isMarketplace, false)))
-      .orderBy(asc(players.name)); // Example: order by name
+    return await prisma.player.findMany({
+      where: {
+        teamId: teamId,
+        isOnMarket: false
+      },
+      include: {
+        team: { select: { name: true } },
+        contract: true,
+        skills: { include: { skill: true } }
+      },
+      orderBy: { firstName: 'asc' }
+    });
   }
 
-  async getAllPlayersByTeamId(teamId: string): Promise<Player[]> {
+  async getAllPlayersByTeamId(teamId: number): Promise<Player[]> {
     // Fetches all players associated with a team, including those on marketplace
-    return await db
-      .select()
-      .from(players)
-      .where(eq(players.teamId, teamId))
-      .orderBy(asc(players.name));
+    return await prisma.player.findMany({
+      where: { teamId: teamId },
+      include: {
+        team: { select: { name: true } },
+        contract: true,
+        skills: { include: { skill: true } }
+      },
+      orderBy: { firstName: 'asc' }
+    });
   }
 
 
-  async updatePlayer(id: string, updates: Partial<InsertPlayer>): Promise<Player | undefined> {
-    const existingPlayer = await this.getPlayerById(id);
-    if (!existingPlayer) {
-        console.warn(`Player with ID ${id} not found for update.`);
-        return undefined;
+  async updatePlayer(id: number, updates: Partial<Player>): Promise<Player | null> {
+    try {
+      const updatedPlayer = await prisma.player.update({
+        where: { id },
+        data: updates,
+        include: {
+          team: { select: { name: true } },
+          contract: true,
+          skills: { include: { skill: true } }
+        }
+      });
+      return updatedPlayer;
+    } catch (error) {
+      console.warn(`Player with ID ${id} not found for update.`);
+      return null;
     }
-    // If first/last name changes, update the composite 'name' field
-    if (updates.firstName || updates.lastName) {
-        updates.name = `${updates.firstName || existingPlayer.firstName} ${updates.lastName || existingPlayer.lastName}`;
-    }
-    if (updates.abilities && Array.isArray(updates.abilities)) {
-        updates.abilities = JSON.stringify(updates.abilities);
-    }
-
-    const [updatedPlayer] = await db
-      .update(players)
-      .set({ ...updates, updatedAt: new Date() }) // Assuming 'updatedAt' in schema
-      .where(eq(players.id, id))
-      .returning();
-    return updatedPlayer;
   }
 
-  async deletePlayer(id: string): Promise<boolean> {
-    // Consider implications: injuries, contracts, auction listings might need cleanup or prevent deletion.
-    // For now, a simple delete.
-    const result = await db.delete(players).where(eq(players.id, id)).returning({ id: players.id });
-    return result.length > 0;
+  async deletePlayer(id: number): Promise<boolean> {
+    try {
+      await prisma.player.delete({
+        where: { id }
+      });
+      return true;
+    } catch (error) {
+      console.warn(`Player with ID ${id} not found for deletion.`);
+      return false;
+    }
   }
 
   async getMarketplacePlayers(): Promise<Player[]> {
-    return await db
-      .select()
-      .from(players)
-      .where(eq(players.isMarketplace, true))
-      .orderBy(asc(players.marketplaceEndTime), desc(players.marketplacePrice)); // Example sorting
+    return await prisma.player.findMany({
+      where: { isOnMarket: true },
+      include: {
+        team: { select: { name: true } },
+        contract: true,
+        skills: { include: { skill: true } }
+      },
+      orderBy: [
+        { firstName: 'asc' },
+        { lastName: 'asc' }
+      ]
+    });
   }
 
-  // Taxi Squad specific methods
-  async getTaxiSquadPlayersByTeamId(teamId: string): Promise<Player[]> {
-    return await db
-      .select()
-      .from(players)
-      .where(and(eq(players.teamId, teamId), eq(players.isOnTaxi, true)))
-      .orderBy(asc(players.name));
+  // Taxi Squad specific methods  
+  async getTaxiSquadPlayersByTeamId(teamId: number): Promise<Player[]> {
+    return await prisma.player.findMany({
+      where: {
+        teamId: teamId,
+        isOnTaxiSquad: true
+      },
+      include: {
+        team: { select: { name: true } },
+        contract: true,
+        skills: { include: { skill: true } }
+      },
+      orderBy: { firstName: 'asc' }
+    });
   }
 
-  async promotePlayerFromTaxiSquad(playerId: string): Promise<Player | null> {
-    const result = await db
-      .update(players)
-      .set({ isOnTaxi: false })
-      .where(eq(players.id, playerId))
-      .returning();
-    
-    return result[0] || null;
+  async promotePlayerFromTaxiSquad(playerId: number): Promise<Player | null> {
+    try {
+      const promotedPlayer = await prisma.player.update({
+        where: { id: playerId },
+        data: { isOnTaxiSquad: false },
+        include: {
+          team: { select: { name: true } },
+          contract: true,
+          skills: { include: { skill: true } }
+        }
+      });
+      return promotedPlayer;
+    } catch (error) {
+      console.warn(`Player with ID ${playerId} not found for promotion.`);
+      return null;
+    }
   }
 
-  async releasePlayerFromTaxiSquad(playerId: string): Promise<boolean> {
-    const result = await db
-      .delete(players)
-      .where(eq(players.id, playerId))
-      .returning();
-    
-    return result.length > 0;
+  async releasePlayerFromTaxiSquad(playerId: number): Promise<boolean> {
+    try {
+      await prisma.player.delete({
+        where: { id: playerId }
+      });
+      return true;
+    } catch (error) {
+      console.warn(`Player with ID ${playerId} not found for release.`);
+      return false;
+    }
   }
 }
 

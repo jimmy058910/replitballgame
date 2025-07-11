@@ -1,95 +1,178 @@
-import { db } from "../db";
-import { items, type Item, type InsertItem } from "@shared/schema";
-import { eq, and, or, asc, desc, isNotNull } from "drizzle-orm";
-import { randomUUID } from "crypto";
+import { PrismaClient, Item, InventoryItem } from '../../generated/prisma';
+
+const prisma = new PrismaClient();
 
 export class ItemStorage {
-  async createItem(itemData: Omit<InsertItem, 'id' | 'createdAt'>): Promise<Item> {
-    const dataToInsert: InsertItem = {
-      id: randomUUID(),
-      ...itemData,
-      // Ensure defaults for non-nullable fields if not always provided by itemData
-      // For example, if statBoosts is non-nullable and might be undefined in itemData:
-      statBoosts: typeof itemData.statBoosts === 'object' ? itemData.statBoosts : itemData.statBoosts || {},
-      createdAt: new Date(),
-      // marketplacePrice can be null by default if not being listed immediately
-    };
-    const [newItem] = await db.insert(items).values(dataToInsert).returning();
+  async createItem(itemData: {
+    name: string;
+    description: string;
+    type: string;
+    slot?: string;
+    raceRestriction?: string;
+    statEffects?: any;
+    rarity?: string;
+    creditPrice?: bigint;
+    gemPrice?: number;
+    effectValue?: any;
+  }): Promise<Item> {
+    const newItem = await prisma.item.create({
+      data: {
+        name: itemData.name,
+        description: itemData.description,
+        type: itemData.type,
+        slot: itemData.slot,
+        raceRestriction: itemData.raceRestriction,
+        statEffects: itemData.statEffects,
+        rarity: itemData.rarity || 'COMMON',
+        creditPrice: itemData.creditPrice,
+        gemPrice: itemData.gemPrice,
+        effectValue: itemData.effectValue,
+      }
+    });
     return newItem;
   }
 
-  async getItemById(id: string): Promise<Item | undefined> {
-    const [item] = await db.select().from(items).where(eq(items.id, id)).limit(1);
+  async getItemById(id: number): Promise<Item | null> {
+    const item = await prisma.item.findUnique({
+      where: { id }
+    });
     return item;
   }
 
   async getItemsByType(itemType: string): Promise<Item[]> {
-    return await db.select().from(items).where(eq(items.type, itemType)).orderBy(asc(items.name));
+    return await prisma.item.findMany({
+      where: { type: itemType },
+      orderBy: { name: 'asc' }
+    });
   }
 
-  async getItemsByTeam(teamId: string): Promise<Item[]> {
-    // This fetches items directly owned by the team (e.g., equipped or in team inventory if items.teamId is used for that)
-    return await db.select().from(items).where(eq(items.teamId, teamId)).orderBy(asc(items.name));
+  async getMarketplaceItems(itemType?: string): Promise<Item[]> {
+    return await prisma.item.findMany({
+      where: {
+        ...(itemType ? { type: itemType } : {}),
+        OR: [
+          { creditPrice: { not: null } },
+          { gemPrice: { not: null } }
+        ]
+      },
+      orderBy: [
+        { rarity: 'desc' },
+        { name: 'asc' }
+      ]
+    });
   }
 
-  async getMarketplaceListedItems(itemType?: string): Promise<Item[]> {
-    // Items are on marketplace if marketplacePrice is not null.
-    // They might still have a teamId if a team is selling them.
-    const conditions = [isNotNull(items.marketplacePrice)];
-    if (itemType) {
-        conditions.push(eq(items.type, itemType));
+  async updateItem(id: number, updates: Partial<Item>): Promise<Item | null> {
+    try {
+      const updatedItem = await prisma.item.update({
+        where: { id },
+        data: updates
+      });
+      return updatedItem;
+    } catch (error) {
+      console.warn(`Item with ID ${id} not found for update.`);
+      return null;
     }
-    return await db.select().from(items)
-        .where(and(...conditions))
-        .orderBy(desc(items.rarity), asc(items.name)); // Example sort
   }
 
-
-  async updateItem(id: string, updates: Partial<Omit<InsertItem, 'id' | 'createdAt' | 'teamId'>>): Promise<Item | undefined> {
-    // teamId is usually updated via a separate transfer/purchase logic, not direct item update.
-    const existing = await this.getItemById(id);
-    if (!existing) {
-        console.warn(`Item with ID ${id} not found for update.`);
-        return undefined;
+  async deleteItem(id: number): Promise<boolean> {
+    try {
+      await prisma.item.delete({
+        where: { id }
+      });
+      return true;
+    } catch (error) {
+      console.warn(`Item with ID ${id} not found for deletion.`);
+      return false;
     }
-
-    if (updates.statBoosts && typeof updates.statBoosts === 'object') {
-        // Ensure it's stored correctly if schema expects JSON string (though Drizzle jsonb handles objects)
-        // updates.statBoosts = JSON.stringify(updates.statBoosts);
-    }
-
-    const [updatedItem] = await db.update(items)
-      .set({ ...updates, updatedAt: new Date() }) // Assuming updatedAt in schema
-      .where(eq(items.id, id))
-      .returning();
-    return updatedItem;
   }
 
-  async deleteItem(id: string): Promise<boolean> {
-    // Consider implications: if item is equipped by a player, or part of an active listing.
-    const result = await db.delete(items).where(eq(items.id, id)).returning({ id: items.id });
-    return result.length > 0;
-  }
+  // Team Inventory Operations
+  async addItemToTeamInventory(teamId: number, itemId: number, quantity: number = 1): Promise<InventoryItem> {
+    // Check if item already exists in team inventory
+    const existingItem = await prisma.inventoryItem.findFirst({
+      where: { teamId, itemId }
+    });
 
-  // Specific methods for listing/unlisting items on marketplace
-  async listItemOnMarketplace(itemId: string, price: number, sellingTeamId?: string): Promise<Item | undefined> {
-    const updates: Partial<InsertItem> = { marketplacePrice: price };
-    if (sellingTeamId) { // If a team is selling, its teamId should already be on the item.
-        // updates.teamId = sellingTeamId; // This line might be redundant if item is already owned.
+    if (existingItem) {
+      // Update quantity
+      const updatedItem = await prisma.inventoryItem.update({
+        where: { id: existingItem.id },
+        data: { quantity: existingItem.quantity + quantity },
+        include: {
+          item: true,
+          team: { select: { name: true } }
+        }
+      });
+      return updatedItem;
     } else {
-        // If it's a system item or new item being listed directly, teamId might be null.
-        // updates.teamId = null; // Explicitly set if needed
+      // Create new inventory item
+      const newInventoryItem = await prisma.inventoryItem.create({
+        data: {
+          teamId,
+          itemId,
+          quantity,
+        },
+        include: {
+          item: true,
+          team: { select: { name: true } }
+        }
+      });
+      return newInventoryItem;
     }
-    return this.updateItem(itemId, updates);
   }
 
-  async removeItemFromMarketplace(itemId: string): Promise<Item | undefined> {
-    return this.updateItem(itemId, { marketplacePrice: null });
+  async getTeamInventory(teamId: number, itemType?: string): Promise<InventoryItem[]> {
+    return await prisma.inventoryItem.findMany({
+      where: {
+        teamId,
+        ...(itemType ? { item: { type: itemType } } : {})
+      },
+      include: {
+        item: true,
+        team: { select: { name: true } }
+      },
+      orderBy: {
+        item: { name: 'asc' }
+      }
+    });
   }
 
-  async transferItemOwnership(itemId: string, newTeamId: string | null): Promise<Item | undefined> {
-    // If transferring to a team, newTeamId is set. If unassigning (e.g. to system or free pool), newTeamId is null.
-    return this.updateItem(itemId, { teamId: newTeamId, marketplacePrice: null }); // Also remove from market on transfer
+  async removeItemFromTeamInventory(teamId: number, itemId: number, quantity: number = 1): Promise<InventoryItem | null> {
+    const inventoryItem = await prisma.inventoryItem.findFirst({
+      where: { teamId, itemId }
+    });
+
+    if (!inventoryItem) {
+      console.warn(`Item ${itemId} not found in team ${teamId} inventory.`);
+      return null;
+    }
+
+    if (inventoryItem.quantity <= quantity) {
+      // Remove completely
+      await prisma.inventoryItem.delete({
+        where: { id: inventoryItem.id }
+      });
+      return null;
+    } else {
+      // Reduce quantity
+      const updatedItem = await prisma.inventoryItem.update({
+        where: { id: inventoryItem.id },
+        data: { quantity: inventoryItem.quantity - quantity },
+        include: {
+          item: true,
+          team: { select: { name: true } }
+        }
+      });
+      return updatedItem;
+    }
+  }
+
+  async getItemsByRarity(rarity: string): Promise<Item[]> {
+    return await prisma.item.findMany({
+      where: { rarity },
+      orderBy: { name: 'asc' }
+    });
   }
 }
 

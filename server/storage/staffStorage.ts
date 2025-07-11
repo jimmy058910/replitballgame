@@ -1,61 +1,124 @@
-import { db } from "../db";
-import { staff, type Staff, type InsertStaff } from "@shared/schema";
-import { eq, asc, and, inArray } from "drizzle-orm"; // Added 'and' and 'inArray'
+import { PrismaClient, Staff, StaffType } from '../../generated/prisma';
+
+const prisma = new PrismaClient();
 
 export class StaffStorage {
-  async createStaff(staffMemberData: InsertStaff): Promise<Staff> {
-    // Ensure all required fields for InsertStaff are provided or have defaults in schema
-    const dataToInsert = {
-        ...staffMemberData,
-        // Ensure defaults for any non-nullable fields not in staffMemberData
-        // Example: abilities: staffMemberData.abilities || JSON.stringify([]),
-    };
-    const [newStaffMember] = await db.insert(staff).values(dataToInsert).returning();
-    return newStaffMember;
+  async createStaff(staffData: {
+    teamId: number;
+    type: StaffType;
+    name: string;
+    level?: number;
+    motivation?: number;
+    development?: number;
+    teaching?: number;
+    physiology?: number;
+    talentIdentification?: number;
+    potentialAssessment?: number;
+    tactics?: number;
+    age?: number;
+  }): Promise<Staff> {
+    const newStaff = await prisma.staff.create({
+      data: {
+        teamId: staffData.teamId,
+        type: staffData.type,
+        name: staffData.name,
+        level: staffData.level || 1,
+        motivation: staffData.motivation || 5,
+        development: staffData.development || 5,
+        teaching: staffData.teaching || 5,
+        physiology: staffData.physiology || 5,
+        talentIdentification: staffData.talentIdentification || 5,
+        potentialAssessment: staffData.potentialAssessment || 5,
+        tactics: staffData.tactics || 5,
+        age: staffData.age || 30,
+      },
+      include: {
+        team: { select: { name: true } },
+        contract: true
+      }
+    });
+    return newStaff;
   }
 
-  async getStaffById(id: string): Promise<Staff | undefined> {
-    const [staffMember] = await db.select().from(staff).where(eq(staff.id, id)).limit(1);
-    return staffMember;
+  async getStaffById(id: number): Promise<Staff | null> {
+    const staff = await prisma.staff.findUnique({
+      where: { id },
+      include: {
+        team: { select: { name: true } },
+        contract: true
+      }
+    });
+    return staff;
   }
 
-  async getStaffByTeamId(teamId: string): Promise<Staff[]> {
-    return await db
-      .select()
-      .from(staff)
-      .where(eq(staff.teamId, teamId))
-      .orderBy(asc(staff.type)); // Example ordering
+  async getStaffByTeamId(teamId: number): Promise<Staff[]> {
+    return await prisma.staff.findMany({
+      where: { teamId },
+      include: {
+        team: { select: { name: true } },
+        contract: true
+      },
+      orderBy: { type: 'asc' }
+    });
   }
 
-  async updateStaff(id: string, updates: Partial<InsertStaff>): Promise<Staff | undefined> {
-    // Check if staff member exists before updating
-    const existingStaff = await this.getStaffById(id);
-    if (!existingStaff) {
-        console.warn(`Staff member with ID ${id} not found for update.`);
-        return undefined;
+  async updateStaff(id: number, updates: Partial<Staff>): Promise<Staff | null> {
+    try {
+      const updatedStaff = await prisma.staff.update({
+        where: { id },
+        data: updates,
+        include: {
+          team: { select: { name: true } },
+          contract: true
+        }
+      });
+      return updatedStaff;
+    } catch (error) {
+      console.warn(`Staff member with ID ${id} not found for update.`);
+      return null;
     }
-
-    const [updatedStaffMember] = await db
-      .update(staff)
-      .set({ ...updates, updatedAt: new Date() }) // Assuming 'updatedAt' is part of your Staff schema
-      .where(eq(staff.id, id))
-      .returning();
-    return updatedStaffMember;
   }
 
-  async deleteStaff(id: string): Promise<boolean> {
-    const result = await db.delete(staff).where(eq(staff.id, id)).returning({ id: staff.id });
-    return result.length > 0;
+  async deleteStaff(id: number): Promise<boolean> {
+    try {
+      await prisma.staff.delete({
+        where: { id }
+      });
+      return true;
+    } catch (error) {
+      console.warn(`Staff member with ID ${id} not found for deletion.`);
+      return false;
+    }
   }
 
-  // Specific query examples (if needed)
-  async getMedicalStaffByTeam(teamId: string): Promise<Staff[]> {
-    const medicalTypes = ["recovery_specialist", "trainer_physical", "doctor", "physiotherapist", "trainer"]; // 'trainer' might cover physical
-    return await db
-      .select()
-      .from(staff)
-      .where(and(eq(staff.teamId, teamId), inArray(staff.type, medicalTypes)))
-      .orderBy(asc(staff.type));
+  async getMedicalStaffByTeam(teamId: number): Promise<Staff[]> {
+    return await prisma.staff.findMany({
+      where: {
+        teamId,
+        type: StaffType.RECOVERY_SPECIALIST
+      },
+      include: {
+        team: { select: { name: true } },
+        contract: true
+      },
+      orderBy: { name: 'asc' }
+    });
+  }
+
+  async getTrainersByTeam(teamId: number): Promise<Staff[]> {
+    return await prisma.staff.findMany({
+      where: {
+        teamId,
+        type: {
+          in: [StaffType.PASSER_TRAINER, StaffType.RUNNER_TRAINER, StaffType.BLOCKER_TRAINER]
+        }
+      },
+      include: {
+        team: { select: { name: true } },
+        contract: true
+      },
+      orderBy: { type: 'asc' }
+    });
   }
 }
 

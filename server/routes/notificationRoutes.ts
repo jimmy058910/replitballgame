@@ -10,7 +10,20 @@ const router = Router();
 router.get('/', isAuthenticated, async (req: any, res: Response, next: NextFunction) => {
   try {
     const userId = req.user.claims.sub;
-    const userNotifications = await storage.notifications.getUserNotifications(userId);
+    
+    // Get user profile first
+    const userProfile = await storage.users.getUser(userId);
+    if (!userProfile) {
+      return res.status(404).json({ message: "User profile not found" });
+    }
+    
+    // Get team by userProfileId
+    const team = await storage.teams.getTeamByUserId(userProfile.id);
+    if (!team) {
+      return res.status(404).json({ message: "Team not found for user" });
+    }
+    
+    const userNotifications = await storage.notifications.getUserNotifications(team.id);
     res.json(userNotifications);
   } catch (error) {
     console.error("Error fetching notifications:", error);
@@ -20,12 +33,11 @@ router.get('/', isAuthenticated, async (req: any, res: Response, next: NextFunct
 
 router.patch('/:id/read', isAuthenticated, async (req: any, res: Response, next: NextFunction) => {
   try {
-    const userId = req.user.claims.sub;
-    const notificationId = req.params.id;
-
-    // Optional: Verify the notification belongs to the user before marking as read
-    // const notification = await storage.getNotificationByIdAndUser(notificationId, userId);
-    // if (!notification) return res.status(404).json({ message: "Notification not found or not yours." });
+    const notificationId = parseInt(req.params.id);
+    
+    if (isNaN(notificationId)) {
+      return res.status(400).json({ message: "Invalid notification ID" });
+    }
 
     await storage.notifications.markNotificationRead(notificationId);
     res.json({ success: true, message: "Notification marked as read." });
@@ -38,7 +50,20 @@ router.patch('/:id/read', isAuthenticated, async (req: any, res: Response, next:
 router.patch('/mark-all-read', isAuthenticated, async (req: any, res: Response, next: NextFunction) => {
   try {
     const userId = req.user.claims.sub;
-    await storage.notifications.markAllNotificationsRead(userId);
+    
+    // Get user profile first
+    const userProfile = await storage.users.getUser(userId);
+    if (!userProfile) {
+      return res.status(404).json({ message: "User profile not found" });
+    }
+    
+    // Get team by userProfileId
+    const team = await storage.teams.getTeamByUserId(userProfile.id);
+    if (!team) {
+      return res.status(404).json({ message: "Team not found for user" });
+    }
+    
+    await storage.notifications.markAllNotificationsRead(team.id);
     res.json({ success: true, message: "All notifications marked as read." });
   } catch (error) {
     console.error("Error marking all notifications as read:", error);
@@ -48,8 +73,11 @@ router.patch('/mark-all-read', isAuthenticated, async (req: any, res: Response, 
 
 router.delete('/:id', isAuthenticated, async (req: any, res: Response, next: NextFunction) => {
   try {
-    const userId = req.user.claims.sub;
-    const notificationId = req.params.id;
+    const notificationId = parseInt(req.params.id);
+    
+    if (isNaN(notificationId)) {
+      return res.status(400).json({ message: "Invalid notification ID" });
+    }
 
     // Optional: Verify the notification belongs to the user before deleting
     // const notification = await storage.getNotificationByIdAndUser(notificationId, userId);

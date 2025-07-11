@@ -1,132 +1,150 @@
-import { db } from "../db";
-import { teams, type Team, type InsertTeam } from "@shared/schema";
-import { eq, desc } from "drizzle-orm"; // Removed unused imports gte, lte, and
-import { staffStorage } from "./staffStorage"; // Correct import
-import { teamFinancesStorage } from "./teamFinancesStorage"; // Correct import
-import type { InsertStaff, Staff } from "@shared/schema"; // Added Staff type
-import type { InsertTeamFinances, TeamFinances } from "@shared/schema"; // Added TeamFinances type
-import gameConfig from "../config/game_config.json";
+import { PrismaClient, Team, Race } from '../../generated/prisma';
 
+const prisma = new PrismaClient();
 
 export class TeamStorage {
-  // Load default staff from configuration
-  private getDefaultStaffMembers(): Omit<InsertStaff, 'id' | 'teamId' | 'createdAt' | 'updatedAt' | 'abilities'>[] {
-    return gameConfig.gameParameters.staffSettings.defaultStaff.map(staff => ({
-      name: staff.name,
-      type: staff.type as any,
-      level: staff.level,
-      salary: staff.salary,
-      recoveryRating: staff.recoveryRating || 0,
-      coachingRating: staff.coachingRating || 0,
-      offenseRating: staff.offenseRating || 0,
-      defenseRating: staff.defenseRating || 0,
-      physicalRating: staff.physicalRating || 0,
-      scoutingRating: staff.scoutingRating || 0,
-      recruitingRating: staff.recruitingRating || 0
-    }));
-  }
+  async createTeam(teamData: {
+    name: string;
+    userProfileId: number;
+  }): Promise<Team> {
+    const newTeam = await prisma.team.create({
+      data: {
+        name: teamData.name,
+        userProfileId: teamData.userProfileId,
+        camaraderie: 50.0,
+        fanLoyalty: 50.0,
+      },
+      include: {
+        finances: true,
+        stadium: true,
+        players: true,
+        staff: true
+      }
+    });
 
-  async createTeam(teamData: InsertTeam): Promise<Team> {
-    const [newTeam] = await db.insert(teams).values(teamData).returning();
-
-    // Create default staff and finances after team creation
-    await this.createDefaultStaffForTeam(newTeam.id);
+    // Create default finances and stadium
     await this.createDefaultFinancesForTeam(newTeam.id);
+    await this.createDefaultStadiumForTeam(newTeam.id);
 
     return newTeam;
   }
 
-  async getTeamByUserId(userId: string): Promise<Team | undefined> {
-    const [team] = await db.select().from(teams).where(eq(teams.userId, userId)).limit(1);
+  async getTeamByUserId(userProfileId: number): Promise<Team | null> {
+    const team = await prisma.team.findFirst({
+      where: { userProfileId },
+      include: {
+        finances: true,
+        stadium: true,
+        players: true,
+        staff: true
+      }
+    });
     return team;
   }
 
-  async getTeamById(id: string): Promise<Team | undefined> {
-    const [team] = await db.select().from(teams).where(eq(teams.id, id)).limit(1);
+  async getTeamById(id: number): Promise<Team | null> {
+    const team = await prisma.team.findUnique({
+      where: { id },
+      include: {
+        finances: true,
+        stadium: true,
+        players: true,
+        staff: true
+      }
+    });
     return team;
   }
 
-  async updateTeam(id: string, updates: Partial<InsertTeam>): Promise<Team | undefined> {
-    // Ensure team exists before update
-    const existingTeam = await this.getTeamById(id);
-    if (!existingTeam) {
-        console.warn(`Team with ID ${id} not found for update.`);
-        return undefined;
+  async updateTeam(id: number, updates: Partial<Team>): Promise<Team | null> {
+    try {
+      const updatedTeam = await prisma.team.update({
+        where: { id },
+        data: updates,
+        include: {
+          finances: true,
+          stadium: true,
+          players: true,
+          staff: true
+        }
+      });
+      return updatedTeam;
+    } catch (error) {
+      console.warn(`Team with ID ${id} not found for update.`);
+      return null;
     }
-    const [team] = await db
-      .update(teams)
-      .set({ ...updates, updatedAt: new Date() })
-      .where(eq(teams.id, id))
-      .returning();
-    return team;
   }
 
   async getTeams(): Promise<Team[]> {
-    return await db.select().from(teams);
+    return await prisma.team.findMany({
+      include: {
+        finances: true,
+        stadium: true,
+        players: true,
+        staff: true
+      },
+      orderBy: [
+        { division: 'asc' },
+        { points: 'desc' },
+        { wins: 'desc' }
+      ]
+    });
   }
 
   async getTeamsByDivision(division: number): Promise<Team[]> {
-    return await db
-      .select()
-      .from(teams)
-      .where(eq(teams.division, division))
-      .orderBy(desc(teams.points), desc(teams.wins));
+    return await prisma.team.findMany({
+      where: { division },
+      include: {
+        finances: true,
+        stadium: true,
+        players: true,
+        staff: true
+      },
+      orderBy: [
+        { points: 'desc' },
+        { wins: 'desc' }
+      ]
+    });
   }
 
-  private async createDefaultStaffForTeam(teamId: string): Promise<void> {
-    const defaultStaffMembers = this.getDefaultStaffMembers();
-    console.log(`Creating ${defaultStaffMembers.length} staff members for team ${teamId}`);
-    for (const staffMember of defaultStaffMembers) {
-      console.log(`Creating staff member: ${staffMember.name} (${staffMember.type})`);
-      // Explicitly construct the InsertStaff object to ensure all fields are covered
-      const staffToCreate: InsertStaff = {
-        ...staffMember,
-        teamId,
-        abilities: JSON.stringify([]), // Default empty abilities
-        // id, createdAt, updatedAt will be handled by Drizzle/DB
-      };
-      try {
-        const createdStaff = await staffStorage.createStaff(staffToCreate);
-        console.log(`Successfully created staff: ${createdStaff.name}`);
-      } catch (error) {
-        console.error(`Failed to create staff ${staffMember.name}:`, error);
-        // Continue creating other staff members even if one fails
-        throw error; // Re-throw to ensure the team creation process is aware of failures
-      }
+  async deleteTeam(id: number): Promise<boolean> {
+    try {
+      await prisma.team.delete({
+        where: { id }
+      });
+      return true;
+    } catch (error) {
+      console.warn(`Team with ID ${id} not found for deletion.`);
+      return false;
     }
-    console.log(`Finished creating staff for team ${teamId}`);
   }
 
-  private async createDefaultFinancesForTeam(teamId: string): Promise<void> {
-    const defaultFinances: Omit<InsertTeamFinances, 'id' | 'teamId' | 'createdAt' | 'updatedAt'> = {
-      season: 1,
-      ticketSales: 250000,
-      concessionSales: 75000,
-      jerseySales: 50000,
-      sponsorships: 100000,
-      playerSalaries: 0, // Player salaries start at 0, updated as players are signed
-      staffSalaries: 317000, // Sum of default staff: 60+45+50+50+40+42+80 = 367k (Corrected: 60+45+50+50+40+42+80 = 367000)
-      // staffSalaries: 367000, // Corrected sum
-      facilities: 50000,
-      credits: 50000, // Standard starting credits - DO NOT ADD NET INCOME
-      totalIncome: 475000,
-      totalExpenses: 417000, // staff + facilities (player salaries TBD)
-      netIncome: 58000, // This is for display only, not added to starting credits
-      premiumCurrency: 0, // Teams start with 0 gems
-    };
-     // Recalculate staffSalaries based on the actual list
-    const defaultStaffMembers = this.getDefaultStaffMembers();
-    const actualStaffSalaries = defaultStaffMembers.reduce((sum: number, s: any) => sum + s.salary, 0);
-    defaultFinances.staffSalaries = actualStaffSalaries;
-    defaultFinances.totalExpenses = actualStaffSalaries + (defaultFinances.facilities || 0) + (defaultFinances.playerSalaries || 0);
-    defaultFinances.netIncome = (defaultFinances.totalIncome || 0) - defaultFinances.totalExpenses;
-    // Keep starting credits at exactly 50,000 - do NOT add net income
+  private async createDefaultFinancesForTeam(teamId: number): Promise<void> {
+    await prisma.teamFinances.create({
+      data: {
+        teamId,
+        credits: BigInt(50000), // Starting credits
+        gems: 0, // Starting gems
+        projectedIncome: BigInt(0),
+        projectedExpenses: BigInt(0),
+        lastSeasonRevenue: BigInt(0),
+        lastSeasonExpenses: BigInt(0),
+        facilitiesMaintenanceCost: BigInt(0)
+      }
+    });
+  }
 
-
-    await teamFinancesStorage.createTeamFinances({
-        ...defaultFinances,
-        teamId
-    } as InsertTeamFinances);
+  private async createDefaultStadiumForTeam(teamId: number): Promise<void> {
+    await prisma.stadium.create({
+      data: {
+        teamId,
+        capacity: 5000, // Starting capacity
+        concessionsLevel: 1,
+        parkingLevel: 1,
+        vipSuitesLevel: 1,
+        merchandisingLevel: 1,
+        lightingScreensLevel: 1
+      }
+    });
   }
 }
 

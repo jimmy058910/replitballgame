@@ -1,118 +1,203 @@
-import { db } from "../db";
-import {
-    tournaments,
-    tournamentEntries,
-    type Tournament, type InsertTournament,
-    type TournamentEntry, type InsertTournamentEntry
-} from "@shared/schema";
-import { eq, and, desc, asc, sql } from "drizzle-orm"; // Added sql
-import { randomUUID } from "crypto";
+import { PrismaClient, Tournament, TournamentEntry } from '../../generated/prisma';
+
+const prisma = new PrismaClient();
 
 export class TournamentStorage {
-
-  // Tournament Operations
-  async createTournament(tournamentData: Omit<InsertTournament, 'id' | 'createdAt' | 'updatedAt'>): Promise<Tournament> {
-    const dataToInsert: InsertTournament = {
-      id: randomUUID(),
-      ...tournamentData,
-      status: tournamentData.status || 'open',
-      prizes: typeof tournamentData.prizes === 'object' ? tournamentData.prizes : tournamentData.prizes || {},
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    };
-    const [newTournament] = await db.insert(tournaments).values(dataToInsert).returning();
+  async createTournament(tournamentData: {
+    name: string;
+    type: string;
+    status?: string;
+    division?: number;
+    season?: number;
+    gameDay?: number;
+    entryFeeCredits?: bigint;
+    entryFeeGems?: number;
+    requiresEntryItem?: boolean;
+    registrationDeadline?: Date;
+    tournamentStartTime?: Date;
+    maxParticipants?: number;
+  }): Promise<Tournament> {
+    const newTournament = await prisma.tournament.create({
+      data: {
+        name: tournamentData.name,
+        type: tournamentData.type,
+        status: tournamentData.status || 'OPEN',
+        division: tournamentData.division,
+        season: tournamentData.season,
+        gameDay: tournamentData.gameDay,
+        entryFeeCredits: tournamentData.entryFeeCredits || BigInt(0),
+        entryFeeGems: tournamentData.entryFeeGems || 0,
+        requiresEntryItem: tournamentData.requiresEntryItem || false,
+        registrationDeadline: tournamentData.registrationDeadline,
+        tournamentStartTime: tournamentData.tournamentStartTime,
+        maxParticipants: tournamentData.maxParticipants || 16,
+      },
+      include: {
+        entries: true
+      }
+    });
     return newTournament;
   }
 
-  async getTournamentById(id: string): Promise<Tournament | undefined> {
-    const [tournament] = await db.select().from(tournaments).where(eq(tournaments.id, id)).limit(1);
+  async getTournamentById(id: number): Promise<Tournament | null> {
+    const tournament = await prisma.tournament.findUnique({
+      where: { id },
+      include: {
+        entries: {
+          include: {
+            team: { select: { name: true } }
+          }
+        }
+      }
+    });
     return tournament;
   }
 
-  async getTournamentsByDivision(division: number, status?: 'open' | 'in_progress' | 'completed'): Promise<Tournament[]> {
-    const conditions = [eq(tournaments.division, division)];
-    if (status) {
-      conditions.push(eq(tournaments.status, status));
-    }
-    return await db.select().from(tournaments).where(and(...conditions)).orderBy(desc(tournaments.startTime)); // Assuming startTime exists
+  async getTournamentsByDivision(division: number, status?: string): Promise<Tournament[]> {
+    return await prisma.tournament.findMany({
+      where: {
+        division,
+        ...(status ? { status } : {})
+      },
+      include: {
+        entries: {
+          include: {
+            team: { select: { name: true } }
+          }
+        }
+      },
+      orderBy: { tournamentStartTime: 'desc' }
+    });
   }
 
-  async getAllTournaments(status?: 'open' | 'in_progress' | 'completed'): Promise<Tournament[]> {
-    const conditions = [];
-    if (status) {
-      conditions.push(eq(tournaments.status, status));
-    }
-    return await db.select().from(tournaments)
-        .where(conditions.length > 0 ? and(...conditions) : undefined)
-        .orderBy(desc(tournaments.startTime)); // Assuming startTime exists
+  async getAllTournaments(status?: string): Promise<Tournament[]> {
+    return await prisma.tournament.findMany({
+      where: status ? { status } : {},
+      include: {
+        entries: {
+          include: {
+            team: { select: { name: true } }
+          }
+        }
+      },
+      orderBy: { tournamentStartTime: 'desc' }
+    });
   }
 
-
-  async updateTournament(id: string, updates: Partial<Omit<InsertTournament, 'id' | 'createdAt' | 'division' | 'updatedAt'>>): Promise<Tournament | undefined> {
-    const existing = await this.getTournamentById(id);
-    if (!existing) {
-        console.warn(`Tournament with ID ${id} not found for update.`);
-        return undefined;
+  async updateTournament(id: number, updates: Partial<Tournament>): Promise<Tournament | null> {
+    try {
+      const updatedTournament = await prisma.tournament.update({
+        where: { id },
+        data: updates,
+        include: {
+          entries: {
+            include: {
+              team: { select: { name: true } }
+            }
+          }
+        }
+      });
+      return updatedTournament;
+    } catch (error) {
+      console.warn(`Tournament with ID ${id} not found for update.`);
+      return null;
     }
-
-    // Drizzle's jsonb should handle object directly for prizes
-    // if (updates.prizes && typeof updates.prizes === 'object') {}
-
-    const [updatedTournament] = await db.update(tournaments)
-      .set({ ...updates, updatedAt: new Date() })
-      .where(eq(tournaments.id, id))
-      .returning();
-    return updatedTournament;
   }
 
-  // TournamentEntry Operations
-  async createTournamentEntry(entryData: Omit<InsertTournamentEntry, 'id' | 'entryTime'>): Promise<TournamentEntry> {
-     const dataToInsert: InsertTournamentEntry = {
-        id: randomUUID(),
-        ...entryData,
-        entryTime: new Date(),
-        // prizeWon and placement would typically be null/0 initially
-        prizeWon: entryData.prizeWon || 0,
-        placement: entryData.placement // Can be null
-     };
-    const [newEntry] = await db.insert(tournamentEntries).values(dataToInsert).returning();
+  // Tournament Entry Operations
+  async createTournamentEntry(entryData: {
+    tournamentId: number;
+    teamId: number;
+    prizeWon?: bigint;
+    placement?: number;
+  }): Promise<TournamentEntry> {
+    const newEntry = await prisma.tournamentEntry.create({
+      data: {
+        tournamentId: entryData.tournamentId,
+        teamId: entryData.teamId,
+        prizeWon: entryData.prizeWon || BigInt(0),
+        placement: entryData.placement || 0,
+      },
+      include: {
+        tournament: { select: { name: true } },
+        team: { select: { name: true } }
+      }
+    });
     return newEntry;
   }
 
-  async getTournamentEntry(tournamentId: string, teamId: string): Promise<TournamentEntry | undefined> {
-    const [entry] = await db.select().from(tournamentEntries)
-      .where(and(eq(tournamentEntries.tournamentId, tournamentId), eq(tournamentEntries.teamId, teamId)))
-      .limit(1);
-    return entry;
+  async getTournamentEntries(tournamentId: number): Promise<TournamentEntry[]> {
+    return await prisma.tournamentEntry.findMany({
+      where: { tournamentId },
+      include: {
+        tournament: { select: { name: true } },
+        team: { select: { name: true } }
+      },
+      orderBy: { entryTime: 'asc' }
+    });
   }
 
-  async getEntriesByTournament(tournamentId: string): Promise<TournamentEntry[]> {
-    return await db.select().from(tournamentEntries)
-      .where(eq(tournamentEntries.tournamentId, tournamentId))
-      .orderBy(asc(tournamentEntries.entryTime));
+  async getTeamTournamentEntries(teamId: number): Promise<TournamentEntry[]> {
+    return await prisma.tournamentEntry.findMany({
+      where: { teamId },
+      include: {
+        tournament: { select: { name: true, type: true } },
+        team: { select: { name: true } }
+      },
+      orderBy: { entryTime: 'desc' }
+    });
   }
 
-  async getEntriesByTeam(teamId: string): Promise<TournamentEntry[]> {
-    return await db.select().from(tournamentEntries)
-      .where(eq(tournamentEntries.teamId, teamId))
-      .orderBy(desc(tournamentEntries.entryTime));
+  async updateTournamentEntry(id: number, updates: Partial<TournamentEntry>): Promise<TournamentEntry | null> {
+    try {
+      const updatedEntry = await prisma.tournamentEntry.update({
+        where: { id },
+        data: updates,
+        include: {
+          tournament: { select: { name: true } },
+          team: { select: { name: true } }
+        }
+      });
+      return updatedEntry;
+    } catch (error) {
+      console.warn(`Tournament entry with ID ${id} not found for update.`);
+      return null;
+    }
   }
 
-  async updateTournamentEntry(id: string, updates: Partial<Omit<InsertTournamentEntry, 'id' | 'tournamentId' | 'teamId' | 'entryTime'>>): Promise<TournamentEntry | undefined> {
-    const existing = await db.select().from(tournamentEntries).where(eq(tournamentEntries.id, id)).limit(1);
-    if(!existing[0]) return undefined;
-
-    const [updatedEntry] = await db.update(tournamentEntries)
-        .set(updates) // Assuming no specific updatedAt for entries, or handled by trigger
-        .where(eq(tournamentEntries.id, id))
-        .returning();
-    return updatedEntry;
+  async deleteTournamentEntry(id: number): Promise<boolean> {
+    try {
+      await prisma.tournamentEntry.delete({
+        where: { id }
+      });
+      return true;
+    } catch (error) {
+      console.warn(`Tournament entry with ID ${id} not found for deletion.`);
+      return false;
+    }
   }
 
-  async getTournamentParticipantCount(tournamentId: string): Promise<number> {
-      const result = await db.select({ count: sql<number>`count(*)::int`}).from(tournamentEntries)
-        .where(eq(tournamentEntries.tournamentId, tournamentId));
-      return result[0]?.count || 0;
+  async getAvailableTournaments(teamId: number): Promise<Tournament[]> {
+    // Get tournaments that are open and the team hasn't entered yet
+    const existingEntries = await prisma.tournamentEntry.findMany({
+      where: { teamId },
+      select: { tournamentId: true }
+    });
+    
+    const excludedTournamentIds = existingEntries.map(entry => entry.tournamentId);
+
+    return await prisma.tournament.findMany({
+      where: {
+        status: 'OPEN',
+        NOT: {
+          id: { in: excludedTournamentIds }
+        }
+      },
+      include: {
+        entries: true
+      },
+      orderBy: { tournamentStartTime: 'asc' }
+    });
   }
 }
 

@@ -1,129 +1,144 @@
-import { db } from "../db";
-import { matches, teams, type Match, type InsertMatch } from "@shared/schema";
-import { eq, or, desc, asc, and, inArray } from "drizzle-orm";
+import { PrismaClient, Game, GameStatus, MatchType } from '../../generated/prisma';
+
+const prisma = new PrismaClient();
 
 export class MatchStorage {
-  async createMatch(matchData: InsertMatch): Promise<Match> {
-    // Ensure team names are populated if not provided, or handle this at service layer
-    if (!matchData.homeTeamName || !matchData.awayTeamName) {
-        const homeTeam = await db.select({ name: teams.name }).from(teams).where(eq(teams.id, matchData.homeTeamId)).limit(1);
-        const awayTeam = await db.select({ name: teams.name }).from(teams).where(eq(teams.id, matchData.awayTeamId)).limit(1);
-        matchData.homeTeamName = homeTeam[0]?.name || "Home";
-        matchData.awayTeamName = awayTeam[0]?.name || "Away";
-    }
-
-    const [newMatch] = await db.insert(matches).values(matchData).returning();
+  async createMatch(matchData: {
+    homeTeamId: number;
+    awayTeamId: number;
+    gameDate: Date;
+    status?: GameStatus;
+    matchType?: MatchType;
+    leagueId?: number;
+    tournamentId?: number;
+    round?: number;
+  }): Promise<Game> {
+    const newMatch = await prisma.game.create({
+      data: {
+        homeTeamId: matchData.homeTeamId,
+        awayTeamId: matchData.awayTeamId,
+        gameDate: matchData.gameDate,
+        status: matchData.status || GameStatus.SCHEDULED,
+        matchType: matchData.matchType || MatchType.LEAGUE,
+        leagueId: matchData.leagueId,
+        tournamentId: matchData.tournamentId,
+        round: matchData.round,
+      },
+    });
     return newMatch;
   }
 
-  async getMatchById(id: string): Promise<Match | undefined> {
-    const [match] = await db.select().from(matches).where(eq(matches.id, id)).limit(1);
-    // Enhance with team names if not already denormalized or if needed consistently
-    if (match && (!match.homeTeamName || !match.awayTeamName)) {
-        const homeTeam = await db.select({ name: teams.name }).from(teams).where(eq(teams.id, match.homeTeamId)).limit(1);
-        const awayTeam = await db.select({ name: teams.name }).from(teams).where(eq(teams.id, match.awayTeamId)).limit(1);
-        match.homeTeamName = homeTeam[0]?.name || match.homeTeamName || "Home";
-        match.awayTeamName = awayTeam[0]?.name || match.awayTeamName || "Away";
-    }
+  async getMatchById(id: number): Promise<Game | null> {
+    const match = await prisma.game.findUnique({
+      where: { id },
+      include: {
+        league: true,
+        tournament: true
+      }
+    });
     return match;
   }
 
-  async getMatchesByTeamId(teamId: string): Promise<Match[]> {
-    const teamMatches = await db
-      .select()
-      .from(matches)
-      .where(or(eq(matches.homeTeamId, teamId), eq(matches.awayTeamId, teamId)))
-      .orderBy(desc(matches.scheduledTime)); // Or desc(matches.createdAt)
-
-    // Enhance with team names
-    return Promise.all(teamMatches.map(async match => {
-        if (!match.homeTeamName || !match.awayTeamName) {
-            const home = await db.select({ name: teams.name }).from(teams).where(eq(teams.id, match.homeTeamId)).limit(1);
-            const away = await db.select({ name: teams.name }).from(teams).where(eq(teams.id, match.awayTeamId)).limit(1);
-            match.homeTeamName = home[0]?.name || "Home";
-            match.awayTeamName = away[0]?.name || "Away";
-        }
-        return match;
-    }));
+  async getMatchesByTeamId(teamId: number): Promise<Game[]> {
+    const teamMatches = await prisma.game.findMany({
+      where: {
+        OR: [
+          { homeTeamId: teamId },
+          { awayTeamId: teamId }
+        ]
+      },
+      include: {
+        league: true,
+        tournament: true
+      },
+      orderBy: { gameDate: 'desc' }
+    });
+    return teamMatches;
   }
 
-  async getMatchesByDivision(division: number, seasonId?: string): Promise<Match[]> {
-    // This requires joining with teams table or fetching team IDs first
-    const divisionTeams = await db.select({ id: teams.id }).from(teams).where(eq(teams.division, division));
+  async getMatchesByDivision(division: number, seasonId?: number): Promise<Game[]> {
+    // Get teams in the division first
+    const divisionTeams = await prisma.team.findMany({
+      where: { division },
+      select: { id: true }
+    });
+    
     const teamIdsInDivision = divisionTeams.map(t => t.id);
-
     if (teamIdsInDivision.length === 0) return [];
 
-    let query = db.select().from(matches)
-      .where(and(
-        inArray(matches.homeTeamId, teamIdsInDivision),
-        inArray(matches.awayTeamId, teamIdsInDivision),
-        // eq(matches.matchType, "league") // Assuming these are league matches
-      ))
-      .orderBy(asc(matches.gameDay), asc(matches.scheduledTime));
+    const divisionMatches = await prisma.game.findMany({
+      where: {
+        AND: [
+          { homeTeamId: { in: teamIdsInDivision } },
+          { awayTeamId: { in: teamIdsInDivision } },
+          ...(seasonId ? [{ league: { seasonId } }] : [])
+        ]
+      },
+      include: {
+        league: true,
+        tournament: true
+      },
+      orderBy: [
+        { gameDate: 'asc' }
+      ]
+    });
 
-    // if (seasonId && matches.seasonId) { // If schema has seasonId on matches
-    //     query = query.where(eq(matches.seasonId, seasonId));
-    // }
-
-    const divisionMatches = await query;
-    // Enhance with team names
-    return Promise.all(divisionMatches.map(async match => {
-        if (!match.homeTeamName || !match.awayTeamName) {
-            const home = await db.select({ name: teams.name }).from(teams).where(eq(teams.id, match.homeTeamId)).limit(1);
-            const away = await db.select({ name: teams.name }).from(teams).where(eq(teams.id, match.awayTeamId)).limit(1);
-            match.homeTeamName = home[0]?.name || "Home";
-            match.awayTeamName = away[0]?.name || "Away";
-        }
-        return match;
-    }));
+    return divisionMatches;
   }
 
-  async updateMatch(id: string, updates: Partial<InsertMatch>): Promise<Match | undefined> {
-    const existingMatch = await this.getMatchById(id);
-    if (!existingMatch) {
-        console.warn(`Match with ID ${id} not found for update.`);
-        return undefined;
+  async updateMatch(id: number, updates: Partial<Game>): Promise<Game | null> {
+    try {
+      const updatedMatch = await prisma.game.update({
+        where: { id },
+        data: updates,
+        include: {
+          league: true,
+          tournament: true
+        }
+      });
+      return updatedMatch;
+    } catch (error) {
+      console.warn(`Match with ID ${id} not found for update.`);
+      return null;
     }
-    const [updatedMatch] = await db
-      .update(matches)
-      .set({ ...updates, updatedAt: new Date() }) // Assuming 'updatedAt' in schema
-      .where(eq(matches.id, id))
-      .returning();
-    return updatedMatch;
   }
 
-  async getLiveMatches(): Promise<Match[]> {
-    const live = await db
-      .select()
-      .from(matches)
-      .where(eq(matches.status, "live"))
-      .orderBy(desc(matches.scheduledTime));
-
-    // Enhance with team names
-    return Promise.all(live.map(async match => {
-        if (!match.homeTeamName || !match.awayTeamName) {
-            const home = await db.select({ name: teams.name }).from(teams).where(eq(teams.id, match.homeTeamId)).limit(1);
-            const away = await db.select({ name: teams.name }).from(teams).where(eq(teams.id, match.awayTeamId)).limit(1);
-            match.homeTeamName = home[0]?.name || "Home";
-            match.awayTeamName = away[0]?.name || "Away";
-        }
-        return match;
-    }));
+  async getLiveMatches(): Promise<Game[]> {
+    const live = await prisma.game.findMany({
+      where: { status: GameStatus.IN_PROGRESS },
+      include: {
+        league: true,
+        tournament: true
+      },
+      orderBy: { gameDate: 'desc' }
+    });
+    return live;
   }
 
-  async getScheduledMatchesForDay(gameDay: number, leagueId?: string): Promise<Match[]> {
-    let query = db.select().from(matches)
-        .where(and(
-            eq(matches.status, "scheduled"),
-            eq(matches.gameDay, gameDay)
-        ))
-        .orderBy(asc(matches.scheduledTime));
+  async getScheduledMatchesForDay(gameDate: Date, leagueId?: number): Promise<Game[]> {
+    // Get matches for the specific date
+    const startOfDay = new Date(gameDate);
+    startOfDay.setHours(0, 0, 0, 0);
+    
+    const endOfDay = new Date(gameDate);
+    endOfDay.setHours(23, 59, 59, 999);
 
-    // if (leagueId && matches.leagueId) { // If schema has leagueId on matches
-    //     query = query.where(eq(matches.leagueId, leagueId));
-    // }
-    return await query;
+    const matches = await prisma.game.findMany({
+      where: {
+        status: GameStatus.SCHEDULED,
+        gameDate: {
+          gte: startOfDay,
+          lte: endOfDay
+        },
+        ...(leagueId ? { leagueId } : {})
+      },
+      include: {
+        league: true,
+        tournament: true
+      },
+      orderBy: { gameDate: 'asc' }
+    });
+    return matches;
   }
 }
 
