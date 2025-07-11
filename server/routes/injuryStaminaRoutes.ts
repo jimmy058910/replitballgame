@@ -100,9 +100,10 @@ router.post('/player/:playerId/use-item', isAuthenticated, async (req: any, res:
     }
 
     const team = await prisma.team.findFirst({
-      where: { id: player.teamId }
+      where: { id: player.teamId },
+      include: { user: true }
     });
-    if (!team || team.userId !== userId) {
+    if (!team || team.user.userId !== userId) {
       return res.status(403).json({ message: "Unauthorized access to player" });
     }
 
@@ -139,9 +140,10 @@ router.post('/simulate-tackle-injury', isAuthenticated, async (req: any, res: Re
     }
 
     const team = await prisma.team.findFirst({
-      where: { id: player.teamId }
+      where: { id: player.teamId },
+      include: { user: true }
     });
-    if (!team || team.userId !== userId) {
+    if (!team || team.user.userId !== userId) {
       return res.status(403).json({ message: "Unauthorized access to player" });
     }
 
