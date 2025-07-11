@@ -263,7 +263,7 @@ export default function CamaraderieManagement({ teamId }: { teamId: string }) {
         <TabsContent value="players">
           <div className="grid gap-6">
             {/* Top Performers */}
-            {summary.topPerformers.length > 0 && (
+            {summary.topPerformers && summary.topPerformers.length > 0 && (
               <Card className="bg-gray-800 border-gray-700">
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
@@ -296,7 +296,7 @@ export default function CamaraderieManagement({ teamId }: { teamId: string }) {
             )}
 
             {/* Concerned Players */}
-            {summary.concernedPlayers.length > 0 && (
+            {summary.concernedPlayers && summary.concernedPlayers.length > 0 && (
               <Card className="bg-gray-800 border-gray-700">
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">

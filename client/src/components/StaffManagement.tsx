@@ -13,15 +13,16 @@ interface StaffMember {
   name: string;
   type: string;
   level: number;
-  salary: number;
+  salary?: number;
   contractYears?: number;
-  offenseRating: number;
-  defenseRating: number;
-  physicalRating: number;
-  scoutingRating: number;
-  recruitingRating: number;
-  recoveryRating: number;
-  coachingRating: number;
+  motivation: number;
+  development: number;
+  teaching: number;
+  physiology: number;
+  talentIdentification: number;
+  potentialAssessment: number;
+  tactics: number;
+  age: number;
 }
 
 interface StaffManagementProps {
@@ -160,6 +161,44 @@ export default function StaffManagement({ teamId }: StaffManagementProps) {
   const calculateSalary = (type: string, level: number) => {
     const staffType = staffTypes.find(s => s.type === type);
     return (staffType?.baseSalary || 5000) * level;
+  };
+
+  const calculateOffenseBonus = () => {
+    const passer = getStaffByType("trainer_offense");
+    const runner = getStaffByType("trainer_physical");
+    const blocker = getStaffByType("trainer_defense");
+    const totalTeaching = (passer?.teaching || 0) + (runner?.teaching || 0) + (blocker?.teaching || 0);
+    return Math.floor(totalTeaching / 10); // Each 10 points of teaching = 1% bonus
+  };
+
+  const calculateDefenseBonus = () => {
+    const blocker = getStaffByType("trainer_defense");
+    const coach = getStaffByType("head_coach");
+    const totalDefense = (blocker?.teaching || 0) + (coach?.tactics || 0);
+    return Math.floor(totalDefense / 15); // Each 15 points = 1% bonus
+  };
+
+  const calculatePhysicalBonus = () => {
+    const runner = getStaffByType("trainer_physical");
+    const coach = getStaffByType("head_coach");
+    const totalPhysical = (runner?.teaching || 0) + (coach?.development || 0);
+    return Math.floor(totalPhysical / 12); // Each 12 points = 1% bonus
+  };
+
+  const calculateScoutingBonus = () => {
+    const scouts = staff?.filter(member => member.type === "SCOUT") || [];
+    const totalScouting = scouts.reduce((sum, scout) => sum + (scout.talentIdentification || 0) + (scout.potentialAssessment || 0), 0);
+    return Math.floor(totalScouting / 20); // Each 20 points = 1% bonus
+  };
+
+  const calculateInjuryReduction = () => {
+    const recovery = getStaffByType("recovery_specialist");
+    return Math.floor((recovery?.physiology || 0) / 8); // Each 8 points = 1% reduction
+  };
+
+  const calculateCamaraderieBonus = () => {
+    const coach = getStaffByType("head_coach");
+    return Math.floor((coach?.motivation || 0) / 5); // Each 5 points = 1 camaraderie per season
   };
 
   const getStatDisplayName = (statName: string) => {
@@ -328,7 +367,7 @@ export default function StaffManagement({ teamId }: StaffManagementProps) {
                   <h4 className="font-semibold mb-2">Offense Training</h4>
                   <div className="text-sm text-gray-600">
                     {getStaffByType("trainer_offense") ? (
-                      `+${Math.floor((getStaffByType("trainer_offense")?.offenseRating || 0) / 10)}% to throwing, catching, agility progression`
+                      `+${calculateOffenseBonus()}% to throwing, catching, agility progression`
                     ) : (
                       "No offense trainer hired"
                     )}
@@ -338,7 +377,7 @@ export default function StaffManagement({ teamId }: StaffManagementProps) {
                   <h4 className="font-semibold mb-2">Defense Training</h4>
                   <div className="text-sm text-gray-600">
                     {getStaffByType("trainer_defense") ? (
-                      `+${Math.floor((getStaffByType("trainer_defense")?.defenseRating || 0) / 10)}% to power, stamina progression`
+                      `+${calculateDefenseBonus()}% to power, stamina progression`
                     ) : (
                       "No defense trainer hired"
                     )}
@@ -348,7 +387,7 @@ export default function StaffManagement({ teamId }: StaffManagementProps) {
                   <h4 className="font-semibold mb-2">Physical Training</h4>
                   <div className="text-sm text-gray-600">
                     {getStaffByType("trainer_physical") ? (
-                      `+${Math.floor((getStaffByType("trainer_physical")?.physicalRating || 0) / 10)}% to speed, power progression`
+                      `+${calculatePhysicalBonus()}% to speed, power progression`
                     ) : (
                       "No physical trainer hired"
                     )}
@@ -365,8 +404,8 @@ export default function StaffManagement({ teamId }: StaffManagementProps) {
                 <div>
                   <h4 className="font-semibold mb-2">Scouting Accuracy</h4>
                   <div className="text-sm text-gray-600">
-                    {getStaffByType("head_scout") ? (
-                      `${Math.floor((getStaffByType("head_scout")?.scoutingRating || 0) / 2)}% more accurate player ratings revealed`
+                    {calculateScoutingBonus() > 0 ? (
+                      `${calculateScoutingBonus()}% more accurate player ratings revealed`
                     ) : (
                       "Basic scouting accuracy"
                     )}
@@ -376,7 +415,7 @@ export default function StaffManagement({ teamId }: StaffManagementProps) {
                   <h4 className="font-semibold mb-2">Injury Prevention</h4>
                   <div className="text-sm text-gray-600">
                     {getStaffByType("recovery_specialist") ? (
-                      `${Math.floor((getStaffByType("recovery_specialist")?.recoveryRating || 0) / 5)}% reduced injury risk`
+                      `${calculateInjuryReduction()}% reduced injury risk`
                     ) : (
                       "No injury prevention specialist"
                     )}
@@ -386,7 +425,7 @@ export default function StaffManagement({ teamId }: StaffManagementProps) {
                   <h4 className="font-semibold mb-2">Team Chemistry</h4>
                   <div className="text-sm text-gray-600">
                     {getStaffByType("head_coach") ? (
-                      `+${Math.floor((getStaffByType("head_coach")?.coachingRating || 0) / 8)}/season camaraderie for all players`
+                      `+${calculateCamaraderieBonus()}/season camaraderie for all players`
                     ) : (
                       "No head coach benefits"
                     )}

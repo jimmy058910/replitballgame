@@ -585,6 +585,8 @@ export class CamaraderieService {
     lowMoraleCount: number;
     averageYearsOnTeam: number;
     effects: CamaraderieEffects;
+    topPerformers: any[];
+    concernedPlayers: any[];
   }> {
     try {
       const effects = await this.getCamaraderieEffects(teamId);
@@ -619,6 +621,52 @@ export class CamaraderieService {
         }
       });
       
+      // Get top performers (high camaraderie players)
+      const topPerformers = await prisma.player.findMany({
+        where: {
+          teamId: parseInt(teamId),
+          camaraderieScore: {
+            gte: 75
+          }
+        },
+        select: {
+          id: true,
+          firstName: true,
+          lastName: true,
+          camaraderieScore: true,
+          role: true,
+          age: true,
+          race: true
+        },
+        orderBy: {
+          camaraderieScore: 'desc'
+        },
+        take: 5
+      });
+      
+      // Get players of concern (low camaraderie)
+      const concernedPlayers = await prisma.player.findMany({
+        where: {
+          teamId: parseInt(teamId),
+          camaraderieScore: {
+            lte: 35
+          }
+        },
+        select: {
+          id: true,
+          firstName: true,
+          lastName: true,
+          camaraderieScore: true,
+          role: true,
+          age: true,
+          race: true
+        },
+        orderBy: {
+          camaraderieScore: 'asc'
+        },
+        take: 5
+      });
+      
       return {
         teamCamaraderie: effects.teamCamaraderie,
         status: effects.status,
@@ -626,7 +674,9 @@ export class CamaraderieService {
         highMoraleCount: Number(highMoraleCount),
         lowMoraleCount: Number(lowMoraleCount),
         averageYearsOnTeam: Math.round(Number(playerStats._avg.age || 18) * 10) / 10,
-        effects
+        effects,
+        topPerformers,
+        concernedPlayers
       };
     } catch (error) {
       logError(error as Error, undefined, { 
