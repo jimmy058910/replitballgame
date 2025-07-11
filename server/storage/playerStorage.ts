@@ -67,7 +67,7 @@ export class PlayerStorage {
     // Typically, you'd fetch non-marketplace players for a team's roster
     const players = await prisma.player.findMany({
       where: {
-        teamId: teamId,
+        teamId: parseInt(teamId.toString()),
         isOnMarket: false
       },
       include: {
@@ -84,7 +84,7 @@ export class PlayerStorage {
   async getAllPlayersByTeamId(teamId: number): Promise<Player[]> {
     // Fetches all players associated with a team, including those on marketplace
     return await prisma.player.findMany({
-      where: { teamId: teamId },
+      where: { teamId: parseInt(teamId.toString()) },
       include: {
         team: { select: { name: true } },
         contract: true,

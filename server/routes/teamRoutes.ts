@@ -171,9 +171,48 @@ router.post('/', isAuthenticated, asyncHandler(async (req: any, res: Response) =
     }
   }
 
+  // Create default staff members
+  logInfo("Starting staff creation", { 
+    teamId: team.id, 
+    requestId: req.requestId 
+  });
+
+  const defaultStaff = [
+    { type: 'HEAD_COACH', name: 'Coach Johnson', motivation: 25, development: 20, tactics: 18 },
+    { type: 'RECOVERY_SPECIALIST', name: 'Alex Recovery', physiology: 22 },
+    { type: 'PASSER_TRAINER', name: 'Sarah Passer', teaching: 20 },
+    { type: 'RUNNER_TRAINER', name: 'Mike Runner', teaching: 18 },
+    { type: 'BLOCKER_TRAINER', name: 'Lisa Blocker', teaching: 19 },
+    { type: 'SCOUT', name: 'Emma Talent', talentIdentification: 21, potentialAssessment: 20 },
+    { type: 'SCOUT', name: 'Tony Scout', talentIdentification: 18, potentialAssessment: 19 }
+  ];
+
+  for (const staffData of defaultStaff) {
+    try {
+      await storage.staff.createStaff({
+        teamId: team.id,
+        type: staffData.type,
+        name: staffData.name,
+        level: 1,
+        motivation: staffData.motivation || 15,
+        development: staffData.development || 15,
+        teaching: staffData.teaching || 15,
+        physiology: staffData.physiology || 15,
+        talentIdentification: staffData.talentIdentification || 15,
+        potentialAssessment: staffData.potentialAssessment || 15,
+        tactics: staffData.tactics || 15,
+        age: 25 + Math.floor(Math.random() * 20)
+      });
+    } catch (staffError) {
+      const errorMessage = staffError instanceof Error ? staffError.message : String(staffError);
+      console.warn(`Failed to create staff member ${staffData.name}: ${errorMessage}`);
+    }
+  }
+
   logInfo("Team creation completed", { 
     teamId: team.id, 
     playersCreated: 10,
+    staffCreated: defaultStaff.length,
     requestId: req.requestId 
   });
 

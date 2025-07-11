@@ -118,6 +118,20 @@ export class TeamStorage {
           staff: true
         }
       });
+      
+      // Convert BigInt fields to strings for JSON serialization
+      if (updatedTeam && updatedTeam.finances) {
+        updatedTeam.finances = {
+          ...updatedTeam.finances,
+          credits: updatedTeam.finances.credits.toString(),
+          projectedIncome: updatedTeam.finances.projectedIncome.toString(),
+          projectedExpenses: updatedTeam.finances.projectedExpenses.toString(),
+          lastSeasonRevenue: updatedTeam.finances.lastSeasonRevenue.toString(),
+          lastSeasonExpenses: updatedTeam.finances.lastSeasonExpenses.toString(),
+          facilitiesMaintenanceCost: updatedTeam.finances.facilitiesMaintenanceCost.toString(),
+        };
+      }
+      
       return updatedTeam;
     } catch (error) {
       console.warn(`Team with ID ${id} not found for update.`);
@@ -158,7 +172,7 @@ export class TeamStorage {
   }
 
   async getTeamsByDivision(division: number): Promise<Team[]> {
-    return await prisma.team.findMany({
+    const teams = await prisma.team.findMany({
       where: { division },
       include: {
         finances: true,
@@ -171,10 +185,26 @@ export class TeamStorage {
         { wins: 'desc' }
       ]
     });
+
+    // Convert BigInt fields to strings for JSON serialization
+    return teams.map(team => {
+      if (team.finances) {
+        team.finances = {
+          ...team.finances,
+          credits: team.finances.credits.toString(),
+          projectedIncome: team.finances.projectedIncome.toString(),
+          projectedExpenses: team.finances.projectedExpenses.toString(),
+          lastSeasonRevenue: team.finances.lastSeasonRevenue.toString(),
+          lastSeasonExpenses: team.finances.lastSeasonExpenses.toString(),
+          facilitiesMaintenanceCost: team.finances.facilitiesMaintenanceCost.toString(),
+        };
+      }
+      return team;
+    });
   }
 
   async getTeamsByDivisionAndSubdivision(division: number, subdivision: string): Promise<Team[]> {
-    return await prisma.team.findMany({
+    const teams = await prisma.team.findMany({
       where: { 
         division,
         subdivision
@@ -189,6 +219,22 @@ export class TeamStorage {
         { points: 'desc' },
         { wins: 'desc' }
       ]
+    });
+
+    // Convert BigInt fields to strings for JSON serialization
+    return teams.map(team => {
+      if (team.finances) {
+        team.finances = {
+          ...team.finances,
+          credits: team.finances.credits.toString(),
+          projectedIncome: team.finances.projectedIncome.toString(),
+          projectedExpenses: team.finances.projectedExpenses.toString(),
+          lastSeasonRevenue: team.finances.lastSeasonRevenue.toString(),
+          lastSeasonExpenses: team.finances.lastSeasonExpenses.toString(),
+          facilitiesMaintenanceCost: team.finances.facilitiesMaintenanceCost.toString(),
+        };
+      }
+      return team;
     });
   }
 

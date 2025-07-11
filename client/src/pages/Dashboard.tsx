@@ -87,7 +87,7 @@ function getDivisionNameWithSubdivision(division: number, teamId?: string): stri
   
   if (division === 8 && teamId) {
     // Generate consistent sub-division based on team ID
-    const hash = teamId.split('').reduce((a, b) => {
+    const hash = teamId.toString().split('').reduce((a, b) => {
       a = ((a << 5) - a) + b.charCodeAt(0);
       return a & a;
     }, 0);
