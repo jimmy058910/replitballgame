@@ -9,10 +9,19 @@ export class TeamStorage {
     division?: number;
     subdivision?: string;
   }): Promise<Team> {
+    // First, find the UserProfile by userId to get the correct id for foreign key
+    const userProfile = await prisma.userProfile.findUnique({
+      where: { userId: teamData.userId }
+    });
+    
+    if (!userProfile) {
+      throw new Error(`UserProfile not found for userId: ${teamData.userId}`);
+    }
+    
     const newTeam = await prisma.team.create({
       data: {
         name: teamData.name,
-        userProfileId: parseInt(teamData.userId),
+        userProfileId: userProfile.id, // Use the UserProfile's id, not the userId
         division: teamData.division || 8,
         subdivision: teamData.subdivision || "main",
         camaraderie: 50.0,
@@ -34,8 +43,17 @@ export class TeamStorage {
   }
 
   async getTeamByUserId(userId: string): Promise<Team | null> {
+    // First find the UserProfile by userId, then find the team by userProfileId
+    const userProfile = await prisma.userProfile.findUnique({
+      where: { userId: userId }
+    });
+    
+    if (!userProfile) {
+      return null;
+    }
+    
     const team = await prisma.team.findFirst({
-      where: { userProfileId: parseInt(userId) },
+      where: { userProfileId: userProfile.id },
       include: {
         finances: true,
         stadium: true,
