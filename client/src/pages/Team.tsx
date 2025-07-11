@@ -340,7 +340,7 @@ export default function Team() {
                       <div className="mt-4 p-4 bg-gray-700 rounded-lg">
                         <p className="text-sm text-gray-400">Total Season Salary</p>
                         <p className="text-2xl font-bold text-green-400">
-                          ₡{playersWithRoles.reduce((total, player) => total + (player.salary || 0), 0).toLocaleString()}
+                          ₡{playersWithRoles.reduce((total, player) => total + (player.contract?.salary || 0), 0).toLocaleString()}
                         </p>
                       </div>
                     )}
@@ -380,10 +380,10 @@ export default function Team() {
                               </div>
                               <div className="text-right">
                                 <p className="font-semibold text-green-400">
-                                  ₡{(player.salary || 0).toLocaleString()}
+                                  ₡{(player.contract?.salary || 0).toLocaleString()}
                                 </p>
                                 <p className="text-sm text-gray-400">
-                                  {(player.contractLength || 1)} seasons remaining
+                                  {(player.contract?.length || 1)} seasons remaining
                                 </p>
                               </div>
                               <div className="ml-4">
