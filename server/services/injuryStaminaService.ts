@@ -131,10 +131,20 @@ export class InjuryStaminaService {
    * Apply injury to a player
    */
   async applyInjury(playerId: string, injuryType: string, recoveryPoints: number): Promise<void> {
+    // Convert injury type to enum value
+    let injuryStatus = 'HEALTHY';
+    if (injuryType === 'Minor Injury') {
+      injuryStatus = 'MINOR_INJURY';
+    } else if (injuryType === 'Moderate Injury') {
+      injuryStatus = 'MODERATE_INJURY';
+    } else if (injuryType === 'Severe Injury') {
+      injuryStatus = 'SEVERE_INJURY';
+    }
+    
     await prisma.player.update({
-      where: { id: playerId },
+      where: { id: parseInt(playerId) },
       data: {
-        injuryStatus: injuryType,
+        injuryStatus: injuryStatus as any,
         injuryRecoveryPointsNeeded: recoveryPoints,
         injuryRecoveryPointsCurrent: 0,
         careerInjuries: {

@@ -143,6 +143,7 @@ router.post('/simulate-tackle-injury', isAuthenticated, async (req: any, res: Re
       where: { id: player.teamId },
       include: { user: true }
     });
+    
     if (!team || team.user.userId !== userId) {
       return res.status(403).json({ message: "Unauthorized access to player" });
     }
