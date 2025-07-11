@@ -1,118 +1,115 @@
-import { db } from "../db";
-import { teamInventory, matchConsumables, matches, type MatchConsumable, type InsertMatchConsumable, type TeamInventory } from "@shared/schema";
-import { eq, and, desc, asc } from "drizzle-orm";
-import { randomUUID } from "crypto";
+import { PrismaClient, InventoryItem, MatchConsumable } from '../../generated/prisma';
+
+const prisma = new PrismaClient();
 
 export class ConsumableStorage {
   // Get team's consumable inventory
-  async getTeamConsumables(teamId: string): Promise<TeamInventory[]> {
-    return await db.select()
-      .from(teamInventory)
-      .where(eq(teamInventory.teamId, teamId));
+  async getTeamConsumables(teamId: number): Promise<InventoryItem[]> {
+    return await prisma.inventoryItem.findMany({
+      where: { teamId },
+      include: {
+        item: true,
+        team: { select: { name: true } }
+      }
+    });
   }
 
   // Get team's available consumables (items of consumable type)
-  async getTeamAvailableConsumables(teamId: string): Promise<TeamInventory[]> {
-    return await db.select()
-      .from(teamInventory)
-      .where(and(
-        eq(teamInventory.teamId, teamId),
-        eq(teamInventory.itemType, "consumable")
-      ));
+  async getTeamAvailableConsumables(teamId: number): Promise<InventoryItem[]> {
+    return await prisma.inventoryItem.findMany({
+      where: {
+        teamId,
+        item: { type: 'consumable' }
+      },
+      include: {
+        item: true,
+        team: { select: { name: true } }
+      }
+    });
   }
 
   // Check how many consumables a team has activated for a specific match
-  async getMatchConsumablesCount(matchId: string, teamId: string): Promise<number> {
-    const consumables = await db.select()
-      .from(matchConsumables)
-      .where(and(
-        eq(matchConsumables.matchId, matchId),
-        eq(matchConsumables.teamId, teamId)
-      ));
-    return consumables.length;
+  async getMatchConsumablesCount(matchId: number, teamId: number): Promise<number> {
+    const count = await prisma.matchConsumable.count({
+      where: {
+        matchId,
+        teamId
+      }
+    });
+    return count;
   }
 
   // Get all consumables activated for a match by a team
-  async getMatchConsumables(matchId: string, teamId: string): Promise<MatchConsumable[]> {
-    return await db.select()
-      .from(matchConsumables)
-      .where(and(
-        eq(matchConsumables.matchId, matchId),
-        eq(matchConsumables.teamId, teamId)
-      ))
-      .orderBy(desc(matchConsumables.activatedAt));
+  async getMatchConsumables(matchId: number, teamId: number): Promise<MatchConsumable[]> {
+    return await prisma.matchConsumable.findMany({
+      where: {
+        matchId,
+        teamId
+      },
+      orderBy: { activatedAt: 'desc' }
+    });
   }
 
   // Activate a consumable for a match (with 3-per-match limit)
   async activateConsumable(
-    matchId: string,
-    teamId: string,
-    consumableId: string,
+    matchId: number,
+    teamId: number,
+    consumableId: number,
     consumableName: string,
     effectType: string,
     effectData: any
   ): Promise<{ success: boolean; message: string; consumable?: MatchConsumable }> {
     try {
-      // Check if team has already activated 3 consumables for this match
-      const currentCount = await this.getMatchConsumablesCount(matchId, teamId);
-      if (currentCount >= 3) {
+      // Check if team has already used 3 consumables for this match
+      const existingCount = await this.getMatchConsumablesCount(matchId, teamId);
+      if (existingCount >= 3) {
         return {
           success: false,
-          message: "Cannot activate more than 3 consumables per league game"
+          message: "Maximum of 3 consumables per match allowed"
         };
       }
 
-      // Check if team has this consumable in their inventory
-      const inventoryItems = await db.select()
-        .from(teamInventory)
-        .where(and(
-          eq(teamInventory.teamId, teamId),
-          eq(teamInventory.name, consumableName),
-          eq(teamInventory.itemType, "consumable")
-        ));
+      // Check if team has this consumable in inventory
+      const inventoryItem = await prisma.inventoryItem.findFirst({
+        where: {
+          teamId,
+          itemId: consumableId,
+          quantity: { gt: 0 }
+        }
+      });
 
-      if (inventoryItems.length === 0) {
+      if (!inventoryItem) {
         return {
           success: false,
           message: "Consumable not found in team inventory"
         };
       }
 
-      const inventoryItem = inventoryItems[0];
-      if ((inventoryItem.quantity || 0) <= 0) {
-        return {
-          success: false,
-          message: "No consumables remaining in inventory"
-        };
-      }
-
       // Create match consumable record
-      const matchConsumableData: InsertMatchConsumable = {
-        id: randomUUID(),
-        matchId,
-        teamId,
-        consumableId,
-        consumableName,
-        effectType,
-        effectData,
-        activatedAt: new Date(),
-        usedInMatch: false
-      };
+      const matchConsumable = await prisma.matchConsumable.create({
+        data: {
+          matchId,
+          teamId,
+          consumableId,
+          consumableName,
+          effectType,
+          effectData,
+          activatedAt: new Date()
+        }
+      });
 
-      const [newConsumable] = await db.insert(matchConsumables)
-        .values(matchConsumableData)
-        .returning();
-
-      // Reduce inventory quantity
-      await db.update(teamInventory)
-        .set({ quantity: (inventoryItem.quantity || 0) - 1 })
-        .where(eq(teamInventory.id, inventoryItem.id));
+      // Reduce quantity in inventory
+      await prisma.inventoryItem.update({
+        where: { id: inventoryItem.id },
+        data: { quantity: inventoryItem.quantity - 1 }
+      });
 
       return {
         success: true,
         message: "Consumable activated successfully",
-        consumable: newConsumable
+        consumable: matchConsumable
       };
+
     } catch (error) {
       console.error("Error activating consumable:", error);
       return {
@@ -122,111 +119,36 @@ export class ConsumableStorage {
     }
   }
 
-  // Add consumable to team inventory (for store purchases)
-  async addConsumableToInventory(
-    teamId: string,
-    consumableId: string,
-    name: string,
-    description: string,
-    rarity: string,
-    metadata: any,
-    quantity: number = 1
-  ): Promise<boolean> {
+  // Remove a consumable from inventory (used for consumption)
+  async consumeItem(teamId: number, consumableId: number, quantity: number = 1): Promise<boolean> {
     try {
-      // Check if item already exists in inventory
-      const existingItems = await db.select()
-        .from(teamInventory)
-        .where(and(
-          eq(teamInventory.teamId, teamId),
-          eq(teamInventory.name, name),
-          eq(teamInventory.itemType, "consumable")
-        ));
-
-      if (existingItems.length > 0) {
-        // Update quantity
-        const existingItem = existingItems[0];
-        await db.update(teamInventory)
-          .set({ quantity: (existingItem.quantity || 0) + quantity })
-          .where(eq(teamInventory.id, existingItem.id));
-      } else {
-        // Create new inventory item
-        await db.insert(teamInventory).values({
-          id: randomUUID(),
+      const inventoryItem = await prisma.inventoryItem.findFirst({
+        where: {
           teamId,
-          itemId: null, // Store items don't have item references
-          itemType: "consumable",
-          name,
-          description,
-          rarity,
-          metadata,
-          quantity,
-          acquiredAt: new Date()
+          itemId: consumableId
+        }
+      });
+
+      if (!inventoryItem || inventoryItem.quantity < quantity) {
+        return false;
+      }
+
+      if (inventoryItem.quantity === quantity) {
+        // Remove completely
+        await prisma.inventoryItem.delete({
+          where: { id: inventoryItem.id }
+        });
+      } else {
+        // Reduce quantity
+        await prisma.inventoryItem.update({
+          where: { id: inventoryItem.id },
+          data: { quantity: inventoryItem.quantity - quantity }
         });
       }
 
       return true;
     } catch (error) {
-      console.error("Error adding consumable to inventory:", error);
-      return false;
-    }
-  }
-
-  // Mark consumables as used after match completion
-  async markConsumablesAsUsed(matchId: string): Promise<void> {
-    await db.update(matchConsumables)
-      .set({ usedInMatch: true })
-      .where(eq(matchConsumables.matchId, matchId));
-  }
-
-  // Get all consumables for a match (both teams)
-  async getAllMatchConsumables(matchId: string): Promise<MatchConsumable[]> {
-    return await db.select()
-      .from(matchConsumables)
-      .where(eq(matchConsumables.matchId, matchId))
-      .orderBy(asc(matchConsumables.teamId), desc(matchConsumables.activatedAt));
-  }
-
-  // Remove consumable activation (before match starts)
-  async deactivateConsumable(consumableId: string, teamId: string): Promise<boolean> {
-    try {
-      // Get the consumable record
-      const consumableRecords = await db.select()
-        .from(matchConsumables)
-        .where(and(
-          eq(matchConsumables.id, consumableId),
-          eq(matchConsumables.teamId, teamId),
-          eq(matchConsumables.usedInMatch, false)
-        ));
-
-      if (consumableRecords.length === 0) {
-        return false; // Consumable not found or already used
-      }
-
-      const consumableRecord = consumableRecords[0];
-
-      // Return consumable to inventory
-      const inventoryItems = await db.select()
-        .from(teamInventory)
-        .where(and(
-          eq(teamInventory.teamId, teamId),
-          eq(teamInventory.name, consumableRecord.consumableName),
-          eq(teamInventory.itemType, "consumable")
-        ));
-
-      if (inventoryItems.length > 0) {
-        const inventoryItem = inventoryItems[0];
-        await db.update(teamInventory)
-          .set({ quantity: (inventoryItem.quantity || 0) + 1 })
-          .where(eq(teamInventory.id, inventoryItem.id));
-      }
-
-      // Remove consumable activation
-      await db.delete(matchConsumables)
-        .where(eq(matchConsumables.id, consumableId));
-
-      return true;
-    } catch (error) {
-      console.error("Error deactivating consumable:", error);
+      console.error("Error consuming item:", error);
       return false;
     }
   }

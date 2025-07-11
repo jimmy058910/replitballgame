@@ -1,233 +1,123 @@
-import { db } from "../db";
-import { adViews, users, type AdView, type InsertAdView } from "@shared/schema";
-import { eq, and, gte, sql, desc } from "drizzle-orm"; // Added sql and desc
-import { nanoid } from "nanoid";
+import { PrismaClient, AdView } from '../../generated/prisma';
+
+const prisma = new PrismaClient();
 
 export class AdSystemStorage {
-  async createAdView(adViewData: Omit<InsertAdView, 'id' | 'createdAt'>): Promise<AdView> {
-    const dataToInsert: InsertAdView = {
-      id: nanoid(),
-      ...adViewData,
-      placement: adViewData.placement || 'unknown',
-      rewardType: adViewData.rewardType || 'none',
-      rewardAmount: adViewData.rewardAmount || 0,
-      completed: adViewData.completed || false,
-      createdAt: new Date(),
-      completedAt: adViewData.completed ? (adViewData.completedAt || new Date()) : null,
-    };
-    const [newAdView] = await db.insert(adViews).values(dataToInsert).returning();
+  async createAdView(adViewData: {
+    userId: string;
+    teamId?: number;
+    placement?: string;
+    rewardType?: string;
+    rewardAmount?: number;
+    completed?: boolean;
+    completedAt?: Date;
+  }): Promise<AdView> {
+    const newAdView = await prisma.adView.create({
+      data: {
+        userId: adViewData.userId,
+        teamId: adViewData.teamId,
+        placement: adViewData.placement || 'unknown',
+        rewardType: adViewData.rewardType || 'none',
+        rewardAmount: adViewData.rewardAmount || 0,
+        completed: adViewData.completed || false,
+        completedAt: adViewData.completed ? (adViewData.completedAt || new Date()) : null,
+      }
+    });
     return newAdView;
   }
 
-  async getAdViewById(id: string): Promise<AdView | undefined> {
-    const [adView] = await db.select().from(adViews).where(eq(adViews.id, id)).limit(1);
+  async getAdViewById(id: number): Promise<AdView | null> {
+    const adView = await prisma.adView.findUnique({
+      where: { id }
+    });
     return adView;
   }
 
   async getAdViewsByUser(userId: string, limit: number = 100, offset: number = 0): Promise<AdView[]> {
-    return await db
-      .select()
-      .from(adViews)
-      .where(eq(adViews.userId, userId))
-      .orderBy(desc(adViews.createdAt))
-      .limit(limit)
-      .offset(offset);
+    return await prisma.adView.findMany({
+      where: { userId },
+      orderBy: { createdAt: 'desc' },
+      take: limit,
+      skip: offset
+    });
   }
 
   async getDailyAdViewsCountByUser(userId: string): Promise<number> {
     const todayStart = new Date();
     todayStart.setHours(0, 0, 0, 0);
 
-    const result = await db
-      .select({ count: sql<number>`count(*)::int` })
-      .from(adViews)
-      .where(and(
-        eq(adViews.userId, userId),
-        gte(adViews.createdAt, todayStart)
-      ));
-    return result[0]?.count || 0;
+    const count = await prisma.adView.count({
+      where: {
+        userId,
+        createdAt: {
+          gte: todayStart
+        }
+      }
+    });
+    return count;
   }
 
   async getDailyCompletedRewardedAdViewsCountByUser(userId: string): Promise<number> {
     const todayStart = new Date();
     todayStart.setHours(0, 0, 0, 0);
 
-    const result = await db
-      .select({ count: sql<number>`count(*)::int` })
-      .from(adViews)
-      .where(and(
-        eq(adViews.userId, userId),
-        gte(adViews.completedAt, todayStart),
-        eq(adViews.completed, true),
-        sql`${adViews.rewardType} IS NOT NULL AND ${adViews.rewardType} != 'none'`,
-        sql`${adViews.rewardAmount} > 0`
-      ));
-    return result[0]?.count || 0;
-  }
-
-  /**
-   * Process ad watch with comprehensive reward tracking
-   */
-  async processAdWatch(userId: string, adType: string, placement: string, rewardType: string, rewardAmount: number): Promise<{
-    adView: AdView;
-    dailyCount: number;
-    totalCount: number;
-    premiumRewardProgress: number;
-    premiumRewardEarned: boolean;
-    premiumReward?: any;
-  }> {
-    // Create ad view record
-    const adView = await this.createAdView({
-      userId,
-      adType: adType as any,
-      placement,
-      rewardType: rewardType as any,
-      rewardAmount,
-      completed: true,
-      completedAt: new Date()
-    });
-
-    // Update user ad tracking
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-
-    const [user] = await db.select().from(users).where(eq(users.id, userId)).limit(1);
-    if (!user) {
-      throw new Error("User not found");
-    }
-
-    const isNewDay = !user.lastAdWatchDate || user.lastAdWatchDate < today;
-    const newDailyCount = isNewDay ? 1 : (user.dailyAdWatchCount || 0) + 1;
-    const newTotalCount = (user.totalAdWatchCount || 0) + 1;
-    const newProgress = (user.premiumRewardProgress || 0) + 1;
-
-    // Check if premium reward earned (50 ads)
-    const premiumRewardEarned = newProgress >= 50;
-    const finalProgress = premiumRewardEarned ? 0 : newProgress;
-
-    // Update user tracking
-    await db.update(users)
-      .set({
-        dailyAdWatchCount: newDailyCount,
-        lastAdWatchDate: new Date(),
-        totalAdWatchCount: newTotalCount,
-        premiumRewardProgress: finalProgress
-      })
-      .where(eq(users.id, userId));
-
-    // Generate premium reward if earned
-    let premiumReward;
-    if (premiumRewardEarned) {
-      premiumReward = this.generatePremiumReward();
-    }
-
-    return {
-      adView,
-      dailyCount: newDailyCount,
-      totalCount: newTotalCount,
-      premiumRewardProgress: finalProgress,
-      premiumRewardEarned,
-      premiumReward
-    };
-  }
-
-  /**
-   * Generate premium reward contents (loot box style)
-   */
-  private generatePremiumReward(): any {
-    const rewardTypes = [
-      { type: "credits", weight: 30, min: 5000, max: 15000 },
-      { type: "premium_currency", weight: 20, min: 50, max: 200 },
-      { type: "equipment", weight: 25 },
-      { type: "tournament_entry", weight: 15 },
-      { type: "special_bonus", weight: 10, min: 20000, max: 50000 }
-    ];
-
-    const totalWeight = rewardTypes.reduce((sum, type) => sum + type.weight, 0);
-    const random = Math.random() * totalWeight;
-    let currentWeight = 0;
-
-    for (const rewardType of rewardTypes) {
-      currentWeight += rewardType.weight;
-      if (random <= currentWeight) {
-        switch (rewardType.type) {
-          case "credits":
-            return {
-              type: "credits",
-              amount: Math.floor(Math.random() * (rewardType.max - rewardType.min + 1)) + rewardType.min,
-              description: "Premium Credits Reward"
-            };
-          case "premium_currency":
-            return {
-              type: "premium_currency", 
-              amount: Math.floor(Math.random() * (rewardType.max - rewardType.min + 1)) + rewardType.min,
-              description: "Premium Gems Reward"
-            };
-          case "equipment":
-            return {
-              type: "equipment",
-              rarity: Math.random() < 0.1 ? "legendary" : Math.random() < 0.3 ? "epic" : "rare",
-              description: "Premium Equipment Piece"
-            };
-          case "tournament_entry":
-            return {
-              type: "tournament_entry",
-              amount: 1,
-              description: "Free Tournament Entry"
-            };
-          case "special_bonus":
-            return {
-              type: "credits",
-              amount: Math.floor(Math.random() * (rewardType.max - rewardType.min + 1)) + rewardType.min,
-              description: "Special Premium Bonus"
-            };
+    const count = await prisma.adView.count({
+      where: {
+        userId,
+        completed: true,
+        rewardAmount: { gt: 0 },
+        createdAt: {
+          gte: todayStart
         }
       }
-    }
-
-    // Fallback
-    return {
-      type: "credits",
-      amount: 10000,
-      description: "Premium Reward"
-    };
+    });
+    return count;
   }
 
-  /**
-   * Get user ad tracking statistics
-   */
-  async getUserAdStats(userId: string): Promise<{
-    dailyCount: number;
-    totalCount: number;
-    premiumProgress: number;
-    canWatchMore: boolean;
-    resetTime?: Date;
-  }> {
-    const [user] = await db.select().from(users).where(eq(users.id, userId)).limit(1);
-    if (!user) {
-      throw new Error("User not found");
-    }
-
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    const isNewDay = !user.lastAdWatchDate || user.lastAdWatchDate < today;
+  async getTotalRewardsByUser(userId: string, timeframe?: 'today' | 'week' | 'month'): Promise<number> {
+    let dateFilter: Date | undefined;
     
-    const dailyCount = isNewDay ? 0 : (user.dailyAdWatchCount || 0);
-    const canWatchMore = dailyCount < 20; // Max 20 ads per day
+    if (timeframe === 'today') {
+      dateFilter = new Date();
+      dateFilter.setHours(0, 0, 0, 0);
+    } else if (timeframe === 'week') {
+      dateFilter = new Date();
+      dateFilter.setDate(dateFilter.getDate() - 7);
+    } else if (timeframe === 'month') {
+      dateFilter = new Date();
+      dateFilter.setMonth(dateFilter.getMonth() - 1);
+    }
 
-    const resetTime = new Date();
-    resetTime.setDate(resetTime.getDate() + 1);
-    resetTime.setHours(0, 0, 0, 0);
+    const result = await prisma.adView.aggregate({
+      where: {
+        userId,
+        completed: true,
+        ...(dateFilter ? { createdAt: { gte: dateFilter } } : {})
+      },
+      _sum: {
+        rewardAmount: true
+      }
+    });
 
-    return {
-      dailyCount,
-      totalCount: user.totalAdWatchCount || 0,
-      premiumProgress: user.premiumRewardProgress || 0,
-      canWatchMore,
-      resetTime
-    };
+    return result._sum.rewardAmount || 0;
   }
 
+  async markAdCompleted(id: number, rewardAmount: number = 0): Promise<AdView | null> {
+    try {
+      const updatedAdView = await prisma.adView.update({
+        where: { id },
+        data: {
+          completed: true,
+          completedAt: new Date(),
+          rewardAmount
+        }
+      });
+      return updatedAdView;
+    } catch (error) {
+      console.warn(`Ad view with ID ${id} not found for completion.`);
+      return null;
+    }
+  }
 }
 
 export const adSystemStorage = new AdSystemStorage();

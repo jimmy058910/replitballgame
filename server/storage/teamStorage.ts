@@ -31,7 +31,7 @@ export class TeamStorage {
 
   async getTeamByUserId(userProfileId: number): Promise<Team | null> {
     const team = await prisma.team.findFirst({
-      where: { userProfileId },
+      where: { userProfileId: parseInt(userProfileId.toString()) },
       include: {
         finances: true,
         stadium: true,

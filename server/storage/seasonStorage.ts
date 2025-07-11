@@ -24,7 +24,7 @@ export class SeasonStorage {
     return newSeason;
   }
 
-  async getSeasonById(id: string): Promise<Season | null> {
+  async getSeasonById(id: number): Promise<Season | null> {
     const season = await prisma.season.findUnique({
       where: { id },
     });
