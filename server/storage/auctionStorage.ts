@@ -1,7 +1,5 @@
-import { db } from '../db';
+import { prisma } from '../db';
 import { PrismaClient, MarketplaceListing, Bid } from '../../generated/prisma';
-
-const prisma = db; // Use shared Prisma instance
 
 export class AuctionStorage {
   async createAuction(auctionData: {

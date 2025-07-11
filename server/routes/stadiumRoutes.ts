@@ -63,10 +63,10 @@ router.get('/', isAuthenticated, async (req: any, res: Response, next: NextFunct
     const availableUpgrades = getAvailableFacilityUpgrades(stadium);
     
     // Get stadium events (last 10)
-    const events = await db.query.stadiumEvents.findMany({
-      where: eq(stadiumEvents.stadiumId, stadium.id),
-      orderBy: [desc(stadiumEvents.eventDate)],
-      limit: 10
+    const events = await prisma.stadiumEvent.findMany({
+      where: { stadiumId: stadium.id },
+      orderBy: { eventDate: 'desc' },
+      take: 10
     });
 
     // Calculate stadium atmosphere and fan loyalty
@@ -114,8 +114,8 @@ router.post('/upgrade', isAuthenticated, async (req: any, res: Response, next: N
     const { facilityType, upgradeLevel } = upgradeSchema.parse(req.body);
 
     // Get user's team
-    const team = await db.query.teams.findFirst({
-      where: eq(teams.userId, userId)
+    const team = await prisma.team.findFirst({
+      where: { userId: userId }
     });
     
     if (!team) {
@@ -126,8 +126,8 @@ router.post('/upgrade', isAuthenticated, async (req: any, res: Response, next: N
     }
 
     // Get stadium
-    const stadium = await db.query.stadiums.findFirst({
-      where: eq(stadiums.teamId, team.id)
+    const stadium = await prisma.stadium.findFirst({
+      where: { teamId: team.id }
     });
 
     if (!stadium) {
@@ -138,8 +138,8 @@ router.post('/upgrade', isAuthenticated, async (req: any, res: Response, next: N
     }
 
     // Get team finances
-    const finances = await db.query.teamFinances.findFirst({
-      where: eq(teamFinances.teamId, team.id)
+    const finances = await prisma.teamFinance.findFirst({
+      where: { teamId: team.id }
     });
 
     if (!finances) {
@@ -179,16 +179,18 @@ router.post('/upgrade', isAuthenticated, async (req: any, res: Response, next: N
     };
 
     // Update stadium
-    await db.update(stadiums)
-      .set(updateData)
-      .where(eq(stadiums.id, stadium.id));
+    await prisma.stadium.update({
+      where: { id: stadium.id },
+      data: updateData
+    });
 
     // Deduct credits
-    await db.update(teamFinances)
-      .set({ 
+    await prisma.teamFinance.update({
+      where: { teamId: team.id },
+      data: { 
         credits: (finances.credits || 0) - upgrade.upgradeCost 
-      })
-      .where(eq(teamFinances.teamId, team.id));
+      }
+    });
 
     res.json({
       success: true,
@@ -219,8 +221,8 @@ router.post('/field-size', isAuthenticated, async (req: any, res: Response, next
     const { fieldSize } = fieldSizeSchema.parse(req.body);
 
     // Get user's team
-    const team = await db.query.teams.findFirst({
-      where: eq(teams.userId, userId)
+    const team = await prisma.team.findFirst({
+      where: { userId: userId }
     });
     
     if (!team) {
@@ -231,8 +233,8 @@ router.post('/field-size', isAuthenticated, async (req: any, res: Response, next
     }
 
     // Get stadium
-    const stadium = await db.query.stadiums.findFirst({
-      where: eq(stadiums.teamId, team.id)
+    const stadium = await prisma.stadium.findFirst({
+      where: { teamId: team.id }
     });
 
     if (!stadium) {
@@ -243,8 +245,8 @@ router.post('/field-size', isAuthenticated, async (req: any, res: Response, next
     }
 
     // Get team finances
-    const finances = await db.query.teamFinances.findFirst({
-      where: eq(teamFinances.teamId, team.id)
+    const finances = await prisma.teamFinance.findFirst({
+      where: { teamId: team.id }
     });
 
     if (!finances) {
@@ -263,16 +265,18 @@ router.post('/field-size', isAuthenticated, async (req: any, res: Response, next
     }
 
     // Update stadium field size
-    await db.update(stadiums)
-      .set({ fieldSize, updatedAt: new Date() })
-      .where(eq(stadiums.id, stadium.id));
+    await prisma.stadium.update({
+      where: { id: stadium.id },
+      data: { fieldSize, updatedAt: new Date() }
+    });
 
     // Deduct credits
-    await db.update(teamFinances)
-      .set({ 
+    await prisma.teamFinance.update({
+      where: { teamId: team.id },
+      data: { 
         credits: (finances.credits || 0) - changeCost 
-      })
-      .where(eq(teamFinances.teamId, team.id));
+      }
+    });
 
     res.json({
       success: true,
@@ -298,8 +302,8 @@ router.get('/revenue/:teamId', isAuthenticated, async (req: any, res: Response, 
     const teamId = req.params.teamId;
     
     // Get stadium
-    const stadium = await db.query.stadiums.findFirst({
-      where: eq(stadiums.teamId, teamId)
+    const stadium = await prisma.stadium.findFirst({
+      where: { teamId: teamId }
     });
 
     if (!stadium) {
@@ -310,8 +314,8 @@ router.get('/revenue/:teamId', isAuthenticated, async (req: any, res: Response, 
     }
 
     // Get team for fan loyalty calculation
-    const team = await db.query.teams.findFirst({
-      where: eq(teams.id, teamId)
+    const team = await prisma.team.findFirst({
+      where: { id: teamId }
     });
 
     if (!team) {

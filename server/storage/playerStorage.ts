@@ -1,7 +1,7 @@
-import { db } from '../db';
+import { prisma } from '../db';
 import { PrismaClient, Player, Race, PlayerRole, InjuryStatus } from '../../generated/prisma';
 
-const prisma = db; // Use shared Prisma instance
+
 
 export class PlayerStorage {
   async createPlayer(playerData: {

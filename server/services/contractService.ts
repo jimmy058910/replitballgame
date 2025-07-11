@@ -248,7 +248,7 @@ export class ContractService {
     const { storage } = await import("../storage");
 
     // Deactivate any existing active contracts for this player
-    await db.contract.deleteMany({
+    await prisma.contract.deleteMany({
       where: {
         playerId: playerId
       }
@@ -258,7 +258,7 @@ export class ContractService {
     const expiryDate = new Date();
     expiryDate.setFullYear(expiryDate.getFullYear() + seasons);
     
-    const newContract = await db.contract.create({
+    const newContract = await prisma.contract.create({
       data: {
         playerId: playerId,
         salary: salary,
@@ -270,7 +270,7 @@ export class ContractService {
     });
 
     // Update player's contract fields for backward compatibility
-    const updatedPlayer = await db.player.update({
+    const updatedPlayer = await prisma.player.update({
       where: { id: playerId },
       data: {
         updatedAt: new Date()
@@ -288,7 +288,7 @@ export class ContractService {
    */
   static async updateTeamSalaryCap(teamId: number): Promise<void> {
     // Calculate total salary from all active player contracts
-    const activeContracts = await db.contract.findMany({
+    const activeContracts = await prisma.contract.findMany({
       where: {
         isActive: true,
         playerId: { not: null },

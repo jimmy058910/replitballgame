@@ -1,7 +1,7 @@
-import { db } from '../db';
+import { prisma } from '../db';
 import { PrismaClient, InventoryItem, MatchConsumable } from '../../generated/prisma';
 
-const prisma = db; // Use shared Prisma instance
+
 
 export class ConsumableStorage {
   // Get team's consumable inventory

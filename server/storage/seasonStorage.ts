@@ -1,6 +1,6 @@
-import { db } from '../db';
+import { prisma } from '../db';
 
-const prisma = db; // Use shared Prisma instance
+
 
 export class SeasonStorage {
 

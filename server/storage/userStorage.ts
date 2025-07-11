@@ -1,7 +1,5 @@
-import { db } from '../db';
+import { prisma } from '../db';
 import { PrismaClient, UserProfile } from '../../generated/prisma';
-
-const prisma = db; // Use shared Prisma instance
 
 // This interface defines the data structure expected from replitAuth.ts
 // It should align with the fields available in Replit user claims

@@ -1,7 +1,5 @@
-import { db } from '../db';
+import { prisma } from '../db';
 import { PrismaClient, Contract } from '../../generated/prisma';
-
-const prisma = db; // Use shared Prisma instance
 
 export class ContractStorage {
   async createPlayerContract(contractData: {
