@@ -52,7 +52,7 @@ export class PlayerStorage {
 
   async getPlayerById(id: number): Promise<Player | null> {
     const player = await prisma.player.findUnique({
-      where: { id },
+      where: { id: parseInt(id.toString()) },
       include: {
         team: { select: { name: true } },
         contract: true,

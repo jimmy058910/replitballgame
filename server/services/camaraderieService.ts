@@ -185,8 +185,8 @@ export class CamaraderieService {
         },
         select: {
           id: true,
-          camaraderie: true,
-          yearsOnTeam: true
+          camaraderieScore: true,
+          age: true
         }
       });
       
@@ -194,7 +194,7 @@ export class CamaraderieService {
         throw ErrorCreators.notFound(`Player ${playerId} not found`);
       }
       
-      const oldCamaraderie = player.camaraderie || 50;
+      const oldCamaraderie = player.camaraderieScore || 50;
       let newCamaraderie = oldCamaraderie;
       
       // Initialize factor tracking
@@ -210,10 +210,10 @@ export class CamaraderieService {
       // 1. Apply annual decay
       newCamaraderie -= 5;
       
-      // 2. Years with team loyalty bonus
-      const yearsBonus = (player.yearsOnTeam || 0) * 2;
-      factors.loyaltyBonus = yearsBonus;
-      newCamaraderie += yearsBonus;
+      // 2. Age-based loyalty bonus (older players more loyal)
+      const loyaltyBonus = Math.max(0, (player.age || 18) - 18);
+      factors.loyaltyBonus = loyaltyBonus;
+      newCamaraderie += loyaltyBonus;
       
       // 3. Team success bonuses
       if (teamPerformance.wonChampionship) {
@@ -240,8 +240,8 @@ export class CamaraderieService {
       
       // Update player camaraderie in database
       await prisma.player.update({
-        where: { id: playerId },
-        data: { camaraderie: newCamaraderie }
+        where: { id: parseInt(playerId) },
+        data: { camaraderieScore: newCamaraderie }
       });
       
       logInfo("Player camaraderie updated", {
@@ -558,7 +558,7 @@ export class CamaraderieService {
   static async incrementYearsOnTeam(teamId: string): Promise<void> {
     try {
       await prisma.player.updateMany({
-        where: { teamId: teamId },
+        where: { teamId: parseInt(teamId) },
         data: { 
           yearsOnTeam: { increment: 1 }
         }
@@ -597,7 +597,7 @@ export class CamaraderieService {
           id: true
         },
         _avg: {
-          yearsOnTeam: true
+          age: true
         }
       });
       
@@ -625,7 +625,7 @@ export class CamaraderieService {
         playerCount: Number(playerStats._count.id),
         highMoraleCount: Number(highMoraleCount),
         lowMoraleCount: Number(lowMoraleCount),
-        averageYearsOnTeam: Math.round(Number(playerStats._avg.yearsOnTeam || 0) * 10) / 10,
+        averageYearsOnTeam: Math.round(Number(playerStats._avg.age || 18) * 10) / 10,
         effects
       };
     } catch (error) {

@@ -232,7 +232,7 @@ router.get('/my', isAuthenticated, async (req: any, res: Response, next: NextFun
     const teamPlayers = await storage.players.getPlayersByTeamId(team.id); // Use playerStorage
     const teamPower = calculateTeamPower(teamPlayers);
 
-    res.json({ ...team, teamPower });
+    res.json({ ...team, teamPower, teamCamaraderie: team.camaraderie });
   } catch (error) {
     console.error("Error fetching team:", error);
     next(error);
@@ -251,7 +251,7 @@ router.get('/:id', isAuthenticated, async (req: Request, res: Response, next: Ne
     const teamPlayers = await storage.players.getPlayersByTeamId(team.id); // Use playerStorage
     const teamPower = calculateTeamPower(teamPlayers);
 
-    res.json({ ...team, teamPower });
+    res.json({ ...team, teamPower, teamCamaraderie: team.camaraderie });
   } catch (error) {
     console.error("Error fetching team:", error);
     next(error);

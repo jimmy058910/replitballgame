@@ -40,7 +40,7 @@ router.get('/team/:teamId', asyncHandler(async (req: any, res: Response) => {
   const team = await storage.teams.getTeamByUserId(userId);
   const isAdmin = await RBACService.hasPermission(userId, Permission.VIEW_ALL_TEAMS);
   
-  if (!team || (team.id !== teamId && !isAdmin)) {
+  if (!team || (team.id !== parseInt(teamId) && !isAdmin)) {
     throw ErrorCreators.forbidden("Cannot access team camaraderie data");
   }
   
@@ -58,7 +58,7 @@ router.get('/player/:playerId', asyncHandler(async (req: any, res: Response) => 
   const userId = req.user.claims.sub;
   
   // Get player and verify team ownership
-  const player = await storage.players.getPlayerById(playerId);
+  const player = await storage.players.getPlayerById(parseInt(playerId));
   if (!player) {
     throw ErrorCreators.notFound("Player not found");
   }
@@ -76,11 +76,11 @@ router.get('/player/:playerId', asyncHandler(async (req: any, res: Response) => 
       playerId: player.id,
       firstName: player.firstName,
       lastName: player.lastName,
-      camaraderie: player.camaraderie || 50,
+      camaraderie: player.camaraderieScore || 50,
       yearsOnTeam: player.yearsOnTeam || 0,
       contractNegotiationBonus: CamaraderieService.applyContractNegotiationEffects(
         player.id,
-        player.camaraderie || 50,
+        player.camaraderieScore || 50,
         50 // Base willingness
       ) - 50 // Show just the bonus
     }
