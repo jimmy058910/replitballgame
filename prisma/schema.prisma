@@ -9,802 +9,606 @@ datasource db {
 }
 
 model UserProfile {
-  id        Int      @id @default(autoincrement())
-  userId    String   @unique
-  bio       String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id            Int                @id @default(autoincrement())
+  userId        String             @unique
+  bio           String?
+  createdAt     DateTime           @default(now())
+  updatedAt     DateTime           @updatedAt
+  Team          Team?
+  referralCode  String?            @unique
+  referredBy    String? // Stores the referral code of the user who referred them
+  redeemedCodes RedeemCodeRecord[]
 }
 
-model ad_views {
-  id            String    @id @db.VarChar
-  user_id       String    @db.VarChar
-  ad_type       String    @db.VarChar
-  placement     String?   @db.VarChar
-  reward_type   String?   @db.VarChar
-  reward_amount Int?      @default(0)
-  completed     Boolean?  @default(false)
-  created_at    DateTime? @default(now()) @db.Timestamp(6)
-  completed_at  DateTime? @db.Timestamp(6)
-  users         users     @relation(fields: [user_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+model Session {
+  sid    String   @id @unique
+  sess   Json
+  expire DateTime
+
+  @@index([expire])
 }
 
-model auction_bids {
-  id              String          @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  auction_id      String          @db.Uuid
-  bidder_id       String          @db.Uuid
-  bid_amount      Int
-  bid_type        String?         @default("standard") @db.VarChar
-  max_auto_bid    Int?
-  is_winning      Boolean?        @default(false)
-  timestamp       DateTime?       @default(now()) @db.Timestamp(6)
-  player_auctions player_auctions @relation(fields: [auction_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  teams           teams           @relation(fields: [bidder_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
-}
-
-model exhibition_games {
-  id                                             String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  team_id                                        String    @db.Uuid
-  opponent_team_id                               String    @db.Uuid
-  result                                         String?   @db.VarChar
-  score                                          String?   @db.VarChar
-  played_date                                    DateTime? @default(now()) @db.Timestamp(6)
-  game_data                                      Json?
-  replay_code                                    String?   @db.VarChar
-  teams_exhibition_games_opponent_team_idToteams teams     @relation("exhibition_games_opponent_team_idToteams", fields: [opponent_team_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  teams_exhibition_games_team_idToteams          teams     @relation("exhibition_games_team_idToteams", fields: [team_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
-}
-
-model facility_upgrades {
-  id           String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  stadium_id   String    @db.Uuid
-  upgrade_type String    @db.VarChar
-  upgrade_name String    @db.VarChar
-  level        Int
-  cost         Int
-  description  String?
-  effects      Json?
-  installed_at DateTime? @default(now()) @db.Timestamp(6)
-  stadiums     stadiums  @relation(fields: [stadium_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
-}
-
-model items {
-  id                String           @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  name              String           @db.VarChar
-  type              String           @db.VarChar
-  rarity            String           @db.VarChar
-  slot              String?          @db.VarChar
-  stat_boosts       Json?            @default("{}")
-  description       String?
-  market_value      Int?             @default(0)
-  marketplace_price Int?
-  team_id           String?          @db.Uuid
-  created_at        DateTime?        @default(now()) @db.Timestamp(6)
-  teams             teams?           @relation(fields: [team_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  team_inventory    team_inventory[]
-}
-
-model league_standings {
-  id              String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  league_id       String    @db.Uuid
-  team_id         String    @db.Uuid
-  wins            Int?      @default(0)
-  losses          Int?      @default(0)
-  draws           Int?      @default(0)
-  points          Int?      @default(0)
-  goals_for       Int?      @default(0)
-  goals_against   Int?      @default(0)
-  goal_difference Int?      @default(0)
-  position        Int?      @default(1)
-  games_played    Int?      @default(0)
-  created_at      DateTime? @default(now()) @db.Timestamp(6)
-  updated_at      DateTime? @default(now()) @db.Timestamp(6)
-  leagues         leagues   @relation(fields: [league_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  teams           teams     @relation(fields: [team_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
-}
-
-model leagues {
-  id               String             @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  name             String             @db.VarChar
-  division         Int
-  season           Int?               @default(1)
-  game_day         Int?               @default(1)
-  max_teams        Int?               @default(8)
-  status           String?            @default("active") @db.VarChar
-  start_date       DateTime?          @db.Timestamp(6)
-  end_date         DateTime?          @db.Timestamp(6)
-  created_at       DateTime?          @default(now()) @db.Timestamp(6)
-  league_standings league_standings[]
-  matches          matches[]
-}
-
-model marketplace_bids {
+model Team {
   id                   Int                  @id @default(autoincrement())
-  listing_id           Int
-  bidder_team_id       String               @db.Uuid
-  bid_amount           Int
-  is_active            Boolean              @default(true)
-  bid_timestamp        DateTime?            @default(now()) @db.Timestamp(6)
-  teams                teams                @relation(fields: [bidder_team_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
-  marketplace_listings marketplace_listings @relation(fields: [listing_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  userProfileId        Int                  @unique
+  user                 UserProfile          @relation(fields: [userProfileId], references: [id])
+  name                 String               @unique
+  logoUrl              String?
+  createdAt            DateTime             @default(now())
+  updatedAt            DateTime             @updatedAt
+  players              Player[]
+  staff                Staff[]
+  finances             TeamFinances?
+  stadium              Stadium?
+  inventoryItems       InventoryItem[]
+  camaraderie          Float                @default(75.0)
+  fanLoyalty           Float                @default(50.0)
+  homeField            FieldSize            @default(STANDARD)
+  tacticalFocus        TacticalFocus        @default(BALANCED)
+  leagueId             Int?
+  league               League?              @relation(fields: [leagueId], references: [id])
+  activeBoosts         ActiveBoost[]
+  strategy             Strategy?
+  marketplaceListings  MarketplaceListing[] @relation("TeamListings")
+  bids                 Bid[]                @relation("TeamBids")
+  highBidderOnListings MarketplaceListing[] @relation("HighBidderListings")
+  notifications        Notification[]
+  tournamentEntries    TournamentEntry[]
 }
 
-model marketplace_escrow {
-  id                   Int                  @id @default(autoincrement())
-  team_id              String               @db.Uuid
-  listing_id           Int
-  escrow_amount        Int
-  escrow_type          String               @db.VarChar(20)
-  is_released          Boolean              @default(false)
-  created_at           DateTime?            @default(now()) @db.Timestamp(6)
-  released_at          DateTime?            @db.Timestamp(6)
-  marketplace_listings marketplace_listings @relation(fields: [listing_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
-  teams                teams                @relation(fields: [team_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+enum FieldSize {
+  STANDARD
+  LARGE
+  SMALL
 }
 
-model marketplace_listings {
-  id                                                            Int                  @id @default(autoincrement())
-  player_id                                                     String               @db.Uuid
-  seller_team_id                                                String               @db.Uuid
-  start_bid                                                     Int
-  buy_now_price                                                 Int?
-  current_bid                                                   Int
-  current_high_bidder_team_id                                   String?              @db.Uuid
-  expiry_timestamp                                              DateTime             @db.Timestamp(6)
-  is_active                                                     Boolean              @default(true)
-  listing_fee                                                   Int
-  market_tax                                                    Int                  @default(5)
-  auction_extensions                                            Int                  @default(0)
-  created_at                                                    DateTime?            @default(now()) @db.Timestamp(6)
-  completed_at                                                  DateTime?            @db.Timestamp(6)
-  marketplace_bids                                              marketplace_bids[]
-  marketplace_escrow                                            marketplace_escrow[]
-  teams_marketplace_listings_current_high_bidder_team_idToteams teams?               @relation("marketplace_listings_current_high_bidder_team_idToteams", fields: [current_high_bidder_team_id], references: [id], onUpdate: NoAction)
-  players                                                       players              @relation(fields: [player_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
-  teams_marketplace_listings_seller_team_idToteams              teams                @relation("marketplace_listings_seller_team_idToteams", fields: [seller_team_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+enum TacticalFocus {
+  BALANCED
+  ALL_OUT_ATTACK
+  DEFENSIVE_WALL
 }
 
-model match_consumables {
-  id              String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  match_id        String    @db.Uuid
-  team_id         String    @db.Uuid
-  consumable_id   String    @db.VarChar
-  consumable_name String    @db.VarChar
-  effect_type     String    @db.VarChar
-  effect_data     Json
-  activated_at    DateTime? @default(now()) @db.Timestamp(6)
-  used_in_match   Boolean?  @default(false)
-  matches         matches   @relation(fields: [match_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  teams           teams     @relation(fields: [team_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+model Player {
+  id                          Int                 @id @default(autoincrement())
+  teamId                      Int
+  team                        Team                @relation(fields: [teamId], references: [id])
+  firstName                   String
+  lastName                    String
+  race                        Race
+  age                         Int
+  role                        PlayerRole
+  speed                       Int
+  power                       Int
+  throwing                    Int
+  catching                    Int
+  kicking                     Int
+  staminaAttribute            Int
+  leadership                  Int
+  agility                     Int
+  potentialRating             Float
+  contract                    Contract?
+  skills                      PlayerSkillLink[]
+  dailyStaminaLevel           Int                 @default(100)
+  injuryStatus                InjuryStatus        @default(HEALTHY)
+  injuryRecoveryPointsNeeded  Int                 @default(0)
+  injuryRecoveryPointsCurrent Int                 @default(0)
+  dailyItemsUsed              Int                 @default(0)
+  careerInjuries              Int                 @default(0)
+  gamesPlayedLastSeason       Int                 @default(0)
+  isOnMarket                  Boolean             @default(false)
+  isRetired                   Boolean             @default(false)
+  MarketplaceListing          MarketplaceListing?
+  camaraderieScore            Float               @default(75.0)
+  createdAt                   DateTime            @default(now())
+  updatedAt                   DateTime            @updatedAt
+  activeBoosts                ActiveBoost[]
+  currentEquipment            PlayerEquipment[]
 }
 
-model matches {
-  id                                String               @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  league_id                         String?              @db.Uuid
-  tournament_id                     String?              @db.Uuid
-  home_team_id                      String               @db.Uuid
-  away_team_id                      String               @db.Uuid
-  home_score                        Int?                 @default(0)
-  away_score                        Int?                 @default(0)
-  status                            String?              @default("scheduled") @db.VarChar
-  match_type                        String?              @default("league") @db.VarChar
-  game_day                          Int?
-  game_data                         Json?
-  replay_code                       String?              @db.VarChar
-  scheduled_time                    DateTime?            @db.Timestamp(6)
-  completed_at                      DateTime?            @db.Timestamp(6)
-  created_at                        DateTime?            @default(now()) @db.Timestamp(6)
-  match_consumables                 match_consumables[]
-  teams_matches_away_team_idToteams teams                @relation("matches_away_team_idToteams", fields: [away_team_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  teams_matches_home_team_idToteams teams                @relation("matches_home_team_idToteams", fields: [home_team_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  leagues                           leagues?             @relation(fields: [league_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  mvp_awards                        mvp_awards[]
-  player_match_stats                player_match_stats[]
-  stadium_revenue                   stadium_revenue[]
-  team_match_stats                  team_match_stats[]
+model PlayerEquipment {
+  id         Int      @id @default(autoincrement())
+  playerId   Int
+  player     Player   @relation(fields: [playerId], references: [id])
+  itemId     Int
+  item       Item     @relation(fields: [itemId], references: [id])
+  equippedAt DateTime @default(now())
 
-  @@index([status], map: "idx_matches_status")
+  @@unique([playerId, itemId])
 }
 
-model mvp_awards {
-  id                String   @id
-  match_id          String   @db.Uuid
-  player_id         String   @db.Uuid
-  team_id           String   @db.Uuid
-  season_id         String?  @db.VarChar
-  award_date        DateTime @default(now()) @db.Timestamptz(6)
-  match_type        String
-  performance_stats Json?
-  created_at        DateTime @default(now()) @db.Timestamptz(6)
-  matches           matches  @relation(fields: [match_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
-  players           players  @relation(fields: [player_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
-  seasons           seasons? @relation(fields: [season_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
-  teams             teams    @relation(fields: [team_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+enum Race {
+  HUMAN
+  SYLVAN
+  GRYLL
+  LUMINA
+  UMBRA
 }
 
-model notifications {
-  id         String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  user_id    String    @db.VarChar
-  type       String    @db.VarChar
-  title      String    @db.VarChar
-  message    String
-  metadata   Json?
-  is_read    Boolean?  @default(false)
-  priority   String?   @default("normal") @db.VarChar
-  action_url String?   @db.VarChar
-  created_at DateTime? @default(now()) @db.Timestamp(6)
-  users      users     @relation(fields: [user_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
-
-  @@index([user_id], map: "idx_notifications_user_id")
+enum PlayerRole {
+  PASSER
+  RUNNER
+  BLOCKER
 }
 
-model payment_transactions {
-  id                       String    @id @db.VarChar(21)
-  user_id                  String    @db.VarChar
-  team_id                  String?   @db.Uuid
-  transaction_type         String    @db.VarChar
-  item_type                String?   @db.VarChar
-  item_name                String?   @db.VarChar
-  amount                   Int?
-  credits_change           Int?      @default(0)
-  gems_change              Int?      @default(0)
-  status                   String?   @default("completed") @db.VarChar
-  currency                 String?   @default("usd") @db.VarChar
-  payment_method           String?   @db.VarChar
-  stripe_payment_intent_id String?   @unique @db.VarChar
-  stripe_customer_id       String?   @db.VarChar
-  failure_reason           String?
-  receipt_url              String?   @db.VarChar
-  metadata                 Json?
-  created_at               DateTime? @default(now()) @db.Timestamp(6)
-  completed_at             DateTime? @db.Timestamp(6)
-  teams                    teams?    @relation(fields: [team_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  users                    users     @relation(fields: [user_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+enum InjuryStatus {
+  HEALTHY
+  MINOR_INJURY
+  MODERATE_INJURY
+  SEVERE_INJURY
 }
 
-model player_auctions {
-  id                                             String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  player_id                                      String         @db.Uuid
-  seller_id                                      String         @db.Uuid
-  starting_price                                 Int
-  current_bid                                    Int?           @default(0)
-  buyout_price                                   Int?
-  highest_bidder_id                              String?        @db.Uuid
-  auction_type                                   String?        @default("standard") @db.VarChar
-  reserve_price                                  Int?
-  start_time                                     DateTime?      @default(now()) @db.Timestamp(6)
-  end_time                                       DateTime       @db.Timestamp(6)
-  status                                         String?        @default("active") @db.VarChar
-  bids_count                                     Int?           @default(0)
-  created_at                                     DateTime?      @default(now()) @db.Timestamp(6)
-  auction_bids                                   auction_bids[]
-  teams_player_auctions_highest_bidder_idToteams teams?         @relation("player_auctions_highest_bidder_idToteams", fields: [highest_bidder_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  players                                        players        @relation(fields: [player_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  teams_player_auctions_seller_idToteams         teams          @relation("player_auctions_seller_idToteams", fields: [seller_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+model Contract {
+  id           Int      @id @default(autoincrement())
+  playerId     Int?     @unique
+  player       Player?  @relation(fields: [playerId], references: [id])
+  staffId      Int?     @unique
+  staff        Staff?   @relation(fields: [staffId], references: [id])
+  salary       Int
+  length       Int
+  signingBonus Int      @default(0)
+  startDate    DateTime @default(now())
+
+  @@index([playerId])
+  @@index([staffId])
 }
 
-model player_development_history {
-  id                       Int       @id @default(autoincrement())
-  player_id                String    @db.Uuid
-  season                   Int
-  development_type         String    @db.VarChar(50)
-  stat_changed             String?   @db.VarChar(50)
-  old_value                Int?
-  new_value                Int?
-  progression_chance       Float?    @db.Real
-  actual_roll              Float?    @db.Real
-  success                  Boolean
-  age_at_time              Int
-  games_played_last_season Int       @default(0)
-  potential_at_time        Float?    @db.Real
-  created_at               DateTime? @default(now()) @db.Timestamp(6)
-  players                  players   @relation(fields: [player_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+model Skill {
+  id          Int               @id @default(autoincrement())
+  name        String            @unique
+  description String
+  type        SkillType
+  category    SkillCategory
+  tiers       Json // Example: {"I": {"effect": "+2 SPD"}, "II": {"effect": "+4 SPD"}}
+  playerLinks PlayerSkillLink[]
 }
 
-model player_injuries {
-  id                String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  player_id         String    @db.Uuid
-  injury_type       String    @db.VarChar
-  injury_name       String    @db.VarChar
-  description       String?
-  severity          Int
-  recovery_time     Int
-  remaining_time    Int
-  stat_impact       Json?
-  treatment_cost    Int?      @default(0)
-  is_active         Boolean?  @default(true)
-  injured_at        DateTime? @default(now()) @db.Timestamp(6)
-  expected_recovery DateTime? @db.Timestamp(6)
-  players           players   @relation(fields: [player_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+enum SkillType {
+  PASSIVE
+  ACTIVE
 }
 
-model player_match_stats {
-  id                   String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  player_id            String    @db.Uuid
-  match_id             String    @db.Uuid
-  team_id              String    @db.Uuid
-  scores               Int?      @default(0)
-  passing_attempts     Int?      @default(0)
-  passes_completed     Int?      @default(0)
-  passing_yards        Int?      @default(0)
-  rushing_yards        Int?      @default(0)
-  catches              Int?      @default(0)
-  receiving_yards      Int?      @default(0)
-  drops                Int?      @default(0)
-  fumbles_lost         Int?      @default(0)
-  tackles              Int?      @default(0)
-  knockdowns_inflicted Int?      @default(0)
-  interceptions_caught Int?      @default(0)
-  passes_defended      Int?      @default(0)
-  created_at           DateTime? @default(now()) @db.Timestamp(6)
-  matches              matches   @relation(fields: [match_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  players              players   @relation(fields: [player_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  teams                teams     @relation(fields: [team_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+enum SkillCategory {
+  UNIVERSAL
+  ROLE
+  RACE
 }
 
-model player_skills {
-  id            Int       @id @default(autoincrement())
-  player_id     String    @db.Uuid
-  skill_id      Int
-  current_tier  Int       @default(1)
-  acquired_at   DateTime? @default(now()) @db.Timestamp(6)
-  last_upgraded DateTime? @db.Timestamp(6)
-  players       players   @relation(fields: [player_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
-  skills        skills    @relation(fields: [skill_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+model PlayerSkillLink {
+  id          Int      @id @default(autoincrement())
+  playerId    Int
+  player      Player   @relation(fields: [playerId], references: [id])
+  skillId     Int
+  skill       Skill    @relation(fields: [skillId], references: [id])
+  currentTier Int      @default(1) // 1-4
+  acquiredAt  DateTime @default(now())
 
-  @@unique([player_id, skill_id])
+  @@unique([playerId, skillId])
 }
 
-model players {
-  id                             String                       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  team_id                        String?                      @db.Uuid
-  first_name                     String                       @db.VarChar
-  last_name                      String                       @db.VarChar
-  name                           String                       @db.VarChar
-  race                           String                       @db.VarChar
-  age                            Int
-  position                       String?                      @default("player") @db.VarChar
-  speed                          Int
-  power                          Int
-  throwing                       Int
-  catching                       Int
-  kicking                        Int
-  stamina                        Int
-  leadership                     Int
-  agility                        Int
-  speed_potential                Decimal?                     @db.Decimal(2, 1)
-  power_potential                Decimal?                     @db.Decimal(2, 1)
-  throwing_potential             Decimal?                     @db.Decimal(2, 1)
-  catching_potential             Decimal?                     @db.Decimal(2, 1)
-  kicking_potential              Decimal?                     @db.Decimal(2, 1)
-  stamina_potential              Decimal?                     @db.Decimal(2, 1)
-  leadership_potential           Decimal?                     @db.Decimal(2, 1)
-  agility_potential              Decimal?                     @db.Decimal(2, 1)
-  salary                         Int
-  contract_seasons               Int?                         @default(3)
-  contract_start_season          Int?                         @default(1)
-  contract_value                 Int
-  morale                         Int?                         @default(50)
-  is_injured                     Boolean?                     @default(false)
-  injury_weeks_remaining         Int?                         @default(0)
-  injury_type                    String?                      @db.VarChar
-  is_taxi_squad                  Boolean?                     @default(false)
-  field_position                 Json?
-  is_starter                     Boolean?                     @default(false)
-  tactical_role                  String?                      @db.VarChar
-  is_on_taxi                     Boolean?                     @default(false)
-  helmet_item_id                 String?                      @db.Uuid
-  chest_item_id                  String?                      @db.Uuid
-  shoes_item_id                  String?                      @db.Uuid
-  gloves_item_id                 String?                      @db.Uuid
-  injuries                       Json?                        @default("[]")
-  abilities                      Json?                        @default("[]")
-  camaraderie                    Int?                         @default(50)
-  years_on_team                  Int?                         @default(0)
-  is_marketplace                 Boolean?                     @default(false)
-  marketplace_price              Int?
-  marketplace_end_time           DateTime?                    @db.Timestamp(6)
-  created_at                     DateTime?                    @default(now()) @db.Timestamp(6)
-  updated_at                     DateTime?                    @default(now()) @db.Timestamp(6)
-  total_games_played             Int?                         @default(0)
-  total_scores                   Int?                         @default(0)
-  total_passing_attempts         Int?                         @default(0)
-  total_passes_completed         Int?                         @default(0)
-  total_passing_yards            Int?                         @default(0)
-  total_rushing_yards            Int?                         @default(0)
-  total_catches                  Int?                         @default(0)
-  total_receiving_yards          Int?                         @default(0)
-  total_drops                    Int?                         @default(0)
-  total_fumbles_lost             Int?                         @default(0)
-  total_tackles                  Int?                         @default(0)
-  total_knockdowns_inflicted     Int?                         @default(0)
-  total_interceptions_caught     Int?                         @default(0)
-  total_passes_defended          Int?                         @default(0)
-  overall_potential_stars        Decimal?                     @db.Decimal(2, 1)
-  career_injuries                Int?                         @default(0)
-  games_played_last_season       Int?                         @default(0)
-  daily_stamina_level            Int?                         @default(100)
-  in_game_stamina                Int?                         @default(100)
-  injury_status                  String?                      @default("Healthy") @db.VarChar(50)
-  injury_recovery_points_current Int?                         @default(0)
-  injury_recovery_points_needed  Int?                         @default(0)
-  daily_items_used               Int?                         @default(0)
-  marketplace_listings           marketplace_listings[]
-  mvp_awards                     mvp_awards[]
-  player_auctions                player_auctions[]
-  player_development_history     player_development_history[]
-  player_injuries                player_injuries[]
-  player_match_stats             player_match_stats[]
-  player_skills                  player_skills[]
-  teams                          teams?                       @relation(fields: [team_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  season_awards                  season_awards[]
-
-  @@index([team_id], map: "idx_players_team_id")
+model Staff {
+  id                   Int       @id @default(autoincrement())
+  teamId               Int
+  team                 Team      @relation(fields: [teamId], references: [id])
+  type                 StaffType
+  name                 String
+  level                Int       @default(1)
+  contract             Contract?
+  motivation           Int       @default(5)
+  development          Int       @default(5)
+  teaching             Int       @default(5)
+  physiology           Int       @default(5)
+  talentIdentification Int       @default(5)
+  potentialAssessment  Int       @default(5)
+  tactics              Int       @default(5)
+  age                  Int       @default(30)
+  createdAt            DateTime  @default(now())
+  updatedAt            DateTime  @updatedAt
 }
 
-model season_awards {
-  id             String   @id
-  player_id      String   @db.Uuid
-  team_id        String   @db.Uuid
-  season_id      String?  @db.VarChar
-  award_type     String
-  award_category String
-  stat_value     Float?   @db.Real
-  award_date     DateTime @default(now()) @db.Timestamptz(6)
-  created_at     DateTime @default(now()) @db.Timestamptz(6)
-  players        players  @relation(fields: [player_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
-  seasons        seasons? @relation(fields: [season_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
-  teams          teams    @relation(fields: [team_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+enum StaffType {
+  HEAD_COACH
+  PASSER_TRAINER
+  RUNNER_TRAINER
+  BLOCKER_TRAINER
+  RECOVERY_SPECIALIST
+  SCOUT
 }
 
-model seasons {
-  id                  String                @id @db.VarChar(255)
-  name                String                @db.VarChar(255)
-  year                Int
-  status              String?               @default("active") @db.VarChar(50)
-  start_date          DateTime?             @db.Timestamp(6)
-  end_date            DateTime?             @db.Timestamp(6)
-  playoff_start_date  DateTime?             @db.Timestamp(6)
-  champion_team_id    String?               @db.VarChar(255)
-  created_at          DateTime?             @default(now()) @db.Timestamp(6)
-  updated_at          DateTime?             @default(now()) @db.Timestamp(6)
-  start_date_original DateTime?             @db.Timestamp(6)
-  mvp_awards          mvp_awards[]
-  season_awards       season_awards[]
-  team_awards         team_awards[]
-  team_season_history team_season_history[]
+model TeamFinances {
+  id                        Int      @id @default(autoincrement())
+  teamId                    Int      @unique
+  team                      Team     @relation(fields: [teamId], references: [id])
+  credits                   BigInt   @default(50000)
+  gems                      Int      @default(0)
+  projectedIncome           BigInt   @default(0)
+  projectedExpenses         BigInt   @default(0)
+  lastSeasonRevenue         BigInt   @default(0)
+  lastSeasonExpenses        BigInt   @default(0)
+  facilitiesMaintenanceCost BigInt   @default(0)
+  createdAt                 DateTime @default(now())
+  updatedAt                 DateTime @updatedAt
 }
 
-model sessions {
-  sid    String   @id @db.VarChar
-  sess   Json     @db.Json
-  expire DateTime @db.Timestamp(6)
-
-  @@index([expire], map: "IDX_session_expire")
+model Stadium {
+  id                   Int      @id @default(autoincrement())
+  teamId               Int      @unique
+  team                 Team     @relation(fields: [teamId], references: [id])
+  capacity             Int      @default(5000)
+  concessionsLevel     Int      @default(1)
+  parkingLevel         Int      @default(1)
+  vipSuitesLevel       Int      @default(1)
+  merchandisingLevel   Int      @default(1)
+  lightingScreensLevel Int      @default(1)
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
 }
 
-model skills {
-  id               Int             @id @default(autoincrement())
-  name             String          @db.VarChar(100)
-  description      String
-  type             String          @db.VarChar(20)
-  category         String          @db.VarChar(20)
-  role_requirement String?         @db.VarChar(50)
-  race_requirement String?         @db.VarChar(50)
-  tier1_effect     String
-  tier2_effect     String
-  tier3_effect     String
-  tier4_effect     String
-  tier1_stat_bonus Json?
-  tier2_stat_bonus Json?
-  tier3_stat_bonus Json?
-  tier4_stat_bonus Json?
-  created_at       DateTime?       @default(now()) @db.Timestamp(6)
-  player_skills    player_skills[]
+model Item {
+  id                Int               @id @default(autoincrement())
+  name              String            @unique
+  description       String
+  type              ItemType
+  slot              EquipmentSlot?
+  raceRestriction   Race?
+  statEffects       Json? // Example: {"speed": 2, "power": -1}
+  rarity            ItemRarity        @default(COMMON)
+  creditPrice       BigInt?
+  gemPrice          Int?
+  effectValue       Json? // Example: {"staminaRestore": 20} or {"injuryHealRP": 25}
+  inventoryItems    InventoryItem[]
+  activeBoosts      ActiveBoost[]
+  PlayerEquipment   PlayerEquipment[]
+  PremiumBoxRewards EquipmentReward[]
 }
 
-model stadium_events {
-  id         String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  stadium_id String    @db.Uuid
-  event_type String    @db.VarChar
-  name       String    @db.VarChar
-  revenue    Int?      @default(0)
-  cost       Int?      @default(0)
-  attendees  Int?      @default(0)
-  event_date DateTime  @db.Timestamp(6)
-  duration   Int?      @default(1)
-  status     String?   @default("scheduled") @db.VarChar
-  created_at DateTime? @default(now()) @db.Timestamp(6)
-  stadiums   stadiums  @relation(fields: [stadium_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+enum ItemType {
+  EQUIPMENT
+  CONSUMABLE_RECOVERY
+  CONSUMABLE_BOOSTER
+  TROPHY
+  GAME_ENTRY
+  COSMETIC
 }
 
-model stadium_revenue {
-  id                  String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  team_id             String    @db.Uuid
-  stadium_id          String    @db.Uuid
-  match_id            String?   @db.Uuid
-  is_home_game        Boolean
-  attendance          Int?      @default(0)
-  attendance_rate     Float?    @default(0.35) @db.Real
-  intimidation_factor Float?    @default(0) @db.Real
-  ticket_sales        Int?      @default(0)
-  concession_sales    Int?      @default(0)
-  parking_revenue     Int?      @default(0)
-  apparel_sales       Int?      @default(0)
-  vip_suite_revenue   Int?      @default(0)
-  atmosphere_bonus    Int?      @default(0)
-  total_revenue       Int?      @default(0)
-  maintenance_cost    Int?      @default(0)
-  event_costs         Int?      @default(0)
-  game_date           DateTime? @default(now()) @db.Timestamp(6)
-  season              Int?      @default(1)
-  created_at          DateTime? @default(now()) @db.Timestamp(6)
-  matches             matches?  @relation(fields: [match_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  stadiums            stadiums  @relation(fields: [stadium_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  teams               teams     @relation(fields: [team_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+enum EquipmentSlot {
+  HELMET
+  FOOTWEAR
+  GLOVES
+  ARMOR
 }
 
-model stadiums {
-  id                      String              @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  team_id                 String              @unique @db.Uuid
-  name                    String              @db.VarChar
-  level                   Int?                @default(1)
-  capacity                Int?                @default(15000)
-  fan_loyalty             Int?                @default(50)
-  field_size              String?             @default("standard") @db.VarChar(20)
-  surface                 String?             @default("grass") @db.VarChar(20)
-  lighting                String?             @default("basic") @db.VarChar(20)
-  concessions_level       Int?                @default(1)
-  parking_level           Int?                @default(1)
-  merchandising_level     Int?                @default(1)
-  vip_suites_level        Int?                @default(0)
-  screens_level           Int?                @default(1)
-  lighting_level          Int?                @default(1)
-  security_level          Int?                @default(1)
-  home_advantage          Int?                @default(5)
-  revenue_multiplier      Int?                @default(100)
-  maintenance_cost        Int?                @default(5000)
-  weather_resistance      Int?                @default(50)
-  last_season_record      String?             @default("0-0-0") @db.VarChar
-  total_attendance        Int?                @default(0)
-  total_revenue           Int?                @default(0)
-  created_at              DateTime?           @default(now()) @db.Timestamp(6)
-  updated_at              DateTime?           @default(now()) @db.Timestamp(6)
-  last_three_games_record String?             @default("0-0-0") @db.VarChar
-  current_win_streak      Int?                @default(0)
-  facility_upgrades       facility_upgrades[]
-  stadium_events          stadium_events[]
-  stadium_revenue         stadium_revenue[]
-  teams                   teams               @relation(fields: [team_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+enum ItemRarity {
+  COMMON
+  UNCOMMON
+  RARE
+  EPIC
+  LEGENDARY
+  UNIQUE
 }
 
-model staff {
-  id                String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  team_id           String    @db.Uuid
-  type              String    @db.VarChar
-  name              String    @db.VarChar
-  level             Int?      @default(1)
-  salary            Int
-  offense_rating    Int?      @default(0)
-  defense_rating    Int?      @default(0)
-  physical_rating   Int?      @default(0)
-  scouting_rating   Int?      @default(0)
-  recruiting_rating Int?      @default(0)
-  recovery_rating   Int?      @default(0)
-  coaching_rating   Int?      @default(0)
-  abilities         Json?     @default("[]")
-  created_at        DateTime? @default(now()) @db.Timestamp(6)
-  position          String?   @db.VarChar(50)
-  tactics           Int?      @default(20)
-  teams             teams     @relation(fields: [team_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+model InventoryItem {
+  id         Int      @id @default(autoincrement())
+  teamId     Int
+  team       Team     @relation(fields: [teamId], references: [id])
+  itemId     Int
+  item       Item     @relation(fields: [itemId], references: [id])
+  quantity   Int
+  acquiredAt DateTime @default(now())
+
+  @@unique([teamId, itemId])
 }
 
-model team_awards {
-  id             String   @id
-  team_id        String   @db.Uuid
-  season_id      String?  @db.VarChar
-  award_type     String
-  award_category String
-  stat_value     Float?   @db.Real
-  award_date     DateTime @default(now()) @db.Timestamptz(6)
-  created_at     DateTime @default(now()) @db.Timestamptz(6)
-  seasons        seasons? @relation(fields: [season_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
-  teams          teams    @relation(fields: [team_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+model ActiveBoost {
+  id        Int       @id @default(autoincrement())
+  teamId    Int
+  team      Team      @relation(fields: [teamId], references: [id])
+  playerId  Int?
+  player    Player?   @relation(fields: [playerId], references: [id])
+  itemId    Int
+  item      Item      @relation(fields: [itemId], references: [id])
+  matchType MatchType
+  isActive  Boolean   @default(true)
+  appliedAt DateTime  @default(now())
 }
 
-model team_finances {
-  id               String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  team_id          String    @db.Uuid
-  season           Int?      @default(1)
-  ticket_sales     Int?      @default(0)
-  concession_sales Int?      @default(0)
-  jersey_sales     Int?      @default(0)
-  sponsorships     Int?      @default(0)
-  player_salaries  Int?      @default(0)
-  staff_salaries   Int?      @default(0)
-  facilities       Int?      @default(0)
-  credits          Int?      @default(50000)
-  total_income     Int?      @default(0)
-  total_expenses   Int?      @default(0)
-  net_income       Int?      @default(0)
-  premium_currency Int?      @default(0)
-  created_at       DateTime? @default(now()) @db.Timestamp(6)
-  teams            teams     @relation(fields: [team_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+enum MatchType {
+  LEAGUE
+  TOURNAMENT_DAILY
+  TOURNAMENT_MIDSEASON
+  EXHIBITION
+  PLAYOFF
 }
 
-model team_inventory {
-  id          String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  team_id     String    @db.Uuid
-  item_id     String?   @db.Uuid
-  item_type   String    @db.VarChar
-  name        String    @db.VarChar
-  description String?
-  rarity      String?   @db.VarChar
-  metadata    Json?     @default("{}")
-  quantity    Int?      @default(1)
-  acquired_at DateTime? @default(now()) @db.Timestamp(6)
-  items       items?    @relation(fields: [item_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  teams       teams     @relation(fields: [team_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+model MarketplaceListing {
+  id                      Int      @id @default(autoincrement())
+  playerId                Int      @unique
+  player                  Player   @relation(fields: [playerId], references: [id])
+  sellerTeamId            Int
+  sellerTeam              Team     @relation("TeamListings", fields: [sellerTeamId], references: [id])
+  startBid                BigInt
+  buyNowPrice             BigInt?
+  currentBid              BigInt?
+  currentHighBidderTeamId Int?
+  currentHighBidderTeam   Team?    @relation("HighBidderListings", fields: [currentHighBidderTeamId], references: [id])
+  expiryTimestamp         DateTime
+  isActive                Boolean  @default(true)
+  createdAt               DateTime @default(now())
+  bids                    Bid[]
+
+  @@index([sellerTeamId])
+  @@index([isActive, expiryTimestamp])
 }
 
-model team_match_stats {
-  id                         String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  team_id                    String    @db.Uuid
-  match_id                   String    @db.Uuid
-  total_offensive_yards      Int?      @default(0)
-  passing_yards              Int?      @default(0)
-  rushing_yards              Int?      @default(0)
-  time_of_possession_seconds Int?      @default(0)
-  turnovers                  Int?      @default(0)
-  total_knockdowns_inflicted Int?      @default(0)
-  created_at                 DateTime? @default(now()) @db.Timestamp(6)
-  matches                    matches   @relation(fields: [match_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  teams                      teams     @relation(fields: [team_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+model Bid {
+  id           Int                @id @default(autoincrement())
+  listingId    Int
+  listing      MarketplaceListing @relation(fields: [listingId], references: [id])
+  bidderTeamId Int
+  bidderTeam   Team               @relation("TeamBids", fields: [bidderTeamId], references: [id])
+  bidAmount    BigInt
+  isWinningBid Boolean            @default(false)
+  placedAt     DateTime           @default(now())
+
+  @@index([listingId])
+  @@index([bidderTeamId])
 }
 
-model team_season_history {
-  id                   String   @id
-  team_id              String   @db.Uuid
-  season_id            String?  @db.VarChar
-  season_number        Int
-  division_id          String
-  final_position       Int?
-  wins                 Int      @default(0)
-  losses               Int      @default(0)
-  goals_for            Int      @default(0)
-  goals_against        Int      @default(0)
-  playoff_result       String?
-  special_achievements String[]
-  total_points         Int      @default(0)
-  created_at           DateTime @default(now()) @db.Timestamptz(6)
-  seasons              seasons? @relation(fields: [season_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
-  teams                teams    @relation(fields: [team_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+model Strategy {
+  id               Int      @id @default(autoincrement())
+  teamId           Int      @unique
+  team             Team     @relation(fields: [teamId], references: [id])
+  formationJson    Json?
+  substitutionJson Json?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
 }
 
-model teams {
-  id                                                                           String                 @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  user_id                                                                      String                 @db.VarChar
-  name                                                                         String                 @db.VarChar
-  division                                                                     Int?                   @default(8)
-  wins                                                                         Int?                   @default(0)
-  losses                                                                       Int?                   @default(0)
-  draws                                                                        Int?                   @default(0)
-  points                                                                       Int?                   @default(0)
-  team_power                                                                   Int?                   @default(0)
-  team_camaraderie                                                             Int?                   @default(50)
-  championships_won                                                            Int?                   @default(0)
-  credits                                                                      Int?                   @default(15000)
-  exhibition_credits                                                           Int?                   @default(3)
-  last_activity_at                                                             DateTime?              @default(now()) @db.Timestamp(6)
-  is_paid_user                                                                 Boolean?               @default(false)
-  seasons_inactive                                                             Int?                   @default(0)
-  formation                                                                    String?
-  substitution_order                                                           String?
-  cumulative_team_ad_watch_count                                               Int?                   @default(0)
-  created_at                                                                   DateTime?              @default(now()) @db.Timestamp(6)
-  updated_at                                                                   DateTime?              @default(now()) @db.Timestamp(6)
-  field_size                                                                   String?                @default("standard") @db.VarChar(20)
-  tactical_focus                                                               String?                @default("balanced") @db.VarChar(20)
-  gems                                                                         Int?                   @default(0)
-  fan_loyalty                                                                  Int?                   @default(50)
-  camaraderie                                                                  Int?                   @default(50)
-  subdivision                                                                  String?                @default("main") @db.VarChar(50)
-  auction_bids                                                                 auction_bids[]
-  exhibition_games_exhibition_games_opponent_team_idToteams                    exhibition_games[]     @relation("exhibition_games_opponent_team_idToteams")
-  exhibition_games_exhibition_games_team_idToteams                             exhibition_games[]     @relation("exhibition_games_team_idToteams")
-  items                                                                        items[]
-  league_standings                                                             league_standings[]
-  marketplace_bids                                                             marketplace_bids[]
-  marketplace_escrow                                                           marketplace_escrow[]
-  marketplace_listings_marketplace_listings_current_high_bidder_team_idToteams marketplace_listings[] @relation("marketplace_listings_current_high_bidder_team_idToteams")
-  marketplace_listings_marketplace_listings_seller_team_idToteams              marketplace_listings[] @relation("marketplace_listings_seller_team_idToteams")
-  match_consumables                                                            match_consumables[]
-  matches_matches_away_team_idToteams                                          matches[]              @relation("matches_away_team_idToteams")
-  matches_matches_home_team_idToteams                                          matches[]              @relation("matches_home_team_idToteams")
-  mvp_awards                                                                   mvp_awards[]
-  payment_transactions                                                         payment_transactions[]
-  player_auctions_player_auctions_highest_bidder_idToteams                     player_auctions[]      @relation("player_auctions_highest_bidder_idToteams")
-  player_auctions_player_auctions_seller_idToteams                             player_auctions[]      @relation("player_auctions_seller_idToteams")
-  player_match_stats                                                           player_match_stats[]
-  players                                                                      players[]
-  season_awards                                                                season_awards[]
-  stadium_revenue                                                              stadium_revenue[]
-  stadiums                                                                     stadiums?
-  staff                                                                        staff[]
-  team_awards                                                                  team_awards[]
-  team_finances                                                                team_finances[]
-  team_inventory                                                               team_inventory[]
-  team_match_stats                                                             team_match_stats[]
-  team_season_history                                                          team_season_history[]
-  users                                                                        users                  @relation(fields: [user_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  tournament_entries                                                           tournament_entries[]
+model League {
+  id        Int              @id @default(autoincrement())
+  division  Int
+  name      String
+  teams     Team[]
+  schedule  Game[]
+  standings LeagueStanding[]
+  seasonId  Int
+  season    Season           @relation(fields: [seasonId], references: [id])
 
-  @@index([division], map: "idx_teams_division")
-  @@index([user_id], map: "idx_teams_user_id")
+  @@unique([name, seasonId])
 }
 
-model tournament_entries {
-  id                  String      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  tournament_id       String      @db.Uuid
-  team_id             String      @db.Uuid
-  entry_time          DateTime?   @default(now()) @db.Timestamp(6)
-  placement           Int?
-  prize_won           Int?        @default(0)
-  credits_won         Int?        @default(0)
-  gems_won            Int?        @default(0)
-  eliminated          Boolean?    @default(false)
-  eliminated_in_round String?     @db.VarChar
-  trophy_won          String?     @db.VarChar
-  matches_played      Int?        @default(0)
-  teams               teams       @relation(fields: [team_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  tournaments         tournaments @relation(fields: [tournament_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+model LeagueStanding {
+  id                Int      @id @default(autoincrement())
+  leagueId          Int
+  league            League   @relation(fields: [leagueId], references: [id])
+  teamId            Int
+  teamName          String
+  wins              Int      @default(0)
+  losses            Int      @default(0)
+  ties              Int      @default(0)
+  pointsFor         Int      @default(0)
+  pointsAgainst     Int      @default(0)
+  pointDifferential Int      @default(0)
+  streak            String   @default("N/A")
+  rank              Int      @default(0)
+  updatedAt         DateTime @updatedAt
+
+  @@unique([leagueId, teamId])
 }
 
-model tournaments {
-  id                    String               @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  name                  String               @db.VarChar
-  division              Int
-  entry_fee             Int
-  max_teams             Int?                 @default(8)
-  status                String?              @default("open") @db.VarChar
-  prizes                Json?                @default("{}")
-  start_time            DateTime?            @db.Timestamp(6)
-  end_time              DateTime?            @db.Timestamp(6)
-  created_at            DateTime?            @default(now()) @db.Timestamp(6)
-  type                  String               @default("daily_divisional_cup") @db.VarChar
-  season                Int                  @default(0)
-  game_day              Int?
-  entry_fee_credits     Int?                 @default(0)
-  entry_fee_gems        Int?                 @default(0)
-  requires_entry_item   Boolean?             @default(false)
-  registration_deadline DateTime?            @db.Timestamp(6)
-  tournament_start_time DateTime?            @db.Timestamp(6)
-  completed_at          DateTime?            @db.Timestamp(6)
-  tournament_entries    tournament_entries[]
+model Game {
+  id            Int         @id @default(autoincrement())
+  leagueId      Int?
+  league        League?     @relation(fields: [leagueId], references: [id])
+  homeTeamId    Int
+  awayTeamId    Int
+  homeScore     Int?
+  awayScore     Int?
+  gameDate      DateTime
+  simulated     Boolean     @default(false)
+  simulationLog Json?
+  matchType     MatchType   @default(LEAGUE)
+  tournamentId  Int?
+  tournament    Tournament? @relation(fields: [tournamentId], references: [id])
+  round         Int?
+  status        GameStatus  @default(SCHEDULED)
+  createdAt     DateTime    @default(now())
+
+  @@index([homeTeamId])
+  @@index([awayTeamId])
+  @@index([gameDate])
 }
 
-/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
-model users {
-  id                      String                 @id @db.VarChar
-  email                   String?                @unique @db.VarChar
-  first_name              String?                @db.VarChar
-  last_name               String?                @db.VarChar
-  profile_image_url       String?                @db.VarChar
-  credits                 Int?                   @default(10000)
-  stripe_customer_id      String?                @db.VarChar
-  daily_ad_watch_count    Int?                   @default(0)
-  last_ad_watch_date      DateTime?              @db.Timestamp(6)
-  created_at              DateTime?              @default(now()) @db.Timestamp(6)
-  updated_at              DateTime?              @default(now()) @db.Timestamp(6)
-  role                    String?                @default("user") @db.VarChar(20)
-  total_ad_watch_count    Int?                   @default(0)
-  premium_reward_progress Int?                   @default(0)
-  replit_id               String?                @db.VarChar
-  claims                  Json?
-  ad_views                ad_views[]
-  notifications           notifications[]
-  payment_transactions    payment_transactions[]
-  teams                   teams[]
+enum GameStatus {
+  SCHEDULED
+  IN_PROGRESS
+  COMPLETED
+  POSTPONED
+  CANCELLED
+}
 
-  @@index([role], map: "idx_users_role")
+model Season {
+  id           Int         @id @default(autoincrement())
+  seasonNumber Int         @unique
+  startDate    DateTime
+  endDate      DateTime
+  currentDay   Int         @default(1)
+  phase        SeasonPhase @default(REGULAR_SEASON)
+  leagues      League[]
+  createdAt    DateTime    @default(now())
+}
+
+enum SeasonPhase {
+  REGULAR_SEASON
+  PLAYOFFS
+  OFF_SEASON
+  PRE_SEASON
+}
+
+model Notification {
+  id        Int              @id @default(autoincrement())
+  teamId    Int
+  team      Team             @relation(fields: [teamId], references: [id])
+  message   String
+  type      NotificationType
+  isRead    Boolean          @default(false)
+  linkTo    String?
+  createdAt DateTime         @default(now())
+
+  @@index([teamId, isRead])
+}
+
+enum NotificationType {
+  CONTRACT_ALERT
+  INJURY_UPDATE
+  MARKETPLACE_BID
+  MARKETPLACE_SOLD
+  MARKETPLACE_EXPIRED
+  SCOUTING_REPORT
+  MATCH_RESULT
+  TOURNAMENT_UPDATE
+  RECRUIT_SIGNED
+  SYSTEM_MESSAGE
+  TRADE_OFFER
+  TRADE_ACCEPTED
+  TRADE_REJECTED
+  LEAGUE_PROMOTION
+  LEAGUE_DEMOTION
+  NEW_SEASON
+  PLAYER_RETIRED
+  PLAYER_PROGRESSED
+}
+
+model TryoutPack {
+  id          Int    @id @default(autoincrement())
+  name        String @unique
+  description String
+  creditCost  BigInt
+  gemCost     Int?
+  numPlayers  Int
+  qualityTier String
+}
+
+model GemPack {
+  id        Int    @id @default(autoincrement())
+  name      String @unique
+  gemAmount Int
+  usdPrice  Float
+  productId String @unique
+}
+
+model CreditExchangeRate {
+  id              Int    @id @default(autoincrement())
+  gems            Int    @unique
+  credits         BigInt
+  bonusPercentage Float  @default(0)
+}
+
+model Referral {
+  id             Int      @id @default(autoincrement())
+  referrerUserId String
+  referredUserId String
+  rewardGiven    Boolean  @default(false)
+  createdAt      DateTime @default(now())
+
+  @@unique([referrerUserId, referredUserId])
+}
+
+model RedeemCode {
+  id          String             @id @unique
+  description String
+  rewardType  RewardType
+  rewardValue Json
+  maxUses     Int?
+  currentUses Int                @default(0)
+  isActive    Boolean            @default(true)
+  expiryDate  DateTime?
+  createdAt   DateTime           @default(now())
+  redeemedBy  RedeemCodeRecord[]
+}
+
+model RedeemCodeRecord {
+  id            Int         @id @default(autoincrement())
+  redeemCodeId  String
+  redeemCode    RedeemCode  @relation(fields: [redeemCodeId], references: [id])
+  userProfileId Int
+  userProfile   UserProfile @relation(fields: [userProfileId], references: [id])
+  redeemedAt    DateTime    @default(now())
+
+  @@unique([redeemCodeId, userProfileId])
+}
+
+enum RewardType {
+  GEMS
+  CREDITS
+  ITEM
+  PREMIUM_BOX
+}
+
+model AdRewardMilestone {
+  id              Int       @id @default(autoincrement())
+  userProfileId   Int       @unique
+  adsWatchedCount Int       @default(0)
+  lastAdWatchedAt DateTime?
+}
+
+model PremiumBoxReward {
+  id          Int        @id @default(autoincrement())
+  category    String
+  rewardType  RewardType
+  rewardValue Json
+  weight      Float
+}
+
+model EquipmentReward {
+  id     Int        @id @default(autoincrement())
+  boxId  Int
+  itemId Int
+  item   Item       @relation(fields: [itemId], references: [id])
+  rarity ItemRarity
+  weight Float
+}
+
+model Tournament {
+  id                  Int               @id @default(autoincrement())
+  name                String
+  type                TournamentType
+  division            Int?
+  status              TournamentStatus  @default(REGISTRATION_OPEN)
+  startTime           DateTime
+  registrationEndTime DateTime?
+  entryFeeCredits     BigInt?
+  entryFeeGems        Int?
+  entryFeeItemId      Int?
+  prizePoolJson       Json
+  games               Game[]
+  entries             TournamentEntry[]
+  seasonDay           Int?
+  createdAt           DateTime          @default(now())
+}
+
+enum TournamentType {
+  DAILY_DIVISIONAL
+  MID_SEASON_CLASSIC
+  SPECIAL_EVENT
+}
+
+enum TournamentStatus {
+  REGISTRATION_OPEN
+  REGISTRATION_CLOSED
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+}
+
+model TournamentEntry {
+  id             Int        @id @default(autoincrement())
+  tournamentId   Int
+  tournament     Tournament @relation(fields: [tournamentId], references: [id])
+  teamId         Int
+  team           Team       @relation(fields: [teamId], references: [id])
+  registeredAt   DateTime   @default(now())
+  finalRank      Int?
+  rewardsClaimed Boolean    @default(false)
+
+  @@unique([tournamentId, teamId])
 }
