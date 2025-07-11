@@ -13,7 +13,7 @@ router.get('/:teamId', isAuthenticated, async (req: any, res: Response, next: Ne
     if (teamId === "my") {
       const userId = req.user?.claims?.sub;
       const team = await prisma.team.findFirst({
-        where: { userId: userId }
+        where: { user: { userId: userId } }
       });
       if (!team) {
         return res.status(404).json({ error: "Team not found for current user" });
@@ -22,9 +22,10 @@ router.get('/:teamId', isAuthenticated, async (req: any, res: Response, next: Ne
     } else {
       // Verify user owns this team
       const team = await prisma.team.findFirst({
-        where: { id: parseInt(teamId) }
+        where: { id: parseInt(teamId) },
+        include: { user: true }
       });
-      if (!team || team.userId !== req.user?.claims?.sub) {
+      if (!team || team.user.userId !== req.user?.claims?.sub) {
         return res.status(403).json({ error: "Forbidden: You do not own this team." });
       }
     }
@@ -65,7 +66,7 @@ router.post('/:teamId/use-item', isAuthenticated, async (req: any, res: Response
     if (teamId === "my") {
       const userId = req.user?.claims?.sub;
       const team = await prisma.team.findFirst({
-        where: { userId: userId }
+        where: { user: { userId: userId } }
       });
       if (!team) {
         return res.status(404).json({ error: "Team not found for current user" });
@@ -74,9 +75,10 @@ router.post('/:teamId/use-item', isAuthenticated, async (req: any, res: Response
     } else {
       // Verify user owns this team
       const team = await prisma.team.findFirst({
-        where: { id: parseInt(teamId) }
+        where: { id: parseInt(teamId) },
+        include: { user: true }
       });
-      if (!team || team.userId !== req.user?.claims?.sub) {
+      if (!team || team.user.userId !== req.user?.claims?.sub) {
         return res.status(403).json({ error: "Forbidden: You do not own this team." });
       }
     }
@@ -126,10 +128,9 @@ router.post('/:teamId/use-item', isAuthenticated, async (req: any, res: Response
 
     res.json({ 
       success: true, 
-      message: "Item used successfully",
-      remainingQuantity: Math.max(0, item.quantity - 1)
+      message: "Item used successfully", 
+      remainingQuantity: item.quantity - 1 
     });
-
   } catch (error) {
     console.error("Error using inventory item:", error);
     res.status(500).json({ error: "Failed to use inventory item" });

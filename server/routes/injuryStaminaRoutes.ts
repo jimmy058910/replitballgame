@@ -15,9 +15,10 @@ router.get('/team/:teamId/status', isAuthenticated, async (req: any, res: Respon
 
     // Verify team ownership
     const team = await prisma.team.findFirst({
-      where: { id: parseInt(teamId) }
+      where: { id: parseInt(teamId) },
+      include: { user: true }
     });
-    if (!team || team.userId !== userId) {
+    if (!team || team.user.userId !== userId) {
       return res.status(403).json({ message: "Unauthorized access to team" });
     }
 
