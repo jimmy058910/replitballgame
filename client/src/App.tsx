@@ -30,6 +30,7 @@ import HelpManual from "@/pages/HelpManual";
 
 import Navigation from "@/components/Navigation";
 import { ContextualHelp } from "@/components/help";
+import { LandscapeOrientation } from "@/components/LandscapeOrientation";
 
 function Router() {
   const { isAuthenticated, isLoading } = useAuth();
@@ -74,12 +75,14 @@ function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
-        <div className="min-h-screen bg-background">
-          <Navigation />
-          <Router />
-          <Toaster />
-          <ContextualHelp />
-        </div>
+        <LandscapeOrientation>
+          <div className="min-h-screen bg-background">
+            <Navigation />
+            <Router />
+            <Toaster />
+            <ContextualHelp />
+          </div>
+        </LandscapeOrientation>
       </TooltipProvider>
     </QueryClientProvider>
   );

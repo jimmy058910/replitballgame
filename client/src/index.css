@@ -74,6 +74,11 @@
 
   body {
     @apply font-inter antialiased bg-gray-900 text-gray-100;
+    /* Prevent zoom on mobile */
+    -webkit-text-size-adjust: 100%;
+    -ms-text-size-adjust: 100%;
+    /* Prevent overscroll */
+    overscroll-behavior: none;
   }
   
   .font-orbitron {
@@ -168,4 +173,112 @@
 /* Icon styling */
 .fas, .far, .fab {
   font-family: "Font Awesome 6 Free", "Font Awesome 6 Pro", "Font Awesome 6 Brands";
+}
+
+/* Landscape-only orientation styles for mobile gaming */
+.landscape-only {
+  display: block;
+}
+
+.portrait-warning {
+  display: none;
+}
+
+/* Mobile portrait mode warning overlay */
+@media screen and (max-width: 768px) and (orientation: portrait) {
+  .landscape-only {
+    display: none !important;
+  }
+  
+  .portrait-warning {
+    display: flex !important;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0, 0, 0, 0.95);
+    backdrop-filter: blur(8px);
+    z-index: 9999;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    text-align: center;
+    padding: 2rem;
+  }
+  
+  .portrait-warning .rotate-icon {
+    font-size: 4rem;
+    margin-bottom: 1rem;
+    animation: rotate 2s ease-in-out infinite;
+  }
+  
+  .portrait-warning h2 {
+    font-size: 1.5rem;
+    margin-bottom: 1rem;
+    color: #60a5fa;
+  }
+  
+  .portrait-warning p {
+    font-size: 1rem;
+    opacity: 0.8;
+  }
+}
+
+@keyframes rotate {
+  0% { transform: rotate(0deg); }
+  25% { transform: rotate(90deg); }
+  50% { transform: rotate(90deg); }
+  75% { transform: rotate(0deg); }
+  100% { transform: rotate(0deg); }
+}
+
+/* Mobile landscape optimizations */
+@media screen and (max-width: 768px) and (orientation: landscape) {
+  body {
+    /* Remove default margins on mobile landscape */
+    margin: 0;
+    padding: 0;
+    /* Ensure full viewport usage */
+    width: 100vw;
+    height: 100vh;
+    overflow-x: hidden;
+  }
+  
+  /* Optimize navigation for landscape */
+  nav {
+    height: 48px !important;
+    padding: 0 1rem !important;
+  }
+  
+  /* Reduce padding for landscape mobile */
+  .container {
+    padding-left: 1rem !important;
+    padding-right: 1rem !important;
+  }
+  
+  /* Optimize text sizing for landscape */
+  .text-xl {
+    font-size: 1.125rem !important;
+  }
+  
+  .text-2xl {
+    font-size: 1.25rem !important;
+  }
+  
+  /* Optimize card spacing for landscape */
+  .space-y-4 > * + * {
+    margin-top: 0.75rem !important;
+  }
+  
+  .space-y-6 > * + * {
+    margin-top: 1rem !important;
+  }
+  
+  /* Optimize button sizing for landscape */
+  .btn {
+    padding: 0.5rem 1rem !important;
+    font-size: 0.875rem !important;
+  }
 }
