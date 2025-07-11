@@ -52,6 +52,11 @@ model Team {
   tacticalFocus        TacticalFocus        @default(BALANCED)
   leagueId             Int?
   league               League?              @relation(fields: [leagueId], references: [id])
+  division             Int?                 @default(8)
+  subdivision          String?              @default("main")
+  wins                 Int                  @default(0)
+  losses               Int                  @default(0)
+  points               Int                  @default(0)
   activeBoosts         ActiveBoost[]
   strategy             Strategy?
   marketplaceListings  MarketplaceListing[] @relation("TeamListings")
