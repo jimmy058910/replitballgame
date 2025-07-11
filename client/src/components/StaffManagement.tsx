@@ -30,7 +30,7 @@ interface StaffManagementProps {
 export default function StaffManagement({ teamId }: StaffManagementProps) {
   const [selectedStaff, setSelectedStaff] = useState<StaffMember | null>(null);
 
-  const { data: rawStaff, isLoading } = useQuery({
+  const { data: rawStaff, isLoading, error } = useQuery({
     queryKey: [`/api/teams/${teamId}/staff`],
     enabled: !!teamId,
   });
@@ -123,25 +123,33 @@ export default function StaffManagement({ teamId }: StaffManagementProps) {
   const getStaffByType = (type: string) => {
     // Handle mapping between UI types and database types
     switch (type) {
+      case "head_coach":
+        return staff?.find((member: StaffMember) => 
+          member.type === "HEAD_COACH"
+        );
       case "trainer_offense":
         return staff?.find((member: StaffMember) => 
-          member.type === "trainer" && member.name === "Mike Offense"
+          member.type === "PASSER_TRAINER"
         );
       case "trainer_defense":
         return staff?.find((member: StaffMember) => 
-          member.type === "trainer" && member.name === "Lisa Defense"
+          member.type === "BLOCKER_TRAINER"
         );
       case "trainer_physical":
         return staff?.find((member: StaffMember) => 
-          member.type === "trainer" && member.name === "Sarah Fitness"
+          member.type === "RUNNER_TRAINER"
+        );
+      case "recovery_specialist":
+        return staff?.find((member: StaffMember) => 
+          member.type === "RECOVERY_SPECIALIST"
         );
       case "head_scout":
         return staff?.find((member: StaffMember) => 
-          member.type === "scout" && member.name === "Tony Scout"
+          member.type === "SCOUT" && member.name === "Tony Scout"
         );
       case "recruiting_scout":
         return staff?.find((member: StaffMember) => 
-          member.type === "scout" && member.name === "Emma Talent"
+          member.type === "SCOUT" && member.name === "Emma Talent"
         );
       default:
         return staff?.find((member: StaffMember) => member.type === type);
@@ -245,6 +253,17 @@ export default function StaffManagement({ teamId }: StaffManagementProps) {
             </CardContent>
           </Card>
         ))}
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="text-center py-8">
+        <p className="text-red-400 mb-4">Error loading staff: {error.message}</p>
+        <Button onClick={() => window.location.reload()} variant="outline">
+          Retry
+        </Button>
       </div>
     );
   }
