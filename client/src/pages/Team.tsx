@@ -277,7 +277,7 @@ export default function Team() {
               </TabsContent>
 
               <TabsContent value="medical">
-                <InjuryStaminaManager teamId={team?.id} />
+                <InjuryStaminaManager teamId={team?.id?.toString() || ''} />
               </TabsContent>
             </Tabs>
           </TabsContent>

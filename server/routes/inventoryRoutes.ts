@@ -22,7 +22,7 @@ router.get('/:teamId', isAuthenticated, async (req: any, res: Response, next: Ne
     } else {
       // Verify user owns this team
       const team = await prisma.team.findFirst({
-        where: { id: teamId }
+        where: { id: parseInt(teamId) }
       });
       if (!team || team.userId !== req.user?.claims?.sub) {
         return res.status(403).json({ error: "Forbidden: You do not own this team." });
@@ -30,19 +30,22 @@ router.get('/:teamId', isAuthenticated, async (req: any, res: Response, next: Ne
     }
 
     // Get team inventory
-    const inventory = await prisma.teamInventory.findMany({
-      where: { teamId: teamId }
+    const inventory = await prisma.inventoryItem.findMany({
+      where: { teamId: parseInt(teamId) },
+      include: {
+        item: true
+      }
     });
 
     // Transform inventory data to match expected format
-    const formattedInventory = inventory.map(item => ({
-      id: item.id,
-      itemType: item.itemType,
-      name: item.name,
-      description: `${item.name.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())} - Team inventory item`,
-      rarity: item.rarity || "common",
-      quantity: item.quantity,
-      metadata: item.metadata || {}
+    const formattedInventory = inventory.map(invItem => ({
+      id: invItem.id,
+      itemType: invItem.item.type,
+      name: invItem.item.name,
+      description: invItem.item.description,
+      rarity: invItem.item.rarity.toLowerCase(),
+      quantity: invItem.quantity,
+      metadata: invItem.item.effectValue || {}
     }));
 
     res.json(formattedInventory);
@@ -71,7 +74,7 @@ router.post('/:teamId/use-item', isAuthenticated, async (req: any, res: Response
     } else {
       // Verify user owns this team
       const team = await prisma.team.findFirst({
-        where: { id: teamId }
+        where: { id: parseInt(teamId) }
       });
       if (!team || team.userId !== req.user?.claims?.sub) {
         return res.status(403).json({ error: "Forbidden: You do not own this team." });
@@ -79,9 +82,9 @@ router.post('/:teamId/use-item', isAuthenticated, async (req: any, res: Response
     }
 
     // Find the inventory item
-    const item = await prisma.teamInventory.findFirst({
+    const item = await prisma.inventoryItem.findFirst({
       where: {
-        teamId: teamId,
+        teamId: parseInt(teamId),
         id: itemId
       }
     });
@@ -98,8 +101,8 @@ router.post('/:teamId/use-item', isAuthenticated, async (req: any, res: Response
     if (playerId) {
       const player = await prisma.player.findFirst({
         where: {
-          id: playerId,
-          teamId: teamId
+          id: parseInt(playerId),
+          teamId: parseInt(teamId)
         }
       });
 
@@ -109,14 +112,14 @@ router.post('/:teamId/use-item', isAuthenticated, async (req: any, res: Response
     }
 
     // Reduce item quantity
-    await prisma.teamInventory.update({
+    await prisma.inventoryItem.update({
       where: { id: itemId },
       data: { quantity: item.quantity - 1 }
     });
 
     // Remove item if quantity reaches 0
     if (item.quantity - 1 <= 0) {
-      await prisma.teamInventory.delete({
+      await prisma.inventoryItem.delete({
         where: { id: itemId }
       });
     }

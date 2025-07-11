@@ -544,7 +544,7 @@ export default function TacticsLineupHub({ teamId }: TacticsLineupHubProps) {
     
     // Desktop drag-and-drop card
     return (
-      <Draggable key={player.id} draggableId={player.id} index={index} isDragDisabled={isDragDisabled}>
+      <Draggable key={player.id} draggableId={player.id.toString()} index={index} isDragDisabled={isDragDisabled}>
         {(provided, snapshot) => (
           <div
             ref={provided.innerRef}

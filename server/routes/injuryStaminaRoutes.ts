@@ -15,7 +15,7 @@ router.get('/team/:teamId/status', isAuthenticated, async (req: any, res: Respon
 
     // Verify team ownership
     const team = await prisma.team.findFirst({
-      where: { id: teamId }
+      where: { id: parseInt(teamId) }
     });
     if (!team || team.userId !== userId) {
       return res.status(403).json({ message: "Unauthorized access to team" });
@@ -23,7 +23,7 @@ router.get('/team/:teamId/status', isAuthenticated, async (req: any, res: Respon
 
     // Get all players with injury/stamina data
     const teamPlayers = await prisma.player.findMany({
-      where: { teamId: teamId },
+      where: { teamId: parseInt(teamId) },
       select: {
         id: true,
         firstName: true,
