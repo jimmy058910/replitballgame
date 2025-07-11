@@ -201,7 +201,7 @@ export default function StaffManagement({ teamId }: StaffManagementProps) {
 
               <div className="flex justify-between items-center pt-2 border-t">
                 <span className="text-sm text-gray-600">
-                  ${currentStaff.salary.toLocaleString()}/season
+                  ${calculateSalary(staffType.type, currentStaff.level || 1).toLocaleString()}/season
                 </span>
                 <Button
                   variant="destructive"
@@ -275,7 +275,17 @@ export default function StaffManagement({ teamId }: StaffManagementProps) {
         <div className="text-right">
           <p className="text-sm text-gray-600">Total Staff Salaries</p>
           <p className="text-xl font-bold">
-            ${staff?.reduce((total: number, member: StaffMember) => total + member.salary, 0).toLocaleString()}/season
+            ${staff?.reduce((total: number, member: StaffMember) => {
+              const staffType = staffTypes.find(s => s.type === member.type.toLowerCase() || 
+                (s.type === 'head_coach' && member.type === 'HEAD_COACH') ||
+                (s.type === 'trainer_offense' && member.type === 'PASSER_TRAINER') ||
+                (s.type === 'trainer_defense' && member.type === 'BLOCKER_TRAINER') ||
+                (s.type === 'trainer_physical' && member.type === 'RUNNER_TRAINER') ||
+                (s.type === 'recovery_specialist' && member.type === 'RECOVERY_SPECIALIST') ||
+                (s.type === 'head_scout' && member.type === 'SCOUT')
+              );
+              return total + (staffType ? staffType.baseSalary * (member.level || 1) : 5000);
+            }, 0).toLocaleString()}/season
           </p>
         </div>
       </div>

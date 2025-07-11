@@ -88,10 +88,10 @@ export default function Team() {
     enabled: !!team?.id,
   });
 
-  // Add roles to players and filter
+  // Add roles to players and filter - use database role field directly
   const playersWithRoles = players?.map((player: any) => ({
     ...player,
-    role: getPlayerRole(player)
+    role: player.role || getPlayerRole(player) // Prefer database role over calculated
   })) || [];
 
   const filteredPlayers = playersWithRoles.filter((player: any) => 
