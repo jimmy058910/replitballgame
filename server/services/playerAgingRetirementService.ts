@@ -1,6 +1,4 @@
-import { db } from '../db.js';
-import { players, playerDevelopmentHistory, playerCareerMilestones, staff, InsertPlayerDevelopmentHistory } from '../../shared/schema.js';
-import { eq, and, gte, lte, not, isNull } from 'drizzle-orm';
+import { prisma } from '../db.js';
 
 export class PlayerAgingRetirementService {
 

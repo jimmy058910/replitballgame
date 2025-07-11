@@ -1,7 +1,5 @@
 import { Router, Request, Response, NextFunction } from "express";
-import { db } from "../db";
-import { teams, teamInventory, players } from "../../shared/schema";
-import { eq, and } from "drizzle-orm";
+import { prisma } from "../db";
 import { isAuthenticated } from "../replitAuth";
 
 const router = Router();
@@ -14,21 +12,27 @@ router.get('/:teamId', isAuthenticated, async (req: any, res: Response, next: Ne
     // Handle "my" team ID
     if (teamId === "my") {
       const userId = req.user?.claims?.sub;
-      const team = await db.select().from(teams).where(eq(teams.userId, userId)).limit(1);
-      if (!team.length) {
+      const team = await prisma.team.findFirst({
+        where: { userId: userId }
+      });
+      if (!team) {
         return res.status(404).json({ error: "Team not found for current user" });
       }
-      teamId = team[0].id;
+      teamId = team.id;
     } else {
       // Verify user owns this team
-      const team = await db.select().from(teams).where(eq(teams.id, teamId)).limit(1);
-      if (!team.length || team[0].userId !== req.user?.claims?.sub) {
+      const team = await prisma.team.findFirst({
+        where: { id: teamId }
+      });
+      if (!team || team.userId !== req.user?.claims?.sub) {
         return res.status(403).json({ error: "Forbidden: You do not own this team." });
       }
     }
 
     // Get team inventory
-    const inventory = await db.select().from(teamInventory).where(eq(teamInventory.teamId, teamId));
+    const inventory = await prisma.teamInventory.findMany({
+      where: { teamId: teamId }
+    });
 
     // Transform inventory data to match expected format
     const formattedInventory = inventory.map(item => ({
@@ -57,29 +61,34 @@ router.post('/:teamId/use-item', isAuthenticated, async (req: any, res: Response
     // Handle "my" team ID
     if (teamId === "my") {
       const userId = req.user?.claims?.sub;
-      const team = await db.select().from(teams).where(eq(teams.userId, userId)).limit(1);
-      if (!team.length) {
+      const team = await prisma.team.findFirst({
+        where: { userId: userId }
+      });
+      if (!team) {
         return res.status(404).json({ error: "Team not found for current user" });
       }
-      teamId = team[0].id;
+      teamId = team.id;
     } else {
       // Verify user owns this team
-      const team = await db.select().from(teams).where(eq(teams.id, teamId)).limit(1);
-      if (!team.length || team[0].userId !== req.user?.claims?.sub) {
+      const team = await prisma.team.findFirst({
+        where: { id: teamId }
+      });
+      if (!team || team.userId !== req.user?.claims?.sub) {
         return res.status(403).json({ error: "Forbidden: You do not own this team." });
       }
     }
 
     // Find the inventory item
-    const inventoryItem = await db.select().from(teamInventory).where(
-      and(eq(teamInventory.teamId, teamId), eq(teamInventory.id, itemId))
-    ).limit(1);
+    const item = await prisma.teamInventory.findFirst({
+      where: {
+        teamId: teamId,
+        id: itemId
+      }
+    });
 
-    if (!inventoryItem.length) {
+    if (!item) {
       return res.status(404).json({ error: "Item not found in inventory" });
     }
-
-    const item = inventoryItem[0];
 
     if (item.quantity <= 0) {
       return res.status(400).json({ error: "Item is out of stock" });
@@ -87,23 +96,29 @@ router.post('/:teamId/use-item', isAuthenticated, async (req: any, res: Response
 
     // Verify player belongs to team if playerId is provided
     if (playerId) {
-      const player = await db.select().from(players).where(
-        and(eq(players.id, playerId), eq(players.teamId, teamId))
-      ).limit(1);
+      const player = await prisma.player.findFirst({
+        where: {
+          id: playerId,
+          teamId: teamId
+        }
+      });
 
-      if (!player.length) {
+      if (!player) {
         return res.status(404).json({ error: "Player not found on your team" });
       }
     }
 
     // Reduce item quantity
-    await db.update(teamInventory)
-      .set({ quantity: item.quantity - 1 })
-      .where(eq(teamInventory.id, itemId));
+    await prisma.teamInventory.update({
+      where: { id: itemId },
+      data: { quantity: item.quantity - 1 }
+    });
 
     // Remove item if quantity reaches 0
     if (item.quantity - 1 <= 0) {
-      await db.delete(teamInventory).where(eq(teamInventory.id, itemId));
+      await prisma.teamInventory.delete({
+        where: { id: itemId }
+      });
     }
 
     res.json({ 

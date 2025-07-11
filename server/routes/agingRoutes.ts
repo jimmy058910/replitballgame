@@ -3,9 +3,7 @@ import { isAuthenticated } from "../replitAuth";
 import { AgingService } from "../services/agingService";
 import { ErrorCreators, asyncHandler, logInfo } from "../services/errorService";
 import { z } from "zod";
-import { db } from "../db";
-import { players } from "@shared/schema";
-import { eq } from "drizzle-orm";
+import { prisma } from "../db";
 
 const router = Router();
 
@@ -71,7 +69,9 @@ const playerIdSchema = z.object({
 router.get('/player/:playerId/retirement-chance', isAuthenticated, asyncHandler(async (req: any, res: Response) => {
   const { playerId } = playerIdSchema.parse(req.params);
   
-  const [player] = await db.select().from(players).where(eq(players.id, playerId)).limit(1);
+  const player = await prisma.player.findFirst({
+    where: { id: playerId }
+  });
   
   if (!player) {
     throw ErrorCreators.notFound('Player not found');
@@ -102,7 +102,9 @@ router.get('/player/:playerId/retirement-chance', isAuthenticated, asyncHandler(
 router.post('/player/:playerId/simulate-aging', isAuthenticated, asyncHandler(async (req: any, res: Response) => {
   const { playerId } = playerIdSchema.parse(req.params);
   
-  const [player] = await db.select().from(players).where(eq(players.id, playerId)).limit(1);
+  const player = await prisma.player.findFirst({
+    where: { id: playerId }
+  });
   
   if (!player) {
     throw ErrorCreators.notFound('Player not found');

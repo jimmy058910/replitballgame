@@ -1,6 +1,4 @@
-import { db } from '../db.js';
-import { players, skills, playerSkills } from '../../shared/schema.js';
-import { eq, and, desc, count } from 'drizzle-orm';
+import { prisma } from '../db.js';
 import { getPlayerRole } from '../../shared/playerUtils.js';
 
 export class PlayerSkillsService {
@@ -41,17 +39,19 @@ export class PlayerSkillsService {
    */
   static async getEligibleSkills(playerId: string): Promise<any[]> {
     // Get player data
-    const [player] = await db.select().from(players).where(eq(players.id, playerId));
+    const player = await prisma.player.findFirst({
+      where: { id: playerId }
+    });
     if (!player) return [];
 
     // Get all skills
-    const allSkills = await db.select().from(skills);
+    const allSkills = await prisma.skill.findMany();
 
     // Get player's current skills
-    const currentPlayerSkills = await db
-      .select({ skillId: playerSkills.skillId })
-      .from(playerSkills)
-      .where(eq(playerSkills.playerId, playerId));
+    const currentPlayerSkills = await prisma.playerSkill.findMany({
+      where: { playerId: playerId },
+      select: { skillId: true }
+    });
 
     const currentSkillIds = currentPlayerSkills.map(ps => ps.skillId);
 
@@ -66,44 +66,43 @@ export class PlayerSkillsService {
    * Get all skills a player currently has with their tiers
    */
   static async getPlayerSkills(playerId: string): Promise<any[]> {
-    const result = await db
-      .select({
-        id: playerSkills.id,
-        skillId: playerSkills.skillId,
-        currentTier: playerSkills.currentTier,
-        acquiredAt: playerSkills.acquiredAt,
-        lastUpgraded: playerSkills.lastUpgraded,
-        name: skills.name,
-        description: skills.description,
-        type: skills.type,
-        category: skills.category,
-        tier1Effect: skills.tier1Effect,
-        tier2Effect: skills.tier2Effect,
-        tier3Effect: skills.tier3Effect,
-        tier4Effect: skills.tier4Effect,
-        tier1StatBonus: skills.tier1StatBonus,
-        tier2StatBonus: skills.tier2StatBonus,
-        tier3StatBonus: skills.tier3StatBonus,
-        tier4StatBonus: skills.tier4StatBonus,
-      })
-      .from(playerSkills)
-      .innerJoin(skills, eq(playerSkills.skillId, skills.id))
-      .where(eq(playerSkills.playerId, playerId))
-      .orderBy(desc(playerSkills.acquiredAt));
+    const result = await prisma.playerSkill.findMany({
+      where: { playerId: playerId },
+      include: {
+        skill: true
+      }
+    });
 
-    return result;
+    return result.map(ps => ({
+      id: ps.id,
+      skillId: ps.skillId,
+      currentTier: ps.currentTier,
+      acquiredAt: ps.acquiredAt,
+      lastUpgraded: ps.lastUpgraded,
+      name: ps.skill.name,
+      description: ps.skill.description,
+      type: ps.skill.type,
+      category: ps.skill.category,
+      tier1Effect: ps.skill.tier1Effect,
+      tier2Effect: ps.skill.tier2Effect,
+      tier3Effect: ps.skill.tier3Effect,
+      tier4Effect: ps.skill.tier4Effect,
+      tier1StatBonus: ps.skill.tier1StatBonus,
+      tier2StatBonus: ps.skill.tier2StatBonus,
+      tier3StatBonus: ps.skill.tier3StatBonus,
+      tier4StatBonus: ps.skill.tier4StatBonus
+    }));
   }
 
   /**
    * Count how many skills a player currently has
    */
   static async getPlayerSkillCount(playerId: string): Promise<number> {
-    const result = await db
-      .select({ count: count() })
-      .from(playerSkills)
-      .where(eq(playerSkills.playerId, playerId));
+    const result = await prisma.playerSkill.count({
+      where: { playerId: playerId }
+    });
 
-    return result[0]?.count || 0;
+    return result || 0;
   }
 
   /**
@@ -112,15 +111,14 @@ export class PlayerSkillsService {
   static async acquireSkill(playerId: string, skillId: number): Promise<boolean> {
     try {
       // Check if player already has this skill
-      const existing = await db
-        .select()
-        .from(playerSkills)
-        .where(and(
-          eq(playerSkills.playerId, playerId),
-          eq(playerSkills.skillId, skillId)
-        ));
+      const existing = await prisma.playerSkill.findFirst({
+        where: {
+          playerId: playerId,
+          skillId: skillId
+        }
+      });
 
-      if (existing.length > 0) {
+      if (existing) {
         return false; // Already has this skill
       }
 
@@ -131,11 +129,13 @@ export class PlayerSkillsService {
       }
 
       // Add the skill at Tier 1
-      await db.insert(playerSkills).values({
-        playerId,
-        skillId,
-        currentTier: 1,
-        acquiredAt: new Date(),
+      await prisma.playerSkill.create({
+        data: {
+          playerId,
+          skillId,
+          currentTier: 1,
+          acquiredAt: new Date(),
+        }
       });
 
       return true;
@@ -151,26 +151,25 @@ export class PlayerSkillsService {
   static async upgradeSkill(playerId: string, skillId: number): Promise<boolean> {
     try {
       // Get current skill data
-      const [currentSkill] = await db
-        .select()
-        .from(playerSkills)
-        .where(and(
-          eq(playerSkills.playerId, playerId),
-          eq(playerSkills.skillId, skillId)
-        ));
+      const currentSkill = await prisma.playerSkill.findFirst({
+        where: {
+          playerId: playerId,
+          skillId: skillId
+        }
+      });
 
       if (!currentSkill || currentSkill.currentTier >= 4) {
         return false; // Skill not found or already max tier
       }
 
       // Upgrade to next tier
-      await db
-        .update(playerSkills)
-        .set({
+      await prisma.playerSkill.update({
+        where: { id: currentSkill.id },
+        data: {
           currentTier: currentSkill.currentTier + 1,
           lastUpgraded: new Date(),
-        })
-        .where(eq(playerSkills.id, currentSkill.id));
+        }
+      });
 
       return true;
     } catch (error) {
@@ -363,14 +362,21 @@ export class PlayerSkillsService {
    * Get all skills in database
    */
   static async getAllSkills(): Promise<any[]> {
-    return await db.select().from(skills).orderBy(skills.category, skills.name);
+    return await prisma.skill.findMany({
+      orderBy: [
+        { category: 'asc' },
+        { name: 'asc' }
+      ]
+    });
   }
 
   /**
    * Get skill by ID
    */
   static async getSkillById(skillId: number): Promise<any | null> {
-    const [skill] = await db.select().from(skills).where(eq(skills.id, skillId));
+    const skill = await prisma.skill.findFirst({
+      where: { id: skillId }
+    });
     return skill || null;
   }
 }

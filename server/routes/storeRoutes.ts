@@ -88,8 +88,8 @@ router.get('/', isAuthenticated, async (req: Request, res: Response, next: NextF
 router.get('/ads', isAuthenticated, async (req: any, res: Response, next: NextFunction) => {
   try {
     const userId = req.user.claims.sub;
-    const dailyAdsWatched = await adSystemStorage.getDailyAdViewsCountByUser(userId);
-    const dailyRewardedCompleted = await adSystemStorage.getDailyCompletedRewardedAdViewsCountByUser(userId);
+    const dailyAdsWatched = await storage.adSystem.getDailyAdViewsCountByUser(userId);
+    const dailyRewardedCompleted = await storage.adSystem.getDailyCompletedRewardedAdViewsCountByUser(userId);
 
     const { dailyWatchLimit } = storeConfig.adSystem;
 

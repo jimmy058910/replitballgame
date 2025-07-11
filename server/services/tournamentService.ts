@@ -1,6 +1,4 @@
-import { db } from "../db";
-import { tournaments, tournamentEntries, teams, teamInventory, matches } from "../../shared/schema";
-import { eq, and, gte, desc, asc } from "drizzle-orm";
+import { prisma } from "../db";
 import { randomUUID } from "crypto";
 import moment from "moment-timezone";
 
@@ -253,31 +251,32 @@ export class TournamentService {
 
   // Get available tournaments for a team
   async getAvailableTournaments(teamId: string) {
-    const team = await db.select().from(teams).where(eq(teams.id, teamId)).limit(1);
-    if (!team[0]) throw new Error("Team not found");
+    const team = await prisma.team.findFirst({
+      where: { id: teamId }
+    });
+    if (!team) throw new Error("Team not found");
 
-    const division = team[0].division;
+    const division = team.division;
     const season = this.getCurrentSeason();
     const gameDay = this.getCurrentGameDay();
 
     // Get open tournaments for this division and season
-    const availableTournaments = await db
-      .select()
-      .from(tournaments)
-      .where(
-        and(
-          eq(tournaments.division, division),
-          eq(tournaments.season, season),
-          eq(tournaments.status, "open")
-        )
-      )
-      .orderBy(asc(tournaments.registrationDeadline));
+    const availableTournaments = await prisma.tournament.findMany({
+      where: {
+        division: division,
+        season: season,
+        status: "open"
+      },
+      orderBy: {
+        registrationDeadline: 'asc'
+      }
+    });
 
     // Check if team is already registered for any tournaments
-    const existingEntries = await db
-      .select({ tournamentId: tournamentEntries.tournamentId })
-      .from(tournamentEntries)
-      .where(eq(tournamentEntries.teamId, teamId));
+    const existingEntries = await prisma.tournamentEntry.findMany({
+      where: { teamId: teamId },
+      select: { tournamentId: true }
+    });
 
     const registeredTournamentIds = new Set(existingEntries.map(e => e.tournamentId));
 
@@ -286,10 +285,14 @@ export class TournamentService {
 
   // Register team for tournament
   async registerForTournament(teamId: string, tournamentId: string, paymentType?: "credits" | "gems" | "both"): Promise<void> {
-    const [tournament] = await db.select().from(tournaments).where(eq(tournaments.id, tournamentId)).limit(1);
+    const tournament = await prisma.tournament.findFirst({
+      where: { id: tournamentId }
+    });
     if (!tournament) throw new Error("Tournament not found");
 
-    const [team] = await db.select().from(teams).where(eq(teams.id, teamId)).limit(1);
+    const team = await prisma.team.findFirst({
+      where: { id: teamId }
+    });
     if (!team) throw new Error("Team not found");
 
     // Check if registration is still open
@@ -305,16 +308,13 @@ export class TournamentService {
     // Check entry requirements
     if (tournament.requiresEntryItem) {
       // Daily Divisional Cup - requires Tournament Entry item
-      const entryItems = await db
-        .select()
-        .from(teamInventory)
-        .where(
-          and(
-            eq(teamInventory.teamId, teamId),
-            eq(teamInventory.itemType, "tournament_entry"),
-            gte(teamInventory.quantity, 1)
-          )
-        );
+      const entryItems = await prisma.teamInventory.findMany({
+        where: {
+          teamId: teamId,
+          itemType: "tournament_entry",
+          quantity: { gte: 1 }
+        }
+      });
 
       if (entryItems.length === 0) {
         throw new Error("No Tournament Entry items available");
@@ -439,10 +439,9 @@ export class TournamentService {
 
   // Get tournament statistics for a team
   async getTournamentStats(teamId: string) {
-    const entries = await db
-      .select()
-      .from(tournamentEntries)
-      .where(eq(tournamentEntries.teamId, teamId));
+    const entries = await prisma.tournamentEntry.findMany({
+      where: { teamId: teamId }
+    });
 
     const totalTournaments = entries.length;
     const wins = entries.filter(e => e.placement === 1).length;
@@ -467,16 +466,16 @@ export class TournamentService {
     const season = this.getCurrentSeason();
 
     // Check if tournament already exists for this division/day
-    const existingTournament = await db.select()
-      .from(tournaments)
-      .where(and(
-        eq(tournaments.division, division),
-        eq(tournaments.type, "daily_divisional_cup"),
-        eq(tournaments.gameDay, gameDay),
-        eq(tournaments.season, season),
-        eq(tournaments.status, "open")
-      ))
-      .limit(1);
+    const existingTournament = await prisma.tournament.findMany({
+      where: {
+        division: division,
+        type: "daily_divisional_cup",
+        gameDay: gameDay,
+        season: season,
+        status: "open"
+      },
+      take: 1
+    });
 
     let tournamentId: string;
 
@@ -498,15 +497,15 @@ export class TournamentService {
     const season = this.getCurrentSeason();
 
     // Check if tournament already exists for this division
-    const existingTournament = await db.select()
-      .from(tournaments)
-      .where(and(
-        eq(tournaments.division, division),
-        eq(tournaments.type, "mid_season_classic"),
-        eq(tournaments.season, season),
-        eq(tournaments.status, "open")
-      ))
-      .limit(1);
+    const existingTournament = await prisma.tournament.findMany({
+      where: {
+        division: division,
+        type: "mid_season_classic",
+        season: season,
+        status: "open"
+      },
+      take: 1
+    });
 
     let tournamentId: string;
 
@@ -519,18 +518,21 @@ export class TournamentService {
     }
 
     // Handle payment based on user choice
-    const team = await db.select().from(teams).where(eq(teams.id, teamId)).limit(1);
-    if (team.length === 0) {
+    const team = await prisma.team.findFirst({
+      where: { id: teamId }
+    });
+    if (!team) {
       throw new Error("Team not found");
     }
 
     if (paymentType === "credits") {
-      if ((team[0].credits || 0) < 10000) {
+      if ((team.credits || 0) < 10000) {
         throw new Error("Insufficient credits for Mid-Season Classic entry (10,000₡ required)");
       }
-      await db.update(teams)
-        .set({ credits: (team[0].credits || 0) - 10000 })
-        .where(eq(teams.id, teamId));
+      await prisma.team.update({
+        where: { id: teamId },
+        data: { credits: (team.credits || 0) - 10000 }
+      });
     } else if (paymentType === "gems") {
       if ((team[0].gems || 0) < 20) {
         throw new Error("Insufficient gems for Mid-Season Classic entry (20💎 required)");

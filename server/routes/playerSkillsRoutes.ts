@@ -1,9 +1,7 @@
 import { Router } from 'express';
 import { PlayerSkillsService } from '../services/playerSkillsService.js';
 import { isAuthenticated } from '../replitAuth.js';
-import { teams } from '../../shared/schema.js';
-import { db } from '../db.js';
-import { eq } from 'drizzle-orm';
+import { prisma } from '../db.js';
 
 const router = Router();
 
@@ -144,7 +142,9 @@ router.post('/team/season-progression', isAuthenticated, async (req, res) => {
     }
 
     // Get user's team
-    const [team] = await db.select().from(teams).where(eq(teams.userId, userId));
+    const team = await prisma.team.findFirst({
+      where: { userId: userId }
+    });
     if (!team) {
       return res.status(404).json({ error: 'Team not found' });
     }
@@ -170,14 +170,17 @@ router.get('/team/progression-summary', isAuthenticated, async (req, res) => {
     }
 
     // Get user's team
-    const [team] = await db.select().from(teams).where(eq(teams.userId, userId));
+    const team = await prisma.team.findFirst({
+      where: { userId: userId }
+    });
     if (!team) {
       return res.status(404).json({ error: 'Team not found' });
     }
 
     // Get all players and their skill counts
-    const { players } = await import('../../shared/schema.js');
-    const teamPlayers = await db.select().from(players).where(eq(players.teamId, team.id));
+    const teamPlayers = await prisma.player.findMany({
+      where: { teamId: team.id }
+    });
     
     const summary = [];
     for (const player of teamPlayers) {

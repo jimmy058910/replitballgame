@@ -1,6 +1,4 @@
-import { db } from '../db.js';
-import { teams, teamFinances, stadiums } from '../../shared/schema.js';
-import { eq } from 'drizzle-orm';
+import { prisma } from '../db.js';
 
 export class EnhancedGameEconomyService {
 
@@ -47,7 +45,9 @@ export class EnhancedGameEconomyService {
         return { success: false, error: 'Minimum 10 gems required for exchange' };
       }
 
-      const [team] = await db.select().from(teams).where(eq(teams.id, teamId));
+      const team = await prisma.team.findFirst({
+        where: { id: teamId }
+      });
       if (!team || (team.gems ?? 0) < gemAmount) {
         return { success: false, error: 'Insufficient gems' };
       }
@@ -55,15 +55,19 @@ export class EnhancedGameEconomyService {
       const creditsReceived = Math.floor((gemAmount / rate.gems) * rate.credits);
 
       // Update team finances
-      await db.update(teams)
-        .set({ gems: (team.gems ?? 0) - gemAmount })
-        .where(eq(teams.id, teamId));
+      await prisma.team.update({
+        where: { id: teamId },
+        data: { gems: (team.gems ?? 0) - gemAmount }
+      });
 
-      const [teamFinance] = await db.select().from(teamFinances).where(eq(teamFinances.teamId, teamId));
+      const teamFinance = await prisma.teamFinance.findFirst({
+        where: { teamId: teamId }
+      });
       if (teamFinance) {
-        await db.update(teamFinances)
-          .set({ credits: (teamFinance.credits || 0) + creditsReceived })
-          .where(eq(teamFinances.teamId, teamId));
+        await prisma.teamFinance.update({
+          where: { teamId: teamId },
+          data: { credits: (teamFinance.credits || 0) + creditsReceived }
+        });
       }
 
       return { success: true, creditsReceived };
@@ -89,7 +93,9 @@ export class EnhancedGameEconomyService {
       atmosphereBonus: number;
     };
   }> {
-    const [stadium] = await db.select().from(stadiums).where(eq(stadiums.teamId, teamId));
+    const stadium = await prisma.stadium.findFirst({
+      where: { teamId: teamId }
+    });
     
     if (!stadium) {
       return {
@@ -151,11 +157,14 @@ export class EnhancedGameEconomyService {
     const revenue = await this.calculateStadiumRevenue(teamId, isHomeGameDay);
     
     if (revenue.totalRevenue > 0) {
-      const [teamFinance] = await db.select().from(teamFinances).where(eq(teamFinances.teamId, teamId));
+      const teamFinance = await prisma.teamFinance.findFirst({
+        where: { teamId: teamId }
+      });
       if (teamFinance) {
-        await db.update(teamFinances)
-          .set({ credits: (teamFinance.credits || 0) + revenue.totalRevenue })
-          .where(eq(teamFinances.teamId, teamId));
+        await prisma.teamFinance.update({
+          where: { teamId: teamId },
+          data: { credits: (teamFinance.credits || 0) + revenue.totalRevenue }
+        });
       }
     }
 
@@ -206,8 +215,12 @@ export class EnhancedGameEconomyService {
     upgradeType: string
   ): Promise<{ success: boolean; cost?: number; error?: string; newLevel?: number }> {
     try {
-      const [stadium] = await db.select().from(stadiums).where(eq(stadiums.teamId, teamId));
-      const [teamFinance] = await db.select().from(teamFinances).where(eq(teamFinances.teamId, teamId));
+      const stadium = await prisma.stadium.findFirst({
+        where: { teamId: teamId }
+      });
+      const teamFinance = await prisma.teamFinance.findFirst({
+        where: { teamId: teamId }
+      });
 
       if (!stadium || !teamFinance) {
         return { success: false, error: 'Stadium or team finances not found' };
@@ -263,13 +276,15 @@ export class EnhancedGameEconomyService {
       }
 
       // Deduct cost and apply upgrade
-      await db.update(teamFinances)
-        .set({ credits: (teamFinance.credits || 0) - cost })
-        .where(eq(teamFinances.teamId, teamId));
+      await prisma.teamFinance.update({
+        where: { teamId: teamId },
+        data: { credits: (teamFinance.credits || 0) - cost }
+      });
 
-      await db.update(stadiums)
-        .set(updateData)
-        .where(eq(stadiums.teamId, teamId));
+      await prisma.stadium.update({
+        where: { teamId: teamId },
+        data: updateData
+      });
 
       return { success: true, cost, newLevel };
     } catch (error) {
@@ -404,23 +419,29 @@ export class EnhancedGameEconomyService {
       }
 
       // Update team finances
-      const [teamFinance] = await db.select().from(teamFinances).where(eq(teamFinances.teamId, teamId));
-      const [team] = await db.select().from(teams).where(eq(teams.id, teamId));
+      const teamFinance = await prisma.teamFinance.findFirst({
+        where: { teamId: teamId }
+      });
+      const team = await prisma.team.findFirst({
+        where: { id: teamId }
+      });
 
       if (!teamFinance || !team) {
         return { success: false, error: 'Team not found' };
       }
 
       if (rewards.credits > 0) {
-        await db.update(teamFinances)
-          .set({ credits: (teamFinance.credits || 0) + rewards.credits })
-          .where(eq(teamFinances.teamId, teamId));
+        await prisma.teamFinance.update({
+          where: { teamId: teamId },
+          data: { credits: (teamFinance.credits || 0) + rewards.credits }
+        });
       }
 
       if (rewards.gems > 0) {
-        await db.update(teams)
-          .set({ gems: (team.gems || 0) + rewards.gems })
-          .where(eq(teams.id, teamId));
+        await prisma.team.update({
+          where: { id: teamId },
+          data: { gems: (team.gems || 0) + rewards.gems }
+        });
       }
 
       return { success: true, rewards };
@@ -434,7 +455,9 @@ export class EnhancedGameEconomyService {
    * Calculate daily facility maintenance costs
    */
   static async calculateMaintenanceCosts(teamId: string): Promise<number> {
-    const [stadium] = await db.select().from(stadiums).where(eq(stadiums.teamId, teamId));
+    const stadium = await prisma.stadium.findFirst({
+      where: { teamId: teamId }
+    });
     
     if (!stadium) return 0;
 
@@ -460,11 +483,14 @@ export class EnhancedGameEconomyService {
     const maintenanceCost = await this.calculateMaintenanceCosts(teamId);
     
     if (maintenanceCost > 0) {
-      const [teamFinance] = await db.select().from(teamFinances).where(eq(teamFinances.teamId, teamId));
+      const teamFinance = await prisma.teamFinance.findFirst({
+        where: { teamId: teamId }
+      });
       if (teamFinance) {
-        await db.update(teamFinances)
-          .set({ credits: Math.max(0, (teamFinance.credits || 0) - maintenanceCost) })
-          .where(eq(teamFinances.teamId, teamId));
+        await prisma.teamFinance.update({
+          where: { teamId: teamId },
+          data: { credits: Math.max(0, (teamFinance.credits || 0) - maintenanceCost) }
+        });
       }
     }
 
@@ -481,9 +507,15 @@ export class EnhancedGameEconomyService {
     stadiumValue: number;
     nextUpgradeCosts: any;
   }> {
-    const [teamFinance] = await db.select().from(teamFinances).where(eq(teamFinances.teamId, teamId));
-    const [team] = await db.select().from(teams).where(eq(teams.id, teamId));
-    const [stadium] = await db.select().from(stadiums).where(eq(stadiums.teamId, teamId));
+    const teamFinance = await prisma.teamFinance.findFirst({
+      where: { teamId: teamId }
+    });
+    const team = await prisma.team.findFirst({
+      where: { id: teamId }
+    });
+    const stadium = await prisma.stadium.findFirst({
+      where: { teamId: teamId }
+    });
 
     const stadiumRevenue = await this.calculateStadiumRevenue(teamId, true);
     const maintenanceCosts = await this.calculateMaintenanceCosts(teamId);

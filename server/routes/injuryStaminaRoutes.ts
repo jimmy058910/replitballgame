@@ -1,9 +1,7 @@
 import { Router, Response, NextFunction } from 'express';
 import { isAuthenticated } from '../replitAuth';
 import { injuryStaminaService } from '../services/injuryStaminaService';
-import { db } from '../db';
-import { players, teams } from '../../shared/schema';
-import { eq, and } from 'drizzle-orm';
+import { prisma } from '../db';
 
 const router = Router();
 
@@ -16,26 +14,31 @@ router.get('/team/:teamId/status', isAuthenticated, async (req: any, res: Respon
     const userId = req.user.claims.sub;
 
     // Verify team ownership
-    const team = await db.select().from(teams).where(eq(teams.id, teamId)).limit(1);
-    if (!team.length || team[0].userId !== userId) {
+    const team = await prisma.team.findFirst({
+      where: { id: teamId }
+    });
+    if (!team || team.userId !== userId) {
       return res.status(403).json({ message: "Unauthorized access to team" });
     }
 
     // Get all players with injury/stamina data
-    const teamPlayers = await db.select({
-      id: players.id,
-      firstName: players.firstName,
-      lastName: players.lastName,
-      name: players.name,
-      role: players.position,
-      dailyStaminaLevel: players.dailyStaminaLevel,
-      injuryStatus: players.injuryStatus,
-      injuryRecoveryPointsNeeded: players.injuryRecoveryPointsNeeded,
-      injuryRecoveryPointsCurrent: players.injuryRecoveryPointsCurrent,
-      dailyItemsUsed: players.dailyItemsUsed,
-      stamina: players.stamina,
-      inGameStamina: players.inGameStamina
-    }).from(players).where(eq(players.teamId, teamId));
+    const teamPlayers = await prisma.player.findMany({
+      where: { teamId: teamId },
+      select: {
+        id: true,
+        firstName: true,
+        lastName: true,
+        name: true,
+        role: true,
+        dailyStaminaLevel: true,
+        injuryStatus: true,
+        injuryRecoveryPointsNeeded: true,
+        injuryRecoveryPointsCurrent: true,
+        dailyItemsUsed: true,
+        stamina: true,
+        inGameStamina: true
+      }
+    });
 
     // Calculate recovery estimates and status summaries
     const playersWithStatus = teamPlayers.map(player => {
@@ -88,17 +91,19 @@ router.post('/player/:playerId/use-item', isAuthenticated, async (req: any, res:
     const userId = req.user.claims.sub;
 
     // Verify player ownership through team
-    const player = await db.select({
-      id: players.id,
-      teamId: players.teamId
-    }).from(players).where(eq(players.id, playerId)).limit(1);
+    const player = await prisma.player.findFirst({
+      where: { id: playerId },
+      select: { id: true, teamId: true }
+    });
 
-    if (!player.length) {
+    if (!player) {
       return res.status(404).json({ message: "Player not found" });
     }
 
-    const team = await db.select().from(teams).where(eq(teams.id, player[0].teamId!)).limit(1);
-    if (!team.length || team[0].userId !== userId) {
+    const team = await prisma.team.findFirst({
+      where: { id: player.teamId }
+    });
+    if (!team || team.userId !== userId) {
       return res.status(403).json({ message: "Unauthorized access to player" });
     }
 
@@ -125,17 +130,19 @@ router.post('/simulate-tackle-injury', isAuthenticated, async (req: any, res: Re
     const userId = req.user.claims.sub;
 
     // Verify player ownership
-    const player = await db.select({
-      id: players.id,
-      teamId: players.teamId
-    }).from(players).where(eq(players.id, playerId)).limit(1);
+    const player = await prisma.player.findFirst({
+      where: { id: playerId },
+      select: { id: true, teamId: true }
+    });
 
-    if (!player.length) {
+    if (!player) {
       return res.status(404).json({ message: "Player not found" });
     }
 
-    const team = await db.select().from(teams).where(eq(teams.id, player[0].teamId!)).limit(1);
-    if (!team.length || team[0].userId !== userId) {
+    const team = await prisma.team.findFirst({
+      where: { id: player.teamId }
+    });
+    if (!team || team.userId !== userId) {
       return res.status(403).json({ message: "Unauthorized access to player" });
     }
 
@@ -166,13 +173,18 @@ router.post('/team/:teamId/prepare-match', isAuthenticated, async (req: any, res
     const userId = req.user.claims.sub;
 
     // Verify team ownership
-    const team = await db.select().from(teams).where(eq(teams.id, teamId)).limit(1);
-    if (!team.length || team[0].userId !== userId) {
+    const team = await prisma.team.findFirst({
+      where: { id: teamId }
+    });
+    if (!team || team.userId !== userId) {
       return res.status(403).json({ message: "Unauthorized access to team" });
     }
 
     // Get all team players
-    const teamPlayers = await db.select({ id: players.id }).from(players).where(eq(players.teamId, teamId));
+    const teamPlayers = await prisma.player.findMany({
+      where: { teamId: teamId },
+      select: { id: true }
+    });
 
     // Set match start stamina for each player
     for (const player of teamPlayers) {
@@ -200,13 +212,18 @@ router.post('/team/:teamId/complete-match', isAuthenticated, async (req: any, re
     const userId = req.user.claims.sub;
 
     // Verify team ownership
-    const team = await db.select().from(teams).where(eq(teams.id, teamId)).limit(1);
-    if (!team.length || team[0].userId !== userId) {
+    const team = await prisma.team.findFirst({
+      where: { id: teamId }
+    });
+    if (!team || team.userId !== userId) {
       return res.status(403).json({ message: "Unauthorized access to team" });
     }
 
     // Get all team players
-    const teamPlayers = await db.select({ id: players.id }).from(players).where(eq(players.teamId, teamId));
+    const teamPlayers = await prisma.player.findMany({
+      where: { teamId: teamId },
+      select: { id: true }
+    });
 
     // Apply stamina depletion for each player
     for (const player of teamPlayers) {
@@ -251,7 +268,7 @@ router.post('/admin/daily-reset', isAuthenticated, async (req: any, res: Respons
 router.get('/system/stats', isAuthenticated, async (req: any, res: Response, next: NextFunction) => {
   try {
     // Get overall system statistics
-    const totalPlayers = await db.select().from(players);
+    const totalPlayers = await prisma.player.findMany();
     
     const stats = {
       totalPlayers: totalPlayers.length,

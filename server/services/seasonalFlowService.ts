@@ -1,6 +1,4 @@
-import { db } from '../db';
-import { teams, leagues, matches, seasons, playoffs } from '@shared/schema';
-import { eq, and, desc, asc, sql, inArray } from 'drizzle-orm';
+import { prisma } from '../db';
 
 /**
  * Seasonal Flow Algorithm Service

@@ -1,13 +1,4 @@
-import { db } from '../db.js';
-import { 
-  marketplaceListings, 
-  marketplaceBids, 
-  marketplaceEscrow, 
-  players, 
-  teams, 
-  teamFinances 
-} from '../../shared/schema.js';
-import { eq, and, desc, count, lt, gt, sql } from 'drizzle-orm';
+import { prisma } from '../db.js';
 
 export class DynamicMarketplaceService {
   
@@ -48,27 +39,27 @@ export class DynamicMarketplaceService {
    * Get team's active listing count
    */
   static async getTeamActiveListings(teamId: string): Promise<number> {
-    const result = await db
-      .select({ count: count() })
-      .from(marketplaceListings)
-      .where(and(
-        eq(marketplaceListings.sellerTeamId, teamId),
-        eq(marketplaceListings.isActive, true)
-      ));
+    const result = await prisma.marketplaceListing.count({
+      where: {
+        sellerTeamId: teamId,
+        isActive: true
+      }
+    });
 
-    return result[0]?.count || 0;
+    return result || 0;
   }
 
   /**
    * Get team's player count
    */
   static async getTeamPlayerCount(teamId: string): Promise<number> {
-    const result = await db
-      .select({ count: count() })
-      .from(players)
-      .where(eq(players.teamId, teamId));
+    const result = await prisma.player.count({
+      where: {
+        teamId: teamId
+      }
+    });
 
-    return result[0]?.count || 0;
+    return result || 0;
   }
 
   /**
@@ -87,13 +78,12 @@ export class DynamicMarketplaceService {
   }> {
     try {
       // Validation 1: Check if player belongs to team
-      const [player] = await db
-        .select()
-        .from(players)
-        .where(and(
-          eq(players.id, playerId),
-          eq(players.teamId, teamId)
-        ));
+      const player = await prisma.player.findFirst({
+        where: {
+          id: playerId,
+          teamId: teamId
+        }
+      });
 
       if (!player) {
         return { success: false, error: 'Player not found or does not belong to your team' };
@@ -129,10 +119,9 @@ export class DynamicMarketplaceService {
 
       // Calculate listing fee and check team can afford it
       const listingFee = this.calculateListingFee(startBid);
-      const [teamFinance] = await db
-        .select()
-        .from(teamFinances)
-        .where(eq(teamFinances.teamId, teamId));
+      const teamFinance = await prisma.teamFinance.findFirst({
+        where: { teamId: teamId }
+      });
 
       if (!teamFinance || (teamFinance.credits ?? 0) < listingFee) {
         return { success: false, error: 'Insufficient credits for listing fee' };
@@ -142,15 +131,14 @@ export class DynamicMarketplaceService {
       const expiryTimestamp = new Date(Date.now() + (durationHours * 60 * 60 * 1000));
 
       // Deduct listing fee
-      await db
-        .update(teamFinances)
-        .set({ credits: (teamFinance.credits ?? 0) - listingFee })
-        .where(eq(teamFinances.teamId, teamId));
+      await prisma.teamFinance.update({
+        where: { teamId: teamId },
+        data: { credits: (teamFinance.credits ?? 0) - listingFee }
+      });
 
       // Create listing
-      const [listing] = await db
-        .insert(marketplaceListings)
-        .values({
+      const listing = await prisma.marketplaceListing.create({
+        data: {
           playerId,
           sellerTeamId: teamId,
           startBid,
@@ -158,8 +146,9 @@ export class DynamicMarketplaceService {
           currentBid: startBid,
           expiryTimestamp,
           listingFee,
-        })
-        .returning({ id: marketplaceListings.id });
+        },
+        select: { id: true }
+      });
 
       return { 
         success: true, 
@@ -187,13 +176,12 @@ export class DynamicMarketplaceService {
   }> {
     try {
       // Get listing details
-      const [listing] = await db
-        .select()
-        .from(marketplaceListings)
-        .where(and(
-          eq(marketplaceListings.id, listingId),
-          eq(marketplaceListings.isActive, true)
-        ));
+      const listing = await prisma.marketplaceListing.findFirst({
+        where: {
+          id: listingId,
+          isActive: true
+        }
+      });
 
       if (!listing) {
         return { success: false, error: 'Listing not found or auction has ended' };

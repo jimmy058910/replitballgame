@@ -683,16 +683,14 @@ router.post('/:teamId/tryouts', isAuthenticated, asyncHandler(async (req: any, r
   // Get team scouts to calculate "fog of war" reduction
   let scoutEffectiveness = 0;
   try {
-    const scouts = await db.select()
-      .from(staff)
-      .where(and(
-        eq(staff.teamId, team.id),
-        or(
-          eq(staff.type, 'scout'),
-          eq(staff.type, 'head_scout'),
-          eq(staff.type, 'recruiting_scout')
-        )
-      ));
+    const scouts = await prisma.staff.findMany({
+      where: {
+        teamId: team.id,
+        type: {
+          in: ['scout', 'head_scout', 'recruiting_scout']
+        }
+      }
+    });
     
     // Calculate scout effectiveness (average of scouting and recruiting ratings)
     if (scouts.length > 0) {
@@ -1149,7 +1147,9 @@ router.get('/:teamId/contracts', isAuthenticated, async (req: any, res: Response
     }
 
     // Get all player contracts for the team
-    const contracts = await db.select().from(playerContracts).where(eq(playerContracts.teamId, parseInt(teamId)));
+    const contracts = await prisma.playerContract.findMany({
+      where: { teamId: parseInt(teamId) }
+    });
     
     res.json(contracts);
   } catch (error) {

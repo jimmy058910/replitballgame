@@ -2,9 +2,7 @@ import { Router, Request, Response } from "express";
 import { consumableStorage } from "../storage/consumableStorage";
 import { isAuthenticated } from "../replitAuth";
 import { asyncHandler } from "../services/errorService";
-import { matches } from "@shared/schema";
-import { db } from "../db";
-import { eq } from "drizzle-orm";
+import { prisma } from "../db";
 
 const router = Router();
 
@@ -50,10 +48,9 @@ router.post("/activate", isAuthenticated, asyncHandler(async (req: any, res: Res
   }
 
   // Validate that this is a league match
-  const [match] = await db.select()
-    .from(matches)
-    .where(eq(matches.id, matchId))
-    .limit(1);
+  const match = await prisma.game.findFirst({
+    where: { id: matchId }
+  });
 
   if (!match) {
     return res.status(404).json({ error: "Match not found" });

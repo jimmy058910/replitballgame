@@ -1,6 +1,4 @@
-import { db } from '../db.js';
-import { teams, players, staff, matches } from '../../shared/schema.js';
-import { eq, and } from 'drizzle-orm';
+import { prisma } from '../db.js';
 
 export class AdvancedTacticalEffectsService {
 
@@ -187,7 +185,9 @@ export class AdvancedTacticalEffectsService {
     gameSituation: string;
   }> {
     // Get team data
-    const [team] = await db.select().from(teams).where(eq(teams.id, teamId));
+    const team = await prisma.team.findFirst({
+      where: { id: teamId }
+    });
     if (!team) {
       throw new Error('Team not found');
     }
@@ -201,13 +201,12 @@ export class AdvancedTacticalEffectsService {
     const baseTacticalEffects = (this.TACTICAL_FOCUS_EFFECTS as any)[tacticalFocus];
 
     // Get head coach tactics rating
-    const headCoach = await db
-      .select()
-      .from(staff)
-      .where(and(
-        eq(staff.teamId, teamId),
-        eq(staff.position, 'Head Coach')
-      ));
+    const headCoach = await prisma.staff.findMany({
+      where: {
+        teamId: teamId,
+        position: 'HEAD_COACH'
+      }
+    });
 
     const coachTacticsRating = (headCoach[0] as any)?.tactics || 50;
 
@@ -338,10 +337,10 @@ export class AdvancedTacticalEffectsService {
     tacticalFocus: 'Balanced' | 'All-Out Attack' | 'Defensive Wall'
   ): Promise<{ success: boolean; error?: string }> {
     try {
-      await db
-        .update(teams)
-        .set({ tacticalFocus })
-        .where(eq(teams.id, teamId));
+      await prisma.team.update({
+        where: { id: teamId },
+        data: { tacticalFocus }
+      });
 
       return { success: true };
     } catch (error) {
@@ -361,18 +360,19 @@ export class AdvancedTacticalEffectsService {
     coachTacticsRating: number;
     teamCamaraderie: number;
   }> {
-    const [team] = await db.select().from(teams).where(eq(teams.id, teamId));
+    const team = await prisma.team.findFirst({
+      where: { id: teamId }
+    });
     if (!team) {
       throw new Error('Team not found');
     }
 
-    const headCoach = await db
-      .select()
-      .from(staff)
-      .where(and(
-        eq(staff.teamId, teamId),
-        eq(staff.position, 'Head Coach')
-      ));
+    const headCoach = await prisma.staff.findMany({
+      where: {
+        teamId: teamId,
+        position: 'HEAD_COACH'
+      }
+    });
 
     const fieldSize = team.fieldSize || 'Standard';
     const tacticalFocus = team.tacticalFocus || 'Balanced';
