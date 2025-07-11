@@ -102,6 +102,16 @@ export class AdSystemStorage {
     return result._sum.rewardAmount || 0;
   }
 
+  async getTotalAdViewsCountByUser(userId: string): Promise<number> {
+    const count = await prisma.adView.count({
+      where: {
+        userId,
+        completed: true
+      }
+    });
+    return count;
+  }
+
   async markAdCompleted(id: number, rewardAmount: number = 0): Promise<AdView | null> {
     try {
       const updatedAdView = await prisma.adView.update({

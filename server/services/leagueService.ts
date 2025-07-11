@@ -168,4 +168,72 @@ export function calculatePlayerValue(player: any): number {
   return Math.floor(baseValue * ageFactor);
 }
 
+export async function processEndOfSeasonSkillProgression(playerId: string): Promise<void> {
+  // Import storage after function definition to avoid circular dependency
+  const { storage } = await import("../storage/index");
+  
+  try {
+    const player = await storage.getPlayerById(playerId);
+    if (!player) {
+      throw new Error(`Player with ID ${playerId} not found`);
+    }
+
+    // Calculate progression chance based on age, potential, and activity
+    const baseChance = 0.15; // 15% base chance
+    const potentialModifier = (parseFloat(player.overallPotentialStars) - 2.5) * 0.05;
+    const ageModifier = player.age <= 23 ? 0.10 : (player.age <= 27 ? 0.05 : -0.05);
+    const activityModifier = (player.gamesPlayedLastSeason || 0) >= 8 ? 0.05 : -0.05;
+    
+    const progressionChance = Math.max(0, baseChance + potentialModifier + ageModifier + activityModifier);
+    
+    // Check if player progresses this season
+    if (Math.random() < progressionChance) {
+      // Determine which stat to improve based on potential and position
+      const eligibleStats = ['speed', 'power', 'throwing', 'catching', 'kicking', 'stamina', 'leadership', 'agility'];
+      const statWeights = eligibleStats.map(stat => {
+        const currentValue = player[stat as keyof typeof player] as number;
+        const potential = parseFloat(player[`${stat}Potential` as keyof typeof player] as string || "25");
+        
+        // Higher potential and lower current value = higher chance to improve
+        const potentialGap = Math.max(0, potential - currentValue);
+        return { stat, weight: potentialGap };
+      });
+      
+      // Filter out stats that can't improve (at or above potential)
+      const viableStats = statWeights.filter(s => s.weight > 0);
+      
+      if (viableStats.length > 0) {
+        // Weighted random selection
+        const totalWeight = viableStats.reduce((sum, s) => sum + s.weight, 0);
+        let random = Math.random() * totalWeight;
+        
+        for (const statEntry of viableStats) {
+          random -= statEntry.weight;
+          if (random <= 0) {
+            const currentValue = player[statEntry.stat as keyof typeof player] as number;
+            const newValue = Math.min(40, currentValue + 1); // Cap at 40
+            
+            // Update the player's stat
+            await storage.updatePlayer(playerId, {
+              [statEntry.stat]: newValue
+            });
+            
+            console.log(`Player ${player.name} improved ${statEntry.stat} from ${currentValue} to ${newValue}`);
+            break;
+          }
+        }
+      }
+    }
+    
+    // Reset games played counter for next season
+    await storage.updatePlayer(playerId, {
+      gamesPlayedLastSeason: 0
+    });
+    
+  } catch (error) {
+    console.error(`Error processing skill progression for player ${playerId}:`, error);
+    throw error;
+  }
+}
+
 
