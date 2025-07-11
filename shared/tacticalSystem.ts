@@ -161,12 +161,14 @@ export function calculateTacticalModifiers(
   const { fieldSize, tacticalFocus, camaraderie, headCoachTactics } = teamInfo;
   const situation = determineGameSituation(gameState);
   
-  // Base modifiers from field size (only applies to home team)
-  const fieldConfig = FIELD_SIZE_CONFIG[fieldSize];
+  // Base modifiers from field size (only applies to home team) - with defensive programming
+  const fieldConfig = FIELD_SIZE_CONFIG[fieldSize] || FIELD_SIZE_CONFIG.standard;
   const baseFieldMods = isHomeTeam ? fieldConfig : FIELD_SIZE_CONFIG.standard;
   
-  // Base modifiers from tactical focus
-  const tacticsConfig = TACTICAL_FOCUS_CONFIG[tacticalFocus];
+  // Base modifiers from tactical focus - with defensive programming
+  const tacticsConfig = TACTICAL_FOCUS_CONFIG[tacticalFocus] || TACTICAL_FOCUS_CONFIG.balanced;
+  
+
   
   // Coach effectiveness modifier (0.5 to 1.5 based on coach tactics rating)
   const coachEffectiveness = 0.5 + (headCoachTactics / 100);
@@ -239,7 +241,7 @@ export function getFieldSizeInfo(fieldSize: FieldSize) {
  * Gets display information for tactical focus
  */
 export function getTacticalFocusInfo(tacticalFocus: TacticalFocus) {
-  return TACTICAL_FOCUS_CONFIG[tacticalFocus];
+  return TACTICAL_FOCUS_CONFIG[tacticalFocus] || TACTICAL_FOCUS_CONFIG.balanced;
 }
 
 /**

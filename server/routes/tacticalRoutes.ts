@@ -23,14 +23,16 @@ router.get("/team-tactics", isAuthenticated, async (req: any, res) => {
 
     const players = await storage.players.getPlayersByTeamId(team.id);
     const staff = await storage.staff.getStaffByTeamId(team.id);
-    const headCoach = staff.find((s: any) => s.type === "Head Coach");
+    const headCoach = staff.find((s: any) => s.type === "HEAD_COACH");
     
     // Get current season day to check if field size can be changed
     const currentDay = 1; // TODO: Get from season system
     const canChangeField = canChangeFieldSize(currentDay);
     
-    const fieldSize = (team.fieldSize || "standard") as any;
-    const tacticalFocus = (team.tacticalFocus || "balanced") as any;
+    const fieldSize = (team.fieldSize || "standard").toLowerCase() as any;
+    const tacticalFocus = (team.tacticalFocus || "balanced").toLowerCase() as any;
+    
+
     
     const tacticalSetup = {
       fieldSize,
@@ -162,7 +164,7 @@ router.get("/tactical-analysis", isAuthenticated, async (req: any, res) => {
 
     const players = await storage.players.getPlayersByTeamId(team.id);
     const staff = await storage.staff.getStaffByTeamId(team.id);
-    const headCoach = staff.find((s: any) => s.type === "Head Coach");
+    const headCoach = staff.find((s: any) => s.type === "HEAD_COACH");
     
     // Analyze all combinations
     const analyses = [];

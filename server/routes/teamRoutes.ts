@@ -429,6 +429,30 @@ router.get('/:teamId/formation', isAuthenticated, async (req: any, res: Response
       substitutes = allPlayers.filter((player: any) => substituteIds.includes(player.id));
     }
 
+    // If no formation data exists, create a default formation with all players
+    if (!formationData && allPlayers.length > 0) {
+      // Sort players by overall rating (best first)
+      const sortedPlayers = allPlayers.sort((a: any, b: any) => {
+        const aRating = (a.speed + a.power + a.agility + a.throwing + a.catching + a.kicking) / 6;
+        const bRating = (b.speed + b.power + b.agility + b.throwing + b.catching + b.kicking) / 6;
+        return bRating - aRating;
+      });
+
+      // Take top 9 as starters, rest as substitutes
+      starters = sortedPlayers.slice(0, 9);
+      substitutes = sortedPlayers.slice(9);
+
+      // Save this default formation to the team
+      const defaultFormation = {
+        starters: starters.map((p: any) => p.id),
+        substitutes: substitutes.map((p: any) => p.id)
+      };
+      
+      await storage.teams.updateTeam(teamId, {
+        formation: JSON.stringify(defaultFormation)
+      });
+    }
+
     // Calculate power ratings for players
     const enhancedPlayers = allPlayers.map((player: any) => ({
       ...player,
