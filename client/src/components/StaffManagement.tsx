@@ -14,6 +14,7 @@ interface StaffMember {
   type: string;
   level: number;
   salary: number;
+  contractYears?: number;
   offenseRating: number;
   defenseRating: number;
   physicalRating: number;
@@ -213,9 +214,10 @@ export default function StaffManagement({ teamId }: StaffManagementProps) {
               </div>
 
               <div className="flex justify-between items-center pt-2 border-t">
-                <span className="text-sm text-gray-600">
-                  ${calculateSalary(staffType.type, currentStaff.level || 1).toLocaleString()}/season
-                </span>
+                <div className="text-sm text-gray-600">
+                  <div>{calculateSalary(staffType.type, currentStaff.level || 1).toLocaleString()}₡/season</div>
+                  <div className="text-xs text-gray-500">Contract: {currentStaff.contractYears || 3} years remaining</div>
+                </div>
                 <Button
                   variant="destructive"
                   size="sm"
@@ -241,7 +243,7 @@ export default function StaffManagement({ teamId }: StaffManagementProps) {
                 }}
                 disabled={hireMutation.isPending}
               >
-                Hire ({calculateSalary(staffType.type, 1).toLocaleString()}/season)
+                Hire ({calculateSalary(staffType.type, 1).toLocaleString()}₡/season)
               </Button>
             </div>
           )}
@@ -288,7 +290,7 @@ export default function StaffManagement({ teamId }: StaffManagementProps) {
         <div className="text-right">
           <p className="text-sm text-gray-600">Total Staff Salaries</p>
           <p className="text-xl font-bold">
-            ${staff?.reduce((total: number, member: StaffMember) => {
+            {staff?.reduce((total: number, member: StaffMember) => {
               const staffType = staffTypes.find(s => s.type === member.type.toLowerCase() || 
                 (s.type === 'head_coach' && member.type === 'HEAD_COACH') ||
                 (s.type === 'trainer_offense' && member.type === 'PASSER_TRAINER') ||
@@ -298,7 +300,7 @@ export default function StaffManagement({ teamId }: StaffManagementProps) {
                 (s.type === 'head_scout' && member.type === 'SCOUT')
               );
               return total + (staffType ? staffType.baseSalary * (member.level || 1) : 5000);
-            }, 0).toLocaleString()}/season
+            }, 0).toLocaleString()}₡/season
           </p>
         </div>
       </div>
