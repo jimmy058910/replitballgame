@@ -156,7 +156,7 @@ export default function UnifiedPlayerCard({
   })();
   const role = getPlayerRole(player);
   const overallPower = calculateOverallPower(player);
-  const potential = parseFloat(player.overallPotentialStars || '0');
+  const potential = parseFloat(player.potentialRating || '0');
   
   // Get role-specific stats
   const roleStats = ROLE_STATS[role as keyof typeof ROLE_STATS] || ROLE_STATS['Passer'];

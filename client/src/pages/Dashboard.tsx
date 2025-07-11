@@ -48,6 +48,8 @@ interface Player {
   stamina: number;
   leadership: number;
   agility: number;
+  potentialRating: number;
+  role: string;
 }
 
 interface Finances {

@@ -81,7 +81,7 @@ export class TeamStorage {
 
   async getTeamById(id: number): Promise<Team | null> {
     const team = await prisma.team.findUnique({
-      where: { id },
+      where: { id: parseInt(id.toString()) },
       include: {
         finances: true,
         stadium: true,
@@ -109,7 +109,7 @@ export class TeamStorage {
   async updateTeam(id: number, updates: Partial<Team>): Promise<Team | null> {
     try {
       const updatedTeam = await prisma.team.update({
-        where: { id },
+        where: { id: parseInt(id.toString()) },
         data: updates,
         include: {
           finances: true,
@@ -241,7 +241,7 @@ export class TeamStorage {
   async deleteTeam(id: number): Promise<boolean> {
     try {
       await prisma.team.delete({
-        where: { id }
+        where: { id: parseInt(id.toString()) }
       });
       return true;
     } catch (error) {
