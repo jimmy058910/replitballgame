@@ -1,7 +1,5 @@
-import { db } from "../db";
+import { prisma } from "../db";
 import { logInfo, logError, ErrorCreators } from "./errorService";
-import { eq, sql } from "drizzle-orm";
-import * as schema from "@shared/schema";
 
 /**
  * Comprehensive Team & Player Camaraderie System
@@ -53,17 +51,29 @@ export class CamaraderieService {
    */
   static async getTeamCamaraderie(teamId: string): Promise<number> {
     try {
-      const result = await db
-        .select({
-          avgCamaraderie: sql<number>`COALESCE(AVG(${schema.players.camaraderie}), 50)`
-        })
-        .from(schema.players)
-        .where(eq(schema.players.teamId, teamId));
+      const result = await prisma.player.aggregate({
+        where: {
+          teamId: teamId
+        },
+        _avg: {
+          camaraderie: true
+        }
+      });
       
-      return Math.round(result[0]?.avgCamaraderie || 50);
+      const teamCamaraderie = Math.round(Number(result._avg.camaraderie) || 50);
+      
+      logInfo("Team camaraderie calculated", {
+        teamId,
+        teamCamaraderie
+      });
+      
+      return teamCamaraderie;
     } catch (error) {
-      logError(error as Error, undefined, { teamId, operation: 'getTeamCamaraderie' });
-      return 50; // Default neutral camaraderie
+      logError(error as Error, undefined, { 
+        teamId, 
+        operation: 'getTeamCamaraderie' 
+      });
+      return 50; // Default camaraderie if calculation fails
     }
   }
   
@@ -169,12 +179,14 @@ export class CamaraderieService {
     
     try {
       // Get current player data
-      const player = await db.query.players.findFirst({
-        where: eq(schema.players.id, playerId),
-        columns: { 
-          id: true, 
-          camaraderie: true, 
-          yearsOnTeam: true 
+      const player = await prisma.player.findFirst({
+        where: {
+          id: playerId
+        },
+        select: {
+          id: true,
+          camaraderie: true,
+          yearsOnTeam: true
         }
       });
       
@@ -227,9 +239,10 @@ export class CamaraderieService {
       newCamaraderie = Math.max(0, Math.min(100, newCamaraderie));
       
       // Update player camaraderie in database
-      await db.update(schema.players)
-        .set({ camaraderie: newCamaraderie })
-        .where(eq(schema.players.id, playerId));
+      await prisma.player.update({
+        where: { id: playerId },
+        data: { camaraderie: newCamaraderie }
+      });
       
       logInfo("Player camaraderie updated", {
         playerId,
@@ -260,12 +273,14 @@ export class CamaraderieService {
   static async updateTeamCamaraderieEndOfSeason(teamId: string): Promise<SeasonEndCamaraderieUpdate[]> {
     try {
       // Get team performance data
-      const team = await db.query.teams.findFirst({
-        where: eq(schema.teams.id, teamId),
-        columns: { 
-          wins: true, 
-          losses: true, 
-          draws: true 
+      const team = await prisma.team.findFirst({
+        where: {
+          id: teamId
+        },
+        select: {
+          wins: true,
+          losses: true,
+          draws: true
         }
       });
       
@@ -278,9 +293,13 @@ export class CamaraderieService {
       const winPercentage = totalGames > 0 ? (team.wins || 0) / totalGames : 0;
       
       // Get head coach leadership (using coachingRating)
-      const headCoach = await db.query.staff.findFirst({
-        where: eq(schema.staff.teamId, teamId),
-        columns: { coachingRating: true }
+      const headCoach = await prisma.staff.findFirst({
+        where: {
+          teamId: teamId
+        },
+        select: {
+          coachingRating: true
+        }
       });
       
       const headCoachLeadership = headCoach?.coachingRating || 20; // Default coaching rating
@@ -289,9 +308,13 @@ export class CamaraderieService {
       const wonChampionship = false; // TODO: Integrate with playoff/tournament system
       
       // Get all players on the team
-      const players = await db.query.players.findMany({
-        where: eq(schema.players.teamId, teamId),
-        columns: { id: true }
+      const players = await prisma.player.findMany({
+        where: {
+          teamId: teamId
+        },
+        select: {
+          id: true
+        }
       });
       
       // Update each player's camaraderie
@@ -388,9 +411,12 @@ export class CamaraderieService {
   }> {
     try {
       // Get team information
-      const team = await db.query.teams.findFirst({
-        where: eq(schema.teams.id, teamId),
-        columns: { id: true, name: true }
+      const team = await prisma.team.findFirst({
+        where: { id: teamId },
+        select: { 
+          id: true, 
+          name: true 
+        }
       });
       
       if (!team) {
@@ -398,9 +424,9 @@ export class CamaraderieService {
       }
       
       // Get all players on the team
-      const players = await db.query.players.findMany({
-        where: eq(schema.players.teamId, teamId),
-        columns: { 
+      const players = await prisma.player.findMany({
+        where: { teamId: teamId },
+        select: { 
           id: true, 
           firstName: true, 
           lastName: true, 
@@ -477,9 +503,10 @@ export class CamaraderieService {
    */
   static async incrementYearsOnTeam(teamId: string): Promise<void> {
     try {
-      await db.update(schema.players)
-        .set({ yearsOnTeam: sql`${schema.players.yearsOnTeam} + 1` })
-        .where(eq(schema.players.teamId, teamId));
+      await prisma.player.updateMany({
+        where: { teamId: teamId },
+        data: { yearsOnTeam: { increment: 1 } }
+      });
         
       logInfo("Years on team incremented for all players", {
         teamId
