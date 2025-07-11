@@ -42,6 +42,9 @@ export default function Navigation() {
     enabled: !!team?.id && isAuthenticated,
   });
 
+  // Use credits from team data if finances API fails, convert string to number
+  const credits = parseInt(finances?.credits || team?.finances?.credits || "0");
+
   const { data: storeData } = useQuery<StoreData>({
     queryKey: ["/api/store/ads"],
     enabled: isAuthenticated,
@@ -58,8 +61,6 @@ export default function Navigation() {
     { path: "/community", label: "Community", icon: MessageCircle },
   ];
 
-  // Use only team finances for consistency - no fallback to team table
-  const credits = finances?.credits || 0;
   const premiumCurrency = finances?.premiumCurrency || 0;
 
 

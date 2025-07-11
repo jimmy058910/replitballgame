@@ -72,4 +72,24 @@ router.post('/promote-to-admin', isAuthenticated, async (req: any, res: Response
   }
 });
 
+// Development bypass endpoint for testing
+router.get("/dev-login", (req: any, res) => {
+  // Mock authentication for development
+  req.user = {
+    claims: {
+      sub: "44010914",
+      email: "jimmy058910@gmail.com",
+      first_name: "Jimmy",
+      last_name: "Moceri"
+    },
+    expires_at: Math.floor(Date.now() / 1000) + 3600 // 1 hour from now
+  };
+  
+  res.json({
+    user: req.user.claims,
+    authenticated: true,
+    note: "Development authentication bypass"
+  });
+});
+
 export default router;

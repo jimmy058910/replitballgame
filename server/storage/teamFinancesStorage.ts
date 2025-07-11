@@ -11,6 +11,20 @@ export class TeamFinancesStorage {
         team: { select: { name: true } }
       }
     });
+    
+    // Convert BigInt fields to strings for JSON serialization
+    if (finances) {
+      return {
+        ...finances,
+        credits: finances.credits.toString(),
+        projectedIncome: finances.projectedIncome.toString(),
+        projectedExpenses: finances.projectedExpenses.toString(),
+        lastSeasonRevenue: finances.lastSeasonRevenue.toString(),
+        lastSeasonExpenses: finances.lastSeasonExpenses.toString(),
+        facilitiesMaintenanceCost: finances.facilitiesMaintenanceCost.toString(),
+      };
+    }
+    
     return finances;
   }
 
