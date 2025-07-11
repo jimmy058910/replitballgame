@@ -13,6 +13,26 @@ const contractNegotiationSchema = z.object({
 });
 
 /**
+ * GET /api/players/:playerId
+ * Get player details including active contract
+ */
+router.get('/:playerId', isAuthenticated, async (req: any, res: Response, next: NextFunction) => {
+  try {
+    const { playerId } = req.params;
+    const player = await storage.players.getPlayerById(parseInt(playerId));
+    
+    if (!player) {
+      return res.status(404).json({ message: "Player not found" });
+    }
+
+    res.json(player);
+  } catch (error) {
+    console.error("Error fetching player:", error);
+    next(error);
+  }
+});
+
+/**
  * GET /api/players/:playerId/contract-value
  * Get contract value calculation for a player using Universal Value Formula
  */
@@ -26,7 +46,7 @@ router.get('/:playerId/contract-value', isAuthenticated, async (req: any, res: R
         return res.status(404).json({ message: "Your team was not found." });
     }
 
-    const player = await storage.players.getPlayerById(playerId);
+    const player = await storage.players.getPlayerById(parseInt(playerId));
     if (!player || player.teamId !== userTeam.id) {
       return res.status(404).json({ message: "Player not found on your team or does not exist." });
     }
@@ -62,17 +82,17 @@ router.post('/:playerId/negotiate', isAuthenticated, async (req: any, res: Respo
         return res.status(404).json({ message: "Your team was not found." });
     }
 
-    const player = await storage.players.getPlayerById(playerId);
+    const player = await storage.players.getPlayerById(parseInt(playerId));
     if (!player || player.teamId !== userTeam.id) {
       return res.status(404).json({ message: "Player not found on your team or does not exist." });
     }
 
     // Use the new UVF-based contract negotiation system
-    const negotiationResult = await ContractService.negotiatePlayerContract(playerId, salary, seasons);
+    const negotiationResult = await ContractService.negotiatePlayerContract(parseInt(playerId), salary, seasons);
 
     if (negotiationResult.accepted) {
       // Update the player's contract
-      const updatedPlayer = await ContractService.updatePlayerContract(playerId, salary, seasons);
+      const updatedPlayer = await ContractService.updatePlayerContract(parseInt(playerId), salary, seasons);
       
       if (!updatedPlayer) {
         return res.status(500).json({ message: "Failed to update player contract details." });
@@ -108,7 +128,7 @@ router.post('/:id/train-abilities', isAuthenticated, async (req: any, res: Respo
     }
 
     const playerId = req.params.id;
-    const player = await storage.players.getPlayerById(playerId); // Use playerStorage
+    const player = await storage.players.getPlayerById(parseInt(playerId)); // Use playerStorage
 
     if (!player || player.teamId !== team.id) {
       return res.status(404).json({ message: "Player not found or not owned by your team." });
@@ -133,7 +153,7 @@ router.post('/:id/train-abilities', isAuthenticated, async (req: any, res: Respo
 
       const updatedAbilities = [...currentAbilities, newAbility.id];
 
-      await storage.players.updatePlayer(playerId, { abilities: updatedAbilities as any, updatedAt: new Date() }); // Use playerStorage
+      await storage.players.updatePlayer(parseInt(playerId), { abilities: updatedAbilities as any, updatedAt: new Date() }); // Use playerStorage
 
       res.json({
         success: true,

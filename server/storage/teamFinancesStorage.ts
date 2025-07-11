@@ -160,6 +160,38 @@ export class TeamFinancesStorage {
       return null;
     }
   }
+
+  /**
+   * Recalculate and save staff salaries for a team
+   * Sums all active staff/scout salaries and updates the team's record
+   */
+  async recalculateAndSaveStaffSalaries(teamId: number): Promise<void> {
+    try {
+      // Get all active staff members for the team
+      const staffMembers = await prisma.staff.findMany({
+        where: { teamId: teamId }
+      });
+
+      // Get all active scouts for the team
+      const scouts = await prisma.scout.findMany({
+        where: { teamId: teamId, isActive: true }
+      });
+
+      // Calculate total staff salaries
+      const totalStaffSalaries = staffMembers.reduce((sum, staff) => sum + (staff.salary || 0), 0);
+      const totalScoutSalaries = scouts.reduce((sum, scout) => sum + (scout.salary || 0), 0);
+      const totalSalaries = totalStaffSalaries + totalScoutSalaries;
+
+      // Update team finances with new staff salary total
+      await this.updateTeamFinances(teamId, {
+        staffSalaries: BigInt(totalSalaries)
+      });
+
+      console.log(`Updated staff salaries for team ${teamId}: ${totalSalaries} credits`);
+    } catch (error) {
+      console.error(`Error recalculating staff salaries for team ${teamId}:`, error);
+    }
+  }
 }
 
 export const teamFinancesStorage = new TeamFinancesStorage();

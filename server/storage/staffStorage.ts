@@ -37,6 +37,11 @@ export class StaffStorage {
         contract: true
       }
     });
+
+    // Recalculate team staff salaries after creating new staff
+    const { teamFinancesStorage } = await import('./teamFinancesStorage');
+    await teamFinancesStorage.recalculateAndSaveStaffSalaries(staffData.teamId);
+
     return newStaff;
   }
 
@@ -72,6 +77,13 @@ export class StaffStorage {
           contract: true
         }
       });
+
+      // Recalculate team staff salaries if salary was updated
+      if (updates.salary !== undefined && updatedStaff) {
+        const { teamFinancesStorage } = await import('./teamFinancesStorage');
+        await teamFinancesStorage.recalculateAndSaveStaffSalaries(updatedStaff.teamId);
+      }
+
       return updatedStaff;
     } catch (error) {
       console.warn(`Staff member with ID ${id} not found for update.`);
@@ -81,9 +93,22 @@ export class StaffStorage {
 
   async deleteStaff(id: number): Promise<boolean> {
     try {
+      // Get staff info before deletion for salary recalculation
+      const staffToDelete = await prisma.staff.findUnique({
+        where: { id },
+        select: { teamId: true }
+      });
+
       await prisma.staff.delete({
         where: { id }
       });
+
+      // Recalculate team staff salaries after deletion
+      if (staffToDelete) {
+        const { teamFinancesStorage } = await import('./teamFinancesStorage');
+        await teamFinancesStorage.recalculateAndSaveStaffSalaries(staffToDelete.teamId);
+      }
+
       return true;
     } catch (error) {
       console.warn(`Staff member with ID ${id} not found for deletion.`);

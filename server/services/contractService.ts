@@ -1,5 +1,5 @@
 import { db } from "../db";
-import { players, staff, teams, type Player, type Staff, type Team } from "@shared/schema";
+import { players, staff, teams, playerContracts, type Player, type Staff, type Team } from "@shared/schema";
 import { eq, and } from "drizzle-orm";
 
 export interface ContractCalculation {
@@ -127,7 +127,7 @@ export class ContractService {
    * Handle player contract negotiation with new UVF system
    */
   static async negotiatePlayerContract(
-    playerId: string, 
+    playerId: number, 
     offerSalary: number, 
     offerSeasons: number
   ): Promise<NegotiationResult> {
@@ -230,12 +230,47 @@ export class ContractService {
   
   /**
    * Update player contract after successful negotiation
+   * Creates a new active contract in playerContracts table and updates team finances
    */
   static async updatePlayerContract(
-    playerId: string, 
+    playerId: number, 
     salary: number, 
     seasons: number
   ): Promise<Player | null> {
+    // Get player info first
+    const [player] = await db.select().from(players).where(eq(players.id, playerId)).limit(1);
+    if (!player) {
+      throw new Error("Player not found");
+    }
+
+    // Import storage here to avoid circular dependency
+    const { storage } = await import("../storage");
+
+    // Deactivate any existing active contracts for this player
+    await db
+      .update(playerContracts)
+      .set({ isActive: false })
+      .where(and(eq(playerContracts.playerId, playerId), eq(playerContracts.isActive, true)));
+
+    // Create new active contract
+    const expiryDate = new Date();
+    expiryDate.setFullYear(expiryDate.getFullYear() + seasons);
+    
+    const newContract = await db
+      .insert(playerContracts)
+      .values({
+        playerId: playerId,
+        teamId: player.teamId,
+        salary: salary,
+        duration: seasons,
+        remainingYears: seasons,
+        expiryDate: expiryDate,
+        isActive: true,
+        contractType: "standard"
+      })
+      .returning();
+
+    // Update player's contract fields for backward compatibility
     const [updatedPlayer] = await db
       .update(players)
       .set({
@@ -246,8 +281,38 @@ export class ContractService {
       })
       .where(eq(players.id, playerId))
       .returning();
+
+    // Update team salary cap based on all active player contracts
+    await this.updateTeamSalaryCap(player.teamId);
     
     return updatedPlayer || null;
+  }
+
+  /**
+   * Update team salary cap based on all active player contracts
+   */
+  static async updateTeamSalaryCap(teamId: number): Promise<void> {
+    // Calculate total salary from all active player contracts
+    const activeContracts = await db
+      .select()
+      .from(playerContracts)
+      .where(and(eq(playerContracts.teamId, teamId), eq(playerContracts.isActive, true)));
+
+    const totalSalary = activeContracts.reduce((sum, contract) => sum + contract.salary, 0);
+    const salaryCap = 5000000; // 5M salary cap
+    const capSpace = salaryCap - totalSalary;
+
+    // Update team finances with new salary cap information
+    const { storage } = await import("../storage");
+    const teamFinances = await storage.teamFinances.getTeamFinances(teamId);
+    
+    if (teamFinances) {
+      await storage.teamFinances.updateTeamFinances(teamId, {
+        salaryCap: BigInt(salaryCap),
+        totalSalary: BigInt(totalSalary),
+        capSpace: BigInt(capSpace)
+      });
+    }
   }
   
   /**
@@ -257,6 +322,12 @@ export class ContractService {
     staffId: string, 
     salary: number
   ): Promise<Staff | null> {
+    // Get staff info first
+    const [staffMember] = await db.select().from(staff).where(eq(staff.id, staffId)).limit(1);
+    if (!staffMember) {
+      throw new Error("Staff member not found");
+    }
+
     const [updatedStaff] = await db
       .update(staff)
       .set({
@@ -265,6 +336,12 @@ export class ContractService {
       })
       .where(eq(staff.id, staffId))
       .returning();
+
+    // Update team finances with new staff salary totals
+    if (updatedStaff) {
+      const { storage } = await import("../storage");
+      await storage.teamFinances.recalculateAndSaveStaffSalaries(parseInt(staffMember.teamId));
+    }
     
     return updatedStaff || null;
   }

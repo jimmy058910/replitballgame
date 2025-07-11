@@ -9,7 +9,7 @@ import { TeamNameValidator } from "../services/teamNameValidation";
 import { AgingService } from "../services/agingService";
 import { generateRandomName } from "@shared/names";
 import { db } from "../db";
-import { staff, teams } from "@shared/schema";
+import { staff, teams, playerContracts } from "@shared/schema";
 import { eq, and, or } from "drizzle-orm";
 // import { players as playersTable } from "@shared/schema"; // Not directly used here anymore
 
@@ -1094,5 +1094,29 @@ router.get('/division/:division', isAuthenticated, asyncHandler(async (req: any,
   res.json(teamsWithDetails);
 }));
 
+
+/**
+ * GET /api/teams/:teamId/contracts
+ * Get all player contracts for a team
+ */
+router.get('/:teamId/contracts', isAuthenticated, async (req: any, res: Response, next: NextFunction) => {
+  try {
+    const { teamId } = req.params;
+    const userId = req.user.claims.sub;
+    
+    const userTeam = await storage.teams.getTeamByUserId(userId);
+    if (!userTeam || userTeam.id !== parseInt(teamId)) {
+      return res.status(404).json({ message: "Team not found or you don't have permission to access this team." });
+    }
+
+    // Get all player contracts for the team
+    const contracts = await db.select().from(playerContracts).where(eq(playerContracts.teamId, parseInt(teamId)));
+    
+    res.json(contracts);
+  } catch (error) {
+    console.error("Error fetching team contracts:", error);
+    next(error);
+  }
+});
 
 export default router;

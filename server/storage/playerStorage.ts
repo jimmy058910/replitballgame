@@ -54,15 +54,26 @@ export class PlayerStorage {
       include: {
         team: { select: { name: true } },
         contract: true,
-        skills: { include: { skill: true } }
+        skills: { include: { skill: true } },
+        playerContracts: {
+          where: { isActive: true },
+          orderBy: { createdAt: 'desc' },
+          take: 1
+        }
       }
     });
+    
+    // Add active contract details to player object
+    if (player && player.playerContracts && player.playerContracts.length > 0) {
+      (player as any).activeContract = player.playerContracts[0];
+    }
+    
     return player;
   }
 
   async getPlayersByTeamId(teamId: number): Promise<Player[]> {
     // Typically, you'd fetch non-marketplace players for a team's roster
-    return await prisma.player.findMany({
+    const players = await prisma.player.findMany({
       where: {
         teamId: teamId,
         isOnMarket: false
@@ -70,9 +81,22 @@ export class PlayerStorage {
       include: {
         team: { select: { name: true } },
         contract: true,
-        skills: { include: { skill: true } }
+        skills: { include: { skill: true } },
+        playerContracts: {
+          where: { isActive: true },
+          orderBy: { createdAt: 'desc' },
+          take: 1
+        }
       },
       orderBy: { firstName: 'asc' }
+    });
+
+    // Add active contract details to each player object
+    return players.map(player => {
+      if (player.playerContracts && player.playerContracts.length > 0) {
+        (player as any).activeContract = player.playerContracts[0];
+      }
+      return player;
     });
   }
 
