@@ -159,10 +159,13 @@ class MatchStateManager {
     this.startMatchSimulation(matchId, homeTeamPlayers, awayTeamPlayers);
     
     // Update match status in database
-    await db.update(matches).set({ 
-      status: 'live',
-      scheduledTime: new Date()
-    }).where(eq(matches.id, matchId));
+    await prisma.game.update({
+      where: { id: matchId },
+      data: { 
+        status: 'live',
+        scheduledTime: new Date()
+      }
+    });
 
     return matchState;
   }
@@ -177,7 +180,9 @@ class MatchStateManager {
     const state = this.liveMatches.get(matchId);
     if (!state) {
       // Check if match exists in database but not in memory
-      const [match] = await db.select().from(matches).where(eq(matches.id, matchId)).limit(1);
+      const match = await prisma.game.findFirst({
+        where: { id: matchId }
+      });
       if (match && match.status === 'live') {
         // Restart the match state from database
         return await this.restartMatchFromDatabase(matchId);
@@ -191,7 +196,9 @@ class MatchStateManager {
   }
 
   private async restartMatchFromDatabase(matchId: string): Promise<LiveMatchState | null> {
-    const [match] = await db.select().from(matches).where(eq(matches.id, matchId)).limit(1);
+    const match = await prisma.game.findFirst({
+      where: { id: matchId }
+    });
     if (!match || match.status !== 'live') {
       return null;
     }
@@ -210,18 +217,29 @@ class MatchStateManager {
       // Ensure this match instance is cleaned up if it's being restarted past its end time.
       const existingState = this.liveMatches.get(matchId);
       if (existingState) {
-         const homeTeamPlayers = await db.select().from(players).where(and(eq(players.teamId, existingState.homeTeamId), eq(players.isMarketplace, false)));
-         const awayTeamPlayers = await db.select().from(players).where(and(eq(players.teamId, existingState.awayTeamId), eq(players.isMarketplace, false)));
+         const homeTeamPlayers = await prisma.player.findMany({
+           where: { teamId: existingState.homeTeamId, isMarketplace: false }
+         });
+         const awayTeamPlayers = await prisma.player.findMany({
+           where: { teamId: existingState.awayTeamId, isMarketplace: false }
+         });
          await this.completeMatch(matchId, existingState.homeTeamId, existingState.awayTeamId, homeTeamPlayers, awayTeamPlayers);
       } else {
         // If no state, perhaps just update DB if needed, though this scenario is less likely.
-        await db.update(matches).set({ status: 'completed' }).where(eq(matches.id, matchId));
+        await prisma.game.update({
+          where: { id: matchId },
+          data: { status: 'completed' }
+        });
       }
       return null;
     }
 
-    const homeTeamPlayers = await db.select().from(players).where(and(eq(players.teamId, match.homeTeamId), eq(players.isMarketplace, false)));
-    const awayTeamPlayers = await db.select().from(players).where(and(eq(players.teamId, match.awayTeamId), eq(players.isMarketplace, false)));
+    const homeTeamPlayers = await prisma.player.findMany({
+      where: { teamId: match.homeTeamId, isMarketplace: false }
+    });
+    const awayTeamPlayers = await prisma.player.findMany({
+      where: { teamId: match.awayTeamId, isMarketplace: false }
+    });
 
     // Reconstruct match state (simplified, full stat reconstruction might be complex)
     const currentHalf = elapsedSeconds < (maxTime / 2) ? 1 : 2;

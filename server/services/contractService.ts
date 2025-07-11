@@ -1,6 +1,5 @@
-import { db } from "../db";
-import { players, staff, teams, playerContracts, type Player, type Staff, type Team } from "@shared/schema";
-import { eq, and } from "drizzle-orm";
+import { prisma } from "../db";
+import type { Player, Staff, Team } from "@shared/schema";
 
 export interface ContractCalculation {
   baseSalary: number;

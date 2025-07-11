@@ -1,6 +1,4 @@
-import { db } from '../db';
-import { players, staff } from '../../shared/schema';
-import { eq, sql, and } from 'drizzle-orm';
+import { prisma } from '../db';
 
 export interface InjuryStaminaSettings {
   // Game mode base injury chances

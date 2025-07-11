@@ -1,16 +1,4 @@
-import { db } from "../db";
-import { 
-  mvpAwards, 
-  seasonAwards, 
-  teamAwards,
-  teamSeasonHistory,
-  playerMatchStats,
-  teamMatchStats,
-  players,
-  teams,
-  matches
-} from "../../shared/schema";
-import { eq, desc, and, asc, sum, max, count, sql } from "drizzle-orm";
+import { prisma } from "../db";
 import { nanoid } from "nanoid";
 import type { 
   MvpAward,

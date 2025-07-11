@@ -1,6 +1,4 @@
-import { db } from "../db";
-import { paymentTransactions } from "../../shared/schema";
-import { eq, desc, and, ne } from "drizzle-orm";
+import { prisma } from "../db";
 import type { PaymentTransaction, InsertPaymentTransaction } from "../../shared/schema";
 
 export class PaymentHistoryService {

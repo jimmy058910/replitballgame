@@ -95,12 +95,12 @@ export class PlayerAgingRetirementService {
     let trainerBonus = 0;
     if (player.teamId) {
       try {
-        const trainers = await db.select()
-          .from(staff)
-          .where(and(
-            eq(staff.teamId, player.teamId),
-            eq(staff.type, 'trainer')
-          ));
+        const trainers = await prisma.staff.findMany({
+          where: {
+            teamId: player.teamId,
+            position: { contains: 'TRAINER' }
+          }
+        });
         
         // Calculate trainer effectiveness based on stat type
         let relevantTrainerRating = 0;
@@ -191,7 +191,9 @@ export class PlayerAgingRetirementService {
     progressions: Array<{ stat: string; oldValue: number; newValue: number; chance: number; roll: number }>;
     milestones: Array<{ type: string; description: string }>;
   }> {
-    const [player] = await db.select().from(players).where(eq(players.id, playerId));
+    const player = await prisma.player.findFirst({
+      where: { id: playerId }
+    });
     if (!player) {
       throw new Error('Player not found');
     }
@@ -235,7 +237,9 @@ export class PlayerAgingRetirementService {
         gamesPlayedLastSeason,
         potentialAtTime: typeof player.overallPotentialStars === 'number' ? player.overallPotentialStars : parseFloat(player.overallPotentialStars) || 0
       };
-      await db.insert(playerDevelopmentHistory).values(developmentRecord);
+      await prisma.playerDevelopmentHistory.create({
+        data: developmentRecord
+      });
       
       if (success) {
         progressions.push({
@@ -247,9 +251,10 @@ export class PlayerAgingRetirementService {
         });
         
         // Update player stat
-        await db.update(players)
-          .set({ [statName]: newValue })
-          .where(eq(players.id, playerId));
+        await prisma.player.update({
+          where: { id: playerId },
+          data: { [statName]: newValue }
+        });
         
         // Check for milestones
         if (newValue >= 35 && currentValue < 35) {
@@ -280,7 +285,9 @@ export class PlayerAgingRetirementService {
   ): Promise<{
     declines: Array<{ stat: string; oldValue: number; newValue: number; chance: number; roll: number }>;
   }> {
-    const [player] = await db.select().from(players).where(eq(players.id, playerId));
+    const player = await prisma.player.findFirst({
+      where: { id: playerId }
+    });
     if (!player) {
       throw new Error('Player not found');
     }
@@ -322,12 +329,15 @@ export class PlayerAgingRetirementService {
         gamesPlayedLastSeason: 0,
         potentialAtTime: typeof player.overallPotentialStars === 'number' ? player.overallPotentialStars : parseFloat(player.overallPotentialStars) || 0
       };
-      await db.insert(playerDevelopmentHistory).values(declineRecord);
+      await prisma.playerDevelopmentHistory.create({
+        data: declineRecord
+      });
       
       // Update player stat
-      await db.update(players)
-        .set({ [selectedStat]: newValue })
-        .where(eq(players.id, playerId));
+      await prisma.player.update({
+        where: { id: playerId },
+        data: { [selectedStat]: newValue }
+      });
       
       declines.push({
         stat: selectedStat,
@@ -353,7 +363,9 @@ export class PlayerAgingRetirementService {
     roll: number;
     reason?: string;
   }> {
-    const [player] = await db.select().from(players).where(eq(players.id, playerId));
+    const player = await prisma.player.findFirst({
+      where: { id: playerId }
+    });
     if (!player) {
       throw new Error('Player not found');
     }
@@ -405,7 +417,9 @@ export class PlayerAgingRetirementService {
       gamesPlayedLastSeason,
       potentialAtTime: typeof player.overallPotentialStars === 'number' ? player.overallPotentialStars : parseFloat(player.overallPotentialStars) || 0
     };
-    await db.insert(playerDevelopmentHistory).values(retirementRecord);
+    await prisma.playerDevelopmentHistory.create({
+      data: retirementRecord
+    });
     
     return {
       retired,
@@ -419,37 +433,42 @@ export class PlayerAgingRetirementService {
    * Retire a player
    */
   static async retirePlayer(playerId: string, season: number, reason: string): Promise<void> {
-    const [player] = await db.select().from(players).where(eq(players.id, playerId));
+    const player = await prisma.player.findFirst({
+      where: { id: playerId }
+    });
     if (!player) return;
     
     // Create retirement milestone
-    await db.insert(playerCareerMilestones).values({
-      playerId,
-      milestoneType: 'retirement',
-      season,
-      description: `Retired at age ${player.age} due to ${reason.replace('_', ' ')}`,
-      statsSnapshot: {
-        age: player.age,
-        speed: player.speed,
-        agility: player.agility,
-        power: player.power,
-        throwing: player.throwing,
-        catching: player.catching,
-        kicking: player.kicking,
-        leadership: player.leadership,
-        stamina: player.stamina,
-        careerInjuries: player.careerInjuries,
-        gamesPlayedLastSeason: player.gamesPlayedLastSeason
-      },
-      significance: reason === 'mandatory_age' ? 2 : reason === 'injury_forced' ? 4 : 3
+    await prisma.playerCareerMilestone.create({
+      data: {
+        playerId,
+        milestoneType: 'retirement',
+        season,
+        description: `Retired at age ${player.age} due to ${reason.replace('_', ' ')}`,
+        statsSnapshot: {
+          age: player.age,
+          speed: player.speed,
+          agility: player.agility,
+          power: player.power,
+          throwing: player.throwing,
+          catching: player.catching,
+          kicking: player.kicking,
+          leadership: player.leadership,
+          stamina: player.stamina,
+          careerInjuries: player.careerInjuries,
+          gamesPlayedLastSeason: player.gamesPlayedLastSeason
+        },
+        significance: reason === 'mandatory_age' ? 2 : reason === 'injury_forced' ? 4 : 3
+      }
     });
     
     // Remove player from team (retirement)
-    await db.update(players)
-      .set({ 
+    await prisma.player.update({
+      where: { id: playerId },
+      data: { 
         teamId: null // Remove from team
-      })
-      .where(eq(players.id, playerId));
+      }
+    });
   }
 
   /**
@@ -465,10 +484,9 @@ export class PlayerAgingRetirementService {
     retirements: Array<{ playerId: string; playerName: string; age: number; reason: string }>;
     milestones: Array<{ playerId: string; playerName: string; type: string; description: string }>;
   }> {
-    const teamPlayers = await db
-      .select()
-      .from(players)
-      .where(eq(players.teamId, teamId));
+    const teamPlayers = await prisma.player.findMany({
+      where: { teamId: teamId }
+    });
 
     const results = {
       totalPlayers: teamPlayers.length,
@@ -662,7 +680,9 @@ export class PlayerAgingRetirementService {
     retired: boolean;
     retirementAge?: number;
   }> {
-    const [startingPlayer] = await db.select().from(players).where(eq(players.id, playerId));
+    const startingPlayer = await prisma.player.findFirst({
+      where: { id: playerId }
+    });
     if (!startingPlayer) {
       throw new Error('Player not found');
     }
@@ -702,15 +722,18 @@ export class PlayerAgingRetirementService {
       }
 
       // Age increment
-      await db.update(players)
-        .set({
+      await prisma.player.update({
+        where: { id: playerId },
+        data: {
           age: (startingPlayer.age || 20) + season,
           gamesPlayedLastSeason: 0
-        })
-        .where(eq(players.id, playerId));
+        }
+      });
     }
 
-    const [endingPlayer] = await db.select().from(players).where(eq(players.id, playerId));
+    const endingPlayer = await prisma.player.findFirst({
+      where: { id: playerId }
+    });
     
     return {
       startingStats,

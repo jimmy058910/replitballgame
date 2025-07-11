@@ -6,7 +6,7 @@ import { itemStorage } from "../storage/itemStorage";
 import { isAuthenticated } from "../replitAuth";
 // import { db } from "../db"; // Direct DB access for items might be replaced by itemStorage calls
 // import { items as itemsTable } from "@shared/schema"; // Schema items can be imported by itemStorage
-import { eq, and, isNotNull, desc, asc } from "drizzle-orm";
+// Drizzle operations replaced by Prisma in storage layers
 import { z } from "zod";
 
 const router = Router();

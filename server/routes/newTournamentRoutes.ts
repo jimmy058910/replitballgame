@@ -3,9 +3,7 @@ import { storage } from "../storage/index";
 import { isAuthenticated } from "../replitAuth";
 import { z } from "zod";
 import { tournamentService } from "../services/tournamentService";
-import { db } from "../db";
-import { tournaments, tournamentEntries, teams } from "../../shared/schema";
-import { eq, and, desc, asc } from "drizzle-orm";
+import { prisma } from "../db";
 import moment from "moment-timezone";
 
 const router = Router();

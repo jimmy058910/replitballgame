@@ -9,9 +9,7 @@ import {
   getFieldSizeInfo,
   getTacticalFocusInfo 
 } from "../../shared/tacticalSystem";
-import { db } from "../db";
-import { teams, players, staff } from "@shared/schema";
-import { eq } from "drizzle-orm";
+import { prisma } from "../db";
 
 const router = Router();
 

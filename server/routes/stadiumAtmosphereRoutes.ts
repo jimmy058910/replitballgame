@@ -2,9 +2,7 @@ import { Router } from 'express';
 import { StadiumAtmosphereService } from '../services/stadiumAtmosphereService';
 import { isAuthenticated } from '../replitAuth';
 import { RBACService } from '../services/rbacService';
-import { db } from '../db';
-import { teams } from '@shared/schema';
-import { eq } from 'drizzle-orm';
+import { prisma } from '../db';
 
 const router = Router();
 

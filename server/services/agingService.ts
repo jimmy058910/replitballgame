@@ -1,6 +1,5 @@
-import { db } from "../db";
-import { players, type Player } from "@shared/schema";
-import { eq, gte } from "drizzle-orm";
+import { prisma } from "../db";
+import type { Player } from "@shared/schema";
 
 export interface AgingResult {
   playerId: string;

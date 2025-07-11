@@ -1,9 +1,7 @@
 import { Router, type Request, type Response, type NextFunction } from "express";
 import { storage } from "../storage";
 import { isAuthenticated } from "../replitAuth";
-import { db } from "../db";
-import { players, teams, staff, teamFinances, matches as matchesTable } from "@shared/schema";
-import { eq, or, and } from "drizzle-orm";
+import { prisma } from "../db";
 import { generateRandomPlayer as generatePlayerForTeam } from "../services/leagueService";
 import { RBACService, Permission, UserRole } from "../services/rbacService";
 import { ErrorCreators, asyncHandler, logInfo } from "../services/errorService";

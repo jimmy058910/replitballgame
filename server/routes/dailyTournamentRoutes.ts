@@ -1,9 +1,7 @@
 import { Router, type Request, type Response, type NextFunction } from "express";
 import { storage } from "../storage/index";
 import { isAuthenticated } from "../replitAuth";
-import { db } from "../db";
-import { matches, tournaments, tournamentEntries, teams, teamInventory } from "../../shared/schema";
-import { eq, and, gte, or } from "drizzle-orm";
+import { prisma } from "../db";
 import moment from "moment-timezone";
 
 const router = Router();

@@ -1,6 +1,4 @@
-import { db } from '../db';
-import { players, playerMatchStats, teamMatchStats, matches } from '../../shared/schema';
-import { eq, and, sum, count, avg, desc } from 'drizzle-orm';
+import { prisma } from '../db';
 import { ErrorCreators } from './errorService';
 
 export interface PlayerOffensiveStats {

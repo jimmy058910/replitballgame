@@ -1,14 +1,6 @@
 import { Router, Response, NextFunction } from 'express';
 import { z } from 'zod';
-import { db } from '../db';
-import { eq, desc } from 'drizzle-orm';
-import {
-  teams,
-  stadiums,
-  teamFinances,
-  facilityUpgrades,
-  stadiumEvents
-} from '@shared/schema';
+import { prisma } from '../db';
 import { isAuthenticated } from '../replitAuth';
 import {
   calculateFanLoyalty,

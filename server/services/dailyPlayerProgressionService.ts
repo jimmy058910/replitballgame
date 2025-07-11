@@ -1,14 +1,5 @@
-import { eq, and, gte, lt, desc, count, sum } from 'drizzle-orm';
-import { db } from '../db';
-import { 
-  players, 
-  playerMatchStats, 
-  matches, 
-  teams,
-  staff,
-  playerDevelopmentHistory,
-  type InsertPlayerDevelopmentHistory 
-} from '../../shared/schema';
+import { prisma } from '../db';
+import type { InsertPlayerDevelopmentHistory } from '../../shared/schema';
 import { getEasternTime } from '../../shared/timezone';
 
 /**

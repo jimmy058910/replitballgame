@@ -1,6 +1,4 @@
-import { db } from '../db';
-import { teams, stadiums, teamFinances, matches } from '@shared/schema';
-import { eq, and, desc, asc } from 'drizzle-orm';
+import { prisma } from '../db';
 
 /**
  * Integrated Stadium, Finance & Atmosphere Service
