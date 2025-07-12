@@ -11,6 +11,27 @@ const staffContractNegotiationSchema = z.object({
 });
 
 /**
+ * GET /api/staff
+ * Get all staff for the authenticated user's team
+ */
+router.get('/', isAuthenticated, async (req: any, res: Response, next: NextFunction) => {
+  try {
+    const userId = req.user.claims.sub;
+    const userTeam = await storage.teams.getTeamByUserId(userId);
+    
+    if (!userTeam) {
+      return res.status(404).json({ message: "Your team was not found." });
+    }
+
+    const staff = await storage.staff.getStaffByTeamId(userTeam.id);
+    res.json(staff);
+  } catch (error) {
+    console.error("Error fetching staff:", error);
+    next(error);
+  }
+});
+
+/**
  * GET /api/staff/:staffId/contract-value
  * Get contract value calculation for a staff member using Universal Value Formula
  */

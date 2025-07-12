@@ -76,6 +76,7 @@ export function registerAllRoutes(app: Express): void {
   app.use("/api/team-names", teamNameRoutes); // Covers team name validation and suggestions
   app.use("/api/payment-history", paymentHistoryRoutes); // Covers payment transaction history and tracking
   app.use("/api/tactics", tacticalRoutes); // Covers team tactical system and strategy management
+  app.use("/api/tactical", tacticalRoutes); // Covers /api/tactical/formation endpoint
   app.use("/api/help", helpRoutes); // Covers help documentation and manual
   app.use("/api/aging", agingRoutes); // Covers player aging system and progression mechanics
   app.use("/api/consumables", consumableRoutes); // Covers consumable system for league game enhancements

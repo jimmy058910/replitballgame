@@ -5,6 +5,7 @@ import { userStorage } from "../storage/userStorage";
 import { teamFinancesStorage } from "../storage/teamFinancesStorage";
 import { leagueStorage } from "../storage/leagueStorage"; // For currentSeason
 import { matchStorage } from "../storage/matchStorage"; // For getMatchesByDivision
+import { seasonStorage } from "../storage/seasonStorage"; // For getCurrentSeason
 import { isAuthenticated } from "../replitAuth";
 import {
   generateLeagueGameSchedule,
@@ -353,7 +354,7 @@ router.post('/schedule', isAuthenticated, (req: Request, res: Response) => {
 
 router.get('/daily-schedule', isAuthenticated, async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const currentSeason = await leagueStorage.getCurrentSeason(); // Use leagueStorage
+    const currentSeason = await seasonStorage.getCurrentSeason(); // Use seasonStorage
     if (!currentSeason) {
       return res.json({ schedule: {}, totalDays: 17, currentDay: null, message: "No active season found." });
     }

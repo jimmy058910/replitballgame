@@ -13,6 +13,27 @@ const contractNegotiationSchema = z.object({
 });
 
 /**
+ * GET /api/players
+ * Get all players for the authenticated user's team
+ */
+router.get('/', isAuthenticated, async (req: any, res: Response, next: NextFunction) => {
+  try {
+    const userId = req.user.claims.sub;
+    const userTeam = await storage.teams.getTeamByUserId(userId);
+    
+    if (!userTeam) {
+      return res.status(404).json({ message: "Your team was not found." });
+    }
+
+    const players = await storage.players.getPlayersByTeamId(userTeam.id);
+    res.json(players);
+  } catch (error) {
+    console.error("Error fetching players:", error);
+    next(error);
+  }
+});
+
+/**
  * GET /api/players/:playerId
  * Get player details including active contract
  */

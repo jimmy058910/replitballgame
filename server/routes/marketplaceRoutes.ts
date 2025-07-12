@@ -32,6 +32,16 @@ const equipmentPriceSchema = z.object({
 
 
 // Player Marketplace routes
+router.get('/listings', isAuthenticated, async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const marketplacePlayers = await storage.players.getMarketplacePlayers();
+    res.json({ listings: marketplacePlayers });
+  } catch (error) {
+    console.error("Error fetching marketplace listings:", error);
+    next(error);
+  }
+});
+
 router.get('/players', isAuthenticated, async (req: Request, res: Response, next: NextFunction) => {
   try {
     const marketplacePlayers = await storage.players.getMarketplacePlayers();

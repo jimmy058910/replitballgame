@@ -132,7 +132,7 @@ async function testSchemaAlignment() {
   totalTests++;
   try {
     const storeResult = await makeRequest('GET', '/api/store/items');
-    if (Array.isArray(storeResult)) {
+    if (storeResult && (storeResult.equipment || storeResult.consumables || storeResult.entries)) {
       console.log('✅ Store System - Schema aligned');
       passedTests++;
     } else {

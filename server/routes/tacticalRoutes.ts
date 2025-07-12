@@ -13,6 +13,31 @@ import { prisma } from "../db";
 
 const router = Router();
 
+// Get team's current formation
+router.get("/formation", isAuthenticated, async (req: any, res) => {
+  try {
+    const team = await storage.teams.getTeamByUserId(req.user.claims.sub);
+    if (!team) {
+      return res.status(404).json({ error: "Team not found" });
+    }
+
+    const players = await storage.players.getPlayersByTeamId(team.id);
+    
+    // Get formation from team data - formation data is stored in team record
+    const formation = team.formation_data || { starters: [], substitutes: [] };
+    
+    res.json({
+      formation: formation,
+      players: players,
+      teamId: team.id,
+      teamName: team.name
+    });
+  } catch (error) {
+    console.error("Error fetching team formation:", error);
+    res.status(500).json({ error: "Failed to fetch team formation" });
+  }
+});
+
 // Get team's current tactical setup
 router.get("/team-tactics", isAuthenticated, async (req: any, res) => {
   try {
