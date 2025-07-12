@@ -78,9 +78,26 @@ export class RBACService {
    */
   static async getUserRole(userId: string): Promise<UserRole> {
     try {
-      // For now, return USER role since we don't have a users table with roles
-      // The UserProfile table exists but doesn't have role field
-      return UserRole.USER;
+      // Check the users table for the role field
+      const user = await prisma.user.findUnique({
+        where: { id: userId },
+        select: { role: true }
+      });
+      
+      if (!user || !user.role) {
+        logInfo("User not found or no role set, defaulting to USER", { userId });
+        return UserRole.USER;
+      }
+      
+      // Convert string role to enum
+      const roleMap: Record<string, UserRole> = {
+        'user': UserRole.USER,
+        'moderator': UserRole.MODERATOR,
+        'admin': UserRole.ADMIN,
+        'super_admin': UserRole.SUPER_ADMIN
+      };
+      
+      return roleMap[user.role] || UserRole.USER;
     } catch (error) {
       logInfo("Failed to fetch user role, defaulting to USER", { userId, error: error.message });
       return UserRole.USER;
@@ -132,11 +149,40 @@ export class RBACService {
       throw ErrorCreators.forbidden("Insufficient permissions to manage roles");
     }
     
-    // TODO: Add role field to UserProfile table to support role assignments
-    logInfo("Role assignment not implemented - need to add role field to UserProfile table", { 
+    // Update user role in database
+    await prisma.user.update({
+      where: { id: targetUserId },
+      data: { role: role }
+    });
+    
+    logInfo("Role assigned successfully", { 
       adminUserId, 
       targetUserId, 
       newRole: role 
+    });
+  }
+
+  /**
+   * Promote user to admin by email (for setup/testing)
+   */
+  static async promoteToAdmin(email: string): Promise<void> {
+    const user = await prisma.user.findUnique({
+      where: { email: email }
+    });
+    
+    if (!user) {
+      throw ErrorCreators.notFound("User not found with that email");
+    }
+    
+    await prisma.user.update({
+      where: { id: user.id },
+      data: { role: UserRole.ADMIN }
+    });
+    
+    logInfo("User promoted to admin", { 
+      userId: user.id, 
+      email: email, 
+      newRole: UserRole.ADMIN 
     });
   }
   

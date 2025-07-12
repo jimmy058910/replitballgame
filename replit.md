@@ -121,9 +121,24 @@ Built as a React + Express web application with PostgreSQL database, using moder
 
 ## Recent Changes
 
-### July 12, 2025 - COMPLETE DIVISION STRUCTURE FIXES & RECRUITING UI REORGANIZATION
+### July 12, 2025 - COMPLETE RECRUITING SYSTEM FIXES & RBAC PERMISSION SYSTEM OVERHAUL
 
-#### ✅ UI REORGANIZATION & TRYOUT SYSTEM AUTHORIZATION FIX COMPLETE
+#### ✅ CRITICAL RECRUITING SYSTEM FIXES COMPLETE
+- ✓ **Seasonal Restriction Enforcement**: Added backend validation preventing multiple tryouts per season (17-day cycle) with proper error messages
+- ✓ **Taxi Squad Role Field Fix**: Fixed missing `role` field in taxi squad player creation by adding proper role detection via `getPlayerRole()` function
+- ✓ **Field Mapping Corrections**: Fixed Prisma field mapping issues (`staminaAttribute`, `potentialRating`, `dailyStaminaLevel`, `injuryStatus`, `camaraderieScore`)
+- ✓ **Seasonal Tracking**: Added automatic marking of tryouts as used after successful completion to prevent multiple attempts
+- ✓ **Import Resolution**: Added missing `getPlayerRole` import from shared utilities to fix compilation errors
+
+#### ✅ RBAC PERMISSION SYSTEM OVERHAUL COMPLETE
+- ✓ **Role Persistence Implementation**: Fixed `RBACService.getUserRole()` to actually read from `users.role` column instead of hardcoded USER return
+- ✓ **Database Integration**: Updated RBAC system to use Prisma queries for role lookup with proper enum mapping
+- ✓ **Admin Promotion System**: Implemented `promoteToAdmin()` function for upgrading user accounts to admin status via email
+- ✓ **Permission Enforcement**: All SuperUser functions now properly check for admin permissions (GRANT_CREDITS, MANAGE_LEAGUES, etc.)
+- ✓ **Role Assignment**: Added `assignRole()` function for administrative role management with proper permission checks
+- ✓ **SuperUser Access**: Users can now promote themselves to admin status via "Promote to Admin" button in SuperUser panel
+
+#### ✅ UI REORGANIZATION & TRYOUT SYSTEM AUTHORIZATION FIX COMPLETE (Previous)
 - ✓ **Recruiting Tab Moved**: Successfully moved Recruiting from main navigation to /team > Roster > Recruiting sub-tab
 - ✓ **5-Tab Navigation**: Reduced main tabs from 6 to 5 (Roster, Staff, Tactics, Finances, Inventory) with recruiting integrated under Roster
 - ✓ **Authorization Fix**: Fixed tryout system authorization error by checking `team.userProfileId !== userProfile.id` instead of `team.userId !== userId`
