@@ -141,7 +141,12 @@ router.get('/:division/standings', isAuthenticated, async (req: Request, res: Re
     }
     
     // Get the user's team to determine their subdivision
-    const userTeam = await storage.teams.getTeamByUserId(req.user.id);
+    const userId = req.user?.claims?.sub;
+    if (!userId) {
+      return res.status(401).json({ message: "Authentication required" });
+    }
+    
+    const userTeam = await storage.teams.getTeamByUserId(userId);
     const userSubdivision = userTeam?.subdivision || 'eta';
     
     // Only get teams from the user's subdivision

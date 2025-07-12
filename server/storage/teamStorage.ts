@@ -45,6 +45,10 @@ export class TeamStorage {
 
   async getTeamByUserId(userId: string): Promise<Team | null> {
     // First find the UserProfile by userId, then find the team by userProfileId
+    if (!userId) {
+      return null;
+    }
+    
     const userProfile = await prisma.userProfile.findUnique({
       where: { userId: userId }
     });
