@@ -117,7 +117,7 @@ export default function LeagueStandings({ division }: LeagueStandingsProps) {
                         </td>
                         <td className="py-2">
                           <div 
-                            className={`font-medium cursor-pointer hover:underline truncate max-w-32 ${
+                            className={`font-medium cursor-pointer hover:underline ${
                               isPlayerTeam ? "text-primary-400" : "text-white"
                             }`}
                             onClick={() => handleTeamClick(team.id)}

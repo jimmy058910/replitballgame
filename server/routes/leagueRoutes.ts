@@ -513,4 +513,84 @@ router.post('/fix-existing-players/:teamId', isAuthenticated, async (req: Reques
   }
 });
 
+// Create additional AI teams for balancing divisions
+router.post('/create-additional-teams', isAuthenticated, async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const { count, subdivision } = req.body;
+    const teamsToCreate = count || 5;
+    const targetSubdivision = subdivision || "main";
+    
+    const aiTeamNames = gameConfig.aiTeamNames;
+    const races = ["Human", "Sylvan", "Gryll", "Lumina", "Umbra"];
+    
+    for (let i = 0; i < teamsToCreate; i++) {
+      const teamName = aiTeamNames[Math.floor(Math.random() * aiTeamNames.length)] + " " + Math.floor(Math.random() * 999);
+      
+      const aiUser = await userStorage.upsertUser({
+        userId: `ai_user_${teamName.replace(/\s+/g, '_').toLowerCase()}_${Date.now()}`,
+        email: `ai_${teamName.replace(/\s+/g, '_').toLowerCase()}_${Date.now()}@realmrivalry.ai`,
+        firstName: "AI",
+        lastName: "Team",
+        displayName: teamName,
+        avatarUrl: null,
+        createdAt: new Date(),
+        updatedAt: new Date()
+      });
+      
+      const newTeam = await storage.teams.createTeam({
+        userProfileId: aiUser.id,
+        name: teamName,
+        division: 8,
+        subdivision: targetSubdivision,
+        wins: 0,
+        losses: 0,
+        draws: 0,
+        points: 0,
+        goalFor: 0,
+        goalAgainst: 0,
+        played: 0,
+        streakType: "N",
+        streakLength: 0,
+        lastFiveGames: ""
+      });
+      
+      // Create players for the team
+      const positions = ["PASSER", "PASSER", "PASSER", "RUNNER", "RUNNER", "RUNNER", "RUNNER", "BLOCKER", "BLOCKER", "BLOCKER", "BLOCKER", "BLOCKER"];
+      
+      for (let j = 0; j < 12; j++) {
+        const race = races[Math.floor(Math.random() * races.length)];
+        const position = positions[j];
+        const { firstName, lastName } = generateRandomName(race.toLowerCase());
+        
+        await storage.players.createPlayer({
+          teamId: newTeam.id,
+          firstName,
+          lastName,
+          race,
+          role: position,
+          age: 16 + Math.floor(Math.random() * 19),
+          speedAttribute: 15 + Math.floor(Math.random() * 15),
+          powerAttribute: 15 + Math.floor(Math.random() * 15),
+          throwingAttribute: 15 + Math.floor(Math.random() * 15),
+          catchingAttribute: 15 + Math.floor(Math.random() * 15),
+          kickingAttribute: 15 + Math.floor(Math.random() * 15),
+          staminaAttribute: 15 + Math.floor(Math.random() * 15),
+          leadershipAttribute: 15 + Math.floor(Math.random() * 15),
+          agilityAttribute: 15 + Math.floor(Math.random() * 15),
+          potentialRating: 1 + Math.floor(Math.random() * 4),
+          injuryStatus: "HEALTHY",
+          currentStamina: 100,
+          maxStamina: 100,
+          camaraderie: 50
+        });
+      }
+    }
+    
+    res.json({ message: `Created ${teamsToCreate} additional AI teams in subdivision ${targetSubdivision}` });
+  } catch (error) {
+    console.error("Error creating additional teams:", error);
+    next(error);
+  }
+});
+
 export default router;
