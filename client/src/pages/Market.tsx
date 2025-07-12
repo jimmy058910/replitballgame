@@ -182,6 +182,9 @@ export default function Market() {
         description: `You purchased ${item?.name} with gems.`,
       });
       queryClient.invalidateQueries({ queryKey: ["/api/teams"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/inventory"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/store/items"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/store/"] });
     },
     onError: () => {
       toast({
@@ -202,6 +205,9 @@ export default function Market() {
         description: `You purchased ${item?.name} with credits.`,
       });
       queryClient.invalidateQueries({ queryKey: ["/api/teams"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/inventory"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/store/items"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/store/"] });
     },
     onError: () => {
       toast({

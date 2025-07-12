@@ -31,7 +31,11 @@ router.get('/live', isAuthenticated, async (req: Request, res: Response, next: N
 router.get('/:matchId', isAuthenticated, async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { matchId } = req.params;
-    const match = await matchStorage.getMatchById(matchId); // Use matchStorage
+    const matchIdNum = parseInt(matchId, 10);
+    if (isNaN(matchIdNum)) {
+      return res.status(400).json({ message: "Invalid match ID" });
+    }
+    const match = await matchStorage.getMatchById(matchIdNum); // Use matchStorage
 
     if (!match) {
       return res.status(404).json({ message: "Match not found" });
@@ -42,7 +46,7 @@ router.get('/:matchId', isAuthenticated, async (req: Request, res: Response, nex
     const awayTeamName = match.awayTeamName || (await storage.teams.getTeamById(match.awayTeamId))?.name || "Away";
 
     if (match.status === 'IN_PROGRESS') {
-      const liveState = await matchStateManager.syncMatchState(matchId);
+      const liveState = await matchStateManager.syncMatchState(matchIdNum);
       if (liveState) {
         return res.json({
           ...match, homeTeamName, awayTeamName,
@@ -66,14 +70,18 @@ router.get('/:matchId', isAuthenticated, async (req: Request, res: Response, nex
 router.get('/:matchId/enhanced-data', isAuthenticated, async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { matchId } = req.params;
-    const match = await matchStorage.getMatchById(matchId);
+    const matchIdNum = parseInt(matchId, 10);
+    if (isNaN(matchIdNum)) {
+      return res.status(400).json({ message: "Invalid match ID" });
+    }
+    const match = await matchStorage.getMatchById(matchIdNum);
     
     if (!match) {
       return res.status(404).json({ message: "Match not found" });
     }
 
     // Get live match state if available
-    const liveState = await matchStateManager.syncMatchState(matchId);
+    const liveState = await matchStateManager.syncMatchState(matchIdNum);
     
     if (!liveState) {
       return res.status(404).json({ message: "Enhanced data not available for this match" });
