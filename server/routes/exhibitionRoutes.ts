@@ -6,6 +6,7 @@ import { exhibitionGameStorage } from "../storage/exhibitionGameStorage";
 import { isAuthenticated } from "../replitAuth";
 import { matchStateManager } from "../services/matchStateManager";
 import { z } from "zod";
+import { MatchType } from "../../generated/prisma";
 
 // TODO: Move to TeamService or similar
 function calculateTeamPower(players: any[]): number {
@@ -203,7 +204,7 @@ router.post('/instant-match', isAuthenticated, async (req: any, res: Response, n
     const match = await matchStorage.createMatch({
       homeTeamId,
       awayTeamId,
-      matchType: "exhibition",
+      matchType: MatchType.EXHIBITION,
       gameDate: new Date(),
     });
 
@@ -256,7 +257,7 @@ router.post('/challenge-opponent', isAuthenticated, async (req: any, res: Respon
     const match = await matchStorage.createMatch({
       homeTeamId,
       awayTeamId,
-      matchType: "exhibition", 
+      matchType: MatchType.EXHIBITION, 
       gameDate: new Date(),
     });
 

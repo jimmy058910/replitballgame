@@ -13,7 +13,7 @@ export class TournamentStorage {
     entryFeeGems?: number;
     requiresEntryItem?: boolean;
     registrationDeadline?: Date;
-    tournamentStartTime?: Date;
+    startTime?: Date;
     maxParticipants?: number;
   }): Promise<Tournament> {
     const newTournament = await prisma.tournament.create({
@@ -28,7 +28,7 @@ export class TournamentStorage {
         entryFeeGems: tournamentData.entryFeeGems || 0,
         requiresEntryItem: tournamentData.requiresEntryItem || false,
         registrationDeadline: tournamentData.registrationDeadline,
-        tournamentStartTime: tournamentData.tournamentStartTime,
+        startTime: tournamentData.startTime,
         maxParticipants: tournamentData.maxParticipants || 16,
       },
       include: {
@@ -53,11 +53,33 @@ export class TournamentStorage {
   }
 
   async getTournamentsByDivision(division: number, status?: string): Promise<Tournament[]> {
+    const whereClause: any = { division };
+    
+    if (status) {
+      // Convert string status to proper enum value
+      switch (status) {
+        case 'open':
+          whereClause.status = 'REGISTRATION_OPEN';
+          break;
+        case 'closed':
+          whereClause.status = 'REGISTRATION_CLOSED';
+          break;
+        case 'in_progress':
+          whereClause.status = 'IN_PROGRESS';
+          break;
+        case 'completed':
+          whereClause.status = 'COMPLETED';
+          break;
+        case 'cancelled':
+          whereClause.status = 'CANCELLED';
+          break;
+        default:
+          whereClause.status = status; // Assume it's already the correct enum value
+      }
+    }
+    
     return await prisma.tournament.findMany({
-      where: {
-        division,
-        ...(status ? { status } : {})
-      },
+      where: whereClause,
       include: {
         entries: {
           include: {
@@ -65,13 +87,38 @@ export class TournamentStorage {
           }
         }
       },
-      orderBy: { tournamentStartTime: 'desc' }
+      orderBy: { startTime: 'desc' }
     });
   }
 
   async getAllTournaments(status?: string): Promise<Tournament[]> {
+    const whereClause: any = {};
+    
+    if (status) {
+      // Convert string status to proper enum value
+      switch (status) {
+        case 'open':
+          whereClause.status = 'REGISTRATION_OPEN';
+          break;
+        case 'closed':
+          whereClause.status = 'REGISTRATION_CLOSED';
+          break;
+        case 'in_progress':
+          whereClause.status = 'IN_PROGRESS';
+          break;
+        case 'completed':
+          whereClause.status = 'COMPLETED';
+          break;
+        case 'cancelled':
+          whereClause.status = 'CANCELLED';
+          break;
+        default:
+          whereClause.status = status; // Assume it's already the correct enum value
+      }
+    }
+    
     return await prisma.tournament.findMany({
-      where: status ? { status } : {},
+      where: whereClause,
       include: {
         entries: {
           include: {
@@ -79,7 +126,7 @@ export class TournamentStorage {
           }
         }
       },
-      orderBy: { tournamentStartTime: 'desc' }
+      orderBy: { startTime: 'desc' }
     });
   }
 
@@ -195,7 +242,7 @@ export class TournamentStorage {
       include: {
         entries: true
       },
-      orderBy: { tournamentStartTime: 'asc' }
+      orderBy: { startTime: 'asc' }
     });
   }
 }

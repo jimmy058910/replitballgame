@@ -41,7 +41,7 @@ router.get('/:matchId', isAuthenticated, async (req: Request, res: Response, nex
     const homeTeamName = match.homeTeamName || (await storage.teams.getTeamById(match.homeTeamId))?.name || "Home";
     const awayTeamName = match.awayTeamName || (await storage.teams.getTeamById(match.awayTeamId))?.name || "Away";
 
-    if (match.status === 'live') {
+    if (match.status === 'IN_PROGRESS') {
       const liveState = await matchStateManager.syncMatchState(matchId);
       if (liveState) {
         return res.json({
@@ -230,7 +230,7 @@ router.post('/:matchId/simulate-play', isAuthenticated, async (req: Request, res
 
     const match = await matchStorage.getMatchById(matchId); // Use matchStorage
     if (!match) return res.status(404).json({ message: "Match not found" });
-    if (match.status !== 'live') return res.status(400).json({ message: "Match is not live. Cannot simulate play." });
+    if (match.status !== 'IN_PROGRESS') return res.status(400).json({ message: "Match is not live. Cannot simulate play." });
 
     const eventTypes = ['pass', 'run', 'tackle', 'score', 'foul', 'interception'];
     const randomEventType = eventTypes[Math.floor(Math.random() * eventTypes.length)];

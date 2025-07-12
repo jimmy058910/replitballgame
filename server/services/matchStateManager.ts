@@ -162,8 +162,8 @@ class MatchStateManager {
     await prisma.game.update({
       where: { id: matchId },
       data: { 
-        status: 'live',
-        scheduledTime: new Date()
+        status: 'IN_PROGRESS',
+        gameDate: new Date()
       }
     });
 
@@ -183,7 +183,7 @@ class MatchStateManager {
       const match = await prisma.game.findFirst({
         where: { id: matchId }
       });
-      if (match && match.status === 'live') {
+      if (match && match.status === 'IN_PROGRESS') {
         // Restart the match state from database
         return await this.restartMatchFromDatabase(matchId);
       }
@@ -199,12 +199,12 @@ class MatchStateManager {
     const match = await prisma.game.findFirst({
       where: { id: matchId }
     });
-    if (!match || match.status !== 'live') {
+    if (!match || match.status !== 'IN_PROGRESS') {
       return null;
     }
 
     // Calculate elapsed time since match started
-    const startTime = match.scheduledTime || match.createdAt;
+    const startTime = match.gameDate || match.createdAt;
     if (!startTime) {
       return null;
     }
@@ -228,7 +228,7 @@ class MatchStateManager {
         // If no state, perhaps just update DB if needed, though this scenario is less likely.
         await prisma.game.update({
           where: { id: matchId },
-          data: { status: 'completed' }
+          data: { status: 'COMPLETED' }
         });
       }
       return null;
@@ -634,7 +634,7 @@ class MatchStateManager {
       await prisma.game.update({
         where: { id: matchId },
         data: {
-          status: 'completed',
+          status: 'COMPLETED',
           homeScore: state.homeScore,
           awayScore: state.awayScore,
           completedAt: new Date(),
@@ -654,7 +654,7 @@ class MatchStateManager {
        await prisma.game.update({
         where: { id: matchId },
         data: {
-          status: 'completed', // Or a special status like 'completed_stats_error'
+          status: 'COMPLETED', // Or a special status like 'completed_stats_error'
           homeScore: state.homeScore,
           awayScore: state.awayScore,
           completedAt: new Date(),

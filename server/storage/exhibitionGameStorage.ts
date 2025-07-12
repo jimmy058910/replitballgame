@@ -8,19 +8,18 @@ export class ExhibitionGameStorage {
     homeTeamId: number;
     awayTeamId: number;
     gameDate?: Date;
-    isExhibition?: boolean;
   }): Promise<Game> {
     const newGame = await prisma.game.create({
       data: {
         homeTeamId: gameData.homeTeamId,
         awayTeamId: gameData.awayTeamId,
         gameDate: gameData.gameDate || new Date(),
-        status: 'PENDING',
-        isExhibition: gameData.isExhibition || true,
+        status: 'SCHEDULED',
+        matchType: 'EXHIBITION',
       },
       include: {
-        homeTeam: { select: { name: true } },
-        awayTeam: { select: { name: true } }
+        league: true,
+        tournament: true
       }
     });
     return newGame;
@@ -28,10 +27,13 @@ export class ExhibitionGameStorage {
 
   async getExhibitionGameById(id: number): Promise<Game | null> {
     const game = await prisma.game.findUnique({
-      where: { id, isExhibition: true },
+      where: { 
+        id,
+        matchType: 'EXHIBITION'
+      },
       include: {
-        homeTeam: { select: { name: true } },
-        awayTeam: { select: { name: true } }
+        league: true,
+        tournament: true
       }
     });
     return game;
@@ -40,15 +42,15 @@ export class ExhibitionGameStorage {
   async getExhibitionGamesByTeam(teamId: number, limit: number = 10): Promise<Game[]> {
     return await prisma.game.findMany({
       where: {
-        isExhibition: true,
+        matchType: 'EXHIBITION',
         OR: [
           { homeTeamId: teamId },
           { awayTeamId: teamId }
         ]
       },
       include: {
-        homeTeam: { select: { name: true } },
-        awayTeam: { select: { name: true } }
+        league: true,
+        tournament: true
       },
       orderBy: { gameDate: 'desc' },
       take: limit
@@ -64,7 +66,7 @@ export class ExhibitionGameStorage {
 
     return await prisma.game.findMany({
       where: {
-        isExhibition: true,
+        matchType: 'EXHIBITION',
         OR: [
           { homeTeamId: teamId },
           { awayTeamId: teamId }
@@ -75,8 +77,8 @@ export class ExhibitionGameStorage {
         }
       },
       include: {
-        homeTeam: { select: { name: true } },
-        awayTeam: { select: { name: true } }
+        league: true,
+        tournament: true
       },
       orderBy: { gameDate: 'desc' }
     });
@@ -85,7 +87,10 @@ export class ExhibitionGameStorage {
   async deleteExhibitionGame(id: number): Promise<boolean> {
     try {
       await prisma.game.delete({
-        where: { id, isExhibition: true }
+        where: { 
+          id,
+          matchType: 'EXHIBITION'
+        }
       });
       return true;
     } catch (error) {

@@ -43,7 +43,7 @@ router.post('/:id/enter', isAuthenticated, async (req: any, res: Response, next:
 
     const tournament = await tournamentStorage.getTournamentById(tournamentId);
     if (!tournament) return res.status(404).json({ message: "Tournament not found." });
-    if (tournament.status !== 'open') return res.status(400).json({ message: "Tournament is not open for entries."});
+    if (tournament.status !== 'REGISTRATION_OPEN') return res.status(400).json({ message: "Tournament is not open for entries."});
     if (tournament.division !== team.division) return res.status(400).json({ message: "Your team is not in the correct division for this tournament."});
 
     const participantCount = await tournamentStorage.getTournamentParticipantCount(tournamentId);
@@ -100,7 +100,7 @@ router.get('/history', isAuthenticated, async (req: any, res: Response, next: Ne
     if (completedTournamentIds.length > 0) {
         for (const tId of completedTournamentIds) {
             const t = await tournamentStorage.getTournamentById(tId);
-            if (t && t.status === 'completed') {
+            if (t && t.status === 'COMPLETED') {
                 const entry = teamEntries.find(e => e.tournamentId === tId);
                 history.push({ ...t, yourPlacement: entry?.placement, prizeWon: entry?.prizeWon });
             }

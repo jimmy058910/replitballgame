@@ -379,8 +379,8 @@ router.get('/daily-schedule', isAuthenticated, async (req: Request, res: Respons
           awayTeamName: match.awayTeamName || "Away",
           scheduledTime: dailyGameTimes[index % dailyGameTimes.length],
           scheduledTimeFormatted: formatEasternTime(dailyGameTimes[index % dailyGameTimes.length]),
-          isLive: match.status === 'live',
-          canWatch: match.status === 'live' || match.status === 'completed'
+          isLive: match.status === 'IN_PROGRESS',
+          canWatch: match.status === 'IN_PROGRESS' || match.status === 'COMPLETED'
         }));
       } else {
         scheduleByDay[day] = [];

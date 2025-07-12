@@ -196,7 +196,7 @@ export class InjuryStaminaService {
       // Exhibitions always start at 100% stamina
       await prisma.player.update({
         where: { id: playerId },
-        data: { inGameStamina: 100 }
+        data: { dailyStaminaLevel: 100 }
       });
     } else {
       // League and tournament use daily stamina level
@@ -208,7 +208,7 @@ export class InjuryStaminaService {
       if (player) {
         await prisma.player.update({
           where: { id: playerId },
-          data: { inGameStamina: player.dailyStaminaLevel || 100 }
+          data: { dailyStaminaLevel: player.dailyStaminaLevel || 100 }
         });
       }
     }

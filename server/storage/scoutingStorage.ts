@@ -28,19 +28,18 @@ export class ScoutingStorage {
         age: candidateData.age,
         race: candidateData.race,
         role: candidateData.role,
-        overallPotentialStars: candidateData.overallPotentialStars,
+        potentialRating: candidateData.overallPotentialStars,
         speed: candidateData.speed,
         power: candidateData.power,
         agility: candidateData.agility,
         throwing: candidateData.throwing,
         catching: candidateData.catching,
         kicking: candidateData.kicking,
-        stamina: candidateData.stamina,
+        staminaAttribute: candidateData.stamina,
         leadership: candidateData.leadership,
-        injuryStatus: 'Healthy',
-        inGameStamina: 100,
+        injuryStatus: 'HEALTHY',
         dailyStaminaLevel: 100,
-        camaraderie: 50.0,
+        camaraderieScore: 50.0,
       }
     });
     return newCandidate;
