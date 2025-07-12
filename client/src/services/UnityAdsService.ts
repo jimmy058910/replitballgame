@@ -30,8 +30,10 @@ export class UnityAdsService {
   private config: UnityAdsConfig;
   private placements: AdPlacement[] = [
     { id: 'rewardedVideo', type: 'rewarded', name: 'Rewarded Video' },
+    { id: 'halftimeVideo', type: 'rewarded', name: 'Halftime Video' },
     { id: 'interstitial', type: 'interstitial', name: 'Interstitial' },
-    { id: 'banner', type: 'banner', name: 'Banner' }
+    { id: 'banner', type: 'banner', name: 'Banner' },
+    { id: 'postGameVideo', type: 'rewarded', name: 'Post-Game Video' }
   ];
 
   private constructor() {
@@ -98,20 +100,18 @@ export class UnityAdsService {
     });
   }
 
-  async showRewardedVideo(): Promise<AdResult> {
+  async showRewardedVideo(placementId: string = 'rewardedVideo'): Promise<AdResult> {
     if (!this.isInitialized) {
       throw new Error('Unity Ads not initialized');
     }
 
-    const placementId = 'rewardedVideo';
-    
     // Check if placement is ready
     if (!window.UnityAds.isSupported()) {
       throw new Error('Unity Ads not supported on this platform');
     }
 
     if (!window.UnityAds.isReady(placementId)) {
-      throw new Error('Rewarded video not ready');
+      throw new Error(`${placementId} not ready`);
     }
 
     return new Promise((resolve) => {
@@ -126,6 +126,14 @@ export class UnityAdsService {
         resolve(adResult);
       });
     });
+  }
+
+  async showHalftimeVideo(): Promise<AdResult> {
+    return this.showRewardedVideo('halftimeVideo');
+  }
+
+  async showPostGameVideo(): Promise<AdResult> {
+    return this.showRewardedVideo('postGameVideo');
   }
 
   async showInterstitial(): Promise<AdResult> {

@@ -1,13 +1,19 @@
 import { useRoute } from "wouter";
 import { useQuery } from "@tanstack/react-query";
 import { LiveMatchSimulation } from "@/components/LiveMatchSimulation";
+import { HalftimeAd } from "@/components/HalftimeAd";
+import { BannerAd } from "@/components/BannerAd";
 import { Loader2 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
+import { useState, useEffect } from "react";
+import React from "react";
 
 export default function TextMatch() {
   const [, textMatchParams] = useRoute("/text-match/:matchId");
   const [, matchParams] = useRoute("/match/:matchId");
   const matchId = textMatchParams?.matchId || matchParams?.matchId;
+  const [showHalftimeAd, setShowHalftimeAd] = useState(false);
+  const [halftimeAdShown, setHalftimeAdShown] = useState(false);
 
   const { data: match, isLoading: matchLoading } = useQuery({
     queryKey: [`/api/matches/${matchId}`],
@@ -106,6 +112,29 @@ export default function TextMatch() {
   const team1WithPlayers = { ...team1, players: team1Players || [] };
   const team2WithPlayers = { ...team2, players: team2Players || [] };
 
+  // Check for halftime (when match is at 50% completion)
+  React.useEffect(() => {
+    if (match?.status === 'live' && enhancedData?.gamePhase === 'halftime' && !halftimeAdShown) {
+      setShowHalftimeAd(true);
+      setHalftimeAdShown(true);
+    }
+  }, [match, enhancedData, halftimeAdShown]);
+
+  const handleHalftimeAdCompleted = (reward: number) => {
+    setShowHalftimeAd(false);
+    console.log('Halftime ad completed, reward:', reward);
+  };
+
+  const handleHalftimeAdSkipped = () => {
+    setShowHalftimeAd(false);
+    console.log('Halftime ad skipped');
+  };
+
+  const handleContinueGame = () => {
+    setShowHalftimeAd(false);
+    console.log('Continue game without ad');
+  };
+
   return (
     <div className="min-h-screen bg-gray-900 text-white">
       <LiveMatchSimulation
@@ -118,6 +147,17 @@ export default function TextMatch() {
           console.log("Match completed");
         }}
       />
+      
+      {/* Halftime Ad Integration */}
+      <HalftimeAd
+        isVisible={showHalftimeAd}
+        onAdCompleted={handleHalftimeAdCompleted}
+        onAdSkipped={handleHalftimeAdSkipped}
+        onContinueGame={handleContinueGame}
+      />
+      
+      {/* Banner Ad at bottom */}
+      <BannerAd placement="bottom" />
     </div>
   );
 }

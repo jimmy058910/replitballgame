@@ -84,10 +84,12 @@ In Unity Dashboard:
 
 ### Current Implementation:
 - **Web SDK**: Unity Ads Web SDK 3.0
-- **Placement IDs**: rewardedVideo, interstitial, banner
+- **Placement IDs**: rewardedVideo, halftimeVideo, postGameVideo, interstitial, banner
 - **Fallback**: Simulation mode when Unity unavailable
 - **Reward System**: 500-10,000 credits per ad
 - **Daily Limits**: 10 ads per day per user
+- **Halftime Integration**: Mid-game ads during live matches
+- **Banner Ads**: Bottom placement during gameplay
 
 ### Error Handling:
 - Unity Ads SDK load failure → fallback to simulation
