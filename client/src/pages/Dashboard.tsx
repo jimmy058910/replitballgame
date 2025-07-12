@@ -84,18 +84,13 @@ const DIVISION_8_SUBDIVISIONS = [
   "Rho", "Sigma", "Tau", "Upsilon", "Phi", "Chi", "Psi", "Omega"
 ];
 
-function getDivisionNameWithSubdivision(division: number, teamId?: string): string {
+function getDivisionNameWithSubdivision(division: number, subdivision?: string): string {
   const baseName = DIVISION_NAMES[division as keyof typeof DIVISION_NAMES] || `Division ${division}`;
   
-  if (division === 8 && teamId) {
-    // Generate consistent sub-division based on team ID
-    const hash = teamId.toString().split('').reduce((a, b) => {
-      a = ((a << 5) - a) + b.charCodeAt(0);
-      return a & a;
-    }, 0);
-    const subDivisionIndex = Math.abs(hash) % DIVISION_8_SUBDIVISIONS.length;
-    const subDivision = DIVISION_8_SUBDIVISIONS[subDivisionIndex];
-    return `${baseName} - ${subDivision}`;
+  if (division === 8 && subdivision && typeof subdivision === 'string' && subdivision !== "main") {
+    // Use actual subdivision from database
+    const subdivisionName = subdivision.charAt(0).toUpperCase() + subdivision.slice(1);
+    return `${baseName} - ${subdivisionName}`;
   }
   
   return baseName;
@@ -518,7 +513,7 @@ export default function Dashboard() {
 
           <Card className="bg-gray-800 border-gray-700">
             <CardHeader className="border-b border-gray-700">
-              <CardTitle className="font-orbitron text-xl">Division {team?.division || 8} - {getDivisionNameWithSubdivision(team?.division || 8, team?.id)}</CardTitle>
+              <CardTitle className="font-orbitron text-xl">Division {team?.division || 8} - {getDivisionNameWithSubdivision(team?.division || 8, team?.subdivision)}</CardTitle>
             </CardHeader>
             <CardContent className="p-6">
               <LeagueStandings division={team?.division || 8} />
