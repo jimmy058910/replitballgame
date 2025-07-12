@@ -90,17 +90,8 @@ export default function TeamInfoDialog({ teamId, isOpen, onClose }: TeamInfoDial
   };
 
   const getScoutedPlayerName = (player: any): string => {
-    if (!isOpponentTeam) {
-      return `${player.firstName} ${player.lastName}`;
-    }
-    
-    // For opponents, show varying levels of name detail based on scouting
-    switch (scoutingLevel) {
-      case 1: return `${player.firstName} ${player.lastName?.charAt(0)}.`; // "John D."
-      case 2: return `${player.firstName} ${player.lastName}`;  // Full name
-      case 3: return `${player.firstName} ${player.lastName}`;  // Full name + more details
-      default: return `${player.firstName} ${player.lastName?.charAt(0)}.`;
-    }
+    // Always show full names for all teams (CPU/AI and User teams)
+    return `${player.firstName} ${player.lastName}`;
   };
 
   const getPositionColor = (role: string) => {
