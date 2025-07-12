@@ -72,7 +72,7 @@ export default function Team() {
   const [activeTab, setActiveTab] = useState("roster");
   const [rosterSubTab, setRosterSubTab] = useState("players");
   const [staffSubTab, setStaffSubTab] = useState("current");
-  const [tacticsSubTab, setTacticsSubTab] = useState("gameplan");
+  const [tacticsSubTab, setTacticsSubTab] = useState("lineup");
   const [financesSubTab, setFinancesSubTab] = useState("overview");
   const [inventoryFilter, setInventoryFilter] = useState("equipment");
 
@@ -334,7 +334,21 @@ export default function Team() {
           </TabsContent>
 
           <TabsContent value="tactics">
-            <TacticsLineupHub teamId={team?.id || ''} />
+            {/* Tactics Sub-tabs: Game Plan and Effectiveness */}
+            <Tabs value={tacticsSubTab} onValueChange={setTacticsSubTab} className="mb-6">
+              <TabsList className="grid w-full grid-cols-2 bg-gray-800">
+                <TabsTrigger value="lineup">Lineup & Formation</TabsTrigger>
+                <TabsTrigger value="strategy">Strategy & Tactics</TabsTrigger>
+              </TabsList>
+
+              <TabsContent value="lineup">
+                <TacticsLineupHub teamId={team?.id || ''} />
+              </TabsContent>
+
+              <TabsContent value="strategy">
+                <TacticalManager />
+              </TabsContent>
+            </Tabs>
           </TabsContent>
 
           <TabsContent value="finances">
