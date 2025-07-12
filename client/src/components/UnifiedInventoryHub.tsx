@@ -123,7 +123,7 @@ export default function UnifiedInventoryHub({ teamId }: UnifiedInventoryHubProps
     return "📦";
   };
 
-  // Get item effect description
+  // Get item effect description with race requirements
   const getItemEffect = (item: InventoryItem) => {
     // Use the actual item description from API first
     if (item.description && item.description !== "Provides various benefits") {
@@ -131,19 +131,19 @@ export default function UnifiedInventoryHub({ teamId }: UnifiedInventoryHubProps
     }
 
     const effects: Record<string, string> = {
-      // Equipment effects
-      "Standard Leather Helmet": "+1 Stamina protection",
-      "Human Tactical Helm": "+4 Leadership, +2 Throwing accuracy",
-      "Gryllstone Plated Helm": "+3 Power, +2 Stamina",
-      "Sylvan Barkwood Circlet": "+4 Agility, +2 Speed",
-      "Umbral Cowl": "+3 Agility, +1 Speed",
-      "Helm of Command": "+2 Leadership (Cosmetic)",
-      "Boots of the Gryll": "+2 Power, +1 Stamina",
-      "Lumina Light-Treads": "+3 Speed, +1 Agility",
-      "Sylvan Gripping Vines": "+2 Catching, +1 Agility",
-      "Umbral Shadowgrips": "+2 Agility, +1 Speed",
-      "Gryll Forged Plate": "+4 Power, +1 Stamina",
-      "Lumina Radiant Aegis": "+1 Leadership (Cosmetic)",
+      // Equipment effects with race requirements
+      "Standard Leather Helmet": "+1 Stamina protection (Any race)",
+      "Human Tactical Helm": "+4 Leadership, +2 Throwing accuracy (Human only)",
+      "Gryllstone Plated Helm": "+3 Power, +2 Stamina (Gryll only)",
+      "Sylvan Barkwood Circlet": "+4 Agility, +2 Speed (Sylvan only)",
+      "Umbral Cowl": "+3 Agility, +1 Speed (Umbra only)",
+      "Helm of Command": "+2 Leadership (Cosmetic, any race)",
+      "Boots of the Gryll": "+2 Power, +1 Stamina (Gryll only)",
+      "Lumina Light-Treads": "+3 Speed, +1 Agility (Lumina only)",
+      "Sylvan Gripping Vines": "+2 Catching, +1 Agility (Sylvan only)",
+      "Umbral Shadowgrips": "+2 Agility, +1 Speed (Umbra only)",
+      "Gryll Forged Plate": "+4 Power, +1 Stamina (Gryll only)",
+      "Lumina Radiant Aegis": "+1 Leadership (Cosmetic, Lumina only)",
       
       // Consumable effects
       "Basic Medical Kit": "Heals 25 Injury Recovery Points",
@@ -216,7 +216,20 @@ export default function UnifiedInventoryHub({ teamId }: UnifiedInventoryHubProps
   // Get eligible players for item usage
   const getEligiblePlayers = (item: InventoryItem) => {
     if (item.itemType === "EQUIPMENT") {
-      return players; // All players can equip items
+      // Filter by race requirements
+      const raceRequirements = {
+        "Human Tactical Helm": ["HUMAN"],
+        "Gryllstone Plated Helm": ["GRYLL"],
+        "Sylvan Barkwood Circlet": ["SYLVAN"],
+        "Umbral Cowl": ["UMBRA"],
+        "Lumina Radiant Aegis": ["LUMINA"]
+      };
+      
+      if (raceRequirements[item.name]) {
+        return players.filter(p => raceRequirements[item.name].includes(p.race));
+      }
+      
+      return players; // Items without race requirements
     }
     if (item.itemType === "CONSUMABLE_RECOVERY") {
       if (item.name.toLowerCase().includes("medical") || item.name.toLowerCase().includes("heal")) {
@@ -465,7 +478,7 @@ export default function UnifiedInventoryHub({ teamId }: UnifiedInventoryHubProps
                       <SelectContent className="bg-gray-700 border-gray-600">
                         {getEligiblePlayers(selectedItem).map((player) => (
                           <SelectItem key={player.id} value={player.id} className="text-white">
-                            {player.firstName} {player.lastName} ({player.role})
+                            {player.firstName} {player.lastName} ({player.role}, {player.race})
                           </SelectItem>
                         ))}
                       </SelectContent>

@@ -59,35 +59,67 @@ router.post('/equip', isAuthenticated, asyncHandler(async (req: any, res: Respon
     throw ErrorCreators.notFound("Item not found in inventory");
   }
 
-  // Determine equipment slot based on item name
-  let equipmentSlot = '';
-  if (itemName.toLowerCase().includes('helmet') || itemName.toLowerCase().includes('helm')) {
-    equipmentSlot = 'helmet';
-  } else if (itemName.toLowerCase().includes('chest') || itemName.toLowerCase().includes('armor')) {
-    equipmentSlot = 'chest';
-  } else if (itemName.toLowerCase().includes('boot') || itemName.toLowerCase().includes('cleat')) {
-    equipmentSlot = 'shoes';
-  } else if (itemName.toLowerCase().includes('glove') || itemName.toLowerCase().includes('grip')) {
-    equipmentSlot = 'gloves';
-  } else {
-    equipmentSlot = 'helmet'; // Default to helmet
+  // Check race requirements for equipment
+  const raceRequirements = {
+    "Human Tactical Helm": ["HUMAN"],
+    "Gryllstone Plated Helm": ["GRYLL"],
+    "Sylvan Barkwood Circlet": ["SYLVAN"],
+    "Umbral Cowl": ["UMBRA"],
+    "Lumina Radiant Aegis": ["LUMINA"]
+  };
+
+  if (raceRequirements[itemName] && !raceRequirements[itemName].includes(player.race)) {
+    throw ErrorCreators.forbidden(`${itemName} can only be equipped by ${raceRequirements[itemName].join(", ")} race players`);
   }
 
-  // Update player equipment
-  const updateData: any = {};
-  if (equipmentSlot === 'helmet') {
-    updateData.helmetItemId = itemId;
-  } else if (equipmentSlot === 'chest') {
-    updateData.chestItemId = itemId;
-  } else if (equipmentSlot === 'shoes') {
-    updateData.shoesItemId = itemId;
-  } else if (equipmentSlot === 'gloves') {
-    updateData.glovesItemId = itemId;
+  // Check if player already has equipment of the same type
+  const existingEquipment = await prisma.playerEquipment.findFirst({
+    where: {
+      playerId: player.id,
+      item: {
+        name: itemName
+      }
+    }
+  });
+
+  if (existingEquipment) {
+    throw ErrorCreators.conflict("Player already has this equipment equipped");
   }
 
-  await prisma.player.update({
-    where: { id: parseInt(playerId) },
-    data: updateData
+  // Create Item entry if it doesn't exist
+  let item = await prisma.item.findFirst({
+    where: { name: itemName }
+  });
+
+  if (!item) {
+    // Map item name to race restriction
+    const raceRestrictionMap = {
+      "Human Tactical Helm": "HUMAN",
+      "Gryllstone Plated Helm": "GRYLL", 
+      "Sylvan Barkwood Circlet": "SYLVAN",
+      "Umbral Cowl": "UMBRA",
+      "Lumina Radiant Aegis": "LUMINA"
+    };
+
+    item = await prisma.item.create({
+      data: {
+        name: itemName,
+        description: inventoryItem.description,
+        type: inventoryItem.itemType,
+        slot: itemName.toLowerCase().includes('helmet') || itemName.toLowerCase().includes('helm') ? 'HELMET' : 'ARMOR',
+        raceRestriction: raceRestrictionMap[itemName] || null,
+        rarity: inventoryItem.rarity?.toUpperCase() || 'COMMON',
+        statEffects: inventoryItem.metadata || {}
+      }
+    });
+  }
+
+  // Create PlayerEquipment entry
+  await prisma.playerEquipment.create({
+    data: {
+      playerId: player.id,
+      itemId: item.id
+    }
   });
 
   // Decrease item quantity in inventory
@@ -103,7 +135,7 @@ router.post('/equip', isAuthenticated, asyncHandler(async (req: any, res: Respon
   res.json({
     success: true,
     message: `${itemName} equipped to ${player.firstName} ${player.lastName}`,
-    slot: equipmentSlot
+    item: item
   });
 }));
 
@@ -142,29 +174,18 @@ router.get('/player/:playerId', isAuthenticated, asyncHandler(async (req: any, r
   }
 
   // Get equipped items
-  const equippedItems = await prisma.inventoryItem.findMany({
+  const equippedItems = await prisma.playerEquipment.findMany({
     where: {
-      id: {
-        in: [
-          player.helmetItemId,
-          player.chestItemId,
-          player.shoesItemId,
-          player.glovesItemId
-        ].filter(Boolean)
-      }
+      playerId: player.id
+    },
+    include: {
+      item: true
     }
   });
 
-  const equipment = {
-    helmet: equippedItems.find(item => item.id === player.helmetItemId),
-    chest: equippedItems.find(item => item.id === player.chestItemId),
-    shoes: equippedItems.find(item => item.id === player.shoesItemId),
-    gloves: equippedItems.find(item => item.id === player.glovesItemId)
-  };
-
   res.json({
     success: true,
-    equipment
+    equipment: equippedItems
   });
 }));
 
