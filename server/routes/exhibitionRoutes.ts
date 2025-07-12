@@ -277,6 +277,105 @@ router.post('/challenge', isAuthenticated, async (req: any, res: Response, next:
   }
 });
 
+// Alias for instant match - frontend calls this endpoint
+router.post('/instant-match', isAuthenticated, async (req: any, res: Response, next: NextFunction) => {
+  try {
+    const userId = req.user.claims.sub;
+    const userTeam = await storage.teams.getTeamByUserId(userId);
+    if (!userTeam || !userTeam.id) return res.status(404).json({ message: "Team not found." });
+
+    // Calculate user team power
+    const userPlayers = await storage.players.getPlayersByTeamId(userTeam.id);
+    const userTeamPower = calculateTeamPower(userPlayers);
+
+    // Find potential opponents - prioritize USER teams (teams with real userId)
+    const allTeams = await storage.teams.getTeams();
+    const userTeams = allTeams.filter((t: any) => 
+      t.id !== userTeam.id && 
+      t.userId && 
+      t.userId !== userId &&
+      t.userId !== null && 
+      !t.userId.startsWith('ai_') // Exclude AI teams
+    );
+
+    let bestOpponent = null;
+    let bestScore = Infinity;
+
+    // Find best match based on Division and Power Rating similarity
+    for (const opponent of userTeams) {
+      const opponentPlayers = await storage.players.getPlayersByTeamId(opponent.id);
+      const opponentPower = calculateTeamPower(opponentPlayers);
+      
+      // Scoring: prefer same division, similar power rating
+      let score = 0;
+      
+      // Division matching (heavily weighted)
+      if (opponent.division === (userTeam.division || 1)) {
+        score += 0; // Perfect match
+      } else {
+        score += Math.abs((opponent.division || 1) - (userTeam.division || 1)) * 50; // Heavy penalty for different divisions
+      }
+      
+      // Power rating similarity
+      score += Math.abs(opponentPower - userTeamPower) * 2;
+      
+      if (score < bestScore) {
+        bestScore = score;
+        bestOpponent = opponent;
+      }
+    }
+
+    // If no good user teams found, fall back to AI teams in same division
+    if (!bestOpponent) {
+      const divisionTeams = await storage.teams.getTeamsByDivision(userTeam.division || 1);
+      const aiTeams = divisionTeams.filter(t => 
+        t.id !== userTeam.id && 
+        (!t.userId || t.userId.startsWith('ai_'))
+      );
+      
+      if (aiTeams.length > 0) {
+        bestOpponent = aiTeams[Math.floor(Math.random() * aiTeams.length)];
+      }
+    }
+
+    if (!bestOpponent) {
+      return res.status(404).json({ message: "No suitable opponents found. Try again later or use manual opponent selection." });
+    }
+
+    // Randomize home/away team assignments
+    const isHome = Math.random() < 0.5;
+    const homeTeamId = isHome ? userTeam.id : bestOpponent.id;
+    const awayTeamId = isHome ? bestOpponent.id : userTeam.id;
+
+    // Create and start the match
+    const match = await matchStorage.createMatch({
+      homeTeamId,
+      awayTeamId,
+      matchType: MatchType.EXHIBITION,
+      gameDate: new Date(),
+    });
+
+    const liveMatchState = await matchStateManager.startLiveMatch(match.id, true);
+
+    // Create exhibition game record
+    await exhibitionGameStorage.createExhibitionGame({
+      homeTeamId,
+      awayTeamId,
+    });
+
+    res.status(201).json({
+      matchId: match.id,
+      message: `Exhibition match against ${bestOpponent.name} started!`,
+      opponentName: bestOpponent.name,
+      isHome,
+      liveState: liveMatchState
+    });
+  } catch (error) {
+    console.error("Error creating instant exhibition match:", error);
+    next(error);
+  }
+});
+
 router.post('/challenge-opponent', isAuthenticated, async (req: any, res: Response, next: NextFunction) => {
   try {
     const userId = req.user.claims.sub;
