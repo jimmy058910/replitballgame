@@ -440,8 +440,8 @@ router.get('/:teamId/formation', isAuthenticated, async (req: any, res: Response
         return bRating - aRating;
       });
 
-      // Take top 9 as starters, rest as substitutes
-      starters = sortedPlayers.slice(0, 9);
+      // Take top 9 as starters, rest as substitutes (allow all 10 players to be managed)
+      starters = sortedPlayers.slice(0, Math.min(9, sortedPlayers.length));
       substitutes = sortedPlayers.slice(9);
 
       // Save this default formation to the team
@@ -474,6 +474,7 @@ router.get('/:teamId/formation', isAuthenticated, async (req: any, res: Response
     res.json({
       starters: enhancedStarters,
       substitutes: enhancedSubstitutes,
+      allPlayers: enhancedPlayers, // Return all players for tactical management
       formation_data: formationData
     });
   } catch (error) {
@@ -709,7 +710,7 @@ router.post('/:teamId/tryouts', isAuthenticated, asyncHandler(async (req: any, r
       throw ErrorCreators.validation("Teams can only conduct tryouts once per season (17-day cycle). You have already used your tryouts for this season.");
     }
   } catch (error) {
-    if (error.message.includes("tryouts once per season")) {
+    if (error.message && error.message.includes("tryouts once per season")) {
       throw error; // Re-throw the validation error
     }
     console.error('Error checking seasonal restrictions:', error);
@@ -791,6 +792,10 @@ router.post('/:teamId/tryouts', isAuthenticated, asyncHandler(async (req: any, r
   try {
     await storage.teams.updateTeamSeasonalData(team.id, {
       tryoutsUsed: true
+    });
+    logInfo("Tryouts marked as used for season", {
+      teamId: team.id,
+      requestId: req.requestId
     });
   } catch (error) {
     console.error('Error updating seasonal data:', error);

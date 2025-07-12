@@ -250,6 +250,60 @@ export class TeamStorage {
     }
   }
 
+  async getTeamSeasonalData(teamId: number): Promise<any> {
+    try {
+      const team = await prisma.team.findUnique({
+        where: { id: parseInt(teamId.toString()) },
+        select: {
+          id: true,
+          tryoutsUsed: true,
+          // Add other seasonal tracking fields as needed
+        }
+      });
+      
+      if (!team) {
+        return null;
+      }
+      
+      return {
+        teamId: team.id,
+        tryoutsUsed: team.tryoutsUsed || false,
+      };
+    } catch (error) {
+      console.error('Error fetching team seasonal data:', error);
+      return null;
+    }
+  }
+
+  async updateTeamSeasonalData(teamId: number, data: any): Promise<void> {
+    try {
+      await prisma.team.update({
+        where: { id: parseInt(teamId.toString()) },
+        data: {
+          tryoutsUsed: data.tryoutsUsed,
+          // Add other seasonal tracking fields as needed
+        }
+      });
+    } catch (error) {
+      console.error('Error updating team seasonal data:', error);
+      throw error;
+    }
+  }
+
+  async markTryoutsUsed(teamId: number): Promise<void> {
+    try {
+      await prisma.team.update({
+        where: { id: parseInt(teamId.toString()) },
+        data: {
+          tryoutsUsed: true
+        }
+      });
+    } catch (error) {
+      console.error('Error marking tryouts as used:', error);
+      throw error;
+    }
+  }
+
   private async createDefaultFinancesForTeam(teamId: number): Promise<void> {
     await prisma.teamFinances.create({
       data: {

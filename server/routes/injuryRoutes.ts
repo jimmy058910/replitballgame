@@ -47,14 +47,14 @@ router.get('/team/:teamId', isAuthenticated, async (req: any, res: Response, nex
     // TODO: Validate teamId format if necessary (e.g., UUID)
     // Optional: Check if user has permission to view this team's injuries
 
-    const teamPlayers = await storage.getPlayersByTeamId(teamId);
+    const teamPlayers = await storage.players.getPlayersByTeamId(teamId);
     if (teamPlayers.length === 0) {
         return res.json([]); // No players, so no injuries
     }
 
     const allInjuries = [];
     for (const player of teamPlayers) {
-      const playerInjuries = await storage.getPlayerInjuries(player.id); // Fetches all, active or not
+      const playerInjuries = await storage.injuries.getPlayerInjuries(player.id); // Fetches all, active or not
       allInjuries.push(...playerInjuries.map(injury => ({
         ...injury,
         player: { // Attach basic player info for context
@@ -79,7 +79,7 @@ router.post('/', isAuthenticated, async (req: any, res: Response, next: NextFunc
   try {
     const injuryData = createInjurySchema.parse(req.body);
 
-    const player = await storage.getPlayerById(injuryData.playerId);
+    const player = await storage.players.getPlayerById(injuryData.playerId);
     if (!player || !player.teamId) { // Ensure player exists and belongs to a team
       return res.status(404).json({ message: "Player not found or not assigned to a team." });
     }
@@ -90,7 +90,7 @@ router.post('/', isAuthenticated, async (req: any, res: Response, next: NextFunc
     //     return res.status(403).json({ message: "Forbidden: Cannot create injury for player not on your team." });
     // }
 
-    const newInjury = await storage.createInjury({
+    const newInjury = await storage.injuries.createInjury({
       ...injuryData,
       remainingTime: injuryData.recoveryTime, // Initially, remaining time is full recovery time
       isActive: true,
@@ -128,7 +128,7 @@ router.patch('/:injuryId/treatment', isAuthenticated, async (req: any, res: Resp
     const { injuryId } = req.params;
     const treatmentData = treatmentSchema.parse(req.body);
 
-    const injury = await storage.getInjuryById(injuryId); // Assuming storage has getInjuryById
+    const injury = await storage.injuries.getInjuryById(injuryId); // Assuming storage has getInjuryById
     if (!injury) {
         return res.status(404).json({ message: "Injury record not found." });
     }
@@ -148,7 +148,7 @@ router.patch('/:injuryId/treatment', isAuthenticated, async (req: any, res: Resp
         remainingTime = Math.max(0, remainingTime - Math.floor(injury.recoveryTime * 0.05)); // 5% reduction
     }
 
-    const updatedInjury = await storage.updateInjury(injuryId, {
+    const updatedInjury = await storage.injuries.updateInjury(injuryId, {
       // treatmentType: treatmentData.treatmentType, // Store last treatment type
       recoveryProgress,
       remainingTime,
@@ -169,7 +169,7 @@ router.get('/medical-staff/:teamId', isAuthenticated, async (req: any, res: Resp
   try {
     const { teamId } = req.params;
     // Optional: Permission check
-    const staffList = await storage.getStaffByTeamId(teamId);
+    const staffList = await storage.staff.getStaffByTeamId(teamId);
     const medicalStaffList = staffList.filter(s =>
         ["recovery_specialist", "trainer_physical", "doctor", "physiotherapist"].includes(s.type) // Example medical types
     );
@@ -184,13 +184,13 @@ router.post('/medical-staff', isAuthenticated, async (req: any, res: Response, n
   try {
     // teamId should come from the authenticated user's team, not body, to prevent misuse.
     const userId = req.user.claims.sub;
-    const team = await storage.getTeamByUserId(userId);
+    const team = await storage.teams.getTeamByUserId(userId);
     if (!team) {
         return res.status(404).json({ message: "Your team not found. Cannot hire staff." });
     }
 
     const staffDataFromRequest = medicalStaffSchema.omit({ teamId: true }).parse(req.body);
-    const newStaffMember = await storage.createStaff({
+    const newStaffMember = await storage.staff.createStaff({
       ...staffDataFromRequest,
       teamId: team.id, // Assign to user's team
       // id: undefined, // Handled by DB or storage

@@ -163,10 +163,9 @@ export default function TacticalManager() {
       </div>
 
       <Tabs defaultValue="current" className="space-y-6">
-        <TabsList className="grid grid-cols-3 w-full">
+        <TabsList className="grid grid-cols-2 w-full">
           <TabsTrigger value="current">Current Setup</TabsTrigger>
           <TabsTrigger value="analysis">Effectiveness Analysis</TabsTrigger>
-          <TabsTrigger value="optimize">Optimization</TabsTrigger>
         </TabsList>
 
         <TabsContent value="current" className="space-y-6">
