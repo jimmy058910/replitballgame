@@ -136,6 +136,7 @@ Built as a React + Express web application with PostgreSQL database, using moder
 - ✓ **Consistent Name Display**: All teams now display complete player names like "Blackwind Nightbringer", "Bloodaxe Ragefist", "Bloodfang Thunderclap"
 - ✓ **Race-Appropriate Names**: AI teams maintain proper fantasy race names (Umbra shadow names, Gryll power names, Lumina light names, etc.)
 - ✓ **User Experience Enhancement**: Team information dialog now shows complete player names for both user and AI teams
+- ✓ **Subdivision Capitalization Fix**: TeamInfoDialog now properly displays "Eta" instead of "eta" using getDivisionNameWithSubdivision function
 
 #### ✅ TECHNICAL IMPLEMENTATION ACHIEVEMENTS
 - ✓ **Database Cascade Cleanup**: Properly deleted players, staff, finances, stadium, and inventory data before removing excess teams

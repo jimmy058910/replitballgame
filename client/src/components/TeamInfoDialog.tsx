@@ -200,10 +200,7 @@ export default function TeamInfoDialog({ teamId, isOpen, onClose }: TeamInfoDial
                 
                 <div className="flex items-center justify-center gap-4 pt-4 border-t border-gray-600">
                   <Badge variant="outline" className="text-purple-400 border-purple-400">
-                    Division {teamInfo.division}
-                    {teamInfo.subdivision && teamInfo.subdivision !== "main" && (
-                      <span className="ml-1 text-purple-300">- {teamInfo.subdivision}</span>
-                    )}
+                    {getDivisionNameWithSubdivision(teamInfo.division, teamInfo.subdivision)}
                   </Badge>
                   <div className="text-sm text-gray-400">
                     Team Power: <span className="text-white font-bold">{teamInfo.teamPower || "N/A"}</span>
