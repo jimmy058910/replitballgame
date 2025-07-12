@@ -3,6 +3,8 @@
  * Implements 200+ specific commentary prompts for dynamic, engaging match simulation
  */
 
+import { fantasyCommentaryDatabase } from './fantasyCommentaryDatabase';
+
 interface Player {
   id: string;
   firstName: string | null;
@@ -238,7 +240,11 @@ export class CommentaryService {
       "The pace of this game is relentless! Non-stop action from end to end with no stoppages.",
       "A real war of attrition in the center of the field. Neither team is giving an inch.",
       "Just a chaotic scramble for possession right now, the ball is a pinball out there.",
-      "The physicality of this game is off the charts. Every yard is being earned the hard way."
+      "The physicality of this game is off the charts. Every yard is being earned the hard way.",
+      "With no referees to blow the whistle, this match flows like a raging river - continuous and unstoppable!",
+      "The beauty of this sport - no boundaries, no breaks, just pure athletic contest from start to finish!",
+      "Players are diving, weaving, and fighting for every inch in this endless battle for possession!",
+      "This is what makes fantasy sports so thrilling - the action never stops, the intensity never fades!"
     ];
 
     return midGameCommentary[Math.floor(Math.random() * midGameCommentary.length)];
@@ -366,10 +372,11 @@ export class CommentaryService {
     // Standard Runs
     if (yards <= 3) {
       const shortRunCommentary = [
-        `${runnerName} grinds it out for ${yards} tough yards up the middle.`,
-        `${runnerName} finds a small crease and picks up ${yards} yards.`,
-        `He follows his blockers and pushes the pile for a ${yards}-yard gain.`,
-        `A smart, patient run from ${runnerName} to find the opening for ${yards} yards.`
+        `${runnerName} weaves through the chaos for ${yards} hard-fought yards.`,
+        `${runnerName} finds a gap in the melee and advances ${yards} yards.`,
+        `${runnerName} battles through the pack for a ${yards}-yard gain.`,
+        `Smart movement by ${runnerName} to break free for ${yards} yards.`,
+        `${runnerName} dances past defenders in tight quarters for ${yards} yards.`
       ];
       return shortRunCommentary[Math.floor(Math.random() * shortRunCommentary.length)];
     }

@@ -10,7 +10,7 @@ type PlayerStatsSnapshot = {
   passingAttempts: number;
   passesCompleted: number;
   passingYards: number;
-  rushingYards: number;
+  carrierYards: number;
   catches: number;
   receivingYards: number;
   drops: number;
@@ -27,7 +27,7 @@ type TeamStatsSnapshot = {
   turnovers: number;
   totalYards: number;
   passYards: number;
-  rushYards: number;
+  carrierYards: number;
   firstDowns: number;
   penalties: number;
   penaltyYards: number;
@@ -104,18 +104,18 @@ class MatchStateManager {
     allPlayers.forEach(player => {
       initialPlayerStats.set(player.id.toString(), {
         scores: 0, passingAttempts: 0, passesCompleted: 0, passingYards: 0,
-        rushingYards: 0, catches: 0, receivingYards: 0, drops: 0, fumblesLost: 0,
+        carrierYards: 0, catches: 0, receivingYards: 0, drops: 0, fumblesLost: 0,
         tackles: 0, knockdownsInflicted: 0, interceptionsCaught: 0, passesDefended: 0,
       });
     });
 
     const initialTeamStats = new Map<string, TeamStatsSnapshot>();
     initialTeamStats.set(match.homeTeamId, {
-      totalOffensiveYards: 0, passingYards: 0, rushingYards: 0,
+      totalOffensiveYards: 0, passingYards: 0, carrierYards: 0,
       timeOfPossessionSeconds: 0, turnovers: 0, totalKnockdownsInflicted: 0,
     });
     initialTeamStats.set(match.awayTeamId, {
-      totalOffensiveYards: 0, passingYards: 0, rushingYards: 0,
+      totalOffensiveYards: 0, passingYards: 0, carrierYards: 0,
       timeOfPossessionSeconds: 0, turnovers: 0, totalKnockdownsInflicted: 0,
     });
 
@@ -259,18 +259,18 @@ class MatchStateManager {
     [...homeTeamPlayers, ...awayTeamPlayers].forEach(player => {
       initialPlayerStats.set(player.id, {
         scores: 0, passingAttempts: 0, passesCompleted: 0, passingYards: 0,
-        rushingYards: 0, catches: 0, receivingYards: 0, drops: 0, fumblesLost: 0,
+        carrierYards: 0, catches: 0, receivingYards: 0, drops: 0, fumblesLost: 0,
         tackles: 0, knockdownsInflicted: 0, interceptionsCaught: 0, passesDefended: 0,
       });
     });
 
     const initialTeamStats = new Map<string, TeamStatsSnapshot>();
     initialTeamStats.set(match.homeTeamId, {
-      totalOffensiveYards: 0, passingYards: 0, rushingYards: 0,
+      totalOffensiveYards: 0, passingYards: 0, carrierYards: 0,
       timeOfPossessionSeconds: 0, turnovers: 0, totalKnockdownsInflicted: 0,
     });
     initialTeamStats.set(match.awayTeamId, {
-      totalOffensiveYards: 0, passingYards: 0, rushingYards: 0,
+      totalOffensiveYards: 0, passingYards: 0, carrierYards: 0,
       timeOfPossessionSeconds: 0, turnovers: 0, totalKnockdownsInflicted: 0,
     });
 
@@ -421,7 +421,7 @@ class MatchStateManager {
         passingAttempts: 0,
         passesCompleted: 0,
         passingYards: 0,
-        rushingYards: 0,
+        carrierYards: 0,
         catches: 0,
         receivingYards: 0,
         tackles: 0,
@@ -455,7 +455,7 @@ class MatchStateManager {
             passingAttempts: 0,
             passesCompleted: 0,
             passingYards: 0,
-            rushingYards: 0,
+            carrierYards: 0,
             catches: 0,
             receivingYards: 0,
             tackles: 0,
@@ -518,7 +518,7 @@ class MatchStateManager {
                     passingAttempts: 0,
                     passesCompleted: 0,
                     passingYards: 0,
-                    rushingYards: 0,
+                    carrierYards: 0,
                     catches: 0,
                     receivingYards: 0,
                     tackles: 0,
@@ -545,7 +545,7 @@ class MatchStateManager {
                     passingAttempts: 0,
                     passesCompleted: 0,
                     passingYards: 0,
-                    rushingYards: 0,
+                    carrierYards: 0,
                     catches: 0,
                     receivingYards: 0,
                     tackles: 0,
@@ -571,9 +571,9 @@ class MatchStateManager {
         const yards = Math.floor(Math.random() * (actingPlayer.speed / 2 + actingPlayer.power / 3)) - 5; // -5 to 15+ yards
         if (yards > 0) {
             if (pStats) {
-                pStats.rushingYards += yards;
+                pStats.carrierYards += yards;
             }
-            teamStats.rushingYards += yards;
+            teamStats.carrierYards += yards;
             teamStats.totalOffensiveYards += yards;
             // Generate comprehensive run commentary
             const runCommentary = commentaryService.generateRunPlayCommentary(actingPlayer, yards);
@@ -586,11 +586,11 @@ class MatchStateManager {
                 if (offensiveTeamId === state.homeTeamId) state.homeScore++; else state.awayScore++;
                 state.gameEvents.push(event); // push the rush event first
                 this.handlePossessionChange(state, offensiveTeamId, defensiveTeamId, state.gameTime); // Possession changes after score
-                return { time: state.gameTime, type: 'score', actingPlayerId: actingPlayer.id, teamId: offensiveTeamId, description: `SCORE! ${actingPlayer.lastName} breaks free for a rushing touchdown!`, data: { scoreType: 'rushing' }};
+                return { time: state.gameTime, type: 'score', actingPlayerId: actingPlayer.id, teamId: offensiveTeamId, description: `SCORE! ${actingPlayer.lastName} breaks free for a fantastic score!`, data: { scoreType: 'rushing' }};
             }
 
         } else {
-            event = { time: state.gameTime, type: 'rush_stuffed', actingPlayerId: actingPlayer.id, teamId: offensiveTeamId, description: `${actingPlayer.lastName} is stuffed at the line. No gain.`, data: { yards: 0 } };
+            event = { time: state.gameTime, type: 'rush_stuffed', actingPlayerId: actingPlayer.id, teamId: offensiveTeamId, description: `${actingPlayer.lastName} is stopped in the chaos. No advancement.`, data: { yards: 0 } };
             // Potential for turnover on downs if it's 4th down, etc. (not implemented here)
         }
         // Fumble chance
@@ -612,7 +612,7 @@ class MatchStateManager {
             if (!defPStats) {
                 defPStats = {
                     passingYards: 0,
-                    rushingYards: 0,
+                    carrierYards: 0,
                     catches: 0,
                     tackles: 0,
                     sacks: 0,
@@ -696,7 +696,7 @@ class MatchStateManager {
               totalPassingAttempts: (playerToUpdate.totalPassingAttempts || 0) + (pStats.passingAttempts || 0),
               totalPassesCompleted: (playerToUpdate.totalPassesCompleted || 0) + (pStats.passesCompleted || 0),
               totalPassingYards: (playerToUpdate.totalPassingYards || 0) + (pStats.passingYards || 0),
-              totalRushingYards: (playerToUpdate.totalRushingYards || 0) + (pStats.rushingYards || 0),
+              totalCarrierYards: (playerToUpdate.totalCarrierYards || 0) + (pStats.carrierYards || 0),
               totalCatches: (playerToUpdate.totalCatches || 0) + (pStats.catches || 0),
               totalReceivingYards: (playerToUpdate.totalReceivingYards || 0) + (pStats.receivingYards || 0),
               totalDrops: (playerToUpdate.totalDrops || 0) + (pStats.drops || 0),

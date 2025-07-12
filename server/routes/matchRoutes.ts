@@ -128,7 +128,7 @@ router.get('/:matchId/enhanced-data', isAuthenticated, async (req: Request, res:
         passingAttempts: stats.passingAttempts,
         passesCompleted: stats.passesCompleted,
         passingYards: stats.passingYards,
-        rushingYards: stats.rushingYards,
+        carrierYards: stats.carrierYards,
         catches: stats.catches,
         receivingYards: stats.receivingYards,
         drops: stats.drops,
@@ -145,14 +145,26 @@ router.get('/:matchId/enhanced-data', isAuthenticated, async (req: Request, res:
       away: "TBD"
     };
 
+    // Calculate gamePhase including halftime detection
+    let gamePhase = "early";
+    if (liveState.currentHalf === 1 && liveState.gameTime >= (liveState.maxTime * 0.48) && liveState.gameTime <= (liveState.maxTime * 0.52)) {
+      gamePhase = "halftime";
+    } else if (liveState.gameTime < (liveState.maxTime * 0.33)) {
+      gamePhase = "early";
+    } else if (liveState.gameTime < (liveState.maxTime * 0.66)) {
+      gamePhase = "mid";
+    } else if (liveState.gameTime < (liveState.maxTime * 0.9)) {
+      gamePhase = "late";
+    } else {
+      gamePhase = "clutch";
+    }
+
     const enhancedData = {
       atmosphereEffects,
       tacticalEffects,
       playerStats,
       mvpPlayers,
-      gamePhase: liveState.gameTime < (liveState.maxTime * 0.33) ? "early" : 
-                 liveState.gameTime < (liveState.maxTime * 0.66) ? "mid" : 
-                 liveState.gameTime < (liveState.maxTime * 0.9) ? "late" : "clutch",
+      gamePhase,
       possession: {
         teamId: liveState.possessingTeamId,
         startTime: liveState.possessionStartTime
