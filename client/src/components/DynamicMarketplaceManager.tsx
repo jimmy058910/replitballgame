@@ -73,8 +73,8 @@ interface MarketplaceStats {
 }
 
 const getPlayerPower = (player: Player): number => {
-  return (player.speed || 20) + (player.power || 20) + (player.throwing || 20) + 
-         (player.catching || 20) + (player.kicking || 20);
+  // CAR = Core Athleticism Rating: Average(Speed, Power, Agility, Throwing, Catching, Kicking)
+  return Math.round((player.speed + player.power + player.agility + player.throwing + player.catching + player.kicking) / 6);
 };
 
 const formatTimeRemaining = (expiresAt: string): string => {
@@ -120,9 +120,12 @@ export default function DynamicMarketplaceManager({ teamId }: { teamId: string }
     if (playerId && teamPlayers) {
       const selectedPlayer = teamPlayers.find((p: any) => p.id === playerId);
       if (selectedPlayer) {
-        const playerPower = getPlayerPower(selectedPlayer);
-        const potential = selectedPlayer.potentialRating || 0;
-        const calculatedBuyNow = (playerPower * 1000) + (potential * 2000);
+        // Calculate CAR exactly like backend: average of 6 stats
+        const car = (selectedPlayer.speed + selectedPlayer.power + selectedPlayer.agility + 
+                    selectedPlayer.throwing + selectedPlayer.catching + selectedPlayer.kicking) / 6;
+        // Use potentialRating (frontend) or overallPotentialStars (backend) - try both
+        const potential = selectedPlayer.overallPotentialStars || selectedPlayer.potentialRating || 0;
+        const calculatedBuyNow = Math.floor((car * 1000) + (potential * 2000));
         setBuyNowPrice(calculatedBuyNow.toString());
       }
     } else {
