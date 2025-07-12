@@ -20,9 +20,10 @@ function calculateTeamPower(players: any[]): number {
 
   const playersWithPower = players.map(player => ({
     ...player,
-    // CAR = Average(Speed, Power, Agility, Throwing, Catching, Kicking)
+    // CAR = Average of all 8 attributes as per game mechanics
     individualPower: Math.round(((player.speed || 20) + (player.power || 20) + (player.agility || 20) + 
-                                (player.throwing || 20) + (player.catching || 20) + (player.kicking || 20)) / 6)
+                                (player.throwing || 20) + (player.catching || 20) + (player.kicking || 20) + 
+                                (player.staminaAttribute || 20) + (player.leadership || 20)) / 8)
   }));
 
   const topPlayers = playersWithPower

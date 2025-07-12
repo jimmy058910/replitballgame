@@ -2,13 +2,13 @@ import type { InsertPlayer } from "@shared/schema";
 import { generateRandomName, getFullName } from "@shared/names";
 import gameConfig from "../config/game_config.json";
 
-export function generateRandomPlayer(name: string, race: string, teamId: string, position?: string): InsertPlayer {
+export function generateRandomPlayer(name: string | null, race: string, teamId: string, position?: string): InsertPlayer {
   // Convert race to lowercase for switch statement, but store original for return
   const originalRace = race;
   const lowerRace = race.toLowerCase();
   
   // Generate race-appropriate name if not provided
-  const { firstName, lastName } = name ? 
+  const { firstName, lastName } = (name && name.trim()) ? 
     { firstName: name.split(' ')[0] || name, lastName: name.split(' ')[1] || "Unknown" } :
     generateRandomName(lowerRace);
   

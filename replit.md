@@ -121,16 +121,25 @@ Built as a React + Express web application with PostgreSQL database, using moder
 
 ## Recent Changes
 
-### July 12, 2025 - COMPLETE AI TEAM CREATION SYSTEM IMPLEMENTATION & API ALIGNMENT ACHIEVEMENT
+### July 12, 2025 - COMPLETE AI TEAM CREATION SYSTEM IMPLEMENTATION & UI DISPLAY FIXES ACHIEVEMENT
 
 #### ✅ COMPLETE AI TEAM CREATION SYSTEM FUNCTIONALITY ACHIEVED
 - ✓ **Critical UserId Fix**: Fixed AI team creation by changing `aiUser.id` (integer) to `aiUser.userId` (string) in team creation calls
 - ✓ **Race Enum Resolution**: Fixed Race enum values by ensuring `generateRandomPlayer` function handles both uppercase and lowercase race values properly
 - ✓ **Complete AI Team Pipeline**: End-to-end AI team creation now working - user creation → team creation → player creation (12 players per team)
 - ✓ **Systematic Debugging Success**: Used effective debugging techniques to trace issues through upsertUser → createTeam → createPlayer workflow
-- ✓ **Production AI Team Generation**: Successfully created "Crystal Phoenixes 517" team (ID: 10) in Division 8 with full roster
+- ✓ **Production AI Team Generation**: Successfully created multiple AI teams including "Crystal Phoenixes 537" team (ID: 16) with full roster
 - ✓ **Race Diversity Implementation**: AI teams now generate players with proper racial diversity using all 5 fantasy races (HUMAN, SYLVAN, GRYLL, LUMINA, UMBRA)
 - ✓ **Database Type Safety**: Resolved all type conversion issues between string userIds and integer database IDs
+
+#### ✅ COMPLETE UI DISPLAY FIXES FOR TEAM INFORMATION DIALOG
+- ✓ **AI Player Name Generation**: Fixed AI players to show proper race-appropriate names (e.g., "Blackthorn Warcry", "Brilliant Goldlight") instead of "AI Player"
+- ✓ **Position Display Fix**: Players now show correct positions (Passer, Runner, Blocker) instead of generic "Player"
+- ✓ **Power Calculation Fix**: Fixed player power calculation to use all 8 attributes (CAR formula) instead of 5, resolving incorrect ranges like "130-40"
+- ✓ **Team Power Calculation**: Updated team power calculation to use proper 8-stat average instead of 6-stat calculation
+- ✓ **Draws Display Fix**: Draws now show "0" instead of blank/null values in team standings
+- ✓ **Division Information**: Enhanced division display to show subdivision information when applicable
+- ✓ **Full Name Display**: AI players now show complete first and last names with race-appropriate naming conventions
 
 #### ✅ COMPLETE API ALIGNMENT & CRITICAL ENDPOINT FIXES (Previous Achievement)
 - ✓ **Critical Authorization Fix**: Fixed seasonal-data endpoint authorization by implementing proper UserProfile lookup pattern (userId string → userProfileId integer mapping)

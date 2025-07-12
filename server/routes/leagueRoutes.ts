@@ -286,9 +286,12 @@ router.post('/create-ai-teams', isAuthenticated, async (req: Request, res: Respo
       // });
 
       const races = ["HUMAN", "SYLVAN", "GRYLL", "LUMINA", "UMBRA"];
+      const positions = ["passer", "runner", "blocker"];
       for (let j = 0; j < 12; j++) {
         const race = races[Math.floor(Math.random() * races.length)];
-        await storage.players.createPlayer(generateRandomPlayer("AI Player", race, team.id)); // Use playerStorage
+        const position = positions[Math.floor(Math.random() * positions.length)];
+        // Generate proper names instead of "AI Player" 
+        await storage.players.createPlayer(generateRandomPlayer(null, race, team.id, position)); // null name triggers race-appropriate name generation
       }
       createdTeams.push(team);
     }

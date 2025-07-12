@@ -66,16 +66,29 @@ export default function TeamInfoDialog({ teamId, isOpen, onClose }: TeamInfoDial
     }
   };
 
-  const getPositionColor = (position: string) => {
-    switch (position) {
-      case "Passer":
+  const getPositionColor = (role: string) => {
+    switch (role) {
+      case "PASSER":
         return "bg-blue-500";
-      case "Runner":
+      case "RUNNER":
         return "bg-green-500";
-      case "Blocker":
+      case "BLOCKER":
         return "bg-red-500";
       default:
         return "bg-gray-500";
+    }
+  };
+
+  const getPositionLabel = (role: string) => {
+    switch (role) {
+      case "PASSER":
+        return "Passer";
+      case "RUNNER":
+        return "Runner";
+      case "BLOCKER":
+        return "Blocker";
+      default:
+        return "Player";
     }
   };
 
@@ -97,7 +110,10 @@ export default function TeamInfoDialog({ teamId, isOpen, onClose }: TeamInfoDial
   };
 
   const calculatePlayerPower = (player: any) => {
-    return player.speed + player.power + player.throwing + player.catching + player.kicking;
+    // Calculate CAR (Core Athleticism Rating) as per game mechanics - average of all 8 attributes
+    const totalStats = player.speed + player.power + player.throwing + player.catching + 
+                      player.kicking + (player.staminaAttribute || 0) + (player.leadership || 0) + (player.agility || 0);
+    return Math.round(totalStats / 8);
   };
 
   const getStatColor = (stat: number) => {
@@ -145,7 +161,7 @@ export default function TeamInfoDialog({ teamId, isOpen, onClose }: TeamInfoDial
                     <div className="text-sm text-gray-400">Losses</div>
                   </div>
                   <div className="text-center">
-                    <div className="text-2xl font-bold text-yellow-400">{teamInfo.draws}</div>
+                    <div className="text-2xl font-bold text-yellow-400">{teamInfo.draws || 0}</div>
                     <div className="text-sm text-gray-400">Draws</div>
                   </div>
                   <div className="text-center">
@@ -157,6 +173,9 @@ export default function TeamInfoDialog({ teamId, isOpen, onClose }: TeamInfoDial
                 <div className="flex items-center justify-center gap-4 pt-4 border-t border-gray-600">
                   <Badge variant="outline" className="text-purple-400 border-purple-400">
                     Division {teamInfo.division}
+                    {teamInfo.subdivision && teamInfo.subdivision !== "main" && (
+                      <span className="ml-1 text-purple-300">({teamInfo.subdivision})</span>
+                    )}
                   </Badge>
                   <div className="text-sm text-gray-400">
                     Team Power: <span className="text-white font-bold">{teamInfo.teamPower || "N/A"}</span>
@@ -190,8 +209,8 @@ export default function TeamInfoDialog({ teamId, isOpen, onClose }: TeamInfoDial
                               </div>
                             </div>
                             <div className="flex items-center gap-2">
-                              <Badge className={getPositionColor(player.position || "Player")}>
-                                {player.position || "Player"}
+                              <Badge className={getPositionColor(player.role)}>
+                                {getPositionLabel(player.role)}
                               </Badge>
                               <div className="text-right">
                                 <div className="text-sm font-bold text-white">
