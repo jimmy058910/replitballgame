@@ -45,9 +45,16 @@ router.get('/my-listings', isAuthenticated, async (req: any, res) => {
       return res.status(401).json({ error: 'User not authenticated' });
     }
 
-    // Get user's team
-    const team = await prisma.team.findFirst({
+    // Get user's team via userProfile lookup
+    const userProfile = await prisma.userProfile.findFirst({
       where: { userId: userId }
+    });
+    if (!userProfile) {
+      return res.status(404).json({ error: 'User profile not found' });
+    }
+
+    const team = await prisma.team.findFirst({
+      where: { userProfileId: userProfile.id }
     });
     if (!team) {
       return res.status(404).json({ error: 'Team not found' });
@@ -86,9 +93,16 @@ router.post('/list-player', isAuthenticated, async (req: any, res) => {
       return res.status(400).json({ error: 'Invalid auction duration' });
     }
 
-    // Get user's team
-    const team = await prisma.team.findFirst({
+    // Get user's team via userProfile lookup
+    const userProfile = await prisma.userProfile.findFirst({
       where: { userId: userId }
+    });
+    if (!userProfile) {
+      return res.status(404).json({ error: 'User profile not found' });
+    }
+
+    const team = await prisma.team.findFirst({
+      where: { userProfileId: userProfile.id }
     });
     if (!team) {
       return res.status(404).json({ error: 'Team not found' });
@@ -277,9 +291,16 @@ router.get('/my-bids', isAuthenticated, async (req: any, res) => {
       return res.status(401).json({ error: 'User not authenticated' });
     }
 
-    // Get user's team
-    const team = await prisma.team.findFirst({
+    // Get user's team via userProfile lookup
+    const userProfile = await prisma.userProfile.findFirst({
       where: { userId: userId }
+    });
+    if (!userProfile) {
+      return res.status(404).json({ error: 'User profile not found' });
+    }
+
+    const team = await prisma.team.findFirst({
+      where: { userProfileId: userProfile.id }
     });
     if (!team) {
       return res.status(404).json({ error: 'Team not found' });

@@ -60,8 +60,8 @@ router.get('/items', isAuthenticated, async (req: Request, res: Response, next: 
     const shuffledConsumables = [...allConsumables].sort(() => 0.5 - seededRandom());
 
     // Select a subset for daily rotation, ensure not to select more than available
-    const dailyEquipmentCount = Math.min(4, shuffledEquipment.length);
-    const dailyConsumablesCount = Math.min(4, shuffledConsumables.length);
+    const dailyEquipmentCount = Math.min(6, shuffledEquipment.length); // Credit Store: 6 items
+    const dailyConsumablesCount = Math.min(4, shuffledConsumables.length); // Gem Store: 4 items
 
     const dailyEquipment = shuffledEquipment.slice(0, dailyEquipmentCount);
     const dailyConsumables = shuffledConsumables.slice(0, dailyConsumablesCount);
@@ -75,7 +75,8 @@ router.get('/items', isAuthenticated, async (req: Request, res: Response, next: 
       consumables: dailyConsumables,
       entries: allEntries,
       gemPackages: gemPackages,
-      resetTime: resetTime.toISOString()
+      resetTime: resetTime.toISOString(),
+      storeType: 'credit' // Credit Store: 6 items
     });
   } catch (error) {
     console.error("Error fetching store items:", error);
@@ -113,8 +114,8 @@ router.get('/', isAuthenticated, async (req: Request, res: Response, next: NextF
     const shuffledConsumables = [...allConsumables].sort(() => 0.5 - seededRandom());
 
     // Select a subset for daily rotation, ensure not to select more than available
-    const dailyEquipmentCount = Math.min(4, shuffledEquipment.length);
-    const dailyConsumablesCount = Math.min(4, shuffledConsumables.length);
+    const dailyEquipmentCount = Math.min(6, shuffledEquipment.length); // Credit Store: 6 items
+    const dailyConsumablesCount = Math.min(4, shuffledConsumables.length); // Gem Store: 4 items
 
     const dailyEquipment = shuffledEquipment.slice(0, dailyEquipmentCount);
     const dailyConsumables = shuffledConsumables.slice(0, dailyConsumablesCount);

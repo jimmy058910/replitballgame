@@ -325,7 +325,7 @@ export class EnhancedGameEconomyService {
       { id: 'champions_blessing', name: 'Champion\'s Blessing', credits: 25000, gems: 15, tier: 'legendary' }
     ],
     entries: [
-      { id: 'exhibition_match', name: 'Exhibition Match', credits: 5000, gems: 5, tier: 'entry', limit: '3 per day' },
+      { id: 'exhibition_match', name: 'Exhibition Match', credits: 5000, gems: 10, tier: 'entry', limit: '3 per day' },
       { id: 'tournament_daily_low', name: 'Daily Tournament (Div 5-8)', credits: 500, gems: 10, tier: 'entry' },
       { id: 'tournament_daily_high', name: 'Daily Tournament (Div 1-4)', credits: 1000, gems: 10, tier: 'entry' },
       { id: 'tournament_weekly_low', name: 'Weekly Tournament (Div 5-8)', credits: 1200, gems: 8, tier: 'entry' },
