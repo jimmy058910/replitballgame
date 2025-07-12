@@ -148,9 +148,12 @@ router.post('/simulate-tackle-injury', isAuthenticated, async (req: any, res: Re
       return res.status(403).json({ message: "Unauthorized access to player" });
     }
 
+    // For testing purposes, force injury with high tackle power
+    const forceInjury = tacklePower >= 40;
+    
     // Calculate injury
     const injuryResult = await injuryStaminaService.calculateTackleInjury(
-      tacklePower, carrierAgility, carrierStamina, gameMode
+      tacklePower, carrierAgility, carrierStamina, gameMode, forceInjury
     );
 
     // Apply injury if it occurred
@@ -158,7 +161,11 @@ router.post('/simulate-tackle-injury', isAuthenticated, async (req: any, res: Re
       await injuryStaminaService.applyInjury(playerId, injuryResult.injuryType, injuryResult.recoveryPoints);
     }
 
-    res.json(injuryResult);
+    res.json({
+      ...injuryResult,
+      playerId: playerId,
+      playerAffected: injuryResult.hasInjury
+    });
   } catch (error) {
     console.error("Error simulating tackle injury:", error);
     next(error);

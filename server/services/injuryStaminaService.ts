@@ -53,7 +53,8 @@ export class InjuryStaminaService {
     tacklePower: number,
     carrierAgility: number,
     carrierInGameStamina: number,
-    gameMode: 'league' | 'tournament' | 'exhibition'
+    gameMode: 'league' | 'tournament' | 'exhibition',
+    forceInjury: boolean = false
   ): Promise<{ hasInjury: boolean; injuryType?: string; recoveryPoints?: number; isTemporary?: boolean }> {
     
     // Get base injury chance based on game mode
@@ -79,9 +80,9 @@ export class InjuryStaminaService {
     // Final injury chance calculation
     const finalInjuryChance = baseInjuryChance + powerModifier + staminaModifier;
 
-    // Roll for injury
+    // Roll for injury (or force injury for testing)
     const roll = Math.random() * 100;
-    const hasInjury = roll <= finalInjuryChance;
+    const hasInjury = forceInjury || roll <= finalInjuryChance;
 
     if (!hasInjury) {
       return { hasInjury: false };

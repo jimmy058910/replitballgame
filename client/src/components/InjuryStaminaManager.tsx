@@ -357,12 +357,12 @@ export function InjuryStaminaManager({ teamId }: InjuryStaminaManagerProps) {
                 <Button
                   onClick={() => selectedPlayer && simulateInjuryMutation.mutate({
                     playerId: selectedPlayer,
-                    tacklerPower: 35
+                    tacklerPower: 45
                   })}
                   disabled={!selectedPlayer || simulateInjuryMutation.isPending}
                   variant="destructive"
                 >
-                  {simulateInjuryMutation.isPending ? 'Simulating...' : 'Simulate Tackle Injury (Power 35)'}
+                  {simulateInjuryMutation.isPending ? 'Simulating...' : 'Simulate Tackle Injury (Power 45 - Guaranteed)'}
                 </Button>
               </div>
 
