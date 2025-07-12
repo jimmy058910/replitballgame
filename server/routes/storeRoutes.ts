@@ -213,24 +213,28 @@ router.post('/watch-ad', isAuthenticated, async (req: any, res: Response, next: 
       });
     }
     
-    // Generate random credits between 500-10,000 with weighted distribution to average ~2,000
-    const random = Math.random();
-    let rewardAmount;
+    // Halftime ads don't give rewards but count towards daily limit
+    let rewardAmount = 0;
+    let rewardType = 'credits';
     
-    if (random < 0.4) {
-      // 40% chance: 500-1,500 credits
-      rewardAmount = Math.floor(500 + Math.random() * 1000);
-    } else if (random < 0.8) {
-      // 40% chance: 1,500-3,000 credits
-      rewardAmount = Math.floor(1500 + Math.random() * 1500);
-    } else if (random < 0.95) {
-      // 15% chance: 3,000-7,000 credits
-      rewardAmount = Math.floor(3000 + Math.random() * 4000);
-    } else {
-      // 5% chance: 7,000-10,000 credits
-      rewardAmount = Math.floor(7000 + Math.random() * 3000);
+    if (placement !== 'halftimeVideo') {
+      // Generate random credits between 500-10,000 with weighted distribution to average ~2,000
+      const random = Math.random();
+      
+      if (random < 0.4) {
+        // 40% chance: 500-1,500 credits
+        rewardAmount = Math.floor(500 + Math.random() * 1000);
+      } else if (random < 0.8) {
+        // 40% chance: 1,500-3,000 credits
+        rewardAmount = Math.floor(1500 + Math.random() * 1500);
+      } else if (random < 0.95) {
+        // 15% chance: 3,000-7,000 credits
+        rewardAmount = Math.floor(3000 + Math.random() * 4000);
+      } else {
+        // 5% chance: 7,000-10,000 credits
+        rewardAmount = Math.floor(7000 + Math.random() * 3000);
+      }
     }
-    let rewardType = 'credits'; // Assuming credits for now, can be expanded in config
 
     const finances = await teamFinancesStorage.getTeamFinances(team.id);
     if (!finances) return res.status(404).json({ message: "Team finances not found." });
@@ -246,9 +250,15 @@ router.post('/watch-ad', isAuthenticated, async (req: any, res: Response, next: 
         rewardType, rewardAmount, completed: true, completedAt: new Date()
     });
 
+    const message = placement === 'halftimeVideo' 
+      ? "Halftime break complete! Continuing to second half..."
+      : rewardAmount > 0 
+        ? `+${rewardAmount} ${rewardType.replace('_', ' ')} earned!` 
+        : "Thanks for watching!";
+    
     res.json({
       success: true,
-      rewardMessage: rewardAmount > 0 ? `+${rewardAmount} ${rewardType.replace('_', ' ')} earned!` : "Thanks for watching!",
+      rewardMessage: message,
       reward: { type: rewardType, amount: rewardAmount }
     });
   } catch (error) {

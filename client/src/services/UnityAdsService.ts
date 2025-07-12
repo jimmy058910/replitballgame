@@ -30,10 +30,7 @@ export class UnityAdsService {
   private config: UnityAdsConfig;
   private placements: AdPlacement[] = [
     { id: 'rewardedVideo', type: 'rewarded', name: 'Rewarded Video' },
-    { id: 'halftimeVideo', type: 'rewarded', name: 'Halftime Video' },
-    { id: 'interstitial', type: 'interstitial', name: 'Interstitial' },
-    { id: 'banner', type: 'banner', name: 'Banner' },
-    { id: 'postGameVideo', type: 'rewarded', name: 'Post-Game Video' }
+    { id: 'halftimeVideo', type: 'rewarded', name: 'Halftime Video' }
   ];
 
   private constructor() {
@@ -132,38 +129,7 @@ export class UnityAdsService {
     return this.showRewardedVideo('halftimeVideo');
   }
 
-  async showPostGameVideo(): Promise<AdResult> {
-    return this.showRewardedVideo('postGameVideo');
-  }
 
-  async showInterstitial(): Promise<AdResult> {
-    if (!this.isInitialized) {
-      throw new Error('Unity Ads not initialized');
-    }
-
-    const placementId = 'interstitial';
-    
-    if (!window.UnityAds.isSupported()) {
-      throw new Error('Unity Ads not supported on this platform');
-    }
-
-    if (!window.UnityAds.isReady(placementId)) {
-      throw new Error('Interstitial ad not ready');
-    }
-
-    return new Promise((resolve) => {
-      window.UnityAds.show(placementId, (result: string, errorCode?: string, errorMessage?: string) => {
-        const adResult: AdResult = {
-          placementId,
-          state: result as 'COMPLETED' | 'SKIPPED' | 'FAILED',
-          errorCode,
-          errorMessage
-        };
-        
-        resolve(adResult);
-      });
-    });
-  }
 
   isReady(placementId: string = 'rewardedVideo'): boolean {
     if (!this.isInitialized || !window.UnityAds) {

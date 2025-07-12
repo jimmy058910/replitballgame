@@ -2,7 +2,7 @@ import { useRoute } from "wouter";
 import { useQuery } from "@tanstack/react-query";
 import { LiveMatchSimulation } from "@/components/LiveMatchSimulation";
 import { HalftimeAd } from "@/components/HalftimeAd";
-import { BannerAd } from "@/components/BannerAd";
+
 import { Loader2 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { useState, useEffect } from "react";
@@ -156,8 +156,7 @@ export default function TextMatch() {
         onContinueGame={handleContinueGame}
       />
       
-      {/* Banner Ad at bottom */}
-      <BannerAd placement="bottom" />
+
     </div>
   );
 }

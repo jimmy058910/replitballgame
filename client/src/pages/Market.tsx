@@ -641,7 +641,7 @@ export default function Market() {
                   Ad Rewards
                 </CardTitle>
                 <p className="text-sm text-gray-600 dark:text-gray-400">
-                  Watch ads to earn bonus credits. After 50 total ads watched, receive a premium box!
+                  Watch ads to earn 500-10,000 credits. Daily limit: 10 ads. Halftime ads count toward daily limit.
                 </p>
               </CardHeader>
               <CardContent>
@@ -650,9 +650,9 @@ export default function Market() {
                     <CardContent className="p-6">
                       <div className="text-center">
                         <h3 className="font-semibold text-green-800 mb-3">Daily Ad Rewards</h3>
-                        <div className="text-2xl font-bold text-green-600 mb-2">₡5,000</div>
-                        <p className="text-sm text-green-700 mb-1">Per ad watched</p>
-                        <p className="text-xs text-green-600 mb-4">Daily limit: 20 ads</p>
+                        <div className="text-2xl font-bold text-green-600 mb-2">₡500-10,000</div>
+                        <p className="text-sm text-green-700 mb-1">Credit range per ad</p>
+                        <p className="text-xs text-green-600 mb-4">Daily limit: 10 ads</p>
                         <Button className="w-full bg-green-600 hover:bg-green-700" size="lg">
                           Watch Ad for Credits
                         </Button>
@@ -667,7 +667,7 @@ export default function Market() {
                         <div className="space-y-2">
                           <div className="flex justify-between items-center">
                             <span className="text-sm text-white">Ads Watched Today</span>
-                            <span className="text-sm font-bold text-green-400">0/20</span>
+                            <span className="text-sm font-bold text-green-400">0/10</span>
                           </div>
                           <div className="flex justify-between items-center">
                             <span className="text-sm text-white">Credits Earned Today</span>

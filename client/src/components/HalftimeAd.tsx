@@ -36,10 +36,7 @@ export function HalftimeAd({ onAdCompleted, onAdSkipped, onContinueGame, isVisib
       const result = await unityAdsService.showHalftimeVideo();
       
       if (result.state === 'COMPLETED') {
-        // Reward for halftime ad (bonus reward)
-        const reward = Math.floor(Math.random() * (2000 - 1000 + 1)) + 1000; // 1000-2000 credits
-        
-        // Send reward to backend
+        // Mandatory halftime ad - no credits, just count towards daily limit
         const response = await fetch('/api/store/watch-ad', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -51,29 +48,28 @@ export function HalftimeAd({ onAdCompleted, onAdSkipped, onContinueGame, isVisib
         });
         
         if (response.ok) {
-          onAdCompleted(reward);
+          onAdCompleted(0); // No reward for mandatory halftime ad
           toast({
-            title: "Halftime Bonus!",
-            description: `You earned ${reward.toLocaleString()} credits!`,
+            title: "Halftime Break Complete",
+            description: "Continuing to second half...",
             variant: "default"
           });
         }
       } else if (result.state === 'SKIPPED') {
         onAdSkipped();
         toast({
-          title: "Ad Skipped",
-          description: "No reward earned, continuing game...",
+          title: "Halftime Break Complete",
+          description: "Continuing to second half...",
           variant: "default"
         });
       }
     } catch (error) {
       console.error('Halftime ad error:', error);
-      // Fallback to simulation
-      const reward = Math.floor(Math.random() * (2000 - 1000 + 1)) + 1000;
-      onAdCompleted(reward);
+      // Fallback - mandatory ad completed
+      onAdCompleted(0);
       toast({
-        title: "Halftime Bonus!",
-        description: `You earned ${reward.toLocaleString()} credits! (Simulation)`,
+        title: "Halftime Break Complete",
+        description: "Continuing to second half...",
         variant: "default"
       });
     } finally {
@@ -106,12 +102,12 @@ export function HalftimeAd({ onAdCompleted, onAdSkipped, onContinueGame, isVisib
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="text-center space-y-2">
-            <div className="flex items-center justify-center space-x-2 text-yellow-400">
-              <Gift className="h-5 w-5" />
-              <span className="font-semibold">Bonus: 1,000-2,000 Credits</span>
+            <div className="flex items-center justify-center space-x-2 text-blue-400">
+              <Clock className="h-5 w-5" />
+              <span className="font-semibold">Mandatory Halftime Break</span>
             </div>
             <p className="text-sm text-purple-200">
-              Earn extra credits to boost your team!
+              Short break before second half begins
             </p>
           </div>
           
@@ -119,7 +115,7 @@ export function HalftimeAd({ onAdCompleted, onAdSkipped, onContinueGame, isVisib
             <Button
               onClick={handleWatchAd}
               disabled={isLoading}
-              className="w-full bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600 text-white font-semibold py-3"
+              className="w-full bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 text-white font-semibold py-3"
             >
               {isLoading ? (
                 <>
@@ -129,7 +125,7 @@ export function HalftimeAd({ onAdCompleted, onAdSkipped, onContinueGame, isVisib
               ) : (
                 <>
                   <Play className="h-4 w-4 mr-2" />
-                  Watch Ad for Bonus
+                  Watch Halftime Break
                 </>
               )}
             </Button>
@@ -143,14 +139,6 @@ export function HalftimeAd({ onAdCompleted, onAdSkipped, onContinueGame, isVisib
                 Skip & Continue Game
               </Button>
             )}
-            
-            <Button
-              onClick={onContinueGame}
-              variant="ghost"
-              className="w-full text-purple-300 hover:bg-purple-800 hover:text-white"
-            >
-              Continue Game
-            </Button>
           </div>
         </CardContent>
       </Card>
