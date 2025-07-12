@@ -30,7 +30,7 @@ async function createAITeamsForDivision(division: number) {
     const teamName = aiTeamNames[i % aiTeamNames.length] || `Division ${division} Team ${i + 1}`;
 
     const aiUser = await userStorage.upsertUser({ // Use userStorage
-      id: `ai_user_div${division}_team${i}_${Date.now()}`,
+      userId: `ai_user_div${division}_team${i}_${Date.now()}`,
       email: `ai_div${division}_team${i}_${Date.now()}@realmrivalry.ai`,
       firstName: "AI",
       lastName: "Coach",
@@ -39,7 +39,7 @@ async function createAITeamsForDivision(division: number) {
 
     const team = await storage.teams.createTeam({ // Use teamStorage
       name: teamName,
-      userId: aiUser.id,
+      userId: aiUser.userId,
       division: division,
       subdivision: "main", // AI teams default to main subdivision
       wins: Math.floor(Math.random() * 5),
@@ -256,16 +256,18 @@ router.post('/create-ai-teams', isAuthenticated, async (req: Request, res: Respo
       const teamName = aiTeamBaseNames[i % aiTeamBaseNames.length] + ` ${Math.floor(Math.random() * 1000)}`;
 
       const aiUser = await userStorage.upsertUser({ // Use userStorage
-        id: `ai-user-${Date.now()}-${i}`,
+        userId: `ai-user-${Date.now()}-${i}`,
         email: `ai${i}-${Date.now()}@realm-rivalry.com`,
         firstName: `AI`,
         lastName: `Coach ${i + 1}`,
         profileImageUrl: null
       });
 
+      // AI user created successfully
+
       const team = await storage.teams.createTeam({ // Use teamStorage
         name: teamName,
-        userId: aiUser.id,
+        userId: aiUser.userId,
         division: division,
         wins: Math.floor(Math.random() * 5),
         losses: Math.floor(Math.random() * 5),
@@ -283,7 +285,7 @@ router.post('/create-ai-teams', isAuthenticated, async (req: Request, res: Respo
       //   season: 1
       // });
 
-      const races = ["human", "sylvan", "gryll", "lumina", "umbra"];
+      const races = ["HUMAN", "SYLVAN", "GRYLL", "LUMINA", "UMBRA"];
       for (let j = 0; j < 12; j++) {
         const race = races[Math.floor(Math.random() * races.length)];
         await storage.players.createPlayer(generateRandomPlayer("AI Player", race, team.id)); // Use playerStorage

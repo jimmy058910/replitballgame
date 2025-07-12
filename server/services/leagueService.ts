@@ -3,10 +3,14 @@ import { generateRandomName, getFullName } from "@shared/names";
 import gameConfig from "../config/game_config.json";
 
 export function generateRandomPlayer(name: string, race: string, teamId: string, position?: string): InsertPlayer {
+  // Convert race to lowercase for switch statement, but store original for return
+  const originalRace = race;
+  const lowerRace = race.toLowerCase();
+  
   // Generate race-appropriate name if not provided
   const { firstName, lastName } = name ? 
     { firstName: name.split(' ')[0] || name, lastName: name.split(' ')[1] || "Unknown" } :
-    generateRandomName(race);
+    generateRandomName(lowerRace);
   
   const fullName = getFullName(firstName, lastName);
   const ageConfig = gameConfig.gameParameters.playerGeneration.ageRange;
@@ -26,8 +30,8 @@ export function generateRandomPlayer(name: string, race: string, teamId: string,
     agility: statConfig.min + Math.floor(Math.random() * statRange),
   };
 
-  // Apply racial modifiers
-  switch (race) {
+  // Apply racial modifiers using lowercase race
+  switch (lowerRace) {
     case "sylvan":
       baseStats.speed += 3;
       baseStats.agility += 4;
@@ -140,7 +144,7 @@ export function generateRandomPlayer(name: string, race: string, teamId: string,
     firstName,
     lastName,
     name: fullName,
-    race,
+    race: originalRace.toUpperCase(), // Ensure race is uppercase for Prisma enum
     role: getPlayerRole(position || "runner"),
     position: position || "runner", // Default to runner if no position specified
     age: baseAge,
