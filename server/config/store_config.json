@@ -1,10 +1,10 @@
 {
   "itemPrices": {
     "standard_leather_helmet": { "credits": 1000 },
-    "gryllstone_plated_helm": { "credits": 12000, "gems": 25 },
+    "gryllstone_plated_helm": { "gems": 25 },
     "sylvan_barkwood_circlet": { "credits": 12000, "gems": 25 },
     "umbral_cowl": { "gems": 75 },
-    "helm_of_command": { "credits": 75000, "gems": 50 },
+    "helm_of_command": { "gems": 50 },
     
     "worn_cleats": { "credits": 1000 },
     "boots_of_the_gryll": { "credits": 4000, "gems": 8 },
@@ -16,7 +16,7 @@
     
     "padded_leather_armor": { "credits": 1500 },
     "gryll_forged_plate": { "credits": 35000, "gems": 75 },
-    "lumina_radiant_aegis": { "credits": 75000, "gems": 50 },
+    "lumina_radiant_aegis": { "gems": 50 },
     
     "basic_stamina_drink": { "credits": 500 },
     "advanced_recovery_serum": { "credits": 2000, "gems": 5 },
@@ -80,7 +80,6 @@
         "id": "gryllstone_plated_helm",
         "name": "Gryllstone Plated Helm",
         "description": "Heavy-duty helmet forged from Gryll stone.",
-        "price": 12000,
         "priceGems": 25,
         "rarity": "rare",
         "category": "helmet",

@@ -69,7 +69,7 @@ router.get('/items', isAuthenticated, async (req: Request, res: Response, next: 
 
     // Select a subset for daily rotation, ensure not to select more than available
     const dailyCreditCount = Math.min(6, shuffledCreditItems.length); // Credit Store: 6 items
-    const dailyGemCount = Math.min(3, shuffledGemItems.length); // Gem Store: 3 gem-only items
+    const dailyGemCount = Math.min(4, shuffledGemItems.length); // Gem Store: 4 gem-only items
 
     const dailyEquipment = shuffledCreditItems.slice(0, dailyCreditCount);
     const dailyConsumables = shuffledGemItems.slice(0, dailyGemCount);
@@ -126,7 +126,7 @@ router.get('/', isAuthenticated, async (req: Request, res: Response, next: NextF
     const shuffledGemItems = [...gemOnlyItems].sort(() => 0.5 - seededRandom());
 
     // Select a subset for daily rotation, ensure not to select more than available
-    const dailyGemCount = Math.min(3, shuffledGemItems.length); // Gem Store: 3 gem-only items
+    const dailyGemCount = Math.min(4, shuffledGemItems.length); // Gem Store: 4 gem-only items
 
     const dailyGemItems = shuffledGemItems.slice(0, dailyGemCount);
     // const creditPackagesForGems = [ /* ... these are for REAL money purchases, handled by /payments endpoint ... */ ];

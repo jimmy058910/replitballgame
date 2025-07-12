@@ -125,7 +125,7 @@ Built as a React + Express web application with PostgreSQL database, using moder
 
 #### ✅ COMPLETE STORE SYSTEM FIXES IMPLEMENTATION
 - ✓ **Exhibition Game Pricing Updated**: Changed exhibition game entry from 3 gems to 10 gems (25,000 credits) as requested
-- ✓ **Gem Store Fixed**: Now shows exactly 3 gem-only items (helm_of_command, lumina_radiant_aegis, umbral_cowl) that can ONLY be purchased with gems
+- ✓ **Gem Store Fixed**: Now shows exactly 4 gem-only items (helm_of_command, lumina_radiant_aegis, umbral_cowl, gryllstone_plated_helm) that can ONLY be purchased with gems
 - ✓ **Credit Store Fixed**: Now shows 6 items that can be purchased with credits (equipment, consumables, entries)
 - ✓ **Purchase Functionality Fixed**: Resolved "Not enough credits or item unavailable" error by fixing exhibition game item ID mapping
 - ✓ **Store Logic Enhancement**: Updated store routes to properly filter gem-only vs credit-available items
