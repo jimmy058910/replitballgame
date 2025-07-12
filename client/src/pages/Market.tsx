@@ -30,9 +30,9 @@ interface StoreItem {
   id: string;
   name: string;
   description: string;
-  credits?: number;
-  gems?: number;
-  tier: 'Common' | 'Uncommon' | 'Rare' | 'Epic' | 'Legendary';
+  price?: number;
+  priceGems?: number;
+  rarity: 'common' | 'uncommon' | 'rare' | 'epic' | 'legendary';
   category: string;
   dailyLimit?: number;
   purchased?: number;
@@ -97,96 +97,15 @@ const divisionRewards = [
   }
 ];
 
-const featuredItems: StoreItem[] = [
-  {
-    id: "premium_helmet_1",
-    name: "Elite Velocity Helmet",
-    description: "Rare helmet that increases Speed by +3 for the entire season",
-    gems: 25,
-    credits: 15000,
-    tier: "Rare",
-    category: "Equipment",
-    dailyLimit: 1
-  },
-  {
-    id: "premium_boots_1", 
-    name: "Legendary Swift Boots",
-    description: "Legendary footwear providing +5 Speed and +2 Agility",
-    gems: 75,
-    credits: 45000,
-    tier: "Legendary",
-    category: "Equipment",
-    dailyLimit: 1
-  },
-  {
-    id: "premium_energy_1",
-    name: "Epic Energy Drink",
-    description: "Restores 50 stamina and provides +10% performance for 3 games",
-    gems: 15,
-    credits: 8000,
-    tier: "Epic", 
-    category: "Consumable",
-    dailyLimit: 3
-  },
-
-];
-
-const creditStoreItems: StoreItem[] = [
-  {
-    id: "basic_helmet_1",
-    name: "Standard Team Helmet", 
-    description: "Basic helmet providing +1 Power for the season",
-    credits: 2500,
-    tier: "Common",
-    category: "Equipment",
-    dailyLimit: 2
-  },
-  {
-    id: "basic_energy_1",
-    name: "Energy Booster",
-    description: "Restores 25 stamina instantly",
-    credits: 1500,
-    tier: "Common", 
-    category: "Consumable",
-    dailyLimit: 5
-  },
-  {
-    id: "uncommon_gloves_1",
-    name: "Pro Catching Gloves",
-    description: "Uncommon gloves providing +2 Catching for the season",
-    credits: 5000,
-    tier: "Uncommon",
-    category: "Equipment", 
-    dailyLimit: 1
-  },
-  {
-    id: "basic_recovery_1",
-    name: "Recovery Supplement",
-    description: "Reduces injury recovery time by 1 day",
-    credits: 3500,
-    tier: "Uncommon",
-    category: "Medical",
-    dailyLimit: 3
-  },
-
-  {
-    id: "basic_stamina_1",
-    name: "Stamina Drink",
-    description: "Restores 15 stamina and prevents fatigue for 1 game",
-    credits: 2000,
-    tier: "Common",
-    category: "Consumable",
-    dailyLimit: 4
-  }
-];
+// Remove hardcoded items - we'll fetch from API
 
 const getTierColor = (tier: string): string => {
   const colors = {
-    Common: 'bg-gray-500',
-    Uncommon: 'bg-green-500', 
-    Rare: 'bg-blue-500',
-    Epic: 'bg-purple-500',
-    Legendary: 'bg-yellow-500'
+    common: 'bg-gray-500',
+    uncommon: 'bg-green-500', 
+    rare: 'bg-blue-500',
+    epic: 'bg-purple-500',
+    legendary: 'bg-yellow-500'
   };
   return colors[tier as keyof typeof colors] || 'bg-gray-500';
 };
@@ -220,6 +139,31 @@ export default function Market() {
     enabled: !!rawTeam?.id
   });
 
+  // Fetch Gem Store items (gem-only items)
+  const { data: gemStoreData } = useQuery({
+    queryKey: ["/api/store/"],
+    select: (data) => {
+      const gemItems = data.consumables || [];
+      console.log('Gem store items:', gemItems.length, gemItems);
+      return gemItems;
+    }
+  });
+
+  // Fetch Credit Store items
+  const { data: creditStoreData } = useQuery({
+    queryKey: ["/api/store/items"],
+    select: (data) => {
+      const allItems = [...(data.equipment || []), ...(data.consumables || []), ...(data.entries || [])];
+      // Include items that have a credit price (regardless of whether they also have gem pricing)
+      const creditItems = allItems.filter(item => item.price && item.price > 0);
+      console.log('Credit store items:', creditItems.length, creditItems);
+      return creditItems;
+    }
+  });
+
+  const gemItems = gemStoreData || [];
+  const creditItems = creditStoreData || [];
+
   const team = (rawTeam || {}) as Team;
 
   // Purchase mutations
@@ -227,7 +171,7 @@ export default function Market() {
     mutationFn: (itemId: string) =>
       apiRequest(`/api/store/purchase/${itemId}`, 'POST', { currency: 'gems' }),
     onSuccess: (data, itemId) => {
-      const item = [...featuredItems, ...creditStoreItems].find(i => i.id === itemId);
+      const item = [...gemItems, ...creditItems].find(i => i.id === itemId);
       toast({
         title: "Purchase Successful!",
         description: `You purchased ${item?.name} with gems.`,
@@ -247,7 +191,7 @@ export default function Market() {
     mutationFn: (itemId: string) =>
       apiRequest(`/api/store/purchase/${itemId}`, 'POST', { currency: 'credits' }),
     onSuccess: (data, itemId) => {
-      const item = [...featuredItems, ...creditStoreItems].find(i => i.id === itemId);
+      const item = [...gemItems, ...creditItems].find(i => i.id === itemId);
       toast({
         title: "Purchase Successful!",
         description: `You purchased ${item?.name} with credits.`,
@@ -383,55 +327,35 @@ export default function Market() {
                     <div className="mb-4">
                       <h3 className="text-lg font-semibold mb-2">Premium Items - Daily Rotation</h3>
                       <p className="text-sm text-gray-600 dark:text-gray-400">
-                        High-quality items available for Gems or Credits (rotating daily)
+                        High-quality items available for Gems only (rotating daily)
                       </p>
                     </div>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      {featuredItems.map((item) => (
+                      {gemItems.map((item) => (
                         <Card key={item.id} className="border-2 border-purple-200 dark:border-purple-700">
                           <CardContent className="p-4">
                             <div className="flex justify-between items-start mb-3">
                               <div>
                                 <h4 className="font-semibold text-lg">{item.name}</h4>
-                                <Badge className={`${getTierColor(item.tier)} text-white text-xs`}>
-                                  {item.tier}
+                                <Badge className={`${getTierColor(item.rarity)} text-white text-xs`}>
+                                  {item.rarity}
                                 </Badge>
                               </div>
                               <div className="text-right">
-                                {item.gems && (
-                                  <div className="text-blue-600 font-bold">💎{item.gems}</div>
-                                )}
-                                {item.credits && (
-                                  <div className="text-yellow-600 font-bold">₡{item.credits.toLocaleString()}</div>
-                                )}
+                                <div className="text-blue-600 font-bold">💎{item.priceGems}</div>
                               </div>
                             </div>
                             <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">
                               {item.description}
                             </p>
-                            <div className="flex gap-2">
-                              {item.gems && (
-                                <Button 
-                                  size="sm" 
-                                  className="flex-1"
-                                  onClick={() => handlePurchase(item.id, 'gems')}
-                                  disabled={purchaseWithGemsMutation.isPending}
-                                >
-                                  Buy with Gems
-                                </Button>
-                              )}
-                              {item.credits && (
-                                <Button 
-                                  size="sm" 
-                                  variant="outline" 
-                                  className="flex-1"
-                                  onClick={() => handlePurchase(item.id, 'credits')}
-                                  disabled={purchaseWithCreditsMutation.isPending}
-                                >
-                                  Buy with Credits
-                                </Button>
-                              )}
-                            </div>
+                            <Button 
+                              size="sm" 
+                              className="w-full"
+                              onClick={() => handlePurchase(item.id, 'gems')}
+                              disabled={purchaseWithGemsMutation.isPending}
+                            >
+                              Buy with Gems
+                            </Button>
                             {item.dailyLimit && (
                               <p className="text-xs text-gray-500 mt-2">
                                 Daily limit: {item.dailyLimit} | Purchased: {item.purchased || 0}
@@ -451,18 +375,18 @@ export default function Market() {
                       </p>
                     </div>
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                      {creditStoreItems.map((item) => (
+                      {creditItems.map((item) => (
                         <Card key={item.id}>
                           <CardContent className="p-4">
                             <div className="flex justify-between items-start mb-3">
                               <div>
                                 <h4 className="font-medium">{item.name}</h4>
-                                <Badge className={`${getTierColor(item.tier)} text-white text-xs`}>
-                                  {item.tier}
+                                <Badge className={`${getTierColor(item.rarity)} text-white text-xs`}>
+                                  {item.rarity}
                                 </Badge>
                               </div>
                               <div className="text-yellow-600 font-bold">
-                                ₡{item.credits?.toLocaleString()}
+                                ₡{item.price?.toLocaleString()}
                               </div>
                             </div>
                             <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">
@@ -523,7 +447,7 @@ export default function Market() {
                               <Button 
                                 className="flex-1 bg-blue-600 hover:bg-blue-700" 
                                 size="sm"
-                                onClick={() => handlePurchase('exhibition_gem', 'gems')}
+                                onClick={() => handlePurchase('exhibition_match_entry', 'gems')}
                               >
                                 💎10 Gems
                               </Button>
@@ -531,7 +455,7 @@ export default function Market() {
                                 className="flex-1" 
                                 variant="outline" 
                                 size="sm"
-                                onClick={() => handlePurchase('exhibition_credit', 'credits')}
+                                onClick={() => handlePurchase('exhibition_match_entry', 'credits')}
                               >
                                 ₡25,000
                               </Button>
