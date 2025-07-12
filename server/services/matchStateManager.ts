@@ -184,16 +184,19 @@ class MatchStateManager {
   }
 
   // Synchronize client with server state
-  async syncMatchState(matchId: string): Promise<LiveMatchState | null> {
-    const state = this.liveMatches.get(matchId);
+  async syncMatchState(matchId: string | number): Promise<LiveMatchState | null> {
+    const matchIdStr = matchId.toString();
+    const matchIdNum = parseInt(matchIdStr);
+    
+    const state = this.liveMatches.get(matchIdStr);
     if (!state) {
       // Check if match exists in database but not in memory
       const match = await prisma.game.findFirst({
-        where: { id: matchId }
+        where: { id: matchIdNum }
       });
       if (match && match.status === 'IN_PROGRESS') {
         // Restart the match state from database
-        return await this.restartMatchFromDatabase(matchId);
+        return await this.restartMatchFromDatabase(matchIdStr);
       }
       return null;
     }
@@ -205,7 +208,7 @@ class MatchStateManager {
 
   private async restartMatchFromDatabase(matchId: string): Promise<LiveMatchState | null> {
     const match = await prisma.game.findFirst({
-      where: { id: matchId }
+      where: { id: parseInt(matchId) }
     });
     if (!match || match.status !== 'IN_PROGRESS') {
       return null;
@@ -226,10 +229,10 @@ class MatchStateManager {
       const existingState = this.liveMatches.get(matchId);
       if (existingState) {
          const homeTeamPlayers = await prisma.player.findMany({
-           where: { teamId: existingState.homeTeamId, isMarketplace: false }
+           where: { teamId: existingState.homeTeamId, isOnMarket: false }
          });
          const awayTeamPlayers = await prisma.player.findMany({
-           where: { teamId: existingState.awayTeamId, isMarketplace: false }
+           where: { teamId: existingState.awayTeamId, isOnMarket: false }
          });
          await this.completeMatch(matchId, existingState.homeTeamId, existingState.awayTeamId, homeTeamPlayers, awayTeamPlayers);
       } else {
@@ -243,10 +246,10 @@ class MatchStateManager {
     }
 
     const homeTeamPlayers = await prisma.player.findMany({
-      where: { teamId: match.homeTeamId, isMarketplace: false }
+      where: { teamId: match.homeTeamId, isOnMarket: false }
     });
     const awayTeamPlayers = await prisma.player.findMany({
-      where: { teamId: match.awayTeamId, isMarketplace: false }
+      where: { teamId: match.awayTeamId, isOnMarket: false }
     });
 
     // Reconstruct match state (simplified, full stat reconstruction might be complex)

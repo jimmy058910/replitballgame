@@ -92,7 +92,7 @@ router.get('/:matchId/enhanced-data', isAuthenticated, async (req: Request, res:
     const awayTeam = await storage.teams.getTeamById(match.awayTeamId);
     
     // Get stadium data for atmospheric effects
-    const homeStadium = homeTeam ? await storage.stadium.getStadiumByTeamId(homeTeam.id) : null;
+    const homeStadium = homeTeam ? await storage.stadiums.getStadiumByTeamId(homeTeam.id) : null;
     
     // Calculate atmospheric effects
     const atmosphereEffects = {
