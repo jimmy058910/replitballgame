@@ -20,7 +20,7 @@ export class ConsumableStorage {
     return await prisma.inventoryItem.findMany({
       where: {
         teamId,
-        item: { type: 'consumable' }
+        item: { type: 'CONSUMABLE_RECOVERY' }
       },
       include: {
         item: true,
