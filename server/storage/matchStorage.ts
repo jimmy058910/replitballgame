@@ -5,7 +5,7 @@ export class MatchStorage {
   async createMatch(matchData: {
     homeTeamId: number;
     awayTeamId: number;
-    gameDate: Date;
+    gameDate?: Date;
     status?: GameStatus;
     matchType?: MatchType;
     leagueId?: number;
@@ -16,7 +16,7 @@ export class MatchStorage {
       data: {
         homeTeamId: matchData.homeTeamId,
         awayTeamId: matchData.awayTeamId,
-        gameDate: matchData.gameDate,
+        gameDate: matchData.gameDate || new Date(),
         status: matchData.status || GameStatus.SCHEDULED,
         matchType: matchData.matchType || MatchType.LEAGUE,
         leagueId: matchData.leagueId,

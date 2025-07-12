@@ -121,7 +121,20 @@ Built as a React + Express web application with PostgreSQL database, using moder
 
 ## Recent Changes
 
-### July 12, 2025 - ✅ COMPLETE GAME BALANCE IMPLEMENTATION & TRYOUT SYSTEM FIXES ACHIEVEMENT
+### July 12, 2025 - ✅ COMPLETE DASHBOARD NAVIGATION & EXHIBITION MATCH FIXES ACHIEVEMENT
+
+#### ✅ DASHBOARD NAVIGATION FIXES COMPLETE
+- ✓ **Team Camaraderie Navigation**: Team Camaraderie card now properly links to `/team?tab=staff&subtab=chemistry`
+- ✓ **Credits Navigation**: Credits card already properly links to `/team?tab=finances`
+- ✓ **Enhanced User Experience**: Both cards now have hover effects and clear navigation paths
+
+#### ✅ EXHIBITION MATCH SYSTEM FIXES COMPLETE
+- ✓ **Missing gameDate Field**: Added missing `gameDate: new Date()` to both exhibition match creation calls
+- ✓ **Instant Exhibition Fixed**: Instant Exhibition matches now create successfully without "Match Failed" errors
+- ✓ **Challenge Opponent Fixed**: Challenge Opponent matches also fixed with proper gameDate field
+- ✓ **Production Ready**: All exhibition match types now working correctly
+
+### July 12, 2025 - ✅ COMPLETE GAME BALANCE IMPLEMENTATION & TRYOUT SYSTEM FIXES ACHIEVEMENT (Previous)
 
 #### ✅ MAJOR GAME BALANCE CHANGES IMPLEMENTED - 100% COMPLETE
 - ✓ **Ad System Rebalanced**: 10 ads per day (down from 15) with 500-10,000 credits averaging 2,000 credits per ad

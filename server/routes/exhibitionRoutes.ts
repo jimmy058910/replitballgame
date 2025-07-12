@@ -204,9 +204,7 @@ router.post('/instant-match', isAuthenticated, async (req: any, res: Response, n
       homeTeamId,
       awayTeamId,
       matchType: "exhibition",
-      status: "scheduled",
-      scheduledTime: new Date(),
-      gameDay: 0,
+      gameDate: new Date(),
     });
 
     const liveMatchState = await matchStateManager.startLiveMatch(match.id, true);
@@ -259,9 +257,7 @@ router.post('/challenge-opponent', isAuthenticated, async (req: any, res: Respon
       homeTeamId,
       awayTeamId,
       matchType: "exhibition", 
-      status: "scheduled",
-      scheduledTime: new Date(), 
-      gameDay: 0,
+      gameDate: new Date(),
     });
 
     const liveMatchState = await matchStateManager.startLiveMatch(match.id, true);

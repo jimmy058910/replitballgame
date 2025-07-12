@@ -416,28 +416,30 @@ export default function Dashboard() {
               </Card>
             </Link>
 
-            <Card className="bg-gray-800 border-gray-700 h-32">
-              <CardContent className="p-6 h-full">
-                <div className="flex items-center justify-between h-full">
-                  <div className="flex flex-col justify-center">
-                    <div className="flex items-center gap-2">
-                      <p className="text-gray-400 text-sm">Team Camaraderie</p>
-                      <HelpIcon content="Team chemistry (0-100). High camaraderie provides in-game bonuses, injury resistance, and better contract negotiations." />
+            <Link href="/team?tab=staff&subtab=chemistry">
+              <Card className="bg-gray-800 border-gray-700 hover:bg-gray-700 transition-colors cursor-pointer h-32">
+                <CardContent className="p-6 h-full">
+                  <div className="flex items-center justify-between h-full">
+                    <div className="flex flex-col justify-center">
+                      <div className="flex items-center gap-2">
+                        <p className="text-gray-400 text-sm">Team Camaraderie</p>
+                        <HelpIcon content="Team chemistry (0-100). High camaraderie provides in-game bonuses, injury resistance, and better contract negotiations. Click to view team chemistry details." />
+                      </div>
+                      <p className="text-2xl font-bold text-teal-400">{team?.teamCamaraderie ?? 'N/A'}</p>
+                      <p className="text-sm text-teal-300 font-medium">
+                        {getTeamCamaraderieTier(team?.teamCamaraderie)}
+                      </p>
+                      <p className="text-xs text-gray-400">
+                        {getTeamCamaraderieDescriptionOnly(team?.teamCamaraderie)}
+                      </p>
                     </div>
-                    <p className="text-2xl font-bold text-teal-400">{team?.teamCamaraderie ?? 'N/A'}</p>
-                    <p className="text-sm text-teal-300 font-medium">
-                      {getTeamCamaraderieTier(team?.teamCamaraderie)}
-                    </p>
-                    <p className="text-xs text-gray-400">
-                      {getTeamCamaraderieDescriptionOnly(team?.teamCamaraderie)}
-                    </p>
+                    <div className="bg-teal-400 bg-opacity-20 p-3 rounded-lg">
+                      <UsersIcon className="text-teal-400 text-xl" />
+                    </div>
                   </div>
-                  <div className="bg-teal-400 bg-opacity-20 p-3 rounded-lg">
-                    <UsersIcon className="text-teal-400 text-xl" />
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+                </CardContent>
+              </Card>
+            </Link>
           </div>
         </div>
 
