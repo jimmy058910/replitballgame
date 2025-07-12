@@ -121,13 +121,13 @@ export default function DailyProgressionTest() {
                 <div>
                   <h4 className="font-semibold mb-2">Base Progression</h4>
                   <p className="text-sm text-muted-foreground">
-                    Base Chance: {config.data.formula.baseChance}
+                    Base Chance: {config.data.configuration.baseChance}
                   </p>
                 </div>
                 <div>
                   <h4 className="font-semibold mb-2">Reset Schedule</h4>
                   <p className="text-sm text-muted-foreground">
-                    {config.data.formula.resetTime}
+                    {config.data.configuration.resetTime}
                   </p>
                 </div>
               </div>
@@ -135,13 +135,13 @@ export default function DailyProgressionTest() {
               <div className="space-y-2">
                 <h4 className="font-semibold">Activity Scoring Formula</h4>
                 <p className="text-sm text-muted-foreground">
-                  League Games: {config.data.formula.activityScoring.leagueGames} points each
+                  League Games: {config.data.configuration.activityWeights.leagueGames}
                 </p>
                 <p className="text-sm text-muted-foreground">
-                  Tournament Games: {config.data.formula.activityScoring.tournamentGames} points each
+                  Tournament Games: {config.data.configuration.activityWeights.tournamentGames}
                 </p>
                 <p className="text-sm text-muted-foreground">
-                  Exhibition Games: {config.data.formula.activityScoring.exhibitionGames} points each
+                  Exhibition Games: {config.data.configuration.activityWeights.exhibitionGames}
                 </p>
               </div>
             </div>
