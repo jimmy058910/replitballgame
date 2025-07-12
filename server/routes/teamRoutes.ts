@@ -721,9 +721,7 @@ router.post('/:teamId/tryouts', isAuthenticated, asyncHandler(async (req: any, r
     const scouts = await prisma.staff.findMany({
       where: {
         teamId: team.id,
-        type: {
-          in: ['scout', 'head_scout', 'recruiting_scout']
-        }
+        type: "SCOUT"
       }
     });
     
@@ -907,13 +905,22 @@ router.post('/:teamId/taxi-squad/add-candidates', isAuthenticated, asyncHandler(
   const { teamId } = req.params;
   const { candidates } = req.body;
 
+  // Get userProfile to check team ownership
+  const userProfile = await prisma.userProfile.findFirst({
+    where: { userId: userId }
+  });
+  
+  if (!userProfile) {
+    throw ErrorCreators.forbidden("User profile not found");
+  }
+
   // Verify team ownership
   let team;
   if (teamId === "my") {
     team = await storage.teams.getTeamByUserId(userId);
   } else {
     team = await storage.teams.getTeamById(teamId);
-    if (!team || team.userId !== userId) {
+    if (!team || team.userProfileId !== userProfile.id) {
       throw ErrorCreators.forbidden("You do not own this team");
     }
   }

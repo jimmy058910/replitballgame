@@ -402,7 +402,8 @@ export default function TryoutSystem({ teamId, onNavigateToTaxiSquad }: TryoutSy
                       lastName: candidate.name.split(' ').slice(1).join(' ') || candidate.name,
                       role: getPlayerRole(candidate),
                       catching: candidate.catching || 20,
-                      kicking: candidate.kicking || 20
+                      kicking: candidate.kicking || 20,
+                      potentialRating: candidate.overallPotentialStars || '0'
                     }}
                     variant="recruiting"
                     scoutQuality={effectiveScoutQuality}
