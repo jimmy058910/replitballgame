@@ -131,7 +131,7 @@ router.get('/available-opponents', isAuthenticated, async (req: any, res: Respon
 });
 
 // Auto-find and start match against similar USER team
-router.post('/instant-match', isAuthenticated, async (req: any, res: Response, next: NextFunction) => {
+router.post('/instant', isAuthenticated, async (req: any, res: Response, next: NextFunction) => {
   try {
     const userId = req.user.claims.sub;
     const userTeam = await storage.teams.getTeamByUserId(userId);
@@ -212,8 +212,8 @@ router.post('/instant-match', isAuthenticated, async (req: any, res: Response, n
 
     // Create exhibition game record
     await exhibitionGameStorage.createExhibitionGame({
-      teamId: userTeam.id,
-      opponentTeamId: bestOpponent.id,
+      homeTeamId: homeTeamId,
+      awayTeamId: awayTeamId,
     });
 
     const isUserTeam = bestOpponent.userId && !bestOpponent.userId.startsWith('ai_');
@@ -228,6 +228,51 @@ router.post('/instant-match', isAuthenticated, async (req: any, res: Response, n
     });
   } catch (error) {
     console.error("Error finding exhibition match:", error);
+    next(error);
+  }
+});
+
+// Simplified challenge route for testing
+router.post('/challenge', isAuthenticated, async (req: any, res: Response, next: NextFunction) => {
+  try {
+    const userId = req.user.claims.sub;
+    const userTeam = await storage.teams.getTeamByUserId(userId);
+    if (!userTeam || !userTeam.id) return res.status(404).json({ message: "Team not found." });
+
+    // Get available opponents in same division
+    const divisionTeams = await storage.teams.getTeamsByDivision(userTeam.division || 1);
+    const opponents = divisionTeams.filter(t => t.id !== userTeam.id);
+    
+    if (opponents.length === 0) {
+      return res.status(404).json({ message: "No opponents available in your division." });
+    }
+
+    const randomOpponent = opponents[Math.floor(Math.random() * opponents.length)];
+    const isHome = Math.random() < 0.5;
+    
+    const match = await matchStorage.createMatch({
+      homeTeamId: isHome ? userTeam.id : randomOpponent.id,
+      awayTeamId: isHome ? randomOpponent.id : userTeam.id,
+      matchType: MatchType.EXHIBITION,
+      gameDate: new Date(),
+    });
+
+    const liveMatchState = await matchStateManager.startLiveMatch(match.id, true);
+    
+    await exhibitionGameStorage.createExhibitionGame({
+      homeTeamId: isHome ? userTeam.id : randomOpponent.id,
+      awayTeamId: isHome ? randomOpponent.id : userTeam.id,
+    });
+
+    res.status(201).json({
+      matchId: match.id,
+      message: `Exhibition match against ${randomOpponent.name} started!`,
+      opponentName: randomOpponent.name,
+      isHome,
+      liveState: liveMatchState
+    });
+  } catch (error) {
+    console.error("Error creating exhibition challenge:", error);
     next(error);
   }
 });

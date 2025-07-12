@@ -478,7 +478,9 @@ class MatchStateManager {
     } else if (actingPlayer.tacticalRole === 'Runner' || actionRoll < 0.85) { // 60-85% chance of run if not Passer, or if Passer rolls run
         const yards = Math.floor(Math.random() * (actingPlayer.speed / 2 + actingPlayer.power / 3)) - 5; // -5 to 15+ yards
         if (yards > 0) {
-            pStats.rushingYards += yards;
+            if (pStats) {
+                pStats.rushingYards += yards;
+            }
             teamStats.rushingYards += yards;
             teamStats.totalOffensiveYards += yards;
             // Generate comprehensive run commentary
