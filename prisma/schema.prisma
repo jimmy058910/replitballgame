@@ -64,6 +64,7 @@ model Team {
   highBidderOnListings MarketplaceListing[] @relation("HighBidderListings")
   notifications        Notification[]
   tournamentEntries    TournamentEntry[]
+  tryoutHistory        TryoutHistory[]
 }
 
 enum FieldSize {
@@ -111,6 +112,7 @@ model Player {
   camaraderieScore            Float               @default(75.0)
   createdAt                   DateTime            @default(now())
   updatedAt                   DateTime            @updatedAt
+  tryoutHistory               TryoutHistory[]
   activeBoosts                ActiveBoost[]
   currentEquipment            PlayerEquipment[]
 }
@@ -496,6 +498,20 @@ model TryoutPack {
   gemCost     Int?
   numPlayers  Int
   qualityTier String
+}
+
+model TryoutHistory {
+  id           Int      @id @default(autoincrement())
+  teamId       Int
+  team         Team     @relation(fields: [teamId], references: [id])
+  seasonId     String
+  season       Season   @relation(fields: [seasonId], references: [id])
+  tryoutType   String
+  cost         Int
+  playersAdded Int
+  conductedAt  DateTime @default(now())
+
+  @@unique([teamId, seasonId])
 }
 
 model GemPack {

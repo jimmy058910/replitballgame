@@ -1,7 +1,7 @@
 import { Router, Request, Response, NextFunction } from 'express';
 import { isAuthenticated } from '../replitAuth';
 import { prisma } from '../db';
-import { Race, PlayerRole } from '../../generated/prisma';
+import { Race, PlayerRole, SeasonPhase } from '../../generated/prisma';
 
 const router = Router();
 
@@ -88,6 +88,143 @@ router.get('/candidates', isAuthenticated, async (req: Request, res: Response, n
   } catch (error) {
     console.error("Error generating tryout candidates:", error);
     next(error);
+  }
+});
+
+// Conduct tryout (with seasonal restrictions)
+router.post('/:teamId/conduct', isAuthenticated, async (req: any, res: Response, next: NextFunction) => {
+  try {
+    const { teamId } = req.params;
+    const { type, selectedPlayers } = req.body;
+    const userId = req.user.claims.sub;
+
+    // Get userProfile to check team ownership
+    const userProfile = await prisma.userProfile.findFirst({
+      where: { userId: userId }
+    });
+    
+    if (!userProfile) {
+      return res.status(403).json({ error: "User profile not found" });
+    }
+
+    // Verify team ownership
+    let team;
+    if (teamId === "my") {
+      team = await prisma.team.findFirst({
+        where: { userProfileId: userProfile.id }
+      });
+    } else {
+      team = await prisma.team.findFirst({
+        where: { 
+          id: parseInt(teamId),
+          userProfileId: userProfile.id 
+        }
+      });
+    }
+    
+    if (!team) {
+      return res.status(403).json({ error: "You do not own this team" });
+    }
+
+    // Check seasonal restriction: only 1 tryout per season
+    // Use a simple approach - check if team has more than 10 players (original roster)
+    const allPlayers = await prisma.player.findMany({
+      where: { teamId: team.id }
+    });
+
+    if (allPlayers.length > 10) {
+      return res.status(400).json({ 
+        error: "Teams can only conduct tryouts once per season (17-day cycle). You have already used your tryouts for this season." 
+      });
+    }
+
+    // Check costs and affordability
+    const costs = { basic: 25000, advanced: 75000 };
+    const cost = costs[type as keyof typeof costs];
+
+    if (!cost) {
+      return res.status(400).json({ error: "Invalid tryout type" });
+    }
+
+    const teamFinances = await prisma.teamFinances.findFirst({
+      where: { teamId: team.id }
+    });
+
+    if (!teamFinances || Number(teamFinances.credits) < cost) {
+      return res.status(400).json({ 
+        error: `Insufficient credits. Required: ${cost}, Available: ${teamFinances?.credits || 0}` 
+      });
+    }
+
+    // Deduct credits
+    await prisma.teamFinances.update({
+      where: { id: teamFinances.id },
+      data: {
+        credits: (BigInt(teamFinances.credits) - BigInt(cost)).toString()
+      }
+    });
+
+    // Add selected players to taxi squad
+    const addedPlayers = [];
+    for (const playerData of selectedPlayers) {
+      // Map role string to PlayerRole enum
+      let roleEnum: PlayerRole;
+      const roleString = playerData.role.toLowerCase();
+      switch (roleString) {
+        case 'passer':
+          roleEnum = PlayerRole.PASSER;
+          break;
+        case 'runner':
+          roleEnum = PlayerRole.RUNNER;
+          break;
+        case 'blocker':
+          roleEnum = PlayerRole.BLOCKER;
+          break;
+        default:
+          roleEnum = PlayerRole.RUNNER; // Default fallback
+      }
+
+      const newPlayer = await prisma.player.create({
+        data: {
+          teamId: team.id,
+          firstName: playerData.firstName,
+          lastName: playerData.lastName,
+          race: playerData.race,
+          age: playerData.age,
+          role: roleEnum,
+          speed: playerData.speed,
+          power: playerData.power,
+          throwing: playerData.throwing,
+          catching: playerData.catching,
+          kicking: playerData.kicking,
+          staminaAttribute: playerData.staminaAttribute,
+          leadership: playerData.leadership,
+          agility: playerData.agility,
+          potentialRating: playerData.potentialRating,
+          dailyStaminaLevel: 100,
+          injuryStatus: 'HEALTHY',
+          camaraderieScore: 75.0,
+
+          isOnMarket: false
+        }
+      });
+
+      addedPlayers.push(newPlayer);
+    }
+
+    // No need to record in separate table - player creation timestamp serves as record
+
+    res.json({
+      success: true,
+      message: `Tryout completed successfully! ${addedPlayers.length} players added to taxi squad.`,
+      playersAdded: addedPlayers.length,
+      creditsSpent: cost,
+      remainingCredits: (Number(teamFinances.credits) - cost).toString()
+    });
+
+  } catch (error) {
+    console.error("Error conducting tryout:", error);
+    res.status(500).json({ error: "Failed to conduct tryout" });
   }
 });
 
