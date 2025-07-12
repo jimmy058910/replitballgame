@@ -974,7 +974,7 @@ router.post('/:teamId/taxi-squad/add-candidates', isAuthenticated, asyncHandler(
       firstName: candidate.firstName,
       lastName: candidate.lastName,
       name: `${candidate.firstName} ${candidate.lastName}`,
-      race: candidate.race,
+      race: candidate.race.toUpperCase(), // Convert to uppercase for Prisma enum
       age: candidate.age,
       speed: candidate.speed,
       power: candidate.power,

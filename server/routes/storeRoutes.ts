@@ -270,8 +270,8 @@ router.post('/purchase/:itemId', isAuthenticated, async (req: any, res: Response
         await teamFinancesStorage.updateTeamFinances(team.id, { credits: (finances.credits || 0) - actualPrice });
         message = `Purchased ${itemId} for ${actualPrice} credits.`;
     } else if (currency === "gems" || currency === "premium_currency") {
-         if ((finances.premiumCurrency || 0) < actualPrice) return res.status(400).json({ message: "Insufficient premium currency (gems)." });
-        await teamFinancesStorage.updateTeamFinances(team.id, { premiumCurrency: (finances.premiumCurrency || 0) - actualPrice });
+         if ((finances.gems || 0) < actualPrice) return res.status(400).json({ message: "Insufficient premium currency (gems)." });
+        await teamFinancesStorage.updateTeamFinances(team.id, { gems: (finances.gems || 0) - actualPrice });
         message = `Purchased ${itemId} for ${actualPrice} gems.`;
     } else {
         return res.status(400).json({ message: "Unsupported currency type for this item." });
@@ -315,13 +315,13 @@ router.post('/convert-gems', isAuthenticated, async (req: any, res: Response, ne
 
     const finances = await teamFinancesStorage.getTeamFinances(team.id);
     if (!finances) return res.status(404).json({ message: "Team finances not found." });
-    if ((finances.premiumCurrency || 0) < gemsAmount) return res.status(400).json({ message: "Insufficient Premium Gems." });
+    if ((finances.gems || 0) < gemsAmount) return res.status(400).json({ message: "Insufficient Premium Gems." });
 
     const creditsPerGem = storeConfig.creditsPerGem || 1000; // Fallback if not in config
     const creditsToAdd = gemsAmount * creditsPerGem;
 
     await teamFinancesStorage.updateTeamFinances(team.id, {
-      premiumCurrency: (finances.premiumCurrency || 0) - gemsAmount,
+      gems: (finances.gems || 0) - gemsAmount,
       credits: (finances.credits || 0) + creditsToAdd
     });
 
