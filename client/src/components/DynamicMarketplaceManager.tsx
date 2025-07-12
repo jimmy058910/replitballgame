@@ -24,6 +24,7 @@ import {
   Tag
 } from 'lucide-react';
 import UnifiedPlayerCard from '@/components/UnifiedPlayerCard';
+import PlayerDetailModal from '@/components/PlayerDetailModal';
 
 interface Player {
   id: string;
@@ -113,6 +114,8 @@ export default function DynamicMarketplaceManager({ teamId }: { teamId: string }
   const [startBid, setStartBid] = useState<string>('');
   const [durationHours, setDurationHours] = useState<string>('24');
   const [buyNowPrice, setBuyNowPrice] = useState<string>('');
+  const [selectedPlayerForModal, setSelectedPlayerForModal] = useState<any>(null);
+  const [isPlayerModalOpen, setIsPlayerModalOpen] = useState(false);
 
   // Auto-fill buy-now price when player is selected
   const handlePlayerSelection = (playerId: string) => {
@@ -611,11 +614,19 @@ export default function DynamicMarketplaceManager({ teamId }: { teamId: string }
                         if (!selectedPlayer) return null;
                         
                         return (
-                          <UnifiedPlayerCard 
-                            player={selectedPlayer}
-                            showDetailedStats={true}
-                            showActions={false}
-                          />
+                          <div 
+                            className="cursor-pointer" 
+                            onClick={() => {
+                              setSelectedPlayerForModal(selectedPlayer);
+                              setIsPlayerModalOpen(true);
+                            }}
+                          >
+                            <UnifiedPlayerCard 
+                              player={selectedPlayer}
+                              showDetailedStats={true}
+                              showActions={false}
+                            />
+                          </div>
                         );
                       })()}
                     </div>
@@ -884,6 +895,18 @@ export default function DynamicMarketplaceManager({ teamId }: { teamId: string }
           </Card>
         </TabsContent>
       </Tabs>
+      
+      {/* Player Detail Modal */}
+      {selectedPlayerForModal && (
+        <PlayerDetailModal
+          player={selectedPlayerForModal}
+          isOpen={isPlayerModalOpen}
+          onClose={() => {
+            setIsPlayerModalOpen(false);
+            setSelectedPlayerForModal(null);
+          }}
+        />
+      )}
     </div>
   );
 }

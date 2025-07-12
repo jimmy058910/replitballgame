@@ -41,7 +41,7 @@ export class DynamicMarketplaceService {
   static async getTeamActiveListings(teamId: string): Promise<number> {
     const result = await prisma.marketplaceListing.count({
       where: {
-        sellerTeamId: teamId,
+        sellerTeamId: parseInt(teamId),
         isActive: true
       }
     });
@@ -55,7 +55,7 @@ export class DynamicMarketplaceService {
   static async getTeamPlayerCount(teamId: string): Promise<number> {
     const result = await prisma.player.count({
       where: {
-        teamId: teamId
+        teamId: parseInt(teamId)
       }
     });
 
@@ -80,8 +80,8 @@ export class DynamicMarketplaceService {
       // Validation 1: Check if player belongs to team
       const player = await prisma.player.findFirst({
         where: {
-          id: playerId,
-          teamId: teamId
+          id: parseInt(playerId),
+          teamId: parseInt(teamId)
         }
       });
 
