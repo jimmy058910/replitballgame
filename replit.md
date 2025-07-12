@@ -121,7 +121,30 @@ Built as a React + Express web application with PostgreSQL database, using moder
 
 ## Recent Changes
 
-### July 12, 2025 - ✅ COMPLETE UNITY ADS INTEGRATION IMPLEMENTATION ACHIEVEMENT
+### July 12, 2025 - ✅ CRITICAL DIVISION STRUCTURE & LIVE MATCH SYSTEM FIXES COMPLETE
+
+#### ✅ DIVISION STRUCTURE PROBLEM RESOLVED - PROPER SUBDIVISION FILTERING IMPLEMENTED
+- ✓ **Backend API Fixed**: Updated `/api/leagues/8/standings` endpoint to filter by user's subdivision instead of returning all division teams
+- ✓ **New Storage Method**: Added `getTeamsByDivisionAndSubdivision` method to properly filter teams by both division and subdivision
+- ✓ **Proper Team Display**: Users now see only their 8 subdivision teams instead of all 35 teams in the division
+- ✓ **Database Verification**: Confirmed "eta" subdivision contains exactly 8 teams (Oakland Cougars, Thunder Hawks variants, etc.)
+- ✓ **User Experience**: Division standings now show correct team count with proper subdivision filtering
+
+#### ✅ LIVE MATCH SYSTEM CRITICAL FIXES COMPLETE
+- ✓ **React Hooks Error Fixed**: Moved `useEffect` hook before conditional return in TextMatch.tsx to prevent "more hooks than previous render" error
+- ✓ **Match ID Parsing Fixed**: Resolved string-to-integer conversion issues in match routes for proper match data retrieval
+- ✓ **Match Display Enhancement**: Live matches now display complete team information instead of "Match not found" errors
+- ✓ **Stuck Match Cleanup**: Implemented SQL query to auto-complete matches stuck in IN_PROGRESS state for over 1 hour
+- ✓ **UI Interaction Restored**: Users can now click on live matches from dashboard and competition pages without errors
+
+#### ✅ COMPREHENSIVE SYSTEM VALIDATION COMPLETE
+- ✓ **Store System**: Gem purchases working with proper query invalidation and inventory updates
+- ✓ **Live Match API**: Match endpoints returning complete data with proper team names and status
+- ✓ **Division Structure**: Subdivision filtering working correctly with 8 teams per subdivision
+- ✓ **Frontend Error Resolution**: React hooks error eliminated, live match UI fully functional
+- ✓ **Database Consistency**: All stuck matches cleared, proper team subdivision assignments confirmed
+
+### July 12, 2025 - ✅ COMPLETE UNITY ADS INTEGRATION IMPLEMENTATION ACHIEVEMENT (Previous)
 
 #### ✅ STREAMLINED UNITY ADS IMPLEMENTATION - HALFTIME & REWARDED VIDEO ONLY
 - ✓ **Unity Ads Web SDK Integration**: Successfully integrated Unity Ads Web SDK 3.0 in index.html for immediate ad serving capability

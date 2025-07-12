@@ -206,6 +206,41 @@ export class TeamStorage {
   async getTeamsByDivisionAndSubdivision(division: number, subdivision: string): Promise<Team[]> {
     const teams = await prisma.team.findMany({
       where: { 
+        division: division,
+        subdivision: subdivision
+      },
+      include: {
+        finances: true,
+        stadium: true,
+        players: true,
+        staff: true
+      },
+      orderBy: [
+        { points: 'desc' },
+        { wins: 'desc' }
+      ]
+    });
+
+    // Convert BigInt fields to strings for JSON serialization
+    return teams.map(team => {
+      if (team.finances) {
+        team.finances = {
+          ...team.finances,
+          credits: team.finances.credits.toString(),
+          projectedIncome: team.finances.projectedIncome.toString(),
+          projectedExpenses: team.finances.projectedExpenses.toString(),
+          lastSeasonRevenue: team.finances.lastSeasonRevenue.toString(),
+          lastSeasonExpenses: team.finances.lastSeasonExpenses.toString(),
+          facilitiesMaintenanceCost: team.finances.facilitiesMaintenanceCost.toString(),
+        };
+      }
+      return team;
+    });
+  }
+
+  async getTeamsByDivisionAndSubdivision(division: number, subdivision: string): Promise<Team[]> {
+    const teams = await prisma.team.findMany({
+      where: { 
         division,
         subdivision
       },

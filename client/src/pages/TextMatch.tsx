@@ -92,6 +92,14 @@ export default function TextMatch() {
   console.log("Team1 error:", team1Error);
   console.log("Team2 error:", team2Error);
 
+  // Check for halftime (when match is at 50% completion) - MUST BE BEFORE CONDITIONAL RETURN
+  React.useEffect(() => {
+    if (match?.status === 'live' && enhancedData?.gamePhase === 'halftime' && !halftimeAdShown) {
+      setShowHalftimeAd(true);
+      setHalftimeAdShown(true);
+    }
+  }, [match, enhancedData, halftimeAdShown]);
+
   if (!match || !team1 || !team2) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -111,14 +119,6 @@ export default function TextMatch() {
 
   const team1WithPlayers = { ...team1, players: team1Players || [] };
   const team2WithPlayers = { ...team2, players: team2Players || [] };
-
-  // Check for halftime (when match is at 50% completion)
-  React.useEffect(() => {
-    if (match?.status === 'live' && enhancedData?.gamePhase === 'halftime' && !halftimeAdShown) {
-      setShowHalftimeAd(true);
-      setHalftimeAdShown(true);
-    }
-  }, [match, enhancedData, halftimeAdShown]);
 
   const handleHalftimeAdCompleted = (reward: number) => {
     setShowHalftimeAd(false);

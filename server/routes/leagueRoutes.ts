@@ -139,11 +139,17 @@ router.get('/:division/standings', isAuthenticated, async (req: Request, res: Re
     if (isNaN(division) || division < 1 || division > 8) {
       return res.status(400).json({ message: "Invalid division parameter" });
     }
-    let teamsInDivision = await storage.teams.getTeamsByDivision(division); // Use teamStorage
+    
+    // Get the user's team to determine their subdivision
+    const userTeam = await storage.teams.getTeamByUserId(req.user.id);
+    const userSubdivision = userTeam?.subdivision || 'eta';
+    
+    // Only get teams from the user's subdivision
+    let teamsInDivision = await storage.teams.getTeamsByDivisionAndSubdivision(division, userSubdivision);
 
     if (teamsInDivision.length === 0) {
       await createAITeamsForDivision(division);
-      teamsInDivision = await storage.teams.getTeamsByDivision(division); // Use teamStorage
+      teamsInDivision = await storage.teams.getTeamsByDivisionAndSubdivision(division, userSubdivision);
     }
 
     // Enhanced standings with streak and additional stats
