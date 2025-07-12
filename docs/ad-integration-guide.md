@@ -6,45 +6,51 @@
 - ✅ Reward system (500-10,000 credits)
 - ✅ User analytics and view tracking
 
-## Option 1: Google AdSense (Recommended)
+## Option 1: Unity Ads (Recommended for Mobile + Web)
 
 ### Setup Process:
-1. **Apply for AdSense Account**
-   - Visit https://www.google.com/adsense/
-   - Provide your website URL (your .replit.app domain)
-   - Wait for approval (typically 1-7 days)
+1. **Create Unity Dashboard Account**
+   - Visit https://dashboard.unity3d.com/
+   - Create organization and project
+   - Get Project ID and Game ID
+   - No approval process - instant setup
 
-2. **Integration in Replit**
+2. **Integration in Replit (Web)**
    ```javascript
-   // Add to client/index.html
-   <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-YOUR_PUBLISHER_ID"
-        crossorigin="anonymous"></script>
+   // Unity Ads Web SDK
+   <script src="https://cdn.unity3d.com/monetization/3.0/UnityAdsWebSDK.js"></script>
    ```
 
-3. **Ad Placement Options**
-   - Banner ads (header/footer)
-   - Sidebar ads
-   - In-game interstitial ads
-   - Rewarded video ads
+3. **Ad Types Available**
+   - **Rewarded Video Ads** (highest revenue)
+   - **Interstitial Ads** (full-screen between actions)
+   - **Banner Ads** (lower revenue but consistent)
+   - **Playable Ads** (interactive previews)
 
 ### Revenue Potential:
-- **RPM (Revenue Per Mille)**: $0.50-$5.00 per 1000 views
-- **Fantasy Sports Niche**: Higher rates ($2-8 RPM)
-- **Mobile Traffic**: Generally higher rates
+- **eCPM (Effective Cost Per Mille)**: $5-25 per 1000 views
+- **Rewarded Video**: $15-50 per 1000 completions
+- **Fantasy Sports Audience**: Premium rates ($20-80 eCPM)
+- **Mobile vs Web**: Similar rates with Unity
 
-## Option 2: Video Ad Networks
+## Option 2: IronSource (Advanced Mobile Gaming)
 
-### Unity Ads (Gaming Focused)
-- **Best for**: Rewarded video ads
-- **Integration**: JavaScript SDK available
-- **Revenue**: $1-15 per 1000 completed views
-- **Setup**: Can be done in Replit
+### IronSource LevelPlay
+- **Best for**: Advanced mediation and optimization
+- **Integration**: Web SDK + React Native for mobile
+- **Revenue**: $8-35 per 1000 completed views
+- **Setup**: Requires approval (1-3 days)
+- **Advanced Features**: A/B testing, advanced analytics
 
-### IronSource (Mobile Gaming)
-- **Best for**: Interstitial and rewarded ads
-- **Integration**: Web SDK available
-- **Revenue**: $2-20 per 1000 views
-- **Setup**: Can be done in Replit
+### Revenue Comparison:
+- **Unity Ads**: $15-50 per 1000 rewarded video completions
+- **IronSource**: $20-80 per 1000 rewarded video completions
+- **AdSense**: $2-8 per 1000 banner impressions (much lower)
+
+## Option 3: Google AdSense (Web Only)
+- **Best for**: Display ads on web only
+- **Revenue**: $0.50-$5.00 per 1000 views
+- **Not recommended**: Poor mobile app support, no video ads
 
 ## Option 3: Programmatic Advertising
 
@@ -94,15 +100,20 @@ const platformRevenue = adNetworkRevenue * 0.3; // 30% platform fee
 
 ## Revenue Projections
 
-### Conservative Estimates (Monthly)
-- **1000 DAU**: $200-800/month
-- **5000 DAU**: $1000-4000/month  
-- **10000 DAU**: $2000-8000/month
+### Unity Ads Revenue Estimates (Monthly)
+- **1000 DAU**: $300-1500/month
+- **5000 DAU**: $1500-7500/month  
+- **10000 DAU**: $3000-15000/month
 
-### Optimistic Estimates (Monthly)
-- **1000 DAU**: $500-2000/month
-- **5000 DAU**: $2500-10000/month
-- **10000 DAU**: $5000-20000/month
+### IronSource Revenue Estimates (Monthly)
+- **1000 DAU**: $500-2500/month
+- **5000 DAU**: $2500-12500/month
+- **10000 DAU**: $5000-25000/month
+
+### Mobile App Additional Revenue (React Native)
+- **Unity Ads Mobile**: 3-5x higher eCPM than web
+- **IronSource Mobile**: 4-6x higher eCPM than web
+- **In-App Purchases**: Additional 20-50% revenue boost
 
 ## Next Steps
 
