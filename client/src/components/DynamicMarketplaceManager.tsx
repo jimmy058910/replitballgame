@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
 import { 
@@ -18,7 +19,9 @@ import {
   AlertCircle,
   ShoppingCart,
   Eye,
-  Zap
+  Zap,
+  Plus,
+  Tag
 } from 'lucide-react';
 
 interface Player {
@@ -103,6 +106,12 @@ export default function DynamicMarketplaceManager({ teamId }: { teamId: string }
   const queryClient = useQueryClient();
   const [selectedListing, setSelectedListing] = useState<string | null>(null);
   const [bidAmount, setBidAmount] = useState<string>('');
+  
+  // Player listing form state
+  const [selectedPlayerId, setSelectedPlayerId] = useState<string>('');
+  const [startBid, setStartBid] = useState<string>('');
+  const [durationHours, setDurationHours] = useState<string>('24');
+  const [buyNowPrice, setBuyNowPrice] = useState<string>('');
 
   // Fetch marketplace stats
   const { data: stats, isLoading: loadingStats } = useQuery({
@@ -125,6 +134,12 @@ export default function DynamicMarketplaceManager({ teamId }: { teamId: string }
   // Fetch user's bids
   const { data: myBids } = useQuery({
     queryKey: ['/api/dynamic-marketplace/my-bids', teamId],
+    enabled: !!teamId
+  });
+
+  // Fetch team players for listing
+  const { data: teamPlayers } = useQuery({
+    queryKey: ['/api/teams/' + teamId + '/players'],
     enabled: !!teamId
   });
 
@@ -169,6 +184,31 @@ export default function DynamicMarketplaceManager({ teamId }: { teamId: string }
     }
   });
 
+  // List player mutation
+  const listPlayerMutation = useMutation({
+    mutationFn: (data: { playerId: string; startBid: number; durationHours: number; buyNowPrice?: number }) =>
+      apiRequest('/api/dynamic-marketplace/list-player', 'POST', data),
+    onSuccess: () => {
+      toast({
+        title: 'Player Listed Successfully',
+        description: 'Your player has been listed on the marketplace!'
+      });
+      // Clear form
+      setSelectedPlayerId('');
+      setStartBid('');
+      setDurationHours('24');
+      setBuyNowPrice('');
+      queryClient.invalidateQueries({ queryKey: ['/api/dynamic-marketplace'] });
+    },
+    onError: (error: any) => {
+      toast({
+        title: 'Listing Failed',
+        description: error.message || 'Failed to list player',
+        variant: 'destructive'
+      });
+    }
+  });
+
   const selectedListingData = listings?.listings?.find((l: MarketplaceListing) => l.id === selectedListing);
 
   const getMinimumBid = (listing: MarketplaceListing): number => {
@@ -200,8 +240,9 @@ export default function DynamicMarketplaceManager({ teamId }: { teamId: string }
       </div>
 
       <Tabs defaultValue="browse" className="space-y-4">
-        <TabsList className="grid w-full grid-cols-4">
+        <TabsList className="grid w-full grid-cols-5">
           <TabsTrigger value="browse">Browse Auctions</TabsTrigger>
+          <TabsTrigger value="list-player">List Player</TabsTrigger>
           <TabsTrigger value="my-listings">My Listings</TabsTrigger>
           <TabsTrigger value="my-bids">My Bids</TabsTrigger>
           <TabsTrigger value="analytics">Market Analytics</TabsTrigger>
@@ -464,6 +505,192 @@ export default function DynamicMarketplaceManager({ teamId }: { teamId: string }
           </div>
         </TabsContent>
 
+        <TabsContent value="list-player" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Plus className="h-5 w-5" />
+                List Player for Auction
+              </CardTitle>
+              <CardDescription>
+                Create a new marketplace listing for one of your players
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="space-y-4">
+                  <div>
+                    <Label htmlFor="player-select">Select Player</Label>
+                    <Select value={selectedPlayerId} onValueChange={setSelectedPlayerId}>
+                      <SelectTrigger className="mt-1">
+                        <SelectValue placeholder="Choose a player to list..." />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {teamPlayers?.map((player: any) => (
+                          <SelectItem key={player.id} value={player.id}>
+                            {player.firstName} {player.lastName} ({player.role}, {player.race})
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div>
+                    <Label htmlFor="start-bid">Starting Bid (₡)</Label>
+                    <Input
+                      id="start-bid"
+                      type="number"
+                      value={startBid}
+                      onChange={(e) => setStartBid(e.target.value)}
+                      placeholder="Minimum 100 credits"
+                      className="mt-1"
+                      min="100"
+                    />
+                    <p className="text-xs text-gray-500 mt-1">
+                      Minimum starting bid is 100 credits. A 2% listing fee will be charged.
+                    </p>
+                  </div>
+
+                  <div>
+                    <Label htmlFor="duration">Auction Duration</Label>
+                    <Select value={durationHours} onValueChange={setDurationHours}>
+                      <SelectTrigger className="mt-1">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="12">12 hours</SelectItem>
+                        <SelectItem value="24">24 hours</SelectItem>
+                        <SelectItem value="72">3 days</SelectItem>
+                        <SelectItem value="168">7 days</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div>
+                    <Label htmlFor="buy-now">Buy Now Price (₡) - Optional</Label>
+                    <Input
+                      id="buy-now"
+                      type="number"
+                      value={buyNowPrice}
+                      onChange={(e) => setBuyNowPrice(e.target.value)}
+                      placeholder="Optional instant purchase price"
+                      className="mt-1"
+                    />
+                    <p className="text-xs text-gray-500 mt-1">
+                      Allow instant purchase at this price. Leave empty for auction-only.
+                    </p>
+                  </div>
+                </div>
+
+                <div className="space-y-4">
+                  {selectedPlayerId && teamPlayers && (
+                    <Card className="border-2 border-blue-200">
+                      <CardHeader>
+                        <CardTitle className="text-lg">Player Preview</CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        {(() => {
+                          const selectedPlayer = teamPlayers.find((p: any) => p.id === selectedPlayerId);
+                          if (!selectedPlayer) return null;
+                          
+                          return (
+                            <div className="space-y-3">
+                              <div className="text-center">
+                                <div className="w-16 h-16 bg-gray-200 rounded-full flex items-center justify-center mx-auto mb-3">
+                                  <span className="text-xl font-bold">
+                                    {getPlayerPower(selectedPlayer)}
+                                  </span>
+                                </div>
+                                <h3 className="font-bold text-lg">
+                                  {selectedPlayer.firstName} {selectedPlayer.lastName}
+                                </h3>
+                                <div className="flex items-center justify-center space-x-2 mt-1">
+                                  <Badge className={getRoleColor(selectedPlayer.role)}>
+                                    {selectedPlayer.role}
+                                  </Badge>
+                                  <span className="text-sm text-gray-600">{selectedPlayer.race}</span>
+                                </div>
+                              </div>
+
+                              <div className="grid grid-cols-5 gap-2 text-center">
+                                <div>
+                                  <div className="text-xs text-gray-500">SPD</div>
+                                  <div className="font-medium">{selectedPlayer.speed}</div>
+                                </div>
+                                <div>
+                                  <div className="text-xs text-gray-500">PWR</div>
+                                  <div className="font-medium">{selectedPlayer.power}</div>
+                                </div>
+                                <div>
+                                  <div className="text-xs text-gray-500">THR</div>
+                                  <div className="font-medium">{selectedPlayer.throwing}</div>
+                                </div>
+                                <div>
+                                  <div className="text-xs text-gray-500">CAT</div>
+                                  <div className="font-medium">{selectedPlayer.catching}</div>
+                                </div>
+                                <div>
+                                  <div className="text-xs text-gray-500">KCK</div>
+                                  <div className="font-medium">{selectedPlayer.kicking}</div>
+                                </div>
+                              </div>
+                            </div>
+                          );
+                        })()}
+                      </CardContent>
+                    </Card>
+                  )}
+
+                  <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                    <div className="flex items-start space-x-2">
+                      <AlertCircle className="h-5 w-5 text-yellow-600 mt-0.5" />
+                      <div>
+                        <h4 className="font-medium text-yellow-800">Marketplace Rules</h4>
+                        <ul className="text-sm text-yellow-700 mt-1 space-y-1">
+                          <li>• Must maintain minimum 10 players on roster</li>
+                          <li>• Maximum 3 active listings per team</li>
+                          <li>• 2% listing fee charged on starting bid</li>
+                          <li>• Anti-sniping: 5-minute extensions when bid placed in final 5 minutes</li>
+                          <li>• Buy-now price formula: (Player CAR × 1000) + (Potential × 2000)</li>
+                        </ul>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="border-t pt-4">
+                <Button 
+                  className="w-full md:w-auto"
+                  onClick={() => {
+                    if (!selectedPlayerId || !startBid || !durationHours) {
+                      toast({
+                        title: 'Missing Information',
+                        description: 'Please select a player and enter starting bid',
+                        variant: 'destructive'
+                      });
+                      return;
+                    }
+
+                    const data = {
+                      playerId: selectedPlayerId,
+                      startBid: parseInt(startBid),
+                      durationHours: parseInt(durationHours),
+                      ...(buyNowPrice && { buyNowPrice: parseInt(buyNowPrice) })
+                    };
+
+                    listPlayerMutation.mutate(data);
+                  }}
+                  disabled={!selectedPlayerId || !startBid || listPlayerMutation.isPending}
+                >
+                  <Tag className="w-4 h-4 mr-2" />
+                  {listPlayerMutation.isPending ? 'Listing Player...' : 'List Player for Auction'}
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
         <TabsContent value="my-listings" className="space-y-4">
           <Card>
             <CardHeader>
@@ -513,7 +740,7 @@ export default function DynamicMarketplaceManager({ teamId }: { teamId: string }
                   <Gavel className="mx-auto h-12 w-12 text-gray-400" />
                   <h3 className="mt-2 text-sm font-medium text-gray-900">No Active Listings</h3>
                   <p className="mt-1 text-sm text-gray-500">
-                    You haven't listed any players for auction yet.
+                    You haven't listed any players for auction yet. Go to the "List Player" tab to create your first listing.
                   </p>
                 </div>
               )}
