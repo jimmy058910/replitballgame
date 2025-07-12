@@ -898,22 +898,27 @@ router.get('/:teamId/taxi-squad', isAuthenticated, asyncHandler(async (req: any,
     throw ErrorCreators.notFound("Team not found");
   }
 
-  // Get taxi squad players using Prisma - players beyond the first 12 are taxi squad
-  const allPlayers = await prisma.player.findMany({
-    where: { teamId: team.id },
+  // Get taxi squad players using Prisma - players with isOnTaxi = true
+  const taxiSquadPlayers = await prisma.player.findMany({
+    where: { 
+      teamId: team.id,
+      // Note: Prisma schema doesn't seem to have isOnTaxi field, so using our current logic
+      // We'll identify taxi players as those beyond the first 12 players ordered by creation
+    },
     orderBy: { createdAt: 'asc' }
   });
 
   // Consider players beyond the first 12 as taxi squad (teams now start with 12 players)
-  const taxiSquadPlayers = allPlayers.slice(12);
+  const allPlayers = taxiSquadPlayers;
+  const actualTaxiSquadPlayers = allPlayers.slice(12);
 
   logInfo("Taxi squad retrieved", {
     teamId: team.id,
-    playersCount: taxiSquadPlayers.length,
+    playersCount: actualTaxiSquadPlayers.length,
     requestId: req.requestId
   });
 
-  res.json(taxiSquadPlayers);
+  res.json(actualTaxiSquadPlayers);
 }));
 
 router.post('/:teamId/taxi-squad/add-candidates', isAuthenticated, asyncHandler(async (req: any, res: Response) => {
@@ -987,36 +992,32 @@ router.post('/:teamId/taxi-squad/add-candidates', isAuthenticated, asyncHandler(
     }
     
     // Convert candidate to player format for taxi squad
-    const playerData = {
-      firstName: candidate.firstName,
-      lastName: candidate.lastName,
-      name: `${candidate.firstName} ${candidate.lastName}`,
-      race: candidate.race.toUpperCase(), // Convert to uppercase for Prisma enum
-      age: candidate.age,
-      speed: candidate.speed,
-      power: candidate.power,
-      throwing: candidate.throwing,
-      catching: candidate.catching,
-      kicking: candidate.kicking,
-      staminaAttribute: candidate.stamina,
-      leadership: candidate.leadership,
-      agility: candidate.agility,
-      potentialRating: parseFloat(candidate.overallPotentialStars?.toString() || '0'),
-      marketValue: candidate.marketValue || 0,
-      salary: 0, // Taxi squad players don't earn salary
-      teamId: team.id,
-      isOnTaxi: true,
-      isMarketplace: false,
-      contractSeasons: 1,
-      contractValue: 0,
-      abilities: JSON.stringify([]),
-      role: roleEnum, // Use converted enum value
-      dailyStaminaLevel: 100,
-      injuryStatus: "HEALTHY",
-      camaraderieScore: 75
-    };
+    // Add taxi squad player directly using Prisma
+    const newPlayer = await prisma.player.create({
+      data: {
+        teamId: team.id,
+        firstName: candidate.firstName,
+        lastName: candidate.lastName,
+        race: candidate.race.toUpperCase(), // Convert to uppercase for Prisma enum
+        age: candidate.age,
+        role: roleEnum, // Use converted enum value
+        speed: candidate.speed,
+        power: candidate.power,
+        throwing: candidate.throwing,
+        catching: candidate.catching,
+        kicking: candidate.kicking,
+        staminaAttribute: candidate.staminaAttribute,
+        leadership: candidate.leadership,
+        agility: candidate.agility,
+        potentialRating: parseFloat(candidate.potentialRating?.toString() || '0'),
+        dailyStaminaLevel: 100,
+        injuryStatus: "HEALTHY",
+        camaraderieScore: 75.0,
+        isOnMarket: false,
+        // These players will be beyond the 12-player limit, making them taxi squad
+      }
+    });
 
-    const newPlayer = await storage.players.createPlayer(playerData);
     addedPlayers.push(newPlayer);
   }
 

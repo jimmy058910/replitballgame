@@ -174,9 +174,8 @@ router.post('/:teamId/conduct', isAuthenticated, async (req: any, res: Response,
       }
     });
 
-    // Add selected players to taxi squad
-    const addedPlayers = [];
-    for (const playerData of selectedPlayers) {
+    // Store tryout candidates for taxi squad - DON'T add to main roster yet
+    const candidates = selectedPlayers.map(playerData => {
       // Map role string to PlayerRole enum
       let roleEnum: PlayerRole;
       const roleString = playerData.role.toLowerCase();
@@ -194,40 +193,31 @@ router.post('/:teamId/conduct', isAuthenticated, async (req: any, res: Response,
           roleEnum = PlayerRole.RUNNER; // Default fallback
       }
 
-      const newPlayer = await prisma.player.create({
-        data: {
-          teamId: team.id,
-          firstName: playerData.firstName,
-          lastName: playerData.lastName,
-          race: playerData.race,
-          age: playerData.age,
-          role: roleEnum,
-          speed: playerData.speed,
-          power: playerData.power,
-          throwing: playerData.throwing,
-          catching: playerData.catching,
-          kicking: playerData.kicking,
-          staminaAttribute: playerData.staminaAttribute,
-          leadership: playerData.leadership,
-          agility: playerData.agility,
-          potentialRating: playerData.potentialRating,
-          dailyStaminaLevel: 100,
-          injuryStatus: 'HEALTHY',
-          camaraderieScore: 75.0,
+      return {
+        id: playerData.id,
+        firstName: playerData.firstName,
+        lastName: playerData.lastName,
+        race: playerData.race,
+        age: playerData.age,
+        role: roleEnum,
+        speed: playerData.speed,
+        power: playerData.power,
+        throwing: playerData.throwing,
+        catching: playerData.catching,
+        kicking: playerData.kicking,
+        staminaAttribute: playerData.staminaAttribute,
+        leadership: playerData.leadership,
+        agility: playerData.agility,
+        potentialRating: playerData.potentialRating,
+        marketValue: playerData.marketValue || 0
+      };
+    });
 
-          isOnMarket: false
-        }
-      });
-
-      addedPlayers.push(newPlayer);
-    }
-
-    // No need to record in separate table - player creation timestamp serves as record
-
+    // Return candidates for taxi squad selection - NOT added to database yet
     res.json({
       success: true,
-      message: `Tryout completed successfully! ${addedPlayers.length} players added to taxi squad.`,
-      playersAdded: addedPlayers.length,
+      message: `Tryout completed successfully! ${candidates.length} candidates available for taxi squad.`,
+      candidates: candidates,
       creditsSpent: cost,
       remainingCredits: (Number(teamFinances.credits) - cost).toString()
     });
