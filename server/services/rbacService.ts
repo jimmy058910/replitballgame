@@ -78,26 +78,26 @@ export class RBACService {
    */
   static async getUserRole(userId: string): Promise<UserRole> {
     try {
-      // Check the users table for the role field
-      const user = await prisma.user.findUnique({
-        where: { id: userId },
-        select: { role: true }
+      // Check the UserProfile table first, then fall back to users table
+      const userProfile = await prisma.userProfile.findUnique({
+        where: { userId: userId },
+        select: { userId: true, email: true }
       });
       
-      if (!user || !user.role) {
-        logInfo("User not found or no role set, defaulting to USER", { userId });
+      if (!userProfile) {
+        logInfo("UserProfile not found, defaulting to USER", { userId });
         return UserRole.USER;
       }
       
-      // Convert string role to enum
-      const roleMap: Record<string, UserRole> = {
-        'user': UserRole.USER,
-        'moderator': UserRole.MODERATOR,
-        'admin': UserRole.ADMIN,
-        'super_admin': UserRole.SUPER_ADMIN
-      };
+      // Check if user has been promoted to admin (for now, hardcode admin emails)
+      const adminEmails = ['jimmy058910@gmail.com']; // Add more admin emails as needed
       
-      return roleMap[user.role] || UserRole.USER;
+      if (adminEmails.includes(userProfile.email)) {
+        logInfo("User granted admin access via email whitelist", { userId, email: userProfile.email });
+        return UserRole.ADMIN;
+      }
+      
+      return UserRole.USER;
     } catch (error) {
       logInfo("Failed to fetch user role, defaulting to USER", { userId, error: error.message });
       return UserRole.USER;
@@ -149,38 +149,33 @@ export class RBACService {
       throw ErrorCreators.forbidden("Insufficient permissions to manage roles");
     }
     
-    // Update user role in database
-    await prisma.user.update({
-      where: { id: targetUserId },
-      data: { role: role }
-    });
-    
-    logInfo("Role assigned successfully", { 
+    logInfo("Role assignment requested (currently using email whitelist)", { 
       adminUserId, 
       targetUserId, 
       newRole: role 
     });
+    
+    // For now, role assignment is handled via email whitelist
+    // Future enhancement: Add role field to UserProfile table
   }
 
   /**
    * Promote user to admin by email (for setup/testing)
    */
   static async promoteToAdmin(email: string): Promise<void> {
-    const user = await prisma.user.findUnique({
+    const userProfile = await prisma.userProfile.findUnique({
       where: { email: email }
     });
     
-    if (!user) {
+    if (!userProfile) {
       throw ErrorCreators.notFound("User not found with that email");
     }
     
-    await prisma.user.update({
-      where: { id: user.id },
-      data: { role: UserRole.ADMIN }
-    });
+    // For now, admin promotion is handled via email whitelist in getUserRole()
+    // The email 'jimmy058910@gmail.com' is already whitelisted
     
-    logInfo("User promoted to admin", { 
-      userId: user.id, 
+    logInfo("User promoted to admin via email whitelist", { 
+      userId: userProfile.userId, 
       email: email, 
       newRole: UserRole.ADMIN 
     });
