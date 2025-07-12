@@ -16,6 +16,7 @@ import {
   LEAGUE_GAME_END_HOUR
 } from "@shared/timezone";
 import { generateRandomPlayer } from "../services/leagueService";
+import { generateRandomName } from "@shared/names";
 import gameConfig from "../config/game_config.json";
 // import { ABILITIES, rollForAbility } from "@shared/abilities"; // Only if used directly in AI team gen
 
@@ -414,13 +415,19 @@ router.post('/fix-team-players/:teamId', isAuthenticated, async (req: Request, r
       return res.status(400).json({ message: "Team already has players" });
     }
     
-    // Generate players for the team
+    // Generate players for the team with proper position distribution
     const races = ["HUMAN", "SYLVAN", "GRYLL", "LUMINA", "UMBRA"];
-    const positions = ["passer", "runner", "blocker"];
+    
+    // Define required position distribution: 3 passers, 4 runners, 5 blockers
+    const requiredPositions = [
+      "passer", "passer", "passer", // 3 passers
+      "runner", "runner", "runner", "runner", // 4 runners  
+      "blocker", "blocker", "blocker", "blocker", "blocker" // 5 blockers
+    ];
     
     for (let j = 0; j < 12; j++) {
       const race = races[Math.floor(Math.random() * races.length)];
-      const position = positions[Math.floor(Math.random() * positions.length)];
+      const position = requiredPositions[j];
       
       // Generate proper names instead of "AI Player" 
       await storage.players.createPlayer(generateRandomPlayer(null, race, team.id, position));
@@ -451,6 +458,57 @@ router.post('/update-subdivision/:teamId', isAuthenticated, async (req: Request,
     res.json({ message: `Updated team ${team.name} subdivision to ${subdivision}` });
   } catch (error) {
     console.error("Error updating team subdivision:", error);
+    next(error);
+  }
+});
+
+// Utility endpoint to fix existing players' names and positions  
+router.post('/fix-existing-players/:teamId', isAuthenticated, async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const { teamId } = req.params;
+    
+    // Get team info
+    const team = await storage.teams.getTeamById(teamId);
+    if (!team) {
+      return res.status(404).json({ message: "Team not found" });
+    }
+    
+    // Get existing players
+    const players = await storage.players.getPlayersByTeamId(teamId);
+    if (players.length === 0) {
+      return res.status(400).json({ message: "No players found for this team" });
+    }
+    
+    // Define proper position distribution: 3 passers, 4 runners, 5 blockers
+    const requiredPositions = [
+      "PASSER", "PASSER", "PASSER", // 3 passers
+      "RUNNER", "RUNNER", "RUNNER", "RUNNER", // 4 runners
+      "BLOCKER", "BLOCKER", "BLOCKER", "BLOCKER", "BLOCKER" // 5 blockers
+    ];
+    
+    const races = ["HUMAN", "SYLVAN", "GRYLL", "LUMINA", "UMBRA"];
+    
+    // Update each player with proper name and position
+    for (let i = 0; i < Math.min(players.length, 12); i++) {
+      const player = players[i];
+      const race = races[Math.floor(Math.random() * races.length)];
+      const position = requiredPositions[i] || "RUNNER";
+      
+      // Generate proper race-appropriate name
+      const { firstName, lastName } = generateRandomName(race.toLowerCase());
+      
+      // Update player with new name, race, and position
+      await storage.players.updatePlayer(player.id, {
+        firstName,
+        lastName,
+        race,
+        role: position
+      });
+    }
+    
+    res.json({ message: `Updated ${Math.min(players.length, 12)} players for team ${team.name}` });
+  } catch (error) {
+    console.error("Error fixing existing players:", error);
     next(error);
   }
 });
