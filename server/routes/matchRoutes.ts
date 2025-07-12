@@ -210,8 +210,28 @@ router.post('/:matchId/complete-now', isAuthenticated, async (req: any, res: Res
   try {
     // TODO: Add SuperUser/Admin check
     const { matchId } = req.params;
+    const matchIdNum = parseInt(matchId);
+    
+    console.log(`🔍 Force completing match ${matchId}`);
+    
+    // First, stop the match state manager
     await matchStateManager.stopMatch(matchId);
-    res.json({ message: "Match completion process initiated successfully" });
+    
+    // Then, directly update the database to ensure completion
+    await storage.matches.updateMatch(matchIdNum, {
+      status: 'COMPLETED',
+      homeScore: 0,
+      awayScore: 0,
+      completedAt: new Date(),
+      gameData: {
+        events: [],
+        finalScores: { home: 0, away: 0 },
+        forcedCompletion: true
+      }
+    });
+    
+    console.log(`✅ Match ${matchId} force completed successfully`);
+    res.json({ message: "Match completion process completed successfully" });
   } catch (error) {
     console.error("Error completing match:", error);
     next(error);

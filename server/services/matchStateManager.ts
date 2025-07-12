@@ -797,16 +797,29 @@ class MatchStateManager {
   }
 
   async stopMatch(matchId: string): Promise<void> {
+    console.log(`🔍 stopMatch called for matchId: ${matchId}`);
     const state = this.liveMatches.get(matchId);
+    console.log(`🎯 Live match state found: ${state ? 'YES' : 'NO'}`);
+    
     if (state) {
-      // Need to pass all required parameters to completeMatch
-      const homePlayers = await prisma.player.findMany({
-        where: { teamId: state.homeTeamId }
-      });
-      const awayPlayers = await prisma.player.findMany({
-        where: { teamId: state.awayTeamId }
-      });
-      await this.completeMatch(matchId, state.homeTeamId, state.awayTeamId, homePlayers, awayPlayers);
+      console.log(`🏈 Completing match: ${matchId} between teams ${state.homeTeamId} and ${state.awayTeamId}`);
+      try {
+        // Need to pass all required parameters to completeMatch
+        const homePlayers = await prisma.player.findMany({
+          where: { teamId: parseInt(state.homeTeamId) }
+        });
+        const awayPlayers = await prisma.player.findMany({
+          where: { teamId: parseInt(state.awayTeamId) }
+        });
+        console.log(`👥 Found ${homePlayers.length} home players and ${awayPlayers.length} away players`);
+        await this.completeMatch(parseInt(matchId), state.homeTeamId, state.awayTeamId, homePlayers, awayPlayers);
+        console.log(`✅ Match ${matchId} completion successful`);
+      } catch (error) {
+        console.error(`❌ Error completing match ${matchId}:`, error);
+        throw error;
+      }
+    } else {
+      console.warn(`⚠️  Match ${matchId} not found in live matches. Available matches: ${Array.from(this.liveMatches.keys()).join(', ')}`);
     }
   }
 
