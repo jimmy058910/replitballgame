@@ -35,9 +35,9 @@ export class UnityAdsService {
   ];
 
   private constructor() {
-    // Development configuration - replace with your actual Unity Game ID
+    // Production configuration with your actual Unity Game ID
     this.config = {
-      gameId: 'test-game-id', // Replace with your actual game ID
+      gameId: 'a0f0c55a-9ed1-4042-9bd3-8e4914ba6dab', // Your actual Unity Game ID
       testMode: true, // Set to false for production
       debug: true // Set to false for production
     };

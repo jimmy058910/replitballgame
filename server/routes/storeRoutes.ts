@@ -330,8 +330,15 @@ router.post('/purchase/:itemId', isAuthenticated, async (req: any, res: Response
         await teamFinancesStorage.updateTeamFinances(team.id, { credits: BigInt(currentCredits - actualPrice) });
         message = `Purchased ${itemId} for ${actualPrice} credits.`;
     } else if (currency === "gems" || currency === "premium_currency") {
-         if ((finances.gems || 0) < actualPrice) return res.status(400).json({ message: "Insufficient premium currency (gems)." });
-        await teamFinancesStorage.updateTeamFinances(team.id, { gems: (finances.gems || 0) - actualPrice });
+        const currentGems = finances.gems || finances.premiumCurrency || 0;
+        console.log(`Debug: User has ${currentGems} gems, trying to purchase for ${actualPrice} gems`);
+        if (currentGems < actualPrice) {
+            return res.status(400).json({ 
+                message: "Not enough gems or item unavailable.", 
+                debug: { currentGems, actualPrice, itemId, currency } 
+            });
+        }
+        await teamFinancesStorage.updateTeamFinances(team.id, { gems: currentGems - actualPrice });
         message = `Purchased ${itemId} for ${actualPrice} gems.`;
     } else {
         return res.status(400).json({ message: "Unsupported currency type for this item." });
