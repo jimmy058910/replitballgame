@@ -80,9 +80,9 @@ export default function UnifiedInventoryHub({ teamId }: UnifiedInventoryHubProps
   // Filter definitions according to project brief
   const filterOptions = [
     { id: "all", name: "All Items", icon: Package, count: inventory.length },
-    { id: "equipment", name: "Equipment", icon: Shield, count: inventory.filter(item => item.itemType === "equipment").length },
-    { id: "consumable", name: "Consumables", icon: Zap, count: inventory.filter(item => item.itemType === "consumable").length },
-    { id: "tournament_entry", name: "Game Entries", icon: Ticket, count: inventory.filter(item => item.itemType === "tournament_entry").length },
+    { id: "EQUIPMENT", name: "Equipment", icon: Shield, count: inventory.filter(item => item.itemType === "EQUIPMENT").length },
+    { id: "CONSUMABLE_RECOVERY", name: "Consumables", icon: Zap, count: inventory.filter(item => item.itemType === "CONSUMABLE_RECOVERY").length },
+    { id: "GAME_ENTRY", name: "Game Entries", icon: Ticket, count: inventory.filter(item => item.itemType === "GAME_ENTRY").length },
     { id: "trophy", name: "Trophies", icon: Trophy, count: inventory.filter(item => item.itemType === "trophy").length },
   ];
 
@@ -105,51 +105,58 @@ export default function UnifiedInventoryHub({ teamId }: UnifiedInventoryHubProps
 
   // Get item icon based on type and name
   const getItemIcon = (item: InventoryItem) => {
-    if (item.itemType === "equipment") {
-      if (item.name.includes("helmet") || item.name.includes("helm")) return "🪖";
-      if (item.name.includes("glove") || item.name.includes("grip")) return "🧤";
-      if (item.name.includes("boot") || item.name.includes("cleat") || item.name.includes("tread")) return "👟";
-      if (item.name.includes("armor") || item.name.includes("plate") || item.name.includes("aegis")) return "🛡️";
+    if (item.itemType === "EQUIPMENT") {
+      if (item.name.toLowerCase().includes("helmet") || item.name.toLowerCase().includes("helm")) return "🪖";
+      if (item.name.toLowerCase().includes("glove") || item.name.toLowerCase().includes("grip")) return "🧤";
+      if (item.name.toLowerCase().includes("boot") || item.name.toLowerCase().includes("cleat") || item.name.toLowerCase().includes("tread")) return "👟";
+      if (item.name.toLowerCase().includes("armor") || item.name.toLowerCase().includes("plate") || item.name.toLowerCase().includes("aegis")) return "🛡️";
       return "⚔️";
     }
-    if (item.itemType === "consumable") {
-      if (item.name.includes("medical") || item.name.includes("heal")) return "💊";
-      if (item.name.includes("stamina") || item.name.includes("recovery")) return "⚡";
-      if (item.name.includes("boost") || item.name.includes("enhance")) return "💪";
+    if (item.itemType === "CONSUMABLE_RECOVERY") {
+      if (item.name.toLowerCase().includes("medical") || item.name.toLowerCase().includes("heal")) return "💊";
+      if (item.name.toLowerCase().includes("stamina") || item.name.toLowerCase().includes("recovery")) return "⚡";
+      if (item.name.toLowerCase().includes("boost") || item.name.toLowerCase().includes("enhance")) return "💪";
       return "🧪";
     }
-    if (item.itemType === "tournament_entry") return "🎫";
+    if (item.itemType === "GAME_ENTRY") return "🎫";
     if (item.itemType === "trophy") return "🏆";
     return "📦";
   };
 
   // Get item effect description
   const getItemEffect = (item: InventoryItem) => {
+    // Use the actual item description from API first
+    if (item.description && item.description !== "Provides various benefits") {
+      return item.description;
+    }
+
     const effects: Record<string, string> = {
       // Equipment effects
-      "gryllstone_plated_helm": "+3 Power, +2 Stamina",
-      "sylvan_barkwood_circlet": "+4 Agility, +2 Speed",
-      "umbral_cowl": "+3 Agility, +1 Speed",
-      "helm_of_command": "+2 Leadership (Cosmetic)",
-      "boots_of_the_gryll": "+2 Power, +1 Stamina",
-      "lumina_light_treads": "+3 Speed, +1 Agility",
-      "sylvan_gripping_vines": "+2 Catching, +1 Agility",
-      "umbral_shadowgrips": "+2 Agility, +1 Speed",
-      "gryll_forged_plate": "+4 Power, +1 Stamina",
-      "lumina_radiant_aegis": "+1 Leadership (Cosmetic)",
+      "Standard Leather Helmet": "+1 Stamina protection",
+      "Human Tactical Helm": "+4 Leadership, +2 Throwing accuracy",
+      "Gryllstone Plated Helm": "+3 Power, +2 Stamina",
+      "Sylvan Barkwood Circlet": "+4 Agility, +2 Speed",
+      "Umbral Cowl": "+3 Agility, +1 Speed",
+      "Helm of Command": "+2 Leadership (Cosmetic)",
+      "Boots of the Gryll": "+2 Power, +1 Stamina",
+      "Lumina Light-Treads": "+3 Speed, +1 Agility",
+      "Sylvan Gripping Vines": "+2 Catching, +1 Agility",
+      "Umbral Shadowgrips": "+2 Agility, +1 Speed",
+      "Gryll Forged Plate": "+4 Power, +1 Stamina",
+      "Lumina Radiant Aegis": "+1 Leadership (Cosmetic)",
       
       // Consumable effects
-      "basic_medical_kit": "Heals 25 Injury Recovery Points",
-      "advanced_treatment": "Heals 50 Injury Recovery Points",
-      "phoenix_elixir": "Fully heals any injury",
-      "basic_stamina_drink": "Restores 25% stamina",
-      "advanced_recovery_serum": "Restores 50% stamina",
-      "speed_boost_tonic": "+3 Speed for one match",
-      "power_surge_potion": "+3 Power for one match",
-      "champion_blessing": "+2 to all stats for one match",
+      "Basic Medical Kit": "Heals 25 Injury Recovery Points",
+      "Advanced Treatment": "Heals 50 Injury Recovery Points",
+      "Phoenix Elixir": "Fully heals any injury",
+      "Basic Stamina Drink": "Restores 20 daily stamina",
+      "Advanced Recovery Serum": "Restores 50% stamina",
+      "Speed Boost Tonic": "+3 Speed for one match",
+      "Power Surge Potion": "+3 Power for one match",
+      "Champion Blessing": "+2 to all stats for one match",
     };
     
-    return effects[item.name] || "Provides various benefits";
+    return effects[item.name] || item.description || "Provides various benefits";
   };
 
   // Mutations for item usage
@@ -208,12 +215,12 @@ export default function UnifiedInventoryHub({ teamId }: UnifiedInventoryHubProps
 
   // Get eligible players for item usage
   const getEligiblePlayers = (item: InventoryItem) => {
-    if (item.itemType === "equipment") {
+    if (item.itemType === "EQUIPMENT") {
       return players; // All players can equip items
     }
-    if (item.itemType === "consumable") {
-      if (item.name.includes("medical") || item.name.includes("heal")) {
-        return players.filter(p => p.injuryStatus !== "Healthy");
+    if (item.itemType === "CONSUMABLE_RECOVERY") {
+      if (item.name.toLowerCase().includes("medical") || item.name.toLowerCase().includes("heal")) {
+        return players.filter(p => p.injuryStatus !== "HEALTHY");
       }
       return players; // All players can use stamina/boost items
     }
@@ -319,7 +326,7 @@ export default function UnifiedInventoryHub({ teamId }: UnifiedInventoryHubProps
                       </div>
                     )}
                     
-                    <div className="flex justify-between items-center">
+                    <div className="flex justify-between items-center mt-3">
                       <Badge 
                         variant="secondary" 
                         className={`text-xs ${
@@ -333,9 +340,18 @@ export default function UnifiedInventoryHub({ teamId }: UnifiedInventoryHubProps
                         {item.rarity?.charAt(0).toUpperCase() + item.rarity?.slice(1) || "Common"}
                       </Badge>
                       
-                      <span className="text-xs text-gray-500 capitalize">
-                        {item.itemType.replace(/_/g, ' ')}
-                      </span>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setSelectedItem(item);
+                          setShowItemModal(true);
+                        }}
+                        className="text-xs py-1 px-2 h-6 bg-blue-600 hover:bg-blue-700 text-white border-blue-600"
+                      >
+                        USE
+                      </Button>
                     </div>
                   </CardContent>
                 </Card>
@@ -439,7 +455,7 @@ export default function UnifiedInventoryHub({ teamId }: UnifiedInventoryHubProps
                 <Separator className="bg-gray-600" />
 
                 {/* Context-sensitive action section */}
-                {selectedItem.itemType === "equipment" && (
+                {selectedItem.itemType === "EQUIPMENT" && (
                   <div className="space-y-3">
                     <label className="text-sm font-medium text-gray-300">Equip on Player:</label>
                     <Select value={selectedPlayer} onValueChange={setSelectedPlayer}>
@@ -469,7 +485,7 @@ export default function UnifiedInventoryHub({ teamId }: UnifiedInventoryHubProps
                   </div>
                 )}
 
-                {selectedItem.itemType === "consumable" && (
+                {selectedItem.itemType === "CONSUMABLE_RECOVERY" && (
                   <>
                     {selectedItem.name.includes("medical") || selectedItem.name.includes("heal") ? (
                       <div className="space-y-3">
@@ -543,7 +559,7 @@ export default function UnifiedInventoryHub({ teamId }: UnifiedInventoryHubProps
                   </>
                 )}
 
-                {selectedItem.itemType === "tournament_entry" && (
+                {selectedItem.itemType === "GAME_ENTRY" && (
                   <div className="text-center py-4">
                     <Ticket className="w-12 h-12 mx-auto mb-3 text-blue-400" />
                     <p className="text-gray-300 mb-4">
