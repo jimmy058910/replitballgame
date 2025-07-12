@@ -1110,7 +1110,7 @@ router.get('/:teamId/seasonal-data', isAuthenticated, asyncHandler(async (req: a
     team = await storage.teams.getTeamByUserId(userId);
   } else {
     team = await storage.teams.getTeamById(teamId);
-    if (!team || team.userId !== userId) {
+    if (!team || team.userProfileId !== userId) {
       throw ErrorCreators.forbidden("You do not own this team");
     }
   }

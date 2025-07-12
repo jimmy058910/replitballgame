@@ -30,6 +30,59 @@ const convertGemsSchema = z.object({
 });
 
 // Store routes
+router.get('/items', isAuthenticated, async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const now = new Date();
+    const rotationDate = new Date(now);
+    if (now.getUTCHours() < 8) { // Example: Rotate at 8 AM UTC (3 AM EST if EST is UTC-5)
+      rotationDate.setUTCDate(now.getUTCDate() - 1);
+    }
+    const dayKey = rotationDate.toISOString().split('T')[0]; // YYYY-MM-DD format for daily seed
+    let seed = 0;
+    for (let i = 0; i < dayKey.length; i++) {
+        seed = (seed * 31 + dayKey.charCodeAt(i)) & 0xFFFFFFFF; // Simple hash for seed
+    }
+
+    // Create stateful seeded random function
+    let randomState = seed;
+    const seededRandom = () => {
+      randomState = (randomState * 9301 + 49297) % 233280;
+      return randomState / 233280;
+    };
+
+    // Load items from config
+    const allEquipment = storeConfig.storeSections.equipment || [];
+    const allConsumables = storeConfig.storeSections.consumables || [];
+    const allEntries = storeConfig.storeSections.entries || [];
+    const gemPackages = storeConfig.storeSections.gemPackages || [];
+
+    const shuffledEquipment = [...allEquipment].sort(() => 0.5 - seededRandom());
+    const shuffledConsumables = [...allConsumables].sort(() => 0.5 - seededRandom());
+
+    // Select a subset for daily rotation, ensure not to select more than available
+    const dailyEquipmentCount = Math.min(4, shuffledEquipment.length);
+    const dailyConsumablesCount = Math.min(4, shuffledConsumables.length);
+
+    const dailyEquipment = shuffledEquipment.slice(0, dailyEquipmentCount);
+    const dailyConsumables = shuffledConsumables.slice(0, dailyConsumablesCount);
+
+    const resetTime = new Date(rotationDate);
+    resetTime.setUTCDate(rotationDate.getUTCDate() + 1);
+    resetTime.setUTCHours(8, 0, 0, 0); // Next 8 AM UTC
+
+    res.json({
+      equipment: dailyEquipment,
+      consumables: dailyConsumables,
+      entries: allEntries,
+      gemPackages: gemPackages,
+      resetTime: resetTime.toISOString()
+    });
+  } catch (error) {
+    console.error("Error fetching store items:", error);
+    next(error);
+  }
+});
+
 router.get('/', isAuthenticated, async (req: Request, res: Response, next: NextFunction) => {
   try {
     const now = new Date();

@@ -55,6 +55,27 @@ export class MatchStorage {
     return teamMatches;
   }
 
+  async getUpcomingMatches(teamId: number): Promise<Game[]> {
+    const upcomingMatches = await prisma.game.findMany({
+      where: {
+        OR: [
+          { homeTeamId: teamId },
+          { awayTeamId: teamId }
+        ],
+        AND: [
+          { status: { not: GameStatus.COMPLETED } },
+          { gameDate: { gte: new Date() } }
+        ]
+      },
+      include: {
+        league: true,
+        tournament: true
+      },
+      orderBy: { gameDate: 'asc' }
+    });
+    return upcomingMatches;
+  }
+
   async getMatchesByDivision(division: number, seasonId?: number): Promise<Game[]> {
     // Get teams in the division first
     const divisionTeams = await prisma.team.findMany({

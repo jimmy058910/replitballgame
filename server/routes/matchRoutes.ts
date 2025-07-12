@@ -177,7 +177,7 @@ router.post('/:matchId/complete-now', isAuthenticated, async (req: any, res: Res
 router.get('/team/:teamId', isAuthenticated, async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { teamId } = req.params;
-    const teamMatches = await matchStorage.getMatchesByTeamId(teamId); // Use matchStorage
+    const teamMatches = await matchStorage.getMatchesByTeamId(parseInt(teamId)); // Use matchStorage
     res.json(teamMatches);
   } catch (error) {
     console.error("Error fetching team matches:", error);
@@ -316,13 +316,13 @@ router.get('/next-league-game/:teamId', isAuthenticated, async (req: Request, re
     const { teamId } = req.params;
     
     // Get the team to ensure it exists
-    const team = await storage.teams.getTeamById(teamId);
+    const team = await storage.teams.getTeamById(parseInt(teamId));
     if (!team) {
       return res.status(404).json({ message: "Team not found" });
     }
 
     // Get upcoming matches for this team
-    const upcomingMatches = await matchStorage.getUpcomingMatches(teamId);
+    const upcomingMatches = await matchStorage.getUpcomingMatches(parseInt(teamId));
     
     // Filter for league games (non-exhibition, non-tournament)
     const nextLeagueGame = upcomingMatches.find(match => 
