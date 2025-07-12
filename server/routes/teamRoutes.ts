@@ -97,48 +97,28 @@ router.post('/', isAuthenticated, asyncHandler(async (req: any, res: Response) =
 
   const races = ["human", "sylvan", "gryll", "lumina", "umbra"];
   
-  // Define required position distribution: 2 passers, 3 runners, 3 blockers, 2 additional
+  // Updated team composition: 3 Passers, 4 Blockers, 4 Runners, 1 flexible (total 12)
   const requiredPositions = [
-    "passer", "passer", // 2 passers
-    "runner", "runner", "runner", // 3 runners  
-    "blocker", "blocker", "blocker" // 3 blockers
+    "passer", "passer", "passer", // 3 passers
+    "blocker", "blocker", "blocker", "blocker", // 4 blockers
+    "runner", "runner", "runner", "runner", // 4 runners
   ];
   
-  // For the remaining 2 players, ensure we don't exceed limits
+  // For the remaining 1 player, add flexible position
   const additionalPositions = ["passer", "runner", "blocker"];
-  for (let i = 0; i < 2; i++) {
+  for (let i = 0; i < 1; i++) {
     let position = additionalPositions[Math.floor(Math.random() * additionalPositions.length)];
-    
-    // Count current positions
-    const currentCount = requiredPositions.filter(p => p === position).length;
-    
-    // Prevent overstocking: max 3 passers, max 4 runners, max 4 blockers
-    if ((position === "passer" && currentCount >= 3) ||
-        (position === "runner" && currentCount >= 4) ||
-        (position === "blocker" && currentCount >= 4)) {
-      // Try other positions
-      const alternatives = additionalPositions.filter(p => {
-        const count = requiredPositions.filter(pos => pos === p).length;
-        return (p === "passer" && count < 3) ||
-               (p === "runner" && count < 4) ||
-               (p === "blocker" && count < 4);
-      });
-      if (alternatives.length > 0) {
-        position = alternatives[Math.floor(Math.random() * alternatives.length)];
-      }
-    }
-    
     requiredPositions.push(position);
   }
 
-  // Generate 10 players with proper position distribution
+  // Generate 12 players with proper position distribution
   logInfo("Starting player generation", { 
     teamId: team.id, 
     positionDistribution: requiredPositions,
     requestId: req.requestId 
   });
   
-  for (let i = 0; i < 10; i++) {
+  for (let i = 0; i < 12; i++) {
     const race = races[Math.floor(Math.random() * races.length)];
     const position = requiredPositions[i];
     
@@ -180,14 +160,15 @@ router.post('/', isAuthenticated, asyncHandler(async (req: any, res: Response) =
     requestId: req.requestId 
   });
 
+  // Updated staff generation: weaker, more balanced stats and ages 35-75
   const defaultStaff = [
-    { type: 'HEAD_COACH', name: 'Coach Johnson', motivation: 25, development: 20, tactics: 18 },
-    { type: 'RECOVERY_SPECIALIST', name: 'Alex Recovery', physiology: 22 },
-    { type: 'PASSER_TRAINER', name: 'Sarah Passer', teaching: 20 },
-    { type: 'RUNNER_TRAINER', name: 'Mike Runner', teaching: 18 },
-    { type: 'BLOCKER_TRAINER', name: 'Lisa Blocker', teaching: 19 },
-    { type: 'SCOUT', name: 'Emma Talent', talentIdentification: 21, potentialAssessment: 20 },
-    { type: 'SCOUT', name: 'Tony Scout', talentIdentification: 18, potentialAssessment: 19 }
+    { type: 'HEAD_COACH', name: 'Coach Johnson', motivation: 18, development: 15, tactics: 14 },
+    { type: 'RECOVERY_SPECIALIST', name: 'Alex Recovery', physiology: 16 },
+    { type: 'PASSER_TRAINER', name: 'Sarah Passer', teaching: 15 },
+    { type: 'RUNNER_TRAINER', name: 'Mike Runner', teaching: 14 },
+    { type: 'BLOCKER_TRAINER', name: 'Lisa Blocker', teaching: 15 },
+    { type: 'SCOUT', name: 'Emma Talent', talentIdentification: 16, potentialAssessment: 15 },
+    { type: 'SCOUT', name: 'Tony Scout', talentIdentification: 14, potentialAssessment: 15 }
   ];
 
   for (const staffData of defaultStaff) {
@@ -197,14 +178,14 @@ router.post('/', isAuthenticated, asyncHandler(async (req: any, res: Response) =
         type: staffData.type,
         name: staffData.name,
         level: 1,
-        motivation: staffData.motivation || 15,
-        development: staffData.development || 15,
-        teaching: staffData.teaching || 15,
-        physiology: staffData.physiology || 15,
-        talentIdentification: staffData.talentIdentification || 15,
-        potentialAssessment: staffData.potentialAssessment || 15,
-        tactics: staffData.tactics || 15,
-        age: 25 + Math.floor(Math.random() * 20)
+        motivation: staffData.motivation || 12,
+        development: staffData.development || 12,
+        teaching: staffData.teaching || 12,
+        physiology: staffData.physiology || 12,
+        talentIdentification: staffData.talentIdentification || 12,
+        potentialAssessment: staffData.potentialAssessment || 12,
+        tactics: staffData.tactics || 12,
+        age: 35 + Math.floor(Math.random() * 40) // Ages 35-75
       });
     } catch (staffError) {
       const errorMessage = staffError instanceof Error ? staffError.message : String(staffError);

@@ -614,7 +614,7 @@ function TeamCreationForm() {
 
       toast({
         title: "Team Created!",
-        description: "Your team has been created with 10 starting players.",
+        description: "Your team has been created with 12 starting players.",
       });
 
       // Invalidate queries to refetch team data

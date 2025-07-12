@@ -215,12 +215,8 @@ export default function TacticsLineupHub({ teamId }: TacticsLineupHubProps) {
           passers: formationSubs.filter(p => p.role.toLowerCase() === "passer"),
         });
         
-        // Set available players
-        const usedPlayerIds = [
-          ...formationStarters.map(p => p.id),
-          ...formationSubs.map(p => p.id)
-        ];
-        setAvailablePlayers(healthyPlayers.filter(p => !usedPlayerIds.includes(p.id)));
+        // Set available players (show ALL players with their assignment status)
+        setAvailablePlayers(healthyPlayers);
       } else {
         setAvailablePlayers(healthyPlayers);
       }

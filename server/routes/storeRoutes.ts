@@ -173,7 +173,7 @@ router.get('/ads', isAuthenticated, async (req: any, res: Response, next: NextFu
     const dailyAdsWatched = Number(await storage.adSystem.getDailyAdViewsCountByUser(userId)) || 0;
     const dailyRewardedCompleted = Number(await storage.adSystem.getDailyCompletedRewardedAdViewsCountByUser(userId)) || 0;
 
-    const dailyWatchLimit = storeConfig.adSystem?.dailyWatchLimit || 10;
+    const dailyWatchLimit = 10; // Updated to 10 ads per day limit
 
     res.json({
       adsWatchedToday: dailyAdsWatched,
@@ -196,18 +196,34 @@ router.post('/watch-ad', isAuthenticated, async (req: any, res: Response, next: 
     // Reward logic should be server-defined based on placement/adType, not client-sent.
     const { adType, placement } = req.body; // Client might indicate context
 
-    // Use new ad rewards system with randomization
-    const adRewards = storeConfig.adSystem.adRewards;
-    const random = Math.random() * 100;
-    let cumulativeChance = 0;
-    let rewardAmount = 250; // Default fallback
+    // Updated ad rewards system: 500-10,000 credits averaging 2,000
+    // Check daily limit first
+    const dailyLimit = 10;
+    const dailyAdsWatched = Number(await storage.adSystem.getDailyAdViewsCountByUser(userId)) || 0;
     
-    for (const reward of adRewards) {
-      cumulativeChance += reward.chance;
-      if (random <= cumulativeChance) {
-        rewardAmount = reward.credits;
-        break;
-      }
+    if (dailyAdsWatched >= dailyLimit) {
+      return res.status(400).json({ 
+        success: false, 
+        message: "Daily ad limit reached. You can watch up to 10 ads per day." 
+      });
+    }
+    
+    // Generate random credits between 500-10,000 with weighted distribution to average ~2,000
+    const random = Math.random();
+    let rewardAmount;
+    
+    if (random < 0.4) {
+      // 40% chance: 500-1,500 credits
+      rewardAmount = Math.floor(500 + Math.random() * 1000);
+    } else if (random < 0.8) {
+      // 40% chance: 1,500-3,000 credits
+      rewardAmount = Math.floor(1500 + Math.random() * 1500);
+    } else if (random < 0.95) {
+      // 15% chance: 3,000-7,000 credits
+      rewardAmount = Math.floor(3000 + Math.random() * 4000);
+    } else {
+      // 5% chance: 7,000-10,000 credits
+      rewardAmount = Math.floor(7000 + Math.random() * 3000);
     }
     let rewardType = 'credits'; // Assuming credits for now, can be expanded in config
 

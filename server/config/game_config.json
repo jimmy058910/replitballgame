@@ -36,9 +36,9 @@
       "startingCredits": 15000,
       "startingExhibitionCredits": 3,
       "defaultCamaraderie": 50,
-      "maxPlayersPerTeam": 8,
-      "minPlayersPerTeam": 6,
-      "maxTaxiSquadPlayers": 2
+      "maxPlayersPerTeam": 15,
+      "minPlayersPerTeam": 12,
+      "maxTaxiSquadPlayers": 3
     },
     "playerGeneration": {
       "ageRange": {
@@ -46,17 +46,17 @@
         "max": 35
       },
       "statRange": {
-        "min": 8,
-        "max": 40
+        "min": 6,
+        "max": 20
       },
       "potentialRange": {
-        "min": 2.0,
-        "max": 5.0
+        "min": 1.5,
+        "max": 3.5
       },
       "positionDistribution": {
-        "passer": 2,
-        "runner": 3,
-        "blocker": 3
+        "passer": 3,
+        "runner": 4,
+        "blocker": 4
       },
       "salaryMultipliers": {
         "basePerStat": 50,

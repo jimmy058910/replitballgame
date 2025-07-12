@@ -18,16 +18,16 @@ function generateRandomPlayer() {
   const firstName = firstNames[Math.floor(Math.random() * firstNames.length)];
   const lastName = lastNames[Math.floor(Math.random() * lastNames.length)];
   
-  // Base stats (15-35 range)
+  // Base stats (6-20 range to match new weaker player balance)
   const baseStats = {
-    speed: Math.floor(Math.random() * 20) + 15,
-    power: Math.floor(Math.random() * 20) + 15,
-    throwing: Math.floor(Math.random() * 20) + 15,
-    catching: Math.floor(Math.random() * 20) + 15,
-    kicking: Math.floor(Math.random() * 20) + 15,
-    staminaAttribute: Math.floor(Math.random() * 20) + 15,
-    leadership: Math.floor(Math.random() * 20) + 15,
-    agility: Math.floor(Math.random() * 20) + 15,
+    speed: Math.floor(Math.random() * 14) + 6,
+    power: Math.floor(Math.random() * 14) + 6,
+    throwing: Math.floor(Math.random() * 14) + 6,
+    catching: Math.floor(Math.random() * 14) + 6,
+    kicking: Math.floor(Math.random() * 14) + 6,
+    staminaAttribute: Math.floor(Math.random() * 14) + 6,
+    leadership: Math.floor(Math.random() * 14) + 6,
+    agility: Math.floor(Math.random() * 14) + 6,
   };
   
   // Apply racial modifiers
@@ -51,8 +51,8 @@ function generateRandomPlayer() {
     agility: Math.min(40, Math.max(1, baseStats.agility + modifiers.agility)),
   };
   
-  // Generate potential (0.5 to 5 stars)
-  const potentialRating = Math.random() * 4.5 + 0.5;
+  // Generate potential (1.5 to 3.5 stars to match new weaker balance)
+  const potentialRating = Math.random() * 2.0 + 1.5;
   
   // Calculate market value based on stats and potential
   const avgStat = Object.values(finalStats).reduce((a, b) => a + b, 0) / 8;
@@ -126,34 +126,26 @@ router.post('/:teamId/conduct', isAuthenticated, async (req: any, res: Response,
       return res.status(403).json({ error: "You do not own this team" });
     }
 
-    // Check seasonal restriction: only 1 tryout per season using TryoutHistory
-    try {
-      // Get current season
-      const currentSeason = await prisma.season.findFirst({
-        where: { phase: 'REGULAR_SEASON' },
-        orderBy: { startDate: 'desc' }
+    // Check seasonal restriction: only 1 tryout per season based on player count 
+    // Teams start with 12 players, so if they have >12 players, they've already used their tryouts
+    const currentPlayerCount = await prisma.player.count({
+      where: { teamId: team.id }
+    });
+    
+    if (currentPlayerCount > 12) {
+      return res.status(400).json({ 
+        error: "Teams can only conduct tryouts once per season (17-day cycle). You have already used your tryouts for this season." 
       });
-      
-      if (currentSeason) {
-        // Check if team has already done tryouts this season
-        const existingTryout = await prisma.tryoutHistory.findUnique({
-          where: {
-            teamId_seasonId: {
-              teamId: team.id,
-              seasonId: currentSeason.id.toString()
-            }
-          }
-        });
-        
-        if (existingTryout) {
-          return res.status(400).json({ 
-            error: "Teams can only conduct tryouts once per season (17-day cycle). You have already used your tryouts for this season." 
-          });
-        }
-      }
-    } catch (error) {
-      console.error('Error checking seasonal restriction:', error);
-      // If we can't check the restriction, allow the tryout but log the error
+    }
+    
+    // Check if team would exceed maximum roster size (15 players)
+    const maxRosterSize = 15;
+    const selectedPlayerCount = selectedPlayers ? selectedPlayers.length : 1;
+    
+    if (currentPlayerCount + selectedPlayerCount > maxRosterSize) {
+      return res.status(400).json({ 
+        error: `Maximum roster size is ${maxRosterSize} players. You currently have ${currentPlayerCount} players and are trying to add ${selectedPlayerCount} more.` 
+      });
     }
 
     // Check costs and affordability
