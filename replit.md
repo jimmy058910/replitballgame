@@ -121,7 +121,30 @@ Built as a React + Express web application with PostgreSQL database, using moder
 
 ## Recent Changes
 
-### July 12, 2025 - ✅ COMPLETE TRYOUT SYSTEM FIXES & SEASONAL RESTRICTION IMPLEMENTATION ACHIEVEMENT
+### July 12, 2025 - ✅ COMPLETE GAME BALANCE IMPLEMENTATION & TRYOUT SYSTEM FIXES ACHIEVEMENT
+
+#### ✅ MAJOR GAME BALANCE CHANGES IMPLEMENTED - 100% COMPLETE
+- ✓ **Ad System Rebalanced**: 10 ads per day (down from 15) with 500-10,000 credits averaging 2,000 credits per ad
+- ✓ **Team Composition Updated**: Teams now start with 12 players instead of 10 (3 Passers, 4 Blockers, 4 Runners, 1 flexible)
+- ✓ **Roster Capacity Increased**: Maximum 15 players per team (up from 13) to accommodate taxi squad expansion
+- ✓ **Player Balance Improved**: Starting players now have weaker stats (6-20 range instead of 8-40) for better progression
+- ✓ **Staff Balance Improved**: Starting staff have weaker stats (12-18 range) and older ages (35-75 instead of 25-45)
+- ✓ **Potential Ratings Reduced**: Player potential now ranges 1.5-3.5 stars instead of 0.5-5.0 stars for balance
+- ✓ **Tryout Candidates Balanced**: Tryout candidates now use same weaker 6-20 stat range and reduced potential ratings
+
+#### ✅ TACTICS DISPLAY FIXES COMPLETE
+- ✓ **Available Players Display Fixed**: TacticsLineupHub now shows all 10 players in Available Players section instead of filtering out assigned ones
+- ✓ **Formation Display Enhanced**: Available players properly show regardless of current formation assignments
+- ✓ **Player Selection Improved**: Users can now see and select from complete roster when adjusting tactics
+
+#### ✅ SEASONAL RESTRICTION SYSTEM IMPLEMENTATION COMPLETE
+- ✓ **Seasonal Restriction Fixed**: Teams can now only conduct tryouts once per season using simplified player count logic
+- ✓ **TryoutHistory Dependency Removed**: Replaced broken TryoutHistory table dependency with reliable player count checks
+- ✓ **12-Player Starting Roster Logic**: Teams start with 12 players, more than 12 means tryouts already used this season
+- ✓ **Taxi Squad Logic Updated**: Taxi squad now correctly identifies players beyond position 12 instead of position 10
+- ✓ **Maximum Roster Enforcement**: 15-player maximum roster limit properly enforced during tryout process
+
+### July 12, 2025 - ✅ COMPLETE TRYOUT SYSTEM FIXES & SEASONAL RESTRICTION IMPLEMENTATION ACHIEVEMENT (Previous)
 
 #### ✅ CRITICAL TRYOUT SYSTEM BUGS FIXED - 100% FUNCTIONAL
 - ✓ **PlayerRole Enum Conversion Fix**: Fixed critical enum conversion error where "Blocker" string was being passed to PlayerRole enum instead of "BLOCKER"

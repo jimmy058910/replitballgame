@@ -684,34 +684,13 @@ router.post('/:teamId/tryouts', isAuthenticated, asyncHandler(async (req: any, r
     throw ErrorCreators.notFound("Team not found");
   }
 
-  // Check seasonal restriction: only 1 tryout per season using TryoutHistory
-  try {
-    // Get current season
-    const currentSeason = await prisma.season.findFirst({
-      where: { phase: 'REGULAR_SEASON' },
-      orderBy: { startDate: 'desc' }
-    });
-    
-    if (currentSeason) {
-      // Check if team has already done tryouts this season
-      const existingTryout = await prisma.tryoutHistory.findUnique({
-        where: {
-          teamId_seasonId: {
-            teamId: team.id,
-            seasonId: currentSeason.id
-          }
-        }
-      });
-      
-      if (existingTryout) {
-        throw ErrorCreators.validation("Teams can only conduct tryouts once per season (17-day cycle). You have already used your tryouts for this season.");
-      }
-    }
-  } catch (error) {
-    if (error.message && error.message.includes("tryouts once per season")) {
-      throw error; // Re-throw the validation error
-    }
-    console.error('Error checking seasonal restrictions:', error);
+  // Check seasonal restriction: teams start with 12 players, more than 12 means tryouts already used
+  const currentPlayerCount = await prisma.player.count({
+    where: { teamId: team.id }
+  });
+  
+  if (currentPlayerCount > 12) {
+    throw ErrorCreators.validation("Teams can only conduct tryouts once per season (17-day cycle). You have already used your tryouts for this season.");
   }
 
   // Get team finances
@@ -786,46 +765,7 @@ router.post('/:teamId/tryouts', isAuthenticated, asyncHandler(async (req: any, r
     credits: (finances.credits || 0) - cost
   });
 
-  // Mark tryouts as used for this season using TryoutHistory
-  try {
-    // Get current season
-    const currentSeason = await prisma.season.findFirst({
-      where: { phase: 'REGULAR_SEASON' },
-      orderBy: { startDate: 'desc' }
-    });
-    
-    if (currentSeason) {
-      // Create or update tryout history record
-      await prisma.tryoutHistory.upsert({
-        where: {
-          teamId_seasonId: {
-            teamId: team.id,
-            seasonId: currentSeason.id.toString()
-          }
-        },
-        create: {
-          teamId: team.id,
-          seasonId: currentSeason.id,
-          tryoutType: type,
-          cost: cost,
-          playersAdded: candidates.length,
-          conductedAt: new Date()
-        },
-        update: {
-          playersAdded: candidates.length,
-          conductedAt: new Date()
-        }
-      });
-      
-      logInfo("Tryouts marked as used for season", {
-        teamId: team.id,
-        seasonId: currentSeason.id,
-        requestId: req.requestId
-      });
-    }
-  } catch (error) {
-    console.error('Error updating tryout history:', error);
-  }
+  // No need to track separately - the player count serves as the seasonal restriction
 
   logInfo(`Tryout hosted successfully`, {
     teamId: team.id,
@@ -958,14 +898,14 @@ router.get('/:teamId/taxi-squad', isAuthenticated, asyncHandler(async (req: any,
     throw ErrorCreators.notFound("Team not found");
   }
 
-  // Get taxi squad players using Prisma - players with more than 10 on roster are taxi squad
+  // Get taxi squad players using Prisma - players beyond the first 12 are taxi squad
   const allPlayers = await prisma.player.findMany({
     where: { teamId: team.id },
-    orderBy: { createdAt: 'desc' }
+    orderBy: { createdAt: 'asc' }
   });
 
-  // Consider players beyond the first 10 as taxi squad
-  const taxiSquadPlayers = allPlayers.slice(10);
+  // Consider players beyond the first 12 as taxi squad (teams now start with 12 players)
+  const taxiSquadPlayers = allPlayers.slice(12);
 
   logInfo("Taxi squad retrieved", {
     teamId: team.id,
@@ -1009,11 +949,19 @@ router.post('/:teamId/taxi-squad/add-candidates', isAuthenticated, asyncHandler(
     throw ErrorCreators.validation("Candidates array is required");
   }
 
-  // Check taxi squad capacity (max 2 players)
+  // Check taxi squad capacity (max 3 players as per updated config)
   const currentTaxiSquadPlayers = await storage.players.getTaxiSquadPlayersByTeamId(team.id);
   
-  if (currentTaxiSquadPlayers.length + candidates.length > 2) {
-    throw ErrorCreators.validation(`Taxi squad full. Can only add ${2 - currentTaxiSquadPlayers.length} more players`);
+  // Also check total roster size (max 15 players total)
+  const totalPlayers = await prisma.player.count({ where: { teamId: team.id } });
+  const maxTotalPlayers = 15;
+  
+  if (totalPlayers + candidates.length > maxTotalPlayers) {
+    throw ErrorCreators.validation(`Maximum roster size is ${maxTotalPlayers} players. You currently have ${totalPlayers} players.`);
+  }
+  
+  if (currentTaxiSquadPlayers.length + candidates.length > 3) {
+    throw ErrorCreators.validation(`Taxi squad full. Can only add ${3 - currentTaxiSquadPlayers.length} more players`);
   }
 
   const addedPlayers = [];
