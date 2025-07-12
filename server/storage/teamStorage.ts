@@ -270,7 +270,7 @@ export class TeamStorage {
         where: {
           teamId_seasonId: {
             teamId: teamId,
-            seasonId: currentSeason.id.toString()
+            seasonId: currentSeason.id
           }
         }
       });

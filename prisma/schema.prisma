@@ -439,7 +439,7 @@ enum GameStatus {
 }
 
 model Season {
-  id           Int         @id @default(autoincrement())
+  id           String      @id @unique
   seasonNumber Int         @unique
   startDate    DateTime
   endDate      DateTime
@@ -447,6 +447,7 @@ model Season {
   phase        SeasonPhase @default(REGULAR_SEASON)
   leagues      League[]
   createdAt    DateTime    @default(now())
+  tryoutHistory TryoutHistory[]
 }
 
 enum SeasonPhase {

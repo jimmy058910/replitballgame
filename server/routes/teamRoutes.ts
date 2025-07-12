@@ -703,11 +703,28 @@ router.post('/:teamId/tryouts', isAuthenticated, asyncHandler(async (req: any, r
     throw ErrorCreators.notFound("Team not found");
   }
 
-  // Check seasonal restriction: only 1 tryout per season
+  // Check seasonal restriction: only 1 tryout per season using TryoutHistory
   try {
-    const seasonalData = await storage.teams.getTeamSeasonalData(team.id);
-    if (seasonalData && seasonalData.tryoutsUsed) {
-      throw ErrorCreators.validation("Teams can only conduct tryouts once per season (17-day cycle). You have already used your tryouts for this season.");
+    // Get current season
+    const currentSeason = await prisma.season.findFirst({
+      where: { phase: 'REGULAR_SEASON' },
+      orderBy: { startDate: 'desc' }
+    });
+    
+    if (currentSeason) {
+      // Check if team has already done tryouts this season
+      const existingTryout = await prisma.tryoutHistory.findUnique({
+        where: {
+          teamId_seasonId: {
+            teamId: team.id,
+            seasonId: currentSeason.id
+          }
+        }
+      });
+      
+      if (existingTryout) {
+        throw ErrorCreators.validation("Teams can only conduct tryouts once per season (17-day cycle). You have already used your tryouts for this season.");
+      }
     }
   } catch (error) {
     if (error.message && error.message.includes("tryouts once per season")) {
@@ -807,7 +824,7 @@ router.post('/:teamId/tryouts', isAuthenticated, asyncHandler(async (req: any, r
         },
         create: {
           teamId: team.id,
-          seasonId: currentSeason.id.toString(),
+          seasonId: currentSeason.id,
           tryoutType: type,
           cost: cost,
           playersAdded: candidates.length,
@@ -1055,7 +1072,7 @@ router.post('/:teamId/taxi-squad/add-candidates', isAuthenticated, asyncHandler(
       staminaAttribute: candidate.stamina,
       leadership: candidate.leadership,
       agility: candidate.agility,
-      potentialRating: candidate.overallPotentialStars?.toString() || '0',
+      potentialRating: parseFloat(candidate.overallPotentialStars?.toString() || '0'),
       marketValue: candidate.marketValue || 0,
       salary: 0, // Taxi squad players don't earn salary
       teamId: team.id,
