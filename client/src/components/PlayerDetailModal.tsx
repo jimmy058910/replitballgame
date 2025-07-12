@@ -6,11 +6,15 @@ import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Progress } from "@/components/ui/progress";
 import { Separator } from "@/components/ui/separator";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Shield, Shirt, ShirtIcon, Hand, Star, Trophy, Calendar, FileText, Zap, User, Crown, DollarSign } from "lucide-react";
 import AbilitiesDisplay from "@/components/AbilitiesDisplay";
 import { PlayerAwards } from "./PlayerAwards";
 import ContractNegotiation from "./ContractNegotiation";
 import { getPlayerRole, getRaceDisplayName, getRoleColor, getRoleTextColor } from "@shared/playerUtils";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useToast } from "@/hooks/use-toast";
+import { apiRequest } from "@/lib/queryClient";
 
 interface PlayerDetailModalProps {
   player: any;
@@ -76,8 +80,51 @@ export default function PlayerDetailModal({
 }: PlayerDetailModalProps) {
   const [activeTab, setActiveTab] = useState("overview");
   const [showContractNegotiation, setShowContractNegotiation] = useState(false);
+  const [selectedEquipmentItem, setSelectedEquipmentItem] = useState("");
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
 
   if (!player) return null;
+
+  // Fetch player's current equipment
+  const { data: playerEquipment, isLoading: equipmentLoading } = useQuery({
+    queryKey: [`/api/equipment/player/${player.id}`],
+    enabled: isOpen && !!player.id,
+  });
+
+  // Fetch team inventory for equipment options
+  const { data: teamInventory, isLoading: inventoryLoading } = useQuery({
+    queryKey: [`/api/inventory/${player.teamId}`],
+    enabled: isOpen && !!player.teamId,
+  });
+
+  // Equipment mutation
+  const equipItemMutation = useMutation({
+    mutationFn: async ({ itemId, itemName }: { itemId: number; itemName: string }) => {
+      return apiRequest(`/api/equipment/equip`, "POST", {
+        teamId: player.teamId,
+        playerId: player.id,
+        itemId,
+        itemName
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [`/api/equipment/player/${player.id}`] });
+      queryClient.invalidateQueries({ queryKey: [`/api/inventory/${player.teamId}`] });
+      setSelectedEquipmentItem("");
+      toast({
+        title: "Equipment Updated",
+        description: "Item equipped successfully!",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Equipment Error",
+        description: error.message || "Failed to equip item. Please try again.",
+        variant: "destructive",
+      });
+    }
+  });
 
   const playerRole = getPlayerRole(player);
   const displayName = player.firstName && player.lastName 
@@ -113,12 +160,48 @@ export default function PlayerDetailModal({
     }
   };
 
-  // Mock equipment data
-  const equipment = {
-    helmet: player.helmetItem || { name: "Basic Helmet", rarity: "common", statBoosts: {} },
-    chest: player.chestItem || { name: "Basic Chest Armor", rarity: "common", statBoosts: {} },
-    shoes: player.shoesItem || { name: "Basic Shoes", rarity: "common", statBoosts: {} },
-    gloves: player.glovesItem || { name: "Basic Gloves", rarity: "common", statBoosts: {} },
+  // Get equipped items by slot
+  const getEquippedItemBySlot = (slot: string) => {
+    if (!playerEquipment?.equipment) return null;
+    return playerEquipment.equipment.find((eq: any) => 
+      eq.item.slot === slot.toUpperCase() || 
+      (slot === "helmet" && eq.item.name.toLowerCase().includes("helm"))
+    );
+  };
+
+  // Get eligible equipment items for player
+  const getEligibleEquipment = () => {
+    if (!teamInventory || !Array.isArray(teamInventory)) return [];
+    
+    const raceRequirements = {
+      "Human Tactical Helm": ["HUMAN"],
+      "Gryllstone Plated Helm": ["GRYLL"],
+      "Sylvan Barkwood Circlet": ["SYLVAN"],
+      "Umbral Cowl": ["UMBRA"],
+      "Lumina Radiant Aegis": ["LUMINA"]
+    };
+
+    return teamInventory.filter((item: any) => {
+      if (item.itemType !== "EQUIPMENT" || item.quantity <= 0) return false;
+      
+      const requiredRaces = raceRequirements[item.name as keyof typeof raceRequirements];
+      if (requiredRaces && !requiredRaces.includes(player.race)) return false;
+      
+      return true;
+    });
+  };
+
+  // Get item effect description
+  const getItemEffect = (item: any) => {
+    const effects: Record<string, string> = {
+      "Standard Leather Helmet": "+1 Stamina protection",
+      "Human Tactical Helm": "+4 Leadership, +2 Throwing accuracy",
+      "Gryllstone Plated Helm": "+3 Power, +2 Stamina",
+      "Sylvan Barkwood Circlet": "+4 Agility, +2 Speed",
+      "Umbral Cowl": "+3 Agility, +1 Speed",
+      "Lumina Radiant Aegis": "+1 Leadership",
+    };
+    return effects[item.name] || item.description || "Provides various benefits";
   };
 
   const equipmentSlots = [
@@ -340,52 +423,114 @@ export default function PlayerDetailModal({
           </TabsContent>
 
           <TabsContent value="equipment" className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {equipmentSlots.map(({ key, icon: Icon, label }) => {
-                const item = equipment[key as keyof typeof equipment];
-                return (
-                  <Card key={key}>
-                    <CardHeader className="pb-3">
-                      <CardTitle className="flex items-center gap-2 text-base">
-                        <Icon size={20} />
-                        {label}
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <div className={`p-3 border rounded-lg ${getRarityColor(item.rarity)}`}>
-                        <div className="font-semibold">{item.name}</div>
-                        <Badge variant="outline" className="mt-1">
-                          {item.rarity}
-                        </Badge>
-                        {Object.keys(item.statBoosts || {}).length > 0 && (
-                          <div className="mt-2 space-y-1">
-                            {Object.entries(item.statBoosts || {}).map(([stat, boost]) => (
-                              <div key={stat} className="text-sm flex justify-between">
-                                <span>{stat}:</span>
-                                <span className="text-green-400">+{boost as number}</span>
+            {equipmentLoading ? (
+              <div className="text-center py-8 text-gray-400">Loading equipment...</div>
+            ) : (
+              <div className="space-y-4">
+                {/* Currently Equipped Section */}
+                <Card className="border-gray-600">
+                  <CardHeader>
+                    <CardTitle className="text-lg flex items-center gap-2">
+                      <Shield className="w-5 h-5" />
+                      Currently Equipped
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    {playerEquipment?.equipment?.length > 0 ? (
+                      <div className="space-y-3">
+                        {playerEquipment.equipment.map((equipment: any) => (
+                          <div key={equipment.id} className="flex items-center justify-between p-3 bg-gray-800 rounded-lg">
+                            <div className="flex items-center gap-3">
+                              <Shield className="w-5 h-5 text-blue-400" />
+                              <div>
+                                <div className="font-medium">{equipment.item.name}</div>
+                                <div className="text-sm text-gray-400">
+                                  {getItemEffect(equipment.item)}
+                                </div>
                               </div>
-                            ))}
+                            </div>
+                            <Badge variant="outline" className="text-xs">
+                              {equipment.item.rarity}
+                            </Badge>
                           </div>
-                        )}
+                        ))}
                       </div>
-                      <Button 
-                        variant="outline" 
-                        size="sm" 
-                        className="w-full mt-3"
-                        onClick={() => {
-                          // Navigate to inventory tab for equipment change
-                          window.dispatchEvent(new CustomEvent('navigate-to-inventory', {
-                            detail: { playerId: player.id, slot: key }
-                          }));
-                        }}
-                      >
-                        Change Equipment
-                      </Button>
-                    </CardContent>
-                  </Card>
-                );
-              })}
-            </div>
+                    ) : (
+                      <div className="text-center py-4 text-gray-400">
+                        No equipment currently equipped
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+
+                {/* Equip New Equipment Section */}
+                <Card className="border-gray-600">
+                  <CardHeader>
+                    <CardTitle className="text-lg flex items-center gap-2">
+                      <Hand className="w-5 h-5" />
+                      Equip New Equipment
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium">Select Equipment to Equip:</label>
+                      <Select value={selectedEquipmentItem} onValueChange={setSelectedEquipmentItem}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Choose an equipment item..." />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {getEligibleEquipment().map((item: any) => (
+                            <SelectItem key={item.id} value={`${item.id}-${item.name}`}>
+                              <div className="flex items-center gap-2">
+                                <Badge variant="outline" className="text-xs">
+                                  {item.rarity}
+                                </Badge>
+                                <span>{item.name}</span>
+                                <span className="text-xs text-gray-400">(x{item.quantity})</span>
+                              </div>
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    
+                    {selectedEquipmentItem && (
+                      <div className="space-y-3">
+                        <div className="p-3 bg-gray-800 rounded-lg">
+                          <div className="text-sm text-gray-400">
+                            {(() => {
+                              const item = getEligibleEquipment().find((i: any) => 
+                                `${i.id}-${i.name}` === selectedEquipmentItem
+                              );
+                              return item ? getItemEffect(item) : "";
+                            })()}
+                          </div>
+                        </div>
+                        <Button 
+                          onClick={() => {
+                            const [itemId, itemName] = selectedEquipmentItem.split('-');
+                            equipItemMutation.mutate({ 
+                              itemId: parseInt(itemId), 
+                              itemName 
+                            });
+                          }}
+                          disabled={equipItemMutation.isPending}
+                          className="w-full"
+                        >
+                          {equipItemMutation.isPending ? "Equipping..." : "Equip Item"}
+                        </Button>
+                      </div>
+                    )}
+                    
+                    {getEligibleEquipment().length === 0 && (
+                      <div className="text-center py-4 text-gray-400">
+                        No eligible equipment available for this player's race ({getRaceDisplayName(player.race)})
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              </div>
+            )}
           </TabsContent>
 
           <TabsContent value="gamelogsawards" className="space-y-4">
