@@ -153,9 +153,14 @@ export default function Market() {
   const { data: creditStoreData } = useQuery({
     queryKey: ["/api/store/items"],
     select: (data) => {
-      const allItems = [...(data.equipment || []), ...(data.consumables || []), ...(data.entries || [])];
-      // Include items that have a credit price (regardless of whether they also have gem pricing)
-      const creditItems = allItems.filter(item => item.price && item.price > 0);
+      // Only include equipment and consumables, exclude entries
+      const allItems = [...(data.equipment || []), ...(data.consumables || [])];
+      // Include items that have a credit price but exclude entries and dual-currency items
+      const creditItems = allItems.filter(item => 
+        item.price && item.price > 0 && 
+        item.category !== 'entry' && 
+        !item.priceGems // Exclude items that also have gem pricing (those belong in entries)
+      );
       console.log('Credit store items:', creditItems.length, creditItems);
       return creditItems;
     }
@@ -345,9 +350,36 @@ export default function Market() {
                                 <div className="text-blue-600 font-bold">💎{item.priceGems}</div>
                               </div>
                             </div>
-                            <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">
-                              {item.description}
-                            </p>
+                            <div className="text-sm text-gray-600 dark:text-gray-400 mb-3 space-y-1">
+                              <p>{item.description}</p>
+                              {item.slot && (
+                                <p className="text-xs text-blue-600 dark:text-blue-400">
+                                  <strong>Slot:</strong> {item.slot}
+                                </p>
+                              )}
+                              {item.raceRestriction && item.raceRestriction !== 'universal' && (
+                                <p className="text-xs text-purple-600 dark:text-purple-400">
+                                  <strong>Race:</strong> {item.raceRestriction.charAt(0).toUpperCase() + item.raceRestriction.slice(1)} only
+                                </p>
+                              )}
+                              {item.statBoosts && Object.keys(item.statBoosts).length > 0 && (
+                                <p className="text-xs text-green-600 dark:text-green-400">
+                                  <strong>Stats:</strong> {Object.entries(item.statBoosts).map(([stat, value]) => 
+                                    `${stat.charAt(0).toUpperCase() + stat.slice(1)} ${value > 0 ? '+' : ''}${value}`
+                                  ).join(', ')}
+                                </p>
+                              )}
+                              {item.effect && (
+                                <p className="text-xs text-orange-600 dark:text-orange-400">
+                                  <strong>Effect:</strong> {item.effect.replace('_', ' ')}
+                                </p>
+                              )}
+                              {item.cosmetic && (
+                                <p className="text-xs text-pink-600 dark:text-pink-400">
+                                  <strong>Cosmetic Item</strong> - No stat effects
+                                </p>
+                              )}
+                            </div>
                             <Button 
                               size="sm" 
                               className="w-full"
@@ -389,9 +421,36 @@ export default function Market() {
                                 ₡{item.price?.toLocaleString()}
                               </div>
                             </div>
-                            <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">
-                              {item.description}
-                            </p>
+                            <div className="text-sm text-gray-600 dark:text-gray-400 mb-3 space-y-1">
+                              <p>{item.description}</p>
+                              {item.slot && (
+                                <p className="text-xs text-blue-600 dark:text-blue-400">
+                                  <strong>Slot:</strong> {item.slot}
+                                </p>
+                              )}
+                              {item.raceRestriction && item.raceRestriction !== 'universal' && (
+                                <p className="text-xs text-purple-600 dark:text-purple-400">
+                                  <strong>Race:</strong> {item.raceRestriction.charAt(0).toUpperCase() + item.raceRestriction.slice(1)} only
+                                </p>
+                              )}
+                              {item.statBoosts && Object.keys(item.statBoosts).length > 0 && (
+                                <p className="text-xs text-green-600 dark:text-green-400">
+                                  <strong>Stats:</strong> {Object.entries(item.statBoosts).map(([stat, value]) => 
+                                    `${stat.charAt(0).toUpperCase() + stat.slice(1)} ${value > 0 ? '+' : ''}${value}`
+                                  ).join(', ')}
+                                </p>
+                              )}
+                              {item.effect && (
+                                <p className="text-xs text-orange-600 dark:text-orange-400">
+                                  <strong>Effect:</strong> {item.effect.replace('_', ' ')}
+                                </p>
+                              )}
+                              {item.cosmetic && (
+                                <p className="text-xs text-pink-600 dark:text-pink-400">
+                                  <strong>Cosmetic Item</strong> - No stat effects
+                                </p>
+                              )}
+                            </div>
                             <Button 
                               size="sm" 
                               className="w-full"

@@ -121,22 +121,24 @@ Built as a React + Express web application with PostgreSQL database, using moder
 
 ## Recent Changes
 
-### July 12, 2025 - COMPLETE STORE SYSTEM FIXES & EXHIBITION GAME PRICING UPDATE
+### July 12, 2025 - COMPLETE STORE SYSTEM FIXES & ENHANCED ITEM DESCRIPTIONS
 
 #### ✅ COMPLETE STORE SYSTEM FIXES IMPLEMENTATION
 - ✓ **Exhibition Game Pricing Updated**: Changed exhibition game entry from 3 gems to 10 gems (25,000 credits) as requested
 - ✓ **Gem Store Fixed**: Now shows exactly 4 gem-only items (helm_of_command, lumina_radiant_aegis, umbral_cowl, gryllstone_plated_helm) that can ONLY be purchased with gems
-- ✓ **Credit Store Fixed**: Now shows 6 items that can be purchased with credits (equipment, consumables, entries)
-- ✓ **Purchase Functionality Fixed**: Resolved "Not enough credits or item unavailable" error by fixing exhibition game item ID mapping
-- ✓ **Store Logic Enhancement**: Updated store routes to properly filter gem-only vs credit-available items
-- ✓ **Price Validation Fix**: Disabled strict price validation to prevent purchase conflicts
+- ✓ **Credit Store Fixed**: Now shows 2 credit-only items (worn_cleats, standard_leather_helmet) excluding dual-currency items and entries
+- ✓ **Exhibition Entry Filtering**: Removed Exhibition Match Entry from Credit Store - now only appears in Entries tab where it belongs
+- ✓ **Enhanced Item Descriptions**: Added race restrictions, stat boosts, equipment slots, effects, and cosmetic indicators for all items
+- ✓ **Frontend API Integration**: Updated to fetch real data from backend APIs instead of hardcoded arrays
+- ✓ **Purchase System Testing**: Granted test credits for purchase functionality validation
 
 #### ✅ TECHNICAL IMPLEMENTATION ACHIEVEMENTS
-- ✓ **Exhibition Item ID Mapping**: Added special handling for `exhibition_gem` and `exhibition_credit` to map to `exhibition_match_entry`
-- ✓ **Store Configuration Updates**: Updated store_config.json with correct pricing and gem-only item configuration
-- ✓ **Store Route Logic**: Enhanced filtering logic to separate gem-only items from credit-available items
-- ✓ **Purchase Error Handling**: Improved error handling and null/undefined checks in purchase functionality
-- ✓ **Server Restart Validation**: Confirmed all changes take effect properly with server restart
+- ✓ **Advanced Store Filtering**: Implemented smart filtering logic to exclude dual-currency items and entries from Credit Store
+- ✓ **Rich Item Information Display**: Added slot information, race restrictions, stat boosts, and effects to item cards
+- ✓ **Real-Time Data Integration**: Frontend now displays live data from `/api/store/` and `/api/store/items` endpoints
+- ✓ **Purchase Error Handling**: Improved error handling with clear feedback for insufficient credits
+- ✓ **Debug Console Integration**: Added console logging for store item filtering and validation
+- ✓ **Test Environment Setup**: Granted 100,000 credits and 500 gems for comprehensive purchase testing
 
 ### July 12, 2025 - COMPLETE RECRUITING SYSTEM FIXES & RBAC PERMISSION SYSTEM OVERHAUL
 
