@@ -39,24 +39,17 @@ router.post('/grant-credits', RBACService.requirePermission(Permission.GRANT_CRE
   if (!currentFinances) {
     await storage.teamFinances.createTeamFinances({
       teamId: teamToCredit.id,
-      credits: credits,
-      premiumCurrency: premiumCurrency,
-      season: 1, // Default season
-      ticketSales: 0,
-      concessionSales: 0,
-      jerseySales: 0,
-      sponsorships: 0,
-      playerSalaries: 0,
-      staffSalaries: 0,
-      facilities: 0,
-      totalIncome: 0,
-      totalExpenses: 0,
-      netIncome: 0,
+      credits: BigInt(credits),
+      gems: premiumCurrency,
     });
   } else {
+    // Convert string credits back to number, add new credits, then convert to BigInt
+    const currentCredits = parseInt(currentFinances.credits as string || "0");
+    const currentGems = currentFinances.gems || 0;
+    
     await storage.teamFinances.updateTeamFinances(teamToCredit.id, {
-      credits: (currentFinances.credits || 0) + credits,
-      premiumCurrency: (currentFinances.premiumCurrency || 0) + premiumCurrency
+      credits: BigInt(currentCredits + credits),
+      gems: currentGems + premiumCurrency
     });
   }
 

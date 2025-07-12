@@ -190,7 +190,12 @@ export default function SuperUser() {
         title: "Credits Granted",
         description: data.message,
       });
+      // Force refresh all cache entries related to team finances
       queryClient.invalidateQueries({ queryKey: ["/api/teams/my/finances"] });
+      queryClient.invalidateQueries({ queryKey: [`/api/teams/${team?.id}/finances`] });
+      queryClient.invalidateQueries({ queryKey: ["/api/teams/my"] });
+      // Also refresh the navigation bar data
+      queryClient.refetchQueries({ queryKey: [`/api/teams/${team?.id}/finances`] });
     },
     onError: (error: any) => {
       toast({
