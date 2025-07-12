@@ -27,7 +27,7 @@ interface CamaraderieEffects {
 }
 
 interface CamaraderieSummary {
-  averageCamaraderie: number;
+  teamCamaraderie: number;
   highMoraleCount: number;
   lowMoraleCount: number;
   topPerformers: any[];
@@ -130,8 +130,8 @@ export default function CamaraderieManagement({ teamId }: { teamId: string }) {
               <CardContent className="space-y-4">
                 <div className="grid grid-cols-2 gap-4">
                   <div className="text-center">
-                    <div className="text-2xl font-bold">{Math.round(summary.averageCamaraderie)}</div>
-                    <Progress value={summary.averageCamaraderie} className="mt-2" />
+                    <div className="text-2xl font-bold">{Math.round(summary.teamCamaraderie)}</div>
+                    <Progress value={summary.teamCamaraderie} className="mt-2" />
                     <p className="text-xs text-muted-foreground mt-1">
                       {getCamaraderieStatusBadge(effects.status)}
                     </p>

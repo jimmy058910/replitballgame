@@ -14,6 +14,7 @@ import Inventory from "@/pages/Inventory";
 import AdvancedTacticalEffectsManager from "@/components/AdvancedTacticalEffectsManager";
 import UnifiedInventoryHub from "@/components/UnifiedInventoryHub";
 import TacticsLineupHub from "@/components/TacticsLineupHub";
+import TryoutSystem from "@/components/TryoutSystem";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -149,7 +150,7 @@ export default function Team() {
 
         {/* Main Navigation Tabs - Consolidated 5-Tab Structure */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="mb-8">
-          <TabsList className="grid w-full grid-cols-5 bg-gray-800 gap-0.5">
+          <TabsList className="grid w-full grid-cols-6 bg-gray-800 gap-0.5">
             <TabsTrigger value="roster" className="border-r border-gray-600 last:border-r-0 flex items-center gap-1">
               Roster
               <HelpIcon content="Central hub for all player management. View roster, manage health and injuries in Medical Center." />
@@ -169,6 +170,10 @@ export default function Team() {
             <TabsTrigger value="inventory" className="border-r border-gray-600 last:border-r-0 flex items-center gap-1">
               Inventory
               <HelpIcon content="View and manage all owned items. Equipment, consumables, and trophy collection." />
+            </TabsTrigger>
+            <TabsTrigger value="recruiting" className="border-r border-gray-600 last:border-r-0 flex items-center gap-1">
+              Recruiting
+              <HelpIcon content="Host tryouts to recruit new players. Once per season opportunity to add talent to your team." />
             </TabsTrigger>
           </TabsList>
 
@@ -419,6 +424,16 @@ export default function Team() {
 
           <TabsContent value="inventory">
             <UnifiedInventoryHub teamId={team?.id || ''} />
+          </TabsContent>
+
+          <TabsContent value="recruiting">
+            <TryoutSystem 
+              teamId={team?.id || ''} 
+              onNavigateToTaxiSquad={() => {
+                setActiveTab("roster");
+                setSelectedRole("taxi-squad");
+              }}
+            />
           </TabsContent>
 
         {/* Player Detail Modal */}

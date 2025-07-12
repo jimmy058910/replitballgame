@@ -122,7 +122,7 @@ export default function TacticsLineupHub({ teamId }: TacticsLineupHubProps) {
 
   // Determine player role based on stats if not already assigned
   const determinePlayerRole = (player: Player): string => {
-    if (player.role) return player.role;
+    if (player.role) return player.role.toLowerCase();
     
     const passerScore = (player.throwing + player.leadership) / 2;
     const runnerScore = (player.speed + player.agility) / 2;
@@ -177,7 +177,7 @@ export default function TacticsLineupHub({ teamId }: TacticsLineupHubProps) {
   useEffect(() => {
     if (players.length > 0) {
       const healthyPlayers = players
-        .filter(p => p.injuryStatus === "Healthy" || p.injuryStatus === "Minor Injury")
+        .filter(p => p.injuryStatus === "HEALTHY" || p.injuryStatus === "MINOR_INJURY")
         .map(ensurePlayerRole);
       
       if (formation?.starters && formation.starters.length > 0) {
@@ -185,19 +185,34 @@ export default function TacticsLineupHub({ teamId }: TacticsLineupHubProps) {
         const formationStarters = formation.starters.map(ensurePlayerRole);
         const newSlots = [...starterSlots];
         
-        formationStarters.forEach((player, index) => {
-          if (index < 6 && newSlots[index]) {
-            newSlots[index] = { ...newSlots[index], player };
+        // Initialize all slots as empty first
+        newSlots.forEach((slot, index) => {
+          newSlots[index] = { ...slot, player: null };
+        });
+        
+        // Assign players to appropriate slots based on their role
+        formationStarters.forEach((player) => {
+          const playerRole = player.role.toLowerCase();
+          
+          // Find the first empty slot for this role
+          const slotIndex = newSlots.findIndex(slot => 
+            slot.player === null && 
+            (slot.requiredRole?.toLowerCase() === playerRole || slot.isWildcard)
+          );
+          
+          if (slotIndex !== -1) {
+            newSlots[slotIndex] = { ...newSlots[slotIndex], player };
           }
         });
+        
         setStarterSlots(newSlots);
         
         // Organize substitutes by position
         const formationSubs = (formation.substitutes || []).map(ensurePlayerRole);
         setSubstitutes({
-          blockers: formationSubs.filter(p => p.role === "blocker"),
-          runners: formationSubs.filter(p => p.role === "runner"),
-          passers: formationSubs.filter(p => p.role === "passer"),
+          blockers: formationSubs.filter(p => p.role.toLowerCase() === "blocker"),
+          runners: formationSubs.filter(p => p.role.toLowerCase() === "runner"),
+          passers: formationSubs.filter(p => p.role.toLowerCase() === "passer"),
         });
         
         // Set available players
