@@ -131,7 +131,10 @@ export default function Team() {
               <Button 
                 variant="outline" 
                 size="sm"
-                onClick={() => setActiveTab("recruiting")}
+                onClick={() => {
+                  setActiveTab("roster");
+                  setRosterSubTab("recruiting");
+                }}
                 className="text-blue-400 border-blue-400 hover:bg-blue-400 hover:text-white text-xs px-3 py-1.5"
               >
                 <i className="fas fa-plus mr-1"></i>Recruit
@@ -150,10 +153,10 @@ export default function Team() {
 
         {/* Main Navigation Tabs - Consolidated 5-Tab Structure */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="mb-8">
-          <TabsList className="grid w-full grid-cols-6 bg-gray-800 gap-0.5">
+          <TabsList className="grid w-full grid-cols-5 bg-gray-800 gap-0.5">
             <TabsTrigger value="roster" className="border-r border-gray-600 last:border-r-0 flex items-center gap-1">
               Roster
-              <HelpIcon content="Central hub for all player management. View roster, manage health and injuries in Medical Center." />
+              <HelpIcon content="Central hub for all player management. View roster, manage health and injuries in Medical Center, and recruit new players." />
             </TabsTrigger>
             <TabsTrigger value="staff" className="border-r border-gray-600 last:border-r-0 flex items-center gap-1">
               Staff
@@ -171,18 +174,15 @@ export default function Team() {
               Inventory
               <HelpIcon content="View and manage all owned items. Equipment, consumables, and trophy collection." />
             </TabsTrigger>
-            <TabsTrigger value="recruiting" className="border-r border-gray-600 last:border-r-0 flex items-center gap-1">
-              Recruiting
-              <HelpIcon content="Host tryouts to recruit new players. Once per season opportunity to add talent to your team." />
-            </TabsTrigger>
           </TabsList>
 
           <TabsContent value="roster">
-            {/* Roster Sub-tabs: Players and Medical Center */}
+            {/* Roster Sub-tabs: Players, Medical Center, and Recruiting */}
             <Tabs value={rosterSubTab} onValueChange={setRosterSubTab} className="mb-6">
-              <TabsList className="grid w-full grid-cols-2 bg-gray-800">
+              <TabsList className="grid w-full grid-cols-3 bg-gray-800">
                 <TabsTrigger value="players">Players</TabsTrigger>
                 <TabsTrigger value="medical">Medical Center</TabsTrigger>
+                <TabsTrigger value="recruiting">Recruiting</TabsTrigger>
               </TabsList>
 
               <TabsContent value="players">
@@ -227,7 +227,10 @@ export default function Team() {
             {selectedRole === 'taxi-squad' ? (
               <TaxiSquadManager 
                 teamId={team?.id} 
-                onNavigateToRecruiting={() => setActiveTab('recruiting')}
+                onNavigateToRecruiting={() => {
+                  setActiveTab('roster');
+                  setRosterSubTab('recruiting');
+                }}
               />
             ) : (
               /* Player Grid */
@@ -283,6 +286,16 @@ export default function Team() {
 
               <TabsContent value="medical">
                 <InjuryStaminaManager teamId={team?.id?.toString() || ''} />
+              </TabsContent>
+
+              <TabsContent value="recruiting">
+                <TryoutSystem 
+                  teamId={team?.id || ''} 
+                  onNavigateToTaxiSquad={() => {
+                    setRosterSubTab("players");
+                    setSelectedRole("taxi-squad");
+                  }}
+                />
               </TabsContent>
             </Tabs>
           </TabsContent>
@@ -426,15 +439,7 @@ export default function Team() {
             <UnifiedInventoryHub teamId={team?.id || ''} />
           </TabsContent>
 
-          <TabsContent value="recruiting">
-            <TryoutSystem 
-              teamId={team?.id || ''} 
-              onNavigateToTaxiSquad={() => {
-                setActiveTab("roster");
-                setSelectedRole("taxi-squad");
-              }}
-            />
-          </TabsContent>
+
 
         {/* Player Detail Modal */}
         <PlayerDetailModal
