@@ -1110,7 +1110,13 @@ router.get('/:teamId/seasonal-data', isAuthenticated, asyncHandler(async (req: a
     team = await storage.teams.getTeamByUserId(userId);
   } else {
     team = await storage.teams.getTeamById(teamId);
-    if (!team || team.userProfileId !== userId) {
+    if (!team) {
+      throw ErrorCreators.notFound("Team not found");
+    }
+    
+    // Check ownership by looking up the UserProfile first, then comparing userProfileId
+    const userProfile = await storage.users.getUser(userId);
+    if (!userProfile || team.userProfileId !== userProfile.id) {
       throw ErrorCreators.forbidden("You do not own this team");
     }
   }

@@ -142,36 +142,16 @@ export class PlayerStorage {
 
   // Taxi Squad specific methods  
   async getTaxiSquadPlayersByTeamId(teamId: number): Promise<Player[]> {
-    return await prisma.player.findMany({
-      where: {
-        teamId: teamId,
-        isOnTaxiSquad: true
-      },
-      include: {
-        team: { select: { name: true } },
-        contract: true,
-        skills: { include: { skill: true } }
-      },
-      orderBy: { firstName: 'asc' }
-    });
+    // TODO: Add taxi squad functionality to Prisma schema
+    // For now, return empty array since isOnTaxiSquad field doesn't exist in schema
+    return [];
   }
 
   async promotePlayerFromTaxiSquad(playerId: number): Promise<Player | null> {
-    try {
-      const promotedPlayer = await prisma.player.update({
-        where: { id: playerId },
-        data: { isOnTaxiSquad: false },
-        include: {
-          team: { select: { name: true } },
-          contract: true,
-          skills: { include: { skill: true } }
-        }
-      });
-      return promotedPlayer;
-    } catch (error) {
-      console.warn(`Player with ID ${playerId} not found for promotion.`);
-      return null;
-    }
+    // TODO: Add taxi squad functionality to Prisma schema
+    // For now, return null since isOnTaxiSquad field doesn't exist in schema
+    console.warn(`Taxi squad promotion not implemented - missing isOnTaxiSquad field in schema`);
+    return null;
   }
 
   async releasePlayerFromTaxiSquad(playerId: number): Promise<boolean> {
