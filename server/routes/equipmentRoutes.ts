@@ -83,7 +83,7 @@ router.post('/equip', isAuthenticated, asyncHandler(async (req: any, res: Respon
   });
 
   if (existingEquipment) {
-    throw ErrorCreators.conflict("Player already has this equipment equipped");
+    throw ErrorCreators.conflict("Player already has this equipment equipped - equipment is permanent and cannot be removed");
   }
 
   // Create Item entry if it doesn't exist
@@ -134,7 +134,7 @@ router.post('/equip', isAuthenticated, asyncHandler(async (req: any, res: Respon
 
   res.json({
     success: true,
-    message: `${itemName} equipped to ${player.firstName} ${player.lastName}`,
+    message: `${itemName} permanently equipped to ${player.firstName} ${player.lastName} - cannot be removed`,
     item: item
   });
 }));

@@ -470,6 +470,12 @@ export default function UnifiedInventoryHub({ teamId }: UnifiedInventoryHubProps
                 {/* Context-sensitive action section */}
                 {selectedItem.itemType === "EQUIPMENT" && (
                   <div className="space-y-3">
+                    <div className="p-3 bg-red-900/20 rounded border border-red-500">
+                      <p className="text-sm text-red-300 font-medium">⚠️ WARNING: Equipment is PERMANENT!</p>
+                      <p className="text-xs text-red-400 mt-1">
+                        Once equipped, this item cannot be removed or transferred to other players.
+                      </p>
+                    </div>
                     <label className="text-sm font-medium text-gray-300">Equip on Player:</label>
                     <Select value={selectedPlayer} onValueChange={setSelectedPlayer}>
                       <SelectTrigger className="bg-gray-700 border-gray-600 text-white">
@@ -484,7 +490,7 @@ export default function UnifiedInventoryHub({ teamId }: UnifiedInventoryHubProps
                       </SelectContent>
                     </Select>
                     <Button 
-                      className="w-full"
+                      className="w-full bg-red-600 hover:bg-red-700"
                       disabled={!selectedPlayer || useItemMutation.isPending}
                       onClick={() => useItemMutation.mutate({ 
                         item: selectedItem, 
@@ -493,7 +499,7 @@ export default function UnifiedInventoryHub({ teamId }: UnifiedInventoryHubProps
                       })}
                     >
                       <User className="h-4 w-4 mr-2" />
-                      Equip on Player
+                      ⚠️ PERMANENTLY EQUIP
                     </Button>
                   </div>
                 )}
