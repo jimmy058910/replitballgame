@@ -194,7 +194,12 @@ router.post('/watch-ad', isAuthenticated, async (req: any, res: Response, next: 
     if (!team) return res.status(404).json({ message: "Team not found to process ad reward." });
 
     // Reward logic should be server-defined based on placement/adType, not client-sent.
-    const { adType, placement } = req.body; // Client might indicate context
+    const { adType, placement, unityAdsResult } = req.body; // Client might indicate context
+    
+    // Log Unity Ads result for debugging
+    if (unityAdsResult) {
+      console.log('Unity Ads Result:', unityAdsResult);
+    }
 
     // Updated ad rewards system: 500-10,000 credits averaging 2,000
     // Check daily limit first
@@ -237,7 +242,7 @@ router.post('/watch-ad', isAuthenticated, async (req: any, res: Response, next: 
     }
 
     await adSystemStorage.createAdView({
-        userId, adType: adType || 'rewarded_video', placement: placement || 'generic_watch',
+        userId, adType: adType || 'rewarded_video', placement: placement || (unityAdsResult?.placementId || 'generic_watch'),
         rewardType, rewardAmount, completed: true, completedAt: new Date()
     });
 

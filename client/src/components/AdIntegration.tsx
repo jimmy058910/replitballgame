@@ -1,7 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Play, Gift, Clock } from 'lucide-react';
+import { Play, Gift, Clock, AlertCircle } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
+import UnityAdsService from '@/services/UnityAdsService';
 
 interface AdIntegrationProps {
   onAdWatched?: (reward: number) => void;
@@ -10,21 +12,43 @@ interface AdIntegrationProps {
 export function AdIntegration({ onAdWatched }: AdIntegrationProps) {
   const [adsWatchedToday, setAdsWatchedToday] = useState(0);
   const [isWatchingAd, setIsWatchingAd] = useState(false);
+  const [isInitializing, setIsInitializing] = useState(true);
+  const [unityAdsReady, setUnityAdsReady] = useState(false);
   const [dailyLimit] = useState(10);
+  const { toast } = useToast();
 
   useEffect(() => {
-    // Initialize Google AdSense
-    if (typeof window !== 'undefined' && !window.adsbygoogle) {
-      const script = document.createElement('script');
-      script.src = 'https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js';
-      script.async = true;
-      script.crossOrigin = 'anonymous';
-      document.head.appendChild(script);
-    }
-
-    // Fetch current ad status
+    initializeUnityAds();
     fetchAdStatus();
   }, []);
+
+  const initializeUnityAds = async () => {
+    try {
+      setIsInitializing(true);
+      const success = await UnityAdsService.initialize();
+      
+      if (success) {
+        setUnityAdsReady(true);
+        console.log('Unity Ads initialized successfully');
+      } else {
+        console.error('Unity Ads initialization failed');
+        toast({
+          title: "Ad System Notice",
+          description: "Unity Ads not available. Using simulation mode.",
+          variant: "default"
+        });
+      }
+    } catch (error) {
+      console.error('Error initializing Unity Ads:', error);
+      toast({
+        title: "Ad System Notice", 
+        description: "Unity Ads not available. Using simulation mode.",
+        variant: "default"
+      });
+    } finally {
+      setIsInitializing(false);
+    }
+  };
 
   const fetchAdStatus = async () => {
     try {
@@ -40,30 +64,81 @@ export function AdIntegration({ onAdWatched }: AdIntegrationProps) {
     setIsWatchingAd(true);
     
     try {
-      // For now, simulate ad watching
-      // In production, this would trigger actual ad networks
-      await new Promise(resolve => setTimeout(resolve, 15000)); // 15 second ad
+      let adResult = null;
       
-      const response = await fetch('/api/store/watch-ad', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          adType: 'rewarded_video',
-          placement: 'rewards_center'
-        })
-      });
+      // Try Unity Ads first
+      if (unityAdsReady && UnityAdsService.isSupported() && UnityAdsService.isReady('rewardedVideo')) {
+        try {
+          adResult = await UnityAdsService.showRewardedVideo();
+          
+          if (adResult.state === 'COMPLETED') {
+            // Unity ad completed successfully
+            console.log('Unity Ads - Video completed successfully');
+          } else if (adResult.state === 'SKIPPED') {
+            toast({
+              title: "Ad Skipped",
+              description: "You need to watch the full ad to earn credits.",
+              variant: "default"
+            });
+            return;
+          } else {
+            throw new Error('Unity ad failed or was not completed');
+          }
+        } catch (unityError) {
+          console.error('Unity Ads error:', unityError);
+          // Fall back to simulation
+          adResult = null;
+        }
+      }
 
-      const result = await response.json();
-      
-      if (result.success) {
-        const reward = result.reward?.amount || 0;
-        setAdsWatchedToday(prev => prev + 1);
-        onAdWatched?.(reward);
+      // Fallback to simulation if Unity Ads not available
+      if (!adResult) {
+        console.log('Using ad simulation mode');
+        await new Promise(resolve => setTimeout(resolve, 15000)); // 15 second simulation
+        adResult = { state: 'COMPLETED', placementId: 'simulation' };
+      }
+
+      // Process the ad reward
+      if (adResult.state === 'COMPLETED') {
+        const response = await fetch('/api/store/watch-ad', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            adType: 'rewarded_video',
+            placement: adResult.placementId || 'unity_ads',
+            unityAdsResult: adResult
+          })
+        });
+
+        const result = await response.json();
+        
+        if (result.success) {
+          const reward = result.reward?.amount || 0;
+          setAdsWatchedToday(prev => prev + 1);
+          onAdWatched?.(reward);
+          
+          toast({
+            title: "Credits Earned!",
+            description: `You earned ${reward.toLocaleString()} credits!`,
+            variant: "default"
+          });
+        } else {
+          toast({
+            title: "Error",
+            description: result.message || "Failed to process ad reward",
+            variant: "destructive"
+          });
+        }
       }
     } catch (error) {
       console.error('Error watching ad:', error);
+      toast({
+        title: "Ad Error",
+        description: "Something went wrong. Please try again.",
+        variant: "destructive"
+      });
     } finally {
       setIsWatchingAd(false);
     }
@@ -77,6 +152,11 @@ export function AdIntegration({ onAdWatched }: AdIntegrationProps) {
         <CardTitle className="flex items-center gap-2">
           <Gift className="h-5 w-5" />
           Earn Free Credits
+          {unityAdsReady && (
+            <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded">
+              Unity Ads
+            </span>
+          )}
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
@@ -98,12 +178,24 @@ export function AdIntegration({ onAdWatched }: AdIntegrationProps) {
           </span>
         </div>
 
+        {!unityAdsReady && !isInitializing && (
+          <div className="flex items-center gap-2 text-sm text-amber-600 bg-amber-50 p-2 rounded">
+            <AlertCircle className="h-4 w-4" />
+            <span>Using simulation mode (Unity Ads not available)</span>
+          </div>
+        )}
+
         <Button
           onClick={watchRewardedAd}
-          disabled={isWatchingAd || adsRemaining === 0}
+          disabled={isWatchingAd || adsRemaining === 0 || isInitializing}
           className="w-full"
         >
-          {isWatchingAd ? (
+          {isInitializing ? (
+            <>
+              <Clock className="h-4 w-4 mr-2 animate-spin" />
+              Initializing...
+            </>
+          ) : isWatchingAd ? (
             <>
               <Clock className="h-4 w-4 mr-2 animate-spin" />
               Watching Ad...
@@ -124,6 +216,9 @@ export function AdIntegration({ onAdWatched }: AdIntegrationProps) {
 
         <div className="text-xs text-muted-foreground text-center">
           Earn 500-10,000 credits per ad
+          {unityAdsReady && (
+            <div className="text-green-600 font-medium">Unity Ads Active</div>
+          )}
         </div>
       </CardContent>
     </Card>
