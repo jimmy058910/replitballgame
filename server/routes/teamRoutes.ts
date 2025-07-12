@@ -10,6 +10,7 @@ import { AgingService } from "../services/agingService";
 import { generateRandomName } from "@shared/names";
 import { Race, PlayerRole, InjuryStatus } from "../../generated/prisma";
 import { prisma } from '../db';
+import { getPlayerRole } from "@shared/playerUtils";
 // Database operations handled through storage layer
 
 const router = Router();
@@ -701,6 +702,19 @@ router.post('/:teamId/tryouts', isAuthenticated, asyncHandler(async (req: any, r
     throw ErrorCreators.notFound("Team not found");
   }
 
+  // Check seasonal restriction: only 1 tryout per season
+  try {
+    const seasonalData = await storage.teams.getTeamSeasonalData(team.id);
+    if (seasonalData && seasonalData.tryoutsUsed) {
+      throw ErrorCreators.validation("Teams can only conduct tryouts once per season (17-day cycle). You have already used your tryouts for this season.");
+    }
+  } catch (error) {
+    if (error.message.includes("tryouts once per season")) {
+      throw error; // Re-throw the validation error
+    }
+    console.error('Error checking seasonal restrictions:', error);
+  }
+
   // Get team finances
   const finances = await storage.teamFinances.getTeamFinances(team.id);
   if (!finances) {
@@ -772,6 +786,15 @@ router.post('/:teamId/tryouts', isAuthenticated, asyncHandler(async (req: any, r
   await storage.teamFinances.updateTeamFinances(team.id, {
     credits: (finances.credits || 0) - cost
   });
+
+  // Mark tryouts as used for this season
+  try {
+    await storage.teams.updateTeamSeasonalData(team.id, {
+      tryoutsUsed: true
+    });
+  } catch (error) {
+    console.error('Error updating seasonal data:', error);
+  }
 
   logInfo(`Tryout hosted successfully`, {
     teamId: team.id,
@@ -943,6 +966,9 @@ router.post('/:teamId/taxi-squad/add-candidates', isAuthenticated, asyncHandler(
   const addedPlayers = [];
   
   for (const candidate of candidates) {
+    // Determine role based on candidate attributes
+    const role = getPlayerRole(candidate);
+    
     // Convert candidate to player format for taxi squad
     const playerData = {
       firstName: candidate.firstName,
@@ -955,10 +981,10 @@ router.post('/:teamId/taxi-squad/add-candidates', isAuthenticated, asyncHandler(
       throwing: candidate.throwing,
       catching: candidate.catching,
       kicking: candidate.kicking,
-      stamina: candidate.stamina,
+      staminaAttribute: candidate.stamina,
       leadership: candidate.leadership,
       agility: candidate.agility,
-      overallPotentialStars: candidate.overallPotentialStars,
+      potentialRating: candidate.overallPotentialStars?.toString() || '0',
       marketValue: candidate.marketValue || 0,
       salary: 0, // Taxi squad players don't earn salary
       teamId: team.id,
@@ -967,7 +993,10 @@ router.post('/:teamId/taxi-squad/add-candidates', isAuthenticated, asyncHandler(
       contractSeasons: 1,
       contractValue: 0,
       abilities: JSON.stringify([]),
-      position: "player"
+      role: role, // Add required role field
+      dailyStaminaLevel: 100,
+      injuryStatus: "HEALTHY",
+      camaraderieScore: 75
     };
 
     const newPlayer = await storage.players.createPlayer(playerData);
