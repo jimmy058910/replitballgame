@@ -23,6 +23,7 @@ import {
   Plus,
   Tag
 } from 'lucide-react';
+import UnifiedPlayerCard from '@/components/UnifiedPlayerCard';
 
 interface Player {
   id: string;
@@ -112,6 +113,22 @@ export default function DynamicMarketplaceManager({ teamId }: { teamId: string }
   const [startBid, setStartBid] = useState<string>('');
   const [durationHours, setDurationHours] = useState<string>('24');
   const [buyNowPrice, setBuyNowPrice] = useState<string>('');
+
+  // Auto-fill buy-now price when player is selected
+  const handlePlayerSelection = (playerId: string) => {
+    setSelectedPlayerId(playerId);
+    if (playerId && teamPlayers) {
+      const selectedPlayer = teamPlayers.find((p: any) => p.id === playerId);
+      if (selectedPlayer) {
+        const playerPower = getPlayerPower(selectedPlayer);
+        const potential = selectedPlayer.potentialRating || 0;
+        const calculatedBuyNow = (playerPower * 1000) + (potential * 2000);
+        setBuyNowPrice(calculatedBuyNow.toString());
+      }
+    } else {
+      setBuyNowPrice('');
+    }
+  };
 
   // Fetch marketplace stats
   const { data: stats, isLoading: loadingStats } = useQuery({
@@ -521,7 +538,7 @@ export default function DynamicMarketplaceManager({ teamId }: { teamId: string }
                 <div className="space-y-4">
                   <div>
                     <Label htmlFor="player-select">Select Player</Label>
-                    <Select value={selectedPlayerId} onValueChange={setSelectedPlayerId}>
+                    <Select value={selectedPlayerId} onValueChange={handlePlayerSelection}>
                       <SelectTrigger className="mt-1">
                         <SelectValue placeholder="Choose a player to list..." />
                       </SelectTrigger>
@@ -584,61 +601,21 @@ export default function DynamicMarketplaceManager({ teamId }: { teamId: string }
 
                 <div className="space-y-4">
                   {selectedPlayerId && teamPlayers && (
-                    <Card className="border-2 border-blue-200">
-                      <CardHeader>
-                        <CardTitle className="text-lg">Player Preview</CardTitle>
-                      </CardHeader>
-                      <CardContent>
-                        {(() => {
-                          const selectedPlayer = teamPlayers.find((p: any) => p.id === selectedPlayerId);
-                          if (!selectedPlayer) return null;
-                          
-                          return (
-                            <div className="space-y-3">
-                              <div className="text-center">
-                                <div className="w-16 h-16 bg-gray-200 rounded-full flex items-center justify-center mx-auto mb-3">
-                                  <span className="text-xl font-bold">
-                                    {getPlayerPower(selectedPlayer)}
-                                  </span>
-                                </div>
-                                <h3 className="font-bold text-lg">
-                                  {selectedPlayer.firstName} {selectedPlayer.lastName}
-                                </h3>
-                                <div className="flex items-center justify-center space-x-2 mt-1">
-                                  <Badge className={getRoleColor(selectedPlayer.role)}>
-                                    {selectedPlayer.role}
-                                  </Badge>
-                                  <span className="text-sm text-gray-600">{selectedPlayer.race}</span>
-                                </div>
-                              </div>
-
-                              <div className="grid grid-cols-5 gap-2 text-center">
-                                <div>
-                                  <div className="text-xs text-gray-500">SPD</div>
-                                  <div className="font-medium">{selectedPlayer.speed}</div>
-                                </div>
-                                <div>
-                                  <div className="text-xs text-gray-500">PWR</div>
-                                  <div className="font-medium">{selectedPlayer.power}</div>
-                                </div>
-                                <div>
-                                  <div className="text-xs text-gray-500">THR</div>
-                                  <div className="font-medium">{selectedPlayer.throwing}</div>
-                                </div>
-                                <div>
-                                  <div className="text-xs text-gray-500">CAT</div>
-                                  <div className="font-medium">{selectedPlayer.catching}</div>
-                                </div>
-                                <div>
-                                  <div className="text-xs text-gray-500">KCK</div>
-                                  <div className="font-medium">{selectedPlayer.kicking}</div>
-                                </div>
-                              </div>
-                            </div>
-                          );
-                        })()}
-                      </CardContent>
-                    </Card>
+                    <div>
+                      <h3 className="text-lg font-semibold mb-3">Player Preview</h3>
+                      {(() => {
+                        const selectedPlayer = teamPlayers.find((p: any) => p.id === selectedPlayerId);
+                        if (!selectedPlayer) return null;
+                        
+                        return (
+                          <UnifiedPlayerCard 
+                            player={selectedPlayer}
+                            showDetailedStats={true}
+                            showActions={false}
+                          />
+                        );
+                      })()}
+                    </div>
                   )}
 
                   <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
@@ -650,8 +627,7 @@ export default function DynamicMarketplaceManager({ teamId }: { teamId: string }
                           <li>• Must maintain minimum 10 players on roster</li>
                           <li>• Maximum 3 active listings per team</li>
                           <li>• 2% listing fee charged on starting bid</li>
-                          <li>• Anti-sniping: 5-minute extensions when bid placed in final 5 minutes</li>
-                          <li>• Buy-now price formula: (Player CAR × 1000) + (Potential × 2000)</li>
+                          <li>• Anti-sniping: 30-second extensions when bid placed in final 30 seconds</li>
                         </ul>
                       </div>
                     </div>
