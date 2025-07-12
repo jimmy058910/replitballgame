@@ -901,13 +901,29 @@ router.get('/:teamId/taxi-squad', isAuthenticated, asyncHandler(async (req: any,
   const userId = req.user.claims.sub;
   const { teamId } = req.params;
 
+  // Get userProfile to check team ownership
+  const userProfile = await prisma.userProfile.findFirst({
+    where: { userId: userId }
+  });
+  
+  if (!userProfile) {
+    throw ErrorCreators.forbidden("User profile not found");
+  }
+
   // Verify team ownership
   let team;
   if (teamId === "my") {
-    team = await storage.teams.getTeamByUserId(userId);
+    team = await prisma.team.findFirst({
+      where: { userProfileId: userProfile.id }
+    });
   } else {
-    team = await storage.teams.getTeamById(teamId);
-    if (!team || team.userId !== userId) {
+    team = await prisma.team.findFirst({
+      where: { 
+        id: parseInt(teamId),
+        userProfileId: userProfile.id 
+      }
+    });
+    if (!team) {
       throw ErrorCreators.forbidden("You do not own this team");
     }
   }
@@ -916,8 +932,14 @@ router.get('/:teamId/taxi-squad', isAuthenticated, asyncHandler(async (req: any,
     throw ErrorCreators.notFound("Team not found");
   }
 
-  // Get taxi squad players
-  const taxiSquadPlayers = await storage.players.getTaxiSquadPlayersByTeamId(team.id);
+  // Get taxi squad players using Prisma - players with more than 10 on roster are taxi squad
+  const allPlayers = await prisma.player.findMany({
+    where: { teamId: team.id },
+    orderBy: { createdAt: 'desc' }
+  });
+
+  // Consider players beyond the first 10 as taxi squad
+  const taxiSquadPlayers = allPlayers.slice(10);
 
   logInfo("Taxi squad retrieved", {
     teamId: team.id,
@@ -1101,13 +1123,29 @@ router.delete('/:teamId/taxi-squad/:playerId', isAuthenticated, asyncHandler(asy
   const userId = req.user.claims.sub;
   const { teamId, playerId } = req.params;
 
+  // Get userProfile to check team ownership
+  const userProfile = await prisma.userProfile.findFirst({
+    where: { userId: userId }
+  });
+  
+  if (!userProfile) {
+    throw ErrorCreators.forbidden("User profile not found");
+  }
+
   // Verify team ownership
   let team;
   if (teamId === "my") {
-    team = await storage.teams.getTeamByUserId(userId);
+    team = await prisma.team.findFirst({
+      where: { userProfileId: userProfile.id }
+    });
   } else {
-    team = await storage.teams.getTeamById(teamId);
-    if (!team || team.userId !== userId) {
+    team = await prisma.team.findFirst({
+      where: { 
+        id: parseInt(teamId),
+        userProfileId: userProfile.id 
+      }
+    });
+    if (!team) {
       throw ErrorCreators.forbidden("You do not own this team");
     }
   }

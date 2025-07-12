@@ -296,6 +296,29 @@ export default function UnifiedInventoryHub({ teamId }: UnifiedInventoryHubProps
                       {getItemEffect(item)}
                     </p>
                     
+                    {/* Enhanced Item Details */}
+                    {item.metadata?.statBoosts && (
+                      <div className="mt-2">
+                        <p className="text-xs font-medium text-gray-400">Stat Boosts:</p>
+                        <div className="flex flex-wrap gap-1 mt-1">
+                          {Object.entries(item.metadata.statBoosts).map(([stat, value]: [string, any]) => (
+                            <span key={stat} className="text-xs bg-blue-100 dark:bg-blue-900 px-2 py-1 rounded">
+                              +{value} {stat}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                    
+                    {item.metadata?.effect && (
+                      <div className="mt-2">
+                        <p className="text-xs font-medium text-gray-400">Effect:</p>
+                        <span className="text-xs bg-green-100 dark:bg-green-900 px-2 py-1 rounded">
+                          {item.metadata.effect} {item.metadata.effectValue && `(${item.metadata.effectValue})`}
+                        </span>
+                      </div>
+                    )}
+                    
                     <div className="flex justify-between items-center">
                       <Badge 
                         variant="secondary" 

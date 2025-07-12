@@ -372,7 +372,12 @@ export default function PlayerDetailModal({
                         variant="outline" 
                         size="sm" 
                         className="w-full mt-3"
-                        onClick={() => onEquipmentChange?.(player.id, key, "")}
+                        onClick={() => {
+                          // Navigate to inventory tab for equipment change
+                          window.dispatchEvent(new CustomEvent('navigate-to-inventory', {
+                            detail: { playerId: player.id, slot: key }
+                          }));
+                        }}
                       >
                         Change Equipment
                       </Button>

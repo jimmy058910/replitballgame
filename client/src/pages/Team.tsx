@@ -467,6 +467,17 @@ export default function Team() {
             setShowPlayerModal(false);
             setShowContractModal(true);
           }}
+          onEquipmentChange={(playerId, slot, itemId) => {
+            setShowPlayerModal(false);
+            setActiveTab("inventory");
+            // Focus on equipment filter in inventory
+            setTimeout(() => {
+              const inventoryHub = document.querySelector('[data-testid="inventory-hub"]');
+              if (inventoryHub) {
+                inventoryHub.scrollIntoView({ behavior: 'smooth' });
+              }
+            }, 100);
+          }}
         />
 
         {/* Contract Negotiation Modal */}
