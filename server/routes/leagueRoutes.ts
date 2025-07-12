@@ -397,4 +397,62 @@ router.get('/daily-schedule', isAuthenticated, async (req: Request, res: Respons
   }
 });
 
+// Utility endpoint to fix teams with missing players
+router.post('/fix-team-players/:teamId', isAuthenticated, async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const { teamId } = req.params;
+    
+    // Get team info
+    const team = await storage.teams.getTeamById(teamId);
+    if (!team) {
+      return res.status(404).json({ message: "Team not found" });
+    }
+    
+    // Check if team already has players
+    const existingPlayers = await storage.players.getPlayersByTeamId(teamId);
+    if (existingPlayers.length > 0) {
+      return res.status(400).json({ message: "Team already has players" });
+    }
+    
+    // Generate players for the team
+    const races = ["HUMAN", "SYLVAN", "GRYLL", "LUMINA", "UMBRA"];
+    const positions = ["passer", "runner", "blocker"];
+    
+    for (let j = 0; j < 12; j++) {
+      const race = races[Math.floor(Math.random() * races.length)];
+      const position = positions[Math.floor(Math.random() * positions.length)];
+      
+      // Generate proper names instead of "AI Player" 
+      await storage.players.createPlayer(generateRandomPlayer(null, race, team.id, position));
+    }
+    
+    res.json({ message: `Added 12 players to team ${team.name}` });
+  } catch (error) {
+    console.error("Error fixing team players:", error);
+    next(error);
+  }
+});
+
+// Utility endpoint to update team subdivision
+router.post('/update-subdivision/:teamId', isAuthenticated, async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const { teamId } = req.params;
+    const { subdivision } = req.body;
+    
+    // Get team info
+    const team = await storage.teams.getTeamById(teamId);
+    if (!team) {
+      return res.status(404).json({ message: "Team not found" });
+    }
+    
+    // Update subdivision
+    await storage.teams.updateTeam(teamId, { subdivision });
+    
+    res.json({ message: `Updated team ${team.name} subdivision to ${subdivision}` });
+  } catch (error) {
+    console.error("Error updating team subdivision:", error);
+    next(error);
+  }
+});
+
 export default router;

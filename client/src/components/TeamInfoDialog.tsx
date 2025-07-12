@@ -7,6 +7,43 @@ import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Users, Trophy, TrendingUp, Star, Shield } from "lucide-react";
 
+// Helper function to get division name with subdivision
+const getDivisionNameWithSubdivision = (division: number, subdivision?: string) => {
+  const divisionNames = {
+    1: "Diamond League",
+    2: "Platinum League", 
+    3: "Gold League",
+    4: "Silver League",
+    5: "Bronze League",
+    6: "Iron League",
+    7: "Steel League",
+    8: "Copper League"
+  };
+  
+  const baseName = divisionNames[division as keyof typeof divisionNames] || `Division ${division}`;
+  
+  if (!subdivision || subdivision === "main") {
+    return baseName;
+  }
+  
+  // Map subdivision to display names
+  const subdivisionNames = {
+    "alpha": "Alpha",
+    "beta": "Beta", 
+    "gamma": "Gamma",
+    "delta": "Delta",
+    "epsilon": "Epsilon",
+    "zeta": "Zeta",
+    "eta": "Eta",
+    "theta": "Theta",
+    "iota": "Iota",
+    "kappa": "Kappa"
+  };
+  
+  const subdivisionName = subdivisionNames[subdivision as keyof typeof subdivisionNames] || subdivision;
+  return `${baseName} - ${subdivisionName}`;
+};
+
 interface TeamInfoDialogProps {
   teamId: string | null;
   isOpen: boolean;
@@ -174,7 +211,7 @@ export default function TeamInfoDialog({ teamId, isOpen, onClose }: TeamInfoDial
                   <Badge variant="outline" className="text-purple-400 border-purple-400">
                     Division {teamInfo.division}
                     {teamInfo.subdivision && teamInfo.subdivision !== "main" && (
-                      <span className="ml-1 text-purple-300">({teamInfo.subdivision})</span>
+                      <span className="ml-1 text-purple-300">- {teamInfo.subdivision}</span>
                     )}
                   </Badge>
                   <div className="text-sm text-gray-400">
