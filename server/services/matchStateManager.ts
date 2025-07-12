@@ -238,7 +238,7 @@ class MatchStateManager {
       } else {
         // If no state, perhaps just update DB if needed, though this scenario is less likely.
         await prisma.game.update({
-          where: { id: matchId },
+          where: { id: parseInt(matchId.toString()) },
           data: { status: 'COMPLETED' }
         });
       }
@@ -647,7 +647,7 @@ class MatchStateManager {
 
     // Get match details to check if it's an exhibition match
     const matchDetails = await prisma.game.findFirst({
-      where: { id: matchId }
+      where: { id: parseInt(matchId.toString()) }
     });
     const isExhibitionMatch = matchDetails?.matchType === 'exhibition';
 

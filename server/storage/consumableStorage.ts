@@ -153,6 +153,34 @@ export class ConsumableStorage {
       return false;
     }
   }
+
+  // Get all consumables for a match (both teams)
+  async getAllMatchConsumables(matchId: number): Promise<MatchConsumable[]> {
+    return await prisma.matchConsumable.findMany({
+      where: { matchId },
+      orderBy: { activatedAt: 'desc' }
+    });
+  }
+
+  // Mark consumables as used after match completion
+  async markConsumablesAsUsed(matchId: number): Promise<void> {
+    await prisma.matchConsumable.updateMany({
+      where: { matchId },
+      data: { usedInMatch: true }
+    });
+  }
+
+  // Deactivate a consumable (remove from match) - placeholder for future implementation
+  async deactivateConsumable(consumableId: number, teamId: number): Promise<boolean> {
+    try {
+      // This would remove the consumable from the match and restore it to inventory
+      // For now, consumables are permanent once activated
+      return false;
+    } catch (error) {
+      console.error("Error deactivating consumable:", error);
+      return false;
+    }
+  }
 }
 
 export const consumableStorage = new ConsumableStorage();

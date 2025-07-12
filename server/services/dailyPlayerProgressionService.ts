@@ -381,6 +381,10 @@ export class DailyPlayerProgressionService {
     const camaraderieModifier = ((player.camaraderie || 50) - 50) * this.CONFIG.CAMARADERIE_MULTIPLIER;
     progressionChance += camaraderieModifier;
     
+    // 5. Equipment Modifier (equipment enhances progression)
+    const equipmentModifier = await this.calculateEquipmentModifier(player.id, statName);
+    progressionChance += equipmentModifier;
+    
     // 5. Injury Modifier
     const injuryStatus = player.injuryStatus || 'Healthy';
     if (injuryStatus in this.CONFIG.INJURY_MODIFIERS) {
@@ -393,6 +397,48 @@ export class DailyPlayerProgressionService {
     
     // Ensure non-negative probability
     return Math.max(0, progressionChance);
+  }
+
+  /**
+   * Calculate equipment modifier for progression
+   */
+  private static async calculateEquipmentModifier(playerId: number, statName: string): Promise<number> {
+    try {
+      // Get player equipment
+      const playerEquipment = await prisma.playerEquipment.findMany({
+        where: { playerId: playerId.toString() },
+        include: {
+          item: true
+        }
+      });
+      
+      let equipmentBonus = 0;
+      
+      // Apply equipment stat bonuses to progression
+      for (const equipment of playerEquipment) {
+        if (equipment.item?.statBoosts) {
+          const statBoosts = equipment.item.statBoosts as any;
+          
+          // If equipment boosts this specific stat, provide progression bonus
+          if (statBoosts[statName]) {
+            const boost = statBoosts[statName];
+            if (typeof boost === 'number') {
+              equipmentBonus += boost * 0.1; // 10% of equipment bonus goes to progression
+            }
+          }
+          
+          // Equipment with leadership boosts help with all progressions
+          if (statBoosts.leadership && typeof statBoosts.leadership === 'number') {
+            equipmentBonus += statBoosts.leadership * 0.05; // 5% of leadership bonus helps all stats
+          }
+        }
+      }
+      
+      return equipmentBonus;
+    } catch (error) {
+      console.error('Error calculating equipment modifier:', error);
+      return 0;
+    }
   }
 
   /**

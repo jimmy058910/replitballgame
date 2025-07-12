@@ -511,13 +511,14 @@ async function initializeEnhancedPlayers(
     // Apply race effects
     const raceEffects = getRaceEffects(player.race || 'human');
     
-    // Apply consumable effects (fallback to empty object if service doesn't exist)
-    let consumableEffects = {};
-    try {
-      // consumableEffects = await ConsumableService.getActiveConsumables(player.id);
-    } catch (error) {
-      // Service not available, use no consumable effects
-    }
+    // Apply equipment effects
+    const equipmentEffects = await getPlayerEquipmentEffects(player.id);
+    
+    // Apply consumable effects from activated match consumables
+    const consumableEffects = await getActiveMatchConsumables(player.teamId, player.id);
+    
+    // Apply staff effects (trainers, recovery specialists)
+    const staffEffects = await getStaffEffectsForPlayer(player.teamId, player.role);
     
     // Initialize current stamina
     let currentStamina = player.stamina || 100;
@@ -527,6 +528,18 @@ async function initializeEnhancedPlayers(
       currentStamina = Math.min(currentStamina, player.dailyStaminaLevel);
     }
     
+    // Apply injury effects to match performance
+    const injuryEffects = getInjuryEffects(player.injuryStatus);
+    
+    // Apply interconnected system effects
+    const interconnectedEffects = calculateInterconnectedEffects(
+      camaraderieModifiers,
+      equipmentEffects,
+      staffEffects,
+      injuryEffects,
+      teamCamaraderie
+    );
+    
     const enhancedPlayer: EnhancedPlayer = {
       ...player,
       currentStamina,
@@ -534,7 +547,11 @@ async function initializeEnhancedPlayers(
       inGameModifiers: {
         ...camaraderieModifiers,
         ...tacticalModifiers,
-        ...consumableEffects
+        ...consumableEffects,
+        ...equipmentEffects,
+        ...staffEffects,
+        ...injuryEffects,
+        ...interconnectedEffects
       },
       skills: skills.map(s => s.name || s),
       skillCooldowns: {},
@@ -617,6 +634,241 @@ function getRaceEffects(race: string): Record<string, number> {
       effects.leadership = 1;
       effects.adaptability = 2;
       break;
+  }
+  
+  return effects;
+}
+
+// Get player equipment effects for match simulation
+async function getPlayerEquipmentEffects(playerId: string): Promise<Record<string, number>> {
+  const effects: Record<string, number> = {};
+  
+  try {
+    const { prisma } = await import('../db');
+    
+    // Get all equipment for the player
+    const playerEquipment = await prisma.playerEquipment.findMany({
+      where: { playerId: playerId },
+      include: {
+        item: true
+      }
+    });
+    
+    // Apply stat bonuses from each equipped item
+    for (const equipment of playerEquipment) {
+      if (equipment.item?.statBoosts) {
+        const statBoosts = equipment.item.statBoosts as any;
+        Object.entries(statBoosts).forEach(([stat, boost]) => {
+          if (typeof boost === 'number') {
+            effects[stat] = (effects[stat] || 0) + boost;
+          }
+        });
+      }
+    }
+    
+    return effects;
+  } catch (error) {
+    console.error('Error getting player equipment effects:', error);
+    return {};
+  }
+}
+
+// Get staff effects for specific player role
+async function getStaffEffectsForPlayer(teamId: string, playerRole: string): Promise<Record<string, number>> {
+  const effects: Record<string, number> = {};
+  
+  try {
+    const { prisma } = await import('../db');
+    
+    // Get all staff for the team
+    const staff = await prisma.staff.findMany({
+      where: { teamId: parseInt(teamId) }
+    });
+    
+    for (const member of staff) {
+      const effectiveness = (member.motivation || 20) / 40; // 0-1 scale
+      
+      switch (member.type) {
+        case 'HEAD_COACH':
+          // Head coach improves leadership and reduces stamina depletion
+          effects.leadership = (effects.leadership || 0) + Math.floor(effectiveness * 3);
+          effects.stamina = (effects.stamina || 0) + Math.floor(effectiveness * 2);
+          break;
+          
+        case 'PASSER_TRAINER':
+          if (playerRole === 'PASSER') {
+            effects.throwing = (effects.throwing || 0) + Math.floor(effectiveness * 4);
+            effects.catching = (effects.catching || 0) + Math.floor(effectiveness * 2);
+          }
+          break;
+          
+        case 'RUNNER_TRAINER':
+          if (playerRole === 'RUNNER') {
+            effects.speed = (effects.speed || 0) + Math.floor(effectiveness * 3);
+            effects.agility = (effects.agility || 0) + Math.floor(effectiveness * 3);
+          }
+          break;
+          
+        case 'BLOCKER_TRAINER':
+          if (playerRole === 'BLOCKER') {
+            effects.power = (effects.power || 0) + Math.floor(effectiveness * 4);
+            effects.stamina = (effects.stamina || 0) + Math.floor(effectiveness * 2);
+          }
+          break;
+          
+        case 'RECOVERY_SPECIALIST':
+          // Recovery specialist improves stamina recovery for all players
+          effects.staminaRecovery = (effects.staminaRecovery || 0) + Math.floor(effectiveness * 3);
+          break;
+          
+        case 'SCOUT':
+          // Scout improves awareness and leadership slightly
+          effects.leadership = (effects.leadership || 0) + Math.floor(effectiveness * 1);
+          break;
+      }
+    }
+    
+    return effects;
+  } catch (error) {
+    console.error('Error getting staff effects:', error);
+    return {};
+  }
+}
+
+// Get injury effects on match performance
+function getInjuryEffects(injuryStatus: string): Record<string, number> {
+  const effects: Record<string, number> = {};
+  
+  switch (injuryStatus) {
+    case 'Minor Injury':
+      effects.speed = -2;
+      effects.agility = -2;
+      break;
+    case 'Moderate Injury':
+      effects.speed = -5;
+      effects.agility = -5;
+      effects.power = -3;
+      break;
+    case 'Severe Injury':
+      // Severe injuries prevent playing - should not appear in match
+      effects.speed = -10;
+      effects.agility = -10;
+      effects.power = -5;
+      break;
+    default:
+      // Healthy - no effects
+      break;
+  }
+  
+  return effects;
+}
+
+// Get active match consumables effects for a player
+async function getActiveMatchConsumables(teamId: string, playerId: string): Promise<Record<string, number>> {
+  const effects: Record<string, number> = {};
+  
+  try {
+    const { prisma } = await import('../db');
+    
+    // Get active match consumables for the team
+    const activeConsumables = await prisma.matchConsumable.findMany({
+      where: {
+        teamId: parseInt(teamId),
+        usedInMatch: true
+      },
+      orderBy: { activatedAt: 'desc' }
+    });
+    
+    // Apply consumable effects
+    for (const consumable of activeConsumables) {
+      const effectData = consumable.effectData as any;
+      
+      if (effectData?.statBoosts) {
+        Object.entries(effectData.statBoosts).forEach(([stat, boost]) => {
+          if (typeof boost === 'number') {
+            effects[stat] = (effects[stat] || 0) + boost;
+          }
+        });
+      }
+      
+      // Apply specific consumable effects based on type
+      switch (consumable.effectType) {
+        case 'stat_boost':
+          if (effectData?.statBoosts) {
+            Object.entries(effectData.statBoosts).forEach(([stat, boost]) => {
+              if (typeof boost === 'number') {
+                effects[stat] = (effects[stat] || 0) + boost;
+              }
+            });
+          }
+          break;
+          
+        case 'stamina_recovery':
+          effects.staminaRecovery = (effects.staminaRecovery || 0) + (effectData?.staminaBonus || 10);
+          break;
+          
+        case 'injury_prevention':
+          effects.injuryReduction = (effects.injuryReduction || 0) + (effectData?.injuryReduction || 25);
+          break;
+      }
+    }
+    
+    return effects;
+  } catch (error) {
+    console.error('Error getting active match consumables:', error);
+    return {};
+  }
+}
+
+// Calculate interconnected effects where systems affect each other
+function calculateInterconnectedEffects(
+  camaraderieModifiers: Record<string, number>,
+  equipmentEffects: Record<string, number>,
+  staffEffects: Record<string, number>,
+  injuryEffects: Record<string, number>,
+  teamCamaraderie: number
+): Record<string, number> {
+  const effects: Record<string, number> = {};
+  
+  // 1. Equipment enhances progression-related effects
+  const equipmentBonus = Math.floor(Object.values(equipmentEffects).reduce((sum, val) => sum + val, 0) / 10);
+  if (equipmentBonus > 0) {
+    effects.progressionBonus = equipmentBonus;
+    effects.leadership = (effects.leadership || 0) + Math.floor(equipmentBonus / 2);
+  }
+  
+  // 2. Staff effectiveness enhanced by high camaraderie
+  const camaraderieMultiplier = teamCamaraderie >= 76 ? 1.25 : teamCamaraderie >= 51 ? 1.1 : 1.0;
+  Object.entries(staffEffects).forEach(([stat, value]) => {
+    if (typeof value === 'number') {
+      const enhancedValue = Math.floor(value * camaraderieMultiplier);
+      effects[`enhanced_${stat}`] = enhancedValue - value; // Only the bonus portion
+    }
+  });
+  
+  // 3. Injuries reduce equipment effectiveness
+  const injuryPenalty = Math.abs(Object.values(injuryEffects).reduce((sum, val) => sum + val, 0));
+  if (injuryPenalty > 0) {
+    const equipmentReduction = Math.floor(injuryPenalty * 0.3);
+    Object.entries(equipmentEffects).forEach(([stat, value]) => {
+      if (typeof value === 'number' && value > 0) {
+        effects[`reduced_${stat}`] = -Math.min(equipmentReduction, Math.floor(value * 0.5));
+      }
+    });
+  }
+  
+  // 4. High camaraderie enhances all stat bonuses
+  if (teamCamaraderie >= 91) {
+    effects.synergyBonus = 2; // Excellent camaraderie provides synergy bonus
+    effects.teamworkMultiplier = 1;
+  } else if (teamCamaraderie >= 76) {
+    effects.synergyBonus = 1; // Good camaraderie provides small synergy bonus
+  }
+  
+  // 5. Cross-system stamina effects
+  const staminaBonus = (staffEffects.staminaRecovery || 0) + (equipmentEffects.stamina || 0);
+  if (staminaBonus > 0 && teamCamaraderie >= 60) {
+    effects.enhancedStaminaRecovery = Math.floor(staminaBonus * 0.5);
   }
   
   return effects;

@@ -15,7 +15,7 @@ router.get("/team/:teamId", isAuthenticated, asyncHandler(async (req: any, res: 
     return res.status(401).json({ error: "Unauthorized" });
   }
 
-  const consumables = await consumableStorage.getTeamAvailableConsumables(teamId);
+  const consumables = await consumableStorage.getTeamAvailableConsumables(parseInt(teamId));
   res.json(consumables);
 }));
 
@@ -28,8 +28,8 @@ router.get("/match/:matchId/team/:teamId", isAuthenticated, asyncHandler(async (
     return res.status(401).json({ error: "Unauthorized" });
   }
 
-  const consumables = await consumableStorage.getMatchConsumables(matchId, teamId);
-  const count = await consumableStorage.getMatchConsumablesCount(matchId, teamId);
+  const consumables = await consumableStorage.getMatchConsumables(parseInt(matchId), parseInt(teamId));
+  const count = await consumableStorage.getMatchConsumablesCount(parseInt(matchId), parseInt(teamId));
   
   res.json({ 
     consumables, 
@@ -109,7 +109,7 @@ router.get("/match/:matchId/all", isAuthenticated, asyncHandler(async (req: any,
     return res.status(401).json({ error: "Unauthorized" });
   }
 
-  const consumables = await consumableStorage.getAllMatchConsumables(matchId);
+  const consumables = await consumableStorage.getAllMatchConsumables(parseInt(matchId));
   res.json(consumables);
 }));
 
@@ -122,7 +122,7 @@ router.post("/match/:matchId/mark-used", isAuthenticated, asyncHandler(async (re
     return res.status(401).json({ error: "Unauthorized" });
   }
 
-  await consumableStorage.markConsumablesAsUsed(matchId);
+  await consumableStorage.markConsumablesAsUsed(parseInt(matchId));
   res.json({ message: "Consumables marked as used" });
 }));
 
