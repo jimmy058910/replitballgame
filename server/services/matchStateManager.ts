@@ -158,12 +158,20 @@ class MatchStateManager {
     // Start the match simulation loop
     this.startMatchSimulation(matchId, homeTeamPlayers, awayTeamPlayers);
     
-    // Update match status in database
+    // Update match status in database with initial state
     await prisma.game.update({
-      where: { id: matchId },
+      where: { id: parseInt(matchId) },
       data: { 
         status: 'IN_PROGRESS',
-        gameDate: new Date()
+        gameDate: new Date(),
+        homeScore: 0,
+        awayScore: 0,
+        simulationLog: {
+          events: matchState.gameEvents,
+          currentTime: 0,
+          currentHalf: 1,
+          maxTime: maxTime
+        }
       }
     });
 
@@ -357,15 +365,16 @@ class MatchStateManager {
 
     if (state.gameTime % 30 === 0) { // Every 30 game seconds
       await prisma.game.update({
-        where: { id: matchId },
+        where: { id: parseInt(matchId) },
         data: {
           homeScore: state.homeScore,
           awayScore: state.awayScore,
-          gameData: {
+          simulationLog: {
             events: state.gameEvents.slice(-30), // Keep last 30 events
             currentTime: state.gameTime,
             currentHalf: state.currentHalf,
-            // Consider adding current possession to gameData if useful for client UI
+            maxTime: state.maxTime,
+            // Consider adding current possession to simulationLog if useful for client UI
           }
         }
       });
@@ -402,7 +411,27 @@ class MatchStateManager {
     
     if (!actingPlayer) return null;
 
-    const pStats = state.playerStats.get(actingPlayer.id)!;
+    // Initialize player stats if not exists
+    let pStats = state.playerStats.get(actingPlayer.id);
+    if (!pStats) {
+      pStats = {
+        passingAttempts: 0,
+        passesCompleted: 0,
+        passingYards: 0,
+        rushingYards: 0,
+        catches: 0,
+        receivingYards: 0,
+        tackles: 0,
+        knockdownsInflicted: 0,
+        interceptionsCaught: 0,
+        passesDefended: 0,
+        sacks: 0,
+        fumblesLost: 0,
+        scores: 0,
+        drops: 0
+      };
+      state.playerStats.set(actingPlayer.id, pStats);
+    }
     const teamStats = state.teamStats.get(offensiveTeamId)!;
     const defensiveTeamStats = state.teamStats.get(defensiveTeamId)!;
 
@@ -416,7 +445,27 @@ class MatchStateManager {
                            || offensiveTeamPlayers.filter(p => p.id !== actingPlayer.id)[Math.floor(Math.random() * offensiveTeamPlayers.filter(p => p.id !== actingPlayer.id).length)];
 
         if (!targetPlayer) return { time: state.gameTime, type: 'info', description: `${actingPlayer.lastName} looks to pass but finds no one.`};
-        const targetPStats = state.playerStats.get(targetPlayer.id)!;
+        // Initialize target player stats if not exists
+        let targetPStats = state.playerStats.get(targetPlayer.id);
+        if (!targetPStats) {
+          targetPStats = {
+            passingAttempts: 0,
+            passesCompleted: 0,
+            passingYards: 0,
+            rushingYards: 0,
+            catches: 0,
+            receivingYards: 0,
+            tackles: 0,
+            knockdownsInflicted: 0,
+            interceptionsCaught: 0,
+            passesDefended: 0,
+            sacks: 0,
+            fumblesLost: 0,
+            scores: 0,
+            drops: 0
+          };
+          state.playerStats.set(targetPlayer.id, targetPStats);
+        }
 
         const passSuccessRoll = Math.random() * 50 + actingPlayer.throwing; // Max 40 + 50 = 90
         const catchSuccessRoll = Math.random() * 50 + targetPlayer.catching; // Max 40 + 50 = 90
@@ -459,14 +508,54 @@ class MatchStateManager {
         } else { // Pass incomplete or intercepted
             const defensivePlayer = defensiveTeamPlayers[Math.floor(Math.random() * defensiveTeamPlayers.length)];
             if (defensivePlayer && Math.random() < 0.3 + (defensivePlayer.catching - 20) / 50) { // 30% base + catching skill for interception
-                const defPStats = state.playerStats.get(defensivePlayer.id)!;
+                // Initialize defensive player stats if not exists
+                let defPStats = state.playerStats.get(defensivePlayer.id);
+                if (!defPStats) {
+                  defPStats = {
+                    passingAttempts: 0,
+                    passesCompleted: 0,
+                    passingYards: 0,
+                    rushingYards: 0,
+                    catches: 0,
+                    receivingYards: 0,
+                    tackles: 0,
+                    knockdownsInflicted: 0,
+                    interceptionsCaught: 0,
+                    passesDefended: 0,
+                    sacks: 0,
+                    fumblesLost: 0,
+                    scores: 0,
+                    drops: 0
+                  };
+                  state.playerStats.set(defensivePlayer.id, defPStats);
+                }
                 defPStats.interceptionsCaught++;
                 teamStats.turnovers++; // Offensive team turnover
                 const interceptionCommentary = commentaryService.generateInterceptionCommentary(defensivePlayer, actingPlayer);
                 event = { time: state.gameTime, type: 'interception', actingPlayerId: actingPlayer.id, defensivePlayerId: defensivePlayer.id, teamId: defensiveTeamId, description: interceptionCommentary, data: { yards: 0 } };
                 this.handlePossessionChange(state, offensiveTeamId, defensiveTeamId, state.gameTime);
             } else if (defensivePlayer) { // Pass defended
-                const defPStats = state.playerStats.get(defensivePlayer.id)!;
+                // Initialize defensive player stats if not exists
+                let defPStats = state.playerStats.get(defensivePlayer.id);
+                if (!defPStats) {
+                  defPStats = {
+                    passingAttempts: 0,
+                    passesCompleted: 0,
+                    passingYards: 0,
+                    rushingYards: 0,
+                    catches: 0,
+                    receivingYards: 0,
+                    tackles: 0,
+                    knockdownsInflicted: 0,
+                    interceptionsCaught: 0,
+                    passesDefended: 0,
+                    sacks: 0,
+                    fumblesLost: 0,
+                    scores: 0,
+                    drops: 0
+                  };
+                  state.playerStats.set(defensivePlayer.id, defPStats);
+                }
                 defPStats.passesDefended++;
                 event = { time: state.gameTime, type: 'pass_defended', actingPlayerId: actingPlayer.id, defensivePlayerId: defensivePlayer.id, teamId: offensiveTeamId, description: `${actingPlayer.lastName}'s pass defended by ${defensivePlayer.lastName}. Incomplete.` };
                 this.handlePossessionChange(state, offensiveTeamId, defensiveTeamId, state.gameTime); // Turnover on downs (simplified)
@@ -488,7 +577,9 @@ class MatchStateManager {
             event = { time: state.gameTime, type: 'rush', actingPlayerId: actingPlayer.id, teamId: offensiveTeamId, description: runCommentary, data: { yards } };
 
             if (Math.random() < 0.1) { // 10% chance of scoring on a good run
-                pStats.scores++;
+                if (pStats) {
+                    pStats.scores++;
+                }
                 if (offensiveTeamId === state.homeTeamId) state.homeScore++; else state.awayScore++;
                 state.gameEvents.push(event); // push the rush event first
                 this.handlePossessionChange(state, offensiveTeamId, defensiveTeamId, state.gameTime); // Possession changes after score
@@ -501,7 +592,9 @@ class MatchStateManager {
         }
         // Fumble chance
         if (Math.random() < 0.05) { // 5% fumble chance
-            pStats.fumblesLost++;
+            if (pStats) {
+                pStats.fumblesLost++;
+            }
             teamStats.turnovers++;
             const defensivePlayer = defensiveTeamPlayers[Math.floor(Math.random() * defensiveTeamPlayers.length)];
             event = { time: state.gameTime, type: 'fumble_lost', actingPlayerId: actingPlayer.id, defensivePlayerId: defensivePlayer?.id, teamId: offensiveTeamId, description: `${actingPlayer.lastName} FUMBLES! Recovered by ${defensivePlayer ? defensivePlayer.lastName : defensiveTeamId}.`, data: { yards }};
@@ -511,7 +604,23 @@ class MatchStateManager {
     } else { // Defensive play or other event (e.g. tackle, knockdown by blocker)
         const defensivePlayer = defensiveTeamPlayers[Math.floor(Math.random() * defensiveTeamPlayers.length)];
         if (defensivePlayer) {
-            const defPStats = state.playerStats.get(defensivePlayer.id)!;
+            let defPStats = state.playerStats.get(defensivePlayer.id);
+            // Initialize player stats if not exists
+            if (!defPStats) {
+                defPStats = {
+                    passingYards: 0,
+                    rushingYards: 0,
+                    catches: 0,
+                    tackles: 0,
+                    sacks: 0,
+                    interceptions: 0,
+                    fumblesLost: 0,
+                    knockdownsInflicted: 0,
+                    scores: 0
+                };
+                state.playerStats.set(defensivePlayer.id, defPStats);
+            }
+            
             if (defensivePlayer.tacticalRole === 'Blocker' && Math.random() < 0.4) {
                 defPStats.knockdownsInflicted++;
                 defensiveTeamStats.totalKnockdownsInflicted++;

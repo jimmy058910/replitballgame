@@ -62,6 +62,14 @@ export default function TextMatch() {
     },
   });
 
+  // Check for halftime (when match is at 50% completion) - MOVED TO TOP BEFORE ANY CONDITIONAL RETURNS
+  React.useEffect(() => {
+    if (match?.status === 'live' && enhancedData?.gamePhase === 'halftime' && !halftimeAdShown) {
+      setShowHalftimeAd(true);
+      setHalftimeAdShown(true);
+    }
+  }, [match, enhancedData, halftimeAdShown]);
+
   if (matchLoading || team1Loading || team2Loading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -91,14 +99,6 @@ export default function TextMatch() {
   console.log("Loading states - match:", matchLoading, "team1:", team1Loading, "team2:", team2Loading);
   console.log("Team1 error:", team1Error);
   console.log("Team2 error:", team2Error);
-
-  // Check for halftime (when match is at 50% completion) - MUST BE BEFORE CONDITIONAL RETURN
-  React.useEffect(() => {
-    if (match?.status === 'live' && enhancedData?.gamePhase === 'halftime' && !halftimeAdShown) {
-      setShowHalftimeAd(true);
-      setHalftimeAdShown(true);
-    }
-  }, [match, enhancedData, halftimeAdShown]);
 
   if (!match || !team1 || !team2) {
     return (
