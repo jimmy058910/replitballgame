@@ -19,7 +19,7 @@ interface Team {
 
 interface Finances {
   credits: number;
-  premiumCurrency: number;
+  gems: number;
 }
 
 interface StoreData {
@@ -61,7 +61,7 @@ export default function Navigation() {
     { path: "/community", label: "Community", icon: MessageCircle },
   ];
 
-  const premiumCurrency = finances?.premiumCurrency || 0;
+  const premiumCurrency = finances?.gems || 0;
 
 
 
