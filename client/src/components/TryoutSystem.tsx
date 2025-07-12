@@ -258,7 +258,10 @@ export default function TryoutSystem({ teamId, onNavigateToTaxiSquad }: TryoutSy
                     disabled={!canAffordBasic || !canHostTryouts || hostTryoutMutation.isPending}
                     variant={canAffordBasic && canHostTryouts ? "default" : "secondary"}
                   >
-                    {hostTryoutMutation.isPending ? "Hosting..." : "Host Basic Tryout"}
+                    {hostTryoutMutation.isPending ? "Hosting..." : 
+                     !canHostTryouts ? "Used This Season" : 
+                     !canAffordBasic ? "Not Enough Credits" : 
+                     "Host Basic Tryout"}
                   </Button>
                 </div>
                 {!canAffordBasic && (
@@ -290,7 +293,10 @@ export default function TryoutSystem({ teamId, onNavigateToTaxiSquad }: TryoutSy
                     disabled={!canAffordAdvanced || !canHostTryouts || hostTryoutMutation.isPending}
                     variant={canAffordAdvanced && canHostTryouts ? "default" : "secondary"}
                   >
-                    {hostTryoutMutation.isPending ? "Hosting..." : "Host Advanced Tryout"}
+                    {hostTryoutMutation.isPending ? "Hosting..." : 
+                     !canHostTryouts ? "Used This Season" : 
+                     !canAffordAdvanced ? "Not Enough Credits" : 
+                     "Host Advanced Tryout"}
                   </Button>
                 </div>
                 {!canAffordAdvanced && (

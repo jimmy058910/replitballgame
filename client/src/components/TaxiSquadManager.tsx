@@ -147,7 +147,7 @@ export function TaxiSquadManager({ teamId, onNavigateToRecruiting }: TaxiSquadMa
           <CardTitle className="flex items-center gap-2">
             <Clock className="w-5 h-5 text-orange-500" />
             Taxi Squad Management
-            <Badge variant="secondary">{taxiSquadPlayers?.data?.length || 0}/2</Badge>
+            <Badge variant="secondary">{taxiSquadPlayers?.length || 0}/2</Badge>
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -161,7 +161,7 @@ export function TaxiSquadManager({ teamId, onNavigateToRecruiting }: TaxiSquadMa
               <div className="flex items-center gap-2">
                 <UserPlus className="w-4 h-4 text-blue-400" />
                 <span className="text-sm font-medium text-blue-300">Capacity:</span>
-                <span className="text-sm text-white">{taxiSquadPlayers?.data?.length || 0} of 2 slots used</span>
+                <span className="text-sm text-white">{taxiSquadPlayers?.length || 0} of 2 slots used</span>
               </div>
               
               <div className="flex items-center gap-2">
@@ -176,14 +176,14 @@ export function TaxiSquadManager({ teamId, onNavigateToRecruiting }: TaxiSquadMa
         </CardContent>
       </Card>
 
-      {taxiSquadPlayers?.data && taxiSquadPlayers.data.length > 0 ? (
+      {taxiSquadPlayers && taxiSquadPlayers.length > 0 ? (
         <Card className="bg-gray-800 border-gray-700">
           <CardHeader>
             <CardTitle>Current Taxi Squad Players</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="grid gap-4">
-              {taxiSquadPlayers.data.map((player: any) => {
+              {taxiSquadPlayers.map((player: any) => {
                 const potentialRating = getPotentialStars(player);
                 const playerRole = getPlayerRole(player);
                 const getRaceEmoji = (race: string) => {
