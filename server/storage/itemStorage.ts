@@ -76,6 +76,37 @@ export class ItemStorage {
     }
   }
 
+  async addItemToTeamInventory(
+    teamId: number,
+    itemId: string,
+    name: string,
+    description: string,
+    rarity: string,
+    statBoosts: any,
+    quantity: number
+  ): Promise<void> {
+    // Add item to team inventory
+    await prisma.inventoryItem.create({
+      data: {
+        teamId,
+        itemId,
+        name,
+        description,
+        rarity,
+        statBoosts,
+        quantity,
+        itemType: 'EQUIPMENT'
+      }
+    });
+  }
+
+  async getTeamInventory(teamId: number): Promise<InventoryItem[]> {
+    return await prisma.inventoryItem.findMany({
+      where: { teamId },
+      orderBy: { createdAt: 'desc' }
+    });
+  }
+
   async deleteItem(id: number): Promise<boolean> {
     try {
       await prisma.item.delete({

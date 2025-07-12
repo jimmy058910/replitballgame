@@ -3,6 +3,7 @@ import { storage } from "../storage/index";
 import { teamFinancesStorage } from "../storage/teamFinancesStorage";
 import { adSystemStorage } from "../storage/adSystemStorage";
 import { consumableStorage } from "../storage/consumableStorage";
+import { prisma } from "../db";
 // import { itemStorage } from "../storage/itemStorage"; // For fetching actual item details
 import { isAuthenticated } from "../replitAuth";
 import { z } from "zod";
@@ -56,8 +57,8 @@ router.get('/items', isAuthenticated, async (req: Request, res: Response, next: 
     const allEntries = storeConfig.storeSections.entries || [];
     const gemPackages = storeConfig.storeSections.gemPackages || [];
 
-    // Filter items for credit store (items that can be bought with credits)
-    const creditItems = [...allEquipment, ...allConsumables, ...allEntries].filter(item => item.price > 0);
+    // Filter items for credit store (items that can be bought with credits, excluding entries)
+    const creditItems = [...allEquipment, ...allConsumables].filter(item => item.price > 0);
     
     // Filter items for gem store (items that can ONLY be bought with gems - no credit price)
     const gemOnlyItems = [...allEquipment, ...allConsumables, ...allEntries].filter(item => 
@@ -67,12 +68,17 @@ router.get('/items', isAuthenticated, async (req: Request, res: Response, next: 
     const shuffledCreditItems = [...creditItems].sort(() => 0.5 - seededRandom());
     const shuffledGemItems = [...gemOnlyItems].sort(() => 0.5 - seededRandom());
 
-    // Select a subset for daily rotation, ensure not to select more than available
-    const dailyCreditCount = Math.min(6, shuffledCreditItems.length); // Credit Store: 6 items
-    const dailyGemCount = Math.min(4, shuffledGemItems.length); // Gem Store: 4 gem-only items
-
-    const dailyEquipment = shuffledCreditItems.slice(0, dailyCreditCount);
-    const dailyConsumables = shuffledGemItems.slice(0, dailyGemCount);
+    // Credit Store: 6 items with rarity distribution (4 common/uncommon, 2 rare/epic)
+    const commonCreditItems = shuffledCreditItems.filter(item => item.rarity === 'common' || item.rarity === 'uncommon');
+    const rareCreditItems = shuffledCreditItems.filter(item => item.rarity === 'rare' || item.rarity === 'epic');
+    
+    const dailyEquipment = [
+      ...commonCreditItems.slice(0, 4),
+      ...rareCreditItems.slice(0, 2)
+    ].slice(0, 6);
+    
+    // Gem Store: 4 gem-only items
+    const dailyConsumables = shuffledGemItems.slice(0, 4);
 
     const resetTime = new Date(rotationDate);
     resetTime.setUTCDate(rotationDate.getUTCDate() + 1);
@@ -244,6 +250,22 @@ router.post('/purchase/:itemId', isAuthenticated, async (req: any, res: Response
       itemId = 'exhibition_match_entry';
     }
 
+    // Check daily purchase limits (3 per day)
+    const today = new Date().toISOString().split('T')[0];
+    const dailyPurchases = await prisma.inventoryItem.count({
+      where: {
+        teamId: team.id,
+        acquiredAt: {
+          gte: new Date(today + 'T00:00:00.000Z'),
+          lt: new Date(today + 'T23:59:59.999Z')
+        }
+      }
+    });
+    
+    if (dailyPurchases >= 3) {
+      return res.status(400).json({ message: "Daily purchase limit reached (3 items per day)." });
+    }
+
     const finances = await teamFinancesStorage.getTeamFinances(team.id);
     if (!finances) return res.status(404).json({ message: "Team finances not found." });
 
@@ -282,8 +304,9 @@ router.post('/purchase/:itemId', isAuthenticated, async (req: any, res: Response
 
     let message = "";
     if (currency === "credits") {
-        if ((finances.credits || 0) < actualPrice) return res.status(400).json({ message: "Insufficient credits." });
-        await teamFinancesStorage.updateTeamFinances(team.id, { credits: (finances.credits || 0) - actualPrice });
+        const currentCredits = typeof finances.credits === 'string' ? parseInt(finances.credits) : (finances.credits || 0);
+        if (currentCredits < actualPrice) return res.status(400).json({ message: "Insufficient credits." });
+        await teamFinancesStorage.updateTeamFinances(team.id, { credits: BigInt(currentCredits - actualPrice) });
         message = `Purchased ${itemId} for ${actualPrice} credits.`;
     } else if (currency === "gems" || currency === "premium_currency") {
          if ((finances.gems || 0) < actualPrice) return res.status(400).json({ message: "Insufficient premium currency (gems)." });
@@ -293,23 +316,103 @@ router.post('/purchase/:itemId', isAuthenticated, async (req: any, res: Response
         return res.status(400).json({ message: "Unsupported currency type for this item." });
     }
 
-    // Check if the item is a consumable and add to inventory
+    // Add item to appropriate inventory system
     const storeItems = [...storeConfig.storeSections.equipment, ...storeConfig.storeSections.consumables, ...storeConfig.storeSections.entries];
     const purchasedItem = storeItems.find((item: any) => item.id === itemId);
-    const isConsumable = purchasedItem?.category === "recovery" || purchasedItem?.category === "performance";
     
-    if (isConsumable) {
-      // Add consumable to team inventory
-      await consumableStorage.addConsumableToInventory(
-        team.id,
-        itemId,
-        purchasedItem.name || itemId,
-        purchasedItem.description || "Store purchased item",
-        purchasedItem.rarity || "common",
-        purchasedItem.statBoosts || {},
-        1
-      );
-      message += " Consumable added to your inventory.";
+    if (purchasedItem) {
+      const isConsumable = purchasedItem.category === "recovery" || purchasedItem.category === "performance";
+      const isEquipment = purchasedItem.category === "helmet" || purchasedItem.category === "armor" || purchasedItem.category === "footwear" || purchasedItem.category === "gloves";
+      const isEntry = purchasedItem.category === "entry";
+      
+      if (isConsumable) {
+        // Find or create the Item record first
+        let item = await prisma.item.findFirst({
+          where: { name: purchasedItem.name || itemId }
+        });
+        
+        if (!item) {
+          item = await prisma.item.create({
+            data: {
+              name: purchasedItem.name || itemId,
+              description: purchasedItem.description || "Store purchased item",
+              type: 'CONSUMABLE_RECOVERY',
+              rarity: (purchasedItem.rarity || "common").toUpperCase() as any,
+              creditPrice: purchasedItem.price ? BigInt(purchasedItem.price) : null,
+              gemPrice: purchasedItem.priceGems || null,
+              effectValue: purchasedItem.effectValue || purchasedItem.statBoosts || {}
+            }
+          });
+        }
+        
+        // Add consumable to team inventory using the Item ID
+        await prisma.inventoryItem.create({
+          data: {
+            teamId: team.id,
+            itemId: item.id,
+            quantity: 1
+          }
+        });
+        message += " Consumable added to your inventory.";
+      } else if (isEquipment) {
+        // Find or create the Item record first
+        let item = await prisma.item.findFirst({
+          where: { name: purchasedItem.name || itemId }
+        });
+        
+        if (!item) {
+          item = await prisma.item.create({
+            data: {
+              name: purchasedItem.name || itemId,
+              description: purchasedItem.description || "Store purchased item",
+              type: 'EQUIPMENT',
+              rarity: (purchasedItem.rarity || "common").toUpperCase() as any,
+              creditPrice: purchasedItem.price ? BigInt(purchasedItem.price) : null,
+              gemPrice: purchasedItem.priceGems || null,
+              statEffects: purchasedItem.statBoosts || {}
+            }
+          });
+        }
+        
+        // Add equipment to team inventory using the Item ID
+        await prisma.inventoryItem.create({
+          data: {
+            teamId: team.id,
+            itemId: item.id,
+            quantity: 1
+          }
+        });
+        message += " Equipment added to your inventory.";
+      } else if (isEntry) {
+        // Find or create the Item record first
+        let item = await prisma.item.findFirst({
+          where: { name: purchasedItem.name || itemId }
+        });
+        
+        if (!item) {
+          item = await prisma.item.create({
+            data: {
+              name: purchasedItem.name || itemId,
+              description: purchasedItem.description || "Store purchased item",
+              type: 'GAME_ENTRY',
+              rarity: (purchasedItem.rarity || "common").toUpperCase() as any,
+              creditPrice: purchasedItem.price ? BigInt(purchasedItem.price) : null,
+              gemPrice: purchasedItem.priceGems || null,
+              effectValue: {}
+            }
+          });
+        }
+        
+        // Add entry to team inventory using the Item ID
+        await prisma.inventoryItem.create({
+          data: {
+            teamId: team.id,
+            itemId: item.id,
+            quantity: 1
+          }
+        });
+        message += " Entry added to your available entries.";
+      }
     }
     
     res.json({ success: true, message });
