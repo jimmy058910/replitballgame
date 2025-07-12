@@ -508,7 +508,7 @@ export default function Market() {
                             <div className="flex justify-between items-center">
                               <span className="text-sm">Cost:</span>
                               <div className="flex gap-2">
-                                <span className="text-blue-600 font-bold">💎3 Gems</span>
+                                <span className="text-blue-600 font-bold">💎10 Gems</span>
                                 <span className="text-gray-400">or</span>
                                 <span className="text-yellow-600 font-bold">₡25,000</span>
                               </div>
@@ -525,7 +525,7 @@ export default function Market() {
                                 size="sm"
                                 onClick={() => handlePurchase('exhibition_gem', 'gems')}
                               >
-                                💎3 Gems
+                                💎10 Gems
                               </Button>
                               <Button 
                                 className="flex-1" 

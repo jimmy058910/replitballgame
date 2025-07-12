@@ -3,7 +3,7 @@
     "standard_leather_helmet": { "credits": 1000 },
     "gryllstone_plated_helm": { "credits": 12000, "gems": 25 },
     "sylvan_barkwood_circlet": { "credits": 12000, "gems": 25 },
-    "umbral_cowl": { "credits": 35000, "gems": 75 },
+    "umbral_cowl": { "gems": 75 },
     "helm_of_command": { "credits": 75000, "gems": 50 },
     
     "worn_cleats": { "credits": 1000 },
@@ -28,7 +28,7 @@
     "power_surge_potion": { "credits": 1500, "gems": 3 },
     "champions_blessing": { "credits": 25000, "gems": 15 },
 
-    "exhibition_match_entry": { "credits": 5000, "gems": 5 }
+    "exhibition_match_entry": { "credits": 25000, "gems": 10 }
   },
   "creditsPerGem": 1000,
   "gemExchangeRates": [
@@ -104,7 +104,6 @@
         "id": "umbral_cowl",
         "name": "Umbral Cowl",
         "description": "Shadow-woven hood that enhances agility.",
-        "price": 35000,
         "priceGems": 75,
         "rarity": "epic",
         "category": "helmet",
@@ -323,8 +322,8 @@
         "id": "exhibition_match_entry",
         "name": "Exhibition Match Entry",
         "description": "Enter a casual exhibition match for practice and rewards.",
-        "price": 5000,
-        "priceGems": 5,
+        "price": 25000,
+        "priceGems": 10,
         "rarity": "common",
         "category": "entry"
       }

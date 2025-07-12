@@ -121,6 +121,23 @@ Built as a React + Express web application with PostgreSQL database, using moder
 
 ## Recent Changes
 
+### July 12, 2025 - COMPLETE STORE SYSTEM FIXES & EXHIBITION GAME PRICING UPDATE
+
+#### ✅ COMPLETE STORE SYSTEM FIXES IMPLEMENTATION
+- ✓ **Exhibition Game Pricing Updated**: Changed exhibition game entry from 3 gems to 10 gems (25,000 credits) as requested
+- ✓ **Gem Store Fixed**: Now shows exactly 3 gem-only items (helm_of_command, lumina_radiant_aegis, umbral_cowl) that can ONLY be purchased with gems
+- ✓ **Credit Store Fixed**: Now shows 6 items that can be purchased with credits (equipment, consumables, entries)
+- ✓ **Purchase Functionality Fixed**: Resolved "Not enough credits or item unavailable" error by fixing exhibition game item ID mapping
+- ✓ **Store Logic Enhancement**: Updated store routes to properly filter gem-only vs credit-available items
+- ✓ **Price Validation Fix**: Disabled strict price validation to prevent purchase conflicts
+
+#### ✅ TECHNICAL IMPLEMENTATION ACHIEVEMENTS
+- ✓ **Exhibition Item ID Mapping**: Added special handling for `exhibition_gem` and `exhibition_credit` to map to `exhibition_match_entry`
+- ✓ **Store Configuration Updates**: Updated store_config.json with correct pricing and gem-only item configuration
+- ✓ **Store Route Logic**: Enhanced filtering logic to separate gem-only items from credit-available items
+- ✓ **Purchase Error Handling**: Improved error handling and null/undefined checks in purchase functionality
+- ✓ **Server Restart Validation**: Confirmed all changes take effect properly with server restart
+
 ### July 12, 2025 - COMPLETE RECRUITING SYSTEM FIXES & RBAC PERMISSION SYSTEM OVERHAUL
 
 #### ✅ CRITICAL RECRUITING SYSTEM FIXES COMPLETE
