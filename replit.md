@@ -121,14 +121,16 @@ Built as a React + Express web application with PostgreSQL database, using moder
 
 ## Recent Changes
 
-### July 12, 2025 - COMPLETE STORE SYSTEM FIXES & ENHANCED ITEM DESCRIPTIONS
+### July 12, 2025 - COMPLETE STORE SYSTEM FIXES & COSMETIC ITEM REMOVAL
 
 #### ✅ COMPLETE STORE SYSTEM FIXES IMPLEMENTATION
 - ✓ **Exhibition Game Pricing Updated**: Changed exhibition game entry from 3 gems to 10 gems (25,000 credits) as requested
-- ✓ **Gem Store Fixed**: Now shows exactly 4 gem-only items (helm_of_command, lumina_radiant_aegis, umbral_cowl, gryllstone_plated_helm) that can ONLY be purchased with gems
+- ✓ **Cosmetic Items Removed**: Removed helm_of_command and lumina_radiant_aegis cosmetic items as requested - no cosmetic items in game yet
+- ✓ **Functional Replacements Added**: Replaced with human_tactical_helm (+4 Leadership, +2 Throwing) and lumina_blessed_armor (+4 Throwing, +2 Leadership)
+- ✓ **Gem Store Fixed**: Now shows exactly 4 gem-only functional items (human_tactical_helm, lumina_blessed_armor, umbral_cowl, gryllstone_plated_helm) with real stat effects
 - ✓ **Credit Store Fixed**: Now shows 2 credit-only items (worn_cleats, standard_leather_helmet) excluding dual-currency items and entries
 - ✓ **Exhibition Entry Filtering**: Removed Exhibition Match Entry from Credit Store - now only appears in Entries tab where it belongs
-- ✓ **Enhanced Item Descriptions**: Added race restrictions, stat boosts, equipment slots, effects, and cosmetic indicators for all items
+- ✓ **Enhanced Item Descriptions**: Added race restrictions, stat boosts, equipment slots, effects for all items
 - ✓ **Frontend API Integration**: Updated to fetch real data from backend APIs instead of hardcoded arrays
 - ✓ **Purchase System Testing**: Granted test credits for purchase functionality validation
 

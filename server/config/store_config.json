@@ -4,7 +4,7 @@
     "gryllstone_plated_helm": { "gems": 25 },
     "sylvan_barkwood_circlet": { "credits": 12000, "gems": 25 },
     "umbral_cowl": { "gems": 75 },
-    "helm_of_command": { "gems": 50 },
+    "human_tactical_helm": { "gems": 50 },
     
     "worn_cleats": { "credits": 1000 },
     "boots_of_the_gryll": { "credits": 4000, "gems": 8 },
@@ -16,7 +16,7 @@
     
     "padded_leather_armor": { "credits": 1500 },
     "gryll_forged_plate": { "credits": 35000, "gems": 75 },
-    "lumina_radiant_aegis": { "gems": 50 },
+    "lumina_blessed_armor": { "gems": 50 },
     
     "basic_stamina_drink": { "credits": 500 },
     "advanced_recovery_serum": { "credits": 2000, "gems": 5 },
@@ -111,16 +111,15 @@
         "statBoosts": { "agility": 3 }
       },
       {
-        "id": "helm_of_command",
-        "name": "Helm of Command",
-        "description": "Ceremonial helmet for leadership display.",
+        "id": "human_tactical_helm",
+        "name": "Human Tactical Helm",
+        "description": "Advanced helmet that enhances leadership and throwing accuracy.",
         "priceGems": 50,
         "rarity": "epic",
         "category": "helmet",
         "slot": "helmet",
         "raceRestriction": "human",
-        "statBoosts": {},
-        "cosmetic": true
+        "statBoosts": { "leadership": 4, "throwing": 2 }
       },
       {
         "id": "worn_cleats",
@@ -216,16 +215,15 @@
         "statBoosts": { "power": 6 }
       },
       {
-        "id": "lumina_radiant_aegis",
-        "name": "Lumina's Radiant Aegis",
-        "description": "Shimmering armor that radiates divine light.",
+        "id": "lumina_blessed_armor",
+        "name": "Lumina's Blessed Armor",
+        "description": "Light-infused armor that enhances throwing precision and leadership.",
         "priceGems": 50,
         "rarity": "epic",
         "category": "armor",
         "slot": "armor",
         "raceRestriction": "lumina",
-        "statBoosts": {},
-        "cosmetic": true
+        "statBoosts": { "throwing": 4, "leadership": 2 }
       }
     ],
     "consumables": [
