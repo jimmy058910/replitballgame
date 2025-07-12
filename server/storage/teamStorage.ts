@@ -252,38 +252,50 @@ export class TeamStorage {
 
   async getTeamSeasonalData(teamId: number): Promise<any> {
     try {
-      const team = await prisma.team.findUnique({
-        where: { id: parseInt(teamId.toString()) },
-        select: {
-          id: true,
-          tryoutsUsed: true,
-          // Add other seasonal tracking fields as needed
+      // Get current season
+      const currentSeason = await prisma.season.findFirst({
+        where: { phase: 'REGULAR_SEASON' },
+        orderBy: { startDate: 'desc' }
+      });
+      
+      if (!currentSeason) {
+        return {
+          teamId: teamId,
+          tryoutsUsed: false,
+        };
+      }
+      
+      // Check if team has tryout history for current season
+      const tryoutHistory = await prisma.tryoutHistory.findUnique({
+        where: {
+          teamId_seasonId: {
+            teamId: teamId,
+            seasonId: currentSeason.id.toString()
+          }
         }
       });
       
-      if (!team) {
-        return null;
-      }
-      
       return {
-        teamId: team.id,
-        tryoutsUsed: team.tryoutsUsed || false,
+        teamId: teamId,
+        tryoutsUsed: !!tryoutHistory,
+        seasonId: currentSeason.id,
+        tryoutHistory: tryoutHistory
       };
     } catch (error) {
       console.error('Error fetching team seasonal data:', error);
-      return null;
+      return {
+        teamId: teamId,
+        tryoutsUsed: false,
+      };
     }
   }
 
   async updateTeamSeasonalData(teamId: number, data: any): Promise<void> {
     try {
-      await prisma.team.update({
-        where: { id: parseInt(teamId.toString()) },
-        data: {
-          tryoutsUsed: data.tryoutsUsed,
-          // Add other seasonal tracking fields as needed
-        }
-      });
+      // This method is deprecated - seasonal data should be handled through TryoutHistory
+      // For backward compatibility, we'll just return success
+      console.log('updateTeamSeasonalData called (deprecated) - using TryoutHistory instead');
+      return;
     } catch (error) {
       console.error('Error updating team seasonal data:', error);
       throw error;

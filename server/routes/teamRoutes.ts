@@ -788,17 +788,45 @@ router.post('/:teamId/tryouts', isAuthenticated, asyncHandler(async (req: any, r
     credits: (finances.credits || 0) - cost
   });
 
-  // Mark tryouts as used for this season
+  // Mark tryouts as used for this season using TryoutHistory
   try {
-    await storage.teams.updateTeamSeasonalData(team.id, {
-      tryoutsUsed: true
+    // Get current season
+    const currentSeason = await prisma.season.findFirst({
+      where: { phase: 'REGULAR_SEASON' },
+      orderBy: { startDate: 'desc' }
     });
-    logInfo("Tryouts marked as used for season", {
-      teamId: team.id,
-      requestId: req.requestId
-    });
+    
+    if (currentSeason) {
+      // Create or update tryout history record
+      await prisma.tryoutHistory.upsert({
+        where: {
+          teamId_seasonId: {
+            teamId: team.id,
+            seasonId: currentSeason.id.toString()
+          }
+        },
+        create: {
+          teamId: team.id,
+          seasonId: currentSeason.id.toString(),
+          tryoutType: type,
+          cost: cost,
+          playersAdded: candidates.length,
+          conductedAt: new Date()
+        },
+        update: {
+          playersAdded: candidates.length,
+          conductedAt: new Date()
+        }
+      });
+      
+      logInfo("Tryouts marked as used for season", {
+        teamId: team.id,
+        seasonId: currentSeason.id,
+        requestId: req.requestId
+      });
+    }
   } catch (error) {
-    console.error('Error updating seasonal data:', error);
+    console.error('Error updating tryout history:', error);
   }
 
   logInfo(`Tryout hosted successfully`, {
@@ -994,7 +1022,23 @@ router.post('/:teamId/taxi-squad/add-candidates', isAuthenticated, asyncHandler(
   
   for (const candidate of candidates) {
     // Determine role based on candidate attributes
-    const role = getPlayerRole(candidate);
+    const roleString = getPlayerRole(candidate);
+    
+    // Convert role string to PlayerRole enum
+    let roleEnum: PlayerRole;
+    switch (roleString.toLowerCase()) {
+      case 'passer':
+        roleEnum = PlayerRole.PASSER;
+        break;
+      case 'runner':
+        roleEnum = PlayerRole.RUNNER;
+        break;
+      case 'blocker':
+        roleEnum = PlayerRole.BLOCKER;
+        break;
+      default:
+        roleEnum = PlayerRole.RUNNER; // Default fallback
+    }
     
     // Convert candidate to player format for taxi squad
     const playerData = {
@@ -1020,7 +1064,7 @@ router.post('/:teamId/taxi-squad/add-candidates', isAuthenticated, asyncHandler(
       contractSeasons: 1,
       contractValue: 0,
       abilities: JSON.stringify([]),
-      role: role, // Add required role field
+      role: roleEnum, // Use converted enum value
       dailyStaminaLevel: 100,
       injuryStatus: "HEALTHY",
       camaraderieScore: 75

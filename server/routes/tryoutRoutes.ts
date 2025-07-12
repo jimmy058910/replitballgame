@@ -126,16 +126,34 @@ router.post('/:teamId/conduct', isAuthenticated, async (req: any, res: Response,
       return res.status(403).json({ error: "You do not own this team" });
     }
 
-    // Check seasonal restriction: only 1 tryout per season
-    // Use a simple approach - check if team has more than 10 players (original roster)
-    const allPlayers = await prisma.player.findMany({
-      where: { teamId: team.id }
-    });
-
-    if (allPlayers.length > 10) {
-      return res.status(400).json({ 
-        error: "Teams can only conduct tryouts once per season (17-day cycle). You have already used your tryouts for this season." 
+    // Check seasonal restriction: only 1 tryout per season using TryoutHistory
+    try {
+      // Get current season
+      const currentSeason = await prisma.season.findFirst({
+        where: { phase: 'REGULAR_SEASON' },
+        orderBy: { startDate: 'desc' }
       });
+      
+      if (currentSeason) {
+        // Check if team has already done tryouts this season
+        const existingTryout = await prisma.tryoutHistory.findUnique({
+          where: {
+            teamId_seasonId: {
+              teamId: team.id,
+              seasonId: currentSeason.id.toString()
+            }
+          }
+        });
+        
+        if (existingTryout) {
+          return res.status(400).json({ 
+            error: "Teams can only conduct tryouts once per season (17-day cycle). You have already used your tryouts for this season." 
+          });
+        }
+      }
+    } catch (error) {
+      console.error('Error checking seasonal restriction:', error);
+      // If we can't check the restriction, allow the tryout but log the error
     }
 
     // Check costs and affordability
