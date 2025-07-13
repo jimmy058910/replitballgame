@@ -4,6 +4,54 @@ import { isAuthenticated } from "../replitAuth";
 
 const router = Router();
 
+// Get user's team inventory (root route)
+router.get('/', isAuthenticated, async (req: any, res: Response, next: NextFunction) => {
+  try {
+    const userId = req.user?.claims?.sub;
+    
+    // Get user's team
+    const userProfile = await prisma.userProfile.findFirst({
+      where: { userId: userId }
+    });
+    
+    if (!userProfile) {
+      return res.status(404).json({ error: "User profile not found" });
+    }
+    
+    const team = await prisma.team.findFirst({
+      where: { userProfileId: userProfile.id }
+    });
+    
+    if (!team) {
+      return res.status(404).json({ error: "Team not found for current user" });
+    }
+
+    // Get team inventory
+    const inventory = await prisma.inventoryItem.findMany({
+      where: { teamId: team.id },
+      include: {
+        item: true
+      }
+    });
+
+    // Transform inventory data to match expected format
+    const formattedInventory = inventory.map(invItem => ({
+      id: invItem.id,
+      itemType: invItem.item.type,
+      name: invItem.item.name,
+      description: invItem.item.description,
+      rarity: invItem.item.rarity.toLowerCase(),
+      quantity: invItem.quantity,
+      metadata: invItem.item.effectValue || {}
+    }));
+
+    res.json(formattedInventory);
+  } catch (error) {
+    console.error("Error fetching team inventory:", error);
+    res.status(500).json({ error: "Failed to fetch team inventory" });
+  }
+});
+
 // Get team inventory
 router.get('/:teamId', isAuthenticated, async (req: any, res: Response, next: NextFunction) => {
   try {

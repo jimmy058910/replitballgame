@@ -20,8 +20,19 @@ router.get('/', isAuthenticated, async (req: any, res: Response, next: NextFunct
     const userId = req.user.claims.sub;
     
     // Get user's team
-    const team = await prisma.team.findFirst({
+    const userProfile = await prisma.userProfile.findFirst({
       where: { userId: userId }
+    });
+    
+    if (!userProfile) {
+      return res.status(404).json({ 
+        success: false, 
+        message: "User profile not found" 
+      });
+    }
+    
+    const team = await prisma.team.findFirst({
+      where: { userProfileId: userProfile.id }
     });
     
     if (!team) {
@@ -62,12 +73,8 @@ router.get('/', isAuthenticated, async (req: any, res: Response, next: NextFunct
     // Get available upgrades
     const availableUpgrades = getAvailableFacilityUpgrades(stadium);
     
-    // Get stadium events (last 10)
-    const events = await prisma.stadiumEvent.findMany({
-      where: { stadiumId: stadium.id },
-      orderBy: { eventDate: 'desc' },
-      take: 10
-    });
+    // Get stadium events (last 10) - use empty array if no events table
+    const events = []; // Placeholder until stadiumEvent table is implemented
 
     // Calculate stadium atmosphere and fan loyalty
     const facilityQuality = calculateFacilityQuality(stadium);
@@ -114,8 +121,19 @@ router.post('/upgrade', isAuthenticated, async (req: any, res: Response, next: N
     const { facilityType, upgradeLevel } = upgradeSchema.parse(req.body);
 
     // Get user's team
-    const team = await prisma.team.findFirst({
+    const userProfile = await prisma.userProfile.findFirst({
       where: { userId: userId }
+    });
+    
+    if (!userProfile) {
+      return res.status(404).json({ 
+        success: false, 
+        message: "User profile not found" 
+      });
+    }
+    
+    const team = await prisma.team.findFirst({
+      where: { userProfileId: userProfile.id }
     });
     
     if (!team) {
@@ -221,8 +239,19 @@ router.post('/field-size', isAuthenticated, async (req: any, res: Response, next
     const { fieldSize } = fieldSizeSchema.parse(req.body);
 
     // Get user's team
-    const team = await prisma.team.findFirst({
+    const userProfile = await prisma.userProfile.findFirst({
       where: { userId: userId }
+    });
+    
+    if (!userProfile) {
+      return res.status(404).json({ 
+        success: false, 
+        message: "User profile not found" 
+      });
+    }
+    
+    const team = await prisma.team.findFirst({
+      where: { userProfileId: userProfile.id }
     });
     
     if (!team) {
