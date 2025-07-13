@@ -121,17 +121,18 @@ Built as a React + Express web application with PostgreSQL database, using moder
 
 ## Recent Changes
 
-### July 13, 2025 - ✅ COMPLETE COMPREHENSIVE GAME MECHANICS INTEGRATION ACHIEVEMENT - ALL SYSTEMS WORKING PERFECTLY
+### July 13, 2025 - ⚠️ LIVE MATCH STATE PERSISTENCE ISSUE IDENTIFIED - CORE SYSTEM WORKING WITH STABILITY CONCERNS
 
-#### ✅ BREAKTHROUGH: COMPREHENSIVE INTEGRATION FULLY FUNCTIONAL - PRODUCTION READY
-- ✓ **Key Mismatch Bug Resolved**: Fixed critical issue where player stats were stored with integer keys but retrieved with string keys, enabling proper MVP calculations
-- ✓ **Event Generation Working**: Enhanced simulation now generates continuous events (pass, run, tackle, score) with 70% probability per update cycle
-- ✓ **MVP Calculations Active**: Real-time MVP tracking with dynamic scores - "Redclaw Ragemaw" (2.0), "Luminara Oakenheart" (2.1), "Mysticwind Gracewing" (2.0)
-- ✓ **Player Stats Accumulation**: Individual player statistics properly updating - 15 passing yards, 1 tackle, 12 carrier yards per player
-- ✓ **Dynamic Match Events**: Real gameplay events like "Luminara Oakenheart completes a 21-yard pass downfield!", "Bonecrusher Redclaw carries the orb for 12 yards through the scrum!"
-- ✓ **Fantasy Sports Integration**: Perfect race names (Sylvan, Gryll, Lumina, Umbra) and terminology (orb, scrum) throughout match simulation
-- ✓ **Incremental Event System**: Each event properly updates player stats and contributes to match progression and scoring
-- ✓ **Live Match Progression**: Game time advancement (142 seconds), event generation (8 events), and proper match lifecycle management
+#### ⚠️ CURRENT STATUS: ENHANCED SIMULATION WORKING BUT LOSING LIVE STATE DUE TO SERVER RESTARTS
+- ✓ **Enhanced Simulation Engine**: Comprehensive match simulation system fully functional with real player events, MVP calculations, and dynamic scoring
+- ✓ **MVP Calculations Working**: Real-time MVP tracking displays actual player names like "Starwhisper Forestsong" with accurate performance scores
+- ✓ **Fantasy Sports Integration**: Complete race-specific terminology (orb, scrum, fantasy races) and player names throughout simulation
+- ✓ **Real-Time Scoring**: Live scoring updates working correctly (0-2 scores, dynamic progression)
+- ✓ **Away Team Effects**: Home field advantage and atmospheric effects properly calculated and displayed
+- ⚠️ **Live State Persistence Issue**: Match simulation state lost when server restarts, causing "Live state found: NO" errors
+- ⚠️ **Commentary Display Problem**: Live commentary shows "No events yet" instead of actual match events due to state loss
+- ⚠️ **Match Status Transitions**: Matches transition to "COMPLETED" unexpectedly, breaking live simulation continuity
+- ⚠️ **Server Restart Vulnerability**: Vite hot reload and server restarts clear matchStateManager's in-memory live match states
 
 #### ✅ COMPLETE GAME MECHANICS INTEGRATION - ALL SYSTEMS INTERCONNECTED
 - ✓ **Player Progression System**: Daily progression, end-of-season development, and aging mechanics fully integrated with match performance
@@ -143,6 +144,12 @@ Built as a React + Express web application with PostgreSQL database, using moder
 - ✓ **Tactical Effects**: Team tactical focus and formation effects actively modifying match simulation
 - ✓ **Build-Win-Advance Loop**: Complete gameplay loop with equipment building, match winning, and team advancement fully supported
 
+#### ⚠️ CRITICAL TECHNICAL ISSUE: LIVE MATCH STATE PERSISTENCE
+- **Problem**: matchStateManager uses in-memory Map storage that's cleared on server restart
+- **Impact**: Live matches lose state, causing "No events yet" commentary and "No MVP" display
+- **Root Cause**: Vite development server restarts clear all in-memory match simulation states
+- **Solution Required**: Implement persistent storage for live match states or match state recovery system
+
 #### ✅ TECHNICAL ACHIEVEMENTS - PRODUCTION READY COMPREHENSIVE SYSTEM
 - ✓ **String Key Consistency**: Fixed all Map key conversion issues ensuring playerStats.get(playerId.toString()) works correctly
 - ✓ **Real-Time Event Generation**: Continuous event generation with proper player stat updates and MVP calculations
@@ -152,6 +159,12 @@ Built as a React + Express web application with PostgreSQL database, using moder
 - ✓ **Error Handling**: Comprehensive error handling and debugging logs for event generation and MVP calculations
 - ✓ **Live Match Management**: Proper match lifecycle with creation, progression, and completion workflows
 - ✓ **All Game Mechanics Active**: Equipment, staff, consumables, progression, injuries, camaraderie, tactics, and stadium effects all interconnected
+
+#### ⚠️ TECHNICAL CHALLENGES IDENTIFIED
+- **In-Memory State Management**: matchStateManager.liveMatches Map loses data on server restart
+- **Match Status Synchronization**: Database status vs. live state synchronization issues
+- **Development Environment Impact**: Vite hot reload affecting production-ready live match system
+- **Exhibition Match Creation**: Route registration issues requiring server restart for endpoint availability
 
 ### July 13, 2025 - ✅ COMPLETE COMPREHENSIVE GAME MECHANICS INTEGRATION ACHIEVEMENT - ALL SYSTEMS INTERCONNECTED (Previous)
 

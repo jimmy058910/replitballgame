@@ -29,7 +29,9 @@ export class MatchStorage {
 
   async getMatchById(id: number): Promise<Game | null> {
     const match = await prisma.game.findUnique({
-      where: { id },
+      where: { 
+        id: Number(id) 
+      },
       include: {
         league: true,
         tournament: true

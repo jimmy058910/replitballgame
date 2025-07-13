@@ -477,4 +477,45 @@ router.get('/next-league-game/:teamId', isAuthenticated, async (req: Request, re
   }
 });
 
+// Create exhibition match endpoint
+router.post('/exhibition/instant', isAuthenticated, async (req: any, res: Response, next: NextFunction) => {
+  try {
+    const { opponentTeamId } = req.body;
+    const userTeamId = req.user.claims.sub;
+    
+    // Get user's team
+    const userProfile = await prisma.userProfile.findUnique({
+      where: { userId: userTeamId },
+      include: { team: true }
+    });
+    
+    if (!userProfile?.team) {
+      return res.status(404).json({ message: "User team not found" });
+    }
+    
+    const team = userProfile.team;
+    
+    // Create exhibition match
+    const newMatch = await matchStorage.createMatch({
+      homeTeamId: team.id,
+      awayTeamId: parseInt(opponentTeamId),
+      gameDate: new Date(),
+      status: 'IN_PROGRESS',
+      matchType: 'EXHIBITION'
+    });
+    
+    // Start live match simulation
+    await matchStateManager.startLiveMatch(newMatch.id.toString(), true);
+    
+    res.json({ 
+      message: "Exhibition match created successfully",
+      matchId: newMatch.id,
+      match: newMatch
+    });
+  } catch (error) {
+    console.error("Error creating exhibition match:", error);
+    next(error);
+  }
+});
+
 export default router;
