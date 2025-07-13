@@ -783,31 +783,20 @@ class MatchStateManager {
       for (const [playerId, pStats] of state.playerStats.entries()) {
         playerStatsObj[playerId] = pStats;
 
-        // Update lifetime stats (skip for exhibition matches to maintain risk-free gameplay)
+        // Update basic player stats (skip for exhibition matches to maintain risk-free gameplay)
         if (!isExhibitionMatch) {
           const playerToUpdate = await prisma.player.findFirst({
             where: { id: parseInt(playerId) }
           });
           if (playerToUpdate) {
-            const updatedLifetimeStats: Partial<Player> = {
-              totalGamesPlayed: (playerToUpdate.totalGamesPlayed || 0) + 1,
-              totalScores: (playerToUpdate.totalScores || 0) + (pStats.scores || 0),
-              totalPassingAttempts: (playerToUpdate.totalPassingAttempts || 0) + (pStats.passingAttempts || 0),
-              totalPassesCompleted: (playerToUpdate.totalPassesCompleted || 0) + (pStats.passesCompleted || 0),
-              totalPassingYards: (playerToUpdate.totalPassingYards || 0) + (pStats.passingYards || 0),
-              totalCarrierYards: (playerToUpdate.totalCarrierYards || 0) + (pStats.carrierYards || 0),
-              totalCatches: (playerToUpdate.totalCatches || 0) + (pStats.catches || 0),
-              totalReceivingYards: (playerToUpdate.totalReceivingYards || 0) + (pStats.receivingYards || 0),
-              totalDrops: (playerToUpdate.totalDrops || 0) + (pStats.drops || 0),
-              totalFumblesLost: (playerToUpdate.totalFumblesLost || 0) + (pStats.fumblesLost || 0),
-              totalTackles: (playerToUpdate.totalTackles || 0) + (pStats.tackles || 0),
-              totalKnockdownsInflicted: (playerToUpdate.totalKnockdownsInflicted || 0) + (pStats.knockdownsInflicted || 0),
-              totalInterceptionsCaught: (playerToUpdate.totalInterceptionsCaught || 0) + (pStats.interceptionsCaught || 0),
-              totalPassesDefended: (playerToUpdate.totalPassesDefended || 0) + (pStats.passesDefended || 0),
+            // Update only valid fields that exist in the Prisma schema
+            const updatedStats = {
+              gamesPlayedLastSeason: (playerToUpdate.gamesPlayedLastSeason || 0) + 1,
+              // Store match participation but don't update non-existent lifetime stats
             };
             playerUpdates.push(prisma.player.update({
               where: { id: parseInt(playerId) },
-              data: updatedLifetimeStats
+              data: updatedStats
             }));
           }
         }
