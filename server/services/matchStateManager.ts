@@ -1,6 +1,6 @@
 import { prisma } from "../db";
 import type { Game, Player, Stadium, Team } from "../../generated/prisma";
-import { commentaryService } from "./commentaryService.js";
+import { commentaryService } from "./commentaryService";
 import { injuryStaminaService } from "./injuryStaminaService";
 import { simulateEnhancedMatch } from "./matchSimulation";
 
@@ -593,7 +593,7 @@ class MatchStateManager {
             }
 
         } else {
-            const stuffedCommentary = commentaryService.generateRunPlayCommentary(actingPlayer, 0, 'stuffed');
+            const stuffedCommentary = commentaryService.generateRunPlayCommentary(actingPlayer, 0, undefined, 'stuffed');
             event = { time: state.gameTime, type: 'rush_stuffed', actingPlayerId: actingPlayer.id, teamId: offensiveTeamId, description: stuffedCommentary, data: { yards: 0 } };
             // Potential for turnover on downs if it's 4th down, etc. (not implemented here)
         }
@@ -629,7 +629,7 @@ class MatchStateManager {
                 state.playerStats.set(defensivePlayer.id, defPStats);
             }
             
-            if (defensivePlayer.tacticalRole === 'Blocker' && Math.random() < 0.4) {
+            if ((defensivePlayer.tacticalRole === 'Blocker' || defensivePlayer.tacticalRole === 'BLOCKER') && Math.random() < 0.4) {
                 defPStats.knockdownsInflicted++;
                 defensiveTeamStats.totalKnockdownsInflicted++;
                 const knockdownCommentary = commentaryService.generateKnockdownCommentary(defensivePlayer);
