@@ -163,7 +163,7 @@ export function LiveMatchSimulation({ matchId, team1, team2, initialLiveState, o
     let homePerformer = null;
     let awayPerformer = null;
     
-    if (mvpPlayers.home && mvpPlayers.home !== 'N/A') {
+    if (mvpPlayers.home && mvpPlayers.home !== 'N/A' && mvpPlayers.home !== 'No MVP') {
       homePerformer = {
         playerId: "mvp-home",
         playerName: mvpPlayers.home,
@@ -173,13 +173,13 @@ export function LiveMatchSimulation({ matchId, team1, team2, initialLiveState, o
     } else {
       homePerformer = {
         playerId: "player1",
-        playerName: team1?.players?.[0]?.lastName || "Player",
-        statLabel: "Carrier Yards",
-        statValue: 85
+        playerName: "No MVP",
+        statLabel: "Awaiting Stats",
+        statValue: 0
       };
     }
     
-    if (mvpPlayers.away && mvpPlayers.away !== 'N/A') {
+    if (mvpPlayers.away && mvpPlayers.away !== 'N/A' && mvpPlayers.away !== 'No MVP') {
       awayPerformer = {
         playerId: "mvp-away",
         playerName: mvpPlayers.away,
@@ -189,9 +189,9 @@ export function LiveMatchSimulation({ matchId, team1, team2, initialLiveState, o
     } else {
       awayPerformer = {
         playerId: "player2", 
-        playerName: team2?.players?.[0]?.lastName || "Player",
-        statLabel: "Tackles",
-        statValue: 4
+        playerName: "No MVP",
+        statLabel: "Awaiting Stats",
+        statValue: 0
       };
     }
     

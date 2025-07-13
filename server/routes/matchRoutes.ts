@@ -54,6 +54,7 @@ router.get('/:matchId', isAuthenticated, async (req: Request, res: Response, nex
           liveState: {
             gameTime: liveState.gameTime, currentHalf: liveState.currentHalf,
             team1Score: liveState.homeScore, team2Score: liveState.awayScore,
+            homeScore: liveState.homeScore, awayScore: liveState.awayScore, // Add these for frontend compatibility
             recentEvents: liveState.gameEvents.slice(-10),
             maxTime: liveState.maxTime, isRunning: liveState.status === 'live'
           }

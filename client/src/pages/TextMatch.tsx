@@ -20,7 +20,7 @@ export default function TextMatch() {
     enabled: !!matchId,
     refetchInterval: (data: any) => {
       // Only refetch live matches every 2 seconds for synchronized viewing
-      return data?.status === 'live' ? 2000 : false;
+      return data?.status === 'IN_PROGRESS' ? 2000 : false;
     },
   }) as { data: any, isLoading: boolean };
 
@@ -53,18 +53,18 @@ export default function TextMatch() {
   // Fetch enhanced simulation data
   const { data: enhancedData, isLoading: enhancedLoading } = useQuery({
     queryKey: [`/api/matches/${matchId}/enhanced-data`],
-    enabled: !!matchId && match?.status === 'live',
+    enabled: !!matchId && match?.status === 'IN_PROGRESS',
     retry: false,
     staleTime: 5000,
     refetchInterval: (data: any) => {
       // Refetch enhanced data every 5 seconds for live matches
-      return match?.status === 'live' ? 5000 : false;
+      return match?.status === 'IN_PROGRESS' ? 5000 : false;
     },
   });
 
   // Check for halftime (when match is at 50% completion) - MOVED TO TOP BEFORE ANY CONDITIONAL RETURNS
   React.useEffect(() => {
-    if (match?.status === 'live' && enhancedData?.gamePhase === 'halftime' && !halftimeAdShown) {
+    if (match?.status === 'IN_PROGRESS' && enhancedData?.gamePhase === 'halftime' && !halftimeAdShown) {
       setShowHalftimeAd(true);
       setHalftimeAdShown(true);
     }
