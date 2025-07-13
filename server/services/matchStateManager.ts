@@ -433,7 +433,7 @@ class MatchStateManager {
       state.currentHalf = 2;
       
       // Calculate current MVP for halftime display
-      const currentMVP = this.calculateCurrentMVP(state, homePlayers, awayPlayers);
+      const currentMVP = this.calculateCurrentMVP(state, homeTeamPlayers, awayTeamPlayers);
       
       // Generate halftime event with team stats and MVP
       const halftimeStats = this.generateHalftimeStats(state, currentMVP);
