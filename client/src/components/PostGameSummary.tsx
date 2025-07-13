@@ -101,10 +101,7 @@ export function PostGameSummary({
             style={{ width: `${awayPercent}%` }}
           />
         </div>
-        <div className="flex justify-between text-xs text-gray-500">
-          <span>{homeLabel}</span>
-          <span>{awayLabel}</span>
-        </div>
+
       </div>
     );
   };
@@ -266,8 +263,8 @@ export function PostGameSummary({
             
             <StatBar
               label="Knockdowns"
-              homeValue={homeTeam.stats.totalKnockdowns}
-              awayValue={awayTeam.stats.totalKnockdowns}
+              homeValue={homeTeam.stats.totalKnockdownsInflicted}
+              awayValue={awayTeam.stats.totalKnockdownsInflicted}
               homeLabel={homeTeam.name}
               awayLabel={awayTeam.name}
               format={(v) => `${v}`}
