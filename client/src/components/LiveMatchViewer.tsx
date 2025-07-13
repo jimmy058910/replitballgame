@@ -51,8 +51,10 @@ export function LiveMatchViewer({ matchId, userId, onMatchComplete }: LiveMatchV
         const callbacks: WebSocketCallbacks = {
           onMatchUpdate: (state: LiveMatchState) => {
             console.log('📊 Match state update received:', state);
+            console.log('🔄 Setting matchState in component...');
             setMatchState(state);
             setEvents(state.gameEvents || []);
+            console.log('✅ matchState set successfully');
           },
           onMatchEvent: (event: MatchEvent) => {
             console.log('🎯 Match event received:', event);
