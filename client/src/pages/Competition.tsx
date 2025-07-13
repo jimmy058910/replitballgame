@@ -827,14 +827,24 @@ function ExhibitionsTab() {
                     </div>
                   </div>
                   
-                  {game.replayCode && (
+                  {(game.result === 'win' || game.result === 'loss' || game.result === 'draw') && (
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={() => window.location.href = `/match/${game.id}`}
+                    >
+                      <i className="fas fa-chart-line mr-1"></i>
+                      View Summary
+                    </Button>
+                  )}
+                  {game.result === 'in_progress' && (
                     <Button 
                       variant="outline" 
                       size="sm"
                       onClick={() => window.location.href = `/match/${game.id}`}
                     >
                       <i className="fas fa-play mr-1"></i>
-                      View
+                      Watch Live
                     </Button>
                   )}
                 </div>

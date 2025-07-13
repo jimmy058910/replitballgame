@@ -42,9 +42,15 @@ router.get('/:matchId', isAuthenticated, async (req: Request, res: Response, nex
       return res.status(404).json({ message: "Match not found" });
     }
 
-    // matchStorage.getMatchById might already enhance with team names.
-    const homeTeamName = match.homeTeamName || (await storage.teams.getTeamById(match.homeTeamId))?.name || "Home";
-    const awayTeamName = match.awayTeamName || (await storage.teams.getTeamById(match.awayTeamId))?.name || "Away";
+    // Fetch full team data for proper team information
+    const homeTeam = await storage.teams.getTeamById(match.homeTeamId);
+    const awayTeam = await storage.teams.getTeamById(match.awayTeamId);
+    
+    console.log(`Match ${matchId} - Home: ${match.homeTeamId}, Away: ${match.awayTeamId}`);
+    console.log(`Team lookup - Home: ${homeTeam?.name}, Away: ${awayTeam?.name}`);
+    
+    const homeTeamName = homeTeam?.name || "Home";
+    const awayTeamName = awayTeam?.name || "Away";
 
     if (match.status === 'IN_PROGRESS') {
       const liveState = await matchStateManager.syncMatchState(matchIdNum);
@@ -61,7 +67,13 @@ router.get('/:matchId', isAuthenticated, async (req: Request, res: Response, nex
         });
       }
     }
-    res.json({ ...match, homeTeamName, awayTeamName });
+    res.json({ 
+      ...match, 
+      homeTeamName, 
+      awayTeamName,
+      homeTeam: homeTeam ? { id: homeTeam.id, name: homeTeam.name } : null,
+      awayTeam: awayTeam ? { id: awayTeam.id, name: awayTeam.name } : null
+    });
   } catch (error) {
     console.error("Error fetching match:", error);
     next(error);
@@ -88,8 +100,21 @@ router.get('/:matchId/enhanced-data', isAuthenticated, async (req: Request, res:
     console.log(`Live state found: ${liveState ? 'YES' : 'NO'}`);
     
     if (!liveState) {
-      // Create mock enhanced data for testing - in production this would return proper data
-      const mockEnhancedData = {
+      // For completed matches, try to get stored simulation data
+      let simulationLogData = null;
+      try {
+        if (match.simulationLog) {
+          // Check if it's already an object or needs parsing
+          simulationLogData = typeof match.simulationLog === 'string' 
+            ? JSON.parse(match.simulationLog) 
+            : match.simulationLog;
+        }
+      } catch (error) {
+        console.log('Error parsing simulation log:', error);
+        simulationLogData = null;
+      }
+      
+      const enhancedData = {
         atmosphereEffects: {
           homeFieldAdvantage: 5,
           crowdNoise: 75,
@@ -104,12 +129,14 @@ router.get('/:matchId/enhanced-data', isAuthenticated, async (req: Request, res:
           homeTeamModifiers: { passing: 0, rushing: 0, defense: 0 },
           awayTeamModifiers: { passing: 0, rushing: 0, defense: 0 }
         },
-        playerStats: {},
-        mvpPlayers: [],
-        gamePhase: "early",
+        playerStats: simulationLogData?.playerStats || {},
+        mvpData: simulationLogData?.mvpData || simulationLogData?.mvpPlayers || [],
+        teamStats: simulationLogData?.teamStats || null,
+        gamePhase: "completed",
         possession: "home"
       };
-      return res.json(mockEnhancedData);
+      
+      return res.json(enhancedData);
     }
 
     // Get team data for enhanced atmospheric effects

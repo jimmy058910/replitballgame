@@ -22,7 +22,7 @@ export function LiveMatchViewer({ matchId, userId, onMatchComplete }: LiveMatchV
 
   // Fetch enhanced match data
   const { data: enhancedData, isLoading: enhancedDataLoading } = useQuery({
-    queryKey: [`/api/matches/${matchId}/enhanced`],
+    queryKey: [`/api/matches/${matchId}/enhanced-data`],
     enabled: !!matchId
   });
 
