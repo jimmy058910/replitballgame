@@ -352,12 +352,12 @@ class MatchStateManager {
       this.handlePossessionChange(state, null, newPossessingTeam, state.gameTime);
     }
 
-    // Generate more detailed events
-    if (Math.random() < 0.5) { // 50% chance of an event each update cycle
-      const event = this.generateDetailedMatchEvent(homeTeamPlayers, awayTeamPlayers, state);
-      if (event) {
-        state.gameEvents.push(event);
-        // Score updates are now handled by the event generation logic itself
+    // Generate enhanced match events using the comprehensive simulation engine
+    if (Math.random() < 0.7) { // 70% chance of an event each update cycle
+      const enhancedEvent = await this.generateEnhancedMatchEvent(homeTeamPlayers, awayTeamPlayers, state);
+      if (enhancedEvent) {
+        state.gameEvents.push(enhancedEvent);
+        // Score updates are now handled by the enhanced event generation logic
       }
     }
 
@@ -398,6 +398,50 @@ class MatchStateManager {
   }
 
   // ### Main Event Generation Logic ###
+  private async generateEnhancedMatchEvent(homePlayers: Player[], awayPlayers: Player[], state: LiveMatchState): Promise<MatchEvent | null> {
+    // Use the comprehensive enhanced simulation engine for event generation
+    const simulationResult = await simulateEnhancedMatch(homePlayers, awayPlayers, state.homeTeamId, state.awayTeamId);
+    
+    // Extract a single event from the comprehensive simulation
+    const recentEvents = simulationResult.gameData.events.slice(-1); // Get the latest event
+    if (recentEvents.length === 0) return null;
+    
+    const event = recentEvents[0];
+    
+    // Update player stats from comprehensive simulation
+    for (const [playerId, stats] of Object.entries(simulationResult.gameData.playerStats)) {
+      const playerStats = state.playerStats.get(playerId);
+      if (playerStats) {
+        // Incrementally update stats instead of replacing
+        playerStats.scores += stats.scores;
+        playerStats.passingAttempts += stats.passingAttempts;
+        playerStats.passesCompleted += stats.passesCompleted;
+        playerStats.passingYards += stats.passingYards;
+        playerStats.carrierYards += stats.rushingYards;
+        playerStats.catches += stats.catches;
+        playerStats.receivingYards += stats.receivingYards;
+        playerStats.drops += stats.drops;
+        playerStats.tackles += stats.tackles;
+        playerStats.knockdownsInflicted += stats.knockdownsInflicted;
+        playerStats.interceptionsCaught += stats.interceptionsCaught;
+        playerStats.fumblesLost += stats.fumblesLost;
+      }
+    }
+    
+    // Update team scores from comprehensive simulation
+    state.homeScore += simulationResult.homeScore;
+    state.awayScore += simulationResult.awayScore;
+    
+    return {
+      time: state.gameTime,
+      type: event.type,
+      description: event.description,
+      actingPlayerId: event.player,
+      teamId: event.team,
+      data: event.data
+    };
+  }
+
   private generateDetailedMatchEvent(homePlayers: Player[], awayPlayers: Player[], state: LiveMatchState): MatchEvent | null {
     if (!state.possessingTeamId) return null; // No action if ball is loose (though current logic doesn't allow this state for long)
 
@@ -695,7 +739,7 @@ class MatchStateManager {
         // Update lifetime stats (skip for exhibition matches to maintain risk-free gameplay)
         if (!isExhibitionMatch) {
           const playerToUpdate = await prisma.player.findFirst({
-            where: { id: playerId }
+            where: { id: parseInt(playerId) }
           });
           if (playerToUpdate) {
             const updatedLifetimeStats: Partial<Player> = {
@@ -715,7 +759,7 @@ class MatchStateManager {
               totalPassesDefended: (playerToUpdate.totalPassesDefended || 0) + (pStats.passesDefended || 0),
             };
             playerUpdates.push(prisma.player.update({
-              where: { id: playerId },
+              where: { id: parseInt(playerId) },
               data: updatedLifetimeStats
             }));
           }
@@ -754,13 +798,12 @@ class MatchStateManager {
 
       // Update the match itself
       await prisma.game.update({
-        where: { id: matchId },
+        where: { id: parseInt(matchId) },
         data: {
           status: 'COMPLETED',
           homeScore: state.homeScore,
           awayScore: state.awayScore,
-          completedAt: new Date(),
-          gameData: {
+          simulationLog: {
             events: state.gameEvents.slice(-50), // Store last 50 events
             finalScores: { home: state.homeScore, away: state.awayScore },
           }
@@ -774,13 +817,12 @@ class MatchStateManager {
       // Potentially re-throw or handle more gracefully (e.g., mark match as 'error_in_stats')
       // For now, we'll update the match to completed anyway, but log the error.
        await prisma.game.update({
-        where: { id: matchId },
+        where: { id: parseInt(matchId) },
         data: {
           status: 'COMPLETED', // Or a special status like 'completed_stats_error'
           homeScore: state.homeScore,
           awayScore: state.awayScore,
-          completedAt: new Date(),
-          gameData: {
+          simulationLog: {
             events: state.gameEvents.slice(-50),
             finalScores: { home: state.homeScore, away: state.awayScore },
             error: `Error persisting stats: ${(error as Error).message}`

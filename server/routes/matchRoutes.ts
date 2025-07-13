@@ -5,6 +5,7 @@ import { storage } from "../storage/index";
 import { isAuthenticated } from "../replitAuth";
 import { simulateMatch as fullMatchSimulation } from "../services/matchSimulation";
 import { matchStateManager } from "../services/matchStateManager";
+import { prisma } from "../db";
 
 const router = Router();
 
@@ -83,6 +84,8 @@ router.get('/:matchId/enhanced-data', isAuthenticated, async (req: Request, res:
     // Get live match state if available
     const liveState = await matchStateManager.syncMatchState(matchIdNum);
     
+    console.log(`Live state found: ${liveState ? 'YES' : 'NO'}`);
+    
     if (!liveState) {
       // Create mock enhanced data for testing - in production this would return proper data
       const mockEnhancedData = {
@@ -111,6 +114,26 @@ router.get('/:matchId/enhanced-data', isAuthenticated, async (req: Request, res:
     // Get team data for enhanced atmospheric effects
     const homeTeam = await storage.teams.getTeamById(match.homeTeamId);
     const awayTeam = await storage.teams.getTeamById(match.awayTeamId);
+    
+    // Load team players for MVP calculation
+    const homePlayers = await prisma.player.findMany({
+      where: { teamId: match.homeTeamId },
+      select: { id: true, firstName: true, lastName: true, role: true, teamId: true }
+    });
+
+    const awayPlayers = await prisma.player.findMany({
+      where: { teamId: match.awayTeamId },
+      select: { id: true, firstName: true, lastName: true, role: true, teamId: true }
+    });
+
+    // Create a lookup map for faster team assignment
+    const playerTeamMap = new Map<string, number>();
+    homePlayers.forEach(p => playerTeamMap.set(p.id.toString(), p.teamId));
+    awayPlayers.forEach(p => playerTeamMap.set(p.id.toString(), p.teamId));
+    
+    console.log(`Team map populated: ${playerTeamMap.size} players`);
+    console.log(`Home players: ${homePlayers.length}, Away players: ${awayPlayers.length}`);
+    console.log(`Sample entries: ${JSON.stringify(Array.from(playerTeamMap.entries()).slice(0, 3))}`);
     
     // Get stadium data for atmospheric effects (simplified for integration)
     const homeStadium = homeTeam ? { 
@@ -163,10 +186,46 @@ router.get('/:matchId/enhanced-data', isAuthenticated, async (req: Request, res:
       };
     });
 
-    // Identify MVP players (basic implementation)
+    // Calculate MVP players based on actual stats
+    const calculateMVP = async (teamId: number) => {
+      let mvpPlayer = null;
+      let maxScore = 0;
+      
+      console.log(`Calculating MVP for team ${teamId}`);
+      console.log(`Total players with stats: ${liveState.playerStats.size}`);
+      
+      for (const [playerId, stats] of liveState.playerStats.entries()) {
+        // Query database directly to get player's team
+        const player = await prisma.player.findUnique({
+          where: { id: parseInt(playerId) },
+          select: { id: true, firstName: true, lastName: true, teamId: true }
+        });
+        
+        if (!player || player.teamId !== teamId) continue;
+        
+        // Calculate MVP score: scores * 10 + passing yards * 0.1 + carrier yards * 0.2 + tackles * 2
+        const mvpScore = (stats.scores * 10) + 
+                        (stats.passingYards * 0.1) + 
+                        (stats.carrierYards * 0.2) + 
+                        (stats.tackles * 2) + 
+                        (stats.interceptionsCaught * 5);
+        
+        console.log(`Player ${playerId} (${player.firstName} ${player.lastName}): team ${player.teamId}, MVP score: ${mvpScore}`);
+        
+        if (mvpScore > maxScore) {
+          maxScore = mvpScore;
+          mvpPlayer = `${player.firstName} ${player.lastName}`;
+          console.log(`New MVP: ${mvpPlayer} with score ${mvpScore}`);
+        }
+      }
+      
+      console.log(`Final MVP for team ${teamId}: ${mvpPlayer || "No MVP"}`);
+      return mvpPlayer || "No MVP";
+    };
+
     const mvpPlayers = {
-      home: "TBD", // Could be calculated based on stats
-      away: "TBD"
+      home: await calculateMVP(match.homeTeamId),
+      away: await calculateMVP(match.awayTeamId)
     };
 
     // Calculate gamePhase including halftime detection
