@@ -21,6 +21,7 @@ export class SeasonalFlowService {
   
   /**
    * Competition structure configuration
+   * Updated to match promotion/relegation algorithm specifications
    */
   static readonly SEASON_CONFIG = {
     REGULAR_SEASON_DAYS: 14,
@@ -33,19 +34,32 @@ export class SeasonalFlowService {
     POINTS_DRAW: 1,
     POINTS_LOSS: 0,
     
-    // League structure
-    DIVISION_1_TEAMS: 16, // Premium division with 2 games per day
-    STANDARD_LEAGUE_TEAMS: 8, // All other divisions
-    PLAYOFF_QUALIFIERS: 4, // Top 4 teams qualify
+    // League structure (updated to match specifications)
+    DIVISION_1_TEAMS: 16, // Premium division - exactly 16 teams
+    DIVISION_2_TEAMS: 16, // Division 2 sub-divisions - 16 teams each
+    DIVISION_2_SUBDIVISIONS: 3, // Division 2 has 3 sub-divisions (48 teams total)
+    STANDARD_SUBDIVISION_TEAMS: 16, // All other divisions use 16-team subdivisions
     
-    // Promotion/relegation
-    DIVISION_1_RELEGATION: 4, // Bottom 4 teams relegated
-    STANDARD_RELEGATION: 2,   // Bottom 2 teams relegated
-    PROMOTION_WINNERS: 1,     // Only playoff champions promote
+    // Tournament qualifiers (updated to match specifications)
+    DIVISION_1_TOURNAMENT_QUALIFIERS: 8, // Top 8 teams for Division 1 tournament
+    STANDARD_TOURNAMENT_QUALIFIERS: 4, // Top 4 teams for Divisions 2-8 tournaments
+    
+    // Promotion/relegation (updated to match specifications)
+    DIVISION_1_RELEGATION: 6, // Bottom 6 teams relegated (11th-16th place)
+    DIVISION_2_RELEGATION_PER_SUBDIVISION: 4, // Bottom 4 teams from each 16-team subdivision
+    DIVISION_2_PROMOTION_PER_SUBDIVISION: 2, // 2 teams promoted from each Division 2 subdivision
+    STANDARD_RELEGATION_PER_SUBDIVISION: 4, // Bottom 4 teams from each 16-team subdivision
     
     // Division limits
     MIN_DIVISION: 1,
-    MAX_DIVISION: 8 // Division 8 is the floor
+    MAX_DIVISION: 8, // Division 8 is the floor
+    
+    // Season timing (EST timezone)
+    SEASON_START_TIME: { hour: 15, minute: 0 }, // 3:00 PM EST - Division finalization
+    SIMULATION_WINDOW: { start: 16, end: 22 }, // 4:00 PM - 10:00 PM EST
+    MID_SEASON_CUP_DAY: 7, // Day 7 - Mid-Season Cup
+    DIVISION_TOURNAMENT_DAY: 15, // Day 15 - Division tournaments
+    NEW_SEASON_RESET_TIME: { hour: 3, minute: 0 }, // 3:00 AM EST - Day 17 reset
   };
 
   /**
@@ -80,8 +94,8 @@ export class SeasonalFlowService {
         // Division 1: 16 teams, 28 games over 14 days (2 per day)
         matches = await this.generateDivision1Schedule(league.id, leagueTeams, season);
       } else {
-        // Divisions 2-8: 8 teams, 14 games over 14 days (1 per day, double round-robin)
-        matches = await this.generateStandardLeagueSchedule(league.id, leagueTeams, season);
+        // Divisions 2-8: 16 teams per subdivision, 14 games over 14 days
+        matches = await this.generateStandardSubdivisionSchedule(league.id, leagueTeams, season);
       }
       
       totalMatches += matches.length;
@@ -142,9 +156,9 @@ export class SeasonalFlowService {
   }
 
   /**
-   * Generate standard league schedule (8 teams, 1 game per day, double round-robin)
+   * Generate standard subdivision schedule (16 teams, modified round-robin for 14 days)
    */
-  static async generateStandardLeagueSchedule(
+  static async generateStandardSubdivisionSchedule(
     leagueId: string, 
     teams: any[], 
     season: number
@@ -152,18 +166,16 @@ export class SeasonalFlowService {
     const matches = [];
     const numTeams = teams.length;
     
-    if (numTeams !== this.SEASON_CONFIG.STANDARD_LEAGUE_TEAMS) {
-      throw new Error(`Standard league must have ${this.SEASON_CONFIG.STANDARD_LEAGUE_TEAMS} teams`);
+    if (numTeams !== this.SEASON_CONFIG.STANDARD_SUBDIVISION_TEAMS) {
+      throw new Error(`Standard subdivision must have ${this.SEASON_CONFIG.STANDARD_SUBDIVISION_TEAMS} teams`);
     }
     
-    // Double round-robin: each team plays every other team twice
-    // 7 opponents × 2 = 14 games per team = 14 days
+    // Modified round-robin: 16 teams, 14 days of matches
+    // Each team plays 14 games over 14 days (not full round-robin)
     
-    let day = 1;
-    
-    // First round-robin
-    for (let round = 0; round < numTeams - 1; round++) {
-      const dayMatches = this.generateRoundRobinRound(teams, round);
+    for (let day = 1; day <= this.SEASON_CONFIG.REGULAR_SEASON_DAYS; day++) {
+      // Generate 8 matches per day (16 teams = 8 matches)
+      const dayMatches = this.generateSubdivisionDayMatches(teams, day);
       
       for (const match of dayMatches) {
         const matchData = {
@@ -178,33 +190,39 @@ export class SeasonalFlowService {
         
         matches.push(matchData);
       }
-      day++;
-    }
-    
-    // Second round-robin (reverse home/away)
-    for (let round = 0; round < numTeams - 1; round++) {
-      const dayMatches = this.generateRoundRobinRound(teams, round, true); // reverse = true
-      
-      for (const match of dayMatches) {
-        const matchData = {
-          leagueId,
-          homeTeamId: match.homeTeam.id,
-          awayTeamId: match.awayTeam.id,
-          gameDay: day,
-          season,
-          status: 'scheduled',
-          matchType: 'league'
-        };
-        
-        matches.push(matchData);
-      }
-      day++;
     }
     
     // Insert matches into database
     if (matches.length > 0) {
       await prisma.game.createMany({
         data: matches
+      });
+    }
+    
+    return matches;
+  }
+
+  /**
+   * Generate 8 matches for a subdivision day (16 teams)
+   */
+  static generateSubdivisionDayMatches(teams: any[], day: number): any[] {
+    const matches = [];
+    const numTeams = teams.length;
+    
+    // Use a systematic pairing approach based on the day
+    for (let i = 0; i < numTeams / 2; i++) {
+      const team1Index = i;
+      const team2Index = (i + day + 7) % numTeams;
+      
+      // Ensure we don't pair a team with itself
+      const finalTeam2Index = team2Index === team1Index ? (team2Index + 1) % numTeams : team2Index;
+      
+      const homeTeam = teams[team1Index];
+      const awayTeam = teams[finalTeam2Index];
+      
+      matches.push({
+        homeTeam,
+        awayTeam
       });
     }
     
@@ -490,14 +508,15 @@ export class SeasonalFlowService {
 
   /**
    * Generate playoff brackets for Day 15
+   * Division 1: Top 8 teams compete in tournament
+   * Divisions 2-8: Top 4 teams compete in tournament
    */
   static async generatePlayoffBrackets(season: number): Promise<{
     bracketsByLeague: Array<{
       leagueId: string;
       division: number;
-      semifinal1: { team1: any; team2: any };
-      semifinal2: { team1: any; team2: any };
       playoffMatches: any[];
+      qualifierCount: number;
     }>;
     totalPlayoffMatches: number;
   }> {
@@ -510,41 +529,83 @@ export class SeasonalFlowService {
     
     for (const league of allLeagues) {
       const standings = await this.getFinalStandings(league.id, season);
-      const playoffTeams = standings.playoffTeams;
+      const division = league.division;
       
-      if (playoffTeams.length >= 4) {
-        // Create bracket: #1 vs #4, #2 vs #3
-        const semifinal1 = {
-          team1: playoffTeams[0], // Seed 1
-          team2: playoffTeams[3]  // Seed 4
-        };
+      // Determine qualifier count based on division
+      const qualifierCount = division === 1 
+        ? this.SEASON_CONFIG.DIVISION_1_TOURNAMENT_QUALIFIERS 
+        : this.SEASON_CONFIG.STANDARD_TOURNAMENT_QUALIFIERS;
+      
+      const playoffTeams = standings.finalStandings.slice(0, qualifierCount);
+      
+      if (playoffTeams.length >= qualifierCount) {
+        let playoffMatches = [];
         
-        const semifinal2 = {
-          team1: playoffTeams[1], // Seed 2
-          team2: playoffTeams[2]  // Seed 3
-        };
-        
-        // Create playoff matches
-        const playoffMatches = [
-          {
-            leagueId: league.id,
-            homeTeamId: semifinal1.team1.id,
-            awayTeamId: semifinal1.team2.id,
-            gameDay: this.SEASON_CONFIG.PLAYOFF_DAY,
-            season,
-            status: 'scheduled',
-            matchType: 'playoff_semifinal'
-          },
-          {
-            leagueId: league.id,
-            homeTeamId: semifinal2.team1.id,
-            awayTeamId: semifinal2.team2.id,
-            gameDay: this.SEASON_CONFIG.PLAYOFF_DAY,
-            season,
-            status: 'scheduled',
-            matchType: 'playoff_semifinal'
-          }
-        ];
+        if (division === 1) {
+          // Division 1: 8-team single elimination tournament
+          // Quarterfinals: 1v8, 2v7, 3v6, 4v5
+          playoffMatches = [
+            {
+              leagueId: league.id,
+              homeTeamId: playoffTeams[0].id, // Seed 1
+              awayTeamId: playoffTeams[7].id, // Seed 8
+              gameDay: this.SEASON_CONFIG.PLAYOFF_DAY,
+              season,
+              status: 'scheduled',
+              matchType: 'playoff_quarterfinal'
+            },
+            {
+              leagueId: league.id,
+              homeTeamId: playoffTeams[1].id, // Seed 2
+              awayTeamId: playoffTeams[6].id, // Seed 7
+              gameDay: this.SEASON_CONFIG.PLAYOFF_DAY,
+              season,
+              status: 'scheduled',
+              matchType: 'playoff_quarterfinal'
+            },
+            {
+              leagueId: league.id,
+              homeTeamId: playoffTeams[2].id, // Seed 3
+              awayTeamId: playoffTeams[5].id, // Seed 6
+              gameDay: this.SEASON_CONFIG.PLAYOFF_DAY,
+              season,
+              status: 'scheduled',
+              matchType: 'playoff_quarterfinal'
+            },
+            {
+              leagueId: league.id,
+              homeTeamId: playoffTeams[3].id, // Seed 4
+              awayTeamId: playoffTeams[4].id, // Seed 5
+              gameDay: this.SEASON_CONFIG.PLAYOFF_DAY,
+              season,
+              status: 'scheduled',
+              matchType: 'playoff_quarterfinal'
+            }
+          ];
+        } else {
+          // Divisions 2-8: 4-team single elimination tournament
+          // Semifinals: 1v4, 2v3
+          playoffMatches = [
+            {
+              leagueId: league.id,
+              homeTeamId: playoffTeams[0].id, // Seed 1
+              awayTeamId: playoffTeams[3].id, // Seed 4
+              gameDay: this.SEASON_CONFIG.PLAYOFF_DAY,
+              season,
+              status: 'scheduled',
+              matchType: 'playoff_semifinal'
+            },
+            {
+              leagueId: league.id,
+              homeTeamId: playoffTeams[1].id, // Seed 2
+              awayTeamId: playoffTeams[2].id, // Seed 3
+              gameDay: this.SEASON_CONFIG.PLAYOFF_DAY,
+              season,
+              status: 'scheduled',
+              matchType: 'playoff_semifinal'
+            }
+          ];
+        }
         
         // Insert playoff matches
         await prisma.game.createMany({
@@ -554,9 +615,8 @@ export class SeasonalFlowService {
         bracketsByLeague.push({
           leagueId: league.id,
           division: league.division,
-          semifinal1,
-          semifinal2,
-          playoffMatches
+          playoffMatches,
+          qualifierCount
         });
         
         totalPlayoffMatches += playoffMatches.length;
@@ -570,7 +630,8 @@ export class SeasonalFlowService {
   }
 
   /**
-   * Process promotion and relegation after playoffs complete
+   * Process end-of-season promotion and relegation based on specifications
+   * Implements the top-down promotion/relegation algorithm
    */
   static async processPromotionRelegation(season: number): Promise<{
     promotions: Array<{ teamId: string; fromDivision: number; toDivision: number }>;
@@ -580,62 +641,284 @@ export class SeasonalFlowService {
     const promotions = [];
     const relegations = [];
     
-    // Get all playoff champions (teams that won their league championships)
-    const playoffChampions = await this.getPlayoffChampions(season);
+    // Step 1: Division 1 Relegation (The Great Filter)
+    // Bottom 6 teams (11th-16th place) are relegated to Division 2
+    await this.processDivision1Relegation(season, relegations);
     
-    // Process relegations first
-    for (let division = 1; division <= this.SEASON_CONFIG.MAX_DIVISION - 1; division++) {
-      const divisionLeagues = await prisma.league.findMany({
-        where: {
-          season,
-          division
-        }
-      });
-      
-      for (const league of divisionLeagues) {
-        const standings = await this.getFinalStandings(league.id, season);
-        const relegatedTeams = standings.relegatedTeams;
-        
-        for (const team of relegatedTeams) {
-          const newDivision = Math.min(division + 1, this.SEASON_CONFIG.MAX_DIVISION);
-          
-          await prisma.team.update({
-            where: { id: team.id },
-            data: { division: newDivision }
-          });
-          
-          relegations.push({
-            teamId: team.id,
-            fromDivision: division,
-            toDivision: newDivision
-          });
-        }
-      }
-    }
+    // Step 2: Division 2 Promotion (The Ascent)
+    // 2 teams from each of 3 sub-divisions (6 total) are promoted to Division 1
+    await this.processDivision2Promotion(season, promotions);
     
-    // Process promotions
-    for (const champion of playoffChampions) {
-      if (champion.division > this.SEASON_CONFIG.MIN_DIVISION) {
-        const newDivision = champion.division - 1;
-        
-        await db
-          .update(teams)
-          .set({ division: newDivision })
-          .where(eq(teams.id, champion.teamId));
-        
-        promotions.push({
-          teamId: champion.teamId,
-          fromDivision: champion.division,
-          toDivision: newDivision
-        });
-      }
-    }
+    // Step 3: Division 2 Relegation & Division 3 Promotion (The Churn)
+    // Bottom 4 teams from each Division 2 sub-division are relegated (12 total)
+    // Top 12 teams from Division 3 promotion pool are promoted
+    await this.processDivision2Relegation(season, relegations);
+    await this.processDivision3Promotion(season, promotions);
+    
+    // Step 4: Standardized Cascade (Divisions 3 through 8)
+    // Bottom 4 teams from each subdivision are relegated
+    // Top teams from promotion pool are promoted
+    await this.processStandardizedCascade(season, promotions, relegations);
     
     return {
       promotions,
       relegations,
       totalTeamsProcessed: promotions.length + relegations.length
     };
+  }
+
+  /**
+   * Step 1: Division 1 Relegation - Bottom 6 teams relegated
+   */
+  static async processDivision1Relegation(season: number, relegations: any[]): Promise<void> {
+    const division1Teams = await prisma.team.findMany({
+      where: { division: 1 },
+      orderBy: [
+        { points: 'desc' },
+        { wins: 'desc' },
+        { losses: 'asc' }
+      ]
+    });
+    
+    // Bottom 6 teams (11th-16th place) are relegated
+    const relegationZone = division1Teams.slice(-this.SEASON_CONFIG.DIVISION_1_RELEGATION);
+    
+    for (const team of relegationZone) {
+      await prisma.team.update({
+        where: { id: team.id },
+        data: { division: 2 }
+      });
+      
+      relegations.push({
+        teamId: team.id,
+        fromDivision: 1,
+        toDivision: 2
+      });
+    }
+  }
+
+  /**
+   * Step 2: Division 2 Promotion - 2 teams from each of 3 sub-divisions
+   */
+  static async processDivision2Promotion(season: number, promotions: any[]): Promise<void> {
+    // Get Division 2 subdivisions
+    const division2Subdivisions = await prisma.team.groupBy({
+      by: ['subdivision'],
+      where: { division: 2 },
+      _count: { id: true }
+    });
+    
+    for (const subdivision of division2Subdivisions) {
+      const subdivisionTeams = await prisma.team.findMany({
+        where: { 
+          division: 2,
+          subdivision: subdivision.subdivision
+        },
+        orderBy: [
+          { points: 'desc' },
+          { wins: 'desc' },
+          { losses: 'asc' }
+        ]
+      });
+      
+      // Get season champion (#1) and tournament winner
+      // For now, promote top 2 teams (can be enhanced with tournament logic)
+      const teamsToPromote = subdivisionTeams.slice(0, this.SEASON_CONFIG.DIVISION_2_PROMOTION_PER_SUBDIVISION);
+      
+      for (const team of teamsToPromote) {
+        await prisma.team.update({
+          where: { id: team.id },
+          data: { division: 1 }
+        });
+        
+        promotions.push({
+          teamId: team.id,
+          fromDivision: 2,
+          toDivision: 1
+        });
+      }
+    }
+  }
+
+  /**
+   * Step 3a: Division 2 Relegation - Bottom 4 teams from each 16-team subdivision
+   */
+  static async processDivision2Relegation(season: number, relegations: any[]): Promise<void> {
+    const division2Subdivisions = await prisma.team.groupBy({
+      by: ['subdivision'],
+      where: { division: 2 },
+      _count: { id: true }
+    });
+    
+    for (const subdivision of division2Subdivisions) {
+      const subdivisionTeams = await prisma.team.findMany({
+        where: { 
+          division: 2,
+          subdivision: subdivision.subdivision
+        },
+        orderBy: [
+          { points: 'desc' },
+          { wins: 'desc' },
+          { losses: 'asc' }
+        ]
+      });
+      
+      // Bottom 4 teams (13th-16th place) are relegated
+      const relegationZone = subdivisionTeams.slice(-this.SEASON_CONFIG.DIVISION_2_RELEGATION_PER_SUBDIVISION);
+      
+      for (const team of relegationZone) {
+        await prisma.team.update({
+          where: { id: team.id },
+          data: { division: 3 }
+        });
+        
+        relegations.push({
+          teamId: team.id,
+          fromDivision: 2,
+          toDivision: 3
+        });
+      }
+    }
+  }
+
+  /**
+   * Step 3b: Division 3 Promotion - Promotion Pool System
+   */
+  static async processDivision3Promotion(season: number, promotions: any[]): Promise<void> {
+    // Create promotion pool from all Division 3 subdivisions
+    const promotionPool = await this.createPromotionPool(3, season);
+    
+    // Promote top 12 teams from the pool
+    const teamsToPromote = promotionPool.slice(0, 12);
+    
+    for (const team of teamsToPromote) {
+      await prisma.team.update({
+        where: { id: team.id },
+        data: { division: 2 }
+      });
+      
+      promotions.push({
+        teamId: team.id,
+        fromDivision: 3,
+        toDivision: 2
+      });
+    }
+  }
+
+  /**
+   * Step 4: Standardized Cascade for Divisions 3-8
+   */
+  static async processStandardizedCascade(season: number, promotions: any[], relegations: any[]): Promise<void> {
+    // Process divisions 3-7 (Division 8 has no relegation)
+    for (let division = 3; division < this.SEASON_CONFIG.MAX_DIVISION; division++) {
+      // Relegation: Bottom 4 teams from each subdivision
+      const subdivisions = await prisma.team.groupBy({
+        by: ['subdivision'],
+        where: { division },
+        _count: { id: true }
+      });
+      
+      let totalRelegated = 0;
+      
+      for (const subdivision of subdivisions) {
+        const subdivisionTeams = await prisma.team.findMany({
+          where: { 
+            division,
+            subdivision: subdivision.subdivision
+          },
+          orderBy: [
+            { points: 'desc' },
+            { wins: 'desc' },
+            { losses: 'asc' }
+          ]
+        });
+        
+        // Bottom 4 teams are relegated
+        const relegationZone = subdivisionTeams.slice(-this.SEASON_CONFIG.STANDARD_RELEGATION_PER_SUBDIVISION);
+        
+        for (const team of relegationZone) {
+          await prisma.team.update({
+            where: { id: team.id },
+            data: { division: division + 1 }
+          });
+          
+          relegations.push({
+            teamId: team.id,
+            fromDivision: division,
+            toDivision: division + 1
+          });
+          
+          totalRelegated++;
+        }
+      }
+      
+      // Promotion: Top teams from promotion pool of division below
+      if (division < this.SEASON_CONFIG.MAX_DIVISION) {
+        const promotionPool = await this.createPromotionPool(division + 1, season);
+        const teamsToPromote = promotionPool.slice(0, totalRelegated);
+        
+        for (const team of teamsToPromote) {
+          await prisma.team.update({
+            where: { id: team.id },
+            data: { division: division }
+          });
+          
+          promotions.push({
+            teamId: team.id,
+            fromDivision: division + 1,
+            toDivision: division
+          });
+        }
+      }
+    }
+  }
+
+  /**
+   * Create promotion pool for a division
+   * Returns top teams ranked by win percentage with point differential as tiebreaker
+   */
+  static async createPromotionPool(division: number, season: number): Promise<any[]> {
+    const subdivisions = await prisma.team.groupBy({
+      by: ['subdivision'],
+      where: { division },
+      _count: { id: true }
+    });
+    
+    const promotionPool = [];
+    
+    for (const subdivision of subdivisions) {
+      const subdivisionTeams = await prisma.team.findMany({
+        where: { 
+          division,
+          subdivision: subdivision.subdivision
+        },
+        orderBy: [
+          { points: 'desc' },
+          { wins: 'desc' },
+          { losses: 'asc' }
+        ]
+      });
+      
+      // Add season champion (#1) and tournament winner (#2) to pool
+      // For now, add top 2 teams (can be enhanced with tournament logic)
+      const poolEntries = subdivisionTeams.slice(0, 2);
+      promotionPool.push(...poolEntries);
+    }
+    
+    // Sort promotion pool by win percentage and point differential
+    return promotionPool.sort((a, b) => {
+      const aWinPct = (a.wins || 0) / Math.max(1, (a.wins || 0) + (a.losses || 0) + (a.draws || 0));
+      const bWinPct = (b.wins || 0) / Math.max(1, (b.wins || 0) + (b.losses || 0) + (b.draws || 0));
+      
+      if (bWinPct !== aWinPct) {
+        return bWinPct - aWinPct;
+      }
+      
+      // Tiebreaker: Point differential
+      const aPointDiff = (a.points || 0) - (a.losses || 0);
+      const bPointDiff = (b.points || 0) - (b.losses || 0);
+      return bPointDiff - aPointDiff;
+    });
   }
 
   /**
@@ -698,7 +981,7 @@ export class SeasonalFlowService {
       
       const requiredTeamsPerLeague = division === 1 
         ? this.SEASON_CONFIG.DIVISION_1_TEAMS 
-        : this.SEASON_CONFIG.STANDARD_LEAGUE_TEAMS;
+        : this.SEASON_CONFIG.STANDARD_SUBDIVISION_TEAMS;
       
       const requiredLeagues = Math.ceil(divisionTeams.length / requiredTeamsPerLeague);
       
@@ -760,14 +1043,14 @@ export class SeasonalFlowService {
     const rebalanceResult = await this.rebalanceLeagues(currentSeason);
     
     // 3. Reset team statistics for new season
-    await db
-      .update(teams)
-      .set({
+    await prisma.team.updateMany({
+      data: {
         wins: 0,
         losses: 0,
         draws: 0,
         points: 0
-      });
+      }
+    });
     
     // 4. Generate schedule for new season
     const scheduleResult = await this.generateSeasonSchedule(newSeason);
