@@ -279,9 +279,19 @@ router.get('/system/stats', isAuthenticated, async (req: any, res: Response, nex
     // Get overall system statistics
     const totalPlayers = await prisma.player.findMany();
     
+    const injuredPlayers = totalPlayers.filter(p => p.injuryStatus !== 'Healthy').length;
+    const healthyPlayers = totalPlayers.length - injuredPlayers;
+    
+    // Calculate average stamina percentage
+    const averageStamina = totalPlayers.length > 0 
+      ? totalPlayers.reduce((sum, p) => sum + (p.dailyStaminaLevel ?? 100), 0) / totalPlayers.length 
+      : 0;
+    
     const stats = {
       totalPlayers: totalPlayers.length,
-      injuredPlayers: totalPlayers.filter(p => p.injuryStatus !== 'Healthy').length,
+      injuredPlayers,
+      healthyPlayers,
+      averageStamina,
       lowStaminaPlayers: totalPlayers.filter(p => (p.dailyStaminaLevel ?? 100) < 50).length,
       playersUsedItemsToday: totalPlayers.filter(p => (p.dailyItemsUsed ?? 0) > 0).length,
       
