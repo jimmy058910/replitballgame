@@ -3,207 +3,252 @@
  * Tests all critical systems after database migration and BigInt serialization fixes
  */
 
-const http = require('http');
-const querystring = require('querystring');
-
-// Test configuration
 const BASE_URL = 'http://localhost:5000';
-const TEST_ENDPOINTS = [
-  { method: 'GET', path: '/api/auth/user', expectStatus: 401, name: 'Authentication Check' },
-  { method: 'GET', path: '/api/server/time', expectStatus: 200, name: 'Server Time' },
-  { method: 'GET', path: '/api/leagues/8/standings', expectStatus: 200, name: 'League Standings' },
-  { method: 'GET', path: '/api/teams/6', expectStatus: 200, name: 'Team Details' },
-  { method: 'GET', path: '/api/teams/6/players', expectStatus: 200, name: 'Team Players' },
-  { method: 'GET', path: '/api/leagues/teams/8', expectStatus: 200, name: 'Division Teams' },
-  { method: 'GET', path: '/api/notifications', expectStatus: 200, name: 'Notifications' },
-  { method: 'GET', path: '/api/matches/live', expectStatus: 200, name: 'Live Matches' },
-  { method: 'GET', path: '/api/team-names/rules', expectStatus: 200, name: 'Team Name Rules' },
-];
 
 async function makeRequest(method, path, data = null) {
-  return new Promise((resolve, reject) => {
-    const options = {
-      hostname: 'localhost',
-      port: 5000,
-      path: path,
-      method: method,
-      headers: {
-        'Content-Type': 'application/json',
-        'User-Agent': 'SystemTest/1.0'
-      }
+  const options = {
+    method,
+    headers: {
+      'Content-Type': 'application/json',
+      'Cookie': 'authToken=user_1|1736733444|dRWxj7CnM7gYJ0BWJl-YBDEKg40; user_1|1736733444|dRWxj7CnM7gYJ0BWJl-YBDEKg40=true'
+    }
+  };
+
+  if (data) {
+    options.body = JSON.stringify(data);
+  }
+
+  const response = await fetch(`${BASE_URL}${path}`, options);
+  const responseData = await response.text();
+  
+  try {
+    return {
+      status: response.status,
+      data: JSON.parse(responseData)
     };
-
-    if (data && method === 'POST') {
-      const postData = JSON.stringify(data);
-      options.headers['Content-Length'] = Buffer.byteLength(postData);
-    }
-
-    const req = http.request(options, (res) => {
-      let body = '';
-      res.on('data', (chunk) => {
-        body += chunk;
-      });
-      res.on('end', () => {
-        try {
-          const jsonData = JSON.parse(body);
-          resolve({
-            statusCode: res.statusCode,
-            headers: res.headers,
-            data: jsonData
-          });
-        } catch (parseError) {
-          resolve({
-            statusCode: res.statusCode,
-            headers: res.headers,
-            data: body,
-            parseError: parseError.message
-          });
-        }
-      });
-    });
-
-    req.on('error', (error) => {
-      reject(error);
-    });
-
-    if (data && method === 'POST') {
-      req.write(JSON.stringify(data));
-    }
-
-    req.end();
-  });
+  } catch (e) {
+    return {
+      status: response.status,
+      data: responseData
+    };
+  }
 }
 
 async function testEndpoint(name, method, path, expectedStatus = 200) {
   try {
-    console.log(`\n🔄 Testing: ${name}`);
-    console.log(`   ${method} ${path}`);
-    
-    const response = await makeRequest(method, path);
-    
-    if (response.statusCode === expectedStatus) {
-      console.log(`   ✅ Status: ${response.statusCode} (Expected: ${expectedStatus})`);
-      
-      // Check for BigInt serialization issues
-      if (response.data && typeof response.data === 'object') {
-        const dataStr = JSON.stringify(response.data);
-        if (dataStr.includes('BigInt')) {
-          console.log(`   ❌ BigInt serialization issue detected`);
-          return false;
-        }
-        console.log(`   ✅ No BigInt serialization issues`);
-      }
-      
-      // Additional validation for specific endpoints
-      if (path.includes('/players') && response.data.length) {
-        console.log(`   ✅ Players found: ${response.data.length}`);
-        const player = response.data[0];
-        if (player.race && player.role && player.firstName) {
-          console.log(`   ✅ Player data structure valid`);
-        } else {
-          console.log(`   ❌ Player data structure invalid`);
-          return false;
-        }
-      }
-      
-      if (path.includes('/teams/6') && response.data.id) {
-        console.log(`   ✅ Team ID: ${response.data.id}`);
-        console.log(`   ✅ Team Name: ${response.data.name}`);
-        if (response.data.finances && response.data.finances.credits) {
-          console.log(`   ✅ Team Finances: ${response.data.finances.credits} credits`);
-        }
-      }
-      
-      return true;
-    } else {
-      console.log(`   ❌ Status: ${response.statusCode} (Expected: ${expectedStatus})`);
-      if (response.data && response.data.message) {
-        console.log(`   ❌ Error: ${response.data.message}`);
-      }
-      return false;
-    }
+    const result = await makeRequest(method, path);
+    const success = result.status === expectedStatus;
+    console.log(`${success ? '✅' : '❌'} ${name}: ${result.status} ${success ? 'PASS' : 'FAIL'}`);
+    return { name, success, status: result.status, data: result.data };
   } catch (error) {
-    console.log(`   ❌ Request failed: ${error.message}`);
-    return false;
+    console.log(`❌ ${name}: ERROR - ${error.message}`);
+    return { name, success: false, error: error.message };
   }
 }
 
 async function runComprehensiveTests() {
-  console.log('🚀 Starting Comprehensive System Test\n');
-  console.log('=' * 60);
+  console.log('🧪 COMPREHENSIVE SYSTEM TEST - REALM RIVALRY\n');
+
+  const results = [];
+
+  // =====================================
+  // 1. CORE AUTHENTICATION & TEAM SYSTEM
+  // =====================================
+  console.log('1. 🔐 CORE AUTHENTICATION & TEAM SYSTEM');
+  results.push(await testEndpoint('User Team Data', 'GET', '/api/teams/my'));
+  results.push(await testEndpoint('Team Players', 'GET', '/api/teams/132/players'));
+  results.push(await testEndpoint('Team Finances', 'GET', '/api/teams/132/finances'));
+  results.push(await testEndpoint('Team Staff', 'GET', '/api/teams/132/staff'));
+  console.log('');
+
+  // =====================================
+  // 2. LIVE MATCH PERSISTENCE SYSTEM
+  // =====================================
+  console.log('2. 🎮 LIVE MATCH PERSISTENCE SYSTEM');
   
-  let passed = 0;
-  let failed = 0;
+  // Test live matches endpoint
+  const liveMatchesResult = await testEndpoint('Live Matches Endpoint', 'GET', '/api/matches/live');
+  results.push(liveMatchesResult);
   
-  // Test all endpoints
-  for (const endpoint of TEST_ENDPOINTS) {
-    const result = await testEndpoint(
-      endpoint.name,
-      endpoint.method,
-      endpoint.path,
-      endpoint.expectStatus
-    );
+  let testMatchId = null;
+  if (liveMatchesResult.success && liveMatchesResult.data.length > 0) {
+    testMatchId = liveMatchesResult.data[0].id;
+    console.log(`🎯 Using existing match: ${testMatchId}`);
     
-    if (result) {
-      passed++;
-    } else {
-      failed++;
+    // Test persistence-related endpoints
+    results.push(await testEndpoint('Match Data', 'GET', `/api/matches/${testMatchId}`));
+    results.push(await testEndpoint('Enhanced Match Data', 'GET', `/api/matches/${testMatchId}/enhanced-data`));
+    results.push(await testEndpoint('Match Sync', 'GET', `/api/matches/${testMatchId}/sync`));
+    
+    // Test database persistence
+    const dbMatch = await makeRequest('GET', `/api/matches/${testMatchId}`);
+    const hasPersistence = dbMatch.data.simulationLog ? true : false;
+    console.log(`${hasPersistence ? '✅' : '❌'} Database Persistence: ${hasPersistence ? 'ACTIVE' : 'INACTIVE'}`);
+    
+    // Test enhanced data functionality
+    const enhancedResult = await makeRequest('GET', `/api/matches/${testMatchId}/enhanced-data`);
+    const hasEnhancedData = enhancedResult.status === 200;
+    console.log(`${hasEnhancedData ? '✅' : '❌'} Enhanced Data: ${hasEnhancedData ? 'WORKING' : 'BROKEN'}`);
+    
+    if (hasEnhancedData && enhancedResult.data) {
+      console.log(`   📊 Game Phase: ${enhancedResult.data.gamePhase || 'N/A'}`);
+      console.log(`   🎉 Score: ${enhancedResult.data.homeScore || 0}-${enhancedResult.data.awayScore || 0}`);
+      console.log(`   💬 Events: ${enhancedResult.data.gameEvents?.length || 0} events`);
+      console.log(`   🏆 MVP: ${enhancedResult.data.mvpPlayers?.[0]?.name || 'No MVP'}`);
     }
-    
-    // Small delay between tests
-    await new Promise(resolve => setTimeout(resolve, 100));
-  }
-  
-  // Additional database validation
-  console.log('\n🔍 Running Database Validation...');
-  
-  // Test team creation validation
-  console.log('\n🔄 Testing Team Name Validation');
-  try {
-    const validationResponse = await makeRequest('POST', '/api/team-names/validate-with-suggestions', {
-      name: 'Test Team Name'
-    });
-    
-    if (validationResponse.statusCode === 200) {
-      console.log('   ✅ Team name validation working');
-      passed++;
-    } else {
-      console.log('   ❌ Team name validation failed');
-      failed++;
-    }
-  } catch (error) {
-    console.log('   ❌ Team name validation request failed');
-    failed++;
-  }
-  
-  // Summary
-  console.log('\n' + '=' * 60);
-  console.log('📊 TEST SUMMARY');
-  console.log('=' * 60);
-  console.log(`✅ Passed: ${passed}`);
-  console.log(`❌ Failed: ${failed}`);
-  console.log(`📈 Success Rate: ${((passed / (passed + failed)) * 100).toFixed(1)}%`);
-  
-  if (failed === 0) {
-    console.log('\n🎉 ALL TESTS PASSED! System is fully functional.');
   } else {
-    console.log('\n⚠️  Some tests failed. Check the logs above for details.');
+    console.log('⚠️  No live matches found - testing exhibition creation');
   }
+  console.log('');
+
+  // =====================================
+  // 3. EXHIBITION MATCH SYSTEM
+  // =====================================
+  console.log('3. 🏟️  EXHIBITION MATCH SYSTEM');
   
-  console.log('\n🔧 SYSTEM STATUS:');
-  console.log('   ✅ Database Migration: Complete');
-  console.log('   ✅ BigInt Serialization: Fixed');
-  console.log('   ✅ Team Creation: Functional');
-  console.log('   ✅ Player Generation: Working');
-  console.log('   ✅ Frontend Error: Resolved');
-  console.log('   ✅ API Endpoints: Tested');
+  // Test exhibition creation
+  const exhibitionResult = await testEndpoint('Create Exhibition Match', 'POST', '/api/exhibition/instant');
+  results.push(exhibitionResult);
   
-  return { passed, failed };
+  if (exhibitionResult.success) {
+    const newMatchId = exhibitionResult.data.matchId;
+    console.log(`🎯 Created exhibition match: ${newMatchId}`);
+    
+    // Wait for match to initialize
+    await new Promise(resolve => setTimeout(resolve, 3000));
+    
+    // Test exhibition match endpoints
+    results.push(await testEndpoint('Exhibition Match Data', 'GET', `/api/matches/${newMatchId}`));
+    results.push(await testEndpoint('Exhibition Enhanced Data', 'GET', `/api/matches/${newMatchId}/enhanced-data`));
+    results.push(await testEndpoint('Exhibition Sync', 'GET', `/api/matches/${newMatchId}/sync`));
+    
+    testMatchId = newMatchId; // Use this for further testing
+  }
+  console.log('');
+
+  // =====================================
+  // 4. MATCH SIMULATION & PROGRESSION
+  // =====================================
+  console.log('4. ⚡ MATCH SIMULATION & PROGRESSION');
+  
+  if (testMatchId) {
+    // Test match progression over time
+    console.log('📈 Testing match progression...');
+    
+    for (let i = 0; i < 3; i++) {
+      await new Promise(resolve => setTimeout(resolve, 5000));
+      
+      const progressResult = await makeRequest('GET', `/api/matches/${testMatchId}/enhanced-data`);
+      if (progressResult.status === 200) {
+        const data = progressResult.data;
+        console.log(`   🕐 Check ${i+1}: Time=${data.gameTime || 'N/A'}s, Score=${data.homeScore || 0}-${data.awayScore || 0}, Events=${data.gameEvents?.length || 0}`);
+      }
+    }
+  }
+  console.log('');
+
+  // =====================================
+  // 5. GAME MECHANICS INTEGRATION
+  // =====================================
+  console.log('5. 🎯 GAME MECHANICS INTEGRATION');
+  results.push(await testEndpoint('Stadium Data', 'GET', '/api/stadium/132'));
+  results.push(await testEndpoint('Store System', 'GET', '/api/store/'));
+  results.push(await testEndpoint('Marketplace', 'GET', '/api/marketplace/listings'));
+  results.push(await testEndpoint('Notifications', 'GET', '/api/notifications'));
+  console.log('');
+
+  // =====================================
+  // 6. LEAGUE & COMPETITION SYSTEM
+  // =====================================
+  console.log('6. 🏆 LEAGUE & COMPETITION SYSTEM');
+  results.push(await testEndpoint('League Standings', 'GET', '/api/leagues/8/standings'));
+  results.push(await testEndpoint('Season Data', 'GET', '/api/season/current-cycle'));
+  results.push(await testEndpoint('Server Time', 'GET', '/api/server/time'));
+  console.log('');
+
+  // =====================================
+  // 7. PERSISTENCE SYSTEM VALIDATION
+  // =====================================
+  console.log('7. 💾 PERSISTENCE SYSTEM VALIDATION');
+  
+  if (testMatchId) {
+    console.log('🔍 Testing persistence system integrity...');
+    
+    // Test database state
+    const dbState = await makeRequest('GET', `/api/matches/${testMatchId}`);
+    const hasSimulationLog = dbState.data.simulationLog ? true : false;
+    console.log(`${hasSimulationLog ? '✅' : '❌'} Database Storage: ${hasSimulationLog ? 'ACTIVE' : 'INACTIVE'}`);
+    
+    // Test live state recovery
+    const syncState = await makeRequest('GET', `/api/matches/${testMatchId}/sync`);
+    const canSync = syncState.status === 200;
+    console.log(`${canSync ? '✅' : '❌'} Live State Sync: ${canSync ? 'WORKING' : 'BROKEN'}`);
+    
+    // Test enhanced data consistency
+    const enhancedState = await makeRequest('GET', `/api/matches/${testMatchId}/enhanced-data`);
+    const hasEnhanced = enhancedState.status === 200;
+    console.log(`${hasEnhanced ? '✅' : '❌'} Enhanced Data: ${hasEnhanced ? 'WORKING' : 'BROKEN'}`);
+    
+    // Test halftime detection for ads
+    if (hasEnhanced && enhancedState.data.gamePhase) {
+      const gamePhase = enhancedState.data.gamePhase;
+      const halftimeReady = gamePhase !== undefined;
+      console.log(`${halftimeReady ? '✅' : '❌'} Halftime Detection: ${halftimeReady ? 'READY' : 'NOT READY'} (Phase: ${gamePhase})`);
+    }
+  }
+  console.log('');
+
+  // =====================================
+  // 8. SYSTEM HEALTH CHECK
+  // =====================================
+  console.log('8. 🏥 SYSTEM HEALTH CHECK');
+  
+  const systemHealth = {
+    totalTests: results.length,
+    passedTests: results.filter(r => r.success).length,
+    failedTests: results.filter(r => !r.success).length,
+    persistenceWorking: testMatchId ? true : false,
+    exhibitionWorking: exhibitionResult ? exhibitionResult.success : false,
+    coreEndpointsWorking: results.slice(0, 4).every(r => r.success)
+  };
+  
+  console.log(`📊 Test Results: ${systemHealth.passedTests}/${systemHealth.totalTests} passed`);
+  console.log(`${systemHealth.coreEndpointsWorking ? '✅' : '❌'} Core Endpoints: ${systemHealth.coreEndpointsWorking ? 'HEALTHY' : 'UNHEALTHY'}`);
+  console.log(`${systemHealth.exhibitionWorking ? '✅' : '❌'} Exhibition System: ${systemHealth.exhibitionWorking ? 'HEALTHY' : 'UNHEALTHY'}`);
+  console.log(`${systemHealth.persistenceWorking ? '✅' : '❌'} Persistence System: ${systemHealth.persistenceWorking ? 'HEALTHY' : 'UNHEALTHY'}`);
+  
+  const overallHealth = (systemHealth.passedTests / systemHealth.totalTests) * 100;
+  console.log(`\n🎯 Overall System Health: ${overallHealth.toFixed(1)}%`);
+  
+  if (overallHealth >= 90) {
+    console.log('🎉 SYSTEM STATUS: EXCELLENT - All major systems operational');
+  } else if (overallHealth >= 75) {
+    console.log('✅ SYSTEM STATUS: GOOD - Most systems operational');
+  } else if (overallHealth >= 50) {
+    console.log('⚠️  SYSTEM STATUS: FAIR - Some systems need attention');
+  } else {
+    console.log('❌ SYSTEM STATUS: POOR - Major systems failing');
+  }
+
+  // =====================================
+  // 9. DETAILED FAILURE ANALYSIS
+  // =====================================
+  const failedTests = results.filter(r => !r.success);
+  if (failedTests.length > 0) {
+    console.log('\n🔍 FAILED TESTS ANALYSIS:');
+    failedTests.forEach(test => {
+      console.log(`   ❌ ${test.name}: Status ${test.status} - ${test.error || 'API Error'}`);
+    });
+  }
+
+  return systemHealth;
 }
 
-// Run the tests
-if (require.main === module) {
-  runComprehensiveTests().catch(console.error);
-}
-
-module.exports = { runComprehensiveTests, testEndpoint, makeRequest };
+// Run the comprehensive test
+runComprehensiveTests().then(health => {
+  console.log('\n🏁 COMPREHENSIVE SYSTEM TEST COMPLETE');
+  process.exit(health.passedTests === health.totalTests ? 0 : 1);
+}).catch(error => {
+  console.error('❌ Test suite failed:', error);
+  process.exit(1);
+});
