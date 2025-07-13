@@ -99,6 +99,7 @@ class WebSocketManager {
     });
 
     this.socket.on('match_state_update', (matchState: LiveMatchState) => {
+      console.log('📊 Match state update received:', matchState);
       this.callbacks.onMatchUpdate?.(matchState);
     });
 
