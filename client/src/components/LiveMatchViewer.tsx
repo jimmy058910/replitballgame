@@ -23,7 +23,15 @@ export function LiveMatchViewer({ matchId, userId, onMatchComplete }: LiveMatchV
   const [events, setEvents] = useState<MatchEvent[]>([]);
   const [isControlling, setIsControlling] = useState(false);
   const eventsEndRef = useRef<HTMLDivElement>(null);
+  const setMatchStateRef = useRef(setMatchState);
+  const setEventsRef = useRef(setEvents);
   const { toast } = useToast();
+
+  // Update refs when state setters change
+  useEffect(() => {
+    setMatchStateRef.current = setMatchState;
+    setEventsRef.current = setEvents;
+  }, [setMatchState, setEvents]);
 
   // Fetch initial match data
   const { data: initialMatchData, error: matchError, isLoading: matchDataLoading } = useQuery({
@@ -52,8 +60,8 @@ export function LiveMatchViewer({ matchId, userId, onMatchComplete }: LiveMatchV
           onMatchUpdate: (state: LiveMatchState) => {
             console.log('📊 Match state update received:', state);
             console.log('🔄 Setting matchState in component...');
-            setMatchState(state);
-            setEvents(state.gameEvents || []);
+            setMatchStateRef.current(state);
+            setEventsRef.current(state.gameEvents || []);
             console.log('✅ matchState set successfully');
           },
           onMatchEvent: (event: MatchEvent) => {
@@ -141,7 +149,10 @@ export function LiveMatchViewer({ matchId, userId, onMatchComplete }: LiveMatchV
     initialMatchData,
     matchState,
     matchError,
-    isLoading
+    isLoading,
+    matchStateExists: !!matchState,
+    matchStateGameTime: matchState?.gameTime,
+    matchStateStatus: matchState?.status
   });
 
   // Handle completed matches
