@@ -122,12 +122,22 @@ export function LiveMatchSimulation({ matchId, team1, team2, initialLiveState, o
   };
 
   const getGamePhase = (gameTime: number, maxTime: number, currentHalf: number) => {
-    const halfTime = maxTime / 2;
-    const halfProgress = currentHalf === 1 ? gameTime / halfTime : (gameTime - halfTime) / halfTime;
+    const timePercent = gameTime / maxTime;
     
-    if (halfProgress < 0.25) return { label: "Early Game", color: "bg-green-500" };
-    if (halfProgress < 0.75) return { label: "Mid Game", color: "bg-yellow-500" };
-    if (halfProgress < 0.9) return { label: "Late Game", color: "bg-orange-500" };
+    // Check for completed match
+    if (timePercent >= 1.0) {
+      return { label: "FINAL SCORE", color: "bg-purple-600 animate-pulse" };
+    }
+    
+    // Check for halftime (48-52% of total game time)
+    if (timePercent >= 0.48 && timePercent <= 0.52) {
+      return { label: "HALFTIME", color: "bg-blue-600 animate-pulse" };
+    }
+    
+    // Calculate game phase based on total game time
+    if (timePercent < 0.25) return { label: "Early Game", color: "bg-green-500" };
+    if (timePercent < 0.65) return { label: "Mid Game", color: "bg-yellow-500" };
+    if (timePercent < 0.85) return { label: "Late Game", color: "bg-orange-500" };
     return { label: "Clutch Time!", color: "bg-red-500 animate-pulse" };
   };
 
@@ -155,20 +165,32 @@ export function LiveMatchSimulation({ matchId, team1, team2, initialLiveState, o
   };
 
   const getKeyPerformers = (): { home: KeyPerformer | null; away: KeyPerformer | null } => {
-    // Use enhanced MVP data if available
-    const mvpPlayers = enhancedData?.mvpPlayers || {};
-    const playerStats = enhancedData?.playerStats || {};
+    // Check for MVP data in recent events (halftime or final)
+    const halftimeEvent = liveState?.recentEvents?.find(e => e.type === 'halftime');
+    const finalEvent = liveState?.recentEvents?.find(e => e.type === 'match_complete');
     
-    // Find top performers from actual stats if available
+    let mvpData = null;
+    
+    if (finalEvent?.data?.mvp) {
+      mvpData = finalEvent.data.mvp;
+    } else if (halftimeEvent?.data?.mvp) {
+      mvpData = halftimeEvent.data.mvp;
+    } else if (enhancedData?.mvpPlayers) {
+      mvpData = {
+        homeMVP: { playerName: enhancedData.mvpPlayers.home, score: 100 },
+        awayMVP: { playerName: enhancedData.mvpPlayers.away, score: 100 }
+      };
+    }
+    
     let homePerformer = null;
     let awayPerformer = null;
     
-    if (mvpPlayers.home && mvpPlayers.home !== 'N/A' && mvpPlayers.home !== 'No MVP') {
+    if (mvpData?.homeMVP?.playerName && mvpData.homeMVP.playerName !== 'N/A' && mvpData.homeMVP.playerName !== 'No MVP') {
       homePerformer = {
         playerId: "mvp-home",
-        playerName: mvpPlayers.home,
+        playerName: mvpData.homeMVP.playerName,
         statLabel: "MVP",
-        statValue: 100
+        statValue: Math.round(mvpData.homeMVP.score || 0)
       };
     } else {
       homePerformer = {
@@ -179,12 +201,12 @@ export function LiveMatchSimulation({ matchId, team1, team2, initialLiveState, o
       };
     }
     
-    if (mvpPlayers.away && mvpPlayers.away !== 'N/A' && mvpPlayers.away !== 'No MVP') {
+    if (mvpData?.awayMVP?.playerName && mvpData.awayMVP.playerName !== 'N/A' && mvpData.awayMVP.playerName !== 'No MVP') {
       awayPerformer = {
         playerId: "mvp-away",
-        playerName: mvpPlayers.away,
+        playerName: mvpData.awayMVP.playerName,
         statLabel: "MVP",
-        statValue: 100
+        statValue: Math.round(mvpData.awayMVP.score || 0)
       };
     } else {
       awayPerformer = {

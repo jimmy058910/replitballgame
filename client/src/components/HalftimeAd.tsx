@@ -10,9 +10,31 @@ interface HalftimeAdProps {
   onAdSkipped: () => void;
   onContinueGame: () => void;
   isVisible: boolean;
+  halftimeStats?: {
+    homeScore: number;
+    awayScore: number;
+    homeStats?: {
+      possessionTime: number;
+      totalYards: number;
+      turnovers: number;
+    };
+    awayStats?: {
+      possessionTime: number;
+      totalYards: number;
+      turnovers: number;
+    };
+    mvp?: {
+      homeMVP: { playerName: string; score: number };
+      awayMVP: { playerName: string; score: number };
+    };
+  };
+  teamNames?: {
+    home: string;
+    away: string;
+  };
 }
 
-export function HalftimeAd({ onAdCompleted, onAdSkipped, onContinueGame, isVisible }: HalftimeAdProps) {
+export function HalftimeAd({ onAdCompleted, onAdSkipped, onContinueGame, isVisible, halftimeStats, teamNames }: HalftimeAdProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [showSkipOption, setShowSkipOption] = useState(false);
   const { toast } = useToast();
@@ -65,11 +87,11 @@ export function HalftimeAd({ onAdCompleted, onAdSkipped, onContinueGame, isVisib
       }
     } catch (error) {
       console.error('Halftime ad error:', error);
-      // Fallback - mandatory ad completed
+      // Improved error handling - still complete the halftime break
       onAdCompleted(0);
       toast({
         title: "Halftime Break Complete",
-        description: "Continuing to second half...",
+        description: "Ad unavailable - continuing to second half...",
         variant: "default"
       });
     } finally {
@@ -101,6 +123,70 @@ export function HalftimeAd({ onAdCompleted, onAdSkipped, onContinueGame, isVisib
           </p>
         </CardHeader>
         <CardContent className="space-y-4">
+          {/* Halftime Stats Display */}
+          {halftimeStats && (
+            <div className="bg-gray-800 rounded-lg p-4 space-y-3">
+              <div className="text-center">
+                <h3 className="text-lg font-bold text-white mb-2">First Half Stats</h3>
+                <div className="text-2xl font-bold text-blue-400">
+                  {halftimeStats.homeScore} - {halftimeStats.awayScore}
+                </div>
+                <div className="text-sm text-gray-400">
+                  {teamNames?.home || "Home"} vs {teamNames?.away || "Away"}
+                </div>
+              </div>
+              
+              {/* Team Stats */}
+              <div className="grid grid-cols-2 gap-4 text-sm">
+                <div>
+                  <div className="font-semibold text-white mb-1">{teamNames?.home || "Home"}</div>
+                  {halftimeStats.homeStats && (
+                    <div className="space-y-1 text-gray-300">
+                      <div>Possession: {halftimeStats.homeStats.possessionTime} min</div>
+                      <div>Total Yards: {halftimeStats.homeStats.totalYards}</div>
+                      <div>Turnovers: {halftimeStats.homeStats.turnovers}</div>
+                    </div>
+                  )}
+                </div>
+                <div>
+                  <div className="font-semibold text-white mb-1">{teamNames?.away || "Away"}</div>
+                  {halftimeStats.awayStats && (
+                    <div className="space-y-1 text-gray-300">
+                      <div>Possession: {halftimeStats.awayStats.possessionTime} min</div>
+                      <div>Total Yards: {halftimeStats.awayStats.totalYards}</div>
+                      <div>Turnovers: {halftimeStats.awayStats.turnovers}</div>
+                    </div>
+                  )}
+                </div>
+              </div>
+              
+              {/* MVP Display */}
+              {halftimeStats.mvp && (
+                <div className="pt-3 border-t border-gray-600">
+                  <div className="text-center text-sm text-gray-400 mb-2">First Half MVP</div>
+                  <div className="grid grid-cols-2 gap-4 text-sm">
+                    <div className="text-center">
+                      <div className="font-semibold text-blue-400">
+                        {halftimeStats.mvp.homeMVP.playerName}
+                      </div>
+                      <div className="text-gray-300">
+                        Score: {halftimeStats.mvp.homeMVP.score.toFixed(1)}
+                      </div>
+                    </div>
+                    <div className="text-center">
+                      <div className="font-semibold text-red-400">
+                        {halftimeStats.mvp.awayMVP.playerName}
+                      </div>
+                      <div className="text-gray-300">
+                        Score: {halftimeStats.mvp.awayMVP.score.toFixed(1)}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
           <div className="text-center space-y-2">
             <div className="flex items-center justify-center space-x-2 text-blue-400">
               <Clock className="h-5 w-5" />

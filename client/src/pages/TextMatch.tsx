@@ -135,6 +135,22 @@ export default function TextMatch() {
     console.log('Continue game without ad');
   };
 
+  // Extract halftime stats from match data
+  const getHalftimeStats = () => {
+    if (!match?.liveState?.recentEvents) return null;
+    
+    const halftimeEvent = match.liveState.recentEvents.find((event: any) => event.type === 'halftime');
+    if (!halftimeEvent?.data) return null;
+    
+    return halftimeEvent.data;
+  };
+
+  const halftimeStats = getHalftimeStats();
+  const teamNames = {
+    home: team1?.name || "Home Team",
+    away: team2?.name || "Away Team"
+  };
+
   return (
     <div className="min-h-screen bg-gray-900 text-white">
       <LiveMatchSimulation
@@ -154,6 +170,8 @@ export default function TextMatch() {
         onAdCompleted={handleHalftimeAdCompleted}
         onAdSkipped={handleHalftimeAdSkipped}
         onContinueGame={handleContinueGame}
+        halftimeStats={halftimeStats}
+        teamNames={teamNames}
       />
       
 

@@ -372,11 +372,19 @@ class MatchStateManager {
     if (state.currentHalf === 1 && state.gameTime >= state.maxTime / 2) {
       this.handlePossessionChange(state, state.possessingTeamId, null, state.gameTime); // End of half might mean ball goes to other team or neutral
       state.currentHalf = 2;
+      
+      // Calculate current MVP for halftime display
+      const currentMVP = this.calculateCurrentMVP(state, homePlayers, awayPlayers);
+      
+      // Generate halftime event with team stats and MVP
+      const halftimeStats = this.generateHalftimeStats(state, currentMVP);
       state.gameEvents.push({
         time: state.gameTime,
         type: 'halftime',
         description: commentaryService.generateHalftimeCommentary(),
+        data: halftimeStats
       });
+      
       // Typically, the team that kicked off to start the game receives the ball in the second half.
       // For simplicity, let's give it to the team that didn't have it last, or random if null.
       const newPossessingTeam = state.possessingTeamId === state.homeTeamId ? state.awayTeamId : state.homeTeamId;
@@ -448,25 +456,42 @@ class MatchStateManager {
       case 'pass':
         const passSuccess = Math.random() < 0.65; // 65% completion rate
         const passYards = Math.floor(Math.random() * 25) + 5;
+        // Get a random teammate as the receiver
+        const teamPlayers = isHomeTeam ? homePlayers : awayPlayers;
+        const receiver = teamPlayers[Math.floor(Math.random() * teamPlayers.length)];
+        
         if (passSuccess) {
           playerStats.passingAttempts += 1;
           playerStats.passesCompleted += 1;
           playerStats.passingYards += passYards;
+          // Update receiver stats
+          const receiverStats = state.playerStats.get(receiver.id.toString());
+          if (receiverStats) {
+            receiverStats.catches += 1;
+            receiverStats.receivingYards += passYards;
+          }
           event = {
             time: state.gameTime,
             type: 'pass',
-            description: `${activePlayer.firstName} ${activePlayer.lastName} completes a ${passYards}-yard pass downfield!`,
+            description: `${activePlayer.firstName} ${activePlayer.lastName} completes a ${passYards}-yard pass to ${receiver.firstName} ${receiver.lastName}!`,
             actingPlayerId: activePlayer.id.toString(),
+            targetPlayerId: receiver.id.toString(),
             teamId: teamType,
             data: { yards: passYards }
           };
         } else {
           playerStats.passingAttempts += 1;
+          // Update receiver stats for drop
+          const receiverStats = state.playerStats.get(receiver.id.toString());
+          if (receiverStats) {
+            receiverStats.drops += 1;
+          }
           event = {
             time: state.gameTime,
             type: 'pass',
-            description: `${activePlayer.firstName} ${activePlayer.lastName}'s pass falls incomplete under pressure.`,
+            description: `${activePlayer.firstName} ${activePlayer.lastName} attempts a pass to ${receiver.firstName} ${receiver.lastName}, but it falls incomplete.`,
             actingPlayerId: activePlayer.id.toString(),
+            targetPlayerId: receiver.id.toString(),
             teamId: teamType,
             data: { yards: 0 }
           };
@@ -488,18 +513,23 @@ class MatchStateManager {
         
       case 'tackle':
         playerStats.tackles += 1;
+        // Get a random opponent as the ball carrier
+        const opponentPlayers = isHomeTeam ? awayPlayers : homePlayers;
+        const ballCarrier = opponentPlayers[Math.floor(Math.random() * opponentPlayers.length)];
+        
         event = {
           time: state.gameTime,
           type: 'tackle',
-          description: `${activePlayer.firstName} ${activePlayer.lastName} makes a solid tackle to bring down the carrier!`,
+          description: `${activePlayer.firstName} ${activePlayer.lastName} makes a solid tackle to bring down ${ballCarrier.firstName} ${ballCarrier.lastName}!`,
           actingPlayerId: activePlayer.id.toString(),
+          targetPlayerId: ballCarrier.id.toString(),
           teamId: teamType,
           data: {}
         };
         break;
         
       case 'score':
-        if (Math.random() < 0.05) { // 5% chance of scoring
+        if (Math.random() < 0.12) { // 12% chance of scoring (increased from 5%)
           playerStats.scores += 1;
           if (isHomeTeam) {
             state.homeScore += 1;
@@ -540,11 +570,16 @@ class MatchStateManager {
       default:
         // Default tackle event
         playerStats.tackles += 1;
+        // Get a random opponent as the ball carrier
+        const defaultOpponentPlayers = isHomeTeam ? awayPlayers : homePlayers;
+        const defaultBallCarrier = defaultOpponentPlayers[Math.floor(Math.random() * defaultOpponentPlayers.length)];
+        
         event = {
           time: state.gameTime,
           type: 'tackle',
-          description: `${activePlayer.firstName} ${activePlayer.lastName} makes a defensive play to stop the advance!`,
+          description: `${activePlayer.firstName} ${activePlayer.lastName} makes a defensive play to stop ${defaultBallCarrier.firstName} ${defaultBallCarrier.lastName}!`,
           actingPlayerId: activePlayer.id.toString(),
+          targetPlayerId: defaultBallCarrier.id.toString(),
           teamId: teamType,
           data: {}
         };
@@ -555,24 +590,63 @@ class MatchStateManager {
   
   private determineGamePhase(time: number, maxTime: number): string {
     const timePercent = time / maxTime;
-    const halfTime = maxTime / 2;
     
-    // First Half
-    if (time < halfTime) {
-      const firstHalfPercent = time / halfTime;
-      if (firstHalfPercent < 0.3) return 'early';
-      if (firstHalfPercent < 0.8) return 'middle';
-      return 'late';
+    // Check for halftime (exactly at 50% of total game time)
+    if (timePercent >= 0.48 && timePercent <= 0.52) {
+      return 'halftime';
     }
     
-    // Second Half
-    const secondHalfTime = time - halfTime;
-    const secondHalfPercent = secondHalfTime / halfTime;
+    // Calculate game phase based on total game time, not halves
+    if (timePercent < 0.25) return 'early';      // First 25% of total game
+    if (timePercent < 0.65) return 'middle';     // 25-65% of total game  
+    if (timePercent < 0.85) return 'late';       // 65-85% of total game
+    return 'clutch';                             // Final 15% of total game
+  }
+
+  private calculateCurrentMVP(state: LiveMatchState, homePlayers: Player[], awayPlayers: Player[]) {
+    let homeMVP = { playerId: '', playerName: '', score: 0 };
+    let awayMVP = { playerId: '', playerName: '', score: 0 };
     
-    if (secondHalfPercent < 0.3) return 'early';
-    if (secondHalfPercent < 0.7) return 'middle';
-    if (secondHalfPercent < 0.9) return 'late';
-    return 'clutch'; // Only final 10% of 2nd half
+    for (const [playerId, stats] of state.playerStats.entries()) {
+      const player = [...homePlayers, ...awayPlayers].find(p => p.id.toString() === playerId);
+      if (!player) continue;
+      
+      const mvpScore = (stats.scores * 10) + (stats.passingYards * 0.1) + (stats.carrierYards * 0.15) + 
+                      (stats.catches * 2) + (stats.tackles * 1.5) + (stats.interceptionsCaught * 8);
+      
+      if (player.teamId.toString() === state.homeTeamId) {
+        if (mvpScore > homeMVP.score) {
+          homeMVP = { playerId, playerName: `${player.firstName} ${player.lastName}`, score: mvpScore };
+        }
+      } else {
+        if (mvpScore > awayMVP.score) {
+          awayMVP = { playerId, playerName: `${player.firstName} ${player.lastName}`, score: mvpScore };
+        }
+      }
+    }
+    
+    return { homeMVP, awayMVP };
+  }
+
+  private generateHalftimeStats(state: LiveMatchState, mvp: any) {
+    const homeStats = state.teamStats.get(state.homeTeamId);
+    const awayStats = state.teamStats.get(state.awayTeamId);
+    
+    return {
+      homeScore: state.homeScore,
+      awayScore: state.awayScore,
+      homeStats: homeStats ? {
+        possessionTime: Math.floor(homeStats.possessionTime / 60),
+        totalYards: homeStats.totalYards,
+        turnovers: homeStats.turnovers
+      } : null,
+      awayStats: awayStats ? {
+        possessionTime: Math.floor(awayStats.possessionTime / 60),
+        totalYards: awayStats.totalYards,
+        turnovers: awayStats.turnovers
+      } : null,
+      mvp: mvp
+    };
   }
 
   // OLD BASIC SIMULATION ENGINE REMOVED - Only enhanced simulation is now used
@@ -599,6 +673,21 @@ class MatchStateManager {
 
     state.status = 'completed';
     
+    // Calculate final MVP for match completion
+    const finalMVP = this.calculateCurrentMVP(state, homePlayers, awayPlayers);
+    
+    // Add final match completion event with results and MVP
+    state.gameEvents.push({
+      time: state.gameTime,
+      type: 'match_complete',
+      description: `FINAL SCORE: ${state.homeScore} - ${state.awayScore}`,
+      data: {
+        finalScore: { home: state.homeScore, away: state.awayScore },
+        mvp: finalMVP,
+        status: 'COMPLETED'
+      }
+    });
+    
     // Clear the match interval
     const interval = this.matchIntervals.get(matchId);
     if (interval) {
@@ -611,19 +700,14 @@ class MatchStateManager {
 
     // Persist detailed player and team stats
     try {
-      const playerStatsToInsert: PlayerMatchStats[] = [];
       const playerUpdates: Promise<any>[] = [];
 
+      // Convert maps to objects for storage in simulationLog
+      const playerStatsObj: Record<string, any> = {};
+      const teamStatsObj: Record<string, any> = {};
+
       for (const [playerId, pStats] of state.playerStats.entries()) {
-        const playerTeam = homePlayers.find(p => p.id === playerId) ? homeTeamId : awayTeamId;
-        playerStatsToInsert.push({
-          id: undefined, // Let DB generate UUID
-          playerId,
-          matchId,
-          teamId: playerTeam,
-          createdAt: new Date(),
-          ...pStats,
-        });
+        playerStatsObj[playerId] = pStats;
 
         // Update lifetime stats (skip for exhibition matches to maintain risk-free gameplay)
         if (!isExhibitionMatch) {
@@ -655,29 +739,8 @@ class MatchStateManager {
         }
       }
 
-      const teamStatsToInsert: TeamMatchStats[] = [];
       for (const [teamId, tStats] of state.teamStats.entries()) {
-        teamStatsToInsert.push({
-          id: undefined, // Let DB generate UUID
-          teamId,
-          matchId,
-          createdAt: new Date(),
-          ...tStats,
-        });
-      }
-
-      // Insert player match stats
-      if (playerStatsToInsert.length > 0) {
-        await prisma.playerMatchStats.createMany({
-          data: playerStatsToInsert
-        });
-      }
-      
-      // Insert team match stats
-      if (teamStatsToInsert.length > 0) {
-        await prisma.teamMatchStats.createMany({
-          data: teamStatsToInsert
-        });
+        teamStatsObj[teamId] = tStats;
       }
 
       // Update player lifetime stats if not exhibition
@@ -700,6 +763,9 @@ class MatchStateManager {
             simulationLog: {
               events: state.gameEvents.slice(-50), // Store last 50 events
               finalScores: { home: state.homeScore, away: state.awayScore },
+              playerStats: playerStatsObj,
+              teamStats: teamStatsObj,
+              completed: true
             }
           }
         });
