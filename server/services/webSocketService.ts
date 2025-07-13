@@ -125,6 +125,9 @@ class WebSocketService {
           });
 
           log(`🏟️ User ${user.userId} joined match ${data.matchId}`);
+          
+          // DEBUGGING: Check if the rest of the code executes
+          console.log(`🔍 DEBUG: About to check for live state for match ${data.matchId}`);
         } catch (error) {
           log(`❌ Error joining match: ${error}`);
           socket.emit('error', { message: 'Failed to join match' });
