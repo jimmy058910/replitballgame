@@ -30,6 +30,7 @@ export default function LeagueSchedule() {
   const { data: schedule, isLoading } = useQuery<DailySchedule>({
     queryKey: ["/api/league/daily-schedule"],
     refetchInterval: 30000, // Update every 30 seconds for live status
+    enabled: false, // Temporarily disabled - endpoint not implemented
   });
 
   if (isLoading) {

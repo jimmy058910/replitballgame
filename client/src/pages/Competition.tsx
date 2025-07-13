@@ -916,12 +916,13 @@ export default function Competition() {
 
   const { data: teamMatches, isLoading: teamMatchesLoading } = useQuery<any[]>({
     queryKey: ["/api/team-matches", team?.id],
-    enabled: !!team?.id,
+    enabled: false, // Temporarily disabled - endpoint not implemented
   });
 
   const { data: tournaments, isLoading: tournamentsLoading } = useQuery<any[]>({
     queryKey: ["/api/tournaments"],
     queryFn: () => apiRequest("/api/tournaments"),
+    enabled: false, // Temporarily disabled - endpoint not implemented
   });
 
   const { data: rawCurrentCycle, isLoading: currentCycleLoading } = useQuery<SeasonalCycle>({

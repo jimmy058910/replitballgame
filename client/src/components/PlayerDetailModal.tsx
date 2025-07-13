@@ -84,23 +84,22 @@ export default function PlayerDetailModal({
   const queryClient = useQueryClient();
   const { toast } = useToast();
 
-  if (!player) return null;
-
   // Fetch player's current equipment
   const { data: playerEquipment, isLoading: equipmentLoading } = useQuery({
-    queryKey: [`/api/equipment/player/${player.id}`],
-    enabled: isOpen && !!player.id,
+    queryKey: [`/api/equipment/player/${player?.id}`],
+    enabled: isOpen && !!player?.id,
   });
 
   // Fetch team inventory for equipment options
   const { data: teamInventory, isLoading: inventoryLoading } = useQuery({
-    queryKey: [`/api/inventory/${player.teamId}`],
-    enabled: isOpen && !!player.teamId,
+    queryKey: [`/api/inventory/${player?.teamId}`],
+    enabled: isOpen && !!player?.teamId,
   });
 
   // Equipment mutation
   const equipItemMutation = useMutation({
     mutationFn: async ({ itemId, itemName }: { itemId: number; itemName: string }) => {
+      if (!player) return Promise.reject(new Error("No player selected"));
       return apiRequest(`/api/equipment/equip`, "POST", {
         teamId: player.teamId,
         playerId: player.id,
@@ -109,8 +108,10 @@ export default function PlayerDetailModal({
       });
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [`/api/equipment/player/${player.id}`] });
-      queryClient.invalidateQueries({ queryKey: [`/api/inventory/${player.teamId}`] });
+      if (player) {
+        queryClient.invalidateQueries({ queryKey: [`/api/equipment/player/${player.id}`] });
+        queryClient.invalidateQueries({ queryKey: [`/api/inventory/${player.teamId}`] });
+      }
       setSelectedEquipmentItem("");
       toast({
         title: "Equipment Updated",
@@ -125,6 +126,8 @@ export default function PlayerDetailModal({
       });
     }
   });
+
+  if (!player) return null;
 
   const playerRole = getPlayerRole(player);
   const displayName = player.firstName && player.lastName 

@@ -21,7 +21,7 @@ export default function League() {
   const matchesQuery = useQuery({
     queryKey: ["teamMatches", team?.id],
     queryFn: (): Promise<Match[]> => apiRequest(`/api/team-matches${team?.id ? `?teamId=${team.id}` : ''}`),
-    enabled: !!team?.id,
+    enabled: false, // Temporarily disabled - endpoint not implemented
   });
   const matches = matchesQuery.data as Match[] | undefined;
   // const isLoadingMatches = matchesQuery.isLoading; // If needed for a loading state for matches
