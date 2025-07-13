@@ -466,11 +466,15 @@ class MatchStateManager {
 
     state.status = 'completed';
     
+    // Clear the match interval
     const interval = this.matchIntervals.get(matchId);
     if (interval) {
       clearInterval(interval);
       this.matchIntervals.delete(matchId);
     }
+    
+    // Remove from live matches to prevent it from showing as live
+    this.liveMatches.delete(matchId);
 
     // Persist detailed player and team stats
     try {

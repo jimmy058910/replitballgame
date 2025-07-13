@@ -1,0 +1,88 @@
+I watched the whole /match/40 from start to finish and here's what I observed, and attached an image for reference.
+
+Clutch time should only be towards the end of the 2nd half.
+Early game should not be at the beginning of the 2nd half.
+
+Game doesn't appear to be running the engine successfully. Only get the same few prompts, with no mentions of players, scoring, passing, catching, etc.
+I tried to copy and paste the bulk of the game log below.
+
+Game should show the score, 0-0
+
+Where it says Key Performers, that never changes and shows there from the beginning to end of the game. I believe this to be hardcoded.
+
+A halftime ad/break didn't occur either.
+
+Game ended, and nothing occurred. Still showing as a Live Match on Dashboard and /competition
+
+Live Commentary
+[30:01] With no referees to blow the whistle, this match flows like a raging river - continuous and unstoppable!
+[29:52] The physicality of this game is off the charts. Every yard is being earned the hard way.
+[29:43] We're seeing a real midfield battle unfold. The ball has changed hands multiple times in the last minute alone.
+[29:34] The pace of this game is relentless! Non-stop action from end to end with no stoppages.
+[29:16] Just a chaotic scramble for possession right now, the ball is a pinball out there.
+[28:58] The pace of this game is relentless! Non-stop action from end to end with no stoppages.
+[28:31] Just a chaotic scramble for possession right now, the ball is a pinball out there.
+[28:22] The beauty of this sport - no boundaries, no breaks, just pure athletic contest from start to finish!
+[28:13] With no referees to blow the whistle, this match flows like a raging river - continuous and unstoppable!
+[27:55] Players are diving, weaving, and fighting for every inch in this endless battle for possession!
+[27:37] This is what makes fantasy sports so thrilling - the action never stops, the intensity never fades!
+[27:28] The physicality of this game is off the charts. Every yard is being earned the hard way.
+[27:10] Just a chaotic scramble for possession right now, the ball is a pinball out there.
+[27:01] A real war of attrition in the center of the field. Neither team is giving an inch.
+[26:43] The beauty of this sport - no boundaries, no breaks, just pure athletic contest from start to finish!
+[26:34] With no referees to blow the whistle, this match flows like a raging river - continuous and unstoppable!
+[26:16] Players are diving, weaving, and fighting for every inch in this endless battle for possession!
+[25:58] A real war of attrition in the center of the field. Neither team is giving an inch.
+[25:04] A real war of attrition in the center of the field. Neither team is giving an inch.
+[24:55] This is what makes fantasy sports so thrilling - the action never stops, the intensity never fades!
+[24:46] Players are diving, weaving, and fighting for every inch in this endless battle for possession!
+[24:28] With no referees to blow the whistle, this match flows like a raging river - continuous and unstoppable!
+[24:19] The physicality of this game is off the charts. Every yard is being earned the hard way.
+[24:10] Just a chaotic scramble for possession right now, the ball is a pinball out there.
+[20:52] We're seeing a real midfield battle unfold. The ball has changed hands multiple times in the last minute alone.
+[20:43] The beauty of this sport - no boundaries, no breaks, just pure athletic contest from start to finish!
+[20:34] The pace of this game is relentless! Non-stop action from end to end with no stoppages.
+[20:25] The physicality of this game is off the charts. Every yard is being earned the hard way.
+[20:16] We're seeing a real midfield battle unfold. The ball has changed hands multiple times in the last minute alone.
+[20:07] With no referees to blow the whistle, this match flows like a raging river - continuous and unstoppable!
+[19:58] With no referees to blow the whistle, this match flows like a raging river - continuous and unstoppable!
+[19:49] We're seeing a real midfield battle unfold. The ball has changed hands multiple times in the last minute alone.
+[19:40] The beauty of this sport - no boundaries, no breaks, just pure athletic contest from start to finish!
+[19:31] This is what makes fantasy sports so thrilling - the action never stops, the intensity never fades!
+[16:13] With no referees to blow the whistle, this match flows like a raging river - continuous and unstoppable!
+[15:55] With no referees to blow the whistle, this match flows like a raging river - continuous and unstoppable!
+[15:55] Just a chaotic scramble for possession right now, the ball is a pinball out there.
+[15:46] Players are diving, weaving, and fighting for every inch in this endless battle for possession!
+[15:37] This is what makes fantasy sports so thrilling - the action never stops, the intensity never fades!
+[15:28] We're seeing a real midfield battle unfold. The ball has changed hands multiple times in the last minute alone.
+[15:10] With no referees to blow the whistle, this match flows like a raging river - continuous and unstoppable!
+[15:01] With no referees to blow the whistle, this match flows like a raging river - continuous and unstoppable!
+[15:01] The first half is complete. What adjustments will be made?
+[13:31] With no referees to blow the whistle, this match flows like a raging river - continuous and unstoppable!
+[13:13] We're seeing a real midfield battle unfold. The ball has changed hands multiple times in the last minute alone.
+[13:04] The pace of this game is relentless! Non-stop action from end to end with no stoppages.
+[12:55] We're seeing a real midfield battle unfold. The ball has changed hands multiple times in the last minute alone.
+[12:37] The physicality of this game is off the charts. Every yard is being earned the hard way.
+[12:28] The pace of this game is relentless! Non-stop action from end to end with no stoppages.
+[12:19] With no referees to blow the whistle, this match flows like a raging river - continuous and unstoppable!
+[12:10] With no referees to blow the whistle, this match flows like a raging river - continuous and unstoppable!
+[12:01] With no referees to blow the whistle, this match flows like a raging river - continuous and unstoppable!
+[11:52] Players are diving, weaving, and fighting for every inch in this endless battle for possession!
+[10:40] The pace of this game is relentless! Non-stop action from end to end with no stoppages.
+[10:31] Players are diving, weaving, and fighting for every inch in this endless battle for possession!
+[10:22] With no referees to blow the whistle, this match flows like a raging river - continuous and unstoppable!
+[9:55] Players are diving, weaving, and fighting for every inch in this endless battle for possession!
+[9:46] The physicality of this game is off the charts. Every yard is being earned the hard way.
+[9:37] The pace of this game is relentless! Non-stop action from end to end with no stoppages.
+[9:28] The pace of this game is relentless! Non-stop action from end to end with no stoppages.
+[9:10] We're seeing a real midfield battle unfold. The ball has changed hands multiple times in the last minute alone.
+[8:52] The beauty of this sport - no boundaries, no breaks, just pure athletic contest from start to finish!
+[4:31] A real war of attrition in the center of the field. Neither team is giving an inch.
+[4:13] The pace of this game is relentless! Non-stop action from end to end with no stoppages.
+[4:04] The beauty of this sport - no boundaries, no breaks, just pure athletic contest from start to finish!
+[3:37] A real war of attrition in the center of the field. Neither team is giving an inch.
+[3:28] Players are diving, weaving, and fighting for every inch in this endless battle for possession!
+[3:19] The beauty of this sport - no boundaries, no breaks, just pure athletic contest from start to finish!
+[3:01] The physicality of this game is off the charts. Every yard is being earned the hard way.
+[2:52] Players are diving, weaving, and fighting for every inch in this endless battle for possession!
+[2:25] Just a chaotic scramble for possession right now, the ball is a pinball out there.

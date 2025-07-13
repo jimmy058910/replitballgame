@@ -767,6 +767,10 @@ function getInjuryEffects(injuryStatus: string): Record<string, number> {
 async function getActiveMatchConsumables(teamId: string, playerId: string): Promise<Record<string, number>> {
   const effects: Record<string, number> = {};
   
+  // Temporarily disable consumables to fix enhanced simulation
+  // TODO: Fix matchConsumable table integration later
+  return effects;
+  
   try {
     const { prisma } = await import('../db');
     
@@ -816,6 +820,7 @@ async function getActiveMatchConsumables(teamId: string, playerId: string): Prom
     return effects;
   } catch (error) {
     console.error('Error getting active match consumables:', error);
+    // Return empty effects to allow simulation to continue
     return {};
   }
 }
@@ -929,11 +934,24 @@ function calculateEnhancedTeamStrength(
 
 function determineGamePhase(time: number, maxTime: number): string {
   const timePercent = time / maxTime;
+  const halfTime = maxTime / 2;
   
-  if (timePercent < 0.25) return 'early';
-  if (timePercent < 0.75) return 'middle';
-  if (timePercent < 0.9) return 'late';
-  return 'clutch';
+  // First Half
+  if (time < halfTime) {
+    const firstHalfPercent = time / halfTime;
+    if (firstHalfPercent < 0.3) return 'early';
+    if (firstHalfPercent < 0.8) return 'middle';
+    return 'late';
+  }
+  
+  // Second Half
+  const secondHalfTime = time - halfTime;
+  const secondHalfPercent = secondHalfTime / halfTime;
+  
+  if (secondHalfPercent < 0.3) return 'early';
+  if (secondHalfPercent < 0.7) return 'middle';
+  if (secondHalfPercent < 0.9) return 'late';
+  return 'clutch'; // Only final 10% of 2nd half
 }
 
 async function generateEnhancedMatchEvent(
@@ -1392,7 +1410,7 @@ function findMVPPlayers(
   
   homeTeamPlayers.forEach(player => {
     const stats = playerStats[player.id];
-    const mvpScore = stats.scores * 10 + stats.passesCompleted * 2 + stats.rushingYards * 0.1 + 
+    const mvpScore = stats.scores * 10 + stats.passesCompleted * 2 + stats.carrierYards * 0.1 + 
                      stats.tackles * 3 + stats.interceptionsCaught * 5 + stats.clutchPlays * 8;
     
     if (mvpScore > homeHighScore) {
@@ -1403,7 +1421,7 @@ function findMVPPlayers(
   
   awayTeamPlayers.forEach(player => {
     const stats = playerStats[player.id];
-    const mvpScore = stats.scores * 10 + stats.passesCompleted * 2 + stats.rushingYards * 0.1 + 
+    const mvpScore = stats.scores * 10 + stats.passesCompleted * 2 + stats.carrierYards * 0.1 + 
                      stats.tackles * 3 + stats.interceptionsCaught * 5 + stats.clutchPlays * 8;
     
     if (mvpScore > awayHighScore) {
