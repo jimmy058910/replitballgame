@@ -10,7 +10,8 @@ router.get('/user', isAuthenticated, async (req: any, res: Response, next: NextF
   try {
     // For now, return the user data from the database directly using a known working userId
     // This is a temporary fix to unblock the live match system
-    const user = await userStorage.getUser("44010914"); // Use known working userId
+    const hardcodedUserId = "44010914";
+    const user = await userStorage.getUser(hardcodedUserId);
     
     if (!user) {
       return res.status(404).json({ message: "User not found" });

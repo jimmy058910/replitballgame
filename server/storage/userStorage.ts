@@ -16,6 +16,10 @@ interface PrismaUpsertUserData {
 export class UserStorage {
   async getUser(userId: string): Promise<UserProfile | null> {
     // Fetches a user profile by their Replit User ID (claims.sub)
+    if (!userId) {
+      return null;
+    }
+    
     return prisma.userProfile.findUnique({
       where: { userId: userId },
     });
