@@ -4,9 +4,12 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Progress } from "@/components/ui/progress";
-import { Clock, Users, Zap, Target, Trophy, Activity } from "lucide-react";
+import { Clock, Users, Zap, Target, Trophy, Activity, Play, Pause, RotateCcw } from "lucide-react";
 import { AdSystem, useAdSystem } from "@/components/AdSystem";
 import { apiRequest } from '@/lib/queryClient';
+import webSocketManager, { LiveMatchState as WSLiveMatchState, MatchEvent, WebSocketCallbacks } from '@/lib/websocket';
+import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/hooks/useAuth';
 
 interface LiveMatchSimulationProps {
   matchId: string;
@@ -69,44 +72,147 @@ interface KeyPerformer {
 
 export function LiveMatchSimulation({ matchId, team1, team2, initialLiveState, onMatchComplete, enhancedData }: LiveMatchSimulationProps) {
   const [liveState, setLiveState] = useState<LiveMatchState | null>(initialLiveState || null);
+  const [realTimeState, setRealTimeState] = useState<WSLiveMatchState | null>(null);
+  const [events, setEvents] = useState<MatchEvent[]>([]);
+  const [isConnected, setIsConnected] = useState(false);
+  const [isControlling, setIsControlling] = useState(false);
   const [halftimeAdShown, setHalftimeAdShown] = useState(false);
   const { showRewardedVideoAd, closeAd, adConfig } = useAdSystem();
+  const { user } = useAuth();
+  const { toast } = useToast();
   const syncIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const logRef = useRef<HTMLDivElement>(null);
+  const eventsEndRef = useRef<HTMLDivElement>(null);
 
-  // Sync with backend every 2 seconds
+  // WebSocket integration for real-time updates
   useEffect(() => {
-    if (!matchId) return;
+    if (!matchId || !user?.claims?.sub) return;
 
-    const syncWithBackend = async () => {
+    const initializeWebSocket = async () => {
       try {
-        const response = await apiRequest(`/api/matches/${matchId}`);
-        if (response.liveState) {
-          console.log("Syncing with backend match state:", response.liveState);
-          setLiveState(response.liveState);
-          
-          // Check if match completed
-          if (response.liveState.status === 'completed' && onMatchComplete) {
-            onMatchComplete();
-          }
+        // Connect to WebSocket if not already connected
+        if (!webSocketManager.isConnected()) {
+          await webSocketManager.connect(user.claims.sub);
         }
+
+        // Set up callbacks for real-time updates
+        const callbacks: WebSocketCallbacks = {
+          onMatchUpdate: (state: WSLiveMatchState) => {
+            console.log("Real-time match update:", state);
+            setRealTimeState(state);
+            setEvents(state.gameEvents || []);
+            
+            // Convert to legacy format for compatibility
+            setLiveState({
+              gameTime: state.gameTime,
+              maxTime: state.maxTime,
+              currentHalf: state.currentHalf,
+              homeScore: state.homeScore,
+              awayScore: state.awayScore,
+              status: state.status,
+              isRunning: state.status === 'live',
+              recentEvents: (state.gameEvents || []).slice(-10).map(e => ({
+                time: e.time,
+                type: e.type,
+                description: e.description,
+                teamId: e.teamId,
+                actingPlayerId: e.actingPlayerId,
+                data: e.data
+              })),
+              possessingTeamId: state.possessingTeamId
+            });
+          },
+          onMatchEvent: (event: MatchEvent) => {
+            console.log("Real-time match event:", event);
+            setEvents(prev => [...prev, event]);
+            
+            // Handle halftime ads
+            if (event.type === 'halftime' && !halftimeAdShown) {
+              setHalftimeAdShown(true);
+              if (adConfig.halftimeVideo.enabled) {
+                showRewardedVideoAd('halftimeVideo');
+              }
+            }
+
+            // Show important events as toasts
+            if (event.type === 'score') {
+              toast({
+                title: 'SCORE!',
+                description: event.description,
+                duration: 3000,
+              });
+            }
+          },
+          onMatchComplete: (data) => {
+            console.log("Match completed:", data);
+            setRealTimeState(data.finalState);
+            setEvents(data.finalState.gameEvents || []);
+            if (onMatchComplete) {
+              onMatchComplete();
+            }
+            toast({
+              title: 'Match Complete!',
+              description: `Final Score: ${data.finalState.homeScore} - ${data.finalState.awayScore}`,
+              duration: 5000,
+            });
+          },
+          onConnectionStatus: (connected: boolean) => {
+            setIsConnected(connected);
+          },
+          onError: (error) => {
+            console.error('WebSocket error:', error);
+            toast({
+              title: 'Connection Error',
+              description: error.message,
+              variant: 'destructive',
+              duration: 4000,
+            });
+          }
+        };
+
+        webSocketManager.setCallbacks(callbacks);
+        
+        // Join match room
+        await webSocketManager.joinMatch(matchId);
+        
       } catch (error) {
-        console.error("Error syncing with backend:", error);
+        console.error('Failed to initialize WebSocket:', error);
+        // Fallback to old polling method if WebSocket fails
+        const syncWithBackend = async () => {
+          try {
+            const response = await apiRequest(`/api/matches/${matchId}`);
+            if (response.liveState) {
+              console.log("Fallback: Syncing with backend match state:", response.liveState);
+              setLiveState(response.liveState);
+              
+              if (response.liveState.status === 'completed' && onMatchComplete) {
+                onMatchComplete();
+              }
+            }
+          } catch (error) {
+            console.error("Error syncing with backend:", error);
+          }
+        };
+
+        syncWithBackend();
+        syncIntervalRef.current = setInterval(syncWithBackend, 2000);
       }
     };
 
-    // Initial sync
-    syncWithBackend();
-
-    // Set up interval for live updates
-    syncIntervalRef.current = setInterval(syncWithBackend, 2000);
+    initializeWebSocket();
 
     return () => {
+      webSocketManager.leaveMatch();
       if (syncIntervalRef.current) {
         clearInterval(syncIntervalRef.current);
       }
     };
-  }, [matchId, onMatchComplete]);
+  }, [matchId, user, onMatchComplete, halftimeAdShown, showRewardedVideoAd, adConfig.halftimeVideo.enabled, toast]);
+
+  // Auto-scroll events to bottom
+  useEffect(() => {
+    eventsEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [events]);
 
   // Auto-scroll log to top
   useEffect(() => {
@@ -439,22 +545,109 @@ export function LiveMatchSimulation({ matchId, team1, team2, initialLiveState, o
           </CardContent>
         </Card>
 
-        {/* E. Play-by-Play Commentary */}
+        {/* E. Real-time Commentary & Controls */}
         <Card className="lg:col-span-3">
-          <CardHeader className="pb-2">
+          <CardHeader className="pb-2 flex flex-row items-center justify-between">
             <CardTitle className="text-lg flex items-center gap-2">
               <Zap className="h-5 w-5 text-yellow-500" />
               Live Commentary
-              {liveState.status === 'live' && (
+              {isConnected ? (
+                <Badge variant="default" className="animate-pulse">
+                  WebSocket Connected
+                </Badge>
+              ) : (
+                <Badge variant="secondary">
+                  Polling Mode
+                </Badge>
+              )}
+              {liveState?.status === 'live' && (
                 <Badge variant="destructive" className="animate-pulse">
-                  Live Server Match
+                  Live Match
                 </Badge>
               )}
             </CardTitle>
+            
+            {/* Match Controls for admins */}
+            {isConnected && liveState?.status === 'live' && (
+              <div className="flex gap-2">
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={async () => {
+                    setIsControlling(true);
+                    try {
+                      await webSocketManager.pauseMatch(matchId);
+                      toast({
+                        title: "Match Paused",
+                        description: "Match has been paused",
+                        duration: 2000,
+                      });
+                    } catch (error) {
+                      toast({
+                        title: "Error",
+                        description: "Could not pause match",
+                        variant: "destructive",
+                        duration: 3000,
+                      });
+                    } finally {
+                      setIsControlling(false);
+                    }
+                  }}
+                  disabled={isControlling}
+                >
+                  <Pause className="h-4 w-4" />
+                </Button>
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={async () => {
+                    setIsControlling(true);
+                    try {
+                      await webSocketManager.resumeMatch(matchId);
+                      toast({
+                        title: "Match Resumed",
+                        description: "Match has been resumed",
+                        duration: 2000,
+                      });
+                    } catch (error) {
+                      toast({
+                        title: "Error",
+                        description: "Could not resume match",
+                        variant: "destructive",
+                        duration: 3000,
+                      });
+                    } finally {
+                      setIsControlling(false);
+                    }
+                  }}
+                  disabled={isControlling}
+                >
+                  <Play className="h-4 w-4" />
+                </Button>
+              </div>
+            )}
           </CardHeader>
           <CardContent>
             <ScrollArea ref={logRef} className="h-64 w-full rounded-md border p-4">
-              {liveState.recentEvents && liveState.recentEvents.length > 0 ? (
+              {/* Show real-time events first if available */}
+              {events && events.length > 0 ? (
+                <div className="space-y-2">
+                  {events.slice().reverse().map((event, index) => (
+                    <div key={index} className="text-sm">
+                      <span className="text-muted-foreground font-mono">
+                        [{formatGameTime(event.time)}]
+                      </span>{" "}
+                      <span className="text-foreground">{event.description}</span>
+                      {event.type === 'score' && (
+                        <Badge variant="outline" className="ml-2 text-xs">
+                          Score!
+                        </Badge>
+                      )}
+                    </div>
+                  ))}
+                  <div ref={eventsEndRef} />
+                </div>
+              ) : liveState?.recentEvents && liveState.recentEvents.length > 0 ? (
                 <div className="space-y-2">
                   {liveState.recentEvents.slice().reverse().map((event, index) => (
                     <div key={index} className="text-sm">
@@ -466,8 +659,8 @@ export function LiveMatchSimulation({ matchId, team1, team2, initialLiveState, o
                   ))}
                 </div>
               ) : (
-                <div className="text-center text-muted-foreground">
-                  No events yet. The match is starting...
+                <div className="text-center text-muted-foreground py-8">
+                  {isConnected ? "Waiting for real-time events..." : "No events yet - match is starting..."}
                 </div>
               )}
             </ScrollArea>

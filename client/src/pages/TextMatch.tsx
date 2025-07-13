@@ -1,6 +1,7 @@
 import { useRoute } from "wouter";
 import { useQuery } from "@tanstack/react-query";
 import { LiveMatchSimulation } from "@/components/LiveMatchSimulation";
+import { LiveMatchViewer } from "@/components/LiveMatchViewer";
 import { HalftimeAd } from "@/components/HalftimeAd";
 import { apiRequest } from "@/lib/queryClient";
 
@@ -51,6 +52,7 @@ export default function TextMatchPage() {
   const matchId = textMatchParams?.matchId || matchParams?.matchId;
   const [showHalftimeAd, setShowHalftimeAd] = useState(false);
   const [halftimeAdShown, setHalftimeAdShown] = useState(false);
+  const [viewMode, setViewMode] = useState<'enhanced' | 'realtime'>('enhanced');
 
   const { data: match, isLoading: matchLoading } = useQuery({
     queryKey: ["matchDetails", matchId],
@@ -196,17 +198,60 @@ export default function TextMatchPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-900 text-white">
-      <LiveMatchSimulation
-        matchId={matchId!}
-        team1={team1WithPlayers}
-        team2={team2WithPlayers}
-        initialLiveState={(match as any)?.liveState}
-        enhancedData={enhancedData}
-        onMatchComplete={() => {
-          console.log("Match completed");
-        }}
-      />
+    <div className="min-h-screen bg-gray-900 text-white p-4">
+      {/* Match Header */}
+      <div className="max-w-6xl mx-auto mb-6">
+        <h1 className="text-2xl font-bold text-center mb-2">
+          {team1?.name} vs {team2?.name}
+        </h1>
+        <div className="text-center text-gray-400 mb-4">
+          Match ID: {matchId} | Status: {match?.status}
+        </div>
+
+        {/* View Mode Toggle */}
+        <div className="flex justify-center gap-2 mb-4">
+          <button
+            onClick={() => setViewMode('enhanced')}
+            className={`px-4 py-2 rounded-md font-medium transition-colors ${
+              viewMode === 'enhanced'
+                ? 'bg-blue-600 text-white'
+                : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+            }`}
+          >
+            Enhanced View
+          </button>
+          <button
+            onClick={() => setViewMode('realtime')}
+            className={`px-4 py-2 rounded-md font-medium transition-colors ${
+              viewMode === 'realtime'
+                ? 'bg-green-600 text-white'
+                : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+            }`}
+          >
+            Real-time View (WebSocket)
+          </button>
+        </div>
+      </div>
+
+      {/* Dynamic Component Based on View Mode */}
+      {viewMode === 'enhanced' ? (
+        <LiveMatchSimulation
+          matchId={matchId!}
+          team1={team1WithPlayers}
+          team2={team2WithPlayers}
+          initialLiveState={(match as any)?.liveState}
+          enhancedData={enhancedData}
+          onMatchComplete={() => {
+            console.log("Match completed");
+          }}
+        />
+      ) : (
+        <LiveMatchViewer
+          matchId={matchId!}
+          homeTeam={team1WithPlayers}
+          awayTeam={team2WithPlayers}
+        />
+      )}
       
       {/* Halftime Ad Integration */}
       <HalftimeAd
@@ -217,8 +262,6 @@ export default function TextMatchPage() {
         halftimeStats={halftimeStats}
         teamNames={teamNames}
       />
-      
-
     </div>
   );
 }
