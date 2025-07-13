@@ -136,7 +136,7 @@ class MatchStateManager {
       gameEvents: [{
         time: 0,
         type: 'kickoff',
-        description: `Match begins! ${initialPossessingTeam === match.homeTeamId ? 'Home' : 'Away'} team starts with possession.`,
+        description: commentaryService.generateKickoffCommentary(initialPossessingTeam === match.homeTeamId ? 'Home' : 'Away'),
         teamId: initialPossessingTeam,
         data: { homeTeam: match.homeTeamId, awayTeam: match.awayTeamId }
       }],
@@ -344,7 +344,7 @@ class MatchStateManager {
       state.gameEvents.push({
         time: state.gameTime,
         type: 'halftime',
-        description: 'Half-time break.',
+        description: commentaryService.generateHalftimeCommentary(),
       });
       // Typically, the team that kicked off to start the game receives the ball in the second half.
       // For simplicity, let's give it to the team that didn't have it last, or random if null.
@@ -447,7 +447,7 @@ class MatchStateManager {
         const targetPlayer = offensiveTeamPlayers.filter(p => p.id !== actingPlayer.id && p.tacticalRole === 'Runner')[Math.floor(Math.random() * offensiveTeamPlayers.filter(p => p.id !== actingPlayer.id && p.tacticalRole === 'Runner').length)]
                            || offensiveTeamPlayers.filter(p => p.id !== actingPlayer.id)[Math.floor(Math.random() * offensiveTeamPlayers.filter(p => p.id !== actingPlayer.id).length)];
 
-        if (!targetPlayer) return { time: state.gameTime, type: 'info', description: `${actingPlayer.lastName} looks to pass but finds no one.`};
+        if (!targetPlayer) return { time: state.gameTime, type: 'info', description: commentaryService.generateNoTargetCommentary(actingPlayer)};
         // Initialize target player stats if not exists
         let targetPStats = state.playerStats.get(targetPlayer.id);
         if (!targetPStats) {
@@ -560,10 +560,12 @@ class MatchStateManager {
                   state.playerStats.set(defensivePlayer.id, defPStats);
                 }
                 defPStats.passesDefended++;
-                event = { time: state.gameTime, type: 'pass_defended', actingPlayerId: actingPlayer.id, defensivePlayerId: defensivePlayer.id, teamId: offensiveTeamId, description: `${actingPlayer.lastName}'s pass defended by ${defensivePlayer.lastName}. Incomplete.` };
+                const passDefendedCommentary = commentaryService.generatePassDefenseCommentary(actingPlayer, defensivePlayer);
+                event = { time: state.gameTime, type: 'pass_defended', actingPlayerId: actingPlayer.id, defensivePlayerId: defensivePlayer.id, teamId: offensiveTeamId, description: passDefendedCommentary };
                 this.handlePossessionChange(state, offensiveTeamId, defensiveTeamId, state.gameTime); // Turnover on downs (simplified)
             } else { // Simple incomplete
-                 event = { time: state.gameTime, type: 'pass_incomplete', actingPlayerId: actingPlayer.id, teamId: offensiveTeamId, description: `${actingPlayer.lastName}'s pass is incomplete.` };
+                const incompleteCommentary = commentaryService.generateIncompletePassCommentary(actingPlayer);
+                event = { time: state.gameTime, type: 'pass_incomplete', actingPlayerId: actingPlayer.id, teamId: offensiveTeamId, description: incompleteCommentary };
                  this.handlePossessionChange(state, offensiveTeamId, defensiveTeamId, state.gameTime); // Turnover on downs
             }
         }
@@ -586,11 +588,13 @@ class MatchStateManager {
                 if (offensiveTeamId === state.homeTeamId) state.homeScore++; else state.awayScore++;
                 state.gameEvents.push(event); // push the rush event first
                 this.handlePossessionChange(state, offensiveTeamId, defensiveTeamId, state.gameTime); // Possession changes after score
-                return { time: state.gameTime, type: 'score', actingPlayerId: actingPlayer.id, teamId: offensiveTeamId, description: `SCORE! ${actingPlayer.lastName} breaks free for a fantastic score!`, data: { scoreType: 'rushing' }};
+                const scoringCommentary = commentaryService.generateScoringCommentary(actingPlayer, offensiveTeamId === state.homeTeamId ? "Home Team" : "Away Team", "rushing");
+                return { time: state.gameTime, type: 'score', actingPlayerId: actingPlayer.id, teamId: offensiveTeamId, description: scoringCommentary, data: { scoreType: 'rushing' }};
             }
 
         } else {
-            event = { time: state.gameTime, type: 'rush_stuffed', actingPlayerId: actingPlayer.id, teamId: offensiveTeamId, description: `${actingPlayer.lastName} is stopped in the chaos. No advancement.`, data: { yards: 0 } };
+            const stuffedCommentary = commentaryService.generateRunPlayCommentary(actingPlayer, 0, 'stuffed');
+            event = { time: state.gameTime, type: 'rush_stuffed', actingPlayerId: actingPlayer.id, teamId: offensiveTeamId, description: stuffedCommentary, data: { yards: 0 } };
             // Potential for turnover on downs if it's 4th down, etc. (not implemented here)
         }
         // Fumble chance
@@ -600,7 +604,8 @@ class MatchStateManager {
             }
             teamStats.turnovers++;
             const defensivePlayer = defensiveTeamPlayers[Math.floor(Math.random() * defensiveTeamPlayers.length)];
-            event = { time: state.gameTime, type: 'fumble_lost', actingPlayerId: actingPlayer.id, defensivePlayerId: defensivePlayer?.id, teamId: offensiveTeamId, description: `${actingPlayer.lastName} FUMBLES! Recovered by ${defensivePlayer ? defensivePlayer.lastName : defensiveTeamId}.`, data: { yards }};
+            const fumbleCommentary = commentaryService.generateLooseBallCommentary('fumble', actingPlayer, defensivePlayer);
+            event = { time: state.gameTime, type: 'fumble_lost', actingPlayerId: actingPlayer.id, defensivePlayerId: defensivePlayer?.id, teamId: offensiveTeamId, description: fumbleCommentary, data: { yards }};
             this.handlePossessionChange(state, offensiveTeamId, defensiveTeamId, state.gameTime);
         }
 
@@ -627,14 +632,17 @@ class MatchStateManager {
             if (defensivePlayer.tacticalRole === 'Blocker' && Math.random() < 0.4) {
                 defPStats.knockdownsInflicted++;
                 defensiveTeamStats.totalKnockdownsInflicted++;
-                 event = { time: state.gameTime, type: 'knockdown', actingPlayerId: defensivePlayer.id, teamId: defensiveTeamId, description: `${defensivePlayer.lastName} lays out an opponent with a huge block!`};
+                const knockdownCommentary = commentaryService.generateKnockdownCommentary(defensivePlayer);
+                event = { time: state.gameTime, type: 'knockdown', actingPlayerId: defensivePlayer.id, teamId: defensiveTeamId, description: knockdownCommentary};
             } else { // Tackle
                 defPStats.tackles++;
-                event = { time: state.gameTime, type: 'tackle', actingPlayerId: defensivePlayer.id, teamId: defensiveTeamId, description: `${defensivePlayer.lastName} makes the tackle.`};
+                const tackleCommentary = commentaryService.generateTackleCommentary(defensivePlayer);
+                event = { time: state.gameTime, type: 'tackle', actingPlayerId: defensivePlayer.id, teamId: defensiveTeamId, description: tackleCommentary};
                  // If tackle results in loss of yards or stops a score, could change possession. For now, just a tackle.
             }
         } else {
-            event = { time: state.gameTime, type: 'play_continues', description: "The play continues..."};
+            const playCommentary = commentaryService.generateGeneralPlayCommentary();
+            event = { time: state.gameTime, type: 'play_continues', description: playCommentary};
         }
     }
     return event;
