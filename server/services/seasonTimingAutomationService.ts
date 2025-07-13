@@ -3,6 +3,7 @@ import { SeasonalFlowService } from './seasonalFlowService';
 import { DailyPlayerProgressionService } from './dailyPlayerProgressionService';
 import { AgingService } from './agingService';
 import { InjuryStaminaService } from './injuryStaminaService';
+import { LateSignupService } from './lateSignupService';
 import { storage } from '../storage';
 import { logInfo } from './errorService';
 
@@ -172,6 +173,11 @@ export class SeasonTimingAutomationService {
       // Check for Day 7 Mid-Season Cup
       if (currentDayInCycle === 7 && estTime.getHours() === 15 && estTime.getMinutes() === 0) {
         await this.executeMidSeasonCup(seasonNumber);
+      }
+      
+      // Check for Day 9 AI Team Filling for Late Signup Subdivisions
+      if (currentDayInCycle === 9 && estTime.getHours() === 15 && estTime.getMinutes() === 0) {
+        await this.executeAITeamFilling();
       }
       
       // Check for Day 15 Division tournaments
@@ -368,6 +374,22 @@ export class SeasonTimingAutomationService {
       logInfo('Division finalization completed');
     } catch (error) {
       console.error('Error finalizing divisions:', error.message);
+    }
+  }
+
+  /**
+   * Execute AI team filling for late signup subdivisions (Day 9, 3:00 PM EST)
+   */
+  private async executeAITeamFilling(): Promise<void> {
+    try {
+      logInfo('Executing AI team filling for late signup subdivisions...');
+      
+      // Call the LateSignupService to fill subdivisions with AI teams
+      await LateSignupService.fillLateSignupSubdivisionsWithAI();
+      
+      logInfo('AI team filling for late signup subdivisions completed');
+    } catch (error) {
+      console.error('Error executing AI team filling:', error.message);
     }
   }
 

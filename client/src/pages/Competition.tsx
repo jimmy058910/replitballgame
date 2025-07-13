@@ -809,20 +809,21 @@ function ExhibitionsTab() {
                         vs {game.opponentTeam?.name}
                       </div>
                       <div className="text-sm text-gray-400">
-                        {new Date(game.playedDate).toLocaleDateString()}
+                        {game.playedDate || 'Date not available'}
                       </div>
                     </div>
                   </div>
                   
                   <div className="text-right">
                     <div className={`font-bold ${getResultColor(game.result)}`}>
-                      {game.score || (game.result === 'pending' ? 'In Progress' : 'Not Started')}
+                      {game.score || (game.result === 'pending' ? 'Scheduled' : 
+                                     game.result === 'in_progress' ? 'Live Match' : 'Not Started')}
                     </div>
                     <div className="text-sm text-gray-400">
                       {game.result === 'win' ? 'Victory' : 
                        game.result === 'loss' ? 'Defeat' : 
                        game.result === 'draw' ? 'Draw' : 
-                       'Live Match'}
+                       game.result === 'in_progress' ? 'Live Match' : 'Scheduled'}
                     </div>
                   </div>
                   

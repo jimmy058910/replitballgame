@@ -37,20 +37,40 @@ export function LiveMatchViewer({ matchId, userId, onMatchComplete }: LiveMatchV
 
   // Handle completed matches
   if (initialMatchData && initialMatchData.status === 'COMPLETED') {
+    // Import PostGameSummary dynamically
+    const PostGameSummary = React.lazy(() => import('./PostGameSummary').then(module => ({ default: module.PostGameSummary })));
+    
     return (
-      <Card className="w-full max-w-6xl mx-auto">
-        <CardContent className="p-6">
-          <div className="text-center space-y-4">
-            <h3 className="text-2xl font-bold">Match Completed</h3>
-            <div className="text-lg">
-              Final Score: {initialMatchData.homeScore} - {initialMatchData.awayScore}
-            </div>
-            <div className="text-sm text-muted-foreground">
-              This match has ended. Check the results in your dashboard.
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+      <React.Suspense fallback={
+        <Card className="w-full max-w-6xl mx-auto">
+          <CardContent className="p-6">
+            <div className="text-center">Loading match summary...</div>
+          </CardContent>
+        </Card>
+      }>
+        <PostGameSummary
+          matchId={matchId}
+          homeTeam={{
+            id: initialMatchData.homeTeam?.id || '',
+            name: initialMatchData.homeTeam?.name || 'Home Team',
+            score: initialMatchData.homeScore || 0,
+            stats: enhancedData?.teamStats?.home
+          }}
+          awayTeam={{
+            id: initialMatchData.awayTeam?.id || '',
+            name: initialMatchData.awayTeam?.name || 'Away Team',
+            score: initialMatchData.awayScore || 0,
+            stats: enhancedData?.teamStats?.away
+          }}
+          mvpData={enhancedData?.mvpData}
+          matchDuration={initialMatchData.duration}
+          attendanceData={enhancedData?.atmosphereEffects && {
+            attendance: enhancedData.atmosphereEffects.attendance || 0,
+            capacity: Math.floor((enhancedData.atmosphereEffects.attendance || 0) / 0.8),
+            percentage: Math.floor(((enhancedData.atmosphereEffects.attendance || 0) / Math.floor((enhancedData.atmosphereEffects.attendance || 0) / 0.8)) * 100)
+          }}
+        />
+      </React.Suspense>
     );
   }
 

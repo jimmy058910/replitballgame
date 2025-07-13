@@ -451,7 +451,7 @@ router.get('/recent', isAuthenticated, async (req: any, res: Response, next: Nex
         let result = 'pending';
         let score = '';
         
-        if (match.status === 'completed') {
+        if (match.status === 'COMPLETED') {
           const homeScore = match.homeScore || 0;
           const awayScore = match.awayScore || 0;
           score = `${homeScore} - ${awayScore}`;
@@ -461,13 +461,26 @@ router.get('/recent', isAuthenticated, async (req: any, res: Response, next: Nex
           } else {
             result = awayScore > homeScore ? 'win' : awayScore < homeScore ? 'loss' : 'draw';
           }
+        } else if (match.status === 'IN_PROGRESS') {
+          result = 'in_progress';
+          score = 'Live Match';
         }
+        
+        // Use proper date field and format it correctly
+        const gameDate = match.gameDate || match.createdAt || new Date();
+        const playedDate = new Date(gameDate).toLocaleDateString('en-US', {
+          year: 'numeric',
+          month: 'short',
+          day: 'numeric',
+          hour: '2-digit',
+          minute: '2-digit'
+        });
         
         return { 
             id: match.id,
             result: result,
             score: score,
-            playedDate: match.scheduledTime,
+            playedDate: playedDate,
             opponentName: opponentTeam?.name || 'Unknown Opponent',
             opponentTeam: { name: opponentTeam?.name || 'Unknown Opponent' }
         };
