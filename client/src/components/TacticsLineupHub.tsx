@@ -209,14 +209,25 @@ export default function TacticsLineupHub({ teamId }: TacticsLineupHubProps) {
         
         // Organize substitutes by position
         const formationSubs = (formation.substitutes || []).map(ensurePlayerRole);
-        setSubstitutes({
+        const newSubstitutes = {
           blockers: formationSubs.filter(p => p.role.toLowerCase() === "blocker"),
           runners: formationSubs.filter(p => p.role.toLowerCase() === "runner"),
           passers: formationSubs.filter(p => p.role.toLowerCase() === "passer"),
-        });
+        };
+        setSubstitutes(newSubstitutes);
         
-        // Set available players (show ALL players with their assignment status)
-        setAvailablePlayers(healthyPlayers);
+        // Filter out assigned players from available players
+        const assignedPlayerIds = new Set([
+          // Players in starting slots
+          ...newSlots.filter(slot => slot.player).map(slot => slot.player!.id),
+          // Players in substitution bench
+          ...newSubstitutes.blockers.map(p => p.id),
+          ...newSubstitutes.runners.map(p => p.id),
+          ...newSubstitutes.passers.map(p => p.id),
+        ]);
+        
+        const availablePlayers = healthyPlayers.filter(player => !assignedPlayerIds.has(player.id));
+        setAvailablePlayers(availablePlayers);
       } else {
         setAvailablePlayers(healthyPlayers);
       }
@@ -294,6 +305,25 @@ export default function TacticsLineupHub({ teamId }: TacticsLineupHubProps) {
     return null;
   };
 
+  // Update available players when lineup changes
+  const updateAvailablePlayers = () => {
+    const healthyPlayers = players
+      .filter(p => p.injuryStatus === "HEALTHY" || p.injuryStatus === "MINOR_INJURY")
+      .map(ensurePlayerRole);
+    
+    const assignedPlayerIds = new Set([
+      // Players in starting slots
+      ...starterSlots.filter(slot => slot.player).map(slot => slot.player!.id),
+      // Players in substitution bench
+      ...substitutes.blockers.map(p => p.id),
+      ...substitutes.runners.map(p => p.id),
+      ...substitutes.passers.map(p => p.id),
+    ]);
+    
+    const availablePlayers = healthyPlayers.filter(player => !assignedPlayerIds.has(player.id));
+    setAvailablePlayers(availablePlayers);
+  };
+
   // Handle starter slot drop
   const handleStarterDrop = (player: Player, slotId: string, source: any) => {
     const slotIndex = parseInt(slotId.split("-")[1]);
@@ -321,6 +351,7 @@ export default function TacticsLineupHub({ teamId }: TacticsLineupHubProps) {
     const newSlots = [...starterSlots];
     newSlots[slotIndex] = { ...targetSlot, player };
     setStarterSlots(newSlots);
+    updateAvailablePlayers();
   };
 
   // Handle substitute drop
@@ -346,12 +377,13 @@ export default function TacticsLineupHub({ teamId }: TacticsLineupHubProps) {
       ...prev,
       [role]: [...prev[role as keyof PositionalSubstitutes], player]
     }));
+    updateAvailablePlayers();
   };
 
   // Handle return to available
   const handleReturnToAvailable = (player: Player, source: any) => {
     removePlayerFromSource(player, source);
-    setAvailablePlayers(prev => [...prev, player]);
+    // updateAvailablePlayers will be called automatically by removePlayerFromSource
   };
 
   // Remove player from source location
@@ -370,6 +402,8 @@ export default function TacticsLineupHub({ teamId }: TacticsLineupHubProps) {
         [role]: prev[role].filter(p => p.id !== player.id)
       }));
     }
+    // Update available players after removing from any source
+    setTimeout(updateAvailablePlayers, 0);
   };
 
   // Mobile-friendly selection handlers
