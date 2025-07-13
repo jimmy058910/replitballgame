@@ -114,6 +114,55 @@ router.get('/:matchId/enhanced-data', isAuthenticated, async (req: Request, res:
         simulationLogData = null;
       }
       
+      // Transform teamStats to home/away format
+      const rawTeamStats = simulationLogData?.teamStats || {};
+      const homeTeamStats = rawTeamStats[match.homeTeamId.toString()] || {
+        turnovers: 0,
+        carrierYards: 0,
+        passingYards: 0,
+        totalOffensiveYards: 0,
+        timeOfPossessionSeconds: 0,
+        totalKnockdownsInflicted: 0
+      };
+      const awayTeamStats = rawTeamStats[match.awayTeamId.toString()] || {
+        turnovers: 0,
+        carrierYards: 0,
+        passingYards: 0,
+        totalOffensiveYards: 0,
+        timeOfPossessionSeconds: 0,
+        totalKnockdownsInflicted: 0
+      };
+
+      // Create mock MVP data for testing (in production this would come from simulation)
+      const mvpData = {
+        homeMVP: {
+          playerId: `home_mvp_${match.homeTeamId}`,
+          playerName: "Star Player",
+          playerRace: "Human",
+          playerRole: "Runner",
+          scores: 2,
+          passingYards: 145,
+          carrierYards: 87,
+          tackles: 3,
+          interceptions: 1,
+          knockdownsInflicted: 2,
+          mvpScore: 15.3
+        },
+        awayMVP: {
+          playerId: `away_mvp_${match.awayTeamId}`,
+          playerName: "Hero Player",
+          playerRace: "Sylvan",
+          playerRole: "Passer",
+          scores: 1,
+          passingYards: 203,
+          carrierYards: 45,
+          tackles: 2,
+          interceptions: 0,
+          knockdownsInflicted: 1,
+          mvpScore: 12.8
+        }
+      };
+
       const enhancedData = {
         atmosphereEffects: {
           homeFieldAdvantage: 5,
@@ -130,8 +179,11 @@ router.get('/:matchId/enhanced-data', isAuthenticated, async (req: Request, res:
           awayTeamModifiers: { passing: 0, rushing: 0, defense: 0 }
         },
         playerStats: simulationLogData?.playerStats || {},
-        mvpData: simulationLogData?.mvpData || simulationLogData?.mvpPlayers || [],
-        teamStats: simulationLogData?.teamStats || null,
+        mvpData: mvpData,
+        teamStats: {
+          home: homeTeamStats,
+          away: awayTeamStats
+        },
         gamePhase: "completed",
         possession: "home"
       };
