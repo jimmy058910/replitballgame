@@ -138,7 +138,7 @@ export default function TeamPage() {
       throwing: Number(player.throwing),
       catching: Number(player.catching),
       kicking: Number(player.kicking),
-      stamina: Number(player.stamina),
+      stamina: Number(player.staminaAttribute),
       leadership: Number(player.leadership),
       agility: Number(player.agility),
       salary: Number(player.salary),

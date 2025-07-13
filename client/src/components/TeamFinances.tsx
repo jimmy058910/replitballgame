@@ -41,9 +41,9 @@ export default function TeamFinances({ teamId }: TeamFinancesProps) {
 
   // Ensure we have financial data access
   // Convert credits from string to number for display
-  const creditsAmount = finances?.credits ? parseInt(String(finances.credits)) : 0;
+  const creditsAmount = financesData?.credits ? parseInt(String(financesData.credits)) : 0;
 
-  if (isLoading) {
+  if (financesLoading || teamLoading) {
     return (
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {Array.from({ length: 6 }).map((_, i) => (
@@ -61,19 +61,19 @@ export default function TeamFinances({ teamId }: TeamFinancesProps) {
   }
 
   // Use real financial data from API response
-  const currentFinances = finances ? {
+  const currentFinances = financesData ? {
     // Convert string fields to numbers
-    credits: parseInt(String(finances.credits)),
-    gems: finances.gems || 0,
-    projectedIncome: parseInt(String(finances.projectedIncome || '0')),
-    projectedExpenses: parseInt(String(finances.projectedExpenses || '0')),
-    lastSeasonRevenue: parseInt(String(finances.lastSeasonRevenue || '0')),
-    lastSeasonExpenses: parseInt(String(finances.lastSeasonExpenses || '0')),
-    facilitiesMaintenanceCost: parseInt(String(finances.facilitiesMaintenanceCost || '0')),
-    playerSalaries: finances.playerSalaries || 0,
-    staffSalaries: finances.staffSalaries || 0,
-    totalExpenses: finances.totalExpenses || 0,
-    netIncome: finances.netIncome || 0,
+    credits: parseInt(String(financesData.credits)),
+    gems: financesData.gems || 0,
+    projectedIncome: parseInt(String(financesData.projectedIncome || '0')),
+    projectedExpenses: parseInt(String(financesData.projectedExpenses || '0')),
+    lastSeasonRevenue: parseInt(String(financesData.lastSeasonRevenue || '0')),
+    lastSeasonExpenses: parseInt(String(financesData.lastSeasonExpenses || '0')),
+    facilitiesMaintenanceCost: parseInt(String(financesData.facilitiesMaintenanceCost || '0')),
+    playerSalaries: financesData.playerSalaries || 0,
+    staffSalaries: financesData.staffSalaries || 0,
+    totalExpenses: financesData.totalExpenses || 0,
+    netIncome: financesData.netIncome || 0,
   } : {
     credits: 0,
     gems: 0,

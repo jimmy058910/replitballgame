@@ -1559,8 +1559,8 @@ export default function EnhancedMatchSimulation({
         perfectPasses: 0,
         clutchPlays: 0,
         // Enhanced game state
-        currentStamina: p.stamina || 30,
-        baseStamina: p.stamina || 30,
+        currentStamina: p.staminaAttribute || 30,
+        baseStamina: p.staminaAttribute || 30,
         temporaryBoosts: {},
         position: { x: -400 + index * 50, y: -200 + (index % 3) * 100 },
         hasBall: index === 0, // Start with passer
@@ -1590,8 +1590,8 @@ export default function EnhancedMatchSimulation({
         perfectPasses: 0,
         clutchPlays: 0,
         // Enhanced game state
-        currentStamina: p.stamina || 30,
-        baseStamina: p.stamina || 30,
+        currentStamina: p.staminaAttribute || 30,
+        baseStamina: p.staminaAttribute || 30,
         temporaryBoosts: {},
         position: { x: 400 - index * 50, y: -200 + (index % 3) * 100 },
         hasBall: false,

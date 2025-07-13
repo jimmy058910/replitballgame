@@ -439,33 +439,45 @@ export default function PlayerDetailModal({
                     </CardTitle>
                   </CardHeader>
                   <CardContent>
-                    {playerEquipment?.equipment?.length > 0 ? (
-                      <div className="space-y-3">
-                        {playerEquipment.equipment.map((equipment: any) => (
-                          <div key={equipment.id} className="flex items-center justify-between p-3 bg-gray-800 rounded-lg border-l-4 border-red-500">
-                            <div className="flex items-center gap-3">
-                              <Shield className="w-5 h-5 text-blue-400" />
-                              <div>
-                                <div className="font-medium">{equipment.item.name}</div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {equipmentSlots.map((slot) => {
+                        const equippedItem = playerEquipment?.equipment?.find((equipment: any) => 
+                          equipment.item.name.toLowerCase().includes(slot.key) || 
+                          (slot.key === "helmet" && equipment.item.name.toLowerCase().includes("helm"))
+                        );
+                        
+                        return (
+                          <div key={slot.key} className="border border-gray-600 rounded-lg p-4">
+                            <div className="flex items-center gap-2 mb-3">
+                              <slot.icon className="w-5 h-5 text-gray-400" />
+                              <span className="font-medium">{slot.label}</span>
+                            </div>
+                            
+                            {equippedItem ? (
+                              <div className="p-3 bg-gray-800 rounded-lg border-l-4 border-red-500">
+                                <div className="font-medium">{equippedItem.item.name}</div>
                                 <div className="text-sm text-gray-400">
-                                  {getItemEffect(equipment.item)}
+                                  {getItemEffect(equippedItem.item)}
                                 </div>
                                 <div className="text-xs text-red-400 mt-1">
-                                  ⚠️ PERMANENTLY EQUIPPED - Cannot be removed
+                                  ⚠️ PERMANENTLY EQUIPPED
+                                </div>
+                                <Badge variant="outline" className="text-xs mt-2">
+                                  {equippedItem.item.rarity}
+                                </Badge>
+                              </div>
+                            ) : (
+                              <div className="p-3 bg-gray-700/50 rounded-lg border border-dashed border-gray-600 text-center">
+                                <div className="text-gray-400 text-sm">Empty Slot</div>
+                                <div className="text-xs text-gray-500 mt-1">
+                                  No {slot.label.toLowerCase()} equipped
                                 </div>
                               </div>
-                            </div>
-                            <Badge variant="outline" className="text-xs">
-                              {equipment.item.rarity}
-                            </Badge>
+                            )}
                           </div>
-                        ))}
-                      </div>
-                    ) : (
-                      <div className="text-center py-4 text-gray-400">
-                        No equipment currently equipped
-                      </div>
-                    )}
+                        );
+                      })}
+                    </div>
                   </CardContent>
                 </Card>
 
