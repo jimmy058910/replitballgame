@@ -27,7 +27,7 @@ export function LiveMatchViewer({ matchId, userId, onMatchComplete }: LiveMatchV
 
   // Fetch initial match data
   const { data: initialMatchData, error: matchError, isLoading: matchDataLoading } = useQuery({
-    queryKey: ['/api/matches', matchId],
+    queryKey: [`/api/matches/${matchId}`],
     enabled: !!matchId
   });
 
