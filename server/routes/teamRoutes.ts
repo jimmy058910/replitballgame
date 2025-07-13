@@ -1280,11 +1280,52 @@ router.get('/:teamId/contracts', isAuthenticated, async (req: any, res: Response
     }
 
     // Get all player contracts for the team
-    const contracts = await prisma.playerContract.findMany({
-      where: { teamId: parseInt(teamId) }
+    const contracts = await prisma.contract.findMany({
+      where: { 
+        playerId: { not: null },
+        player: {
+          teamId: parseInt(teamId)
+        }
+      },
+      include: {
+        player: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            race: true,
+            age: true,
+            role: true
+          }
+        }
+      }
     });
     
-    res.json(contracts);
+    // Transform contracts to display format
+    const contractsWithPlayer = contracts.map(contract => ({
+      ...contract,
+      salary: contract.salary, // Already Int, no conversion needed
+      signingBonus: contract.signingBonus,
+      player: contract.player
+    }));
+    
+    res.json({
+      success: true,
+      contracts: contractsWithPlayer,
+      totalContracts: contractsWithPlayer.length,
+      players: contractsWithPlayer.map(contract => ({
+        id: contract.player?.id,
+        firstName: contract.player?.firstName,
+        lastName: contract.player?.lastName,
+        race: contract.player?.race,
+        age: contract.player?.age,
+        role: contract.player?.role,
+        salary: contract.salary,
+        contractLength: contract.length,
+        signingBonus: contract.signingBonus,
+        startDate: contract.startDate
+      }))
+    });
   } catch (error) {
     console.error("Error fetching team contracts:", error);
     next(error);

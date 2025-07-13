@@ -264,8 +264,7 @@ export class ContractService {
         salary: salary,
         length: seasons,
         signingBonus: 0,
-        startDate: new Date(),
-        isActive: true
+        startDate: new Date()
       }
     });
 
@@ -290,7 +289,6 @@ export class ContractService {
     // Calculate total salary from all active player contracts
     const activeContracts = await prisma.contract.findMany({
       where: {
-        isActive: true,
         playerId: { not: null },
         player: {
           teamId: teamId

@@ -12,6 +12,22 @@ interface TeamFinancesProps {
   teamId: string;
 }
 
+interface PlayerContract {
+  id: number;
+  salary: number;
+  length: number;
+  signingBonus: number;
+  startDate: string;
+  player: {
+    id: number;
+    firstName: string;
+    lastName: string;
+    race: string;
+    age: number;
+    role: string;
+  };
+}
+
 interface FinancialData {
   ticketSales: number;
   concessionSales: number;
@@ -36,6 +52,13 @@ export default function TeamFinances({ teamId }: TeamFinancesProps) {
   const { data: teamData, isLoading: teamLoading, error: teamError } = useQuery<Team, Error>({
     queryKey: [`/api/teams/${teamId}`],
     queryFn: () => apiRequest(`/api/teams/${teamId}`),
+    enabled: !!teamId,
+  });
+
+  // Fetch player contracts
+  const { data: contractsData, isLoading: contractsLoading } = useQuery<{contracts: PlayerContract[], totalContracts: number}, Error>({
+    queryKey: [`/api/teams/${teamId}/contracts`],
+    queryFn: () => apiRequest(`/api/teams/${teamId}/contracts`),
     enabled: !!teamId,
   });
 
@@ -238,6 +261,7 @@ export default function TeamFinances({ teamId }: TeamFinancesProps) {
         <TabsList>
           <TabsTrigger value="income">Revenue Streams</TabsTrigger>
           <TabsTrigger value="expenses">Expenses</TabsTrigger>
+          <TabsTrigger value="contracts">Player Contracts</TabsTrigger>
           <TabsTrigger value="projections">Projections</TabsTrigger>
         </TabsList>
 
@@ -355,6 +379,86 @@ export default function TeamFinances({ teamId }: TeamFinancesProps) {
                   </p>
                 </div>
               </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="contracts">
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-lg flex items-center gap-2">
+                <Users className="h-5 w-5" />
+                Player Contracts
+                <Badge variant="outline" className="ml-auto">
+                  {contractsData?.totalContracts || 0} Active
+                </Badge>
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              {contractsLoading ? (
+                <div className="space-y-3">
+                  {Array.from({ length: 6 }).map((_, i) => (
+                    <div key={i} className="flex items-center justify-between p-3 bg-gray-100 dark:bg-gray-800 rounded animate-pulse">
+                      <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 bg-gray-300 dark:bg-gray-700 rounded-full"></div>
+                        <div className="space-y-1">
+                          <div className="w-24 h-4 bg-gray-300 dark:bg-gray-700 rounded"></div>
+                          <div className="w-16 h-3 bg-gray-300 dark:bg-gray-700 rounded"></div>
+                        </div>
+                      </div>
+                      <div className="w-20 h-4 bg-gray-300 dark:bg-gray-700 rounded"></div>
+                    </div>
+                  ))}
+                </div>
+              ) : contractsData?.contracts?.length ? (
+                <div className="space-y-3">
+                  {contractsData.contracts.map((contract) => (
+                    <div key={contract.id} className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                      <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 bg-blue-100 dark:bg-blue-900 rounded-full flex items-center justify-center">
+                          <span className="text-xs font-medium text-blue-600 dark:text-blue-400">
+                            {contract.player?.firstName?.[0] || "?"}
+                          </span>
+                        </div>
+                        <div>
+                          <div className="font-medium text-sm">
+                            {contract.player?.firstName} {contract.player?.lastName}
+                          </div>
+                          <div className="text-xs text-gray-600 dark:text-gray-400 capitalize">
+                            {contract.player?.role?.toLowerCase()} • {contract.player?.race} • Age {contract.player?.age}
+                          </div>
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <div className="font-medium text-sm">
+                          ₡{contract.salary.toLocaleString()}/season
+                        </div>
+                        <div className="text-xs text-gray-600 dark:text-gray-400">
+                          {contract.length} year{contract.length !== 1 ? 's' : ''}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                  <div className="mt-4 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-700">
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm font-medium text-blue-700 dark:text-blue-300">
+                        Total Contract Value
+                      </span>
+                      <span className="text-sm font-bold text-blue-700 dark:text-blue-300">
+                        ₡{contractsData.contracts.reduce((sum, c) => sum + c.salary, 0).toLocaleString()}/season
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <div className="text-center py-8">
+                  <Users className="w-12 h-12 mx-auto mb-3 text-gray-400" />
+                  <p className="text-gray-600 dark:text-gray-400">No player contracts found</p>
+                  <p className="text-sm text-gray-500 dark:text-gray-500 mt-1">
+                    Contracts will appear here once players are signed
+                  </p>
+                </div>
+              )}
             </CardContent>
           </Card>
         </TabsContent>
