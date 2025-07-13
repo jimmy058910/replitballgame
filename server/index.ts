@@ -8,6 +8,7 @@ import { requestIdMiddleware } from "./middleware/requestId";
 import { errorHandler, logInfo } from "./services/errorService";
 import { setupWebSocketServer, webSocketService } from "./services/webSocketService";
 import { matchStateManager } from "./services/matchStateManager";
+import { SeasonTimingAutomationService } from "./services/seasonTimingAutomationService";
 
 const app = express();
 app.use(express.json());
@@ -126,6 +127,11 @@ app.use((req, res, next) => {
   // Initialize match state recovery system
   log(`🔄 Initializing match state recovery system...`);
   await matchStateManager.recoverLiveMatches();
+
+  // Initialize season timing automation system
+  log(`🔄 Initializing season timing automation system...`);
+  const seasonTimingService = SeasonTimingAutomationService.getInstance();
+  await seasonTimingService.start();
 
   // Global error handler using centralized error service
   app.use(errorHandler);

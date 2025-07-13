@@ -363,6 +363,116 @@ export class InjuryStaminaService {
   canPlayInCompetitive(injuryStatus: string): boolean {
     return injuryStatus !== 'Severe Injury';
   }
+
+  /**
+   * Process daily recovery for all players (called by automation system)
+   */
+  static async processDailyRecovery(): Promise<{
+    playersProcessed: number;
+    injuriesHealed: number;
+    staminaRestored: number;
+    errors: string[];
+  }> {
+    console.log('[INJURY STAMINA SERVICE] Starting daily recovery process...');
+    const startTime = Date.now();
+    const errors: string[] = [];
+    let playersProcessed = 0;
+    let injuriesHealed = 0;
+    let staminaRestored = 0;
+
+    try {
+      // Get all players with injuries or low stamina
+      const playersNeedingRecovery = await prisma.player.findMany({
+        where: {
+          OR: [
+            { injuryStatus: { not: 'Healthy' } },
+            { dailyStaminaLevel: { lt: 100 } }
+          ],
+          isOnMarket: false // Only process active roster players
+        }
+      });
+
+      console.log(`[INJURY STAMINA SERVICE] Found ${playersNeedingRecovery.length} players needing recovery`);
+
+      for (const player of playersNeedingRecovery) {
+        try {
+          let playerUpdated = false;
+          const updateData: any = {};
+
+          // Process injury recovery
+          if (player.injuryStatus !== 'Healthy' && player.injuryRecoveryPoints !== null) {
+            const baseRecovery = 50; // Base daily recovery points
+            const newRecoveryPoints = (player.injuryRecoveryPoints || 0) + baseRecovery;
+
+            // Check if injury is healed
+            const requiredRP = InjuryStaminaService.getRequiredRecoveryPoints(player.injuryStatus);
+            if (newRecoveryPoints >= requiredRP) {
+              updateData.injuryStatus = 'Healthy';
+              updateData.injuryRecoveryPoints = null;
+              injuriesHealed++;
+              console.log(`[INJURY STAMINA SERVICE] ${player.firstName} ${player.lastName} recovered from ${player.injuryStatus}`);
+            } else {
+              updateData.injuryRecoveryPoints = newRecoveryPoints;
+            }
+            playerUpdated = true;
+          }
+
+          // Process stamina recovery
+          if (player.dailyStaminaLevel < 100) {
+            const baseStaminaRecovery = 20; // Base daily stamina recovery
+            const newStamina = Math.min(100, (player.dailyStaminaLevel || 0) + baseStaminaRecovery);
+            updateData.dailyStaminaLevel = newStamina;
+            
+            if (newStamina > player.dailyStaminaLevel) {
+              staminaRestored++;
+            }
+            playerUpdated = true;
+          }
+
+          // Update player if needed
+          if (playerUpdated) {
+            await prisma.player.update({
+              where: { id: player.id },
+              data: updateData
+            });
+          }
+
+          playersProcessed++;
+
+        } catch (error) {
+          const errorMsg = `Failed to process recovery for player ${player.firstName} ${player.lastName} (${player.id}): ${error instanceof Error ? error.message : 'Unknown error'}`;
+          errors.push(errorMsg);
+          console.error(`[INJURY STAMINA SERVICE] ${errorMsg}`);
+        }
+      }
+
+      const duration = Date.now() - startTime;
+      console.log(`[INJURY STAMINA SERVICE] Completed in ${duration}ms. Processed ${playersProcessed} players, ${injuriesHealed} injuries healed, ${staminaRestored} stamina restored`);
+
+      return {
+        playersProcessed,
+        injuriesHealed,
+        staminaRestored,
+        errors
+      };
+
+    } catch (error) {
+      console.error('[INJURY STAMINA SERVICE] Fatal error in daily recovery:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Get required recovery points for injury type
+   */
+  private static getRequiredRecoveryPoints(injuryStatus: string): number {
+    switch (injuryStatus) {
+      case 'Minor Injury': return 100;
+      case 'Moderate Injury': return 300;
+      case 'Severe Injury': return 750;
+      default: return 0;
+    }
+  }
 }
 
 export const injuryStaminaService = new InjuryStaminaService();

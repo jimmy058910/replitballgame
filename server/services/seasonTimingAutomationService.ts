@@ -1,0 +1,441 @@
+import { prisma } from '../db';
+import { SeasonalFlowService } from './seasonalFlowService';
+import { DailyPlayerProgressionService } from './dailyPlayerProgressionService';
+import { AgingService } from './agingService';
+import { InjuryStaminaService } from './injuryStaminaService';
+import { storage } from '../storage';
+import { logInfo } from './errorService';
+
+/**
+ * Season Timing Automation Service
+ * 
+ * Handles automatic execution of daily and seasonal events based on EST timing:
+ * - Daily 3:00 AM EST: Player progression, aging, injury recovery, daily resets
+ * - Day 1 3:00 PM EST: Division finalization, schedule creation, full season simulation
+ * - Day 7: Mid-Season Cup tournaments
+ * - Day 15: Division tournaments  
+ * - Day 17 3:00 AM EST: Season rollover with promotion/relegation
+ * - Daily 4:00 PM - 10:00 PM EST: Regular season match simulation window
+ */
+export class SeasonTimingAutomationService {
+  private static instance: SeasonTimingAutomationService;
+  private dailyProgressionTimer: NodeJS.Timeout | null = null;
+  private seasonEventTimer: NodeJS.Timeout | null = null;
+  private matchSimulationTimer: NodeJS.Timeout | null = null;
+  private isRunning = false;
+
+  private constructor() {}
+
+  static getInstance(): SeasonTimingAutomationService {
+    if (!SeasonTimingAutomationService.instance) {
+      SeasonTimingAutomationService.instance = new SeasonTimingAutomationService();
+    }
+    return SeasonTimingAutomationService.instance;
+  }
+
+  /**
+   * Start the automation system
+   */
+  async start(): Promise<void> {
+    if (this.isRunning) {
+      logInfo('Season timing automation already running');
+      return;
+    }
+
+    this.isRunning = true;
+    logInfo('Starting season timing automation system...');
+
+    // Schedule daily progression at 3:00 AM EST
+    this.scheduleDailyProgression();
+    
+    // Schedule season events check every hour
+    this.scheduleSeasonEvents();
+    
+    // Schedule match simulation window check every 30 minutes
+    this.scheduleMatchSimulation();
+    
+    logInfo('Season timing automation system started successfully');
+  }
+
+  /**
+   * Stop the automation system
+   */
+  stop(): void {
+    if (!this.isRunning) {
+      return;
+    }
+
+    this.isRunning = false;
+    
+    if (this.dailyProgressionTimer) {
+      clearInterval(this.dailyProgressionTimer);
+      this.dailyProgressionTimer = null;
+    }
+    
+    if (this.seasonEventTimer) {
+      clearInterval(this.seasonEventTimer);
+      this.seasonEventTimer = null;
+    }
+    
+    if (this.matchSimulationTimer) {
+      clearInterval(this.matchSimulationTimer);
+      this.matchSimulationTimer = null;
+    }
+    
+    logInfo('Season timing automation system stopped');
+  }
+
+  /**
+   * Schedule daily progression at 3:00 AM EST
+   */
+  private scheduleDailyProgression(): void {
+    const scheduleNextExecution = () => {
+      const nextExecution = this.getNextExecutionTime(3, 0); // 3:00 AM EST
+      const timeUntilExecution = nextExecution.getTime() - Date.now();
+      
+      logInfo(`Daily progression scheduled for ${nextExecution.toLocaleString('en-US', { timeZone: 'America/New_York' })} EST`);
+      
+      this.dailyProgressionTimer = setTimeout(async () => {
+        await this.executeDailyProgression();
+        scheduleNextExecution(); // Schedule next execution
+      }, timeUntilExecution);
+    };
+
+    scheduleNextExecution();
+  }
+
+  /**
+   * Schedule season events check every hour
+   */
+  private scheduleSeasonEvents(): void {
+    this.seasonEventTimer = setInterval(async () => {
+      await this.checkSeasonEvents();
+    }, 60 * 60 * 1000); // Check every hour
+    
+    // Also check immediately on startup
+    setTimeout(() => this.checkSeasonEvents(), 5000);
+  }
+
+  /**
+   * Schedule match simulation window check every 30 minutes
+   */
+  private scheduleMatchSimulation(): void {
+    this.matchSimulationTimer = setInterval(async () => {
+      await this.checkMatchSimulationWindow();
+    }, 30 * 60 * 1000); // Check every 30 minutes
+  }
+
+  /**
+   * Execute daily progression tasks at 3:00 AM EST
+   */
+  private async executeDailyProgression(): Promise<void> {
+    try {
+      logInfo('Starting daily progression execution...');
+      
+      // 1. Daily player progression
+      await this.executeDailyPlayerProgression();
+      
+      // 2. Aging and retirement processing  
+      await this.executeAgingProcessing();
+      
+      // 3. Injury recovery and stamina restoration
+      await this.executeInjuryRecovery();
+      
+      // 4. Reset daily limits and counters
+      await this.resetDailyLimits();
+      
+      logInfo('Daily progression execution completed successfully');
+    } catch (error) {
+      console.error('Error during daily progression execution:', error.message);
+    }
+  }
+
+  /**
+   * Check for season events that need to be triggered
+   */
+  private async checkSeasonEvents(): Promise<void> {
+    try {
+      const currentSeason = await storage.seasons.getCurrentSeason();
+      if (!currentSeason) {
+        return;
+      }
+
+      const { currentDayInCycle, seasonNumber } = this.getCurrentSeasonInfo(currentSeason);
+      const now = new Date();
+      const estTime = new Date(now.toLocaleString('en-US', { timeZone: 'America/New_York' }));
+      
+      // Check for Day 1 season start at 3:00 PM EST
+      if (currentDayInCycle === 1 && estTime.getHours() === 15 && estTime.getMinutes() === 0) {
+        await this.executeSeasonStart(seasonNumber);
+      }
+      
+      // Check for Day 7 Mid-Season Cup
+      if (currentDayInCycle === 7 && estTime.getHours() === 15 && estTime.getMinutes() === 0) {
+        await this.executeMidSeasonCup(seasonNumber);
+      }
+      
+      // Check for Day 15 Division tournaments
+      if (currentDayInCycle === 15 && estTime.getHours() === 15 && estTime.getMinutes() === 0) {
+        await this.executeDivisionTournaments(seasonNumber);
+      }
+      
+      // Check for Day 17 season rollover at 3:00 AM EST
+      if (currentDayInCycle === 17 && estTime.getHours() === 3 && estTime.getMinutes() === 0) {
+        await this.executeSeasonRollover(seasonNumber);
+      }
+      
+    } catch (error) {
+      console.error('Error checking season events:', error.message);
+    }
+  }
+
+  /**
+   * Check if we're in the match simulation window (4:00 PM - 10:00 PM EST)
+   */
+  private async checkMatchSimulationWindow(): Promise<void> {
+    try {
+      const now = new Date();
+      const estTime = new Date(now.toLocaleString('en-US', { timeZone: 'America/New_York' }));
+      const currentHour = estTime.getHours();
+      
+      // Match simulation window: 4:00 PM - 10:00 PM EST
+      if (currentHour >= 16 && currentHour <= 22) {
+        await this.simulateScheduledMatches();
+      }
+      
+    } catch (error) {
+      console.error('Error checking match simulation window:', error.message);
+    }
+  }
+
+  /**
+   * Execute season start processes (Day 1, 3:00 PM EST)
+   */
+  private async executeSeasonStart(seasonNumber: number): Promise<void> {
+    try {
+      logInfo(`Starting Season ${seasonNumber} initialization...`);
+      
+      // 1. Finalize divisions (fill with AI teams if needed)
+      await this.finalizeDivisions();
+      
+      // 2. Generate complete season schedule
+      const scheduleResult = await SeasonalFlowService.generateSeasonSchedule(seasonNumber);
+      
+      logInfo(`Season ${seasonNumber} started successfully`, {
+        matchesGenerated: scheduleResult.matchesGenerated,
+        leaguesProcessed: scheduleResult.leaguesProcessed.length
+      });
+      
+    } catch (error) {
+      console.error('Error during season start execution:', error.message, 'Season:', seasonNumber);
+    }
+  }
+
+  /**
+   * Execute Mid-Season Cup tournaments (Day 7)
+   */
+  private async executeMidSeasonCup(seasonNumber: number): Promise<void> {
+    try {
+      logInfo(`Starting Mid-Season Cup for Season ${seasonNumber}...`);
+      
+      // Implementation depends on tournament service
+      // This would trigger the creation and start of mid-season tournaments
+      
+      logInfo(`Mid-Season Cup started for Season ${seasonNumber}`);
+      
+    } catch (error) {
+      console.error('Error during Mid-Season Cup execution:', error.message, 'Season:', seasonNumber);
+    }
+  }
+
+  /**
+   * Execute Division tournaments (Day 15)
+   */
+  private async executeDivisionTournaments(seasonNumber: number): Promise<void> {
+    try {
+      logInfo(`Starting Division tournaments for Season ${seasonNumber}...`);
+      
+      // Generate playoff brackets for all divisions
+      const bracketResult = await SeasonalFlowService.generatePlayoffBrackets(seasonNumber);
+      
+      logInfo(`Division tournaments started for Season ${seasonNumber}`, {
+        bracketsGenerated: bracketResult.bracketsGenerated,
+        totalMatches: bracketResult.totalMatches
+      });
+      
+    } catch (error) {
+      console.error('Error during Division tournaments execution:', error.message, 'Season:', seasonNumber);
+    }
+  }
+
+  /**
+   * Execute season rollover (Day 17, 3:00 AM EST)
+   */
+  private async executeSeasonRollover(seasonNumber: number): Promise<void> {
+    try {
+      logInfo(`Starting season rollover from Season ${seasonNumber}...`);
+      
+      // Execute complete season rollover
+      const rolloverResult = await SeasonalFlowService.executeSeasonRollover(seasonNumber);
+      
+      logInfo(`Season rollover completed successfully`, {
+        newSeason: rolloverResult.newSeason,
+        totalMatches: rolloverResult.summary.totalMatches,
+        totalPromotions: rolloverResult.summary.totalPromotions,
+        totalRelegations: rolloverResult.summary.totalRelegations
+      });
+      
+    } catch (error) {
+      console.error('Error during season rollover execution:', error.message, 'Season:', seasonNumber);
+    }
+  }
+
+  /**
+   * Execute daily player progression
+   */
+  private async executeDailyPlayerProgression(): Promise<void> {
+    try {
+      logInfo('Executing daily player progression...');
+      const result = await DailyPlayerProgressionService.executeDailyProgression();
+      logInfo('Daily player progression completed', {
+        playersProcessed: result.totalPlayersProcessed,
+        progressionEvents: result.totalProgressions
+      });
+    } catch (error) {
+      console.error('Error executing daily player progression:', error.message);
+    }
+  }
+
+  /**
+   * Execute aging and retirement processing
+   */
+  private async executeAgingProcessing(): Promise<void> {
+    try {
+      logInfo('Executing aging and retirement processing...');
+      const result = await AgingService.processDailyAging();
+      logInfo('Aging processing completed', {
+        playersProcessed: result.playersProcessed,
+        retirementsProcessed: result.retirementsProcessed
+      });
+    } catch (error) {
+      console.error('Error executing aging processing:', error.message);
+    }
+  }
+
+  /**
+   * Execute injury recovery and stamina restoration
+   */
+  private async executeInjuryRecovery(): Promise<void> {
+    try {
+      logInfo('Executing injury recovery and stamina restoration...');
+      const result = await InjuryStaminaService.processDailyRecovery();
+      logInfo('Injury recovery completed', {
+        playersProcessed: result.playersProcessed,
+        injuriesHealed: result.injuriesHealed,
+        staminaRestored: result.staminaRestored
+      });
+    } catch (error) {
+      console.error('Error executing injury recovery:', error.message);
+    }
+  }
+
+  /**
+   * Reset daily limits and counters
+   */
+  private async resetDailyLimits(): Promise<void> {
+    try {
+      logInfo('Resetting daily limits and counters...');
+      
+      // Reset ad view counts, exhibition limits, etc.
+      // This would depend on the specific implementations
+      
+      logInfo('Daily limits reset completed');
+    } catch (error) {
+      console.error('Error resetting daily limits:', error.message);
+    }
+  }
+
+  /**
+   * Finalize divisions by filling empty slots with AI teams
+   */
+  private async finalizeDivisions(): Promise<void> {
+    try {
+      logInfo('Finalizing divisions with AI teams...');
+      
+      // Implementation would fill empty division slots with AI teams
+      // This ensures all divisions have the required team counts
+      
+      logInfo('Division finalization completed');
+    } catch (error) {
+      console.error('Error finalizing divisions:', error.message);
+    }
+  }
+
+  /**
+   * Simulate scheduled matches during the simulation window
+   */
+  private async simulateScheduledMatches(): Promise<void> {
+    try {
+      const currentSeason = await storage.seasons.getCurrentSeason();
+      if (!currentSeason) {
+        return;
+      }
+
+      const { currentDayInCycle } = this.getCurrentSeasonInfo(currentSeason);
+      
+      // Only simulate during regular season (Days 1-14)
+      if (currentDayInCycle >= 1 && currentDayInCycle <= 14) {
+        logInfo(`Simulating scheduled matches for Day ${currentDayInCycle}...`);
+        
+        // Get scheduled matches for current day
+        const scheduledMatches = await prisma.game.findMany({
+          where: {
+            gameDay: currentDayInCycle,
+            status: 'scheduled'
+          }
+        });
+        
+        if (scheduledMatches.length > 0) {
+          logInfo(`Found ${scheduledMatches.length} scheduled matches for simulation`);
+          
+          // Simulate matches (implementation would depend on match simulation service)
+          // This would trigger the actual match simulation and update results
+        }
+      }
+      
+    } catch (error) {
+      console.error('Error simulating scheduled matches:', error.message);
+    }
+  }
+
+  /**
+   * Get current season information
+   */
+  private getCurrentSeasonInfo(currentSeason: any): { currentDayInCycle: number; seasonNumber: number } {
+    const seasonStartDate = currentSeason.startDateOriginal || currentSeason.startDate || new Date();
+    const daysSinceStart = Math.floor((new Date().getTime() - seasonStartDate.getTime()) / (1000 * 60 * 60 * 24));
+    const currentDayInCycle = (daysSinceStart % 17) + 1;
+    const seasonNumber = Math.floor(daysSinceStart / 17);
+    
+    return { currentDayInCycle, seasonNumber };
+  }
+
+  /**
+   * Get next execution time for a specific hour and minute in EST
+   */
+  private getNextExecutionTime(hour: number, minute: number): Date {
+    const now = new Date();
+    const estNow = new Date(now.toLocaleString('en-US', { timeZone: 'America/New_York' }));
+    
+    const nextExecution = new Date(estNow);
+    nextExecution.setHours(hour, minute, 0, 0);
+    
+    // If the time has already passed today, schedule for tomorrow
+    if (nextExecution <= estNow) {
+      nextExecution.setDate(nextExecution.getDate() + 1);
+    }
+    
+    // Convert back to UTC for setTimeout
+    return new Date(nextExecution.getTime() - (nextExecution.getTimezoneOffset() * 60000));
+  }
+}

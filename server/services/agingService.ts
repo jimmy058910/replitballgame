@@ -292,4 +292,66 @@ export class AgingService {
       ageDistribution
     };
   }
+
+  /**
+   * Process daily aging for all players (called by automation system)
+   */
+  static async processDailyAging(): Promise<{
+    playersProcessed: number;
+    retirementsProcessed: number;
+    playersDeclined: number;
+    errors: string[];
+  }> {
+    console.log('[AGING SERVICE] Starting daily aging process...');
+    const startTime = Date.now();
+    const errors: string[] = [];
+    let playersProcessed = 0;
+    let retirementsProcessed = 0;
+    let playersDeclined = 0;
+
+    try {
+      // Get all active players
+      const allPlayers = await prisma.player.findMany({
+        where: { 
+          isOnMarket: false // Only process active roster players
+        }
+      });
+
+      console.log(`[AGING SERVICE] Found ${allPlayers.length} players to process`);
+
+      for (const player of allPlayers) {
+        try {
+          const result = await this.processPlayerAging(player);
+          playersProcessed++;
+
+          if (result.action === 'retired') {
+            retirementsProcessed++;
+            console.log(`[AGING SERVICE] ${result.playerName} retired: ${result.details}`);
+          } else if (result.action === 'declined') {
+            playersDeclined++;
+            console.log(`[AGING SERVICE] ${result.playerName} declined: ${result.details}`);
+          }
+
+        } catch (error) {
+          const errorMsg = `Failed to age player ${player.firstName} ${player.lastName} (${player.id}): ${error instanceof Error ? error.message : 'Unknown error'}`;
+          errors.push(errorMsg);
+          console.error(`[AGING SERVICE] ${errorMsg}`);
+        }
+      }
+
+      const duration = Date.now() - startTime;
+      console.log(`[AGING SERVICE] Completed in ${duration}ms. Processed ${playersProcessed} players, ${retirementsProcessed} retirements, ${playersDeclined} declined`);
+
+      return {
+        playersProcessed,
+        retirementsProcessed,
+        playersDeclined,
+        errors
+      };
+
+    } catch (error) {
+      console.error('[AGING SERVICE] Fatal error in daily aging:', error);
+      throw error;
+    }
+  }
 }
