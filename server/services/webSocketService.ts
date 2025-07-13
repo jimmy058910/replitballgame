@@ -69,8 +69,7 @@ class WebSocketService {
           }
 
           const match = await prisma.game.findUnique({
-            where: { id: parseInt(data.matchId) },
-            include: { homeTeam: true, awayTeam: true }
+            where: { id: parseInt(data.matchId) }
           });
 
           if (!match) {

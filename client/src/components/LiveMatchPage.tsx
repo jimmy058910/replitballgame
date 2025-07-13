@@ -18,7 +18,7 @@ export function LiveMatchPage() {
     );
   }
 
-  if (!user?.claims?.sub) {
+  if (!user?.userId) {
     return (
       <div className="flex items-center justify-center h-64">
         <div className="text-center">
@@ -32,7 +32,7 @@ export function LiveMatchPage() {
   return (
     <LiveMatchViewer 
       matchId={matchId} 
-      userId={user.claims.sub} 
+      userId={user.userId} 
     />
   );
 }
