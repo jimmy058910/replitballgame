@@ -124,8 +124,12 @@ export function LiveMatchViewer({ matchId, userId, onMatchComplete }: LiveMatchV
           }
         };
 
+        // Register callbacks with WebSocket manager
+        webSocketManager.setCallbacks(callbacks);
+        console.log('🔧 Callbacks registered with WebSocket manager');
+
         // Join the match room
-        await webSocketManager.joinMatch(matchId, callbacks);
+        await webSocketManager.joinMatch(matchId);
         setIsLoading(false);
         
       } catch (error) {
