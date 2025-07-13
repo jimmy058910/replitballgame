@@ -1,0 +1,53 @@
+Dynamic Player Aging, Progression & Retirement System
+Goal: To implement a comprehensive, formula-driven system that governs the entire lifecycle of a player, from their generation as a young prospect to their eventual decline and retirement. This system is designed to be organic, creating realistic career arcs and meaningful management decisions.
+1. Player Generation & Age Ranges
+Recruiting System: Players generated through "Tryouts" will have an age randomly assigned between 16 and 20 years old.
+Other Generation: Players generated for the free agent pool will have an age randomly assigned between 18 and 35 years old.
+Maximum Age: Any player who reaches age 45 at the end of a season will automatically retire.
+2. The End-of-Season Development Phase (Day 17)
+This is the core event where all player development occurs. It runs automatically for every player on a user's roster after the playoffs are complete.
+Sequence of Events:
+Progression Check: For each player, for each of their 8 core attributes, the system runs a check to see if the stat increases.
+Decline Check: For every player aged 31 or older, the system runs a separate check to see if a physical stat decreases.
+Retirement Check: For every player aged 35 or older, the system calculates their RetirementChance and determines if they retire.
+Age Increment: After all checks are complete, player.age is incremented by 1 for all players.
+Reset Seasonal Stats: games_played_last_season is reset to 0 for all players.
+3. Detailed Formulas & Calculations
+A. Stat Progression Formula
+For each of a player's 8 attributes, calculate their chance to increase by +1.
+Logic: ProgressionChance = BaseChance + PotentialModifier + AgeModifier + UsageModifier
+Component Breakdown:
+BaseChance (e.g., 2%): A small underlying chance for any stat to improve, representing natural talent development.
+PotentialModifier: The primary driver of growth, based on the stat's 1-5 star potential (using a 10-point scale for half-stars).
+1-Star (Rating 1-2): +5% bonus chance
+2-Stars (Rating 3-4): +10% bonus chance
+3-Stars (Rating 5-6): +20% bonus chance
+4-Stars (Rating 7-8): +30% bonus chance
+5-Stars (Rating 9-10): +40% bonus chance
+AgeModifier: Younger players improve more easily.
+Youth (16-23): +15% bonus chance.
+Prime (24-30): +5% bonus chance.
+Veteran (31+): -20% penalty chance (it's much harder to learn new skills).
+UsageModifier: Players who play more, improve more.
++ (GamesPlayedInSeason / 14) * 5% (e.g., a player who played all 14 league games gets a +5% bonus chance).
+Stat Caps & Physical Decline Exception:
+A stat can never increase beyond its cap, which is determined by its Potential rating (e.g., 5-Star Potential = 40 max stat).
+Crucially: Players aged 34 and older can no longer have a successful ProgressionCheck for the physical stats of Speed, Agility, and Power. They can only maintain or decline in these areas. They can still progress in skill-based stats like Throwing, Catching, Kicking, and Leadership.
+B. Age-Related Stat Decline Formula
+This runs after the progression check for players aged 31 or older.
+Logic: DeclineChance = (player.age - 30) * 2.5%
+Implementation:
+For each player aged 31+, calculate their DeclineChance.
+If a random roll succeeds, the player suffers a stat decline.
+Randomly select one attribute from a weighted list: [Speed, Speed, Agility, Agility, Power]. Speed and Agility are twice as likely to decline.
+Decrement the selected attribute by 1 (to a minimum of 1).
+C. Dynamic Retirement Formula
+This runs after progression and decline for players aged 35 or older.
+Logic: RetirementChance = BaseAgeChance + InjuryModifier + PlayingTimeModifier
+Component Breakdown:
+BaseAgeChance:
+Age 35: 5% | Age 36: 8% | Age 37: 12% | Age 38: 18% | Age 39: 25% | Age 40: 35% | Age 41: 50% | Age 42: 65% | Age 43: 80% | Age 44: 95% | Age 45: 100%
+InjuryModifier: player.career_injuries * 2%
+PlayingTimeModifier: +15% if played < 5 games; +5% if played < 10 games.
+This revised system creates a clear and logical career arc for every player, directly tying their development to their age, potential, playing time, and health, while giving you clear levers to balance the simulation.
+

@@ -9,6 +9,43 @@ import { Users, Trophy, /* TrendingUp, Star, Shield */ } from "lucide-react"; //
 import { apiRequest } from "@/lib/queryClient";
 import { Team, Player } from "shared/schema";
 
+// Helper function to get division name with subdivision
+const getDivisionNameWithSubdivision = (division: number, subdivision?: string) => {
+  const divisionNames = {
+    1: "Diamond League",
+    2: "Platinum League", 
+    3: "Gold League",
+    4: "Silver League",
+    5: "Bronze League",
+    6: "Iron League",
+    7: "Steel League",
+    8: "Copper League"
+  };
+  
+  const baseName = divisionNames[division as keyof typeof divisionNames] || `Division ${division}`;
+  
+  if (!subdivision || subdivision === "main") {
+    return baseName;
+  }
+  
+  // Map subdivision to display names
+  const subdivisionNames = {
+    "alpha": "Alpha",
+    "beta": "Beta", 
+    "gamma": "Gamma",
+    "delta": "Delta",
+    "epsilon": "Epsilon",
+    "zeta": "Zeta",
+    "eta": "Eta",
+    "theta": "Theta",
+    "iota": "Iota",
+    "kappa": "Kappa"
+  };
+  
+  const subdivisionName = subdivisionNames[subdivision as keyof typeof subdivisionNames] || subdivision;
+  return `${baseName} - ${subdivisionName}`;
+};
+
 interface TeamInfoDialogProps {
   teamId: string | null;
   isOpen: boolean;
@@ -60,34 +97,38 @@ export default function TeamInfoDialog({ teamId, isOpen, onClose }: TeamInfoDial
     return `${min}-${max}`;
   };
 
-  const getScoutedPlayerName = (player: Player, currentScoutingLevel: ScoutingLevel): string => {
-    if (!isOpponentTeam) {
-      return `${player.firstName} ${player.lastName}`;
-    }
-    
-    // For opponents, show varying levels of name detail based on scouting
-    switch (currentScoutingLevel) {
-      case 1: return `${player.firstName} ${player.lastName?.charAt(0) ?? ''}.`; // "John D."
-      case 2: return `${player.firstName} ${player.lastName}`;  // Full name
-      case 3: return `${player.firstName} ${player.lastName}`;  // Full name + more details
-      default: return `${player.firstName} ${player.lastName?.charAt(0) ?? ''}.`;
-    }
+  const getScoutedPlayerName = (player: any): string => {
+    // Always show full names for all teams (CPU/AI and User teams)
+    return `${player.firstName} ${player.lastName}`;
   };
 
-  const getPositionColor = (position: string | null | undefined) => {
-    switch (position) {
-      case "Passer":
+  const getPositionColor = (role: string) => {
+    switch (role) {
+      case "PASSER":
         return "bg-blue-500";
-      case "Runner":
+      case "RUNNER":
         return "bg-green-500";
-      case "Blocker":
+      case "BLOCKER":
         return "bg-red-500";
       default:
         return "bg-gray-500";
     }
   };
 
-  const getRaceColor = (race: string | null | undefined) => {
+  const getPositionLabel = (role: string) => {
+    switch (role) {
+      case "PASSER":
+        return "Passer";
+      case "RUNNER":
+        return "Runner";
+      case "BLOCKER":
+        return "Blocker";
+      default:
+        return "Player";
+    }
+  };
+
+  const getRaceColor = (race: string) => {
     switch (race) {
       case "Human":
         return "text-blue-400";
@@ -104,8 +145,11 @@ export default function TeamInfoDialog({ teamId, isOpen, onClose }: TeamInfoDial
     }
   };
 
-  const calculatePlayerPower = (player: Player): number => {
-    return (player.speed ?? 0) + (player.power ?? 0) + (player.throwing ?? 0) + (player.catching ?? 0) + (player.kicking ?? 0);
+  const calculatePlayerPower = (player: any) => {
+    // Calculate CAR (Core Athleticism Rating) as per game mechanics - average of all 8 attributes
+    const totalStats = player.speed + player.power + player.throwing + player.catching + 
+                      player.kicking + (player.staminaAttribute || 0) + (player.leadership || 0) + (player.agility || 0);
+    return Math.round(totalStats / 8);
   };
 
   const getStatColor = (stat: number | null | undefined) => {
@@ -170,7 +214,7 @@ export default function TeamInfoDialog({ teamId, isOpen, onClose }: TeamInfoDial
                     <div className="text-sm text-gray-400">Losses</div>
                   </div>
                   <div className="text-center">
-                    <div className="text-2xl font-bold text-yellow-400">{teamInfo.draws ?? 0}</div>
+                    <div className="text-2xl font-bold text-yellow-400">{teamInfo.draws || 0}</div>
                     <div className="text-sm text-gray-400">Draws</div>
                   </div>
                   <div className="text-center">
@@ -181,7 +225,7 @@ export default function TeamInfoDialog({ teamId, isOpen, onClose }: TeamInfoDial
                 
                 <div className="flex items-center justify-center gap-4 pt-4 border-t border-gray-600">
                   <Badge variant="outline" className="text-purple-400 border-purple-400">
-                    Division {teamInfo.division ?? 'N/A'}
+                    {getDivisionNameWithSubdivision(teamInfo.division, teamInfo.subdivision)}
                   </Badge>
                   <div className="text-sm text-gray-400">
                     Team Power: <span className="text-white font-bold">{teamInfo.teamPower ?? "N/A"}</span>
@@ -215,8 +259,8 @@ export default function TeamInfoDialog({ teamId, isOpen, onClose }: TeamInfoDial
                               </div>
                             </div>
                             <div className="flex items-center gap-2">
-                              <Badge className={getPositionColor(player.position ?? "Player")}>
-                                {player.position ?? "Player"}
+                              <Badge className={getPositionColor(player.role)}>
+                                {getPositionLabel(player.role)}
                               </Badge>
                               <div className="text-right">
                                 <div className="text-sm font-bold text-white">

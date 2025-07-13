@@ -1,84 +1,27 @@
 import { useState } from "react";
 import { useMutation, useQuery } from "@tanstack/react-query";
-import Navigation from "@/components/Navigation";
-// Assuming ServerTimeDisplay is correctly typed and imported if used, or remove if not.
-// For now, I will assume it's not directly used or will be handled if it causes errors later.
-// import ServerTimeDisplay from "@/components/ServerTimeDisplay";
+import ServerTimeDisplay from "@/components/ServerTimeDisplay";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import { Settings, Calendar, Trophy, CreditCard, Bell, Shield, Users } from "lucide-react";
-import type { Team } from "shared/schema";
+import { Settings, Calendar, Trophy, CreditCard, Bell, Shield, Users, Search, TrendingUp } from "lucide-react";
+import DailyProgressionTest from "@/components/DailyProgressionTest";
 
-// Define interfaces for API responses and mutation payloads
-interface CurrentWeekData {
-  currentDay: number;
-  currentSeason: number;
-  phase: string;
-  // Add other relevant fields from your API if any
-}
-
-interface AdvanceDayResponse {
-  newDay: number;
-  isNewSeason?: boolean;
-  message?: string;
-}
-
-interface ResetSeasonResponse {
-  teamsReset: number;
-  matchesStopped: number;
-  message?: string;
-}
-
-interface CleanupDivisionPayload {
+// Type interfaces for API responses
+interface Team {
+  id: string;
+  name: string;
   division: number;
-}
-interface CleanupDivisionResponse {
-  details?: { division: number };
-  teamsRemoved: number;
-  remainingTeams: number;
-  message?: string;
-}
-
-interface GrantCreditsPayload {
   credits: number;
-  premiumCurrency: number;
-}
-interface GrantCreditsResponse {
-  message: string;
 }
 
-interface AddPlayersPayload {
-  teamId: string;
-  count: number;
+interface CurrentWeek {
+  week: number;
+  season: string;
 }
-interface AddPlayersResponse {
-  message: string;
-  count?: number;
-}
-
-interface StopGamesResponse {
-  message: string;
-}
-
-interface FillDivisionPayload {
-  division: number;
-}
-interface FillDivisionResponse {
-  teams?: { id: string, name: string }[];
-  message?: string;
-}
-
-interface StartTournamentPayload {
-  division: number;
-}
-interface StartTournamentResponse {
-  message: string;
-}
-
 
 export default function SuperUser() {
   const { toast } = useToast();
@@ -87,11 +30,9 @@ export default function SuperUser() {
   const [divisionToCleanup, setDivisionToCleanup] = useState(8);
   const [playerCount, setPlayerCount] = useState(3);
 
-  const teamQuery = useQuery({
-    queryKey: ["myTeam"],
-    queryFn: (): Promise<Team> => apiRequest("/api/teams/my"),
+  const { data: rawTeam } = useQuery<Team>({
+    queryKey: ["/api/teams/my"],
   });
-  const team = teamQuery.data as Team | undefined;
 
   // Example: If currentWeek is needed, type it appropriately
   // const currentWeekQuery = useQuery({
@@ -100,7 +41,20 @@ export default function SuperUser() {
   // });
   // const currentWeek = currentWeekQuery.data as CurrentWeekData | undefined;
 
+  const { data: rawCurrentWeek } = useQuery<CurrentWeek>({
+    queryKey: ["/api/season/current-week"],
+  });
 
+  // Check admin status using RBAC system
+  const { data: adminStatus } = useQuery({
+    queryKey: ["/api/auth/admin-status"],
+  });
+
+  // Type assertions to fix property access issues
+  const team = (rawTeam || {}) as Team;
+  const currentWeek = (rawCurrentWeek || {}) as CurrentWeek;
+
+  // Season management mutations
   const advanceDayMutation = useMutation({
     mutationFn: (): Promise<AdvanceDayResponse> =>
       apiRequest("/api/superuser/advance-day", "POST"),
@@ -160,6 +114,49 @@ export default function SuperUser() {
     },
   });
 
+  const resetTryoutRestrictionsMutation = useMutation({
+    mutationFn: async () => {
+      return await apiRequest("/api/superuser/reset-tryout-restrictions", "POST");
+    },
+    onSuccess: (data: any) => {
+      toast({
+        title: "Tryout Restrictions Reset",
+        description: "You can now host tryouts again for testing purposes",
+      });
+      queryClient.invalidateQueries({ queryKey: [`/api/teams/${team?.id}/seasonal-data`] });
+      queryClient.invalidateQueries({ queryKey: [`/api/teams/${team?.id}/taxi-squad`] });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: "Failed to reset tryout restrictions",
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Promote to admin mutation
+  const promoteToAdminMutation = useMutation({
+    mutationFn: async () => {
+      return await apiRequest("/api/auth/promote-to-admin", "POST");
+    },
+    onSuccess: (data: any) => {
+      toast({
+        title: "Promotion Successful",
+        description: data.message,
+      });
+      queryClient.invalidateQueries({ queryKey: ["/api/auth/admin-status"] });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: "Failed to promote to admin",
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Demo notifications mutation
   const createNotificationsMutation = useMutation({
     mutationFn: (): Promise<void> =>
       apiRequest("/api/demo/notifications", "POST"),
@@ -180,14 +177,27 @@ export default function SuperUser() {
   });
 
   const grantCreditsMutation = useMutation({
-    mutationFn: (payload: GrantCreditsPayload): Promise<GrantCreditsResponse> =>
-      apiRequest("/api/superuser/grant-credits", "POST", payload),
-    onSuccess: (data: GrantCreditsResponse) => {
+    mutationFn: async () => {
+      if (!team?.id) {
+        throw new Error("No team found");
+      }
+      return await apiRequest("/api/superuser/grant-credits", "POST", {
+        teamId: team.id,
+        credits: creditsAmount,
+        premiumCurrency: premiumAmount
+      });
+    },
+    onSuccess: (data: any) => {
       toast({
         title: "Credits Granted",
         description: data.message,
       });
-      queryClient.invalidateQueries({ queryKey: ["myTeamFinances"] });
+      // Force refresh all cache entries related to team finances
+      queryClient.invalidateQueries({ queryKey: ["/api/teams/my/finances"] });
+      queryClient.invalidateQueries({ queryKey: [`/api/teams/${team?.id}/finances`] });
+      queryClient.invalidateQueries({ queryKey: ["/api/teams/my"] });
+      // Also refresh the navigation bar data
+      queryClient.refetchQueries({ queryKey: [`/api/teams/${team?.id}/finances`] });
     },
     onError: (error: Error) => {
       toast({
@@ -281,7 +291,51 @@ export default function SuperUser() {
     },
   });
 
-  const isSuperUser = team?.name === "Macomb Cougars";
+  // Create league schedule mutation
+  const createLeagueScheduleMutation = useMutation({
+    mutationFn: async () => {
+      return await apiRequest("/api/superuser/create-league-schedule", "POST");
+    },
+    onSuccess: (data: any) => {
+      toast({
+        title: "League Schedule Created",
+        description: `${data.data?.matchesScheduled} matches scheduled for Day ${data.data?.currentDay}`,
+      });
+      queryClient.invalidateQueries({ queryKey: ["/api/matches"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/league/daily-schedule"] });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: "Failed to create league schedule",
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Start all league games mutation
+  const startAllLeagueGamesMutation = useMutation({
+    mutationFn: async () => {
+      return await apiRequest("/api/superuser/start-all-league-games", "POST");
+    },
+    onSuccess: (data: any) => {
+      toast({
+        title: "League Games Started",
+        description: `${data.data?.gamesStarted} games started concurrently for Day ${data.data?.currentDay}`,
+      });
+      queryClient.invalidateQueries({ queryKey: ["/api/matches/live"] });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: "Failed to start league games",
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Check if user has admin access using RBAC system OR team name fallback
+  const isSuperUser = (adminStatus as any)?.isAdmin === true || team?.name === "Oakland Cougars";
 
   if (teamQuery.isLoading) { // Added loading state for initial team check
     return (
@@ -294,7 +348,6 @@ export default function SuperUser() {
   if (!isSuperUser) {
     return (
       <div className="min-h-screen bg-gray-900 text-white">
-        <Navigation />
         <div className="max-w-4xl mx-auto px-4 py-16 text-center">
           <Shield className="w-16 h-16 mx-auto mb-6 text-red-400" />
           <h1 className="font-orbitron text-3xl font-bold mb-6">Access Denied</h1>
@@ -309,7 +362,6 @@ export default function SuperUser() {
 
   return (
     <div className="min-h-screen bg-gray-900 text-white">
-      <Navigation />
       
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="mb-8">
@@ -330,6 +382,30 @@ export default function SuperUser() {
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          {/* Admin Promotion */}
+          <Card className="bg-gray-800 border-gray-700">
+            <CardHeader>
+              <CardTitle className="font-orbitron text-xl flex items-center">
+                <Shield className="w-5 h-5 mr-2 text-red-400" />
+                Admin Promotion
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <p className="text-gray-400 text-sm">
+                Promote your account to admin status for full administrative access.
+              </p>
+              <Button 
+                onClick={() => promoteToAdminMutation.mutate()}
+                disabled={promoteToAdminMutation.isPending}
+                className="w-full"
+                variant="destructive"
+              >
+                {promoteToAdminMutation.isPending ? "Promoting..." : "Promote to Admin"}
+              </Button>
+            </CardContent>
+          </Card>
+
+          {/* Notification System */}
           <Card className="bg-gray-800 border-gray-700">
             <CardHeader>
               <CardTitle className="font-orbitron text-xl flex items-center">
@@ -428,6 +504,35 @@ export default function SuperUser() {
             </CardContent>
           </Card>
 
+          {/* Tryout System Testing */}
+          <Card className="bg-gray-800 border-gray-700">
+            <CardHeader>
+              <CardTitle className="font-orbitron text-xl flex items-center">
+                <Trophy className="w-5 h-5 mr-2 text-blue-400" />
+                Tryout System Testing
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <p className="text-gray-400 text-sm">
+                Reset seasonal tryout restrictions to allow additional tryouts for testing purposes.
+              </p>
+              <div className="p-3 bg-yellow-900/50 border border-yellow-600 rounded-lg">
+                <p className="text-yellow-200 text-xs">
+                  ⚠️ This will clear your taxi squad and reset the "once per season" restriction
+                </p>
+              </div>
+              <Button 
+                onClick={() => resetTryoutRestrictionsMutation.mutate()}
+                disabled={resetTryoutRestrictionsMutation.isPending}
+                className="w-full"
+                variant="outline"
+              >
+                {resetTryoutRestrictionsMutation.isPending ? "Resetting..." : "Reset Tryout Restrictions"}
+              </Button>
+            </CardContent>
+          </Card>
+
+          {/* League Management */}
           <Card className="bg-gray-800 border-gray-700">
             <CardHeader>
               <CardTitle className="font-orbitron text-xl flex items-center">
@@ -497,6 +602,43 @@ export default function SuperUser() {
           </Card>
         </div>
 
+        {/* League Schedule Management */}
+        <Card className="bg-gray-800 border-gray-700 mt-8">
+          <CardHeader>
+            <CardTitle className="font-orbitron text-xl flex items-center">
+              <Calendar className="w-5 h-5 mr-2 text-indigo-400" />
+              League Schedule Management
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <p className="text-gray-400 text-sm">
+              Create league schedules and start all league games for testing purposes. Only works during regular season (Days 1-14).
+            </p>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <Button 
+                onClick={() => createLeagueScheduleMutation.mutate()}
+                disabled={createLeagueScheduleMutation.isPending}
+                className="w-full"
+                variant="outline"
+              >
+                {createLeagueScheduleMutation.isPending ? "Creating..." : "Create League Schedule"}
+              </Button>
+              <Button 
+                onClick={() => startAllLeagueGamesMutation.mutate()}
+                disabled={startAllLeagueGamesMutation.isPending}
+                className="w-full"
+                variant="secondary"
+              >
+                {startAllLeagueGamesMutation.isPending ? "Starting..." : "Start All League Games"}
+              </Button>
+            </div>
+            <div className="text-xs text-gray-500 mt-2">
+              Creates round-robin matches for all 8 divisions and starts them concurrently for the current day.
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Season Management */}
         <Card className="bg-gray-800 border-gray-700 mt-8">
           <CardHeader>
             <CardTitle className="font-orbitron text-xl flex items-center">
@@ -529,6 +671,22 @@ export default function SuperUser() {
           </CardContent>
         </Card>
 
+        {/* Daily Progression System Testing */}
+        <Card className="bg-gray-800 border-gray-700 mt-8">
+          <CardHeader>
+            <CardTitle className="font-orbitron text-xl flex items-center">
+              <TrendingUp className="w-5 h-5 mr-2 text-orange-400" />
+              Daily Player Progression System
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="p-4">
+              <DailyProgressionTest />
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Server Time & System Information */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-8">
           {/* <ServerTimeDisplay /> Commented out as it's not defined/imported in current context */}
           <Card className="bg-gray-800 border-gray-700">

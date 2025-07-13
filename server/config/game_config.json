@@ -1,0 +1,179 @@
+{
+  "aiTeamNames": [
+    "Crystal Phoenixes",
+    "Shadow Wolves",
+    "Thunder Hawks",
+    "Iron Giants",
+    "Crimson Blades",
+    "Azure Dragons",
+    "Golden Eagles",
+    "Storm Riders",
+    "Fire Titans",
+    "Ice Bears",
+    "Lightning Bolts",
+    "Stone Guardians",
+    "Wind Runners",
+    "Flame Warriors",
+    "Star Crusaders",
+    "Night Stalkers",
+    "Silver Arrows",
+    "Blood Ravens",
+    "Frost Lions",
+    "Void Hunters",
+    "Solar Flares",
+    "Dark Knights",
+    "Wild Mustangs",
+    "Ocean Waves",
+    "Mountain Kings",
+    "Desert Scorpions",
+    "Forest Rangers",
+    "Sky Pirates",
+    "Earth Shakers",
+    "Neon Vipers"
+  ],
+  "gameParameters": {
+    "teamSettings": {
+      "startingCredits": 15000,
+      "startingExhibitionCredits": 3,
+      "defaultCamaraderie": 50,
+      "maxPlayersPerTeam": 15,
+      "minPlayersPerTeam": 12,
+      "maxTaxiSquadPlayers": 3
+    },
+    "playerGeneration": {
+      "ageRange": {
+        "min": 18,
+        "max": 35
+      },
+      "statRange": {
+        "min": 6,
+        "max": 20
+      },
+      "potentialRange": {
+        "min": 1.5,
+        "max": 3.5
+      },
+      "positionDistribution": {
+        "passer": 3,
+        "runner": 4,
+        "blocker": 4
+      },
+      "salaryMultipliers": {
+        "basePerStat": 50,
+        "randomVariance": 500,
+        "youngPlayerBonus": 1.1,
+        "veteranPenalty": 0.9
+      }
+    },
+    "seasonSettings": {
+      "totalDays": 17,
+      "regularSeasonDays": 14,
+      "playoffDays": 1,
+      "offSeasonDays": 2,
+      "totalDivisions": 8
+    },
+    "matchSettings": {
+      "gameHours": {
+        "startHour": 17,
+        "endHour": 22
+      },
+      "gameDuration": {
+        "totalMinutes": 20,
+        "halfMinutes": 10,
+        "staggerMinutes": 5
+      },
+      "timezone": "America/Detroit"
+    },
+    "financialSettings": {
+      "defaultTeamFinances": {
+        "ticketSales": 250000,
+        "concessionSales": 75000,
+        "jerseySales": 50000,
+        "sponsorships": 100000,
+        "facilities": 50000,
+        "credits": 50000,
+        "premiumCurrency": 50
+      },
+      "contractSettings": {
+        "defaultContractSeasons": 3,
+        "defaultContractStartSeason": 1
+      }
+    },
+    "staffSettings": {
+      "defaultStaff": [
+        {
+          "name": "Alex Recovery",
+          "type": "recovery_specialist",
+          "level": 1,
+          "salary": 60000,
+          "recoveryRating": 75,
+          "coachingRating": 35
+        },
+        {
+          "name": "Sarah Fitness",
+          "type": "trainer",
+          "level": 1,
+          "salary": 45000,
+          "physicalRating": 80,
+          "coachingRating": 30
+        },
+        {
+          "name": "Mike Offense",
+          "type": "trainer",
+          "level": 1,
+          "salary": 50000,
+          "offenseRating": 85,
+          "coachingRating": 40
+        },
+        {
+          "name": "Lisa Defense",
+          "type": "trainer",
+          "level": 1,
+          "salary": 50000,
+          "defenseRating": 85,
+          "coachingRating": 40
+        },
+        {
+          "name": "Tony Scout",
+          "type": "scout",
+          "level": 1,
+          "salary": 40000,
+          "scoutingRating": 90,
+          "recruitingRating": 70
+        },
+        {
+          "name": "Emma Talent",
+          "type": "scout",
+          "level": 1,
+          "salary": 42000,
+          "scoutingRating": 85,
+          "recruitingRating": 80
+        },
+        {
+          "name": "Coach Williams",
+          "type": "head_coach",
+          "level": 2,
+          "salary": 80000,
+          "coachingRating": 90,
+          "offenseRating": 70,
+          "defenseRating": 70
+        }
+      ]
+    },
+    "uiSettings": {
+      "powerColorThresholds": {
+        "elite": 200,
+        "excellent": 180,
+        "good": 160,
+        "average": 140,
+        "belowAverage": 120
+      },
+      "statColorThresholds": {
+        "elite": 35,
+        "excellent": 28,
+        "good": 20,
+        "belowAverage": 15
+      }
+    }
+  }
+}

@@ -1,0 +1,37 @@
+To test this effectively, I would ideally need to:
+
+Restart the server: Ensure the changes in server/routes/teamRoutes.ts are loaded.
+Make API requests: Send POST requests to the /api/teams endpoint with various team names:
+Names that are clearly profane (e.g., "Damn Lions").
+Names that are clean (e.g., "Brave Tigers").
+Names that might include words that could be part of profane words but are clean themselves (e.g., "Arsenal", "Scunthorpe United" - though the library's wholeWord default should handle this well).
+Names with mixed casing.
+Since I can't directly restart the server or make arbitrary API calls from this environment to your Replit instance, I'll explain how you can test this:
+
+How to Test Manually:
+
+Ensure your Replit server restarts: When you make changes to server files in Replit, it usually restarts the server automatically. Check the Replit console for messages indicating a restart (e.g., [nodemon] starting \node server/index.ts`` or similar).
+Use a tool to make API requests:
+Replit Shell/Console: You can use curl commands directly in the Replit shell.
+First, you'll need to log in to get an auth token if your API requires it. The easiest way to do this for testing is often to log in through the web UI and then inspect network requests (e.g., in your browser's developer tools) to find a Cookie header that includes replit_token or a similar auth cookie.
+Example curl for a bad name (replace YOUR_AUTH_COOKIE_VALUE and your Repl's URL):
+curl -X POST https://YOUR_REPL_NAME.replit.dev/api/teams \
+     -H "Content-Type: application/json" \
+     -H "Cookie: YOUR_AUTH_COOKIE_VALUE" \
+     -d '{"name": "DamnTeam"}'
+You should expect a 400 error with the message "Team name contains inappropriate language."
+Example curl for a good name:
+curl -X POST https://YOUR_REPL_NAME.replit.dev/api/teams \
+     -H "Content-Type: application/json" \
+     -H "Cookie: YOUR_AUTH_COOKIE_VALUE" \
+     -d '{"name": "CleanTeam"}'
+You should expect a 201 success and the team data.
+API Client (like Postman, Insomnia, or VS Code REST Client): These tools provide a more user-friendly interface for making API requests. You would configure them similarly with the URL, method (POST), headers (Content-Type, Cookie), and body.
+Through your game's UI: If your game's UI for creating a team is functional, you can simply try creating teams with different names there and observe the behavior. Check the browser's developer console (Network tab) to see the actual API response.
+Expected Outcomes:
+
+Profane Names: The API should return a 400 Bad Request status code with the JSON response: {"message": "Team name contains inappropriate language."}
+Clean Names: The API should return a 201 Created status code and the new team's data. The zod length validation (1-50 characters) should still apply.
+Based on the library's documentation, it handles common variations and is case-insensitive by default, so you shouldn't need to test too many variations of the same profane word.
+
+Could you perform these tests and let me know the results? If there are any issues, I can help debug them.

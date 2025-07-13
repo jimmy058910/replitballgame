@@ -1,72 +1,281 @@
-import { storage } from "../storage";
-import type { Match, Player } from "@shared/schema";
+import { prisma } from "../db";
+import type { Game, Player, Stadium, Team } from "../../generated/prisma";
+import { commentaryService } from "./commentaryService";
+import { injuryStaminaService } from "./injuryStaminaService";
+import { simulateEnhancedMatch } from "./matchSimulation";
+
+// Helper type for player stats snapshot
+type PlayerStatsSnapshot = {
+  scores: number;
+  passingAttempts: number;
+  passesCompleted: number;
+  passingYards: number;
+  carrierYards: number;
+  catches: number;
+  receivingYards: number;
+  drops: number;
+  fumblesLost: number;
+  tackles: number;
+  knockdownsInflicted: number;
+  interceptionsCaught: number;
+  passesDefended: number;
+};
+
+// Helper type for team stats snapshot
+type TeamStatsSnapshot = {
+  possessionTime: number;
+  turnovers: number;
+  totalYards: number;
+  passYards: number;
+  carrierYards: number;
+  firstDowns: number;
+  penalties: number;
+  penaltyYards: number;
+};
+
 
 interface LiveMatchState {
   matchId: string;
+  homeTeamId: string;
+  awayTeamId: string;
   startTime: Date;
   gameTime: number; // in seconds
   maxTime: number; // total game time in seconds  
   currentHalf: 1 | 2;
-  team1Score: number;
-  team2Score: number;
+  homeScore: number;
+  awayScore: number;
   status: 'live' | 'completed' | 'paused';
   gameEvents: MatchEvent[];
   lastUpdateTime: Date;
+
+  // Detailed in-match stats
+  playerStats: Map<string, PlayerStatsSnapshot>; // Keyed by playerId
+  teamStats: Map<string, TeamStatsSnapshot>; // Keyed by teamId (home/away)
+
+  // Possession tracking
+  possessingTeamId: string | null; // Which team has the ball
+  possessionStartTime: number; // Game time when current possession started
 }
 
 interface MatchEvent {
   time: number;
-  type: string;
+  type: string; // e.g., 'pass_attempt', 'pass_complete', 'rush', 'tackle', 'score', 'interception', 'fumble'
   description: string;
-  player?: string;
-  team?: string;
-  data?: any;
+  actingPlayerId?: string; // Player performing the action
+  targetPlayerId?: string; // Player targeted (e.g., receiver)
+  defensivePlayerId?: string; // Player making a defensive play
+  teamId?: string; // Team associated with the event (e.g., team that scored)
+  data?: any; // yards, new ball position, etc.
 }
 
 class MatchStateManager {
   private liveMatches: Map<string, LiveMatchState> = new Map();
   private matchIntervals: Map<string, NodeJS.Timeout> = new Map();
 
+  // Save live match state to database
+  private async saveLiveStateToDatabase(matchId: string, liveState: LiveMatchState): Promise<void> {
+    try {
+      // Convert Maps to objects for JSON storage
+      const playerStatsObj: Record<string, PlayerStatsSnapshot> = {};
+      liveState.playerStats.forEach((stats, playerId) => {
+        playerStatsObj[playerId] = stats;
+      });
+
+      const teamStatsObj: Record<string, TeamStatsSnapshot> = {};
+      liveState.teamStats.forEach((stats, teamId) => {
+        teamStatsObj[teamId] = stats;
+      });
+
+      const persistableState = {
+        ...liveState,
+        playerStats: playerStatsObj,
+        teamStats: teamStatsObj,
+        lastSavedAt: new Date().toISOString()
+      };
+
+      await prisma.game.update({
+        where: { id: parseInt(matchId) },
+        data: {
+          simulationLog: persistableState,
+          homeScore: liveState.homeScore,
+          awayScore: liveState.awayScore,
+          status: liveState.status === 'live' ? 'IN_PROGRESS' : 
+                  liveState.status === 'completed' ? 'COMPLETED' : 'IN_PROGRESS'
+        }
+      });
+    } catch (error) {
+      console.error(`Failed to save live state for match ${matchId}:`, error);
+    }
+  }
+
+  // Load live match state from database
+  private async loadLiveStateFromDatabase(matchId: string): Promise<LiveMatchState | null> {
+    try {
+      const match = await prisma.game.findUnique({
+        where: { id: parseInt(matchId) }
+      });
+
+      if (!match || !match.simulationLog || match.status !== 'IN_PROGRESS') {
+        return null;
+      }
+
+      const persistedState = match.simulationLog as any;
+      
+      // Convert objects back to Maps
+      const playerStats = new Map<string, PlayerStatsSnapshot>();
+      if (persistedState.playerStats) {
+        Object.entries(persistedState.playerStats).forEach(([playerId, stats]) => {
+          playerStats.set(playerId, stats as PlayerStatsSnapshot);
+        });
+      }
+
+      const teamStats = new Map<string, TeamStatsSnapshot>();
+      if (persistedState.teamStats) {
+        Object.entries(persistedState.teamStats).forEach(([teamId, stats]) => {
+          teamStats.set(teamId, stats as TeamStatsSnapshot);
+        });
+      }
+
+      const liveState: LiveMatchState = {
+        ...persistedState,
+        playerStats,
+        teamStats,
+        startTime: new Date(persistedState.startTime),
+        lastUpdateTime: new Date(persistedState.lastUpdateTime || persistedState.startTime),
+        gameEvents: persistedState.gameEvents || []
+      };
+
+      console.log(`🔄 Restored live state for match ${matchId} with ${liveState.gameEvents.length} events`);
+      return liveState;
+    } catch (error) {
+      console.error(`Failed to load live state for match ${matchId}:`, error);
+      return null;
+    }
+  }
+
+  // Auto-recovery: Restore all active live matches from database on server start
+  async recoverLiveMatches(): Promise<void> {
+    try {
+      const activeMatches = await prisma.game.findMany({
+        where: { 
+          status: 'IN_PROGRESS',
+          simulationLog: { not: null }
+        }
+      });
+
+      console.log(`🔄 Attempting to recover ${activeMatches.length} live matches from database`);
+
+      for (const match of activeMatches) {
+        const liveState = await this.loadLiveStateFromDatabase(match.id.toString());
+        if (liveState) {
+          this.liveMatches.set(match.id.toString(), liveState);
+          
+          // Get players for continued simulation
+          const homeTeamPlayers = await prisma.player.findMany({
+            where: { teamId: match.homeTeamId, isOnMarket: false }
+          });
+          const awayTeamPlayers = await prisma.player.findMany({
+            where: { teamId: match.awayTeamId, isOnMarket: false }
+          });
+
+          // Resume match simulation
+          this.startMatchSimulation(match.id.toString(), homeTeamPlayers, awayTeamPlayers);
+          console.log(`✅ Recovered live match ${match.id} with ${liveState.gameEvents.length} events`);
+        }
+      }
+    } catch (error) {
+      console.error("Failed to recover live matches:", error);
+    }
+  }
+
   // Start a new live match with server-side state management
   async startLiveMatch(matchId: string, isExhibition: boolean = false): Promise<LiveMatchState> {
-    const match = await storage.getMatchById(matchId);
+    const match = await prisma.game.findUnique({
+      where: { id: parseInt(matchId) }
+    });
+    
     if (!match) {
       throw new Error("Match not found");
     }
 
     // Get team players for simulation
-    const homeTeamPlayers = await storage.getPlayersByTeamId(match.homeTeamId);
-    const awayTeamPlayers = await storage.getPlayersByTeamId(match.awayTeamId);
+    const homeTeamPlayers = await prisma.player.findMany({
+      where: { 
+        teamId: match.homeTeamId,
+        isOnMarket: false
+      }
+    });
+    
+    const awayTeamPlayers = await prisma.player.findMany({
+      where: { 
+        teamId: match.awayTeamId,
+        isOnMarket: false
+      }
+    });
 
     const maxTime = isExhibition ? 1200 : 1800; // 20 min exhibition, 30 min league
+
+    const initialPlayerStats = new Map<string, PlayerStatsSnapshot>();
+    const allPlayers = [...homeTeamPlayers, ...awayTeamPlayers];
+    allPlayers.forEach(player => {
+      initialPlayerStats.set(player.id.toString(), {
+        scores: 0, passingAttempts: 0, passesCompleted: 0, passingYards: 0,
+        carrierYards: 0, catches: 0, receivingYards: 0, drops: 0, fumblesLost: 0,
+        tackles: 0, knockdownsInflicted: 0, interceptionsCaught: 0, passesDefended: 0,
+      });
+    });
+
+    const initialTeamStats = new Map<string, TeamStatsSnapshot>();
+    initialTeamStats.set(match.homeTeamId.toString(), {
+      totalOffensiveYards: 0, passingYards: 0, carrierYards: 0,
+      timeOfPossessionSeconds: 0, turnovers: 0, totalKnockdownsInflicted: 0,
+    });
+    initialTeamStats.set(match.awayTeamId.toString(), {
+      totalOffensiveYards: 0, passingYards: 0, carrierYards: 0,
+      timeOfPossessionSeconds: 0, turnovers: 0, totalKnockdownsInflicted: 0,
+    });
+
+    // Determine initial possession (e.g., coin toss or home team starts)
+    const initialPossessingTeam = Math.random() < 0.5 ? match.homeTeamId : match.awayTeamId;
+
     const matchState: LiveMatchState = {
       matchId,
+      homeTeamId: match.homeTeamId,
+      awayTeamId: match.awayTeamId,
       startTime: new Date(),
       gameTime: 0,
       maxTime,
       currentHalf: 1,
-      team1Score: 0,
-      team2Score: 0,
+      homeScore: 0,
+      awayScore: 0,
       status: 'live',
       gameEvents: [{
         time: 0,
         type: 'kickoff',
-        description: 'Match begins!',
+        description: commentaryService.generateKickoffCommentary(initialPossessingTeam === match.homeTeamId ? 'Home' : 'Away'),
+        teamId: initialPossessingTeam,
         data: { homeTeam: match.homeTeamId, awayTeam: match.awayTeamId }
       }],
-      lastUpdateTime: new Date()
+      lastUpdateTime: new Date(),
+      playerStats: initialPlayerStats,
+      teamStats: initialTeamStats,
+      possessingTeamId: initialPossessingTeam,
+      possessionStartTime: 0,
     };
 
     this.liveMatches.set(matchId, matchState);
     
+    // Set appropriate stamina levels for match type (risk-free for exhibitions)
+    const gameMode = isExhibition ? 'exhibition' : match.matchType === 'tournament' ? 'tournament' : 'league';
+    for (const player of allPlayers) {
+      await injuryStaminaService.setMatchStartStamina(player.id, gameMode);
+    }
+    
     // Start the match simulation loop
     this.startMatchSimulation(matchId, homeTeamPlayers, awayTeamPlayers);
     
-    // Update match status in database
-    await storage.updateMatch(matchId, { 
-      status: 'live',
-      scheduledTime: new Date()
-    });
+    // Save initial state to database
+    await this.saveLiveStateToDatabase(matchId, matchState);
 
     return matchState;
   }
@@ -77,14 +286,19 @@ class MatchStateManager {
   }
 
   // Synchronize client with server state
-  async syncMatchState(matchId: string): Promise<LiveMatchState | null> {
-    const state = this.liveMatches.get(matchId);
+  async syncMatchState(matchId: string | number): Promise<LiveMatchState | null> {
+    const matchIdStr = matchId.toString();
+    const matchIdNum = parseInt(matchIdStr);
+    
+    const state = this.liveMatches.get(matchIdStr);
     if (!state) {
       // Check if match exists in database but not in memory
-      const match = await storage.getMatchById(matchId);
-      if (match && match.status === 'live') {
+      const match = await prisma.game.findFirst({
+        where: { id: matchIdNum }
+      });
+      if (match && match.status === 'IN_PROGRESS') {
         // Restart the match state from database
-        return await this.restartMatchFromDatabase(matchId);
+        return await this.restartMatchFromDatabase(matchIdStr);
       }
       return null;
     }
@@ -95,62 +309,44 @@ class MatchStateManager {
   }
 
   private async restartMatchFromDatabase(matchId: string): Promise<LiveMatchState | null> {
-    const match = await storage.getMatchById(matchId);
-    if (!match || match.status !== 'live') {
+    try {
+      const liveState = await this.loadLiveStateFromDatabase(matchId);
+      if (!liveState) {
+        return null;
+      }
+
+      this.liveMatches.set(matchId, liveState);
+
+      // Get players for continued simulation
+      const homeTeamPlayers = await prisma.player.findMany({
+        where: { teamId: liveState.homeTeamId, isOnMarket: false }
+      });
+      const awayTeamPlayers = await prisma.player.findMany({
+        where: { teamId: liveState.awayTeamId, isOnMarket: false }
+      });
+
+      // Resume match simulation if not completed
+      if (liveState.status === 'live') {
+        this.startMatchSimulation(matchId, homeTeamPlayers, awayTeamPlayers);
+      }
+
+      console.log(`🔄 Restarted match ${matchId} from database with ${liveState.gameEvents.length} events`);
+      return liveState;
+    } catch (error) {
+      console.error(`Failed to restart match ${matchId} from database:`, error);
       return null;
     }
-
-    // Calculate elapsed time since match started
-    const startTime = match.scheduledTime || match.createdAt;
-    if (!startTime) {
-      return null;
-    }
-    const elapsedSeconds = Math.floor((Date.now() - startTime.getTime()) / 1000);
-    const isExhibition = match.matchType === 'exhibition';
-    const maxTime = isExhibition ? 1200 : 1800;
-
-    // If match should have ended, complete it
-    if (elapsedSeconds >= maxTime) {
-      await this.completeMatch(matchId);
-      return null;
-    }
-
-    // Reconstruct match state
-    const currentHalf = elapsedSeconds < (maxTime / 2) ? 1 : 2;
-    const matchState: LiveMatchState = {
-      matchId,
-      startTime: startTime,
-      gameTime: elapsedSeconds,
-      maxTime,
-      currentHalf,
-      team1Score: match.homeScore || 0,
-      team2Score: match.awayScore || 0,
-      status: 'live',
-      gameEvents: (match.gameData as any)?.events || [],
-      lastUpdateTime: new Date()
-    };
-
-    this.liveMatches.set(matchId, matchState);
-
-    // Resume simulation
-    const homeTeamPlayers = await storage.getPlayersByTeamId(match.homeTeamId);
-    const awayTeamPlayers = await storage.getPlayersByTeamId(match.awayTeamId);
-    this.startMatchSimulation(matchId, homeTeamPlayers, awayTeamPlayers);
-
-    return matchState;
   }
 
   private startMatchSimulation(matchId: string, homeTeamPlayers: Player[], awayTeamPlayers: Player[]) {
-    // Clear existing interval if any
     const existingInterval = this.matchIntervals.get(matchId);
     if (existingInterval) {
       clearInterval(existingInterval);
     }
 
-    // Update every 3 seconds (3x speed: 3 real seconds = 9 game seconds)
     const interval = setInterval(async () => {
       await this.updateMatchState(matchId, homeTeamPlayers, awayTeamPlayers);
-    }, 3000);
+    }, 3000); // 3 real seconds = 9 game seconds (3x speed)
 
     this.matchIntervals.set(matchId, interval);
   }
@@ -161,147 +357,569 @@ class MatchStateManager {
       return;
     }
 
-    // Advance game time by 9 seconds (3x speed)
-    state.gameTime += 9;
+    const gameTimeIncrement = 9; // 9 game seconds per tick
+    state.gameTime += gameTimeIncrement;
     state.lastUpdateTime = new Date();
 
-    // Check for half-time
-    if (state.currentHalf === 1 && state.gameTime >= state.maxTime / 2) {
-      state.currentHalf = 2;
-      state.gameEvents.push({
-        time: state.gameTime,
-        type: 'halftime',
-        description: 'Half-time break',
-      });
-    }
-
-    // Generate random events
-    if (Math.random() < 0.4) { // 40% chance of event each update
-      const event = this.generateMatchEvent(state.gameTime, homeTeamPlayers, awayTeamPlayers, state);
-      state.gameEvents.push(event);
-
-      // Update scores
-      if (event.type === 'score') {
-        if (event.team === 'home') {
-          state.team1Score++;
-        } else {
-          state.team2Score++;
-        }
+    // Update Time of Possession for current possessing team
+    if (state.possessingTeamId) {
+      const teamStats = state.teamStats.get(state.possessingTeamId);
+      if (teamStats) {
+        teamStats.timeOfPossessionSeconds += gameTimeIncrement;
       }
     }
 
-    // Check if match is complete
+    if (state.currentHalf === 1 && state.gameTime >= state.maxTime / 2) {
+      this.handlePossessionChange(state, state.possessingTeamId, null, state.gameTime); // End of half might mean ball goes to other team or neutral
+      state.currentHalf = 2;
+      
+      // Calculate current MVP for halftime display
+      const currentMVP = this.calculateCurrentMVP(state, homePlayers, awayPlayers);
+      
+      // Generate halftime event with team stats and MVP
+      const halftimeStats = this.generateHalftimeStats(state, currentMVP);
+      state.gameEvents.push({
+        time: state.gameTime,
+        type: 'halftime',
+        description: commentaryService.generateHalftimeCommentary(),
+        data: halftimeStats
+      });
+      
+      // Typically, the team that kicked off to start the game receives the ball in the second half.
+      // For simplicity, let's give it to the team that didn't have it last, or random if null.
+      const newPossessingTeam = state.possessingTeamId === state.homeTeamId ? state.awayTeamId : state.homeTeamId;
+      this.handlePossessionChange(state, null, newPossessingTeam, state.gameTime);
+    }
+
+    // Generate enhanced match events using the comprehensive simulation engine
+    if (Math.random() < 0.7) { // 70% chance of an event each update cycle
+      try {
+        const enhancedEvent = await this.generateEnhancedMatchEvent(homeTeamPlayers, awayTeamPlayers, state);
+        if (enhancedEvent) {
+          state.gameEvents.push(enhancedEvent);
+          console.log(`[DEBUG] Generated event: ${enhancedEvent.type} by ${enhancedEvent.actingPlayerId}`);
+        } else {
+          console.log(`[DEBUG] Event generation returned null`);
+        }
+      } catch (error) {
+        console.error(`[ERROR] Event generation failed:`, error);
+      }
+    }
+
     if (state.gameTime >= state.maxTime) {
-      await this.completeMatch(matchId);
+      await this.completeMatch(matchId, state.homeTeamId, state.awayTeamId, homeTeamPlayers, awayTeamPlayers);
       return;
     }
 
-    // Update database periodically
+    // Save state to database periodically
     if (state.gameTime % 30 === 0) { // Every 30 game seconds
-      await storage.updateMatch(matchId, {
-        homeScore: state.team1Score,
-        awayScore: state.team2Score,
-        gameData: {
-          events: state.gameEvents.slice(-20), // Keep last 20 events
-          currentTime: state.gameTime,
-          currentHalf: state.currentHalf
-        }
-      });
+      await this.saveLiveStateToDatabase(matchId, state);
     }
   }
 
-  private generateMatchEvent(time: number, homeTeamPlayers: Player[], awayTeamPlayers: Player[], state: LiveMatchState): MatchEvent {
-    const isHomeTeam = Math.random() < 0.5;
-    const team = isHomeTeam ? 'home' : 'away';
-    const players = isHomeTeam ? homeTeamPlayers : awayTeamPlayers;
-    
-    if (players.length === 0) {
-      return {
-        time,
-        type: 'play',
-        description: 'Play continues...',
-        team
-      };
+  private handlePossessionChange(state: LiveMatchState, oldPossessingTeamId: string | null, newPossessingTeamId: string | null, gameTime: number) {
+    if (oldPossessingTeamId && oldPossessingTeamId !== newPossessingTeamId) {
+      const possessionDuration = gameTime - state.possessionStartTime;
+      const teamStats = state.teamStats.get(oldPossessingTeamId);
+      if (teamStats) {
+        // This was adding increment twice, time is added per tick now.
+        // teamStats.timeOfPossessionSeconds += possessionDuration;
+      }
     }
+    state.possessingTeamId = newPossessingTeamId;
+    state.possessionStartTime = gameTime;
+  }
 
-    const randomPlayer = players[Math.floor(Math.random() * players.length)];
-    const eventTypes = ['pass', 'run', 'tackle', 'interception', 'score'];
+  // ### Main Event Generation Logic ###
+  private async generateEnhancedMatchEvent(homePlayers: Player[], awayPlayers: Player[], state: LiveMatchState): Promise<MatchEvent | null> {
+    // Generate a single incremental event using enhanced mechanics
+    const gamePhase = this.determineGamePhase(state.gameTime, state.maxTime);
+    
+    // Choose a random active player to generate event for
+    const allPlayers = [...homePlayers, ...awayPlayers];
+    const activePlayer = allPlayers[Math.floor(Math.random() * allPlayers.length)];
+    const isHomeTeam = activePlayer.teamId.toString() === state.homeTeamId;
+    
+    // Generate event based on player role and current situation
+    const eventTypes = ['pass', 'run', 'tackle', 'score', 'fumble', 'interception'];
     const eventType = eventTypes[Math.floor(Math.random() * eventTypes.length)];
-
-    let description = '';
+    
+    // Get player stats for this match
+    const playerStats = state.playerStats.get(activePlayer.id.toString());
+    if (!playerStats) return null;
+    
+    // Generate event based on type and update stats
+    let event: MatchEvent;
+    const teamType = isHomeTeam ? 'home' : 'away';
     
     switch (eventType) {
       case 'pass':
-        description = `${randomPlayer.lastName} completes a pass down field!`;
+        const passSuccess = Math.random() < 0.65; // 65% completion rate
+        const passYards = Math.floor(Math.random() * 25) + 5;
+        // Get a random teammate as the receiver
+        const teamPlayers = isHomeTeam ? homePlayers : awayPlayers;
+        const receiver = teamPlayers[Math.floor(Math.random() * teamPlayers.length)];
+        
+        if (passSuccess) {
+          playerStats.passingAttempts += 1;
+          playerStats.passesCompleted += 1;
+          playerStats.passingYards += passYards;
+          // Update receiver stats
+          const receiverStats = state.playerStats.get(receiver.id.toString());
+          if (receiverStats) {
+            receiverStats.catches += 1;
+            receiverStats.receivingYards += passYards;
+          }
+          event = {
+            time: state.gameTime,
+            type: 'pass',
+            description: `${activePlayer.firstName} ${activePlayer.lastName} completes a ${passYards}-yard pass to ${receiver.firstName} ${receiver.lastName}!`,
+            actingPlayerId: activePlayer.id.toString(),
+            targetPlayerId: receiver.id.toString(),
+            teamId: teamType,
+            data: { yards: passYards }
+          };
+        } else {
+          playerStats.passingAttempts += 1;
+          // Update receiver stats for drop
+          const receiverStats = state.playerStats.get(receiver.id.toString());
+          if (receiverStats) {
+            receiverStats.drops += 1;
+          }
+          event = {
+            time: state.gameTime,
+            type: 'pass',
+            description: `${activePlayer.firstName} ${activePlayer.lastName} attempts a pass to ${receiver.firstName} ${receiver.lastName}, but it falls incomplete.`,
+            actingPlayerId: activePlayer.id.toString(),
+            targetPlayerId: receiver.id.toString(),
+            teamId: teamType,
+            data: { yards: 0 }
+          };
+        }
         break;
+        
       case 'run':
-        description = `${randomPlayer.lastName} breaks through the defense!`;
+        const runYards = Math.floor(Math.random() * 15) + 1;
+        playerStats.carrierYards += runYards;
+        event = {
+          time: state.gameTime,
+          type: 'run',
+          description: `${activePlayer.firstName} ${activePlayer.lastName} carries the orb for ${runYards} yards through the scrum!`,
+          actingPlayerId: activePlayer.id.toString(),
+          teamId: teamType,
+          data: { yards: runYards }
+        };
         break;
+        
       case 'tackle':
-        description = `${randomPlayer.lastName} makes a solid tackle!`;
+        playerStats.tackles += 1;
+        // Get a random opponent as the ball carrier
+        const opponentPlayers = isHomeTeam ? awayPlayers : homePlayers;
+        const ballCarrier = opponentPlayers[Math.floor(Math.random() * opponentPlayers.length)];
+        
+        event = {
+          time: state.gameTime,
+          type: 'tackle',
+          description: `${activePlayer.firstName} ${activePlayer.lastName} makes a solid tackle to bring down ${ballCarrier.firstName} ${ballCarrier.lastName}!`,
+          actingPlayerId: activePlayer.id.toString(),
+          targetPlayerId: ballCarrier.id.toString(),
+          teamId: teamType,
+          data: {}
+        };
         break;
-      case 'interception':
-        description = `${randomPlayer.lastName} intercepts the ball!`;
-        break;
+        
       case 'score':
-        description = `SCORE! ${randomPlayer.lastName} reaches the end zone!`;
+        if (Math.random() < 0.12) { // 12% chance of scoring (increased from 5%)
+          playerStats.scores += 1;
+          if (isHomeTeam) {
+            state.homeScore += 1;
+          } else {
+            state.awayScore += 1;
+          }
+          event = {
+            time: state.gameTime,
+            type: 'score',
+            description: `SCORE! ${activePlayer.firstName} ${activePlayer.lastName} finds the end zone! What a magnificent effort!`,
+            actingPlayerId: activePlayer.id.toString(),
+            teamId: teamType,
+            data: { score: 1 }
+          };
+        } else {
+          // Default to tackle if score doesn't happen
+          return this.generateEnhancedMatchEvent(homePlayers, awayPlayers, state);
+        }
         break;
+        
+      case 'interception':
+        if (Math.random() < 0.03) { // 3% chance of interception
+          playerStats.interceptionsCaught += 1;
+          event = {
+            time: state.gameTime,
+            type: 'interception',
+            description: `${activePlayer.firstName} ${activePlayer.lastName} reads the play perfectly and intercepts the orb!`,
+            actingPlayerId: activePlayer.id.toString(),
+            teamId: teamType,
+            data: {}
+          };
+        } else {
+          // Default to tackle if interception doesn't happen
+          return this.generateEnhancedMatchEvent(homePlayers, awayPlayers, state);
+        }
+        break;
+        
+      default:
+        // Default tackle event
+        playerStats.tackles += 1;
+        // Get a random opponent as the ball carrier
+        const defaultOpponentPlayers = isHomeTeam ? awayPlayers : homePlayers;
+        const defaultBallCarrier = defaultOpponentPlayers[Math.floor(Math.random() * defaultOpponentPlayers.length)];
+        
+        event = {
+          time: state.gameTime,
+          type: 'tackle',
+          description: `${activePlayer.firstName} ${activePlayer.lastName} makes a defensive play to stop ${defaultBallCarrier.firstName} ${defaultBallCarrier.lastName}!`,
+          actingPlayerId: activePlayer.id.toString(),
+          targetPlayerId: defaultBallCarrier.id.toString(),
+          teamId: teamType,
+          data: {}
+        };
     }
+    
+    return event;
+  }
+  
+  private determineGamePhase(time: number, maxTime: number): string {
+    const timePercent = time / maxTime;
+    
+    // Check for halftime (exactly at 50% of total game time)
+    if (timePercent >= 0.48 && timePercent <= 0.52) {
+      return 'halftime';
+    }
+    
+    // Calculate game phase based on total game time, not halves
+    if (timePercent < 0.25) return 'early';      // First 25% of total game
+    if (timePercent < 0.65) return 'middle';     // 25-65% of total game  
+    if (timePercent < 0.85) return 'late';       // 65-85% of total game
+    return 'clutch';                             // Final 15% of total game
+  }
 
+  private calculateCurrentMVP(state: LiveMatchState, homePlayers: Player[], awayPlayers: Player[]) {
+    let homeMVP = { playerId: '', playerName: '', score: 0 };
+    let awayMVP = { playerId: '', playerName: '', score: 0 };
+    
+    for (const [playerId, stats] of state.playerStats.entries()) {
+      const player = [...homePlayers, ...awayPlayers].find(p => p.id.toString() === playerId);
+      if (!player) continue;
+      
+      const mvpScore = (stats.scores * 10) + (stats.passingYards * 0.1) + (stats.carrierYards * 0.15) + 
+                      (stats.catches * 2) + (stats.tackles * 1.5) + (stats.interceptionsCaught * 8);
+      
+      if (player.teamId.toString() === state.homeTeamId) {
+        if (mvpScore > homeMVP.score) {
+          homeMVP = { playerId, playerName: `${player.firstName} ${player.lastName}`, score: mvpScore };
+        }
+      } else {
+        if (mvpScore > awayMVP.score) {
+          awayMVP = { playerId, playerName: `${player.firstName} ${player.lastName}`, score: mvpScore };
+        }
+      }
+    }
+    
+    return { homeMVP, awayMVP };
+  }
+
+  private generateHalftimeStats(state: LiveMatchState, mvp: any) {
+    const homeStats = state.teamStats.get(state.homeTeamId);
+    const awayStats = state.teamStats.get(state.awayTeamId);
+    
     return {
-      time,
-      type: eventType,
-      description,
-      player: randomPlayer.lastName,
-      team,
-      data: { playerId: randomPlayer.id }
+      homeScore: state.homeScore,
+      awayScore: state.awayScore,
+      homeStats: homeStats ? {
+        possessionTime: Math.floor(homeStats.possessionTime / 60),
+        totalYards: homeStats.totalYards,
+        turnovers: homeStats.turnovers
+      } : null,
+      awayStats: awayStats ? {
+        possessionTime: Math.floor(awayStats.possessionTime / 60),
+        totalYards: awayStats.totalYards,
+        turnovers: awayStats.turnovers
+      } : null,
+      mvp: mvp
     };
   }
 
-  private async completeMatch(matchId: string): Promise<void> {
+  // OLD BASIC SIMULATION ENGINE REMOVED - Only enhanced simulation is now used
+
+
+  private async completeMatch(matchId: string, homeTeamId: string, awayTeamId: string, homePlayers: Player[], awayPlayers: Player[]): Promise<void> {
     const state = this.liveMatches.get(matchId);
     if (!state) return;
 
+    // Get match details to check if it's an exhibition match
+    const matchDetails = await prisma.game.findFirst({
+      where: { id: parseInt(matchId.toString()) }
+    });
+    const isExhibitionMatch = matchDetails?.matchType === 'exhibition';
+
+    // Final possession update
+    if (state.possessingTeamId) {
+       const possessionDuration = state.gameTime - state.possessionStartTime;
+       const teamStats = state.teamStats.get(state.possessingTeamId);
+       if (teamStats) {
+        // teamStats.timeOfPossessionSeconds += possessionDuration; // Already added per tick
+       }
+    }
+
     state.status = 'completed';
     
-    // Clear interval
+    // Calculate final MVP for match completion
+    const finalMVP = this.calculateCurrentMVP(state, homePlayers, awayPlayers);
+    
+    // Add final match completion event with results and MVP
+    state.gameEvents.push({
+      time: state.gameTime,
+      type: 'match_complete',
+      description: `FINAL SCORE: ${state.homeScore} - ${state.awayScore}`,
+      data: {
+        finalScore: { home: state.homeScore, away: state.awayScore },
+        mvp: finalMVP,
+        status: 'COMPLETED'
+      }
+    });
+    
+    // Clear the match interval
     const interval = this.matchIntervals.get(matchId);
     if (interval) {
       clearInterval(interval);
       this.matchIntervals.delete(matchId);
     }
+    
+    // Remove from live matches to prevent it from showing as live
+    this.liveMatches.delete(matchId);
 
-    // Update database with final results
-    await storage.updateMatch(matchId, {
-      status: 'completed',
-      homeScore: state.team1Score,
-      awayScore: state.team2Score,
-      completedAt: new Date(),
-      gameData: {
-        events: state.gameEvents,
-        finalStats: {
-          duration: state.gameTime,
-          halves: state.currentHalf
+    // Persist detailed player and team stats
+    try {
+      const playerUpdates: Promise<any>[] = [];
+
+      // Convert maps to objects for storage in simulationLog
+      const playerStatsObj: Record<string, any> = {};
+      const teamStatsObj: Record<string, any> = {};
+
+      for (const [playerId, pStats] of state.playerStats.entries()) {
+        playerStatsObj[playerId] = pStats;
+
+        // Update lifetime stats (skip for exhibition matches to maintain risk-free gameplay)
+        if (!isExhibitionMatch) {
+          const playerToUpdate = await prisma.player.findFirst({
+            where: { id: parseInt(playerId) }
+          });
+          if (playerToUpdate) {
+            const updatedLifetimeStats: Partial<Player> = {
+              totalGamesPlayed: (playerToUpdate.totalGamesPlayed || 0) + 1,
+              totalScores: (playerToUpdate.totalScores || 0) + (pStats.scores || 0),
+              totalPassingAttempts: (playerToUpdate.totalPassingAttempts || 0) + (pStats.passingAttempts || 0),
+              totalPassesCompleted: (playerToUpdate.totalPassesCompleted || 0) + (pStats.passesCompleted || 0),
+              totalPassingYards: (playerToUpdate.totalPassingYards || 0) + (pStats.passingYards || 0),
+              totalCarrierYards: (playerToUpdate.totalCarrierYards || 0) + (pStats.carrierYards || 0),
+              totalCatches: (playerToUpdate.totalCatches || 0) + (pStats.catches || 0),
+              totalReceivingYards: (playerToUpdate.totalReceivingYards || 0) + (pStats.receivingYards || 0),
+              totalDrops: (playerToUpdate.totalDrops || 0) + (pStats.drops || 0),
+              totalFumblesLost: (playerToUpdate.totalFumblesLost || 0) + (pStats.fumblesLost || 0),
+              totalTackles: (playerToUpdate.totalTackles || 0) + (pStats.tackles || 0),
+              totalKnockdownsInflicted: (playerToUpdate.totalKnockdownsInflicted || 0) + (pStats.knockdownsInflicted || 0),
+              totalInterceptionsCaught: (playerToUpdate.totalInterceptionsCaught || 0) + (pStats.interceptionsCaught || 0),
+              totalPassesDefended: (playerToUpdate.totalPassesDefended || 0) + (pStats.passesDefended || 0),
+            };
+            playerUpdates.push(prisma.player.update({
+              where: { id: parseInt(playerId) },
+              data: updatedLifetimeStats
+            }));
+          }
         }
       }
-    });
 
-    // Remove from active matches
+      for (const [teamId, tStats] of state.teamStats.entries()) {
+        teamStatsObj[teamId] = tStats;
+      }
+
+      // Update player lifetime stats if not exhibition
+      if (playerUpdates.length > 0 && !isExhibitionMatch) {
+        await Promise.all(playerUpdates);
+      }
+
+      // Update the match itself - check if it exists first
+      const existingGame = await prisma.game.findUnique({
+        where: { id: parseInt(matchId) }
+      });
+      
+      if (existingGame) {
+        await prisma.game.update({
+          where: { id: parseInt(matchId) },
+          data: {
+            status: 'COMPLETED',
+            homeScore: state.homeScore,
+            awayScore: state.awayScore,
+            simulationLog: {
+              events: state.gameEvents.slice(-50), // Store last 50 events
+              finalScores: { home: state.homeScore, away: state.awayScore },
+              playerStats: playerStatsObj,
+              teamStats: teamStatsObj,
+              completed: true
+            }
+          }
+        });
+      } else {
+        console.warn(`Game ${matchId} not found in database, cannot update completion status`);
+      }
+
+      console.log(`Match ${matchId} stats persisted successfully.`);
+
+    } catch (error) {
+      console.error(`Error persisting stats for match ${matchId}:`, error);
+      
+      // Check if the game exists before trying to update it
+      try {
+        const existingGame = await prisma.game.findUnique({
+          where: { id: parseInt(matchId) }
+        });
+        
+        if (existingGame) {
+          // Game exists, update it with error info
+          await prisma.game.update({
+            where: { id: parseInt(matchId) },
+            data: {
+              status: 'COMPLETED',
+              homeScore: state.homeScore,
+              awayScore: state.awayScore,
+              simulationLog: {
+                events: state.gameEvents.slice(-50),
+                finalScores: { home: state.homeScore, away: state.awayScore },
+                error: `Error persisting stats: ${(error as Error).message}`
+              }
+            }
+          });
+        } else {
+          console.warn(`Game ${matchId} not found in database, cannot update completion status`);
+        }
+      } catch (updateError) {
+        console.error(`Error updating game ${matchId} after stats error:`, updateError);
+        // Continue with match cleanup even if we can't update the database
+      }
+    }
+
+    // Apply stamina depletion after match completion (skip for exhibition matches)
+    if (!isExhibitionMatch) {
+      const gameMode = matchDetails?.matchType === 'tournament' ? 'tournament' : 'league';
+      for (const player of [...homePlayers, ...awayPlayers]) {
+        await injuryStaminaService.depleteStaminaAfterMatch(player.id, gameMode);
+      }
+    } else {
+      // Award exhibition credits and team camaraderie for risk-free matches
+      await this.awardExhibitionRewards(state.homeTeamId, state.awayTeamId, state.homeScore, state.awayScore);
+    }
+
     this.liveMatches.delete(matchId);
-    console.log(`Match ${matchId} completed with score ${state.team1Score}-${state.team2Score}`);
+    console.log(`Match ${matchId} completed with score ${state.homeScore}-${state.awayScore}${isExhibitionMatch ? ' (Exhibition - Risk-Free)' : ''}`);
   }
 
-  // Stop a match manually
   async stopMatch(matchId: string): Promise<void> {
+    console.log(`🔍 stopMatch called for matchId: ${matchId}`);
     const state = this.liveMatches.get(matchId);
+    console.log(`🎯 Live match state found: ${state ? 'YES' : 'NO'}`);
+    
     if (state) {
-      await this.completeMatch(matchId);
+      console.log(`🏈 Completing match: ${matchId} between teams ${state.homeTeamId} and ${state.awayTeamId}`);
+      try {
+        // Need to pass all required parameters to completeMatch
+        const homePlayers = await prisma.player.findMany({
+          where: { teamId: parseInt(state.homeTeamId) }
+        });
+        const awayPlayers = await prisma.player.findMany({
+          where: { teamId: parseInt(state.awayTeamId) }
+        });
+        console.log(`👥 Found ${homePlayers.length} home players and ${awayPlayers.length} away players`);
+        await this.completeMatch(parseInt(matchId), state.homeTeamId, state.awayTeamId, homePlayers, awayPlayers);
+        console.log(`✅ Match ${matchId} completion successful`);
+      } catch (error) {
+        console.error(`❌ Error completing match ${matchId}:`, error);
+        throw error;
+      }
+    } else {
+      console.warn(`⚠️  Match ${matchId} not found in live matches. Available matches: ${Array.from(this.liveMatches.keys()).join(', ')}`);
     }
   }
 
   // Get all active matches
   getActiveMatches(): LiveMatchState[] {
     return Array.from(this.liveMatches.values());
+  }
+
+  /**
+   * Award exhibition match rewards based on match result
+   * Rewards structure: Win: 500₡, Tie: 200₡, Loss: 100₡
+   * Also provides team camaraderie boost for winning teams
+   */
+  private async awardExhibitionRewards(homeTeamId: string, awayTeamId: string, homeScore: number, awayScore: number): Promise<void> {
+    try {
+      let homeCredits = 100; // Default for loss
+      let awayCredits = 100; // Default for loss
+      let winningTeamId: string | null = null;
+
+      // Determine match result and credit rewards
+      if (homeScore > awayScore) {
+        homeCredits = 500; // Win
+        winningTeamId = homeTeamId;
+      } else if (awayScore > homeScore) {
+        awayCredits = 500; // Win
+        winningTeamId = awayTeamId;
+      } else {
+        // Tie - both teams get 200 credits
+        homeCredits = 200;
+        awayCredits = 200;
+      }
+
+      // Award credits to both teams
+      await prisma.team.update({
+        where: { id: parseInt(homeTeamId) },
+        data: {
+          credits: {
+            increment: homeCredits
+          }
+        }
+      });
+
+      await prisma.team.update({
+        where: { id: parseInt(awayTeamId) },
+        data: {
+          credits: {
+            increment: awayCredits
+          }
+        }
+      });
+
+      // Award team camaraderie boost to winning team players (if not a tie)
+      if (winningTeamId) {
+        // Get all players for the winning team and update their camaraderie
+        const winningPlayers = await prisma.player.findMany({
+          where: { teamId: parseInt(winningTeamId) }
+        });
+        
+        for (const player of winningPlayers) {
+          await prisma.player.update({
+            where: { id: player.id },
+            data: {
+              camaraderie: Math.min(100, (player.camaraderie || 0) + 2)
+            }
+          });
+        }
+      }
+
+      console.log(`Exhibition rewards awarded: Home Team (${homeScore}): ${homeCredits}₡, Away Team (${awayScore}): ${awayCredits}₡${winningTeamId ? ` + camaraderie boost` : ''}`);
+
+    } catch (error) {
+      console.error('Error awarding exhibition rewards:', error);
+    }
   }
 
   // Clean up old matches (run periodically)
@@ -315,7 +933,13 @@ class MatchStateManager {
       if (!state) continue;
       if (state.lastUpdateTime < cutoff) {
         console.log(`Cleaning up abandoned match: ${matchId}`);
-        await this.completeMatch(matchId);
+        const homePlayers = await prisma.player.findMany({
+          where: { teamId: state.homeTeamId }
+        });
+        const awayPlayers = await prisma.player.findMany({
+          where: { teamId: state.awayTeamId }
+        });
+        await this.completeMatch(matchId, state.homeTeamId, state.awayTeamId, homePlayers, awayPlayers);
       }
     }
   }
@@ -323,6 +947,17 @@ class MatchStateManager {
 
 // Create singleton instance
 export const matchStateManager = new MatchStateManager();
+
+// Initialize auto-recovery system to restore live matches from database on server startup
+(async () => {
+  try {
+    console.log('🔄 Initializing match state recovery system...');
+    await matchStateManager.recoverLiveMatches();
+    console.log('✅ Match state recovery system initialized');
+  } catch (error) {
+    console.error('❌ Failed to initialize match state recovery:', error);
+  }
+})();
 
 // Clean up old matches every 30 minutes
 setInterval(() => {

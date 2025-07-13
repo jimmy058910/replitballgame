@@ -11,9 +11,96 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
-import { ShoppingCart, Clock, Play, Gift, Sparkles, Zap, Star, Crown, Shield, Coins, ArrowRightLeft, Gem } from "lucide-react";
-import Navigation from "@/components/Navigation";
-import type { Item as SharedItem, CreditPackage as SharedCreditPackage, TournamentEntry as SharedTournamentEntry, TeamFinances } from "shared/schema";
+import { ShoppingCart, Clock, Play, Gift, Sparkles, Zap, Star, Crown, Shield, Coins, ArrowRightLeft, Gem, History, Footprints, Shirt, Coffee, Heart, Eye, Dumbbell } from "lucide-react";
+import PaymentHistory from "@/components/PaymentHistory";
+import { AdRewardSystem } from "@/components/AdRewardSystem";
+import { HelpIcon } from "@/components/help";
+
+// Type interfaces for API responses
+interface Team {
+  id: string;
+  name: string;
+  credits: number;
+}
+
+interface Finances {
+  credits: number;
+  premiumCurrency: number;
+}
+
+interface StoreData {
+  resetTime: string;
+  premiumItems: any[];
+  items: any[];
+  tournamentEntries: any[];
+  creditPackages: any[];
+}
+
+// Utility functions for item visuals
+const getItemIcon = (category: string, itemId: string) => {
+  if (itemId.includes('helmet')) return Shield;
+  if (itemId.includes('gloves')) return Shirt;
+  if (itemId.includes('boots')) return Footprints;
+  if (itemId.includes('armor')) return Shield;
+  if (itemId.includes('stamina')) return Heart;
+  if (itemId.includes('training')) return Dumbbell;
+  if (itemId.includes('scouting')) return Eye;
+  if (itemId.includes('contract')) return Star;
+  if (itemId.includes('performance')) return Zap;
+  if (itemId.includes('exhibition')) return Play;
+  if (itemId.includes('tournament')) return Crown;
+  
+  // Fallback by category
+  switch (category) {
+    case 'equipment': return Shield;
+    case 'consumable': return Coffee;
+    case 'currency': return Coins;
+    case 'contract': return Star;
+    case 'intel': return Eye;
+    case 'tournament': return Crown;
+    default: return Gift;
+  }
+};
+
+const getRarityColor = (rarity: string) => {
+  switch (rarity?.toLowerCase()) {
+    case 'common': return 'from-slate-600 to-slate-700';
+    case 'rare': return 'from-blue-600 to-blue-700';
+    case 'epic': return 'from-purple-600 to-purple-700';
+    case 'legendary': return 'from-amber-500 to-orange-600';
+    default: return 'from-slate-600 to-slate-700';
+  }
+};
+
+const getRarityButtonColor = (rarity: string) => {
+  switch (rarity?.toLowerCase()) {
+    case 'common': return 'bg-slate-700 hover:bg-slate-800 text-white';
+    case 'rare': return 'bg-blue-700 hover:bg-blue-800 text-white';
+    case 'epic': return 'bg-purple-700 hover:bg-purple-800 text-white';
+    case 'legendary': return 'bg-amber-600 hover:bg-amber-700 text-white';
+    default: return 'bg-slate-700 hover:bg-slate-800 text-white';
+  }
+};
+
+const getRarityBorder = (rarity: string) => {
+  switch (rarity?.toLowerCase()) {
+    case 'common': return 'border-slate-400 dark:border-slate-500';
+    case 'rare': return 'border-blue-400 dark:border-blue-500';
+    case 'epic': return 'border-purple-400 dark:border-purple-500';
+    case 'legendary': return 'border-amber-400 dark:border-amber-500';
+    default: return 'border-slate-400 dark:border-slate-500';
+  }
+};
+
+const getRarityBadge = (rarity: string) => {
+  switch (rarity?.toLowerCase()) {
+    case 'common': return 'bg-slate-100 text-slate-800 dark:bg-slate-700 dark:text-slate-200';
+    case 'rare': return 'bg-blue-100 text-blue-800 dark:bg-blue-700 dark:text-blue-200';
+    case 'epic': return 'bg-purple-100 text-purple-800 dark:bg-purple-700 dark:text-purple-200';
+    case 'legendary': return 'bg-amber-100 text-amber-800 dark:bg-amber-700 dark:text-amber-200';
+    default: return 'bg-slate-100 text-slate-800 dark:bg-slate-700 dark:text-slate-200';
+  }
+};
 
 // Initialize Stripe
 if (!import.meta.env.VITE_STRIPE_PUBLIC_KEY) {
@@ -151,18 +238,25 @@ export default function Store() {
   const [gemsToConvert, setGemsToConvert] = useState(1);
   const { toast } = useToast();
 
-  const financesQuery = useQuery({
-    queryKey: ["myTeamFinances"],
-    queryFn: (): Promise<UserFinanceData> => apiRequest("/api/teams/my/finances"),
+  const { data: team } = useQuery<Team>({
+    queryKey: ["/api/teams/my"],
   });
   const finances = financesQuery.data as UserFinanceData | undefined;
 
-  const storeDataQuery = useQuery({
-    queryKey: ["storeItems"],
-    queryFn: (): Promise<StoreData> => apiRequest("/api/store/items"),
+  const { data: rawFinances } = useQuery<Finances>({
+    queryKey: [`/api/teams/${team?.id}/finances`],
+    enabled: !!team?.id,
   });
   const storeData = storeDataQuery.data as StoreData | undefined;
   const isLoadingStore = storeDataQuery.isLoading;
+
+  const { data: rawStoreData } = useQuery<StoreData>({
+    queryKey: ["/api/store"],
+  });
+
+  // Type assertions to fix property access issues
+  const finances = rawFinances as Finances;
+  const storeData = rawStoreData as StoreData;
 
   const purchaseItemMutation = useMutation({
     mutationFn: (purchaseDetails: PurchasePayload): Promise<PurchaseResponse> =>
@@ -230,15 +324,7 @@ export default function Store() {
     createGemPaymentMutation.mutate(gemPackage.id);
   };
 
-  const getRarityColor = (rarity: string | undefined) => {
-    switch (rarity) {
-      case "common": return "text-gray-600 bg-gray-100";
-      case "rare": return "text-blue-600 bg-blue-100";
-      case "epic": return "text-purple-600 bg-purple-100";
-      case "legendary": return "text-yellow-600 bg-yellow-100";
-      default: return "text-gray-600 bg-gray-100";
-    }
-  };
+
 
   const getRarityIcon = (rarity: string | undefined) => {
     switch (rarity) {
@@ -256,7 +342,6 @@ export default function Store() {
 
   return (
     <div className="min-h-screen bg-background">
-      <Navigation />
       <div className="container mx-auto px-4 py-8">
         <div className="flex items-center justify-between mb-8">
           <div>
@@ -268,11 +353,13 @@ export default function Store() {
               <Coins className="w-5 h-5 text-yellow-500" />
               <span className="font-semibold">{(finances?.credits ?? 0).toLocaleString()}</span>
               <span className="text-sm text-muted-foreground">Credits</span>
+              <HelpIcon content="Credits are the main currency in Realm Rivalry. Earn credits by winning matches, selling players, and completing tournaments. Use them to buy equipment, scout new players, and upgrade your stadium." />
             </div>
             <div className="flex items-center gap-2">
               <Gem className="w-5 h-5 text-purple-500" />
               <span className="font-semibold">{finances?.premiumCurrency ?? 0}</span>
               <span className="text-sm text-muted-foreground">Premium Gems</span>
+              <HelpIcon content="Premium Gems are the special currency. Purchase them with real money or earn them through achievements. Use them for elite equipment, instant upgrades, and exclusive content. You can also convert them to credits." />
               <Button 
                 size="sm" 
                 variant="outline" 
@@ -286,204 +373,230 @@ export default function Store() {
           </div>
         </div>
 
-        <Tabs defaultValue="daily" className="space-y-6">
-          <TabsList className="grid grid-cols-4 w-full">
-            <TabsTrigger value="daily">Daily Rotation</TabsTrigger>
-            <TabsTrigger value="regular">Regular Items</TabsTrigger>
-            <TabsTrigger value="entries">Tournament Entries</TabsTrigger>
-            <TabsTrigger value="gems">Premium Gems</TabsTrigger>
+        <Tabs defaultValue="gems" className="space-y-6">
+          <TabsList className="grid grid-cols-6 w-full">
+            <TabsTrigger value="gems">
+              <Gem className="h-4 w-4 mr-2" />
+              Gems
+            </TabsTrigger>
+            <TabsTrigger value="credits">
+              <Coins className="h-4 w-4 mr-2" />
+              Credits
+            </TabsTrigger>
+            <TabsTrigger value="entries">Entries</TabsTrigger>
+            <TabsTrigger value="ads">
+              <Play className="h-4 w-4 mr-2" />
+              Ad Rewards
+            </TabsTrigger>
+            <TabsTrigger value="buy-gems">Buy Gems</TabsTrigger>
+            <TabsTrigger value="transactions">
+              <History className="h-4 w-4 mr-2" />
+              Transactions
+            </TabsTrigger>
           </TabsList>
 
-          <TabsContent value="daily" className="space-y-6">
-            <div className="flex items-center gap-4 p-4 bg-muted rounded-lg">
-              <Clock className="w-5 h-5" />
+          <TabsContent value="gems" className="space-y-6">
+            <div className="flex items-center gap-4 p-4 bg-gradient-to-r from-slate-50 to-purple-50 dark:from-slate-900 dark:to-purple-900/20 rounded-lg border border-slate-200">
+              <Gem className="w-5 h-5 text-purple-500" />
               <div>
-                <p className="font-medium">Daily Rotation</p>
-                <p className="text-sm text-muted-foreground">
-                  Next refresh: {hoursUntilReset}h {minutesUntilReset}m (3:00 AM EST)
+                <p className="font-medium text-slate-800 dark:text-slate-200">Premium Gem Items</p>
+                <p className="text-sm text-slate-600 dark:text-slate-300">
+                  4 elite rotating items • Next refresh: {hoursUntilReset}h {minutesUntilReset}m (3:00 AM EST)
                 </p>
               </div>
             </div>
 
-            {isLoadingStore ? (
-              <div className="text-center py-12"><div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full mx-auto" /></div>
-            ) : (
-              <div className="space-y-6">
-                <div>
-                  <h3 className="text-xl font-semibold mb-4 flex items-center gap-2">
-                    <Sparkles className="w-5 h-5 text-purple-500" />
-                    Premium Items
-                  </h3>
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    {storeData?.premiumItems?.map((item: PremiumStoreItem) => (
-                    <Card key={item.id} className="hover:shadow-lg transition-shadow">
-                      <CardHeader>
-                        <div className="flex items-center justify-between">
-                          <CardTitle className="text-lg">{item.name}</CardTitle>
-                          <Badge className={getRarityColor(item.rarity)}>
-                            {getRarityIcon(item.rarity)}
-                            {item.rarity}
-                          </Badge>
-                        </div>
-                        <CardDescription>{item.description}</CardDescription>
-                      </CardHeader>
-                      <CardContent className="space-y-4">
-                        <div className="flex justify-between items-center">
-                          <div className="flex items-center gap-2">
-                            <Gem className="w-4 h-4 text-purple-500" />
-                            <span className="font-bold">{item.priceGems}</span>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {storeData?.premiumItems?.slice(0, 4).map((item: any) => {
+                const ItemIcon = getItemIcon(item.category, item.id);
+                return (
+                  <Card key={item.id} className={`hover:shadow-lg transition-shadow ${getRarityBorder(item.rarity)} border-2`}>
+                    <CardHeader>
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                          <div className={`w-12 h-12 rounded-lg bg-gradient-to-br ${getRarityColor(item.rarity)} flex items-center justify-center`}>
+                            <ItemIcon className="w-6 h-6 text-white" />
                           </div>
-                          <Button 
-                            onClick={() => purchaseItemMutation.mutate({ itemId: item.id, currency: 'gems' })}
-                            disabled={purchaseItemMutation.isPending || !finances?.premiumCurrency || finances.premiumCurrency < item.priceGems}
-                          >
-                            Buy Now
-                          </Button>
+                          <div>
+                            <CardTitle className="text-lg">{item.name}</CardTitle>
+                            <Badge className={getRarityBadge(item.rarity)} variant="secondary">
+                              {item.rarity?.toUpperCase()}
+                            </Badge>
+                          </div>
                         </div>
-                      </CardContent>
-                    </Card>
-                  ))}
-                </div>
-              </div>
+                      </div>
+                      <CardDescription>{item.description}</CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      {item.statBoosts && (
+                        <div className="text-xs text-muted-foreground">
+                          <p className="font-medium">Stat Boosts:</p>
+                          <div className="flex flex-wrap gap-1 mt-1">
+                            {Object.entries(item.statBoosts).map(([stat, value]: [string, any]) => (
+                              <span key={stat} className="bg-muted px-2 py-1 rounded">
+                                +{value} {stat}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                      <div className="flex justify-between items-center">
+                        <div className="flex items-center gap-2">
+                          <Gem className="w-5 h-5 text-purple-500" />
+                          <span className="font-bold text-lg">{item.priceGems} Gems</span>
+                        </div>
+                        <Button 
+                          className={`${getRarityButtonColor(item.rarity)} font-semibold border-0 shadow-md`}
+                          onClick={() => purchaseItemMutation.mutate({ itemId: item.id, currency: 'gems' })}
+                          disabled={!finances?.premiumCurrency || finances.premiumCurrency < item.priceGems}
+                        >
+                          Buy Now
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
+                );
+              })}
+            </div>
+          </TabsContent>
 
+          <TabsContent value="credits" className="space-y-6">
+            <div className="flex items-center gap-4 p-4 bg-gradient-to-r from-amber-50 to-yellow-50 dark:from-amber-900 dark:to-yellow-900/20 rounded-lg border border-amber-200">
+              <Coins className="w-5 h-5 text-yellow-500" />
               <div>
-                <h3 className="text-xl font-semibold mb-4 flex items-center gap-2">
-                  <Shield className="w-5 h-5 text-blue-500" />
-                  Equipment
-                </h3>
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                  {storeData?.equipment?.map((item: EquipmentStoreItem) => (
-                    <Card key={item.id} className="hover:shadow-lg transition-shadow">
-                      <CardHeader>
-                        <div className="flex items-center justify-between">
-                          <CardTitle className="text-sm">{item.name}</CardTitle>
-                          <Badge className={getRarityColor(item.rarity)}>
-                            {item.rarity}
+                <p className="font-medium text-amber-800 dark:text-amber-200">Credit Items</p>
+                <p className="text-sm text-amber-600 dark:text-amber-300">
+                  6 rotating items • Next refresh: {hoursUntilReset}h {minutesUntilReset}m (3:00 AM EST)
+                </p>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              {storeData?.items?.slice(0, 6).map((item: any) => {
+                const ItemIcon = getItemIcon(item.category, item.id);
+                return (
+                  <Card key={item.id} className={`hover:shadow-lg transition-shadow ${getRarityBorder(item.rarity)} border-2`}>
+                    <CardHeader>
+                      <div className="flex items-center gap-3">
+                        <div className={`w-10 h-10 rounded-lg bg-gradient-to-br ${getRarityColor(item.rarity)} flex items-center justify-center`}>
+                          <ItemIcon className="w-5 h-5 text-white" />
+                        </div>
+                        <div>
+                          <CardTitle className="text-lg">{item.name}</CardTitle>
+                          <Badge className={getRarityBadge(item.rarity)} variant="secondary">
+                            {item.rarity?.toUpperCase()}
                           </Badge>
                         </div>
-                        <CardDescription className="text-xs">{item.description}</CardDescription>
-                      </CardHeader>
-                      <CardContent className="space-y-3">
-                        <div className="text-xs space-y-1">
-                          {Object.entries(item.statBoosts || {}).map(([stat, boost]) => (
-                            <div key={stat} className="flex justify-between">
-                              <span className="capitalize">{stat}:</span>
-                              <span className="text-green-600">+{boost}</span>
-                            </div>
-                          ))}
+                      </div>
+                      <CardDescription>{item.description}</CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      {item.statBoosts && (
+                        <div className="text-xs text-muted-foreground">
+                          <p className="font-medium">Stat Boosts:</p>
+                          <div className="flex flex-wrap gap-1 mt-1">
+                            {Object.entries(item.statBoosts).map(([stat, value]: [string, any]) => (
+                              <span key={stat} className="bg-muted px-2 py-1 rounded">
+                                +{value} {stat}
+                              </span>
+                            ))}
+                          </div>
                         </div>
-                        <div className="flex justify-between items-center">
+                      )}
+                      <div className="flex justify-between items-center">
+                        <div className="flex items-center gap-2">
+                          <Coins className="w-5 h-5 text-yellow-500" />
+                          <span className="font-bold text-lg">{item.price?.toLocaleString()} Credits</span>
+                        </div>
+                        <Button 
+                          className={`${getRarityButtonColor(item.rarity)} font-semibold border-0 shadow-md`}
+                          onClick={() => purchaseItemMutation.mutate({ itemId: item.id, currency: 'credits' })}
+                          disabled={!finances?.credits || finances.credits < item.price}
+                        >
+                          Buy Now
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
+                );
+              })}
+            </div>
+          </TabsContent>
+
+          <TabsContent value="entries" className="space-y-6">
+            <div className="flex items-center gap-4 p-4 bg-gradient-to-r from-emerald-50 to-blue-50 dark:from-emerald-900 dark:to-blue-900/20 rounded-lg border border-emerald-200">
+              <Crown className="w-5 h-5 text-emerald-500" />
+              <div>
+                <p className="font-medium text-emerald-800 dark:text-emerald-200">Division Tournament Entries</p>
+                <p className="text-sm text-emerald-600 dark:text-emerald-300">
+                  2 division-specific tournament options • Daily limits apply
+                </p>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {storeData?.tournamentEntries?.filter((entry: any) => entry.category === 'tournament').map((entry: any) => {
+                const ItemIcon = getItemIcon(entry.category, entry.id);
+                return (
+                  <Card key={entry.id} className={`hover:shadow-lg transition-shadow ${getRarityBorder(entry.rarity)} border-2`}>
+                    <CardHeader>
+                      <div className="flex items-center gap-3">
+                        <div className={`w-12 h-12 rounded-lg bg-gradient-to-br ${getRarityColor(entry.rarity)} flex items-center justify-center`}>
+                          <ItemIcon className="w-6 h-6 text-white" />
+                        </div>
+                        <div>
+                          <CardTitle className="text-lg">{entry.name}</CardTitle>
+                          <Badge className={getRarityBadge(entry.rarity)} variant="secondary">
+                            {entry.rarity?.toUpperCase()}
+                          </Badge>
+                        </div>
+                      </div>
+                      <CardDescription>{entry.description}</CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      <div className="flex justify-between items-center">
+                        <div className="space-y-2">
                           <div className="flex items-center gap-2">
                             <Coins className="w-4 h-4 text-yellow-500" />
-                            <span className="font-bold text-sm">{item.price?.toLocaleString()}</span>
+                            <span className="font-semibold">{entry.price?.toLocaleString()} Credits</span>
                           </div>
+                          <div className="text-sm text-muted-foreground text-center">OR</div>
+                          <div className="flex items-center gap-2">
+                            <Gem className="w-4 h-4 text-purple-500" />
+                            <span className="font-semibold">{entry.priceGems} Premium Gems</span>
+                          </div>
+                        </div>
+                        <div className="space-y-2">
                           <Button 
                             size="sm"
-                            onClick={() => purchaseItemMutation.mutate({ itemId: item.id, currency: 'credits' })}
-                            disabled={purchaseItemMutation.isPending || !finances?.credits || finances.credits < (item.price ?? Infinity)}
+                            className={`${getRarityButtonColor(entry.rarity)} font-semibold border-0 shadow-md`}
+                            onClick={() => purchaseItemMutation.mutate({ itemId: entry.id, currency: 'credits' })}
+                            disabled={!finances?.credits || finances.credits < entry.price}
                           >
-                            Buy
+                            Buy with Credits
+                          </Button>
+                          <Button 
+                            size="sm" 
+                            className="bg-purple-600 hover:bg-purple-700 text-white font-semibold border-0 shadow-md"
+                            onClick={() => purchaseItemMutation.mutate({ itemId: entry.id, currency: 'gems' })}
+                            disabled={!finances?.premiumCurrency || finances.premiumCurrency < entry.priceGems}
+                          >
+                            Buy with Gems
                           </Button>
                         </div>
-                      </CardContent>
-                    </Card>
-                  ))}
-                </div>
-              </div>
+                      </div>
+                      <div className="text-sm text-muted-foreground">
+                        Daily limit: {entry.dailyLimit} entry per day
+                      </div>
+                    </CardContent>
+                  </Card>
+                );
+              })}
             </div>
             )}
           </TabsContent>
 
-          <TabsContent value="regular">
-            {isLoadingStore ? (
-              <div className="text-center py-12"><div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full mx-auto" /></div>
-            ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {storeData?.items?.map((item: RegularStoreItem) => (
-                <Card key={item.id} className="hover:shadow-lg transition-shadow">
-                  <CardHeader>
-                    <CardTitle>{item.name}</CardTitle>
-                    <CardDescription>{item.description}</CardDescription>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    <div className="flex justify-between items-center">
-                      <div className="flex items-center gap-2">
-                        <Coins className="w-4 h-4 text-yellow-500" />
-                        <span className="font-bold">{item.price?.toLocaleString()}</span>
-                      </div>
-                      <Button 
-                        onClick={() => purchaseItemMutation.mutate({ itemId: item.id, currency: 'credits' })}
-                        disabled={purchaseItemMutation.isPending || !finances?.credits || finances.credits < (item.price ?? Infinity)}
-                      >
-                        Purchase
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-            )}
-          </TabsContent>
-
-          <TabsContent value="entries">
-            {isLoadingStore ? (
-              <div className="text-center py-12"><div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full mx-auto" /></div>
-            ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {storeData?.tournamentEntries?.map((entry: TournamentEntryStoreItem) => (
-                <Card key={entry.id} className="hover:shadow-lg transition-shadow">
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      <Play className="w-5 h-5" />
-                      {entry.name}
-                    </CardTitle>
-                    <CardDescription>{entry.description}</CardDescription>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    <div className="flex justify-between">
-                      <div className="space-y-2">
-                        <div className="flex items-center gap-2">
-                          <Coins className="w-4 h-4 text-yellow-500" />
-                          <span>{entry.price?.toLocaleString()} Credits</span>
-                        </div>
-                        <div className="text-sm text-muted-foreground">OR</div>
-                        <div className="flex items-center gap-2">
-                          <Gem className="w-4 h-4 text-purple-500" />
-                          <span>{entry.priceGems} Premium Gems</span>
-                        </div>
-                      </div>
-                      <div className="space-y-2">
-                        <Button 
-                          size="sm"
-                          onClick={() => purchaseItemMutation.mutate({ itemId: entry.id, currency: 'credits' })}
-                          disabled={purchaseItemMutation.isPending || !finances?.credits || finances.credits < (entry.price ?? Infinity)}
-                        >
-                          Buy with Credits
-                        </Button>
-                        <Button 
-                          size="sm" 
-                          variant="outline"
-                          onClick={() => purchaseItemMutation.mutate({ itemId: entry.id, currency: 'gems' })}
-                          disabled={purchaseItemMutation.isPending || !finances?.premiumCurrency || finances.premiumCurrency < entry.priceGems}
-                        >
-                          Buy with Gems
-                        </Button>
-                      </div>
-                    </div>
-                    <div className="text-sm text-muted-foreground">
-                      Daily limit: {entry.dailyLimit}
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-            )}
-          </TabsContent>
-
-          <TabsContent value="gems">
-            {isLoadingStore ? (
-               <div className="text-center py-12"><div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full mx-auto" /></div>
-            ) : (
+          <TabsContent value="buy-gems">
             <div className="space-y-6">
               <div className="text-center space-y-2">
                 <h2 className="text-2xl font-bold">Premium Gem Packages</h2>
@@ -539,6 +652,14 @@ export default function Store() {
               </div>
             </div>
             )}
+          </TabsContent>
+
+          <TabsContent value="ads">
+            <AdRewardSystem />
+          </TabsContent>
+
+          <TabsContent value="transactions">
+            <PaymentHistory />
           </TabsContent>
         </Tabs>
       </div>

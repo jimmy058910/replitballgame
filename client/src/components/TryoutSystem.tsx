@@ -11,14 +11,21 @@ import { Trophy, Users, Clock, Search } from "lucide-react"; // Removed Star, Ey
 import UnifiedPlayerCard from "./UnifiedPlayerCard";
 import { TeamFinances as TeamFinancesData, Scout, Player } from "shared/schema"; // Added Player
 
-// Adjusted TryoutCandidate to be more aligned with Player, but keeping specific fields like 'potential'
-interface TryoutCandidate extends Partial<Player> {
-  // Fields that MUST exist and are not optional from Player, or are specific to TryoutCandidate
-  id: string;
-  name: string; // Usually composed of firstName, lastName from Player
-  age: number;   // Assuming age is always present for a tryout candidate
+interface ScoutData {
+  effectiveness: number;
+  statVariance: number;
+  potentialAccuracy: number;
+  canRevealExactPotential: boolean;
+  canProvideStatRanges: boolean;
+}
 
-  // Core stats expected for a candidate, ensure they are numbers
+interface TryoutCandidate {
+  id: string;
+  name: string;
+  firstName: string;
+  lastName: string;
+  race: string;
+  age: number;
   leadership: number;
   throwing: number;
   speed: number;
@@ -31,18 +38,16 @@ interface TryoutCandidate extends Partial<Player> {
   // Fields specific to TryoutCandidate
   marketValue: number;
   potential: "High" | "Medium" | "Low";
-
-  // Other fields from Player (like firstName, lastName, race) will be optional via Partial<Player>
-  // unless listed here as non-optional.
-  // For UnifiedPlayerCard, ensure `firstName` and `lastName` are handled if `name` isn't split.
-  // The current code splits `candidate.name` for UnifiedPlayerCard, so `name` field is important.
+  overallPotentialStars: number;
+  scoutData?: ScoutData;
 }
 
 interface TryoutSystemProps {
   teamId: string;
+  onNavigateToTaxiSquad?: () => void;
 }
 
-export default function TryoutSystem({ teamId }: TryoutSystemProps) {
+export default function TryoutSystem({ teamId, onNavigateToTaxiSquad }: TryoutSystemProps) {
   const [showTryoutModal, setShowTryoutModal] = useState(false);
   const [tryoutType, setTryoutType] = useState<"basic" | "advanced" | null>(null);
   const [candidates, setCandidates] = useState<TryoutCandidate[]>([]);
@@ -66,8 +71,13 @@ export default function TryoutSystem({ teamId }: TryoutSystemProps) {
     enabled: !!teamId,
   });
 
-  // Get team's scout quality
-  const { data: teamScouts, isLoading: scoutsLoading } = useQuery<Scout[], Error>({
+  // Check if tryouts have been used this season
+  const { data: seasonalData } = useQuery({
+    queryKey: [`/api/teams/${teamId}/seasonal-data`],
+  });
+
+  // Get team's scout quality (simulate for now - will be from database later)
+  const { data: teamScouts } = useQuery({
     queryKey: [`/api/teams/${teamId}/scouts`],
     queryFn: async () => {
       // Simulate scout data - in real implementation this would fetch from API
@@ -89,9 +99,13 @@ export default function TryoutSystem({ teamId }: TryoutSystemProps) {
 
   const basicCost = 25000;
   const advancedCost = 75000;
-  const currentCredits = financesData?.credits ?? 0;
+  const currentCredits = (finances as any)?.credits || 0;
   const canAffordBasic = currentCredits >= basicCost;
   const canAffordAdvanced = currentCredits >= advancedCost;
+  
+  // Check if tryouts have been used this season
+  const tryoutsUsedThisSeason = (seasonalData as any)?.data?.tryoutsUsed || false;
+  const canHostTryouts = !tryoutsUsedThisSeason;
 
   interface HostTryoutResponse {
     candidates: TryoutCandidate[];
@@ -108,6 +122,7 @@ export default function TryoutSystem({ teamId }: TryoutSystemProps) {
       setShowTryoutModal(true);
       startRevealAnimation(data.candidates);
       queryClient.invalidateQueries({ queryKey: [`/api/teams/${teamId}/finances`] });
+      queryClient.invalidateQueries({ queryKey: [`/api/teams/${teamId}/seasonal-data`] });
     },
     onError: (error: Error) => { // Typed error
       toast({
@@ -229,10 +244,31 @@ export default function TryoutSystem({ teamId }: TryoutSystemProps) {
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          <p className="text-gray-400 text-sm">
-            Host tryouts to recruit young talent (18-24 years old) for your taxi squad. 
-            You can keep up to 2 players on taxi squad and promote them next season.
-          </p>
+          <div className="space-y-2">
+            <p className="text-gray-400 text-sm">
+              Host tryouts to recruit young talent (18-24 years old) for your taxi squad. 
+              You can keep up to 2 players on taxi squad and promote them next season.
+            </p>
+            <div className="bg-yellow-900/50 border border-yellow-600 rounded-lg p-3">
+              <p className="text-yellow-200 text-sm font-medium">
+                ⚠️ Seasonal Restriction: You can only host tryouts ONCE per season (17-day cycle). Choose wisely!
+              </p>
+            </div>
+            
+            {/* View Taxi Players Button */}
+            {onNavigateToTaxiSquad && (
+              <div className="flex justify-center">
+                <Button
+                  variant="outline"
+                  onClick={onNavigateToTaxiSquad}
+                  className="border-blue-600 text-blue-400 hover:bg-blue-600 hover:text-white"
+                >
+                  <i className="fas fa-users mr-2"></i>
+                  View Taxi Players
+                </Button>
+              </div>
+            )}
+          </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {/* Basic Tryout */}
@@ -252,14 +288,20 @@ export default function TryoutSystem({ teamId }: TryoutSystemProps) {
                   </span>
                   <Button
                     onClick={() => hostTryoutMutation.mutate("basic")}
-                    disabled={!canAffordBasic || hostTryoutMutation.isPending}
-                    variant={canAffordBasic ? "default" : "secondary"}
+                    disabled={!canAffordBasic || !canHostTryouts || hostTryoutMutation.isPending}
+                    variant={canAffordBasic && canHostTryouts ? "default" : "secondary"}
                   >
-                    {hostTryoutMutation.isPending && hostTryoutMutation.variables === "basic" ? "Hosting..." : "Host Basic Tryout"}
+                    {hostTryoutMutation.isPending ? "Hosting..." : 
+                     !canHostTryouts ? "Used This Season" : 
+                     !canAffordBasic ? "Not Enough Credits" : 
+                     "Host Basic Tryout"}
                   </Button>
                 </div>
                 {!canAffordBasic && (
                   <p className="text-red-400 text-xs">Insufficient credits</p>
+                )}
+                {!canHostTryouts && (
+                  <p className="text-yellow-400 text-xs">Already used this season</p>
                 )}
               </CardContent>
             </Card>
@@ -281,14 +323,20 @@ export default function TryoutSystem({ teamId }: TryoutSystemProps) {
                   </span>
                   <Button
                     onClick={() => hostTryoutMutation.mutate("advanced")}
-                    disabled={!canAffordAdvanced || hostTryoutMutation.isPending}
-                    variant={canAffordAdvanced ? "default" : "secondary"}
+                    disabled={!canAffordAdvanced || !canHostTryouts || hostTryoutMutation.isPending}
+                    variant={canAffordAdvanced && canHostTryouts ? "default" : "secondary"}
                   >
-                    {hostTryoutMutation.isPending && hostTryoutMutation.variables === "advanced" ? "Hosting..." : "Host Advanced Tryout"}
+                    {hostTryoutMutation.isPending ? "Hosting..." : 
+                     !canHostTryouts ? "Used This Season" : 
+                     !canAffordAdvanced ? "Not Enough Credits" : 
+                     "Host Advanced Tryout"}
                   </Button>
                 </div>
                 {!canAffordAdvanced && (
                   <p className="text-red-400 text-xs">Insufficient credits</p>
+                )}
+                {!canHostTryouts && (
+                  <p className="text-yellow-400 text-xs">Already used this season</p>
                 )}
               </CardContent>
             </Card>
@@ -393,7 +441,8 @@ export default function TryoutSystem({ teamId }: TryoutSystemProps) {
                       lastName: candidate.name.split(' ').slice(1).join(' ') || candidate.name,
                       role: getPlayerRole(candidate),
                       catching: candidate.catching || 20,
-                      kicking: candidate.kicking || 20
+                      kicking: candidate.kicking || 20,
+                      potentialRating: candidate.overallPotentialStars || '0'
                     }}
                     variant="recruiting"
                     scoutQuality={effectiveScoutQuality}

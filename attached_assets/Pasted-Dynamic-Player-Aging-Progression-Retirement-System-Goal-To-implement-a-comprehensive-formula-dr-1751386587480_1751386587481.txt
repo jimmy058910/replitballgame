@@ -1,0 +1,107 @@
+Dynamic Player Aging, Progression & Retirement System
+Goal: To implement a comprehensive, formula-driven system that governs the entire lifecycle of a player, from their generation as a young prospect to their eventual decline and retirement. This system is designed to be organic, creating realistic career arcs and meaningful management decisions.
+
+1. Player Generation & Age Ranges
+This system defines the age of players when they are first created in the game world.
+
+Recruiting System: All players generated through the "Basic Tryout" or "Advanced Tryout" features will have an age randomly assigned between 16 and 20 years old.
+
+Free Agency / Other Generation: Any other players generated to populate the game world (e.g., initial league creation, free agent pool refreshes) will have an age randomly assigned between 18 and 35 years old.
+
+Maximum Age: No player can be older than 44. Any player who reaches age 45 at the end of a season will automatically retire.
+
+2. New Player Data Properties
+To support this dynamic system, the following properties must be added to each player's persistent data object in the database:
+
+career_injuries: INTEGER (Default: 0) - A counter that increments each time the player suffers a lasting injury (Minor, Moderate, or Severe).
+
+games_played_last_season: INTEGER (Default: 0) - A counter for how many League and Tournament games the player participated in during the most recent season. This is reset to 0 at the start of each new season.
+
+3. The End-of-Season Aging Event (Day 17)
+This is the core event where all aging, decline, and retirement logic is processed. It should run automatically for every player in the game on Day 17, after the playoffs are complete but before the new season's leagues are formed.
+
+Sequence of Events:
+
+Retirement Check: For every player aged 35 or older, calculate their RetirementChance and determine if they retire.
+
+Stat Decline Check: For every player aged 31 or older who did not retire, calculate their DeclineChance and potentially reduce a physical stat.
+
+Increment Age: After all checks are complete, increment player.age by 1 for all players.
+
+Reset Seasonal Stats: Reset games_played_last_season to 0 for all players.
+
+4. Detailed Formulas & Calculations
+A. Dynamic Retirement Formula
+
+This formula calculates the probability that a player aged 35-44 will retire at the end of a season.
+
+Logic:
+RetirementChance = BaseAgeChance + InjuryModifier + PlayingTimeModifier
+
+Component Breakdown:
+
+BaseAgeChance: The primary driver. The chance increases significantly with each year.
+
+Age 35: 5%
+
+Age 36: 8%
+
+Age 37: 12%
+
+Age 38: 18%
+
+Age 39: 25%
+
+Age 40: 35%
+
+Age 41: 50%
+
+Age 42: 65%
+
+Age 43: 80%
+
+Age 44: 95%
+
+Age 45: 100% (Automatic retirement)
+
+InjuryModifier: Players with a long injury history are more likely to hang it up.
+
+InjuryModifier = player.career_injuries * 2%
+
+(Example: A player with 5 career injuries gets a +10% modifier to their retirement chance.)
+
+PlayingTimeModifier: Players who aren't getting playing time are more likely to retire.
+
+if player.games_played_last_season < 5: PlayingTimeModifier = +15%
+
+if player.games_played_last_season < 10: PlayingTimeModifier = +5%
+
+(Example: A player who only played 3 games last season gets a +15% modifier.)
+
+Example Calculation:
+
+A 38-year-old player (BaseAgeChance = 18%) with 6 career injuries (InjuryModifier = 12%) who only played 4 games last season (PlayingTimeModifier = 15%) would have:
+
+RetirementChance = 18% + 12% + 15% = 45%
+
+B. Age-Related Stat Decline Formula
+
+This system models the natural decline of physical attributes for players past their prime. It runs after the retirement check for all non-retired players aged 31+.
+
+Logic:
+DeclineChance = (player.age - 30) * 2.5%
+
+Implementation:
+
+For each player aged 31 or older, calculate their DeclineChance.
+
+Roll a 1-100 die. If the roll is less than or equal to DeclineChance, the player suffers a stat decline.
+
+If a decline occurs, randomly select one attribute from a weighted list of physical stats: [Speed, Speed, Agility, Agility, Power]. Speed and Agility are twice as likely to be chosen as they often decline first.
+
+Decrement the selected attribute by 1 (to a minimum of 1).
+
+Notify the user in their end-of-season report.
+
+Interaction with Player Progression:
+This decline event happens independently of the player progression event. This means it's possible (and realistic) for an aging player to gain a point in a skill-based attribute like Throwing from their end-of-season progression, but also lose a point in Speed from age-related decline in the same off-season.

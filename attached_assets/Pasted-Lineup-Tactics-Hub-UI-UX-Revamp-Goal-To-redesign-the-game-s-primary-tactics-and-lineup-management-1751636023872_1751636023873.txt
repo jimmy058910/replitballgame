@@ -1,0 +1,56 @@
+Lineup & Tactics Hub UI/UX Revamp
+Goal: To redesign the game's primary tactics and lineup management screen. This new design replaces the previous rigid layout with a flexible, informative, and intuitive system for setting starters and managing positional substitutions.
+
+1. Core Design Philosophy
+Strategic Flexibility: The lineup system must support the new 2-2-1-1 "Wildcard" formation, allowing managers to choose their 6th starter based on their game plan.
+
+Positional Clarity: Substitutes must be organized by role, making it easy to manage depth at each position.
+
+Informed Decision-Making: The UI must provide critical at-a-glance player status information, specifically their current Stamina and Injury Status, directly on the lineup screen.
+
+2. Proposed Layout: The Roster Board
+The page will be structured as a single, interactive "Roster Board," divided into three main areas: the Available Players Pool, the Starting Lineup, and the Positional Substitution Bench.
+
+3. Detailed Component Breakdown
+A. Available Players Panel (Left Side)
+This is the scrollable list of all healthy, available players on the user's team.
+
+Enhanced Player Card: Each player in this list will be represented by a small, draggable card with more detailed information:
+
+Player Name & Role Tag: e.g., "Stormcrusher Scarface" with a red "Blocker" tag.
+
+Power Rating: The player's overall Power score (e.g., "23").
+
+Stamina Bar & Percentage (NEW): A visual bar and percentage (e.g., 95%) showing the player's current daily_stamina_level. The bar should be color-coded (e.g., green > 70%, yellow 40-70%, red < 40%).
+
+Injury Icon (NEW): If a player has a non-severe injury that still allows them to play (e.g., "Minor Injury"), a small medical icon will appear on their card as a warning. Severely injured players will not appear in this list.
+
+B. Starting Lineup Panel (Top Right)
+This section is where the user sets their 6 starters for the next match.
+
+Slot Design: The layout is changed to reflect the new formation rules. There will be six clearly labeled drop zones:
+
+Blocker 1 & Blocker 2
+
+Runner 1 & Runner 2
+
+Passer 1
+
+WILDCARD: This slot should be visually distinct (e.g., with a different border color or icon) and can accept a player of any role.
+
+Drag & Drop Functionality: Users drag player cards from the "Available Players" panel on the left and drop them into the appropriate starter slots. The system should only allow a Blocker to be dropped into a Blocker slot, a Runner into a Runner slot, etc., while the Wildcard slot accepts any role.
+
+C. Positional Substitution Bench (Bottom Right)
+This section is completely redesigned for clarity and strategic depth.
+
+UI: The single "Substitutes" box is replaced by three separate, clearly labeled drop zones:
+
+Substitute Blockers
+
+Substitute Runners
+
+Substitute Passers
+
+Functionality: Users will drag players from the "Available Players" panel and drop them into the corresponding positional bench. This allows them to create a clear depth chart for each role.
+
+This revamped design provides a much more powerful and intuitive interface for one of the most critical aspects of a management game. It gives the user the tactical flexibility you envisioned while providing all the necessary information to make smart lineup decisions.

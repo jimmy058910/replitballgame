@@ -1,0 +1,141 @@
+Consolidated Game Mechanics & Systems
+Goal: To provide a single, comprehensive design document that details all core game mechanics, formulas, and systems. This document integrates the best technical formulas with our established design principles to create a balanced, engaging, and fair player experience.
+
+1. Player Creation & Attributes
+This system defines how new players are created and what their attributes mean.
+
+A. Attribute Scale & Racial Modifiers
+
+All 8 player attributes (Speed, Power, Throwing, Catching, Kicking, Stamina, Leadership, Agility) use a 1-40 scale.
+
+Racial modifiers are applied after base stats are generated, with a final cap of 40.
+
+Human: +1 to all stats
+
+Sylvan: +3 Speed, +4 Agility, -2 Power
+
+Gryll: +5 Power, +3 Stamina, -3 Speed, -2 Agility
+
+Lumina: +4 Throwing, +3 Leadership, -1 Stamina
+
+Umbra: +2 Speed, +3 Agility, -3 Power, -1 Leadership
+
+B. Rookie Generation (Tryouts)
+
+This system ensures rookies are raw talent, not finished products.
+
+Age: Generated rookies are aged 16-20.
+
+Potential: First, determine the player's single, overall Potential Rating on a 10-point scale (representing 0.5 to 5 stars). The "Advanced Tryout" gives a much higher chance for 4-star+ potential.
+
+Total Attribute Points (TAP) Pool:
+
+TAP = BasePoints + (PotentialRating * 4)
+
+Basic Tryout BasePoints: Randomly between 40-60.
+
+Advanced Tryout BasePoints: Randomly between 60-85.
+
+Point Distribution:
+
+Assign a baseline of 3 points to each of the 8 attributes (24 total).
+
+Distribute the remaining TAP based on the player's randomly assigned role (e.g., 60% to primary stats, 40% to secondary).
+
+C. Free Agent Generation
+
+Players generated for the free agent pool are aged 18-35 and use a similar TAP system, but with a wider variance to create both hidden gems and over-the-hill veterans.
+
+2. Player Progression, Aging & Retirement
+This is an organic system, replacing traditional XP/levels.
+
+A. Progression (Daily & Seasonal)
+
+Daily Progression (3 AM Reset): Each day, every player has a small chance (1% + AgeModifier) to gain +1 in a random, eligible attribute. This makes the off-season feel active.
+
+End-of-Season Progression (Day 17): This is the primary development event.
+
+For each of the 8 attributes, a ProgressionChance is calculated:
+Chance = BaseChance + PotentialModifier + AgeModifier + UsageModifier + TrainerBonus
+
+A successful roll increases the stat by +1 (up to its potential-defined cap).
+
+NO Training Focus System: This has been removed to reduce micromanagement. Progression is guided by potential and staff.
+
+B. Age-Related Decline (End of Season)
+
+Players 31 or older have a chance to lose 1 point in a physical stat (Speed, Agility, Power).
+
+DeclineChance = (player.age - 30) * 2.5%
+
+C. Retirement System (End of Season)
+
+Players 35 or older have a chance to retire. Players at age 45 automatically retire.
+
+RetirementChance = BaseAgeChance + (CareerInjuries * 2%) + (LowPlayingTimeModifier)
+
+3. Staff System & Effects
+Staff attributes are on a 1-40 scale. They provide passive bonuses to the team and have their own progression system.
+
+Head Coach (Motivation, Development): Increases the BaseChance for all player progression checks and boosts the effectiveness of all other trainers. Also contributes to Team Camaraderie.
+
+Trainers (Teaching): Provide a TrainerBonus to the ProgressionChance for their specific group of attributes during end-of-season development.
+
+Recovery Specialist (Physiology): Increases the amount of Injury Recovery Points (RP) healed per day.
+
+Scouts (Talent_Identification, Potential_Assessment): Higher scout levels provide more precise stat and potential star ratings for players in tryouts and on the marketplace (reducing the "fog of war" range).
+
+4. Power & Camaraderie Calculations
+Player Power (CAR): Labeled as "Power" in the UI for clarity, but calculated as a Core Athleticism Rating (CAR).
+
+Formula: Power (CAR) = Average(Speed, Power, Agility, Throwing, Catching, Kicking)
+
+Team Power: The average Power rating of the top 9 players on the roster. The team is assigned a descriptive tier based on this rating (e.g., "Foundation," "Competitive," "Elite").
+
+Team Camaraderie: Calculated as the average of each individual player's camaraderie score. This score is updated at the end of each season based on team success, player loyalty (years on team), and Head Coach leadership.
+
+5. Stadium, Finance & Atmosphere
+A. Fan Loyalty & Attendance
+
+Fan Loyalty (0-100): A persistent team score updated at the end of each season. It's influenced by win percentage, championship victories, and the quality of stadium facilities (Lighting, Screens).
+
+Attendance Rate: Calculated for each home game. It is primarily driven by FanLoyalty, but also gets a small bonus for team winning streaks.
+
+Actual Attendance: StadiumCapacity * AttendanceRate. All primary revenue streams are based on this value, not just raw capacity.
+
+B. Revenue Calculation (Per Home Game)
+
+Ticket Sales: ActualAttendance * 25 ₡
+
+Concession Sales: ActualAttendance * 8 ₡ * ConcessionsLevel
+
+Parking Revenue: (ActualAttendance * 0.3) * 10 ₡ * ParkingLevel
+
+Apparel Sales: ActualAttendance * 3 ₡ * MerchandisingLevel
+
+VIP Suites: VIPSuitesLevel * 5000 ₡
+
+Atmosphere Bonus: A small credit bonus per attendee if FanLoyalty is very high.
+
+C. Home Field Advantage
+
+Intimidation Factor: Calculated based on ActualAttendance and FanLoyalty.
+
+Effect: A high Intimidation Factor applies a temporary, small debuff to the away team's Catching and Throwing stats for that match only. There are no referee-based effects.
+
+6. Marketplace & Store
+Marketplace: The system for listing, bidding, and buying players, including the 10-player roster minimum, 3-player listing limit, and a 2% listing fee.
+
+Store:
+
+Removed Pay-to-Win: All items that grant permanent stat increases or bypass core game loops (like contract items) are REMOVED.
+
+Item Availability: All gameplay-affecting items (equipment, consumables) are available for Credits. Some may also have a Gem price for convenience.
+
+Cosmetics: Gem-exclusive items like "Helm of Command" are purely cosmetic with no stats.
+
+Rotating Shops:
+
+Credit Store: A daily rotating selection of Common and Uncommon items.
+
+Featured Store: A daily rotating selection of Rare, Epic, and Legendary items, purchasable with Gems or a very high amount of Credits.

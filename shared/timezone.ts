@@ -158,12 +158,35 @@ export function getTimeUntilNextLeagueWindow(): { hours: number; minutes: number
 }
 
 /**
+ * Get time until next game day reset (3AM Eastern)
+ */
+export function getTimeUntilNextGameDayReset(): { hours: number; minutes: number } {
+  const easternTime = getEasternTime();
+  const currentHour = easternTime.hour();
+  
+  let nextReset;
+  if (currentHour < 3) {
+    // Before 3AM today, next reset is today at 3AM
+    nextReset = easternTime.clone().hour(3).minute(0).second(0);
+  } else {
+    // After 3AM today, next reset is tomorrow at 3AM
+    nextReset = easternTime.clone().add(1, 'day').hour(3).minute(0).second(0);
+  }
+  
+  const diff = nextReset.diff(easternTime, 'minutes');
+  return {
+    hours: Math.floor(diff / 60),
+    minutes: diff % 60
+  };
+}
+
+/**
  * Get current server time info
  */
 export function getServerTimeInfo() {
   const easternTime = getEasternTime();
   const isSchedulingTime = isWithinSchedulingWindow();
-  const timeUntilWindow = getTimeUntilNextLeagueWindow();
+  const timeUntilGameDayReset = getTimeUntilNextGameDayReset();
   
   return {
     currentTime: easternTime.toDate(),
@@ -171,7 +194,7 @@ export function getServerTimeInfo() {
     timezone: EASTERN_TIMEZONE,
     isSchedulingWindow: isSchedulingTime,
     schedulingWindow: `${LEAGUE_GAME_START_HOUR}:00-${LEAGUE_GAME_END_HOUR}:00 Eastern`,
-    timeUntilNextWindow: timeUntilWindow
+    timeUntilNextWindow: timeUntilGameDayReset
   };
 }
 

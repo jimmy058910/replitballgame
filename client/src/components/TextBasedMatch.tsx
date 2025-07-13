@@ -5,6 +5,8 @@ import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Play, Pause, Square, RotateCcw } from "lucide-react";
 import { AdSystem, useAdSystem } from "@/components/AdSystem";
+import { calculateTacticalModifiers, determineGameSituation, type TacticalModifiers, type GameState as TacticalGameState, type TeamTacticalInfo } from "../../../shared/tacticalSystem";
+import { apiRequest } from '@/lib/queryClient';
 
 interface Player {
   id: string;
@@ -93,11 +95,15 @@ export default function TextBasedMatch({
   });
 
   const [players, setPlayers] = useState<Player[]>([]);
+  const [tacticalModifiers, setTacticalModifiers] = useState<{
+    team1: TacticalModifiers;
+    team2: TacticalModifiers;
+  } | null>(null);
   const logRef = useRef<HTMLDivElement>(null);
   const [halftimeAdShown, setHalftimeAdShown] = useState(false);
   
   // Ad system hook
-  const { showInterstitialAd, showRewardedVideoAd } = useAdSystem(); // Correctly destructure ad functions
+  const { showRewardedVideoAd, closeAd, adConfig } = useAdSystem();
   const gameIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
   // Initialize players from team data
@@ -146,10 +152,48 @@ export default function TextBasedMatch({
       }));
 
       setPlayers([...team1Players, ...team2Players]);
+      
+      // Initialize tactical modifiers
+      const initializeTacticalModifiers = () => {
+        const tacticalGameState: TacticalGameState = {
+          homeScore: gameState.team1Score,
+          awayScore: gameState.team2Score,
+          gameTime: gameState.gameTime,
+          maxTime: gameState.maxTime,
+          currentHalf: gameState.currentHalf,
+        };
+
+        // Create team tactical info (using defaults if not specified)
+        const team1TacticalInfo: TeamTacticalInfo = {
+          fieldSize: (team1?.fieldSize || "standard") as any,
+          tacticalFocus: (team1?.tacticalFocus || "balanced") as any,
+          camaraderie: team1?.teamCamaraderie || 50,
+          headCoachTactics: team1?.staff?.find((s: any) => s.type === "Head Coach")?.coachingRating || 50,
+          isHomeTeam: true,
+        };
+
+        const team2TacticalInfo: TeamTacticalInfo = {
+          fieldSize: "standard" as any, // Away team doesn't get field size advantage
+          tacticalFocus: (team2?.tacticalFocus || "balanced") as any,
+          camaraderie: team2?.teamCamaraderie || 50,
+          headCoachTactics: team2?.staff?.find((s: any) => s.type === "Head Coach")?.coachingRating || 50,
+          isHomeTeam: false,
+        };
+
+        const team1Modifiers = calculateTacticalModifiers(team1TacticalInfo, tacticalGameState, true);
+        const team2Modifiers = calculateTacticalModifiers(team2TacticalInfo, tacticalGameState, false);
+
+        setTacticalModifiers({
+          team1: team1Modifiers,
+          team2: team2Modifiers,
+        });
+      };
+
+      initializeTacticalModifiers();
     };
 
     initializePlayers();
-  }, [team1, team2]);
+  }, [team1, team2, gameState.team1Score, gameState.team2Score, gameState.gameTime, gameState.currentHalf]);
 
   // Auto-scroll log to top since newest events are at the top
   useEffect(() => {
@@ -215,12 +259,61 @@ export default function TextBasedMatch({
       if (newGameTime === prev.maxTime / 2 && prev.currentHalf === 1) {
         const timeStr = formatGameTime(newGameTime);
         
-        // Show halftime interstitial ad
+        // Show halftime rewarded video ad
         if (!halftimeAdShown) {
           setHalftimeAdShown(true);
-          showInterstitialAd('halftime', () => { // Use showInterstitialAd
-            console.log('Halftime ad completed');
-          });
+          // Pause game for ad
+          if (gameIntervalRef.current) {
+            clearInterval(gameIntervalRef.current);
+            gameIntervalRef.current = null;
+          }
+          const currentIsRunning = prev.isRunning; // Store if game was running
+
+          showRewardedVideoAd(
+            'halftime',
+            'credits',
+            Math.floor(Math.random() * 300) + 150, // 150-450 credits for halftime ad
+            async (reward) => {
+              if (reward) {
+                try {
+                  // Record ad view with enhanced tracking
+                  const response = await apiRequest('/api/store/ads/view', 'POST', {
+                    adType: 'interstitial',
+                    placement: 'halftime', 
+                    rewardType: 'credits',
+                    rewardAmount: reward.amount,
+                    completed: true
+                  });
+                  
+                  if (response.tracking) {
+                    let message = `Halftime ad: ${reward.amount} credits earned!`;
+                    message += ` Daily: ${response.tracking.dailyCount}/20`;
+                    
+                    if (response.tracking.premiumRewardEarned) {
+                      message += ` | PREMIUM REWARD UNLOCKED!`;
+                    } else if (response.tracking.premiumProgress > 0) {
+                      message += ` | Premium: ${response.tracking.premiumProgress}/50`;
+                    }
+                    
+                    addToLog(message);
+                  } else {
+                    addToLog(`Halftime ad: ${reward.amount} credits earned!`);
+                  }
+                } catch (error) {
+                  console.error('Failed to record halftime ad:', error);
+                  addToLog(`Halftime ad: ${reward.amount} credits earned!`);
+                }
+              } else {
+                addToLog("Halftime ad skipped or failed to complete.");
+              }
+              setGameState(innerPrev => ({...innerPrev, isRunning: currentIsRunning })); // Resume game state
+              // Only restart interval if game was running before ad
+              if (currentIsRunning && !gameIntervalRef.current && gameState.gameTime < gameState.maxTime) {
+                 gameIntervalRef.current = setInterval(simulateGameTick, 300);
+              }
+              closeAd(); // Close the ad dialog
+            }
+          );
         }
         
         return {
@@ -367,7 +460,7 @@ export default function TextBasedMatch({
         ] : []),
         
         // Role-specific events with team context
-        ...(randomPlayer.role.toLowerCase() === 'passer' ? [
+        ...(randomPlayer.role === 'Passer' ? [
           `${playerName} (${playerTeam}) looks for an open teammate downfield!`,
           `${playerName} attempts a long pass across the arena!`,
           `${playerName} scrambles under pressure from ${opponentTeam}!`,
@@ -375,13 +468,13 @@ export default function TextBasedMatch({
           ...(randomPlayer.throwing < 15 ? [`${playerName}'s pass goes wide of the target!`] : [])
         ] : []),
         
-        ...(randomPlayer.role.toLowerCase() === 'runner' ? [
+        ...(randomPlayer.role === 'Runner' ? [
           `${playerName} (${playerTeam}) charges forward with the ball!`,
           `${playerName} breaks through a tackle attempt!`,
           `${playerName} jukes past a ${opponentTeam} defender!`,
         ] : []),
         
-        ...(randomPlayer.role.toLowerCase() === 'blocker' ? [
+        ...(randomPlayer.role === 'Blocker' ? [
           `${playerName} (${playerTeam}) delivers a crushing block!`,
           `${playerName} holds the line against ${opponentTeam}!`,
           `${playerName} creates an opening for ${playerTeam} teammates!`,
@@ -557,7 +650,7 @@ export default function TextBasedMatch({
         ] : []),
         
         // Role-specific events with team context
-        ...(randomPlayer.role.toLowerCase() === 'passer' ? [
+        ...(randomPlayer.role === 'Passer' ? [
           `${playerName} (${playerTeam}) looks for an open teammate downfield!`,
           `${playerName} attempts a long pass across the arena!`,
           `${playerName} scrambles under pressure from ${opponentTeam}!`,
@@ -565,13 +658,13 @@ export default function TextBasedMatch({
           ...(randomPlayer.throwing < 15 ? [`${playerName}'s pass goes wide of the target!`] : [])
         ] : []),
         
-        ...(randomPlayer.role.toLowerCase() === 'runner' ? [
+        ...(randomPlayer.role === 'Runner' ? [
           `${playerName} (${playerTeam}) charges forward with the ball!`,
           `${playerName} breaks through a tackle attempt!`,
           `${playerName} jukes past a ${opponentTeam} defender!`,
         ] : []),
         
-        ...(randomPlayer.role.toLowerCase() === 'blocker' ? [
+        ...(randomPlayer.role === 'Blocker' ? [
           `${playerName} (${playerTeam}) delivers a crushing block!`,
           `${playerName} holds the line against ${opponentTeam}!`,
           `${playerName} creates an opening for ${playerTeam} teammates!`,
@@ -770,11 +863,12 @@ export default function TextBasedMatch({
               Reset
             </Button>
             <Button 
-              onClick={() => showRewardedVideoAd( // Use showRewardedVideoAd
-                'match_bonus',
-                'premium_currency',
-                10,
-                (reward?: { type: string; amount: number }) => { // Typed reward parameter
+              onClick={() => showRewardedVideoAd({
+                adType: 'rewarded_video',
+                placement: 'match_bonus',
+                rewardType: 'premium_currency',
+                rewardAmount: 10,
+                onAdComplete: (reward: any) => {
                   if (reward) {
                     console.log(`Rewarded ad completed! Got ${reward.amount} ${reward.type}`);
                   }
@@ -807,8 +901,18 @@ export default function TextBasedMatch({
         </CardContent>
       </Card>
       
-      {/* AdSystem component is managed by useAdSystem hook, so direct rendering is not needed here */}
-      {/* <AdSystem /> */}
+      {/* Ad System Component - Render based on adConfig from useAdSystem */}
+      {adConfig && adConfig.isOpen && (
+        <AdSystem
+          isOpen={adConfig.isOpen}
+          onClose={closeAd}
+          adType={adConfig.adType}
+          placement={adConfig.placement}
+          rewardType={adConfig.rewardType}
+          rewardAmount={adConfig.rewardAmount}
+          onAdComplete={adConfig.onAdComplete}
+        />
+      )}
     </div>
   );
 }

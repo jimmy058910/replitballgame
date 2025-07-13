@@ -1,0 +1,69 @@
+Live Match Simulation System
+Goal: To create a dynamic, text-based match simulation engine that integrates all established game systems (player stats, skills, roles, tactics, coaching, atmosphere) to produce an engaging, narrative-driven play-by-play commentary.
+1. Pre-Game Setup & Modifier Calculation
+Before the simulation begins, the system must calculate all temporary modifiers that will affect players for the duration of the match.
+A. Home Field Advantage:
+Identify the home team.
+Load the home team's chosen Field Size ("Standard", "Large", "Small").
+Apply the corresponding gameplay effects as passive modifiers for all players for this match (e.g., for a "Small" field, add a temporary +2 bonus to the power attribute of all home team players).
+Calculate the home team's IntimidationFactor based on their FanLoyalty and the match's AttendanceRate.
+Apply the "Crowd Noise" debuff (e.g., -3 to Catching and Throwing) to all away team players for this match.
+B. Tactical & Coaching Modifiers:
+Load each team's chosen Team-Wide Tactical Focus ("Balanced", "All-Out Attack", "Defensive Wall").
+Load each team's Head Coach and their Tactics stat.
+Calculate the effectiveness of each team's chosen tactic based on their coach's skill. A high-Tactics coach amplifies the pros and mitigates the cons of their chosen strategy. These modifiers will be checked by the AI during decision-making.
+C. Single-Game Boosts:
+Check the active_boosts list for the user's team.
+For each active boost, apply the temporary stat increase to the specified player (e.g., Player5.speed += 5).
+2. The Simulation Loop (The "Turn")
+The game progresses in "turns," where each turn represents a few seconds of game time. The core loop should be:
+Tick the Clock: Advance the in-game clock.
+Determine Game State: Is the ball loose or possessed? Who has it?
+Execute Player AI: For every player on the field, determine their action for this turn based on the game state and their role (e.g., move, pass, tackle, block).
+Resolve Actions: Calculate the outcome of any major actions (passes, tackles) that were initiated.
+Generate Commentary: Based on the actions and outcomes, generate a line of text for the play-by-play log.
+Update Player Stamina: Deplete or recover in_game_stamina for all players based on their actions this turn.
+Loop: Repeat until the half-time or final whistle.
+3. Action Resolution & Dynamic Commentary
+This is the heart of the engine. Here’s how to resolve key events and generate text for them.
+A. The Run Play
+Event: A "Runner" with the ball decides to run.
+Logic:
+The Runner moves forward a small amount.
+Check for nearby defenders. If a defender is close, initiate a Tackle Contest.
+If no defender is close, check for a Breakaway Chance (Runner.speed vs. closest_defender.speed). A high differential gives a small chance for the Runner to break free for a big gain.
+Check for the "Juke Move" or "Truck Stick" skills if a tackle is attempted.
+Commentary Prompts for Replit AI:
+"Generate 10 lines for a short, tough run up the middle for a 3-yard gain."
+"Write 10 exciting lines for a Runner with high Agility using their Juke Move skill to make a defender miss."
+"Create 10 commentary lines for a Runner with high Power using their Truck Stick skill to run over a smaller defender."
+"Describe a breakaway run where a fast player finds a seam and sprints for a huge gain."
+B. The Pass Play
+Event: A "Passer" decides to throw the ball.
+Logic:
+The Passer's AI uses find_open_teammate_with_score() to select the best target.
+The pass's accuracy is determined by Passer.throwing and modified by Deadeye skill or "Clutch Time" effects.
+The ball's "air time" is calculated.
+When the ball arrives, any nearby player can attempt a catch. The outcome is based on Catcher.catching, the "Target Locking Lite" bonus/penalty, and situational modifiers ("Clutch Time," "Crowd Noise").
+Commentary Prompts for Replit AI:
+"Write 10 lines for a Passer with the Pocket Presence skill gracefully avoiding pressure before making a throw."
+"Generate commentary for a perfect pass, describing it as a 'laser beam' or 'dropped in a bucket'."
+"Create 10 lines for an interception, describing the defender reading the Passer's eyes and jumping the route."
+"Describe a contested catch where a receiver with high Catching out-muscles a defender for the ball."
+C. The Block / Tackle
+Event: A Blocker engages an opponent, or a defender tackles the carrier.
+Logic:
+Resolve the contest using Attacker.power vs. Target.agility.
+If the attacker is a Blocker with the "Pancake Block" skill, a successful block has a chance to cause a longer knockdown.
+If the target is a Gryll with the "Unshakeable" skill, they get a bonus to their agility for the roll.
+Commentary Prompts for Replit AI:
+"Write 15 variations of commentary for a Blocker absolutely leveling an opponent who didn't have the ball. Use impactful words like 'pancaked', 'demolished', 'sent into next week'."
+"Generate commentary for a critical, game-saving tackle near the end zone."
+"Describe a Blocker successfully holding their block, creating a clean pocket for their Passer."
+D. Situational & Atmospheric Commentary
+Logic: Periodically check for game state conditions.
+Commentary Prompts for Replit AI:
+"Generate 5 lines for when a team is in 'Protect the Lead' mode, focusing on safe, clock-draining plays."
+"Write 5 lines for when a team is in 'Desperate Measures' mode, highlighting risky deep passes and frantic play."
+"Create commentary that mentions the home crowd's noise level and its apparent effect on the away team when the IntimidationFactor is high."
+"Write commentary that mentions a player's low stamina affecting their play (e.g., 'He looks exhausted out there, a step slower than usual.')."

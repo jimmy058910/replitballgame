@@ -1,393 +1,341 @@
-import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Crown, Zap, Shield, Target, Star, StarHalf } from "lucide-react";
+import { Badge } from '@/components/ui/badge';
+import { Card, CardContent } from '@/components/ui/card';
+import { Progress } from '@/components/ui/progress';
+import { Button } from '@/components/ui/button';
+import { Crown, Heart, AlertTriangle } from 'lucide-react';
+import { getPlayerRole, getRaceDisplayName, getPlayerDisplayName } from '@shared/playerUtils';
 
 interface PlayerCardProps {
   player: any;
   showActions?: boolean;
   onAction?: (action: string, player: any) => void;
   variant?: 'dashboard' | 'roster' | 'recruiting';
-  scoutQuality?: number; // 1-100, affects accuracy of scouting data
+  scoutQuality?: number;
+  onClick?: () => void;
 }
 
-// Role-based color system
-const getRoleColor = (role: string) => {
+// Role-specific stat mappings according to specification
+const ROLE_STATS = {
+  'Passer': [
+    { key: 'throwing', abbr: 'THR' },
+    { key: 'agility', abbr: 'AGI' },
+    { key: 'speed', abbr: 'SPD' },
+    { key: 'catching', abbr: 'CAT' },
+    { key: 'stamina', abbr: 'STA' },
+    { key: 'leadership', abbr: 'LDR' }
+  ],
+  'Runner': [
+    { key: 'speed', abbr: 'SPD' },
+    { key: 'agility', abbr: 'AGI' },
+    { key: 'power', abbr: 'PWR' },
+    { key: 'catching', abbr: 'CAT' },
+    { key: 'stamina', abbr: 'STA' },
+    { key: 'kicking', abbr: 'KCK' }
+  ],
+  'Blocker': [
+    { key: 'power', abbr: 'PWR' },
+    { key: 'agility', abbr: 'AGI' },
+    { key: 'speed', abbr: 'SPD' },
+    { key: 'stamina', abbr: 'STA' },
+    { key: 'leadership', abbr: 'LDR' },
+    { key: 'catching', abbr: 'CAT' }
+  ]
+};
+
+// Get race emoji for visual appeal
+function getRaceEmoji(race: string): string {
+  const raceEmojis = {
+    'human': '👤',
+    'sylvan': '🌿',
+    'gryll': '⚒️',
+    'lumina': '✨',
+    'umbra': '🌑'
+  };
+  return raceEmojis[race?.toLowerCase() as keyof typeof raceEmojis] || '👤';
+}
+
+// High-contrast role tag styles according to specification
+function getRoleTagStyle(role: string): string {
   switch (role?.toLowerCase()) {
     case 'blocker':
-      return 'bg-red-100 text-red-800 border-red-200 dark:bg-red-900/20 dark:text-red-400 dark:border-red-800';
+      return 'bg-red-600 text-white border-red-600';
     case 'runner':
-      return 'bg-green-100 text-green-800 border-green-200 dark:bg-green-900/20 dark:text-green-400 dark:border-green-800';
+      return 'bg-green-600 text-white border-green-600';
     case 'passer':
-      return 'bg-yellow-100 text-yellow-800 border-yellow-200 dark:bg-yellow-900/20 dark:text-yellow-400 dark:border-yellow-800';
+      return 'bg-yellow-500 text-black border-yellow-500';
     default:
-      return 'bg-gray-100 text-gray-800 border-gray-200 dark:bg-gray-900/20 dark:text-gray-400 dark:border-gray-800';
+      return 'bg-gray-600 text-white border-gray-600';
   }
-};
+}
 
-const getRoleIcon = (role: string) => {
-  switch (role?.toLowerCase()) {
-    case 'blocker':
-      return <Shield className="w-3 h-3" />;
-    case 'runner':
-      return <Zap className="w-3 h-3" />;
-    case 'passer':
-      return <Target className="w-3 h-3" />;
-    default:
-      return null;
-  }
-};
+// Power rating color coding according to specification
+function getPowerColor(power: number): string {
+  if (power >= 35) return 'text-blue-400';
+  if (power >= 26) return 'text-green-400';
+  if (power >= 16) return 'text-white';
+  return 'text-red-400';
+}
 
-const getStatColor = (value: number) => {
-  if (value >= 32) return 'text-green-600 dark:text-green-400';
-  if (value <= 18) return 'text-red-600 dark:text-red-400';
-  return 'text-white dark:text-white';
-};
+// Individual stat color coding for role-specific stats
+function getStatColor(statValue: number): string {
+  if (statValue >= 32) return 'text-green-400';
+  if (statValue >= 19) return 'text-white';
+  return 'text-red-400';
+}
 
-const getRaceEmoji = (race: string) => {
-  switch (race?.toLowerCase()) {
-    case 'human':
-      return '👤';
-    case 'sylvan':
-      return '🧝‍♂️';
-    case 'gryll':
-      return '🛡️';
-    case 'lumina':
-      return '✨';
-    case 'umbra':
-      return '🌙';
-    default:
-      return '⚡';
-  }
-};
+// Calculate overall power as average of 6 core athletic stats
+function calculateOverallPower(player: any): number {
+  const coreStats = [
+    player.speed || 20,
+    player.power || 20,
+    player.agility || 20,
+    player.throwing || 20,
+    player.catching || 20,
+    player.kicking || 20
+  ];
+  return Math.round(coreStats.reduce((sum, stat) => sum + stat, 0) / coreStats.length);
+}
 
-// Calculate scout accuracy and stat ranges
-const getScoutedStat = (actualStat: number, scoutQuality: number = 50, statName: string) => {
-  // Higher scout quality = more accurate ranges
-  const accuracy = Math.max(10, scoutQuality); // Minimum 10% accuracy
-  const errorMargin = Math.floor((100 - accuracy) / 10); // Error margin based on scout quality
-  
-  const minStat = Math.max(1, actualStat - errorMargin);
-  const maxStat = Math.min(40, actualStat + errorMargin);
-  
-  return { min: minStat, max: maxStat, actual: actualStat };
-};
-
-// Calculate potential stars based on total stats and scout quality
-const getPotentialStars = (player: any, scoutQuality: number = 50) => {
-  const totalStats = (player.speed || 20) + (player.power || 20) + (player.throwing || 20) + 
-                    (player.catching || 20) + (player.kicking || 20) + (player.agility || 20) + 
-                    (player.stamina || 20) + (player.leadership || 20);
-  
-  // Base potential calculation
-  let basePotential = 0;
-  if (totalStats >= 240) basePotential = 5;
-  else if (totalStats >= 200) basePotential = 4;
-  else if (totalStats >= 160) basePotential = 3;
-  else if (totalStats >= 120) basePotential = 2;
-  else basePotential = 1;
-  
-  // Scout accuracy affects potential accuracy
-  const accuracy = scoutQuality / 100;
-  const errorChance = Math.random();
-  
-  if (errorChance > accuracy) {
-    // Less accurate scouts might be off by 0.5-1 star
-    const error = Math.random() > 0.5 ? 0.5 : 1;
-    basePotential += Math.random() > 0.5 ? error : -error;
-  }
-  
-  return Math.max(0.5, Math.min(5, basePotential));
-};
-
-const renderStars = (rating: number) => {
-  const fullStars = Math.floor(rating);
-  const hasHalfStar = rating % 1 >= 0.5;
+// Render star rating for potential
+function renderStarRating(potential: number): JSX.Element {
   const stars = [];
-  
-  for (let i = 0; i < fullStars; i++) {
-    stars.push(<Star key={i} className="w-3 h-3 fill-yellow-400 text-yellow-400" />);
+  const fullStars = Math.floor(potential);
+  const hasHalfStar = potential % 1 >= 0.5;
+
+  for (let i = 0; i < 5; i++) {
+    if (i < fullStars) {
+      stars.push(<span key={i} className="text-yellow-400">★</span>);
+    } else if (i === fullStars && hasHalfStar) {
+      stars.push(<span key={i} className="text-yellow-400">☆</span>);
+    } else {
+      stars.push(<span key={i} className="text-gray-600">☆</span>);
+    }
   }
-  
-  if (hasHalfStar) {
-    stars.push(<StarHalf key="half" className="w-3 h-3 fill-yellow-400 text-yellow-400" />);
-  }
-  
-  const emptyStars = 5 - Math.ceil(rating);
-  for (let i = 0; i < emptyStars; i++) {
-    stars.push(<Star key={`empty-${i}`} className="w-3 h-3 text-gray-400" />);
-  }
-  
-  return stars;
-};
+
+  return <div className="flex items-center text-sm">{stars}</div>;
+}
 
 export default function UnifiedPlayerCard({ 
   player, 
   showActions = false, 
   onAction, 
   variant = 'roster',
-  scoutQuality = 50 
+  onClick
 }: PlayerCardProps) {
-  const displayName = player.firstName && player.lastName 
-    ? `${player.firstName} ${player.lastName}` 
-    : player.name || 'Unknown Player';
+  // Use full name for display - prioritize the complete name field
+  const displayName = (() => {
+    // Use the full name field if available and valid
+    if (player.name && player.name.trim() && 
+        !player.name.includes("Player") && !player.name.includes("AI") && 
+        player.name !== "Unknown") {
+      return player.name;
+    }
+    
+    // Construct full name from firstName + lastName
+    if (player.firstName && player.lastName && 
+        player.firstName.trim() && player.lastName.trim() &&
+        player.firstName !== "Player" && player.firstName !== "AI" && 
+        player.lastName !== "Player" && player.lastName !== "AI") {
+      return `${player.firstName} ${player.lastName}`;
+    }
+    
+    // Fall back to lastName only
+    if (player.lastName && player.lastName.trim() && 
+        player.lastName !== "Player" && player.lastName !== "AI") {
+      return player.lastName;
+    }
+    
+    // Fall back to firstName only
+    if (player.firstName && player.firstName.trim() && 
+        player.firstName !== "Player" && player.firstName !== "AI") {
+      return player.firstName;
+    }
+    
+    // Final fallback
+    return getPlayerDisplayName(player);
+  })();
+  const role = player.role || getPlayerRole(player); // Use database role first, fallback to calculated
+  const overallPower = calculateOverallPower(player);
+  const potential = parseFloat(player.potentialRating || '0');
+  
+  // Get role-specific stats
+  const roleStats = ROLE_STATS[role as keyof typeof ROLE_STATS] || ROLE_STATS['Passer'];
+  
+  // Status checks
+  const hasInjury = player.injuryStatus && player.injuryStatus !== 'Healthy';
+  const isContractExpiring = player.contractSeasons && player.contractSeasons <= 1;
 
-  const playerPower = (player.speed || 20) + (player.power || 20) + (player.throwing || 20) + 
-                     (player.catching || 20) + (player.kicking || 20);
+  const handleCardClick = () => {
+    if (onClick) {
+      onClick();
+    } else if (onAction) {
+      onAction('view', player);
+    }
+  };
 
-  // Scouting data for recruiting variant
-  const scoutedStats = variant === 'recruiting' ? {
-    speed: getScoutedStat(player.speed || 20, scoutQuality, 'speed'),
-    power: getScoutedStat(player.power || 20, scoutQuality, 'power'),
-    throwing: getScoutedStat(player.throwing || 20, scoutQuality, 'throwing'),
-    catching: getScoutedStat(player.catching || 20, scoutQuality, 'catching'),
-    kicking: getScoutedStat(player.kicking || 20, scoutQuality, 'kicking'),
-  } : null;
-
-  const scoutedPowerRange = scoutedStats ? {
-    min: Object.values(scoutedStats).reduce((sum, stat) => sum + stat.min, 0),
-    max: Object.values(scoutedStats).reduce((sum, stat) => sum + stat.max, 0)
-  } : null;
-
-  const potentialRating = variant === 'recruiting' ? getPotentialStars(player, scoutQuality) : null;
-
-  // Different layouts based on variant
-  if (variant === 'dashboard') {
-    const allStats = [
-      { name: 'SPD', value: player.speed || 20, color: 'text-blue-400' },
-      { name: 'PWR', value: player.power || 20, color: 'text-red-400' },
-      { name: 'AGI', value: player.agility || 20, color: 'text-green-400' },
-      { name: 'THR', value: player.throwing || 20, color: 'text-purple-400' },
-      { name: 'CAT', value: player.catching || 20, color: 'text-yellow-400' }
-    ];
-    const topStats = allStats.sort((a, b) => b.value - a.value).slice(0, 3);
-
-    return (
-      <Card className="bg-gray-700 border-gray-600 hover:border-gray-500 transition-colors">
-        <CardContent className="p-5">
-          <div className="flex items-center space-x-4">
-            <div className="flex-shrink-0 text-center">
-              <div className="text-xs text-red-400 font-medium mb-1">Power</div>
-              <div className={`w-16 h-16 rounded-full flex items-center justify-center text-white font-bold text-xl ${
-                playerPower >= 120 ? 'bg-red-600' : 
-                playerPower <= 80 ? 'bg-gray-600' : 
-                'bg-red-500'
-              }`}>
-                {playerPower}
+  return (
+    <Card 
+      className="bg-gray-800 border-gray-700 hover:border-gray-600 transition-all duration-200 cursor-pointer hover:shadow-lg"
+      onClick={handleCardClick}
+    >
+      <CardContent className={variant === 'dashboard' ? "p-3" : "p-4"}>
+        {variant === 'dashboard' ? (
+          /* Compact Dashboard Layout */
+          <>
+            {/* Header Row: Name and Power */}
+            <div className="flex items-start justify-between mb-3">
+              <div className="flex items-center gap-2 flex-1">
+                <div className="text-left">
+                  <div className="font-semibold text-white text-sm">{player.firstName || 'Unknown'}</div>
+                  <div className="font-semibold text-white text-sm">{player.lastName || 'Player'}</div>
+                </div>
+                {player.isCaptain && <Crown className="w-4 h-4 text-yellow-500" />}
+              </div>
+              <div className="text-right">
+                <div className={`text-3xl font-bold ${getPowerColor(overallPower)}`}>
+                  {overallPower}
+                </div>
+                <div className="text-xs text-gray-400">Power</div>
               </div>
             </div>
-            <div className="flex-1 min-w-0">
-              <div className="text-base font-semibold text-white mb-1" title={displayName}>
-                {displayName}
+
+            {/* Role and Race Row */}
+            <div className="flex items-center justify-between mb-2">
+              <Badge className={`text-xs font-medium px-2 py-1 ${getRoleTagStyle(role)}`}>
+                {role.toUpperCase()}
+              </Badge>
+              <div className="flex items-center gap-2 text-xs text-gray-400">
+                <span>{getRaceEmoji(player.race)}</span>
+                <span>{getRaceDisplayName(player.race)}</span>
               </div>
-              <div className="text-sm text-gray-400 capitalize mb-2">
-                {getRaceEmoji(player.race)} {player.race} {player.role}
+            </div>
+
+            {/* Age and Potential Row */}
+            <div className="flex items-center justify-between mb-3">
+              <div className="text-xs text-gray-400">Age {player.age}</div>
+              <div className="flex items-center gap-2">
+                {renderStarRating(potential)}
+                <span className="text-xs text-gray-400">Potential</span>
               </div>
-              <div className="grid grid-cols-3 gap-3">
-                {topStats.map((stat, index) => (
-                  <div key={index} className="text-center">
-                    <div className={`text-xs ${stat.color} font-medium`}>{stat.name}</div>
-                    <div className="text-sm text-white font-semibold">{stat.value}</div>
+            </div>
+          </>
+        ) : (
+          /* Full Roster Layout */
+          <>
+            {/* Header Section */}
+            <div className="flex items-start justify-between mb-3">
+              <div className="flex-1">
+                {/* Player Name */}
+                <div className="flex items-center gap-2 mb-2">
+                  <h3 className="font-semibold text-white text-sm whitespace-nowrap">{displayName}</h3>
+                  {player.isCaptain && <Crown className="w-4 h-4 text-yellow-500" />}
+                </div>
+                
+                {/* Role Tag and Race */}
+                <div className="flex items-center gap-2 mb-3">
+                  <Badge className={`text-xs font-medium px-3 py-1 ${getRoleTagStyle(role)}`}>
+                    {role.toUpperCase()}
+                  </Badge>
+                  <span className="text-xs text-gray-400 flex items-center gap-1">
+                    <span>{getRaceEmoji(player.race)}</span>
+                    {getRaceDisplayName(player.race)}
+                  </span>
+                </div>
+
+                {/* Age and Potential on same line */}
+                <div className="flex items-center justify-between">
+                  <div className="text-xs text-gray-400">
+                    Age {player.age}
                   </div>
-                ))}
+                  <div className="flex items-center gap-2">
+                    {renderStarRating(potential)}
+                    <span className="text-xs text-gray-400">Potential</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Power Rating */}
+              <div className="text-right">
+                <div className={`text-2xl font-bold ${getPowerColor(overallPower)}`}>
+                  {overallPower}
+                </div>
+                <div className="text-xs text-gray-400">Power</div>
               </div>
             </div>
+          </>
+        )}
+
+        {/* Role-Dependent Key Stats Section */}
+        {variant === 'dashboard' ? (
+          // Expanded 6-stat layout for Dashboard
+          <div className="grid grid-cols-6 gap-1 mb-3">
+            {roleStats.slice(0, 6).map((stat, index) => {
+              const statValue = player[stat.key] || 20;
+              return (
+                <div key={index} className="text-center">
+                  <div className={`text-sm font-semibold ${getStatColor(statValue)}`}>
+                    {statValue}
+                  </div>
+                  <div className="text-xs text-gray-500">{stat.abbr}</div>
+                </div>
+              );
+            })}
           </div>
-        </CardContent>
-      </Card>
-    );
-  }
-
-  if (variant === 'recruiting') {
-    return (
-      <Card className="hover:shadow-md transition-shadow bg-gray-800 border-gray-700">
-        <CardContent className="p-4">
-          <div className="flex items-start justify-between mb-3">
-            <div className="flex-1">
-              <div className="flex items-center gap-2 mb-2">
-                <span className="text-lg">{getRaceEmoji(player.race)}</span>
-                <h3 className="font-semibold text-lg text-white">{displayName}</h3>
-                <Badge variant="secondary" className="text-xs">
-                  Age {player.age}
-                </Badge>
-              </div>
-              
-              <div className="flex items-center gap-2 mb-3">
-                <Badge 
-                  variant="outline" 
-                  className={`text-xs ${getRoleColor(player.role)} flex items-center gap-1`}
-                >
-                  {getRoleIcon(player.role)}
-                  {player.role?.charAt(0).toUpperCase() + player.role?.slice(1).toLowerCase() || 'Utility'}
-                </Badge>
-                <Badge variant="outline" className="text-xs">
-                  {player.race?.charAt(0).toUpperCase() + player.race?.slice(1).toLowerCase()}
-                </Badge>
-              </div>
-
-              {/* Potential Rating */}
-              {potentialRating && (
-                <div className="mb-3">
-                  <div className="text-xs text-gray-400 mb-1">Potential</div>
-                  <div className="flex items-center gap-1">
-                    {renderStars(potentialRating)}
-                    <span className="text-xs text-gray-400 ml-1">
-                      ({potentialRating.toFixed(1)}/5.0)
-                    </span>
+        ) : (
+          // Full 6-stat layout for Roster and other variants
+          <div className="grid grid-cols-6 gap-1 mb-3">
+            {roleStats.map((stat, index) => {
+              const statValue = player[stat.key] || 20;
+              return (
+                <div key={index} className="text-center">
+                  <div className={`text-sm font-semibold ${getStatColor(statValue)}`}>
+                    {statValue}
                   </div>
+                  <div className="text-xs text-gray-500">{stat.abbr}</div>
+                </div>
+              );
+            })}
+          </div>
+        )}
+
+        {/* Contract & Status Section */}
+        {variant === 'dashboard' ? (
+          // Clean layout for Dashboard - no status indicators for universal look
+          null
+        ) : (
+          // Full contract & status layout for Roster and other variants
+          <div className="space-y-2">
+            {/* Contract Information */}
+            {player.contract?.salary && (
+              <div className="flex items-center justify-between text-xs">
+                <span className="text-gray-400">Salary:</span>
+                <span className="text-white">₡{player.contract.salary.toLocaleString()} / season</span>
+              </div>
+            )}
+            
+            {player.contract?.length && (
+              <div className="flex items-center justify-between text-xs">
+                <span className="text-gray-400">Contract:</span>
+                <span className="text-white">{player.contract.length} seasons remaining</span>
+              </div>
+            )}
+
+            {/* Status Icons */}
+            <div className="flex items-center gap-3">
+              {hasInjury && (
+                <div className="flex items-center gap-1">
+                  <Heart className="w-4 h-4 text-red-500" />
+                  <span className="text-xs text-red-400">{player.injuryStatus}</span>
+                </div>
+              )}
+              
+              {isContractExpiring && (
+                <div className="flex items-center gap-1">
+                  <AlertTriangle className="w-4 h-4 text-yellow-500" />
+                  <span className="text-xs text-yellow-400">Contract Expiring</span>
                 </div>
               )}
             </div>
-
-            <div className="text-right">
-              <div className="text-sm text-gray-400 mb-1">Power Range</div>
-              <div className="text-lg font-bold text-blue-400">
-                {scoutedPowerRange ? `${scoutedPowerRange.min}-${scoutedPowerRange.max}` : playerPower}
-              </div>
-            </div>
-          </div>
-
-          {/* Scouted Stats Grid */}
-          {scoutedStats && (
-            <div className="grid grid-cols-5 gap-2 text-xs mb-3">
-              <div className="text-center">
-                <div className="text-blue-400 font-semibold">
-                  {scoutedStats.speed.min}-{scoutedStats.speed.max}
-                </div>
-                <div className="text-gray-500">SPD</div>
-              </div>
-              <div className="text-center">
-                <div className="text-red-400 font-semibold">
-                  {scoutedStats.power.min}-{scoutedStats.power.max}
-                </div>
-                <div className="text-gray-500">PWR</div>
-              </div>
-              <div className="text-center">
-                <div className="text-purple-400 font-semibold">
-                  {scoutedStats.throwing.min}-{scoutedStats.throwing.max}
-                </div>
-                <div className="text-gray-500">THR</div>
-              </div>
-              <div className="text-center">
-                <div className="text-yellow-400 font-semibold">
-                  {scoutedStats.catching.min}-{scoutedStats.catching.max}
-                </div>
-                <div className="text-gray-500">CAT</div>
-              </div>
-              <div className="text-center">
-                <div className="text-orange-400 font-semibold">
-                  {scoutedStats.kicking.min}-{scoutedStats.kicking.max}
-                </div>
-                <div className="text-gray-500">KCK</div>
-              </div>
-            </div>
-          )}
-
-          {/* Scout Quality Indicator */}
-          <div className="mb-3">
-            <div className="text-xs text-gray-400 mb-1">Scout Confidence</div>
-            <div className="flex items-center gap-2">
-              <div className="flex-1 bg-gray-700 rounded-full h-2">
-                <div 
-                  className={`h-2 rounded-full ${
-                    scoutQuality >= 80 ? 'bg-green-500' :
-                    scoutQuality >= 60 ? 'bg-yellow-500' :
-                    scoutQuality >= 40 ? 'bg-orange-500' : 'bg-red-500'
-                  }`}
-                  style={{ width: `${scoutQuality}%` }}
-                />
-              </div>
-              <span className="text-xs text-gray-400">{scoutQuality}%</span>
-            </div>
-          </div>
-
-          {/* Action Buttons */}
-          {showActions && onAction && (
-            <div className="flex gap-2 mt-3">
-              <Button
-                size="sm"
-                variant="outline"
-                onClick={() => onAction('recruit', player)}
-                className="flex-1 text-xs"
-              >
-                Recruit
-              </Button>
-              <Button
-                size="sm"
-                variant="ghost"
-                onClick={() => onAction('scout_more', player)}
-                className="flex-1 text-xs"
-              >
-                Scout More
-              </Button>
-            </div>
-          )}
-        </CardContent>
-      </Card>
-    );
-  }
-
-  // Default roster variant
-  return (
-    <Card className="hover:shadow-md transition-shadow bg-gray-800 border-gray-700">
-      <CardContent className="p-4">
-        <div className="flex items-center justify-between mb-3">
-          <div className="flex items-center gap-3">
-            <span className="text-lg">{getRaceEmoji(player.race)}</span>
-            <div>
-              <h3 className="font-semibold text-white">{displayName}</h3>
-              <div className="flex items-center gap-2 mt-1">
-                <Badge 
-                  variant="outline" 
-                  className={`text-xs ${getRoleColor(player.role)} flex items-center gap-1`}
-                >
-                  {getRoleIcon(player.role)}
-                  {player.role?.charAt(0).toUpperCase() + player.role?.slice(1).toLowerCase() || 'Utility'}
-                </Badge>
-                <Badge variant="secondary" className="text-xs">
-                  {player.race?.charAt(0).toUpperCase() + player.race?.slice(1).toLowerCase()} • Age {player.age}
-                </Badge>
-              </div>
-            </div>
-            {player.isCaptain && <Crown className="w-4 h-4 text-yellow-500" />}
-          </div>
-
-          <div className="text-right">
-            <div className="text-2xl font-bold text-blue-400">
-              {playerPower}
-            </div>
-            <div className="text-xs text-gray-400">Power</div>
-          </div>
-        </div>
-
-        {/* Stats Grid */}
-        <div className="grid grid-cols-5 gap-2 text-xs mb-3">
-          <div className="text-center">
-            <div className={`font-semibold ${getStatColor(player.speed || 20)}`}>{player.speed || 20}</div>
-            <div className="text-gray-500">SPD</div>
-          </div>
-          <div className="text-center">
-            <div className={`font-semibold ${getStatColor(player.power || 20)}`}>{player.power || 20}</div>
-            <div className="text-gray-500">PWR</div>
-          </div>
-          <div className="text-center">
-            <div className={`font-semibold ${getStatColor(player.throwing || 20)}`}>{player.throwing || 20}</div>
-            <div className="text-gray-500">THR</div>
-          </div>
-          <div className="text-center">
-            <div className={`font-semibold ${getStatColor(player.catching || 20)}`}>{player.catching || 20}</div>
-            <div className="text-gray-500">CAT</div>
-          </div>
-          <div className="text-center">
-            <div className={`font-semibold ${getStatColor(player.kicking || 20)}`}>{player.kicking || 20}</div>
-            <div className="text-gray-500">KCK</div>
-          </div>
-        </div>
-
-        {/* Salary Information */}
-        {player.salary && (
-          <div className="text-xs text-gray-400 mb-2">
-            Salary: {player.salary.toLocaleString()}/season
           </div>
         )}
 
@@ -397,7 +345,10 @@ export default function UnifiedPlayerCard({
             <Button
               size="sm"
               variant="outline"
-              onClick={() => onAction('view', player)}
+              onClick={(e) => {
+                e.stopPropagation();
+                onAction('view', player);
+              }}
               className="flex-1 text-xs"
             >
               View Details
@@ -405,12 +356,24 @@ export default function UnifiedPlayerCard({
             {player.marketplacePrice && (
               <Button
                 size="sm"
-                onClick={() => onAction('buy', player)}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onAction('buy', player);
+                }}
                 className="flex-1 text-xs"
               >
-                Buy - {player.marketplacePrice.toLocaleString()}
+                Buy - ₡{player.marketplacePrice.toLocaleString()}
               </Button>
             )}
+          </div>
+        )}
+
+        {/* Taxi Squad Indicator - only show in non-dashboard variants */}
+        {player.isOnTaxi && variant !== 'dashboard' && (
+          <div className="mt-2">
+            <Badge variant="outline" className="text-xs bg-orange-100 text-orange-800 border-orange-200 dark:bg-orange-900/20 dark:text-orange-400 dark:border-orange-800">
+              Taxi Squad
+            </Badge>
           </div>
         )}
       </CardContent>

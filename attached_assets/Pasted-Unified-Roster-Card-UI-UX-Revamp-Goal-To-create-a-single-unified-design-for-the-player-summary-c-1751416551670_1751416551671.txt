@@ -1,0 +1,107 @@
+Unified Roster Card UI & UX Revamp
+Goal: To create a single, unified design for the player summary card used throughout the game. This design is based on the preferred darker aesthetic and is enhanced to display more relevant, role-dependent information, providing managers with all necessary at-a-glance data.
+
+1. Core Design Principles
+Unification: One card design to be used everywhere (Dashboard, Roster page, etc.) for consistency.
+
+Information Density: The card must be concise but rich with the most critical information: overall power, future potential, key role-based stats, and contract status.
+
+Visual Clarity: High-contrast elements and color-coding will be used to make information easy to parse instantly.
+
+2. Proposed Roster Card Layout
+The design is an evolution of the preferred "Battlecry Ragemaw" card.
+
+3. Detailed Component Breakdown
+A. Header Section (Top)
+Player Name: "Battlecry Ragemaw" - Remains the primary text.
+
+Role Tag: Uses the high-contrast color scheme for instant recognition.
+
+Blocker: Red background with white text.
+
+Runner: Green background with white text.
+
+Passer: Yellow background with black text.
+
+Race & Age Info: "Gryll • Age 24" remains.
+
+B. Core Ratings Section (Top Right)
+Overall Power Rating:
+
+Labeled clearly as "Power".
+
+This rating is the average of the player's 6 core athletic stats (Speed, Power, Agility, Throwing, Catching, Kicking).
+
+The numerical value is color-coded for quality (Red < 16, White 16-25, Green 26-34, Blue 35+).
+
+Potential Rating:
+
+Displayed directly below the Power rating.
+
+Uses a 0 to 5-star system (including half-stars).
+
+This rating must reflect scouting accuracy (e.g., showing a range like "3.5 - 4.5 Stars" if the scout level is low).
+
+C. Role-Dependent Key Stats (NEW)
+This section replaces the three summary bars (Passing, Mobility, Power).
+
+It now displays the six most important individual attributes for the player's specific role, allowing for quick, relevant assessment.
+
+Each stat is displayed as a three-letter abbreviation with its color-coded numerical value.
+
+Stats for "Passer":
+
+THR (Throwing)
+
+AGI (Agility)
+
+SPD (Speed)
+
+CAT (Catching)
+
+STA (Stamina)
+
+LDR (Leadership)
+
+Stats for "Runner":
+
+SPD (Speed)
+
+AGI (Agility)
+
+PWR (Power)
+
+CAT (Catching)
+
+STA (Stamina)
+
+KCK (Kicking - for punt/kick return versatility)
+
+Stats for "Blocker":
+
+PWR (Power)
+
+AGI (Agility)
+
+SPD (Speed)
+
+STA (Stamina)
+
+LDR (Leadership)
+
+CAT (Catching - for recovering fumbles/interceptions)
+
+D. Contract & Status Section (Bottom)
+This new section adds crucial management information directly to the card.
+
+Salary: Salary: ₡2,540 / season
+
+Contract Length: Contract: 2 seasons remaining
+
+Status Icons:
+
+Injury Icon (Red Cross): Appears only if the player is injured.
+
+Expiring Contract Icon (Yellow Exclamation Point): Appears only if the player is in their final contract season.
+
+This unified design provides a much richer at-a-glance view, tailored to what a manager needs to know for each specific player role, while maintaining a clean and modern aesthetic.

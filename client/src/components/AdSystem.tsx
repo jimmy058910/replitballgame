@@ -77,8 +77,14 @@ export function AdSystem({
 
   const handleAdComplete = async () => {
     try {
-      // Track ad view in database
-      await apiRequest('/api/ads/view', 'POST', {
+      // Track ad view in database - this will also handle daily/cumulative counts
+      const response = await apiRequest<{
+        message: string;
+        newDailyCount?: number;
+        newCumulativeCount?: number;
+        premiumRewardGranted?: boolean;
+        reward?: { type: string; amount: number; name?: string };
+      }>('/api/ads/view', 'POST', {
         adType,
         placement,
         rewardType,
@@ -97,14 +103,29 @@ export function AdSystem({
         });
       }
 
+      if (response.premiumRewardGranted && response.reward) {
+        toast({
+          title: "Premium Reward Unlocked!",
+          description: `Your team earned a special reward: ${response.reward.name || `${response.reward.amount} ${response.reward.type}`}`,
+          variant: "default",
+          duration: 7000,
+        });
+      }
+
       onClose();
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error tracking ad view:', error);
+      const errorMessage = error?.response?.data?.message || "Failed to process ad reward. Please try again.";
       toast({
         title: "Error",
-        description: "Failed to process ad reward. Please try again.",
+        description: errorMessage,
         variant: "destructive"
       });
+      // Potentially close the ad dialog even if there's an error,
+      // unless it's a specific error like "daily limit reached" which might keep it open or show a different message.
+      if (error?.response?.data?.error !== "daily_limit_reached") {
+        onClose();
+      }
     }
   };
 
@@ -116,12 +137,19 @@ export function AdSystem({
         placement,
         rewardType: 'none',
         rewardAmount: 0,
-        completed: false
+        completed: false // This will only track the view, not grant rewards or increment counts
       });
 
       onClose();
     } catch (error) {
       console.error('Error tracking ad skip:', error);
+      // Optionally inform the user that skipping won't grant rewards
+      toast({
+        title: "Ad Skipped",
+        description: "You won't receive rewards for skipped ads.",
+        variant: "info"
+      });
+      onClose();
     }
   };
 

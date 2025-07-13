@@ -1,0 +1,142 @@
+Integrated Stadium, Finance & Atmosphere System
+
+We previously designed, but somehow lost, a very updated, balanced, and detailed Stadium page with upgrades showing, stadium level, effects on finances etc. Can you check into this to see if this can be restored? It somehow vanished and reverted to old, broken, not functional /stadium page
+
+Goal: To design a robust and balanced economic and atmosphere system that connects a team's financial health, stadium infrastructure, and fan base directly to on-field performance. The system should reward success and strategic management while maintaining a fair and engaging progression for all users. The Team > Finance page should be directly integrated, albeit different, than the /stadium page/feature
+
+1. The Fan Loyalty & Atmosphere System
+This is the core driver of your stadium's value. Instead of just attendance, we'll track Fan Loyalty, a persistent score (0-100) that represents the dedication of your fan base.
+
+A. Calculating Fan Loyalty
+
+Fan Loyalty is updated at the End of Season (Day 17) for each team.
+
+Formula:
+NewLoyalty = OldLoyalty + PerformanceModifier + FormModifier - PricePenalty + FacilityBonus
+
+Component Breakdown:
+
+OldLoyalty: The team's loyalty score from the previous season.
+
+PerformanceModifier: Based on last season's win percentage.
+
+Win % > 60%: +10 Loyalty
+
+Win % 40-60%: +0 Loyalty
+
+Win % < 40%: -10 Loyalty
+
+Championship Bonus: Winning the playoff championship provides an additional +15 Loyalty.
+
+FormModifier: Fans love a team that finishes strong.
+
+If team won their last 3 games of the season: +5 Loyalty.
+
+PricePenalty (Future Feature): When you implement ticket price controls, this will be a key balancing factor. High prices will slowly decrease loyalty over time.
+
+FacilityBonus: High-quality stadium facilities improve the fan experience.
+
++ (LightingLevel + ScreensLevel) / 2. (e.g., Level 4 Lighting and Level 2 Screens provide a +3 Loyalty bonus per season).
+
+B. Calculating Matchday Atmosphere
+
+This is calculated before each home game to determine the in-game effects.
+
+1. Attendance Rate: How full is the stadium? This is driven by fan loyalty and team performance.
+
+BaseAttendance = 0.35 + (FanLoyalty / 200) (This means 35% base, up to 85% for a team with 100 Loyalty).
+
+Winning Streak Bonus: +5% for every 3 consecutive wins (max +15%).
+
+FinalAttendanceRate = clamp(BaseAttendance + WinStreakBonus, 0.0, 1.0)
+
+2. Intimidation Factor (0-10 Scale): This is the core home-field advantage metric.
+
+IntimidationFactor = (FinalAttendanceRate * 10) * (FanLoyalty / 100)
+
+(Example: A stadium at 90% capacity (0.9) with a Fan Loyalty of 80 would have an Intimidation Factor of (0.9 * 10) * 0.8 = 7.2)
+
+2. In-Game Effects of Atmosphere
+The calculated IntimidationFactor directly impacts the away team's performance for that match.
+
+Mechanism: At the start of a match, apply a temporary debuff to the away team's players based on the home team's IntimidationFactor.
+
+Effect:
+
+"Crowd Noise" Debuff: For every 2 full points of IntimidationFactor, the away team suffers a -1 penalty to their Catching and Throwing attributes for the duration of the match.
+
+(Example: An Intimidation Factor of 7.2 would result in a floor(7.2 / 2) = 3 point penalty to the away team's Catching and Throwing stats for that game only.)
+
+Referee Bias: (Removed) As per your feedback, there are no referees, so this mechanic is not included.
+
+3. Stadium Financial System (Refined & Balanced)
+This section refines the revenue calculations to be more dynamic and provides clear upgrade paths.
+
+A. Revenue Calculation Formula (Per Home Game)
+
+ActualAttendance = StadiumCapacity * FinalAttendanceRate (This is the most important change: revenue is based on actual fans, not just capacity).
+
+Ticket Sales: ActualAttendance * BaseTicketPrice (e.g., BaseTicketPrice = 25 ₡).
+
+Concession Sales: ActualAttendance * 8 ₡ * ConcessionsLevel.
+
+Parking Revenue: (ActualAttendance * 0.3) * 10 ₡ * ParkingLevel.
+
+Apparel Sales: ActualAttendance * 3 ₡ * MerchandisingLevel.
+
+VIP Suites: VIPSuitesLevel * 5000 ₡.
+
+Atmosphere Bonus: If FanLoyalty > 80, add ActualAttendance * 2 ₡ to the total revenue.
+
+B. Stadium Upgrade Costs
+
+Capacity Expansion: CurrentCapacity * 10 ₡ for the next 5,000 seats. This increasing cost makes early expansion valuable but late-game expansion a major investment.
+
+Facility Upgrades (Concessions, Parking, etc.): The costs provided (25k-30k) are good starting points. These should likely increase for higher levels.
+
+4. Player & Team Power Calculation (Clarification)
+Player CAR (Core Athleticism Rating): To make player power more intuitive, let's use the average of their key athletic stats.
+
+Formula: CAR = (Speed + Power + Agility + Throwing + Catching + Kicking) / 6
+
+This gives a single, easy-to-understand number on the same 1-40 scale.
+
+Team Power: The average CAR of the top 9 players is a solid metric. Let's formalize the tiers:
+
+Team Power (CAR Avg)
+
+Tier Name
+
+Description
+
+1-15
+
+Foundation
+
+"Building for the future."
+
+16-20
+
+Developing
+
+"Showing signs of promise."
+
+21-25
+
+Competitive
+
+"Can challenge any team on a good day."
+
+26-30
+
+Contender
+
+"A true championship threat."
+
+31+
+
+Elite
+
+"A powerhouse of the league."
+
+This integrated system ensures that building a good stadium and cultivating a loyal fan base provides a tangible, but not overpowering, home-field advantage. It also creates a strong feedback loop where winning increases loyalty, which increases attendance, which in turn increases revenue, allowing for further team improvement.

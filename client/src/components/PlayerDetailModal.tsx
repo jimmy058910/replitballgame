@@ -6,45 +6,15 @@ import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Progress } from "@/components/ui/progress";
 import { Separator } from "@/components/ui/separator";
-import { Shield, Shirt, ShirtIcon, Hand } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Shield, Shirt, ShirtIcon, Hand, Star, Trophy, Calendar, FileText, Zap, User, Crown, DollarSign } from "lucide-react";
 import AbilitiesDisplay from "@/components/AbilitiesDisplay";
-import type { Player as SharedPlayer } from "@shared/schema"; // Import base Player type
-
-// Extend Player type for detailed view if necessary, or use SharedPlayer directly
-export interface DetailedPlayer extends SharedPlayer { // Ensure export
-  // Potentials must align with SharedPlayer (string | null) from schema.
-  speedPotential: string | null;
-  powerPotential: string | null;
-  throwingPotential: string | null;
-  catchingPotential: string | null;
-  kickingPotential: string | null;
-  staminaPotential: string | null;
-  leadershipPotential: string | null;
-  agilityPotential: string | null;
-  // These are number in SharedPlayer due to .default()
-  contractSeasons: number;
-  contractStartSeason: number;
-  camaraderie: number;
-  // UUIDs are string | null by default
-  helmetItemId: string | null;
-  chestItemId: string | null;
-  shoesItemId: string | null;
-  glovesItemId: string | null;
-  // The actual item objects like helmetItem below are for local display logic,
-  // they are not part of the SharedPlayer extension directly for these ID fields.
-  helmetItem?: EquipmentItem | null;
-  chestItem?: EquipmentItem | null;
-  shoesItem?: EquipmentItem | null;
-  glovesItem?: EquipmentItem | null;
-  role?: string; // Calculated property
-  // isInjured might be a property to add if it comes from API or is calculated before passing
-}
-
-interface EquipmentItem {
-  name: string;
-  rarity: string;
-  statBoosts?: Record<string, number>;
-}
+import { PlayerAwards } from "./PlayerAwards";
+import ContractNegotiation from "./ContractNegotiation";
+import { getPlayerRole, getRaceDisplayName, getRoleColor, getRoleTextColor } from "@shared/playerUtils";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useToast } from "@/hooks/use-toast";
+import { apiRequest } from "@/lib/queryClient";
 
 interface PlayerDetailModalProps {
   player: DetailedPlayer | null; // Make player prop explicitly DetailedPlayer or null
@@ -54,18 +24,51 @@ interface PlayerDetailModalProps {
   onEquipmentChange?: (playerId: string, slot: string, itemId: string) => void;
 }
 
-const roleColors = {
-  Passer: "text-blue-400 border-blue-400",
-  Runner: "text-green-400 border-green-400", 
-  Blocker: "text-red-400 border-red-400",
+// Helper function to get race emoji
+const getRaceEmoji = (race: string): string => {
+  const raceEmojis = {
+    'human': '👤',
+    'sylvan': '🌿',
+    'gryll': '⚒️',
+    'lumina': '✨',
+    'umbra': '🌑'
+  };
+  return raceEmojis[race?.toLowerCase() as keyof typeof raceEmojis] || '👤';
 };
 
-const raceColors = {
-  human: "race-human",
-  sylvan: "race-sylvan",
-  gryll: "race-gryll",
-  lumina: "race-lumina",
-  umbra: "race-umbra",
+// Helper function to get stat color based on value
+const getStatColor = (value: number): string => {
+  if (value >= 35) return "text-blue-400";
+  if (value >= 26) return "text-green-400";
+  if (value >= 16) return "text-white";
+  return "text-red-400";
+};
+
+// Helper function to render star rating
+const renderStarRating = (rating: number): JSX.Element[] => {
+  const stars = [];
+  const fullStars = Math.floor(rating);
+  const hasHalfStar = rating % 1 >= 0.5;
+  
+  for (let i = 0; i < fullStars; i++) {
+    stars.push(<Star key={i} className="w-4 h-4 fill-yellow-400 text-yellow-400" />);
+  }
+  
+  if (hasHalfStar) {
+    stars.push(
+      <div key="half" className="relative w-4 h-4">
+        <Star className="w-4 h-4 text-yellow-400" />
+        <Star className="w-4 h-4 fill-yellow-400 text-yellow-400 absolute top-0 left-0" style={{ clipPath: 'inset(0 50% 0 0)' }} />
+      </div>
+    );
+  }
+  
+  const emptyStars = 5 - Math.ceil(rating);
+  for (let i = 0; i < emptyStars; i++) {
+    stars.push(<Star key={`empty-${i}`} className="w-4 h-4 text-gray-400" />);
+  }
+  
+  return stars;
 };
 
 export default function PlayerDetailModal({ 
@@ -75,72 +78,130 @@ export default function PlayerDetailModal({
   onContractNegotiate,
   onEquipmentChange 
 }: PlayerDetailModalProps) {
-  const [activeTab, setActiveTab] = useState("stats");
+  const [activeTab, setActiveTab] = useState("overview");
+  const [showContractNegotiation, setShowContractNegotiation] = useState(false);
+  const [selectedEquipmentItem, setSelectedEquipmentItem] = useState("");
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
 
   if (!player) return null;
 
-  // Helper function to determine player role
-  const getPlayerRole = (p: DetailedPlayer): string => {
-    // No need for !p check as it's done above
-    // Defaulting individual stats to 0 if they are undefined/null coming from player prop
-    const {
-      speed = 0,
-      agility = 0,
-      catching = 0,
-      throwing = 0,
-      power = 0,
-      leadership = 0,
-      stamina = 0
-    } = p;
-    
-    const passerScore = (throwing * 2) + (leadership * 1.5);
-    const runnerScore = (speed * 2) + (agility * 1.5);
-    const blockerScore = (power * 2) + (stamina * 1.5);
-    
-    const maxScore = Math.max(passerScore, runnerScore, blockerScore);
-    
-    if (maxScore === passerScore) return "Passer";
-    if (maxScore === runnerScore) return "Runner";
-    return "Blocker";
-  };
+  // Fetch player's current equipment
+  const { data: playerEquipment, isLoading: equipmentLoading } = useQuery({
+    queryKey: [`/api/equipment/player/${player.id}`],
+    enabled: isOpen && !!player.id,
+  });
+
+  // Fetch team inventory for equipment options
+  const { data: teamInventory, isLoading: inventoryLoading } = useQuery({
+    queryKey: [`/api/inventory/${player.teamId}`],
+    enabled: isOpen && !!player.teamId,
+  });
+
+  // Equipment mutation
+  const equipItemMutation = useMutation({
+    mutationFn: async ({ itemId, itemName }: { itemId: number; itemName: string }) => {
+      return apiRequest(`/api/equipment/equip`, "POST", {
+        teamId: player.teamId,
+        playerId: player.id,
+        itemId,
+        itemName
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [`/api/equipment/player/${player.id}`] });
+      queryClient.invalidateQueries({ queryKey: [`/api/inventory/${player.teamId}`] });
+      setSelectedEquipmentItem("");
+      toast({
+        title: "Equipment Updated",
+        description: "Item equipped successfully!",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Equipment Error",
+        description: error.message || "Failed to equip item. Please try again.",
+        variant: "destructive",
+      });
+    }
+  });
 
   const playerRole = getPlayerRole(player);
-  const raceColorClass = raceColors[player.race as keyof typeof raceColors] || "race-human";
+  const displayName = player.firstName && player.lastName 
+    ? `${player.firstName} ${player.lastName}` 
+    : player.name || "Unknown Player";
 
-  // Calculate contract status
-  const contractRemaining = (player.contractSeasons || 3) - (player.contractStartSeason || 0);
-  const contractStatus = contractRemaining <= 1 ? "expiring" : contractRemaining <= 2 ? "moderate" : "stable";
-
-  // Mock equipment data - this would come from the database
-  const equipment = {
-    helmet: player.helmetItem || { name: "Basic Helmet", rarity: "common", statBoosts: {} },
-    chest: player.chestItem || { name: "Basic Chest Armor", rarity: "common", statBoosts: {} },
-    shoes: player.shoesItem || { name: "Basic Shoes", rarity: "common", statBoosts: {} },
-    gloves: player.glovesItem || { name: "Basic Gloves", rarity: "common", statBoosts: {} },
+  // Calculate potential for each stat (using overallPotentialStars as base, capped at 5.0)
+  const basePotential = Math.min(5.0, Number(player.overallPotentialStars) || 3.0);
+  const getMaxPotential = (currentStat: number) => {
+    // Convert star rating to potential points (each star = 8 potential points)
+    const potentialPoints = basePotential * 8;
+    return Math.min(40, currentStat + Math.floor(potentialPoints * 0.3));
   };
 
-  const renderStatsBar = (label: string, current: number, potential: string | null) => { // Potential is string | null
-    const potentialNum = potential ? parseFloat(potential) : 0;
-    const maxPossible = Math.min(40, current + (potentialNum * 5)); // Rough calculation
-    
-    return (
-      <div className="space-y-1">
-        <div className="flex justify-between text-sm">
-          <span>{label}</span>
-          <span className="font-semibold">{current}/{Math.floor(maxPossible)}</span>
-        </div>
-        <div className="relative">
-          <Progress value={(current / 40) * 100} className="h-2" />
-          <div 
-            className="absolute top-0 h-2 bg-yellow-400/30 rounded-full"
-            style={{ 
-              left: `${(current / 40) * 100}%`,
-              width: `${((maxPossible - current) / 40) * 100}%`
-            }}
-          />
-        </div>
-      </div>
+  // Contract status calculation
+  const contractRemaining = (player.contractSeasons || 3) - (player.contractStartSeason || 0);
+  const isContractExpiring = contractRemaining <= 1;
+
+  // Mock Head Scout level for scouting accuracy (this would come from team data)
+  const headScoutLevel = 3; // This should be fetched from team staff
+  const scoutingAccuracy = Math.min(100, 40 + (headScoutLevel * 15)); // 40% base + 15% per level
+
+  // Calculate potential display based on scouting accuracy
+  const getPotentialDisplay = () => {
+    if (scoutingAccuracy >= 90) {
+      return `${basePotential.toFixed(1)} Stars`;
+    } else if (scoutingAccuracy >= 70) {
+      const variance = 0.5;
+      return `${(basePotential - variance).toFixed(1)} - ${(basePotential + variance).toFixed(1)} Stars`;
+    } else {
+      const variance = 1.0;
+      return `${Math.max(0, basePotential - variance).toFixed(1)} - ${Math.min(5, basePotential + variance).toFixed(1)} Stars`;
+    }
+  };
+
+  // Get equipped items by slot
+  const getEquippedItemBySlot = (slot: string) => {
+    if (!playerEquipment?.equipment) return null;
+    return playerEquipment.equipment.find((eq: any) => 
+      eq.item.slot === slot.toUpperCase() || 
+      (slot === "helmet" && eq.item.name.toLowerCase().includes("helm"))
     );
+  };
+
+  // Get eligible equipment items for player
+  const getEligibleEquipment = () => {
+    if (!teamInventory || !Array.isArray(teamInventory)) return [];
+    
+    const raceRequirements = {
+      "Human Tactical Helm": ["HUMAN"],
+      "Gryllstone Plated Helm": ["GRYLL"],
+      "Sylvan Barkwood Circlet": ["SYLVAN"],
+      "Umbral Cowl": ["UMBRA"],
+      "Lumina Radiant Aegis": ["LUMINA"]
+    };
+
+    return teamInventory.filter((item: any) => {
+      if (item.itemType !== "EQUIPMENT" || item.quantity <= 0) return false;
+      
+      const requiredRaces = raceRequirements[item.name as keyof typeof raceRequirements];
+      if (requiredRaces && !requiredRaces.includes(player.race)) return false;
+      
+      return true;
+    });
+  };
+
+  // Get item effect description
+  const getItemEffect = (item: any) => {
+    const effects: Record<string, string> = {
+      "Standard Leather Helmet": "+1 Stamina protection",
+      "Human Tactical Helm": "+4 Leadership, +2 Throwing accuracy",
+      "Gryllstone Plated Helm": "+3 Power, +2 Stamina",
+      "Sylvan Barkwood Circlet": "+4 Agility, +2 Speed",
+      "Umbral Cowl": "+3 Agility, +1 Speed",
+      "Lumina Radiant Aegis": "+1 Leadership",
+    };
+    return effects[item.name] || item.description || "Provides various benefits";
   };
 
   const equipmentSlots = [
@@ -160,262 +221,365 @@ export default function PlayerDetailModal({
     }
   };
 
+  // Render single stat bar with new format
+  const renderStatBar = (label: string, current: number) => {
+    const maxPotential = getMaxPotential(current);
+    const percentage = (current / 40) * 100;
+    
+    return (
+      <div className="space-y-2">
+        <div className="flex justify-between items-center">
+          <span className="text-sm font-medium">{label}</span>
+          <span className={`text-sm font-bold ${getStatColor(current)}`}>
+            {current}/{maxPotential}
+          </span>
+        </div>
+        <Progress value={percentage} className="h-2" />
+      </div>
+    );
+  };
+
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
+    <>
+      <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-3">
-            <div className={`w-12 h-12 bg-${raceColorClass} bg-opacity-20 rounded-full border-2 border-${raceColorClass} flex items-center justify-center`}>
-              <span className={`text-lg font-bold text-${raceColorClass}`}>
-                {(player.firstName || player.name || "P").charAt(0)}
-              </span>
-            </div>
-            <div>
-              <h2 className="text-xl font-bold">
-                {player.firstName && player.lastName 
-                  ? `${player.firstName} ${player.lastName}` 
-                  : player.name || "Unknown Player"}
-              </h2>
-              <div className="flex items-center gap-2">
-                <Badge className={roleColors[playerRole as keyof typeof roleColors]}>
-                  {playerRole}
-                </Badge>
-                <Badge variant="outline">
-                  {player.race ? player.race.charAt(0).toUpperCase() + player.race.slice(1) : "Unknown"}
-                </Badge>
-                <Badge variant="outline">Age {player.age || "Unknown"}</Badge>
+          <DialogTitle className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="w-12 h-12 bg-gray-600 bg-opacity-20 rounded-full border-2 border-gray-500 flex items-center justify-center">
+                <User className="w-6 h-6 text-gray-300" />
+              </div>
+              <div>
+                <div className="flex items-center gap-2">
+                  <h2 className="text-xl font-bold">{displayName}</h2>
+                  {player.isCaptain && <Crown className="w-5 h-5 text-yellow-500" />}
+                </div>
+                <div className="flex items-center gap-2 mt-1">
+                  <Badge className={`text-xs ${getRoleColor(playerRole)}`}>
+                    {playerRole.toUpperCase()}
+                  </Badge>
+                  <Badge variant="outline" className="text-xs">
+                    {getRaceEmoji(player.race)} {getRaceDisplayName(player.race)}
+                  </Badge>
+                  <Badge variant="outline" className="text-xs">
+                    Age {player.age || "Unknown"}
+                  </Badge>
+                </div>
               </div>
             </div>
+            <Button 
+              variant="outline" 
+              size="sm"
+              onClick={() => setShowContractNegotiation(true)}
+              className="flex items-center gap-2"
+            >
+              <DollarSign className="w-4 h-4" />
+              Negotiate Contract
+            </Button>
           </DialogTitle>
         </DialogHeader>
 
         <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="grid w-full grid-cols-5">
-            <TabsTrigger value="stats">Stats</TabsTrigger>
-            <TabsTrigger value="abilities">Abilities</TabsTrigger>
-            <TabsTrigger value="equipment">Equipment</TabsTrigger>
-            <TabsTrigger value="contract">Contract</TabsTrigger>
-            <TabsTrigger value="development">Scouting</TabsTrigger>
+          <TabsList className="grid w-full grid-cols-4">
+            <TabsTrigger value="overview" className="flex items-center gap-2">
+              <User className="w-4 h-4" />
+              Overview
+            </TabsTrigger>
+            <TabsTrigger value="abilities" className="flex items-center gap-2">
+              <Zap className="w-4 h-4" />
+              Abilities & Skills
+            </TabsTrigger>
+            <TabsTrigger value="equipment" className="flex items-center gap-2">
+              <Shield className="w-4 h-4" />
+              Equipment
+            </TabsTrigger>
+            <TabsTrigger value="gamelogsawards" className="flex items-center gap-2">
+              <Trophy className="w-4 h-4" />
+              Game Logs & Awards
+            </TabsTrigger>
           </TabsList>
 
-          <TabsContent value="stats" className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
+          <TabsContent value="overview" className="space-y-4">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+              {/* Core Attributes Section */}
               <Card>
                 <CardHeader>
-                  <CardTitle className="text-lg">Core Attributes</CardTitle>
+                  <CardTitle className="text-lg flex items-center gap-2">
+                    <FileText className="w-5 h-5" />
+                    Core Attributes
+                  </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  {renderStatsBar("Speed", player.speed, player.speedPotential)}
-                  {renderStatsBar("Power", player.power, player.powerPotential)}
-                  {renderStatsBar("Throwing", player.throwing, player.throwingPotential)}
-                  {renderStatsBar("Catching", player.catching, player.catchingPotential)}
+                  {renderStatBar("Speed", player.speed || 0)}
+                  {renderStatBar("Power", player.power || 0)}
+                  {renderStatBar("Throwing", player.throwing || 0)}
+                  {renderStatBar("Catching", player.catching || 0)}
+                  {renderStatBar("Kicking", player.kicking || 0)}
+                  {renderStatBar("Stamina", player.stamina || 0)}
+                  {renderStatBar("Leadership", player.leadership || 0)}
+                  {renderStatBar("Agility", player.agility || 0)}
                 </CardContent>
               </Card>
 
+              {/* Potential & Scouting Section */}
               <Card>
                 <CardHeader>
-                  <CardTitle className="text-lg">Secondary Attributes</CardTitle>
+                  <CardTitle className="text-lg flex items-center gap-2">
+                    <Star className="w-5 h-5" />
+                    Potential & Scouting
+                  </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  {renderStatsBar("Kicking", player.kicking, player.kickingPotential)}
-                  {renderStatsBar("Stamina", player.stamina, player.staminaPotential)}
-                  {renderStatsBar("Leadership", player.leadership, player.leadershipPotential)}
-                  {renderStatsBar("Agility", player.agility, player.agilityPotential)}
+                  <div className="text-center">
+                    <div className="flex justify-center gap-1 mb-2">
+                      {renderStarRating(basePotential)}
+                    </div>
+                    <div className="text-lg font-bold text-yellow-400">
+                      {getPotentialDisplay()}
+                    </div>
+                    <div className="text-sm text-gray-400 mt-1">
+                      Scouting Accuracy: {scoutingAccuracy}%
+                    </div>
+                  </div>
+                  
+                  <Separator />
+                  
+                  <div>
+                    <h4 className="font-semibold mb-2">Scouting Notes</h4>
+                    <div className="text-sm text-gray-300 space-y-1">
+                      <div>• Strong in {playerRole.toLowerCase()} position</div>
+                      <div>• {player.age < 25 ? "Young with room to grow" : player.age < 30 ? "In prime years" : "Veteran experience"}</div>
+                      <div>• {basePotential >= 4 ? "Elite potential" : basePotential >= 3 ? "Solid potential" : "Limited potential"}</div>
+                    </div>
+                  </div>
                 </CardContent>
               </Card>
             </div>
 
+            {/* Contract & Camaraderie Section */}
             <Card>
               <CardHeader>
-                <CardTitle className="text-lg">Performance Summary</CardTitle>
+                <CardTitle className="text-lg flex items-center gap-2">
+                  <Calendar className="w-5 h-5" />
+                  Contract & Camaraderie
+                </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="grid grid-cols-3 gap-4 text-center">
-                  <div>
-                    <div className="text-2xl font-bold text-blue-400">
-                      {Math.round((player.throwing + player.leadership + player.catching) / 3)}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="space-y-4">
+                    <div>
+                      <label className="text-sm text-gray-400">Current Salary</label>
+                      <div className="text-2xl font-bold text-green-400">
+                        ₡{(player.salary || 0).toLocaleString()}/season
+                      </div>
                     </div>
-                    <div className="text-sm text-gray-500">Passing Rating</div>
-                  </div>
-                  <div>
-                    <div className="text-2xl font-bold text-green-400">
-                      {Math.round((player.speed + player.agility + player.stamina) / 3)}
-                    </div>
-                    <div className="text-sm text-gray-500">Mobility Rating</div>
-                  </div>
-                  <div>
-                    <div className="text-2xl font-bold text-red-400">
-                      {Math.round((player.power + player.stamina + player.leadership) / 3)}
-                    </div>
-                    <div className="text-sm text-gray-500">Blocking Rating</div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          <TabsContent value="equipment" className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
-              {equipmentSlots.map(({ key, icon: Icon, label }) => {
-                const item = equipment[key as keyof typeof equipment];
-                return (
-                  <Card key={key}>
-                    <CardHeader className="pb-3">
-                      <CardTitle className="flex items-center gap-2 text-base">
-                        <Icon size={20} />
-                        {label}
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <div className={`p-3 border rounded-lg ${getRarityColor(item.rarity)}`}>
-                        <div className="font-semibold">{item.name}</div>
-                        <Badge variant="outline" className="mt-1">
-                          {item.rarity}
+                    <div>
+                      <label className="text-sm text-gray-400">Contract Status</label>
+                      <div className="flex items-center gap-2 mt-1">
+                        <Badge variant={isContractExpiring ? "destructive" : "default"}>
+                          {contractRemaining} seasons remaining
                         </Badge>
-                        {Object.keys(item.statBoosts || {}).length > 0 && (
-                          <div className="mt-2 space-y-1">
-                            {Object.entries(item.statBoosts || {}).map(([stat, boost]) => (
-                              <div key={stat} className="text-sm flex justify-between">
-                                <span>{stat}:</span>
-                                <span className="text-green-400">+{boost}</span>
-                              </div>
-                            ))}
-                          </div>
+                        {isContractExpiring && (
+                          <span className="text-xs text-red-400">Expiring Soon!</span>
                         )}
                       </div>
-                      <Button 
-                        variant="outline" 
-                        size="sm" 
-                        className="w-full mt-3"
-                        onClick={() => onEquipmentChange?.(player.id, key, "")}
-                      >
-                        Change Equipment
-                      </Button>
-                    </CardContent>
-                  </Card>
-                );
-              })}
-            </div>
+                    </div>
+                  </div>
+
+                  <div className="space-y-4">
+                    <div>
+                      <label className="text-sm text-gray-400">Player Camaraderie</label>
+                      <div className="mt-1 space-y-1">
+                        <Progress value={player.camaraderie || 50} className="h-3" />
+                        <div className="text-sm text-gray-400">
+                          {player.camaraderie || 50}/100 - {
+                            (player.camaraderie || 50) >= 80 ? "Excellent" :
+                            (player.camaraderie || 50) >= 60 ? "Good" :
+                            (player.camaraderie || 50) >= 40 ? "Average" : "Poor"
+                          }
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {isContractExpiring && (
+                  <div className="mt-6 pt-4 border-t border-gray-600">
+                    <Button 
+                      onClick={() => onContractNegotiate?.(player.id)}
+                      className="w-full"
+                      size="lg"
+                    >
+                      Negotiate Contract Extension
+                    </Button>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
           </TabsContent>
 
           <TabsContent value="abilities" className="space-y-4">
             <AbilitiesDisplay player={player} canTrain={true} />
           </TabsContent>
 
-          <TabsContent value="contract" className="space-y-4">
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-lg">Contract Details</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="text-sm text-gray-500">Current Salary</label>
-                    <div className="text-xl font-bold text-green-400">
-                      ${player.salary?.toLocaleString()}/season
-                    </div>
-                  </div>
-                  <div>
-                    <label className="text-sm text-gray-500">Contract Status</label>
-                    <div className="flex items-center gap-2">
-                      <Badge variant={
-                        contractStatus === "expiring" ? "destructive" : 
-                        contractStatus === "moderate" ? "secondary" : "default"
-                      }>
-                        {contractRemaining} seasons remaining
-                      </Badge>
-                    </div>
-                  </div>
-                </div>
+          <TabsContent value="equipment" className="space-y-4">
+            {equipmentLoading ? (
+              <div className="text-center py-8 text-gray-400">Loading equipment...</div>
+            ) : (
+              <div className="space-y-4">
+                {/* Currently Equipped Section */}
+                <Card className="border-gray-600">
+                  <CardHeader>
+                    <CardTitle className="text-lg flex items-center gap-2">
+                      <Shield className="w-5 h-5" />
+                      Currently Equipped
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    {playerEquipment?.equipment?.length > 0 ? (
+                      <div className="space-y-3">
+                        {playerEquipment.equipment.map((equipment: any) => (
+                          <div key={equipment.id} className="flex items-center justify-between p-3 bg-gray-800 rounded-lg border-l-4 border-red-500">
+                            <div className="flex items-center gap-3">
+                              <Shield className="w-5 h-5 text-blue-400" />
+                              <div>
+                                <div className="font-medium">{equipment.item.name}</div>
+                                <div className="text-sm text-gray-400">
+                                  {getItemEffect(equipment.item)}
+                                </div>
+                                <div className="text-xs text-red-400 mt-1">
+                                  ⚠️ PERMANENTLY EQUIPPED - Cannot be removed
+                                </div>
+                              </div>
+                            </div>
+                            <Badge variant="outline" className="text-xs">
+                              {equipment.item.rarity}
+                            </Badge>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="text-center py-4 text-gray-400">
+                        No equipment currently equipped
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
 
-                <Separator />
-
-                <div>
-                  <label className="text-sm text-gray-500">Team Camaraderie</label>
-                  <div className="mt-1">
-                    <Progress value={player.camaraderie || 50} className="h-3" />
-                    <div className="text-sm text-gray-500 mt-1">
-                      {player.camaraderie || 50}/100 - {
-                        (player.camaraderie || 50) >= 80 ? "Excellent" :
-                        (player.camaraderie || 50) >= 60 ? "Good" :
-                        (player.camaraderie || 50) >= 40 ? "Average" : "Poor"
-                      }
+                {/* Equip New Equipment Section */}
+                <Card className="border-gray-600">
+                  <CardHeader>
+                    <CardTitle className="text-lg flex items-center gap-2">
+                      <Hand className="w-5 h-5" />
+                      Equip New Equipment
+                    </CardTitle>
+                    <div className="text-sm text-orange-400 mt-2 p-2 bg-orange-900/20 rounded border border-orange-500">
+                      ⚠️ WARNING: Equipment is PERMANENT once equipped and cannot be removed or transferred to other players!
                     </div>
-                  </div>
-                </div>
-
-                {contractRemaining <= 1 && (
-                  <Button 
-                    onClick={() => onContractNegotiate?.(player.id)}
-                    className="w-full"
-                  >
-                    Negotiate Contract Extension
-                  </Button>
-                )}
-              </CardContent>
-            </Card>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium">Select Equipment to Equip:</label>
+                      <Select value={selectedEquipmentItem} onValueChange={setSelectedEquipmentItem}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Choose an equipment item..." />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {getEligibleEquipment().map((item: any) => (
+                            <SelectItem key={item.id} value={`${item.id}-${item.name}`}>
+                              <div className="flex items-center gap-2">
+                                <Badge variant="outline" className="text-xs">
+                                  {item.rarity}
+                                </Badge>
+                                <span>{item.name}</span>
+                                <span className="text-xs text-gray-400">(x{item.quantity})</span>
+                              </div>
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    
+                    {selectedEquipmentItem && (
+                      <div className="space-y-3">
+                        <div className="p-3 bg-gray-800 rounded-lg">
+                          <div className="text-sm text-gray-400">
+                            {(() => {
+                              const item = getEligibleEquipment().find((i: any) => 
+                                `${i.id}-${i.name}` === selectedEquipmentItem
+                              );
+                              return item ? getItemEffect(item) : "";
+                            })()}
+                          </div>
+                        </div>
+                        <Button 
+                          onClick={() => {
+                            const [itemId, itemName] = selectedEquipmentItem.split('-');
+                            equipItemMutation.mutate({ 
+                              itemId: parseInt(itemId), 
+                              itemName 
+                            });
+                          }}
+                          disabled={equipItemMutation.isPending}
+                          className="w-full bg-red-600 hover:bg-red-700"
+                        >
+                          {equipItemMutation.isPending ? "Equipping..." : "⚠️ PERMANENTLY EQUIP ITEM"}
+                        </Button>
+                      </div>
+                    )}
+                    
+                    {getEligibleEquipment().length === 0 && (
+                      <div className="text-center py-4 text-gray-400">
+                        No eligible equipment available for this player's race ({getRaceDisplayName(player.race)})
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              </div>
+            )}
           </TabsContent>
 
-          <TabsContent value="development" className="space-y-4">
+          <TabsContent value="gamelogsawards" className="space-y-4">
             <div className="grid grid-cols-1 gap-4">
+              {/* Game Logs Section */}
               <Card>
                 <CardHeader>
-                  <CardTitle className="text-lg">Growth Potential</CardTitle>
+                  <CardTitle className="text-lg flex items-center gap-2">
+                    <Calendar className="w-5 h-5" />
+                    Recent Game Logs
+                  </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="grid grid-cols-2 gap-4">
-                    {[
-                      { name: "Speed", potential: player.speedPotential || 0 },
-                      { name: "Power", potential: player.powerPotential || 0 },
-                      { name: "Throwing", potential: player.throwingPotential || 0 },
-                      { name: "Catching", potential: player.catchingPotential || 0 },
-                      { name: "Kicking", potential: player.kickingPotential || 0 },
-                      { name: "Stamina", potential: player.staminaPotential || 0 },
-                      { name: "Leadership", potential: player.leadershipPotential || 0 },
-                      { name: "Agility", potential: player.agilityPotential || 0 },
-                    ].map((attr) => (
-                      <div key={attr.name} className="flex justify-between items-center">
-                        <span className="text-sm">{attr.name}</span>
-                        <div className="flex">
-                          {Array.from({ length: 5 }, (_, i) => (
-                            <span 
-                              key={i} 
-                              className={`text-lg ${
-                                i < Math.floor(parseFloat((attr.potential || 0).toString()) || 0) 
-                                  ? "text-yellow-400" 
-                                  : "text-gray-300"
-                              }`}
-                            >
-                              ★
-                            </span>
-                          ))}
-                        </div>
-                      </div>
-                    ))}
+                  <div className="text-sm text-gray-400 text-center py-8">
+                    Game logs feature coming soon...
                   </div>
                 </CardContent>
               </Card>
 
+              {/* Awards Section */}
               <Card>
                 <CardHeader>
-                  <CardTitle className="text-lg">Training Focus</CardTitle>
+                  <CardTitle className="text-lg flex items-center gap-2">
+                    <Trophy className="w-5 h-5" />
+                    Player Awards
+                  </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="text-sm text-gray-500 mb-3">
-                    Select training focus to improve specific attributes over time.
-                  </div>
-                  <div className="grid grid-cols-2 gap-2">
-                    <Button variant="outline" size="sm">Focus on Speed</Button>
-                    <Button variant="outline" size="sm">Focus on Power</Button>
-                    <Button variant="outline" size="sm">Focus on Technique</Button>
-                    <Button variant="outline" size="sm">Focus on Leadership</Button>
-                  </div>
+                  <PlayerAwards playerId={player.id} />
                 </CardContent>
               </Card>
             </div>
           </TabsContent>
         </Tabs>
       </DialogContent>
-    </Dialog>
+      </Dialog>
+
+      {/* Contract Negotiation Dialog */}
+      <ContractNegotiation
+        player={player}
+        isOpen={showContractNegotiation}
+        onClose={() => setShowContractNegotiation(false)}
+      />
+    </>
   );
 }

@@ -1,11 +1,12 @@
 import { useRoute } from "wouter";
-import { useQuery } from "@tanstack/react-query"; // Removed queryClient from here
-import { queryClient } from "@/lib/queryClient"; // Import queryClient from the correct path
-import TextBasedMatch from "@/components/TextBasedMatch";
-import { Card, CardContent } from "@/components/ui/card";
+import { useQuery } from "@tanstack/react-query";
+import { LiveMatchSimulation } from "@/components/LiveMatchSimulation";
+import { HalftimeAd } from "@/components/HalftimeAd";
+
 import { Loader2 } from "lucide-react";
-import { apiRequest } from "@/lib/queryClient";
-import type { Team as SharedTeam, Player as SharedPlayer, Match as SharedMatch } from "shared/schema";
+import { Card, CardContent } from "@/components/ui/card";
+import { useState, useEffect } from "react";
+import React from "react";
 
 // Define more specific types for this page
 interface LiveMatchState {
@@ -25,59 +26,66 @@ export default function TextMatchPage() {
   const [, textMatchParams] = useRoute("/text-match/:matchId");
   const [, matchParams] = useRoute("/match/:matchId");
   const matchId = textMatchParams?.matchId || matchParams?.matchId;
+  const [showHalftimeAd, setShowHalftimeAd] = useState(false);
+  const [halftimeAdShown, setHalftimeAdShown] = useState(false);
 
-  const matchQuery = useQuery({
+  const { data: match, isLoading: matchLoading } = useQuery({
     queryKey: ["matchDetails", matchId],
     queryFn: (): Promise<ClientMatchData> => apiRequest(`/api/matches/${matchId}`),
     enabled: !!matchId,
-    refetchInterval: (query) => { // Changed 'data' to 'query.state.data' or just use query.state.data directly
-      return query.state.data?.status === 'live' ? 2000 : false;
+    refetchInterval: (data: any) => {
+      // Only refetch live matches every 2 seconds for synchronized viewing
+      return data?.status === 'IN_PROGRESS' ? 2000 : false;
     },
-  });
-  const match = matchQuery.data as ClientMatchData | undefined;
-  const matchLoading = matchQuery.isLoading;
+  }) as { data: any, isLoading: boolean };
 
-  const team1Query = useQuery({
-    queryKey: ["teamDetails", match?.homeTeamId],
-    queryFn: (): Promise<SharedTeam> => apiRequest(`/api/teams/${match!.homeTeamId}`),
-    enabled: !!match?.homeTeamId,
+  const { data: team1, isLoading: team1Loading, error: team1Error } = useQuery({
+    queryKey: [`/api/teams/${match?.homeTeamId}`],
+    enabled: !!(match as any)?.homeTeamId && (match as any)?.homeTeamId !== undefined,
     retry: 1,
     staleTime: 60000,
   });
-  const team1 = team1Query.data as SharedTeam | undefined;
-  const team1Loading = team1Query.isLoading;
 
-  const team2Query = useQuery({
-    queryKey: ["teamDetails", match?.awayTeamId],
-    queryFn: (): Promise<SharedTeam> => apiRequest(`/api/teams/${match!.awayTeamId}`),
-    enabled: !!match?.awayTeamId,
+  const { data: team2, isLoading: team2Loading, error: team2Error } = useQuery({
+    queryKey: [`/api/teams/${match?.awayTeamId}`],
+    enabled: !!(match as any)?.awayTeamId && (match as any)?.awayTeamId !== undefined,
     retry: 1,
     staleTime: 60000,
   });
-  const team2 = team2Query.data as SharedTeam | undefined;
-  const team2Loading = team2Query.isLoading;
 
-  const team1PlayersQuery = useQuery({
-    queryKey: ["teamPlayers", match?.homeTeamId, "forMatch"], // Added "forMatch" to differentiate from other teamPlayers queries
-    queryFn: (): Promise<SharedPlayer[]> => apiRequest(`/api/teams/${match!.homeTeamId}/players`),
-    enabled: !!match?.homeTeamId,
-    retry: false, // Consider retry strategy for player data
-  });
-  const team1Players = team1PlayersQuery.data as SharedPlayer[] | undefined;
-  const team1PlayersLoading = team1PlayersQuery.isLoading;
-
-
-  const team2PlayersQuery = useQuery({
-    queryKey: ["teamPlayers", match?.awayTeamId, "forMatch"], // Added "forMatch"
-    queryFn: (): Promise<SharedPlayer[]> => apiRequest(`/api/teams/${match!.awayTeamId}/players`),
-    enabled: !!match?.awayTeamId,
+  const { data: team1Players } = useQuery({
+    queryKey: [`/api/teams/${match?.homeTeamId}/players`],
+    enabled: !!(match as any)?.homeTeamId,
     retry: false,
   });
-  const team2Players = team2PlayersQuery.data as SharedPlayer[] | undefined;
-  const team2PlayersLoading = team2PlayersQuery.isLoading;
 
+  const { data: team2Players } = useQuery({
+    queryKey: [`/api/teams/${match?.awayTeamId}/players`],
+    enabled: !!(match as any)?.awayTeamId,
+    retry: false,
+  });
 
-  if (matchLoading || team1Loading || team2Loading || team1PlayersLoading || team2PlayersLoading) {
+  // Fetch enhanced simulation data
+  const { data: enhancedData, isLoading: enhancedLoading } = useQuery({
+    queryKey: [`/api/matches/${matchId}/enhanced-data`],
+    enabled: !!matchId && match?.status === 'IN_PROGRESS',
+    retry: false,
+    staleTime: 5000,
+    refetchInterval: (data: any) => {
+      // Refetch enhanced data every 5 seconds for live matches
+      return match?.status === 'IN_PROGRESS' ? 5000 : false;
+    },
+  });
+
+  // Check for halftime (when match is at 50% completion) - MOVED TO TOP BEFORE ANY CONDITIONAL RETURNS
+  React.useEffect(() => {
+    if (match?.status === 'IN_PROGRESS' && enhancedData?.gamePhase === 'halftime' && !halftimeAdShown) {
+      setShowHalftimeAd(true);
+      setHalftimeAdShown(true);
+    }
+  }, [match, enhancedData, halftimeAdShown]);
+
+  if (matchLoading || team1Loading || team2Loading) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-gray-900 text-white">
         <Card className="bg-gray-800 border-gray-700">
@@ -92,7 +100,22 @@ export default function TextMatchPage() {
     );
   }
 
-  if (!match || !team1 || !team2 || !team1Players || !team2Players) {
+  // Debug logging
+  console.log("Match data:", match);
+  console.log("Enhanced data:", enhancedData);
+  console.log("Enhanced loading:", enhancedLoading);
+  console.log("Team1 data:", team1);
+  console.log("Team2 data:", team2);
+  console.log("Match ID:", matchId);
+  console.log("Team1 ID:", match?.homeTeamId);
+  console.log("Team2 ID:", match?.awayTeamId);
+  console.log("Team1 URL:", `/api/teams/${match?.homeTeamId}`);
+  console.log("Team2 URL:", `/api/teams/${match?.awayTeamId}`);
+  console.log("Loading states - match:", matchLoading, "team1:", team1Loading, "team2:", team2Loading);
+  console.log("Team1 error:", team1Error);
+  console.log("Team2 error:", team2Error);
+
+  if (!match || !team1 || !team2) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-gray-900 text-white">
         <Card className="bg-gray-800 border-gray-700">
@@ -118,20 +141,61 @@ export default function TextMatchPage() {
   const team1WithPlayers: ClientTeamData = { ...team1, players: team1Players };
   const team2WithPlayers: ClientTeamData = { ...team2, players: team2Players };
 
+  const handleHalftimeAdCompleted = (reward: number) => {
+    setShowHalftimeAd(false);
+    console.log('Halftime ad completed, reward:', reward);
+  };
+
+  const handleHalftimeAdSkipped = () => {
+    setShowHalftimeAd(false);
+    console.log('Halftime ad skipped');
+  };
+
+  const handleContinueGame = () => {
+    setShowHalftimeAd(false);
+    console.log('Continue game without ad');
+  };
+
+  // Extract halftime stats from match data
+  const getHalftimeStats = () => {
+    if (!match?.liveState?.recentEvents) return null;
+    
+    const halftimeEvent = match.liveState.recentEvents.find((event: any) => event.type === 'halftime');
+    if (!halftimeEvent?.data) return null;
+    
+    return halftimeEvent.data;
+  };
+
+  const halftimeStats = getHalftimeStats();
+  const teamNames = {
+    home: team1?.name || "Home Team",
+    away: team2?.name || "Away Team"
+  };
+
   return (
-    <TextBasedMatch
-      team1={team1WithPlayers}
-      team2={team2WithPlayers}
-      isExhibition={match.matchType === "exhibition"}
-      matchId={matchId || ""}
-      initialLiveState={match.liveState}
-      isLiveMatch={match.status === 'live'}
-      onMatchComplete={(result) => {
-        console.log("Match completed in TextMatchPage:", result);
-        queryClient.invalidateQueries({ queryKey: ["matchDetails", matchId] });
-        if(team1?.id) queryClient.invalidateQueries({ queryKey: ["teamMatches", team1.id] });
-        if(team2?.id) queryClient.invalidateQueries({ queryKey: ["teamMatches", team2.id] });
-      }}
-    />
+    <div className="min-h-screen bg-gray-900 text-white">
+      <LiveMatchSimulation
+        matchId={matchId!}
+        team1={team1WithPlayers}
+        team2={team2WithPlayers}
+        initialLiveState={(match as any)?.liveState}
+        enhancedData={enhancedData}
+        onMatchComplete={() => {
+          console.log("Match completed");
+        }}
+      />
+      
+      {/* Halftime Ad Integration */}
+      <HalftimeAd
+        isVisible={showHalftimeAd}
+        onAdCompleted={handleHalftimeAdCompleted}
+        onAdSkipped={handleHalftimeAdSkipped}
+        onContinueGame={handleContinueGame}
+        halftimeStats={halftimeStats}
+        teamNames={teamNames}
+      />
+      
+
+    </div>
   );
 }

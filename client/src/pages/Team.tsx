@@ -1,51 +1,67 @@
 import { useState } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query"; // useMutation is not used, can be removed if not planned
 import { queryClient } from "@/lib/queryClient";
-import Navigation from "@/components/Navigation";
-import PlayerCard from "@/components/PlayerCard";
-import TextTacticalManager from "@/components/TextTacticalManager";
+import UnifiedPlayerCard from "@/components/UnifiedPlayerCard";
+import TacticalManager from "@/components/TacticalManager";
 import PlayerDetailModal from "@/components/PlayerDetailModal";
 import ContractNegotiation from "@/components/ContractNegotiation";
 import StaffManagement from "@/components/StaffManagement";
 import TeamFinances from "@/components/TeamFinances";
-import TryoutSystem from "@/components/TryoutSystem";
 import { TaxiSquadManager } from "@/components/TaxiSquadManager";
+import { InjuryStaminaManager } from "@/components/InjuryStaminaManager";
+import CamaraderieManagement from "@/components/CamaraderieManagement";
+import Inventory from "@/pages/Inventory";
+import AdvancedTacticalEffectsManager from "@/components/AdvancedTacticalEffectsManager";
+import UnifiedInventoryHub from "@/components/UnifiedInventoryHub";
+import TacticsLineupHub from "@/components/TacticsLineupHub";
+import TryoutSystem from "@/components/TryoutSystem";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { apiRequest } from "@/lib/queryClient";
-import type { Team as SharedTeam, Player as SharedPlayer } from "shared/schema";
-import { DetailedPlayer } from "@/components/PlayerDetailModal"; // Changed to regular import
+import { HelpIcon } from "@/components/help";
 
-// Define Player with Role
-interface PlayerWithRole extends SharedPlayer {
-  role: string;
+// Type interfaces for API responses
+interface Team {
+  id: string;
+  name: string;
+  division: number;
+  wins: number;
+  losses: number;
+  draws: number;
+  points: number;
+  teamPower: number;
+  teamCamaraderie: number;
+  credits: number;
 }
 
-type FormationData = any; // Keep as any for now, or define specific structure if known
+interface Player {
+  id: string;
+  name: string;
+  firstName: string;
+  lastName: string;
+  race: string;
+  age: number;
+  speed: number;
+  power: number;
+  throwing: number;
+  catching: number;
+  kicking: number;
+  stamina: number;
+  leadership: number;
+  agility: number;
+}
+
+interface Formation {
+  [key: string]: any;
+}
 
 // Helper function to determine player role based on attributes
-function getPlayerRole(player: SharedPlayer): string {
-  const { speed, agility, catching, throwing, power, leadership, stamina } = player;
-  
-  const numSpeed = Number(speed) || 0;
-  const numAgility = Number(agility) || 0;
-  // catching, throwing, power, leadership, stamina are already numbers in SharedPlayer
-  const numThrowing = Number(throwing) || 0;
-  const numPower = Number(power) || 0;
-  const numLeadership = Number(leadership) || 0;
-  const numStamina = Number(stamina) || 0;
+import { getPlayerRole as centralizedGetPlayerRole } from "../../../shared/playerUtils";
 
-  const passerScore = (numThrowing * 2) + (numLeadership * 1.5);
-  const runnerScore = (numSpeed * 2) + (numAgility * 1.5);
-  const blockerScore = (numPower * 2) + (numStamina * 1.5);
-  
-  const maxScore = Math.max(passerScore, runnerScore, blockerScore);
-  
-  if (maxScore === passerScore) return "passer";
-  if (maxScore === runnerScore) return "runner";
-  return "blocker";
+function getPlayerRole(player: any): string {
+  return centralizedGetPlayerRole(player);
 }
 
 export default function TeamPage() {
@@ -54,40 +70,39 @@ export default function TeamPage() {
   const [showPlayerModal, setShowPlayerModal] = useState(false);
   const [showContractModal, setShowContractModal] = useState(false);
   const [activeTab, setActiveTab] = useState("roster");
+  const [rosterSubTab, setRosterSubTab] = useState("players");
+  const [staffSubTab, setStaffSubTab] = useState("current");
+  const [tacticsSubTab, setTacticsSubTab] = useState("lineup");
+  const [financesSubTab, setFinancesSubTab] = useState("overview");
+  const [inventoryFilter, setInventoryFilter] = useState("equipment");
 
-  const teamQuery = useQuery({
-    queryKey: ["myTeam"],
-    queryFn: (): Promise<SharedTeam> => apiRequest("/api/teams/my"),
+  const { data: team, isLoading: isLoadingTeam } = useQuery<Team>({
+    queryKey: ["/api/teams/my"],
   });
-  const team = teamQuery.data as SharedTeam | undefined;
-  const isLoadingTeam = teamQuery.isLoading;
 
-  const playersQuery = useQuery({
-    queryKey: ["teamPlayers", team?.id],
-    queryFn: (): Promise<SharedPlayer[]> => apiRequest(`/api/teams/${team!.id}/players`),
+  const { data: players, isLoading: playersLoading } = useQuery<Player[]>({
+    queryKey: [`/api/teams/${team?.id}/players`],
     enabled: !!team?.id,
   });
-  const players = playersQuery.data as SharedPlayer[] | undefined;
-  const playersLoading = playersQuery.isLoading;
 
-  const formationQuery = useQuery({
-    queryKey: ["teamFormation", team?.id],
-    queryFn: (): Promise<FormationData> => apiRequest(`/api/teams/${team!.id}/formation`),
+  const { data: formation } = useQuery<Formation>({
+    queryKey: [`/api/teams/${team?.id}/formation`],
     enabled: !!team?.id,
   });
-  const formation = formationQuery.data as FormationData | undefined;
 
-  const playersWithRoles: PlayerWithRole[] = players?.map((player: SharedPlayer) => ({
+  // Add roles to players and filter - use database role field directly
+  const playersWithRoles = players?.map((player: any) => ({
     ...player,
-    role: getPlayerRole(player)
+    role: player.role || getPlayerRole(player) // Prefer database role over calculated
   })) || [];
 
-  const filteredPlayers: PlayerWithRole[] = playersWithRoles.filter((player: PlayerWithRole) =>
-    selectedRole === "all" || player.role === selectedRole
+  const filteredPlayers = playersWithRoles.filter((player: any) => 
+    selectedRole === "all" || player.role?.toLowerCase() === selectedRole
   );
 
-  const roleStats: Record<string, number> = playersWithRoles.reduce((acc: Record<string, number>, player: PlayerWithRole) => {
-    acc[player.role] = (acc[player.role] || 0) + 1;
+  const roleStats = playersWithRoles.reduce((acc: any, player: any) => {
+    const roleLowercase = player.role?.toLowerCase() || 'unknown';
+    acc[roleLowercase] = (acc[roleLowercase] || 0) + 1;
     return acc;
   }, {});
 
@@ -102,7 +117,6 @@ export default function TeamPage() {
   if (!team) {
     return (
       <div className="min-h-screen bg-gray-900 text-white">
-        <Navigation />
         <div className="max-w-4xl mx-auto px-4 py-16 text-center">
           <h1 className="font-orbitron text-3xl font-bold mb-6">No Team Found</h1>
           <p className="text-gray-300 mb-8">Please create a team first.</p>
@@ -148,7 +162,6 @@ export default function TeamPage() {
 
   return (
     <div className="min-h-screen bg-gray-900 text-white">
-      <Navigation />
       
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="mb-8">
@@ -158,7 +171,10 @@ export default function TeamPage() {
               <Button 
                 variant="outline" 
                 size="sm"
-                onClick={() => setActiveTab("recruiting")}
+                onClick={() => {
+                  setActiveTab("roster");
+                  setRosterSubTab("recruiting");
+                }}
                 className="text-blue-400 border-blue-400 hover:bg-blue-400 hover:text-white text-xs px-3 py-1.5"
               >
                 <i className="fas fa-plus mr-1"></i>Recruit
@@ -175,26 +191,51 @@ export default function TeamPage() {
           </div>
         </div>
 
+        {/* Main Navigation Tabs - Consolidated 5-Tab Structure */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="mb-8">
-          <TabsList className="grid w-full grid-cols-6 bg-gray-800 gap-0.5">
-            <TabsTrigger value="roster" className="border-r border-gray-600 last:border-r-0">Roster</TabsTrigger>
-            <TabsTrigger value="tactics" className="border-r border-gray-600 last:border-r-0">Tactics</TabsTrigger>
-            <TabsTrigger value="staff" className="border-r border-gray-600 last:border-r-0">Staff</TabsTrigger>
-            <TabsTrigger value="finances" className="border-r border-gray-600 last:border-r-0">Finances</TabsTrigger>
-            <TabsTrigger value="contracts" className="border-r border-gray-600 last:border-r-0">Contracts</TabsTrigger>
-            <TabsTrigger value="recruiting" className="border-r border-gray-600 last:border-r-0">Recruiting</TabsTrigger>
+          <TabsList className="grid w-full grid-cols-5 bg-gray-800 gap-0.5">
+            <TabsTrigger value="roster" className="border-r border-gray-600 last:border-r-0 flex items-center gap-1">
+              Roster
+              <HelpIcon content="Central hub for all player management. View roster, manage health and injuries in Medical Center, and recruit new players." />
+            </TabsTrigger>
+            <TabsTrigger value="staff" className="border-r border-gray-600 last:border-r-0 flex items-center gap-1">
+              Staff
+              <HelpIcon content="Manage your coaching staff. View current staff and hire new specialists to improve team performance." />
+            </TabsTrigger>
+            <TabsTrigger value="tactics" className="border-r border-gray-600 last:border-r-0 flex items-center gap-1">
+              Tactics
+              <HelpIcon content="Set your team's strategic approach. Configure game plan and analyze tactical effectiveness." />
+            </TabsTrigger>
+            <TabsTrigger value="finances" className="border-r border-gray-600 last:border-r-0 flex items-center gap-1">
+              Finances
+              <HelpIcon content="Consolidated financial management. Track income, expenses, and manage all player contracts." />
+            </TabsTrigger>
+            <TabsTrigger value="inventory" className="border-r border-gray-600 last:border-r-0 flex items-center gap-1">
+              Inventory
+              <HelpIcon content="View and manage all owned items. Equipment, consumables, and trophy collection." />
+            </TabsTrigger>
           </TabsList>
 
           <TabsContent value="roster">
-            <Tabs value={selectedRole} onValueChange={setSelectedRole} className="mb-6">
-              <TabsList className="grid w-full grid-cols-5 bg-gray-800">
-                <TabsTrigger value="all">All Players ({playersWithRoles.length})</TabsTrigger>
-                <TabsTrigger value="passer">Passers ({roleStats.passer || 0})</TabsTrigger>
-                <TabsTrigger value="runner">Runners ({roleStats.runner || 0})</TabsTrigger>
-                <TabsTrigger value="blocker">Blockers ({roleStats.blocker || 0})</TabsTrigger>
-                <TabsTrigger value="taxi-squad">Taxi Squad</TabsTrigger>
+            {/* Roster Sub-tabs: Players, Medical Center, and Recruiting */}
+            <Tabs value={rosterSubTab} onValueChange={setRosterSubTab} className="mb-6">
+              <TabsList className="grid w-full grid-cols-3 bg-gray-800">
+                <TabsTrigger value="players">Players</TabsTrigger>
+                <TabsTrigger value="medical">Medical Center</TabsTrigger>
+                <TabsTrigger value="recruiting">Recruiting</TabsTrigger>
               </TabsList>
-            </Tabs>
+
+              <TabsContent value="players">
+                {/* Role Filter Sub-tabs */}
+                <Tabs value={selectedRole} onValueChange={setSelectedRole} className="mb-6">
+                  <TabsList className="grid w-full grid-cols-5 bg-gray-800">
+                    <TabsTrigger value="all">All Players ({playersWithRoles.length})</TabsTrigger>
+                    <TabsTrigger value="passer">Passers ({roleStats.passer || 0})</TabsTrigger>
+                    <TabsTrigger value="runner">Runners ({roleStats.runner || 0})</TabsTrigger>
+                    <TabsTrigger value="blocker">Blockers ({roleStats.blocker || 0})</TabsTrigger>
+                    <TabsTrigger value="taxi-squad">Taxi Squad</TabsTrigger>
+                  </TabsList>
+                </Tabs>
 
             <Card className="bg-gray-800 border-gray-700 mb-8">
               <CardHeader>
@@ -224,7 +265,10 @@ export default function TeamPage() {
             {selectedRole === 'taxi-squad' ? (
               <TaxiSquadManager 
                 teamId={team?.id} 
-                onNavigateToRecruiting={() => setActiveTab('recruiting')}
+                onNavigateToRecruiting={() => {
+                  setActiveTab('roster');
+                  setRosterSubTab('recruiting');
+                }}
               />
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
@@ -246,91 +290,183 @@ export default function TeamPage() {
                     </div>
                   ))
                 ) : (
-                  filteredPlayers.map((player: PlayerWithRole) => (
-                    <div
+                  filteredPlayers.map((player: any) => (
+                    <UnifiedPlayerCard 
                       key={player.id}
+                      player={player} 
+                      variant="roster"
                       onClick={() => {
                         setSelectedPlayer(player);
                         setShowPlayerModal(true);
                       }}
-                      className="cursor-pointer hover:transform hover:scale-105 transition-transform"
-                    >
-                      <PlayerCard player={player} />
-                    </div>
+                    />
                   ))
                 )}
               </div>
             )}
 
-            {filteredPlayers.length === 0 && !playersLoading && selectedRole !== 'taxi-squad' && (
-              <div className="text-center py-16">
-                <i className="fas fa-users text-6xl text-gray-600 mb-4"></i>
-                <h3 className="text-xl font-semibold text-gray-400 mb-2">
-                  No players found
-                </h3>
-                <p className="text-gray-500">
-                  {selectedRole === "all" 
-                    ? "Your team has no players yet." 
-                    : `No ${selectedRole} players in your team.`
-                  }
-                </p>
-              </div>
-            )}
-          </TabsContent>
+                {filteredPlayers.length === 0 && !playersLoading && (
+                  <div className="text-center py-16">
+                    <i className="fas fa-users text-6xl text-gray-600 mb-4"></i>
+                    <h3 className="text-xl font-semibold text-gray-400 mb-2">
+                      No players found
+                    </h3>
+                    <p className="text-gray-500">
+                      {selectedRole === "all" 
+                        ? "Your team has no players yet." 
+                        : `No ${selectedRole} players in your team.`
+                      }
+                    </p>
+                  </div>
+                )}
+              </TabsContent>
 
-          <TabsContent value="tactics">
-            <TextTacticalManager
-              players={playersWithRoles}
-              savedFormation={formation}
-            />
+              <TabsContent value="medical">
+                <InjuryStaminaManager teamId={team?.id?.toString() || ''} />
+              </TabsContent>
+
+              <TabsContent value="recruiting">
+                <TryoutSystem 
+                  teamId={team?.id || ''} 
+                  onNavigateToTaxiSquad={() => {
+                    setRosterSubTab("players");
+                    setSelectedRole("taxi-squad");
+                  }}
+                />
+              </TabsContent>
+            </Tabs>
           </TabsContent>
 
           <TabsContent value="staff">
-            <StaffManagement teamId={team?.id} />
+            {/* Staff Sub-tabs: Current Staff, Hire New Staff, and Team Chemistry */}
+            <Tabs value={staffSubTab} onValueChange={setStaffSubTab} className="mb-6">
+              <TabsList className="grid w-full grid-cols-3 bg-gray-800">
+                <TabsTrigger value="current">Current Staff</TabsTrigger>
+                <TabsTrigger value="hire">Hire New Staff</TabsTrigger>
+                <TabsTrigger value="camaraderie">Team Chemistry</TabsTrigger>
+              </TabsList>
+
+              <TabsContent value="current">
+                <StaffManagement teamId={team?.id} />
+              </TabsContent>
+
+              <TabsContent value="hire">
+                <Card className="bg-gray-800 border-gray-700">
+                  <CardHeader>
+                    <CardTitle>Hire New Staff</CardTitle>
+                    <p className="text-gray-400">Find and recruit new coaching staff to improve your team performance</p>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-gray-500 text-center py-8">
+                      Staff hiring system coming soon. Current staff can be viewed in the Current Staff tab.
+                    </p>
+                  </CardContent>
+                </Card>
+              </TabsContent>
+
+              <TabsContent value="camaraderie">
+                <CamaraderieManagement teamId={team?.id || ''} />
+              </TabsContent>
+            </Tabs>
+          </TabsContent>
+
+          <TabsContent value="tactics">
+            {/* Tactics Sub-tabs: Game Plan and Effectiveness */}
+            <Tabs value={tacticsSubTab} onValueChange={setTacticsSubTab} className="mb-6">
+              <TabsList className="grid w-full grid-cols-2 bg-gray-800">
+                <TabsTrigger value="lineup">Lineup & Formation</TabsTrigger>
+                <TabsTrigger value="strategy">Strategy & Tactics</TabsTrigger>
+              </TabsList>
+
+              <TabsContent value="lineup">
+                <TacticsLineupHub teamId={team?.id || ''} />
+              </TabsContent>
+
+              <TabsContent value="strategy">
+                <TacticalManager />
+              </TabsContent>
+            </Tabs>
           </TabsContent>
 
           <TabsContent value="finances">
-            <TeamFinances teamId={team?.id} />
-          </TabsContent>
+            {/* Finances Sub-tabs: Overview and Contracts */}
+            <Tabs value={financesSubTab} onValueChange={setFinancesSubTab} className="mb-6">
+              <TabsList className="grid w-full grid-cols-2 bg-gray-800">
+                <TabsTrigger value="overview">Overview</TabsTrigger>
+                <TabsTrigger value="contracts">Contracts</TabsTrigger>
+              </TabsList>
 
-          <TabsContent value="contracts">
-            <div className="space-y-6">
-              <Card className="bg-gray-800 border-gray-700">
-                <CardHeader>
-                  <CardTitle>Contract Management</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-gray-400 mb-4">
-                    Manage player contracts, negotiate extensions, and track contract expiration dates.
-                  </p>
-                  
-                  {playersWithRoles.length > 0 ? (
-                    <div className="space-y-4">
-                      {playersWithRoles
-                        .filter((player: PlayerWithRole) => {
-                          const remaining = (player.contractSeasons ?? 3) - (player.contractStartSeason ?? 0);
-                          return remaining <= 2;
-                        })
-                        .map((player: PlayerWithRole) => {
-                          const remaining = (player.contractSeasons ?? 3) - (player.contractStartSeason ?? 0);
+              <TabsContent value="overview">
+                <TeamFinances teamId={team?.id} />
+              </TabsContent>
+
+              <TabsContent value="contracts">
+                <Card className="bg-gray-800 border-gray-700">
+                  <CardHeader>
+                    <CardTitle>Active Contracts</CardTitle>
+                    <p className="text-gray-400">Manage player contracts and negotiations</p>
+                    {playersWithRoles && playersWithRoles.length > 0 && (
+                      <div className="mt-4 p-4 bg-gray-700 rounded-lg">
+                        <p className="text-sm text-gray-400">Total Season Salary</p>
+                        <p className="text-2xl font-bold text-green-400">
+                          ₡{playersWithRoles.reduce((total, player) => total + (player.contract?.salary || 0), 0).toLocaleString()}
+                        </p>
+                      </div>
+                    )}
+                  </CardHeader>
+                  <CardContent>
+                    {playersWithRoles && playersWithRoles.length > 0 ? (
+                      <div className="space-y-4">
+                        {playersWithRoles.map((player) => {
+                          const role = player.role || getPlayerRole(player); // Use database role first
+                          const getRoleStyle = (role: string) => {
+                            switch (role.toLowerCase()) {
+                              case "passer":
+                                return "bg-yellow-500 text-black";
+                              case "runner":
+                                return "bg-green-500 text-white";
+                              case "blocker":
+                                return "bg-red-500 text-white";
+                              default:
+                                return "bg-gray-500 text-white";
+                            }
+                          };
+                          
                           return (
-                            <div key={player.id} className="flex items-center justify-between p-4 border border-gray-700 rounded-lg">
-                              <div>
-                                <h4 className="font-semibold">{player.name}</h4>
+                            <div key={player.id} className="flex items-center justify-between p-4 bg-gray-700 rounded-lg">
+                              <div className="flex-1">
+                                <h3 className="font-semibold">{player.firstName} {player.lastName}</h3>
+                                <div className="flex items-center gap-2 mt-1">
+                                  <span className={`px-2 py-1 rounded-md text-xs font-medium ${getRoleStyle(role)}`}>
+                                    {role}
+                                  </span>
+                                  <span className="text-sm text-gray-400">
+                                    {player.race ? player.race.charAt(0).toUpperCase() + player.race.slice(1).toLowerCase() : 'Unknown'}
+                                  </span>
+                                  <span className="text-sm text-gray-400">•</span>
+                                  <span className="text-sm text-gray-400">Age {player.age}</span>
+                                </div>
+                              </div>
+                              <div className="text-right">
+                                <p className="font-semibold text-green-400">
+                                  ₡{(player.contract?.salary || 0).toLocaleString()}
+                                </p>
                                 <p className="text-sm text-gray-400">
-                                  {remaining} season{remaining !== 1 ? 's' : ''} remaining
+                                  {(player.contract?.length || 1)} seasons remaining
                                 </p>
                               </div>
-                              <div className="flex items-center gap-3">
-                                <Badge variant={remaining <= 1 ? "destructive" : "secondary"}>
-                                  {remaining <= 1 ? "Expiring" : "Moderate"}
-                                </Badge>
-                                <Button
+                              <div className="ml-4">
+                                <Button 
+                                  variant="outline" 
                                   size="sm"
                                   onClick={() => {
+                                    // Navigate to Roster tab and open player detail modal
+                                    setActiveTab("roster");
+                                    setRosterSubTab("players");
                                     setSelectedPlayer(player);
-                                    setShowContractModal(true);
+                                    setShowPlayerModal(true);
                                   }}
+                                  className="text-xs"
                                 >
                                   Negotiate
                                 </Button>
@@ -338,20 +474,23 @@ export default function TeamPage() {
                             </div>
                           );
                         })}
-                    </div>
-                  ) : (
-                    <p className="text-gray-500 text-center py-8">
-                      No contract negotiations needed at this time.
-                    </p>
-                  )}
-                </CardContent>
-              </Card>
-            </div>
+                      </div>
+                    ) : (
+                      <p className="text-gray-500 text-center py-8">
+                        No active player contracts.
+                      </p>
+                    )}
+                  </CardContent>
+                </Card>
+              </TabsContent>
+            </Tabs>
           </TabsContent>
 
-          <TabsContent value="recruiting">
-            <TryoutSystem teamId={team?.id} />
+          <TabsContent value="inventory">
+            <UnifiedInventoryHub teamId={team?.id || ''} />
           </TabsContent>
+
+
 
         {/* Player Detail Modal */}
         <PlayerDetailModal
@@ -368,6 +507,17 @@ export default function TeamPage() {
               setSelectedPlayer(playerToNegotiate);
               setShowContractModal(true);
             }
+          }}
+          onEquipmentChange={(playerId, slot, itemId) => {
+            setShowPlayerModal(false);
+            setActiveTab("inventory");
+            // Focus on equipment filter in inventory
+            setTimeout(() => {
+              const inventoryHub = document.querySelector('[data-testid="inventory-hub"]');
+              if (inventoryHub) {
+                inventoryHub.scrollIntoView({ behavior: 'smooth' });
+              }
+            }, 100);
           }}
         />
 
@@ -386,7 +536,6 @@ export default function TeamPage() {
             setShowContractModal(false);
             setSelectedPlayer(null);
           }}
-          // teamId prop removed
         />
         </Tabs>
       </div>

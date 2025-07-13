@@ -1,0 +1,256 @@
+Game Economy & Rewards System (v2.1 - Detailed)
+Goal: To design a balanced, scalable, and fair dual-currency economy. This document provides a comprehensive breakdown of all financial mechanics, including detailed revenue streams, expenses, and a rewarding seasonal league structure.
+1. Guiding Principles
+Clear Currency Roles: Credits (₡) are the primary "Grind & Operate" currency. Gems (💎) are the premium "Convenience & Cosmetics" currency.
+Balanced Loop: An average player's credit income should slightly exceed mandatory costs, allowing for gradual progression.
+Rewarding Success: Climbing divisions and winning championships provides the best rewards.
+Fair Monetization ("Pay-for-Convenience, Not Power"): Core competitive advantages should not be exclusively locked behind a paywall. Gem purchases should save time or offer customization, not buy direct power.
+2. Currency & Starting Setup
+Credits (₡):
+Starting Amount: 50,000 Credits for new teams.
+Gems (💎):
+Starting Amount: A randomized amount between 0 and 100 for new teams.
+Gem-to-Credit Exchange:
+10 Gems => 4,500 Credits (Ratio: 1 Gem = 450 Credits)
+50 Gems => 25,000 Credits (Ratio: 1 Gem = 500 Credits)
+300 Gems => 165,000 Credits (Ratio: 1 Gem = 550 Credits)
+1000 Gems => 600,000 Credits (Ratio: 1 Gem = 600 Credits)
+3. Stadium & Financial Mechanics
+This section details the core income and expenses that drive a team's economy.
+A. Income Streams (Calculated Per Home Game Day)
+Income Source
+Calculation Formula
+Notes
+Ticket Sales
+Stadium Capacity * 25 ₡
+This is the base match revenue from gate receipts.
+Concessions
+Stadium Capacity * 8 ₡ * Concessions Level
+Revenue directly tied to the level of your concession stands.
+Parking
+(Stadium Capacity * 0.3) * 10 ₡ * Parking Level
+Assumes 30% of attendees need parking at 10₡ per spot.
+VIP Suites
+VIP Suites Level * 5000 ₡
+High-margin, premium income from luxury boxes.
+Apparel Sales
+Stadium Capacity * 3 ₡ * Merchandising Level
+Revenue from jersey/merch sales.
+Sponsorships
+(Future System) Could be a flat daily rate based on division.
+To be designed.
+
+B. Expense Categories
+Player & Staff Salaries: Paid on Day 1 of each 17-day season.
+Facilities Maintenance: A small, daily credit fee automatically deducted (e.g., 0.5% of the total cost of all stadium upgrades).
+Marketplace Listing Fee: 2% of the player's asking price, charged upon listing.
+C. Stadium & Facility Upgrades (Credit Sinks)
+Upgrade
+Base Cost Formula
+Effect
+Capacity Expansion
+Current Capacity * 10 ₡
+Increases capacity by 5,000 seats.
+Premium Concessions
+30,000 ₡ per level
+Increases Concessions Level by 1.
+Expand Parking
+25,000 ₡ per level
+Increases Parking Level by 1.
+VIP Suites
+Variable, increasing cost per level
+Increases VIP Suites Level by 1.
+Merchandising Kiosk
+Variable, increasing cost per level
+Increases Merchandising Level by 1.
+Lighting/Screens
+Variable, increasing cost per level
+Boosts Fan Loyalty gain per season.
+
+4. Store, Items & Entry Fees
+Balanced Approach: Items providing a direct statistical advantage must have a Credit-based acquisition path. Items marked as "Premium Only" are either purely cosmetic or have a very high Credit alternative.
+Item Name
+Cost (Credits ₡)
+Cost (Gems 💎)
+Notes
+Helmets
+
+
+
+
+
+
+Standard Leather Helmet
+1,000 ₡
+-
+Basic Gear
+Gryllstone Plated Helm
+5,000 ₡
+10 💎
+
+
+Sylvan Barkwood Circlet
+5,000 ₡
+10 💎
+
+
+Umbral Cowl
+40,000 ₡
+25 💎
+Rare, high-cost Credit option added
+Helm of Command
+Cosmetic Only
+50 💎
+Stats moved to a separate craftable item
+Footwear
+
+
+
+
+
+
+Worn Cleats
+1,000 ₡
+-
+Basic Gear
+Boots of the Gryll
+2,500 ₡
+5 💎
+
+
+Lumina's Light-Treads
+40,000 ₡
+25 💎
+Rare, high-cost Credit option added
+Recovery Consumables
+
+
+
+
+
+
+Basic Energy Drink
+500 ₡
+-
+
+
+Advanced Recovery Serum
+2,000 ₡
+5 💎
+
+
+Phoenix Elixir
+30,000 ₡
+20 💎
+Legendary, high-cost Credit option added
+Medical Kits
+
+
+
+
+
+
+Basic Medical Kit
+1,000 ₡
+-
+
+
+Advanced Treatment
+3,000 ₡
+10 💎
+
+
+Miracle Cure
+45,000 ₡
+30 💎
+Legendary, high-cost Credit option added
+Performance Boosters
+
+
+
+
+
+
+Speed Boost Tonic
+1,500 ₡
+3 💎
+
+
+Power Surge Potion
+1,500 ₡
+3 💎
+
+
+Champion's Blessing
+25,000 ₡
+15 💎
+Legendary, high-cost Credit option added
+Game Entries
+
+
+
+
+
+
+Exhibition Match
+5,000 ₡
+5 💎
+Limit of 3 per day (purchased).
+Tournament Entry (Daily)
+Varies by Div
+Varies by Div
+Div 5-8: 500 ₡ / 10 💎, Div 1-4: 1,000 ₡ / 10 💎
+Tournament Entry (Weekly)
+Varies by Div
+Varies by Div
+Div 5-8: 1,200 ₡ / 8 💎, Div 1-4: 2,500 ₡ / 8 💎
+
+5. League & Tournament Rewards System
+This structure provides a strong incentive for competitive play and progression through the divisions.
+Division
+Playoff Champion Reward
+Playoff Runner-Up Reward
+Regular Season Winner Reward
+Promotion Bonus (for Champ)
+Div 1
+1,000,000 Credits, 500 Gems
+400,000 Credits, 150 Gems
+100,000 Credits, 50 Gems
+N/A
+Div 2
+400,000 Credits, 150 Gems
+150,000 Credits, 50 Gems
+40,000 Credits, 20 Gems
+50,000 Credits
+Div 3
+200,000 Credits, 75 Gems
+75,000 Credits, 25 Gems
+20,000 Credits, 10 Gems
+25,000 Credits
+Div 4
+100,000 Credits, 40 Gems
+40,000 Credits, 15 Gems
+10,000 Credits, 5 Gems
+15,000 Credits
+Div 5
+60,000 Credits, 25 Gems
+25,000 Credits, 10 Gems
+6,000 Credits
+10,000 Credits
+Div 6
+40,000 Credits, 15 Gems
+15,000 Credits, 5 Gems
+4,000 Credits
+5,000 Credits
+Div 7
+25,000 Credits, 10 Gems
+10,000 Credits
+2,500 Credits
+2,500 Credits
+Div 8
+15,000 Credits, 5 Gems
+5,000 Credits
+1,500 Credits
+1,500 Credits
+
+

@@ -1,0 +1,102 @@
+Dynamic Dashboard Header System
+Goal: To design a clear, dynamic, and informative header for the game's Dashboard. This system will provide at-a-glance information about the current season number and the specific phase of the 17-day season cycle, with text that updates daily to create a sense of urgency and progression.
+
+1. Season Display
+Current System: Displays a static year, e.g., "Season 2025".
+
+Refined System: The season will be represented by a simple, incrementing number to track a team's history and progress.
+
+Implementation: The game will start at "Season 1". At the end of each 17-day cycle (on Day 17, just before the new season begins), this number will increment by 1.
+
+2. Dynamic Phase-Based Display
+The header will change its content based on the current day in the 17-day cycle. Each phase will have a unique title, description, and dynamic countdown timer.
+
+Phase 1: Regular Season (Days 1-14)
+This phase is about the daily grind of league competition.
+
+Element
+
+Content & Logic
+
+Phase Title
+
+Regular Season
+
+Phase Badge
+
+Regular Season (e.g., a green-colored tag)
+
+Description
+
+"Compete in your division to earn a spot in the playoffs."
+
+Dynamic Detail
+
+This text should update based on the day: <br> - Day 1: "A new season begins! Your first match is today." <br> - Days 2-13: "The league grind continues. Every game counts." <br> - Day 14: "Final day of the regular season! Secure your playoff spot!"
+
+Countdown
+
+A prominent timer displaying: [X] Days Until Playoffs
+
+Phase 2: Playoffs (Day 15)
+This is the most exciting day of the season. The language should reflect high stakes and urgency.
+
+Element
+
+Content & Logic
+
+Phase Title
+
+Championship Day
+
+Phase Badge
+
+PLAYOFFS (e.g., a gold-colored, high-impact tag)
+
+Description
+
+"The top 4 teams from each league compete for the title."
+
+Dynamic Detail
+
+"It's win or go home! Semifinals and the Championship will be decided today."
+
+Countdown
+
+A timer displaying: Next Round Simulates In: [HH:MM:SS]
+
+Phase 3: Off-Season (Days 16-17)
+This phase is about management and preparing for the future. The language should be focused on team-building actions.
+
+Element
+
+Content & Logic
+
+Phase Title
+
+Off-Season: Management Phase
+
+Phase Badge
+
+Off-Season (e.g., a blue-colored tag)
+
+Description
+
+"Build your dynasty. Sign contracts, recruit new talent, and set your strategy."
+
+Dynamic Detail
+
+Day 16: "Contract negotiations are open! Secure your key players for next season."<br>Day 17: "Final day to prepare. The league re-shuffle and new season schedule will be announced at 3 AM."
+
+Countdown
+
+A timer displaying: New Season Begins In: [X] Days, [HH:MM:SS]
+
+3. Visual & UI Suggestions
+Visual Hierarchy: The Phase Title should be the most prominent text. The Countdown should also be large and clear. The Description and Dynamic Detail can be smaller, secondary text.
+
+Phase Badges: Using distinct colors and styles for the "Regular Season," "PLAYOFFS," and "Off-Season" badges provides an instant visual cue for the user about the current game state.
+
+Progress Bar: During the Regular Season, consider adding a simple visual progress bar that fills up from Day 1 to Day 14, giving a clear visual representation of how far into the season the user is.
+
+This revamped system provides users with much more context and creates a living, breathing timeline for the game world, making each day of the 17-day cycle feel unique and important.

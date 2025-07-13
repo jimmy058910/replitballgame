@@ -1,0 +1,367 @@
+{
+  "itemPrices": {
+    "standard_leather_helmet": { "credits": 1000 },
+    "gryllstone_plated_helm": { "gems": 25 },
+    "sylvan_barkwood_circlet": { "credits": 12000, "gems": 25 },
+    "umbral_cowl": { "gems": 75 },
+    "human_tactical_helm": { "gems": 50 },
+    
+    "worn_cleats": { "credits": 1000 },
+    "boots_of_the_gryll": { "credits": 4000, "gems": 8 },
+    "lumina_light_treads": { "credits": 35000, "gems": 75 },
+    
+    "standard_leather_gloves": { "credits": 1000 },
+    "sylvan_gripping_vines": { "credits": 35000, "gems": 75 },
+    "umbral_shadowgrips": { "credits": 12000, "gems": 25 },
+    
+    "padded_leather_armor": { "credits": 1500 },
+    "gryll_forged_plate": { "credits": 35000, "gems": 75 },
+    "lumina_blessed_armor": { "gems": 50 },
+    
+    "basic_stamina_drink": { "credits": 500 },
+    "advanced_recovery_serum": { "credits": 2000, "gems": 5 },
+    "basic_medical_kit": { "credits": 1000 },
+    "advanced_treatment": { "credits": 3000, "gems": 10 },
+    "phoenix_elixir": { "credits": 50000, "gems": 35 },
+    
+    "speed_boost_tonic": { "credits": 1500, "gems": 3 },
+    "power_surge_potion": { "credits": 1500, "gems": 3 },
+    "champions_blessing": { "credits": 25000, "gems": 15 },
+
+    "exhibition_match_entry": { "credits": 25000, "gems": 10 }
+  },
+  "creditsPerGem": 1000,
+  "gemExchangeRates": [
+    { "gems": 10, "credits": 4500, "ratio": 450 },
+    { "gems": 50, "credits": 25000, "ratio": 500 },
+    { "gems": 300, "credits": 165000, "ratio": 550 },
+    { "gems": 1000, "credits": 600000, "ratio": 600 }
+  ],
+  "adSystem": {
+    "dailyWatchLimit": 10,
+    "premiumBoxMilestone": 50,
+    "adRewards": [
+      { "chance": 70, "credits": 250 },
+      { "chance": 25, "credits": 500 },
+      { "chance": 5, "credits": 1000 }
+    ],
+    "premiumBoxRewards": {
+      "currency": [
+        { "chance": 80, "credits": 10000 },
+        { "chance": 15, "credits": 25000 },
+        { "chance": 5, "gems": 10 }
+      ],
+      "consumables": [
+        { "chance": 60, "item": "advanced_recovery_serum", "quantity": 2 },
+        { "chance": 30, "item": "advanced_treatment", "quantity": 2 },
+        { "chance": 10, "item": "phoenix_elixir", "quantity": 1 }
+      ],
+      "equipment": [
+        { "chance": 75, "rarity": "uncommon" },
+        { "chance": 20, "rarity": "rare" },
+        { "chance": 5, "rarity": "epic" }
+      ]
+    }
+  },
+  "storeSections": {
+    "equipment": [
+      {
+        "id": "standard_leather_helmet",
+        "name": "Standard Leather Helmet",
+        "description": "Basic protective headgear for all players.",
+        "price": 1000,
+        "rarity": "common",
+        "category": "helmet",
+        "slot": "helmet",
+        "raceRestriction": "universal",
+        "statBoosts": { "stamina": 1 }
+      },
+      {
+        "id": "gryllstone_plated_helm",
+        "name": "Gryllstone Plated Helm",
+        "description": "Heavy-duty helmet forged from Gryll stone.",
+        "priceGems": 25,
+        "rarity": "rare",
+        "category": "helmet",
+        "slot": "helmet",
+        "raceRestriction": "gryll",
+        "statBoosts": { "power": 4, "speed": -2 }
+      },
+      {
+        "id": "sylvan_barkwood_circlet",
+        "name": "Sylvan Barkwood Circlet",
+        "description": "Living wood circlet that enhances endurance.",
+        "price": 12000,
+        "priceGems": 25,
+        "rarity": "rare",
+        "category": "helmet",
+        "slot": "helmet",
+        "raceRestriction": "sylvan",
+        "statBoosts": { "stamina": 5 }
+      },
+      {
+        "id": "umbral_cowl",
+        "name": "Umbral Cowl",
+        "description": "Shadow-woven hood that enhances agility.",
+        "priceGems": 75,
+        "rarity": "epic",
+        "category": "helmet",
+        "slot": "helmet",
+        "raceRestriction": "umbra",
+        "statBoosts": { "agility": 3 }
+      },
+      {
+        "id": "human_tactical_helm",
+        "name": "Human Tactical Helm",
+        "description": "Advanced helmet that enhances leadership and throwing accuracy.",
+        "priceGems": 50,
+        "rarity": "epic",
+        "category": "helmet",
+        "slot": "helmet",
+        "raceRestriction": "human",
+        "statBoosts": { "leadership": 4, "throwing": 2 }
+      },
+      {
+        "id": "worn_cleats",
+        "name": "Worn Cleats",
+        "description": "Basic footwear that provides minimal speed boost.",
+        "price": 1000,
+        "rarity": "common",
+        "category": "footwear",
+        "slot": "footwear",
+        "raceRestriction": "universal",
+        "statBoosts": { "speed": 1 }
+      },
+      {
+        "id": "boots_of_the_gryll",
+        "name": "Boots of the Gryll",
+        "description": "Heavy boots that sacrifice speed for power.",
+        "price": 4000,
+        "priceGems": 8,
+        "rarity": "uncommon",
+        "category": "footwear",
+        "slot": "footwear",
+        "raceRestriction": "gryll",
+        "statBoosts": { "power": 3, "speed": -1 }
+      },
+      {
+        "id": "lumina_light_treads",
+        "name": "Lumina's Light-Treads",
+        "description": "Radiant footwear that enhances speed and agility.",
+        "price": 35000,
+        "priceGems": 75,
+        "rarity": "epic",
+        "category": "footwear",
+        "slot": "footwear",
+        "raceRestriction": "lumina",
+        "statBoosts": { "speed": 4, "agility": 2 }
+      },
+      {
+        "id": "standard_leather_gloves",
+        "name": "Standard Leather Gloves",
+        "description": "Basic gloves that improve ball handling.",
+        "price": 1000,
+        "rarity": "common",
+        "category": "gloves",
+        "slot": "gloves",
+        "raceRestriction": "universal",
+        "statBoosts": { "catching": 1 }
+      },
+      {
+        "id": "sylvan_gripping_vines",
+        "name": "Sylvan Gripping Vines",
+        "description": "Living vines that significantly enhance catching ability.",
+        "price": 35000,
+        "priceGems": 75,
+        "rarity": "epic",
+        "category": "gloves",
+        "slot": "gloves",
+        "raceRestriction": "sylvan",
+        "statBoosts": { "catching": 6 }
+      },
+      {
+        "id": "umbral_shadowgrips",
+        "name": "Umbral Shadowgrips",
+        "description": "Shadow-infused gloves that improve dexterity.",
+        "price": 12000,
+        "priceGems": 25,
+        "rarity": "rare",
+        "category": "gloves",
+        "slot": "gloves",
+        "raceRestriction": "umbra",
+        "statBoosts": { "catching": 3, "agility": 2 }
+      },
+      {
+        "id": "padded_leather_armor",
+        "name": "Padded Leather Armor",
+        "description": "Basic protective padding for all players.",
+        "price": 1500,
+        "rarity": "common",
+        "category": "armor",
+        "slot": "armor",
+        "raceRestriction": "universal",
+        "statBoosts": { "power": 1 }
+      },
+      {
+        "id": "gryll_forged_plate",
+        "name": "Gryll Forged Plate",
+        "description": "Masterwork plate armor that maximizes power.",
+        "price": 35000,
+        "priceGems": 75,
+        "rarity": "epic",
+        "category": "armor",
+        "slot": "armor",
+        "raceRestriction": "gryll",
+        "statBoosts": { "power": 6 }
+      },
+      {
+        "id": "lumina_blessed_armor",
+        "name": "Lumina's Blessed Armor",
+        "description": "Light-infused armor that enhances throwing precision and leadership.",
+        "priceGems": 50,
+        "rarity": "epic",
+        "category": "armor",
+        "slot": "armor",
+        "raceRestriction": "lumina",
+        "statBoosts": { "throwing": 4, "leadership": 2 }
+      }
+    ],
+    "consumables": [
+      {
+        "id": "basic_stamina_drink",
+        "name": "Basic Stamina Drink",
+        "description": "Instantly restores 20 daily_stamina_level.",
+        "price": 500,
+        "rarity": "common",
+        "category": "recovery",
+        "effect": "restore_stamina",
+        "effectValue": 20
+      },
+      {
+        "id": "advanced_recovery_serum",
+        "name": "Advanced Recovery Serum",
+        "description": "Instantly restores 50 daily_stamina_level.",
+        "price": 2000,
+        "priceGems": 5,
+        "rarity": "uncommon",
+        "category": "recovery",
+        "effect": "restore_stamina",
+        "effectValue": 50
+      },
+      {
+        "id": "basic_medical_kit",
+        "name": "Basic Medical Kit",
+        "description": "Instantly heals 25 Injury Recovery Points (RP).",
+        "price": 1000,
+        "rarity": "common",
+        "category": "recovery",
+        "effect": "heal_injury",
+        "effectValue": 25
+      },
+      {
+        "id": "advanced_treatment",
+        "name": "Advanced Treatment",
+        "description": "Instantly heals 75 Injury Recovery Points (RP).",
+        "price": 3000,
+        "priceGems": 10,
+        "rarity": "uncommon",
+        "category": "recovery",
+        "effect": "heal_injury",
+        "effectValue": 75
+      },
+      {
+        "id": "phoenix_elixir",
+        "name": "Phoenix Elixir",
+        "description": "Fully heals one player from any injury and restores their stamina to 100%.",
+        "price": 50000,
+        "priceGems": 35,
+        "rarity": "epic",
+        "category": "recovery",
+        "effect": "full_heal",
+        "effectValue": 100
+      },
+      {
+        "id": "speed_boost_tonic",
+        "name": "Speed Boost Tonic",
+        "description": "Provides +3 Speed for one game only.",
+        "price": 1500,
+        "priceGems": 3,
+        "rarity": "uncommon",
+        "category": "performance",
+        "effect": "single_game_boost",
+        "statBoosts": { "speed": 3 }
+      },
+      {
+        "id": "power_surge_potion",
+        "name": "Power Surge Potion",
+        "description": "Provides +3 Power for one game only.",
+        "price": 1500,
+        "priceGems": 3,
+        "rarity": "uncommon",
+        "category": "performance",
+        "effect": "single_game_boost",
+        "statBoosts": { "power": 3 }
+      },
+      {
+        "id": "champions_blessing",
+        "name": "Champion's Blessing",
+        "description": "Provides +2 to all attributes for one game only.",
+        "price": 25000,
+        "priceGems": 15,
+        "rarity": "epic",
+        "category": "performance",
+        "effect": "single_game_boost",
+        "statBoosts": { "speed": 2, "power": 2, "throwing": 2, "catching": 2, "agility": 2, "stamina": 2 }
+      }
+    ],
+    "entries": [
+      {
+        "id": "exhibition_match_entry",
+        "name": "Exhibition Match Entry",
+        "description": "Enter a casual exhibition match for practice and rewards.",
+        "price": 25000,
+        "priceGems": 10,
+        "rarity": "common",
+        "category": "entry"
+      }
+    ],
+    "gemPackages": [
+      {
+        "id": "gems_starter",
+        "name": "Starter Gem Pack",
+        "description": "Perfect for new managers getting started",
+        "gems": 100,
+        "price": 4.99,
+        "rarity": "common",
+        "bonusGems": 0
+      },
+      {
+        "id": "gems_standard",
+        "name": "Standard Gem Pack",
+        "description": "Great value for regular purchases",
+        "gems": 250,
+        "price": 9.99,
+        "rarity": "common",
+        "bonusGems": 25
+      },
+      {
+        "id": "gems_premium",
+        "name": "Premium Gem Pack",
+        "description": "Enhanced value with bonus gems",
+        "gems": 600,
+        "price": 19.99,
+        "rarity": "rare",
+        "bonusGems": 100
+      },
+      {
+        "id": "gems_elite",
+        "name": "Elite Gem Pack",
+        "description": "Maximum value for serious competitors",
+        "gems": 1300,
+        "price": 39.99,
+        "rarity": "epic",
+        "bonusGems": 300
+      }
+    ]
+  }
+}

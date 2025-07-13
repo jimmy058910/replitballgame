@@ -1,0 +1,65 @@
+~/workspace$ git push origin jules-testing-merges
+Enumerating objects: 1155, done.
+Counting objects: 100% (1155/1155), done.
+Delta compression using up to 8 threads
+Compressing objects: 100% (1048/1048), done.
+Writing objects: 100% (1052/1052), 5.86 MiB | 3.65 MiB/s, done.
+Total 1052 (delta 855), reused 0 (delta 0), pack-reused 0 (from 0)
+remote: Resolving deltas: 100% (855/855), completed with 95 local objects.
+To https://github.com/jimmy058910/replitballgame.git
+   f893179..544a2cc  jules-testing-merges -> jules-testing-merges
+~/workspace$ git checkout main
+Switched to branch 'main'
+Your branch is ahead of 'origin/main' by 73 commits.
+  (use "git push" to publish your local commits)
+~/workspace$ git merge jules-testing-merges
+Performing inexact rename detection: 100% (1476/1476), done.
+Auto-merging client/src/components/AdSystem.tsx
+Auto-merging client/src/components/ContractNegotiation.tsx
+CONFLICT (content): Merge conflict in client/src/components/ContractNegotiation.tsx
+Auto-merging client/src/components/EnhancedDashboard.tsx
+CONFLICT (content): Merge conflict in client/src/components/EnhancedDashboard.tsx
+Auto-merging client/src/components/LeagueStandings.tsx
+CONFLICT (content): Merge conflict in client/src/components/LeagueStandings.tsx
+Auto-merging client/src/components/Navigation.tsx
+CONFLICT (content): Merge conflict in client/src/components/Navigation.tsx
+Auto-merging client/src/components/PlayerDetailModal.tsx
+CONFLICT (content): Merge conflict in client/src/components/PlayerDetailModal.tsx
+Auto-merging client/src/components/StaffManagement.tsx
+CONFLICT (content): Merge conflict in client/src/components/StaffManagement.tsx
+Auto-merging client/src/components/TaxiSquadManager.tsx
+CONFLICT (content): Merge conflict in client/src/components/TaxiSquadManager.tsx
+Auto-merging client/src/components/TeamFinances.tsx
+CONFLICT (content): Merge conflict in client/src/components/TeamFinances.tsx
+Auto-merging client/src/components/TeamInfoDialog.tsx
+CONFLICT (content): Merge conflict in client/src/components/TeamInfoDialog.tsx
+Auto-merging client/src/components/TextBasedMatch.tsx
+CONFLICT (content): Merge conflict in client/src/components/TextBasedMatch.tsx
+Auto-merging client/src/components/TryoutSystem.tsx
+CONFLICT (content): Merge conflict in client/src/components/TryoutSystem.tsx
+CONFLICT (modify/delete): client/src/pages/Commerce.tsx deleted in jules-testing-merges and modified in HEAD.  Version HEAD of client/src/pages/Commerce.tsx left in tree.
+Auto-merging client/src/pages/Competition.tsx
+CONFLICT (content): Merge conflict in client/src/pages/Competition.tsx
+Auto-merging client/src/pages/Dashboard.tsx
+CONFLICT (content): Merge conflict in client/src/pages/Dashboard.tsx
+CONFLICT (modify/delete): client/src/pages/Exhibitions.tsx deleted in jules-testing-merges and modified in HEAD.  Version HEAD of client/src/pages/Exhibitions.tsx left in tree.
+Auto-merging client/src/pages/Inventory.tsx
+CONFLICT (content): Merge conflict in client/src/pages/Inventory.tsx
+Auto-merging client/src/pages/League.tsx
+Auto-merging client/src/pages/Payments.tsx
+CONFLICT (content): Merge conflict in client/src/pages/Payments.tsx
+CONFLICT (modify/delete): client/src/pages/Stadium.tsx deleted in jules-testing-merges and modified in HEAD.  Version HEAD of client/src/pages/Stadium.tsx left in tree.
+Auto-merging client/src/pages/Store.tsx
+CONFLICT (content): Merge conflict in client/src/pages/Store.tsx
+Auto-merging client/src/pages/SuperUser.tsx
+CONFLICT (content): Merge conflict in client/src/pages/SuperUser.tsx
+Auto-merging client/src/pages/Team.tsx
+CONFLICT (content): Merge conflict in client/src/pages/Team.tsx
+Auto-merging client/src/pages/TextMatch.tsx
+CONFLICT (content): Merge conflict in client/src/pages/TextMatch.tsx
+CONFLICT (modify/delete): client/src/pages/Tournaments.tsx deleted in jules-testing-merges and modified in HEAD.  Version HEAD of client/src/pages/Tournaments.tsx left in tree.
+Auto-merging package-lock.json
+Auto-merging package.json
+Auto-merging server/routes.ts
+CONFLICT (content): Merge conflict in server/routes.ts
+Automatic merge failed; fix conflicts and then commit the result.

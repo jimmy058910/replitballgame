@@ -69,12 +69,21 @@ export default function ContractNegotiation({ player, isOpen, onClose }: Contrac
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
+  const getCamaraderieEffectDescription = (camaraderie: number | undefined): string => {
+    if (camaraderie === undefined) return "Neutral";
+    if (camaraderie > 70) return "Feeling Good";
+    if (camaraderie < 30) return "Feeling Disgruntled";
+    return "Neutral";
+  };
+
   const generateResponse = (offerQuality: number) => {
     let responseType: keyof typeof contractResponses;
+    // console.log("Generating response for offerQuality:", offerQuality.toFixed(3));
     
-    if (offerQuality >= 1.2) responseType = 'happy';
-    else if (offerQuality >= 1.0) responseType = 'considering';
-    else if (offerQuality >= 0.8) responseType = 'demanding';
+    // Thresholds adjusted slightly as camaraderie effect might shift typical offerQuality range
+    if (offerQuality >= 1.15) responseType = 'happy';
+    else if (offerQuality >= 0.95) responseType = 'considering';
+    else if (offerQuality >= 0.75) responseType = 'demanding';
     else responseType = 'rejecting';
 
     const responses = contractResponses[responseType];
@@ -83,18 +92,42 @@ export default function ContractNegotiation({ player, isOpen, onClose }: Contrac
 
   const negotiateMutation = useMutation({
     mutationFn: async (offer: typeof currentOffer) => {
-      const marketValue = (player.salary || 0) * 1.1; // Handle potentially null salary safely
-      const offerQuality = offer.salary / (marketValue || 50000); // Avoid division by zero
+      const marketValue = player.salary * 1.1; // 10% above current
+      let offerQualityValue = offer.salary / marketValue;
+
+      // Camaraderie Adjustment
+      // Default to 50 (neutral) if player.camaraderie is undefined
+      const playerCamaraderie = player.camaraderie !== undefined ? player.camaraderie : 50;
+      // Scale: Camaraderie 0 -> -1.0 effect; 50 -> 0.0 effect; 100 -> +1.0 effect on offerQualityValue
+      const camaraderieAdjustment = (playerCamaraderie - 50) * 0.02;
+      offerQualityValue += camaraderieAdjustment;
+
+      console.log(
+        `Player: ${player.firstName}, PlayerCamaraderie: ${playerCamaraderie}, ` +
+        `CamaraderieAdjustment: ${camaraderieAdjustment.toFixed(3)}, ` +
+        `OriginalOfferQuality: ${(offer.salary / marketValue).toFixed(3)}, ` +
+        `AdjustedOfferQuality: ${offerQualityValue.toFixed(3)}`
+      );
       
-      const response = generateResponse(offerQuality);
+      const response = generateResponse(offerQualityValue);
       
+      // Success and counter-offer thresholds can also be slightly influenced by camaraderie
+      // More positive camaraderie makes the player slightly easier to please
+      const baseSuccessThreshold = 0.9;
+      const adjustedSuccessThreshold = baseSuccessThreshold - (camaraderieAdjustment * 0.1); // e.g. high cam -> lower threshold
+
+      const baseCounterThreshold = 0.9;
+      const adjustedCounterThreshold = baseCounterThreshold - (camaraderieAdjustment * 0.1);
+
       return { 
-        success: offerQuality >= 0.9,
+        success: offerQualityValue >= adjustedSuccessThreshold,
         response,
-        counterOffer: offerQuality < 0.9 ? {
-          salary: Math.floor(marketValue || 50000),
+        // Player makes a counter-offer if the offer isn't good enough but not an outright rejection
+        counterOffer: offerQualityValue < adjustedCounterThreshold && offerQualityValue >= (adjustedCounterThreshold - 0.2) ? {
+          // If camaraderie is low (negative adjustment), counter offer is higher (more demanding)
+          salary: Math.floor(marketValue * (1 - Math.min(0, camaraderieAdjustment * 0.25))),
           years: offer.years,
-          bonus: Math.floor((marketValue || 50000) * 0.2)
+          bonus: Math.floor(marketValue * 0.2 * (1 - Math.min(0, camaraderieAdjustment * 0.25)))
         } : null
       };
     },
@@ -153,7 +186,23 @@ export default function ContractNegotiation({ player, isOpen, onClose }: Contrac
           <div className="flex-1">
             <h3 className="font-semibold">{player.firstName} {player.lastName}</h3>
             <p className="text-sm text-gray-500">{player.race} • Age {player.age}</p>
-            <Badge variant="outline">Current Salary: {(player.salary || 0).toLocaleString()}/season</Badge>
+            <div className="flex items-center gap-2 flex-wrap">
+              <Badge variant="outline">Current Salary: {player.salary?.toLocaleString()}/season</Badge>
+              {player.camaraderie !== undefined && (
+                <Badge
+                  variant={
+                    player.camaraderie > 70 ? "default" :
+                    player.camaraderie < 30 ? "destructive" : "secondary"
+                  }
+                  className={
+                    player.camaraderie > 70 ? "bg-green-500 hover:bg-green-600" :
+                    player.camaraderie < 30 ? "bg-red-500 hover:bg-red-600" : ""
+                  }
+                >
+                  Camaraderie: {player.camaraderie} ({getCamaraderieEffectDescription(player.camaraderie)})
+                </Badge>
+              )}
+            </div>
           </div>
         </div>
 

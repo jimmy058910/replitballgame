@@ -12,6 +12,20 @@ interface TeamFinancesProps {
   teamId: string;
 }
 
+interface FinancialData {
+  ticketSales: number;
+  concessionSales: number;
+  jerseySales: number;
+  sponsorships: number;
+  playerSalaries: number;
+  staffSalaries: number;
+  facilities: number;
+  totalIncome: number;
+  totalExpenses: number;
+  netIncome: number;
+  credits: number;
+}
+
 export default function TeamFinances({ teamId }: TeamFinancesProps) {
   const { data: financesData, isLoading: financesLoading, error: financesError } = useQuery<TeamFinancesData, Error>({
     queryKey: [`/api/teams/${teamId}/finances`],
@@ -25,7 +39,11 @@ export default function TeamFinances({ teamId }: TeamFinancesProps) {
     enabled: !!teamId,
   });
 
-  if (financesLoading || teamLoading) {
+  // Ensure we have financial data access
+  // Convert credits from string to number for display
+  const creditsAmount = finances?.credits ? parseInt(String(finances.credits)) : 0;
+
+  if (isLoading) {
     return (
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {Array.from({ length: 6 }).map((_, i) => (
@@ -42,63 +60,53 @@ export default function TeamFinances({ teamId }: TeamFinancesProps) {
     );
   }
 
-  // Provide default structure matching TeamFinancesData if financesData is null/undefined
-  const currentFinances: TeamFinancesData = financesData ?? {
-    id: "", // Default ID or handle differently if ID is crucial and missing
-    teamId: teamId,
-    season: 1,
-    ticketSales: 0,
-    concessionSales: 0,
-    jerseySales: 0,
-    sponsorships: 0,
+  // Use real financial data from API response
+  const currentFinances = finances ? {
+    // Convert string fields to numbers
+    credits: parseInt(String(finances.credits)),
+    gems: finances.gems || 0,
+    projectedIncome: parseInt(String(finances.projectedIncome || '0')),
+    projectedExpenses: parseInt(String(finances.projectedExpenses || '0')),
+    lastSeasonRevenue: parseInt(String(finances.lastSeasonRevenue || '0')),
+    lastSeasonExpenses: parseInt(String(finances.lastSeasonExpenses || '0')),
+    facilitiesMaintenanceCost: parseInt(String(finances.facilitiesMaintenanceCost || '0')),
+    playerSalaries: finances.playerSalaries || 0,
+    staffSalaries: finances.staffSalaries || 0,
+    totalExpenses: finances.totalExpenses || 0,
+    netIncome: finances.netIncome || 0,
+  } : {
+    credits: 0,
+    gems: 0,
+    projectedIncome: 0,
+    projectedExpenses: 0,
+    lastSeasonRevenue: 0,
+    lastSeasonExpenses: 0,
+    facilitiesMaintenanceCost: 0,
     playerSalaries: 0,
     staffSalaries: 0,
-    facilities: 0,
-    credits: 0, // Note: TeamFinancesData has credits, teamData also has credits. Clarify which is primary.
-    totalIncome: 0,
     totalExpenses: 0,
     netIncome: 0,
-    premiumCurrency: 0,
-    createdAt: new Date(), // Default date
   };
 
-  const totalExpensesSafe = (currentFinances.totalExpenses == null || currentFinances.totalExpenses === 0) ? 1 : currentFinances.totalExpenses; // Avoid division by zero and handle null
-
-  const budgetHealth = currentFinances.totalIncome != null && currentFinances.totalExpenses != null
-    ? ((currentFinances.totalIncome ?? 0) / totalExpensesSafe) * 100
-    : 0;
-  const salaryCapUsed = currentFinances.playerSalaries != null
-    ? ((currentFinances.playerSalaries ?? 0) / 200000) * 100 // Assume 200k salary cap for now
-    : 0;
+  // Calculate budget health safely (avoid division by zero)
+  const budgetHealth = currentFinances.totalExpenses > 0 
+    ? Math.round((currentFinances.projectedIncome / currentFinances.totalExpenses) * 100)
+    : currentFinances.projectedIncome > 0 ? 100 : 0;
 
   const incomeStreams = [
     {
-      name: "Ticket Sales",
-      amount: currentFinances.ticketSales ?? 0,
-      icon: Users,
-      description: "Revenue from match attendance",
-      growth: "+12%" // Placeholder
+      name: "Projected Income",
+      amount: currentFinances.projectedIncome,
+      icon: TrendingUp,
+      description: "Expected revenue this season",
+      growth: "+0%"
     },
     {
-      name: "Concessions",
-      amount: currentFinances.concessionSales ?? 0,
-      icon: ShoppingBag,
-      description: "Food and beverage sales",
-      growth: "+8%" // Placeholder
-    },
-    {
-      name: "Jersey Sales",
-      amount: currentFinances.jerseySales ?? 0,
-      icon: Shirt,
-      description: "Team merchandise revenue",
-      growth: "+15%" // Placeholder
-    },
-    {
-      name: "Sponsorships",
-      amount: currentFinances.sponsorships ?? 0,
+      name: "Last Season Revenue",
+      amount: currentFinances.lastSeasonRevenue,
       icon: DollarSign,
-      description: "Corporate sponsorship deals",
-      growth: "+5%" // Placeholder
+      description: "Previous season earnings",
+      growth: "N/A"
     },
   ];
 
@@ -107,19 +115,19 @@ export default function TeamFinances({ teamId }: TeamFinancesProps) {
       name: "Player Salaries",
       amount: currentFinances.playerSalaries ?? 0,
       description: "Total player compensation",
-      percentage: currentFinances.playerSalaries != null && currentFinances.totalExpenses != null ? ((currentFinances.playerSalaries ?? 0) / totalExpensesSafe) * 100 : 0
+      percentage: currentFinances.totalExpenses > 0 ? (currentFinances.playerSalaries / currentFinances.totalExpenses) * 100 : 0
     },
     {
       name: "Staff Salaries",
       amount: currentFinances.staffSalaries ?? 0,
       description: "Coaching and support staff",
-      percentage: currentFinances.staffSalaries != null && currentFinances.totalExpenses != null ? ((currentFinances.staffSalaries ?? 0) / totalExpensesSafe) * 100 : 0
+      percentage: currentFinances.totalExpenses > 0 ? (currentFinances.staffSalaries / currentFinances.totalExpenses) * 100 : 0
     },
     {
-      name: "Facilities",
-      amount: currentFinances.facilities ?? 0,
+      name: "Facilities Maintenance",
+      amount: currentFinances.facilitiesMaintenanceCost,
       description: "Stadium and training ground costs",
-      percentage: currentFinances.facilities != null && currentFinances.totalExpenses != null ? ((currentFinances.facilities ?? 0) / totalExpensesSafe) * 100 : 0
+      percentage: currentFinances.totalExpenses > 0 ? (currentFinances.facilitiesMaintenanceCost / currentFinances.totalExpenses) * 100 : 0
     },
   ];
 
@@ -128,9 +136,9 @@ export default function TeamFinances({ teamId }: TeamFinancesProps) {
       <div className="flex justify-between items-center">
         <h2 className="text-2xl font-bold">Team Finances</h2>
         <div className="text-right">
-          <p className="text-sm text-gray-600">Available Credits</p>
-          <p className="text-2xl font-bold">
-            ${teamData?.credits?.toLocaleString() ?? "0"}
+          <p className="text-sm text-gray-600 dark:text-gray-400">Available Credits</p>
+          <p className="text-2xl font-bold text-green-600 dark:text-green-400">
+            ₡{creditsAmount.toLocaleString()}
           </p>
         </div>
       </div>
@@ -146,9 +154,9 @@ export default function TeamFinances({ teamId }: TeamFinancesProps) {
           </CardHeader>
           <CardContent>
             <div className="text-3xl font-bold text-green-600">
-              ${(currentFinances.totalIncome ?? 0).toLocaleString()}
+              ₡{currentFinances.projectedIncome.toLocaleString()}
             </div>
-            <p className="text-sm text-gray-600 mt-1">This season</p>
+            <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">This season</p>
           </CardContent>
         </Card>
 
@@ -161,24 +169,24 @@ export default function TeamFinances({ teamId }: TeamFinancesProps) {
           </CardHeader>
           <CardContent>
             <div className="text-3xl font-bold text-red-600">
-              ${(currentFinances.totalExpenses ?? 0).toLocaleString()}
+              ₡{currentFinances.totalExpenses.toLocaleString()}
             </div>
-            <p className="text-sm text-gray-600 mt-1">This season</p>
+            <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">This season</p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="pb-3">
             <CardTitle className="text-lg flex items-center gap-2">
-              <DollarSign className={(currentFinances.netIncome ?? 0) >= 0 ? "text-green-600" : "text-red-600"} size={20} />
+              <DollarSign className={((currentFinances as any).netIncome || 0) >= 0 ? "text-green-600" : "text-red-600"} size={20} />
               Net Income
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className={`text-3xl font-bold ${(currentFinances.netIncome ?? 0) >= 0 ? "text-green-600" : "text-red-600"}`}>
-              {(currentFinances.netIncome ?? 0) >= 0 ? "+" : ""}${(currentFinances.netIncome ?? 0).toLocaleString()}
+            <div className={`text-3xl font-bold ${currentFinances.netIncome >= 0 ? "text-green-600" : "text-red-600"}`}>
+              {currentFinances.netIncome >= 0 ? "+" : ""}₡{Math.abs(currentFinances.netIncome).toLocaleString()}
             </div>
-            <p className="text-sm text-gray-600 mt-1">Profit/Loss</p>
+            <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">Profit/Loss</p>
           </CardContent>
         </Card>
       </div>
@@ -210,20 +218,16 @@ export default function TeamFinances({ teamId }: TeamFinancesProps) {
 
         <Card>
           <CardHeader>
-            <CardTitle className="text-lg">Salary Cap Usage</CardTitle>
+            <CardTitle className="text-lg">Player Salaries</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <div>
               <div className="flex justify-between mb-2">
-                <span className="text-sm font-medium">Player Salaries</span>
-                <span className="text-sm">{salaryCapUsed.toFixed(1)}%</span>
+                <span className="text-sm font-medium">Total Player Compensation</span>
+                <span className="text-sm font-bold">₡{((currentFinances as any).playerSalaries || 0).toLocaleString()}</span>
               </div>
-              <Progress 
-                value={salaryCapUsed} 
-                className="h-3"
-              />
               <div className="text-xs text-gray-500 mt-1">
-                ${(200000 - (currentFinances.playerSalaries ?? 0)).toLocaleString()} remaining cap space
+                {((currentFinances as any).playerSalaries / (currentFinances as any).totalExpenses * 100).toFixed(1)}% of total expenses
               </div>
             </div>
           </CardContent>
@@ -260,9 +264,7 @@ export default function TeamFinances({ teamId }: TeamFinancesProps) {
                       </Badge>
                     </div>
                     <div className="text-sm text-gray-500 mt-1">
-                      {currentFinances.totalIncome != null && currentFinances.totalIncome !== 0
-                        ? ((stream.amount / currentFinances.totalIncome) * 100).toFixed(1)
-                        : "0.0"}% of total income
+                      {(currentFinances as any).totalIncome > 0 ? ((stream.amount / (currentFinances as any).totalIncome) * 100).toFixed(1) : 0}% of total income
                     </div>
                   </CardContent>
                 </Card>
@@ -325,9 +327,9 @@ export default function TeamFinances({ teamId }: TeamFinancesProps) {
                   <h4 className="font-semibold mb-3">Cost Management</h4>
                   <div className="space-y-2 text-sm">
                     <div className="flex justify-between">
-                      <span>Salary Efficiency:</span>
-                      <span className={salaryCapUsed > 85 ? "text-red-600" : "text-green-600"}>
-                        {salaryCapUsed > 85 ? "Over budget" : "Within budget"}
+                      <span>Player Compensation:</span>
+                      <span className="text-blue-600">
+                        ₡{(((currentFinances as any).playerSalaries || 0) / 1000).toFixed(0)}k total
                       </span>
                     </div>
                     <div className="flex justify-between">
@@ -345,8 +347,8 @@ export default function TeamFinances({ teamId }: TeamFinancesProps) {
               <div className="border-t pt-4">
                 <div className="text-center">
                   <div className="text-lg font-semibold mb-2">Projected End-of-Season</div>
-                  <div className={`text-2xl font-bold ${(currentFinances.netIncome ?? 0) >= 0 ? "text-green-600" : "text-red-600"}`}>
-                    {(currentFinances.netIncome ?? 0) >= 0 ? "+" : ""}${((currentFinances.netIncome ?? 0) * 1.2).toLocaleString()} profit
+                  <div className={`text-2xl font-bold ${(currentFinances as any).netIncome >= 0 ? "text-green-600" : "text-red-600"}`}>
+                    {(currentFinances as any).netIncome >= 0 ? "+" : ""}₡{((currentFinances as any).netIncome * 1.2).toLocaleString()} profit
                   </div>
                   <p className="text-sm text-gray-600 mt-1">
                     Based on current performance trends

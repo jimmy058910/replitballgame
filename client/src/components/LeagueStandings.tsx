@@ -2,29 +2,38 @@ import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import TeamInfoDialog from "@/components/TeamInfoDialog";
+import { getDivisionName, getDivisionNameWithSubdivision } from "@shared/divisionUtils";
 
 interface LeagueStandingsProps {
   division: number;
+}
+
+interface Team {
+  id: string;
+  name: string;
+  wins: number;
+  losses: number;
+  draws: number;
+  points: number;
+  division: number;
+  subdivision?: string;
+  currentStreak: number;
+  streakType: string;
+  form: string;
+  goalsFor: number;
+  goalsAgainst: number;
+  goalDifference: number;
+  played: number;
 }
 
 export default function LeagueStandings({ division }: LeagueStandingsProps) {
   const [selectedTeamId, setSelectedTeamId] = useState<string | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
 
-  // Define a simplified Team type for standings
-  interface StandingTeam {
-    id: string;
-    name: string;
-    wins: number;
-    losses: number;
-    draws: number;
-    points: number;
-    // Add any other properties returned by the standings API
-  }
-
-  const { data: standings, isLoading } = useQuery<StandingTeam[]>({ // Typed the useQuery
+  const { data: rawStandings, isLoading } = useQuery({
     queryKey: [`/api/leagues/${division}/standings`],
   });
+  const standings = (rawStandings || []) as Team[];
 
   const handleTeamClick = (teamId: string) => {
     setSelectedTeamId(teamId);
@@ -36,26 +45,17 @@ export default function LeagueStandings({ division }: LeagueStandingsProps) {
     setSelectedTeamId(null);
   };
 
-  const getDivisionName = (div: number) => {
-    const names = {
-      1: "Diamond League",
-      2: "Platinum League", 
-      3: "Gold League",
-      4: "Silver League",
-      5: "Bronze League",
-      6: "Iron League",
-      7: "Stone League",
-      8: "Rookie League",
-    };
-    return names[div as keyof typeof names] || `Division ${div}`;
-  };
+
 
   return (
     <>
       <Card className="bg-gray-800 border-gray-700">
         <CardHeader>
           <CardTitle className="font-orbitron">
-            {getDivisionName(division)}
+            {standings.length > 0 && standings[0].subdivision 
+              ? getDivisionNameWithSubdivision(division, standings[0].subdivision)
+              : getDivisionName(division)
+            }
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -72,51 +72,116 @@ export default function LeagueStandings({ division }: LeagueStandingsProps) {
               ))}
             </div>
           ) : standings && standings.length > 0 ? (
-            <div className="space-y-2">
-              {standings.map((team: StandingTeam, index: number) => { // Use StandingTeam type
-                const isPlayerTeam = team.name === "Macomb Cougars";
-                const position = index + 1;
-                
-                return (
-                  <div 
-                    key={team.id} 
-                    className={`flex items-center justify-between p-3 rounded-lg transition-colors ${
-                      position === 1 
-                        ? "bg-gold-400 bg-opacity-10 border border-gold-400 border-opacity-30"
-                        : isPlayerTeam
-                          ? "bg-primary-500 bg-opacity-20 border border-primary-500 border-opacity-30"
-                          : "bg-gray-700"
-                    }`}
-                  >
-                    <div className="flex items-center space-x-3">
-                      <div className={`w-8 h-8 rounded-full flex items-center justify-center text-white font-bold text-sm ${
-                        position === 1 ? "bg-gold-400" : "bg-gray-600"
-                      }`}>
-                        {position}
-                      </div>
-                      <div>
-                        <div 
-                          className={`font-semibold cursor-pointer hover:underline ${
-                            isPlayerTeam ? "text-primary-400" : "text-white"
-                          }`}
-                          onClick={() => handleTeamClick(team.id)}
-                          title="Click to view team info"
-                        >
-                          {team.name}
-                        </div>
-                        <div className="text-xs text-gray-400">
-                          {team.wins}-{team.losses}-{team.draws} • {team.points} pts
-                        </div>
-                      </div>
-                    </div>
-                    <div className={`font-bold text-sm ${
-                      index < 2 ? "text-green-400" : index >= (standings.length - 2) ? "text-red-400" : "text-gray-400" // Safe access to standings.length
-                    }`}>
-                      {index < 2 ? "↑" : index >= (standings.length - 2) ? "↓" : "—"}
-                    </div>
-                  </div>
-                );
-              })}
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b border-gray-600 text-xs text-gray-400">
+                    <th className="text-left py-2 w-8">#</th>
+                    <th className="text-left py-2">Team</th>
+                    <th className="text-center py-2 w-12">P</th>
+                    <th className="text-center py-2 w-12">W</th>
+                    <th className="text-center py-2 w-12">D</th>
+                    <th className="text-center py-2 w-12">L</th>
+                    <th className="text-center py-2 w-16">SD</th>
+                    <th className="text-center py-2 w-12">Pts</th>
+                    <th className="text-center py-2 w-16">Streak</th>
+                    <th className="text-center py-2 w-24">Form</th>
+                    <th className="text-center py-2 w-8"></th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {standings.map((team: any, index: number) => {
+                    const isPlayerTeam = team.name === "Macomb Cougars";
+                    const position = index + 1;
+                    
+                    return (
+                      <tr 
+                        key={team.id} 
+                        className={`border-b border-gray-700 hover:bg-gray-700 transition-colors ${
+                          position === 1 
+                            ? "bg-gold-400 bg-opacity-10" 
+                            : isPlayerTeam
+                              ? "border-l-2 border-l-primary-400"
+                              : ""
+                        }`}
+                      >
+                        <td className="py-2">
+                          <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${
+                            position === 1 ? "bg-gold-400 text-black" : 
+                            position <= 2 ? "bg-green-500 text-white" :
+                            position >= standings.length - 1 ? "bg-red-500 text-white" :
+                            "bg-gray-600 text-white"
+                          }`}>
+                            {position}
+                          </div>
+                        </td>
+                        <td className="py-2">
+                          <div 
+                            className={`font-medium cursor-pointer hover:underline ${
+                              isPlayerTeam ? "text-primary-400" : "text-white"
+                            }`}
+                            onClick={() => handleTeamClick(team.id)}
+                            title={`${team.name} - Click to view team info`}
+                          >
+                            {team.name}
+                          </div>
+                        </td>
+                        <td className="text-center py-2 text-gray-300">{team.played}</td>
+                        <td className="text-center py-2 text-green-400 font-medium">{team.wins}</td>
+                        <td className="text-center py-2 text-yellow-400">{team.draws}</td>
+                        <td className="text-center py-2 text-red-400">{team.losses}</td>
+                        <td className={`text-center py-2 font-medium ${
+                          team.goalDifference > 0 ? "text-green-400" :
+                          team.goalDifference < 0 ? "text-red-400" : "text-gray-400"
+                        }`}>
+                          {team.goalDifference > 0 ? '+' : ''}{team.goalDifference}
+                        </td>
+                        <td className="text-center py-2 font-bold text-white">{team.points}</td>
+                        <td className="text-center py-2">
+                          {team.streakType !== 'N' && (
+                            <span className={`px-1.5 py-0.5 rounded text-xs font-medium ${
+                              team.streakType === 'W' ? 'bg-green-600 text-white' :
+                              team.streakType === 'L' ? 'bg-red-600 text-white' :
+                              'bg-yellow-600 text-black'
+                            }`}>
+                              {team.streakType}{team.currentStreak}
+                            </span>
+                          )}
+                        </td>
+                        <td className="text-center py-2">
+                          {team.form !== 'N/A' && (
+                            <div className="flex justify-center space-x-0.5">
+                              {team.form.split('').map((result, idx) => (
+                                <div 
+                                  key={idx}
+                                  className={`w-2 h-2 rounded-full ${
+                                    result === 'W' ? 'bg-green-500' :
+                                    result === 'L' ? 'bg-red-500' :
+                                    'bg-yellow-500'
+                                  }`}
+                                  title={`Game ${idx + 1}: ${
+                                    result === 'W' ? 'Win' :
+                                    result === 'L' ? 'Loss' : 'Draw'
+                                  }`}
+                                />
+                              ))}
+                            </div>
+                          )}
+                        </td>
+                        <td className="text-center py-2">
+                          <span className={`text-sm ${
+                            position <= 2 ? "text-green-400" : 
+                            position >= standings.length - 1 ? "text-red-400" : 
+                            "text-gray-500"
+                          }`}>
+                            {position <= 2 ? "↑" : position >= standings.length - 1 ? "↓" : ""}
+                          </span>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
             </div>
           ) : (
             <div className="text-center py-8">

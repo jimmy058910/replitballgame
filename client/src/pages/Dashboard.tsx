@@ -1,35 +1,173 @@
-import { useEffect } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useEffect, useState } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { Link } from "wouter";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
+import { isUnauthorizedError } from "@/lib/authUtils";
 import Navigation from "@/components/Navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import UnifiedPlayerCard from "@/components/UnifiedPlayerCard";
+import { TeamNameInput } from "@/components/TeamNameInput";
+import PlayerDetailModal from "@/components/PlayerDetailModal";
+import { TermsAcceptance } from "@/components/TermsOfService";
 import LeagueStandings from "@/components/LeagueStandings";
 import { apiRequest } from "@/lib/queryClient";
-import { Bell, Shield, Calendar } from "lucide-react";
-import type { Team, Player, TeamFinances, Match, Season } from "shared/schema";
+import { Bell, Shield, Calendar, Users as UsersIcon } from "lucide-react"; // Added UsersIcon
+import { HelpIcon } from "@/components/help";
+import { useContextualHelp } from "@/hooks/useContextualHelp";
 
-// Define interfaces for data structures
-interface ServerTime {
-  currentTime: string;
+// Type interfaces for API responses
+interface Team {
+  id: string;
+  name: string;
+  division: number;
+  wins: number;
+  losses: number;
+  draws: number;
+  points: number;
+  teamPower: number;
+  teamCamaraderie: number;
+  credits: number;
 }
 
-interface LiveMatchData extends Match {
-  homeTeamName?: string;
-  awayTeamName?: string;
+interface Player {
+  id: string;
+  name: string;
+  firstName: string;
+  lastName: string;
+  race: string;
+  age: number;
+  speed: number;
+  power: number;
+  throwing: number;
+  catching: number;
+  kicking: number;
+  stamina: number;
+  leadership: number;
+  agility: number;
+  potentialRating: number;
+  role: string;
+}
+
+interface Finances {
+  credits: number;
+  premiumCurrency: number;
+}
+
+interface SeasonalCycle {
+  season: string;
+  currentDay: number;
+  phase: string;
+  description: string;
+  details: string;
+  daysUntilPlayoffs?: number;
+  daysUntilNewSeason?: number;
+}
+// Division naming utilities
+const DIVISION_NAMES = {
+  1: "Diamond League",
+  2: "Platinum League", 
+  3: "Gold League",
+  4: "Silver League",
+  5: "Bronze League",
+  6: "Iron League",
+  7: "Stone League",
+  8: "Copper League",
+} as const;
+
+const DIVISION_8_SUBDIVISIONS = [
+  "Alpha", "Beta", "Gamma", "Delta", "Epsilon", "Zeta", "Eta", "Theta",
+  "Iota", "Kappa", "Lambda", "Mu", "Nu", "Xi", "Omicron", "Pi",
+  "Rho", "Sigma", "Tau", "Upsilon", "Phi", "Chi", "Psi", "Omega"
+];
+
+function getDivisionNameWithSubdivision(division: number, subdivision?: string): string {
+  const baseName = DIVISION_NAMES[division as keyof typeof DIVISION_NAMES] || `Division ${division}`;
+  
+  if (division === 8 && subdivision && typeof subdivision === 'string' && subdivision !== "main") {
+    // Use actual subdivision from database
+    const subdivisionName = subdivision.charAt(0).toUpperCase() + subdivision.slice(1);
+    return `${baseName} - ${subdivisionName}`;
+  }
+  
+  return baseName;
+}
+
+// Helper function for Camaraderie Description
+function getTeamCamaraderieDescription(camaraderie: number | undefined | null): string {
+  if (camaraderie === undefined || camaraderie === null) return "Overall team cohesion.";
+  if (camaraderie >= 91) return "Excellent (91-100): Team is in perfect sync!";
+  if (camaraderie >= 76) return "Good (76-90): Strong team bonds.";
+  if (camaraderie >= 41) return "Average (41-75): Room for improvement.";
+  if (camaraderie >= 26) return "Low (26-40): Some friction in the ranks.";
+  return "Poor (0-25): Team spirit is suffering.";
+}
+
+// Helper function for Camaraderie Tier Name Only
+function getTeamCamaraderieTier(camaraderie: number | undefined | null): string {
+  if (camaraderie === undefined || camaraderie === null) return "Unknown";
+  if (camaraderie >= 91) return "Excellent";
+  if (camaraderie >= 76) return "Good";
+  if (camaraderie >= 41) return "Average";
+  if (camaraderie >= 26) return "Low";
+  return "Poor";
+}
+
+// Helper function for Camaraderie Description Only
+function getTeamCamaraderieDescriptionOnly(camaraderie: number | undefined | null): string {
+  if (camaraderie === undefined || camaraderie === null) return "Overall team cohesion";
+  if (camaraderie >= 91) return "Team is in perfect sync!";
+  if (camaraderie >= 76) return "Strong team bonds";
+  if (camaraderie >= 41) return "Room for improvement";
+  if (camaraderie >= 26) return "Some friction in the ranks";
+  return "Team spirit is suffering";
+}
+
+// Helper function for Team Power Tier Description
+function getTeamPowerDescription(teamPower: number | undefined | null): string {
+  if (teamPower === undefined || teamPower === null) return "Building for the future.";
+  
+  if (teamPower >= 31) return "A powerhouse of the league.";
+  if (teamPower >= 26) return "A true championship threat.";
+  if (teamPower >= 21) return "Can challenge any team on a good day.";
+  if (teamPower >= 16) return "Showing signs of promise.";
+  return "Building for the future.";
+}
+
+// Helper function to get team's current ranking position
+function getTeamRankPosition(standings: any[], teamId: string): string {
+  if (!standings || !teamId) return "";
+  
+  const teamPosition = standings.findIndex(team => team.id === teamId);
+  if (teamPosition === -1) return "";
+  
+  const position = teamPosition + 1;
+  const teamPoints = standings[teamPosition]?.points || 0;
+  
+  // Check for ties by looking at teams with same points
+  const teamsWithSamePoints = standings.filter(team => team.points === teamPoints);
+  const isTie = teamsWithSamePoints.length > 1;
+  
+  // Format position with proper suffix
+  let suffix = "th";
+  if (position % 10 === 1 && position % 100 !== 11) suffix = "st";
+  else if (position % 10 === 2 && position % 100 !== 12) suffix = "nd";
+  else if (position % 10 === 3 && position % 100 !== 13) suffix = "rd";
+  
+  return isTie ? `T-${position}${suffix}` : `${position}${suffix}`;
 }
 
 // Server Time Display Component
 function ServerTimeDisplay({ serverTime }: { serverTime: ServerTime | undefined }) {
   const formatServerTime = () => {
-    if (!serverTime?.currentTime) return "Loading...";
-
-    const time = new Date(serverTime.currentTime);
+    const timeData = serverTime?.data || serverTime;
+    if (!timeData?.currentTime) return "Loading...";
+    
+    const time = new Date(timeData.currentTime);
     const easternTime = time.toLocaleString("en-US", {
-      timeZone: "America/New_York",
+      timeZone: "America/Detroit", // Use Detroit for consistency with backend
       hour: "numeric",
       minute: "2-digit",
       hour12: true
@@ -38,23 +176,12 @@ function ServerTimeDisplay({ serverTime }: { serverTime: ServerTime | undefined 
     return easternTime;
   };
 
-  const getTimeUntilNextDay = () => {
-    if (!serverTime?.currentTime) return "";
-
-    const now = new Date(serverTime.currentTime);
-    const nextDay = new Date(now);
-    nextDay.setDate(nextDay.getDate() + 1);
-    nextDay.setHours(3, 0, 0, 0); // 3 AM EST
-
-    const timeUntil = nextDay.getTime() - now.getTime();
-    const hours = Math.floor(timeUntil / (1000 * 60 * 60));
-    const minutes = Math.floor((timeUntil % (1000 * 60 * 60)) / (1000 * 60));
-
-    if (hours > 0) {
-      return `Next day: ${hours}h ${minutes}m`;
-    } else {
-      return `Next day: ${minutes}m`;
-    }
+  const getSchedulingWindowStatus = () => {
+    const timeData = serverTime?.data || serverTime;
+    if (!timeData) return "";
+    
+    // Always show the Game Day countdown instead of "Games: OPEN"
+    return `Next Game Day: ${timeData.timeUntilNextWindow?.hours || 0}h ${timeData.timeUntilNextWindow?.minutes || 0}m`;
   };
 
   return (
@@ -62,7 +189,7 @@ function ServerTimeDisplay({ serverTime }: { serverTime: ServerTime | undefined 
       <CardContent className="p-2">
         <div className="text-center">
           <div className="text-blue-200 font-medium text-sm">EST: {formatServerTime()}</div>
-          <div className="text-blue-300 text-xs">{getTimeUntilNextDay()}</div>
+          <div className="text-blue-300 text-xs">{getSchedulingWindowStatus()}</div>
         </div>
       </CardContent>
     </Card>
@@ -72,6 +199,11 @@ function ServerTimeDisplay({ serverTime }: { serverTime: ServerTime | undefined 
 export default function Dashboard() {
   const { toast } = useToast();
   const { isAuthenticated, isLoading } = useAuth();
+  const queryClient = useQueryClient();
+  const [selectedPlayer, setSelectedPlayer] = useState(null);
+  const [showPlayerModal, setShowPlayerModal] = useState(false);
+
+
 
   // Redirect to home if not authenticated
   useEffect(() => {
@@ -88,53 +220,46 @@ export default function Dashboard() {
     }
   }, [isAuthenticated, isLoading, toast]);
 
-  const teamQuery = useQuery({
-    queryKey: ["myTeam"],
-    queryFn: (): Promise<Team> => apiRequest("/api/teams/my"), // Removed <Team> from apiRequest
+  const { data: team, isLoading: teamLoading, error: teamError } = useQuery<Team>({
+    queryKey: ["/api/teams/my"],
   });
-  const team = teamQuery.data as Team | undefined;
-  const teamLoading = teamQuery.isLoading;
 
-  const financesQuery = useQuery({
-    queryKey: ["myTeamFinances"],
-    queryFn: (): Promise<TeamFinances> => apiRequest("/api/teams/my/finances"), // Removed <TeamFinances>
-    enabled: !!team,
+  const { data: finances } = useQuery<Finances>({
+    queryKey: [`/api/teams/${team?.id}/finances`],
+    enabled: !!team?.id,
   });
-  const finances = financesQuery.data as TeamFinances | undefined;
 
-  const playersQuery = useQuery({
-    queryKey: ["teamPlayers", team?.id],
-    queryFn: (): Promise<Player[]> => apiRequest(`/api/teams/${team!.id}/players`), // Removed <Player[]>
+  const { data: players, isLoading: playersLoading, error: playersError } = useQuery<Player[]>({
+    queryKey: [`/api/teams/${team?.id}/players`],
     enabled: !!team?.id,
     retry: 1,
     staleTime: 30 * 1000, // 30 seconds
     refetchOnWindowFocus: true,
   });
-  const players = playersQuery.data as Player[] | undefined;
-  const playersLoading = playersQuery.isLoading;
-  const playersError = playersQuery.error;
 
-  const liveMatchesQuery = useQuery({
-    queryKey: ["liveMatches"],
-    queryFn: (): Promise<LiveMatchData[]> => apiRequest("/api/matches/live"), // Removed <LiveMatchData[]>
+  // Debug logging can be removed in production
+  // console.log('Dashboard Debug:', { teamId: team?.id, teamName: team?.name, playersCount: players?.length });
+
+  const { data: liveMatches } = useQuery<any[]>({
+    queryKey: ["/api/matches/live"],
     refetchInterval: 5000, // Refresh every 5 seconds for live matches
   });
-  const liveMatches = liveMatchesQuery.data as LiveMatchData[] | undefined;
 
-  const seasonalCycleQuery = useQuery({
-    queryKey: ["currentSeasonCycle"],
-    queryFn: (): Promise<Season> => apiRequest("/api/season/current-cycle"), // Removed <Season>
+  const { data: seasonalCycle } = useQuery<SeasonalCycle>({
+    queryKey: ["/api/season/current-cycle"],
     refetchInterval: 60000, // Refresh every minute
   });
-  const seasonalCycle = seasonalCycleQuery.data as Season | undefined;
 
-  const serverTimeQuery = useQuery({
-    queryKey: ["serverTime"],
-    queryFn: (): Promise<ServerTime> => apiRequest("/api/server/time"), // Removed <ServerTime>
+  const { data: serverTime } = useQuery<any>({
+    queryKey: ["/api/server/time"],
     refetchInterval: 30000, // Update every 30 seconds
   });
-  const serverTime = serverTimeQuery.data as ServerTime | undefined;
 
+
+  const { data: standings } = useQuery<any[]>({
+    queryKey: [`/api/leagues/${team?.division || 8}/standings`],
+    enabled: !!team?.division,
+  });
 
   if (isLoading || teamLoading) {
     return (
@@ -147,7 +272,6 @@ export default function Dashboard() {
   if (!team) {
     return (
       <div className="min-h-screen bg-gray-900 text-white">
-        <Navigation />
         <div className="max-w-4xl mx-auto px-4 py-16 text-center">
           <h1 className="font-orbitron text-3xl font-bold mb-6">Welcome to Realm Rivalry!</h1>
           <p className="text-gray-300 mb-8">Create your team to start your journey to glory.</p>
@@ -158,9 +282,8 @@ export default function Dashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-900 text-white">
-      <Navigation />
-
+    <div className="min-h-screen bg-gray-900 text-white dashboard-container">
+      
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Dashboard Overview */}
         <div className="mb-8">
@@ -169,8 +292,8 @@ export default function Dashboard() {
             <ServerTimeDisplay serverTime={serverTime} />
           </div>
 
-          {/* Seasonal Cycle Display */}
-          {seasonalCycle && (
+          {/* Enhanced Dynamic Dashboard Header */}
+          {(seasonalCycle as any) && (
             <Card className="bg-gradient-to-r from-purple-900 to-blue-900 border-purple-700 mb-6">
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
@@ -178,30 +301,42 @@ export default function Dashboard() {
                     <div className="bg-purple-600 bg-opacity-30 p-3 rounded-full">
                       <Calendar className="h-8 w-8 text-purple-200" />
                     </div>
-                    <div>
-                      {/* Assuming SeasonalCycle (now Season) has 'year' and 'name' or similar */}
-                      <div className="text-sm text-purple-200 mb-1">Season {seasonalCycle.year} - {seasonalCycle.name}</div>
-                      {/* TODO: Update Season type if description/details/phase/currentDay etc. are needed directly */}
-                      {/* For now, using placeholder or removing to avoid errors if not in Season type */}
-                      <h2 className="text-2xl font-bold text-white mb-1">{ (seasonalCycle as any).description || "Current Phase"}</h2>
-                      <p className="text-purple-100 text-sm">{ (seasonalCycle as any).details || "More info soon..."}</p>
+                    <div className="flex-1">
+                      <div className="text-sm text-purple-200 mb-1">{(seasonalCycle as any).season}</div>
+                      <h2 className="text-2xl font-bold text-white mb-1">
+                        {(seasonalCycle as any).phaseTitle || (seasonalCycle as any).description}
+                      </h2>
+                      <p className="text-purple-100 text-sm mb-2">
+                        {(seasonalCycle as any).description}
+                      </p>
+                      <p className="text-purple-200 text-sm font-medium">
+                        {(seasonalCycle as any).dynamicDetail || (seasonalCycle as any).details}
+                      </p>
                     </div>
                   </div>
-                  <div className="text-right">
-                    <div className="text-lg font-bold text-white mb-1">Day {(seasonalCycle as any).currentDay ?? 'N/A'}/17</div>
-                    <Badge
-                      variant={(seasonalCycle as any).phase === "Regular Season" ? "default" :
+                  <div className="text-right min-w-[140px]">
+                    <div className="text-lg font-bold text-white mb-1">Day {(seasonalCycle as any).currentDay}/17</div>
+                    <Badge 
+                      variant={(seasonalCycle as any).phase === "Regular Season" ? "default" : 
                               (seasonalCycle as any).phase === "Playoffs" ? "destructive" : "secondary"}
-                      className="text-xs"
+                      className={`text-xs mb-2 ${
+                        (seasonalCycle as any).phase === "Playoffs" ? "bg-yellow-600 text-yellow-100" : ""
+                      }`}
                     >
                       {(seasonalCycle as any).phase || "Upcoming"}
                     </Badge>
-                    {(seasonalCycle as any).daysUntilPlayoffs > 0 && (
+                    {(seasonalCycle as any).countdownText && (
+                      <div className="text-xs text-purple-200 mt-1 font-semibold">
+                        {(seasonalCycle as any).countdownText}
+                      </div>
+                    )}
+                    {/* Legacy countdown fallbacks */}
+                    {!(seasonalCycle as any).countdownText && (seasonalCycle as any).daysUntilPlayoffs > 0 && (
                       <div className="text-xs text-purple-200 mt-1">
                         {(seasonalCycle as any).daysUntilPlayoffs} days to playoffs
                       </div>
                     )}
-                    {(seasonalCycle as any).daysUntilNewSeason > 0 && (seasonalCycle as any).phase === "Off-Season" && (
+                    {!(seasonalCycle as any).countdownText && (seasonalCycle as any).daysUntilNewSeason > 0 && (seasonalCycle as any).phase === "Off-Season" && (
                       <div className="text-xs text-purple-200 mt-1">
                         {(seasonalCycle as any).daysUntilNewSeason} days to new season
                       </div>
@@ -214,49 +349,45 @@ export default function Dashboard() {
 
           {/* Stats Cards */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-            <Card className="bg-gray-800 border-gray-700">
-              <CardContent className="p-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-gray-400 text-sm">Division Rank</p>
-                    <p className="text-2xl font-bold text-gold-400">
-                      {team.division === 8 ? "New" : `Div ${team.division ?? 'N/A'}`}
-                    </p>
-                    <p className="text-xs text-gray-400">{team.wins ?? 0}W - {team.losses ?? 0}L - {team.draws ?? 0}D</p>
+            <Link href="/competition">
+              <Card className="bg-gray-800 border-gray-700 hover:bg-gray-700 transition-colors cursor-pointer h-32">
+                <CardContent className="p-6 h-full">
+                  <div className="flex items-center justify-between h-full">
+                    <div className="flex flex-col justify-center">
+                      <div className="flex items-center gap-2">
+                        <p className="text-gray-400 text-sm">Division Rank</p>
+                        <HelpIcon content="Your team's current division. New teams start in Division 8. Top 2 teams promote, bottom 2 relegate each season. Click to view detailed standings." />
+                      </div>
+                      <p className="text-lg font-bold text-gold-400">
+                        Division {team.division}
+                      </p>
+                      <p className="text-sm text-gold-300">
+                        {getTeamRankPosition(standings || [], team.id) || "1st"} Place
+                      </p>
+                      <p className="text-xs text-gray-400">
+                        {team.wins}W - {team.losses}L - {team.draws}D
+                      </p>
+                    </div>
+                    <div className={`${team.division === 8 ? 'bg-orange-600' : 'bg-gold-400'} bg-opacity-20 p-3 rounded-lg`}>
+                      <i className={`fas ${team.division === 8 ? 'fa-shield-alt text-orange-600' : 'fa-trophy text-gold-400'} text-xl`}></i>
+                    </div>
                   </div>
-                  <div className="bg-gold-400 bg-opacity-20 p-3 rounded-lg">
-                    <i className="fas fa-trophy text-gold-400 text-xl"></i>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+                </CardContent>
+              </Card>
+            </Link>
+            
 
-            <Card className="bg-gray-800 border-gray-700">
-              <CardContent className="p-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-gray-400 text-sm">Win Rate</p>
-                    <p className="text-2xl font-bold text-green-400">
-                      {(team.wins ?? 0) + (team.losses ?? 0) + (team.draws ?? 0) > 0
-                        ? Math.round(((team.wins ?? 0) / ((team.wins ?? 0) + (team.losses ?? 0) + (team.draws ?? 0))) * 100)
-                        : 0}%
-                    </p>
-                    <p className="text-xs text-gray-400">{team.points ?? 0} points</p>
-                  </div>
-                  <div className="bg-green-400 bg-opacity-20 p-3 rounded-lg">
-                    <i className="fas fa-chart-line text-green-400 text-xl"></i>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card className="bg-gray-800 border-gray-700">
-              <CardContent className="p-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-gray-400 text-sm">Team Power</p>
-                    <p className="text-2xl font-bold text-primary-400">{team.teamPower ?? 0}</p>
-                    <p className="text-xs text-green-400">Building strength</p>
+            
+            <Card className="bg-gray-800 border-gray-700 h-32">
+              <CardContent className="p-6 h-full">
+                <div className="flex items-center justify-between h-full">
+                  <div className="flex flex-col justify-center">
+                    <div className="flex items-center gap-2">
+                      <p className="text-gray-400 text-sm">Team Power</p>
+                      <HelpIcon content="Combined power rating of all your players. Higher power means stronger overall team performance." />
+                    </div>
+                    <p className="text-2xl font-bold text-primary-400">{team.teamPower}</p>
+                    <p className="text-xs text-green-400">{getTeamPowerDescription(team.teamPower)}</p>
                   </div>
                   <div className="bg-primary-400 bg-opacity-20 p-3 rounded-lg">
                     <i className="fas fa-bolt text-primary-400 text-xl"></i>
@@ -264,21 +395,51 @@ export default function Dashboard() {
                 </div>
               </CardContent>
             </Card>
+            
+            <Link href="/team?tab=finances">
+              <Card className="bg-gray-800 border-gray-700 hover:bg-gray-700 transition-colors cursor-pointer h-32">
+                <CardContent className="p-6 h-full">
+                  <div className="flex items-center justify-between h-full">
+                    <div className="flex flex-col justify-center">
+                      <div className="flex items-center gap-2">
+                        <p className="text-gray-400 text-sm">Credits</p>
+                        <HelpIcon content="Primary game currency. Earn through matches, achievements, and season rewards. Use for salaries and purchases. Click to view financial details." />
+                      </div>
+                      <p className="text-2xl font-bold text-gold-400">{(finances?.credits || team.credits || 0).toLocaleString()}</p>
+                      <p className="text-xs text-gray-400">Available funds</p>
+                    </div>
+                    <div className="bg-gold-400 bg-opacity-20 p-3 rounded-lg">
+                      <i className="fas fa-coins text-gold-400 text-xl"></i>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </Link>
 
-            <Card className="bg-gray-800 border-gray-700">
-              <CardContent className="p-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-gray-400 text-sm">Credits</p>
-                    <p className="text-2xl font-bold text-gold-400">{(finances?.credits ?? team.credits ?? 0).toLocaleString()}</p>
-                    <p className="text-xs text-gray-400">Available funds</p>
+            <Link href="/team?tab=staff&subtab=chemistry">
+              <Card className="bg-gray-800 border-gray-700 hover:bg-gray-700 transition-colors cursor-pointer h-32">
+                <CardContent className="p-6 h-full">
+                  <div className="flex items-center justify-between h-full">
+                    <div className="flex flex-col justify-center">
+                      <div className="flex items-center gap-2">
+                        <p className="text-gray-400 text-sm">Team Camaraderie</p>
+                        <HelpIcon content="Team chemistry (0-100). High camaraderie provides in-game bonuses, injury resistance, and better contract negotiations. Click to view team chemistry details." />
+                      </div>
+                      <p className="text-2xl font-bold text-teal-400">{team?.teamCamaraderie ?? 'N/A'}</p>
+                      <p className="text-sm text-teal-300 font-medium">
+                        {getTeamCamaraderieTier(team?.teamCamaraderie)}
+                      </p>
+                      <p className="text-xs text-gray-400">
+                        {getTeamCamaraderieDescriptionOnly(team?.teamCamaraderie)}
+                      </p>
+                    </div>
+                    <div className="bg-teal-400 bg-opacity-20 p-3 rounded-lg">
+                      <UsersIcon className="text-teal-400 text-xl" />
+                    </div>
                   </div>
-                  <div className="bg-gold-400 bg-opacity-20 p-3 rounded-lg">
-                    <i className="fas fa-coins text-gold-400 text-xl"></i>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+                </CardContent>
+              </Card>
+            </Link>
           </div>
         </div>
 
@@ -310,13 +471,13 @@ export default function Dashboard() {
           <Card className="bg-gray-800 border-gray-700">
             <CardHeader className="border-b border-gray-700">
               <div className="flex items-center justify-between">
-                <CardTitle className="font-orbitron text-xl">My Team - {team.name}</CardTitle>
+                <CardTitle className="font-orbitron text-xl">{team.name}</CardTitle>
                 <Button variant="outline" size="sm" onClick={() => window.location.href = '/team'}>
                   View All
                 </Button>
               </div>
             </CardHeader>
-            <CardContent className="p-6">
+            <CardContent className="p-6 player-roster">
               {playersLoading ? (
                 <div className="flex justify-center py-8">
                   <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-500"></div>
@@ -332,12 +493,20 @@ export default function Dashboard() {
                 </div>
               ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  {players.map((player: Player) => (
-                    <UnifiedPlayerCard
+                  {players.map((player: any) => (
+                    <div 
                       key={player.id}
-                      player={player}
-                      variant="dashboard"
-                    />
+                      onClick={() => {
+                        setSelectedPlayer(player);
+                        setShowPlayerModal(true);
+                      }}
+                      className="cursor-pointer"
+                    >
+                      <UnifiedPlayerCard
+                        player={player}
+                        variant="dashboard"
+                      />
+                    </div>
                   ))}
                 </div>
               )}
@@ -346,7 +515,7 @@ export default function Dashboard() {
 
           <Card className="bg-gray-800 border-gray-700">
             <CardHeader className="border-b border-gray-700">
-              <CardTitle className="font-orbitron text-xl">Division {team?.division ?? 8} - {(team?.division ?? 8) === 8 ? "Rookie League" : "Advanced League"}</CardTitle>
+              <CardTitle className="font-orbitron text-xl">Division {team?.division || 8} - {getDivisionNameWithSubdivision(team?.division || 8, team?.subdivision)}</CardTitle>
             </CardHeader>
             <CardContent className="p-6">
               <LeagueStandings division={team?.division ?? 8} />
@@ -378,44 +547,95 @@ export default function Dashboard() {
           )}
         </div>
       </div>
+
+      {/* Player Detail Modal */}
+      {selectedPlayer && (
+        <PlayerDetailModal
+          player={selectedPlayer}
+          isOpen={showPlayerModal}
+          onClose={() => {
+            setShowPlayerModal(false);
+            setSelectedPlayer(null);
+          }}
+        />
+      )}
     </div>
   );
 }
 
 function TeamCreationForm() {
   const { toast } = useToast();
+  const queryClient = useQueryClient();
+  const { startTutorialAfterTeamCreation } = useContextualHelp();
+  const [teamName, setTeamName] = useState("");
+  const [isValid, setIsValid] = useState(false);
+  const [sanitizedName, setSanitizedName] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [termsAccepted, setTermsAccepted] = useState(false);
+
+  const handleValidationChange = (valid: boolean, sanitized?: string) => {
+    setIsValid(valid);
+    setSanitizedName(sanitized || "");
+  };
 
   const handleCreateTeam = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    const formData = new FormData(e.currentTarget);
-    const name = formData.get('name') as string;
+    
+    if (!isValid || !sanitizedName) {
+      toast({
+        title: "Invalid Team Name",
+        description: "Please fix the team name issues before creating your team.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (!termsAccepted) {
+      toast({
+        title: "Terms of Service Required",
+        description: "You must accept the Terms of Service and End-User License Agreement to create an account.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsSubmitting(true);
 
     try {
       const response = await fetch('/api/teams', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
-        body: JSON.stringify({ name }),
+        body: JSON.stringify({ name: sanitizedName }),
       });
 
       if (!response.ok) {
-        throw new Error('Failed to create team');
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Failed to create team');
       }
 
       toast({
         title: "Team Created!",
-        description: "Your team has been created with 10 starting players.",
+        description: "Your team has been created with 12 starting players.",
       });
 
-      // Refresh the page to show the new team
-      window.location.reload();
-    } catch (error) {
+      // Invalidate queries to refetch team data
+      queryClient.invalidateQueries({ queryKey: ["/api/teams/my"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/teams/my/finances"] });
+      
+      // Start tutorial for new team
+      setTimeout(() => {
+        startTutorialAfterTeamCreation();
+      }, 1000); // Small delay to let the UI update
+    } catch (error: any) {
       console.error('Error creating team:', error);
       toast({
         title: "Error",
-        description: "Failed to create team. Please try again.",
+        description: error.message || "Failed to create team. Please try again.",
         variant: "destructive",
       });
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -425,23 +645,23 @@ function TeamCreationForm() {
         <CardTitle className="font-orbitron">Create Your Team</CardTitle>
       </CardHeader>
       <CardContent>
-        <form onSubmit={handleCreateTeam} className="space-y-4">
-          <div>
-            <label htmlFor="name" className="block text-sm font-medium text-gray-300 mb-2">
-              Team Name
-            </label>
-            <input
-              type="text"
-              id="name"
-              name="name"
-              required
-              maxLength={50}
-              className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-primary-500"
-              placeholder="Enter your team name"
-            />
-          </div>
-          <Button type="submit" className="w-full bg-primary-600 hover:bg-primary-700">
-            Create Team
+        <form onSubmit={handleCreateTeam} className="space-y-6">
+          <TeamNameInput
+            value={teamName}
+            onChange={setTeamName}
+            onValidationChange={handleValidationChange}
+            showRules={true}
+          />
+          <TermsAcceptance 
+            accepted={termsAccepted}
+            onAcceptanceChange={setTermsAccepted}
+          />
+          <Button 
+            type="submit" 
+            className="w-full bg-primary-600 hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed"
+            disabled={!isValid || !termsAccepted || isSubmitting}
+          >
+            {isSubmitting ? "Creating Team..." : "Create Team"}
           </Button>
         </form>
       </CardContent>
