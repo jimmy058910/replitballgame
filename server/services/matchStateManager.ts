@@ -685,39 +685,61 @@ class MatchStateManager {
         await Promise.all(playerUpdates);
       }
 
-      // Update the match itself
-      await prisma.game.update({
-        where: { id: parseInt(matchId) },
-        data: {
-          status: 'COMPLETED',
-          homeScore: state.homeScore,
-          awayScore: state.awayScore,
-          simulationLog: {
-            events: state.gameEvents.slice(-50), // Store last 50 events
-            finalScores: { home: state.homeScore, away: state.awayScore },
-          }
-        }
+      // Update the match itself - check if it exists first
+      const existingGame = await prisma.game.findUnique({
+        where: { id: parseInt(matchId) }
       });
+      
+      if (existingGame) {
+        await prisma.game.update({
+          where: { id: parseInt(matchId) },
+          data: {
+            status: 'COMPLETED',
+            homeScore: state.homeScore,
+            awayScore: state.awayScore,
+            simulationLog: {
+              events: state.gameEvents.slice(-50), // Store last 50 events
+              finalScores: { home: state.homeScore, away: state.awayScore },
+            }
+          }
+        });
+      } else {
+        console.warn(`Game ${matchId} not found in database, cannot update completion status`);
+      }
 
       console.log(`Match ${matchId} stats persisted successfully.`);
 
     } catch (error) {
       console.error(`Error persisting stats for match ${matchId}:`, error);
-      // Potentially re-throw or handle more gracefully (e.g., mark match as 'error_in_stats')
-      // For now, we'll update the match to completed anyway, but log the error.
-       await prisma.game.update({
-        where: { id: parseInt(matchId) },
-        data: {
-          status: 'COMPLETED', // Or a special status like 'completed_stats_error'
-          homeScore: state.homeScore,
-          awayScore: state.awayScore,
-          simulationLog: {
-            events: state.gameEvents.slice(-50),
-            finalScores: { home: state.homeScore, away: state.awayScore },
-            error: `Error persisting stats: ${(error as Error).message}`
-          }
+      
+      // Check if the game exists before trying to update it
+      try {
+        const existingGame = await prisma.game.findUnique({
+          where: { id: parseInt(matchId) }
+        });
+        
+        if (existingGame) {
+          // Game exists, update it with error info
+          await prisma.game.update({
+            where: { id: parseInt(matchId) },
+            data: {
+              status: 'COMPLETED',
+              homeScore: state.homeScore,
+              awayScore: state.awayScore,
+              simulationLog: {
+                events: state.gameEvents.slice(-50),
+                finalScores: { home: state.homeScore, away: state.awayScore },
+                error: `Error persisting stats: ${(error as Error).message}`
+              }
+            }
+          });
+        } else {
+          console.warn(`Game ${matchId} not found in database, cannot update completion status`);
         }
-      });
+      } catch (updateError) {
+        console.error(`Error updating game ${matchId} after stats error:`, updateError);
+        // Continue with match cleanup even if we can't update the database
+      }
     }
 
     // Apply stamina depletion after match completion (skip for exhibition matches)
