@@ -72,39 +72,51 @@ export class StatsService {
   static async getPlayerStats(playerId: string, seasonOnly = false): Promise<PlayerStats> {
     try {
       // Get player info
-      const player = await db
-        .select()
-        .from(players)
-        .where(eq(players.id, playerId))
-        .limit(1);
+      const player = await prisma.player.findUnique({
+        where: { id: parseInt(playerId) }
+      });
 
-      if (!player.length) {
+      if (!player) {
         throw ErrorCreators.notFound('Player not found');
       }
 
       // Get aggregated stats
-      const statsQuery = db
-        .select({
-          gamesPlayed: count(),
-          totalScores: sum(playerMatchStats.scores),
-          totalPassingAttempts: sum(playerMatchStats.passingAttempts),
-          totalPassesCompleted: sum(playerMatchStats.passesCompleted),
-          totalPassingYards: sum(playerMatchStats.passingYards),
-          totalRushingYards: sum(playerMatchStats.rushingYards),
-          totalCatches: sum(playerMatchStats.catches),
-          totalReceivingYards: sum(playerMatchStats.receivingYards),
-          totalDrops: sum(playerMatchStats.drops),
-          totalFumblesLost: sum(playerMatchStats.fumblesLost),
-          totalTackles: sum(playerMatchStats.tackles),
-          totalKnockdowns: sum(playerMatchStats.knockdownsInflicted),
-          totalInterceptions: sum(playerMatchStats.interceptionsCaught),
-          totalPassesDefended: sum(playerMatchStats.passesDefended)
-        })
-        .from(playerMatchStats)
-        .where(eq(playerMatchStats.playerId, playerId));
+      const stats = await prisma.playerMatchStats.findMany({
+        where: { playerId: parseInt(playerId) }
+      });
 
-      const stats = await statsQuery;
-      const playerData = stats[0];
+      // Calculate aggregated values manually
+      const playerData = stats.reduce((acc, stat) => ({
+        gamesPlayed: acc.gamesPlayed + 1,
+        totalScores: acc.totalScores + (stat.scores || 0),
+        totalPassingAttempts: acc.totalPassingAttempts + (stat.passingAttempts || 0),
+        totalPassesCompleted: acc.totalPassesCompleted + (stat.passesCompleted || 0),
+        totalPassingYards: acc.totalPassingYards + (stat.passingYards || 0),
+        totalRushingYards: acc.totalRushingYards + (stat.carrierYards || 0),
+        totalCatches: acc.totalCatches + (stat.catches || 0),
+        totalReceivingYards: acc.totalReceivingYards + (stat.receivingYards || 0),
+        totalDrops: acc.totalDrops + (stat.drops || 0),
+        totalFumblesLost: acc.totalFumblesLost + (stat.fumblesLost || 0),
+        totalTackles: acc.totalTackles + (stat.tackles || 0),
+        totalKnockdowns: acc.totalKnockdowns + (stat.knockdownsInflicted || 0),
+        totalInterceptions: acc.totalInterceptions + (stat.interceptionsCaught || 0),
+        totalPassesDefended: acc.totalPassesDefended + (stat.passesDefended || 0)
+      }), {
+        gamesPlayed: 0,
+        totalScores: 0,
+        totalPassingAttempts: 0,
+        totalPassesCompleted: 0,
+        totalPassingYards: 0,
+        totalRushingYards: 0,
+        totalCatches: 0,
+        totalReceivingYards: 0,
+        totalDrops: 0,
+        totalFumblesLost: 0,
+        totalTackles: 0,
+        totalKnockdowns: 0,
+        totalInterceptions: 0,
+        totalPassesDefended: 0
+      });
 
       const passingPercentage = playerData.totalPassingAttempts > 0 
         ? (playerData.totalPassesCompleted / playerData.totalPassingAttempts) * 100 
@@ -112,8 +124,8 @@ export class StatsService {
 
       const result: PlayerStats = {
         playerId,
-        playerName: `${player[0].firstName} ${player[0].lastName}`,
-        position: player[0].position,
+        playerName: `${player.firstName} ${player.lastName}`,
+        position: player.role,
         gamesPlayed: playerData.gamesPlayed || 0,
         offensive: {
           scores: playerData.totalScores || 0,
@@ -156,32 +168,37 @@ export class StatsService {
   static async getTeamStats(teamId: string, seasonOnly = false): Promise<TeamStats> {
     try {
       // Get team info
-      const team = await db
-        .select({ name: players.teamId }) // We'll need to get team name properly
-        .from(players)
-        .where(eq(players.teamId, teamId))
-        .limit(1);
+      const team = await prisma.team.findUnique({
+        where: { id: parseInt(teamId) }
+      });
 
       // Get aggregated team stats
-      const statsQuery = db
-        .select({
-          gamesPlayed: count(),
-          totalOffensiveYards: sum(teamMatchStats.totalOffensiveYards),
-          totalPassingYards: sum(teamMatchStats.passingYards),
-          totalRushingYards: sum(teamMatchStats.rushingYards),
-          totalTimeOfPossession: sum(teamMatchStats.timeOfPossessionSeconds),
-          totalTurnovers: sum(teamMatchStats.turnovers),
-          totalKnockdowns: sum(teamMatchStats.totalKnockdownsInflicted)
-        })
-        .from(teamMatchStats)
-        .where(eq(teamMatchStats.teamId, teamId));
+      const stats = await prisma.teamMatchStats.findMany({
+        where: { teamId: parseInt(teamId) }
+      });
 
-      const stats = await statsQuery;
-      const teamData = stats[0];
+      // Calculate aggregated values manually
+      const teamData = stats.reduce((acc, stat) => ({
+        gamesPlayed: acc.gamesPlayed + 1,
+        totalOffensiveYards: acc.totalOffensiveYards + (stat.totalOffensiveYards || 0),
+        totalPassingYards: acc.totalPassingYards + (stat.passingYards || 0),
+        totalRushingYards: acc.totalRushingYards + (stat.carrierYards || 0),
+        totalTimeOfPossession: acc.totalTimeOfPossession + (stat.timeOfPossessionSeconds || 0),
+        totalTurnovers: acc.totalTurnovers + (stat.turnovers || 0),
+        totalKnockdowns: acc.totalKnockdowns + (stat.totalKnockdownsInflicted || 0)
+      }), {
+        gamesPlayed: 0,
+        totalOffensiveYards: 0,
+        totalPassingYards: 0,
+        totalRushingYards: 0,
+        totalTimeOfPossession: 0,
+        totalTurnovers: 0,
+        totalKnockdowns: 0
+      });
 
       const result: TeamStats = {
         teamId,
-        teamName: `Team ${teamId}`, // Will need proper team name lookup
+        teamName: team?.name || `Team ${teamId}`,
         gamesPlayed: teamData.gamesPlayed || 0,
         totalScore: 0, // Team score needs to be calculated from player stats
         totalOffensiveYards: teamData.totalOffensiveYards || 0,
@@ -213,17 +230,13 @@ export class StatsService {
   static async getMatchStatsDisplay(matchId: string): Promise<MatchStatsDisplay> {
     try {
       // Get match info
-      const match = await db
-        .select()
-        .from(matches)
-        .where(eq(matches.id, matchId))
-        .limit(1);
+      const matchData = await prisma.game.findUnique({
+        where: { id: matchId }
+      });
 
-      if (!match.length) {
+      if (!matchData) {
         throw ErrorCreators.notFound('Match not found');
       }
-
-      const matchData = match[0];
 
       // Get team stats for this match
       const homeTeamStats = await this.getTeamMatchStats(matchId, matchData.homeTeamId);
@@ -247,16 +260,12 @@ export class StatsService {
    * Get team stats for a specific match
    */
   private static async getTeamMatchStats(matchId: string, teamId: string): Promise<TeamStats> {
-    const stats = await db
-      .select()
-      .from(teamMatchStats)
-      .where(and(
-        eq(teamMatchStats.matchId, matchId),
-        eq(teamMatchStats.teamId, teamId)
-      ))
-      .limit(1);
-
-    const teamStat = stats[0];
+    const teamStat = await prisma.teamMatchStats.findFirst({
+      where: {
+        matchId,
+        teamId: parseInt(teamId)
+      }
+    });
     
     return {
       teamId,
@@ -277,12 +286,10 @@ export class StatsService {
    */
   private static async getMatchTopPerformers(matchId: string): Promise<MatchStatsDisplay['topPerformers']> {
     // Most scores
-    const mostScores = await db
-      .select()
-      .from(playerMatchStats)
-      .where(eq(playerMatchStats.matchId, matchId))
-      .orderBy(desc(playerMatchStats.scores))
-      .limit(1);
+    const mostScores = await prisma.playerMatchStats.findFirst({
+      where: { matchId },
+      orderBy: { scores: 'desc' }
+    });
 
     // Most yards (passing + rushing + receiving)
     const mostYardsQuery = `
@@ -294,20 +301,16 @@ export class StatsService {
     `;
 
     // Most tackles
-    const mostTackles = await db
-      .select()
-      .from(playerMatchStats)
-      .where(eq(playerMatchStats.matchId, matchId))
-      .orderBy(desc(playerMatchStats.tackles))
-      .limit(1);
+    const mostTackles = await prisma.playerMatchStats.findFirst({
+      where: { matchId },
+      orderBy: { tackles: 'desc' }
+    });
 
     // Most knockdowns
-    const mostKnockdowns = await db
-      .select()
-      .from(playerMatchStats)
-      .where(eq(playerMatchStats.matchId, matchId))
-      .orderBy(desc(playerMatchStats.knockdownsInflicted))
-      .limit(1);
+    const mostKnockdowns = await prisma.playerMatchStats.findFirst({
+      where: { matchId },
+      orderBy: { knockdownsInflicted: 'desc' }
+    });
 
     // Convert to PlayerStats format (simplified for match display)
     const convertToPlayerStats = (stat: any): PlayerStats => ({

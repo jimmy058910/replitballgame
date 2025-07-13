@@ -6,13 +6,12 @@ export class PaymentHistoryService {
    * Record a new payment transaction
    */
   static async recordTransaction(transaction: InsertPaymentTransaction): Promise<PaymentTransaction> {
-    const [newTransaction] = await db
-      .insert(paymentTransactions)
-      .values({
+    const newTransaction = await prisma.paymentTransaction.create({
+      data: {
         ...transaction,
         completedAt: transaction.status === "completed" ? new Date() : null,
-      })
-      .returning();
+      }
+    });
     
     return newTransaction;
   }
@@ -42,38 +41,30 @@ export class PaymentHistoryService {
     } = options;
 
     // Build where conditions
-    const conditions = [eq(paymentTransactions.userId, userId)];
-
-    // Currency filter - simplified for now
-    // if (currencyFilter === "credits") {
-    //   conditions.push(ne(paymentTransactions.creditsChange, 0));
-    // } else if (currencyFilter === "gems") {
-    //   conditions.push(ne(paymentTransactions.gemsChange, 0));
-    // }
+    const whereConditions: any = { userId };
 
     // Transaction type filter
     if (transactionType) {
-      conditions.push(eq(paymentTransactions.transactionType, transactionType));
+      whereConditions.transactionType = transactionType;
     }
 
     // Status filter
     if (status) {
-      conditions.push(eq(paymentTransactions.status, status));
+      whereConditions.status = status;
     }
 
-    const whereClause = conditions.length > 1 ? and(...conditions) : conditions[0];
-
     // Get transactions with pagination
-    const transactions = await db
-      .select()
-      .from(paymentTransactions)
-      .where(whereClause)
-      .orderBy(desc(paymentTransactions.createdAt))
-      .limit(limit)
-      .offset(offset);
+    const transactions = await prisma.paymentTransaction.findMany({
+      where: whereConditions,
+      orderBy: { createdAt: 'desc' },
+      take: limit,
+      skip: offset,
+    });
 
-    // Get total count (simplified)
-    const totalCount = transactions.length;
+    // Get total count
+    const totalCount = await prisma.paymentTransaction.count({
+      where: whereConditions,
+    });
 
     return {
       transactions,
@@ -93,13 +84,12 @@ export class PaymentHistoryService {
   ): Promise<PaymentTransaction[]> {
     const { limit = 50, offset = 0 } = options;
 
-    return await db
-      .select()
-      .from(paymentTransactions)
-      .where(eq(paymentTransactions.teamId, teamId))
-      .orderBy(desc(paymentTransactions.createdAt))
-      .limit(limit)
-      .offset(offset);
+    return await prisma.paymentTransaction.findMany({
+      where: { teamId },
+      orderBy: { createdAt: 'desc' },
+      take: limit,
+      skip: offset,
+    });
   }
 
   /**
@@ -110,17 +100,16 @@ export class PaymentHistoryService {
     status: string,
     failureReason?: string
   ): Promise<PaymentTransaction | null> {
-    const [updatedTransaction] = await db
-      .update(paymentTransactions)
-      .set({
+    const updatedTransaction = await prisma.paymentTransaction.update({
+      where: { id: transactionId },
+      data: {
         status,
         failureReason,
         completedAt: status === "completed" ? new Date() : null,
-      })
-      .where(eq(paymentTransactions.id, transactionId))
-      .returning();
+      },
+    });
 
-    return updatedTransaction || null;
+    return updatedTransaction;
   }
 
   /**
@@ -134,13 +123,12 @@ export class PaymentHistoryService {
     totalTransactions: number;
     totalSpentUSD: number;
   }> {
-    const transactions = await db
-      .select()
-      .from(paymentTransactions)
-      .where(and(
-        eq(paymentTransactions.userId, userId),
-        eq(paymentTransactions.status, "completed")
-      ));
+    const transactions = await prisma.paymentTransaction.findMany({
+      where: {
+        userId,
+        status: "completed"
+      },
+    });
 
     const summary = transactions.reduce(
       (acc, transaction) => {

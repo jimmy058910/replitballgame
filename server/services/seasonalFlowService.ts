@@ -62,20 +62,18 @@ export class SeasonalFlowService {
       matches: number;
     }>;
   }> {
-    const allLeagues = await db
-      .select()
-      .from(leagues)
-      .where(eq(leagues.season, season));
+    const allLeagues = await prisma.league.findMany({
+      where: { season }
+    });
     
     let totalMatches = 0;
     const leaguesProcessed = [];
     
     for (const league of allLeagues) {
       // Get teams in this league
-      const leagueTeams = await db
-        .select()
-        .from(teams)
-        .where(eq(teams.division, league.division));
+      const leagueTeams = await prisma.team.findMany({
+        where: { division: league.division }
+      });
       
       let matches;
       if (league.division === 1) {
@@ -271,17 +269,13 @@ export class SeasonalFlowService {
     standingsUpdated: boolean;
   }> {
     // Get match details
-    const match = await db
-      .select()
-      .from(matches)
-      .where(eq(matches.id, matchId))
-      .limit(1);
+    const matchData = await prisma.game.findUnique({
+      where: { id: matchId }
+    });
     
-    if (!match.length || match[0].status !== 'completed') {
+    if (!matchData || matchData.status !== 'completed') {
       throw new Error('Match not found or not completed');
     }
-    
-    const matchData = match[0];
     const homeScore = matchData.homeScore || 0;
     const awayScore = matchData.awayScore || 0;
     
@@ -300,33 +294,35 @@ export class SeasonalFlowService {
       awayPoints = this.SEASON_CONFIG.POINTS_DRAW;
     }
     
+    // Get current team data
+    const homeTeam = await prisma.team.findUnique({ where: { id: matchData.homeTeamId } });
+    const awayTeam = await prisma.team.findUnique({ where: { id: matchData.awayTeamId } });
+    
     // Update home team
-    const homeTeamUpdate = await db
-      .update(teams)
-      .set({
-        points: sql`${teams.points} + ${homePoints}`,
-        wins: homeScore > awayScore ? sql`${teams.wins} + 1` : teams.wins,
-        losses: homeScore < awayScore ? sql`${teams.losses} + 1` : teams.losses,
-        draws: homeScore === awayScore ? sql`${teams.draws} + 1` : teams.draws
-      })
-      .where(eq(teams.id, matchData.homeTeamId))
-      .returning();
+    const homeTeamUpdate = await prisma.team.update({
+      where: { id: matchData.homeTeamId },
+      data: {
+        points: (homeTeam?.points || 0) + homePoints,
+        wins: homeScore > awayScore ? (homeTeam?.wins || 0) + 1 : homeTeam?.wins || 0,
+        losses: homeScore < awayScore ? (homeTeam?.losses || 0) + 1 : homeTeam?.losses || 0,
+        draws: homeScore === awayScore ? (homeTeam?.draws || 0) + 1 : homeTeam?.draws || 0
+      }
+    });
     
     // Update away team
-    const awayTeamUpdate = await db
-      .update(teams)
-      .set({
-        points: sql`${teams.points} + ${awayPoints}`,
-        wins: awayScore > homeScore ? sql`${teams.wins} + 1` : teams.wins,
-        losses: awayScore < homeScore ? sql`${teams.losses} + 1` : teams.losses,
-        draws: homeScore === awayScore ? sql`${teams.draws} + 1` : teams.draws
-      })
-      .where(eq(teams.id, matchData.awayTeamId))
-      .returning();
+    const awayTeamUpdate = await prisma.team.update({
+      where: { id: matchData.awayTeamId },
+      data: {
+        points: (awayTeam?.points || 0) + awayPoints,
+        wins: awayScore > homeScore ? (awayTeam?.wins || 0) + 1 : awayTeam?.wins || 0,
+        losses: awayScore < homeScore ? (awayTeam?.losses || 0) + 1 : awayTeam?.losses || 0,
+        draws: homeScore === awayScore ? (awayTeam?.draws || 0) + 1 : awayTeam?.draws || 0
+      }
+    });
     
     return {
-      homeTeamUpdate: homeTeamUpdate[0],
-      awayTeamUpdate: awayTeamUpdate[0],
+      homeTeamUpdate,
+      awayTeamUpdate,
       standingsUpdated: true
     };
   }
@@ -352,17 +348,15 @@ export class SeasonalFlowService {
     relegatedTeams: any[];
   }> {
     // Get league info
-    const league = await db
-      .select()
-      .from(leagues)
-      .where(eq(leagues.id, leagueId))
-      .limit(1);
+    const league = await prisma.league.findUnique({
+      where: { id: leagueId }
+    });
     
-    if (!league.length) {
+    if (!league) {
       throw new Error('League not found');
     }
     
-    const division = league[0].division;
+    const division = league.division;
     
     // Get all teams in this league with their match statistics
     const leagueTeams = await this.getTeamsWithStats(leagueId, season);
@@ -418,42 +412,33 @@ export class SeasonalFlowService {
   static async getTeamsWithStats(leagueId: string, season: number): Promise<any[]> {
     // This would need to aggregate match data for each team
     // For now, return basic team data - can be enhanced with actual match statistics
-    const league = await db
-      .select()
-      .from(leagues)
-      .where(eq(leagues.id, leagueId))
-      .limit(1);
+    const league = await prisma.league.findUnique({
+      where: { id: leagueId }
+    });
     
-    if (!league.length) return [];
+    if (!league) return [];
     
-    const leagueTeams = await db
-      .select()
-      .from(teams)
-      .where(eq(teams.division, league[0].division));
+    const leagueTeams = await prisma.team.findMany({
+      where: { division: league.division }
+    });
     
     // Calculate goals for/against from match data
     for (const team of leagueTeams) {
-      const homeMatches = await db
-        .select()
-        .from(matches)
-        .where(
-          and(
-            eq(matches.homeTeamId, team.id),
-            eq(matches.season, season),
-            eq(matches.status, 'completed')
-          )
-        );
+      const homeMatches = await prisma.game.findMany({
+        where: {
+          homeTeamId: team.id,
+          season,
+          status: 'completed'
+        }
+      });
       
-      const awayMatches = await db
-        .select()
-        .from(matches)
-        .where(
-          and(
-            eq(matches.awayTeamId, team.id),
-            eq(matches.season, season),
-            eq(matches.status, 'completed')
-          )
-        );
+      const awayMatches = await prisma.game.findMany({
+        where: {
+          awayTeamId: team.id,
+          season,
+          status: 'completed'
+        }
+      });
       
       let goalsFor = 0;
       let goalsAgainst = 0;
@@ -516,10 +501,9 @@ export class SeasonalFlowService {
     }>;
     totalPlayoffMatches: number;
   }> {
-    const allLeagues = await db
-      .select()
-      .from(leagues)
-      .where(eq(leagues.season, season));
+    const allLeagues = await prisma.league.findMany({
+      where: { season }
+    });
     
     const bracketsByLeague = [];
     let totalPlayoffMatches = 0;
@@ -601,13 +585,12 @@ export class SeasonalFlowService {
     
     // Process relegations first
     for (let division = 1; division <= this.SEASON_CONFIG.MAX_DIVISION - 1; division++) {
-      const divisionLeagues = await db
-        .select()
-        .from(leagues)
-        .where(and(
-          eq(leagues.season, season),
-          eq(leagues.division, division)
-        ));
+      const divisionLeagues = await prisma.league.findMany({
+        where: {
+          season,
+          division
+        }
+      });
       
       for (const league of divisionLeagues) {
         const standings = await this.getFinalStandings(league.id, season);
@@ -616,10 +599,10 @@ export class SeasonalFlowService {
         for (const team of relegatedTeams) {
           const newDivision = Math.min(division + 1, this.SEASON_CONFIG.MAX_DIVISION);
           
-          await db
-            .update(teams)
-            .set({ division: newDivision })
-            .where(eq(teams.id, team.id));
+          await prisma.team.update({
+            where: { id: team.id },
+            data: { division: newDivision }
+          });
           
           relegations.push({
             teamId: team.id,
@@ -664,16 +647,13 @@ export class SeasonalFlowService {
     leagueId: string;
   }>> {
     // Get all championship matches (would need to be created after semifinals)
-    const championshipMatches = await db
-      .select()
-      .from(matches)
-      .where(
-        and(
-          eq(matches.season, season),
-          eq(matches.matchType, 'playoff_championship'),
-          eq(matches.status, 'completed')
-        )
-      );
+    const championshipMatches = await prisma.game.findMany({
+      where: {
+        season,
+        matchType: 'playoff_championship',
+        status: 'completed'
+      }
+    });
     
     const champions = [];
     
@@ -682,16 +662,14 @@ export class SeasonalFlowService {
         ? match.homeTeamId 
         : match.awayTeamId;
       
-      const team = await db
-        .select()
-        .from(teams)
-        .where(eq(teams.id, winnerId))
-        .limit(1);
+      const team = await prisma.team.findUnique({
+        where: { id: winnerId }
+      });
       
-      if (team.length) {
+      if (team) {
         champions.push({
           teamId: winnerId,
-          division: team[0].division || this.SEASON_CONFIG.MAX_DIVISION,
+          division: team.division || this.SEASON_CONFIG.MAX_DIVISION,
           leagueId: match.leagueId || ''
         });
       }
@@ -714,10 +692,9 @@ export class SeasonalFlowService {
     
     // Process each division from top to bottom
     for (let division = 1; division <= this.SEASON_CONFIG.MAX_DIVISION; division++) {
-      const divisionTeams = await db
-        .select()
-        .from(teams)
-        .where(eq(teams.division, division));
+      const divisionTeams = await prisma.team.findMany({
+        where: { division }
+      });
       
       const requiredTeamsPerLeague = division === 1 
         ? this.SEASON_CONFIG.DIVISION_1_TEAMS 
@@ -726,13 +703,12 @@ export class SeasonalFlowService {
       const requiredLeagues = Math.ceil(divisionTeams.length / requiredTeamsPerLeague);
       
       // Get existing leagues for this division
-      const existingLeagues = await db
-        .select()
-        .from(leagues)
-        .where(and(
-          eq(leagues.division, division),
-          eq(leagues.season, season + 1) // Next season
-        ));
+      const existingLeagues = await prisma.league.findMany({
+        where: {
+          division,
+          season: season + 1 // Next season
+        }
+      });
       
       // Create additional leagues if needed
       const leaguesToCreate = requiredLeagues - existingLeagues.length;

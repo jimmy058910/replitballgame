@@ -133,12 +133,12 @@ export class StadiumAtmosphereService {
     
     // Facility bonus from stadium upgrades
     const facilityBonus = Math.floor(
-      ((stadium[0].lightingLevel || 0) + (stadium[0].screensLevel || 0)) / 2
+      ((stadium.lightingLevel || 0) + (stadium.screensLevel || 0)) / 2
     );
     
     // Championship bonus (would need playoff results)
     // For now, implement as team finishing in top position of their division
-    const championshipBonus = team[0].position === 1 ? this.LOYALTY_CONFIG.CHAMPIONSHIP_BONUS : 0;
+    const championshipBonus = team.position === 1 ? this.LOYALTY_CONFIG.CHAMPIONSHIP_BONUS : 0;
     
     const newLoyalty = Math.max(0, Math.min(100, 
       oldLoyalty + performanceModifier + formModifier + facilityBonus + championshipBonus
@@ -238,16 +238,17 @@ export class StadiumAtmosphereService {
    */
   static async calculateWinStreakBonus(teamId: string): Promise<number> {
     // Get recent completed matches for this team
-    const recentMatches = await db
-      .select()
-      .from(matches)
-      .where(
-        and(
-          eq(matches.status, 'completed')
-        )
-      )
-      .orderBy(desc(matches.gameDay))
-      .limit(10); // Look at last 10 games max
+    const recentMatches = await prisma.game.findMany({
+      where: {
+        status: 'completed',
+        OR: [
+          { homeTeamId: teamId },
+          { awayTeamId: teamId }
+        ]
+      },
+      orderBy: { gameDay: 'desc' },
+      take: 10 // Look at last 10 games max
+    });
     
     let consecutiveWins = 0;
     for (const match of recentMatches) {

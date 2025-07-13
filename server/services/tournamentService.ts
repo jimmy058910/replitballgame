@@ -205,20 +205,16 @@ export class TournamentService {
 
     // Check if Daily Divisional Cup exists for this division and day
     if (division >= 2 && division <= 8) {
-      const existingDailyCup = await db
-        .select()
-        .from(tournaments)
-        .where(
-          and(
-            eq(tournaments.type, "daily_divisional_cup"),
-            eq(tournaments.division, division),
-            eq(tournaments.season, season),
-            eq(tournaments.gameDay, gameDay)
-          )
-        )
-        .limit(1);
+      const existingDailyCup = await prisma.tournament.findFirst({
+        where: {
+          type: "daily_divisional_cup",
+          division,
+          season,
+          gameDay
+        }
+      });
 
-      if (existingDailyCup.length === 0) {
+      if (!existingDailyCup) {
         try {
           await this.createDailyCupTournament(division);
           console.log(`Created Daily Divisional Cup for Division ${division}, Day ${gameDay}`);
@@ -230,19 +226,15 @@ export class TournamentService {
 
     // Check if Mid-Season Classic exists for this division (only create on Day 1-6)
     if (gameDay <= 6) {
-      const existingMidSeason = await db
-        .select()
-        .from(tournaments)
-        .where(
-          and(
-            eq(tournaments.type, "mid_season_classic"),
-            eq(tournaments.division, division),
-            eq(tournaments.season, season)
-          )
-        )
-        .limit(1);
+      const existingMidSeason = await prisma.tournament.findFirst({
+        where: {
+          type: "mid_season_classic",
+          division,
+          season
+        }
+      });
 
-      if (existingMidSeason.length === 0) {
+      if (!existingMidSeason) {
         try {
           await this.createMidSeasonClassic(division);
           console.log(`Created Mid-Season Classic for Division ${division}, Season ${season}`);
@@ -399,37 +391,27 @@ export class TournamentService {
 
   // Get tournaments a team is registered for
   async getTeamTournaments(teamId: string) {
-    const entries = await db
-      .select({
-        tournament: tournaments,
-        entry: tournamentEntries
-      })
-      .from(tournamentEntries)
-      .innerJoin(tournaments, eq(tournamentEntries.tournamentId, tournaments.id))
-      .where(eq(tournamentEntries.teamId, teamId))
-      .orderBy(desc(tournamentEntries.entryTime));
+    const entries = await prisma.tournamentEntry.findMany({
+      where: { teamId },
+      include: { tournament: true },
+      orderBy: { entryTime: 'desc' }
+    });
 
     return entries;
   }
 
   // Get tournament history for a team
   async getTournamentHistory(teamId: string) {
-    const completedTournaments = await db
-      .select({
-        tournament: tournaments,
-        entry: tournamentEntries
-      })
-      .from(tournamentEntries)
-      .innerJoin(tournaments, eq(tournamentEntries.tournamentId, tournaments.id))
-      .where(
-        and(
-          eq(tournamentEntries.teamId, teamId),
-          eq(tournaments.status, "completed")
-        )
-      )
-      .orderBy(desc(tournaments.completedAt));
+    const completedTournaments = await prisma.tournamentEntry.findMany({
+      where: {
+        teamId,
+        tournament: { status: "completed" }
+      },
+      include: { tournament: true },
+      orderBy: { tournament: { completedAt: 'desc' } }
+    });
 
-    return completedTournaments.map(({ tournament, entry }) => ({
+    return completedTournaments.map(({ tournament, ...entry }) => ({
       id: tournament.id,
       name: tournament.name,
       type: tournament.type,
