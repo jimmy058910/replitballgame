@@ -29,7 +29,7 @@ import Stats from "@/pages/Stats";
 import HelpManual from "@/pages/HelpManual";
 import { AdTest } from "@/pages/AdTest";
 import { WebSocketTestPage } from "@/components/WebSocketTestPage";
-import { LiveMatchViewer } from "@/components/LiveMatchViewer";
+import { LiveMatchPage } from "@/components/LiveMatchPage";
 
 import Navigation from "@/components/Navigation";
 import { ContextualHelp } from "@/components/help";
@@ -62,8 +62,8 @@ function Router() {
 
           <Route path="/stats" component={Stats} />
           
-          <Route path="/text-match/:matchId" component={LiveMatchViewer} />
-          <Route path="/match/:matchId" component={LiveMatchViewer} />
+          <Route path="/text-match/:matchId" component={LiveMatchPage} />
+          <Route path="/match/:matchId" component={LiveMatchPage} />
           <Route path="/community" component={Community} />
           <Route path="/camaraderie" component={Camaraderie} />
           <Route path="/superuser" component={SuperUser} />
