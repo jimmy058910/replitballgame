@@ -1,5 +1,5 @@
 import { prisma } from "../db";
-import type { Player } from "@shared/schema";
+import type { Player } from "../../generated/prisma";
 
 export interface AgingResult {
   playerId: string;

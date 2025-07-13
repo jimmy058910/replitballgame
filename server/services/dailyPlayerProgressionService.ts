@@ -1,5 +1,5 @@
 import { prisma } from '../db';
-import type { InsertPlayerDevelopmentHistory } from '../../shared/schema';
+import type { Prisma } from '../../generated/prisma';
 import { getEasternTime } from '../../shared/timezone';
 
 /**

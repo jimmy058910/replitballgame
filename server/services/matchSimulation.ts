@@ -1,4 +1,4 @@
-import type { Player, Team, Stadium } from "@shared/schema";
+import type { Player, Team, Stadium } from "../../generated/prisma";
 import { CamaraderieService } from "./camaraderieService";
 import { commentaryService } from "./commentaryService";
 

@@ -1,11 +1,11 @@
 import { prisma } from "../db";
-import type { PaymentTransaction, InsertPaymentTransaction } from "../../shared/schema";
+import type { PaymentTransaction, Prisma } from "../../generated/prisma";
 
 export class PaymentHistoryService {
   /**
    * Record a new payment transaction
    */
-  static async recordTransaction(transaction: InsertPaymentTransaction): Promise<PaymentTransaction> {
+  static async recordTransaction(transaction: Prisma.PaymentTransactionCreateInput): Promise<PaymentTransaction> {
     const newTransaction = await prisma.paymentTransaction.create({
       data: {
         ...transaction,

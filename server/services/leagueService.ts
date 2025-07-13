@@ -1,8 +1,8 @@
-import type { InsertPlayer } from "@shared/schema";
+import type { Prisma } from "../../generated/prisma";
 import { generateRandomName, getFullName } from "@shared/names";
 import gameConfig from "../config/game_config.json";
 
-export function generateRandomPlayer(name: string | null, race: string, teamId: string, position?: string): InsertPlayer {
+export function generateRandomPlayer(name: string | null, race: string, teamId: string, position?: string): Prisma.PlayerCreateInput {
   // Convert race to lowercase for switch statement, but store original for return
   const originalRace = race;
   const lowerRace = race.toLowerCase();

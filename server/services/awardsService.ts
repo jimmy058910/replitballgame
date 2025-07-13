@@ -2,14 +2,11 @@ import { prisma } from "../db";
 import { nanoid } from "nanoid";
 import type { 
   MvpAward,
-  InsertMvpAward,
   SeasonAward,
-  InsertSeasonAward,
   TeamAward,
-  InsertTeamAward,
   TeamSeasonHistory,
-  InsertTeamSeasonHistory
-} from "../../shared/schema";
+  Prisma
+} from "../../generated/prisma";
 
 export class AwardsService {
   

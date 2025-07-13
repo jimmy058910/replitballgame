@@ -5,7 +5,7 @@ import { teamFinancesStorage } from "../storage/teamFinancesStorage";
 import { itemStorage } from "../storage/itemStorage";
 import { isAuthenticated } from "../replitAuth";
 // import { db } from "../db"; // Direct DB access for items might be replaced by itemStorage calls
-// import { items as itemsTable } from "@shared/schema"; // Schema items can be imported by itemStorage
+// Schema items handled by itemStorage using Prisma
 // Drizzle operations replaced by Prisma in storage layers
 import { z } from "zod";
 
