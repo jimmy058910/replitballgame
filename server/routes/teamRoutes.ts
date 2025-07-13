@@ -60,17 +60,57 @@ router.post('/', isAuthenticated, asyncHandler(async (req: any, res: Response) =
   // Use the sanitized name from validation
   const sanitizedName = validationResult.sanitizedName || name;
 
-  // Check how many teams are already in division 8 to determine sub-division
+  // Check if we're in late signup window (Day 1 3PM to Day 9 3PM)
+  const currentSeason = await storage.seasons.getCurrentSeason();
+  let isLateSignup = false;
+  
+  if (currentSeason) {
+    const seasonStartDate = currentSeason.startDateOriginal || currentSeason.startDate || new Date();
+    const daysSinceStart = Math.floor((new Date().getTime() - seasonStartDate.getTime()) / (1000 * 60 * 60 * 24));
+    const currentDayInCycle = (daysSinceStart % 17) + 1;
+    const now = new Date();
+    const estTime = new Date(now.toLocaleString('en-US', { timeZone: 'America/New_York' }));
+    
+    // Late signup window: Day 1 3PM to Day 9 3PM
+    isLateSignup = (currentDayInCycle === 1 && estTime.getHours() >= 15) ||
+                   (currentDayInCycle >= 2 && currentDayInCycle <= 8) ||
+                   (currentDayInCycle === 9 && estTime.getHours() < 15);
+  }
+  
   let assignedDivision = 8;
   let assignedSubdivision = "main";
   
-  // Find the next available sub-division that has room (less than 8 teams)
-  const possibleSubdivisions = ["main", "alpha", "beta", "gamma", "delta", "epsilon", "zeta", "eta"];
-  for (const subdivisionValue of possibleSubdivisions) {
-    const teamsInSubdivision = await storage.teams.getTeamsByDivisionAndSubdivision(8, subdivisionValue);
-    if (teamsInSubdivision.length < 8) {
-      assignedSubdivision = subdivisionValue;
-      break;
+  if (isLateSignup) {
+    // Handle late signup - place in late signup subdivision
+    const { LateSignupService } = await import('../services/lateSignupService');
+    const lateSignupResult = await LateSignupService.processLateSignup({
+      userId,
+      name: sanitizedName
+    });
+    
+    // Return early for late signup teams
+    logInfo("Late signup team created", { 
+      teamId: lateSignupResult.team.id,
+      subdivision: lateSignupResult.subdivision,
+      scheduleGenerated: lateSignupResult.needsScheduleGeneration,
+      requestId: req.requestId 
+    });
+    
+    return res.status(201).json({
+      message: "Team created successfully in late signup division",
+      team: lateSignupResult.team,
+      isLateSignup: true,
+      subdivision: lateSignupResult.subdivision
+    });
+  } else {
+    // Normal signup - find the next available sub-division that has room (less than 8 teams)
+    const possibleSubdivisions = ["main", "alpha", "beta", "gamma", "delta", "epsilon", "zeta", "eta"];
+    for (const subdivisionValue of possibleSubdivisions) {
+      const teamsInSubdivision = await storage.teams.getTeamsByDivisionAndSubdivision(8, subdivisionValue);
+      if (teamsInSubdivision.length < 8) {
+        assignedSubdivision = subdivisionValue;
+        break;
+      }
     }
   }
   
@@ -200,7 +240,11 @@ router.post('/', isAuthenticated, asyncHandler(async (req: any, res: Response) =
     requestId: req.requestId 
   });
 
-  res.status(201).json({ success: true, data: team });
+  res.status(201).json({ 
+    success: true, 
+    data: team,
+    isLateSignup: false
+  });
 }));
 
 router.get('/my', isAuthenticated, async (req: any, res: Response, next: NextFunction) => {
