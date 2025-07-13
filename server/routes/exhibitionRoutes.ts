@@ -213,11 +213,7 @@ router.post('/instant', isAuthenticated, async (req: any, res: Response, next: N
 
     const liveMatchState = await matchStateManager.startLiveMatch(match.id, true);
 
-    // Create exhibition game record
-    await exhibitionGameStorage.createExhibitionGame({
-      homeTeamId: homeTeamId,
-      awayTeamId: awayTeamId,
-    });
+    // No need to create duplicate exhibition record - the match already exists in Game table
 
     const isUserTeam = bestOpponent.userId && !bestOpponent.userId.startsWith('ai_');
     
@@ -262,10 +258,7 @@ router.post('/challenge', isAuthenticated, async (req: any, res: Response, next:
 
     const liveMatchState = await matchStateManager.startLiveMatch(match.id, true);
     
-    await exhibitionGameStorage.createExhibitionGame({
-      homeTeamId: isHome ? userTeam.id : randomOpponent.id,
-      awayTeamId: isHome ? randomOpponent.id : userTeam.id,
-    });
+    // No need to create duplicate exhibition record - the match already exists in Game table
 
     res.status(201).json({
       matchId: match.id,
@@ -360,11 +353,7 @@ router.post('/instant-match', isAuthenticated, async (req: any, res: Response, n
 
     const liveMatchState = await matchStateManager.startLiveMatch(match.id, true);
 
-    // Create exhibition game record
-    await exhibitionGameStorage.createExhibitionGame({
-      homeTeamId,
-      awayTeamId,
-    });
+    // No need to create duplicate exhibition record - the match already exists in Game table
 
     res.status(201).json({
       matchId: match.id,
@@ -410,11 +399,7 @@ router.post('/challenge-opponent', isAuthenticated, async (req: any, res: Respon
 
     const liveMatchState = await matchStateManager.startLiveMatch(match.id, true);
 
-    // Also create a record in exhibitionGames table for tracking
-    await exhibitionGameStorage.createExhibitionGame({
-        teamId: userTeam.id, // The team initiating the challenge
-        opponentTeamId: opponentTeam.id,
-    });
+    // No need to create duplicate exhibition record - the match already exists in Game table
 
     res.status(201).json({
       matchId: match.id,

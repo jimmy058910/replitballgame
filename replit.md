@@ -138,6 +138,8 @@ Built as a React + Express web application with PostgreSQL database, using moder
 - ✓ **Frontend Display Enhanced**: Updated Competition.tsx to handle both 'pending' and 'in_progress' states with proper labels ('Scheduled' vs 'Live Match')
 - ✓ **Invalid Date Resolution**: Fixed date display to show formatted dates from backend instead of causing "Invalid Date" errors
 - ✓ **Status Messaging**: Replaced "In Progress Live Match" with proper "Live Match" or "Scheduled" labels based on actual match status
+- ✓ **Duplicate Games Fixed**: Removed duplicate createExhibitionGame calls that were creating duplicate Game records causing "every other game as Scheduled" issue
+- ✓ **Database Cleanup**: Cleaned up 8 duplicate SCHEDULED exhibition records from database to resolve display duplicates
 
 #### ✅ AI TEAM FILLING AUTOMATION INTEGRATION COMPLETE - 100% FUNCTIONAL
 - ✓ **Season Timing Integration**: Successfully integrated LateSignupService with SeasonTimingAutomationService for automated Day 9 AI team filling
