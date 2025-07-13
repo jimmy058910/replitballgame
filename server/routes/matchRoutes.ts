@@ -98,8 +98,13 @@ router.get('/:matchId/enhanced-data', isAuthenticated, async (req: Request, res:
     const liveState = await matchStateManager.syncMatchState(matchIdNum);
     
     console.log(`Live state found: ${liveState ? 'YES' : 'NO'}`);
+    console.log(`Live state value:`, liveState);
+    console.log(`Live state type:`, typeof liveState);
+    console.log(`Match status: ${match.status}`);
+    console.log(`Match ID: ${matchIdNum}`);
     
     if (!liveState) {
+      console.log('=== ENTERING COMPLETED MATCH SECTION ===');
       // For completed matches, try to get stored simulation data
       let simulationLogData = null;
       try {
@@ -116,22 +121,39 @@ router.get('/:matchId/enhanced-data', isAuthenticated, async (req: Request, res:
       
       // Transform teamStats to home/away format with sample data for testing
       const rawTeamStats = simulationLogData?.teamStats || {};
-      const homeTeamStats = rawTeamStats[match.homeTeamId.toString()] || {
-        turnovers: 1,
-        carrierYards: 156,
-        passingYards: 243,
-        totalOffensiveYards: 399,
-        timeOfPossessionSeconds: 1680,
-        totalKnockdownsInflicted: 3
-      };
-      const awayTeamStats = rawTeamStats[match.awayTeamId.toString()] || {
-        turnovers: 2,
-        carrierYards: 187,
-        passingYards: 198,
-        totalOffensiveYards: 385,
-        timeOfPossessionSeconds: 1920,
-        totalKnockdownsInflicted: 5
-      };
+      console.log('Raw team stats:', JSON.stringify(rawTeamStats));
+      console.log('Home team ID:', match.homeTeamId, 'Away team ID:', match.awayTeamId);
+      
+      let homeTeamStats = rawTeamStats[match.homeTeamId.toString()];
+      let awayTeamStats = rawTeamStats[match.awayTeamId.toString()];
+      
+      // Check if data is all zeros (empty match data) and use sample data instead
+      const isEmptyStats = (stats) => stats && Object.values(stats).every(val => val === 0);
+      
+      if (!homeTeamStats || isEmptyStats(homeTeamStats)) {
+        homeTeamStats = {
+          turnovers: 1,
+          carrierYards: 156,
+          passingYards: 243,
+          totalOffensiveYards: 399,
+          timeOfPossessionSeconds: 1680,
+          totalKnockdownsInflicted: 3
+        };
+      }
+      
+      if (!awayTeamStats || isEmptyStats(awayTeamStats)) {
+        awayTeamStats = {
+          turnovers: 2,
+          carrierYards: 187,
+          passingYards: 198,
+          totalOffensiveYards: 385,
+          timeOfPossessionSeconds: 1920,
+          totalKnockdownsInflicted: 5
+        };
+      }
+      
+      console.log('Home team stats:', JSON.stringify(homeTeamStats));
+      console.log('Away team stats:', JSON.stringify(awayTeamStats));
 
       // Create mock MVP data for testing (in production this would come from simulation)
       const mvpData = {
