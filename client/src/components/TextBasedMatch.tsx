@@ -418,9 +418,9 @@ export default function TextBasedMatch({
       
       // Stamina-based events (fatigue)
       if (isFatigued) {
-        if (randomPlayer.stamina > 30) {
+        if (randomPlayer.staminaAttribute > 30) {
           statBasedEvents.push(`${playerName} (${playerTeam}) shows remarkable endurance late in the game!`);
-        } else if (randomPlayer.stamina < 20) {
+        } else if (randomPlayer.staminaAttribute < 20) {
           statBasedEvents.push(`${playerName} is visibly winded and slowing down`);
           statBasedEvents.push(`${playerName} gasps for air between plays`);
         }
@@ -608,9 +608,9 @@ export default function TextBasedMatch({
       
       // Stamina-based events (fatigue)
       if (isFatigued) {
-        if (randomPlayer.stamina > 30) {
+        if (randomPlayer.staminaAttribute > 30) {
           statBasedEvents.push(`${playerName} shows remarkable endurance late in the game!`);
-        } else if (randomPlayer.stamina < 20) {
+        } else if (randomPlayer.staminaAttribute < 20) {
           statBasedEvents.push(`${playerName} is visibly winded and slowing down`);
           statBasedEvents.push(`${playerName} gasps for air between plays`);
         }

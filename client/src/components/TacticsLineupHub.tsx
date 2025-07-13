@@ -126,7 +126,7 @@ export default function TacticsLineupHub({ teamId }: TacticsLineupHubProps) {
     
     const passerScore = (player.throwing + player.leadership) / 2;
     const runnerScore = (player.speed + player.agility) / 2;
-    const blockerScore = (player.power + player.stamina) / 2;
+    const blockerScore = (player.power + player.staminaAttribute) / 2;
     
     if (passerScore >= runnerScore && passerScore >= blockerScore) {
       return "passer";

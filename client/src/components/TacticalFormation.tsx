@@ -114,7 +114,7 @@ export default function TacticalFormation({ players, savedFormation, onFormation
 
   // Helper function to calculate player power
   const calculatePlayerPower = (player: any) => {
-    return (player.speed + player.power + player.throwing + player.catching + player.kicking + player.agility + player.stamina + player.leadership) / 8;
+    return (player.speed + player.power + player.throwing + player.catching + player.kicking + player.agility + player.staminaAttribute + player.leadership) / 8;
   };
 
   // Drag and drop handlers
@@ -471,7 +471,7 @@ export default function TacticalFormation({ players, savedFormation, onFormation
                             </div>
                             <div className="flex flex-col gap-1 items-end">
                               <Badge variant="outline" className="text-xs">
-                                OVR {Math.round((player.speed + player.agility + player.power + player.throwing + player.catching + player.stamina) / 6)}
+                                OVR {Math.round((player.speed + player.agility + player.power + player.throwing + player.catching + player.staminaAttribute) / 6)}
                               </Badge>
                               {inFormation && (
                                 <Badge variant="secondary" className="text-xs">

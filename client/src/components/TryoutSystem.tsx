@@ -99,7 +99,7 @@ export default function TryoutSystem({ teamId, onNavigateToTaxiSquad }: TryoutSy
 
   const basicCost = 25000;
   const advancedCost = 75000;
-  const currentCredits = (finances as any)?.credits || 0;
+  const currentCredits = (financesData as any)?.credits || 0;
   const canAffordBasic = currentCredits >= basicCost;
   const canAffordAdvanced = currentCredits >= advancedCost;
   
@@ -223,7 +223,7 @@ export default function TryoutSystem({ teamId, onNavigateToTaxiSquad }: TryoutSy
     return "Blocker"; // Assuming 'Blocker' is a valid Player['position']
   };
 
-  const isLoading = financesLoading || scoutsLoading; // Combine loading states
+  const isLoading = financesLoading; // Combine loading states
 
   if (isLoading) {
     return (

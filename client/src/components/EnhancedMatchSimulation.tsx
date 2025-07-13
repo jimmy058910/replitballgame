@@ -732,7 +732,7 @@ class EnhancedSimulationEngine {
       effects.statBoosts.agility = 2;
     } else if (name.includes('Power Surge') || name.includes('power')) {
       effects.statBoosts.power = 4;
-      effects.statBoosts.stamina = 2;
+      effects.statBoosts.staminaAttribute = 2;
     } else if (name.includes('Champion') || name.includes('blessing')) {
       effects.statBoosts.speed = 1;
       effects.statBoosts.power = 1;
@@ -740,7 +740,7 @@ class EnhancedSimulationEngine {
       effects.statBoosts.catching = 2;
     } else if (name.includes('Stamina') || name.includes('recovery')) {
       effects.staminaBonus = 10;
-      effects.statBoosts.stamina = 2;
+      effects.statBoosts.staminaAttribute = 2;
     }
     
     // Parse metadata if available
@@ -939,7 +939,7 @@ class EnhancedSimulationEngine {
       case 'gryll':
         // Gryll: Superior power and stamina, reduced speed
         stats.power += 4;
-        stats.stamina += 2;
+        stats.staminaAttribute += 2;
         stats.speed -= 1;
         // Unshakeable effect - resistance to knockdowns
         if (player.isKnockedDown && Math.random() < 0.3) {

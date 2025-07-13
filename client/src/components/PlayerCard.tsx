@@ -59,7 +59,7 @@ const calculateMobilityRating = (player: any) => {
 };
 
 const calculatePowerRating = (player: any) => {
-  return Math.round((player.power + player.stamina) / 2);
+  return Math.round((player.power + player.staminaAttribute) / 2);
 };
 
 // Calculate overall power as average of 6 core athletic stats

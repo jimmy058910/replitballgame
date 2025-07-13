@@ -71,7 +71,7 @@ export default function LineupRosterBoard({ teamId }: LineupRosterBoardProps) {
     const stats = [
       { name: 'Passer', value: player.throwing + player.leadership + player.agility },
       { name: 'Runner', value: player.speed + player.agility + player.catching },
-      { name: 'Blocker', value: player.power + player.stamina + player.leadership }
+      { name: 'Blocker', value: player.power + player.staminaAttribute + player.leadership }
     ];
     
     return stats.reduce((prev, current) => prev.value > current.value ? prev : current).name;

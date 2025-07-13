@@ -318,7 +318,7 @@ export default function PlayerDetailModal({
                   {renderStatBar("Throwing", player.throwing || 0)}
                   {renderStatBar("Catching", player.catching || 0)}
                   {renderStatBar("Kicking", player.kicking || 0)}
-                  {renderStatBar("Stamina", player.stamina || 0)}
+                  {renderStatBar("Stamina", player.staminaAttribute || 0)}
                   {renderStatBar("Leadership", player.leadership || 0)}
                   {renderStatBar("Agility", player.agility || 0)}
                 </CardContent>
