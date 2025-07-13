@@ -163,24 +163,24 @@ class CommentaryEngine {
 
     if (cause === "tackle") {
       const tackleCommentary = [
-        `HUGE HIT! The ball comes loose! It's a fumble and anyone's game!`,
-        `Powerful tackle dislodges the ball! It's on the turf!`,
-        `${playerName} couldn't hang on after that vicious hit! The ball is LIVE!`,
-        `He coughed it up! A massive forced fumble by the defense!`,
-        `Stripped! The ball is ripped free from ${playerName}'s grasp!`,
-        `The ball pops free after a gang tackle!`,
-        `He never had control! The ball is loose on the ground!`
+        `HUGE HIT! The orb comes loose! It's chaos and anyone's game!`,
+        `Powerful tackle dislodges the orb! It's on the field!`,
+        `${playerName} couldn't hang on after that vicious hit! The orb is LIVE!`,
+        `He coughed it up! A massive forced turnover by the defense!`,
+        `Stripped! The orb is ripped free from ${playerName}'s grasp!`,
+        `The orb pops free after a group tackle!`,
+        `He never had control! The orb is loose on the ground!`
       ];
       return tackleCommentary[Math.floor(Math.random() * tackleCommentary.length)];
     } else {
       const dropCommentary = [
-        `The pass is on target but it's DROPPED by ${playerName}! The ball is live on the turf!`,
-        `Right through his hands! ${playerName} can't hang on and the ball is up for grabs!`,
+        `The pass is on target but it's DROPPED by ${playerName}! The orb is live on the field!`,
+        `Right through his hands! ${playerName} can't hang on and the orb is up for grabs!`,
         `A perfect pass, but it's a brutal drop by ${playerName} at a critical moment.`,
-        `Oh, he has to catch that! The ball bounces off the receiver's chest and is loose!`,
-        `An unforced error there, as ${playerName} simply drops the ball.`,
-        `The pass is deflected at the last second and falls incomplete... no, it's a live ball!`,
-        `A difficult catch, and ${playerName} can't bring it in. The ball is loose.`
+        `Oh, he has to catch that! The orb bounces off the receiver's chest and is loose!`,
+        `An unforced error there, as ${playerName} simply drops the orb.`,
+        `The pass is deflected at the last second and falls incomplete... no, it's a live orb!`,
+        `A difficult catch, and ${playerName} can't bring it in. The orb is loose.`
       ];
       return dropCommentary[Math.floor(Math.random() * dropCommentary.length)];
     }
@@ -189,17 +189,17 @@ class CommentaryEngine {
   generateScrambleCommentary(recoverer?: Player): string {
     if (recoverer) {
       const recoveryCommentary = [
-        `${this.getPlayerDisplayName(recoverer)} emerges from the pile with the ball! A huge turnover for ${this.getPlayerTeamName(recoverer)}!`,
-        `Quick thinking by ${this.getPlayerDisplayName(recoverer)} to scoop up the loose ball before the defense could react!`,
-        `What a recovery! ${this.getPlayerDisplayName(recoverer)} dives on the ball to secure possession for his team!`,
-        `The offense manages to recover their own fumble! A lucky break for them.`,
+        `${this.getPlayerDisplayName(recoverer)} emerges from the pile with the orb! A huge turnover for ${this.getPlayerTeamName(recoverer)}!`,
+        `Quick thinking by ${this.getPlayerDisplayName(recoverer)} to scoop up the loose orb before the defense could react!`,
+        `What a recovery! ${this.getPlayerDisplayName(recoverer)} dives on the orb to secure possession for his team!`,
+        `The offense manages to recover their own loose orb! A lucky break for them.`,
         `And it's the defense that comes up with it! A massive momentum swing!`
       ];
       return recoveryCommentary[Math.floor(Math.random() * recoveryCommentary.length)];
     } else {
       const scrambleCommentary = [
-        `Chaos around the ball! A mad scramble as multiple players dive for it!`,
-        `A pile-up for the loose ball near midfield!`
+        `Chaos around the orb! A mad scramble as multiple players dive for it!`,
+        `A pile-up for the loose orb near midfield!`
       ];
       return scrambleCommentary[Math.floor(Math.random() * scrambleCommentary.length)];
     }
@@ -312,8 +312,8 @@ class CommentaryEngine {
         `He's going deep! ${passerName} launches one downfield for ${receiverName} and connects for ${yards} yards!`,
         `What a strike! ${passerName} connects with ${receiverName} on a beautiful ${yards}-yard completion!`,
         `The defense was caught sleeping! ${receiverName} is wide open for a huge ${yards}-yard gain!`,
-        `${passerName} airs it out! A perfect spiral finds its target for ${yards} yards!`,
-        `A perfect spiral from ${passerName} finds his target deep in enemy territory for ${yards} yards.`
+        `${passerName} airs it out! A perfect throw finds its target for ${yards} yards!`,
+        `A perfect pass from ${passerName} finds his target deep in enemy territory for ${yards} yards.`
       ];
       return deepPassCommentary[Math.floor(Math.random() * deepPassCommentary.length)];
     }
@@ -352,7 +352,7 @@ class CommentaryEngine {
         `PANCAKED! ${tacklerName} absolutely levels an opponent with a devastating block, clearing a path for his teammate!`,
         `Bone-rattling hit! ${tacklerName} knocks ${carrierName} completely off his feet!`,
         `${tacklerName} delivers a crushing blow to ${carrierName}! The crowd feels that one!`,
-        `${tacklerName} is just looking to inflict pain! He lays a huge hit on an unsuspecting opponent away from the ball! With no referees, that's a smart, brutal play.`
+        `${tacklerName} is just looking to inflict pain! He lays a huge hit on an unsuspecting opponent away from the orb! With no referees, that's a smart, brutal play.`
       ];
       return pancakeCommentary[Math.floor(Math.random() * pancakeCommentary.length)];
     }
@@ -474,7 +474,7 @@ class CommentaryEngine {
     const scoringCommentary = [
       `He's in! ${scorerName} fights through the defense and crosses the line! A Score for ${teamName}!`,
       `SCORE! A brilliant individual effort by ${scorerName}!`,
-      `${scorerName} connects in the end zone for the score!`,
+      `${scorerName} connects in the scoring area for the score!`,
       `He walks it in! The defense couldn't lay a hand on him!`,
       `A hard-fought score, pushing through a pile of players at the goal line!`
     ];
@@ -1274,27 +1274,27 @@ class EnhancedSimulationEngine {
       }
     }
     
-    // Handle fumbles with enhanced detection
+    // Handle dropped orb with enhanced detection
     if (actionResult.action === "run" && Math.random() < 0.05) {
       const ballCarrier = this.getBallCarrier();
       if (ballCarrier) {
-        // Check for camaraderie-based fumble risk
+        // Check for camaraderie-based orb drop risk
         const teamCamaraderie = ballCarrier.teamId === this.team1.id ? 
           (this.team1?.teamCamaraderie || 50) : (this.team2?.teamCamaraderie || 50);
         
-        const fumbleChance = teamCamaraderie < 30 ? 0.08 : 0.05; // Poor camaraderie increases fumble risk
+        const dropChance = teamCamaraderie < 30 ? 0.08 : 0.05; // Poor camaraderie increases drop risk
         
-        if (Math.random() < fumbleChance) {
+        if (Math.random() < dropChance) {
           ballCarrier.fumbles++;
           this.gameState.ballCarrier = null;
           
-          // Generate fumble commentary
+          // Generate dropped orb commentary
           const commentary = this.commentaryEngine.generateLooseBallCommentary("tackle", ballCarrier);
           if (commentary) {
             this.gameState.gameLog.unshift(commentary);
           }
           
-          // Look for fumble recovery
+          // Look for orb recovery
           const recoverer = this.findInterceptor();
           if (recoverer) {
             this.gameState.ballCarrier = recoverer.id;

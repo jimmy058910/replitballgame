@@ -292,7 +292,7 @@ router.post('/:matchId/simulate-play', isAuthenticated, async (req: Request, res
     const { matchId } = req.params;
     const { speed = 1 } = req.body;
 
-    const match = await matchStorage.getMatchById(matchId); // Use matchStorage
+    const match = await matchStorage.getMatchById(parseInt(matchId)); // Use matchStorage
     if (!match) return res.status(404).json({ message: "Match not found" });
     if (match.status !== 'IN_PROGRESS') return res.status(400).json({ message: "Match is not live. Cannot simulate play." });
 
