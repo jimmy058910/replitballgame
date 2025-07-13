@@ -233,29 +233,8 @@ export async function simulateEnhancedMatch(
 }
 
 // Backward compatibility - keep the old function for existing code
-export async function simulateMatch(
-  homeTeamPlayers: Player[],
-  awayTeamPlayers: Player[]
-): Promise<any> {
-  const homeTeamId = homeTeamPlayers.length > 0 ? homeTeamPlayers[0].teamId : '';
-  const awayTeamId = awayTeamPlayers.length > 0 ? awayTeamPlayers[0].teamId : '';
-  
-  const result = await simulateEnhancedMatch(homeTeamPlayers, awayTeamPlayers, homeTeamId, awayTeamId);
-  
-  // Convert to old format for backward compatibility
-  return {
-    homeScore: result.homeScore,
-    awayScore: result.awayScore,
-    gameData: {
-      events: result.gameData.events,
-      finalStats: {
-        possession: result.gameData.finalStats.possession,
-        passes: result.gameData.finalStats.passes,
-        interceptions: result.gameData.finalStats.interceptions,
-      },
-    },
-  };
-}
+// Legacy simulateMatch function removed per Jules' feedback
+// Use simulateEnhancedMatch directly instead
 
 // calculateTeamStrength from jules (includes racial bonuses)
 function calculateTeamStrength(players: Player[]): number {
@@ -496,6 +475,42 @@ async function initializeEnhancedPlayers(
 ): Promise<EnhancedPlayer[]> {
   const enhancedPlayers: EnhancedPlayer[] = [];
   
+  // Performance optimization: Cache expensive operations
+  const playerIds = players.map(p => p.id);
+  const uniqueTeamIds = [...new Set(players.map(p => p.teamId))];
+  const uniqueRoles = [...new Set(players.map(p => p.role))];
+  
+  // Cache for database call results
+  const equipmentEffectsCache = new Map<string, Record<string, number>>();
+  const consumableEffectsCache = new Map<string, Record<string, number>>();
+  const staffEffectsCache = new Map<string, Record<string, number>>();
+  
+  // Pre-fetch equipment effects for all players
+  const equipmentPromises = playerIds.map(async (playerId) => {
+    const effects = await getPlayerEquipmentEffects(playerId);
+    equipmentEffectsCache.set(playerId, effects);
+  });
+  
+  // Pre-fetch consumable effects for all players by team
+  const consumablePromises = players.map(async (player) => {
+    const cacheKey = `${player.teamId}-${player.id}`;
+    const effects = await getActiveMatchConsumables(player.teamId, player.id);
+    consumableEffectsCache.set(cacheKey, effects);
+  });
+  
+  // Pre-fetch staff effects for each unique team-role combination
+  const staffPromises = uniqueTeamIds.flatMap(teamId => 
+    uniqueRoles.map(async (role) => {
+      const cacheKey = `${teamId}-${role}`;
+      const effects = await getStaffEffectsForPlayer(teamId, role);
+      staffEffectsCache.set(cacheKey, effects);
+    })
+  );
+  
+  // Wait for all async operations to complete
+  await Promise.all([...equipmentPromises, ...consumablePromises, ...staffPromises]);
+  
+  // Initialize players with cached effects
   for (const player of players) {
     // Get player skills (fallback to empty array if service doesn't exist)
     let skills: any[] = [];
@@ -511,14 +526,10 @@ async function initializeEnhancedPlayers(
     // Apply race effects
     const raceEffects = getRaceEffects(player.race || 'human');
     
-    // Apply equipment effects
-    const equipmentEffects = await getPlayerEquipmentEffects(player.id);
-    
-    // Apply consumable effects from activated match consumables
-    const consumableEffects = await getActiveMatchConsumables(player.teamId, player.id);
-    
-    // Apply staff effects (trainers, recovery specialists)
-    const staffEffects = await getStaffEffectsForPlayer(player.teamId, player.role);
+    // Get cached effects
+    const equipmentEffects = equipmentEffectsCache.get(player.id) || {};
+    const consumableEffects = consumableEffectsCache.get(`${player.teamId}-${player.id}`) || {};
+    const staffEffects = staffEffectsCache.get(`${player.teamId}-${player.role}`) || {};
     
     // Initialize current stamina
     let currentStamina = player.stamina || 100;
@@ -767,25 +778,24 @@ function getInjuryEffects(injuryStatus: string): Record<string, number> {
 async function getActiveMatchConsumables(teamId: string, playerId: string): Promise<Record<string, number>> {
   const effects: Record<string, number> = {};
   
-  // Temporarily disable consumables to fix enhanced simulation
-  // TODO: Fix matchConsumable table integration later
-  return effects;
-  
   try {
     const { prisma } = await import('../db');
     
-    // Get active match consumables for the team
-    const activeConsumables = await prisma.matchConsumable.findMany({
+    // Get active consumables from team inventory instead of non-existent matchConsumable table
+    const activeConsumables = await prisma.teamConsumable.findMany({
       where: {
         teamId: parseInt(teamId),
-        usedInMatch: true
+        isActive: true
       },
-      orderBy: { activatedAt: 'desc' }
+      include: {
+        Item: true
+      }
     });
     
-    // Apply consumable effects
-    for (const consumable of activeConsumables) {
-      const effectData = consumable.effectData as any;
+    // Apply consumable effects from active team consumables
+    for (const teamConsumable of activeConsumables) {
+      const item = teamConsumable.Item;
+      const effectData = item.statEffects as any;
       
       if (effectData?.statBoosts) {
         Object.entries(effectData.statBoosts).forEach(([stat, boost]) => {
@@ -795,9 +805,19 @@ async function getActiveMatchConsumables(teamId: string, playerId: string): Prom
         });
       }
       
-      // Apply specific consumable effects based on type
-      switch (consumable.effectType) {
-        case 'stat_boost':
+      // Apply specific consumable effects based on item type
+      switch (item.type) {
+        case 'CONSUMABLE_RECOVERY':
+          if (effectData?.staminaBonus) {
+            effects.staminaRecovery = (effects.staminaRecovery || 0) + effectData.staminaBonus;
+          }
+          if (effectData?.injuryReduction) {
+            effects.injuryReduction = (effects.injuryReduction || 0) + effectData.injuryReduction;
+          }
+          break;
+          
+        case 'CONSUMABLE_PERFORMANCE':
+          // Apply temporary performance boosts
           if (effectData?.statBoosts) {
             Object.entries(effectData.statBoosts).forEach(([stat, boost]) => {
               if (typeof boost === 'number') {
@@ -805,14 +825,6 @@ async function getActiveMatchConsumables(teamId: string, playerId: string): Prom
               }
             });
           }
-          break;
-          
-        case 'stamina_recovery':
-          effects.staminaRecovery = (effects.staminaRecovery || 0) + (effectData?.staminaBonus || 10);
-          break;
-          
-        case 'injury_prevention':
-          effects.injuryReduction = (effects.injuryReduction || 0) + (effectData?.injuryReduction || 25);
           break;
       }
     }
@@ -1410,8 +1422,15 @@ function findMVPPlayers(
   
   homeTeamPlayers.forEach(player => {
     const stats = playerStats[player.id];
-    const mvpScore = stats.scores * 10 + stats.passesCompleted * 2 + stats.carrierYards * 0.1 + 
-                     stats.tackles * 3 + stats.interceptionsCaught * 5 + stats.clutchPlays * 8;
+    if (!stats) return; // Skip if no stats available
+    
+    // Fixed MVP calculation bug - use rushingYards instead of carrierYards
+    const mvpScore = (stats.scores || 0) * 10 + 
+                     (stats.passesCompleted || 0) * 2 + 
+                     (stats.rushingYards || 0) * 0.1 + 
+                     (stats.tackles || 0) * 3 + 
+                     (stats.interceptionsCaught || 0) * 5 + 
+                     (stats.clutchPlays || 0) * 8;
     
     if (mvpScore > homeHighScore) {
       homeHighScore = mvpScore;
@@ -1421,8 +1440,15 @@ function findMVPPlayers(
   
   awayTeamPlayers.forEach(player => {
     const stats = playerStats[player.id];
-    const mvpScore = stats.scores * 10 + stats.passesCompleted * 2 + stats.carrierYards * 0.1 + 
-                     stats.tackles * 3 + stats.interceptionsCaught * 5 + stats.clutchPlays * 8;
+    if (!stats) return; // Skip if no stats available
+    
+    // Fixed MVP calculation bug - use rushingYards instead of carrierYards
+    const mvpScore = (stats.scores || 0) * 10 + 
+                     (stats.passesCompleted || 0) * 2 + 
+                     (stats.rushingYards || 0) * 0.1 + 
+                     (stats.tackles || 0) * 3 + 
+                     (stats.interceptionsCaught || 0) * 5 + 
+                     (stats.clutchPlays || 0) * 8;
     
     if (mvpScore > awayHighScore) {
       awayHighScore = mvpScore;
@@ -1430,5 +1456,5 @@ function findMVPPlayers(
     }
   });
   
-  return { home: homeMVP, away: awayMVP };
+  return { home: homeMVP || 'No MVP', away: awayMVP || 'No MVP' };
 }

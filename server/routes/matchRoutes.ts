@@ -3,7 +3,7 @@ import { matchStorage } from "../storage/matchStorage";
 import { storage } from "../storage/index";
 // playerStorage imported via storage index
 import { isAuthenticated } from "../replitAuth";
-import { simulateMatch as fullMatchSimulation } from "../services/matchSimulation";
+import { simulateEnhancedMatch as fullMatchSimulation } from "../services/matchSimulation";
 import { matchStateManager } from "../services/matchStateManager";
 import { prisma } from "../db";
 

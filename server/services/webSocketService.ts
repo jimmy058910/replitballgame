@@ -22,22 +22,40 @@ class WebSocketService {
     this.io.on('connection', (socket: Socket) => {
       log(`🔌 WebSocket client connected: ${socket.id}`);
 
-      // Handle user authentication
+      // Handle user authentication with improved error handling
       socket.on('authenticate', async (data: { userId: string }) => {
         try {
-          if (!data.userId) {
-            socket.emit('error', { message: 'User ID required for authentication' });
+          if (!data || !data.userId) {
+            socket.emit('error', { 
+              message: 'User ID required for authentication',
+              code: 'MISSING_USER_ID' 
+            });
             return;
           }
 
-          // Verify user exists in database
-          const userProfile = await prisma.userProfile.findFirst({
-            where: { userId: data.userId }
-          });
+          // Verify user exists in database with timeout
+          const userProfile = await Promise.race([
+            prisma.userProfile.findFirst({
+              where: { userId: data.userId }
+            }),
+            new Promise((_, reject) => 
+              setTimeout(() => reject(new Error('Database timeout')), 5000)
+            )
+          ]);
 
           if (!userProfile) {
-            socket.emit('error', { message: 'Invalid user ID' });
+            socket.emit('error', { 
+              message: 'Invalid user ID',
+              code: 'INVALID_USER_ID' 
+            });
             return;
+          }
+
+          // Remove any previous connections for this user to prevent duplicates
+          for (const [socketId, connectedUser] of this.connectedUsers.entries()) {
+            if (connectedUser.userId === data.userId && socketId !== socket.id) {
+              this.connectedUsers.delete(socketId);
+            }
           }
 
           // Store authenticated user
@@ -55,22 +73,42 @@ class WebSocketService {
           log(`✅ User authenticated: ${data.userId} (${socket.id})`);
         } catch (error) {
           log(`❌ Authentication error: ${error}`);
-          socket.emit('error', { message: 'Authentication failed' });
+          socket.emit('error', { 
+            message: 'Authentication failed',
+            code: 'AUTH_ERROR',
+            details: error instanceof Error ? error.message : 'Unknown error'
+          });
         }
       });
 
-      // Handle joining match rooms
+      // Handle joining match rooms with improved error handling
       socket.on('join_match', async (data: { matchId: string }) => {
         try {
           const user = this.connectedUsers.get(socket.id);
           if (!user) {
-            socket.emit('error', { message: 'Not authenticated' });
+            socket.emit('error', { 
+              message: 'Not authenticated',
+              code: 'NOT_AUTHENTICATED' 
+            });
             return;
           }
 
-          const match = await prisma.game.findUnique({
-            where: { id: parseInt(data.matchId) }
-          });
+          if (!data || !data.matchId) {
+            socket.emit('error', { 
+              message: 'Match ID required',
+              code: 'MISSING_MATCH_ID' 
+            });
+            return;
+          }
+
+          const match = await Promise.race([
+            prisma.game.findUnique({
+              where: { id: parseInt(data.matchId) }
+            }),
+            new Promise((_, reject) => 
+              setTimeout(() => reject(new Error('Database timeout')), 5000)
+            )
+          ]);
 
           if (!match) {
             socket.emit('error', { message: 'Match not found' });
