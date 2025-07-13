@@ -94,8 +94,8 @@ router.post('/players/list', isAuthenticated, async (req: any, res: Response, ne
     if (player.isMarketplace) return res.status(400).json({ message: "Player is already listed." });
 
     // Check if player is a taxi squad member (beyond main 12-player roster)
-    const teamPlayers = await storage.players.getPlayersByTeamId(team.id);
-    const sortedPlayers = teamPlayers.sort((a, b) => a.id - b.id); // Consistent ordering
+    const allTeamPlayers = await storage.players.getPlayersByTeamId(team.id);
+    const sortedPlayers = allTeamPlayers.sort((a, b) => a.id - b.id); // Consistent ordering
     const playerIndex = sortedPlayers.findIndex(p => p.id === playerId);
     const isTaxiSquadPlayer = playerIndex >= 12;
 
@@ -103,7 +103,7 @@ router.post('/players/list', isAuthenticated, async (req: any, res: Response, ne
       return res.status(400).json({ message: "Cannot list taxi squad players on the marketplace. Only main roster players can be listed." });
     }
 
-    const teamPlayers = await storage.players.getPlayersByTeamId(team.id);
+    const teamPlayers = allTeamPlayers;
     const playersOnMarket = (await storage.players.getAllPlayersByTeamId(team.id)).filter(p => p.isMarketplace).length;
 
     if (teamPlayers.length <= 10) return res.status(400).json({ message: "Team must have at least 10 active players to list one." });
