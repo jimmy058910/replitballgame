@@ -1,8 +1,9 @@
 import { useRoute } from "wouter";
 import { useQuery } from "@tanstack/react-query";
-import { LiveMatchSimulation } from "@/components/LiveMatchSimulation";
+import { GameSimulationUI } from "@/components/GameSimulationUI";
 import { HalftimeAd } from "@/components/HalftimeAd";
 import { apiRequest } from "@/lib/queryClient";
+import { useAuth } from "@/hooks/useAuth";
 
 import { Loader2 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
@@ -46,6 +47,7 @@ interface ClientTeamData extends SharedTeam {
 }
 
 export default function TextMatchPage() {
+  const { user } = useAuth();
   const [, textMatchParams] = useRoute("/text-match/:matchId");
   const [, matchParams] = useRoute("/match/:matchId");
   const matchId = textMatchParams?.matchId || matchParams?.matchId;
@@ -56,22 +58,18 @@ export default function TextMatchPage() {
     queryKey: ["matchDetails", matchId],
     queryFn: (): Promise<ClientMatchData> => apiRequest(`/api/matches/${matchId}`),
     enabled: !!matchId,
-    refetchInterval: (data: any) => {
-      // Only refetch live matches every 2 seconds for synchronized viewing
-      return data?.status === 'IN_PROGRESS' ? 2000 : false;
-    },
-  }) as { data: any, isLoading: boolean };
+  });
 
   const { data: team1, isLoading: team1Loading, error: team1Error } = useQuery({
     queryKey: [`/api/teams/${match?.homeTeamId}`],
-    enabled: !!(match as any)?.homeTeamId && (match as any)?.homeTeamId !== undefined,
+    enabled: !!(match as any)?.homeTeamId,
     retry: 1,
     staleTime: 60000,
   });
 
   const { data: team2, isLoading: team2Loading, error: team2Error } = useQuery({
     queryKey: [`/api/teams/${match?.awayTeamId}`],
-    enabled: !!(match as any)?.awayTeamId && (match as any)?.awayTeamId !== undefined,
+    enabled: !!(match as any)?.awayTeamId,
     retry: 1,
     staleTime: 60000,
   });
@@ -138,21 +136,13 @@ export default function TextMatchPage() {
   console.log("Team1 error:", team1Error);
   console.log("Team2 error:", team2Error);
 
-  if (!match || !team1 || !team2) {
+  if (!match || !team1 || !team2 || !user) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-gray-900 text-white">
         <Card className="bg-gray-800 border-gray-700">
           <CardContent className="p-8">
             <div className="text-center text-red-400">
               Match not found or critical data missing.
-              <div className="text-sm mt-2 text-gray-500">
-                Match ID: {matchId || 'N/A'} <br/>
-                Match: {match ? "✓" : "✗"} ({matchQuery.status}) |
-                Team1: {team1 ? "✓" : "✗"} ({team1Query.status}) |
-                Team2: {team2 ? "✓" : "✗"} ({team2Query.status}) |
-                P1: {team1Players ? "✓" : "✗"} ({team1PlayersQuery.status}) |
-                P2: {team2Players ? "✓" : "✗"} ({team2PlayersQuery.status})
-              </div>
             </div>
           </CardContent>
         </Card>
@@ -197,8 +187,9 @@ export default function TextMatchPage() {
 
   return (
     <div className="min-h-screen bg-gray-900 text-white">
-      <LiveMatchSimulation
+      <GameSimulationUI
         matchId={matchId!}
+        userId={user.id}
         team1={team1WithPlayers}
         team2={team2WithPlayers}
         initialLiveState={(match as any)?.liveState}

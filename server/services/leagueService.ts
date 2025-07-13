@@ -69,7 +69,7 @@ export function generateRandomPlayer(name: string | null, race: string, teamId: 
 
   // Generate potential using configurable range
   const potentialConfig = gameConfig.gameParameters.playerGeneration.potentialRange;
-  const generatePotential = () => potentialConfig.min + Math.random() * (potentialConfig.max - potentialConfig.min);
+  const generatePotential = () => potentialConfig.min + (Math.random() * (potentialConfig.max - potentialConfig.min));
 
   // Calculate overall potential stars based on position and individual potentials
   const potentials = {
@@ -144,7 +144,7 @@ export function generateRandomPlayer(name: string | null, race: string, teamId: 
     firstName,
     lastName,
     name: fullName,
-    race: originalRace.toUpperCase(), // Ensure race is uppercase for Prisma enum
+    race: originalRace,
     role: getPlayerRole(position || "runner"),
     position: position || "runner", // Default to runner if no position specified
     age: baseAge,
@@ -168,25 +168,34 @@ export function generateRandomPlayer(name: string | null, race: string, teamId: 
 }
 
 export function calculatePlayerValue(player: any): number {
-  const avgStat = (
-    player.speed + player.power + player.throwing + player.catching +
-    player.kicking + player.stamina + player.leadership + player.agility
-  ) / 8;
-  
-  const avgPotential = (
-    parseFloat(player.speedPotential || "25") + parseFloat(player.powerPotential || "25") +
-    parseFloat(player.throwingPotential || "25") + parseFloat(player.catchingPotential || "25") +
-    parseFloat(player.kickingPotential || "25") + parseFloat(player.staminaPotential || "25") +
-    parseFloat(player.leadershipPotential || "25") + parseFloat(player.agilityPotential || "25")
-  ) / 8;
-  
-  // Base value calculation
-  const baseValue = avgStat * 1000 + avgPotential * 500;
-  
-  // Age factor (younger players worth more)
-  const ageFactor = Math.max(0.5, (35 - player.age) / 20);
-  
-  return Math.floor(baseValue * ageFactor);
+    const avgStat = (
+        player.speed + player.power + player.throwing + player.catching +
+        player.kicking + player.stamina + player.leadership + player.agility
+    ) / 8;
+
+    const avgPotential = (
+        parseFloat(player.speedPotential || "25") + parseFloat(player.powerPotential || "25") +
+        parseFloat(player.throwingPotential || "25") + parseFloat(player.catchingPotential || "25") +
+        parseFloat(player.kickingPotential || "25") + parseFloat(player.staminaPotential || "25") +
+        parseFloat(player.leadershipPotential || "25") + parseFloat(player.agilityPotential || "25")
+    ) / 8;
+
+    // Base value calculation
+    const baseValue = (avgStat * 1000) + (avgPotential * 500);
+
+    // Age factor
+    let ageFactor = 1.0;
+    if (player.age <= 23) {
+        ageFactor = 1.5; // Young prospect
+    } else if (player.age >= 24 && player.age <= 28) {
+        ageFactor = 1.2; // Prime
+    } else if (player.age >= 29 && player.age <= 32) {
+        ageFactor = 1.0; // Veteran
+    } else {
+        ageFactor = 0.8; // Aging
+    }
+
+    return Math.floor(baseValue * ageFactor);
 }
 
 export async function processEndOfSeasonSkillProgression(playerId: string): Promise<void> {
