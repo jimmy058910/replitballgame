@@ -54,7 +54,7 @@ router.get("/team-tactics", isAuthenticated, async (req: any, res) => {
     const currentDay = 1; // TODO: Get from season system
     const canChangeField = canChangeFieldSize(currentDay);
     
-    const fieldSize = (team.fieldSize || "standard").toLowerCase() as any;
+    const fieldSize = (team.homeField || "standard").toLowerCase() as any;
     const tacticalFocus = (team.tacticalFocus || "balanced").toLowerCase() as any;
     
 
@@ -116,7 +116,7 @@ router.post("/update-field-size", isAuthenticated, async (req: any, res) => {
       });
     }
 
-    await storage.teams.updateTeam(team.id, { fieldSize });
+    await storage.teams.updateTeam(team.id, { homeField: fieldSize.toUpperCase() });
     
     const updatedTeam = await storage.teams.getTeamById(team.id);
     if (!updatedTeam) {
@@ -125,8 +125,8 @@ router.post("/update-field-size", isAuthenticated, async (req: any, res) => {
     
     res.json({
       message: "Field size updated successfully",
-      fieldSize: updatedTeam.fieldSize,
-      fieldSizeInfo: getFieldSizeInfo((updatedTeam.fieldSize || "standard") as any),
+      fieldSize: updatedTeam.homeField,
+      fieldSizeInfo: getFieldSizeInfo((updatedTeam.homeField || "standard").toLowerCase() as any),
     });
   } catch (error) {
     console.error("Error updating field size:", error);
@@ -148,7 +148,7 @@ router.post("/update-tactical-focus", isAuthenticated, async (req: any, res) => 
       return res.status(404).json({ error: "Team not found" });
     }
 
-    await storage.teams.updateTeam(team.id, { tacticalFocus });
+    await storage.teams.updateTeam(team.id, { tacticalFocus: tacticalFocus.toUpperCase() });
     
     const updatedTeam = await storage.teams.getTeamById(team.id);
     if (!updatedTeam) {
