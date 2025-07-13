@@ -31,6 +31,94 @@ export function LiveMatchViewer({ matchId, userId, onMatchComplete }: LiveMatchV
     enabled: !!matchId
   });
 
+  // Auto-scroll to bottom of events
+  useEffect(() => {
+    eventsEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [events]);
+
+  // WebSocket connection and event handling
+  useEffect(() => {
+    if (!matchId || !userId) return;
+
+    const initializeWebSocket = async () => {
+      try {
+        setIsLoading(true);
+        
+        // Connect to WebSocket
+        await webSocketManager.connect(userId);
+        
+        // Set up callbacks
+        const callbacks: WebSocketCallbacks = {
+          onMatchUpdate: (state: LiveMatchState) => {
+            setMatchState(state);
+            setEvents(state.gameEvents || []);
+          },
+          onMatchEvent: (event: MatchEvent) => {
+            setEvents(prev => [...prev, event]);
+            
+            // Show important events as toast notifications
+            if (event.type === 'score' || event.type === 'halftime' || event.type === 'interception') {
+              toast({
+                title: event.type === 'score' ? '🏆 SCORE!' : 
+                       event.type === 'halftime' ? '⏰ Halftime' : 
+                       '🚫 Interception',
+                description: event.description,
+                duration: 3000,
+              });
+            }
+          },
+          onMatchComplete: (data) => {
+            setMatchState(data.finalState);
+            setEvents(data.finalState.gameEvents || []);
+            onMatchComplete?.(data.finalState);
+            toast({
+              title: '🏁 Match Complete!',
+              description: `Final Score: ${data.finalState.homeScore} - ${data.finalState.awayScore}`,
+              duration: 5000,
+            });
+          },
+          onConnect: () => {
+            setIsConnected(true);
+          },
+          onDisconnect: () => {
+            setIsConnected(false);
+          },
+          onError: (error) => {
+            console.error('WebSocket error:', error);
+            toast({
+              title: 'Connection Error',
+              description: 'Lost connection to live match. Trying to reconnect...',
+              variant: 'destructive',
+              duration: 3000,
+            });
+          }
+        };
+
+        // Join the match room
+        await webSocketManager.joinMatch(matchId, callbacks);
+        setIsLoading(false);
+        
+      } catch (error) {
+        console.error('Failed to initialize WebSocket:', error);
+        setIsLoading(false);
+        toast({
+          title: 'Connection Failed',
+          description: 'Failed to connect to live match. Please refresh the page.',
+          variant: 'destructive',
+          duration: 5000,
+        });
+      }
+    };
+
+    initializeWebSocket();
+
+    // Cleanup on unmount
+    return () => {
+      webSocketManager.leaveMatch(matchId);
+      webSocketManager.disconnect();
+    };
+  }, [matchId, userId, toast, onMatchComplete]);
+
   // Handle completed matches
   if (initialMatchData && initialMatchData.status === 'COMPLETED') {
     return (
@@ -105,124 +193,7 @@ export function LiveMatchViewer({ matchId, userId, onMatchComplete }: LiveMatchV
     );
   }
 
-  // Auto-scroll to bottom of events
-  useEffect(() => {
-    eventsEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [events]);
 
-  // WebSocket connection and event handling
-  useEffect(() => {
-    if (!matchId || !userId) return;
-
-    const initializeWebSocket = async () => {
-      try {
-        setIsLoading(true);
-        
-        // Connect to WebSocket
-        await webSocketManager.connect(userId);
-        
-        // Set up callbacks
-        const callbacks: WebSocketCallbacks = {
-          onMatchUpdate: (state: LiveMatchState) => {
-            setMatchState(state);
-            setEvents(state.gameEvents || []);
-          },
-          onMatchEvent: (event: MatchEvent) => {
-            setEvents(prev => [...prev, event]);
-            
-            // Show important events as toast notifications
-            if (event.type === 'score' || event.type === 'halftime' || event.type === 'interception') {
-              toast({
-                title: event.type === 'score' ? '🏆 SCORE!' : 
-                       event.type === 'halftime' ? '⏰ Halftime' : 
-                       '🚫 Interception',
-                description: event.description,
-                duration: 3000,
-              });
-            }
-          },
-          onMatchComplete: (data) => {
-            setMatchState(data.finalState);
-            setEvents(data.finalState.gameEvents || []);
-            onMatchComplete?.(data.finalState);
-            toast({
-              title: '🏁 Match Complete!',
-              description: `Final Score: ${data.finalState.homeScore} - ${data.finalState.awayScore}`,
-              duration: 5000,
-            });
-          },
-          onMatchStarted: () => {
-            toast({
-              title: '🚀 Match Started!',
-              description: 'Live simulation is now running',
-              duration: 3000,
-            });
-          },
-          onMatchPaused: () => {
-            toast({
-              title: '⏸️ Match Paused',
-              description: 'Match simulation has been paused',
-              duration: 3000,
-            });
-          },
-          onMatchResumed: () => {
-            toast({
-              title: '▶️ Match Resumed',
-              description: 'Match simulation has been resumed',
-              duration: 3000,
-            });
-          },
-          onConnectionStatus: (connected: boolean) => {
-            setIsConnected(connected);
-            if (connected) {
-              toast({
-                title: '🔌 Connected',
-                description: 'Real-time updates enabled',
-                duration: 2000,
-              });
-            } else {
-              toast({
-                title: '🔌 Disconnected',
-                description: 'Attempting to reconnect...',
-                duration: 2000,
-              });
-            }
-          },
-          onError: (error) => {
-            toast({
-              title: '❌ WebSocket Error',
-              description: error.message,
-              variant: 'destructive',
-              duration: 4000,
-            });
-          }
-        };
-
-        webSocketManager.setCallbacks(callbacks);
-        
-        // Join match room
-        await webSocketManager.joinMatch(matchId);
-        
-        setIsLoading(false);
-      } catch (error) {
-        console.error('Failed to initialize WebSocket:', error);
-        setIsLoading(false);
-        toast({
-          title: '❌ Connection Failed',
-          description: 'Failed to connect to live match',
-          variant: 'destructive',
-          duration: 4000,
-        });
-      }
-    };
-
-    initializeWebSocket();
-
-    // Cleanup on unmount
-    return () => {
-      webSocketManager.leaveMatch();
-    };
-  }, [matchId, userId, toast, onMatchComplete]);
 
   // Match control functions
   const startMatch = async () => {
