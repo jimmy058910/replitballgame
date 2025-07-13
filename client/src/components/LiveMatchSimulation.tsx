@@ -174,7 +174,7 @@ export function LiveMatchSimulation({ matchId, team1, team2, initialLiveState, o
       homePerformer = {
         playerId: "player1",
         playerName: team1?.players?.[0]?.lastName || "Player",
-        statLabel: "Rushing Yards",
+        statLabel: "Carrier Yards",
         statValue: 85
       };
     }
