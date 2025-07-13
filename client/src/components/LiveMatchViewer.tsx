@@ -26,10 +26,77 @@ export function LiveMatchViewer({ matchId, userId, onMatchComplete }: LiveMatchV
   const { toast } = useToast();
 
   // Fetch initial match data
-  const { data: initialMatchData, error: matchError } = useQuery({
+  const { data: initialMatchData, error: matchError, isLoading: matchDataLoading } = useQuery({
     queryKey: ['/api/matches', matchId],
     enabled: !!matchId
   });
+
+  // Handle completed matches
+  if (initialMatchData && initialMatchData.status === 'COMPLETED') {
+    return (
+      <Card className="max-w-4xl mx-auto">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Trophy className="h-5 w-5" />
+            Match Completed
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="text-center space-y-4">
+            <div className="flex items-center justify-center gap-8">
+              <div className="text-center">
+                <div className="text-lg font-semibold">{initialMatchData.homeTeamName || 'Home Team'}</div>
+                <div className="text-3xl font-bold text-blue-600">{initialMatchData.homeScore || 0}</div>
+              </div>
+              <div className="text-2xl font-bold text-gray-400">-</div>
+              <div className="text-center">
+                <div className="text-lg font-semibold">{initialMatchData.awayTeamName || 'Away Team'}</div>
+                <div className="text-3xl font-bold text-red-600">{initialMatchData.awayScore || 0}</div>
+              </div>
+            </div>
+            <Badge variant="secondary" className="text-lg px-4 py-2">
+              Final Score
+            </Badge>
+            <p className="text-gray-600">
+              This match has been completed. Check the dashboard for new live matches.
+            </p>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  // Handle loading state
+  if (matchDataLoading) {
+    return (
+      <Card className="max-w-4xl mx-auto">
+        <CardContent className="p-6">
+          <div className="flex items-center justify-center">
+            <div className="text-center">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
+              <p>Loading match data...</p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  // Handle match not found
+  if (matchError || !initialMatchData) {
+    return (
+      <Card className="max-w-4xl mx-auto">
+        <CardContent className="p-6">
+          <div className="text-center space-y-4">
+            <div className="text-red-600 text-lg font-semibold">Match Not Found</div>
+            <p className="text-gray-600">
+              The requested match could not be found. It may have been deleted or you may not have access to it.
+            </p>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
 
   // Auto-scroll to bottom of events
   useEffect(() => {
