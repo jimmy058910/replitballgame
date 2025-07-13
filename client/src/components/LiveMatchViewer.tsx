@@ -84,6 +84,9 @@ export function LiveMatchViewer({ matchId, userId, onMatchComplete }: LiveMatchV
 
   // Handle match not found
   if (matchError || !initialMatchData) {
+    console.error('Match error details:', matchError);
+    console.log('Match ID:', matchId);
+    console.log('Initial match data:', initialMatchData);
     return (
       <Card className="max-w-4xl mx-auto">
         <CardContent className="p-6">
@@ -92,6 +95,10 @@ export function LiveMatchViewer({ matchId, userId, onMatchComplete }: LiveMatchV
             <p className="text-gray-600">
               The requested match could not be found. It may have been deleted or you may not have access to it.
             </p>
+            <div className="text-sm text-gray-500 mt-4">
+              <p>Match ID: {matchId}</p>
+              <p>Error: {matchError?.message || 'Unknown error'}</p>
+            </div>
           </div>
         </CardContent>
       </Card>
