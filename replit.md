@@ -121,7 +121,15 @@ Built as a React + Express web application with PostgreSQL database, using moder
 
 ## Recent Changes
 
-### July 13, 2025 - ✅ COMPLETE TOURNAMENT REGISTRATION SYSTEM SUCCESS & DRIZZLE TO PRISMA CONVERSION ACHIEVEMENT
+### July 13, 2025 - ✅ COMPLETE TAXI SQUAD MARKETPLACE RESTRICTIONS & TOURNAMENT REGISTRATION SUCCESS ACHIEVEMENT
+
+#### ✅ COMPLETE TAXI SQUAD MARKETPLACE RESTRICTIONS IMPLEMENTATION - 100% FUNCTIONAL
+- ✓ **Backend Validation Added**: DynamicMarketplaceService now prevents taxi squad players (beyond 12-player main roster) from being listed
+- ✓ **Legacy Marketplace Fixed**: MarketplaceRoutes also updated with taxi squad restrictions for complete system coverage
+- ✓ **Frontend Filtering Implemented**: Player selection dropdown now only shows main roster players (first 12), excluding taxi squad members
+- ✓ **Roster Position Logic**: Uses consistent player ID ordering to determine taxi squad status (players at index 12+ are taxi squad)
+- ✓ **Clear Error Messages**: Users receive informative error message: "Cannot list taxi squad players on the marketplace. Only main roster players can be listed."
+- ✓ **Comprehensive Protection**: Both API endpoints and frontend UI prevent taxi squad player listings for complete restriction enforcement
 
 #### ✅ COMPLETE TOURNAMENT REGISTRATION SYSTEM SUCCESS - 100% FUNCTIONAL
 - ✓ **Daily Divisional Tournament Registration**: Successfully working with proper tournament creation and team registration

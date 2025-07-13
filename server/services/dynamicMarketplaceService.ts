@@ -89,6 +89,20 @@ export class DynamicMarketplaceService {
         return { success: false, error: 'Player not found or does not belong to your team' };
       }
 
+      // Validation 1.5: Check if player is a taxi squad member (beyond main 12-player roster)
+      const teamPlayers = await prisma.player.findMany({
+        where: { teamId: parseInt(teamId) },
+        orderBy: { id: 'asc' } // Consistent ordering - first 12 are main roster
+      });
+
+      // Find player's position in roster (0-indexed)
+      const playerIndex = teamPlayers.findIndex(p => p.id === parseInt(playerId));
+      const isTaxiSquadPlayer = playerIndex >= 12; // Players at index 12+ are taxi squad
+
+      if (isTaxiSquadPlayer) {
+        return { success: false, error: 'Cannot list taxi squad players on the marketplace. Only main roster players can be listed.' };
+      }
+
       // Validation 2: Check team has > 10 players
       const playerCount = await this.getTeamPlayerCount(teamId);
       if (playerCount <= 10) {

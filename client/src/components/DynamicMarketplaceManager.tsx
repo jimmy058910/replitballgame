@@ -549,11 +549,14 @@ export default function DynamicMarketplaceManager({ teamId }: { teamId: string }
                         <SelectValue placeholder="Choose a player to list..." />
                       </SelectTrigger>
                       <SelectContent>
-                        {teamPlayers?.map((player: any) => (
-                          <SelectItem key={player.id} value={player.id}>
-                            {player.firstName} {player.lastName} ({player.role}, {player.race})
-                          </SelectItem>
-                        ))}
+                        {teamPlayers
+                          ?.sort((a: any, b: any) => a.id - b.id) // Sort by ID to maintain consistent ordering
+                          ?.slice(0, 12) // Only show main roster players (first 12), exclude taxi squad
+                          ?.map((player: any) => (
+                            <SelectItem key={player.id} value={player.id}>
+                              {player.firstName} {player.lastName} ({player.role}, {player.race})
+                            </SelectItem>
+                          ))}
                       </SelectContent>
                     </Select>
                   </div>
