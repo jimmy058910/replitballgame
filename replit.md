@@ -127,7 +127,7 @@ Built as a React + Express web application with PostgreSQL database, using moder
 - ✓ **SEASON_CONFIG Updated**: Successfully updated all configuration constants to match exact specifications:
   - Division 1: 16 teams (single league)
   - Division 2: 48 teams in 3x16 sub-divisions
-  - Division 3+: 16-team sub-divisions throughout
+  - Division 3+: 8-team sub-divisions throughout
   - Bottom 6 relegation from Division 1 (11th-16th place)
   - Tournament qualifiers: 8 teams for Division 1, 4 teams for divisions 2-8
 - ✓ **Promotion/Relegation Algorithm Implemented**: Complete top-down promotion/relegation system matching specifications:
@@ -145,7 +145,7 @@ Built as a React + Express web application with PostgreSQL database, using moder
 - ✓ **Win Percentage Calculations**: Accurate win percentage and point differential calculations for promotion pool ranking
 - ✓ **Tournament Integration**: Division tournaments properly integrated with correct qualifier counts and bracket structures
 - ✓ **Database Operations**: All operations converted to Prisma syntax with proper error handling and transaction safety
-- ✓ **League Rebalancing**: Updated rebalancing logic to use correct subdivision team counts (16 teams per subdivision)
+- ✓ **League Rebalancing**: Updated rebalancing logic to use correct subdivision team counts (16 teams for Div 1&2, 8 teams for Div 3+)
 
 #### ✅ TECHNICAL IMPLEMENTATION SUCCESS - SPECIFICATIONS COMPLIANT
 - ✓ **Configuration Constants**: All SEASON_CONFIG constants updated to match documented specifications exactly

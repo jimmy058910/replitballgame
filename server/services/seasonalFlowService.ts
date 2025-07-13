@@ -38,7 +38,7 @@ export class SeasonalFlowService {
     DIVISION_1_TEAMS: 16, // Premium division - exactly 16 teams
     DIVISION_2_TEAMS: 16, // Division 2 sub-divisions - 16 teams each
     DIVISION_2_SUBDIVISIONS: 3, // Division 2 has 3 sub-divisions (48 teams total)
-    STANDARD_SUBDIVISION_TEAMS: 16, // All other divisions use 16-team subdivisions
+    STANDARD_SUBDIVISION_TEAMS: 8, // All other divisions use 8-team subdivisions
     
     // Tournament qualifiers (updated to match specifications)
     DIVISION_1_TOURNAMENT_QUALIFIERS: 8, // Top 8 teams for Division 1 tournament
@@ -48,7 +48,7 @@ export class SeasonalFlowService {
     DIVISION_1_RELEGATION: 6, // Bottom 6 teams relegated (11th-16th place)
     DIVISION_2_RELEGATION_PER_SUBDIVISION: 4, // Bottom 4 teams from each 16-team subdivision
     DIVISION_2_PROMOTION_PER_SUBDIVISION: 2, // 2 teams promoted from each Division 2 subdivision
-    STANDARD_RELEGATION_PER_SUBDIVISION: 4, // Bottom 4 teams from each 16-team subdivision
+    STANDARD_RELEGATION_PER_SUBDIVISION: 4, // Bottom 4 teams from each 8-team subdivision
     
     // Division limits
     MIN_DIVISION: 1,
@@ -174,7 +174,7 @@ export class SeasonalFlowService {
     // Each team plays 14 games over 14 days (not full round-robin)
     
     for (let day = 1; day <= this.SEASON_CONFIG.REGULAR_SEASON_DAYS; day++) {
-      // Generate 8 matches per day (16 teams = 8 matches)
+      // Generate matches per day based on team count
       const dayMatches = this.generateSubdivisionDayMatches(teams, day);
       
       for (const match of dayMatches) {
@@ -203,7 +203,7 @@ export class SeasonalFlowService {
   }
 
   /**
-   * Generate 8 matches for a subdivision day (16 teams)
+   * Generate matches for a subdivision day (8 teams = 4 matches, 16 teams = 8 matches)
    */
   static generateSubdivisionDayMatches(teams: any[], day: number): any[] {
     const matches = [];
@@ -979,9 +979,15 @@ export class SeasonalFlowService {
         where: { division }
       });
       
-      const requiredTeamsPerLeague = division === 1 
-        ? this.SEASON_CONFIG.DIVISION_1_TEAMS 
-        : this.SEASON_CONFIG.STANDARD_SUBDIVISION_TEAMS;
+      // Determine teams per league based on division
+      let requiredTeamsPerLeague;
+      if (division === 1) {
+        requiredTeamsPerLeague = this.SEASON_CONFIG.DIVISION_1_TEAMS; // 16 teams
+      } else if (division === 2) {
+        requiredTeamsPerLeague = this.SEASON_CONFIG.DIVISION_2_TEAMS; // 16 teams per subdivision
+      } else {
+        requiredTeamsPerLeague = this.SEASON_CONFIG.STANDARD_SUBDIVISION_TEAMS; // 8 teams for Div 3+
+      }
       
       const requiredLeagues = Math.ceil(divisionTeams.length / requiredTeamsPerLeague);
       
