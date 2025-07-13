@@ -245,7 +245,7 @@ export default function StaffManagement({ teamId }: StaffManagementProps) {
                   return (
                     <div key={statKey as string}>
                       <div className="flex justify-between text-sm">
-                        <span>{getStatDisplayName(stat)}</span>
+                        <span>{getStatDisplayName(statKey)}</span>
                         <span>{value || 0}/40</span>
                       </div>
                       <Progress value={((value || 0) / 40) * 100} className="h-2" />

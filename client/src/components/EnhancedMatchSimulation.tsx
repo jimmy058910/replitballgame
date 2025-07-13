@@ -611,7 +611,7 @@ class EnhancedSimulationEngine {
           player.temporaryBoosts.agility = (player.temporaryBoosts.agility || 0) + 1;
           break;
         case "Standard":
-          player.temporaryBoosts.stamina = (player.temporaryBoosts.stamina || 0) + 1;
+          player.temporaryBoosts.staminaAttribute = (player.temporaryBoosts.staminaAttribute || 0) + 1;
           break;
       }
     });
@@ -648,7 +648,7 @@ class EnhancedSimulationEngine {
     teamPlayers.forEach(player => {
       // Apply modifiers based on tactical focus
       if (modifiers.staminaDepletionModifier !== 1) {
-        player.temporaryBoosts.stamina = (player.temporaryBoosts.stamina || 0) + 
+        player.temporaryBoosts.staminaAttribute = (player.temporaryBoosts.staminaAttribute || 0) + 
           Math.floor((1 - modifiers.staminaDepletionModifier) * 5);
       }
       
@@ -779,7 +779,7 @@ class EnhancedSimulationEngine {
       // Enhanced coaching improves team coordination and reduces stamina loss
       this.players.filter(p => p.teamId === this.team1.id).forEach(player => {
         player.temporaryBoosts.leadership = (player.temporaryBoosts.leadership || 0) + Math.floor(coachEffectiveness * 3);
-        player.temporaryBoosts.stamina = (player.temporaryBoosts.stamina || 0) + Math.floor(coachEffectiveness * 2);
+        player.temporaryBoosts.staminaAttribute = (player.temporaryBoosts.staminaAttribute || 0) + Math.floor(coachEffectiveness * 2);
       });
     }
     
@@ -787,7 +787,7 @@ class EnhancedSimulationEngine {
       const coachEffectiveness = (team2Coach.coachingRating || 20) / 40; // 0-1 scale
       this.players.filter(p => p.teamId === this.team2.id).forEach(player => {
         player.temporaryBoosts.leadership = (player.temporaryBoosts.leadership || 0) + Math.floor(coachEffectiveness * 3);
-        player.temporaryBoosts.stamina = (player.temporaryBoosts.stamina || 0) + Math.floor(coachEffectiveness * 2);
+        player.temporaryBoosts.staminaAttribute = (player.temporaryBoosts.staminaAttribute || 0) + Math.floor(coachEffectiveness * 2);
       });
     }
 
