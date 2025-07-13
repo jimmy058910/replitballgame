@@ -109,7 +109,11 @@ class WebSocketService {
           // Send current match state if live
           const liveState = matchStateManager.getLiveMatchState(data.matchId);
           if (liveState) {
-            socket.emit('match_state_update', this.serializeLiveState(liveState));
+            const serializedState = this.serializeLiveState(liveState);
+            console.log(`📤 Sending match state to user ${user.userId}:`, serializedState);
+            socket.emit('match_state_update', serializedState);
+          } else {
+            console.log(`⚠️ No live state found for match ${data.matchId}`);
           }
 
           socket.emit('joined_match', { 

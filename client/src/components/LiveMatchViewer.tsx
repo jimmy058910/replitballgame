@@ -50,10 +50,12 @@ export function LiveMatchViewer({ matchId, userId, onMatchComplete }: LiveMatchV
         // Set up callbacks
         const callbacks: WebSocketCallbacks = {
           onMatchUpdate: (state: LiveMatchState) => {
+            console.log('📊 Match state update received:', state);
             setMatchState(state);
             setEvents(state.gameEvents || []);
           },
           onMatchEvent: (event: MatchEvent) => {
+            console.log('🎯 Match event received:', event);
             setEvents(prev => [...prev, event]);
             
             // Show important events as toast notifications
@@ -68,6 +70,7 @@ export function LiveMatchViewer({ matchId, userId, onMatchComplete }: LiveMatchV
             }
           },
           onMatchComplete: (data) => {
+            console.log('🏁 Match complete received:', data);
             setMatchState(data.finalState);
             setEvents(data.finalState.gameEvents || []);
             onMatchComplete?.(data.finalState);
@@ -77,11 +80,22 @@ export function LiveMatchViewer({ matchId, userId, onMatchComplete }: LiveMatchV
               duration: 5000,
             });
           },
-          onConnect: () => {
-            setIsConnected(true);
-          },
-          onDisconnect: () => {
-            setIsConnected(false);
+          onConnectionStatus: (connected: boolean) => {
+            console.log('🔌 Connection status:', connected);
+            setIsConnected(connected);
+            if (connected) {
+              toast({
+                title: '🔌 Connected',
+                description: 'Real-time updates enabled',
+                duration: 2000,
+              });
+            } else {
+              toast({
+                title: '🔌 Disconnected',
+                description: 'Attempting to reconnect...',
+                duration: 2000,
+              });
+            }
           },
           onError: (error) => {
             console.error('WebSocket error:', error);
