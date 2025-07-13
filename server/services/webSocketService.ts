@@ -107,15 +107,21 @@ class WebSocketService {
           this.matchRooms.get(data.matchId)!.add(user.userId);
 
           // Send current match state if live
-          console.log(`🔍 Checking for live state for match ${data.matchId}...`);
-          const liveState = matchStateManager.getLiveMatchState(data.matchId);
-          console.log(`🔍 Live state result:`, liveState ? 'FOUND' : 'NOT FOUND');
-          if (liveState) {
-            const serializedState = this.serializeLiveState(liveState);
-            console.log(`📤 Sending match state to user ${user.userId} - GameTime: ${liveState.gameTime}, Score: ${liveState.homeScore}-${liveState.awayScore}`);
-            socket.emit('match_state_update', serializedState);
-          } else {
-            console.log(`⚠️ No live state found for match ${data.matchId}`);
+          console.log(`🔍 BEFORE getLiveMatchState call for match ${data.matchId}`);
+          try {
+            const liveState = matchStateManager.getLiveMatchState(data.matchId);
+            console.log(`🔍 AFTER getLiveMatchState call - result:`, liveState ? 'FOUND' : 'NOT FOUND');
+            if (liveState) {
+              console.log(`🔍 Live state details - GameTime: ${liveState.gameTime}, Score: ${liveState.homeScore}-${liveState.awayScore}`);
+              const serializedState = this.serializeLiveState(liveState);
+              console.log(`📤 Sending match state to user ${user.userId}`);
+              socket.emit('match_state_update', serializedState);
+              console.log(`✅ Match state sent successfully`);
+            } else {
+              console.log(`⚠️ No live state found for match ${data.matchId}`);
+            }
+          } catch (error) {
+            console.log(`❌ Error getting live state:`, error);
           }
 
           socket.emit('joined_match', { 
