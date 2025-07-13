@@ -123,7 +123,7 @@ export default function PlayerListingModal({ player, isOpen, onClose }: PlayerLi
               <div>Speed: {player.speed}</div>
               <div>Agility: {player.agility}</div>
               <div>Power: {player.power}</div>
-              <div>Stamina: {player.stamina}</div>
+              <div>Stamina: {player.staminaAttribute}</div>
             </div>
           </CardContent>
         </Card>

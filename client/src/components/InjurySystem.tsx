@@ -171,8 +171,8 @@ export default function InjurySystem() {
     
     if (player.age > 30) risk += 15;
     if (player.age > 35) risk += 25;
-    if (player.stamina < 60) risk += 20;
-    if (player.stamina < 40) risk += 30;
+    if (player.staminaAttribute < 60) risk += 20;
+    if (player.staminaAttribute < 40) risk += 30;
     
     // Check recent injury history
     const recentInjuries = injuryHistory?.filter((injury: PlayerInjury) => 
@@ -417,8 +417,8 @@ export default function InjurySystem() {
                         </div>
                         <div className="flex justify-between text-sm">
                           <span>Stamina:</span>
-                          <span className={player.stamina < 60 ? 'text-red-600' : 'text-green-600'}>
-                            {player.stamina}
+                          <span className={player.staminaAttribute < 60 ? 'text-red-600' : 'text-green-600'}>
+                            {player.staminaAttribute}
                           </span>
                         </div>
                         <div className="flex justify-between text-sm">

@@ -21,7 +21,7 @@ const ROLE_STATS = {
     { key: 'agility', abbr: 'AGI' },
     { key: 'speed', abbr: 'SPD' },
     { key: 'catching', abbr: 'CAT' },
-    { key: 'stamina', abbr: 'STA' },
+    { key: 'staminaAttribute', abbr: 'STA' },
     { key: 'leadership', abbr: 'LDR' }
   ],
   'Runner': [
@@ -29,14 +29,14 @@ const ROLE_STATS = {
     { key: 'agility', abbr: 'AGI' },
     { key: 'power', abbr: 'PWR' },
     { key: 'catching', abbr: 'CAT' },
-    { key: 'stamina', abbr: 'STA' },
+    { key: 'staminaAttribute', abbr: 'STA' },
     { key: 'kicking', abbr: 'KCK' }
   ],
   'Blocker': [
     { key: 'power', abbr: 'PWR' },
     { key: 'agility', abbr: 'AGI' },
     { key: 'speed', abbr: 'SPD' },
-    { key: 'stamina', abbr: 'STA' },
+    { key: 'staminaAttribute', abbr: 'STA' },
     { key: 'leadership', abbr: 'LDR' },
     { key: 'catching', abbr: 'CAT' }
   ]

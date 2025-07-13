@@ -54,7 +54,7 @@ export default function MarketplaceItem({ player, onBid, isLoading }: Marketplac
     parseFloat(player.throwingPotential || "0"),
     parseFloat(player.catchingPotential || "0"),
     parseFloat(player.kickingPotential || "0"),
-    parseFloat(player.staminaPotential || "0"),
+    parseFloat(player.staminaAttributePotential || "0"),
     parseFloat(player.leadershipPotential || "0"),
     parseFloat(player.agilityPotential || "0"),
   ].reduce((a, b) => a + b, 0) / 8;
@@ -65,7 +65,7 @@ export default function MarketplaceItem({ player, onBid, isLoading }: Marketplac
     { name: "Throwing", value: player.throwing },
     { name: "Catching", value: player.catching },
     { name: "Agility", value: player.agility },
-    { name: "Stamina", value: player.stamina },
+    { name: "Stamina", value: player.staminaAttribute },
   ]
     .sort((a, b) => b.value - a.value)
     .slice(0, 2);

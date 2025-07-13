@@ -27,7 +27,7 @@ type TaxiPlayer = Player & {
 const getPotentialStars = (player: TaxiPlayer) => {
   const totalStats = (player.speed ?? 20) + (player.power ?? 20) + (player.throwing ?? 20) +
                     (player.catching ?? 20) + (player.kicking ?? 20) + (player.agility ?? 20) +
-                    (player.stamina ?? 20) + (player.leadership ?? 20);
+                    (player.staminaAttribute ?? 20) + (player.leadership ?? 20);
   
   // Base potential calculation (young players have more potential)
   // Player.age is number, so no need for typeof check
@@ -245,7 +245,7 @@ export function TaxiSquadManager({ teamId, onNavigateToRecruiting }: TaxiSquadMa
                             <div className="text-xs text-gray-400">PWR</div>
                           </div>
                           <div className="text-center p-2 bg-gray-700/50 rounded">
-                            <div className="text-lg font-bold text-yellow-400">{player.stamina}</div>
+                            <div className="text-lg font-bold text-yellow-400">{player.staminaAttribute}</div>
                             <div className="text-xs text-gray-400">STA</div>
                           </div>
                           <div className="text-center p-2 bg-gray-700/50 rounded">
