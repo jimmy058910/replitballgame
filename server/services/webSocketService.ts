@@ -106,6 +106,14 @@ class WebSocketService {
           }
           this.matchRooms.get(data.matchId)!.add(user.userId);
 
+          socket.emit('joined_match', { 
+            matchId: data.matchId,
+            roomName: roomName,
+            spectatorCount: this.matchRooms.get(data.matchId)!.size
+          });
+
+          log(`🏟️ User ${user.userId} joined match ${data.matchId}`);
+          
           // Send current match state if live
           log(`🔍 BEFORE getLiveMatchState call for match ${data.matchId}`);
           try {
@@ -123,17 +131,6 @@ class WebSocketService {
           } catch (error) {
             log(`❌ Error getting live state: ${error}`);
           }
-
-          socket.emit('joined_match', { 
-            matchId: data.matchId,
-            roomName: roomName,
-            spectatorCount: this.matchRooms.get(data.matchId)!.size
-          });
-
-          log(`🏟️ User ${user.userId} joined match ${data.matchId}`);
-          
-          // DEBUGGING: Check if the rest of the code executes
-          console.log(`🔍 DEBUG: About to check for live state for match ${data.matchId}`);
         } catch (error) {
           log(`❌ Error joining match: ${error}`);
           socket.emit('error', { message: 'Failed to join match' });
