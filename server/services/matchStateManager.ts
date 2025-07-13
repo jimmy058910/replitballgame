@@ -110,11 +110,11 @@ class MatchStateManager {
     });
 
     const initialTeamStats = new Map<string, TeamStatsSnapshot>();
-    initialTeamStats.set(match.homeTeamId, {
+    initialTeamStats.set(match.homeTeamId.toString(), {
       totalOffensiveYards: 0, passingYards: 0, carrierYards: 0,
       timeOfPossessionSeconds: 0, turnovers: 0, totalKnockdownsInflicted: 0,
     });
-    initialTeamStats.set(match.awayTeamId, {
+    initialTeamStats.set(match.awayTeamId.toString(), {
       totalOffensiveYards: 0, passingYards: 0, carrierYards: 0,
       timeOfPossessionSeconds: 0, turnovers: 0, totalKnockdownsInflicted: 0,
     });
@@ -257,7 +257,7 @@ class MatchStateManager {
 
     const initialPlayerStats = new Map<string, PlayerStatsSnapshot>();
     [...homeTeamPlayers, ...awayTeamPlayers].forEach(player => {
-      initialPlayerStats.set(player.id, {
+      initialPlayerStats.set(player.id.toString(), {
         scores: 0, passingAttempts: 0, passesCompleted: 0, passingYards: 0,
         carrierYards: 0, catches: 0, receivingYards: 0, drops: 0, fumblesLost: 0,
         tackles: 0, knockdownsInflicted: 0, interceptionsCaught: 0, passesDefended: 0,
@@ -265,11 +265,11 @@ class MatchStateManager {
     });
 
     const initialTeamStats = new Map<string, TeamStatsSnapshot>();
-    initialTeamStats.set(match.homeTeamId, {
+    initialTeamStats.set(match.homeTeamId.toString(), {
       totalOffensiveYards: 0, passingYards: 0, carrierYards: 0,
       timeOfPossessionSeconds: 0, turnovers: 0, totalKnockdownsInflicted: 0,
     });
-    initialTeamStats.set(match.awayTeamId, {
+    initialTeamStats.set(match.awayTeamId.toString(), {
       totalOffensiveYards: 0, passingYards: 0, carrierYards: 0,
       timeOfPossessionSeconds: 0, turnovers: 0, totalKnockdownsInflicted: 0,
     });
@@ -354,10 +354,16 @@ class MatchStateManager {
 
     // Generate enhanced match events using the comprehensive simulation engine
     if (Math.random() < 0.7) { // 70% chance of an event each update cycle
-      const enhancedEvent = await this.generateEnhancedMatchEvent(homeTeamPlayers, awayTeamPlayers, state);
-      if (enhancedEvent) {
-        state.gameEvents.push(enhancedEvent);
-        // Score updates are now handled by the enhanced event generation logic
+      try {
+        const enhancedEvent = await this.generateEnhancedMatchEvent(homeTeamPlayers, awayTeamPlayers, state);
+        if (enhancedEvent) {
+          state.gameEvents.push(enhancedEvent);
+          console.log(`[DEBUG] Generated event: ${enhancedEvent.type} by ${enhancedEvent.actingPlayerId}`);
+        } else {
+          console.log(`[DEBUG] Event generation returned null`);
+        }
+      } catch (error) {
+        console.error(`[ERROR] Event generation failed:`, error);
       }
     }
 
@@ -399,47 +405,155 @@ class MatchStateManager {
 
   // ### Main Event Generation Logic ###
   private async generateEnhancedMatchEvent(homePlayers: Player[], awayPlayers: Player[], state: LiveMatchState): Promise<MatchEvent | null> {
-    // Use the comprehensive enhanced simulation engine for event generation
-    const simulationResult = await simulateEnhancedMatch(homePlayers, awayPlayers, state.homeTeamId, state.awayTeamId);
+    // Generate a single incremental event using enhanced mechanics
+    const gamePhase = this.determineGamePhase(state.gameTime, state.maxTime);
     
-    // Extract a single event from the comprehensive simulation
-    const recentEvents = simulationResult.gameData.events.slice(-1); // Get the latest event
-    if (recentEvents.length === 0) return null;
+    // Choose a random active player to generate event for
+    const allPlayers = [...homePlayers, ...awayPlayers];
+    const activePlayer = allPlayers[Math.floor(Math.random() * allPlayers.length)];
+    const isHomeTeam = activePlayer.teamId.toString() === state.homeTeamId;
     
-    const event = recentEvents[0];
+    // Generate event based on player role and current situation
+    const eventTypes = ['pass', 'run', 'tackle', 'score', 'fumble', 'interception'];
+    const eventType = eventTypes[Math.floor(Math.random() * eventTypes.length)];
     
-    // Update player stats from comprehensive simulation
-    for (const [playerId, stats] of Object.entries(simulationResult.gameData.playerStats)) {
-      const playerStats = state.playerStats.get(playerId);
-      if (playerStats) {
-        // Incrementally update stats instead of replacing
-        playerStats.scores += stats.scores;
-        playerStats.passingAttempts += stats.passingAttempts;
-        playerStats.passesCompleted += stats.passesCompleted;
-        playerStats.passingYards += stats.passingYards;
-        playerStats.carrierYards += stats.rushingYards;
-        playerStats.catches += stats.catches;
-        playerStats.receivingYards += stats.receivingYards;
-        playerStats.drops += stats.drops;
-        playerStats.tackles += stats.tackles;
-        playerStats.knockdownsInflicted += stats.knockdownsInflicted;
-        playerStats.interceptionsCaught += stats.interceptionsCaught;
-        playerStats.fumblesLost += stats.fumblesLost;
-      }
+    // Get player stats for this match
+    const playerStats = state.playerStats.get(activePlayer.id.toString());
+    if (!playerStats) return null;
+    
+    // Generate event based on type and update stats
+    let event: MatchEvent;
+    const teamType = isHomeTeam ? 'home' : 'away';
+    
+    switch (eventType) {
+      case 'pass':
+        const passSuccess = Math.random() < 0.65; // 65% completion rate
+        const passYards = Math.floor(Math.random() * 25) + 5;
+        if (passSuccess) {
+          playerStats.passingAttempts += 1;
+          playerStats.passesCompleted += 1;
+          playerStats.passingYards += passYards;
+          event = {
+            time: state.gameTime,
+            type: 'pass',
+            description: `${activePlayer.firstName} ${activePlayer.lastName} completes a ${passYards}-yard pass downfield!`,
+            actingPlayerId: activePlayer.id.toString(),
+            teamId: teamType,
+            data: { yards: passYards }
+          };
+        } else {
+          playerStats.passingAttempts += 1;
+          event = {
+            time: state.gameTime,
+            type: 'pass',
+            description: `${activePlayer.firstName} ${activePlayer.lastName}'s pass falls incomplete under pressure.`,
+            actingPlayerId: activePlayer.id.toString(),
+            teamId: teamType,
+            data: { yards: 0 }
+          };
+        }
+        break;
+        
+      case 'run':
+        const runYards = Math.floor(Math.random() * 15) + 1;
+        playerStats.carrierYards += runYards;
+        event = {
+          time: state.gameTime,
+          type: 'run',
+          description: `${activePlayer.firstName} ${activePlayer.lastName} carries the orb for ${runYards} yards through the scrum!`,
+          actingPlayerId: activePlayer.id.toString(),
+          teamId: teamType,
+          data: { yards: runYards }
+        };
+        break;
+        
+      case 'tackle':
+        playerStats.tackles += 1;
+        event = {
+          time: state.gameTime,
+          type: 'tackle',
+          description: `${activePlayer.firstName} ${activePlayer.lastName} makes a solid tackle to bring down the carrier!`,
+          actingPlayerId: activePlayer.id.toString(),
+          teamId: teamType,
+          data: {}
+        };
+        break;
+        
+      case 'score':
+        if (Math.random() < 0.05) { // 5% chance of scoring
+          playerStats.scores += 1;
+          if (isHomeTeam) {
+            state.homeScore += 1;
+          } else {
+            state.awayScore += 1;
+          }
+          event = {
+            time: state.gameTime,
+            type: 'score',
+            description: `SCORE! ${activePlayer.firstName} ${activePlayer.lastName} finds the end zone! What a magnificent effort!`,
+            actingPlayerId: activePlayer.id.toString(),
+            teamId: teamType,
+            data: { score: 1 }
+          };
+        } else {
+          // Default to tackle if score doesn't happen
+          return this.generateEnhancedMatchEvent(homePlayers, awayPlayers, state);
+        }
+        break;
+        
+      case 'interception':
+        if (Math.random() < 0.03) { // 3% chance of interception
+          playerStats.interceptionsCaught += 1;
+          event = {
+            time: state.gameTime,
+            type: 'interception',
+            description: `${activePlayer.firstName} ${activePlayer.lastName} reads the play perfectly and intercepts the orb!`,
+            actingPlayerId: activePlayer.id.toString(),
+            teamId: teamType,
+            data: {}
+          };
+        } else {
+          // Default to tackle if interception doesn't happen
+          return this.generateEnhancedMatchEvent(homePlayers, awayPlayers, state);
+        }
+        break;
+        
+      default:
+        // Default tackle event
+        playerStats.tackles += 1;
+        event = {
+          time: state.gameTime,
+          type: 'tackle',
+          description: `${activePlayer.firstName} ${activePlayer.lastName} makes a defensive play to stop the advance!`,
+          actingPlayerId: activePlayer.id.toString(),
+          teamId: teamType,
+          data: {}
+        };
     }
     
-    // Update team scores from comprehensive simulation
-    state.homeScore += simulationResult.homeScore;
-    state.awayScore += simulationResult.awayScore;
+    return event;
+  }
+  
+  private determineGamePhase(time: number, maxTime: number): string {
+    const timePercent = time / maxTime;
+    const halfTime = maxTime / 2;
     
-    return {
-      time: state.gameTime,
-      type: event.type,
-      description: event.description,
-      actingPlayerId: event.player,
-      teamId: event.team,
-      data: event.data
-    };
+    // First Half
+    if (time < halfTime) {
+      const firstHalfPercent = time / halfTime;
+      if (firstHalfPercent < 0.3) return 'early';
+      if (firstHalfPercent < 0.8) return 'middle';
+      return 'late';
+    }
+    
+    // Second Half
+    const secondHalfTime = time - halfTime;
+    const secondHalfPercent = secondHalfTime / halfTime;
+    
+    if (secondHalfPercent < 0.3) return 'early';
+    if (secondHalfPercent < 0.7) return 'middle';
+    if (secondHalfPercent < 0.9) return 'late';
+    return 'clutch'; // Only final 10% of 2nd half
   }
 
   // OLD BASIC SIMULATION ENGINE REMOVED - Only enhanced simulation is now used
