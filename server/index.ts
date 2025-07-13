@@ -1,10 +1,13 @@
 import express, { type Request, Response, NextFunction } from "express";
 import { createServer } from "http"; // Import createServer
+import { Server as SocketIOServer } from "socket.io";
 import { setupAuth } from "./replitAuth"; // Import setupAuth
 import { registerAllRoutes } from "./routes/index"; // Updated import
 import { setupVite, serveStatic, log } from "./vite";
 import { requestIdMiddleware } from "./middleware/requestId";
 import { errorHandler, logInfo } from "./services/errorService";
+import { setupWebSocketServer, webSocketService } from "./services/webSocketService";
+import { matchStateManager } from "./services/matchStateManager";
 
 const app = express();
 app.use(express.json());
@@ -105,6 +108,25 @@ app.use((req, res, next) => {
   // Create HTTP server instance from the Express app
   const httpServer = createServer(app);
 
+  // Create Socket.IO server instance
+  const io = new SocketIOServer(httpServer, {
+    path: '/ws',
+    cors: {
+      origin: "*",
+      methods: ["GET", "POST"]
+    }
+  });
+
+  // Setup WebSocket server with Socket.IO
+  await setupWebSocketServer(io);
+
+  // Connect WebSocket service to match state manager
+  matchStateManager.setWebSocketService(webSocketService);
+
+  // Initialize match state recovery system
+  log(`🔄 Initializing match state recovery system...`);
+  await matchStateManager.recoverLiveMatches();
+
   // Global error handler using centralized error service
   app.use(errorHandler);
 
@@ -122,5 +144,6 @@ app.use((req, res, next) => {
     reusePort: true,
   }, () => {
     log(`Server listening on port ${port}`);
+    log(`WebSocket server listening on /ws`);
   });
 })();

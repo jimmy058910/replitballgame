@@ -1,0 +1,433 @@
+import React, { useState, useEffect, useRef } from 'react';
+import { useQuery } from '@tanstack/react-query';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Progress } from '@/components/ui/progress';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { Separator } from '@/components/ui/separator';
+import { Play, Pause, Clock, Users, Trophy } from 'lucide-react';
+import webSocketManager, { LiveMatchState, MatchEvent, WebSocketCallbacks } from '@/lib/websocket';
+import { useToast } from '@/hooks/use-toast';
+
+interface LiveMatchViewerProps {
+  matchId: string;
+  userId: string;
+  onMatchComplete?: (finalState: LiveMatchState) => void;
+}
+
+export function LiveMatchViewer({ matchId, userId, onMatchComplete }: LiveMatchViewerProps) {
+  const [matchState, setMatchState] = useState<LiveMatchState | null>(null);
+  const [isConnected, setIsConnected] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [events, setEvents] = useState<MatchEvent[]>([]);
+  const [isControlling, setIsControlling] = useState(false);
+  const eventsEndRef = useRef<HTMLDivElement>(null);
+  const { toast } = useToast();
+
+  // Fetch initial match data
+  const { data: initialMatchData, error: matchError } = useQuery({
+    queryKey: ['/api/matches', matchId],
+    enabled: !!matchId
+  });
+
+  // Auto-scroll to bottom of events
+  useEffect(() => {
+    eventsEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [events]);
+
+  // WebSocket connection and event handling
+  useEffect(() => {
+    if (!matchId || !userId) return;
+
+    const initializeWebSocket = async () => {
+      try {
+        setIsLoading(true);
+        
+        // Connect to WebSocket
+        await webSocketManager.connect(userId);
+        
+        // Set up callbacks
+        const callbacks: WebSocketCallbacks = {
+          onMatchUpdate: (state: LiveMatchState) => {
+            setMatchState(state);
+            setEvents(state.gameEvents || []);
+          },
+          onMatchEvent: (event: MatchEvent) => {
+            setEvents(prev => [...prev, event]);
+            
+            // Show important events as toast notifications
+            if (event.type === 'score' || event.type === 'halftime' || event.type === 'interception') {
+              toast({
+                title: event.type === 'score' ? '🏆 SCORE!' : 
+                       event.type === 'halftime' ? '⏰ Halftime' : 
+                       '🚫 Interception',
+                description: event.description,
+                duration: 3000,
+              });
+            }
+          },
+          onMatchComplete: (data) => {
+            setMatchState(data.finalState);
+            setEvents(data.finalState.gameEvents || []);
+            onMatchComplete?.(data.finalState);
+            toast({
+              title: '🏁 Match Complete!',
+              description: `Final Score: ${data.finalState.homeScore} - ${data.finalState.awayScore}`,
+              duration: 5000,
+            });
+          },
+          onMatchStarted: () => {
+            toast({
+              title: '🚀 Match Started!',
+              description: 'Live simulation is now running',
+              duration: 3000,
+            });
+          },
+          onMatchPaused: () => {
+            toast({
+              title: '⏸️ Match Paused',
+              description: 'Match simulation has been paused',
+              duration: 3000,
+            });
+          },
+          onMatchResumed: () => {
+            toast({
+              title: '▶️ Match Resumed',
+              description: 'Match simulation has been resumed',
+              duration: 3000,
+            });
+          },
+          onConnectionStatus: (connected: boolean) => {
+            setIsConnected(connected);
+            if (connected) {
+              toast({
+                title: '🔌 Connected',
+                description: 'Real-time updates enabled',
+                duration: 2000,
+              });
+            } else {
+              toast({
+                title: '🔌 Disconnected',
+                description: 'Attempting to reconnect...',
+                duration: 2000,
+              });
+            }
+          },
+          onError: (error) => {
+            toast({
+              title: '❌ WebSocket Error',
+              description: error.message,
+              variant: 'destructive',
+              duration: 4000,
+            });
+          }
+        };
+
+        webSocketManager.setCallbacks(callbacks);
+        
+        // Join match room
+        await webSocketManager.joinMatch(matchId);
+        
+        setIsLoading(false);
+      } catch (error) {
+        console.error('Failed to initialize WebSocket:', error);
+        setIsLoading(false);
+        toast({
+          title: '❌ Connection Failed',
+          description: 'Failed to connect to live match',
+          variant: 'destructive',
+          duration: 4000,
+        });
+      }
+    };
+
+    initializeWebSocket();
+
+    // Cleanup on unmount
+    return () => {
+      webSocketManager.leaveMatch();
+    };
+  }, [matchId, userId, toast, onMatchComplete]);
+
+  // Match control functions
+  const startMatch = async () => {
+    if (!matchId) return;
+    
+    setIsControlling(true);
+    try {
+      const isExhibition = initialMatchData?.matchType === 'exhibition';
+      await webSocketManager.startMatch(matchId, isExhibition);
+    } catch (error) {
+      toast({
+        title: '❌ Failed to Start Match',
+        description: error instanceof Error ? error.message : 'Unknown error',
+        variant: 'destructive',
+        duration: 4000,
+      });
+    } finally {
+      setIsControlling(false);
+    }
+  };
+
+  const pauseMatch = async () => {
+    if (!matchId) return;
+    
+    setIsControlling(true);
+    try {
+      await webSocketManager.pauseMatch(matchId);
+    } catch (error) {
+      toast({
+        title: '❌ Failed to Pause Match',
+        description: error instanceof Error ? error.message : 'Unknown error',
+        variant: 'destructive',
+        duration: 4000,
+      });
+    } finally {
+      setIsControlling(false);
+    }
+  };
+
+  const resumeMatch = async () => {
+    if (!matchId) return;
+    
+    setIsControlling(true);
+    try {
+      await webSocketManager.resumeMatch(matchId);
+    } catch (error) {
+      toast({
+        title: '❌ Failed to Resume Match',
+        description: error instanceof Error ? error.message : 'Unknown error',
+        variant: 'destructive',
+        duration: 4000,
+      });
+    } finally {
+      setIsControlling(false);
+    }
+  };
+
+  // Calculate game progress percentage
+  const getGameProgress = () => {
+    if (!matchState) return 0;
+    return Math.min((matchState.gameTime / matchState.maxTime) * 100, 100);
+  };
+
+  // Format time display
+  const formatGameTime = (seconds: number) => {
+    const minutes = Math.floor(seconds / 60);
+    const remainingSeconds = seconds % 60;
+    return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
+  };
+
+  // Get MVP from latest events
+  const getCurrentMVP = () => {
+    const halftimeEvent = events.find(e => e.type === 'halftime');
+    const completionEvent = events.find(e => e.type === 'match_complete');
+    
+    const mvpData = completionEvent?.data?.mvp || halftimeEvent?.data?.mvp;
+    return mvpData;
+  };
+
+  if (isLoading) {
+    return (
+      <Card className="w-full max-w-4xl mx-auto">
+        <CardContent className="flex items-center justify-center h-64">
+          <div className="flex items-center space-x-2">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+            <span>Connecting to live match...</span>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  if (matchError) {
+    return (
+      <Card className="w-full max-w-4xl mx-auto">
+        <CardContent className="flex items-center justify-center h-64">
+          <div className="text-center">
+            <h3 className="text-lg font-semibold text-destructive">Failed to Load Match</h3>
+            <p className="text-muted-foreground">Please try refreshing the page</p>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  return (
+    <div className="w-full max-w-6xl mx-auto space-y-4">
+      {/* Connection Status */}
+      <div className="flex items-center justify-between">
+        <div className="flex items-center space-x-2">
+          <div className={`w-3 h-3 rounded-full ${isConnected ? 'bg-green-500' : 'bg-red-500'}`} />
+          <span className="text-sm">
+            {isConnected ? 'Live Connection Active' : 'Connection Lost'}
+          </span>
+        </div>
+        
+        {/* Match Controls */}
+        {matchState && (
+          <div className="flex items-center space-x-2">
+            {matchState.status === 'live' ? (
+              <Button 
+                onClick={pauseMatch} 
+                disabled={isControlling}
+                size="sm"
+                variant="outline"
+              >
+                <Pause className="h-4 w-4 mr-1" />
+                Pause
+              </Button>
+            ) : matchState.status === 'paused' ? (
+              <Button 
+                onClick={resumeMatch} 
+                disabled={isControlling}
+                size="sm"
+                variant="outline"
+              >
+                <Play className="h-4 w-4 mr-1" />
+                Resume
+              </Button>
+            ) : matchState.status === 'completed' ? (
+              <Badge variant="secondary">Match Complete</Badge>
+            ) : (
+              <Button 
+                onClick={startMatch} 
+                disabled={isControlling}
+                size="sm"
+              >
+                <Play className="h-4 w-4 mr-1" />
+                Start Match
+              </Button>
+            )}
+          </div>
+        )}
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+        {/* Main Match Display */}
+        <div className="lg:col-span-2 space-y-4">
+          {/* Scoreboard */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center justify-between">
+                <span>Live Match</span>
+                <Badge variant={matchState?.status === 'live' ? 'default' : 'secondary'}>
+                  {matchState?.status?.toUpperCase() || 'LOADING'}
+                </Badge>
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              {matchState ? (
+                <div className="space-y-4">
+                  {/* Score Display */}
+                  <div className="flex items-center justify-between text-3xl font-bold">
+                    <div className="text-center">
+                      <div>{matchState.homeScore}</div>
+                      <div className="text-sm font-normal text-muted-foreground">Home</div>
+                    </div>
+                    <div className="text-center">
+                      <div className="text-lg">VS</div>
+                    </div>
+                    <div className="text-center">
+                      <div>{matchState.awayScore}</div>
+                      <div className="text-sm font-normal text-muted-foreground">Away</div>
+                    </div>
+                  </div>
+
+                  {/* Game Progress */}
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between text-sm">
+                      <span className="flex items-center">
+                        <Clock className="h-4 w-4 mr-1" />
+                        {formatGameTime(matchState.gameTime)} / {formatGameTime(matchState.maxTime)}
+                      </span>
+                      <span>Half {matchState.currentHalf}</span>
+                    </div>
+                    <Progress value={getGameProgress()} className="h-2" />
+                  </div>
+
+                  {/* MVP Display */}
+                  {getCurrentMVP() && (
+                    <div className="border rounded-lg p-3 bg-muted/50">
+                      <h4 className="font-semibold flex items-center mb-2">
+                        <Trophy className="h-4 w-4 mr-1" />
+                        Current MVP
+                      </h4>
+                      <div className="grid grid-cols-2 gap-4 text-sm">
+                        <div>
+                          <div className="font-medium">Home: {getCurrentMVP()?.homeMVP?.playerName || 'None'}</div>
+                          <div className="text-muted-foreground">Score: {getCurrentMVP()?.homeMVP?.score?.toFixed(1) || '0.0'}</div>
+                        </div>
+                        <div>
+                          <div className="font-medium">Away: {getCurrentMVP()?.awayMVP?.playerName || 'None'}</div>
+                          <div className="text-muted-foreground">Score: {getCurrentMVP()?.awayMVP?.score?.toFixed(1) || '0.0'}</div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <div className="text-center py-8 text-muted-foreground">
+                  Waiting for match data...
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Live Commentary Feed */}
+        <div className="space-y-4">
+          <Card className="h-[600px] flex flex-col">
+            <CardHeader className="pb-3">
+              <CardTitle className="flex items-center">
+                <Users className="h-4 w-4 mr-2" />
+                Live Commentary
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="flex-1 p-0">
+              <ScrollArea className="h-full px-4">
+                <div className="space-y-3 pb-4">
+                  {events.length > 0 ? (
+                    events.map((event, index) => (
+                      <div key={index} className="border-l-2 border-primary pl-3">
+                        <div className="flex items-center justify-between mb-1">
+                          <Badge variant="outline" size="sm">
+                            {formatGameTime(event.time)}
+                          </Badge>
+                          <Badge 
+                            variant={
+                              event.type === 'score' ? 'default' :
+                              event.type === 'halftime' ? 'secondary' :
+                              event.type === 'interception' ? 'destructive' :
+                              'outline'
+                            }
+                            size="sm"
+                          >
+                            {event.type}
+                          </Badge>
+                        </div>
+                        <p className="text-sm">{event.description}</p>
+                        {index < events.length - 1 && <Separator className="mt-3" />}
+                      </div>
+                    ))
+                  ) : (
+                    <div className="text-center py-8 text-muted-foreground">
+                      {matchState?.status === 'live' ? 
+                        'Commentary will appear here as the match progresses...' :
+                        'Match not yet started'
+                      }
+                    </div>
+                  )}
+                  <div ref={eventsEndRef} />
+                </div>
+              </ScrollArea>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export default LiveMatchViewer;

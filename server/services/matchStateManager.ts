@@ -3,6 +3,7 @@ import type { Game, Player, Stadium, Team } from "../../generated/prisma";
 import { commentaryService } from "./commentaryService";
 import { injuryStaminaService } from "./injuryStaminaService";
 import { simulateEnhancedMatch } from "./matchSimulation";
+import { log } from "../vite";
 
 // Helper type for player stats snapshot
 type PlayerStatsSnapshot = {
@@ -71,6 +72,12 @@ interface MatchEvent {
 class MatchStateManager {
   private liveMatches: Map<string, LiveMatchState> = new Map();
   private matchIntervals: Map<string, NodeJS.Timeout> = new Map();
+  private webSocketService: any = null; // Will be injected by WebSocket service
+
+  // Set WebSocket service for broadcasting
+  setWebSocketService(webSocketService: any) {
+    this.webSocketService = webSocketService;
+  }
 
   // Save live match state to database
   private async saveLiveStateToDatabase(matchId: string, liveState: LiveMatchState): Promise<void> {
@@ -163,7 +170,7 @@ class MatchStateManager {
         }
       });
 
-      console.log(`🔄 Attempting to recover ${activeMatches.length} live matches from database`);
+      log(`🔄 Attempting to recover ${activeMatches.length} live matches from database`);
 
       for (const match of activeMatches) {
         const liveState = await this.loadLiveStateFromDatabase(match.id.toString());
@@ -180,11 +187,11 @@ class MatchStateManager {
 
           // Resume match simulation
           this.startMatchSimulation(match.id.toString(), homeTeamPlayers, awayTeamPlayers);
-          console.log(`✅ Recovered live match ${match.id} with ${liveState.gameEvents.length} events`);
+          log(`✅ Recovered live match ${match.id} with ${liveState.gameEvents.length} events`);
         }
       }
     } catch (error) {
-      console.error("Failed to recover live matches:", error);
+      log(`❌ Failed to recover live matches: ${error}`);
     }
   }
 
@@ -283,6 +290,58 @@ class MatchStateManager {
   // Get current match state for synchronization
   getMatchState(matchId: string): LiveMatchState | null {
     return this.liveMatches.get(matchId) || null;
+  }
+
+  // Get live match state (alias for WebSocket service)
+  getLiveMatchState(matchId: string): LiveMatchState | null {
+    return this.getMatchState(matchId);
+  }
+
+  // Pause match
+  pauseMatch(matchId: string): void {
+    const state = this.liveMatches.get(matchId);
+    if (state) {
+      state.status = 'paused';
+      
+      // Clear interval to stop simulation
+      const interval = this.matchIntervals.get(matchId);
+      if (interval) {
+        clearInterval(interval);
+        this.matchIntervals.delete(matchId);
+      }
+      
+      log(`⏸️ Match ${matchId} paused`);
+    }
+  }
+
+  // Resume match
+  resumeMatch(matchId: string): void {
+    const state = this.liveMatches.get(matchId);
+    if (state && state.status === 'paused') {
+      state.status = 'live';
+      
+      // Restart simulation
+      this.restartSimulationFromState(matchId);
+      
+      log(`▶️ Match ${matchId} resumed`);
+    }
+  }
+
+  // Restart simulation from existing state
+  private async restartSimulationFromState(matchId: string): Promise<void> {
+    const state = this.liveMatches.get(matchId);
+    if (!state) return;
+
+    // Get players for continued simulation
+    const homeTeamPlayers = await prisma.player.findMany({
+      where: { teamId: state.homeTeamId, isOnMarket: false }
+    });
+    const awayTeamPlayers = await prisma.player.findMany({
+      where: { teamId: state.awayTeamId, isOnMarket: false }
+    });
+
+    // Resume match simulation
+    this.startMatchSimulation(matchId, homeTeamPlayers, awayTeamPlayers);
   }
 
   // Synchronize client with server state
@@ -398,6 +457,11 @@ class MatchStateManager {
         if (enhancedEvent) {
           state.gameEvents.push(enhancedEvent);
           console.log(`[DEBUG] Generated event: ${enhancedEvent.type} by ${enhancedEvent.actingPlayerId}`);
+          
+          // Broadcast event to WebSocket clients
+          if (this.webSocketService) {
+            this.webSocketService.broadcastMatchEvent(matchId, enhancedEvent);
+          }
         } else {
           console.log(`[DEBUG] Event generation returned null`);
         }
@@ -414,6 +478,11 @@ class MatchStateManager {
     // Save state to database periodically
     if (state.gameTime % 30 === 0) { // Every 30 game seconds
       await this.saveLiveStateToDatabase(matchId, state);
+    }
+
+    // Broadcast state update to WebSocket clients
+    if (this.webSocketService) {
+      this.webSocketService.broadcastMatchUpdate(matchId, state);
     }
   }
 
@@ -697,6 +766,11 @@ class MatchStateManager {
     
     // Remove from live matches to prevent it from showing as live
     this.liveMatches.delete(matchId);
+
+    // Broadcast match completion to WebSocket clients
+    if (this.webSocketService) {
+      this.webSocketService.broadcastMatchComplete(matchId, state);
+    }
 
     // Persist detailed player and team stats
     try {
