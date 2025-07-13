@@ -880,6 +880,9 @@ class MatchStateManager {
     } else {
       // Award exhibition credits and team camaraderie for risk-free matches
       await this.awardExhibitionRewards(state.homeTeamId, state.awayTeamId, state.homeScore, state.awayScore);
+      
+      // Record exhibition game result for stats tracking
+      await this.recordExhibitionGameResult(parseInt(matchId), state.homeTeamId, state.awayTeamId, state.homeScore, state.awayScore);
     }
 
     this.liveMatches.delete(matchId);
@@ -982,6 +985,29 @@ class MatchStateManager {
 
     } catch (error) {
       console.error('Error awarding exhibition rewards:', error);
+    }
+  }
+
+  /**
+   * Record exhibition game result for stats tracking
+   */
+  private async recordExhibitionGameResult(matchId: number, homeTeamId: string, awayTeamId: string, homeScore: number, awayScore: number): Promise<void> {
+    try {
+      // The game is already created in the Game table, we just need to ensure it's updated with the final result
+      await prisma.game.update({
+        where: { id: matchId },
+        data: {
+          status: 'COMPLETED',
+          homeScore,
+          awayScore,
+          // Add completion timestamp
+          updatedAt: new Date()
+        }
+      });
+      
+      console.log(`Exhibition game ${matchId} result recorded: ${homeScore}-${awayScore}`);
+    } catch (error) {
+      console.error('Error recording exhibition game result:', error);
     }
   }
 

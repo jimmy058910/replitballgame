@@ -42,25 +42,28 @@ router.get('/stats', isAuthenticated, async (req: any, res: Response, next: Next
     
     // ALSO get pending exhibition matches from matches table created today (EST)
     const allMatches = await storage.matches.getMatchesByTeamId(team.id);
+    console.log(`[DEBUG] Retrieved ${allMatches.length} total matches for team ${team.id}`);
+    const exhibitionMatches = allMatches.filter(match => match.matchType === 'EXHIBITION');
+    console.log(`[DEBUG] Found ${exhibitionMatches.length} exhibition matches out of ${allMatches.length} total matches`);
     
-    // Use Eastern Time for consistent game day calculations
+    // Use simple UTC date comparison to avoid timezone issues
     const now = new Date();
-    const estOffset = -5 * 60; // EST is UTC-5 hours (in minutes)
-    const estNow = new Date(now.getTime() + (estOffset * 60 * 1000));
-    const today = new Date(estNow.getFullYear(), estNow.getMonth(), estNow.getDate());
-    const tomorrow = new Date(today);
-    tomorrow.setDate(tomorrow.getDate() + 1);
+    const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const todayEnd = new Date(todayStart);
+    todayEnd.setDate(todayEnd.getDate() + 1);
     
-    // Get ALL exhibition matches from today (pending + completed) using EST timezone
+    console.log(`[DEBUG] Timezone calculation: UTC Now: ${now.toISOString()}, Today Start: ${todayStart.toISOString()}, Today End: ${todayEnd.toISOString()}`);
+    
+    // Get ALL exhibition matches from today (pending + completed) using simple UTC date comparison
     const allExhibitionMatchesToday = allMatches.filter(match => {
-      if (match.matchType !== 'exhibition') return false;
+      if (match.matchType !== 'EXHIBITION') return false;
       if (!match.createdAt) return false;
       
-      // Convert match creation time to EST for comparison
-      const matchUtcDate = new Date(match.createdAt);
-      const matchEstDate = new Date(matchUtcDate.getTime() + (estOffset * 60 * 1000));
-      const matchDateOnly = new Date(matchEstDate.getFullYear(), matchEstDate.getMonth(), matchEstDate.getDate());
-      const isToday = matchDateOnly.getTime() === today.getTime();
+      // Simple date comparison using UTC
+      const matchDate = new Date(match.createdAt);
+      const isToday = matchDate >= todayStart && matchDate < todayEnd;
+      
+      console.log(`[DEBUG] Match ${match.id}: Created: ${matchDate.toISOString()}, IsToday: ${isToday}`);
       
       return isToday;
     });
@@ -436,7 +439,7 @@ router.get('/recent', isAuthenticated, async (req: any, res: Response, next: Nex
     // Fetch all matches for this team and filter for exhibitions
     const allMatches = await storage.matches.getMatchesByTeamId(team.id);
     const recentMatches = allMatches
-      .filter(match => match.matchType === 'exhibition')
+      .filter(match => match.matchType === 'EXHIBITION')
       .slice(0, 10);
 
     // Enhance with opponent team names and determine result

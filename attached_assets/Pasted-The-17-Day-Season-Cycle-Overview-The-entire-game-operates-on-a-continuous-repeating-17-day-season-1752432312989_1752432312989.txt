@@ -1,0 +1,36 @@
+The 17-Day Season Cycle
+Overview
+The entire game operates on a continuous, repeating 17-day season cycle. This structure governs everything from initial registration to championship tournaments and the transition to the next season. All times are in Eastern Standard Time (EST).
+Pre-Season & New Team Registration (Ongoing until Day 9)
+This phase allows new players to join the game without having to wait for an entire season to pass.
+Continuous Registration: New teams can sign up for Realm Rivalry at any time.
+Shortened Season Deadline: Teams that complete registration before Game Day 9 starts at 3:00 AM EST will be placed into an appropriate division (either an existing one with an open slot or a newly created one). They will then play out a shortened league season, allowing them to get into the action immediately.
+Game Day 1: Season Kick-off & Full Simulation
+This is the official start of the new season's competitive matches.
+3:00 PM EST - Divisions Finalized: The rosters for all divisions are locked in. Any division with fewer than 8 user-controlled teams is automatically filled with AI-controlled teams to ensure a full and competitive schedule.
+Immediately after Divisions are Finalized - Full Season Schedule is Created: In a critical server-wide event, the schedules for the entire regular season are generated. Following this, all regular season games across every division are simulated. League games are always played in the 4PM EST to 10PM EST window.
+Concurrent Games: Games within the sub-divisions are run concurrently in 15-minute intervals, simulating four games back-to-back. This intensive, 6-hour window determines the outcomes of the entire regular season, setting the stage for the mid-season and post-season tournaments.
+Game Day 7: Mid-Season Cup
+A mid-season tournament to test teams and offer additional rewards and prestige.
+Tournament Format: A 16-team, single-elimination tournament contested by teams from the same Division.
+Registration Deadline: Registration for the Cup remains open from the start of the season all the way until one hour before the tournament officially begins on Game Day 7. At that point, the registration stops, and tournament seedings and brackets are final. Any gaps will use temporary AI teams to fill the slots.
+Game Day 15: Division Tournament Day - The Championships
+The climax of the season where divisional champions are crowned through high-stakes tournaments.
+Division 1 Tournament: The Top 8 ranked teams from Division 1 compete in a single-elimination bracket for the ultimate title of Realm Rivalry Champion.
+Divisions 2-8 Tournaments: The Top 4 ranked teams from each of these divisions battle it out in their own respective championship tournaments to claim divisional glory.
+Game Days 16 & 17: The Off-Season
+This crucial two-day period is dedicated to wrapping up the old season and preparing for the new one.
+Player & Roster Management
+Contracts: All player contract negotiations, extensions, and new signings must be completed.
+Taxi Squad: Final decisions on which players to place on or remove from the Taxi Squad must be made.
+Player Auctions: The player Marketplace is active, but with a strict deadline. All auctions must be set to conclude by 3:00 AM EST on the morning of Game Day 17. No players should remain on the Marketplace after this time.
+Day 16: Awards & Record-Keeping
+Season Awards: All official season awards (e.g., MVP, Most Improved, Top Scorer, Best Tactician) are revealed and distributed to the winning teams and players.
+Historical Records: All individual and team stats, game results, final standings, and historical data are permanently recorded and archived. This locks in the history of the completed season for all to view.
+The Turnover: A New Season Begins
+The cycle seamlessly resets, ushering in the next 17-day season.
+3:00 AM EST on Day 17 - The Cycle Resets: The new season officially begins.
+Server Refresh & Realignment:
+AI Purge: All AI-controlled teams and their associated players are completely removed from the game.
+Promotions & Relegations: Based on the previous season's final tournament and league standings, deserving teams are promoted to higher divisions, while underperforming teams are relegated to lower ones.
+Division Re-shuffling: The divisions are re-shuffled and re-balanced as necessary to accommodate the newly promoted/relegated teams and any new user teams that have joined, ensuring competitive balance for the season ahead.
