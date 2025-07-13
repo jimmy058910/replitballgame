@@ -73,20 +73,23 @@ router.get('/:playerId/contract-value', isAuthenticated, async (req: any, res: R
     }
 
     const contractCalc = ContractService.calculateContractValue(player);
-    const recommendations = ContractService.getContractRecommendations(contractCalc);
-
+    
     res.json({
-      success: true,
-      data: {
-        ...contractCalc,
-        recommendations
-      }
+      playerId: player.id,
+      playerName: `${player.firstName} ${player.lastName}`,
+      currentSalary: Number(player.salary) || 0,
+      contractCalc
     });
   } catch (error) {
     console.error("Error calculating contract value:", error);
     next(error);
   }
 });
+
+/**
+ * POST /api/players/:playerId/negotiate
+ * Negotiate a contract with a player using the Universal Value Formula system
+ */
 
 /**
  * POST /api/players/:playerId/negotiate

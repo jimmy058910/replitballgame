@@ -373,7 +373,7 @@ export default function PlayerDetailModal({
                     <div>
                       <label className="text-sm text-gray-400">Current Salary</label>
                       <div className="text-2xl font-bold text-green-400">
-                        ₡{(player.salary || 0).toLocaleString()}/season
+                        ₡{(Number(player.salary) || 0).toLocaleString()}/season
                       </div>
                     </div>
                     <div>

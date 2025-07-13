@@ -1,9 +1,9 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import type { Player as SharedPlayer } from "shared/schema"; // Assuming PlayerWithRole is based on this
@@ -59,15 +59,34 @@ export default function ContractNegotiation({ player, isOpen, onClose }: Contrac
     );
   }
 
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+  
+  // Fetch contract calculations from API
+  const { data: contractCalc, isLoading: isLoadingCalc } = useQuery({
+    queryKey: ['/api/players', player.id, 'contract-value'],
+    queryFn: () => apiRequest(`/api/players/${player.id}/contract-value`),
+    enabled: !!player.id && isOpen,
+  });
+
   const [currentOffer, setCurrentOffer] = useState({
-    salary: player.salary || 50000, // player.salary should be number as per SharedPlayer
+    salary: 50000, // Will be updated when contractCalc loads
     years: 3,
     bonus: 10000
   });
   const [playerResponse, setPlayerResponse] = useState<string | null>(null);
   const [negotiationPhase, setNegotiationPhase] = useState<'offer' | 'response' | 'counter'>('offer');
-  const { toast } = useToast();
-  const queryClient = useQueryClient();
+
+  // Update initial offer when contract calculations load
+  useEffect(() => {
+    if (contractCalc?.contractCalc) {
+      setCurrentOffer(prev => ({
+        ...prev,
+        salary: contractCalc.contractCalc.marketValue,
+        bonus: Math.round(contractCalc.contractCalc.marketValue * 0.2)
+      }));
+    }
+  }, [contractCalc]);
 
   const getCamaraderieEffectDescription = (camaraderie: number | undefined): string => {
     if (camaraderie === undefined) return "Neutral";
@@ -92,47 +111,16 @@ export default function ContractNegotiation({ player, isOpen, onClose }: Contrac
 
   const negotiateMutation = useMutation({
     mutationFn: async (offer: typeof currentOffer) => {
-      const marketValue = player.salary * 1.1; // 10% above current
-      let offerQualityValue = offer.salary / marketValue;
-
-      // Camaraderie Adjustment
-      // Default to 50 (neutral) if player.camaraderie is undefined
-      const playerCamaraderie = player.camaraderie !== undefined ? player.camaraderie : 50;
-      // Scale: Camaraderie 0 -> -1.0 effect; 50 -> 0.0 effect; 100 -> +1.0 effect on offerQualityValue
-      const camaraderieAdjustment = (playerCamaraderie - 50) * 0.02;
-      offerQualityValue += camaraderieAdjustment;
-
-      console.log(
-        `Player: ${player.firstName}, PlayerCamaraderie: ${playerCamaraderie}, ` +
-        `CamaraderieAdjustment: ${camaraderieAdjustment.toFixed(3)}, ` +
-        `OriginalOfferQuality: ${(offer.salary / marketValue).toFixed(3)}, ` +
-        `AdjustedOfferQuality: ${offerQualityValue.toFixed(3)}`
-      );
+      // Use the actual contract negotiations API endpoint
+      const response = await apiRequest(`/api/players/${player.id}/negotiate`, "POST", {
+        salary: offer.salary,
+        seasons: offer.years
+      });
       
-      const response = generateResponse(offerQualityValue);
-      
-      // Success and counter-offer thresholds can also be slightly influenced by camaraderie
-      // More positive camaraderie makes the player slightly easier to please
-      const baseSuccessThreshold = 0.9;
-      const adjustedSuccessThreshold = baseSuccessThreshold - (camaraderieAdjustment * 0.1); // e.g. high cam -> lower threshold
-
-      const baseCounterThreshold = 0.9;
-      const adjustedCounterThreshold = baseCounterThreshold - (camaraderieAdjustment * 0.1);
-
-      return { 
-        success: offerQualityValue >= adjustedSuccessThreshold,
-        response,
-        // Player makes a counter-offer if the offer isn't good enough but not an outright rejection
-        counterOffer: offerQualityValue < adjustedCounterThreshold && offerQualityValue >= (adjustedCounterThreshold - 0.2) ? {
-          // If camaraderie is low (negative adjustment), counter offer is higher (more demanding)
-          salary: Math.floor(marketValue * (1 - Math.min(0, camaraderieAdjustment * 0.25))),
-          years: offer.years,
-          bonus: Math.floor(marketValue * 0.2 * (1 - Math.min(0, camaraderieAdjustment * 0.25)))
-        } : null
-      };
+      return response;
     },
     onSuccess: (data) => {
-      setPlayerResponse(data.response);
+      setPlayerResponse(data.negotiationResult.message);
       
       if (data.success) {
         toast({
@@ -140,8 +128,16 @@ export default function ContractNegotiation({ player, isOpen, onClose }: Contrac
           description: `${player.firstName} ${player.lastName} has agreed to the terms.`,
         });
         setNegotiationPhase('response');
-      } else if (data.counterOffer) {
-        setCurrentOffer(data.counterOffer);
+        
+        // Invalidate queries to refresh player data
+        queryClient.invalidateQueries({ queryKey: ['/api/players'] });
+        queryClient.invalidateQueries({ queryKey: ['/api/teams/my'] });
+      } else if (data.negotiationResult.counterOffer) {
+        setCurrentOffer({
+          salary: data.negotiationResult.counterOffer.salary,
+          years: currentOffer.years,
+          bonus: data.negotiationResult.counterOffer.bonus
+        });
         setNegotiationPhase('counter');
       } else {
         setNegotiationPhase('response');
@@ -187,7 +183,9 @@ export default function ContractNegotiation({ player, isOpen, onClose }: Contrac
             <h3 className="font-semibold">{player.firstName} {player.lastName}</h3>
             <p className="text-sm text-gray-500">{player.race} • Age {player.age}</p>
             <div className="flex items-center gap-2 flex-wrap">
-              <Badge variant="outline">Current Salary: {player.salary?.toLocaleString()}/season</Badge>
+              <Badge variant="outline">
+                Current Salary: {contractCalc?.currentSalary ? `₡${contractCalc.currentSalary.toLocaleString()}` : 'Loading...'}/season
+              </Badge>
               {player.camaraderie !== undefined && (
                 <Badge
                   variant={
@@ -206,13 +204,30 @@ export default function ContractNegotiation({ player, isOpen, onClose }: Contrac
           </div>
         </div>
 
+        {/* Contract Value Information */}
+        {contractCalc && (
+          <div className="border rounded-lg p-4 bg-gray-50 dark:bg-gray-800">
+            <h4 className="font-medium mb-3">Player Value Assessment</h4>
+            <div className="grid grid-cols-2 gap-4 text-sm">
+              <div>
+                <label className="text-gray-500">Market Value</label>
+                <div className="font-semibold">₡{contractCalc.contractCalc.marketValue.toLocaleString()}</div>
+              </div>
+              <div>
+                <label className="text-gray-500">Minimum Offer</label>
+                <div className="font-semibold">₡{contractCalc.contractCalc.minimumOffer.toLocaleString()}</div>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Current Offer */}
         <div className="border rounded-lg p-4">
           <h4 className="font-medium mb-3">Contract Offer</h4>
           <div className="grid grid-cols-3 gap-4">
             <div>
               <label className="text-sm text-gray-500">Annual Salary</label>
-              <div className="font-semibold">{currentOffer.salary.toLocaleString()}</div>
+              <div className="font-semibold">₡{currentOffer.salary.toLocaleString()}</div>
             </div>
             <div>
               <label className="text-sm text-gray-500">Contract Length</label>
@@ -220,7 +235,7 @@ export default function ContractNegotiation({ player, isOpen, onClose }: Contrac
             </div>
             <div>
               <label className="text-sm text-gray-500">Signing Bonus</label>
-              <div className="font-semibold">{currentOffer.bonus.toLocaleString()}</div>
+              <div className="font-semibold">₡{currentOffer.bonus.toLocaleString()}</div>
             </div>
           </div>
         </div>
@@ -238,7 +253,7 @@ export default function ContractNegotiation({ player, isOpen, onClose }: Contrac
           {negotiationPhase === 'offer' && (
             <Button 
               onClick={() => negotiateMutation.mutate(currentOffer)}
-              disabled={negotiateMutation.isPending}
+              disabled={negotiateMutation.isPending || isLoadingCalc}
             >
               {negotiateMutation.isPending ? "Negotiating..." : "Present Offer"}
             </Button>

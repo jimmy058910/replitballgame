@@ -449,7 +449,7 @@ export default function TeamPage() {
                               </div>
                               <div className="text-right">
                                 <p className="font-semibold text-green-400">
-                                  ₡{(player.contract?.salary || 0).toLocaleString()}
+                                  ₡{(Number(player.contract?.salary) || 0).toLocaleString()}
                                 </p>
                                 <p className="text-sm text-gray-400">
                                   {(player.contract?.length || 1)} seasons remaining
