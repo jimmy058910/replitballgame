@@ -23,6 +23,13 @@ interface CurrentWeek {
   season: string;
 }
 
+interface AdvanceDayResponse {
+  success: boolean;
+  newDay: number;
+  isNewSeason: boolean;
+  message?: string;
+}
+
 export default function SuperUser() {
   const { toast } = useToast();
   const [creditsAmount, setCreditsAmount] = useState(50000);

@@ -2,6 +2,7 @@ import { useRoute } from "wouter";
 import { useQuery } from "@tanstack/react-query";
 import { LiveMatchSimulation } from "@/components/LiveMatchSimulation";
 import { HalftimeAd } from "@/components/HalftimeAd";
+import { apiRequest } from "@/lib/queryClient";
 
 import { Loader2 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
@@ -11,6 +12,28 @@ import React from "react";
 // Define more specific types for this page
 interface LiveMatchState {
   // Define structure if known, otherwise 'any' is a placeholder
+  [key: string]: any;
+}
+
+interface SharedMatch {
+  id: string;
+  homeTeamId: string;
+  awayTeamId: string;
+  status: string;
+  homeScore: number;
+  awayScore: number;
+  [key: string]: any;
+}
+
+interface SharedTeam {
+  id: string;
+  name: string;
+  [key: string]: any;
+}
+
+interface SharedPlayer {
+  id: string;
+  name: string;
   [key: string]: any;
 }
 

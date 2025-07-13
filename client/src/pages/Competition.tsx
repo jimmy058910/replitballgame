@@ -10,7 +10,7 @@ import LeagueStandings from "@/components/LeagueStandings";
 import LeagueSchedule from "@/components/LeagueSchedule";
 import TournamentCenter from "@/components/TournamentCenter";
 
-import { apiRequest } from "@/lib/queryClient";
+import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { Trophy, Medal, Gamepad2, Calendar, Users, Clock, X, Target, Zap, HelpCircle } from "lucide-react";
 import { HelpIcon } from "@/components/help";
@@ -50,6 +50,12 @@ interface ExhibitionStats {
 interface TournamentStats {
   gamesPlayedToday: number;
   tournamentEntriesUsedToday: number;
+}
+
+interface ChallengeResponse {
+  matchId: string;
+  success: boolean;
+  message?: string;
 }
 
 interface ExhibitionMatch {
@@ -898,27 +904,27 @@ export default function Competition() {
   const [, setLocation] = useLocation();
   const { toast } = useToast();
   
-  const { data: team } = useQuery<Team>({
+  const { data: team, isLoading: teamLoading } = useQuery<Team>({
     queryKey: ["/api/teams/my"],
     queryFn: () => apiRequest("/api/teams/my"),
   });
 
-  const { data: liveMatches } = useQuery<any[]>({
+  const { data: liveMatches, isLoading: liveMatchesLoading } = useQuery<any[]>({
     queryKey: ["/api/matches/live"],
     queryFn: () => apiRequest("/api/matches/live"),
   });
 
-  const { data: teamMatches } = useQuery<any[]>({
+  const { data: teamMatches, isLoading: teamMatchesLoading } = useQuery<any[]>({
     queryKey: ["/api/team-matches", team?.id],
     enabled: !!team?.id,
   });
 
-  const { data: tournaments } = useQuery<any[]>({
+  const { data: tournaments, isLoading: tournamentsLoading } = useQuery<any[]>({
     queryKey: ["/api/tournaments"],
     queryFn: () => apiRequest("/api/tournaments"),
   });
 
-  const { data: rawCurrentCycle } = useQuery<SeasonalCycle>({
+  const { data: rawCurrentCycle, isLoading: currentCycleLoading } = useQuery<SeasonalCycle>({
     queryKey: ["/api/season/current-cycle"],
     queryFn: () => apiRequest("/api/season/current-cycle"),
   });
