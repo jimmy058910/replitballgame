@@ -99,7 +99,6 @@ export class DailyPlayerProgressionService {
     errors: string[];
   }> {
     console.log('[DAILY PROGRESSION] Starting daily progression system...');
-    
     const startTime = Date.now();
     const errors: string[] = [];
     let totalPlayersProcessed = 0;
@@ -109,7 +108,7 @@ export class DailyPlayerProgressionService {
     try {
       // Get all players on active rosters (not on taxi squad)
       const activePlayers = await prisma.player.findMany({
-        where: { isOnTaxi: false },
+        where: { isOnMarket: false },
         select: {
           id: true,
           teamId: true,
