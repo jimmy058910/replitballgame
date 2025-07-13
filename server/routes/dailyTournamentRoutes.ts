@@ -3,6 +3,7 @@ import { storage } from "../storage/index";
 import { isAuthenticated } from "../replitAuth";
 import { prisma } from "../db";
 import moment from "moment-timezone";
+import { matchStateManager } from "../services/matchStateManager";
 
 const router = Router();
 
@@ -168,6 +169,15 @@ router.post("/instant-match", isAuthenticated, async (req: any, res: Response, n
       data: matchData
     });
 
+    // Start live match using WebSocket system
+    try {
+      await matchStateManager.startLiveMatch(newMatch.id.toString(), false);
+      console.log("Tournament match started via WebSocket", { matchId: newMatch.id, homeTeamId: newMatch.homeTeamId, awayTeamId: newMatch.awayTeamId });
+    } catch (error) {
+      console.error("Failed to start tournament match", { matchId: newMatch.id, error: error.message });
+      // Continue with response even if WebSocket start fails
+    }
+
     // Use tournament entry item if no free games remaining
     if (freeGamesRemaining <= 0) {
       // Check for tournament entry items in inventory
@@ -296,6 +306,15 @@ router.post("/challenge-opponent", isAuthenticated, async (req: any, res: Respon
     const newMatch = await prisma.game.create({
       data: matchData
     });
+
+    // Start live match using WebSocket system
+    try {
+      await matchStateManager.startLiveMatch(newMatch.id.toString(), false);
+      console.log("Tournament match started via WebSocket", { matchId: newMatch.id, homeTeamId: newMatch.homeTeamId, awayTeamId: newMatch.awayTeamId });
+    } catch (error) {
+      console.error("Failed to start tournament match", { matchId: newMatch.id, error: error.message });
+      // Continue with response even if WebSocket start fails
+    }
 
     // Use tournament entry item if no free games remaining
     if (freeGamesRemaining <= 0) {

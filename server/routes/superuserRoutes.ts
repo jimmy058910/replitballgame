@@ -4,7 +4,8 @@ import { isAuthenticated } from "../replitAuth";
 import { prisma } from "../db";
 import { generateRandomPlayer as generatePlayerForTeam } from "../services/leagueService";
 import { RBACService, Permission, UserRole } from "../services/rbacService";
-import { ErrorCreators, asyncHandler, logInfo } from "../services/errorService";
+import { ErrorCreators, asyncHandler, logInfo, logError } from "../services/errorService";
+import { matchStateManager } from "../services/matchStateManager";
 
 const router = Router();
 
@@ -429,16 +430,15 @@ router.post('/start-all-league-games', RBACService.requirePermission(Permission.
 
   for (const match of scheduledMatches) {
     if (match.matchType === 'league' || match.leagueId) {
-      // Start match by updating status to 'in_progress'
-      const startPromise = db
-        .update(matchesTable)
-        .set({ 
-          status: 'in_progress'
-        })
-        .where(eq(matchesTable.id, match.id))
+      // Start match using WebSocket system
+      const startPromise = matchStateManager.startLiveMatch(match.id.toString(), false)
         .then(() => {
-          logInfo("League game started", { matchId: match.id, homeTeamId: match.homeTeamId, awayTeamId: match.awayTeamId });
+          logInfo("League game started via WebSocket", { matchId: match.id, homeTeamId: match.homeTeamId, awayTeamId: match.awayTeamId });
           return match.id;
+        })
+        .catch(error => {
+          logError("Failed to start league game", { matchId: match.id, error: error.message });
+          throw error;
         });
       
       startPromises.push(startPromise);

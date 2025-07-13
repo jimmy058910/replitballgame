@@ -22,13 +22,14 @@ import Marketplace from "@/pages/Marketplace";
 
 import LogoShowcase from "@/pages/LogoShowcase";
 import SuperUser from "@/pages/SuperUser";
-import TextMatch from "@/pages/TextMatch";
+
 import Community from "@/pages/Community";
 import Camaraderie from "@/pages/Camaraderie";
 import Stats from "@/pages/Stats";
 import HelpManual from "@/pages/HelpManual";
 import { AdTest } from "@/pages/AdTest";
 import { WebSocketTestPage } from "@/components/WebSocketTestPage";
+import { LiveMatchViewer } from "@/components/LiveMatchViewer";
 
 import Navigation from "@/components/Navigation";
 import { ContextualHelp } from "@/components/help";
@@ -61,8 +62,8 @@ function Router() {
 
           <Route path="/stats" component={Stats} />
           
-          <Route path="/text-match/:matchId" component={TextMatch} />
-          <Route path="/match/:matchId" component={TextMatch} />
+          <Route path="/text-match/:matchId" component={LiveMatchViewer} />
+          <Route path="/match/:matchId" component={LiveMatchViewer} />
           <Route path="/community" component={Community} />
           <Route path="/camaraderie" component={Camaraderie} />
           <Route path="/superuser" component={SuperUser} />
