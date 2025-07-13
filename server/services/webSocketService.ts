@@ -113,6 +113,7 @@ class WebSocketService {
           });
 
           log(`🏟️ User ${user.userId} joined match ${data.matchId}`);
+          log(`🔍 TESTING: Code execution continuing after join...`);
           
           // Send current match state if live
           log(`🔍 BEFORE getLiveMatchState call for match ${data.matchId}`);
