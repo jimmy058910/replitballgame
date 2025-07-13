@@ -133,6 +133,15 @@ export function LiveMatchViewer({ matchId, userId, onMatchComplete }: LiveMatchV
     };
   }, [matchId, userId, toast, onMatchComplete]);
 
+  // Debug logging
+  console.log('🔍 LiveMatchViewer render state:', {
+    matchDataLoading,
+    initialMatchData,
+    matchState,
+    matchError,
+    isLoading
+  });
+
   // Handle completed matches
   if (initialMatchData && initialMatchData.status === 'COMPLETED') {
     return (
