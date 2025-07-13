@@ -177,8 +177,8 @@ export function LiveMatchViewer({ matchId, userId, onMatchComplete }: LiveMatchV
     );
   }
 
-  // Handle loading state
-  if (matchDataLoading) {
+  // Handle loading state - but only if we don't have WebSocket data
+  if (matchDataLoading && !matchState) {
     return (
       <Card className="max-w-4xl mx-auto">
         <CardContent className="p-6">
@@ -193,8 +193,8 @@ export function LiveMatchViewer({ matchId, userId, onMatchComplete }: LiveMatchV
     );
   }
 
-  // Handle match not found
-  if (matchError || !initialMatchData) {
+  // Handle match not found - but only if we don't have WebSocket data
+  if ((matchError || !initialMatchData) && !matchState) {
     console.error('Match error details:', matchError);
     console.log('Match ID:', matchId);
     console.log('Initial match data:', initialMatchData);
