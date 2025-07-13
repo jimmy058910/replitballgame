@@ -50,14 +50,6 @@ export default function LeagueStandings({ division }: LeagueStandingsProps) {
   return (
     <>
       <Card className="bg-gray-800 border-gray-700">
-        <CardHeader>
-          <CardTitle className="font-orbitron">
-            {standings.length > 0 && standings[0].subdivision 
-              ? getDivisionNameWithSubdivision(division, standings[0].subdivision)
-              : getDivisionName(division)
-            }
-          </CardTitle>
-        </CardHeader>
         <CardContent>
           {isLoading ? (
             <div className="space-y-3">
@@ -220,6 +212,23 @@ export default function LeagueStandings({ division }: LeagueStandingsProps) {
               </div>
             </div>
           )}
+          
+          {/* Helper text for abbreviations */}
+          <div className="mt-4 pt-4 border-t border-gray-700">
+            <div className="text-xs text-gray-400 space-y-1">
+              <div className="font-semibold text-gray-300 mb-2">Table Abbreviations:</div>
+              <div className="grid grid-cols-2 gap-x-4 gap-y-1">
+                <div><span className="text-gray-300">P:</span> Played</div>
+                <div><span className="text-gray-300">W:</span> Won</div>
+                <div><span className="text-gray-300">D:</span> Draw</div>
+                <div><span className="text-gray-300">L:</span> Lost</div>
+                <div><span className="text-gray-300">SD:</span> Score Difference</div>
+                <div><span className="text-gray-300">Pts:</span> Points</div>
+                <div><span className="text-gray-300">Streak:</span> Current winning/losing streak</div>
+                <div><span className="text-gray-300">Form:</span> Last 5 games results</div>
+              </div>
+            </div>
+          </div>
         </CardContent>
       </Card>
 

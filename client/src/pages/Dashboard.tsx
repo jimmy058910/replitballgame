@@ -471,7 +471,7 @@ export default function Dashboard() {
           <Card className="bg-gray-800 border-gray-700">
             <CardHeader className="border-b border-gray-700">
               <div className="flex items-center justify-between">
-                <CardTitle className="font-orbitron text-xl">{team.name}</CardTitle>
+                <CardTitle className="font-orbitron text-xl">{team.name} Roster</CardTitle>
                 <Button variant="outline" size="sm" onClick={() => window.location.href = '/team'}>
                   View All
                 </Button>
