@@ -72,6 +72,122 @@ class MatchStateManager {
   private liveMatches: Map<string, LiveMatchState> = new Map();
   private matchIntervals: Map<string, NodeJS.Timeout> = new Map();
 
+  // Save live match state to database
+  private async saveLiveStateToDatabase(matchId: string, liveState: LiveMatchState): Promise<void> {
+    try {
+      // Convert Maps to objects for JSON storage
+      const playerStatsObj: Record<string, PlayerStatsSnapshot> = {};
+      liveState.playerStats.forEach((stats, playerId) => {
+        playerStatsObj[playerId] = stats;
+      });
+
+      const teamStatsObj: Record<string, TeamStatsSnapshot> = {};
+      liveState.teamStats.forEach((stats, teamId) => {
+        teamStatsObj[teamId] = stats;
+      });
+
+      const persistableState = {
+        ...liveState,
+        playerStats: playerStatsObj,
+        teamStats: teamStatsObj,
+        lastSavedAt: new Date().toISOString()
+      };
+
+      await prisma.game.update({
+        where: { id: parseInt(matchId) },
+        data: {
+          simulationLog: persistableState,
+          homeScore: liveState.homeScore,
+          awayScore: liveState.awayScore,
+          status: liveState.status === 'live' ? 'IN_PROGRESS' : 
+                  liveState.status === 'completed' ? 'COMPLETED' : 'IN_PROGRESS'
+        }
+      });
+    } catch (error) {
+      console.error(`Failed to save live state for match ${matchId}:`, error);
+    }
+  }
+
+  // Load live match state from database
+  private async loadLiveStateFromDatabase(matchId: string): Promise<LiveMatchState | null> {
+    try {
+      const match = await prisma.game.findUnique({
+        where: { id: parseInt(matchId) }
+      });
+
+      if (!match || !match.simulationLog || match.status !== 'IN_PROGRESS') {
+        return null;
+      }
+
+      const persistedState = match.simulationLog as any;
+      
+      // Convert objects back to Maps
+      const playerStats = new Map<string, PlayerStatsSnapshot>();
+      if (persistedState.playerStats) {
+        Object.entries(persistedState.playerStats).forEach(([playerId, stats]) => {
+          playerStats.set(playerId, stats as PlayerStatsSnapshot);
+        });
+      }
+
+      const teamStats = new Map<string, TeamStatsSnapshot>();
+      if (persistedState.teamStats) {
+        Object.entries(persistedState.teamStats).forEach(([teamId, stats]) => {
+          teamStats.set(teamId, stats as TeamStatsSnapshot);
+        });
+      }
+
+      const liveState: LiveMatchState = {
+        ...persistedState,
+        playerStats,
+        teamStats,
+        startTime: new Date(persistedState.startTime),
+        lastUpdateTime: new Date(persistedState.lastUpdateTime || persistedState.startTime),
+        gameEvents: persistedState.gameEvents || []
+      };
+
+      console.log(`🔄 Restored live state for match ${matchId} with ${liveState.gameEvents.length} events`);
+      return liveState;
+    } catch (error) {
+      console.error(`Failed to load live state for match ${matchId}:`, error);
+      return null;
+    }
+  }
+
+  // Auto-recovery: Restore all active live matches from database on server start
+  async recoverLiveMatches(): Promise<void> {
+    try {
+      const activeMatches = await prisma.game.findMany({
+        where: { 
+          status: 'IN_PROGRESS',
+          simulationLog: { not: null }
+        }
+      });
+
+      console.log(`🔄 Attempting to recover ${activeMatches.length} live matches from database`);
+
+      for (const match of activeMatches) {
+        const liveState = await this.loadLiveStateFromDatabase(match.id.toString());
+        if (liveState) {
+          this.liveMatches.set(match.id.toString(), liveState);
+          
+          // Get players for continued simulation
+          const homeTeamPlayers = await prisma.player.findMany({
+            where: { teamId: match.homeTeamId, isOnMarket: false }
+          });
+          const awayTeamPlayers = await prisma.player.findMany({
+            where: { teamId: match.awayTeamId, isOnMarket: false }
+          });
+
+          // Resume match simulation
+          this.startMatchSimulation(match.id.toString(), homeTeamPlayers, awayTeamPlayers);
+          console.log(`✅ Recovered live match ${match.id} with ${liveState.gameEvents.length} events`);
+        }
+      }
+    } catch (error) {
+      console.error("Failed to recover live matches:", error);
+    }
+  }
+
   // Start a new live match with server-side state management
   async startLiveMatch(matchId: string, isExhibition: boolean = false): Promise<LiveMatchState> {
     const match = await prisma.game.findUnique({
@@ -158,22 +274,8 @@ class MatchStateManager {
     // Start the match simulation loop
     this.startMatchSimulation(matchId, homeTeamPlayers, awayTeamPlayers);
     
-    // Update match status in database with initial state
-    await prisma.game.update({
-      where: { id: parseInt(matchId) },
-      data: { 
-        status: 'IN_PROGRESS',
-        gameDate: new Date(),
-        homeScore: 0,
-        awayScore: 0,
-        simulationLog: {
-          events: matchState.gameEvents,
-          currentTime: 0,
-          currentHalf: 1,
-          maxTime: maxTime
-        }
-      }
-    });
+    // Save initial state to database
+    await this.saveLiveStateToDatabase(matchId, matchState);
 
     return matchState;
   }
@@ -207,104 +309,33 @@ class MatchStateManager {
   }
 
   private async restartMatchFromDatabase(matchId: string): Promise<LiveMatchState | null> {
-    const match = await prisma.game.findFirst({
-      where: { id: parseInt(matchId) }
-    });
-    if (!match || match.status !== 'IN_PROGRESS') {
-      return null;
-    }
-
-    // Calculate elapsed time since match started
-    const startTime = match.gameDate || match.createdAt;
-    if (!startTime) {
-      return null;
-    }
-    const elapsedSeconds = Math.floor((Date.now() - startTime.getTime()) / 1000);
-    const isExhibition = match.matchType === 'exhibition';
-    const maxTime = isExhibition ? 1200 : 1800;
-
-    // If match should have ended, complete it
-    if (elapsedSeconds >= maxTime) {
-      // Ensure this match instance is cleaned up if it's being restarted past its end time.
-      const existingState = this.liveMatches.get(matchId);
-      if (existingState) {
-         const homeTeamPlayers = await prisma.player.findMany({
-           where: { teamId: existingState.homeTeamId, isOnMarket: false }
-         });
-         const awayTeamPlayers = await prisma.player.findMany({
-           where: { teamId: existingState.awayTeamId, isOnMarket: false }
-         });
-         await this.completeMatch(matchId, existingState.homeTeamId, existingState.awayTeamId, homeTeamPlayers, awayTeamPlayers);
-      } else {
-        // If no state, perhaps just update DB if needed, though this scenario is less likely.
-        await prisma.game.update({
-          where: { id: parseInt(matchId.toString()) },
-          data: { status: 'COMPLETED' }
-        });
+    try {
+      const liveState = await this.loadLiveStateFromDatabase(matchId);
+      if (!liveState) {
+        return null;
       }
+
+      this.liveMatches.set(matchId, liveState);
+
+      // Get players for continued simulation
+      const homeTeamPlayers = await prisma.player.findMany({
+        where: { teamId: liveState.homeTeamId, isOnMarket: false }
+      });
+      const awayTeamPlayers = await prisma.player.findMany({
+        where: { teamId: liveState.awayTeamId, isOnMarket: false }
+      });
+
+      // Resume match simulation if not completed
+      if (liveState.status === 'live') {
+        this.startMatchSimulation(matchId, homeTeamPlayers, awayTeamPlayers);
+      }
+
+      console.log(`🔄 Restarted match ${matchId} from database with ${liveState.gameEvents.length} events`);
+      return liveState;
+    } catch (error) {
+      console.error(`Failed to restart match ${matchId} from database:`, error);
       return null;
     }
-
-    const homeTeamPlayers = await prisma.player.findMany({
-      where: { teamId: match.homeTeamId, isOnMarket: false }
-    });
-    const awayTeamPlayers = await prisma.player.findMany({
-      where: { teamId: match.awayTeamId, isOnMarket: false }
-    });
-
-    // Reconstruct match state (simplified, full stat reconstruction might be complex)
-    const currentHalf = elapsedSeconds < (maxTime / 2) ? 1 : 2;
-
-    const initialPlayerStats = new Map<string, PlayerStatsSnapshot>();
-    [...homeTeamPlayers, ...awayTeamPlayers].forEach(player => {
-      initialPlayerStats.set(player.id.toString(), {
-        scores: 0, passingAttempts: 0, passesCompleted: 0, passingYards: 0,
-        carrierYards: 0, catches: 0, receivingYards: 0, drops: 0, fumblesLost: 0,
-        tackles: 0, knockdownsInflicted: 0, interceptionsCaught: 0, passesDefended: 0,
-      });
-    });
-
-    const initialTeamStats = new Map<string, TeamStatsSnapshot>();
-    initialTeamStats.set(match.homeTeamId.toString(), {
-      totalOffensiveYards: 0, passingYards: 0, carrierYards: 0,
-      timeOfPossessionSeconds: 0, turnovers: 0, totalKnockdownsInflicted: 0,
-    });
-    initialTeamStats.set(match.awayTeamId.toString(), {
-      totalOffensiveYards: 0, passingYards: 0, carrierYards: 0,
-      timeOfPossessionSeconds: 0, turnovers: 0, totalKnockdownsInflicted: 0,
-    });
-
-    // Attempt to load some existing game data if available, but stats are tricky to reconstruct mid-game accurately
-    // For now, restarting a live match will reset its detailed stats but keep score and time.
-    // A more robust solution would involve serializing/deserializing the live stats maps.
-    const gameEvents = (match.gameData as any)?.events || [];
-    const possessingTeamId = gameEvents.length > 0 ? gameEvents[gameEvents.length - 1]?.teamId : (Math.random() < 0.5 ? match.homeTeamId : match.awayTeamId);
-
-
-    const matchState: LiveMatchState = {
-      matchId,
-      homeTeamId: match.homeTeamId,
-      awayTeamId: match.awayTeamId,
-      startTime: startTime,
-      gameTime: elapsedSeconds,
-      maxTime,
-      currentHalf,
-      homeScore: match.homeScore || 0,
-      awayScore: match.awayScore || 0,
-      status: 'live',
-      gameEvents,
-      lastUpdateTime: new Date(),
-      playerStats: initialPlayerStats, // Stats are reset for simplicity on restart
-      teamStats: initialTeamStats,     // Stats are reset for simplicity on restart
-      possessingTeamId: possessingTeamId || match.homeTeamId, // Default if no events
-      possessionStartTime: elapsedSeconds, // Assume current possession started now
-    };
-
-    this.liveMatches.set(matchId, matchState);
-
-    this.startMatchSimulation(matchId, homeTeamPlayers, awayTeamPlayers);
-
-    return matchState;
   }
 
   private startMatchSimulation(matchId: string, homeTeamPlayers: Player[], awayTeamPlayers: Player[]) {
@@ -372,21 +403,9 @@ class MatchStateManager {
       return;
     }
 
+    // Save state to database periodically
     if (state.gameTime % 30 === 0) { // Every 30 game seconds
-      await prisma.game.update({
-        where: { id: parseInt(matchId) },
-        data: {
-          homeScore: state.homeScore,
-          awayScore: state.awayScore,
-          simulationLog: {
-            events: state.gameEvents.slice(-30), // Keep last 30 events
-            currentTime: state.gameTime,
-            currentHalf: state.currentHalf,
-            maxTime: state.maxTime,
-            // Consider adding current possession to simulationLog if useful for client UI
-          }
-        }
-      });
+      await this.saveLiveStateToDatabase(matchId, state);
     }
   }
 
@@ -840,6 +859,17 @@ class MatchStateManager {
 
 // Create singleton instance
 export const matchStateManager = new MatchStateManager();
+
+// Initialize auto-recovery system to restore live matches from database on server startup
+(async () => {
+  try {
+    console.log('🔄 Initializing match state recovery system...');
+    await matchStateManager.recoverLiveMatches();
+    console.log('✅ Match state recovery system initialized');
+  } catch (error) {
+    console.error('❌ Failed to initialize match state recovery:', error);
+  }
+})();
 
 // Clean up old matches every 30 minutes
 setInterval(() => {

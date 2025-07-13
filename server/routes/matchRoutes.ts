@@ -518,4 +518,25 @@ router.post('/exhibition/instant', isAuthenticated, async (req: any, res: Respon
   }
 });
 
+// Match sync endpoint for testing persistence
+router.get('/:matchId/sync', isAuthenticated, async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const { matchId } = req.params;
+    const matchIdNum = parseInt(matchId, 10);
+    if (isNaN(matchIdNum)) {
+      return res.status(400).json({ message: "Invalid match ID" });
+    }
+    
+    const state = await matchStateManager.syncMatchState(matchIdNum);
+    if (state) {
+      res.json(state);
+    } else {
+      res.status(404).json({ error: 'Match not found or no longer active' });
+    }
+  } catch (error) {
+    console.error('Error syncing match state:', error);
+    next(error);
+  }
+});
+
 export default router;
