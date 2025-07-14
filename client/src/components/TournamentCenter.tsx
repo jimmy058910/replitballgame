@@ -396,11 +396,11 @@ const TournamentCenter: React.FC<TournamentCenterProps> = ({ teamId }) => {
           <CardContent>
             <div className="space-y-4">
               {myTournaments.map((entry: any) => (
-                <div key={entry.id} className="border-l-4 border-l-purple-500 pl-4 py-2">
+                <div key={entry.id} className="border-l-4 border-l-purple-500 pl-4 py-2 bg-white dark:bg-gray-800">
                   <div className="flex items-center justify-between">
                     <div>
-                      <h3 className="font-semibold text-black dark:text-white">{entry.tournament.name}</h3>
-                      <p className="text-sm text-black dark:text-white">
+                      <h3 className="font-semibold text-gray-900 dark:text-white">{entry.tournament.name}</h3>
+                      <p className="text-sm text-gray-700 dark:text-gray-200">
                         Division {entry.tournament.division} • {entry.tournament.type === 'DAILY_DIVISIONAL' ? 'Daily Cup' : 'Mid-Season Classic'}
                       </p>
                     </div>
@@ -408,14 +408,14 @@ const TournamentCenter: React.FC<TournamentCenterProps> = ({ teamId }) => {
                       {entry.tournament.status.replace('_', ' ')}
                     </Badge>
                   </div>
-                  <div className="mt-2 text-sm text-black dark:text-white">
+                  <div className="mt-2 text-sm text-gray-600 dark:text-gray-300">
                     Registered {new Date(entry.registeredAt).toLocaleDateString()}
                   </div>
                   <div className="mt-2">
                     <Button 
                       variant="outline" 
                       size="sm" 
-                      className="text-black dark:text-white border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700"
+                      className="text-gray-900 dark:text-white border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700"
                       onClick={() => {
                         window.location.href = `/tournament-status`;
                       }}

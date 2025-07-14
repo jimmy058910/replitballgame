@@ -161,4 +161,74 @@ router.get('/my-active', isAuthenticated, async (req: any, res) => {
   }
 });
 
+// Get detailed tournament status
+router.get('/:tournamentId/status', isAuthenticated, async (req: any, res) => {
+  try {
+    const { tournamentId } = req.params;
+    const userId = req.user.claims.sub;
+    
+    const tournament = await prisma.tournament.findUnique({
+      where: { id: parseInt(tournamentId) },
+      include: {
+        entries: {
+          include: {
+            team: {
+              select: {
+                id: true,
+                name: true,
+                division: true,
+                userProfileId: true
+              }
+            }
+          }
+        }
+      }
+    });
+
+    if (!tournament) {
+      return res.status(404).json({ error: 'Tournament not found' });
+    }
+
+    const userTeam = await storage.teams.getTeamByUserId(userId);
+    const userEntry = tournament.entries.find(e => e.teamId === userTeam?.id);
+
+    const response = {
+      id: tournament.id.toString(),
+      name: tournament.name,
+      type: tournament.type,
+      division: tournament.division,
+      status: tournament.status,
+      currentParticipants: tournament.entries.length,
+      maxParticipants: 8,
+      spotsRemaining: 8 - tournament.entries.length,
+      isFull: tournament.entries.length >= 8,
+      isReadyToStart: tournament.entries.length >= 8,
+      timeUntilStart: 0,
+      timeUntilStartText: tournament.entries.length >= 8 ? "15m countdown to start" : `${8 - tournament.entries.length} more teams needed`,
+      registrationDeadline: tournament.registrationEndTime.toISOString(),
+      tournamentStartTime: tournament.startTime.toISOString(),
+      entryFeeCredits: Number(tournament.entryFeeCredits),
+      entryFeeGems: tournament.entryFeeGems,
+      prizes: tournament.prizePoolJson,
+      participants: tournament.entries.map(entry => ({
+        teamId: entry.teamId.toString(),
+        teamName: entry.team.name,
+        division: entry.team.division,
+        entryTime: entry.registeredAt.toISOString(),
+        placement: entry.finalRank ? Number(entry.finalRank) : null
+      })),
+      userTeamRegistered: !!userEntry,
+      userTeamEntry: userEntry ? {
+        entryTime: userEntry.registeredAt.toISOString(),
+        placement: userEntry.finalRank ? Number(userEntry.finalRank) : null
+      } : null
+    };
+
+    res.json(response);
+  } catch (error) {
+    console.error('Error fetching tournament status:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
 export default router;

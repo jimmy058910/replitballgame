@@ -86,6 +86,7 @@ export default function TournamentStatus() {
     refetch: refetchStatus 
   } = useQuery<TournamentStatusData>({
     queryKey: ['/api/tournament-status', selectedTournament, 'status'],
+    queryFn: () => selectedTournament ? apiRequest(`/api/tournament-status/${selectedTournament}/status`) : null,
     enabled: !!selectedTournament,
     refetchInterval: 15000, // Refresh every 15 seconds
   });
