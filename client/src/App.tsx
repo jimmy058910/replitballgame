@@ -30,6 +30,8 @@ import HelpManual from "@/pages/HelpManual";
 import { AdTest } from "@/pages/AdTest";
 import { WebSocketTestPage } from "@/components/WebSocketTestPage";
 import { LiveMatchPage } from "@/components/LiveMatchPage";
+import GemCheckout from "@/pages/gem-checkout";
+import RealmPassCheckout from "@/pages/realm-pass-checkout";
 
 import Navigation from "@/components/Navigation";
 import { ContextualHelp } from "@/components/help";
@@ -69,6 +71,9 @@ function Router() {
           <Route path="/superuser" component={SuperUser} />
           <Route path="/ad-test" component={AdTest} />
           <Route path="/websocket-test" component={WebSocketTestPage} />
+          <Route path="/gem-checkout/:packageId" component={GemCheckout} />
+          <Route path="/gem-checkout" component={GemCheckout} />
+          <Route path="/realm-pass-checkout" component={RealmPassCheckout} />
         </>
       )}
       <Route component={NotFound} />

@@ -24,7 +24,11 @@ const createPaymentIntentSchema = z.object({
 });
 
 const purchaseGemsSchema = z.object({
-  packageId: z.string().min(1, "Gem package ID is required."), // e.g., "gems_starter", "gems_regular"
+  packageId: z.string().min(1, "Gem package ID is required."), // e.g., "pouch_of_gems", "sack_of_gems"
+});
+
+const subscribeRealmPassSchema = z.object({
+  priceId: z.string().optional(), // For Stripe Price ID if using subscriptions
 });
 
 
@@ -108,10 +112,13 @@ router.post("/create-payment-intent", isAuthenticated, async (req: any, res: Res
       stripePaymentIntentId: paymentIntent.id,
       stripeCustomerId: stripeCustomerId, // Store for reference
       amount: creditPackage.price,
-      credits: creditPackage.credits + (creditPackage.bonusCredits || 0),
+      creditsChange: creditPackage.credits + (creditPackage.bonusCredits || 0),
       status: "pending", // Initial status
       currency: "usd",
-
+      transactionType: "purchase",
+      itemType: "credits",
+      itemName: creditPackage.name,
+      paymentMethod: "stripe",
     });
 
     res.json({
@@ -135,13 +142,16 @@ router.post("/purchase-gems", isAuthenticated, async (req: any, res: Response, n
     const userId = req.user.claims.sub;
     const { packageId } = purchaseGemsSchema.parse(req.body);
 
-    // Gem packages should be defined server-side or in DB for security
-    const gemPackages = [
-      { id: "gems_starter", price: 499, gems: 50, bonus: 0, name: "Starter Gem Pack" },
-      { id: "gems_regular", price: 999, gems: 110, bonus: 10, name: "Regular Gem Pack" },
-      { id: "gems_premium", price: 1999, gems: 250, bonus: 50, name: "Premium Gem Pack" },
-      { id: "gems_ultimate", price: 4999, gems: 700, bonus: 200, name: "Ultimate Gem Pack" }
-    ];
+    // Use Master Economy v5 gem packages from store config
+    const storeConfig = await import("../config/store_config.json", { assert: { type: "json" } });
+    const gemPackages = storeConfig.default.gemPackages.map((pkg: any) => ({
+      id: pkg.id,
+      price: Math.round(pkg.price * 100), // Convert to cents
+      gems: pkg.gems,
+      bonus: pkg.bonus,
+      name: pkg.name
+    }));
+    
     const gemPackage = gemPackages.find(pkg => pkg.id === packageId);
     if (!gemPackage) {
       return res.status(404).json({ message: "Gem package not found." });
@@ -164,9 +174,9 @@ router.post("/purchase-gems", isAuthenticated, async (req: any, res: Response, n
       metadata: {
         realmRivalryUserId: userId,
         gemPackageId: packageId,
-        gemsAmount: gemPackage.gems,
-        bonusGemsAmount: gemPackage.bonus,
-        purchaseType: "premium_gems"
+        gemsAmount: gemPackage.gems.toString(),
+        bonusGemsAmount: gemPackage.bonus.toString(),
+        purchaseType: "gems"
       },
       automatic_payment_methods: { enabled: true },
     });
@@ -176,9 +186,13 @@ router.post("/purchase-gems", isAuthenticated, async (req: any, res: Response, n
       stripePaymentIntentId: paymentIntent.id,
       stripeCustomerId: stripeCustomerId,
       amount: gemPackage.price,
-      credits: gemPackage.gems + gemPackage.bonus, // Store granted gems as credits
+      gemsChange: gemPackage.gems + gemPackage.bonus, // Store granted gems
       status: "pending",
       currency: "usd",
+      transactionType: "purchase",
+      itemType: "gems",
+      itemName: gemPackage.name,
+      paymentMethod: "stripe",
     });
 
     res.json({
@@ -191,6 +205,74 @@ router.post("/purchase-gems", isAuthenticated, async (req: any, res: Response, n
     console.error("Error creating payment intent for gems:", error);
      if (error instanceof z.ZodError) {
       return res.status(400).json({ message: "Invalid gem package ID", errors: error.errors });
+    }
+    next(error);
+  }
+});
+
+// Realm Pass Subscription
+router.post("/create-subscription", isAuthenticated, async (req: any, res: Response, next: NextFunction) => {
+  try {
+    const userId = req.user.claims.sub;
+    const { priceId } = subscribeRealmPassSchema.parse(req.body);
+
+    // Get Realm Pass subscription details from store config
+    const storeConfig = await import("../config/store_config.json", { assert: { type: "json" } });
+    const realmPassConfig = storeConfig.default.realmPassSubscription;
+    
+    const user = await storage.users.getUser(userId);
+    if (!user) return res.status(404).json({ message: "User not found." });
+
+    let stripeCustomerId = user.stripeCustomerId;
+    if (!stripeCustomerId) {
+      const customer = await stripe.customers.create({
+        email: user.email || undefined,
+        name: `${user.firstName || ''} ${user.lastName || ''}`.trim() || undefined,
+        metadata: { realmRivalryUserId: userId }
+      });
+      stripeCustomerId = customer.id;
+      await storage.users.upsertUser({ id: userId, stripeCustomerId });
+    }
+
+    // For one-time payment (monthly Realm Pass)
+    const paymentIntent = await stripe.paymentIntents.create({
+      amount: Math.round(realmPassConfig.price * 100), // Convert to cents
+      currency: "usd",
+      customer: stripeCustomerId,
+      metadata: {
+        realmRivalryUserId: userId,
+        purchaseType: "realm_pass",
+        monthlyGems: realmPassConfig.monthlyGems.toString(),
+        subscriptionType: "monthly"
+      },
+      automatic_payment_methods: { enabled: true },
+    });
+
+    await storage.payments.createPaymentTransaction({
+      userId: userId,
+      stripePaymentIntentId: paymentIntent.id,
+      stripeCustomerId: stripeCustomerId,
+      amount: Math.round(realmPassConfig.price * 100),
+      gemsChange: realmPassConfig.monthlyGems,
+      status: "pending",
+      currency: "usd",
+      transactionType: "purchase",
+      itemType: "subscription",
+      itemName: "Realm Pass - Monthly",
+      paymentMethod: "stripe",
+    });
+
+    res.json({
+      clientSecret: paymentIntent.client_secret,
+      paymentIntentId: paymentIntent.id,
+      packageName: "Realm Pass - Monthly",
+      monthlyGems: realmPassConfig.monthlyGems,
+      benefits: realmPassConfig.benefits
+    });
+  } catch (error: any) {
+    console.error("Error creating Realm Pass subscription:", error);
+    if (error instanceof z.ZodError) {
+      return res.status(400).json({ message: "Invalid subscription request", errors: error.errors });
     }
     next(error);
   }
@@ -244,12 +326,15 @@ router.post("/webhook", express.raw({type: 'application/json'}), async (req: Req
           const finances = await storage.teamFinances.getTeamFinances(team.id);
           if (finances) {
             const updates: Partial<typeof finances> = {};
-            if (transaction.credits && transaction.credits > 0) {
-                updates.credits = (finances.credits || 0) + transaction.credits;
+            if (transaction.creditsChange && transaction.creditsChange > 0) {
+                updates.credits = (finances.credits || 0) + transaction.creditsChange;
+            }
+            if (transaction.gemsChange && transaction.gemsChange > 0) {
+                updates.gems = (finances.gems || 0) + transaction.gemsChange;
             }
             if (Object.keys(updates).length > 0) {
                 await storage.teamFinances.updateTeamFinances(team.id, updates);
-                console.log(`User ${transaction.userId} (Team ${team.id}) granted resources for transaction ${transaction.id}.`);
+                console.log(`User ${transaction.userId} (Team ${team.id}) granted resources for transaction ${transaction.id}: ${transaction.creditsChange || 0} credits, ${transaction.gemsChange || 0} gems`);
             }
           }
         }

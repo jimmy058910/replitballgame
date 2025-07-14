@@ -6,7 +6,8 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
-import { ShoppingCart, Coins, Gem, TrendingUp, Building, Trophy, Gift, Star, Crown } from "lucide-react";
+import { ShoppingCart, Coins, Gem, TrendingUp, Building, Trophy, Gift, Star, Crown, CreditCard } from "lucide-react";
+import { useLocation } from 'wouter';
 import TryoutSystem from "@/components/TryoutSystem";
 import DynamicMarketplaceManager from "@/components/DynamicMarketplaceManager";
 
@@ -129,6 +130,7 @@ export default function Market() {
   const [storeTab, setStoreTab] = useState("featured");
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const [, setLocation] = useLocation();
 
   const { data: rawTeam } = useQuery<Team>({
     queryKey: ["/api/teams/my"],
@@ -170,6 +172,21 @@ export default function Market() {
   const creditItems = creditStoreData || [];
 
   const team = (rawTeam || {}) as Team;
+
+  // Fetch gem packages
+  const { data: gemPackagesData } = useQuery({
+    queryKey: ["/api/store/gem-packages"],
+    select: (data) => data.data || []
+  });
+
+  // Fetch Realm Pass data
+  const { data: realmPassData } = useQuery({
+    queryKey: ["/api/store/realm-pass"],
+    select: (data) => data.data || {}
+  });
+
+  const gemPackages = gemPackagesData || [];
+  const realmPass = realmPassData || {};
 
   // Purchase mutations
   const purchaseWithGemsMutation = useMutation({
@@ -301,11 +318,12 @@ export default function Market() {
         </Card>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="grid w-full grid-cols-5">
+          <TabsList className="grid w-full grid-cols-6">
             <TabsTrigger value="marketplace">Player Marketplace</TabsTrigger>
             <TabsTrigger value="store">Store</TabsTrigger>
             <TabsTrigger value="ads">Ad Rewards</TabsTrigger>
             <TabsTrigger value="gems">Buy Gems</TabsTrigger>
+            <TabsTrigger value="realm-pass">Realm Pass</TabsTrigger>
             <TabsTrigger value="history">Transactions</TabsTrigger>
           </TabsList>
 
@@ -730,64 +748,133 @@ export default function Market() {
                 </p>
               </CardHeader>
               <CardContent>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                  <Card className="border-2 hover:border-blue-400 transition-colors">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {gemPackages.map((gemPackage: any, index: number) => {
+                    const isPopular = gemPackage.name.toLowerCase().includes('popular') || gemPackage.name.toLowerCase().includes('value');
+                    const tierColors = ['blue', 'purple', 'orange', 'yellow', 'green'];
+                    const color = tierColors[index % tierColors.length];
+                    
+                    return (
+                      <Card key={gemPackage.id} className={`border-2 hover:border-${color}-400 transition-colors ${isPopular ? `border-${color}-400 ring-2 ring-${color}-200` : ''}`}>
+                        <CardHeader className="text-center">
+                          {isPopular && <Badge className={`mb-2 bg-${color}-600`}>Most Popular</Badge>}
+                          <div className={`w-12 h-12 bg-${color}-100 rounded-full flex items-center justify-center mx-auto mb-2`}>
+                            <Gem className={`w-6 h-6 text-${color}-600`} />
+                          </div>
+                          <CardTitle className="text-lg">{gemPackage.name}</CardTitle>
+                        </CardHeader>
+                        <CardContent className="text-center space-y-3">
+                          <div className="text-2xl font-bold">${(gemPackage.priceUsd / 100).toFixed(2)}</div>
+                          <div className={`text-lg font-semibold text-${color}-600`}>
+                            {gemPackage.baseGems + gemPackage.bonusGems} 💎
+                          </div>
+                          {gemPackage.bonusGems > 0 && (
+                            <div className="text-sm text-green-600">+{gemPackage.bonusGems} Bonus!</div>
+                          )}
+                          <Button 
+                            className={`w-full bg-${color}-600 hover:bg-${color}-700`}
+                            onClick={() => setLocation(`/gem-checkout/${gemPackage.id}`)}
+                          >
+                            Purchase
+                          </Button>
+                        </CardContent>
+                      </Card>
+                    );
+                  })}
+                </div>
+                
+                {gemPackages.length === 0 && (
+                  <div className="text-center py-8">
+                    <Gem className="w-12 h-12 mx-auto mb-4 text-gray-400" />
+                    <p className="text-gray-500 text-lg">No gem packages available</p>
+                    <p className="text-gray-400 text-sm mt-2">Check back later for gem purchase options</p>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="realm-pass">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Crown className="h-5 w-5" />
+                  Realm Pass Subscription
+                </CardTitle>
+                <p className="text-sm text-gray-600 dark:text-gray-400">
+                  Monthly subscription for continuous premium benefits
+                </p>
+              </CardHeader>
+              <CardContent>
+                <div className="max-w-2xl mx-auto">
+                  <Card className="border-2 border-purple-400 bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-900/20 dark:to-purple-800/20">
                     <CardHeader className="text-center">
-                      <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-2">
-                        <Gem className="w-6 h-6 text-blue-600" />
+                      <div className="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <Crown className="w-8 h-8 text-purple-600" />
                       </div>
-                      <CardTitle className="text-lg">Starter Pack</CardTitle>
-                    </CardHeader>
-                    <CardContent className="text-center space-y-3">
-                      <div className="text-2xl font-bold">$4.99</div>
-                      <div className="text-lg font-semibold text-blue-600">100 💎</div>
-                      <Button className="w-full">Purchase</Button>
-                    </CardContent>
-                  </Card>
-                  
-                  <Card className="border-2 hover:border-purple-400 transition-colors">
-                    <CardHeader className="text-center">
-                      <div className="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-2">
-                        <Gem className="w-6 h-6 text-purple-600" />
+                      <CardTitle className="text-2xl text-purple-800 dark:text-purple-200">
+                        {realmPass.name || 'Realm Pass'}
+                      </CardTitle>
+                      <div className="text-3xl font-bold text-purple-600">
+                        ${((realmPass.priceUsd || 995) / 100).toFixed(2)}/month
                       </div>
-                      <CardTitle className="text-lg">Value Pack</CardTitle>
                     </CardHeader>
-                    <CardContent className="text-center space-y-3">
-                      <div className="text-2xl font-bold">$9.99</div>
-                      <div className="text-lg font-semibold text-purple-600">250 💎</div>
-                      <div className="text-sm text-green-600">+50 Bonus!</div>
-                      <Button className="w-full bg-purple-600 hover:bg-purple-700">Purchase</Button>
-                    </CardContent>
-                  </Card>
-                  
-                  <Card className="border-2 border-orange-400 ring-2 ring-orange-200">
-                    <CardHeader className="text-center">
-                      <Badge className="mb-2 bg-orange-600">Most Popular</Badge>
-                      <div className="w-12 h-12 bg-orange-100 rounded-full flex items-center justify-center mx-auto mb-2">
-                        <Gem className="w-6 h-6 text-orange-600" />
+                    <CardContent className="space-y-6">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="space-y-3">
+                          <h3 className="font-semibold text-purple-800 dark:text-purple-200">Monthly Benefits:</h3>
+                          <ul className="space-y-2 text-sm">
+                            <li className="flex items-center gap-2">
+                              <Gem className="w-4 h-4 text-blue-500" />
+                              <span>{realmPass.monthlyGems || 200} Premium Gems</span>
+                            </li>
+                            <li className="flex items-center gap-2">
+                              <Star className="w-4 h-4 text-yellow-500" />
+                              <span>Exclusive cosmetic items</span>
+                            </li>
+                            <li className="flex items-center gap-2">
+                              <Trophy className="w-4 h-4 text-orange-500" />
+                              <span>Priority customer support</span>
+                            </li>
+                            <li className="flex items-center gap-2">
+                              <Crown className="w-4 h-4 text-purple-500" />
+                              <span>Realm Pass exclusive content</span>
+                            </li>
+                          </ul>
+                        </div>
+                        
+                        <div className="space-y-3">
+                          <h3 className="font-semibold text-purple-800 dark:text-purple-200">Value Calculation:</h3>
+                          <div className="text-sm space-y-1">
+                            <div className="flex justify-between">
+                              <span>{realmPass.monthlyGems || 200} Gems Value:</span>
+                              <span className="font-semibold">$3.98</span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span>Exclusive Benefits:</span>
+                              <span className="font-semibold">$5.97</span>
+                            </div>
+                            <div className="border-t border-purple-300 pt-1 flex justify-between font-bold">
+                              <span>Total Value:</span>
+                              <span className="text-green-600">$9.95</span>
+                            </div>
+                          </div>
+                        </div>
                       </div>
-                      <CardTitle className="text-lg">Power Pack</CardTitle>
-                    </CardHeader>
-                    <CardContent className="text-center space-y-3">
-                      <div className="text-2xl font-bold">$19.99</div>
-                      <div className="text-lg font-semibold text-orange-600">600 💎</div>
-                      <div className="text-sm text-green-600">+150 Bonus!</div>
-                      <Button className="w-full bg-orange-600 hover:bg-orange-700">Purchase</Button>
-                    </CardContent>
-                  </Card>
-                  
-                  <Card className="border-2 hover:border-yellow-400 transition-colors">
-                    <CardHeader className="text-center">
-                      <div className="w-12 h-12 bg-yellow-100 rounded-full flex items-center justify-center mx-auto mb-2">
-                        <Crown className="w-6 h-6 text-yellow-600" />
+                      
+                      <div className="text-center">
+                        <Button 
+                          size="lg" 
+                          className="w-full bg-purple-600 hover:bg-purple-700 text-white"
+                          onClick={() => setLocation('/realm-pass-checkout')}
+                        >
+                          <Crown className="w-5 h-5 mr-2" />
+                          Subscribe to Realm Pass
+                        </Button>
+                        <p className="text-xs text-gray-500 mt-2">
+                          Cancel anytime • Secure payment processing • No commitments
+                        </p>
                       </div>
-                      <CardTitle className="text-lg">Elite Pack</CardTitle>
-                    </CardHeader>
-                    <CardContent className="text-center space-y-3">
-                      <div className="text-2xl font-bold">$49.99</div>
-                      <div className="text-lg font-semibold text-yellow-600">1,800 💎</div>
-                      <div className="text-sm text-green-600">+600 Bonus!</div>
-                      <Button className="w-full bg-yellow-600 hover:bg-yellow-700">Purchase</Button>
                     </CardContent>
                   </Card>
                 </div>
