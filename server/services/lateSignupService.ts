@@ -253,6 +253,7 @@ export class LateSignupService {
   
   /**
    * Process late signup team creation
+   * Progressive process: Once 8 teams are in a subdivision, generate schedule immediately
    */
   static async processLateSignup(teamData: {
     userId: string;
@@ -261,7 +262,14 @@ export class LateSignupService {
     team: any;
     subdivision: string;
     needsScheduleGeneration: boolean;
+    scheduleGenerated: boolean;
   }> {
+    // Verify we're in the late signup window
+    const isLateSignupWindow = await this.isLateSignupWindow();
+    if (!isLateSignupWindow) {
+      throw new Error('Late signup window is closed. Late signup is only available between Day 1 3PM and Day 9 3PM.');
+    }
+    
     // Find appropriate late signup subdivision
     const subdivision = await this.findOrCreateLateSignupSubdivision();
     
@@ -276,27 +284,39 @@ export class LateSignupService {
     // Check if subdivision is now full (8 teams)
     const teamsInSubdivision = await storage.teams.getTeamsByDivisionAndSubdivision(8, subdivision);
     const needsScheduleGeneration = teamsInSubdivision.length === 8;
+    let scheduleGenerated = false;
     
     if (needsScheduleGeneration) {
+      // Generate schedule immediately when subdivision is full
       await this.generateShortenedSeasonSchedule(subdivision, teamsInSubdivision);
+      scheduleGenerated = true;
+      
+      logInfo(`Late signup subdivision ${subdivision} is full! Generated shortened season schedule immediately.`, {
+        subdivision,
+        teamsCount: teamsInSubdivision.length,
+        scheduleGenerated: true
+      });
     }
     
     logInfo(`Late signup team created`, {
       teamId: team.id,
       subdivision,
       teamsInSubdivision: teamsInSubdivision.length,
-      scheduleGenerated: needsScheduleGeneration
+      scheduleGenerated,
+      canStartSeason: scheduleGenerated
     });
     
     return {
       team,
       subdivision,
-      needsScheduleGeneration
+      needsScheduleGeneration,
+      scheduleGenerated
     };
   }
   
   /**
    * Generate shortened season schedule for late signup subdivision
+   * Called immediately when subdivision reaches 8 teams
    */
   static async generateShortenedSeasonSchedule(
     subdivision: string,
@@ -307,25 +327,35 @@ export class LateSignupService {
     
     const { currentDayInCycle, seasonNumber } = this.getCurrentSeasonInfo(currentSeason);
     
-    // Calculate remaining days in regular season
+    // Calculate remaining days in regular season (until Day 14)
     const remainingDays = Math.max(0, 14 - currentDayInCycle + 1);
     
     if (remainingDays <= 0) {
-      logInfo('No remaining days for shortened season schedule');
+      logInfo('No remaining days for shortened season schedule - too late in season');
       return;
     }
     
     // Create league for late signup subdivision
-    const league = await prisma.league.create({
-      data: {
-        id: `late-${subdivision}-${seasonNumber}`,
-        season: seasonNumber,
-        division: 8,
-        subdivision: subdivision,
-        name: `Division 8 Late Signup - ${subdivision.toUpperCase()}`,
-        status: 'active'
-      }
+    const leagueId = `late-${subdivision}-${seasonNumber}`;
+    
+    // Check if league already exists
+    const existingLeague = await prisma.league.findUnique({
+      where: { id: leagueId }
     });
+    
+    let league = existingLeague;
+    if (!league) {
+      league = await prisma.league.create({
+        data: {
+          id: leagueId,
+          seasonId: seasonNumber,
+          division: 8,
+          subdivision: subdivision,
+          name: `Division 8 Late Signup - ${subdivision.toUpperCase()}`,
+          status: 'active'
+        }
+      });
+    }
     
     // Generate shortened schedule
     const matches = await this.generateShortenedMatches(
@@ -336,13 +366,14 @@ export class LateSignupService {
       remainingDays
     );
     
-    logInfo(`Shortened season schedule generated`, {
+    logInfo(`🎯 SHORTENED SEASON SCHEDULE GENERATED IMMEDIATELY`, {
       leagueId: league.id,
       subdivision,
       teams: teams.length,
       matches: matches.length,
       remainingDays,
-      startDay: currentDayInCycle
+      startDay: currentDayInCycle,
+      canStartNow: true
     });
   }
   
@@ -445,7 +476,7 @@ export class LateSignupService {
     }>;
     totalLateSignupTeams: number;
   }> {
-    const isLateSignupWindow = this.isLateSignupWindow();
+    const isLateSignupWindow = await this.isLateSignupWindow();
     
     // Get all late signup subdivisions
     const lateSignupSubdivisions = await prisma.team.findMany({

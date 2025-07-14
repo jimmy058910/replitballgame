@@ -347,6 +347,72 @@ router.get('/schedule/preview/:season', isAuthenticated, RBACService.requirePerm
 });
 
 /**
+ * POST /api/seasonal-flow/late-signup
+ * Handle progressive late signup team creation
+ */
+router.post('/late-signup', isAuthenticated, async (req, res) => {
+  try {
+    const { teamName } = req.body;
+    const userId = req.user.id;
+    
+    if (!teamName || typeof teamName !== 'string') {
+      return res.status(400).json({
+        success: false,
+        message: 'Team name is required'
+      });
+    }
+    
+    // Import LateSignupService
+    const { LateSignupService } = await import('../services/lateSignupService');
+    
+    const result = await LateSignupService.processLateSignup({
+      userId,
+      name: teamName
+    });
+    
+    res.json({
+      success: true,
+      data: result,
+      message: result.scheduleGenerated 
+        ? `Team created! Subdivision ${result.subdivision} is full and schedule generated. You can start playing immediately!`
+        : `Team created in subdivision ${result.subdivision}. Waiting for more teams to start season.`
+    });
+  } catch (error) {
+    console.error('Error processing late signup:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to process late signup',
+      error: error instanceof Error ? error.message : 'Unknown error'
+    });
+  }
+});
+
+/**
+ * GET /api/seasonal-flow/late-signup/stats
+ * Get late signup statistics and subdivision status
+ */
+router.get('/late-signup/stats', isAuthenticated, async (req, res) => {
+  try {
+    // Import LateSignupService
+    const { LateSignupService } = await import('../services/lateSignupService');
+    
+    const stats = await LateSignupService.getLateSignupStats();
+    
+    res.json({
+      success: true,
+      data: stats
+    });
+  } catch (error) {
+    console.error('Error getting late signup stats:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to get late signup stats',
+      error: error instanceof Error ? error.message : 'Unknown error'
+    });
+  }
+});
+
+/**
  * GET /api/seasonal-flow/health
  * Health check for seasonal flow system
  */
@@ -363,7 +429,8 @@ router.get('/health', isAuthenticated, async (req, res) => {
           'Playoff Brackets',
           'Promotion/Relegation',
           'League Rebalancing',
-          'Season Rollover'
+          'Season Rollover',
+          'Progressive Late Signup'
         ],
         version: '1.0.0'
       }
