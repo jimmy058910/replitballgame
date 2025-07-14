@@ -11,6 +11,7 @@
     
     "padded_leather_armor": { "credits": 1500 },
     "steel_scale_mail": { "credits": 5000, "gems": 10 },
+    "quarterbacks_pauldrons": { "credits": 8000, "gems": 16 },
     "human_plate_carrier": { "credits": 7500, "gems": 15 },
     "gryll_forged_plate": { "credits": 40000, "gems": 30 },
     "umbral_shadow_weave_tunic": { "credits": 40000, "gems": 30 },
@@ -18,6 +19,7 @@
     "sylvan_heartwood_plate": { "credits": 80000, "gems": 55 },
     
     "standard_leather_gloves": { "credits": 800 },
+    "receivers_gloves": { "credits": 4000, "gems": 8 },
     "steel_gauntlets": { "credits": 3500, "gems": 7 },
     "human_marksmans_gloves": { "credits": 30000, "gems": 20 },
     "gryll_stonefists": { "credits": 30000, "gems": 20 },
@@ -25,6 +27,7 @@
     "sylvan_gripping_vines": { "credits": 70000, "gems": 45 },
     
     "worn_cleats": { "credits": 1000 },
+    "kickers_cleats": { "credits": 4500, "gems": 9 },
     "plated_greaves": { "credits": 4500, "gems": 9 },
     "boots_of_the_gryll": { "credits": 5500, "gems": 11 },
     "sylvan_swift_striders": { "credits": 38000, "gems": 28 },
@@ -38,10 +41,10 @@
     "miracle_tincture": { "credits": 50000, "gems": 35 },
     "phoenix_elixir": { "credits": 40000, "gems": 30 },
     
-    "team_focus_draft": { "credits": 1200, "gems": 3 },
-    "team_vigor_draught": { "credits": 2500, "gems": 5 },
-    "team_reflex_tonic": { "credits": 2500, "gems": 5 },
-    "team_resilience_brew": { "credits": 10000, "gems": 12 },
+    "team_leadership_draft": { "credits": 1200, "gems": 3 },
+    "team_power_draught": { "credits": 2500, "gems": 5 },
+    "team_agility_tonic": { "credits": 2500, "gems": 5 },
+    "team_stamina_brew": { "credits": 10000, "gems": 12 },
     "champions_blessing": { "credits": 30000, "gems": 20 },
 
     "exhibition_match_entry": { "credits": 5000, "gems": 5 },
@@ -88,134 +91,146 @@
       {
         "id": "standard_leather_helmet",
         "name": "Standard Leather Helmet",
-        "description": "Basic protective headgear for all players. +2 Toughness.",
+        "description": "Basic protective headgear for all players. +2 Stamina.",
         "price": 1000,
         "priceGems": 0,
         "rarity": "common",
         "category": "helmet",
         "slot": "helmet",
         "raceRestriction": "universal",
-        "statBoosts": { "toughness": 2 }
+        "statBoosts": { "stamina": 2 }
       },
       {
         "id": "reinforced_steel_helm",
         "name": "Reinforced Steel Helm",
-        "description": "A hardened steel hoplite helmet with a worn horsehair plume. +5 Toughness.",
+        "description": "A hardened steel hoplite helmet with a worn horsehair plume. +5 Stamina.",
         "price": 4000,
         "priceGems": 8,
         "rarity": "uncommon",
         "category": "helmet",
         "slot": "helmet",
         "raceRestriction": "universal",
-        "statBoosts": { "toughness": 5 }
+        "statBoosts": { "stamina": 5 }
       },
       {
         "id": "human_tactical_helm",
         "name": "Human Tactical Helm",
-        "description": "A military-style tactical helmet with built-in communications. +5 Intelligence, +3 Toughness.",
-        "price": 3000,
-        "priceGems": 8,
+        "description": "A military-style tactical helmet with built-in communications. +5 Leadership, +3 Throwing.",
+        "price": 6000,
+        "priceGems": 12,
         "rarity": "uncommon",
         "category": "helmet",
         "slot": "helmet",
         "raceRestriction": "human",
-        "statBoosts": { "intelligence": 5, "toughness": 3 }
+        "statBoosts": { "leadership": 5, "throwing": 3 }
       },
       {
         "id": "gryllstone_plated_helm",
         "name": "Gryllstone Plated Helm",
-        "description": "A heavy helmet carved from dark granite with glowing orange cracks. +8 Toughness.",
-        "price": 3500,
-        "priceGems": 10,
+        "description": "A heavy helmet carved from dark granite with glowing orange cracks. +8 Power.",
+        "price": 6000,
+        "priceGems": 12,
         "rarity": "uncommon",
         "category": "helmet",
         "slot": "helmet",
         "raceRestriction": "gryll",
-        "statBoosts": { "toughness": 8 }
+        "statBoosts": { "power": 8 }
       },
       {
         "id": "sylvan_barkwood_circlet",
         "name": "Sylvan Barkwood Circlet",
-        "description": "A delicate circlet of silver birch wood and glowing leaves. +5 Agility, +3 Intelligence.",
-        "price": 4000,
-        "priceGems": 10,
+        "description": "A delicate circlet of silver birch wood and glowing leaves. +5 Agility, +3 Catching.",
+        "price": 6000,
+        "priceGems": 12,
         "rarity": "uncommon",
         "category": "helmet",
         "slot": "helmet",
         "raceRestriction": "sylvan",
-        "statBoosts": { "agility": 5, "intelligence": 3 }
+        "statBoosts": { "agility": 5, "catching": 3 }
       },
       {
         "id": "umbral_cowl",
         "name": "Umbral Cowl",
-        "description": "A sleek, dark hood that obscures the face with purple trim. +8 Agility, +5 Intelligence.",
-        "price": 15000,
+        "description": "A sleek, dark hood that obscures the face with purple trim. +8 Agility, +5 Throwing.",
+        "price": 35000,
         "priceGems": 25,
         "rarity": "rare",
         "category": "helmet",
         "slot": "helmet",
         "raceRestriction": "umbra",
-        "statBoosts": { "agility": 8, "intelligence": 5 }
+        "statBoosts": { "agility": 8, "throwing": 5 }
       },
       {
         "id": "lumina_radiant_crest",
         "name": "Lumina Radiant Crest",
-        "description": "An elegant, glowing crystalline helmet with golden filigree. +8 Intelligence, +5 Strength.",
-        "price": 18000,
-        "priceGems": 30,
+        "description": "An elegant, glowing crystalline helmet with golden filigree. +8 Leadership, +5 Kicking.",
+        "price": 35000,
+        "priceGems": 25,
         "rarity": "rare",
         "category": "helmet",
         "slot": "helmet",
         "raceRestriction": "lumina",
-        "statBoosts": { "intelligence": 8, "strength": 5 }
+        "statBoosts": { "leadership": 8, "kicking": 5 }
       },
       {
         "id": "warlords_greathelm",
         "name": "Warlord's Greathelm",
-        "description": "An intimidating, battle-scarred full-face greathelm. +10 Toughness, +5 Strength.",
-        "price": 50000,
-        "priceGems": 75,
+        "description": "An intimidating, battle-scarred full-face greathelm. +10 Power, +5 Leadership.",
+        "price": 75000,
+        "priceGems": 50,
         "rarity": "epic",
         "category": "helmet",
         "slot": "helmet",
         "raceRestriction": "universal",
-        "statBoosts": { "toughness": 10, "strength": 5 }
+        "statBoosts": { "power": 10, "leadership": 5 }
       },
       {
         "id": "padded_leather_armor",
         "name": "Padded Leather Armor",
-        "description": "Practical leather shoulder pads and chest protection. +3 Toughness.",
+        "description": "Practical leather shoulder pads and chest protection. +3 Stamina.",
         "price": 1500,
         "priceGems": 0,
         "rarity": "common",
         "category": "armor",
         "slot": "chest",
         "raceRestriction": "universal",
-        "statBoosts": { "toughness": 3 }
+        "statBoosts": { "stamina": 3 }
       },
       {
         "id": "steel_scale_mail",
         "name": "Steel Scale Mail",
-        "description": "Well-maintained interlocking steel scale mail armor. +6 Toughness.",
-        "price": 3000,
-        "priceGems": 8,
-        "rarity": "uncommon",
-        "category": "armor",
-        "slot": "chest",
-        "raceRestriction": "universal",
-        "statBoosts": { "toughness": 6 }
-      },
-      {
-        "id": "human_plate_carrier",
-        "name": "Human Plate Carrier",
-        "description": "A modern military plate carrier vest with ammo pouches. +6 Toughness, +2 Strength.",
-        "price": 4000,
+        "description": "Well-maintained interlocking steel scale mail armor. +6 Stamina.",
+        "price": 5000,
         "priceGems": 10,
         "rarity": "uncommon",
         "category": "armor",
         "slot": "chest",
+        "raceRestriction": "universal",
+        "statBoosts": { "stamina": 6 }
+      },
+      {
+        "id": "quarterbacks_pauldrons",
+        "name": "Quarterback's Pauldrons",
+        "description": "Specialized shoulder pads for throwing prowess. +8 Throwing.",
+        "price": 8000,
+        "priceGems": 16,
+        "rarity": "uncommon",
+        "category": "armor",
+        "slot": "chest",
+        "raceRestriction": "universal",
+        "statBoosts": { "throwing": 8 }
+      },
+      {
+        "id": "human_plate_carrier",
+        "name": "Human Plate Carrier",
+        "description": "A modern military plate carrier vest with ammo pouches. +6 Stamina, +2 Power.",
+        "price": 7500,
+        "priceGems": 15,
+        "rarity": "uncommon",
+        "category": "armor",
+        "slot": "chest",
         "raceRestriction": "human",
-        "statBoosts": { "toughness": 6, "strength": 2 }
+        "statBoosts": { "stamina": 6, "power": 2 }
       },
       {
         "id": "gryll_forged_plate",
