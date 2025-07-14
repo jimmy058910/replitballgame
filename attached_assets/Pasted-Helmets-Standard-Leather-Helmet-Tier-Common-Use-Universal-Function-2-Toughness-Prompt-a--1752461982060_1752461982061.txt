@@ -1,0 +1,147 @@
+Helmets
+Standard Leather Helmet
+Tier: Common | Use: Universal
+Function: +2 Toughness.
+Prompt: a simple, worn brown leather football-style helmet with brass rivets and basic padding
+Reinforced Steel Helm
+Tier: Uncommon | Use: Universal
+Function: +5 Toughness.
+Prompt: a hardened steel hoplite helmet with a worn horsehair plume, practical and strong
+Human Tactical Helm
+Tier: Uncommon | Use: Human Only
+Function: +5 Intelligence, +3 Toughness.
+Prompt: a military-style tactical helmet, dark grey with a built-in communications headset on the side
+Gryllstone Plated Helm
+Tier: Uncommon | Use: Gryll Only
+Function: +8 Toughness.
+Prompt: a heavy, powerful helmet carved from a single piece of dark granite with orange glowing cracks
+Sylvan Barkwood Circlet
+Tier: Uncommon | Use: Sylvan Only
+Function: +5 Agility, +3 Intelligence.
+Prompt: a delicate circlet made of intertwined silver birch wood and glowing green leaves
+Umbral Cowl
+Tier: Rare | Use: Umbra Only
+Function: +8 Agility, +5 Intelligence.
+Prompt: a sleek, dark hood made of shadowy fabric that obscures the face, with subtle purple trim
+Lumina Radiant Crest
+Tier: Rare | Use: Lumina Only
+Function: +8 Intelligence, +5 Strength.
+Prompt: an elegant, glowing white crystalline helmet with golden filigree that emits a soft, holy light
+Warlord's Greathelm
+Tier: Epic | Use: Universal
+Function: +10 Toughness, +5 Strength.
+Prompt: an intimidating, full-face greathelm made of dark iron, with battle scars and a menacing design
+Chest Armor
+Padded Leather Armor
+Tier: Common | Use: Universal
+Function: +3 Toughness.
+Prompt: a practical set of dark brown leather shoulder pads and chest protection, strapped with thick belts
+Steel Scale Mail
+Tier: Uncommon | Use: Universal
+Function: +6 Toughness.
+Prompt: a well-maintained set of interlocking steel scale mail armor
+Human Plate Carrier
+Tier: Uncommon | Use: Human Only
+Function: +6 Toughness, +2 Strength.
+Prompt: a modern military plate carrier vest, dark green, with ammo pouches and straps
+Gryll Forged Plate
+Tier: Rare | Use: Gryll Only
+Function: +12 Toughness, -2 Agility.
+Prompt: a massive, intimidating chestplate made of dark, heavy Gryll-forged iron plates, looks unbreakable
+Umbral Shadow-Weave Tunic
+Tier: Rare | Use: Umbra Only
+Function: +10 Agility, +3 Toughness.
+Prompt: a form-fitting tunic of dark, layered fabric that seems to ripple with shadow energy
+Lumina's Aegis of Light
+Tier: Epic | Use: Lumina Only
+Function: +10 Intelligence, +8 Toughness.
+Prompt: an elegant breastplate of glowing white crystal and gold that emits a protective aura
+Sylvan Heartwood Plate
+Tier: Epic | Use: Sylvan Only
+Function: +10 Agility, +8 Toughness, Passive: Regenerates minor stamina between plays.
+Prompt: a living breastplate of intertwined ironwood, with glowing green sap pulsing in channels along the surface
+Gloves
+Standard Leather Gloves
+Tier: Common | Use: Universal
+Function: +2 Strength.
+Prompt: a pair of simple, fingerless black leather gloves with reinforced knuckles
+Steel Gauntlets
+Tier: Uncommon | Use: Universal
+Function: +4 Strength, +2 Toughness.
+Prompt: a pair of practical steel gauntlets with articulated fingers and reinforced plates
+Human Marksman's Gloves
+Tier: Rare | Use: Human Only
+Function: +8 Intelligence, +3 Agility.
+Prompt: a pair of high-tech black gloves with a small digital display on the wrist
+Gryll Stonefists
+Tier: Rare | Use: Gryll Only
+Function: +8 Strength, +4 Toughness.
+Prompt: a pair of massive, heavy gauntlets that look like they were carved from granite
+Umbral Shadowgrips
+Tier: Rare | Use: Umbra Only
+Function: +7 Agility, +3 Strength.
+Prompt: a pair of sleek, dark gray gloves that seem to absorb light, with subtle purple stitching
+Sylvan Gripping Vines
+Tier: Epic | Use: Sylvan Only
+Function: +12 Agility.
+Prompt: a pair of fantasy gloves that appear to be made of living green vines wrapping around the hands
+Footwear
+Worn Cleats
+Tier: Common | Use: Universal
+Function: +2 Agility.
+Prompt: a pair of simple, black athletic cleats, slightly muddy
+Plated Greaves
+Tier: Uncommon | Use: Universal
+Function: +4 Toughness, +2 Agility.
+Prompt: a pair of leather boots with steel-plated toes and shins
+Boots of the Gryll
+Tier: Uncommon | Use: Gryll Only
+Function: +6 Toughness.
+Prompt: a pair of heavy, iron-plated boots with thick soles, looks incredibly stable
+Sylvan Swift-Striders
+Tier: Rare | Use: Sylvan Only
+Function: +10 Agility.
+Prompt: a pair of lightweight boots made from woven leaves and flexible bark, glowing faintly
+Lumina's Light-Treads
+Tier: Rare | Use: Lumina Only
+Function: +10 Agility.
+Prompt: a pair of elegant, white and gold boots that seem to hover slightly, with glowing light trails
+II. Consumables Assets
+Recovery Items
+Basic Energy Drink
+Tier: Common | Function: Instantly restores 25% of a player's stamina post-game.
+Prompt: a simple, modern energy drink can, green and black design with condensation droplets
+Basic Medical Kit
+Tier: Common | Function: Reduces a minor injury's recovery time by 1 game.
+Prompt: a small, white first-aid kit with a red cross on it
+Advanced Recovery Serum
+Tier: Uncommon | Function: Instantly restores 75% of a player's stamina post-game.
+Prompt: a scientific-looking syringe filled with a glowing blue liquid
+Advanced Treatment
+Tier: Uncommon | Function: Reduces any injury's recovery time by 2 games.
+Prompt: a futuristic medical injector device, sleek and metallic, with a digital display
+Regenerative Salve
+Tier: Uncommon | Function: Restores 20% stamina and reduces minor injury recovery time by 1 game.
+Prompt: an open ceramic jar containing a thick, glowing green paste
+Miracle Tincture
+Tier: Legendary | Function: Instantly heals any one player from any injury.
+Prompt: a small, corked vial filled with a single drop of shimmering, pure liquid light
+Phoenix Elixir
+Tier: Legendary | Function: Instantly restores 100% of stamina for the entire team.
+Prompt: a beautiful, ornate crystal potion bottle containing a swirling, fiery orange liquid that glows brightly
+Team Performance Boosts
+Team Focus Draft
+Tier: Common | Function: Grants the entire team +3 Intelligence for their next game.
+Prompt: a simple glass potion bottle filled with a clear, bubbling liquid
+Team Vigor Draught
+Tier: Uncommon | Function: Grants the entire team +5 Strength for their next game.
+Prompt: a thick, iron flask filled with a bubbling, deep red liquid that radiates power
+Team Reflex Tonic
+Tier: Uncommon | Function: Grants the entire team +5 Agility for their next game.
+Prompt: a potion bottle shaped like a lightning bolt, filled with a vibrant yellow liquid
+Team Resilience Brew
+Tier: Rare | Function: Grants the entire team +8 Toughness for their next game.
+Prompt: a heavy ceramic mug filled with a dark, steaming liquid
+Champion's Blessing
+Tier: Epic | Function: Grants the entire team +5 to all stats for their next game.
+Prompt: a radiant, golden chalice filled with a shimmering, platinum liquid that swirls with cosmic energy

@@ -300,29 +300,54 @@ export class EnhancedGameEconomyService {
    */
   static readonly STORE_ITEMS = {
     helmets: [
-      { id: 'standard_helmet', name: 'Standard Leather Helmet', credits: 1000, gems: null, tier: 'basic' },
-      { id: 'gryllstone_helm', name: 'Gryllstone Plated Helm', credits: 5000, gems: 10, tier: 'uncommon' },
-      { id: 'sylvan_circlet', name: 'Sylvan Barkwood Circlet', credits: 5000, gems: 10, tier: 'uncommon' },
-      { id: 'umbral_cowl', name: 'Umbral Cowl', credits: 40000, gems: 25, tier: 'rare' },
-      { id: 'helm_command', name: 'Helm of Command', credits: null, gems: 50, tier: 'cosmetic' }
+      { id: 'standard_leather_helmet', name: 'Standard Leather Helmet', credits: 1000, gems: null, tier: 'common', raceRestriction: null, statEffects: { toughness: 2 } },
+      { id: 'reinforced_steel_helm', name: 'Reinforced Steel Helm', credits: 2500, gems: 5, tier: 'uncommon', raceRestriction: null, statEffects: { toughness: 5 } },
+      { id: 'human_tactical_helm', name: 'Human Tactical Helm', credits: 3000, gems: 8, tier: 'uncommon', raceRestriction: 'HUMAN', statEffects: { intelligence: 5, toughness: 3 } },
+      { id: 'gryllstone_plated_helm', name: 'Gryllstone Plated Helm', credits: 3500, gems: 10, tier: 'uncommon', raceRestriction: 'GRYLL', statEffects: { toughness: 8 } },
+      { id: 'sylvan_barkwood_circlet', name: 'Sylvan Barkwood Circlet', credits: 4000, gems: 10, tier: 'uncommon', raceRestriction: 'SYLVAN', statEffects: { agility: 5, intelligence: 3 } },
+      { id: 'umbral_cowl', name: 'Umbral Cowl', credits: 15000, gems: 25, tier: 'rare', raceRestriction: 'UMBRA', statEffects: { agility: 8, intelligence: 5 } },
+      { id: 'lumina_radiant_crest', name: 'Lumina Radiant Crest', credits: 18000, gems: 30, tier: 'rare', raceRestriction: 'LUMINA', statEffects: { intelligence: 8, strength: 5 } },
+      { id: 'warlords_greathelm', name: 'Warlord\'s Greathelm', credits: 50000, gems: 75, tier: 'epic', raceRestriction: null, statEffects: { toughness: 10, strength: 5 } }
+    ],
+    chestArmor: [
+      { id: 'padded_leather_armor', name: 'Padded Leather Armor', credits: 1500, gems: null, tier: 'common', raceRestriction: null, statEffects: { toughness: 3 } },
+      { id: 'steel_scale_mail', name: 'Steel Scale Mail', credits: 3000, gems: 8, tier: 'uncommon', raceRestriction: null, statEffects: { toughness: 6 } },
+      { id: 'human_plate_carrier', name: 'Human Plate Carrier', credits: 4000, gems: 10, tier: 'uncommon', raceRestriction: 'HUMAN', statEffects: { toughness: 6, strength: 2 } },
+      { id: 'gryll_forged_plate', name: 'Gryll Forged Plate', credits: 20000, gems: 35, tier: 'rare', raceRestriction: 'GRYLL', statEffects: { toughness: 12, agility: -2 } },
+      { id: 'umbral_shadow_weave_tunic', name: 'Umbral Shadow-Weave Tunic', credits: 18000, gems: 30, tier: 'rare', raceRestriction: 'UMBRA', statEffects: { agility: 10, toughness: 3 } },
+      { id: 'luminas_aegis_of_light', name: 'Lumina\'s Aegis of Light', credits: 60000, gems: 100, tier: 'epic', raceRestriction: 'LUMINA', statEffects: { intelligence: 10, toughness: 8 } },
+      { id: 'sylvan_heartwood_plate', name: 'Sylvan Heartwood Plate', credits: 65000, gems: 110, tier: 'epic', raceRestriction: 'SYLVAN', statEffects: { agility: 10, toughness: 8 }, special: 'stamina_regen' }
+    ],
+    gloves: [
+      { id: 'standard_leather_gloves', name: 'Standard Leather Gloves', credits: 800, gems: null, tier: 'common', raceRestriction: null, statEffects: { strength: 2 } },
+      { id: 'steel_gauntlets', name: 'Steel Gauntlets', credits: 2000, gems: 5, tier: 'uncommon', raceRestriction: null, statEffects: { strength: 4, toughness: 2 } },
+      { id: 'human_marksmans_gloves', name: 'Human Marksman\'s Gloves', credits: 12000, gems: 20, tier: 'rare', raceRestriction: 'HUMAN', statEffects: { intelligence: 8, agility: 3 } },
+      { id: 'gryll_stonefists', name: 'Gryll Stonefists', credits: 15000, gems: 25, tier: 'rare', raceRestriction: 'GRYLL', statEffects: { strength: 8, toughness: 4 } },
+      { id: 'umbral_shadowgrips', name: 'Umbral Shadowgrips', credits: 14000, gems: 22, tier: 'rare', raceRestriction: 'UMBRA', statEffects: { agility: 7, strength: 3 } },
+      { id: 'sylvan_gripping_vines', name: 'Sylvan Gripping Vines', credits: 45000, gems: 70, tier: 'epic', raceRestriction: 'SYLVAN', statEffects: { agility: 12 } }
     ],
     footwear: [
-      { id: 'worn_cleats', name: 'Worn Cleats', credits: 1000, gems: null, tier: 'basic' },
-      { id: 'gryll_boots', name: 'Boots of the Gryll', credits: 2500, gems: 5, tier: 'uncommon' },
-      { id: 'lumina_treads', name: 'Lumina\'s Light-Treads', credits: 40000, gems: 25, tier: 'rare' }
+      { id: 'worn_cleats', name: 'Worn Cleats', credits: 600, gems: null, tier: 'common', raceRestriction: null, statEffects: { agility: 2 } },
+      { id: 'plated_greaves', name: 'Plated Greaves', credits: 1800, gems: 4, tier: 'uncommon', raceRestriction: null, statEffects: { toughness: 4, agility: 2 } },
+      { id: 'boots_of_the_gryll', name: 'Boots of the Gryll', credits: 3000, gems: 8, tier: 'uncommon', raceRestriction: 'GRYLL', statEffects: { toughness: 6 } },
+      { id: 'sylvan_swift_striders', name: 'Sylvan Swift-Striders', credits: 18000, gems: 30, tier: 'rare', raceRestriction: 'SYLVAN', statEffects: { agility: 10 } },
+      { id: 'luminas_light_treads', name: 'Lumina\'s Light-Treads', credits: 20000, gems: 35, tier: 'rare', raceRestriction: 'LUMINA', statEffects: { agility: 10 } }
     ],
     consumables: [
-      { id: 'energy_drink', name: 'Basic Energy Drink', credits: 500, gems: null, tier: 'basic' },
-      { id: 'recovery_serum', name: 'Advanced Recovery Serum', credits: 2000, gems: 5, tier: 'uncommon' },
-      { id: 'phoenix_elixir', name: 'Phoenix Elixir', credits: 30000, gems: 20, tier: 'legendary' },
-      { id: 'medical_kit', name: 'Basic Medical Kit', credits: 1000, gems: null, tier: 'basic' },
-      { id: 'advanced_treatment', name: 'Advanced Treatment', credits: 3000, gems: 10, tier: 'uncommon' },
-      { id: 'miracle_cure', name: 'Miracle Cure', credits: 45000, gems: 30, tier: 'legendary' }
+      { id: 'basic_energy_drink', name: 'Basic Energy Drink', credits: 500, gems: null, tier: 'common', effect: 'restore_stamina_25' },
+      { id: 'basic_medical_kit', name: 'Basic Medical Kit', credits: 750, gems: null, tier: 'common', effect: 'reduce_injury_1' },
+      { id: 'advanced_recovery_serum', name: 'Advanced Recovery Serum', credits: 1500, gems: 3, tier: 'uncommon', effect: 'restore_stamina_75' },
+      { id: 'advanced_treatment', name: 'Advanced Treatment', credits: 2000, gems: 5, tier: 'uncommon', effect: 'reduce_injury_2' },
+      { id: 'regenerative_salve', name: 'Regenerative Salve', credits: 2500, gems: 6, tier: 'uncommon', effect: 'restore_stamina_20_and_reduce_injury_1' },
+      { id: 'miracle_tincture', name: 'Miracle Tincture', credits: 40000, gems: 60, tier: 'legendary', effect: 'heal_any_injury' },
+      { id: 'phoenix_elixir', name: 'Phoenix Elixir', credits: 50000, gems: 80, tier: 'legendary', effect: 'restore_team_stamina_100' }
     ],
     performance: [
-      { id: 'speed_tonic', name: 'Speed Boost Tonic', credits: 1500, gems: 3, tier: 'uncommon' },
-      { id: 'power_potion', name: 'Power Surge Potion', credits: 1500, gems: 3, tier: 'uncommon' },
-      { id: 'champions_blessing', name: 'Champion\'s Blessing', credits: 25000, gems: 15, tier: 'legendary' }
+      { id: 'team_focus_draft', name: 'Team Focus Draft', credits: 1200, gems: 2, tier: 'common', effect: 'team_intelligence_3' },
+      { id: 'team_vigor_draught', name: 'Team Vigor Draught', credits: 2000, gems: 4, tier: 'uncommon', effect: 'team_strength_5' },
+      { id: 'team_reflex_tonic', name: 'Team Reflex Tonic', credits: 2200, gems: 5, tier: 'uncommon', effect: 'team_agility_5' },
+      { id: 'team_resilience_brew', name: 'Team Resilience Brew', credits: 8000, gems: 15, tier: 'rare', effect: 'team_toughness_8' },
+      { id: 'champions_blessing', name: 'Champion\'s Blessing', credits: 35000, gems: 50, tier: 'epic', effect: 'team_all_stats_5' }
     ],
     entries: [
       { id: 'exhibition_match', name: 'Exhibition Match', credits: 5000, gems: 10, tier: 'entry', limit: '3 per day' },
