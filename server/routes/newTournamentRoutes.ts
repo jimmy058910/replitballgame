@@ -192,7 +192,20 @@ router.get('/history', isAuthenticated, async (req: any, res: Response, next: Ne
     if (!team) return res.status(404).json({ message: "Team not found" });
 
     const history = await tournamentService.getTournamentHistory(team.id);
-    res.json(history);
+    // Convert BigInt fields to numbers for JSON serialization
+    const serializedHistory = history.map(entry => ({
+      ...entry,
+      teamId: Number(entry.teamId),
+      tournamentId: entry.tournamentId,
+      id: entry.id,
+      tournament: {
+        ...entry.tournament,
+        entryFeeCredits: Number(entry.tournament.entryFeeCredits),
+        entryFeeGems: Number(entry.tournament.entryFeeGems)
+      }
+    }));
+    
+    res.json(serializedHistory);
   } catch (error) {
     console.error("Error fetching tournament history:", error);
     next(error);

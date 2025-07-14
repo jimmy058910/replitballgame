@@ -121,20 +121,29 @@ Built as a React + Express web application with PostgreSQL database, using moder
 
 ## Recent Changes
 
-### July 14, 2025 - ✅ COMPLETE TOURNAMENT AUTO-START SYSTEM IMPLEMENTATION SUCCESS - 100% OPERATIONAL
+### July 14, 2025 - ✅ COMPLETE TOURNAMENT SYSTEM FIXES & TIMER IMPLEMENTATION SUCCESS - 100% OPERATIONAL
+
+#### ✅ TOURNAMENT SYSTEM FIXES FULLY IMPLEMENTED - COMPREHENSIVE ISSUE RESOLUTION
+- ✓ **Duplicate Registration Prevention**: Fixed critical bug allowing teams to register for multiple tournaments simultaneously
+- ✓ **Database Duplicate Cleanup**: Removed existing duplicate tournament registrations from database
+- ✓ **Enhanced Registration Validation**: Added comprehensive check for ANY active tournament before allowing new registrations
+- ✓ **BigInt Serialization Fixed**: Resolved all BigInt serialization errors in tournament history and status endpoints
+- ✓ **Text Readability Improvements**: Fixed contrast issues in tournament status display with proper dark/light mode colors
+- ✓ **Timer Functionality Added**: Implemented countdown timers showing "15m countdown to start" when full, "X more teams needed" when not full
+- ✓ **Cross-Tournament Prevention**: Both Daily Cup and Mid-Season Classic now prevent duplicate registrations across all tournament types
+- ✓ **Clear Error Messages**: Enhanced error messages explaining registration conflicts with specific tournament names and types
+- ✓ **Tournament Status Interface**: Updated TournamentStatus.tsx with improved readability and timer functionality
+- ✓ **Cache Invalidation Fixed**: Proper query cache invalidation to refresh tournament status after registration
 
 #### ✅ TOURNAMENT AUTO-START SYSTEM FULLY IMPLEMENTED - COMPLETE FEATURE SUCCESS
 - ✓ **Auto-Start Functionality Complete**: Tournament system now automatically starts when full OR after 1 hour fills remaining spots with AI teams
 - ✓ **Tournament Status Interface**: Created comprehensive TournamentStatus.tsx page showing real-time tournament progress, participant counts, and countdown timers
-- ✓ **BigInt Serialization Fixed**: Resolved all BigInt serialization errors in tournament API routes with proper Number() conversion
 - ✓ **Tournament Status Routes**: Implemented complete tournament status API routes (/api/tournament-status/) for comprehensive monitoring
 - ✓ **Season Timing Integration**: Added tournament auto-start check to season timing automation system (runs every hour)
 - ✓ **AI Team Filling**: Implemented fillTournamentWithAI method to automatically fill remaining spots with AI teams
 - ✓ **Real-Time Updates**: Tournament status page auto-refreshes every 30 seconds with live participant counts and timing information
 - ✓ **Force Start Feature**: Added force start functionality for testing purposes to manually trigger tournament start with AI filling
 - ✓ **Database Field Alignment**: Fixed all database field references in tournament service (registrationDeadline → registrationEndTime, maxTeams → fixed value)
-- ✓ **Duplicate Registration Prevention**: Added proper validation to prevent duplicate tournament entries with clear error messages
-- ✓ **Tournament Registration Validation**: System correctly prevents teams from registering for tournaments they're already enrolled in
 
 #### ✅ TOURNAMENT INTERFACE SYSTEM COMPLETE - COMPREHENSIVE USER EXPERIENCE
 - ✓ **Tournament Status Page**: Complete tournament monitoring interface at /tournament-status route

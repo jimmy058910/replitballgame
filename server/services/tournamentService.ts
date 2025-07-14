@@ -452,6 +452,32 @@ export class TournamentService {
     const gameDay = this.getCurrentGameDay();
     const season = this.getCurrentSeason();
 
+    // Check if team is already registered for ANY active tournament
+    const existingActiveEntry = await prisma.tournamentEntry.findFirst({
+      where: {
+        teamId,
+        tournament: {
+          status: {
+            in: ["REGISTRATION_OPEN", "IN_PROGRESS"]
+          }
+        }
+      },
+      include: {
+        tournament: {
+          select: {
+            name: true,
+            type: true,
+            division: true
+          }
+        }
+      }
+    });
+
+    if (existingActiveEntry) {
+      const tournamentType = existingActiveEntry.tournament.type === "DAILY_DIVISIONAL" ? "Daily Cup" : "Mid-Season Classic";
+      throw new Error(`You are already registered for ${existingActiveEntry.tournament.name} (${tournamentType}). Please wait for your current tournament to complete before registering for another.`);
+    }
+
     // Check if tournament already exists for this division/day
     const existingTournament = await prisma.tournament.findMany({
       where: {
@@ -466,19 +492,8 @@ export class TournamentService {
     let tournamentId: string;
 
     if (existingTournament.length > 0) {
-      // Tournament exists, check if team is already registered
+      // Tournament exists, join it
       tournamentId = existingTournament[0].id;
-      
-      const existingEntry = await prisma.tournamentEntry.findFirst({
-        where: {
-          tournamentId,
-          teamId
-        }
-      });
-
-      if (existingEntry) {
-        throw new Error("You are already registered for today's Daily Divisional Tournament");
-      }
     } else {
       // Create new tournament
       tournamentId = await this.createDailyCupTournament(division);
@@ -492,6 +507,32 @@ export class TournamentService {
 
   async createOrJoinMidSeasonClassic(teamId: string, division: number, paymentType: "credits" | "gems" | "both"): Promise<string> {
     const season = this.getCurrentSeason();
+
+    // Check if team is already registered for ANY active tournament
+    const existingActiveEntry = await prisma.tournamentEntry.findFirst({
+      where: {
+        teamId,
+        tournament: {
+          status: {
+            in: ["REGISTRATION_OPEN", "IN_PROGRESS"]
+          }
+        }
+      },
+      include: {
+        tournament: {
+          select: {
+            name: true,
+            type: true,
+            division: true
+          }
+        }
+      }
+    });
+
+    if (existingActiveEntry) {
+      const tournamentType = existingActiveEntry.tournament.type === "DAILY_DIVISIONAL" ? "Daily Cup" : "Mid-Season Classic";
+      throw new Error(`You are already registered for ${existingActiveEntry.tournament.name} (${tournamentType}). Please wait for your current tournament to complete before registering for another.`);
+    }
 
     // Check if tournament already exists for this division
     const existingTournament = await prisma.tournament.findMany({

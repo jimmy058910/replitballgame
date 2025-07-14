@@ -73,9 +73,17 @@ const TournamentStatusView: React.FC<TournamentStatusViewProps> = ({ teamId }) =
     const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
     
     if (hours > 0) {
-      return `${hours}h ${minutes}m`;
+      return `${hours}h ${minutes}m remaining`;
     } else {
-      return `${minutes}m`;
+      return `${minutes}m remaining`;
+    }
+  };
+
+  const formatStartCountdown = (participants: number, maxParticipants: number) => {
+    if (participants >= maxParticipants) {
+      return "15m countdown to start";
+    } else {
+      return `${maxParticipants - participants} more teams needed`;
     }
   };
 
@@ -102,8 +110,8 @@ const TournamentStatusView: React.FC<TournamentStatusViewProps> = ({ teamId }) =
         <CardContent>
           <div className="text-center py-8">
             <Trophy className="h-12 w-12 mx-auto text-gray-400 mb-4" />
-            <p className="text-gray-600">No active tournament registrations</p>
-            <p className="text-sm text-gray-500 mt-2">
+            <p className="text-gray-700 dark:text-gray-300">No active tournament registrations</p>
+            <p className="text-sm text-gray-600 dark:text-gray-400 mt-2">
               Register for a tournament to track your progress here
             </p>
           </div>
@@ -130,8 +138,8 @@ const TournamentStatusView: React.FC<TournamentStatusViewProps> = ({ teamId }) =
             <CardHeader className="pb-3">
               <div className="flex items-center justify-between">
                 <div>
-                  <CardTitle className="text-lg">{entry.name}</CardTitle>
-                  <p className="text-sm text-gray-600">
+                  <CardTitle className="text-lg text-gray-900 dark:text-white">{entry.name}</CardTitle>
+                  <p className="text-sm text-gray-700 dark:text-gray-300">
                     Division {entry.division} • {entry.type === 'DAILY_DIVISIONAL' ? 'Daily Cup' : 'Mid-Season Classic'}
                   </p>
                 </div>
@@ -143,16 +151,16 @@ const TournamentStatusView: React.FC<TournamentStatusViewProps> = ({ teamId }) =
             <CardContent className="space-y-4">
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
                 <div className="flex items-center gap-2">
-                  <Users className="h-4 w-4 text-gray-500" />
-                  <span>{entry.currentParticipants}/{entry.maxParticipants} teams</span>
+                  <Users className="h-4 w-4 text-gray-600 dark:text-gray-400" />
+                  <span className="text-gray-800 dark:text-gray-200">{entry.currentParticipants}/{entry.maxParticipants} teams</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <Clock className="h-4 w-4 text-gray-500" />
-                  <span>{formatTimeRemaining(entry.registrationDeadline)}</span>
+                  <Clock className="h-4 w-4 text-gray-600 dark:text-gray-400" />
+                  <span className="text-gray-800 dark:text-gray-200">{formatStartCountdown(entry.currentParticipants, entry.maxParticipants)}</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <Calendar className="h-4 w-4 text-gray-500" />
-                  <span>Registered {new Date(entry.entryTime).toLocaleDateString()}</span>
+                  <Calendar className="h-4 w-4 text-gray-600 dark:text-gray-400" />
+                  <span className="text-gray-800 dark:text-gray-200">Registered {new Date(entry.entryTime).toLocaleDateString()}</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <CheckCircle className="h-4 w-4 text-green-500" />
@@ -161,16 +169,16 @@ const TournamentStatusView: React.FC<TournamentStatusViewProps> = ({ teamId }) =
               </div>
 
               {entry.prizes && (
-                <div className="bg-gray-50 p-3 rounded-lg">
-                  <h4 className="font-medium mb-2">Prize Pool</h4>
+                <div className="bg-gray-50 dark:bg-gray-800 p-3 rounded-lg">
+                  <h4 className="font-medium mb-2 text-gray-900 dark:text-white">Prize Pool</h4>
                   <div className="grid grid-cols-2 gap-2 text-sm">
                     <div className="flex items-center gap-1">
                       <Coins className="h-4 w-4 text-yellow-500" />
-                      <span>1st: {entry.prizes.champion?.credits || 0} Credits</span>
+                      <span className="text-gray-800 dark:text-gray-200">1st: {entry.prizes.champion?.credits || 0} Credits</span>
                     </div>
                     <div className="flex items-center gap-1">
                       <Gem className="h-4 w-4 text-purple-500" />
-                      <span>1st: {entry.prizes.champion?.gems || 0} Gems</span>
+                      <span className="text-gray-800 dark:text-gray-200">1st: {entry.prizes.champion?.gems || 0} Gems</span>
                     </div>
                   </div>
                 </div>
