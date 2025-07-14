@@ -32,6 +32,7 @@ import { WebSocketTestPage } from "@/components/WebSocketTestPage";
 import { LiveMatchPage } from "@/components/LiveMatchPage";
 import GemCheckout from "@/pages/gem-checkout";
 import RealmPassCheckout from "@/pages/realm-pass-checkout";
+import TournamentStatus from "@/pages/TournamentStatus";
 
 import Navigation from "@/components/Navigation";
 import { ContextualHelp } from "@/components/help";
@@ -74,6 +75,7 @@ function Router() {
           <Route path="/gem-checkout/:packageId" component={GemCheckout} />
           <Route path="/gem-checkout" component={GemCheckout} />
           <Route path="/realm-pass-checkout" component={RealmPassCheckout} />
+          <Route path="/tournament-status" component={TournamentStatus} />
         </>
       )}
       <Route component={NotFound} />

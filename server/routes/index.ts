@@ -41,6 +41,7 @@ import contractInitializerRoutes from "./contractInitializerRoutes";
 import equipmentRoutes from "./equipmentRoutes";
 import tryoutRoutes from "./tryoutRoutes";
 import lateSignupRoutes from "./lateSignupRoutes";
+import tournamentStatusRoutes from "./tournamentStatusRoutes";
 
 // This function will be called by server/index.ts to set up all routes.
 // It replaces the direct app.use calls that would have been in server/index.ts
@@ -90,7 +91,8 @@ export function registerAllRoutes(app: Express): void {
   app.use("/api/contracts", contractInitializerRoutes); // Covers contract initialization and management
   app.use("/api/equipment", equipmentRoutes); // Equipment management
   app.use("/api/tryouts", tryoutRoutes); // Covers tryout system and candidate generation
-  app.use("/api/late-signup", lateSignupRoutes); // Covers late signup system for shortened Division 8 seasons
+  app.use("/api/late-signup", lateSignupRoutes);
+  app.use("/api/tournament-status", tournamentStatusRoutes); // Covers late signup system for shortened Division 8 seasons
 
   // Reminder: The original server/routes.ts also contained helper functions and Stripe init.
   // Stripe init is now in paymentRoutes.ts.

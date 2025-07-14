@@ -543,6 +543,99 @@ export class TournamentService {
 
     return tournamentId;
   }
+
+  // Fill tournament with AI teams
+  async fillTournamentWithAI(tournamentId: string, spotsToFill: number): Promise<void> {
+    const tournament = await prisma.tournament.findUnique({
+      where: { id: tournamentId }
+    });
+    
+    if (!tournament) {
+      throw new Error("Tournament not found");
+    }
+
+    // Get available AI teams for this division
+    const aiTeams = await prisma.team.findMany({
+      where: {
+        division: tournament.division,
+        isAI: true,
+        userProfileId: null
+      },
+      take: spotsToFill
+    });
+
+    // Create tournament entries for AI teams
+    const aiEntries = aiTeams.map(team => ({
+      tournamentId: tournamentId,
+      teamId: team.id,
+      entryTime: new Date(),
+      placement: null,
+      creditsWon: BigInt(0),
+      gemsWon: 0,
+      trophyWon: null
+    }));
+
+    if (aiEntries.length > 0) {
+      await prisma.tournamentEntry.createMany({
+        data: aiEntries
+      });
+    }
+  }
+
+  // Auto-start tournament management
+  async checkAndStartTournaments(): Promise<void> {
+    const now = new Date();
+
+    // Find tournaments that are ready to start
+    const readyTournaments = await prisma.tournament.findMany({
+      where: {
+        status: "REGISTRATION_OPEN",
+        OR: [
+          // Registration deadline has passed
+          {
+            registrationDeadline: {
+              lte: now
+            }
+          }
+        ]
+      },
+      include: {
+        entries: true
+      }
+    });
+
+    for (const tournament of readyTournaments) {
+      const currentParticipants = tournament.entries.length;
+      const maxParticipants = tournament.maxTeams || 8;
+
+      // Check if tournament is full
+      if (currentParticipants >= maxParticipants) {
+        await this.startTournament(tournament.id);
+        continue;
+      }
+
+      // Check if registration deadline has passed
+      if (tournament.registrationDeadline && tournament.registrationDeadline <= now) {
+        // Fill with AI teams and start
+        const spotsToFill = maxParticipants - currentParticipants;
+        if (spotsToFill > 0) {
+          await this.fillTournamentWithAI(tournament.id, spotsToFill);
+        }
+        await this.startTournament(tournament.id);
+      }
+    }
+  }
+
+  // Start a tournament
+  async startTournament(tournamentId: string): Promise<void> {
+    await prisma.tournament.update({
+      where: { id: tournamentId },
+      data: {
+        status: "IN_PROGRESS",
+        tournamentStartTime: new Date()
+      }
+    });
+  }
 }
 
 export const tournamentService = new TournamentService();

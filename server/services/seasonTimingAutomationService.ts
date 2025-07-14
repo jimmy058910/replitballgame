@@ -4,6 +4,7 @@ import { DailyPlayerProgressionService } from './dailyPlayerProgressionService';
 import { AgingService } from './agingService';
 import { InjuryStaminaService } from './injuryStaminaService';
 import { LateSignupService } from './lateSignupService';
+import { tournamentService } from './tournamentService';
 import { storage } from '../storage';
 import { logInfo } from './errorService';
 
@@ -23,6 +24,7 @@ export class SeasonTimingAutomationService {
   private dailyProgressionTimer: NodeJS.Timeout | null = null;
   private seasonEventTimer: NodeJS.Timeout | null = null;
   private matchSimulationTimer: NodeJS.Timeout | null = null;
+  private tournamentAutoStartTimer: NodeJS.Timeout | null = null;
   private isRunning = false;
 
   private constructor() {}
@@ -55,6 +57,9 @@ export class SeasonTimingAutomationService {
     // Schedule match simulation window check every 30 minutes
     this.scheduleMatchSimulation();
     
+    // Schedule tournament auto-start check every hour
+    this.scheduleTournamentAutoStart();
+    
     logInfo('Season timing automation system started successfully');
   }
 
@@ -81,6 +86,11 @@ export class SeasonTimingAutomationService {
     if (this.matchSimulationTimer) {
       clearInterval(this.matchSimulationTimer);
       this.matchSimulationTimer = null;
+    }
+    
+    if (this.tournamentAutoStartTimer) {
+      clearInterval(this.tournamentAutoStartTimer);
+      this.tournamentAutoStartTimer = null;
     }
     
     logInfo('Season timing automation system stopped');
@@ -124,6 +134,15 @@ export class SeasonTimingAutomationService {
     this.matchSimulationTimer = setInterval(async () => {
       await this.checkMatchSimulationWindow();
     }, 30 * 60 * 1000); // Check every 30 minutes
+  }
+
+  /**
+   * Schedule tournament auto-start check every hour
+   */
+  private scheduleTournamentAutoStart(): void {
+    this.tournamentAutoStartTimer = setInterval(async () => {
+      await this.checkTournamentAutoStart();
+    }, 60 * 60 * 1000); // Check every hour
   }
 
   /**
@@ -499,6 +518,21 @@ export class SeasonTimingAutomationService {
       logInfo(`Season day updated to Day ${currentDayInCycle}`);
     } catch (error) {
       console.error('Error updating season day:', error);
+    }
+  }
+
+  /**
+   * Check for tournaments that need to be auto-started
+   */
+  private async checkTournamentAutoStart(): Promise<void> {
+    try {
+      logInfo('Checking for tournaments that need to be auto-started...');
+      
+      await tournamentService.checkAndStartTournaments();
+      
+      logInfo('Tournament auto-start check completed');
+    } catch (error) {
+      console.error('Error during tournament auto-start check:', error.message);
     }
   }
 }

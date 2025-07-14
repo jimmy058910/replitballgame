@@ -1,0 +1,416 @@
+import React, { useState, useEffect } from 'react';
+import { useQuery } from '@tanstack/react-query';
+import { apiRequest } from '@/lib/queryClient';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Progress } from '@/components/ui/progress';
+import { Separator } from '@/components/ui/separator';
+import { Clock, Users, Trophy, Zap, Shield } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
+
+interface TournamentStatusData {
+  id: string;
+  name: string;
+  type: string;
+  division: number;
+  status: string;
+  currentParticipants: number;
+  maxParticipants: number;
+  spotsRemaining: number;
+  isFull: boolean;
+  isReadyToStart: boolean;
+  timeUntilStart: number;
+  timeUntilStartText: string;
+  registrationDeadline: string;
+  tournamentStartTime: string;
+  entryFeeCredits: number;
+  entryFeeGems: number;
+  prizes: any;
+  participants: Array<{
+    teamId: string;
+    teamName: string;
+    division: number;
+    entryTime: string;
+    placement: number | null;
+  }>;
+  userTeamRegistered: boolean;
+  userTeamEntry: {
+    entryTime: string;
+    placement: number | null;
+  };
+}
+
+interface ActiveTournament {
+  id: string;
+  name: string;
+  type: string;
+  division: number;
+  status: string;
+  currentParticipants: number;
+  maxParticipants: number;
+  spotsRemaining: number;
+  isFull: boolean;
+  isReadyToStart: boolean;
+  timeUntilStart: number;
+  timeUntilStartText: string;
+  registrationDeadline: string;
+  tournamentStartTime: string;
+  entryFeeCredits: number;
+  entryFeeGems: number;
+  prizes: any;
+  entryTime: string;
+  placement: number | null;
+  participantCount: number;
+}
+
+export default function TournamentStatus() {
+  const { toast } = useToast();
+  const [selectedTournament, setSelectedTournament] = useState<string | null>(null);
+  const [refreshInterval, setRefreshInterval] = useState<NodeJS.Timeout | null>(null);
+
+  // Query for user's active tournaments
+  const { 
+    data: activeTournaments, 
+    isLoading: loadingActive, 
+    refetch: refetchActive 
+  } = useQuery<ActiveTournament[]>({
+    queryKey: ['/api/tournament-status/my-active'],
+    refetchInterval: 30000, // Refresh every 30 seconds
+  });
+
+  // Query for specific tournament status
+  const { 
+    data: tournamentStatus, 
+    isLoading: loadingStatus, 
+    refetch: refetchStatus 
+  } = useQuery<TournamentStatusData>({
+    queryKey: ['/api/tournament-status', selectedTournament, 'status'],
+    enabled: !!selectedTournament,
+    refetchInterval: 15000, // Refresh every 15 seconds
+  });
+
+  // Force start tournament
+  const handleForceStart = async (tournamentId: string) => {
+    try {
+      const response = await apiRequest('POST', `/api/tournament-status/${tournamentId}/force-start`);
+      if (response.ok) {
+        toast({
+          title: "Tournament Started",
+          description: "Tournament has been started successfully!",
+        });
+        refetchActive();
+        refetchStatus();
+      }
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to start tournament",
+        variant: "destructive",
+      });
+    }
+  };
+
+  // Auto-refresh logic
+  useEffect(() => {
+    if (selectedTournament) {
+      const interval = setInterval(() => {
+        refetchStatus();
+      }, 10000); // Refresh every 10 seconds when viewing specific tournament
+      setRefreshInterval(interval);
+      return () => clearInterval(interval);
+    }
+  }, [selectedTournament, refetchStatus]);
+
+  const getDivisionName = (division: number) => {
+    const names = ["", "Diamond", "Platinum", "Gold", "Silver", "Bronze", "Copper", "Iron", "Stone"];
+    return names[division] || `Division ${division}`;
+  };
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'REGISTRATION_OPEN': return 'bg-blue-500';
+      case 'IN_PROGRESS': return 'bg-green-500';
+      case 'COMPLETED': return 'bg-gray-500';
+      default: return 'bg-yellow-500';
+    }
+  };
+
+  const getStatusText = (status: string) => {
+    switch (status) {
+      case 'REGISTRATION_OPEN': return 'Registration Open';
+      case 'IN_PROGRESS': return 'In Progress';
+      case 'COMPLETED': return 'Completed';
+      default: return status;
+    }
+  };
+
+  if (loadingActive) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full" />
+      </div>
+    );
+  }
+
+  return (
+    <div className="container mx-auto px-4 py-8">
+      <div className="flex items-center gap-2 mb-8">
+        <Trophy className="w-6 h-6 text-yellow-500" />
+        <h1 className="text-2xl font-bold">Tournament Status</h1>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Active Tournaments List */}
+        <div className="lg:col-span-1">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Users className="w-5 h-5" />
+                My Active Tournaments
+              </CardTitle>
+              <CardDescription>
+                Tournaments you're currently registered for
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              {activeTournaments?.length === 0 ? (
+                <p className="text-muted-foreground text-center py-8">
+                  No active tournaments found
+                </p>
+              ) : (
+                <div className="space-y-3">
+                  {activeTournaments?.map((tournament) => (
+                    <div
+                      key={tournament.id}
+                      className={`p-4 rounded-lg border cursor-pointer transition-colors ${
+                        selectedTournament === tournament.id
+                          ? 'border-primary bg-primary/5'
+                          : 'border-border hover:border-primary/50'
+                      }`}
+                      onClick={() => setSelectedTournament(tournament.id)}
+                    >
+                      <div className="flex items-center justify-between mb-2">
+                        <h3 className="font-semibold text-sm">{tournament.name}</h3>
+                        <Badge className={getStatusColor(tournament.status)}>
+                          {getStatusText(tournament.status)}
+                        </Badge>
+                      </div>
+                      <div className="flex items-center gap-4 text-xs text-muted-foreground">
+                        <span className="flex items-center gap-1">
+                          <Shield className="w-3 h-3" />
+                          {getDivisionName(tournament.division)}
+                        </span>
+                        <span className="flex items-center gap-1">
+                          <Users className="w-3 h-3" />
+                          {tournament.participantCount}/{tournament.maxParticipants}
+                        </span>
+                      </div>
+                      {tournament.isReadyToStart ? (
+                        <div className="mt-2 text-xs font-medium text-green-600">
+                          Ready to Start!
+                        </div>
+                      ) : (
+                        <div className="mt-2 text-xs text-muted-foreground">
+                          {tournament.timeUntilStartText}
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Tournament Details */}
+        <div className="lg:col-span-2">
+          {selectedTournament && tournamentStatus ? (
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center justify-between">
+                  <span>{tournamentStatus.name}</span>
+                  <Badge className={getStatusColor(tournamentStatus.status)}>
+                    {getStatusText(tournamentStatus.status)}
+                  </Badge>
+                </CardTitle>
+                <CardDescription>
+                  {getDivisionName(tournamentStatus.division)} • {tournamentStatus.type.replace('_', ' ')}
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {/* Tournament Progress */}
+                  <div>
+                    <h3 className="font-semibold mb-4 flex items-center gap-2">
+                      <Users className="w-4 h-4" />
+                      Registration Progress
+                    </h3>
+                    <div className="space-y-3">
+                      <div className="flex justify-between text-sm">
+                        <span>Participants</span>
+                        <span className="font-medium">
+                          {tournamentStatus.currentParticipants}/{tournamentStatus.maxParticipants}
+                        </span>
+                      </div>
+                      <Progress 
+                        value={(tournamentStatus.currentParticipants / tournamentStatus.maxParticipants) * 100} 
+                        className="h-2"
+                      />
+                      <div className="flex justify-between text-xs text-muted-foreground">
+                        <span>
+                          {tournamentStatus.spotsRemaining} spots remaining
+                        </span>
+                        <span>
+                          {tournamentStatus.isFull ? 'Full' : 'Open'}
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Tournament Timing */}
+                    <div className="mt-6">
+                      <h4 className="font-medium mb-2 flex items-center gap-2">
+                        <Clock className="w-4 h-4" />
+                        Tournament Timing
+                      </h4>
+                      <div className="space-y-2 text-sm">
+                        {tournamentStatus.isReadyToStart ? (
+                          <div className="flex items-center gap-2 text-green-600">
+                            <Zap className="w-4 h-4" />
+                            <span className="font-medium">Ready to Start!</span>
+                          </div>
+                        ) : (
+                          <div className="flex items-center gap-2">
+                            <Clock className="w-4 h-4" />
+                            <span>Starts in: {tournamentStatus.timeUntilStartText}</span>
+                          </div>
+                        )}
+                        <div className="text-xs text-muted-foreground">
+                          Registration closes: {new Date(tournamentStatus.registrationDeadline).toLocaleString()}
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Entry Fee */}
+                    {(tournamentStatus.entryFeeCredits > 0 || tournamentStatus.entryFeeGems > 0) && (
+                      <div className="mt-6">
+                        <h4 className="font-medium mb-2">Entry Fee</h4>
+                        <div className="text-sm space-y-1">
+                          {tournamentStatus.entryFeeCredits > 0 && (
+                            <div>Credits: {tournamentStatus.entryFeeCredits.toLocaleString()}</div>
+                          )}
+                          {tournamentStatus.entryFeeGems > 0 && (
+                            <div>Gems: {tournamentStatus.entryFeeGems}</div>
+                          )}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Force Start Button (for testing) */}
+                    {tournamentStatus.status === 'REGISTRATION_OPEN' && (
+                      <div className="mt-6">
+                        <Button 
+                          onClick={() => handleForceStart(tournamentStatus.id)}
+                          variant="outline"
+                          size="sm"
+                          className="w-full"
+                        >
+                          Force Start Tournament
+                        </Button>
+                        <p className="text-xs text-muted-foreground mt-1">
+                          This will fill remaining spots with AI teams and start the tournament
+                        </p>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Participants List */}
+                  <div>
+                    <h3 className="font-semibold mb-4 flex items-center gap-2">
+                      <Trophy className="w-4 h-4" />
+                      Participants
+                    </h3>
+                    <div className="space-y-2 max-h-64 overflow-y-auto">
+                      {tournamentStatus.participants.map((participant, index) => (
+                        <div
+                          key={participant.teamId}
+                          className={`p-3 rounded-lg border text-sm ${
+                            participant.teamId === tournamentStatus.userTeamEntry?.teamId
+                              ? 'border-primary bg-primary/5'
+                              : 'border-border'
+                          }`}
+                        >
+                          <div className="flex justify-between items-center">
+                            <div>
+                              <div className="font-medium">{participant.teamName}</div>
+                              <div className="text-xs text-muted-foreground">
+                                Joined: {new Date(participant.entryTime).toLocaleString()}
+                              </div>
+                            </div>
+                            <div className="text-xs">
+                              #{index + 1}
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Prizes */}
+                {tournamentStatus.prizes && (
+                  <div className="mt-6">
+                    <Separator className="mb-4" />
+                    <h3 className="font-semibold mb-2 flex items-center gap-2">
+                      <Trophy className="w-4 h-4" />
+                      Prizes
+                    </h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                      {tournamentStatus.prizes.champion && (
+                        <div className="p-3 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg">
+                          <div className="font-medium text-yellow-800 dark:text-yellow-200">Champion</div>
+                          <div className="text-yellow-700 dark:text-yellow-300">
+                            {tournamentStatus.prizes.champion.credits > 0 && (
+                              <span>{tournamentStatus.prizes.champion.credits.toLocaleString()} Credits</span>
+                            )}
+                            {tournamentStatus.prizes.champion.gems > 0 && (
+                              <span className="ml-2">{tournamentStatus.prizes.champion.gems} Gems</span>
+                            )}
+                          </div>
+                        </div>
+                      )}
+                      {tournamentStatus.prizes.runnerUp && (
+                        <div className="p-3 bg-gray-50 dark:bg-gray-900/20 rounded-lg">
+                          <div className="font-medium text-gray-800 dark:text-gray-200">Runner-up</div>
+                          <div className="text-gray-700 dark:text-gray-300">
+                            {tournamentStatus.prizes.runnerUp.credits > 0 && (
+                              <span>{tournamentStatus.prizes.runnerUp.credits.toLocaleString()} Credits</span>
+                            )}
+                            {tournamentStatus.prizes.runnerUp.gems > 0 && (
+                              <span className="ml-2">{tournamentStatus.prizes.runnerUp.gems} Gems</span>
+                            )}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          ) : (
+            <Card>
+              <CardContent className="flex items-center justify-center h-64">
+                <div className="text-center">
+                  <Trophy className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
+                  <p className="text-muted-foreground">
+                    Select a tournament to view details
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
