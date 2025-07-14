@@ -202,7 +202,7 @@ router.post('/watch-ad', isAuthenticated, async (req: any, res: Response, next: 
       console.log('Unity Ads Result:', unityAdsResult);
     }
 
-    // Updated ad rewards system: 500-10,000 credits averaging 2,000
+    // Updated ad rewards system per Master Economy specification
     // Check daily limit first
     const dailyLimit = 10;
     const dailyAdsWatched = Number(await storage.adSystem.getDailyAdViewsCountByUser(userId)) || 0;
@@ -219,21 +219,18 @@ router.post('/watch-ad', isAuthenticated, async (req: any, res: Response, next: 
     let rewardType = 'credits';
     
     if (placement !== 'halftimeVideo') {
-      // Generate random credits between 500-10,000 with weighted distribution to average ~2,000
+      // New Master Economy ad reward structure
       const random = Math.random();
       
-      if (random < 0.4) {
-        // 40% chance: 500-1,500 credits
-        rewardAmount = Math.floor(500 + Math.random() * 1000);
-      } else if (random < 0.8) {
-        // 40% chance: 1,500-3,000 credits
-        rewardAmount = Math.floor(1500 + Math.random() * 1500);
+      if (random < 0.70) {
+        // 70% chance: 250 credits
+        rewardAmount = 250;
       } else if (random < 0.95) {
-        // 15% chance: 3,000-7,000 credits
-        rewardAmount = Math.floor(3000 + Math.random() * 4000);
+        // 25% chance: 500 credits
+        rewardAmount = 500;
       } else {
-        // 5% chance: 7,000-10,000 credits
-        rewardAmount = Math.floor(7000 + Math.random() * 3000);
+        // 5% chance: 1,000 credits
+        rewardAmount = 1000;
       }
     }
 

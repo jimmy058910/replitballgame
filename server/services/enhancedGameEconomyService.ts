@@ -5,11 +5,10 @@ export class EnhancedGameEconomyService {
   // **CURRENCY SYSTEM**
   
   /**
-   * Starting amounts for new teams
+   * Starting amounts for new teams - Master Economy Specification
    */
   static readonly STARTING_CREDITS = 50000;
-  static readonly STARTING_GEMS_MIN = 0;
-  static readonly STARTING_GEMS_MAX = 100;
+  static readonly STARTING_GEMS = 0;
 
   /**
    * Gem to Credit exchange rates with bulk discounts
@@ -120,10 +119,13 @@ export class EnhancedGameEconomyService {
     // Revenue only applies on home game days
     const multiplier = isHomeGameDay ? 1 : 0;
 
-    // Calculate actual attendance (would need fan loyalty and attendance calculation)
-    // For now using capacity * attendance rate assumption, but should use actual attendance
-    const attendanceRate = 0.75; // Default 75% attendance rate
-    const actualAttendance = Math.floor(capacity * attendanceRate);
+    // Master Economy attendance calculation
+    // TODO: Get team's actual division, fan loyalty, and win streak from database
+    const division = 4; // Default division for calculation
+    const fanLoyalty = 50; // Default 50% fan loyalty
+    const winStreak = 0; // Default no win streak
+    
+    const actualAttendance = this.calculateGameAttendance(capacity, division, fanLoyalty, winStreak);
     
     const breakdown = {
       // Ticket Sales: ActualAttendance × 25₡
@@ -292,6 +294,297 @@ export class EnhancedGameEconomyService {
       return { success: false, error: 'Database error' };
     }
   }
+
+  // **STADIUM & FINANCIAL MECHANICS - MASTER ECONOMY SPECIFICATION**
+
+  /**
+   * Division modifiers for fan attendance
+   */
+  static readonly DIVISION_MODIFIERS = {
+    1: 1.2,
+    2: 1.1,
+    3: 1.05,
+    4: 1.0,
+    5: 0.95,
+    6: 0.9,
+    7: 0.85,
+    8: 0.8
+  };
+
+  /**
+   * Calculate game attendance based on Master Economy algorithm
+   */
+  static calculateGameAttendance(
+    baseCapacity: number,
+    division: number,
+    fanLoyalty: number, // 0-100%
+    winStreak: number
+  ): number {
+    const divisionModifier = this.DIVISION_MODIFIERS[division] || 1.0;
+    const fanLoyaltyModifier = Math.min(1.25, Math.max(0.75, 0.75 + (fanLoyalty * 0.005))); // 0.75x to 1.25x
+    
+    let winStreakModifier = 1.0;
+    if (winStreak >= 8) {
+      winStreakModifier = 1.5;
+    } else if (winStreak >= 5) {
+      winStreakModifier = 1.25;
+    } else if (winStreak >= 3) {
+      winStreakModifier = 1.1;
+    }
+    
+    const attendance = baseCapacity * divisionModifier * fanLoyaltyModifier * winStreakModifier;
+    return Math.floor(Math.min(attendance, baseCapacity)); // Cannot exceed capacity
+  }
+
+  /**
+   * Calculate home game income streams per Master Economy specification
+   */
+  static calculateHomeGameIncome(
+    gameAttendance: number,
+    concessionsLevel: number,
+    parkingLevel: number,
+    vipSuitesLevel: number,
+    merchandisingLevel: number
+  ): {
+    ticketSales: number;
+    concessions: number;
+    parking: number;
+    vipSuites: number;
+    apparelSales: number;
+    total: number;
+  } {
+    const ticketSales = gameAttendance * 25;
+    const concessions = gameAttendance * 8 * concessionsLevel;
+    const parking = Math.floor(gameAttendance * 0.3) * 10 * parkingLevel;
+    const vipSuites = vipSuitesLevel * 5000;
+    const apparelSales = gameAttendance * 3 * merchandisingLevel;
+    
+    return {
+      ticketSales,
+      concessions,
+      parking,
+      vipSuites,
+      apparelSales,
+      total: ticketSales + concessions + parking + vipSuites + apparelSales
+    };
+  }
+
+  /**
+   * Calculate daily facilities maintenance cost per Master Economy specification
+   */
+  static calculateDailyMaintenanceCost(totalStadiumInvestment: number): number {
+    return Math.floor(totalStadiumInvestment * 0.002); // 0.2% daily
+  }
+
+  // **STAFF & PLAYER SALARY FORMULAS**
+
+  /**
+   * Calculate player salary based on skill and contract length
+   */
+  static calculatePlayerSalary(overallSkill: number, contractLength: number): number {
+    // Master Economy specification: Overall Skill × 150₡ as base
+    const baseSalary = overallSkill * 150;
+    
+    let contractModifier = 1.0;
+    switch (contractLength) {
+      case 1:
+        contractModifier = 1.2; // 1 season: high risk, high cost
+        break;
+      case 2:
+        contractModifier = 1.0; // 2 seasons: standard
+        break;
+      case 3:
+        contractModifier = 0.85; // 3 seasons: long-term discount
+        break;
+      default:
+        contractModifier = 1.0;
+    }
+    
+    return Math.floor(baseSalary * contractModifier);
+  }
+
+  /**
+   * Calculate staff salaries based on skill (1-100)
+   */
+  static calculateStaffSalaries(staffSkill: number, staffType: 'head_coach' | 'scout'): number {
+    switch (staffType) {
+      case 'head_coach':
+        return 15000 + (staffSkill * 250);
+      case 'scout':
+        return 10000 + (staffSkill * 150);
+      default:
+        return 10000 + (staffSkill * 150);
+    }
+  }
+
+  // **TOURNAMENT REWARDS SYSTEM**
+
+  /**
+   * Daily Divisional Tournament Rewards
+   */
+  static readonly DAILY_TOURNAMENT_REWARDS = {
+    divisions_5_8: {
+      first: { credits: 5000, items: ['advanced_recovery_serum'] },
+      second: { credits: 2000 }
+    },
+    divisions_1_4: {
+      first: { credits: 10000, items: ['advanced_treatment'] },
+      second: { credits: 4000 }
+    }
+  };
+
+  /**
+   * Mid-Season Cup Rewards by Division
+   */
+  static readonly MID_SEASON_CUP_REWARDS = {
+    div_1: {
+      champion: { credits: 750000, gems: 300, equipment: 'random_epic' },
+      runner_up: { credits: 300000, gems: 100, equipment: 'random_rare' },
+      semi_finalists: { credits: 100000, gems: 25 }
+    },
+    div_2: {
+      champion: { credits: 300000, gems: 100, equipment: 'random_rare' },
+      runner_up: { credits: 125000, gems: 40 },
+      semi_finalists: { credits: 50000, gems: 15 }
+    },
+    div_3: {
+      champion: { credits: 150000, gems: 60, equipment: 'random_uncommon' },
+      runner_up: { credits: 60000, gems: 20 },
+      semi_finalists: { credits: 25000, gems: 10 }
+    },
+    div_4: {
+      champion: { credits: 75000, gems: 30 },
+      runner_up: { credits: 30000, gems: 10 },
+      semi_finalists: { credits: 12500 }
+    },
+    div_5: {
+      champion: { credits: 50000, gems: 20 },
+      runner_up: { credits: 20000, gems: 8 },
+      semi_finalists: { credits: 8000 }
+    },
+    div_6: {
+      champion: { credits: 30000, gems: 12 },
+      runner_up: { credits: 12000, gems: 5 },
+      semi_finalists: { credits: 5000 }
+    },
+    div_7: {
+      champion: { credits: 20000, gems: 8 },
+      runner_up: { credits: 8000 },
+      semi_finalists: { credits: 3000 }
+    },
+    div_8: {
+      champion: { credits: 10000, gems: 5 },
+      runner_up: { credits: 4000 },
+      semi_finalists: { credits: 1500 }
+    }
+  };
+
+  /**
+   * League & Playoff Rewards by Division
+   */
+  static readonly LEAGUE_PLAYOFF_REWARDS = {
+    div_1: {
+      playoff_champion: { credits: 1000000, gems: 500 },
+      playoff_runner_up: { credits: 400000, gems: 150 },
+      regular_season_winner: { credits: 100000, gems: 50 },
+      promotion_bonus: 0 // No promotion from Division 1
+    },
+    div_2: {
+      playoff_champion: { credits: 400000, gems: 150 },
+      playoff_runner_up: { credits: 150000, gems: 50 },
+      regular_season_winner: { credits: 40000, gems: 20 },
+      promotion_bonus: 50000
+    },
+    div_3: {
+      playoff_champion: { credits: 200000, gems: 75 },
+      playoff_runner_up: { credits: 75000, gems: 25 },
+      regular_season_winner: { credits: 20000, gems: 10 },
+      promotion_bonus: 25000
+    },
+    div_4: {
+      playoff_champion: { credits: 100000, gems: 40 },
+      playoff_runner_up: { credits: 40000, gems: 15 },
+      regular_season_winner: { credits: 10000, gems: 5 },
+      promotion_bonus: 15000
+    },
+    div_5: {
+      playoff_champion: { credits: 60000, gems: 25 },
+      playoff_runner_up: { credits: 25000, gems: 10 },
+      regular_season_winner: { credits: 6000 },
+      promotion_bonus: 10000
+    },
+    div_6: {
+      playoff_champion: { credits: 40000, gems: 15 },
+      playoff_runner_up: { credits: 15000, gems: 5 },
+      regular_season_winner: { credits: 4000 },
+      promotion_bonus: 5000
+    },
+    div_7: {
+      playoff_champion: { credits: 25000, gems: 10 },
+      playoff_runner_up: { credits: 10000 },
+      regular_season_winner: { credits: 2500 },
+      promotion_bonus: 2500
+    },
+    div_8: {
+      playoff_champion: { credits: 15000, gems: 5 },
+      playoff_runner_up: { credits: 5000 },
+      regular_season_winner: { credits: 1500 },
+      promotion_bonus: 1500
+    }
+  };
+
+  /**
+   * Player & Individual Awards by Division
+   */
+  static readonly INDIVIDUAL_AWARDS = {
+    sub_divisional_mvp: {
+      div_1: { credits: 175000, gems: 75 },
+      div_2: { credits: 125000, gems: 50 },
+      div_3: { credits: 80000, gems: 30 },
+      div_4: { credits: 60000, gems: 20 },
+      div_5: { credits: 40000, gems: 15 },
+      div_6: { credits: 25000, gems: 12 },
+      div_7: { credits: 15000, gems: 8 },
+      div_8: { credits: 10000, gems: 5 }
+    },
+    positional_awards: {
+      div_1: { credits: 75000 },
+      div_2: { credits: 50000 },
+      div_3: { credits: 30000 },
+      div_4: { credits: 20000 },
+      div_5: { credits: 12500 },
+      div_6: { credits: 7500 },
+      div_7: { credits: 4000 },
+      div_8: { credits: 2500 }
+    }
+  };
+
+  /**
+   * Trophy Case Crafting Costs
+   */
+  static readonly TROPHY_CRAFTING_COSTS = {
+    positional_award_plaque: 10000,
+    sub_divisional_mvp_trophy: {
+      div_1: 100000,
+      div_2: 80000,
+      div_3: 60000,
+      div_4: 40000,
+      div_5: 30000,
+      div_6: 25000,
+      div_7: 20000,
+      div_8: 15000
+    },
+    championship_trophy: {
+      div_1: 250000,
+      div_2: 200000,
+      div_3: 150000,
+      div_4: 100000,
+      div_5: 75000,
+      div_6: 50000,
+      div_7: 30000,
+      div_8: 15000
+    }
+  };
 
   // **PREMIUM BOX LOOT SYSTEM**
 
@@ -463,6 +756,210 @@ export class EnhancedGameEconomyService {
     } catch (error) {
       console.error('Error opening Premium Box:', error);
       return { success: false, error: 'Database error' };
+    }
+  }
+
+  /**
+   * Award division-based rewards
+   */
+  static async awardDivisionRewards(
+    teamId: string,
+    rewardType: 'daily_tournament' | 'mid_season_cup' | 'league_playoff' | 'individual_award',
+    division: number,
+    placement: string
+  ): Promise<{ success: boolean; rewards?: any; error?: string }> {
+    try {
+      let rewards: any = {};
+      
+      switch (rewardType) {
+        case 'daily_tournament':
+          const divisionGroup = division <= 4 ? 'divisions_1_4' : 'divisions_5_8';
+          rewards = this.DAILY_TOURNAMENT_REWARDS[divisionGroup][placement];
+          break;
+        case 'mid_season_cup':
+          rewards = this.MID_SEASON_CUP_REWARDS[`div_${division}`]?.[placement];
+          break;
+        case 'league_playoff':
+          rewards = this.LEAGUE_PLAYOFF_REWARDS[`div_${division}`]?.[placement];
+          break;
+        case 'individual_award':
+          rewards = this.INDIVIDUAL_AWARDS[placement]?.[`div_${division}`];
+          break;
+      }
+      
+      if (!rewards) {
+        return { success: false, error: 'No rewards found for this placement/division' };
+      }
+
+      // Apply credit rewards
+      if (rewards.credits) {
+        const teamFinance = await prisma.teamFinance.findFirst({
+          where: { teamId: teamId }
+        });
+        if (teamFinance) {
+          await prisma.teamFinance.update({
+            where: { teamId: teamId },
+            data: { credits: (teamFinance.credits || 0) + rewards.credits }
+          });
+        }
+      }
+
+      // Apply gem rewards
+      if (rewards.gems) {
+        const teamFinance = await prisma.teamFinance.findFirst({
+          where: { teamId: teamId }
+        });
+        if (teamFinance) {
+          await prisma.teamFinance.update({
+            where: { teamId: teamId },
+            data: { gems: (teamFinance.gems || 0) + rewards.gems }
+          });
+        }
+      }
+
+      // Apply item rewards
+      if (rewards.items) {
+        for (const itemId of rewards.items) {
+          await prisma.inventory.upsert({
+            where: {
+              teamId_itemId: {
+                teamId: teamId,
+                itemId: itemId
+              }
+            },
+            create: {
+              teamId: teamId,
+              itemId: itemId,
+              quantity: 1,
+              acquiredAt: new Date()
+            },
+            update: {
+              quantity: { increment: 1 }
+            }
+          });
+        }
+      }
+
+      return { success: true, rewards };
+    } catch (error) {
+      console.error('Error awarding division rewards:', error);
+      return { success: false, error: 'Database error' };
+    }
+  }
+
+  /**
+   * Calculate daily facility maintenance costs
+   */
+  static async calculateMaintenanceCosts(teamId: string): Promise<number> {
+    try {
+      const stadium = await prisma.stadium.findFirst({
+        where: { teamId: teamId }
+      });
+      
+      if (!stadium) {
+        return 0;
+      }
+
+      // Calculate total stadium investment (rough estimation)
+      const capacity = stadium.capacity || 10000;
+      const concessionsLevel = stadium.concessionsLevel || 1;
+      const parkingLevel = stadium.parkingLevel || 1;
+      const vipSuitesLevel = stadium.vipSuitesLevel || 0;
+      const merchandisingLevel = stadium.merchandisingLevel || 1;
+      const lightingLevel = stadium.lightingLevel || 0;
+
+      // Estimate total investment based on upgrades
+      let totalInvestment = 100000; // Base stadium value
+      totalInvestment += (capacity - 10000) / 5000 * 50000; // Capacity upgrades
+      totalInvestment += (concessionsLevel - 1) * 30000; // Concessions upgrades
+      totalInvestment += (parkingLevel - 1) * 25000; // Parking upgrades
+      totalInvestment += vipSuitesLevel * 50000; // VIP suites
+      totalInvestment += (merchandisingLevel - 1) * 20000; // Merchandising upgrades
+      totalInvestment += lightingLevel * 40000; // Lighting upgrades
+
+      return this.calculateDailyMaintenanceCost(totalInvestment);
+    } catch (error) {
+      console.error('Error calculating maintenance costs:', error);
+      return 0;
+    }
+  }
+
+  /**
+   * Apply daily maintenance costs
+   */
+  static async applyMaintenanceCosts(teamId: string): Promise<number> {
+    try {
+      const maintenanceCost = await this.calculateMaintenanceCosts(teamId);
+      
+      if (maintenanceCost > 0) {
+        const teamFinance = await prisma.teamFinance.findFirst({
+          where: { teamId: teamId }
+        });
+        if (teamFinance) {
+          await prisma.teamFinance.update({
+            where: { teamId: teamId },
+            data: { credits: Math.max(0, (teamFinance.credits || 0) - maintenanceCost) }
+          });
+        }
+      }
+
+      return maintenanceCost;
+    } catch (error) {
+      console.error('Error applying maintenance costs:', error);
+      return 0;
+    }
+  }
+
+  /**
+   * Get comprehensive team economy status
+   */
+  static async getTeamEconomyStatus(teamId: string): Promise<{
+    finances: any;
+    dailyRevenue: number;
+    dailyMaintenance: number;
+    netDaily: number;
+    stadiumStats: any;
+    nextUpgradeCosts: any;
+  }> {
+    try {
+      const teamFinance = await prisma.teamFinance.findFirst({
+        where: { teamId: teamId }
+      });
+      
+      const dailyRevenue = await this.calculateStadiumRevenue(teamId, true);
+      const dailyMaintenance = await this.calculateMaintenanceCosts(teamId);
+      
+      const stadium = await prisma.stadium.findFirst({
+        where: { teamId: teamId }
+      });
+
+      const nextUpgradeCosts = {
+        capacity: this.calculateUpgradeCost('capacity', 0, stadium?.capacity || 10000),
+        concessions: this.calculateUpgradeCost('concessions', stadium?.concessionsLevel || 1),
+        parking: this.calculateUpgradeCost('parking', stadium?.parkingLevel || 1),
+        vip_suites: this.calculateUpgradeCost('vip_suites', stadium?.vipSuitesLevel || 0),
+        merchandising: this.calculateUpgradeCost('merchandising', stadium?.merchandisingLevel || 1),
+        lighting: this.calculateUpgradeCost('lighting', stadium?.lightingLevel || 0)
+      };
+
+      return {
+        finances: teamFinance,
+        dailyRevenue: dailyRevenue.totalRevenue,
+        dailyMaintenance,
+        netDaily: dailyRevenue.totalRevenue - dailyMaintenance,
+        stadiumStats: stadium,
+        nextUpgradeCosts
+      };
+    } catch (error) {
+      console.error('Error getting team economy status:', error);
+      return {
+        finances: null,
+        dailyRevenue: 0,
+        dailyMaintenance: 0,
+        netDaily: 0,
+        stadiumStats: null,
+        nextUpgradeCosts: {}
+      };
     }
   }
 
