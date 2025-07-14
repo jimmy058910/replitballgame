@@ -17,6 +17,68 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || "sk_test_fallbackkeyi
 });
 const STRIPE_WEBHOOK_SECRET = process.env.STRIPE_WEBHOOK_SECRET;
 
+// Webhook endpoint for Stripe payment confirmations
+router.post('/webhook', express.raw({type: 'application/json'}), async (req: Request, res: Response) => {
+  const sig = req.headers['stripe-signature'];
+  let event;
+
+  try {
+    event = stripe.webhooks.constructEvent(req.body, sig as string, STRIPE_WEBHOOK_SECRET || '');
+  } catch (err: any) {
+    console.log('⚠️  Webhook signature verification failed.', err.message);
+    return res.status(400).send(`Webhook Error: ${err.message}`);
+  }
+
+  // Handle the event
+  switch (event.type) {
+    case 'payment_intent.succeeded':
+      const paymentIntent = event.data.object;
+      console.log('💰 Payment succeeded:', paymentIntent.id);
+      
+      // Update payment transaction status
+      try {
+        await storage.payments.updatePaymentTransactionByStripeId(paymentIntent.id, {
+          status: 'completed',
+          completedAt: new Date().toISOString()
+        });
+        
+        // Add gems/credits to user account
+        const metadata = paymentIntent.metadata;
+        if (metadata.realmRivalryUserId) {
+          if (metadata.creditsAmount) {
+            await storage.users.addCredits(metadata.realmRivalryUserId, parseInt(metadata.creditsAmount));
+          }
+          if (metadata.gemsAmount) {
+            await storage.users.addGems(metadata.realmRivalryUserId, parseInt(metadata.gemsAmount));
+          }
+        }
+      } catch (error) {
+        console.error('Error processing successful payment:', error);
+      }
+      break;
+      
+    case 'payment_intent.payment_failed':
+      const failedPayment = event.data.object;
+      console.log('❌ Payment failed:', failedPayment.id);
+      
+      // Update payment transaction status
+      try {
+        await storage.payments.updatePaymentTransactionByStripeId(failedPayment.id, {
+          status: 'failed',
+          failedAt: new Date().toISOString()
+        });
+      } catch (error) {
+        console.error('Error processing failed payment:', error);
+      }
+      break;
+      
+    default:
+      console.log(`Unhandled event type ${event.type}`);
+  }
+
+  res.json({received: true});
+});
+
 
 // Zod Schemas for validation
 const createPaymentIntentSchema = z.object({

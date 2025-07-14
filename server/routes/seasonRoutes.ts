@@ -56,9 +56,20 @@ router.get('/current-cycle', isAuthenticated, async (req: Request, res: Response
     }
 
     // Calculate the current day in the 17-day cycle and season number
-    const seasonStartDate = currentSeason.startDateOriginal || currentSeason.startDate || new Date();
-    const daysSinceStart = Math.floor((new Date().getTime() - seasonStartDate.getTime()) / (1000 * 60 * 60 * 24));
+    const seasonStartDate = new Date(currentSeason.start_date_original || currentSeason.start_date);
+    const now = new Date();
+    const daysSinceStart = Math.floor((now.getTime() - seasonStartDate.getTime()) / (1000 * 60 * 60 * 24));
     const currentDayInCycle = (daysSinceStart % 17) + 1;
+    
+    // Debug logging (can be removed in production)
+    // console.log('Season calculation debug:', {
+    //   rawStartDate: currentSeason.start_date_original,
+    //   rawStartDateBackup: currentSeason.start_date,
+    //   seasonStartDate: seasonStartDate.toISOString(),
+    //   now: now.toISOString(),
+    //   daysSinceStart,
+    //   currentDayInCycle
+    // });
     
     // Calculate season number starting from Season 0, incrementing every 17 days
     const seasonNumber = Math.floor(daysSinceStart / 17);
