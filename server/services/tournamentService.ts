@@ -63,7 +63,7 @@ export class TournamentService {
 
   // Mid-Season Classic reward structure (all divisions)
   private getMidSeasonRewards(division: number): TournamentConfig["rewards"] {
-    const divisionNames = ["", "Diamond", "Platinum", "Gold", "Silver", "Bronze", "Copper", "Iron", "Stone"];
+    const divisionNames = ["", "Diamond", "Platinum", "Gold", "Silver", "Bronze", "Iron", "Stone", "Copper"];
     const trophyName = `${divisionNames[division]} Mid-Season Classic Trophy`;
     
     const rewardTable: Record<number, TournamentConfig["rewards"]> = {
@@ -137,7 +137,7 @@ export class TournamentService {
     const gameDay = this.getCurrentGameDay();
     const rewards = this.getDailyCupRewards(division);
     
-    const divisionNames = ["", "Diamond", "Platinum", "Gold", "Silver", "Bronze", "Copper", "Iron", "Stone"];
+    const divisionNames = ["", "Diamond", "Platinum", "Gold", "Silver", "Bronze", "Iron", "Stone", "Copper"];
     const tournamentName = `${divisionNames[division]} Daily Cup - Day ${gameDay}`;
 
     const tournament = {
@@ -165,7 +165,7 @@ export class TournamentService {
     const gameDay = 7; // Always Day 7
     const rewards = this.getMidSeasonRewards(division);
     
-    const divisionNames = ["", "Diamond", "Platinum", "Gold", "Silver", "Bronze", "Copper", "Iron", "Stone"];
+    const divisionNames = ["", "Diamond", "Platinum", "Gold", "Silver", "Bronze", "Iron", "Stone", "Copper"];
     const tournamentName = `${divisionNames[division]} Mid-Season Classic - Season ${season}`;
 
     const tournament = {

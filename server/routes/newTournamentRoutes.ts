@@ -270,7 +270,15 @@ router.get('/team/:teamId', isAuthenticated, async (req: any, res: Response, nex
       ...entry,
       teamId: Number(entry.teamId),
       tournamentId: entry.tournamentId,
-      id: entry.id
+      id: entry.id,
+      finalRank: entry.finalRank ? Number(entry.finalRank) : null,
+      creditsWon: entry.creditsWon ? Number(entry.creditsWon) : 0,
+      gemsWon: entry.gemsWon ? Number(entry.gemsWon) : 0,
+      tournament: {
+        ...entry.tournament,
+        entryFeeCredits: Number(entry.tournament.entryFeeCredits || 0),
+        entryFeeGems: Number(entry.tournament.entryFeeGems || 0)
+      }
     }));
     
     res.json(serializedEntries);
@@ -324,7 +332,15 @@ router.get('/team/:teamId/history', isAuthenticated, async (req: any, res: Respo
       ...entry,
       teamId: Number(entry.teamId),
       tournamentId: entry.tournamentId,
-      id: entry.id
+      id: entry.id,
+      finalRank: entry.finalRank ? Number(entry.finalRank) : null,
+      creditsWon: entry.creditsWon ? Number(entry.creditsWon) : 0,
+      gemsWon: entry.gemsWon ? Number(entry.gemsWon) : 0,
+      tournament: {
+        ...entry.tournament,
+        entryFeeCredits: Number(entry.tournament.entryFeeCredits || 0),
+        entryFeeGems: Number(entry.tournament.entryFeeGems || 0)
+      }
     }));
     
     res.json(serializedHistory);

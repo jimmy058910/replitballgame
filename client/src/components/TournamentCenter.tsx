@@ -6,6 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { Trophy, Clock, Calendar, Users, Coins, Gem, CheckCircle, AlertCircle, Timer } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest, queryClient } from '@/lib/queryClient';
+import TournamentStatusView from './TournamentStatusView';
 
 interface TournamentCenterProps {
   teamId?: string;
@@ -382,6 +383,9 @@ const TournamentCenter: React.FC<TournamentCenterProps> = ({ teamId }) => {
           </CardContent>
         </Card>
       </div>
+
+      {/* Tournament Status Section */}
+      <TournamentStatusView teamId={teamId} />
 
       {/* Tournament History Section */}
       <Card>

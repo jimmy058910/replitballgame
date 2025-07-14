@@ -185,10 +185,17 @@ const TournamentStatusView: React.FC<TournamentStatusViewProps> = ({ teamId }) =
               )}
 
               <div className="flex justify-between items-center pt-2">
-                <div className="text-sm text-gray-600">
+                <div className="text-sm text-gray-600 dark:text-gray-300">
                   {entry.placement ? `Final Rank: ${entry.placement}` : 'Tournament in progress...'}
                 </div>
-                <Button variant="outline" size="sm" className="flex items-center gap-1">
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  className="flex items-center gap-1 text-gray-800 dark:text-gray-200 border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700"
+                  onClick={() => {
+                    window.location.href = `/tournament-status`;
+                  }}
+                >
                   View Details
                   <ArrowRight className="h-4 w-4" />
                 </Button>
