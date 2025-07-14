@@ -252,7 +252,15 @@ router.get('/team/:teamId', isAuthenticated, async (req: any, res: Response, nex
       }
     });
 
-    res.json(currentEntries);
+    // Convert BigInt fields to numbers for JSON serialization
+    const serializedEntries = currentEntries.map(entry => ({
+      ...entry,
+      teamId: Number(entry.teamId),
+      tournamentId: entry.tournamentId,
+      id: entry.id
+    }));
+    
+    res.json(serializedEntries);
   } catch (error) {
     console.error("Error fetching team tournament entries:", error);
     next(error);
@@ -298,7 +306,15 @@ router.get('/team/:teamId/history', isAuthenticated, async (req: any, res: Respo
       take: 20
     });
 
-    res.json(history);
+    // Convert BigInt fields to numbers for JSON serialization
+    const serializedHistory = history.map(entry => ({
+      ...entry,
+      teamId: Number(entry.teamId),
+      tournamentId: entry.tournamentId,
+      id: entry.id
+    }));
+    
+    res.json(serializedHistory);
   } catch (error) {
     console.error("Error fetching team tournament history:", error);
     next(error);

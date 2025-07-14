@@ -93,7 +93,7 @@ const TournamentCenter: React.FC<TournamentCenterProps> = ({ teamId }) => {
 
   // Check if user is already registered for daily tournament
   const isRegisteredForDailyTournament = dailyTournamentStatus?.some((entry: any) => 
-    entry.type === 'DAILY_DIVISIONAL' && entry.status === 'REGISTRATION_OPEN'
+    entry.type === 'DAILY_DIVISIONAL'
   );
 
   // Tournament entry mutation
@@ -130,6 +130,7 @@ const TournamentCenter: React.FC<TournamentCenterProps> = ({ teamId }) => {
       });
       queryClient.invalidateQueries({ queryKey: ["/api/new-tournaments"] });
       queryClient.invalidateQueries({ queryKey: ["/api/teams", teamId] });
+      queryClient.invalidateQueries({ queryKey: ["/api/tournament-status/active"] });
     },
     onError: (error: Error) => {
       toast({
@@ -152,6 +153,7 @@ const TournamentCenter: React.FC<TournamentCenterProps> = ({ teamId }) => {
       });
       queryClient.invalidateQueries({ queryKey: ["/api/new-tournaments"] });
       queryClient.invalidateQueries({ queryKey: ["/api/teams", teamId] });
+      queryClient.invalidateQueries({ queryKey: ["/api/tournament-status/active"] });
     },
     onError: (error: Error) => {
       toast({

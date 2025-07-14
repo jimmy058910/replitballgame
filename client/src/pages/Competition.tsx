@@ -1196,8 +1196,8 @@ export default function Competition() {
           </TabsContent>
 
           <TabsContent value="tournaments" className="space-y-6">
-            <TournamentStatusView teamId={team?.id} />
             <TournamentCenter teamId={team?.id} />
+            <TournamentStatusView teamId={team?.id} />
           </TabsContent>
 
           <TabsContent value="exhibitions" className="space-y-6">
