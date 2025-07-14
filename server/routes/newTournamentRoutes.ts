@@ -269,13 +269,12 @@ router.get('/team/:teamId', isAuthenticated, async (req: any, res: Response, nex
     const serializedEntries = currentEntries.map(entry => ({
       ...entry,
       teamId: Number(entry.teamId),
-      tournamentId: entry.tournamentId,
-      id: entry.id,
+      tournamentId: Number(entry.tournamentId),
+      id: Number(entry.id),
       finalRank: entry.finalRank ? Number(entry.finalRank) : null,
-      creditsWon: entry.creditsWon ? Number(entry.creditsWon) : 0,
-      gemsWon: entry.gemsWon ? Number(entry.gemsWon) : 0,
       tournament: {
         ...entry.tournament,
+        id: Number(entry.tournament.id),
         entryFeeCredits: Number(entry.tournament.entryFeeCredits || 0),
         entryFeeGems: Number(entry.tournament.entryFeeGems || 0)
       }
@@ -331,13 +330,12 @@ router.get('/team/:teamId/history', isAuthenticated, async (req: any, res: Respo
     const serializedHistory = history.map(entry => ({
       ...entry,
       teamId: Number(entry.teamId),
-      tournamentId: entry.tournamentId,
-      id: entry.id,
+      tournamentId: Number(entry.tournamentId),
+      id: Number(entry.id),
       finalRank: entry.finalRank ? Number(entry.finalRank) : null,
-      creditsWon: entry.creditsWon ? Number(entry.creditsWon) : 0,
-      gemsWon: entry.gemsWon ? Number(entry.gemsWon) : 0,
       tournament: {
         ...entry.tournament,
+        id: Number(entry.tournament.id),
         entryFeeCredits: Number(entry.tournament.entryFeeCredits || 0),
         entryFeeGems: Number(entry.tournament.entryFeeGems || 0)
       }

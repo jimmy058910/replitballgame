@@ -6,7 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { Trophy, Clock, Calendar, Users, Coins, Gem, CheckCircle, AlertCircle, Timer } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest, queryClient } from '@/lib/queryClient';
-import TournamentStatusView from './TournamentStatusView';
+
 
 interface TournamentCenterProps {
   teamId?: string;
@@ -384,8 +384,51 @@ const TournamentCenter: React.FC<TournamentCenterProps> = ({ teamId }) => {
         </Card>
       </div>
 
-      {/* Tournament Status Section */}
-      <TournamentStatusView teamId={teamId} />
+      {/* My Tournament Status Section */}
+      {myTournaments && myTournaments.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center space-x-2">
+              <Trophy className="w-5 h-5" />
+              <span>My Tournament Status</span>
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              {myTournaments.map((entry: any) => (
+                <div key={entry.id} className="border-l-4 border-l-purple-500 pl-4 py-2">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h3 className="font-semibold text-gray-900 dark:text-gray-100">{entry.tournament.name}</h3>
+                      <p className="text-sm text-gray-700 dark:text-gray-300">
+                        Division {entry.tournament.division} • {entry.tournament.type === 'DAILY_DIVISIONAL' ? 'Daily Cup' : 'Mid-Season Classic'}
+                      </p>
+                    </div>
+                    <Badge className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">
+                      {entry.tournament.status.replace('_', ' ')}
+                    </Badge>
+                  </div>
+                  <div className="mt-2 text-sm text-gray-600 dark:text-gray-400">
+                    Registered {new Date(entry.registeredAt).toLocaleDateString()}
+                  </div>
+                  <div className="mt-2">
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      className="text-gray-800 dark:text-gray-200 border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700"
+                      onClick={() => {
+                        window.location.href = `/tournament-status`;
+                      }}
+                    >
+                      View Details →
+                    </Button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Tournament History Section */}
       <Card>
