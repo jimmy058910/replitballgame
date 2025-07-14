@@ -77,7 +77,7 @@ export class SeasonalFlowService {
     }>;
   }> {
     const allLeagues = await prisma.league.findMany({
-      where: { season }
+      where: { seasonId: season }
     });
     
     let totalMatches = 0;
@@ -521,7 +521,7 @@ export class SeasonalFlowService {
     totalPlayoffMatches: number;
   }> {
     const allLeagues = await prisma.league.findMany({
-      where: { season }
+      where: { seasonId: season }
     });
     
     const bracketsByLeague = [];
