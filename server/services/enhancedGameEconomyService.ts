@@ -293,6 +293,226 @@ export class EnhancedGameEconomyService {
     }
   }
 
+  // **PREMIUM BOX LOOT SYSTEM**
+
+  /**
+   * Premium Box loot tables for 50-ad milestone reward
+   */
+  static readonly PREMIUM_BOX_LOOT = {
+    currency: [
+      { reward: { credits: 10000 }, chance: 0.80, description: '10,000 Credits' },
+      { reward: { credits: 25000 }, chance: 0.15, description: '25,000 Credits' },
+      { reward: { gems: 10 }, chance: 0.05, description: '10 Gems' }
+    ],
+    consumables: [
+      { reward: { itemId: 'advanced_recovery_serum', quantity: 2 }, chance: 0.60, description: '2x Advanced Recovery Serum' },
+      { reward: { itemId: 'advanced_treatment', quantity: 2 }, chance: 0.30, description: '2x Advanced Treatment' },
+      { reward: { itemId: 'phoenix_elixir', quantity: 1 }, chance: 0.10, description: '1x Phoenix Elixir' }
+    ],
+    equipment: [
+      { rarity: 'uncommon', chance: 0.75, description: 'Random Uncommon Equipment' },
+      { rarity: 'rare', chance: 0.20, description: 'Random Rare Equipment' },
+      { rarity: 'epic', chance: 0.05, description: 'Random Epic Equipment' }
+    ]
+  };
+
+  /**
+   * Get random reward from loot table based on weighted probabilities
+   */
+  static getRandomReward(lootTable: any[]): any {
+    const random = Math.random();
+    let cumulativeChance = 0;
+    
+    for (const item of lootTable) {
+      cumulativeChance += item.chance;
+      if (random <= cumulativeChance) {
+        return item;
+      }
+    }
+    
+    // Fallback to first item if something goes wrong
+    return lootTable[0];
+  }
+
+  /**
+   * Get random equipment item of specified rarity
+   */
+  static getRandomEquipmentByRarity(rarity: string): any {
+    const allEquipment = [
+      ...this.STORE_ITEMS.helmets,
+      ...this.STORE_ITEMS.chestArmor,
+      ...this.STORE_ITEMS.gloves,
+      ...this.STORE_ITEMS.footwear
+    ];
+    
+    const equipmentByRarity = allEquipment.filter(item => 
+      item.tier === rarity && !item.special?.includes('cosmetic')
+    );
+    
+    if (equipmentByRarity.length === 0) {
+      // Fallback to any equipment if no items found
+      return allEquipment[Math.floor(Math.random() * allEquipment.length)];
+    }
+    
+    return equipmentByRarity[Math.floor(Math.random() * equipmentByRarity.length)];
+  }
+
+  /**
+   * Open Premium Box and generate rewards
+   */
+  static async openPremiumBox(teamId: string): Promise<{
+    success: boolean;
+    rewards?: {
+      currency: any;
+      consumable: any;
+      equipment: any;
+    };
+    error?: string;
+  }> {
+    try {
+      // Generate rewards from each category
+      const currencyReward = this.getRandomReward(this.PREMIUM_BOX_LOOT.currency);
+      const consumableReward = this.getRandomReward(this.PREMIUM_BOX_LOOT.consumables);
+      const equipmentRarity = this.getRandomReward(this.PREMIUM_BOX_LOOT.equipment);
+      const equipmentReward = this.getRandomEquipmentByRarity(equipmentRarity.rarity);
+
+      // Apply currency reward
+      const teamFinance = await prisma.teamFinance.findFirst({
+        where: { teamId: teamId }
+      });
+      
+      if (!teamFinance) {
+        return { success: false, error: 'Team finances not found' };
+      }
+
+      const currencyUpdate: any = {};
+      if (currencyReward.reward.credits) {
+        currencyUpdate.credits = (teamFinance.credits || 0) + currencyReward.reward.credits;
+      }
+      if (currencyReward.reward.gems) {
+        currencyUpdate.gems = (teamFinance.gems || 0) + currencyReward.reward.gems;
+      }
+
+      await prisma.teamFinance.update({
+        where: { teamId: teamId },
+        data: currencyUpdate
+      });
+
+      // Add consumable to inventory
+      await prisma.inventory.upsert({
+        where: {
+          teamId_itemId: {
+            teamId: teamId,
+            itemId: consumableReward.reward.itemId
+          }
+        },
+        create: {
+          teamId: teamId,
+          itemId: consumableReward.reward.itemId,
+          quantity: consumableReward.reward.quantity,
+          acquiredAt: new Date()
+        },
+        update: {
+          quantity: {
+            increment: consumableReward.reward.quantity
+          }
+        }
+      });
+
+      // Add equipment to inventory
+      await prisma.inventory.upsert({
+        where: {
+          teamId_itemId: {
+            teamId: teamId,
+            itemId: equipmentReward.id
+          }
+        },
+        create: {
+          teamId: teamId,
+          itemId: equipmentReward.id,
+          quantity: 1,
+          acquiredAt: new Date()
+        },
+        update: {
+          quantity: {
+            increment: 1
+          }
+        }
+      });
+
+      return {
+        success: true,
+        rewards: {
+          currency: {
+            ...currencyReward.reward,
+            description: currencyReward.description
+          },
+          consumable: {
+            ...consumableReward.reward,
+            description: consumableReward.description,
+            name: this.getItemName(consumableReward.reward.itemId)
+          },
+          equipment: {
+            id: equipmentReward.id,
+            name: equipmentReward.name,
+            rarity: equipmentRarity.rarity,
+            description: equipmentRarity.description
+          }
+        }
+      };
+    } catch (error) {
+      console.error('Error opening Premium Box:', error);
+      return { success: false, error: 'Database error' };
+    }
+  }
+
+  /**
+   * Get item name from item ID
+   */
+  static getItemName(itemId: string): string {
+    const allItems = [
+      ...this.STORE_ITEMS.consumables,
+      ...this.STORE_ITEMS.performance
+    ];
+    
+    const item = allItems.find(i => i.id === itemId);
+    return item ? item.name : itemId;
+  }
+
+  /**
+   * Check if user is eligible for Premium Box (50 ads watched)
+   */
+  static async checkPremiumBoxEligibility(teamId: string): Promise<{
+    eligible: boolean;
+    adsWatched: number;
+    adsRequired: number;
+  }> {
+    try {
+      // Get team's ad watching progress (assuming we track this somewhere)
+      const teamFinance = await prisma.teamFinance.findFirst({
+        where: { teamId: teamId }
+      });
+      
+      // For now, we'll assume there's a field to track ads watched
+      // This would need to be added to the database schema
+      const adsWatched = 0; // TODO: Implement ad tracking
+      const adsRequired = 50;
+      
+      return {
+        eligible: adsWatched >= adsRequired,
+        adsWatched,
+        adsRequired
+      };
+    } catch (error) {
+      console.error('Error checking Premium Box eligibility:', error);
+      return {
+        eligible: false,
+        adsWatched: 0,
+        adsRequired: 50
+      };
+    }
+  }
+
   // **STORE PRICING SYSTEM**
 
   /**

@@ -8,6 +8,7 @@ import { prisma } from "../db";
 import { isAuthenticated } from "../replitAuth";
 import { z } from "zod";
 import storeConfig from "../config/store_config.json";
+import { EnhancedGameEconomyService } from "../services/enhancedGameEconomyService";
 
 const router = Router();
 
@@ -489,6 +490,68 @@ router.post('/convert-gems', isAuthenticated, async (req: any, res: Response, ne
   } catch (error) {
     console.error("Error converting gems to credits:", error);
     if (error instanceof z.ZodError) return res.status(400).json({ message: "Invalid gems amount.", errors: error.errors });
+    next(error);
+  }
+});
+
+// Premium Box eligibility check
+router.get('/premium-box/eligibility', isAuthenticated, async (req: any, res: Response, next: NextFunction) => {
+  try {
+    const userId = req.user.claims.sub;
+    const team = await storage.teams.getTeamByUserId(userId);
+    if (!team) return res.status(404).json({ message: "Team not found." });
+    
+    const eligibility = await EnhancedGameEconomyService.checkPremiumBoxEligibility(team.id);
+    res.json({ success: true, data: eligibility });
+    
+  } catch (error) {
+    console.error("Premium Box eligibility error:", error);
+    next(error);
+  }
+});
+
+// Open Premium Box
+router.post('/premium-box/open', isAuthenticated, async (req: any, res: Response, next: NextFunction) => {
+  try {
+    const userId = req.user.claims.sub;
+    const team = await storage.teams.getTeamByUserId(userId);
+    if (!team) return res.status(404).json({ message: "Team not found." });
+    
+    // Check eligibility first
+    const eligibility = await EnhancedGameEconomyService.checkPremiumBoxEligibility(team.id);
+    if (!eligibility.eligible) {
+      return res.status(400).json({ 
+        message: 'Not eligible for Premium Box',
+        adsWatched: eligibility.adsWatched,
+        adsRequired: eligibility.adsRequired
+      });
+    }
+    
+    const result = await EnhancedGameEconomyService.openPremiumBox(team.id);
+    
+    if (result.success) {
+      res.json({ 
+        success: true, 
+        message: 'Premium Box opened successfully!',
+        rewards: result.rewards
+      });
+    } else {
+      res.status(400).json({ message: result.error });
+    }
+    
+  } catch (error) {
+    console.error("Premium Box opening error:", error);
+    next(error);
+  }
+});
+
+// Get Premium Box loot tables (for display purposes)
+router.get('/premium-box/loot-tables', isAuthenticated, async (req: any, res: Response, next: NextFunction) => {
+  try {
+    const lootTables = EnhancedGameEconomyService.PREMIUM_BOX_LOOT;
+    res.json({ success: true, data: lootTables });
+  } catch (error) {
+    console.error("Premium Box loot tables error:", error);
     next(error);
   }
 });
