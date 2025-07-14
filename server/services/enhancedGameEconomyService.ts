@@ -11,13 +11,13 @@ export class EnhancedGameEconomyService {
   static readonly STARTING_GEMS = 0;
 
   /**
-   * Gem to Credit exchange rates with bulk discounts
+   * Gem to Credit exchange rates with bulk discounts - Master Economy v5
    */
   static readonly GEM_EXCHANGE_RATES = [
-    { gems: 10, credits: 4500, ratio: 450 },
-    { gems: 50, credits: 25000, ratio: 500 },
-    { gems: 300, credits: 165000, ratio: 550 },
-    { gems: 1000, credits: 600000, ratio: 600 }
+    { gems: 10, credits: 4000, ratio: 400 },
+    { gems: 50, credits: 22500, ratio: 450 },
+    { gems: 300, credits: 150000, ratio: 500 },
+    { gems: 1000, credits: 550000, ratio: 550 }
   ];
 
   /**
@@ -1010,10 +1010,10 @@ export class EnhancedGameEconomyService {
     }
   }
 
-  // **STORE PRICING SYSTEM**
+  // **STORE PRICING SYSTEM - MASTER ECONOMY V5**
 
   /**
-   * Store items with dual currency pricing
+   * Store items with dual currency pricing - Combined Store System
    */
   static readonly STORE_ITEMS = {
     helmets: [
@@ -1086,6 +1086,87 @@ export class EnhancedGameEconomyService {
       return (this.STORE_ITEMS as any)[category] || [];
     }
     return this.STORE_ITEMS;
+  }
+
+  /**
+   * Generate 8-item daily rotation store - Master Economy v5 Combined Store System
+   */
+  static generateDailyRotationStore(date: Date = new Date()): any[] {
+    // Use date as seed for consistent daily rotation
+    const seed = date.getFullYear() * 10000 + date.getMonth() * 100 + date.getDate();
+    const random = this.seededRandom(seed);
+    
+    // All equipment items from all categories
+    const allEquipment = [
+      ...this.STORE_ITEMS.helmets,
+      ...this.STORE_ITEMS.chestArmor,
+      ...this.STORE_ITEMS.gloves,
+      ...this.STORE_ITEMS.footwear
+    ];
+    
+    // All consumables
+    const allConsumables = [
+      ...this.STORE_ITEMS.consumables,
+      ...this.STORE_ITEMS.performance
+    ];
+    
+    // Combine all items
+    const allItems = [...allEquipment, ...allConsumables];
+    
+    // Rarity weights for selection (Master Economy v5 specification)
+    const rarityWeights = {
+      common: 40,
+      uncommon: 30,
+      rare: 20,
+      epic: 8,
+      legendary: 2
+    };
+    
+    const selectedItems = [];
+    
+    // Select 8 items with weighted probability
+    for (let i = 0; i < 8; i++) {
+      const availableItems = allItems.filter(item => 
+        !selectedItems.some(selected => selected.id === item.id)
+      );
+      
+      if (availableItems.length === 0) break;
+      
+      // Calculate total weight
+      const totalWeight = availableItems.reduce((sum, item) => {
+        return sum + (rarityWeights[item.tier as keyof typeof rarityWeights] || 1);
+      }, 0);
+      
+      // Select item based on weighted probability
+      let randomWeight = random() * totalWeight;
+      let selectedItem = null;
+      
+      for (const item of availableItems) {
+        const weight = rarityWeights[item.tier as keyof typeof rarityWeights] || 1;
+        randomWeight -= weight;
+        if (randomWeight <= 0) {
+          selectedItem = item;
+          break;
+        }
+      }
+      
+      if (selectedItem) {
+        selectedItems.push(selectedItem);
+      }
+    }
+    
+    return selectedItems;
+  }
+
+  /**
+   * Seeded random number generator for consistent daily rotation
+   */
+  private static seededRandom(seed: number): () => number {
+    let x = seed;
+    return () => {
+      x = (x * 1103515245 + 12345) & 0x7fffffff;
+      return x / 0x80000000;
+    };
   }
 
   // **LEAGUE REWARDS SYSTEM**

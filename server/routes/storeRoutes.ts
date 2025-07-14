@@ -9,6 +9,7 @@ import { isAuthenticated } from "../replitAuth";
 import { z } from "zod";
 import storeConfig from "../config/store_config.json";
 import { EnhancedGameEconomyService } from "../services/enhancedGameEconomyService";
+import fs from "fs";
 
 const router = Router();
 
@@ -31,70 +32,87 @@ const convertGemsSchema = z.object({
     gemsAmount: z.number().int().min(1, "Must convert at least 1 gem."),
 });
 
-// Store routes
+// Store routes - Master Economy v5 Combined 8-item Store System
 router.get('/items', isAuthenticated, async (req: Request, res: Response, next: NextFunction) => {
   try {
+    // Master Economy v5: Return 8-item daily rotation instead of separate stores
+    const dailyRotation = EnhancedGameEconomyService.generateDailyRotationStore();
+    
     const now = new Date();
-    const rotationDate = new Date(now);
-    if (now.getUTCHours() < 8) { // Example: Rotate at 8 AM UTC (3 AM EST if EST is UTC-5)
-      rotationDate.setUTCDate(now.getUTCDate() - 1);
-    }
-    const dayKey = rotationDate.toISOString().split('T')[0]; // YYYY-MM-DD format for daily seed
-    let seed = 0;
-    for (let i = 0; i < dayKey.length; i++) {
-        seed = (seed * 31 + dayKey.charCodeAt(i)) & 0xFFFFFFFF; // Simple hash for seed
-    }
-
-    // Create stateful seeded random function
-    let randomState = seed;
-    const seededRandom = () => {
-      randomState = (randomState * 9301 + 49297) % 233280;
-      return randomState / 233280;
-    };
-
-    // Load items from config
-    const allEquipment = storeConfig.storeSections.equipment || [];
-    const allConsumables = storeConfig.storeSections.consumables || [];
-    const allEntries = storeConfig.storeSections.entries || [];
-    const gemPackages = storeConfig.storeSections.gemPackages || [];
-
-    // Filter items for credit store (items that can be bought with credits, excluding entries)
-    const creditItems = [...allEquipment, ...allConsumables].filter(item => item.price > 0);
-    
-    // Filter items for gem store (items that can ONLY be bought with gems - no credit price)
-    const gemOnlyItems = [...allEquipment, ...allConsumables, ...allEntries].filter(item => 
-      item.priceGems > 0 && (!item.price || item.price === 0)
-    );
-
-    const shuffledCreditItems = [...creditItems].sort(() => 0.5 - seededRandom());
-    const shuffledGemItems = [...gemOnlyItems].sort(() => 0.5 - seededRandom());
-
-    // Credit Store: 6 items with rarity distribution (4 common/uncommon, 2 rare/epic)
-    const commonCreditItems = shuffledCreditItems.filter(item => item.rarity === 'common' || item.rarity === 'uncommon');
-    const rareCreditItems = shuffledCreditItems.filter(item => item.rarity === 'rare' || item.rarity === 'epic');
-    
-    const dailyEquipment = [
-      ...commonCreditItems.slice(0, 4),
-      ...rareCreditItems.slice(0, 2)
-    ].slice(0, 6);
-    
-    // Gem Store: 4 gem-only items
-    const dailyConsumables = shuffledGemItems.slice(0, 4);
-
-    const resetTime = new Date(rotationDate);
-    resetTime.setUTCDate(rotationDate.getUTCDate() + 1);
+    const resetTime = new Date(now);
+    resetTime.setUTCDate(now.getUTCDate() + 1);
     resetTime.setUTCHours(8, 0, 0, 0); // Next 8 AM UTC
 
     res.json({
-      equipment: dailyEquipment,
-      consumables: dailyConsumables,
-      entries: allEntries,
-      gemPackages: gemPackages,
+      dailyItems: dailyRotation,
       resetTime: resetTime.toISOString(),
-      storeType: 'credit' // Credit Store: 6 items
+      storeType: 'combined', // Master Economy v5 Combined Store
+      totalItems: 8
     });
   } catch (error) {
     console.error("Error fetching store items:", error);
+    next(error);
+  }
+});
+
+// Master Economy v5 New Endpoints
+router.get('/gem-packages', isAuthenticated, async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    res.json({ success: true, data: storeConfig.gemPackages });
+  } catch (error) {
+    console.error('Error fetching gem packages:', error);
+    next(error);
+  }
+});
+
+router.get('/realm-pass', isAuthenticated, async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const realmPassData = {
+      ...storeConfig.realmPassSubscription,
+      monthlyPrice: storeConfig.realmPassSubscription.price
+    };
+    res.json({ success: true, data: realmPassData });
+  } catch (error) {
+    console.error('Error fetching Realm Pass info:', error);
+    next(error);
+  }
+});
+
+router.get('/gem-exchange-rates', isAuthenticated, async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    res.json({ success: true, data: storeConfig.gemExchangeRates || [] });
+  } catch (error) {
+    console.error('Error fetching gem exchange rates:', error);
+    next(error);
+  }
+});
+
+router.post('/exchange-gems', isAuthenticated, async (req: any, res: Response, next: NextFunction) => {
+  try {
+    const { gemAmount } = req.body;
+    const userId = req.user?.claims?.sub;
+    
+    if (!userId) {
+      return res.status(401).json({ success: false, error: 'Authentication required' });
+    }
+
+    const team = await prisma.team.findFirst({
+      where: { userProfileId: userId }
+    });
+
+    if (!team) {
+      return res.status(404).json({ success: false, error: 'Team not found' });
+    }
+
+    const result = await EnhancedGameEconomyService.exchangeGemsForCredits(team.id, gemAmount);
+    
+    if (result.success) {
+      res.json({ success: true, data: { creditsReceived: result.creditsReceived } });
+    } else {
+      res.status(400).json({ success: false, error: result.error });
+    }
+  } catch (error) {
+    console.error('Error exchanging gems:', error);
     next(error);
   }
 });
