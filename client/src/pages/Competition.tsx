@@ -9,6 +9,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import LeagueStandings from "@/components/LeagueStandings";
 import LeagueSchedule from "@/components/LeagueSchedule";
 import TournamentCenter from "@/components/TournamentCenter";
+import TournamentStatusView from "@/components/TournamentStatusView";
 
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
@@ -1195,6 +1196,7 @@ export default function Competition() {
           </TabsContent>
 
           <TabsContent value="tournaments" className="space-y-6">
+            <TournamentStatusView teamId={team?.id} />
             <TournamentCenter teamId={team?.id} />
           </TabsContent>
 

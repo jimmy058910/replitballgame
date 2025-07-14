@@ -84,6 +84,18 @@ const TournamentCenter: React.FC<TournamentCenterProps> = ({ teamId }) => {
     enabled: !!teamId,
   });
 
+  // Check if user is already registered for daily tournament
+  const { data: dailyTournamentStatus } = useQuery({
+    queryKey: ["/api/tournament-status/active"],
+    queryFn: () => apiRequest("/api/tournament-status/active"),
+    enabled: !!teamId,
+  });
+
+  // Check if user is already registered for daily tournament
+  const isRegisteredForDailyTournament = dailyTournamentStatus?.some((entry: any) => 
+    entry.type === 'DAILY_DIVISIONAL' && entry.status === 'REGISTRATION_OPEN'
+  );
+
   // Tournament entry mutation
   const enterTournamentMutation = useMutation({
     mutationFn: async (tournamentId: string) => {
@@ -251,13 +263,18 @@ const TournamentCenter: React.FC<TournamentCenterProps> = ({ teamId }) => {
               <div className="space-y-2">
                 <Button 
                   onClick={() => registerDailyTournamentMutation.mutate()}
-                  disabled={registerDailyTournamentMutation.isPending}
-                  className="bg-blue-600 hover:bg-blue-700"
+                  disabled={registerDailyTournamentMutation.isPending || isRegisteredForDailyTournament}
+                  className={isRegisteredForDailyTournament ? "bg-green-600 hover:bg-green-700" : "bg-blue-600 hover:bg-blue-700"}
                 >
-                  {registerDailyTournamentMutation.isPending ? "Registering..." : "Register for Daily Tournament"}
+                  {registerDailyTournamentMutation.isPending ? "Registering..." : 
+                   isRegisteredForDailyTournament ? "✓ Already Registered" : 
+                   "Register for Daily Tournament"}
                 </Button>
                 <p className="text-xs text-blue-600 dark:text-blue-400">
-                  Requires Tournament Entry item - Purchase in Market → Store → Entries
+                  {isRegisteredForDailyTournament ? 
+                    "You are registered for today's tournament" : 
+                    "Requires Tournament Entry item - Purchase in Market → Store → Entries"
+                  }
                 </p>
               </div>
             </div>

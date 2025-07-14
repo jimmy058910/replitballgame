@@ -222,23 +222,35 @@ router.get('/team/:teamId', isAuthenticated, async (req: any, res: Response, nex
     
     // Verify team ownership
     const team = await storage.teams.getTeamByUserId(userId);
-    if (!team || team.id !== teamId) {
+    if (!team || team.id.toString() !== teamId) {
       return res.status(403).json({ message: "Access denied" });
     }
 
     // Get current tournament entries
-    const currentEntries = await db
-      .select({
-        id: tournamentEntries.id,
-        tournamentId: tournamentEntries.tournamentId,
-        teamId: tournamentEntries.teamId,
-        entryTime: tournamentEntries.entryTime,
-        placement: tournamentEntries.placement,
-        eliminated: tournamentEntries.eliminated
-      })
-      .from(tournamentEntries)
-      .where(eq(tournamentEntries.teamId, teamId))
-      .orderBy(desc(tournamentEntries.entryTime));
+    const currentEntries = await prisma.tournamentEntry.findMany({
+      where: {
+        teamId: parseInt(teamId)
+      },
+      include: {
+        tournament: {
+          select: {
+            id: true,
+            name: true,
+            type: true,
+            division: true,
+            status: true,
+            registrationEndTime: true,
+            startTime: true,
+            entryFeeCredits: true,
+            entryFeeGems: true,
+            prizePoolJson: true
+          }
+        }
+      },
+      orderBy: {
+        registeredAt: 'desc'
+      }
+    });
 
     res.json(currentEntries);
   } catch (error) {
@@ -255,33 +267,36 @@ router.get('/team/:teamId/history', isAuthenticated, async (req: any, res: Respo
     
     // Verify team ownership
     const team = await storage.teams.getTeamByUserId(userId);
-    if (!team || team.id !== teamId) {
+    if (!team || team.id.toString() !== teamId) {
       return res.status(403).json({ message: "Access denied" });
     }
 
     // Get tournament history with tournament details
-    const history = await db
-      .select({
-        id: tournamentEntries.id,
-        tournamentId: tournamentEntries.tournamentId,
-        placement: tournamentEntries.placement,
-        creditsWon: tournamentEntries.creditsWon,
-        gemsWon: tournamentEntries.gemsWon,
-        entryTime: tournamentEntries.entryTime,
+    const history = await prisma.tournamentEntry.findMany({
+      where: {
+        teamId: parseInt(teamId),
+        finalRank: { not: null } // Only completed tournaments
+      },
+      include: {
         tournament: {
-          name: tournaments.name,
-          type: tournaments.type,
-          gameDay: tournaments.gameDay
+          select: {
+            id: true,
+            name: true,
+            type: true,
+            division: true,
+            status: true,
+            seasonDay: true,
+            entryFeeCredits: true,
+            entryFeeGems: true,
+            prizePoolJson: true
+          }
         }
-      })
-      .from(tournamentEntries)
-      .innerJoin(tournaments, eq(tournamentEntries.tournamentId, tournaments.id))
-      .where(and(
-        eq(tournamentEntries.teamId, teamId),
-        eq(tournamentEntries.eliminated, true) // Only completed tournaments
-      ))
-      .orderBy(desc(tournamentEntries.entryTime))
-      .limit(20);
+      },
+      orderBy: {
+        registeredAt: 'desc'
+      },
+      take: 20
+    });
 
     res.json(history);
   } catch (error) {
