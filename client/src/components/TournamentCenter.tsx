@@ -399,8 +399,8 @@ const TournamentCenter: React.FC<TournamentCenterProps> = ({ teamId }) => {
                 <div key={entry.id} className="border-l-4 border-l-purple-500 pl-4 py-2">
                   <div className="flex items-center justify-between">
                     <div>
-                      <h3 className="font-semibold text-gray-900 dark:text-gray-100">{entry.tournament.name}</h3>
-                      <p className="text-sm text-gray-700 dark:text-gray-300">
+                      <h3 className="font-semibold text-black dark:text-white">{entry.tournament.name}</h3>
+                      <p className="text-sm text-black dark:text-white">
                         Division {entry.tournament.division} • {entry.tournament.type === 'DAILY_DIVISIONAL' ? 'Daily Cup' : 'Mid-Season Classic'}
                       </p>
                     </div>
@@ -408,14 +408,14 @@ const TournamentCenter: React.FC<TournamentCenterProps> = ({ teamId }) => {
                       {entry.tournament.status.replace('_', ' ')}
                     </Badge>
                   </div>
-                  <div className="mt-2 text-sm text-gray-600 dark:text-gray-400">
+                  <div className="mt-2 text-sm text-black dark:text-white">
                     Registered {new Date(entry.registeredAt).toLocaleDateString()}
                   </div>
                   <div className="mt-2">
                     <Button 
                       variant="outline" 
                       size="sm" 
-                      className="text-gray-800 dark:text-gray-200 border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700"
+                      className="text-black dark:text-white border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700"
                       onClick={() => {
                         window.location.href = `/tournament-status`;
                       }}
@@ -471,8 +471,8 @@ const TournamentCenter: React.FC<TournamentCenterProps> = ({ teamId }) => {
           ) : (
             <div className="text-center py-8">
               <Trophy className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-              <p className="text-gray-600 dark:text-gray-400">No tournament history yet</p>
-              <p className="text-sm text-gray-500 dark:text-gray-500 mt-2">
+              <p className="text-black dark:text-white">No tournament history yet</p>
+              <p className="text-sm text-black dark:text-white mt-2">
                 Enter tournaments to build your competitive record
               </p>
             </div>
