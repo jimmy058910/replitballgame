@@ -8,14 +8,34 @@ import { tournamentService } from "../services/tournamentService";
 const router = Router();
 
 /**
+ * Health check endpoint
+ */
+router.get('/health', (req, res) => {
+  res.json({ message: 'Tournament status routes are working' });
+});
+
+/**
  * Get tournament status and participant information
  */
 router.get('/:tournamentId/status', isAuthenticated, async (req: any, res: Response, next: NextFunction) => {
   try {
     const { tournamentId } = req.params;
-    const userId = req.user.claims.sub;
+    const userId = req.user?.claims?.sub;
+    
+    console.log('Tournament Status Request - tournamentId:', tournamentId, 'userId:', userId);
+    
+    if (!userId) {
+      console.log('No userId found in request');
+      return res.status(400).json({ message: "User not authenticated" });
+    }
+    
     const team = await storage.teams.getTeamByUserId(userId);
-    if (!team) return res.status(404).json({ message: "Team not found" });
+    if (!team) {
+      console.log('Team not found for userId:', userId);
+      return res.status(404).json({ message: "Team not found" });
+    }
+    
+    console.log('Team found:', team.id, team.name);
 
     // Get tournament details
     const tournament = await prisma.tournament.findUnique({
@@ -47,12 +67,12 @@ router.get('/:tournamentId/status', isAuthenticated, async (req: any, res: Respo
 
     // Get current participant count
     const currentParticipants = tournament.entries.length;
-    const maxParticipants = tournament.maxTeams || 8;
+    const maxParticipants = 8; // Default tournament size
     const spotsRemaining = maxParticipants - currentParticipants;
 
     // Calculate time until tournament start or auto-fill
     const now = new Date();
-    const registrationDeadline = tournament.registrationDeadline || new Date();
+    const registrationDeadline = tournament.registrationEndTime || new Date();
     const timeUntilStart = Math.max(0, registrationDeadline.getTime() - now.getTime());
 
     // Determine if tournament is ready to start
@@ -64,8 +84,8 @@ router.get('/:tournamentId/status', isAuthenticated, async (req: any, res: Respo
       teamId: entry.teamId,
       teamName: entry.team.name,
       division: entry.team.division,
-      entryTime: entry.entryTime,
-      placement: entry.placement
+      entryTime: entry.registeredAt,
+      placement: entry.finalRank || null
     }));
 
     // Tournament status information
@@ -210,7 +230,7 @@ router.post('/:tournamentId/force-start', isAuthenticated, async (req: any, res:
 
     // Fill with AI teams if needed
     const currentParticipants = tournament.entries.length;
-    const maxParticipants = tournament.maxTeams || 8;
+    const maxParticipants = 8; // Default tournament size
     const spotsToFill = maxParticipants - currentParticipants;
 
     if (spotsToFill > 0) {
@@ -222,7 +242,7 @@ router.post('/:tournamentId/force-start', isAuthenticated, async (req: any, res:
       where: { id: tournamentId },
       data: {
         status: "IN_PROGRESS",
-        tournamentStartTime: new Date()
+        startTime: new Date()
       }
     });
 

@@ -366,6 +366,18 @@ export class TournamentService {
       }
     }
 
+    // Check if team is already registered
+    const existingEntry = await prisma.tournamentEntry.findFirst({
+      where: {
+        tournamentId,
+        teamId
+      }
+    });
+
+    if (existingEntry) {
+      throw new Error("You are already registered for this tournament");
+    }
+
     // Create tournament entry
     await prisma.tournamentEntry.create({
       data: {
@@ -454,8 +466,19 @@ export class TournamentService {
     let tournamentId: string;
 
     if (existingTournament.length > 0) {
-      // Tournament exists, join it
+      // Tournament exists, check if team is already registered
       tournamentId = existingTournament[0].id;
+      
+      const existingEntry = await prisma.tournamentEntry.findFirst({
+        where: {
+          tournamentId,
+          teamId
+        }
+      });
+
+      if (existingEntry) {
+        throw new Error("You are already registered for today's Daily Divisional Tournament");
+      }
     } else {
       // Create new tournament
       tournamentId = await this.createDailyCupTournament(division);
@@ -593,7 +616,7 @@ export class TournamentService {
         OR: [
           // Registration deadline has passed
           {
-            registrationDeadline: {
+            registrationEndTime: {
               lte: now
             }
           }
@@ -615,7 +638,7 @@ export class TournamentService {
       }
 
       // Check if registration deadline has passed
-      if (tournament.registrationDeadline && tournament.registrationDeadline <= now) {
+      if (tournament.registrationEndTime && tournament.registrationEndTime <= now) {
         // Fill with AI teams and start
         const spotsToFill = maxParticipants - currentParticipants;
         if (spotsToFill > 0) {

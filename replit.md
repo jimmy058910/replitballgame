@@ -132,6 +132,9 @@ Built as a React + Express web application with PostgreSQL database, using moder
 - ✓ **AI Team Filling**: Implemented fillTournamentWithAI method to automatically fill remaining spots with AI teams
 - ✓ **Real-Time Updates**: Tournament status page auto-refreshes every 30 seconds with live participant counts and timing information
 - ✓ **Force Start Feature**: Added force start functionality for testing purposes to manually trigger tournament start with AI filling
+- ✓ **Database Field Alignment**: Fixed all database field references in tournament service (registrationDeadline → registrationEndTime, maxTeams → fixed value)
+- ✓ **Duplicate Registration Prevention**: Added proper validation to prevent duplicate tournament entries with clear error messages
+- ✓ **Tournament Registration Validation**: System correctly prevents teams from registering for tournaments they're already enrolled in
 
 #### ✅ TOURNAMENT INTERFACE SYSTEM COMPLETE - COMPREHENSIVE USER EXPERIENCE
 - ✓ **Tournament Status Page**: Complete tournament monitoring interface at /tournament-status route
