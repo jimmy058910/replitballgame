@@ -18,7 +18,7 @@ import { exhibitionGameStorage, ExhibitionGameStorage } from './exhibitionGameSt
 import { seasonStorage, SeasonStorage } from './seasonStorage'; // For Seasons and Playoffs
 import { contractStorage, ContractStorage } from './contractStorage'; // For PlayerContracts and SalaryCap
 import { sponsorshipStorage, SponsorshipStorage } from './sponsorshipStorage'; // For SponsorshipDeals and StadiumRevenue
-import { adSystemStorage, AdSystemStorage } from './adSystemStorage';
+// import { adSystemStorage, AdSystemStorage } from './adSystemStorage';
 import { paymentStorage, PaymentStorage } from './paymentStorage';
 import { scoutingStorage, ScoutingStorage } from './scoutingStorage';
 
@@ -60,7 +60,7 @@ export interface IAppStorage {
   // Sponsorship (SponsorshipDeals & StadiumRevenue)
   sponsorships: SponsorshipStorage;
   // AdSystem
-  adSystem: AdSystemStorage;
+  // adSystem: AdSystemStorage;
   // Payment
   payments: PaymentStorage;
   // Scouting
@@ -86,7 +86,7 @@ export const storage: IAppStorage = {
   seasons: seasonStorage,
   contracts: contractStorage,
   sponsorships: sponsorshipStorage,
-  adSystem: adSystemStorage,
+  // adSystem: adSystemStorage,
   payments: paymentStorage,
   scouting: scoutingStorage,
 };

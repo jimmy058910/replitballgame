@@ -64,9 +64,15 @@ export class TeamFinancesStorage {
         return null;
       }
 
+      // Convert string credits back to BigInt for database update
+      const updateData = { ...updates };
+      if (updateData.credits) {
+        updateData.credits = BigInt(updateData.credits.toString());
+      }
+
       const updatedFinances = await prisma.teamFinances.update({
         where: { id: existingFinances.id },
-        data: updates,
+        data: updateData,
         include: {
           team: { select: { name: true } }
         }
@@ -107,10 +113,12 @@ export class TeamFinancesStorage {
         return null;
       }
 
+      // Convert string credits back to BigInt for proper addition
+      const currentCredits = BigInt(existingFinances.credits.toString());
       const updatedFinances = await prisma.teamFinances.update({
         where: { id: existingFinances.id },
         data: {
-          credits: existingFinances.credits + amount
+          credits: currentCredits + amount
         },
         include: {
           team: { select: { name: true } }
@@ -131,15 +139,17 @@ export class TeamFinancesStorage {
         return null;
       }
 
-      if (existingFinances.credits < amount) {
-        console.warn(`Insufficient credits for team ${teamId}. Available: ${existingFinances.credits}, Required: ${amount}`);
+      // Convert string credits back to BigInt for proper comparison and subtraction
+      const currentCredits = BigInt(existingFinances.credits.toString());
+      if (currentCredits < amount) {
+        console.warn(`Insufficient credits for team ${teamId}. Available: ${currentCredits}, Required: ${amount}`);
         return null;
       }
 
       const updatedFinances = await prisma.teamFinances.update({
         where: { id: existingFinances.id },
         data: {
-          credits: existingFinances.credits - amount
+          credits: currentCredits - amount
         },
         include: {
           team: { select: { name: true } }
