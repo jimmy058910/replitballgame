@@ -764,12 +764,12 @@ export default function Market() {
                           <CardTitle className="text-lg">{gemPackage.name}</CardTitle>
                         </CardHeader>
                         <CardContent className="text-center space-y-3">
-                          <div className="text-2xl font-bold">${(gemPackage.priceUsd / 100).toFixed(2)}</div>
+                          <div className="text-2xl font-bold">${gemPackage.price.toFixed(2)}</div>
                           <div className={`text-lg font-semibold text-${color}-600`}>
-                            {gemPackage.baseGems + gemPackage.bonusGems} 💎
+                            {gemPackage.gems + gemPackage.bonus} 💎
                           </div>
-                          {gemPackage.bonusGems > 0 && (
-                            <div className="text-sm text-green-600">+{gemPackage.bonusGems} Bonus!</div>
+                          {gemPackage.bonus > 0 && (
+                            <div className="text-sm text-green-600">+{gemPackage.bonus} Bonus!</div>
                           )}
                           <Button 
                             className={`w-full bg-${color}-600 hover:bg-${color}-700`}
@@ -816,49 +816,31 @@ export default function Market() {
                         {realmPass.name || 'Realm Pass'}
                       </CardTitle>
                       <div className="text-3xl font-bold text-purple-600">
-                        ${((realmPass.priceUsd || 995) / 100).toFixed(2)}/month
+                        ${(realmPass.price || 9.95).toFixed(2)}/month
                       </div>
                     </CardHeader>
                     <CardContent className="space-y-6">
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="max-w-md mx-auto">
                         <div className="space-y-3">
-                          <h3 className="font-semibold text-purple-800 dark:text-purple-200">Monthly Benefits:</h3>
-                          <ul className="space-y-2 text-sm">
-                            <li className="flex items-center gap-2">
-                              <Gem className="w-4 h-4 text-blue-500" />
-                              <span>{realmPass.monthlyGems || 200} Premium Gems</span>
+                          <h3 className="font-semibold text-purple-800 dark:text-purple-200 text-center">Monthly Benefits:</h3>
+                          <ul className="space-y-3 text-sm text-gray-700 dark:text-gray-300">
+                            <li className="flex items-center gap-3">
+                              <Gem className="w-5 h-5 text-blue-500" />
+                              <span className="font-medium">{realmPass.monthlyGems || 200} Premium Gems</span>
                             </li>
-                            <li className="flex items-center gap-2">
-                              <Star className="w-4 h-4 text-yellow-500" />
-                              <span>Exclusive cosmetic items</span>
+                            <li className="flex items-center gap-3">
+                              <Star className="w-5 h-5 text-yellow-500" />
+                              <span className="font-medium">Ad-free experience</span>
                             </li>
-                            <li className="flex items-center gap-2">
-                              <Trophy className="w-4 h-4 text-orange-500" />
-                              <span>Priority customer support</span>
+                            <li className="flex items-center gap-3">
+                              <Trophy className="w-5 h-5 text-orange-500" />
+                              <span className="font-medium">Daily cache rewards</span>
                             </li>
-                            <li className="flex items-center gap-2">
-                              <Crown className="w-4 h-4 text-purple-500" />
-                              <span>Realm Pass exclusive content</span>
+                            <li className="flex items-center gap-3">
+                              <Crown className="w-5 h-5 text-purple-500" />
+                              <span className="font-medium">Exclusive cosmetic items</span>
                             </li>
                           </ul>
-                        </div>
-                        
-                        <div className="space-y-3">
-                          <h3 className="font-semibold text-purple-800 dark:text-purple-200">Value Calculation:</h3>
-                          <div className="text-sm space-y-1">
-                            <div className="flex justify-between">
-                              <span>{realmPass.monthlyGems || 200} Gems Value:</span>
-                              <span className="font-semibold">$3.98</span>
-                            </div>
-                            <div className="flex justify-between">
-                              <span>Exclusive Benefits:</span>
-                              <span className="font-semibold">$5.97</span>
-                            </div>
-                            <div className="border-t border-purple-300 pt-1 flex justify-between font-bold">
-                              <span>Total Value:</span>
-                              <span className="text-green-600">$9.95</span>
-                            </div>
-                          </div>
                         </div>
                       </div>
                       
