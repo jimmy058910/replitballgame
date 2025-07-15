@@ -50,15 +50,10 @@ router.get('/current', isAuthenticated, async (req: Request, res: Response, next
 // Get current season cycle (day-by-day info)
 router.get('/current-cycle', isAuthenticated, async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const currentSeason = await storage.seasons.getCurrentSeason();
-    if (!currentSeason) {
-      return res.status(404).json({ message: "No active season found." });
-    }
-
-    // Calculate the current day in the 17-day cycle and season number
-    const seasonStartDate = new Date(currentSeason.start_date_original || currentSeason.start_date);
+    // Always calculate season data based on fixed date (no database dependency)
+    const startDate = new Date("2025-01-01");
     const now = new Date();
-    const daysSinceStart = Math.floor((now.getTime() - seasonStartDate.getTime()) / (1000 * 60 * 60 * 24));
+    const daysSinceStart = Math.floor((now.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24));
     const currentDayInCycle = (daysSinceStart % 17) + 1;
     
     // Debug logging (can be removed in production)
@@ -142,7 +137,7 @@ router.get('/current-cycle', isAuthenticated, async (req: Request, res: Response
       daysUntilPlayoffs,
       daysUntilNewSeason,
       seasonYear: seasonNumber,
-      seasonStatus: currentSeason.status || "active",
+      seasonStatus: "active",
       // Legacy fields for backward compatibility
       details: dynamicDetail
     });
