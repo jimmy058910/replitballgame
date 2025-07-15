@@ -61,10 +61,10 @@ export class TournamentService {
     return rewardTable[division] || rewardTable[8];
   }
 
-  // Mid-Season Classic reward structure (all divisions)
+  // Mid-Season Cup reward structure (all divisions)
   private getMidSeasonRewards(division: number): TournamentConfig["rewards"] {
-    const divisionNames = ["", "Diamond", "Platinum", "Gold", "Silver", "Bronze", "Copper", "Iron", "Stone"];
-    const trophyName = `${divisionNames[division]} Mid-Season Classic Trophy`;
+    const divisionNames = ["", "Diamond", "Platinum", "Gold", "Silver", "Bronze", "Iron", "Stone", "Copper"];
+    const trophyName = `${divisionNames[division]} Mid-Season Cup Trophy`;
     
     const rewardTable: Record<number, TournamentConfig["rewards"]> = {
       1: { // Diamond
@@ -165,7 +165,7 @@ export class TournamentService {
     const gameDay = this.getCurrentGameDay();
     const rewards = this.getDailyCupRewards(division);
     
-    const divisionNames = ["", "Diamond", "Platinum", "Gold", "Silver", "Bronze", "Copper", "Iron", "Stone"];
+    const divisionNames = ["", "Diamond", "Platinum", "Gold", "Silver", "Bronze", "Iron", "Stone", "Copper"];
     const tournamentName = `${divisionNames[division]} Daily Cup`;
     
     // Generate tournament ID (Season-Division-GameDay-Sequential format)
@@ -181,8 +181,8 @@ export class TournamentService {
       entryFeeGems: 0,
       status: "REGISTRATION_OPEN" as const,
       prizePoolJson: rewards,
-      registrationEndTime: moment.tz("America/New_York").add(20, 'hours').toDate(), // 8 PM EST
-      startTime: moment.tz("America/New_York").add(20, 'hours').toDate(),
+      registrationEndTime: moment.tz("America/New_York").add(15, 'minutes').toDate(), // 15 minutes after creation
+      startTime: moment.tz("America/New_York").add(15, 'minutes').toDate(),
     };
 
     const created = await prisma.tournament.create({
@@ -191,22 +191,22 @@ export class TournamentService {
     return created.id;
   }
 
-  // Create Mid-Season Classic tournament
-  async createMidSeasonClassic(division: number): Promise<string> {
+  // Create Mid-Season Cup tournament
+  async createMidSeasonCup(division: number): Promise<string> {
     const season = this.getCurrentSeason();
     const gameDay = 7; // Always Day 7
     const rewards = this.getMidSeasonRewards(division);
     
-    const divisionNames = ["", "Diamond", "Platinum", "Gold", "Silver", "Bronze", "Copper", "Iron", "Stone"];
-    const tournamentName = `${divisionNames[division]} Mid-Season Classic - Season ${season}`;
+    const divisionNames = ["", "Diamond", "Platinum", "Gold", "Silver", "Bronze", "Iron", "Stone", "Copper"];
+    const tournamentName = `${divisionNames[division]} Mid-Season Cup - Season ${season}`;
     
-    // Generate tournament ID for Mid-Season Classic too
+    // Generate tournament ID for Mid-Season Cup too
     const tournamentId = await this.generateTournamentId(season, division, gameDay);
 
     const tournament = {
       name: tournamentName,
       tournamentId: tournamentId,
-      type: "MID_SEASON_CLASSIC" as const,
+      type: "MID_SEASON_CUP" as const,
       division,
       seasonDay: 7,
       entryFeeCredits: BigInt(10000),

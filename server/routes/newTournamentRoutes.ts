@@ -439,9 +439,9 @@ router.get('/overview/:division', isAuthenticated, async (req: any, res: Respons
           tournamentTime: "8:00 PM EST",
           rewards: division > 1 ? tournamentService['getDailyCupRewards'](division) : null
         },
-        midSeasonClassic: {
+        midSeasonCup: {
           available: gameDay === 6 || gameDay === 7, // Registration Day 6, Tournament Day 7
-          name: `${divisionName} Mid-Season Classic`,
+          name: `${divisionName} Mid-Season Cup`,
           description: "Premier seasonal tournament with substantial rewards and trophies",
           entryRequirement: "10,000 Credits OR 20 Gems",
           gameLength: "Standard (like League)",
@@ -488,7 +488,7 @@ router.post('/admin/create-daily-cup/:division', isAuthenticated, async (req: an
   }
 });
 
-// Admin endpoint to create Mid-Season Classic
+// Admin endpoint to create Mid-Season Cup
 router.post('/admin/create-mid-season/:division', isAuthenticated, async (req: any, res: Response, next: NextFunction) => {
   try {
     // Check admin permissions (simplified for now)
@@ -502,14 +502,14 @@ router.post('/admin/create-mid-season/:division', isAuthenticated, async (req: a
       return res.status(400).json({ message: "Invalid division number" });
     }
 
-    const tournamentId = await tournamentService.createMidSeasonClassic(division);
+    const tournamentId = await tournamentService.createMidSeasonCup(division);
     res.json({ 
       success: true, 
       tournamentId,
-      message: `Mid-Season Classic created for division ${division}` 
+      message: `Mid-Season Cup created for division ${division}` 
     });
   } catch (error) {
-    console.error("Error creating Mid-Season Classic:", error);
+    console.error("Error creating Mid-Season Cup:", error);
     next(error);
   }
 });
