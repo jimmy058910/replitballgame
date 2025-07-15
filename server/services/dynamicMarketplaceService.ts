@@ -648,7 +648,7 @@ export class DynamicMarketplaceService {
           }
         }
       },
-      orderBy: { bidTimestamp: 'desc' }
+      orderBy: { placedAt: 'desc' }
     });
 
     return {
@@ -673,7 +673,7 @@ export class DynamicMarketplaceService {
       sellerTeamName: listing.sellerTeam.name,
       bidHistory: bidHistory.map(bid => ({
         bidAmount: bid.bidAmount,
-        bidTimestamp: bid.bidTimestamp,
+        bidTimestamp: bid.placedAt,
         bidderTeamName: bid.bidderTeam.name
       }))
     };
@@ -743,14 +743,14 @@ export class DynamicMarketplaceService {
             }
           }
         },
-        orderBy: { bidTimestamp: 'desc' }
+        orderBy: { placedAt: 'desc' }
       });
 
       return bids.map(bid => ({
         id: bid.id,
         listingId: bid.listingId,
         bidAmount: bid.bidAmount,
-        bidTimestamp: bid.bidTimestamp,
+        bidTimestamp: bid.placedAt,
         isActive: bid.listing.isActive,
         playerName: `${bid.listing.player.firstName} ${bid.listing.player.lastName}`,
         currentBid: bid.listing.currentBid,

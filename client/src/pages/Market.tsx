@@ -364,15 +364,28 @@ export default function Market() {
                             {/* Race Restriction */}
                             {item.raceRestriction && item.raceRestriction !== 'universal' && (
                               <p className="text-xs text-purple-600 dark:text-purple-400 font-medium">
-                                <strong>Race:</strong> {item.raceRestriction.charAt(0).toUpperCase() + item.raceRestriction.slice(1)} only
+                                <strong>Race:</strong> {item.raceRestriction === 'lumina' ? 'Lumina' : 
+                                                        item.raceRestriction === 'gryll' ? 'Gryll' : 
+                                                        item.raceRestriction === 'sylvan' ? 'Sylvan' : 
+                                                        item.raceRestriction === 'umbra' ? 'Umbra' : 
+                                                        item.raceRestriction === 'human' ? 'Human' : 
+                                                        item.raceRestriction.charAt(0).toUpperCase() + item.raceRestriction.slice(1)} only
                               </p>
                             )}
                             
                             {/* Stat Boosts */}
                             {item.statBoosts && Object.keys(item.statBoosts).length > 0 && (
                               <div className="text-xs text-green-600 dark:text-green-400 bg-green-50 dark:bg-green-900/20 p-2 rounded">
-                                <strong>Benefits:</strong> {Object.entries(item.statBoosts).map(([stat, value]) => 
-                                  `${stat.charAt(0).toUpperCase() + stat.slice(1)} ${value > 0 ? '+' : ''}${value}`
+                                <strong>Player Benefits:</strong> {Object.entries(item.statBoosts).map(([stat, value]) => 
+                                  `${stat === 'stamina' ? 'Stamina' : 
+                                    stat === 'leadership' ? 'Leadership' : 
+                                    stat === 'throwing' ? 'Throwing' : 
+                                    stat === 'power' ? 'Power' : 
+                                    stat === 'agility' ? 'Agility' : 
+                                    stat === 'catching' ? 'Catching' : 
+                                    stat === 'kicking' ? 'Kicking' : 
+                                    stat === 'speed' ? 'Speed' : 
+                                    stat.charAt(0).toUpperCase() + stat.slice(1)} ${value > 0 ? '+' : ''}${value}`
                                 ).join(', ')}
                               </div>
                             )}
@@ -380,7 +393,15 @@ export default function Market() {
                             {/* Effect */}
                             {item.effect && (
                               <div className="text-xs text-orange-600 dark:text-orange-400 bg-orange-50 dark:bg-orange-900/20 p-2 rounded">
-                                <strong>Effect:</strong> {item.effect.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
+                                <strong>Team Effect:</strong> {
+                                  item.effect.includes('team_leadership') ? `Team Leadership Boost +${item.effect.match(/\d+/)?.[0] || '?'}` :
+                                  item.effect.includes('team_agility') ? `Team Agility Boost +${item.effect.match(/\d+/)?.[0] || '?'}` :
+                                  item.effect.includes('team_stamina') ? `Team Stamina Boost +${item.effect.match(/\d+/)?.[0] || '?'}` :
+                                  item.effect.includes('team_power') ? `Team Power Boost +${item.effect.match(/\d+/)?.[0] || '?'}` :
+                                  item.effect.includes('restore_stamina') ? `Restores Stamina +${item.effect.match(/\d+/)?.[0] || '?'}` :
+                                  item.effect.includes('injury_recovery') ? `Injury Recovery +${item.effect.match(/\d+/)?.[0] || '?'} points` :
+                                  item.effect.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())
+                                }
                               </div>
                             )}
                             
@@ -392,24 +413,14 @@ export default function Market() {
                             )}
                           </div>
                           
-                          {/* Pricing */}
-                          <div className="flex justify-between items-center mb-3">
-                            <div className="flex flex-col gap-1">
-                              {item.credits && (
-                                <div className="text-yellow-600 font-bold">
-                                  ₡{item.credits.toLocaleString()}
-                                </div>
-                              )}
-                              {item.gems && (
-                                <div className="text-blue-600 font-bold">
-                                  💎{item.gems}
-                                </div>
-                              )}
+                          {/* Purchase Limit */}
+                          {item.dailyLimit && (
+                            <div className="text-xs text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/20 p-2 rounded mb-3">
+                              <strong>Daily Limit:</strong> {item.dailyLimit} purchase{item.dailyLimit > 1 ? 's' : ''} per day
+                              <br />
+                              <strong>Today:</strong> {item.purchased || 0}/{item.dailyLimit} purchased
                             </div>
-                            <div className="text-xs text-gray-500">
-                              {item.dailyLimit ? `Limit: ${item.dailyLimit}/day` : 'Unlimited'}
-                            </div>
-                          </div>
+                          )}
                           
                           {/* Purchase Buttons */}
                           <div className="flex gap-2">
@@ -420,7 +431,7 @@ export default function Market() {
                                 onClick={() => handlePurchase(item.id, 'credits')}
                                 disabled={purchaseWithCreditsMutation.isPending}
                               >
-                                Buy ₡{item.credits.toLocaleString()}
+                                ₡{item.credits.toLocaleString()}
                               </Button>
                             )}
                             {item.gems && (
@@ -430,17 +441,10 @@ export default function Market() {
                                 onClick={() => handlePurchase(item.id, 'gems')}
                                 disabled={purchaseWithGemsMutation.isPending}
                               >
-                                Buy 💎{item.gems}
+                                💎{item.gems}
                               </Button>
                             )}
                           </div>
-                          
-                          {/* Daily Limit Progress */}
-                          {item.dailyLimit && (
-                            <p className="text-xs text-gray-500 mt-2 text-center">
-                              Purchased today: {item.purchased || 0}/{item.dailyLimit}
-                            </p>
-                          )}
                         </CardContent>
                       </Card>
                     ))}
