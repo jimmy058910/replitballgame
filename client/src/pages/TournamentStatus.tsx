@@ -385,93 +385,95 @@ export default function TournamentStatus() {
   }
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <div className="flex items-center gap-2 mb-8">
-        <Trophy className="w-6 h-6 text-yellow-500" />
-        <h1 className="text-2xl font-bold">Tournament Status</h1>
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+      {/* Page Header */}
+      <div className="bg-white dark:bg-gray-800 shadow-sm">
+        <div className="max-w-7xl mx-auto px-4 py-6">
+          <div className="flex items-center gap-2">
+            <Trophy className="w-6 h-6 text-yellow-500" />
+            <h1 className="text-2xl font-bold">Tournament Status</h1>
+          </div>
+        </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Active Tournaments List */}
-        <div className="lg:col-span-1">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Users className="w-5 h-5" />
-                My Active Tournaments
-              </CardTitle>
-              <CardDescription>
-                Tournaments you're currently registered for
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              {activeTournaments?.length === 0 ? (
-                <p className="text-muted-foreground text-center py-8">
-                  No active tournaments found
-                </p>
-              ) : (
-                <div className="space-y-3">
-                  {activeTournaments?.map((tournament) => (
-                    <div
-                      key={tournament.id}
-                      className={`p-4 rounded-lg border cursor-pointer transition-all duration-200 ${
-                        selectedTournament === tournament.tournamentId
-                          ? 'border-primary bg-primary/10 shadow-md ring-1 ring-primary/20'
-                          : 'border-border hover:border-primary/50 hover:shadow-sm'
-                      }`}
-                      onClick={() => setSelectedTournament(tournament.tournamentId)}
-                    >
-                      <div className="flex items-center justify-between mb-2">
-                        <div className="flex items-center gap-2">
-                          <h3 className="font-semibold text-sm">{tournament.name}</h3>
-                          <span className="text-xs text-muted-foreground px-1 py-0.5 bg-gray-100 dark:bg-gray-800 rounded">
-                            #{tournament.tournamentId}
-                          </span>
-                        </div>
-                        <Badge className={getStatusColor(tournament.status)}>
-                          {getStatusText(tournament.status)}
-                        </Badge>
-                      </div>
-                      <div className="flex items-center gap-4 text-xs text-muted-foreground">
-                        <span className="flex items-center gap-1">
-                          <Shield className="w-3 h-3" />
-                          {getDivisionName(tournament.division)}
-                        </span>
-                        <span className="flex items-center gap-1">
-                          <Users className="w-3 h-3" />
-                          {tournament.currentParticipants}/{tournament.maxParticipants}
-                        </span>
-                      </div>
-                      {tournament.status === 'IN_PROGRESS' ? (
-                        <div className="mt-2 text-xs font-medium text-blue-600 flex items-center gap-1">
-                          <Zap className="w-3 h-3" />
-                          In Progress
-                        </div>
-                      ) : tournament.status === 'COMPLETED' ? (
-                        <div className="mt-2 text-xs font-medium text-gray-600 flex items-center gap-1">
-                          <Trophy className="w-3 h-3" />
-                          Completed
-                        </div>
-                      ) : tournament.isReadyToStart ? (
-                        <div className="mt-2 text-xs font-medium text-green-600 flex items-center gap-1">
-                          <Zap className="w-3 h-3" />
-                          Ready to Start!
-                        </div>
-                      ) : (
-                        <div className="mt-2 text-xs text-muted-foreground flex items-center gap-1">
-                          <Clock className="w-3 h-3" />
-                          {tournament.timeUntilStartText || 'Starting soon...'}
-                        </div>
-                      )}
+      {/* My Active Tournaments - Full Width Header */}
+      <div className="bg-gray-900 text-white">
+        <div className="max-w-7xl mx-auto px-4 py-6">
+          <div className="flex items-center gap-2 mb-4">
+            <Users className="w-5 h-5" />
+            <h2 className="text-xl font-bold">My Active Tournaments</h2>
+          </div>
+          <p className="text-gray-300 text-sm mb-4">
+            Tournaments you're currently registered for
+          </p>
+          
+          {activeTournaments?.length === 0 ? (
+            <p className="text-gray-300 text-center py-8">
+              No active tournaments found
+            </p>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {activeTournaments?.map((tournament) => (
+                <div
+                  key={tournament.id}
+                  className={`p-4 rounded-lg border-2 cursor-pointer transition-all duration-200 ${
+                    selectedTournament === tournament.tournamentId
+                      ? 'border-blue-500 bg-blue-900/20 shadow-lg ring-2 ring-blue-500/20'
+                      : 'border-gray-600 hover:border-gray-500 bg-gray-800'
+                  }`}
+                  onClick={() => setSelectedTournament(tournament.tournamentId)}
+                >
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="flex items-center gap-2">
+                      <h3 className="font-semibold text-sm text-white">{tournament.name}</h3>
+                      <span className="text-xs text-gray-300 px-1 py-0.5 bg-gray-700 rounded">
+                        #{tournament.tournamentId}
+                      </span>
                     </div>
-                  ))}
+                    <Badge className={getStatusColor(tournament.status)}>
+                      {getStatusText(tournament.status)}
+                    </Badge>
+                  </div>
+                  <div className="flex items-center gap-4 text-xs text-gray-300">
+                    <span className="flex items-center gap-1">
+                      <Shield className="w-3 h-3" />
+                      {getDivisionName(tournament.division)}
+                    </span>
+                    <span className="flex items-center gap-1">
+                      <Users className="w-3 h-3" />
+                      {tournament.currentParticipants}/{tournament.maxParticipants}
+                    </span>
+                  </div>
+                  {tournament.status === 'IN_PROGRESS' ? (
+                    <div className="mt-2 text-xs font-medium text-blue-300 flex items-center gap-1">
+                      <Zap className="w-3 h-3" />
+                      In Progress
+                    </div>
+                  ) : tournament.status === 'COMPLETED' ? (
+                    <div className="mt-2 text-xs font-medium text-gray-300 flex items-center gap-1">
+                      <Trophy className="w-3 h-3" />
+                      Completed
+                    </div>
+                  ) : tournament.isReadyToStart ? (
+                    <div className="mt-2 text-xs font-medium text-green-300 flex items-center gap-1">
+                      <Zap className="w-3 h-3" />
+                      Ready to Start!
+                    </div>
+                  ) : (
+                    <div className="mt-2 text-xs text-gray-400 flex items-center gap-1">
+                      <Clock className="w-3 h-3" />
+                      {tournament.timeUntilStartText || 'Starting soon...'}
+                    </div>
+                  )}
                 </div>
-              )}
-            </CardContent>
-          </Card>
+              ))}
+            </div>
+          )}
         </div>
+      </div>
 
-        {/* Tournament Details */}
+      {/* Tournament Details - Full Width */}
+      <div className="max-w-7xl mx-auto px-4 py-8">
         <div className="lg:col-span-2">
           {!selectedTournament ? (
             <Card className="h-full">

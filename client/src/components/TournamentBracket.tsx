@@ -62,6 +62,35 @@ const TournamentBracket: React.FC<TournamentBracketProps> = ({
       });
     }
   };
+
+  const handleSimulateAllRound = async (round: string) => {
+    try {
+      const roundMatches = matches.filter(match => 
+        match.round === round && 
+        match.status === 'SCHEDULED' && 
+        match.homeTeam.id !== 'TBD'
+      );
+      
+      for (const match of roundMatches) {
+        await apiRequest('POST', `/api/tournament-status/${tournamentId}/matches/${match.id}/simulate`);
+      }
+      
+      toast({
+        title: "Round Simulated",
+        description: `All ${round.toLowerCase()} matches have been simulated successfully!`,
+      });
+      
+      // Refresh the page to show updated results
+      window.location.reload();
+    } catch (error) {
+      console.error('Error simulating round:', error);
+      toast({
+        title: "Error",
+        description: "Failed to simulate round. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
   // Group matches by round
   const roundGroups = matches.reduce((groups, match) => {
     const round = match.round;
@@ -117,9 +146,22 @@ const TournamentBracket: React.FC<TournamentBracketProps> = ({
           <div className="space-y-8">
             {orderedRounds.map((round, roundIndex) => (
               <div key={round} className="space-y-4">
-                <h3 className="text-lg font-semibold text-center">
-                  {round.charAt(0) + round.slice(1).toLowerCase()}
-                </h3>
+                <div className="flex justify-between items-center">
+                  <h3 className="text-lg font-semibold">
+                    {round.charAt(0) + round.slice(1).toLowerCase()}
+                  </h3>
+                  {isAdmin && matches.some(match => match.round === round && match.status === 'SCHEDULED') && (
+                    <Button
+                      onClick={() => handleSimulateAllRound(round)}
+                      variant="outline"
+                      size="sm"
+                      className="border-orange-500 text-orange-600 hover:bg-orange-50"
+                    >
+                      <Zap className="w-4 h-4 mr-1" />
+                      Simulate All
+                    </Button>
+                  )}
+                </div>
                 <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
                   {roundGroups[round].map((match) => (
                     <Card key={match.id} className="border-2 hover:shadow-lg transition-shadow">
@@ -162,11 +204,11 @@ const TournamentBracket: React.FC<TournamentBracketProps> = ({
                                 #{match.homeTeam.seed}
                               </Badge>
                             )}
-                            <span className="font-medium">
+                            <span className="font-medium text-gray-900 dark:text-gray-100">
                               {formatTeamName(match.homeTeam.name)}
                             </span>
                           </div>
-                          <div className="text-lg font-bold">
+                          <div className="text-lg font-bold text-gray-900 dark:text-gray-100">
                             {match.homeScore !== undefined ? match.homeScore : '-'}
                           </div>
                         </div>
@@ -179,11 +221,11 @@ const TournamentBracket: React.FC<TournamentBracketProps> = ({
                                 #{match.awayTeam.seed}
                               </Badge>
                             )}
-                            <span className="font-medium">
+                            <span className="font-medium text-gray-900 dark:text-gray-100">
                               {formatTeamName(match.awayTeam.name)}
                             </span>
                           </div>
-                          <div className="text-lg font-bold">
+                          <div className="text-lg font-bold text-gray-900 dark:text-gray-100">
                             {match.awayScore !== undefined ? match.awayScore : '-'}
                           </div>
                         </div>
