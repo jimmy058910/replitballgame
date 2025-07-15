@@ -141,7 +141,7 @@ export default function TeamPage() {
       stamina: Number(player.staminaAttribute),
       leadership: Number(player.leadership),
       agility: Number(player.agility),
-      salary: Number(player.salary),
+      salary: Number(player.contract?.salary || 0),
       contractSeasons: player.contractSeasons ?? 0, // Default if null
       contractStartSeason: player.contractStartSeason ?? 0, // Default if null
       contractValue: Number(player.contractValue),

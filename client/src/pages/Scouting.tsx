@@ -361,9 +361,9 @@ export default function Scouting() {
                                     )}
                                   </div>
                                 </div>
-                                {player.salary && (
+                                {player.contract?.salary && (
                                   <div className="text-right">
-                                    <div className="text-sm text-yellow-400">{player.salary}</div>
+                                    <div className="text-sm text-yellow-400">₡{Number(player.contract.salary).toLocaleString()}</div>
                                     <div className="text-xs text-gray-400">Salary</div>
                                   </div>
                                 )}

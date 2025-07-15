@@ -143,7 +143,7 @@ export default function PlayerDetailModal({
   };
 
   // Contract status calculation
-  const contractRemaining = (player.contractSeasons || 3) - (player.contractStartSeason || 0);
+  const contractRemaining = player.contract?.length || 3;
   const isContractExpiring = contractRemaining <= 1;
 
   // Mock Head Scout level for scouting accuracy (this would come from team data)
@@ -373,7 +373,7 @@ export default function PlayerDetailModal({
                     <div>
                       <label className="text-sm text-gray-400">Current Salary</label>
                       <div className="text-2xl font-bold text-green-400">
-                        ₡{(Number(player.salary) || 0).toLocaleString()}/season
+                        ₡{(Number(player.contract?.salary) || 0).toLocaleString()}/season
                       </div>
                     </div>
                     <div>
