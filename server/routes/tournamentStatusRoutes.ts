@@ -231,4 +231,71 @@ router.get('/:tournamentId/status', isAuthenticated, async (req: any, res) => {
   }
 });
 
+// Force start tournament (Admin only)
+router.post('/:tournamentId/force-start', isAuthenticated, async (req: any, res) => {
+  try {
+    const { tournamentId } = req.params;
+    const userId = req.user.claims.sub;
+    
+    // Check admin permissions (same as other admin endpoints)
+    if (userId !== "44010914") {
+      return res.status(403).json({ error: "Admin access required" });
+    }
+
+    const tournament = await prisma.tournament.findUnique({
+      where: { id: parseInt(tournamentId) },
+      include: {
+        entries: {
+          include: {
+            team: {
+              select: {
+                id: true,
+                name: true,
+                division: true
+              }
+            }
+          }
+        }
+      }
+    });
+
+    if (!tournament) {
+      return res.status(404).json({ error: 'Tournament not found' });
+    }
+
+    if (tournament.status !== 'REGISTRATION_OPEN') {
+      return res.status(400).json({ error: 'Tournament is not in registration phase' });
+    }
+
+    // Fill remaining spots with AI teams if needed
+    const participantCount = tournament.entries.length;
+    const spotsNeeded = 8 - participantCount;
+    
+    if (spotsNeeded > 0) {
+      // Import and use tournament service to fill with AI teams
+      const { TournamentService } = await import('../services/tournamentService');
+      const tournamentService = new TournamentService();
+      await tournamentService.fillTournamentWithAI(tournamentId, spotsNeeded);
+    }
+
+    // Update tournament status to IN_PROGRESS
+    await prisma.tournament.update({
+      where: { id: parseInt(tournamentId) },
+      data: { 
+        status: 'IN_PROGRESS',
+        startTime: new Date()
+      }
+    });
+
+    res.json({ 
+      success: true, 
+      message: `Tournament ${tournament.name} has been force started`,
+      participantsAdded: spotsNeeded
+    });
+  } catch (error) {
+    console.error('Error force starting tournament:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
 export default router;

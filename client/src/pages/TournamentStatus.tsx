@@ -8,6 +8,7 @@ import { Progress } from '@/components/ui/progress';
 import { Separator } from '@/components/ui/separator';
 import { Clock, Users, Trophy, Zap, Shield } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/hooks/useAuth';
 
 interface TournamentStatusData {
   id: string;
@@ -66,8 +67,12 @@ interface ActiveTournament {
 
 export default function TournamentStatus() {
   const { toast } = useToast();
+  const { user } = useAuth();
   const [selectedTournament, setSelectedTournament] = useState<string | null>(null);
   const [refreshInterval, setRefreshInterval] = useState<NodeJS.Timeout | null>(null);
+  
+  // Check if current user is admin
+  const isAdmin = user?.userId === "44010914";
 
   // Query for user's active tournaments
   const { 
@@ -307,8 +312,8 @@ export default function TournamentStatus() {
                       </div>
                     )}
 
-                    {/* Force Start Button (for testing) */}
-                    {tournamentStatus.status === 'REGISTRATION_OPEN' && (
+                    {/* Force Start Button (Admin only) */}
+                    {isAdmin && tournamentStatus.status === 'REGISTRATION_OPEN' && (
                       <div className="mt-6">
                         <Button 
                           onClick={() => handleForceStart(tournamentStatus.id)}
