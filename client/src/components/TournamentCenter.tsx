@@ -185,10 +185,11 @@ const TournamentCenter: React.FC<TournamentCenterProps> = ({ teamId }) => {
   };
 
   const getPlacementText = (placement: number): string => {
+    if (!placement) return "Tournament Completed";
     if (placement === 1) return "Champion";
     if (placement === 2) return "Runner-Up";
-    if (placement <= 4) return `Eliminated in Semifinals`;
-    if (placement <= 8) return `Eliminated in Quarterfinals`;
+    if (placement === 3) return "Eliminated in Semifinals";
+    if (placement === 5) return "Eliminated in Quarterfinals";
     return `Eliminated in Round ${Math.ceil(Math.log2(placement))}`;
   };
 
@@ -448,7 +449,10 @@ const TournamentCenter: React.FC<TournamentCenterProps> = ({ teamId }) => {
                   <div>
                     <p className="font-semibold text-gray-900 dark:text-gray-100">{entry.tournament.name}</p>
                     <p className="text-sm text-gray-600 dark:text-gray-400">
-                      Day {entry.tournament.gameDay} • {getPlacementText(entry.placement)}
+                      {entry.tournament.tournamentId && (
+                        <span className="text-purple-600 dark:text-purple-400 font-mono mr-2">#{entry.tournament.tournamentId}</span>
+                      )}
+                      {new Date(entry.tournament.createdAt).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })} • {getPlacementText(entry.placement)}
                     </p>
                   </div>
                   <div className="text-right">

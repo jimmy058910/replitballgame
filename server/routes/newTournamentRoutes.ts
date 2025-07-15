@@ -318,7 +318,9 @@ router.get('/team/:teamId/history', isAuthenticated, async (req: any, res: Respo
             seasonDay: true,
             entryFeeCredits: true,
             entryFeeGems: true,
-            prizePoolJson: true
+            prizePoolJson: true,
+            tournamentId: true,
+            createdAt: true
           }
         }
       },
@@ -335,6 +337,7 @@ router.get('/team/:teamId/history', isAuthenticated, async (req: any, res: Respo
       tournamentId: Number(entry.tournamentId),
       id: Number(entry.id),
       finalRank: entry.finalRank ? Number(entry.finalRank) : null,
+      placement: entry.finalRank ? Number(entry.finalRank) : null, // Add placement field for frontend compatibility
       tournament: {
         ...entry.tournament,
         id: Number(entry.tournament.id),
