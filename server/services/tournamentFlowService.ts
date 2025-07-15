@@ -380,9 +380,7 @@ class TournamentFlowServiceImpl implements TournamentFlowService {
           teamId: winner.id
         },
         data: { 
-          placement: 1,
-          creditsWon: championPrize.credits,
-          gemsWon: championPrize.gems
+          finalRank: 1
         }
       });
 
@@ -392,9 +390,7 @@ class TournamentFlowServiceImpl implements TournamentFlowService {
           teamId: runnerUp.id
         },
         data: { 
-          placement: 2,
-          creditsWon: runnerUpPrize.credits,
-          gemsWon: runnerUpPrize.gems
+          finalRank: 2
         }
       });
 
@@ -414,7 +410,7 @@ class TournamentFlowServiceImpl implements TournamentFlowService {
             tournamentId: tournamentId,
             teamId: loser
           },
-          data: { placement: 3 } // Semifinalist
+          data: { finalRank: 3 } // Semifinalist
         });
       }
 
@@ -434,7 +430,7 @@ class TournamentFlowServiceImpl implements TournamentFlowService {
             tournamentId: tournamentId,
             teamId: loser
           },
-          data: { placement: 5 } // Quarterfinalist
+          data: { finalRank: 5 } // Quarterfinalist
         });
       }
 
