@@ -5,12 +5,14 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { tournamentAPI, matchAPI, economyAPI, authAPI, checkDomainHealth } from '@/lib/domainAPI';
-import { AlertCircle, CheckCircle, Zap, Database, Shield, TestTube } from 'lucide-react';
+import { AlertCircle, CheckCircle, Zap, Database, Shield, TestTube, Lock, Unlock } from 'lucide-react';
+import { useAuth } from '@/hooks/useAuth';
 
 export default function DomainDemo() {
   const [results, setResults] = useState<{[key: string]: any}>({});
   const [loading, setLoading] = useState<{[key: string]: boolean}>({});
   const [errors, setErrors] = useState<{[key: string]: string}>({});
+  const { isAuthenticated, user } = useAuth();
 
   const testEndpoint = async (name: string, apiCall: () => Promise<any>) => {
     setLoading(prev => ({ ...prev, [name]: true }));
@@ -37,14 +39,30 @@ export default function DomainDemo() {
         {
           name: 'auth-health',
           label: 'Auth Health Check',
-          description: 'Test auth domain health endpoint',
-          call: () => authAPI.healthCheck()
+          description: 'Test auth domain health endpoint (public)',
+          call: () => authAPI.healthCheck(),
+          isPublic: true
+        },
+        {
+          name: 'auth-demo-public',
+          label: 'Demo Public Endpoint',
+          description: 'Test public endpoint - no auth required',
+          call: () => authAPI.demoPublic(),
+          isPublic: true
+        },
+        {
+          name: 'auth-demo-protected',
+          label: 'Demo Protected Endpoint',
+          description: 'Test protected endpoint - auth required',
+          call: () => authAPI.demoProtected(),
+          isPublic: false
         },
         {
           name: 'auth-profile',
           label: 'Get User Profile',
           description: 'Retrieve current user profile with validation',
-          call: () => authAPI.getProfile()
+          call: () => authAPI.getProfile(),
+          isPublic: false
         }
       ]
     },
@@ -56,19 +74,22 @@ export default function DomainDemo() {
           name: 'tournament-history',
           label: 'Tournament History',
           description: 'Get tournament history with Zod validation',
-          call: () => tournamentAPI.getHistory(132)
+          call: () => tournamentAPI.getHistory(132),
+          isPublic: false
         },
         {
           name: 'tournament-active',
           label: 'Active Tournaments',
           description: 'Get active tournaments with real-time updates',
-          call: () => tournamentAPI.getActive(132)
+          call: () => tournamentAPI.getActive(132),
+          isPublic: false
         },
         {
           name: 'tournament-status',
           label: 'Tournament Status',
           description: 'Get tournament status (will fail gracefully)',
-          call: () => tournamentAPI.getStatus(1)
+          call: () => tournamentAPI.getStatus(1),
+          isPublic: false
         }
       ]
     },
@@ -80,7 +101,8 @@ export default function DomainDemo() {
           name: 'match-live',
           label: 'Live Matches',
           description: 'Get live matches with state management',
-          call: () => matchAPI.getLive()
+          call: () => matchAPI.getLive(),
+          isPublic: false
         },
         {
           name: 'match-create',
@@ -91,7 +113,8 @@ export default function DomainDemo() {
             awayTeamId: 133,
             matchType: 'EXHIBITION',
             scheduledTime: new Date()
-          })
+          }),
+          isPublic: false
         }
       ]
     },
@@ -103,19 +126,22 @@ export default function DomainDemo() {
           name: 'economy-store',
           label: 'Daily Store Items',
           description: 'Get daily store with item validation',
-          call: () => economyAPI.getDailyStore()
+          call: () => economyAPI.getDailyStore(),
+          isPublic: false
         },
         {
           name: 'economy-finances',
           label: 'Team Finances',
           description: 'Get financial summary with calculations',
-          call: () => economyAPI.getFinances(132)
+          call: () => economyAPI.getFinances(132),
+          isPublic: false
         },
         {
           name: 'economy-marketplace',
           label: 'Marketplace Listings',
           description: 'Get marketplace with pagination',
-          call: () => economyAPI.getMarketplace(1, 10)
+          call: () => economyAPI.getMarketplace(1, 10),
+          isPublic: false
         }
       ]
     }
@@ -130,7 +156,7 @@ export default function DomainDemo() {
           Zustand state management, and comprehensive testing coverage.
         </p>
         
-        <div className="flex justify-center gap-4">
+        <div className="flex justify-center gap-4 flex-wrap">
           <Badge variant="outline" className="text-green-600">
             <CheckCircle className="w-3 h-3 mr-1" />
             Domain Routes: /api/v2
@@ -147,6 +173,25 @@ export default function DomainDemo() {
             <TestTube className="w-3 h-3 mr-1" />
             80% Test Coverage
           </Badge>
+          <Badge variant={isAuthenticated ? "default" : "secondary"}>
+            {isAuthenticated ? <Unlock className="w-3 h-3 mr-1" /> : <Lock className="w-3 h-3 mr-1" />}
+            {isAuthenticated ? "Authenticated" : "Not Authenticated"}
+          </Badge>
+        </div>
+
+        {/* Authentication Status Banner */}
+        <div className={`p-4 rounded-lg border ${isAuthenticated ? 'bg-green-50 border-green-200 dark:bg-green-900/10' : 'bg-yellow-50 border-yellow-200 dark:bg-yellow-900/10'}`}>
+          <div className="flex items-center gap-2 font-medium">
+            {isAuthenticated ? <CheckCircle className="w-4 h-4 text-green-600" /> : <AlertCircle className="w-4 h-4 text-yellow-600" />}
+            Authentication Status
+          </div>
+          <p className="text-sm text-muted-foreground mt-1">
+            {isAuthenticated ? (
+              <>Authenticated as {user?.email}. All endpoints are available for testing.</>
+            ) : (
+              <>Not authenticated. Only public endpoints (marked with <Unlock className="w-3 h-3 inline" />) will work. Protected endpoints will show authentication errors.</>
+            )}
+          </p>
         </div>
       </div>
 
@@ -165,7 +210,9 @@ export default function DomainDemo() {
                 Domain API Endpoints
               </CardTitle>
               <CardDescription>
-                Test the new domain-driven API endpoints with comprehensive validation
+                Test the new domain-driven API endpoints with comprehensive validation.
+                <span className="text-green-600 font-medium"> Public endpoints</span> work without authentication,
+                <span className="text-blue-600 font-medium"> protected endpoints</span> require login.
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -183,7 +230,20 @@ export default function DomainDemo() {
                           className="flex items-center justify-between p-3 border rounded-lg"
                         >
                           <div className="flex-1">
-                            <div className="font-medium">{test.label}</div>
+                            <div className="font-medium flex items-center gap-2">
+                              {test.label}
+                              {test.isPublic ? (
+                                <Badge variant="outline" className="text-green-600">
+                                  <Unlock className="w-3 h-3 mr-1" />
+                                  Public
+                                </Badge>
+                              ) : (
+                                <Badge variant="outline" className="text-blue-600">
+                                  <Lock className="w-3 h-3 mr-1" />
+                                  Protected
+                                </Badge>
+                              )}
+                            </div>
                             <div className="text-sm text-muted-foreground">
                               {test.description}
                             </div>
@@ -191,7 +251,7 @@ export default function DomainDemo() {
                           <div className="flex items-center gap-2">
                             <Button
                               onClick={() => testEndpoint(test.name, test.call)}
-                              disabled={loading[test.name]}
+                              disabled={loading[test.name] || (!test.isPublic && !isAuthenticated)}
                               size="sm"
                             >
                               {loading[test.name] ? 'Testing...' : 'Test'}
@@ -205,7 +265,13 @@ export default function DomainDemo() {
                             {errors[test.name] && (
                               <Badge variant="outline" className="text-red-600">
                                 <AlertCircle className="w-3 h-3 mr-1" />
-                                Error
+                                {errors[test.name].includes('Authentication') ? 'Auth Required' : 'Error'}
+                              </Badge>
+                            )}
+                            {!test.isPublic && !isAuthenticated && (
+                              <Badge variant="outline" className="text-gray-500">
+                                <Lock className="w-3 h-3 mr-1" />
+                                Login Required
                               </Badge>
                             )}
                           </div>

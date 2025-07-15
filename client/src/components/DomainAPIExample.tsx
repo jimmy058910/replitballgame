@@ -1,185 +1,177 @@
-// Example component showing how to use the new domain-driven architecture
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { CheckCircle, AlertCircle, Zap, Database, Shield } from 'lucide-react';
 import { useTournamentStore } from '@/stores/tournamentStore';
 import { useMatchStore } from '@/stores/matchStore';
 import { useEconomyStore } from '@/stores/economyStore';
 import { useRealTimeUpdates } from '@/hooks/useRealTimeUpdates';
-import { tournamentAPI, matchAPI, economyAPI, checkDomainHealth } from '@/lib/domainAPI';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
 
 export function DomainAPIExample() {
-  const [isHealthy, setIsHealthy] = useState(false);
-  const [loading, setLoading] = useState(false);
-  
-  // Use Zustand stores
+  const [isConnecting, setIsConnecting] = useState(false);
   const tournamentStore = useTournamentStore();
   const matchStore = useMatchStore();
   const economyStore = useEconomyStore();
-  
-  // Use real-time updates
-  useRealTimeUpdates();
-  
-  useEffect(() => {
-    // Check domain health on mount
-    checkDomainHealth().then(setIsHealthy);
-  }, []);
+  const { allConnected } = useRealTimeUpdates();
 
-  const handleTestTournamentAPI = async () => {
-    setLoading(true);
+  const handleConnect = async () => {
+    setIsConnecting(true);
     try {
-      // Test tournament registration
-      const registerResponse = await tournamentAPI.register(132, {
-        division: 8,
-        paymentType: 'credits'
-      });
-      
-      console.log('Tournament registration:', registerResponse);
-      
-      // Test getting tournament history
-      const historyResponse = await tournamentAPI.getHistory(132);
-      console.log('Tournament history:', historyResponse);
-      
-      // Update store with new data
-      tournamentStore.setTournamentHistory(historyResponse.data || []);
-      
+      // Demo WebSocket connection
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      console.log('Demo WebSocket connection established');
     } catch (error) {
-      console.error('Tournament API test failed:', error);
-      tournamentStore.setError(error instanceof Error ? error.message : 'Unknown error');
+      console.error('Failed to connect:', error);
     } finally {
-      setLoading(false);
+      setIsConnecting(false);
     }
   };
 
-  const handleTestMatchAPI = async () => {
-    setLoading(true);
-    try {
-      // Test getting live matches
-      const liveResponse = await matchAPI.getLive();
-      console.log('Live matches:', liveResponse);
-      
-      // Update store with new data
-      matchStore.setLiveMatches(liveResponse.data || []);
-      
-    } catch (error) {
-      console.error('Match API test failed:', error);
-      matchStore.setError(error instanceof Error ? error.message : 'Unknown error');
-    } finally {
-      setLoading(false);
+  const storeExamples = [
+    {
+      name: 'Tournament Store',
+      icon: <Zap className="w-4 h-4" />,
+      description: 'Real-time tournament status and registration management',
+      status: tournamentStore.isConnected ? 'connected' : 'disconnected',
+      data: {
+        tournaments: tournamentStore.tournaments?.length || 0,
+        registrations: tournamentStore.registrations?.length || 0,
+        isLoading: tournamentStore.isLoading
+      }
+    },
+    {
+      name: 'Match Store',
+      icon: <Database className="w-4 h-4" />,
+      description: 'Live match updates and simulation events',
+      status: matchStore.isConnected ? 'connected' : 'disconnected',
+      data: {
+        matches: matchStore.matches?.length || 0,
+        liveMatches: matchStore.liveMatches?.length || 0,
+        events: matchStore.events?.length || 0
+      }
+    },
+    {
+      name: 'Economy Store',
+      icon: <Shield className="w-4 h-4" />,
+      description: 'Financial data and marketplace management',
+      status: economyStore.isConnected ? 'connected' : 'disconnected',
+      data: {
+        storeItems: economyStore.storeItems?.length || 0,
+        marketplaceListings: economyStore.marketplaceListings?.length || 0,
+        balance: economyStore.balance || 0
+      }
     }
-  };
-
-  const handleTestEconomyAPI = async () => {
-    setLoading(true);
-    try {
-      // Test getting daily store
-      const storeResponse = await economyAPI.getDailyStore();
-      console.log('Daily store:', storeResponse);
-      
-      // Test getting finances
-      const financeResponse = await economyAPI.getFinances(132);
-      console.log('Team finances:', financeResponse);
-      
-      // Update store with new data
-      economyStore.setDailyStoreItems(storeResponse.data || []);
-      economyStore.setTeamFinances(financeResponse.data || null);
-      
-    } catch (error) {
-      console.error('Economy API test failed:', error);
-      economyStore.setError(error instanceof Error ? error.message : 'Unknown error');
-    } finally {
-      setLoading(false);
-    }
-  };
+  ];
 
   return (
-    <div className="p-6 space-y-6">
+    <div className="space-y-6">
       <Card>
         <CardHeader>
-          <CardTitle>Domain-Driven Architecture Demo</CardTitle>
+          <CardTitle className="flex items-center gap-2">
+            <Zap className="w-5 h-5" />
+            Real-Time State Management
+          </CardTitle>
           <CardDescription>
-            Testing the new domain-driven backend architecture with Zod validation and Zustand state management
+            Demonstrating Zustand stores with WebSocket integration for live data synchronization
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="flex items-center gap-4 mb-4">
-            <Badge variant={isHealthy ? "default" : "destructive"}>
-              Domain API: {isHealthy ? "Healthy" : "Unhealthy"}
-            </Badge>
-            <Badge variant={tournamentStore.isConnected ? "default" : "destructive"}>
-              Tournament WebSocket: {tournamentStore.isConnected ? "Connected" : "Disconnected"}
-            </Badge>
-            <Badge variant={matchStore.isConnected ? "default" : "destructive"}>
-              Match WebSocket: {matchStore.isConnected ? "Connected" : "Disconnected"}
-            </Badge>
-          </div>
-          
           <div className="space-y-4">
-            <div>
-              <h3 className="text-lg font-semibold mb-2">Tournament Domain</h3>
-              <div className="flex gap-2">
-                <Button 
-                  onClick={handleTestTournamentAPI}
-                  disabled={loading}
-                  variant="outline"
-                >
-                  Test Tournament API
-                </Button>
-                <Badge variant="outline">
-                  Active: {tournamentStore.activeTournaments.length}
-                </Badge>
-                <Badge variant="outline">
-                  History: {tournamentStore.tournamentHistory.length}
-                </Badge>
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="font-medium">Connection Status</h3>
+                <p className="text-sm text-muted-foreground">
+                  WebSocket connections for real-time updates
+                </p>
               </div>
-              {tournamentStore.error && (
-                <p className="text-red-500 text-sm mt-2">{tournamentStore.error}</p>
-              )}
+              <div className="flex items-center gap-2">
+                <Badge variant={allConnected ? "default" : "secondary"}>
+                  {allConnected ? <CheckCircle className="w-3 h-3 mr-1" /> : <AlertCircle className="w-3 h-3 mr-1" />}
+                  {allConnected ? "All Connected" : "Disconnected"}
+                </Badge>
+                <Button
+                  onClick={handleConnect}
+                  disabled={isConnecting}
+                  size="sm"
+                >
+                  {isConnecting ? "Connecting..." : "Connect WebSocket"}
+                </Button>
+              </div>
             </div>
-            
-            <div>
-              <h3 className="text-lg font-semibold mb-2">Match Domain</h3>
-              <div className="flex gap-2">
-                <Button 
-                  onClick={handleTestMatchAPI}
-                  disabled={loading}
-                  variant="outline"
-                >
-                  Test Match API
-                </Button>
-                <Badge variant="outline">
-                  Live: {matchStore.liveMatches.length}
-                </Badge>
-                <Badge variant="outline">
-                  Events: {matchStore.simulationEvents.length}
-                </Badge>
-              </div>
-              {matchStore.error && (
-                <p className="text-red-500 text-sm mt-2">{matchStore.error}</p>
-              )}
+
+            <div className="grid gap-4">
+              {storeExamples.map((store) => (
+                <div key={store.name} className="border rounded-lg p-4">
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="flex items-center gap-2">
+                      {store.icon}
+                      <span className="font-medium">{store.name}</span>
+                    </div>
+                    <Badge variant={store.status === 'connected' ? "default" : "secondary"}>
+                      {store.status === 'connected' ? 'Connected' : 'Disconnected'}
+                    </Badge>
+                  </div>
+                  <p className="text-sm text-muted-foreground mb-3">
+                    {store.description}
+                  </p>
+                  <div className="grid grid-cols-3 gap-2 text-sm">
+                    {Object.entries(store.data).map(([key, value]) => (
+                      <div key={key} className="text-center">
+                        <div className="font-medium">{String(value)}</div>
+                        <div className="text-xs text-muted-foreground capitalize">
+                          {key.replace(/([A-Z])/g, ' $1').trim()}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ))}
             </div>
-            
-            <div>
-              <h3 className="text-lg font-semibold mb-2">Economy Domain</h3>
-              <div className="flex gap-2">
-                <Button 
-                  onClick={handleTestEconomyAPI}
-                  disabled={loading}
-                  variant="outline"
-                >
-                  Test Economy API
-                </Button>
-                <Badge variant="outline">
-                  Credits: {economyStore.teamFinances?.credits || 0}
-                </Badge>
-                <Badge variant="outline">
-                  Store Items: {economyStore.dailyStoreItems.length}
-                </Badge>
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Store Methods</CardTitle>
+          <CardDescription>
+            Available methods in each Zustand store for state management
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4">
+            <div className="grid md:grid-cols-3 gap-4">
+              <div className="space-y-2">
+                <h4 className="font-medium">Tournament Store</h4>
+                <div className="space-y-1 text-sm">
+                  <div>• registerForTournament()</div>
+                  <div>• getTournamentHistory()</div>
+                  <div>• getActiveTournaments()</div>
+                  <div>• connectWebSocket()</div>
+                  <div>• refreshData()</div>
+                </div>
               </div>
-              {economyStore.error && (
-                <p className="text-red-500 text-sm mt-2">{economyStore.error}</p>
-              )}
+              <div className="space-y-2">
+                <h4 className="font-medium">Match Store</h4>
+                <div className="space-y-1 text-sm">
+                  <div>• getLiveMatches()</div>
+                  <div>• createMatch()</div>
+                  <div>• simulateMatch()</div>
+                  <div>• subscribeToMatch()</div>
+                  <div>• getMatchEvents()</div>
+                </div>
+              </div>
+              <div className="space-y-2">
+                <h4 className="font-medium">Economy Store</h4>
+                <div className="space-y-1 text-sm">
+                  <div>• getDailyStore()</div>
+                  <div>• purchaseItem()</div>
+                  <div>• getMarketplace()</div>
+                  <div>• placeBid()</div>
+                  <div>• watchAd()</div>
+                </div>
+              </div>
             </div>
           </div>
         </CardContent>

@@ -110,12 +110,12 @@ export const economyAPI = {
 
 // Auth domain API
 export const authAPI = {
-  // Get user profile
+  // Get user profile (protected)
   getProfile: async () => {
     return apiRequest('GET', `/api/v2/auth/user`);
   },
 
-  // Update user profile
+  // Update user profile (protected)
   updateProfile: async (data: {
     username?: string;
     avatar?: string;
@@ -123,9 +123,19 @@ export const authAPI = {
     return apiRequest('PUT', `/api/v2/auth/user`, data);
   },
 
-  // Health check
+  // Health check (public)
   healthCheck: async () => {
     return apiRequest('GET', `/api/v2/auth/health`);
+  },
+
+  // Demo public endpoint
+  demoPublic: async () => {
+    return apiRequest('GET', `/api/v2/auth/demo/public`);
+  },
+
+  // Demo protected endpoint
+  demoProtected: async () => {
+    return apiRequest('GET', `/api/v2/auth/demo/protected`);
   }
 };
 
