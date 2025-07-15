@@ -21,13 +21,6 @@ import {
   Activity
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import helmetIcon from "@/assets/helmet-icon.svg";
-import chestArmorIcon from "@/assets/chest-armor-icon.svg";
-import glovesIcon from "@/assets/gloves-icon.svg";
-import footwearIcon from "@/assets/footwear-icon.svg";
-import teamBoostIcon from "@/assets/team-boost-icon.svg";
-import staminaRecoveryIcon from "@/assets/stamina-recovery-icon.svg";
-import injuryRecoveryIcon from "@/assets/injury-recovery-icon.svg";
 import { apiRequest } from "@/lib/queryClient";
 
 interface InventoryItem {
@@ -114,49 +107,67 @@ export default function UnifiedInventoryHub({ teamId }: UnifiedInventoryHubProps
     }
   };
 
+  // Get equipment slot from item name if slot field is missing
+  const getEquipmentSlot = (name: string) => {
+    const lowerName = name.toLowerCase();
+    if (lowerName.includes("helmet") || lowerName.includes("helm") || lowerName.includes("circlet") || lowerName.includes("crest") || lowerName.includes("cowl")) {
+      return "Helmet";
+    }
+    if (lowerName.includes("glove") || lowerName.includes("grip") || lowerName.includes("gauntlet") || lowerName.includes("fist")) {
+      return "Gloves";
+    }
+    if (lowerName.includes("boot") || lowerName.includes("cleat") || lowerName.includes("tread") || lowerName.includes("stride")) {
+      return "Shoes";
+    }
+    if (lowerName.includes("armor") || lowerName.includes("plate") || lowerName.includes("aegis") || lowerName.includes("mail") || lowerName.includes("tunic") || lowerName.includes("pauldron") || lowerName.includes("carrier")) {
+      return "Chest Armor";
+    }
+    return "Equipment";
+  };
+
   // Get item icon based on type and name
   const getItemIcon = (item: InventoryItem) => {
     const effect = item.effect || item.metadata?.effect;
     
     // Team boost items
     if (effect?.includes("team_")) {
-      return <img src={teamBoostIcon} alt="Team Boost" className="w-8 h-8 text-yellow-400" />;
+      return "🌟";
     }
     
     // Equipment items
     if (item.itemType === "EQUIPMENT") {
       if (item.name.toLowerCase().includes("helmet") || item.name.toLowerCase().includes("helm") || item.name.toLowerCase().includes("circlet") || item.name.toLowerCase().includes("crest") || item.name.toLowerCase().includes("cowl")) {
-        return <img src={helmetIcon} alt="Helmet" className="w-8 h-8 text-gray-300" />;
+        return "🪖";
       }
       if (item.name.toLowerCase().includes("glove") || item.name.toLowerCase().includes("grip") || item.name.toLowerCase().includes("gauntlet") || item.name.toLowerCase().includes("fist")) {
-        return <img src={glovesIcon} alt="Gloves" className="w-8 h-8 text-gray-300" />;
+        return "🧤";
       }
       if (item.name.toLowerCase().includes("boot") || item.name.toLowerCase().includes("cleat") || item.name.toLowerCase().includes("tread") || item.name.toLowerCase().includes("stride")) {
-        return <img src={footwearIcon} alt="Footwear" className="w-8 h-8 text-gray-300" />;
+        return "👟";
       }
       if (item.name.toLowerCase().includes("armor") || item.name.toLowerCase().includes("plate") || item.name.toLowerCase().includes("aegis") || item.name.toLowerCase().includes("mail") || item.name.toLowerCase().includes("tunic") || item.name.toLowerCase().includes("pauldron") || item.name.toLowerCase().includes("carrier")) {
-        return <img src={chestArmorIcon} alt="Chest Armor" className="w-8 h-8 text-gray-300" />;
+        return "🛡️";
       }
-      return <img src={helmetIcon} alt="Equipment" className="w-8 h-8 text-gray-300" />;
+      return "⚔️";
     }
     
     // Recovery items
     if (item.itemType === "CONSUMABLE_RECOVERY") {
       if (item.name.toLowerCase().includes("medical") || item.name.toLowerCase().includes("heal") || item.name.toLowerCase().includes("treatment") || item.name.toLowerCase().includes("tincture") || item.name.toLowerCase().includes("salve")) {
-        return <img src={injuryRecoveryIcon} alt="Injury Recovery" className="w-8 h-8 text-red-400" />;
+        return "🩹";
       }
       if (item.name.toLowerCase().includes("stamina") || item.name.toLowerCase().includes("recovery") || item.name.toLowerCase().includes("energy") || item.name.toLowerCase().includes("serum") || item.name.toLowerCase().includes("elixir")) {
-        return <img src={staminaRecoveryIcon} alt="Stamina Recovery" className="w-8 h-8 text-green-400" />;
+        return "⚡";
       }
-      return <img src={staminaRecoveryIcon} alt="Recovery" className="w-8 h-8 text-green-400" />;
+      return "🧪";
     }
     
     // Effect-based detection
     if (effect?.includes("stamina")) {
-      return <img src={staminaRecoveryIcon} alt="Stamina Recovery" className="w-8 h-8 text-green-400" />;
+      return "⚡";
     }
     if (effect?.includes("injury")) {
-      return <img src={injuryRecoveryIcon} alt="Injury Recovery" className="w-8 h-8 text-red-400" />;
+      return "🩹";
     }
     
     if (item.itemType === "GAME_ENTRY") return "🎫";
@@ -409,15 +420,22 @@ export default function UnifiedInventoryHub({ teamId }: UnifiedInventoryHubProps
                     </p>
                     
                     {/* Enhanced Item Details */}
-                    {item.raceRestriction && (
+                    {item.itemType === "EQUIPMENT" && (
                       <div className="mt-2">
-                        <p className="text-xs font-medium text-blue-400">Race: {item.raceRestriction.charAt(0).toUpperCase() + item.raceRestriction.slice(1).toLowerCase()}</p>
+                        <p className="text-xs font-medium text-blue-400">
+                          Race: {item.raceRestriction ? 
+                            item.raceRestriction.charAt(0).toUpperCase() + item.raceRestriction.slice(1).toLowerCase() : 
+                            "Universal"
+                          }
+                        </p>
                       </div>
                     )}
                     
-                    {item.slot && (
+                    {item.itemType === "EQUIPMENT" && (
                       <div className="mt-2">
-                        <p className="text-xs font-medium text-yellow-400">Slot: {item.slot}</p>
+                        <p className="text-xs font-medium text-yellow-400">
+                          Slot: {item.slot || getEquipmentSlot(item.name)}
+                        </p>
                       </div>
                     )}
                     
