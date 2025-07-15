@@ -3,8 +3,7 @@ import { PrismaClient, Notification, NotificationType } from '../../generated/pr
 
 
 
-// The old NotificationData interface and randomUUID are no longer needed
-// as Prisma handles ID generation and the service layer defines data structure.
+// Prisma handles ID generation and the service layer defines data structure.
 
 export class NotificationStorage {
   async createNotification(data: {
@@ -67,18 +66,7 @@ export class NotificationStorage {
     });
   }
 
-  // Method for fetching by old string UUID user_id (if needed during transition, but ideally remove)
-  // async getNotificationsByDrizzleUserId(drizzleUserId: string, limit: number = 20): Promise<Notification[]> {
-  //   console.warn("Attempting to fetch notifications by Drizzle user ID, this may not work if UserProfile link is missing or different.");
-  //   // This is problematic as Notification is linked to Team (Int ID), which is linked to UserProfile (Int ID)
-  //   // A direct lookup from userId (string) to Prisma Notification requires joining through UserProfile -> Team.
-  //   // For now, this function will likely fail or return empty if not adapted further.
-  //   const userProfile = await prisma.userProfile.findUnique({ where: { userId: drizzleUserId }});
-  //   if (!userProfile) return [];
-  //   const team = await prisma.team.findUnique({ where: { userProfileId: userProfile.id }});
-  //   if (!team) return [];
-  //   return this.getUserNotifications(team.id, limit);
-  // }
+  // Additional helper methods can be added here as needed
 }
 
 export const notificationStorage = new NotificationStorage();

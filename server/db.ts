@@ -6,7 +6,6 @@ if (!process.env.DATABASE_URL) {
   );
 }
 
-// Use Prisma Client instead of Drizzle
 export const prisma = new PrismaClient();
 
 // Legacy export for backward compatibility during transition
