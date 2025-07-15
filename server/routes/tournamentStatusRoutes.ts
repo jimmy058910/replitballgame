@@ -245,7 +245,7 @@ router.get('/:id/status', isAuthenticated, async (req: any, res) => {
     const isFull = currentParticipants >= maxParticipants;
 
     // Check if user's team is registered
-    const userTeamEntry = tournament.entries.find(entry => entry.teamId === team.id);
+    const userTeamEntry = tournament.entries.find(entry => entry.teamId.toString() === team.id.toString());
     const userTeamRegistered = !!userTeamEntry;
 
     // Calculate time until start (10 minutes after full)
@@ -278,17 +278,19 @@ router.get('/:id/status', isAuthenticated, async (req: any, res) => {
 
     // Format participants list
     const participants = tournament.entries.map(entry => ({
-      teamId: entry.teamId,
+      id: entry.id.toString(),
+      teamId: entry.teamId.toString(),
       teamName: entry.team?.name || "Unknown Team",
       division: entry.team?.division || 0,
       entryTime: entry.registeredAt,
-      placement: entry.finalRank
+      placement: entry.finalRank,
+      tournamentId: entry.tournamentId.toString()
     }));
 
     // Get tournament matches if tournament is in progress
     let matches = [];
     if (tournament.status === 'IN_PROGRESS') {
-      matches = await prisma.game.findMany({
+      const rawMatches = await prisma.game.findMany({
         where: { tournamentId: tournament.id },
         include: {
           tournament: true
@@ -298,6 +300,22 @@ router.get('/:id/status', isAuthenticated, async (req: any, res) => {
           { id: 'asc' }
         ]
       });
+      
+      // Serialize BigInt values in matches
+      matches = rawMatches.map(match => ({
+        ...match,
+        id: match.id.toString(),
+        leagueId: match.leagueId ? match.leagueId.toString() : null,
+        homeTeamId: match.homeTeamId.toString(),
+        awayTeamId: match.awayTeamId.toString(),
+        tournamentId: match.tournamentId ? match.tournamentId.toString() : null,
+        tournament: match.tournament ? {
+          ...match.tournament,
+          id: match.tournament.id.toString(),
+          entryFeeCredits: match.tournament.entryFeeCredits ? Number(match.tournament.entryFeeCredits) : null,
+          entryFeeGems: match.tournament.entryFeeGems ? Number(match.tournament.entryFeeGems) : null
+        } : null
+      }));
     }
 
     const statusData = {
@@ -316,12 +334,15 @@ router.get('/:id/status', isAuthenticated, async (req: any, res) => {
       timeUntilStartText,
       registrationDeadline: tournament.registrationEndTime,
       tournamentStartTime: tournament.startTime,
-      entryFeeCredits: Number(tournament.entryFeeCredits),
-      entryFeeGems: Number(tournament.entryFeeGems),
+      entryFeeCredits: Number(tournament.entryFeeCredits || 0),
+      entryFeeGems: Number(tournament.entryFeeGems || 0),
       prizes: tournament.prizePoolJson,
       participants,
       userTeamRegistered,
       userTeamEntry: userTeamEntry ? {
+        id: userTeamEntry.id.toString(),
+        teamId: userTeamEntry.teamId.toString(),
+        tournamentId: userTeamEntry.tournamentId.toString(),
         entryTime: userTeamEntry.registeredAt,
         placement: userTeamEntry.finalRank
       } : null,
