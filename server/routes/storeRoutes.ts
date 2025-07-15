@@ -34,10 +34,50 @@ const convertGemsSchema = z.object({
 });
 
 // Store routes - Master Economy v5 Combined 8-item Store System
-router.get('/items', isAuthenticated, async (req: Request, res: Response, next: NextFunction) => {
+router.get('/items', isAuthenticated, async (req: any, res: Response, next: NextFunction) => {
   try {
+    const userId = req.user.claims.sub;
     // Master Economy v5: Return 8-item daily rotation instead of separate stores
     const dailyRotation = EnhancedGameEconomyService.generateDailyRotationStore();
+    
+    // Get today's purchase counts for each item
+    const today = new Date();
+    const todayStart = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+    const todayEnd = new Date(today.getFullYear(), today.getMonth(), today.getDate(), 23, 59, 59);
+    
+    const purchaseLimits = {
+      'common': 3,
+      'uncommon': 3,
+      'rare': 2,
+      'epic': 2,
+      'legendary': 1
+    };
+    
+    // Add purchase count and limit information to each item
+    const itemsWithPurchaseInfo = await Promise.all(dailyRotation.map(async (item: any) => {
+      const dailyPurchases = await prisma.paymentTransaction.count({
+        where: {
+          userId: userId,
+          itemName: item.name,
+          transactionType: "purchase",
+          status: "completed",
+          createdAt: {
+            gte: todayStart,
+            lte: todayEnd
+          }
+        }
+      });
+      
+      const itemRarity = item.tier?.toLowerCase() || 'common';
+      const maxPurchases = purchaseLimits[itemRarity] || 1;
+      
+      return {
+        ...item,
+        purchased: dailyPurchases,
+        dailyLimit: maxPurchases,
+        canPurchase: dailyPurchases < maxPurchases
+      };
+    }));
     
     const now = new Date();
     const resetTime = new Date(now);
@@ -45,7 +85,7 @@ router.get('/items', isAuthenticated, async (req: Request, res: Response, next: 
     resetTime.setUTCHours(8, 0, 0, 0); // Next 8 AM UTC
 
     res.json({
-      dailyItems: dailyRotation,
+      dailyItems: itemsWithPurchaseInfo,
       resetTime: resetTime.toISOString(),
       storeType: 'combined', // Master Economy v5 Combined Store
       totalItems: 8
@@ -318,7 +358,7 @@ router.post('/purchase/:itemId', isAuthenticated, async (req: any, res: Response
       return res.status(404).json({ message: "Item not found in today's daily rotation." });
     }
     
-    // Check daily purchase limits (1 per item per day)
+    // Check daily purchase limits based on rarity tiers
     const today = new Date();
     const todayStart = new Date(today.getFullYear(), today.getMonth(), today.getDate());
     const todayEnd = new Date(today.getFullYear(), today.getMonth(), today.getDate(), 23, 59, 59);
@@ -336,8 +376,24 @@ router.post('/purchase/:itemId', isAuthenticated, async (req: any, res: Response
       }
     });
     
-    if (dailyPurchases >= 1) {
-      return res.status(400).json({ message: "Daily purchase limit reached for this item." });
+    // Define purchase limits by rarity
+    const purchaseLimits = {
+      'common': 3,
+      'uncommon': 3,
+      'rare': 2,
+      'epic': 2,
+      'legendary': 1
+    };
+    
+    const itemRarity = storeItem.tier?.toLowerCase() || 'common';
+    const maxPurchases = purchaseLimits[itemRarity] || 1;
+    
+    if (dailyPurchases >= maxPurchases) {
+      return res.status(400).json({ 
+        message: `Daily purchase limit reached for this item. (${dailyPurchases}/${maxPurchases})`,
+        currentPurchases: dailyPurchases,
+        maxPurchases: maxPurchases
+      });
     }
     
     // Get price based on currency

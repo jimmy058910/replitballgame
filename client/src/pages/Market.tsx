@@ -460,19 +460,19 @@ export default function Market() {
                                 size="sm" 
                                 className="flex-1"
                                 onClick={() => handlePurchase(item.id, 'credits')}
-                                disabled={purchaseWithCreditsMutation.isPending}
+                                disabled={purchaseWithCreditsMutation.isPending || !item.canPurchase}
                               >
-                                ₡{item.credits.toLocaleString()}
+                                {item.canPurchase ? `₡${item.credits.toLocaleString()}` : 'Daily Limit Reached'}
                               </Button>
                             )}
                             {item.gems && (
                               <Button 
                                 size="sm" 
-                                className="flex-1 bg-blue-600 hover:bg-blue-700"
+                                className={`flex-1 ${item.canPurchase ? 'bg-blue-600 hover:bg-blue-700' : 'bg-gray-400'}`}
                                 onClick={() => handlePurchase(item.id, 'gems')}
-                                disabled={purchaseWithGemsMutation.isPending}
+                                disabled={purchaseWithGemsMutation.isPending || !item.canPurchase}
                               >
-                                💎{item.gems}
+                                {item.canPurchase ? `💎${item.gems}` : 'Daily Limit Reached'}
                               </Button>
                             )}
                           </div>

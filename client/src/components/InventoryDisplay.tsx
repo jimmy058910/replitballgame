@@ -199,6 +199,15 @@ export default function InventoryDisplay({ teamId }: InventoryDisplayProps) {
                           <span className="text-sm font-medium">Qty: {item.quantity}</span>
                         </div>
                         
+                        {/* Race Restriction */}
+                        {item.raceRestriction && item.raceRestriction !== 'UNIVERSAL' && (
+                          <div className="text-sm">
+                            <span className="font-medium text-blue-600">Race: </span>
+                            <span className="text-blue-600">{item.raceRestriction}</span>
+                          </div>
+                        )}
+                        
+                        {/* Stat Effects */}
                         {item.statBoosts && (
                           <div className="text-sm">
                             <div className="font-medium text-green-600">
@@ -248,6 +257,16 @@ export default function InventoryDisplay({ teamId }: InventoryDisplayProps) {
                           <Badge variant="outline">{item.type}</Badge>
                           <span className="text-sm font-medium">Qty: {item.quantity}</span>
                         </div>
+                        
+                        {/* Effect text with proper contrast */}
+                        {item.effect && (
+                          <div className="text-sm">
+                            <span className="font-medium text-purple-600 dark:text-purple-400">Effect: </span>
+                            <span className="text-purple-700 dark:text-purple-300 bg-purple-50 dark:bg-purple-900/20 px-2 py-1 rounded">
+                              {item.effect}
+                            </span>
+                          </div>
+                        )}
                         
                         <div className="flex gap-2">
                           <Button size="sm" className="flex-1">
