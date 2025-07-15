@@ -251,7 +251,6 @@ router.get('/team/:teamId', isAuthenticated, async (req: any, res: Response, nex
           select: {
             id: true,
             name: true,
-            tournamentId: true,
             type: true,
             division: true,
             status: true,
@@ -278,7 +277,6 @@ router.get('/team/:teamId', isAuthenticated, async (req: any, res: Response, nex
       tournament: {
         ...entry.tournament,
         id: Number(entry.tournament.id),
-        tournamentId: entry.tournament.tournamentId,
         entryFeeCredits: Number(entry.tournament.entryFeeCredits || 0),
         entryFeeGems: Number(entry.tournament.entryFeeGems || 0)
       }

@@ -80,15 +80,15 @@ const TournamentCenter: React.FC<TournamentCenterProps> = ({ teamId }) => {
 
   // Fetch team's current tournament entries
   const { data: myTournaments } = useQuery({
-    queryKey: ["/api/new-tournaments/team", teamId],
-    queryFn: () => apiRequest(`/api/new-tournaments/team/${teamId}`),
+    queryKey: ["/api/tournament-status/my-active"],
+    queryFn: () => apiRequest("/api/tournament-status/my-active"),
     enabled: !!teamId,
   });
 
   // Check if user is already registered for daily tournament
   const { data: dailyTournamentStatus } = useQuery({
-    queryKey: ["/api/tournament-status/active"],
-    queryFn: () => apiRequest("/api/tournament-status/active"),
+    queryKey: ["/api/tournament-status/my-active"],
+    queryFn: () => apiRequest("/api/tournament-status/my-active"),
     enabled: !!teamId,
   });
 
@@ -131,7 +131,7 @@ const TournamentCenter: React.FC<TournamentCenterProps> = ({ teamId }) => {
       });
       queryClient.invalidateQueries({ queryKey: ["/api/new-tournaments"] });
       queryClient.invalidateQueries({ queryKey: ["/api/teams", teamId] });
-      queryClient.invalidateQueries({ queryKey: ["/api/tournament-status/active"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/tournament-status/my-active"] });
     },
     onError: (error: Error) => {
       toast({
@@ -154,7 +154,7 @@ const TournamentCenter: React.FC<TournamentCenterProps> = ({ teamId }) => {
       });
       queryClient.invalidateQueries({ queryKey: ["/api/new-tournaments"] });
       queryClient.invalidateQueries({ queryKey: ["/api/teams", teamId] });
-      queryClient.invalidateQueries({ queryKey: ["/api/tournament-status/active"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/tournament-status/my-active"] });
     },
     onError: (error: Error) => {
       toast({
