@@ -83,6 +83,7 @@ interface ActiveTournament {
   entryTime: string;
   placement: number | null;
   participantCount: number;
+  currentStage: string | null;
 }
 
 export default function TournamentStatus() {
@@ -376,6 +377,36 @@ export default function TournamentStatus() {
     }
   };
 
+  const getCurrentTournamentStage = (matches: any[]) => {
+    if (!matches || matches.length === 0) return null;
+    
+    // Check for live matches first
+    const liveMatch = matches.find(match => match.status === 'LIVE');
+    if (liveMatch) {
+      return liveMatch.round === 'QUARTERFINALS' ? 'Quarterfinals' : 
+             liveMatch.round === 'SEMIFINALS' ? 'Semifinals' : 
+             liveMatch.round === 'FINALS' ? 'Finals' : 'In Progress';
+    }
+    
+    // Check for scheduled matches
+    const scheduledMatches = matches.filter(match => match.status === 'SCHEDULED');
+    if (scheduledMatches.length > 0) {
+      const nextRound = scheduledMatches[0].round;
+      return nextRound === 'QUARTERFINALS' ? 'Quarterfinals' : 
+             nextRound === 'SEMIFINALS' ? 'Semifinals' : 
+             nextRound === 'FINALS' ? 'Finals' : 'In Progress';
+    }
+    
+    // Check for completed matches to determine next stage
+    const completedMatches = matches.filter(match => match.status === 'COMPLETED');
+    const quarterfinalsComplete = matches.filter(match => match.round === 'QUARTERFINALS' && match.status === 'COMPLETED').length === 4;
+    const semifinalsComplete = matches.filter(match => match.round === 'SEMIFINALS' && match.status === 'COMPLETED').length === 2;
+    
+    if (!quarterfinalsComplete) return 'Quarterfinals';
+    if (!semifinalsComplete) return 'Semifinals';
+    return 'Finals';
+  };
+
   if (loadingActive) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -446,13 +477,18 @@ export default function TournamentStatus() {
                     </span>
                     <span className="flex items-center gap-1">
                       <Users className="w-3 h-3" />
-                      {tournament.currentParticipants}/{tournament.maxParticipants}
+                      {tournament.participantCount || tournament.currentParticipants}/{tournament.maxParticipants}
                     </span>
                   </div>
                   {tournament.status === 'IN_PROGRESS' ? (
                     <div className="mt-2 text-xs font-medium text-blue-300 flex items-center gap-1">
                       <Zap className="w-3 h-3" />
                       In Progress
+                      {tournament.currentStage && (
+                        <span className="text-xs text-gray-400">
+                          - {tournament.currentStage}
+                        </span>
+                      )}
                     </div>
                   ) : tournament.status === 'COMPLETED' ? (
                     <div className="mt-2 text-xs font-medium text-gray-300 flex items-center gap-1">
