@@ -127,6 +127,40 @@ export default function UnifiedInventoryHub({ teamId }: UnifiedInventoryHubProps
     return "📦";
   };
 
+  // Convert effect codes to human-readable descriptions
+  const getEffectDescription = (effect: string) => {
+    if (effect.startsWith('restore_stamina_')) {
+      const amount = effect.split('_')[2];
+      return `+${amount} Stamina for a Player`;
+    }
+    if (effect.startsWith('team_agility_')) {
+      const amount = effect.split('_')[2];
+      return `+${amount} Agility boost for the Team`;
+    }
+    if (effect.startsWith('team_power_')) {
+      const amount = effect.split('_')[2];
+      return `+${amount} Power boost for the Team`;
+    }
+    if (effect.startsWith('team_speed_')) {
+      const amount = effect.split('_')[2];
+      return `+${amount} Speed boost for the Team`;
+    }
+    if (effect.startsWith('team_leadership_')) {
+      const amount = effect.split('_')[2];
+      return `+${amount} Leadership boost for the Team`;
+    }
+    if (effect.startsWith('team_stamina_')) {
+      const amount = effect.split('_')[2];
+      return `+${amount} Stamina boost for the Team`;
+    }
+    if (effect.startsWith('heal_injury_')) {
+      const amount = effect.split('_')[2];
+      return `Heal ${amount} injury points for a Player`;
+    }
+    // Return original effect if no match found
+    return effect;
+  };
+
   // Get item effect description with race requirements
   const getItemEffect = (item: InventoryItem) => {
     // Use the actual item description from API first
@@ -339,7 +373,7 @@ export default function UnifiedInventoryHub({ teamId }: UnifiedInventoryHubProps
                         <div className="flex flex-wrap gap-1 mt-1">
                           {Object.entries(item.statBoosts).map(([stat, value]: [string, any]) => (
                             <span key={stat} className="text-xs bg-green-600 text-white px-2 py-1 rounded">
-                              {stat}: +{value}
+                              {stat.replace('Attribute', '').toLowerCase()}: +{value}
                             </span>
                           ))}
                         </div>
@@ -350,7 +384,7 @@ export default function UnifiedInventoryHub({ teamId }: UnifiedInventoryHubProps
                       <div className="mt-2">
                         <p className="text-xs font-medium text-purple-400">Effect:</p>
                         <span className="text-xs bg-purple-600 text-white px-2 py-1 rounded">
-                          {item.effect || item.metadata?.effect}
+                          {getEffectDescription(item.effect || item.metadata?.effect)}
                         </span>
                       </div>
                     )}
