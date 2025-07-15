@@ -36,8 +36,8 @@ export default function InventoryDisplay({ teamId }: InventoryDisplayProps) {
   const [slotFilter, setSlotFilter] = useState("all");
 
   const { data: inventory, isLoading } = useQuery({
-    queryKey: ['/api/teams', teamId, 'inventory'],
-    queryFn: () => apiRequest(`/api/teams/${teamId}/inventory`),
+    queryKey: ['/api/inventory', teamId],
+    queryFn: () => apiRequest(`/api/inventory/${teamId}`),
   });
 
   const { data: trophies } = useQuery({
