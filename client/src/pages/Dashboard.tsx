@@ -312,6 +312,21 @@ export default function Dashboard() {
                       <p className="text-purple-200 text-sm font-medium">
                         {(seasonalCycle as any).dynamicDetail || (seasonalCycle as any).details}
                       </p>
+                      {/* Progress bar for Regular Season */}
+                      {(seasonalCycle as any)?.phase === "Regular Season" && (
+                        <div className="mt-3">
+                          <div className="flex justify-between text-xs text-purple-200 mb-1">
+                            <span>Regular Season Progress</span>
+                            <span>Day {(seasonalCycle as any)?.currentDay}/14</span>
+                          </div>
+                          <div className="w-full bg-purple-800 bg-opacity-50 rounded-full h-2">
+                            <div 
+                              className="bg-purple-300 h-2 rounded-full transition-all duration-300"
+                              style={{ width: `${((seasonalCycle as any)?.currentDay / 14) * 100}%` }}
+                            ></div>
+                          </div>
+                        </div>
+                      )}
                     </div>
                   </div>
                   <div className="text-right min-w-[140px]">
