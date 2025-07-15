@@ -6,6 +6,8 @@ import { TournamentMatchService } from '../services/tournamentMatchService';
 
 const router = Router();
 
+
+
 // Get active tournament status for a team
 router.get('/active', isAuthenticated, async (req: any, res) => {
   try {
@@ -301,7 +303,7 @@ router.get('/:id/status', isAuthenticated, async (req: any, res) => {
       maxParticipants,
       spotsRemaining,
       isFull,
-      isReadyToStart: isFull || tournament.status === 'IN_PROGRESS',
+      isReadyToStart: (isFull && timeUntilStart <= 0) || tournament.status === 'IN_PROGRESS',
       timeUntilStart,
       timeUntilStartText,
       registrationDeadline: tournament.registrationEndTime,

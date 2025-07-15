@@ -647,7 +647,7 @@ export class TournamentService {
   // Fill tournament with AI teams
   async fillTournamentWithAI(tournamentId: string, spotsToFill: number): Promise<void> {
     const tournament = await prisma.tournament.findUnique({
-      where: { id: tournamentId }
+      where: { id: parseInt(tournamentId) }
     });
     
     if (!tournament) {
@@ -666,13 +666,9 @@ export class TournamentService {
 
     // Create tournament entries for AI teams
     const aiEntries = aiTeams.map(team => ({
-      tournamentId: tournamentId,
+      tournamentId: parseInt(tournamentId),
       teamId: team.id,
-      entryTime: new Date(),
-      placement: null,
-      creditsWon: BigInt(0),
-      gemsWon: 0,
-      trophyWon: null
+      registeredAt: new Date()
     }));
 
     if (aiEntries.length > 0) {
