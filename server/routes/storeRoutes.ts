@@ -311,7 +311,7 @@ router.post('/purchase/:itemId', isAuthenticated, async (req: any, res: Response
     if (!finances) return res.status(404).json({ message: "Team finances not found." });
 
     // Find the item in enhanced game economy service daily rotation
-    const dailyItems = enhancedGameEconomyService.generateDailyRotationStore();
+    const dailyItems = EnhancedGameEconomyService.generateDailyRotationStore();
     const storeItem = dailyItems.find((item: any) => item.id === itemId);
     
     if (!storeItem) {
