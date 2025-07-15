@@ -152,20 +152,21 @@ export class SeasonTimingAutomationService {
     try {
       logInfo('Starting daily progression execution...');
       
+      // TEMPORARILY DISABLED - Daily progression services causing database issues
       // 1. Daily player progression
-      await this.executeDailyPlayerProgression();
+      // await this.executeDailyPlayerProgression();
       
       // 2. Aging and retirement processing  
-      await this.executeAgingProcessing();
+      // await this.executeAgingProcessing();
       
       // 3. Injury recovery and stamina restoration
-      await this.executeInjuryRecovery();
+      // await this.executeInjuryRecovery();
       
       // 4. Reset daily limits and counters
       await this.resetDailyLimits();
       
       // 5. Update season day in database (CRITICAL FIX)
-      await this.updateSeasonDay();
+      // await this.updateSeasonDay();
       
       logInfo('Daily progression execution completed successfully');
     } catch (error) {

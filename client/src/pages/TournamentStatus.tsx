@@ -143,7 +143,32 @@ export default function TournamentStatus() {
   const handleWatchMatch = (matchId: string) => {
     // Navigate to live match viewer
     window.location.href = `/live-match/${matchId}`;
-  };
+  }
+
+  const handleSimulateRound = async (round: string) => {
+    try {
+      const response = await apiRequest('POST', `/api/tournament-status/${selectedTournament!.tournamentId}/simulate-round`, {
+        round: round
+      });
+      
+      if (response.ok) {
+        toast({
+          title: 'Round Simulated',
+          description: `${round} matches have been simulated successfully!`,
+        });
+        // Refresh tournament data
+        window.location.reload();
+      } else {
+        throw new Error('Failed to simulate round');
+      }
+    } catch (error) {
+      toast({
+        title: 'Error',
+        description: 'Failed to simulate tournament round. Please try again.',
+        variant: 'destructive',
+      });
+    }
+  };;
 
   // Get tournament tab content
   const getTournamentTabContent = () => {
@@ -185,11 +210,16 @@ export default function TournamentStatus() {
         
         return (
           <TournamentBracket
-            tournamentId={tournamentStatus.id}
-            tournamentName={tournamentStatus.name}
+            tournament={{
+              id: tournamentStatus.id,
+              name: tournamentStatus.name,
+              status: tournamentStatus.status,
+              currentStage: tournamentStatus.currentStage || null
+            }}
             matches={transformedMatches}
-            onWatchMatch={handleWatchMatch}
+            userTeamId={userTeamId}
             isAdmin={isAdmin}
+            onSimulateRound={handleSimulateRound}
           />
         );
       default:

@@ -572,4 +572,192 @@ router.post('/:id/matches/:matchId/simulate', isAuthenticated, async (req: any, 
   }
 });
 
+// Get tournament matches for bracket display
+router.get('/:tournamentId/matches', async (req, res) => {
+  try {
+    const { tournamentId } = req.params;
+    
+    // Get tournament matches from Game table
+    const matches = await prisma.game.findMany({
+      where: { 
+        tournamentId: parseInt(tournamentId)
+      },
+      include: {
+        homeTeam: {
+          select: {
+            id: true,
+            name: true
+          }
+        },
+        awayTeam: {
+          select: {
+            id: true,
+            name: true
+          }
+        }
+      },
+      orderBy: [
+        { round: 'asc' },
+        { gameDate: 'asc' }
+      ]
+    });
+
+    // Transform matches to match frontend interface
+    const transformedMatches = matches.map(match => ({
+      id: match.id.toString(),
+      homeTeam: {
+        id: match.homeTeam.id.toString(),
+        name: match.homeTeam.name
+      },
+      awayTeam: {
+        id: match.awayTeam.id.toString(),
+        name: match.awayTeam.name
+      },
+      round: match.round,
+      status: match.status,
+      homeTeamScore: match.homeTeamScore,
+      awayTeamScore: match.awayTeamScore,
+      gameTime: match.gameDate?.toISOString(),
+      winner: match.status === 'COMPLETED' ? (
+        match.homeTeamScore > match.awayTeamScore ? match.homeTeam.name : 
+        match.awayTeamScore > match.homeTeamScore ? match.awayTeam.name : null
+      ) : null
+    }));
+
+    res.json(transformedMatches);
+  } catch (error) {
+    res.status(500).json({ message: 'Failed to fetch tournament matches', error: error.message });
+  }
+});
+
+// Simulate tournament round (Admin only)
+router.post('/:tournamentId/simulate-round', isAuthenticated, async (req: any, res) => {
+  try {
+    const { tournamentId } = req.params;
+    const { round } = req.body;
+    const userId = req.user.claims.sub;
+    
+    // Check if user is admin
+    if (userId !== "44010914") {
+      return res.status(403).json({ message: "Access denied. Admin privileges required." });
+    }
+
+    // Get tournament matches for the specified round
+    const matches = await prisma.game.findMany({
+      where: {
+        tournamentId: parseInt(tournamentId),
+        round: round,
+        status: 'SCHEDULED'
+      },
+      include: {
+        homeTeam: true,
+        awayTeam: true
+      }
+    });
+
+    if (matches.length === 0) {
+      return res.status(404).json({ message: "No schedulable matches found for this round" });
+    }
+
+    // Simulate each match
+    for (const match of matches) {
+      // Generate random scores for the match
+      const homeScore = Math.floor(Math.random() * 4) + 1;
+      const awayScore = Math.floor(Math.random() * 4) + 1;
+      
+      // Update match with results
+      await prisma.game.update({
+        where: { id: match.id },
+        data: {
+          homeTeamScore: homeScore,
+          awayTeamScore: awayScore,
+          status: 'COMPLETED',
+          gameDate: new Date()
+        }
+      });
+    }
+
+    // Check if this round completion triggers next round creation
+    await advanceTournament(parseInt(tournamentId), round);
+
+    res.json({ message: `Successfully simulated ${matches.length} matches in ${round}` });
+  } catch (error) {
+    console.error("Error simulating tournament round:", error);
+    res.status(500).json({ message: "Failed to simulate tournament round", error: error.message });
+  }
+});
+
+// Helper function to advance tournament to next round
+async function advanceTournament(tournamentId: number, completedRound: string) {
+  try {
+    // Get completed matches from the round
+    const completedMatches = await prisma.game.findMany({
+      where: {
+        tournamentId: tournamentId,
+        round: completedRound,
+        status: 'COMPLETED'
+      },
+      include: {
+        homeTeam: true,
+        awayTeam: true
+      }
+    });
+
+    // Determine winners
+    const winners = completedMatches.map(match => {
+      const winnerId = match.homeTeamScore > match.awayTeamScore ? 
+        match.homeTeamId : match.awayTeamId;
+      return { teamId: winnerId, match: match };
+    });
+
+    // Create next round matches based on completed round
+    if (completedRound === 'QUARTERFINALS' && winners.length === 4) {
+      // Create semifinals
+      const semifinalMatches = [
+        { homeTeamId: winners[0].teamId, awayTeamId: winners[1].teamId },
+        { homeTeamId: winners[2].teamId, awayTeamId: winners[3].teamId }
+      ];
+
+      for (const match of semifinalMatches) {
+        await prisma.game.create({
+          data: {
+            homeTeamId: match.homeTeamId,
+            awayTeamId: match.awayTeamId,
+            gameDate: new Date(),
+            status: 'SCHEDULED',
+            round: 'SEMIFINALS',
+            matchType: 'TOURNAMENT_DAILY',
+            tournamentId: tournamentId
+          }
+        });
+      }
+    } else if (completedRound === 'SEMIFINALS' && winners.length === 2) {
+      // Create finals
+      await prisma.game.create({
+        data: {
+          homeTeamId: winners[0].teamId,
+          awayTeamId: winners[1].teamId,
+          gameDate: new Date(),
+          status: 'SCHEDULED',
+          round: 'FINALS',
+          matchType: 'TOURNAMENT_DAILY',
+          tournamentId: tournamentId
+        }
+      });
+    } else if (completedRound === 'FINALS' && winners.length === 1) {
+      // Tournament complete - update tournament status
+      await prisma.tournament.update({
+        where: { id: tournamentId },
+        data: {
+          status: 'COMPLETED',
+          winnerId: winners[0].teamId
+        }
+      });
+    }
+  } catch (error) {
+    console.error("Error advancing tournament:", error);
+    throw error;
+  }
+}
+
 export default router;

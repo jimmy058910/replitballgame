@@ -1,253 +1,292 @@
 import React from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Clock, Play, Trophy, Eye, Zap } from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
-import { apiRequest } from '@/lib/queryClient';
+import { Trophy, Play, Clock, Users } from 'lucide-react';
 
 interface TournamentMatch {
   id: string;
-  round: string;
   homeTeam: {
     id: string;
     name: string;
-    seed?: number;
   };
   awayTeam: {
     id: string;
     name: string;
-    seed?: number;
   };
-  homeScore?: number;
-  awayScore?: number;
-  status: 'SCHEDULED' | 'LIVE' | 'COMPLETED';
-  startTime?: string;
+  round: string;
+  status: string;
+  homeTeamScore?: number;
+  awayTeamScore?: number;
+  gameTime?: string;
   winner?: string;
 }
 
 interface TournamentBracketProps {
-  tournamentId: string;
-  tournamentName: string;
+  tournament: {
+    id: string;
+    name: string;
+    status: string;
+    currentStage: string | null;
+  };
   matches: TournamentMatch[];
-  onWatchMatch: (matchId: string) => void;
-  isAdmin?: boolean;
+  userTeamId: string;
+  isAdmin: boolean;
+  onSimulateRound: (round: string) => void;
 }
 
-const TournamentBracket: React.FC<TournamentBracketProps> = ({
-  tournamentId,
-  tournamentName,
-  matches,
-  onWatchMatch,
-  isAdmin = false
-}) => {
-  const { toast } = useToast();
-
-  const handleSimulateMatch = async (matchId: string) => {
-    try {
-      const response = await apiRequest('POST', `/api/tournament-status/${tournamentId}/matches/${matchId}/simulate`);
-      if (response.ok) {
-        toast({
-          title: "Match Simulated",
-          description: "Tournament match has been simulated successfully!",
-        });
-        // Refresh the page to show updated results
-        window.location.reload();
-      }
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to simulate match",
-        variant: "destructive",
-      });
-    }
-  };
-
-  const handleSimulateAllRound = async (round: string) => {
-    try {
-      const roundMatches = matches.filter(match => 
-        match.round === round && 
-        match.status === 'SCHEDULED' && 
-        match.homeTeam.id !== 'TBD'
-      );
-      
-      for (const match of roundMatches) {
-        await apiRequest('POST', `/api/tournament-status/${tournamentId}/matches/${match.id}/simulate`);
-      }
-      
-      toast({
-        title: "Round Simulated",
-        description: `All ${round.toLowerCase()} matches have been simulated successfully!`,
-      });
-      
-      // Refresh the page to show updated results
-      window.location.reload();
-    } catch (error) {
-      console.error('Error simulating round:', error);
-      toast({
-        title: "Error",
-        description: "Failed to simulate round. Please try again.",
-        variant: "destructive",
-      });
-    }
-  };
+export default function TournamentBracket({ tournament, matches, userTeamId, isAdmin, onSimulateRound }: TournamentBracketProps) {
   // Group matches by round
-  const roundGroups = matches.reduce((groups, match) => {
-    const round = match.round;
-    if (!groups[round]) {
-      groups[round] = [];
-    }
-    groups[round].push(match);
-    return groups;
-  }, {} as Record<string, TournamentMatch[]>);
+  const quarterfinalsMatches = matches.filter(m => m.round === 'QUARTERFINALS');
+  const semifinalsMatches = matches.filter(m => m.round === 'SEMIFINALS');
+  const finalsMatches = matches.filter(m => m.round === 'FINALS');
 
-  const roundOrder = ['QUARTERFINALS', 'SEMIFINALS', 'FINALS'];
-  const orderedRounds = roundOrder.filter(round => roundGroups[round]);
-
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'LIVE': return 'bg-green-600';
-      case 'COMPLETED': return 'bg-gray-600';
-      case 'SCHEDULED': return 'bg-blue-600';
-      default: return 'bg-gray-400';
-    }
+  const MatchCard = ({ match, isUserTeam }: { match: TournamentMatch; isUserTeam: boolean }) => {
+    const isCompleted = match.status === 'COMPLETED';
+    const isLive = match.status === 'LIVE';
+    const isScheduled = match.status === 'SCHEDULED';
+    
+    return (
+      <div className={`relative bg-white dark:bg-gray-800 border-2 rounded-lg p-3 min-w-[180px] ${
+        isUserTeam ? 'border-blue-500 shadow-lg' : 'border-gray-300 dark:border-gray-600'
+      }`}>
+        {isUserTeam && (
+          <Badge className="absolute -top-2 -right-2 bg-blue-500 text-white text-xs">
+            YOUR TEAM
+          </Badge>
+        )}
+        
+        <div className="space-y-2">
+          {/* Home Team */}
+          <div className={`flex items-center justify-between p-2 rounded ${
+            isCompleted && match.homeTeamScore > match.awayTeamScore 
+              ? 'bg-green-100 dark:bg-green-900 font-semibold' 
+              : 'bg-gray-50 dark:bg-gray-700'
+          }`}>
+            <span className="text-sm truncate">{match.homeTeam.name}</span>
+            {isCompleted && <span className="font-bold">{match.homeTeamScore}</span>}
+          </div>
+          
+          {/* Away Team */}
+          <div className={`flex items-center justify-between p-2 rounded ${
+            isCompleted && match.awayTeamScore > match.homeTeamScore 
+              ? 'bg-green-100 dark:bg-green-900 font-semibold' 
+              : 'bg-gray-50 dark:bg-gray-700'
+          }`}>
+            <span className="text-sm truncate">{match.awayTeam.name}</span>
+            {isCompleted && <span className="font-bold">{match.awayTeamScore}</span>}
+          </div>
+          
+          {/* Status */}
+          <div className="flex items-center justify-center space-x-1">
+            {isLive && (
+              <Badge variant="destructive" className="text-xs">
+                <Play className="w-3 h-3 mr-1" />
+                LIVE
+              </Badge>
+            )}
+            {isScheduled && (
+              <Badge variant="outline" className="text-xs">
+                <Clock className="w-3 h-3 mr-1" />
+                {match.gameTime || 'Tournament Start'}
+              </Badge>
+            )}
+            {isCompleted && (
+              <Badge variant="secondary" className="text-xs">
+                FINAL
+              </Badge>
+            )}
+          </div>
+        </div>
+      </div>
+    );
   };
 
-  const getStatusText = (status: string) => {
-    switch (status) {
-      case 'LIVE': return 'Live';
-      case 'COMPLETED': return 'Final';
-      case 'SCHEDULED': return 'Scheduled';
-      default: return 'Pending';
-    }
+  const TBDCard = ({ round }: { round: string }) => (
+    <div className="bg-gray-100 dark:bg-gray-700 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-3 min-w-[180px]">
+      <div className="space-y-2">
+        <div className="flex items-center justify-center p-2 bg-gray-200 dark:bg-gray-600 rounded">
+          <span className="text-sm text-gray-500 dark:text-gray-400">TBD</span>
+        </div>
+        <div className="flex items-center justify-center p-2 bg-gray-200 dark:bg-gray-600 rounded">
+          <span className="text-sm text-gray-500 dark:text-gray-400">TBD</span>
+        </div>
+        <div className="flex items-center justify-center">
+          <Badge variant="outline" className="text-xs">
+            <Users className="w-3 h-3 mr-1" />
+            {round}
+          </Badge>
+        </div>
+      </div>
+    </div>
+  );
+
+  const ConnectorLine = ({ vertical = false, className = "" }: { vertical?: boolean; className?: string }) => (
+    <div 
+      className={`bg-gray-400 dark:bg-gray-600 ${vertical ? 'w-0.5 h-8' : 'h-0.5 w-8'} ${className}`}
+    />
+  );
+
+  const isUserInMatch = (match: TournamentMatch) => {
+    return match.homeTeam.id === userTeamId || match.awayTeam.id === userTeamId;
   };
 
-  const formatTeamName = (name: string) => {
-    // Truncate long team names for bracket display
-    return name.length > 20 ? name.substring(0, 17) + '...' : name;
+  const canSimulateRound = (round: string) => {
+    const roundMatches = matches.filter(m => m.round === round);
+    return roundMatches.length > 0 && roundMatches.every(m => m.status === 'SCHEDULED');
   };
 
   return (
-    <Card className="w-full">
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Trophy className="w-5 h-5 text-yellow-500" />
-          {tournamentName} - Tournament Bracket
-        </CardTitle>
-      </CardHeader>
-      <CardContent>
-        {orderedRounds.length === 0 ? (
-          <div className="text-center py-8">
-            <div className="text-gray-500">
-              Tournament bracket will be generated once matches are scheduled
+    <Card className="w-full max-w-6xl mx-auto bg-gradient-to-br from-blue-50 to-purple-50 dark:from-gray-900 dark:to-gray-800">
+      <CardContent className="p-6">
+        {/* Tournament Header */}
+        <div className="text-center mb-8">
+          <div className="flex items-center justify-center space-x-2 mb-2">
+            <Trophy className="w-6 h-6 text-yellow-500" />
+            <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
+              {tournament.name}
+            </h2>
+          </div>
+          <div className="flex items-center justify-center space-x-4">
+            <Badge variant={tournament.status === 'IN_PROGRESS' ? 'destructive' : 'secondary'}>
+              {tournament.status === 'IN_PROGRESS' ? 'TOURNAMENT IN PROGRESS' : tournament.status}
+            </Badge>
+            {tournament.currentStage && (
+              <Badge variant="outline">
+                Current Stage: {tournament.currentStage}
+              </Badge>
+            )}
+          </div>
+        </div>
+
+        {/* Tournament Bracket */}
+        <div className="flex items-center justify-center space-x-4 overflow-x-auto pb-4">
+          {/* Quarterfinals */}
+          <div className="flex flex-col items-center space-y-4">
+            <div className="flex items-center space-x-2 mb-4">
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Quarterfinals</h3>
+              {isAdmin && canSimulateRound('QUARTERFINALS') && (
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => onSimulateRound('QUARTERFINALS')}
+                  className="ml-2"
+                >
+                  <Play className="w-4 h-4 mr-1" />
+                  Simulate All
+                </Button>
+              )}
+            </div>
+            
+            <div className="space-y-8">
+              {quarterfinalsMatches.map((match, index) => (
+                <MatchCard 
+                  key={match.id} 
+                  match={match} 
+                  isUserTeam={isUserInMatch(match)}
+                />
+              ))}
             </div>
           </div>
-        ) : (
-          <div className="space-y-8">
-            {orderedRounds.map((round, roundIndex) => (
-              <div key={round} className="space-y-4">
-                <div className="flex justify-between items-center">
-                  <h3 className="text-lg font-semibold">
-                    {round.charAt(0) + round.slice(1).toLowerCase()}
-                  </h3>
-                  {isAdmin && matches.some(match => match.round === round && match.status === 'SCHEDULED') && (
-                    <Button
-                      onClick={() => handleSimulateAllRound(round)}
-                      variant="outline"
-                      size="sm"
-                      className="border-orange-500 text-orange-600 hover:bg-orange-50"
-                    >
-                      <Zap className="w-4 h-4 mr-1" />
-                      Simulate All
-                    </Button>
-                  )}
-                </div>
-                <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                  {roundGroups[round].map((match) => (
-                    <Card key={match.id} className="border-2 hover:shadow-lg transition-shadow">
-                      <CardHeader className="pb-2">
-                        <div className="flex justify-between items-center">
-                          <Badge className={getStatusColor(match.status)}>
-                            {getStatusText(match.status)}
-                          </Badge>
-                          <div className="flex gap-2">
-                            {match.status === 'LIVE' && (
-                              <Button
-                                size="sm"
-                                onClick={() => onWatchMatch(match.id)}
-                                className="bg-green-600 hover:bg-green-700"
-                              >
-                                <Eye className="w-4 h-4 mr-1" />
-                                Watch
-                              </Button>
-                            )}
-                          </div>
-                        </div>
-                      </CardHeader>
-                      <CardContent className="space-y-3">
-                        {/* Home Team */}
-                        <div className="flex justify-between items-center p-2 bg-gray-50 dark:bg-gray-800 rounded">
-                          <div className="flex items-center gap-2">
-                            {match.homeTeam.seed && (
-                              <Badge variant="outline" className="text-xs">
-                                #{match.homeTeam.seed}
-                              </Badge>
-                            )}
-                            <span className="font-medium text-gray-900 dark:text-gray-100">
-                              {formatTeamName(match.homeTeam.name)}
-                            </span>
-                          </div>
-                          <div className="text-lg font-bold text-gray-900 dark:text-gray-100">
-                            {match.homeScore !== undefined ? match.homeScore : '-'}
-                          </div>
-                        </div>
 
-                        {/* Away Team */}
-                        <div className="flex justify-between items-center p-2 bg-gray-50 dark:bg-gray-800 rounded">
-                          <div className="flex items-center gap-2">
-                            {match.awayTeam.seed && (
-                              <Badge variant="outline" className="text-xs">
-                                #{match.awayTeam.seed}
-                              </Badge>
-                            )}
-                            <span className="font-medium text-gray-900 dark:text-gray-100">
-                              {formatTeamName(match.awayTeam.name)}
-                            </span>
-                          </div>
-                          <div className="text-lg font-bold text-gray-900 dark:text-gray-100">
-                            {match.awayScore !== undefined ? match.awayScore : '-'}
-                          </div>
-                        </div>
+          {/* Connecting Lines to Semifinals */}
+          <div className="flex flex-col items-center justify-center space-y-16">
+            <ConnectorLine />
+            <ConnectorLine />
+          </div>
 
-                        {/* Match Details */}
-                        <div className="flex justify-between items-center text-sm text-gray-600 dark:text-gray-400">
-                          <div className="flex items-center gap-1">
-                            <Clock className="w-4 h-4" />
-                            {match.round === 'QUARTERFINALS' ? (
-                              <span>Tournament Start</span>
-                            ) : match.startTime ? (
-                              new Date(match.startTime).toLocaleTimeString()
-                            ) : (
-                              'TBD'
-                            )}
-                          </div>
-                          {match.winner && (
-                            <div className="text-green-600 font-medium">
-                              Winner: {formatTeamName(match.winner)}
-                            </div>
-                          )}
-                        </div>
-                      </CardContent>
-                    </Card>
-                  ))}
-                </div>
+          {/* Semifinals */}
+          <div className="flex flex-col items-center space-y-8">
+            <div className="flex items-center space-x-2 mb-4">
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Semifinals</h3>
+              {isAdmin && canSimulateRound('SEMIFINALS') && (
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => onSimulateRound('SEMIFINALS')}
+                  className="ml-2"
+                >
+                  <Play className="w-4 h-4 mr-1" />
+                  Simulate All
+                </Button>
+              )}
+            </div>
+            
+            <div className="space-y-16">
+              {semifinalsMatches.length > 0 ? (
+                semifinalsMatches.map((match, index) => (
+                  <MatchCard 
+                    key={match.id} 
+                    match={match} 
+                    isUserTeam={isUserInMatch(match)}
+                  />
+                ))
+              ) : (
+                <>
+                  <TBDCard round="Semifinals" />
+                  <TBDCard round="Semifinals" />
+                </>
+              )}
+            </div>
+          </div>
+
+          {/* Connecting Lines to Finals */}
+          <div className="flex flex-col items-center justify-center">
+            <ConnectorLine />
+          </div>
+
+          {/* Finals */}
+          <div className="flex flex-col items-center">
+            <div className="flex items-center space-x-2 mb-4">
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Finals</h3>
+              {isAdmin && canSimulateRound('FINALS') && (
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => onSimulateRound('FINALS')}
+                  className="ml-2"
+                >
+                  <Play className="w-4 h-4 mr-1" />
+                  Simulate All
+                </Button>
+              )}
+            </div>
+            
+            {finalsMatches.length > 0 ? (
+              <MatchCard 
+                match={finalsMatches[0]} 
+                isUserTeam={isUserInMatch(finalsMatches[0])}
+              />
+            ) : (
+              <TBDCard round="Finals" />
+            )}
+          </div>
+
+          {/* Champion */}
+          <div className="flex flex-col items-center">
+            <ConnectorLine />
+            <div className="mt-4 bg-gradient-to-r from-yellow-400 to-yellow-600 dark:from-yellow-500 dark:to-yellow-700 rounded-lg p-4 min-w-[120px] text-center">
+              <Trophy className="w-8 h-8 text-white mx-auto mb-2" />
+              <div className="text-white font-bold text-sm">
+                {finalsMatches.length > 0 && finalsMatches[0].status === 'COMPLETED' 
+                  ? finalsMatches[0].winner || 'Champion'
+                  : 'Champion'
+                }
               </div>
-            ))}
+            </div>
+          </div>
+        </div>
+
+        {/* Tournament Path for User */}
+        {tournament.status === 'IN_PROGRESS' && (
+          <div className="mt-8 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+            <h4 className="font-semibold text-blue-900 dark:text-blue-100 mb-2">Your Tournament Path</h4>
+            <p className="text-sm text-blue-800 dark:text-blue-200">
+              Follow the bracket to see your potential route to the championship. Good luck!
+            </p>
           </div>
         )}
       </CardContent>
     </Card>
   );
-};
-
-export default TournamentBracket;
+}

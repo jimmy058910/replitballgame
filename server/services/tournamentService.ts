@@ -181,8 +181,8 @@ export class TournamentService {
       entryFeeGems: 0,
       status: "REGISTRATION_OPEN" as const,
       prizePoolJson: rewards,
-      registrationEndTime: moment.tz("America/New_York").add(15, 'minutes').toDate(), // 15 minutes after creation
-      startTime: moment.tz("America/New_York").add(15, 'minutes').toDate(),
+      registrationEndTime: moment.tz("America/New_York").add(60, 'minutes').toDate(), // 60 minutes after creation
+      startTime: moment.tz("America/New_York").add(60, 'minutes').toDate(),
     };
 
     const created = await prisma.tournament.create({
@@ -784,7 +784,7 @@ export class TournamentService {
     // Shuffle teams randomly for fair bracket
     const shuffledTeams = [...teams].sort(() => Math.random() - 0.5);
 
-    // Create Round 1 matches (Quarterfinals)
+    // ONLY Create Round 1 matches (Quarterfinals) - fix for pre-determined teams issue
     const round1Matches = [];
     for (let i = 0; i < 4; i++) {
       const homeTeam = shuffledTeams[i * 2];
@@ -795,9 +795,9 @@ export class TournamentService {
           tournamentId,
           homeTeamId: homeTeam.id,
           awayTeamId: awayTeam.id,
-          gameDate: new Date(),
+          gameDate: new Date(Date.now() + 5 * 60 * 1000), // 5 minutes from now
           matchType: "TOURNAMENT_DAILY",
-          round: 1,
+          round: "QUARTERFINALS",
           status: "SCHEDULED"
         }
       });
@@ -805,38 +805,66 @@ export class TournamentService {
       round1Matches.push(match);
     }
 
-    // Create Round 2 matches (Semifinals) with TBD teams
-    const round2Matches = [];
-    for (let i = 0; i < 2; i++) {
-      const match = await prisma.game.create({
-        data: {
-          tournamentId,
-          homeTeamId: shuffledTeams[0].id, // Placeholder - will be updated when round 1 completes
-          awayTeamId: shuffledTeams[1].id, // Placeholder - will be updated when round 1 completes
-          gameDate: new Date(Date.now() + 24 * 60 * 60 * 1000), // Tomorrow
-          matchType: "TOURNAMENT_DAILY",
-          round: 2,
-          status: "SCHEDULED"
-        }
-      });
-      
-      round2Matches.push(match);
+    console.log(`Generated tournament bracket for tournament ${tournamentId} with ${teams.length} teams - ONLY quarterfinals created`);
+  }
+
+  // Method to advance tournament to next round (called when previous round completes)
+  async advanceTournamentRound(tournamentId: number, completedRound: string): Promise<void> {
+    const tournament = await prisma.tournament.findUnique({
+      where: { id: tournamentId }
+    });
+
+    if (!tournament) {
+      throw new Error("Tournament not found");
     }
 
-    // Create Round 3 match (Finals) with TBD teams
-    await prisma.game.create({
-      data: {
-        tournamentId,
-        homeTeamId: shuffledTeams[0].id, // Placeholder - will be updated when round 2 completes
-        awayTeamId: shuffledTeams[1].id, // Placeholder - will be updated when round 2 completes
-        gameDate: new Date(Date.now() + 48 * 60 * 60 * 1000), // Day after tomorrow
-        matchType: "TOURNAMENT_DAILY",
-        round: 3,
-        status: "SCHEDULED"
+    // Get winners from completed round
+    const completedMatches = await prisma.game.findMany({
+      where: {
+        tournamentId: tournamentId,
+        round: completedRound,
+        status: "COMPLETED"
+      },
+      include: {
+        homeTeam: true,
+        awayTeam: true
       }
     });
 
-    console.log(`Generated tournament bracket for tournament ${tournamentId} with ${teams.length} teams`);
+    const winners = completedMatches.map(match => {
+      return match.homeTeamScore > match.awayTeamScore ? match.homeTeam : match.awayTeam;
+    });
+
+    // Create next round matches based on completed round
+    if (completedRound === "QUARTERFINALS" && winners.length === 4) {
+      // Create semifinals
+      for (let i = 0; i < 2; i++) {
+        await prisma.game.create({
+          data: {
+            tournamentId,
+            homeTeamId: winners[i * 2].id,
+            awayTeamId: winners[i * 2 + 1].id,
+            gameDate: new Date(Date.now() + 10 * 60 * 1000), // 10 minutes from now
+            matchType: "TOURNAMENT_DAILY",
+            round: "SEMIFINALS",
+            status: "SCHEDULED"
+          }
+        });
+      }
+    } else if (completedRound === "SEMIFINALS" && winners.length === 2) {
+      // Create finals
+      await prisma.game.create({
+        data: {
+          tournamentId,
+          homeTeamId: winners[0].id,
+          awayTeamId: winners[1].id,
+          gameDate: new Date(Date.now() + 10 * 60 * 1000), // 10 minutes from now
+          matchType: "TOURNAMENT_DAILY",
+          round: "FINALS",
+          status: "SCHEDULED"
+        }
+      });
+    }
   }
 }
 
