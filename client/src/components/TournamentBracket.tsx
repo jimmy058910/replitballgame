@@ -103,7 +103,7 @@ export default function TournamentBracket({ tournament, matches, userTeamId, isA
               </Badge>
             )}
             {isScheduled && (
-              <Badge variant="outline" className="text-xs">
+              <Badge variant="secondary" className="text-xs font-semibold">
                 <Clock className="w-3 h-3 mr-1" />
                 {match.gameTime || 'Tournament Start'}
               </Badge>
@@ -123,13 +123,13 @@ export default function TournamentBracket({ tournament, matches, userTeamId, isA
     <div className="bg-gray-100 dark:bg-gray-700 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-3 min-w-[180px]">
       <div className="space-y-2">
         <div className="flex items-center justify-center p-2 bg-gray-200 dark:bg-gray-600 rounded">
-          <span className="text-sm text-gray-500 dark:text-gray-400">TBD</span>
+          <span className="text-sm font-medium text-gray-700 dark:text-gray-200">TBD</span>
         </div>
         <div className="flex items-center justify-center p-2 bg-gray-200 dark:bg-gray-600 rounded">
-          <span className="text-sm text-gray-500 dark:text-gray-400">TBD</span>
+          <span className="text-sm font-medium text-gray-700 dark:text-gray-200">TBD</span>
         </div>
         <div className="flex items-center justify-center">
-          <Badge variant="outline" className="text-xs">
+          <Badge variant="secondary" className="text-xs font-semibold">
             <Users className="w-3 h-3 mr-1" />
             {round}
           </Badge>
