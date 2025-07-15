@@ -277,15 +277,7 @@ export default function TournamentBracket({ tournament, matches, userTeamId, isA
           </div>
         </div>
 
-        {/* Tournament Path for User */}
-        {tournament.status === 'IN_PROGRESS' && (
-          <div className="mt-8 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
-            <h4 className="font-semibold text-blue-900 dark:text-blue-100 mb-2">Your Tournament Path</h4>
-            <p className="text-sm text-blue-800 dark:text-blue-200">
-              Follow the bracket to see your potential route to the championship. Good luck!
-            </p>
-          </div>
-        )}
+
       </CardContent>
     </Card>
   );

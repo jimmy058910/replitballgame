@@ -552,6 +552,68 @@ router.get('/:id/matches', isAuthenticated, async (req: any, res) => {
   }
 });
 
+// Simulate tournament round
+router.post('/:id/matches/simulate-round', isAuthenticated, async (req: any, res) => {
+  try {
+    const tournamentId = req.params.id;
+    const { round } = req.body;
+    const userId = req.user.claims.sub;
+    
+    // Check if user is admin
+    if (userId !== "44010914") {
+      return res.status(403).json({ message: "Access denied. Admin privileges required." });
+    }
+
+    // Get tournament first to get the database ID
+    let tournament = await prisma.tournament.findFirst({
+      where: { tournamentId: tournamentId }
+    });
+    
+    if (!tournament) {
+      return res.status(404).json({ message: "Tournament not found" });
+    }
+
+    // Convert round name to number
+    let roundNumber = 1;
+    if (round === 'QUARTERFINALS') roundNumber = 1;
+    else if (round === 'SEMIFINALS') roundNumber = 2;
+    else if (round === 'FINALS') roundNumber = 3;
+
+    // Get matches for the specified round
+    const matches = await prisma.game.findMany({
+      where: { 
+        tournamentId: tournament.id,
+        round: roundNumber,
+        status: 'SCHEDULED'
+      }
+    });
+
+    // Simulate all matches in the round
+    for (const match of matches) {
+      const homeScore = Math.floor(Math.random() * 3) + 1;
+      const awayScore = Math.floor(Math.random() * 3) + 1;
+      
+      await prisma.game.update({
+        where: { id: match.id },
+        data: {
+          homeScore,
+          awayScore,
+          status: 'COMPLETED',
+          simulated: true
+        }
+      });
+    }
+
+    res.json({ 
+      message: `${round} round simulated successfully`,
+      matchesSimulated: matches.length
+    });
+  } catch (error) {
+    console.error("Error simulating tournament round:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+});
+
 // Start a tournament match
 router.post('/:id/matches/:matchId/start', isAuthenticated, async (req: any, res) => {
   try {
