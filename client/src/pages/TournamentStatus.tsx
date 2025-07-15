@@ -6,9 +6,10 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { Separator } from '@/components/ui/separator';
-import { Clock, Users, Trophy, Zap, Shield } from 'lucide-react';
+import { Clock, Users, Trophy, Zap, Shield, Eye, Play } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/useAuth';
+import TournamentBracket from '@/components/TournamentBracket';
 
 interface TournamentStatusData {
   id: string;
@@ -40,6 +41,25 @@ interface TournamentStatusData {
     entryTime: string;
     placement: number | null;
   };
+  matches?: Array<{
+    id: string;
+    round: string;
+    homeTeam: {
+      id: string;
+      name: string;
+      seed?: number;
+    };
+    awayTeam: {
+      id: string;
+      name: string;
+      seed?: number;
+    };
+    homeScore?: number;
+    awayScore?: number;
+    status: 'SCHEDULED' | 'LIVE' | 'COMPLETED';
+    startTime?: string;
+    winner?: string;
+  }>;
 }
 
 interface ActiveTournament {
@@ -70,6 +90,7 @@ export default function TournamentStatus() {
   const { user } = useAuth();
   const [selectedTournament, setSelectedTournament] = useState<number | null>(null);
   const [refreshInterval, setRefreshInterval] = useState<NodeJS.Timeout | null>(null);
+  const [activeTab, setActiveTab] = useState<'overview' | 'bracket' | 'matches'>('overview');
   
   // Check if current user is admin
   const isAdmin = user?.userId === "44010914";
@@ -116,6 +137,215 @@ export default function TournamentStatus() {
       });
     }
   };
+
+  // Watch match handler
+  const handleWatchMatch = (matchId: string) => {
+    // Navigate to live match viewer
+    window.location.href = `/live-match/${matchId}`;
+  };
+
+  // Get tournament tab content
+  const getTournamentTabContent = () => {
+    if (!tournamentStatus) return null;
+
+    switch (activeTab) {
+      case 'overview':
+        return renderOverviewTab();
+      case 'bracket':
+        return (
+          <TournamentBracket
+            tournamentId={tournamentStatus.id}
+            tournamentName={tournamentStatus.name}
+            matches={tournamentStatus.matches || []}
+            onWatchMatch={handleWatchMatch}
+            isAdmin={isAdmin}
+          />
+        );
+      case 'matches':
+        return renderMatchesTab();
+      default:
+        return renderOverviewTab();
+    }
+  };
+
+  const renderOverviewTab = () => (
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      {/* Tournament Progress */}
+      <div>
+        <h3 className="font-semibold mb-4 flex items-center gap-2">
+          <Users className="w-4 h-4" />
+          Registration Progress
+        </h3>
+        <div className="space-y-3">
+          <div className="flex justify-between text-sm">
+            <span>Participants</span>
+            <span className="font-medium">
+              {tournamentStatus!.currentParticipants}/{tournamentStatus!.maxParticipants}
+            </span>
+          </div>
+          <Progress 
+            value={(tournamentStatus!.currentParticipants / tournamentStatus!.maxParticipants) * 100} 
+            className="h-2"
+          />
+          <div className="flex justify-between text-xs text-muted-foreground">
+            <span>
+              {tournamentStatus!.spotsRemaining} spots remaining
+            </span>
+            <span>
+              {tournamentStatus!.isFull ? 'Full' : 'Open'}
+            </span>
+          </div>
+        </div>
+
+        {/* Tournament Timing */}
+        <div className="mt-6">
+          <h4 className="font-medium mb-2 flex items-center gap-2">
+            <Clock className="w-4 h-4" />
+            Tournament Timing
+          </h4>
+          <div className="space-y-2 text-sm">
+            {tournamentStatus!.isReadyToStart ? (
+              <div className="flex items-center gap-2 text-green-600">
+                <Zap className="w-4 h-4" />
+                <span className="font-medium">Ready to Start!</span>
+              </div>
+            ) : (
+              <div className="flex items-center gap-2">
+                <Clock className="w-4 h-4" />
+                <span>Starts in: {tournamentStatus!.timeUntilStartText}</span>
+              </div>
+            )}
+            {!tournamentStatus!.isFull && (
+              <div className="text-xs text-muted-foreground">
+                Registration closes: {new Date(tournamentStatus!.registrationDeadline).toLocaleString()}
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Entry Fee */}
+        {(tournamentStatus!.entryFeeCredits > 0 || tournamentStatus!.entryFeeGems > 0) && (
+          <div className="mt-6">
+            <h4 className="font-medium mb-2">Entry Fee</h4>
+            <div className="text-sm space-y-1">
+              {tournamentStatus!.entryFeeCredits > 0 && (
+                <div className="flex items-center gap-1">
+                  <span className="text-yellow-600">₡</span>
+                  {tournamentStatus!.entryFeeCredits.toLocaleString()} Credits
+                </div>
+              )}
+              {tournamentStatus!.entryFeeGems > 0 && (
+                <div className="flex items-center gap-1">
+                  <span className="text-purple-600">💎</span>
+                  {tournamentStatus!.entryFeeGems} Gems
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* Force Start Button (Admin only) */}
+        {isAdmin && tournamentStatus!.status === 'REGISTRATION_OPEN' && (
+          <div className="mt-6">
+            <Button 
+              onClick={() => handleForceStart(selectedTournament!)}
+              variant="outline"
+              size="sm"
+              className="w-full"
+              disabled={loadingStatus}
+            >
+              {loadingStatus ? 'Loading...' : 'Force Start Tournament'}
+            </Button>
+            <p className="text-xs text-muted-foreground mt-1">
+              This will fill remaining spots with AI teams and start the tournament immediately
+            </p>
+          </div>
+        )}
+      </div>
+
+      {/* Participants List */}
+      <div>
+        <h3 className="font-semibold mb-4 flex items-center gap-2">
+          <Trophy className="w-4 h-4" />
+          Participants
+        </h3>
+        <div className="space-y-2 max-h-64 overflow-y-auto">
+          {tournamentStatus!.participants.map((participant, index) => (
+            <div
+              key={participant.teamId}
+              className={`p-3 rounded-lg border text-sm ${
+                participant.teamId === tournamentStatus!.userTeamEntry?.teamId
+                  ? 'border-primary bg-primary/5'
+                  : 'border-border'
+              }`}
+            >
+              <div className="flex justify-between items-center">
+                <div>
+                  <div className="font-medium">{participant.teamName}</div>
+                  <div className="text-xs text-muted-foreground">
+                    Joined: {new Date(participant.entryTime).toLocaleString()}
+                  </div>
+                </div>
+                <div className="text-xs">
+                  #{index + 1}
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+
+  const renderMatchesTab = () => (
+    <div className="space-y-4">
+      <h3 className="font-semibold mb-4 flex items-center gap-2">
+        <Play className="w-4 h-4" />
+        Live Matches
+      </h3>
+      {tournamentStatus!.matches?.filter(match => match.status === 'LIVE').length === 0 ? (
+        <div className="text-center py-8 text-muted-foreground">
+          No live matches at the moment
+        </div>
+      ) : (
+        <div className="grid gap-4">
+          {tournamentStatus!.matches?.filter(match => match.status === 'LIVE').map((match) => (
+            <Card key={match.id} className="border-green-500">
+              <CardHeader className="pb-2">
+                <div className="flex justify-between items-center">
+                  <Badge className="bg-green-600">Live</Badge>
+                  <Button
+                    size="sm"
+                    onClick={() => handleWatchMatch(match.id)}
+                    className="bg-green-600 hover:bg-green-700"
+                  >
+                    <Eye className="w-4 h-4 mr-1" />
+                    Watch Live
+                  </Button>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-2">
+                  <div className="flex justify-between items-center">
+                    <span className="font-medium">{match.homeTeam.name}</span>
+                    <span className="text-lg font-bold">
+                      {match.homeScore !== undefined ? match.homeScore : 0}
+                    </span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="font-medium">{match.awayTeam.name}</span>
+                    <span className="text-lg font-bold">
+                      {match.awayScore !== undefined ? match.awayScore : 0}
+                    </span>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      )}
+    </div>
+  );
 
   // Auto-refresh logic
   useEffect(() => {
@@ -275,130 +505,36 @@ export default function TournamentStatus() {
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  {/* Tournament Progress */}
-                  <div>
-                    <h3 className="font-semibold mb-4 flex items-center gap-2">
-                      <Users className="w-4 h-4" />
-                      Registration Progress
-                    </h3>
-                    <div className="space-y-3">
-                      <div className="flex justify-between text-sm">
-                        <span>Participants</span>
-                        <span className="font-medium">
-                          {tournamentStatus.currentParticipants}/{tournamentStatus.maxParticipants}
-                        </span>
-                      </div>
-                      <Progress 
-                        value={(tournamentStatus.currentParticipants / tournamentStatus.maxParticipants) * 100} 
-                        className="h-2"
-                      />
-                      <div className="flex justify-between text-xs text-muted-foreground">
-                        <span>
-                          {tournamentStatus.spotsRemaining} spots remaining
-                        </span>
-                        <span>
-                          {tournamentStatus.isFull ? 'Full' : 'Open'}
-                        </span>
-                      </div>
-                    </div>
-
-                    {/* Tournament Timing */}
-                    <div className="mt-6">
-                      <h4 className="font-medium mb-2 flex items-center gap-2">
-                        <Clock className="w-4 h-4" />
-                        Tournament Timing
-                      </h4>
-                      <div className="space-y-2 text-sm">
-                        {tournamentStatus.isReadyToStart ? (
-                          <div className="flex items-center gap-2 text-green-600">
-                            <Zap className="w-4 h-4" />
-                            <span className="font-medium">Ready to Start!</span>
-                          </div>
-                        ) : (
-                          <div className="flex items-center gap-2">
-                            <Clock className="w-4 h-4" />
-                            <span>Starts in: {tournamentStatus.timeUntilStartText}</span>
-                          </div>
-                        )}
-                        <div className="text-xs text-muted-foreground">
-                          Registration closes: {new Date(tournamentStatus.registrationDeadline).toLocaleString()}
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Entry Fee */}
-                    {(tournamentStatus.entryFeeCredits > 0 || tournamentStatus.entryFeeGems > 0) && (
-                      <div className="mt-6">
-                        <h4 className="font-medium mb-2">Entry Fee</h4>
-                        <div className="text-sm space-y-1">
-                          {tournamentStatus.entryFeeCredits > 0 && (
-                            <div className="flex items-center gap-1">
-                              <span className="text-yellow-600">₡</span>
-                              {tournamentStatus.entryFeeCredits.toLocaleString()} Credits
-                            </div>
-                          )}
-                          {tournamentStatus.entryFeeGems > 0 && (
-                            <div className="flex items-center gap-1">
-                              <span className="text-purple-600">💎</span>
-                              {tournamentStatus.entryFeeGems} Gems
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    )}
-
-                    {/* Force Start Button (Admin only) */}
-                    {isAdmin && tournamentStatus.status === 'REGISTRATION_OPEN' && (
-                      <div className="mt-6">
-                        <Button 
-                          onClick={() => handleForceStart(selectedTournament!)}
-                          variant="outline"
-                          size="sm"
-                          className="w-full"
-                          disabled={loadingStatus}
-                        >
-                          {loadingStatus ? 'Loading...' : 'Force Start Tournament'}
-                        </Button>
-                        <p className="text-xs text-muted-foreground mt-1">
-                          This will fill remaining spots with AI teams and start the tournament immediately
-                        </p>
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Participants List */}
-                  <div>
-                    <h3 className="font-semibold mb-4 flex items-center gap-2">
-                      <Trophy className="w-4 h-4" />
-                      Participants
-                    </h3>
-                    <div className="space-y-2 max-h-64 overflow-y-auto">
-                      {tournamentStatus.participants.map((participant, index) => (
-                        <div
-                          key={participant.teamId}
-                          className={`p-3 rounded-lg border text-sm ${
-                            participant.teamId === tournamentStatus.userTeamEntry?.teamId
-                              ? 'border-primary bg-primary/5'
-                              : 'border-border'
-                          }`}
-                        >
-                          <div className="flex justify-between items-center">
-                            <div>
-                              <div className="font-medium">{participant.teamName}</div>
-                              <div className="text-xs text-muted-foreground">
-                                Joined: {new Date(participant.entryTime).toLocaleString()}
-                              </div>
-                            </div>
-                            <div className="text-xs">
-                              #{index + 1}
-                            </div>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
+                {/* Tournament Navigation Tabs */}
+                <div className="flex space-x-1 mb-6 p-1 bg-gray-100 dark:bg-gray-800 rounded-lg">
+                  <Button
+                    variant={activeTab === 'overview' ? 'default' : 'ghost'}
+                    size="sm"
+                    onClick={() => setActiveTab('overview')}
+                    className="flex-1"
+                  >
+                    Overview
+                  </Button>
+                  <Button
+                    variant={activeTab === 'bracket' ? 'default' : 'ghost'}
+                    size="sm"
+                    onClick={() => setActiveTab('bracket')}
+                    className="flex-1"
+                  >
+                    Bracket
+                  </Button>
+                  <Button
+                    variant={activeTab === 'matches' ? 'default' : 'ghost'}
+                    size="sm"
+                    onClick={() => setActiveTab('matches')}
+                    className="flex-1"
+                  >
+                    Live Matches
+                  </Button>
                 </div>
+
+                {/* Tournament Tab Content */}
+                {getTournamentTabContent()}
 
                 {/* Prizes */}
                 {tournamentStatus.prizes && (
