@@ -700,7 +700,11 @@ export class TournamentService {
         ]
       },
       include: {
-        entries: true
+        entries: {
+          orderBy: {
+            registeredAt: 'desc'
+          }
+        }
       }
     });
 
@@ -708,9 +712,21 @@ export class TournamentService {
       const currentParticipants = tournament.entries.length;
       const maxParticipants = tournament.maxTeams || 8;
 
-      // Check if tournament is full
+      // Check if tournament is full (8/8 participants)
       if (currentParticipants >= maxParticipants) {
-        await this.startTournament(tournament.id);
+        // Check if 10 minutes have passed since last registration
+        const lastEntryTime = tournament.entries.length > 0 ? 
+          Math.max(...tournament.entries.map(e => new Date(e.registeredAt).getTime())) : 
+          now.getTime();
+        
+        const timeSinceFullMs = now.getTime() - lastEntryTime;
+        const tenMinutesMs = 10 * 60 * 1000; // 10 minutes
+        
+        if (timeSinceFullMs >= tenMinutesMs) {
+          // Tournament is full and 10 minutes have passed - start it
+          await this.startTournament(tournament.id.toString());
+          console.log(`Auto-started tournament ${tournament.id} (${tournament.name}) - 10 minutes elapsed since full`);
+        }
         continue;
       }
 
@@ -719,9 +735,10 @@ export class TournamentService {
         // Fill with AI teams and start
         const spotsToFill = maxParticipants - currentParticipants;
         if (spotsToFill > 0) {
-          await this.fillTournamentWithAI(tournament.id, spotsToFill);
+          await this.fillTournamentWithAI(tournament.id.toString(), spotsToFill);
         }
-        await this.startTournament(tournament.id);
+        await this.startTournament(tournament.id.toString());
+        console.log(`Auto-started tournament ${tournament.id} (${tournament.name}) - registration deadline passed`);
       }
     }
   }
@@ -732,9 +749,29 @@ export class TournamentService {
       where: { id: tournamentId },
       data: {
         status: "IN_PROGRESS",
-        tournamentStartTime: new Date()
+        startTime: new Date()
       }
     });
+    
+    // Generate tournament matches
+    try {
+      await this.generateTournamentMatches(tournamentId);
+    } catch (error) {
+      console.error(`Error generating matches for tournament ${tournamentId}:`, error);
+    }
+  }
+  
+  // Generate tournament matches (8-team single elimination)
+  async generateTournamentMatches(tournamentId: string): Promise<void> {
+    const { TournamentMatchService } = require("./tournamentMatchService");
+    
+    try {
+      // Use the TournamentMatchService to generate matches
+      await TournamentMatchService.generateTournamentMatches(tournamentId);
+    } catch (error) {
+      console.error(`Error generating tournament matches for tournament ${tournamentId}:`, error);
+      throw error;
+    }
   }
 }
 

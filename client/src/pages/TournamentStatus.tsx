@@ -90,7 +90,7 @@ export default function TournamentStatus() {
   const { user } = useAuth();
   const [selectedTournament, setSelectedTournament] = useState<number | null>(null);
   const [refreshInterval, setRefreshInterval] = useState<NodeJS.Timeout | null>(null);
-  const [activeTab, setActiveTab] = useState<'overview' | 'bracket' | 'matches'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'bracket'>('overview');
   
   // Check if current user is admin
   const isAdmin = user?.userId === "44010914";
@@ -161,8 +161,6 @@ export default function TournamentStatus() {
             isAdmin={isAdmin}
           />
         );
-      case 'matches':
-        return renderMatchesTab();
       default:
         return renderOverviewTab();
     }
@@ -208,6 +206,11 @@ export default function TournamentStatus() {
               <div className="flex items-center gap-2 text-green-600">
                 <Zap className="w-4 h-4" />
                 <span className="font-medium">Ready to Start!</span>
+              </div>
+            ) : tournamentStatus!.isFull ? (
+              <div className="flex items-center gap-2 text-orange-600">
+                <Clock className="w-4 h-4" />
+                <span>Tournament starts in: {tournamentStatus!.timeUntilStartText}</span>
               </div>
             ) : (
               <div className="flex items-center gap-2">
@@ -297,55 +300,7 @@ export default function TournamentStatus() {
     </div>
   );
 
-  const renderMatchesTab = () => (
-    <div className="space-y-4">
-      <h3 className="font-semibold mb-4 flex items-center gap-2">
-        <Play className="w-4 h-4" />
-        Live Matches
-      </h3>
-      {tournamentStatus!.matches?.filter(match => match.status === 'LIVE').length === 0 ? (
-        <div className="text-center py-8 text-muted-foreground">
-          No live matches at the moment
-        </div>
-      ) : (
-        <div className="grid gap-4">
-          {tournamentStatus!.matches?.filter(match => match.status === 'LIVE').map((match) => (
-            <Card key={match.id} className="border-green-500">
-              <CardHeader className="pb-2">
-                <div className="flex justify-between items-center">
-                  <Badge className="bg-green-600">Live</Badge>
-                  <Button
-                    size="sm"
-                    onClick={() => handleWatchMatch(match.id)}
-                    className="bg-green-600 hover:bg-green-700"
-                  >
-                    <Eye className="w-4 h-4 mr-1" />
-                    Watch Live
-                  </Button>
-                </div>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-2">
-                  <div className="flex justify-between items-center">
-                    <span className="font-medium">{match.homeTeam.name}</span>
-                    <span className="text-lg font-bold">
-                      {match.homeScore !== undefined ? match.homeScore : 0}
-                    </span>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <span className="font-medium">{match.awayTeam.name}</span>
-                    <span className="text-lg font-bold">
-                      {match.awayScore !== undefined ? match.awayScore : 0}
-                    </span>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-      )}
-    </div>
-  );
+
 
   // Auto-refresh logic
   useEffect(() => {
@@ -511,7 +466,7 @@ export default function TournamentStatus() {
                     variant={activeTab === 'overview' ? 'default' : 'ghost'}
                     size="sm"
                     onClick={() => setActiveTab('overview')}
-                    className="flex-1"
+                    className={`flex-1 ${activeTab === 'overview' ? 'bg-blue-600 text-white hover:bg-blue-700' : 'text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'}`}
                   >
                     Overview
                   </Button>
@@ -519,17 +474,9 @@ export default function TournamentStatus() {
                     variant={activeTab === 'bracket' ? 'default' : 'ghost'}
                     size="sm"
                     onClick={() => setActiveTab('bracket')}
-                    className="flex-1"
+                    className={`flex-1 ${activeTab === 'bracket' ? 'bg-blue-600 text-white hover:bg-blue-700' : 'text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'}`}
                   >
                     Bracket
-                  </Button>
-                  <Button
-                    variant={activeTab === 'matches' ? 'default' : 'ghost'}
-                    size="sm"
-                    onClick={() => setActiveTab('matches')}
-                    className="flex-1"
-                  >
-                    Live Matches
                   </Button>
                 </div>
 

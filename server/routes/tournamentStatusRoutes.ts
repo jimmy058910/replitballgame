@@ -247,13 +247,33 @@ router.get('/:id/status', isAuthenticated, async (req: any, res) => {
     const userTeamEntry = tournament.entries.find(entry => entry.teamId === team.id);
     const userTeamRegistered = !!userTeamEntry;
 
-    // Calculate time until start
+    // Calculate time until start (10 minutes after full)
     const now = new Date();
-    const startTime = new Date(tournament.startTime);
-    const timeUntilStart = Math.max(0, startTime.getTime() - now.getTime());
-    const timeUntilStartText = timeUntilStart > 0 ? 
-      `${Math.floor(timeUntilStart / (1000 * 60 * 60))}h ${Math.floor((timeUntilStart % (1000 * 60 * 60)) / (1000 * 60))}m` : 
-      "Starting soon";
+    let timeUntilStart = 0;
+    let timeUntilStartText = "Starting soon";
+    
+    if (isFull && tournament.status === 'REGISTRATION_OPEN') {
+      // Tournament is full but hasn't started yet - calculate 10 minute countdown
+      const lastEntryTime = tournament.entries.length > 0 ? 
+        Math.max(...tournament.entries.map(e => new Date(e.registeredAt).getTime())) : 
+        now.getTime();
+      const startTime = new Date(lastEntryTime + 10 * 60 * 1000); // 10 minutes after last entry
+      timeUntilStart = Math.max(0, startTime.getTime() - now.getTime());
+      
+      if (timeUntilStart > 0) {
+        const minutes = Math.floor(timeUntilStart / (1000 * 60));
+        const seconds = Math.floor((timeUntilStart % (1000 * 60)) / 1000);
+        timeUntilStartText = `${minutes}m ${seconds}s`;
+      } else {
+        timeUntilStartText = "Starting now!";
+      }
+    } else if (tournament.startTime) {
+      const startTime = new Date(tournament.startTime);
+      timeUntilStart = Math.max(0, startTime.getTime() - now.getTime());
+      timeUntilStartText = timeUntilStart > 0 ? 
+        `${Math.floor(timeUntilStart / (1000 * 60 * 60))}h ${Math.floor((timeUntilStart % (1000 * 60 * 60)) / (1000 * 60))}m` : 
+        "Starting soon";
+    }
 
     // Format participants list
     const participants = tournament.entries.map(entry => ({

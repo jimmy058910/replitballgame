@@ -142,7 +142,7 @@ export class SeasonTimingAutomationService {
   private scheduleTournamentAutoStart(): void {
     this.tournamentAutoStartTimer = setInterval(async () => {
       await this.checkTournamentAutoStart();
-    }, 60 * 60 * 1000); // Check every hour
+    }, 60 * 1000); // Check every minute for 10-minute countdown
   }
 
   /**
