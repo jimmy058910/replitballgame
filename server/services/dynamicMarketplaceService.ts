@@ -690,7 +690,7 @@ export class DynamicMarketplaceService {
       });
 
       // Get total bids placed
-      const totalBidsPlaced = await prisma.marketplaceBid.count();
+      const totalBidsPlaced = await prisma.bid.count();
 
       // Get average and highest current bid
       const bidStats = await prisma.marketplaceListing.aggregate({
@@ -729,7 +729,7 @@ export class DynamicMarketplaceService {
    */
   static async getUserBids(teamId: string): Promise<any[]> {
     try {
-      const bids = await prisma.marketplaceBid.findMany({
+      const bids = await prisma.bid.findMany({
         where: { bidderTeamId: teamId },
         include: {
           listing: {

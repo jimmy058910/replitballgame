@@ -338,280 +338,216 @@ export default function Market() {
                   Purchase equipment, consumables, and training items
                 </p>
               </CardHeader>
-              <CardContent>
-                <Tabs value={storeTab} onValueChange={setStoreTab} className="space-y-4">
-                  <TabsList className="grid w-full grid-cols-3">
-                    <TabsTrigger value="featured">Gem Store</TabsTrigger>
-                    <TabsTrigger value="credit">Credit Store</TabsTrigger>
-                    <TabsTrigger value="entries">Entries</TabsTrigger>
-                  </TabsList>
-
-                  <TabsContent value="featured" className="space-y-4">
-                    <div className="mb-4">
-                      <h3 className="text-lg font-semibold mb-2">Premium Items - Daily Rotation</h3>
-                      <p className="text-sm text-gray-600 dark:text-gray-400">
-                        High-quality items available for Gems only (rotating daily)
-                      </p>
-                    </div>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      {gemItems.map((item) => (
-                        <Card key={item.id} className="border-2 border-purple-200 dark:border-purple-700">
-                          <CardContent className="p-4">
-                            <div className="flex justify-between items-start mb-3">
-                              <div>
-                                <h4 className="font-semibold text-lg">{item.name}</h4>
-                                <Badge className={`${getTierColor(item.rarity)} text-white text-xs`}>
-                                  {item.rarity}
-                                </Badge>
-                              </div>
-                              <div className="text-right">
-                                <div className="text-blue-600 font-bold">💎{item.priceGems}</div>
-                              </div>
-                            </div>
-                            <div className="text-sm text-gray-600 dark:text-gray-400 mb-3 space-y-1">
-                              <p>{item.description}</p>
-                              {item.slot && (
-                                <p className="text-xs text-blue-600 dark:text-blue-400">
-                                  <strong>Slot:</strong> {item.slot}
-                                </p>
-                              )}
-                              {item.raceRestriction && item.raceRestriction !== 'universal' && (
-                                <p className="text-xs text-purple-600 dark:text-purple-400">
-                                  <strong>Race:</strong> {item.raceRestriction.charAt(0).toUpperCase() + item.raceRestriction.slice(1)} only
-                                </p>
-                              )}
-                              {item.statBoosts && Object.keys(item.statBoosts).length > 0 && (
-                                <p className="text-xs text-green-600 dark:text-green-400">
-                                  <strong>Stats:</strong> {Object.entries(item.statBoosts).map(([stat, value]) => 
-                                    `${stat.charAt(0).toUpperCase() + stat.slice(1)} ${value > 0 ? '+' : ''}${value}`
-                                  ).join(', ')}
-                                </p>
-                              )}
-                              {item.effect && (
-                                <p className="text-xs text-orange-600 dark:text-orange-400">
-                                  <strong>Effect:</strong> {item.effect.replace('_', ' ')}
-                                </p>
-                              )}
-                              {item.cosmetic && (
-                                <p className="text-xs text-pink-600 dark:text-pink-400">
-                                  <strong>Cosmetic Item</strong> - No stat effects
-                                </p>
-                              )}
-                            </div>
-                            <Button 
-                              size="sm" 
-                              className="w-full"
-                              onClick={() => handlePurchase(item.id, 'gems')}
-                              disabled={purchaseWithGemsMutation.isPending}
-                            >
-                              Buy with Gems
-                            </Button>
-                            {item.dailyLimit && (
-                              <p className="text-xs text-gray-500 mt-2">
-                                Daily limit: {item.dailyLimit} | Purchased: {item.purchased || 0}
+              <CardContent className="space-y-8">
+                {/* Daily Rotating Items - No more tabs */}
+                <div>
+                  <div className="mb-6">
+                    <h3 className="text-xl font-semibold mb-2">Daily Rotating Items</h3>
+                    <p className="text-sm text-gray-600 dark:text-gray-400">
+                      8 items with mixed equipment and consumables, refreshes daily at 8 AM UTC
+                    </p>
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                    {unifiedItems.map((item) => (
+                      <Card key={item.id} className="border-2 hover:border-blue-300 transition-colors">
+                        <CardContent className="p-4">
+                          <div className="mb-3">
+                            <h4 className="font-medium text-lg mb-1">{item.name}</h4>
+                            <Badge className={`${getTierColor(item.tier || item.rarity)} text-white text-xs`}>
+                              {(item.tier || item.rarity)?.toUpperCase()}
+                            </Badge>
+                          </div>
+                          
+                          <div className="text-sm text-gray-600 dark:text-gray-400 mb-4 space-y-2">
+                            <p className="text-xs">{item.description}</p>
+                            
+                            {/* Race Restriction */}
+                            {item.raceRestriction && item.raceRestriction !== 'universal' && (
+                              <p className="text-xs text-purple-600 dark:text-purple-400 font-medium">
+                                <strong>Race:</strong> {item.raceRestriction.charAt(0).toUpperCase() + item.raceRestriction.slice(1)} only
                               </p>
                             )}
-                          </CardContent>
-                        </Card>
-                      ))}
-                    </div>
-                  </TabsContent>
-
-                  <TabsContent value="credit" className="space-y-4">
-                    <div className="mb-4">
-                      <h3 className="text-lg font-semibold mb-2">Unified Store - Daily Rotation (Master Economy v5)</h3>
-                      <p className="text-sm text-gray-600 dark:text-gray-400">
-                        8 items with mixed equipment and consumables, dual currency pricing
-                      </p>
-                    </div>
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                      {unifiedItems.map((item) => (
-                        <Card key={item.id}>
-                          <CardContent className="p-4">
-                            <div className="flex justify-between items-start mb-3">
-                              <div>
-                                <h4 className="font-medium">{item.name}</h4>
-                                <Badge className={`${getTierColor(item.rarity)} text-white text-xs`}>
-                                  {item.rarity}
-                                </Badge>
+                            
+                            {/* Stat Boosts */}
+                            {item.statBoosts && Object.keys(item.statBoosts).length > 0 && (
+                              <div className="text-xs text-green-600 dark:text-green-400 bg-green-50 dark:bg-green-900/20 p-2 rounded">
+                                <strong>Benefits:</strong> {Object.entries(item.statBoosts).map(([stat, value]) => 
+                                  `${stat.charAt(0).toUpperCase() + stat.slice(1)} ${value > 0 ? '+' : ''}${value}`
+                                ).join(', ')}
                               </div>
-                              <div className="flex flex-col gap-1">
-                                {item.credits && (
-                                  <div className="text-yellow-600 font-bold">
-                                    ₡{item.credits.toLocaleString()}
-                                  </div>
-                                )}
-                                {item.gems && (
-                                  <div className="text-blue-600 font-bold">
-                                    💎{item.gems}
-                                  </div>
-                                )}
+                            )}
+                            
+                            {/* Effect */}
+                            {item.effect && (
+                              <div className="text-xs text-orange-600 dark:text-orange-400 bg-orange-50 dark:bg-orange-900/20 p-2 rounded">
+                                <strong>Effect:</strong> {item.effect.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
                               </div>
-                            </div>
-                            <div className="text-sm text-gray-600 dark:text-gray-400 mb-3 space-y-1">
-                              <p>{item.description}</p>
-                              {item.slot && (
-                                <p className="text-xs text-blue-600 dark:text-blue-400">
-                                  <strong>Slot:</strong> {item.slot}
-                                </p>
-                              )}
-                              {item.raceRestriction && item.raceRestriction !== 'universal' && (
-                                <p className="text-xs text-purple-600 dark:text-purple-400">
-                                  <strong>Race:</strong> {item.raceRestriction.charAt(0).toUpperCase() + item.raceRestriction.slice(1)} only
-                                </p>
-                              )}
-                              {item.statBoosts && Object.keys(item.statBoosts).length > 0 && (
-                                <p className="text-xs text-green-600 dark:text-green-400">
-                                  <strong>Stats:</strong> {Object.entries(item.statBoosts).map(([stat, value]) => 
-                                    `${stat.charAt(0).toUpperCase() + stat.slice(1)} ${value > 0 ? '+' : ''}${value}`
-                                  ).join(', ')}
-                                </p>
-                              )}
-                              {item.effect && (
-                                <p className="text-xs text-orange-600 dark:text-orange-400">
-                                  <strong>Effect:</strong> {item.effect.replace('_', ' ')}
-                                </p>
-                              )}
-                              {item.cosmetic && (
-                                <p className="text-xs text-pink-600 dark:text-pink-400">
-                                  <strong>Cosmetic Item</strong> - No stat effects
-                                </p>
-                              )}
-                            </div>
-                            <div className="flex gap-2">
+                            )}
+                            
+                            {/* Cosmetic */}
+                            {item.cosmetic && (
+                              <div className="text-xs text-pink-600 dark:text-pink-400 bg-pink-50 dark:bg-pink-900/20 p-2 rounded">
+                                <strong>Cosmetic Item</strong> - No stat effects
+                              </div>
+                            )}
+                          </div>
+                          
+                          {/* Pricing */}
+                          <div className="flex justify-between items-center mb-3">
+                            <div className="flex flex-col gap-1">
                               {item.credits && (
-                                <Button 
-                                  size="sm" 
-                                  className="flex-1"
-                                  onClick={() => handlePurchase(item.id, 'credits')}
-                                  disabled={purchaseWithCreditsMutation.isPending}
-                                >
-                                  Buy ₡{item.credits.toLocaleString()}
-                                </Button>
+                                <div className="text-yellow-600 font-bold">
+                                  ₡{item.credits.toLocaleString()}
+                                </div>
                               )}
                               {item.gems && (
-                                <Button 
-                                  size="sm" 
-                                  className="flex-1 bg-blue-600 hover:bg-blue-700"
-                                  onClick={() => handlePurchase(item.id, 'gems')}
-                                  disabled={purchaseWithGemsMutation.isPending}
-                                >
-                                  Buy 💎{item.gems}
-                                </Button>
+                                <div className="text-blue-600 font-bold">
+                                  💎{item.gems}
+                                </div>
                               )}
                             </div>
-                            {item.dailyLimit && (
-                              <p className="text-xs text-gray-500 mt-2">
-                                Daily limit: {item.dailyLimit} | Purchased: {item.purchased || 0}
-                              </p>
+                            <div className="text-xs text-gray-500">
+                              {item.dailyLimit ? `Limit: ${item.dailyLimit}/day` : 'Unlimited'}
+                            </div>
+                          </div>
+                          
+                          {/* Purchase Buttons */}
+                          <div className="flex gap-2">
+                            {item.credits && (
+                              <Button 
+                                size="sm" 
+                                className="flex-1"
+                                onClick={() => handlePurchase(item.id, 'credits')}
+                                disabled={purchaseWithCreditsMutation.isPending}
+                              >
+                                Buy ₡{item.credits.toLocaleString()}
+                              </Button>
                             )}
-                          </CardContent>
-                        </Card>
-                      ))}
-                    </div>
-                  </TabsContent>
-
-                  <TabsContent value="entries" className="space-y-4">
-                    <div className="mb-4">
-                      <h3 className="text-lg font-semibold mb-2">Game & Tournament Entries</h3>
-                      <p className="text-sm text-gray-600 dark:text-gray-400">
-                        Purchase additional game opportunities and tournament entries
-                      </p>
-                    </div>
-                    
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                      <Card className="border-2 border-blue-200">
-                        <CardHeader>
-                          <CardTitle className="text-lg flex items-center gap-2">
-                            <Trophy className="h-5 w-5 text-blue-600" />
-                            Exhibition Game Entry
-                          </CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                          <div className="space-y-4">
-                            <div className="flex justify-between items-center">
-                              <span className="text-sm">Cost:</span>
-                              <div className="flex gap-2">
-                                <span className="text-blue-600 font-bold">💎10 Gems</span>
-                                <span className="text-gray-400">or</span>
-                                <span className="text-yellow-600 font-bold">₡25,000</span>
-                              </div>
-                            </div>
-                            <ul className="text-sm space-y-1 text-gray-600">
-                              <li>• Additional exhibition match</li>
-                              <li>• Extra player experience</li>
-                              <li>• Match revenue opportunity</li>
-                              <li>• Daily limit: 3 purchases</li>
-                            </ul>
-                            <div className="flex gap-2">
+                            {item.gems && (
                               <Button 
-                                className="flex-1 bg-blue-600 hover:bg-blue-700" 
-                                size="sm"
-                                onClick={() => handlePurchase('exhibition_match_entry', 'gems')}
+                                size="sm" 
+                                className="flex-1 bg-blue-600 hover:bg-blue-700"
+                                onClick={() => handlePurchase(item.id, 'gems')}
+                                disabled={purchaseWithGemsMutation.isPending}
                               >
-                                💎10 Gems
+                                Buy 💎{item.gems}
                               </Button>
-                              <Button 
-                                className="flex-1" 
-                                variant="outline" 
-                                size="sm"
-                                onClick={() => handlePurchase('exhibition_match_entry', 'credits')}
-                              >
-                                ₡25,000
-                              </Button>
-                            </div>
-                            <p className="text-xs text-gray-500 text-center">Purchased today: 0/3</p>
+                            )}
                           </div>
+                          
+                          {/* Daily Limit Progress */}
+                          {item.dailyLimit && (
+                            <p className="text-xs text-gray-500 mt-2 text-center">
+                              Purchased today: {item.purchased || 0}/{item.dailyLimit}
+                            </p>
+                          )}
                         </CardContent>
                       </Card>
+                    ))}
+                  </div>
+                </div>
 
-                      <Card className="border-2 border-orange-200">
-                        <CardHeader>
-                          <CardTitle className="text-lg flex items-center gap-2">
-                            <Crown className="h-5 w-5 text-orange-600" />
-                            Tournament Entry
-                          </CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                          <div className="space-y-4">
-                            <div className="flex justify-between items-center">
-                              <span className="text-sm">Cost:</span>
-                              <div className="flex gap-2">
-                                <span className="text-blue-600 font-bold">💎25 Gems</span>
-                                <span className="text-gray-400">or</span>
-                                <span className="text-yellow-600 font-bold">₡150,000</span>
-                              </div>
-                            </div>
-                            <ul className="text-sm space-y-1 text-gray-600">
-                              <li>• Special tournament participation</li>
-                              <li>• Compete for exclusive rewards</li>
-                              <li>• Enhanced prestige and recognition</li>
-                              <li>• Daily limit: 1 purchase</li>
-                            </ul>
+                {/* Game & Tournament Entries */}
+                <div>
+                  <div className="mb-6">
+                    <h3 className="text-xl font-semibold mb-2">Game & Tournament Entries</h3>
+                    <p className="text-sm text-gray-600 dark:text-gray-400">
+                      Purchase additional game opportunities and tournament entries
+                    </p>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <Card className="border-2 border-blue-200">
+                      <CardHeader>
+                        <CardTitle className="text-lg flex items-center gap-2">
+                          <Trophy className="h-5 w-5 text-blue-600" />
+                          Exhibition Game Entry
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="space-y-4">
+                          <div className="flex justify-between items-center">
+                            <span className="text-sm">Cost:</span>
                             <div className="flex gap-2">
-                              <Button 
-                                className="flex-1 bg-orange-600 hover:bg-orange-700" 
-                                size="sm"
-                                onClick={() => handlePurchase('tournament_gem', 'gems')}
-                              >
-                                💎25 Gems
-                              </Button>
-                              <Button 
-                                className="flex-1" 
-                                variant="outline" 
-                                size="sm"
-                                onClick={() => handlePurchase('tournament_credit', 'credits')}
-                              >
-                                ₡150,000
-                              </Button>
+                              <span className="text-blue-600 font-bold">💎10 Gems</span>
+                              <span className="text-gray-400">or</span>
+                              <span className="text-yellow-600 font-bold">₡25,000</span>
                             </div>
-                            <p className="text-xs text-gray-500 text-center">Purchased today: 0/1</p>
                           </div>
-                        </CardContent>
-                      </Card>
-                    </div>
-                  </TabsContent>
-                </Tabs>
+                          <ul className="text-sm space-y-1 text-gray-600">
+                            <li>• Additional exhibition match</li>
+                            <li>• Extra player experience</li>
+                            <li>• Match revenue opportunity</li>
+                            <li>• Daily limit: 3 purchases</li>
+                          </ul>
+                          <div className="flex gap-2">
+                            <Button 
+                              className="flex-1 bg-blue-600 hover:bg-blue-700" 
+                              size="sm"
+                              onClick={() => handlePurchase('exhibition_match_entry', 'gems')}
+                            >
+                              💎10 Gems
+                            </Button>
+                            <Button 
+                              className="flex-1" 
+                              variant="outline" 
+                              size="sm"
+                              onClick={() => handlePurchase('exhibition_match_entry', 'credits')}
+                            >
+                              ₡25,000
+                            </Button>
+                          </div>
+                          <p className="text-xs text-gray-500 text-center">Purchased today: 0/3</p>
+                        </div>
+                      </CardContent>
+                    </Card>
+
+                    <Card className="border-2 border-orange-200">
+                      <CardHeader>
+                        <CardTitle className="text-lg flex items-center gap-2">
+                          <Crown className="h-5 w-5 text-orange-600" />
+                          Tournament Entry
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="space-y-4">
+                          <div className="flex justify-between items-center">
+                            <span className="text-sm">Cost:</span>
+                            <div className="flex gap-2">
+                              <span className="text-blue-600 font-bold">💎25 Gems</span>
+                              <span className="text-gray-400">or</span>
+                              <span className="text-yellow-600 font-bold">₡150,000</span>
+                            </div>
+                          </div>
+                          <ul className="text-sm space-y-1 text-gray-600">
+                            <li>• Special tournament participation</li>
+                            <li>• Compete for exclusive rewards</li>
+                            <li>• Enhanced prestige and recognition</li>
+                            <li>• Daily limit: 1 purchase</li>
+                          </ul>
+                          <div className="flex gap-2">
+                            <Button 
+                              className="flex-1 bg-orange-600 hover:bg-orange-700" 
+                              size="sm"
+                              onClick={() => handlePurchase('tournament_gem', 'gems')}
+                            >
+                              💎25 Gems
+                            </Button>
+                            <Button 
+                              className="flex-1" 
+                              variant="outline" 
+                              size="sm"
+                              onClick={() => handlePurchase('tournament_credit', 'credits')}
+                            >
+                              ₡150,000
+                            </Button>
+                          </div>
+                          <p className="text-xs text-gray-500 text-center">Purchased today: 0/1</p>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </div>
+                </div>
               </CardContent>
             </Card>
           </TabsContent>
