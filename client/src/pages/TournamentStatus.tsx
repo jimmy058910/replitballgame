@@ -152,11 +152,41 @@ export default function TournamentStatus() {
       case 'overview':
         return renderOverviewTab();
       case 'bracket':
+        // Transform API matches to match component expectations
+        const transformedMatches = (tournamentStatus.matches || []).map(match => {
+          // Find team names from participants
+          const homeTeamData = tournamentStatus.participants.find(p => p.teamId === match.homeTeamId.toString());
+          const awayTeamData = tournamentStatus.participants.find(p => p.teamId === match.awayTeamId.toString());
+          
+          // Convert numeric round to round name
+          let roundName = 'QUARTERFINALS';
+          if (match.round === 1) roundName = 'QUARTERFINALS';
+          else if (match.round === 2) roundName = 'SEMIFINALS';
+          else if (match.round === 3) roundName = 'FINALS';
+          
+          return {
+            id: match.id.toString(),
+            round: roundName,
+            homeTeam: {
+              id: match.homeTeamId.toString(),
+              name: homeTeamData?.teamName || 'Unknown Team'
+            },
+            awayTeam: {
+              id: match.awayTeamId.toString(),
+              name: awayTeamData?.teamName || 'Unknown Team'
+            },
+            homeScore: match.homeScore,
+            awayScore: match.awayScore,
+            status: match.status,
+            startTime: match.gameDate || match.createdAt
+          };
+        });
+        
         return (
           <TournamentBracket
             tournamentId={tournamentStatus.id}
             tournamentName={tournamentStatus.name}
-            matches={tournamentStatus.matches || []}
+            matches={transformedMatches}
             onWatchMatch={handleWatchMatch}
             isAdmin={isAdmin}
           />
