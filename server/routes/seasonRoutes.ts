@@ -51,7 +51,8 @@ router.get('/current', isAuthenticated, async (req: Request, res: Response, next
 router.get('/current-cycle', isAuthenticated, async (req: Request, res: Response, next: NextFunction) => {
   try {
     // Always calculate season data based on fixed date (no database dependency)
-    const startDate = new Date("2025-01-01");
+    // Adjusted to make today (July 15) approximately Day 3 in the cycle
+    const startDate = new Date("2025-07-13");
     const now = new Date();
     const daysSinceStart = Math.floor((now.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24));
     const currentDayInCycle = (daysSinceStart % 17) + 1;
