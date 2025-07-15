@@ -31,6 +31,10 @@ interface InventoryItem {
   rarity: string;
   quantity: number;
   metadata: any;
+  raceRestriction?: string;
+  statBoosts?: any;
+  effect?: string;
+  slot?: string;
 }
 
 interface Player {
@@ -77,19 +81,19 @@ export default function UnifiedInventoryHub({ teamId }: UnifiedInventoryHubProps
   });
   const players = (rawPlayers || []) as Player[];
 
-  // Filter definitions according to project brief
+  // Filter definitions according to project brief (only count items with quantity > 0)
   const filterOptions = [
-    { id: "all", name: "All Items", icon: Package, count: inventory.length },
-    { id: "EQUIPMENT", name: "Equipment", icon: Shield, count: inventory.filter(item => item.itemType === "EQUIPMENT").length },
-    { id: "CONSUMABLE_RECOVERY", name: "Consumables", icon: Zap, count: inventory.filter(item => item.itemType === "CONSUMABLE_RECOVERY").length },
-    { id: "GAME_ENTRY", name: "Game Entries", icon: Ticket, count: inventory.filter(item => item.itemType === "GAME_ENTRY").length },
-    { id: "trophy", name: "Trophies", icon: Trophy, count: inventory.filter(item => item.itemType === "trophy").length },
+    { id: "all", name: "All Items", icon: Package, count: inventory.filter(item => item.quantity > 0).length },
+    { id: "EQUIPMENT", name: "Equipment", icon: Shield, count: inventory.filter(item => item.itemType === "EQUIPMENT" && item.quantity > 0).length },
+    { id: "CONSUMABLE", name: "Consumables", icon: Zap, count: inventory.filter(item => item.itemType?.includes("CONSUMABLE") && item.quantity > 0).length },
+    { id: "GAME_ENTRY", name: "Game Entries", icon: Ticket, count: inventory.filter(item => item.itemType === "GAME_ENTRY" && item.quantity > 0).length },
+    { id: "trophy", name: "Trophies", icon: Trophy, count: inventory.filter(item => item.itemType === "trophy" && item.quantity > 0).length },
   ];
 
-  // Filter inventory based on selected filter
+  // Filter inventory based on selected filter and quantity > 0
   const filteredInventory = selectedFilter === "all" 
-    ? inventory 
-    : inventory.filter(item => item.itemType === selectedFilter);
+    ? inventory.filter(item => item.quantity > 0) 
+    : inventory.filter(item => (item.itemType === selectedFilter || (selectedFilter === "CONSUMABLE" && item.itemType?.includes("CONSUMABLE"))) && item.quantity > 0);
 
   // Get rarity color for item cards
   const getRarityColor = (rarity: string) => {
@@ -317,24 +321,30 @@ export default function UnifiedInventoryHub({ teamId }: UnifiedInventoryHubProps
                     </p>
                     
                     {/* Enhanced Item Details */}
-                    {item.metadata?.statBoosts && (
+                    {item.raceRestriction && (
                       <div className="mt-2">
-                        <p className="text-xs font-medium text-gray-400">Stat Boosts:</p>
+                        <p className="text-xs font-medium text-blue-400">Race: {item.raceRestriction}</p>
+                      </div>
+                    )}
+                    
+                    {item.statBoosts && (
+                      <div className="mt-2">
+                        <p className="text-xs font-medium text-green-400">Stats:</p>
                         <div className="flex flex-wrap gap-1 mt-1">
-                          {Object.entries(item.metadata.statBoosts).map(([stat, value]: [string, any]) => (
-                            <span key={stat} className="text-xs bg-blue-100 dark:bg-blue-900 px-2 py-1 rounded">
-                              +{value} {stat}
+                          {Object.entries(item.statBoosts).map(([stat, value]: [string, any]) => (
+                            <span key={stat} className="text-xs bg-green-100 dark:bg-green-900 px-2 py-1 rounded">
+                              {stat}: +{value}
                             </span>
                           ))}
                         </div>
                       </div>
                     )}
                     
-                    {item.metadata?.effect && (
+                    {(item.effect || item.metadata?.effect) && (
                       <div className="mt-2">
-                        <p className="text-xs font-medium text-gray-400">Effect:</p>
-                        <span className="text-xs bg-green-100 dark:bg-green-900 px-2 py-1 rounded">
-                          {item.metadata.effect} {item.metadata.effectValue && `(${item.metadata.effectValue})`}
+                        <p className="text-xs font-medium text-purple-400">Effect:</p>
+                        <span className="text-xs bg-purple-100 dark:bg-purple-900 px-2 py-1 rounded">
+                          {item.effect || item.metadata?.effect}
                         </span>
                       </div>
                     )}
