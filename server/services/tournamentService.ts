@@ -136,6 +136,7 @@ export class TournamentService {
     const todayTournamentCount = await prisma.tournament.count({
       where: {
         division: division,
+        seasonDay: gameDay,
         createdAt: {
           gte: startOfDay
         }
@@ -145,6 +146,7 @@ export class TournamentService {
     const sequential = todayTournamentCount + 1;
     
     // Format: Season(1 digit) + Division(1 digit) + GameDay(1 digit) + Sequential(1 digit)
+    // Example: Season 0, Division 8, Day 4, Tournament 1 = "0841"
     const seasonDigit = season % 10;
     const divisionDigit = division % 10;
     const gameDayDigit = gameDay % 10;

@@ -68,7 +68,7 @@ interface ActiveTournament {
 export default function TournamentStatus() {
   const { toast } = useToast();
   const { user } = useAuth();
-  const [selectedTournament, setSelectedTournament] = useState<string | null>(null);
+  const [selectedTournament, setSelectedTournament] = useState<number | null>(null);
   const [refreshInterval, setRefreshInterval] = useState<NodeJS.Timeout | null>(null);
   
   // Check if current user is admin
@@ -97,7 +97,7 @@ export default function TournamentStatus() {
   });
 
   // Force start tournament
-  const handleForceStart = async (tournamentId: string) => {
+  const handleForceStart = async (tournamentId: number) => {
     try {
       const response = await apiRequest('POST', `/api/tournament-status/${tournamentId}/force-start`);
       if (response.ok) {
@@ -190,11 +190,11 @@ export default function TournamentStatus() {
                     <div
                       key={tournament.id}
                       className={`p-4 rounded-lg border cursor-pointer transition-all duration-200 ${
-                        selectedTournament === tournament.id
+                        selectedTournament === tournament.tournamentId
                           ? 'border-primary bg-primary/10 shadow-md ring-1 ring-primary/20'
                           : 'border-border hover:border-primary/50 hover:shadow-sm'
                       }`}
-                      onClick={() => setSelectedTournament(tournament.id)}
+                      onClick={() => setSelectedTournament(tournament.tournamentId)}
                     >
                       <div className="flex items-center justify-between mb-2">
                         <div className="flex items-center gap-2">
@@ -352,15 +352,16 @@ export default function TournamentStatus() {
                     {isAdmin && tournamentStatus.status === 'REGISTRATION_OPEN' && (
                       <div className="mt-6">
                         <Button 
-                          onClick={() => handleForceStart(tournamentStatus.id)}
+                          onClick={() => handleForceStart(selectedTournament!)}
                           variant="outline"
                           size="sm"
                           className="w-full"
+                          disabled={loadingStatus}
                         >
-                          Force Start Tournament
+                          {loadingStatus ? 'Loading...' : 'Force Start Tournament'}
                         </Button>
                         <p className="text-xs text-muted-foreground mt-1">
-                          This will fill remaining spots with AI teams and start the tournament
+                          This will fill remaining spots with AI teams and start the tournament immediately
                         </p>
                       </div>
                     )}
