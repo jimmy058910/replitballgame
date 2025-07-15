@@ -606,7 +606,7 @@ model EquipmentReward {
 model Tournament {
   id                  Int               @id @default(autoincrement())
   name                String
-  tournamentId        String?           @unique
+  tournamentId        String?
   type                TournamentType
   division            Int?
   status              TournamentStatus  @default(REGISTRATION_OPEN)
@@ -648,4 +648,24 @@ model TournamentEntry {
   rewardsClaimed Boolean    @default(false)
 
   @@unique([tournamentId, teamId])
+}
+
+model PaymentTransaction {
+  id                Int      @id @default(autoincrement())
+  userId            String
+  teamId            Int
+  transactionType   String   // purchase, refund, etc.
+  itemName          String
+  itemType          String   // equipment, consumable, etc.
+  creditsAmount     BigInt   @default(0)
+  gemsAmount        Int      @default(0)
+  status            String   // pending, completed, failed
+  metadata          Json?    // additional transaction info
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  @@index([userId])
+  @@index([teamId])
+  @@index([transactionType])
+  @@index([status])
 }
