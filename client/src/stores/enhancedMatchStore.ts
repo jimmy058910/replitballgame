@@ -218,82 +218,10 @@ export const useEnhancedMatchStore = create<MatchState>()(
     },
     
     simulateNextPlay: () => {
-      const state = get();
-      const { simulationContext, activeMatch } = state;
-      
-      if (!simulationContext || !activeMatch || activeMatch.status !== 'in_progress') {
-        return;
-      }
-      
-      // Simulate next play using deterministic randomness
-      const playOutcome = simulationContext.rollChoice('play_outcome', [
-        'completed_pass',
-        'incomplete_pass',
-        'rushing_gain',
-        'tackle',
-        'turnover',
-        'score'
-      ]);
-      
-      const playValue = simulationContext.rollInt('play_value', 1, 10);
-      
-      // Handle play outcome
-      switch (playOutcome) {
-        case 'score':
-          const scoringTeam = simulationContext.rollBool('home_scores', 0.5) 
-            ? activeMatch.homeTeam 
-            : activeMatch.awayTeam;
-          
-          const scoringPlayer = simulationContext.rollChoice('scorer', scoringTeam.players);
-          
-          // Emit score event
-          const scoreEvent: ScoreEvent = GameEventBus.createScoreEvent(
-            activeMatch.id,
-            activeMatch.homeTeam.id,
-            activeMatch.awayTeam.id,
-            {
-              scoringPlayerId: scoringPlayer.id,
-              scoringTeamId: scoringTeam.id,
-              scoreType: 'touchdown',
-              homeScore: scoringTeam.id === activeMatch.homeTeam.id ? activeMatch.homeTeam.score + 7 : activeMatch.homeTeam.score,
-              awayScore: scoringTeam.id === activeMatch.awayTeam.id ? activeMatch.awayTeam.score + 7 : activeMatch.awayTeam.score,
-              gameTime: activeMatch.gameTime
-            }
-          );
-          
-          gameEventBus.emitGameEvent(scoreEvent);
-          break;
-          
-        case 'tackle':
-          // Random chance of injury on tackle
-          if (simulationContext.rollBool('injury_chance', 0.02)) {
-            const injuredPlayer = simulationContext.rollChoice('injured_player', [
-              ...activeMatch.homeTeam.players,
-              ...activeMatch.awayTeam.players
-            ]);
-            
-            const injuryEvent: InjuryEvent = GameEventBus.createInjuryEvent(
-              injuredPlayer.id,
-              activeMatch.homeTeam.players.includes(injuredPlayer) ? activeMatch.homeTeam.id : activeMatch.awayTeam.id,
-              {
-                injuryType: simulationContext.rollChoice('injury_type', ['strain', 'bruise', 'sprain']),
-                severity: simulationContext.rollChoice('injury_severity', ['minor', 'moderate']),
-                estimatedRecovery: simulationContext.rollInt('recovery_days', 1, 7),
-                cause: 'tackle'
-              }
-            );
-            
-            gameEventBus.emitGameEvent(injuryEvent);
-          }
-          break;
-      }
-      
-      // Update game time
-      set(state => {
-        if (state.activeMatch) {
-          state.activeMatch.gameTime += simulationContext.rollInt('time_advance', 30, 120);
-        }
-      });
+      // This method is deprecated - real match simulation is now handled by the server
+      // via the /api/demo/match-simulation endpoint which uses the same simulation
+      // engine as Exhibition, League, and Tournament games
+      console.log('simulateNextPlay: Using real match simulation via API');
     },
     
     // Event handling

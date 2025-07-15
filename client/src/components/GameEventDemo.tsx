@@ -57,7 +57,7 @@ export function GameEventDemo() {
     console.log('Player progression:', event);
   });
 
-  // Demo match data
+  // Demo match data - Using real Realm Rivalry structure
   const createDemoMatch = () => {
     const demoMatch = {
       id: 1,
@@ -66,9 +66,9 @@ export function GameEventDemo() {
         name: 'Fire Dragons',
         score: 0,
         players: [
-          { id: 1, name: 'Alex Thunder', stamina: 85, maxStamina: 100, isInjured: false, position: 'QB', stats: { scores: 0, tackles: 0, interceptions: 0, passingYards: 0, rushingYards: 0 } },
-          { id: 2, name: 'Mike Blitz', stamina: 92, maxStamina: 100, isInjured: false, position: 'RB', stats: { scores: 0, tackles: 0, interceptions: 0, passingYards: 0, rushingYards: 0 } },
-          { id: 3, name: 'Sarah Strike', stamina: 88, maxStamina: 100, isInjured: false, position: 'WR', stats: { scores: 0, tackles: 0, interceptions: 0, passingYards: 0, rushingYards: 0 } }
+          { id: 1, name: 'Alex Thunder', stamina: 85, maxStamina: 100, isInjured: false, position: 'Human Passer', stats: { scores: 0, tackles: 0, interceptions: 0, passingYards: 0, rushingYards: 0 } },
+          { id: 2, name: 'Mike Blitz', stamina: 92, maxStamina: 100, isInjured: false, position: 'Sylvan Runner', stats: { scores: 0, tackles: 0, interceptions: 0, passingYards: 0, rushingYards: 0 } },
+          { id: 3, name: 'Sarah Strike', stamina: 88, maxStamina: 100, isInjured: false, position: 'Gryll Blocker', stats: { scores: 0, tackles: 0, interceptions: 0, passingYards: 0, rushingYards: 0 } }
         ]
       },
       awayTeam: {
@@ -76,9 +76,9 @@ export function GameEventDemo() {
         name: 'Storm Eagles',
         score: 0,
         players: [
-          { id: 4, name: 'Jake Storm', stamina: 90, maxStamina: 100, isInjured: false, position: 'QB', stats: { scores: 0, tackles: 0, interceptions: 0, passingYards: 0, rushingYards: 0 } },
-          { id: 5, name: 'Lisa Bolt', stamina: 87, maxStamina: 100, isInjured: false, position: 'RB', stats: { scores: 0, tackles: 0, interceptions: 0, passingYards: 0, rushingYards: 0 } },
-          { id: 6, name: 'Tom Wing', stamina: 95, maxStamina: 100, isInjured: false, position: 'WR', stats: { scores: 0, tackles: 0, interceptions: 0, passingYards: 0, rushingYards: 0 } }
+          { id: 4, name: 'Jake Storm', stamina: 90, maxStamina: 100, isInjured: false, position: 'Lumina Passer', stats: { scores: 0, tackles: 0, interceptions: 0, passingYards: 0, rushingYards: 0 } },
+          { id: 5, name: 'Lisa Bolt', stamina: 87, maxStamina: 100, isInjured: false, position: 'Umbra Runner', stats: { scores: 0, tackles: 0, interceptions: 0, passingYards: 0, rushingYards: 0 } },
+          { id: 6, name: 'Tom Wing', stamina: 95, maxStamina: 100, isInjured: false, position: 'Human Blocker', stats: { scores: 0, tackles: 0, interceptions: 0, passingYards: 0, rushingYards: 0 } }
         ]
       },
       gameTime: 0,
@@ -87,15 +87,69 @@ export function GameEventDemo() {
     };
     
     setActiveMatch(demoMatch);
-    startDeterministicMatch(101, 102, new Date());
   };
 
-  // Simulation control
-  const startSimulation = () => {
+  // Simulation control - Using real match simulation API
+  const startSimulation = async () => {
     if (!activeMatch) {
       createDemoMatch();
     }
     setIsSimulating(true);
+    
+    try {
+      // Call the real match simulation API
+      const response = await fetch('/api/demo/match-simulation', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' }
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to simulate match');
+      }
+      
+      const result = await response.json();
+      
+      if (result.success) {
+        // Update match with real simulation results
+        setActiveMatch(prev => prev ? {
+          ...prev,
+          homeTeam: { ...prev.homeTeam, score: result.result.homeScore },
+          awayTeam: { ...prev.awayTeam, score: result.result.awayScore },
+          gameTime: 1800, // 30 minutes for exhibition
+          status: 'completed' as const,
+          events: result.result.events.map((event: any) => ({
+            type: event.type,
+            timestamp: event.time,
+            description: event.description
+          }))
+        } : null);
+        
+        // Emit events through the Event Bus
+        result.result.events.forEach((event: any) => {
+          if (event.type === 'score') {
+            emitEvent(GameEventBus.createScoreEvent(
+              1, // matchId
+              101, // homeTeamId
+              102, // awayTeamId
+              {
+                scoringPlayerId: 1, // Default player
+                scoringTeamId: event.team === 'home' ? 101 : 102,
+                scoreType: 'score',
+                homeScore: result.result.homeScore,
+                awayScore: result.result.awayScore,
+                gameTime: event.time
+              }
+            ));
+          }
+        });
+        
+        console.log('Real match simulation completed:', result.result);
+      }
+    } catch (error) {
+      console.error('Failed to simulate match:', error);
+    } finally {
+      setIsSimulating(false);
+    }
   };
 
   const stopSimulation = () => {
@@ -107,21 +161,11 @@ export function GameEventDemo() {
     createDemoMatch();
   };
 
-  // Auto-simulate plays
+  // Auto-simulate plays - Now handled by real match simulation
   useEffect(() => {
-    if (!isSimulating || !activeMatch) return;
-
-    const interval = setInterval(() => {
-      simulateNextPlay();
-      
-      // Stop if game time exceeds 3600 seconds (1 hour)
-      if (activeMatch.gameTime > 3600) {
-        setIsSimulating(false);
-      }
-    }, simulationSpeed);
-
-    return () => clearInterval(interval);
-  }, [isSimulating, activeMatch, simulateNextPlay, simulationSpeed]);
+    // Real match simulation handles timing automatically
+    // This effect is kept for consistency but simulation is handled in startSimulation
+  }, [isSimulating, activeMatch, simulationSpeed]);
 
   // Manual event triggers for demo
   const triggerDemoEvents = () => {
@@ -199,9 +243,9 @@ export function GameEventDemo() {
   return (
     <div className="space-y-6">
       <div className="text-center space-y-4">
-        <h2 className="text-2xl font-bold">Game Event Bus & Deterministic Simulation</h2>
+        <h2 className="text-2xl font-bold">Game Event Bus & Real Match Simulation</h2>
         <p className="text-muted-foreground">
-          Real-time event system with predictable, seed-based randomness for testing
+          Real-time event system using the same match simulation engine as Exhibition, League, and Tournament games
         </p>
       </div>
 
@@ -214,7 +258,7 @@ export function GameEventDemo() {
               Live Match Simulation
             </CardTitle>
             <CardDescription>
-              Deterministic match with real-time events
+              Real match simulation with fantasy races, single-point scoring, and comprehensive player stats
             </CardDescription>
           </CardHeader>
           <CardContent>
