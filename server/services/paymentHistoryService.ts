@@ -7,10 +7,7 @@ export class PaymentHistoryService {
    */
   static async recordTransaction(transaction: Prisma.PaymentTransactionCreateInput): Promise<PaymentTransaction> {
     const newTransaction = await prisma.paymentTransaction.create({
-      data: {
-        ...transaction,
-        completedAt: transaction.status === "completed" ? new Date() : null,
-      }
+      data: transaction
     });
     
     return newTransaction;
@@ -96,16 +93,13 @@ export class PaymentHistoryService {
    * Update transaction status
    */
   static async updateTransactionStatus(
-    transactionId: string,
-    status: string,
-    failureReason?: string
+    transactionId: number,
+    status: string
   ): Promise<PaymentTransaction | null> {
     const updatedTransaction = await prisma.paymentTransaction.update({
       where: { id: transactionId },
       data: {
         status,
-        failureReason,
-        completedAt: status === "completed" ? new Date() : null,
       },
     });
 
@@ -133,22 +127,18 @@ export class PaymentHistoryService {
     const summary = transactions.reduce(
       (acc, transaction) => {
         // Credits
-        if (transaction.creditsChange && transaction.creditsChange > 0) {
-          acc.totalCreditsEarned += transaction.creditsChange;
-        } else if (transaction.creditsChange && transaction.creditsChange < 0) {
-          acc.totalCreditsSpent += Math.abs(transaction.creditsChange);
+        const creditsAmount = Number(transaction.creditsAmount);
+        if (creditsAmount > 0) {
+          acc.totalCreditsEarned += creditsAmount;
+        } else if (creditsAmount < 0) {
+          acc.totalCreditsSpent += Math.abs(creditsAmount);
         }
 
         // Gems
-        if (transaction.gemsChange && transaction.gemsChange > 0) {
-          acc.totalGemsEarned += transaction.gemsChange;
-        } else if (transaction.gemsChange && transaction.gemsChange < 0) {
-          acc.totalGemsSpent += Math.abs(transaction.gemsChange);
-        }
-
-        // USD spending
-        if (transaction.amount && transaction.amount > 0) {
-          acc.totalSpentUSD += transaction.amount;
+        if (transaction.gemsAmount && transaction.gemsAmount > 0) {
+          acc.totalGemsEarned += transaction.gemsAmount;
+        } else if (transaction.gemsAmount && transaction.gemsAmount < 0) {
+          acc.totalGemsSpent += Math.abs(transaction.gemsAmount);
         }
 
         acc.totalTransactions++;
@@ -182,14 +172,13 @@ export class PaymentHistoryService {
   ): Promise<PaymentTransaction> {
     return this.recordTransaction({
       userId,
-      teamId,
+      teamId: typeof teamId === 'string' ? parseInt(teamId) : teamId,
       transactionType: "purchase",
       itemType,
       itemName,
-      creditsChange: creditsSpent > 0 ? -creditsSpent : 0,
-      gemsChange: gemsSpent > 0 ? -gemsSpent : 0,
+      creditsAmount: BigInt(creditsSpent > 0 ? creditsSpent : 0),
+      gemsAmount: gemsSpent > 0 ? gemsSpent : 0,
       status: "completed",
-      paymentMethod: "system",
       metadata,
     });
   }
@@ -206,14 +195,13 @@ export class PaymentHistoryService {
   ): Promise<PaymentTransaction> {
     return this.recordTransaction({
       userId,
-      teamId,
+      teamId: typeof teamId === 'string' ? parseInt(teamId) : teamId,
       transactionType: "admin_grant",
       itemType: creditsGranted > 0 ? "credits" : "gems",
       itemName: reason,
-      creditsChange: creditsGranted,
-      gemsChange: gemsGranted,
+      creditsAmount: BigInt(creditsGranted),
+      gemsAmount: gemsGranted,
       status: "completed",
-      paymentMethod: "admin",
     });
   }
 
@@ -229,14 +217,13 @@ export class PaymentHistoryService {
   ): Promise<PaymentTransaction> {
     return this.recordTransaction({
       userId,
-      teamId,
+      teamId: typeof teamId === 'string' ? parseInt(teamId) : teamId,
       transactionType: "reward",
       itemType: creditsEarned > 0 ? "credits" : "gems",
       itemName: `${rewardType} Reward`,
-      creditsChange: creditsEarned,
-      gemsChange: gemsEarned,
+      creditsAmount: BigInt(creditsEarned),
+      gemsAmount: gemsEarned,
       status: "completed",
-      paymentMethod: "reward",
     });
   }
 }
