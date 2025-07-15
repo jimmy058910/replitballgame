@@ -65,6 +65,8 @@ model Team {
   notifications        Notification[]
   tournamentEntries    TournamentEntry[]
   tryoutHistory        TryoutHistory[]
+  homeTeamGames        Game[]           @relation("HomeTeamGames")
+  awayTeamGames        Game[]           @relation("AwayTeamGames")
 }
 
 enum FieldSize {
@@ -412,7 +414,9 @@ model Game {
   leagueId      Int?
   league        League?     @relation(fields: [leagueId], references: [id])
   homeTeamId    Int
+  homeTeam      Team        @relation("HomeTeamGames", fields: [homeTeamId], references: [id])
   awayTeamId    Int
+  awayTeam      Team        @relation("AwayTeamGames", fields: [awayTeamId], references: [id])
   homeScore     Int?
   awayScore     Int?
   gameDate      DateTime

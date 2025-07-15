@@ -125,6 +125,18 @@ router.get('/my-active', isAuthenticated, async (req: any, res) => {
       }
     });
 
+    // Get participant counts for all tournaments
+    const participantCounts = await Promise.all(
+      entries.map(async (entry) => {
+        const count = await prisma.tournamentEntry.count({
+          where: { tournamentId: entry.tournament.id }
+        });
+        return { tournamentId: entry.tournament.id, count };
+      })
+    );
+    
+    const participantCountMap = new Map(participantCounts.map(p => [p.tournamentId, p.count]));
+
     // Transform the data for the frontend
     const statusData = entries.map(entry => ({
       id: entry.id,
@@ -136,7 +148,7 @@ router.get('/my-active', isAuthenticated, async (req: any, res) => {
       status: entry.tournament.status,
       registrationDeadline: entry.tournament.registrationEndTime,
       entryTime: entry.registeredAt,
-      currentParticipants: 1, // Placeholder - would need to count entries
+      currentParticipants: participantCountMap.get(entry.tournament.id) || 0,
       maxParticipants: 8, // Standard tournament size
       prizes: entry.tournament.prizePoolJson,
       placement: entry.finalRank,
@@ -293,27 +305,26 @@ router.get('/:id/status', isAuthenticated, async (req: any, res) => {
       const rawMatches = await prisma.game.findMany({
         where: { tournamentId: tournament.id },
         include: {
-          tournament: true,
-          homeTeam: {
-            select: {
-              id: true,
-              name: true,
-              division: true
-            }
-          },
-          awayTeam: {
-            select: {
-              id: true,
-              name: true,
-              division: true
-            }
-          }
+          tournament: true
         },
         orderBy: [
           { round: 'asc' },
           { id: 'asc' }
         ]
       });
+      
+      // Fetch team data separately
+      const teamIds = [...new Set([...rawMatches.map(m => m.homeTeamId), ...rawMatches.map(m => m.awayTeamId)])];
+      const teams = await prisma.team.findMany({
+        where: { id: { in: teamIds } },
+        select: {
+          id: true,
+          name: true,
+          division: true
+        }
+      });
+      
+      const teamMap = new Map(teams.map(team => [team.id, team]));
       
       // Serialize BigInt values in matches and include team names
       matches = rawMatches.map(match => ({
@@ -323,15 +334,15 @@ router.get('/:id/status', isAuthenticated, async (req: any, res) => {
         homeTeamId: match.homeTeamId.toString(),
         awayTeamId: match.awayTeamId.toString(),
         tournamentId: match.tournamentId ? match.tournamentId.toString() : null,
-        homeTeam: match.homeTeam ? {
-          id: match.homeTeam.id.toString(),
-          name: match.homeTeam.name,
-          division: match.homeTeam.division
+        homeTeam: teamMap.get(match.homeTeamId) ? {
+          id: teamMap.get(match.homeTeamId).id.toString(),
+          name: teamMap.get(match.homeTeamId).name,
+          division: teamMap.get(match.homeTeamId).division
         } : null,
-        awayTeam: match.awayTeam ? {
-          id: match.awayTeam.id.toString(),
-          name: match.awayTeam.name,
-          division: match.awayTeam.division
+        awayTeam: teamMap.get(match.awayTeamId) ? {
+          id: teamMap.get(match.awayTeamId).id.toString(),
+          name: teamMap.get(match.awayTeamId).name,
+          division: teamMap.get(match.awayTeamId).division
         } : null,
         tournament: match.tournament ? {
           ...match.tournament,
