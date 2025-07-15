@@ -593,8 +593,17 @@ router.post('/:id/matches/simulate-round', isAuthenticated, async (req: any, res
 
     // Simulate all matches in the round
     for (const match of matches) {
-      const homeScore = Math.floor(Math.random() * 3) + 1;
-      const awayScore = Math.floor(Math.random() * 3) + 1;
+      let homeScore = Math.floor(Math.random() * 3) + 1;
+      let awayScore = Math.floor(Math.random() * 3) + 1;
+      
+      // Ensure no draws in tournament play - if scores are tied, add overtime winner
+      if (homeScore === awayScore) {
+        if (Math.random() > 0.5) {
+          homeScore++;
+        } else {
+          awayScore++;
+        }
+      }
       
       await prisma.game.update({
         where: { id: match.id },
@@ -608,7 +617,7 @@ router.post('/:id/matches/simulate-round', isAuthenticated, async (req: any, res
     }
 
     // Generate next round matches if current round is complete
-    await generateNextRoundMatches(tournament.id, roundNumber);
+    await checkAndAdvanceTournament(tournament.id);
 
     res.json({ 
       message: `${round} round simulated successfully`,
@@ -692,7 +701,8 @@ async function generateNextRoundMatches(tournamentId: number, completedRound: nu
       } else if (match.awayScore > match.homeScore) {
         return match.awayTeamId;
       } else {
-        // In case of tie, randomly pick winner
+        // This should not happen anymore due to draw prevention, but safety fallback
+        console.warn(`Unexpected tie in tournament match ${match.id}: ${match.homeScore}-${match.awayScore}`);
         return Math.random() > 0.5 ? match.homeTeamId : match.awayTeamId;
       }
     });
