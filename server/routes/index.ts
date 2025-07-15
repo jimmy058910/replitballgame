@@ -1,4 +1,6 @@
 import type { Express } from "express";
+// Domain routes (new domain-driven architecture)
+import domainRoutes from "../domains";
 import authRoutes from "./authRoutes";
 import teamRoutes from "./teamRoutes";
 import playerRoutes from "./playerRoutes";
@@ -47,6 +49,10 @@ import tournamentStatusRoutes from "./tournamentStatusRoutes";
 // It replaces the direct app.use calls that would have been in server/index.ts
 // or the single registerRoutes function from the old server/routes.ts.
 export function registerAllRoutes(app: Express): void {
+  // Mount domain routes (new architecture)
+  app.use("/api/v2", domainRoutes);
+  
+  // Legacy routes (existing system)
   app.use("/api/auth", authRoutes);
   app.use("/api/teams", teamRoutes); // Note: some routes like /api/teams/division/:division were moved to leagueRoutes
   app.use("/api/players", playerRoutes);
