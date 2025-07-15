@@ -151,25 +151,19 @@ export default function Market() {
     }
   });
 
-  // Fetch Credit Store items
-  const { data: creditStoreData } = useQuery({
+  // Fetch Unified Store Data (Master Economy v5 - 8-item daily rotation)
+  const { data: unifiedStoreData } = useQuery({
     queryKey: ["/api/store/items"],
     select: (data) => {
-      // Only include equipment and consumables, exclude entries
-      const allItems = [...(data.equipment || []), ...(data.consumables || [])];
-      // Include items that have a credit price but exclude entries and dual-currency items
-      const creditItems = allItems.filter(item => 
-        item.price && item.price > 0 && 
-        item.category !== 'entry' && 
-        !item.priceGems // Exclude items that also have gem pricing (those belong in entries)
-      );
-      console.log('Credit store items:', creditItems.length, creditItems);
-      return creditItems;
+      // Master Economy v5 returns dailyItems array with 8 items containing mixed equipment and consumables
+      const dailyItems = data.dailyItems || [];
+      console.log('Unified store items:', dailyItems.length, dailyItems);
+      return dailyItems;
     }
   });
 
   const gemItems = gemStoreData || [];
-  const creditItems = creditStoreData || [];
+  const unifiedItems = unifiedStoreData || [];
 
   const team = (rawTeam || {}) as Team;
 
@@ -193,7 +187,7 @@ export default function Market() {
     mutationFn: (itemId: string) =>
       apiRequest(`/api/store/purchase/${itemId}`, 'POST', { currency: 'gems' }),
     onSuccess: (data, itemId) => {
-      const item = [...gemItems, ...creditItems].find(i => i.id === itemId);
+      const item = [...gemItems, ...unifiedItems].find(i => i.id === itemId);
       toast({
         title: "Purchase Successful!",
         description: `You purchased ${item?.name} with gems.`,
@@ -216,7 +210,7 @@ export default function Market() {
     mutationFn: (itemId: string) =>
       apiRequest(`/api/store/purchase/${itemId}`, 'POST', { currency: 'credits' }),
     onSuccess: (data, itemId) => {
-      const item = [...gemItems, ...creditItems].find(i => i.id === itemId);
+      const item = [...gemItems, ...unifiedItems].find(i => i.id === itemId);
       toast({
         title: "Purchase Successful!",
         description: `You purchased ${item?.name} with credits.`,
@@ -425,13 +419,13 @@ export default function Market() {
 
                   <TabsContent value="credit" className="space-y-4">
                     <div className="mb-4">
-                      <h3 className="text-lg font-semibold mb-2">Credit Store - Daily Rotation</h3>
+                      <h3 className="text-lg font-semibold mb-2">Unified Store - Daily Rotation (Master Economy v5)</h3>
                       <p className="text-sm text-gray-600 dark:text-gray-400">
-                        Basic and uncommon items available for Credits only
+                        8 items with mixed equipment and consumables, dual currency pricing
                       </p>
                     </div>
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                      {creditItems.map((item) => (
+                      {unifiedItems.map((item) => (
                         <Card key={item.id}>
                           <CardContent className="p-4">
                             <div className="flex justify-between items-start mb-3">
@@ -441,8 +435,17 @@ export default function Market() {
                                   {item.rarity}
                                 </Badge>
                               </div>
-                              <div className="text-yellow-600 font-bold">
-                                ₡{item.price?.toLocaleString()}
+                              <div className="flex flex-col gap-1">
+                                {item.credits && (
+                                  <div className="text-yellow-600 font-bold">
+                                    ₡{item.credits.toLocaleString()}
+                                  </div>
+                                )}
+                                {item.gems && (
+                                  <div className="text-blue-600 font-bold">
+                                    💎{item.gems}
+                                  </div>
+                                )}
                               </div>
                             </div>
                             <div className="text-sm text-gray-600 dark:text-gray-400 mb-3 space-y-1">
@@ -475,14 +478,28 @@ export default function Market() {
                                 </p>
                               )}
                             </div>
-                            <Button 
-                              size="sm" 
-                              className="w-full"
-                              onClick={() => handlePurchase(item.id, 'credits')}
-                              disabled={purchaseWithCreditsMutation.isPending}
-                            >
-                              Purchase
-                            </Button>
+                            <div className="flex gap-2">
+                              {item.credits && (
+                                <Button 
+                                  size="sm" 
+                                  className="flex-1"
+                                  onClick={() => handlePurchase(item.id, 'credits')}
+                                  disabled={purchaseWithCreditsMutation.isPending}
+                                >
+                                  Buy ₡{item.credits.toLocaleString()}
+                                </Button>
+                              )}
+                              {item.gems && (
+                                <Button 
+                                  size="sm" 
+                                  className="flex-1 bg-blue-600 hover:bg-blue-700"
+                                  onClick={() => handlePurchase(item.id, 'gems')}
+                                  disabled={purchaseWithGemsMutation.isPending}
+                                >
+                                  Buy 💎{item.gems}
+                                </Button>
+                              )}
+                            </div>
                             {item.dailyLimit && (
                               <p className="text-xs text-gray-500 mt-2">
                                 Daily limit: {item.dailyLimit} | Purchased: {item.purchased || 0}

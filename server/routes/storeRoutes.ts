@@ -9,6 +9,7 @@ import { isAuthenticated } from "../replitAuth";
 import { z } from "zod";
 import storeConfig from "../config/store_config.json";
 import { EnhancedGameEconomyService } from "../services/enhancedGameEconomyService";
+import { PaymentHistoryService } from "../services/paymentHistoryService";
 import fs from "fs";
 
 const router = Router();
@@ -364,6 +365,18 @@ router.post('/purchase/:itemId', isAuthenticated, async (req: any, res: Response
         if (currentCredits < actualPrice) return res.status(400).json({ message: "Insufficient credits." });
         await teamFinancesStorage.updateTeamFinances(team.id, { credits: BigInt(currentCredits - actualPrice) });
         message = `Purchased ${itemId} for ${actualPrice} credits.`;
+        
+        // Record transaction
+        await PaymentHistoryService.recordTransaction({
+          userId: userId,
+          teamId: team.id,
+          transactionType: "purchase",
+          amount: actualPrice,
+          currency: "credits",
+          status: "completed",
+          description: `Store purchase: ${itemId}`,
+          metadata: { itemId, storeType: "unified" }
+        });
     } else if (currency === "gems" || currency === "premium_currency") {
         const currentGems = finances.gems || finances.premiumCurrency || 0;
         console.log(`Debug: User has ${currentGems} gems, trying to purchase for ${actualPrice} gems`);
@@ -375,6 +388,18 @@ router.post('/purchase/:itemId', isAuthenticated, async (req: any, res: Response
         }
         await teamFinancesStorage.updateTeamFinances(team.id, { gems: currentGems - actualPrice });
         message = `Purchased ${itemId} for ${actualPrice} gems.`;
+        
+        // Record transaction
+        await PaymentHistoryService.recordTransaction({
+          userId: userId,
+          teamId: team.id,
+          transactionType: "purchase",
+          amount: actualPrice,
+          currency: "gems",
+          status: "completed",
+          description: `Store purchase: ${itemId}`,
+          metadata: { itemId, storeType: "unified" }
+        });
     } else {
         return res.status(400).json({ message: "Unsupported currency type for this item." });
     }
