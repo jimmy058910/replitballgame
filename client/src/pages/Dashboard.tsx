@@ -365,7 +365,7 @@ export default function Dashboard() {
                         {getTeamRankPosition(standings || [], team.id) || "1st"} Place
                       </p>
                       <p className="text-xs text-gray-400">
-                        {team.wins}W - {team.losses}L - {team.draws}D
+                        {team.wins || 0}W - {team.losses || 0}L - {team.draws || 0}D
                       </p>
                     </div>
                     <div className={`${team.division === 8 ? 'bg-orange-600' : 'bg-gold-400'} bg-opacity-20 p-3 rounded-lg`}>
