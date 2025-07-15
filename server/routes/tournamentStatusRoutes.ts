@@ -28,7 +28,7 @@ router.get('/active', isAuthenticated, async (req: any, res) => {
           select: {
             id: true,
             name: true,
-
+            tournamentId: true,
             type: true,
             division: true,
             status: true,
@@ -65,7 +65,7 @@ router.get('/active', isAuthenticated, async (req: any, res) => {
       tournament: {
         id: entry.tournament.id,
         name: entry.tournament.name,
-
+        tournamentId: entry.tournament.tournamentId,
         type: entry.tournament.type,
         division: entry.tournament.division,
         status: entry.tournament.status,
@@ -107,6 +107,7 @@ router.get('/my-active', isAuthenticated, async (req: any, res) => {
           select: {
             id: true,
             name: true,
+            tournamentId: true,
             type: true,
             division: true,
             status: true,
@@ -135,6 +136,7 @@ router.get('/my-active', isAuthenticated, async (req: any, res) => {
         return {
           id: entry.tournament.id,
           name: entry.tournament.name,
+          tournamentId: entry.tournament.tournamentId,
           type: entry.tournament.type,
           division: entry.tournament.division,
           status: entry.tournament.status,
@@ -197,6 +199,7 @@ router.get('/:tournamentId/status', isAuthenticated, async (req: any, res) => {
     const response = {
       id: tournament.id.toString(),
       name: tournament.name,
+      tournamentId: tournament.tournamentId,
       type: tournament.type,
       division: tournament.division,
       status: tournament.status,

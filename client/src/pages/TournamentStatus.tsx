@@ -129,7 +129,7 @@ export default function TournamentStatus() {
   }, [selectedTournament, refetchStatus]);
 
   const getDivisionName = (division: number) => {
-    const names = ["", "Diamond", "Platinum", "Gold", "Silver", "Bronze", "Copper", "Iron", "Stone"];
+    const names = ["", "Diamond", "Platinum", "Gold", "Silver", "Bronze", "Iron", "Stone", "Copper"];
     return names[division] || `Division ${division}`;
   };
 
@@ -197,7 +197,10 @@ export default function TournamentStatus() {
                       onClick={() => setSelectedTournament(tournament.id)}
                     >
                       <div className="flex items-center justify-between mb-2">
-                        <h3 className="font-semibold text-sm">{tournament.name}</h3>
+                        <div className="flex items-center gap-2">
+                          <h3 className="font-semibold text-sm">{tournament.name}</h3>
+                          <span className="text-xs text-muted-foreground">#{tournament.tournamentId}</span>
+                        </div>
                         <Badge className={getStatusColor(tournament.status)}>
                           {getStatusText(tournament.status)}
                         </Badge>
@@ -235,7 +238,10 @@ export default function TournamentStatus() {
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center justify-between">
-                  <span>{tournamentStatus.name}</span>
+                  <div className="flex items-center gap-2">
+                    <span>{tournamentStatus.name}</span>
+                    <span className="text-sm text-muted-foreground">#{tournamentStatus.tournamentId}</span>
+                  </div>
                   <Badge className={getStatusColor(tournamentStatus.status)}>
                     {getStatusText(tournamentStatus.status)}
                   </Badge>
