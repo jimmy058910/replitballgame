@@ -139,7 +139,7 @@ export async function simulateEnhancedMatch(
   const homeStrength = calculateEnhancedTeamStrength(enhancedHomePlayers, atmosphereEffects, tacticalEffects.homeTeamModifiers);
   const awayStrength = calculateEnhancedTeamStrength(enhancedAwayPlayers, atmosphereEffects, tacticalEffects.awayTeamModifiers);
 
-  const matchDuration = matchType === 'exhibition' ? 1200 : 1800; // 20 min exhibition, 30 min league
+  const matchDuration = matchType === 'exhibition' ? 1800 : 2400; // 30 min exhibition, 40 min league/tournament
   const halftimeTime = matchDuration / 2;
   let halftimeEventAdded = false;
 
@@ -158,8 +158,8 @@ export async function simulateEnhancedMatch(
     team: "neutral"
   });
 
-  // Enhanced match simulation with detailed mechanics
-  for (let time = 0; time < matchDuration; time += Math.random() * 20 + 8) {
+  // Enhanced match simulation with detailed mechanics - faster event generation
+  for (let time = 0; time < matchDuration; time += Math.random() * 8 + 4) {
     if (time >= halftimeTime && !halftimeEventAdded) {
       events.push({
         time: Math.floor(halftimeTime),
@@ -1008,6 +1008,9 @@ async function generateEnhancedMatchEvent(
     case 'run':
       event = generateRunEvent(time, randomPlayer, defendingPlayers, actingTeam, actingTeamCamaraderie, atmosphereEffects, gamePhase, playerStats);
       break;
+    case 'kick':
+      event = generateKickEvent(time, randomPlayer, defendingPlayers, actingTeam, actingTeamCamaraderie, atmosphereEffects, gamePhase, playerStats);
+      break;
     case 'defense':
       event = generateDefenseEvent(time, randomPlayer, actingPlayers, actingTeam, actingTeamCamaraderie, atmosphereEffects, gamePhase, playerStats);
       break;
@@ -1030,33 +1033,39 @@ function determineActionType(player: EnhancedPlayer, tacticalEffects: TacticalEf
   const isHomeTeam = tacticalEffects.homeTeamFocus !== undefined;
   const tacticalFocus = isHomeTeam ? tacticalEffects.homeTeamFocus : tacticalEffects.awayTeamFocus;
   
-  // Role-based action probabilities
+  // Role-based action probabilities - added kick option
   let passChance = 0.3;
   let runChance = 0.4;
-  let defenseChance = 0.3;
+  let kickChance = 0.05;
+  let defenseChance = 0.25;
   
   if (role === 'Passer') {
-    passChance = 0.6;
+    passChance = 0.55;
     runChance = 0.2;
-    defenseChance = 0.2;
+    kickChance = 0.1;
+    defenseChance = 0.15;
   } else if (role === 'Runner') {
     passChance = 0.2;
     runChance = 0.6;
-    defenseChance = 0.2;
+    kickChance = 0.05;
+    defenseChance = 0.15;
   } else if (role === 'Blocker') {
     passChance = 0.1;
     runChance = 0.3;
-    defenseChance = 0.6;
+    kickChance = 0.05;
+    defenseChance = 0.55;
   }
   
   // Tactical modifications
   if (tacticalFocus === 'All-Out Attack') {
     passChance *= 1.5;
     runChance *= 1.3;
+    kickChance *= 1.2;
     defenseChance *= 0.7;
   } else if (tacticalFocus === 'Defensive Wall') {
     passChance *= 0.7;
     runChance *= 0.8;
+    kickChance *= 0.8;
     defenseChance *= 1.5;
   }
   
@@ -1064,16 +1073,19 @@ function determineActionType(player: EnhancedPlayer, tacticalEffects: TacticalEf
   if (gamePhase === 'clutch') {
     passChance *= 1.2;
     runChance *= 1.1;
+    kickChance *= 1.3;
   }
   
-  const total = passChance + runChance + defenseChance;
+  const total = passChance + runChance + kickChance + defenseChance;
   passChance /= total;
   runChance /= total;
+  kickChance /= total;
   defenseChance /= total;
   
   const rand = Math.random();
   if (rand < passChance) return 'pass';
   if (rand < passChance + runChance) return 'run';
+  if (rand < passChance + runChance + kickChance) return 'kick';
   return 'defense';
 }
 
@@ -1123,10 +1135,28 @@ function generatePassEvent(
     stats.passesCompleted++;
     stats.passingYards += yardsGained;
     
-    // Check for score
-    if (Math.random() < 0.15 && gamePhase === 'clutch') {
+    // Check for score - increased chance (30% boost) and removed phase restriction
+    let scoreChance = 0.195; // 15% + 30% = 19.5%
+    
+    // Add stat-based scoring bonus for high throwing skill
+    if (player.throwing && player.throwing >= 30) {
+      scoreChance += (player.throwing - 30) * 0.005; // Up to 5% bonus for max throwing
+    }
+    
+    // Phase bonuses (but scoring works in all phases now)
+    const phaseBonus = {
+      'early': 0.02,
+      'middle': 0.03,
+      'late': 0.05,
+      'clutch': 0.08
+    };
+    scoreChance += phaseBonus[gamePhase as keyof typeof phaseBonus] || 0;
+    
+    if (Math.random() < scoreChance) {
       stats.scores++;
-      stats.clutchPlays++;
+      if (gamePhase === 'clutch') {
+        stats.clutchPlays++;
+      }
       return {
         time: Math.floor(time),
         type: "score",
@@ -1219,12 +1249,31 @@ function generateRunEvent(
   if (Math.random() < runSuccessChance) {
     stats.rushingYards += yardsGained;
     
-    // Check for breakaway run
-    if (yardsGained >= 12 && Math.random() < 0.3) {
+    // Check for breakaway run - reduced threshold and increased chance
+    if (yardsGained >= 10 && Math.random() < 0.39) { // 30% + 30% = 39%
       stats.breakawayRuns++;
       
-      // Check for score
-      if (Math.random() < 0.4) {
+      // Check for score - increased chance (30% boost)
+      let scoreChance = 0.52; // 40% + 30% = 52%
+      
+      // Add stat-based scoring bonus for high speed/agility
+      if (player.speed && player.agility) {
+        const avgMobility = (player.speed + player.agility) / 2;
+        if (avgMobility >= 30) {
+          scoreChance += (avgMobility - 30) * 0.01; // Up to 10% bonus for max mobility
+        }
+      }
+      
+      // Phase bonuses
+      const phaseBonus = {
+        'early': 0.05,
+        'middle': 0.08,
+        'late': 0.12,
+        'clutch': 0.15
+      };
+      scoreChance += phaseBonus[gamePhase as keyof typeof phaseBonus] || 0;
+      
+      if (Math.random() < scoreChance) {
         stats.scores++;
         if (gamePhase === 'clutch') {
           stats.clutchPlays++;
@@ -1274,6 +1323,131 @@ function generateRunEvent(
       yardsGained: 0
     };
   }
+}
+
+function generateKickEvent(
+  time: number,
+  player: EnhancedPlayer,
+  defendingPlayers: EnhancedPlayer[],
+  team: string,
+  camaraderie: number,
+  atmosphereEffects: AtmosphereEffects,
+  gamePhase: string,
+  playerStats: Record<string, PlayerGameStats>
+): MatchEvent {
+  const stats = playerStats[player.id];
+  
+  // Calculate kick success chance
+  let kickSuccessChance = 0.4;
+  
+  // Apply player kicking ability
+  kickSuccessChance += (player.kicking || 0) / 120; // Kicking is more precise than other stats
+  
+  // Apply camaraderie effects
+  const camaraderieModifier = player.inGameModifiers.kicking || 0;
+  kickSuccessChance += camaraderieModifier / 120;
+  
+  // Apply atmosphere effects (away team penalty)
+  if (team === 'away') {
+    kickSuccessChance -= atmosphereEffects.intimidationFactor / 120;
+  }
+  
+  // Apply stamina effects
+  const staminaPenalty = (100 - player.currentStamina) / 300;
+  kickSuccessChance -= staminaPenalty;
+  
+  // Apply skill effects
+  if (player.skills.includes('Golden Leg')) {
+    kickSuccessChance += 0.25;
+  }
+  if (player.skills.includes('Precision Kicking')) {
+    kickSuccessChance += 0.15;
+  }
+  
+  const yardsGained = Math.floor(Math.random() * 35) + 25; // 25-60 yard kicks
+  
+  if (Math.random() < kickSuccessChance) {
+    // Successful kick - check if receiver catches it
+    const receiver = defendingPlayers[Math.floor(Math.random() * defendingPlayers.length)];
+    if (receiver) {
+      const receiverStats = playerStats[receiver.id];
+      
+      // Calculate catch chance for kick
+      let catchChance = 0.7;
+      catchChance += (receiver.catching || 0) / 100;
+      catchChance += (receiver.agility || 0) / 150;
+      
+      if (Math.random() < catchChance) {
+        receiverStats.catches++;
+        receiverStats.receivingYards += yardsGained;
+        
+        // Check for kick scoring - long field kicks to receivers
+        let scoreChance = 0.13; // 10% + 30% = 13%
+        
+        // Add stat-based scoring bonus for high kicking skill
+        if (player.kicking && player.kicking >= 30) {
+          scoreChance += (player.kicking - 30) * 0.008; // Up to 8% bonus for max kicking
+        }
+        
+        // Long kick bonus
+        if (yardsGained >= 45) {
+          scoreChance += 0.1; // 10% bonus for long kicks
+        }
+        
+        // Phase bonuses
+        const phaseBonus = {
+          'early': 0.02,
+          'middle': 0.03,
+          'late': 0.05,
+          'clutch': 0.08
+        };
+        scoreChance += phaseBonus[gamePhase as keyof typeof phaseBonus] || 0;
+        
+        if (Math.random() < scoreChance) {
+          stats.scores++;
+          receiverStats.scores++;
+          if (gamePhase === 'clutch') {
+            stats.clutchPlays++;
+          }
+          return {
+            time: Math.floor(time),
+            type: "score",
+            description: `TOUCHDOWN! ${player.firstName} ${player.lastName} kicks a ${yardsGained}-yard bomb to ${receiver.firstName} ${receiver.lastName} for the score!`,
+            player: `${player.firstName} ${player.lastName}`,
+            team: team,
+            yardsGained
+          };
+        }
+        
+        return {
+          time: Math.floor(time),
+          type: "kick_complete",
+          description: `${player.firstName} ${player.lastName} kicks a ${yardsGained}-yard pass to ${receiver.firstName} ${receiver.lastName}!`,
+          player: `${player.firstName} ${player.lastName}`,
+          team: team,
+          yardsGained
+        };
+      } else {
+        // Dropped catch
+        return {
+          time: Math.floor(time),
+          type: "kick_dropped",
+          description: `${player.firstName} ${player.lastName} kicks downfield but ${receiver.firstName} ${receiver.lastName} can't secure the catch!`,
+          player: `${player.firstName} ${player.lastName}`,
+          team: team,
+        };
+      }
+    }
+  }
+  
+  // Kick failed or no receiver
+  return {
+    time: Math.floor(time),
+    type: "kick_failed",
+    description: `${player.firstName} ${player.lastName}'s kick goes wide of the target.`,
+    player: `${player.firstName} ${player.lastName}`,
+    team: team,
+  };
 }
 
 function generateDefenseEvent(
@@ -1349,8 +1523,8 @@ async function generateEnhancedCommentary(
 ): Promise<string> {
   const context = {
     gameTime: event.time,
-    maxTime: 1800,
-    currentHalf: event.time < 900 ? 1 : 2,
+    maxTime: 2400, // Updated to match new max time
+    currentHalf: event.time < 1200 ? 1 : 2,
     homeScore: 0,
     awayScore: 0,
     gamePhase: gamePhase as any,
@@ -1375,6 +1549,9 @@ function updateStatistics(
   switch (event.type) {
     case 'pass_complete':
       stats.passes++;
+      break;
+    case 'kick_complete':
+      stats.passes++; // Count kicks as passes for team stats
       break;
     case 'interception':
       stats.interceptions++;
