@@ -56,7 +56,14 @@ router.get('/:matchId', isAuthenticated, async (req: Request, res: Response, nex
       const liveState = await matchStateManager.syncMatchState(matchIdNum);
       if (liveState) {
         return res.json({
-          ...match, homeTeamName, awayTeamName,
+          ...match, 
+          id: match.id.toString(),
+          homeTeamId: match.homeTeamId.toString(),
+          awayTeamId: match.awayTeamId.toString(),
+          leagueId: match.leagueId ? match.leagueId.toString() : null,
+          tournamentId: match.tournamentId ? match.tournamentId.toString() : null,
+          homeTeamName, 
+          awayTeamName,
           liveState: {
             gameTime: liveState.gameTime, currentHalf: liveState.currentHalf,
             team1Score: liveState.homeScore, team2Score: liveState.awayScore,
@@ -67,13 +74,27 @@ router.get('/:matchId', isAuthenticated, async (req: Request, res: Response, nex
         });
       }
     }
-    res.json({ 
-      ...match, 
+    // Convert BigInt fields to strings for JSON serialization
+    const serializedMatch = {
+      ...match,
+      id: match.id.toString(),
+      homeTeamId: match.homeTeamId.toString(),
+      awayTeamId: match.awayTeamId.toString(),
+      leagueId: match.leagueId ? match.leagueId.toString() : null,
+      tournamentId: match.tournamentId ? match.tournamentId.toString() : null,
       homeTeamName, 
       awayTeamName,
-      homeTeam: homeTeam ? { id: homeTeam.id, name: homeTeam.name } : null,
-      awayTeam: awayTeam ? { id: awayTeam.id, name: awayTeam.name } : null
-    });
+      homeTeam: homeTeam ? { 
+        id: homeTeam.id.toString(), 
+        name: homeTeam.name 
+      } : null,
+      awayTeam: awayTeam ? { 
+        id: awayTeam.id.toString(), 
+        name: awayTeam.name 
+      } : null
+    };
+    
+    res.json(serializedMatch);
   } catch (error) {
     console.error("Error fetching match:", error);
     next(error);

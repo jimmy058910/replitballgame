@@ -77,7 +77,9 @@ export default function TournamentBracket({ tournament, matches, userTeamId, isA
               : 'bg-gray-50 dark:bg-gray-700'
           }`}>
             <span className="text-sm truncate text-gray-900 dark:text-gray-100">{match.homeTeam.name}</span>
-            {isCompleted && <span className="font-bold text-gray-900 dark:text-gray-100">{match.homeTeamScore}</span>}
+            <span className="font-bold text-gray-900 dark:text-gray-100 ml-2">
+              {isCompleted ? match.homeTeamScore : (isLive ? match.homeTeamScore || 0 : '')}
+            </span>
           </div>
           
           {/* Away Team */}
@@ -87,7 +89,9 @@ export default function TournamentBracket({ tournament, matches, userTeamId, isA
               : 'bg-gray-50 dark:bg-gray-700'
           }`}>
             <span className="text-sm truncate text-gray-900 dark:text-gray-100">{match.awayTeam.name}</span>
-            {isCompleted && <span className="font-bold text-gray-900 dark:text-gray-100">{match.awayTeamScore}</span>}
+            <span className="font-bold text-gray-900 dark:text-gray-100 ml-2">
+              {isCompleted ? match.awayTeamScore : (isLive ? match.awayTeamScore || 0 : '')}
+            </span>
           </div>
           
           {/* Status */}

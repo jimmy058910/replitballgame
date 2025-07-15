@@ -67,6 +67,7 @@ function Router() {
           
           <Route path="/text-match/:matchId" component={LiveMatchPage} />
           <Route path="/match/:matchId" component={LiveMatchPage} />
+          <Route path="/live-match/:matchId" component={LiveMatchPage} />
           <Route path="/community" component={Community} />
           <Route path="/camaraderie" component={Camaraderie} />
           <Route path="/superuser" component={SuperUser} />
