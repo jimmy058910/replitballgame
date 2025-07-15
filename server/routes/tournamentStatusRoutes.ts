@@ -297,4 +297,108 @@ router.get('/:id/status', isAuthenticated, async (req: any, res) => {
   }
 });
 
+// Force start tournament (Admin only)
+router.post('/:id/force-start', isAuthenticated, async (req: any, res) => {
+  try {
+    const tournamentId = req.params.id;
+    const userId = req.user.claims.sub;
+    
+    // Check if user is admin
+    if (userId !== "44010914") {
+      return res.status(403).json({ message: "Access denied. Admin privileges required." });
+    }
+
+    // Get tournament details
+    let tournament = await prisma.tournament.findUnique({
+      where: { id: parseInt(tournamentId) },
+      include: {
+        entries: {
+          include: {
+            team: true
+          }
+        }
+      }
+    });
+
+    // If not found by database ID, try by tournament ID
+    if (!tournament) {
+      tournament = await prisma.tournament.findFirst({
+        where: { tournamentId: tournamentId },
+        include: {
+          entries: {
+            include: {
+              team: true
+            }
+          }
+        }
+      });
+    }
+
+    if (!tournament) {
+      return res.status(404).json({ message: "Tournament not found" });
+    }
+
+    // Check if tournament is in correct state
+    if (tournament.status !== 'REGISTRATION_OPEN') {
+      return res.status(400).json({ message: "Tournament is not in registration phase" });
+    }
+
+    const currentParticipants = tournament.entries.length;
+    const maxParticipants = 8;
+    const spotsRemaining = maxParticipants - currentParticipants;
+
+    if (spotsRemaining <= 0) {
+      return res.status(400).json({ message: "Tournament is already full" });
+    }
+
+    // Get all teams except the current tournament participants to fill remaining spots
+    const existingParticipantIds = tournament.entries.map(entry => entry.teamId);
+    const availableTeams = await prisma.team.findMany({
+      where: {
+        division: tournament.division,
+        id: {
+          notIn: existingParticipantIds
+        }
+      },
+      take: spotsRemaining
+    });
+
+    if (availableTeams.length < spotsRemaining) {
+      return res.status(400).json({ 
+        message: `Not enough teams available to fill tournament. Need ${spotsRemaining}, found ${availableTeams.length}` 
+      });
+    }
+
+    // Add available teams to tournament
+    const newEntries = availableTeams.slice(0, spotsRemaining).map(team => ({
+      tournamentId: tournament.id,
+      teamId: team.id,
+      registeredAt: new Date()
+    }));
+
+    await prisma.tournamentEntry.createMany({
+      data: newEntries
+    });
+
+    // Update tournament status to IN_PROGRESS
+    await prisma.tournament.update({
+      where: { id: tournament.id },
+      data: {
+        status: 'IN_PROGRESS',
+        startTime: new Date()
+      }
+    });
+
+    res.json({ 
+      message: "Tournament force started successfully",
+      teamsAdded: availableTeams.length,
+      totalParticipants: currentParticipants + availableTeams.length
+    });
+
+  } catch (error) {
+    console.error("Error force starting tournament:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+});
+
 export default router;
