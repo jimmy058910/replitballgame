@@ -382,7 +382,7 @@ model League {
   teams     Team[]
   schedule  Game[]
   standings LeagueStanding[]
-  seasonId  Int
+  seasonId  String
   season    Season           @relation(fields: [seasonId], references: [id])
 
   @@unique([name, seasonId])
@@ -511,6 +511,8 @@ model TryoutHistory {
   cost         Int
   playersAdded Int
   conductedAt  DateTime @default(now())
+  playerId     Int?
+  player       Player?  @relation(fields: [playerId], references: [id])
 
   @@unique([teamId, seasonId])
 }

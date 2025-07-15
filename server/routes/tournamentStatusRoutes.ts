@@ -27,6 +27,7 @@ router.get('/active', isAuthenticated, async (req: any, res) => {
         tournament: {
           select: {
             id: true,
+            tournamentId: true,
             name: true,
             type: true,
             division: true,
@@ -47,7 +48,7 @@ router.get('/active', isAuthenticated, async (req: any, res) => {
     // Transform the data for the frontend
     const statusData = entries.map(entry => ({
       id: entry.id,
-      tournamentId: entry.tournament.id,
+      tournamentId: entry.tournament.tournamentId,
       teamId: Number(entry.teamId),
       name: entry.tournament.name,
       type: entry.tournament.type,
@@ -104,6 +105,7 @@ router.get('/my-active', isAuthenticated, async (req: any, res) => {
         tournament: {
           select: {
             id: true,
+            tournamentId: true,
             name: true,
             type: true,
             division: true,
@@ -124,7 +126,7 @@ router.get('/my-active', isAuthenticated, async (req: any, res) => {
     // Transform the data for the frontend
     const statusData = entries.map(entry => ({
       id: entry.id,
-      tournamentId: entry.tournament.id,
+      tournamentId: entry.tournament.tournamentId,
       teamId: Number(entry.teamId),
       name: entry.tournament.name,
       type: entry.tournament.type,
@@ -170,10 +172,21 @@ router.get('/:id/status', isAuthenticated, async (req: any, res) => {
       return res.status(404).json({ message: "Team not found" });
     }
 
-    // Get tournament details
-    const tournament = await prisma.tournament.findUnique({
+    // Get tournament details - try by database ID first, then by tournament ID
+    let tournament = await prisma.tournament.findUnique({
       where: { id: parseInt(tournamentId) },
-      include: {
+      select: {
+        id: true,
+        tournamentId: true,
+        name: true,
+        type: true,
+        division: true,
+        status: true,
+        registrationEndTime: true,
+        startTime: true,
+        entryFeeCredits: true,
+        entryFeeGems: true,
+        prizePoolJson: true,
         entries: {
           include: {
             team: {
@@ -187,6 +200,37 @@ router.get('/:id/status', isAuthenticated, async (req: any, res) => {
         }
       }
     });
+
+    // If not found by database ID, try by tournament ID
+    if (!tournament) {
+      tournament = await prisma.tournament.findFirst({
+        where: { tournamentId: tournamentId },
+        select: {
+          id: true,
+          tournamentId: true,
+          name: true,
+          type: true,
+          division: true,
+          status: true,
+          registrationEndTime: true,
+          startTime: true,
+          entryFeeCredits: true,
+          entryFeeGems: true,
+          prizePoolJson: true,
+          entries: {
+            include: {
+              team: {
+                select: {
+                  id: true,
+                  name: true,
+                  division: true
+                }
+              }
+            }
+          }
+        }
+      });
+    }
 
     if (!tournament) {
       return res.status(404).json({ message: "Tournament not found" });
@@ -221,6 +265,7 @@ router.get('/:id/status', isAuthenticated, async (req: any, res) => {
 
     const statusData = {
       id: tournament.id.toString(),
+      tournamentId: tournament.tournamentId,
       name: tournament.name,
       type: tournament.type,
       division: tournament.division,
