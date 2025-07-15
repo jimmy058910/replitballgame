@@ -809,7 +809,7 @@ export class TournamentService {
           awayTeamId: awayTeam.id,
           gameDate: new Date(Date.now() + 5 * 60 * 1000), // 5 minutes from now
           matchType: "TOURNAMENT_DAILY",
-          round: "QUARTERFINALS",
+          round: 1, // QUARTERFINALS = 1
           status: "SCHEDULED"
         }
       });
@@ -821,7 +821,7 @@ export class TournamentService {
   }
 
   // Method to advance tournament to next round (called when previous round completes)
-  async advanceTournamentRound(tournamentId: number, completedRound: string): Promise<void> {
+  async advanceTournamentRound(tournamentId: number, completedRound: number): Promise<void> {
     const tournament = await prisma.tournament.findUnique({
       where: { id: tournamentId }
     });
@@ -848,7 +848,7 @@ export class TournamentService {
     });
 
     // Create next round matches based on completed round
-    if (completedRound === "QUARTERFINALS" && winners.length === 4) {
+    if (completedRound === 1 && winners.length === 4) { // QUARTERFINALS = 1
       // Create semifinals
       for (let i = 0; i < 2; i++) {
         await prisma.game.create({
@@ -858,12 +858,12 @@ export class TournamentService {
             awayTeamId: winners[i * 2 + 1].id,
             gameDate: new Date(Date.now() + 10 * 60 * 1000), // 10 minutes from now
             matchType: "TOURNAMENT_DAILY",
-            round: "SEMIFINALS",
+            round: 2, // SEMIFINALS = 2
             status: "SCHEDULED"
           }
         });
       }
-    } else if (completedRound === "SEMIFINALS" && winners.length === 2) {
+    } else if (completedRound === 2 && winners.length === 2) { // SEMIFINALS = 2
       // Create finals
       await prisma.game.create({
         data: {
@@ -872,7 +872,7 @@ export class TournamentService {
           awayTeamId: winners[1].id,
           gameDate: new Date(Date.now() + 10 * 60 * 1000), // 10 minutes from now
           matchType: "TOURNAMENT_DAILY",
-          round: "FINALS",
+          round: 3, // FINALS = 3
           status: "SCHEDULED"
         }
       });
