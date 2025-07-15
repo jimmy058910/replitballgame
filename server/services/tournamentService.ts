@@ -647,19 +647,29 @@ export class TournamentService {
   // Fill tournament with AI teams
   async fillTournamentWithAI(tournamentId: string, spotsToFill: number): Promise<void> {
     const tournament = await prisma.tournament.findUnique({
-      where: { id: parseInt(tournamentId) }
+      where: { id: parseInt(tournamentId) },
+      include: {
+        entries: {
+          include: {
+            team: true
+          }
+        }
+      }
     });
     
     if (!tournament) {
       throw new Error("Tournament not found");
     }
 
-    // Get available AI teams for this division (AI teams have no userProfileId)
+    // Get teams already in this tournament
+    const participatingTeamIds = tournament.entries.map(entry => entry.teamId);
+
+    // Get available AI teams for this division (excluding already participating teams)
     const aiTeams = await prisma.team.findMany({
       where: {
         division: tournament.division,
-        userProfileId: {
-          equals: null
+        id: {
+          notIn: participatingTeamIds
         }
       },
       take: spotsToFill
