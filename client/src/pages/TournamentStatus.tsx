@@ -202,7 +202,17 @@ export default function TournamentStatus() {
             Tournament Timing
           </h4>
           <div className="space-y-2 text-sm">
-            {tournamentStatus!.isReadyToStart ? (
+            {tournamentStatus!.status === 'IN_PROGRESS' ? (
+              <div className="flex items-center gap-2 text-blue-600">
+                <Zap className="w-4 h-4" />
+                <span className="font-medium">Tournament in Progress</span>
+              </div>
+            ) : tournamentStatus!.status === 'COMPLETED' ? (
+              <div className="flex items-center gap-2 text-gray-600">
+                <Trophy className="w-4 h-4" />
+                <span className="font-medium">Tournament Completed</span>
+              </div>
+            ) : tournamentStatus!.isReadyToStart ? (
               <div className="flex items-center gap-2 text-green-600">
                 <Zap className="w-4 h-4" />
                 <span className="font-medium">Ready to Start!</span>
@@ -402,7 +412,17 @@ export default function TournamentStatus() {
                           {tournament.currentParticipants}/{tournament.maxParticipants}
                         </span>
                       </div>
-                      {tournament.isReadyToStart ? (
+                      {tournament.status === 'IN_PROGRESS' ? (
+                        <div className="mt-2 text-xs font-medium text-blue-600 flex items-center gap-1">
+                          <Zap className="w-3 h-3" />
+                          In Progress
+                        </div>
+                      ) : tournament.status === 'COMPLETED' ? (
+                        <div className="mt-2 text-xs font-medium text-gray-600 flex items-center gap-1">
+                          <Trophy className="w-3 h-3" />
+                          Completed
+                        </div>
+                      ) : tournament.isReadyToStart ? (
                         <div className="mt-2 text-xs font-medium text-green-600 flex items-center gap-1">
                           <Zap className="w-3 h-3" />
                           Ready to Start!
