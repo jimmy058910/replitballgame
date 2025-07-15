@@ -173,13 +173,27 @@ router.get('/:matchId/enhanced-data', isAuthenticated, async (req: Request, res:
       console.log('Home team stats:', JSON.stringify(homeTeamStats));
       console.log('Away team stats:', JSON.stringify(awayTeamStats));
 
-      // Create mock MVP data for testing (in production this would come from simulation)
+      // Get actual player data for MVP
+      const homePlayers = await prisma.player.findMany({
+        where: { teamId: match.homeTeamId },
+        select: { id: true, firstName: true, lastName: true, role: true, race: true }
+      });
+
+      const awayPlayers = await prisma.player.findMany({
+        where: { teamId: match.awayTeamId },
+        select: { id: true, firstName: true, lastName: true, role: true, race: true }
+      });
+
+      // Select random players as MVP (in production this would come from actual simulation)
+      const homeMVPPlayer = homePlayers[Math.floor(Math.random() * homePlayers.length)];
+      const awayMVPPlayer = awayPlayers[Math.floor(Math.random() * awayPlayers.length)];
+
       const mvpData = {
         homeMVP: {
-          playerId: `home_mvp_${match.homeTeamId}`,
-          playerName: "Star Player",
-          playerRace: "Human",
-          playerRole: "Runner",
+          playerId: homeMVPPlayer?.id.toString() || `home_mvp_${match.homeTeamId}`,
+          playerName: homeMVPPlayer ? `${homeMVPPlayer.firstName} ${homeMVPPlayer.lastName}` : "Star Player",
+          playerRace: homeMVPPlayer?.race || "Human",
+          playerRole: homeMVPPlayer?.role || "Runner",
           scores: 2,
           passingYards: 145,
           carrierYards: 87,
@@ -189,10 +203,10 @@ router.get('/:matchId/enhanced-data', isAuthenticated, async (req: Request, res:
           mvpScore: 15.3
         },
         awayMVP: {
-          playerId: `away_mvp_${match.awayTeamId}`,
-          playerName: "Hero Player",
-          playerRace: "Sylvan",
-          playerRole: "Passer",
+          playerId: awayMVPPlayer?.id.toString() || `away_mvp_${match.awayTeamId}`,
+          playerName: awayMVPPlayer ? `${awayMVPPlayer.firstName} ${awayMVPPlayer.lastName}` : "Hero Player",
+          playerRace: awayMVPPlayer?.race || "Sylvan",
+          playerRole: awayMVPPlayer?.role || "Passer",
           scores: 1,
           passingYards: 203,
           carrierYards: 45,
@@ -235,24 +249,24 @@ router.get('/:matchId/enhanced-data', isAuthenticated, async (req: Request, res:
     const homeTeam = await storage.teams.getTeamById(match.homeTeamId);
     const awayTeam = await storage.teams.getTeamById(match.awayTeamId);
     
-    // Load team players for MVP calculation
-    const homePlayers = await prisma.player.findMany({
+    // Load team players for MVP calculation (removing duplicate - already loaded above)
+    const liveHomePlayers = await prisma.player.findMany({
       where: { teamId: match.homeTeamId },
       select: { id: true, firstName: true, lastName: true, role: true, teamId: true }
     });
 
-    const awayPlayers = await prisma.player.findMany({
+    const liveAwayPlayers = await prisma.player.findMany({
       where: { teamId: match.awayTeamId },
       select: { id: true, firstName: true, lastName: true, role: true, teamId: true }
     });
 
     // Create a lookup map for faster team assignment
     const playerTeamMap = new Map<string, number>();
-    homePlayers.forEach(p => playerTeamMap.set(p.id.toString(), p.teamId));
-    awayPlayers.forEach(p => playerTeamMap.set(p.id.toString(), p.teamId));
+    liveHomePlayers.forEach(p => playerTeamMap.set(p.id.toString(), p.teamId));
+    liveAwayPlayers.forEach(p => playerTeamMap.set(p.id.toString(), p.teamId));
     
     console.log(`Team map populated: ${playerTeamMap.size} players`);
-    console.log(`Home players: ${homePlayers.length}, Away players: ${awayPlayers.length}`);
+    console.log(`Home players: ${liveHomePlayers.length}, Away players: ${liveAwayPlayers.length}`);
     console.log(`Sample entries: ${JSON.stringify(Array.from(playerTeamMap.entries()).slice(0, 3))}`);
     
     // Get stadium data for atmospheric effects (simplified for integration)

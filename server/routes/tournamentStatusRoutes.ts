@@ -312,6 +312,9 @@ router.get('/:id/status', isAuthenticated, async (req: any, res) => {
           { id: 'asc' }
         ]
       });
+
+      // Check if we need to advance tournament rounds
+      await checkAndAdvanceTournament(tournament.id);
       
       // Fetch team data separately
       const teamIds = [...new Set([...rawMatches.map(m => m.homeTeamId), ...rawMatches.map(m => m.awayTeamId)])];
@@ -616,6 +619,56 @@ router.post('/:id/matches/simulate-round', isAuthenticated, async (req: any, res
     res.status(500).json({ message: "Internal server error" });
   }
 });
+
+// Helper function to check and advance tournament if needed
+async function checkAndAdvanceTournament(tournamentId: number) {
+  try {
+    // Check quarterfinals (round 1)
+    const quarterfinalsMatches = await prisma.game.findMany({
+      where: {
+        tournamentId,
+        round: 1,
+        status: 'COMPLETED'
+      }
+    });
+
+    if (quarterfinalsMatches.length === 4) {
+      // All quarterfinals are complete, check if semifinals exist
+      const semifinalsMatches = await prisma.game.findMany({
+        where: {
+          tournamentId,
+          round: 2
+        }
+      });
+
+      if (semifinalsMatches.length === 0) {
+        // Generate semifinals
+        await generateNextRoundMatches(tournamentId, 1);
+        console.log(`Generated semifinals for tournament ${tournamentId}`);
+      } else {
+        // Check if semifinals are complete
+        const completedSemifinals = semifinalsMatches.filter(m => m.status === 'COMPLETED');
+        if (completedSemifinals.length === 2) {
+          // Check if finals exist
+          const finalsMatches = await prisma.game.findMany({
+            where: {
+              tournamentId,
+              round: 3
+            }
+          });
+
+          if (finalsMatches.length === 0) {
+            // Generate finals
+            await generateNextRoundMatches(tournamentId, 2);
+            console.log(`Generated finals for tournament ${tournamentId}`);
+          }
+        }
+      }
+    }
+  } catch (error) {
+    console.error("Error checking tournament advancement:", error);
+  }
+}
 
 // Helper function to generate next round matches
 async function generateNextRoundMatches(tournamentId: number, completedRound: number) {
