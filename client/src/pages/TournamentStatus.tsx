@@ -208,6 +208,9 @@ export default function TournamentStatus() {
           };
         });
         
+        // Get user's team ID from tournament status
+        const userTeamId = tournamentStatus.userTeamEntry?.teamId;
+        
         return (
           <TournamentBracket
             tournament={{

@@ -658,7 +658,9 @@ export class TournamentService {
     const aiTeams = await prisma.team.findMany({
       where: {
         division: tournament.division,
-        userProfileId: null
+        userProfileId: {
+          equals: null
+        }
       },
       take: spotsToFill
     });
