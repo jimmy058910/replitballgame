@@ -46,10 +46,23 @@ export default function TournamentBracket({ tournament, matches, userTeamId, isA
     const isLive = match.status === 'LIVE';
     const isScheduled = match.status === 'SCHEDULED';
     
+    const handleMatchClick = () => {
+      if (isLive) {
+        // Navigate to live match viewer
+        window.location.href = `/live-match/${match.id}`;
+      } else if (isCompleted) {
+        // Navigate to completed match summary
+        window.location.href = `/live-match/${match.id}`;
+      }
+    };
+    
     return (
-      <div className={`relative bg-white dark:bg-gray-800 border-2 rounded-lg p-3 min-w-[180px] ${
-        isUserTeam ? 'border-blue-500 shadow-lg' : 'border-gray-300 dark:border-gray-600'
-      }`}>
+      <div 
+        className={`relative bg-white dark:bg-gray-800 border-2 rounded-lg p-3 min-w-[180px] ${
+          isUserTeam ? 'border-blue-500 shadow-lg' : 'border-gray-300 dark:border-gray-600'
+        } ${(isLive || isCompleted) ? 'cursor-pointer hover:shadow-lg transition-shadow' : ''}`}
+        onClick={(isLive || isCompleted) ? handleMatchClick : undefined}
+      >
         {isUserTeam && (
           <Badge className="absolute -top-2 -right-2 bg-blue-500 text-white text-xs">
             YOUR TEAM
@@ -63,8 +76,8 @@ export default function TournamentBracket({ tournament, matches, userTeamId, isA
               ? 'bg-green-100 dark:bg-green-900 font-semibold' 
               : 'bg-gray-50 dark:bg-gray-700'
           }`}>
-            <span className="text-sm truncate">{match.homeTeam.name}</span>
-            {isCompleted && <span className="font-bold">{match.homeTeamScore}</span>}
+            <span className="text-sm truncate text-gray-900 dark:text-gray-100">{match.homeTeam.name}</span>
+            {isCompleted && <span className="font-bold text-gray-900 dark:text-gray-100">{match.homeTeamScore}</span>}
           </div>
           
           {/* Away Team */}
@@ -73,8 +86,8 @@ export default function TournamentBracket({ tournament, matches, userTeamId, isA
               ? 'bg-green-100 dark:bg-green-900 font-semibold' 
               : 'bg-gray-50 dark:bg-gray-700'
           }`}>
-            <span className="text-sm truncate">{match.awayTeam.name}</span>
-            {isCompleted && <span className="font-bold">{match.awayTeamScore}</span>}
+            <span className="text-sm truncate text-gray-900 dark:text-gray-100">{match.awayTeam.name}</span>
+            {isCompleted && <span className="font-bold text-gray-900 dark:text-gray-100">{match.awayTeamScore}</span>}
           </div>
           
           {/* Status */}

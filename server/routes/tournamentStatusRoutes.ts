@@ -604,6 +604,9 @@ router.post('/:id/matches/simulate-round', isAuthenticated, async (req: any, res
       });
     }
 
+    // Generate next round matches if current round is complete
+    await generateNextRoundMatches(tournament.id, roundNumber);
+
     res.json({ 
       message: `${round} round simulated successfully`,
       matchesSimulated: matches.length
@@ -613,6 +616,64 @@ router.post('/:id/matches/simulate-round', isAuthenticated, async (req: any, res
     res.status(500).json({ message: "Internal server error" });
   }
 });
+
+// Helper function to generate next round matches
+async function generateNextRoundMatches(tournamentId: number, completedRound: number) {
+  try {
+    // Get all completed matches from the current round
+    const completedMatches = await prisma.game.findMany({
+      where: {
+        tournamentId,
+        round: completedRound,
+        status: 'COMPLETED'
+      },
+      orderBy: { id: 'asc' }
+    });
+
+    if (completedMatches.length === 0) return;
+
+    // Determine winners and generate next round
+    const winners = completedMatches.map(match => {
+      if (match.homeScore > match.awayScore) {
+        return match.homeTeamId;
+      } else if (match.awayScore > match.homeScore) {
+        return match.awayTeamId;
+      } else {
+        // In case of tie, randomly pick winner
+        return Math.random() > 0.5 ? match.homeTeamId : match.awayTeamId;
+      }
+    });
+
+    // Generate matches for next round
+    const nextRound = completedRound + 1;
+    if (nextRound > 3) return; // No rounds after finals
+
+    const nextRoundMatches = [];
+    for (let i = 0; i < winners.length; i += 2) {
+      if (i + 1 < winners.length) {
+        nextRoundMatches.push({
+          homeTeamId: winners[i],
+          awayTeamId: winners[i + 1],
+          tournamentId,
+          round: nextRound,
+          status: 'SCHEDULED',
+          matchType: 'TOURNAMENT_DAILY',
+          gameDate: new Date(),
+          simulated: false
+        });
+      }
+    }
+
+    // Create next round matches
+    if (nextRoundMatches.length > 0) {
+      await prisma.game.createMany({
+        data: nextRoundMatches
+      });
+    }
+  } catch (error) {
+    console.error("Error generating next round matches:", error);
+  }
+}
 
 // Start a tournament match
 router.post('/:id/matches/:matchId/start', isAuthenticated, async (req: any, res) => {
