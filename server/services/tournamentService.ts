@@ -422,6 +422,22 @@ export class TournamentService {
         registeredAt: new Date()
       }
     });
+
+    // Check if tournament is now full and start countdown if needed
+    const entriesCount = await prisma.tournamentEntry.count({
+      where: { tournamentId }
+    });
+
+    if (entriesCount >= 8) {
+      // Tournament is full, start 10-minute countdown
+      try {
+        const { tournamentFlowService } = await import('./tournamentFlowService');
+        tournamentFlowService.startTournamentCountdown(tournamentId);
+        console.log(`Tournament ${tournamentId} is full - started 10-minute countdown`);
+      } catch (error) {
+        console.error(`Error starting tournament countdown for tournament ${tournamentId}:`, error);
+      }
+    }
   }
 
   // Get tournaments a team is registered for
@@ -641,6 +657,22 @@ export class TournamentService {
       }
     });
 
+    // Check if tournament is now full and start countdown if needed
+    const entriesCount = await prisma.tournamentEntry.count({
+      where: { tournamentId }
+    });
+
+    if (entriesCount >= 8) {
+      // Tournament is full, start 10-minute countdown
+      try {
+        const { tournamentFlowService } = await import('./tournamentFlowService');
+        tournamentFlowService.startTournamentCountdown(tournamentId);
+        console.log(`Tournament ${tournamentId} is full - started 10-minute countdown`);
+      } catch (error) {
+        console.error(`Error starting tournament countdown for tournament ${tournamentId}:`, error);
+      }
+    }
+
     return tournamentId;
   }
 
@@ -686,6 +718,22 @@ export class TournamentService {
       await prisma.tournamentEntry.createMany({
         data: aiEntries
       });
+
+      // Check if tournament is now full and start countdown if needed
+      const entriesCount = await prisma.tournamentEntry.count({
+        where: { tournamentId: parseInt(tournamentId) }
+      });
+
+      if (entriesCount >= 8) {
+        // Tournament is full, start 10-minute countdown
+        try {
+          const { tournamentFlowService } = await import('./tournamentFlowService');
+          tournamentFlowService.startTournamentCountdown(parseInt(tournamentId));
+          console.log(`Tournament ${tournamentId} is full (AI filled) - started 10-minute countdown`);
+        } catch (error) {
+          console.error(`Error starting tournament countdown for tournament ${tournamentId}:`, error);
+        }
+      }
     }
   }
 
@@ -764,6 +812,15 @@ export class TournamentService {
     // Generate tournament matches
     try {
       await this.generateTournamentMatches(id);
+      
+      // Start tournament flow with live simulation
+      try {
+        const { tournamentFlowService } = await import('./tournamentFlowService');
+        tournamentFlowService.startRoundWithBuffer(id, 1); // Start quarterfinals with buffer
+        console.log(`Tournament ${tournamentId} matches generated - starting quarterfinals with 2-minute buffer`);
+      } catch (error) {
+        console.error(`Error starting tournament flow for tournament ${tournamentId}:`, error);
+      }
     } catch (error) {
       console.error(`Error generating matches for tournament ${tournamentId}:`, error);
     }

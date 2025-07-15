@@ -607,14 +607,8 @@ export class SeasonTimingAutomationService {
               // Check if finals are complete
               const completedFinals = finalsMatches.filter(m => m.status === 'COMPLETED');
               if (completedFinals.length === 1) {
-                // Tournament is complete
-                await prisma.tournament.update({
-                  where: { id: tournamentId },
-                  data: { 
-                    status: 'COMPLETED',
-                    endTime: new Date()
-                  }
-                });
+                // Tournament is complete - distribute prizes and move to history
+                await this.completeTournament(tournamentId);
                 logInfo(`Tournament ${tournamentId} completed`);
               }
             }
@@ -685,6 +679,118 @@ export class SeasonTimingAutomationService {
       }
     } catch (error) {
       console.error("Error generating next round matches:", error);
+    }
+  }
+
+  /**
+   * Complete tournament and distribute prizes
+   */
+  private async completeTournament(tournamentId: number): Promise<void> {
+    try {
+      // Get the finals match to determine winner
+      const finalsMatch = await prisma.game.findFirst({
+        where: {
+          tournamentId,
+          round: 3,
+          status: 'COMPLETED'
+        },
+        include: {
+          homeTeam: true,
+          awayTeam: true
+        }
+      });
+
+      if (!finalsMatch) {
+        console.error(`No finals match found for tournament ${tournamentId}`);
+        return;
+      }
+
+      // Determine winner and runner-up
+      const winner = finalsMatch.homeScore > finalsMatch.awayScore ? finalsMatch.homeTeam : finalsMatch.awayTeam;
+      const runnerUp = finalsMatch.homeScore > finalsMatch.awayScore ? finalsMatch.awayTeam : finalsMatch.homeTeam;
+
+      // Get tournament details for prize distribution
+      const tournament = await prisma.tournament.findUnique({
+        where: { id: tournamentId },
+        include: { entries: true }
+      });
+
+      if (!tournament) {
+        console.error(`Tournament ${tournamentId} not found`);
+        return;
+      }
+
+      // Distribute prizes
+      const prizePool = tournament.prizePoolJson as any;
+      
+      // Award champion prize
+      await this.awardTournamentPrize(winner.id, prizePool.champion);
+      
+      // Award runner-up prize
+      await this.awardTournamentPrize(runnerUp.id, prizePool.runnerUp);
+
+      // Update tournament status to completed
+      await prisma.tournament.update({
+        where: { id: tournamentId },
+        data: {
+          status: 'COMPLETED',
+          endTime: new Date()
+        }
+      });
+
+      // Update tournament entries with final rankings
+      await prisma.tournamentEntry.updateMany({
+        where: {
+          tournamentId: tournamentId,
+          teamId: winner.id
+        },
+        data: { finalRank: 1 }
+      });
+
+      await prisma.tournamentEntry.updateMany({
+        where: {
+          tournamentId: tournamentId,
+          teamId: runnerUp.id
+        },
+        data: { finalRank: 2 }
+      });
+
+      logInfo(`Tournament ${tournamentId} completed. Winner: ${winner.name}, Runner-up: ${runnerUp.name}`);
+    } catch (error) {
+      console.error(`Error completing tournament ${tournamentId}:`, error.message);
+    }
+  }
+
+  /**
+   * Award tournament prize to team
+   */
+  private async awardTournamentPrize(teamId: number, prize: { credits: number, gems: number }): Promise<void> {
+    try {
+      const teamFinances = await prisma.teamFinances.findUnique({
+        where: { teamId }
+      });
+
+      if (!teamFinances) {
+        console.error(`Team finances not found for team ${teamId}`);
+        return;
+      }
+
+      // Award credits and gems
+      await prisma.teamFinances.update({
+        where: { teamId },
+        data: {
+          credits: {
+            increment: BigInt(prize.credits)
+          },
+          gems: {
+            increment: prize.gems
+          }
+        }
+      });
+
+      logInfo(`Awarded ${prize.credits} credits and ${prize.gems} gems to team ${teamId}`);
+    } catch (error) {
+      console.error(`Error awarding prize to team ${teamId}:`, error.message);
     }
   }
 }

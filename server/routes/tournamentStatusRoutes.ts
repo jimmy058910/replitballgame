@@ -555,7 +555,7 @@ router.get('/:id/matches', isAuthenticated, async (req: any, res) => {
   }
 });
 
-// Simulate tournament round
+// Start live tournament round
 router.post('/:id/matches/simulate-round', isAuthenticated, async (req: any, res) => {
   try {
     const tournamentId = req.params.id;
@@ -591,40 +591,40 @@ router.post('/:id/matches/simulate-round', isAuthenticated, async (req: any, res
       }
     });
 
-    // Simulate all matches in the round
-    for (const match of matches) {
-      let homeScore = Math.floor(Math.random() * 3) + 1;
-      let awayScore = Math.floor(Math.random() * 3) + 1;
-      
-      // Ensure no draws in tournament play - if scores are tied, add overtime winner
-      if (homeScore === awayScore) {
-        if (Math.random() > 0.5) {
-          homeScore++;
-        } else {
-          awayScore++;
-        }
-      }
-      
-      await prisma.game.update({
-        where: { id: match.id },
-        data: {
-          homeScore,
-          awayScore,
-          status: 'COMPLETED',
-          simulated: true
-        }
-      });
-    }
+    // Start live simulation for all matches in the round
+    const { matchStateManager } = require('../services/matchStateManager');
+    const matchPromises = matches.map(async (match) => {
+      try {
+        // Set match status to IN_PROGRESS
+        await prisma.game.update({
+          where: { id: match.id },
+          data: {
+            status: 'IN_PROGRESS',
+            gameDate: new Date()
+          }
+        });
 
-    // Generate next round matches if current round is complete
-    await checkAndAdvanceTournament(tournament.id);
+        // Start live simulation
+        await matchStateManager.startLiveMatch(match.id);
+        console.log(`Started live simulation for tournament match ${match.id}`);
+        
+        return match.id;
+      } catch (error) {
+        console.error(`Error starting live simulation for match ${match.id}:`, error);
+        return null;
+      }
+    });
+
+    const startedMatches = await Promise.all(matchPromises);
+    const successfulMatches = startedMatches.filter(id => id !== null);
 
     res.json({ 
-      message: `${round} round simulated successfully`,
-      matchesSimulated: matches.length
+      message: `${round} round live simulation started`,
+      matchesStarted: successfulMatches.length,
+      matchIds: successfulMatches
     });
   } catch (error) {
-    console.error("Error simulating tournament round:", error);
+    console.error("Error starting tournament round:", error);
     res.status(500).json({ message: "Internal server error" });
   }
 });
@@ -851,7 +851,7 @@ router.get('/:tournamentId/matches', async (req, res) => {
   }
 });
 
-// Simulate tournament round (Admin only)
+// Start live tournament round (Admin only)
 router.post('/:tournamentId/simulate-round', isAuthenticated, async (req: any, res) => {
   try {
     const { tournamentId } = req.params;
@@ -880,31 +880,40 @@ router.post('/:tournamentId/simulate-round', isAuthenticated, async (req: any, r
       return res.status(404).json({ message: "No schedulable matches found for this round" });
     }
 
-    // Simulate each match
-    for (const match of matches) {
-      // Generate random scores for the match
-      const homeScore = Math.floor(Math.random() * 4) + 1;
-      const awayScore = Math.floor(Math.random() * 4) + 1;
-      
-      // Update match with results
-      await prisma.game.update({
-        where: { id: match.id },
-        data: {
-          homeTeamScore: homeScore,
-          awayTeamScore: awayScore,
-          status: 'COMPLETED',
-          gameDate: new Date()
-        }
-      });
-    }
+    // Start live simulation for each match
+    const { matchStateManager } = require('../services/matchStateManager');
+    const matchPromises = matches.map(async (match) => {
+      try {
+        // Set match status to IN_PROGRESS
+        await prisma.game.update({
+          where: { id: match.id },
+          data: {
+            status: 'IN_PROGRESS',
+            gameDate: new Date()
+          }
+        });
 
-    // Check if this round completion triggers next round creation
-    await advanceTournament(parseInt(tournamentId), round);
+        // Start live simulation
+        await matchStateManager.startLiveMatch(match.id);
+        console.log(`Started live simulation for tournament match ${match.id}`);
+        
+        return match.id;
+      } catch (error) {
+        console.error(`Error starting live simulation for match ${match.id}:`, error);
+        return null;
+      }
+    });
 
-    res.json({ message: `Successfully simulated ${matches.length} matches in ${round}` });
+    const startedMatches = await Promise.all(matchPromises);
+    const successfulMatches = startedMatches.filter(id => id !== null);
+
+    res.json({ 
+      message: `Successfully started live simulation for ${successfulMatches.length} matches in round ${round}`,
+      matchIds: successfulMatches
+    });
   } catch (error) {
-    console.error("Error simulating tournament round:", error);
-    res.status(500).json({ message: "Failed to simulate tournament round", error: error.message });
+    console.error("Error starting tournament round:", error);
+    res.status(500).json({ message: "Failed to start tournament round", error: error.message });
   }
 });
 

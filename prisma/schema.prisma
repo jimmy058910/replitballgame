@@ -612,6 +612,7 @@ model Tournament {
   status              TournamentStatus  @default(REGISTRATION_OPEN)
   startTime           DateTime
   registrationEndTime DateTime?
+  endTime             DateTime?
   entryFeeCredits     BigInt?
   entryFeeGems        Int?
   entryFeeItemId      Int?
