@@ -220,12 +220,18 @@ class TournamentFlowServiceImpl implements TournamentFlowService {
         });
 
         if (nextRoundMatches.length === 0) {
-          // Generate next round matches
-          await this.generateNextRoundMatches(tournamentId, completedRound);
-          
-          // Start next round with 2-minute buffer
-          if (nextRound <= 3) { // Only up to finals
-            this.startRoundWithBuffer(tournamentId, nextRound);
+          // Check if tournament is complete (finals are done)
+          if (completedRound === 3) {
+            // Finals completed - complete tournament
+            await this.completeTournament(tournamentId);
+          } else {
+            // Generate next round matches
+            await this.generateNextRoundMatches(tournamentId, completedRound);
+            
+            // Start next round with 2-minute buffer
+            if (nextRound <= 3) { // Only up to finals
+              this.startRoundWithBuffer(tournamentId, nextRound);
+            }
           }
         }
       }
@@ -291,6 +297,186 @@ class TournamentFlowServiceImpl implements TournamentFlowService {
       }
     } catch (error) {
       console.error("Error generating next round matches:", error);
+    }
+  }
+
+  /**
+   * Complete tournament and distribute prizes
+   */
+  private async completeTournament(tournamentId: number): Promise<void> {
+    try {
+      // Get the finals match to determine winner
+      const finalsMatch = await prisma.game.findFirst({
+        where: {
+          tournamentId,
+          round: 3,
+          status: 'COMPLETED'
+        },
+        include: {
+          homeTeam: true,
+          awayTeam: true
+        }
+      });
+
+      if (!finalsMatch) {
+        console.error(`No completed finals match found for tournament ${tournamentId}`);
+        return;
+      }
+
+      // Determine winner and runner-up
+      const winner = finalsMatch.homeScore > finalsMatch.awayScore ? finalsMatch.homeTeam : finalsMatch.awayTeam;
+      const runnerUp = finalsMatch.homeScore > finalsMatch.awayScore ? finalsMatch.awayTeam : finalsMatch.homeTeam;
+
+      // Get tournament details for prize calculation
+      const tournament = await prisma.tournament.findUnique({
+        where: { id: tournamentId },
+        include: { entries: true }
+      });
+
+      if (!tournament) {
+        console.error(`Tournament ${tournamentId} not found`);
+        return;
+      }
+
+      // Calculate prizes based on tournament type and division
+      const { tournamentService } = await import('./tournamentService');
+      const divisionNames = ["", "Diamond", "Platinum", "Gold", "Silver", "Bronze", "Iron", "Stone", "Copper"];
+      
+      let championPrize = { credits: 1500, gems: 0 }; // Default Stone division
+      let runnerUpPrize = { credits: 500, gems: 0 };
+
+      if (tournament.type === "DAILY_DIVISIONAL") {
+        const rewardTable: Record<number, any> = {
+          2: { champion: { credits: 16000, gems: 8 }, runnerUp: { credits: 6000, gems: 0 } },
+          3: { champion: { credits: 12000, gems: 5 }, runnerUp: { credits: 4500, gems: 0 } },
+          4: { champion: { credits: 9000, gems: 3 }, runnerUp: { credits: 3000, gems: 0 } },
+          5: { champion: { credits: 6000, gems: 0 }, runnerUp: { credits: 2000, gems: 0 } },
+          6: { champion: { credits: 4000, gems: 0 }, runnerUp: { credits: 1500, gems: 0 } },
+          7: { champion: { credits: 2500, gems: 0 }, runnerUp: { credits: 1000, gems: 0 } },
+          8: { champion: { credits: 1500, gems: 0 }, runnerUp: { credits: 500, gems: 0 } }
+        };
+        const rewards = rewardTable[tournament.division] || rewardTable[8];
+        championPrize = rewards.champion;
+        runnerUpPrize = rewards.runnerUp;
+      }
+
+      // Award prizes to winner and runner-up
+      await this.awardTournamentPrize(winner.id, championPrize);
+      await this.awardTournamentPrize(runnerUp.id, runnerUpPrize);
+
+      // Update tournament status to COMPLETED
+      await prisma.tournament.update({
+        where: { id: tournamentId },
+        data: {
+          status: 'COMPLETED',
+          completedAt: new Date()
+        }
+      });
+
+      // Update tournament entries with final rankings and rewards
+      await prisma.tournamentEntry.updateMany({
+        where: {
+          tournamentId: tournamentId,
+          teamId: winner.id
+        },
+        data: { 
+          placement: 1,
+          creditsWon: championPrize.credits,
+          gemsWon: championPrize.gems
+        }
+      });
+
+      await prisma.tournamentEntry.updateMany({
+        where: {
+          tournamentId: tournamentId,
+          teamId: runnerUp.id
+        },
+        data: { 
+          placement: 2,
+          creditsWon: runnerUpPrize.credits,
+          gemsWon: runnerUpPrize.gems
+        }
+      });
+
+      // Update other participants with appropriate placements
+      const semifinalLosers = await prisma.game.findMany({
+        where: {
+          tournamentId,
+          round: 2,
+          status: 'COMPLETED'
+        }
+      });
+
+      for (const semifinalMatch of semifinalLosers) {
+        const loser = semifinalMatch.homeScore > semifinalMatch.awayScore ? semifinalMatch.awayTeamId : semifinalMatch.homeTeamId;
+        await prisma.tournamentEntry.updateMany({
+          where: {
+            tournamentId: tournamentId,
+            teamId: loser
+          },
+          data: { placement: 3 } // Semifinalist
+        });
+      }
+
+      // Update quarterfinal losers
+      const quarterFinalMatches = await prisma.game.findMany({
+        where: {
+          tournamentId,
+          round: 1,
+          status: 'COMPLETED'
+        }
+      });
+
+      for (const quarterMatch of quarterFinalMatches) {
+        const loser = quarterMatch.homeScore > quarterMatch.awayScore ? quarterMatch.awayTeamId : quarterMatch.homeTeamId;
+        await prisma.tournamentEntry.updateMany({
+          where: {
+            tournamentId: tournamentId,
+            teamId: loser
+          },
+          data: { placement: 5 } // Quarterfinalist
+        });
+      }
+
+      // Clean up timers
+      this.cleanupTournamentTimers(tournamentId);
+
+      logInfo(`Tournament ${tournamentId} completed successfully. Winner: ${winner.name}, Runner-up: ${runnerUp.name}`);
+    } catch (error) {
+      console.error(`Error completing tournament ${tournamentId}:`, error);
+    }
+  }
+
+  /**
+   * Award tournament prize to team
+   */
+  private async awardTournamentPrize(teamId: number, prize: { credits: number, gems: number }): Promise<void> {
+    try {
+      const teamFinances = await prisma.teamFinances.findUnique({
+        where: { teamId }
+      });
+
+      if (!teamFinances) {
+        console.error(`Team finances not found for team ${teamId}`);
+        return;
+      }
+
+      // Award credits and gems
+      await prisma.teamFinances.update({
+        where: { teamId },
+        data: {
+          credits: {
+            increment: BigInt(prize.credits)
+          },
+          gems: {
+            increment: prize.gems
+          }
+        }
+      });
+
+      logInfo(`Awarded ${prize.credits} credits and ${prize.gems} gems to team ${teamId}`);
+    } catch (error) {
+      console.error(`Error awarding prize to team ${teamId}:`, error);
     }
   }
 
