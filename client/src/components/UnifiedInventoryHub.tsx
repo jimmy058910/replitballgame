@@ -323,7 +323,13 @@ export default function UnifiedInventoryHub({ teamId }: UnifiedInventoryHubProps
                     {/* Enhanced Item Details */}
                     {item.raceRestriction && (
                       <div className="mt-2">
-                        <p className="text-xs font-medium text-blue-400">Race: {item.raceRestriction}</p>
+                        <p className="text-xs font-medium text-blue-400">Race: {item.raceRestriction.charAt(0).toUpperCase() + item.raceRestriction.slice(1).toLowerCase()}</p>
+                      </div>
+                    )}
+                    
+                    {item.slot && (
+                      <div className="mt-2">
+                        <p className="text-xs font-medium text-yellow-400">Slot: {item.slot.charAt(0).toUpperCase() + item.slot.slice(1).toLowerCase()}</p>
                       </div>
                     )}
                     
@@ -332,7 +338,7 @@ export default function UnifiedInventoryHub({ teamId }: UnifiedInventoryHubProps
                         <p className="text-xs font-medium text-green-400">Stats:</p>
                         <div className="flex flex-wrap gap-1 mt-1">
                           {Object.entries(item.statBoosts).map(([stat, value]: [string, any]) => (
-                            <span key={stat} className="text-xs bg-green-100 dark:bg-green-900 px-2 py-1 rounded">
+                            <span key={stat} className="text-xs bg-green-600 text-white px-2 py-1 rounded">
                               {stat}: +{value}
                             </span>
                           ))}
@@ -343,7 +349,7 @@ export default function UnifiedInventoryHub({ teamId }: UnifiedInventoryHubProps
                     {(item.effect || item.metadata?.effect) && (
                       <div className="mt-2">
                         <p className="text-xs font-medium text-purple-400">Effect:</p>
-                        <span className="text-xs bg-purple-100 dark:bg-purple-900 px-2 py-1 rounded">
+                        <span className="text-xs bg-purple-600 text-white px-2 py-1 rounded">
                           {item.effect || item.metadata?.effect}
                         </span>
                       </div>
