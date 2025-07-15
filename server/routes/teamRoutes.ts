@@ -1388,8 +1388,16 @@ router.post('/:teamId/apply-team-boost', isAuthenticated, asyncHandler(async (re
     throw ErrorCreators.notFound("Team not found");
   }
 
-  // Check if user owns this team
-  if (team.userId !== userId) {
+  // Check if user owns this team - need to get userProfile first
+  const userProfile = await prisma.userProfile.findUnique({
+    where: { userId: userId }
+  });
+  
+  if (!userProfile) {
+    throw ErrorCreators.unauthorized("User profile not found");
+  }
+
+  if (team.userProfileId !== userProfile.id) {
     throw ErrorCreators.unauthorized("You don't own this team");
   }
 

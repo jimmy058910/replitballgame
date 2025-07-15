@@ -137,6 +137,7 @@ Built as a React + Express web application with PostgreSQL database, using moder
 - ✓ **Backend Endpoint Created**: `/api/teams/:teamId/apply-team-boost` endpoint properly handles team boosts using ActiveBoost table
 - ✓ **Database Integration**: Team boosts stored in ActiveBoost table with proper teamId and itemId relationships
 - ✓ **Inventory Management**: Item quantities properly decreased or removed after team boost application
+- ✓ **Authentication Fixed**: Fixed team ownership check to use userProfileId instead of userId field
 - ✓ **All 5 Team Boost Items Working**: Team Leadership Draft, Team Power Draught, Team Agility Tonic, Team Stamina Brew, Champion's Blessing
 
 #### ✅ INVENTORY DISPLAY IMPROVEMENTS - ENHANCED USER EXPERIENCE
