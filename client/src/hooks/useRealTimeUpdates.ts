@@ -1,98 +1,65 @@
-import { useEffect, useRef } from 'react';
+import { useEffect } from 'react';
 import { useTournamentStore } from '@/stores/tournamentStore';
 import { useMatchStore } from '@/stores/matchStore';
 import { useEconomyStore } from '@/stores/economyStore';
 
-// Custom hook for real-time updates using Zustand stores
+// Hook to set up real-time updates across all stores
 export function useRealTimeUpdates() {
-  const intervalRef = useRef<NodeJS.Timeout | null>(null);
-  
-  // Store actions
-  const { setConnectionStatus: setTournamentConnection } = useTournamentStore();
-  const { setConnectionStatus: setMatchConnection } = useMatchStore();
-  
+  const tournamentStore = useTournamentStore();
+  const matchStore = useMatchStore();
+  const economyStore = useEconomyStore();
+
   useEffect(() => {
-    // Simulate real-time connection status
-    setTournamentConnection(true);
-    setMatchConnection(true);
-    
-    // Set up periodic updates for real-time data
-    intervalRef.current = setInterval(() => {
-      // This would normally be replaced with WebSocket updates
-      // For now, we'll just update the connection status
-      const isConnected = Math.random() > 0.1; // 90% uptime simulation
-      setTournamentConnection(isConnected);
-      setMatchConnection(isConnected);
-    }, 5000);
-    
-    return () => {
-      if (intervalRef.current) {
-        clearInterval(intervalRef.current);
+    // Initialize WebSocket connections
+    const initializeConnections = async () => {
+      try {
+        // Initialize tournament WebSocket
+        await tournamentStore.connectWebSocket();
+        
+        // Initialize match WebSocket
+        await matchStore.connectWebSocket();
+        
+        // Initialize economy WebSocket  
+        await economyStore.connectWebSocket();
+        
+        console.log('Real-time connections initialized');
+      } catch (error) {
+        console.error('Failed to initialize real-time connections:', error);
       }
-      setTournamentConnection(false);
-      setMatchConnection(false);
     };
-  }, [setTournamentConnection, setMatchConnection]);
-}
 
-// Hook for tournament real-time updates
-export function useTournamentUpdates(tournamentId?: number) {
-  const store = useTournamentStore();
-  
-  useEffect(() => {
-    if (!tournamentId) return;
-    
-    // Subscribe to tournament-specific updates
-    const interval = setInterval(() => {
-      // This would be replaced with WebSocket subscriptions
-      // For now, just mark as updated
-      store.updateTournamentStatus(tournamentId, {
-        lastUpdated: new Date()
-      });
-    }, 30000); // Update every 30 seconds
-    
-    return () => clearInterval(interval);
-  }, [tournamentId, store]);
-  
-  return store;
-}
+    initializeConnections();
 
-// Hook for match real-time updates
-export function useMatchUpdates(matchId?: number) {
-  const store = useMatchStore();
-  
-  useEffect(() => {
-    if (!matchId) return;
-    
-    // Subscribe to match-specific updates
-    const interval = setInterval(() => {
-      // This would be replaced with WebSocket subscriptions
-      // For now, just mark as updated
-      store.updateMatchState(matchId, {
-        lastUpdated: new Date()
-      });
-    }, 2000); // Update every 2 seconds for live matches
-    
-    return () => clearInterval(interval);
-  }, [matchId, store]);
-  
-  return store;
-}
+    // Cleanup connections on unmount
+    return () => {
+      tournamentStore.disconnectWebSocket();
+      matchStore.disconnectWebSocket();
+      economyStore.disconnectWebSocket();
+    };
+  }, []);
 
-// Hook for economy updates
-export function useEconomyUpdates() {
-  const store = useEconomyStore();
-  
+  // Set up periodic data refresh
   useEffect(() => {
-    // Subscribe to economy updates
     const interval = setInterval(() => {
-      // This would be replaced with real-time financial updates
-      // For now, just mark as updated
-      store.setLoading(false);
-    }, 60000); // Update every minute
-    
+      // Refresh data periodically if not connected
+      if (!tournamentStore.isConnected) {
+        tournamentStore.refreshData();
+      }
+      if (!matchStore.isConnected) {
+        matchStore.refreshData();
+      }
+      if (!economyStore.isConnected) {
+        economyStore.refreshData();
+      }
+    }, 30000); // Refresh every 30 seconds
+
     return () => clearInterval(interval);
-  }, [store]);
-  
-  return store;
+  }, [tournamentStore.isConnected, matchStore.isConnected, economyStore.isConnected]);
+
+  return {
+    tournamentConnected: tournamentStore.isConnected,
+    matchConnected: matchStore.isConnected,
+    economyConnected: economyStore.isConnected,
+    allConnected: tournamentStore.isConnected && matchStore.isConnected && economyStore.isConnected
+  };
 }

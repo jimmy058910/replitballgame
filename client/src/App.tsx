@@ -33,6 +33,7 @@ import { LiveMatchPage } from "@/components/LiveMatchPage";
 import GemCheckout from "@/pages/gem-checkout";
 import RealmPassCheckout from "@/pages/realm-pass-checkout";
 import TournamentStatus from "@/pages/TournamentStatus";
+import DomainDemo from "@/pages/DomainDemo";
 
 import Navigation from "@/components/Navigation";
 import { ContextualHelp } from "@/components/help";
@@ -77,6 +78,7 @@ function Router() {
           <Route path="/gem-checkout" component={GemCheckout} />
           <Route path="/realm-pass-checkout" component={RealmPassCheckout} />
           <Route path="/tournament-status" component={TournamentStatus} />
+          <Route path="/domain-demo" component={DomainDemo} />
         </>
       )}
       <Route component={NotFound} />
