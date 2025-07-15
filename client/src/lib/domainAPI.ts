@@ -5,27 +5,27 @@ import { apiRequest } from './queryClient';
 export const tournamentAPI = {
   // Register for tournament
   register: async (teamId: number, data: { division: number; paymentType?: string }) => {
-    return apiRequest('POST', `/api/v2/tournaments/register`, { ...data, teamId });
+    return apiRequest(`/api/v2/tournaments/register`, 'POST', { ...data, teamId });
   },
 
   // Get tournament history
   getHistory: async (teamId: number) => {
-    return apiRequest('GET', `/api/v2/tournaments/history/${teamId}`);
+    return apiRequest(`/api/v2/tournaments/history/${teamId}`, 'GET');
   },
 
   // Get active tournaments
   getActive: async (teamId: number) => {
-    return apiRequest('GET', `/api/v2/tournaments/active/${teamId}`);
+    return apiRequest(`/api/v2/tournaments/active/${teamId}`, 'GET');
   },
 
   // Get tournament status
   getStatus: async (tournamentId: number) => {
-    return apiRequest('GET', `/api/v2/tournaments/status/${tournamentId}`);
+    return apiRequest(`/api/v2/tournaments/status/${tournamentId}`, 'GET');
   },
 
   // Force start tournament (admin only)
   forceStart: async (tournamentId: number) => {
-    return apiRequest('POST', `/api/v2/tournaments/force-start/${tournamentId}`);
+    return apiRequest(`/api/v2/tournaments/force-start/${tournamentId}`, 'POST');
   }
 };
 
@@ -39,22 +39,22 @@ export const matchAPI = {
     scheduledTime?: Date;
     tournamentId?: number;
   }) => {
-    return apiRequest('POST', `/api/v2/matches/create`, data);
+    return apiRequest(`/api/v2/matches/create`, 'POST', data);
   },
 
   // Get match by ID
   getById: async (matchId: number) => {
-    return apiRequest('GET', `/api/v2/matches/${matchId}`);
+    return apiRequest(`/api/v2/matches/${matchId}`, 'GET');
   },
 
   // Get live matches
   getLive: async () => {
-    return apiRequest('GET', `/api/v2/matches/live`);
+    return apiRequest(`/api/v2/matches/live`, 'GET');
   },
 
   // Start match
   start: async (matchId: number) => {
-    return apiRequest('POST', `/api/v2/matches/${matchId}/start`);
+    return apiRequest(`/api/v2/matches/${matchId}/start`, 'POST');
   },
 
   // Update match state
@@ -64,7 +64,7 @@ export const matchAPI = {
     awayScore?: number;
     status?: string;
   }) => {
-    return apiRequest('PUT', `/api/v2/matches/${matchId}/state`, update);
+    return apiRequest(`/api/v2/matches/${matchId}/state`, 'PUT', update);
   }
 };
 
@@ -72,7 +72,7 @@ export const matchAPI = {
 export const economyAPI = {
   // Get daily store items
   getDailyStore: async () => {
-    return apiRequest('GET', `/api/v2/economy/store/daily`);
+    return apiRequest(`/api/v2/economy/store/daily`, 'GET');
   },
 
   // Purchase item
@@ -81,12 +81,12 @@ export const economyAPI = {
     quantity: number;
     paymentMethod: 'credits' | 'gems';
   }) => {
-    return apiRequest('POST', `/api/v2/economy/store/purchase`, { ...data, teamId });
+    return apiRequest(`/api/v2/economy/store/purchase`, 'POST', { ...data, teamId });
   },
 
   // Get marketplace listings
   getMarketplace: async (page: number = 1, limit: number = 20) => {
-    return apiRequest('GET', `/api/v2/economy/marketplace?page=${page}&limit=${limit}`);
+    return apiRequest(`/api/v2/economy/marketplace?page=${page}&limit=${limit}`, 'GET');
   },
 
   // Place bid
@@ -94,17 +94,17 @@ export const economyAPI = {
     listingId: number;
     amount: number;
   }) => {
-    return apiRequest('POST', `/api/v2/economy/marketplace/bid`, { ...data, teamId });
+    return apiRequest(`/api/v2/economy/marketplace/bid`, 'POST', { ...data, teamId });
   },
 
   // Get financial summary
   getFinances: async (teamId: number) => {
-    return apiRequest('GET', `/api/v2/economy/finances/${teamId}`);
+    return apiRequest(`/api/v2/economy/finances/${teamId}`, 'GET');
   },
 
   // Watch ad
   watchAd: async (teamId: number) => {
-    return apiRequest('POST', `/api/v2/economy/ads/watch`, { teamId });
+    return apiRequest(`/api/v2/economy/ads/watch`, 'POST', { teamId });
   }
 };
 
@@ -112,7 +112,7 @@ export const economyAPI = {
 export const authAPI = {
   // Get user profile (protected)
   getProfile: async () => {
-    return apiRequest('GET', `/api/v2/auth/user`);
+    return apiRequest(`/api/v2/auth/user`, 'GET');
   },
 
   // Update user profile (protected)
@@ -120,29 +120,29 @@ export const authAPI = {
     username?: string;
     avatar?: string;
   }) => {
-    return apiRequest('PUT', `/api/v2/auth/user`, data);
+    return apiRequest(`/api/v2/auth/user`, 'PUT', data);
   },
 
   // Health check (public)
   healthCheck: async () => {
-    return apiRequest('GET', `/api/v2/auth/health`);
+    return apiRequest(`/api/v2/auth/health`, 'GET');
   },
 
   // Demo public endpoint
   demoPublic: async () => {
-    return apiRequest('GET', `/api/v2/auth/demo/public`);
+    return apiRequest(`/api/v2/auth/demo/public`, 'GET');
   },
 
   // Demo protected endpoint
   demoProtected: async () => {
-    return apiRequest('GET', `/api/v2/auth/demo/protected`);
+    return apiRequest(`/api/v2/auth/demo/protected`, 'GET');
   }
 };
 
 // Helper function to check domain API health
 export const checkDomainHealth = async () => {
   try {
-    const response = await apiRequest('GET', `/api/v2/health`);
+    const response = await apiRequest(`/api/v2/health`, 'GET');
     return response.success;
   } catch (error) {
     console.error('Domain health check failed:', error);

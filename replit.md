@@ -129,7 +129,16 @@ Built as a React + Express web application with PostgreSQL database, using moder
 
 ## Recent Changes
 
-### July 15, 2025 - ✅ COMPLETE DOMAIN-DRIVEN ARCHITECTURE IMPLEMENTATION - 4 KEY IMPROVEMENTS ACHIEVED
+### July 15, 2025 - ✅ CRITICAL DOMAIN API BUG FIX - PARAMETER ORDER CORRECTED
+
+#### ✅ DOMAIN API ENDPOINTS FULLY OPERATIONAL - BUG RESOLUTION SUCCESS
+- ✓ **Critical Parameter Bug Fixed**: Corrected parameter order in domainAPI.ts where `apiRequest(method, url, data)` was being called instead of `apiRequest(url, method, data)`
+- ✓ **All Domain Endpoints Working**: Fixed all tournament, match, economy, and auth API calls to use correct parameter order
+- ✓ **Demo Page Functional**: Domain demo page now shows proper API responses instead of "not a valid HTTP method" errors
+- ✓ **Authentication Testing**: Public and protected endpoints now properly demonstrate authentication behavior
+- ✓ **Production Ready**: All domain architecture improvements now fully operational with working API calls
+
+### July 15, 2025 - ✅ COMPLETE DOMAIN-DRIVEN ARCHITECTURE IMPLEMENTATION - 4 KEY IMPROVEMENTS ACHIEVED (Previous)
 
 #### ✅ DOMAIN-DRIVEN BACKEND RESTRUCTURING COMPLETE - COMPREHENSIVE ARCHITECTURAL OVERHAUL
 - ✓ **Domain Structure Created**: Implemented complete domain-driven architecture with core, auth, tournaments, matches, and economy modules
