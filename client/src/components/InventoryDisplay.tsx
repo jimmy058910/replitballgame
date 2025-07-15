@@ -49,7 +49,15 @@ export default function InventoryDisplay({ teamId }: InventoryDisplayProps) {
     if (!items) return [];
     
     return items.filter(item => {
-      const matchesType = item.type === type;
+      let matchesType = false;
+      if (type === 'EQUIPMENT') {
+        matchesType = item.itemType === 'EQUIPMENT';
+      } else if (type === 'CONSUMABLE') {
+        matchesType = item.itemType?.includes('CONSUMABLE');
+      } else {
+        matchesType = item.type === type || item.itemType === type.toUpperCase();
+      }
+      
       const hasQuantity = item.quantity > 0; // Only show items with quantity > 0
       const matchesSearch = item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                            item.description.toLowerCase().includes(searchTerm.toLowerCase());
@@ -88,8 +96,8 @@ export default function InventoryDisplay({ teamId }: InventoryDisplayProps) {
     return bonuses;
   };
 
-  const equipment = filterItems(inventory || [], 'equipment');
-  const consumables = filterItems(inventory || [], 'consumable');
+  const equipment = filterItems(inventory || [], 'EQUIPMENT');
+  const consumables = filterItems(inventory || [], 'CONSUMABLE');
   const entries = filterItems(inventory || [], 'entry');
 
   if (isLoading) {
@@ -212,11 +220,12 @@ export default function InventoryDisplay({ teamId }: InventoryDisplayProps) {
                         )}
                         
                         {/* Stat Effects */}
-                        {item.statBoosts && (
+                        {item.statBoosts && getStatBonusText(item.statBoosts) && (
                           <div className="text-sm">
-                            <div className="font-medium text-green-600">
+                            <span className="font-medium text-green-600 dark:text-green-400">Stats: </span>
+                            <span className="text-green-700 dark:text-green-300 bg-green-50 dark:bg-green-900/20 px-2 py-1 rounded border border-green-300 dark:border-green-600">
                               {getStatBonusText(item.statBoosts)}
-                            </div>
+                            </span>
                           </div>
                         )}
                         
@@ -263,11 +272,11 @@ export default function InventoryDisplay({ teamId }: InventoryDisplayProps) {
                         </div>
                         
                         {/* Effect text with proper contrast */}
-                        {item.effect && (
+                        {(item.effect || item.metadata?.effect) && (
                           <div className="text-sm">
                             <span className="font-medium text-purple-600 dark:text-purple-400">Effect: </span>
                             <span className="text-black dark:text-white bg-purple-100 dark:bg-purple-800 px-2 py-1 rounded border border-purple-300 dark:border-purple-600">
-                              {item.effect}
+                              {item.effect || item.metadata?.effect}
                             </span>
                           </div>
                         )}
