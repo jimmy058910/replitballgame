@@ -1017,41 +1017,41 @@ export class EnhancedGameEconomyService {
    */
   static readonly STORE_ITEMS = {
     helmets: [
-      { id: 'standard_leather_helmet', name: 'Standard Leather Helmet', credits: 1000, gems: null, tier: 'common', raceRestriction: null, statEffects: { stamina: 2 } },
-      { id: 'reinforced_steel_helm', name: 'Reinforced Steel Helm', credits: 4000, gems: 8, tier: 'uncommon', raceRestriction: null, statEffects: { stamina: 5 } },
-      { id: 'human_tactical_helm', name: 'Human Tactical Helm', credits: 6000, gems: 12, tier: 'uncommon', raceRestriction: 'HUMAN', statEffects: { leadership: 5, throwing: 3 } },
-      { id: 'gryllstone_plated_helm', name: 'Gryllstone Plated Helm', credits: 6000, gems: 12, tier: 'uncommon', raceRestriction: 'GRYLL', statEffects: { power: 8 } },
-      { id: 'sylvan_barkwood_circlet', name: 'Sylvan Barkwood Circlet', credits: 6000, gems: 12, tier: 'uncommon', raceRestriction: 'SYLVAN', statEffects: { agility: 5, catching: 3 } },
-      { id: 'umbral_cowl', name: 'Umbral Cowl', credits: 35000, gems: 25, tier: 'rare', raceRestriction: 'UMBRA', statEffects: { agility: 8, throwing: 5 } },
-      { id: 'lumina_radiant_crest', name: 'Lumina Radiant Crest', credits: 35000, gems: 25, tier: 'rare', raceRestriction: 'LUMINA', statEffects: { leadership: 8, kicking: 5 } },
-      { id: 'warlords_greathelm', name: 'Warlord\'s Greathelm', credits: 75000, gems: 50, tier: 'epic', raceRestriction: null, statEffects: { power: 10, leadership: 5 } }
+      { id: 'standard_leather_helmet', name: 'Standard Leather Helmet', credits: 1000, gems: null, tier: 'common', raceRestriction: null, statEffects: { stamina: 2 }, slot: 'Helmet' },
+      { id: 'reinforced_steel_helm', name: 'Reinforced Steel Helm', credits: 4000, gems: 8, tier: 'uncommon', raceRestriction: null, statEffects: { stamina: 5 }, slot: 'Helmet' },
+      { id: 'human_tactical_helm', name: 'Human Tactical Helm', credits: 6000, gems: 12, tier: 'uncommon', raceRestriction: 'HUMAN', statEffects: { leadership: 5, throwing: 3 }, slot: 'Helmet' },
+      { id: 'gryllstone_plated_helm', name: 'Gryllstone Plated Helm', credits: 6000, gems: 12, tier: 'uncommon', raceRestriction: 'GRYLL', statEffects: { power: 8 }, slot: 'Helmet' },
+      { id: 'sylvan_barkwood_circlet', name: 'Sylvan Barkwood Circlet', credits: 6000, gems: 12, tier: 'uncommon', raceRestriction: 'SYLVAN', statEffects: { agility: 5, catching: 3 }, slot: 'Helmet' },
+      { id: 'umbral_cowl', name: 'Umbral Cowl', credits: 35000, gems: 25, tier: 'rare', raceRestriction: 'UMBRA', statEffects: { agility: 8, throwing: 5 }, slot: 'Helmet' },
+      { id: 'lumina_radiant_crest', name: 'Lumina Radiant Crest', credits: 35000, gems: 25, tier: 'rare', raceRestriction: 'LUMINA', statEffects: { leadership: 8, kicking: 5 }, slot: 'Helmet' },
+      { id: 'warlords_greathelm', name: 'Warlord\'s Greathelm', credits: 75000, gems: 50, tier: 'epic', raceRestriction: null, statEffects: { power: 10, leadership: 5 }, slot: 'Helmet' }
     ],
     chestArmor: [
-      { id: 'padded_leather_armor', name: 'Padded Leather Armor', credits: 1500, gems: null, tier: 'common', raceRestriction: null, statEffects: { stamina: 3 } },
-      { id: 'steel_scale_mail', name: 'Steel Scale Mail', credits: 5000, gems: 10, tier: 'uncommon', raceRestriction: null, statEffects: { stamina: 6 } },
-      { id: 'quarterbacks_pauldrons', name: 'Quarterback\'s Pauldrons', credits: 8000, gems: 16, tier: 'uncommon', raceRestriction: null, statEffects: { throwing: 8 } },
-      { id: 'human_plate_carrier', name: 'Human Plate Carrier', credits: 7500, gems: 15, tier: 'uncommon', raceRestriction: 'HUMAN', statEffects: { stamina: 6, power: 2 } },
-      { id: 'gryll_forged_plate', name: 'Gryll Forged Plate', credits: 40000, gems: 30, tier: 'rare', raceRestriction: 'GRYLL', statEffects: { power: 12, speed: -2 } },
-      { id: 'umbral_shadow_weave_tunic', name: 'Umbral Shadow-Weave Tunic', credits: 40000, gems: 30, tier: 'rare', raceRestriction: 'UMBRA', statEffects: { agility: 10, stamina: 3 } },
-      { id: 'luminas_aegis_of_light', name: 'Lumina\'s Aegis of Light', credits: 80000, gems: 55, tier: 'epic', raceRestriction: 'LUMINA', statEffects: { leadership: 10, stamina: 8 } },
-      { id: 'sylvan_heartwood_plate', name: 'Sylvan Heartwood Plate', credits: 80000, gems: 55, tier: 'epic', raceRestriction: 'SYLVAN', statEffects: { agility: 10, stamina: 8 }, special: 'stamina_regen' }
+      { id: 'padded_leather_armor', name: 'Padded Leather Armor', credits: 1500, gems: null, tier: 'common', raceRestriction: null, statEffects: { stamina: 3 }, slot: 'Chest Armor' },
+      { id: 'steel_scale_mail', name: 'Steel Scale Mail', credits: 5000, gems: 10, tier: 'uncommon', raceRestriction: null, statEffects: { stamina: 6 }, slot: 'Chest Armor' },
+      { id: 'quarterbacks_pauldrons', name: 'Quarterback\'s Pauldrons', credits: 8000, gems: 16, tier: 'uncommon', raceRestriction: null, statEffects: { throwing: 8 }, slot: 'Chest Armor' },
+      { id: 'human_plate_carrier', name: 'Human Plate Carrier', credits: 7500, gems: 15, tier: 'uncommon', raceRestriction: 'HUMAN', statEffects: { stamina: 6, power: 2 }, slot: 'Chest Armor' },
+      { id: 'gryll_forged_plate', name: 'Gryll Forged Plate', credits: 40000, gems: 30, tier: 'rare', raceRestriction: 'GRYLL', statEffects: { power: 12, speed: -2 }, slot: 'Chest Armor' },
+      { id: 'umbral_shadow_weave_tunic', name: 'Umbral Shadow-Weave Tunic', credits: 40000, gems: 30, tier: 'rare', raceRestriction: 'UMBRA', statEffects: { agility: 10, stamina: 3 }, slot: 'Chest Armor' },
+      { id: 'luminas_aegis_of_light', name: 'Lumina\'s Aegis of Light', credits: 80000, gems: 55, tier: 'epic', raceRestriction: 'LUMINA', statEffects: { leadership: 10, stamina: 8 }, slot: 'Chest Armor' },
+      { id: 'sylvan_heartwood_plate', name: 'Sylvan Heartwood Plate', credits: 80000, gems: 55, tier: 'epic', raceRestriction: 'SYLVAN', statEffects: { agility: 10, stamina: 8 }, special: 'stamina_regen', slot: 'Chest Armor' }
     ],
     gloves: [
-      { id: 'standard_leather_gloves', name: 'Standard Leather Gloves', credits: 800, gems: null, tier: 'common', raceRestriction: null, statEffects: { catching: 2 } },
-      { id: 'receivers_gloves', name: 'Receiver\'s Gloves', credits: 4000, gems: 8, tier: 'uncommon', raceRestriction: null, statEffects: { catching: 6 } },
-      { id: 'steel_gauntlets', name: 'Steel Gauntlets', credits: 3500, gems: 7, tier: 'uncommon', raceRestriction: null, statEffects: { power: 4, catching: 2 } },
-      { id: 'human_marksmans_gloves', name: 'Human Marksman\'s Gloves', credits: 30000, gems: 20, tier: 'rare', raceRestriction: 'HUMAN', statEffects: { throwing: 8, agility: 3 } },
-      { id: 'gryll_stonefists', name: 'Gryll Stonefists', credits: 30000, gems: 20, tier: 'rare', raceRestriction: 'GRYLL', statEffects: { power: 8, stamina: 4 } },
-      { id: 'umbral_shadowgrips', name: 'Umbral Shadowgrips', credits: 30000, gems: 20, tier: 'rare', raceRestriction: 'UMBRA', statEffects: { agility: 7, catching: 3 } },
-      { id: 'sylvan_gripping_vines', name: 'Sylvan Gripping Vines', credits: 70000, gems: 45, tier: 'epic', raceRestriction: 'SYLVAN', statEffects: { catching: 12 } }
+      { id: 'standard_leather_gloves', name: 'Standard Leather Gloves', credits: 800, gems: null, tier: 'common', raceRestriction: null, statEffects: { catching: 2 }, slot: 'Gloves' },
+      { id: 'receivers_gloves', name: 'Receiver\'s Gloves', credits: 4000, gems: 8, tier: 'uncommon', raceRestriction: null, statEffects: { catching: 6 }, slot: 'Gloves' },
+      { id: 'steel_gauntlets', name: 'Steel Gauntlets', credits: 3500, gems: 7, tier: 'uncommon', raceRestriction: null, statEffects: { power: 4, catching: 2 }, slot: 'Gloves' },
+      { id: 'human_marksmans_gloves', name: 'Human Marksman\'s Gloves', credits: 30000, gems: 20, tier: 'rare', raceRestriction: 'HUMAN', statEffects: { throwing: 8, agility: 3 }, slot: 'Gloves' },
+      { id: 'gryll_stonefists', name: 'Gryll Stonefists', credits: 30000, gems: 20, tier: 'rare', raceRestriction: 'GRYLL', statEffects: { power: 8, stamina: 4 }, slot: 'Gloves' },
+      { id: 'umbral_shadowgrips', name: 'Umbral Shadowgrips', credits: 30000, gems: 20, tier: 'rare', raceRestriction: 'UMBRA', statEffects: { agility: 7, catching: 3 }, slot: 'Gloves' },
+      { id: 'sylvan_gripping_vines', name: 'Sylvan Gripping Vines', credits: 70000, gems: 45, tier: 'epic', raceRestriction: 'SYLVAN', statEffects: { catching: 12 }, slot: 'Gloves' }
     ],
     footwear: [
-      { id: 'worn_cleats', name: 'Worn Cleats', credits: 1000, gems: null, tier: 'common', raceRestriction: null, statEffects: { speed: 2 } },
-      { id: 'kickers_cleats', name: 'Kicker\'s Cleats', credits: 4500, gems: 9, tier: 'uncommon', raceRestriction: null, statEffects: { kicking: 6 } },
-      { id: 'plated_greaves', name: 'Plated Greaves', credits: 4500, gems: 9, tier: 'uncommon', raceRestriction: null, statEffects: { stamina: 4, speed: 2 } },
-      { id: 'boots_of_the_gryll', name: 'Boots of the Gryll', credits: 5500, gems: 11, tier: 'uncommon', raceRestriction: 'GRYLL', statEffects: { power: 6 } },
-      { id: 'sylvan_swift_striders', name: 'Sylvan Swift-Striders', credits: 38000, gems: 28, tier: 'rare', raceRestriction: 'SYLVAN', statEffects: { speed: 10 } },
-      { id: 'luminas_light_treads', name: 'Lumina\'s Light-Treads', credits: 38000, gems: 28, tier: 'rare', raceRestriction: 'LUMINA', statEffects: { agility: 10 } }
+      { id: 'worn_cleats', name: 'Worn Cleats', credits: 1000, gems: null, tier: 'common', raceRestriction: null, statEffects: { speed: 2 }, slot: 'Shoes' },
+      { id: 'kickers_cleats', name: 'Kicker\'s Cleats', credits: 4500, gems: 9, tier: 'uncommon', raceRestriction: null, statEffects: { kicking: 6 }, slot: 'Shoes' },
+      { id: 'plated_greaves', name: 'Plated Greaves', credits: 4500, gems: 9, tier: 'uncommon', raceRestriction: null, statEffects: { stamina: 4, speed: 2 }, slot: 'Shoes' },
+      { id: 'boots_of_the_gryll', name: 'Boots of the Gryll', credits: 5500, gems: 11, tier: 'uncommon', raceRestriction: 'GRYLL', statEffects: { power: 6 }, slot: 'Shoes' },
+      { id: 'sylvan_swift_striders', name: 'Sylvan Swift-Striders', credits: 38000, gems: 28, tier: 'rare', raceRestriction: 'SYLVAN', statEffects: { speed: 10 }, slot: 'Shoes' },
+      { id: 'luminas_light_treads', name: 'Lumina\'s Light-Treads', credits: 38000, gems: 28, tier: 'rare', raceRestriction: 'LUMINA', statEffects: { agility: 10 }, slot: 'Shoes' }
     ],
     consumables: [
       { id: 'basic_energy_drink', name: 'Basic Energy Drink', credits: 500, gems: null, tier: 'common', effect: 'restore_stamina_25' },

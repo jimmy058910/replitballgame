@@ -364,15 +364,22 @@ export default function Market() {
                             {/* Race Restriction */}
                             {item.raceRestriction && item.raceRestriction !== 'universal' && (
                               <p className="text-xs text-purple-600 dark:text-purple-400 font-medium">
-                                <strong>Race:</strong> {item.raceRestriction === 'lumina' ? 'Lumina' : 
-                                                        item.raceRestriction === 'gryll' ? 'Gryll' : 
-                                                        item.raceRestriction === 'sylvan' ? 'Sylvan' : 
-                                                        item.raceRestriction === 'umbra' ? 'Umbra' : 
-                                                        item.raceRestriction === 'human' ? 'Human' : 
-                                                        item.raceRestriction.charAt(0).toUpperCase() + item.raceRestriction.slice(1)} only
+                                <strong>Race:</strong> {item.raceRestriction === 'LUMINA' ? 'Lumina' : 
+                                                        item.raceRestriction === 'GRYLL' ? 'Gryll' : 
+                                                        item.raceRestriction === 'SYLVAN' ? 'Sylvan' : 
+                                                        item.raceRestriction === 'UMBRA' ? 'Umbra' : 
+                                                        item.raceRestriction === 'HUMAN' ? 'Human' : 
+                                                        item.raceRestriction.charAt(0).toUpperCase() + item.raceRestriction.slice(1).toLowerCase()} only
                               </p>
                             )}
                             
+                            {/* Equipment Slot */}
+                            {item.slot && (
+                              <p className="text-xs text-blue-600 dark:text-blue-400 font-medium">
+                                <strong>Equipment Slot:</strong> {item.slot}
+                              </p>
+                            )}
+
                             {/* Stat Effects (for equipment) */}
                             {item.statEffects && Object.keys(item.statEffects).length > 0 && (
                               <div className="text-xs text-green-600 dark:text-green-400 bg-green-50 dark:bg-green-900/20 p-2 rounded">
