@@ -75,24 +75,21 @@ router.get('/:matchId', isAuthenticated, async (req: Request, res: Response, nex
       }
     }
     // Convert BigInt fields to strings for JSON serialization
-    const serializedMatch = {
-      ...match,
-      id: match.id.toString(),
-      homeTeamId: match.homeTeamId.toString(),
-      awayTeamId: match.awayTeamId.toString(),
-      leagueId: match.leagueId ? match.leagueId.toString() : null,
-      tournamentId: match.tournamentId ? match.tournamentId.toString() : null,
-      homeTeamName, 
-      awayTeamName,
-      homeTeam: homeTeam ? { 
-        id: homeTeam.id.toString(), 
-        name: homeTeam.name 
-      } : null,
-      awayTeam: awayTeam ? { 
-        id: awayTeam.id.toString(), 
-        name: awayTeam.name 
-      } : null
-    };
+    const serializedMatch = JSON.parse(JSON.stringify(match, (key, value) => {
+      return typeof value === 'bigint' ? value.toString() : value;
+    }));
+    
+    // Add additional fields
+    serializedMatch.homeTeamName = homeTeamName;
+    serializedMatch.awayTeamName = awayTeamName;
+    serializedMatch.homeTeam = homeTeam ? { 
+      id: homeTeam.id.toString(), 
+      name: homeTeam.name 
+    } : null;
+    serializedMatch.awayTeam = awayTeam ? { 
+      id: awayTeam.id.toString(), 
+      name: awayTeam.name 
+    } : null;
     
     res.json(serializedMatch);
   } catch (error) {
