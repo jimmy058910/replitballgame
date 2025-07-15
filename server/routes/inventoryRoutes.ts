@@ -38,10 +38,15 @@ router.get('/', isAuthenticated, async (req: any, res: Response, next: NextFunct
     const formattedInventory = inventory.map(invItem => ({
       id: invItem.id,
       itemType: invItem.item.type,
+      type: invItem.item.type.toLowerCase(), // Add type field for frontend compatibility
       name: invItem.item.name,
       description: invItem.item.description,
       rarity: invItem.item.rarity.toLowerCase(),
       quantity: invItem.quantity,
+      slot: invItem.item.slot?.toLowerCase(), // Add slot field for equipment
+      raceRestriction: invItem.item.raceRestriction, // Add race restriction
+      statBoosts: invItem.item.statEffects, // Add stat effects for equipment
+      effect: invItem.item.effect, // Add effect for consumables
       metadata: invItem.item.effectValue || {}
     }));
 
@@ -90,10 +95,15 @@ router.get('/:teamId', isAuthenticated, async (req: any, res: Response, next: Ne
     const formattedInventory = inventory.map(invItem => ({
       id: invItem.id,
       itemType: invItem.item.type,
+      type: invItem.item.type.toLowerCase(), // Add type field for frontend compatibility
       name: invItem.item.name,
       description: invItem.item.description,
       rarity: invItem.item.rarity.toLowerCase(),
       quantity: invItem.quantity,
+      slot: invItem.item.slot?.toLowerCase(), // Add slot field for equipment
+      raceRestriction: invItem.item.raceRestriction, // Add race restriction
+      statBoosts: invItem.item.statEffects, // Add stat effects for equipment
+      effect: invItem.item.effect, // Add effect for consumables
       metadata: invItem.item.effectValue || {}
     }));
 

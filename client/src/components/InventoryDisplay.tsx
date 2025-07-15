@@ -14,11 +14,14 @@ interface InventoryItem {
   name: string;
   description: string;
   type: string;
+  itemType: string;
   rarity: string;
   slot?: string;
   statBoosts?: any;
+  raceRestriction?: string;
+  effect?: string;
   quantity: number;
-  acquiredAt: string;
+  acquiredAt?: string;
   metadata?: any;
 }
 
@@ -47,12 +50,13 @@ export default function InventoryDisplay({ teamId }: InventoryDisplayProps) {
     
     return items.filter(item => {
       const matchesType = item.type === type;
+      const hasQuantity = item.quantity > 0; // Only show items with quantity > 0
       const matchesSearch = item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                            item.description.toLowerCase().includes(searchTerm.toLowerCase());
       const matchesRarity = rarityFilter === "all" || item.rarity === rarityFilter;
       const matchesSlot = slotFilter === "all" || item.slot === slotFilter;
       
-      return matchesType && matchesSearch && matchesRarity && matchesSlot;
+      return matchesType && hasQuantity && matchesSearch && matchesRarity && matchesSlot;
     });
   };
 
@@ -262,7 +266,7 @@ export default function InventoryDisplay({ teamId }: InventoryDisplayProps) {
                         {item.effect && (
                           <div className="text-sm">
                             <span className="font-medium text-purple-600 dark:text-purple-400">Effect: </span>
-                            <span className="text-purple-700 dark:text-purple-300 bg-purple-50 dark:bg-purple-900/20 px-2 py-1 rounded">
+                            <span className="text-black dark:text-white bg-purple-100 dark:bg-purple-800 px-2 py-1 rounded border border-purple-300 dark:border-purple-600">
                               {item.effect}
                             </span>
                           </div>
