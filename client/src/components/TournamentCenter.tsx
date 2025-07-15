@@ -401,6 +401,9 @@ const TournamentCenter: React.FC<TournamentCenterProps> = ({ teamId }) => {
                     <div>
                       <h3 className="font-semibold text-gray-900 dark:text-white">{entry.tournament.name}</h3>
                       <p className="text-sm text-gray-700 dark:text-gray-200">
+                        {entry.tournament.tournamentId && (
+                          <span className="text-purple-600 dark:text-purple-400 font-mono mr-2">#{entry.tournament.tournamentId}</span>
+                        )}
                         Division {entry.tournament.division} • {entry.tournament.type === 'DAILY_DIVISIONAL' ? 'Daily Cup' : 'Mid-Season Classic'}
                       </p>
                     </div>
@@ -413,9 +416,8 @@ const TournamentCenter: React.FC<TournamentCenterProps> = ({ teamId }) => {
                   </div>
                   <div className="mt-2">
                     <Button 
-                      variant="outline" 
                       size="sm" 
-                      className="text-gray-900 dark:text-gray-100 border-gray-300 dark:border-gray-500 hover:bg-gray-100 dark:hover:bg-gray-600 hover:text-gray-900 dark:hover:text-gray-100"
+                      className="bg-purple-600 hover:bg-purple-700 text-white border-0"
                       onClick={() => {
                         window.location.href = `/tournament-status`;
                       }}

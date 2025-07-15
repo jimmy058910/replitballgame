@@ -35,6 +35,7 @@ router.get('/available', isAuthenticated, async (req: any, res: Response, next: 
     const formattedTournaments = availableTournaments.map(tournament => ({
       id: tournament.id,
       name: tournament.name,
+      tournamentId: tournament.tournamentId,
       type: tournament.type,
       division: tournament.division,
       entryFeeCredits: Number(tournament.entryFeeCredits || 0),
@@ -162,6 +163,7 @@ router.get('/my-tournaments', isAuthenticated, async (req: any, res: Response, n
     const formattedTournaments = teamTournaments.map(({ tournament, entry }) => ({
       id: tournament.id,
       name: tournament.name,
+      tournamentId: tournament.tournamentId,
       type: tournament.type,
       division: tournament.division,
       status: tournament.status,

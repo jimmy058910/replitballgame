@@ -28,6 +28,7 @@ router.get('/active', isAuthenticated, async (req: any, res) => {
           select: {
             id: true,
             name: true,
+            tournamentId: true,
             type: true,
             division: true,
             status: true,
@@ -64,6 +65,7 @@ router.get('/active', isAuthenticated, async (req: any, res) => {
       tournament: {
         id: entry.tournament.id,
         name: entry.tournament.name,
+        tournamentId: entry.tournament.tournamentId,
         type: entry.tournament.type,
         division: entry.tournament.division,
         status: entry.tournament.status,

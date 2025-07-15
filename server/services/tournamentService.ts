@@ -171,6 +171,7 @@ export class TournamentService {
 
     const tournament = {
       name: tournamentName,
+      tournamentId: tournamentId,
       type: "DAILY_DIVISIONAL" as const,
       division,
       seasonDay: gameDay,
@@ -202,6 +203,7 @@ export class TournamentService {
 
     const tournament = {
       name: tournamentName,
+      tournamentId: tournamentId,
       type: "MID_SEASON_CLASSIC" as const,
       division,
       seasonDay: 7,
