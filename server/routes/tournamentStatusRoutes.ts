@@ -2,7 +2,6 @@ import { Router } from 'express';
 import { prisma } from '../db';
 import { isAuthenticated } from '../replitAuth';
 import { storage } from '../storage';
-import { TournamentMatchService } from '../services/tournamentMatchService';
 
 const router = Router();
 
@@ -289,7 +288,16 @@ router.get('/:id/status', isAuthenticated, async (req: any, res) => {
     // Get tournament matches if tournament is in progress
     let matches = [];
     if (tournament.status === 'IN_PROGRESS') {
-      matches = await TournamentMatchService.getTournamentMatches(tournamentId);
+      matches = await prisma.game.findMany({
+        where: { tournamentId: tournament.id },
+        include: {
+          tournament: true
+        },
+        orderBy: [
+          { round: 'asc' },
+          { id: 'asc' }
+        ]
+      });
     }
 
     const statusData = {
@@ -421,7 +429,8 @@ router.post('/:id/force-start', isAuthenticated, async (req: any, res) => {
 
     // Generate tournament matches
     try {
-      await TournamentMatchService.generateTournamentMatches(tournament.id.toString());
+      const { tournamentService } = require('../services/tournamentService');
+      await tournamentService.generateTournamentMatches(tournament.id);
     } catch (matchError) {
       console.error("Error generating tournament matches:", matchError);
       // Continue even if match generation fails
@@ -443,8 +452,44 @@ router.post('/:id/force-start', isAuthenticated, async (req: any, res) => {
 router.get('/:id/matches', isAuthenticated, async (req: any, res) => {
   try {
     const tournamentId = req.params.id;
-    const matches = await TournamentMatchService.getTournamentMatches(tournamentId);
-    res.json(matches);
+    
+    // Get tournament first to get the database ID
+    let tournament = await prisma.tournament.findUnique({
+      where: { id: parseInt(tournamentId) }
+    });
+    
+    if (!tournament) {
+      tournament = await prisma.tournament.findFirst({
+        where: { tournamentId: tournamentId }
+      });
+    }
+    
+    if (!tournament) {
+      return res.status(404).json({ message: "Tournament not found" });
+    }
+    
+    const matches = await prisma.game.findMany({
+      where: { tournamentId: tournament.id },
+      include: {
+        tournament: true
+      },
+      orderBy: [
+        { round: 'asc' },
+        { id: 'asc' }
+      ]
+    });
+    
+    // Convert BigInt fields to strings for JSON serialization
+    const serializedMatches = matches.map(match => ({
+      ...match,
+      tournament: match.tournament ? {
+        ...match.tournament,
+        entryFeeCredits: match.tournament.entryFeeCredits ? Number(match.tournament.entryFeeCredits) : null,
+        entryFeeGems: match.tournament.entryFeeGems ? Number(match.tournament.entryFeeGems) : null
+      } : null
+    }));
+    
+    res.json(serializedMatches);
   } catch (error) {
     console.error("Error fetching tournament matches:", error);
     res.status(500).json({ message: "Internal server error" });
@@ -462,7 +507,11 @@ router.post('/:id/matches/:matchId/start', isAuthenticated, async (req: any, res
       return res.status(403).json({ message: "Access denied. Admin privileges required." });
     }
 
-    await TournamentMatchService.startTournamentMatch(matchId);
+    await prisma.game.update({
+      where: { id: parseInt(matchId) },
+      data: { status: "IN_PROGRESS" }
+    });
+    
     res.json({ message: "Match started successfully" });
   } catch (error) {
     console.error("Error starting tournament match:", error);
@@ -481,7 +530,20 @@ router.post('/:id/matches/:matchId/simulate', isAuthenticated, async (req: any, 
       return res.status(403).json({ message: "Access denied. Admin privileges required." });
     }
 
-    const result = await TournamentMatchService.simulateTournamentMatch(matchId);
+    // Simple simulation - just set random scores
+    const homeScore = Math.floor(Math.random() * 5);
+    const awayScore = Math.floor(Math.random() * 5);
+    
+    const result = await prisma.game.update({
+      where: { id: parseInt(matchId) },
+      data: { 
+        homeScore,
+        awayScore,
+        status: "COMPLETED",
+        simulated: true
+      }
+    });
+    
     res.json(result);
   } catch (error) {
     console.error("Error simulating tournament match:", error);

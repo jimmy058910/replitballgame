@@ -654,11 +654,10 @@ export class TournamentService {
       throw new Error("Tournament not found");
     }
 
-    // Get available AI teams for this division
+    // Get available AI teams for this division (AI teams have no userProfileId)
     const aiTeams = await prisma.team.findMany({
       where: {
         division: tournament.division,
-        isAI: true,
         userProfileId: null
       },
       take: spotsToFill
@@ -741,8 +740,9 @@ export class TournamentService {
 
   // Start a tournament
   async startTournament(tournamentId: string): Promise<void> {
+    const id = parseInt(tournamentId);
     await prisma.tournament.update({
-      where: { id: tournamentId },
+      where: { id },
       data: {
         status: "IN_PROGRESS",
         startTime: new Date()
@@ -751,23 +751,92 @@ export class TournamentService {
     
     // Generate tournament matches
     try {
-      await this.generateTournamentMatches(tournamentId);
+      await this.generateTournamentMatches(id);
     } catch (error) {
       console.error(`Error generating matches for tournament ${tournamentId}:`, error);
     }
   }
   
   // Generate tournament matches (8-team single elimination)
-  async generateTournamentMatches(tournamentId: string): Promise<void> {
-    const { TournamentMatchService } = require("./tournamentMatchService");
-    
-    try {
-      // Use the TournamentMatchService to generate matches
-      await TournamentMatchService.generateTournamentMatches(tournamentId);
-    } catch (error) {
-      console.error(`Error generating tournament matches for tournament ${tournamentId}:`, error);
-      throw error;
+  async generateTournamentMatches(tournamentId: number): Promise<void> {
+    // Get tournament participants
+    const tournament = await prisma.tournament.findUnique({
+      where: { id: tournamentId },
+      include: {
+        entries: {
+          include: {
+            team: true
+          }
+        }
+      }
+    });
+
+    if (!tournament) {
+      throw new Error("Tournament not found");
     }
+
+    const teams = tournament.entries.map(entry => entry.team);
+    
+    if (teams.length !== 8) {
+      throw new Error(`Tournament must have exactly 8 teams, found ${teams.length}`);
+    }
+
+    // Shuffle teams randomly for fair bracket
+    const shuffledTeams = [...teams].sort(() => Math.random() - 0.5);
+
+    // Create Round 1 matches (Quarterfinals)
+    const round1Matches = [];
+    for (let i = 0; i < 4; i++) {
+      const homeTeam = shuffledTeams[i * 2];
+      const awayTeam = shuffledTeams[i * 2 + 1];
+      
+      const match = await prisma.game.create({
+        data: {
+          tournamentId,
+          homeTeamId: homeTeam.id,
+          awayTeamId: awayTeam.id,
+          gameDate: new Date(),
+          matchType: "TOURNAMENT_DAILY",
+          round: 1,
+          status: "SCHEDULED"
+        }
+      });
+      
+      round1Matches.push(match);
+    }
+
+    // Create Round 2 matches (Semifinals) with TBD teams
+    const round2Matches = [];
+    for (let i = 0; i < 2; i++) {
+      const match = await prisma.game.create({
+        data: {
+          tournamentId,
+          homeTeamId: shuffledTeams[0].id, // Placeholder - will be updated when round 1 completes
+          awayTeamId: shuffledTeams[1].id, // Placeholder - will be updated when round 1 completes
+          gameDate: new Date(Date.now() + 24 * 60 * 60 * 1000), // Tomorrow
+          matchType: "TOURNAMENT_DAILY",
+          round: 2,
+          status: "SCHEDULED"
+        }
+      });
+      
+      round2Matches.push(match);
+    }
+
+    // Create Round 3 match (Finals) with TBD teams
+    await prisma.game.create({
+      data: {
+        tournamentId,
+        homeTeamId: shuffledTeams[0].id, // Placeholder - will be updated when round 2 completes
+        awayTeamId: shuffledTeams[1].id, // Placeholder - will be updated when round 2 completes
+        gameDate: new Date(Date.now() + 48 * 60 * 60 * 1000), // Day after tomorrow
+        matchType: "TOURNAMENT_DAILY",
+        round: 3,
+        status: "SCHEDULED"
+      }
+    });
+
+    console.log(`Generated tournament bracket for tournament ${tournamentId} with ${teams.length} teams`);
   }
 }
 
