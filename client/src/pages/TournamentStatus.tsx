@@ -189,17 +189,19 @@ export default function TournamentStatus() {
                   {activeTournaments?.map((tournament) => (
                     <div
                       key={tournament.id}
-                      className={`p-4 rounded-lg border cursor-pointer transition-colors ${
+                      className={`p-4 rounded-lg border cursor-pointer transition-all duration-200 ${
                         selectedTournament === tournament.id
-                          ? 'border-primary bg-primary/5'
-                          : 'border-border hover:border-primary/50'
+                          ? 'border-primary bg-primary/10 shadow-md ring-1 ring-primary/20'
+                          : 'border-border hover:border-primary/50 hover:shadow-sm'
                       }`}
                       onClick={() => setSelectedTournament(tournament.id)}
                     >
                       <div className="flex items-center justify-between mb-2">
                         <div className="flex items-center gap-2">
                           <h3 className="font-semibold text-sm">{tournament.name}</h3>
-                          <span className="text-xs text-muted-foreground">#{tournament.tournamentId}</span>
+                          <span className="text-xs text-muted-foreground px-1 py-0.5 bg-gray-100 dark:bg-gray-800 rounded">
+                            #{tournament.tournamentId}
+                          </span>
                         </div>
                         <Badge className={getStatusColor(tournament.status)}>
                           {getStatusText(tournament.status)}
@@ -212,16 +214,18 @@ export default function TournamentStatus() {
                         </span>
                         <span className="flex items-center gap-1">
                           <Users className="w-3 h-3" />
-                          {tournament.participantCount}/{tournament.maxParticipants}
+                          {tournament.currentParticipants}/{tournament.maxParticipants}
                         </span>
                       </div>
                       {tournament.isReadyToStart ? (
-                        <div className="mt-2 text-xs font-medium text-green-600">
+                        <div className="mt-2 text-xs font-medium text-green-600 flex items-center gap-1">
+                          <Zap className="w-3 h-3" />
                           Ready to Start!
                         </div>
                       ) : (
-                        <div className="mt-2 text-xs text-muted-foreground">
-                          {tournament.timeUntilStartText}
+                        <div className="mt-2 text-xs text-muted-foreground flex items-center gap-1">
+                          <Clock className="w-3 h-3" />
+                          {tournament.timeUntilStartText || 'Starting soon...'}
                         </div>
                       )}
                     </div>
@@ -234,7 +238,27 @@ export default function TournamentStatus() {
 
         {/* Tournament Details */}
         <div className="lg:col-span-2">
-          {selectedTournament && tournamentStatus ? (
+          {!selectedTournament ? (
+            <Card className="h-full">
+              <CardContent className="flex flex-col items-center justify-center h-full min-h-[400px] text-center">
+                <div className="mb-4">
+                  <Trophy className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
+                  <h3 className="text-lg font-semibold mb-2">Select a tournament to view details</h3>
+                  <p className="text-muted-foreground">
+                    Choose a tournament from your active tournaments list to see participant progress, 
+                    timing information, and prize details.
+                  </p>
+                </div>
+                {activeTournaments?.length === 0 && (
+                  <div className="mt-4 p-4 bg-muted rounded-lg">
+                    <p className="text-sm text-muted-foreground">
+                      You don't have any active tournaments. Visit the Competition tab to join tournaments.
+                    </p>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          ) : selectedTournament && tournamentStatus ? (
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center justify-between">
@@ -309,10 +333,16 @@ export default function TournamentStatus() {
                         <h4 className="font-medium mb-2">Entry Fee</h4>
                         <div className="text-sm space-y-1">
                           {tournamentStatus.entryFeeCredits > 0 && (
-                            <div>Credits: {tournamentStatus.entryFeeCredits.toLocaleString()}</div>
+                            <div className="flex items-center gap-1">
+                              <span className="text-yellow-600">₡</span>
+                              {tournamentStatus.entryFeeCredits.toLocaleString()} Credits
+                            </div>
                           )}
                           {tournamentStatus.entryFeeGems > 0 && (
-                            <div>Gems: {tournamentStatus.entryFeeGems}</div>
+                            <div className="flex items-center gap-1">
+                              <span className="text-purple-600">💎</span>
+                              {tournamentStatus.entryFeeGems} Gems
+                            </div>
                           )}
                         </div>
                       </div>

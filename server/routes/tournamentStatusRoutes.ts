@@ -159,4 +159,97 @@ router.get('/my-active', isAuthenticated, async (req: any, res) => {
   }
 });
 
+// Get specific tournament status details
+router.get('/:id/status', isAuthenticated, async (req: any, res) => {
+  try {
+    const tournamentId = req.params.id;
+    const userId = req.user.claims.sub;
+    const team = await storage.teams.getTeamByUserId(userId);
+
+    if (!team) {
+      return res.status(404).json({ message: "Team not found" });
+    }
+
+    // Get tournament details
+    const tournament = await prisma.tournament.findUnique({
+      where: { id: parseInt(tournamentId) },
+      include: {
+        entries: {
+          include: {
+            team: {
+              select: {
+                id: true,
+                name: true,
+                division: true
+              }
+            }
+          }
+        }
+      }
+    });
+
+    if (!tournament) {
+      return res.status(404).json({ message: "Tournament not found" });
+    }
+
+    // Count current participants
+    const currentParticipants = tournament.entries.length;
+    const maxParticipants = 8; // Standard tournament size
+    const spotsRemaining = maxParticipants - currentParticipants;
+    const isFull = currentParticipants >= maxParticipants;
+
+    // Check if user's team is registered
+    const userTeamEntry = tournament.entries.find(entry => entry.teamId === team.id);
+    const userTeamRegistered = !!userTeamEntry;
+
+    // Calculate time until start
+    const now = new Date();
+    const startTime = new Date(tournament.startTime);
+    const timeUntilStart = Math.max(0, startTime.getTime() - now.getTime());
+    const timeUntilStartText = timeUntilStart > 0 ? 
+      `${Math.floor(timeUntilStart / (1000 * 60 * 60))}h ${Math.floor((timeUntilStart % (1000 * 60 * 60)) / (1000 * 60))}m` : 
+      "Starting soon";
+
+    // Format participants list
+    const participants = tournament.entries.map(entry => ({
+      teamId: entry.teamId,
+      teamName: entry.team?.name || "Unknown Team",
+      division: entry.team?.division || 0,
+      entryTime: entry.registeredAt,
+      placement: entry.finalRank
+    }));
+
+    const statusData = {
+      id: tournament.id.toString(),
+      name: tournament.name,
+      type: tournament.type,
+      division: tournament.division,
+      status: tournament.status,
+      currentParticipants,
+      maxParticipants,
+      spotsRemaining,
+      isFull,
+      isReadyToStart: isFull || tournament.status === 'IN_PROGRESS',
+      timeUntilStart,
+      timeUntilStartText,
+      registrationDeadline: tournament.registrationEndTime,
+      tournamentStartTime: tournament.startTime,
+      entryFeeCredits: Number(tournament.entryFeeCredits),
+      entryFeeGems: Number(tournament.entryFeeGems),
+      prizes: tournament.prizePoolJson,
+      participants,
+      userTeamRegistered,
+      userTeamEntry: userTeamEntry ? {
+        entryTime: userTeamEntry.registeredAt,
+        placement: userTeamEntry.finalRank
+      } : null
+    };
+
+    res.json(statusData);
+  } catch (error) {
+    console.error("Error fetching tournament status:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+});
+
 export default router;
