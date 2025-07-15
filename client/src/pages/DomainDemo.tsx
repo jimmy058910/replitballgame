@@ -5,8 +5,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { tournamentAPI, matchAPI, economyAPI, authAPI, checkDomainHealth } from '@/lib/domainAPI';
-import { AlertCircle, CheckCircle, Zap, Database, Shield, TestTube, Lock, Unlock } from 'lucide-react';
+import { AlertCircle, CheckCircle, Zap, Database, Shield, TestTube, Lock, Unlock, Activity } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
+import { GameEventDemo } from '@/components/GameEventDemo';
 
 export default function DomainDemo() {
   const [results, setResults] = useState<{[key: string]: any}>({});
@@ -153,7 +154,8 @@ export default function DomainDemo() {
         <h1 className="text-3xl font-bold">Domain-Driven Architecture Demo</h1>
         <p className="text-muted-foreground max-w-2xl mx-auto">
           Demonstrating the new domain-driven backend with Zod validation, 
-          Zustand state management, and comprehensive testing coverage.
+          Zustand state management, Event Bus system, deterministic simulation, 
+          and comprehensive testing coverage.
         </p>
         
         <div className="flex justify-center gap-4 flex-wrap">
@@ -172,6 +174,10 @@ export default function DomainDemo() {
           <Badge variant="outline" className="text-orange-600">
             <TestTube className="w-3 h-3 mr-1" />
             80% Test Coverage
+          </Badge>
+          <Badge variant="outline" className="text-cyan-600">
+            <Activity className="w-3 h-3 mr-1" />
+            Event Bus System
           </Badge>
           <Badge variant={isAuthenticated ? "default" : "secondary"}>
             {isAuthenticated ? <Unlock className="w-3 h-3 mr-1" /> : <Lock className="w-3 h-3 mr-1" />}
@@ -196,9 +202,10 @@ export default function DomainDemo() {
       </div>
 
       <Tabs defaultValue="api-tests" className="w-full">
-        <TabsList className="grid w-full grid-cols-3">
+        <TabsList className="grid w-full grid-cols-4">
           <TabsTrigger value="api-tests">API Tests</TabsTrigger>
           <TabsTrigger value="state-demo">State Management</TabsTrigger>
+          <TabsTrigger value="event-system">Event System</TabsTrigger>
           <TabsTrigger value="architecture">Architecture</TabsTrigger>
         </TabsList>
 
@@ -330,6 +337,10 @@ export default function DomainDemo() {
 
         <TabsContent value="state-demo">
           <DomainAPIExample />
+        </TabsContent>
+
+        <TabsContent value="event-system">
+          <GameEventDemo />
         </TabsContent>
 
         <TabsContent value="architecture" className="space-y-6">
