@@ -373,7 +373,24 @@ export default function Market() {
                               </p>
                             )}
                             
-                            {/* Stat Boosts */}
+                            {/* Stat Effects (for equipment) */}
+                            {item.statEffects && Object.keys(item.statEffects).length > 0 && (
+                              <div className="text-xs text-green-600 dark:text-green-400 bg-green-50 dark:bg-green-900/20 p-2 rounded">
+                                <strong>Player Benefits:</strong> {Object.entries(item.statEffects).map(([stat, value]) => 
+                                  `${stat === 'stamina' ? 'Stamina' : 
+                                    stat === 'leadership' ? 'Leadership' : 
+                                    stat === 'throwing' ? 'Throwing' : 
+                                    stat === 'power' ? 'Power' : 
+                                    stat === 'agility' ? 'Agility' : 
+                                    stat === 'catching' ? 'Catching' : 
+                                    stat === 'kicking' ? 'Kicking' : 
+                                    stat === 'speed' ? 'Speed' : 
+                                    stat.charAt(0).toUpperCase() + stat.slice(1)} ${value > 0 ? '+' : ''}${value}`
+                                ).join(', ')}
+                              </div>
+                            )}
+
+                            {/* Stat Boosts (backup for legacy items) */}
                             {item.statBoosts && Object.keys(item.statBoosts).length > 0 && (
                               <div className="text-xs text-green-600 dark:text-green-400 bg-green-50 dark:bg-green-900/20 p-2 rounded">
                                 <strong>Player Benefits:</strong> {Object.entries(item.statBoosts).map(([stat, value]) => 
@@ -392,14 +409,21 @@ export default function Market() {
                             
                             {/* Effect */}
                             {item.effect && (
-                              <div className="text-xs text-orange-600 dark:text-orange-400 bg-orange-50 dark:bg-orange-900/20 p-2 rounded">
-                                <strong>Team Effect:</strong> {
+                              <div className={`text-xs p-2 rounded ${
+                                item.effect.includes('team_') ? 
+                                  'text-orange-600 dark:text-orange-400 bg-orange-50 dark:bg-orange-900/20' :
+                                  'text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20'
+                              }`}>
+                                <strong>{item.effect.includes('team_') ? 'Team Effect:' : 'Player Effect:'}</strong> {
                                   item.effect.includes('team_leadership') ? `Team Leadership Boost +${item.effect.match(/\d+/)?.[0] || '?'}` :
                                   item.effect.includes('team_agility') ? `Team Agility Boost +${item.effect.match(/\d+/)?.[0] || '?'}` :
                                   item.effect.includes('team_stamina') ? `Team Stamina Boost +${item.effect.match(/\d+/)?.[0] || '?'}` :
                                   item.effect.includes('team_power') ? `Team Power Boost +${item.effect.match(/\d+/)?.[0] || '?'}` :
+                                  item.effect.includes('team_all_stats') ? `Team All Stats Boost +${item.effect.match(/\d+/)?.[0] || '?'}` :
                                   item.effect.includes('restore_stamina') ? `Restores Stamina +${item.effect.match(/\d+/)?.[0] || '?'}` :
-                                  item.effect.includes('injury_recovery') ? `Injury Recovery +${item.effect.match(/\d+/)?.[0] || '?'} points` :
+                                  item.effect.includes('reduce_injury') ? `Reduces Injury ${item.effect.match(/\d+/)?.[0] || '?'} points` :
+                                  item.effect.includes('heal_any_injury') ? `Heals Any Injury` :
+                                  item.effect.includes('restore_team_stamina') ? `Restores Team Stamina +${item.effect.match(/\d+/)?.[0] || '?'}` :
                                   item.effect.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())
                                 }
                               </div>
