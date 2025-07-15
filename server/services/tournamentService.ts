@@ -127,6 +127,32 @@ export class TournamentService {
     return (daysSinceStart % 17) + 1;
   }
 
+  // Generate tournament ID in format: Season-Division-GameDay-Sequential (e.g., 0841)
+  private async generateTournamentId(season: number, division: number, gameDay: number): Promise<string> {
+    // Get count of tournaments created today for this division to determine sequential number
+    const startOfDay = new Date();
+    startOfDay.setHours(0, 0, 0, 0);
+    
+    const todayTournamentCount = await prisma.tournament.count({
+      where: {
+        division: division,
+        createdAt: {
+          gte: startOfDay
+        }
+      }
+    });
+    
+    const sequential = todayTournamentCount + 1;
+    
+    // Format: Season(1 digit) + Division(1 digit) + GameDay(1 digit) + Sequential(1 digit)
+    const seasonDigit = season % 10;
+    const divisionDigit = division % 10;
+    const gameDayDigit = gameDay % 10;
+    const sequentialDigit = sequential % 10;
+    
+    return `${seasonDigit}${divisionDigit}${gameDayDigit}${sequentialDigit}`;
+  }
+
   // Create Daily Divisional Cup tournament
   async createDailyCupTournament(division: number): Promise<string> {
     if (division === 1) {
@@ -138,7 +164,10 @@ export class TournamentService {
     const rewards = this.getDailyCupRewards(division);
     
     const divisionNames = ["", "Diamond", "Platinum", "Gold", "Silver", "Bronze", "Copper", "Iron", "Stone"];
-    const tournamentName = `${divisionNames[division]} Daily Cup - Day ${gameDay}`;
+    const tournamentName = `${divisionNames[division]} Daily Cup`;
+    
+    // Generate tournament ID (Season-Division-GameDay-Sequential format)
+    const tournamentId = await this.generateTournamentId(season, division, gameDay);
 
     const tournament = {
       name: tournamentName,
@@ -167,6 +196,9 @@ export class TournamentService {
     
     const divisionNames = ["", "Diamond", "Platinum", "Gold", "Silver", "Bronze", "Copper", "Iron", "Stone"];
     const tournamentName = `${divisionNames[division]} Mid-Season Classic - Season ${season}`;
+    
+    // Generate tournament ID for Mid-Season Classic too
+    const tournamentId = await this.generateTournamentId(season, division, gameDay);
 
     const tournament = {
       name: tournamentName,

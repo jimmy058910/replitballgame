@@ -415,7 +415,7 @@ const TournamentCenter: React.FC<TournamentCenterProps> = ({ teamId }) => {
                     <Button 
                       variant="outline" 
                       size="sm" 
-                      className="text-gray-900 dark:text-white border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700"
+                      className="text-gray-900 dark:text-gray-100 border-gray-300 dark:border-gray-500 hover:bg-gray-100 dark:hover:bg-gray-600 hover:text-gray-900 dark:hover:text-gray-100"
                       onClick={() => {
                         window.location.href = `/tournament-status`;
                       }}
@@ -444,7 +444,7 @@ const TournamentCenter: React.FC<TournamentCenterProps> = ({ teamId }) => {
               {tournamentHistory.slice(0, 5).map((entry) => (
                 <div key={entry.id} className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
                   <div>
-                    <p className="font-semibold">{entry.tournament.name}</p>
+                    <p className="font-semibold text-gray-900 dark:text-gray-100">{entry.tournament.name}</p>
                     <p className="text-sm text-gray-600 dark:text-gray-400">
                       Day {entry.tournament.gameDay} • {getPlacementText(entry.placement)}
                     </p>
@@ -452,13 +452,13 @@ const TournamentCenter: React.FC<TournamentCenterProps> = ({ teamId }) => {
                   <div className="text-right">
                     <div className="flex items-center space-x-2">
                       {entry.creditsWon > 0 && (
-                        <span className="flex items-center space-x-1 text-sm">
+                        <span className="flex items-center space-x-1 text-sm text-gray-900 dark:text-gray-100">
                           <Coins className="w-4 h-4 text-yellow-600" />
                           <span>{entry.creditsWon.toLocaleString()}₡</span>
                         </span>
                       )}
                       {entry.gemsWon > 0 && (
-                        <span className="flex items-center space-x-1 text-sm">
+                        <span className="flex items-center space-x-1 text-sm text-gray-900 dark:text-gray-100">
                           <Gem className="w-4 h-4 text-purple-600" />
                           <span>{entry.gemsWon}💎</span>
                         </span>
@@ -471,8 +471,8 @@ const TournamentCenter: React.FC<TournamentCenterProps> = ({ teamId }) => {
           ) : (
             <div className="text-center py-8">
               <Trophy className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-              <p className="text-black dark:text-white">No tournament history yet</p>
-              <p className="text-sm text-black dark:text-white mt-2">
+              <p className="text-gray-600 dark:text-gray-300">No tournament history yet</p>
+              <p className="text-sm text-gray-500 dark:text-gray-400 mt-2">
                 Enter tournaments to build your competitive record
               </p>
             </div>

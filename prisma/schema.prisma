@@ -600,6 +600,7 @@ model EquipmentReward {
 model Tournament {
   id                  Int               @id @default(autoincrement())
   name                String
+  tournamentId        String?           @unique
   type                TournamentType
   division            Int?
   status              TournamentStatus  @default(REGISTRATION_OPEN)
