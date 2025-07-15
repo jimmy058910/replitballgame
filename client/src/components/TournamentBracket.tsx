@@ -181,17 +181,6 @@ const TournamentBracket: React.FC<TournamentBracketProps> = ({
                                 Watch
                               </Button>
                             )}
-                            {isAdmin && match.status === 'SCHEDULED' && match.homeTeam.id !== 'TBD' && (
-                              <Button
-                                size="sm"
-                                onClick={() => handleSimulateMatch(match.id)}
-                                variant="outline"
-                                className="border-orange-500 text-orange-600 hover:bg-orange-50"
-                              >
-                                <Zap className="w-4 h-4 mr-1" />
-                                Simulate
-                              </Button>
-                            )}
                           </div>
                         </div>
                       </CardHeader>
@@ -232,12 +221,16 @@ const TournamentBracket: React.FC<TournamentBracketProps> = ({
 
                         {/* Match Details */}
                         <div className="flex justify-between items-center text-sm text-gray-600 dark:text-gray-400">
-                          {match.startTime && (
-                            <div className="flex items-center gap-1">
-                              <Clock className="w-4 h-4" />
-                              {new Date(match.startTime).toLocaleTimeString()}
-                            </div>
-                          )}
+                          <div className="flex items-center gap-1">
+                            <Clock className="w-4 h-4" />
+                            {match.round === 'QUARTERFINALS' ? (
+                              <span>Tournament Start</span>
+                            ) : match.startTime ? (
+                              new Date(match.startTime).toLocaleTimeString()
+                            ) : (
+                              'TBD'
+                            )}
+                          </div>
                           {match.winner && (
                             <div className="text-green-600 font-medium">
                               Winner: {formatTeamName(match.winner)}

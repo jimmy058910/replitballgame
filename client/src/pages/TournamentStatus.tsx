@@ -389,9 +389,14 @@ export default function TournamentStatus() {
       {/* Page Header */}
       <div className="bg-white dark:bg-gray-800 shadow-sm">
         <div className="max-w-7xl mx-auto px-4 py-6">
-          <div className="flex items-center gap-2">
-            <Trophy className="w-6 h-6 text-yellow-500" />
-            <h1 className="text-2xl font-bold">Tournament Status</h1>
+          <div className="text-center">
+            <div className="flex items-center justify-center gap-2 mb-2">
+              <Trophy className="w-6 h-6 text-yellow-500" />
+              <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Tournament Status</h1>
+            </div>
+            <p className="text-sm text-gray-600 dark:text-gray-400">
+              View and manage your active tournament participation
+            </p>
           </div>
         </div>
       </div>
