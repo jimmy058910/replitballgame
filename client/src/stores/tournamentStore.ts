@@ -26,6 +26,11 @@ interface TournamentState {
   setConnectionStatus: (connected: boolean) => void;
   clearError: () => void;
   reset: () => void;
+  
+  // WebSocket methods
+  connectWebSocket: () => Promise<void>;
+  disconnectWebSocket: () => void;
+  refreshData: () => Promise<void>;
 }
 
 export const useTournamentStore = create<TournamentState>()(
@@ -80,6 +85,42 @@ export const useTournamentStore = create<TournamentState>()(
       error: null,
       isConnected: false,
       lastUpdate: null
-    })
+    }),
+    
+    // WebSocket connection methods
+    connectWebSocket: async () => {
+      try {
+        set({ isLoading: true, error: null });
+        // Simulate WebSocket connection
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        set({ isConnected: true, isLoading: false });
+        console.log('Tournament WebSocket connected');
+      } catch (error) {
+        set({ error: 'Failed to connect to tournament WebSocket', isLoading: false });
+      }
+    },
+    
+    disconnectWebSocket: () => {
+      set({ isConnected: false });
+      console.log('Tournament WebSocket disconnected');
+    },
+    
+    refreshData: async () => {
+      try {
+        set({ isLoading: true });
+        // Simulate data refresh
+        await new Promise(resolve => setTimeout(resolve, 500));
+        set({ 
+          activeTournaments: [
+            { id: 1, name: 'Daily Cup', status: 'REGISTRATION_OPEN', participants: 6 },
+            { id: 2, name: 'Mid-Season Classic', status: 'IN_PROGRESS', participants: 8 }
+          ],
+          lastUpdate: new Date(),
+          isLoading: false 
+        });
+      } catch (error) {
+        set({ error: 'Failed to refresh tournament data', isLoading: false });
+      }
+    }
   }))
 );

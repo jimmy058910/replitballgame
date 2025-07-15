@@ -20,6 +20,7 @@ interface EconomyState {
   isLoading: boolean;
   error: string | null;
   lastUpdate: Date | null;
+  isConnected: boolean;
   
   // Actions
   setTeamFinances: (finances: any) => void;
@@ -30,7 +31,13 @@ interface EconomyState {
   addPurchase: (item: any, cost: number, currency: 'credits' | 'gems') => void;
   setLoading: (loading: boolean) => void;
   setError: (error: string | null) => void;
+  setConnectionStatus: (connected: boolean) => void;
   reset: () => void;
+  
+  // WebSocket methods
+  connectWebSocket: () => Promise<void>;
+  disconnectWebSocket: () => void;
+  refreshData: () => Promise<void>;
 }
 
 export const useEconomyStore = create<EconomyState>()(
@@ -42,6 +49,7 @@ export const useEconomyStore = create<EconomyState>()(
     isLoading: false,
     error: null,
     lastUpdate: null,
+    isConnected: false,
     
     // Actions
     setTeamFinances: (finances) => set({ 
@@ -95,13 +103,63 @@ export const useEconomyStore = create<EconomyState>()(
     
     setError: (error) => set({ error, isLoading: false }),
     
+    setConnectionStatus: (connected) => set({ isConnected: connected }),
+    
     reset: () => set({
       teamFinances: null,
       dailyStoreItems: [],
       marketplaceListings: [],
       isLoading: false,
       error: null,
-      lastUpdate: null
-    })
+      lastUpdate: null,
+      isConnected: false
+    }),
+    
+    // WebSocket connection methods
+    connectWebSocket: async () => {
+      try {
+        set({ isLoading: true, error: null });
+        // Simulate WebSocket connection
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        set({ isConnected: true, isLoading: false });
+        console.log('Economy WebSocket connected');
+      } catch (error) {
+        set({ error: 'Failed to connect to economy WebSocket', isLoading: false });
+      }
+    },
+    
+    disconnectWebSocket: () => {
+      set({ isConnected: false });
+      console.log('Economy WebSocket disconnected');
+    },
+    
+    refreshData: async () => {
+      try {
+        set({ isLoading: true });
+        // Simulate data refresh
+        await new Promise(resolve => setTimeout(resolve, 500));
+        set({ 
+          teamFinances: {
+            credits: 125000,
+            gems: 45,
+            totalValue: 2400000,
+            weeklyIncome: 15000,
+            weeklyExpenses: 8500
+          },
+          dailyStoreItems: [
+            { id: 1, name: 'Training Boost', price: 5000, currency: 'credits' },
+            { id: 2, name: 'Recovery Potion', price: 15, currency: 'gems' }
+          ],
+          marketplaceListings: [
+            { id: 1, playerName: 'John Smith', currentBid: 25000, timeLeft: '2h 15m' },
+            { id: 2, playerName: 'Mike Johnson', currentBid: 18000, timeLeft: '1h 45m' }
+          ],
+          lastUpdate: new Date(),
+          isLoading: false 
+        });
+      } catch (error) {
+        set({ error: 'Failed to refresh economy data', isLoading: false });
+      }
+    }
   }))
 );

@@ -34,6 +34,11 @@ interface MatchState {
   setConnectionStatus: (connected: boolean) => void;
   clearSimulation: () => void;
   reset: () => void;
+  
+  // WebSocket methods
+  connectWebSocket: () => Promise<void>;
+  disconnectWebSocket: () => void;
+  refreshData: () => Promise<void>;
 }
 
 export const useMatchStore = create<MatchState>()(
@@ -118,6 +123,42 @@ export const useMatchStore = create<MatchState>()(
       simulationEvents: [],
       currentGameTime: 0,
       currentScore: { home: 0, away: 0 }
-    })
+    }),
+    
+    // WebSocket connection methods
+    connectWebSocket: async () => {
+      try {
+        set({ isLoading: true, error: null });
+        // Simulate WebSocket connection
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        set({ isConnected: true, isLoading: false });
+        console.log('Match WebSocket connected');
+      } catch (error) {
+        set({ error: 'Failed to connect to match WebSocket', isLoading: false });
+      }
+    },
+    
+    disconnectWebSocket: () => {
+      set({ isConnected: false });
+      console.log('Match WebSocket disconnected');
+    },
+    
+    refreshData: async () => {
+      try {
+        set({ isLoading: true });
+        // Simulate data refresh
+        await new Promise(resolve => setTimeout(resolve, 500));
+        set({ 
+          liveMatches: [
+            { id: 1, homeTeam: 'Lions', awayTeam: 'Tigers', status: 'LIVE', gameTime: 450 },
+            { id: 2, homeTeam: 'Bears', awayTeam: 'Eagles', status: 'SCHEDULED', gameTime: 0 }
+          ],
+          lastUpdate: new Date(),
+          isLoading: false 
+        });
+      } catch (error) {
+        set({ error: 'Failed to refresh match data', isLoading: false });
+      }
+    }
   }))
 );

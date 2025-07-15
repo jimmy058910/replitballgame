@@ -18,9 +18,13 @@ export function DomainAPIExample() {
   const handleConnect = async () => {
     setIsConnecting(true);
     try {
-      // Demo WebSocket connection
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      console.log('Demo WebSocket connection established');
+      // Actually connect WebSocket stores
+      await Promise.all([
+        tournamentStore.connectWebSocket(),
+        matchStore.connectWebSocket(),
+        economyStore.connectWebSocket()
+      ]);
+      console.log('All WebSocket connections established');
     } catch (error) {
       console.error('Failed to connect:', error);
     } finally {
@@ -35,8 +39,8 @@ export function DomainAPIExample() {
       description: 'Real-time tournament status and registration management',
       status: tournamentStore.isConnected ? 'connected' : 'disconnected',
       data: {
-        tournaments: tournamentStore.tournaments?.length || 0,
-        registrations: tournamentStore.registrations?.length || 0,
+        tournaments: tournamentStore.activeTournaments?.length || 0,
+        registrations: tournamentStore.tournamentHistory?.length || 0,
         isLoading: tournamentStore.isLoading
       }
     },
@@ -46,9 +50,9 @@ export function DomainAPIExample() {
       description: 'Live match updates and simulation events',
       status: matchStore.isConnected ? 'connected' : 'disconnected',
       data: {
-        matches: matchStore.matches?.length || 0,
+        matches: matchStore.matchHistory?.length || 0,
         liveMatches: matchStore.liveMatches?.length || 0,
-        events: matchStore.events?.length || 0
+        events: matchStore.simulationEvents?.length || 0
       }
     },
     {
@@ -57,9 +61,9 @@ export function DomainAPIExample() {
       description: 'Financial data and marketplace management',
       status: economyStore.isConnected ? 'connected' : 'disconnected',
       data: {
-        storeItems: economyStore.storeItems?.length || 0,
+        storeItems: economyStore.dailyStoreItems?.length || 0,
         marketplaceListings: economyStore.marketplaceListings?.length || 0,
-        balance: economyStore.balance || 0
+        balance: economyStore.teamFinances?.credits || 0
       }
     }
   ];
