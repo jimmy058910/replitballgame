@@ -1376,4 +1376,92 @@ router.get('/:teamId/contracts', isAuthenticated, async (req: any, res: Response
   }
 });
 
+// Apply team boost for next match
+router.post('/:teamId/apply-team-boost', isAuthenticated, asyncHandler(async (req: any, res: Response) => {
+  const userId = req.user.claims.sub;
+  const { teamId } = req.params;
+  const { itemId, effect } = req.body;
+
+  // Verify team ownership
+  const team = await storage.teams.getTeamById(teamId);
+  if (!team) {
+    throw ErrorCreators.notFound("Team not found");
+  }
+
+  // Check if user owns this team
+  if (team.userId !== userId) {
+    throw ErrorCreators.unauthorized("You don't own this team");
+  }
+
+  // Verify the item exists in team inventory
+  const inventoryItem = await prisma.inventoryItem.findFirst({
+    where: {
+      teamId: parseInt(teamId),
+      item: {
+        id: parseInt(itemId)
+      }
+    },
+    include: {
+      item: true
+    }
+  });
+
+  if (!inventoryItem) {
+    throw ErrorCreators.notFound("Item not found in team inventory");
+  }
+
+  // Check if it's a team boost
+  if (!effect || !effect.startsWith('team_')) {
+    throw ErrorCreators.validation("Item is not a team boost");
+  }
+
+  // Check if there's already a team boost of this type active
+  const existingBoost = await prisma.activeBoost.findFirst({
+    where: {
+      teamId: parseInt(teamId),
+      playerId: null, // Team boosts have no specific player
+      isActive: true,
+      item: {
+        name: inventoryItem.item.name
+      }
+    }
+  });
+
+  if (existingBoost) {
+    throw ErrorCreators.conflict("A boost of this type is already active");
+  }
+
+  // Create team boost record
+  const teamBoost = await prisma.activeBoost.create({
+    data: {
+      teamId: parseInt(teamId),
+      playerId: null, // Team boosts don't target specific players
+      itemId: inventoryItem.item.id,
+      matchType: "LEAGUE", // Default to league matches
+      isActive: true
+    },
+    include: {
+      item: true
+    }
+  });
+
+  // Decrease item quantity or remove if quantity is 1
+  if (inventoryItem.quantity > 1) {
+    await prisma.inventoryItem.update({
+      where: { id: inventoryItem.id },
+      data: { quantity: inventoryItem.quantity - 1 }
+    });
+  } else {
+    await prisma.inventoryItem.delete({
+      where: { id: inventoryItem.id }
+    });
+  }
+
+  res.json({
+    success: true,
+    message: `${inventoryItem.item.name} activated for next match`,
+    teamBoost
+  });
+}));
+
 export default router;

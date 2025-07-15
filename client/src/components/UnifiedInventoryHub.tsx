@@ -223,6 +223,12 @@ export default function UnifiedInventoryHub({ teamId }: UnifiedInventoryHubProps
         };
         setActiveBoosts(prev => [...prev, newBoost]);
         return { success: true, boost: newBoost };
+      } else if (action === "use_team_boost") {
+        // Apply team boost to next match
+        return apiRequest(`/api/teams/${teamId}/apply-team-boost`, "POST", {
+          itemId: item.id,
+          effect: item.effect || item.metadata?.effect
+        });
       }
     },
     onSuccess: (data, variables) => {
@@ -251,8 +257,19 @@ export default function UnifiedInventoryHub({ teamId }: UnifiedInventoryHubProps
     setActiveBoosts(prev => prev.filter(boost => boost.id !== boostId));
   };
 
+  // Check if an item is a team boost (affects whole team, not individual players)
+  const isTeamBoost = (item: InventoryItem) => {
+    const effect = item.effect || item.metadata?.effect;
+    return effect && effect.startsWith('team_');
+  };
+
   // Get eligible players for item usage
   const getEligiblePlayers = (item: InventoryItem) => {
+    // Team boost items don't require player selection
+    if (isTeamBoost(item)) {
+      return [];
+    }
+    
     if (item.itemType === "EQUIPMENT") {
       // Filter by race requirements
       const raceRequirements = {
@@ -408,8 +425,16 @@ export default function UnifiedInventoryHub({ teamId }: UnifiedInventoryHubProps
                         variant="outline"
                         onClick={(e) => {
                           e.stopPropagation();
-                          setSelectedItem(item);
-                          setShowItemModal(true);
+                          // Handle team boosts directly without player selection
+                          if (isTeamBoost(item)) {
+                            useItemMutation.mutate({ 
+                              item, 
+                              action: "use_team_boost" 
+                            });
+                          } else {
+                            setSelectedItem(item);
+                            setShowItemModal(true);
+                          }
                         }}
                         className="text-xs py-1 px-2 h-6 bg-blue-600 hover:bg-blue-700 text-white border-blue-600"
                       >
