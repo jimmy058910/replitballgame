@@ -44,6 +44,7 @@ import equipmentRoutes from "./equipmentRoutes";
 import tryoutRoutes from "./tryoutRoutes";
 import lateSignupRoutes from "./lateSignupRoutes";
 import tournamentStatusRoutes from "./tournamentStatusRoutes";
+import tournamentFixRoutes from "./tournamentFixRoutes";
 import demoRoutes from "./demoRoutes";
 import ndaRoutes from "./ndaRoutes";
 
@@ -101,6 +102,7 @@ export function registerAllRoutes(app: Express): void {
   app.use("/api/tryouts", tryoutRoutes); // Covers tryout system and candidate generation
   app.use("/api/late-signup", lateSignupRoutes);
   app.use("/api/tournament-status", tournamentStatusRoutes); // Covers late signup system for shortened Division 8 seasons
+  app.use("/api/tournament-fix", tournamentFixRoutes); // Emergency tournament fix endpoints
   app.use("/api/demo", demoRoutes); // Demo endpoints using real match simulation
   app.use("/api/nda", ndaRoutes); // NDA acceptance endpoints for pre-alpha testing
 

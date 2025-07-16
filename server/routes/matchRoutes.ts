@@ -22,7 +22,11 @@ router.get('/live', isAuthenticated, async (req: Request, res: Response, next: N
       return { ...match, homeTeamName, awayTeamName };
     }));
 
-    res.json(enhancedMatches);
+    // Fix BigInt serialization issue
+    const serializedMatches = JSON.parse(JSON.stringify(enhancedMatches, (key, value) => 
+      typeof value === 'bigint' ? value.toString() : value
+    ));
+    res.json(serializedMatches);
   } catch (error) {
     console.error("Error fetching live matches:", error);
     next(error);

@@ -106,10 +106,18 @@ export class SeasonTimingAutomationService {
       
       logInfo(`Daily progression scheduled for ${nextExecution.toLocaleString('en-US', { timeZone: 'America/New_York' })} EST`);
       
-      this.dailyProgressionTimer = setTimeout(async () => {
-        await this.executeDailyProgression();
-        scheduleNextExecution(); // Schedule next execution
-      }, timeUntilExecution);
+      // Clear existing timer
+      if (this.dailyProgressionTimer) {
+        clearTimeout(this.dailyProgressionTimer);
+      }
+      
+      // TEMPORARILY DISABLE daily progression until tournament fix is complete
+      // this.dailyProgressionTimer = setTimeout(async () => {
+      //   await this.executeDailyProgression();
+      //   scheduleNextExecution(); // Schedule next execution
+      // }, timeUntilExecution);
+      
+      logInfo('Daily progression temporarily disabled - tournament fix in progress');
     };
 
     scheduleNextExecution();

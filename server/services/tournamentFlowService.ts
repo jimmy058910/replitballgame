@@ -499,4 +499,5 @@ class TournamentFlowServiceImpl implements TournamentFlowService {
   }
 }
 
+// Export singleton instance
 export const tournamentFlowService = new TournamentFlowServiceImpl();
