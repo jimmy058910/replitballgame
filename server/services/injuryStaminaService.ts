@@ -241,6 +241,14 @@ export class InjuryStaminaService {
     if (itemType === 'injury' && currentPlayer.injuryStatus === 'Healthy') {
       return { success: false, message: "Cannot use injury items on healthy players" };
     }
+    
+    // Check if stamina item is appropriate
+    if (itemType === 'stamina') {
+      const currentStamina = currentPlayer.dailyStaminaLevel || 0;
+      if (currentStamina >= 100) {
+        return { success: false, message: "Cannot use stamina items on players at full stamina" };
+      }
+    }
 
     // Apply item effect
     const updateData: any = {

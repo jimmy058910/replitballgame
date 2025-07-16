@@ -271,7 +271,7 @@ export function InjuryStaminaManager({ teamId }: InjuryStaminaManagerProps) {
                     <option value="" className="bg-gray-800 text-white">Choose a player...</option>
                     {players.map((player) => (
                       <option key={player.id} value={player.id} className="bg-gray-800 text-white">
-                        {player.firstName} {player.lastName} - {player.injuryStatus}
+                        {player.firstName} {player.lastName} - {player.injuryStatus} - {player.dailyStaminaLevel}% Stamina
                       </option>
                     ))}
                   </select>
@@ -285,6 +285,15 @@ export function InjuryStaminaManager({ teamId }: InjuryStaminaManagerProps) {
                       {recoveryItems.map((item) => {
                         const effect = getRecoveryItemEffect(item.name);
                         const Icon = effect.icon;
+                        
+                        // Check if player is eligible for this item
+                        const selectedPlayerData = players.find(p => p.id === selectedPlayer);
+                        const isEligible = selectedPlayerData ? (
+                          effect.type === 'injury' 
+                            ? selectedPlayerData.injuryStatus !== 'Healthy'
+                            : selectedPlayerData.dailyStaminaLevel < 100
+                        ) : true;
+                        
                         return (
                           <div key={item.id} className="flex items-center justify-between p-3 bg-gray-700 dark:bg-gray-800 rounded-lg">
                             <div className="flex items-center gap-3">
@@ -292,6 +301,13 @@ export function InjuryStaminaManager({ teamId }: InjuryStaminaManagerProps) {
                               <div>
                                 <div className="font-medium text-white">{item.name.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}</div>
                                 <div className="text-sm text-gray-300">{effect.description}</div>
+                                {selectedPlayerData && !isEligible && (
+                                  <div className="text-xs text-yellow-400 mt-1">
+                                    {effect.type === 'injury' 
+                                      ? "Player is healthy (injury items only work on injured players)"
+                                      : "Player has full stamina (stamina items only work on tired players)"}
+                                  </div>
+                                )}
                               </div>
                             </div>
                             <div className="flex items-center gap-2">
@@ -303,7 +319,7 @@ export function InjuryStaminaManager({ teamId }: InjuryStaminaManagerProps) {
                                   itemType: effect.type,
                                   effectValue: effect.effectValue
                                 })}
-                                disabled={!selectedPlayer || useItemMutation.isPending}
+                                disabled={!selectedPlayer || useItemMutation.isPending || !isEligible}
                                 variant="outline"
                               >
                                 Use Item
