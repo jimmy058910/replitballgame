@@ -380,7 +380,15 @@ router.get('/daily-schedule', isAuthenticated, async (req: Request, res: Respons
     const currentDayFromSeason = (currentSeason as any).currentDay || 1;
 
     for (let day = 1; day <= 17; day++) {
-      const dayMatches = allMatches.filter(match => match.gameDay === day);
+      const dayMatches = allMatches.filter(match => {
+        if (match.gameDate) {
+          const gameDate = new Date(match.gameDate);
+          const seasonStart = new Date("2025-07-13");
+          const daysDiff = Math.floor((gameDate.getTime() - seasonStart.getTime()) / (1000 * 60 * 60 * 24)) + 1;
+          return daysDiff === day;
+        }
+        return match.gameDay === day;
+      });
 
       if (dayMatches.length > 0) {
         const dailyGameTimes = generateDailyGameTimes(day);

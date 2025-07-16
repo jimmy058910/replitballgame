@@ -8,14 +8,13 @@ export class SeasonStorage {
   async createSeason(seasonData: {
     name: string;
     year: number;
-    status?: string;
+    phase?: string;
     startDate?: Date;
     endDate?: Date;
-    startDateOriginal?: Date;
   }): Promise<any> {
     const result = await prisma.$executeRaw`
-      INSERT INTO "Season" (id, name, year, status, start_date, end_date, start_date_original, created_at, updated_at)
-      VALUES (${`season-${seasonData.year}-${Date.now()}`}, ${seasonData.name}, ${seasonData.year}, ${seasonData.status || 'active'}, ${seasonData.startDate || new Date()}, ${seasonData.endDate}, ${seasonData.startDateOriginal || new Date()}, NOW(), NOW())
+      INSERT INTO "Season" (id, "seasonNumber", phase, "startDate", "endDate", "currentDay", "createdAt")
+      VALUES (${`season-${seasonData.year}-${Date.now()}`}, ${seasonData.year}, ${seasonData.phase || 'REGULAR_SEASON'}, ${seasonData.startDate || new Date()}, ${seasonData.endDate}, ${1}, NOW())
     `;
     return result;
   }
@@ -31,7 +30,7 @@ export class SeasonStorage {
     try {
       console.log('Attempting to find current season with raw SQL...');
       const seasons = await prisma.$queryRaw`
-        SELECT * FROM "Season" WHERE status = 'active' ORDER BY start_date DESC LIMIT 1
+        SELECT * FROM "Season" ORDER BY "startDate" DESC LIMIT 1
       `;
       const season = (seasons as any[])[0] || null;
       console.log('Found season:', season);

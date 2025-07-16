@@ -28,9 +28,9 @@ interface DailySchedule {
 
 export default function LeagueSchedule() {
   const { data: schedule, isLoading } = useQuery<DailySchedule>({
-    queryKey: ["/api/league/daily-schedule"],
+    queryKey: ["/api/leagues/daily-schedule"],
     refetchInterval: 30000, // Update every 30 seconds for live status
-    enabled: false, // Temporarily disabled - endpoint not implemented
+    enabled: true, // Re-enabled - endpoint is now implemented
   });
 
   if (isLoading) {
