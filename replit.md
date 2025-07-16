@@ -138,6 +138,7 @@ Built as a React + Express web application with PostgreSQL database, using moder
 - ✓ **Database Integration**: Team boosts stored in ActiveBoost table with proper teamId and itemId relationships
 - ✓ **Inventory Management**: Item quantities properly decreased or removed after team boost application
 - ✓ **Authentication Fixed**: Fixed team ownership check to use userProfileId instead of userId field
+- ✓ **Effect Parameter Fixed**: Fixed team boost frontend to properly pass effect parameter to backend
 - ✓ **All 5 Team Boost Items Working**: Team Leadership Draft, Team Power Draught, Team Agility Tonic, Team Stamina Brew, Champion's Blessing
 
 #### ✅ INVENTORY DISPLAY IMPROVEMENTS - ENHANCED USER EXPERIENCE
@@ -162,6 +163,12 @@ Built as a React + Express web application with PostgreSQL database, using moder
 - ✓ **UI/UX Polish**: Fixed text capitalization, added race/slot information, improved visual feedback
 - ✓ **Icon System**: Complete SVG icon system with proper import and display logic
 - ✓ **Mobile Responsive**: All improvements work correctly across all device sizes
+
+#### ✅ STAMINA CONSUMABLE PLAYER SELECTION ENHANCED - IMPROVED USER EXPERIENCE
+- ✓ **Stamina Display**: Player selection now shows current/max stamina and percentage (e.g., "30/31 (97%)")
+- ✓ **Full Stamina Filtering**: Players with full stamina (stamina is null or equals max) are hidden from selection
+- ✓ **Smart Detection**: Improved filtering logic for stamina/energy/recovery items
+- ✓ **Enhanced UI**: Better labeling and information display for stamina consumable usage
 
 ### July 15, 2025 - ✅ PURCHASE SYSTEM COMPLETELY FIXED - PAYMENTHISTORYSERVICE SCHEMA ALIGNMENT RESOLVED (Previous)
 

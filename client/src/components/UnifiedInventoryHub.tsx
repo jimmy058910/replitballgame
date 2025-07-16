@@ -338,7 +338,18 @@ export default function UnifiedInventoryHub({ teamId }: UnifiedInventoryHubProps
       if (item.name.toLowerCase().includes("medical") || item.name.toLowerCase().includes("heal")) {
         return players.filter(p => p.injuryStatus !== "HEALTHY");
       }
-      return players; // All players can use stamina/boost items
+      
+      // For stamina items, filter out players with full stamina
+      if (item.name.toLowerCase().includes("stamina") || item.name.toLowerCase().includes("energy") || item.name.toLowerCase().includes("recovery")) {
+        return players.filter(p => {
+          const currentStamina = p.stamina || p.staminaAttribute;
+          const maxStamina = p.staminaAttribute || 100;
+          // Only show players who don't have full stamina (stamina is null means full stamina)
+          return p.stamina !== null && currentStamina < maxStamina;
+        });
+      }
+      
+      return players; // All players can use other boost items
     }
     return [];
   };
@@ -484,7 +495,8 @@ export default function UnifiedInventoryHub({ teamId }: UnifiedInventoryHubProps
                           if (isTeamBoost(item)) {
                             useItemMutation.mutate({ 
                               item, 
-                              action: "use_team_boost" 
+                              action: "use_team_boost",
+                              effect: item.effect || item.metadata?.effect
                             });
                           } else {
                             setSelectedItem(item);
@@ -678,17 +690,23 @@ export default function UnifiedInventoryHub({ teamId }: UnifiedInventoryHubProps
                       </Button>
                     ) : (
                       <div className="space-y-3">
-                        <label className="text-sm font-medium text-gray-300">Use on Player:</label>
+                        <label className="text-sm font-medium text-gray-300">Use on Player (Stamina Recovery):</label>
                         <Select value={selectedPlayer} onValueChange={setSelectedPlayer}>
                           <SelectTrigger className="bg-gray-700 border-gray-600 text-white">
                             <SelectValue placeholder="Choose a player..." />
                           </SelectTrigger>
                           <SelectContent className="bg-gray-700 border-gray-600">
-                            {getEligiblePlayers(selectedItem).map((player) => (
-                              <SelectItem key={player.id} value={player.id} className="text-white">
-                                {player.firstName} {player.lastName}
-                              </SelectItem>
-                            ))}
+                            {getEligiblePlayers(selectedItem).map((player) => {
+                              const currentStamina = player.stamina || player.staminaAttribute;
+                              const maxStamina = player.staminaAttribute || 100;
+                              const staminaPercentage = Math.round((currentStamina / maxStamina) * 100);
+                              
+                              return (
+                                <SelectItem key={player.id} value={player.id} className="text-white">
+                                  {player.firstName} {player.lastName} - {currentStamina}/{maxStamina} ({staminaPercentage}%)
+                                </SelectItem>
+                              );
+                            })}
                           </SelectContent>
                         </Select>
                         <Button 
