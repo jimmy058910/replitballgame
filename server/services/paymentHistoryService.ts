@@ -37,6 +37,8 @@ export class PaymentHistoryService {
       status
     } = options;
 
+    console.log('PaymentHistoryService: Looking for transactions for userId:', userId);
+    
     // Build where conditions
     const whereConditions: any = { userId };
 
@@ -63,6 +65,9 @@ export class PaymentHistoryService {
       where: whereConditions,
     });
 
+    console.log('PaymentHistoryService: Found', transactions.length, 'transactions for user', userId);
+    console.log('PaymentHistoryService: Total count:', totalCount);
+    
     return {
       transactions,
       total: Number(totalCount) || 0,
@@ -117,12 +122,16 @@ export class PaymentHistoryService {
     totalTransactions: number;
     totalSpentUSD: number;
   }> {
+    console.log('PaymentHistoryService: Getting transaction summary for userId:', userId);
+    
     const transactions = await prisma.paymentTransaction.findMany({
       where: {
         userId,
         status: "completed"
       },
     });
+
+    console.log('PaymentHistoryService: Found', transactions.length, 'completed transactions for summary');
 
     const summary = transactions.reduce(
       (acc, transaction) => {
