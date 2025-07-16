@@ -1,0 +1,65 @@
+Realm Rivalry Playtester Non-Disclosure Agreement (NDA)
+IMPORTANT NOTICE: This is a legally binding agreement.
+
+By clicking the "I Agree" button or checking the box below, you are entering into a legally binding contract with JMo Gaming LLC. Please read the following terms carefully.
+
+This Non-Disclosure Agreement (the "Agreement") is entered into between:
+
+The Developer: JMo Gaming LLC, located in Rochester Hills, MI (hereinafter referred to as "the Developer," "we," or "us").
+
+The Receiving Party: You, the individual accepting this Agreement (hereinafter referred to as "the Tester," "you," or "your").
+
+By accepting this Agreement, you acknowledge and agree to be bound by its terms as of the date of your acceptance.
+
+1. Purpose
+The Developer is currently developing a video game project tentatively titled "Realm Rivalry". The Developer wishes to disclose certain Confidential Information (as defined below) to you for the sole purpose of playtesting, evaluation, and providing feedback on the game (the "Permitted Purpose").
+
+2. Definition of Confidential Information
+"Confidential Information" shall include, but is not limited to, all non-public information, in any form, disclosed by the Developer to you. This includes:
+
+Any and all aspects of the "Realm Rivalry" game, including its gameplay mechanics, storylines, characters, artwork, sound effects, music, source code, and design documents.
+
+Screenshots, videos, or any other recordings of gameplay.
+
+Information about the game's features, future plans, marketing strategies, and business operations.
+
+Any bugs, glitches, or exploits you discover during testing.
+
+All feedback, notes, and discussions related to the game.
+
+The very existence of this playtest and your participation in it.
+
+3. Your Obligations as a Tester
+You agree to:
+
+Maintain Confidentiality: Hold all Confidential Information in strict confidence and take all reasonable precautions to protect its secrecy.
+
+Restrict Use: Use the Confidential Information solely for the Permitted Purpose and for no other purpose whatsoever.
+
+Non-Disclosure: Not disclose, publish, broadcast, stream, post on social media, or otherwise share any Confidential Information with any third party (including friends or family) without the prior written consent of the Developer.
+
+4. Exclusions
+Confidential Information does not include information that: (a) is or becomes publicly known through no fault of yours; (b) is already in your possession without any confidentiality obligation prior to disclosure by the Developer; or (c) is required to be disclosed by law or a court order.
+
+5. Term
+This Agreement and your duty to hold Confidential Information in confidence shall remain in effect for a period of three (3) years from the date you accept this Agreement, or until the Developer publicly releases the game and its related information, whichever comes first.
+
+6. Return of Materials
+Upon the Developer's request, you agree to immediately return or, at the Developer's direction, destroy all materials (physical and digital) containing Confidential Information, including any copies or notes you have made.
+
+7. No License
+This Agreement does not grant you any license, right, or ownership interest in any of the Developer's intellectual property, including copyrights, trademarks, or patents related to "Realm Rivalry."
+
+8. General Provisions
+This Agreement represents the entire understanding between you and the Developer concerning its subject matter. It shall be governed by the laws of the State of Michigan.
+
+Implementation for Your Website or App:
+To make this legally effective as a clickwrap agreement, you would display the text above (or have it available via a prominent link) and then present the user with the following interface before they can access the game:
+
+(UI Element)
+
+[ ] I have read, understood, and agree to be bound by the terms of the Realm Rivalry Playtester Non-Disclosure Agreement. I understand that this is a legally binding contract and my clicking "Agree & Continue" constitutes my electronic signature.
+
+(The "Agree & Continue" button should be greyed out until the user checks the box)
+
+[ Agree & Continue ]

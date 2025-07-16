@@ -194,6 +194,82 @@ export class PlayerStorage {
       return false;
     }
   }
+
+  async releasePlayerFromMainRoster(playerId: number): Promise<boolean> {
+    try {
+      await prisma.player.delete({
+        where: { id: playerId }
+      });
+      return true;
+    } catch (error) {
+      console.warn(`Player with ID ${playerId} not found for release.`);
+      return false;
+    }
+  }
+
+  async validatePlayerReleaseFromMainRoster(playerId: number): Promise<{
+    canRelease: boolean;
+    reason?: string;
+    releaseFee?: number;
+  }> {
+    const player = await prisma.player.findUnique({
+      where: { id: playerId },
+      include: {
+        team: {
+          include: {
+            players: {
+              where: { isOnMarket: false },
+              orderBy: { createdAt: 'asc' }
+            }
+          }
+        },
+        contract: true
+      }
+    });
+
+    if (!player || !player.team) {
+      return { canRelease: false, reason: "Player or team not found" };
+    }
+
+    const mainRosterPlayers = player.team.players.slice(0, 12);
+    const totalPlayers = player.team.players.length;
+
+    // Check minimum player count (cannot go below 12 total players)
+    if (totalPlayers <= 12) {
+      return { canRelease: false, reason: "Cannot release players below minimum roster size of 12" };
+    }
+
+    // Check if player is on main roster
+    const isOnMainRoster = mainRosterPlayers.some(p => p.id === playerId);
+    if (!isOnMainRoster) {
+      return { canRelease: false, reason: "Player is not on main roster" };
+    }
+
+    // Check position requirements after release
+    const remainingPlayers = mainRosterPlayers.filter(p => p.id !== playerId);
+    const blockerCount = remainingPlayers.filter(p => p.role === 'BLOCKER').length;
+    const runnerCount = remainingPlayers.filter(p => p.role === 'RUNNER').length;
+    const passerCount = remainingPlayers.filter(p => p.role === 'PASSER').length;
+
+    if (blockerCount < 4) {
+      return { canRelease: false, reason: "Cannot release - would leave team with less than 4 Blockers" };
+    }
+    if (runnerCount < 4) {
+      return { canRelease: false, reason: "Cannot release - would leave team with less than 4 Runners" };
+    }
+    if (passerCount < 3) {
+      return { canRelease: false, reason: "Cannot release - would leave team with less than 3 Passers" };
+    }
+
+    // Calculate release fee: remaining salary + 2,500 credits
+    let releaseFee = 2500; // Base fee
+    if (player.contract) {
+      const remainingSeasons = Math.max(0, (player.contract.length || 1) - 1); // Seasons after current
+      releaseFee += remainingSeasons * (player.contract.salary || 0);
+    }
+
+    return { canRelease: true, releaseFee };
+  }
 }
 
 export const playerStorage = new PlayerStorage();

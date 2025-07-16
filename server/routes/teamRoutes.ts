@@ -1657,4 +1657,124 @@ router.delete("/:teamId/active-boosts/:boostId", isAuthenticated, asyncHandler(a
   res.json({ success: true, message: "Active boost removed successfully" });
 }));
 
+// Get release fee for player
+router.get('/:teamId/players/:playerId/release-fee', isAuthenticated, asyncHandler(async (req, res) => {
+  const { teamId, playerId } = req.params;
+
+  // Find team and validate ownership
+  let team;
+  if (req.user && req.user.claims) {
+    team = await storage.teams.getTeamByUserProfileId(req.user.claims.sub);
+    if (!team || team.id !== parseInt(teamId)) {
+      throw ErrorCreators.forbidden("You do not own this team");
+    }
+  } else {
+    team = await storage.teams.getTeamById(parseInt(teamId));
+    if (!team) {
+      throw ErrorCreators.notFound("Team not found");
+    }
+    
+    // Check ownership for non-Replit auth
+    const ownershipTeam = await storage.teams.getTeamByUserProfileId(req.user?.id);
+    if (!ownershipTeam || ownershipTeam.id !== parseInt(teamId)) {
+      throw ErrorCreators.forbidden("You do not own this team");
+    }
+  }
+
+  // Check if player exists and is on this team
+  const player = await storage.players.getPlayerById(parseInt(playerId));
+  if (!player) {
+    throw ErrorCreators.notFound("Player not found");
+  }
+
+  if (player.teamId !== team.id) {
+    throw ErrorCreators.forbidden("Player does not belong to your team");
+  }
+
+  // Validate release requirements and get release fee
+  const validation = await storage.players.validatePlayerReleaseFromMainRoster(parseInt(playerId));
+  
+  res.json({
+    canRelease: validation.canRelease,
+    reason: validation.reason,
+    releaseFee: validation.releaseFee || 2500,
+    teamCredits: team.credits
+  });
+}));
+
+// Release player from main roster (with release fee)
+router.delete('/:teamId/players/:playerId', isAuthenticated, asyncHandler(async (req, res) => {
+  const { teamId, playerId } = req.params;
+
+  // Find team and validate ownership
+  let team;
+  if (req.user && req.user.claims) {
+    team = await storage.teams.getTeamByUserProfileId(req.user.claims.sub);
+    if (!team || team.id !== parseInt(teamId)) {
+      throw ErrorCreators.forbidden("You do not own this team");
+    }
+  } else {
+    team = await storage.teams.getTeamById(parseInt(teamId));
+    if (!team) {
+      throw ErrorCreators.notFound("Team not found");
+    }
+    
+    // Check ownership for non-Replit auth
+    const ownershipTeam = await storage.teams.getTeamByUserProfileId(req.user?.id);
+    if (!ownershipTeam || ownershipTeam.id !== parseInt(teamId)) {
+      throw ErrorCreators.forbidden("You do not own this team");
+    }
+  }
+
+  // Check if player exists and is on this team
+  const player = await storage.players.getPlayerById(parseInt(playerId));
+  if (!player) {
+    throw ErrorCreators.notFound("Player not found");
+  }
+
+  if (player.teamId !== team.id) {
+    throw ErrorCreators.forbidden("Player does not belong to your team");
+  }
+
+  // Validate release requirements and get release fee
+  const validation = await storage.players.validatePlayerReleaseFromMainRoster(parseInt(playerId));
+  if (!validation.canRelease) {
+    throw ErrorCreators.validation(validation.reason || "Cannot release player");
+  }
+
+  const releaseFee = validation.releaseFee || 2500;
+
+  // Check if team has enough credits for the release fee
+  if (team.credits < releaseFee) {
+    throw ErrorCreators.validation(`Insufficient credits for release fee. Need ${releaseFee} credits, have ${team.credits}`);
+  }
+
+  // Deduct release fee from team credits
+  await prisma.team.update({
+    where: { id: team.id },
+    data: { credits: team.credits - releaseFee }
+  });
+
+  // Release player
+  const released = await storage.players.releasePlayerFromMainRoster(parseInt(playerId));
+
+  if (!released) {
+    throw ErrorCreators.internal("Failed to release player");
+  }
+
+  logInfo("Player released from main roster", {
+    teamId: team.id,
+    playerId: playerId,
+    playerName: player.name,
+    releaseFee: releaseFee,
+    requestId: req.requestId
+  });
+
+  res.json({
+    success: true,
+    message: "Player released from main roster",
+    releaseFee: releaseFee
+  });
+}));
+
 export default router;

@@ -7,7 +7,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Progress } from "@/components/ui/progress";
 import { Separator } from "@/components/ui/separator";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Shield, Shirt, ShirtIcon, Hand, Star, Trophy, Calendar, FileText, Zap, User, Crown, DollarSign } from "lucide-react";
+import { Shield, Shirt, ShirtIcon, Hand, Star, Trophy, Calendar, FileText, Zap, User, Crown, DollarSign, Trash2, AlertTriangle } from "lucide-react";
 import AbilitiesDisplay from "@/components/AbilitiesDisplay";
 import { PlayerAwards } from "./PlayerAwards";
 import ContractNegotiation from "./ContractNegotiation";
@@ -15,6 +15,17 @@ import { getPlayerRole, getRaceDisplayName, getRoleColor, getRoleTextColor } fro
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
+import { 
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 interface PlayerDetailModalProps {
   player: DetailedPlayer | null; // Make player prop explicitly DetailedPlayer or null
@@ -122,6 +133,38 @@ export default function PlayerDetailModal({
       toast({
         title: "Equipment Error",
         description: error.message || "Failed to equip item. Please try again.",
+        variant: "destructive",
+      });
+    }
+  });
+
+  // Release fee query
+  const { data: releaseInfo, isLoading: releaseInfoLoading } = useQuery({
+    queryKey: [`/api/teams/${player?.teamId}/players/${player?.id}/release-fee`],
+    enabled: isOpen && !!player?.id && !!player?.teamId,
+  });
+
+  // Release player mutation
+  const releasePlayerMutation = useMutation({
+    mutationFn: async () => {
+      if (!player) return Promise.reject(new Error("No player selected"));
+      return apiRequest(`/api/teams/${player.teamId}/players/${player.id}`, "DELETE");
+    },
+    onSuccess: () => {
+      if (player) {
+        queryClient.invalidateQueries({ queryKey: [`/api/teams/${player.teamId}/players`] });
+        queryClient.invalidateQueries({ queryKey: [`/api/teams/${player.teamId}`] });
+      }
+      toast({
+        title: "Player Released",
+        description: "Player has been released from your team.",
+      });
+      onClose();
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Release Error",
+        description: error.message || "Failed to release player. Please try again.",
         variant: "destructive",
       });
     }
@@ -270,15 +313,73 @@ export default function PlayerDetailModal({
                 </div>
               </div>
             </div>
-            <Button 
-              variant="outline" 
-              size="sm"
-              onClick={() => setShowContractNegotiation(true)}
-              className="flex items-center gap-2"
-            >
-              <DollarSign className="w-4 h-4" />
-              Negotiate Contract
-            </Button>
+            <div className="flex gap-2">
+              <Button 
+                variant="outline" 
+                size="sm"
+                onClick={() => setShowContractNegotiation(true)}
+                className="flex items-center gap-2"
+              >
+                <DollarSign className="w-4 h-4" />
+                Negotiate Contract
+              </Button>
+              
+              {/* Release Player Button */}
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    disabled={releaseInfoLoading || !releaseInfo?.canRelease}
+                    className="flex items-center gap-2 border-red-500 text-red-500 hover:bg-red-500 hover:text-white"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                    Release Player
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle className="flex items-center gap-2">
+                      <AlertTriangle className="w-5 h-5 text-red-500" />
+                      Release Player
+                    </AlertDialogTitle>
+                    <AlertDialogDescription>
+                      <div className="space-y-2">
+                        <p>Are you sure you want to release {player.name}?</p>
+                        {releaseInfo && (
+                          <div className="bg-red-50 dark:bg-red-900/20 p-3 rounded-lg">
+                            <p className="font-semibold text-red-700 dark:text-red-300">
+                              Release Fee: ₡{releaseInfo.releaseFee?.toLocaleString() || 0}
+                            </p>
+                            <p className="text-sm text-red-600 dark:text-red-400">
+                              Team Credits: ₡{releaseInfo.teamCredits?.toLocaleString() || 0}
+                            </p>
+                            {releaseInfo.teamCredits < releaseInfo.releaseFee && (
+                              <p className="text-sm text-red-700 dark:text-red-300 font-semibold mt-1">
+                                Insufficient credits for release!
+                              </p>
+                            )}
+                          </div>
+                        )}
+                        <p className="text-sm text-gray-600 dark:text-gray-400">
+                          This action cannot be undone. The player will be removed from your team.
+                        </p>
+                      </div>
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                    <AlertDialogAction
+                      onClick={() => releasePlayerMutation.mutate()}
+                      disabled={releasePlayerMutation.isPending || !releaseInfo?.canRelease || (releaseInfo?.teamCredits < releaseInfo?.releaseFee)}
+                      className="bg-red-600 hover:bg-red-700"
+                    >
+                      {releasePlayerMutation.isPending ? "Releasing..." : "Release Player"}
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
+            </div>
           </DialogTitle>
         </DialogHeader>
 

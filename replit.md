@@ -147,7 +147,33 @@ Built as a React + Express web application with PostgreSQL database, using moder
 
 ## Recent Changes
 
-### July 16, 2025 - ✅ COMPLETE TACTICAL EFFECTS API FIX & FIELD SIZE TIMING RESTRICTIONS - PRODUCTION READY
+### July 16, 2025 - ✅ FLEXIBLE PLAYER RELEASE SYSTEM IMPLEMENTED - PRODUCTION READY
+
+#### ✅ PLAYER RELEASE SYSTEM COMPLETELY UPDATED - ANYTIME RELEASES WITH FINANCIAL PENALTY
+- ✓ **Offseason Restriction Removed**: Players can now be released at any time during the season (not just offseason)
+- ✓ **Release Fee Formula Implemented**: Fee = (seasons remaining after current) × salary + 2,500 credits
+- ✓ **Fee Preview Endpoint**: Added GET `/api/teams/:teamId/players/:playerId/release-fee` for frontend fee display
+- ✓ **Credit Deduction System**: Release fee properly deducted from team credits upon confirmation
+- ✓ **Roster Validation Maintained**: Teams must still maintain 4+ Blockers, 4+ Runners, 3+ Passers, 12+ total players
+- ✓ **Backend Error Handling**: Fixed asyncHandler usage in team routes for proper error management
+
+#### ✅ COMPREHENSIVE RELEASE UI IMPLEMENTATION - COMPLETE USER EXPERIENCE
+- ✓ **Release Button Integration**: Added red "Release Player" button next to "Negotiate Contract" in PlayerDetailModal
+- ✓ **AlertDialog Confirmation**: Comprehensive confirmation dialog showing player name, release fee, and team credits
+- ✓ **Fee Calculation Display**: Real-time display of release fee with proper formatting (₡X,XXX)
+- ✓ **Insufficient Credits Warning**: Clear warning when team cannot afford release fee
+- ✓ **Proper Button States**: Button disabled when player cannot be released or during loading
+- ✓ **Error Handling**: Comprehensive error handling with user-friendly messages
+- ✓ **Query Invalidation**: Proper cache invalidation after successful release
+
+#### ✅ TECHNICAL IMPLEMENTATION ACHIEVEMENTS - PRODUCTION READY
+- ✓ **Database Integration**: Release fee stored in validatePlayerReleaseFromMainRoster with contract lookup
+- ✓ **API Consistency**: Both preview and release endpoints use consistent team ownership validation
+- ✓ **Frontend State Management**: Proper query and mutation management with TanStack Query
+- ✓ **UI/UX Polish**: Red styling for destructive action, proper loading states, clear confirmation flow
+- ✓ **Error Recovery**: Comprehensive error handling prevents system crashes and provides user feedback
+
+### July 16, 2025 - ✅ COMPLETE TACTICAL EFFECTS API FIX & FIELD SIZE TIMING RESTRICTIONS - PRODUCTION READY (Previous)
 
 #### ✅ CRITICAL API ENDPOINT MISMATCH RESOLVED - RESPONSE.JSON ERROR FIXED
 - ✓ **Root Cause Identified**: Frontend calling wrong API endpoints (`/api/advanced-tactical-effects/...` vs `/api/tactics/...`)
