@@ -7,6 +7,7 @@ import { leagueStorage } from "../storage/leagueStorage"; // For currentSeason
 import { matchStorage } from "../storage/matchStorage"; // For getMatchesByDivision
 import { seasonStorage } from "../storage/seasonStorage"; // For getCurrentSeason
 import { isAuthenticated } from "../replitAuth";
+import { prisma } from "../db";
 import {
   generateLeagueGameSchedule,
   generateDailyGameTimes,
