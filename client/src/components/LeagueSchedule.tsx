@@ -33,6 +33,11 @@ export default function LeagueSchedule() {
     enabled: true, // Re-enabled - endpoint is now implemented
   });
 
+  const { data: userTeam } = useQuery({
+    queryKey: ["/api/teams/my"],
+    refetchInterval: 30000,
+  });
+
   if (isLoading) {
     return (
       <Card>
@@ -79,6 +84,11 @@ export default function LeagueSchedule() {
     });
   };
 
+  const isUserTeamMatch = (match: ScheduledMatch) => {
+    if (!userTeam) return false;
+    return match.homeTeamId === userTeam.id.toString() || match.awayTeamId === userTeam.id.toString();
+  };
+
   const getStatusBadge = (match: ScheduledMatch) => {
     if (match.isLive) {
       return (
@@ -90,7 +100,7 @@ export default function LeagueSchedule() {
     
     switch (match.status) {
       case 'scheduled':
-        return <Badge variant="secondary">Scheduled</Badge>;
+        return <Badge variant="secondary">SCHEDULED</Badge>;
       case 'completed':
         return <Badge variant="outline">Completed</Badge>;
       default:
@@ -141,13 +151,19 @@ export default function LeagueSchedule() {
               </div>
 
               <div className="space-y-2">
-                {dayMatches.map((match, index) => (
-                  <div
-                    key={match.id}
-                    className={`flex items-center justify-between p-3 rounded-lg border ${
-                      match.isLive ? 'border-red-300 bg-red-50' : 'border-gray-200'
-                    }`}
-                  >
+                {dayMatches.map((match, index) => {
+                  const isUserMatch = isUserTeamMatch(match);
+                  return (
+                    <div
+                      key={match.id}
+                      className={`flex items-center justify-between p-3 rounded-lg border ${
+                        match.isLive 
+                          ? 'border-red-300 bg-red-50' 
+                          : isUserMatch 
+                            ? 'border-blue-300 bg-blue-50 dark:border-blue-600 dark:bg-blue-900/20' 
+                            : 'border-gray-200'
+                      }`}
+                    >
                     <div className="flex items-center gap-3">
                       <div className="text-center min-w-[60px]">
                         <div className="text-sm font-mono">
@@ -159,12 +175,12 @@ export default function LeagueSchedule() {
                       </div>
                       
                       <div className="flex items-center gap-2">
-                        <Users className="w-4 h-4 text-gray-400" />
-                        <span className="text-sm">
+                        <Users className={`w-4 h-4 ${isUserMatch ? 'text-blue-500' : 'text-gray-400'}`} />
+                        <span className={`text-sm ${isUserMatch ? 'font-semibold' : ''}`}>
                           {match.homeTeamName || `Team ${match.homeTeamId.slice(0, 8)}`}
                         </span>
                         <span className="text-gray-400">vs</span>
-                        <span className="text-sm">
+                        <span className={`text-sm ${isUserMatch ? 'font-semibold' : ''}`}>
                           {match.awayTeamName || `Team ${match.awayTeamId.slice(0, 8)}`}
                         </span>
                       </div>
@@ -192,7 +208,8 @@ export default function LeagueSchedule() {
                       )}
                     </div>
                   </div>
-                ))}
+                  );
+                })}
               </div>
             </div>
           );
