@@ -139,6 +139,7 @@ Built as a React + Express web application with PostgreSQL database, using moder
 - ✓ **Inventory Management**: Item quantities properly decreased or removed after team boost application
 - ✓ **Authentication Fixed**: Fixed team ownership check to use userProfileId instead of userId field
 - ✓ **Effect Parameter Fixed**: Fixed team boost frontend to properly pass effect parameter to backend
+- ✓ **Database Query Fixed**: Fixed backend query to use correct InventoryItem.id instead of Item.id for lookup
 - ✓ **All 5 Team Boost Items Working**: Team Leadership Draft, Team Power Draught, Team Agility Tonic, Team Stamina Brew, Champion's Blessing
 
 #### ✅ INVENTORY DISPLAY IMPROVEMENTS - ENHANCED USER EXPERIENCE

@@ -1404,10 +1404,8 @@ router.post('/:teamId/apply-team-boost', isAuthenticated, asyncHandler(async (re
   // Verify the item exists in team inventory
   const inventoryItem = await prisma.inventoryItem.findFirst({
     where: {
-      teamId: parseInt(teamId),
-      item: {
-        id: parseInt(itemId)
-      }
+      id: parseInt(itemId),
+      teamId: parseInt(teamId)
     },
     include: {
       item: true
