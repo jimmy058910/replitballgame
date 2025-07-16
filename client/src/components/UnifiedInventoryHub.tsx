@@ -348,6 +348,18 @@ export default function UnifiedInventoryHub({ teamId }: UnifiedInventoryHubProps
     return cumulativeStats;
   };
 
+  // Format effect text for display
+  const formatEffectText = (effect: string) => {
+    // Parse effects like "team_agility_5", "team_power_3", etc.
+    const match = effect.match(/team_(\w+)_(\d+)/);
+    if (match) {
+      const [, stat, value] = match;
+      const capitalizedStat = stat.charAt(0).toUpperCase() + stat.slice(1);
+      return `${capitalizedStat} +${value}`;
+    }
+    return effect;
+  };
+
   // Check if an item is a team boost (affects whole team, not individual players)
   const isTeamBoost = (item: InventoryItem) => {
     const effect = item.effect || item.metadata?.effect;
@@ -588,7 +600,7 @@ export default function UnifiedInventoryHub({ teamId }: UnifiedInventoryHubProps
                           {boost.itemName.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
                         </div>
                         <div className="text-xs text-gray-400">
-                          {boost.effect}
+                          {formatEffectText(boost.effect)}
                         </div>
                       </div>
                       <Button
