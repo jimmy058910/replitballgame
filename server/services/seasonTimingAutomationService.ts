@@ -659,6 +659,14 @@ export class SeasonTimingAutomationService {
           await this.generateNextRoundMatches(tournamentId, 1);
           logInfo(`Generated semifinals for tournament ${tournamentId}`);
         } else {
+          // Check if semifinals need to be started
+          const scheduledSemifinals = semifinalsMatches.filter(m => m.status === 'SCHEDULED');
+          if (scheduledSemifinals.length > 0) {
+            // Start scheduled semifinals
+            await this.startScheduledMatches(tournamentId, 2);
+            logInfo(`Started ${scheduledSemifinals.length} scheduled semifinals for tournament ${tournamentId}`);
+          }
+          
           // Check if semifinals are complete
           const completedSemifinals = semifinalsMatches.filter(m => m.status === 'COMPLETED');
           if (completedSemifinals.length === 2) {
@@ -675,6 +683,14 @@ export class SeasonTimingAutomationService {
               await this.generateNextRoundMatches(tournamentId, 2);
               logInfo(`Generated finals for tournament ${tournamentId}`);
             } else {
+              // Check if finals need to be started
+              const scheduledFinals = finalsMatches.filter(m => m.status === 'SCHEDULED');
+              if (scheduledFinals.length > 0) {
+                // Start scheduled finals
+                await this.startScheduledMatches(tournamentId, 3);
+                logInfo(`Started ${scheduledFinals.length} scheduled finals for tournament ${tournamentId}`);
+              }
+              
               // Check if finals are complete
               const completedFinals = finalsMatches.filter(m => m.status === 'COMPLETED');
               if (completedFinals.length === 1) {
@@ -750,6 +766,48 @@ export class SeasonTimingAutomationService {
       }
     } catch (error) {
       console.error("Error generating next round matches:", error);
+    }
+  }
+
+  /**
+   * Start scheduled matches for a tournament round
+   */
+  private async startScheduledMatches(tournamentId: number, round: number): Promise<void> {
+    try {
+      // Get all scheduled matches for the round
+      const scheduledMatches = await prisma.game.findMany({
+        where: {
+          tournamentId,
+          round,
+          status: 'SCHEDULED'
+        }
+      });
+
+      if (scheduledMatches.length === 0) return;
+
+      // Start each scheduled match
+      for (const match of scheduledMatches) {
+        await prisma.game.update({
+          where: { id: match.id },
+          data: { 
+            status: 'IN_PROGRESS',
+            gameDate: new Date() // Start now
+          }
+        });
+        
+        // Initialize match state in the match state manager
+        try {
+          const { matchStateManager } = await import('./matchStateManager');
+          await matchStateManager.startLiveMatch(match.id);
+          logInfo(`Started tournament match ${match.id} for round ${round}`);
+        } catch (error) {
+          console.error(`Error initializing match state for match ${match.id}:`, error);
+        }
+      }
+      
+      logInfo(`Started ${scheduledMatches.length} matches for tournament ${tournamentId} round ${round}`);
+    } catch (error) {
+      console.error(`Error starting scheduled matches for tournament ${tournamentId} round ${round}:`, error);
     }
   }
 

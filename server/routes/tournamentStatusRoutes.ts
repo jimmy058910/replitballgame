@@ -592,7 +592,7 @@ router.post('/:id/matches/simulate-round', isAuthenticated, async (req: any, res
     });
 
     // Start live simulation for all matches in the round
-    const { matchStateManager } = require('../services/matchStateManager');
+    const { matchStateManager } = await import('../services/matchStateManager');
     const matchPromises = matches.map(async (match) => {
       try {
         // Set match status to IN_PROGRESS
@@ -881,7 +881,7 @@ router.post('/:tournamentId/simulate-round', isAuthenticated, async (req: any, r
     }
 
     // Start live simulation for each match
-    const { matchStateManager } = require('../services/matchStateManager');
+    const { matchStateManager } = await import('../services/matchStateManager');
     const matchPromises = matches.map(async (match) => {
       try {
         // Set match status to IN_PROGRESS
@@ -989,5 +989,34 @@ async function advanceTournament(tournamentId: number, completedRound: string) {
     throw error;
   }
 }
+
+// Test tournament advancement fix
+router.post('/:id/test-advancement', isAuthenticated, async (req: any, res) => {
+  try {
+    const tournamentId = parseInt(req.params.id);
+    const userId = req.user.claims.sub;
+    
+    // Check if user is admin
+    if (userId !== "44010914") {
+      return res.status(403).json({ message: "Access denied. Admin privileges required." });
+    }
+
+    // Import and call the season timing automation service
+    const { SeasonTimingAutomationService } = await import('../services/seasonTimingAutomationService');
+    const automationService = SeasonTimingAutomationService.getInstance();
+    
+    // Call the advancement method directly 
+    await (automationService as any).advanceTournamentIfNeeded(tournamentId);
+    
+    res.json({ 
+      success: true, 
+      message: `Tournament advancement check completed for tournament ${tournamentId}` 
+    });
+    
+  } catch (error) {
+    console.error("Error testing tournament advancement:", error);
+    res.status(500).json({ message: "Internal server error", error: error.message });
+  }
+});
 
 export default router;
