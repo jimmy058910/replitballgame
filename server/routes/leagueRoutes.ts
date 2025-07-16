@@ -376,10 +376,27 @@ router.get('/daily-schedule', isAuthenticated, async (req: Request, res: Respons
       allMatches.push(...divisionMatches);
     }
 
+    // Look up team names for all matches
+    const teamIds = new Set();
+    allMatches.forEach(match => {
+      if (match.homeTeamId) teamIds.add(match.homeTeamId);
+      if (match.awayTeamId) teamIds.add(match.awayTeamId);
+    });
+
+    const teams = await prisma.team.findMany({
+      where: { id: { in: Array.from(teamIds) } },
+      select: { id: true, name: true }
+    });
+
+    const teamNamesMap = new Map();
+    teams.forEach(team => {
+      teamNamesMap.set(team.id, team.name);
+    });
+
     const scheduleByDay: { [key: number]: any[] } = {};
     const currentDayFromSeason = (currentSeason as any).currentDay || 1;
 
-    for (let day = 1; day <= 17; day++) {
+    for (let day = currentDayFromSeason + 1; day <= 17; day++) {
       const dayMatches = allMatches.filter(match => {
         if (match.gameDate) {
           const gameDate = new Date(match.gameDate);
@@ -395,8 +412,8 @@ router.get('/daily-schedule', isAuthenticated, async (req: Request, res: Respons
 
         scheduleByDay[day] = dayMatches.slice(0, 4).map((match, index) => ({
           ...match,
-          homeTeamName: match.homeTeamName || "Home",
-          awayTeamName: match.awayTeamName || "Away",
+          homeTeamName: teamNamesMap.get(match.homeTeamId) || "Home",
+          awayTeamName: teamNamesMap.get(match.awayTeamId) || "Away",
           scheduledTime: dailyGameTimes[index % dailyGameTimes.length],
           scheduledTimeFormatted: formatEasternTime(dailyGameTimes[index % dailyGameTimes.length]),
           isLive: match.status === 'IN_PROGRESS',

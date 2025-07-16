@@ -98,10 +98,10 @@ export default function LeagueSchedule() {
     }
   };
 
-  // Sort days in descending order (current day first)
+  // Sort days in ascending order (upcoming days first)
   const sortedDays = Object.keys(schedule.schedule)
     .map(Number)
-    .sort((a, b) => b - a);
+    .sort((a, b) => a - b);
 
   return (
     <Card>
