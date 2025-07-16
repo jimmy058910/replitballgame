@@ -270,7 +270,7 @@ export class InjuryStaminaService {
       // Check if injury is healed
       const recoveryNeeded = currentPlayer.injuryRecoveryPointsNeeded || 0;
       if (newRecoveryPoints >= recoveryNeeded) {
-        updateData.injuryStatus = 'Healthy';
+        updateData.injuryStatus = 'HEALTHY';
         updateData.injuryRecoveryPointsNeeded = 0;
         updateData.injuryRecoveryPointsCurrent = 0;
       }
@@ -301,7 +301,7 @@ export class InjuryStaminaService {
       const updates: any = {};
 
       // Natural injury recovery with Recovery Specialist bonus
-      if (player.injuryStatus !== 'Healthy') {
+      if (player.injuryStatus !== 'HEALTHY') {
         const currentRecovery = player.injuryRecoveryPointsCurrent || 0;
         
         // Calculate recovery bonus from Recovery Specialist
@@ -331,7 +331,7 @@ export class InjuryStaminaService {
         // Check if injury is healed
         const recoveryNeeded = player.injuryRecoveryPointsNeeded || 0;
         if (newRecoveryPoints >= recoveryNeeded) {
-          updates.injuryStatus = 'Healthy';
+          updates.injuryStatus = 'HEALTHY';
           updates.injuryRecoveryPointsNeeded = 0;
           updates.injuryRecoveryPointsCurrent = 0;
         }
@@ -397,7 +397,7 @@ export class InjuryStaminaService {
       const playersNeedingRecovery = await prisma.player.findMany({
         where: {
           OR: [
-            { injuryStatus: { not: 'Healthy' } },
+            { injuryStatus: { not: 'HEALTHY' } },
             { dailyStaminaLevel: { lt: 100 } }
           ],
           isOnMarket: false // Only process active roster players
@@ -412,14 +412,14 @@ export class InjuryStaminaService {
           const updateData: any = {};
 
           // Process injury recovery
-          if (player.injuryStatus !== 'Healthy' && player.injuryRecoveryPoints !== null) {
+          if (player.injuryStatus !== 'HEALTHY' && player.injuryRecoveryPoints !== null) {
             const baseRecovery = 50; // Base daily recovery points
             const newRecoveryPoints = (player.injuryRecoveryPoints || 0) + baseRecovery;
 
             // Check if injury is healed
             const requiredRP = InjuryStaminaService.getRequiredRecoveryPoints(player.injuryStatus);
             if (newRecoveryPoints >= requiredRP) {
-              updateData.injuryStatus = 'Healthy';
+              updateData.injuryStatus = 'HEALTHY';
               updateData.injuryRecoveryPoints = null;
               injuriesHealed++;
               console.log(`[INJURY STAMINA SERVICE] ${player.firstName} ${player.lastName} recovered from ${player.injuryStatus}`);
