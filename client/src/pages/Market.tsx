@@ -10,6 +10,7 @@ import { ShoppingCart, Coins, Gem, TrendingUp, Building, Trophy, Gift, Star, Cro
 import { useLocation } from 'wouter';
 import TryoutSystem from "@/components/TryoutSystem";
 import DynamicMarketplaceManager from "@/components/DynamicMarketplaceManager";
+import PaymentHistory from "@/components/PaymentHistory";
 
 // Type interfaces
 interface Team {
@@ -853,55 +854,7 @@ export default function Market() {
           </TabsContent>
 
           <TabsContent value="history">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Star className="h-5 w-5" />
-                  Transactions
-                </CardTitle>
-                <p className="text-sm text-gray-600 dark:text-gray-400">
-                  View your gem and credit transactions from the past four seasons
-                </p>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  <div className="flex gap-2 mb-4 flex-wrap">
-                    <div className="flex gap-2">
-                      <Button variant="outline" size="sm">All</Button>
-                      <Button variant="outline" size="sm">💎 Gems</Button>
-                      <Button variant="outline" size="sm">₡ Credits</Button>
-                    </div>
-                    <div className="flex gap-2 ml-4">
-                      <Button variant="outline" size="sm">All Seasons</Button>
-                      <Button variant="outline" size="sm">Current Season</Button>
-                      <Button variant="outline" size="sm">Previous Season</Button>
-                    </div>
-                  </div>
-                  
-                  <Card className="bg-purple-50 border-purple-200">
-                    <CardContent className="p-4 text-center">
-                      <h3 className="font-semibold text-purple-800">Total Transactions (Past Four Seasons)</h3>
-                      <div className="text-2xl font-bold text-purple-600">0</div>
-                    </CardContent>
-                  </Card>
-                  
-                  <Card>
-                    <CardContent className="p-6">
-                      <div className="text-center py-8">
-                        <Star className="w-12 h-12 mx-auto mb-4 text-gray-400" />
-                        <p className="text-gray-500 text-lg">No transactions yet</p>
-                        <p className="text-gray-400 text-sm mt-2">Your gem and credit transaction history will appear here</p>
-                        <div className="mt-4 text-xs text-gray-400">
-                          <p>• Gem purchases and spending</p>
-                          <p>• Credit acquisitions and expenditures</p>
-                          <p>• Showing past four seasons only</p>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                </div>
-              </CardContent>
-            </Card>
+            <PaymentHistory />
           </TabsContent>
 
           <TabsContent value="exchange">
