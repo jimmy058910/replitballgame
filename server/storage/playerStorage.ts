@@ -95,8 +95,6 @@ export class PlayerStorage {
   }
 
   async getTaxiSquadPlayersByTeamId(teamId: number): Promise<Player[]> {
-    console.error(`=== TAXI SQUAD DEBUG === Team ${teamId} method called`);
-    
     // Get all players for this team, ordered by creation date
     const allPlayers = await prisma.player.findMany({
       where: {
@@ -111,13 +109,8 @@ export class PlayerStorage {
       orderBy: { createdAt: 'asc' }
     });
 
-    console.error(`=== TAXI SQUAD DEBUG === Total players: ${allPlayers.length}`);
-    
     // Return players beyond the first 12 (taxi squad players)
     const taxiSquadPlayers = allPlayers.slice(12);
-    
-    console.error(`=== TAXI SQUAD DEBUG === Taxi squad count: ${taxiSquadPlayers.length}`);
-    console.error(`=== TAXI SQUAD DEBUG === Taxi squad players:`, taxiSquadPlayers.map(p => `${p.id} (${p.firstName} ${p.lastName})`));
     
     return taxiSquadPlayers;
   }
@@ -181,12 +174,7 @@ export class PlayerStorage {
     });
   }
 
-  // Taxi Squad specific methods  
-  async getTaxiSquadPlayersByTeamId(teamId: number): Promise<Player[]> {
-    // TODO: Add taxi squad functionality to Prisma schema
-    // For now, return empty array since isOnTaxiSquad field doesn't exist in schema
-    return [];
-  }
+  // Taxi Squad specific methods (removed duplicate - using the one above)
 
   async promotePlayerFromTaxiSquad(playerId: number): Promise<Player | null> {
     // TODO: Add taxi squad functionality to Prisma schema
