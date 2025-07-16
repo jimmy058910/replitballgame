@@ -8,7 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from ".
 import { Progress } from "./ui/progress";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "./ui/dialog";
 import { useToast } from "@/hooks/use-toast";
-import { Users, Target, Shield, Zap, Trophy, TrendingUp, Activity, AlertTriangle, Star, Smartphone, Monitor } from "lucide-react";
+import { Users, Target, Shield, Zap, Trophy, TrendingUp, Activity, AlertTriangle, Star, Smartphone, Monitor, ArrowUpDown } from "lucide-react";
 
 interface Player {
   id: string;
@@ -254,6 +254,11 @@ export default function TacticsLineupHub({ teamId }: TacticsLineupHubProps) {
         body: JSON.stringify({
           starters: activeStarters,
           substitutes: allSubstitutes,
+          substitutionOrder: {
+            blockers: substitutes.blockers,
+            runners: substitutes.runners,
+            passers: substitutes.passers
+          },
           formationData: { formation: "2-2-1-1-wildcard" }
         }),
       });
@@ -276,6 +281,13 @@ export default function TacticsLineupHub({ teamId }: TacticsLineupHubProps) {
 
     const draggedPlayer = findPlayerById(draggableId);
     if (!draggedPlayer) return;
+
+    // Handle reordering within the same substitute section
+    if (source.droppableId === destination.droppableId && 
+        source.droppableId.startsWith("substitute-")) {
+      handleSubstituteReorder(source, destination);
+      return;
+    }
 
     // Handle different drop destinations
     if (destination.droppableId.startsWith("starter-")) {
@@ -381,6 +393,22 @@ export default function TacticsLineupHub({ teamId }: TacticsLineupHubProps) {
       [role]: [...prev[role as keyof PositionalSubstitutes], player]
     }));
     updateAvailablePlayers();
+  };
+
+  // Handle reordering within substitute sections
+  const handleSubstituteReorder = (source: any, destination: any) => {
+    const role = source.droppableId.split("-")[1] as keyof PositionalSubstitutes;
+    
+    setSubstitutes(prev => {
+      const newSubstitutes = [...prev[role]];
+      const [reorderedPlayer] = newSubstitutes.splice(source.index, 1);
+      newSubstitutes.splice(destination.index, 0, reorderedPlayer);
+      
+      return {
+        ...prev,
+        [role]: newSubstitutes
+      };
+    });
   };
 
   // Handle return to available
@@ -693,6 +721,12 @@ export default function TacticsLineupHub({ teamId }: TacticsLineupHubProps) {
           <Icon className="w-4 h-4" />
           <h4 className="font-medium text-sm text-gray-900 dark:text-white">{title}</h4>
           <Badge variant="outline" className="text-xs">{players.length}</Badge>
+          {players.length > 0 && (
+            <Badge variant="secondary" className="text-xs">
+              <ArrowUpDown className="w-3 h-3 mr-1" />
+              Drag to reorder
+            </Badge>
+          )}
         </div>
         
         <Droppable droppableId={`substitute-${role}`}>
@@ -710,7 +744,14 @@ export default function TacticsLineupHub({ teamId }: TacticsLineupHubProps) {
                 </div>
               ) : (
                 <div className="space-y-2">
-                  {players.map((player, index) => renderPlayerCard(player, index))}
+                  {players.map((player, index) => (
+                    <div key={player.id} className="flex items-center gap-2">
+                      <Badge variant="outline" className="text-xs w-8 h-6 flex items-center justify-center">
+                        #{index + 1}
+                      </Badge>
+                      {renderPlayerCard(player, index)}
+                    </div>
+                  ))}
                 </div>
               )}
               {provided.placeholder}
