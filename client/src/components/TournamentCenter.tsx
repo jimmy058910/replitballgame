@@ -3,6 +3,7 @@ import { useQuery, useMutation } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Trophy, Clock, Calendar, Users, Coins, Gem, CheckCircle, AlertCircle, Timer, ArrowLeft, Eye } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest, queryClient } from '@/lib/queryClient';
@@ -84,6 +85,8 @@ interface TournamentBracketData {
 const TournamentCenter: React.FC<TournamentCenterProps> = ({ teamId }) => {
   const { toast } = useToast();
   const [selectedTournamentId, setSelectedTournamentId] = useState<number | null>(null);
+  const [bracketModalTournament, setBracketModalTournament] = useState<number | null>(null);
+  const [isBracketModalOpen, setIsBracketModalOpen] = useState(false);
 
   // Helper function to get placement text
   const getPlacementText = (placement: number) => {
@@ -130,6 +133,13 @@ const TournamentCenter: React.FC<TournamentCenterProps> = ({ teamId }) => {
     queryKey: ["/api/tournaments/bracket", selectedTournamentId],
     queryFn: () => apiRequest(`/api/tournaments/bracket/${selectedTournamentId}`),
     enabled: !!selectedTournamentId,
+  });
+
+  // Fetch bracket data for the modal
+  const { data: bracketModalData } = useQuery<TournamentBracketData>({
+    queryKey: ["/api/tournaments/bracket", bracketModalTournament],
+    queryFn: () => apiRequest(`/api/tournaments/bracket/${bracketModalTournament}`),
+    enabled: !!bracketModalTournament && isBracketModalOpen,
   });
 
   // Fetch team's current tournament entries
@@ -501,7 +511,15 @@ const TournamentCenter: React.FC<TournamentCenterProps> = ({ teamId }) => {
                       {entry.tournamentId && (
                         <span className="text-purple-600 dark:text-purple-400 font-mono mr-2">#{entry.tournamentId}</span>
                       )}
-                      {(entry.entryTime || entry.registeredAt) ? new Date(entry.entryTime || entry.registeredAt).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }) : 'N/A'} • {getPlacementText(entry.placement || entry.finalRank || 0)}
+                      {(() => {
+                        const dateStr = entry.entryTime || entry.registeredAt;
+                        if (!dateStr) return 'N/A';
+                        try {
+                          return new Date(dateStr).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+                        } catch {
+                          return 'N/A';
+                        }
+                      })()} • {getPlacementText(entry.finalRank || entry.placement || 0)}
                     </p>
                   </div>
                   <div className="text-right">
@@ -515,7 +533,10 @@ const TournamentCenter: React.FC<TournamentCenterProps> = ({ teamId }) => {
                       <Button
                         size="sm"
                         variant="outline"
-                        onClick={() => setSelectedTournamentId(entry.tournamentId)}
+                        onClick={() => {
+                          setBracketModalTournament(entry.tournamentId);
+                          setIsBracketModalOpen(true);
+                        }}
                         className="text-purple-600 border-purple-600 hover:bg-purple-50 dark:hover:bg-purple-900/20"
                       >
                         View Bracket
@@ -610,6 +631,92 @@ const TournamentCenter: React.FC<TournamentCenterProps> = ({ teamId }) => {
           </CardContent>
         </Card>
       )}
+      
+      {/* Tournament Bracket Modal */}
+      <Dialog open={isBracketModalOpen} onOpenChange={setIsBracketModalOpen}>
+        <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center space-x-2">
+              <Trophy className="w-5 h-5" />
+              <span>Tournament Bracket</span>
+            </DialogTitle>
+          </DialogHeader>
+          
+          {bracketModalTournamentData && !bracketModalTournamentData.isLoading ? (
+            <div className="space-y-4">
+              <div className="bg-gradient-to-r from-purple-50 to-blue-50 dark:from-purple-900/20 dark:to-blue-900/20 rounded-lg p-4">
+                <h3 className="font-semibold text-lg text-gray-900 dark:text-gray-100 mb-2">
+                  {bracketModalTournamentData.data?.tournament?.name || `Tournament ${bracketModalTournament}`}
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+                  <div className="text-gray-600 dark:text-gray-400">
+                    <span className="font-medium">Type:</span> {bracketModalTournamentData.data?.tournament?.type}
+                  </div>
+                  <div className="text-gray-600 dark:text-gray-400">
+                    <span className="font-medium">Status:</span> {bracketModalTournamentData.data?.tournament?.status}
+                  </div>
+                  <div className="text-gray-600 dark:text-gray-400">
+                    <span className="font-medium">Tournament ID:</span> 
+                    <span className="text-purple-600 dark:text-purple-400 font-mono ml-1">#{bracketModalTournament}</span>
+                  </div>
+                </div>
+              </div>
+              
+              <div className="space-y-4">
+                {bracketModalTournamentData.data?.matches && bracketModalTournamentData.data.matches.length > 0 ? (
+                  bracketModalTournamentData.data.matches.map((match: TournamentMatch, index: number) => (
+                    <div key={index} className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-4">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center space-x-3">
+                          <div className="flex-shrink-0">
+                            <div className="w-8 h-8 bg-purple-100 dark:bg-purple-900 rounded-full flex items-center justify-center">
+                              <span className="text-purple-600 dark:text-purple-400 font-bold text-sm">
+                                R{match.round}
+                              </span>
+                            </div>
+                          </div>
+                          <div className="flex-1">
+                            <div className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                              Round {match.round}
+                              {match.status === 'LIVE' && (
+                                <span className="ml-2 inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200">
+                                  LIVE
+                                </span>
+                              )}
+                            </div>
+                            <div className="text-xs text-gray-500 dark:text-gray-400">
+                              Status: {match.status}
+                            </div>
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <div className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                            {match.homeTeam?.name} vs {match.awayTeam?.name}
+                          </div>
+                          {match.homeScore !== null && match.awayScore !== null && (
+                            <div className="text-xs text-gray-600 dark:text-gray-400 mt-1">
+                              Score: {match.homeScore} - {match.awayScore}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  ))
+                ) : (
+                  <div className="text-center py-8">
+                    <p className="text-gray-600 dark:text-gray-300">No tournament bracket data available</p>
+                  </div>
+                )}
+              </div>
+            </div>
+          ) : (
+            <div className="text-center py-8">
+              <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full mx-auto mb-4" />
+              <p className="text-gray-600 dark:text-gray-300">Loading tournament bracket...</p>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
