@@ -386,14 +386,14 @@ export default function StadiumAtmosphereManager({ teamId }: { teamId: string })
                   </div>
                 </div>
                 
-                <div className="mt-4 p-3 bg-green-50 border border-green-200 rounded-lg">
+                <div className="mt-4 p-3 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-700 rounded-lg">
                   <div className="flex justify-between items-center">
-                    <span className="text-lg font-semibold">Total Match Revenue:</span>
-                    <span className="text-2xl font-bold text-green-600">
+                    <span className="text-lg font-semibold text-gray-900 dark:text-gray-100">Total Match Revenue:</span>
+                    <span className="text-2xl font-bold text-green-600 dark:text-green-400">
                       {formatCurrency(revenueData?.total || 0)}
                     </span>
                   </div>
-                  <div className="text-sm text-gray-600 mt-1">
+                  <div className="text-sm text-gray-600 dark:text-gray-400 mt-1">
                     Based on {atmosphereData?.data?.actualAttendance?.toLocaleString() || 0} fans ({atmosphereData?.data?.attendancePercentage || 0}% attendance)
                   </div>
                 </div>
@@ -410,12 +410,12 @@ export default function StadiumAtmosphereManager({ teamId }: { teamId: string })
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {upgradeCosts && Object.entries(upgradeCosts).map(([upgradeType, cost]) => (
+                {upgradeCosts?.data && Object.entries(upgradeCosts.data).map(([upgradeType, cost]) => (
                   <Card key={upgradeType} className="p-4">
                     <div className="flex items-center justify-between mb-3">
                       <h4 className="font-medium capitalize">{upgradeType} Upgrade</h4>
                       <Badge variant="outline">
-                        Level {stadiumData?.[`${upgradeType}Level` as keyof typeof stadiumData] || (upgradeType === 'capacity' ? stadiumData?.capacity : 1)}
+                        Level {stadiumData?.data?.[`${upgradeType}Level` as keyof typeof stadiumData.data] || (upgradeType === 'capacity' ? stadiumData?.data?.capacity : 1)}
                       </Badge>
                     </div>
                     <div className="space-y-2">

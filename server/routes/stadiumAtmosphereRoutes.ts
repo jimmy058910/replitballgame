@@ -559,8 +559,20 @@ router.get('/loyalty-factors', isAuthenticated, async (req: any, res) => {
   try {
     const userId = req.user.claims.sub;
     
+    // Get user's profile first
+    const userProfile = await prisma.userProfile.findFirst({
+      where: { userId: userId }
+    });
+    
+    if (!userProfile) {
+      return res.status(404).json({
+        success: false,
+        message: 'User profile not found'
+      });
+    }
+    
     const team = await prisma.team.findFirst({
-      where: { userProfileId: userId }
+      where: { userProfileId: userProfile.id }
     });
     
     if (!team) {
@@ -599,8 +611,20 @@ router.get('/team-power-tier', isAuthenticated, async (req: any, res) => {
   try {
     const userId = req.user.claims.sub;
     
+    // Get user's profile first
+    const userProfile = await prisma.userProfile.findFirst({
+      where: { userId: userId }
+    });
+    
+    if (!userProfile) {
+      return res.status(404).json({
+        success: false,
+        message: 'User profile not found'
+      });
+    }
+    
     const team = await prisma.team.findFirst({
-      where: { userProfileId: userId }
+      where: { userProfileId: userProfile.id }
     });
     
     if (!team) {
