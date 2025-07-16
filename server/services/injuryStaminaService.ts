@@ -173,14 +173,14 @@ export class InjuryStaminaService {
 
     // Get current player data to calculate new stamina level
     const player = await prisma.player.findUnique({
-      where: { id: playerId },
+      where: { id: parseInt(playerId) },
       select: { dailyStaminaLevel: true }
     });
     
     if (player) {
       const newStaminaLevel = Math.max(0, (player.dailyStaminaLevel || 100) - depletion);
       await prisma.player.update({
-        where: { id: playerId },
+        where: { id: parseInt(playerId) },
         data: {
           dailyStaminaLevel: newStaminaLevel
         }
@@ -195,19 +195,19 @@ export class InjuryStaminaService {
     if (gameMode === 'exhibition') {
       // Exhibitions always start at 100% stamina
       await prisma.player.update({
-        where: { id: playerId },
+        where: { id: parseInt(playerId) },
         data: { dailyStaminaLevel: 100 }
       });
     } else {
       // League and tournament use daily stamina level
       const player = await prisma.player.findUnique({
-        where: { id: playerId },
+        where: { id: parseInt(playerId) },
         select: { dailyStaminaLevel: true }
       });
       
       if (player) {
         await prisma.player.update({
-          where: { id: playerId },
+          where: { id: parseInt(playerId) },
           data: { dailyStaminaLevel: player.dailyStaminaLevel || 100 }
         });
       }
@@ -225,7 +225,7 @@ export class InjuryStaminaService {
     
     // Get current player state
     const currentPlayer = await prisma.player.findUnique({
-      where: { id: playerId }
+      where: { id: parseInt(playerId) }
     });
     if (!currentPlayer) {
       return { success: false, message: "Player not found" };
@@ -273,7 +273,7 @@ export class InjuryStaminaService {
     }
 
     await prisma.player.update({
-      where: { id: playerId },
+      where: { id: parseInt(playerId) },
       data: updateData
     });
     
