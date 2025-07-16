@@ -65,7 +65,6 @@ export default function PaymentHistory({ className }: PaymentHistoryProps) {
   const [filters, setFilters] = useState({
     currencyFilter: "both" as "credits" | "gems" | "both",
     transactionType: "all",
-    status: "all",
     limit: 50,
     offset: 0,
   });
@@ -209,7 +208,7 @@ export default function PaymentHistory({ className }: PaymentHistoryProps) {
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {/* Search */}
             <div className="space-y-2">
               <Label htmlFor="search">Search</Label>
@@ -255,30 +254,8 @@ export default function PaymentHistory({ className }: PaymentHistoryProps) {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All Types</SelectItem>
-                  <SelectItem value="purchase">Purchase</SelectItem>
-                  <SelectItem value="refund">Refund</SelectItem>
-                  <SelectItem value="reward">Reward</SelectItem>
-                  <SelectItem value="admin_grant">Admin Grant</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            {/* Status Filter */}
-            <div className="space-y-2">
-              <Label>Status</Label>
-              <Select
-                value={filters.status}
-                onValueChange={(value) => handleFilterChange("status", value)}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="All Statuses" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Statuses</SelectItem>
-                  <SelectItem value="completed">Completed</SelectItem>
-                  <SelectItem value="pending">Pending</SelectItem>
-                  <SelectItem value="failed">Failed</SelectItem>
-                  <SelectItem value="refunded">Refunded</SelectItem>
+                  <SelectItem value="purchase">Purchases</SelectItem>
+                  <SelectItem value="reward">Rewards</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -330,7 +307,7 @@ export default function PaymentHistory({ className }: PaymentHistoryProps) {
                     <TableHead>Credits</TableHead>
                     <TableHead>Gems</TableHead>
                     <TableHead>USD</TableHead>
-                    <TableHead>Status</TableHead>
+
                     <TableHead>Method</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -392,9 +369,7 @@ export default function PaymentHistory({ className }: PaymentHistoryProps) {
                           </div>
                         )}
                       </TableCell>
-                      <TableCell>
-                        {getStatusBadge(transaction.status)}
-                      </TableCell>
+
                       <TableCell>
                         <div className="text-sm capitalize">
                           {transaction.paymentMethod || 'N/A'}
