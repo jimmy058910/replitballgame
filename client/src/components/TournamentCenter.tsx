@@ -55,9 +55,51 @@ interface TournamentEntry {
   entryTime?: string;
 }
 
+interface TournamentMatch {
+  id: number;
+  round: number;
+  status: string;
+  homeTeam: {
+    id: number;
+    name: string;
+  };
+  awayTeam: {
+    id: number;
+    name: string;
+  };
+  homeScore: number | null;
+  awayScore: number | null;
+}
+
+interface TournamentBracketData {
+  matches: TournamentMatch[];
+  tournament: {
+    id: number;
+    name: string;
+    type: string;
+    status: string;
+  };
+}
+
 const TournamentCenter: React.FC<TournamentCenterProps> = ({ teamId }) => {
   const { toast } = useToast();
   const [selectedTournamentId, setSelectedTournamentId] = useState<number | null>(null);
+
+  // Helper function to get placement text
+  const getPlacementText = (placement: number) => {
+    if (!placement || placement === 0) return "Participated";
+    switch (placement) {
+      case 1: return "🥇 Champion";
+      case 2: return "🥈 Runner-up";
+      case 3: return "🥉 Semifinalist";
+      case 4: return "🥉 Semifinalist";
+      case 5: return "Quarterfinalist";
+      case 6: return "Quarterfinalist";
+      case 7: return "Quarterfinalist";
+      case 8: return "Quarterfinalist";
+      default: return `${placement}th Place`;
+    }
+  };
 
   // Fetch team info
   const { data: teamInfo } = useQuery<TeamInfo>({
@@ -84,7 +126,7 @@ const TournamentCenter: React.FC<TournamentCenterProps> = ({ teamId }) => {
   });
 
   // Fetch tournament bracket data when a tournament is selected
-  const { data: tournamentBracketData } = useQuery({
+  const { data: tournamentBracketData } = useQuery<TournamentBracketData>({
     queryKey: ["/api/tournaments/bracket", selectedTournamentId],
     queryFn: () => apiRequest(`/api/tournaments/bracket/${selectedTournamentId}`),
     enabled: !!selectedTournamentId,
@@ -196,14 +238,7 @@ const TournamentCenter: React.FC<TournamentCenterProps> = ({ teamId }) => {
     return `${hours}h ${minutes}m ${seconds}s`;
   };
 
-  const getPlacementText = (placement: number): string => {
-    if (!placement) return "Tournament Completed";
-    if (placement === 1) return "Champion";
-    if (placement === 2) return "Runner-Up";
-    if (placement === 3) return "Eliminated in Semifinals";
-    if (placement === 4 || placement === 5) return "Eliminated in Quarterfinals";
-    return `Eliminated in Round ${Math.ceil(Math.log2(placement))}`;
-  };
+
 
   // Find tournaments
   const midSeasonCup = availableTournaments?.find(t => t.type === "mid_season_classic");
@@ -425,7 +460,7 @@ const TournamentCenter: React.FC<TournamentCenterProps> = ({ teamId }) => {
                     </Badge>
                   </div>
                   <div className="mt-2 text-sm text-gray-600 dark:text-gray-300">
-                    Registered {new Date(entry.registeredAt).toLocaleDateString()}
+                    Registered {entry.registeredAt ? new Date(entry.registeredAt).toLocaleDateString() : 'N/A'}
                   </div>
                   <div className="mt-2">
                     <Button 
@@ -466,7 +501,7 @@ const TournamentCenter: React.FC<TournamentCenterProps> = ({ teamId }) => {
                       {entry.tournamentId && (
                         <span className="text-purple-600 dark:text-purple-400 font-mono mr-2">#{entry.tournamentId}</span>
                       )}
-                      {new Date(entry.entryTime || entry.registeredAt).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })} • {getPlacementText(entry.placement || entry.finalRank || 0)}
+                      {(entry.entryTime || entry.registeredAt) ? new Date(entry.entryTime || entry.registeredAt).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }) : 'N/A'} • {getPlacementText(entry.placement || entry.finalRank || 0)}
                     </p>
                   </div>
                   <div className="text-right">
@@ -534,8 +569,8 @@ const TournamentCenter: React.FC<TournamentCenterProps> = ({ teamId }) => {
                 
                 {/* Bracket matches display */}
                 <div className="grid gap-4">
-                  {tournamentBracketData && tournamentBracketData.matches && Array.isArray(tournamentBracketData.matches) ? (
-                    tournamentBracketData.matches.map((match: any, index: number) => (
+                  {tournamentBracketData.matches && Array.isArray(tournamentBracketData.matches) ? (
+                    tournamentBracketData.matches.map((match: TournamentMatch, index: number) => (
                       <div key={index} className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4">
                         <div className="flex items-center justify-between">
                           <div className="flex items-center space-x-2">
