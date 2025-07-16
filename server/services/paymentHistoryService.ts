@@ -192,8 +192,8 @@ export class PaymentHistoryService {
       transactionType: "purchase",
       itemType,
       itemName,
-      creditsAmount: BigInt(creditsSpent > 0 ? creditsSpent : 0),
-      gemsAmount: gemsSpent > 0 ? gemsSpent : 0,
+      creditsAmount: BigInt(creditsSpent > 0 ? -creditsSpent : 0), // Negative for purchases
+      gemsAmount: gemsSpent > 0 ? -gemsSpent : 0, // Negative for purchases
       status: "completed",
       metadata,
     });
