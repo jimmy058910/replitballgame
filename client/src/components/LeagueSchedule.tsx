@@ -165,7 +165,7 @@ export default function LeagueSchedule() {
                         match.isLive 
                           ? 'border-red-300 bg-red-50' 
                           : isUserMatch 
-                            ? 'border-blue-300 bg-blue-50 dark:border-blue-600 dark:bg-blue-900/20' 
+                            ? 'border-blue-400 bg-blue-100 text-blue-900 dark:border-blue-500 dark:bg-blue-800/30 dark:text-blue-100' 
                             : 'border-gray-200'
                       }`}
                     >
@@ -180,12 +180,12 @@ export default function LeagueSchedule() {
                       </div>
                       
                       <div className="flex items-center gap-2">
-                        <Users className={`w-4 h-4 ${isUserMatch ? 'text-blue-500' : 'text-gray-400'}`} />
-                        <span className={`text-sm ${isUserMatch ? 'font-semibold' : ''}`}>
+                        <Users className={`w-4 h-4 ${isUserMatch ? 'text-blue-700 dark:text-blue-300' : 'text-gray-400'}`} />
+                        <span className={`text-sm ${isUserMatch ? 'font-semibold text-blue-900 dark:text-blue-100' : ''}`}>
                           {match.homeTeamName || `Team ${match.homeTeamId.slice(0, 8)}`}
                         </span>
-                        <span className="text-gray-400">vs</span>
-                        <span className={`text-sm ${isUserMatch ? 'font-semibold' : ''}`}>
+                        <span className={`${isUserMatch ? 'text-blue-700 dark:text-blue-300' : 'text-gray-400'}`}>vs</span>
+                        <span className={`text-sm ${isUserMatch ? 'font-semibold text-blue-900 dark:text-blue-100' : ''}`}>
                           {match.awayTeamName || `Team ${match.awayTeamId.slice(0, 8)}`}
                         </span>
                       </div>
