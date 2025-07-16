@@ -86,7 +86,7 @@ router.get('/team/:teamId/status', isAuthenticated, async (req: any, res: Respon
 router.post('/player/:playerId/use-item', isAuthenticated, async (req: any, res: Response, next: NextFunction) => {
   try {
     const { playerId } = req.params;
-    const { itemType, effectValue } = req.body;
+    const { itemType, effectValue, itemName } = req.body;
     const userId = req.user.claims.sub;
 
     // Verify player ownership through team
@@ -107,10 +107,34 @@ router.post('/player/:playerId/use-item', isAuthenticated, async (req: any, res:
       return res.status(403).json({ message: "Unauthorized access to player" });
     }
 
+    // Find the inventory item by name and team
+    const inventoryItem = await prisma.inventoryItem.findFirst({
+      where: {
+        teamId: player.teamId,
+        name: itemName || 'basic_stamina_drink'
+      }
+    });
+
+    if (!inventoryItem || inventoryItem.quantity <= 0) {
+      return res.status(400).json({ success: false, message: "Item not found in inventory or out of stock" });
+    }
+
     // Use the item
     const result = await injuryStaminaService.useRecoveryItem(playerId, itemType, effectValue);
     
     if (result.success) {
+      // Consume the inventory item
+      if (inventoryItem.quantity <= 1) {
+        await prisma.inventoryItem.delete({
+          where: { id: inventoryItem.id }
+        });
+      } else {
+        await prisma.inventoryItem.update({
+          where: { id: inventoryItem.id },
+          data: { quantity: inventoryItem.quantity - 1 }
+        });
+      }
+      
       res.json({ success: true, message: result.message });
     } else {
       res.status(400).json({ success: false, message: result.message });

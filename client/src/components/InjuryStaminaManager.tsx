@@ -69,14 +69,16 @@ export function InjuryStaminaManager({ teamId }: InjuryStaminaManagerProps) {
 
   // Use recovery item mutation
   const useItemMutation = useMutation({
-    mutationFn: async ({ playerId, itemType, effectValue }: { playerId: string; itemType: string; effectValue: number }) => {
+    mutationFn: async ({ playerId, itemType, effectValue, itemName }: { playerId: string; itemType: string; effectValue: number; itemName: string }) => {
       return apiRequest(`/api/injury-stamina/player/${playerId}/use-item`, 'POST', {
         itemType,
-        effectValue
+        effectValue,
+        itemName
       });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/injury-stamina/team', teamId, 'status'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/inventory', teamId] });
       toast({
         title: "Recovery Item Used",
         description: "Item successfully applied to player"
@@ -317,7 +319,8 @@ export function InjuryStaminaManager({ teamId }: InjuryStaminaManagerProps) {
                                 onClick={() => selectedPlayer && useItemMutation.mutate({
                                   playerId: selectedPlayer,
                                   itemType: effect.type,
-                                  effectValue: effect.effectValue
+                                  effectValue: effect.effectValue,
+                                  itemName: item.name
                                 })}
                                 disabled={!selectedPlayer || useItemMutation.isPending || !isEligible}
                                 variant="outline"
