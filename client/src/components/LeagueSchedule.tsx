@@ -86,6 +86,7 @@ export default function LeagueSchedule() {
 
   const isUserTeamMatch = (match: ScheduledMatch) => {
     if (!userTeam) return false;
+    console.log('Checking match:', match.homeTeamId, match.awayTeamId, 'vs userTeam.id:', userTeam.id);
     return match.homeTeamId === userTeam.id.toString() || match.awayTeamId === userTeam.id.toString();
   };
 
