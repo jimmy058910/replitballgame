@@ -1475,4 +1475,90 @@ router.post('/:teamId/apply-team-boost', isAuthenticated, asyncHandler(async (re
   });
 }));
 
+// Get active boosts for a team
+router.get("/:teamId/active-boosts", isAuthenticated, asyncHandler(async (req, res) => {
+  const userId = req.user.claims.sub;
+  const { teamId } = req.params;
+
+  // Verify team ownership
+  const team = await storage.teams.getTeamById(teamId);
+  if (!team) {
+    throw ErrorCreators.notFound("Team not found");
+  }
+
+  // Check if user owns this team
+  const userProfile = await prisma.userProfile.findUnique({
+    where: { userId: userId }
+  });
+  
+  if (!userProfile) {
+    throw ErrorCreators.unauthorized("User profile not found");
+  }
+
+  if (team.userProfileId !== userProfile.id) {
+    throw ErrorCreators.unauthorized("You don't own this team");
+  }
+
+  // Get active boosts for the team
+  const activeBoosts = await prisma.activeBoost.findMany({
+    where: {
+      teamId: parseInt(teamId),
+      isActive: true
+    },
+    include: {
+      item: true
+    }
+  });
+
+  // Convert BigInt values to strings for JSON serialization
+  const serializedBoosts = activeBoosts.map(boost => ({
+    id: boost.id.toString(),
+    teamId: boost.teamId.toString(),
+    playerId: boost.playerId?.toString() || null,
+    itemId: boost.itemId.toString(),
+    itemName: boost.item.name,
+    effect: boost.item.metadata?.effect || boost.item.effect,
+    matchType: boost.matchType,
+    isActive: boost.isActive,
+    appliedAt: boost.appliedAt
+  }));
+
+  res.json(serializedBoosts);
+}));
+
+// Delete active boost for a team
+router.delete("/:teamId/active-boosts/:boostId", isAuthenticated, asyncHandler(async (req, res) => {
+  const userId = req.user.claims.sub;
+  const { teamId, boostId } = req.params;
+
+  // Verify team ownership
+  const team = await storage.teams.getTeamById(teamId);
+  if (!team) {
+    throw ErrorCreators.notFound("Team not found");
+  }
+
+  // Check if user owns this team
+  const userProfile = await prisma.userProfile.findUnique({
+    where: { userId: userId }
+  });
+  
+  if (!userProfile) {
+    throw ErrorCreators.unauthorized("User profile not found");
+  }
+
+  if (team.userProfileId !== userProfile.id) {
+    throw ErrorCreators.unauthorized("You don't own this team");
+  }
+
+  // Delete the active boost
+  await prisma.activeBoost.delete({
+    where: {
+      id: parseInt(boostId),
+      teamId: parseInt(teamId)
+    }
+  });
+
+  res.json({ success: true, message: "Active boost removed successfully" });
+}));
+
 export default router;

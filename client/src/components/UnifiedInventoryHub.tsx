@@ -62,8 +62,6 @@ export default function UnifiedInventoryHub({ teamId }: UnifiedInventoryHubProps
   const [selectedItem, setSelectedItem] = useState<InventoryItem | null>(null);
   const [showItemModal, setShowItemModal] = useState(false);
   const [selectedPlayer, setSelectedPlayer] = useState<string>("");
-  const [activeBoosts, setActiveBoosts] = useState<ActiveBoost[]>([]);
-  
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -73,6 +71,12 @@ export default function UnifiedInventoryHub({ teamId }: UnifiedInventoryHubProps
     enabled: !!teamId,
   });
   const inventory = (rawInventory || []) as InventoryItem[];
+
+  // Fetch active boosts for the team
+  const { data: activeBoosts = [] } = useQuery({
+    queryKey: [`/api/teams/${teamId}/active-boosts`],
+    enabled: !!teamId,
+  });
 
   // Fetch team players for equipment/consumable usage
   const { data: rawPlayers = [] } = useQuery({
@@ -263,14 +267,9 @@ export default function UnifiedInventoryHub({ teamId }: UnifiedInventoryHubProps
                        item.name.includes("advanced") ? 50 : 25
         });
       } else if (action === "activate_boost") {
-        // Add to active boosts (would integrate with match system)
-        const newBoost: ActiveBoost = {
-          id: `${item.id}-${Date.now()}`,
-          itemName: item.name,
-          effect: getItemEffect(item)
-        };
-        setActiveBoosts(prev => [...prev, newBoost]);
-        return { success: true, boost: newBoost };
+        // This would be for individual player boosts (not team boosts)
+        // For now, just return success since team boosts are handled differently
+        return { success: true };
       } else if (action === "use_team_boost") {
         // Apply team boost to next match
         return apiRequest(`/api/teams/${teamId}/apply-team-boost`, "POST", {
@@ -283,6 +282,9 @@ export default function UnifiedInventoryHub({ teamId }: UnifiedInventoryHubProps
       queryClient.invalidateQueries({ queryKey: [`/api/inventory/${teamId}`] });
       if (variables.action === "use_recovery") {
         queryClient.invalidateQueries({ queryKey: [`/api/teams/${teamId}/players`] });
+      }
+      if (variables.action === "use_team_boost") {
+        queryClient.invalidateQueries({ queryKey: [`/api/teams/${teamId}/active-boosts`] });
       }
       setShowItemModal(false);
       setSelectedPlayer("");
@@ -301,8 +303,21 @@ export default function UnifiedInventoryHub({ teamId }: UnifiedInventoryHubProps
   });
 
   // Remove active boost
-  const removeActiveBoost = (boostId: string) => {
-    setActiveBoosts(prev => prev.filter(boost => boost.id !== boostId));
+  const removeActiveBoost = async (boostId: string) => {
+    try {
+      await apiRequest(`/api/teams/${teamId}/active-boosts/${boostId}`, "DELETE");
+      queryClient.invalidateQueries({ queryKey: [`/api/teams/${teamId}/active-boosts`] });
+      toast({
+        title: "Boost Removed",
+        description: "Active boost has been removed.",
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to remove boost.",
+        variant: "destructive",
+      });
+    }
   };
 
   // Check if an item is a team boost (affects whole team, not individual players)
