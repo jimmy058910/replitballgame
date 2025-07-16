@@ -111,7 +111,12 @@ router.post('/player/:playerId/use-item', isAuthenticated, async (req: any, res:
     const inventoryItem = await prisma.inventoryItem.findFirst({
       where: {
         teamId: player.teamId,
-        name: itemName || 'basic_stamina_drink'
+        item: {
+          name: itemName || 'basic_stamina_drink'
+        }
+      },
+      include: {
+        item: true
       }
     });
 
