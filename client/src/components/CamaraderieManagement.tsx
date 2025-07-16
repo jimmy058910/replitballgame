@@ -268,7 +268,7 @@ export default function CamaraderieManagement({ teamId }: { teamId: string }) {
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
                     <Star className="w-5 h-5 text-yellow-500" />
-                    Top Performers
+                    Players with High Morale
                   </CardTitle>
                   <div className="text-sm text-gray-400">Players with highest team chemistry</div>
                 </CardHeader>
