@@ -45,6 +45,19 @@ router.get('/', isAuthenticated, async (req: any, res: Response, next: NextFunct
       },
       orderBy: { registeredAt: 'desc' }
     });
+    
+    console.log(`Raw tournament entries for team ${team.id}:`, tournamentEntries.map(e => ({
+      id: e.id,
+      tournamentId: e.tournamentId,
+      teamId: e.teamId,
+      finalRank: e.finalRank,
+      registeredAt: e.registeredAt,
+      tournament: e.tournament ? {
+        name: e.tournament.name,
+        type: e.tournament.type,
+        status: e.tournament.status
+      } : null
+    })));
 
     // Include all completed tournaments, regardless of finalRank
     const history = tournamentEntries
@@ -55,9 +68,9 @@ router.get('/', isAuthenticated, async (req: any, res: Response, next: NextFunct
         teamId: entry.teamId,
         registeredAt: entry.registeredAt?.toISOString() || entry.registeredAt,
         finalRank: entry.finalRank,
+        placement: entry.finalRank,
         rewardsClaimed: entry.rewardsClaimed,
         tournament: {
-          ...entry.tournament,
           id: entry.tournament.id,
           tournamentId: entry.tournament.tournamentId,
           name: entry.tournament.name,
@@ -74,7 +87,6 @@ router.get('/', isAuthenticated, async (req: any, res: Response, next: NextFunct
           createdAt: entry.tournament.createdAt,
           updatedAt: entry.tournament.updatedAt
         },
-        placement: entry.finalRank || null,
         creditsWon: entry.finalRank === 1 ? 1500 : entry.finalRank === 2 ? 500 : 0,
         gemsWon: 0,
         trophyWon: entry.finalRank !== null && entry.finalRank >= 1 && entry.finalRank <= 3,

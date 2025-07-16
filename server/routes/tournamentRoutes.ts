@@ -30,14 +30,51 @@ router.get('/history', isAuthenticated, async (req: any, res: Response, next: Ne
       },
       orderBy: { registeredAt: 'desc' }
     });
+    
+    console.log(`TOURNAMENT HISTORY DEBUG: Found ${tournamentEntries.length} entries for team ${team.id}:`);
+    console.log(`Tournament entries details:`, tournamentEntries.map(e => ({
+      id: e.id,
+      tournamentId: e.tournamentId,
+      teamId: e.teamId,
+      finalRank: e.finalRank,
+      registeredAt: e.registeredAt,
+      tournament: e.tournament ? {
+        name: e.tournament.name,
+        type: e.tournament.type,
+        status: e.tournament.status
+      } : null
+    })));
 
-    const history = tournamentEntries
-      .filter(entry => entry.tournament.status === 'COMPLETED')
-      .map(entry => ({
-        ...entry.tournament,
-        yourPlacement: entry.finalRank,
-        prizeWon: entry.finalRank === 1 ? 1500 : entry.finalRank === 2 ? 500 : 0
-      }));
+    const completedEntries = tournamentEntries.filter(entry => entry.tournament.status === 'COMPLETED');
+    console.log(`TOURNAMENT HISTORY DEBUG: Found ${completedEntries.length} completed tournaments`);
+    
+    const history = completedEntries.map(entry => ({
+      id: entry.tournamentId,
+      tournamentId: entry.tournament.tournamentId,
+      teamId: entry.teamId,
+      registeredAt: entry.registeredAt?.toISOString() || entry.registeredAt,
+      finalRank: entry.finalRank,
+      placement: entry.finalRank,
+      rewardsClaimed: entry.rewardsClaimed,
+      tournament: {
+        id: entry.tournament.id,
+        tournamentId: entry.tournament.tournamentId,
+        name: entry.tournament.name,
+        type: entry.tournament.type,
+        status: entry.tournament.status,
+        division: entry.tournament.division,
+        seasonDay: entry.tournament.seasonDay,
+        gameDay: entry.tournament.gameDay
+      },
+      creditsWon: entry.finalRank === 1 ? 1500 : entry.finalRank === 2 ? 500 : 0,
+      gemsWon: 0,
+      trophyWon: entry.finalRank !== null && entry.finalRank >= 1 && entry.finalRank <= 3,
+      entryTime: entry.registeredAt?.toISOString() || entry.registeredAt,
+      yourPlacement: entry.finalRank,
+      prizeWon: entry.finalRank === 1 ? 1500 : entry.finalRank === 2 ? 500 : 0
+    }));
+    
+    console.log(`TOURNAMENT HISTORY DEBUG: Final history structure:`, history);
 
     // Use custom JSON serializer to handle BigInt values
     const responseText = JSON.stringify(history, (key, value) => {
