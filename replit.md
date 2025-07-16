@@ -129,7 +129,26 @@ Built as a React + Express web application with PostgreSQL database, using moder
 
 ## Recent Changes
 
-### July 16, 2025 - ✅ COMPLETE LEAGUE SCHEDULE AUTOMATION SYSTEM SUCCESS - PRODUCTION READY
+### July 16, 2025 - ✅ COMPLETE STAMINA CONSUMABLE SYSTEM FIX - 100% OPERATIONAL
+
+#### ✅ STAMINA CONSUMABLE SYSTEM COMPLETELY FIXED - COMPREHENSIVE RESOLUTION
+- ✓ **Database Query Error Fixed**: Resolved inventoryItem table join with Item table using proper `item: { name: itemName }` syntax
+- ✓ **Enum Value Consistency**: Updated all 'Healthy' references to 'HEALTHY' to match database schema requirements (4 locations fixed)
+- ✓ **Parameter Mismatch Fixed**: Resolved debug logging error where itemName was undefined by removing unused reference
+- ✓ **Stamina Display Fixed**: Both Medical Center and Inventory Tab now correctly show dailyStaminaLevel (actual stamina) instead of staminaAttribute (always 100%)
+- ✓ **API Endpoint Consistency**: Both interfaces now use unified /api/injury-stamina/player/{playerId}/use-item endpoint
+- ✓ **Inventory Consumption Working**: Basic Energy Drink properly disappears from inventory after successful use
+- ✓ **Database Update Verified**: Player stamina successfully updated from 70% to 95% with proper persistence
+
+#### ✅ TECHNICAL ACHIEVEMENTS - PRODUCTION READY CONSUMABLE SYSTEM
+- ✓ **Dual Interface Synchronization**: Both Medical Center and Inventory Tab display identical stamina values
+- ✓ **Enum Field Alignment**: All injuryStatus fields now use proper 'HEALTHY' enum values throughout service
+- ✓ **Error Handling**: Comprehensive error handling for item usage limits, player validation, and database operations
+- ✓ **Daily Limit Tracking**: Daily item usage properly tracked and enforced (2 items per day maximum)
+- ✓ **User Experience**: Seamless stamina consumable usage from both team management interfaces
+- ✓ **System Stability**: Complete resolution of all consumable-related errors and display issues
+
+### July 16, 2025 - ✅ COMPLETE LEAGUE SCHEDULE AUTOMATION SYSTEM SUCCESS - PRODUCTION READY (Previous)
 
 #### ✅ CRITICAL AUTOMATION SYSTEM FIXES - 100% OPERATIONAL
 - ✓ **Schedule Generation Working**: Successfully fixed league schedule generation to handle actual team distribution (35 teams in Division 8)

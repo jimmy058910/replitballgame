@@ -259,9 +259,6 @@ export class InjuryStaminaService {
       const currentStamina = currentPlayer.dailyStaminaLevel || 0;
       const newStamina = Math.min(100, currentStamina + effectValue);
       updateData.dailyStaminaLevel = newStamina;
-      
-      // Debug logging
-      console.log(`[STAMINA DEBUG] Player ${playerId}: ${currentStamina}% → ${newStamina}% (effect: +${effectValue}%)`);
     } else if (itemType === 'injury') {
       const currentRecovery = currentPlayer.injuryRecoveryPointsCurrent || 0;
       const newRecoveryPoints = currentRecovery + effectValue;
