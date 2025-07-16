@@ -58,11 +58,20 @@ router.get('/history', isAuthenticated, async (req: any, res: Response, next: Ne
 // Add bracket endpoint
 router.get('/bracket/:id', isAuthenticated, async (req: any, res: Response, next: NextFunction) => {
   try {
-    const tournamentId = req.params.id;
+    const tournamentIdParam = req.params.id;
     
-    // Get tournament matches for the bracket
+    // First, find the tournament by tournamentId field to get the actual id
+    const tournament = await prisma.tournament.findFirst({
+      where: { tournamentId: tournamentIdParam }
+    });
+    
+    if (!tournament) {
+      return res.status(404).json({ message: "Tournament not found" });
+    }
+    
+    // Get tournament matches for the bracket using the tournament's id
     const matches = await prisma.game.findMany({
-      where: { tournamentId: parseInt(tournamentId) },
+      where: { tournamentId: tournament.id },
       include: {
         homeTeam: true,
         awayTeam: true
