@@ -86,8 +86,12 @@ export default function LeagueSchedule() {
 
   const isUserTeamMatch = (match: ScheduledMatch) => {
     if (!userTeam) return false;
-    console.log('Checking match:', match.homeTeamId, match.awayTeamId, 'vs userTeam.id:', userTeam.id);
-    return match.homeTeamId === userTeam.id.toString() || match.awayTeamId === userTeam.id.toString();
+    // Convert both to numbers for comparison
+    const homeTeamId = typeof match.homeTeamId === 'string' ? parseInt(match.homeTeamId) : match.homeTeamId;
+    const awayTeamId = typeof match.awayTeamId === 'string' ? parseInt(match.awayTeamId) : match.awayTeamId;
+    const userId = typeof userTeam.id === 'string' ? parseInt(userTeam.id) : userTeam.id;
+    
+    return homeTeamId === userId || awayTeamId === userId;
   };
 
   const getStatusBadge = (match: ScheduledMatch) => {
