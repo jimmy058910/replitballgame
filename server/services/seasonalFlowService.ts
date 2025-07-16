@@ -1,4 +1,5 @@
 import { prisma } from '../db';
+import { logInfo } from './errorService';
 
 /**
  * Seasonal Flow Algorithm Service
@@ -76,8 +77,9 @@ export class SeasonalFlowService {
       matches: number;
     }>;
   }> {
+    const seasonId = `season-${season}-2025`;
     const allLeagues = await prisma.league.findMany({
-      where: { seasonId: season }
+      where: { seasonId: seasonId }
     });
     
     let totalMatches = 0;
@@ -89,13 +91,25 @@ export class SeasonalFlowService {
         where: { division: league.division }
       });
       
+      // Skip divisions with no teams
+      if (leagueTeams.length === 0) {
+        logInfo(`Skipping Division ${league.division} - no teams found`);
+        continue;
+      }
+      
       let matches;
       if (league.division === 1) {
         // Division 1: 16 teams, 28 games over 14 days (2 per day)
         matches = await this.generateDivision1Schedule(league.id, leagueTeams, season);
-      } else {
-        // Divisions 2-8: 16 teams per subdivision, 14 games over 14 days
+      } else if (leagueTeams.length > 16) {
+        // Large divisions: Create multiple subdivisions of 8 teams each
+        matches = await this.generateLargeDivisionSchedule(league.id, leagueTeams, season);
+      } else if (leagueTeams.length >= 8) {
+        // Standard divisions: 8-16 teams
         matches = await this.generateStandardSubdivisionSchedule(league.id, leagueTeams, season);
+      } else {
+        // Small divisions: Less than 8 teams, generate round-robin
+        matches = await this.generateSmallDivisionSchedule(league.id, leagueTeams, season);
       }
       
       totalMatches += matches.length;
@@ -166,8 +180,8 @@ export class SeasonalFlowService {
     const matches = [];
     const numTeams = teams.length;
     
-    if (numTeams !== this.SEASON_CONFIG.STANDARD_SUBDIVISION_TEAMS) {
-      throw new Error(`Standard subdivision must have ${this.SEASON_CONFIG.STANDARD_SUBDIVISION_TEAMS} teams`);
+    if (numTeams < 2) {
+      throw new Error(`Standard subdivision must have at least 2 teams`);
     }
     
     // Modified round-robin: 16 teams, 14 days of matches
@@ -178,14 +192,16 @@ export class SeasonalFlowService {
       const dayMatches = this.generateSubdivisionDayMatches(teams, day);
       
       for (const match of dayMatches) {
+        const gameDate = new Date("2025-07-13");
+        gameDate.setDate(gameDate.getDate() + day - 1);
+        
         const matchData = {
           leagueId,
           homeTeamId: match.homeTeam.id,
           awayTeamId: match.awayTeam.id,
-          gameDay: day,
-          season,
-          status: 'scheduled',
-          matchType: 'league'
+          gameDate: gameDate,
+          status: 'SCHEDULED',
+          matchType: 'LEAGUE'
         };
         
         matches.push(matchData);
@@ -203,14 +219,14 @@ export class SeasonalFlowService {
   }
 
   /**
-   * Generate matches for a subdivision day (8 teams = 4 matches, 16 teams = 8 matches)
+   * Generate matches for a subdivision day (any number of teams)
    */
   static generateSubdivisionDayMatches(teams: any[], day: number): any[] {
     const matches = [];
     const numTeams = teams.length;
     
     // Use a systematic pairing approach based on the day
-    for (let i = 0; i < numTeams / 2; i++) {
+    for (let i = 0; i < Math.floor(numTeams / 2); i++) {
       const team1Index = i;
       const team2Index = (i + day + 7) % numTeams;
       
@@ -223,6 +239,105 @@ export class SeasonalFlowService {
       matches.push({
         homeTeam,
         awayTeam
+      });
+    }
+    
+    return matches;
+  }
+
+  /**
+   * Generate large division schedule (35+ teams, multiple subdivisions)
+   */
+  static async generateLargeDivisionSchedule(
+    leagueId: string, 
+    teams: any[], 
+    season: number
+  ): Promise<any[]> {
+    const matches = [];
+    const numTeams = teams.length;
+    
+    // Create subdivisions of 8 teams each
+    const subdivisions = [];
+    for (let i = 0; i < numTeams; i += 8) {
+      subdivisions.push(teams.slice(i, i + 8));
+    }
+    
+    // Generate schedule for each subdivision
+    for (let subIndex = 0; subIndex < subdivisions.length; subIndex++) {
+      const subdivision = subdivisions[subIndex];
+      
+      // Generate matches for this subdivision
+      for (let day = 1; day <= this.SEASON_CONFIG.REGULAR_SEASON_DAYS; day++) {
+        const dayMatches = this.generateSubdivisionDayMatches(subdivision, day);
+        
+        for (const match of dayMatches) {
+          const gameDate = new Date("2025-07-13");
+          gameDate.setDate(gameDate.getDate() + day - 1);
+          
+          const matchData = {
+            leagueId,
+            homeTeamId: match.homeTeam.id,
+            awayTeamId: match.awayTeam.id,
+            gameDate: gameDate,
+            status: 'SCHEDULED',
+            matchType: 'LEAGUE'
+          };
+          
+          matches.push(matchData);
+        }
+      }
+    }
+    
+    // Insert matches into database
+    if (matches.length > 0) {
+      await prisma.game.createMany({
+        data: matches
+      });
+    }
+    
+    return matches;
+  }
+
+  /**
+   * Generate small division schedule (less than 8 teams)
+   */
+  static async generateSmallDivisionSchedule(
+    leagueId: string, 
+    teams: any[], 
+    season: number
+  ): Promise<any[]> {
+    const matches = [];
+    const numTeams = teams.length;
+    
+    if (numTeams < 2) {
+      return matches; // Can't generate matches with less than 2 teams
+    }
+    
+    // Generate matches for 14 days
+    for (let day = 1; day <= this.SEASON_CONFIG.REGULAR_SEASON_DAYS; day++) {
+      const dayMatches = this.generateSubdivisionDayMatches(teams, day);
+      
+      for (const match of dayMatches) {
+        const gameDate = new Date("2025-07-13");
+        gameDate.setDate(gameDate.getDate() + day - 1);
+        
+        const matchData = {
+          leagueId,
+          homeTeamId: match.homeTeam.id,
+          awayTeamId: match.awayTeam.id,
+          gameDate: gameDate,
+          status: 'SCHEDULED',
+          matchType: 'LEAGUE'
+        };
+        
+        matches.push(matchData);
+      }
+    }
+    
+    // Insert matches into database
+    if (matches.length > 0) {
+      await prisma.game.createMany({
+        data: matches
       });
     }
     

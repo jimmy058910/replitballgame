@@ -179,18 +179,24 @@ export class SeasonTimingAutomationService {
    */
   private async checkSeasonEvents(): Promise<void> {
     try {
-      const currentSeason = await storage.seasons.getCurrentSeason();
-      if (!currentSeason) {
-        return;
-      }
-
-      const { currentDayInCycle, seasonNumber } = this.getCurrentSeasonInfo(currentSeason);
+      // Use the same calculation as the UI endpoint for consistency
+      const startDate = new Date("2025-07-13");
       const now = new Date();
+      const daysSinceStart = Math.floor((now.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24));
+      const currentDayInCycle = (daysSinceStart % 17) + 1;
+      const seasonNumber = Math.floor(daysSinceStart / 17);
+      
       const estTime = new Date(now.toLocaleString('en-US', { timeZone: 'America/New_York' }));
       
       // Check for Day 1 season start at 3:00 PM EST
       if (currentDayInCycle === 1 && estTime.getHours() === 15 && estTime.getMinutes() === 0) {
         await this.executeSeasonStart(seasonNumber);
+      }
+      
+      // MANUAL TRIGGER: Check if we need to generate schedules for current day
+      // This handles the case where we missed the Day 1 trigger
+      if (currentDayInCycle >= 1 && currentDayInCycle <= 14) {
+        await this.checkAndGenerateScheduleIfNeeded(seasonNumber);
       }
       
       // Check for Day 7 Mid-Season Cup
@@ -257,6 +263,63 @@ export class SeasonTimingAutomationService {
       
     } catch (error) {
       console.error('Error during season start execution:', error.message, 'Season:', seasonNumber);
+    }
+  }
+
+  /**
+   * Check if schedule generation is needed for current season
+   */
+  private async checkAndGenerateScheduleIfNeeded(seasonNumber: number): Promise<void> {
+    try {
+      // Check if any games exist for current season
+      const existingGames = await prisma.game.count({
+        where: {
+          gameDate: {
+            gte: new Date("2025-07-13"),
+            lte: new Date("2025-07-30")
+          },
+          matchType: 'LEAGUE'
+        }
+      });
+
+      // If no league games exist, generate the schedule
+      if (existingGames === 0) {
+        logInfo(`No league schedule found for Season ${seasonNumber}. Generating schedule...`);
+        
+        // First, ensure leagues exist for this season
+        const seasonId = `season-${seasonNumber}-2025`;
+        const leagueCount = await prisma.league.count({
+          where: { seasonId: seasonId }
+        });
+        
+        if (leagueCount === 0) {
+          logInfo(`No leagues found for Season ${seasonNumber}. Creating division leagues...`);
+          
+          // Create basic league structure for divisions 1-8
+          for (let division = 1; division <= 8; division++) {
+            await prisma.league.create({
+              data: {
+                division: division,
+                name: `Division ${division}`,
+                seasonId: seasonId
+              }
+            });
+          }
+          
+          logInfo(`Created ${8} leagues for Season ${seasonNumber}`);
+        }
+        
+        // Generate complete season schedule
+        const scheduleResult = await SeasonalFlowService.generateSeasonSchedule(seasonNumber);
+        
+        logInfo(`Season ${seasonNumber} schedule generated successfully`, {
+          matchesGenerated: scheduleResult.matchesGenerated,
+          leaguesProcessed: scheduleResult.leaguesProcessed.length
+        });
+      }
+      
+    } catch (error) {
+      console.error(`Error checking/generating schedule for Season ${seasonNumber}:`, error.message);
     }
   }
 
