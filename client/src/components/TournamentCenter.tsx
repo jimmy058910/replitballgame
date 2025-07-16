@@ -524,10 +524,16 @@ const TournamentCenter: React.FC<TournamentCenterProps> = ({ teamId }) => {
                   </div>
                   <div className="text-right">
                     <div className="flex items-center space-x-2">
-                      {(entry.creditsWon || 0) > 0 && (
+                      {entry.finalRank === 1 && (
                         <span className="flex items-center space-x-1 text-sm text-gray-900 dark:text-gray-100">
                           <Coins className="w-4 h-4 text-yellow-600" />
-                          <span>{(entry.creditsWon || 0).toLocaleString()}₡</span>
+                          <span>Champion Reward</span>
+                        </span>
+                      )}
+                      {entry.finalRank === 2 && (
+                        <span className="flex items-center space-x-1 text-sm text-gray-900 dark:text-gray-100">
+                          <Coins className="w-4 h-4 text-yellow-600" />
+                          <span>Runner-up Reward</span>
                         </span>
                       )}
                       <Button
@@ -665,7 +671,13 @@ const TournamentCenter: React.FC<TournamentCenterProps> = ({ teamId }) => {
               <div className="space-y-4">
                 {bracketModalData?.matches && bracketModalData.matches.length > 0 ? (
                   bracketModalData.matches.map((match: TournamentMatch, index: number) => (
-                    <div key={index} className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-4">
+                    <div key={index} className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-4 hover:shadow-md transition-shadow cursor-pointer"
+                         onClick={() => {
+                           if (match.status === 'COMPLETED' || match.status === 'LIVE') {
+                             window.open(`/live-match/${match.id}`, '_blank');
+                           }
+                         }}
+                    >
                       <div className="flex items-center justify-between">
                         <div className="flex items-center space-x-3">
                           <div className="flex-shrink-0">
@@ -696,6 +708,11 @@ const TournamentCenter: React.FC<TournamentCenterProps> = ({ teamId }) => {
                           {match.homeScore !== null && match.awayScore !== null && (
                             <div className="text-xs text-gray-600 dark:text-gray-400 mt-1">
                               Score: {match.homeScore} - {match.awayScore}
+                            </div>
+                          )}
+                          {(match.status === 'COMPLETED' || match.status === 'LIVE') && (
+                            <div className="text-xs text-purple-600 dark:text-purple-400 mt-1">
+                              Click to view →
                             </div>
                           )}
                         </div>

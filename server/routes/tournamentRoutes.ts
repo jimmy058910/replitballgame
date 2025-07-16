@@ -82,8 +82,23 @@ router.get('/bracket/:id', isAuthenticated, async (req: any, res: Response, next
       ]
     });
 
+    // Include tournament info in the response
+    const response = {
+      tournament: {
+        id: tournament.id,
+        tournamentId: tournament.tournamentId,
+        name: tournament.name,
+        type: tournament.type,
+        status: tournament.status,
+        division: tournament.division,
+        startTime: tournament.startTime,
+        endTime: tournament.endTime
+      },
+      matches
+    };
+
     // Use custom JSON serializer to handle BigInt values
-    const responseText = JSON.stringify({ matches }, (key, value) => {
+    const responseText = JSON.stringify(response, (key, value) => {
       if (typeof value === 'bigint') {
         return value.toString();
       }
