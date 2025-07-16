@@ -39,7 +39,16 @@ router.get('/history', isAuthenticated, async (req: any, res: Response, next: Ne
         prizeWon: entry.finalRank === 1 ? 1500 : entry.finalRank === 2 ? 500 : 0
       }));
 
-    res.json(history);
+    // Use custom JSON serializer to handle BigInt values
+    const responseText = JSON.stringify(history, (key, value) => {
+      if (typeof value === 'bigint') {
+        return value.toString();
+      }
+      return value;
+    });
+    
+    res.setHeader('Content-Type', 'application/json');
+    res.send(responseText);
   } catch (error) {
     console.error("Error fetching tournament history:", error);
     next(error);

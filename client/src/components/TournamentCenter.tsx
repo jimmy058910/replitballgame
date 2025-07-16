@@ -73,8 +73,8 @@ const TournamentCenter: React.FC<TournamentCenterProps> = ({ teamId }) => {
 
   // Fetch team's tournament history
   const { data: tournamentHistory } = useQuery<TournamentEntry[]>({
-    queryKey: ["/api/new-tournaments/team", teamId, "history"],
-    queryFn: () => apiRequest(`/api/new-tournaments/team/${teamId}/history`),
+    queryKey: ["/api/tournaments/history", teamId],
+    queryFn: () => apiRequest(`/api/tournaments/history`),
     enabled: !!teamId,
   });
 
@@ -447,26 +447,20 @@ const TournamentCenter: React.FC<TournamentCenterProps> = ({ teamId }) => {
               {tournamentHistory.slice(0, 5).map((entry) => (
                 <div key={entry.id} className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
                   <div>
-                    <p className="font-semibold text-gray-900 dark:text-gray-100">{entry.tournament.name}</p>
+                    <p className="font-semibold text-gray-900 dark:text-gray-100">{entry.name}</p>
                     <p className="text-sm text-gray-600 dark:text-gray-400">
-                      {entry.tournament.tournamentId && (
-                        <span className="text-purple-600 dark:text-purple-400 font-mono mr-2">#{entry.tournament.tournamentId}</span>
+                      {entry.tournamentId && (
+                        <span className="text-purple-600 dark:text-purple-400 font-mono mr-2">#{entry.tournamentId}</span>
                       )}
-                      {new Date(entry.tournament.createdAt).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })} • {getPlacementText(entry.placement)}
+                      {new Date(entry.createdAt).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })} • {getPlacementText(entry.yourPlacement)}
                     </p>
                   </div>
                   <div className="text-right">
                     <div className="flex items-center space-x-2">
-                      {entry.creditsWon > 0 && (
+                      {entry.prizeWon > 0 && (
                         <span className="flex items-center space-x-1 text-sm text-gray-900 dark:text-gray-100">
                           <Coins className="w-4 h-4 text-yellow-600" />
-                          <span>{entry.creditsWon.toLocaleString()}₡</span>
-                        </span>
-                      )}
-                      {entry.gemsWon > 0 && (
-                        <span className="flex items-center space-x-1 text-sm text-gray-900 dark:text-gray-100">
-                          <Gem className="w-4 h-4 text-purple-600" />
-                          <span>{entry.gemsWon}💎</span>
+                          <span>{entry.prizeWon.toLocaleString()}₡</span>
                         </span>
                       )}
                     </div>
