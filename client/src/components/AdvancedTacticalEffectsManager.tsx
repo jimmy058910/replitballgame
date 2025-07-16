@@ -145,8 +145,11 @@ export default function AdvancedTacticalEffectsManager({ teamId }: { teamId: str
         title: 'Field Size Updated',
         description: 'Your stadium field size has been updated successfully.'
       });
+      // Invalidate and refetch all related queries
       queryClient.invalidateQueries({ queryKey: ['/api/tactics/team-tactics'] });
       queryClient.invalidateQueries({ queryKey: ['/api/tactics/tactical-analysis'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/tactics/tactical-options'] });
+      queryClient.refetchQueries({ queryKey: ['/api/tactics/team-tactics'] });
     },
     onError: (error: any) => {
       toast({
@@ -169,8 +172,11 @@ export default function AdvancedTacticalEffectsManager({ teamId }: { teamId: str
         title: 'Tactical Focus Updated',
         description: 'Your team tactical focus has been updated.'
       });
+      // Invalidate and refetch all related queries
       queryClient.invalidateQueries({ queryKey: ['/api/tactics/team-tactics'] });
       queryClient.invalidateQueries({ queryKey: ['/api/tactics/tactical-analysis'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/tactics/tactical-options'] });
+      queryClient.refetchQueries({ queryKey: ['/api/tactics/team-tactics'] });
     },
     onError: (error: any) => {
       toast({

@@ -47,7 +47,7 @@ export default function TacticalManager() {
   const updateFieldSizeMutation = useMutation({
     mutationFn: async (fieldSize: string) => {
       const response = await apiRequest("/api/tactics/update-field-size", "POST", { fieldSize });
-      return response.json();
+      return response; // apiRequest already returns JSON data
     },
     onSuccess: (data) => {
       toast({
@@ -68,7 +68,7 @@ export default function TacticalManager() {
   const updateTacticalFocusMutation = useMutation({
     mutationFn: async (tacticalFocus: string) => {
       const response = await apiRequest("/api/tactics/update-tactical-focus", "POST", { tacticalFocus });
-      return response.json();
+      return response; // apiRequest already returns JSON data
     },
     onSuccess: (data) => {
       toast({
