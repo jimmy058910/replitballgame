@@ -3,7 +3,7 @@ import { useQuery, useMutation } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Trophy, Clock, Calendar, Users, Coins, Gem, CheckCircle, AlertCircle, Timer } from 'lucide-react';
+import { Trophy, Clock, Calendar, Users, Coins, Gem, CheckCircle, AlertCircle, Timer, ArrowLeft, Eye } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest, queryClient } from '@/lib/queryClient';
 
@@ -38,21 +38,26 @@ interface Tournament {
 }
 
 interface TournamentEntry {
-  id: string;
-  tournamentId: string;
-  placement: number;
-  creditsWon: number;
-  gemsWon: number;
-  tournament: {
+  id: number;
+  tournamentId: number;
+  teamId: number;
+  registeredAt: Date;
+  finalRank: number | null;
+  rewardsClaimed: boolean;
+  tournament?: {
     name: string;
     type: string;
     gameDay: number;
   };
-  entryTime: string;
+  placement?: number;
+  creditsWon?: number;
+  gemsWon?: number;
+  entryTime?: string;
 }
 
 const TournamentCenter: React.FC<TournamentCenterProps> = ({ teamId }) => {
   const { toast } = useToast();
+  const [selectedTournamentId, setSelectedTournamentId] = useState<number | null>(null);
 
   // Fetch team info
   const { data: teamInfo } = useQuery<TeamInfo>({
@@ -78,6 +83,13 @@ const TournamentCenter: React.FC<TournamentCenterProps> = ({ teamId }) => {
     enabled: !!teamId,
   });
 
+  // Fetch tournament bracket data when a tournament is selected
+  const { data: tournamentBracketData } = useQuery({
+    queryKey: ["/api/tournaments/bracket", selectedTournamentId],
+    queryFn: () => apiRequest(`/api/tournaments/bracket/${selectedTournamentId}`),
+    enabled: !!selectedTournamentId,
+  });
+
   // Fetch team's current tournament entries
   const { data: myTournaments } = useQuery({
     queryKey: ["/api/tournament-status/my-active"],
@@ -93,7 +105,7 @@ const TournamentCenter: React.FC<TournamentCenterProps> = ({ teamId }) => {
   });
 
   // Check if user is already registered for daily tournament
-  const isRegisteredForDailyTournament = dailyTournamentStatus?.some((entry: any) => 
+  const isRegisteredForDailyTournament = Array.isArray(dailyTournamentStatus) && dailyTournamentStatus.some((entry: any) => 
     entry.type === 'DAILY_DIVISIONAL'
   );
 
@@ -189,7 +201,7 @@ const TournamentCenter: React.FC<TournamentCenterProps> = ({ teamId }) => {
     if (placement === 1) return "Champion";
     if (placement === 2) return "Runner-Up";
     if (placement === 3) return "Eliminated in Semifinals";
-    if (placement === 5) return "Eliminated in Quarterfinals";
+    if (placement === 4 || placement === 5) return "Eliminated in Quarterfinals";
     return `Eliminated in Round ${Math.ceil(Math.log2(placement))}`;
   };
 
@@ -386,7 +398,7 @@ const TournamentCenter: React.FC<TournamentCenterProps> = ({ teamId }) => {
       </div>
 
       {/* My Tournament Status Section */}
-      {myTournaments && myTournaments.length > 0 && (
+      {Array.isArray(myTournaments) && myTournaments.length > 0 && (
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center space-x-2">
@@ -447,22 +459,32 @@ const TournamentCenter: React.FC<TournamentCenterProps> = ({ teamId }) => {
               {tournamentHistory.slice(0, 5).map((entry) => (
                 <div key={entry.id} className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
                   <div>
-                    <p className="font-semibold text-gray-900 dark:text-gray-100">{entry.name}</p>
+                    <p className="font-semibold text-gray-900 dark:text-gray-100">
+                      {entry.tournament?.name || `Tournament ${entry.tournamentId}`}
+                    </p>
                     <p className="text-sm text-gray-600 dark:text-gray-400">
                       {entry.tournamentId && (
                         <span className="text-purple-600 dark:text-purple-400 font-mono mr-2">#{entry.tournamentId}</span>
                       )}
-                      {new Date(entry.createdAt).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })} • {getPlacementText(entry.yourPlacement)}
+                      {new Date(entry.entryTime || entry.registeredAt).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })} • {getPlacementText(entry.placement || entry.finalRank || 0)}
                     </p>
                   </div>
                   <div className="text-right">
                     <div className="flex items-center space-x-2">
-                      {entry.prizeWon > 0 && (
+                      {(entry.creditsWon || 0) > 0 && (
                         <span className="flex items-center space-x-1 text-sm text-gray-900 dark:text-gray-100">
                           <Coins className="w-4 h-4 text-yellow-600" />
-                          <span>{entry.prizeWon.toLocaleString()}₡</span>
+                          <span>{(entry.creditsWon || 0).toLocaleString()}₡</span>
                         </span>
                       )}
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => setSelectedTournamentId(entry.tournamentId)}
+                        className="text-purple-600 border-purple-600 hover:bg-purple-50 dark:hover:bg-purple-900/20"
+                      >
+                        View Bracket
+                      </Button>
                     </div>
                   </div>
                 </div>
@@ -479,6 +501,80 @@ const TournamentCenter: React.FC<TournamentCenterProps> = ({ teamId }) => {
           )}
         </CardContent>
       </Card>
+      
+      {/* Tournament Bracket Display */}
+      {selectedTournamentId && (
+        <Card className="mt-6">
+          <CardHeader>
+            <CardTitle className="flex items-center space-x-2">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setSelectedTournamentId(null)}
+                className="mr-2"
+              >
+                <ArrowLeft className="w-4 h-4" />
+                Back
+              </Button>
+              <Trophy className="w-5 h-5" />
+              <span>Tournament Bracket</span>
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {tournamentBracketData ? (
+              <div className="tournament-bracket space-y-6">
+                <div className="text-center mb-6">
+                  <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
+                    Tournament #{selectedTournamentId}
+                  </h3>
+                  <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                    Single-elimination bracket
+                  </p>
+                </div>
+                
+                {/* Bracket matches display */}
+                <div className="grid gap-4">
+                  {tournamentBracketData && tournamentBracketData.matches && Array.isArray(tournamentBracketData.matches) ? (
+                    tournamentBracketData.matches.map((match: any, index: number) => (
+                      <div key={index} className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center space-x-2">
+                            <span className="text-sm font-medium text-gray-600 dark:text-gray-400">
+                              Round {match.round}
+                            </span>
+                            <span className="text-xs px-2 py-1 bg-purple-100 dark:bg-purple-900 text-purple-600 dark:text-purple-400 rounded">
+                              {match.status}
+                            </span>
+                          </div>
+                          <div className="text-right">
+                            <div className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                              {match.homeTeam?.name} vs {match.awayTeam?.name}
+                            </div>
+                            {match.homeScore !== null && match.awayScore !== null && (
+                              <div className="text-xs text-gray-600 dark:text-gray-400 mt-1">
+                                Score: {match.homeScore} - {match.awayScore}
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    ))
+                  ) : (
+                    <div className="text-center py-8">
+                      <p className="text-gray-600 dark:text-gray-300">No tournament bracket data available</p>
+                    </div>
+                  )}
+                </div>
+              </div>
+            ) : (
+              <div className="text-center py-8">
+                <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full mx-auto mb-4" />
+                <p className="text-gray-600 dark:text-gray-300">Loading tournament bracket...</p>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 };
