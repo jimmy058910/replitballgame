@@ -111,7 +111,25 @@ Built as a React + Express web application with PostgreSQL database, using moder
 
 **Home Field Advantage**: Intimidation Factor based on ActualAttendance and FanLoyalty applies temporary debuff to away team's Catching/Throwing stats
 
-### 6. Marketplace & Store
+### 6. Roster & Taxi Squad Management
+**Roster Structure**:
+- **Total Roster Size**: 12-15 players (including taxi squad)
+- **Position Requirements**: Minimum 4 Blockers, 4 Runners, 3 Passers (11 minimum players)
+- **Main Roster**: First 12 players (by creation date) eligible for matches and tactics
+- **Taxi Squad**: Players 13-15 (if any) available for promotion only
+
+**Taxi Squad Rules**:
+- **Promotion Only**: Players can only be promoted FROM taxi squad, never relegated TO it
+- **Offseason Promotions**: Taxi squad promotions only allowed during Days 16-17 (offseason)
+- **Player Releases**: During offseason, players can be released to make room for taxi squad promotions
+- **Match Eligibility**: Only main roster players (first 12) can participate in matches and be selected for tactics/formations
+
+**Substitution System**:
+- **Auto-Substitution**: Players auto-substitute at 50% stamina or when severely injured
+- **Substitution Order**: Managed through drag-and-drop interface in Tactics & Lineup hub
+- **Position-Specific**: Substitutes queued by position (Blocker, Runner, Passer)
+
+### 7. Marketplace & Store
 **Marketplace Rules**:
 - 10-player roster minimum requirement
 - 3-player listing limit per team
