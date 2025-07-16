@@ -55,6 +55,40 @@ router.get('/history', isAuthenticated, async (req: any, res: Response, next: Ne
   }
 });
 
+// Add bracket endpoint
+router.get('/bracket/:id', isAuthenticated, async (req: any, res: Response, next: NextFunction) => {
+  try {
+    const tournamentId = req.params.id;
+    
+    // Get tournament matches for the bracket
+    const matches = await prisma.game.findMany({
+      where: { tournamentId: parseInt(tournamentId) },
+      include: {
+        homeTeam: true,
+        awayTeam: true
+      },
+      orderBy: [
+        { round: 'asc' },
+        { id: 'asc' }
+      ]
+    });
+
+    // Use custom JSON serializer to handle BigInt values
+    const responseText = JSON.stringify({ matches }, (key, value) => {
+      if (typeof value === 'bigint') {
+        return value.toString();
+      }
+      return value;
+    });
+    
+    res.setHeader('Content-Type', 'application/json');
+    res.send(responseText);
+  } catch (error) {
+    console.error("Error fetching tournament bracket:", error);
+    next(error);
+  }
+});
+
 router.get('/:division', isAuthenticated, async (req: Request, res: Response, next: NextFunction) => {
   try {
     const division = parseInt(req.params.division);

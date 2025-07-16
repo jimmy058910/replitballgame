@@ -74,7 +74,10 @@ router.get('/', isAuthenticated, async (req: any, res: Response, next: NextFunct
           createdAt: entry.tournament.createdAt,
           updatedAt: entry.tournament.updatedAt
         },
-        placement: entry.finalRank || null
+        placement: entry.finalRank || null,
+        creditsWon: entry.finalRank === 1 ? 1500 : entry.finalRank === 2 ? 500 : 0,
+        gemsWon: 0,
+        entryTime: entry.registeredAt
       }));
     
     console.log(`Found ${tournamentEntries.length} tournament entries for team ${team.id} (${team.name}), ${history.length} completed tournaments`);
