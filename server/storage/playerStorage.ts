@@ -95,37 +95,30 @@ export class PlayerStorage {
   }
 
   async getTaxiSquadPlayersByTeamId(teamId: number): Promise<Player[]> {
-    // First get all players for this team to determine taxi squad
+    console.error(`=== TAXI SQUAD DEBUG === Team ${teamId} method called`);
+    
+    // Get all players for this team, ordered by creation date
     const allPlayers = await prisma.player.findMany({
       where: {
         teamId: parseInt(teamId.toString()),
         isOnMarket: false
-      },
-      orderBy: { createdAt: 'asc' }
-    });
-
-    // Only return players beyond the first 12 (taxi squad players)
-    const taxiSquadPlayerIds = allPlayers.slice(12).map(p => p.id);
-    
-    if (taxiSquadPlayerIds.length === 0) {
-      return [];
-    }
-
-    // Get full player data for taxi squad only
-    const taxiSquadPlayers = await prisma.player.findMany({
-      where: {
-        teamId: parseInt(teamId.toString()),
-        isOnMarket: false,
-        id: { in: taxiSquadPlayerIds }
       },
       include: {
         team: { select: { name: true } },
         contract: true,
         skills: { include: { skill: true } }
       },
-      orderBy: { firstName: 'asc' }
+      orderBy: { createdAt: 'asc' }
     });
 
+    console.error(`=== TAXI SQUAD DEBUG === Total players: ${allPlayers.length}`);
+    
+    // Return players beyond the first 12 (taxi squad players)
+    const taxiSquadPlayers = allPlayers.slice(12);
+    
+    console.error(`=== TAXI SQUAD DEBUG === Taxi squad count: ${taxiSquadPlayers.length}`);
+    console.error(`=== TAXI SQUAD DEBUG === Taxi squad players:`, taxiSquadPlayers.map(p => `${p.id} (${p.firstName} ${p.lastName})`));
+    
     return taxiSquadPlayers;
   }
 

@@ -1261,6 +1261,64 @@ router.delete('/:teamId/taxi-squad/:playerId', isAuthenticated, asyncHandler(asy
   });
 }));
 
+// Debug endpoint to test taxi squad logic
+router.get('/:teamId/taxi-squad/debug', isAuthenticated, asyncHandler(async (req: any, res: Response) => {
+  const userId = req.user.claims.sub;
+  const { teamId } = req.params;
+
+  // Get userProfile to check team ownership
+  const userProfile = await prisma.userProfile.findFirst({
+    where: { userId: userId }
+  });
+  
+  if (!userProfile) {
+    throw ErrorCreators.forbidden("User profile not found");
+  }
+
+  // Verify team ownership
+  let team;
+  if (teamId === "my") {
+    team = await prisma.team.findFirst({
+      where: { userProfileId: userProfile.id }
+    });
+  } else {
+    team = await prisma.team.findFirst({
+      where: { 
+        id: parseInt(teamId),
+        userProfileId: userProfile.id 
+      }
+    });
+    if (!team) {
+      throw ErrorCreators.forbidden("You do not own this team");
+    }
+  }
+  
+  if (!team) {
+    throw ErrorCreators.notFound("Team not found");
+  }
+
+  // Get all players for debugging
+  const allPlayers = await prisma.player.findMany({
+    where: {
+      teamId: team.id,
+      isOnMarket: false
+    },
+    orderBy: { createdAt: 'asc' }
+  });
+
+  // Show taxi squad logic
+  const mainRoster = allPlayers.slice(0, 12);
+  const taxiSquad = allPlayers.slice(12);
+
+  res.json({
+    teamId: team.id,
+    totalPlayers: allPlayers.length,
+    mainRoster: mainRoster.map(p => ({ id: p.id, firstName: p.firstName, lastName: p.lastName, createdAt: p.createdAt })),
+    taxiSquad: taxiSquad.map(p => ({ id: p.id, firstName: p.firstName, lastName: p.lastName, createdAt: p.createdAt })),
+    emberField: allPlayers.find(p => p.firstName === 'Ember' && p.lastName === 'Field')
+  });
+}));
+
 // Get seasonal data for team (tryout usage tracking)
 router.get('/:teamId/seasonal-data', isAuthenticated, asyncHandler(async (req: any, res: Response) => {
   const userId = req.user.claims.sub;
