@@ -212,12 +212,9 @@ export default function StadiumAtmosphereManager({ teamId }: { teamId: string })
       </div>
 
       <Tabs defaultValue="overview" className="space-y-4">
-        <TabsList className="grid w-full grid-cols-5">
+        <TabsList className="grid w-full grid-cols-2">
           <TabsTrigger value="overview">Overview</TabsTrigger>
-          <TabsTrigger value="atmosphere">Fan Atmosphere</TabsTrigger>
-          <TabsTrigger value="revenue">Revenue Analysis</TabsTrigger>
           <TabsTrigger value="upgrades">Stadium Upgrades</TabsTrigger>
-          <TabsTrigger value="analytics">Performance Analytics</TabsTrigger>
         </TabsList>
 
         <TabsContent value="overview" className="space-y-4">
@@ -276,71 +273,46 @@ export default function StadiumAtmosphereManager({ teamId }: { teamId: string })
             </Card>
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>Team Power Classification</CardTitle>
-                <CardDescription>Current tier based on Combined Adjusted Rating (CAR)</CardDescription>
-              </CardHeader>
-              <CardContent>
-                {teamPowerTier && (
-                  <div className="flex items-center space-x-4">
-                    <div className={`p-3 rounded-full ${teamPowerTier.color}`}>
-                      {getTierIcon(teamPowerTier.tier)}
-                    </div>
-                    <div>
-                      <h3 className="text-lg font-bold">{teamPowerTier.tier} Team</h3>
-                      <p className="text-sm text-gray-600">{teamPowerTier.description}</p>
-                      <p className="text-xs text-gray-500 mt-1">
-                        CAR Threshold: {teamPowerTier.carThreshold}+
-                      </p>
-                    </div>
+          <Card>
+            <CardHeader>
+              <CardTitle>Home Field Advantage</CardTitle>
+              <CardDescription>Intimidation factor and crowd noise effects</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                <div>
+                  <div className="flex justify-between mb-1">
+                    <span className="text-sm text-gray-600">Intimidation Factor</span>
+                    <span className="text-sm font-medium">{atmosphereData?.data?.intimidationFactor || 0}</span>
                   </div>
-                )}
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle>Home Field Advantage</CardTitle>
-                <CardDescription>Intimidation factor and crowd noise effects</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  <div>
-                    <div className="flex justify-between mb-1">
-                      <span className="text-sm text-gray-600">Intimidation Factor</span>
-                      <span className="text-sm font-medium">{atmosphereData?.intimidationFactor || 0}</span>
-                    </div>
-                    <Progress value={(atmosphereData?.intimidationFactor || 0) * 10} className="h-2" />
+                  <Progress value={(atmosphereData?.data?.intimidationFactor || 0) * 10} className="h-2" />
+                </div>
+                <div>
+                  <div className="flex justify-between mb-1">
+                    <span className="text-sm text-gray-600">Crowd Noise Level</span>
+                    <span className="text-sm font-medium">{atmosphereData?.data?.crowdNoise || 0} dB</span>
                   </div>
-                  <div>
-                    <div className="flex justify-between mb-1">
-                      <span className="text-sm text-gray-600">Crowd Noise Level</span>
-                      <span className="text-sm font-medium">{atmosphereData?.crowdNoise || 0} dB</span>
-                    </div>
-                    <Progress value={(atmosphereData?.crowdNoise || 0) / 100 * 100} className="h-2" />
-                  </div>
-                  <div className="p-3 bg-blue-50 border border-blue-200 rounded">
-                    <div className="flex items-center space-x-2">
-                      <Volume2 className="w-4 h-4 text-blue-600" />
-                      <span className="text-sm text-blue-800">
-                        Opponent Debuff: -{Math.floor((atmosphereData?.intimidationFactor || 0) / 2)} Catching/Throwing
-                      </span>
-                    </div>
+                  <Progress value={(atmosphereData?.data?.crowdNoise || 0) / 100 * 100} className="h-2" />
+                </div>
+                <div className="p-3 bg-blue-50 border border-blue-200 rounded">
+                  <div className="flex items-center space-x-2">
+                    <Volume2 className="w-4 h-4 text-blue-600" />
+                    <span className="text-sm text-blue-800">
+                      Opponent Debuff: -{Math.floor((atmosphereData?.data?.intimidationFactor || 0) / 2)} Catching/Throwing
+                    </span>
                   </div>
                 </div>
-              </CardContent>
-            </Card>
-          </div>
+              </div>
+            </CardContent>
+          </Card>
 
           <Card>
             <CardHeader>
               <CardTitle>Stadium Facilities Overview</CardTitle>
-              <CardDescription>Current facility levels and upgrade status</CardDescription>
+              <CardDescription>Current facility levels and revenue breakdown</CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-6">
                 <div className="text-center p-3 border rounded">
                   <Building className="w-6 h-6 mx-auto mb-1 text-blue-500" />
                   <div className="text-xs text-gray-600">Capacity</div>
@@ -372,202 +344,58 @@ export default function StadiumAtmosphereManager({ teamId }: { teamId: string })
                   <div className="font-medium">Level {stadiumData?.data?.lightingLevel || 1}</div>
                 </div>
               </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="atmosphere" className="space-y-4">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>Fan Loyalty Breakdown</CardTitle>
-                <CardDescription>Factors contributing to overall fan loyalty</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  <div>
-                    <div className="flex justify-between mb-1">
-                      <span className="text-sm text-gray-600">Performance Impact</span>
-                      <span className="text-sm font-medium">{loyaltyFactors?.performance || 0}%</span>
-                    </div>
-                    <Progress value={loyaltyFactors?.performance || 0} className="h-2" />
-                    <p className="text-xs text-gray-500 mt-1">Based on win rate and playoff success</p>
+              
+              <div className="border-t pt-4">
+                <h4 className="font-semibold mb-3">Revenue Breakdown (Per Home Game)</h4>
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+                  <div className="text-center p-3 border rounded">
+                    <Users className="w-5 h-5 mx-auto mb-1 text-blue-500" />
+                    <div className="text-xs text-gray-600">Ticket Sales</div>
+                    <div className="font-bold">{formatCurrency(revenueData?.ticketSales || 0)}</div>
+                    <div className="text-xs text-gray-500">₡25 per fan</div>
                   </div>
-                  <div>
-                    <div className="flex justify-between mb-1">
-                      <span className="text-sm text-gray-600">Current Form</span>
-                      <span className="text-sm font-medium">{loyaltyFactors?.form || 0}%</span>
-                    </div>
-                    <Progress value={loyaltyFactors?.form || 0} className="h-2" />
-                    <p className="text-xs text-gray-500 mt-1">Recent match results and momentum</p>
+                  <div className="text-center p-3 border rounded">
+                    <DollarSign className="w-5 h-5 mx-auto mb-1 text-green-500" />
+                    <div className="text-xs text-gray-600">Concessions</div>
+                    <div className="font-bold">{formatCurrency(revenueData?.concessions || 0)}</div>
+                    <div className="text-xs text-gray-500">₡8 × Level</div>
                   </div>
-                  <div>
-                    <div className="flex justify-between mb-1">
-                      <span className="text-sm text-gray-600">Facilities Bonus</span>
-                      <span className="text-sm font-medium">{loyaltyFactors?.facilities || 0}%</span>
-                    </div>
-                    <Progress value={loyaltyFactors?.facilities || 0} className="h-2" />
-                    <p className="text-xs text-gray-500 mt-1">Stadium quality and amenities</p>
+                  <div className="text-center p-3 border rounded">
+                    <Home className="w-5 h-5 mx-auto mb-1 text-orange-500" />
+                    <div className="text-xs text-gray-600">Parking</div>
+                    <div className="font-bold">{formatCurrency(revenueData?.parking || 0)}</div>
+                    <div className="text-xs text-gray-500">₡10 × Level</div>
                   </div>
-                  <div className="border-t pt-3">
-                    <div className="flex justify-between">
-                      <span className="font-medium">Total Fan Loyalty</span>
-                      <span className="font-bold text-lg">{loyaltyFactors?.total || 0}%</span>
-                    </div>
+                  <div className="text-center p-3 border rounded">
+                    <Trophy className="w-5 h-5 mx-auto mb-1 text-purple-500" />
+                    <div className="text-xs text-gray-600">VIP Suites</div>
+                    <div className="font-bold">{formatCurrency(revenueData?.vipSuites || 0)}</div>
+                    <div className="text-xs text-gray-500">₡5,000 × Level</div>
+                  </div>
+                  <div className="text-center p-3 border rounded">
+                    <Star className="w-5 h-5 mx-auto mb-1 text-yellow-500" />
+                    <div className="text-xs text-gray-600">Merchandise</div>
+                    <div className="font-bold">{formatCurrency(revenueData?.merchandising || 0)}</div>
+                    <div className="text-xs text-gray-500">₡3 × Level</div>
+                  </div>
+                  <div className="text-center p-3 border rounded">
+                    <Zap className="w-5 h-5 mx-auto mb-1 text-red-500" />
+                    <div className="text-xs text-gray-600">Atmosphere Bonus</div>
+                    <div className="font-bold">{formatCurrency(revenueData?.atmosphereBonus || 0)}</div>
+                    <div className="text-xs text-gray-500">Loyalty bonus</div>
                   </div>
                 </div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle>Attendance Engine</CardTitle>
-                <CardDescription>Dynamic attendance calculation system</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="p-3 border rounded">
-                      <div className="text-xs text-gray-600">Base Attendance</div>
-                      <div className="font-medium">{atmosphereData?.baseAttendance || 35}%</div>
-                      <div className="text-xs text-gray-500">Minimum guaranteed</div>
-                    </div>
-                    <div className="p-3 border rounded">
-                      <div className="text-xs text-gray-600">Loyalty Bonus</div>
-                      <div className="font-medium">+{Math.round((atmosphereData?.fanLoyalty || 50) / 2)}%</div>
-                      <div className="text-xs text-gray-500">Up to +50% max</div>
-                    </div>
+                
+                <div className="mt-4 p-3 bg-green-50 border border-green-200 rounded-lg">
+                  <div className="flex justify-between items-center">
+                    <span className="text-lg font-semibold">Total Match Revenue:</span>
+                    <span className="text-2xl font-bold text-green-600">
+                      {formatCurrency(revenueData?.total || 0)}
+                    </span>
                   </div>
-                  
-                  <div className="p-3 bg-gray-50 rounded">
-                    <div className="text-sm font-medium mb-2">Attendance Calculation</div>
-                    <div className="text-xs text-gray-600 space-y-1">
-                      <div>Base: {atmosphereData?.baseAttendance || 35}%</div>
-                      <div>+ Loyalty: {Math.round((atmosphereData?.fanLoyalty || 50) / 2)}%</div>
-                      <div>+ Win Streak: Up to 15%</div>
-                      <div className="border-t pt-1 font-medium">
-                        = {atmosphereData?.attendancePercentage || 0}% ({atmosphereData?.actualAttendance?.toLocaleString() || 0} fans)
-                      </div>
-                    </div>
+                  <div className="text-sm text-gray-600 mt-1">
+                    Based on {atmosphereData?.data?.actualAttendance?.toLocaleString() || 0} fans ({atmosphereData?.data?.attendancePercentage || 0}% attendance)
                   </div>
-
-                  <div className="p-3 border border-blue-200 bg-blue-50 rounded">
-                    <div className="flex items-center space-x-2 mb-2">
-                      <Home className="w-4 h-4 text-blue-600" />
-                      <span className="text-sm font-medium text-blue-800">Home Field Advantage</span>
-                    </div>
-                    <div className="text-xs text-blue-700">
-                      High attendance creates intimidation factor, reducing opponent accuracy by {Math.floor((atmosphereData?.intimidationFactor || 0) / 2)} points per 2 intimidation
-                    </div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-
-          <Card>
-            <CardHeader>
-              <CardTitle>Atmosphere Features</CardTitle>
-              <CardDescription>Advanced stadium atmosphere mechanics</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="p-3 border rounded-lg">
-                  <div className="flex items-center space-x-2 mb-2">
-                    <Heart className="w-4 h-4 text-red-500" />
-                    <h5 className="font-medium text-sm">Persistent Fan Loyalty</h5>
-                  </div>
-                  <p className="text-xs text-gray-600">
-                    Fan loyalty persists across seasons and affects attendance, revenue, and home field advantage
-                  </p>
-                </div>
-                <div className="p-3 border rounded-lg">
-                  <div className="flex items-center space-x-2 mb-2">
-                    <Users className="w-4 h-4 text-blue-500" />
-                    <h5 className="font-medium text-sm">Dynamic Attendance</h5>
-                  </div>
-                  <p className="text-xs text-gray-600">
-                    Attendance calculated based on loyalty, performance, win streaks, and facility quality
-                  </p>
-                </div>
-                <div className="p-3 border rounded-lg">
-                  <div className="flex items-center space-x-2 mb-2">
-                    <Volume2 className="w-4 h-4 text-green-500" />
-                    <h5 className="font-medium text-sm">Intimidation Effects</h5>
-                  </div>
-                  <p className="text-xs text-gray-600">
-                    Crowd noise creates debuffs for visiting teams, affecting their passing and catching accuracy
-                  </p>
-                </div>
-                <div className="p-3 border rounded-lg">
-                  <div className="flex items-center space-x-2 mb-2">
-                    <DollarSign className="w-4 h-4 text-yellow-500" />
-                    <h5 className="font-medium text-sm">Revenue Integration</h5>
-                  </div>
-                  <p className="text-xs text-gray-600">
-                    Actual attendance directly affects ticket sales, concessions, and all revenue streams
-                  </p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="revenue" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Revenue Breakdown</CardTitle>
-              <CardDescription>Attendance-based stadium revenue analysis</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
-                <div className="text-center p-4 border rounded">
-                  <Users className="w-6 h-6 mx-auto mb-2 text-blue-500" />
-                  <div className="text-xs text-gray-600">Ticket Sales</div>
-                  <div className="font-bold">{formatCurrency(revenueData?.ticketSales || 0)}</div>
-                  <div className="text-xs text-gray-500">Capacity × ₡25</div>
-                </div>
-                <div className="text-center p-4 border rounded">
-                  <DollarSign className="w-6 h-6 mx-auto mb-2 text-green-500" />
-                  <div className="text-xs text-gray-600">Concessions</div>
-                  <div className="font-bold">{formatCurrency(revenueData?.concessions || 0)}</div>
-                  <div className="text-xs text-gray-500">Capacity × ₡8 × Level</div>
-                </div>
-                <div className="text-center p-4 border rounded">
-                  <Home className="w-6 h-6 mx-auto mb-2 text-orange-500" />
-                  <div className="text-xs text-gray-600">Parking</div>
-                  <div className="font-bold">{formatCurrency(revenueData?.parking || 0)}</div>
-                  <div className="text-xs text-gray-500">(Capacity × 0.3) × ₡10 × Level</div>
-                </div>
-                <div className="text-center p-4 border rounded">
-                  <Trophy className="w-6 h-6 mx-auto mb-2 text-purple-500" />
-                  <div className="text-xs text-gray-600">VIP Suites</div>
-                  <div className="font-bold">{formatCurrency(revenueData?.vipSuites || 0)}</div>
-                  <div className="text-xs text-gray-500">Level × ₡5,000</div>
-                </div>
-                <div className="text-center p-4 border rounded">
-                  <Star className="w-6 h-6 mx-auto mb-2 text-yellow-500" />
-                  <div className="text-xs text-gray-600">Merchandise</div>
-                  <div className="font-bold">{formatCurrency(revenueData?.merchandising || 0)}</div>
-                  <div className="text-xs text-gray-500">Capacity × ₡3 × Level</div>
-                </div>
-                <div className="text-center p-4 border rounded">
-                  <Zap className="w-6 h-6 mx-auto mb-2 text-red-500" />
-                  <div className="text-xs text-gray-600">Atmosphere Bonus</div>
-                  <div className="font-bold">{formatCurrency(revenueData?.atmosphereBonus || 0)}</div>
-                  <div className="text-xs text-gray-500">High loyalty bonus</div>
-                </div>
-              </div>
-
-              <div className="mt-6 p-4 bg-gray-50 rounded-lg">
-                <div className="flex justify-between items-center">
-                  <span className="text-lg font-medium">Total Match Revenue:</span>
-                  <span className="text-2xl font-bold text-green-600">
-                    {formatCurrency(revenueData?.total || 0)}
-                  </span>
-                </div>
-                <div className="text-sm text-gray-600 mt-1">
-                  Based on {atmosphereData?.actualAttendance?.toLocaleString() || 0} fans ({atmosphereData?.attendancePercentage || 0}% attendance)
                 </div>
               </div>
             </CardContent>
@@ -624,87 +452,6 @@ export default function StadiumAtmosphereManager({ teamId }: { teamId: string })
               </div>
             </CardContent>
           </Card>
-        </TabsContent>
-
-        <TabsContent value="analytics" className="space-y-4">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>Performance Metrics</CardTitle>
-                <CardDescription>Key stadium and atmosphere performance indicators</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  <div className="p-3 border rounded">
-                    <div className="flex justify-between items-center">
-                      <span className="text-sm text-gray-600">Revenue per Fan</span>
-                      <span className="font-medium">
-                        {formatCurrency(Math.round((revenueData?.total || 0) / (atmosphereData?.actualAttendance || 1)))}
-                      </span>
-                    </div>
-                  </div>
-                  <div className="p-3 border rounded">
-                    <div className="flex justify-between items-center">
-                      <span className="text-sm text-gray-600">Stadium Utilization</span>
-                      <span className="font-medium">{atmosphereData?.attendancePercentage || 0}%</span>
-                    </div>
-                  </div>
-                  <div className="p-3 border rounded">
-                    <div className="flex justify-between items-center">
-                      <span className="text-sm text-gray-600">Loyalty Efficiency</span>
-                      <span className="font-medium">
-                        {Math.round(((atmosphereData?.fanLoyalty || 50) / 100) * (atmosphereData?.attendancePercentage || 0))}%
-                      </span>
-                    </div>
-                  </div>
-                  <div className="p-3 border rounded">
-                    <div className="flex justify-between items-center">
-                      <span className="text-sm text-gray-600">Intimidation Rating</span>
-                      <span className="font-medium">{atmosphereData?.intimidationFactor || 0}/10</span>
-                    </div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle>System Integration</CardTitle>
-                <CardDescription>How stadium atmosphere connects with other game systems</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-3">
-                  <div className="p-3 border rounded-lg">
-                    <div className="flex items-center space-x-2 mb-2">
-                      <BarChart3 className="w-4 h-4 text-blue-500" />
-                      <h5 className="font-medium text-sm">Match Simulation</h5>
-                    </div>
-                    <p className="text-xs text-gray-600">
-                      Intimidation factor applies debuffs to visiting teams during live matches
-                    </p>
-                  </div>
-                  <div className="p-3 border rounded-lg">
-                    <div className="flex items-center space-x-2 mb-2">
-                      <TrendingUp className="w-4 h-4 text-green-500" />
-                      <h5 className="font-medium text-sm">Economic System</h5>
-                    </div>
-                    <p className="text-xs text-gray-600">
-                      Stadium revenue directly feeds into enhanced game economy and dual currency system
-                    </p>
-                  </div>
-                  <div className="p-3 border rounded-lg">
-                    <div className="flex items-center space-x-2 mb-2">
-                      <Heart className="w-4 h-4 text-red-500" />
-                      <h5 className="font-medium text-sm">Season Progression</h5>
-                    </div>
-                    <p className="text-xs text-gray-600">
-                      Fan loyalty updates at end of season based on performance, form, and facility quality
-                    </p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
         </TabsContent>
       </Tabs>
     </div>

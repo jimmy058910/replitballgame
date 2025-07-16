@@ -278,8 +278,20 @@ router.get('/stadium-data', isAuthenticated, async (req: any, res) => {
   try {
     const userId = req.user.claims.sub;
     
-    const team = await prisma.team.findFirst({
+    // Get user's profile first
+    const userProfile = await prisma.userProfile.findFirst({
       where: { userId: userId }
+    });
+    
+    if (!userProfile) {
+      return res.status(404).json({
+        success: false,
+        message: 'User profile not found'
+      });
+    }
+    
+    const team = await prisma.team.findFirst({
+      where: { userProfileId: userProfile.id }
     });
     
     if (!team) {
@@ -321,8 +333,13 @@ router.get('/stadium-data', isAuthenticated, async (req: any, res) => {
       success: true,
       data: {
         capacity: stadium.capacity || 15000,
+        concessionLevel: stadium.concessionsLevel || 1,
+        parkingLevel: stadium.parkingLevel || 1,
+        vipSuitesLevel: stadium.vipSuitesLevel || 1,
+        merchandisingLevel: stadium.merchandisingLevel || 1,
+        lightingLevel: stadium.lightingLevel || 1,
         fanLoyalty: team.fanLoyalty || 50,
-        totalValue: stadium.capacity * 50, // Rough estimate
+        totalValue: (stadium.capacity || 15000) * 50, // Rough estimate
         maintenanceCost: stadium.maintenanceCost || 5000
       }
     });
@@ -344,8 +361,20 @@ router.get('/atmosphere-data', isAuthenticated, async (req: any, res) => {
   try {
     const userId = req.user.claims.sub;
     
-    const team = await prisma.team.findFirst({
+    // Get user's profile first
+    const userProfile = await prisma.userProfile.findFirst({
       where: { userId: userId }
+    });
+    
+    if (!userProfile) {
+      return res.status(404).json({
+        success: false,
+        message: 'User profile not found'
+      });
+    }
+    
+    const team = await prisma.team.findFirst({
+      where: { userProfileId: userProfile.id }
     });
     
     if (!team) {
@@ -355,13 +384,27 @@ router.get('/atmosphere-data', isAuthenticated, async (req: any, res) => {
       });
     }
     
+    // Get stadium for attendance calculation
+    const stadium = await prisma.stadium.findFirst({
+      where: { teamId: team.id }
+    });
+    
+    const capacity = stadium?.capacity || 15000;
+    const fanLoyalty = team.fanLoyalty || 50;
+    const attendancePercentage = Math.min(85, Math.max(35, fanLoyalty * 0.8)); // 35-85% based on loyalty
+    const actualAttendance = Math.floor(capacity * (attendancePercentage / 100));
+    
     res.json({
       success: true,
       data: {
-        fanLoyalty: team.fanLoyalty || 50,
+        fanLoyalty: fanLoyalty,
         loyaltyTrend: 'stable',
-        attendancePercentage: 65,
-        actualAttendance: Math.floor((team.fanLoyalty || 50) * 150) // Rough calculation
+        attendancePercentage: attendancePercentage,
+        actualAttendance: actualAttendance,
+        intimidationFactor: Math.min(10, Math.floor(fanLoyalty / 10)),
+        crowdNoise: Math.floor(attendancePercentage * 1.2),
+        baseAttendance: 35,
+        homeFieldAdvantage: Math.min(10, Math.floor(fanLoyalty / 10))
       }
     });
   } catch (error) {
@@ -382,8 +425,20 @@ router.get('/revenue-breakdown', isAuthenticated, async (req: any, res) => {
   try {
     const userId = req.user.claims.sub;
     
-    const team = await prisma.team.findFirst({
+    // Get user's profile first
+    const userProfile = await prisma.userProfile.findFirst({
       where: { userId: userId }
+    });
+    
+    if (!userProfile) {
+      return res.status(404).json({
+        success: false,
+        message: 'User profile not found'
+      });
+    }
+    
+    const team = await prisma.team.findFirst({
+      where: { userProfileId: userProfile.id }
     });
     
     if (!team) {
@@ -424,8 +479,20 @@ router.get('/upgrade-costs', isAuthenticated, async (req: any, res) => {
   try {
     const userId = req.user.claims.sub;
     
-    const team = await prisma.team.findFirst({
+    // Get user's profile first
+    const userProfile = await prisma.userProfile.findFirst({
       where: { userId: userId }
+    });
+    
+    if (!userProfile) {
+      return res.status(404).json({
+        success: false,
+        message: 'User profile not found'
+      });
+    }
+    
+    const team = await prisma.team.findFirst({
+      where: { userProfileId: userProfile.id }
     });
     
     if (!team) {
@@ -467,11 +534,11 @@ router.get('/upgrade-costs', isAuthenticated, async (req: any, res) => {
       success: true,
       data: {
         capacity: (stadium.capacity || 15000) * 10,
-        concessions: 25000,
-        parking: 25000,
-        vipSuites: 50000,
-        merchandising: 30000,
-        lighting: 40000
+        concessions: 25000 * Math.pow(1.5, (stadium.concessionsLevel || 1) - 1),
+        parking: 20000 * Math.pow(1.5, (stadium.parkingLevel || 1) - 1),
+        vipSuites: 100000 * Math.pow(1.5, (stadium.vipSuitesLevel || 1) - 1),
+        merchandising: 30000 * Math.pow(1.5, (stadium.merchandisingLevel || 1) - 1),
+        lighting: 60000 * Math.pow(1.5, (stadium.lightingLevel || 1) - 1)
       }
     });
   } catch (error) {
@@ -493,7 +560,7 @@ router.get('/loyalty-factors', isAuthenticated, async (req: any, res) => {
     const userId = req.user.claims.sub;
     
     const team = await prisma.team.findFirst({
-      where: { userId: userId }
+      where: { userProfileId: userId }
     });
     
     if (!team) {
@@ -533,7 +600,7 @@ router.get('/team-power-tier', isAuthenticated, async (req: any, res) => {
     const userId = req.user.claims.sub;
     
     const team = await prisma.team.findFirst({
-      where: { userId: userId }
+      where: { userProfileId: userId }
     });
     
     if (!team) {
