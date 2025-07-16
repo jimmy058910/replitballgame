@@ -35,8 +35,8 @@ interface PaymentTransaction {
   itemType: string;
   itemName: string;
   amount: number;
-  creditsChange: number;
-  gemsChange: number;
+  creditsAmount: string; // BigInt serialized as string
+  gemsAmount: number;
   status: string;
   paymentMethod: string;
   createdAt: string;
@@ -111,9 +111,12 @@ export default function PaymentHistory({ className }: PaymentHistoryProps) {
   };
 
   const getTransactionIcon = (transaction: PaymentTransaction) => {
-    if (transaction.creditsChange > 0 || transaction.gemsChange > 0) {
+    const creditsAmount = parseInt(transaction.creditsAmount || '0');
+    const gemsAmount = transaction.gemsAmount || 0;
+    
+    if (creditsAmount > 0 || gemsAmount > 0) {
       return <TrendingUp className="h-4 w-4 text-green-500" />;
-    } else if (transaction.creditsChange < 0 || transaction.gemsChange < 0) {
+    } else if (creditsAmount < 0 || gemsAmount < 0) {
       return <TrendingDown className="h-4 w-4 text-red-500" />;
     }
     return <DollarSign className="h-4 w-4 text-blue-500" />;
@@ -348,24 +351,24 @@ export default function PaymentHistory({ className }: PaymentHistoryProps) {
                         )}
                       </TableCell>
                       <TableCell>
-                        {transaction.creditsChange !== 0 && (
+                        {transaction.creditsAmount && parseInt(transaction.creditsAmount) !== 0 && (
                           <div className={`flex items-center gap-1 ${
-                            transaction.creditsChange > 0 ? 'text-green-600' : 'text-red-600'
+                            parseInt(transaction.creditsAmount) > 0 ? 'text-green-600' : 'text-red-600'
                           }`}>
                             <Coins className="h-3 w-3" />
-                            {transaction.creditsChange > 0 ? '+' : ''}
-                            {transaction.creditsChange.toLocaleString()}
+                            {parseInt(transaction.creditsAmount) > 0 ? '+' : ''}
+                            {parseInt(transaction.creditsAmount).toLocaleString()}
                           </div>
                         )}
                       </TableCell>
                       <TableCell>
-                        {transaction.gemsChange !== 0 && (
+                        {transaction.gemsAmount && transaction.gemsAmount !== 0 && (
                           <div className={`flex items-center gap-1 ${
-                            transaction.gemsChange > 0 ? 'text-purple-600' : 'text-red-600'
+                            transaction.gemsAmount > 0 ? 'text-purple-600' : 'text-red-600'
                           }`}>
                             <Gem className="h-3 w-3" />
-                            {transaction.gemsChange > 0 ? '+' : ''}
-                            {transaction.gemsChange.toLocaleString()}
+                            {transaction.gemsAmount > 0 ? '+' : ''}
+                            {transaction.gemsAmount.toLocaleString()}
                           </div>
                         )}
                       </TableCell>
