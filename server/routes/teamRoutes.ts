@@ -310,7 +310,16 @@ router.post('/:teamId/formation', isAuthenticated, async (req: any, res: Respons
       teamId = team.id;
     } else {
       const teamToUpdate = await storage.teams.getTeamById(teamId); // Use teamStorage
-      if (!teamToUpdate || teamToUpdate.userId !== req.user?.claims?.sub) {
+      if (!teamToUpdate) {
+          return res.status(404).json({ message: "Team not found." });
+      }
+      
+      // Check team ownership via UserProfile
+      const userProfile = await prisma.userProfile.findUnique({
+        where: { userId: req.user?.claims?.sub }
+      });
+      
+      if (!userProfile || teamToUpdate.userProfileId !== userProfile.id) {
           return res.status(403).json({ message: "Forbidden: You do not own this team." });
       }
     }
@@ -359,7 +368,16 @@ router.put('/:teamId/formation', isAuthenticated, async (req: any, res: Response
       teamId = team.id;
     } else {
       const teamToUpdate = await storage.teams.getTeamById(teamId); // Use teamStorage
-      if (!teamToUpdate || teamToUpdate.userId !== req.user?.claims?.sub) {
+      if (!teamToUpdate) {
+          return res.status(404).json({ message: "Team not found." });
+      }
+      
+      // Check team ownership via UserProfile
+      const userProfile = await prisma.userProfile.findUnique({
+        where: { userId: req.user?.claims?.sub }
+      });
+      
+      if (!userProfile || teamToUpdate.userProfileId !== userProfile.id) {
           return res.status(403).json({ message: "Forbidden: You do not own this team." });
       }
     }
