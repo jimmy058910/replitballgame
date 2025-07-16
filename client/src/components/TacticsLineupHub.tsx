@@ -746,9 +746,9 @@ export default function TacticsLineupHub({ teamId }: TacticsLineupHubProps) {
                 <div className="space-y-2">
                   {players.map((player, index) => (
                     <div key={player.id} className="flex items-center gap-2">
-                      <Badge variant="outline" className="text-xs w-8 h-6 flex items-center justify-center">
-                        #{index + 1}
-                      </Badge>
+                      <div className="flex-shrink-0 w-8 h-8 bg-blue-500 text-white rounded-full flex items-center justify-center text-sm font-bold">
+                        {index + 1}
+                      </div>
                       {renderPlayerCard(player, index)}
                     </div>
                   ))}
