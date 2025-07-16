@@ -399,10 +399,21 @@ router.put('/:teamId/formation', isAuthenticated, async (req: any, res: Response
       ...formationData
     };
 
-    await storage.teams.updateTeam(teamId, { // Use teamStorage
-      formation: JSON.stringify(formation),
-      substitutionOrder: JSON.stringify({}), // Keep for compatibility
-      updatedAt: new Date()
+    // Save formation to Strategy model
+    await prisma.strategy.upsert({
+      where: { teamId: teamId },
+      update: {
+        formationJson: formation,
+        substitutionJson: {},
+        updatedAt: new Date()
+      },
+      create: {
+        teamId: teamId,
+        formationJson: formation,
+        substitutionJson: {},
+        createdAt: new Date(),
+        updatedAt: new Date()
+      }
     });
 
     res.json({ success: true, message: "Formation saved successfully" });
@@ -456,8 +467,13 @@ router.get('/:teamId/formation', isAuthenticated, async (req: any, res: Response
     // Get all team players
     const allPlayers = await storage.players.getPlayersByTeamId(teamId);
     
-    const formationData = team.formation ? JSON.parse(team.formation as string) : null;
-    const substitutionOrderData = team.substitutionOrder ? JSON.parse(team.substitutionOrder as string) : {};
+    // Load formation data from Strategy model
+    const strategy = await prisma.strategy.findUnique({
+      where: { teamId: teamId }
+    });
+    
+    const formationData = strategy?.formationJson || null;
+    const substitutionOrderData = strategy?.substitutionJson || {};
 
     let starters = [];
     let substitutes = [];
@@ -487,14 +503,26 @@ router.get('/:teamId/formation', isAuthenticated, async (req: any, res: Response
       starters = sortedPlayers.slice(0, Math.min(9, sortedPlayers.length));
       substitutes = sortedPlayers.slice(9);
 
-      // Save this default formation to the team
+      // Save this default formation to the Strategy model
       const defaultFormation = {
         starters: starters.map((p: any) => p.id),
         substitutes: substitutes.map((p: any) => p.id)
       };
       
-      await storage.teams.updateTeam(teamId, {
-        formation: JSON.stringify(defaultFormation)
+      await prisma.strategy.upsert({
+        where: { teamId: teamId },
+        update: {
+          formationJson: defaultFormation,
+          substitutionJson: {},
+          updatedAt: new Date()
+        },
+        create: {
+          teamId: teamId,
+          formationJson: defaultFormation,
+          substitutionJson: {},
+          createdAt: new Date(),
+          updatedAt: new Date()
+        }
       });
     }
 

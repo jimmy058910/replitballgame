@@ -289,17 +289,20 @@ export default function TacticsLineupHub({ teamId }: TacticsLineupHubProps) {
 
   // Find player by ID
   const findPlayerById = (id: string): Player | null => {
+    // Convert string ID to number for comparison
+    const numericId = parseInt(id);
+    
     // Check available players
-    let player = availablePlayers.find(p => p.id === id);
+    let player = availablePlayers.find(p => p.id === numericId);
     if (player) return player;
     
     // Check starters
-    const starterSlot = starterSlots.find(slot => slot.player?.id === id);
+    const starterSlot = starterSlots.find(slot => slot.player?.id === numericId);
     if (starterSlot?.player) return starterSlot.player as Player;
     
     // Check substitutes
     const allSubs = [...substitutes.blockers, ...substitutes.runners, ...substitutes.passers];
-    player = allSubs.find(p => p.id === id);
+    player = allSubs.find(p => p.id === numericId);
     if (player) return player;
     
     return null;
