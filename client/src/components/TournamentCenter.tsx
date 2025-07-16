@@ -91,8 +91,25 @@ const TournamentCenter: React.FC<TournamentCenterProps> = ({ teamId }) => {
   const [isBracketModalOpen, setIsBracketModalOpen] = useState(false);
 
   // Helper function to get placement text
-  const getPlacementText = (placement: number) => {
+  const getPlacementText = (placement: number, tournamentType?: string) => {
     if (!placement || placement === 0) return "Participated";
+    
+    // For Daily Divisional tournaments, use specific text
+    if (tournamentType === "DAILY_DIVISIONAL") {
+      switch (placement) {
+        case 1: return "1st Place";
+        case 2: return "2nd Place";
+        case 3: return "Eliminated in Semifinals";
+        case 4: return "Eliminated in Semifinals";
+        case 5: return "Eliminated in Quarterfinals";
+        case 6: return "Eliminated in Quarterfinals";
+        case 7: return "Eliminated in Quarterfinals";
+        case 8: return "Eliminated in Quarterfinals";
+        default: return `${placement}th Place`;
+      }
+    }
+    
+    // For Mid-Season Cup and other tournaments, use trophy text
     switch (placement) {
       case 1: return "🥇 Champion";
       case 2: return "🥈 Runner-up";
@@ -517,11 +534,12 @@ const TournamentCenter: React.FC<TournamentCenterProps> = ({ teamId }) => {
                         const dateStr = entry.entryTime || entry.registeredAt;
                         if (!dateStr) return 'N/A';
                         try {
-                          return new Date(dateStr).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+                          const date = new Date(dateStr);
+                          return date.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
                         } catch {
                           return 'N/A';
                         }
-                      })()} • {getPlacementText(entry.finalRank || entry.placement || 0)}
+                      })()} • {getPlacementText(entry.finalRank || entry.placement || 0, entry.tournament?.type)}
                     </p>
                   </div>
                   <div className="text-right">

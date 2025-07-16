@@ -324,8 +324,8 @@ class TournamentFlowServiceImpl implements TournamentFlowService {
       }
 
       // Determine winner and runner-up
-      const winner = finalsMatch.homeScore > finalsMatch.awayScore ? finalsMatch.homeTeam : finalsMatch.awayTeam;
-      const runnerUp = finalsMatch.homeScore > finalsMatch.awayScore ? finalsMatch.awayTeam : finalsMatch.homeTeam;
+      const winner = (finalsMatch.homeScore || 0) > (finalsMatch.awayScore || 0) ? finalsMatch.homeTeam : finalsMatch.awayTeam;
+      const runnerUp = (finalsMatch.homeScore || 0) > (finalsMatch.awayScore || 0) ? finalsMatch.awayTeam : finalsMatch.homeTeam;
 
       // Get tournament details for prize calculation
       const tournament = await prisma.tournament.findUnique({
@@ -404,7 +404,7 @@ class TournamentFlowServiceImpl implements TournamentFlowService {
       });
 
       for (const semifinalMatch of semifinalLosers) {
-        const loser = semifinalMatch.homeScore > semifinalMatch.awayScore ? semifinalMatch.awayTeamId : semifinalMatch.homeTeamId;
+        const loser = (semifinalMatch.homeScore || 0) > (semifinalMatch.awayScore || 0) ? semifinalMatch.awayTeamId : semifinalMatch.homeTeamId;
         await prisma.tournamentEntry.updateMany({
           where: {
             tournamentId: tournamentId,
@@ -424,7 +424,7 @@ class TournamentFlowServiceImpl implements TournamentFlowService {
       });
 
       for (const quarterMatch of quarterFinalMatches) {
-        const loser = quarterMatch.homeScore > quarterMatch.awayScore ? quarterMatch.awayTeamId : quarterMatch.homeTeamId;
+        const loser = (quarterMatch.homeScore || 0) > (quarterMatch.awayScore || 0) ? quarterMatch.awayTeamId : quarterMatch.homeTeamId;
         await prisma.tournamentEntry.updateMany({
           where: {
             tournamentId: tournamentId,
