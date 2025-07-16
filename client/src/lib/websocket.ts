@@ -39,6 +39,7 @@ export interface WebSocketCallbacks {
   onMatchResumed?: (data: { matchId: string }) => void;
   onError?: (error: { message: string }) => void;
   onConnectionStatus?: (connected: boolean) => void;
+  onSpectatorCountUpdate?: (count: number) => void;
 }
 
 class WebSocketManager {
@@ -96,6 +97,7 @@ class WebSocketManager {
     this.socket.on('joined_match', (data) => {
       console.log('🏟️ Joined match:', data);
       this.currentMatchId = data.matchId;
+      this.callbacks.onSpectatorCountUpdate?.(data.spectatorCount || 0);
     });
 
     this.socket.on('match_state_update', (matchState: LiveMatchState) => {

@@ -230,12 +230,37 @@ export default function Market() {
     },
   });
 
+  // Gem Exchange mutation
+  const gemExchangeMutation = useMutation({
+    mutationFn: (gemAmount: number) =>
+      apiRequest('/api/store/exchange-gems', 'POST', { gemAmount }),
+    onSuccess: (data, gemAmount) => {
+      toast({
+        title: "Gem Exchange Successful!",
+        description: `Exchanged ${gemAmount} gems for ${data.data.creditsReceived.toLocaleString()} credits.`,
+      });
+      queryClient.invalidateQueries({ queryKey: ["/api/teams"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/teams/" + rawTeam?.id + "/finances"] });
+    },
+    onError: () => {
+      toast({
+        title: "Exchange Failed",
+        description: "Not enough gems or transaction failed.",
+        variant: "destructive",
+      });
+    },
+  });
+
   const handlePurchase = (itemId: string, currency: 'gems' | 'credits') => {
     if (currency === 'gems') {
       purchaseWithGemsMutation.mutate(itemId);
     } else {
       purchaseWithCreditsMutation.mutate(itemId);
     }
+  };
+
+  const handleGemExchange = (gems: number, credits: number) => {
+    gemExchangeMutation.mutate(gems);
   };
 
   return (
@@ -779,6 +804,123 @@ export default function Market() {
                     <p className="text-gray-400 text-sm mt-2">Check back later for gem purchase options</p>
                   </div>
                 )}
+              </CardContent>
+            </Card>
+            
+            {/* Gem Exchange Section */}
+            <Card className="mt-6">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Coins className="h-5 w-5" />
+                  Gem Exchange
+                </CardTitle>
+                <p className="text-sm text-gray-600 dark:text-gray-400">
+                  Exchange your gems for credits at competitive rates
+                </p>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                  {/* 10 Gems -> 4,000 Credits */}
+                  <Card className="border-2 border-green-200 hover:border-green-300 transition-colors">
+                    <CardHeader className="text-center pb-3">
+                      <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-2">
+                        <Gem className="w-5 h-5 text-green-600" />
+                      </div>
+                      <CardTitle className="text-lg">Starter Pack</CardTitle>
+                    </CardHeader>
+                    <CardContent className="text-center space-y-3">
+                      <div className="text-2xl font-bold text-green-600">₡4,000</div>
+                      <div className="text-lg font-semibold text-gray-700">for 10 💎</div>
+                      <div className="text-sm text-gray-500">Rate: 1:400</div>
+                      <Button 
+                        className="w-full bg-green-600 hover:bg-green-700"
+                        onClick={() => handleGemExchange(10, 4000)}
+                        disabled={!teamFinances || (teamFinances.gems || 0) < 10}
+                      >
+                        Exchange
+                      </Button>
+                    </CardContent>
+                  </Card>
+
+                  {/* 50 Gems -> 22,500 Credits */}
+                  <Card className="border-2 border-blue-200 hover:border-blue-300 transition-colors">
+                    <CardHeader className="text-center pb-3">
+                      <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-2">
+                        <Gem className="w-5 h-5 text-blue-600" />
+                      </div>
+                      <CardTitle className="text-lg">Value Pack</CardTitle>
+                    </CardHeader>
+                    <CardContent className="text-center space-y-3">
+                      <div className="text-2xl font-bold text-blue-600">₡22,500</div>
+                      <div className="text-lg font-semibold text-gray-700">for 50 💎</div>
+                      <div className="text-sm text-gray-500">Rate: 1:450</div>
+                      <Button 
+                        className="w-full bg-blue-600 hover:bg-blue-700"
+                        onClick={() => handleGemExchange(50, 22500)}
+                        disabled={!teamFinances || (teamFinances.gems || 0) < 50}
+                      >
+                        Exchange
+                      </Button>
+                    </CardContent>
+                  </Card>
+
+                  {/* 300 Gems -> 150,000 Credits */}
+                  <Card className="border-2 border-purple-200 hover:border-purple-300 transition-colors">
+                    <CardHeader className="text-center pb-3">
+                      <div className="w-10 h-10 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-2">
+                        <Gem className="w-5 h-5 text-purple-600" />
+                      </div>
+                      <CardTitle className="text-lg">Premium Pack</CardTitle>
+                    </CardHeader>
+                    <CardContent className="text-center space-y-3">
+                      <div className="text-2xl font-bold text-purple-600">₡150,000</div>
+                      <div className="text-lg font-semibold text-gray-700">for 300 💎</div>
+                      <div className="text-sm text-gray-500">Rate: 1:500</div>
+                      <Button 
+                        className="w-full bg-purple-600 hover:bg-purple-700"
+                        onClick={() => handleGemExchange(300, 150000)}
+                        disabled={!teamFinances || (teamFinances.gems || 0) < 300}
+                      >
+                        Exchange
+                      </Button>
+                    </CardContent>
+                  </Card>
+
+                  {/* 1,000 Gems -> 550,000 Credits */}
+                  <Card className="border-2 border-orange-200 hover:border-orange-300 transition-colors">
+                    <CardHeader className="text-center pb-3">
+                      <div className="w-10 h-10 bg-orange-100 rounded-full flex items-center justify-center mx-auto mb-2">
+                        <Gem className="w-5 h-5 text-orange-600" />
+                      </div>
+                      <CardTitle className="text-lg">Elite Pack</CardTitle>
+                    </CardHeader>
+                    <CardContent className="text-center space-y-3">
+                      <div className="text-2xl font-bold text-orange-600">₡550,000</div>
+                      <div className="text-lg font-semibold text-gray-700">for 1,000 💎</div>
+                      <div className="text-sm text-gray-500">Rate: 1:550</div>
+                      <Button 
+                        className="w-full bg-orange-600 hover:bg-orange-700"
+                        onClick={() => handleGemExchange(1000, 550000)}
+                        disabled={!teamFinances || (teamFinances.gems || 0) < 1000}
+                      >
+                        Exchange
+                      </Button>
+                    </CardContent>
+                  </Card>
+                </div>
+                
+                <div className="mt-6 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                  <div className="flex items-center gap-2 mb-2">
+                    <Coins className="h-5 w-5 text-gray-600" />
+                    <h3 className="font-semibold text-gray-700 dark:text-gray-300">Exchange Information</h3>
+                  </div>
+                  <ul className="text-sm text-gray-600 dark:text-gray-400 space-y-1">
+                    <li>• Higher gem amounts offer better exchange rates</li>
+                    <li>• All exchanges are permanent and cannot be reversed</li>
+                    <li>• Your current gems: {(teamFinances?.gems || 0).toLocaleString()} 💎</li>
+                    <li>• Your current credits: {(teamFinances?.credits || 0).toLocaleString()} ₡</li>
+                  </ul>
+                </div>
               </CardContent>
             </Card>
           </TabsContent>

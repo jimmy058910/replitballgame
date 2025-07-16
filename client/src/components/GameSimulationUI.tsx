@@ -56,6 +56,7 @@ export function GameSimulationUI({ matchId, userId, team1, team2, initialLiveSta
   const [isLoading, setIsLoading] = useState(true);
   const [events, setEvents] = useState<MatchEvent[]>([]);
   const [isControlling, setIsControlling] = useState(false);
+  const [spectatorCount, setSpectatorCount] = useState(0);
   const eventsEndRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
   const logRef = useRef<HTMLDivElement>(null);
@@ -155,6 +156,9 @@ export function GameSimulationUI({ matchId, userId, team1, team2, initialLiveSta
                 duration: 2000,
               });
             }
+          },
+          onSpectatorCountUpdate: (count: number) => {
+            setSpectatorCount(count);
           },
           onError: (error) => {
             console.error('🔥 GameSimulationUI: WebSocket error:', error);
@@ -436,6 +440,12 @@ export function GameSimulationUI({ matchId, userId, team1, team2, initialLiveSta
               <span>Home Advantage</span>
               <span>+{attendanceData.homeFieldAdvantage}</span>
             </div>
+            {spectatorCount > 0 && (
+              <div className="flex justify-between text-sm border-t pt-2">
+                <span>Live Spectators</span>
+                <span>{spectatorCount}</span>
+              </div>
+            )}
           </CardContent>
         </Card>
       </div>

@@ -1,0 +1,74 @@
+Stadium & Financial Mechanics
+This section details the core income and expenses that drive a team's economy.
+
+A. Fan Attendance Algorithm
+Attendance for home games is dynamic and crucial for income. It's calculated on a per-game basis.
+Formula: Attendance = BaseCapacity * DivisionModifier * FanLoyaltyModifier * WinStreakModifier
+
+Base Capacity: The current seat capacity of your stadium.
+
+Division Modifier: Fans are more interested in higher-level play.
+Div 1: 1.2x | Div 2: 1.1x | Div 3: 1.05x | Div 4: 1.0x | Div 5: 0.95x | Div 6: 0.9x | Div 7: 0.85x | Div 8: 0.8x
+
+Fan Loyalty Modifier (0.75x to 1.25x): A persistent stat (0-100%) representing fan happiness. It increases with wins and stadium improvements (Lighting/Screens) and decays with losses or long periods of inactivity.
+
+Win Streak Modifier (1.0x to 1.5x): A temporary boost for exciting play.
+3-game streak: 1.1x | 5-game streak: 1.25x | 8+ game streak: 1.5x. Resets on loss.
+
+B. Income Streams (Calculated Per Home Game Day)
+Income Source
+Calculation Formula
+Notes
+Ticket Sales
+GameAttendance * 25 ₡
+Your primary income driver.
+Concessions
+GameAttendance * 8 ₡ * ConcessionsLevel
+Higher levels mean more options and more spending per fan.
+Parking
+(GameAttendance * 0.3) * 10 ₡ * ParkingLevel
+Assumes 30% of attendees need parking.
+VIP Suites
+VIPSuitesLevel * 5000 ₡
+High-margin, premium income. Independent of attendance.
+Apparel Sales
+GameAttendance * 3 ₡ * MerchandisingLevel
+More fans means more jersey sales.
+
+C. Expense Categories
+Player & Staff Salaries: The largest fixed expense. Paid as a lump sum on Day 1 of each 17-day season. See Section 4 for details.
+Facilities Maintenance: A daily fee of 0.2% of the total credits invested in all stadium upgrades.
+Marketplace Listing Fee: 2% of a player's asking price, charged upon listing.
+
+D. Stadium & Facility Upgrades
+Upgrades are significant credit sinks that provide long-term income boosts. Costs scale exponentially.
+Upgrade
+Level 1 Cost (₡)
+Cost Formula (per level)
+Effect
+Capacity Expansion
+50,000
+CurrentCapacity * 10
+Increases seat capacity by 5,000.
+Premium Concessions
+30,000
+BaseCost * (1.5^(Lvl-1))
+Increases ConcessionsLevel by 1.
+Expand Parking
+25,000
+BaseCost * (1.5^(Lvl-1))
+Increases ParkingLevel by 1.
+VIP Suites
+100,000
+BaseCost * (2^(Lvl-1))
+Increases VIPSuitesLevel by 1. (High cost, high reward)
+Merchandising Kiosk
+40,000
+BaseCost * (1.5^(Lvl-1))
+Increases MerchandisingLevel by 1.
+Lighting/Screens
+60,000
+BaseCost * (1.8^(Lvl-1))
+Increases base Fan Loyalty gain per season by 5%.
+
+Need to be sure the upgrade system, buttons, functions, and UI is all easy to use, follow, and upgrade, and test that it integrates into the game fully as intended
