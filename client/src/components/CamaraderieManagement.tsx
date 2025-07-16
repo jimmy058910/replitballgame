@@ -270,6 +270,7 @@ export default function CamaraderieManagement({ teamId }: { teamId: string }) {
                     <Star className="w-5 h-5 text-yellow-500" />
                     Top Performers
                   </CardTitle>
+                  <div className="text-sm text-gray-400">Players with highest team chemistry</div>
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-3">
@@ -279,14 +280,14 @@ export default function CamaraderieManagement({ teamId }: { teamId: string }) {
                           <div className="w-2 h-2 bg-green-500 rounded-full"></div>
                           <div>
                             <div className="font-medium">{player.firstName} {player.lastName}</div>
-                            <div className="text-xs text-gray-400">{player.role} • Age {player.age}</div>
+                            <div className="text-xs text-gray-400">{player.role?.toLowerCase().replace(/^\w/, c => c.toUpperCase()) || 'Unknown'} • Age {player.age}</div>
                           </div>
                         </div>
                         <div className="text-right">
                           <div className={`font-medium ${getCamaraderieColor(player.camaraderie)}`}>
                             {player.camaraderie}
                           </div>
-                          <div className="text-xs text-gray-400">Camaraderie</div>
+                          <div className="text-xs text-gray-400">Team Chemistry</div>
                         </div>
                       </div>
                     ))}
@@ -312,14 +313,14 @@ export default function CamaraderieManagement({ teamId }: { teamId: string }) {
                           <div className="w-2 h-2 bg-red-500 rounded-full"></div>
                           <div>
                             <div className="font-medium">{player.firstName} {player.lastName}</div>
-                            <div className="text-xs text-gray-400">{player.role} • Age {player.age}</div>
+                            <div className="text-xs text-gray-400">{player.role?.toLowerCase().replace(/^\w/, c => c.toUpperCase()) || 'Unknown'} • Age {player.age}</div>
                           </div>
                         </div>
                         <div className="text-right">
                           <div className={`font-medium ${getCamaraderieColor(player.camaraderie)}`}>
                             {player.camaraderie}
                           </div>
-                          <div className="text-xs text-gray-400">Camaraderie</div>
+                          <div className="text-xs text-gray-400">Team Chemistry</div>
                         </div>
                       </div>
                     ))}
@@ -346,14 +347,14 @@ export default function CamaraderieManagement({ teamId }: { teamId: string }) {
                           }`}></div>
                           <div>
                             <div className="font-medium">{player.firstName} {player.lastName}</div>
-                            <div className="text-xs text-gray-400">{player.role} • {player.race} • Age {player.age}</div>
+                            <div className="text-xs text-gray-400">{player.role?.toLowerCase().replace(/^\w/, c => c.toUpperCase()) || 'Unknown'} • {player.race?.toLowerCase().replace(/^\w/, c => c.toUpperCase()) || 'Unknown'} • Age {player.age}</div>
                           </div>
                         </div>
                         <div className="text-right">
                           <div className={`font-medium ${getCamaraderieColor(player.camaraderie)}`}>
                             {player.camaraderie}
                           </div>
-                          <Progress value={player.camaraderie} className="w-16 mt-1" />
+                          <div className="text-xs text-gray-400">Team Chemistry</div>
                         </div>
                       </div>
                     ))}
