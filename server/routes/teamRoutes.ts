@@ -57,6 +57,13 @@ router.post('/', isAuthenticated, asyncHandler(async (req: any, res: Response) =
     throw ErrorCreators.conflict("User already has a team");
   }
 
+  // Check NDA acceptance for pre-alpha testing
+  const userStorage = await import('../storage/userStorage');
+  const ndaAccepted = await userStorage.userStorage.checkNDAAcceptance(userId);
+  if (!ndaAccepted) {
+    throw ErrorCreators.forbidden("You must accept the Non-Disclosure Agreement to participate in pre-alpha testing");
+  }
+
   // Use the sanitized name from validation
   const sanitizedName = validationResult.sanitizedName || name;
 

@@ -23,6 +23,11 @@ model UserProfile {
   referredBy        String?
   redeemedCodes     RedeemCodeRecord[]
   adRewardMilestone AdRewardMilestone? // <<<< ADDED THIS RELATION
+  
+  // NDA Acceptance Fields for Pre-Alpha
+  ndaAccepted       Boolean             @default(false)
+  ndaAcceptedAt     DateTime?
+  ndaVersion        String?             @default("1.0")
 }
 
 model Session {

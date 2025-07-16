@@ -12,6 +12,7 @@ import UnifiedPlayerCard from "@/components/UnifiedPlayerCard";
 import { TeamNameInput } from "@/components/TeamNameInput";
 import PlayerDetailModal from "@/components/PlayerDetailModal";
 import { TermsAcceptance } from "@/components/TermsOfService";
+import { NDAAcceptance } from "@/components/NDAAcceptance";
 import LeagueStandings from "@/components/LeagueStandings";
 import { apiRequest } from "@/lib/queryClient";
 import { Bell, Shield, Calendar, Users as UsersIcon } from "lucide-react"; // Added UsersIcon
@@ -587,6 +588,7 @@ function TeamCreationForm() {
   const [sanitizedName, setSanitizedName] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [termsAccepted, setTermsAccepted] = useState(false);
+  const [ndaAccepted, setNdaAccepted] = useState(false);
 
   const handleValidationChange = (valid: boolean, sanitized?: string) => {
     setIsValid(valid);
@@ -609,6 +611,15 @@ function TeamCreationForm() {
       toast({
         title: "Terms of Service Required",
         description: "You must accept the Terms of Service and End-User License Agreement to create an account.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (!ndaAccepted) {
+      toast({
+        title: "NDA Required",
+        description: "You must accept the Non-Disclosure Agreement to participate in the pre-alpha testing phase.",
         variant: "destructive",
       });
       return;
@@ -671,10 +682,14 @@ function TeamCreationForm() {
             accepted={termsAccepted}
             onAcceptanceChange={setTermsAccepted}
           />
+          <NDAAcceptance 
+            accepted={ndaAccepted}
+            onAcceptanceChange={setNdaAccepted}
+          />
           <Button 
             type="submit" 
             className="w-full bg-primary-600 hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed"
-            disabled={!isValid || !termsAccepted || isSubmitting}
+            disabled={!isValid || !termsAccepted || !ndaAccepted || isSubmitting}
           >
             {isSubmitting ? "Creating Team..." : "Create Team"}
           </Button>

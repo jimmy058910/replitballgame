@@ -25,6 +25,28 @@ export class UserStorage {
     });
   }
 
+  async acceptNDA(userId: string, ndaVersion: string = "1.0"): Promise<UserProfile> {
+    // Records NDA acceptance for a user
+    return prisma.userProfile.update({
+      where: { userId: userId },
+      data: {
+        ndaAccepted: true,
+        ndaAcceptedAt: new Date(),
+        ndaVersion: ndaVersion,
+      },
+    });
+  }
+
+  async checkNDAAcceptance(userId: string): Promise<boolean> {
+    // Checks if a user has accepted the NDA
+    const user = await prisma.userProfile.findUnique({
+      where: { userId: userId },
+      select: { ndaAccepted: true },
+    });
+    
+    return user?.ndaAccepted || false;
+  }
+
   async getUserByEmail(email: string): Promise<UserProfile | null> {
     if (!email) return null;
     // Fetches a user profile by their email, assuming email is unique as per schema

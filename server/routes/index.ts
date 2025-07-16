@@ -45,6 +45,7 @@ import tryoutRoutes from "./tryoutRoutes";
 import lateSignupRoutes from "./lateSignupRoutes";
 import tournamentStatusRoutes from "./tournamentStatusRoutes";
 import demoRoutes from "./demoRoutes";
+import ndaRoutes from "./ndaRoutes";
 
 // This function will be called by server/index.ts to set up all routes.
 // It replaces the direct app.use calls that would have been in server/index.ts
@@ -101,6 +102,7 @@ export function registerAllRoutes(app: Express): void {
   app.use("/api/late-signup", lateSignupRoutes);
   app.use("/api/tournament-status", tournamentStatusRoutes); // Covers late signup system for shortened Division 8 seasons
   app.use("/api/demo", demoRoutes); // Demo endpoints using real match simulation
+  app.use("/api/nda", ndaRoutes); // NDA acceptance endpoints for pre-alpha testing
 
   // Reminder: The original server/routes.ts also contained helper functions and Stripe init.
   // Stripe init is now in paymentRoutes.ts.
