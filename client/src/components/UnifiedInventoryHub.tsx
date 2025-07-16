@@ -239,7 +239,7 @@ export default function UnifiedInventoryHub({ teamId }: UnifiedInventoryHubProps
       "Basic Medical Kit": "Heals 25 Injury Recovery Points",
       "Advanced Treatment": "Heals 50 Injury Recovery Points",
       "Phoenix Elixir": "Fully heals any injury",
-      "Basic Stamina Drink": "Restores 20 daily stamina",
+      "Basic Stamina Drink": "Restores 25% stamina",
       "Advanced Recovery Serum": "Restores 50% stamina",
       "Speed Boost Tonic": "+3 Speed for one match",
       "Power Surge Potion": "+3 Power for one match",
@@ -260,11 +260,11 @@ export default function UnifiedInventoryHub({ teamId }: UnifiedInventoryHubProps
           itemName: item.name
         });
       } else if (action === "use_recovery") {
-        return apiRequest(`/api/injury-stamina/use-item`, "POST", {
-          playerId,
+        return apiRequest(`/api/injury-stamina/player/${playerId}/use-item`, "POST", {
           itemType: item.name.includes("stamina") ? "stamina" : "injury",
           effectValue: item.name.includes("phoenix") ? 100 : 
-                       item.name.includes("advanced") ? 50 : 25
+                       item.name.includes("advanced") ? 50 : 25,
+          itemName: item.name
         });
       } else if (action === "activate_boost") {
         // This would be for individual player boosts (not team boosts)
@@ -282,6 +282,7 @@ export default function UnifiedInventoryHub({ teamId }: UnifiedInventoryHubProps
       queryClient.invalidateQueries({ queryKey: [`/api/inventory/${teamId}`] });
       if (variables.action === "use_recovery") {
         queryClient.invalidateQueries({ queryKey: [`/api/teams/${teamId}/players`] });
+        queryClient.invalidateQueries({ queryKey: ['/api/injury-stamina/team', teamId, 'status'] });
       }
       if (variables.action === "use_team_boost") {
         queryClient.invalidateQueries({ queryKey: [`/api/teams/${teamId}/active-boosts`] });
@@ -397,10 +398,9 @@ export default function UnifiedInventoryHub({ teamId }: UnifiedInventoryHubProps
       // For stamina items, filter out players with full stamina
       if (item.name.toLowerCase().includes("stamina") || item.name.toLowerCase().includes("energy") || item.name.toLowerCase().includes("recovery")) {
         return players.filter(p => {
-          const currentStamina = p.stamina || p.staminaAttribute;
-          const maxStamina = p.staminaAttribute || 100;
-          // Only show players who don't have full stamina (stamina is null means full stamina)
-          return p.stamina !== null && currentStamina < maxStamina;
+          const currentStamina = p.dailyStaminaLevel;
+          // Only show players who don't have full stamina (null means full stamina)
+          return currentStamina !== null && currentStamina < 100;
         });
       }
       
