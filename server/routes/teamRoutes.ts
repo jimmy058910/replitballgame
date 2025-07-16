@@ -991,19 +991,8 @@ router.get('/:teamId/taxi-squad', isAuthenticated, asyncHandler(async (req: any,
     throw ErrorCreators.notFound("Team not found");
   }
 
-  // Get taxi squad players using Prisma - players with isOnTaxi = true
-  const taxiSquadPlayers = await prisma.player.findMany({
-    where: { 
-      teamId: team.id,
-      // Note: Prisma schema doesn't seem to have isOnTaxi field, so using our current logic
-      // We'll identify taxi players as those beyond the first 12 players ordered by creation
-    },
-    orderBy: { createdAt: 'asc' }
-  });
-
-  // Consider players beyond the first 12 as taxi squad (teams now start with 12 players)
-  const allPlayers = taxiSquadPlayers;
-  const actualTaxiSquadPlayers = allPlayers.slice(12);
+  // Get taxi squad players using the new storage method
+  const actualTaxiSquadPlayers = await storage.players.getTaxiSquadPlayersByTeamId(team.id);
 
   logInfo("Taxi squad retrieved", {
     teamId: team.id,

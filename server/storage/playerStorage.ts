@@ -64,11 +64,24 @@ export class PlayerStorage {
   }
 
   async getPlayersByTeamId(teamId: number): Promise<Player[]> {
-    // Typically, you'd fetch non-marketplace players for a team's roster
-    const players = await prisma.player.findMany({
+    // First get all players for this team to determine taxi squad
+    const allPlayers = await prisma.player.findMany({
       where: {
         teamId: parseInt(teamId.toString()),
         isOnMarket: false
+      },
+      orderBy: { createdAt: 'asc' }
+    });
+
+    // Only return first 12 players (main roster) - exclude taxi squad players
+    const mainRosterPlayerIds = allPlayers.slice(0, 12).map(p => p.id);
+    
+    // Get full player data for main roster only
+    const players = await prisma.player.findMany({
+      where: {
+        teamId: parseInt(teamId.toString()),
+        isOnMarket: false,
+        id: { in: mainRosterPlayerIds }
       },
       include: {
         team: { select: { name: true } },
@@ -79,6 +92,41 @@ export class PlayerStorage {
     });
 
     return players;
+  }
+
+  async getTaxiSquadPlayersByTeamId(teamId: number): Promise<Player[]> {
+    // First get all players for this team to determine taxi squad
+    const allPlayers = await prisma.player.findMany({
+      where: {
+        teamId: parseInt(teamId.toString()),
+        isOnMarket: false
+      },
+      orderBy: { createdAt: 'asc' }
+    });
+
+    // Only return players beyond the first 12 (taxi squad players)
+    const taxiSquadPlayerIds = allPlayers.slice(12).map(p => p.id);
+    
+    if (taxiSquadPlayerIds.length === 0) {
+      return [];
+    }
+
+    // Get full player data for taxi squad only
+    const taxiSquadPlayers = await prisma.player.findMany({
+      where: {
+        teamId: parseInt(teamId.toString()),
+        isOnMarket: false,
+        id: { in: taxiSquadPlayerIds }
+      },
+      include: {
+        team: { select: { name: true } },
+        contract: true,
+        skills: { include: { skill: true } }
+      },
+      orderBy: { firstName: 'asc' }
+    });
+
+    return taxiSquadPlayers;
   }
 
   async getAllPlayersByTeamId(teamId: number): Promise<Player[]> {

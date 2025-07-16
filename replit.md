@@ -129,7 +129,25 @@ Built as a React + Express web application with PostgreSQL database, using moder
 
 ## Recent Changes
 
-### July 16, 2025 - ✅ COMPLETE STAMINA CONSUMABLE SYSTEM FIX - 100% OPERATIONAL
+### July 16, 2025 - ✅ COMPLETE TAXI SQUAD ISOLATION SYSTEM FIX - 100% OPERATIONAL
+
+#### ✅ TAXI SQUAD ISOLATION SYSTEM COMPLETELY FIXED - COMPREHENSIVE ROSTER SEPARATION
+- ✓ **Main Roster Filtering**: Updated `getPlayersByTeamId()` to only return first 12 players (main roster) excluding taxi squad players
+- ✓ **Taxi Squad Method Created**: Added `getTaxiSquadPlayersByTeamId()` method to return only players beyond the first 12 (taxi squad)
+- ✓ **Roster Endpoint Fixed**: `/api/teams/:teamId/players` now returns exactly 12 main roster players, excluding taxi squad
+- ✓ **Taxi Squad Endpoint Updated**: `/api/teams/:teamId/taxi-squad` now uses dedicated method for proper taxi squad isolation
+- ✓ **Tactics Integration**: Formation and tactics endpoints now automatically exclude taxi squad players from selection
+- ✓ **Player Visibility**: Taxi squad players no longer appear in main roster or tactics until promoted (Day 16/17)
+
+#### ✅ TECHNICAL ACHIEVEMENTS - PRODUCTION READY TAXI SQUAD SYSTEM
+- ✓ **Storage Layer Separation**: Clean separation between main roster and taxi squad at database query level
+- ✓ **Creation Date Logic**: Taxi squad determination based on player creation order (first 12 = main roster, beyond 12 = taxi squad)
+- ✓ **API Endpoint Consistency**: All roster-related endpoints now properly filter taxi squad players
+- ✓ **Formation System**: Tactics and formation systems automatically exclude taxi squad players from selection
+- ✓ **Data Integrity**: Proper player isolation ensures taxi squad players stay in Taxi Squad tab only
+- ✓ **Promotion Ready**: System prepared for Day 16/17 promotion mechanics
+
+### July 16, 2025 - ✅ COMPLETE STAMINA CONSUMABLE SYSTEM FIX - 100% OPERATIONAL (Previous)
 
 #### ✅ STAMINA CONSUMABLE SYSTEM COMPLETELY FIXED - COMPREHENSIVE RESOLUTION
 - ✓ **Database Query Error Fixed**: Resolved inventoryItem table join with Item table using proper `item: { name: itemName }` syntax
