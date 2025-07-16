@@ -13,7 +13,9 @@ const router = Router();
 router.get('/live', isAuthenticated, async (req: Request, res: Response, next: NextFunction) => {
   try {
     // Get user's team ID from the authenticated user
-    const userTeam = await storage.teams.getTeamByUserId((req as any).user.userId);
+    const userId = (req as any).user.claims?.sub || (req as any).user.userId;
+    
+    const userTeam = await storage.teams.getTeamByUserId(userId);
     const teamId = userTeam?.id;
     
     // Only get live matches for the user's team
