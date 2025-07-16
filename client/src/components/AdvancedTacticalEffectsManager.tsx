@@ -145,7 +145,7 @@ export default function AdvancedTacticalEffectsManager({ teamId }: { teamId: str
   // Update field size mutation
   const updateFieldSizeMutation = useMutation({
     mutationFn: (fieldSize: string) =>
-      apiRequest(`/api/advanced-tactical-effects/field-size/${teamId}`, 'PUT', { fieldSize }),
+      apiRequest('/api/tactics/update-field-size', 'POST', { fieldSize: fieldSize.toLowerCase() }),
     onSuccess: () => {
       toast({
         title: 'Field Size Updated',
@@ -164,8 +164,11 @@ export default function AdvancedTacticalEffectsManager({ teamId }: { teamId: str
 
   // Update tactical focus mutation
   const updateTacticalFocusMutation = useMutation({
-    mutationFn: (tacticalFocus: string) =>
-      apiRequest(`/api/advanced-tactical-effects/tactical-focus/${teamId}`, 'PUT', { tacticalFocus }),
+    mutationFn: (tacticalFocus: string) => {
+      // Convert frontend values to server format
+      const serverFormat = tacticalFocus.toLowerCase().replace(/[^a-z0-9]/g, '_').replace(/__+/g, '_');
+      return apiRequest('/api/tactics/update-tactical-focus', 'POST', { tacticalFocus: serverFormat });
+    },
     onSuccess: () => {
       toast({
         title: 'Tactical Focus Updated',

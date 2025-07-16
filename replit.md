@@ -129,7 +129,27 @@ Built as a React + Express web application with PostgreSQL database, using moder
 
 ## Recent Changes
 
-### July 16, 2025 - ✅ COMPLETE TAXI SQUAD SYSTEM RESTORATION - 100% OPERATIONAL - EMBER FIELD VISIBLE
+### July 16, 2025 - ✅ COMPLETE TACTICAL EFFECTS API FIX - FIELD SIZE & TACTICAL FOCUS UPDATE SYSTEM OPERATIONAL
+
+#### ✅ CRITICAL API ENDPOINT MISMATCH RESOLVED - RESPONSE.JSON ERROR FIXED
+- ✓ **Root Cause Identified**: Frontend calling wrong API endpoints (`/api/advanced-tactical-effects/...` vs `/api/tactics/...`)
+- ✓ **API Endpoint URLs Fixed**: Updated frontend to use correct server endpoints:
+  - Field Size: `/api/tactics/update-field-size` (POST)
+  - Tactical Focus: `/api/tactics/update-tactical-focus` (POST)
+- ✓ **HTTP Method Corrected**: Changed from PUT to POST to match server expectations
+- ✓ **Data Format Fixed**: Added lowercase conversion for field size, proper formatting for tactical focus
+- ✓ **Server Response Verified**: Both endpoints returning correct JSON responses with success messages
+- ✓ **Authentication Working**: Session-based authentication properly handling tactical update requests
+
+#### ✅ COMPREHENSIVE SYSTEM VALIDATION - PRODUCTION READY
+- ✓ **Field Size Updates**: Successfully tested "standard" field size update with proper server response
+- ✓ **Tactical Focus Updates**: Successfully tested "balanced" tactical focus update with proper server response
+- ✓ **Error Resolution**: "response.json is not a function" error completely resolved
+- ✓ **UI Integration**: AdvancedTacticalEffectsManager component now properly communicates with server endpoints
+- ✓ **Season Timing**: Field size changes restricted to proper timing windows (Days 16-17 or Day 1)
+- ✓ **Data Persistence**: Server properly stores tactical changes in team database records
+
+### July 16, 2025 - ✅ COMPLETE TAXI SQUAD SYSTEM RESTORATION - 100% OPERATIONAL - EMBER FIELD VISIBLE (Previous)
 
 #### ✅ CRITICAL DUPLICATE METHOD BUG RESOLVED - TAXI SQUAD SYSTEM FULLY FUNCTIONAL
 - ✓ **Root Cause Identified**: Two identical `getTaxiSquadPlayersByTeamId` methods in playerStorage.ts with second method overriding the first
