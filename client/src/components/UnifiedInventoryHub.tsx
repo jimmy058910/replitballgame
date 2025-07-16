@@ -769,13 +769,13 @@ export default function UnifiedInventoryHub({ teamId }: UnifiedInventoryHubProps
                           </SelectTrigger>
                           <SelectContent className="bg-gray-700 border-gray-600">
                             {getEligiblePlayers(selectedItem).map((player) => {
-                              const currentStamina = player.stamina || player.staminaAttribute;
-                              const maxStamina = player.staminaAttribute || 100;
-                              const staminaPercentage = Math.round((currentStamina / maxStamina) * 100);
+                              const currentStamina = player.dailyStaminaLevel || 100;
+                              const maxStamina = 100;
+                              const staminaPercentage = Math.round(currentStamina);
                               
                               return (
                                 <SelectItem key={player.id} value={player.id} className="text-white">
-                                  {player.firstName} {player.lastName} - {currentStamina}/{maxStamina} ({staminaPercentage}%)
+                                  {player.firstName} {player.lastName} - {currentStamina}/100 ({staminaPercentage}%)
                                 </SelectItem>
                               );
                             })}
