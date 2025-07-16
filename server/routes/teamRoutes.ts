@@ -1517,7 +1517,7 @@ router.get("/:teamId/active-boosts", isAuthenticated, asyncHandler(async (req, r
     playerId: boost.playerId?.toString() || null,
     itemId: boost.itemId.toString(),
     itemName: boost.item.name,
-    effect: boost.item.metadata?.effect || boost.item.effect,
+    effect: boost.item.effectValue?.effect || boost.item.metadata?.effect || boost.item.effect,
     matchType: boost.matchType,
     isActive: boost.isActive,
     appliedAt: boost.appliedAt

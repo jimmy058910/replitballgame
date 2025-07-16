@@ -320,6 +320,34 @@ export default function UnifiedInventoryHub({ teamId }: UnifiedInventoryHubProps
     }
   };
 
+  // Calculate cumulative team boost effects
+  const calculateCumulativeBoosts = (boosts: any[]) => {
+    const cumulativeStats = {
+      leadership: 0,
+      power: 0,
+      agility: 0,
+      stamina: 0,
+      throwing: 0,
+      catching: 0,
+      kicking: 0,
+      speed: 0
+    };
+
+    boosts.forEach(boost => {
+      const effect = boost.effect || boost.itemName;
+      // Parse effects like "team_agility_5", "team_power_3", etc.
+      const match = effect.match(/team_(\w+)_(\d+)/);
+      if (match) {
+        const [, stat, value] = match;
+        if (stat in cumulativeStats) {
+          cumulativeStats[stat as keyof typeof cumulativeStats] += parseInt(value);
+        }
+      }
+    });
+
+    return cumulativeStats;
+  };
+
   // Check if an item is a team boost (affects whole team, not individual players)
   const isTeamBoost = (item: InventoryItem) => {
     const effect = item.effect || item.metadata?.effect;
@@ -581,6 +609,23 @@ export default function UnifiedInventoryHub({ teamId }: UnifiedInventoryHubProps
                   <p className="text-xs text-blue-300">
                     {3 - activeBoosts.length} boost slot{3 - activeBoosts.length !== 1 ? 's' : ''} remaining for your next match
                   </p>
+                </div>
+              )}
+
+              {/* Cumulative Boost Summary */}
+              {activeBoosts.length > 0 && (
+                <div className="mt-4 p-3 bg-green-900/20 rounded-lg border border-green-600">
+                  <p className="text-xs text-green-300 font-medium mb-2">💪 Total Team Boosts:</p>
+                  <div className="grid grid-cols-2 gap-1 text-xs">
+                    {Object.entries(calculateCumulativeBoosts(activeBoosts)).map(([stat, value]) => (
+                      value > 0 && (
+                        <div key={stat} className="flex justify-between text-green-200">
+                          <span>{stat.charAt(0).toUpperCase() + stat.slice(1)}:</span>
+                          <span className="font-medium text-green-100">+{value}</span>
+                        </div>
+                      )
+                    ))}
+                  </div>
                 </div>
               )}
             </CardContent>
