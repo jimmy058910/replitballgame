@@ -29,6 +29,9 @@ interface TacticalSetup {
   tacticalFocus: 'Balanced' | 'All-Out Attack' | 'Defensive Wall';
   canChangeField: boolean;
   nextFieldChangeWindow: string | null;
+  fieldSizeInfo?: FieldSizeEffects;
+  tacticalFocusInfo?: TacticalFocusEffects;
+  canChangeFieldSize?: boolean;
 }
 
 interface FieldSizeEffects {
@@ -68,6 +71,14 @@ interface EffectivenessAnalysis {
     runners: number;
     blockers: number;
   };
+  bestSetup?: {
+    overallEffectiveness: number;
+  }
+}
+
+interface TacticalOptions {
+    fieldSizes: Record<string, FieldSizeEffects>;
+    tacticalFoci: Record<string, TacticalFocusEffects>;
 }
 
 interface MatchEffects {
@@ -115,18 +126,18 @@ export default function AdvancedTacticalEffectsManager({ teamId }: { teamId: str
   const [selectedTacticalFocus, setSelectedTacticalFocus] = useState<string>('');
 
   // Fetch current tactical setup
-  const { data: currentSetup, isLoading: loadingSetup } = useQuery({
+  const { data: currentSetup, isLoading: loadingSetup } = useQuery<TacticalSetup>({
     queryKey: ['/api/tactics/team-tactics'],
     enabled: !!teamId
   });
 
   // Fetch tactical options (field sizes and tactical foci)
-  const { data: tacticalOptions } = useQuery({
+  const { data: tacticalOptions } = useQuery<TacticalOptions>({
     queryKey: ['/api/tactics/tactical-options']
   });
 
   // Fetch effectiveness analysis
-  const { data: tacticalAnalysis } = useQuery({
+  const { data: tacticalAnalysis } = useQuery<EffectivenessAnalysis>({
     queryKey: ['/api/tactics/tactical-analysis'],
     enabled: !!teamId
   });
@@ -134,7 +145,8 @@ export default function AdvancedTacticalEffectsManager({ teamId }: { teamId: str
   // Extract data from responses
   const fieldSizeEffects = tacticalOptions?.fieldSizes;
   const tacticalFocusEffects = tacticalOptions?.tacticalFoci;
-  const effectiveness = tacticalAnalysis?.bestSetup;
+  const effectiveness = tacticalAnalysis;
+  const matchEffects = tacticalAnalysis as unknown as MatchEffects;
 
   // Update field size mutation
   const updateFieldSizeMutation = useMutation({
@@ -207,8 +219,8 @@ export default function AdvancedTacticalEffectsManager({ teamId }: { teamId: str
         </div>
         <div className="text-right">
           <div className="text-sm text-gray-500">Effectiveness Score</div>
-          <div className={`text-2xl font-bold ${getScoreColor((effectiveness?.overallEffectiveness || 0) * 100)}`}>
-            {Math.round((effectiveness?.overallEffectiveness || 0) * 100)}%
+            <div className={`text-2xl font-bold ${getScoreColor((effectiveness?.bestSetup?.overallEffectiveness || 0) * 100)}`}>
+              {Math.round((effectiveness?.bestSetup?.overallEffectiveness || 0) * 100)}%
           </div>
         </div>
       </div>
@@ -379,7 +391,7 @@ export default function AdvancedTacticalEffectsManager({ teamId }: { teamId: str
                     <span className="font-medium">{currentSetup?.fieldSize || 'Standard'} Field</span>
                   </div>
                   <p className="text-sm text-gray-600">
-                    {fieldSizeEffects?.[currentSetup?.fieldSize]?.description || 'Balanced field configuration'}
+                    {fieldSizeEffects?.[(currentSetup?.fieldSize as any)]?.description || 'Balanced field configuration'}
                   </p>
                 </div>
                 <div className="p-4 border rounded-lg">
@@ -397,7 +409,7 @@ export default function AdvancedTacticalEffectsManager({ teamId }: { teamId: str
                     <span className="font-medium">Effectiveness</span>
                   </div>
                   <div className={`text-2xl font-bold ${getScoreColor(effectiveness?.overallScore || 0)}`}>
-                    {effectiveness?.overallScore || 0}%
+                    {Math.round((effectiveness?.overallScore || 0) * 100)}%
                   </div>
                 </div>
               </div>
@@ -490,7 +502,7 @@ export default function AdvancedTacticalEffectsManager({ teamId }: { teamId: str
               </CardHeader>
               <CardContent>
                 <div className={`text-2xl font-bold ${getScoreColor(effectiveness?.overallScore || 0)}`}>
-                  {effectiveness?.overallScore || 0}%
+                  {Math.round((effectiveness?.overallScore || 0) * 100)}%
                 </div>
                 <p className="text-xs text-muted-foreground">Combined effectiveness</p>
               </CardContent>
@@ -503,7 +515,7 @@ export default function AdvancedTacticalEffectsManager({ teamId }: { teamId: str
               </CardHeader>
               <CardContent>
                 <div className={`text-2xl font-bold ${getScoreColor(effectiveness?.fieldSizeScore || 0)}`}>
-                  {effectiveness?.fieldSizeScore || 0}%
+                  {Math.round((effectiveness?.fieldSizeScore || 0) * 100)}%
                 </div>
                 <p className="text-xs text-muted-foreground">Field specialization fit</p>
               </CardContent>
@@ -516,7 +528,7 @@ export default function AdvancedTacticalEffectsManager({ teamId }: { teamId: str
               </CardHeader>
               <CardContent>
                 <div className={`text-2xl font-bold ${getScoreColor(effectiveness?.tacticalFocusScore || 0)}`}>
-                  {effectiveness?.tacticalFocusScore || 0}%
+                  {Math.round((effectiveness?.tacticalFocusScore || 0) * 100)}%
                 </div>
                 <p className="text-xs text-muted-foreground">Strategic alignment</p>
               </CardContent>
@@ -529,7 +541,7 @@ export default function AdvancedTacticalEffectsManager({ teamId }: { teamId: str
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">
-                  {effectiveness?.coachInfluence || 0}%
+                  {Math.round((effectiveness?.coachInfluence || 0) * 100)}%
                 </div>
                 <p className="text-xs text-muted-foreground">Coaching impact</p>
               </CardContent>
@@ -615,7 +627,7 @@ export default function AdvancedTacticalEffectsManager({ teamId }: { teamId: str
                   <div className="border-t pt-4">
                     <h4 className="font-medium mb-3">Effective Modifiers</h4>
                     <div className="space-y-2">
-                      {matchEffects?.effectiveModifiers && Object.entries(matchEffects.effectiveModifiers).map(([modifier, value]) => (
+                      {matchEffects?.effectiveModifiers && Object.entries(matchEffects.effectiveModifiers).map(([modifier, value]: [string, any]) => (
                         <div key={modifier} className="flex justify-between">
                           <span className="text-sm text-gray-600 capitalize">
                             {modifier.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase())}:

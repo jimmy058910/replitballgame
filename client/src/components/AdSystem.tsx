@@ -147,7 +147,7 @@ export function AdSystem({
       toast({
         title: "Ad Skipped",
         description: "You won't receive rewards for skipped ads.",
-        variant: "info"
+        variant: "default"
       });
       onClose();
     }

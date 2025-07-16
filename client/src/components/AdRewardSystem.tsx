@@ -26,10 +26,15 @@ export function AdRewardSystem() {
 
   const fetchAdStats = async () => {
     try {
-      const stats = await apiRequest('/api/ads/stats', 'GET');
+      const stats = await apiRequest<AdStats>('/api/ads/stats', 'GET');
       setAdStats(stats);
     } catch (error) {
       console.error('Failed to fetch ad stats:', error);
+      toast({
+        title: "Error",
+        description: "Could not load ad statistics.",
+        variant: "destructive"
+      });
     } finally {
       setIsLoading(false);
     }
@@ -66,7 +71,7 @@ export function AdRewardSystem() {
 
       await new Promise(resolve => setTimeout(resolve, adDuration));
 
-      const result = await apiRequest('/api/ads/view', 'POST', {
+      const result = await apiRequest<{ success: boolean, message: string }>('/api/ads/view', 'POST', {
         adType: 'rewarded_video',
         placement: 'store_bonus',
         rewardType: 'credits',
