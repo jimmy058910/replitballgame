@@ -7,6 +7,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Trophy, Clock, Calendar, Users, Coins, Gem, CheckCircle, AlertCircle, Timer, ArrowLeft, Eye } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest, queryClient } from '@/lib/queryClient';
+import { useLocation } from 'wouter';
 
 
 interface TournamentCenterProps {
@@ -84,6 +85,7 @@ interface TournamentBracketData {
 
 const TournamentCenter: React.FC<TournamentCenterProps> = ({ teamId }) => {
   const { toast } = useToast();
+  const [location, setLocation] = useLocation();
   const [selectedTournamentId, setSelectedTournamentId] = useState<number | null>(null);
   const [bracketModalTournament, setBracketModalTournament] = useState<number | null>(null);
   const [isBracketModalOpen, setIsBracketModalOpen] = useState(false);
@@ -654,10 +656,7 @@ const TournamentCenter: React.FC<TournamentCenterProps> = ({ teamId }) => {
                 <h3 className="font-semibold text-lg text-gray-900 dark:text-gray-100 mb-2">
                   {bracketModalData?.tournament?.name || `Tournament ${bracketModalTournament}`}
                 </h3>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
-                  <div className="text-gray-600 dark:text-gray-400">
-                    <span className="font-medium">Type:</span> {bracketModalData?.tournament?.type}
-                  </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
                   <div className="text-gray-600 dark:text-gray-400">
                     <span className="font-medium">Status:</span> {bracketModalData?.tournament?.status}
                   </div>
@@ -674,7 +673,7 @@ const TournamentCenter: React.FC<TournamentCenterProps> = ({ teamId }) => {
                     <div key={index} className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-4 hover:shadow-md transition-shadow cursor-pointer"
                          onClick={() => {
                            if (match.status === 'COMPLETED' || match.status === 'LIVE') {
-                             window.open(`/live-match/${match.id}`, '_blank');
+                             setLocation(`/live-match/${match.id}`);
                            }
                          }}
                     >
