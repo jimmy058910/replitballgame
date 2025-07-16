@@ -245,10 +245,30 @@ export function getTacticalFocusInfo(tacticalFocus: TacticalFocus) {
 }
 
 /**
- * Validates if field size can be changed (only during off-season or day 1)
+ * Validates if field size can be changed
+ * Can be changed:
+ * - After Day 14 (if team didn't make Division playoffs)
+ * - After Day 15 (if team made Division playoffs and they're completed)
+ * - Until Day 1 at 3PM
  */
 export function canChangeFieldSize(currentDay: number): boolean {
-  return currentDay === 1 || currentDay >= 16; // Day 1 or off-season (Days 16-17)
+  // Always allowed in off-season (Days 16-17)
+  if (currentDay >= 16) {
+    return true;
+  }
+
+  // Always allowed on Day 1 (until 3PM - would need time check for full implementation)
+  if (currentDay === 1) {
+    return true;
+  }
+
+  // During regular season (Days 2-14), cannot change
+  if (currentDay >= 2 && currentDay <= 14) {
+    return false;
+  }
+
+  // After Day 14 (Day 15+) - can change (simplified for now)
+  return currentDay > 14;
 }
 
 /**

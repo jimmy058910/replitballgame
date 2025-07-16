@@ -64,6 +64,54 @@ export class SeasonalFlowService {
   };
 
   /**
+   * Get current day in the season cycle (1-17)
+   */
+  static getCurrentDay(): number {
+    const startDate = new Date("2025-07-13");
+    const now = new Date();
+    const daysSinceStart = Math.floor((now.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24));
+    return (daysSinceStart % 17) + 1;
+  }
+
+  /**
+   * Check if a team qualified for Division playoffs
+   */
+  static async isTeamInDivisionPlayoffs(teamId: string): Promise<boolean> {
+    try {
+      // Get team info
+      const team = await prisma.team.findUnique({
+        where: { id: teamId },
+        include: { league: true }
+      });
+
+      if (!team || !team.league) {
+        return false;
+      }
+
+      // Check if team is in a tournament (Division playoffs)
+      const tournamentEntries = await prisma.tournamentEntry.findMany({
+        where: {
+          teamId: teamId,
+          tournament: {
+            tournamentType: 'DIVISION_PLAYOFFS'
+          }
+        },
+        include: {
+          tournament: true
+        }
+      });
+
+      return tournamentEntries.some(entry => 
+        entry.tournament.status === 'IN_PROGRESS' || 
+        entry.tournament.status === 'COMPLETED'
+      );
+    } catch (error) {
+      console.error('Error checking team playoff status:', error);
+      return false;
+    }
+  }
+
+  /**
    * Generate complete season schedule for all leagues
    * Called at the start of Day 1 of each season
    */

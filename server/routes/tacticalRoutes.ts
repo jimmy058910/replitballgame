@@ -10,6 +10,7 @@ import {
   getTacticalFocusInfo 
 } from "../../shared/tacticalSystem";
 import { prisma } from "../db";
+import { SeasonalFlowService } from "../services/seasonalFlowService";
 
 const router = Router();
 
@@ -51,7 +52,7 @@ router.get("/team-tactics", isAuthenticated, async (req: any, res) => {
     const headCoach = staff.find((s: any) => s.type === "HEAD_COACH");
     
     // Get current season day to check if field size can be changed
-    const currentDay = 1; // TODO: Get from season system
+    const currentDay = SeasonalFlowService.getCurrentDay();
     const canChangeField = canChangeFieldSize(currentDay);
     
     const fieldSize = (team.homeField || "standard").toLowerCase() as any;
@@ -109,10 +110,10 @@ router.post("/update-field-size", isAuthenticated, async (req: any, res) => {
     }
 
     // Check if field size can be changed
-    const currentDay = 1; // TODO: Get from season system
+    const currentDay = SeasonalFlowService.getCurrentDay();
     if (!canChangeFieldSize(currentDay)) {
       return res.status(400).json({ 
-        error: "Field size can only be changed during off-season (Days 16-17) or on Day 1" 
+        error: "Field size can only be changed on Day 1 or after Day 14 (off-season)" 
       });
     }
 
