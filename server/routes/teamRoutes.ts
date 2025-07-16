@@ -357,9 +357,9 @@ router.post('/:teamId/formation', isAuthenticated, async (req: any, res: Respons
 // Formation PUT route for TacticsLineupHub
 router.put('/:teamId/formation', isAuthenticated, async (req: any, res: Response, next: NextFunction) => {
   try {
-    let teamId = req.params.teamId;
+    let teamId: number;
 
-    if (teamId === "my") {
+    if (req.params.teamId === "my") {
       const userId = req.user?.claims?.sub;
       const team = await storage.teams.getTeamByUserId(userId); // Use teamStorage
       if (!team) {
@@ -367,6 +367,7 @@ router.put('/:teamId/formation', isAuthenticated, async (req: any, res: Response
       }
       teamId = team.id;
     } else {
+      teamId = parseInt(req.params.teamId);
       const teamToUpdate = await storage.teams.getTeamById(teamId); // Use teamStorage
       if (!teamToUpdate) {
           return res.status(404).json({ message: "Team not found." });
@@ -448,15 +449,17 @@ router.get('/:teamId/staff', isAuthenticated, async (req: any, res: Response, ne
 
 router.get('/:teamId/formation', isAuthenticated, async (req: any, res: Response, next: NextFunction) => {
   try {
-    let teamId = req.params.teamId;
+    let teamId: number;
 
-    if (teamId === "my") {
+    if (req.params.teamId === "my") {
       const userId = req.user?.claims?.sub;
       const team = await storage.teams.getTeamByUserId(userId); // Use teamStorage
       if (!team) {
         return res.status(404).json({ message: "Team not found for current user" });
       }
       teamId = team.id;
+    } else {
+      teamId = parseInt(req.params.teamId);
     }
 
     const team = await storage.teams.getTeamById(teamId); // Use teamStorage
