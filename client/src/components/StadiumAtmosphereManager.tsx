@@ -410,35 +410,55 @@ export default function StadiumAtmosphereManager({ teamId }: { teamId: string })
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {upgradeCosts?.data && Object.entries(upgradeCosts.data).map(([upgradeType, cost]) => (
-                  <Card key={upgradeType} className="p-4">
-                    <div className="flex items-center justify-between mb-3">
-                      <h4 className="font-medium capitalize">{upgradeType} Upgrade</h4>
-                      <Badge variant="outline">
-                        Level {stadiumData?.data?.[`${upgradeType}Level` as keyof typeof stadiumData.data] || (upgradeType === 'capacity' ? stadiumData?.data?.capacity : 1)}
-                      </Badge>
-                    </div>
-                    <div className="space-y-2">
-                      <div className="text-2xl font-bold">{formatCurrency(cost as number)}</div>
-                      <p className="text-xs text-gray-600">
-                        {upgradeType === 'capacity' && 'Increase stadium seating capacity'}
-                        {upgradeType === 'concessions' && 'Improve food and beverage facilities'}
-                        {upgradeType === 'parking' && 'Expand parking capacity and convenience'}
-                        {upgradeType === 'vipSuites' && 'Add premium VIP suite amenities'}
-                        {upgradeType === 'merchandising' && 'Enhance team store and merchandise areas'}
-                        {upgradeType === 'lighting' && 'Upgrade stadium lighting and atmosphere'}
-                      </p>
-                      <Button
-                        size="sm"
-                        className="w-full"
-                        onClick={() => upgradeStadiumMutation.mutate(upgradeType)}
-                        disabled={upgradeStadiumMutation.isPending}
-                      >
-                        Upgrade {upgradeType}
-                      </Button>
-                    </div>
-                  </Card>
-                ))}
+                {upgradeCosts?.data && Object.entries(upgradeCosts.data).map(([upgradeType, cost]) => {
+                  const currentLevel = stadiumData?.data?.[`${upgradeType}Level` as keyof typeof stadiumData.data] || 1;
+                  const currentCapacity = stadiumData?.data?.capacity || 5000;
+                  
+                  return (
+                    <Card key={upgradeType} className="p-4">
+                      <div className="flex items-center justify-between mb-3">
+                        <h4 className="font-medium capitalize">{upgradeType} Upgrade</h4>
+                        <Badge variant="outline">
+                          Level {currentLevel}
+                        </Badge>
+                      </div>
+                      <div className="space-y-2">
+                        <div className="text-2xl font-bold">{formatCurrency(cost as number)}</div>
+                        
+                        {/* Current Function */}
+                        <div className="text-sm text-gray-700 dark:text-gray-300">
+                          <strong>Current: </strong>
+                          {upgradeType === 'capacity' && `${currentCapacity.toLocaleString()} seats`}
+                          {upgradeType === 'concessions' && `Level ${currentLevel} food & beverage`}
+                          {upgradeType === 'parking' && `Level ${currentLevel} parking facilities`}
+                          {upgradeType === 'vipSuites' && `Level ${currentLevel} VIP amenities`}
+                          {upgradeType === 'merchandising' && `Level ${currentLevel} team store`}
+                          {upgradeType === 'lighting' && `Level ${currentLevel} stadium lighting`}
+                        </div>
+                        
+                        {/* Enhancement Details */}
+                        <div className="text-sm text-blue-600 dark:text-blue-400">
+                          <strong>Upgrade: </strong>
+                          {upgradeType === 'capacity' && 'Increase seating capacity for more ticket sales'}
+                          {upgradeType === 'concessions' && 'Higher revenue per fan from food & drinks'}
+                          {upgradeType === 'parking' && 'More parking revenue and fan convenience'}
+                          {upgradeType === 'vipSuites' && 'Premium VIP suite revenue boost'}
+                          {upgradeType === 'merchandising' && 'Enhanced merchandise sales per fan'}
+                          {upgradeType === 'lighting' && 'Better atmosphere and intimidation factor'}
+                        </div>
+                        
+                        <Button
+                          size="sm"
+                          className="w-full"
+                          onClick={() => upgradeStadiumMutation.mutate(upgradeType)}
+                          disabled={upgradeStadiumMutation.isPending}
+                        >
+                          Upgrade
+                        </Button>
+                      </div>
+                    </Card>
+                  );
+                })}
               </div>
 
               <div className="mt-6 p-4 border border-yellow-200 bg-yellow-50 rounded-lg">
