@@ -371,11 +371,35 @@ router.get('/daily-schedule', isAuthenticated, async (req: Request, res: Respons
       return res.json({ schedule: {}, totalDays: 17, currentDay: null, message: "No active season found." });
     }
 
-    const allMatches = [];
-    for (let division = 1; division <= 8; division++) {
-      const divisionMatches = await matchStorage.getMatchesByDivision(division); // Use matchStorage
-      allMatches.push(...divisionMatches);
+    // Get user's team to determine their subdivision
+    const userTeam = await prisma.team.findFirst({
+      where: { userProfileId: req.user.id },
+      select: { id: true, division: true, subdivision: true }
+    });
+
+    if (!userTeam) {
+      return res.json({ schedule: {}, totalDays: 17, currentDay: null, message: "No team found." });
     }
+
+    // Get all matches for the user's division and subdivision
+    const divisionMatches = await matchStorage.getMatchesByDivision(userTeam.division);
+    
+    // Get all teams in the user's subdivision
+    const subdivisionTeams = await prisma.team.findMany({
+      where: { 
+        division: userTeam.division,
+        subdivision: userTeam.subdivision 
+      },
+      select: { id: true }
+    });
+    
+    const subdivisionTeamIds = subdivisionTeams.map(team => team.id);
+
+    // Filter matches to only include those within the user's subdivision
+    const allMatches = divisionMatches.filter(match => 
+      subdivisionTeamIds.includes(match.homeTeamId) && 
+      subdivisionTeamIds.includes(match.awayTeamId)
+    );
 
     // Look up team names for all matches
     const teamIds = new Set();
