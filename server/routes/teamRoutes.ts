@@ -1466,7 +1466,12 @@ router.post('/:teamId/apply-team-boost', isAuthenticated, asyncHandler(async (re
   res.json({
     success: true,
     message: `${inventoryItem.item.name} activated for next match`,
-    teamBoost
+    teamBoost: {
+      ...teamBoost,
+      id: teamBoost.id.toString(),
+      teamId: teamBoost.teamId.toString(),
+      itemId: teamBoost.itemId.toString()
+    }
   });
 }));
 
