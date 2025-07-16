@@ -43,7 +43,7 @@ export default function TournamentBracket({ tournament, matches, userTeamId, isA
 
   const MatchCard = ({ match, isUserTeam }: { match: TournamentMatch; isUserTeam: boolean }) => {
     const isCompleted = match.status === 'COMPLETED';
-    const isLive = match.status === 'LIVE';
+    const isLive = match.status === 'IN_PROGRESS' || match.status === 'LIVE';
     const isScheduled = match.status === 'SCHEDULED';
     
     const handleMatchClick = () => {
@@ -72,25 +72,25 @@ export default function TournamentBracket({ tournament, matches, userTeamId, isA
         <div className="space-y-2">
           {/* Home Team */}
           <div className={`flex items-center justify-between p-2 rounded ${
-            isCompleted && match.homeScore > match.awayScore 
+            isCompleted && (match.homeTeamScore || 0) > (match.awayTeamScore || 0)
               ? 'bg-green-100 dark:bg-green-900 font-semibold' 
               : 'bg-gray-50 dark:bg-gray-700'
           }`}>
             <span className="text-sm truncate text-gray-900 dark:text-gray-100">{match.homeTeam.name}</span>
             <span className="font-bold text-gray-900 dark:text-gray-100 ml-2">
-              {isCompleted ? match.homeScore : (isLive ? match.homeScore || 0 : '')}
+              {isCompleted ? match.homeTeamScore : (isLive ? match.homeTeamScore || 0 : '')}
             </span>
           </div>
           
           {/* Away Team */}
           <div className={`flex items-center justify-between p-2 rounded ${
-            isCompleted && match.awayScore > match.homeScore 
+            isCompleted && (match.awayTeamScore || 0) > (match.homeTeamScore || 0)
               ? 'bg-green-100 dark:bg-green-900 font-semibold' 
               : 'bg-gray-50 dark:bg-gray-700'
           }`}>
             <span className="text-sm truncate text-gray-900 dark:text-gray-100">{match.awayTeam.name}</span>
             <span className="font-bold text-gray-900 dark:text-gray-100 ml-2">
-              {isCompleted ? match.awayScore : (isLive ? match.awayScore || 0 : '')}
+              {isCompleted ? match.awayTeamScore : (isLive ? match.awayTeamScore || 0 : '')}
             </span>
           </div>
           

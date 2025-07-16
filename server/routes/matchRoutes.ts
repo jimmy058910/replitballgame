@@ -12,7 +12,12 @@ const router = Router();
 // Match routes
 router.get('/live', isAuthenticated, async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const liveMatches = await matchStorage.getLiveMatches(); // Use matchStorage
+    // Get user's team ID from the authenticated user
+    const userTeam = await storage.teams.getTeamByUserId((req as any).user.userId);
+    const teamId = userTeam?.id;
+    
+    // Only get live matches for the user's team
+    const liveMatches = await matchStorage.getLiveMatches(teamId);
 
     // Team names should now be populated by getLiveMatches if implemented in matchStorage
     // If not, the mapping here is still okay.

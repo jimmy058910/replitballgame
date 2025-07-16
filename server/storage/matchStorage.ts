@@ -125,9 +125,19 @@ export class MatchStorage {
     }
   }
 
-  async getLiveMatches(): Promise<Game[]> {
+  async getLiveMatches(teamId?: number): Promise<Game[]> {
+    const whereClause: any = { status: GameStatus.IN_PROGRESS };
+    
+    // If teamId is provided, only return matches where this team is participating
+    if (teamId) {
+      whereClause.OR = [
+        { homeTeamId: teamId },
+        { awayTeamId: teamId }
+      ];
+    }
+    
     const live = await prisma.game.findMany({
-      where: { status: GameStatus.IN_PROGRESS },
+      where: whereClause,
       include: {
         league: true,
         tournament: true
