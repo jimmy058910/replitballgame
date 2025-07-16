@@ -836,12 +836,12 @@ router.get('/:tournamentId/matches', async (req, res) => {
       },
       round: match.round,
       status: match.status,
-      homeTeamScore: match.homeTeamScore,
-      awayTeamScore: match.awayTeamScore,
+      homeTeamScore: match.homeScore || 0,
+      awayTeamScore: match.awayScore || 0,
       gameTime: match.gameDate?.toISOString(),
       winner: match.status === 'COMPLETED' ? (
-        match.homeTeamScore > match.awayTeamScore ? match.homeTeam.name : 
-        match.awayTeamScore > match.homeTeamScore ? match.awayTeam.name : null
+        (match.homeScore || 0) > (match.awayScore || 0) ? match.homeTeam.name : 
+        (match.awayScore || 0) > (match.homeScore || 0) ? match.awayTeam.name : null
       ) : null
     }));
 

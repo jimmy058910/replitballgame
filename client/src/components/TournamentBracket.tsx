@@ -78,7 +78,7 @@ export default function TournamentBracket({ tournament, matches, userTeamId, isA
           }`}>
             <span className="text-sm truncate text-gray-900 dark:text-gray-100">{match.homeTeam.name}</span>
             <span className="font-bold text-gray-900 dark:text-gray-100 ml-2">
-              {isCompleted ? match.homeTeamScore : (isLive ? match.homeTeamScore || 0 : '')}
+              {(isCompleted || isLive) ? match.homeTeamScore || 0 : ''}
             </span>
           </div>
           
@@ -90,7 +90,7 @@ export default function TournamentBracket({ tournament, matches, userTeamId, isA
           }`}>
             <span className="text-sm truncate text-gray-900 dark:text-gray-100">{match.awayTeam.name}</span>
             <span className="font-bold text-gray-900 dark:text-gray-100 ml-2">
-              {isCompleted ? match.awayTeamScore : (isLive ? match.awayTeamScore || 0 : '')}
+              {(isCompleted || isLive) ? match.awayTeamScore || 0 : ''}
             </span>
           </div>
           
