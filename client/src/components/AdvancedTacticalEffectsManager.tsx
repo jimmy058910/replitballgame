@@ -116,31 +116,25 @@ export default function AdvancedTacticalEffectsManager({ teamId }: { teamId: str
 
   // Fetch current tactical setup
   const { data: currentSetup, isLoading: loadingSetup } = useQuery({
-    queryKey: ['/api/advanced-tactical-effects/setup', teamId],
+    queryKey: ['/api/tactics/team-tactics'],
     enabled: !!teamId
   });
 
-  // Fetch field size effects
-  const { data: fieldSizeEffects } = useQuery({
-    queryKey: ['/api/advanced-tactical-effects/field-effects']
-  });
-
-  // Fetch tactical focus effects
-  const { data: tacticalFocusEffects } = useQuery({
-    queryKey: ['/api/advanced-tactical-effects/tactical-effects']
+  // Fetch tactical options (field sizes and tactical foci)
+  const { data: tacticalOptions } = useQuery({
+    queryKey: ['/api/tactics/tactical-options']
   });
 
   // Fetch effectiveness analysis
-  const { data: effectiveness } = useQuery({
-    queryKey: ['/api/advanced-tactical-effects/effectiveness', teamId],
+  const { data: tacticalAnalysis } = useQuery({
+    queryKey: ['/api/tactics/tactical-analysis'],
     enabled: !!teamId
   });
 
-  // Fetch current match effects
-  const { data: matchEffects } = useQuery({
-    queryKey: ['/api/advanced-tactical-effects/match-effects', teamId],
-    enabled: !!teamId
-  });
+  // Extract data from responses
+  const fieldSizeEffects = tacticalOptions?.fieldSizes;
+  const tacticalFocusEffects = tacticalOptions?.tacticalFoci;
+  const effectiveness = tacticalAnalysis?.bestSetup;
 
   // Update field size mutation
   const updateFieldSizeMutation = useMutation({
@@ -151,7 +145,8 @@ export default function AdvancedTacticalEffectsManager({ teamId }: { teamId: str
         title: 'Field Size Updated',
         description: 'Your stadium field size has been updated successfully.'
       });
-      queryClient.invalidateQueries({ queryKey: ['/api/advanced-tactical-effects'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/tactics/team-tactics'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/tactics/tactical-analysis'] });
     },
     onError: (error: any) => {
       toast({
@@ -174,7 +169,8 @@ export default function AdvancedTacticalEffectsManager({ teamId }: { teamId: str
         title: 'Tactical Focus Updated',
         description: 'Your team tactical focus has been updated.'
       });
-      queryClient.invalidateQueries({ queryKey: ['/api/advanced-tactical-effects'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/tactics/team-tactics'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/tactics/tactical-analysis'] });
     },
     onError: (error: any) => {
       toast({
@@ -205,8 +201,8 @@ export default function AdvancedTacticalEffectsManager({ teamId }: { teamId: str
         </div>
         <div className="text-right">
           <div className="text-sm text-gray-500">Effectiveness Score</div>
-          <div className={`text-2xl font-bold ${getScoreColor(effectiveness?.overallScore || 0)}`}>
-            {effectiveness?.overallScore || 0}%
+          <div className={`text-2xl font-bold ${getScoreColor((effectiveness?.overallEffectiveness || 0) * 100)}`}>
+            {Math.round((effectiveness?.overallEffectiveness || 0) * 100)}%
           </div>
         </div>
       </div>
@@ -236,12 +232,12 @@ export default function AdvancedTacticalEffectsManager({ teamId }: { teamId: str
                   <div className="flex items-center justify-between">
                     <span className="text-sm text-gray-600">Current Field Size:</span>
                     <Badge variant="outline" className="flex items-center space-x-1">
-                      <FieldSizeIcon size={currentSetup?.fieldSize || 'Standard'} />
-                      <span>{currentSetup?.fieldSize || 'Standard'}</span>
+                      <FieldSizeIcon size={currentSetup?.fieldSize || 'standard'} />
+                      <span>{currentSetup?.fieldSizeInfo?.name || 'Standard Field'}</span>
                     </Badge>
                   </div>
                   
-                  {currentSetup?.canChangeField ? (
+                  {currentSetup?.canChangeFieldSize ? (
                     <div className="space-y-3">
                       <RadioGroup
                         value={selectedFieldSize || currentSetup?.fieldSize}
@@ -254,10 +250,10 @@ export default function AdvancedTacticalEffectsManager({ teamId }: { teamId: str
                               <div className="flex items-center justify-between">
                                 <div className="flex items-center space-x-2">
                                   <FieldSizeIcon size={size} />
-                                  <span className="font-medium">{size} Field</span>
+                                  <span className="font-medium">{(effects as any).name}</span>
                                 </div>
                                 <span className="text-xs text-gray-500">
-                                  {(effects as FieldSizeEffects).description}
+                                  {(effects as any).description}
                                 </span>
                               </div>
                             </Label>
@@ -315,8 +311,8 @@ export default function AdvancedTacticalEffectsManager({ teamId }: { teamId: str
                   <div className="flex items-center justify-between">
                     <span className="text-sm text-gray-600">Current Focus:</span>
                     <Badge variant="outline" className="flex items-center space-x-1">
-                      <TacticalFocusIcon focus={currentSetup?.tacticalFocus || 'Balanced'} />
-                      <span>{currentSetup?.tacticalFocus || 'Balanced'}</span>
+                      <TacticalFocusIcon focus={currentSetup?.tacticalFocus || 'balanced'} />
+                      <span>{currentSetup?.tacticalFocusInfo?.name || 'Balanced'}</span>
                     </Badge>
                   </div>
                   
@@ -332,10 +328,10 @@ export default function AdvancedTacticalEffectsManager({ teamId }: { teamId: str
                             <div className="flex items-center justify-between">
                               <div className="flex items-center space-x-2">
                                 <TacticalFocusIcon focus={focus} />
-                                <span className="font-medium">{focus}</span>
+                                <span className="font-medium">{(effects as any).name}</span>
                               </div>
                               <span className="text-xs text-gray-500">
-                                {(effects as TacticalFocusEffects).description}
+                                {(effects as any).description}
                               </span>
                             </div>
                           </Label>
