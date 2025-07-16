@@ -111,13 +111,13 @@ export class SeasonTimingAutomationService {
         clearTimeout(this.dailyProgressionTimer);
       }
       
-      // TEMPORARILY DISABLE daily progression until tournament fix is complete
-      // this.dailyProgressionTimer = setTimeout(async () => {
-      //   await this.executeDailyProgression();
-      //   scheduleNextExecution(); // Schedule next execution
-      // }, timeUntilExecution);
+      // Re-enable daily progression now that tournament fix is complete
+      this.dailyProgressionTimer = setTimeout(async () => {
+        await this.executeDailyProgression();
+        scheduleNextExecution(); // Schedule next execution
+      }, timeUntilExecution);
       
-      logInfo('Daily progression temporarily disabled - tournament fix in progress');
+      logInfo('Daily progression re-enabled - tournament fix completed');
     };
 
     scheduleNextExecution();

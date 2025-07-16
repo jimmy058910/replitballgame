@@ -113,7 +113,7 @@ export class TournamentService {
 
   // Get current season number based on 17-day cycles
   private getCurrentSeason(): number {
-    const startDate = new Date("2025-01-01");
+    const startDate = new Date("2025-07-13");
     const now = new Date();
     const daysSinceStart = Math.floor((now.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24));
     return Math.floor(daysSinceStart / 17);
@@ -121,7 +121,7 @@ export class TournamentService {
 
   // Get current game day (1-17 within season)
   private getCurrentGameDay(): number {
-    const startDate = new Date("2025-01-01");
+    const startDate = new Date("2025-07-13");
     const now = new Date();
     const daysSinceStart = Math.floor((now.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24));
     return (daysSinceStart % 17) + 1;

@@ -5,6 +5,9 @@ import { tournamentStorage } from "../storage/tournamentStorage";
 import { isAuthenticated } from "../replitAuth";
 import { z } from "zod";
 import { getDivisionName } from "../../shared/divisionUtils";
+import { PrismaClient } from "../../generated/prisma/index";
+
+const prisma = new PrismaClient();
 
 const router = Router();
 
@@ -12,6 +15,36 @@ const enterTournamentParamsSchema = z.object({
     id: z.string().uuid("Invalid tournament ID format"), // Assuming tournament IDs are UUIDs
 });
 
+// History route must come BEFORE the :division route to avoid conflicts
+router.get('/history', isAuthenticated, async (req: any, res: Response, next: NextFunction) => {
+  try {
+    const userId = req.user?.claims?.sub;
+    const team = await storage.teams.getTeamByUserId(userId);
+    if (!team || !team.id) return res.json([]);
+
+    // Use Prisma directly to get tournament history
+    const tournamentEntries = await prisma.tournamentEntry.findMany({
+      where: { teamId: team.id },
+      include: { 
+        tournament: true
+      },
+      orderBy: { registeredAt: 'desc' }
+    });
+
+    const history = tournamentEntries
+      .filter(entry => entry.tournament.status === 'COMPLETED')
+      .map(entry => ({
+        ...entry.tournament,
+        yourPlacement: entry.finalRank,
+        prizeWon: entry.finalRank === 1 ? 1500 : entry.finalRank === 2 ? 500 : 0
+      }));
+
+    res.json(history);
+  } catch (error) {
+    console.error("Error fetching tournament history:", error);
+    next(error);
+  }
+});
 
 router.get('/:division', isAuthenticated, async (req: Request, res: Response, next: NextFunction) => {
   try {
@@ -82,33 +115,6 @@ router.get('/my-entries', isAuthenticated, async (req: any, res: Response, next:
     res.json(entries);
   } catch (error) {
     console.error("Error fetching current tournament entries:", error);
-    next(error);
-  }
-});
-
-router.get('/history', isAuthenticated, async (req: any, res: Response, next: NextFunction) => {
-  try {
-    const userId = req.user?.claims?.sub;
-    const team = await storage.teams.getTeamByUserId(userId);
-    if (!team || !team.id) return res.json([]);
-
-    // Fetch completed tournaments the team participated in
-    const teamEntries = await tournamentStorage.getEntriesByTeam(team.id);
-    const completedTournamentIds = teamEntries.filter(e => e.placement !== null).map(e => e.tournamentId);
-
-    const history = [];
-    if (completedTournamentIds.length > 0) {
-        for (const tId of completedTournamentIds) {
-            const t = await tournamentStorage.getTournamentById(tId);
-            if (t && t.status === 'COMPLETED') {
-                const entry = teamEntries.find(e => e.tournamentId === tId);
-                history.push({ ...t, yourPlacement: entry?.placement, prizeWon: entry?.prizeWon });
-            }
-        }
-    }
-    res.json(history.sort((a,b) => new Date(b.endTime || 0).getTime() - new Date(a.endTime || 0).getTime()));
-  } catch (error) {
-    console.error("Error fetching tournament history:", error);
     next(error);
   }
 });
