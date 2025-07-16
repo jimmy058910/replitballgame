@@ -136,7 +136,7 @@ const TournamentCenter: React.FC<TournamentCenterProps> = ({ teamId }) => {
   });
 
   // Fetch bracket data for the modal
-  const { data: bracketModalData } = useQuery<TournamentBracketData>({
+  const { data: bracketModalData, isLoading: bracketModalLoading } = useQuery<TournamentBracketData>({
     queryKey: ["/api/tournaments/bracket", bracketModalTournament],
     queryFn: () => apiRequest(`/api/tournaments/bracket/${bracketModalTournament}`),
     enabled: !!bracketModalTournament && isBracketModalOpen,
@@ -642,18 +642,18 @@ const TournamentCenter: React.FC<TournamentCenterProps> = ({ teamId }) => {
             </DialogTitle>
           </DialogHeader>
           
-          {bracketModalTournamentData && !bracketModalTournamentData.isLoading ? (
+          {bracketModalData && !bracketModalLoading ? (
             <div className="space-y-4">
               <div className="bg-gradient-to-r from-purple-50 to-blue-50 dark:from-purple-900/20 dark:to-blue-900/20 rounded-lg p-4">
                 <h3 className="font-semibold text-lg text-gray-900 dark:text-gray-100 mb-2">
-                  {bracketModalTournamentData.data?.tournament?.name || `Tournament ${bracketModalTournament}`}
+                  {bracketModalData?.tournament?.name || `Tournament ${bracketModalTournament}`}
                 </h3>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
                   <div className="text-gray-600 dark:text-gray-400">
-                    <span className="font-medium">Type:</span> {bracketModalTournamentData.data?.tournament?.type}
+                    <span className="font-medium">Type:</span> {bracketModalData?.tournament?.type}
                   </div>
                   <div className="text-gray-600 dark:text-gray-400">
-                    <span className="font-medium">Status:</span> {bracketModalTournamentData.data?.tournament?.status}
+                    <span className="font-medium">Status:</span> {bracketModalData?.tournament?.status}
                   </div>
                   <div className="text-gray-600 dark:text-gray-400">
                     <span className="font-medium">Tournament ID:</span> 
@@ -663,8 +663,8 @@ const TournamentCenter: React.FC<TournamentCenterProps> = ({ teamId }) => {
               </div>
               
               <div className="space-y-4">
-                {bracketModalTournamentData.data?.matches && bracketModalTournamentData.data.matches.length > 0 ? (
-                  bracketModalTournamentData.data.matches.map((match: TournamentMatch, index: number) => (
+                {bracketModalData?.matches && bracketModalData.matches.length > 0 ? (
+                  bracketModalData.matches.map((match: TournamentMatch, index: number) => (
                     <div key={index} className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-4">
                       <div className="flex items-center justify-between">
                         <div className="flex items-center space-x-3">
@@ -709,10 +709,14 @@ const TournamentCenter: React.FC<TournamentCenterProps> = ({ teamId }) => {
                 )}
               </div>
             </div>
-          ) : (
+          ) : bracketModalLoading ? (
             <div className="text-center py-8">
               <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full mx-auto mb-4" />
               <p className="text-gray-600 dark:text-gray-300">Loading tournament bracket...</p>
+            </div>
+          ) : (
+            <div className="text-center py-8">
+              <p className="text-gray-600 dark:text-gray-300">Failed to load tournament bracket data</p>
             </div>
           )}
         </DialogContent>
