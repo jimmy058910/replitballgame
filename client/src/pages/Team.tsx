@@ -15,6 +15,7 @@ import AdvancedTacticalEffectsManager from "@/components/AdvancedTacticalEffects
 import UnifiedInventoryHub from "@/components/UnifiedInventoryHub";
 import TacticsLineupHub from "@/components/TacticsLineupHub";
 import TryoutSystem from "@/components/TryoutSystem";
+import StadiumAtmosphereManager from "@/components/StadiumAtmosphereManager";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -75,6 +76,7 @@ export default function TeamPage() {
   const [tacticsSubTab, setTacticsSubTab] = useState("lineup");
   const [financesSubTab, setFinancesSubTab] = useState("overview");
   const [inventoryFilter, setInventoryFilter] = useState("equipment");
+  const [stadiumSubTab, setStadiumSubTab] = useState("overview");
 
   const { data: team, isLoading: isLoadingTeam } = useQuery<Team>({
     queryKey: ["/api/teams/my"],
@@ -191,9 +193,9 @@ export default function TeamPage() {
           </div>
         </div>
 
-        {/* Main Navigation Tabs - Consolidated 5-Tab Structure */}
+        {/* Main Navigation Tabs - Consolidated 6-Tab Structure */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="mb-8">
-          <TabsList className="grid w-full grid-cols-5 bg-gray-800 gap-0.5">
+          <TabsList className="grid w-full grid-cols-6 bg-gray-800 gap-0.5">
             <TabsTrigger value="roster" className="border-r border-gray-600 last:border-r-0 flex items-center gap-1">
               Roster
               <HelpIcon content="Central hub for all player management. View roster, manage health and injuries in Medical Center, and recruit new players." />
@@ -213,6 +215,10 @@ export default function TeamPage() {
             <TabsTrigger value="inventory" className="border-r border-gray-600 last:border-r-0 flex items-center gap-1">
               Inventory
               <HelpIcon content="View and manage all owned items. Equipment, consumables, and trophy collection." />
+            </TabsTrigger>
+            <TabsTrigger value="stadium" className="border-r border-gray-600 last:border-r-0 flex items-center gap-1">
+              Stadium
+              <HelpIcon content="Manage stadium facilities, track fan loyalty, and optimize revenue from home games." />
             </TabsTrigger>
           </TabsList>
 
@@ -488,6 +494,10 @@ export default function TeamPage() {
 
           <TabsContent value="inventory">
             <UnifiedInventoryHub teamId={team?.id || ''} />
+          </TabsContent>
+
+          <TabsContent value="stadium">
+            <StadiumAtmosphereManager teamId={team?.id || ''} />
           </TabsContent>
 
 

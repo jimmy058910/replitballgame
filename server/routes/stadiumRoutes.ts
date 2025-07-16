@@ -365,7 +365,7 @@ router.get('/revenue/:teamId', isAuthenticated, async (req: any, res: Response, 
       50 // Assume mid-season performance for now
     );
 
-    const attendanceData = calculateAttendance(stadium, fanLoyalty, 50, false, 'good');
+    const attendanceData = calculateAttendance(stadium, fanLoyalty, team.division || 8, 0, 50, false, 'good');
     const revenue = calculateGameRevenue(stadium, attendanceData.attendance, fanLoyalty);
 
     res.json({

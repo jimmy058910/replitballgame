@@ -55,12 +55,12 @@ export class StadiumAtmosphereService {
     CAPACITY_INCREMENT: 5000,
     
     FACILITY_BASE_COSTS: {
-      concessions: 25000,
+      concessions: 30000,
       parking: 25000,
-      merchandising: 30000,
-      lighting: 35000,
+      merchandising: 40000,
+      lighting: 60000,
       screens: 40000,
-      vipSuites: 50000
+      vipSuites: 100000
     },
     
     // Cost increases per level

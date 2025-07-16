@@ -46,17 +46,17 @@ export const STADIUM_CONFIG = {
     concessionsLevel: {
       revenueMultiplier: 0.15, // 15% per level
       maxLevel: 5,
-      baseCost: 25000
+      baseCost: 30000
     },
     parkingLevel: {
       revenueMultiplier: 0.10, // 10% per level
       maxLevel: 5,
-      baseCost: 15000
+      baseCost: 25000
     },
     merchandisingLevel: {
       revenueMultiplier: 0.12, // 12% per level
       maxLevel: 5,
-      baseCost: 20000
+      baseCost: 40000
     },
     vipSuitesLevel: {
       revenueMultiplier: 0.25, // 25% per level
@@ -66,13 +66,13 @@ export const STADIUM_CONFIG = {
     screensLevel: {
       atmosphereBonus: 3, // +3 per level
       maxLevel: 4,
-      baseCost: 30000
+      baseCost: 40000
     },
     lightingLevel: {
       atmosphereBonus: 2, // +2 per level
       homeAdvantageBonus: 1, // +1 per level
       maxLevel: 5,
-      baseCost: 40000
+      baseCost: 60000
     },
     securityLevel: {
       atmosphereBonus: 1, // +1 per level
@@ -89,13 +89,32 @@ export const STADIUM_CONFIG = {
     small: { name: "Small Field", homeAdvantageBonus: 3, description: "Compact field favors power and quick plays" }
   },
   
-  // Revenue Base Rates (per 1000 attendance)
+  // Revenue Base Rates (per person or flat)
   REVENUE_RATES: {
     ticketSales: 25, // $25 per person
-    concessionSales: 12, // $12 per person
-    parkingRevenue: 8, // $8 per person
-    apparelSales: 5, // $5 per person
-    vipSuiteRevenue: 150 // $150 per suite per person
+    concessionSales: 8, // $8 per person
+    parkingRevenue: 10, // $10 per person (30% of attendees use parking)
+    apparelSales: 3, // $3 per person
+    vipSuiteRevenue: 5000 // $5000 flat per VIP suite level
+  },
+
+  // Division Modifiers for attendance calculation
+  DIVISION_MODIFIERS: {
+    1: 1.2, // Div 1: 1.2x
+    2: 1.1, // Div 2: 1.1x
+    3: 1.05, // Div 3: 1.05x
+    4: 1.0, // Div 4: 1.0x
+    5: 0.95, // Div 5: 0.95x
+    6: 0.9, // Div 6: 0.9x
+    7: 0.85, // Div 7: 0.85x
+    8: 0.8  // Div 8: 0.8x
+  },
+
+  // Win Streak Modifiers for attendance calculation
+  WIN_STREAK_MODIFIERS: {
+    3: 1.1, // 3-game streak: 1.1x
+    5: 1.25, // 5-game streak: 1.25x
+    8: 1.5  // 8+ game streak: 1.5x
   }
 };
 
@@ -168,6 +187,8 @@ export function calculateHomeAdvantage(stadium: Stadium, fanLoyalty: number): nu
 export function calculateAttendance(
   stadium: Stadium,
   fanLoyalty: number,
+  division: number,
+  winStreak: number,
   opponentQuality: number, // 1-100
   isImportantGame: boolean = false,
   weather: 'good' | 'fair' | 'poor' = 'good'
@@ -176,6 +197,21 @@ export function calculateAttendance(
   
   // Fan loyalty impact
   baseRate += (fanLoyalty / 100) * 0.4; // Up to +40%
+  
+  // Division modifier
+  const divisionModifier = STADIUM_CONFIG.DIVISION_MODIFIERS[division as keyof typeof STADIUM_CONFIG.DIVISION_MODIFIERS] || 1.0;
+  baseRate *= divisionModifier;
+  
+  // Win streak modifier
+  let winStreakModifier = 1.0;
+  if (winStreak >= 8) {
+    winStreakModifier = STADIUM_CONFIG.WIN_STREAK_MODIFIERS[8];
+  } else if (winStreak >= 5) {
+    winStreakModifier = STADIUM_CONFIG.WIN_STREAK_MODIFIERS[5];
+  } else if (winStreak >= 3) {
+    winStreakModifier = STADIUM_CONFIG.WIN_STREAK_MODIFIERS[3];
+  }
+  baseRate *= winStreakModifier;
   
   // Opponent quality (better opponents draw more fans)
   baseRate += (opponentQuality / 100) * 0.15; // Up to +15%
@@ -224,17 +260,17 @@ export function calculateGameRevenue(
   const attendanceThousands = attendance / 1000;
   
   // Base revenue calculations
-  let ticketSales = attendanceThousands * STADIUM_CONFIG.REVENUE_RATES.ticketSales;
-  let concessionSales = attendanceThousands * STADIUM_CONFIG.REVENUE_RATES.concessionSales;
-  let parkingRevenue = attendanceThousands * STADIUM_CONFIG.REVENUE_RATES.parkingRevenue;
-  let apparelSales = attendanceThousands * STADIUM_CONFIG.REVENUE_RATES.apparelSales;
-  let vipSuiteRevenue = ((stadium.vipSuitesLevel || 1) * 10) * STADIUM_CONFIG.REVENUE_RATES.vipSuiteRevenue;
+  let ticketSales = attendance * STADIUM_CONFIG.REVENUE_RATES.ticketSales;
+  let concessionSales = attendance * STADIUM_CONFIG.REVENUE_RATES.concessionSales;
+  let parkingRevenue = (attendance * 0.3) * STADIUM_CONFIG.REVENUE_RATES.parkingRevenue; // 30% of attendees use parking
+  let apparelSales = attendance * STADIUM_CONFIG.REVENUE_RATES.apparelSales;
+  let vipSuiteRevenue = (stadium.vipSuitesLevel || 0) * STADIUM_CONFIG.REVENUE_RATES.vipSuiteRevenue; // Flat 5000 per VIP suite level
   
   // Apply facility bonuses
-  concessionSales *= (1 + ((stadium.concessionsLevel || 1) * 0.15));
-  parkingRevenue *= (1 + ((stadium.parkingLevel || 1) * 0.10));
-  apparelSales *= (1 + ((stadium.merchandisingLevel || 1) * 0.12));
-  vipSuiteRevenue *= (1 + ((stadium.vipSuitesLevel || 1) * 0.25));
+  concessionSales *= (1 + ((stadium.concessionsLevel || 0) * 0.15));
+  parkingRevenue *= (1 + ((stadium.parkingLevel || 0) * 0.10));
+  apparelSales *= (1 + ((stadium.merchandisingLevel || 0) * 0.12));
+  // VIP suite revenue already calculated as flat amount, no multiplier needed
   
   // Fan loyalty atmosphere bonus
   const atmosphereBonus = Math.floor((fanLoyalty / 100) * (ticketSales * 0.1));
