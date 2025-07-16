@@ -70,7 +70,7 @@ router.get('/', isAuthenticated, async (req: any, res: Response, next: NextFunct
           prizePoolJson: entry.tournament.prizePoolJson,
           registrationEndTime: entry.tournament.registrationEndTime,
           startTime: entry.tournament.startTime,
-          completionTime: entry.tournament.completionTime,
+          endTime: entry.tournament.endTime,
           createdAt: entry.tournament.createdAt,
           updatedAt: entry.tournament.updatedAt
         },
