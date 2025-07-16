@@ -147,15 +147,16 @@ Built as a React + Express web application with PostgreSQL database, using moder
 
 ## Recent Changes
 
-### July 16, 2025 - ✅ LIVE MATCH FILTERING COMPLETELY FIXED & TOURNAMENT AUTOMATION SUCCESS - PRODUCTION READY
+### July 16, 2025 - ✅ SPECTATOR VIEWING SYSTEM IMPLEMENTED & LIVE MATCH FILTERING COMPLETELY FIXED - PRODUCTION READY
 
-#### ✅ LIVE MATCH FILTERING SYSTEM COMPLETELY FIXED - USER TEAM ONLY DISPLAY
-- ✓ **Authentication Fix Applied**: Fixed user ID lookup to use (req as any).user.claims?.sub || (req as any).user.userId
-- ✓ **Team Lookup Working**: Storage.teams.getTeamByUserId() correctly retrieves Oakland Cougars (team ID 132)
-- ✓ **Filtering Logic Operational**: matchStorage.getLiveMatches(teamId) properly filters by OR clause (homeTeamId/awayTeamId)
-- ✓ **Empty Array Result**: API now returns [] when user's team isn't in any live matches (correct behavior)
-- ✓ **User Experience Fixed**: Live Matches dashboard now shows only matches where user's team is participating
-- ✓ **Production Ready**: Live matches filtering working correctly after server restart and authentication fix
+#### ✅ SPECTATOR VIEWING SYSTEM IMPLEMENTED - COMPREHENSIVE LIVE MATCH ACCESS
+- ✓ **Spectator Match Access**: Users can now view ANY live match as spectator, not just matches involving their team
+- ✓ **Live Matches API Enhanced**: Updated /api/matches/live to return ALL live matches with spectator flag indication
+- ✓ **Spectator Flag Added**: Added isSpectatorMatch boolean to identify matches where user's team is not participating
+- ✓ **Database Status Fix**: Resolved match status inconsistency where IN_PROGRESS matches were actually completed
+- ✓ **Match Viewer Working**: LiveMatchViewer now properly handles spectator matches with correct status detection
+- ✓ **Authentication Working**: User ID lookup fixed to use (req as any).user.claims?.sub || (req as any).user.userId
+- ✓ **Production Ready**: Complete spectator viewing system operational for all live matches
 
 #### ✅ TOURNAMENT BRACKET LIVE INDICATORS IMPLEMENTED - COMPREHENSIVE ENHANCEMENT
 - ✓ **Status Detection Fixed**: Updated tournament bracket to detect 'IN_PROGRESS' matches as live (not just 'LIVE')
