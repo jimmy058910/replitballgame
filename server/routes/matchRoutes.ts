@@ -9,6 +9,31 @@ import { prisma } from "../db";
 
 const router = Router();
 
+// Utility function to serialize BigInt values to strings
+function serializeBigIntValues(obj: any): any {
+  if (obj === null || obj === undefined) return obj;
+  
+  if (typeof obj === 'bigint') {
+    return obj.toString();
+  }
+  
+  if (Array.isArray(obj)) {
+    return obj.map(item => serializeBigIntValues(item));
+  }
+  
+  if (typeof obj === 'object') {
+    const result: any = {};
+    for (const key in obj) {
+      if (obj.hasOwnProperty(key)) {
+        result[key] = serializeBigIntValues(obj[key]);
+      }
+    }
+    return result;
+  }
+  
+  return obj;
+}
+
 // Match routes
 router.get('/live', isAuthenticated, async (req: Request, res: Response, next: NextFunction) => {
   try {
@@ -71,12 +96,21 @@ router.get('/:matchId', isAuthenticated, async (req: Request, res: Response, nex
     
     const homeTeamName = homeTeam?.name || "Home";
     const awayTeamName = awayTeam?.name || "Away";
+    
+    // Convert team objects to avoid BigInt serialization issues
+    const serializedHomeTeam = homeTeam ? JSON.parse(JSON.stringify(homeTeam, (key, value) => {
+      return typeof value === 'bigint' ? value.toString() : value;
+    })) : null;
+    
+    const serializedAwayTeam = awayTeam ? JSON.parse(JSON.stringify(awayTeam, (key, value) => {
+      return typeof value === 'bigint' ? value.toString() : value;
+    })) : null;
 
     if (match.status === 'IN_PROGRESS') {
       const liveState = await matchStateManager.syncMatchState(matchIdNum);
       if (liveState) {
-        return res.json({
-          ...match, 
+        const responseData = {
+          ...match,
           id: match.id.toString(),
           homeTeamId: match.homeTeamId.toString(),
           awayTeamId: match.awayTeamId.toString(),
@@ -84,6 +118,14 @@ router.get('/:matchId', isAuthenticated, async (req: Request, res: Response, nex
           tournamentId: match.tournamentId ? match.tournamentId.toString() : null,
           homeTeamName, 
           awayTeamName,
+          homeTeam: serializedHomeTeam ? { 
+            id: serializedHomeTeam.id,
+            name: serializedHomeTeam.name 
+          } : null,
+          awayTeam: serializedAwayTeam ? { 
+            id: serializedAwayTeam.id,
+            name: serializedAwayTeam.name 
+          } : null,
           liveState: {
             gameTime: liveState.gameTime, currentHalf: liveState.currentHalf,
             team1Score: liveState.homeScore, team2Score: liveState.awayScore,
@@ -91,27 +133,31 @@ router.get('/:matchId', isAuthenticated, async (req: Request, res: Response, nex
             recentEvents: liveState.gameEvents.slice(-10),
             maxTime: liveState.maxTime, isRunning: liveState.status === 'live'
           }
-        });
+        };
+        
+        // Use the comprehensive BigInt serialization utility
+        const finalResponse = serializeBigIntValues(responseData);
+        return res.json(finalResponse);
       }
     }
-    // Convert BigInt fields to strings for JSON serialization
-    const serializedMatch = JSON.parse(JSON.stringify(match, (key, value) => {
-      return typeof value === 'bigint' ? value.toString() : value;
-    }));
+    // Create response data with all required fields
+    const responseData = {
+      ...match,
+      homeTeamName,
+      awayTeamName,
+      homeTeam: serializedHomeTeam ? { 
+        id: serializedHomeTeam.id,
+        name: serializedHomeTeam.name 
+      } : null,
+      awayTeam: serializedAwayTeam ? { 
+        id: serializedAwayTeam.id,
+        name: serializedAwayTeam.name 
+      } : null
+    };
     
-    // Add additional fields
-    serializedMatch.homeTeamName = homeTeamName;
-    serializedMatch.awayTeamName = awayTeamName;
-    serializedMatch.homeTeam = homeTeam ? { 
-      id: homeTeam.id.toString(), 
-      name: homeTeam.name 
-    } : null;
-    serializedMatch.awayTeam = awayTeam ? { 
-      id: awayTeam.id.toString(), 
-      name: awayTeam.name 
-    } : null;
-    
-    res.json(serializedMatch);
+    // Use the comprehensive BigInt serialization utility
+    const finalResponse = serializeBigIntValues(responseData);
+    res.json(finalResponse);
   } catch (error) {
     console.error("Error fetching match:", error);
     next(error);
