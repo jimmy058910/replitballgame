@@ -19,7 +19,39 @@ export function LiveMatchViewer({ matchId, userId, onMatchComplete }: LiveMatchV
     queryKey: [`/api/matches/${matchId}`],
     enabled: !!matchId,
     retry: 3,
-    retryDelay: 1000
+    retryDelay: 1000,
+    // Override the global retry: false setting
+    meta: { 
+      errorRetry: true 
+    },
+    queryFn: async () => {
+      console.log(`🔍 Fetching match data for ID: ${matchId}`);
+      try {
+        const response = await fetch(`/api/matches/${matchId}`, {
+          credentials: 'include',
+          headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json'
+          }
+        });
+        
+        console.log(`🔍 Response status: ${response.status}`);
+        console.log(`🔍 Response headers:`, Object.fromEntries(response.headers.entries()));
+        
+        if (!response.ok) {
+          const text = await response.text();
+          console.error(`🚨 API Error: ${response.status} - ${text}`);
+          throw new Error(`${response.status}: ${text}`);
+        }
+        
+        const data = await response.json();
+        console.log(`✅ Successfully fetched match data:`, data);
+        return data;
+      } catch (error) {
+        console.error(`🚨 Fetch error for match ${matchId}:`, error);
+        throw error;
+      }
+    }
   });
 
   // Fetch enhanced match data
@@ -37,6 +69,18 @@ export function LiveMatchViewer({ matchId, userId, onMatchComplete }: LiveMatchV
     enhancedDataLoading,
     matchId
   });
+
+  // Enhanced error logging
+  if (matchError) {
+    console.error('🚨 Match query error details:', {
+      error: matchError,
+      message: matchError.message,
+      stack: matchError.stack,
+      name: matchError.name,
+      queryKey: `/api/matches/${matchId}`,
+      matchId
+    });
+  }
 
   // Handle completed matches
   if (initialMatchData && initialMatchData.status === 'COMPLETED') {
