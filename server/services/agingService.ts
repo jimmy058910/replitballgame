@@ -161,8 +161,15 @@ export class AgingService {
   static async processPlayerAging(player: Player): Promise<AgingResult> {
     const playerName = `${player.firstName} ${player.lastName}`;
 
-    // Step 1: Check for retirement (35+ only)
-    if (player.age >= 35) {
+    // Get current season day to determine if retirements should be processed
+    const currentSeason = await prisma.season.findFirst({
+      orderBy: { seasonNumber: 'desc' }
+    });
+    
+    const isOffSeason = currentSeason && currentSeason.currentDay >= 16;
+
+    // Step 1: Check for retirement (35+ only, and only during off season - Game Day 16+)
+    if (player.age >= 35 && isOffSeason) {
       const retirementCalc = this.calculateRetirementChance(player);
       
       if (retirementCalc.willRetire) {
