@@ -49,6 +49,7 @@ import tournamentHistoryRoutes from "./tournamentHistoryRoutes";
 import demoRoutes from "./demoRoutes";
 import ndaRoutes from "./ndaRoutes";
 import worldRoutes from "./worldRoutes";
+import leagueMatchesRoutes from "./leagueMatchesRoutes";
 
 // This function will be called by server/index.ts to set up all routes.
 // It replaces the direct app.use calls that would have been in server/index.ts
@@ -64,6 +65,7 @@ export function registerAllRoutes(app: Express): void {
   app.use("/api/staff", staffRoutes);
   app.use("/api/leagues", leagueRoutes); // This will also cover /api/teams/division/:division if it's there
   app.use("/api/matches", matchRoutes);
+  app.use("/api/team-matches", leagueMatchesRoutes); // League matches for team recent matches display
   app.use("/api/marketplace", marketplaceRoutes);
   app.use("/api/auctions", auctionRoutes);
   app.use("/api/store", storeRoutes);

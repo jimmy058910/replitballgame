@@ -835,7 +835,8 @@ class MatchStateManager {
 
         // Update team records for non-exhibition matches
         if (!isExhibitionMatch) {
-          await this.updateTeamRecords(state.homeTeamId, state.awayTeamId, state.homeScore, state.awayScore);
+          console.log(`🔥 UPDATING TEAM RECORDS: Match ${matchId} - Home: ${state.homeTeamId} (${state.homeScore}) vs Away: ${state.awayTeamId} (${state.awayScore})`);
+          await this.updateTeamRecords(parseInt(state.homeTeamId), parseInt(state.awayTeamId), state.homeScore, state.awayScore);
         }
       } else {
         console.warn(`Game ${matchId} not found in database, cannot update completion status`);
@@ -1054,11 +1055,13 @@ class MatchStateManager {
    */
   private async updateTeamRecords(homeTeamId: number, awayTeamId: number, homeScore: number, awayScore: number): Promise<void> {
     try {
-      console.log(`Updating team records: Home Team ${homeTeamId} (${homeScore}) vs Away Team ${awayTeamId} (${awayScore})`);
+      console.log(`🏆 TEAM RECORDS UPDATE: Home Team ${homeTeamId} (${homeScore}) vs Away Team ${awayTeamId} (${awayScore})`);
       
       // Convert team IDs to integers if they're strings
       const homeId = typeof homeTeamId === 'string' ? parseInt(homeTeamId) : homeTeamId;
       const awayId = typeof awayTeamId === 'string' ? parseInt(awayTeamId) : awayTeamId;
+      
+      console.log(`🔄 Converted IDs: Home ${homeId}, Away ${awayId}`);
       
       // Determine winner
       if (homeScore > awayScore) {
@@ -1084,16 +1087,16 @@ class MatchStateManager {
         });
         console.log(`Away team ${awayId} wins, Home team ${homeId} loses`);
       } else {
-        // Draw
+        // Draw - award 1 point to each team (no draws column in schema)
         await prisma.team.update({
           where: { id: homeId },
-          data: { draws: { increment: 1 }, points: { increment: 1 } }
+          data: { points: { increment: 1 } }
         });
         await prisma.team.update({
           where: { id: awayId },
-          data: { draws: { increment: 1 }, points: { increment: 1 } }
+          data: { points: { increment: 1 } }
         });
-        console.log(`Draw between teams ${homeId} and ${awayId}`);
+        console.log(`Draw between teams ${homeId} and ${awayId} - both teams awarded 1 point`);
       }
     } catch (error) {
       console.error(`Error updating team records for teams ${homeTeamId} and ${awayTeamId}:`, error);
