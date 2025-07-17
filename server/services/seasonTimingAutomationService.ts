@@ -7,6 +7,7 @@ import { LateSignupService } from './lateSignupService';
 import { tournamentService } from './tournamentService';
 import { storage } from '../storage';
 import { logInfo } from './errorService';
+import { getEasternTime, EASTERN_TIMEZONE, getEasternTimeAsDate } from '../../shared/timezone';
 
 /**
  * Season Timing Automation Service
@@ -104,7 +105,7 @@ export class SeasonTimingAutomationService {
       const nextExecution = this.getNextExecutionTime(3, 0); // 3:00 AM EST
       const timeUntilExecution = nextExecution.getTime() - Date.now();
       
-      logInfo(`Daily progression scheduled for ${nextExecution.toLocaleString('en-US', { timeZone: 'America/New_York' })} EST`);
+      logInfo(`Daily progression scheduled for ${nextExecution.toLocaleString('en-US', { timeZone: EASTERN_TIMEZONE })} EST`);
       
       // Clear existing timer
       if (this.dailyProgressionTimer) {
@@ -207,7 +208,7 @@ export class SeasonTimingAutomationService {
       const currentDayInCycle = (daysSinceStart % 17) + 1;
       const seasonNumber = Math.floor(daysSinceStart / 17);
       
-      const estTime = new Date(now.toLocaleString('en-US', { timeZone: 'America/New_York' }));
+      const estTime = getEasternTimeAsDate();
       
       // Check for Day 1 season start at 3:00 PM EST
       if (currentDayInCycle === 1 && estTime.getHours() === 15 && estTime.getMinutes() === 0) {
@@ -251,7 +252,7 @@ export class SeasonTimingAutomationService {
   private async checkMatchSimulationWindow(): Promise<void> {
     try {
       const now = new Date();
-      const estTime = new Date(now.toLocaleString('en-US', { timeZone: 'America/New_York' }));
+      const estTime = getEasternTimeAsDate();
       const currentHour = estTime.getHours();
       
       // Match simulation window: 4:00 PM - 10:00 PM EST
@@ -595,25 +596,19 @@ export class SeasonTimingAutomationService {
    * Get next execution time for a specific hour and minute in EST
    */
   private getNextExecutionTime(hour: number, minute: number): Date {
-    const now = new Date();
+    // Use shared timezone utilities for consistent EST/EDT handling
+    const easternTime = getEasternTime();
     
-    // Create a date for tomorrow at the target hour/minute in EST
-    const tomorrow = new Date(now.getTime() + 24 * 60 * 60 * 1000);
+    // Set to target time today
+    const targetTime = easternTime.clone().hour(hour).minute(minute).second(0).millisecond(0);
     
-    // Create execution time for tomorrow in EST
-    const year = tomorrow.getFullYear();
-    const month = tomorrow.getMonth();
-    const day = tomorrow.getDate();
+    // If target time has already passed today, schedule for tomorrow
+    if (targetTime.isBefore(easternTime)) {
+      targetTime.add(1, 'day');
+    }
     
-    // Create a date object for the target time tomorrow
-    const targetDate = new Date(year, month, day, hour, minute, 0, 0);
-    
-    // EST is UTC-5 (winter) or EDT is UTC-4 (summer)
-    // Since we're in July (summer), use EDT which is UTC-4
-    const edtOffset = 4 * 60 * 60 * 1000; // EDT is UTC-4
-    const utcTime = new Date(targetDate.getTime() + edtOffset);
-    
-    return utcTime;
+    // Convert to UTC Date object for setTimeout
+    return targetTime.toDate();
   }
 
   /**

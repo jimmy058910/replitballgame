@@ -1,7 +1,7 @@
 import moment from 'moment-timezone';
 
-// Eastern Time zone identifier
-export const EASTERN_TIMEZONE = 'America/Detroit';
+// Eastern Time zone identifier - standardized to America/New_York for consistent EST/EDT handling
+export const EASTERN_TIMEZONE = 'America/New_York';
 
 // League game scheduling window (4PM-10PM Eastern)
 export const LEAGUE_GAME_START_HOUR = 16; // 4PM
@@ -14,6 +14,14 @@ export const STAGGER_MINUTES = 5; // 5 minutes between games for viewing
  */
 export function getEasternTime(): moment.Moment {
   return moment().tz(EASTERN_TIMEZONE);
+}
+
+/**
+ * Get current Eastern Time as a native Date object
+ * Standardized method for all EST/EDT calculations
+ */
+export function getEasternTimeAsDate(): Date {
+  return new Date(new Date().toLocaleString('en-US', { timeZone: EASTERN_TIMEZONE }));
 }
 
 /**

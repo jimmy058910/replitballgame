@@ -1,5 +1,6 @@
 import { prisma } from '../db';
 import { logInfo } from './errorService';
+import { EASTERN_TIMEZONE, getEasternTimeAsDate } from '../../shared/timezone';
 
 /**
  * Seasonal Flow Algorithm Service
@@ -74,7 +75,7 @@ export class SeasonalFlowService {
     const daysSinceStart = Math.floor((now.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24));
     
     // Check if we're past 3AM EST today - if so, we should be on the next day
-    const estNow = new Date(now.toLocaleString('en-US', { timeZone: 'America/New_York' }));
+    const estNow = getEasternTimeAsDate();
     const isAfter3AM = estNow.getHours() >= 3;
     
     // If we're after 3AM EST, advance to the next day
