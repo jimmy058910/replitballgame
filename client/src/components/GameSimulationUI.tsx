@@ -298,7 +298,16 @@ export function GameSimulationUI({ matchId, userId, team1, team2, initialLiveSta
     let homePerformer = null;
     let awayPerformer = null;
 
-    if (mvpData?.homeMVP?.playerName && mvpData.homeMVP.playerName !== 'N/A' && mvpData.homeMVP.playerName !== 'No MVP') {
+    // Check enhanced data for MVP players first
+    if (enhancedData?.mvpPlayers?.home && enhancedData.mvpPlayers.home !== 'N/A' && enhancedData.mvpPlayers.home !== 'No MVP') {
+      const stats = getPlayerStats(enhancedData.mvpPlayers.home);
+      homePerformer = {
+        playerId: "mvp-home",
+        playerName: enhancedData.mvpPlayers.home,
+        statLabel: stats?.label || "MVP Score",
+        statValue: stats?.value || 100
+      };
+    } else if (mvpData?.homeMVP?.playerName && mvpData.homeMVP.playerName !== 'N/A' && mvpData.homeMVP.playerName !== 'No MVP') {
       const stats = getPlayerStats(mvpData.homeMVP.playerName);
       homePerformer = {
         playerId: "mvp-home",
@@ -315,7 +324,16 @@ export function GameSimulationUI({ matchId, userId, team1, team2, initialLiveSta
       };
     }
 
-    if (mvpData?.awayMVP?.playerName && mvpData.awayMVP.playerName !== 'N/A' && mvpData.awayMVP.playerName !== 'No MVP') {
+    // Check enhanced data for MVP players first
+    if (enhancedData?.mvpPlayers?.away && enhancedData.mvpPlayers.away !== 'N/A' && enhancedData.mvpPlayers.away !== 'No MVP') {
+      const stats = getPlayerStats(enhancedData.mvpPlayers.away);
+      awayPerformer = {
+        playerId: "mvp-away",
+        playerName: enhancedData.mvpPlayers.away,
+        statLabel: stats?.label || "MVP Score",
+        statValue: stats?.value || 100
+      };
+    } else if (mvpData?.awayMVP?.playerName && mvpData.awayMVP.playerName !== 'N/A' && mvpData.awayMVP.playerName !== 'No MVP') {
       const stats = getPlayerStats(mvpData.awayMVP.playerName);
       awayPerformer = {
         playerId: "mvp-away",
@@ -549,10 +567,10 @@ export function GameSimulationUI({ matchId, userId, team1, team2, initialLiveSta
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <ScrollArea className="h-80 w-full">
+          <ScrollArea className="h-96 w-full">
             <div ref={logRef} className="space-y-2">
               {liveState.gameEvents && liveState.gameEvents.length > 0 ? (
-                liveState.gameEvents.slice(-8).reverse().map((event, index) => (
+                liveState.gameEvents.slice(-15).reverse().map((event, index) => (
                   <div key={index} className="flex items-start space-x-3 p-2 rounded-lg bg-muted/50">
                     <div className="text-xs text-muted-foreground min-w-[60px]">
                       {formatGameTime(event.time)}

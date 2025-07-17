@@ -343,41 +343,51 @@ router.get('/:matchId/enhanced-data', isAuthenticated, async (req: Request, res:
       };
     });
 
-    // Calculate MVP players based on actual stats
+    // Calculate MVP players based on actual stats with error handling
     const calculateMVP = async (teamId: number) => {
-      let mvpPlayer = null;
-      let maxScore = 0;
-      
-      console.log(`Calculating MVP for team ${teamId}`);
-      console.log(`Total players with stats: ${liveState.playerStats.size}`);
-      
-      for (const [playerId, stats] of liveState.playerStats.entries()) {
-        // Query database directly to get player's team
-        const player = await prisma.player.findUnique({
-          where: { id: parseInt(playerId) },
-          select: { id: true, firstName: true, lastName: true, teamId: true }
-        });
+      try {
+        let mvpPlayer = null;
+        let maxScore = 0;
         
-        if (!player || player.teamId !== teamId) continue;
+        console.log(`Calculating MVP for team ${teamId}`);
+        console.log(`Total players with stats: ${liveState.playerStats.size}`);
         
-        // Calculate MVP score: scores * 10 + passing yards * 0.1 + carrier yards * 0.2 + tackles * 2
-        const mvpScore = (stats.scores * 10) + 
-                        (stats.passingYards * 0.1) + 
-                        (stats.carrierYards * 0.2) + 
-                        (stats.tackles * 2) + 
-                        (stats.interceptionsCaught * 5);
-        
-        console.log(`Player ${playerId} (${player.firstName} ${player.lastName}): team ${player.teamId}, MVP score: ${mvpScore}`);
-        
-        if (mvpScore > maxScore) {
-          maxScore = mvpScore;
-          mvpPlayer = `${player.firstName} ${player.lastName}`;
-          console.log(`New MVP: ${mvpPlayer} with score ${mvpScore}`);
+        for (const [playerId, stats] of liveState.playerStats.entries()) {
+          try {
+            // Use the pre-loaded team map instead of individual queries
+            const teamId_fromMap = playerTeamMap.get(playerId.toString());
+            if (!teamId_fromMap || teamId_fromMap !== teamId) continue;
+            
+            // Find player in the pre-loaded arrays
+            const player = [...liveHomePlayers, ...liveAwayPlayers].find(p => p.id.toString() === playerId.toString());
+            if (!player) continue;
+            
+            // Calculate MVP score: scores * 10 + passing yards * 0.1 + carrier yards * 0.2 + tackles * 2
+            const mvpScore = (stats.scores * 10) + 
+                            (stats.passingYards * 0.1) + 
+                            (stats.carrierYards * 0.2) + 
+                            (stats.tackles * 2) + 
+                            (stats.interceptionsCaught * 5);
+            
+            console.log(`Player ${playerId} (${player.firstName} ${player.lastName}): team ${player.teamId}, MVP score: ${mvpScore}`);
+            
+            if (mvpScore > maxScore) {
+              maxScore = mvpScore;
+              mvpPlayer = `${player.firstName} ${player.lastName}`;
+              console.log(`New MVP: ${mvpPlayer} with score ${mvpScore}`);
+            }
+          } catch (playerError) {
+            console.log(`Error processing player ${playerId}:`, playerError);
+            continue;
+          }
         }
+        
+        console.log(`Final MVP for team ${teamId}: ${mvpPlayer || "No MVP"}`);
+        return mvpPlayer || "No MVP";
+      } catch (error) {
+        console.error(`Error calculating MVP for team ${teamId}:`, error);
+        return "No MVP";
       }
-      
-      console.log(`Final MVP for team ${teamId}: ${mvpPlayer || "No MVP"}`);
-      return mvpPlayer || "No MVP";
     };
 
     const mvpPlayers = {
