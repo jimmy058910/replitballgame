@@ -4,6 +4,24 @@ import { PrismaClient, Player, Race, PlayerRole, InjuryStatus } from '../../gene
 
 
 export class PlayerStorage {
+  async getAllPlayersWithStats(): Promise<any[]> {
+    const players = await prisma.player.findMany({
+      include: {
+        team: {
+          select: {
+            name: true,
+            division: true,
+            subdivision: true
+          }
+        }
+      },
+      orderBy: {
+        name: 'asc'
+      }
+    });
+    
+    return players;
+  }
   async createPlayer(playerData: {
     teamId: number;
     firstName: string;

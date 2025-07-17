@@ -2,6 +2,25 @@ import { prisma } from '../db';
 import { PrismaClient, Tournament, TournamentEntry } from '../../generated/prisma';
 
 export class TournamentStorage {
+  async getAllTournamentHistory(): Promise<any[]> {
+    const history = await prisma.tournamentRegistration.findMany({
+      include: {
+        tournament: true,
+        team: {
+          select: {
+            name: true,
+            division: true,
+            subdivision: true
+          }
+        }
+      },
+      orderBy: {
+        registeredAt: 'desc'
+      }
+    });
+    
+    return history;
+  }
   async createTournament(tournamentData: {
     name: string;
     type: string;

@@ -110,6 +110,29 @@ export class TeamStorage {
     return team;
   }
 
+  async getAllTeamsWithStats(): Promise<any[]> {
+    const teams = await prisma.team.findMany({
+      include: {
+        finances: true,
+        stadium: true,
+        players: true,
+        staff: true
+      },
+      orderBy: {
+        name: 'asc'
+      }
+    });
+    
+    return teams.map(team => ({
+      ...team,
+      teamPower: team.players.length > 0 ? Math.round(team.players.reduce((sum, player) => {
+        return sum + (player.speed + player.power + player.throwing + player.catching + player.kicking + player.stamina + player.leadership + player.agility) / 8;
+      }, 0) / Math.min(team.players.length, 9)) : 0,
+      teamCamaraderie: team.camaraderie || 0,
+      credits: team.finances?.credits ? team.finances.credits.toString() : '0'
+    }));
+  }
+
   async updateTeam(id: number, updates: Partial<Team>): Promise<Team | null> {
     try {
       const updatedTeam = await prisma.team.update({

@@ -48,6 +48,7 @@ import tournamentFixRoutes from "./tournamentFixRoutes";
 import tournamentHistoryRoutes from "./tournamentHistoryRoutes";
 import demoRoutes from "./demoRoutes";
 import ndaRoutes from "./ndaRoutes";
+import worldRoutes from "./worldRoutes";
 
 // This function will be called by server/index.ts to set up all routes.
 // It replaces the direct app.use calls that would have been in server/index.ts
@@ -91,6 +92,7 @@ export function registerAllRoutes(app: Express): void {
   app.use("/api/tactical", tacticalRoutes); // Covers /api/tactical/formation endpoint
   app.use("/api/help", helpRoutes); // Covers help documentation and manual
   app.use("/api/aging", agingRoutes); // Covers player aging system and progression mechanics
+  app.use("/api/world", worldRoutes); // Covers global rankings, world statistics, and hall of fame
   app.use("/api/consumables", consumableRoutes); // Covers consumable system for league game enhancements
   app.use("/api/player-skills", playerSkillsRoutes); // Covers player skills system and progression
   app.use("/api/dynamic-marketplace", dynamicMarketplaceRoutes); // Covers dynamic auction marketplace with bidding
