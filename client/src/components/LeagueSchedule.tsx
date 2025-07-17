@@ -142,7 +142,7 @@ export default function LeagueSchedule() {
     
     return (
       <div className="text-center min-w-[60px]">
-        <div className="text-sm font-mono">
+        <div className="text-sm font-mono font-bold text-gray-800 dark:text-gray-200">
           {match.scheduledTimeFormatted || "TBD"}
         </div>
         <div className="text-xs text-gray-600 dark:text-gray-400">
