@@ -682,6 +682,13 @@ export default function Dashboard() {
         </div>
       </div>
 
+      {/* Version Information */}
+      <div className="mt-8 text-center pb-4">
+        <div className="text-sm text-gray-500 dark:text-gray-400">
+          Realm Rivalry <span className="font-mono text-xs bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded">v1.0.0-alpha.1</span>
+        </div>
+      </div>
+
       {/* Player Detail Modal */}
       {selectedPlayer && (
         <PlayerDetailModal
