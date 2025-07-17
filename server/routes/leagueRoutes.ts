@@ -414,9 +414,12 @@ router.get('/daily-schedule', isAuthenticated, async (req: Request, res: Respons
       Number(match.homeTeamId) === Number(userTeam.id) || Number(match.awayTeamId) === Number(userTeam.id)
     );
     
-    const otherMatches = divisionMatches.filter(match => 
-      Number(match.homeTeamId) !== Number(userTeam.id) && Number(match.awayTeamId) !== Number(userTeam.id)
-    );
+    // Filter other matches to only include games within the user's subdivision
+    const otherMatches = divisionMatches.filter(match => {
+      const isNotUserTeam = Number(match.homeTeamId) !== Number(userTeam.id) && Number(match.awayTeamId) !== Number(userTeam.id);
+      const bothTeamsInSubdivision = subdivisionTeamIds.includes(Number(match.homeTeamId)) && subdivisionTeamIds.includes(Number(match.awayTeamId));
+      return isNotUserTeam && bothTeamsInSubdivision;
+    });
     
     const allMatches = [...userTeamMatches, ...otherMatches];
     
@@ -464,9 +467,11 @@ router.get('/daily-schedule', isAuthenticated, async (req: Request, res: Respons
         const userTeamDayMatches = dayMatches.filter(match => 
           Number(match.homeTeamId) === Number(userTeam.id) || Number(match.awayTeamId) === Number(userTeam.id)
         );
-        const otherDayMatches = dayMatches.filter(match => 
-          Number(match.homeTeamId) !== Number(userTeam.id) && Number(match.awayTeamId) !== Number(userTeam.id)
-        );
+        const otherDayMatches = dayMatches.filter(match => {
+          const isNotUserTeam = Number(match.homeTeamId) !== Number(userTeam.id) && Number(match.awayTeamId) !== Number(userTeam.id);
+          const bothTeamsInSubdivision = subdivisionTeamIds.includes(Number(match.homeTeamId)) && subdivisionTeamIds.includes(Number(match.awayTeamId));
+          return isNotUserTeam && bothTeamsInSubdivision;
+        });
         
         // Take user's team games + fill to 4 games total
         const limitedMatches = [...userTeamDayMatches, ...otherDayMatches].slice(0, 4);

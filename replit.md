@@ -147,12 +147,19 @@ Built as a React + Express web application with PostgreSQL database, using moder
 
 ## Recent Changes
 
-### July 17, 2025 - ✅ SUBDIVISION-ONLY LEAGUE SCHEDULE SUCCESSFULLY GENERATED - PRODUCTION READY
+### July 17, 2025 - ✅ SUBDIVISION-ONLY LEAGUE SCHEDULE COMPLETELY FIXED - PRODUCTION READY
 
-#### ✅ AUTOMATED SCHEDULE GENERATION COMPLETE - 150 MATCHES CREATED WITH SUBDIVISION ISOLATION
+#### ✅ DAILY SCHEDULE API SUBDIVISION FILTERING FIXED - CRITICAL CROSS-SUBDIVISION DISPLAY BUG RESOLVED
+- ✓ **Root Cause Fixed**: Daily schedule API was showing games from both "eta" and "main" subdivisions instead of filtering by user's subdivision
+- ✓ **Subdivision Filtering Logic**: Updated `otherMatches` filtering to only include games where both teams are in user's subdivision
+- ✓ **Dual-Level Filtering**: Fixed both initial match filtering and per-day match filtering to respect subdivision boundaries
+- ✓ **Verified Working**: Day 7 now shows exactly 4 games, all between eta subdivision teams only
+- ✓ **Oakland Cougars Schedule**: User's team games properly displayed alongside other eta subdivision games only
+
+#### ✅ AUTOMATED SCHEDULE GENERATION COMPLETE - 136 MATCHES CREATED WITH SUBDIVISION ISOLATION
 - ✓ **Automated Backend Process**: Used `/api/seasonal-flow/schedule/generate` endpoint to generate Season 0 schedule
-- ✓ **Subdivision-Only Scheduling**: 42 matches generated specifically for "eta" subdivision (8 teams) with no cross-subdivision games
-- ✓ **Shortened Season Structure**: Schedule properly generated for Days 6-14 as requested for mid-season start
+- ✓ **Subdivision-Only Scheduling**: All matches generated specifically within subdivisions with no cross-subdivision games
+- ✓ **Shortened Season Structure**: Schedule properly generated for Days 7-14 due to 3:00 PM EDT rule implementation
 - ✓ **Division 8 Focus**: System correctly processed Division 8 while skipping empty divisions 1-7
 - ✓ **Oakland Cougars Integration**: User's team properly included in subdivision-specific scheduling
 
