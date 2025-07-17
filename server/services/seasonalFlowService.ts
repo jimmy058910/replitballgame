@@ -267,8 +267,8 @@ export class SeasonalFlowService {
   }
 
   /**
-   * Generate matches for a subdivision day (any number of teams)
-   * Uses proper round-robin rotation to ensure balanced scheduling
+   * Generate matches for a subdivision day (8 teams = 4 games per day)
+   * Simple pairing system ensuring each team plays exactly once per day
    */
   static generateSubdivisionDayMatches(teams: any[], day: number): any[] {
     const matches = [];
@@ -276,40 +276,45 @@ export class SeasonalFlowService {
     
     if (numTeams < 2) return matches;
     
-    // For proper round-robin scheduling, we need to ensure even distribution
-    // Create a balanced pairing system where each team plays roughly the same number of games
+    // For 8 teams, we need exactly 4 games per day
+    // Use round-robin scheduling where each team plays every other team once
     
-    // Use round-robin algorithm with rotation
-    const teamsArray = [...teams];
-    const numRounds = numTeams % 2 === 0 ? numTeams - 1 : numTeams;
-    const gamesPerRound = Math.floor(numTeams / 2);
-    
-    // Calculate which round this day represents (cycle through rounds)
-    const roundIndex = (day - 1) % numRounds;
-    
-    // Generate matches for this round using round-robin rotation
-    for (let i = 0; i < gamesPerRound; i++) {
-      let homeIndex, awayIndex;
+    if (numTeams === 8) {
+      // Perfect 8-team subdivision - 4 games per day
+      const gameSlots = [
+        [0, 1], [2, 3], [4, 5], [6, 7],  // Day 1
+        [0, 2], [1, 3], [4, 6], [5, 7],  // Day 2
+        [0, 3], [1, 2], [4, 7], [5, 6],  // Day 3
+        [0, 4], [1, 5], [2, 6], [3, 7],  // Day 4
+        [0, 5], [1, 4], [2, 7], [3, 6],  // Day 5
+        [0, 6], [1, 7], [2, 4], [3, 5],  // Day 6
+        [0, 7], [1, 6], [2, 5], [3, 4]   // Day 7
+      ];
       
-      if (numTeams % 2 === 0) {
-        // Even number of teams - standard round-robin
-        homeIndex = i;
-        awayIndex = (numTeams - 1 - i + roundIndex) % (numTeams - 1);
-        if (awayIndex >= homeIndex) awayIndex++;
-      } else {
-        // Odd number of teams - one team sits out each round
-        if (i === roundIndex) continue; // This team sits out this round
-        homeIndex = i;
-        awayIndex = (numTeams - 1 - i + roundIndex) % numTeams;
-        if (awayIndex === homeIndex) awayIndex = (awayIndex + 1) % numTeams;
+      // Each day has 4 games, cycle through days 1-7 then repeat
+      const dayIndex = ((day - 1) % 7) * 4;
+      for (let i = 0; i < 4; i++) {
+        const pairIndex = dayIndex + i;
+        if (pairIndex < gameSlots.length) {
+          const [homeIndex, awayIndex] = gameSlots[pairIndex];
+          matches.push({
+            homeTeam: teams[homeIndex],
+            awayTeam: teams[awayIndex]
+          });
+        }
       }
-      
-      // Ensure indices are valid
-      if (homeIndex < numTeams && awayIndex < numTeams && homeIndex !== awayIndex) {
-        matches.push({
-          homeTeam: teamsArray[homeIndex],
-          awayTeam: teamsArray[awayIndex]
-        });
+    } else {
+      // For odd number of teams, create as many pairs as possible
+      for (let i = 0; i < Math.floor(numTeams / 2); i++) {
+        const homeIndex = i;
+        const awayIndex = (i + day + Math.floor(numTeams / 2) - 1) % numTeams;
+        
+        if (homeIndex !== awayIndex) {
+          matches.push({
+            homeTeam: teams[homeIndex],
+            awayTeam: teams[awayIndex]
+          });
+        }
       }
     }
     
@@ -327,30 +332,14 @@ export class SeasonalFlowService {
     const matches = [];
     const numTeams = teams.length;
     
-    // Create balanced subdivisions - redistribute teams to avoid very small subdivisions
+    // Create subdivisions of exactly 8 teams each
+    // For 35 teams: 4 subdivisions of 8 teams + 1 subdivision of 3 teams
     const subdivisions = [];
-    const optimalSubdivisionSize = 8;
-    const minSubdivisionSize = 6;
+    const subdivisionSize = 8;
     
-    // Calculate how many subdivisions we need
-    const numFullSubdivisions = Math.floor(numTeams / optimalSubdivisionSize);
-    const remainingTeams = numTeams % optimalSubdivisionSize;
-    
-    // If remaining teams are too few, redistribute
-    if (remainingTeams > 0 && remainingTeams < minSubdivisionSize) {
-      // Redistribute the remaining teams across existing subdivisions
-      const redistributedSize = Math.ceil(numTeams / numFullSubdivisions);
-      
-      for (let i = 0; i < numFullSubdivisions; i++) {
-        const startIndex = i * redistributedSize;
-        const endIndex = Math.min(startIndex + redistributedSize, numTeams);
-        subdivisions.push(teams.slice(startIndex, endIndex));
-      }
-    } else {
-      // Standard subdivision creation
-      for (let i = 0; i < numTeams; i += optimalSubdivisionSize) {
-        subdivisions.push(teams.slice(i, i + optimalSubdivisionSize));
-      }
+    for (let i = 0; i < numTeams; i += subdivisionSize) {
+      const subdivision = teams.slice(i, i + subdivisionSize);
+      subdivisions.push(subdivision);
     }
     
     // Generate schedule for each subdivision
@@ -368,8 +357,12 @@ export class SeasonalFlowService {
         const dayMatches = this.generateSubdivisionDayMatches(subdivision, day);
         
         for (const match of dayMatches) {
-          const gameDate = new Date("2025-07-13");
+          // Calculate the correct game date based on season start + day
+          const gameDate = new Date("2025-07-13"); // Season start date
           gameDate.setDate(gameDate.getDate() + day - 1);
+          
+          // Set specific game time (8:00 PM EDT)
+          gameDate.setHours(20, 0, 0, 0);
           
           const matchData = {
             leagueId,

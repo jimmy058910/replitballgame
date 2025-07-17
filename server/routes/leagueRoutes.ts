@@ -425,12 +425,12 @@ router.get('/daily-schedule', isAuthenticated, async (req: Request, res: Respons
 
     const teamNamesMap = new Map();
     teams.forEach(team => {
-      teamNamesMap.set(team.id, team.name);
+      teamNamesMap.set(Number(team.id), team.name);
     });
 
     const scheduleByDay: { [key: number]: any[] } = {};
 
-    for (let day = currentDayInCycle; day <= 17; day++) {
+    for (let day = 1; day <= 17; day++) {
       const dayMatches = allMatches.filter(match => {
         if (match.gameDate) {
           // Use simple UTC date comparison for day calculation
@@ -450,13 +450,16 @@ router.get('/daily-schedule', isAuthenticated, async (req: Request, res: Respons
 
       if (dayMatches.length > 0) {
         scheduleByDay[day] = dayMatches.map((match, index) => ({
-          ...match,
+          id: match.id ? Number(match.id) : index,
+          homeTeamId: match.homeTeamId ? Number(match.homeTeamId) : 0,
+          awayTeamId: match.awayTeamId ? Number(match.awayTeamId) : 0,
           homeTeamName: teamNamesMap.get(match.homeTeamId) || "Home",
           awayTeamName: teamNamesMap.get(match.awayTeamId) || "Away",
           scheduledTime: match.gameDate ? new Date(match.gameDate) : new Date(),
           scheduledTimeFormatted: match.gameDate ? formatEasternTime(new Date(match.gameDate)) : "TBD",
           isLive: match.status === 'IN_PROGRESS',
-          canWatch: match.status === 'IN_PROGRESS' || match.status === 'COMPLETED'
+          canWatch: match.status === 'IN_PROGRESS' || match.status === 'COMPLETED',
+          status: match.status || 'SCHEDULED'
         }));
       } else {
         scheduleByDay[day] = [];
