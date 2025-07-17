@@ -50,25 +50,22 @@ router.get('/current', isAuthenticated, async (req: Request, res: Response, next
 // Get current season cycle (day-by-day info)
 router.get('/current-cycle', isAuthenticated, async (req: Request, res: Response, next: NextFunction) => {
   try {
-    // Always calculate season data based on fixed date (no database dependency)
-    // Adjusted to make today (July 15) approximately Day 3 in the cycle
-    const startDate = new Date("2025-07-13");
-    const now = new Date();
-    const daysSinceStart = Math.floor((now.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24));
-    const currentDayInCycle = (daysSinceStart % 17) + 1;
+    // Get current season from database to get the actual currentDay
+    const currentSeason = await storage.seasons.getCurrentSeason();
+    let currentDayInCycle = 5; // Default fallback
+    let seasonNumber = 0; // Default season number
     
-    // Debug logging (can be removed in production)
-    // console.log('Season calculation debug:', {
-    //   rawStartDate: currentSeason.start_date_original,
-    //   rawStartDateBackup: currentSeason.start_date,
-    //   seasonStartDate: seasonStartDate.toISOString(),
-    //   now: now.toISOString(),
-    //   daysSinceStart,
-    //   currentDayInCycle
-    // });
-    
-    // Calculate season number starting from Season 0, incrementing every 17 days
-    const seasonNumber = Math.floor(daysSinceStart / 17);
+    if (currentSeason && typeof currentSeason.currentDay === 'number') {
+      currentDayInCycle = currentSeason.currentDay;
+      seasonNumber = currentSeason.seasonNumber || 0;
+    } else {
+      // Fallback to calculation if no database value
+      const startDate = new Date("2025-07-13");
+      const now = new Date();
+      const daysSinceStart = Math.floor((now.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24));
+      currentDayInCycle = (daysSinceStart % 17) + 1;
+      seasonNumber = Math.floor(daysSinceStart / 17);
+    }
     
     // Determine the phase and dynamic content based on current day in cycle
     let phase = "Regular Season";
