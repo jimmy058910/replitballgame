@@ -72,7 +72,7 @@ export function GameSimulationUI({ matchId, userId, team1, team2, initialLiveSta
     if (logRef.current) {
       logRef.current.scrollTop = 0;
     }
-  }, [liveState?.recentEvents]);
+  }, [liveState?.gameEvents]);
 
   // WebSocket connection and event handling
   useEffect(() => {
@@ -247,8 +247,8 @@ export function GameSimulationUI({ matchId, userId, team1, team2, initialLiveSta
   };
 
   const getKeyPerformers = (): { home: KeyPerformer | null; away: KeyPerformer | null } => {
-    const halftimeEvent = liveState?.recentEvents?.find(e => e.type === 'halftime');
-    const finalEvent = liveState?.recentEvents?.find(e => e.type === 'match_complete');
+    const halftimeEvent = liveState?.gameEvents?.find(e => e.type === 'halftime');
+    const finalEvent = liveState?.gameEvents?.find(e => e.type === 'match_complete');
 
     let mvpData = null;
 
@@ -517,8 +517,8 @@ export function GameSimulationUI({ matchId, userId, team1, team2, initialLiveSta
         <CardContent>
           <ScrollArea className="h-64 w-full">
             <div ref={logRef} className="space-y-2">
-              {liveState.recentEvents && liveState.recentEvents.length > 0 ? (
-                liveState.recentEvents.slice(0, 20).map((event, index) => (
+              {liveState.gameEvents && liveState.gameEvents.length > 0 ? (
+                liveState.gameEvents.slice(0, 20).map((event, index) => (
                   <div key={index} className="flex items-start space-x-3 p-2 rounded-lg bg-muted/50">
                     <div className="text-xs text-muted-foreground min-w-[60px]">
                       {formatGameTime(event.gameTime || liveState.gameTime)}
