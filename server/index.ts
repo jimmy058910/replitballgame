@@ -32,12 +32,27 @@ app.use(helmet({
     directives: {
       defaultSrc: ["'self'"],
       styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
-      scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'"],
+      scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'", "https://js.stripe.com"],
       imgSrc: ["'self'", "data:", "https:"],
       fontSrc: ["'self'", "https://fonts.gstatic.com"],
-      connectSrc: ["'self'", "wss:", "ws:"],
+      connectSrc: ["'self'", "wss:", "ws:", "https://api.stripe.com"],
+      frameSrc: ["https://js.stripe.com", "https://hooks.stripe.com"],
+      objectSrc: ["'none'"],
+      mediaSrc: ["'self'"],
+      baseUri: ["'self'"],
+      formAction: ["'self'"],
+      frameAncestors: ["'none'"],
+      upgradeInsecureRequests: []
     },
   },
+  hsts: {
+    maxAge: 31536000,
+    includeSubDomains: true,
+    preload: true
+  },
+  noSniff: true,
+  frameguard: { action: 'deny' },
+  crossOriginEmbedderPolicy: false
 }));
 
 // Rate limiting for API endpoints

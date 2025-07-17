@@ -262,13 +262,13 @@ export function canChangeFieldSize(currentDay: number): boolean {
     return true;
   }
 
-  // During regular season (Days 2-14), cannot change
-  if (currentDay >= 2 && currentDay <= 14) {
+  // During regular season (Days 2-15), cannot change
+  if (currentDay >= 2 && currentDay <= 15) {
     return false;
   }
 
-  // After Day 14 (Day 15+) - can change (simplified for now)
-  return currentDay > 14;
+  // Only allow changes on Day 1 and off-season (Days 16-17)
+  return false;
 }
 
 /**

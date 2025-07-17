@@ -593,7 +593,6 @@ export default function Store() {
                 );
               })}
             </div>
-            )}
           </TabsContent>
 
           <TabsContent value="buy-gems">
@@ -651,7 +650,6 @@ export default function Store() {
                 </ul>
               </div>
             </div>
-            )}
           </TabsContent>
 
           <TabsContent value="ads">
