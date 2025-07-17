@@ -199,13 +199,15 @@ export function getServerTimeInfo() {
 }
 
 /**
- * Generate 4 daily game times with 15-minute intervals within 4-10PM window
+ * Generate 4 daily game times with consecutive 15-minute intervals within 4-10PM window
  * Games run consecutively: Game 1 at base time, Game 2 +15min, Game 3 +30min, Game 4 +45min
+ * Each day starts at a different time to provide variety while maintaining consecutive intervals
  */
 export function generateDailyGameTimes(day: number): Date[] {
   const easternTime = getEasternTime();
   
   // Start times vary by day within 4PM-10PM window, each day has 4 consecutive games in 15-minute intervals
+  // Pattern ensures games are spread across the 4PM-10PM window with consecutive 15-minute intervals
   const startVariations = [
     { hour: 17, minute: 15 }, // 5:15PM (Day 6: 5:15, 5:30, 5:45, 6:00)
     { hour: 17, minute: 45 }, // 5:45PM (Day 7: 5:45, 6:00, 6:15, 6:30)
@@ -218,11 +220,13 @@ export function generateDailyGameTimes(day: number): Date[] {
     { hour: 21, minute: 15 }, // 9:15PM (Day 14: 9:15, 9:30, 9:45, 10:00)
   ];
   
+  // Handle league days 6-14 (regular season days)
   const dayIndex = (day - 6) % startVariations.length; // Start from Day 6
   const { hour, minute } = startVariations[dayIndex];
   
   const gameTimes: Date[] = [];
   
+  // Generate 4 consecutive games with 15-minute intervals
   for (let i = 0; i < 4; i++) {
     const gameTime = easternTime.clone().hour(hour).minute(minute + (i * 15)).second(0);
     gameTimes.push(gameTime.toDate());

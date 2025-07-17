@@ -192,15 +192,29 @@ export class SeasonalFlowService {
       // Generate 2 matches for this day
       const dayMatches = this.generateDayMatches(teams, day, 2);
       
-      for (const match of dayMatches) {
+      // Use generateDailyGameTimes for consecutive 15-minute intervals
+      const { generateDailyGameTimes } = await import('../../shared/timezone');
+      const dailyGameTimes = generateDailyGameTimes(day);
+      
+      for (let matchIndex = 0; matchIndex < dayMatches.length; matchIndex++) {
+        const match = dayMatches[matchIndex];
+        const gameDate = new Date("2025-07-13");
+        gameDate.setDate(gameDate.getDate() + day - 1);
+        
+        // Use the appropriate time slot for this match
+        const slotIndex = matchIndex % dailyGameTimes.length;
+        const gameTime = dailyGameTimes[slotIndex];
+        
+        gameDate.setHours(gameTime.getHours(), gameTime.getMinutes(), 0, 0);
+        
         const matchData = {
           leagueId,
           homeTeamId: match.homeTeam.id,
           awayTeamId: match.awayTeam.id,
-          gameDay: day,
+          gameDate: gameDate,
           season,
-          status: 'scheduled',
-          matchType: 'league'
+          status: 'SCHEDULED',
+          matchType: 'LEAGUE'
         };
         
         matches.push(matchData);
@@ -239,9 +253,20 @@ export class SeasonalFlowService {
       // Generate matches per day based on team count
       const dayMatches = this.generateSubdivisionDayMatches(teams, day);
       
-      for (const match of dayMatches) {
+      // Use generateDailyGameTimes for consecutive 15-minute intervals
+      const { generateDailyGameTimes } = await import('../../shared/timezone');
+      const dailyGameTimes = generateDailyGameTimes(day);
+      
+      for (let matchIndex = 0; matchIndex < dayMatches.length; matchIndex++) {
+        const match = dayMatches[matchIndex];
         const gameDate = new Date("2025-07-13");
         gameDate.setDate(gameDate.getDate() + day - 1);
+        
+        // Use the appropriate time slot for this match
+        const slotIndex = matchIndex % dailyGameTimes.length;
+        const gameTime = dailyGameTimes[slotIndex];
+        
+        gameDate.setHours(gameTime.getHours(), gameTime.getMinutes(), 0, 0);
         
         const matchData = {
           leagueId,
@@ -366,20 +391,15 @@ export class SeasonalFlowService {
           const gameDate = new Date("2025-07-13"); // Season start date
           gameDate.setDate(gameDate.getDate() + day - 1);
           
-          // Set game times in 15-minute increments between 4PM-10PM EST
-          // For 4 games per day, spread them across the 4PM-10PM window
-          const gameSlots = [
-            { hour: 16, minute: 0 },  // 4:00 PM
-            { hour: 17, minute: 15 }, // 5:15 PM  
-            { hour: 18, minute: 30 }, // 6:30 PM
-            { hour: 19, minute: 45 }  // 7:45 PM
-          ];
+          // Use generateDailyGameTimes for consecutive 15-minute intervals
+          const { generateDailyGameTimes } = await import('../../shared/timezone');
+          const dailyGameTimes = generateDailyGameTimes(day);
           
-          const slotIndex = matchIndex % gameSlots.length;
-          const hour = gameSlots[slotIndex].hour;
-          const minute = gameSlots[slotIndex].minute;
+          // Use the appropriate time slot for this match
+          const slotIndex = matchIndex % dailyGameTimes.length;
+          const gameTime = dailyGameTimes[slotIndex];
           
-          gameDate.setHours(hour, minute, 0, 0);
+          gameDate.setHours(gameTime.getHours(), gameTime.getMinutes(), 0, 0);
           
           const matchData = {
             leagueId,
@@ -424,9 +444,20 @@ export class SeasonalFlowService {
     for (let day = 1; day <= this.SEASON_CONFIG.REGULAR_SEASON_DAYS; day++) {
       const dayMatches = this.generateSubdivisionDayMatches(teams, day);
       
-      for (const match of dayMatches) {
+      // Use generateDailyGameTimes for consecutive 15-minute intervals
+      const { generateDailyGameTimes } = await import('../../shared/timezone');
+      const dailyGameTimes = generateDailyGameTimes(day);
+      
+      for (let matchIndex = 0; matchIndex < dayMatches.length; matchIndex++) {
+        const match = dayMatches[matchIndex];
         const gameDate = new Date("2025-07-13");
         gameDate.setDate(gameDate.getDate() + day - 1);
+        
+        // Use the appropriate time slot for this match
+        const slotIndex = matchIndex % dailyGameTimes.length;
+        const gameTime = dailyGameTimes[slotIndex];
+        
+        gameDate.setHours(gameTime.getHours(), gameTime.getMinutes(), 0, 0);
         
         const matchData = {
           leagueId,
