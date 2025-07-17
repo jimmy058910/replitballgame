@@ -17,7 +17,9 @@ export function LiveMatchViewer({ matchId, userId, onMatchComplete }: LiveMatchV
   // Fetch initial match data
   const { data: initialMatchData, error: matchError, isLoading: matchDataLoading } = useQuery({
     queryKey: [`/api/matches/${matchId}`],
-    enabled: !!matchId
+    enabled: !!matchId,
+    retry: 3,
+    retryDelay: 1000
   });
 
   // Fetch enhanced match data
@@ -32,7 +34,8 @@ export function LiveMatchViewer({ matchId, userId, onMatchComplete }: LiveMatchV
     initialMatchData,
     matchError,
     enhancedData,
-    enhancedDataLoading
+    enhancedDataLoading,
+    matchId
   });
 
   // Handle completed matches
@@ -90,12 +93,14 @@ export function LiveMatchViewer({ matchId, userId, onMatchComplete }: LiveMatchV
 
   // Error state
   if (matchError) {
+    console.error('Match error details:', matchError);
     return (
       <Card className="w-full max-w-6xl mx-auto">
         <CardContent className="flex items-center justify-center h-64">
           <div className="text-center">
             <h3 className="text-lg font-semibold text-destructive">Failed to Load Match</h3>
             <p className="text-muted-foreground">Please try refreshing the page</p>
+            <p className="text-sm text-muted-foreground mt-2">Error: {matchError.message || 'Unknown error'}</p>
           </div>
         </CardContent>
       </Card>
@@ -113,9 +118,15 @@ export function LiveMatchViewer({ matchId, userId, onMatchComplete }: LiveMatchV
     );
   }
 
-  // Extract team data
-  const team1 = initialMatchData.homeTeam;
-  const team2 = initialMatchData.awayTeam;
+  // Extract team data - handle both nested objects and flat structure
+  const team1 = initialMatchData.homeTeam || {
+    id: initialMatchData.homeTeamId,
+    name: initialMatchData.homeTeamName || 'Home Team'
+  };
+  const team2 = initialMatchData.awayTeam || {
+    id: initialMatchData.awayTeamId,
+    name: initialMatchData.awayTeamName || 'Away Team'
+  };
 
   // Use the new GameSimulationUI component
   return (
