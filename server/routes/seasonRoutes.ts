@@ -347,4 +347,58 @@ router.post('/sponsorships/negotiate', isAuthenticated, async (req: any, res: Re
 
 // ... other sponsorship routes like renew, available sponsors
 
+// MANUAL TESTING ROUTE - Game Catch-Up Mechanism
+router.post('/test-catch-up', isAuthenticated, async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    // Import the automation service for manual testing
+    const { SeasonTimingAutomationService } = await import('../services/seasonTimingAutomationService');
+    const automationService = SeasonTimingAutomationService.getInstance();
+    
+    // Check for missed matches that need to be started
+    const now = new Date();
+    const { prisma } = await import('../db');
+    
+    const missedMatches = await prisma.game.findMany({
+      where: {
+        status: 'SCHEDULED',
+        gameDate: {
+          lt: now
+        },
+        matchType: 'LEAGUE'
+      },
+      select: {
+        id: true,
+        gameDate: true,
+        homeTeamId: true,
+        awayTeamId: true
+      }
+    });
+    
+    if (missedMatches.length === 0) {
+      return res.json({ 
+        success: true, 
+        message: 'No missed matches found that need to be started',
+        missedMatches: 0
+      });
+    }
+    
+    // Manually trigger the catch-up mechanism
+    await automationService['catchUpOnMissedMatches']();
+    
+    res.json({ 
+      success: true, 
+      message: `Catch-up mechanism triggered successfully for ${missedMatches.length} missed matches`,
+      missedMatches: missedMatches.length,
+      matchDetails: missedMatches.map(match => ({
+        id: match.id,
+        gameDate: match.gameDate,
+        minutesPastDue: Math.floor((now.getTime() - match.gameDate.getTime()) / (1000 * 60))
+      }))
+    });
+  } catch (error) {
+    console.error("Error testing catch-up mechanism:", error);
+    next(error);
+  }
+});
+
 export default router;

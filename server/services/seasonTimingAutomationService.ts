@@ -26,6 +26,7 @@ export class SeasonTimingAutomationService {
   private seasonEventTimer: NodeJS.Timeout | null = null;
   private matchSimulationTimer: NodeJS.Timeout | null = null;
   private tournamentAutoStartTimer: NodeJS.Timeout | null = null;
+  private catchUpTimer: NodeJS.Timeout | null = null;
   private isRunning = false;
 
   private constructor() {}
@@ -57,6 +58,9 @@ export class SeasonTimingAutomationService {
     
     // Schedule match simulation window check every 30 minutes
     this.scheduleMatchSimulation();
+    
+    // Schedule catch-up check every 15 minutes for missed matches
+    this.scheduleCatchUpChecks();
     
     // Schedule tournament auto-start check every hour
     this.scheduleTournamentAutoStart();
@@ -92,6 +96,11 @@ export class SeasonTimingAutomationService {
     if (this.tournamentAutoStartTimer) {
       clearInterval(this.tournamentAutoStartTimer);
       this.tournamentAutoStartTimer = null;
+    }
+    
+    if (this.catchUpTimer) {
+      clearInterval(this.catchUpTimer);
+      this.catchUpTimer = null;
     }
     
     logInfo('Season timing automation system stopped');
@@ -152,6 +161,42 @@ export class SeasonTimingAutomationService {
     this.tournamentAutoStartTimer = setInterval(async () => {
       await this.checkTournamentAutoStart();
     }, 60 * 1000); // Check every minute for 10-minute countdown
+  }
+
+  /**
+   * Schedule catch-up checks for missed matches every 15 minutes
+   */
+  private scheduleCatchUpChecks(): void {
+    // Run every 15 minutes
+    this.catchUpTimer = setInterval(async () => {
+      await this.runCatchUpCheck();
+    }, 15 * 60 * 1000);
+    
+    // Run once immediately
+    this.runCatchUpCheck();
+  }
+
+  /**
+   * Run catch-up check for missed matches
+   */
+  private async runCatchUpCheck(): Promise<void> {
+    try {
+      const currentSeason = await storage.seasons.getCurrentSeason();
+      if (!currentSeason) {
+        return;
+      }
+
+      const { currentDayInCycle } = this.getCurrentSeasonInfo(currentSeason);
+      
+      // Only run catch-up during regular season (Days 1-14)
+      if (currentDayInCycle >= 1 && currentDayInCycle <= 14) {
+        logInfo('🔄 Running catch-up check for missed matches...');
+        await this.catchUpOnMissedMatches();
+      }
+      
+    } catch (error) {
+      console.error('Error during catch-up check:', error.message);
+    }
   }
 
   /**
@@ -535,15 +580,18 @@ export class SeasonTimingAutomationService {
       if (currentDayInCycle >= 1 && currentDayInCycle <= 14) {
         logInfo(`Simulating scheduled matches for Day ${currentDayInCycle}...`);
         
-        // Get scheduled matches that should be starting now (within 30 minutes window)
+        // CATCH UP MECHANISM: First, catch up on matches that should have already started
+        await this.catchUpOnMissedMatches();
+        
+        // Then, get scheduled matches that should be starting now (within 30 minutes window)
         const now = new Date();
         const thirtyMinutesFromNow = new Date(now.getTime() + 30 * 60 * 1000);
         const scheduledMatches = await prisma.game.findMany({
           where: {
             status: 'SCHEDULED',
             gameDate: {
-              lte: thirtyMinutesFromNow, // Only matches scheduled for within the next 30 minutes
-              gte: now // And not matches that should have started more than now
+              lte: thirtyMinutesFromNow,
+              gte: now // Only matches scheduled for future times
             }
           }
         });
@@ -575,6 +623,55 @@ export class SeasonTimingAutomationService {
       
     } catch (error) {
       console.error('Error simulating scheduled matches:', error.message);
+    }
+  }
+
+  /**
+   * CATCH UP MECHANISM: Start matches that should have already started (fail-safe for outages)
+   */
+  private async catchUpOnMissedMatches(): Promise<void> {
+    try {
+      const now = new Date();
+      
+      // Find all scheduled matches that should have already started
+      const missedMatches = await prisma.game.findMany({
+        where: {
+          status: 'SCHEDULED',
+          gameDate: {
+            lt: now // Matches that should have started in the past
+          },
+          matchType: 'LEAGUE' // Only catch up on league matches
+        }
+      });
+      
+      if (missedMatches.length > 0) {
+        logInfo(`🔥 CATCH UP: Found ${missedMatches.length} missed matches that should have started, starting them now...`);
+        
+        // Start each missed match immediately
+        for (const match of missedMatches) {
+          try {
+            const timePastDue = now.getTime() - match.gameDate.getTime();
+            const minutesPastDue = Math.floor(timePastDue / (1000 * 60));
+            
+            await prisma.game.update({
+              where: { id: match.id },
+              data: { 
+                status: 'IN_PROGRESS',
+                gameDate: new Date() // Start now
+              }
+            });
+            
+            // Initialize match state in the match state manager
+            const { matchStateManager } = await import('./matchStateManager');
+            await matchStateManager.startLiveMatch(match.id.toString(), false);
+            logInfo(`🔥 CATCH UP: Started missed match ${match.id} (was ${minutesPastDue} minutes past due)`);
+          } catch (error) {
+            console.error(`Error starting missed match ${match.id}:`, error);
+          }
+        }
+      }
+    } catch (error) {
+      console.error('Error catching up on missed matches:', error.message);
     }
   }
 
