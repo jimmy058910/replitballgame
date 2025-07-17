@@ -164,6 +164,7 @@ Built as a React + Express web application with PostgreSQL database, using moder
 - ✓ **Legacy Support**: Maintained backward compatibility for existing `/match/` and `/text-match/` routes
 - ✓ **League Schedule Updated**: Updated LeagueSchedule.tsx to use consistent `/live-match/` URLs
 - ✓ **Documentation**: Added clear routing comments explaining primary vs legacy routes
+- ✓ **Post-Game Navigation Fixed**: Fixed "Return to Dashboard" button to navigate to root page (/) instead of non-existent /dashboard
 
 ### July 17, 2025 - ✅ CRITICAL AUTOMATION PRECISION FIX & TEXT READABILITY ENHANCEMENT - PRODUCTION READY (Previous)
 

@@ -311,7 +311,7 @@ export function PostGameSummary({
         <CardContent className="p-6">
           <div className="flex justify-center gap-4">
             <button
-              onClick={() => window.location.href = '/dashboard'}
+              onClick={() => window.location.href = '/'}
               className="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
             >
               Return to Dashboard
