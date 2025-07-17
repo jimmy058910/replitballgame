@@ -403,10 +403,10 @@ router.get('/daily-schedule', isAuthenticated, async (req: Request, res: Respons
     
     const subdivisionTeamIds = subdivisionTeams.map(team => team.id);
 
-    // Filter matches to only include those within the user's subdivision
+    // Show ALL games involving user's team (regardless of opponent's subdivision)
     const allMatches = divisionMatches.filter(match => 
-      subdivisionTeamIds.includes(match.homeTeamId) && 
-      subdivisionTeamIds.includes(match.awayTeamId)
+      Number(match.homeTeamId) === Number(userTeam.id) || Number(match.awayTeamId) === Number(userTeam.id) ||
+      (subdivisionTeamIds.includes(match.homeTeamId) && subdivisionTeamIds.includes(match.awayTeamId))
     );
     
 
@@ -456,7 +456,7 @@ router.get('/daily-schedule', isAuthenticated, async (req: Request, res: Respons
           homeTeamName: teamNamesMap.get(match.homeTeamId) || "Home",
           awayTeamName: teamNamesMap.get(match.awayTeamId) || "Away",
           scheduledTime: match.gameDate ? new Date(match.gameDate) : new Date(),
-          scheduledTimeFormatted: match.gameDate ? formatEasternTime(new Date(match.gameDate)) : "TBD",
+          scheduledTimeFormatted: match.gameDate ? formatEasternTime(new Date(match.gameDate), 'h:mm A') : "TBD",
           isLive: match.status === 'IN_PROGRESS',
           canWatch: match.status === 'IN_PROGRESS' || match.status === 'COMPLETED',
           status: match.status || 'SCHEDULED'
