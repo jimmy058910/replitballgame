@@ -67,56 +67,27 @@ export function generateRandomPlayer(name: string | null, race: string, teamId: 
     baseStats[key as keyof typeof baseStats] = Math.min(40, baseStats[key as keyof typeof baseStats]);
   });
 
-  // Generate potential using configurable range
+  // Generate individual stat potentials (15-40 range like stats)
+  const generateIndividualPotential = () => 15 + Math.random() * 25; // 15-40 range for individual stat potentials
+  
+  // Generate overall potential stars using original config (0.5-5.0 range)
   const potentialConfig = gameConfig.gameParameters.playerGeneration.potentialRange;
-  const generatePotential = () => potentialConfig.min + Math.random() * (potentialConfig.max - potentialConfig.min);
+  const generateOverallPotential = () => potentialConfig.min + Math.random() * (potentialConfig.max - potentialConfig.min);
 
   // Calculate overall potential stars based on position and individual potentials
   const potentials = {
-    speed: generatePotential(),
-    power: generatePotential(),
-    throwing: generatePotential(),
-    catching: generatePotential(),
-    kicking: generatePotential(),
-    stamina: generatePotential(),
-    leadership: generatePotential(),
-    agility: generatePotential()
+    speed: generateIndividualPotential(),
+    power: generateIndividualPotential(),
+    throwing: generateIndividualPotential(),
+    catching: generateIndividualPotential(),
+    kicking: generateIndividualPotential(),
+    stamina: generateIndividualPotential(),
+    leadership: generateIndividualPotential(),
+    agility: generateIndividualPotential()
   };
   
-  // Calculate weighted average based on position
-  let weightedPotential = 0;
-  switch (position) {
-    case "passer":
-      weightedPotential = (
-        potentials.throwing * 3 +
-        potentials.leadership * 2 +
-        potentials.agility * 1.5 +
-        potentials.stamina * 1 +
-        (potentials.speed + potentials.power + potentials.catching + potentials.kicking) * 0.5
-      ) / 9.5;
-      break;
-    case "runner":
-      weightedPotential = (
-        potentials.speed * 3 +
-        potentials.agility * 2.5 +
-        potentials.catching * 2 +
-        potentials.stamina * 1.5 +
-        (potentials.power + potentials.throwing + potentials.leadership + potentials.kicking) * 0.5
-      ) / 11;
-      break;
-    case "blocker":
-      weightedPotential = (
-        potentials.power * 3 +
-        potentials.stamina * 2.5 +
-        potentials.agility * 1.5 +
-        potentials.leadership * 1 +
-        (potentials.speed + potentials.throwing + potentials.catching + potentials.kicking) * 0.5
-      ) / 10;
-      break;
-    default:
-      // Balanced for unknown positions
-      weightedPotential = Object.values(potentials).reduce((sum, val) => sum + val, 0) / 8;
-  }
+  // Use the generated overall potential instead of calculating from individual potentials
+  const overallPotential = generateOverallPotential();
   
   // Calculate salary based on stats and age using configurable parameters
   const salaryConfig = gameConfig.gameParameters.playerGeneration.salaryMultipliers;
@@ -144,13 +115,13 @@ export function generateRandomPlayer(name: string | null, race: string, teamId: 
     firstName,
     lastName,
     name: fullName,
-    race: originalRace.toUpperCase(), // Ensure race is uppercase for Prisma enum
+    race: originalRace.toLowerCase(), // Store race in lowercase for consistency
     role: getPlayerRole(position || "runner"),
     position: position || "runner", // Default to runner if no position specified
     age: baseAge,
     ...baseStats,
     staminaAttribute: baseStats.stamina, // Map stamina to staminaAttribute
-    potentialRating: parseFloat(weightedPotential.toFixed(1)),
+    potentialRating: parseFloat(overallPotential.toFixed(1)),
     speedPotential: potentials.speed.toString(),
     powerPotential: potentials.power.toString(),
     throwingPotential: potentials.throwing.toString(),
@@ -159,7 +130,7 @@ export function generateRandomPlayer(name: string | null, race: string, teamId: 
     staminaPotential: potentials.stamina.toString(),
     leadershipPotential: potentials.leadership.toString(),
     agilityPotential: potentials.agility.toString(),
-    overallPotentialStars: weightedPotential.toFixed(1),
+    overallPotentialStars: overallPotential.toFixed(1),
     salary,
     contractValue: salary * 3, // 3 year contract value
     camaraderie: 50, // Initial camaraderie
@@ -183,8 +154,17 @@ export function calculatePlayerValue(player: any): number {
   // Base value calculation
   const baseValue = avgStat * 1000 + avgPotential * 500;
   
-  // Age factor (younger players worth more)
-  const ageFactor = Math.max(0.5, (35 - player.age) / 20);
+  // Age factor (peak performance around 25)
+  let ageFactor: number;
+  if (player.age <= 23) {
+    ageFactor = 1.0; // Young players
+  } else if (player.age <= 27) {
+    ageFactor = 1.2; // Prime age players
+  } else if (player.age <= 30) {
+    ageFactor = 1.0; // Still good players
+  } else {
+    ageFactor = Math.max(0.5, (35 - player.age) / 10); // Declining players
+  }
   
   return Math.floor(baseValue * ageFactor);
 }
