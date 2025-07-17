@@ -82,25 +82,7 @@ interface ServerTime {
   };
 }
 
-interface TournamentHistoryEntry {
-  id: number;
-  tournamentId: string;
-  teamId: number;
-  registeredAt: string;
-  finalRank: number | null;
-  rewardsClaimed: boolean;
-  tournament: {
-    id: number;
-    type: string;
-    name: string;
-    division: number | null;
-    seasonDay: number | null;
-    status: string;
-    startTime: string;
-    endTime?: string;
-  };
-  placement: number | null;
-}
+
 // Division naming utilities
 const DIVISION_NAMES = {
   1: "Diamond League",
@@ -297,10 +279,7 @@ export default function Dashboard() {
     enabled: !!team?.division,
   });
 
-  const { data: tournamentHistory } = useQuery<TournamentHistoryEntry[]>({
-    queryKey: ["/api/tournament-history"],
-    enabled: !!team?.id,
-  });
+
 
   if (isLoading || teamLoading) {
     return (
@@ -594,67 +573,7 @@ export default function Dashboard() {
             </CardContent>
           </Card>
 
-          {/* Tournament History */}
-          <Card className="bg-gray-800 border-gray-700">
-            <CardHeader className="border-b border-gray-700">
-              <CardTitle className="font-orbitron text-xl">Tournament History</CardTitle>
-            </CardHeader>
-            <CardContent className="p-6">
-              {tournamentHistory?.length ? (
-                <div className="space-y-4">
-                  {tournamentHistory.map((entry: TournamentHistoryEntry) => (
-                    <div 
-                      key={entry.id} 
-                      className="bg-gray-700 rounded-lg p-4 border border-gray-600 hover:bg-gray-600 transition-colors"
-                    >
-                      <div className="flex justify-between items-start">
-                        <div className="flex-1">
-                          <h3 className="font-medium text-white mb-1">
-                            {entry.tournament.name}
-                          </h3>
-                          <p className="text-sm text-gray-300 mb-1">
-                            {entry.tournament.type === "DAILY_DIVISIONAL" ? "Daily Cup" : "Mid-Season Classic"}
-                          </p>
-                          <p className="text-xs text-gray-400">
-                            {new Date(entry.registeredAt).toLocaleDateString()}
-                          </p>
-                        </div>
-                        <div className="text-right">
-                          {entry.finalRank ? (
-                            <div className="flex items-center gap-2">
-                              <span className={`px-2 py-1 rounded text-xs font-medium ${
-                                entry.finalRank === 1 ? 'bg-yellow-500 text-yellow-900' :
-                                entry.finalRank === 2 ? 'bg-gray-400 text-gray-900' :
-                                entry.finalRank === 3 ? 'bg-amber-600 text-amber-900' :
-                                'bg-gray-600 text-gray-200'
-                              }`}>
-                                {entry.finalRank === 1 ? '1st' : 
-                                 entry.finalRank === 2 ? '2nd' : 
-                                 entry.finalRank === 3 ? '3rd' : 
-                                 `${entry.finalRank}th`}
-                              </span>
-                              {entry.finalRank === 1 && (
-                                <span className="text-yellow-400">👑</span>
-                              )}
-                            </div>
-                          ) : (
-                            <span className="text-gray-400 text-sm">No rank recorded</span>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <div className="text-center py-8">
-                  <p className="text-gray-400">No tournament history yet</p>
-                  <p className="text-sm text-gray-500 mt-2">
-                    Participate in tournaments to see your history here
-                  </p>
-                </div>
-              )}
-            </CardContent>
-          </Card>
+
 
           {/* SuperUser Access */}
           {team?.name === "Macomb Cougars" && (
@@ -685,7 +604,7 @@ export default function Dashboard() {
       {/* Version Information */}
       <div className="mt-8 text-center pb-4">
         <div className="text-sm text-gray-500 dark:text-gray-400">
-          Realm Rivalry <span className="font-mono text-xs bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded">v1.0.0-alpha.1</span>
+          Realm Rivalry <span className="font-mono text-xs bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded">v0.0.1-production</span>
         </div>
       </div>
 
