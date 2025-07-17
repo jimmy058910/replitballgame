@@ -222,17 +222,25 @@ export class AgingService {
       }
     }
 
-    // Step 3: Increment age for all non-retired players
-    await prisma.player.update({
-      where: { id: player.id },
-      data: { age: player.age + 1 }
-    });
+    // Step 3: Age all players by +1 year (but only during off season)
+    let ageUpdateData: any = {};
+    if (isOffSeason) {
+      ageUpdateData.age = player.age + 1;
+    }
+    
+    // Apply age update if needed
+    if (Object.keys(ageUpdateData).length > 0) {
+      await prisma.player.update({
+        where: { id: player.id },
+        data: ageUpdateData
+      });
+    }
 
     return {
       playerId: player.id,
       playerName,
-      action: declineDetails ? 'declined' : 'aged',
-      details: declineDetails || `Aged to ${player.age + 1}`
+      action: declineDetails ? 'declined' : (isOffSeason ? 'aged' : 'none'),
+      details: declineDetails || (isOffSeason ? `Aged to ${player.age + 1}` : 'No aging during regular season')
     };
   }
 
