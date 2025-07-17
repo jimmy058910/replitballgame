@@ -430,7 +430,7 @@ router.get('/daily-schedule', isAuthenticated, async (req: Request, res: Respons
 
     const scheduleByDay: { [key: number]: any[] } = {};
 
-    for (let day = 1; day <= 17; day++) {
+    for (let day = 6; day <= 14; day++) {
       const dayMatches = allMatches.filter(match => {
         if (match.gameDate) {
           // Use simple UTC date comparison for day calculation

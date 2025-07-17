@@ -367,14 +367,17 @@ export class SeasonalFlowService {
           gameDate.setDate(gameDate.getDate() + day - 1);
           
           // Set game times in 15-minute increments between 4PM-10PM EST
-          // Create a unique time slot for each game across the day
-          const totalDayMatches = subdivision.length / 2; // 4 games per day for 8 teams
-          const globalMatchIndex = (day - 6) * totalDayMatches + matchIndex;
+          // For 4 games per day, spread them across the 4PM-10PM window
+          const gameSlots = [
+            { hour: 16, minute: 0 },  // 4:00 PM
+            { hour: 17, minute: 15 }, // 5:15 PM  
+            { hour: 18, minute: 30 }, // 6:30 PM
+            { hour: 19, minute: 45 }  // 7:45 PM
+          ];
           
-          // There are 24 possible 15-minute slots between 4PM-10PM (6 hours * 4 slots per hour)
-          const timeSlot = globalMatchIndex % 24;
-          const hour = 16 + Math.floor(timeSlot / 4); // 16 = 4PM, goes up to 21 = 9PM
-          const minute = (timeSlot % 4) * 15;
+          const slotIndex = matchIndex % gameSlots.length;
+          const hour = gameSlots[slotIndex].hour;
+          const minute = gameSlots[slotIndex].minute;
           
           gameDate.setHours(hour, minute, 0, 0);
           
