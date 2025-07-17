@@ -539,6 +539,12 @@ class MatchStateManager {
             receiverStats.catches += 1;
             receiverStats.receivingYards += passYards;
           }
+          // Update team stats
+          const teamStats = state.teamStats.get(activePlayer.teamId.toString());
+          if (teamStats) {
+            teamStats.passingYards += passYards;
+            teamStats.totalOffensiveYards += passYards;
+          }
           event = {
             time: state.gameTime,
             type: 'pass',
@@ -570,6 +576,12 @@ class MatchStateManager {
       case 'run':
         const runYards = Math.floor(Math.random() * 15) + 1;
         playerStats.carrierYards += runYards;
+        // Update team stats
+        const teamStats = state.teamStats.get(activePlayer.teamId.toString());
+        if (teamStats) {
+          teamStats.carrierYards += runYards;
+          teamStats.totalOffensiveYards += runYards;
+        }
         event = {
           time: state.gameTime,
           type: 'run',
@@ -585,6 +597,12 @@ class MatchStateManager {
         // Get a random opponent as the ball carrier
         const opponentPlayers = isHomeTeam ? awayPlayers : homePlayers;
         const ballCarrier = opponentPlayers[Math.floor(Math.random() * opponentPlayers.length)];
+        
+        // Update team stats for defensive play
+        const tackleTeamStats = state.teamStats.get(activePlayer.teamId.toString());
+        if (tackleTeamStats) {
+          tackleTeamStats.totalKnockdownsInflicted += 1;
+        }
         
         event = {
           time: state.gameTime,
@@ -828,6 +846,7 @@ class MatchStateManager {
               finalScores: { home: state.homeScore, away: state.awayScore },
               playerStats: playerStatsObj,
               teamStats: teamStatsObj,
+              mvpData: finalMVP,
               completed: true
             }
           }
@@ -837,6 +856,10 @@ class MatchStateManager {
         if (!isExhibitionMatch) {
           console.log(`🔥 UPDATING TEAM RECORDS: Match ${matchId} - Home: ${state.homeTeamId} (${state.homeScore}) vs Away: ${state.awayTeamId} (${state.awayScore})`);
           await this.updateTeamRecords(parseInt(state.homeTeamId), parseInt(state.awayTeamId), state.homeScore, state.awayScore);
+        } else {
+          // Process exhibition rewards
+          console.log(`🎉 PROCESSING EXHIBITION REWARDS: Match ${matchId} - Home: ${state.homeTeamId} (${state.homeScore}) vs Away: ${state.awayTeamId} (${state.awayScore})`);
+          await this.awardExhibitionRewards(state.homeTeamId, state.awayTeamId, state.homeScore, state.awayScore);
         }
       } else {
         console.warn(`Game ${matchId} not found in database, cannot update completion status`);
