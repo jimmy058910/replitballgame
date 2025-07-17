@@ -21,12 +21,42 @@ app.use(express.urlencoded({ extended: false }));
 // Add request ID middleware early in the chain
 app.use(requestIdMiddleware);
 
-// Add cache-busting and CORS headers for Replit preview
+// Security headers
+app.use(helmet({
+  contentSecurityPolicy: {
+    directives: {
+      defaultSrc: ["'self'"],
+      styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
+      scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'"],
+      imgSrc: ["'self'", "data:", "https:"],
+      fontSrc: ["'self'", "https://fonts.gstatic.com"],
+      connectSrc: ["'self'", "wss:", "ws:"],
+    },
+  },
+}));
+
+// Rate limiting for API endpoints
+const limiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 100, // limit each IP to 100 requests per windowMs
+  message: 'Too many requests from this IP, please try again later.',
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+app.use('/api/', limiter);
+
+// Add cache-busting and secure CORS headers for Replit preview
 app.use((req, res, next) => {
   res.header('Cache-Control', 'no-cache, no-store, must-revalidate');
   res.header('Pragma', 'no-cache');
   res.header('Expires', '0');
-  res.header('Access-Control-Allow-Origin', '*');
+  
+  // Secure CORS implementation
+  const origin = req.headers.origin;
+  if (validateOrigin(origin)) {
+    res.header('Access-Control-Allow-Origin', origin);
+  }
+  
   next();
 });
 
