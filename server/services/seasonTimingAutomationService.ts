@@ -503,10 +503,16 @@ export class SeasonTimingAutomationService {
       if (currentDayInCycle >= 1 && currentDayInCycle <= 14) {
         logInfo(`Simulating scheduled matches for Day ${currentDayInCycle}...`);
         
-        // Get scheduled matches for current day
+        // Get scheduled matches that should be starting now (within 30 minutes window)
+        const now = new Date();
+        const thirtyMinutesFromNow = new Date(now.getTime() + 30 * 60 * 1000);
         const scheduledMatches = await prisma.game.findMany({
           where: {
-            status: 'SCHEDULED'
+            status: 'SCHEDULED',
+            gameDate: {
+              lte: thirtyMinutesFromNow, // Only matches scheduled for within the next 30 minutes
+              gte: now // And not matches that should have started more than now
+            }
           }
         });
         

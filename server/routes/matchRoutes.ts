@@ -18,17 +18,22 @@ router.get('/live', isAuthenticated, async (req: Request, res: Response, next: N
     const userTeam = await storage.teams.getTeamByUserId(userId);
     const teamId = userTeam?.id;
     
-    // Get ALL live matches for spectator viewing
+    // Get live matches involving the user's team only
     const liveMatches = await matchStorage.getLiveMatches();
+
+    // Filter to only show matches involving the user's team
+    const userTeamMatches = liveMatches.filter(match => 
+      teamId && (match.homeTeamId === teamId || match.awayTeamId === teamId)
+    );
 
     // Team names should now be populated by getLiveMatches if implemented in matchStorage
     // If not, the mapping here is still okay.
-    const enhancedMatches = await Promise.all(liveMatches.map(async (match) => {
+    const enhancedMatches = await Promise.all(userTeamMatches.map(async (match) => {
       const homeTeamName = match.homeTeamName || (await storage.teams.getTeamById(match.homeTeamId))?.name || "Home Team";
       const awayTeamName = match.awayTeamName || (await storage.teams.getTeamById(match.awayTeamId))?.name || "Away Team";
       
-      // Add flag to indicate if this is a spectator match (user's team not participating)
-      const isSpectatorMatch = teamId && match.homeTeamId !== teamId && match.awayTeamId !== teamId;
+      // Since we're only showing user's team matches, isSpectatorMatch is always false
+      const isSpectatorMatch = false;
       
       return { ...match, homeTeamName, awayTeamName, isSpectatorMatch };
     }));

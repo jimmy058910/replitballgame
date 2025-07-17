@@ -68,7 +68,7 @@ export default function LeagueSchedule() {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <p className="text-gray-500">No league schedule available</p>
+          <p className="text-gray-600 dark:text-gray-400">No league schedule available</p>
         </CardContent>
       </Card>
     );
@@ -150,7 +150,7 @@ export default function LeagueSchedule() {
                 <div className="flex-1">
                   <Separator />
                 </div>
-                <span className="text-sm text-gray-500">
+                <span className="text-sm text-gray-600 dark:text-gray-400">
                   {dayMatches.length} games
                 </span>
               </div>
@@ -163,10 +163,10 @@ export default function LeagueSchedule() {
                       key={match.id}
                       className={`flex items-center justify-between p-3 rounded-lg border ${
                         match.isLive 
-                          ? 'border-red-300 bg-red-50' 
+                          ? 'border-red-400 bg-red-50 dark:border-red-500 dark:bg-red-900/30' 
                           : isUserMatch 
                             ? 'border-blue-400 bg-blue-100 text-blue-900 dark:border-blue-500 dark:bg-blue-800/30 dark:text-blue-100' 
-                            : 'border-gray-200'
+                            : 'border-gray-200 dark:border-gray-700'
                       }`}
                     >
                     <div className="flex items-center gap-3">
@@ -174,18 +174,18 @@ export default function LeagueSchedule() {
                         <div className="text-sm font-mono">
                           {formatGameTime(match.scheduledTimeFormatted)}
                         </div>
-                        <div className="text-xs text-gray-500">
+                        <div className="text-xs text-gray-600 dark:text-gray-400">
                           Game {index + 1}
                         </div>
                       </div>
                       
                       <div className="flex items-center gap-2">
-                        <Users className={`w-4 h-4 ${isUserMatch ? 'text-blue-700 dark:text-blue-300' : 'text-gray-400'}`} />
-                        <span className={`text-sm ${isUserMatch ? 'font-semibold text-blue-900 dark:text-blue-100' : ''}`}>
+                        <Users className={`w-4 h-4 ${isUserMatch ? 'text-blue-700 dark:text-blue-300' : 'text-gray-600 dark:text-gray-400'}`} />
+                        <span className={`text-sm ${isUserMatch ? 'font-semibold text-blue-900 dark:text-blue-100' : 'text-gray-900 dark:text-gray-100'}`}>
                           {match.homeTeamName || `Team ${match.homeTeamId.slice(0, 8)}`}
                         </span>
-                        <span className={`${isUserMatch ? 'text-blue-700 dark:text-blue-300' : 'text-gray-400'}`}>vs</span>
-                        <span className={`text-sm ${isUserMatch ? 'font-semibold text-blue-900 dark:text-blue-100' : ''}`}>
+                        <span className={`${isUserMatch ? 'text-blue-700 dark:text-blue-300' : 'text-gray-600 dark:text-gray-400'}`}>vs</span>
+                        <span className={`text-sm ${isUserMatch ? 'font-semibold text-blue-900 dark:text-blue-100' : 'text-gray-900 dark:text-gray-100'}`}>
                           {match.awayTeamName || `Team ${match.awayTeamId.slice(0, 8)}`}
                         </span>
                       </div>
@@ -221,7 +221,7 @@ export default function LeagueSchedule() {
         })}
 
         {sortedDays.length === 0 && (
-          <div className="text-center py-8 text-gray-500">
+          <div className="text-center py-8 text-gray-600 dark:text-gray-400">
             <Calendar className="w-12 h-12 mx-auto mb-3 opacity-30" />
             <p>No league games scheduled yet</p>
             <p className="text-sm">Games will appear here once the season begins</p>
