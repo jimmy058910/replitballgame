@@ -3,8 +3,8 @@ import moment from 'moment-timezone';
 // Eastern Time zone identifier
 export const EASTERN_TIMEZONE = 'America/Detroit';
 
-// League game scheduling window (5PM-10PM Eastern)
-export const LEAGUE_GAME_START_HOUR = 17; // 5PM
+// League game scheduling window (4PM-10PM Eastern)
+export const LEAGUE_GAME_START_HOUR = 16; // 4PM
 export const LEAGUE_GAME_END_HOUR = 22; // 10PM
 export const GAME_DURATION_MINUTES = 20; // 20 minutes per game
 export const STAGGER_MINUTES = 5; // 5 minutes between games for viewing
@@ -24,7 +24,7 @@ export function getEasternTimeForDate(date: Date): moment.Moment {
 }
 
 /**
- * Check if current time is within league game scheduling window (5PM-10PM Eastern)
+ * Check if current time is within league game scheduling window (4PM-10PM Eastern)
  */
 export function isWithinSchedulingWindow(): boolean {
   const easternTime = getEasternTime();
@@ -40,7 +40,7 @@ export function getNextLeagueGameSlot(existingGames: Date[] = []): Date | null {
   const easternTime = getEasternTime();
   const today = easternTime.clone().startOf('day');
   
-  // Start at 5PM Eastern today
+  // Start at 4PM Eastern today
   let slotTime = today.clone().hour(LEAGUE_GAME_START_HOUR).minute(0).second(0);
   
   // If we're past the scheduling window for today, return null
@@ -77,10 +77,10 @@ export function generateLeagueGameSchedule(numberOfGames: number, startDate?: Da
   const schedule: Date[] = [];
   const easternTime = startDate ? getEasternTimeForDate(startDate) : getEasternTime();
   
-  // Start at 5PM Eastern on the specified date
+  // Start at 4PM Eastern on the specified date
   let currentSlot = easternTime.clone().startOf('day').hour(LEAGUE_GAME_START_HOUR).minute(0).second(0);
   
-  // If start date is today and we're past 5PM, start from next available slot
+  // If start date is today and we're past 4PM, start from next available slot
   if (!startDate && easternTime.hour() >= LEAGUE_GAME_START_HOUR) {
     const nextSlot = getNextLeagueGameSlot();
     if (nextSlot) {
@@ -136,7 +136,7 @@ export function getTimeUntilNextLeagueWindow(): { hours: number; minutes: number
   const currentHour = easternTime.hour();
   
   if (currentHour < LEAGUE_GAME_START_HOUR) {
-    // Before 5PM today
+    // Before 4PM today
     const nextWindow = easternTime.clone().hour(LEAGUE_GAME_START_HOUR).minute(0).second(0);
     const diff = nextWindow.diff(easternTime, 'minutes');
     return {
@@ -144,7 +144,7 @@ export function getTimeUntilNextLeagueWindow(): { hours: number; minutes: number
       minutes: diff % 60
     };
   } else if (currentHour >= LEAGUE_GAME_END_HOUR) {
-    // After 10PM today, next window is 5PM tomorrow
+    // After 10PM today, next window is 4PM tomorrow
     const nextWindow = easternTime.clone().add(1, 'day').hour(LEAGUE_GAME_START_HOUR).minute(0).second(0);
     const diff = nextWindow.diff(easternTime, 'minutes');
     return {
@@ -199,21 +199,21 @@ export function getServerTimeInfo() {
 }
 
 /**
- * Generate 4 daily game times with 15-minute intervals within 5-10PM window
- * Varies the start time each day for variety
+ * Generate 4 daily game times with 75-minute intervals within 4-10PM window
+ * Ensures proper 4PM-10PM EDT distribution
  */
 export function generateDailyGameTimes(day: number): Date[] {
   const easternTime = getEasternTime();
   
-  // Vary start time based on day for variety within the 5-10PM window
-  // Start times: 5:30PM, 5:45PM, 6:00PM, 6:15PM, 6:30PM, 6:45PM, 7:00PM
+  // Fixed 4-game schedule within 4PM-10PM window (6 hour span = 360 minutes / 4 games = 90 minutes apart)
+  // Start times vary by day: 4:00PM, 4:30PM, 5:00PM, 5:30PM, 6:00PM, 6:30PM, 7:00PM
   const startVariations = [
+    { hour: 16, minute: 0 },  // 4:00PM
+    { hour: 16, minute: 30 }, // 4:30PM
+    { hour: 17, minute: 0 },  // 5:00PM
     { hour: 17, minute: 30 }, // 5:30PM
-    { hour: 17, minute: 45 }, // 5:45PM  
     { hour: 18, minute: 0 },  // 6:00PM
-    { hour: 18, minute: 15 }, // 6:15PM
     { hour: 18, minute: 30 }, // 6:30PM
-    { hour: 18, minute: 45 }, // 6:45PM
     { hour: 19, minute: 0 },  // 7:00PM
   ];
   
@@ -223,7 +223,7 @@ export function generateDailyGameTimes(day: number): Date[] {
   const gameTimes: Date[] = [];
   
   for (let i = 0; i < 4; i++) {
-    const gameTime = easternTime.clone().hour(hour).minute(minute + (i * 15)).second(0);
+    const gameTime = easternTime.clone().hour(hour).minute(minute + (i * 75)).second(0);
     gameTimes.push(gameTime.toDate());
   }
   
