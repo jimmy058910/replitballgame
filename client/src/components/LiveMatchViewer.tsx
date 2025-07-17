@@ -176,7 +176,7 @@ export function LiveMatchViewer({ matchId, userId, onMatchComplete }: LiveMatchV
     );
   }
 
-  // Only show error for genuine match not found issues - be very permissive
+  // Only show error for genuine match not found issues - be extremely permissive
   if (matchError && !initialMatchData && !matchDataLoading) {
     console.error('🚨 Match error details:', { 
       error: matchError, 
@@ -184,8 +184,11 @@ export function LiveMatchViewer({ matchId, userId, onMatchComplete }: LiveMatchV
       matchId 
     });
     
-    // Only show error for genuine 404 on the specific match endpoint
-    if (matchError.message.includes('404') && matchError.message.includes(`/api/matches/${matchId}`)) {
+    // Only show error for genuine 404 on the EXACT match endpoint - ignore all other 404s
+    if (matchError.message.includes('404') && 
+        matchError.message.includes(`/api/matches/${matchId}`) &&
+        !matchError.message.includes('/api/matches/enhanced-data') &&
+        !matchError.message.includes('/api/matches"')) {
       return (
         <Card className="w-full max-w-6xl mx-auto">
           <CardContent className="flex items-center justify-center h-64">
@@ -199,8 +202,8 @@ export function LiveMatchViewer({ matchId, userId, onMatchComplete }: LiveMatchV
       );
     }
     
-    // For all other errors, just show a loading state and let it retry
-    console.log('🔄 Showing loading state for non-critical error:', matchError.message);
+    // For all other errors (including rogue /api/matches calls), just continue
+    console.log('🔄 Ignoring non-critical error, continuing with loading state:', matchError.message);
   }
 
   // Show warning if enhanced data fails but continue with match data

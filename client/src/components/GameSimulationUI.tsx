@@ -63,7 +63,7 @@ export function GameSimulationUI({ matchId, userId, team1, team2, initialLiveSta
 
   // Fetch initial match data
   const { data: initialMatchData, error: matchError } = useQuery({
-    queryKey: ['/api/matches', matchId],
+    queryKey: [`/api/matches/${matchId}`],
     enabled: !!matchId
   });
 
