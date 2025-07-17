@@ -629,6 +629,73 @@ router.post('/:id/matches/simulate-round', isAuthenticated, async (req: any, res
   }
 });
 
+// Manual trigger for IN_PROGRESS matches (testing endpoint)
+router.post('/:id/matches/manual-start', isAuthenticated, async (req: any, res) => {
+  try {
+    const tournamentId = req.params.id;
+    const { round } = req.body;
+    const userId = req.user.claims.sub;
+    
+    // Check if user is admin
+    if (userId !== "44010914") {
+      return res.status(403).json({ message: "Access denied. Admin privileges required." });
+    }
+
+    // Get tournament first to get the database ID
+    let tournament = await prisma.tournament.findFirst({
+      where: { tournamentId: tournamentId }
+    });
+    
+    if (!tournament) {
+      return res.status(404).json({ message: "Tournament not found" });
+    }
+
+    // Convert round name to number
+    let roundNumber = 1;
+    if (round === 'QUARTERFINALS') roundNumber = 1;
+    else if (round === 'SEMIFINALS') roundNumber = 2;
+    else if (round === 'FINALS') roundNumber = 3;
+
+    // Get matches for the specified round (IN_PROGRESS status)
+    const matches = await prisma.game.findMany({
+      where: { 
+        tournamentId: tournament.id,
+        round: roundNumber,
+        status: 'IN_PROGRESS'
+      }
+    });
+
+    console.log(`Found ${matches.length} IN_PROGRESS matches for tournament ${tournamentId} round ${roundNumber}`);
+
+    // Start live simulation for all matches in the round
+    const { matchStateManager } = await import('../services/matchStateManager');
+    const matchPromises = matches.map(async (match) => {
+      try {
+        // Start live simulation directly
+        await matchStateManager.startLiveMatch(match.id.toString());
+        console.log(`Started live simulation for tournament match ${match.id}`);
+        
+        return match.id;
+      } catch (error) {
+        console.error(`Error starting live simulation for match ${match.id}:`, error);
+        return null;
+      }
+    });
+
+    const startedMatches = await Promise.all(matchPromises);
+    const successfulMatches = startedMatches.filter(id => id !== null);
+
+    res.json({ 
+      message: `Manual start for ${round} round (IN_PROGRESS matches)`,
+      matchesStarted: successfulMatches.length,
+      matchIds: successfulMatches
+    });
+  } catch (error) {
+    console.error("Error manually starting tournament round:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+});
+
 // Helper function to check and advance tournament if needed
 async function checkAndAdvanceTournament(tournamentId: number) {
   try {

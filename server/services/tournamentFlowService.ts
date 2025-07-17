@@ -12,6 +12,14 @@ class TournamentFlowServiceImpl implements TournamentFlowService {
   private roundTimers: Map<string, NodeJS.Timeout> = new Map();
 
   /**
+   * Manual method to start tournament round (for testing/debugging)
+   */
+  async manuallyStartTournamentRound(tournamentId: number, roundNumber: number): Promise<void> {
+    console.log(`Manually starting tournament ${tournamentId} round ${roundNumber}...`);
+    return this.startTournamentRound(tournamentId, roundNumber);
+  }
+
+  /**
    * Start 10-minute countdown when tournament is full
    */
   startTournamentCountdown(tournamentId: number): void {
@@ -501,3 +509,6 @@ class TournamentFlowServiceImpl implements TournamentFlowService {
 
 // Export singleton instance
 export const tournamentFlowService = new TournamentFlowServiceImpl();
+
+// Export for manual testing
+export { TournamentFlowServiceImpl };
