@@ -26,8 +26,8 @@ export interface TournamentConfig {
 
 export class TournamentService {
   
-  // Daily Divisional Cup reward structure (divisions 2-8)
-  private getDailyCupRewards(division: number): TournamentConfig["rewards"] {
+  // Daily Division Tournament reward structure (divisions 2-8)
+  private getDailyDivisionTournamentRewards(division: number): TournamentConfig["rewards"] {
     const rewardTable: Record<number, TournamentConfig["rewards"]> = {
       2: { // Platinum
         champion: { credits: 16000, gems: 8 },
@@ -62,7 +62,7 @@ export class TournamentService {
   }
 
   // Mid-Season Cup reward structure (all divisions)
-  private getMidSeasonRewards(division: number): TournamentConfig["rewards"] {
+  private getMidSeasonCupRewards(division: number): TournamentConfig["rewards"] {
     const divisionNames = ["", "Diamond", "Platinum", "Gold", "Silver", "Bronze", "Iron", "Stone", "Copper"];
     const trophyName = `${divisionNames[division]} Mid-Season Cup Trophy`;
     
@@ -155,18 +155,40 @@ export class TournamentService {
     return `${seasonDigit}${divisionDigit}${gameDayDigit}${sequentialDigit}`;
   }
 
-  // Create Daily Divisional Cup tournament
-  async createDailyCupTournament(division: number): Promise<string> {
+  // Generate Mid-Season Cup ID in format: Season-Division-UniqueIdentifier (e.g., 0881)
+  private async generateMidSeasonCupId(season: number, division: number): Promise<string> {
+    // Get count of Mid-Season Cup tournaments created this season for this division
+    const midSeasonCupCount = await prisma.tournament.count({
+      where: {
+        division: division,
+        type: "MID_SEASON_CLASSIC",
+        seasonDay: 7
+      }
+    });
+    
+    const uniqueIdentifier = midSeasonCupCount + 1;
+    
+    // Format: Season(1 digit) + Division(1 digit) + UniqueIdentifier(1 digit)
+    // Example: Season 0, Division 8, Tournament 1 = "0881"
+    const seasonDigit = season % 10;
+    const divisionDigit = division % 10;
+    const identifierDigit = uniqueIdentifier % 10;
+    
+    return `${seasonDigit}${divisionDigit}${identifierDigit}1`;
+  }
+
+  // Create Daily Division Tournament
+  async createDailyDivisionTournament(division: number): Promise<string> {
     if (division === 1) {
-      throw new Error("Division 1 (Diamond) does not have Daily Divisional Cups");
+      throw new Error("Division 1 (Diamond) does not have Daily Division Tournaments");
     }
 
     const season = this.getCurrentSeason();
     const gameDay = this.getCurrentGameDay();
-    const rewards = this.getDailyCupRewards(division);
+    const rewards = this.getDailyDivisionTournamentRewards(division);
     
     const divisionNames = ["", "Diamond", "Platinum", "Gold", "Silver", "Bronze", "Iron", "Stone", "Copper"];
-    const tournamentName = `${divisionNames[division]} Daily Cup`;
+    const tournamentName = `${divisionNames[division]} Daily Division Tournament`;
     
     // Generate tournament ID (Season-Division-GameDay-Sequential format)
     const tournamentId = await this.generateTournamentId(season, division, gameDay);
@@ -195,13 +217,13 @@ export class TournamentService {
   async createMidSeasonCup(division: number): Promise<string> {
     const season = this.getCurrentSeason();
     const gameDay = 7; // Always Day 7
-    const rewards = this.getMidSeasonRewards(division);
+    const rewards = this.getMidSeasonCupRewards(division);
     
     const divisionNames = ["", "Diamond", "Platinum", "Gold", "Silver", "Bronze", "Iron", "Stone", "Copper"];
     const tournamentName = `${divisionNames[division]} Mid-Season Cup - Season ${season}`;
     
-    // Generate tournament ID for Mid-Season Cup too
-    const tournamentId = await this.generateTournamentId(season, division, gameDay);
+    // Generate tournament ID for Mid-Season Cup (Season-Division-UniqueIdentifier format)
+    const tournamentId = await this.generateMidSeasonCupId(season, division);
 
     const tournament = {
       name: tournamentName,
@@ -447,7 +469,7 @@ export class TournamentService {
     const season = this.getCurrentSeason();
     const gameDay = this.getCurrentGameDay();
 
-    // Check if Daily Divisional Cup exists for this division and day
+    // Check if Daily Division Tournament exists for this division and day
     if (division >= 2 && division <= 8) {
       const existingDailyCup = await prisma.tournament.findFirst({
         where: {
@@ -459,15 +481,15 @@ export class TournamentService {
 
       if (!existingDailyCup) {
         try {
-          await this.createDailyCupTournament(division);
-          console.log(`Created Daily Divisional Cup for Division ${division}, Day ${gameDay}`);
+          await this.createDailyDivisionTournament(division);
+          console.log(`Created Daily Division Tournament for Division ${division}, Day ${gameDay}`);
         } catch (error) {
-          console.error(`Failed to create Daily Divisional Cup for Division ${division}:`, error);
+          console.error(`Failed to create Daily Division Tournament for Division ${division}:`, error);
         }
       }
     }
 
-    // Check if Mid-Season Classic exists for this division (only create on Day 1-6)
+    // Check if Mid-Season Cup exists for this division (only create on Day 1-6)
     if (gameDay <= 6) {
       const existingMidSeason = await prisma.tournament.findFirst({
         where: {
@@ -479,10 +501,10 @@ export class TournamentService {
 
       if (!existingMidSeason) {
         try {
-          await this.createMidSeasonClassic(division);
-          console.log(`Created Mid-Season Classic for Division ${division}, Season ${season}`);
+          await this.createMidSeasonCup(division);
+          console.log(`Created Mid-Season Cup for Division ${division}, Season ${season}`);
         } catch (error) {
-          console.error(`Failed to create Mid-Season Classic for Division ${division}:`, error);
+          console.error(`Failed to create Mid-Season Cup for Division ${division}:`, error);
         }
       }
     }
@@ -546,7 +568,7 @@ export class TournamentService {
 
     // Check entry requirements
     if (tournament.entryFeeItemId) {
-      // Daily Divisional Cup - requires Tournament Entry item
+      // Daily Division Tournament - requires Tournament Entry item
       const entryItems = await prisma.teamInventory.findMany({
         where: {
           teamId: teamId,
@@ -572,7 +594,7 @@ export class TournamentService {
         });
       }
     } else {
-      // Mid-Season Classic - requires credits, gems, or both
+      // Mid-Season Cup - requires credits, gems, or both
       const entryFeeCredits = tournament.entryFeeCredits || 0;
       const entryFeeGems = tournament.entryFeeGems || 0;
       const teamCredits = Number(team.finances?.credits || 0);
@@ -745,7 +767,7 @@ export class TournamentService {
     });
 
     if (existingActiveEntry) {
-      const tournamentType = existingActiveEntry.tournament.type === "DAILY_DIVISIONAL" ? "Daily Cup" : "Mid-Season Classic";
+      const tournamentType = existingActiveEntry.tournament.type === "DAILY_DIVISIONAL" ? "Daily Division Tournament" : "Mid-Season Cup";
       throw new Error(`You are already registered for ${existingActiveEntry.tournament.name} (${tournamentType}). Please wait for your current tournament to complete before registering for another.`);
     }
 
@@ -767,7 +789,7 @@ export class TournamentService {
       tournamentId = existingTournament[0].id;
     } else {
       // Create new tournament
-      tournamentId = await this.createDailyCupTournament(division);
+      tournamentId = await this.createDailyDivisionTournament(division);
     }
 
     // Register the team (this will check for entry items and handle payments)
@@ -776,15 +798,15 @@ export class TournamentService {
     return tournamentId;
   }
 
-  async createOrJoinMidSeasonClassic(teamId: string, division: number, paymentType: "credits" | "gems" | "both"): Promise<string> {
+  async createOrJoinMidSeasonCup(teamId: string, division: number, paymentType: "credits" | "gems" | "both"): Promise<string> {
     const season = this.getCurrentSeason();
 
-    // Check if team is already registered for Mid-Season Classic specifically (not Daily Cup)
+    // Check if team is already registered for Mid-Season Cup specifically (not Daily Division Tournament)
     const existingMidSeasonEntry = await prisma.tournamentEntry.findFirst({
       where: {
         teamId,
         tournament: {
-          type: "MID_SEASON_CLASSIC", // Only check for Mid-Season Classic, not Daily Cup
+          type: "MID_SEASON_CLASSIC", // Only check for Mid-Season Cup, not Daily Division Tournament
           status: {
             in: ["REGISTRATION_OPEN", "IN_PROGRESS"]
           }
@@ -802,7 +824,7 @@ export class TournamentService {
     });
 
     if (existingMidSeasonEntry) {
-      throw new Error(`You are already registered for ${existingMidSeasonEntry.tournament.name} (Mid-Season Classic). Please wait for your current Mid-Season tournament to complete before registering for another.`);
+      throw new Error(`You are already registered for ${existingMidSeasonEntry.tournament.name} (Mid-Season Cup). Please wait for your current Mid-Season tournament to complete before registering for another.`);
     }
 
     // Check if tournament already exists for this division
@@ -840,7 +862,7 @@ export class TournamentService {
 
     if (paymentType === "credits") {
       if (teamCredits < 10000) {
-        throw new Error("Insufficient credits for Mid-Season Classic entry (10,000₡ required)");
+        throw new Error("Insufficient credits for Mid-Season Cup entry (10,000₡ required)");
       }
       await prisma.teamFinances.update({
         where: { teamId: parseInt(teamId) },
@@ -848,7 +870,7 @@ export class TournamentService {
       });
     } else if (paymentType === "gems") {
       if (teamGems < 20) {
-        throw new Error("Insufficient gems for Mid-Season Classic entry (20💎 required)");
+        throw new Error("Insufficient gems for Mid-Season Cup entry (20💎 required)");
       }
       await prisma.teamFinances.update({
         where: { teamId: parseInt(teamId) },
@@ -856,7 +878,7 @@ export class TournamentService {
       });
     } else if (paymentType === "both") {
       if (teamCredits < 10000 || teamGems < 20) {
-        throw new Error("Insufficient credits AND gems for Mid-Season Classic entry (10,000₡ AND 20💎 required)");
+        throw new Error("Insufficient credits AND gems for Mid-Season Cup entry (10,000₡ AND 20💎 required)");
       }
       await prisma.teamFinances.update({
         where: { teamId: parseInt(teamId) },

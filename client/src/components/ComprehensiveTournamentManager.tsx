@@ -44,7 +44,7 @@ interface TournamentOverview {
   season: number;
   gameDay: number;
   tournaments: {
-    dailyCup: {
+    dailyDivisionTournament: {
       available: boolean;
       name: string;
       description: string;
@@ -57,7 +57,7 @@ interface TournamentOverview {
       tournamentTime: string;
       rewards: any;
     };
-    midSeasonClassic: {
+    midSeasonCup: {
       available: boolean;
       name: string;
       description: string;
@@ -292,38 +292,38 @@ export default function ComprehensiveTournamentManager({ teamId }: Comprehensive
 
           {/* Tournament Types */}
           <div className="grid md:grid-cols-2 gap-6">
-            {/* Daily Divisional Cup */}
-            <Card className={`border-2 ${tournamentOverview.tournaments.dailyCup.available 
+            {/* Daily Division Tournament */}
+            <Card className={`border-2 ${tournamentOverview.tournaments.dailyDivisionTournament.available 
               ? 'border-blue-200 bg-blue-50 dark:bg-blue-900/10' 
               : 'border-gray-200 bg-gray-50 dark:bg-gray-800'}`}>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Trophy className="w-5 h-5 text-blue-500" />
-                  {tournamentOverview.tournaments.dailyCup.name}
+                  {tournamentOverview.tournaments.dailyDivisionTournament.name}
                 </CardTitle>
-                <CardDescription>{tournamentOverview.tournaments.dailyCup.description}</CardDescription>
+                <CardDescription>{tournamentOverview.tournaments.dailyDivisionTournament.description}</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="grid grid-cols-2 gap-4 text-sm">
                   <div>
                     <div className="font-medium">Entry Requirement</div>
-                    <div className="text-gray-600">{tournamentOverview.tournaments.dailyCup.entryRequirement}</div>
+                    <div className="text-gray-600">{tournamentOverview.tournaments.dailyDivisionTournament.entryRequirement}</div>
                   </div>
                   <div>
                     <div className="font-medium">Game Length</div>
-                    <div className="text-gray-600">{tournamentOverview.tournaments.dailyCup.gameLength}</div>
+                    <div className="text-gray-600">{tournamentOverview.tournaments.dailyDivisionTournament.gameLength}</div>
                   </div>
                   <div>
                     <div className="font-medium">Injury Risk</div>
-                    <div className="text-gray-600">{tournamentOverview.tournaments.dailyCup.injuryRisk}</div>
+                    <div className="text-gray-600">{tournamentOverview.tournaments.dailyDivisionTournament.injuryRisk}</div>
                   </div>
                   <div>
                     <div className="font-medium">Stamina Cost</div>
-                    <div className="text-gray-600">{tournamentOverview.tournaments.dailyCup.staminaCost}</div>
+                    <div className="text-gray-600">{tournamentOverview.tournaments.dailyDivisionTournament.staminaCost}</div>
                   </div>
                 </div>
                 
-                {tournamentOverview.tournaments.dailyCup.available ? (
+                {tournamentOverview.tournaments.dailyDivisionTournament.available ? (
                   <Badge variant="secondary" className="bg-blue-100 text-blue-800">
                     Available for Division {division}
                   </Badge>
@@ -336,45 +336,45 @@ export default function ComprehensiveTournamentManager({ teamId }: Comprehensive
                 <div className="text-sm">
                   <div className="font-medium">Schedule</div>
                   <div className="text-gray-600">
-                    Registration: {tournamentOverview.tournaments.dailyCup.registrationWindow}<br/>
-                    Tournament: {tournamentOverview.tournaments.dailyCup.tournamentTime}
+                    Registration: {tournamentOverview.tournaments.dailyDivisionTournament.registrationWindow}<br/>
+                    Tournament: {tournamentOverview.tournaments.dailyDivisionTournament.tournamentTime}
                   </div>
                 </div>
               </CardContent>
             </Card>
 
             {/* Mid-Season Classic */}
-            <Card className={`border-2 ${tournamentOverview.tournaments.midSeasonClassic.available 
+            <Card className={`border-2 ${tournamentOverview.tournaments.midSeasonCup.available 
               ? 'border-purple-200 bg-purple-50 dark:bg-purple-900/10' 
               : 'border-gray-200 bg-gray-50 dark:bg-gray-800'}`}>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Crown className="w-5 h-5 text-purple-500" />
-                  {tournamentOverview.tournaments.midSeasonClassic.name}
+                  {tournamentOverview.tournaments.midSeasonCup.name}
                 </CardTitle>
-                <CardDescription>{tournamentOverview.tournaments.midSeasonClassic.description}</CardDescription>
+                <CardDescription>{tournamentOverview.tournaments.midSeasonCup.description}</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="grid grid-cols-2 gap-4 text-sm">
                   <div>
                     <div className="font-medium">Entry Requirement</div>
-                    <div className="text-gray-600">{tournamentOverview.tournaments.midSeasonClassic.entryRequirement}</div>
+                    <div className="text-gray-600">{tournamentOverview.tournaments.midSeasonCup.entryRequirement}</div>
                   </div>
                   <div>
                     <div className="font-medium">Game Length</div>
-                    <div className="text-gray-600">{tournamentOverview.tournaments.midSeasonClassic.gameLength}</div>
+                    <div className="text-gray-600">{tournamentOverview.tournaments.midSeasonCup.gameLength}</div>
                   </div>
                   <div>
                     <div className="font-medium">Injury Risk</div>
-                    <div className="text-gray-600">{tournamentOverview.tournaments.midSeasonClassic.injuryRisk}</div>
+                    <div className="text-gray-600">{tournamentOverview.tournaments.midSeasonCup.injuryRisk}</div>
                   </div>
                   <div>
                     <div className="font-medium">Stamina Cost</div>
-                    <div className="text-gray-600">{tournamentOverview.tournaments.midSeasonClassic.staminaCost}</div>
+                    <div className="text-gray-600">{tournamentOverview.tournaments.midSeasonCup.staminaCost}</div>
                   </div>
                 </div>
                 
-                {tournamentOverview.tournaments.midSeasonClassic.available ? (
+                {tournamentOverview.tournaments.midSeasonCup.available ? (
                   <Badge className="bg-purple-100 text-purple-800">
                     Registration Open
                   </Badge>
@@ -387,8 +387,8 @@ export default function ComprehensiveTournamentManager({ teamId }: Comprehensive
                 <div className="text-sm">
                   <div className="font-medium">Schedule</div>
                   <div className="text-gray-600">
-                    Registration: {tournamentOverview.tournaments.midSeasonClassic.registrationWindow}<br/>
-                    Tournament: {tournamentOverview.tournaments.midSeasonClassic.tournamentTime}
+                    Registration: {tournamentOverview.tournaments.midSeasonCup.registrationWindow}<br/>
+                    Tournament: {tournamentOverview.tournaments.midSeasonCup.tournamentTime}
                   </div>
                 </div>
               </CardContent>

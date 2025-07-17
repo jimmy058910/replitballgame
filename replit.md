@@ -147,7 +147,29 @@ Built as a React + Express web application with PostgreSQL database, using moder
 
 ## Recent Changes
 
-### July 17, 2025 - ✅ STAMINA SYSTEM ENHANCEMENT - ATTRIBUTE-BASED DEPLETION IMPLEMENTED
+### July 17, 2025 - ✅ TOURNAMENT NAMING CONSISTENCY FULLY COMPLETED - 100% UNIFIED NAMING SYSTEM
+
+#### ✅ COMPLETE TOURNAMENT NAMING STANDARDIZATION - CODEBASE-WIDE CONSISTENCY ACHIEVED
+- ✓ **"Daily Division Tournament" Standardized**: All references to "Daily Cup" and "Daily Divisional Cup" updated throughout entire codebase
+- ✓ **"Mid-Season Cup" Standardized**: All references to "Mid-Season Classic" updated throughout entire codebase
+- ✓ **Backend Service Methods Renamed**: 
+  - `createDailyCupTournament` → `createDailyDivisionTournament`
+  - `createMidSeasonClassic` → `createMidSeasonCup`
+  - `createOrJoinMidSeasonClassic` → `createOrJoinMidSeasonCup`
+  - `getDailyCupRewards` → `getDailyDivisionTournamentRewards`
+  - `getMidSeasonRewards` → `getMidSeasonCupRewards`
+- ✓ **Frontend Interface Updates**: ComprehensiveTournamentManager.tsx updated with new property names (dailyDivisionTournament, midSeasonCup)
+- ✓ **Route Endpoint Updates**: All tournament route endpoints updated with consistent naming and success messages
+- ✓ **Global Search & Replace**: Systematic updates applied across all server services, routes, and client components
+
+#### ✅ TOURNAMENT ID GENERATION SYSTEM ENHANCED - UNIQUE IDENTIFIER IMPLEMENTATION
+- ✓ **Mid-Season Cup ID Format**: Implemented Season-Division-UniqueIdentifier format (excludes gameDay for proper uniqueness)
+- ✓ **ID Generation Method**: Created `generateMidSeasonCupId()` method using counter-based unique identifiers
+- ✓ **Database Schema Compliance**: All tournament creation methods use proper unique ID generation
+- ✓ **Naming Consistency**: All tournament-related error messages, comments, and descriptions updated with standardized naming
+- ✓ **Production Ready**: Complete tournament naming system operational for alpha testing with unified terminology
+
+### July 17, 2025 - ✅ STAMINA SYSTEM ENHANCEMENT - ATTRIBUTE-BASED DEPLETION IMPLEMENTED (Previous)
 
 #### ✅ STAMINA ATTRIBUTE NOW AFFECTS DEPLETION RATES - BALANCED GAMEPLAY ENHANCEMENT
 - ✓ **Enhanced Depletion Formula**: Updated stamina depletion to factor in player's stamina attribute for more realistic gameplay

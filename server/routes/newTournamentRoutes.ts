@@ -101,7 +101,7 @@ router.post('/daily-tournament/register', isAuthenticated, async (req: any, res:
     
     res.json({ 
       success: true, 
-      message: "Successfully registered for Daily Divisional Tournament!",
+      message: "Successfully registered for Daily Division Tournament!",
       tournamentId
     });
   } catch (error) {
@@ -119,7 +119,7 @@ router.post('/daily-tournament/register', isAuthenticated, async (req: any, res:
   }
 });
 
-// Register for Mid-Season Classic (on-demand creation)
+// Register for Mid-Season Cup (on-demand creation)
 router.post('/mid-season/register', isAuthenticated, async (req: any, res: Response, next: NextFunction) => {
   try {
     const userId = req.user.claims.sub;
@@ -128,11 +128,11 @@ router.post('/mid-season/register', isAuthenticated, async (req: any, res: Respo
 
     const { division, paymentType } = midSeasonRegisterSchema.parse(req.body);
     
-    const tournamentId = await tournamentService.createOrJoinMidSeasonClassic(team.id, division, paymentType);
+    const tournamentId = await tournamentService.createOrJoinMidSeasonCup(team.id, division, paymentType);
     
     res.json({ 
       success: true, 
-      message: "Successfully registered for Mid-Season Classic!",
+      message: "Successfully registered for Mid-Season Cup!",
       tournamentId,
       paymentType
     });
@@ -429,9 +429,9 @@ router.get('/overview/:division', isAuthenticated, async (req: any, res: Respons
       season,
       gameDay,
       tournaments: {
-        dailyCup: {
+        dailyDivisionTournament: {
           available: division > 1, // Only divisions 2-8
-          name: `${divisionName} Daily Cup`,
+          name: `${divisionName} Daily Division Tournament`,
           description: "Daily single-elimination tournament requiring Tournament Entry items",
           entryRequirement: "Tournament Entry Item",
           gameLength: "Short (like Exhibition)",
@@ -440,7 +440,7 @@ router.get('/overview/:division', isAuthenticated, async (req: any, res: Respons
           progressionBenefit: "Moderate",
           registrationWindow: "24 hours",
           tournamentTime: "8:00 PM EST",
-          rewards: division > 1 ? tournamentService['getDailyCupRewards'](division) : null
+          rewards: division > 1 ? tournamentService['getDailyDivisionTournamentRewards'](division) : null
         },
         midSeasonCup: {
           available: gameDay === 6 || gameDay === 7, // Registration Day 6, Tournament Day 7
@@ -453,7 +453,7 @@ router.get('/overview/:division', isAuthenticated, async (req: any, res: Respons
           progressionBenefit: "High",
           registrationWindow: gameDay === 6 ? "Registration open today!" : gameDay === 7 ? "Tournament in progress" : "Next registration: Day 6",
           tournamentTime: "1:00 PM EST on Day 7",
-          rewards: tournamentService['getMidSeasonRewards'](division)
+          rewards: tournamentService['getMidSeasonCupRewards'](division)
         }
       }
     };
