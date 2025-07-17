@@ -214,8 +214,7 @@ export class TournamentService {
       status: "REGISTRATION_OPEN" as const,
       prizePoolJson: rewards,
       registrationEndTime: moment.tz("America/New_York").endOf('day').toDate(), // End of Day 6
-      startTime: moment.tz("America/New_York").add(1, 'day').hour(13).minute(0).toDate(), // 1 PM EST Day 7
-      maxParticipants: 16 // Allow up to 16 teams per division
+      startTime: moment.tz("America/New_York").add(1, 'day').hour(13).minute(0).toDate() // 1 PM EST Day 7
     };
 
     const created = await prisma.tournament.create({
