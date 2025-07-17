@@ -211,77 +211,34 @@ router.get('/:matchId/enhanced-data', isAuthenticated, async (req: Request, res:
       let homeTeamStats = rawTeamStats[match.homeTeamId.toString()];
       let awayTeamStats = rawTeamStats[match.awayTeamId.toString()];
       
-      // Check if data is all zeros (empty match data) and use sample data instead
-      const isEmptyStats = (stats) => stats && Object.values(stats).every(val => val === 0);
-      
-      if (!homeTeamStats || isEmptyStats(homeTeamStats)) {
+      // Ensure we have valid stats objects with fallback to zeros
+      if (!homeTeamStats) {
         homeTeamStats = {
-          turnovers: 1,
-          carrierYards: 156,
-          passingYards: 243,
-          totalOffensiveYards: 399,
-          timeOfPossessionSeconds: 1680,
-          totalKnockdownsInflicted: 3
+          turnovers: 0,
+          carrierYards: 0,
+          passingYards: 0,
+          totalOffensiveYards: 0,
+          timeOfPossessionSeconds: 0,
+          totalKnockdownsInflicted: 0
         };
       }
       
-      if (!awayTeamStats || isEmptyStats(awayTeamStats)) {
+      if (!awayTeamStats) {
         awayTeamStats = {
-          turnovers: 2,
-          carrierYards: 187,
-          passingYards: 198,
-          totalOffensiveYards: 385,
-          timeOfPossessionSeconds: 1920,
-          totalKnockdownsInflicted: 5
+          turnovers: 0,
+          carrierYards: 0,
+          passingYards: 0,
+          totalOffensiveYards: 0,
+          timeOfPossessionSeconds: 0,
+          totalKnockdownsInflicted: 0
         };
       }
       
       console.log('Home team stats:', JSON.stringify(homeTeamStats));
       console.log('Away team stats:', JSON.stringify(awayTeamStats));
 
-      // Get actual player data for MVP
-      const homePlayers = await prisma.player.findMany({
-        where: { teamId: match.homeTeamId },
-        select: { id: true, firstName: true, lastName: true, role: true, race: true }
-      });
-
-      const awayPlayers = await prisma.player.findMany({
-        where: { teamId: match.awayTeamId },
-        select: { id: true, firstName: true, lastName: true, role: true, race: true }
-      });
-
-      // Select random players as MVP (in production this would come from actual simulation)
-      const homeMVPPlayer = homePlayers[Math.floor(Math.random() * homePlayers.length)];
-      const awayMVPPlayer = awayPlayers[Math.floor(Math.random() * awayPlayers.length)];
-
-      const mvpData = {
-        homeMVP: {
-          playerId: homeMVPPlayer?.id.toString() || `home_mvp_${match.homeTeamId}`,
-          playerName: homeMVPPlayer ? `${homeMVPPlayer.firstName} ${homeMVPPlayer.lastName}` : "Star Player",
-          playerRace: homeMVPPlayer?.race || "Human",
-          playerRole: homeMVPPlayer?.role || "Runner",
-          scores: 2,
-          passingYards: 145,
-          carrierYards: 87,
-          tackles: 3,
-          interceptions: 1,
-          knockdownsInflicted: 2,
-          mvpScore: 15.3
-        },
-        awayMVP: {
-          playerId: awayMVPPlayer?.id.toString() || `away_mvp_${match.awayTeamId}`,
-          playerName: awayMVPPlayer ? `${awayMVPPlayer.firstName} ${awayMVPPlayer.lastName}` : "Hero Player",
-          playerRace: awayMVPPlayer?.race || "Sylvan",
-          playerRole: awayMVPPlayer?.role || "Passer",
-          scores: 1,
-          passingYards: 203,
-          carrierYards: 45,
-          tackles: 2,
-          interceptions: 0,
-          knockdownsInflicted: 1,
-          mvpScore: 12.8
-        }
-      };
+      // Use actual MVP data from simulation log if available, otherwise null
+      const mvpData = simulationLogData?.mvpData || null;
 
       const enhancedData = {
         atmosphereEffects: {

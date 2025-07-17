@@ -142,13 +142,33 @@ export function LiveMatchViewer({ matchId, userId, onMatchComplete }: LiveMatchV
             id: initialMatchData.homeTeam?.id || '',
             name: initialMatchData.homeTeam?.name || 'Home Team',
             score: initialMatchData.homeScore || 0,
-            stats: enhancedData?.teamStats?.home
+            stats: enhancedData?.teamStats?.home ? {
+              teamId: initialMatchData.homeTeam?.id || '',
+              teamName: initialMatchData.homeTeam?.name || 'Home Team',
+              totalScore: initialMatchData.homeScore || 0,
+              totalOffensiveYards: enhancedData.teamStats.home.totalOffensiveYards || 0,
+              passingYards: enhancedData.teamStats.home.passingYards || 0,
+              carrierYards: enhancedData.teamStats.home.carrierYards || 0,
+              turnovers: enhancedData.teamStats.home.turnovers || 0,
+              totalKnockdownsInflicted: enhancedData.teamStats.home.totalKnockdownsInflicted || 0,
+              timeOfPossession: enhancedData.teamStats.home.timeOfPossessionSeconds || 0
+            } : undefined
           }}
           awayTeam={{
             id: initialMatchData.awayTeam?.id || '',
             name: initialMatchData.awayTeam?.name || 'Away Team',
             score: initialMatchData.awayScore || 0,
-            stats: enhancedData?.teamStats?.away
+            stats: enhancedData?.teamStats?.away ? {
+              teamId: initialMatchData.awayTeam?.id || '',
+              teamName: initialMatchData.awayTeam?.name || 'Away Team',
+              totalScore: initialMatchData.awayScore || 0,
+              totalOffensiveYards: enhancedData.teamStats.away.totalOffensiveYards || 0,
+              passingYards: enhancedData.teamStats.away.passingYards || 0,
+              carrierYards: enhancedData.teamStats.away.carrierYards || 0,
+              turnovers: enhancedData.teamStats.away.turnovers || 0,
+              totalKnockdownsInflicted: enhancedData.teamStats.away.totalKnockdownsInflicted || 0,
+              timeOfPossession: enhancedData.teamStats.away.timeOfPossessionSeconds || 0
+            } : undefined
           }}
           mvpData={enhancedData?.mvpData}
           matchDuration={initialMatchData.duration}
