@@ -788,8 +788,8 @@ function ExhibitionsTab() {
           {recentGames?.length ? (
             <div className="space-y-3">
               {recentGames.map((game: any) => (
-                <div key={game.id} className="flex items-center justify-between p-3 bg-gray-700 rounded-lg">
-                  <div className="flex items-center gap-3">
+                <div key={game.id} className="flex items-center p-3 bg-gray-700 rounded-lg">
+                  <div className="flex items-center gap-3 flex-1">
                     <span className="text-2xl">{getResultIcon(game.result)}</span>
                     <div>
                       <div className="font-semibold">
@@ -801,7 +801,7 @@ function ExhibitionsTab() {
                     </div>
                   </div>
                   
-                  <div className="text-right">
+                  <div className="text-center min-w-[80px]">
                     <div className={`font-bold ${getResultColor(game.result)}`}>
                       {game.score || (game.result === 'pending' ? 'Scheduled' : 
                                      game.result === 'in_progress' ? 'Live Match' : 'Not Started')}
@@ -814,26 +814,28 @@ function ExhibitionsTab() {
                     </div>
                   </div>
                   
-                  {(game.result === 'win' || game.result === 'loss' || game.result === 'draw') && (
-                    <Button 
-                      variant="outline" 
-                      size="sm"
-                      onClick={() => window.location.href = `/match/${game.id}`}
-                    >
-                      <i className="fas fa-chart-line mr-1"></i>
-                      View Summary
-                    </Button>
-                  )}
-                  {game.result === 'in_progress' && (
-                    <Button 
-                      variant="outline" 
-                      size="sm"
-                      onClick={() => window.location.href = `/match/${game.id}`}
-                    >
-                      <i className="fas fa-play mr-1"></i>
-                      Watch Live
-                    </Button>
-                  )}
+                  <div className="ml-4 min-w-[120px]">
+                    {(game.result === 'win' || game.result === 'loss' || game.result === 'draw') && (
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        className="w-full justify-center"
+                        onClick={() => window.location.href = `/match/${game.id}`}
+                      >
+                        View Summary
+                      </Button>
+                    )}
+                    {game.result === 'in_progress' && (
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        className="w-full justify-center"
+                        onClick={() => window.location.href = `/match/${game.id}`}
+                      >
+                        Watch Live
+                      </Button>
+                    )}
+                  </div>
                 </div>
               ))}
             </div>
