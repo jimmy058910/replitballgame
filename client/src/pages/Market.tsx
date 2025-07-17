@@ -952,26 +952,33 @@ export default function Market() {
                     </CardHeader>
                     <CardContent className="space-y-6">
                       <div className="max-w-md mx-auto">
-                        <div className="space-y-3">
-                          <h3 className="font-semibold text-purple-800 dark:text-purple-200 text-center">Monthly Benefits:</h3>
-                          <ul className="space-y-3 text-sm text-gray-700 dark:text-gray-300">
-                            <li className="flex items-center gap-3">
-                              <Gem className="w-5 h-5 text-blue-500" />
-                              <span className="font-medium">{realmPass.monthlyGems || 200} Premium Gems</span>
-                            </li>
-                            <li className="flex items-center gap-3">
-                              <Star className="w-5 h-5 text-yellow-500" />
-                              <span className="font-medium">Ad-free experience</span>
-                            </li>
-                            <li className="flex items-center gap-3">
-                              <Trophy className="w-5 h-5 text-orange-500" />
-                              <span className="font-medium">Daily cache rewards</span>
-                            </li>
-                            <li className="flex items-center gap-3">
-                              <Crown className="w-5 h-5 text-purple-500" />
-                              <span className="font-medium">Exclusive cosmetic items</span>
-                            </li>
-                          </ul>
+                        <div className="space-y-4">
+                          <h3 className="font-bold text-lg text-purple-800 dark:text-purple-200 text-center">Premium Benefits:</h3>
+                          
+                          {/* Featured gem benefit */}
+                          <div className="bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900/30 dark:to-purple-900/30 p-4 rounded-lg border-2 border-blue-200 dark:border-blue-700">
+                            <div className="flex items-center justify-center gap-3">
+                              <Gem className="w-8 h-8 text-blue-500" />
+                              <div className="text-center">
+                                <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">
+                                  {realmPass.monthlyGems || 350} Premium Gems
+                                </div>
+                                <div className="text-sm text-blue-700 dark:text-blue-300">Every month</div>
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* Other benefits */}
+                          <div className="grid grid-cols-1 gap-3">
+                            <div className="flex items-center gap-3 p-3 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg">
+                              <Star className="w-6 h-6 text-yellow-500" />
+                              <span className="font-semibold text-yellow-700 dark:text-yellow-300">Ad-free experience</span>
+                            </div>
+                            <div className="flex items-center gap-3 p-3 bg-orange-50 dark:bg-orange-900/20 rounded-lg">
+                              <Trophy className="w-6 h-6 text-orange-500" />
+                              <span className="font-semibold text-orange-700 dark:text-orange-300">Daily cache rewards</span>
+                            </div>
+                          </div>
                         </div>
                       </div>
                       

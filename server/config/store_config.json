@@ -64,8 +64,8 @@
   ],
   "realmPassSubscription": {
     "price": 9.95,
-    "monthlyGems": 200,
-    "benefits": ["ad_free_experience", "daily_cache", "exclusive_cosmetics"],
+    "monthlyGems": 350,
+    "benefits": ["ad_free_experience", "daily_cache"],
     "dailyCache": {
       "credits": 2000,
       "performanceBoost": "random_common_uncommon"
