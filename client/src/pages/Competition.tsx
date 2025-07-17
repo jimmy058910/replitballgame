@@ -677,22 +677,8 @@ function ExhibitionsTab() {
             <Separator className="bg-gray-700" />
 
             <div className="space-y-2">
-              <h4 className="font-semibold text-sm">Exhibition Benefits & Rewards:</h4>
-              <ul className="text-sm text-gray-400 space-y-1">
-                <li>• <span className="text-blue-300">Test Tactics & Lineups:</span> Safely experiment with new strategies before important matches</li>
-                <li>• <span className="text-green-300">Earn Credits:</span> Gain a small but consistent amount of Credits for playing</li>
-                <li>• <span className="text-purple-300">Build Team Camaraderie:</span> Winning exhibition games provides a small boost to team morale</li>
-                <li>• <span className="text-orange-300">Contribute to Ad Rewards:</span> Watching the halftime ad counts towards your daily and milestone ad rewards</li>
-                <li>• <span className="text-cyan-300">Risk-Free:</span> No impact on player stamina, injury status, or league standings (minimal player development only)</li>
-              </ul>
-              
-              <div className="mt-3 p-2 bg-blue-900/30 rounded border border-blue-700">
-                <div className="text-xs font-semibold text-blue-300">Daily Limits:</div>
-                <div className="text-xs text-blue-200">
-                  • 3 FREE exhibition games per day<br/>
-                  • 3 additional games with Exhibition Entry items<br/>
-                  • Purchase entries in Market &gt; Store &gt; Entries tab
-                </div>
+              <div className="text-sm text-gray-400">
+                <span className="text-cyan-300">Risk-free matches</span> for testing tactics and earning credits without affecting stamina, injuries, or league standings.
               </div>
             </div>
           </CardContent>
