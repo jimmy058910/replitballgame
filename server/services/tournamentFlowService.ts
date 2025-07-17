@@ -301,6 +301,21 @@ class TournamentFlowServiceImpl implements TournamentFlowService {
    */
   private async generateNextRoundMatches(tournamentId: number, completedRound: number): Promise<void> {
     try {
+      const nextRound = completedRound + 1;
+      
+      // Check if next round matches already exist (prevent duplicates)
+      const existingNextRoundMatches = await prisma.game.findMany({
+        where: {
+          tournamentId: tournamentId,
+          round: nextRound
+        }
+      });
+
+      if (existingNextRoundMatches.length > 0) {
+        logInfo(`Round ${nextRound} matches already exist for tournament ${tournamentId}, skipping generation`);
+        return;
+      }
+
       // Get winners from completed round
       const completedMatches = await prisma.game.findMany({
         where: {
@@ -326,7 +341,6 @@ class TournamentFlowServiceImpl implements TournamentFlowService {
       });
 
       // Generate next round matches
-      const nextRound = completedRound + 1;
       const nextRoundMatches = [];
       
       for (let i = 0; i < winners.length; i += 2) {

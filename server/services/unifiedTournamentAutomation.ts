@@ -117,6 +117,21 @@ export class UnifiedTournamentAutomation {
     console.log(`Generating round ${completedRound + 1} matches for tournament ${tournamentId}`);
     
     try {
+      const nextRound = completedRound + 1;
+      
+      // Check if next round matches already exist (prevent duplicates)
+      const existingNextRoundMatches = await prisma.game.findMany({
+        where: {
+          tournamentId: tournamentId,
+          round: nextRound
+        }
+      });
+
+      if (existingNextRoundMatches.length > 0) {
+        console.log(`Round ${nextRound} matches already exist for tournament ${tournamentId}, skipping generation`);
+        return;
+      }
+
       // Get completed matches from previous round
       const completedMatches = await prisma.game.findMany({
         where: {
@@ -138,7 +153,6 @@ export class UnifiedTournamentAutomation {
       });
 
       // Generate matches for next round
-      const nextRound = completedRound + 1;
       const nextRoundMatches = [];
 
       console.log(`Generating round ${nextRound} matches from ${winners.length} winners: [${winners.join(', ')}]`);

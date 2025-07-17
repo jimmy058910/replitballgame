@@ -830,6 +830,22 @@ export class SeasonTimingAutomationService {
    */
   private async generateNextRoundMatches(tournamentId: number, completedRound: number): Promise<void> {
     try {
+      const nextRound = completedRound + 1;
+      if (nextRound > 3) return; // No rounds after finals
+
+      // Check if next round matches already exist (prevent duplicates)
+      const existingNextRoundMatches = await prisma.game.findMany({
+        where: {
+          tournamentId,
+          round: nextRound
+        }
+      });
+
+      if (existingNextRoundMatches.length > 0) {
+        logInfo(`Round ${nextRound} matches already exist for tournament ${tournamentId}, skipping generation`);
+        return;
+      }
+
       // Get all completed matches from the current round
       const completedMatches = await prisma.game.findMany({
         where: {
@@ -856,9 +872,6 @@ export class SeasonTimingAutomationService {
       });
 
       // Generate matches for next round
-      const nextRound = completedRound + 1;
-      if (nextRound > 3) return; // No rounds after finals
-
       const nextRoundMatches = [];
       for (let i = 0; i < winners.length; i += 2) {
         if (i + 1 < winners.length) {
