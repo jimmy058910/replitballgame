@@ -199,6 +199,7 @@ router.get('/:division/standings', isAuthenticated, async (req: Request, res: Re
 
       return {
         ...team,
+        draws: draws || 0, // Ensure draws is returned as a number
         currentStreak,
         streakType,
         form: form.slice(0, Math.min(5, totalGames)),

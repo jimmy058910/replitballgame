@@ -53,7 +53,7 @@ export default function League() {
             <div>
               <h1 className="font-orbitron text-3xl font-bold mb-2">League</h1>
               <p className="text-gray-400">
-                {team ? `Division ${team.division ?? 'N/A'} - ${team.name}` : "Loading..."}
+                {team ? `Division ${team.division ?? 'N/A'} - ${team.subdivision ? team.subdivision.charAt(0).toUpperCase() + team.subdivision.slice(1) : 'Unknown'} - ${team.name}` : "Loading..."}
               </p>
             </div>
           </div>

@@ -1087,16 +1087,16 @@ class MatchStateManager {
         });
         console.log(`Away team ${awayId} wins, Home team ${homeId} loses`);
       } else {
-        // Draw - award 1 point to each team (no draws column in schema)
+        // Draw - award 1 point to each team and increment draws
         await prisma.team.update({
           where: { id: homeId },
-          data: { points: { increment: 1 } }
+          data: { draws: { increment: 1 }, points: { increment: 1 } }
         });
         await prisma.team.update({
           where: { id: awayId },
-          data: { points: { increment: 1 } }
+          data: { draws: { increment: 1 }, points: { increment: 1 } }
         });
-        console.log(`Draw between teams ${homeId} and ${awayId} - both teams awarded 1 point`);
+        console.log(`Draw between teams ${homeId} and ${awayId} - both teams awarded 1 point and 1 draw`);
       }
     } catch (error) {
       console.error(`Error updating team records for teams ${homeTeamId} and ${awayTeamId}:`, error);
