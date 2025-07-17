@@ -201,12 +201,21 @@ export class SeasonTimingAutomationService {
    */
   private async checkSeasonEvents(): Promise<void> {
     try {
-      // Use the same calculation as the UI endpoint for consistency
-      const startDate = new Date("2025-07-13");
-      const now = new Date();
-      const daysSinceStart = Math.floor((now.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24));
-      const currentDayInCycle = (daysSinceStart % 17) + 1;
-      const seasonNumber = Math.floor(daysSinceStart / 17);
+      // Get current season to determine current day
+      const currentSeason = await storage.seasons.getCurrentSeason();
+      let currentDayInCycle = 5; // Default fallback
+      
+      if (currentSeason && typeof currentSeason.currentDay === 'number') {
+        currentDayInCycle = currentSeason.currentDay;
+      } else {
+        // Fallback to calculation if no database value
+        const startDate = new Date("2025-07-13");
+        const now = new Date();
+        const daysSinceStart = Math.floor((now.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24));
+        currentDayInCycle = (daysSinceStart % 17) + 1;
+      }
+      
+      const seasonNumber = currentSeason?.seasonNumber || 0;
       
       const estTime = getEasternTimeAsDate();
       
@@ -573,20 +582,26 @@ export class SeasonTimingAutomationService {
    * Get current season information
    */
   private getCurrentSeasonInfo(currentSeason: any): { currentDayInCycle: number; seasonNumber: number } {
-    const seasonStartDate = new Date(currentSeason.startDate || currentSeason.start_date);
-    const now = new Date();
-    const daysSinceStart = Math.floor((now.getTime() - seasonStartDate.getTime()) / (1000 * 60 * 60 * 24));
-    const currentDayInCycle = (daysSinceStart % 17) + 1;
-    const seasonNumber = Math.floor(daysSinceStart / 17);
+    let currentDayInCycle = 5; // Default fallback
+    
+    if (currentSeason && typeof currentSeason.currentDay === 'number') {
+      currentDayInCycle = currentSeason.currentDay;
+    } else {
+      // Fallback to calculation if no database value
+      const seasonStartDate = new Date(currentSeason.startDate || currentSeason.start_date);
+      const now = new Date();
+      const daysSinceStart = Math.floor((now.getTime() - seasonStartDate.getTime()) / (1000 * 60 * 60 * 24));
+      currentDayInCycle = (daysSinceStart % 17) + 1;
+    }
+    
+    const seasonNumber = Math.floor(((new Date().getTime() - new Date(currentSeason.startDate || currentSeason.start_date).getTime()) / (1000 * 60 * 60 * 24)) / 17);
     
     // Debug logging
     console.log('Season timing debug:', {
       rawStartDate: currentSeason.startDate,
-      seasonStartDate: seasonStartDate.toISOString(),
-      now: now.toISOString(),
-      daysSinceStart,
       currentDayInCycle,
-      seasonNumber
+      seasonNumber,
+      source: currentSeason && typeof currentSeason.currentDay === 'number' ? 'database' : 'calculation'
     });
     
     return { currentDayInCycle, seasonNumber };

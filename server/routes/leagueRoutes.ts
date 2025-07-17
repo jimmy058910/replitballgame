@@ -366,15 +366,20 @@ router.post('/schedule', isAuthenticated, (req: Request, res: Response) => {
 
 router.get('/daily-schedule', isAuthenticated, async (req: Request, res: Response, next: NextFunction) => {
   try {
-    // Calculate current day using the same method as /current-cycle endpoint
-    const startDate = new Date("2025-07-13");
-    const now = new Date();
-    const daysSinceStart = Math.floor((now.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24));
-    const currentDayInCycle = (daysSinceStart % 17) + 1;
-    
-
-    
+    // Get current season from database to get the actual currentDay
     const currentSeason = await seasonStorage.getCurrentSeason(); // Use seasonStorage
+    let currentDayInCycle = 5; // Default fallback
+    
+    if (currentSeason && typeof currentSeason.currentDay === 'number') {
+      currentDayInCycle = currentSeason.currentDay;
+    } else {
+      // Fallback to calculation if no database value
+      const startDate = new Date("2025-07-13");
+      const now = new Date();
+      const daysSinceStart = Math.floor((now.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24));
+      currentDayInCycle = (daysSinceStart % 17) + 1;
+    }
+
     if (!currentSeason) {
       return res.json({ schedule: {}, totalDays: 17, currentDay: currentDayInCycle, message: "No active season found." });
     }
