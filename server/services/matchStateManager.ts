@@ -832,6 +832,11 @@ class MatchStateManager {
             }
           }
         });
+
+        // Update team records for non-exhibition matches
+        if (!isExhibitionMatch) {
+          await this.updateTeamRecords(state.homeTeamId, state.awayTeamId, state.homeScore, state.awayScore);
+        }
       } else {
         console.warn(`Game ${matchId} not found in database, cannot update completion status`);
       }
@@ -1041,6 +1046,53 @@ class MatchStateManager {
         });
         await this.completeMatch(matchId, state.homeTeamId, state.awayTeamId, homePlayers, awayPlayers);
       }
+    }
+  }
+
+  /**
+   * Update team records (wins/losses/draws) after match completion
+   */
+  private async updateTeamRecords(homeTeamId: number, awayTeamId: number, homeScore: number, awayScore: number): Promise<void> {
+    try {
+      console.log(`Updating team records: Home Team ${homeTeamId} (${homeScore}) vs Away Team ${awayTeamId} (${awayScore})`);
+      
+      // Determine winner
+      if (homeScore > awayScore) {
+        // Home team wins
+        await prisma.team.update({
+          where: { id: homeTeamId },
+          data: { wins: { increment: 1 }, points: { increment: 3 } }
+        });
+        await prisma.team.update({
+          where: { id: awayTeamId },
+          data: { losses: { increment: 1 } }
+        });
+        console.log(`Home team ${homeTeamId} wins, Away team ${awayTeamId} loses`);
+      } else if (awayScore > homeScore) {
+        // Away team wins
+        await prisma.team.update({
+          where: { id: awayTeamId },
+          data: { wins: { increment: 1 }, points: { increment: 3 } }
+        });
+        await prisma.team.update({
+          where: { id: homeTeamId },
+          data: { losses: { increment: 1 } }
+        });
+        console.log(`Away team ${awayTeamId} wins, Home team ${homeTeamId} loses`);
+      } else {
+        // Draw
+        await prisma.team.update({
+          where: { id: homeTeamId },
+          data: { draws: { increment: 1 }, points: { increment: 1 } }
+        });
+        await prisma.team.update({
+          where: { id: awayTeamId },
+          data: { draws: { increment: 1 }, points: { increment: 1 } }
+        });
+        console.log(`Draw between teams ${homeTeamId} and ${awayTeamId}`);
+      }
+    } catch (error) {
+      console.error(`Error updating team records for teams ${homeTeamId} and ${awayTeamId}:`, error);
     }
   }
 }

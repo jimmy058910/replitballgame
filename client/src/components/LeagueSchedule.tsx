@@ -12,6 +12,8 @@ interface ScheduledMatch {
   awayTeamId: string;
   homeTeamName?: string;
   awayTeamName?: string;
+  homeScore?: number;
+  awayScore?: number;
   scheduledTime: Date;
   scheduledTimeFormatted: string;
   isLive: boolean;
@@ -103,14 +105,51 @@ export default function LeagueSchedule() {
       );
     }
     
-    switch (match.status) {
-      case 'scheduled':
+    switch (match.status.toUpperCase()) {
+      case 'SCHEDULED':
         return <Badge variant="secondary">SCHEDULED</Badge>;
-      case 'completed':
-        return <Badge variant="outline">Completed</Badge>;
+      case 'COMPLETED':
+        return <Badge variant="outline">COMPLETED</Badge>;
+      case 'IN_PROGRESS':
+        return <Badge variant="destructive" className="animate-pulse">LIVE</Badge>;
       default:
         return <Badge variant="secondary">{match.status}</Badge>;
     }
+  };
+
+  const getScoreDisplay = (match: ScheduledMatch, gameIndex: number) => {
+    if (match.status.toUpperCase() === 'COMPLETED') {
+      return (
+        <div className="text-sm font-mono text-center min-w-[60px]">
+          <div className="font-bold">
+            {match.homeScore || 0} - {match.awayScore || 0}
+          </div>
+          <div className="text-xs text-gray-500">FINAL</div>
+        </div>
+      );
+    }
+    
+    if (match.status.toUpperCase() === 'IN_PROGRESS' || match.isLive) {
+      return (
+        <div className="text-sm font-mono text-center min-w-[60px]">
+          <div className="font-bold text-red-600">
+            {match.homeScore || 0} - {match.awayScore || 0}
+          </div>
+          <div className="text-xs text-red-500">LIVE</div>
+        </div>
+      );
+    }
+    
+    return (
+      <div className="text-center min-w-[60px]">
+        <div className="text-sm font-mono">
+          {formatGameTime(match.scheduledTimeFormatted)}
+        </div>
+        <div className="text-xs text-gray-600 dark:text-gray-400">
+          Game {gameIndex + 1}
+        </div>
+      </div>
+    );
   };
 
   // Sort days in ascending order (upcoming days first)
@@ -162,7 +201,7 @@ export default function LeagueSchedule() {
                     <div
                       key={match.id}
                       className={`flex items-center justify-between p-3 rounded-lg border ${
-                        match.isLive 
+                        match.isLive || match.status.toUpperCase() === 'IN_PROGRESS'
                           ? 'border-red-400 bg-red-50 dark:border-red-500 dark:bg-red-900/30' 
                           : isUserMatch 
                             ? 'border-blue-400 bg-blue-100 text-blue-900 dark:border-blue-500 dark:bg-blue-800/30 dark:text-blue-100' 
@@ -170,14 +209,7 @@ export default function LeagueSchedule() {
                       }`}
                     >
                     <div className="flex items-center gap-3">
-                      <div className="text-center min-w-[60px]">
-                        <div className="text-sm font-mono">
-                          {formatGameTime(match.scheduledTimeFormatted)}
-                        </div>
-                        <div className="text-xs text-gray-600 dark:text-gray-400">
-                          Game {index + 1}
-                        </div>
-                      </div>
+                      {getScoreDisplay(match, index)}
                       
                       <div className="flex items-center gap-2">
                         <Users className={`w-4 h-4 ${isUserMatch ? 'text-blue-700 dark:text-blue-300' : 'text-gray-600 dark:text-gray-400'}`} />
@@ -194,7 +226,7 @@ export default function LeagueSchedule() {
                     <div className="flex items-center gap-2">
                       {getStatusBadge(match)}
                       
-                      {match.canWatch && match.isLive && (
+                      {(match.canWatch && (match.isLive || match.status.toUpperCase() === 'IN_PROGRESS')) && (
                         <Link href={`/live-match/${match.id}`}>
                           <Button size="sm" variant="default" className="gap-1">
                             <Eye className="w-3 h-3" />
@@ -203,7 +235,7 @@ export default function LeagueSchedule() {
                         </Link>
                       )}
                       
-                      {match.status === 'completed' && (
+                      {match.status.toUpperCase() === 'COMPLETED' && (
                         <Link href={`/live-match/${match.id}`}>
                           <Button size="sm" variant="outline" className="gap-1">
                             <Eye className="w-3 h-3" />
