@@ -550,22 +550,21 @@ export class SeasonTimingAutomationService {
    * Get current season information
    */
   private getCurrentSeasonInfo(currentSeason: any): { currentDayInCycle: number; seasonNumber: number } {
-    const seasonStartDate = new Date(currentSeason.start_date_original || currentSeason.start_date);
+    const seasonStartDate = new Date(currentSeason.startDate || currentSeason.start_date);
     const now = new Date();
     const daysSinceStart = Math.floor((now.getTime() - seasonStartDate.getTime()) / (1000 * 60 * 60 * 24));
     const currentDayInCycle = (daysSinceStart % 17) + 1;
     const seasonNumber = Math.floor(daysSinceStart / 17);
     
-    // Debug logging (can be removed in production)
-    // console.log('Season timing debug:', {
-    //   rawStartDate: currentSeason.start_date_original,
-    //   rawStartDateBackup: currentSeason.start_date,
-    //   seasonStartDate: seasonStartDate.toISOString(),
-    //   now: now.toISOString(),
-    //   daysSinceStart,
-    //   currentDayInCycle,
-    //   seasonNumber
-    // });
+    // Debug logging
+    console.log('Season timing debug:', {
+      rawStartDate: currentSeason.startDate,
+      seasonStartDate: seasonStartDate.toISOString(),
+      now: now.toISOString(),
+      daysSinceStart,
+      currentDayInCycle,
+      seasonNumber
+    });
     
     return { currentDayInCycle, seasonNumber };
   }
@@ -600,7 +599,15 @@ export class SeasonTimingAutomationService {
         return;
       }
 
+      console.log('DEBUG: currentSeason object:', currentSeason);
       const { currentDayInCycle } = this.getCurrentSeasonInfo(currentSeason);
+      console.log('DEBUG: currentDayInCycle calculated:', currentDayInCycle);
+      
+      // Ensure currentDayInCycle is a valid number
+      if (currentDayInCycle === undefined || currentDayInCycle === null || isNaN(currentDayInCycle)) {
+        console.error('Invalid currentDayInCycle value:', currentDayInCycle);
+        return;
+      }
       
       // Update the database with the current day - using correct table/column names
       await prisma.season.update({
