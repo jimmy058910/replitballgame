@@ -114,6 +114,13 @@ export function GameSimulationUI({ matchId, userId, team1, team2, initialLiveSta
             
             // Invalidate match data query to trigger refetch and show PostGameSummary
             queryClient.invalidateQueries({ queryKey: [`/api/matches/${matchId}`] });
+            queryClient.invalidateQueries({ queryKey: [`/api/matches/${matchId}/enhanced-data`] });
+            
+            // Add a small delay to ensure database update is complete
+            setTimeout(() => {
+              queryClient.invalidateQueries({ queryKey: [`/api/matches/${matchId}`] });
+              console.log('🔄 Match data query invalidated after match completion');
+            }, 1000);
             
             if (onMatchComplete) {
               onMatchComplete(data.finalState);
@@ -267,15 +274,37 @@ export function GameSimulationUI({ matchId, userId, team1, team2, initialLiveSta
       };
     }
 
+    // Get player stats from game events
+    const getPlayerStats = (playerName: string) => {
+      if (!liveState?.gameEvents) return null;
+      
+      const events = liveState.gameEvents.filter(e => e.description?.includes(playerName));
+      let passes = 0, runs = 0, tackles = 0, scores = 0;
+      
+      events.forEach(event => {
+        if (event.type === 'pass') passes++;
+        else if (event.type === 'run') runs++;
+        else if (event.type === 'tackle') tackles++;
+        else if (event.type === 'score') scores++;
+      });
+      
+      if (scores > 0) return { label: "Scores", value: scores };
+      if (passes > 0) return { label: "Passes", value: passes };
+      if (runs > 0) return { label: "Runs", value: runs };
+      if (tackles > 0) return { label: "Tackles", value: tackles };
+      return null;
+    };
+
     let homePerformer = null;
     let awayPerformer = null;
 
     if (mvpData?.homeMVP?.playerName && mvpData.homeMVP.playerName !== 'N/A' && mvpData.homeMVP.playerName !== 'No MVP') {
+      const stats = getPlayerStats(mvpData.homeMVP.playerName);
       homePerformer = {
         playerId: "mvp-home",
         playerName: mvpData.homeMVP.playerName,
-        statLabel: "MVP",
-        statValue: Math.round(mvpData.homeMVP.score || 0)
+        statLabel: stats?.label || "MVP Score",
+        statValue: stats?.value || Math.round(mvpData.homeMVP.score || 0)
       };
     } else {
       homePerformer = {
@@ -287,11 +316,12 @@ export function GameSimulationUI({ matchId, userId, team1, team2, initialLiveSta
     }
 
     if (mvpData?.awayMVP?.playerName && mvpData.awayMVP.playerName !== 'N/A' && mvpData.awayMVP.playerName !== 'No MVP') {
+      const stats = getPlayerStats(mvpData.awayMVP.playerName);
       awayPerformer = {
         playerId: "mvp-away",
         playerName: mvpData.awayMVP.playerName,
-        statLabel: "MVP",
-        statValue: Math.round(mvpData.awayMVP.score || 0)
+        statLabel: stats?.label || "MVP Score",
+        statValue: stats?.value || Math.round(mvpData.awayMVP.score || 0)
       };
     } else {
       awayPerformer = {
@@ -445,7 +475,7 @@ export function GameSimulationUI({ matchId, userId, team1, team2, initialLiveSta
             </div>
             <div className="flex justify-between text-sm">
               <span>Home Advantage</span>
-              <span>+{attendanceData.homeFieldAdvantage}</span>
+              <span title="Reduces away team's Catching & Throwing stats">+{attendanceData.homeFieldAdvantage}</span>
             </div>
             {spectatorCount > 0 && (
               <div className="flex justify-between text-sm border-t pt-2">
@@ -519,10 +549,10 @@ export function GameSimulationUI({ matchId, userId, team1, team2, initialLiveSta
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <ScrollArea className="h-64 w-full">
+          <ScrollArea className="h-80 w-full">
             <div ref={logRef} className="space-y-2">
               {liveState.gameEvents && liveState.gameEvents.length > 0 ? (
-                liveState.gameEvents.slice(-20).reverse().map((event, index) => (
+                liveState.gameEvents.slice(-8).reverse().map((event, index) => (
                   <div key={index} className="flex items-start space-x-3 p-2 rounded-lg bg-muted/50">
                     <div className="text-xs text-muted-foreground min-w-[60px]">
                       {formatGameTime(event.time)}
