@@ -206,7 +206,7 @@ export class TournamentService {
     const tournament = {
       name: tournamentName,
       tournamentId: tournamentId,
-      type: "MID_SEASON_CUP" as const,
+      type: "MID_SEASON_CLASSIC" as const, // Use MID_SEASON_CLASSIC to match the existing logic
       division,
       seasonDay: 7,
       entryFeeCredits: BigInt(10000),
@@ -215,12 +215,232 @@ export class TournamentService {
       prizePoolJson: rewards,
       registrationEndTime: moment.tz("America/New_York").endOf('day').toDate(), // End of Day 6
       startTime: moment.tz("America/New_York").add(1, 'day').hour(13).minute(0).toDate(), // 1 PM EST Day 7
+      maxParticipants: 16 // Allow up to 16 teams per division
     };
 
     const created = await prisma.tournament.create({
       data: tournament
     });
     return created.id;
+  }
+
+  // Fill Mid-Season Cup with AI teams if needed at 1PM on Day 7
+  async fillMidSeasonCupWithAI(tournamentId: string): Promise<void> {
+    const tournament = await prisma.tournament.findUnique({
+      where: { id: tournamentId },
+      include: { entries: true }
+    });
+
+    if (!tournament || tournament.type !== "MID_SEASON_CLASSIC") {
+      return;
+    }
+
+    const currentEntries = tournament.entries.length;
+    const maxParticipants = 16;
+    const spotsToFill = Math.min(maxParticipants - currentEntries, maxParticipants);
+
+    if (spotsToFill <= 0) {
+      return; // Tournament is full or no spots to fill
+    }
+
+    // Get existing participating team IDs
+    const existingTeamIds = tournament.entries.map(entry => entry.teamId);
+
+    // Find AI teams in the same division that aren't already participating
+    const aiTeams = await prisma.team.findMany({
+      where: {
+        division: tournament.division,
+        isAI: true,
+        id: {
+          notIn: existingTeamIds
+        }
+      },
+      take: spotsToFill
+    });
+
+    // If we don't have enough AI teams, create them
+    if (aiTeams.length < spotsToFill) {
+      const teamsToCreate = spotsToFill - aiTeams.length;
+      await this.createAITeamsForMidSeasonCup(tournament.division, teamsToCreate);
+
+      // Re-fetch AI teams after creation
+      const newAiTeams = await prisma.team.findMany({
+        where: {
+          division: tournament.division,
+          isAI: true,
+          id: {
+            notIn: existingTeamIds
+          }
+        },
+        take: spotsToFill
+      });
+
+      // Create tournament entries for AI teams
+      const aiEntries = newAiTeams.map(team => ({
+        tournamentId: parseInt(tournamentId),
+        teamId: team.id,
+        registeredAt: new Date()
+      }));
+
+      if (aiEntries.length > 0) {
+        await prisma.tournamentEntry.createMany({
+          data: aiEntries
+        });
+      }
+    } else {
+      // Create tournament entries for existing AI teams
+      const aiEntries = aiTeams.map(team => ({
+        tournamentId: parseInt(tournamentId),
+        teamId: team.id,
+        registeredAt: new Date()
+      }));
+
+      if (aiEntries.length > 0) {
+        await prisma.tournamentEntry.createMany({
+          data: aiEntries
+        });
+      }
+    }
+  }
+
+  // Create AI teams specifically for Mid-Season Cup
+  async createAITeamsForMidSeasonCup(division: number, count: number): Promise<void> {
+    const aiTeamNames = [
+      'Shadow Runners', 'Storm Breakers', 'Iron Wolves', 'Fire Hawks',
+      'Thunder Eagles', 'Crimson Tide', 'Golden Lions', 'Silver Falcons',
+      'Lightning Bolts', 'Frost Giants', 'Ember Knights', 'Wind Dancers',
+      'Steel Warriors', 'Flame Guardians', 'Night Stalkers', 'Dawn Riders',
+      'Viper Squad', 'Phoenix Rising', 'Titan Force', 'Draco Elite'
+    ];
+
+    const races = ["Human", "Sylvan", "Gryll", "Lumina", "Umbra"];
+    const positions = ["PASSER", "PASSER", "PASSER", "RUNNER", "RUNNER", "RUNNER", "RUNNER", "BLOCKER", "BLOCKER", "BLOCKER", "BLOCKER", "BLOCKER"];
+
+    for (let i = 0; i < count; i++) {
+      const teamName = aiTeamNames[i % aiTeamNames.length] + ` ${Math.floor(Math.random() * 900) + 100}`;
+      
+      try {
+        // Create AI user profile
+        const aiUser = await prisma.userProfile.create({
+          data: {
+            userId: `ai_midseason_${Date.now()}_${i}`,
+            email: `ai_midseason_${Date.now()}_${i}@realmrivalry.ai`,
+            firstName: "AI",
+            lastName: "Coach",
+            displayName: `AI Coach ${i + 1}`,
+            isAI: true
+          }
+        });
+
+        // Create AI team
+        const aiTeam = await prisma.team.create({
+          data: {
+            name: teamName,
+            userProfileId: aiUser.id,
+            division: division,
+            subdivision: "main",
+            isAI: true,
+            wins: Math.floor(Math.random() * 3),
+            losses: Math.floor(Math.random() * 3),
+            draws: Math.floor(Math.random() * 2),
+            points: Math.floor(Math.random() * 10),
+            camaraderie: 50 + Math.floor(Math.random() * 40)
+          }
+        });
+
+        // Create team finances
+        await prisma.teamFinances.create({
+          data: {
+            teamId: aiTeam.id,
+            credits: BigInt(50000 + Math.floor(Math.random() * 50000)),
+            gems: Math.floor(Math.random() * 200) + 50
+          }
+        });
+
+        // Create team stadium
+        await prisma.stadium.create({
+          data: {
+            teamId: aiTeam.id,
+            capacity: 15000,
+            concessionsLevel: 1,
+            parkingLevel: 1,
+            vipSuitesLevel: 1,
+            merchandisingLevel: 1,
+            lightingLevel: 1,
+            screensLevel: 1,
+            fanLoyalty: 50 + Math.floor(Math.random() * 30)
+          }
+        });
+
+        // Generate 12 players for AI team
+        for (let j = 0; j < 12; j++) {
+          const race = races[Math.floor(Math.random() * races.length)];
+          const position = positions[j];
+          const firstName = this.generateRandomName(race.toLowerCase()).firstName;
+          const lastName = this.generateRandomName(race.toLowerCase()).lastName;
+
+          await prisma.player.create({
+            data: {
+              teamId: aiTeam.id,
+              firstName,
+              lastName,
+              race: race as any,
+              role: position as any,
+              age: 18 + Math.floor(Math.random() * 17),
+              speed: 20 + Math.floor(Math.random() * 15),
+              power: 20 + Math.floor(Math.random() * 15),
+              throwing: 20 + Math.floor(Math.random() * 15),
+              catching: 20 + Math.floor(Math.random() * 15),
+              kicking: 20 + Math.floor(Math.random() * 15),
+              stamina: 20 + Math.floor(Math.random() * 15),
+              leadership: 20 + Math.floor(Math.random() * 15),
+              agility: 20 + Math.floor(Math.random() * 15),
+              potential: 1 + Math.floor(Math.random() * 4),
+              injuryStatus: "HEALTHY",
+              dailyStaminaLevel: 100,
+              maxStamina: 100,
+              camaraderie: 50 + Math.floor(Math.random() * 40)
+            }
+          });
+        }
+
+        console.log(`Created AI team: ${teamName} for Mid-Season Cup in division ${division}`);
+      } catch (error) {
+        console.error(`Failed to create AI team ${teamName}:`, error);
+      }
+    }
+  }
+
+  // Generate random name for AI players
+  generateRandomName(race: string): { firstName: string; lastName: string } {
+    const names = {
+      human: {
+        first: ["Alex", "Jordan", "Taylor", "Morgan", "Casey", "Riley", "Jamie", "Drew", "Sage", "Quinn"],
+        last: ["Smith", "Johnson", "Williams", "Brown", "Jones", "Garcia", "Miller", "Davis", "Rodriguez", "Martinez"]
+      },
+      sylvan: {
+        first: ["Aelindra", "Thalorin", "Eleryn", "Silvyr", "Caelum", "Lyralei", "Theren", "Aerdrie", "Solanor", "Varis"],
+        last: ["Moonwhisper", "Starweaver", "Nightbreeze", "Dawnblade", "Silverleaf", "Goldenheart", "Swiftarrow", "Brightwind", "Stormcaller", "Firewalker"]
+      },
+      gryll: {
+        first: ["Thorgrim", "Balin", "Dain", "Thorin", "Gimli", "Gloin", "Oin", "Nori", "Ori", "Dori"],
+        last: ["Ironforge", "Stonebreaker", "Hammerfall", "Goldbeard", "Rockfist", "Steelheart", "Ironshield", "Stonehammer", "Battleaxe", "Deepdelver"]
+      },
+      lumina: {
+        first: ["Seraphiel", "Auriel", "Raphael", "Gabriel", "Uriel", "Raziel", "Camael", "Jophiel", "Zadkiel", "Raguel"],
+        last: ["Lightbringer", "Dawnhammer", "Goldenwing", "Sunblade", "Radiance", "Holyfire", "Celestial", "Divinity", "Sanctity", "Purity"]
+      },
+      umbra: {
+        first: ["Shadowmere", "Nyx", "Vex", "Shade", "Raven", "Onyx", "Sable", "Dusk", "Midnight", "Eclipse"],
+        last: ["Darkbane", "Shadowstep", "Nightfall", "Voidwalker", "Blackthorn", "Darkheart", "Shadowblade", "Nightwhisper", "Voidcaller", "Duskbringer"]
+      }
+    };
+
+    const raceNames = names[race as keyof typeof names] || names.human;
+    const firstName = raceNames.first[Math.floor(Math.random() * raceNames.first.length)];
+    const lastName = raceNames.last[Math.floor(Math.random() * raceNames.last.length)];
+
+    return { firstName, lastName };
   }
 
   // Ensure tournaments exist for current day and division
@@ -560,11 +780,12 @@ export class TournamentService {
   async createOrJoinMidSeasonClassic(teamId: string, division: number, paymentType: "credits" | "gems" | "both"): Promise<string> {
     const season = this.getCurrentSeason();
 
-    // Check if team is already registered for ANY active tournament
-    const existingActiveEntry = await prisma.tournamentEntry.findFirst({
+    // Check if team is already registered for Mid-Season Classic specifically (not Daily Cup)
+    const existingMidSeasonEntry = await prisma.tournamentEntry.findFirst({
       where: {
         teamId,
         tournament: {
+          type: "MID_SEASON_CLASSIC", // Only check for Mid-Season Classic, not Daily Cup
           status: {
             in: ["REGISTRATION_OPEN", "IN_PROGRESS"]
           }
@@ -581,9 +802,8 @@ export class TournamentService {
       }
     });
 
-    if (existingActiveEntry) {
-      const tournamentType = existingActiveEntry.tournament.type === "DAILY_DIVISIONAL" ? "Daily Cup" : "Mid-Season Classic";
-      throw new Error(`You are already registered for ${existingActiveEntry.tournament.name} (${tournamentType}). Please wait for your current tournament to complete before registering for another.`);
+    if (existingMidSeasonEntry) {
+      throw new Error(`You are already registered for ${existingMidSeasonEntry.tournament.name} (Mid-Season Classic). Please wait for your current Mid-Season tournament to complete before registering for another.`);
     }
 
     // Check if tournament already exists for this division
@@ -603,8 +823,8 @@ export class TournamentService {
       // Tournament exists, join it
       tournamentId = existingTournament[0].id;
     } else {
-      // Create new tournament
-      tournamentId = await this.createMidSeasonClassic(division);
+      // Create new tournament - use createMidSeasonCup for proper implementation
+      tournamentId = await this.createMidSeasonCup(division);
     }
 
     // Handle payment based on user choice

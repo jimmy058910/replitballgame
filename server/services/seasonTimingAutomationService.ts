@@ -651,6 +651,9 @@ export class SeasonTimingAutomationService {
     try {
       logInfo('Checking for tournaments that need to be auto-started...');
       
+      // Check for Mid-Season Cup tournaments that need AI team filling at 1PM on Day 7
+      await this.checkMidSeasonCupStart();
+      
       await tournamentService.checkAndStartTournaments();
       
       // Also check for tournament advancement
@@ -660,6 +663,70 @@ export class SeasonTimingAutomationService {
     } catch (error) {
       console.error('Error during tournament auto-start check:', error.message);
     }
+  }
+
+  /**
+   * Check for Mid-Season Cup tournaments that need AI team filling at 1PM on Day 7
+   */
+  private async checkMidSeasonCupStart(): Promise<void> {
+    const now = new Date();
+    const estNow = new Date(now.toLocaleString('en-US', { timeZone: 'America/New_York' }));
+    
+    // Check if it's Day 7 at 1PM EST
+    const currentDay = this.getCurrentDay();
+    if (currentDay !== 7 || estNow.getHours() !== 13 || estNow.getMinutes() > 5) {
+      return; // Not the right time for Mid-Season Cup start
+    }
+
+    try {
+      // Find Mid-Season Cup tournaments that are still in registration for Day 7
+      const midSeasonTournaments = await prisma.tournament.findMany({
+        where: {
+          type: 'MID_SEASON_CLASSIC',
+          seasonDay: 7,
+          status: 'REGISTRATION_OPEN'
+        },
+        include: {
+          entries: true
+        }
+      });
+
+      console.log(`Found ${midSeasonTournaments.length} Mid-Season Cup tournaments to process`);
+
+      for (const tournament of midSeasonTournaments) {
+        try {
+          // Fill with AI teams if needed
+          const { TournamentService } = await import('./tournamentService');
+          const tournamentService = new TournamentService();
+          await tournamentService.fillMidSeasonCupWithAI(tournament.id);
+
+          // Update tournament status to start countdown
+          await prisma.tournament.update({
+            where: { id: tournament.id },
+            data: { 
+              status: 'COUNTDOWN',
+              startTime: new Date(Date.now() + 10 * 60 * 1000) // 10 minutes from now
+            }
+          });
+
+          console.log(`Started Mid-Season Cup countdown for tournament ${tournament.id} (${tournament.name})`);
+        } catch (error) {
+          console.error(`Failed to start Mid-Season Cup tournament ${tournament.id}:`, error);
+        }
+      }
+    } catch (error) {
+      console.error('Error checking Mid-Season Cup start:', error);
+    }
+  }
+
+  /**
+   * Get current day in the season cycle
+   */
+  private getCurrentDay(): number {
+    const startDate = new Date("2025-07-13");
+    const now = new Date();
+    const daysSinceStart = Math.floor((now.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24));
+    return (daysSinceStart % 17) + 1;
   }
 
   /**
