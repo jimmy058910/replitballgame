@@ -68,7 +68,7 @@ class TournamentFlowServiceImpl implements TournamentFlowService {
       }
 
       // Start live simulation for all matches in the round
-      const { matchStateManager } = require('./matchStateManager');
+      const { matchStateManager } = await import('./matchStateManager');
       const matchPromises = matches.map(async (match) => {
         try {
           // Set match status to IN_PROGRESS
