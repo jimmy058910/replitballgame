@@ -281,18 +281,21 @@ export class SeasonalFlowService {
     
     if (numTeams === 8) {
       // Perfect 8-team subdivision - 4 games per day
+      // Adjusted for Days 6-14 (9 days total)
       const gameSlots = [
-        [0, 1], [2, 3], [4, 5], [6, 7],  // Day 1
-        [0, 2], [1, 3], [4, 6], [5, 7],  // Day 2
-        [0, 3], [1, 2], [4, 7], [5, 6],  // Day 3
-        [0, 4], [1, 5], [2, 6], [3, 7],  // Day 4
-        [0, 5], [1, 4], [2, 7], [3, 6],  // Day 5
-        [0, 6], [1, 7], [2, 4], [3, 5],  // Day 6
-        [0, 7], [1, 6], [2, 5], [3, 4]   // Day 7
+        [0, 1], [2, 3], [4, 5], [6, 7],  // Day 6
+        [0, 2], [1, 3], [4, 6], [5, 7],  // Day 7  
+        [0, 3], [1, 2], [4, 7], [5, 6],  // Day 8
+        [0, 4], [1, 5], [2, 6], [3, 7],  // Day 9
+        [0, 5], [1, 4], [2, 7], [3, 6],  // Day 10
+        [0, 6], [1, 7], [2, 4], [3, 5],  // Day 11
+        [0, 7], [1, 6], [2, 5], [3, 4],  // Day 12
+        [1, 4], [0, 5], [2, 7], [3, 6],  // Day 13
+        [2, 6], [1, 7], [0, 4], [3, 5]   // Day 14
       ];
       
-      // Each day has 4 games, cycle through days 1-7 then repeat
-      const dayIndex = ((day - 1) % 7) * 4;
+      // Each day has 4 games, adjust for Days 6-14
+      const dayIndex = ((day - 6) % 9) * 4;
       for (let i = 0; i < 4; i++) {
         const pairIndex = dayIndex + i;
         if (pairIndex < gameSlots.length) {
@@ -352,17 +355,28 @@ export class SeasonalFlowService {
         continue;
       }
       
-      // Generate matches for this subdivision
-      for (let day = 1; day <= this.SEASON_CONFIG.REGULAR_SEASON_DAYS; day++) {
+      // Generate matches for shortened season (Days 6-14)
+      for (let day = 6; day <= 14; day++) {
         const dayMatches = this.generateSubdivisionDayMatches(subdivision, day);
         
-        for (const match of dayMatches) {
+        for (let matchIndex = 0; matchIndex < dayMatches.length; matchIndex++) {
+          const match = dayMatches[matchIndex];
+          
           // Calculate the correct game date based on season start + day
           const gameDate = new Date("2025-07-13"); // Season start date
           gameDate.setDate(gameDate.getDate() + day - 1);
           
-          // Set specific game time (8:00 PM EDT)
-          gameDate.setHours(20, 0, 0, 0);
+          // Set game times in 15-minute increments between 4PM-10PM EST
+          // Create a unique time slot for each game across the day
+          const totalDayMatches = subdivision.length / 2; // 4 games per day for 8 teams
+          const globalMatchIndex = (day - 6) * totalDayMatches + matchIndex;
+          
+          // There are 24 possible 15-minute slots between 4PM-10PM (6 hours * 4 slots per hour)
+          const timeSlot = globalMatchIndex % 24;
+          const hour = 16 + Math.floor(timeSlot / 4); // 16 = 4PM, goes up to 21 = 9PM
+          const minute = (timeSlot % 4) * 15;
+          
+          gameDate.setHours(hour, minute, 0, 0);
           
           const matchData = {
             leagueId,
