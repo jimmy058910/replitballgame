@@ -142,6 +142,7 @@ export function GameSimulationUI({ matchId, userId, team1, team2, initialLiveSta
             });
           },
           onConnectionStatus: (connected: boolean) => {
+            console.log('🔌 Connection status update:', connected);
             setIsConnected(connected);
             if (connected) {
               toast({
@@ -178,6 +179,8 @@ export function GameSimulationUI({ matchId, userId, team1, team2, initialLiveSta
         // Join match room
         await webSocketManager.joinMatch(matchId);
 
+        // Set connection status to true since we successfully joined
+        setIsConnected(true);
         setIsLoading(false);
       } catch (error) {
         console.error('Failed to initialize WebSocket:', error);
