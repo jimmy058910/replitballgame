@@ -199,31 +199,32 @@ export function getServerTimeInfo() {
 }
 
 /**
- * Generate 4 daily game times with 75-minute intervals within 4-10PM window
- * Ensures proper 4PM-10PM EDT distribution
+ * Generate 4 daily game times with 15-minute intervals within 4-10PM window
+ * Games run consecutively: Game 1 at base time, Game 2 +15min, Game 3 +30min, Game 4 +45min
  */
 export function generateDailyGameTimes(day: number): Date[] {
   const easternTime = getEasternTime();
   
-  // Fixed 4-game schedule within 4PM-10PM window (6 hour span = 360 minutes / 4 games = 90 minutes apart)
-  // Start times vary by day: 4:00PM, 4:30PM, 5:00PM, 5:30PM, 6:00PM, 6:30PM, 7:00PM
+  // Start times vary by day within 4PM-10PM window, each day has 4 consecutive games in 15-minute intervals
   const startVariations = [
-    { hour: 16, minute: 0 },  // 4:00PM
-    { hour: 16, minute: 30 }, // 4:30PM
-    { hour: 17, minute: 0 },  // 5:00PM
-    { hour: 17, minute: 30 }, // 5:30PM
-    { hour: 18, minute: 0 },  // 6:00PM
-    { hour: 18, minute: 30 }, // 6:30PM
-    { hour: 19, minute: 0 },  // 7:00PM
+    { hour: 17, minute: 15 }, // 5:15PM (Day 6: 5:15, 5:30, 5:45, 6:00)
+    { hour: 17, minute: 45 }, // 5:45PM (Day 7: 5:45, 6:00, 6:15, 6:30)
+    { hour: 18, minute: 15 }, // 6:15PM (Day 8: 6:15, 6:30, 6:45, 7:00)
+    { hour: 18, minute: 45 }, // 6:45PM (Day 9: 6:45, 7:00, 7:15, 7:30)
+    { hour: 19, minute: 15 }, // 7:15PM (Day 10: 7:15, 7:30, 7:45, 8:00)
+    { hour: 19, minute: 45 }, // 7:45PM (Day 11: 7:45, 8:00, 8:15, 8:30)
+    { hour: 20, minute: 15 }, // 8:15PM (Day 12: 8:15, 8:30, 8:45, 9:00)
+    { hour: 20, minute: 45 }, // 8:45PM (Day 13: 8:45, 9:00, 9:15, 9:30)
+    { hour: 21, minute: 15 }, // 9:15PM (Day 14: 9:15, 9:30, 9:45, 10:00)
   ];
   
-  const dayIndex = (day - 1) % startVariations.length;
+  const dayIndex = (day - 6) % startVariations.length; // Start from Day 6
   const { hour, minute } = startVariations[dayIndex];
   
   const gameTimes: Date[] = [];
   
   for (let i = 0; i < 4; i++) {
-    const gameTime = easternTime.clone().hour(hour).minute(minute + (i * 75)).second(0);
+    const gameTime = easternTime.clone().hour(hour).minute(minute + (i * 15)).second(0);
     gameTimes.push(gameTime.toDate());
   }
   
