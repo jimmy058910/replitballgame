@@ -9,7 +9,7 @@ import { Separator } from '@/components/ui/separator';
 import { Play, Pause, Clock, Users, Trophy, Zap, Target, Activity } from 'lucide-react';
 import webSocketManager, { LiveMatchState, MatchEvent, WebSocketCallbacks } from '@/lib/websocket';
 import { useToast } from '@/hooks/use-toast';
-import { apiRequest } from '@/lib/queryClient';
+import { apiRequest, queryClient } from '@/lib/queryClient';
 
 interface GameSimulationUIProps {
   matchId: string;
@@ -111,6 +111,10 @@ export function GameSimulationUI({ matchId, userId, team1, team2, initialLiveSta
             console.log('🏁 GameSimulationUI: Match completed:', data);
             setLiveState(data.finalState);
             setEvents(data.finalState.gameEvents || []);
+            
+            // Invalidate match data query to trigger refetch and show PostGameSummary
+            queryClient.invalidateQueries({ queryKey: [`/api/matches/${matchId}`] });
+            
             if (onMatchComplete) {
               onMatchComplete(data.finalState);
             }
@@ -521,7 +525,7 @@ export function GameSimulationUI({ matchId, userId, team1, team2, initialLiveSta
                 liveState.gameEvents.slice(0, 20).map((event, index) => (
                   <div key={index} className="flex items-start space-x-3 p-2 rounded-lg bg-muted/50">
                     <div className="text-xs text-muted-foreground min-w-[60px]">
-                      {formatGameTime(event.gameTime || liveState.gameTime)}
+                      {formatGameTime(event.time || liveState.gameTime)}
                     </div>
                     <div className="flex-1">
                       <div className="text-sm">

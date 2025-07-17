@@ -764,13 +764,13 @@ class MatchStateManager {
       this.matchIntervals.delete(matchId);
     }
     
-    // Remove from live matches to prevent it from showing as live
-    this.liveMatches.delete(matchId);
-
-    // Broadcast match completion to WebSocket clients
+    // Broadcast match completion to WebSocket clients BEFORE removing from live matches
     if (this.webSocketService) {
       this.webSocketService.broadcastMatchComplete(matchId, state);
     }
+
+    // Remove from live matches to prevent it from showing as live
+    this.liveMatches.delete(matchId);
 
     // Persist detailed player and team stats
     try {
