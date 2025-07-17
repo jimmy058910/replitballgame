@@ -6,7 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
-import { Play, Pause, Clock, Users, Trophy, Zap, Target, Activity } from 'lucide-react';
+import { Play, Pause, Clock, Users, Trophy, Zap, Target, Activity, Eye } from 'lucide-react';
 import webSocketManager, { LiveMatchState, MatchEvent, WebSocketCallbacks } from '@/lib/websocket';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest, queryClient } from '@/lib/queryClient';
@@ -65,6 +65,17 @@ export function GameSimulationUI({ matchId, userId, team1, team2, initialLiveSta
   const { data: initialMatchData, error: matchError } = useQuery({
     queryKey: [`/api/matches/${matchId}`],
     enabled: !!matchId
+  });
+
+  // Fetch team players for field display
+  const { data: homeTeamPlayers } = useQuery({
+    queryKey: [`/api/teams/${team1?.id}/players`],
+    enabled: !!team1?.id
+  });
+
+  const { data: awayTeamPlayers } = useQuery({
+    queryKey: [`/api/teams/${team2?.id}/players`],
+    enabled: !!team2?.id
   });
 
   // Auto-scroll log to top
@@ -353,6 +364,30 @@ export function GameSimulationUI({ matchId, userId, team1, team2, initialLiveSta
     return { home: homePerformer, away: awayPerformer };
   };
 
+  // Calculate player power rating
+  const calculatePlayerPower = (player: Player) => {
+    const attributes = [player.speed, player.power, player.throwing, player.catching, player.kicking, player.stamina, player.agility, player.leadership];
+    const total = attributes.reduce((sum, attr) => sum + attr, 0);
+    return Math.round(total / 8);
+  };
+
+  // Get field players (first 6 players from each team)
+  const getFieldPlayers = () => {
+    const homeFieldPlayers = homeTeamPlayers?.slice(0, 6) || [];
+    const awayFieldPlayers = awayTeamPlayers?.slice(0, 6) || [];
+    
+    return {
+      home: homeFieldPlayers.map((player: Player) => ({
+        ...player,
+        power: calculatePlayerPower(player)
+      })),
+      away: awayFieldPlayers.map((player: Player) => ({
+        ...player,
+        power: calculatePlayerPower(player)
+      }))
+    };
+  };
+
   if (isLoading) {
     return (
       <Card className="w-full max-w-6xl mx-auto">
@@ -440,9 +475,17 @@ export function GameSimulationUI({ matchId, userId, team1, team2, initialLiveSta
         {/* Game Clock */}
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-lg flex items-center gap-2">
-              <Clock className="h-5 w-5 text-blue-500" />
-              Game Clock
+            <CardTitle className="text-lg flex items-center gap-2 justify-between">
+              <div className="flex items-center gap-2">
+                <Clock className="h-5 w-5 text-blue-500" />
+                Game Clock
+              </div>
+              {spectatorCount > 0 && (
+                <div className="flex items-center gap-1 text-sm text-muted-foreground">
+                  <Eye className="h-4 w-4" />
+                  {spectatorCount}
+                </div>
+              )}
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
@@ -492,15 +535,9 @@ export function GameSimulationUI({ matchId, userId, team1, team2, initialLiveSta
               <span>{attendanceData.fanLoyalty}%</span>
             </div>
             <div className="flex justify-between text-sm">
-              <span>Home Advantage</span>
-              <span title="Reduces away team's Catching & Throwing stats">+{attendanceData.homeFieldAdvantage}</span>
+              <span>Field Condition</span>
+              <span title="Current field playing conditions">Good</span>
             </div>
-            {spectatorCount > 0 && (
-              <div className="flex justify-between text-sm border-t pt-2">
-                <span>Live Spectators</span>
-                <span>{spectatorCount}</span>
-              </div>
-            )}
           </CardContent>
         </Card>
       </div>
@@ -551,6 +588,63 @@ export function GameSimulationUI({ matchId, userId, team1, team2, initialLiveSta
           </CardContent>
         </Card>
       </div>
+
+      {/* Field Display - 12 Players */}
+      <Card>
+        <CardHeader className="pb-2">
+          <CardTitle className="text-lg flex items-center gap-2">
+            <Activity className="h-5 w-5 text-green-500" />
+            Players on Field
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* Home Team */}
+            <div className="space-y-3">
+              <div className="text-center">
+                <h3 className="font-semibold text-red-600 border-b-2 border-red-200 pb-1">
+                  {team1?.name || "Home Team"}
+                </h3>
+              </div>
+              <div className="grid grid-cols-2 gap-2">
+                {getFieldPlayers().home.map((player: any, index: number) => (
+                  <div key={player.id} className="bg-red-50 dark:bg-red-900/20 border-l-4 border-red-500 p-2 rounded-r">
+                    <div className="text-sm font-medium text-red-700 dark:text-red-300">
+                      {player.firstName} {player.lastName}
+                    </div>
+                    <div className="text-xs text-red-600 dark:text-red-400 flex justify-between">
+                      <span>{player.race} {player.role}</span>
+                      <span className="font-mono">PWR: {player.power}</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Away Team */}
+            <div className="space-y-3">
+              <div className="text-center">
+                <h3 className="font-semibold text-blue-600 border-b-2 border-blue-200 pb-1">
+                  {team2?.name || "Away Team"}
+                </h3>
+              </div>
+              <div className="grid grid-cols-2 gap-2">
+                {getFieldPlayers().away.map((player: any, index: number) => (
+                  <div key={player.id} className="bg-blue-50 dark:bg-blue-900/20 border-l-4 border-blue-500 p-2 rounded-r">
+                    <div className="text-sm font-medium text-blue-700 dark:text-blue-300">
+                      {player.firstName} {player.lastName}
+                    </div>
+                    <div className="text-xs text-blue-600 dark:text-blue-400 flex justify-between">
+                      <span>{player.race} {player.role}</span>
+                      <span className="font-mono">PWR: {player.power}</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Live Commentary */}
       <Card>

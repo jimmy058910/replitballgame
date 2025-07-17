@@ -172,18 +172,22 @@ router.get('/:matchId/enhanced-data', isAuthenticated, async (req: Request, res:
     if (isNaN(matchIdNum)) {
       return res.status(400).json({ message: "Invalid match ID" });
     }
+    
+    console.log(`=== Enhanced data request for match ${matchId} ===`);
+    
     const match = await matchStorage.getMatchById(matchIdNum);
     
     if (!match) {
+      console.log(`Match ${matchId} not found`);
       return res.status(404).json({ message: "Match not found" });
     }
 
+    console.log(`Match ${matchId} found, status: ${match.status}`);
+
     // Get live match state if available
-    const liveState = await matchStateManager.syncMatchState(matchIdNum);
+    const liveState = await matchStateManager.getLiveMatchState(matchId);
     
     console.log(`Live state found: ${liveState ? 'YES' : 'NO'}`);
-    console.log(`Live state value:`, liveState);
-    console.log(`Live state type:`, typeof liveState);
     console.log(`Match status: ${match.status}`);
     console.log(`Match ID: ${matchIdNum}`);
     
@@ -350,7 +354,12 @@ router.get('/:matchId/enhanced-data', isAuthenticated, async (req: Request, res:
         let maxScore = 0;
         
         console.log(`Calculating MVP for team ${teamId}`);
-        console.log(`Total players with stats: ${liveState.playerStats.size}`);
+        console.log(`Total players with stats: ${liveState.playerStats?.size || 0}`);
+        
+        if (!liveState.playerStats || liveState.playerStats.size === 0) {
+          console.log(`No player stats available for team ${teamId}`);
+          return "No MVP";
+        }
         
         for (const [playerId, stats] of liveState.playerStats.entries()) {
           try {
@@ -425,10 +434,12 @@ router.get('/:matchId/enhanced-data', isAuthenticated, async (req: Request, res:
       }
     };
 
+    console.log(`Sending enhanced data response for match ${matchId}`);
     res.json(enhancedData);
   } catch (error) {
-    console.error("Error fetching enhanced match data:", error);
-    next(error);
+    console.error(`Error fetching enhanced match data for ${matchId}:`, error);
+    console.error("Error stack:", error.stack);
+    return res.status(500).json({ message: "Internal server error", error: error.message });
   }
 });
 
