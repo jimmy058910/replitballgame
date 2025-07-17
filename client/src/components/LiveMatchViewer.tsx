@@ -18,8 +18,9 @@ export function LiveMatchViewer({ matchId, userId, onMatchComplete }: LiveMatchV
   const { data: initialMatchData, error: matchError, isLoading: matchDataLoading } = useQuery({
     queryKey: [`/api/matches/${matchId}`],
     enabled: !!matchId,
-    retry: 3,
+    retry: 1,
     retryDelay: 1000,
+    staleTime: 5000,
     // Override the global retry: false setting
     meta: { 
       errorRetry: true 
@@ -175,20 +176,31 @@ export function LiveMatchViewer({ matchId, userId, onMatchComplete }: LiveMatchV
     );
   }
 
-  // Error state - only show if BOTH queries failed or if we have match data but it's critical
-  if (matchError && !initialMatchData) {
-    console.error('🚨 CRITICAL: Match error without data:', matchError);
-    return (
-      <Card className="w-full max-w-6xl mx-auto">
-        <CardContent className="flex items-center justify-center h-64">
-          <div className="text-center">
-            <h3 className="text-lg font-semibold text-destructive">Failed to Load Match</h3>
-            <p className="text-muted-foreground">Please try refreshing the page</p>
-            <p className="text-sm text-muted-foreground mt-2">Error: {matchError.message || 'Unknown error'}</p>
-          </div>
-        </CardContent>
-      </Card>
-    );
+  // Only show error for genuine match not found issues - be very permissive
+  if (matchError && !initialMatchData && !matchDataLoading) {
+    console.error('🚨 Match error details:', { 
+      error: matchError, 
+      message: matchError.message, 
+      matchId 
+    });
+    
+    // Only show error for genuine 404 on the specific match endpoint
+    if (matchError.message.includes('404') && matchError.message.includes(`/api/matches/${matchId}`)) {
+      return (
+        <Card className="w-full max-w-6xl mx-auto">
+          <CardContent className="flex items-center justify-center h-64">
+            <div className="text-center">
+              <h3 className="text-lg font-semibold text-destructive">Match Not Found</h3>
+              <p className="text-muted-foreground">This match may have been deleted or doesn't exist</p>
+              <p className="text-sm text-muted-foreground mt-2">Match ID: {matchId}</p>
+            </div>
+          </CardContent>
+        </Card>
+      );
+    }
+    
+    // For all other errors, just show a loading state and let it retry
+    console.log('🔄 Showing loading state for non-critical error:', matchError.message);
   }
 
   // Show warning if enhanced data fails but continue with match data
@@ -196,7 +208,7 @@ export function LiveMatchViewer({ matchId, userId, onMatchComplete }: LiveMatchV
     console.warn('🚨 Enhanced data failed but match data is available:', enhancedError);
   }
 
-  // No match data yet
+  // No match data yet - show loading state
   if (!initialMatchData) {
     console.log('🔄 No match data yet - showing loading state');
     return (
@@ -205,6 +217,7 @@ export function LiveMatchViewer({ matchId, userId, onMatchComplete }: LiveMatchV
           <div className="text-center">
             <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full mx-auto mb-4" />
             <p className="text-muted-foreground">Loading match data...</p>
+            <p className="text-xs text-muted-foreground mt-2">Match ID: {matchId}</p>
           </div>
         </CardContent>
       </Card>
