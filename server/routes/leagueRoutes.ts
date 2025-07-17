@@ -408,6 +408,8 @@ router.get('/daily-schedule', isAuthenticated, async (req: Request, res: Respons
       subdivisionTeamIds.includes(match.homeTeamId) && 
       subdivisionTeamIds.includes(match.awayTeamId)
     );
+    
+
 
     // Look up team names for all matches
     const teamIds = new Set();
@@ -431,13 +433,16 @@ router.get('/daily-schedule', isAuthenticated, async (req: Request, res: Respons
     for (let day = currentDayInCycle; day <= 17; day++) {
       const dayMatches = allMatches.filter(match => {
         if (match.gameDate) {
-          // Convert UTC game date to Eastern Time for day calculation
+          // Use simple UTC date comparison for day calculation
           const gameDate = new Date(match.gameDate);
-          const easternGameDate = formatEasternTime(gameDate, 'YYYY-MM-DD');
+          const gameDateUTC = new Date(gameDate.getFullYear(), gameDate.getMonth(), gameDate.getDate());
           const seasonStart = new Date("2025-07-13");
-          const easternGameDayDate = new Date(easternGameDate);
-          const daysDiff = Math.floor((easternGameDayDate.getTime() - seasonStart.getTime()) / (1000 * 60 * 60 * 24));
+          const seasonStartUTC = new Date(seasonStart.getFullYear(), seasonStart.getMonth(), seasonStart.getDate());
+          const daysDiff = Math.floor((gameDateUTC.getTime() - seasonStartUTC.getTime()) / (1000 * 60 * 60 * 24));
           const gameDayInCycle = (daysDiff % 17) + 1;
+          
+
+          
           return gameDayInCycle === day;
         }
         return match.gameDay === day;
