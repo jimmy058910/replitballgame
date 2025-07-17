@@ -117,13 +117,18 @@ router.get('/available-opponents', isAuthenticated, async (req: any, res: Respon
       return res.status(404).json({ message: "No opponents available in your division right now." });
     }
 
-    const opponentsWithDetails = await Promise.all(opponents.map(async (opponent) => {
+    // Shuffle opponents and take only 6 random teams
+    const shuffledOpponents = opponents.sort(() => 0.5 - Math.random());
+    const selectedOpponents = shuffledOpponents.slice(0, 6);
+
+    const opponentsWithDetails = await Promise.all(selectedOpponents.map(async (opponent) => {
         const oppPlayers = await storage.players.getPlayersByTeamId(opponent.id);
         const opponentPower = calculateTeamPower(oppPlayers);
         return {
-            id: opponent.id, name: opponent.name, division: opponent.division,
-            teamPower: opponentPower,
-            rewards: { credits: Math.floor(Math.random() * 500) + 200, experience: Math.floor(Math.random() * 100) + 50 },
+            id: opponent.id, 
+            name: opponent.name, 
+            division: opponent.division,
+            teamPower: opponentPower
         };
     }));
     res.json(opponentsWithDetails);

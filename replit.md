@@ -184,6 +184,7 @@ Built as a React + Express web application with PostgreSQL database, using moder
 - ✓ **Live Statistics**: Player stats and Key Performers update during match progression
 - ✓ **Match Completion**: Automatic transition from live simulation to post-game summary
 - ✓ **WebSocket Integration**: Proper WebSocket event broadcasting and client-side handling
+- ✓ **UI/UX Optimization**: Streamlined exhibition text, limited opponent selection to 6 random division teams
 - ✓ **Production Ready**: Complete exhibition match system operational for alpha testing
 
 ### July 17, 2025 - ✅ TOURNAMENT AUTO-START SYSTEM FULLY FIXED - PRODUCTION READY (Previous)

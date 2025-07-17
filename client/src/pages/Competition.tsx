@@ -865,11 +865,9 @@ function ExhibitionsTab() {
                           Division {opponent.division}
                         </Badge>
                       </div>
-                      <div className="grid grid-cols-2 gap-2 text-sm">
-                        <div className="text-gray-400">Team Power:</div>
-                        <div className="text-white">{opponent.teamPower || 0}</div>
-                        <div className="text-gray-400">Rewards:</div>
-                        <div className="text-yellow-400">{opponent.rewards?.credits || 0}₡</div>
+                      <div className="text-center">
+                        <div className="text-gray-400 text-sm">Team Power:</div>
+                        <div className="text-white text-lg font-semibold">{opponent.teamPower || 0}</div>
                       </div>
                       <Button
                         className="w-full"
