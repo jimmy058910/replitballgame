@@ -176,4 +176,34 @@ router.get('/team/:teamId/summary', isAuthenticated, async (req, res) => {
   }
 });
 
+/**
+ * POST /api/daily-progression/test-full-day-advancement
+ * Test full day advancement system (admin only)
+ */
+router.post('/test-full-day-advancement', isAuthenticated, RBACService.requirePermission(Permission.MANAGE_LEAGUES), async (req, res) => {
+  try {
+    console.log('[DAILY PROGRESSION TEST] Starting full day advancement test');
+    
+    // Import the automation service
+    const { SeasonTimingAutomationService } = await import('../services/seasonTimingAutomationService');
+    const automationService = SeasonTimingAutomationService.getInstance();
+    
+    // Execute full daily progression (same as the scheduled 3AM process)
+    const result = await (automationService as any).executeDailyProgression();
+    
+    res.json({
+      success: true,
+      data: result,
+      message: 'Full day advancement test completed successfully (includes season day update)'
+    });
+  } catch (error) {
+    console.error('Error executing full day advancement test:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to execute full day advancement test',
+      error: error instanceof Error ? error.message : 'Unknown error'
+    });
+  }
+});
+
 export { router as dailyProgressionRoutes };

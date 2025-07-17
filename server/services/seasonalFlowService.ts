@@ -69,8 +69,18 @@ export class SeasonalFlowService {
   static getCurrentDay(): number {
     const startDate = new Date("2025-07-13");
     const now = new Date();
+    
+    // Calculate days since start, accounting for the day advancement that should occur at 3AM EST
     const daysSinceStart = Math.floor((now.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24));
-    return (daysSinceStart % 17) + 1;
+    
+    // Check if we're past 3AM EST today - if so, we should be on the next day
+    const estNow = new Date(now.toLocaleString('en-US', { timeZone: 'America/New_York' }));
+    const isAfter3AM = estNow.getHours() >= 3;
+    
+    // If we're after 3AM EST, advance to the next day
+    const adjustedDaysSinceStart = isAfter3AM ? daysSinceStart + 1 : daysSinceStart;
+    
+    return (adjustedDaysSinceStart % 17) + 1;
   }
 
   /**

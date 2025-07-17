@@ -596,18 +596,24 @@ export class SeasonTimingAutomationService {
    */
   private getNextExecutionTime(hour: number, minute: number): Date {
     const now = new Date();
-    const estNow = new Date(now.toLocaleString('en-US', { timeZone: 'America/New_York' }));
     
-    const nextExecution = new Date(estNow);
-    nextExecution.setHours(hour, minute, 0, 0);
+    // Create a date for tomorrow at the target hour/minute in EST
+    const tomorrow = new Date(now.getTime() + 24 * 60 * 60 * 1000);
     
-    // If the time has already passed today, schedule for tomorrow
-    if (nextExecution <= estNow) {
-      nextExecution.setDate(nextExecution.getDate() + 1);
-    }
+    // Create execution time for tomorrow in EST
+    const year = tomorrow.getFullYear();
+    const month = tomorrow.getMonth();
+    const day = tomorrow.getDate();
     
-    // Convert back to UTC for setTimeout
-    return new Date(nextExecution.getTime() - (nextExecution.getTimezoneOffset() * 60000));
+    // Create a date object for the target time tomorrow
+    const targetDate = new Date(year, month, day, hour, minute, 0, 0);
+    
+    // EST is UTC-5 (winter) or EDT is UTC-4 (summer)
+    // Since we're in July (summer), use EDT which is UTC-4
+    const edtOffset = 4 * 60 * 60 * 1000; // EDT is UTC-4
+    const utcTime = new Date(targetDate.getTime() + edtOffset);
+    
+    return utcTime;
   }
 
   /**
