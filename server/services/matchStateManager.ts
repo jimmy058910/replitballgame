@@ -886,8 +886,8 @@ class MatchStateManager {
       // Handle tournament flow progression for tournament matches
       if (matchDetails?.tournamentId) {
         try {
-          const { tournamentFlowService } = await import('./tournamentFlowService');
-          await tournamentFlowService.handleMatchCompletion(parseInt(matchId));
+          const { UnifiedTournamentAutomation } = await import('./unifiedTournamentAutomation');
+          await UnifiedTournamentAutomation.handleMatchCompletion(parseInt(matchId));
           console.log(`Tournament flow processed for match ${matchId}`);
         } catch (error) {
           console.error(`Error handling tournament flow for match ${matchId}:`, error);

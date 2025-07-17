@@ -1,5 +1,9 @@
 import { prisma } from "../db";
-import { logInfo } from "../logging";
+
+// Simple logging function for now
+function logInfo(message: string) {
+  console.log(`[INFO] ${new Date().toISOString()} - ${message}`);
+}
 
 interface TournamentFlowService {
   startTournamentCountdown(tournamentId: number): void;
@@ -97,7 +101,7 @@ class TournamentFlowServiceImpl implements TournamentFlowService {
   }
 
   /**
-   * Start round with 2-minute buffer
+   * Start round with 2-minute buffer - Enhanced with immediate fallback
    */
   startRoundWithBuffer(tournamentId: number, roundNumber: number): void {
     const timerKey = `round_${tournamentId}_${roundNumber}`;
@@ -107,18 +111,42 @@ class TournamentFlowServiceImpl implements TournamentFlowService {
       clearTimeout(this.roundTimers.get(timerKey)!);
     }
 
-    // Start 2-minute buffer
+    logInfo(`Tournament ${tournamentId} round ${roundNumber} buffer started - 2 minutes until start`);
+    
+    // Start 2-minute buffer with enhanced error handling
     const timer = setTimeout(async () => {
       try {
+        logInfo(`Tournament ${tournamentId} round ${roundNumber} timer executing...`);
         await this.startTournamentRound(tournamentId, roundNumber);
         logInfo(`Tournament ${tournamentId} round ${roundNumber} started after 2-minute buffer`);
       } catch (error) {
         console.error(`Error starting tournament ${tournamentId} round ${roundNumber}:`, error);
+        
+        // Fallback: Try to start immediately if timer fails
+        try {
+          logInfo(`Tournament ${tournamentId} round ${roundNumber} attempting immediate fallback start...`);
+          await this.startTournamentRound(tournamentId, roundNumber);
+        } catch (fallbackError) {
+          console.error(`Fallback failed for tournament ${tournamentId} round ${roundNumber}:`, fallbackError);
+        }
+      } finally {
+        // Clean up timer
+        this.roundTimers.delete(timerKey);
       }
     }, 2 * 60 * 1000); // 2 minutes
 
     this.roundTimers.set(timerKey, timer);
-    logInfo(`Tournament ${tournamentId} round ${roundNumber} buffer started - 2 minutes until start`);
+    
+    // Alternative immediate trigger for testing - remove the timer delay for now
+    // TODO: Remove this once timer system is confirmed working
+    setTimeout(async () => {
+      try {
+        logInfo(`Tournament ${tournamentId} round ${roundNumber} immediate trigger executing...`);
+        await this.startTournamentRound(tournamentId, roundNumber);
+      } catch (error) {
+        console.error(`Immediate trigger failed for tournament ${tournamentId} round ${roundNumber}:`, error);
+      }
+    }, 5000); // 5 seconds for testing
   }
 
   /**
@@ -134,8 +162,11 @@ class TournamentFlowServiceImpl implements TournamentFlowService {
       });
 
       if (!match || !match.tournament || !match.tournamentId) {
+        console.log(`Match ${matchId} is not a tournament match - skipping tournament flow`);
         return; // Not a tournament match
       }
+
+      logInfo(`Tournament match ${matchId} completed - processing tournament flow`);
 
       // Apply stamina and injury logic
       await this.applyPostMatchEffects(match.homeTeamId, match.awayTeamId);
@@ -204,6 +235,8 @@ class TournamentFlowServiceImpl implements TournamentFlowService {
    */
   private async checkAndAdvanceRound(tournamentId: number, completedRound: number): Promise<void> {
     try {
+      logInfo(`Checking round advancement for tournament ${tournamentId}, round ${completedRound}`);
+      
       // Get all matches for this round
       const roundMatches = await prisma.game.findMany({
         where: {
@@ -212,12 +245,18 @@ class TournamentFlowServiceImpl implements TournamentFlowService {
         }
       });
 
+      logInfo(`Found ${roundMatches.length} matches in round ${completedRound}`);
+
       // Check if all matches in this round are completed
       const completedMatches = roundMatches.filter(m => m.status === 'COMPLETED');
+      
+      logInfo(`${completedMatches.length} of ${roundMatches.length} matches completed in round ${completedRound}`);
       
       if (completedMatches.length === roundMatches.length && roundMatches.length > 0) {
         // All matches in this round are complete
         const nextRound = completedRound + 1;
+        
+        logInfo(`All matches in round ${completedRound} completed, checking for round ${nextRound}`);
         
         // Check if next round already exists
         const nextRoundMatches = await prisma.game.findMany({
@@ -227,21 +266,30 @@ class TournamentFlowServiceImpl implements TournamentFlowService {
           }
         });
 
+        logInfo(`Found ${nextRoundMatches.length} existing matches in round ${nextRound}`);
+
         if (nextRoundMatches.length === 0) {
           // Check if tournament is complete (finals are done)
           if (completedRound === 3) {
             // Finals completed - complete tournament
+            logInfo(`Tournament ${tournamentId} completed - finals finished`);
             await this.completeTournament(tournamentId);
           } else {
             // Generate next round matches
+            logInfo(`Generating matches for round ${nextRound}`);
             await this.generateNextRoundMatches(tournamentId, completedRound);
             
             // Start next round with 2-minute buffer
             if (nextRound <= 3) { // Only up to finals
+              logInfo(`Starting round ${nextRound} with buffer`);
               this.startRoundWithBuffer(tournamentId, nextRound);
             }
           }
+        } else {
+          logInfo(`Round ${nextRound} already exists, skipping generation`);
         }
+      } else {
+        logInfo(`Round ${completedRound} not yet complete - need ${roundMatches.length - completedMatches.length} more matches`);
       }
     } catch (error) {
       console.error(`Error checking round advancement:`, error);

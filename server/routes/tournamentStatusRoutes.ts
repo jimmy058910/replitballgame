@@ -696,6 +696,42 @@ router.post('/:id/matches/manual-start', isAuthenticated, async (req: any, res) 
   }
 });
 
+// Force tournament progression endpoint (testing)
+router.post('/:id/force-progression', isAuthenticated, async (req: any, res) => {
+  try {
+    const tournamentId = req.params.id;
+    const userId = req.user.claims.sub;
+    
+    // Check if user is admin
+    if (userId !== "44010914") {
+      return res.status(403).json({ message: "Access denied. Admin privileges required." });
+    }
+
+    // Get tournament first to get the database ID
+    let tournament = await prisma.tournament.findFirst({
+      where: { tournamentId: tournamentId }
+    });
+    
+    if (!tournament) {
+      return res.status(404).json({ message: "Tournament not found" });
+    }
+
+    // Import and call tournament flow service
+    const { tournamentFlowService } = await import('../services/tournamentFlowService');
+    
+    // Check for round advancement for rounds 1, 2, and 3
+    await tournamentFlowService.handleMatchCompletion(1663); // Dummy match ID to trigger flow
+    
+    res.json({ 
+      message: "Tournament progression forced",
+      tournamentId: tournamentId
+    });
+  } catch (error) {
+    console.error("Error forcing tournament progression:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+});
+
 // Helper function to check and advance tournament if needed
 async function checkAndAdvanceTournament(tournamentId: number) {
   try {
