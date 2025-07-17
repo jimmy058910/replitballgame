@@ -55,9 +55,36 @@ export function LiveMatchViewer({ matchId, userId, onMatchComplete }: LiveMatchV
   });
 
   // Fetch enhanced match data
-  const { data: enhancedData, isLoading: enhancedDataLoading } = useQuery({
+  const { data: enhancedData, isLoading: enhancedDataLoading, error: enhancedError } = useQuery({
     queryKey: [`/api/matches/${matchId}/enhanced-data`],
-    enabled: !!matchId
+    enabled: !!matchId,
+    queryFn: async () => {
+      console.log(`🔍 Fetching enhanced data for ID: ${matchId}`);
+      try {
+        const response = await fetch(`/api/matches/${matchId}/enhanced-data`, {
+          credentials: 'include',
+          headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json'
+          }
+        });
+        
+        console.log(`🔍 Enhanced data response status: ${response.status}`);
+        
+        if (!response.ok) {
+          const text = await response.text();
+          console.error(`🚨 Enhanced data API Error: ${response.status} - ${text}`);
+          throw new Error(`${response.status}: ${text}`);
+        }
+        
+        const data = await response.json();
+        console.log(`✅ Successfully fetched enhanced data:`, data);
+        return data;
+      } catch (error) {
+        console.error(`🚨 Enhanced data fetch error for match ${matchId}:`, error);
+        throw error;
+      }
+    }
   });
 
   // Debug logging
@@ -67,6 +94,7 @@ export function LiveMatchViewer({ matchId, userId, onMatchComplete }: LiveMatchV
     matchError,
     enhancedData,
     enhancedDataLoading,
+    enhancedError,
     matchId
   });
 
@@ -78,6 +106,18 @@ export function LiveMatchViewer({ matchId, userId, onMatchComplete }: LiveMatchV
       stack: matchError.stack,
       name: matchError.name,
       queryKey: `/api/matches/${matchId}`,
+      matchId
+    });
+  }
+
+  // Enhanced data error logging
+  if (enhancedError) {
+    console.error('🚨 Enhanced data query error details:', {
+      error: enhancedError,
+      message: enhancedError.message,
+      stack: enhancedError.stack,
+      name: enhancedError.name,
+      queryKey: `/api/matches/${matchId}/enhanced-data`,
       matchId
     });
   }
@@ -135,9 +175,9 @@ export function LiveMatchViewer({ matchId, userId, onMatchComplete }: LiveMatchV
     );
   }
 
-  // Error state
-  if (matchError) {
-    console.error('Match error details:', matchError);
+  // Error state - only show if BOTH queries failed or if we have match data but it's critical
+  if (matchError && !initialMatchData) {
+    console.error('🚨 CRITICAL: Match error without data:', matchError);
     return (
       <Card className="w-full max-w-6xl mx-auto">
         <CardContent className="flex items-center justify-center h-64">
@@ -149,6 +189,11 @@ export function LiveMatchViewer({ matchId, userId, onMatchComplete }: LiveMatchV
         </CardContent>
       </Card>
     );
+  }
+
+  // Show warning if enhanced data fails but continue with match data
+  if (enhancedError && initialMatchData) {
+    console.warn('🚨 Enhanced data failed but match data is available:', enhancedError);
   }
 
   // No match data yet
