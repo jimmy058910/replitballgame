@@ -1122,4 +1122,32 @@ router.post('/:id/test-advancement', isAuthenticated, async (req: any, res) => {
   }
 });
 
+// Emergency endpoint to start live simulation for tournament matches
+router.post('/start-live-match', isAuthenticated, async (req: any, res) => {
+  try {
+    const { matchId } = req.body;
+    const userId = req.user.claims.sub;
+    
+    // Check if user is admin
+    if (userId !== "44010914") {
+      return res.status(403).json({ message: "Access denied. Admin privileges required." });
+    }
+
+    // Import the match state manager
+    const { matchStateManager } = await import('../services/matchStateManager');
+    
+    // Start the live match
+    await matchStateManager.startLiveMatch(matchId.toString());
+    
+    res.json({ 
+      success: true, 
+      message: `Live simulation started for match ${matchId}` 
+    });
+    
+  } catch (error) {
+    console.error("Error starting live match:", error);
+    res.status(500).json({ message: "Internal server error", error: error.message });
+  }
+});
+
 export default router;
