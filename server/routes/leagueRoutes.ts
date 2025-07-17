@@ -403,11 +403,16 @@ router.get('/daily-schedule', isAuthenticated, async (req: Request, res: Respons
     
     const subdivisionTeamIds = subdivisionTeams.map(team => team.id);
 
-    // Show ALL games involving user's team (regardless of opponent's subdivision)
-    const allMatches = divisionMatches.filter(match => 
-      Number(match.homeTeamId) === Number(userTeam.id) || Number(match.awayTeamId) === Number(userTeam.id) ||
-      (subdivisionTeamIds.includes(match.homeTeamId) && subdivisionTeamIds.includes(match.awayTeamId))
+    // Show user's team games + fill to exactly 4 games per day
+    const userTeamMatches = divisionMatches.filter(match => 
+      Number(match.homeTeamId) === Number(userTeam.id) || Number(match.awayTeamId) === Number(userTeam.id)
     );
+    
+    const otherMatches = divisionMatches.filter(match => 
+      Number(match.homeTeamId) !== Number(userTeam.id) && Number(match.awayTeamId) !== Number(userTeam.id)
+    );
+    
+    const allMatches = [...userTeamMatches, ...otherMatches];
     
 
 
@@ -449,7 +454,18 @@ router.get('/daily-schedule', isAuthenticated, async (req: Request, res: Respons
       });
 
       if (dayMatches.length > 0) {
-        scheduleByDay[day] = dayMatches.map((match, index) => ({
+        // Ensure exactly 4 games per day: user's team games first, then fill to 4 total
+        const userTeamDayMatches = dayMatches.filter(match => 
+          Number(match.homeTeamId) === Number(userTeam.id) || Number(match.awayTeamId) === Number(userTeam.id)
+        );
+        const otherDayMatches = dayMatches.filter(match => 
+          Number(match.homeTeamId) !== Number(userTeam.id) && Number(match.awayTeamId) !== Number(userTeam.id)
+        );
+        
+        // Take user's team games + fill to 4 games total
+        const limitedMatches = [...userTeamDayMatches, ...otherDayMatches].slice(0, 4);
+        
+        scheduleByDay[day] = limitedMatches.map((match, index) => ({
           id: match.id ? Number(match.id) : index,
           homeTeamId: match.homeTeamId ? Number(match.homeTeamId) : 0,
           awayTeamId: match.awayTeamId ? Number(match.awayTeamId) : 0,

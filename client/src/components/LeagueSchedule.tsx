@@ -143,7 +143,7 @@ export default function LeagueSchedule() {
     return (
       <div className="text-center min-w-[60px]">
         <div className="text-sm font-mono">
-          {formatGameTime(match.scheduledTimeFormatted)}
+          {match.scheduledTimeFormatted || "TBD"}
         </div>
         <div className="text-xs text-gray-600 dark:text-gray-400">
           Game {gameIndex + 1}
@@ -205,7 +205,7 @@ export default function LeagueSchedule() {
                           ? 'border-red-400 bg-red-50 dark:border-red-500 dark:bg-red-900/30' 
                           : isUserMatch 
                             ? 'border-blue-400 bg-blue-100 text-blue-900 dark:border-blue-500 dark:bg-blue-800/30 dark:text-blue-100' 
-                            : 'border-gray-200 dark:border-gray-700'
+                            : 'border-gray-200 bg-gray-50 dark:border-gray-600 dark:bg-gray-800/50'
                       }`}
                     >
                     <div className="flex items-center gap-3">
@@ -213,11 +213,11 @@ export default function LeagueSchedule() {
                       
                       <div className="flex items-center gap-2">
                         <Users className={`w-4 h-4 ${isUserMatch ? 'text-blue-700 dark:text-blue-300' : 'text-gray-600 dark:text-gray-400'}`} />
-                        <span className={`text-sm ${isUserMatch ? 'font-semibold text-blue-900 dark:text-blue-100' : 'text-gray-900 dark:text-gray-200'}`}>
+                        <span className={`text-sm ${isUserMatch ? 'font-semibold text-blue-900 dark:text-blue-100' : 'text-gray-800 dark:text-gray-100'}`}>
                           {match.homeTeamName || `Team ${match.homeTeamId.slice(0, 8)}`}
                         </span>
-                        <span className={`${isUserMatch ? 'text-blue-700 dark:text-blue-300' : 'text-gray-600 dark:text-gray-300'}`}>vs</span>
-                        <span className={`text-sm ${isUserMatch ? 'font-semibold text-blue-900 dark:text-blue-100' : 'text-gray-900 dark:text-gray-200'}`}>
+                        <span className={`${isUserMatch ? 'text-blue-700 dark:text-blue-300' : 'text-gray-600 dark:text-gray-200'}`}>vs</span>
+                        <span className={`text-sm ${isUserMatch ? 'font-semibold text-blue-900 dark:text-blue-100' : 'text-gray-800 dark:text-gray-100'}`}>
                           {match.awayTeamName || `Team ${match.awayTeamId.slice(0, 8)}`}
                         </span>
                       </div>
