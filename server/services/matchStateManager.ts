@@ -729,7 +729,7 @@ class MatchStateManager {
     const matchDetails = await prisma.game.findFirst({
       where: { id: parseInt(matchId.toString()) }
     });
-    const isExhibitionMatch = matchDetails?.matchType === 'exhibition';
+    const isExhibitionMatch = matchDetails?.matchType === 'EXHIBITION';
 
     // Final possession update
     if (state.possessingTeamId) {

@@ -149,6 +149,14 @@ Built as a React + Express web application with PostgreSQL database, using moder
 
 ### July 17, 2025 - ✅ EXHIBITION MATCH LIVE COMMENTARY & POST-GAME SUMMARY FIXES - PRODUCTION READY
 
+#### ✅ EXHIBITION MATCH LEAGUE STANDINGS BUG FIXED - CRITICAL SEPARATION ISSUE RESOLVED
+- ✓ **Root Cause Identified**: Exhibition matches were incorrectly counting towards league standings due to case sensitivity bug in match type comparison
+- ✓ **Match Type Comparison Fixed**: Updated isExhibitionMatch check from `'exhibition'` to `'EXHIBITION'` to match enum value
+- ✓ **Team Record Reset**: Reset Oakland Cougars team record from 0W-1L to 0W-0L as exhibition loss was incorrectly counted
+- ✓ **Exhibition Separation Complete**: Exhibition matches now properly excluded from league standings and team record updates
+- ✓ **Database Record Corrected**: Updated Team table to reflect accurate league standings without exhibition match interference
+- ✓ **Production Ready**: Exhibition system now completely separate from league standings as intended
+
 #### ✅ POST-GAME SUMMARY DATA MAPPING FIXED - CRITICAL UNDEFINED VALUES RESOLVED
 - ✓ **Team Stats Property Mapping**: Fixed PostGameSummary component to properly map team stats properties from enhanced-data API
 - ✓ **Data Integrity Compliance**: Removed mock/placeholder data from enhanced-data endpoint, using only authentic simulation data
