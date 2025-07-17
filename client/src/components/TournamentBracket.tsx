@@ -16,8 +16,8 @@ interface TournamentMatch {
   };
   round: string;
   status: string;
-  homeTeamScore?: number;
-  awayTeamScore?: number;
+  homeScore?: number;
+  awayScore?: number;
   gameTime?: string;
   winner?: string;
 }
@@ -72,25 +72,25 @@ export default function TournamentBracket({ tournament, matches, userTeamId, isA
         <div className="space-y-2">
           {/* Home Team */}
           <div className={`flex items-center justify-between p-2 rounded ${
-            isCompleted && (match.homeTeamScore || 0) > (match.awayTeamScore || 0)
+            isCompleted && (match.homeScore || 0) > (match.awayScore || 0)
               ? 'bg-green-100 dark:bg-green-900 font-semibold' 
               : 'bg-gray-50 dark:bg-gray-700'
           }`}>
             <span className="text-sm truncate text-gray-900 dark:text-gray-100">{match.homeTeam.name}</span>
             <span className="font-bold text-gray-900 dark:text-gray-100 ml-2">
-              {(isCompleted || isLive) ? match.homeTeamScore || 0 : ''}
+              {(isCompleted || isLive) ? match.homeScore || 0 : ''}
             </span>
           </div>
           
           {/* Away Team */}
           <div className={`flex items-center justify-between p-2 rounded ${
-            isCompleted && (match.awayTeamScore || 0) > (match.homeTeamScore || 0)
+            isCompleted && (match.awayScore || 0) > (match.homeScore || 0)
               ? 'bg-green-100 dark:bg-green-900 font-semibold' 
               : 'bg-gray-50 dark:bg-gray-700'
           }`}>
             <span className="text-sm truncate text-gray-900 dark:text-gray-100">{match.awayTeam.name}</span>
             <span className="font-bold text-gray-900 dark:text-gray-100 ml-2">
-              {(isCompleted || isLive) ? match.awayTeamScore || 0 : ''}
+              {(isCompleted || isLive) ? match.awayScore || 0 : ''}
             </span>
           </div>
           

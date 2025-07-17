@@ -337,6 +337,9 @@ router.get('/:id/status', isAuthenticated, async (req: any, res) => {
         homeTeamId: match.homeTeamId.toString(),
         awayTeamId: match.awayTeamId.toString(),
         tournamentId: match.tournamentId ? match.tournamentId.toString() : null,
+        // Ensure scores are properly included
+        homeScore: match.homeScore ?? 0,
+        awayScore: match.awayScore ?? 0,
         homeTeam: teamMap.get(match.homeTeamId) ? {
           id: teamMap.get(match.homeTeamId).id.toString(),
           name: teamMap.get(match.homeTeamId).name,

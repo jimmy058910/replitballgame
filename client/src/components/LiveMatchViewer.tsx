@@ -198,16 +198,21 @@ export function LiveMatchViewer({ matchId, userId, onMatchComplete }: LiveMatchV
 
   // No match data yet
   if (!initialMatchData) {
+    console.log('🔄 No match data yet - showing loading state');
     return (
       <Card className="w-full max-w-6xl mx-auto">
         <CardContent className="p-6">
-          <div className="text-center">Waiting for match data...</div>
+          <div className="text-center">
+            <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full mx-auto mb-4" />
+            <p className="text-muted-foreground">Loading match data...</p>
+          </div>
         </CardContent>
       </Card>
     );
   }
 
   // Extract team data - handle both nested objects and flat structure
+  console.log('🔍 Extracting team data from match:', initialMatchData);
   const team1 = initialMatchData.homeTeam || {
     id: initialMatchData.homeTeamId,
     name: initialMatchData.homeTeamName || 'Home Team'
@@ -216,6 +221,7 @@ export function LiveMatchViewer({ matchId, userId, onMatchComplete }: LiveMatchV
     id: initialMatchData.awayTeamId,
     name: initialMatchData.awayTeamName || 'Away Team'
   };
+  console.log('🔍 Team data extracted:', { team1, team2 });
 
   // Use the new GameSimulationUI component
   return (

@@ -28,7 +28,7 @@ export class UnifiedTournamentAutomation {
       }
 
       // Start live simulation for all matches
-      const { matchStateManager } = require('./matchStateManager');
+      const { matchStateManager } = await import('./matchStateManager');
       const startPromises = matches.map(async (match) => {
         try {
           // Update match status to IN_PROGRESS
