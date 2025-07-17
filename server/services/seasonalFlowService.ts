@@ -268,26 +268,49 @@ export class SeasonalFlowService {
 
   /**
    * Generate matches for a subdivision day (any number of teams)
+   * Uses proper round-robin rotation to ensure balanced scheduling
    */
   static generateSubdivisionDayMatches(teams: any[], day: number): any[] {
     const matches = [];
     const numTeams = teams.length;
     
-    // Use a systematic pairing approach based on the day
-    for (let i = 0; i < Math.floor(numTeams / 2); i++) {
-      const team1Index = i;
-      const team2Index = (i + day + 7) % numTeams;
+    if (numTeams < 2) return matches;
+    
+    // For proper round-robin scheduling, we need to ensure even distribution
+    // Create a balanced pairing system where each team plays roughly the same number of games
+    
+    // Use round-robin algorithm with rotation
+    const teamsArray = [...teams];
+    const numRounds = numTeams % 2 === 0 ? numTeams - 1 : numTeams;
+    const gamesPerRound = Math.floor(numTeams / 2);
+    
+    // Calculate which round this day represents (cycle through rounds)
+    const roundIndex = (day - 1) % numRounds;
+    
+    // Generate matches for this round using round-robin rotation
+    for (let i = 0; i < gamesPerRound; i++) {
+      let homeIndex, awayIndex;
       
-      // Ensure we don't pair a team with itself
-      const finalTeam2Index = team2Index === team1Index ? (team2Index + 1) % numTeams : team2Index;
+      if (numTeams % 2 === 0) {
+        // Even number of teams - standard round-robin
+        homeIndex = i;
+        awayIndex = (numTeams - 1 - i + roundIndex) % (numTeams - 1);
+        if (awayIndex >= homeIndex) awayIndex++;
+      } else {
+        // Odd number of teams - one team sits out each round
+        if (i === roundIndex) continue; // This team sits out this round
+        homeIndex = i;
+        awayIndex = (numTeams - 1 - i + roundIndex) % numTeams;
+        if (awayIndex === homeIndex) awayIndex = (awayIndex + 1) % numTeams;
+      }
       
-      const homeTeam = teams[team1Index];
-      const awayTeam = teams[finalTeam2Index];
-      
-      matches.push({
-        homeTeam,
-        awayTeam
-      });
+      // Ensure indices are valid
+      if (homeIndex < numTeams && awayIndex < numTeams && homeIndex !== awayIndex) {
+        matches.push({
+          homeTeam: teamsArray[homeIndex],
+          awayTeam: teamsArray[awayIndex]
+        });
+      }
     }
     
     return matches;
@@ -304,15 +327,41 @@ export class SeasonalFlowService {
     const matches = [];
     const numTeams = teams.length;
     
-    // Create subdivisions of 8 teams each
+    // Create balanced subdivisions - redistribute teams to avoid very small subdivisions
     const subdivisions = [];
-    for (let i = 0; i < numTeams; i += 8) {
-      subdivisions.push(teams.slice(i, i + 8));
+    const optimalSubdivisionSize = 8;
+    const minSubdivisionSize = 6;
+    
+    // Calculate how many subdivisions we need
+    const numFullSubdivisions = Math.floor(numTeams / optimalSubdivisionSize);
+    const remainingTeams = numTeams % optimalSubdivisionSize;
+    
+    // If remaining teams are too few, redistribute
+    if (remainingTeams > 0 && remainingTeams < minSubdivisionSize) {
+      // Redistribute the remaining teams across existing subdivisions
+      const redistributedSize = Math.ceil(numTeams / numFullSubdivisions);
+      
+      for (let i = 0; i < numFullSubdivisions; i++) {
+        const startIndex = i * redistributedSize;
+        const endIndex = Math.min(startIndex + redistributedSize, numTeams);
+        subdivisions.push(teams.slice(startIndex, endIndex));
+      }
+    } else {
+      // Standard subdivision creation
+      for (let i = 0; i < numTeams; i += optimalSubdivisionSize) {
+        subdivisions.push(teams.slice(i, i + optimalSubdivisionSize));
+      }
     }
     
     // Generate schedule for each subdivision
     for (let subIndex = 0; subIndex < subdivisions.length; subIndex++) {
       const subdivision = subdivisions[subIndex];
+      
+      // Skip subdivisions with less than 2 teams
+      if (subdivision.length < 2) {
+        console.warn(`Skipping subdivision ${subIndex} with ${subdivision.length} teams`);
+        continue;
+      }
       
       // Generate matches for this subdivision
       for (let day = 1; day <= this.SEASON_CONFIG.REGULAR_SEASON_DAYS; day++) {

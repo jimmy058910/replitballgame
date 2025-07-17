@@ -243,12 +243,12 @@ class MatchStateManager {
     });
 
     // Determine initial possession (e.g., coin toss or home team starts)
-    const initialPossessingTeam = Math.random() < 0.5 ? match.homeTeamId : match.awayTeamId;
+    const initialPossessingTeam = Math.random() < 0.5 ? match.homeTeamId.toString() : match.awayTeamId.toString();
 
     const matchState: LiveMatchState = {
       matchId,
-      homeTeamId: match.homeTeamId,
-      awayTeamId: match.awayTeamId,
+      homeTeamId: match.homeTeamId.toString(),
+      awayTeamId: match.awayTeamId.toString(),
       startTime: new Date(),
       gameTime: 0,
       maxTime,
@@ -507,7 +507,7 @@ class MatchStateManager {
     // Choose a random active player to generate event for
     const allPlayers = [...homePlayers, ...awayPlayers];
     const activePlayer = allPlayers[Math.floor(Math.random() * allPlayers.length)];
-    const isHomeTeam = activePlayer.teamId.toString() === state.homeTeamId;
+    const isHomeTeam = activePlayer.teamId.toString() === state.homeTeamId.toString();
     
     // Generate event based on player role and current situation
     const eventTypes = ['pass', 'run', 'tackle', 'score', 'fumble', 'interception'];
