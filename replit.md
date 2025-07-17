@@ -147,7 +147,26 @@ Built as a React + Express web application with PostgreSQL database, using moder
 
 ## Recent Changes
 
-### July 17, 2025 - ✅ CRITICAL TOURNAMENT COMPLETION BUG FIX - PRODUCTION READY
+### July 17, 2025 - ✅ STAMINA SYSTEM ENHANCEMENT - ATTRIBUTE-BASED DEPLETION IMPLEMENTED
+
+#### ✅ STAMINA ATTRIBUTE NOW AFFECTS DEPLETION RATES - BALANCED GAMEPLAY ENHANCEMENT
+- ✓ **Enhanced Depletion Formula**: Updated stamina depletion to factor in player's stamina attribute for more realistic gameplay
+- ✓ **Balanced Modifier System**: Formula: baseDepletion - (staminaAttribute × 0.3) with minimum 5 stamina loss
+- ✓ **League Match Impact**: High stamina players (30 attribute) lose ~21 stamina vs low stamina players (10 attribute) lose ~27 stamina
+- ✓ **Tournament Match Impact**: High stamina players lose ~1 stamina vs low stamina players lose ~7 stamina
+- ✓ **Recovery System Rebalanced**: Reduced stamina recovery bonus from 0.5x to 0.2x attribute for better balance
+- ✓ **Logging Added**: Detailed stamina depletion logging for match analysis and debugging
+- ✓ **Production Ready**: Enhanced stamina system provides meaningful player differentiation without being overpowering
+
+#### ✅ COMPREHENSIVE STAMINA MECHANICS UPDATE - STRATEGIC DEPTH ENHANCED
+- ✓ **Meaningful Stat Investment**: Stamina attribute now impacts both depletion (during matches) and recovery (daily progression)
+- ✓ **Strategic Team Building**: Players with high stamina become more valuable for frequent match participation
+- ✓ **Balanced Progression**: Recovery rates adjusted to maintain game balance while rewarding stamina investment
+- ✓ **Exhibition Safety**: Exhibition matches still provide 100% stamina and no depletion cost
+- ✓ **Minimum Loss Protection**: 5 stamina minimum loss prevents stamina attribute from making matches risk-free
+- ✓ **Real-time Feedback**: Console logging shows exact depletion calculations for transparency
+
+### July 17, 2025 - ✅ CRITICAL TOURNAMENT COMPLETION BUG FIX - PRODUCTION READY (Previous)
 
 #### ✅ TOURNAMENT STATUS UPDATE BUG RESOLVED - COPPER DAILY CUP #0852 COMPLETION FIX
 - ✓ **Root Cause Identified**: Tournament completion logic was not properly triggering when finals matches completed

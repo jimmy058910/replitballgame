@@ -156,29 +156,44 @@ export class InjuryStaminaService {
   }
 
   /**
-   * Deplete daily stamina after a match based on game mode
+   * Deplete daily stamina after a match based on game mode and player's stamina attribute
    */
   async depleteStaminaAfterMatch(playerId: string, gameMode: 'league' | 'tournament' | 'exhibition'): Promise<void> {
-    let depletion = 0;
-    switch (gameMode) {
-      case 'league':
-        depletion = this.settings.leagueStaminaDepletion;
-        break;
-      case 'tournament':
-        depletion = this.settings.tournamentStaminaDepletion;
-        break;
-      case 'exhibition':
-        return; // No persistent stamina depletion for exhibitions
+    if (gameMode === 'exhibition') {
+      return; // No persistent stamina depletion for exhibitions
     }
 
-    // Get current player data to calculate new stamina level
+    // Get current player data including stamina attribute
     const player = await prisma.player.findUnique({
       where: { id: parseInt(playerId) },
-      select: { dailyStaminaLevel: true }
+      select: { 
+        dailyStaminaLevel: true,
+        staminaAttribute: true
+      }
     });
     
     if (player) {
-      const newStaminaLevel = Math.max(0, (player.dailyStaminaLevel || 100) - depletion);
+      // Calculate base depletion based on game mode
+      let baseDepletion = 0;
+      switch (gameMode) {
+        case 'league':
+          baseDepletion = this.settings.leagueStaminaDepletion;
+          break;
+        case 'tournament':
+          baseDepletion = this.settings.tournamentStaminaDepletion;
+          break;
+      }
+
+      // Apply stamina attribute modifier (higher stamina = less depletion)
+      // Formula: baseDepletion - (staminaAttribute * 0.3)
+      // This gives 6-9 stamina difference for league matches (meaningful but not overpowering)
+      const staminaModifier = (player.staminaAttribute || 10) * 0.3;
+      const actualDepletion = Math.max(5, baseDepletion - staminaModifier); // Minimum 5 stamina loss
+      
+      const newStaminaLevel = Math.max(0, (player.dailyStaminaLevel || 100) - actualDepletion);
+      
+      console.log(`[STAMINA DEPLETION] Player ${playerId}: ${gameMode} match - Base: ${baseDepletion}, Stamina Attr: ${player.staminaAttribute}, Modifier: ${staminaModifier.toFixed(1)}, Actual Depletion: ${actualDepletion.toFixed(1)}, New Level: ${newStaminaLevel}`);
+      
       await prisma.player.update({
         where: { id: parseInt(playerId) },
         data: {
@@ -426,10 +441,12 @@ export class InjuryStaminaService {
             playerUpdated = true;
           }
 
-          // Process stamina recovery
+          // Process stamina recovery (now balanced with attribute-based depletion)
           if (player.dailyStaminaLevel < 100) {
             const baseStaminaRecovery = 20; // Base daily stamina recovery
-            const newStamina = Math.min(100, (player.dailyStaminaLevel || 0) + baseStaminaRecovery);
+            const staminaBonus = (player.staminaAttribute || 10) * 0.2; // Reduced from 0.5 to 0.2 for balance
+            const totalRecovery = baseStaminaRecovery + staminaBonus;
+            const newStamina = Math.min(100, (player.dailyStaminaLevel || 0) + totalRecovery);
             updateData.dailyStaminaLevel = newStamina;
             
             if (newStamina > player.dailyStaminaLevel) {
