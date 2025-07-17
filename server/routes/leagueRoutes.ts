@@ -366,9 +366,17 @@ router.post('/schedule', isAuthenticated, (req: Request, res: Response) => {
 
 router.get('/daily-schedule', isAuthenticated, async (req: Request, res: Response, next: NextFunction) => {
   try {
+    // Calculate current day using the same method as /current-cycle endpoint
+    const startDate = new Date("2025-07-13");
+    const now = new Date();
+    const daysSinceStart = Math.floor((now.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24));
+    const currentDayInCycle = (daysSinceStart % 17) + 1;
+    
+
+    
     const currentSeason = await seasonStorage.getCurrentSeason(); // Use seasonStorage
     if (!currentSeason) {
-      return res.json({ schedule: {}, totalDays: 17, currentDay: null, message: "No active season found." });
+      return res.json({ schedule: {}, totalDays: 17, currentDay: currentDayInCycle, message: "No active season found." });
     }
 
     // Get user's team to determine their subdivision
@@ -419,28 +427,26 @@ router.get('/daily-schedule', isAuthenticated, async (req: Request, res: Respons
     });
 
     const scheduleByDay: { [key: number]: any[] } = {};
-    const currentDayFromSeason = (currentSeason as any).currentDay || 1;
 
-    for (let day = currentDayFromSeason + 1; day <= 17; day++) {
+    for (let day = currentDayInCycle; day <= 17; day++) {
       const dayMatches = allMatches.filter(match => {
         if (match.gameDate) {
           const gameDate = new Date(match.gameDate);
           const seasonStart = new Date("2025-07-13");
-          const daysDiff = Math.floor((gameDate.getTime() - seasonStart.getTime()) / (1000 * 60 * 60 * 24)) + 1;
-          return daysDiff === day;
+          const daysDiff = Math.floor((gameDate.getTime() - seasonStart.getTime()) / (1000 * 60 * 60 * 24));
+          const gameDayInCycle = (daysDiff % 17) + 1;
+          return gameDayInCycle === day;
         }
         return match.gameDay === day;
       });
 
       if (dayMatches.length > 0) {
-        const dailyGameTimes = generateDailyGameTimes(day);
-
         scheduleByDay[day] = dayMatches.slice(0, 4).map((match, index) => ({
           ...match,
           homeTeamName: teamNamesMap.get(match.homeTeamId) || "Home",
           awayTeamName: teamNamesMap.get(match.awayTeamId) || "Away",
-          scheduledTime: dailyGameTimes[index % dailyGameTimes.length],
-          scheduledTimeFormatted: formatEasternTime(dailyGameTimes[index % dailyGameTimes.length]),
+          scheduledTime: match.gameDate ? new Date(match.gameDate) : new Date(),
+          scheduledTimeFormatted: match.gameDate ? formatEasternTime(new Date(match.gameDate)) : "TBD",
           isLive: match.status === 'IN_PROGRESS',
           canWatch: match.status === 'IN_PROGRESS' || match.status === 'COMPLETED'
         }));
@@ -452,7 +458,7 @@ router.get('/daily-schedule', isAuthenticated, async (req: Request, res: Respons
     res.json({
       schedule: scheduleByDay,
       totalDays: 17,
-      currentDay: currentDayFromSeason
+      currentDay: currentDayInCycle
     });
   } catch (error) {
     console.error("Error getting daily schedule:", error);
