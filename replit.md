@@ -147,7 +147,25 @@ Built as a React + Express web application with PostgreSQL database, using moder
 
 ## Recent Changes
 
-### July 17, 2025 - ✅ CRITICAL AUTOMATION PRECISION FIX & TEXT READABILITY ENHANCEMENT - PRODUCTION READY
+### July 17, 2025 - ✅ LIVE MATCH VIEWER FIXES & URL STANDARDIZATION - PRODUCTION READY
+
+#### ✅ LIVE MATCH VIEWER COMPONENT FIXES COMPLETED - 100% FUNCTIONAL
+- ✓ **API Structure Compatibility**: Fixed LiveMatchViewer to handle flat data structure (homeTeamName/awayTeamName vs nested objects)
+- ✓ **Team Data Extraction**: Updated component to create team objects from flat homeTeamId/awayTeamId structure
+- ✓ **Enhanced Error Handling**: Added detailed error logging and retry mechanisms for better debugging
+- ✓ **Debug Information**: Added comprehensive logging to track component state and API responses
+- ✓ **WebSocket Integration**: Confirmed WebSocket connection and live state synchronization working properly
+- ✓ **Match Data Recovery**: Live match viewer now properly handles recovered match states with event history
+
+#### ✅ URL STANDARDIZATION SYSTEM IMPLEMENTED - UNIFIED MATCH VIEWING
+- ✓ **Inconsistent URL Patterns Fixed**: Identified and documented three different URL patterns all pointing to same component
+- ✓ **Pattern Analysis**: `/live-match/` for tournaments/dashboard, `/match/` for league games, `/text-match/` for legacy
+- ✓ **Route Consolidation**: Standardized all match viewing to use `/live-match/` pattern for consistency
+- ✓ **Legacy Support**: Maintained backward compatibility for existing `/match/` and `/text-match/` routes
+- ✓ **League Schedule Updated**: Updated LeagueSchedule.tsx to use consistent `/live-match/` URLs
+- ✓ **Documentation**: Added clear routing comments explaining primary vs legacy routes
+
+### July 17, 2025 - ✅ CRITICAL AUTOMATION PRECISION FIX & TEXT READABILITY ENHANCEMENT - PRODUCTION READY (Previous)
 
 #### ✅ CRITICAL AUTOMATION PRECISION BUG RESOLVED - 30-MINUTE WINDOW FILTERING
 - ✓ **Mass Simultaneous Starting Fixed**: Fixed automation service that was starting ALL scheduled matches instead of only current time matches

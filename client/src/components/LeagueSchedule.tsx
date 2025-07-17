@@ -195,7 +195,7 @@ export default function LeagueSchedule() {
                       {getStatusBadge(match)}
                       
                       {match.canWatch && match.isLive && (
-                        <Link href={`/match/${match.id}`}>
+                        <Link href={`/live-match/${match.id}`}>
                           <Button size="sm" variant="default" className="gap-1">
                             <Eye className="w-3 h-3" />
                             Watch Live
@@ -204,7 +204,7 @@ export default function LeagueSchedule() {
                       )}
                       
                       {match.status === 'completed' && (
-                        <Link href={`/match/${match.id}`}>
+                        <Link href={`/live-match/${match.id}`}>
                           <Button size="sm" variant="outline" className="gap-1">
                             <Eye className="w-3 h-3" />
                             View Result
