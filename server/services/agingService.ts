@@ -166,14 +166,12 @@ export class AgingService {
       const retirementCalc = this.calculateRetirementChance(player);
       
       if (retirementCalc.willRetire) {
-        // Mark player as retired by removing from team
+        // Mark player as retired (can't set teamId to null due to schema constraints)
         await prisma.player.update({
           where: { id: player.id },
           data: { 
-            teamId: null,
-            isStarter: false,
-            isOnTaxi: false,
-            age: player.age + 1
+            age: player.age + 1,
+            isRetired: true
           }
         });
 

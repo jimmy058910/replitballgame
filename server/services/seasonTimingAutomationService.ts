@@ -160,25 +160,38 @@ export class SeasonTimingAutomationService {
     try {
       logInfo('Starting daily progression execution...');
       
-      // TEMPORARILY DISABLED - Daily progression services causing database issues
+      // ENABLED - Daily progression services for pre-alpha testing
+      console.log('🔄 DEBUG: About to execute daily progression services...');
+      
       // 1. Daily player progression
-      // await this.executeDailyPlayerProgression();
+      console.log('🔄 DEBUG: Calling executeDailyPlayerProgression...');
+      await this.executeDailyPlayerProgression();
+      console.log('✅ DEBUG: executeDailyPlayerProgression completed');
       
       // 2. Aging and retirement processing  
-      // await this.executeAgingProcessing();
+      console.log('🔄 DEBUG: Calling executeAgingProcessing...');
+      await this.executeAgingProcessing();
+      console.log('✅ DEBUG: executeAgingProcessing completed');
       
       // 3. Injury recovery and stamina restoration
-      // await this.executeInjuryRecovery();
+      console.log('🔄 DEBUG: Calling executeInjuryRecovery...');
+      await this.executeInjuryRecovery();
+      console.log('✅ DEBUG: executeInjuryRecovery completed');
       
       // 4. Reset daily limits and counters
+      console.log('🔄 DEBUG: Calling resetDailyLimits...');
       await this.resetDailyLimits();
+      console.log('✅ DEBUG: resetDailyLimits completed');
       
       // 5. Update season day in database (CRITICAL FIX)
+      console.log('🔄 DEBUG: Calling updateSeasonDay...');
       await this.updateSeasonDay();
+      console.log('✅ DEBUG: updateSeasonDay completed');
       
       logInfo('Daily progression execution completed successfully');
     } catch (error) {
-      console.error('Error during daily progression execution:', error.message);
+      console.error('❌ Error during daily progression execution:', error.message);
+      console.error('Full error:', error);
     }
   }
 
@@ -395,14 +408,17 @@ export class SeasonTimingAutomationService {
    */
   private async executeDailyPlayerProgression(): Promise<void> {
     try {
-      logInfo('Executing daily player progression...');
+      logInfo('🔄 Starting daily player progression service...');
+      console.log('DEBUG: About to call DailyPlayerProgressionService.executeDailyProgression()');
       const result = await DailyPlayerProgressionService.executeDailyProgression();
-      logInfo('Daily player progression completed', {
+      console.log('DEBUG: DailyPlayerProgressionService.executeDailyProgression() completed, result:', result);
+      logInfo('✅ Daily player progression completed', {
         playersProcessed: result.totalPlayersProcessed,
         progressionEvents: result.totalProgressions
       });
     } catch (error) {
-      console.error('Error executing daily player progression:', error.message);
+      console.error('❌ Error executing daily player progression:', error.message);
+      console.error('Full error:', error);
     }
   }
 
@@ -411,14 +427,17 @@ export class SeasonTimingAutomationService {
    */
   private async executeAgingProcessing(): Promise<void> {
     try {
-      logInfo('Executing aging and retirement processing...');
+      logInfo('🔄 Starting aging and retirement processing service...');
+      console.log('DEBUG: About to call AgingService.processDailyAging()');
       const result = await AgingService.processDailyAging();
-      logInfo('Aging processing completed', {
+      console.log('DEBUG: AgingService.processDailyAging() completed, result:', result);
+      logInfo('✅ Aging processing completed', {
         playersProcessed: result.playersProcessed,
         retirementsProcessed: result.retirementsProcessed
       });
     } catch (error) {
-      console.error('Error executing aging processing:', error.message);
+      console.error('❌ Error executing aging processing:', error.message);
+      console.error('Full error:', error);
     }
   }
 
@@ -427,15 +446,18 @@ export class SeasonTimingAutomationService {
    */
   private async executeInjuryRecovery(): Promise<void> {
     try {
-      logInfo('Executing injury recovery and stamina restoration...');
+      logInfo('🔄 Starting injury recovery and stamina restoration service...');
+      console.log('DEBUG: About to call InjuryStaminaService.processDailyRecovery()');
       const result = await InjuryStaminaService.processDailyRecovery();
-      logInfo('Injury recovery completed', {
+      console.log('DEBUG: InjuryStaminaService.processDailyRecovery() completed, result:', result);
+      logInfo('✅ Injury recovery completed', {
         playersProcessed: result.playersProcessed,
         injuriesHealed: result.injuriesHealed,
         staminaRestored: result.staminaRestored
       });
     } catch (error) {
-      console.error('Error executing injury recovery:', error.message);
+      console.error('❌ Error executing injury recovery:', error.message);
+      console.error('Full error:', error);
     }
   }
 
