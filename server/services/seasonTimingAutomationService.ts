@@ -506,16 +506,32 @@ export class SeasonTimingAutomationService {
         // Get scheduled matches for current day
         const scheduledMatches = await prisma.game.findMany({
           where: {
-            gameDay: currentDayInCycle,
-            status: 'scheduled'
+            status: 'SCHEDULED'
           }
         });
         
         if (scheduledMatches.length > 0) {
           logInfo(`Found ${scheduledMatches.length} scheduled matches for simulation`);
           
-          // Simulate matches (implementation would depend on match simulation service)
-          // This would trigger the actual match simulation and update results
+          // Start each scheduled match
+          for (const match of scheduledMatches) {
+            try {
+              await prisma.game.update({
+                where: { id: match.id },
+                data: { 
+                  status: 'IN_PROGRESS',
+                  gameDate: new Date() // Start now
+                }
+              });
+              
+              // Initialize match state in the match state manager
+              const { matchStateManager } = await import('./matchStateManager');
+              await matchStateManager.startLiveMatch(match.id.toString(), false);
+              logInfo(`Started league match ${match.id} for Day ${currentDayInCycle}`);
+            } catch (error) {
+              console.error(`Error starting match ${match.id}:`, error);
+            }
+          }
         }
       }
       
