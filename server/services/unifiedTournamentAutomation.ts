@@ -129,18 +129,23 @@ export class UnifiedTournamentAutomation {
 
       if (completedMatches.length === 0) return;
 
-      // Determine winners
+      // Determine winners (with detailed logging)
       const winners = completedMatches.map(match => {
-        return match.homeScore > match.awayScore ? match.homeTeamId : match.awayTeamId;
+        const winnerId = match.homeScore > match.awayScore ? match.homeTeamId : match.awayTeamId;
+        const loserId = match.homeScore > match.awayScore ? match.awayTeamId : match.homeTeamId;
+        console.log(`Match ${match.id}: Team ${winnerId} (${match.homeScore > match.awayScore ? 'home' : 'away'}) beat Team ${loserId} (${match.homeScore}-${match.awayScore})`);
+        return winnerId;
       });
 
       // Generate matches for next round
       const nextRound = completedRound + 1;
       const nextRoundMatches = [];
 
+      console.log(`Generating round ${nextRound} matches from ${winners.length} winners: [${winners.join(', ')}]`);
+
       for (let i = 0; i < winners.length; i += 2) {
         if (i + 1 < winners.length) {
-          nextRoundMatches.push({
+          const match = {
             tournamentId: tournamentId,
             homeTeamId: winners[i],
             awayTeamId: winners[i + 1],
@@ -150,7 +155,9 @@ export class UnifiedTournamentAutomation {
             round: nextRound,
             gameDate: new Date(),
             matchType: 'TOURNAMENT_DAILY'
-          });
+          };
+          nextRoundMatches.push(match);
+          console.log(`Created match: Team ${winners[i]} vs Team ${winners[i + 1]} for round ${nextRound}`);
         }
       }
 
@@ -191,7 +198,66 @@ export class UnifiedTournamentAutomation {
       const runnerUpTeamId = finalsMatch.homeScore > finalsMatch.awayScore ? 
         finalsMatch.awayTeamId : finalsMatch.homeTeamId;
 
-      // Award prizes (simplified for now)
+      // Get semifinals matches to determine 3rd place
+      const semifinalsMatches = await prisma.game.findMany({
+        where: {
+          tournamentId: tournamentId,
+          round: 2,
+          status: 'COMPLETED'
+        }
+      });
+
+      // Get quarterfinals matches to determine 5th place
+      const quarterfinalsMatches = await prisma.game.findMany({
+        where: {
+          tournamentId: tournamentId,
+          round: 1,
+          status: 'COMPLETED'
+        }
+      });
+
+      // Assign final ranks
+      const finalRanks = new Map<number, number>();
+      
+      // 1st place - Champion
+      finalRanks.set(championTeamId, 1);
+      
+      // 2nd place - Runner-up
+      finalRanks.set(runnerUpTeamId, 2);
+      
+      // 3rd place - Semifinals losers
+      let rank = 3;
+      for (const match of semifinalsMatches) {
+        const loserId = match.homeScore > match.awayScore ? match.awayTeamId : match.homeTeamId;
+        if (!finalRanks.has(loserId)) {
+          finalRanks.set(loserId, rank);
+          rank++;
+        }
+      }
+      
+      // 5th place - Quarterfinals losers
+      rank = 5;
+      for (const match of quarterfinalsMatches) {
+        const loserId = match.homeScore > match.awayScore ? match.awayTeamId : match.homeTeamId;
+        if (!finalRanks.has(loserId)) {
+          finalRanks.set(loserId, rank);
+          rank++;
+        }
+      }
+
+      // Update tournament entries with final ranks
+      for (const [teamId, finalRank] of finalRanks) {
+        await prisma.tournamentEntry.updateMany({
+          where: {
+            tournamentId: tournamentId,
+            teamId: teamId
+          },
+          data: {
+            finalRank: finalRank
+          }
+        });
+      }
+
       console.log(`Tournament ${tournamentId} completed! Champion: Team ${championTeamId}, Runner-up: Team ${runnerUpTeamId}`);
 
       // Update tournament status
@@ -203,7 +269,7 @@ export class UnifiedTournamentAutomation {
         }
       });
 
-      console.log(`Tournament ${tournamentId} marked as completed`);
+      console.log(`Tournament ${tournamentId} marked as completed with proper final ranks`);
     } catch (error) {
       console.error(`Error completing tournament:`, error);
     }
