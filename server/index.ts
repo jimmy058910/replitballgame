@@ -2,6 +2,7 @@ import express, { type Request, Response, NextFunction } from "express";
 import { createServer } from "http"; // Import createServer
 import { Server as SocketIOServer } from "socket.io";
 import rateLimit from "express-rate-limit";
+import helmet from "helmet";
 import { setupAuth } from "./replitAuth"; // Import setupAuth
 import { registerAllRoutes } from "./routes/index"; // Updated import
 import { setupVite, serveStatic, log } from "./vite";
@@ -11,6 +12,7 @@ import { setupWebSocketServer, webSocketService } from "./services/webSocketServ
 import { matchStateManager } from "./services/matchStateManager";
 import { SeasonTimingAutomationService } from "./services/seasonTimingAutomationService";
 import logger from "./utils/logger";
+import { validateOrigin } from "./utils/security";
 
 const app = express();
 app.use(express.json());
