@@ -181,11 +181,11 @@ export default function LeagueSchedule() {
                       
                       <div className="flex items-center gap-2">
                         <Users className={`w-4 h-4 ${isUserMatch ? 'text-blue-700 dark:text-blue-300' : 'text-gray-600 dark:text-gray-400'}`} />
-                        <span className={`text-sm ${isUserMatch ? 'font-semibold text-blue-900 dark:text-blue-100' : 'text-gray-900 dark:text-gray-100'}`}>
+                        <span className={`text-sm ${isUserMatch ? 'font-semibold text-blue-900 dark:text-blue-100' : 'text-gray-900 dark:text-gray-200'}`}>
                           {match.homeTeamName || `Team ${match.homeTeamId.slice(0, 8)}`}
                         </span>
-                        <span className={`${isUserMatch ? 'text-blue-700 dark:text-blue-300' : 'text-gray-600 dark:text-gray-400'}`}>vs</span>
-                        <span className={`text-sm ${isUserMatch ? 'font-semibold text-blue-900 dark:text-blue-100' : 'text-gray-900 dark:text-gray-100'}`}>
+                        <span className={`${isUserMatch ? 'text-blue-700 dark:text-blue-300' : 'text-gray-600 dark:text-gray-300'}`}>vs</span>
+                        <span className={`text-sm ${isUserMatch ? 'font-semibold text-blue-900 dark:text-blue-100' : 'text-gray-900 dark:text-gray-200'}`}>
                           {match.awayTeamName || `Team ${match.awayTeamId.slice(0, 8)}`}
                         </span>
                       </div>
