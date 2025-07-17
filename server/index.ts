@@ -13,6 +13,7 @@ import { matchStateManager } from "./services/matchStateManager";
 import { SeasonTimingAutomationService } from "./services/seasonTimingAutomationService";
 import logger from "./utils/logger";
 import { validateOrigin } from "./utils/security";
+import { sanitizeInputMiddleware, securityHeadersMiddleware } from "./middleware/security";
 
 const app = express();
 app.use(express.json());
@@ -20,6 +21,10 @@ app.use(express.urlencoded({ extended: false }));
 
 // Add request ID middleware early in the chain
 app.use(requestIdMiddleware);
+
+// Add security middleware
+app.use(securityHeadersMiddleware);
+app.use(sanitizeInputMiddleware);
 
 // Security headers
 app.use(helmet({
@@ -101,9 +106,15 @@ app.use((req, res, next) => {
         logData.response = responsePreview;
       }
 
-      // Log using structured logging if we have error service, otherwise fallback
+      // Use secure logging - no sensitive data in production
       if (process.env.NODE_ENV === 'production') {
-        logInfo(`${req.method} ${path} ${res.statusCode} in ${duration}ms`, logData);
+        logger.info(`${req.method} ${path} ${res.statusCode} in ${duration}ms`, {
+          requestId: logData.requestId,
+          statusCode: logData.statusCode,
+          duration: logData.duration,
+          method: logData.method,
+          path: logData.path
+        });
       } else {
         // Development fallback to original format
         let logLine = `${req.method} ${path} ${res.statusCode} in ${duration}ms`;
