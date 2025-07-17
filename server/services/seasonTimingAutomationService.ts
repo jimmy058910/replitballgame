@@ -174,7 +174,7 @@ export class SeasonTimingAutomationService {
       await this.resetDailyLimits();
       
       // 5. Update season day in database (CRITICAL FIX)
-      // await this.updateSeasonDay();
+      await this.updateSeasonDay();
       
       logInfo('Daily progression execution completed successfully');
     } catch (error) {
@@ -580,14 +580,13 @@ export class SeasonTimingAutomationService {
 
       const { currentDayInCycle } = this.getCurrentSeasonInfo(currentSeason);
       
-      // Update the database with the current day
-      await prisma.$executeRaw`
-        UPDATE seasons 
-        SET current_day = ${currentDayInCycle}, updated_at = NOW() 
-        WHERE id = ${currentSeason.id}
-      `;
+      // Update the database with the current day - using correct table/column names
+      await prisma.season.update({
+        where: { id: currentSeason.id },
+        data: { currentDay: currentDayInCycle }
+      });
       
-      logInfo(`Season day updated to Day ${currentDayInCycle}`);
+      logInfo(`Season day updated from Day ${currentSeason.currentDay} to Day ${currentDayInCycle}`);
     } catch (error) {
       console.error('Error updating season day:', error);
     }
