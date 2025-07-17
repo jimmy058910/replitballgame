@@ -362,6 +362,7 @@ export class SeasonalFlowService {
 
   /**
    * Generate large division schedule (35+ teams, multiple subdivisions)
+   * Only generates schedules for teams within the same subdivision
    */
   static async generateLargeDivisionSchedule(
     leagueId: string, 
@@ -369,31 +370,32 @@ export class SeasonalFlowService {
     season: number
   ): Promise<any[]> {
     const matches = [];
-    const numTeams = teams.length;
     
-    // Create subdivisions of exactly 8 teams each
-    // For 35 teams: 4 subdivisions of 8 teams + 1 subdivision of 3 teams
-    const subdivisions = [];
-    const subdivisionSize = 8;
-    
-    for (let i = 0; i < numTeams; i += subdivisionSize) {
-      const subdivision = teams.slice(i, i + subdivisionSize);
-      subdivisions.push(subdivision);
+    // Group teams by subdivision
+    const subdivisionMap = new Map<string, any[]>();
+    for (const team of teams) {
+      const subdivision = team.subdivision || 'main';
+      if (!subdivisionMap.has(subdivision)) {
+        subdivisionMap.set(subdivision, []);
+      }
+      subdivisionMap.get(subdivision)!.push(team);
     }
     
-    // Generate schedule for each subdivision
-    for (let subIndex = 0; subIndex < subdivisions.length; subIndex++) {
-      const subdivision = subdivisions[subIndex];
-      
-      // Skip subdivisions with less than 2 teams
-      if (subdivision.length < 2) {
-        console.warn(`Skipping subdivision ${subIndex} with ${subdivision.length} teams`);
+    // Generate schedule for each subdivision separately
+    for (const [subdivisionName, subdivisionTeams] of subdivisionMap) {
+      if (subdivisionTeams.length < 2) {
+        console.warn(`Skipping subdivision ${subdivisionName} with ${subdivisionTeams.length} teams`);
         continue;
       }
       
-      // Generate matches for shortened season (Days 6-14)
-      for (let day = 6; day <= 14; day++) {
-        const dayMatches = this.generateSubdivisionDayMatches(subdivision, day);
+      // Check if it's past 3:00 PM EDT - if so, skip current day
+      const estNow = getEasternTimeAsDate();
+      const isPast3PM = estNow.getHours() >= 15; // 3:00 PM = 15:00
+      const startDay = isPast3PM ? 7 : 6; // Skip Day 6 if past 3:00 PM EDT
+      
+      // Generate matches for subdivision (Days 6-14 or 7-14)
+      for (let day = startDay; day <= 14; day++) {
+        const dayMatches = this.generateSubdivisionDayMatches(subdivisionTeams, day);
         
         for (let matchIndex = 0; matchIndex < dayMatches.length; matchIndex++) {
           const match = dayMatches[matchIndex];
@@ -406,7 +408,7 @@ export class SeasonalFlowService {
           const { generateDailyGameTimes } = await import('../../shared/timezone');
           const dailyGameTimes = generateDailyGameTimes(day);
           
-          // Use the appropriate time slot for this match
+          // Use the appropriate time slot for this match (staggered every 15 minutes)
           const slotIndex = matchIndex % dailyGameTimes.length;
           const gameTime = dailyGameTimes[slotIndex];
           
