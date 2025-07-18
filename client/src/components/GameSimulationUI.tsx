@@ -282,19 +282,31 @@ export function GameSimulationUI({ matchId, userId, team1, team2, initialLiveSta
     const halftimeEvent = liveState?.gameEvents?.find(e => e.type === 'halftime');
     const finalEvent = liveState?.gameEvents?.find(e => e.type === 'match_complete');
 
+    console.log('🔍 MVP Debug - Enhanced Data:', enhancedData);
+    console.log('🔍 MVP Debug - Halftime Event:', halftimeEvent);
+    console.log('🔍 MVP Debug - Final Event:', finalEvent);
+
     // Check enhanced data for MVP data first
     let mvpData = enhancedData?.mvpData || null;
 
     if (finalEvent?.data?.mvp) {
       mvpData = finalEvent.data.mvp;
+      console.log('🎯 Using MVP data from final event:', mvpData);
     } else if (halftimeEvent?.data?.mvp) {
       mvpData = halftimeEvent.data.mvp;
+      console.log('🎯 Using MVP data from halftime event:', mvpData);
     } else if (enhancedData?.mvpPlayers) {
       mvpData = {
         homeMVP: { playerName: enhancedData.mvpPlayers.home, score: 100 },
         awayMVP: { playerName: enhancedData.mvpPlayers.away, score: 100 }
       };
+      console.log('🎯 Using MVP data from enhanced data mvpPlayers:', mvpData);
+    } else if (enhancedData?.mvpData) {
+      mvpData = enhancedData.mvpData;
+      console.log('🎯 Using MVP data from enhanced data mvpData:', mvpData);
     }
+
+    console.log('🔍 Final MVP Data being used:', mvpData);
 
     // Get player stats from game events
     const getPlayerStats = (playerName: string) => {
@@ -394,9 +406,11 @@ export function GameSimulationUI({ matchId, userId, team1, team2, initialLiveSta
   // Get field players using formation data
   const getFieldPlayers = () => {
     // Helper function to get players from formation data
-    const getFormationPlayers = (players: Player[], formation: any) => {
+    const getFormationPlayers = (players: Player[], formation: any, teamName: string) => {
+      console.log(`🔍 Formation Debug - ${teamName}:`, { formation, players: players?.length });
+      
       if (!formation || !formation.formationJson) {
-        // Fallback to first 6 players if no formation data
+        console.log(`⚠️ No formation data for ${teamName}, using first 6 players`);
         return players?.slice(0, 6) || [];
       }
 
@@ -405,25 +419,34 @@ export function GameSimulationUI({ matchId, userId, team1, team2, initialLiveSta
           ? JSON.parse(formation.formationJson) 
           : formation.formationJson;
 
+        console.log(`📋 Formation data parsed for ${teamName}:`, formationData);
+
         if (formationData.starters && Array.isArray(formationData.starters)) {
+          console.log(`🎯 Using formation starters for ${teamName}:`, formationData.starters);
+          
           // Get players based on formation starters (formation data stores objects with id and role properties)
-          const starterPlayers = formationData.starters.map((starter: any) => 
-            players?.find(p => p.id === starter.id)
-          ).filter(Boolean);
+          const starterPlayers = formationData.starters.map((starter: any) => {
+            const player = players?.find(p => p.id === starter.id);
+            console.log(`🔍 Looking for player ${starter.id} for ${teamName}:`, player ? `Found: ${player.firstName} ${player.lastName}` : 'Not found');
+            return player;
+          }).filter(Boolean);
+          
+          console.log(`✅ Found ${starterPlayers.length} formation starters for ${teamName}`);
           
           // If we have starters, use them; otherwise fallback to first 6
           return starterPlayers.length > 0 ? starterPlayers : players?.slice(0, 6) || [];
         }
       } catch (error) {
-        console.error('Error parsing formation data:', error);
+        console.error(`❌ Error parsing formation data for ${teamName}:`, error);
       }
       
       // Fallback to first 6 players
+      console.log(`⚠️ Using fallback first 6 players for ${teamName}`);
       return players?.slice(0, 6) || [];
     };
 
-    const homeFieldPlayers = getFormationPlayers(homeTeamPlayers, homeFormation);
-    const awayFieldPlayers = getFormationPlayers(awayTeamPlayers, awayFormation);
+    const homeFieldPlayers = getFormationPlayers(homeTeamPlayers, homeFormation, 'Home');
+    const awayFieldPlayers = getFormationPlayers(awayTeamPlayers, awayFormation, 'Away');
     
     return {
       home: homeFieldPlayers.map((player: Player) => ({
