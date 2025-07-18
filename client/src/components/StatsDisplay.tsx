@@ -288,10 +288,7 @@ export function StatsDisplay({ playerStats, teamStats, compact = false, showAver
                 <span className="font-medium">{teamStats.totalKnockdowns}</span>
               </div>
               
-              <div className="flex justify-between">
-                <span className="text-sm text-red-600">Turnovers</span>
-                <span className="font-medium text-red-600">{teamStats.turnovers}</span>
-              </div>
+
             </div>
           </CardContent>
         </Card>

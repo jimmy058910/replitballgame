@@ -20,10 +20,8 @@ interface EnhancedMatchResult {
     finalStats: {
       possession: { home: number; away: number };
       passes: { home: number; away: number };
-      interceptions: { home: number; away: number };
       rushing: { home: number; away: number };
       tackles: { home: number; away: number };
-      fumbles: { home: number; away: number };
     };
     playerStats: Record<string, PlayerGameStats>;
   };
@@ -47,8 +45,6 @@ interface PlayerGameStats {
   drops: number;
   tackles: number;
   knockdownsInflicted: number;
-  interceptionsCaught: number;
-  fumblesLost: number;
   clutchPlays: number;
   breakawayRuns: number;
   perfectPasses: number;

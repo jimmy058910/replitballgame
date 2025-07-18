@@ -10,8 +10,7 @@ interface TeamStats {
   totalOffensiveYards: number;
   passingYards: number;
   carrierYards: number;
-  turnovers: number;
-  totalKnockdowns: number;
+  totalKnockdownsInflicted: number;
   timeOfPossession: number;
 }
 
@@ -24,7 +23,6 @@ interface PlayerStats {
   passingYards: number;
   carrierYards: number;
   tackles: number;
-  interceptions: number;
   knockdownsInflicted: number;
   mvpScore: number;
 }
@@ -149,10 +147,7 @@ export function PostGameSummary({
               <span className="text-gray-400">Tackles:</span>
               <span className="font-semibold text-red-400">{player.tackles}</span>
             </div>
-            <div className="flex justify-between">
-              <span className="text-gray-400">Interceptions:</span>
-              <span className="font-semibold text-orange-400">{player.interceptions}</span>
-            </div>
+
             <div className="flex justify-between">
               <span className="text-gray-400">Knockdowns:</span>
               <span className="font-semibold text-yellow-400">{player.knockdownsInflicted}</span>
@@ -252,14 +247,7 @@ export function PostGameSummary({
               format={(v) => `${v} yds`}
             />
             
-            <StatBar
-              label="Turnovers"
-              homeValue={awayTeam.stats.turnovers}
-              awayValue={homeTeam.stats.turnovers}
-              homeLabel={homeTeam.name}
-              awayLabel={awayTeam.name}
-              format={(v) => `${v}`}
-            />
+
             
             <StatBar
               label="Knockdowns"

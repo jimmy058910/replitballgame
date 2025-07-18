@@ -119,11 +119,10 @@ export function GameSimulationUI({ matchId, userId, team1, team2, initialLiveSta
             setEvents(prev => [event, ...prev]);
 
             // Show important events as toast notifications
-            if (event.type === 'score' || event.type === 'halftime' || event.type === 'interception') {
+            if (event.type === 'score' || event.type === 'halftime') {
               toast({
                 title: event.type === 'score' ? '🏆 SCORE!' :
-                       event.type === 'halftime' ? '⏰ Halftime' :
-                       '🚫 Interception',
+                       event.type === 'halftime' ? '⏰ Halftime' : '',
                 description: event.description,
                 duration: 3000,
               });

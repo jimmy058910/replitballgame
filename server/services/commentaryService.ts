@@ -180,17 +180,17 @@ export class CommentaryService {
 
   private generateDefenseCommentary(event: any, playerName: string, race: string, gamePhase: string, context: CommentaryContext): string {
     const defenseCommentary = [
-      `INTERCEPTION! ${playerName} picks it off!`,
-      `${playerName} reads the pass perfectly and intercepts!`,
-      `TURNOVER! ${playerName} comes down with the ball!`,
-      `Great defensive play by ${playerName}!`
+      `Great defensive play by ${playerName}!`,
+      `${playerName} breaks up the pass!`,
+      `Solid defense by ${playerName}!`,
+      `${playerName} with the pass defense!`
     ];
 
     // Race-specific defense commentary
     if (race === 'gryll') {
-      defenseCommentary.push(`${playerName} uses Gryll instincts to snatch that pass!`);
+      defenseCommentary.push(`${playerName} uses Gryll instincts to disrupt the pass!`);
     } else if (race === 'sylvan') {
-      defenseCommentary.push(`${playerName} shows Sylvan reflexes on that interception!`);
+      defenseCommentary.push(`${playerName} shows Sylvan reflexes on that pass defense!`);
     }
 
     return defenseCommentary[Math.floor(Math.random() * defenseCommentary.length)];
@@ -541,18 +541,18 @@ export class CommentaryService {
     return standardTackleCommentary[Math.floor(Math.random() * standardTackleCommentary.length)];
   }
 
-  generateInterceptionCommentary(defender: Player, passer: Player): string {
+  generatePassDefenseCommentary(defender: Player, passer: Player): string {
     const defenderName = this.getPlayerDisplayName(defender);
     const passerName = this.getPlayerDisplayName(passer);
 
-    const interceptionCommentary = [
-      `The pass is picked off! ${defenderName} read the play perfectly and stepped in front of the receiver!`,
-      `What a play! ${defenderName} makes a diving interception!`,
-      `He threw it right to the defense! An easy interception for ${defenderName}.`,
-      `${defenderName} shows great awareness, jumping the route for the interception!`,
-      `${passerName}'s pass is intercepted by ${defenderName}! What a momentum swing!`
+    const passDefenseCommentary = [
+      `The pass is broken up! ${defenderName} read the play perfectly and stepped in front of the receiver!`,
+      `What a play! ${defenderName} makes a diving pass breakup!`,
+      `Great coverage by ${defenderName}! The pass falls incomplete.`,
+      `${defenderName} shows great awareness, jumping the route to break up the pass!`,
+      `${passerName}'s pass is defended by ${defenderName}! Solid coverage!`
     ];
-    return interceptionCommentary[Math.floor(Math.random() * interceptionCommentary.length)];
+    return passDefenseCommentary[Math.floor(Math.random() * passDefenseCommentary.length)];
   }
 
   // 6. Contextual & Atmospheric Commentary

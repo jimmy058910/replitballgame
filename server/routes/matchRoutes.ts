@@ -511,8 +511,7 @@ router.get('/:matchId/enhanced-data-old', isAuthenticated, async (req: Request, 
         drops: stats.drops,
         tackles: stats.tackles,
         knockdownsInflicted: stats.knockdownsInflicted,
-        interceptionsCaught: stats.interceptionsCaught,
-        fumblesLost: stats.fumblesLost
+
       };
     });
 
@@ -544,8 +543,7 @@ router.get('/:matchId/enhanced-data-old', isAuthenticated, async (req: Request, 
             const mvpScore = (stats.scores * 10) + 
                             (stats.passingYards * 0.1) + 
                             (stats.carrierYards * 0.2) + 
-                            (stats.tackles * 2) + 
-                            (stats.interceptionsCaught * 5);
+                            (stats.tackles * 2);
             
             console.log(`Player ${playerId} (${player.firstName} ${player.lastName}): team ${player.teamId}, MVP score: ${mvpScore}`);
             

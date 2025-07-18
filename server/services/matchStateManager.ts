@@ -15,17 +15,14 @@ type PlayerStatsSnapshot = {
   catches: number;
   receivingYards: number;
   drops: number;
-  fumblesLost: number;
   tackles: number;
   knockdownsInflicted: number;
-  interceptionsCaught: number;
   passesDefended: number;
 };
 
 // Helper type for team stats snapshot
 type TeamStatsSnapshot = {
   possessionTime: number;
-  turnovers: number;
   totalYards: number;
   passYards: number;
   carrierYards: number;
@@ -60,7 +57,7 @@ interface LiveMatchState {
 
 interface MatchEvent {
   time: number;
-  type: string; // e.g., 'pass_attempt', 'pass_complete', 'rush', 'tackle', 'score', 'interception', 'fumble'
+  type: string; // e.g., 'pass_attempt', 'pass_complete', 'rush', 'tackle', 'score'
   description: string;
   actingPlayerId?: string; // Player performing the action
   targetPlayerId?: string; // Player targeted (e.g., receiver)
@@ -322,19 +319,19 @@ class MatchStateManager {
     allPlayers.forEach(player => {
       initialPlayerStats.set(player.id.toString(), {
         scores: 0, passingAttempts: 0, passesCompleted: 0, passingYards: 0,
-        carrierYards: 0, catches: 0, receivingYards: 0, drops: 0, fumblesLost: 0,
-        tackles: 0, knockdownsInflicted: 0, interceptionsCaught: 0, passesDefended: 0,
+        carrierYards: 0, catches: 0, receivingYards: 0, drops: 0,
+        tackles: 0, knockdownsInflicted: 0, passesDefended: 0,
       });
     });
 
     const initialTeamStats = new Map<string, TeamStatsSnapshot>();
     initialTeamStats.set(match.homeTeamId.toString(), {
       totalOffensiveYards: 0, passingYards: 0, carrierYards: 0,
-      timeOfPossessionSeconds: 0, turnovers: 0, totalKnockdownsInflicted: 0,
+      timeOfPossessionSeconds: 0, totalKnockdownsInflicted: 0,
     });
     initialTeamStats.set(match.awayTeamId.toString(), {
       totalOffensiveYards: 0, passingYards: 0, carrierYards: 0,
-      timeOfPossessionSeconds: 0, turnovers: 0, totalKnockdownsInflicted: 0,
+      timeOfPossessionSeconds: 0, totalKnockdownsInflicted: 0,
     });
 
     // Determine initial possession (e.g., coin toss or home team starts)
@@ -621,7 +618,7 @@ class MatchStateManager {
     const isHomeTeam = activePlayer.teamId.toString() === state.homeTeamId.toString();
     
     // Generate event based on player role and current situation
-    const eventTypes = ['pass', 'run', 'tackle', 'score', 'fumble', 'interception'];
+    const eventTypes = ['pass', 'run', 'tackle', 'score', 'pass_defense'];
     const eventType = eventTypes[Math.floor(Math.random() * eventTypes.length)];
     
     // Get player stats for this match
@@ -748,27 +745,20 @@ class MatchStateManager {
         }
         break;
         
-      case 'interception':
-        if (Math.random() < 0.03) { // 3% chance of interception
-          playerStats.interceptionsCaught += 1;
-          
-          // Increment turnover count for the opposing team (who lost the ball)
-          const opposingTeamId = isHomeTeam ? state.awayTeamId : state.homeTeamId;
-          const opposingTeamStats = state.teamStats.get(opposingTeamId);
-          if (opposingTeamStats) {
-            opposingTeamStats.turnovers += 1;
-          }
+      case 'pass_defense':
+        if (Math.random() < 0.08) { // 8% chance of pass defense
+          playerStats.passesDefended += 1;
           
           event = {
             time: state.gameTime,
-            type: 'interception',
-            description: `${activePlayer.firstName} ${activePlayer.lastName} reads the play perfectly and intercepts the orb!`,
+            type: 'pass_defense',
+            description: `${activePlayer.firstName} ${activePlayer.lastName} breaks up the pass with great coverage!`,
             actingPlayerId: activePlayer.id.toString(),
             teamId: teamType,
             data: {}
           };
         } else {
-          // Default to tackle if interception doesn't happen
+          // Default to tackle if pass defense doesn't happen
           return this.generateEnhancedMatchEvent(homePlayers, awayPlayers, state);
         }
         break;

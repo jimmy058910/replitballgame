@@ -153,10 +153,8 @@ export const players = pgTable("players", {
   totalCatches: integer("total_catches").default(0),
   totalReceivingYards: integer("total_receiving_yards").default(0),
   totalDrops: integer("total_drops").default(0),
-  totalFumblesLost: integer("total_fumbles_lost").default(0),
   totalTackles: integer("total_tackles").default(0),
   totalKnockdownsInflicted: integer("total_knockdowns_inflicted").default(0),
-  totalInterceptionsCaught: integer("total_interceptions_caught").default(0),
   totalPassesDefended: integer("total_passes_defended").default(0),
 });
 
@@ -499,10 +497,8 @@ export const playerMatchStats = pgTable("player_match_stats", {
   catches: integer("catches").default(0),
   receivingYards: integer("receiving_yards").default(0),
   drops: integer("drops").default(0),
-  fumblesLost: integer("fumbles_lost").default(0),
   tackles: integer("tackles").default(0),
   knockdownsInflicted: integer("knockdowns_inflicted").default(0),
-  interceptionsCaught: integer("interceptions_caught").default(0),
   passesDefended: integer("passes_defended").default(0),
   createdAt: timestamp("created_at").defaultNow(),
 });
@@ -515,7 +511,6 @@ export const teamMatchStats = pgTable("team_match_stats", {
   passingYards: integer("passing_yards").default(0),
   rushingYards: integer("rushing_yards").default(0),
   timeOfPossessionSeconds: integer("time_of_possession_seconds").default(0),
-  turnovers: integer("turnovers").default(0),
   totalKnockdownsInflicted: integer("total_knockdowns_inflicted").default(0),
   createdAt: timestamp("created_at").defaultNow(),
 });

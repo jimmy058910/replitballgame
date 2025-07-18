@@ -149,7 +149,6 @@ export function LiveMatchViewer({ matchId, userId, onMatchComplete }: LiveMatchV
               totalOffensiveYards: enhancedData.teamStats.home.totalOffensiveYards || 0,
               passingYards: enhancedData.teamStats.home.passingYards || 0,
               carrierYards: enhancedData.teamStats.home.carrierYards || 0,
-              turnovers: enhancedData.teamStats.home.turnovers || 0,
               totalKnockdownsInflicted: enhancedData.teamStats.home.totalKnockdownsInflicted || 0,
               timeOfPossession: enhancedData.teamStats.home.timeOfPossessionSeconds || 0
             } : undefined
@@ -165,12 +164,11 @@ export function LiveMatchViewer({ matchId, userId, onMatchComplete }: LiveMatchV
               totalOffensiveYards: enhancedData.teamStats.away.totalOffensiveYards || 0,
               passingYards: enhancedData.teamStats.away.passingYards || 0,
               carrierYards: enhancedData.teamStats.away.carrierYards || 0,
-              turnovers: enhancedData.teamStats.away.turnovers || 0,
               totalKnockdownsInflicted: enhancedData.teamStats.away.totalKnockdownsInflicted || 0,
               timeOfPossession: enhancedData.teamStats.away.timeOfPossessionSeconds || 0
             } : undefined
           }}
-          mvpData={enhancedData?.mvpData}
+          mvpData={enhancedData?.mvpPlayers}
           matchDuration={initialMatchData.duration}
           attendanceData={enhancedData?.atmosphereEffects && {
             attendance: enhancedData.atmosphereEffects.attendance || 0,
