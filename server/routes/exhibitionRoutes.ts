@@ -46,22 +46,20 @@ router.get('/stats', isAuthenticated, async (req: any, res: Response, next: Next
     const exhibitionMatches = allMatches.filter(match => match.matchType === 'EXHIBITION');
     console.log(`[DEBUG] Found ${exhibitionMatches.length} exhibition matches out of ${allMatches.length} total matches`);
     
-    // Use simple UTC date comparison to avoid timezone issues
-    const now = new Date();
-    const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-    const todayEnd = new Date(todayStart);
-    todayEnd.setDate(todayEnd.getDate() + 1);
+    // Use proper Eastern Time-based calculation that matches the 3AM reset time
+    const { getCurrentGameDayRange } = await import('../../shared/timezone');
+    const { start: todayStart, end: todayEnd } = getCurrentGameDayRange();
     
-    console.log(`[DEBUG] Timezone calculation: UTC Now: ${now.toISOString()}, Today Start: ${todayStart.toISOString()}, Today End: ${todayEnd.toISOString()}`);
+    console.log(`[DEBUG] Game Day Range: Start: ${todayStart.toISOString()}, End: ${todayEnd.toISOString()}`);
     
-    // Get ALL exhibition matches from today (pending + completed) using simple UTC date comparison
+    // Get ALL exhibition matches from current game day (pending + completed) using Eastern Time calculation
     const allExhibitionMatchesToday = allMatches.filter(match => {
       if (match.matchType !== 'EXHIBITION') return false;
       if (!match.createdAt) return false;
       
-      // Simple date comparison using UTC
+      // Use the same game day calculation as the daily reset
       const matchDate = new Date(match.createdAt);
-      const isToday = matchDate >= todayStart && matchDate < todayEnd;
+      const isToday = matchDate >= todayStart && matchDate <= todayEnd;
       
       console.log(`[DEBUG] Match ${match.id}: Created: ${matchDate.toISOString()}, IsToday: ${isToday}`);
       
@@ -145,11 +143,9 @@ router.post('/instant', isAuthenticated, async (req: any, res: Response, next: N
     const userTeam = await storage.teams.getTeamByUserId(userId);
     if (!userTeam || !userTeam.id) return res.status(404).json({ message: "Team not found." });
 
-    // Check exhibition game limits and entry item consumption
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    const tomorrow = new Date(today);
-    tomorrow.setDate(tomorrow.getDate() + 1);
+    // Check exhibition game limits using proper Eastern Time calculation
+    const { getCurrentGameDayRange } = await import('../../shared/timezone');
+    const { start: todayStart, end: todayEnd } = getCurrentGameDayRange();
 
     const allExhibitionMatchesToday = await prisma.game.findMany({
       where: {
@@ -159,8 +155,8 @@ router.post('/instant', isAuthenticated, async (req: any, res: Response, next: N
           { awayTeamId: userTeam.id }
         ],
         gameDate: {
-          gte: today,
-          lt: tomorrow
+          gte: todayStart,
+          lte: todayEnd
         }
       }
     });
@@ -294,11 +290,9 @@ router.post('/challenge', isAuthenticated, async (req: any, res: Response, next:
     const userTeam = await storage.teams.getTeamByUserId(userId);
     if (!userTeam || !userTeam.id) return res.status(404).json({ message: "Team not found." });
 
-    // Check exhibition game limits and entry item consumption
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    const tomorrow = new Date(today);
-    tomorrow.setDate(tomorrow.getDate() + 1);
+    // Check exhibition game limits using proper Eastern Time calculation
+    const { getCurrentGameDayRange } = await import('../../shared/timezone');
+    const { start: todayStart, end: todayEnd } = getCurrentGameDayRange();
 
     const allExhibitionMatchesToday = await prisma.game.findMany({
       where: {
@@ -308,8 +302,8 @@ router.post('/challenge', isAuthenticated, async (req: any, res: Response, next:
           { awayTeamId: userTeam.id }
         ],
         gameDate: {
-          gte: today,
-          lt: tomorrow
+          gte: todayStart,
+          lte: todayEnd
         }
       }
     });
@@ -387,11 +381,9 @@ router.post('/instant-match', isAuthenticated, async (req: any, res: Response, n
     const userTeam = await storage.teams.getTeamByUserId(userId);
     if (!userTeam || !userTeam.id) return res.status(404).json({ message: "Team not found." });
 
-    // Check exhibition game limits and entry item consumption
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    const tomorrow = new Date(today);
-    tomorrow.setDate(tomorrow.getDate() + 1);
+    // Check exhibition game limits using proper Eastern Time calculation
+    const { getCurrentGameDayRange } = await import('../../shared/timezone');
+    const { start: todayStart, end: todayEnd } = getCurrentGameDayRange();
 
     const allExhibitionMatchesToday = await prisma.game.findMany({
       where: {
@@ -401,8 +393,8 @@ router.post('/instant-match', isAuthenticated, async (req: any, res: Response, n
           { awayTeamId: userTeam.id }
         ],
         gameDate: {
-          gte: today,
-          lt: tomorrow
+          gte: todayStart,
+          lte: todayEnd
         }
       }
     });

@@ -32,6 +32,29 @@ export function getEasternTimeForDate(date: Date): moment.Moment {
 }
 
 /**
+ * Get the current "game day" date range in Eastern Time
+ * Game days reset at 3AM Eastern, so before 3AM counts as the previous day
+ */
+export function getCurrentGameDayRange(): { start: Date; end: Date } {
+  const easternTime = getEasternTime();
+  
+  // If it's before 3AM Eastern, use the previous calendar day
+  let gameDay = easternTime.clone();
+  if (easternTime.hour() < 3) {
+    gameDay = gameDay.subtract(1, 'day');
+  }
+  
+  // Game day starts at 3AM Eastern and ends at 2:59:59 AM Eastern the next day
+  const start = gameDay.clone().hour(3).minute(0).second(0).millisecond(0);
+  const end = gameDay.clone().add(1, 'day').hour(2).minute(59).second(59).millisecond(999);
+  
+  return {
+    start: start.toDate(),
+    end: end.toDate()
+  };
+}
+
+/**
  * Check if current time is within league game scheduling window (4PM-10PM Eastern)
  */
 export function isWithinSchedulingWindow(): boolean {
