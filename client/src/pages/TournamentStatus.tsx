@@ -112,8 +112,8 @@ export default function TournamentStatus() {
     isLoading: loadingStatus, 
     refetch: refetchStatus 
   } = useQuery<TournamentStatusData>({
-    queryKey: ['/api/tournament-status', selectedTournament, 'status'],
-    queryFn: () => selectedTournament ? apiRequest(`/api/tournament-status/${selectedTournament}/status`) : null,
+    queryKey: ['/api/tournament-status', String(selectedTournament), 'status'],
+    queryFn: () => selectedTournament ? apiRequest(`/api/tournament-status/${String(selectedTournament)}/status`) : null,
     enabled: !!selectedTournament,
     refetchInterval: 15000, // Refresh every 15 seconds
   });
@@ -121,7 +121,7 @@ export default function TournamentStatus() {
   // Force start tournament
   const handleForceStart = async (tournamentId: number) => {
     try {
-      const response = await apiRequest('POST', `/api/tournament-status/${tournamentId}/force-start`);
+      const response = await apiRequest('POST', `/api/tournament-status/${String(tournamentId)}/force-start`);
       if (response.ok) {
         toast({
           title: "Tournament Started",
@@ -147,7 +147,7 @@ export default function TournamentStatus() {
 
   const handleSimulateRound = async (round: string) => {
     try {
-      const response = await apiRequest('POST', `/api/tournament-status/${selectedTournament!.tournamentId}/simulate-round`, {
+      const response = await apiRequest('POST', `/api/tournament-status/${String(selectedTournament)}/simulate-round`, {
         round: round
       });
       
@@ -180,9 +180,13 @@ export default function TournamentStatus() {
       case 'bracket':
         // Transform API matches to match component expectations
         const transformedMatches = (tournamentStatus.matches || []).map(match => {
-          // Find team names from participants
-          const homeTeamData = tournamentStatus.participants.find(p => p.teamId === match.homeTeamId.toString());
-          const awayTeamData = tournamentStatus.participants.find(p => p.teamId === match.awayTeamId.toString());
+          // Find team names from participants - handle both nested objects and flat structure
+          const homeTeamData = tournamentStatus.participants.find(p => 
+            p.teamId === String(match.homeTeam?.id || match.homeTeamId)
+          );
+          const awayTeamData = tournamentStatus.participants.find(p => 
+            p.teamId === String(match.awayTeam?.id || match.awayTeamId)
+          );
           
           // Convert numeric round to round name
           let roundName = 'QUARTERFINALS';
@@ -191,15 +195,15 @@ export default function TournamentStatus() {
           else if (match.round === 3) roundName = 'FINALS';
           
           return {
-            id: match.id.toString(),
+            id: String(match.id),
             round: roundName,
             homeTeam: {
-              id: match.homeTeamId.toString(),
-              name: homeTeamData?.teamName || 'Unknown Team'
+              id: String(match.homeTeam?.id || match.homeTeamId || ''),
+              name: String(homeTeamData?.teamName || match.homeTeam?.name || 'Unknown Team')
             },
             awayTeam: {
-              id: match.awayTeamId.toString(),
-              name: awayTeamData?.teamName || 'Unknown Team'
+              id: String(match.awayTeam?.id || match.awayTeamId || ''),
+              name: String(awayTeamData?.teamName || match.awayTeam?.name || 'Unknown Team')
             },
             homeScore: match.homeScore,
             awayScore: match.awayScore,
@@ -208,15 +212,15 @@ export default function TournamentStatus() {
           };
         });
         
-        // Get user's team ID from tournament status
-        const userTeamId = tournamentStatus.userTeamEntry?.teamId;
+        // Get user's team ID from user object
+        const userTeamId = String(user?.teamId || '');
         
         return (
           <TournamentBracket
             tournament={{
-              id: tournamentStatus.id,
-              name: tournamentStatus.name,
-              status: tournamentStatus.status,
+              id: String(tournamentStatus.id),
+              name: String(tournamentStatus.name),
+              status: String(tournamentStatus.status),
               currentStage: tournamentStatus.currentStage || null
             }}
             matches={transformedMatches}

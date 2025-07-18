@@ -16,7 +16,7 @@ export function LiveMatchViewer({ matchId, userId, onMatchComplete }: LiveMatchV
 
   // Fetch initial match data
   const { data: initialMatchData, error: matchError, isLoading: matchDataLoading } = useQuery({
-    queryKey: [`/api/matches/${matchId}`],
+    queryKey: [`/api/matches/${String(matchId)}`],
     enabled: !!matchId,
     retry: 1,
     retryDelay: 1000,
@@ -28,7 +28,7 @@ export function LiveMatchViewer({ matchId, userId, onMatchComplete }: LiveMatchV
     queryFn: async () => {
       console.log(`🔍 Fetching match data for ID: ${matchId}`);
       try {
-        const response = await fetch(`/api/matches/${matchId}`, {
+        const response = await fetch(`/api/matches/${String(matchId)}`, {
           credentials: 'include',
           headers: {
             'Accept': 'application/json',
@@ -57,12 +57,12 @@ export function LiveMatchViewer({ matchId, userId, onMatchComplete }: LiveMatchV
 
   // Fetch enhanced match data
   const { data: enhancedData, isLoading: enhancedDataLoading, error: enhancedError } = useQuery({
-    queryKey: [`/api/matches/${matchId}/enhanced-data`],
+    queryKey: [`/api/matches/${String(matchId)}/enhanced-data`],
     enabled: !!matchId,
     queryFn: async () => {
       console.log(`🔍 Fetching enhanced data for ID: ${matchId}`);
       try {
-        const response = await fetch(`/api/matches/${matchId}/enhanced-data`, {
+        const response = await fetch(`/api/matches/${String(matchId)}/enhanced-data`, {
           credentials: 'include',
           headers: {
             'Accept': 'application/json',
@@ -139,12 +139,12 @@ export function LiveMatchViewer({ matchId, userId, onMatchComplete }: LiveMatchV
         <PostGameSummary
           matchId={matchId}
           homeTeam={{
-            id: initialMatchData.homeTeam?.id || '',
-            name: initialMatchData.homeTeam?.name || 'Home Team',
+            id: String(initialMatchData.homeTeam?.id || ''),
+            name: String(initialMatchData.homeTeam?.name || 'Home Team'),
             score: initialMatchData.homeScore || 0,
             stats: enhancedData?.teamStats?.home ? {
-              teamId: initialMatchData.homeTeam?.id || '',
-              teamName: initialMatchData.homeTeam?.name || 'Home Team',
+              teamId: String(initialMatchData.homeTeam?.id || ''),
+              teamName: String(initialMatchData.homeTeam?.name || 'Home Team'),
               totalScore: initialMatchData.homeScore || 0,
               totalOffensiveYards: enhancedData.teamStats.home.totalOffensiveYards || 0,
               passingYards: enhancedData.teamStats.home.passingYards || 0,
@@ -154,12 +154,12 @@ export function LiveMatchViewer({ matchId, userId, onMatchComplete }: LiveMatchV
             } : undefined
           }}
           awayTeam={{
-            id: initialMatchData.awayTeam?.id || '',
-            name: initialMatchData.awayTeam?.name || 'Away Team',
+            id: String(initialMatchData.awayTeam?.id || ''),
+            name: String(initialMatchData.awayTeam?.name || 'Away Team'),
             score: initialMatchData.awayScore || 0,
             stats: enhancedData?.teamStats?.away ? {
-              teamId: initialMatchData.awayTeam?.id || '',
-              teamName: initialMatchData.awayTeam?.name || 'Away Team',
+              teamId: String(initialMatchData.awayTeam?.id || ''),
+              teamName: String(initialMatchData.awayTeam?.name || 'Away Team'),
               totalScore: initialMatchData.awayScore || 0,
               totalOffensiveYards: enhancedData.teamStats.away.totalOffensiveYards || 0,
               passingYards: enhancedData.teamStats.away.passingYards || 0,
@@ -248,12 +248,12 @@ export function LiveMatchViewer({ matchId, userId, onMatchComplete }: LiveMatchV
   // Extract team data - handle both nested objects and flat structure
   console.log('🔍 Extracting team data from match:', initialMatchData);
   const team1 = initialMatchData.homeTeam || {
-    id: initialMatchData.homeTeamId,
-    name: initialMatchData.homeTeamName || 'Home Team'
+    id: String(initialMatchData.homeTeamId),
+    name: String(initialMatchData.homeTeamName || 'Home Team')
   };
   const team2 = initialMatchData.awayTeam || {
-    id: initialMatchData.awayTeamId,
-    name: initialMatchData.awayTeamName || 'Away Team'
+    id: String(initialMatchData.awayTeamId),
+    name: String(initialMatchData.awayTeamName || 'Away Team')
   };
   console.log('🔍 Team data extracted:', { team1, team2 });
 
