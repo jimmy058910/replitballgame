@@ -28,6 +28,11 @@ model UserProfile {
   ndaAccepted       Boolean             @default(false)
   ndaAcceptedAt     DateTime?
   ndaVersion        String?             @default("1.0")
+  
+  // Performance indexes
+  @@index([userId])
+  @@index([email])
+  @@index([createdAt])
 }
 
 model Session {
@@ -72,6 +77,13 @@ model Team {
   tryoutHistory        TryoutHistory[]
   homeTeamGames        Game[]           @relation("HomeTeamGames")
   awayTeamGames        Game[]           @relation("AwayTeamGames")
+  
+  // Performance indexes
+  @@index([userProfileId])
+  @@index([leagueId])
+  @@index([division, subdivision])
+  @@index([wins, losses, points])
+  @@index([createdAt])
 }
 
 enum FieldSize {
@@ -122,6 +134,17 @@ model Player {
   tryoutHistory               TryoutHistory[]
   activeBoosts                ActiveBoost[]
   currentEquipment            PlayerEquipment[]
+  
+  // Performance indexes
+  @@index([teamId])
+  @@index([race])
+  @@index([role])
+  @@index([age])
+  @@index([isOnMarket])
+  @@index([isRetired])
+  @@index([injuryStatus])
+  @@index([potentialRating])
+  @@index([createdAt])
 }
 
 model PlayerEquipment {
@@ -434,9 +457,16 @@ model Game {
   status        GameStatus  @default(SCHEDULED)
   createdAt     DateTime    @default(now())
 
+  // Performance indexes
   @@index([homeTeamId])
   @@index([awayTeamId])
   @@index([gameDate])
+  @@index([status])
+  @@index([matchType])
+  @@index([leagueId])
+  @@index([tournamentId])
+  @@index([status, gameDate])
+  @@index([matchType, gameDate])
 }
 
 enum GameStatus {

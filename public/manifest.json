@@ -1,0 +1,116 @@
+{
+  "name": "Realm Rivalry",
+  "short_name": "Realm Rivalry",
+  "description": "Advanced fantasy sports management with tactical team building and live match simulation",
+  "start_url": "/",
+  "display": "standalone",
+  "theme_color": "#6366f1",
+  "background_color": "#ffffff",
+  "orientation": "portrait-primary",
+  "scope": "/",
+  "lang": "en-US",
+  "categories": ["games", "sports", "entertainment"],
+  "icons": [
+    {
+      "src": "logo-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "logo-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Team Hub",
+      "short_name": "Team",
+      "description": "Manage your team roster and tactics",
+      "url": "/team",
+      "icons": [
+        {
+          "src": "icons/team-96.png",
+          "sizes": "96x96",
+          "type": "image/png"
+        }
+      ]
+    },
+    {
+      "name": "Live Matches",
+      "short_name": "Matches",
+      "description": "Watch live matches in progress",
+      "url": "/matches",
+      "icons": [
+        {
+          "src": "icons/match-96.png",
+          "sizes": "96x96",
+          "type": "image/png"
+        }
+      ]
+    },
+    {
+      "name": "Marketplace",
+      "short_name": "Market",
+      "description": "Trade players and buy equipment",
+      "url": "/marketplace",
+      "icons": [
+        {
+          "src": "icons/market-96.png",
+          "sizes": "96x96",
+          "type": "image/png"
+        }
+      ]
+    },
+    {
+      "name": "Competitions",
+      "short_name": "Compete",
+      "description": "Join tournaments and view standings",
+      "url": "/competition",
+      "icons": [
+        {
+          "src": "icons/trophy-96.png",
+          "sizes": "96x96",
+          "type": "image/png"
+        }
+      ]
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "screenshots/dashboard-mobile.png",
+      "sizes": "390x844",
+      "type": "image/png",
+      "form_factor": "narrow"
+    },
+    {
+      "src": "screenshots/dashboard-desktop.png",
+      "sizes": "1920x1080",
+      "type": "image/png",
+      "form_factor": "wide"
+    }
+  ],
+  "related_applications": [
+    {
+      "platform": "webapp",
+      "url": "https://realmrivalry.com"
+    }
+  ],
+  "prefer_related_applications": false,
+  "splash_pages": null,
+  "edge_side_panel": {
+    "preferred_width": 400
+  },
+  "handle_links": "preferred",
+  "launch_handler": {
+    "client_mode": "focus-existing"
+  },
+  "protocol_handlers": [
+    {
+      "protocol": "web+realmrivalry",
+      "url": "/?action=%s"
+    }
+  ]
+}
