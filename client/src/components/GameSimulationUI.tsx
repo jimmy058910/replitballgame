@@ -89,6 +89,13 @@ export function GameSimulationUI({ matchId, userId, team1, team2, initialLiveSta
     enabled: !!team2?.id
   });
 
+  // Fetch enhanced match data for MVP and stats
+  const { data: enhancedMatchData } = useQuery({
+    queryKey: [`/api/matches/${matchId ? String(matchId) : 'unknown'}/enhanced-data`],
+    enabled: !!matchId && !!liveState,
+    refetchInterval: 5000, // Refresh every 5 seconds during live match
+  });
+
   // Auto-scroll log to top
   useEffect(() => {
     if (logRef.current) {
@@ -282,12 +289,13 @@ export function GameSimulationUI({ matchId, userId, team1, team2, initialLiveSta
     const halftimeEvent = liveState?.gameEvents?.find(e => e.type === 'halftime');
     const finalEvent = liveState?.gameEvents?.find(e => e.type === 'match_complete');
 
+    console.log('🔍 MVP Debug - Enhanced Match Data:', enhancedMatchData);
     console.log('🔍 MVP Debug - Enhanced Data:', enhancedData);
     console.log('🔍 MVP Debug - Halftime Event:', halftimeEvent);
     console.log('🔍 MVP Debug - Final Event:', finalEvent);
 
-    // Check enhanced data for MVP data first
-    let mvpData = enhancedData?.mvpData || null;
+    // Check enhanced match data for MVP data first (from the API endpoint)
+    let mvpData = enhancedMatchData?.mvpData || null;
 
     if (finalEvent?.data?.mvp) {
       mvpData = finalEvent.data.mvp;
@@ -295,6 +303,9 @@ export function GameSimulationUI({ matchId, userId, team1, team2, initialLiveSta
     } else if (halftimeEvent?.data?.mvp) {
       mvpData = halftimeEvent.data.mvp;
       console.log('🎯 Using MVP data from halftime event:', mvpData);
+    } else if (enhancedMatchData?.mvpData) {
+      mvpData = enhancedMatchData.mvpData;
+      console.log('🎯 Using MVP data from enhanced match data:', mvpData);
     } else if (enhancedData?.mvpPlayers) {
       mvpData = {
         homeMVP: { playerName: enhancedData.mvpPlayers.home, score: 100 },
