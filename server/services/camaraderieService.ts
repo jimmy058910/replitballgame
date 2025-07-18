@@ -47,27 +47,35 @@ export interface SeasonEndCamaraderieUpdate {
 export class CamaraderieService {
   
   /**
-   * Calculate team camaraderie as average of only roster players (not on market, not retired)
+   * Calculate team camaraderie as average of only main roster players (first 12 by creation date, not on market, not retired)
    */
   static async getTeamCamaraderie(teamId: string): Promise<number> {
     try {
-      const result = await prisma.player.aggregate({
+      // Get main roster players only (first 12 by creation date, not on market, not retired)
+      const mainRosterPlayers = await prisma.player.findMany({
         where: {
           teamId: parseInt(teamId),
           isOnMarket: false,
           isRetired: false
         },
-        _avg: {
-          camaraderieScore: true
-        }
+        orderBy: {
+          createdAt: 'asc'
+        },
+        take: 12 // Only take first 12 for main roster
       });
-      
-      const teamCamaraderie = Math.round(Number(result._avg.camaraderieScore) || 50);
+
+      if (mainRosterPlayers.length === 0) {
+        return 50; // Default camaraderie if no players
+      }
+
+      const totalCamaraderie = mainRosterPlayers.reduce((sum, player) => sum + (player.camaraderieScore || 50), 0);
+      const teamCamaraderie = Math.round(totalCamaraderie / mainRosterPlayers.length);
       
       logInfo("Team camaraderie calculated", {
         teamId,
         teamCamaraderie,
-        note: "Only active roster players included"
+        mainRosterPlayerCount: mainRosterPlayers.length,
+        note: "Only main roster players included (first 12 by creation date)"
       });
       
       return teamCamaraderie;
@@ -426,7 +434,7 @@ export class CamaraderieService {
         throw ErrorCreators.notFound(`Team ${teamId} not found`);
       }
       
-      // Get only active roster players on the team (not on market, not retired)
+      // Get only main roster players (first 12 by creation date, not on market, not retired)
       const players = await prisma.player.findMany({
         where: { 
           teamId: teamId,
@@ -440,8 +448,13 @@ export class CamaraderieService {
           camaraderieScore: true,
           role: true,
           age: true,
-          race: true
-        }
+          race: true,
+          createdAt: true
+        },
+        orderBy: {
+          createdAt: 'asc'
+        },
+        take: 12 // Only take first 12 for main roster
       });
       
       // Calculate team camaraderie stats
@@ -597,91 +610,56 @@ export class CamaraderieService {
     try {
       const effects = await this.getCamaraderieEffects(teamId);
       
-      const playerStats = await prisma.player.aggregate({
+      // Get main roster players only (first 12 by creation date)
+      const mainRosterPlayers = await prisma.player.findMany({
         where: {
           teamId: parseInt(teamId),
           isOnMarket: false,
           isRetired: false
         },
-        _count: {
-          id: true
-        },
-        _avg: {
-          age: true
-        }
-      });
-      
-      const highMoraleCount = await prisma.player.count({
-        where: {
-          teamId: parseInt(teamId),
-          isOnMarket: false,
-          isRetired: false,
-          camaraderieScore: {
-            gte: 70
-          }
-        }
-      });
-      
-      const lowMoraleCount = await prisma.player.count({
-        where: {
-          teamId: parseInt(teamId),
-          isOnMarket: false,
-          isRetired: false,
-          camaraderieScore: {
-            lte: 30
-          }
-        }
-      });
-      
-      // Get top performers (high camaraderie players) - only roster players
-      const topPerformers = await prisma.player.findMany({
-        where: {
-          teamId: parseInt(teamId),
-          isOnMarket: false,
-          isRetired: false,
-          camaraderieScore: {
-            gte: 70
-          }
-        },
-        select: {
-          id: true,
-          firstName: true,
-          lastName: true,
-          camaraderieScore: true,
-          role: true,
-          age: true,
-          race: true
-        },
         orderBy: {
-          camaraderieScore: 'desc'
+          createdAt: 'asc'
         },
-        take: 5
+        take: 12
       });
+
+      const playerStats = {
+        _count: { id: mainRosterPlayers.length },
+        _avg: { age: mainRosterPlayers.length > 0 ? mainRosterPlayers.reduce((sum, p) => sum + p.age, 0) / mainRosterPlayers.length : 18 }
+      };
       
-      // Get players of concern (low camaraderie) - only roster players
-      const concernedPlayers = await prisma.player.findMany({
-        where: {
-          teamId: parseInt(teamId),
-          isOnMarket: false,
-          isRetired: false,
-          camaraderieScore: {
-            lte: 30
-          }
-        },
-        select: {
-          id: true,
-          firstName: true,
-          lastName: true,
-          camaraderieScore: true,
-          role: true,
-          age: true,
-          race: true
-        },
-        orderBy: {
-          camaraderieScore: 'asc'
-        },
-        take: 5
-      });
+      const highMoraleCount = mainRosterPlayers.filter(p => (p.camaraderieScore || 50) >= 70).length;
+      const lowMoraleCount = mainRosterPlayers.filter(p => (p.camaraderieScore || 50) <= 30).length;
+      
+      // Get top performers from main roster players (high camaraderie)
+      const topPerformers = mainRosterPlayers
+        .filter(p => (p.camaraderieScore || 50) >= 70)
+        .sort((a, b) => (b.camaraderieScore || 50) - (a.camaraderieScore || 50))
+        .slice(0, 5)
+        .map(p => ({
+          id: p.id,
+          firstName: p.firstName,
+          lastName: p.lastName,
+          camaraderieScore: p.camaraderieScore,
+          role: p.role,
+          age: p.age,
+          race: p.race
+        }));
+      
+      // Get players of concern from main roster players (low camaraderie)
+      const concernedPlayers = mainRosterPlayers
+        .filter(p => (p.camaraderieScore || 50) <= 30)
+        .sort((a, b) => (a.camaraderieScore || 50) - (b.camaraderieScore || 50))
+        .slice(0, 5)
+        .map(p => ({
+          id: p.id,
+          firstName: p.firstName,
+          lastName: p.lastName,
+          camaraderieScore: p.camaraderieScore,
+          role: p.role,
+          age: p.age,
+          race: p.race
+        }));
       
       return {
         teamCamaraderie: effects.teamCamaraderie,
