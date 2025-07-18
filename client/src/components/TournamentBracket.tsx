@@ -49,10 +49,10 @@ export default function TournamentBracket({ tournament, matches, userTeamId, isA
     const handleMatchClick = () => {
       if (isLive) {
         // Navigate to live match viewer
-        window.location.href = `/live-match/${match.id}`;
+        window.location.href = `/live-match/${String(match.id)}`;
       } else if (isCompleted) {
         // Navigate to completed match summary
-        window.location.href = `/live-match/${match.id}`;
+        window.location.href = `/live-match/${String(match.id)}`;
       }
     };
     
@@ -76,7 +76,7 @@ export default function TournamentBracket({ tournament, matches, userTeamId, isA
               ? 'bg-green-100 dark:bg-green-900 font-semibold' 
               : 'bg-gray-50 dark:bg-gray-700'
           }`}>
-            <span className="text-sm truncate text-gray-900 dark:text-gray-100">{match.homeTeam.name}</span>
+            <span className="text-sm truncate text-gray-900 dark:text-gray-100">{String(match.homeTeam.name)}</span>
             <span className="font-bold text-gray-900 dark:text-gray-100 ml-2">
               {(isCompleted || isLive) ? match.homeScore || 0 : ''}
             </span>
@@ -88,7 +88,7 @@ export default function TournamentBracket({ tournament, matches, userTeamId, isA
               ? 'bg-green-100 dark:bg-green-900 font-semibold' 
               : 'bg-gray-50 dark:bg-gray-700'
           }`}>
-            <span className="text-sm truncate text-gray-900 dark:text-gray-100">{match.awayTeam.name}</span>
+            <span className="text-sm truncate text-gray-900 dark:text-gray-100">{String(match.awayTeam.name)}</span>
             <span className="font-bold text-gray-900 dark:text-gray-100 ml-2">
               {(isCompleted || isLive) ? match.awayScore || 0 : ''}
             </span>
@@ -105,7 +105,7 @@ export default function TournamentBracket({ tournament, matches, userTeamId, isA
             {isScheduled && (
               <Badge variant="secondary" className="text-xs font-semibold">
                 <Clock className="w-3 h-3 mr-1" />
-                {match.gameTime || 'Tournament Start'}
+                {String(match.gameTime || 'Tournament Start')}
               </Badge>
             )}
             {isCompleted && (
@@ -145,7 +145,7 @@ export default function TournamentBracket({ tournament, matches, userTeamId, isA
   );
 
   const isUserInMatch = (match: TournamentMatch) => {
-    return match.homeTeam.id === userTeamId || match.awayTeam.id === userTeamId;
+    return String(match.homeTeam.id) === String(userTeamId) || String(match.awayTeam.id) === String(userTeamId);
   };
 
   const canSimulateRound = (round: string) => {
