@@ -180,6 +180,11 @@ const TournamentCenter: React.FC<TournamentCenterProps> = ({ teamId }) => {
     entry.type === 'DAILY_DIVISIONAL'
   );
 
+  // ✅ FIX: Check if user is already registered for Mid-Season Cup
+  const isRegisteredForMidSeasonCup = Array.isArray(dailyTournamentStatus) && dailyTournamentStatus.some((entry: any) => 
+    entry.type === 'MID_SEASON_CLASSIC'
+  );
+
   // Tournament entry mutation
   const enterTournamentMutation = useMutation({
     mutationFn: async (tournamentId: string) => {
@@ -423,10 +428,12 @@ const TournamentCenter: React.FC<TournamentCenterProps> = ({ teamId }) => {
                     </Badge>
                     <Button 
                       onClick={() => registerMidSeasonMutation.mutate("both")}
-                      disabled={registerMidSeasonMutation.isPending || teamInfo.credits < 10000 || teamInfo.gems < 20}
-                      className="bg-purple-600 hover:bg-purple-700 w-full"
+                      disabled={registerMidSeasonMutation.isPending || isRegisteredForMidSeasonCup || teamInfo.credits < 10000 || teamInfo.gems < 20}
+                      className={isRegisteredForMidSeasonCup ? "bg-green-600 hover:bg-green-700 w-full" : "bg-purple-600 hover:bg-purple-700 w-full"}
                     >
-                      {registerMidSeasonMutation.isPending ? "Registering..." : "Register (10,000₡ + 20💎)"}
+                      {registerMidSeasonMutation.isPending ? "Registering..." : 
+                       isRegisteredForMidSeasonCup ? "✓ Already Registered" : 
+                       "Register (10,000₡ + 20💎)"}
                     </Button>
                   </div>
                 )}
