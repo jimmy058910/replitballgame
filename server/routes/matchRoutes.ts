@@ -189,6 +189,34 @@ router.get('/test', async (req: Request, res: Response) => {
   res.json({ message: "Test endpoint working", timestamp: new Date().toISOString() });
 });
 
+// Manual match start endpoint for tournament debugging
+router.post('/start/:matchId', async (req: Request, res: Response) => {
+  try {
+    const { matchId } = req.params;
+    console.log(`Manual match start requested for match ${matchId}`);
+    
+    const result = await matchStateManager.startLiveMatch(matchId);
+    
+    res.json({ 
+      success: true, 
+      message: `Match ${matchId} started successfully`,
+      matchState: {
+        matchId: result.matchId,
+        status: result.status,
+        homeScore: result.homeScore,
+        awayScore: result.awayScore,
+        gameTime: result.gameTime
+      }
+    });
+  } catch (error) {
+    console.error(`Error starting match ${req.params.matchId}:`, error);
+    res.status(500).json({ 
+      success: false, 
+      error: error.message 
+    });
+  }
+});
+
 // Debug endpoint with specific path (must be before generic :matchId routes)
 router.get('/debug/:matchId', async (req: Request, res: Response) => {
   try {
