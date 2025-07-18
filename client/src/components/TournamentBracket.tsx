@@ -3,6 +3,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Trophy, Play, Clock, Users } from 'lucide-react';
+import { useLocation } from 'wouter';
 
 interface TournamentMatch {
   id: string;
@@ -36,6 +37,8 @@ interface TournamentBracketProps {
 }
 
 export default function TournamentBracket({ tournament, matches, userTeamId, isAdmin, onSimulateRound }: TournamentBracketProps) {
+  const [_, setLocation] = useLocation();
+  
   // Group matches by round - handle both string and integer round values
   const quarterfinalsMatches = matches.filter(m => m.round === 'QUARTERFINALS' || m.round === 1);
   const semifinalsMatches = matches.filter(m => m.round === 'SEMIFINALS' || m.round === 2);
@@ -49,10 +52,10 @@ export default function TournamentBracket({ tournament, matches, userTeamId, isA
     const handleMatchClick = () => {
       if (isLive) {
         // Navigate to live match viewer
-        window.location.href = `/live-match/${String(match.id)}`;
+        setLocation(`/live-match/${String(match.id)}`);
       } else if (isCompleted) {
         // Navigate to completed match summary
-        window.location.href = `/live-match/${String(match.id)}`;
+        setLocation(`/live-match/${String(match.id)}`);
       }
     };
     
@@ -76,7 +79,7 @@ export default function TournamentBracket({ tournament, matches, userTeamId, isA
               ? 'bg-green-100 dark:bg-green-900 font-semibold' 
               : 'bg-gray-50 dark:bg-gray-700'
           }`}>
-            <span className="text-sm truncate text-gray-900 dark:text-gray-100">{String(match.homeTeam.name)}</span>
+            <span className="text-sm truncate text-gray-900 dark:text-gray-100">{match.homeTeam?.name ? String(match.homeTeam.name) : 'Home Team'}</span>
             <span className="font-bold text-gray-900 dark:text-gray-100 ml-2">
               {(isCompleted || isLive) ? match.homeScore || 0 : ''}
             </span>
@@ -88,7 +91,7 @@ export default function TournamentBracket({ tournament, matches, userTeamId, isA
               ? 'bg-green-100 dark:bg-green-900 font-semibold' 
               : 'bg-gray-50 dark:bg-gray-700'
           }`}>
-            <span className="text-sm truncate text-gray-900 dark:text-gray-100">{String(match.awayTeam.name)}</span>
+            <span className="text-sm truncate text-gray-900 dark:text-gray-100">{match.awayTeam?.name ? String(match.awayTeam.name) : 'Away Team'}</span>
             <span className="font-bold text-gray-900 dark:text-gray-100 ml-2">
               {(isCompleted || isLive) ? match.awayScore || 0 : ''}
             </span>
@@ -105,7 +108,7 @@ export default function TournamentBracket({ tournament, matches, userTeamId, isA
             {isScheduled && (
               <Badge variant="secondary" className="text-xs font-semibold">
                 <Clock className="w-3 h-3 mr-1" />
-                {String(match.gameTime || 'Tournament Start')}
+                {match.gameTime ? String(match.gameTime) : 'Tournament Start'}
               </Badge>
             )}
             {isCompleted && (

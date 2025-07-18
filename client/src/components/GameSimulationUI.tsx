@@ -63,29 +63,29 @@ export function GameSimulationUI({ matchId, userId, team1, team2, initialLiveSta
 
   // Fetch initial match data
   const { data: initialMatchData, error: matchError } = useQuery({
-    queryKey: [`/api/matches/${String(matchId)}`],
+    queryKey: [`/api/matches/${matchId ? String(matchId) : 'unknown'}`],
     enabled: !!matchId
   });
 
   // Fetch team players for field display
   const { data: homeTeamPlayers } = useQuery({
-    queryKey: [`/api/teams/${String(team1?.id)}/players`],
+    queryKey: [`/api/teams/${team1?.id ? String(team1.id) : 'unknown'}/players`],
     enabled: !!team1?.id
   });
 
   const { data: awayTeamPlayers } = useQuery({
-    queryKey: [`/api/teams/${String(team2?.id)}/players`],
+    queryKey: [`/api/teams/${team2?.id ? String(team2.id) : 'unknown'}/players`],
     enabled: !!team2?.id
   });
 
   // Fetch formation data to show correct starters
   const { data: homeFormation } = useQuery({
-    queryKey: [`/api/teams/${String(team1?.id)}/formation`],
+    queryKey: [`/api/teams/${team1?.id ? String(team1.id) : 'unknown'}/formation`],
     enabled: !!team1?.id
   });
 
   const { data: awayFormation } = useQuery({
-    queryKey: [`/api/teams/${String(team2?.id)}/formation`],
+    queryKey: [`/api/teams/${team2?.id ? String(team2.id) : 'unknown'}/formation`],
     enabled: !!team2?.id
   });
 

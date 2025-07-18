@@ -248,12 +248,12 @@ export function LiveMatchViewer({ matchId, userId, onMatchComplete }: LiveMatchV
   // Extract team data - handle both nested objects and flat structure
   console.log('🔍 Extracting team data from match:', initialMatchData);
   const team1 = initialMatchData.homeTeam || {
-    id: String(initialMatchData.homeTeamId),
-    name: String(initialMatchData.homeTeamName || 'Home Team')
+    id: initialMatchData.homeTeamId ? String(initialMatchData.homeTeamId) : 'unknown',
+    name: initialMatchData.homeTeamName ? String(initialMatchData.homeTeamName) : 'Home Team'
   };
   const team2 = initialMatchData.awayTeam || {
-    id: String(initialMatchData.awayTeamId),
-    name: String(initialMatchData.awayTeamName || 'Away Team')
+    id: initialMatchData.awayTeamId ? String(initialMatchData.awayTeamId) : 'unknown',
+    name: initialMatchData.awayTeamName ? String(initialMatchData.awayTeamName) : 'Away Team'
   };
   console.log('🔍 Team data extracted:', { team1, team2 });
 
