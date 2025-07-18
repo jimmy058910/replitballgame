@@ -29,7 +29,7 @@ interface DailySchedule {
 }
 
 export default function LeagueSchedule() {
-  const { data: schedule, isLoading } = useQuery<DailySchedule>({
+  const { data: schedule, isLoading, error } = useQuery<DailySchedule>({
     queryKey: ["/api/leagues/daily-schedule"],
     refetchInterval: 30000, // Update every 30 seconds for live status
     enabled: true, // Re-enabled - endpoint is now implemented
@@ -39,6 +39,9 @@ export default function LeagueSchedule() {
     queryKey: ["/api/teams/my"],
     refetchInterval: 30000,
   });
+
+  // Debug logging
+  console.log("LeagueSchedule render:", { schedule, isLoading, error });
 
   if (isLoading) {
     return (
@@ -60,7 +63,25 @@ export default function LeagueSchedule() {
     );
   }
 
-  if (!schedule || !schedule.schedule) {
+  if (error) {
+    console.error("League schedule error:", error);
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Calendar className="w-5 h-5" />
+            League Schedule
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p className="text-red-600 dark:text-red-400">Error loading schedule: {error.message}</p>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  if (!schedule || !schedule.schedule || Object.keys(schedule.schedule).length === 0) {
+    console.log("No schedule data:", schedule);
     return (
       <Card>
         <CardHeader>
