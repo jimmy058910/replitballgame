@@ -278,8 +278,7 @@ export class UnifiedTournamentAutomation {
       await prisma.tournament.update({
         where: { id: tournamentId },
         data: {
-          status: 'COMPLETED',
-          completedAt: new Date()
+          status: 'COMPLETED'
         }
       });
 

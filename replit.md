@@ -173,6 +173,14 @@ Built as a React + Express web application with PostgreSQL database, using moder
 - ✓ **User Experience**: Streamlined player information display across all team management interfaces
 - ✓ **Production Ready**: Consistent UI components operational across all team management screens
 
+#### ✅ TOURNAMENT COMPLETION BUG FIXED - DATABASE SCHEMA COMPLIANCE
+- ✓ **Root Cause Identified**: Tournament completion code was trying to update non-existent `completedAt` field
+- ✓ **Database Schema Fix**: Removed invalid `completedAt` field from tournament update operation
+- ✓ **Tournament #0861 Completed**: Manually completed stuck tournament by updating status to 'COMPLETED'
+- ✓ **Frontend Error Fixed**: Added missing `playersError` variable to Team.tsx query destructuring
+- ✓ **Tournament History Ready**: Tournament #0861 now properly shows in tournament history instead of active tournaments
+- ✓ **Production Ready**: Tournament completion system operational with proper database schema compliance
+
 ### July 18, 2025 - ✅ FRONTEND ERROR FIXED - TOURNAMENT BRACKET SYSTEM COMPLETELY FIXED - ALL QUARTERFINALS RUNNING LIVE ✅ VERIFIED WORKING (Previous)
 
 #### ✅ FRONTEND ERROR COMPLETELY FIXED - OBJECT-TO-PRIMITIVE CONVERSION ERROR RESOLVED
