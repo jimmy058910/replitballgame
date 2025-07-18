@@ -3,7 +3,7 @@
  * Optimized for large lists with React.memo
  */
 import React, { memo } from 'react';
-import { UnifiedPlayerCard } from '@/components/UnifiedPlayerCard';
+import UnifiedPlayerCard from '@/components/UnifiedPlayerCard';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';

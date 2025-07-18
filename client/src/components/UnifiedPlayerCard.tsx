@@ -380,3 +380,5 @@ export default function UnifiedPlayerCard({
     </Card>
   );
 }
+
+// Component is already exported as default above

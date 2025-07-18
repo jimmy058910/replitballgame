@@ -4,7 +4,7 @@
  */
 import React, { useMemo } from 'react';
 import { VirtualizedPlayerList } from './VirtualizedList';
-import { UnifiedPlayerCard } from './UnifiedPlayerCard';
+import UnifiedPlayerCard from './UnifiedPlayerCard';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { calculatePlayerPower } from '@/utils/playerUtils';
