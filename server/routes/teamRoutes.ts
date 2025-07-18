@@ -305,6 +305,7 @@ router.get('/:id/players', isAuthenticated, async (req: Request, res: Response, 
 
 // Formation saving route
 router.post('/:teamId/formation', isAuthenticated, async (req: any, res: Response, next: NextFunction) => {
+  console.log('🚀 POST Formation route hit!');
   try {
     let teamId = req.params.teamId;
 
@@ -376,6 +377,7 @@ router.post('/:teamId/formation', isAuthenticated, async (req: any, res: Respons
 
 // Formation PUT route for TacticsLineupHub
 router.put('/:teamId/formation', isAuthenticated, async (req: any, res: Response, next: NextFunction) => {
+  console.log('🚀 PUT Formation route hit!');
   try {
     let teamId: number;
 

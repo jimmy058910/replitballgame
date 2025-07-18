@@ -16,6 +16,9 @@ export const sanitizeInput = (input: any): any => {
   if (typeof input === 'string') {
     return sanitizeHtml(input);
   }
+  if (Array.isArray(input)) {
+    return input.map(item => sanitizeInput(item));
+  }
   if (typeof input === 'object' && input !== null) {
     const sanitized: any = {};
     for (const key in input) {
