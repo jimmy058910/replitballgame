@@ -616,6 +616,17 @@ router.get('/:teamId/formation', isAuthenticated, async (req: any, res: Response
       overallRating: Math.round((player.speed + player.power + player.agility + player.throwing + player.catching + player.kicking) / 6)
     }));
 
+    console.log('🔍 Final formation response:', {
+      startersCount: enhancedStarters.length,
+      substitutesCount: enhancedSubstitutes.length,
+      finalSubstitutesOrder: enhancedSubstitutes.map((s: any, index: number) => ({
+        index: index,
+        id: s.id,
+        firstName: s.firstName,
+        role: s.role
+      }))
+    });
+    
     res.json({
       starters: enhancedStarters,
       substitutes: enhancedSubstitutes,
