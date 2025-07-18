@@ -495,18 +495,18 @@ export function GameSimulationUI({ matchId, userId, team1, team2, initialLiveSta
             <div className="text-center space-y-2">
               <div className="flex items-center justify-between text-sm">
                 <div className="flex items-center gap-2">
-                  {liveState.possessingTeamId === String(team1?.id) && (
+                  {liveState.possessingTeamId === (team1?.id ? String(team1.id) : '') && (
                     <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
                   )}
-                  <span className={liveState.possessingTeamId === String(team1?.id) ? "font-bold" : ""}>
-                    {String(team1?.name || "Home Team")}
+                  <span className={liveState.possessingTeamId === (team1?.id ? String(team1.id) : '') ? "font-bold" : ""}>
+                    {team1?.name ? String(team1.name) : "Home Team"}
                   </span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <span className={liveState.possessingTeamId === String(team2?.id) ? "font-bold" : ""}>
-                    {String(team2?.name || "Away Team")}
+                  <span className={liveState.possessingTeamId === (team2?.id ? String(team2.id) : '') ? "font-bold" : ""}>
+                    {team2?.name ? String(team2.name) : "Away Team"}
                   </span>
-                  {liveState.possessingTeamId === String(team2?.id) && (
+                  {liveState.possessingTeamId === (team2?.id ? String(team2.id) : '') && (
                     <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
                   )}
                 </div>
@@ -597,7 +597,7 @@ export function GameSimulationUI({ matchId, userId, team1, team2, initialLiveSta
           <CardHeader className="pb-2">
             <CardTitle className="text-lg flex items-center gap-2">
               <Target className="h-5 w-5 text-green-500" />
-              {String(team1?.name || "Home")} Key Performer
+              {team1?.name ? String(team1.name) : "Home"} Key Performer
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -619,7 +619,7 @@ export function GameSimulationUI({ matchId, userId, team1, team2, initialLiveSta
           <CardHeader className="pb-2">
             <CardTitle className="text-lg flex items-center gap-2">
               <Target className="h-5 w-5 text-red-500" />
-              {String(team2?.name || "Away")} Key Performer
+              {team2?.name ? String(team2.name) : "Away"} Key Performer
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -652,18 +652,18 @@ export function GameSimulationUI({ matchId, userId, team1, team2, initialLiveSta
             <div className="space-y-3">
               <div className="text-center">
                 <h3 className="font-semibold text-red-600 border-b-2 border-red-200 pb-1">
-                  {String(team1?.name || "Home Team")}
+                  {team1?.name ? String(team1.name) : "Home Team"}
                 </h3>
               </div>
               <div className="grid grid-cols-2 gap-2">
                 {getFieldPlayers().home.map((player: any, index: number) => (
                   <div key={player.id} className="bg-red-50 dark:bg-red-900/20 border-l-4 border-red-500 p-2 rounded-r">
                     <div className="text-sm font-medium text-red-700 dark:text-red-300">
-                      {String(player.firstName)} {String(player.lastName)}
+                      {player.firstName ? String(player.firstName) : "Unknown"} {player.lastName ? String(player.lastName) : "Player"}
                     </div>
                     <div className="text-xs text-red-600 dark:text-red-400 flex justify-between">
-                      <span>{String(player.race)} {String(player.role)}</span>
-                      <span className="font-mono">PWR: {String(player.power)}</span>
+                      <span>{player.race ? String(player.race) : "Unknown"} {player.role ? String(player.role) : "Role"}</span>
+                      <span className="font-mono">PWR: {player.power ? String(player.power) : "0"}</span>
                     </div>
                   </div>
                 ))}
@@ -674,18 +674,18 @@ export function GameSimulationUI({ matchId, userId, team1, team2, initialLiveSta
             <div className="space-y-3">
               <div className="text-center">
                 <h3 className="font-semibold text-blue-600 border-b-2 border-blue-200 pb-1">
-                  {String(team2?.name || "Away Team")}
+                  {team2?.name ? String(team2.name) : "Away Team"}
                 </h3>
               </div>
               <div className="grid grid-cols-2 gap-2">
                 {getFieldPlayers().away.map((player: any, index: number) => (
                   <div key={player.id} className="bg-blue-50 dark:bg-blue-900/20 border-l-4 border-blue-500 p-2 rounded-r">
                     <div className="text-sm font-medium text-blue-700 dark:text-blue-300">
-                      {String(player.firstName)} {String(player.lastName)}
+                      {player.firstName ? String(player.firstName) : "Unknown"} {player.lastName ? String(player.lastName) : "Player"}
                     </div>
                     <div className="text-xs text-blue-600 dark:text-blue-400 flex justify-between">
-                      <span>{String(player.race)} {String(player.role)}</span>
-                      <span className="font-mono">PWR: {String(player.power)}</span>
+                      <span>{player.race ? String(player.race) : "Unknown"} {player.role ? String(player.role) : "Role"}</span>
+                      <span className="font-mono">PWR: {player.power ? String(player.power) : "0"}</span>
                     </div>
                   </div>
                 ))}
