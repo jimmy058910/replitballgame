@@ -185,14 +185,96 @@ class MatchStateManager {
             where: { teamId: match.awayTeamId, isOnMarket: false }
           });
 
-          // Resume match simulation
-          this.startMatchSimulation(match.id.toString(), homeTeamPlayers, awayTeamPlayers);
+          // Get formation data to determine starters
+          const homeFormation = await this.getTeamFormation(match.homeTeamId);
+          const awayFormation = await this.getTeamFormation(match.awayTeamId);
+
+          // Apply formation data to determine starters
+          const homeStarters = this.applyFormationToPlayers(homeTeamPlayers, homeFormation);
+          const awayStarters = this.applyFormationToPlayers(awayTeamPlayers, awayFormation);
+
+          // Resume match simulation with formation starters
+          this.startMatchSimulation(match.id.toString(), homeStarters, awayStarters, homeTeamPlayers, awayTeamPlayers);
           log(`✅ Recovered live match ${match.id} with ${liveState.gameEvents.length} events`);
         }
       }
     } catch (error) {
       log(`❌ Failed to recover live matches: ${error}`);
     }
+  }
+
+  // Helper function to get formation data for a team
+  private async getTeamFormation(teamId: number): Promise<{ starters: any[], formation: string } | null> {
+    try {
+      const strategy = await prisma.strategy.findUnique({
+        where: { teamId: teamId }
+      });
+      
+      if (strategy && strategy.formationJson) {
+        let formationData;
+        
+        console.log(`🔍 Raw formation data for team ${teamId}:`, strategy.formationJson, typeof strategy.formationJson);
+        
+        // Handle both string and object format
+        if (typeof strategy.formationJson === 'string') {
+          formationData = JSON.parse(strategy.formationJson);
+        } else if (typeof strategy.formationJson === 'object' && strategy.formationJson !== null) {
+          // Already an object (Prisma JSON field)
+          formationData = strategy.formationJson;
+        } else {
+          console.log(`⚠️ Invalid formation data format for team ${teamId}:`, typeof strategy.formationJson);
+          return null;
+        }
+        
+        console.log(`🔍 Parsed formation data for team ${teamId}:`, formationData);
+        return formationData;
+      }
+      
+      console.log(`⚠️ No formation data found for team ${teamId}`);
+      return null;
+    } catch (error) {
+      console.error(`Error getting formation for team ${teamId}:`, error);
+      return null;
+    }
+  }
+
+  // Helper function to apply formation data to select starters
+  private applyFormationToPlayers(teamPlayers: Player[], formation: { starters: any[], formation: string } | null): Player[] {
+    if (!formation || !formation.starters) {
+      // No formation data - use default selection (first 6 players by role)
+      console.log(`🎯 Using default starter selection for team (no formation data)`);
+      return this.selectDefaultStarters(teamPlayers);
+    }
+
+    // Formation data exists - use the specified starters
+    console.log(`🎯 Using formation starters:`, formation.starters);
+    const starterIds = formation.starters.map(s => s.id);
+    const selectedStarters = teamPlayers.filter(player => starterIds.includes(player.id));
+    
+    if (selectedStarters.length !== 6) {
+      console.warn(`⚠️ Formation has ${selectedStarters.length} starters instead of 6, falling back to default selection`);
+      return this.selectDefaultStarters(teamPlayers);
+    }
+    
+    console.log(`✅ Selected formation starters:`, selectedStarters.map(p => `${p.firstName} ${p.lastName} (${p.role})`));
+    return selectedStarters;
+  }
+
+  // Helper function to select default starters when no formation exists
+  private selectDefaultStarters(teamPlayers: Player[]): Player[] {
+    const blockers = teamPlayers.filter(p => p.role === 'BLOCKER');
+    const runners = teamPlayers.filter(p => p.role === 'RUNNER');
+    const passers = teamPlayers.filter(p => p.role === 'PASSER');
+    
+    // Select 2 blockers, 2 runners, 2 passers (standard formation)
+    const starters = [
+      ...blockers.slice(0, 2),
+      ...runners.slice(0, 2),
+      ...passers.slice(0, 2)
+    ];
+    
+    console.log(`🎯 Default starters selected:`, starters.map(p => `${p.firstName} ${p.lastName} (${p.role})`));
+    return starters;
   }
 
   // Start a new live match with server-side state management
@@ -218,6 +300,19 @@ class MatchStateManager {
         teamId: match.awayTeamId,
         isOnMarket: false
       }
+    });
+
+    // Get formation data for both teams
+    const homeFormation = await this.getTeamFormation(match.homeTeamId);
+    const awayFormation = await this.getTeamFormation(match.awayTeamId);
+
+    // Apply formation data to determine starters
+    const homeStarters = this.applyFormationToPlayers(homeTeamPlayers, homeFormation);
+    const awayStarters = this.applyFormationToPlayers(awayTeamPlayers, awayFormation);
+
+    console.log(`🏟️ Match ${matchId} starters:`, {
+      home: homeStarters.map(p => `${p.firstName} ${p.lastName} (${p.role})`),
+      away: awayStarters.map(p => `${p.firstName} ${p.lastName} (${p.role})`)
     });
 
     const maxTime = isExhibition ? 1200 : 1800; // 20 min exhibition, 30 min league
@@ -278,8 +373,8 @@ class MatchStateManager {
       await injuryStaminaService.setMatchStartStamina(player.id, gameMode);
     }
     
-    // Start the match simulation loop
-    this.startMatchSimulation(matchId, homeTeamPlayers, awayTeamPlayers);
+    // Start the match simulation loop with formation starters
+    this.startMatchSimulation(matchId, homeStarters, awayStarters, homeTeamPlayers, awayTeamPlayers);
     
     // Save initial state to database
     await this.saveLiveStateToDatabase(matchId, matchState);
@@ -334,14 +429,22 @@ class MatchStateManager {
 
     // Get players for continued simulation
     const homeTeamPlayers = await prisma.player.findMany({
-      where: { teamId: state.homeTeamId, isOnMarket: false }
+      where: { teamId: parseInt(state.homeTeamId), isOnMarket: false }
     });
     const awayTeamPlayers = await prisma.player.findMany({
-      where: { teamId: state.awayTeamId, isOnMarket: false }
+      where: { teamId: parseInt(state.awayTeamId), isOnMarket: false }
     });
 
-    // Resume match simulation
-    this.startMatchSimulation(matchId, homeTeamPlayers, awayTeamPlayers);
+    // Get formation data to determine starters
+    const homeFormation = await this.getTeamFormation(parseInt(state.homeTeamId));
+    const awayFormation = await this.getTeamFormation(parseInt(state.awayTeamId));
+
+    // Apply formation data to determine starters
+    const homeStarters = this.applyFormationToPlayers(homeTeamPlayers, homeFormation);
+    const awayStarters = this.applyFormationToPlayers(awayTeamPlayers, awayFormation);
+
+    // Resume match simulation with formation starters
+    this.startMatchSimulation(matchId, homeStarters, awayStarters, homeTeamPlayers, awayTeamPlayers);
   }
 
   // Synchronize client with server state
@@ -378,15 +481,23 @@ class MatchStateManager {
 
       // Get players for continued simulation
       const homeTeamPlayers = await prisma.player.findMany({
-        where: { teamId: liveState.homeTeamId, isOnMarket: false }
+        where: { teamId: parseInt(liveState.homeTeamId), isOnMarket: false }
       });
       const awayTeamPlayers = await prisma.player.findMany({
-        where: { teamId: liveState.awayTeamId, isOnMarket: false }
+        where: { teamId: parseInt(liveState.awayTeamId), isOnMarket: false }
       });
 
       // Resume match simulation if not completed
       if (liveState.status === 'live') {
-        this.startMatchSimulation(matchId, homeTeamPlayers, awayTeamPlayers);
+        // Get formation data to determine starters
+        const homeFormation = await this.getTeamFormation(parseInt(liveState.homeTeamId));
+        const awayFormation = await this.getTeamFormation(parseInt(liveState.awayTeamId));
+
+        // Apply formation data to determine starters
+        const homeStarters = this.applyFormationToPlayers(homeTeamPlayers, homeFormation);
+        const awayStarters = this.applyFormationToPlayers(awayTeamPlayers, awayFormation);
+
+        this.startMatchSimulation(matchId, homeStarters, awayStarters, homeTeamPlayers, awayTeamPlayers);
       }
 
       console.log(`🔄 Restarted match ${matchId} from database with ${liveState.gameEvents.length} events`);
@@ -397,20 +508,20 @@ class MatchStateManager {
     }
   }
 
-  private startMatchSimulation(matchId: string, homeTeamPlayers: Player[], awayTeamPlayers: Player[]) {
+  private startMatchSimulation(matchId: string, homeStarters: Player[], awayStarters: Player[], homeTeamPlayers: Player[], awayTeamPlayers: Player[]) {
     const existingInterval = this.matchIntervals.get(matchId);
     if (existingInterval) {
       clearInterval(existingInterval);
     }
 
     const interval = setInterval(async () => {
-      await this.updateMatchState(matchId, homeTeamPlayers, awayTeamPlayers);
+      await this.updateMatchState(matchId, homeStarters, awayStarters, homeTeamPlayers, awayTeamPlayers);
     }, 3000); // 3 real seconds = 9 game seconds (3x speed)
 
     this.matchIntervals.set(matchId, interval);
   }
 
-  private async updateMatchState(matchId: string, homeTeamPlayers: Player[], awayTeamPlayers: Player[]) {
+  private async updateMatchState(matchId: string, homeStarters: Player[], awayStarters: Player[], homeTeamPlayers: Player[], awayTeamPlayers: Player[]) {
     const state = this.liveMatches.get(matchId);
     if (!state || state.status !== 'live') {
       return;
@@ -432,7 +543,7 @@ class MatchStateManager {
       this.handlePossessionChange(state, state.possessingTeamId, null, state.gameTime); // End of half might mean ball goes to other team or neutral
       state.currentHalf = 2;
       
-      // Calculate current MVP for halftime display
+      // Calculate current MVP for halftime display (use all players for stats)
       const currentMVP = this.calculateCurrentMVP(state, homeTeamPlayers, awayTeamPlayers);
       
       // Generate halftime event with team stats and MVP
@@ -450,10 +561,10 @@ class MatchStateManager {
       this.handlePossessionChange(state, null, newPossessingTeam, state.gameTime);
     }
 
-    // Generate enhanced match events using the comprehensive simulation engine
+    // Generate enhanced match events using the formation starters
     if (Math.random() < 0.7) { // 70% chance of an event each update cycle
       try {
-        const enhancedEvent = await this.generateEnhancedMatchEvent(homeTeamPlayers, awayTeamPlayers, state);
+        const enhancedEvent = await this.generateEnhancedMatchEvent(homeStarters, awayStarters, state);
         if (enhancedEvent) {
           state.gameEvents.push(enhancedEvent);
           console.log(`[DEBUG] Generated event: ${enhancedEvent.type} by ${enhancedEvent.actingPlayerId}`);
@@ -693,6 +804,12 @@ class MatchStateManager {
   private calculateCurrentMVP(state: LiveMatchState, homePlayers: Player[], awayPlayers: Player[]) {
     let homeMVP = { playerId: '', playerName: '', score: 0 };
     let awayMVP = { playerId: '', playerName: '', score: 0 };
+    
+    // Ensure homePlayers and awayPlayers are arrays
+    if (!Array.isArray(homePlayers) || !Array.isArray(awayPlayers)) {
+      console.error('calculateCurrentMVP: homePlayers or awayPlayers is not an array', { homePlayers, awayPlayers });
+      return { homeMVP, awayMVP };
+    }
     
     for (const [playerId, stats] of state.playerStats.entries()) {
       const player = [...homePlayers, ...awayPlayers].find(p => p.id.toString() === playerId);
