@@ -313,7 +313,7 @@ class MatchStateManager {
       away: awayStarters.map(p => `${p.firstName} ${p.lastName} (${p.role})`)
     });
 
-    const maxTime = isExhibition ? 1800 : 2400; // 30 min exhibition, 40 min league
+    const maxTime = isExhibition ? 1200 : 1800; // 20 min exhibition, 30 min league
 
     const initialPlayerStats = new Map<string, PlayerStatsSnapshot>();
     const allPlayers = [...homeTeamPlayers, ...awayTeamPlayers];

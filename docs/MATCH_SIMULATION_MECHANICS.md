@@ -305,8 +305,8 @@ MVPScore = (Scores × 10) + (Catches × 3) + (PassAttempts × 0.5) +
 ### Simulation Timing
 
 **Match Duration**:
-- Exhibition matches: 20 minutes (10 minutes per half)
-- League matches: 30 minutes (15 minutes per half)
+- Exhibition matches: 20 minutes (10 minutes per half) = 1200 seconds
+- League matches: 30 minutes (15 minutes per half) = 1800 seconds
 - Real-time viewing: 3 real minutes per half (6 minutes total)
 
 **Event Generation**:
