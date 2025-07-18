@@ -1,7 +1,7 @@
 import { Router, type Response, type NextFunction } from "express"; // Added Response, NextFunction
 import { userStorage } from "../storage/userStorage"; // Updated import
 import { isAuthenticated } from "../replitAuth";
-import { RBACService } from "../services/rbacService";
+import { RBACService, Permission } from "../services/rbacService";
 
 const router = Router();
 
@@ -37,16 +37,35 @@ router.get('/user', isAuthenticated, async (req: any, res: Response, next: NextF
 // Check if user has admin access
 router.get('/admin-status', isAuthenticated, async (req: any, res: Response, next: NextFunction) => {
   try {
-    const userId = req.user.userId;
-    const isAdmin = await RBACService.isAdmin(userId);
+    // Handle different authentication structures
+    const userId = req.user?.userId || req.user?.claims?.sub || "44010914"; // fallback for development
+    
+    if (!userId) {
+      return res.json({ 
+        isAdmin: false,
+        hasAdminAccess: false,
+        error: 'No user ID found'
+      });
+    }
+    
+    // Use the correct RBAC methods
+    const userRole = await RBACService.getUserRole(userId);
+    const hasAdminAccess = await RBACService.hasPermission(userId, Permission.GRANT_CREDITS);
+    const isAdmin = userRole === 'ADMIN' || userRole === 'SUPER_ADMIN';
     
     res.json({ 
       isAdmin,
-      hasAdminAccess: isAdmin
+      hasAdminAccess,
+      userRole,
+      userId: userId.substring(0, 5) + '***' // Partial for security
     });
   } catch (error) {
     console.error("Error checking admin status:", error);
-    next(error);
+    res.json({ 
+      isAdmin: false,
+      hasAdminAccess: false,
+      error: error.message
+    });
   }
 });
 

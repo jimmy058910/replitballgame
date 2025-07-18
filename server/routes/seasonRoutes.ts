@@ -48,6 +48,29 @@ router.get('/current', isAuthenticated, async (req: Request, res: Response, next
 });
 
 // Get current season cycle (day-by-day info)
+// Get current week info (simple week data for SuperUser page)
+router.get('/current-week', isAuthenticated, async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const currentSeason = await storage.seasons.getCurrentSeason();
+    let week = 1;
+    let season = "Season 0";
+    
+    if (currentSeason) {
+      week = Math.ceil(currentSeason.currentDay / 7) || 1; // Simple week calculation
+      season = `Season ${currentSeason.seasonNumber || 0}`;
+    }
+    
+    res.json({ 
+      week,
+      season,
+      currentDay: currentSeason?.currentDay || 1
+    });
+  } catch (error) {
+    console.error("Error fetching current week:", error);
+    next(error);
+  }
+});
+
 router.get('/current-cycle', isAuthenticated, async (req: Request, res: Response, next: NextFunction) => {
   try {
     // Get current season from database to get the actual currentDay

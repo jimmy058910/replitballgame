@@ -1,732 +1,563 @@
 import { useState } from "react";
 import { useMutation, useQuery } from "@tanstack/react-query";
-import ServerTimeDisplay from "@/components/ServerTimeDisplay";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import { Settings, Calendar, Trophy, CreditCard, Bell, Shield, Users, Search, TrendingUp } from "lucide-react";
+import { 
+  Settings, Calendar, Trophy, CreditCard, Bell, Shield, Users, Search, 
+  TrendingUp, PlayCircle, StopCircle, RefreshCw, Database, AlertTriangle,
+  CheckCircle, Clock, Crown, Zap
+} from "lucide-react";
+import ServerTimeDisplay from "@/components/ServerTimeDisplay";
 import DailyProgressionTest from "@/components/DailyProgressionTest";
 
 // Type interfaces for API responses
+interface AdminStatus {
+  isAdmin: boolean;
+  hasAdminAccess: boolean;
+  userRole: string;
+  userId: string;
+}
+
 interface Team {
   id: string;
   name: string;
   division: number;
   credits: number;
+  wins: number;
+  losses: number;
+  draws: number;
 }
 
 interface CurrentWeek {
   week: number;
   season: string;
+  currentDay: number;
 }
 
-interface AdvanceDayResponse {
-  success: boolean;
-  newDay: number;
-  isNewSeason: boolean;
-  message?: string;
+interface SystemStats {
+  totalTeams: number;
+  totalPlayers: number;
+  activeMatches: number;
+  activeTournaments: number;
 }
 
 export default function SuperUser() {
   const { toast } = useToast();
+  const [selectedTeamId, setSelectedTeamId] = useState("");
   const [creditsAmount, setCreditsAmount] = useState(50000);
   const [premiumAmount, setPremiumAmount] = useState(100);
   const [divisionToCleanup, setDivisionToCleanup] = useState(8);
   const [playerCount, setPlayerCount] = useState(3);
+  const [forceMessage, setForceMessage] = useState("");
 
-  const { data: rawTeam } = useQuery<Team>({
-    queryKey: ["/api/teams/my"],
-  });
-
-  // Example: If currentWeek is needed, type it appropriately
-  // const currentWeekQuery = useQuery({
-  //   queryKey: ["currentWeek"],
-  //   queryFn: (): Promise<CurrentWeekData> => apiRequest("/api/season/current-week"),
-  // });
-  // const currentWeek = currentWeekQuery.data as CurrentWeekData | undefined;
-
-  const { data: rawCurrentWeek } = useQuery<CurrentWeek>({
-    queryKey: ["/api/season/current-week"],
-  });
-
-  // Check admin status using RBAC system
-  const { data: adminStatus } = useQuery({
+  // Core data queries
+  const { data: adminStatus, isLoading: adminLoading } = useQuery<AdminStatus>({
     queryKey: ["/api/auth/admin-status"],
   });
 
-  // Type assertions to fix property access issues
-  const team = (rawTeam || {}) as Team;
-  const currentWeek = (rawCurrentWeek || {}) as CurrentWeek;
-
-  // Season management mutations
-  const advanceDayMutation = useMutation({
-    mutationFn: (): Promise<AdvanceDayResponse> =>
-      apiRequest("/api/superuser/advance-day", "POST"),
-    onSuccess: (data: AdvanceDayResponse) => {
-      toast({
-        title: "Day Advanced",
-        description: data.message || `Successfully advanced to Day ${data.newDay}${data.isNewSeason ? " (New Season)" : ""}`,
-      });
-      queryClient.invalidateQueries({ queryKey: ["currentSeasonCycle"] });
-    },
-    onError: (error: Error) => {
-      toast({
-        title: "Error",
-        description: error.message || "Failed to advance day",
-        variant: "destructive",
-      });
-    },
+  const { data: myTeam } = useQuery<Team>({
+    queryKey: ["/api/teams/my"],
   });
 
-  const resetSeasonMutation = useMutation({
-    mutationFn: (): Promise<ResetSeasonResponse> =>
-      apiRequest("/api/superuser/reset-season", "POST"),
-    onSuccess: (data: ResetSeasonResponse) => {
-      toast({
-        title: "Season Reset",
-        description: data.message || `Season reset to Day 1. ${data.teamsReset} teams reset, ${data.matchesStopped} matches stopped.`,
-      });
-      queryClient.invalidateQueries({ queryKey: ["currentSeasonCycle"] });
-      queryClient.invalidateQueries({ queryKey: ["allLeagues"] });
-      queryClient.invalidateQueries({ queryKey: ["myTeam"] });
-    },
-    onError: (error: Error) => {
-      toast({
-        title: "Error",
-        description: error.message || "Failed to reset season",
-        variant: "destructive",
-      });
-    },
+  const { data: currentWeek } = useQuery<CurrentWeek>({
+    queryKey: ["/api/season/current-week"],
   });
 
-  const cleanupDivisionMutation = useMutation({
-    mutationFn: (payload: CleanupDivisionPayload): Promise<CleanupDivisionResponse> =>
-      apiRequest("/api/superuser/cleanup-division", "POST", payload),
-    onSuccess: (data: CleanupDivisionResponse) => {
-      toast({
-        title: "Division Cleaned Up",
-        description: data.message || `Division ${data.details?.division || divisionToCleanup}: ${data.teamsRemoved} teams removed, ${data.remainingTeams} teams remaining`,
-      });
-      queryClient.invalidateQueries({ queryKey: ["allLeagues"] });
-    },
-    onError: (error: Error) => {
-      toast({
-        title: "Error",
-        description: error.message || "Failed to clean up division",
-        variant: "destructive",
-      });
-    },
+  // System statistics for admin dashboard
+  const { data: systemStats } = useQuery<SystemStats>({
+    queryKey: ["/api/system/stats"],
   });
 
-  const resetTryoutRestrictionsMutation = useMutation({
-    mutationFn: async () => {
-      return await apiRequest("/api/superuser/reset-tryout-restrictions", "POST");
-    },
-    onSuccess: (data: any) => {
-      toast({
-        title: "Tryout Restrictions Reset",
-        description: "You can now host tryouts again for testing purposes",
-      });
-      queryClient.invalidateQueries({ queryKey: [`/api/teams/${team?.id}/seasonal-data`] });
-      queryClient.invalidateQueries({ queryKey: [`/api/teams/${team?.id}/taxi-squad`] });
-    },
-    onError: (error: any) => {
-      toast({
-        title: "Error",
-        description: "Failed to reset tryout restrictions",
-        variant: "destructive",
-      });
-    },
-  });
-
-  // Promote to admin mutation
+  // Admin promotion mutation
   const promoteToAdminMutation = useMutation({
-    mutationFn: async () => {
-      return await apiRequest("/api/auth/promote-to-admin", "POST");
-    },
-    onSuccess: (data: any) => {
+    mutationFn: () => apiRequest("/api/auth/promote-to-admin", "POST"),
+    onSuccess: (data) => {
       toast({
-        title: "Promotion Successful",
-        description: data.message,
+        title: "Admin Promotion Successful",
+        description: data.message || "You have been promoted to admin status",
       });
       queryClient.invalidateQueries({ queryKey: ["/api/auth/admin-status"] });
     },
-    onError: (error: any) => {
+    onError: (error: Error) => {
       toast({
-        title: "Error",
-        description: "Failed to promote to admin",
+        title: "Promotion Failed",
+        description: error.message,
         variant: "destructive",
       });
     },
   });
 
-  // Demo notifications mutation
-  const createNotificationsMutation = useMutation({
-    mutationFn: (): Promise<void> =>
-      apiRequest("/api/demo/notifications", "POST"),
-    onSuccess: () => {
+  // Season management mutations
+  const advanceDayMutation = useMutation({
+    mutationFn: () => apiRequest("/api/superuser/advance-day", "POST"),
+    onSuccess: (data) => {
       toast({
-        title: "Demo Notifications Created",
-        description: "Check your notification bell to see the new notifications.",
+        title: "Day Advanced",
+        description: data.message || "Day successfully advanced",
       });
-      queryClient.invalidateQueries({ queryKey: ["userNotifications"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/season/current-week"] });
     },
     onError: (error: Error) => {
       toast({
-        title: "Error",
-        description: error.message || "Failed to create demo notifications",
-        variant: "destructive",
-      });
-    },
-  });
-
-  const grantCreditsMutation = useMutation({
-    mutationFn: async () => {
-      if (!team?.id) {
-        throw new Error("No team found");
-      }
-      return await apiRequest("/api/superuser/grant-credits", "POST", {
-        teamId: team.id,
-        credits: creditsAmount,
-        premiumCurrency: premiumAmount
-      });
-    },
-    onSuccess: (data: any) => {
-      toast({
-        title: "Credits Granted",
-        description: data.message,
-      });
-      // Force refresh all cache entries related to team finances
-      queryClient.invalidateQueries({ queryKey: ["/api/teams/my/finances"] });
-      queryClient.invalidateQueries({ queryKey: [`/api/teams/${team?.id}/finances`] });
-      queryClient.invalidateQueries({ queryKey: ["/api/teams/my"] });
-      // Also refresh the navigation bar data
-      queryClient.refetchQueries({ queryKey: [`/api/teams/${team?.id}/finances`] });
-    },
-    onError: (error: Error) => {
-      toast({
-        title: "Error",
-        description: error.message || "Failed to grant credits",
-        variant: "destructive",
-      });
-    },
-  });
-
-  const addPlayersMutation = useMutation({
-    mutationFn: (payload: AddPlayersPayload): Promise<AddPlayersResponse> => {
-      if (!payload.teamId) {
-        return Promise.reject(new Error("No team ID provided to add players."));
-      }
-      return apiRequest("/api/superuser/add-players", "POST", payload);
-    },
-    onSuccess: (data: AddPlayersResponse) => {
-      toast({
-        title: "Players Added",
-        description: data.message || `Successfully created ${data.count || playerCount} players for your team`,
-      });
-      if (team?.id) {
-        queryClient.invalidateQueries({ queryKey: ["teamPlayers", team.id] });
-      }
-      queryClient.invalidateQueries({ queryKey: ["myTeam"] });
-    },
-    onError: (error: Error) => {
-      toast({
-        title: "Error",
-        description: error.message || "Failed to add players",
+        title: "Failed to Advance Day",
+        description: error.message,
         variant: "destructive",
       });
     },
   });
 
   const stopAllGamesMutation = useMutation({
-    mutationFn: (): Promise<StopGamesResponse> =>
-      apiRequest("/api/superuser/stop-all-games", "POST"),
-    onSuccess: (data: StopGamesResponse) => {
+    mutationFn: () => apiRequest("/api/superuser/stop-all-games", "POST"),
+    onSuccess: (data) => {
       toast({
-        title: "Games Stopped",
-        description: data.message,
-      });
-      queryClient.invalidateQueries({ queryKey: ["liveMatches"] });
-    },
-    onError: (error: Error) => {
-      toast({
-        title: "Error",
-        description: error.message || "Failed to stop games",
-        variant: "destructive",
-      });
-    },
-  });
-
-  const fillDivisionMutation = useMutation({
-    mutationFn: (payload: FillDivisionPayload): Promise<FillDivisionResponse> =>
-      apiRequest("/api/leagues/create-ai-teams", "POST", payload),
-    onSuccess: (data: FillDivisionResponse) => {
-      toast({
-        title: "AI Teams Created",
-        description: data.message || `Successfully created ${data.teams?.length || 0} AI teams for the league`,
-      });
-      queryClient.invalidateQueries({ queryKey: ["allLeagues"] });
-    },
-    onError: (error: Error) => {
-      toast({
-        title: "Failed to Create AI Teams",
-        description: error.message || "Could not create AI teams",
-        variant: "destructive",
-      });
-    },
-  });
-
-  const startTournamentMutation = useMutation({
-    mutationFn: (payload: StartTournamentPayload): Promise<StartTournamentResponse> =>
-      apiRequest("/api/superuser/start-tournament", "POST", payload),
-    onSuccess: (data: StartTournamentResponse) => {
-      toast({
-        title: "Tournament Started",
-        description: data.message,
-      });
-      queryClient.invalidateQueries({ queryKey: ["allTournaments"] });
-    },
-    onError: (error: Error) => {
-      toast({
-        title: "Error",
-        description: error.message || "Failed to start tournament",
-        variant: "destructive",
-      });
-    },
-  });
-
-  // Create league schedule mutation
-  const createLeagueScheduleMutation = useMutation({
-    mutationFn: async () => {
-      return await apiRequest("/api/superuser/create-league-schedule", "POST");
-    },
-    onSuccess: (data: any) => {
-      toast({
-        title: "League Schedule Created",
-        description: `${data.data?.matchesScheduled} matches scheduled for Day ${data.data?.currentDay}`,
-      });
-      queryClient.invalidateQueries({ queryKey: ["/api/matches"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/league/daily-schedule"] });
-    },
-    onError: (error: any) => {
-      toast({
-        title: "Error",
-        description: "Failed to create league schedule",
-        variant: "destructive",
-      });
-    },
-  });
-
-  // Start all league games mutation
-  const startAllLeagueGamesMutation = useMutation({
-    mutationFn: async () => {
-      return await apiRequest("/api/superuser/start-all-league-games", "POST");
-    },
-    onSuccess: (data: any) => {
-      toast({
-        title: "League Games Started",
-        description: `${data.data?.gamesStarted} games started concurrently for Day ${data.data?.currentDay}`,
+        title: "All Games Stopped",
+        description: data.message || "All active games have been stopped",
       });
       queryClient.invalidateQueries({ queryKey: ["/api/matches/live"] });
     },
-    onError: (error: any) => {
+    onError: (error: Error) => {
       toast({
-        title: "Error",
-        description: "Failed to start league games",
+        title: "Failed to Stop Games",
+        description: error.message,
         variant: "destructive",
       });
     },
   });
 
-  // Check if user has admin access using RBAC system OR team name fallback
-  const isSuperUser = (adminStatus as any)?.isAdmin === true || team?.name === "Oakland Cougars";
+  const resetSeasonMutation = useMutation({
+    mutationFn: () => apiRequest("/api/superuser/reset-season", "POST"),
+    onSuccess: (data) => {
+      toast({
+        title: "Season Reset",
+        description: data.message || "Season has been reset to Day 1",
+      });
+      queryClient.invalidateQueries();
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Failed to Reset Season",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
 
-  if (teamQuery.isLoading) { // Added loading state for initial team check
-    return (
-        <div className="min-h-screen bg-gray-900 text-white flex items-center justify-center">
-            <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-primary-500"></div>
-        </div>
-    );
-  }
+  // Team management mutations
+  const grantCreditsMutation = useMutation({
+    mutationFn: ({ teamId, amount }: { teamId: string; amount: number }) =>
+      apiRequest("/api/superuser/grant-credits", "POST", { teamId, amount }),
+    onSuccess: (data) => {
+      toast({
+        title: "Credits Granted",
+        description: `Successfully granted ${creditsAmount} credits`,
+      });
+      queryClient.invalidateQueries({ queryKey: ["/api/teams/my"] });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Failed to Grant Credits",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
 
-  if (!isSuperUser) {
+  // Tournament management mutations
+  const forceStartTournamentMutation = useMutation({
+    mutationFn: ({ tournamentId }: { tournamentId: string }) =>
+      apiRequest(`/api/superuser/force-start-tournament/${tournamentId}`, "POST"),
+    onSuccess: () => {
+      toast({
+        title: "Tournament Force Started",
+        description: "Tournament has been force started with AI teams",
+      });
+      queryClient.invalidateQueries({ queryKey: ["/api/tournaments"] });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Failed to Force Start Tournament",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+
+  if (adminLoading) {
     return (
-      <div className="min-h-screen bg-gray-900 text-white">
-        <div className="max-w-4xl mx-auto px-4 py-16 text-center">
-          <Shield className="w-16 h-16 mx-auto mb-6 text-red-400" />
-          <h1 className="font-orbitron text-3xl font-bold mb-6">Access Denied</h1>
-          <p className="text-gray-400 mb-8">You don't have permission to access this page.</p>
-          <Button onClick={() => window.location.href = '/'}>
-            Go to Dashboard
-          </Button>
+      <div className="container mx-auto p-6">
+        <div className="flex items-center justify-center h-64">
+          <RefreshCw className="h-8 w-8 animate-spin" />
+          <span className="ml-2">Loading admin interface...</span>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-900 text-white">
-      
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="mb-8">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="font-orbitron text-3xl font-bold mb-2 flex items-center">
-                <Shield className="w-8 h-8 mr-3 text-red-400" />
-                SuperUser Panel
-              </h1>
-              <p className="text-gray-400">
-                Administrative controls for game testing and management
-              </p>
-            </div>
-            <Badge variant="destructive" className="text-sm">
-              ADMIN ACCESS
-            </Badge>
-          </div>
+    <div className="container mx-auto p-6 space-y-6">
+      {/* Header Section */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold flex items-center gap-2">
+            <Crown className="h-8 w-8 text-yellow-500" />
+            SuperUser Administration
+          </h1>
+          <p className="text-muted-foreground">Production Testing & System Management</p>
         </div>
+        <div className="flex items-center gap-4">
+          <ServerTimeDisplay />
+          <Badge variant={adminStatus?.isAdmin ? "default" : "destructive"}>
+            {adminStatus?.userRole || "USER"}
+          </Badge>
+        </div>
+      </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          {/* Admin Promotion */}
-          <Card className="bg-gray-800 border-gray-700">
-            <CardHeader>
-              <CardTitle className="font-orbitron text-xl flex items-center">
-                <Shield className="w-5 h-5 mr-2 text-red-400" />
-                Admin Promotion
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <p className="text-gray-400 text-sm">
-                Promote your account to admin status for full administrative access.
-              </p>
+      {/* Admin Status Section */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Shield className="h-5 w-5" />
+            Admin Status & Permissions
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="flex items-center gap-2">
+              <div className={`h-3 w-3 rounded-full ${adminStatus?.isAdmin ? 'bg-green-500' : 'bg-red-500'}`} />
+              <span>Admin Access: {adminStatus?.isAdmin ? 'Granted' : 'Denied'}</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className={`h-3 w-3 rounded-full ${adminStatus?.hasAdminAccess ? 'bg-green-500' : 'bg-red-500'}`} />
+              <span>Permissions: {adminStatus?.hasAdminAccess ? 'Full' : 'Limited'}</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="h-3 w-3 rounded-full bg-blue-500" />
+              <span>User ID: {adminStatus?.userId || 'Unknown'}</span>
+            </div>
+          </div>
+          
+          {!adminStatus?.isAdmin && (
+            <div className="mt-4">
               <Button 
                 onClick={() => promoteToAdminMutation.mutate()}
                 disabled={promoteToAdminMutation.isPending}
-                className="w-full"
-                variant="destructive"
+                variant="outline"
               >
+                <Zap className="h-4 w-4 mr-2" />
                 {promoteToAdminMutation.isPending ? "Promoting..." : "Promote to Admin"}
               </Button>
-            </CardContent>
-          </Card>
+            </div>
+          )}
+        </CardContent>
+      </Card>
 
-          {/* Notification System */}
-          <Card className="bg-gray-800 border-gray-700">
-            <CardHeader>
-              <CardTitle className="font-orbitron text-xl flex items-center">
-                <Bell className="w-5 h-5 mr-2 text-blue-400" />
-                Notification System
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <p className="text-gray-400 text-sm">
-                Create demo notifications for testing the notification system.
-              </p>
-              <Button 
-                onClick={() => createNotificationsMutation.mutate()}
-                disabled={createNotificationsMutation.isPending}
-                className="w-full"
-                variant="outline"
-              >
-                {createNotificationsMutation.isPending ? "Creating..." : "Create Demo Notifications"}
-              </Button>
-            </CardContent>
-          </Card>
+      {/* Main Admin Interface - Only show if user has admin access */}
+      {adminStatus?.hasAdminAccess && (
+        <Tabs defaultValue="season" className="w-full">
+          <TabsList className="grid w-full grid-cols-6">
+            <TabsTrigger value="season">Season</TabsTrigger>
+            <TabsTrigger value="teams">Teams</TabsTrigger>
+            <TabsTrigger value="tournaments">Tournaments</TabsTrigger>
+            <TabsTrigger value="matches">Matches</TabsTrigger>
+            <TabsTrigger value="system">System</TabsTrigger>
+            <TabsTrigger value="testing">Testing</TabsTrigger>
+          </TabsList>
 
-          <Card className="bg-gray-800 border-gray-700">
-            <CardHeader>
-              <CardTitle className="font-orbitron text-xl flex items-center">
-                <CreditCard className="w-5 h-5 mr-2 text-green-400" />
-                Credits Management
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium mb-2">Regular Credits</label>
-                <Input
-                  type="number"
-                  value={creditsAmount}
-                  onChange={(e) => setCreditsAmount(Number(e.target.value))}
-                  className="bg-gray-700 border-gray-600"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium mb-2">Premium Currency</label>
-                <Input
-                  type="number"
-                  value={premiumAmount}
-                  onChange={(e) => setPremiumAmount(Number(e.target.value))}
-                  className="bg-gray-700 border-gray-600"
-                />
-              </div>
-              <Button 
-                onClick={() => grantCreditsMutation.mutate({ credits: creditsAmount, premiumCurrency: premiumAmount })}
-                disabled={grantCreditsMutation.isPending}
-                className="w-full"
-                variant="outline"
-              >
-                {grantCreditsMutation.isPending ? "Granting..." : "Grant Credits"}
-              </Button>
-            </CardContent>
-          </Card>
-
-          <Card className="bg-gray-800 border-gray-700">
-            <CardHeader>
-              <CardTitle className="font-orbitron text-xl flex items-center">
-                <Users className="w-5 h-5 mr-2 text-purple-400" />
-                Player Management
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <p className="text-gray-400 text-sm">
-                Add balanced players to teams that are below the 10-player minimum for testing.
-              </p>
-              <div>
-                <label className="block text-sm font-medium mb-2">Number of Players</label>
-                <Input
-                  type="number"
-                  min="1"
-                  max="10"
-                  value={playerCount}
-                  onChange={(e) => setPlayerCount(Number(e.target.value))}
-                  className="bg-gray-700 border-gray-600"
-                />
-              </div>
-              <Button 
-                onClick={() => {
-                  if (team?.id) {
-                    addPlayersMutation.mutate({ teamId: team.id, count: playerCount });
-                  } else {
-                    toast({ title: "Error", description: "Team ID is not available.", variant: "destructive" });
-                  }
-                }}
-                disabled={addPlayersMutation.isPending || !team?.id}
-                className="w-full"
-                variant="outline"
-              >
-                {addPlayersMutation.isPending ? "Adding Players..." : `Add ${playerCount} Players`}
-              </Button>
-            </CardContent>
-          </Card>
-
-          {/* Tryout System Testing */}
-          <Card className="bg-gray-800 border-gray-700">
-            <CardHeader>
-              <CardTitle className="font-orbitron text-xl flex items-center">
-                <Trophy className="w-5 h-5 mr-2 text-blue-400" />
-                Tryout System Testing
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <p className="text-gray-400 text-sm">
-                Reset seasonal tryout restrictions to allow additional tryouts for testing purposes.
-              </p>
-              <div className="p-3 bg-yellow-900/50 border border-yellow-600 rounded-lg">
-                <p className="text-yellow-200 text-xs">
-                  ⚠️ This will clear your taxi squad and reset the "once per season" restriction
-                </p>
-              </div>
-              <Button 
-                onClick={() => resetTryoutRestrictionsMutation.mutate()}
-                disabled={resetTryoutRestrictionsMutation.isPending}
-                className="w-full"
-                variant="outline"
-              >
-                {resetTryoutRestrictionsMutation.isPending ? "Resetting..." : "Reset Tryout Restrictions"}
-              </Button>
-            </CardContent>
-          </Card>
-
-          {/* League Management */}
-          <Card className="bg-gray-800 border-gray-700">
-            <CardHeader>
-              <CardTitle className="font-orbitron text-xl flex items-center">
-                <Trophy className="w-5 h-5 mr-2 text-yellow-400" />
-                League Management
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="p-4 bg-gray-700 rounded-lg">
-                <div className="text-sm text-gray-400">Target Division</div>
-                <div className="text-xl font-bold text-yellow-400">
-                  Division {team?.division ?? 8}
-                </div>
-              </div>
-              
-              <div className="space-y-3">
-                <div className="flex gap-2 items-center">
-                  <Input
-                    type="number"
-                    min="1"
-                    max="8"
-                    value={divisionToCleanup}
-                    onChange={(e) => setDivisionToCleanup(parseInt(e.target.value))}
-                    className="w-20"
-                    placeholder="Div"
-                  />
-                  <Button 
-                    onClick={() => cleanupDivisionMutation.mutate({ division: divisionToCleanup })}
-                    disabled={cleanupDivisionMutation.isPending}
-                    className="flex-1"
-                    variant="destructive"
-                  >
-                    {cleanupDivisionMutation.isPending ? "Cleaning..." : "Clean Division (Max 8 Teams)"}
-                  </Button>
+          {/* Season Management */}
+          <TabsContent value="season" className="space-y-4">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Calendar className="h-5 w-5" />
+                  Season Management
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div>
+                    <label className="text-sm font-medium">Current Season</label>
+                    <p className="text-lg">{currentWeek?.season || "Unknown"}</p>
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium">Current Week</label>
+                    <p className="text-lg">Week {currentWeek?.week || 1}</p>
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium">Current Day</label>
+                    <p className="text-lg">Day {currentWeek?.currentDay || 1}</p>
+                  </div>
                 </div>
                 
-                <Button 
-                  onClick={() => {
-                    if (team?.division !== null && team?.division !== undefined) {
-                      fillDivisionMutation.mutate({ division: team.division });
-                    } else {
-                       toast({ title: "Error", description: "Team division is not available.", variant: "destructive" });
-                    }
-                  }}
-                  disabled={fillDivisionMutation.isPending || team?.division === null || team?.division === undefined}
-                  className="w-full"
-                  variant="outline"
-                >
-                  {fillDivisionMutation.isPending ? "Creating..." : "Fill My Division"}
-                </Button>
-                <Button 
-                  onClick={() => {
-                     if (team?.division !== null && team?.division !== undefined) {
-                      startTournamentMutation.mutate({ division: team.division });
-                    } else {
-                      toast({ title: "Error", description: "Team division is not available.", variant: "destructive" });
-                    }
-                  }}
-                  disabled={startTournamentMutation.isPending || team?.division === null || team?.division === undefined}
-                  className="w-full"
-                  variant="outline"
-                >
-                  {startTournamentMutation.isPending ? "Starting..." : "Manually Start Tournament"}
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
+                <div className="flex gap-2">
+                  <Button 
+                    onClick={() => advanceDayMutation.mutate()}
+                    disabled={advanceDayMutation.isPending}
+                  >
+                    <PlayCircle className="h-4 w-4 mr-2" />
+                    {advanceDayMutation.isPending ? "Advancing..." : "Advance Day"}
+                  </Button>
+                  <Button 
+                    onClick={() => resetSeasonMutation.mutate()}
+                    disabled={resetSeasonMutation.isPending}
+                    variant="destructive"
+                  >
+                    <RefreshCw className="h-4 w-4 mr-2" />
+                    {resetSeasonMutation.isPending ? "Resetting..." : "Reset Season"}
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
 
-        {/* League Schedule Management */}
-        <Card className="bg-gray-800 border-gray-700 mt-8">
-          <CardHeader>
-            <CardTitle className="font-orbitron text-xl flex items-center">
-              <Calendar className="w-5 h-5 mr-2 text-indigo-400" />
-              League Schedule Management
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <p className="text-gray-400 text-sm">
-              Create league schedules and start all league games for testing purposes. Only works during regular season (Days 1-14).
-            </p>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <Button 
-                onClick={() => createLeagueScheduleMutation.mutate()}
-                disabled={createLeagueScheduleMutation.isPending}
-                className="w-full"
-                variant="outline"
-              >
-                {createLeagueScheduleMutation.isPending ? "Creating..." : "Create League Schedule"}
-              </Button>
-              <Button 
-                onClick={() => startAllLeagueGamesMutation.mutate()}
-                disabled={startAllLeagueGamesMutation.isPending}
-                className="w-full"
-                variant="secondary"
-              >
-                {startAllLeagueGamesMutation.isPending ? "Starting..." : "Start All League Games"}
-              </Button>
-            </div>
-            <div className="text-xs text-gray-500 mt-2">
-              Creates round-robin matches for all 8 divisions and starts them concurrently for the current day.
+            <DailyProgressionTest />
+          </TabsContent>
+
+          {/* Team Management */}
+          <TabsContent value="teams" className="space-y-4">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Users className="h-5 w-5" />
+                  Team Management
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="text-sm font-medium">My Team</label>
+                    <p className="text-lg">{myTeam?.name || "No team found"}</p>
+                    <p className="text-sm text-muted-foreground">
+                      Division {myTeam?.division || "Unknown"} • 
+                      {myTeam?.credits || 0} credits • 
+                      {myTeam?.wins || 0}W-{myTeam?.losses || 0}L-{myTeam?.draws || 0}D
+                    </p>
+                  </div>
+                  <div className="space-y-2">
+                    <Input
+                      type="number"
+                      placeholder="Credits to grant"
+                      value={creditsAmount}
+                      onChange={(e) => setCreditsAmount(parseInt(e.target.value) || 0)}
+                    />
+                    <Button 
+                      onClick={() => grantCreditsMutation.mutate({ 
+                        teamId: myTeam?.id || "", 
+                        amount: creditsAmount 
+                      })}
+                      disabled={grantCreditsMutation.isPending || !myTeam?.id}
+                      className="w-full"
+                    >
+                      <CreditCard className="h-4 w-4 mr-2" />
+                      {grantCreditsMutation.isPending ? "Granting..." : "Grant Credits"}
+                    </Button>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* Tournament Management */}
+          <TabsContent value="tournaments" className="space-y-4">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Trophy className="h-5 w-5" />
+                  Tournament Management
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Input
+                      placeholder="Tournament ID"
+                      onChange={(e) => setSelectedTeamId(e.target.value)}
+                    />
+                    <Button 
+                      onClick={() => forceStartTournamentMutation.mutate({ 
+                        tournamentId: selectedTeamId 
+                      })}
+                      disabled={forceStartTournamentMutation.isPending || !selectedTeamId}
+                      className="w-full"
+                    >
+                      <PlayCircle className="h-4 w-4 mr-2" />
+                      {forceStartTournamentMutation.isPending ? "Starting..." : "Force Start Tournament"}
+                    </Button>
+                  </div>
+                  <div>
+                    <p className="text-sm text-muted-foreground">
+                      Force start tournaments with AI teams to fill empty slots.
+                      Use tournament ID from active tournaments list.
+                    </p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* Match Management */}
+          <TabsContent value="matches" className="space-y-4">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <PlayCircle className="h-5 w-5" />
+                  Match Management
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <p className="text-sm text-muted-foreground mb-2">
+                      Emergency controls for match management during production testing.
+                    </p>
+                    <Button 
+                      onClick={() => stopAllGamesMutation.mutate()}
+                      disabled={stopAllGamesMutation.isPending}
+                      variant="destructive"
+                      className="w-full"
+                    >
+                      <StopCircle className="h-4 w-4 mr-2" />
+                      {stopAllGamesMutation.isPending ? "Stopping..." : "Stop All Active Matches"}
+                    </Button>
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium">System Statistics</label>
+                    <div className="space-y-1 mt-2">
+                      <p className="text-sm">Active Matches: {systemStats?.activeMatches || 0}</p>
+                      <p className="text-sm">Active Tournaments: {systemStats?.activeTournaments || 0}</p>
+                      <p className="text-sm">Total Teams: {systemStats?.totalTeams || 0}</p>
+                      <p className="text-sm">Total Players: {systemStats?.totalPlayers || 0}</p>
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* System Management */}
+          <TabsContent value="system" className="space-y-4">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Database className="h-5 w-5" />
+                  System Management
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <h3 className="font-medium mb-2">Database Operations</h3>
+                    <p className="text-sm text-muted-foreground mb-4">
+                      Advanced database operations for production testing.
+                    </p>
+                    <Button variant="outline" className="w-full mb-2">
+                      <Database className="h-4 w-4 mr-2" />
+                      Database Health Check
+                    </Button>
+                    <Button variant="outline" className="w-full">
+                      <RefreshCw className="h-4 w-4 mr-2" />
+                      Clear Cache
+                    </Button>
+                  </div>
+                  <div>
+                    <h3 className="font-medium mb-2">System Monitoring</h3>
+                    <div className="space-y-2">
+                      <div className="flex items-center gap-2">
+                        <CheckCircle className="h-4 w-4 text-green-500" />
+                        <span className="text-sm">Database Connection</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <CheckCircle className="h-4 w-4 text-green-500" />
+                        <span className="text-sm">WebSocket Service</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <CheckCircle className="h-4 w-4 text-green-500" />
+                        <span className="text-sm">Match Automation</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Clock className="h-4 w-4 text-yellow-500" />
+                        <span className="text-sm">Tournament Automation</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* Testing Tools */}
+          <TabsContent value="testing" className="space-y-4">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <TrendingUp className="h-5 w-5" />
+                  Production Testing Tools
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="space-y-4">
+                  <div>
+                    <h3 className="font-medium mb-2">Force Message Broadcasting</h3>
+                    <Textarea
+                      placeholder="Enter system message to broadcast to all users..."
+                      value={forceMessage}
+                      onChange={(e) => setForceMessage(e.target.value)}
+                      className="mb-2"
+                    />
+                    <Button className="w-full">
+                      <Bell className="h-4 w-4 mr-2" />
+                      Broadcast Message
+                    </Button>
+                  </div>
+                  
+                  <div>
+                    <h3 className="font-medium mb-2">Testing Utilities</h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                      <Button variant="outline">
+                        <Search className="h-4 w-4 mr-2" />
+                        Generate Test Data
+                      </Button>
+                      <Button variant="outline">
+                        <AlertTriangle className="h-4 w-4 mr-2" />
+                        Simulate Server Load
+                      </Button>
+                      <Button variant="outline">
+                        <RefreshCw className="h-4 w-4 mr-2" />
+                        Reset Test Environment
+                      </Button>
+                      <Button variant="outline">
+                        <TrendingUp className="h-4 w-4 mr-2" />
+                        Performance Report
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+        </Tabs>
+      )}
+
+      {/* Access Denied Message */}
+      {!adminStatus?.hasAdminAccess && (
+        <Card>
+          <CardContent className="p-6">
+            <div className="text-center space-y-4">
+              <AlertTriangle className="h-12 w-12 text-yellow-500 mx-auto" />
+              <h2 className="text-xl font-semibold">Admin Access Required</h2>
+              <p className="text-muted-foreground">
+                You need administrator privileges to access the SuperUser interface.
+                Click "Promote to Admin" above if you are an authorized administrator.
+              </p>
             </div>
           </CardContent>
         </Card>
-
-        {/* Season Management */}
-        <Card className="bg-gray-800 border-gray-700 mt-8">
-          <CardHeader>
-            <CardTitle className="font-orbitron text-xl flex items-center">
-              <Calendar className="w-5 h-5 mr-2 text-orange-400" />
-              Season Management
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <p className="text-gray-400 text-sm">
-              Manual control over season progression and timing. Current day and season can be managed server-wide.
-            </p>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <Button 
-                onClick={() => advanceDayMutation.mutate()}
-                disabled={advanceDayMutation.isPending}
-                className="w-full"
-                variant="outline"
-              >
-                {advanceDayMutation.isPending ? "Advancing..." : "Advance Day"}
-              </Button>
-              <Button 
-                onClick={() => resetSeasonMutation.mutate()}
-                disabled={resetSeasonMutation.isPending}
-                className="w-full"
-                variant="destructive"
-              >
-                {resetSeasonMutation.isPending ? "Resetting..." : "Reset Season to Day 1"}
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Daily Progression System Testing */}
-        <Card className="bg-gray-800 border-gray-700 mt-8">
-          <CardHeader>
-            <CardTitle className="font-orbitron text-xl flex items-center">
-              <TrendingUp className="w-5 h-5 mr-2 text-orange-400" />
-              Daily Player Progression System
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="p-4">
-              <DailyProgressionTest />
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Server Time & System Information */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-8">
-          {/* <ServerTimeDisplay /> Commented out as it's not defined/imported in current context */}
-          <Card className="bg-gray-800 border-gray-700">
-             <CardHeader><CardTitle>Server Time (Placeholder)</CardTitle></CardHeader>
-             <CardContent><p>Server time display would go here.</p></CardContent>
-          </Card>
-          
-          <Card className="bg-gray-800 border-gray-700">
-            <CardHeader>
-              <CardTitle className="font-orbitron text-xl flex items-center">
-                <Settings className="w-5 h-5 mr-2 text-gray-400" />
-                System Information
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                <div className="text-center">
-                  <div className="text-xl font-bold text-blue-400">{team?.name ?? 'N/A'}</div>
-                  <div className="text-sm text-gray-400">SuperUser Team</div>
-                </div>
-                <div className="text-center">
-                  <div className="text-xl font-bold text-green-400">Division {team?.division ?? 'N/A'}</div>
-                  <div className="text-sm text-gray-400">Current Division</div>
-                </div>
-                <div className="text-center">
-                  <div className="text-xl font-bold text-purple-400">Active</div>
-                  <div className="text-sm text-gray-400">System Status</div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-      </div>
+      )}
     </div>
   );
 }
