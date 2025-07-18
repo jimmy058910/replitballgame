@@ -362,10 +362,21 @@ router.post('/:teamId/formation', isAuthenticated, async (req: any, res: Respons
       ...formationData
     };
 
-    await storage.teams.updateTeam(teamId, { // Use teamStorage
-      formation: JSON.stringify(formation),
-      substitutionOrder: JSON.stringify({}), // Keep for compatibility
-      updatedAt: new Date()
+    // Save formation to Strategy model (same as PUT route)
+    await prisma.strategy.upsert({
+      where: { teamId: parseInt(teamId) },
+      update: {
+        formationJson: formation,
+        substitutionJson: {},
+        updatedAt: new Date()
+      },
+      create: {
+        teamId: parseInt(teamId),
+        formationJson: formation,
+        substitutionJson: {},
+        createdAt: new Date(),
+        updatedAt: new Date()
+      }
     });
 
     res.json({ success: true, message: "Formation saved successfully" });
@@ -519,15 +530,19 @@ router.get('/:teamId/formation', isAuthenticated, async (req: any, res: Response
     let substitutes = [];
 
     if (formationData && formationData.starters) {
-      // Match starter IDs to actual player objects
-      const starterIds = formationData.starters.map((s: any) => s.id || s);
-      starters = allPlayers.filter((player: any) => starterIds.includes(player.id));
+      // Match starter IDs to actual player objects in the saved order
+      starters = formationData.starters.map((s: any) => {
+        const playerId = s.id || s;
+        return allPlayers.find((player: any) => player.id === playerId);
+      }).filter(Boolean);
     }
 
     if (formationData && formationData.substitutes) {
-      // Match substitute IDs to actual player objects
-      const substituteIds = formationData.substitutes.map((s: any) => s.id || s);
-      substitutes = allPlayers.filter((player: any) => substituteIds.includes(player.id));
+      // Match substitute IDs to actual player objects in the saved order
+      substitutes = formationData.substitutes.map((s: any) => {
+        const playerId = s.id || s;
+        return allPlayers.find((player: any) => player.id === playerId);
+      }).filter(Boolean);
     }
 
     // If no formation data exists, create a default formation with all players
