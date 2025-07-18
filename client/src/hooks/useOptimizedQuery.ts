@@ -1,206 +1,201 @@
 /**
- * Optimized Query Hook with Caching and Performance Enhancements
- * Integrates with existing TanStack Query setup
+ * Optimized Query Hook
+ * Enhanced version of TanStack Query with intelligent caching and invalidation
  */
 import { useQuery, useQueryClient, UseQueryOptions } from '@tanstack/react-query';
+import { useEffect, useRef } from 'react';
 import { apiRequest } from '@/lib/queryClient';
 
 interface OptimizedQueryOptions<T> extends Omit<UseQueryOptions<T>, 'queryKey' | 'queryFn'> {
   endpoint: string;
-  cacheTime?: number;
+  params?: Record<string, any>;
   staleTime?: number;
+  cacheTime?: number;
   tags?: string[];
-  dependencies?: any[];
+  enabled?: boolean;
+  refetchOnWindowFocus?: boolean;
+  refetchOnMount?: boolean;
+  refetchOnReconnect?: boolean;
+  retry?: boolean | number;
+  retryDelay?: number;
+  background?: boolean;
+  onSuccess?: (data: T) => void;
+  onError?: (error: Error) => void;
 }
 
-/**
- * Enhanced query hook with intelligent caching
- */
 export function useOptimizedQuery<T = any>({
   endpoint,
-  cacheTime = 5 * 60 * 1000, // 5 minutes
-  staleTime = 2 * 60 * 1000, // 2 minutes
+  params,
+  staleTime = 5 * 60 * 1000, // 5 minutes default
+  cacheTime = 10 * 60 * 1000, // 10 minutes default
   tags = [],
-  dependencies = [],
+  enabled = true,
+  refetchOnWindowFocus = false,
+  refetchOnMount = true,
+  refetchOnReconnect = true,
+  retry = 3,
+  retryDelay = 1000,
+  background = false,
+  onSuccess,
+  onError,
   ...options
 }: OptimizedQueryOptions<T>) {
   const queryClient = useQueryClient();
-  
-  const queryKey = [endpoint, ...dependencies];
-  
-  return useQuery({
-    queryKey,
+  const backgroundTimerRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Generate query key with params
+  const queryKey = params
+    ? [endpoint, params]
+    : [endpoint];
+
+  // Add tags to query key for cache invalidation
+  const queryKeyWithTags = tags.length > 0 
+    ? [...queryKey, ...tags]
+    : queryKey;
+
+  const query = useQuery({
+    queryKey: queryKeyWithTags,
     queryFn: async () => {
-      const response = await apiRequest('GET', endpoint);
+      const url = params 
+        ? `${endpoint}?${new URLSearchParams(params).toString()}`
+        : endpoint;
+      
+      const response = await apiRequest('GET', url);
       return response.json();
     },
-    cacheTime,
     staleTime,
+    cacheTime,
+    enabled,
+    refetchOnWindowFocus,
+    refetchOnMount,
+    refetchOnReconnect,
+    retry,
+    retryDelay: (attemptIndex: number) => Math.min(retryDelay * Math.pow(2, attemptIndex), 30000),
+    onSuccess,
+    onError,
+    ...options,
+  });
+
+  // Background refresh for real-time data
+  useEffect(() => {
+    if (background && !query.isLoading && query.data) {
+      backgroundTimerRef.current = setInterval(() => {
+        queryClient.invalidateQueries({ queryKey: queryKeyWithTags });
+      }, staleTime);
+    }
+
+    return () => {
+      if (backgroundTimerRef.current) {
+        clearInterval(backgroundTimerRef.current);
+      }
+    };
+  }, [background, query.isLoading, query.data, queryClient, queryKeyWithTags, staleTime]);
+
+  // Invalidate cache by tags
+  const invalidateByTags = (tagsToInvalidate: string[]) => {
+    tagsToInvalidate.forEach(tag => {
+      queryClient.invalidateQueries({
+        predicate: (query) => query.queryKey.includes(tag)
+      });
+    });
+  };
+
+  // Prefetch related data
+  const prefetch = async (relatedEndpoint: string, relatedParams?: Record<string, any>) => {
+    const prefetchKey = relatedParams
+      ? [relatedEndpoint, relatedParams]
+      : [relatedEndpoint];
+
+    await queryClient.prefetchQuery({
+      queryKey: prefetchKey,
+      queryFn: async () => {
+        const url = relatedParams
+          ? `${relatedEndpoint}?${new URLSearchParams(relatedParams).toString()}`
+          : relatedEndpoint;
+        
+        const response = await apiRequest('GET', url);
+        return response.json();
+      },
+      staleTime,
+    });
+  };
+
+  return {
+    ...query,
+    invalidateByTags,
+    prefetch,
+    queryKey: queryKeyWithTags,
+  };
+}
+
+// Hook for real-time data with aggressive caching
+export function useRealTimeQuery<T = any>(
+  endpoint: string,
+  options?: Omit<OptimizedQueryOptions<T>, 'staleTime' | 'cacheTime' | 'background'>
+) {
+  return useOptimizedQuery<T>({
+    endpoint,
+    staleTime: 30 * 1000, // 30 seconds
+    cacheTime: 2 * 60 * 1000, // 2 minutes
+    background: true,
+    refetchOnWindowFocus: true,
+    ...options,
+  });
+}
+
+// Hook for static data with long-term caching
+export function useStaticQuery<T = any>(
+  endpoint: string,
+  options?: Omit<OptimizedQueryOptions<T>, 'staleTime' | 'cacheTime'>
+) {
+  return useOptimizedQuery<T>({
+    endpoint,
+    staleTime: 30 * 60 * 1000, // 30 minutes
+    cacheTime: 60 * 60 * 1000, // 1 hour
     refetchOnWindowFocus: false,
-    refetchOnReconnect: true,
+    refetchOnMount: false,
     ...options,
   });
 }
 
-/**
- * Cached team data query
- */
-export function useTeamQuery(teamId?: number, options?: Partial<OptimizedQueryOptions<any>>) {
-  return useOptimizedQuery({
-    endpoint: `/api/teams/${teamId}`,
-    enabled: !!teamId,
-    staleTime: 2 * 60 * 1000, // 2 minutes
-    cacheTime: 5 * 60 * 1000, // 5 minutes
-    tags: ['team'],
-    dependencies: [teamId],
+// Hook for user-specific data
+export function useUserQuery<T = any>(
+  endpoint: string,
+  options?: Omit<OptimizedQueryOptions<T>, 'tags'>
+) {
+  return useOptimizedQuery<T>({
+    endpoint,
+    tags: ['user'],
     ...options,
   });
 }
 
-/**
- * Cached player data query
- */
-export function usePlayersQuery(teamId?: number, options?: Partial<OptimizedQueryOptions<any>>) {
-  return useOptimizedQuery({
-    endpoint: `/api/teams/${teamId}/players`,
-    enabled: !!teamId,
-    staleTime: 1 * 60 * 1000, // 1 minute
-    cacheTime: 3 * 60 * 1000, // 3 minutes
-    tags: ['players', 'team'],
-    dependencies: [teamId],
+// Hook for team-specific data
+export function useTeamQuery<T = any>(
+  endpoint: string,
+  teamId?: number,
+  options?: Omit<OptimizedQueryOptions<T>, 'tags' | 'params'>
+) {
+  return useOptimizedQuery<T>({
+    endpoint,
+    params: teamId ? { teamId } : undefined,
+    tags: ['team', teamId ? `team-${teamId}` : ''].filter(Boolean),
     ...options,
   });
 }
 
-/**
- * Cached match data query
- */
-export function useMatchQuery(matchId?: number, options?: Partial<OptimizedQueryOptions<any>>) {
-  return useOptimizedQuery({
-    endpoint: `/api/matches/${matchId}`,
-    enabled: !!matchId,
-    staleTime: 30 * 1000, // 30 seconds
-    cacheTime: 2 * 60 * 1000, // 2 minutes
-    tags: ['match'],
-    dependencies: [matchId],
+// Hook for match-specific data
+export function useMatchQuery<T = any>(
+  endpoint: string,
+  matchId?: number,
+  options?: Omit<OptimizedQueryOptions<T>, 'tags' | 'params'>
+) {
+  return useOptimizedQuery<T>({
+    endpoint,
+    params: matchId ? { matchId } : undefined,
+    tags: ['match', matchId ? `match-${matchId}` : ''].filter(Boolean),
     ...options,
   });
-}
-
-/**
- * Cached league standings query
- */
-export function useLeagueStandingsQuery(leagueId?: number, options?: Partial<OptimizedQueryOptions<any>>) {
-  return useOptimizedQuery({
-    endpoint: `/api/leagues/${leagueId}/standings`,
-    enabled: !!leagueId,
-    staleTime: 1 * 60 * 1000, // 1 minute
-    cacheTime: 3 * 60 * 1000, // 3 minutes
-    tags: ['standings', 'league'],
-    dependencies: [leagueId],
-    ...options,
-  });
-}
-
-/**
- * Cached tournament data query
- */
-export function useTournamentQuery(tournamentId?: number, options?: Partial<OptimizedQueryOptions<any>>) {
-  return useOptimizedQuery({
-    endpoint: `/api/tournaments/${tournamentId}`,
-    enabled: !!tournamentId,
-    staleTime: 30 * 1000, // 30 seconds
-    cacheTime: 2 * 60 * 1000, // 2 minutes
-    tags: ['tournament'],
-    dependencies: [tournamentId],
-    ...options,
-  });
-}
-
-/**
- * Cached marketplace listings query
- */
-export function useMarketplaceQuery(page = 1, limit = 20, options?: Partial<OptimizedQueryOptions<any>>) {
-  return useOptimizedQuery({
-    endpoint: `/api/marketplace?page=${page}&limit=${limit}`,
-    staleTime: 1 * 60 * 1000, // 1 minute
-    cacheTime: 3 * 60 * 1000, // 3 minutes
-    tags: ['marketplace'],
-    dependencies: [page, limit],
-    ...options,
-  });
-}
-
-/**
- * Cache invalidation utilities
- */
-export function useInvalidateQueries() {
-  const queryClient = useQueryClient();
-  
-  return {
-    invalidateTeam: (teamId?: number) => {
-      queryClient.invalidateQueries({ queryKey: ['team', teamId] });
-      queryClient.invalidateQueries({ queryKey: [`/api/teams/${teamId}`] });
-    },
-    invalidatePlayers: (teamId?: number) => {
-      queryClient.invalidateQueries({ queryKey: ['players', teamId] });
-      queryClient.invalidateQueries({ queryKey: [`/api/teams/${teamId}/players`] });
-    },
-    invalidateMatch: (matchId?: number) => {
-      queryClient.invalidateQueries({ queryKey: ['match', matchId] });
-      queryClient.invalidateQueries({ queryKey: [`/api/matches/${matchId}`] });
-    },
-    invalidateLeague: (leagueId?: number) => {
-      queryClient.invalidateQueries({ queryKey: ['standings', leagueId] });
-      queryClient.invalidateQueries({ queryKey: [`/api/leagues/${leagueId}/standings`] });
-    },
-    invalidateMarketplace: () => {
-      queryClient.invalidateQueries({ queryKey: ['marketplace'] });
-    },
-    invalidateAll: () => {
-      queryClient.invalidateQueries();
-    },
-  };
-}
-
-/**
- * Prefetch utilities for performance
- */
-export function usePrefetchQueries() {
-  const queryClient = useQueryClient();
-  
-  return {
-    prefetchTeam: (teamId: number) => {
-      queryClient.prefetchQuery({
-        queryKey: [`/api/teams/${teamId}`],
-        queryFn: async () => {
-          const response = await apiRequest('GET', `/api/teams/${teamId}`);
-          return response.json();
-        },
-        staleTime: 2 * 60 * 1000,
-      });
-    },
-    prefetchPlayers: (teamId: number) => {
-      queryClient.prefetchQuery({
-        queryKey: [`/api/teams/${teamId}/players`],
-        queryFn: async () => {
-          const response = await apiRequest('GET', `/api/teams/${teamId}/players`);
-          return response.json();
-        },
-        staleTime: 1 * 60 * 1000,
-      });
-    },
-    prefetchMatch: (matchId: number) => {
-      queryClient.prefetchQuery({
-        queryKey: [`/api/matches/${matchId}`],
-        queryFn: async () => {
-          const response = await apiRequest('GET', `/api/matches/${matchId}`);
-          return response.json();
-        },
-        staleTime: 30 * 1000,
-      });
-    },
-  };
 }
 
 export default useOptimizedQuery;

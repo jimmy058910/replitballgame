@@ -245,6 +245,11 @@ model Staff {
   age                  Int       @default(30)
   createdAt            DateTime  @default(now())
   updatedAt            DateTime  @updatedAt
+  
+  // Performance indexes
+  @@index([teamId])
+  @@index([type])
+  @@index([teamId, type])
 }
 
 enum StaffType {
@@ -338,6 +343,8 @@ model InventoryItem {
   acquiredAt DateTime @default(now())
 
   @@unique([teamId, itemId])
+  @@index([teamId])
+  @@index([itemId])
 }
 
 model ActiveBoost {
@@ -351,6 +358,14 @@ model ActiveBoost {
   matchType MatchType
   isActive  Boolean   @default(true)
   appliedAt DateTime  @default(now())
+  
+  // Performance indexes
+  @@index([teamId])
+  @@index([playerId])
+  @@index([matchType])
+  @@index([isActive])
+  @@index([teamId, isActive])
+  @@index([playerId, isActive])
 }
 
 enum MatchType {
@@ -416,6 +431,9 @@ model League {
   season    Season           @relation(fields: [seasonId], references: [id])
 
   @@unique([name, seasonId])
+  @@index([division])
+  @@index([seasonId])
+  @@index([division, seasonId])
 }
 
 model LeagueStanding {
@@ -435,6 +453,10 @@ model LeagueStanding {
   updatedAt         DateTime @updatedAt
 
   @@unique([leagueId, teamId])
+  @@index([leagueId])
+  @@index([teamId])
+  @@index([wins, losses])
+  @@index([rank])
 }
 
 model Game {
@@ -487,6 +509,12 @@ model Season {
   leagues      League[]
   createdAt    DateTime    @default(now())
   tryoutHistory TryoutHistory[]
+  
+  // Performance indexes
+  @@index([seasonNumber])
+  @@index([currentDay])
+  @@index([phase])
+  @@index([startDate, endDate])
 }
 
 enum SeasonPhase {
@@ -656,6 +684,15 @@ model Tournament {
   entries             TournamentEntry[]
   seasonDay           Int?
   createdAt           DateTime          @default(now())
+  
+  // Performance indexes
+  @@index([type])
+  @@index([status])
+  @@index([startTime])
+  @@index([division])
+  @@index([seasonDay])
+  @@index([type, status])
+  @@index([division, status])
 }
 
 enum TournamentType {
@@ -683,6 +720,10 @@ model TournamentEntry {
   rewardsClaimed Boolean    @default(false)
 
   @@unique([tournamentId, teamId])
+  @@index([tournamentId])
+  @@index([teamId])
+  @@index([finalRank])
+  @@index([rewardsClaimed])
 }
 
 model PaymentTransaction {

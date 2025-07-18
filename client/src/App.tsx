@@ -36,6 +36,7 @@ import {
 import Navigation from "@/components/Navigation";
 import { ContextualHelp } from "@/components/help";
 import { LandscapeOrientation } from "@/components/LandscapeOrientation";
+import ErrorBoundary from "@/components/ErrorBoundary";
 
 function Router() {
   const { isAuthenticated, isLoading } = useAuth();
@@ -90,13 +91,17 @@ function App() {
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
         <LandscapeOrientation>
-          <div className="min-h-screen bg-background">
-            <Navigation />
-            <Router />
-            <Toaster />
-            <PWAInstallPrompt />
-            <ContextualHelp />
-          </div>
+          <ErrorBoundary level="critical">
+            <div className="min-h-screen bg-background">
+              <Navigation />
+              <ErrorBoundary level="page">
+                <Router />
+              </ErrorBoundary>
+              <Toaster />
+              <PWAInstallPrompt />
+              <ContextualHelp />
+            </div>
+          </ErrorBoundary>
         </LandscapeOrientation>
       </TooltipProvider>
     </QueryClientProvider>

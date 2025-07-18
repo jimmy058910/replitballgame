@@ -1,202 +1,194 @@
 /**
- * Service Worker for Realm Rivalry PWA
+ * Service Worker for Realm Rivalry
  * Provides offline capabilities and caching strategies
  */
 
-const CACHE_NAME = 'realm-rivalry-v1';
-const STATIC_CACHE_NAME = 'realm-rivalry-static-v1';
-const DYNAMIC_CACHE_NAME = 'realm-rivalry-dynamic-v1';
+const CACHE_NAME = 'realm-rivalry-v1.0.0';
+const API_CACHE_NAME = 'realm-rivalry-api-v1.0.0';
+const STATIC_CACHE_NAME = 'realm-rivalry-static-v1.0.0';
 
-// URLs to cache on install
+// Static assets to cache
 const STATIC_ASSETS = [
   '/',
   '/manifest.json',
-  '/logo-192.png',
-  '/logo-512.png',
-  // Add other static assets
+  '/logo-modern-2.svg',
+  '/favicon.ico',
+  // Add critical CSS and JS files
 ];
 
-// API endpoints that should be cached
+// API endpoints to cache
 const CACHEABLE_APIS = [
   '/api/teams/my',
   '/api/season/current-cycle',
-  '/api/leagues/*/standings',
-  '/api/teams/*/players',
-  '/api/teams/*/finances',
+  '/api/server/time',
+  '/api/notifications',
+  '/api/matches/live',
 ];
 
-// API endpoints that should never be cached
-const NEVER_CACHE_APIS = [
+// Network-first strategies for real-time data
+const NETWORK_FIRST_APIS = [
   '/api/matches/live',
   '/api/notifications',
   '/api/server/time',
-  '/api/auth/*',
 ];
 
-/**
- * Install event - cache static assets
- */
+// Cache-first strategies for static data
+const CACHE_FIRST_APIS = [
+  '/api/teams/my',
+  '/api/season/current-cycle',
+];
+
 self.addEventListener('install', (event) => {
-  console.log('Service Worker: Installing...');
+  console.log('Service Worker installing...');
   
   event.waitUntil(
-    caches.open(STATIC_CACHE_NAME)
-      .then((cache) => {
-        console.log('Service Worker: Caching static assets');
+    Promise.all([
+      caches.open(STATIC_CACHE_NAME).then((cache) => {
         return cache.addAll(STATIC_ASSETS);
+      }),
+      caches.open(API_CACHE_NAME).then((cache) => {
+        // Pre-cache critical API endpoints
+        return Promise.all(
+          CACHEABLE_APIS.map(url => 
+            fetch(url)
+              .then(response => response.ok ? cache.put(url, response) : null)
+              .catch(err => console.log('Pre-cache failed for:', url, err))
+          )
+        );
       })
-      .then(() => {
-        console.log('Service Worker: Installed successfully');
-        return self.skipWaiting();
-      })
-      .catch((error) => {
-        console.error('Service Worker: Installation failed', error);
-      })
+    ])
   );
+  
+  // Skip waiting to activate immediately
+  self.skipWaiting();
 });
 
-/**
- * Activate event - clean up old caches
- */
 self.addEventListener('activate', (event) => {
-  console.log('Service Worker: Activating...');
+  console.log('Service Worker activating...');
   
   event.waitUntil(
     caches.keys().then((cacheNames) => {
       return Promise.all(
         cacheNames.map((cacheName) => {
-          if (cacheName !== STATIC_CACHE_NAME && cacheName !== DYNAMIC_CACHE_NAME) {
-            console.log('Service Worker: Deleting old cache:', cacheName);
+          // Delete old caches
+          if (cacheName !== CACHE_NAME && 
+              cacheName !== API_CACHE_NAME && 
+              cacheName !== STATIC_CACHE_NAME) {
+            console.log('Deleting old cache:', cacheName);
             return caches.delete(cacheName);
           }
         })
       );
-    }).then(() => {
-      console.log('Service Worker: Activated successfully');
-      return self.clients.claim();
     })
   );
+  
+  // Take control of all pages
+  self.clients.claim();
 });
 
-/**
- * Fetch event - handle network requests
- */
 self.addEventListener('fetch', (event) => {
   const { request } = event;
   const url = new URL(request.url);
-
-  // Skip cross-origin requests
+  
+  // Only handle same-origin requests
   if (url.origin !== location.origin) {
     return;
   }
-
+  
   // Handle API requests
   if (url.pathname.startsWith('/api/')) {
     event.respondWith(handleApiRequest(request));
     return;
   }
-
+  
   // Handle static assets
-  if (request.destination === 'document') {
-    event.respondWith(handlePageRequest(request));
-    return;
-  }
-
-  // Handle other assets (CSS, JS, images)
-  event.respondWith(handleAssetRequest(request));
+  event.respondWith(handleStaticRequest(request));
 });
 
-/**
- * Handle API requests with caching strategy
- */
 async function handleApiRequest(request) {
   const url = new URL(request.url);
   const pathname = url.pathname;
-
-  // Never cache certain endpoints
-  if (NEVER_CACHE_APIS.some(pattern => matchPattern(pathname, pattern))) {
-    return fetch(request);
+  
+  // Network-first strategy for real-time data
+  if (NETWORK_FIRST_APIS.some(api => pathname.startsWith(api))) {
+    try {
+      const response = await fetch(request);
+      
+      if (response.ok) {
+        // Cache successful responses
+        const cache = await caches.open(API_CACHE_NAME);
+        cache.put(request, response.clone());
+        return response;
+      }
+      
+      // If network fails, try cache
+      const cachedResponse = await caches.match(request);
+      return cachedResponse || createOfflineResponse(pathname);
+      
+    } catch (error) {
+      console.log('Network failed for:', pathname, error);
+      const cachedResponse = await caches.match(request);
+      return cachedResponse || createOfflineResponse(pathname);
+    }
   }
-
-  // Cache-first strategy for certain endpoints
-  if (CACHEABLE_APIS.some(pattern => matchPattern(pathname, pattern))) {
-    const cache = await caches.open(DYNAMIC_CACHE_NAME);
-    const cachedResponse = await cache.match(request);
+  
+  // Cache-first strategy for static data
+  if (CACHE_FIRST_APIS.some(api => pathname.startsWith(api))) {
+    const cachedResponse = await caches.match(request);
     
     if (cachedResponse) {
-      // Return cached response and update in background
-      fetch(request).then(response => {
-        if (response.ok) {
-          cache.put(request, response.clone());
-        }
-      }).catch(() => {
-        // Network failed, but we have cache
-      });
+      // Update cache in background
+      fetch(request)
+        .then(response => {
+          if (response.ok) {
+            caches.open(API_CACHE_NAME).then(cache => {
+              cache.put(request, response);
+            });
+          }
+        })
+        .catch(err => console.log('Background update failed:', err));
       
       return cachedResponse;
     }
-  }
-
-  // Network-first strategy for other API requests
-  try {
-    const response = await fetch(request);
     
-    if (response.ok && request.method === 'GET') {
-      const cache = await caches.open(DYNAMIC_CACHE_NAME);
-      cache.put(request, response.clone());
+    // If not in cache, fetch from network
+    try {
+      const response = await fetch(request);
+      
+      if (response.ok) {
+        const cache = await caches.open(API_CACHE_NAME);
+        cache.put(request, response.clone());
+        return response;
+      }
+      
+      return createOfflineResponse(pathname);
+    } catch (error) {
+      return createOfflineResponse(pathname);
     }
-    
-    return response;
-  } catch (error) {
-    // Try to serve from cache
-    const cache = await caches.open(DYNAMIC_CACHE_NAME);
-    const cachedResponse = await cache.match(request);
-    
-    if (cachedResponse) {
-      return cachedResponse;
-    }
-    
-    // Return offline response
-    return new Response(
-      JSON.stringify({ error: 'Network unavailable, please try again later' }),
-      { status: 503, headers: { 'Content-Type': 'application/json' } }
-    );
   }
-}
-
-/**
- * Handle page requests
- */
-async function handlePageRequest(request) {
+  
+  // Default: try network first, then cache
   try {
     const response = await fetch(request);
     
     if (response.ok) {
-      const cache = await caches.open(DYNAMIC_CACHE_NAME);
+      const cache = await caches.open(API_CACHE_NAME);
       cache.put(request, response.clone());
+      return response;
     }
     
-    return response;
+    const cachedResponse = await caches.match(request);
+    return cachedResponse || createOfflineResponse(pathname);
+    
   } catch (error) {
-    // Try to serve from cache
-    const cache = await caches.open(DYNAMIC_CACHE_NAME);
-    const cachedResponse = await cache.match(request);
-    
-    if (cachedResponse) {
-      return cachedResponse;
-    }
-    
-    // Return offline page
-    return caches.match('/');
+    const cachedResponse = await caches.match(request);
+    return cachedResponse || createOfflineResponse(pathname);
   }
 }
 
-/**
- * Handle asset requests
- */
-async function handleAssetRequest(request) {
-  const cache = await caches.open(STATIC_CACHE_NAME);
-  const cachedResponse = await cache.match(request);
+async function handleStaticRequest(request) {
+  // Cache-first strategy for static assets
+  const cachedResponse = await caches.match(request);
   
   if (cachedResponse) {
     return cachedResponse;
@@ -206,117 +198,122 @@ async function handleAssetRequest(request) {
     const response = await fetch(request);
     
     if (response.ok) {
+      const cache = await caches.open(STATIC_CACHE_NAME);
       cache.put(request, response.clone());
+      return response;
     }
     
     return response;
   } catch (error) {
-    console.error('Failed to fetch asset:', request.url);
-    throw error;
+    // Return offline fallback for HTML pages
+    if (request.destination === 'document') {
+      return caches.match('/') || new Response('Offline', { status: 200 });
+    }
+    
+    return new Response('Offline', { status: 503 });
   }
 }
 
-/**
- * Match URL pattern with wildcards
- */
-function matchPattern(pathname, pattern) {
-  const regexPattern = pattern.replace(/\*/g, '.*');
-  const regex = new RegExp(`^${regexPattern}$`);
-  return regex.test(pathname);
+function createOfflineResponse(pathname) {
+  // Create appropriate offline responses based on endpoint
+  if (pathname.includes('/matches/live')) {
+    return new Response(JSON.stringify([]), {
+      headers: { 'Content-Type': 'application/json' }
+    });
+  }
+  
+  if (pathname.includes('/notifications')) {
+    return new Response(JSON.stringify([]), {
+      headers: { 'Content-Type': 'application/json' }
+    });
+  }
+  
+  if (pathname.includes('/server/time')) {
+    return new Response(JSON.stringify({
+      success: true,
+      data: { currentTime: new Date().toISOString() }
+    }), {
+      headers: { 'Content-Type': 'application/json' }
+    });
+  }
+  
+  // Default offline response
+  return new Response(JSON.stringify({
+    error: 'Offline - Please check your connection'
+  }), {
+    status: 503,
+    headers: { 'Content-Type': 'application/json' }
+  });
 }
 
-/**
- * Handle push notifications
- */
+// Handle push notifications
 self.addEventListener('push', (event) => {
   if (!event.data) return;
-
+  
   const data = event.data.json();
+  
   const options = {
     body: data.body,
-    icon: '/logo-192.png',
-    badge: '/logo-192.png',
-    vibrate: [100, 50, 100],
-    data: {
-      url: data.url || '/',
-      timestamp: Date.now(),
-    },
+    icon: '/logo-modern-2.svg',
+    badge: '/logo-modern-2.svg',
+    data: data.data,
     actions: [
       {
         action: 'open',
-        title: 'Open',
-        icon: '/icons/open-96.png',
+        title: 'Open Game'
       },
       {
-        action: 'close',
-        title: 'Close',
-        icon: '/icons/close-96.png',
-      },
-    ],
+        action: 'dismiss',
+        title: 'Dismiss'
+      }
+    ]
   };
-
+  
   event.waitUntil(
     self.registration.showNotification(data.title, options)
   );
 });
 
-/**
- * Handle notification clicks
- */
+// Handle notification clicks
 self.addEventListener('notificationclick', (event) => {
   event.notification.close();
-
-  if (event.action === 'close') {
-    return;
-  }
-
-  const url = event.notification.data.url;
   
-  event.waitUntil(
-    clients.matchAll({ type: 'window' }).then((clients) => {
-      // Check if there's already a window open
-      for (const client of clients) {
-        if (client.url === url && 'focus' in client) {
-          return client.focus();
-        }
-      }
-      
-      // Open new window
-      if (clients.openWindow) {
-        return clients.openWindow(url);
-      }
-    })
-  );
+  if (event.action === 'open') {
+    event.waitUntil(
+      clients.openWindow('/')
+    );
+  }
 });
 
-/**
- * Handle background sync
- */
+// Handle background sync
 self.addEventListener('sync', (event) => {
   if (event.tag === 'background-sync') {
-    event.waitUntil(doBackgroundSync());
+    event.waitUntil(
+      syncData()
+    );
   }
 });
 
-/**
- * Background sync logic
- */
-async function doBackgroundSync() {
+async function syncData() {
   try {
-    // Sync any pending data
+    // Sync critical data when connection is restored
+    const responses = await Promise.all([
+      fetch('/api/teams/my'),
+      fetch('/api/notifications'),
+      fetch('/api/matches/live')
+    ]);
+    
+    const cache = await caches.open(API_CACHE_NAME);
+    
+    responses.forEach((response, index) => {
+      if (response.ok) {
+        const urls = ['/api/teams/my', '/api/notifications', '/api/matches/live'];
+        cache.put(urls[index], response.clone());
+      }
+    });
+    
     console.log('Background sync completed');
   } catch (error) {
-    console.error('Background sync failed:', error);
+    console.log('Background sync failed:', error);
   }
 }
-
-/**
- * Handle messages from main thread
- */
-self.addEventListener('message', (event) => {
-  if (event.data && event.data.type === 'SKIP_WAITING') {
-    self.skipWaiting();
-  }
-});
-
-console.log('Service Worker: Loaded');

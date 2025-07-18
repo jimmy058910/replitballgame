@@ -1,121 +1,211 @@
 /**
  * PWA Install Prompt Component
- * Provides native app installation experience
+ * Handles the BeforeInstallPromptEvent and provides native app installation
  */
 import React, { useState, useEffect } from 'react';
-import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Download, X } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Download, X, Smartphone, Monitor } from 'lucide-react';
 
 interface BeforeInstallPromptEvent extends Event {
-  prompt: () => void;
+  prompt(): Promise<void>;
   userChoice: Promise<{ outcome: 'accepted' | 'dismissed' }>;
 }
 
-export const PWAInstallPrompt: React.FC = () => {
+const PWAInstallPrompt: React.FC = () => {
   const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
-  const [isVisible, setIsVisible] = useState(false);
-  const [isInstallable, setIsInstallable] = useState(false);
+  const [showPrompt, setShowPrompt] = useState(false);
+  const [isInstalled, setIsInstalled] = useState(false);
+  const [isIOS, setIsIOS] = useState(false);
+  const [isStandalone, setIsStandalone] = useState(false);
 
   useEffect(() => {
     // Check if app is already installed
-    const isStandalone = window.matchMedia('(display-mode: standalone)').matches;
-    const isInWebAppiOS = (window.navigator as any).standalone;
+    const isAppInstalled = window.matchMedia('(display-mode: standalone)').matches ||
+                          (window.navigator as any).standalone ||
+                          document.referrer.includes('android-app://');
     
-    if (isStandalone || isInWebAppiOS) {
-      return; // App is already installed
-    }
+    setIsInstalled(isAppInstalled);
+    setIsStandalone(isAppInstalled);
 
+    // Check if iOS
+    const iOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+    setIsIOS(iOS);
+
+    // Listen for beforeinstallprompt event
     const handleBeforeInstallPrompt = (e: Event) => {
+      console.log('beforeinstallprompt event fired');
       // Prevent Chrome 67 and earlier from automatically showing the prompt
       e.preventDefault();
       // Stash the event so it can be triggered later
       setDeferredPrompt(e as BeforeInstallPromptEvent);
-      setIsInstallable(true);
       
-      // Show prompt after user has interacted with the app
+      // Show our custom prompt after a delay
       setTimeout(() => {
-        setIsVisible(true);
-      }, 30000); // Wait 30 seconds before showing
+        setShowPrompt(true);
+      }, 5000); // Show after 5 seconds
+    };
+
+    // Listen for app installed event
+    const handleAppInstalled = () => {
+      console.log('PWA was installed');
+      setShowPrompt(false);
+      setIsInstalled(true);
+      setDeferredPrompt(null);
     };
 
     window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+    window.addEventListener('appinstalled', handleAppInstalled);
 
     return () => {
       window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+      window.removeEventListener('appinstalled', handleAppInstalled);
     };
   }, []);
 
   const handleInstallClick = async () => {
-    if (!deferredPrompt) return;
-
-    // Show the prompt
-    deferredPrompt.prompt();
-
-    // Wait for the user to respond to the prompt
-    const { outcome } = await deferredPrompt.userChoice;
-    
-    if (outcome === 'accepted') {
-      console.log('User accepted the install prompt');
-    } else {
-      console.log('User dismissed the install prompt');
+    if (deferredPrompt) {
+      // Show the install prompt
+      await deferredPrompt.prompt();
+      
+      // Wait for the user to respond to the prompt
+      const choiceResult = await deferredPrompt.userChoice;
+      
+      if (choiceResult.outcome === 'accepted') {
+        console.log('User accepted the install prompt');
+      } else {
+        console.log('User dismissed the install prompt');
+      }
+      
+      // Clear the deferredPrompt
+      setDeferredPrompt(null);
+      setShowPrompt(false);
     }
-
-    // Clear the deferredPrompt
-    setDeferredPrompt(null);
-    setIsVisible(false);
   };
 
   const handleDismiss = () => {
-    setIsVisible(false);
+    setShowPrompt(false);
+    
     // Don't show again for this session
-    setIsInstallable(false);
+    sessionStorage.setItem('pwa-prompt-dismissed', 'true');
   };
 
-  if (!isVisible || !isInstallable) {
+  // Don't show if already installed or dismissed
+  if (isInstalled || !showPrompt || sessionStorage.getItem('pwa-prompt-dismissed')) {
     return null;
   }
 
+  // iOS specific install instructions
+  if (isIOS && !isStandalone) {
+    return (
+      <div className="fixed bottom-4 right-4 z-50 max-w-sm">
+        <Card className="bg-blue-900/90 border-blue-600 backdrop-blur-sm">
+          <CardHeader className="pb-3">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-2">
+                <Smartphone className="w-5 h-5 text-blue-400" />
+                <CardTitle className="text-lg text-blue-100">Install App</CardTitle>
+              </div>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handleDismiss}
+                className="text-blue-300 hover:text-blue-100"
+              >
+                <X className="w-4 h-4" />
+              </Button>
+            </div>
+            <CardDescription className="text-blue-200">
+              Add Realm Rivalry to your home screen
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <div className="text-sm text-blue-100">
+              <p className="mb-2">To install this app:</p>
+              <ol className="list-decimal list-inside space-y-1 text-blue-200">
+                <li>Tap the Share button</li>
+                <li>Select "Add to Home Screen"</li>
+                <li>Tap "Add"</li>
+              </ol>
+            </div>
+            <div className="flex items-center space-x-2">
+              <Badge variant="outline" className="text-blue-300 border-blue-500">
+                Works Offline
+              </Badge>
+              <Badge variant="outline" className="text-blue-300 border-blue-500">
+                Native Feel
+              </Badge>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  // Android/Chrome install prompt
   return (
-    <Card className="fixed bottom-4 right-4 w-80 z-50 bg-gradient-to-r from-blue-600 to-purple-600 text-white border-0">
-      <CardHeader className="pb-2">
-        <div className="flex items-center justify-between">
-          <CardTitle className="text-lg">Install Realm Rivalry</CardTitle>
-          <Button 
-            variant="ghost" 
-            size="sm"
-            onClick={handleDismiss}
-            className="text-white hover:text-gray-200 hover:bg-white/10"
-          >
-            <X className="h-4 w-4" />
-          </Button>
-        </div>
-        <CardDescription className="text-blue-100">
-          Get the full app experience with offline features
-        </CardDescription>
-      </CardHeader>
-      <CardContent className="pt-0">
-        <div className="flex items-center gap-2 mb-4">
-          <div className="w-2 h-2 bg-green-400 rounded-full"></div>
-          <span className="text-sm">Works offline</span>
-        </div>
-        <div className="flex items-center gap-2 mb-4">
-          <div className="w-2 h-2 bg-green-400 rounded-full"></div>
-          <span className="text-sm">Faster loading</span>
-        </div>
-        <div className="flex items-center gap-2 mb-4">
-          <div className="w-2 h-2 bg-green-400 rounded-full"></div>
-          <span className="text-sm">Home screen shortcut</span>
-        </div>
-        <Button 
-          onClick={handleInstallClick}
-          className="w-full bg-white text-blue-600 hover:bg-gray-100"
-        >
-          <Download className="h-4 w-4 mr-2" />
-          Install App
-        </Button>
-      </CardContent>
-    </Card>
+    <div className="fixed bottom-4 right-4 z-50 max-w-sm">
+      <Card className="bg-gray-900/90 border-gray-600 backdrop-blur-sm">
+        <CardHeader className="pb-3">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-2">
+              <Monitor className="w-5 h-5 text-primary" />
+              <CardTitle className="text-lg text-white">Install App</CardTitle>
+            </div>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={handleDismiss}
+              className="text-gray-300 hover:text-white"
+            >
+              <X className="w-4 h-4" />
+            </Button>
+          </div>
+          <CardDescription className="text-gray-300">
+            Get the full Realm Rivalry experience
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="grid grid-cols-2 gap-2 text-sm">
+            <div className="flex items-center space-x-2">
+              <div className="w-2 h-2 bg-green-400 rounded-full"></div>
+              <span className="text-gray-300">Works Offline</span>
+            </div>
+            <div className="flex items-center space-x-2">
+              <div className="w-2 h-2 bg-blue-400 rounded-full"></div>
+              <span className="text-gray-300">Fast Loading</span>
+            </div>
+            <div className="flex items-center space-x-2">
+              <div className="w-2 h-2 bg-purple-400 rounded-full"></div>
+              <span className="text-gray-300">Native Feel</span>
+            </div>
+            <div className="flex items-center space-x-2">
+              <div className="w-2 h-2 bg-yellow-400 rounded-full"></div>
+              <span className="text-gray-300">Notifications</span>
+            </div>
+          </div>
+          
+          <div className="flex space-x-2">
+            <Button
+              onClick={handleInstallClick}
+              className="flex-1 bg-primary hover:bg-primary/90"
+              disabled={!deferredPrompt}
+            >
+              <Download className="w-4 h-4 mr-2" />
+              Install Now
+            </Button>
+            <Button
+              variant="outline"
+              onClick={handleDismiss}
+              className="text-gray-300 border-gray-600"
+            >
+              Later
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
   );
 };
 
