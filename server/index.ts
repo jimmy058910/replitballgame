@@ -22,9 +22,23 @@ app.use(express.urlencoded({ extended: false }));
 // Add request ID middleware early in the chain
 app.use(requestIdMiddleware);
 
+// Add logging middleware to track all requests
+app.use((req, res, next) => {
+  console.log(`📍 ${req.method} ${req.path} - Body:`, req.body);
+  next();
+});
+
 // Add security middleware
 app.use(securityHeadersMiddleware);
 app.use(sanitizeInputMiddleware);
+
+// Add logging middleware after sanitization
+app.use((req, res, next) => {
+  if (req.path.includes('/formation')) {
+    console.log(`🔍 After sanitization - ${req.method} ${req.path} - Body:`, req.body);
+  }
+  next();
+});
 
 // Security headers
 app.use(helmet({
