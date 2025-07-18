@@ -4,6 +4,7 @@
  */
 
 import { fantasyCommentaryDatabase } from './fantasyCommentaryDatabase';
+import { configManager } from '../utils/configManager';
 
 interface Player {
   id: string;
@@ -41,8 +42,42 @@ interface CommentaryContext {
 }
 
 export class CommentaryService {
+  private commentaryConfig = configManager.getCommentary();
   
   // Helper Methods
+  /**
+   * Weighted Commentary Selection using Softmax Distribution
+   * Replaces fixed percentage chances with dynamic weighting
+   */
+  private selectWeightedCommentary(commentaryOptions: Array<{
+    prompts: string[];
+    weight: number;
+    context: string;
+  }>): string {
+    // Calculate softmax probabilities
+    const maxWeight = Math.max(...commentaryOptions.map(opt => opt.weight));
+    const exponentials = commentaryOptions.map(opt => Math.exp(opt.weight - maxWeight));
+    const sumExponentials = exponentials.reduce((sum, exp) => sum + exp, 0);
+    
+    const probabilities = exponentials.map(exp => exp / sumExponentials);
+    
+    // Generate random number for selection
+    const random = Math.random();
+    let cumulativeProbability = 0;
+    
+    for (let i = 0; i < commentaryOptions.length; i++) {
+      cumulativeProbability += probabilities[i];
+      if (random <= cumulativeProbability) {
+        const selectedOption = commentaryOptions[i];
+        return selectedOption.prompts[Math.floor(Math.random() * selectedOption.prompts.length)];
+      }
+    }
+    
+    // Fallback to first option
+    const fallbackOption = commentaryOptions[0];
+    return fallbackOption.prompts[Math.floor(Math.random() * fallbackOption.prompts.length)];
+  }
+
   private getPlayerDisplayName(player: Player): string {
     const firstName = player.firstName || '';
     const lastName = player.lastName || '';
@@ -118,18 +153,39 @@ export class CommentaryService {
       commentary = [...fantasyCommentaryDatabase.standardCompletions];
     }
     
-    // Add race-specific commentary (15% chance for uniqueness)
-    if (race === 'LUMINA' && Math.random() < 0.15) {
-      commentary.push(...fantasyCommentaryDatabase.raceBasedPasses.LUMINA);
+    // Use weighted selection instead of fixed percentage
+    const weights = this.commentaryConfig.prompt_weights;
+    const commentaryOptions = [
+      {
+        prompts: commentary,
+        weight: weights.neutral,
+        context: 'neutral'
+      }
+    ];
+    
+    // Add race-specific commentary option
+    if (race === 'LUMINA' && fantasyCommentaryDatabase.raceBasedPasses?.LUMINA) {
+      commentaryOptions.push({
+        prompts: fantasyCommentaryDatabase.raceBasedPasses.LUMINA,
+        weight: weights.race_flavor,
+        context: 'race_flavor'
+      });
     }
     
-    // Add clutch commentary in late game
+    // Add contextual commentary for late game
     if (gamePhase === 'clutch') {
-      commentary.push(`Under pressure in crunch time, ${playerName} delivers to ${receiverName}!`);
-      commentary.push(`When it matters most, ${playerName} comes through for ${yards} yards!`);
+      commentaryOptions.push({
+        prompts: [
+          `Under pressure in crunch time, ${playerName} delivers to ${receiverName}!`,
+          `When it matters most, ${playerName} comes through for ${yards} yards!`
+        ],
+        weight: weights.late_game,
+        context: 'late_game'
+      });
     }
     
-    const selectedCommentary = commentary[Math.floor(Math.random() * commentary.length)];
+    const selectedCommentary = this.selectWeightedCommentary(commentaryOptions);
+    
     return selectedCommentary
       .replace(/{passerName}/g, playerName)
       .replace(/{receiverName}/g, receiverName)

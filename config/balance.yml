@@ -1,0 +1,105 @@
+# Realm Rivalry - Balance Configuration
+# This file contains all gameplay balance parameters
+# Designers can modify these values without touching code
+
+simulation:
+  # Injury System
+  injury_rates:
+    base_tackle: 0.03          # 3% base injury chance per tackle
+    power_tackle_multiplier: 1.5  # 50% higher chance for power tackles
+    trainer_reduction: 0.15    # 15% reduction with recovery specialist
+    morale_factor: 0.1         # Low morale increases injury risk
+
+  # Stamina System
+  stamina:
+    depletion_rate: 0.8        # Base stamina depletion per action
+    recovery_multiplier: 1.2   # Daily stamina recovery rate
+    attribute_bonus: 0.3       # Stamina attribute reduces depletion
+    minimum_loss: 5            # Minimum stamina loss per match
+
+  # Contested Ball System
+  contested_balls:
+    forced_rate: 0.12          # 12% chance for forced fumbles on big hits
+    unforced_rate: 0.05        # 5% chance for unforced drops/fumbles
+    recovery_bonus: 0.2        # 20% bonus for ball recovery
+
+  # Interception System
+  interceptions:
+    base_rate: 0.018           # 1.8% league average interception rate
+    coverage_bonus: 0.01       # +1% per point of coverage advantage
+    pressure_bonus: 0.005      # +0.5% per point of pressure
+
+  # Power System
+  power_tackles:
+    threshold: 30              # Power attribute threshold for power tackles
+    bonus_damage: 0.5          # Extra damage multiplier for power tackles
+    anything_goes_chance: 0.1  # 10% chance for brutal commentary
+
+commentary:
+  # Weighted Commentary Selection
+  prompt_weights:
+    neutral: 1.0               # Base weight for neutral commentary
+    race_flavor: 0.6           # Race-specific commentary weight
+    skill_flavor: 0.8          # Skill-based commentary weight
+    contextual: 1.2            # Situational commentary weight
+    late_game: 1.5             # Clutch situation commentary weight
+
+  # Race Commentary Frequency
+  race_commentary_chance: 0.15  # 15% chance for race-specific commentary
+
+stadium:
+  # Home Field Advantage
+  home_field:
+    base_advantage: 0.03       # 3% base home field advantage
+    max_advantage: 0.09        # 9% maximum home field advantage
+    capacity_factor: 0.0001    # Capacity impact on advantage
+    loyalty_multiplier: 0.8    # Fan loyalty impact multiplier
+
+  # Crowd Effects
+  crowd_effects:
+    noise_penalty: 0.02        # 2% passing accuracy penalty per noise level
+    intimidation_bonus: 0.01   # 1% defensive bonus per intimidation point
+    morale_boost: 0.15         # 15% morale boost for home team
+
+  # Atmosphere Calculations
+  atmosphere:
+    attendance_loyalty_factor: 0.7  # Fan loyalty impact on attendance
+    max_attendance_rate: 0.95       # Maximum attendance rate
+    min_attendance_rate: 0.35       # Minimum attendance rate
+
+player_progression:
+  # Daily Progression
+  daily_progression:
+    base_chance: 0.01          # 1% base chance for daily stat gain
+    age_modifier: 0.001        # Age impact on progression
+    usage_bonus: 0.005         # Playing time bonus
+
+  # End of Season Progression
+  season_progression:
+    base_chance: 0.3           # 30% base chance for season progression
+    potential_multiplier: 0.1  # Potential rating impact
+    trainer_bonus: 0.05        # Trainer impact on progression
+
+  # Aging and Decline
+  aging:
+    decline_start_age: 31      # Age when decline begins
+    decline_rate: 0.025        # 2.5% decline chance per year over 30
+    retirement_age: 45         # Automatic retirement age
+
+economy:
+  # Marketplace
+  marketplace:
+    listing_fee: 0.02          # 2% listing fee
+    max_listings: 3            # Maximum listings per team
+    anti_snipe_time: 300       # 5 minutes anti-snipe extension
+
+  # Stadium Revenue
+  stadium_revenue:
+    ticket_price: 25           # Credits per ticket
+    concession_multiplier: 8   # Concession revenue per attendee
+    parking_rate: 0.3          # 30% of attendees use parking
+    parking_price: 10          # Credits per parking spot
+
+# Version tracking
+version: "1.0.0"
+last_updated: "2025-07-18"

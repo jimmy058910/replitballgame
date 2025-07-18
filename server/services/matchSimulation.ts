@@ -1,6 +1,9 @@
 import type { Player, Team, Stadium } from "../../generated/prisma";
 import { CamaraderieService } from "./camaraderieService";
 import { commentaryService } from "./commentaryService";
+import { DeterministicRNG } from '../utils/deterministicRNG';
+import { configManager } from '../utils/configManager';
+import { stadiumEffectsCalculator } from '../utils/stadiumEffects';
 
 interface MatchEvent {
   time: number;
@@ -82,8 +85,13 @@ export async function simulateEnhancedMatch(
   homeTeamId: string,
   awayTeamId: string,
   stadium?: Stadium,
-  matchType: string = 'league'
+  matchType: string = 'league',
+  matchId?: string
 ): Promise<EnhancedMatchResult> {
+  // Initialize deterministic RNG for reproducible match results
+  const matchSeed = matchId || `${homeTeamId}-${awayTeamId}-${Date.now()}`;
+  const rng = new DeterministicRNG(matchSeed);
+  
   const events: MatchEvent[] = [];
   let homeScore = 0;
   let awayScore = 0;
@@ -155,7 +163,7 @@ export async function simulateEnhancedMatch(
   });
 
   // Enhanced match simulation with detailed mechanics - faster event generation
-  for (let time = 0; time < matchDuration; time += Math.random() * 8 + 4) {
+  for (let time = 0; time < matchDuration; time += rng.nextFloat() * 8 + 4) {
     if (time >= halftimeTime && !halftimeEventAdded) {
       events.push({
         time: Math.floor(halftimeTime),
@@ -178,7 +186,8 @@ export async function simulateEnhancedMatch(
       atmosphereEffects,
       tacticalEffects,
       gamePhase,
-      playerStats
+      playerStats,
+      rng
     );
     
     events.push(event);
@@ -261,9 +270,10 @@ function generateMatchEvent(
   homeStrength: number,
   awayStrength: number,
   homeCamaraderie: number,
-  awayCamaraderie: number
+  awayCamaraderie: number,
+  rng: DeterministicRNG
 ): MatchEvent {
-  const isHomeTeamEvent = Math.random() < homeStrength / (homeStrength + awayStrength);
+  const isHomeTeamEvent = rng.next() < homeStrength / (homeStrength + awayStrength);
   const actingTeam = isHomeTeamEvent ? "home" : "away";
   const actingPlayers = isHomeTeamEvent ? homeTeamPlayers : awayTeamPlayers;
   const actingTeamCamaraderie = isHomeTeamEvent ? homeCamaraderie : awayCamaraderie;
@@ -276,10 +286,10 @@ function generateMatchEvent(
       team: actingTeam,
     };
   }
-  const randomPlayer = actingPlayers[Math.floor(Math.random() * actingPlayers.length)];
+  const randomPlayer = rng.choice(actingPlayers);
 
   const baseEventTypes = ["pass_attempt", "run_attempt", "defensive_play"];
-  let eventType = baseEventTypes[Math.floor(Math.random() * baseEventTypes.length)];
+  let eventType = rng.choice(baseEventTypes);
   let description = "";
 
   let camaraderieEffect = 0;
@@ -291,21 +301,21 @@ function generateMatchEvent(
 
   if (eventType === "pass_attempt") {
     let passSuccessChance = 0.6 + camaraderieEffect;
-    if (Math.random() < passSuccessChance) {
+    if (rng.next() < passSuccessChance) {
       eventType = "pass_complete";
       description = `${randomPlayer.name} (${randomPlayer.race}) completes a precise pass!`;
-      if (Math.random() < (0.15 + Math.max(0, camaraderieEffect))) {
+      if (rng.next() < (0.15 + Math.max(0, camaraderieEffect))) {
         eventType = "score";
         description = `TOUCHDOWN! ${randomPlayer.name} (${randomPlayer.race}) connects for a score!`;
       }
     } else {
-      if (Math.random() < (0.5 + Math.max(0, -camaraderieEffect * 2))) {
+      if (rng.next() < (0.5 + Math.max(0, -camaraderieEffect * 2))) {
         eventType = "pass_inaccurate";
         description = `${randomPlayer.name} (${randomPlayer.race})'s pass is off target due to miscommunication!`;
       } else {
         eventType = "interception";
         const defendingPlayers = isHomeTeamEvent ? awayTeamPlayers : homeTeamPlayers;
-        const interceptor = defendingPlayers.length > 0 ? defendingPlayers[Math.floor(Math.random() * defendingPlayers.length)] : { name: "Defender", race: "Unknown" };
+        const interceptor = defendingPlayers.length > 0 ? rng.choice(defendingPlayers) : { name: "Defender", race: "Unknown" };
         description = `${interceptor.name} (${interceptor.race}) intercepts the pass!`;
         return {
           time: Math.floor(time),
@@ -973,9 +983,10 @@ async function generateEnhancedMatchEvent(
   atmosphereEffects: AtmosphereEffects,
   tacticalEffects: TacticalEffects,
   gamePhase: string,
-  playerStats: Record<string, PlayerGameStats>
+  playerStats: Record<string, PlayerGameStats>,
+  rng: DeterministicRNG
 ): Promise<MatchEvent> {
-  const isHomeTeamEvent = Math.random() < homeStrength / (homeStrength + awayStrength);
+  const isHomeTeamEvent = rng.next() < homeStrength / (homeStrength + awayStrength);
   const actingTeam = isHomeTeamEvent ? "home" : "away";
   const actingPlayers = isHomeTeamEvent ? homeTeamPlayers : awayTeamPlayers;
   const actingTeamCamaraderie = isHomeTeamEvent ? homeCamaraderie : awayCamaraderie;
@@ -990,7 +1001,7 @@ async function generateEnhancedMatchEvent(
     };
   }
   
-  const randomPlayer = actingPlayers[Math.floor(Math.random() * actingPlayers.length)];
+  const randomPlayer = rng.choice(actingPlayers);
   
   // Determine action type based on player role and tactical focus
   const actionType = determineActionType(randomPlayer, tacticalEffects, gamePhase);
