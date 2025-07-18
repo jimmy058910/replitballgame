@@ -398,6 +398,9 @@ router.get('/daily-schedule', isAuthenticated, async (req: Request, res: Respons
     // Get all matches for the user's division and subdivision
     const divisionMatches = await matchStorage.getMatchesByDivision(userTeam.division);
     
+    // ✅ CRITICAL FIX: Filter out exhibition games - only show league games
+    const leagueMatches = divisionMatches.filter(match => match.matchType === 'LEAGUE');
+    
     // Get all teams in the user's subdivision
     const subdivisionTeams = await prisma.team.findMany({
       where: { 
@@ -410,12 +413,12 @@ router.get('/daily-schedule', isAuthenticated, async (req: Request, res: Respons
     const subdivisionTeamIds = subdivisionTeams.map(team => team.id);
 
     // Show user's team games + fill to exactly 4 games per day
-    const userTeamMatches = divisionMatches.filter(match => 
+    const userTeamMatches = leagueMatches.filter(match => 
       Number(match.homeTeamId) === Number(userTeam.id) || Number(match.awayTeamId) === Number(userTeam.id)
     );
     
     // Filter other matches to only include games within the user's subdivision
-    const otherMatches = divisionMatches.filter(match => {
+    const otherMatches = leagueMatches.filter(match => {
       const isNotUserTeam = Number(match.homeTeamId) !== Number(userTeam.id) && Number(match.awayTeamId) !== Number(userTeam.id);
       const bothTeamsInSubdivision = subdivisionTeamIds.includes(Number(match.homeTeamId)) && subdivisionTeamIds.includes(Number(match.awayTeamId));
       return isNotUserTeam && bothTeamsInSubdivision;
