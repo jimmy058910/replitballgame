@@ -1,6 +1,7 @@
 import { prisma } from "../db";
 import { randomUUID } from "crypto";
 import moment from "moment-timezone";
+import { PaymentHistoryService } from "./paymentHistoryService";
 
 export interface TournamentReward {
   credits: number;
@@ -593,6 +594,21 @@ export class TournamentService {
           where: { id: entryItem.id }
         });
       }
+
+      // Log Daily Division Tournament entry item consumption
+      const teamWithUser = await prisma.team.findUnique({
+        where: { id: teamId },
+        include: { user: true }
+      });
+      if (teamWithUser?.user) {
+        await PaymentHistoryService.recordItemPurchase(
+          teamWithUser.user.id,
+          teamId,
+          "Daily Division Tournament Entry",
+          0,
+          0
+        );
+      }
     } else {
       // Mid-Season Cup - requires credits, gems, or both
       const entryFeeCredits = tournament.entryFeeCredits || 0;
@@ -868,6 +884,21 @@ export class TournamentService {
         where: { teamId: parseInt(teamId) },
         data: { credits: teamCredits - 10000 }
       });
+
+      // Log Mid-Season Cup entry fee transaction
+      const teamWithUser = await prisma.team.findUnique({
+        where: { id: teamId },
+        include: { user: true }
+      });
+      if (teamWithUser?.user) {
+        await PaymentHistoryService.recordItemPurchase(
+          teamWithUser.user.id,
+          teamId,
+          "Mid-Season Cup Entry (Credits)",
+          10000,
+          0
+        );
+      }
     } else if (paymentType === "gems") {
       if (teamGems < 20) {
         throw new Error("Insufficient gems for Mid-Season Cup entry (20💎 required)");
@@ -876,6 +907,21 @@ export class TournamentService {
         where: { teamId: parseInt(teamId) },
         data: { gems: teamGems - 20 }
       });
+
+      // Log Mid-Season Cup entry fee transaction
+      const teamWithUser = await prisma.team.findUnique({
+        where: { id: teamId },
+        include: { user: true }
+      });
+      if (teamWithUser?.user) {
+        await PaymentHistoryService.recordItemPurchase(
+          teamWithUser.user.id,
+          teamId,
+          "Mid-Season Cup Entry (Gems)",
+          0,
+          20
+        );
+      }
     } else if (paymentType === "both") {
       if (teamCredits < 10000 || teamGems < 20) {
         throw new Error("Insufficient credits AND gems for Mid-Season Cup entry (10,000₡ AND 20💎 required)");
@@ -887,6 +933,21 @@ export class TournamentService {
           gems: teamGems - 20
         }
       });
+
+      // Log Mid-Season Cup entry fee transaction
+      const teamWithUser = await prisma.team.findUnique({
+        where: { id: teamId },
+        include: { user: true }
+      });
+      if (teamWithUser?.user) {
+        await PaymentHistoryService.recordItemPurchase(
+          teamWithUser.user.id,
+          teamId,
+          "Mid-Season Cup Entry (Credits + Gems)",
+          10000,
+          20
+        );
+      }
     }
 
     // Create tournament entry directly (payment already handled above)

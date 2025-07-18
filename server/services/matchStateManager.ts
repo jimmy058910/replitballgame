@@ -4,6 +4,7 @@ import { commentaryService } from "./commentaryService";
 import { injuryStaminaService } from "./injuryStaminaService";
 import { simulateEnhancedMatch } from "./matchSimulation";
 import { log } from "../vite";
+import { PaymentHistoryService } from "./paymentHistoryService";
 
 // Helper type for player stats snapshot
 type PlayerStatsSnapshot = {
@@ -312,7 +313,7 @@ class MatchStateManager {
       away: awayStarters.map(p => `${p.firstName} ${p.lastName} (${p.role})`)
     });
 
-    const maxTime = isExhibition ? 1200 : 1800; // 20 min exhibition, 30 min league
+    const maxTime = isExhibition ? 1800 : 2400; // 30 min exhibition, 40 min league
 
     const initialPlayerStats = new Map<string, PlayerStatsSnapshot>();
     const allPlayers = [...homeTeamPlayers, ...awayTeamPlayers];
@@ -1122,6 +1123,21 @@ class MatchStateManager {
             }
           }
         });
+
+        // Log exhibition reward transaction for home team
+        const homeTeam = await prisma.team.findUnique({
+          where: { id: parseInt(homeTeamId) },
+          include: { user: true }
+        });
+        if (homeTeam?.user) {
+          await PaymentHistoryService.recordReward(
+            homeTeam.user.id,
+            homeTeamId,
+            `Exhibition ${homeScore > awayScore ? 'Win' : homeScore === awayScore ? 'Tie' : 'Loss'}`,
+            homeCredits,
+            0
+          );
+        }
       }
 
       if (awayTeamFinance) {
@@ -1133,6 +1149,21 @@ class MatchStateManager {
             }
           }
         });
+
+        // Log exhibition reward transaction for away team
+        const awayTeam = await prisma.team.findUnique({
+          where: { id: parseInt(awayTeamId) },
+          include: { user: true }
+        });
+        if (awayTeam?.user) {
+          await PaymentHistoryService.recordReward(
+            awayTeam.user.id,
+            awayTeamId,
+            `Exhibition ${awayScore > homeScore ? 'Win' : awayScore === homeScore ? 'Tie' : 'Loss'}`,
+            awayCredits,
+            0
+          );
+        }
       }
 
       // Award team camaraderie boost to winning team players (if not a tie)

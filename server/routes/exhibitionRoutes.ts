@@ -145,6 +145,57 @@ router.post('/instant', isAuthenticated, async (req: any, res: Response, next: N
     const userTeam = await storage.teams.getTeamByUserId(userId);
     if (!userTeam || !userTeam.id) return res.status(404).json({ message: "Team not found." });
 
+    // Check exhibition game limits and entry item consumption
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const tomorrow = new Date(today);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+
+    const allExhibitionMatchesToday = await prisma.game.findMany({
+      where: {
+        matchType: 'EXHIBITION',
+        OR: [
+          { homeTeamId: userTeam.id },
+          { awayTeamId: userTeam.id }
+        ],
+        gameDate: {
+          gte: today,
+          lt: tomorrow
+        }
+      }
+    });
+
+    const totalGamesUsedToday = allExhibitionMatchesToday.length;
+    const freeGamesLimit = 3;
+
+    // If user has exceeded free games, check for exhibition entry items
+    if (totalGamesUsedToday >= freeGamesLimit) {
+      const exhibitionEntries = await storage.consumables.getTeamConsumables(userTeam.id);
+      const exhibitionGameEntries = exhibitionEntries.filter(item => item.item.name === 'Exhibition Game Entry');
+      
+      if (exhibitionGameEntries.length === 0) {
+        return res.status(400).json({ 
+          message: "You have used all 3 free exhibition games today. Purchase Exhibition Game Entry items from the store to play more games.",
+          freeGamesUsed: totalGamesUsedToday,
+          entriesAvailable: 0
+        });
+      }
+
+      // Consume one exhibition entry item
+      const entryItem = exhibitionGameEntries[0];
+      const consumeSuccess = await storage.consumables.consumeItem(userTeam.id, entryItem.item.id, 1);
+      
+      if (!consumeSuccess) {
+        return res.status(400).json({ 
+          message: "Failed to consume exhibition entry item. Please try again.",
+          freeGamesUsed: totalGamesUsedToday,
+          entriesAvailable: exhibitionGameEntries.length
+        });
+      }
+      
+      console.log(`🎯 Exhibition entry item consumed for team ${userTeam.id} (${userTeam.name})`);
+    }
+
     // Calculate user team power
     const userPlayers = await storage.players.getPlayersByTeamId(userTeam.id);
     const userTeamPower = calculateTeamPower(userPlayers);
@@ -243,6 +294,57 @@ router.post('/challenge', isAuthenticated, async (req: any, res: Response, next:
     const userTeam = await storage.teams.getTeamByUserId(userId);
     if (!userTeam || !userTeam.id) return res.status(404).json({ message: "Team not found." });
 
+    // Check exhibition game limits and entry item consumption
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const tomorrow = new Date(today);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+
+    const allExhibitionMatchesToday = await prisma.game.findMany({
+      where: {
+        matchType: 'EXHIBITION',
+        OR: [
+          { homeTeamId: userTeam.id },
+          { awayTeamId: userTeam.id }
+        ],
+        gameDate: {
+          gte: today,
+          lt: tomorrow
+        }
+      }
+    });
+
+    const totalGamesUsedToday = allExhibitionMatchesToday.length;
+    const freeGamesLimit = 3;
+
+    // If user has exceeded free games, check for exhibition entry items
+    if (totalGamesUsedToday >= freeGamesLimit) {
+      const exhibitionEntries = await storage.consumables.getTeamConsumables(userTeam.id);
+      const exhibitionGameEntries = exhibitionEntries.filter(item => item.item.name === 'Exhibition Game Entry');
+      
+      if (exhibitionGameEntries.length === 0) {
+        return res.status(400).json({ 
+          message: "You have used all 3 free exhibition games today. Purchase Exhibition Game Entry items from the store to play more games.",
+          freeGamesUsed: totalGamesUsedToday,
+          entriesAvailable: 0
+        });
+      }
+
+      // Consume one exhibition entry item
+      const entryItem = exhibitionGameEntries[0];
+      const consumeSuccess = await storage.consumables.consumeItem(userTeam.id, entryItem.item.id, 1);
+      
+      if (!consumeSuccess) {
+        return res.status(400).json({ 
+          message: "Failed to consume exhibition entry item. Please try again.",
+          freeGamesUsed: totalGamesUsedToday,
+          entriesAvailable: exhibitionGameEntries.length
+        });
+      }
+      
+      console.log(`🎯 Exhibition entry item consumed for team ${userTeam.id} (${userTeam.name})`);
+    }
+
     // Get available opponents in same division
     const divisionTeams = await storage.teams.getTeamsByDivision(userTeam.division || 1);
     const opponents = divisionTeams.filter(t => t.id !== userTeam.id);
@@ -284,6 +386,57 @@ router.post('/instant-match', isAuthenticated, async (req: any, res: Response, n
     const userId = req.user.claims.sub;
     const userTeam = await storage.teams.getTeamByUserId(userId);
     if (!userTeam || !userTeam.id) return res.status(404).json({ message: "Team not found." });
+
+    // Check exhibition game limits and entry item consumption
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const tomorrow = new Date(today);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+
+    const allExhibitionMatchesToday = await prisma.game.findMany({
+      where: {
+        matchType: 'EXHIBITION',
+        OR: [
+          { homeTeamId: userTeam.id },
+          { awayTeamId: userTeam.id }
+        ],
+        gameDate: {
+          gte: today,
+          lt: tomorrow
+        }
+      }
+    });
+
+    const totalGamesUsedToday = allExhibitionMatchesToday.length;
+    const freeGamesLimit = 3;
+
+    // If user has exceeded free games, check for exhibition entry items
+    if (totalGamesUsedToday >= freeGamesLimit) {
+      const exhibitionEntries = await storage.consumables.getTeamConsumables(userTeam.id);
+      const exhibitionGameEntries = exhibitionEntries.filter(item => item.item.name === 'Exhibition Game Entry');
+      
+      if (exhibitionGameEntries.length === 0) {
+        return res.status(400).json({ 
+          message: "You have used all 3 free exhibition games today. Purchase Exhibition Game Entry items from the store to play more games.",
+          freeGamesUsed: totalGamesUsedToday,
+          entriesAvailable: 0
+        });
+      }
+
+      // Consume one exhibition entry item
+      const entryItem = exhibitionGameEntries[0];
+      const consumeSuccess = await storage.consumables.consumeItem(userTeam.id, entryItem.item.id, 1);
+      
+      if (!consumeSuccess) {
+        return res.status(400).json({ 
+          message: "Failed to consume exhibition entry item. Please try again.",
+          freeGamesUsed: totalGamesUsedToday,
+          entriesAvailable: exhibitionGameEntries.length
+        });
+      }
+      
+      console.log(`🎯 Exhibition entry item consumed for team ${userTeam.id} (${userTeam.name})`);
+    }
 
     // Calculate user team power
     const userPlayers = await storage.players.getPlayersByTeamId(userTeam.id);
