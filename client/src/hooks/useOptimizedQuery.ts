@@ -198,4 +198,57 @@ export function useMatchQuery<T = any>(
   });
 }
 
+// Hook for players-specific data
+export function usePlayersQuery<T = any>(
+  endpoint: string,
+  teamId?: number,
+  options?: Omit<OptimizedQueryOptions<T>, 'tags' | 'params'>
+) {
+  return useOptimizedQuery<T>({
+    endpoint,
+    params: teamId ? { teamId } : undefined,
+    tags: ['players', teamId ? `players-${teamId}` : ''].filter(Boolean),
+    ...options,
+  });
+}
+
+// Hook for cache invalidation utilities
+export function useInvalidateQueries() {
+  const queryClient = useQueryClient();
+  
+  const invalidateAll = () => {
+    queryClient.invalidateQueries();
+  };
+  
+  const invalidateByKey = (queryKey: string[]) => {
+    queryClient.invalidateQueries({ queryKey });
+  };
+  
+  const invalidateByTags = (tags: string[]) => {
+    tags.forEach(tag => {
+      queryClient.invalidateQueries({
+        predicate: (query) => query.queryKey.includes(tag)
+      });
+    });
+  };
+  
+  const invalidateTeamData = (teamId?: number) => {
+    const tags = ['team', teamId ? `team-${teamId}` : ''].filter(Boolean);
+    invalidateByTags(tags);
+  };
+  
+  const invalidatePlayerData = (teamId?: number) => {
+    const tags = ['players', teamId ? `players-${teamId}` : ''].filter(Boolean);
+    invalidateByTags(tags);
+  };
+  
+  return {
+    invalidateAll,
+    invalidateByKey,
+    invalidateByTags,
+    invalidateTeamData,
+    invalidatePlayerData,
+  };
+}
+
 export default useOptimizedQuery;
