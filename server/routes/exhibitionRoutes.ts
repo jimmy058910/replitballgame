@@ -456,14 +456,15 @@ router.get('/recent', isAuthenticated, async (req: any, res: Response, next: Nex
           score = 'Live Match';
         }
         
-        // Use proper date field and format it correctly
+        // Use proper date field and format it correctly in Eastern Time
         const gameDate = match.gameDate || match.createdAt || new Date();
         const playedDate = new Date(gameDate).toLocaleDateString('en-US', {
           year: 'numeric',
           month: 'short',
           day: 'numeric',
           hour: '2-digit',
-          minute: '2-digit'
+          minute: '2-digit',
+          timeZone: 'America/New_York'  // Convert to Eastern Time
         });
         
         return { 
