@@ -456,19 +456,25 @@ router.put('/:teamId/formation', isAuthenticated, async (req: any, res: Response
 
     // Save formation to Strategy model
     await prisma.strategy.upsert({
-      where: { teamId: teamId },
+      where: { teamId: parseInt(teamId.toString()) },
       update: {
         formationJson: formation,
         substitutionJson: {},
         updatedAt: new Date()
       },
       create: {
-        teamId: teamId,
+        teamId: parseInt(teamId.toString()),
         formationJson: formation,
         substitutionJson: {},
         createdAt: new Date(),
         updatedAt: new Date()
       }
+    });
+
+    console.log('✅ PUT Formation saved successfully to Strategy table:', {
+      teamId: parseInt(teamId.toString()),
+      startersCount: formation.starters.length,
+      substitutesCount: formation.substitutes.length
     });
 
     res.json({ success: true, message: "Formation saved successfully" });
