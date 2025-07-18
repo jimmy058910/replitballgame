@@ -1,0 +1,118 @@
+Commentary System & Stat Integration (Refined)
+1. Executive Summary & Core Findings
+Your analysis is spot-on. The system's foundation is strong, but the removal of the "turnover" stat creates a mechanical and narrative void that needs to be filled. The current "Loose Ball" commentary still references fumbles and recoveries in a way that implies a traditional turnover, which we need to address.
+
+Furthermore, balancing the frequency of specific commentary types and expanding on the "anything goes" nature of the game will elevate the experience from great to exceptional.
+
+This document proposes the following key refinements:
+
+Introducing the "Contested Ball" System: A new core mechanic and stat category to replace "turnovers," which better reflects the non-stop, chaotic nature of the game.
+
+Streamlining Commentary Categories: Reorganizing the commentary groups for better logical flow and easier implementation.
+
+Balancing & Frequency Tuning: Providing concrete suggestions for trigger rates.
+
+Expanding "Anything Goes" Commentary: Adding new prompts that lean into the brutal, no-rules identity of Realm Rivalry.
+
+2. The "Contested Ball" System (Replaces Turnovers)
+Since there are no hard stoppages, a "turnover" is the wrong concept. Instead, a loose ball initiates a "Contest," a chaotic, real-time scramble where possession is up for grabs.
+
+A. New Core Stats
+Forced Contests (Player Stat): Replaces "Forced Fumbles." Awarded to a defender who dislodges the ball.
+
+Ball Security Error (Player Stat): Replaces "Fumbles Lost." Given to a player who drops the ball or has it knocked loose.
+
+Contest Recoveries (Player Stat): Replaces "Fumble Recoveries." Awarded to the player who secures the loose ball, regardless of their team.
+
+B. Revised Commentary & Stat Attribution
+The "Loose Ball" category should be restructured to reflect this new system.
+
+Category: Ball Dislodged (Forced Contest)
+
+Event Type: forced_contest
+
+Stat Changes: +1 Forced Contest for tackler, +1 Ball Security Error for carrier.
+
+Prompt Example: "HUGE HIT by {tacklerName}! The ball is dislodged! It's a live ball, a contest is on!"
+
+Category: Ball Dropped (Unforced Error)
+
+Event Type: unforced_error
+
+Stat Changes: +1 Drop for receiver, +1 Ball Security Error for receiver.
+
+Prompt Example: "Right through his hands! {receiverName} can't hang on, and the ball is live on the turf!"
+
+Category: Contest Recovery
+
+Event Type: contest_recovery
+
+Stat Changes: +1 Contest Recovery for the recovering player.
+
+Prompt Example: "{playerName} emerges from the chaos with the ball! Possession secured!"
+
+Dynamic Follow-Up: The commentary should then dynamically state if possession was retained or lost. Ex: "...and the offense is lucky to keep the ball!" or "...and the defense has ripped possession away! A massive momentum swing!"
+
+3. Streamlined Commentary Categories & Expansions
+Your current list is excellent but can be slightly reorganized for clarity and expanded to lean into the game's identity.
+
+A. Suggested New Structure
+Game State & Flow: (Pre-Game, Mid-Game, Urgency, Halftime, Kickoff) - No changes needed.
+
+Offensive Actions:
+
+Run Plays: (Standard, Breakaway, Skill-Based, Race-Based)
+
+Pass Plays: (Standard, Deep, Skill-Based, Race-Based)
+
+Defensive Actions:
+
+Tackles & Blocks: (Standard Tackles, High Power Tackles, Pancake Blocks)
+
+Pass Defense: (Pass Breakups, Interceptions)
+
+Contested Ball Events: (Forced Contest, Unforced Error, Contest Recovery) - As defined above.
+
+Consequences & Attrition:
+
+Injuries & Fatigue: (Injury, Fatigue)
+
+Brutality & "Anything Goes" (New Category): This is where you lean into the no-rules aspect.
+
+Stat Changes: +1 Intimidation Play
+
+Prompt Examples:
+
+"A vicious block by {blockerName} completely away from the ball! It's perfectly legal here in the dome, and it sends a clear message."
+
+"The defense is still hitting {playerName} well after the score! No love lost between these teams."
+
+"He doesn't just tackle him, he drives him into the energy barrier! A brutal but effective play."
+
+Team & Atmosphere: (Atmosphere, Camaraderie, Scoring) - No changes needed.
+
+B. Balancing & Frequency Recommendations
+You correctly identified that some trigger rates might be off.
+
+Race-Based Commentary: Lower the trigger rate from 30% to 15%. This will make these moments feel more special and less repetitive.
+
+Skill-Based Commentary: Keep this high. When a player uses a skill, the commentary should reflect it. The issue is likely ensuring the stat counter increments correctly, which is a development priority.
+
+"Brutality" Commentary: Set this to a low trigger rate, perhaps 10% on any High Power Tackle or Pancake Block, to emphasize these moments of extreme violence without overdoing it.
+
+4. Refined Prompt Examples
+Here are a few examples of how existing prompts can be refined for more impact, reflecting the new systems.
+
+Old Run Prompt: "{runnerName} grinds it out for {yards} tough yards up the middle."
+
+Refined Run Prompt: "A true war in the trenches! {runnerName} lowers his head and smashes forward, dragging defenders for {yards} brutal yards!"
+
+Old Tackle Prompt: "A thunderous tackle by {defenderName}! You could hear that one from up here."
+
+Refined Tackle Prompt (Forced Contest): "DEVASTATING HIT from {defenderName}! He meets the runner with incredible force and the ball is JARRED LOOSE! It's a live ball, a contest is on!"
+
+Old Scoring Prompt: "He's in! {playerName} fights through the defense and crosses the line! A Score for {teamName}!"
+
+Refined Scoring Prompt (Gryll-Specific): "The earth shakes as the Gryll cannot be denied! {playerName} is an avalanche at the goal line, powering through three defenders for the score! Unstoppable!"
+
+By adopting these refinements, you create a commentary system that is not only statistically robust but also perfectly aligned with the unique, brutal, and non-stop identity of Realm Rivalry.

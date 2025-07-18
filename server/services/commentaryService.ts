@@ -74,153 +74,252 @@ export class CommentaryService {
     return "clutch";
   }
 
-  // Enhanced Event Commentary
+  // Enhanced Event Commentary using Comprehensive Database
   generateEventCommentary(event: any, player: any, context: CommentaryContext): string {
     const playerName = this.getPlayerDisplayName(player);
-    const race = player.race || 'human';
+    const race = (player.race || 'human').toUpperCase();
     const gamePhase = this.determineGamePhase(context);
     
     switch (event.type) {
       case 'pass_complete':
-        return this.generatePassCommentary(event, playerName, race, gamePhase, context);
+        return this.generatePassCommentaryFromDatabase(event, playerName, race, gamePhase, context);
       case 'run_positive':
-        return this.generateRunCommentary(event, playerName, race, gamePhase, context);
+        return this.generateRunCommentaryFromDatabase(event, playerName, race, gamePhase, context);
       case 'score':
-        return this.generateScoreCommentary(event, playerName, race, gamePhase, context);
+        return this.generateScoreCommentaryFromDatabase(event, playerName, race, gamePhase, context);
       case 'interception':
-        return this.generateDefenseCommentary(event, playerName, race, gamePhase, context);
+        return this.generateInterceptionCommentaryFromDatabase(event, playerName, race, gamePhase, context);
       case 'tackle':
-        return this.generateTackleCommentary(event, playerName, race, gamePhase, context);
+        return this.generateTackleCommentaryFromDatabase(event, playerName, race, gamePhase, context);
+      case 'fumble':
+        return this.generateContestedBallCommentaryFromDatabase(event, playerName, race, gamePhase, context);
+      case 'possession_battle':
+        return this.generatePossessionBattleCommentaryFromDatabase(event, playerName, race, gamePhase, context);
+      case 'anything_goes':
+        return this.generateAnythingGoesCommentaryFromDatabase(event, playerName, race, gamePhase, context);
       default:
-        return this.generateGeneralCommentary(event, playerName, race, gamePhase, context);
+        return this.generateGeneralCommentaryFromDatabase(event, playerName, race, gamePhase, context);
     }
   }
 
-  private generatePassCommentary(event: any, playerName: string, race: string, gamePhase: string, context: CommentaryContext): string {
-    const baseCommentary = [
-      `${playerName} finds his target downfield!`,
-      `A precise pass from ${playerName} moves the chains!`,
-      `${playerName} threads the needle with that throw!`,
-      `Beautiful ball placement by ${playerName}!`
-    ];
-
-    // Race-specific commentary
-    if (race === 'lumina') {
-      baseCommentary.push(`${playerName}'s radiant precision lights up the field!`);
-      baseCommentary.push(`The Lumina's natural throwing ability shines through!`);
-    } else if (race === 'human') {
-      baseCommentary.push(`${playerName} adapts beautifully to the defense!`);
-    }
-
-    // Game phase specific
-    if (gamePhase === 'clutch') {
-      baseCommentary.push(`Under pressure in crunch time, ${playerName} delivers!`);
-      baseCommentary.push(`When it matters most, ${playerName} comes through!`);
-    }
-
-    return baseCommentary[Math.floor(Math.random() * baseCommentary.length)];
-  }
-
-  private generateRunCommentary(event: any, playerName: string, race: string, gamePhase: string, context: CommentaryContext): string {
+  private generatePassCommentaryFromDatabase(event: any, playerName: string, race: string, gamePhase: string, context: CommentaryContext): string {
     const yards = event.yardsGained || 0;
-    const baseCommentary = [
-      `${playerName} finds a gap and picks up ${yards} yards!`,
-      `${playerName} churns forward for a ${yards}-yard gain!`,
-      `Nice vision by ${playerName} for ${yards} yards!`
-    ];
-
-    // Race-specific commentary
-    if (race === 'sylvan') {
-      baseCommentary.push(`${playerName} uses Sylvan agility to dance through the defense for ${yards} yards!`);
-      baseCommentary.push(`Like wind through the trees, ${playerName} glides for ${yards} yards!`);
-    } else if (race === 'gryll') {
-      baseCommentary.push(`${playerName} powers through with Gryll strength for ${yards} yards!`);
-      baseCommentary.push(`The Gryll's raw power breaks tackles for ${yards} yards!`);
-    } else if (race === 'umbra') {
-      baseCommentary.push(`${playerName} slips through shadows for ${yards} yards!`);
-      baseCommentary.push(`Like a shadow, ${playerName} evades defenders for ${yards} yards!`);
+    const receiverName = event.receiverName || 'the receiver';
+    const tacklerName = event.tacklerName || 'the defense';
+    
+    let commentary: string[];
+    
+    // Choose appropriate commentary based on pass type
+    if (yards >= 20) {
+      commentary = [...fantasyCommentaryDatabase.deepPasses];
+    } else if (event.skillUsed) {
+      commentary = [...fantasyCommentaryDatabase.skillBasedPasses];
+    } else {
+      commentary = [...fantasyCommentaryDatabase.standardCompletions];
     }
-
-    // Breakaway commentary
-    if (yards >= 12) {
-      baseCommentary.push(`BREAKAWAY! ${playerName} breaks free for a huge ${yards}-yard run!`);
-      baseCommentary.push(`${playerName} is loose! That's a ${yards}-yard gallop!`);
+    
+    // Add race-specific commentary (15% chance for uniqueness)
+    if (race === 'LUMINA' && Math.random() < 0.15) {
+      commentary.push(...fantasyCommentaryDatabase.raceBasedPasses.LUMINA);
     }
-
-    return baseCommentary[Math.floor(Math.random() * baseCommentary.length)];
-  }
-
-  private generateScoreCommentary(event: any, playerName: string, race: string, gamePhase: string, context: CommentaryContext): string {
-    const scoreCommentary = [
-      `TOUCHDOWN! ${playerName} crosses the goal line!`,
-      `SIX POINTS! ${playerName} finds the end zone!`,
-      `SCORE! ${playerName} caps off the drive beautifully!`,
-      `TOUCHDOWN ${playerName}! What a finish!`
-    ];
-
-    // Race-specific scoring commentary
-    if (race === 'lumina') {
-      scoreCommentary.push(`TOUCHDOWN! ${playerName}'s radiant power illuminates the end zone!`);
-    } else if (race === 'gryll') {
-      scoreCommentary.push(`TOUCHDOWN! ${playerName} powers through with Gryll determination!`);
-    } else if (race === 'sylvan') {
-      scoreCommentary.push(`TOUCHDOWN! ${playerName} dances into the end zone with Sylvan grace!`);
-    } else if (race === 'umbra') {
-      scoreCommentary.push(`TOUCHDOWN! ${playerName} slips into the shadows of the end zone!`);
-    }
-
-    // Clutch time commentary
+    
+    // Add clutch commentary in late game
     if (gamePhase === 'clutch') {
-      scoreCommentary.push(`CLUTCH TOUCHDOWN! ${playerName} delivers when it matters most!`);
-      scoreCommentary.push(`IN THE CLUTCH! ${playerName} rises to the occasion!`);
+      commentary.push(`Under pressure in crunch time, ${playerName} delivers to ${receiverName}!`);
+      commentary.push(`When it matters most, ${playerName} comes through for ${yards} yards!`);
     }
-
-    return scoreCommentary[Math.floor(Math.random() * scoreCommentary.length)];
+    
+    const selectedCommentary = commentary[Math.floor(Math.random() * commentary.length)];
+    return selectedCommentary
+      .replace(/{passerName}/g, playerName)
+      .replace(/{receiverName}/g, receiverName)
+      .replace(/{tacklerName}/g, tacklerName)
+      .replace(/{yards}/g, yards.toString());
   }
 
-  private generateDefenseCommentary(event: any, playerName: string, race: string, gamePhase: string, context: CommentaryContext): string {
-    const defenseCommentary = [
-      `Great defensive play by ${playerName}!`,
-      `${playerName} breaks up the pass!`,
-      `Solid defense by ${playerName}!`,
-      `${playerName} with the pass defense!`
-    ];
-
-    // Race-specific defense commentary
-    if (race === 'gryll') {
-      defenseCommentary.push(`${playerName} uses Gryll instincts to disrupt the pass!`);
-    } else if (race === 'sylvan') {
-      defenseCommentary.push(`${playerName} shows Sylvan reflexes on that pass defense!`);
+  private generateRunCommentaryFromDatabase(event: any, playerName: string, race: string, gamePhase: string, context: CommentaryContext): string {
+    const yards = event.yardsGained || 0;
+    const tacklerName = event.tacklerName || 'the defense';
+    
+    let commentary: string[];
+    
+    // Choose appropriate commentary based on run type
+    if (yards >= 12) {
+      commentary = [...fantasyCommentaryDatabase.breakawayRuns];
+    } else if (event.skillUsed) {
+      commentary = [...fantasyCommentaryDatabase.skillBasedRuns];
+    } else {
+      commentary = [...fantasyCommentaryDatabase.standardRuns];
     }
-
-    return defenseCommentary[Math.floor(Math.random() * defenseCommentary.length)];
+    
+    // Add race-specific commentary (15% chance for uniqueness)
+    if (fantasyCommentaryDatabase.raceBasedRuns[race] && Math.random() < 0.15) {
+      commentary.push(...fantasyCommentaryDatabase.raceBasedRuns[race]);
+    }
+    
+    // Add clutch commentary in late game
+    if (gamePhase === 'clutch') {
+      commentary.push(`In crunch time, ${playerName} delivers with a crucial ${yards}-yard run!`);
+      commentary.push(`When the pressure is on, ${playerName} finds a way for ${yards} yards!`);
+    }
+    
+    const selectedCommentary = commentary[Math.floor(Math.random() * commentary.length)];
+    return selectedCommentary
+      .replace(/{runnerName}/g, playerName)
+      .replace(/{tacklerName}/g, tacklerName)
+      .replace(/{yards}/g, yards.toString());
   }
 
-  private generateTackleCommentary(event: any, playerName: string, race: string, gamePhase: string, context: CommentaryContext): string {
-    const tackleCommentary = [
-      `${playerName} wraps up for the tackle!`,
-      `Solid defensive play by ${playerName}!`,
-      `${playerName} brings down the runner!`,
-      `Nice tackle by ${playerName} to limit the damage!`
-    ];
-
-    // Race-specific tackle commentary
-    if (race === 'gryll') {
-      tackleCommentary.push(`${playerName} delivers a crushing Gryll tackle!`);
-      tackleCommentary.push(`The Gryll's power stops the runner cold!`);
+  private generateScoreCommentaryFromDatabase(event: any, playerName: string, race: string, gamePhase: string, context: CommentaryContext): string {
+    const teamName = event.teamName || 'the team';
+    const passerName = event.passerName || playerName;
+    const receiverName = event.receiverName || playerName;
+    
+    let commentary = [...fantasyCommentaryDatabase.scoring];
+    
+    // Add race-specific scoring commentary (15% chance for uniqueness)
+    if (race === 'LUMINA' && Math.random() < 0.15) {
+      commentary.push(`SCORE! ${playerName}'s radiant power illuminates the end zone for ${teamName}!`);
+    } else if (race === 'GRYLL' && Math.random() < 0.15) {
+      commentary.push(`SCORE! ${playerName} powers through with Gryll determination for ${teamName}!`);
+    } else if (race === 'SYLVAN' && Math.random() < 0.15) {
+      commentary.push(`SCORE! ${playerName} dances into the end zone with Sylvan grace for ${teamName}!`);
+    } else if (race === 'UMBRA' && Math.random() < 0.15) {
+      commentary.push(`SCORE! ${playerName} slips into the shadows of the end zone for ${teamName}!`);
     }
-
-    return tackleCommentary[Math.floor(Math.random() * tackleCommentary.length)];
+    
+    // Add clutch commentary in late game
+    if (gamePhase === 'clutch') {
+      commentary.push(`CLUTCH SCORE! ${playerName} delivers when it matters most for ${teamName}!`);
+      commentary.push(`IN THE CLUTCH! ${playerName} rises to the occasion for ${teamName}!`);
+    }
+    
+    const selectedCommentary = commentary[Math.floor(Math.random() * commentary.length)];
+    return selectedCommentary
+      .replace(/{playerName}/g, playerName)
+      .replace(/{teamName}/g, teamName)
+      .replace(/{passerName}/g, passerName)
+      .replace(/{receiverName}/g, receiverName);
   }
 
-  private generateGeneralCommentary(event: any, playerName: string, race: string, gamePhase: string, context: CommentaryContext): string {
-    const generalCommentary = [
-      `${playerName} makes a play!`,
-      `Good effort by ${playerName}!`,
-      `${playerName} stays involved in the action!`
-    ];
+  private generateInterceptionCommentaryFromDatabase(event: any, playerName: string, race: string, gamePhase: string, context: CommentaryContext): string {
+    const defenderName = event.defenderName || playerName;
+    const receiverName = event.receiverName || 'the receiver';
+    
+    let commentary = [...fantasyCommentaryDatabase.interceptions];
+    
+    // Add clutch commentary in late game
+    if (gamePhase === 'clutch') {
+      commentary.push(`CLUTCH INTERCEPTION! ${playerName} reads the situation perfectly in crunch time!`);
+      commentary.push(`When it matters most, ${playerName} comes up with the big defensive play!`);
+    }
+    
+    const selectedCommentary = commentary[Math.floor(Math.random() * commentary.length)];
+    return selectedCommentary
+      .replace(/{defenderName}/g, defenderName)
+      .replace(/{receiverName}/g, receiverName)
+      .replace(/{playerName}/g, playerName);
+  }
 
-    return generalCommentary[Math.floor(Math.random() * generalCommentary.length)];
+  private generateTackleCommentaryFromDatabase(event: any, playerName: string, race: string, gamePhase: string, context: CommentaryContext): string {
+    const tacklerName = event.tacklerName || playerName;
+    const carrierName = event.carrierName || 'the runner';
+    const isPowerTackle = event.isPowerTackle || (event.power && event.power >= 30);
+    
+    let commentary: string[];
+    
+    // Choose appropriate commentary based on tackle type
+    if (isPowerTackle) {
+      commentary = [...fantasyCommentaryDatabase.highPowerTackles];
+      
+      // Add "Anything Goes" commentary for brutal hits (10% chance)
+      if (Math.random() < 0.1) {
+        commentary.push(...fantasyCommentaryDatabase.anythingGoes);
+      }
+    } else {
+      commentary = [...fantasyCommentaryDatabase.standardTackles];
+    }
+    
+    // Add clutch commentary in late game
+    if (gamePhase === 'clutch') {
+      commentary.push(`CLUTCH TACKLE! ${playerName} makes the crucial stop when it matters most!`);
+      commentary.push(`In crunch time, ${playerName} delivers the big defensive play!`);
+    }
+    
+    const selectedCommentary = commentary[Math.floor(Math.random() * commentary.length)];
+    return selectedCommentary
+      .replace(/{tacklerName}/g, tacklerName)
+      .replace(/{carrierName}/g, carrierName)
+      .replace(/{defenderName}/g, tacklerName)
+      .replace(/{playerName}/g, playerName)
+      .replace(/{blockerName}/g, tacklerName)
+      .replace(/{opponentName}/g, carrierName);
+  }
+
+  private generateContestedBallCommentaryFromDatabase(event: any, playerName: string, race: string, gamePhase: string, context: CommentaryContext): string {
+    const isForced = event.isForced || false;
+    const tacklerName = event.tacklerName || playerName;
+    const carrierName = event.carrierName || 'the carrier';
+    const receiverName = event.receiverName || 'the receiver';
+    const teamName = event.teamName || 'the team';
+    
+    let commentary: string[];
+    
+    // Choose appropriate commentary based on contest type
+    if (isForced) {
+      commentary = [...fantasyCommentaryDatabase.contestedBallForced];
+    } else {
+      commentary = [...fantasyCommentaryDatabase.contestedBallUnforced];
+    }
+    
+    // Add recovery commentary
+    commentary.push(...fantasyCommentaryDatabase.contestedBallScramble);
+    
+    const selectedCommentary = commentary[Math.floor(Math.random() * commentary.length)];
+    return selectedCommentary
+      .replace(/{tacklerName}/g, tacklerName)
+      .replace(/{carrierName}/g, carrierName)
+      .replace(/{receiverName}/g, receiverName)
+      .replace(/{playerName}/g, playerName)
+      .replace(/{teamName}/g, teamName);
+  }
+
+  private generatePossessionBattleCommentaryFromDatabase(event: any, playerName: string, race: string, gamePhase: string, context: CommentaryContext): string {
+    const teamName = event.teamName || 'the team';
+    
+    const commentary = [...fantasyCommentaryDatabase.possessionBattle];
+    
+    const selectedCommentary = commentary[Math.floor(Math.random() * commentary.length)];
+    return selectedCommentary
+      .replace(/{teamName}/g, teamName)
+      .replace(/{playerName}/g, playerName);
+  }
+
+  private generateAnythingGoesCommentaryFromDatabase(event: any, playerName: string, race: string, gamePhase: string, context: CommentaryContext): string {
+    const blockerName = event.blockerName || playerName;
+    const opponentName = event.opponentName || 'the opponent';
+    const tacklerName = event.tacklerName || playerName;
+    
+    const commentary = [...fantasyCommentaryDatabase.anythingGoes];
+    
+    const selectedCommentary = commentary[Math.floor(Math.random() * commentary.length)];
+    return selectedCommentary
+      .replace(/{blockerName}/g, blockerName)
+      .replace(/{playerName}/g, playerName)
+      .replace(/{opponentName}/g, opponentName)
+      .replace(/{tacklerName}/g, tacklerName);
+  }
+
+  private generateGeneralCommentaryFromDatabase(event: any, playerName: string, race: string, gamePhase: string, context: CommentaryContext): string {
+    const teamName = event.teamName || 'the team';
+    
+    // Use midGameFlow for general commentary
+    const commentary = [...fantasyCommentaryDatabase.midGameFlow];
+    
+    const selectedCommentary = commentary[Math.floor(Math.random() * commentary.length)];
+    return selectedCommentary
+      .replace(/{teamName}/g, teamName)
+      .replace(/{playerName}/g, playerName);
   }
 
   // 1. Game State & Flow Commentary
@@ -813,6 +912,78 @@ export class CommentaryService {
       default:
         return this.generateMidGameFlowCommentary(context);
     }
+  }
+
+  // Additional methods for comprehensive commentary
+  generatePreGameCommentary(homeTeam: Team, awayTeam: Team, homeStrategy: string, awayStrategy: string): string {
+    const homeTeamName = homeTeam.name;
+    const awayTeamName = awayTeam.name;
+    const homeTeamPower = this.getTeamPowerTier(homeTeam);
+    const awayTeamPower = this.getTeamPowerTier(awayTeam);
+    
+    const commentary = [...fantasyCommentaryDatabase.preGame];
+    
+    const selectedCommentary = commentary[Math.floor(Math.random() * commentary.length)];
+    return selectedCommentary
+      .replace(/{homeTeam}/g, homeTeamName)
+      .replace(/{awayTeam}/g, awayTeamName)
+      .replace(/{homeStrategy}/g, homeStrategy)
+      .replace(/{awayStrategy}/g, awayStrategy)
+      .replace(/'Elite'/g, `'${homeTeamPower}'`)
+      .replace(/'Competitive'/g, `'${awayTeamPower}'`);
+  }
+
+  generateMidGameFlowCommentary(teamName?: string): string {
+    const commentary = [...fantasyCommentaryDatabase.midGameFlow];
+    
+    const selectedCommentary = commentary[Math.floor(Math.random() * commentary.length)];
+    return selectedCommentary.replace(/{teamName}/g, teamName || 'the team');
+  }
+
+  generateUrgencyCommentary(playerName?: string, teamName?: string): string {
+    const commentary = [...fantasyCommentaryDatabase.urgencyClockManagement];
+    
+    const selectedCommentary = commentary[Math.floor(Math.random() * commentary.length)];
+    return selectedCommentary
+      .replace(/{playerName}/g, playerName || 'the player')
+      .replace(/{teamName}/g, teamName || 'the team');
+  }
+
+  generateInjuryCommentary(playerName: string, severity: string): string {
+    const commentary = [...fantasyCommentaryDatabase.injury];
+    
+    const selectedCommentary = commentary[Math.floor(Math.random() * commentary.length)];
+    return selectedCommentary
+      .replace(/{playerName}/g, playerName)
+      .replace(/{severity}/g, severity);
+  }
+
+  generateFatigueCommentary(playerName: string, tacklerName?: string): string {
+    const commentary = [...fantasyCommentaryDatabase.fatigue];
+    
+    const selectedCommentary = commentary[Math.floor(Math.random() * commentary.length)];
+    return selectedCommentary
+      .replace(/{playerName}/g, playerName)
+      .replace(/{tacklerName}/g, tacklerName || 'the defense');
+  }
+
+  generateAtmosphereCommentary(): string {
+    const commentary = [...fantasyCommentaryDatabase.atmosphere];
+    
+    const selectedCommentary = commentary[Math.floor(Math.random() * commentary.length)];
+    return selectedCommentary;
+  }
+
+  generateCamaraderieCommentary(playerName: string, teammateName?: string): string {
+    const commentary = [...fantasyCommentaryDatabase.camaraderie];
+    
+    const selectedCommentary = commentary[Math.floor(Math.random() * commentary.length)];
+    return selectedCommentary
+      .replace(/{playerName}/g, playerName)
+      .replace(/{blockerName}/g, teammateName || 'his teammate')
+      .replace(/{runnerName}/g, playerName)
+      .replace(/{passerName}/g, playerName)
+      .replace(/{receiverName}/g, teammateName || 'his teammate');
   }
 }
 

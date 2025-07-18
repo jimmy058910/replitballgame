@@ -9,7 +9,7 @@ export interface CommentaryDatabase {
   urgencyClockManagement: string[];
   looseBallTackle: string[];
   looseBallDrop: string[];
-  looseBallScramble: string[];
+  contestedBallScramble: string[];
   standardRuns: string[];
   breakawayRuns: string[];
   skillBasedRuns: string[];
@@ -27,6 +27,10 @@ export interface CommentaryDatabase {
   atmosphere: string[];
   camaraderie: string[];
   scoring: string[];
+  contestedBallForced: string[];
+  contestedBallUnforced: string[];
+  anythingGoes: string[];
+  possessionBattle: string[];
 }
 
 export const fantasyCommentaryDatabase: CommentaryDatabase = {
@@ -79,24 +83,24 @@ export const fantasyCommentaryDatabase: CommentaryDatabase = {
     "A difficult catch, and {receiverName} can't bring it in. The ball is loose."
   ],
 
-  looseBallScramble: [
+  contestedBallScramble: [
     "Chaos around the ball! A mad scramble as multiple players dive for it!",
     "A pile-up for the loose ball near midfield!",
-    "{playerName} emerges from the pile with the ball! A huge turnover for {teamName}!",
+    "{playerName} emerges from the pile with the ball! A huge momentum swing for {teamName}!",
     "Quick thinking by {playerName} to scoop up the loose ball before the defense could react!",
     "What a recovery! {playerName} dives on the ball to secure possession for his team!",
-    "The offense manages to recover their own fumble! A lucky break for them.",
-    "And it's the defense that comes up with it! A massive momentum swing!"
+    "The offense manages to recover their own contested ball! A lucky break for them.",
+    "And it's the defense that comes up with it! A massive possession change!"
   ],
 
   standardRuns: [
-    "{runnerName} grinds it out for {yards} tough yards up the middle.",
-    "{runnerName} finds a small crease and picks up a solid {yards} yards.",
-    "A quick dash by {runnerName} for a {yards}-yard gain.",
-    "{runnerName} slashes through the defense for {yards} yards.",
-    "{runnerName} carries the ball forward for a handful of yards.",
-    "He follows his blockers and pushes through for a short gain.",
-    "A smart, patient run from {runnerName} to find the opening."
+    "{runnerName} grinds it out for {yards} tough yards up the middle before being dragged down by {tacklerName}.",
+    "{runnerName} finds a small crease and picks up a solid {yards} yards until {tacklerName} wraps him up.",
+    "A quick dash by {runnerName} for a {yards}-yard gain before the defense converges on him.",
+    "{runnerName} slashes through the defense for {yards} yards before {tacklerName} brings him down.",
+    "{runnerName} carries the ball forward for {yards} yards then gets tackled by {tacklerName}.",
+    "He follows his blockers and pushes through for {yards} yards before being stopped.",
+    "A smart, patient run from {runnerName} finds the opening for {yards} yards until {tacklerName} makes the tackle."
   ],
 
   breakawayRuns: [
@@ -136,12 +140,12 @@ export const fantasyCommentaryDatabase: CommentaryDatabase = {
   },
 
   standardCompletions: [
-    "{passerName} connects with {receiverName} on the sideline for a gain of {yards}.",
-    "A quick pass from {passerName} to {receiverName} to move the chains.",
-    "Nice connection between {passerName} and {receiverName} for a solid gain.",
-    "{passerName} finds his outlet and completes the pass.",
-    "A well-designed play results in an easy completion for {passerName}.",
-    "He finds his check-down receiver for a safe and easy {yards} yards."
+    "{passerName} connects with {receiverName} on the sideline for a gain of {yards} before {tacklerName} brings him down.",
+    "A quick pass from {passerName} to {receiverName} to advance the ball {yards} yards until the defense closes in.",
+    "Nice connection between {passerName} and {receiverName} for a solid {yards}-yard gain before being tackled.",
+    "{passerName} finds his outlet and completes the pass for {yards} yards before {tacklerName} makes the stop.",
+    "Perfect timing results in an easy completion for {passerName} to {receiverName} for {yards} yards.",
+    "He finds his target receiver for {yards} yards before the defense brings him down."
   ],
 
   deepPasses: [
@@ -184,8 +188,8 @@ export const fantasyCommentaryDatabase: CommentaryDatabase = {
   ],
 
   interceptions: [
-    "The pass is picked off! {defenderName} read the play perfectly and stepped in front of the receiver!",
-    "What a play! {defenderName} makes a diving interception!",
+    "The pass is picked off! {defenderName} read the situation perfectly and stepped in front of the receiver!",
+    "What a defensive move! {defenderName} makes a diving interception!",
     "He threw it right to the defense! An easy interception for {defenderName}.",
     "The pass is batted down at the line by the powerful Gryll defender, {defenderName}!",
     "Great coverage by {defenderName}, forcing the drop."
@@ -193,7 +197,7 @@ export const fantasyCommentaryDatabase: CommentaryDatabase = {
 
   passDefense: [
     "Excellent coverage by {defenderName}! The pass is broken up.",
-    "The defender makes a play on the ball! Incomplete pass.",
+    "The defender makes a move on the ball! Incomplete pass.",
     "{defenderName} gets a hand in there to disrupt the catch.",
     "Perfect timing by {defenderName} to break up the pass.",
     "The defense steps up with a crucial pass deflection!"
@@ -207,8 +211,9 @@ export const fantasyCommentaryDatabase: CommentaryDatabase = {
 
   fatigue: [
     "{playerName} tries to turn the corner but just doesn't have the legs, brought down after a short gain. You can see the fatigue setting in.",
-    "A wobbly pass from {playerName}, who looks exhausted after that long possession. The ball sails wide and is now a loose ball!",
-    "{playerName} looks exhausted as he trudges back to position. The long game is taking its toll."
+    "A wobbly pass from {playerName}, who looks exhausted after that long possession. The ball sails wide and is now a contested ball!",
+    "{playerName} looks exhausted as he trudges back to position. The long game is taking its toll.",
+    "The exhaustion is showing now! {playerName} stumbles slightly and gets tackled easily by {tacklerName}."
   ],
 
   atmosphere: [
@@ -229,5 +234,40 @@ export const fantasyCommentaryDatabase: CommentaryDatabase = {
     "They've done it! {passerName} connects with {receiverName} in the end zone for the score!",
     "He walks it in! The defense couldn't lay a hand on him!",
     "A hard-fought score, pushing through a pile of players at the goal line!"
+  ],
+
+  contestedBallForced: [
+    "HUGE HIT by {tacklerName}! The ball is dislodged! It's a live ball, a contest is on!",
+    "DEVASTATING impact! {tacklerName} forces the ball loose with a bone-crushing tackle!",
+    "The ball is RIPPED free from {carrierName}'s grasp by {tacklerName}! A forced contest!",
+    "BRUTAL collision! {tacklerName} separates {carrierName} from the ball with that vicious hit!",
+    "The ball pops free after that thunderous hit by {tacklerName}! It's anyone's ball now!",
+    "STRIPPED! {tacklerName} punches the ball out with perfect timing! A contested ball situation!"
+  ],
+
+  contestedBallUnforced: [
+    "Right through his hands! {receiverName} can't secure the ball and it's live on the turf!",
+    "A critical drop by {receiverName}! The ball bounces free and it's a contested situation!",
+    "He had it and lost it! {carrierName} fumbles the ball away in a crucial moment!",
+    "The ball slips through {receiverName}'s fingers! A costly error leaves it up for grabs!",
+    "BUTTERFINGERS! {receiverName} drops a perfect pass and the ball is live!"
+  ],
+
+  anythingGoes: [
+    "A vicious block by {blockerName} completely away from the ball! It's perfectly legal here in the dome, and it sends a clear message to {opponentName}!",
+    "The defense is still hitting {playerName} well after the score! No love lost between these teams - anything goes!",
+    "He doesn't just tackle him, he drives him into the energy barrier! A brutal but effective move by {tacklerName}!",
+    "With no referees to stop them, {playerName} delivers a punishing blow that echoes through the dome!",
+    "This is pure warfare! {playerName} shows no mercy as he levels {opponentName} with devastating force!",
+    "The dome erupts as {playerName} delivers a crushing hit that would be flagged anywhere else - but not here!"
+  ],
+
+  possessionBattle: [
+    "The ball is placed at midfield! Both teams surge forward in a chaotic battle for initial possession!",
+    "A fierce scrum at midfield as both sides dive for the ball! Who will emerge with possession?",
+    "The possession battle is intense! Bodies flying everywhere as both teams fight for the ball!",
+    "It's a war zone at midfield! Both teams throwing everything they have at securing the ball!",
+    "Chaos at the center of the field! The ball is loose and both teams are desperate to claim it!",
+    "{teamName} emerges from the midfield mayhem with the ball! They've won the possession battle!"
   ]
 };

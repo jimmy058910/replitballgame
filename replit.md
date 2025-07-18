@@ -148,7 +148,41 @@ Built as a React + Express web application with PostgreSQL database, using moder
 
 ## Recent Changes
 
-### July 18, 2025 - ✅ COMPREHENSIVE TRANSACTION LOGGING SYSTEM & GAME LENGTH VERIFICATION COMPLETE - PRODUCTION READY ✅ VERIFIED WORKING
+### July 18, 2025 - ✅ COMPREHENSIVE COMMENTARY SYSTEM OVERHAUL COMPLETE - USING FULL 233-PROMPT DATABASE ✅ PRODUCTION READY
+
+#### ✅ COMMENTARY SYSTEM ARCHITECTURAL OVERHAUL - FULL DATABASE INTEGRATION COMPLETE
+- ✓ **Root Cause Fixed**: System was using simplified hardcoded commentary instead of comprehensive 233-prompt database
+- ✓ **Database Integration**: CommentaryService now uses fantasyCommentaryDatabase with all event types properly mapped
+- ✓ **Terminology Corrections**: Removed all "touchdowns" → "scores", "turnovers" → "momentum shifts", "plays" → eliminated
+- ✓ **Action Endpoints Added**: Runs/passes now include who stopped the player, tackle details, and aftermath
+- ✓ **Kickoff Commentary Eliminated**: Replaced with midfield possession battle commentary (no kickoffs in game)
+- ✓ **Race-Specific Commentary**: 15% chance for unique race commentary (LUMINA precision, GRYLL power, SYLVAN grace, UMBRA stealth)
+- ✓ **Production Ready**: All 233 prompts now accessible in live simulations with proper stat attribution
+
+#### ✅ "CONTESTED BALL" SYSTEM IMPLEMENTATION - REPLACES TURNOVER MECHANICS
+- ✓ **contestedBallForced**: Forced by big hits/tackles with proper stat tracking (+1 Forced Contest, +1 Ball Security Error)
+- ✓ **contestedBallUnforced**: Drops/fumbles by carrier with unforced error tracking (+1 Drop, +1 Ball Security Error)
+- ✓ **contestedBallScramble**: Recovery situations with proper possession tracking (+1 Contest Recovery)
+- ✓ **Dynamic Commentary**: System determines possession retention vs. loss with momentum shift commentary
+- ✓ **Stat Integration**: All contested ball events properly tracked in player statistics
+
+#### ✅ "ANYTHING GOES" COMMENTARY SYSTEM - BRUTAL NO-RULES GAMEPLAY
+- ✓ **Away-from-Ball Hits**: Commentary for legal brutal hits away from action (10% chance on power tackles)
+- ✓ **Energy Barrier Collisions**: Commentary for driving players into dome barriers
+- ✓ **No-Referee Situations**: Commentary emphasizing anything-goes nature of the game
+- ✓ **Post-Score Hits**: Commentary for continued hitting after scores (no referee stops)
+- ✓ **Intimidation System**: Brutal commentary reflects game's no-rules, continuous action nature
+
+#### ✅ COMPREHENSIVE PROMPT SYSTEM VERIFICATION - ALL CATEGORIES OPERATIONAL
+- ✓ **Pre-Game Commentary**: Team introductions with power tiers and strategy mentions
+- ✓ **Mid-Game Flow**: Continuous action commentary reflecting no-stoppages gameplay
+- ✓ **Run Commentary**: Standard, breakaway, skill-based, and race-specific variants with endpoints
+- ✓ **Pass Commentary**: Standard, deep, skill-based, and race-specific variants with tackle details
+- ✓ **Defense Commentary**: Tackles, interceptions, pass defense with power-based variations
+- ✓ **Injury/Fatigue**: Proper severity tracking and endurance commentary
+- ✓ **Atmosphere/Camaraderie**: Team chemistry and crowd effects properly implemented
+
+### July 18, 2025 - ✅ COMPREHENSIVE TRANSACTION LOGGING SYSTEM & GAME LENGTH VERIFICATION COMPLETE - PRODUCTION READY ✅ VERIFIED WORKING (Previous)
 
 #### ✅ EXHIBITION REWARDS TRANSACTION LOGGING COMPLETE - ALL REWARDS PROPERLY RECORDED
 - ✓ **Exhibition Reward Logging**: Added PaymentHistoryService integration to matchStateManager.ts for exhibition match rewards
