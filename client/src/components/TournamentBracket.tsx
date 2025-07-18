@@ -14,7 +14,7 @@ interface TournamentMatch {
     id: string;
     name: string;
   };
-  round: string;
+  round: string | number;
   status: string;
   homeScore?: number;
   awayScore?: number;
@@ -36,10 +36,10 @@ interface TournamentBracketProps {
 }
 
 export default function TournamentBracket({ tournament, matches, userTeamId, isAdmin, onSimulateRound }: TournamentBracketProps) {
-  // Group matches by round
-  const quarterfinalsMatches = matches.filter(m => m.round === 'QUARTERFINALS');
-  const semifinalsMatches = matches.filter(m => m.round === 'SEMIFINALS');
-  const finalsMatches = matches.filter(m => m.round === 'FINALS');
+  // Group matches by round - handle both string and integer round values
+  const quarterfinalsMatches = matches.filter(m => m.round === 'QUARTERFINALS' || m.round === 1);
+  const semifinalsMatches = matches.filter(m => m.round === 'SEMIFINALS' || m.round === 2);
+  const finalsMatches = matches.filter(m => m.round === 'FINALS' || m.round === 3);
 
   const MatchCard = ({ match, isUserTeam }: { match: TournamentMatch; isUserTeam: boolean }) => {
     const isCompleted = match.status === 'COMPLETED';

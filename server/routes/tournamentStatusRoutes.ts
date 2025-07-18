@@ -494,7 +494,7 @@ router.post('/:id/force-start', isAuthenticated, async (req: any, res) => {
 
     // Generate tournament matches
     try {
-      const { tournamentService } = require('../services/tournamentService');
+      const { tournamentService } = await import('../services/tournamentService');
       await tournamentService.generateTournamentMatches(tournament.id);
     } catch (matchError) {
       console.error("Error generating tournament matches:", matchError);
