@@ -11,6 +11,7 @@ import {
 } from "../../shared/tacticalSystem";
 import { prisma } from "../db";
 import { SeasonalFlowService } from "../services/seasonalFlowService";
+import { CamaraderieService } from "../services/camaraderieService";
 
 const router = Router();
 
@@ -58,7 +59,8 @@ router.get("/team-tactics", isAuthenticated, async (req: any, res) => {
     const fieldSize = (team.homeField || "standard").toLowerCase() as any;
     const tacticalFocus = (team.tacticalFocus || "balanced").toLowerCase() as any;
     
-
+    // Get proper team camaraderie using the service (filters active roster players only)
+    const teamCamaraderie = await CamaraderieService.getTeamCamaraderie(team.id.toString());
     
     const tacticalSetup = {
       fieldSize,
@@ -66,8 +68,8 @@ router.get("/team-tactics", isAuthenticated, async (req: any, res) => {
       canChangeFieldSize: canChangeField,
       fieldSizeInfo: getFieldSizeInfo(fieldSize),
       tacticalFocusInfo: getTacticalFocusInfo(tacticalFocus),
-      headCoachTactics: headCoach?.coachingRating || 50,
-      teamCamaraderie: team.teamCamaraderie || 50,
+      headCoachTactics: headCoach?.motivationRating || headCoach?.coachingRating || 50,
+      teamCamaraderie: teamCamaraderie,
     };
 
     // Calculate effectiveness
@@ -75,8 +77,8 @@ router.get("/team-tactics", isAuthenticated, async (req: any, res) => {
       {
         fieldSize,
         tacticalFocus,
-        camaraderie: team.teamCamaraderie || 50,
-        headCoachTactics: headCoach?.coachingRating || 50,
+        camaraderie: teamCamaraderie,
+        headCoachTactics: headCoach?.motivationRating || headCoach?.coachingRating || 50,
         isHomeTeam: true,
       },
       players,
@@ -192,6 +194,9 @@ router.get("/tactical-analysis", isAuthenticated, async (req: any, res) => {
     const staff = await storage.staff.getStaffByTeamId(team.id);
     const headCoach = staff.find((s: any) => s.type === "HEAD_COACH");
     
+    // Get proper team camaraderie using the service
+    const teamCamaraderie = await CamaraderieService.getTeamCamaraderie(team.id.toString());
+    
     // Analyze all combinations
     const analyses = [];
     
@@ -201,8 +206,8 @@ router.get("/tactical-analysis", isAuthenticated, async (req: any, res) => {
           {
             fieldSize: fieldSize as any,
             tacticalFocus: tacticalFocus as any,
-            camaraderie: team.teamCamaraderie || 50,
-            headCoachTactics: headCoach?.coachingRating || 50,
+            camaraderie: teamCamaraderie,
+            headCoachTactics: headCoach?.motivationRating || headCoach?.coachingRating || 50,
             isHomeTeam: true,
           },
           players,

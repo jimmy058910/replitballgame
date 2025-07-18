@@ -282,52 +282,24 @@ export default function TacticalManager() {
         </Card>
 
         {/* Team Context */}
-        <div className="grid md:grid-cols-2 gap-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Team Context</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="flex items-center justify-between">
-                <span className="text-sm">Team Camaraderie</span>
-                <span className="text-sm font-medium">{tacticalData?.teamCamaraderie || 50}/100</span>
-              </div>
-              <Progress value={tacticalData?.teamCamaraderie || 50} />
+        <Card>
+          <CardHeader>
+            <CardTitle>Team Context</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="flex items-center justify-between">
+              <span className="text-sm">Team Camaraderie</span>
+              <span className="text-sm font-medium">{tacticalData?.teamCamaraderie || 50}/100</span>
+            </div>
+            <Progress value={tacticalData?.teamCamaraderie || 50} />
 
-              <div className="flex items-center justify-between">
-                <span className="text-sm">Head Coach Tactics</span>
-                <span className="text-sm font-medium">{tacticalData?.headCoachTactics || 50}/100</span>
-              </div>
-              <Progress value={tacticalData?.headCoachTactics || 50} />
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle>Tactical Effects</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-3 text-sm">
-                <div className="flex items-center gap-2">
-                  <CheckCircle className="w-4 h-4 text-green-500" />
-                  <span>Field size provides home field advantage</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <CheckCircle className="w-4 h-4 text-green-500" />
-                  <span>Tactical focus affects AI behavior</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <CheckCircle className="w-4 h-4 text-green-500" />
-                  <span>Coach skill amplifies tactical benefits</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <CheckCircle className="w-4 h-4 text-green-500" />
-                  <span>Camaraderie impacts clutch situations</span>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
+            <div className="flex items-center justify-between">
+              <span className="text-sm">Head Coach Tactics</span>
+              <span className="text-sm font-medium">{tacticalData?.headCoachTactics || 50}/100</span>
+            </div>
+            <Progress value={tacticalData?.headCoachTactics || 50} />
+          </CardContent>
+        </Card>
       </div>
     </div>
   );
