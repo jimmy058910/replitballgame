@@ -895,6 +895,7 @@ export class TournamentService {
           teamWithUser.user.id,
           teamId,
           "Mid-Season Cup Entry (Credits)",
+          "TOURNAMENT_ENTRY",
           10000,
           0
         );
@@ -918,6 +919,7 @@ export class TournamentService {
           teamWithUser.user.id,
           teamId,
           "Mid-Season Cup Entry (Gems)",
+          "TOURNAMENT_ENTRY",
           0,
           20
         );
@@ -944,6 +946,7 @@ export class TournamentService {
           teamWithUser.user.id,
           teamId,
           "Mid-Season Cup Entry (Credits + Gems)",
+          "TOURNAMENT_ENTRY",
           10000,
           20
         );

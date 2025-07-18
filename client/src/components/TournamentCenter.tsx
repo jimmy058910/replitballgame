@@ -420,15 +420,25 @@ const TournamentCenter: React.FC<TournamentCenterProps> = ({ teamId }) => {
                     <Badge variant="outline" className="bg-green-50 text-green-700 border-green-300">
                       Registration Open
                     </Badge>
-                    <Button 
-                      onClick={() => registerMidSeasonMutation.mutate("credits")}
-                      disabled={registerMidSeasonMutation.isPending || isRegisteredForMidSeasonCup || teamInfo.credits < 10000}
-                      className={isRegisteredForMidSeasonCup ? "bg-green-600 hover:bg-green-700 w-full" : "bg-purple-600 hover:bg-purple-700 w-full"}
-                    >
-                      {registerMidSeasonMutation.isPending ? "Registering..." : 
-                       isRegisteredForMidSeasonCup ? "✓ Already Registered" : 
-                       "Register (10,000₡)"}
-                    </Button>
+                    <div className="flex space-x-2">
+                      <Button 
+                        onClick={() => registerMidSeasonMutation.mutate("credits")}
+                        disabled={registerMidSeasonMutation.isPending || isRegisteredForMidSeasonCup || teamInfo.credits < 10000}
+                        className={isRegisteredForMidSeasonCup ? "bg-green-600 hover:bg-green-700 flex-1" : "bg-purple-600 hover:bg-purple-700 flex-1"}
+                      >
+                        {isRegisteredForMidSeasonCup ? "✓ Already Registered" : 
+                         `Register (10,000₡)`}
+                      </Button>
+                      <Button 
+                        onClick={() => registerMidSeasonMutation.mutate("gems")}
+                        disabled={registerMidSeasonMutation.isPending || isRegisteredForMidSeasonCup || teamInfo.gems < 20}
+                        className={isRegisteredForMidSeasonCup ? "bg-green-600 hover:bg-green-700 flex-1" : "bg-purple-600 hover:bg-purple-700 flex-1"}
+                      >
+                        {registerMidSeasonMutation.isPending ? "Registering..." : 
+                         isRegisteredForMidSeasonCup ? "✓ Already Registered" : 
+                         `Register (20💎)`}
+                      </Button>
+                    </div>
                   </div>
                 )}
               </div>
