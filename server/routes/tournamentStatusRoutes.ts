@@ -59,7 +59,8 @@ router.get('/active', isAuthenticated, async (req: any, res) => {
       registrationDeadline: entry.tournament.registrationEndTime,
       entryTime: entry.registeredAt,
       currentParticipants: 1, // Placeholder - would need to count entries
-      maxParticipants: 8, // Standard tournament size
+      // ✅ FIX: Mid-Season Cup should be 16 teams, Daily tournaments are 8 teams
+      maxParticipants: entry.tournament.type === 'MID_SEASON_CLASSIC' ? 16 : 8,
       prizes: entry.tournament.prizePoolJson,
       placement: entry.finalRank,
       registeredAt: entry.registeredAt,
@@ -149,7 +150,8 @@ router.get('/my-active', isAuthenticated, async (req: any, res) => {
       registrationDeadline: entry.tournament.registrationEndTime,
       entryTime: entry.registeredAt,
       currentParticipants: participantCountMap.get(entry.tournament.id) || 0,
-      maxParticipants: 8, // Standard tournament size
+      // ✅ FIX: Mid-Season Cup should be 16 teams, Daily tournaments are 8 teams
+      maxParticipants: entry.tournament.type === 'MID_SEASON_CLASSIC' ? 16 : 8,
       prizes: entry.tournament.prizePoolJson,
       placement: entry.finalRank,
       registeredAt: entry.registeredAt,
@@ -252,7 +254,8 @@ router.get('/:id/status', isAuthenticated, async (req: any, res) => {
 
     // Count current participants
     const currentParticipants = tournament.entries.length;
-    const maxParticipants = 8; // Standard tournament size
+    // ✅ FIX: Mid-Season Cup should be 16 teams, Daily tournaments are 8 teams
+    const maxParticipants = tournament.type === 'MID_SEASON_CLASSIC' ? 16 : 8;
     const spotsRemaining = maxParticipants - currentParticipants;
     const isFull = currentParticipants >= maxParticipants;
 

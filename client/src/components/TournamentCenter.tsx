@@ -387,7 +387,7 @@ const TournamentCenter: React.FC<TournamentCenterProps> = ({ teamId }) => {
                     Tournament Details
                   </p>
                   <div className="text-sm text-purple-700 dark:text-purple-300">
-                    • Entry: 10,000₡ AND 20💎<br/>
+                    • Entry: 10,000₡ OR 20💎 (both options available)<br/>
                     • Tournament Day: Day 7 at 1PM<br/>
                     • Moderate injury risk and moderate stamina reduction
                   </div>
@@ -396,19 +396,13 @@ const TournamentCenter: React.FC<TournamentCenterProps> = ({ teamId }) => {
                   <p className="font-semibold text-purple-800 dark:text-purple-200">
                     {getDivisionName(teamInfo.division)} Division Prize Preview
                   </p>
-                  <div className="flex items-center justify-center space-x-4 mt-2">
-                    <div className="flex items-center space-x-1">
-                      <Coins className="w-4 h-4 text-purple-600" />
-                      <span className="font-bold text-purple-800 dark:text-purple-200">50,000₡</span>
-                    </div>
-                    <div className="flex items-center space-x-1">
-                      <Gem className="w-4 h-4 text-purple-600" />
-                      <span className="font-bold text-purple-800 dark:text-purple-200">100💎</span>
-                    </div>
-                    <div className="flex items-center space-x-1">
-                      <Trophy className="w-4 h-4 text-purple-600" />
-                      <span className="font-bold text-purple-800 dark:text-purple-200">Trophy</span>
-                    </div>
+                  <div className="text-sm text-purple-700 dark:text-purple-300 mt-2">
+                    🏆 <strong>Champion:</strong> 15,000₡ + 5💎 + Trophy<br/>
+                    🥈 <strong>Runner-up:</strong> 6,000₡<br/>
+                    🥉 <strong>Semi-finalist:</strong> 2,000₡
+                  </div>
+                  <div className="text-xs text-purple-600 dark:text-purple-400 mt-2">
+                    ⚡ 16-team tournament • Enhanced rewards • Cross-division competition
                   </div>
                 </div>
                 {isTournamentDay ? (
@@ -427,13 +421,13 @@ const TournamentCenter: React.FC<TournamentCenterProps> = ({ teamId }) => {
                       Registration Open
                     </Badge>
                     <Button 
-                      onClick={() => registerMidSeasonMutation.mutate("both")}
-                      disabled={registerMidSeasonMutation.isPending || isRegisteredForMidSeasonCup || teamInfo.credits < 10000 || teamInfo.gems < 20}
+                      onClick={() => registerMidSeasonMutation.mutate("credits")}
+                      disabled={registerMidSeasonMutation.isPending || isRegisteredForMidSeasonCup || teamInfo.credits < 10000}
                       className={isRegisteredForMidSeasonCup ? "bg-green-600 hover:bg-green-700 w-full" : "bg-purple-600 hover:bg-purple-700 w-full"}
                     >
                       {registerMidSeasonMutation.isPending ? "Registering..." : 
                        isRegisteredForMidSeasonCup ? "✓ Already Registered" : 
-                       "Register (10,000₡ + 20💎)"}
+                       "Register (10,000₡)"}
                     </Button>
                   </div>
                 )}
