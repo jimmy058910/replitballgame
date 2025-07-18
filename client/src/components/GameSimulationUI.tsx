@@ -78,6 +78,17 @@ export function GameSimulationUI({ matchId, userId, team1, team2, initialLiveSta
     enabled: !!team2?.id
   });
 
+  // Fetch formation data to show correct starters
+  const { data: homeFormation } = useQuery({
+    queryKey: [`/api/teams/${team1?.id}/formation`],
+    enabled: !!team1?.id
+  });
+
+  const { data: awayFormation } = useQuery({
+    queryKey: [`/api/teams/${team2?.id}/formation`],
+    enabled: !!team2?.id
+  });
+
   // Auto-scroll log to top
   useEffect(() => {
     if (logRef.current) {
@@ -381,10 +392,39 @@ export function GameSimulationUI({ matchId, userId, team1, team2, initialLiveSta
     return Math.round(total / 8);
   };
 
-  // Get field players (first 6 players from each team)
+  // Get field players using formation data
   const getFieldPlayers = () => {
-    const homeFieldPlayers = homeTeamPlayers?.slice(0, 6) || [];
-    const awayFieldPlayers = awayTeamPlayers?.slice(0, 6) || [];
+    // Helper function to get players from formation data
+    const getFormationPlayers = (players: Player[], formation: any) => {
+      if (!formation || !formation.formationJson) {
+        // Fallback to first 6 players if no formation data
+        return players?.slice(0, 6) || [];
+      }
+
+      try {
+        const formationData = typeof formation.formationJson === 'string' 
+          ? JSON.parse(formation.formationJson) 
+          : formation.formationJson;
+
+        if (formationData.starters && Array.isArray(formationData.starters)) {
+          // Get players based on formation starters
+          const starterPlayers = formationData.starters.map((starterId: number) => 
+            players?.find(p => p.id === starterId)
+          ).filter(Boolean);
+          
+          // If we have starters, use them; otherwise fallback to first 6
+          return starterPlayers.length > 0 ? starterPlayers : players?.slice(0, 6) || [];
+        }
+      } catch (error) {
+        console.error('Error parsing formation data:', error);
+      }
+      
+      // Fallback to first 6 players
+      return players?.slice(0, 6) || [];
+    };
+
+    const homeFieldPlayers = getFormationPlayers(homeTeamPlayers, homeFormation);
+    const awayFieldPlayers = getFormationPlayers(awayTeamPlayers, awayFormation);
     
     return {
       home: homeFieldPlayers.map((player: Player) => ({
