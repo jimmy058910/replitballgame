@@ -885,9 +885,9 @@ export class SeasonTimingAutomationService {
         });
 
         if (semifinalsMatches.length === 0) {
-          // Generate semifinals
-          await this.generateNextRoundMatches(tournamentId, 1);
-          logInfo(`Generated semifinals for tournament ${tournamentId}`);
+          // REMOVED: Tournament bracket generation logic - now handled by UnifiedTournamentAutomation only
+          // This prevents duplicate bracket generation race conditions
+          logInfo(`Semifinals would be generated for tournament ${tournamentId} by UnifiedTournamentAutomation`);
         } else {
           // Check if semifinals need to be started
           const scheduledSemifinals = semifinalsMatches.filter(m => m.status === 'SCHEDULED');
@@ -909,9 +909,9 @@ export class SeasonTimingAutomationService {
             });
 
             if (finalsMatches.length === 0) {
-              // Generate finals
-              await this.generateNextRoundMatches(tournamentId, 2);
-              logInfo(`Generated finals for tournament ${tournamentId}`);
+              // REMOVED: Tournament bracket generation logic - now handled by UnifiedTournamentAutomation only
+              // This prevents duplicate bracket generation race conditions
+              logInfo(`Finals would be generated for tournament ${tournamentId} by UnifiedTournamentAutomation`);
             } else {
               // Check if finals need to be started
               const scheduledFinals = finalsMatches.filter(m => m.status === 'SCHEDULED');
@@ -937,80 +937,8 @@ export class SeasonTimingAutomationService {
     }
   }
 
-  /**
-   * Generate next round matches for tournament
-   */
-  private async generateNextRoundMatches(tournamentId: number, completedRound: number): Promise<void> {
-    try {
-      const nextRound = completedRound + 1;
-      if (nextRound > 3) return; // No rounds after finals
-
-      // Check if next round matches already exist (prevent duplicates)
-      const existingNextRoundMatches = await prisma.game.findMany({
-        where: {
-          tournamentId,
-          round: nextRound
-        }
-      });
-
-      if (existingNextRoundMatches.length > 0) {
-        logInfo(`Round ${nextRound} matches already exist for tournament ${tournamentId}, skipping generation`);
-        return;
-      }
-
-      // Get all completed matches from the current round
-      const completedMatches = await prisma.game.findMany({
-        where: {
-          tournamentId,
-          round: completedRound,
-          status: 'COMPLETED'
-        },
-        orderBy: { id: 'asc' }
-      });
-
-      if (completedMatches.length === 0) return;
-
-      // Determine winners and generate next round
-      const winners = completedMatches.map(match => {
-        if (match.homeScore > match.awayScore) {
-          return match.homeTeamId;
-        } else if (match.awayScore > match.homeScore) {
-          return match.awayTeamId;
-        } else {
-          // This should not happen anymore due to draw prevention, but safety fallback
-          console.warn(`Unexpected tie in tournament match ${match.id}: ${match.homeScore}-${match.awayScore}`);
-          return Math.random() > 0.5 ? match.homeTeamId : match.awayTeamId;
-        }
-      });
-
-      // Generate matches for next round
-      const nextRoundMatches = [];
-      for (let i = 0; i < winners.length; i += 2) {
-        if (i + 1 < winners.length) {
-          nextRoundMatches.push({
-            homeTeamId: winners[i],
-            awayTeamId: winners[i + 1],
-            tournamentId,
-            round: nextRound,
-            status: 'SCHEDULED',
-            matchType: 'TOURNAMENT_DAILY',
-            gameDate: new Date(),
-            simulated: false
-          });
-        }
-      }
-
-      // Create next round matches
-      if (nextRoundMatches.length > 0) {
-        await prisma.game.createMany({
-          data: nextRoundMatches
-        });
-        logInfo(`Generated ${nextRoundMatches.length} matches for round ${nextRound} of tournament ${tournamentId}`);
-      }
-    } catch (error) {
-      console.error("Error generating next round matches:", error);
-    }
-  }
+  // REMOVED: Duplicate generateNextRoundMatches function - now using UnifiedTournamentAutomation only
+  // This prevents duplicate bracket generation race conditions
 
   /**
    * Start scheduled matches for a tournament round
