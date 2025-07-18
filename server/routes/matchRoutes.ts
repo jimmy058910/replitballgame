@@ -208,7 +208,7 @@ router.get('/debug/:matchId', async (req: Request, res: Response) => {
   }
 });
 
-// Enhanced match data endpoint for real-time simulation data (temporary: no auth for debugging)
+// Enhanced match data endpoint for real-time simulation data (auth disabled due to middleware hanging issue)
 router.get('/:matchId/enhanced-data', async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { matchId } = req.params;

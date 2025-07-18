@@ -272,7 +272,8 @@ export function GameSimulationUI({ matchId, userId, team1, team2, initialLiveSta
     const halftimeEvent = liveState?.gameEvents?.find(e => e.type === 'halftime');
     const finalEvent = liveState?.gameEvents?.find(e => e.type === 'match_complete');
 
-    let mvpData = null;
+    // Check enhanced data for MVP data first
+    let mvpData = enhancedData?.mvpData || null;
 
     if (finalEvent?.data?.mvp) {
       mvpData = finalEvent.data.mvp;
@@ -366,7 +367,16 @@ export function GameSimulationUI({ matchId, userId, team1, team2, initialLiveSta
 
   // Calculate player power rating
   const calculatePlayerPower = (player: Player) => {
-    const attributes = [player.speed, player.power, player.throwing, player.catching, player.kicking, player.stamina, player.agility, player.leadership];
+    const attributes = [
+      player.speed || 0, 
+      player.power || 0, 
+      player.throwing || 0, 
+      player.catching || 0, 
+      player.kicking || 0, 
+      player.stamina || 0, 
+      player.agility || 0, 
+      player.leadership || 0
+    ];
     const total = attributes.reduce((sum, attr) => sum + attr, 0);
     return Math.round(total / 8);
   };

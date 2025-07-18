@@ -158,6 +158,8 @@ Built as a React + Express web application with PostgreSQL database, using moder
   - Home MVP: Starwhisper Forestsong (score: 12, playerId: 1425)
 - ✓ **Real Team Statistics Working**: Authentic team stats from simulation log (carrier yards, passing yards, knockdowns, etc.)
 - ✓ **Database Integration Complete**: Endpoint extracts mvpData, teamStats, events, finalScores, and playerStats from simulation log
+- ✓ **PWR Calculation Fixed**: Resolved NaN issue in player power ratings by adding null checks to calculatePlayerPower function
+- ✓ **Live Match MVP Enhancement**: Enhanced MVP data fetching to prioritize enhancedData.mvpData during live matches
 - ✓ **Production Ready**: MVP data now displays correctly in Post-Game Summary after matches complete
 
 #### ✅ INFRASTRUCTURE ARCHITECTURE DECISION - NEON POSTGRESQL RECOMMENDED FOR PRODUCTION
