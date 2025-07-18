@@ -407,9 +407,9 @@ export function GameSimulationUI({ matchId, userId, team1, team2, initialLiveSta
           : formation.formationJson;
 
         if (formationData.starters && Array.isArray(formationData.starters)) {
-          // Get players based on formation starters
-          const starterPlayers = formationData.starters.map((starterId: number) => 
-            players?.find(p => p.id === starterId)
+          // Get players based on formation starters (formation data stores objects with id and role properties)
+          const starterPlayers = formationData.starters.map((starter: any) => 
+            players?.find(p => p.id === starter.id)
           ).filter(Boolean);
           
           // If we have starters, use them; otherwise fallback to first 6
