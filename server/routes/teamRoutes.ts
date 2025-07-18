@@ -570,7 +570,7 @@ router.get('/:teamId/formation', isAuthenticated, async (req: any, res: Response
       }).filter(Boolean);
     }
 
-    // If no formation data exists, create a default formation with all players
+    // If no formation data exists, create a default formation with exactly 6 starters
     if (!formationData && allPlayers.length > 0) {
       // Sort players by overall rating (best first)
       const sortedPlayers = allPlayers.sort((a: any, b: any) => {
@@ -579,9 +579,41 @@ router.get('/:teamId/formation', isAuthenticated, async (req: any, res: Response
         return bRating - aRating;
       });
 
-      // Take top 9 as starters, rest as substitutes (allow all 10 players to be managed)
-      starters = sortedPlayers.slice(0, Math.min(9, sortedPlayers.length));
-      substitutes = sortedPlayers.slice(9);
+      // Create proper 6-player formation: 1 Passer, 2 Runners, 2 Blockers, 1 Wildcard
+      const passers = sortedPlayers.filter((p: any) => p.role === 'PASSER');
+      const runners = sortedPlayers.filter((p: any) => p.role === 'RUNNER');
+      const blockers = sortedPlayers.filter((p: any) => p.role === 'BLOCKER');
+      const allPlayersByRole = [...passers, ...runners, ...blockers];
+
+      starters = [];
+      
+      // Add 1 best Passer
+      if (passers.length > 0) starters.push(passers[0]);
+      
+      // Add 2 best Runners
+      if (runners.length >= 2) {
+        starters.push(runners[0], runners[1]);
+      } else if (runners.length === 1) {
+        starters.push(runners[0]);
+      }
+      
+      // Add 2 best Blockers
+      if (blockers.length >= 2) {
+        starters.push(blockers[0], blockers[1]);
+      } else if (blockers.length === 1) {
+        starters.push(blockers[0]);
+      }
+      
+      // Add best remaining player as wildcard to reach exactly 6 starters
+      const usedIds = starters.map((p: any) => p.id);
+      const remaining = sortedPlayers.filter((p: any) => !usedIds.includes(p.id));
+      
+      while (starters.length < 6 && remaining.length > 0) {
+        starters.push(remaining.shift());
+      }
+      
+      // All other players are substitutes
+      substitutes = sortedPlayers.filter((p: any) => !starters.some((s: any) => s.id === p.id));
 
       // Save this default formation to the Strategy model
       const defaultFormation = {

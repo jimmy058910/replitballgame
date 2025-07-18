@@ -148,7 +148,23 @@ Built as a React + Express web application with PostgreSQL database, using moder
 
 ## Recent Changes
 
-### July 18, 2025 - ✅ COMPLETE EXHIBITION SYSTEM FIXES - ALL ERRORS RESOLVED - PRODUCTION READY ✅ VERIFIED WORKING
+### July 18, 2025 - ✅ CRITICAL FORMATION BUG FIXED - 6-PLAYER FIELD LIMIT ENFORCED - PRODUCTION READY ✅ VERIFIED WORKING
+
+#### ✅ CRITICAL FORMATION VALIDATION BUG RESOLVED - 6-PLAYER FIELD LIMIT ENFORCED
+- ✓ **9-Starter Bug Fixed**: Resolved critical bug where formation system was creating 9 starters instead of proper 6 players
+- ✓ **Proper Formation Structure**: Updated default formation to follow game rules: 1 Passer, 2 Runners, 2 Blockers, 1 Wildcard
+- ✓ **Field Display Correction**: Players on Field display now correctly shows 6 players per team using formation data
+- ✓ **Match Simulation Consistency**: Formation system now consistent with match simulation expecting exactly 6 starters
+- ✓ **Database Integrity**: All new formations will enforce 6-player starter limit to prevent invalid field configurations
+
+#### ✅ FRONTEND FORMATION DISPLAY INTEGRATION COMPLETE - TACTICAL SYSTEM WORKING
+- ✓ **Formation Data Fetching**: Added frontend queries to fetch formation data for both teams in live matches
+- ✓ **Player Display Logic**: Updated getFieldPlayers() function to use formation starters instead of first 6 roster players
+- ✓ **Fallback System**: Proper fallback to default players if formation data unavailable or invalid
+- ✓ **JSON Parsing**: Safe parsing of formation JSON data with error handling for corrupted data
+- ✓ **Live Match Integration**: Formation starters now correctly displayed in Players on Field during live matches
+
+### July 18, 2025 - ✅ COMPLETE EXHIBITION SYSTEM FIXES - ALL ERRORS RESOLVED - PRODUCTION READY ✅ VERIFIED WORKING (Previous)
 
 #### ✅ CRITICAL POST-GAME SUMMARY ERROR COMPLETELY FIXED - MVP DISPLAY WORKING
 - ✓ **MVP Score Null Check**: Fixed "Cannot read properties of undefined (reading 'toFixed')" error in PostGameSummary component
