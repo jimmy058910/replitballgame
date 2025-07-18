@@ -1102,9 +1102,9 @@ class MatchStateManager {
         awayCredits = 200;
       }
 
-      // Award credits to both teams
-      await prisma.team.update({
-        where: { id: parseInt(homeTeamId) },
+      // Award credits to both teams via their finance records
+      await prisma.teamFinance.update({
+        where: { teamId: parseInt(homeTeamId) },
         data: {
           credits: {
             increment: homeCredits
@@ -1112,8 +1112,8 @@ class MatchStateManager {
         }
       });
 
-      await prisma.team.update({
-        where: { id: parseInt(awayTeamId) },
+      await prisma.teamFinance.update({
+        where: { teamId: parseInt(awayTeamId) },
         data: {
           credits: {
             increment: awayCredits
@@ -1156,9 +1156,7 @@ class MatchStateManager {
         data: {
           status: 'COMPLETED',
           homeScore,
-          awayScore,
-          // Add completion timestamp
-          updatedAt: new Date()
+          awayScore
         }
       });
       
