@@ -7,6 +7,7 @@ import { isAuthenticated } from "../replitAuth";
 import { matchStateManager } from "../services/matchStateManager";
 import { z } from "zod";
 import { MatchType } from "../../generated/prisma";
+import { prisma } from "../db";
 
 // TODO: Move to TeamService or similar
 function calculateTeamPower(players: any[]): number {
