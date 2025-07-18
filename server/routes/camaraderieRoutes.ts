@@ -308,4 +308,37 @@ router.post('/test-calculation',
   })
 );
 
+/**
+ * Manual post-game camaraderie update (SuperUser testing)
+ * POST /api/camaraderie/test-post-game
+ */
+router.post('/test-post-game', asyncHandler(async (req: any, res: Response) => {
+  const userId = req.user.claims.sub;
+  
+  // Verify admin access
+  const isAdmin = await RBACService.hasPermission(userId, Permission.SUPERUSER_ACCESS);
+  if (!isAdmin) {
+    throw ErrorCreators.forbidden("SuperUser access required");
+  }
+
+  const { homeTeamId, awayTeamId, homeScore, awayScore, matchType } = req.body;
+  
+  if (!homeTeamId || !awayTeamId || homeScore === undefined || awayScore === undefined || !matchType) {
+    throw ErrorCreators.badRequest("Missing required fields: homeTeamId, awayTeamId, homeScore, awayScore, matchType");
+  }
+
+  await CamaraderieService.updatePostGameCamaraderie(
+    homeTeamId.toString(),
+    awayTeamId.toString(),
+    parseInt(homeScore),
+    parseInt(awayScore),
+    matchType
+  );
+
+  res.json({
+    success: true,
+    message: `Post-game camaraderie update applied for ${matchType} match: ${homeTeamId} (${homeScore}) vs ${awayTeamId} (${awayScore})`
+  });
+}));
+
 export default router;

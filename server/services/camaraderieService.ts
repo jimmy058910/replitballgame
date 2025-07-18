@@ -47,13 +47,15 @@ export interface SeasonEndCamaraderieUpdate {
 export class CamaraderieService {
   
   /**
-   * Calculate team camaraderie as average of all player camaraderie scores
+   * Calculate team camaraderie as average of only roster players (not on market, not retired)
    */
   static async getTeamCamaraderie(teamId: string): Promise<number> {
     try {
       const result = await prisma.player.aggregate({
         where: {
-          teamId: parseInt(teamId)
+          teamId: parseInt(teamId),
+          isOnMarket: false,
+          isRetired: false
         },
         _avg: {
           camaraderieScore: true
@@ -64,7 +66,8 @@ export class CamaraderieService {
       
       logInfo("Team camaraderie calculated", {
         teamId,
-        teamCamaraderie
+        teamCamaraderie,
+        note: "Only active roster players included"
       });
       
       return teamCamaraderie;
@@ -423,39 +426,42 @@ export class CamaraderieService {
         throw ErrorCreators.notFound(`Team ${teamId} not found`);
       }
       
-      // Get all players on the team
+      // Get only active roster players on the team (not on market, not retired)
       const players = await prisma.player.findMany({
-        where: { teamId: teamId },
+        where: { 
+          teamId: teamId,
+          isOnMarket: false,
+          isRetired: false
+        },
         select: { 
           id: true, 
           firstName: true, 
           lastName: true, 
-          camaraderie: true,
+          camaraderieScore: true,
           role: true,
           age: true,
-          race: true,
-          yearsOnTeam: true
+          race: true
         }
       });
       
       // Calculate team camaraderie stats
       const playerCount = players.length;
       const averageCamaraderie = playerCount > 0 ? 
-        players.reduce((sum, player) => sum + (player.camaraderie || 50), 0) / playerCount : 50;
+        players.reduce((sum, player) => sum + (player.camaraderieScore || 50), 0) / playerCount : 50;
       
-      const highCamaraderieCount = players.filter(p => (p.camaraderie || 50) >= 80).length;
-      const lowCamaraderieCount = players.filter(p => (p.camaraderie || 50) <= 30).length;
+      const highCamaraderieCount = players.filter(p => (p.camaraderieScore || 50) >= 70).length;
+      const lowCamaraderieCount = players.filter(p => (p.camaraderieScore || 50) <= 30).length;
       
       // Get top performers (high camaraderie)
       const topPlayers = players
-        .filter(p => (p.camaraderie || 50) >= 80)
-        .sort((a, b) => (b.camaraderie || 50) - (a.camaraderie || 50))
+        .filter(p => (p.camaraderieScore || 50) >= 70)
+        .sort((a, b) => (b.camaraderieScore || 50) - (a.camaraderieScore || 50))
         .slice(0, 5);
       
       // Get players of concern (low camaraderie)
       const concernPlayers = players
-        .filter(p => (p.camaraderie || 50) <= 30)
-        .sort((a, b) => (a.camaraderie || 50) - (b.camaraderie || 50))
+        .filter(p => (p.camaraderieScore || 50) <= 30)
+        .sort((a, b) => (a.camaraderieScore || 50) - (b.camaraderieScore || 50))
         .slice(0, 5);
       
       // Get camaraderie effects
@@ -593,7 +599,9 @@ export class CamaraderieService {
       
       const playerStats = await prisma.player.aggregate({
         where: {
-          teamId: parseInt(teamId)
+          teamId: parseInt(teamId),
+          isOnMarket: false,
+          isRetired: false
         },
         _count: {
           id: true
@@ -606,8 +614,10 @@ export class CamaraderieService {
       const highMoraleCount = await prisma.player.count({
         where: {
           teamId: parseInt(teamId),
+          isOnMarket: false,
+          isRetired: false,
           camaraderieScore: {
-            gte: 75
+            gte: 70
           }
         }
       });
@@ -615,18 +625,22 @@ export class CamaraderieService {
       const lowMoraleCount = await prisma.player.count({
         where: {
           teamId: parseInt(teamId),
+          isOnMarket: false,
+          isRetired: false,
           camaraderieScore: {
-            lte: 35
+            lte: 30
           }
         }
       });
       
-      // Get top performers (high camaraderie players)
+      // Get top performers (high camaraderie players) - only roster players
       const topPerformers = await prisma.player.findMany({
         where: {
           teamId: parseInt(teamId),
+          isOnMarket: false,
+          isRetired: false,
           camaraderieScore: {
-            gte: 75
+            gte: 70
           }
         },
         select: {
@@ -644,12 +658,14 @@ export class CamaraderieService {
         take: 5
       });
       
-      // Get players of concern (low camaraderie)
+      // Get players of concern (low camaraderie) - only roster players
       const concernedPlayers = await prisma.player.findMany({
         where: {
           teamId: parseInt(teamId),
+          isOnMarket: false,
+          isRetired: false,
           camaraderieScore: {
-            lte: 35
+            lte: 30
           }
         },
         select: {
@@ -684,6 +700,119 @@ export class CamaraderieService {
         operation: 'getCamaraderieSummary' 
       });
       throw error;
+    }
+  }
+
+  /**
+   * Update camaraderie for all players on teams after a match
+   * This provides immediate feedback based on match results
+   */
+  static async updatePostGameCamaraderie(
+    homeTeamId: string,
+    awayTeamId: string,
+    homeScore: number,
+    awayScore: number,
+    matchType: 'LEAGUE' | 'EXHIBITION' | 'TOURNAMENT'
+  ): Promise<void> {
+    try {
+      logInfo("Starting post-game camaraderie update", {
+        homeTeamId,
+        awayTeamId,
+        homeScore,
+        awayScore,
+        matchType
+      });
+
+      // Determine match outcome
+      const homeWon = homeScore > awayScore;
+      const isDraw = homeScore === awayScore;
+      
+      // Calculate camaraderie changes based on match type and outcome
+      let winnerChange = 0;
+      let loserChange = 0;
+      let drawChange = 0;
+
+      switch (matchType) {
+        case 'LEAGUE':
+          winnerChange = 2;  // +2 for league wins
+          loserChange = -1;  // -1 for league losses
+          drawChange = 1;    // +1 for draws
+          break;
+        case 'TOURNAMENT':
+          winnerChange = 3;  // +3 for tournament wins (more important)
+          loserChange = -2;  // -2 for tournament losses
+          drawChange = 0;    // No draws in tournaments typically
+          break;
+        case 'EXHIBITION':
+          winnerChange = 1;  // +1 for exhibition wins (less impact)
+          loserChange = 0;   // No penalty for exhibition losses
+          drawChange = 0;    // No change for exhibition draws
+          break;
+      }
+
+      // Update home team players
+      const homeChange = isDraw ? drawChange : (homeWon ? winnerChange : loserChange);
+      if (homeChange !== 0) {
+        await prisma.player.updateMany({
+          where: {
+            teamId: parseInt(homeTeamId),
+            isOnMarket: false,
+            isRetired: false
+          },
+          data: {
+            camaraderieScore: {
+              increment: homeChange
+            }
+          }
+        });
+        
+        // Clamp values to 0-100 range
+        await prisma.$executeRaw`
+          UPDATE "Player" 
+          SET "camaraderieScore" = LEAST(100, GREATEST(0, "camaraderieScore"))
+          WHERE "teamId" = ${parseInt(homeTeamId)} AND "isOnMarket" = false AND "isRetired" = false
+        `;
+      }
+
+      // Update away team players
+      const awayChange = isDraw ? drawChange : (homeWon ? loserChange : winnerChange);
+      if (awayChange !== 0) {
+        await prisma.player.updateMany({
+          where: {
+            teamId: parseInt(awayTeamId),
+            isOnMarket: false,
+            isRetired: false
+          },
+          data: {
+            camaraderieScore: {
+              increment: awayChange
+            }
+          }
+        });
+        
+        // Clamp values to 0-100 range
+        await prisma.$executeRaw`
+          UPDATE "Player" 
+          SET "camaraderieScore" = LEAST(100, GREATEST(0, "camaraderieScore"))
+          WHERE "teamId" = ${parseInt(awayTeamId)} AND "isOnMarket" = false AND "isRetired" = false
+        `;
+      }
+
+      logInfo("Post-game camaraderie update completed", {
+        homeTeamId,
+        awayTeamId,
+        homeChange,
+        awayChange,
+        matchType,
+        result: isDraw ? 'draw' : (homeWon ? 'home_win' : 'away_win')
+      });
+
+    } catch (error) {
+      logError(error as Error, undefined, { 
+        homeTeamId,
+        awayTeamId,
+        operation: 'updatePostGameCamaraderie' 
+      });
     }
   }
 }

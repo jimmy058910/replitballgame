@@ -56,6 +56,11 @@ export default function SuperUser() {
   const [divisionToCleanup, setDivisionToCleanup] = useState(8);
   const [playerCount, setPlayerCount] = useState(3);
   const [forceMessage, setForceMessage] = useState("");
+  const [testHomeTeamId, setTestHomeTeamId] = useState("132");
+  const [testAwayTeamId, setTestAwayTeamId] = useState("133");
+  const [testHomeScore, setTestHomeScore] = useState(3);
+  const [testAwayScore, setTestAwayScore] = useState(1);
+  const [testMatchType, setTestMatchType] = useState("EXHIBITION");
 
   // Core data queries
   const { data: adminStatus, isLoading: adminLoading } = useQuery<AdminStatus>({

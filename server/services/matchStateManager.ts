@@ -998,6 +998,18 @@ class MatchStateManager {
           // Tournament matches - no team record updates, no exhibition rewards
           console.log(`🏆 TOURNAMENT MATCH COMPLETED: Match ${matchId} - Home: ${state.homeTeamId} (${state.homeScore}) vs Away: ${state.awayTeamId} (${state.awayScore}) - No league standings update`);
         }
+
+        // Update post-game camaraderie for ALL match types
+        const { CamaraderieService } = await import('./camaraderieService');
+        await CamaraderieService.updatePostGameCamaraderie(
+          state.homeTeamId,
+          state.awayTeamId,
+          state.homeScore,
+          state.awayScore,
+          matchDetails?.matchType || 'EXHIBITION'
+        );
+        console.log(`✨ POST-GAME CAMARADERIE UPDATE: Match ${matchId} - Updated team chemistry for both teams based on ${matchDetails?.matchType || 'EXHIBITION'} result`);
+        
       } else {
         console.warn(`Game ${matchId} not found in database, cannot update completion status`);
       }
