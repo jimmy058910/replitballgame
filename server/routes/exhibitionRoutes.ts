@@ -351,6 +351,10 @@ router.post('/challenge', isAuthenticated, async (req: any, res: Response, next:
     const randomOpponent = opponents[Math.floor(Math.random() * opponents.length)];
     const isHome = Math.random() < 0.5;
     
+    // Clean up any existing live matches for this user's team to prevent multiple matches
+    console.log(`🧹 Cleaning up any existing live matches for team ${userTeam.id}`);
+    await matchStateManager.cleanupTeamMatches(userTeam.id);
+
     const match = await matchStorage.createMatch({
       homeTeamId: isHome ? userTeam.id : randomOpponent.id,
       awayTeamId: isHome ? randomOpponent.id : userTeam.id,

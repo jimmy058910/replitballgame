@@ -232,10 +232,11 @@ router.get('/:matchId/enhanced-data', async (req: Request, res: Response, next: 
     // Extract MVP data from simulation log
     let mvpData = null;
     let teamStats = null;
+    let simulationLogData = null;
     
     try {
       if (match.simulationLog) {
-        const simulationLogData = typeof match.simulationLog === 'string' 
+        simulationLogData = typeof match.simulationLog === 'string' 
           ? JSON.parse(match.simulationLog) 
           : match.simulationLog;
         
@@ -264,18 +265,73 @@ router.get('/:matchId/enhanced-data', async (req: Request, res: Response, next: 
       console.error('Error parsing simulation log:', error);
     }
     
-    // Fallback MVP data if not found in simulation log
+    // Calculate real-time MVP data if not found in simulation log
     if (!mvpData) {
+      console.log('Calculating real-time MVP data...');
+      console.log('Simulation log data exists:', !!simulationLogData);
+      console.log('Player stats exist:', !!simulationLogData?.playerStats);
+      console.log('Player stats keys:', simulationLogData?.playerStats ? Object.keys(simulationLogData.playerStats) : 'none');
+      
+      // Get player stats from simulation log
+      let homeTopPlayer = null;
+      let awayTopPlayer = null;
+      let homeTopScore = 0;
+      let awayTopScore = 0;
+      
+      if (simulationLogData?.playerStats) {
+        const playerStats = simulationLogData.playerStats;
+        
+        // Calculate MVP scores for all players
+        for (const [playerId, stats] of Object.entries(playerStats)) {
+          // Get player info
+          const player = await storage.players.getPlayerById(parseInt(playerId));
+          if (!player) continue;
+          
+          // Calculate MVP score: scores*10 + tackles*3 + passes*2 + catches*2 + yards*0.1
+          const mvpScore = (stats.scores || 0) * 10 + 
+                          (stats.tackles || 0) * 3 + 
+                          (stats.passesCompleted || 0) * 2 + 
+                          (stats.catches || 0) * 2 + 
+                          ((stats.carrierYards || 0) + (stats.passingYards || 0) + (stats.receivingYards || 0)) * 0.1;
+          
+          console.log(`Player ${player.firstName} ${player.lastName} MVP score: ${mvpScore}`
+                    + ` (scores: ${stats.scores}, tackles: ${stats.tackles}, passes: ${stats.passesCompleted}, catches: ${stats.catches})`);
+          
+          // Check if this player belongs to home or away team
+          if (player.teamId === match.homeTeamId) {
+            if (mvpScore > homeTopScore) {
+              homeTopScore = mvpScore;
+              homeTopPlayer = {
+                playerName: `${player.firstName} ${player.lastName}`,
+                score: Math.round(mvpScore * 10) / 10,
+                playerId: player.id
+              };
+            }
+          } else if (player.teamId === match.awayTeamId) {
+            if (mvpScore > awayTopScore) {
+              awayTopScore = mvpScore;
+              awayTopPlayer = {
+                playerName: `${player.firstName} ${player.lastName}`,
+                score: Math.round(mvpScore * 10) / 10,
+                playerId: player.id
+              };
+            }
+          }
+        }
+      }
+      
       mvpData = {
-        homeMVP: {
+        homeMVP: homeTopPlayer || {
           playerName: "No MVP Data Available",
           score: 0
         },
-        awayMVP: {
+        awayMVP: awayTopPlayer || {
           playerName: "No MVP Data Available", 
           score: 0
         }
       };
+      
+      console.log('Real-time MVP data calculated:', mvpData);
     }
     
     // Fallback team stats if not found

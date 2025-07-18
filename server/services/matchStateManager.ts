@@ -77,6 +77,24 @@ class MatchStateManager {
     this.webSocketService = webSocketService;
   }
 
+  // Clean up any existing live matches for a team
+  async cleanupTeamMatches(teamId: string): Promise<void> {
+    try {
+      // Find all live matches involving this team
+      const matchesToCleanup = Array.from(this.liveMatches.values())
+        .filter(match => match.homeTeamId === teamId || match.awayTeamId === teamId);
+      
+      console.log(`🧹 Found ${matchesToCleanup.length} live matches to clean up for team ${teamId}`);
+      
+      for (const match of matchesToCleanup) {
+        console.log(`🧹 Cleaning up match ${match.matchId}`);
+        await this.stopLiveMatch(match.matchId);
+      }
+    } catch (error) {
+      console.error(`Error cleaning up team matches for team ${teamId}:`, error);
+    }
+  }
+
   // Save live match state to database
   private async saveLiveStateToDatabase(matchId: string, liveState: LiveMatchState): Promise<void> {
     try {
@@ -313,7 +331,7 @@ class MatchStateManager {
       away: awayStarters.map(p => `${p.firstName} ${p.lastName} (${p.role})`)
     });
 
-    const maxTime = isExhibition ? 1200 : 1800; // 20 min exhibition, 30 min league
+    const maxTime = isExhibition ? 1800 : 1800; // 30 min exhibition, 30 min league
 
     const initialPlayerStats = new Map<string, PlayerStatsSnapshot>();
     const allPlayers = [...homeTeamPlayers, ...awayTeamPlayers];
