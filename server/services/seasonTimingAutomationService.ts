@@ -536,13 +536,25 @@ export class SeasonTimingAutomationService {
         console.log('ℹ️  AdSystem table not found - skipping ad reset');
       }
       
-      // 2. Reset exhibition game tracking
+      // 2. Reset player daily items used count to 0 for all players
+      try {
+        const playerUpdateResult = await prisma.player.updateMany({
+          data: {
+            dailyItemsUsed: 0
+          }
+        });
+        logInfo(`✅ Player daily items used reset for ${playerUpdateResult.count} players`);
+      } catch (error) {
+        console.error('❌ Error resetting player daily items used:', error);
+      }
+      
+      // 3. Reset exhibition game tracking
       // Exhibition games are tracked by counting matches created "today"
       // Since we're using date-based queries, we need to ensure the timezone calculation is correct
       // The reset itself is handled by the date-based queries in exhibition routes
       logInfo('✅ Exhibition game limits reset (handled by date-based queries)');
       
-      // 3. Reset any other daily counters
+      // 4. Reset any other daily counters
       try {
         // Reset tournament entry cooldowns or other daily limitations
         await prisma.tournamentEntry.updateMany({
@@ -560,7 +572,7 @@ export class SeasonTimingAutomationService {
         console.log('ℹ️  Tournament entry reset skipped');
       }
       
-      // 4. Force cache invalidation for exhibition stats
+      // 5. Force cache invalidation for exhibition stats
       // This ensures the frontend gets fresh data after reset
       logInfo('✅ Cache invalidation triggered for exhibition stats');
       

@@ -61,6 +61,27 @@ router.post('/grant-credits', RBACService.requirePermission(Permission.GRANT_CRE
   });
 }));
 
+// Reset player daily items used - Admin permission required
+router.post('/reset-player-daily-items', RBACService.requirePermission(Permission.GRANT_CREDITS), asyncHandler(async (req: any, res: Response) => {
+  const requestId = req.requestId;
+  const userId = req.user.claims.sub;
+  
+  logInfo("Admin resetting player daily items used", { adminUserId: userId, requestId });
+
+  // Reset all players' daily items used to 0
+  const updateResult = await prisma.player.updateMany({
+    data: {
+      dailyItemsUsed: 0
+    }
+  });
+
+  res.json({ 
+    success: true,
+    message: `Successfully reset daily items used for ${updateResult.count} players`,
+    data: { playersUpdated: updateResult.count }
+  });
+}));
+
 // Advance day - Admin permission required
 router.post('/advance-day', RBACService.requirePermission(Permission.MANAGE_SEASONS), asyncHandler(async (req: any, res: Response) => {
   const requestId = req.requestId;

@@ -169,6 +169,24 @@ export default function SuperUser() {
     },
   });
 
+  const resetPlayerItemsMutation = useMutation({
+    mutationFn: () => apiRequest("/api/superuser/reset-player-daily-items", "POST"),
+    onSuccess: (data) => {
+      toast({
+        title: "Player Items Reset",
+        description: data.message || "All player daily items used counters have been reset to 0",
+      });
+      queryClient.invalidateQueries({ queryKey: ["/api/injury-stamina/team"] });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Failed to Reset Player Items",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+
   // Tournament management mutations
   const forceStartTournamentMutation = useMutation({
     mutationFn: ({ tournamentId }: { tournamentId: string }) =>
@@ -355,6 +373,15 @@ export default function SuperUser() {
                     >
                       <CreditCard className="h-4 w-4 mr-2" />
                       {grantCreditsMutation.isPending ? "Granting..." : "Grant Credits"}
+                    </Button>
+                    <Button 
+                      onClick={() => resetPlayerItemsMutation.mutate()}
+                      disabled={resetPlayerItemsMutation.isPending}
+                      variant="outline"
+                      className="w-full"
+                    >
+                      <RefreshCw className="h-4 w-4 mr-2" />
+                      {resetPlayerItemsMutation.isPending ? "Resetting..." : "Reset All Player Daily Items"}
                     </Button>
                   </div>
                 </div>

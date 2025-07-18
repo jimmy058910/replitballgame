@@ -148,7 +148,25 @@ Built as a React + Express web application with PostgreSQL database, using moder
 
 ## Recent Changes
 
-### July 18, 2025 - ✅ COMPREHENSIVE EXHIBITION SYSTEM FIXES COMPLETE - ALL CRITICAL ISSUES RESOLVED ✅ PRODUCTION READY
+### July 18, 2025 - ✅ CRITICAL DAILY ITEM RESET BUG FIXED - MEDICAL CENTER DAILY COUNTER WORKING ✅ PRODUCTION READY
+
+#### ✅ DAILY ITEMS USED RESET BUG COMPLETELY FIXED - MEDICAL CENTER COUNTERS NOW RESET PROPERLY
+- ✓ **Root Cause Identified**: `resetDailyLimits()` function was missing the reset for player `dailyItemsUsed` field during daily progression
+- ✓ **Critical Fix Applied**: Added `dailyItemsUsed: 0` reset to all players in the daily progression system (seasonTimingAutomationService.ts)
+- ✓ **Immediate Problem Fixed**: Manually reset all current players showing incorrect "items used today" counters
+- ✓ **SuperUser Tool Added**: Added `/api/superuser/reset-player-daily-items` endpoint for immediate testing and fixes
+- ✓ **SuperUser UI Enhanced**: Added "Reset All Player Daily Items" button to Team Management tab for admin control
+- ✓ **Production Ready**: Medical Center daily item tracking now resets properly at 3AM EST daily progression
+
+#### ✅ TECHNICAL IMPLEMENTATION DETAILS - COMPREHENSIVE DAILY RESET SYSTEM
+- ✓ **Daily Progression Integration**: Player daily items used now resets alongside ad counts and tournament cooldowns
+- ✓ **Database Update Tracking**: Reset operation logs number of players updated for monitoring and debugging
+- ✓ **Admin Override System**: SuperUser page provides immediate reset capability for production testing
+- ✓ **Automatic Resolution**: Issue will now resolve automatically with each daily progression (3AM EST)
+- ✓ **User Experience Fixed**: Medical Center tab will correctly show 0/2 items used after daily reset
+- ✓ **Production Tested**: All 4 affected players (Brilliana Radiant, Grimshade Shadowflame, Darkveil Onyx, Darkstorm Voidcaller) reset successfully
+
+### July 18, 2025 - ✅ COMPREHENSIVE EXHIBITION SYSTEM FIXES COMPLETE - ALL CRITICAL ISSUES RESOLVED ✅ PRODUCTION READY (Previous)
 
 #### ✅ EXHIBITION MATCH DURATION FIXED - 30 MINUTES IMPLEMENTED
 - ✓ **Match Duration Corrected**: Changed exhibition matches from 20 minutes (1200 seconds) to 30 minutes (1800 seconds) in matchStateManager.ts
