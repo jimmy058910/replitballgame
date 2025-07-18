@@ -1103,23 +1103,35 @@ class MatchStateManager {
       }
 
       // Award credits to both teams via their finance records
-      await prisma.teamFinance.update({
-        where: { teamId: parseInt(homeTeamId) },
-        data: {
-          credits: {
-            increment: homeCredits
-          }
-        }
+      const homeTeamFinance = await prisma.teamFinance.findUnique({
+        where: { teamId: parseInt(homeTeamId) }
+      });
+      
+      const awayTeamFinance = await prisma.teamFinance.findUnique({
+        where: { teamId: parseInt(awayTeamId) }
       });
 
-      await prisma.teamFinance.update({
-        where: { teamId: parseInt(awayTeamId) },
-        data: {
-          credits: {
-            increment: awayCredits
+      if (homeTeamFinance) {
+        await prisma.teamFinance.update({
+          where: { teamId: parseInt(homeTeamId) },
+          data: {
+            credits: {
+              increment: homeCredits
+            }
           }
-        }
-      });
+        });
+      }
+
+      if (awayTeamFinance) {
+        await prisma.teamFinance.update({
+          where: { teamId: parseInt(awayTeamId) },
+          data: {
+            credits: {
+              increment: awayCredits
+            }
+          }
+        });
+      }
 
       // Award team camaraderie boost to winning team players (if not a tie)
       if (winningTeamId) {

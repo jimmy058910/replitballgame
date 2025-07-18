@@ -122,7 +122,7 @@ export function PostGameSummary({
           <div className="text-right">
             <div className="flex items-center gap-1">
               <Star className="h-4 w-4 text-yellow-500" />
-              <span className="text-xl font-bold text-yellow-500">{player.mvpScore.toFixed(1)}</span>
+              <span className="text-xl font-bold text-yellow-500">{(player.mvpScore || 0).toFixed(1)}</span>
             </div>
             <p className="text-xs text-gray-400">MVP Score</p>
           </div>

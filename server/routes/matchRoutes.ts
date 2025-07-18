@@ -830,14 +830,14 @@ router.post('/exhibition/instant', isAuthenticated, async (req: any, res: Respon
     // Get user's team
     const userProfile = await prisma.userProfile.findUnique({
       where: { userId: userTeamId },
-      include: { team: true }
+      include: { Team: true }
     });
     
-    if (!userProfile?.team) {
+    if (!userProfile?.Team) {
       return res.status(404).json({ message: "User team not found" });
     }
     
-    const team = userProfile.team;
+    const team = userProfile.Team;
     
     // Create exhibition match
     const newMatch = await matchStorage.createMatch({
