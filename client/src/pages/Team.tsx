@@ -89,7 +89,7 @@ export default function TeamPage() {
     cacheTime: 5 * 60 * 1000, // 5 minutes
   });
   
-  const { data: players, isLoading: playersLoading } = useQuery<Player[]>({
+  const { data: players, isLoading: playersLoading, error: playersError } = useQuery<Player[]>({
     queryKey: [`/api/teams/${team?.id}/players`],
     enabled: !!team?.id,
     staleTime: 1 * 60 * 1000, // 1 minute
