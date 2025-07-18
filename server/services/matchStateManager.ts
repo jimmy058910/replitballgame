@@ -968,14 +968,17 @@ class MatchStateManager {
           }
         });
 
-        // Update team records for non-exhibition matches
-        if (!isExhibitionMatch) {
+        // Update team records ONLY for league matches (not exhibition or tournament matches)
+        if (matchDetails?.matchType === 'LEAGUE') {
           console.log(`🔥 UPDATING TEAM RECORDS: Match ${matchId} - Home: ${state.homeTeamId} (${state.homeScore}) vs Away: ${state.awayTeamId} (${state.awayScore})`);
           await this.updateTeamRecords(parseInt(state.homeTeamId), parseInt(state.awayTeamId), state.homeScore, state.awayScore);
-        } else {
+        } else if (isExhibitionMatch) {
           // Process exhibition rewards
           console.log(`🎉 PROCESSING EXHIBITION REWARDS: Match ${matchId} - Home: ${state.homeTeamId} (${state.homeScore}) vs Away: ${state.awayTeamId} (${state.awayScore})`);
           await this.awardExhibitionRewards(state.homeTeamId, state.awayTeamId, state.homeScore, state.awayScore);
+        } else {
+          // Tournament matches - no team record updates, no exhibition rewards
+          console.log(`🏆 TOURNAMENT MATCH COMPLETED: Match ${matchId} - Home: ${state.homeTeamId} (${state.homeScore}) vs Away: ${state.awayTeamId} (${state.awayScore}) - No league standings update`);
         }
       } else {
         console.warn(`Game ${matchId} not found in database, cannot update completion status`);

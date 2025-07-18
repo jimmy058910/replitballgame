@@ -243,19 +243,65 @@ export default function TeamPage() {
               </TabsList>
 
               <TabsContent value="players">
-                {/* Use VirtualizedPlayerRoster for optimized performance */}
-                <VirtualizedPlayerRoster
-                  players={playersWithRoles}
-                  isLoading={playersLoading}
-                  selectedRole={selectedRole}
-                  onRoleChange={setSelectedRole}
-                  onPlayerClick={(player) => {
-                    setSelectedPlayer(player);
-                    setShowPlayerModal(true);
-                  }}
-                  variant="full"
-                  className="mt-6"
-                />
+                {/* Use regular player cards with dashboard variant like on dashboard */}
+                <div className="mt-6 space-y-4">
+                  {/* Role Filter Tabs */}
+                  <div className="flex flex-wrap gap-2 mb-6">
+                    {['all', 'passer', 'runner', 'blocker', 'taxi-squad'].map((role) => (
+                      <Button
+                        key={role}
+                        variant={selectedRole === role ? "default" : "outline"}
+                        size="sm"
+                        onClick={() => setSelectedRole(role)}
+                        className="text-xs"
+                      >
+                        {role === 'all' ? 'All Players' : 
+                         role === 'taxi-squad' ? 'Taxi Squad' : 
+                         role.charAt(0).toUpperCase() + role.slice(1) + 's'}
+                        {role === 'all' && ` (${playersWithRoles.length})`}
+                      </Button>
+                    ))}
+                  </div>
+                  
+                  {playersLoading ? (
+                    <div className="flex justify-center py-8">
+                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-500"></div>
+                    </div>
+                  ) : playersError ? (
+                    <div className="text-center py-8">
+                      <p className="text-red-400">Error loading players: {(playersError as Error).message}</p>
+                    </div>
+                  ) : !playersWithRoles || playersWithRoles.length === 0 ? (
+                    <div className="text-center py-8">
+                      <p className="text-gray-400">No players found</p>
+                      <p className="text-sm text-gray-500">Visit the recruiting tab to add players</p>
+                    </div>
+                  ) : (
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                      {playersWithRoles
+                        .filter(player => {
+                          if (selectedRole === 'all') return true;
+                          if (selectedRole === 'taxi-squad') return (player.rosterPosition || 0) >= 13;
+                          return player.role?.toLowerCase() === selectedRole;
+                        })
+                        .map((player: any) => (
+                          <div 
+                            key={player.id}
+                            onClick={() => {
+                              setSelectedPlayer(player);
+                              setShowPlayerModal(true);
+                            }}
+                            className="cursor-pointer"
+                          >
+                            <UnifiedPlayerCard
+                              player={player}
+                              variant="dashboard"
+                            />
+                          </div>
+                        ))}
+                    </div>
+                  )}
+                </div>
               </TabsContent>
 
               <TabsContent value="medical">
