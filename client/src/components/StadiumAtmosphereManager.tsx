@@ -17,7 +17,6 @@ import {
   Zap, 
   DollarSign,
   Home,
-  Volume2,
   Trophy,
   Star,
   BarChart3,
@@ -275,30 +274,30 @@ export default function StadiumAtmosphereManager({ teamId }: { teamId: string })
 
           <Card>
             <CardHeader>
-              <CardTitle>Home Field Advantage</CardTitle>
-              <CardDescription>Intimidation factor and crowd noise effects</CardDescription>
+              <CardTitle>Stadium Atmosphere</CardTitle>
+              <CardDescription>Fan loyalty and attendance information</CardDescription>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
                 <div>
                   <div className="flex justify-between mb-1">
-                    <span className="text-sm text-gray-600">Intimidation Factor</span>
-                    <span className="text-sm font-medium">{atmosphereData?.data?.intimidationFactor || 0}</span>
+                    <span className="text-sm text-gray-600">Fan Loyalty</span>
+                    <span className="text-sm font-medium">{atmosphereData?.data?.fanLoyalty || 50}%</span>
                   </div>
-                  <Progress value={(atmosphereData?.data?.intimidationFactor || 0) * 10} className="h-2" />
+                  <Progress value={(atmosphereData?.data?.fanLoyalty || 50)} className="h-2" />
                 </div>
                 <div>
                   <div className="flex justify-between mb-1">
-                    <span className="text-sm text-gray-600">Crowd Noise Level</span>
-                    <span className="text-sm font-medium">{atmosphereData?.data?.crowdNoise || 0} dB</span>
+                    <span className="text-sm text-gray-600">Expected Attendance Rate</span>
+                    <span className="text-sm font-medium">{atmosphereData?.data?.attendancePercentage || 50}%</span>
                   </div>
-                  <Progress value={(atmosphereData?.data?.crowdNoise || 0) / 100 * 100} className="h-2" />
+                  <Progress value={(atmosphereData?.data?.attendancePercentage || 50)} className="h-2" />
                 </div>
                 <div className="p-3 bg-blue-50 border border-blue-200 rounded">
                   <div className="flex items-center space-x-2">
-                    <Volume2 className="w-4 h-4 text-blue-600" />
+                    <Users className="w-4 h-4 text-blue-600" />
                     <span className="text-sm text-blue-800">
-                      Opponent Debuff: -{Math.floor((atmosphereData?.data?.intimidationFactor || 0) / 2)} Catching/Throwing
+                      Stadium atmosphere effects are calculated during live matches based on fan loyalty and attendance.
                     </span>
                   </div>
                 </div>
