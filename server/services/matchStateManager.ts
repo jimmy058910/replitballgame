@@ -1009,6 +1009,11 @@ class MatchStateManager {
           matchDetails?.matchType || 'EXHIBITION'
         );
         console.log(`✨ POST-GAME CAMARADERIE UPDATE: Match ${matchId} - Updated team chemistry for both teams based on ${matchDetails?.matchType || 'EXHIBITION'} result`);
+
+        // Clear active boosts for both teams after match completion
+        await this.clearActiveBoosts(parseInt(state.homeTeamId), matchDetails?.matchType || 'EXHIBITION');
+        await this.clearActiveBoosts(parseInt(state.awayTeamId), matchDetails?.matchType || 'EXHIBITION');
+        console.log(`🧹 ACTIVE BOOSTS CLEARED: Match ${matchId} - Cleared active boosts for both teams after ${matchDetails?.matchType || 'EXHIBITION'} match`);
         
       } else {
         console.warn(`Game ${matchId} not found in database, cannot update completion status`);
@@ -1263,6 +1268,40 @@ class MatchStateManager {
         });
         await this.completeMatch(matchId, state.homeTeamId, state.awayTeamId, homePlayers, awayPlayers);
       }
+    }
+  }
+
+  /**
+   * Clear active boosts for a team after match completion
+   */
+  private async clearActiveBoosts(teamId: number, matchType: string): Promise<void> {
+    try {
+      // Find active boosts for the team that match the match type
+      const activeBoosts = await prisma.activeBoost.findMany({
+        where: {
+          teamId: teamId,
+          isActive: true,
+          matchType: matchType
+        }
+      });
+
+      if (activeBoosts.length > 0) {
+        // Deactivate all matching active boosts
+        await prisma.activeBoost.updateMany({
+          where: {
+            teamId: teamId,
+            isActive: true,
+            matchType: matchType
+          },
+          data: {
+            isActive: false
+          }
+        });
+
+        console.log(`🧹 CLEARED ${activeBoosts.length} active ${matchType} boost(s) for team ${teamId}`);
+      }
+    } catch (error) {
+      console.error(`Error clearing active boosts for team ${teamId}:`, error);
     }
   }
 
