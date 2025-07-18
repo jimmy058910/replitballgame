@@ -23,6 +23,10 @@ import { Badge } from "@/components/ui/badge";
 import { apiRequest } from "@/lib/queryClient";
 import { HelpIcon } from "@/components/help";
 
+// Performance-optimized components
+import { VirtualizedPlayerRoster } from "@/components/VirtualizedPlayerRoster";
+import { useOptimizedQuery, useTeamQuery, usePlayersQuery, useInvalidateQueries } from "@/hooks/useOptimizedQuery";
+
 // Type interfaces for API responses
 interface Team {
   id: string;
@@ -78,14 +82,21 @@ export default function TeamPage() {
   const [inventoryFilter, setInventoryFilter] = useState("equipment");
   const [stadiumSubTab, setStadiumSubTab] = useState("overview");
 
+  // Optimized queries with caching
   const { data: team, isLoading: isLoadingTeam } = useQuery<Team>({
     queryKey: ["/api/teams/my"],
+    staleTime: 2 * 60 * 1000, // 2 minutes
+    cacheTime: 5 * 60 * 1000, // 5 minutes
   });
-
+  
   const { data: players, isLoading: playersLoading } = useQuery<Player[]>({
     queryKey: [`/api/teams/${team?.id}/players`],
     enabled: !!team?.id,
+    staleTime: 1 * 60 * 1000, // 1 minute
+    cacheTime: 3 * 60 * 1000, // 3 minutes
   });
+  
+  const { invalidateTeam, invalidatePlayers } = useInvalidateQueries();
 
   const { data: formation } = useQuery<Formation>({
     queryKey: [`/api/teams/${team?.id}/formation`],
@@ -232,99 +243,19 @@ export default function TeamPage() {
               </TabsList>
 
               <TabsContent value="players">
-                {/* Role Filter Sub-tabs */}
-                <Tabs value={selectedRole} onValueChange={setSelectedRole} className="mb-6">
-                  <TabsList className="grid w-full grid-cols-5 bg-gray-800">
-                    <TabsTrigger value="all">All Players ({playersWithRoles.length})</TabsTrigger>
-                    <TabsTrigger value="passer">Passers ({roleStats.passer || 0})</TabsTrigger>
-                    <TabsTrigger value="runner">Runners ({roleStats.runner || 0})</TabsTrigger>
-                    <TabsTrigger value="blocker">Blockers ({roleStats.blocker || 0})</TabsTrigger>
-                    <TabsTrigger value="taxi-squad">Taxi Squad</TabsTrigger>
-                  </TabsList>
-                </Tabs>
-
-            <Card className="bg-gray-800 border-gray-700 mb-8">
-              <CardHeader>
-                <CardTitle>Team Overview</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-3 gap-6 text-center">
-                  <div>
-                    <div className="text-3xl font-bold text-blue-400">{roleStats.passer || 0}</div>
-                    <div className="text-sm text-gray-400">Passers</div>
-                    <div className="text-xs text-gray-500">Leadership & Throwing</div>
-                  </div>
-                  <div>
-                    <div className="text-3xl font-bold text-green-400">{roleStats.runner || 0}</div>
-                    <div className="text-sm text-gray-400">Runners</div>
-                    <div className="text-xs text-gray-500">Speed & Agility</div>
-                  </div>
-                  <div>
-                    <div className="text-3xl font-bold text-red-400">{roleStats.blocker || 0}</div>
-                    <div className="text-sm text-gray-400">Blockers</div>
-                    <div className="text-xs text-gray-500">Power & Stamina</div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            {selectedRole === 'taxi-squad' ? (
-              <TaxiSquadManager 
-                teamId={team?.id} 
-                onNavigateToRecruiting={() => {
-                  setActiveTab('roster');
-                  setRosterSubTab('recruiting');
-                }}
-              />
-            ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                {playersLoading ? (
-                  Array.from({ length: 8 }, (_, i) => (
-                    <div key={i} className="bg-gray-800 rounded-lg p-4 animate-pulse">
-                      <div className="flex items-center space-x-3 mb-3">
-                        <div className="w-12 h-12 bg-gray-700 rounded-full"></div>
-                        <div className="flex-1">
-                          <div className="h-4 bg-gray-700 rounded mb-2"></div>
-                          <div className="h-3 bg-gray-700 rounded w-2/3"></div>
-                        </div>
-                      </div>
-                      <div className="space-y-2">
-                        {Array.from({ length: 4 }, (_, j) => (
-                          <div key={j} className="h-3 bg-gray-700 rounded"></div>
-                        ))}
-                      </div>
-                    </div>
-                  ))
-                ) : (
-                  filteredPlayers.map((player: any) => (
-                    <UnifiedPlayerCard 
-                      key={player.id}
-                      player={player} 
-                      variant="roster"
-                      onClick={() => {
-                        setSelectedPlayer(player);
-                        setShowPlayerModal(true);
-                      }}
-                    />
-                  ))
-                )}
-              </div>
-            )}
-
-                {filteredPlayers.length === 0 && !playersLoading && (
-                  <div className="text-center py-16">
-                    <i className="fas fa-users text-6xl text-gray-600 mb-4"></i>
-                    <h3 className="text-xl font-semibold text-gray-400 mb-2">
-                      No players found
-                    </h3>
-                    <p className="text-gray-500">
-                      {selectedRole === "all" 
-                        ? "Your team has no players yet." 
-                        : `No ${selectedRole} players in your team.`
-                      }
-                    </p>
-                  </div>
-                )}
+                {/* Use VirtualizedPlayerRoster for optimized performance */}
+                <VirtualizedPlayerRoster
+                  players={playersWithRoles}
+                  isLoading={playersLoading}
+                  selectedRole={selectedRole}
+                  onRoleChange={setSelectedRole}
+                  onPlayerClick={(player) => {
+                    setSelectedPlayer(player);
+                    setShowPlayerModal(true);
+                  }}
+                  variant="full"
+                  className="mt-6"
+                />
               </TabsContent>
 
               <TabsContent value="medical">

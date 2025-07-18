@@ -6,34 +6,32 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { useAuth } from "@/hooks/useAuth";
 import NotFound from "@/pages/not-found";
 import Landing from "@/pages/Landing";
-import Dashboard from "@/pages/Dashboard";
-import Team from "@/pages/Team";
-import Competition from "@/pages/Competition";
-import League from "@/pages/League";
-
-
-import Market from "@/pages/Market";
-import World from "@/pages/World";
-
-import Inventory from "@/pages/Inventory";
-import Marketplace from "@/pages/Marketplace";
-
-
-
 import LogoShowcase from "@/pages/LogoShowcase";
 import SuperUser from "@/pages/SuperUser";
-
-import Community from "@/pages/Community";
-import Camaraderie from "@/pages/Camaraderie";
-import Stats from "@/pages/Stats";
 import HelpManual from "@/pages/HelpManual";
 import { AdTest } from "@/pages/AdTest";
 import { WebSocketTestPage } from "@/components/WebSocketTestPage";
-import { LiveMatchPage } from "@/components/LiveMatchPage";
 import GemCheckout from "@/pages/gem-checkout";
 import RealmPassCheckout from "@/pages/realm-pass-checkout";
-import TournamentStatus from "@/pages/TournamentStatus";
 import DomainDemo from "@/pages/DomainDemo";
+import PWAInstallPrompt from "@/components/PWAInstallPrompt";
+
+// Lazy-loaded components for better performance
+import { 
+  LazyDashboard,
+  LazyTeam,
+  LazyCompetition,
+  LazyMarket,
+  LazyWorld,
+  LazyInventory,
+  LazyMarketplace,
+  LazyStats,
+  LazyLiveMatch,
+  LazyLeague,
+  LazyCommunity,
+  LazyCamaraderie,
+  LazyTournamentStatus
+} from "@/utils/lazyLoading";
 
 import Navigation from "@/components/Navigation";
 import { ContextualHelp } from "@/components/help";
@@ -51,35 +49,34 @@ function Router() {
         <Route path="/" component={Landing} />
       ) : (
         <>
-          <Route path="/" component={Dashboard} />
-          <Route path="/team" component={Team} />
-          <Route path="/competition" component={Competition} />
-          <Route path="/market" component={Market} />
-          <Route path="/world" component={World} />
+          <Route path="/" component={LazyDashboard} />
+          <Route path="/team" component={LazyTeam} />
+          <Route path="/competition" component={LazyCompetition} />
+          <Route path="/market" component={LazyMarket} />
+          <Route path="/world" component={LazyWorld} />
           
           {/* Legacy routes - keep for backwards compatibility */}
-          <Route path="/league" component={League} />
+          <Route path="/league" component={LazyLeague} />
 
-          <Route path="/inventory" component={Inventory} />
-          <Route path="/marketplace" component={Marketplace} />
+          <Route path="/inventory" component={LazyInventory} />
+          <Route path="/marketplace" component={LazyMarketplace} />
 
-
-          <Route path="/stats" component={Stats} />
+          <Route path="/stats" component={LazyStats} />
           
           {/* Consolidated match viewing route */}
-          <Route path="/live-match/:matchId" component={LiveMatchPage} />
+          <Route path="/live-match/:matchId" component={LazyLiveMatch} />
           {/* Legacy routes for backwards compatibility */}
-          <Route path="/text-match/:matchId" component={LiveMatchPage} />
-          <Route path="/match/:matchId" component={LiveMatchPage} />
-          <Route path="/community" component={Community} />
-          <Route path="/camaraderie" component={Camaraderie} />
+          <Route path="/text-match/:matchId" component={LazyLiveMatch} />
+          <Route path="/match/:matchId" component={LazyLiveMatch} />
+          <Route path="/community" component={LazyCommunity} />
+          <Route path="/camaraderie" component={LazyCamaraderie} />
           <Route path="/superuser" component={SuperUser} />
           <Route path="/ad-test" component={AdTest} />
           <Route path="/websocket-test" component={WebSocketTestPage} />
           <Route path="/gem-checkout/:packageId" component={GemCheckout} />
           <Route path="/gem-checkout" component={GemCheckout} />
           <Route path="/realm-pass-checkout" component={RealmPassCheckout} />
-          <Route path="/tournament-status" component={TournamentStatus} />
+          <Route path="/tournament-status" component={LazyTournamentStatus} />
           <Route path="/domain-demo" component={DomainDemo} />
         </>
       )}
@@ -97,6 +94,7 @@ function App() {
             <Navigation />
             <Router />
             <Toaster />
+            <PWAInstallPrompt />
             <ContextualHelp />
           </div>
         </LandscapeOrientation>

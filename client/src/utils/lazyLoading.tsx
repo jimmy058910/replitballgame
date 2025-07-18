@@ -4,6 +4,7 @@
  */
 import { lazy, Suspense, ComponentType } from 'react';
 import { Loader2 } from 'lucide-react';
+import React from 'react';
 
 /**
  * Loading component for lazy-loaded routes
@@ -79,22 +80,27 @@ export const preloadComponent = (importFunc: () => Promise<{ default: ComponentT
  * Lazy-loaded page components
  */
 export const LazyDashboard = lazyLoadPage(() => import('../pages/Dashboard'));
-export const LazyTeamHub = lazyLoadPage(() => import('../pages/TeamHub'));
+export const LazyTeam = lazyLoadPage(() => import('../pages/Team'));
 export const LazyMarketplace = lazyLoadPage(() => import('../pages/Marketplace'));
 export const LazyCompetition = lazyLoadPage(() => import('../pages/Competition'));
 export const LazyWorld = lazyLoadPage(() => import('../pages/World'));
-export const LazyStore = lazyLoadPage(() => import('../pages/Store'));
-export const LazyLiveMatch = lazyLoadPage(() => import('../pages/LiveMatch'));
-export const LazySettings = lazyLoadPage(() => import('../pages/Settings'));
+export const LazyMarket = lazyLoadPage(() => import('../pages/Market'));
+export const LazyInventory = lazyLoadPage(() => import('../pages/Inventory'));
+export const LazyStats = lazyLoadPage(() => import('../pages/Stats'));
+export const LazyLiveMatch = lazyLoadPage(() => import('../components/LiveMatchPage'));
+export const LazyLeague = lazyLoadPage(() => import('../pages/League'));
+export const LazyCommunity = lazyLoadPage(() => import('../pages/Community'));
+export const LazyCamaraderie = lazyLoadPage(() => import('../pages/Camaraderie'));
+export const LazyTournamentStatus = lazyLoadPage(() => import('../pages/TournamentStatus'));
 
 /**
  * Lazy-loaded component variants
  */
-export const LazyRosterManager = lazyLoadComponent(() => import('../components/RosterManager'));
-export const LazyTournamentBracket = lazyLoadComponent(() => import('../components/TournamentBracket'));
-export const LazyPlayerStatsModal = lazyLoadComponent(() => import('../components/PlayerStatsModal'));
-export const LazyMatchHistoryTable = lazyLoadComponent(() => import('../components/MatchHistoryTable'));
-export const LazyMarketplaceListings = lazyLoadComponent(() => import('../components/MarketplaceListings'));
+export const LazyUnifiedPlayerCard = lazyLoadComponent(() => import('../components/UnifiedPlayerCard'));
+export const LazyVirtualizedPlayerRoster = lazyLoadComponent(() => import('../components/VirtualizedPlayerRoster'));
+export const LazyLiveMatchViewer = lazyLoadComponent(() => import('../components/LiveMatchViewer'));
+export const LazyTeamInfoDialog = lazyLoadComponent(() => import('../components/TeamInfoDialog'));
+export const LazyComprehensiveTournamentManager = lazyLoadComponent(() => import('../components/ComprehensiveTournamentManager'));
 
 /**
  * Bundle analysis utilities
