@@ -379,6 +379,12 @@ router.post('/:teamId/formation', isAuthenticated, async (req: any, res: Respons
       }
     });
 
+    console.log('✅ POST Formation saved successfully to Strategy table:', {
+      teamId: teamId,
+      startersCount: formation.starters.length,
+      substitutesCount: formation.substitutes.length
+    });
+
     res.json({ success: true, message: "Formation saved successfully" });
   } catch (error) {
     console.error("Error saving formation:", error);
@@ -525,6 +531,19 @@ router.get('/:teamId/formation', isAuthenticated, async (req: any, res: Response
     
     const formationData = strategy?.formationJson || null;
     const substitutionOrderData = strategy?.substitutionJson || {};
+    
+    console.log('🔍 GET Formation Debug:', {
+      teamId: teamId,
+      hasStrategy: !!strategy,
+      hasFormationData: !!formationData,
+      startersCount: formationData?.starters?.length || 0,
+      substitutesCount: formationData?.substitutes?.length || 0,
+      substitutesOrder: formationData?.substitutes?.map((s: any, index: number) => ({
+        index: index,
+        id: s.id,
+        role: s.role
+      })) || []
+    });
 
     let starters = [];
     let substitutes = [];

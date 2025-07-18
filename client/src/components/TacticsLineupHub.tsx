@@ -281,7 +281,18 @@ export default function TacticsLineupHub({ teamId }: TacticsLineupHubProps) {
     },
     onSuccess: () => {
       toast({ title: "Formation Saved", description: "Your lineup has been updated successfully." });
+      
+      // Debug logging
+      console.log('🔍 Cache invalidation triggered for teamId:', teamId);
+      
+      // Invalidate formation query
       queryClient.invalidateQueries({ queryKey: [`/api/teams/${teamId}/formation`] });
+      
+      // Also invalidate players query in case it affects the formation data
+      queryClient.invalidateQueries({ queryKey: [`/api/teams/${teamId}/players`] });
+      
+      // Refetch formation data immediately to ensure UI updates
+      queryClient.refetchQueries({ queryKey: [`/api/teams/${teamId}/formation`] });
     },
     onError: () => {
       toast({ title: "Error", description: "Failed to save formation.", variant: "destructive" });

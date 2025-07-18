@@ -163,6 +163,13 @@ Built as a React + Express web application with PostgreSQL database, using moder
 - ✓ **Data Integrity**: Maintained proper data structure validation while preserving security sanitization
 - ✓ **Cross-Component Fix**: Solution resolves formation saving issues across all tactical management interfaces
 
+#### ✅ CACHE INVALIDATION & DATA PERSISTENCE ENHANCED - COMPREHENSIVE DEBUGGING ADDED
+- ✓ **Data Persistence Fixed**: Both POST and PUT routes now save to Strategy.formationJson for consistent data storage
+- ✓ **Substitute Order Preservation**: Fixed GET route to maintain exact substitute order using `map` instead of `filter`
+- ✓ **Enhanced Cache Invalidation**: Added comprehensive cache invalidation with immediate refetch for real-time UI updates
+- ✓ **Debugging System**: Added detailed logging for save/retrieve operations to track formation data flow
+- ✓ **Cross-Query Invalidation**: Invalidates both formation and players queries for complete data synchronization
+
 ### July 17, 2025 - ✅ CRITICAL MVP DATA BUG COMPLETELY FIXED - ENHANCED-DATA ENDPOINT 100% WORKING - PRODUCTION READY (Previous)
 
 #### ✅ ENHANCED-DATA ENDPOINT CRITICAL BUG RESOLVED - REAL MVP DATA DISPLAYING
