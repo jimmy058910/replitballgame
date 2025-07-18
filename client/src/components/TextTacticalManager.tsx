@@ -257,20 +257,23 @@ export default function TextTacticalManager({ players, savedFormation }: TextTac
 
   const saveFormation = useMutation({
     mutationFn: async () => {
-      const formationData = players.map(player => ({
-        id: player.id,
-        role: player.role,
-        isStarter: starters.includes(player.id),
-        substitutionOrder: (() => {
-          const role = player.role.toLowerCase() as keyof typeof substitutionOrder;
-          if (role === 'passer' || role === 'runner' || role === 'blocker') {
-            return substitutionOrder[role].indexOf(player.id);
-          }
-          return -1;
-        })()
-      }));
-
-      await apiRequest("/api/teams/my/formation", "POST", { formation: formationData });
+      const starterPlayers = players.filter(player => starters.includes(player.id));
+      const substitutePlayers = players.filter(player => !starters.includes(player.id));
+      
+      const response = await fetch(`/api/teams/my/formation`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          starters: starterPlayers.map(player => ({ id: player.id, role: player.role })),
+          substitutes: substitutePlayers.map(player => ({ id: player.id, role: player.role })),
+          formationData: { formation: "2-2-1-1-wildcard" }
+        }),
+      });
+      
+      if (!response.ok) {
+        throw new Error("Failed to save formation");
+      }
+      return response.json();
     },
     onSuccess: () => {
       toast({ title: "Formation saved successfully!" });
