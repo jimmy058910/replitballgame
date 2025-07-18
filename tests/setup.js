@@ -189,3 +189,5 @@ afterEach(() => {
 });
 
 console.log('✓ Test setup complete - All mocks initialized');
+
+export default {};

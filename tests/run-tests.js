@@ -5,9 +5,9 @@
  * Runs comprehensive test suite with detailed reporting
  */
 
-const { spawn } = require('child_process');
-const fs = require('fs');
-const path = require('path');
+import { spawn } from 'child_process';
+import fs from 'fs';
+import path from 'path';
 
 // Test categories and their descriptions
 const testCategories = {
@@ -51,7 +51,9 @@ const coverage = args.includes('--coverage') || args.includes('-c');
 const watch = args.includes('--watch') || args.includes('-w');
 
 console.log('🏆 Realm Rivalry Test Suite');
-console.log('=' * 60);
+console.log('=====================================');
+console.log('🎯 Target: 100% Branch Coverage');
+console.log('=====================================');
 
 if (category && !testCategories[category]) {
   console.error(`❌ Invalid test category: ${category}`);

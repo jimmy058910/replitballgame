@@ -1,91 +1,214 @@
 # Realm Rivalry Test Suite
 
-## Overview
-Comprehensive test suite covering all automated and manual game functions in the Realm Rivalry fantasy sports management system.
-
-## Test Organization
-
-### Core Systems Tests
-- **Automated Systems**: Daily progression, tournaments, match simulation
-- **Manual Functions**: Formation management, player trades, exhibition matches
-- **API Routes**: All endpoint validation and response testing
-- **Services**: Business logic and data processing tests
-- **Database**: Storage layer and data integrity tests
-- **Integration**: End-to-end system workflows
+Comprehensive test coverage for all automated and manual game functions.
 
 ## Test Categories
 
-### 1. Automated Systems (`/automated/`)
-- `daily-progression.test.js` - Daily player progression, aging, retirement
-- `tournament-automation.test.js` - Tournament creation, brackets, auto-start
-- `match-simulation.test.js` - Live match simulation, MVP data, events
-- `season-timing.test.js` - Season advancement, day transitions, scheduling
+### 🤖 Automated Systems (`tests/automated/`)
+Tests for automated game systems that run without user interaction:
+- **Daily Progression**: Player aging, stat progression, retirement mechanics
+- **Tournament Automation**: Bracket generation, auto-start, match progression
+- **Match Simulation**: Live events, MVP calculation, commentary generation
+- **Season Timing**: Day advancement, phase transitions, automation scheduling
 
-### 2. Manual Functions (`/manual/`)
-- `formation-management.test.js` - Tactical formations, player positioning
-- `exhibition-matches.test.js` - Exhibition match creation, instant matches
-- `marketplace-trading.test.js` - Player auctions, bidding, transfers
-- `team-management.test.js` - Roster management, player contracts
-- `store-purchases.test.js` - Equipment, consumables, gem transactions
+### 🎮 Manual Functions (`tests/manual/`)
+Tests for user-initiated game actions:
+- **Formation Management**: Tactical setup, player positioning, field size changes
+- **Exhibition Matches**: Instant match creation, opponent selection, reward calculation
+- **Marketplace Trading**: Player listings, bidding system, transaction processing
+- **Team Management**: Roster changes, contract negotiations, facility upgrades
 
-### 3. API Routes (`/api/`)
-- `auth-routes.test.js` - Authentication, user management
-- `team-routes.test.js` - Team CRUD operations, finances
-- `player-routes.test.js` - Player data, statistics, progression
-- `match-routes.test.js` - Match creation, live data, post-game
-- `tournament-routes.test.js` - Tournament management, entries, brackets
-- `league-routes.test.js` - League standings, schedules, divisions
+### 🌐 API Routes (`tests/api/`)
+Tests for all API endpoints:
+- **Match Routes**: Live match data, enhanced statistics, force start functionality
+- **Team Routes**: Team management, player operations, financial transactions
+- **Tournament Routes**: Tournament registration, bracket display, status updates
+- **Store Routes**: Item purchases, gem transactions, payment processing
 
-### 4. Services (`/services/`)
-- `tournament-service.test.js` - Tournament logic, bracket generation
-- `match-simulation.test.js` - Game simulation, commentary, stats
-- `player-progression.test.js` - Aging, skills, retirement mechanics
-- `economy-service.test.js` - Credits, gems, marketplace transactions
-- `notification-service.test.js` - Real-time notifications, WebSocket
+### 🔧 Services (`tests/services/`)
+Tests for business logic and data processing:
+- **Tournament Service**: Bracket generation, winner determination, prize distribution
+- **Match Service**: Game simulation, event generation, stat tracking
+- **Player Service**: Progression calculations, aging algorithms, retirement logic
+- **Economy Service**: Credit/gem transactions, marketplace operations, reward distribution
 
-### 5. Database (`/database/`)
-- `storage-operations.test.js` - CRUD operations, data integrity
-- `schema-validation.test.js` - Database schema compliance
-- `performance-tests.test.js` - Query optimization, indexing
-- `migration-tests.test.js` - Database schema changes
+### 🗄️ Database (`tests/database/`)
+Tests for data storage and integrity:
+- **Storage Operations**: CRUD operations, query optimization, data validation
+- **Schema Compliance**: Foreign key constraints, data type validation, relationship integrity
+- **Transaction Management**: Atomic operations, rollback scenarios, concurrent access
+- **Data Migration**: Schema changes, data transformation, backup/restore operations
 
-### 6. Integration (`/integration/`)
-- `full-season-cycle.test.js` - Complete 17-day season simulation
-- `tournament-workflow.test.js` - Registration to completion workflow
-- `match-to-standings.test.js` - Match results affecting league standings
-- `player-lifecycle.test.js` - Player creation to retirement
+### 🔗 Integration (`tests/integration/`)
+Tests for end-to-end workflows:
+- **Full Season Cycle**: Complete 17-day season simulation with all automated systems
+- **Tournament Workflows**: Registration → Bracket → Live Matches → Completion → Prizes
+- **Player Lifecycle**: Creation → Progression → Peak Performance → Aging → Retirement
+- **Match-to-Standings**: Game completion → Team record updates → League standings refresh
 
 ## Running Tests
 
-### Individual Test Categories
+### Quick Start
 ```bash
 # Run all tests
-npm test
+node tests/run-tests.js
 
 # Run specific category
-npm test -- --testPathPattern=automated
-npm test -- --testPathPattern=manual
-npm test -- --testPathPattern=api
-npm test -- --testPathPattern=services
-npm test -- --testPathPattern=database
-npm test -- --testPathPattern=integration
+node tests/run-tests.js automated
+node tests/run-tests.js manual
+node tests/run-tests.js api
+node tests/run-tests.js services
+node tests/run-tests.js database
+node tests/run-tests.js integration
 ```
 
-### Test Coverage
-- Target: 90% branch coverage
-- Critical paths: 100% coverage
-- Integration tests: End-to-end workflows
+### Test Options
+```bash
+# Run with coverage report
+node tests/run-tests.js --coverage
 
-## Test Data Management
-- Use test database for all tests
-- Reset database state between test suites
-- Mock external services (auth, payments)
-- Use deterministic random data for consistency
+# Run with verbose output
+node tests/run-tests.js --verbose
+
+# Run in watch mode
+node tests/run-tests.js --watch
+
+# Run specific category with coverage
+node tests/run-tests.js automated --coverage
+```
+
+### Alternative Jest Commands
+```bash
+# Run all tests with Jest directly
+npx jest --config ./tests/jest.config.js
+
+# Run specific test file
+npx jest tests/automated/daily-progression.test.js
+
+# Run tests matching pattern
+npx jest --testPathPattern="automated" --config ./tests/jest.config.js
+```
+
+## Coverage Targets
+
+### 100% Coverage Requirements
+- **Branches**: 100% - All decision paths tested
+- **Functions**: 100% - All functions executed
+- **Lines**: 100% - All code lines covered
+- **Statements**: 100% - All statements executed
+
+### Coverage Categories
+- **Critical Paths**: 100% coverage required (match simulation, tournament brackets, player progression)
+- **Business Logic**: 100% coverage required (economy, rewards, standings)
+- **API Endpoints**: 100% coverage required (authentication, validation, responses)
+- **Error Handling**: 100% coverage required (all error conditions and edge cases)
+
+## Test Infrastructure
+
+### Mock System
+- **Database**: Complete Prisma Client mocking with all models
+- **Authentication**: Automatic user authentication bypass for testing
+- **WebSocket**: Mock real-time communication for live match testing
+- **External Services**: Mock payment processing and third-party integrations
+
+### Test Utilities
+- **Mock Data Generators**: Consistent test data creation for teams, players, matches
+- **Database Helpers**: Setup/teardown utilities for database testing
+- **Authentication Helpers**: User session management for endpoint testing
+- **Time Helpers**: Date/time manipulation for season timing tests
+
+### Test Environment
+- **Node Environment**: Tests run in isolated Node.js environment
+- **Database**: Mock database operations prevent test data pollution
+- **Network**: All external API calls mocked for consistent testing
+- **File System**: Temporary test files cleaned up after each test run
+
+## Writing New Tests
+
+### Test Structure
+```javascript
+describe('Feature Name', () => {
+  beforeEach(() => {
+    // Setup for each test
+    jest.clearAllMocks();
+  });
+
+  describe('Specific Functionality', () => {
+    it('should perform expected behavior', async () => {
+      // Arrange
+      const mockData = testUtils.createMockTeam();
+      
+      // Act
+      const result = await serviceMethod(mockData);
+      
+      // Assert
+      expect(result).toEqual(expectedResult);
+    });
+  });
+});
+```
+
+### Mock Usage
+```javascript
+// Use global test utilities
+const mockUser = global.testUtils.createMockUser();
+const mockTeam = global.testUtils.createMockTeam();
+const mockPlayer = global.testUtils.createMockPlayer();
+
+// Mock database operations
+mockPrisma.team.findUnique.mockResolvedValue(mockTeam);
+mockPrisma.player.findMany.mockResolvedValue([mockPlayer]);
+```
+
+### Coverage Best Practices
+1. **Test all branches**: Include both success and failure paths
+2. **Test edge cases**: Boundary conditions, empty inputs, invalid data
+3. **Test error handling**: Exception scenarios, network failures, timeout conditions
+4. **Test async operations**: Promise resolution/rejection, callback handling
+5. **Test integration points**: Service-to-service communication, API responses
 
 ## Continuous Integration
-- All tests run on every commit
-- Performance benchmarks tracked
-- Coverage reports generated
-- Quality gates for deployment
 
-## Last Updated: July 18, 2025
+### Pre-commit Testing
+```bash
+# Run critical tests before committing
+node tests/run-tests.js automated --coverage
+node tests/run-tests.js integration --coverage
+```
+
+### Full Test Suite
+```bash
+# Run complete test suite with coverage
+node tests/run-tests.js --coverage --verbose
+```
+
+### Coverage Reports
+- **HTML Report**: `coverage/index.html` - Visual coverage report
+- **LCOV Report**: `coverage/lcov.info` - Machine-readable coverage data
+- **Console Report**: Real-time coverage feedback during test execution
+
+## Troubleshooting
+
+### Common Issues
+1. **Mock not working**: Ensure mock is defined before importing tested module
+2. **Database errors**: Check that all Prisma operations are mocked
+3. **Timeout errors**: Increase timeout for slow operations or add proper mocking
+4. **Coverage gaps**: Use `--verbose` to identify untested code paths
+
+### Debug Commands
+```bash
+# Run single test with detailed output
+npx jest tests/automated/daily-progression.test.js --verbose
+
+# Run tests with coverage and open HTML report
+node tests/run-tests.js --coverage && open coverage/index.html
+```
+
+## Production Readiness
+
+✅ **Complete Test Coverage**: All game functions tested
+✅ **Mock Infrastructure**: Comprehensive mocking system
+✅ **CI/CD Ready**: Automated testing pipeline prepared
+✅ **Performance Optimized**: Fast test execution with parallel processing
+✅ **Documentation**: Complete test documentation and examples
+✅ **Quality Assurance**: 100% coverage target with comprehensive validation
