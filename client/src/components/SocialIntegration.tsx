@@ -23,8 +23,6 @@ interface SocialPlatform {
 
 export default function SocialIntegration() {
   const { toast } = useToast();
-  const [shareText, setShareText] = useState("");
-  const [selectedPlatform, setSelectedPlatform] = useState<string>("");
 
   interface SocialStatsData {
     totalShares?: number;
@@ -96,123 +94,15 @@ export default function SocialIntegration() {
     }
   ];
 
-  // Social sharing functions
-  const shareToSocial = useMutation({
-    mutationFn: async (data: { platform: string; content: string; type: string }) => {
-      return await apiRequest("/api/social/share", "POST", data); // Corrected apiRequest
-    },
-    onSuccess: () => {
-      toast({
-        title: "Shared Successfully",
-        description: "Your content has been shared to social media!",
-      });
-      setShareText("");
-    },
-    onError: (error: any) => {
-      toast({
-        title: "Share Failed",
-        description: error.message || "Could not share to social media",
-        variant: "destructive",
-      });
-    },
-  });
-
   const handleSocialClick = (platform: SocialPlatform) => {
-    // Track social media engagement
-    shareToSocial.mutate({
-      platform: platform.name.toLowerCase(),
-      content: `Visiting ${platform.name} from Realm Rivalry!`,
-      type: "platform_visit"
-    });
-
     // Open social media link
     window.open(platform.url, '_blank', 'noopener,noreferrer');
-  };
-
-  const handleQuickShare = (type: string) => {
-    if (!selectedPlatform) {
-      toast({
-        title: "Select Platform",
-        description: "Please select a social platform first",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    let content = shareText;
-    if (!content) {
-      switch (type) {
-        case "highlight":
-          content = "🏆 Check out my latest match highlights in Realm Rivalry! Epic battles await! #RealmRivalry #Gaming";
-          break;
-        case "screenshot":
-          content = "📸 Amazing moments from my team in Realm Rivalry! Join the fantasy sports revolution! #RealmRivalry #TeamManagement";
-          break;
-        case "achievement":
-          content = "🎯 Just achieved something incredible in Realm Rivalry! Come join the competition and build your ultimate team! #RealmRivalry #Achievement";
-          break;
-        case "tournament":
-          content = "🏆 Tournament victory in Realm Rivalry! The strategic depth of this game is incredible! #RealmRivalry #Tournament #Victory";
-          break;
-      }
-    }
-
-    shareToSocial.mutate({
-      platform: selectedPlatform,
-      content: content,
-      type: type
-    });
-  };
-
-  const generateShareUrl = (platform: string, text: string) => {
-    const encodedText = encodeURIComponent(text);
-    const gameUrl = encodeURIComponent(window.location.origin);
-    
-    switch (platform.toLowerCase()) {
-      case "twitter":
-        return `https://twitter.com/intent/tweet?text=${encodedText}&url=${gameUrl}`;
-      case "facebook":
-        return `https://www.facebook.com/sharer/sharer.php?u=${gameUrl}&quote=${encodedText}`;
-      case "instagram":
-        // Instagram doesn't support direct sharing URLs, so we copy to clipboard
-        navigator.clipboard.writeText(`${text} ${window.location.origin}`);
-        toast({ title: "Copied to Clipboard", description: "Share text copied! Open Instagram to post." });
-        return null;
-      case "tiktok":
-        // TikTok doesn't support direct sharing URLs
-        navigator.clipboard.writeText(`${text} ${window.location.origin}`);
-        toast({ title: "Copied to Clipboard", description: "Share text copied! Open TikTok to post." });
-        return null;
-      default:
-        return null;
-    }
-  };
-
-  const handleDirectShare = (platform: string) => {
-    const text = shareText || "Just had an amazing time playing Realm Rivalry! Join me in this epic fantasy sports management game!";
-    const shareUrl = generateShareUrl(platform, text);
-    
-    if (shareUrl) {
-      window.open(shareUrl, '_blank', 'width=600,height=400');
-    }
-    
-    shareToSocial.mutate({
-      platform: platform.toLowerCase(),
-      content: text,
-      type: "direct_share"
-    });
   };
 
   return (
     <div className="max-w-6xl mx-auto space-y-6">
 
-      <Tabs defaultValue="platforms" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-2 bg-gray-800">
-          <TabsTrigger value="platforms">Social Platforms</TabsTrigger>
-          <TabsTrigger value="share">Share Content</TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="platforms" className="space-y-6">
+      <div className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {socialPlatforms.map((platform) => {
               const IconComponent = platform.icon;
@@ -253,110 +143,7 @@ export default function SocialIntegration() {
           </div>
 
 
-        </TabsContent>
-
-        <TabsContent value="share" className="space-y-6">
-          <Card className="bg-gray-800 border-gray-700">
-            <CardHeader>
-              <CardTitle className="font-orbitron text-xl flex items-center">
-                <Share2 className="w-5 h-5 mr-2" />
-                Create & Share Content
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              <div>
-                <label className="block text-sm font-medium mb-3">Select Platform</label>
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-                  {socialPlatforms.slice(0, 6).map((platform) => {
-                    const IconComponent = platform.icon;
-                    return (
-                      <Button
-                        key={platform.name}
-                        variant={selectedPlatform === platform.name.toLowerCase() ? "default" : "outline"}
-                        onClick={() => setSelectedPlatform(platform.name.toLowerCase())}
-                        className="h-12 flex items-center justify-center"
-                      >
-                        <IconComponent className="w-4 h-4 mr-2" />
-                        {platform.name}
-                      </Button>
-                    );
-                  })}
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium mb-2">Custom Message</label>
-                <Textarea
-                  placeholder="Share your Realm Rivalry experience with the world..."
-                  value={shareText}
-                  onChange={(e) => setShareText(e.target.value)}
-                  className="bg-gray-700 border-gray-600 min-h-[100px]"
-                />
-                <p className="text-xs text-gray-400 mt-1">
-                  {shareText.length}/280 characters
-                </p>
-              </div>
-
-              {selectedPlatform && (
-                <div>
-                  <label className="block text-sm font-medium mb-3">Direct Share</label>
-                  <Button 
-                    onClick={() => handleDirectShare(selectedPlatform)}
-                    disabled={shareToSocial.isPending}
-                    className="w-full"
-                  >
-                    <Share2 className="w-4 h-4 mr-2" />
-                    Share to {selectedPlatform.charAt(0).toUpperCase() + selectedPlatform.slice(1)}
-                  </Button>
-                </div>
-              )}
-
-              <div>
-                <label className="block text-sm font-medium mb-3">Quick Share Templates</label>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <Button 
-                    onClick={() => handleQuickShare("highlight")}
-                    disabled={shareToSocial.isPending}
-                    className="h-16 flex flex-col items-center justify-center"
-                    variant="outline"
-                  >
-                    <Video className="w-6 h-6 mb-1" />
-                    <span className="text-sm">Match Highlights</span>
-                  </Button>
-                  <Button 
-                    onClick={() => handleQuickShare("screenshot")}
-                    disabled={shareToSocial.isPending}
-                    className="h-16 flex flex-col items-center justify-center"
-                    variant="outline"
-                  >
-                    <Camera className="w-6 h-6 mb-1" />
-                    <span className="text-sm">Team Screenshot</span>
-                  </Button>
-                  <Button 
-                    onClick={() => handleQuickShare("achievement")}
-                    disabled={shareToSocial.isPending}
-                    className="h-16 flex flex-col items-center justify-center"
-                    variant="outline"
-                  >
-                    <Trophy className="w-6 h-6 mb-1" />
-                    <span className="text-sm">Achievement</span>
-                  </Button>
-                  <Button 
-                    onClick={() => handleQuickShare("tournament")}
-                    disabled={shareToSocial.isPending}
-                    className="h-16 flex flex-col items-center justify-center"
-                    variant="outline"
-                  >
-                    <Star className="w-6 h-6 mb-1" />
-                    <span className="text-sm">Tournament Win</span>
-                  </Button>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="community" className="space-y-6">
+        <div className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <Card className="bg-gray-800 border-gray-700">
               <CardHeader>
