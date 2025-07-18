@@ -9,7 +9,7 @@ import StaffManagement from "@/components/StaffManagement";
 import TeamFinances from "@/components/TeamFinances";
 import { TaxiSquadManager } from "@/components/TaxiSquadManager";
 import { InjuryStaminaManager } from "@/components/InjuryStaminaManager";
-import CamaraderieManagement from "@/components/CamaraderieManagement";
+import UnifiedTeamChemistry from "@/components/UnifiedTeamChemistry";
 import Inventory from "@/pages/Inventory";
 import AdvancedTacticalEffectsManager from "@/components/AdvancedTacticalEffectsManager";
 import UnifiedInventoryHub from "@/components/UnifiedInventoryHub";
@@ -348,7 +348,7 @@ export default function TeamPage() {
               </TabsContent>
 
               <TabsContent value="camaraderie">
-                <CamaraderieManagement teamId={team?.id || ''} />
+                <UnifiedTeamChemistry teamId={team?.id || ''} />
               </TabsContent>
             </Tabs>
           </TabsContent>

@@ -470,13 +470,13 @@ export class CamaraderieService {
       return {
         teamId,
         teamName: team.name,
-        averageCamaraderie: Math.round(averageCamaraderie),
+        teamCamaraderie: Math.round(averageCamaraderie),
         playerCount,
-        highCamaraderieCount,
-        lowCamaraderieCount,
+        highMoraleCount: highCamaraderieCount,
+        lowMoraleCount: lowCamaraderieCount,
         effects,
-        topPlayers,
-        concernPlayers
+        topPerformers: topPlayers,
+        concernedPlayers: concernPlayers
       };
       
     } catch (error) {

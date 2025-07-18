@@ -466,12 +466,12 @@ export default function Dashboard() {
                         <p className="text-gray-400 text-sm">Team Camaraderie</p>
                         <HelpIcon content="Team chemistry (0-100). High camaraderie provides in-game bonuses, injury resistance, and better contract negotiations. Click to view team chemistry details." />
                       </div>
-                      <p className="text-2xl font-bold text-teal-400">{camaraderieSummary?.averageCamaraderie ?? 'N/A'}</p>
+                      <p className="text-2xl font-bold text-teal-400">{camaraderieSummary?.teamCamaraderie ?? 'N/A'}</p>
                       <p className="text-sm text-teal-300 font-medium">
-                        {getTeamCamaraderieTier(camaraderieSummary?.averageCamaraderie)}
+                        {getTeamCamaraderieTier(camaraderieSummary?.teamCamaraderie)}
                       </p>
                       <p className="text-xs text-gray-400">
-                        {getTeamCamaraderieDescriptionOnly(camaraderieSummary?.averageCamaraderie)}
+                        {getTeamCamaraderieDescriptionOnly(camaraderieSummary?.teamCamaraderie)}
                       </p>
                     </div>
                     <div className="bg-teal-400 bg-opacity-20 p-3 rounded-lg">
