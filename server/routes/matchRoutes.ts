@@ -411,6 +411,8 @@ router.get('/:matchId/enhanced-data-old', isAuthenticated, async (req: Request, 
       // Use actual MVP data from simulation log if available, otherwise null
       const mvpData = simulationLogData?.mvpData || null;
 
+      console.log('Final MVP data being sent:', mvpData);
+
       const enhancedData = {
         atmosphereEffects: {
           homeFieldAdvantage: 5,

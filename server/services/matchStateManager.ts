@@ -751,6 +751,14 @@ class MatchStateManager {
       case 'interception':
         if (Math.random() < 0.03) { // 3% chance of interception
           playerStats.interceptionsCaught += 1;
+          
+          // Increment turnover count for the opposing team (who lost the ball)
+          const opposingTeamId = isHomeTeam ? state.awayTeamId : state.homeTeamId;
+          const opposingTeamStats = state.teamStats.get(opposingTeamId);
+          if (opposingTeamStats) {
+            opposingTeamStats.turnovers += 1;
+          }
+          
           event = {
             time: state.gameTime,
             type: 'interception',
@@ -1103,6 +1111,8 @@ class MatchStateManager {
       }
 
       // Award credits to both teams via their finance records
+      console.log(`🔍 Looking for TeamFinance records: homeTeamId=${homeTeamId}, awayTeamId=${awayTeamId}`);
+      
       const homeTeamFinance = await prisma.teamFinance.findUnique({
         where: { teamId: parseInt(homeTeamId) }
       });
@@ -1110,6 +1120,8 @@ class MatchStateManager {
       const awayTeamFinance = await prisma.teamFinance.findUnique({
         where: { teamId: parseInt(awayTeamId) }
       });
+      
+      console.log(`💰 Found TeamFinance records: home=${!!homeTeamFinance}, away=${!!awayTeamFinance}`);
 
       if (homeTeamFinance) {
         await prisma.teamFinance.update({
