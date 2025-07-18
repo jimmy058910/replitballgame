@@ -392,11 +392,26 @@ router.put('/:teamId/formation', isAuthenticated, async (req: any, res: Response
 
     const { starters, substitutes, formationData } = req.body;
 
+    // Debug logging
+    console.log('🔍 Backend Formation Debug:', {
+      requestBody: req.body,
+      starters: starters,
+      substitutes: substitutes,
+      startersType: typeof starters,
+      substitutesType: typeof substitutes,
+      startersIsArray: Array.isArray(starters),
+      substitutesIsArray: Array.isArray(substitutes),
+      startersLength: starters?.length,
+      substitutesLength: substitutes?.length
+    });
+
     // Validate that starters and substitutes are arrays
     if (!Array.isArray(starters)) {
+        console.error('❌ Starters validation failed:', { starters, type: typeof starters });
         return res.status(400).json({ message: "Starters must be an array" });
     }
     if (!Array.isArray(substitutes)) {
+        console.error('❌ Substitutes validation failed:', { substitutes, type: typeof substitutes });
         return res.status(400).json({ message: "Substitutes must be an array" });
     }
 

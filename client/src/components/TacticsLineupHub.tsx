@@ -248,19 +248,33 @@ export default function TacticsLineupHub({ teamId }: TacticsLineupHubProps) {
       const activeStarters = starterSlots.filter(slot => slot.player).map(slot => slot.player!);
       const allSubstitutes = [...substitutes.blockers, ...substitutes.runners, ...substitutes.passers];
       
+      // Debug logging
+      console.log('🔍 Formation Debug:', {
+        activeStarters: activeStarters,
+        allSubstitutes: allSubstitutes,
+        startersIsArray: Array.isArray(activeStarters),
+        substitutesIsArray: Array.isArray(allSubstitutes),
+        startersLength: activeStarters.length,
+        substitutesLength: allSubstitutes.length
+      });
+      
+      const formationData = {
+        starters: activeStarters,
+        substitutes: allSubstitutes,
+        substitutionOrder: {
+          blockers: substitutes.blockers,
+          runners: substitutes.runners,
+          passers: substitutes.passers
+        },
+        formationData: { formation: "2-2-1-1-wildcard" }
+      };
+      
+      console.log('🔍 Sending formation data:', formationData);
+      
       const response = await fetch(`/api/teams/${teamId}/formation`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          starters: activeStarters,
-          substitutes: allSubstitutes,
-          substitutionOrder: {
-            blockers: substitutes.blockers,
-            runners: substitutes.runners,
-            passers: substitutes.passers
-          },
-          formationData: { formation: "2-2-1-1-wildcard" }
-        }),
+        body: JSON.stringify(formationData),
       });
       if (!response.ok) throw new Error("Failed to save formation");
       return response.json();
