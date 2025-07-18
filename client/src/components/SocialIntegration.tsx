@@ -101,8 +101,14 @@ export default function SocialIntegration() {
 
   return (
     <div className="max-w-6xl mx-auto space-y-6">
+      <Tabs defaultValue="platforms" className="w-full">
+        <TabsList className="grid w-full grid-cols-3">
+          <TabsTrigger value="platforms">Social Platforms</TabsTrigger>
+          <TabsTrigger value="community">Community</TabsTrigger>
+          <TabsTrigger value="analytics">Analytics</TabsTrigger>
+        </TabsList>
 
-      <div className="space-y-6">
+        <TabsContent value="platforms" className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {socialPlatforms.map((platform) => {
               const IconComponent = platform.icon;
@@ -141,9 +147,10 @@ export default function SocialIntegration() {
               );
             })}
           </div>
+        </TabsContent>
 
-
-        <div className="space-y-6">
+        <TabsContent value="community" className="space-y-6">
+          <div className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <Card className="bg-gray-800 border-gray-700">
               <CardHeader>
