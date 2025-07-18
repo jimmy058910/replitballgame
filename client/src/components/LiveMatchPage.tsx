@@ -3,7 +3,7 @@ import { useParams } from 'wouter';
 import { useAuth } from '@/hooks/useAuth';
 import { LiveMatchViewer } from '@/components/LiveMatchViewer';
 
-export function LiveMatchPage() {
+export default function LiveMatchPage() {
   const { matchId } = useParams<{ matchId: string }>();
   const { user } = useAuth();
 

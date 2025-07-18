@@ -300,7 +300,7 @@ export function GameSimulationUI({ matchId, userId, team1, team2, initialLiveSta
     const getPlayerStats = (playerName: string) => {
       if (!liveState?.gameEvents) return null;
       
-      const events = liveState.gameEvents.filter(e => e.description?.includes(playerName));
+      const events = liveState?.gameEvents?.filter(e => e.description?.includes(playerName)) || [];
       let passes = 0, runs = 0, tackles = 0, scores = 0;
       
       events.forEach(event => {
@@ -473,12 +473,15 @@ export function GameSimulationUI({ matchId, userId, team1, team2, initialLiveSta
     );
   }
 
-  const gamePhase = getGamePhase(liveState.gameTime, liveState.maxTime, liveState.currentHalf);
+  const gamePhase = getGamePhase(liveState?.gameTime || 0, liveState?.maxTime || 1800, liveState?.currentHalf || 1);
   const attendanceData = getAttendanceData();
   const keyPerformers = getKeyPerformers();
-  const halfProgress = liveState.currentHalf === 1
-    ? (liveState.gameTime / (liveState.maxTime / 2)) * 100
-    : ((liveState.gameTime - (liveState.maxTime / 2)) / (liveState.maxTime / 2)) * 100;
+  const gameTime = Number(liveState?.gameTime || 0);
+  const maxTime = Number(liveState?.maxTime || 1800);
+  const currentHalf = Number(liveState?.currentHalf || 1);
+  const halfProgress = currentHalf === 1
+    ? (gameTime / (maxTime / 2)) * 100
+    : ((gameTime - (maxTime / 2)) / (maxTime / 2)) * 100;
 
   return (
     <div className="w-full max-w-6xl mx-auto space-y-4">
@@ -495,27 +498,27 @@ export function GameSimulationUI({ matchId, userId, team1, team2, initialLiveSta
             <div className="text-center space-y-2">
               <div className="flex items-center justify-between text-sm">
                 <div className="flex items-center gap-2">
-                  {liveState.possessingTeamId === (team1?.id ? String(team1?.id) : '') && (
+                  {liveState?.possessingTeamId === (team1?.id ? String(team1?.id) : '') && (
                     <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
                   )}
-                  <span className={liveState.possessingTeamId === (team1?.id ? String(team1?.id) : '') ? "font-bold" : ""}>
+                  <span className={liveState?.possessingTeamId === (team1?.id ? String(team1?.id) : '') ? "font-bold" : ""}>
                     {team1?.name ? String(team1?.name) : "Home Team"}
                   </span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <span className={liveState.possessingTeamId === (team2?.id ? String(team2?.id) : '') ? "font-bold" : ""}>
+                  <span className={liveState?.possessingTeamId === (team2?.id ? String(team2?.id) : '') ? "font-bold" : ""}>
                     {team2?.name ? String(team2?.name) : "Away Team"}
                   </span>
-                  {liveState.possessingTeamId === (team2?.id ? String(team2?.id) : '') && (
+                  {liveState?.possessingTeamId === (team2?.id ? String(team2?.id) : '') && (
                     <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
                   )}
                 </div>
               </div>
               <div className="text-3xl font-bold">
-                {liveState.homeScore} - {liveState.awayScore}
+                {liveState?.homeScore || 0} - {liveState?.awayScore || 0}
               </div>
               <div className="text-xs text-muted-foreground">
-                {liveState.possessingTeamId ? "Possession indicated by green dot" : "Neutral possession"}
+                {liveState?.possessingTeamId ? "Possession indicated by green dot" : "Neutral possession"}
               </div>
             </div>
           </CardContent>
@@ -540,10 +543,10 @@ export function GameSimulationUI({ matchId, userId, team1, team2, initialLiveSta
           <CardContent className="space-y-3">
             <div className="text-center">
               <div className="text-2xl font-mono font-bold">
-                {formatGameTime(liveState.gameTime)}
+                {formatGameTime(liveState?.gameTime || 0)}
               </div>
               <div className="text-sm text-muted-foreground">
-                Half {liveState.currentHalf}
+                Half {liveState?.currentHalf || 1}
               </div>
             </div>
             <div className="space-y-2">
@@ -712,8 +715,8 @@ export function GameSimulationUI({ matchId, userId, team1, team2, initialLiveSta
         <CardContent>
           <ScrollArea className="h-96 w-full">
             <div ref={logRef} className="space-y-2">
-              {liveState.gameEvents && liveState.gameEvents.length > 0 ? (
-                liveState.gameEvents.slice(-15).reverse().map((event, index) => (
+              {liveState?.gameEvents && liveState?.gameEvents.length > 0 ? (
+                liveState?.gameEvents.slice(-15).reverse().map((event, index) => (
                   <div key={index} className="flex items-start space-x-3 p-2 rounded-lg bg-muted/50">
                     <div className="text-xs text-muted-foreground min-w-[60px]">
                       {formatGameTime(event.time)}

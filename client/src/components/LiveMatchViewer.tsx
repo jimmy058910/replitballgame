@@ -5,6 +5,9 @@ import { Card, CardContent } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
 import { LiveMatchState } from '@/lib/websocket';
 
+// Import PostGameSummary at the top level to avoid lazy loading issues
+const PostGameSummary = React.lazy(() => import('./PostGameSummary').then(module => ({ default: module.PostGameSummary })));
+
 interface LiveMatchViewerProps {
   matchId: string;
   userId: string;
@@ -125,9 +128,6 @@ export function LiveMatchViewer({ matchId, userId, onMatchComplete }: LiveMatchV
 
   // Handle completed matches
   if (initialMatchData && initialMatchData.status === 'COMPLETED') {
-    // Import PostGameSummary dynamically
-    const PostGameSummary = React.lazy(() => import('./PostGameSummary').then(module => ({ default: module.PostGameSummary })));
-    
     return (
       <React.Suspense fallback={
         <Card className="w-full max-w-6xl mx-auto">
@@ -248,12 +248,12 @@ export function LiveMatchViewer({ matchId, userId, onMatchComplete }: LiveMatchV
   // Extract team data - handle both nested objects and flat structure
   console.log('🔍 Extracting team data from match:', initialMatchData);
   const team1 = initialMatchData.homeTeam || {
-    id: initialMatchData.homeTeamId ? String(initialMatchData.homeTeamId) : 'unknown',
-    name: initialMatchData.homeTeamName ? String(initialMatchData.homeTeamName) : 'Home Team'
+    id: initialMatchData?.homeTeamId ? String(initialMatchData?.homeTeamId) : 'unknown',
+    name: initialMatchData?.homeTeamName ? String(initialMatchData?.homeTeamName) : 'Home Team'
   };
   const team2 = initialMatchData.awayTeam || {
-    id: initialMatchData.awayTeamId ? String(initialMatchData.awayTeamId) : 'unknown',
-    name: initialMatchData.awayTeamName ? String(initialMatchData.awayTeamName) : 'Away Team'
+    id: initialMatchData?.awayTeamId ? String(initialMatchData?.awayTeamId) : 'unknown',
+    name: initialMatchData?.awayTeamName ? String(initialMatchData?.awayTeamName) : 'Away Team'
   };
   console.log('🔍 Team data extracted:', { team1, team2 });
 
