@@ -266,7 +266,17 @@ class MatchStateManager {
     console.log(`🎯 Using formation starters:`, formation.starters);
     console.log(`🔍 Available players:`, teamPlayers.map(p => `${p.id}: ${p.firstName} ${p.lastName} (${p.role})`));
     
-    const starterIds = formation.starters.map(s => parseInt(s.id.toString())); // Ensure IDs are numbers
+    // Handle both formats: array of objects with id property or array of numbers
+    const starterIds = formation.starters.map(s => {
+      if (typeof s === 'number') {
+        return s; // Already a number
+      } else if (typeof s === 'object' && s.id) {
+        return parseInt(s.id.toString()); // Object with id property
+      } else {
+        console.warn(`⚠️ Unknown starter format:`, s);
+        return parseInt(s.toString()); // Try to convert whatever it is
+      }
+    });
     console.log(`🔍 Formation starter IDs:`, starterIds);
     
     const selectedStarters = teamPlayers.filter(player => {
