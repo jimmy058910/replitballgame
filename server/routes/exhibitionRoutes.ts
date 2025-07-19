@@ -251,10 +251,9 @@ router.post('/instant', isAuthenticated, async (req: any, res: Response, next: N
       return res.status(404).json({ message: "No suitable opponents found. Try again later or use manual opponent selection." });
     }
 
-    // Randomize home/away team assignments
-    const isHome = Math.random() < 0.5;
-    const homeTeamId = isHome ? userTeam.id : bestOpponent.id;
-    const awayTeamId = isHome ? bestOpponent.id : userTeam.id;
+    // Exhibition games: user team is always away (no home field advantage)
+    const homeTeamId = bestOpponent.id;
+    const awayTeamId = userTeam.id;
 
     // Create and start the match
     const match = await matchStorage.createMatch({
@@ -275,7 +274,7 @@ router.post('/instant', isAuthenticated, async (req: any, res: Response, next: N
       message: `Exhibition match against ${bestOpponent.name} started!`,
       opponentType: isUserTeam ? 'user' : 'ai',
       opponentName: bestOpponent.name,
-      isHome,
+      isHome: false, // Always away for exhibition games
       liveState: liveMatchState
     });
   } catch (error) {
@@ -493,10 +492,9 @@ router.post('/instant-match', isAuthenticated, async (req: any, res: Response, n
       return res.status(404).json({ message: "No suitable opponents found. Try again later or use manual opponent selection." });
     }
 
-    // Randomize home/away team assignments
-    const isHome = Math.random() < 0.5;
-    const homeTeamId = isHome ? userTeam.id : bestOpponent.id;
-    const awayTeamId = isHome ? bestOpponent.id : userTeam.id;
+    // Exhibition games: user team is always away (no home field advantage)
+    const homeTeamId = bestOpponent.id;
+    const awayTeamId = userTeam.id;
 
     // Create and start the match
     const match = await matchStorage.createMatch({
@@ -514,7 +512,7 @@ router.post('/instant-match', isAuthenticated, async (req: any, res: Response, n
       matchId: match.id,
       message: `Exhibition match against ${bestOpponent.name} started!`,
       opponentName: bestOpponent.name,
-      isHome,
+      isHome: false, // Always away for exhibition games
       liveState: liveMatchState
     });
   } catch (error) {
@@ -540,10 +538,9 @@ router.post('/challenge-opponent', isAuthenticated, async (req: any, res: Respon
     // if ((teamFinances?.exhibitionCredits || 0) <= 0) { /* ... */ }
     // await teamFinancesStorage.updateTeamFinances(userTeam.id, { exhibitionCredits: (teamFinances?.exhibitionCredits || 0) - 1 });
 
-    // Randomize home/away team assignments for challenge opponent too
-    const isHome = Math.random() < 0.5;
-    const homeTeamId = isHome ? userTeam.id : opponentTeam.id;
-    const awayTeamId = isHome ? opponentTeam.id : userTeam.id;
+    // Exhibition games: user team is always away (no home field advantage)
+    const homeTeamId = opponentTeam.id;
+    const awayTeamId = userTeam.id;
 
     const match = await matchStorage.createMatch({
       homeTeamId,
@@ -560,7 +557,7 @@ router.post('/challenge-opponent', isAuthenticated, async (req: any, res: Respon
       matchId: match.id,
       message: `Exhibition match against ${opponentTeam.name} started! Game is now live.`,
       opponentName: opponentTeam.name,
-      isHome,
+      isHome: false, // Always away for exhibition games
       liveState: liveMatchState
     });
   } catch (error) {

@@ -1071,6 +1071,9 @@ class MatchStateManager {
         if (matchDetails?.matchType === 'LEAGUE') {
           console.log(`🔥 UPDATING TEAM RECORDS: Match ${matchId} - Home: ${state.homeTeamId} (${state.homeScore}) vs Away: ${state.awayTeamId} (${state.awayScore})`);
           await this.updateTeamRecords(parseInt(state.homeTeamId), parseInt(state.awayTeamId), state.homeScore, state.awayScore);
+          
+          // Process stadium revenue for home team in league matches
+          await this.processStadiumRevenue(parseInt(state.homeTeamId), matchId, state);
         } else if (isExhibitionMatch) {
           // Process exhibition rewards
           console.log(`🎉 PROCESSING EXHIBITION REWARDS: Match ${matchId} - Home: ${state.homeTeamId} (${state.homeScore}) vs Away: ${state.awayTeamId} (${state.awayScore})`);
@@ -1162,6 +1165,90 @@ class MatchStateManager {
 
     this.liveMatches.delete(matchId);
     console.log(`Match ${matchId} completed with score ${state.homeScore}-${state.awayScore}${isExhibitionMatch ? ' (Exhibition - Risk-Free)' : ''}`);
+  }
+
+  /**
+   * Process stadium revenue for home team in league matches
+   */
+  private async processStadiumRevenue(homeTeamId: number, matchId: string, state: LiveMatchState): Promise<void> {
+    try {
+      // Get home team's stadium and finance data
+      const homeTeam = await prisma.team.findUnique({
+        where: { id: homeTeamId },
+        include: {
+          Stadium: true,
+          TeamFinance: true
+        }
+      });
+
+      if (!homeTeam || !homeTeam.Stadium || !homeTeam.TeamFinance) {
+        console.log(`⚠️  Stadium revenue: Missing data for team ${homeTeamId}`);
+        return;
+      }
+
+      // Import stadium system functions
+      const { calculateGameRevenue, calculateAttendance } = await import('../../shared/stadiumSystem');
+
+      // Calculate attendance based on stadium capacity and fan loyalty
+      const stadium = homeTeam.Stadium;
+      const fanLoyalty = stadium.fanLoyalty || 50;
+      const opponentQuality = 70; // Default opponent quality
+      
+      const { attendance } = calculateAttendance(
+        stadium,
+        fanLoyalty,
+        opponentQuality,
+        false, // not important game
+        'good' // weather
+      );
+
+      // Calculate comprehensive revenue
+      const revenue = calculateGameRevenue(
+        stadium,
+        attendance,
+        fanLoyalty,
+        true // is home game
+      );
+
+      console.log(`🏟️  Stadium Revenue - ${homeTeam.name}: ${attendance} fans, ${revenue.totalRevenue}₡ total revenue, ${revenue.netRevenue}₡ net (after ${revenue.maintenanceCost}₡ maintenance)`);
+
+      // Apply revenue to team finances
+      const currentCredits = parseInt(homeTeam.TeamFinance.credits) || 0;
+      const newCredits = currentCredits + revenue.netRevenue;
+
+      await prisma.teamFinance.update({
+        where: { id: homeTeam.TeamFinance.id },
+        data: {
+          credits: newCredits.toString()
+        }
+      });
+
+      // Record revenue transaction in payment history
+      const { PaymentHistoryService } = await import('./paymentHistoryService');
+      await PaymentHistoryService.recordRevenue(
+        homeTeam.userProfileId,
+        revenue.totalRevenue,
+        'CREDITS',
+        'Stadium Home Game Revenue',
+        `Home league game revenue: ${attendance} fans vs opponent (Match ${matchId})`
+      );
+
+      // If there's a maintenance cost, record it as expense
+      if (revenue.maintenanceCost > 0) {
+        await PaymentHistoryService.recordExpense(
+          homeTeam.userProfileId,
+          revenue.maintenanceCost,
+          'CREDITS',
+          'Stadium Game Day Maintenance',
+          `Game day maintenance cost for match ${matchId}`
+        );
+      }
+
+      console.log(`💰 Stadium Revenue Applied: ${homeTeam.name} earned ${revenue.netRevenue}₡ net from home game (${currentCredits}₡ → ${newCredits}₡)`);
+
+    } catch (error) {
+      console.error(`❌ Error processing stadium revenue for team ${homeTeamId}:`, error);
+    }
   }
 
   async stopMatch(matchId: string): Promise<void> {
