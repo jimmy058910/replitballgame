@@ -148,13 +148,14 @@ export default function LeagueSchedule() {
             {match.homeScore || 0} - {match.awayScore || 0}
           </div>
           <div 
-            className="text-xs final-text-override" 
+            className="text-xs px-2 py-1 rounded-sm text-white font-bold"
             style={{ 
-              color: '#000000 !important', 
-              fontWeight: '900 !important',
-              opacity: '1 !important',
-              textShadow: 'none !important',
-              backgroundColor: 'transparent !important'
+              backgroundColor: '#059669',
+              color: '#ffffff !important',
+              fontWeight: 'bold',
+              fontSize: '11px',
+              textAlign: 'center',
+              display: 'inline-block'
             }}
           >
             FINAL
