@@ -148,7 +148,15 @@ Built as a React + Express web application with PostgreSQL database, using moder
 
 ## Recent Changes
 
-### July 19, 2025 - ✅ CRITICAL RATE LIMITING ISSUE FIXED - API POLLING OPTIMIZED ✅ PRODUCTION READY
+### July 19, 2025 - ✅ LEAGUE SCHEDULE "FINAL" STATUS VISIBILITY COMPLETELY FIXED - UI CONTRAST ISSUE RESOLVED ✅
+
+#### ✅ CRITICAL UI CONTRAST BUG RESOLVED - "FINAL" STATUS NOW CLEARLY VISIBLE
+- ✓ **Root Cause Fixed**: "FINAL" text in League Schedule had extremely poor contrast - only visible when highlighted with mouse
+- ✓ **Green Badge Implementation**: Converted invisible "FINAL" text to prominent green badge with white text and rounded corners
+- ✓ **Duplicate Status Fixed**: Changed "COMPLETED" badge to "FINAL" to maintain consistent terminology across League Schedule
+- ✓ **Production Ready**: All completed matches now display clear, visible "FINAL" status indicators in League Schedule section
+
+### July 19, 2025 - ✅ CRITICAL RATE LIMITING ISSUE FIXED - API POLLING OPTIMIZED ✅ PRODUCTION READY (Previous)
 
 #### ✅ RATE LIMITING ISSUE COMPLETELY RESOLVED - LEAGUE SCHEDULE OPERATIONAL
 - ✓ **Root Cause Fixed**: Multiple components were polling APIs every 30 seconds, causing 429 "Too many requests" errors

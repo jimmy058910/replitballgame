@@ -132,7 +132,7 @@ export default function LeagueSchedule() {
       case 'SCHEDULED':
         return <Badge variant="secondary">SCHEDULED</Badge>;
       case 'COMPLETED':
-        return <Badge variant="outline">COMPLETED</Badge>;
+        return <Badge variant="outline">FINAL</Badge>;
       case 'IN_PROGRESS':
         return <Badge variant="destructive" className="animate-pulse">LIVE</Badge>;
       default:
