@@ -67,16 +67,27 @@
   --radius: 0.5rem;
 }
 
-/* Force high contrast for FINAL text */
+/* Force high contrast for FINAL text - Maximum specificity */
+div.final-text-override,
 .final-text-override {
   color: #000000 !important;
-  font-weight: bold !important;
+  font-weight: 900 !important;
   opacity: 1 !important;
   text-shadow: none !important;
+  background-color: transparent !important;
+  font-size: inherit !important;
 }
 
+.dark div.final-text-override,
 .dark .final-text-override {
   color: #ffffff !important;
+}
+
+/* Extra specific selector for league schedule FINAL text */
+[class*="text-sm"] + .final-text-override,
+div[class*="min-w"] .final-text-override {
+  color: #000000 !important;
+  font-weight: 900 !important;
 }
 
 @layer base {
