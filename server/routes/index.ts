@@ -12,6 +12,7 @@ import auctionRoutes from "./auctionRoutes";
 import storeRoutes from "./storeRoutes";
 import stadiumRoutes from "./stadiumRoutes";
 import tournamentRoutes from "./tournamentRoutes";
+import tournamentRewardRoutes from "./tournamentRewardRoutes";
 import newTournamentRoutes from "./newTournamentRoutes";
 import exhibitionRoutes from "./exhibitionRoutes";
 import notificationRoutes from "./notificationRoutes";
@@ -71,6 +72,7 @@ export function registerAllRoutes(app: Express): void {
   app.use("/api/store", storeRoutes);
   app.use("/api/stadium", stadiumRoutes); // Covers /api/stadium and /api/stadium/revenue
   app.use("/api/tournaments", tournamentRoutes);
+  app.use("/api/tournament-rewards", tournamentRewardRoutes);
   app.use("/api/daily-tournaments", dailyTournamentRoutes);
   app.use("/api/new-tournaments", newTournamentRoutes);
   app.use("/api/exhibitions", exhibitionRoutes);
