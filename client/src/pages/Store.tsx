@@ -37,27 +37,40 @@ interface StoreData {
 }
 
 // Utility functions for item visuals
-const getItemIcon = (category: string, itemId: string) => {
-  if (itemId.includes('helmet')) return Shield;
-  if (itemId.includes('gloves')) return Shirt;
-  if (itemId.includes('boots')) return Footprints;
-  if (itemId.includes('armor')) return Shield;
-  if (itemId.includes('stamina')) return Heart;
-  if (itemId.includes('training')) return Dumbbell;
-  if (itemId.includes('scouting')) return Eye;
-  if (itemId.includes('contract')) return Star;
-  if (itemId.includes('performance')) return Zap;
-  if (itemId.includes('exhibition')) return Play;
-  if (itemId.includes('tournament')) return Crown;
+const getItemIcon = (category: string, itemId: string, itemName?: string) => {
+  const name = (itemName || itemId || '').toLowerCase();
+  
+  // Medical/Recovery items
+  if (name.includes('medical') || name.includes('treatment') || name.includes('heal')) return Heart;
+  if (name.includes('energy') || name.includes('stamina') || name.includes('recovery')) return Zap;
+  
+  // Equipment items
+  if (name.includes('helmet') || name.includes('helm')) return Shield;
+  if (name.includes('gloves') || name.includes('gauntlet')) return Shirt;
+  if (name.includes('boots') || name.includes('shoes')) return Footprints;
+  if (name.includes('armor') || name.includes('plate') || name.includes('mail')) return Shield;
+  
+  // Training/Performance items
+  if (name.includes('training') || name.includes('draft')) return Dumbbell;
+  if (name.includes('scouting') || name.includes('scout')) return Eye;
+  if (name.includes('performance') || name.includes('enhancer')) return Sparkles;
+  if (name.includes('power') || name.includes('strength')) return Zap;
+  if (name.includes('leadership')) return Crown;
+  
+  // Tournament/Game items
+  if (name.includes('exhibition') || name.includes('match')) return Play;
+  if (name.includes('tournament') || name.includes('cup')) return Crown;
   
   // Fallback by category
   switch (category) {
     case 'equipment': return Shield;
     case 'consumable': return Coffee;
+    case 'consumable_recovery': return Heart;
     case 'currency': return Coins;
     case 'contract': return Star;
     case 'intel': return Eye;
     case 'tournament': return Crown;
+    case 'game_entry': return Crown;
     default: return Gift;
   }
 };
@@ -408,7 +421,7 @@ export default function Store() {
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {storeData?.premiumItems?.slice(0, 4).map((item: any) => {
-                const ItemIcon = getItemIcon(item.category, item.id);
+                const ItemIcon = getItemIcon(item.category, item.id, item.name);
                 return (
                   <Card key={item.id} className={`hover:shadow-lg transition-shadow ${getRarityBorder(item.rarity)} border-2`}>
                     <CardHeader>
@@ -473,7 +486,7 @@ export default function Store() {
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               {storeData?.items?.slice(0, 6).map((item: any) => {
-                const ItemIcon = getItemIcon(item.category, item.id);
+                const ItemIcon = getItemIcon(item.category, item.id, item.name);
                 return (
                   <Card key={item.id} className={`hover:shadow-lg transition-shadow ${getRarityBorder(item.rarity)} border-2`}>
                     <CardHeader>
@@ -516,6 +529,11 @@ export default function Store() {
                           Buy Now
                         </Button>
                       </div>
+                      {item.dailyLimit && (
+                        <div className="text-sm text-muted-foreground">
+                          {item.purchasedToday || 0}/{item.dailyLimit} Daily Limit purchased
+                        </div>
+                      )}
                     </CardContent>
                   </Card>
                 );
@@ -536,7 +554,7 @@ export default function Store() {
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {storeData?.tournamentEntries?.filter((entry: any) => entry.category === 'tournament').map((entry: any) => {
-                const ItemIcon = getItemIcon(entry.category, entry.id);
+                const ItemIcon = getItemIcon(entry.category, entry.id, entry.name);
                 return (
                   <Card key={entry.id} className={`hover:shadow-lg transition-shadow ${getRarityBorder(entry.rarity)} border-2`}>
                     <CardHeader>
@@ -586,7 +604,7 @@ export default function Store() {
                         </div>
                       </div>
                       <div className="text-sm text-muted-foreground">
-                        Daily limit: {entry.dailyLimit} entry per day
+                        {entry.purchasedToday || 0}/{entry.dailyLimit} Daily Limit purchased
                       </div>
                     </CardContent>
                   </Card>
