@@ -111,13 +111,28 @@ router.post('/', isAuthenticated, asyncHandler(async (req: any, res: Response) =
     });
   } else {
     // Normal signup - find the next available sub-division that has room (less than 8 teams)
-    const possibleSubdivisions = ["main", "alpha", "beta", "gamma", "delta", "epsilon", "zeta", "eta"];
+    // If all subdivisions are full, create a new one dynamically
+    const possibleSubdivisions = ["main", "alpha", "beta", "gamma", "delta", "epsilon", "zeta", "eta", "theta", "iota", "kappa", "lambda"];
+    let foundAvailableSubdivision = false;
+    
     for (const subdivisionValue of possibleSubdivisions) {
       const teamsInSubdivision = await storage.teams.getTeamsByDivisionAndSubdivision(8, subdivisionValue);
       if (teamsInSubdivision.length < 8) {
         assignedSubdivision = subdivisionValue;
+        foundAvailableSubdivision = true;
         break;
       }
+    }
+    
+    // If all predefined subdivisions are full, create a new one dynamically
+    if (!foundAvailableSubdivision) {
+      const timestamp = Date.now().toString().slice(-6);
+      assignedSubdivision = `div_${timestamp}`;
+      
+      logInfo("Creating new dynamic subdivision - all predefined subdivisions full", {
+        newSubdivision: assignedSubdivision,
+        requestId: req.requestId
+      });
     }
   }
   
