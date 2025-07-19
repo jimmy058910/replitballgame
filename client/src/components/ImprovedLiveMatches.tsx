@@ -19,7 +19,7 @@ interface LiveMatch {
   };
   homeTeamName?: string;
   awayTeamName?: string;
-  matchType: 'LEAGUE' | 'EXHIBITION' | 'TOURNAMENT_DAILY' | 'TOURNAMENT_MID_SEASON';
+  matchType: 'LEAGUE' | 'EXHIBITION' | 'TOURNAMENT_DAILY' | 'TOURNAMENT_MIDSEASON';
   status: string;
   homeScore?: number;
   awayScore?: number;
@@ -52,7 +52,7 @@ const getMatchTypeInfo = (matchType: string, tournamentId?: string) => {
         color: 'bg-purple-900/20 border-purple-700 text-purple-300',
         icon: Users 
       };
-    case 'TOURNAMENT_MID_SEASON':
+    case 'TOURNAMENT_MIDSEASON':
       return { 
         label: 'Mid-Season Cup', 
         color: 'bg-yellow-900/20 border-yellow-700 text-yellow-300',
