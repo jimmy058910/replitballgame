@@ -1,4 +1,5 @@
 import { prisma } from "../db";
+console.log("🔍 DEBUG: prisma object:", typeof prisma, !!prisma);
 import type { Game, Player, Stadium, Team } from "../../generated/prisma";
 import { commentaryService } from "./commentaryService";
 import { injuryStaminaService } from "./injuryStaminaService";
@@ -1311,7 +1312,7 @@ class MatchStateManager {
    * Rewards structure: Win: 500₡, Tie: 200₡, Loss: 100₡
    * Also provides team camaraderie boost for winning teams
    */
-  private async awardExhibitionRewards(homeTeamId: string, awayTeamId: string, homeScore: number, awayScore: number): Promise<void> {
+  public async awardExhibitionRewards(homeTeamId: string, awayTeamId: string, homeScore: number, awayScore: number): Promise<void> {
     try {
       let homeCredits = 100; // Default for loss
       let awayCredits = 100; // Default for loss
@@ -1332,19 +1333,24 @@ class MatchStateManager {
 
       // Award credits to both teams via their finance records
       console.log(`🔍 Looking for TeamFinance records: homeTeamId=${homeTeamId}, awayTeamId=${awayTeamId}`);
+      console.log(`🔍 DEBUG: prisma type at award time:`, typeof prisma, !!prisma);
       
-      const homeTeamFinance = await prisma.teamFinance.findUnique({
+      // Import prisma directly to debug import issues
+      const { prisma: directPrisma } = await import("../db");
+      console.log(`🔍 DEBUG: directPrisma type:`, typeof directPrisma, !!directPrisma);
+      
+      const homeTeamFinance = await directPrisma.teamFinances.findUnique({
         where: { teamId: parseInt(homeTeamId) }
       });
       
-      const awayTeamFinance = await prisma.teamFinance.findUnique({
+      const awayTeamFinance = await directPrisma.teamFinances.findUnique({
         where: { teamId: parseInt(awayTeamId) }
       });
       
       console.log(`💰 Found TeamFinance records: home=${!!homeTeamFinance}, away=${!!awayTeamFinance}`);
 
       if (homeTeamFinance) {
-        await prisma.teamFinance.update({
+        await directPrisma.teamFinances.update({
           where: { teamId: parseInt(homeTeamId) },
           data: {
             credits: {
@@ -1354,13 +1360,13 @@ class MatchStateManager {
         });
 
         // Log exhibition reward transaction for home team
-        const homeTeam = await prisma.team.findUnique({
+        const homeTeam = await directPrisma.team.findUnique({
           where: { id: parseInt(homeTeamId) },
           include: { user: true }
         });
         if (homeTeam?.user) {
           await PaymentHistoryService.recordReward(
-            homeTeam.user.id,
+            String(homeTeam.user.id),
             homeTeamId,
             `Exhibition ${homeScore > awayScore ? 'Win' : homeScore === awayScore ? 'Tie' : 'Loss'}`,
             homeCredits,
@@ -1370,7 +1376,7 @@ class MatchStateManager {
       }
 
       if (awayTeamFinance) {
-        await prisma.teamFinance.update({
+        await directPrisma.teamFinances.update({
           where: { teamId: parseInt(awayTeamId) },
           data: {
             credits: {
@@ -1380,15 +1386,15 @@ class MatchStateManager {
         });
 
         // Log exhibition reward transaction for away team
-        const awayTeam = await prisma.team.findUnique({
+        const awayTeam = await directPrisma.team.findUnique({
           where: { id: parseInt(awayTeamId) },
           include: { user: true }
         });
         if (awayTeam?.user) {
           await PaymentHistoryService.recordReward(
-            awayTeam.user.id,
+            String(awayTeam.user.id),
             awayTeamId,
-            `Exhibition ${awayScore > homeScore ? 'Win' : awayScore === homeScore ? 'Tie' : 'Loss'}`,
+            `Exhibition ${awayScore > homeScore ? 'Win' : awayScore === awayScore ? 'Tie' : 'Loss'}`,
             awayCredits,
             0
           );
@@ -1398,15 +1404,15 @@ class MatchStateManager {
       // Award team camaraderie boost to winning team players (if not a tie)
       if (winningTeamId) {
         // Get all players for the winning team and update their camaraderie
-        const winningPlayers = await prisma.player.findMany({
+        const winningPlayers = await directPrisma.player.findMany({
           where: { teamId: parseInt(winningTeamId) }
         });
         
         for (const player of winningPlayers) {
-          await prisma.player.update({
+          await directPrisma.player.update({
             where: { id: player.id },
             data: {
-              camaraderie: Math.min(100, (player.camaraderie || 0) + 2)
+              camaraderieScore: Math.min(100, (player.camaraderieScore || 0) + 2)
             }
           });
         }

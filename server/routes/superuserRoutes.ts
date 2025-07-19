@@ -511,4 +511,34 @@ router.post('/start-all-league-games', RBACService.requirePermission(Permission.
   });
 }));
 
+// Test exhibition rewards - Admin permission required
+router.post('/test-exhibition-rewards', RBACService.requirePermission(Permission.GRANT_CREDITS), asyncHandler(async (req: any, res: Response) => {
+  const requestId = req.requestId;
+  const userId = req.user.claims.sub;
+  const { homeTeamId, awayTeamId, homeScore = 1, awayScore = 1 } = req.body;
+  
+  logInfo("Admin testing exhibition rewards", { 
+    adminUserId: userId,
+    homeTeamId,
+    awayTeamId, 
+    homeScore,
+    awayScore,
+    requestId 
+  });
+
+  try {
+    await matchStateManager.awardExhibitionRewards(homeTeamId, awayTeamId, homeScore, awayScore);
+    res.json({ 
+      success: true,
+      message: `Exhibition rewards processed for teams ${homeTeamId} and ${awayTeamId}`,
+      data: { homeScore, awayScore }
+    });
+  } catch (error: any) {
+    res.status(500).json({ 
+      success: false, 
+      error: error.message 
+    });
+  }
+}));
+
 export default router;
