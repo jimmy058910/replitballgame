@@ -67,6 +67,18 @@
   --radius: 0.5rem;
 }
 
+/* Force high contrast for FINAL text */
+.final-text-override {
+  color: #000000 !important;
+  font-weight: bold !important;
+  opacity: 1 !important;
+  text-shadow: none !important;
+}
+
+.dark .final-text-override {
+  color: #ffffff !important;
+}
+
 @layer base {
   * {
     @apply border-border;
