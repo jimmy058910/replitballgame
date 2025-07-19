@@ -507,11 +507,15 @@ export function GameSimulationUI({ matchId, userId, team1, team2, initialLiveSta
     );
   }
 
-  const gamePhase = getGamePhase(liveState?.gameTime || 0, liveState?.maxTime || 1800, liveState?.currentHalf || 1);
+  // Determine correct maxTime based on match type - default to league time (2400) unless exhibition
+  const matchType = match?.matchType;
+  const defaultMaxTime = matchType === 'EXHIBITION' ? 1800 : 2400; // Exhibition: 30 min, League: 40 min
+  
+  const gamePhase = getGamePhase(liveState?.gameTime || 0, liveState?.maxTime || defaultMaxTime, liveState?.currentHalf || 1);
   const attendanceData = getAttendanceData();
   const keyPerformers = getKeyPerformers();
   const gameTime = Number(liveState?.gameTime || 0);
-  const maxTime = Number(liveState?.maxTime || 1800);
+  const maxTime = Number(liveState?.maxTime || defaultMaxTime);
   const currentHalf = Number(liveState?.currentHalf || 1);
   const halfProgress = currentHalf === 1
     ? (gameTime / (maxTime / 2)) * 100
