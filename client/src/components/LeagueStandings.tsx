@@ -98,9 +98,7 @@ export default function LeagueStandings({ division }: LeagueStandingsProps) {
                         className={`border-b border-gray-700 hover:bg-gray-700 transition-colors ${
                           isPlayerTeam
                             ? "bg-gold-400 bg-opacity-10" 
-                            : position === 1
-                              ? "bg-gold-400 bg-opacity-5"
-                              : ""
+                            : ""
                         }`}
                       >
                         <td className="py-2">
