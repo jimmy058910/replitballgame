@@ -21,6 +21,29 @@ import { Progress } from "@/components/ui/progress";
 import { Separator } from "@/components/ui/separator";
 import { getDivisionNameWithSubdivision } from "@shared/divisionUtils";
 
+// Helper function to get team's current ranking position
+function getTeamRankPosition(standings: any[], teamId: string): string {
+  if (!standings || !teamId) return "";
+  
+  const teamPosition = standings.findIndex(team => team.id.toString() === teamId.toString());
+  if (teamPosition === -1) return "";
+  
+  const position = teamPosition + 1;
+  const teamPoints = standings[teamPosition]?.points || 0;
+  
+  // Check for ties by looking at teams with same points
+  const teamsWithSamePoints = standings.filter(team => team.points === teamPoints);
+  const isTie = teamsWithSamePoints.length > 1;
+  
+  // Format position with proper suffix
+  let suffix = "th";
+  if (position % 10 === 1 && position % 100 !== 11) suffix = "st";
+  else if (position % 10 === 2 && position % 100 !== 12) suffix = "nd";
+  else if (position % 10 === 3 && position % 100 !== 13) suffix = "rd";
+  
+  return isTie ? `T-${position}${suffix} Place` : `${position}${suffix} Place`;
+}
+
 // Type interfaces for API responses
 interface Team {
   id: string;
@@ -911,6 +934,14 @@ export default function Competition() {
     queryFn: () => apiRequest("/api/teams/my"),
   });
 
+  // Fetch league standings for position calculation
+  const { data: rawStandings, isLoading: standingsLoading } = useQuery({
+    queryKey: [`/api/leagues/${team?.division || 8}/standings`],
+    queryFn: () => apiRequest(`/api/leagues/${team?.division || 8}/standings`),
+    enabled: !!team?.division,
+  });
+  const standings = (rawStandings || []) as any[];
+
   const { data: liveMatches, isLoading: liveMatchesLoading } = useQuery<any[]>({
     queryKey: ["/api/matches/live"],
     queryFn: () => apiRequest("/api/matches/live"),
@@ -979,7 +1010,7 @@ export default function Competition() {
     },
   });
 
-  const isLoading = teamLoading || liveMatchesLoading || teamMatchesLoading || tournamentsLoading || currentCycleLoading;
+  const isLoading = teamLoading || standingsLoading || liveMatchesLoading || teamMatchesLoading || tournamentsLoading || currentCycleLoading;
 
   return (
     <div className="min-h-screen bg-gray-900 text-white">
@@ -1098,6 +1129,12 @@ export default function Competition() {
                   <div className="flex justify-between">
                     <span>Division:</span>
                     <Badge variant="outline">{getDivisionNameWithSubdivision(team?.division ?? 8, team?.subdivision ?? 'eta')}</Badge>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>League Position:</span>
+                    <span className="font-semibold text-yellow-400">
+                      {getTeamRankPosition(standings, team?.id?.toString() || '') || 'N/A'}
+                    </span>
                   </div>
                   <div className="flex justify-between">
                     <span>Record:</span>
