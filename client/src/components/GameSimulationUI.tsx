@@ -91,6 +91,20 @@ export function GameSimulationUI({ matchId, userId, team1, team2, initialLiveSta
     enabled: !!team2?.id
   });
 
+  // Fetch stadium data for the home team (only home team has stadium effects)
+  const { data: stadiumData } = useQuery({
+    queryKey: ['/api/stadium-atmosphere/stadium-data'],
+    enabled: !!team1?.id,
+    staleTime: 60000 // Stadium data doesn't change often during a match
+  });
+
+  // Fetch atmosphere data for the home team
+  const { data: atmosphereData } = useQuery({
+    queryKey: ['/api/stadium-atmosphere/atmosphere-data'], 
+    enabled: !!team1?.id,
+    staleTime: 30000 // Atmosphere changes less frequently
+  });
+
   // Fetch enhanced match data for MVP and stats - reduced polling when WebSocket connected
   const { data: enhancedMatchData } = useQuery({
     queryKey: [`/api/matches/${matchId ? String(matchId) : 'unknown'}/enhanced-data`],
@@ -274,13 +288,18 @@ export function GameSimulationUI({ matchId, userId, team1, team2, initialLiveSta
   };
 
   const getAttendanceData = () => {
-    const atmosphereData = enhancedData?.atmosphereEffects || {};
+    // Use authentic stadium API data first, then enhanced match data fallback
+    const apiStadiumData = stadiumData?.data || {};
+    const apiAtmosphereData = atmosphereData?.data || {};
+    const enhancedAtmosphereData = enhancedData?.atmosphereEffects || {};
 
-    const attendance = atmosphereData.attendance || 12000;
-    const capacity = atmosphereData.attendance ? Math.floor(atmosphereData.attendance / 0.8) : 15000;
-    const fanLoyalty = atmosphereData.fanLoyalty || 78;
-    const intimidationEffect = atmosphereData.intimidationFactor || Math.floor(fanLoyalty / 20);
-    const homeFieldAdvantage = atmosphereData.homeFieldAdvantage || Math.floor(fanLoyalty / 15);
+    // Prioritize authentic API data over match simulation data
+    const capacity = apiStadiumData.capacity || enhancedAtmosphereData.capacity || 5000; // Starting stadium capacity is 5,000
+    const fanLoyalty = apiAtmosphereData.fanLoyalty || enhancedAtmosphereData.fanLoyalty || 50; // Starting fan loyalty is 50%
+    const attendance = apiAtmosphereData.attendance || enhancedAtmosphereData.attendance || Math.floor(capacity * 0.6); // 60% default attendance
+    
+    const intimidationEffect = enhancedAtmosphereData.intimidationFactor || Math.floor(fanLoyalty / 20);
+    const homeFieldAdvantage = enhancedAtmosphereData.homeFieldAdvantage || Math.floor(fanLoyalty / 15);
 
     return {
       attendance,
@@ -288,9 +307,8 @@ export function GameSimulationUI({ matchId, userId, team1, team2, initialLiveSta
       percentage: Math.floor((attendance / capacity) * 100),
       fanLoyalty,
       intimidationEffect,
-      fieldSize: atmosphereData.fieldSize || 'Standard',
       homeFieldAdvantage,
-      crowdNoise: atmosphereData.crowdNoise || Math.floor(Math.random() * 30) + 70
+      crowdNoise: enhancedAtmosphereData.crowdNoise || Math.floor(Math.random() * 30) + 70
     };
   };
 
@@ -632,10 +650,6 @@ export function GameSimulationUI({ matchId, userId, team1, team2, initialLiveSta
             <div className="flex justify-between text-sm">
               <span>Fan Loyalty</span>
               <span>{attendanceData.fanLoyalty}%</span>
-            </div>
-            <div className="flex justify-between text-sm">
-              <span>Field Condition</span>
-              <span title="Current field playing conditions">Good</span>
             </div>
           </CardContent>
         </Card>
