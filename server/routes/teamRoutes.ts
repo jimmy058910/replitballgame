@@ -11,6 +11,7 @@ import { generateRandomName } from "@shared/names";
 import { Race, PlayerRole, InjuryStatus } from "../../generated/prisma";
 import { prisma } from '../db';
 import { getPlayerRole } from "@shared/playerUtils";
+import { formatSubdivisionName, getSubdivisionCapacityInfo } from "@shared/subdivisionUtils";
 // Database operations handled through storage layer
 
 const router = Router();
@@ -110,27 +111,62 @@ router.post('/', isAuthenticated, asyncHandler(async (req: any, res: Response) =
       subdivision: lateSignupResult.subdivision
     });
   } else {
-    // Normal signup - find the next available sub-division that has room (less than 8 teams)
-    // If all subdivisions are full, create a new one dynamically
-    const possibleSubdivisions = ["main", "alpha", "beta", "gamma", "delta", "epsilon", "zeta", "eta", "theta", "iota", "kappa", "lambda"];
+    // Normal signup - use comprehensive subdivision system with Greek alphabet + numbering
+    // Full Greek alphabet (24 letters) plus numbered extensions for infinite scalability
+    const greekAlphabet = [
+      "main", "alpha", "beta", "gamma", "delta", "epsilon", "zeta", "eta", 
+      "theta", "iota", "kappa", "lambda", "mu", "nu", "xi", "omicron", 
+      "pi", "rho", "sigma", "tau", "upsilon", "phi", "chi", "psi", "omega"
+    ];
+    
     let foundAvailableSubdivision = false;
     
-    for (const subdivisionValue of possibleSubdivisions) {
-      const teamsInSubdivision = await storage.teams.getTeamsByDivisionAndSubdivision(8, subdivisionValue);
+    // First, try all base Greek names (e.g., "alpha", "beta", etc.)
+    for (const baseName of greekAlphabet) {
+      const teamsInSubdivision = await storage.teams.getTeamsByDivisionAndSubdivision(8, baseName);
       if (teamsInSubdivision.length < 8) {
-        assignedSubdivision = subdivisionValue;
+        assignedSubdivision = baseName;
         foundAvailableSubdivision = true;
         break;
       }
     }
     
-    // If all predefined subdivisions are full, create a new one dynamically
+    // If all base names are full, try numbered extensions (e.g., "alpha_1", "beta_2", etc.)
+    if (!foundAvailableSubdivision) {
+      for (const baseName of greekAlphabet) {
+        let subdivisionNumber = 1;
+        let maxAttempts = 100; // Reasonable limit to prevent infinite loop
+        
+        while (subdivisionNumber <= maxAttempts) {
+          const numberedSubdivision = `${baseName}_${subdivisionNumber}`;
+          const teamsInSubdivision = await storage.teams.getTeamsByDivisionAndSubdivision(8, numberedSubdivision);
+          
+          if (teamsInSubdivision.length < 8) {
+            assignedSubdivision = numberedSubdivision;
+            foundAvailableSubdivision = true;
+            break;
+          }
+          
+          subdivisionNumber++;
+        }
+        
+        if (foundAvailableSubdivision) break;
+      }
+    }
+    
+    // Ultimate fallback: timestamp-based subdivision (should rarely be needed)
     if (!foundAvailableSubdivision) {
       const timestamp = Date.now().toString().slice(-6);
-      assignedSubdivision = `div_${timestamp}`;
+      assignedSubdivision = `overflow_${timestamp}`;
       
-      logInfo("Creating new dynamic subdivision - all predefined subdivisions full", {
+      logInfo("Creating overflow subdivision - all Greek alphabet subdivisions exhausted", {
         newSubdivision: assignedSubdivision,
+        testedSubdivisions: greekAlphabet.length * 100,
+        requestId: req.requestId
+      });
+    } else if (assignedSubdivision.includes('_')) {
+      logInfo("Assigned to numbered subdivision", {
+        subdivision: assignedSubdivision,
         requestId: req.requestId
       });
     }
@@ -139,6 +175,7 @@ router.post('/', isAuthenticated, asyncHandler(async (req: any, res: Response) =
   logInfo("Assigning to sub-division", { 
     division: assignedDivision,
     subdivision: assignedSubdivision,
+    subdivisionDisplayName: formatSubdivisionName(assignedSubdivision),
     requestId: req.requestId 
   });
 
