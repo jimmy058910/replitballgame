@@ -35,6 +35,11 @@ export default function LeagueStandings({ division }: LeagueStandingsProps) {
   });
   const standings = (rawStandings || []) as Team[];
 
+  // Get current user's team to properly highlight it in standings
+  const { data: currentUserTeam } = useQuery({
+    queryKey: ['/api/teams/my'],
+  });
+
   const handleTeamClick = (teamId: string) => {
     setSelectedTeamId(teamId);
     setIsDialogOpen(true);
@@ -83,7 +88,8 @@ export default function LeagueStandings({ division }: LeagueStandingsProps) {
                 </thead>
                 <tbody>
                   {standings.map((team: any, index: number) => {
-                    const isPlayerTeam = team.name === "Macomb Cougars";
+                    // Highlight the current user's team regardless of position
+                    const isPlayerTeam = currentUserTeam && team.id === currentUserTeam.id;
                     const position = index + 1;
                     
                     return (

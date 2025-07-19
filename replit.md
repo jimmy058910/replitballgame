@@ -164,6 +164,13 @@ Built as a React + Express web application with PostgreSQL database, using moder
 - ✓ **Smart Fallback System**: Implemented priority: API data → match simulation data → authentic starting values (no more fake hardcoded data)
 - ✓ **Production Ready**: Stadium tab displays 100% authentic data during live matches with proper backend integration
 
+#### ✅ LEAGUE STANDINGS HIGHLIGHT FIX COMPLETE - USER TEAM TRACKING WORKING
+- ✓ **Hardcoded Team Fixed**: Removed hardcoded "Macomb Cougars" highlighting that didn't follow user's actual team
+- ✓ **Dynamic User Team Query**: Added `/api/teams/my` query to get current logged-in user's team data
+- ✓ **Position-Independent Highlighting**: Yellow highlight now follows user's team regardless of standings position
+- ✓ **Team ID Matching**: Changed from team name matching to team ID matching for more reliable identification
+- ✓ **Production Ready**: User's team (Oakland Cougars) now properly highlighted at position #7 and will follow team movement
+
 ### July 19, 2025 - ✅ MY TEAM STATUS UI CLEANUP COMPLETE - ESSENTIAL INFO ONLY DISPLAYED ✅ (Previous)
 
 #### ✅ MY TEAM STATUS SECTION STREAMLINED - POINTS & SCORE DIFFERENCE REMOVED
