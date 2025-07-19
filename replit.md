@@ -148,7 +148,18 @@ Built as a React + Express web application with PostgreSQL database, using moder
 
 ## Recent Changes
 
-### July 19, 2025 - ✅ STADIUM TAB DATA AUTHENTICITY FIXES COMPLETE - LIVE MATCH INTERFACE DISPLAYS REAL DATA ✅
+### July 19, 2025 - ✅ CRITICAL TRANSACTION HISTORY BUG COMPLETELY FIXED - USER REWARD DISPLAY WORKING ✅
+
+#### ✅ TRANSACTION HISTORY DISPLAY BUG RESOLVED - REWARDS NOW VISIBLE TO USERS
+- ✓ **Root Cause Fixed**: Reward transactions were using UserProfile ID instead of actual user ID, making them invisible in /market > Transactions
+- ✓ **Database Relationship Fixed**: Updated Team->UserProfile->User relationship chain in matchStateManager.ts reward system
+- ✓ **Correct User ID Access**: Changed from `homeTeam.user.id` to `homeTeam.user.userId` using proper Prisma relationship includes
+- ✓ **Exhibition Rewards Working**: Exhibition match rewards (500₡ wins, 100₡ losses, 200₡ ties) now properly appear in user's transaction history
+- ✓ **Database Cleanup**: Removed incorrect reward transactions and regenerated with proper user IDs
+- ✓ **User Experience Fixed**: Players can now see all their recent reward transactions after July 15th in the Transactions tab
+- ✓ **Production Ready**: Complete reward transaction logging system operational with correct user identification
+
+### July 19, 2025 - ✅ STADIUM TAB DATA AUTHENTICITY FIXES COMPLETE - LIVE MATCH INTERFACE DISPLAYS REAL DATA ✅ (Previous)
 
 #### ✅ FIELD CONDITION COMPONENT REMOVED - UNWANTED ELEMENT ELIMINATED
 - ✓ **Field Condition Display Removed**: Completely removed hardcoded "Good" field condition from Stadium tab in live match interface

@@ -1366,7 +1366,7 @@ class MatchStateManager {
         });
         if (homeTeam?.user) {
           await PaymentHistoryService.recordReward(
-            String(homeTeam.user.id),
+            homeTeam.user.userId,
             homeTeamId,
             `Exhibition ${homeScore > awayScore ? 'Win' : homeScore === awayScore ? 'Tie' : 'Loss'}`,
             homeCredits,
@@ -1392,9 +1392,9 @@ class MatchStateManager {
         });
         if (awayTeam?.user) {
           await PaymentHistoryService.recordReward(
-            String(awayTeam.user.id),
+            awayTeam.user.userId,
             awayTeamId,
-            `Exhibition ${awayScore > homeScore ? 'Win' : awayScore === awayScore ? 'Tie' : 'Loss'}`,
+            `Exhibition ${awayScore > homeScore ? 'Win' : awayScore === homeScore ? 'Tie' : 'Loss'}`,
             awayCredits,
             0
           );
