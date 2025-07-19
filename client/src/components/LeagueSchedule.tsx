@@ -144,10 +144,10 @@ export default function LeagueSchedule() {
     if (match.status.toUpperCase() === 'COMPLETED') {
       return (
         <div className="text-sm font-mono text-center min-w-[60px]">
-          <div className="font-bold">
+          <div className="font-bold text-gray-900 dark:text-white">
             {match.homeScore || 0} - {match.awayScore || 0}
           </div>
-          <div className="text-xs text-gray-500">FINAL</div>
+          <div className="text-xs text-gray-700 dark:text-gray-300 font-medium">FINAL</div>
         </div>
       );
     }

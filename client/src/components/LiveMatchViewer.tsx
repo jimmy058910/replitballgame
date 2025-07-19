@@ -23,7 +23,8 @@ export function LiveMatchViewer({ matchId, userId, onMatchComplete }: LiveMatchV
     enabled: !!matchId,
     retry: 1,
     retryDelay: 1000,
-    staleTime: 5000,
+    staleTime: 0, // Don't use stale data - always check for latest match status
+    refetchInterval: 5000, // Refetch every 5 seconds to catch completion status
     // Override the global retry: false setting
     meta: { 
       errorRetry: true 
