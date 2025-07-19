@@ -148,9 +148,19 @@ Built as a React + Express web application with PostgreSQL database, using moder
 
 ## Recent Changes
 
-### July 19, 2025 - ✅ COMPREHENSIVE FINANCIAL SYSTEM IMPLEMENTATION COMPLETE - STADIUM DAILY COSTS & REVENUE FULLY INTEGRATED ✅
+### July 19, 2025 - ✅ MY TEAM STATUS UI CLEANUP COMPLETE - ESSENTIAL INFO ONLY DISPLAYED ✅
 
-#### ✅ STADIUM DAILY COST SYSTEM IMPLEMENTED - 5,000 CREDITS DEDUCTED DAILY
+#### ✅ MY TEAM STATUS SECTION STREAMLINED - POINTS & SCORE DIFFERENCE REMOVED
+- ✓ **Essential Information Only**: My Team Status now shows only Team Name, Division + Subdivision, and Record
+- ✓ **Division Display Enhanced**: Uses getDivisionNameWithSubdivision utility for proper "Division 8 Eta" formatting
+- ✓ **Record Format Updated**: Includes draws in 0W - 0D - 1L format per user specifications
+- ✓ **UI Cleanup Complete**: Removed Points and Score Difference fields as requested by user
+- ✓ **Clean Interface**: Competition page My Team Status section now focused on core team identity information
+- ✓ **Production Ready**: Streamlined My Team Status display operational with essential information only
+
+### July 19, 2025 - ✅ COMPREHENSIVE FINANCIAL SYSTEM IMPLEMENTATION COMPLETE - STADIUM DAILY COSTS & REVENUE FULLY INTEGRATED ✅ (Previous)
+
+#### ✅ STADIUM DAILY COST SYSTEM IMPLEMENTED - 5,000 CREDITS DEDUCTED DAILY (Previous)
 - ✓ **Daily Progression Integration**: Added `processStadiumDailyCosts()` function to daily progression automation (seasonTimingAutomationService.ts)
 - ✓ **5,000₡ Daily Maintenance**: All teams now pay 5,000 credits daily for stadium maintenance costs
 - ✓ **Finance Record Management**: System creates TeamFinance records if missing and updates existing ones

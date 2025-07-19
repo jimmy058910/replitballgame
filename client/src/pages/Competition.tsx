@@ -1103,16 +1103,6 @@ export default function Competition() {
                     <span>Record:</span>
                     <span>{team?.wins ?? 0}W - {team?.draws ?? 0}D - {team?.losses ?? 0}L</span>
                   </div>
-                  <div className="flex justify-between">
-                    <span>Points:</span>
-                    <span className="font-bold text-yellow-400">{team?.points ?? 0}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span>Score Difference:</span>
-                    <span className={`font-semibold ${(team?.goalDifference ?? 0) >= 0 ? 'text-green-400' : 'text-red-400'}`}>
-                      {(team?.goalDifference ?? 0) >= 0 ? '+' : ''}{team?.goalDifference ?? 0}
-                    </span>
-                  </div>
                 </CardContent>
               </Card>
 
