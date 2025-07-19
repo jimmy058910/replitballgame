@@ -61,10 +61,12 @@ export function GameSimulationUI({ matchId, userId, team1, team2, initialLiveSta
   const { toast } = useToast();
   const logRef = useRef<HTMLDivElement>(null);
 
-  // Fetch initial match data
+  // Fetch initial match data - reduced polling when WebSocket connected
   const { data: initialMatchData, error: matchError } = useQuery({
     queryKey: [`/api/matches/${matchId ? String(matchId) : 'unknown'}`],
-    enabled: !!matchId
+    enabled: !!matchId,
+    refetchInterval: isConnected ? 20000 : 5000, // Much less frequent when WebSocket connected
+    staleTime: isConnected ? 15000 : 3000, // Cache longer when WebSocket active
   });
 
   // Fetch team players for field display
@@ -89,11 +91,12 @@ export function GameSimulationUI({ matchId, userId, team1, team2, initialLiveSta
     enabled: !!team2?.id
   });
 
-  // Fetch enhanced match data for MVP and stats
+  // Fetch enhanced match data for MVP and stats - reduced polling when WebSocket connected
   const { data: enhancedMatchData } = useQuery({
     queryKey: [`/api/matches/${matchId ? String(matchId) : 'unknown'}/enhanced-data`],
     enabled: !!matchId && !!liveState,
-    refetchInterval: 5000, // Refresh every 5 seconds during live match
+    refetchInterval: isConnected ? 15000 : 5000, // Less frequent when WebSocket connected
+    staleTime: isConnected ? 10000 : 2000, // Cache longer when WebSocket active
   });
 
   // Auto-scroll log to top
@@ -118,7 +121,13 @@ export function GameSimulationUI({ matchId, userId, team1, team2, initialLiveSta
         const callbacks: WebSocketCallbacks = {
           onMatchUpdate: (state: LiveMatchState) => {
             console.log('🎮 GameSimulationUI: Match state update received:', state);
-            setLiveState(state);
+            setLiveState(prevState => {
+              // Prevent race conditions by only updating if state is newer
+              if (!prevState || state.lastUpdateTime >= (prevState.lastUpdateTime || 0)) {
+                return state;
+              }
+              return prevState;
+            });
             setEvents(state.gameEvents || []);
           },
           onMatchEvent: (event: MatchEvent) => {

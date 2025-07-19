@@ -352,6 +352,7 @@ class MatchStateManager {
       home: homeStarters.map(p => `${p.firstName} ${p.lastName} (${p.role})`),
       away: awayStarters.map(p => `${p.firstName} ${p.lastName} (${p.role})`)
     });
+    console.log(`🔍 STARTER COUNT CHECK: Home has ${homeStarters.length} starters, Away has ${awayStarters.length} starters`);
 
     const maxTime = isExhibition ? 1800 : 2400; // 30 min exhibition, 40 min league
 
