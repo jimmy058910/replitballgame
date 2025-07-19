@@ -31,13 +31,15 @@ interface DailySchedule {
 export default function LeagueSchedule() {
   const { data: schedule, isLoading, error } = useQuery<DailySchedule>({
     queryKey: ["/api/leagues/daily-schedule"],
-    refetchInterval: 30000, // Update every 30 seconds for live status
-    enabled: true, // Re-enabled - endpoint is now implemented
+    refetchInterval: 5 * 60 * 1000, // Update every 5 minutes instead of 30 seconds
+    staleTime: 2 * 60 * 1000, // Consider data fresh for 2 minutes
+    enabled: true,
   });
 
   const { data: userTeam } = useQuery({
     queryKey: ["/api/teams/my"],
-    refetchInterval: 30000,
+    refetchInterval: 5 * 60 * 1000, // Update every 5 minutes
+    staleTime: 2 * 60 * 1000, // Consider data fresh for 2 minutes
   });
 
   // Debug logging

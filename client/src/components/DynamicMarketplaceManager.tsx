@@ -139,7 +139,8 @@ export default function DynamicMarketplaceManager({ teamId }: { teamId: string }
   // Fetch marketplace stats
   const { data: stats, isLoading: loadingStats } = useQuery({
     queryKey: ['/api/dynamic-marketplace/stats'],
-    refetchInterval: 30000 // Refresh every 30 seconds
+    refetchInterval: 3 * 60 * 1000, // Refresh every 3 minutes instead of 30 seconds
+    staleTime: 60 * 1000 // Consider data fresh for 1 minute
   });
 
   // Fetch active listings

@@ -18,7 +18,8 @@ interface ServerTimeInfo {
 export default function ServerTimeDisplay() {
   const { data: serverTimeResponse, isLoading } = useQuery<{data: ServerTimeInfo}>({
     queryKey: ["/api/server/time"],
-    refetchInterval: 30000, // Update every 30 seconds
+    refetchInterval: 2 * 60 * 1000, // Update every 2 minutes instead of 30 seconds
+    staleTime: 60 * 1000, // Consider data fresh for 1 minute
   });
 
   // Extract the actual server time data from the nested API response

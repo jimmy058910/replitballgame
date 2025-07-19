@@ -68,7 +68,8 @@ export default function InjurySystem() {
   // Fetch active injuries
   const { data: activeInjuries = [] } = useQuery<PlayerInjury[]>({ // Typed and default
     queryKey: ["/api/injuries/active"],
-    refetchInterval: 30000, // Update every 30 seconds
+    refetchInterval: 5 * 60 * 1000, // Update every 5 minutes instead of 30 seconds
+    staleTime: 2 * 60 * 1000, // Consider data fresh for 2 minutes
   });
 
   // Fetch injury history

@@ -99,7 +99,8 @@ export default function ComprehensiveTournamentManager({ teamId }: Comprehensive
   // Fetch available tournaments
   const { data: availableTournaments, isLoading: availableLoading } = useQuery<Tournament[]>({
     queryKey: ["/api/new-tournaments/available"],
-    refetchInterval: 30000, // Refresh every 30 seconds
+    refetchInterval: 3 * 60 * 1000, // Refresh every 3 minutes instead of 30 seconds
+    staleTime: 60 * 1000, // Consider data fresh for 1 minute
   });
 
   // Fetch my tournaments
