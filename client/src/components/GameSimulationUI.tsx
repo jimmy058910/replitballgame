@@ -508,7 +508,7 @@ export function GameSimulationUI({ matchId, userId, team1, team2, initialLiveSta
   }
 
   // Determine correct maxTime based on match type - default to league time (2400) unless exhibition
-  const matchType = match?.matchType;
+  const matchType = initialMatchData?.matchType;
   const defaultMaxTime = matchType === 'EXHIBITION' ? 1800 : 2400; // Exhibition: 30 min, League: 40 min
   
   const gamePhase = getGamePhase(liveState?.gameTime || 0, liveState?.maxTime || defaultMaxTime, liveState?.currentHalf || 1);
