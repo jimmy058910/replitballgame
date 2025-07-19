@@ -18,6 +18,7 @@ import { apiRequest } from "@/lib/queryClient";
 import { Bell, Shield, Calendar, Users as UsersIcon } from "lucide-react"; // Added UsersIcon
 import { HelpIcon } from "@/components/help";
 import { useContextualHelp } from "@/hooks/useContextualHelp";
+import ImprovedLiveMatches from "@/components/ImprovedLiveMatches";
 
 // Type interfaces for API responses
 interface Team {
@@ -484,44 +485,12 @@ export default function Dashboard() {
           </div>
         </div>
 
-        {/* Live Match Section - Only show matches involving user's team */}
-        {liveMatches && liveMatches.length > 0 && (() => {
-          // Filter to only show matches involving user's team (not spectator matches)
-          const userTeamMatches = liveMatches.filter(match => !match.isSpectatorMatch);
-          const userMatch = userTeamMatches[0];
-          
-          if (!userMatch) return null;
-          
-          return (
-            <div className="mb-8">
-              <Card className="bg-gray-800 border-gray-700">
-                <CardHeader className="pb-3">
-                  <div className="flex items-center gap-2">
-                    <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>
-                    <CardTitle className="text-lg">Live Matches</CardTitle>
-                  </div>
-                </CardHeader>
-                <CardContent className="p-4">
-                  <Link to={`/live-match/${userMatch.id}`}>
-                    <div className="flex items-center justify-between hover:bg-gray-700 p-3 rounded cursor-pointer transition-colors">
-                      <div className="space-y-1">
-                        <div className="text-sm font-medium">
-                          {userMatch.homeTeamName || "Team 1"} vs {userMatch.awayTeamName || "Team 2"}
-                        </div>
-                        <div className="text-xs text-gray-400">
-                          Click to watch live
-                        </div>
-                      </div>
-                      <Badge className="bg-red-500 text-white">
-                        LIVE
-                      </Badge>
-                    </div>
-                  </Link>
-                </CardContent>
-              </Card>
-            </div>
-          );
-        })()}
+        {/* Live Matches Section */}
+        {liveMatches && liveMatches.length > 0 && (
+          <div className="mb-8">
+            <ImprovedLiveMatches maxMatches={3} />
+          </div>
+        )}
 
         {/* Team Roster Preview */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">

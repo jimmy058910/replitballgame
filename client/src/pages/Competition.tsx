@@ -9,6 +9,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import LeagueStandings from "@/components/LeagueStandings";
 import LeagueSchedule from "@/components/LeagueSchedule";
 import TournamentCenter from "@/components/TournamentCenter";
+import ImprovedLiveMatches from "@/components/ImprovedLiveMatches";
 
 
 import { apiRequest, queryClient } from "@/lib/queryClient";
@@ -1077,7 +1078,7 @@ export default function Competition() {
           </TabsList>
 
           <TabsContent value="league" className="space-y-6">
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               <Card className="bg-gray-800 border-gray-700">
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
@@ -1106,64 +1107,7 @@ export default function Competition() {
                 </CardContent>
               </Card>
 
-              <Card className="bg-gray-800 border-gray-700">
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Calendar className="h-5 w-5 text-green-400" />
-                    Recent Matches
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  {teamMatches && teamMatches.length > 0 ? (
-                    <div className="space-y-2">
-                      {teamMatches.slice(0, 3).map((match: Match) => (
-                        <div key={match.id} className="flex justify-between items-center p-2 rounded bg-gray-700">
-                          <span className="text-sm">vs Team {match.awayTeamId === team?.id ? match.homeTeamId?.slice(0,8) : match.awayTeamId?.slice(0,8) ?? 'Unknown'}</span>
-                          <Badge variant={match.status === 'completed' ? 'outline' : 'default'}>
-                            {match.status ?? 'N/A'}
-                          </Badge>
-                        </div>
-                      ))}
-                    </div>
-                  ) : (
-                    <p className="text-gray-400 text-center py-4">{teamMatchesLoading ? "Loading..." : "No recent matches"}</p>
-                  )}
-                </CardContent>
-              </Card>
-
-              <Card className="bg-gray-800 border-gray-700">
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Clock className="h-5 w-5 text-red-400" />
-                    Live Matches
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  {liveMatches && liveMatches.length > 0 ? (
-                    <div className="space-y-2">
-                      {liveMatches.slice(0, 3).map((match: LiveMatch) => (
-                        <div 
-                          key={match.id} 
-                          className="flex justify-between items-center p-3 rounded bg-red-900/20 border border-red-700 cursor-pointer hover:bg-red-900/30 transition-colors"
-                          onClick={() => setLocation(`/match/${match.id}`)}
-                        >
-                          <div className="flex flex-col">
-                            <span className="text-sm font-medium">
-                              {match.homeTeamName || `Team ${match.homeTeamId?.slice(0,4) ?? '?'}`} vs {match.awayTeamName || `Team ${match.awayTeamId?.slice(0,4) ?? '?'}`}
-                            </span>
-                            <span className="text-xs text-gray-400">Click to watch live</span>
-                          </div>
-                          <Badge variant="destructive" className="animate-pulse">
-                            LIVE
-                          </Badge>
-                        </div>
-                      ))}
-                    </div>
-                  ) : (
-                    <p className="text-gray-400 text-center py-4">{liveMatchesLoading ? "Loading..." : "No live matches"}</p>
-                  )}
-                </CardContent>
-              </Card>
+              <ImprovedLiveMatches maxMatches={8} />
             </div>
 
             <Card className="bg-gray-800 border-gray-700">
