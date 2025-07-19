@@ -147,7 +147,7 @@ export default function LeagueSchedule() {
           <div className="font-bold text-gray-900 dark:text-white">
             {match.homeScore || 0} - {match.awayScore || 0}
           </div>
-          <div className="text-xs text-black dark:text-white font-bold">FINAL</div>
+          <div className="text-xs font-extrabold text-slate-900" style={{ color: '#000000 !important', fontWeight: 'bold' }}>FINAL</div>
         </div>
       );
     }
