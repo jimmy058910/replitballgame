@@ -489,7 +489,9 @@ router.get('/daily-schedule', isAuthenticated, async (req: Request, res: Respons
           scheduledTimeFormatted: match.gameDate ? formatEasternTime(new Date(match.gameDate), 'h:mm A') : "TBD",
           isLive: match.status === 'IN_PROGRESS',
           canWatch: match.status === 'IN_PROGRESS' || match.status === 'COMPLETED',
-          status: match.status || 'SCHEDULED'
+          status: match.status || 'SCHEDULED',
+          homeScore: match.homeScore,
+          awayScore: match.awayScore
         }));
       } else {
         scheduleByDay[day] = [];
