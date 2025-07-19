@@ -82,34 +82,27 @@ export class PlayerStorage {
   }
 
   async getPlayersByTeamId(teamId: number): Promise<Player[]> {
-    // First get all players for this team to determine taxi squad
+    // Get all players for this team (including taxi squad)
     const allPlayers = await prisma.player.findMany({
       where: {
         teamId: parseInt(teamId.toString()),
         isOnMarket: false
-      },
-      orderBy: { createdAt: 'asc' }
-    });
-
-    // Only return first 12 players (main roster) - exclude taxi squad players
-    const mainRosterPlayerIds = allPlayers.slice(0, 12).map(p => p.id);
-    
-    // Get full player data for main roster only
-    const players = await prisma.player.findMany({
-      where: {
-        teamId: parseInt(teamId.toString()),
-        isOnMarket: false,
-        id: { in: mainRosterPlayerIds }
       },
       include: {
         team: { select: { name: true } },
         contract: true,
         skills: { include: { skill: true } }
       },
-      orderBy: { firstName: 'asc' }
+      orderBy: { createdAt: 'asc' } // Order by creation date for roster position calculation
     });
 
-    return players;
+    // Add calculated rosterPosition field based on creation order
+    const playersWithPosition = allPlayers.map((player, index) => ({
+      ...player,
+      rosterPosition: index + 1 // Position 1, 2, 3, etc.
+    }));
+
+    return playersWithPosition;
   }
 
   async getTaxiSquadPlayersByTeamId(teamId: number): Promise<Player[]> {
