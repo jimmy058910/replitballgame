@@ -331,7 +331,7 @@ class MatchStateManager {
       away: awayStarters.map(p => `${p.firstName} ${p.lastName} (${p.role})`)
     });
 
-    const maxTime = isExhibition ? 1800 : 1800; // 30 min exhibition, 30 min league
+    const maxTime = isExhibition ? 1800 : 2400; // 30 min exhibition, 40 min league
 
     const initialPlayerStats = new Map<string, PlayerStatsSnapshot>();
     const allPlayers = [...homeTeamPlayers, ...awayTeamPlayers];
@@ -833,7 +833,8 @@ class MatchStateManager {
       if (!player) continue;
       
       const mvpScore = (stats.scores * 10) + (stats.passingYards * 0.1) + (stats.carrierYards * 0.15) + 
-                      (stats.catches * 2) + (stats.tackles * 1.5) + (stats.interceptionsCaught * 8);
+                      (stats.catches * 2) + (stats.tackles * 1.5) + (stats.passesDefended * 3) + 
+                      (stats.knockdownsInflicted * 2);
       
       if (player.teamId.toString() === state.homeTeamId) {
         if (mvpScore > homeMVP.score) {
