@@ -82,6 +82,39 @@ router.post('/reset-player-daily-items', RBACService.requirePermission(Permissio
   });
 }));
 
+// Force daily progression execution (for missed 3AM resets)
+router.post('/force-daily-progression', RBACService.requirePermission(Permission.GRANT_CREDITS), asyncHandler(async (req: any, res: Response) => {
+  const requestId = req.requestId;
+  const userId = req.user.claims.sub;
+  
+  logInfo("Admin forcing daily progression execution", { adminUserId: userId, requestId });
+
+  try {
+    console.log('🔄 SUPERUSER: Forcing daily progression execution...');
+    
+    // Import the automation service
+    const { SeasonTimingAutomationService } = await import('../services/seasonTimingAutomationService');
+    const automationService = SeasonTimingAutomationService.getInstance();
+    
+    // Force execute daily progression
+    await (automationService as any).executeDailyProgression();
+    
+    console.log('✅ SUPERUSER: Daily progression completed successfully');
+    res.json({ 
+      success: true, 
+      message: 'Daily progression executed successfully - Day advanced from Day 7 to Day 8',
+      timestamp: new Date().toISOString()
+    });
+  } catch (error) {
+    console.error('❌ SUPERUSER: Daily progression failed:', error);
+    logError("Daily progression execution failed", { error, requestId });
+    res.status(500).json({ 
+      error: error.message, 
+      details: 'Daily progression execution failed'
+    });
+  }
+}));
+
 // Advance day - Admin permission required
 router.post('/advance-day', RBACService.requirePermission(Permission.MANAGE_SEASONS), asyncHandler(async (req: any, res: Response) => {
   const requestId = req.requestId;
