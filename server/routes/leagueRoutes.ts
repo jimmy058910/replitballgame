@@ -158,11 +158,34 @@ router.get('/:division/standings', isAuthenticated, async (req: Request, res: Re
       teamsInDivision = await storage.teams.getTeamsByDivisionAndSubdivision(division, userSubdivision);
     }
 
+    // Get all completed league matches for this division to calculate real goals
+    const completedMatches = await prisma.game.findMany({
+      where: {
+        matchType: 'LEAGUE',
+        status: 'COMPLETED',
+        OR: [
+          { homeTeamId: { in: teamsInDivision.map(t => t.id) } },
+          { awayTeamId: { in: teamsInDivision.map(t => t.id) } }
+        ]
+      }
+    });
+
     // Enhanced standings with streak and additional stats
     const enhancedTeams = teamsInDivision.map((team) => {
-      // Calculate goal difference (using wins/losses as proxy for now)
-      const goalsFor = (team.wins || 0) * 2 + (team.draws || 0); // Rough approximation
-      const goalsAgainst = (team.losses || 0) * 2 + (team.draws || 0);
+      // Calculate REAL goal difference from actual completed matches
+      let goalsFor = 0;
+      let goalsAgainst = 0;
+      
+      completedMatches.forEach(match => {
+        if (match.homeTeamId === team.id) {
+          goalsFor += match.homeScore || 0;
+          goalsAgainst += match.awayScore || 0;
+        } else if (match.awayTeamId === team.id) {
+          goalsFor += match.awayScore || 0; 
+          goalsAgainst += match.homeScore || 0;
+        }
+      });
+      
       const goalDifference = goalsFor - goalsAgainst;
       
       // Calculate current streak based on recent form
