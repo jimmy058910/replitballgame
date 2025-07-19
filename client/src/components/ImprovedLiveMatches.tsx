@@ -19,7 +19,7 @@ interface LiveMatch {
   };
   homeTeamName?: string;
   awayTeamName?: string;
-  matchType: 'LEAGUE' | 'EXHIBITION' | 'TOURNAMENT_DAILY' | 'TOURNAMENT_MIDSEASON';
+  matchType: 'LEAGUE' | 'EXHIBITION' | 'TOURNAMENT_DAILY' | 'TOURNAMENT_MID_SEASON';
   status: string;
   homeScore?: number;
   awayScore?: number;
@@ -52,7 +52,7 @@ const getMatchTypeInfo = (matchType: string, tournamentId?: string) => {
         color: 'bg-purple-900/20 border-purple-700 text-purple-300',
         icon: Users 
       };
-    case 'TOURNAMENT_MIDSEASON':
+    case 'TOURNAMENT_MID_SEASON':
       return { 
         label: 'Mid-Season Cup', 
         color: 'bg-yellow-900/20 border-yellow-700 text-yellow-300',
@@ -114,11 +114,15 @@ export function ImprovedLiveMatches({ className = "", maxMatches = 5, showTitle 
                     
                     <span className="text-sm font-medium text-white">
                       {match.homeTeam?.name || match.homeTeamName || `Team ${match.homeTeamId?.slice(0,4) ?? '?'}`} 
-                      {(match.homeScore !== undefined && match.awayScore !== undefined) && (
+                      {(match.homeScore !== null && match.homeScore !== undefined && match.awayScore !== null && match.awayScore !== undefined) ? (
                         <span className="mx-2 text-gray-400">
                           {match.homeScore} - {match.awayScore}
                         </span>
-                      )}
+                      ) : match.matchType === 'LEAGUE' && (match.homeScore === null || match.awayScore === null) ? (
+                        <span className="mx-2 text-gray-400">
+                          0 - 0
+                        </span>
+                      ) : null}
                       vs {match.awayTeam?.name || match.awayTeamName || `Team ${match.awayTeamId?.slice(0,4) ?? '?'}`}
                     </span>
                     
