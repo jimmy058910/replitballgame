@@ -96,10 +96,10 @@ export default function LeagueStandings({ division }: LeagueStandingsProps) {
                       <tr 
                         key={team.id} 
                         className={`border-b border-gray-700 hover:bg-gray-700 transition-colors ${
-                          position === 1 
+                          isPlayerTeam
                             ? "bg-gold-400 bg-opacity-10" 
-                            : isPlayerTeam
-                              ? "border-l-2 border-l-primary-400"
+                            : position === 1
+                              ? "bg-gold-400 bg-opacity-5"
                               : ""
                         }`}
                       >
