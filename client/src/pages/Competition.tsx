@@ -19,16 +19,19 @@ import { HelpIcon } from "@/components/help";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Progress } from "@/components/ui/progress";
 import { Separator } from "@/components/ui/separator";
+import { getDivisionNameWithSubdivision } from "@shared/divisionUtils";
 
 // Type interfaces for API responses
 interface Team {
   id: string;
   name: string;
   division: number;
+  subdivision?: string;
   wins: number;
   losses: number;
   draws: number;
   points: number;
+  goalDifference?: number;
   teamPower: number;
   teamCamaraderie: number;
   credits: number;
@@ -1094,15 +1097,21 @@ export default function Competition() {
                   </div>
                   <div className="flex justify-between">
                     <span>Division:</span>
-                    <Badge variant="outline">{team?.division ?? 'N/A'}</Badge>
+                    <Badge variant="outline">{getDivisionNameWithSubdivision(team?.division ?? 8, team?.subdivision ?? 'eta')}</Badge>
                   </div>
                   <div className="flex justify-between">
                     <span>Record:</span>
-                    <span>{team?.wins ?? 0}W - {team?.losses ?? 0}L</span>
+                    <span>{team?.wins ?? 0}W - {team?.draws ?? 0}D - {team?.losses ?? 0}L</span>
                   </div>
                   <div className="flex justify-between">
                     <span>Points:</span>
                     <span className="font-bold text-yellow-400">{team?.points ?? 0}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>Score Difference:</span>
+                    <span className={`font-semibold ${(team?.goalDifference ?? 0) >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+                      {(team?.goalDifference ?? 0) >= 0 ? '+' : ''}{team?.goalDifference ?? 0}
+                    </span>
                   </div>
                 </CardContent>
               </Card>
