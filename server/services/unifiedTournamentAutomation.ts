@@ -195,11 +195,21 @@ export class UnifiedTournamentAutomation {
     console.log(`Completing tournament ${tournamentId}...`);
     
     try {
+      // Get tournament to determine type and find finals round
+      const tournament = await prisma.tournament.findUnique({
+        where: { id: tournamentId }
+      });
+
+      if (!tournament) return;
+
+      // Determine finals round based on tournament type
+      const finalsRound = tournament.type === 'MID_SEASON_CLASSIC' ? 4 : 3;
+      
       // Get finals match
       const finalsMatch = await prisma.game.findFirst({
         where: {
           tournamentId: tournamentId,
-          round: 3,
+          round: finalsRound,
           status: 'COMPLETED'
         }
       });
@@ -212,20 +222,55 @@ export class UnifiedTournamentAutomation {
       const runnerUpTeamId = finalsMatch.homeScore > finalsMatch.awayScore ? 
         finalsMatch.awayTeamId : finalsMatch.homeTeamId;
 
-      // Get semifinals matches to determine 3rd place
+      // Get semifinals matches to determine 3rd place (different round for different tournament types)
+      const semifinalsRound = tournament.type === 'MID_SEASON_CLASSIC' ? 3 : 2;
       const semifinalsMatches = await prisma.game.findMany({
         where: {
           tournamentId: tournamentId,
-          round: 2,
+          round: semifinalsRound,
           status: 'COMPLETED'
         }
       });
 
-      // Get quarterfinals matches to determine 5th place
+      // For Mid-Season Cup: Check if 3rd place playoff game exists and create if needed
+      if (tournament.type === 'MID_SEASON_CLASSIC' && semifinalsMatches.length === 2) {
+        const existingThirdPlaceGame = await prisma.game.findFirst({
+          where: {
+            tournamentId: tournamentId,
+            round: 5, // Round 5 for 3rd place playoff
+            status: { not: 'COMPLETED' }
+          }
+        });
+
+        if (!existingThirdPlaceGame) {
+          // Create 3rd place playoff game
+          const semifinalLosers = semifinalsMatches.map(match => 
+            match.homeScore > match.awayScore ? match.awayTeamId : match.homeTeamId
+          );
+
+          if (semifinalLosers.length === 2) {
+            await prisma.game.create({
+              data: {
+                tournamentId,
+                homeTeamId: semifinalLosers[0],
+                awayTeamId: semifinalLosers[1],
+                gameDate: new Date(Date.now() + 5 * 60 * 1000), // 5 minutes from now
+                matchType: "TOURNAMENT_DAILY",
+                round: 5, // 3rd place playoff
+                status: "SCHEDULED"
+              }
+            });
+            console.log(`Created 3rd place playoff game for Mid-Season Cup tournament ${tournamentId}`);
+          }
+        }
+      }
+
+      // Get quarterfinals matches to determine 5th place (different round for different tournament types)
+      const quarterfinalsRound = tournament.type === 'MID_SEASON_CLASSIC' ? 2 : 1;
       const quarterfinalsMatches = await prisma.game.findMany({
         where: {
           tournamentId: tournamentId,
-          round: 1,
+          round: quarterfinalsRound,
           status: 'COMPLETED'
         }
       });

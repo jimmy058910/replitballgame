@@ -1070,7 +1070,7 @@ export class TournamentService {
 
     for (const tournament of readyTournaments) {
       const currentParticipants = tournament.entries.length;
-      const maxParticipants = tournament.maxTeams || 8;
+      const maxParticipants = tournament.type === 'MID_SEASON_CLASSIC' ? 16 : 8;
 
       // Check if tournament is full (8/8 participants)
       if (currentParticipants >= maxParticipants) {
@@ -1131,7 +1131,7 @@ export class TournamentService {
     }
   }
   
-  // Generate tournament matches (8-team single elimination)
+  // Generate tournament matches (8-team single elimination for Daily, 16-team for Mid-Season Cup)
   async generateTournamentMatches(tournamentId: number): Promise<void> {
     // Get tournament participants
     const tournament = await prisma.tournament.findUnique({
@@ -1150,36 +1150,67 @@ export class TournamentService {
     }
 
     const teams = tournament.entries.map(entry => entry.team);
+    const expectedTeams = tournament.type === 'MID_SEASON_CLASSIC' ? 16 : 8;
     
-    if (teams.length !== 8) {
-      throw new Error(`Tournament must have exactly 8 teams, found ${teams.length}`);
+    if (teams.length !== expectedTeams) {
+      throw new Error(`Tournament must have exactly ${expectedTeams} teams, found ${teams.length}`);
     }
 
     // Shuffle teams randomly for fair bracket
     const shuffledTeams = [...teams].sort(() => Math.random() - 0.5);
 
-    // ONLY Create Round 1 matches (Quarterfinals) - fix for pre-determined teams issue
-    const round1Matches = [];
-    for (let i = 0; i < 4; i++) {
-      const homeTeam = shuffledTeams[i * 2];
-      const awayTeam = shuffledTeams[i * 2 + 1];
-      
-      const match = await prisma.game.create({
-        data: {
-          tournamentId,
-          homeTeamId: homeTeam.id,
-          awayTeamId: awayTeam.id,
-          gameDate: new Date(Date.now() + 5 * 60 * 1000), // 5 minutes from now
-          matchType: "TOURNAMENT_DAILY",
-          round: 1, // QUARTERFINALS = 1
-          status: "SCHEDULED"
-        }
-      });
-      
-      round1Matches.push(match);
-    }
+    let round1Matches = [];
+    let startingRound = 1;
+    let matchType = "TOURNAMENT_DAILY";
 
-    console.log(`Generated tournament bracket for tournament ${tournamentId} with ${teams.length} teams - ONLY quarterfinals created`);
+    if (tournament.type === 'MID_SEASON_CLASSIC') {
+      // Mid-Season Cup: 16 teams -> Round of 16 (8 matches), round = 1
+      startingRound = 1; // Round of 16
+      matchType = "TOURNAMENT_DAILY"; // Keep same match type
+      
+      for (let i = 0; i < 8; i++) {
+        const homeTeam = shuffledTeams[i * 2];
+        const awayTeam = shuffledTeams[i * 2 + 1];
+        
+        const match = await prisma.game.create({
+          data: {
+            tournamentId,
+            homeTeamId: homeTeam.id,
+            awayTeamId: awayTeam.id,
+            gameDate: new Date(Date.now() + 5 * 60 * 1000), // 5 minutes from now
+            matchType: matchType,
+            round: startingRound, // ROUND OF 16 = 1
+            status: "SCHEDULED"
+          }
+        });
+        
+        round1Matches.push(match);
+      }
+      console.log(`Generated Mid-Season Cup bracket for tournament ${tournamentId} with ${teams.length} teams - Round of 16 created (${round1Matches.length} matches)`);
+    } else {
+      // Daily Division Tournament: 8 teams -> Quarterfinals (4 matches), round = 1  
+      startingRound = 1; // Quarterfinals
+      
+      for (let i = 0; i < 4; i++) {
+        const homeTeam = shuffledTeams[i * 2];
+        const awayTeam = shuffledTeams[i * 2 + 1];
+        
+        const match = await prisma.game.create({
+          data: {
+            tournamentId,
+            homeTeamId: homeTeam.id,
+            awayTeamId: awayTeam.id,
+            gameDate: new Date(Date.now() + 5 * 60 * 1000), // 5 minutes from now
+            matchType: matchType,
+            round: startingRound, // QUARTERFINALS = 1
+            status: "SCHEDULED"
+          }
+        });
+        
+        round1Matches.push(match);
+      }
+      console.log(`Generated Daily Division Tournament bracket for tournament ${tournamentId} with ${teams.length} teams - Quarterfinals created (${round1Matches.length} matches)`);
+    }
   }
 
   // Method to advance tournament to next round (called when previous round completes)

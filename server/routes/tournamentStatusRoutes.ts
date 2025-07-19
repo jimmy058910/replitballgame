@@ -447,7 +447,7 @@ router.post('/:id/force-start', isAuthenticated, async (req: any, res) => {
     }
 
     const currentParticipants = tournament.entries.length;
-    const maxParticipants = 8;
+    const maxParticipants = tournament.type === 'MID_SEASON_CLASSIC' ? 16 : 8;
     const spotsRemaining = maxParticipants - currentParticipants;
 
     if (spotsRemaining <= 0) {

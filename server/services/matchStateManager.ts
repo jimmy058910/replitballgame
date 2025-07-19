@@ -598,6 +598,13 @@ class MatchStateManager {
     }
 
     if (state.gameTime >= state.maxTime) {
+      // Check if match needs overtime/sudden death (tournaments and league playoffs)
+      if (await this.needsOvertime(matchId, state)) {
+        await this.startOvertime(state, matchId);
+        return;
+      }
+      
+      // Match completed
       await this.completeMatch(matchId, state.homeTeamId, state.awayTeamId, homeTeamPlayers, awayTeamPlayers);
       return;
     }
@@ -803,6 +810,79 @@ class MatchStateManager {
     return event;
   }
   
+  // Check if match needs overtime (tournaments and tied games)
+  private async needsOvertime(matchId: string, state: LiveMatchState): Promise<boolean> {
+    // Only applies to tied games
+    if (state.homeScore !== state.awayScore) {
+      return false;
+    }
+
+    // Get match details to check if it's a tournament match
+    const match = await prisma.game.findUnique({
+      where: { id: parseInt(matchId) },
+      include: { tournament: true }
+    });
+
+    if (!match) return false;
+
+    // Tournament matches need overtime if tied
+    if (match.matchType === 'TOURNAMENT_DAILY') {
+      console.log(`🏆 Tournament match ${matchId} is tied ${state.homeScore}-${state.awayScore}, starting sudden death overtime!`);
+      return true;
+    }
+
+    // League playoff matches (you can add playoff detection logic here)
+    // For now, assume regular league matches don't have playoffs
+    
+    return false;
+  }
+
+  // Start overtime/sudden death period
+  private async startOvertime(state: LiveMatchState, matchId: string): Promise<void> {
+    // Sudden death: first team to score wins
+    state.gameEvents.push({
+      time: state.gameTime,
+      type: 'overtime_start',
+      description: `🚨 SUDDEN DEATH OVERTIME! The game is tied ${state.homeScore}-${state.awayScore}. First team to score wins!`,
+      data: { homeScore: state.homeScore, awayScore: state.awayScore }
+    });
+
+    // Extend max time for overtime (unlimited until first score)
+    state.maxTime = state.gameTime + 600; // Add 10 minutes max for overtime
+    
+    console.log(`⚡ Overtime started for match ${matchId} - sudden death until first score!`);
+
+    // Broadcast overtime start
+    if (this.webSocketService) {
+      this.webSocketService.broadcastMatchEvent(matchId, {
+        time: state.gameTime,
+        type: 'overtime_start',
+        description: `SUDDEN DEATH OVERTIME! First team to score wins!`,
+        data: { homeScore: state.homeScore, awayScore: state.awayScore }
+      });
+    }
+  }
+
+  // Check for overtime completion (first score wins)
+  private checkOvertimeCompletion(state: LiveMatchState, matchId: string, initialHomeScore: number, initialAwayScore: number): boolean {
+    // If either team scored in overtime, end the game immediately
+    if (state.homeScore > initialHomeScore || state.awayScore > initialAwayScore) {
+      const winner = state.homeScore > initialHomeScore ? 'Home' : 'Away';
+      
+      state.gameEvents.push({
+        time: state.gameTime,
+        type: 'sudden_death_winner',
+        description: `🏆 SUDDEN DEATH VICTORY! ${winner} team wins ${state.homeScore}-${state.awayScore}!`,
+        data: { winner, finalScore: { home: state.homeScore, away: state.awayScore } }
+      });
+
+      console.log(`🏆 Sudden death completed! ${winner} team wins ${state.homeScore}-${state.awayScore}`);
+      return true;
+    }
+    
+    return false;
+  }
+
   private determineGamePhase(time: number, maxTime: number): string {
     const timePercent = time / maxTime;
     
