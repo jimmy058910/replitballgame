@@ -264,11 +264,23 @@ class MatchStateManager {
 
     // Formation data exists - use the specified starters
     console.log(`🎯 Using formation starters:`, formation.starters);
-    const starterIds = formation.starters.map(s => s.id);
-    const selectedStarters = teamPlayers.filter(player => starterIds.includes(player.id));
+    console.log(`🔍 Available players:`, teamPlayers.map(p => `${p.id}: ${p.firstName} ${p.lastName} (${p.role})`));
+    
+    const starterIds = formation.starters.map(s => parseInt(s.id.toString())); // Ensure IDs are numbers
+    console.log(`🔍 Formation starter IDs:`, starterIds);
+    
+    const selectedStarters = teamPlayers.filter(player => {
+      const playerIdNum = parseInt(player.id.toString());
+      const isSelected = starterIds.includes(playerIdNum);
+      console.log(`🔍 Player ${playerIdNum} (${player.firstName} ${player.lastName}): ${isSelected ? 'SELECTED' : 'not selected'}`);
+      return isSelected;
+    });
+    
+    console.log(`🎯 Selected ${selectedStarters.length} starters from formation`);
     
     if (selectedStarters.length !== 6) {
       console.warn(`⚠️ Formation has ${selectedStarters.length} starters instead of 6, falling back to default selection`);
+      console.log(`⚠️ Missing starters. Expected: ${starterIds}, Found: ${selectedStarters.map(p => p.id)}`);
       return this.selectDefaultStarters(teamPlayers);
     }
     
