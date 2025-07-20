@@ -1,0 +1,32 @@
+PS C:\RealmRivalry\Fantasy-Ball-Game> # Create budget with corrected threshold syntax
+PS C:\RealmRivalry\Fantasy-Ball-Game> gcloud billing budgets create --billing-account=01F0AE-76EE31-CC4ED7 --display-name="Realm Rivalry Budget" --budget-amount=100USD --threshold-rule="percent=50,basis=CURRENT_SPEND" --threshold-rule="percent=90,basis=CURRENT_SPEND" --threshold-rule="percent=100,basis=CURRENT_SPEND"
+API [billingbudgets.googleapis.com] not enabled on project [direct-glider-465821-p7]. Would you like to enable and retry
+ (this will take a few minutes)? (y/N)?  y
+
+Enabling service [billingbudgets.googleapis.com] on project [direct-glider-465821-p7]...
+Operation "operations/acat.p2-108005641993-d86d4a00-7c55-48f4-8131-53ca2b42b800" finished successfully.
+Created [9e00729b-7e6f-496f-a010-7458eb3849c2].
+PS C:\RealmRivalry\Fantasy-Ball-Game> # Create uptime check with corrected arguments
+PS C:\RealmRivalry\Fantasy-Ball-Game> gcloud alpha monitoring uptime create realm-rivalry-uptime --display-name="Realm Rivalry Uptime" --resource-type=uptime_url --resource-labels="host=realm-rivalry-o6fd46yesq-ul.a.run.app" --http-check-path=/health --use-ssl
+ERROR: (gcloud.alpha.monitoring.uptime.create) argument --resource-type: Invalid choice: 'uptime_url'. Did you mean 'uptime-url'?
+Maybe you meant:
+  gcloud monitoring uptime create
+  gcloud monitoring uptime delete
+  gcloud monitoring uptime describe
+  gcloud monitoring uptime list-configs
+  gcloud monitoring uptime list-ips
+  gcloud monitoring uptime update
+
+To search the help text of gcloud commands, run:
+  gcloud help -- SEARCH_TERMS
+PS C:\RealmRivalry\Fantasy-Ball-Game> # Get notification channel ID
+PS C:\RealmRivalry\Fantasy-Ball-Game> gcloud alpha monitoring channels list --filter="displayName:Realm\ Rivalry\ Alerts" --format="value(name)"
+WARNING: The following filter keys were not present in any resource : displayName
+PS C:\RealmRivalry\Fantasy-Ball-Game> # Create alert policy for uptime failures (get channel ID first)
+PS C:\RealmRivalry\Fantasy-Ball-Game> gcloud alpha monitoring policies create --display-name="Realm Rivalry Down Alert" --condition-filter='metric.type="monitoring.googleapis.com/uptime_check/check_passed"' --condition-comparison=COMPARISON_EQUAL --condition-threshold-value=0 --condition-duration=300s
+ERROR: (gcloud.alpha.monitoring.policies.create) unrecognized arguments:
+  --condition-comparison=COMPARISON_EQUAL (did you mean '--condition-display-name'?)
+  --condition-threshold-value=0 (did you mean '--condition-filter'?)
+  --condition-duration=300s (did you mean '--configuration'?)
+  To search the help text of gcloud commands, run:
+  gcloud help -- SEARCH_TERMS
