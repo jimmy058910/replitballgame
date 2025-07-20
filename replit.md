@@ -160,6 +160,8 @@ Built as a React + Express web application with PostgreSQL database, using moder
 - ✓ **Production Operational**: Complete fantasy sports platform deployed with tournament system, player management, and live match simulation
 - ✓ **Database Schema Fixed**: Corrected Prisma field names (TeamFinance → finances, Stadium → stadium) in seasonTimingAutomationService.ts
 - ✓ **Stadium Costs Working**: Daily stadium maintenance cost system now operational without database errors
+- ✓ **Live App URLs**: Main app at https://realm-rivalry-o6fd46yesq-ul.a.run.app, Test app at https://realm-rivalry-minimal-o6fd46yesq-ul.a.run.app
+- ✓ **Organization Policy**: Removed restrictive policy (61283374946), working on IAM access configuration
 
 #### ✅ GOOGLE OAUTH INTEGRATION COMPLETE - AUTHENTICATION SYSTEM READY FOR GCP
 - ✓ **Google OAuth Credentials**: Client ID and Client Secret properly configured in GCP Secret Manager
