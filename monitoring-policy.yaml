@@ -3,7 +3,7 @@ conditions:
 - displayName: "Error rate above threshold"
   conditionThreshold:
     filter: resource.type="cloud_run_revision"
-    comparison: COMPARISON_ABOVE
+    comparison: COMPARISON_GREATER
     thresholdValue: 10
     duration: 300s
     aggregations:
