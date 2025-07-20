@@ -1,73 +1,78 @@
 import express from 'express';
 import { createServer } from 'http';
-import { setupGoogleAuth } from './googleAuth';
-import { registerAllRoutes } from './routes/index';
-import { serveStatic } from './vite';
-import session from 'express-session';
-import passport from 'passport';
-import { createHealthCheck } from './health';
 
 const app = express();
 const port = process.env.PORT ? parseInt(process.env.PORT) : 8080;
 
-console.log('🚀 Starting Realm Rivalry production server...');
+console.log('🚀 Starting ultra-minimal production server...');
 console.log('📍 Port:', port);
-console.log('🌍 Environment:', process.env.NODE_ENV);
+
+// Minimal health check
+app.get('/health', (req, res) => {
+  res.status(200).json({ status: 'ok', timestamp: new Date().toISOString() });
+});
+
+app.get('/api/health', (req, res) => {
+  res.status(200).json({ status: 'ok', timestamp: new Date().toISOString() });
+});
 
 // Basic middleware
 app.use(express.json({ limit: '10mb' }));
-app.use(express.urlencoded({ extended: false, limit: '10mb' }));
-
-// Health check - must be first
-app.get('/health', createHealthCheck());
-app.get('/api/health', createHealthCheck());
-
-// Session configuration
-app.use(session({
-  secret: process.env.SESSION_SECRET || 'default-secret-key',
-  resave: false,
-  saveUninitialized: false,
-  cookie: {
-    secure: process.env.NODE_ENV === 'production',
-    httpOnly: true,
-    maxAge: 24 * 60 * 60 * 1000, // 24 hours
-    sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax'
-  }
-}));
-
-// Passport initialization
-app.use(passport.initialize());
-app.use(passport.session());
 
 const httpServer = createServer(app);
 
-// Start server immediately
-httpServer.listen(port, '0.0.0.0', async () => {
+// Start server immediately - NO async initialization
+httpServer.listen(port, '0.0.0.0', () => {
   console.log(`✅ Server listening on port ${port}`);
   console.log(`🏥 Health check: http://0.0.0.0:${port}/health`);
+  console.log('🎉 Minimal server ready');
   
-  try {
-    // Initialize auth system
-    console.log('🔐 Setting up authentication...');
-    await setupGoogleAuth();
-    console.log('✅ Authentication ready');
-    
-    // Register routes
-    console.log('🛣️ Setting up routes...');
-    registerAllRoutes(app);
-    console.log('✅ Routes ready');
-    
-    // Serve static files
-    console.log('📁 Setting up static files...');
-    serveStatic(app);
-    console.log('✅ Static files ready');
-    
-    console.log('🎉 Production server fully initialized');
-    
-  } catch (error) {
-    console.error('❌ Initialization error:', error);
-    // Don't crash - server is already listening
-  }
+  // Initialize everything else AFTER server is listening and responding
+  setTimeout(async () => {
+    try {
+      console.log('🔄 Starting background initialization...');
+      
+      // Dynamic imports to avoid blocking startup
+      const { setupGoogleAuth } = await import('./googleAuth');
+      const { registerAllRoutes } = await import('./routes/index');
+      const { serveStatic } = await import('./vite');
+      const session = await import('express-session');
+      const passport = await import('passport');
+      
+      // Session configuration
+      app.use(session.default({
+        secret: process.env.SESSION_SECRET || 'default-secret-key',
+        resave: false,
+        saveUninitialized: false,
+        cookie: {
+          secure: process.env.NODE_ENV === 'production',
+          httpOnly: true,
+          maxAge: 24 * 60 * 60 * 1000,
+          sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax'
+        }
+      }));
+      
+      app.use(passport.default.initialize());
+      app.use(passport.default.session());
+      
+      // Initialize auth
+      await setupGoogleAuth();
+      console.log('✅ Authentication initialized');
+      
+      // Register routes
+      registerAllRoutes(app);
+      console.log('✅ Routes initialized');
+      
+      // Serve static files
+      serveStatic(app);
+      console.log('✅ Static files initialized');
+      
+      console.log('🎉 Full system ready');
+      
+    } catch (error) {
+      console.error('❌ Background initialization error:', error);
+    }
+  }, 1000); // 1 second delay to ensure health checks work first
 });
 
 // Handle graceful shutdown
