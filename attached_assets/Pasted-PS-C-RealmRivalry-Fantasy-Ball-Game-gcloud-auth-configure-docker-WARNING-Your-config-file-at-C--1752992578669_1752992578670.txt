@@ -1,0 +1,68 @@
+PS C:\RealmRivalry\Fantasy-Ball-Game> gcloud auth configure-docker
+WARNING: Your config file at [C:\Users\Jimmy\.docker\config.json] contains these credential helper entries:
+
+{
+  "credHelpers": {
+    "asia.gcr.io": "gcloud",
+    "eu.gcr.io": "gcloud",
+    "gcr.io": "gcloud",
+    "marketplace.gcr.io": "gcloud",
+    "staging-k8s.gcr.io": "gcloud",
+    "us.gcr.io": "gcloud"
+  }
+}
+Adding credentials for all GCR repositories.
+WARNING: A long list of credential helpers may cause delays running 'docker build'. We recommend passing the registry name to configure only the registry you are using.
+gcloud credential helpers already registered correctly.
+PS C:\RealmRivalry\Fantasy-Ball-Game> docker build -t gcr.io/direct-glider-465821-p7/realm-rivalry:latest .
+[+] Building 27.6s (13/18)                                                                         docker:desktop-linux
+ => [internal] load build definition from Dockerfile                                                               0.0s
+ => => transferring dockerfile: 1.26kB                                                                             0.0s
+ => [internal] load metadata for docker.io/library/node:20-alpine                                                  0.9s
+ => [internal] load .dockerignore                                                                                  0.0s
+ => => transferring context: 488B                                                                                  0.0s
+ => [base 1/5] FROM docker.io/library/node:20-alpine@sha256:df02558528d3d3d0d621f112e232611aecfee7cbc654f6b375765  2.8s
+ => => resolve docker.io/library/node:20-alpine@sha256:df02558528d3d3d0d621f112e232611aecfee7cbc654f6b375765f72bb  0.0s
+ => => sha256:a9e48ad1219d4d11c6456a8db0fd5c11af46242d52edf84e17ab84a7bfd93809 445B / 445B                         0.8s
+ => => sha256:54225bd601967a0aa669ec9be621c24d8eeac874b698d55874018070898685c2 1.26MB / 1.26MB                     0.3s
+ => => sha256:8c59d92d6fc9f01af4aaa86824be72b74bd4d940c4c46aa95d9710bfa46c975e 42.99MB / 42.99MB                   2.1s
+ => => sha256:9824c27679d3b27c5e1cb00a73adb6f4f8d556994111c12db3c5d61a0c843df8 3.80MB / 3.80MB                     0.4s
+ => => extracting sha256:9824c27679d3b27c5e1cb00a73adb6f4f8d556994111c12db3c5d61a0c843df8                          0.1s
+ => => extracting sha256:8c59d92d6fc9f01af4aaa86824be72b74bd4d940c4c46aa95d9710bfa46c975e                          0.6s
+ => => extracting sha256:54225bd601967a0aa669ec9be621c24d8eeac874b698d55874018070898685c2                          0.0s
+ => => extracting sha256:a9e48ad1219d4d11c6456a8db0fd5c11af46242d52edf84e17ab84a7bfd93809                          0.0s
+ => [internal] load build context                                                                                  0.9s
+ => => transferring context: 26.04MB                                                                               0.9s
+ => [base 2/5] RUN apk update && apk upgrade && apk add --no-cache dumb-init                                       1.4s
+ => [base 3/5] WORKDIR /app                                                                                        0.0s
+ => [base 4/5] COPY package*.json ./                                                                               0.0s
+ => [base 5/5] RUN npm ci --only=production && npm cache clean --force                                            10.4s
+ => [builder 1/4] WORKDIR /app                                                                                     0.1s
+ => [builder 2/4] RUN npm ci                                                                                      11.3s
+ => [builder 3/4] COPY . .                                                                                         0.2s
+ => ERROR [builder 4/4] RUN npm run build                                                                          0.4s
+------
+ > [builder 4/4] RUN npm run build:
+0.238
+0.238 > rest-express@1.0.0 build
+0.238 > vite build --config vite.config.production.ts
+0.238
+0.376 vite v6.3.5 building for production...
+0.397 ✓ 0 modules transformed.
+0.399 ✗ Build failed in 7ms
+0.399 error during build:
+0.399 Could not resolve entry module "index.html".
+0.399     at getRollupError (file:///app/node_modules/rollup/dist/es/shared/parseAst.js:401:41)
+0.399     at error (file:///app/node_modules/rollup/dist/es/shared/parseAst.js:397:42)
+0.399     at ModuleLoader.loadEntryModule (file:///app/node_modules/rollup/dist/es/shared/node-entry.js:21463:20)
+0.399     at async Promise.all (index 0)
+------
+Dockerfile:27
+--------------------
+  25 |
+  26 |     # Build the application
+  27 | >>> RUN npm run build
+  28 |
+  29 |     # Production stage
+--------------------
+ERROR: failed to build: failed to solve: process "/bin/sh -c npm run build" did not complete successfully: exit code: 1
