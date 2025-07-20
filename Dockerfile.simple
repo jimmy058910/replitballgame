@@ -26,6 +26,6 @@ EXPOSE 8080
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
   CMD node -e "require('http').get('http://localhost:8080/health', (res) => { process.exit(res.statusCode === 200 ? 0 : 1) }).on('error', () => process.exit(1))"
 
-# Run TypeScript directly with tsx (no compilation step)
+# Run Cloud Run optimized server
 ENTRYPOINT ["dumb-init", "--"]
-CMD ["npx", "tsx", "server/index.ts"]
+CMD ["npx", "tsx", "server/index.cloudrun.ts"]

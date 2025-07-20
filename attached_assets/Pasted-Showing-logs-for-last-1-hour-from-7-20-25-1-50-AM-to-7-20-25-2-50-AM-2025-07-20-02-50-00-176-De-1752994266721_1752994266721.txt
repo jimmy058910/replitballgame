@@ -1,0 +1,44 @@
+Showing logs for last 1 hour from 7/20/25, 1:50 AM to 7/20/25, 2:50 AM.
+2025-07-20 02:50:00.176
+Default STARTUP TCP probe failed 1 time consecutively for container "realm-rivalry-1" on port 8080. The instance was not started.
+Connection failed with status CANCELLED.
+
+{
+insertId: "687c91980002b1665a5072b3"
+labels: {1}
+logName: "projects/direct-glider-465821-p7/logs/run.googleapis.com%2Fvarlog%2Fsystem"
+receiveTimestamp: "2025-07-20T06:50:00.418058804Z"
+resource: {2}
+severity: "ERROR"
+textPayload: "Default STARTUP TCP probe failed 1 time consecutively for container "realm-rivalry-1" on port 8080. The instance was not started.
+Connection failed with status CANCELLED."
+timestamp: "2025-07-20T06:50:00.176486Z"
+}
+2025-07-20 02:50:00.187
+
+run.googleapis.com
+
+/Services.ReplaceService
+
+…821-p7/revisions/realm-rivalry-00015-4hd
+Ready condition status changed to False for Revision realm-rivalry-00015-4hd with message: The user-provided container failed to start and listen on the port defined provided by the PORT=8080 environment variable within the allocated timeout. This can happen when the container port is misconfigured or if the timeout is too short. The health check timeout can be extended. Logs for this revision might contain more information.
+
+Logs URL: https://console.cloud.google.com/logs/viewer?project=direct-glider-465821-p7&resource=cloud_run_revision/service_name/realm-rivalry/revision_name/realm-rivalry-00015-4hd&advancedFilter=resource.type%3D%22cloud_run_revision%22%0Aresource.labels.service_name%3D%22realm-rivalry%22%0Aresource.labels.revision_name%3D%22realm-rivalry-00015-4hd%22 
+For more troubleshooting guidance, see https://cloud.google.com/run/docs/troubleshooting#container-failed-to-start
+
+{
+insertId: "puqpc0ck8w"
+logName: "projects/direct-glider-465821-p7/logs/cloudaudit.googleapis.com%2Fsystem_event"
+protoPayload: {
+@type: "type.googleapis.com/google.cloud.audit.AuditLog"
+methodName: "/Services.ReplaceService"
+resourceName: "namespaces/direct-glider-465821-p7/revisions/realm-rivalry-00015-4hd"
+response: {6}
+serviceName: "run.googleapis.com"
+status: {2}
+}
+receiveTimestamp: "2025-07-20T06:50:00.987474538Z"
+resource: {2}
+severity: "ERROR"
+timestamp: "2025-07-20T06:50:00.187673Z"
+}
