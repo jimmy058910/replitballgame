@@ -1,0 +1,61 @@
+PS C:\RealmRivalry\Fantasy-Ball-Game> # 🔧 3. Create alert policy (comparison value now corrected)
+PS C:\RealmRivalry\Fantasy-Ball-Game> gcloud alpha monitoring policies create --policy-from-file=monitoring-policy.yaml
+ERROR: (gcloud.alpha.monitoring.policies.create) INVALID_ARGUMENT: Invalid value at 'alert_policy.conditions[0].condition_threshold.comparison' (type.googleapis.com/google.monitoring.v3.ComparisonType), "COMPARISON_GREATER_THAN"
+- '@type': type.googleapis.com/google.rpc.BadRequest
+  fieldViolations:
+  - description: Invalid value at 'alert_policy.conditions[0].condition_threshold.comparison'
+      (type.googleapis.com/google.monitoring.v3.ComparisonType), "COMPARISON_GREATER_THAN"
+    field: alert_policy.conditions[0].condition_threshold.comparison
+PS C:\RealmRivalry\Fantasy-Ball-Game>
+PS C:\RealmRivalry\Fantasy-Ball-Game> # 🔧 4. View logs (without --follow)
+PS C:\RealmRivalry\Fantasy-Ball-Game> gcloud run services logs read realm-rivalry --project=direct-glider-465821-p7 --limit=50
+2025-07-20 07:09:38 Server alive on port 8080 at 2025-07-20T07:09:38.828Z
+2025-07-20 07:09:48 Server alive on port 8080 at 2025-07-20T07:09:48.829Z
+2025-07-20 07:09:58 Server alive on port 8080 at 2025-07-20T07:09:58.830Z
+2025-07-20 07:10:08 Server alive on port 8080 at 2025-07-20T07:10:08.830Z
+2025-07-20 07:10:18 Server alive on port 8080 at 2025-07-20T07:10:18.830Z
+2025-07-20 07:10:28 Server alive on port 8080 at 2025-07-20T07:10:28.831Z
+2025-07-20 07:10:38 Server alive on port 8080 at 2025-07-20T07:10:38.832Z
+2025-07-20 07:10:48 Server alive on port 8080 at 2025-07-20T07:10:48.832Z
+2025-07-20 07:10:58 Server alive on port 8080 at 2025-07-20T07:10:58.833Z
+2025-07-20 07:11:08 Server alive on port 8080 at 2025-07-20T07:11:08.835Z
+2025-07-20 07:11:18 Server alive on port 8080 at 2025-07-20T07:11:18.836Z
+2025-07-20 07:11:28 Server alive on port 8080 at 2025-07-20T07:11:28.837Z
+2025-07-20 07:11:38 Server alive on port 8080 at 2025-07-20T07:11:38.837Z
+2025-07-20 07:11:48 Server alive on port 8080 at 2025-07-20T07:11:48.839Z
+2025-07-20 07:11:58 Server alive on port 8080 at 2025-07-20T07:11:58.841Z
+2025-07-20 07:12:08 Server alive on port 8080 at 2025-07-20T07:12:08.841Z
+2025-07-20 07:12:18 Server alive on port 8080 at 2025-07-20T07:12:18.842Z
+2025-07-20 07:12:28 Server alive on port 8080 at 2025-07-20T07:12:28.842Z
+2025-07-20 07:12:38 Server alive on port 8080 at 2025-07-20T07:12:38.843Z
+2025-07-20 07:12:48 Server alive on port 8080 at 2025-07-20T07:12:48.844Z
+2025-07-20 07:12:58 Server alive on port 8080 at 2025-07-20T07:12:58.844Z
+2025-07-20 07:13:08 Server alive on port 8080 at 2025-07-20T07:13:08.844Z
+2025-07-20 07:13:18 Server alive on port 8080 at 2025-07-20T07:13:18.845Z
+2025-07-20 07:13:28 Server alive on port 8080 at 2025-07-20T07:13:28.845Z
+2025-07-20 07:13:38 Server alive on port 8080 at 2025-07-20T07:13:38.846Z
+2025-07-20 07:13:48 Server alive on port 8080 at 2025-07-20T07:13:48.847Z
+2025-07-20 07:13:58 Server alive on port 8080 at 2025-07-20T07:13:58.848Z
+2025-07-20 07:14:08 Server alive on port 8080 at 2025-07-20T07:14:08.849Z
+2025-07-20 07:14:18 Server alive on port 8080 at 2025-07-20T07:14:18.850Z
+2025-07-20 07:14:28 Server alive on port 8080 at 2025-07-20T07:14:28.851Z
+2025-07-20 07:14:38 Server alive on port 8080 at 2025-07-20T07:14:38.852Z
+2025-07-20 07:14:48 Server alive on port 8080 at 2025-07-20T07:14:48.853Z
+2025-07-20 07:14:58 Server alive on port 8080 at 2025-07-20T07:14:58.854Z
+2025-07-20 07:15:08 Server alive on port 8080 at 2025-07-20T07:15:08.854Z
+2025-07-20 07:15:18 Server alive on port 8080 at 2025-07-20T07:15:18.855Z
+2025-07-20 07:15:28 Server alive on port 8080 at 2025-07-20T07:15:28.855Z
+2025-07-20 07:15:38 Server alive on port 8080 at 2025-07-20T07:15:38.856Z
+2025-07-20 07:15:48 Server alive on port 8080 at 2025-07-20T07:15:48.857Z
+2025-07-20 07:15:58 Server alive on port 8080 at 2025-07-20T07:15:58.857Z
+2025-07-20 07:16:08 Server alive on port 8080 at 2025-07-20T07:16:08.920Z
+2025-07-20 07:16:18 Server alive on port 8080 at 2025-07-20T07:16:18.921Z
+2025-07-20 07:16:28 Server alive on port 8080 at 2025-07-20T07:16:28.922Z
+2025-07-20 07:16:38 Server alive on port 8080 at 2025-07-20T07:16:38.923Z
+2025-07-20 07:16:48 Server alive on port 8080 at 2025-07-20T07:16:48.923Z
+2025-07-20 07:16:58 Server alive on port 8080 at 2025-07-20T07:16:58.923Z
+2025-07-20 07:17:08 Server alive on port 8080 at 2025-07-20T07:17:08.924Z
+2025-07-20 07:17:18 Server alive on port 8080 at 2025-07-20T07:17:18.925Z
+2025-07-20 12:56:15 GET 403 https://realm-rivalry-o6fd46yesq-ul.a.run.app/health
+2025-07-20 12:58:01 GET 403 https://realm-rivalry-o6fd46yesq-ul.a.run.app/health
+2025-07-20 12:58:02 HEAD 403 https://realm-rivalry-o6fd46yesq-ul.a.run.app/
