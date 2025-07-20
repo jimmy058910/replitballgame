@@ -48,3 +48,25 @@ coverage/
 
 # dotenv environment variables file
 .env.test
+
+# Development and documentation files (not for production)
+attached_assets/
+replit.md
+AUTH_MIGRATION_GUIDE.md
+DEPLOYMENT_GUIDE_GCP.md
+fix-deployment.md
+
+# Old/temporary files
+update_team_records.js
+resolve_conflicts.py
+resolve_conflicts.sh
+cookies.txt
+new_cookies.txt
+monitoring-policy.yaml
+
+# Development Dockerfiles (keep only production)
+Dockerfile.debug
+Dockerfile.fixed
+Dockerfile.minimal
+Dockerfile.simple
+Dockerfile.test
