@@ -84,19 +84,23 @@ app.use((req, res, next) => {
   res.header('Cache-Control', 'no-cache, no-store, must-revalidate');
   res.header('Pragma', 'no-cache');
   res.header('Expires', '0');
-  
+
   // Secure CORS implementation
   const origin = req.headers.origin;
   if (validateOrigin(origin)) {
     res.header('Access-Control-Allow-Origin', origin);
   }
-  
+
   next();
 });
 
-// Health check endpoint for Replit preview detection
+// Add health check endpoint
 app.get('/health', (req, res) => {
-  res.status(200).json({ status: 'ok', timestamp: new Date().toISOString() });
+  res.status(200).json({ 
+    status: 'healthy', 
+    timestamp: new Date().toISOString(),
+    uptime: process.uptime()
+  });
 });
 
 // Enhanced logging middleware with structured logging

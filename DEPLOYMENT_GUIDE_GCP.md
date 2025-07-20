@@ -288,10 +288,14 @@ Create `env.production.example`:
 # Database
 DATABASE_URL=your_neon_database_url
 
-# Authentication  
-REPLIT_AUTH_CLIENT_ID=your_auth_client_id
-REPLIT_AUTH_CLIENT_SECRET=your_auth_client_secret
-REPLIT_AUTH_REDIRECT_URI=https://your-domain.com/auth/callback
+# Authentication (Google OAuth recommended for GCP)
+GOOGLE_CLIENT_ID=your_google_client_id
+GOOGLE_CLIENT_SECRET=your_google_client_secret
+
+# Alternative: Replit Auth (requires special setup)
+# REPLIT_AUTH_CLIENT_ID=your_auth_client_id  
+# REPLIT_AUTH_CLIENT_SECRET=your_auth_client_secret
+# REPLIT_AUTH_REDIRECT_URI=https://your-domain.com/auth/callback
 
 # Session
 SESSION_SECRET=your_session_secret
