@@ -1,5 +1,8 @@
 # Realm Rivalry - Comprehensive Game Manual
 
+**🎉 ENTERPRISE PRODUCTION DEPLOYMENT COMPLETE 🎉**  
+*Now live at [realmrivalry.com](https://realmrivalry.com) with full Google Cloud Platform infrastructure*
+
 ## Table of Contents
 
 ### 1. Getting Started
@@ -8,6 +11,7 @@
    - 1.3 [Understanding the Dashboard](#13-understanding-the-dashboard)
    - 1.4 [Hub-Based Navigation](#14-hub-based-navigation)
    - 1.5 [Dual Currency System](#15-dual-currency-system)
+   - 1.6 [Production Platform Access](#16-production-platform-access)
 
 ### 2. Understanding the Game World
    - 2.1 [The Five Fantasy Races](#21-the-five-fantasy-races)
@@ -142,12 +146,32 @@ Two types of currency with dynamic exchange rates:
    - Primary game currency
    - Earned through matches, stadium revenue, and achievements
    - Used for salaries, marketplace, basic items, and facility upgrades
+   - **Daily Stadium Costs**: 5,000₡ per day automatic maintenance deduction
 
 2. **Premium Gems (💎)**:
    - Premium currency
    - Earned through division rewards and special achievements
    - Exchange rate: 450-600 credits per gem (dynamic pricing)
    - Used for premium items and enhanced features
+
+### 1.6 Production Platform Access
+
+**Live Production Environment**:
+- **Primary URL**: [https://realmrivalry.com](https://realmrivalry.com)
+- **Custom Domain**: Full enterprise deployment with SSL certificates
+- **Google Cloud Platform**: Complete production infrastructure
+- **Authentication**: Google OAuth integration for secure access
+- **Performance**: Optimized for 409+ active players with tournament systems
+- **Real-time Features**: WebSocket integration for live matches and notifications
+- **Mobile Support**: PWA-enabled for mobile app-like experience
+
+**Enterprise Infrastructure**:
+- **Cloud Run Deployment**: Auto-scaling container infrastructure
+- **Load Balancer**: Enterprise-grade traffic management
+- **Monitoring & Alerts**: Comprehensive uptime and error monitoring
+- **CI/CD Pipeline**: Automated deployment from GitHub repository
+- **Database**: Neon PostgreSQL with connection pooling
+- **Caching**: Redis-based performance optimization
 
 ---
 
@@ -216,7 +240,7 @@ Three main roles with universal color coding:
 
 ### 2.3 8-Division League System
 
-Hierarchical league structure with mineral-based naming:
+Hierarchical league structure with massive scalability:
 
 1. **Division 1**: Diamond League (Elite)
 2. **Division 2**: Platinum League (Championship)
@@ -227,13 +251,22 @@ Hierarchical league structure with mineral-based naming:
 7. **Division 7**: Stone League (Developing)
 8. **Division 8**: Copper League (Foundation)
 
+**Subdivision System (Enterprise Scale)**:
+- **25 Greek Alphabet Subdivisions**: Full Greek alphabet names (main, alpha, beta, gamma... omega)
+- **Numbered Extensions**: Each Greek name supports up to 100 numbered extensions (Alpha 1, Beta 15, Omega 99)
+- **20,200+ Player Capacity**: 25 base subdivisions + 2,500 numbered subdivisions = 20,200 total player capacity
+- **User-Friendly Display**: Subdivision names formatted for display (alpha_3 → "Alpha 3", omega_12 → "Omega 12")
+- **8-Team Limit**: Strict enforcement of 8 teams per subdivision for competitive balance
+- **Infinite Scalability**: Dynamic subdivision creation with timestamp-based naming for unlimited growth
+
 **Promotion/Relegation Rules**:
-- Each division has multiple leagues of 8 teams each
-- Top 2 teams from each league promote to higher division
+- Each subdivision contains exactly 8 teams
+- Top 2 teams from each subdivision promote to higher division
 - Bottom 2 teams relegate to lower division
 - Playoffs can affect final positions for promotion/relegation
 - Division 1 winners become overall champions
 - Division 8 is the floor (no relegation below)
+- Cross-subdivision playoffs determine final promotion/relegation spots
 
 ### 2.4 17-Day Season Structure
 
@@ -264,18 +297,32 @@ Game operates on Eastern Time (Detroit timezone):
 
 ### 3.1 Roster Management
 
-Comprehensive player management with enhanced features:
+Comprehensive player management with enhanced features and taxi squad system:
 
 **Player Cards**: Universal color-coded by role (Red/Yellow/Green)
-**Power Ratings**: Calculated from 5 core stats (Speed, Power, Throwing, Catching, Stamina)
-**Formation System**: 6-player formations (1 Passer, 2 Runners, 2 Blockers, 1 Wildcard)
-**Substitution Orders**: Position-specific substitute management
+**Power Ratings**: Calculated from 6 core stats (Speed, Power, Throwing, Catching, Kicking, Stamina)
+**Formation System**: 6-player tactical formations for strategic gameplay
+**Advanced Roster Structure**: 12-15 total players with main roster and taxi squad
+
+**Roster & Taxi Squad Management**:
+- **Total Roster Size**: 12-15 players (including taxi squad)
+- **Main Roster**: First 12 players (eligible for matches and tactics)
+- **Taxi Squad**: Players 13-15 (promotion-only during offseason)
+- **Position Requirements**: Minimum 4 Blockers, 4 Runners, 3 Passers
+- **Match Eligibility**: Only main roster players can participate in matches
+
+**Taxi Squad Rules**:
+- **Promotion Only**: Players can only be promoted FROM taxi squad, never relegated TO it
+- **Offseason Promotions**: Taxi squad promotions only allowed during Days 16-17
+- **Player Releases**: During offseason, players can be released to make room
+- **Strategic Depth**: Taxi squad provides development opportunities for prospects
 
 **Formation Requirements**:
 - Must have exactly 6 active players
 - Minimum role requirements must be met
 - Wildcard position can be any role
-- Substitutes organized by position type
+- **Auto-Substitution**: Players substitute at 50% stamina or severe injury
+- **Substitution Order**: Drag-and-drop interface for position-specific queuing
 
 ### 3.2 Player Skills System
 
@@ -307,22 +354,31 @@ Comprehensive player management with enhanced features:
 
 ### 3.3 Injury & Stamina Management
 
-Dual-stamina system with comprehensive injury mechanics:
+Advanced dual-stamina system with comprehensive injury mechanics and daily limits:
 
 **Stamina Types**:
-- **In-Game Stamina**: Temporary per-match value (0-100)
-- **Daily Stamina Level**: Persistent day-to-day stamina (0-100)
+- **In-Game Stamina**: Temporary per-match value (0-100), recovers between games
+- **Daily Stamina Level**: Persistent day-to-day stamina (0-100), affects training and availability
 
 **Injury Status Levels**:
-- Healthy: No limitations
-- Minor Injury: Slight stat penalties
-- Moderate Injury: Significant impact
-- Severe Injury: Major limitations
+- **Healthy**: No limitations, full performance
+- **Minor Injury**: Slight stat penalties (-5% to affected stats)
+- **Moderate Injury**: Significant impact (-15% to affected stats)
+- **Severe Injury**: Major limitations (-30% to affected stats)
 
-**Recovery System**:
-- Daily recovery points accumulation
-- Consumable items for faster healing
-- Medical staff effectiveness
+**Enhanced Recovery System**:
+- **Daily Recovery Points**: Automatic healing progression each day
+- **Medical Staff Impact**: Recovery Specialists increase daily healing
+- **Consumable Items**: Recovery items provide immediate healing
+- **Daily Item Limits**: Players limited to 2 medical items per day (resets at 3AM Eastern)
+- **Item Reset System**: Daily limits properly reset during daily progression
+- **Career Injury Tracking**: Long-term injury history affects retirement probability
+
+**Medical Center Features**:
+- **Item Usage Tracking**: Clear display of daily item usage (e.g., "1/2 items used today")
+- **Automatic Reset**: Daily item counters reset at 3AM Eastern with other daily systems
+- **Strategic Planning**: Players must choose when to use limited daily recovery items
+- **Staff Enhancement**: Recovery Specialists multiply effectiveness of medical items
 - Rest vs. participation decisions
 
 **Daily Limits**:
@@ -330,9 +386,22 @@ Dual-stamina system with comprehensive injury mechanics:
 - Recovery items vs. performance enhancers
 - Strategic item usage planning
 
-### 3.4 Advanced Tactical Effects
+### 3.4 Advanced Tactical Effects & Team Chemistry
 
-Multi-layered tactical system with real gameplay impact:
+Multi-layered tactical system with comprehensive team chemistry integration:
+
+**Enhanced Team Chemistry System**:
+- **Real-time Updates**: Team chemistry recalculates after every match completion
+- **Match Type Impact**: Different chemistry effects for League (+2/-1), Tournament (+3/-2), Exhibition (+1/0)
+- **Player Filtering**: Only active roster players (not on market, not retired) contribute to team chemistry
+- **Chemistry Thresholds**: High morale (70+), Baseline (30-70), Low morale (30-)
+- **Visual Feedback**: Team Chemistry page shows detailed player-by-player breakdown
+
+**Post-Game Chemistry Updates**:
+- **Automatic Processing**: Chemistry updates trigger after match completion
+- **Value Clamping**: Scores properly clamped to 0-100 range to prevent overflow
+- **Staff Integration**: Head Coach leadership contributes to overall team chemistry
+- **Long-term Impact**: Chemistry affects player progression and team performance
 
 **Field Size Specialization** (Home team advantage only):
 - **Standard Field**: Balanced gameplay, +1 stamina bonus
@@ -738,35 +807,68 @@ The math is more complex than "top 2 promote, bottom 2 relegate":
 
 ### 6.2 Tournament Systems
 
-Multiple tournament formats with varying rewards:
+Advanced tournament systems with multiple formats and sophisticated mechanics:
 
 **Tournament Types**:
-- Division-specific tournaments
-- Cross-division competitions
-- Special event tournaments
-- Championship series
+
+**Daily Division Tournaments**:
+- 8-team single-elimination brackets
+- Division-specific participation
+- Quick tournament format: Quarterfinals → Semifinals → Finals
+- Entry requirements: 500₡ or 1 Gem
+- Automatic registration during specific hours
+- Overtime with sudden death rules for tied games
+
+**Mid-Season Cup**:
+- 16-team cross-division tournament
+- Expanded bracket: Round of 16 → Quarterfinals → Semifinals → Finals + 3rd Place Playoff
+- Higher stakes and bigger rewards
+- Elite teams from multiple divisions
+- Enhanced prestige and championship recognition
+
+**Tournament Features**:
+- **Overtime System**: Tournament matches trigger sudden death overtime when tied at regulation end
+- **Bracket Generation**: Automatic bracket creation with proper seeding
+- **Real-time Updates**: Live tournament progression with WebSocket updates
+- **3rd Place Playoffs**: Mid-Season Cup includes 3rd place games for comprehensive ranking
+- **Anti-Sniping**: Tournament entries can be extended if filled in final minutes
+- **Force Start System**: Admin ability to fill incomplete tournaments with AI teams
 
 **Entry Requirements**:
 - Team eligibility based on division/performance
-- Entry fees in credits or gems
-- Minimum roster requirements
-- Season timing restrictions
+- Entry fees: Daily Division (500₡), Mid-Season Cup (varies)
+- Minimum 10-player roster requirement
+- Cannot participate if team has active marketplace listings
+- Season timing restrictions (not during league playoffs)
 
 ### 6.3 Exhibition Matches
 
-Practice and entertainment matches with rewards:
+Enhanced practice matches with proper reward systems and Eastern Time scheduling:
 
 **Exhibition Benefits**:
-- Player development opportunities
-- Revenue generation
-- Strategy testing
-- Fan engagement
+- **Instant Match Creation**: Immediate matches against AI opponents
+- **Flexible Duration**: 30-minute matches (vs 40-minute league matches)
+- **Performance Testing**: Test formations and tactics without league pressure
+- **Revenue Generation**: Win rewards (500₡), Loss consolation (100₡), Tie rewards (200₡)
+- **Post-Game Chemistry**: Team camaraderie increases (+1 for wins, no penalty for losses)
+
+**Exhibition Types**:
+- **Challenge Mode**: Face specific AI opponents with different difficulty levels
+- **Instant Match**: Quick random opponent selection
+- **Strategy Testing**: Venue always neutral (user team as away team)
 
 **Exhibition Limitations**:
-- Daily purchase limits (3 per day)
-- Cost considerations
-- Player fatigue accumulation
-- Season timing strategy
+- **Daily Limits**: 3 free exhibitions per day (Eastern Time cycle: 3AM-3AM)
+- **Game Day Calculation**: Proper Eastern Time awareness for daily reset
+- **Cost Structure**: Additional exhibitions can be purchased
+- **User Team Advantage**: Always away team to prevent unfair home field advantage
+- **Team Chemistry Impact**: Only positive effects to encourage practice
+
+**Eastern Time Integration**:
+- Daily exhibition reset at 3:00 AM Eastern
+- Game day calculation accounts for timezone properly
+- Cache invalidation ensures accurate daily limits
+- Consistent with overall game timing structure
 
 ### 6.4 Enhanced Live Match Simulation
 
@@ -783,17 +885,37 @@ Advanced live match simulation with sophisticated mechanics:
 - Game phase detection (early/middle/late/clutch)
 - Halftime ads and credit rewards
 
-**Stadium Upgrades Impact**:
-- Stadium capacity affects attendance and revenue
-- Upgrade levels: Basic → Standard → Advanced → Elite → Legendary
-- Each level provides multiplicative benefits to revenue streams
+**Stadium Revenue Engine**:
+- **Daily Maintenance Costs**: 5,000₡ per day automatic deduction
+- **Home Game Revenue**: Multiple revenue streams for home League matches only
+- **Revenue Calculation** (Per Home Game):
+  - Ticket Sales: ActualAttendance × 25₡
+  - Concessions: ActualAttendance × 8₡ × ConcessionsLevel
+  - Parking: (ActualAttendance × 0.3) × 10₡ × ParkingLevel
+  - Apparel Sales: ActualAttendance × 3₡ × MerchandisingLevel  
+  - VIP Suites: VIPSuitesLevel × 5000₡
+- **Net Revenue**: Gross revenue minus game day maintenance costs
 
-**Capacity Upgrade Costs**:
+**Stadium Facility Levels**:
+- **Concessions**: Level 1-5 (multiplies concession revenue)
+- **Parking**: Level 1-5 (multiplies parking revenue) 
+- **VIP Suites**: Level 1-5 (5000₡ per level per game)
+- **Merchandising**: Level 1-5 (multiplies apparel sales)
+- **Lighting/Screens**: Level 1-5 (affects fan loyalty)
+
+**Capacity Expansion Costs**:
+- Starting: 5,000 capacity (Basic stadium)
 - 20,000 capacity: 500,000₡
 - 25,000 capacity: 1,250,000₡
 - 30,000 capacity: 2,500,000₡
 - 35,000 capacity: 5,000,000₡
 - 40,000 capacity: 10,000,000₡
+
+**Transaction Logging**:
+- All stadium costs automatically logged to payment history
+- Revenue tracking for home games
+- Daily maintenance cost transparency
+- Negative balance protection (credits cannot go below 0)
 
 ### 6.5 Season Management
 
@@ -817,12 +939,26 @@ Administrative control over seasonal progression:
 
 ### 7.1 Dynamic Marketplace
 
-Advanced player marketplace with auction mechanics:
+Advanced player marketplace with sophisticated auction mechanics and anti-exploitation features:
 
-**Marketplace Rules**:
-- Minimum 10 players required to list
-- Maximum 3 active listings per team
-- Season timing restrictions (not during playoffs)
+**Enhanced Marketplace Rules**:
+- **Roster Minimum**: Must maintain 10 players to list any player
+- **Listing Limits**: Maximum 3 active listings per team
+- **Season Restrictions**: Cannot list during playoffs or specific tournament phases
+- **Listing Fees**: 2% fee on starting bid amount (non-refundable)
+- **Transaction Tax**: 5% market tax on all successful sales
+
+**Advanced Auction System**:
+- **Anti-Sniping Protection**: Auctions extend by 5 minutes if bid placed in final 5 minutes
+- **Buy-Now Pricing**: Automatic buy-now calculation: (Player CAR × 1000) + (Potential × 2000)
+- **Bidding Strategy**: Minimum bid increments prevent spam bidding
+- **Auction Duration**: Standard auction length with automatic closure
+
+**Transaction Features**:
+- **Payment History Integration**: All marketplace activity logged in transaction history
+- **Instant Notifications**: Real-time alerts for outbid situations
+- **Bid Tracking**: Complete bid history for all auctions
+- **Market Valuation**: Dynamic player valuation based on stats, age, and performance
 - Listing fees (2% of starting bid)
 
 **Listing Requirements**:
@@ -855,26 +991,35 @@ Sophisticated bidding system with anti-abuse features:
 
 ### 7.3 Store System
 
-Comprehensive item store with dual-currency pricing:
+Complete no-pay-to-win item and equipment system:
+
+**Store Philosophy**:
+- **No Pay-to-Win**: All gameplay-affecting items available for Credits
+- **Gem-Exclusive Items**: Purely cosmetic (e.g., "Helm of Command")
+- **Fair Economy**: Credits can purchase all performance items
+
+**Store Types**:
+- **Credit Store**: Daily rotating Common/Uncommon items
+- **Featured Store**: Daily rotating Rare/Epic/Legendary items for Gems or high Credits
+- **Race-Specific Equipment**: Thematic gear matching the 5 fantasy races
 
 **Item Categories**:
-- **Helmets**: Stat bonuses and protection
+- **Helmets**: Stat bonuses and protection (race-themed designs)
 - **Footwear**: Speed and agility enhancements
-- **Consumables**: Temporary performance boosts
-- **Performance Items**: Training and recovery aids
-- **Tournament Entries**: Exhibition and special event access
+- **Consumables**: Single-game performance boosters only
+- **Recovery Items**: Healing and stamina restoration
 
-**Pricing Structure**:
-- Credits for basic items
-- Gems for premium items
-- Dual pricing options for some items
-- Dynamic pricing based on demand
+**Enhanced Item Effects & Limitations**:
+- **Equipment**: Permanent stat bonuses when equipped
+- **Consumables**: Temporary effects for single matches
+- **Daily Limits**: Recovery items limited to 2 per player per day
+- **Strategic Usage**: Players must time consumable usage carefully
+- **Item Reset System**: Daily limits properly reset at 3AM Eastern
 
-**Purchase Limits**:
-- Daily limits on certain items
-- Usage restrictions
-- Inventory capacity constraints
-- Strategic purchase timing
+**Transaction Logging**:
+- All store purchases logged in payment history
+- Credit and gem expenditure tracking
+- Inventory management with usage statistics
 
 ### 7.4 Recruiting System
 
@@ -1015,13 +1160,16 @@ Comprehensive support and guidance:
 ### 10.2 Frequently Asked Questions
 
 **Q: How often do games reset?**
-A: Daily at 3:00 AM Eastern Time. The game operates on a 17-day seasonal cycle.
+A: Daily at 3:00 AM Eastern Time. The game operates on a 17-day seasonal cycle with automatic daily progression.
 
 **Q: How do I get promoted to a higher division?**
-A: Finish in the top 2 positions of your league. Playoffs can affect final positions, so strong playoff performance is crucial.
+A: Finish in the top 2 positions of your subdivision. Playoffs can affect final positions, so strong playoff performance is crucial.
 
 **Q: What's the difference between credits and gems?**
 A: Credits are the primary currency earned through gameplay. Gems are premium currency with a dynamic exchange rate of 450-600 credits per gem.
+
+**Q: What are the daily stadium costs?**
+A: Every team automatically pays 5,000₡ per day for stadium maintenance at 3AM Eastern. This cannot be avoided and helps balance the economy.
 
 **Q: How do player skills work?**
 A: Players can learn up to 3 skills from a pool of 16. Skills are acquired based on leadership rating and provide active bonuses during matches.
@@ -1029,8 +1177,8 @@ A: Players can learn up to 3 skills from a pool of 16. Skills are acquired based
 **Q: Can I change my team name?**
 A: Team names are permanent once created to maintain league integrity and prevent confusion.
 
-**Q: How does the marketplace work?**
-A: You can list players for auction with starting bids and optional buy-now prices. All sales include a 5% market tax.
+**Q: How does the enhanced marketplace work?**
+A: You can list players for auction with starting bids and buy-now prices. Features include anti-sniping protection, 2% listing fees, and 5% transaction tax.
 
 **Q: What determines home field advantage?**
 A: Your stadium's field size, fan loyalty rating, attendance levels, and atmospheric effects all contribute to home field advantage.
@@ -1038,8 +1186,17 @@ A: Your stadium's field size, fan loyalty rating, attendance levels, and atmosph
 **Q: How do I increase fan loyalty?**
 A: Win more than 60% of your games (+10 loyalty), win championships (+25 loyalty), upgrade facilities, and maintain good performance.
 
-**Q: When can I use the tryout system?**
-A: Once per season, you can purchase either basic tryouts (5 candidates, 50,000₡) or premium tryouts (8 candidates, 5 gems or 250,000₡).
+**Q: How do tournaments work now?**
+A: Daily Division Tournaments are 8-team brackets, Mid-Season Cups are 16-team brackets with 3rd place playoffs, and all tournament matches have sudden death overtime.
+
+**Q: What is the taxi squad system?**
+A: Players 13-15 on your roster are taxi squad members. They can only be promoted to main roster during the offseason (Days 16-17), never relegated.
+
+**Q: How does team chemistry work?**
+A: Team chemistry automatically updates after every match based on results. League matches give +2/-1, tournaments +3/-2, exhibitions +1/0.
+
+**Q: How do medical items work?**
+A: Each player can use maximum 2 medical items per day. The counter resets at 3AM Eastern with other daily systems.
 
 **Q: How does player aging work?**
 A: Players aged 31+ may experience physical stat decline. Retirement becomes possible at 35+ with mandatory retirement at 45.
@@ -1048,11 +1205,15 @@ A: Players aged 31+ may experience physical stat decline. Retirement becomes pos
 
 For additional support:
 
-- Check this manual for comprehensive information
-- Use the in-game help system for contextual guidance
+- **Production Platform**: [https://realmrivalry.com](https://realmrivalry.com)
+- Check this comprehensive manual for detailed information
+- Use the in-game help system (Community > Help) for contextual guidance
+- Review the FAQ section for common issues and solutions
+- All game features documented with real implementation details
 - Report bugs through the feedback system
-- Contact Replit support for account-related issues
+- Contact support for account-related issues
+- **Enterprise Infrastructure**: Full Google Cloud Platform deployment with monitoring and alerts
 
 ---
 
-*Last Updated: July 1, 2025 - Comprehensive Systems Implementation*
+*Last Updated: July 20, 2025 - Enterprise Production Deployment & Full Feature Implementation*
