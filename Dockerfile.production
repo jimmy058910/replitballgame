@@ -12,14 +12,22 @@ WORKDIR /app
 COPY package*.json ./
 
 # Install all dependencies (needed for build)
-RUN npm install && \
-    npm cache clean --force
+RUN npm install
 
 # Copy source code
 COPY . .
 
+# Debug: List copied files
+RUN echo "Files in root:" && ls -la
+RUN echo "Files in client:" && ls -la client/
+
 # Build the React frontend
 RUN npm run build
+
+# Debug: Check if build succeeded
+RUN echo "Files after build:" && ls -la
+RUN echo "Contents of dist:" && ls -la dist/ || echo "No dist folder"
+RUN test -f dist/index.html && echo "✅ React build successful" || echo "❌ React build failed"
 
 # Clean up dev dependencies after build
 RUN npm ci --only=production && \

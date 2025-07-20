@@ -85,7 +85,7 @@ httpServer.listen(port, '0.0.0.0', () => {
       app.use(passport.default.session());
       
       // Initialize auth
-      await setupGoogleAuth();
+      await setupGoogleAuth(app);
       console.log('✅ Authentication initialized');
       
       // Register routes
@@ -94,10 +94,53 @@ httpServer.listen(port, '0.0.0.0', () => {
       
       // Serve static files only if dist exists
       try {
-        serveStatic(app);
-        console.log('✅ Static files initialized');
+        console.log('🔍 Checking for dist folder...');
+        const fs = await import('fs');
+        const path = await import('path');
+        
+        if (fs.existsSync('dist') && fs.existsSync('dist/index.html')) {
+          console.log('✅ Found dist folder with index.html');
+          
+          // Custom static file serving for production
+          app.use(express.static('dist', {
+            maxAge: '1y',
+            etag: true,
+            lastModified: true,
+            setHeaders: (res, path) => {
+              if (path.endsWith('.html')) {
+                res.setHeader('Cache-Control', 'public, max-age=3600');
+              }
+            }
+          }));
+          
+          // SPA fallback route
+          app.get('*', (req, res) => {
+            if (!req.path.startsWith('/api/')) {
+              res.sendFile(path.resolve('dist', 'index.html'));
+            }
+          });
+          
+          console.log('✅ Static files initialized with custom serving');
+        } else {
+          console.log('❌ No dist folder or index.html found');
+          throw new Error('Dist folder not available');
+        }
       } catch (error) {
         console.log('⚠️ Static files not available, serving basic routes only');
+        console.log('📁 Current directory:', process.cwd());
+        console.log('📁 Available files:', require('fs').readdirSync('.').slice(0, 10));
+        
+        // Check specific locations
+        const locations = ['dist', 'build', 'public', 'client'];
+        locations.forEach(loc => {
+          try {
+            if (require('fs').existsSync(loc)) {
+              console.log(`📁 Found ${loc}:`, require('fs').readdirSync(loc).slice(0, 5));
+            }
+          } catch (e) {
+            console.log(`📁 ${loc}: not accessible`);
+          }
+        });
         // Fallback route
         app.get('*', (req, res) => {
           if (!req.path.startsWith('/api/')) {
