@@ -11,13 +11,19 @@ WORKDIR /app
 # Copy package files
 COPY package*.json ./
 
-# Install dependencies
-RUN npm ci --only=production && \
-    npm install tsx && \
+# Install all dependencies (needed for build)
+RUN npm install && \
     npm cache clean --force
 
 # Copy source code
 COPY . .
+
+# Build the React frontend
+RUN npm run build
+
+# Clean up dev dependencies after build
+RUN npm ci --only=production && \
+    npm install tsx
 
 # Create non-root user
 RUN addgroup -g 1001 -S nodejs && \
@@ -35,4 +41,4 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=10s --retries=3 \
 
 # Start production server
 ENTRYPOINT ["dumb-init", "--"]
-CMD ["npx", "tsx", "server/production-optimized.ts"]
+CMD ["npx", "tsx", "server/production.ts"]

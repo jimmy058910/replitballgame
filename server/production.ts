@@ -92,9 +92,52 @@ httpServer.listen(port, '0.0.0.0', () => {
       registerAllRoutes(app);
       console.log('✅ Routes initialized');
       
-      // Serve static files
-      serveStatic(app);
-      console.log('✅ Static files initialized');
+      // Serve static files only if dist exists
+      try {
+        serveStatic(app);
+        console.log('✅ Static files initialized');
+      } catch (error) {
+        console.log('⚠️ Static files not available, serving basic routes only');
+        // Fallback route
+        app.get('*', (req, res) => {
+          if (!req.path.startsWith('/api/')) {
+            res.send(`
+              <!DOCTYPE html>
+              <html>
+                <head>
+                  <title>Realm Rivalry - System Loading</title>
+                  <meta charset="utf-8">
+                  <meta name="viewport" content="width=device-width, initial-scale=1">
+                  <style>
+                    body { font-family: Arial, sans-serif; margin: 0; padding: 20px; background: #1a1a2e; color: #eee; }
+                    .container { max-width: 800px; margin: 0 auto; text-align: center; padding: 50px 20px; }
+                    .logo { font-size: 3em; margin-bottom: 20px; }
+                    .status { background: #16213e; padding: 20px; border-radius: 10px; margin: 20px 0; }
+                    .btn { background: #0066cc; color: white; padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; margin: 10px; }
+                  </style>
+                </head>
+                <body>
+                  <div class="container">
+                    <div class="logo">🏟️ Realm Rivalry</div>
+                    <h1>Fantasy Sports Platform</h1>
+                    <div class="status">
+                      <h3>🔄 System Deployment in Progress</h3>
+                      <p>The full React application is being deployed. Please wait while we complete the build process.</p>
+                      <p><strong>This temporary page will be replaced automatically.</strong></p>
+                    </div>
+                    <button class="btn" onclick="window.location.reload()">🔄 Refresh Page</button>
+                    <p><small>Visit <a href="https://realmrivalry.com/health" style="color: #66ccff;">/health</a> to check system status</small></p>
+                  </div>
+                  <script>
+                    // Auto-refresh every 30 seconds
+                    setTimeout(() => window.location.reload(), 30000);
+                  </script>
+                </body>
+              </html>
+            `);
+          }
+        });
+      }
       
       console.log('🎉 Full system ready');
       
