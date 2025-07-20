@@ -3,6 +3,7 @@ import { createServer } from "http";
 import { Server as SocketIOServer } from "socket.io";
 import rateLimit from "express-rate-limit";
 import helmet from "helmet";
+import compression from "compression";
 import session from 'express-session';
 import passport from 'passport';
 import { setupGoogleAuth } from "./googleAuth"; // Import our new Google Auth setup
@@ -19,6 +20,19 @@ import { sanitizeInputMiddleware, securityHeadersMiddleware } from "./middleware
 import { createHealthCheck } from "./health";
 
 const app = express();
+
+// Enable compression for all responses
+app.use(compression({
+  level: 6,
+  threshold: 1024,
+  filter: (req, res) => {
+    if (req.headers['x-no-compression']) {
+      return false
+    }
+    return compression.filter(req, res)
+  }
+}));
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
@@ -86,17 +100,33 @@ const limiter = rateLimit({
 });
 app.use('/api/', limiter);
 
-// Add cache-busting and secure CORS headers for Replit preview
+// Production-optimized caching and CORS headers
 app.use((req, res, next) => {
-  res.header('Cache-Control', 'no-cache, no-store, must-revalidate');
-  res.header('Pragma', 'no-cache');
-  res.header('Expires', '0');
+  // Only cache-bust in development
+  if (process.env.NODE_ENV === 'development') {
+    res.header('Cache-Control', 'no-cache, no-store, must-revalidate');
+    res.header('Pragma', 'no-cache');
+    res.header('Expires', '0');
+  }
 
   const origin = req.headers.origin;
   if (validateOrigin(origin)) {
     res.header('Access-Control-Allow-Origin', origin);
   }
 
+  next();
+});
+
+// API response caching middleware
+app.use('/api', (req, res, next) => {
+  if (req.method === 'GET' && process.env.NODE_ENV === 'production') {
+    // Cache GET requests for 5 minutes in production
+    res.set({
+      'Cache-Control': 'private, max-age=300',
+      'ETag': `"${req.url}-${Date.now()}"`,
+      'Last-Modified': new Date().toUTCString()
+    });
+  }
   next();
 });
 
@@ -168,10 +198,22 @@ app.get('/health', (req, res) => {
   // Global error handler using centralized error service
   app.use(errorHandler);
 
-  // Vite setup (remains similar, but uses httpServer)
+  // Vite setup with optimized static file serving
   if (app.get("env") === "development") {
     await setupVite(app, httpServer);
   } else {
+    // Production static file serving with caching
+    app.use(express.static('dist', {
+      maxAge: '1y', // Cache static assets for 1 year
+      etag: true,
+      lastModified: true,
+      setHeaders: (res, path) => {
+        // Cache HTML files for shorter duration
+        if (path.endsWith('.html')) {
+          res.setHeader('Cache-Control', 'public, max-age=3600'); // 1 hour
+        }
+      }
+    }));
     serveStatic(app);
   }
 
