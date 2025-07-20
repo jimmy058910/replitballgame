@@ -1,0 +1,66 @@
+PS C:\RealmRivalry\Fantasy-Ball-Game> # Use authenticated users (anyone with Google account)
+PS C:\RealmRivalry\Fantasy-Ball-Game> gcloud run services add-iam-policy-binding realm-rivalry --region=us-east5 --member=allAuthenticatedUsers --role=roles/run.invoker
+Updated IAM policy for service [realm-rivalry].
+bindings:
+- members:
+  - allAuthenticatedUsers
+  role: roles/run.invoker
+etag: BwY6W-Qxyk0=
+version: 1
+PS C:\RealmRivalry\Fantasy-Ball-Game>
+PS C:\RealmRivalry\Fantasy-Ball-Game> # Add your specific account for testing
+PS C:\RealmRivalry\Fantasy-Ball-Game> gcloud run services add-iam-policy-binding realm-rivalry --region=us-east5 --member="user:general@realmrivalry.com" --role=roles/run.invoker
+Updated IAM policy for service [realm-rivalry].
+bindings:
+- members:
+  - allAuthenticatedUsers
+  - user:general@realmrivalry.com
+  role: roles/run.invoker
+etag: BwY6W-RIsXo=
+version: 1
+PS C:\RealmRivalry\Fantasy-Ball-Game>
+PS C:\RealmRivalry\Fantasy-Ball-Game> # Add your domain
+PS C:\RealmRivalry\Fantasy-Ball-Game> gcloud run services add-iam-policy-binding realm-rivalry --region=us-east5 --member="domain:realmrivalry.com" --role=roles/run.invoker
+Updated IAM policy for service [realm-rivalry].
+bindings:
+- members:
+  - allAuthenticatedUsers
+  - domain:realmrivalry.com
+  - user:general@realmrivalry.com
+  role: roles/run.invoker
+etag: BwY6W-SM6WA=
+version: 1
+PS C:\RealmRivalry\Fantasy-Ball-Game> # Try authenticated users (most likely to work)
+PS C:\RealmRivalry\Fantasy-Ball-Game> gcloud run services add-iam-policy-binding realm-rivalry --region=us-east5 --member=allAuthenticatedUsers --role=roles/run.invoker
+Updated IAM policy for service [realm-rivalry].
+bindings:
+- members:
+  - allAuthenticatedUsers
+  - domain:realmrivalry.com
+  - user:general@realmrivalry.com
+  role: roles/run.invoker
+etag: BwY6W-XultU=
+version: 1
+PS C:\RealmRivalry\Fantasy-Ball-Game>
+PS C:\RealmRivalry\Fantasy-Ball-Game> # Add yourself specifically for immediate access
+PS C:\RealmRivalry\Fantasy-Ball-Game> gcloud run services add-iam-policy-binding realm-rivalry --region=us-east5 --member="user:general@realmrivalry.com" --role=roles/run.invoker
+Updated IAM policy for service [realm-rivalry].
+bindings:
+- members:
+  - allAuthenticatedUsers
+  - domain:realmrivalry.com
+  - user:general@realmrivalry.com
+  role: roles/run.invoker
+etag: BwY6W-YGZ3Y=
+version: 1
+PS C:\RealmRivalry\Fantasy-Ball-Game>
+PS C:\RealmRivalry\Fantasy-Ball-Game> # Check current IAM policies to see what's applied
+PS C:\RealmRivalry\Fantasy-Ball-Game> gcloud run services get-iam-policy realm-rivalry --region=us-east5
+bindings:
+- members:
+  - allAuthenticatedUsers
+  - domain:realmrivalry.com
+  - user:general@realmrivalry.com
+  role: roles/run.invoker
+etag: BwY6W-YGZ3Y=
+version: 1
