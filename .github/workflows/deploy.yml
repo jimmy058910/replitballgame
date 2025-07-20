@@ -29,23 +29,23 @@ jobs:
     - name: Setup Google Cloud CLI
       uses: google-github-actions/setup-gcloud@v2
 
-    - name: Configure Docker
-      run: gcloud auth configure-docker
+    - name: Configure Docker for Artifact Registry
+      run: gcloud auth configure-docker us-east5-docker.pkg.dev
 
     - name: Build Docker image
       run: |
-        docker build -f Dockerfile.production -t gcr.io/$PROJECT_ID/$SERVICE:$GITHUB_SHA .
-        docker tag gcr.io/$PROJECT_ID/$SERVICE:$GITHUB_SHA gcr.io/$PROJECT_ID/$SERVICE:latest
+        docker build -f Dockerfile.production -t us-east5-docker.pkg.dev/$PROJECT_ID/$SERVICE/$SERVICE:$GITHUB_SHA .
+        docker tag us-east5-docker.pkg.dev/$PROJECT_ID/$SERVICE/$SERVICE:$GITHUB_SHA us-east5-docker.pkg.dev/$PROJECT_ID/$SERVICE/$SERVICE:latest
 
     - name: Push Docker image
       run: |
-        docker push gcr.io/$PROJECT_ID/$SERVICE:$GITHUB_SHA
-        docker push gcr.io/$PROJECT_ID/$SERVICE:latest
+        docker push us-east5-docker.pkg.dev/$PROJECT_ID/$SERVICE/$SERVICE:$GITHUB_SHA
+        docker push us-east5-docker.pkg.dev/$PROJECT_ID/$SERVICE/$SERVICE:latest
 
     - name: Deploy to Cloud Run
       run: |
         gcloud run deploy $SERVICE \
-          --image gcr.io/$PROJECT_ID/$SERVICE:$GITHUB_SHA \
+          --image us-east5-docker.pkg.dev/$PROJECT_ID/$SERVICE/$SERVICE:$GITHUB_SHA \
           --platform managed \
           --region $REGION \
           --port 8080 \
@@ -54,7 +54,8 @@ jobs:
           --timeout 900 \
           --max-instances 10 \
           --allow-unauthenticated \
-          --set-env-vars DATABASE_URL="${{ secrets.DATABASE_URL }}" \
-          --set-env-vars SESSION_SECRET="${{ secrets.SESSION_SECRET }}" \
-          --set-env-vars GOOGLE_CLIENT_ID="${{ secrets.GOOGLE_CLIENT_ID }}" \
-          --set-env-vars GOOGLE_CLIENT_SECRET="${{ secrets.GOOGLE_CLIENT_SECRET }}"
+          --update-secrets DATABASE_URL=DATABASE_URL:latest \
+          --update-secrets SESSION_SECRET=SESSION_SECRET:latest \
+          --update-secrets GOOGLE_CLIENT_ID=GOOGLE_CLIENT_ID:latest \
+          --update-secrets GOOGLE_CLIENT_SECRET=GOOGLE_CLIENT_SECRET:latest \
+          --set-env-vars NODE_ENV=production
