@@ -170,10 +170,10 @@ app.get('/health', (req, res) => {
     serveStatic(app);
   }
 
-  const port = 5000;
+  const port = process.env.PORT ? parseInt(process.env.PORT) : 5000;
   httpServer.listen({
     port,
-    host: "0.0.0.0",
+    host: "0.0.0.0", // Important for Cloud Run
     reusePort: true,
   }, () => {
     log(`Server listening on port ${port}`);
