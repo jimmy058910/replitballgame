@@ -1,0 +1,14 @@
+displayName: "High Error Rate Alert"
+conditions:
+- displayName: "Error rate above threshold"
+  conditionThreshold:
+    filter: resource.type="cloud_run_revision"
+    comparison: COMPARISON_ABOVE
+    thresholdValue: 10
+    duration: 300s
+    aggregations:
+    - alignmentPeriod: 300s
+      perSeriesAligner: ALIGN_RATE
+      crossSeriesReducer: REDUCE_SUM
+notificationChannels:
+- projects/direct-glider-465821-p7/notificationChannels/12049574321894543867
