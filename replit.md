@@ -166,6 +166,11 @@ Built as a React + Express web application with PostgreSQL database, using moder
 
 ### July 20, 2025 - 🚧 PRODUCTION ENHANCEMENTS IN PROGRESS - CUSTOM DOMAIN & MONITORING SETUP 🚧
 
+#### 🚨 REGION LIMITATION DISCOVERED - DOMAIN MAPPING NOT SUPPORTED IN US-EAST5
+- ✓ **Issue Identified**: Cloud Run domain mappings not supported in us-east5 region
+- ✓ **Alternative Solutions**: Load Balancer approach or region migration options available
+- ✓ **Status**: Working on optimal domain setup solution
+
 #### ✅ GOOGLE OAUTH INTEGRATION COMPLETE - AUTHENTICATION SYSTEM READY FOR GCP
 - ✓ **Google OAuth Credentials**: Client ID and Client Secret properly configured in GCP Secret Manager
 - ✓ **OAuth Redirect URIs**: Three redirect URIs configured (realmrivalry.com, localhost:5000, realmrivalry.com.run.app)
