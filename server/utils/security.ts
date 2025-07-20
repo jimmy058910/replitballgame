@@ -22,7 +22,7 @@ export const handleError = (error: Error, res: Response) => {
 
 export const validateOrigin = (origin: string | undefined): boolean => {
   const allowedOrigins = process.env.NODE_ENV === 'production' 
-    ? ['https://your-domain.replit.app', 'https://realm-rivalry.replit.app'] 
+    ? ['https://realmrivalry.com', 'https://www.realmrivalry.com', 'https://realm-rivalry-o6fd46yesq-ul.a.run.app'] 
     : ['http://localhost:5000', 'https://localhost:5000'];
 
   // Add support for Replit development domains

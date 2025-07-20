@@ -4,6 +4,7 @@ import { Server as SocketIOServer } from "socket.io";
 import rateLimit from "express-rate-limit";
 import helmet from "helmet";
 import compression from "compression";
+import cors from "cors";
 import session from 'express-session';
 import passport from 'passport';
 import { setupGoogleAuth } from "./googleAuth"; // Import our new Google Auth setup
@@ -20,6 +21,19 @@ import { sanitizeInputMiddleware, securityHeadersMiddleware } from "./middleware
 import { createHealthCheck } from "./health";
 
 const app = express();
+
+// Configure CORS with production-ready settings
+const corsOptions = {
+  origin: process.env.NODE_ENV === 'production'
+    ? ['https://realmrivalry.com', 'https://www.realmrivalry.com', 'https://realm-rivalry-o6fd46yesq-ul.a.run.app']
+    : ['http://localhost:5000', 'http://localhost:3000', /\.replit\.dev$/],
+  credentials: true,
+  optionsSuccessStatus: 200,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept', 'Origin']
+}
+
+app.use(cors(corsOptions));
 
 // Enable compression for all responses
 app.use(compression({
