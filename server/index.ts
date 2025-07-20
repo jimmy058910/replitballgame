@@ -1,10 +1,12 @@
 import express, { type Request, Response, NextFunction } from "express";
-import { createServer } from "http"; // Import createServer
+import { createServer } from "http";
 import { Server as SocketIOServer } from "socket.io";
 import rateLimit from "express-rate-limit";
 import helmet from "helmet";
-import { setupAuth } from "./replitAuth"; // Import setupAuth
-import { registerAllRoutes } from "./routes/index"; // Updated import
+import session from 'express-session';
+import passport from 'passport';
+import { setupGoogleAuth } from "./googleAuth"; // Import our new Google Auth setup
+import { registerAllRoutes } from "./routes/index";
 import { setupVite, serveStatic, log } from "./vite";
 import { requestIdMiddleware } from "./middleware/requestId";
 import { errorHandler, logInfo } from "./services/errorService";
@@ -49,8 +51,8 @@ app.use(helmet({
       scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'", "https://js.stripe.com"],
       imgSrc: ["'self'", "data:", "https:"],
       fontSrc: ["'self'", "https://fonts.gstatic.com"],
-      connectSrc: ["'self'", "wss:", "ws:", "https://api.stripe.com"],
-      frameSrc: ["https://js.stripe.com", "https://hooks.stripe.com"],
+      connectSrc: ["'self'", "wss:", "ws:", "https://api.stripe.com", "https://accounts.google.com"],
+      frameSrc: ["https://js.stripe.com", "https://hooks.stripe.com", "https://accounts.google.com"],
       objectSrc: ["'none'"],
       mediaSrc: ["'self'"],
       baseUri: ["'self'"],
@@ -72,7 +74,7 @@ app.use(helmet({
 // Rate limiting for API endpoints
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 500, // Increased from 100 to 500 for development (multiple frequent-polling components)
+  max: 500, // Increased from 100 to 500 for development
   message: 'Too many requests from this IP, please try again later.',
   standardHeaders: true,
   legacyHeaders: false,
@@ -85,7 +87,6 @@ app.use((req, res, next) => {
   res.header('Pragma', 'no-cache');
   res.header('Expires', '0');
 
-  // Secure CORS implementation
   const origin = req.headers.origin;
   if (validateOrigin(origin)) {
     res.header('Access-Control-Allow-Origin', origin);
@@ -103,79 +104,27 @@ app.get('/health', (req, res) => {
   });
 });
 
-// Enhanced logging middleware with structured logging
-app.use((req, res, next) => {
-  const start = Date.now();
-  const path = req.path;
-  let capturedJsonResponse: Record<string, any> | undefined = undefined;
-
-  const originalResJson = res.json;
-  res.json = function (bodyJson, ...args) {
-    capturedJsonResponse = bodyJson;
-    return originalResJson.apply(res, [bodyJson, ...args]);
-  };
-
-  res.on("finish", () => {
-    const duration = Date.now() - start;
-    if (path.startsWith("/api")) {
-      // Create structured log entry
-      const logData: any = {
-        method: req.method,
-        path,
-        statusCode: res.statusCode,
-        duration: `${duration}ms`,
-        requestId: req.requestId,
-        userAgent: req.get('User-Agent'),
-        ip: req.ip,
-        userId: (req as any).user?.claims?.sub || undefined
-      };
-
-      // Include response preview for non-sensitive endpoints
-      if (capturedJsonResponse && res.statusCode < 400) {
-        let responsePreview = JSON.stringify(capturedJsonResponse);
-        if (responsePreview.length > 100) {
-          responsePreview = responsePreview.slice(0, 97) + "...";
-        }
-        logData.response = responsePreview;
-      }
-
-      // Use secure logging - no sensitive data in production
-      if (process.env.NODE_ENV === 'production') {
-        logger.info(`${req.method} ${path} ${res.statusCode} in ${duration}ms`, {
-          requestId: logData.requestId,
-          statusCode: logData.statusCode,
-          duration: logData.duration,
-          method: logData.method,
-          path: logData.path
-        });
-      } else {
-        // Development fallback to original format
-        let logLine = `${req.method} ${path} ${res.statusCode} in ${duration}ms`;
-        if (capturedJsonResponse) {
-          logLine += ` :: ${JSON.stringify(capturedJsonResponse)}`;
-        }
-        if (logLine.length > 80) {
-          logLine = logLine.slice(0, 79) + "…";
-        }
-        log(logLine);
-      }
-    }
-  });
-
-  next();
-});
-
 (async () => {
-  // Setup Replit Auth first
-  await setupAuth(app);
+  // CRITICAL: Setup session middleware BEFORE Passport
+  app.use(session({
+    secret: process.env.SESSION_SECRET!, // The secret you stored in GCP
+    resave: false,
+    saveUninitialized: false,
+    cookie: { 
+      secure: process.env.NODE_ENV === 'production', // Use secure cookies in production
+      httpOnly: true,
+      maxAge: 24 * 60 * 60 * 1000 // 24 hours
+    }
+  }));
+
+  // Setup Google Auth using Passport
+  setupGoogleAuth(app);
 
   // Register all modular routes
   registerAllRoutes(app);
 
   // Add explicit API route handling to prevent Vite interception
   app.use('/api/*', (req, res, next) => {
-    // If we reach here, it means no API route matched
-    // This should not happen with proper route registration
     console.warn(`Unmatched API route: ${req.method} ${req.originalUrl}`);
     res.status(404).json({ 
       error: 'API endpoint not found',
@@ -216,13 +165,13 @@ app.use((req, res, next) => {
 
   // Vite setup (remains similar, but uses httpServer)
   if (app.get("env") === "development") {
-    await setupVite(app, httpServer); // Pass httpServer to setupVite
+    await setupVite(app, httpServer);
   } else {
     serveStatic(app);
   }
 
   const port = 5000;
-  httpServer.listen({ // Use httpServer to listen
+  httpServer.listen({
     port,
     host: "0.0.0.0",
     reusePort: true,
