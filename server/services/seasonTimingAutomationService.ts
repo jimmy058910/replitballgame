@@ -531,8 +531,8 @@ export class SeasonTimingAutomationService {
       // Get all teams with their finance records
       const teams = await prisma.team.findMany({
         include: {
-          TeamFinance: true,
-          Stadium: true
+          finances: true,
+          stadium: true
         }
       });
       
@@ -542,16 +542,16 @@ export class SeasonTimingAutomationService {
       for (const team of teams) {
         try {
           // Calculate daily stadium cost (default 5000 credits)
-          const dailyCost = team.Stadium?.maintenanceCost || 5000;
+          const dailyCost = team.stadium?.maintenanceCost || 5000;
           
           // Check if team has finance record
-          if (team.TeamFinance) {
-            const currentCredits = parseInt(team.TeamFinance.credits) || 0;
+          if (team.finances) {
+            const currentCredits = parseInt(team.finances.credits) || 0;
             const newCredits = Math.max(0, currentCredits - dailyCost); // Don't go negative
             
             // Update team finances
-            await prisma.teamFinance.update({
-              where: { id: team.TeamFinance.id },
+            await prisma.teamFinances.update({
+              where: { id: team.finances.id },
               data: {
                 credits: newCredits.toString()
               }
@@ -571,7 +571,7 @@ export class SeasonTimingAutomationService {
             totalCostsDeducted += dailyCost;
           } else {
             // Create finance record if it doesn't exist
-            const newFinanceRecord = await prisma.teamFinance.create({
+            const newFinanceRecord = await prisma.teamFinances.create({
               data: {
                 teamId: team.id,
                 credits: Math.max(0, 10000 - dailyCost).toString(), // Start with 10k credits minus daily cost
