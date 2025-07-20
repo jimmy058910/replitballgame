@@ -1,0 +1,41 @@
+PS C:\RealmRivalry\Fantasy-Ball-Game> docker build -t gcr.io/direct-glider-465821-p7/realm-rivalry:latest .
+[+] Building 7.6s (13/18)                                                                          docker:desktop-linux
+ => [internal] load build definition from Dockerfile                                                               0.0s
+ => => transferring dockerfile: 1.26kB                                                                             0.0s
+ => [internal] load metadata for docker.io/library/node:20-alpine                                                  0.4s
+ => [internal] load .dockerignore                                                                                  0.0s
+ => => transferring context: 488B                                                                                  0.0s
+ => [base 1/5] FROM docker.io/library/node:20-alpine@sha256:df02558528d3d3d0d621f112e232611aecfee7cbc654f6b375765  0.0s
+ => => resolve docker.io/library/node:20-alpine@sha256:df02558528d3d3d0d621f112e232611aecfee7cbc654f6b375765f72bb  0.0s
+ => [internal] load build context                                                                                  0.0s
+ => => transferring context: 28.54kB                                                                               0.0s
+ => CACHED [base 2/5] RUN apk update && apk upgrade && apk add --no-cache dumb-init                                0.0s
+ => CACHED [base 3/5] WORKDIR /app                                                                                 0.0s
+ => CACHED [base 4/5] COPY package*.json ./                                                                        0.0s
+ => CACHED [base 5/5] RUN npm ci --only=production && npm cache clean --force                                      0.0s
+ => CACHED [builder 1/4] WORKDIR /app                                                                              0.0s
+ => CACHED [builder 2/4] RUN npm ci                                                                                0.0s
+ => [builder 3/4] COPY . .                                                                                         0.0s
+ => ERROR [builder 4/4] RUN npm run build:all                                                                      7.1s
+------
+ > [builder 4/4] RUN npm run build:all:
+0.222
+0.222 > rest-express@1.0.0 build:all
+0.222 > npm run build:server && npm run build
+0.222
+0.305
+0.305 > rest-express@1.0.0 build:server
+0.305 > tsc --project tsconfig.server.json
+0.305
+7.073 tsconfig.server.json(3,3): error TS5095: Option 'bundler' can only be used when 'module' is set to 'preserve' or to 'es2015' or later.
+7.074 tsconfig.server.json(3,3): error TS5096: Option 'allowImportingTsExtensions' can only be used when either 'noEmit' or 'emitDeclarationOnly' is set.
+------
+Dockerfile:27
+--------------------
+  25 |
+  26 |     # Build the application
+  27 | >>> RUN npm run build:all
+  28 |
+  29 |     # Production stage
+--------------------
+ERROR: failed to build: failed to solve: process "/bin/sh -c npm run build:all" did not complete successfully: exit code: 2
