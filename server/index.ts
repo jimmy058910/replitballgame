@@ -50,8 +50,9 @@ app.use(compression({
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
-// Add health check endpoint early - critical for Cloud Run
+// Add health check endpoint early - critical for Cloud Run  
 app.get('/health', createHealthCheck());
+app.get('/api/health', createHealthCheck());
 // Remove root route that was blocking Vite frontend serving
 
 // Add request ID middleware early in the chain
