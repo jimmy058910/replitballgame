@@ -224,6 +224,8 @@ Built as a React + Express web application with PostgreSQL database, using moder
 - ✓ **Live Updates**: Changes automatically deployed to https://realmrivalry.com
 - ✓ **Developer Workflow**: Work in Replit → Push to GitHub → Auto-deploy to production
 - ✓ **Infrastructure Ready**: Complete CI/CD pipeline operational for continuous deployment
+- ✓ **Cloud Run Startup Issue Fixed**: Updated Dockerfile.production to use server/production.ts instead of server/index.ts to prevent startup timeouts
+- ✓ **Service Account Permissions Complete**: Added iam.serviceAccountUser role for GitHub Actions to deploy to Cloud Run
 
 #### ✅ GOOGLE OAUTH INTEGRATION COMPLETE - AUTHENTICATION SYSTEM READY FOR GCP
 - ✓ **Google OAuth Credentials**: Client ID and Client Secret properly configured in GCP Secret Manager
