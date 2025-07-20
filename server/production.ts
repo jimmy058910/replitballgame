@@ -16,6 +16,35 @@ app.get('/api/health', (req, res) => {
   res.status(200).json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 
+// Basic root route - serve React app immediately
+app.get('/', (req, res) => {
+  res.send(`
+    <!DOCTYPE html>
+    <html>
+      <head>
+        <title>Realm Rivalry - Loading...</title>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+      </head>
+      <body>
+        <div id="root">
+          <div style="display: flex; justify-content: center; align-items: center; height: 100vh; font-family: Arial, sans-serif;">
+            <div style="text-align: center;">
+              <h1>🏟️ Realm Rivalry</h1>
+              <p>Fantasy Sports Platform Loading...</p>
+              <p>Please wait while we initialize the full application.</p>
+            </div>
+          </div>
+        </div>
+        <script>
+          // Reload page after 10 seconds to get full app
+          setTimeout(() => window.location.reload(), 10000);
+        </script>
+      </body>
+    </html>
+  `);
+});
+
 // Basic middleware
 app.use(express.json({ limit: '10mb' }));
 
