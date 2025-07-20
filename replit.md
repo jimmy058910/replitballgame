@@ -172,7 +172,9 @@ Built as a React + Express web application with PostgreSQL database, using moder
 - ✓ **Solution Chosen**: Load Balancer approach for custom domain setup
 - ✓ **Backend Service Created**: realm-rivalry-backend successfully created
 - ✓ **URL Map Created**: realm-rivalry-urlmap configured
-- ✓ **In Progress**: SSL certificate and load balancer configuration
+- ✓ **HTTPS Proxy Created**: realm-rivalry-https-proxy successfully configured
+- ✓ **Static IP Reserved**: 34.160.228.181 allocated for custom domain
+- ✓ **In Progress**: Network endpoint group and final load balancer configuration
 
 #### ✅ GOOGLE OAUTH INTEGRATION COMPLETE - AUTHENTICATION SYSTEM READY FOR GCP
 - ✓ **Google OAuth Credentials**: Client ID and Client Secret properly configured in GCP Secret Manager
