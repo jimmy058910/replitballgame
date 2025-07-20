@@ -1,0 +1,110 @@
+PS C:\RealmRivalry\Fantasy-Ball-Game> gcloud projects add-iam-policy-binding direct-glider-465821-p7 --member="serviceAccount:realm-rivalry-github-runner@direct-glider-465821-p7.iam.gserviceaccount.com" --role="roles/run.developer"
+Updated IAM policy for project [direct-glider-465821-p7].
+bindings:
+- members:
+  - serviceAccount:service-108005641993@gcp-sa-artifactregistry.iam.gserviceaccount.com
+  role: roles/artifactregistry.serviceAgent
+- members:
+  - serviceAccount:108005641993@cloudbuild.gserviceaccount.com
+  role: roles/cloudbuild.builds.builder
+- members:
+  - serviceAccount:service-108005641993@gcp-sa-cloudbuild.iam.gserviceaccount.com
+  role: roles/cloudbuild.serviceAgent
+- members:
+  - serviceAccount:service-108005641993@compute-system.iam.gserviceaccount.com
+  role: roles/compute.serviceAgent
+- members:
+  - serviceAccount:service-108005641993@containerregistry.iam.gserviceaccount.com
+  role: roles/containerregistry.ServiceAgent
+- members:
+  - serviceAccount:108005641993@cloudservices.gserviceaccount.com
+  role: roles/editor
+- members:
+  - user:general@realmrivalry.com
+  role: roles/iam.securityAdmin
+- members:
+  - user:general@realmrivalry.com
+  role: roles/owner
+- members:
+  - serviceAccount:service-108005641993@gcp-sa-pubsub.iam.gserviceaccount.com
+  role: roles/pubsub.serviceAgent
+- members:
+  - user:general@realmrivalry.com
+  role: roles/resourcemanager.projectIamAdmin
+- members:
+  - user:general@realmrivalry.com
+  role: roles/run.admin
+- members:
+  - serviceAccount:realm-rivalry-github-runner@direct-glider-465821-p7.iam.gserviceaccount.com
+  role: roles/run.developer
+- members:
+  - serviceAccount:service-108005641993@serverless-robot-prod.iam.gserviceaccount.com
+  role: roles/run.serviceAgent
+- members:
+  - serviceAccount:realm-rivalry-runner@direct-glider-465821-p7.iam.gserviceaccount.com
+  role: roles/secretmanager.secretAccessor
+- members:
+  - user:general@realmrivalry.com
+  role: roles/serviceusage.serviceUsageAdmin
+etag: BwY6XKFH5gQ=
+version: 1
+PS C:\RealmRivalry\Fantasy-Ball-Game> gcloud projects add-iam-policy-binding direct-glider-465821-p7 --member="serviceAccount:realm-rivalry-github-runner@direct-glider-465821-p7.iam.gserviceaccount.com" --role="roles/storage.admin"
+Updated IAM policy for project [direct-glider-465821-p7].
+bindings:
+- members:
+  - serviceAccount:service-108005641993@gcp-sa-artifactregistry.iam.gserviceaccount.com
+  role: roles/artifactregistry.serviceAgent
+- members:
+  - serviceAccount:108005641993@cloudbuild.gserviceaccount.com
+  role: roles/cloudbuild.builds.builder
+- members:
+  - serviceAccount:service-108005641993@gcp-sa-cloudbuild.iam.gserviceaccount.com
+  role: roles/cloudbuild.serviceAgent
+- members:
+  - serviceAccount:service-108005641993@compute-system.iam.gserviceaccount.com
+  role: roles/compute.serviceAgent
+- members:
+  - serviceAccount:service-108005641993@containerregistry.iam.gserviceaccount.com
+  role: roles/containerregistry.ServiceAgent
+- members:
+  - serviceAccount:108005641993@cloudservices.gserviceaccount.com
+  role: roles/editor
+- members:
+  - user:general@realmrivalry.com
+  role: roles/iam.securityAdmin
+- members:
+  - user:general@realmrivalry.com
+  role: roles/owner
+- members:
+  - serviceAccount:service-108005641993@gcp-sa-pubsub.iam.gserviceaccount.com
+  role: roles/pubsub.serviceAgent
+- members:
+  - user:general@realmrivalry.com
+  role: roles/resourcemanager.projectIamAdmin
+- members:
+  - user:general@realmrivalry.com
+  role: roles/run.admin
+- members:
+  - serviceAccount:realm-rivalry-github-runner@direct-glider-465821-p7.iam.gserviceaccount.com
+  role: roles/run.developer
+- members:
+  - serviceAccount:service-108005641993@serverless-robot-prod.iam.gserviceaccount.com
+  role: roles/run.serviceAgent
+- members:
+  - serviceAccount:realm-rivalry-runner@direct-glider-465821-p7.iam.gserviceaccount.com
+  role: roles/secretmanager.secretAccessor
+- members:
+  - user:general@realmrivalry.com
+  role: roles/serviceusage.serviceUsageAdmin
+- members:
+  - serviceAccount:realm-rivalry-github-runner@direct-glider-465821-p7.iam.gserviceaccount.com
+  role: roles/storage.admin
+etag: BwY6XKHCxkU=
+version: 1
+PS C:\RealmRivalry\Fantasy-Ball-Game> gcloud iam service-accounts keys create github-key.json --iam-account realm-rivalry-github-runner@direct-glider-465821-p7.iam.gserviceaccount.com
+ERROR: (gcloud.iam.service-accounts.keys.create) FAILED_PRECONDITION: Key creation is not allowed on this service account.
+- '@type': type.googleapis.com/google.rpc.PreconditionFailure
+  violations:
+  - description: Key creation is not allowed on this service account.
+    subject: projects/direct-glider-465821-p7/serviceAccounts/realm-rivalry-github-runner@direct-glider-465821-p7.iam.gserviceaccount.com?configvalue=realm-rivalry-github-runner%40direct-glider-465821-p7.iam.gserviceaccount.com
+    type: constraints/iam.disableServiceAccountKeyCreation
