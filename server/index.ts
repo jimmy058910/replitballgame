@@ -16,10 +16,17 @@ import { SeasonTimingAutomationService } from "./services/seasonTimingAutomation
 import logger from "./utils/logger";
 import { validateOrigin } from "./utils/security";
 import { sanitizeInputMiddleware, securityHeadersMiddleware } from "./middleware/security";
+import { createHealthCheck } from "./health";
 
 const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
+
+// Add health check endpoint early - critical for Cloud Run
+app.get('/health', createHealthCheck());
+app.get('/', (req, res) => {
+  res.status(200).json({ status: 'Realm Rivalry Server Running', port: process.env.PORT || 5000 });
+});
 
 // Add request ID middleware early in the chain
 app.use(requestIdMiddleware);
