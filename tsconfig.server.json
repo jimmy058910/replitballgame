@@ -1,13 +1,25 @@
 {
-  "extends": "./tsconfig.json",
   "compilerOptions": {
-    "outDir": "dist",
-    "rootDir": ".",
-    "noEmit": false,
     "target": "ES2020",
     "module": "commonjs",
     "moduleResolution": "node",
-    "allowImportingTsExtensions": false
+    "outDir": "dist",
+    "rootDir": ".",
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "noEmit": false,
+    "resolveJsonModule": true,
+    "allowSyntheticDefaultImports": true,
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true,
+    "lib": ["ES2020"],
+    "types": ["node"],
+    "baseUrl": ".",
+    "paths": {
+      "@shared/*": ["./shared/*"]
+    }
   },
   "include": [
     "server/**/*",
@@ -17,6 +29,7 @@
   "exclude": [
     "client",
     "tests",
-    "dist"
+    "dist",
+    "node_modules"
   ]
 }
