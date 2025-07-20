@@ -24,9 +24,7 @@ app.use(express.urlencoded({ extended: false }));
 
 // Add health check endpoint early - critical for Cloud Run
 app.get('/health', createHealthCheck());
-app.get('/', (req, res) => {
-  res.status(200).json({ status: 'Realm Rivalry Server Running', port: process.env.PORT || 5000 });
-});
+// Remove root route that was blocking Vite frontend serving
 
 // Add request ID middleware early in the chain
 app.use(requestIdMiddleware);
