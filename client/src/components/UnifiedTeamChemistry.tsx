@@ -140,8 +140,8 @@ export default function UnifiedTeamChemistry({ teamId }: { teamId: string }) {
                   <span className="text-sm text-red-400">{summary.lowMoraleCount} players</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-sm">Total Players:</span>
-                  <span className="text-sm text-gray-400">{players.length} roster</span>
+                  <span className="text-sm">Active Roster:</span>
+                  <span className="text-sm text-gray-400">{players.length}/12 players</span>
                 </div>
               </div>
             </div>
