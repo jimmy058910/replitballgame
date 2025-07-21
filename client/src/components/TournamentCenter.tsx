@@ -138,7 +138,7 @@ const TournamentCenter: React.FC<TournamentCenterProps> = ({ teamId }) => {
   const isMidSeasonRegistrationDeadlinePassed = () => {
     if (!seasonInfo?.data) return false;
     
-    const currentDay = seasonInfo.data.currentDay;
+    const currentDay = (seasonInfo as any)?.data?.currentDay;
     
     // Get current Eastern Time
     const easternTime = new Date().toLocaleString('en-US', { timeZone: 'America/New_York' });
@@ -577,7 +577,7 @@ const TournamentCenter: React.FC<TournamentCenterProps> = ({ teamId }) => {
                         } catch {
                           return 'N/A';
                         }
-                      })()} • {getPlacementText(entry.finalRank || entry.placement || 0, entry.tournament?.type)}
+                      })()} • {getPlacementText(entry.finalRank || entry.placement || 0, entry.tournament?.type || 'DAILY')}
                     </p>
                   </div>
                   <div className="text-right">

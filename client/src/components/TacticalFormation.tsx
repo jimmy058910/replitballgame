@@ -102,8 +102,8 @@ export default function TacticalFormation({ players, savedFormation, onFormation
     },
   });
 
-  // Group players by role
-  const playersByRole = players.reduce((acc, player) => {
+  // Group players by role - Add null safety
+  const playersByRole = (players || []).reduce((acc, player) => {
     const role = getPlayerRole(player);
     if (!acc[role]) acc[role] = [];
     acc[role].push({ ...player, role });
@@ -160,7 +160,7 @@ export default function TacticalFormation({ players, savedFormation, onFormation
       onFormationChange(updatedFormation, substitutionOrder);
     } else {
       // Add new player to formation
-      const player = players.find(p => p.id === draggedPlayer);
+      const player = (players || []).find(p => p.id === draggedPlayer);
       if (player && formation.length < 6) {
         const newFormationPlayer: FormationPlayer = {
           id: player.id,
@@ -194,7 +194,7 @@ export default function TacticalFormation({ players, savedFormation, onFormation
     const x = Math.max(20, Math.min(FIELD_WIDTH / 2 - 20, rawX));
     const y = Math.max(20, Math.min(FIELD_HEIGHT - 20, rawY));
     
-    const player = players.find(p => p.id === selectedPlayer);
+    const player = (players || []).find(p => p.id === selectedPlayer);
     if (player && formation.length < 6) {
       const newFormationPlayer: FormationPlayer = {
         id: player.id,
@@ -402,7 +402,7 @@ export default function TacticalFormation({ players, savedFormation, onFormation
                 {/* Selected player indicator */}
                 {selectedPlayer && (
                   <div className="absolute top-2 left-2 bg-blue-600 text-white px-2 py-1 rounded text-xs">
-                    Placing: {players.find(p => p.id === selectedPlayer)?.name}
+                    Placing: {(players || []).find(p => p.id === selectedPlayer)?.name}
                   </div>
                 )}
               </div>
@@ -509,7 +509,7 @@ export default function TacticalFormation({ players, savedFormation, onFormation
                 {Object.entries(substitutionOrder)
                   .sort(([, a], [, b]) => a - b)
                   .map(([playerId, priority]) => {
-                    const player = players.find(p => p.id === playerId);
+                    const player = (players || []).find(p => p.id === playerId);
                     if (!player) return null;
                     return (
                       <div key={playerId} className="flex items-center justify-between p-2 border rounded">
