@@ -39,7 +39,7 @@ app.use(cors(corsOptions));
 app.use(compression({
   level: 6,
   threshold: 1024,
-  filter: (req, res) => {
+  filter: (req: Request, res: Response) => {
     if (req.headers['x-no-compression']) {
       return false
     }
@@ -201,15 +201,6 @@ app.get('/health', (req, res) => {
   // Connect WebSocket service to match state manager
   matchStateManager.setWebSocketService(webSocketService);
 
-  // Initialize match state recovery system
-  log(`🔄 Initializing match state recovery system...`);
-  await matchStateManager.recoverLiveMatches();
-
-  // Initialize season timing automation system
-  log(`🔄 Initializing season timing automation system...`);
-  const seasonTimingService = SeasonTimingAutomationService.getInstance();
-  await seasonTimingService.start();
-
   // Global error handler using centralized error service
   app.use(errorHandler);
 
@@ -240,5 +231,28 @@ app.get('/health', (req, res) => {
   }, () => {
     log(`Server listening on port ${port}`);
     log(`WebSocket server listening on /ws`);
+    
+    // Do heavy initialization AFTER server is listening
+    initializeBackgroundServices();
   });
+
+  // Background initialization function
+  async function initializeBackgroundServices() {
+    try {
+      log(`🔄 Starting background initialization...`);
+      
+      // Initialize match state recovery system
+      log(`🔄 Initializing match state recovery system...`);
+      await matchStateManager.recoverLiveMatches();
+
+      // Initialize season timing automation system
+      log(`🔄 Initializing season timing automation system...`);
+      const seasonTimingService = SeasonTimingAutomationService.getInstance();
+      await seasonTimingService.start();
+      
+      log(`✅ Background initialization completed`);
+    } catch (error) {
+      console.error('❌ Background initialization failed:', error);
+    }
+  }
 })();
