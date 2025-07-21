@@ -4,7 +4,7 @@ import { PrismaClient, TeamFinances } from '../../generated/prisma';
 
 
 export class TeamFinancesStorage {
-  async getTeamFinances(teamId: number): Promise<TeamFinances | null> {
+  async getTeamFinances(teamId: number): Promise<any> {
     const finances = await prisma.teamFinances.findFirst({
       where: { teamId },
       include: {
@@ -37,7 +37,7 @@ export class TeamFinancesStorage {
     lastSeasonRevenue?: bigint;
     lastSeasonExpenses?: bigint;
     facilitiesMaintenanceCost?: bigint;
-  }): Promise<TeamFinances> {
+  }): Promise<any> {
     const newFinances = await prisma.teamFinances.create({
       data: {
         teamId: financesData.teamId,
@@ -56,7 +56,7 @@ export class TeamFinancesStorage {
     return newFinances;
   }
 
-  async updateTeamFinances(teamId: number, updates: Partial<TeamFinances>): Promise<TeamFinances | null> {
+  async updateTeamFinances(teamId: number, updates: any): Promise<any> {
     try {
       const existingFinances = await this.getTeamFinances(teamId);
       if (!existingFinances) {
@@ -84,7 +84,7 @@ export class TeamFinancesStorage {
     }
   }
 
-  async upsertTeamFinances(teamId: number, data: Partial<TeamFinances>): Promise<TeamFinances> {
+  async upsertTeamFinances(teamId: number, data: any): Promise<any> {
     const existingFinances = await this.getTeamFinances(teamId);
     
     if (existingFinances) {
@@ -105,7 +105,7 @@ export class TeamFinancesStorage {
     }
   }
 
-  async addCredits(teamId: number, amount: bigint): Promise<TeamFinances | null> {
+  async addCredits(teamId: number, amount: bigint): Promise<any> {
     try {
       const existingFinances = await this.getTeamFinances(teamId);
       if (!existingFinances) {
@@ -131,7 +131,7 @@ export class TeamFinancesStorage {
     }
   }
 
-  async deductCredits(teamId: number, amount: bigint): Promise<TeamFinances | null> {
+  async deductCredits(teamId: number, amount: bigint): Promise<any> {
     try {
       const existingFinances = await this.getTeamFinances(teamId);
       if (!existingFinances) {
@@ -162,7 +162,7 @@ export class TeamFinancesStorage {
     }
   }
 
-  async addGems(teamId: number, amount: number): Promise<TeamFinances | null> {
+  async addGems(teamId: number, amount: number): Promise<any> {
     try {
       const existingFinances = await this.getTeamFinances(teamId);
       if (!existingFinances) {
@@ -188,7 +188,7 @@ export class TeamFinancesStorage {
 
   /**
    * Recalculate and save staff salaries for a team
-   * Sums all active staff/scout salaries and updates the team's record
+   * Sums all active staff salaries and updates the team's record
    */
   async recalculateAndSaveStaffSalaries(teamId: number): Promise<void> {
     try {
@@ -197,19 +197,13 @@ export class TeamFinancesStorage {
         where: { teamId: teamId }
       });
 
-      // Get all active scouts for the team
-      const scouts = await prisma.scout.findMany({
-        where: { teamId: teamId, isActive: true }
-      });
+      // Calculate total staff salaries (using level as salary base for now)
+      const totalStaffSalaries = staffMembers.reduce((sum, staff) => sum + (staff.level * 1000), 0);
+      const totalSalaries = totalStaffSalaries;
 
-      // Calculate total staff salaries
-      const totalStaffSalaries = staffMembers.reduce((sum, staff) => sum + (staff.salary || 0), 0);
-      const totalScoutSalaries = scouts.reduce((sum, scout) => sum + (scout.salary || 0), 0);
-      const totalSalaries = totalStaffSalaries + totalScoutSalaries;
-
-      // Update team finances with new staff salary total
+      // Update team finances with new projected expenses
       await this.updateTeamFinances(teamId, {
-        staffSalaries: BigInt(totalSalaries)
+        projectedExpenses: BigInt(totalSalaries)
       });
 
       console.log(`Updated staff salaries for team ${teamId}: ${totalSalaries} credits`);

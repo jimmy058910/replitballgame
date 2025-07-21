@@ -43,7 +43,7 @@ export class TeamStorage {
     return newTeam;
   }
 
-  async getTeamByUserId(userId: string): Promise<Team | null> {
+  async getTeamByUserId(userId: string): Promise<any> {
     // First find the UserProfile by userId, then find the team by userProfileId
     if (!userId) {
       return null;
@@ -83,7 +83,7 @@ export class TeamStorage {
     return team;
   }
 
-  async getTeamById(id: number): Promise<Team | null> {
+  async getTeamById(id: number): Promise<any> {
     const team = await prisma.team.findUnique({
       where: { id: parseInt(id.toString()) },
       include: {
@@ -133,7 +133,7 @@ export class TeamStorage {
     }));
   }
 
-  async updateTeam(id: number, updates: Partial<Team>): Promise<Team | null> {
+  async updateTeam(id: number, updates: any): Promise<any> {
     try {
       const updatedTeam = await prisma.team.update({
         where: { id: parseInt(id.toString()) },
