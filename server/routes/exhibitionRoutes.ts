@@ -524,7 +524,16 @@ router.post('/instant-match', isAuthenticated, async (req: any, res: Response, n
       gameDate: new Date(),
     });
 
-    const liveMatchState = await matchStateManager.startLiveMatch(match.id, true);
+    // Start the live match immediately - if this fails, clean up the created match
+    let liveMatchState;
+    try {
+      liveMatchState = await matchStateManager.startLiveMatch(match.id, true);
+    } catch (error) {
+      console.error(`Failed to start exhibition match ${match.id}, cleaning up:`, error);
+      // Clean up the failed match to prevent SCHEDULED exhibitions
+      await prisma.game.delete({ where: { id: match.id } });
+      throw new Error("Failed to start exhibition match. Please try again.");
+    }
 
     // No need to create duplicate exhibition record - the match already exists in Game table
 
@@ -589,7 +598,16 @@ router.post('/challenge-opponent', isAuthenticated, async (req: any, res: Respon
       gameDate: new Date(),
     });
 
-    const liveMatchState = await matchStateManager.startLiveMatch(match.id, true);
+    // Start the live match immediately - if this fails, clean up the created match
+    let liveMatchState;
+    try {
+      liveMatchState = await matchStateManager.startLiveMatch(match.id, true);
+    } catch (error) {
+      console.error(`Failed to start exhibition match ${match.id}, cleaning up:`, error);
+      // Clean up the failed match to prevent SCHEDULED exhibitions
+      await prisma.game.delete({ where: { id: match.id } });
+      throw new Error("Failed to start exhibition match. Please try again.");
+    }
 
     // No need to create duplicate exhibition record - the match already exists in Game table
 

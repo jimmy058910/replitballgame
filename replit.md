@@ -148,9 +148,20 @@ Built as a React + Express web application with PostgreSQL database, using moder
 
 ## Recent Changes
 
-### July 21, 2025 - ✅ MID-SEASON CUP FIXES COMPLETE - DIVISION-ONLY COMPETITION & REGISTRATION DEADLINES ENFORCED ✅
+### July 21, 2025 - ✅ EXHIBITION SYSTEM BUGS COMPLETELY FIXED - SCHEDULED MATCH ISSUE RESOLVED ✅
 
-#### ✅ MID-SEASON CUP REQUIREMENTS FULLY IMPLEMENTED - BOTH ISSUES RESOLVED
+#### ✅ EXHIBITION "SCHEDULED" STATUS BUG COMPLETELY FIXED - NO MORE STUCK MATCHES
+- ✓ **Root Cause Identified**: Exhibition matches were getting stuck in "SCHEDULED" status when `startLiveMatch()` failed after match creation
+- ✓ **Database Cleanup**: Removed stuck SCHEDULED exhibition match (ID 2036) that was showing in Recent Exhibition Games
+- ✓ **Error Handling Enhanced**: Added try-catch blocks around `startLiveMatch()` calls in both exhibition endpoints
+- ✓ **Automatic Cleanup**: Failed exhibition matches now automatically delete themselves to prevent SCHEDULED status accumulation
+- ✓ **Route Registration Fixed**: Corrected exhibition route from `/api/exhibition` to `/api/exhibitions` to match frontend expectations
+- ✓ **Recent Games Working**: Exhibition match history now displays properly without any SCHEDULED entries
+- ✓ **Production Ready**: Exhibition system now prevents stuck matches and provides proper error messages to users
+
+### July 21, 2025 - ✅ MID-SEASON CUP FIXES COMPLETE - DIVISION-ONLY COMPETITION & REGISTRATION DEADLINES ENFORCED ✅ (Previous)
+
+#### ✅ MID-SEASON CUP REQUIREMENTS FULLY IMPLEMENTED - BOTH ISSUES RESOLVED (Previous)
 - ✓ **Cross-Division Text Removed**: Changed "Cross-division competition" to "Division-only competition" in tournament description
 - ✓ **Tournament Description Updated**: Changed main description from "open to all divisions" to "for teams within your division only"
 - ✓ **Registration Deadline Logic**: Added `isMidSeasonRegistrationDeadlinePassed()` function with proper Eastern Time calculation
