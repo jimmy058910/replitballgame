@@ -411,7 +411,7 @@ export default function Market() {
                   Store
                 </CardTitle>
                 <p className="text-sm text-gray-600 dark:text-gray-400">
-                  Purchase equipment, consumables, and training items
+                  Purchase equipment, consumables, and more
                 </p>
               </CardHeader>
               <CardContent className="space-y-8">
@@ -420,7 +420,7 @@ export default function Market() {
                   <div className="mb-6">
                     <h3 className="text-xl font-semibold mb-2">Daily Rotating Items</h3>
                     <p className="text-sm text-gray-600 dark:text-gray-400">
-                      8 items with mixed equipment and consumables, refreshes daily at 8 AM UTC
+                      8 items with mixed equipment and consumables, refreshes daily at 3AM EDT
                     </p>
                   </div>
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">

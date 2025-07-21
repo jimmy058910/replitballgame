@@ -148,7 +148,17 @@ Built as a React + Express web application with PostgreSQL database, using moder
 
 ## Recent Changes
 
-### July 21, 2025 - ✅ CRITICAL LEAGUE SCHEDULING CRISIS COMPLETELY RESOLVED - ROUND-ROBIN ALGORITHM FIXED ✅
+### July 21, 2025 - ✅ MARKET STORE UI IMPROVEMENTS COMPLETE - TEXT FORMATTING & ITEM ICONS RESTORED ✅
+
+#### ✅ MARKET STORE TEXT FORMAT FIXES COMPLETE - USER-REQUESTED IMPROVEMENTS IMPLEMENTED
+- ✓ **Purchase Limit Format**: Changed from "Daily Limit: X purchases per day Today: 0/X purchased" to clean "Purchased 0/X Today" format
+- ✓ **Store Description Updated**: Changed "Purchase equipment, consumables, and training items" to "Purchase equipment, consumables, and more"
+- ✓ **Refresh Time Corrected**: Updated "refreshes daily at 8 AM UTC" to accurate "refreshes daily at 3AM EDT" to match game's actual reset schedule
+- ✓ **Item Type Icons Restored**: Added missing item type icons to all store items (🪖 helmets, 🧤 gloves, 👟 boots, 🛡️ armor, ⚡ stamina items, 🩹 medical items, 🌟 team boosts)
+- ✓ **getItemIcon Function**: Implemented comprehensive icon mapping function for proper visual categorization of all item types
+- ✓ **Production Ready**: Store UI now displays clean purchase limits, accurate timing, and proper item categorization icons
+
+### July 21, 2025 - ✅ CRITICAL LEAGUE SCHEDULING CRISIS COMPLETELY RESOLVED - ROUND-ROBIN ALGORITHM FIXED ✅ (Previous)
 
 #### ✅ LEAGUE SCHEDULING SYSTEM OVERHAUL COMPLETE - "ONE GAME PER TEAM PER DAY" RULE ENFORCED
 - ✓ **Critical Issue Identified**: Teams were playing multiple simultaneous league games, violating core scheduling rules
