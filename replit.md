@@ -138,9 +138,10 @@ Built as a React + Express web application with PostgreSQL database, using moder
 - Anti-sniping system with 5-minute extensions
 - Buy-now pricing formula: (Player CAR × 1000) + (Potential × 2000)
 
-**Store System (No Pay-to-Win)**:
-- All gameplay-affecting items (equipment, consumables) available for Credits
-- Gem-exclusive items are purely cosmetic (e.g., "Helm of Command")
+**Store System (Minimal Pay-to-Win)**:
+- Game designed to generate revenue while maintaining competitive balance
+- Players can gain advantages with real money but success is achievable without spending
+- All gameplay-affecting items available for Credits, with Gems offering convenience/premium options
 - **Credit Store**: Daily rotating Common/Uncommon items
 - **Featured Store**: Daily rotating Rare/Epic/Legendary items for Gems or high Credits
 - **Race-Specific Equipment**: Thematic gear matching the 5 fantasy races
