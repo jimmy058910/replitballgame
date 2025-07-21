@@ -126,6 +126,56 @@ const getDivisionColor = (division: number): string => {
   return colors[division - 1] || 'text-gray-600';
 };
 
+// Get item icon based on type and name
+const getItemIcon = (item: any) => {
+  const effect = item.effect || item.metadata?.effect;
+  
+  // Team boost items
+  if (effect?.includes("team_")) {
+    return "🌟";
+  }
+  
+  // Equipment items
+  if (item.itemType === "EQUIPMENT" || item.category === "Equipment") {
+    if (item.name.toLowerCase().includes("helmet") || item.name.toLowerCase().includes("helm") || item.name.toLowerCase().includes("circlet") || item.name.toLowerCase().includes("crest") || item.name.toLowerCase().includes("cowl")) {
+      return "🪖";
+    }
+    if (item.name.toLowerCase().includes("glove") || item.name.toLowerCase().includes("grip") || item.name.toLowerCase().includes("gauntlet") || item.name.toLowerCase().includes("fist")) {
+      return "🧤";
+    }
+    if (item.name.toLowerCase().includes("boot") || item.name.toLowerCase().includes("cleat") || item.name.toLowerCase().includes("tread") || item.name.toLowerCase().includes("stride")) {
+      return "👟";
+    }
+    if (item.name.toLowerCase().includes("armor") || item.name.toLowerCase().includes("plate") || item.name.toLowerCase().includes("aegis") || item.name.toLowerCase().includes("mail") || item.name.toLowerCase().includes("tunic") || item.name.toLowerCase().includes("pauldron") || item.name.toLowerCase().includes("carrier")) {
+      return "🛡️";
+    }
+    return "⚔️";
+  }
+  
+  // Recovery items
+  if (item.itemType === "CONSUMABLE_RECOVERY" || item.category === "Medical") {
+    if (item.name.toLowerCase().includes("medical") || item.name.toLowerCase().includes("heal") || item.name.toLowerCase().includes("treatment") || item.name.toLowerCase().includes("tincture") || item.name.toLowerCase().includes("salve")) {
+      return "🩹";
+    }
+    if (item.name.toLowerCase().includes("stamina") || item.name.toLowerCase().includes("recovery") || item.name.toLowerCase().includes("energy") || item.name.toLowerCase().includes("serum") || item.name.toLowerCase().includes("elixir")) {
+      return "⚡";
+    }
+    return "🧪";
+  }
+  
+  // Effect-based detection
+  if (effect?.includes("stamina")) {
+    return "⚡";
+  }
+  if (effect?.includes("injury")) {
+    return "🩹";
+  }
+  
+  if (item.itemType === "GAME_ENTRY") return "🎫";
+  if (item.itemType === "trophy") return "🏆";
+  return "📦";
+};
+
 export default function Market() {
   const [activeTab, setActiveTab] = useState("marketplace");
   const [storeTab, setStoreTab] = useState("featured");
@@ -378,7 +428,10 @@ export default function Market() {
                       <Card key={item.id} className="border-2 hover:border-blue-300 transition-colors">
                         <CardContent className="p-4">
                           <div className="mb-3">
-                            <h4 className="font-medium text-lg mb-1">{item.name}</h4>
+                            <div className="flex items-center gap-2 mb-1">
+                              <span className="text-lg">{getItemIcon(item)}</span>
+                              <h4 className="font-medium text-lg">{item.name}</h4>
+                            </div>
                             <Badge className={`${getTierColor(item.tier || item.rarity)} text-white text-xs`}>
                               {(item.tier || item.rarity)?.toUpperCase()}
                             </Badge>
@@ -473,9 +526,7 @@ export default function Market() {
                           {/* Purchase Limit */}
                           {item.dailyLimit && (
                             <div className="text-xs text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/20 p-2 rounded mb-3">
-                              <strong>Daily Limit:</strong> {item.dailyLimit} purchase{item.dailyLimit > 1 ? 's' : ''} per day
-                              <br />
-                              <strong>Today:</strong> {item.purchased || 0}/{item.dailyLimit} purchased
+                              <strong>Purchased {item.purchased || 0}/{item.dailyLimit} Today</strong>
                             </div>
                           )}
                           
