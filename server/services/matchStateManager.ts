@@ -1237,13 +1237,13 @@ class MatchStateManager {
       console.log(`🏟️  Stadium Revenue - ${homeTeam.name}: ${attendance} fans, ${revenue.totalRevenue}₡ total revenue, ${revenue.netRevenue}₡ net (after ${revenue.maintenanceCost}₡ maintenance)`);
 
       // Apply revenue to team finances
-      const currentCredits = parseInt(homeTeam.TeamFinance.credits) || 0;
+      const currentCredits = parseInt(homeTeam.finances.credits.toString()) || 0;
       const newCredits = currentCredits + revenue.netRevenue;
 
-      await prisma.teamFinance.update({
-        where: { id: homeTeam.TeamFinance.id },
+      await prisma.teamFinances.update({
+        where: { id: homeTeam.finances.id },
         data: {
-          credits: newCredits.toString()
+          credits: BigInt(newCredits)
         }
       });
 

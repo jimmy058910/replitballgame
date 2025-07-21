@@ -133,11 +133,11 @@ export class DynamicMarketplaceService {
 
       // Calculate listing fee and check team can afford it
       const listingFee = this.calculateListingFee(startBid);
-      const teamFinance = await prisma.teamFinance.findFirst({
-        where: { teamId: teamId }
+      const teamFinance = await prisma.teamFinances.findFirst({
+        where: { teamId: parseInt(teamId) }
       });
 
-      if (!teamFinance || (teamFinance.credits ?? 0) < listingFee) {
+      if (!teamFinance || (parseInt(teamFinance.credits.toString()) ?? 0) < listingFee) {
         return { success: false, error: 'Insufficient credits for listing fee' };
       }
 
@@ -145,9 +145,9 @@ export class DynamicMarketplaceService {
       const expiryTimestamp = new Date(Date.now() + (durationHours * 60 * 60 * 1000));
 
       // Deduct listing fee
-      await prisma.teamFinance.update({
-        where: { teamId: teamId },
-        data: { credits: (teamFinance.credits ?? 0) - listingFee }
+      await prisma.teamFinances.update({
+        where: { teamId: parseInt(teamId) },
+        data: { credits: BigInt((parseInt(teamFinance.credits.toString()) ?? 0) - listingFee) }
       });
 
       // Create listing
@@ -221,7 +221,7 @@ export class DynamicMarketplaceService {
         where: { teamId }
       });
 
-      if (!teamFinance || (teamFinance.credits ?? 0) < bidAmount) {
+      if (!teamFinance || (parseInt(teamFinance.credits.toString()) ?? 0) < bidAmount) {
         return { success: false, error: 'Insufficient credits for bid' };
       }
 
@@ -242,8 +242,8 @@ export class DynamicMarketplaceService {
 
       // Deduct credits from bidder (escrow)
       await prisma.teamFinances.update({
-        where: { teamId },
-        data: { credits: (teamFinance.credits ?? 0) - bidAmount }
+        where: { teamId: parseInt(teamId) },
+        data: { credits: BigInt((parseInt(teamFinance.credits.toString()) ?? 0) - bidAmount) }
       });
 
       // Anti-sniping: Check if bid is in final 5 minutes
@@ -444,13 +444,13 @@ export class DynamicMarketplaceService {
 
     // Return credits to team
     const teamFinance = await prisma.teamFinances.findFirst({
-      where: { teamId }
+      where: { teamId: parseInt(teamId) }
     });
 
     if (teamFinance) {
       await prisma.teamFinances.update({
-        where: { teamId },
-        data: { credits: (teamFinance.credits ?? 0) + escrow.escrowAmount }
+        where: { teamId: parseInt(teamId) },
+        data: { credits: BigInt((parseInt(teamFinance.credits.toString()) ?? 0) + escrow.escrowAmount) }
       });
     }
 
