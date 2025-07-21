@@ -1200,12 +1200,12 @@ class MatchStateManager {
       const homeTeam = await prisma.team.findUnique({
         where: { id: homeTeamId },
         include: {
-          Stadium: true,
-          TeamFinance: true
+          stadium: true,
+          finances: true
         }
       });
 
-      if (!homeTeam || !homeTeam.Stadium || !homeTeam.TeamFinance) {
+      if (!homeTeam || !homeTeam.stadium || !homeTeam.finances) {
         console.log(`⚠️  Stadium revenue: Missing data for team ${homeTeamId}`);
         return;
       }
@@ -1214,7 +1214,7 @@ class MatchStateManager {
       const { calculateGameRevenue, calculateAttendance } = await import('../../shared/stadiumSystem');
 
       // Calculate attendance based on stadium capacity and fan loyalty
-      const stadium = homeTeam.Stadium;
+      const stadium = homeTeam.stadium;
       const fanLoyalty = stadium.fanLoyalty || 50;
       const opponentQuality = 70; // Default opponent quality
       
