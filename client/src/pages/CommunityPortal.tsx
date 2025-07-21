@@ -8,7 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import StoreSystem from "@/components/StoreSystem";
-import { DynamicMarketplaceManager } from "@/components/DynamicMarketplaceManager";
+import DynamicMarketplaceManager from "@/components/DynamicMarketplaceManager";
 import { 
   ShoppingCart, Users, TrendingUp, Coins, Gem,
   Package, History, CreditCard, Store, Gavel
@@ -400,7 +400,7 @@ export default function MarketDistrict() {
 
           {/* Store Tab */}
           <TabsContent value="store" className="space-y-6">
-            <StoreSystem />
+            <StoreSystem teamId={team?.id || ""} />
           </TabsContent>
 
           {/* Inventory Tab */}
