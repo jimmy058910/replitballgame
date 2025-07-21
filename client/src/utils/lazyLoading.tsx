@@ -77,20 +77,14 @@ export const preloadComponent = (importFunc: () => Promise<{ default: ComponentT
 };
 
 /**
- * Lazy-loaded page components
+ * Lazy-loaded page components - Updated for 5-Hub Architecture
  */
-export const LazyDashboard = lazyLoadPage(() => import('../pages/Dashboard'));
 export const LazyTeam = lazyLoadPage(() => import('../pages/Team'));
-export const LazyMarketplace = lazyLoadPage(() => import('../pages/Marketplace'));
 export const LazyCompetition = lazyLoadPage(() => import('../pages/Competition'));
 export const LazyWorld = lazyLoadPage(() => import('../pages/World'));
 export const LazyMarket = lazyLoadPage(() => import('../pages/Market'));
-export const LazyInventory = lazyLoadPage(() => import('../pages/Inventory'));
-export const LazyStats = lazyLoadPage(() => import('../pages/Stats'));
 export const LazyLiveMatch = lazyLoadPage(() => import('../components/LiveMatchPage'));
-export const LazyLeague = lazyLoadPage(() => import('../pages/League'));
 export const LazyCommunity = lazyLoadPage(() => import('../pages/Community'));
-export const LazyCamaraderie = lazyLoadPage(() => import('../pages/Camaraderie'));
 export const LazyTournamentStatus = lazyLoadPage(() => import('../pages/TournamentStatus'));
 
 /**
@@ -98,7 +92,7 @@ export const LazyTournamentStatus = lazyLoadPage(() => import('../pages/Tourname
  */
 export const LazyUnifiedPlayerCard = lazyLoadComponent(() => import('../components/UnifiedPlayerCard'));
 export const LazyVirtualizedPlayerRoster = lazyLoadComponent(() => import('../components/VirtualizedPlayerRoster'));
-export const LazyLiveMatchViewer = lazyLoadComponent(() => import('../components/LiveMatchViewer'));
+export const LazyLiveMatchViewer = lazyLoadComponent(() => import('../components/LiveMatchViewer').then(module => ({ default: module.LiveMatchViewer })));
 export const LazyTeamInfoDialog = lazyLoadComponent(() => import('../components/TeamInfoDialog'));
 export const LazyComprehensiveTournamentManager = lazyLoadComponent(() => import('../components/ComprehensiveTournamentManager'));
 

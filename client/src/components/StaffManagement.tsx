@@ -29,6 +29,16 @@ interface StaffManagementProps {
   teamId: string;
 }
 
+interface StaffTypeDefinition {
+  type: string;
+  name: string;
+  icon: any;
+  description: string;
+  maxLevel: number;
+  primaryStats: string[];
+  baseSalary: number;
+}
+
 export default function StaffManagement({ teamId }: StaffManagementProps) {
   const [selectedStaff, setSelectedStaff] = useState<StaffMember | null>(null);
 

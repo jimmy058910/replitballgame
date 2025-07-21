@@ -165,7 +165,7 @@ export default function RosterHQ() {
                 <div>
                   <p className="text-xs text-gray-400">Team Chemistry</p>
                   <p className="text-xl font-bold text-teal-400">
-                    {camaraderieSummary?.teamCamaraderie || 'N/A'}
+                    {(camaraderieSummary as any)?.teamCamaraderie || 'N/A'}
                   </p>
                 </div>
                 <Heart className="h-5 w-5 text-teal-400" />
@@ -377,14 +377,17 @@ export default function RosterHQ() {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <TacticalFormation />
+                <TacticalFormation 
+                  players={activePlayers || []}
+                  onFormationChange={() => {}}
+                />
               </CardContent>
             </Card>
           </TabsContent>
 
           {/* Staff Tab */}
           <TabsContent value="staff" className="space-y-6">
-            <StaffManagement />
+            <StaffManagement teamId={team?.id || ''} />
           </TabsContent>
 
           {/* Chemistry Tab */}
@@ -400,7 +403,7 @@ export default function RosterHQ() {
                 <div className="space-y-4">
                   <div className="text-center">
                     <div className="text-4xl font-bold text-teal-400 mb-2">
-                      {camaraderieSummary?.teamCamaraderie || 'N/A'}
+                      {(camaraderieSummary as any)?.teamCamaraderie || 'N/A'}
                     </div>
                     <p className="text-gray-400">Overall Team Chemistry</p>
                   </div>
@@ -408,13 +411,13 @@ export default function RosterHQ() {
                   <div className="grid grid-cols-2 gap-4">
                     <div className="mobile-card-compact text-center">
                       <div className="text-lg font-bold text-green-400">
-                        {camaraderieSummary?.playersWithHighMorale || 0}
+                        {(camaraderieSummary as any)?.playersWithHighMorale || 0}
                       </div>
                       <p className="text-xs text-gray-400">High Morale</p>
                     </div>
                     <div className="mobile-card-compact text-center">
                       <div className="text-lg font-bold text-red-400">
-                        {camaraderieSummary?.playersWithLowMorale || 0}
+                        {(camaraderieSummary as any)?.playersWithLowMorale || 0}
                       </div>
                       <p className="text-xs text-gray-400">Low Morale</p>
                     </div>
