@@ -37,7 +37,8 @@ import ErrorBoundary from "@/components/ErrorBoundary";
 const LazyCommandCenter = lazy(() => import("@/pages/CommandCenter").catch(() => ({ default: () => <div>Loading Command Center...</div> })));
 const LazyRosterHQ = lazy(() => import("@/pages/RosterHQ").catch(() => ({ default: () => <div>Loading Roster HQ...</div> })));
 const LazyCompetitionCenter = lazy(() => import("@/pages/CompetitionCenter").catch(() => ({ default: () => <div>Loading Competition Center...</div> })));
-const LazyCommunityPortal = lazy(() => import("@/pages/CommunityPortal").catch(() => ({ default: () => <div>Loading Market District...</div> })));
+const LazyMarketDistrict = lazy(() => import("@/pages/MarketDistrict").catch(() => ({ default: () => <div>Loading Market District...</div> })));
+const LazyCommunityPortal = lazy(() => import("@/pages/CommunityPortal").catch(() => ({ default: () => <div>Loading Community Portal...</div> })));
 
 function Router() {
   const { isAuthenticated, isLoading } = useAuth();
@@ -74,10 +75,10 @@ function Router() {
           )} />
           <Route path="/market-district" component={() => (
             <Suspense fallback={<div className="min-h-screen bg-gray-900 animate-pulse" />}>
-              <LazyCommunityPortal />
+              <LazyMarketDistrict />
             </Suspense>
           )} />
-          <Route path="/community" component={() => (
+          <Route path="/community-portal" component={() => (
             <Suspense fallback={<div className="min-h-screen bg-gray-900 animate-pulse" />}>
               <LazyCommunityPortal />
             </Suspense>

@@ -72,19 +72,19 @@ export default function NewNavigation() {
     { 
       path: "/market-district", 
       label: "Market District", 
-      icon: ShoppingCart, 
+      icon: ShoppingCart,
       id: "market-district",
-      description: "Trading, store & economics",
+      description: "Trading, store & transactions",
       badge: undefined
     },
     { 
-      path: "/community", 
+      path: "/community-portal", 
       label: "Community Portal", 
-      icon: Globe, 
+      icon: Globe,
       id: "community-portal",
-      description: "Rankings, social & meta-game",
+      description: "Social features & world rankings",
       badge: undefined
-    },
+    }
   ];
 
   const credits = parseInt(String(finances?.credits || "0"));

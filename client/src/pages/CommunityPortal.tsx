@@ -1,525 +1,492 @@
-import { useState, startTransition } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/useAuth";
-import { useSeasonalUI } from "@/hooks/useSeasonalUI";
+import { isUnauthorizedError } from "@/lib/authUtils";
+import Navigation from "@/components/Navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Alert, AlertDescription } from "@/components/ui/alert";
-// StoreSystem component integrated into Market District tabs
-import DynamicMarketplaceManager from "@/components/DynamicMarketplaceManager";
+import { apiRequest } from "@/lib/queryClient";
 import { 
-  ShoppingCart, Users, TrendingUp, Coins, Gem,
-  Package, History, CreditCard, Store, Gavel
+  Users, 
+  Trophy, 
+  MessageCircle, 
+  ExternalLink, 
+  Gift, 
+  BookOpen, 
+  BarChart3,
+  Crown,
+  Award,
+  HelpCircle
 } from "lucide-react";
 
-// Enhanced interfaces for Market District
-interface Team {
-  id: string;
-  name: string;
+interface WorldRankings {
+  teamPowerRankings: Array<{
+    rank: number;
+    teamName: string;
+    division: number;
+    teamPower: number;
+    wins: number;
+    losses: number;
+  }>;
+  playerStats: Array<{
+    playerName: string;
+    teamName: string;
+    statType: string;
+    statValue: number;
+  }>;
+  totalTeams: number;
+  totalPlayers: number;
 }
 
-interface Finances {
-  credits: number;
-  gems: number;
-}
-
-interface MarketplaceStats {
-  activePlayers: number;
-  averagePrice: number;
-  totalTransactions: number;
-  myListings: number;
-}
-
-interface StoreItem {
-  id: string;
-  name: string;
-  description: string;
-  costCredits: number;
-  costGems: number;
-  category: string;
-  rarity: string;
-  icon: string;
-}
-
-interface Transaction {
-  id: string;
-  type: string;
-  item: string;
-  credits: number;
-  gems: number;
-  date: string;
-  status: string;
-}
-
-type TabType = 'overview' | 'marketplace' | 'store' | 'inventory' | 'transactions';
-
-export default function MarketDistrict() {
+export default function CommunityPortal() {
   const { isAuthenticated } = useAuth();
-  const { seasonalState } = useSeasonalUI();
-  const [activeTab, setActiveTab] = useState<TabType>('overview');
 
-  const { data: team } = useQuery<Team>({
-    queryKey: ["/api/teams/my"],
+  const { data: worldRankings, isLoading: rankingsLoading } = useQuery<WorldRankings>({
+    queryKey: ['/api/world/rankings'],
+    queryFn: () => apiRequest('/api/world/rankings'),
     enabled: isAuthenticated,
-  });
-
-  const { data: finances } = useQuery<Finances>({
-    queryKey: [`/api/teams/${team?.id}/finances`],
-    enabled: !!team?.id,
-  });
-
-  const { data: marketplaceStats } = useQuery<MarketplaceStats>({
-    queryKey: ["/api/marketplace/stats"],
-    enabled: isAuthenticated,
-  });
-
-  const { data: featuredItems } = useQuery<StoreItem[]>({
-    queryKey: ["/api/store/featured"],
-    enabled: isAuthenticated,
-  });
-
-  const { data: recentTransactions } = useQuery<Transaction[]>({
-    queryKey: [`/api/teams/${team?.id}/transactions`],
-    enabled: !!team?.id,
-  });
-
-  const { data: inventoryItems } = useQuery<any[]>({
-    queryKey: [`/api/teams/${team?.id}/inventory`],
-    enabled: !!team?.id,
-  });
-
-  const getItemIcon = (category: string) => {
-    switch (category.toLowerCase()) {
-      case 'helmet': return '🪖';
-      case 'gloves': return '🧤';
-      case 'boots': return '👟';
-      case 'armor': return '🛡️';
-      case 'stamina': return '⚡';
-      case 'medical': return '🩹';
-      case 'boost': return '🌟';
-      default: return '📦';
+    retry: (failureCount, error) => {
+      if (isUnauthorizedError(error)) return false;
+      return failureCount < 3;
     }
-  };
+  });
 
-  const getRarityColor = (rarity: string) => {
-    switch (rarity.toLowerCase()) {
-      case 'legendary': return 'text-purple-400 bg-purple-400/10 border-purple-400/30';
-      case 'epic': return 'text-blue-400 bg-blue-400/10 border-blue-400/30';
-      case 'rare': return 'text-green-400 bg-green-400/10 border-green-400/30';
-      case 'uncommon': return 'text-yellow-400 bg-yellow-400/10 border-yellow-400/30';
-      default: return 'text-gray-400 bg-gray-400/10 border-gray-400/30';
-    }
-  };
-
-  const formatCurrency = (amount: number, type: 'credits' | 'gems') => {
-    if (type === 'gems') {
-      return `${amount.toLocaleString()}💎`;
-    }
-    return `${amount.toLocaleString()}₡`;
-  };
-
-  if (!team) {
+  if (!isAuthenticated) {
     return (
-      <div className="min-h-screen bg-gray-900 text-white p-6">
-        <div className="max-w-4xl mx-auto text-center py-16">
-          <h1 className="font-orbitron text-3xl font-bold mb-6">Market District</h1>
-          <p className="text-gray-300 mb-8">Create your team to access trading and store features.</p>
+      <div className="min-h-screen bg-gray-900">
+        <Navigation />
+        <div className="p-4 text-center">
+          <p className="text-white">Please log in to access the Community Portal.</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-900 text-white pb-20 md:pb-6">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-        
-        {/* Header with Market Overview */}
-        <div className="hub-market rounded-lg p-6 mb-6">
-          <div className="flex flex-col md:flex-row md:items-center justify-between mb-4">
-            <div>
-              <h1 className="text-hero font-orbitron text-white">Market District</h1>
-              <p className="text-purple-200">Trading, shopping & economics</p>
-            </div>
-            <div className="mt-4 md:mt-0 flex items-center gap-3">
-              {/* Credits Display */}
-              <div className="flex items-center bg-gray-800/50 px-3 py-2 rounded-lg">
-                <Coins className="h-4 w-4 text-yellow-400 mr-2" />
-                <span className="text-white font-semibold">
-                  {(finances?.credits || 0).toLocaleString()}
-                </span>
-                <span className="text-yellow-400 ml-1">₡</span>
-              </div>
-              
-              {/* Gems Display */}
-              <div className="flex items-center bg-gray-800/50 px-3 py-2 rounded-lg">
-                <Gem className="h-4 w-4 text-purple-400 mr-2" />
-                <span className="text-white font-semibold">
-                  {(finances?.gems || 0).toLocaleString()}
-                </span>
-                <span className="text-purple-400 ml-1">💎</span>
-              </div>
-            </div>
-          </div>
-
-          {/* Market Quick Stats */}
-          <div className="grid-stats">
-            <div className="mobile-card-compact">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-xs text-gray-400">Active Players</p>
-                  <p className="text-xl font-bold text-blue-400">
-                    {marketplaceStats?.activePlayers || 0}
-                  </p>
-                </div>
-                <Users className="h-5 w-5 text-blue-400" />
-              </div>
-            </div>
-
-            <div className="mobile-card-compact">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-xs text-gray-400">Avg Price</p>
-                  <p className="text-xl font-bold text-green-400">
-                    {marketplaceStats?.averagePrice ? 
-                      `${marketplaceStats.averagePrice.toLocaleString()}₡` : 'N/A'}
-                  </p>
-                </div>
-                <TrendingUp className="h-5 w-5 text-green-400" />
-              </div>
-            </div>
-
-            <div className="mobile-card-compact">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-xs text-gray-400">My Listings</p>
-                  <p className="text-xl font-bold text-purple-400">
-                    {marketplaceStats?.myListings || 0}
-                  </p>
-                </div>
-                <Gavel className="h-5 w-5 text-purple-400" />
-              </div>
-            </div>
-
-            <div className="mobile-card-compact">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-xs text-gray-400">Inventory</p>
-                  <p className="text-xl font-bold text-orange-400">
-                    {inventoryItems?.length || 0}
-                  </p>
-                </div>
-                <Package className="h-5 w-5 text-orange-400" />
-              </div>
-            </div>
-          </div>
+    <div className="min-h-screen bg-gray-900">
+      <Navigation />
+      
+      <div className="p-4 space-y-6">
+        {/* Page Header */}
+        <div className="text-center space-y-2">
+          <h1 className="text-3xl font-bold text-white">Community Portal</h1>
+          <p className="text-gray-400">Connect, compete, and discover in the Realm Rivalry universe</p>
         </div>
 
-        {/* Seasonal Trading Restrictions */}
-        {seasonalState.disabledFeatures.includes('marketplace') && (
-          <Alert className="mb-6 border-yellow-600 bg-yellow-600/10">
-            <Package className="h-4 w-4" />
-            <AlertDescription className="text-yellow-200">
-              <strong>Trading Restricted:</strong> Player marketplace unavailable during {seasonalState.currentPhase.toLowerCase().replace('_', ' ')}.
-            </AlertDescription>
-          </Alert>
-        )}
+        <Tabs defaultValue="social" className="space-y-6">
+          <TabsList className="grid w-full grid-cols-3 bg-gray-800 border-gray-700">
+            <TabsTrigger value="social" className="data-[state=active]:bg-purple-600">Social Hub</TabsTrigger>
+            <TabsTrigger value="world" className="data-[state=active]:bg-purple-600">Game Intel</TabsTrigger>
+            <TabsTrigger value="support" className="data-[state=active]:bg-purple-600">Support Center</TabsTrigger>
+          </TabsList>
 
-        {/* Main Content Tabs */}
-        <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as TabType)}>
-          
-          {/* Mobile-Optimized Tab Navigation */}
-          <div className="mb-6 overflow-x-auto">
-            <TabsList className="inline-flex w-auto min-w-full bg-gray-800 p-1">
-              <TabsTrigger value="overview" className="touch-target flex-1 min-w-[90px]">
-                <TrendingUp className="h-4 w-4 mr-1" />
-                <span className="hidden sm:inline">Overview</span>
-              </TabsTrigger>
-              <TabsTrigger value="marketplace" className="touch-target flex-1 min-w-[100px]">
-                <Gavel className="h-4 w-4 mr-1" />
-                <span className="hidden sm:inline">Trading</span>
-              </TabsTrigger>
-              <TabsTrigger value="store" className="touch-target flex-1 min-w-[80px]">
-                <Store className="h-4 w-4 mr-1" />
-                <span className="hidden sm:inline">Store</span>
-              </TabsTrigger>
-              <TabsTrigger value="inventory" className="touch-target flex-1 min-w-[90px]">
-                <Package className="h-4 w-4 mr-1" />
-                <span className="hidden sm:inline">Items</span>
-              </TabsTrigger>
-              <TabsTrigger value="transactions" className="touch-target flex-1 min-w-[90px]">
-                <History className="h-4 w-4 mr-1" />
-                <span className="hidden sm:inline">History</span>
-              </TabsTrigger>
-            </TabsList>
-          </div>
-
-          {/* Overview Tab */}
-          <TabsContent value="overview" className="space-y-6">
-            
-            {/* Featured Store Items */}
-            {featuredItems && featuredItems.length > 0 && (
+          {/* Social Hub Tab */}
+          <TabsContent value="social" className="space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              
+              {/* Discord Integration */}
               <Card className="bg-gray-800 border-gray-700">
                 <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Store className="h-5 w-5 text-purple-400" />
-                    Featured Items
+                  <CardTitle className="flex items-center gap-2 text-white">
+                    <MessageCircle className="h-5 w-5 text-purple-400" />
+                    Official Discord
                   </CardTitle>
                 </CardHeader>
-                <CardContent>
-                  <div className="grid-mobile-cards">
-                    {featuredItems.slice(0, 6).map((item) => (
-                      <div key={item.id} className="mobile-card-interactive">
-                        <div className="text-center mb-3">
-                          <div className="text-2xl mb-2">{getItemIcon(item.category)}</div>
-                          <h3 className="font-semibold truncate">{item.name}</h3>
-                          <Badge className={`text-xs mt-1 ${getRarityColor(item.rarity)}`}>
-                            {item.rarity}
-                          </Badge>
-                        </div>
-                        
-                        <div className="space-y-2">
-                          <p className="text-xs text-gray-400 line-clamp-2">{item.description}</p>
-                          
-                          <div className="flex items-center justify-between">
-                            {item.costCredits > 0 && (
-                              <div className="flex items-center gap-1">
-                                <Coins className="h-3 w-3 text-yellow-400" />
-                                <span className="text-xs">{item.costCredits.toLocaleString()}</span>
-                              </div>
-                            )}
-                            {item.costGems > 0 && (
-                              <div className="flex items-center gap-1">
-                                <Gem className="h-3 w-3 text-purple-400" />
-                                <span className="text-xs">{item.costGems}</span>
-                              </div>
-                            )}
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
-            )}
-
-            {/* Recent Activity */}
-            {recentTransactions && recentTransactions.length > 0 && (
-              <Card className="bg-gray-800 border-gray-700">
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <History className="h-5 w-5 text-green-400" />
-                    Recent Activity
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-3">
-                    {recentTransactions.slice(0, 5).map((transaction) => (
-                      <div key={transaction.id} className="mobile-card-interactive">
-                        <div className="flex items-center justify-between">
-                          <div className="flex-1">
-                            <div className="flex items-center gap-2 mb-1">
-                              <Badge variant="outline" className="text-xs">
-                                {transaction.type}
-                              </Badge>
-                              <span className="font-semibold truncate">{transaction.item}</span>
-                            </div>
-                            <p className="text-xs text-gray-400">
-                              {new Date(transaction.date).toLocaleDateString()}
-                            </p>
-                          </div>
-                          <div className="text-right">
-                            {transaction.credits > 0 && (
-                              <div className="text-sm font-semibold text-yellow-400">
-                                {transaction.credits > 0 ? '+' : ''}{transaction.credits.toLocaleString()}₡
-                              </div>
-                            )}
-                            {transaction.gems > 0 && (
-                              <div className="text-sm font-semibold text-purple-400">
-                                {transaction.gems > 0 ? '+' : ''}{transaction.gems}💎
-                              </div>
-                            )}
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
-            )}
-
-            {/* Quick Actions */}
-            <Card className="bg-gray-800 border-gray-700">
-              <CardHeader>
-                <CardTitle>Quick Actions</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-2 gap-4">
-                  <Button 
-                    variant="outline" 
-                    className="touch-target-large"
-                    onClick={() => setActiveTab('marketplace')}
-                  >
-                    <Users className="h-4 w-4 mr-2" />
-                    Browse Players
-                  </Button>
-                  <Button 
-                    variant="outline" 
-                    className="touch-target-large"
-                    onClick={() => setActiveTab('store')}
-                  >
-                    <ShoppingCart className="h-4 w-4 mr-2" />
-                    Visit Store
-                  </Button>
-                  <Button 
-                    variant="outline" 
-                    className="touch-target-large"
-                    onClick={() => setActiveTab('inventory')}
-                  >
-                    <Package className="h-4 w-4 mr-2" />
-                    My Items
-                  </Button>
-                  <Button 
-                    variant="outline" 
-                    className="touch-target-large"
-                    onClick={() => setActiveTab('transactions')}
-                  >
-                    <History className="h-4 w-4 mr-2" />
-                    View History
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          {/* Marketplace Tab */}
-          <TabsContent value="marketplace" className="space-y-6">
-            <DynamicMarketplaceManager />
-          </TabsContent>
-
-          {/* Store Tab */}
-          <TabsContent value="store" className="space-y-6">
-            {/* StoreSystem integrated into Market District tabs */}
-            <div className="text-center text-gray-500 py-8">Store functionality integrated into other tabs</div>
-          </TabsContent>
-
-          {/* Inventory Tab */}
-          <TabsContent value="inventory" className="space-y-6">
-            <Card className="bg-gray-800 border-gray-700">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Package className="h-5 w-5 text-orange-400" />
-                  My Inventory ({inventoryItems?.length || 0} items)
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                {inventoryItems && inventoryItems.length > 0 ? (
-                  <div className="grid-mobile-cards">
-                    {inventoryItems.map((item, index) => (
-                      <div key={index} className="mobile-card-interactive">
-                        <div className="text-center">
-                          <div className="text-2xl mb-2">{getItemIcon(item.category || 'default')}</div>
-                          <h3 className="font-semibold truncate">{item.name}</h3>
-                          <p className="text-xs text-gray-400 mt-1">Qty: {item.quantity || 1}</p>
-                          {item.rarity && (
-                            <Badge className={`text-xs mt-2 ${getRarityColor(item.rarity)}`}>
-                              {item.rarity}
-                            </Badge>
-                          )}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <div className="text-center py-8">
-                    <Package className="h-12 w-12 text-gray-500 mx-auto mb-4" />
-                    <p className="text-gray-400">No items in inventory</p>
-                    <Button 
-                      variant="outline" 
-                      className="mt-4"
-                      onClick={() => setActiveTab('store')}
-                    >
-                      Visit Store
+                <CardContent className="space-y-4">
+                  <p className="text-gray-300">Join our active community for real-time strategy discussions, tournament updates, and exclusive events.</p>
+                  <div className="flex items-center justify-between">
+                    <div className="text-sm text-gray-400">
+                      <p>1,247 members online</p>
+                      <p>Live tournament discussions</p>
+                    </div>
+                    <Button className="bg-indigo-600 hover:bg-indigo-700">
+                      <ExternalLink className="h-4 w-4 mr-2" />
+                      Join Discord
                     </Button>
                   </div>
-                )}
-              </CardContent>
-            </Card>
+                </CardContent>
+              </Card>
+
+              {/* Referral System */}
+              <Card className="bg-gray-800 border-gray-700">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2 text-white">
+                    <Gift className="h-5 w-5 text-green-400" />
+                    Referral Rewards
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <p className="text-gray-300">Invite friends and earn exclusive rewards for both you and your referrals.</p>
+                  <div className="space-y-2">
+                    <div className="flex justify-between text-sm">
+                      <span className="text-gray-400">Your Referral Code:</span>
+                      <Badge variant="outline" className="font-mono">RR-USER123</Badge>
+                    </div>
+                    <div className="flex justify-between text-sm">
+                      <span className="text-gray-400">Friends Referred:</span>
+                      <span className="text-white">3</span>
+                    </div>
+                    <div className="flex justify-between text-sm">
+                      <span className="text-gray-400">Rewards Earned:</span>
+                      <span className="text-yellow-400">1,500₡</span>
+                    </div>
+                  </div>
+                  <Button variant="outline" className="w-full">
+                    Share Referral Link
+                  </Button>
+                </CardContent>
+              </Card>
+
+              {/* Social Media Links */}
+              <Card className="bg-gray-800 border-gray-700">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2 text-white">
+                    <Users className="h-5 w-5 text-blue-400" />
+                    Follow Us
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  <p className="text-gray-300">Stay updated with the latest news, updates, and community highlights.</p>
+                  <div className="grid grid-cols-2 gap-2">
+                    <Button variant="outline" size="sm">
+                      <ExternalLink className="h-4 w-4 mr-2" />
+                      Twitter
+                    </Button>
+                    <Button variant="outline" size="sm">
+                      <ExternalLink className="h-4 w-4 mr-2" />
+                      Reddit
+                    </Button>
+                    <Button variant="outline" size="sm">
+                      <ExternalLink className="h-4 w-4 mr-2" />
+                      YouTube
+                    </Button>
+                    <Button variant="outline" size="sm">
+                      <ExternalLink className="h-4 w-4 mr-2" />
+                      Twitch
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Redeem Code */}
+              <Card className="bg-gray-800 border-gray-700">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2 text-white">
+                    <Gift className="h-5 w-5 text-purple-400" />
+                    Redeem Code
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <p className="text-gray-300">Have a special code from events or promotions? Redeem it here for exclusive rewards.</p>
+                  <div className="flex gap-2">
+                    <input 
+                      type="text" 
+                      placeholder="Enter code here"
+                      className="flex-1 px-3 py-2 bg-gray-700 border-gray-600 rounded text-white placeholder-gray-400"
+                    />
+                    <Button>Redeem</Button>
+                  </div>
+                  <p className="text-xs text-gray-500">Codes are case-sensitive and expire after use.</p>
+                </CardContent>
+              </Card>
+            </div>
           </TabsContent>
 
-          {/* Transactions Tab */}
-          <TabsContent value="transactions" className="space-y-6">
-            <Card className="bg-gray-800 border-gray-700">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <CreditCard className="h-5 w-5 text-blue-400" />
-                  Transaction History
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                {recentTransactions && recentTransactions.length > 0 ? (
-                  <div className="space-y-3">
-                    {recentTransactions.map((transaction) => (
-                      <div key={transaction.id} className="mobile-card-interactive">
-                        <div className="flex items-center justify-between">
-                          <div className="flex-1">
-                            <div className="flex items-center gap-2 mb-1">
-                              <Badge 
-                                variant="outline" 
-                                className={`text-xs ${
-                                  transaction.type === 'PURCHASE' ? 'text-red-400' :
-                                  transaction.type === 'SALE' ? 'text-green-400' :
-                                  'text-blue-400'
-                                }`}
-                              >
-                                {transaction.type}
-                              </Badge>
-                              <span className="font-semibold truncate">{transaction.item}</span>
+          {/* Game Intel Tab */}
+          <TabsContent value="world" className="space-y-6">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              
+              {/* World Rankings */}
+              <Card className="bg-gray-800 border-gray-700">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2 text-white">
+                    <Trophy className="h-5 w-5 text-yellow-400" />
+                    Top Team Power Rankings
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  {rankingsLoading ? (
+                    <div className="space-y-2">
+                      {[...Array(5)].map((_, i) => (
+                        <div key={i} className="h-12 bg-gray-700 rounded animate-pulse" />
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="space-y-2">
+                      {worldRankings?.teamPowerRankings?.slice(0, 10).map((team) => (
+                        <div key={team.rank} className="flex items-center justify-between p-2 bg-gray-700 rounded">
+                          <div className="flex items-center gap-3">
+                            <span className="flex items-center justify-center w-6 h-6 bg-gray-600 rounded-full text-xs font-bold">
+                              {team.rank}
+                            </span>
+                            {team.rank <= 3 && (
+                              <Crown className={`h-4 w-4 ${team.rank === 1 ? 'text-yellow-400' : team.rank === 2 ? 'text-gray-300' : 'text-amber-600'}`} />
+                            )}
+                            <div>
+                              <p className="text-white font-medium">{team.teamName}</p>
+                              <p className="text-xs text-gray-400">Division {team.division} • {team.wins}W-{team.losses}L</p>
                             </div>
-                            <p className="text-xs text-gray-400">
-                              {new Date(transaction.date).toLocaleString()}
-                            </p>
-                            <Badge 
-                              className={`text-xs mt-1 ${
-                                transaction.status === 'COMPLETED' ? 'bg-green-600' :
-                                transaction.status === 'PENDING' ? 'bg-yellow-600' :
-                                'bg-red-600'
-                              }`}
-                            >
-                              {transaction.status}
-                            </Badge>
                           </div>
                           <div className="text-right">
-                            {transaction.credits !== 0 && (
-                              <div className={`text-sm font-semibold ${
-                                transaction.credits > 0 ? 'text-green-400' : 'text-red-400'
-                              }`}>
-                                {transaction.credits > 0 ? '+' : ''}{transaction.credits.toLocaleString()}₡
-                              </div>
-                            )}
-                            {transaction.gems !== 0 && (
-                              <div className={`text-sm font-semibold ${
-                                transaction.gems > 0 ? 'text-green-400' : 'text-red-400'
-                              }`}>
-                                {transaction.gems > 0 ? '+' : ''}{transaction.gems}💎
-                              </div>
-                            )}
+                            <p className="text-white font-bold">{team.teamPower}</p>
+                            <p className="text-xs text-gray-400">Power</p>
                           </div>
                         </div>
+                      ))}
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+
+              {/* Player Stats Leaders */}
+              <Card className="bg-gray-800 border-gray-700">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2 text-white">
+                    <Award className="h-5 w-5 text-green-400" />
+                    Statistical Leaders
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <Tabs defaultValue="scores" className="space-y-4">
+                    <TabsList className="grid w-full grid-cols-3 bg-gray-700">
+                      <TabsTrigger value="scores" className="text-xs">Scores</TabsTrigger>
+                      <TabsTrigger value="yards" className="text-xs">Yards</TabsTrigger>
+                      <TabsTrigger value="tackles" className="text-xs">Tackles</TabsTrigger>
+                    </TabsList>
+                    
+                    <TabsContent value="scores" className="space-y-2">
+                      {worldRankings?.playerStats?.filter(p => p.statType === 'scores').slice(0, 5).map((player, i) => (
+                        <div key={i} className="flex items-center justify-between p-2 bg-gray-700 rounded">
+                          <div>
+                            <p className="text-white font-medium">{player.playerName}</p>
+                            <p className="text-xs text-gray-400">{player.teamName}</p>
+                          </div>
+                          <span className="text-yellow-400 font-bold">{player.statValue}</span>
+                        </div>
+                      ))}
+                    </TabsContent>
+                    
+                    <TabsContent value="yards" className="space-y-2">
+                      <div className="text-center py-8 text-gray-400">
+                        <BarChart3 className="h-8 w-8 mx-auto mb-2" />
+                        <p>Player statistics coming soon</p>
                       </div>
-                    ))}
+                    </TabsContent>
+                    
+                    <TabsContent value="tackles" className="space-y-2">
+                      <div className="text-center py-8 text-gray-400">
+                        <BarChart3 className="h-8 w-8 mx-auto mb-2" />
+                        <p>Player statistics coming soon</p>
+                      </div>
+                    </TabsContent>
+                  </Tabs>
+                </CardContent>
+              </Card>
+
+              {/* Game Statistics */}
+              <Card className="bg-gray-800 border-gray-700">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2 text-white">
+                    <BarChart3 className="h-5 w-5 text-blue-400" />
+                    Global Game Stats
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="text-center">
+                      <p className="text-2xl font-bold text-white">{worldRankings?.totalTeams || 0}</p>
+                      <p className="text-sm text-gray-400">Active Teams</p>
+                    </div>
+                    <div className="text-center">
+                      <p className="text-2xl font-bold text-white">{worldRankings?.totalPlayers || 0}</p>
+                      <p className="text-sm text-gray-400">Total Players</p>
+                    </div>
                   </div>
-                ) : (
-                  <div className="text-center py-8">
-                    <History className="h-12 w-12 text-gray-500 mx-auto mb-4" />
-                    <p className="text-gray-400">No transaction history</p>
+                  <div className="space-y-2 text-sm">
+                    <div className="flex justify-between">
+                      <span className="text-gray-400">Matches Played Today:</span>
+                      <span className="text-white">127</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-400">Active Tournaments:</span>
+                      <span className="text-white">8</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-400">Players Online:</span>
+                      <span className="text-green-400">412</span>
+                    </div>
                   </div>
-                )}
-              </CardContent>
-            </Card>
+                </CardContent>
+              </Card>
+
+              {/* Hall of Fame */}
+              <Card className="bg-gray-800 border-gray-700">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2 text-white">
+                    <Crown className="h-5 w-5 text-yellow-400" />
+                    Hall of Fame
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <p className="text-gray-300">Legendary achievements in Realm Rivalry history</p>
+                  <div className="space-y-3">
+                    <div className="flex items-center gap-3 p-2 bg-gray-700 rounded">
+                      <Trophy className="h-5 w-5 text-yellow-400" />
+                      <div>
+                        <p className="text-white font-medium">Thunder Hawks</p>
+                        <p className="text-xs text-gray-400">First Perfect Season (Season 1)</p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-3 p-2 bg-gray-700 rounded">
+                      <Award className="h-5 w-5 text-purple-400" />
+                      <div>
+                        <p className="text-white font-medium">Starwhisper Mystic</p>
+                        <p className="text-xs text-gray-400">Most Career Scores (Season 2)</p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-3 p-2 bg-gray-700 rounded">
+                      <Crown className="h-5 w-5 text-blue-400" />
+                      <div>
+                        <p className="text-white font-medium">Crimson Blaze</p>
+                        <p className="text-xs text-gray-400">Highest Team Power (2,847)</p>
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
           </TabsContent>
 
+          {/* Support Center Tab */}
+          <TabsContent value="support" className="space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              
+              {/* Game Manual */}
+              <Card className="bg-gray-800 border-gray-700">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2 text-white">
+                    <BookOpen className="h-5 w-5 text-blue-400" />
+                    Game Manual
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <p className="text-gray-300">Comprehensive guides to master every aspect of Realm Rivalry.</p>
+                  <div className="space-y-2">
+                    <Button variant="outline" className="w-full justify-start">
+                      <BookOpen className="h-4 w-4 mr-2" />
+                      Getting Started Guide
+                    </Button>
+                    <Button variant="outline" className="w-full justify-start">
+                      <Users className="h-4 w-4 mr-2" />
+                      Team Management
+                    </Button>
+                    <Button variant="outline" className="w-full justify-start">
+                      <Trophy className="h-4 w-4 mr-2" />
+                      Tournament Strategy
+                    </Button>
+                    <Button variant="outline" className="w-full justify-start">
+                      <BarChart3 className="h-4 w-4 mr-2" />
+                      Advanced Tactics
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Help & Support */}
+              <Card className="bg-gray-800 border-gray-700">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2 text-white">
+                    <HelpCircle className="h-5 w-5 text-green-400" />
+                    Help & Support
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <p className="text-gray-300">Need assistance? We're here to help!</p>
+                  <div className="space-y-2">
+                    <Button className="w-full justify-start bg-green-600 hover:bg-green-700">
+                      <MessageCircle className="h-4 w-4 mr-2" />
+                      Contact Support
+                    </Button>
+                    <Button variant="outline" className="w-full justify-start">
+                      <ExternalLink className="h-4 w-4 mr-2" />
+                      Bug Reports
+                    </Button>
+                    <Button variant="outline" className="w-full justify-start">
+                      <Gift className="h-4 w-4 mr-2" />
+                      Feature Requests
+                    </Button>
+                  </div>
+                  <div className="mt-4 p-3 bg-gray-700 rounded">
+                    <p className="text-xs text-gray-400">
+                      Response Time: Within 24 hours<br />
+                      Support Hours: 9AM - 9PM EST
+                    </p>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Roadmap */}
+              <Card className="bg-gray-800 border-gray-700">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2 text-white">
+                    <BarChart3 className="h-5 w-5 text-purple-400" />
+                    Development Roadmap
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <p className="text-gray-300">See what's coming next in Realm Rivalry!</p>
+                  <div className="space-y-3">
+                    <div className="p-3 bg-green-900/20 border border-green-700 rounded">
+                      <div className="flex items-center gap-2 mb-1">
+                        <div className="w-2 h-2 bg-green-400 rounded-full"></div>
+                        <span className="text-sm font-medium text-green-400">In Development</span>
+                      </div>
+                      <p className="text-white font-medium">Mobile App</p>
+                      <p className="text-xs text-gray-400">Native iOS and Android applications</p>
+                    </div>
+                    <div className="p-3 bg-blue-900/20 border border-blue-700 rounded">
+                      <div className="flex items-center gap-2 mb-1">
+                        <div className="w-2 h-2 bg-blue-400 rounded-full"></div>
+                        <span className="text-sm font-medium text-blue-400">Planned</span>
+                      </div>
+                      <p className="text-white font-medium">League Expansion</p>
+                      <p className="text-xs text-gray-400">Additional divisions and tournaments</p>
+                    </div>
+                    <div className="p-3 bg-purple-900/20 border border-purple-700 rounded">
+                      <div className="flex items-center gap-2 mb-1">
+                        <div className="w-2 h-2 bg-purple-400 rounded-full"></div>
+                        <span className="text-sm font-medium text-purple-400">Future</span>
+                      </div>
+                      <p className="text-white font-medium">Player Trading Cards</p>
+                      <p className="text-xs text-gray-400">Collectible NFT system</p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Feedback */}
+              <Card className="bg-gray-800 border-gray-700">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2 text-white">
+                    <MessageCircle className="h-5 w-5 text-yellow-400" />
+                    Share Feedback
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <p className="text-gray-300">Help us improve Realm Rivalry with your suggestions and feedback.</p>
+                  <div className="space-y-2">
+                    <textarea 
+                      placeholder="Share your thoughts, suggestions, or report issues..."
+                      className="w-full h-24 p-3 bg-gray-700 border-gray-600 rounded text-white placeholder-gray-400 resize-none"
+                    />
+                    <Button className="w-full">Submit Feedback</Button>
+                  </div>
+                  <p className="text-xs text-gray-500">Your feedback helps shape the future of Realm Rivalry!</p>
+                </CardContent>
+              </Card>
+            </div>
+          </TabsContent>
         </Tabs>
       </div>
     </div>
