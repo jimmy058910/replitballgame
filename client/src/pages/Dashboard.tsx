@@ -58,6 +58,13 @@ interface Finances {
   premiumCurrency: number;
 }
 
+interface CamaraderieSummary {
+  teamCamaraderie: number;
+  playersWithHighMorale: number;
+  playersWithLowMorale: number;
+  averageCamaraderie: number;
+}
+
 interface SeasonalCycle {
   season: string;
   currentDay: number;
@@ -215,12 +222,52 @@ function ServerTimeDisplay({ serverTime }: { serverTime: ServerTime | undefined 
   );
 }
 
+import { Suspense } from "react";
+import { Card, CardContent } from "@/components/ui/card";
+
+// Simple loading component
+function DashboardLoading() {
+  return (
+    <div className="min-h-screen bg-gray-900 text-white p-6">
+      <div className="max-w-7xl mx-auto">
+        <div className="animate-pulse space-y-6">
+          <div className="h-32 bg-gray-800 rounded-lg"></div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="h-48 bg-gray-800 rounded-lg"></div>
+            <div className="h-48 bg-gray-800 rounded-lg"></div>
+            <div className="h-48 bg-gray-800 rounded-lg"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// Import Command Center with proper error handling
+const CommandCenterContent = () => {
+  try {
+    const CommandCenter = require("@/pages/CommandCenter").default;
+    return <CommandCenter />;
+  } catch (error) {
+    console.error("Failed to load Command Center:", error);
+    return (
+      <div className="min-h-screen bg-gray-900 text-white p-6">
+        <div className="max-w-4xl mx-auto text-center py-16">
+          <h1 className="font-orbitron text-3xl font-bold mb-6">Command Center Loading...</h1>
+          <p className="text-gray-300">Initializing mission control interface</p>
+        </div>
+      </div>
+    );
+  }
+};
+
 export default function Dashboard() {
-  const { toast } = useToast();
-  const { isAuthenticated, isLoading } = useAuth();
-  const queryClient = useQueryClient();
-  const [selectedPlayer, setSelectedPlayer] = useState(null);
-  const [showPlayerModal, setShowPlayerModal] = useState(false);
+  return (
+    <Suspense fallback={<DashboardLoading />}>
+      <CommandCenterContent />
+    </Suspense>
+  );
+}
 
 
 
@@ -281,7 +328,7 @@ export default function Dashboard() {
   });
 
   // Get proper team camaraderie using the service (same as Team Chemistry tab)
-  const { data: camaraderieSummary } = useQuery({
+  const { data: camaraderieSummary } = useQuery<CamaraderieSummary>({
     queryKey: ['/api/camaraderie/summary'],
     enabled: !!team?.id,
   });

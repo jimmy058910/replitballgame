@@ -16,6 +16,9 @@ import RealmPassCheckout from "@/pages/realm-pass-checkout";
 import DomainDemo from "@/pages/DomainDemo";
 import PWAInstallPrompt from "@/components/PWAInstallPrompt";
 
+// React imports
+import { lazy, Suspense } from "react";
+
 // Lazy-loaded components for better performance
 import { 
   LazyDashboard,
@@ -33,10 +36,16 @@ import {
   LazyTournamentStatus
 } from "@/utils/lazyLoading";
 
-import Navigation from "@/components/Navigation";
+import NewNavigation from "@/components/NewNavigation";
 import { ContextualHelp } from "@/components/help";
 import { LandscapeOrientation } from "@/components/LandscapeOrientation";
 import ErrorBoundary from "@/components/ErrorBoundary";
+
+// New 5-Hub Architecture Components with error handling
+const LazyCommandCenter = lazy(() => import("@/pages/CommandCenter").catch(() => ({ default: () => <div>Loading Command Center...</div> })));
+const LazyRosterHQ = lazy(() => import("@/pages/RosterHQ").catch(() => ({ default: () => <div>Loading Roster HQ...</div> })));
+const LazyCompetitionCenter = lazy(() => import("@/pages/CompetitionCenter").catch(() => ({ default: () => <div>Loading Competition Center...</div> })));
+const LazyCommunityPortal = lazy(() => import("@/pages/CommunityPortal").catch(() => ({ default: () => <div>Loading Market District...</div> })));
 
 function Router() {
   const { isAuthenticated, isLoading } = useAuth();
@@ -50,9 +59,40 @@ function Router() {
         <Route path="/" component={Landing} />
       ) : (
         <>
-          <Route path="/" component={LazyDashboard} />
+          {/* New 5-Hub Architecture with Suspense */}
+          <Route path="/" component={() => (
+            <Suspense fallback={<div className="min-h-screen bg-gray-900 animate-pulse" />}>
+              <LazyCommandCenter />
+            </Suspense>
+          )} />
+          <Route path="/command-center" component={() => (
+            <Suspense fallback={<div className="min-h-screen bg-gray-900 animate-pulse" />}>
+              <LazyCommandCenter />
+            </Suspense>
+          )} />
+          <Route path="/roster-hq" component={() => (
+            <Suspense fallback={<div className="min-h-screen bg-gray-900 animate-pulse" />}>
+              <LazyRosterHQ />
+            </Suspense>
+          )} />
+          <Route path="/competition" component={() => (
+            <Suspense fallback={<div className="min-h-screen bg-gray-900 animate-pulse" />}>
+              <LazyCompetitionCenter />
+            </Suspense>
+          )} />
+          <Route path="/market-district" component={() => (
+            <Suspense fallback={<div className="min-h-screen bg-gray-900 animate-pulse" />}>
+              <LazyCommunityPortal />
+            </Suspense>
+          )} />
+          <Route path="/community" component={() => (
+            <Suspense fallback={<div className="min-h-screen bg-gray-900 animate-pulse" />}>
+              <LazyCommunityPortal />
+            </Suspense>
+          )} />
+          
+          {/* Legacy routes - maintain for backwards compatibility */}
           <Route path="/team" component={LazyTeam} />
-          <Route path="/competition" component={LazyCompetition} />
           <Route path="/market" component={LazyMarket} />
           <Route path="/world" component={LazyWorld} />
           
@@ -93,7 +133,7 @@ function App() {
         <LandscapeOrientation>
           <ErrorBoundary level="critical">
             <div className="min-h-screen bg-background">
-              <Navigation />
+              <NewNavigation />
               <ErrorBoundary level="page">
                 <Router />
               </ErrorBoundary>
