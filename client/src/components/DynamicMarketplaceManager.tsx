@@ -114,14 +114,14 @@ export default function DynamicMarketplaceManager({ teamId }: { teamId: string }
   const [startBid, setStartBid] = useState<string>('');
   const [durationHours, setDurationHours] = useState<string>('24');
   const [buyNowPrice, setBuyNowPrice] = useState<string>('');
-  const [selectedPlayerForModal, setSelectedPlayerForModal] = useState<any>(null);
+  const [selectedPlayerForModal, setSelectedPlayerForModal] = useState<Player | null>(null);
   const [isPlayerModalOpen, setIsPlayerModalOpen] = useState(false);
 
   // Auto-fill buy-now price when player is selected
   const handlePlayerSelection = (playerId: string) => {
     setSelectedPlayerId(playerId);
     if (playerId && teamPlayers) {
-      const selectedPlayer = teamPlayers.find((p: any) => p.id === playerId);
+      const selectedPlayer = teamPlayers.find((p: Player) => p.id === playerId);
       if (selectedPlayer) {
         // Calculate CAR exactly like backend: average of 6 stats
         const car = (selectedPlayer.speed + selectedPlayer.power + selectedPlayer.agility + 
@@ -137,32 +137,32 @@ export default function DynamicMarketplaceManager({ teamId }: { teamId: string }
   };
 
   // Fetch marketplace stats
-  const { data: stats, isLoading: loadingStats } = useQuery({
+  const { data: stats, isLoading: loadingStats } = useQuery<MarketplaceStats>({
     queryKey: ['/api/dynamic-marketplace/stats'],
     refetchInterval: 3 * 60 * 1000, // Refresh every 3 minutes instead of 30 seconds
     staleTime: 60 * 1000 // Consider data fresh for 1 minute
   });
 
   // Fetch active listings
-  const { data: listings, isLoading: loadingListings } = useQuery({
+  const { data: listings, isLoading: loadingListings } = useQuery<{ listings: MarketplaceListing[] }>({
     queryKey: ['/api/dynamic-marketplace/listings'],
     refetchInterval: 10000 // Refresh every 10 seconds for live bidding
   });
 
   // Fetch user's listings
-  const { data: myListings } = useQuery({
+  const { data: myListings } = useQuery<{ listings: MarketplaceListing[] }>({
     queryKey: ['/api/dynamic-marketplace/my-listings', teamId],
     enabled: !!teamId
   });
 
   // Fetch user's bids
-  const { data: myBids } = useQuery({
+  const { data: myBids } = useQuery<{ bids: MarketplaceBid[] }>({
     queryKey: ['/api/dynamic-marketplace/my-bids', teamId],
     enabled: !!teamId
   });
 
   // Fetch team players for listing
-  const { data: teamPlayers } = useQuery({
+  const { data: teamPlayers } = useQuery<Player[]>({
     queryKey: ['/api/teams/' + teamId + '/players'],
     enabled: !!teamId
   });
@@ -551,9 +551,9 @@ export default function DynamicMarketplaceManager({ teamId }: { teamId: string }
                       </SelectTrigger>
                       <SelectContent>
                         {teamPlayers
-                          ?.sort((a: any, b: any) => a.id - b.id) // Sort by ID to maintain consistent ordering
+                          ?.sort((a: Player, b: Player) => Number(a.id) - Number(b.id)) // Sort by ID to maintain consistent ordering
                           ?.slice(0, 12) // Only show main roster players (first 12), exclude taxi squad
-                          ?.map((player: any) => (
+                          ?.map((player: Player) => (
                             <SelectItem key={player.id} value={player.id}>
                               {player.firstName} {player.lastName} ({player.role}, {player.race})
                             </SelectItem>

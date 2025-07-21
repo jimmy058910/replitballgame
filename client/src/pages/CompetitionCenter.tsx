@@ -9,7 +9,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import LeagueStandings from "@/components/LeagueStandings";
 import ImprovedLiveMatches from "@/components/ImprovedLiveMatches";
-import { ComprehensiveTournamentManager } from "@/components/ComprehensiveTournamentManager";
+import ComprehensiveTournamentManager from "@/components/ComprehensiveTournamentManager";
 import { 
   Trophy, Calendar, Users, Zap, Target, Play,
   Clock, Star, Award, Gamepad2, TrendingUp

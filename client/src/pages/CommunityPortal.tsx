@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import StoreSystem from "@/components/StoreSystem";
+// StoreSystem component integrated into Market District tabs
 import DynamicMarketplaceManager from "@/components/DynamicMarketplaceManager";
 import { 
   ShoppingCart, Users, TrendingUp, Coins, Gem,
@@ -400,7 +400,8 @@ export default function MarketDistrict() {
 
           {/* Store Tab */}
           <TabsContent value="store" className="space-y-6">
-            <StoreSystem teamId={team?.id || ""} />
+            {/* StoreSystem integrated into Market District tabs */}
+            <div className="text-center text-gray-500 py-8">Store functionality integrated into other tabs</div>
           </TabsContent>
 
           {/* Inventory Tab */}

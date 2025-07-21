@@ -8,8 +8,8 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import UnifiedPlayerCard from "@/components/UnifiedPlayerCard";
-import { TacticalFormation } from "@/components/TacticalFormation";
-import { StaffManagement } from "@/components/StaffManagement";
+import TacticalFormation from "@/components/TacticalFormation";
+import StaffManagement from "@/components/StaffManagement";
 import { 
   Users, UserPlus, Zap, Heart, DollarSign, Settings,
   Trophy, Shield, Target, AlertTriangle, Plus
