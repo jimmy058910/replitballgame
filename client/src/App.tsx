@@ -30,7 +30,7 @@ import {
 
 import NewNavigation from "@/components/NewNavigation";
 import { ContextualHelp } from "@/components/help";
-import { LandscapeOrientation } from "@/components/LandscapeOrientation";
+// Removed LandscapeOrientation - mobile-first design supports vertical mode per UI/UX documents
 import ErrorBoundary from "@/components/ErrorBoundary";
 
 // New 5-Hub Architecture Components with error handling
@@ -115,19 +115,17 @@ function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
-        <LandscapeOrientation>
-          <ErrorBoundary level="critical">
-            <div className="min-h-screen bg-background">
-              <NewNavigation />
-              <ErrorBoundary level="page">
-                <Router />
-              </ErrorBoundary>
-              <Toaster />
-              <PWAInstallPrompt />
-              <ContextualHelp />
-            </div>
-          </ErrorBoundary>
-        </LandscapeOrientation>
+        <ErrorBoundary level="critical">
+          <div className="min-h-screen bg-background">
+            <NewNavigation />
+            <ErrorBoundary level="page">
+              <Router />
+            </ErrorBoundary>
+            <Toaster />
+            <PWAInstallPrompt />
+            <ContextualHelp />
+          </div>
+        </ErrorBoundary>
       </TooltipProvider>
     </QueryClientProvider>
   );
