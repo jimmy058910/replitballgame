@@ -75,7 +75,7 @@ export function registerAllRoutes(app: Express): void {
   app.use("/api/tournament-rewards", tournamentRewardRoutes);
   app.use("/api/daily-tournaments", dailyTournamentRoutes);
   app.use("/api/new-tournaments", newTournamentRoutes);
-  app.use("/api/exhibition", exhibitionRoutes);
+  app.use("/api/exhibitions", exhibitionRoutes);
   app.use("/api/notifications", notificationRoutes); // Covers /api/notifications and /api/demo/notifications
   app.use("/api/injuries", injuryRoutes); // Covers /api/injuries, /api/medical-staff, /api/conditioning
   app.use("/api/injury-stamina", injuryStaminaRoutes); // Covers comprehensive injury & stamina system
