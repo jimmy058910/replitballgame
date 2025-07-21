@@ -378,7 +378,7 @@ export class LateSignupService {
   }
   
   /**
-   * Generate shortened match schedule
+   * Generate shortened match schedule - ONE GAME PER TEAM PER DAY
    */
   private static async generateShortenedMatches(
     leagueId: string,
@@ -392,11 +392,13 @@ export class LateSignupService {
     
     if (numTeams < 2) return matches;
     
-    // Calculate total possible matches in a round-robin
-    const totalPossibleMatches = (numTeams * (numTeams - 1)) / 2;
+    // Track which teams have been scheduled for each day
+    const dailySchedules: Map<number, Set<number>> = new Map();
     
-    // Calculate matches per day based on remaining days
-    const matchesPerDay = Math.ceil(totalPossibleMatches / remainingDays);
+    // Initialize daily schedule tracking
+    for (let day = startDay; day <= 14 && day < startDay + remainingDays; day++) {
+      dailySchedules.set(day, new Set());
+    }
     
     // Generate round-robin matchups
     const matchups = [];
@@ -412,33 +414,44 @@ export class LateSignupService {
       [matchups[i], matchups[j]] = [matchups[j], matchups[i]];
     }
     
-    // Distribute matches across remaining days
-    let currentDay = startDay;
-    let matchCount = 0;
-    
+    // Schedule matches ensuring ONE GAME PER TEAM PER DAY
     for (const [homeTeam, awayTeam] of matchups) {
-      if (currentDay > 14) break; // Don't schedule beyond regular season
+      let scheduled = false;
       
-      const match = await prisma.game.create({
-        data: {
-          homeTeamId: homeTeam.id,
-          awayTeamId: awayTeam.id,
-          leagueId: leagueId,
-          season: season,
-          day: currentDay,
-          gameDate: await this.calculateGameDate(currentDay),
-          status: 'SCHEDULED',
-          gameType: 'LEAGUE'
+      // Find the first available day where both teams are free
+      for (let day = startDay; day <= 14 && day < startDay + remainingDays && !scheduled; day++) {
+        const daySchedule = dailySchedules.get(day);
+        if (!daySchedule) continue;
+        
+        // Check if both teams are available this day
+        if (!daySchedule.has(homeTeam.id) && !daySchedule.has(awayTeam.id)) {
+          // Schedule the match
+          const match = await prisma.game.create({
+            data: {
+              homeTeamId: homeTeam.id,
+              awayTeamId: awayTeam.id,
+              leagueId: leagueId,
+              season: season,
+              day: day,
+              gameDate: await this.calculateGameDate(day),
+              status: 'SCHEDULED',
+              gameType: 'LEAGUE'
+            }
+          });
+          
+          // Mark both teams as scheduled for this day
+          daySchedule.add(homeTeam.id);
+          daySchedule.add(awayTeam.id);
+          
+          matches.push(match);
+          scheduled = true;
+          
+          console.log(`✓ Scheduled: ${homeTeam.name} vs ${awayTeam.name} on Day ${day}`);
         }
-      });
+      }
       
-      matches.push(match);
-      matchCount++;
-      
-      // Move to next day after reaching matches per day limit
-      if (matchCount >= matchesPerDay) {
-        currentDay++;
-        matchCount = 0;
+      if (!scheduled) {
+        console.warn(`⚠️ Could not schedule match: ${homeTeam.name} vs ${awayTeam.name} - no available days`);
       }
     }
     

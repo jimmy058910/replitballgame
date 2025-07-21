@@ -765,9 +765,9 @@ class MatchStateManager {
         event = {
           time: state.gameTime,
           type: 'tackle',
-          description: `${activePlayer.firstName} ${activePlayer.lastName} makes a solid tackle to bring down ${ballCarrier.firstName} ${ballCarrier.lastName}!`,
+          description: `${activePlayer.firstName} ${activePlayer.lastName} makes a solid tackle to bring down ${ballCarrier?.firstName || 'opponent'} ${ballCarrier?.lastName || 'player'}!`,
           actingPlayerId: activePlayer.id.toString(),
-          targetPlayerId: ballCarrier.id.toString(),
+          targetPlayerId: ballCarrier?.id?.toString() || 'unknown',
           teamId: teamType,
           data: {}
         };
