@@ -134,6 +134,24 @@ const TournamentCenter: React.FC<TournamentCenterProps> = ({ teamId }) => {
     queryKey: ["/api/season/current-cycle"],
   });
 
+  // Check if Mid-Season Cup registration deadline has passed (Day 7 at 1PM EDT)
+  const isMidSeasonRegistrationDeadlinePassed = () => {
+    if (!seasonInfo?.data) return false;
+    
+    const currentDay = seasonInfo.data.currentDay;
+    
+    // Get current Eastern Time
+    const easternTime = new Date().toLocaleString('en-US', { timeZone: 'America/New_York' });
+    const easternDate = new Date(easternTime);
+    const currentHour = easternDate.getHours();
+    
+    // Registration closes after Day 7 at 1PM EDT
+    if (currentDay > 7) return true;
+    if (currentDay === 7 && currentHour >= 13) return true;
+    
+    return false;
+  };
+
   // Fetch available tournaments
   const { data: availableTournaments, isLoading: tournamentsLoading } = useQuery<Tournament[]>({
     queryKey: ["/api/new-tournaments/available"],
@@ -376,7 +394,7 @@ const TournamentCenter: React.FC<TournamentCenterProps> = ({ teamId }) => {
               </CardTitle>
             </div>
             <p className="text-purple-700 dark:text-purple-300">
-              Premier tournament open to all divisions with massive prizes
+              Premier tournament for teams within your division only
             </p>
           </CardHeader>
           <CardContent className="text-center">
@@ -402,13 +420,22 @@ const TournamentCenter: React.FC<TournamentCenterProps> = ({ teamId }) => {
                     🥉 <strong>Semi-finalist:</strong> 2,000₡
                   </div>
                   <div className="text-xs text-purple-600 dark:text-purple-400 mt-2">
-                    ⚡ 16-team tournament • Enhanced rewards • Cross-division competition
+                    ⚡ 16-team tournament • Enhanced rewards • Division-only competition
                   </div>
                 </div>
                 {isTournamentDay ? (
                   <Badge variant="outline" className="bg-red-50 text-red-700 border-red-300">
                     Tournament in progress - registration closed
                   </Badge>
+                ) : isMidSeasonRegistrationDeadlinePassed() ? (
+                  <div className="space-y-2">
+                    <Badge variant="outline" className="bg-red-50 text-red-700 border-red-300">
+                      Registration Deadline Passed
+                    </Badge>
+                    <p className="text-sm text-purple-600 dark:text-purple-400">
+                      Come back next season to participate!
+                    </p>
+                  </div>
                 ) : (
                   <div className="space-y-2">
                     <div className="flex items-center justify-center space-x-2">
@@ -423,7 +450,7 @@ const TournamentCenter: React.FC<TournamentCenterProps> = ({ teamId }) => {
                     <div className="flex space-x-2">
                       <Button 
                         onClick={() => registerMidSeasonMutation.mutate("credits")}
-                        disabled={registerMidSeasonMutation.isPending || isRegisteredForMidSeasonCup || teamInfo.credits < 10000}
+                        disabled={registerMidSeasonMutation.isPending || isRegisteredForMidSeasonCup || teamInfo.credits < 10000 || isMidSeasonRegistrationDeadlinePassed()}
                         className={isRegisteredForMidSeasonCup ? "bg-green-600 hover:bg-green-700 flex-1" : "bg-purple-600 hover:bg-purple-700 flex-1"}
                       >
                         {isRegisteredForMidSeasonCup ? "✓ Already Registered" : 
@@ -431,7 +458,7 @@ const TournamentCenter: React.FC<TournamentCenterProps> = ({ teamId }) => {
                       </Button>
                       <Button 
                         onClick={() => registerMidSeasonMutation.mutate("gems")}
-                        disabled={registerMidSeasonMutation.isPending || isRegisteredForMidSeasonCup || teamInfo.gems < 20}
+                        disabled={registerMidSeasonMutation.isPending || isRegisteredForMidSeasonCup || teamInfo.gems < 20 || isMidSeasonRegistrationDeadlinePassed()}
                         className={isRegisteredForMidSeasonCup ? "bg-green-600 hover:bg-green-700 flex-1" : "bg-purple-600 hover:bg-purple-700 flex-1"}
                       >
                         {registerMidSeasonMutation.isPending ? "Registering..." : 

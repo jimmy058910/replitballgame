@@ -148,9 +148,20 @@ Built as a React + Express web application with PostgreSQL database, using moder
 
 ## Recent Changes
 
-### July 21, 2025 - ✅ CRITICAL LEAGUE SCHEDULING BUG COMPLETELY FIXED - ONE GAME PER TEAM PER DAY ENFORCED ✅
+### July 21, 2025 - ✅ MID-SEASON CUP FIXES COMPLETE - DIVISION-ONLY COMPETITION & REGISTRATION DEADLINES ENFORCED ✅
 
-#### ✅ SCHEDULING SYSTEM OVERHAUL COMPLETE - TEAM CONFLICTS ELIMINATED
+#### ✅ MID-SEASON CUP REQUIREMENTS FULLY IMPLEMENTED - BOTH ISSUES RESOLVED
+- ✓ **Cross-Division Text Removed**: Changed "Cross-division competition" to "Division-only competition" in tournament description
+- ✓ **Tournament Description Updated**: Changed main description from "open to all divisions" to "for teams within your division only"
+- ✓ **Registration Deadline Logic**: Added `isMidSeasonRegistrationDeadlinePassed()` function with proper Eastern Time calculation
+- ✓ **Deadline Enforcement**: Registration disabled after Day 7 at 1PM EDT with "Come back next season to participate!" message
+- ✓ **UI Button States**: Both credit (10,000₡) and gem (20💎) registration buttons disabled when deadline passed
+- ✓ **Backend Division Validation**: Verified existing division-only enforcement at tournament listing and registration levels
+- ✓ **Production Ready**: Mid-Season Cup now correctly enforces division-only competition and registration deadlines
+
+### July 21, 2025 - ✅ CRITICAL LEAGUE SCHEDULING BUG COMPLETELY FIXED - ONE GAME PER TEAM PER DAY ENFORCED ✅ (Previous)
+
+#### ✅ SCHEDULING SYSTEM OVERHAUL COMPLETE - TEAM CONFLICTS ELIMINATED (Previous)
 - ✓ **Critical Bug Fixed**: Teams were playing multiple simultaneous league games (4 overlapping games at once)
 - ✓ **Root Cause Identified**: `generateShortenedMatches` function was distributing round-robin matchups without checking team availability per day
 - ✓ **One Game Per Day Rule**: Enhanced scheduling logic to ensure **only one league game per team per day**
