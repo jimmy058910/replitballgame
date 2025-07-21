@@ -1,30 +1,24 @@
-import { storage } from "../storage";
+import { prisma } from "../db";
 import { randomUUID } from "crypto";
 
 export interface NotificationData {
-  userId: string;
+  teamId: number;
   type: string;
-  title: string;
   message: string;
-  priority: "low" | "medium" | "high";
-  actionUrl?: string;
-  metadata?: any;
+  linkTo?: string;
 }
 
 export class NotificationService {
   static async sendNotification(data: NotificationData) {
     try {
-      return await storage.createNotification({
-        id: randomUUID(),
-        userId: data.userId,
-        type: data.type,
-        title: data.title,
-        message: data.message,
-        priority: data.priority,
-        actionUrl: data.actionUrl || null,
-        metadata: data.metadata || null,
-        isRead: false,
-        createdAt: new Date(),
+      return await prisma.notification.create({
+        data: {
+          teamId: data.teamId,
+          type: data.type,
+          message: data.message,
+          linkTo: data.linkTo || null,
+          isRead: false,
+        }
       });
     } catch (error) {
       console.error("Error creating notification:", error);
@@ -32,15 +26,24 @@ export class NotificationService {
     }
   }
 
-  static async markAsRead(notificationId: string) {
-    return await storage.markNotificationRead(notificationId);
+  static async markAsRead(notificationId: number) {
+    return await prisma.notification.update({
+      where: { id: notificationId },
+      data: { isRead: true }
+    });
   }
 
-  static async markAllAsRead(userId: string) {
-    return await storage.markAllNotificationsRead(userId);
+  static async markAllAsRead(teamId: number) {
+    return await prisma.notification.updateMany({
+      where: { teamId, isRead: false },
+      data: { isRead: true }
+    });
   }
 
-  static async getUserNotifications(userId: string) {
-    return await storage.getUserNotifications(userId);
+  static async getUserNotifications(teamId: number) {
+    return await prisma.notification.findMany({
+      where: { teamId },
+      orderBy: { createdAt: 'desc' }
+    });
   }
 }

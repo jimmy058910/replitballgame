@@ -186,14 +186,14 @@ export class AdvancedTacticalEffectsService {
   }> {
     // Get team data
     const team = await prisma.team.findFirst({
-      where: { id: teamId }
+      where: { id: parseInt(teamId) }
     });
     if (!team) {
       throw new Error('Team not found');
     }
 
-    // Get field effects (only for home team)
-    const fieldSize = isHomeTeam ? (team.fieldSize || 'Standard') : 'Standard';
+    // Get field effects (only for home team) - using homeField instead of non-existent fieldSize
+    const fieldSize = isHomeTeam ? (team.homeField || 'STANDARD') : 'STANDARD';
     const fieldEffects = this.FIELD_SIZE_EFFECTS[fieldSize];
 
     // Get tactical focus effects
@@ -203,8 +203,8 @@ export class AdvancedTacticalEffectsService {
     // Get head coach tactics rating
     const headCoach = await prisma.staff.findMany({
       where: {
-        teamId: teamId,
-        position: 'HEAD_COACH'
+        teamId: parseInt(teamId),
+        type: 'HEAD_COACH'
       }
     });
 
@@ -318,8 +318,8 @@ export class AdvancedTacticalEffectsService {
       }
 
       await prisma.team.update({
-        where: { id: teamId },
-        data: { fieldSize }
+        where: { id: parseInt(teamId) },
+        data: { homeField: fieldSize }
       });
 
       return { success: true };
@@ -338,7 +338,7 @@ export class AdvancedTacticalEffectsService {
   ): Promise<{ success: boolean; error?: string }> {
     try {
       await prisma.team.update({
-        where: { id: teamId },
+        where: { id: parseInt(teamId) },
         data: { tacticalFocus }
       });
 
@@ -361,7 +361,7 @@ export class AdvancedTacticalEffectsService {
     teamCamaraderie: number;
   }> {
     const team = await prisma.team.findFirst({
-      where: { id: teamId }
+      where: { id: parseInt(teamId) }
     });
     if (!team) {
       throw new Error('Team not found');
@@ -369,12 +369,12 @@ export class AdvancedTacticalEffectsService {
 
     const headCoach = await prisma.staff.findMany({
       where: {
-        teamId: teamId,
-        position: 'HEAD_COACH'
+        teamId: parseInt(teamId),
+        type: 'HEAD_COACH'
       }
     });
 
-    const fieldSize = team.fieldSize || 'Standard';
+    const fieldSize = team.homeField || 'STANDARD';
     const tacticalFocus = team.tacticalFocus || 'Balanced';
 
     return {

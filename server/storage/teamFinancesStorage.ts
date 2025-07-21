@@ -16,12 +16,12 @@ export class TeamFinancesStorage {
     if (finances) {
       return {
         ...finances,
-        credits: finances.credits.toString(),
-        projectedIncome: finances.projectedIncome.toString(),
-        projectedExpenses: finances.projectedExpenses.toString(),
-        lastSeasonRevenue: finances.lastSeasonRevenue.toString(),
-        lastSeasonExpenses: finances.lastSeasonExpenses.toString(),
-        facilitiesMaintenanceCost: finances.facilitiesMaintenanceCost.toString(),
+        credits: finances.credits?.toString() || '0',
+        projectedIncome: finances.projectedIncome?.toString() || '0',
+        projectedExpenses: finances.projectedExpenses?.toString() || '0',
+        lastSeasonRevenue: finances.lastSeasonRevenue?.toString() || '0',
+        lastSeasonExpenses: finances.lastSeasonExpenses?.toString() || '0',
+        facilitiesMaintenanceCost: finances.facilitiesMaintenanceCost?.toString() || '0',
       };
     }
     
@@ -66,8 +66,23 @@ export class TeamFinancesStorage {
 
       // Convert string credits back to BigInt for database update
       const updateData = { ...updates };
-      if (updateData.credits) {
+      if (updateData.credits !== undefined) {
         updateData.credits = BigInt(updateData.credits.toString());
+      }
+      if (updateData.projectedIncome !== undefined) {
+        updateData.projectedIncome = BigInt(updateData.projectedIncome.toString());
+      }
+      if (updateData.projectedExpenses !== undefined) {
+        updateData.projectedExpenses = BigInt(updateData.projectedExpenses.toString());
+      }
+      if (updateData.lastSeasonRevenue !== undefined) {
+        updateData.lastSeasonRevenue = BigInt(updateData.lastSeasonRevenue.toString());
+      }
+      if (updateData.lastSeasonExpenses !== undefined) {
+        updateData.lastSeasonExpenses = BigInt(updateData.lastSeasonExpenses.toString());
+      }
+      if (updateData.facilitiesMaintenanceCost !== undefined) {
+        updateData.facilitiesMaintenanceCost = BigInt(updateData.facilitiesMaintenanceCost.toString());
       }
 
       const updatedFinances = await prisma.teamFinances.update({

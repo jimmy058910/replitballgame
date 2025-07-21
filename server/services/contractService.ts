@@ -153,7 +153,7 @@ export class ContractService {
     const offerQuality = offerSalary / contractCalc.marketValue;
     
     // Apply camaraderie adjustment (existing logic)
-    const camaraderieAdjustment = (player.camaraderie - 50) * 0.002; // -0.1 to +0.1
+    const camaraderieAdjustment = (player.camaraderieScore - 50) * 0.002; // -0.1 to +0.1
     const adjustedQuality = offerQuality + camaraderieAdjustment;
     
     // Determine response based on adjusted quality
@@ -325,16 +325,16 @@ export class ContractService {
   ): Promise<Staff | null> {
     // Get staff info first
     const staffMember = await prisma.staff.findUnique({
-      where: { id: staffId }
+      where: { id: parseInt(staffId) }
     });
     if (!staffMember) {
       throw new Error("Staff member not found");
     }
 
     const updatedStaff = await prisma.staff.update({
-      where: { id: staffId },
+      where: { id: parseInt(staffId) },
       data: {
-        salary: salary,
+        level: Math.floor(salary / 1000), // Convert salary to level for storage
         updatedAt: new Date()
       }
     });

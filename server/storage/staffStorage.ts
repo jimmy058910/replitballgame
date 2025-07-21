@@ -34,8 +34,7 @@ export class StaffStorage {
         age: staffData.age || 30,
       },
       include: {
-        team: { select: { name: true } },
-        contract: true
+        team: { select: { name: true } }
       }
     });
 
@@ -50,8 +49,7 @@ export class StaffStorage {
     const staff = await prisma.staff.findUnique({
       where: { id },
       include: {
-        team: { select: { name: true } },
-        contract: true
+        team: { select: { name: true } }
       }
     });
     return staff;
@@ -61,8 +59,7 @@ export class StaffStorage {
     return await prisma.staff.findMany({
       where: { teamId },
       include: {
-        team: { select: { name: true } },
-        contract: true
+        team: { select: { name: true } }
       },
       orderBy: { type: 'asc' }
     });
@@ -74,76 +71,85 @@ export class StaffStorage {
         where: { id },
         data: updates,
         include: {
-          team: { select: { name: true } },
-          contract: true
+          team: { select: { name: true } }
         }
       });
-
-      // Recalculate team staff salaries if salary was updated
-      if (updates.salary !== undefined && updatedStaff) {
-        const { teamFinancesStorage } = await import('./teamFinancesStorage');
-        await teamFinancesStorage.recalculateAndSaveStaffSalaries(updatedStaff.teamId);
-      }
-
       return updatedStaff;
     } catch (error) {
-      console.warn(`Staff member with ID ${id} not found for update.`);
+      console.warn(`Error updating staff ${id}:`, error);
       return null;
     }
   }
 
   async deleteStaff(id: number): Promise<boolean> {
     try {
-      // Get staff info before deletion for salary recalculation
-      const staffToDelete = await prisma.staff.findUnique({
-        where: { id },
-        select: { teamId: true }
-      });
-
       await prisma.staff.delete({
         where: { id }
       });
-
-      // Recalculate team staff salaries after deletion
-      if (staffToDelete) {
-        const { teamFinancesStorage } = await import('./teamFinancesStorage');
-        await teamFinancesStorage.recalculateAndSaveStaffSalaries(staffToDelete.teamId);
-      }
-
       return true;
     } catch (error) {
-      console.warn(`Staff member with ID ${id} not found for deletion.`);
+      console.warn(`Error deleting staff ${id}:`, error);
       return false;
     }
   }
 
-  async getMedicalStaffByTeam(teamId: number): Promise<Staff[]> {
+  async getStaffByType(teamId: number, type: StaffType): Promise<Staff[]> {
     return await prisma.staff.findMany({
-      where: {
+      where: { 
         teamId,
-        type: StaffType.RECOVERY_SPECIALIST
+        type
       },
       include: {
-        team: { select: { name: true } },
-        contract: true
-      },
-      orderBy: { name: 'asc' }
+        team: { select: { name: true } }
+      }
     });
   }
 
-  async getTrainersByTeam(teamId: number): Promise<Staff[]> {
-    return await prisma.staff.findMany({
-      where: {
+  async getHeadCoach(teamId: number): Promise<Staff | null> {
+    return await prisma.staff.findFirst({
+      where: { 
         teamId,
-        type: {
-          in: [StaffType.PASSER_TRAINER, StaffType.RUNNER_TRAINER, StaffType.BLOCKER_TRAINER]
-        }
+        type: 'HEAD_COACH'
       },
       include: {
-        team: { select: { name: true } },
-        contract: true
+        team: { select: { name: true } }
+      }
+    });
+  }
+
+  async getTrainers(teamId: number): Promise<Staff[]> {
+    return await prisma.staff.findMany({
+      where: { 
+        teamId,
+        type: 'TRAINER'
       },
-      orderBy: { type: 'asc' }
+      include: {
+        team: { select: { name: true } }
+      }
+    });
+  }
+
+  async getScouts(teamId: number): Promise<Staff[]> {
+    return await prisma.staff.findMany({
+      where: { 
+        teamId,
+        type: 'SCOUT'
+      },
+      include: {
+        team: { select: { name: true } }
+      }
+    });
+  }
+
+  async getRecoverySpecialists(teamId: number): Promise<Staff[]> {
+    return await prisma.staff.findMany({
+      where: { 
+        teamId,
+        type: 'RECOVERY_SPECIALIST'
+      },
+      include: {
+        team: { select: { name: true } }
+      }
     });
   }
 }
