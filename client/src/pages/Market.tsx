@@ -230,8 +230,8 @@ export default function Market() {
   // Fetch Gem Store items (gem-only items)
   const { data: gemStoreData } = useQuery({
     queryKey: ["/api/store/"],
-    select: (data) => {
-      const gemItems = data.consumables || [];
+    select: (data: any) => {
+      const gemItems = data?.consumables || [];
       console.log('Gem store items:', gemItems.length, gemItems);
       return gemItems;
     }
@@ -240,9 +240,9 @@ export default function Market() {
   // Fetch Unified Store Data (Master Economy v5 - 8-item daily rotation)
   const { data: unifiedStoreData } = useQuery({
     queryKey: ["/api/store/items"],
-    select: (data) => {
+    select: (data: any) => {
       // Master Economy v5 returns dailyItems array with 8 items containing mixed equipment and consumables
-      const dailyItems = data.dailyItems || [];
+      const dailyItems = data?.dailyItems || [];
       console.log('Unified store items:', dailyItems.length, dailyItems);
       return dailyItems;
     }
@@ -256,13 +256,13 @@ export default function Market() {
   // Fetch gem packages
   const { data: gemPackagesData } = useQuery({
     queryKey: ["/api/store/gem-packages"],
-    select: (data) => data.data || []
+    select: (data: any) => data?.data || []
   });
 
   // Fetch Realm Pass data
   const { data: realmPassData } = useQuery({
     queryKey: ["/api/store/realm-pass"],
-    select: (data) => data.data || {}
+    select: (data: any) => data?.data || {}
   });
 
   const gemPackages = gemPackagesData || [];
@@ -322,7 +322,7 @@ export default function Market() {
     onSuccess: (data, gemAmount) => {
       toast({
         title: "Gem Exchange Successful!",
-        description: `Exchanged ${gemAmount} gems for ${data.data.creditsReceived.toLocaleString()} credits.`,
+        description: `Exchanged ${gemAmount} gems for ${(data as any)?.data?.creditsReceived?.toLocaleString() || '0'} credits.`,
       });
       queryClient.invalidateQueries({ queryKey: ["/api/teams"] });
       queryClient.invalidateQueries({ queryKey: ["/api/teams/" + rawTeam?.id + "/finances"] });

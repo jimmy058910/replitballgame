@@ -138,12 +138,12 @@ function TournamentsTab() {
       const result = await apiRequest("/api/daily-tournaments/instant-match", "POST");
       return result;
     },
-    onSuccess: (data) => {
-      if (data.matchId) {
+    onSuccess: (data: any) => {
+      if (data?.matchId) {
         const homeAway = data.isHome ? "home" : "away";
         toast({
           title: "Instant Tournament Started!",
-          description: `Starting ${homeAway} match against ${data.opponentName}`,
+          description: `Starting ${homeAway} match against ${data.opponentName || 'opponent'}`,
         });
         window.location.href = `/match/${data.matchId}`;
       } else {
@@ -167,12 +167,12 @@ function TournamentsTab() {
     mutationFn: async (opponentId: string) => {
       return await apiRequest("/api/daily-tournaments/challenge-opponent", "POST", { opponentId });
     },
-    onSuccess: (data) => {
-      if (data.matchId) {
+    onSuccess: (data: any) => {
+      if (data?.matchId) {
         const homeAway = data.isHome ? "home" : "away";
         toast({
           title: "Tournament Match Started!",
-          description: `Starting ${homeAway} match against ${data.opponentName}`,
+          description: `Starting ${homeAway} match against ${data.opponentName || 'opponent'}`,
         });
         setShowOpponentSelect(false);
         window.location.href = `/match/${data.matchId}`;
@@ -544,12 +544,12 @@ function ExhibitionsTab() {
       const result = await apiRequest("/api/exhibitions/instant-match", "POST");
       return result;
     },
-    onSuccess: (data) => {
-      if (data.matchId) {
+    onSuccess: (data: any) => {
+      if (data?.matchId) {
         const homeAway = data.isHome ? "home" : "away";
         toast({
           title: "Instant Exhibition Started!",
-          description: `Starting ${homeAway} match against ${data.opponentName}`,
+          description: `Starting ${homeAway} match against ${data.opponentName || 'opponent'}`,
         });
         window.location.href = `/match/${data.matchId}`;
       } else {
@@ -573,12 +573,12 @@ function ExhibitionsTab() {
     mutationFn: async (opponentId: string) => {
       return await apiRequest("/api/exhibitions/challenge-opponent", "POST", { opponentId });
     },
-    onSuccess: (data) => {
-      if (data.matchId) {
+    onSuccess: (data: any) => {
+      if (data?.matchId) {
         const homeAway = data.isHome ? "home" : "away";
         toast({
           title: "Exhibition Match Started!",
-          description: `Starting ${homeAway} match against ${data.opponentName}`,
+          description: `Starting ${homeAway} match against ${data.opponentName || 'opponent'}`,
         });
         setShowOpponentSelect(false);
         window.location.href = `/match/${data.matchId}`;
@@ -974,8 +974,8 @@ export default function Competition() {
       }
       return await apiRequest(`/api/teams/division/${team.division}`, "GET");
     },
-    onSuccess: (data) => {
-      setDivisionTeams(data);
+    onSuccess: (data: Team[]) => {
+      setDivisionTeams(data as Team[]);
       setBrowsingTeams(true);
     },
     onError: (error: Error) => {
