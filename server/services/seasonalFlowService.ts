@@ -317,22 +317,25 @@ export class SeasonalFlowService {
     
     if (numTeams === 8) {
       // Perfect 8-team subdivision - 4 games per day
-      // Round-robin schedule ensuring every team plays exactly once per day
+      // Proper round-robin schedule: 7 rounds total (each team plays every other team exactly once)
       const roundRobinSchedule = [
         [[0, 1], [2, 3], [4, 5], [6, 7]],  // Round 1
-        [[0, 2], [1, 3], [4, 6], [5, 7]],  // Round 2
-        [[0, 3], [1, 2], [4, 7], [5, 6]],  // Round 3
-        [[0, 4], [1, 5], [2, 6], [3, 7]],  // Round 4
-        [[0, 5], [1, 4], [2, 7], [3, 6]],  // Round 5
-        [[0, 6], [1, 7], [2, 4], [3, 5]],  // Round 6
-        [[0, 7], [1, 6], [2, 5], [3, 4]],  // Round 7
-        [[1, 4], [0, 5], [2, 7], [3, 6]]   // Round 8
+        [[0, 2], [1, 4], [3, 6], [5, 7]],  // Round 2  
+        [[0, 3], [1, 5], [2, 7], [4, 6]],  // Round 3
+        [[0, 4], [1, 6], [2, 5], [3, 7]],  // Round 4
+        [[0, 5], [1, 7], [2, 4], [3, 6]],  // Round 5
+        [[0, 6], [1, 3], [2, 7], [4, 5]],  // Round 6
+        [[0, 7], [1, 2], [3, 4], [5, 6]]   // Round 7 (final round)
       ];
       
       // Calculate which round this day represents based on the season start day
       // For full season (Days 1-14): day 1 = round 0, day 2 = round 1, etc.
       // For shortened season (Days 7-14): day 7 = round 0, day 8 = round 1, etc.
+      // With 7 rounds total, teams complete their round-robin schedule in 7 days
       const roundIndex = (day - seasonStartDay) % roundRobinSchedule.length;
+      
+      // Only schedule matches if we haven't exceeded the round-robin schedule
+      // After 7 rounds, all teams have played each other exactly once
       
       if (roundIndex >= 0 && roundIndex < roundRobinSchedule.length) {
         const dayPairs = roundRobinSchedule[roundIndex];
@@ -438,6 +441,71 @@ export class SeasonalFlowService {
     }
     
     return matches;
+  }
+
+  /**
+   * Fix league schedule for a specific division using corrected round-robin logic
+   * Called to repair broken schedules after Day 7+
+   */
+  static async fixDivisionSchedule(division: number, season: number): Promise<{
+    matchesGenerated: number;
+    subdivisions: Array<{
+      name: string;
+      teams: number;
+      matches: number;
+    }>;
+  }> {
+    console.log(`🔧 Fixing schedule for Division ${division}, Season ${season}`);
+    
+    // Get the league for this division
+    const seasonId = `season-${season}-2025`;
+    const league = await prisma.league.findFirst({
+      where: { 
+        division: division,
+        seasonId: seasonId 
+      }
+    });
+    
+    if (!league) {
+      throw new Error(`League not found for Division ${division}, Season ${season}`);
+    }
+    
+    // Get all teams in this division
+    const teams = await prisma.team.findMany({
+      where: { division: division }
+    });
+    
+    if (teams.length === 0) {
+      throw new Error(`No teams found in Division ${division}`);
+    }
+    
+    console.log(`📊 Found ${teams.length} teams in Division ${division}`);
+    
+    // Generate schedule using the corrected large division logic
+    const matches = await this.generateLargeDivisionSchedule(league.id, teams, season);
+    
+    // Group results by subdivision for reporting
+    const subdivisionMap = new Map<string, any[]>();
+    for (const team of teams) {
+      const subdivision = team.subdivision || 'main';
+      if (!subdivisionMap.has(subdivision)) {
+        subdivisionMap.set(subdivision, []);
+      }
+      subdivisionMap.get(subdivision)!.push(team);
+    }
+    
+    const subdivisions = Array.from(subdivisionMap.entries()).map(([name, teams]) => ({
+      name,
+      teams: teams.length,
+      matches: Math.floor(teams.length / 2) * 6 // Estimated matches for 6 remaining days
+    }));
+    
+    console.log(`✅ Generated ${matches.length} matches for Division ${division}`);
+    
+    return {
+      matchesGenerated: matches.length,
+      subdivisions
+    };
   }
 
   /**

@@ -69,6 +69,45 @@ router.post('/schedule/generate', isAuthenticated, RBACService.requirePermission
 });
 
 /**
+ * POST /api/seasonal-flow/schedule/fix-division
+ * Fix league schedule for a specific division using corrected round-robin logic
+ */
+router.post('/schedule/fix-division', isAuthenticated, RBACService.requirePermission('manage_leagues'), async (req, res) => {
+  try {
+    const { division, season } = req.body;
+    
+    if (!division || typeof division !== 'number') {
+      return res.status(400).json({
+        success: false,
+        message: 'Division number is required'
+      });
+    }
+    
+    if (season === undefined || typeof season !== 'number') {
+      return res.status(400).json({
+        success: false,
+        message: 'Season number is required'
+      });
+    }
+    
+    const result = await SeasonalFlowService.fixDivisionSchedule(division, season);
+    
+    res.json({
+      success: true,
+      data: result,
+      message: `Fixed schedule for Division ${division}: ${result.matchesGenerated} matches created`
+    });
+  } catch (error) {
+    console.error('Error fixing division schedule:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fix division schedule',
+      error: error instanceof Error ? error.message : 'Unknown error'
+    });
+  }
+});
+
+/**
  * PUT /api/seasonal-flow/standings/update/:matchId
  * Update league standings after a match is completed
  */
