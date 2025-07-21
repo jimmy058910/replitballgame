@@ -87,7 +87,7 @@ async function initializeApplication() {
     app.use(passport.session());
     
     // Setup Google Auth
-    await setupGoogleAuth();
+    await setupGoogleAuth(app);
     
     // Register API routes
     registerAllRoutes(app);

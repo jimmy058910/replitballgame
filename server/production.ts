@@ -94,8 +94,14 @@ httpServer.listen(port, '0.0.0.0', () => {
       registerAllRoutes(app);
       console.log('✅ Routes initialized');
       
-      // Enhanced static file serving with comprehensive fallbacks
-      await initializeStaticFileServing(app);
+      // Enhanced static file serving
+      try {
+        const { serveStatic } = await import('./vite');
+        serveStatic(app);
+        console.log('✅ Static file serving initialized');
+      } catch (error) {
+        console.log('⚠️ Static serving unavailable, using fallback');
+        
         // Fallback route
         app.get('*', (req, res) => {
           if (!req.path.startsWith('/api/')) {
