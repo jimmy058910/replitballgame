@@ -129,24 +129,57 @@ const getDivisionColor = (division: number): string => {
 // Get item icon based on type and name
 const getItemIcon = (item: any) => {
   const effect = item.effect || item.metadata?.effect;
+  const itemName = item.name?.toLowerCase() || '';
+  const slot = item.slot?.toLowerCase() || '';
+  
+  // Debug logging to check item structure
+  console.log('Item for icon detection:', {
+    name: item.name,
+    itemType: item.itemType,
+    category: item.category,
+    slot: item.slot,
+    effect: effect
+  });
   
   // Team boost items
   if (effect?.includes("team_")) {
     return "🌟";
   }
   
-  // Equipment items
-  if (item.itemType === "EQUIPMENT" || item.category === "Equipment") {
-    if (item.name.toLowerCase().includes("helmet") || item.name.toLowerCase().includes("helm") || item.name.toLowerCase().includes("circlet") || item.name.toLowerCase().includes("crest") || item.name.toLowerCase().includes("cowl")) {
+  // Check by slot first (most reliable for equipment)
+  if (slot === "helmet" || slot === "helm") {
+    return "🪖";
+  }
+  if (slot === "gloves") {
+    return "🧤";  
+  }
+  if (slot === "shoes" || slot === "boots") {
+    return "👟";
+  }
+  if (slot === "armor" || slot === "chest") {
+    return "🛡️";
+  }
+  
+  // Equipment items (check multiple possible field values)
+  if (item.itemType === "EQUIPMENT" || item.itemType === "equipment" || 
+      item.category === "Equipment" || item.category === "equipment" ||
+      slot) {
+    // Check by name patterns
+    if (itemName.includes("helmet") || itemName.includes("helm") || 
+        itemName.includes("circlet") || itemName.includes("crest") || itemName.includes("cowl")) {
       return "🪖";
     }
-    if (item.name.toLowerCase().includes("glove") || item.name.toLowerCase().includes("grip") || item.name.toLowerCase().includes("gauntlet") || item.name.toLowerCase().includes("fist")) {
+    if (itemName.includes("glove") || itemName.includes("grip") || 
+        itemName.includes("gauntlet") || itemName.includes("fist")) {
       return "🧤";
     }
-    if (item.name.toLowerCase().includes("boot") || item.name.toLowerCase().includes("cleat") || item.name.toLowerCase().includes("tread") || item.name.toLowerCase().includes("stride")) {
+    if (itemName.includes("boot") || itemName.includes("cleat") || 
+        itemName.includes("tread") || itemName.includes("stride")) {
       return "👟";
     }
-    if (item.name.toLowerCase().includes("armor") || item.name.toLowerCase().includes("plate") || item.name.toLowerCase().includes("aegis") || item.name.toLowerCase().includes("mail") || item.name.toLowerCase().includes("tunic") || item.name.toLowerCase().includes("pauldron") || item.name.toLowerCase().includes("carrier")) {
+    if (itemName.includes("armor") || itemName.includes("plate") || 
+        itemName.includes("aegis") || itemName.includes("mail") || 
+        itemName.includes("tunic") || itemName.includes("pauldron") || itemName.includes("carrier")) {
       return "🛡️";
     }
     return "⚔️";
@@ -154,10 +187,12 @@ const getItemIcon = (item: any) => {
   
   // Recovery items
   if (item.itemType === "CONSUMABLE_RECOVERY" || item.category === "Medical") {
-    if (item.name.toLowerCase().includes("medical") || item.name.toLowerCase().includes("heal") || item.name.toLowerCase().includes("treatment") || item.name.toLowerCase().includes("tincture") || item.name.toLowerCase().includes("salve")) {
+    if (itemName.includes("medical") || itemName.includes("heal") || 
+        itemName.includes("treatment") || itemName.includes("tincture") || itemName.includes("salve")) {
       return "🩹";
     }
-    if (item.name.toLowerCase().includes("stamina") || item.name.toLowerCase().includes("recovery") || item.name.toLowerCase().includes("energy") || item.name.toLowerCase().includes("serum") || item.name.toLowerCase().includes("elixir")) {
+    if (itemName.includes("stamina") || itemName.includes("recovery") || 
+        itemName.includes("energy") || itemName.includes("serum") || itemName.includes("elixir")) {
       return "⚡";
     }
     return "🧪";
