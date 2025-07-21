@@ -148,7 +148,18 @@ Built as a React + Express web application with PostgreSQL database, using moder
 
 ## Recent Changes
 
-### July 21, 2025 - ✅ CRITICAL LEAGUE SCHEDULING BUG COMPLETELY FIXED - NO MORE SKIPPED DAYS ✅
+### July 21, 2025 - ✅ STAFF MANAGEMENT UI REDESIGN COMPLETE - SIMPLIFIED NAVIGATION ✅
+
+#### ✅ STAFF TAB SIMPLIFICATION COMPLETE - EXTRA TAB LAYER REMOVED
+- ✓ **Combined Staff Views**: Merged "Current Staff" and "Staff Effects" tabs into single unified view
+- ✓ **Eliminated Tab Nesting**: Removed extra tab layer - Staff page now shows all content directly
+- ✓ **Coaching Levels Removed**: Eliminated "Level 1" badges from coach display per user requirements
+- ✓ **Salary Calculation Updated**: Removed level multipliers from staff salary calculations
+- ✓ **Clean UI Implementation**: Staff Effects section now appears below Current Staff grid with clear visual separation
+- ✓ **Component Optimization**: Removed unused Tabs import and simplified component structure
+- ✓ **Production Ready**: Streamlined Staff Management interface operational with improved navigation flow
+
+### July 21, 2025 - ✅ CRITICAL LEAGUE SCHEDULING BUG COMPLETELY FIXED - NO MORE SKIPPED DAYS ✅ (Previous)
 
 #### ✅ SUBDIVISION SCHEDULING CRITICAL BUG RESOLVED - CONTINUOUS DAILY GAMES IMPLEMENTED
 - ✓ **Root Cause Fixed**: generateSubdivisionDayMatches function wasn't properly passing seasonStartDay parameter to round-robin logic

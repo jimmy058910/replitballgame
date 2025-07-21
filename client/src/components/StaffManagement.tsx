@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { Users, TrendingUp, Shield, Search, UserCheck, Award } from "lucide-react";
 
@@ -235,7 +235,6 @@ export default function StaffManagement({ teamId }: StaffManagementProps) {
             <div className="space-y-3">
               <div className="flex justify-between items-center">
                 <span className="font-semibold">{currentStaff.name}</span>
-                <Badge variant="outline">Level {currentStaff.level}</Badge>
               </div>
               
               <div className="space-y-2">
@@ -256,7 +255,7 @@ export default function StaffManagement({ teamId }: StaffManagementProps) {
 
               <div className="flex justify-between items-center pt-2 border-t">
                 <div className="text-sm text-gray-600">
-                  <div>{calculateSalary(staffType.type, currentStaff.level || 1).toLocaleString()}₡/season</div>
+                  <div>{calculateSalary(staffType.type, 1).toLocaleString()}₡/season</div>
                   <div className="text-xs text-gray-500">Contract: {currentStaff.contractYears || 3} years remaining</div>
                 </div>
                 <Button
@@ -276,7 +275,6 @@ export default function StaffManagement({ teamId }: StaffManagementProps) {
                   const newStaff: Partial<StaffMember> = { // Explicitly type newStaff
                     type: staffType.type,
                     name: `${staffType.name} Candidate ${Math.floor(Math.random() * 999)}`, // More descriptive name
-                    level: 1,
                     salary: calculateSalary(staffType.type, 1),
                   };
                   // Assign primary stat dynamically and ensure it's a known key
@@ -288,7 +286,7 @@ export default function StaffManagement({ teamId }: StaffManagementProps) {
                 }}
                 disabled={hireMutation.isPending}
               >
-                Hire ({calculateSalary(staffType.type, 1).toLocaleString()}₡/season)
+                Hire ({staffType.baseSalary.toLocaleString()}₡/season)
               </Button>
             </div>
           )}
@@ -344,25 +342,21 @@ export default function StaffManagement({ teamId }: StaffManagementProps) {
                 (s.type === 'recovery_specialist' && member.type === 'RECOVERY_SPECIALIST') ||
                 (s.type === 'head_scout' && member.type === 'SCOUT')
               );
-              return total + (staffType ? staffType.baseSalary * (member.level || 1) : 5000);
+              return total + (staffType ? staffType.baseSalary : 5000);
             }, 0).toLocaleString()}₡/season
           </p>
         </div>
       </div>
 
-      <Tabs defaultValue="current" className="space-y-4">
-        <TabsList>
-          <TabsTrigger value="current">Current Staff</TabsTrigger>
-          <TabsTrigger value="effects">Staff Effects</TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="current">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {staffTypes.map(renderStaffSlot)}
-          </div>
-        </TabsContent>
-
-        <TabsContent value="effects">
+      {/* Combined Staff Management - Current Staff and Effects */}
+      <div className="space-y-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {staffTypes.map(renderStaffSlot)}
+        </div>
+        
+        {/* Staff Effects Section */}
+        <div className="border-t pt-6">
+          <h3 className="text-xl font-bold mb-4">Staff Effects</h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <Card>
               <CardHeader>
@@ -440,8 +434,8 @@ export default function StaffManagement({ teamId }: StaffManagementProps) {
               </CardContent>
             </Card>
           </div>
-        </TabsContent>
-      </Tabs>
+        </div>
+      </div>
     </div>
   );
 }
