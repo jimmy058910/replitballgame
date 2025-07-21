@@ -26,6 +26,9 @@ interface Player {
   injuryStatus: string;
   dailyStaminaLevel?: number;
   overallRating?: number;
+  createdAt?: string | Date;
+  rosterPosition?: number;
+  isOnTaxi?: boolean;
 }
 
 interface Formation {
@@ -101,7 +104,22 @@ export default function TacticsLineupHub({ teamId }: TacticsLineupHubProps) {
     queryKey: [`/api/teams/${teamId}/players`],
     enabled: !!teamId,
   });
-  const players = (rawPlayers || []) as Player[];
+  
+  // Filter to only include main roster players (first 12 players, excluding taxi squad)
+  const allPlayers = (rawPlayers || []) as Player[];
+  const sortedPlayers = [...allPlayers].sort((a, b) => new Date(a.createdAt || 0).getTime() - new Date(b.createdAt || 0).getTime());
+  
+  // Only include main roster players (first 12 by creation date) - exclude taxi squad
+  const players = sortedPlayers.filter((p, index) => {
+    // Use rosterPosition if available, otherwise use index, or check isOnTaxi field
+    if (p.rosterPosition !== undefined) {
+      return p.rosterPosition < 13;
+    } else if (p.isOnTaxi !== undefined) {
+      return !p.isOnTaxi;
+    } else {
+      return index < 12; // First 12 players by creation date
+    }
+  });
 
   // Fetch current formation
   const { data: formation } = useQuery<Formation>({
