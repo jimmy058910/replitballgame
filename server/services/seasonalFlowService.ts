@@ -262,7 +262,7 @@ export class SeasonalFlowService {
     
     for (let day = 1; day <= this.SEASON_CONFIG.REGULAR_SEASON_DAYS; day++) {
       // Generate matches per day based on team count
-      const dayMatches = this.generateSubdivisionDayMatches(teams, day);
+      const dayMatches = this.generateSubdivisionDayMatches(teams, day, 1);
       
       // Use generateDailyGameTimes for consecutive 15-minute intervals
       const { generateDailyGameTimes } = await import('../../shared/timezone');
@@ -306,7 +306,7 @@ export class SeasonalFlowService {
    * Generate matches for a subdivision day (8 teams = 4 games per day)
    * Simple pairing system ensuring each team plays exactly once per day
    */
-  static generateSubdivisionDayMatches(teams: any[], day: number): any[] {
+  static generateSubdivisionDayMatches(teams: any[], day: number, seasonStartDay: number = 1): any[] {
     const matches = [];
     const numTeams = teams.length;
     
@@ -317,25 +317,26 @@ export class SeasonalFlowService {
     
     if (numTeams === 8) {
       // Perfect 8-team subdivision - 4 games per day
-      // Adjusted for Days 6-14 (9 days total)
-      const gameSlots = [
-        [0, 1], [2, 3], [4, 5], [6, 7],  // Day 6
-        [0, 2], [1, 3], [4, 6], [5, 7],  // Day 7  
-        [0, 3], [1, 2], [4, 7], [5, 6],  // Day 8
-        [0, 4], [1, 5], [2, 6], [3, 7],  // Day 9
-        [0, 5], [1, 4], [2, 7], [3, 6],  // Day 10
-        [0, 6], [1, 7], [2, 4], [3, 5],  // Day 11
-        [0, 7], [1, 6], [2, 5], [3, 4],  // Day 12
-        [1, 4], [0, 5], [2, 7], [3, 6],  // Day 13
-        [2, 6], [1, 7], [0, 4], [3, 5]   // Day 14
+      // Round-robin schedule ensuring every team plays exactly once per day
+      const roundRobinSchedule = [
+        [[0, 1], [2, 3], [4, 5], [6, 7]],  // Round 1
+        [[0, 2], [1, 3], [4, 6], [5, 7]],  // Round 2
+        [[0, 3], [1, 2], [4, 7], [5, 6]],  // Round 3
+        [[0, 4], [1, 5], [2, 6], [3, 7]],  // Round 4
+        [[0, 5], [1, 4], [2, 7], [3, 6]],  // Round 5
+        [[0, 6], [1, 7], [2, 4], [3, 5]],  // Round 6
+        [[0, 7], [1, 6], [2, 5], [3, 4]],  // Round 7
+        [[1, 4], [0, 5], [2, 7], [3, 6]]   // Round 8
       ];
       
-      // Each day has 4 games, adjust for Days 6-14
-      const dayIndex = ((day - 6) % 9) * 4;
-      for (let i = 0; i < 4; i++) {
-        const pairIndex = dayIndex + i;
-        if (pairIndex < gameSlots.length) {
-          const [homeIndex, awayIndex] = gameSlots[pairIndex];
+      // Calculate which round this day represents based on the season start day
+      // For full season (Days 1-14): day 1 = round 0, day 2 = round 1, etc.
+      // For shortened season (Days 7-14): day 7 = round 0, day 8 = round 1, etc.
+      const roundIndex = (day - seasonStartDay) % roundRobinSchedule.length;
+      
+      if (roundIndex >= 0 && roundIndex < roundRobinSchedule.length) {
+        const dayPairs = roundRobinSchedule[roundIndex];
+        for (const [homeIndex, awayIndex] of dayPairs) {
           matches.push({
             homeTeam: teams[homeIndex],
             awayTeam: teams[awayIndex]
@@ -343,7 +344,8 @@ export class SeasonalFlowService {
         }
       }
     } else {
-      // For odd number of teams, create as many pairs as possible
+      // For non-8 team subdivisions, create as many pairs as possible
+      // Ensure each team plays exactly once per day
       for (let i = 0; i < Math.floor(numTeams / 2); i++) {
         const homeIndex = i;
         const awayIndex = (i + day + Math.floor(numTeams / 2) - 1) % numTeams;
@@ -395,7 +397,7 @@ export class SeasonalFlowService {
       
       // Generate matches for subdivision (Days 6-14 or 7-14)
       for (let day = startDay; day <= 14; day++) {
-        const dayMatches = this.generateSubdivisionDayMatches(subdivisionTeams, day);
+        const dayMatches = this.generateSubdivisionDayMatches(subdivisionTeams, day, startDay);
         
         for (let matchIndex = 0; matchIndex < dayMatches.length; matchIndex++) {
           const match = dayMatches[matchIndex];
@@ -455,7 +457,7 @@ export class SeasonalFlowService {
     
     // Generate matches for 14 days
     for (let day = 1; day <= this.SEASON_CONFIG.REGULAR_SEASON_DAYS; day++) {
-      const dayMatches = this.generateSubdivisionDayMatches(teams, day);
+      const dayMatches = this.generateSubdivisionDayMatches(teams, day, 1);
       
       // Use generateDailyGameTimes for consecutive 15-minute intervals
       const { generateDailyGameTimes } = await import('../../shared/timezone');
