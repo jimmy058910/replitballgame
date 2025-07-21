@@ -148,7 +148,14 @@ Built as a React + Express web application with PostgreSQL database, using moder
 
 ## Recent Changes
 
-### July 21, 2025 - ✅ CRITICAL PRODUCTION DEPLOYMENT FIXED - DATABASE SCHEMA MISMATCH RESOLVED ✅
+### July 21, 2025 - ✅ CRITICAL PRODUCTION DEPLOYMENT FIXED & TRANSACTION HISTORY UI CLEANED UP ✅
+
+#### ✅ TRANSACTION HISTORY UI CLEANUP COMPLETE - CLEANER USER INTERFACE IMPLEMENTED
+- ✓ **USD Column Removed**: Eliminated redundant USD column showing "N/A" values from Transaction History table
+- ✓ **Method Column Removed**: Removed unnecessary payment method column displaying "N/A" for all transactions
+- ✓ **Cleaner Table Layout**: Transaction History now displays only essential columns: Date, Type, Item, Credits, Gems
+- ✓ **User Experience Enhanced**: Simplified interface reduces visual clutter and focuses on relevant transaction information
+- ✓ **Production Ready**: Market > Transactions tab now shows streamlined transaction history without unnecessary columns
 
 #### ✅ PRODUCTION DEPLOYMENT CRISIS COMPLETELY RESOLVED - REALMRIVALRY.COM OPERATIONAL
 - ✓ **Critical Error Identified**: Production site showing only background color due to Prisma database schema mismatch

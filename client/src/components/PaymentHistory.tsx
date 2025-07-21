@@ -306,9 +306,6 @@ export default function PaymentHistory({ className }: PaymentHistoryProps) {
                     <TableHead>Item</TableHead>
                     <TableHead>Credits</TableHead>
                     <TableHead>Gems</TableHead>
-                    <TableHead>USD</TableHead>
-
-                    <TableHead>Method</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -361,19 +358,6 @@ export default function PaymentHistory({ className }: PaymentHistoryProps) {
                             {transaction.gemsAmount.toLocaleString()}
                           </div>
                         )}
-                      </TableCell>
-                      <TableCell>
-                        {transaction.amount && transaction.amount > 0 && (
-                          <div className="text-green-600">
-                            {formatCurrency(transaction.amount)}
-                          </div>
-                        )}
-                      </TableCell>
-
-                      <TableCell>
-                        <div className="text-sm capitalize">
-                          {transaction.paymentMethod || 'N/A'}
-                        </div>
                       </TableCell>
                     </TableRow>
                   ))}
