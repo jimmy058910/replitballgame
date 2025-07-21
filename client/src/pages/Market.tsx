@@ -613,14 +613,6 @@ export default function Market() {
                       </CardHeader>
                       <CardContent>
                         <div className="space-y-4">
-                          <div className="flex justify-between items-center">
-                            <span className="text-sm">Cost:</span>
-                            <div className="flex gap-2">
-                              <span className="text-blue-600 font-bold">💎10 Gems</span>
-                              <span className="text-gray-400">or</span>
-                              <span className="text-yellow-600 font-bold">₡25,000</span>
-                            </div>
-                          </div>
                           <ul className="text-sm space-y-1 text-gray-600">
                             <li>• Additional exhibition match</li>
                             <li>• Extra player experience</li>
@@ -658,14 +650,6 @@ export default function Market() {
                       </CardHeader>
                       <CardContent>
                         <div className="space-y-4">
-                          <div className="flex justify-between items-center">
-                            <span className="text-sm">Cost:</span>
-                            <div className="flex gap-2">
-                              <span className="text-blue-600 font-bold">💎25 Gems</span>
-                              <span className="text-gray-400">or</span>
-                              <span className="text-yellow-600 font-bold">₡150,000</span>
-                            </div>
-                          </div>
                           <ul className="text-sm space-y-1 text-gray-600">
                             <li>• Special tournament participation</li>
                             <li>• Compete for exclusive rewards</li>

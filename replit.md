@@ -156,7 +156,8 @@ Built as a React + Express web application with PostgreSQL database, using moder
 - ✓ **Refresh Time Corrected**: Updated "refreshes daily at 8 AM UTC" to accurate "refreshes daily at 3AM EDT" to match game's actual reset schedule
 - ✓ **Item Type Icons Restored**: Added missing item type icons to all store items (🪖 helmets, 🧤 gloves, 👟 boots, 🛡️ armor, ⚡ stamina items, 🩹 medical items, 🌟 team boosts)
 - ✓ **getItemIcon Function**: Implemented comprehensive icon mapping function for proper visual categorization of all item types
-- ✓ **Production Ready**: Store UI now displays clean purchase limits, accurate timing, and proper item categorization icons
+- ✓ **Redundant Cost Text Removed**: Eliminated duplicate "Cost: X gems or X credits" text from Exhibition and Tournament Entry cards since prices are shown in purchase buttons
+- ✓ **Production Ready**: Store UI now displays clean purchase limits, accurate timing, proper item categorization icons, and no redundant pricing information
 
 ### July 21, 2025 - ✅ CRITICAL LEAGUE SCHEDULING CRISIS COMPLETELY RESOLVED - ROUND-ROBIN ALGORITHM FIXED ✅ (Previous)
 
