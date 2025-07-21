@@ -17,17 +17,46 @@ RUN npm install
 # Copy source code
 COPY . .
 
-# Debug: List copied files
-RUN echo "Files in root:" && ls -la
-RUN echo "Files in client:" && ls -la client/
+# Debug: List copied files and verify structure
+RUN echo "=== BUILD ENVIRONMENT DEBUG ===" && \
+    echo "Current directory: $(pwd)" && \
+    echo "Files in root:" && ls -la && \
+    echo "Files in client:" && ls -la client/ && \
+    echo "Package.json scripts:" && grep -A 5 '"scripts"' package.json
 
-# Build the React frontend
-RUN npm run build
+# Verify Vite config exists and has @shared alias
+RUN echo "=== VITE CONFIG VERIFICATION ===" && \
+    cat vite.config.production.ts | grep -A 3 '@shared' || echo "❌ @shared alias missing"
 
-# Debug: Check if build succeeded
-RUN echo "Files after build:" && ls -la
-RUN echo "Contents of dist:" && ls -la dist/ || echo "No dist folder"
-RUN test -f dist/index.html && echo "✅ React build successful" || echo "❌ React build failed"
+# Build the React frontend with enhanced error handling
+RUN echo "=== STARTING REACT BUILD ===" && \
+    NODE_ENV=production npm run build 2>&1 | tee build.log && \
+    echo "=== BUILD COMPLETED ==="
+
+# Comprehensive build verification
+RUN echo "=== BUILD VERIFICATION ===" && \
+    echo "Files after build:" && ls -la && \
+    echo "Contents of dist folder:" && \
+    if [ -d "dist" ]; then \
+        ls -la dist/ && \
+        echo "Dist contents breakdown:" && \
+        find dist/ -type f -name "*.html" -o -name "*.js" -o -name "*.css" | head -10; \
+    else \
+        echo "❌ No dist folder created"; \
+    fi
+
+# Critical: Verify index.html exists and fail if not
+RUN if [ -f "dist/index.html" ]; then \
+        echo "✅ React build successful - index.html found" && \
+        echo "Index.html size: $(stat -c%s dist/index.html) bytes" && \
+        echo "First 500 chars of index.html:" && \
+        head -c 500 dist/index.html; \
+    else \
+        echo "❌ CRITICAL FAILURE: React build failed - no index.html" && \
+        echo "Build log:" && cat build.log && \
+        echo "Available files:" && find . -name "*.html" 2>/dev/null && \
+        exit 1; \
+    fi
 
 # Clean up dev dependencies after build
 RUN npm ci --only=production && \
@@ -49,4 +78,4 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=10s --retries=3 \
 
 # Start production server
 ENTRYPOINT ["dumb-init", "--"]
-CMD ["npx", "tsx", "server/production.ts"]
+CMD ["npx", "tsx", "server/production-v2.ts"]
