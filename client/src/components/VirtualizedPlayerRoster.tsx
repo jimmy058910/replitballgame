@@ -29,33 +29,62 @@ export const VirtualizedPlayerRoster: React.FC<VirtualizedPlayerRosterProps> = (
   className = '',
 }) => {
   const { filteredPlayers, roleStats } = useMemo(() => {
+    // Sort players by creation date to determine roster position if not provided
+    const sortedPlayers = [...players].sort((a, b) => {
+      const dateA = new Date(a.createdAt || 0).getTime();
+      const dateB = new Date(b.createdAt || 0).getTime();
+      return dateA - dateB;
+    });
+
+    // Determine main roster vs taxi squad based on position or isOnTaxi field
+    const mainRosterPlayers = sortedPlayers.filter((p, index) => {
+      // Use rosterPosition if available, otherwise use index, or check isOnTaxi field
+      if (p.rosterPosition !== undefined) {
+        return p.rosterPosition < 13;
+      } else if (p.isOnTaxi !== undefined) {
+        return !p.isOnTaxi;
+      } else {
+        return index < 12; // First 12 players by creation date
+      }
+    });
+    
+    const taxiSquadPlayers = sortedPlayers.filter((p, index) => {
+      // Use rosterPosition if available, otherwise use index, or check isOnTaxi field
+      if (p.rosterPosition !== undefined) {
+        return p.rosterPosition >= 13;
+      } else if (p.isOnTaxi !== undefined) {
+        return p.isOnTaxi;
+      } else {
+        return index >= 12; // Players 13+ by creation date
+      }
+    });
+    
     const stats = {
-      all: players.length,
+      all: mainRosterPlayers.length, // Only count main roster players
       passer: 0,
       runner: 0,
       blocker: 0,
-      taxiSquad: 0,
+      taxiSquad: taxiSquadPlayers.length,
     };
 
-    players.forEach((player) => {
+    // Count roles only for main roster players
+    mainRosterPlayers.forEach((player) => {
       const role = player.role?.toLowerCase();
       if (role === 'passer') stats.passer++;
       else if (role === 'runner') stats.runner++;
       else if (role === 'blocker') stats.blocker++;
-      
-      // Check if player is in taxi squad (position 13-15)
-      if (player.rosterPosition >= 13) {
-        stats.taxiSquad++;
-      }
     });
 
     let filtered = players;
-    if (selectedRole !== 'all') {
-      if (selectedRole === 'taxi-squad') {
-        filtered = players.filter(p => p.rosterPosition >= 13);
-      } else {
-        filtered = players.filter(p => p.role?.toLowerCase() === selectedRole);
-      }
+    if (selectedRole === 'taxi-squad') {
+      // Show only taxi squad players
+      filtered = taxiSquadPlayers;
+    } else if (selectedRole === 'all') {
+      // Show only main roster players (first 12)
+      filtered = mainRosterPlayers;
+    } else {
+      // Show main roster players filtered by role
+      filtered = mainRosterPlayers.filter(p => p.role?.toLowerCase() === selectedRole);
     }
 
     // Sort players by power rating for better display
