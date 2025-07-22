@@ -7,6 +7,8 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { apiRequest } from "@/lib/queryClient";
+import InventoryDisplay from "@/components/InventoryDisplay";
+import PaymentHistory from "@/components/PaymentHistory";
 import { 
   Store, 
   Users, 
@@ -51,6 +53,13 @@ interface Transaction {
 
 export default function MarketDistrict() {
   const { isAuthenticated } = useAuth();
+
+  // Get team data for inventory and transactions
+  const { data: team } = useQuery({
+    queryKey: ['/api/teams/my'],
+    queryFn: () => apiRequest('/api/teams/my'),
+    enabled: isAuthenticated,
+  });
 
   const { data: storeItems, isLoading: storeLoading } = useQuery<StoreItem[]>({
     queryKey: ['/api/store/items'],
@@ -100,7 +109,7 @@ export default function MarketDistrict() {
       <div className="p-4">
         {/* Market District Header */}
         <div className="text-center space-y-2 mb-6">
-          <h1 className="text-3xl font-bold text-white">Market District</h1>
+          <h1 className="text-3xl font-bold text-white">Market</h1>
           <p className="text-gray-400">Trading, shopping, and economic center</p>
         </div>
 
@@ -223,63 +232,28 @@ export default function MarketDistrict() {
 
           {/* Inventory Tab */}
           <TabsContent value="inventory" className="space-y-4">
-            <Card className="bg-gray-800 border-gray-700">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-white">
-                  <Package className="h-5 w-5 text-orange-400" />
-                  Your Inventory
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="text-center py-8">
-                  <p className="text-gray-400">Inventory system coming soon</p>
-                </div>
-              </CardContent>
-            </Card>
+            {team?.id ? (
+              <InventoryDisplay teamId={team.id.toString()} />
+            ) : (
+              <Card className="bg-gray-800 border-gray-700">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2 text-white">
+                    <Package className="h-5 w-5 text-orange-400" />
+                    Your Inventory
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-center py-8">
+                    <p className="text-gray-400">Loading team data...</p>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
           </TabsContent>
 
           {/* Transactions Tab */}
           <TabsContent value="transactions" className="space-y-4">
-            <Card className="bg-gray-800 border-gray-700">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-white">
-                  <BarChart3 className="h-5 w-5 text-purple-400" />
-                  Transaction History
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                {transactionsLoading ? (
-                  <div className="space-y-2">
-                    {[1, 2, 3, 4, 5].map((i) => (
-                      <div key={i} className="h-8 bg-gray-700 rounded animate-pulse" />
-                    ))}
-                  </div>
-                ) : transactions?.length ? (
-                  <div className="space-y-2">
-                    {transactions.map((transaction) => (
-                      <div key={transaction.id} className="flex justify-between items-center p-3 bg-gray-700 rounded">
-                        <div>
-                          <p className="text-white text-sm">{transaction.item}</p>
-                          <p className="text-gray-400 text-xs">{transaction.date} • {transaction.type}</p>
-                        </div>
-                        <div className="text-right">
-                          {transaction.credits && (
-                            <span className="text-yellow-400">{transaction.credits}₡</span>
-                          )}
-                          {transaction.gems && (
-                            <span className="text-purple-400 ml-2">{transaction.gems}💎</span>
-                          )}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <div className="text-center py-8">
-                    <p className="text-gray-400">No transactions found</p>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
+            <PaymentHistory />
           </TabsContent>
         </Tabs>
       </div>

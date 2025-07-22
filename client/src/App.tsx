@@ -86,7 +86,11 @@ function Router() {
           
           {/* Legacy routes - maintain for backwards compatibility */}
           <Route path="/team" component={LazyTeam} />
-          <Route path="/market" component={LazyMarket} />
+          <Route path="/market" component={() => (
+            <Suspense fallback={<div className="min-h-screen bg-gray-900 animate-pulse" />}>
+              <LazyMarketDistrict />
+            </Suspense>
+          )} />
           <Route path="/world" component={LazyWorld} />
           
           {/* Live Match System */}

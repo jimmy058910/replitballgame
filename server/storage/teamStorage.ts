@@ -85,7 +85,7 @@ export class TeamStorage {
 
   async getTeamById(id: number): Promise<any> {
     const team = await prisma.team.findUnique({
-      where: { id: parseInt(id.toString()) },
+      where: { id: id },
       include: {
         finances: true,
         stadium: true,
