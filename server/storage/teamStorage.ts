@@ -1,7 +1,30 @@
 import { prisma } from '../db';
 import { PrismaClient, Team, Race } from '../../generated/prisma';
 
+// Helper function to serialize BigInt fields to strings for JSON compatibility
+function serializeTeamFinances(finances: any): any {
+  if (!finances) return null;
+  
+  return {
+    ...finances,
+    credits: finances.credits.toString(),
+    projectedIncome: finances.projectedIncome.toString(),
+    projectedExpenses: finances.projectedExpenses.toString(),
+    lastSeasonRevenue: finances.lastSeasonRevenue.toString(),
+    lastSeasonExpenses: finances.lastSeasonExpenses.toString(),
+    facilitiesMaintenanceCost: finances.facilitiesMaintenanceCost.toString(),
+  };
+}
 
+// Helper function to serialize full team data including BigInt fields
+function serializeTeamData(team: any): any {
+  if (!team) return null;
+  
+  return {
+    ...team,
+    finances: serializeTeamFinances(team.finances),
+  };
+}
 
 export class TeamStorage {
   async createTeam(teamData: {
@@ -67,20 +90,7 @@ export class TeamStorage {
       }
     });
     
-    // Convert BigInt fields to strings for JSON serialization
-    if (team && team.finances) {
-      team.finances = {
-        ...team.finances,
-        credits: team.finances.credits.toString(),
-        projectedIncome: team.finances.projectedIncome.toString(),
-        projectedExpenses: team.finances.projectedExpenses.toString(),
-        lastSeasonRevenue: team.finances.lastSeasonRevenue.toString(),
-        lastSeasonExpenses: team.finances.lastSeasonExpenses.toString(),
-        facilitiesMaintenanceCost: team.finances.facilitiesMaintenanceCost.toString(),
-      };
-    }
-    
-    return team;
+    return serializeTeamData(team);
   }
 
   async getTeamById(id: number): Promise<any> {
@@ -94,276 +104,116 @@ export class TeamStorage {
       }
     });
     
-    // Convert BigInt fields to strings for JSON serialization
-    if (team && team.finances) {
-      team.finances = {
-        ...team.finances,
-        credits: team.finances.credits.toString(),
-        projectedIncome: team.finances.projectedIncome.toString(),
-        projectedExpenses: team.finances.projectedExpenses.toString(),
-        lastSeasonRevenue: team.finances.lastSeasonRevenue.toString(),
-        lastSeasonExpenses: team.finances.lastSeasonExpenses.toString(),
-        facilitiesMaintenanceCost: team.finances.facilitiesMaintenanceCost.toString(),
-      };
-    }
-    
-    return team;
+    return serializeTeamData(team);
   }
 
-  async getAllTeamsWithStats(): Promise<any[]> {
+  async getAllTeams(): Promise<any[]> {
     const teams = await prisma.team.findMany({
       include: {
         finances: true,
         stadium: true,
         players: true,
         staff: true
-      },
-      orderBy: {
-        name: 'asc'
       }
     });
     
-    return teams.map(team => ({
-      ...team,
-      teamPower: team.players.length > 0 ? Math.round(team.players.reduce((sum, player) => {
-        return sum + (player.speed + player.power + player.throwing + player.catching + player.kicking + player.stamina + player.leadership + player.agility) / 8;
-      }, 0) / Math.min(team.players.length, 9)) : 0,
-      teamCamaraderie: team.camaraderie || 0,
-      credits: team.finances?.credits ? team.finances.credits.toString() : '0'
-    }));
+    return teams.map(team => serializeTeamData(team));
   }
 
-  async updateTeam(id: number, updates: any): Promise<any> {
-    try {
-      const updatedTeam = await prisma.team.update({
-        where: { id: parseInt(id.toString()) },
-        data: updates,
-        include: {
-          finances: true,
-          stadium: true,
-          players: true,
-          staff: true
-        }
-      });
-      
-      // Convert BigInt fields to strings for JSON serialization
-      if (updatedTeam && updatedTeam.finances) {
-        updatedTeam.finances = {
-          ...updatedTeam.finances,
-          credits: updatedTeam.finances.credits.toString(),
-          projectedIncome: updatedTeam.finances.projectedIncome.toString(),
-          projectedExpenses: updatedTeam.finances.projectedExpenses.toString(),
-          lastSeasonRevenue: updatedTeam.finances.lastSeasonRevenue.toString(),
-          lastSeasonExpenses: updatedTeam.finances.lastSeasonExpenses.toString(),
-          facilitiesMaintenanceCost: updatedTeam.finances.facilitiesMaintenanceCost.toString(),
-        };
-      }
-      
-      return updatedTeam;
-    } catch (error) {
-      console.warn(`Team with ID ${id} not found for update.`);
-      return null;
-    }
-  }
-
-  async getTeams(): Promise<Team[]> {
+  async getAllTeamsWithBasicInfo(): Promise<any[]> {
     const teams = await prisma.team.findMany({
       include: {
         finances: true,
         stadium: true,
-        players: true,
-        staff: true
-      },
-      orderBy: [
-        { division: 'asc' },
-        { points: 'desc' },
-        { wins: 'desc' }
-      ]
-    });
-    
-    // Convert BigInt fields to strings for JSON serialization
-    return teams.map(team => {
-      if (team.finances) {
-        team.finances = {
-          ...team.finances,
-          credits: team.finances.credits.toString(),
-          projectedIncome: team.finances.projectedIncome.toString(),
-          projectedExpenses: team.finances.projectedExpenses.toString(),
-          lastSeasonRevenue: team.finances.lastSeasonRevenue.toString(),
-          lastSeasonExpenses: team.finances.lastSeasonExpenses.toString(),
-          facilitiesMaintenanceCost: team.finances.facilitiesMaintenanceCost.toString(),
-        };
-      }
-      return team;
-    });
-  }
-
-  async getTeamsByDivision(division: number): Promise<Team[]> {
-    const teams = await prisma.team.findMany({
-      where: { division },
-      include: {
-        finances: true,
-        stadium: true,
-        players: true,
-        staff: true
-      },
-      orderBy: [
-        { points: 'desc' },
-        { wins: 'desc' }
-      ]
-    });
-
-    // Convert BigInt fields to strings for JSON serialization
-    return teams.map(team => {
-      if (team.finances) {
-        team.finances = {
-          ...team.finances,
-          credits: team.finances.credits.toString(),
-          projectedIncome: team.finances.projectedIncome.toString(),
-          projectedExpenses: team.finances.projectedExpenses.toString(),
-          lastSeasonRevenue: team.finances.lastSeasonRevenue.toString(),
-          lastSeasonExpenses: team.finances.lastSeasonExpenses.toString(),
-          facilitiesMaintenanceCost: team.finances.facilitiesMaintenanceCost.toString(),
-        };
-      }
-      return team;
-    });
-  }
-
-  async getTeamsByDivisionAndSubdivision(division: number, subdivision: string): Promise<Team[]> {
-    const teams = await prisma.team.findMany({
-      where: { 
-        division: division,
-        subdivision: subdivision
-      },
-      include: {
-        finances: true,
-        stadium: true,
-        players: true,
-        staff: true
-      },
-      orderBy: [
-        { points: 'desc' },
-        { wins: 'desc' }
-      ]
-    });
-
-    // Convert BigInt fields to strings for JSON serialization
-    return teams.map(team => {
-      if (team.finances) {
-        team.finances = {
-          ...team.finances,
-          credits: team.finances.credits.toString(),
-          projectedIncome: team.finances.projectedIncome.toString(),
-          projectedExpenses: team.finances.projectedExpenses.toString(),
-          lastSeasonRevenue: team.finances.lastSeasonRevenue.toString(),
-          lastSeasonExpenses: team.finances.lastSeasonExpenses.toString(),
-          facilitiesMaintenanceCost: team.finances.facilitiesMaintenanceCost.toString(),
-        };
-      }
-      return team;
-    });
-  }
-
-
-
-  async deleteTeam(id: number): Promise<boolean> {
-    try {
-      await prisma.team.delete({
-        where: { id: parseInt(id.toString()) }
-      });
-      return true;
-    } catch (error) {
-      console.warn(`Team with ID ${id} not found for deletion.`);
-      return false;
-    }
-  }
-
-  async getTeamSeasonalData(teamId: number): Promise<any> {
-    try {
-      // Get current season
-      const currentSeason = await prisma.season.findFirst({
-        where: { phase: 'REGULAR_SEASON' },
-        orderBy: { startDate: 'desc' }
-      });
-      
-      if (!currentSeason) {
-        return {
-          teamId: teamId,
-          tryoutsUsed: false,
-        };
-      }
-      
-      // Check if team has tryout history for current season
-      const tryoutHistory = await prisma.tryoutHistory.findUnique({
-        where: {
-          teamId_seasonId: {
-            teamId: teamId,
-            seasonId: currentSeason.id
+        players: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            role: true,
+            speed: true,
+            power: true,
+            throwing: true,
+            catching: true,
+            kicking: true,
+            agility: true,
+            staminaAttribute: true, // Using correct field name
+            leadership: true,
+            injuryStatus: true,
+            dailyStaminaLevel: true
           }
-        }
-      });
-      
-      return {
-        teamId: teamId,
-        tryoutsUsed: !!tryoutHistory,
-        seasonId: currentSeason.id,
-        tryoutHistory: tryoutHistory
-      };
-    } catch (error) {
-      console.error('Error fetching team seasonal data:', error);
-      return {
-        teamId: teamId,
-        tryoutsUsed: false,
-      };
-    }
+        },
+        staff: true
+      }
+    });
+    
+    return teams.map(team => serializeTeamData(team));
   }
 
-  async updateTeamSeasonalData(teamId: number, data: any): Promise<void> {
-    try {
-      // This method is deprecated - seasonal data should be handled through TryoutHistory
-      // For backward compatibility, we'll just return success
-      console.log('updateTeamSeasonalData called (deprecated) - using TryoutHistory instead');
-      return;
-    } catch (error) {
-      console.error('Error updating team seasonal data:', error);
-      throw error;
+  async getTeamsInDivision(division: number, subdivision?: string): Promise<any[]> {
+    const whereClause: any = { division: division };
+    if (subdivision) {
+      whereClause.subdivision = subdivision;
     }
+    
+    const teams = await prisma.team.findMany({
+      where: whereClause,
+      include: {
+        finances: true,
+        stadium: true,
+        players: true,
+        staff: true
+      }
+    });
+    
+    return teams.map(team => serializeTeamData(team));
   }
 
-  async markTryoutsUsed(teamId: number): Promise<void> {
-    try {
-      await prisma.team.update({
-        where: { id: parseInt(teamId.toString()) },
-        data: {
-          tryoutsUsed: true
-        }
-      });
-    } catch (error) {
-      console.error('Error marking tryouts as used:', error);
-      throw error;
-    }
+  async updateTeam(teamId: number, updateData: any): Promise<any> {
+    const updatedTeam = await prisma.team.update({
+      where: { id: teamId },
+      data: updateData,
+      include: {
+        finances: true,
+        stadium: true,
+        players: true,
+        staff: true
+      }
+    });
+    
+    return serializeTeamData(updatedTeam);
   }
 
-  private async createDefaultFinancesForTeam(teamId: number): Promise<void> {
+  async updateTeamRecord(teamId: number, wins: number, losses: number, points: number): Promise<void> {
+    await prisma.team.update({
+      where: { id: teamId },
+      data: { 
+        wins: wins, 
+        losses: losses, 
+        points: points
+      }
+    });
+  }
+
+  async createDefaultFinancesForTeam(teamId: number): Promise<void> {
     await prisma.teamFinances.create({
       data: {
-        teamId,
+        teamId: teamId,
         credits: BigInt(50000), // Starting credits
-        gems: 0, // Starting gems
+        gems: BigInt(100), // Starting gems
         projectedIncome: BigInt(0),
         projectedExpenses: BigInt(0),
         lastSeasonRevenue: BigInt(0),
         lastSeasonExpenses: BigInt(0),
-        facilitiesMaintenanceCost: BigInt(0)
+        facilitiesMaintenanceCost: BigInt(5000)
       }
     });
   }
 
-  private async createDefaultStadiumForTeam(teamId: number): Promise<void> {
+  async createDefaultStadiumForTeam(teamId: number): Promise<void> {
     await prisma.stadium.create({
       data: {
-        teamId,
+        teamId: teamId,
         capacity: 5000, // Starting capacity
         concessionsLevel: 1,
         parkingLevel: 1,
@@ -373,6 +223,41 @@ export class TeamStorage {
       }
     });
   }
+
+  async deleteTeam(teamId: number): Promise<void> {
+    // Delete related records first
+    await prisma.player.deleteMany({ where: { teamId: teamId } });
+    await prisma.staff.deleteMany({ where: { teamId: teamId } });
+    await prisma.teamFinances.deleteMany({ where: { teamId: teamId } });
+    await prisma.stadium.deleteMany({ where: { teamId: teamId } });
+    
+    // Delete the team
+    await prisma.team.delete({ where: { id: teamId } });
+  }
+
+  // World rankings method with proper BigInt serialization
+  async getWorldRankings(): Promise<any> {
+    const teams = await prisma.team.findMany({
+      include: {
+        finances: true,
+        stadium: true,
+        players: true,
+        staff: true
+      },
+      orderBy: [
+        { points: 'desc' },
+        { wins: 'desc' },
+        { name: 'asc' }
+      ]
+    });
+
+    return {
+      rankings: teams.map(team => serializeTeamData(team)),
+      totalTeams: teams.length,
+      totalPlayers: teams.reduce((sum, team) => sum + team.players.length, 0)
+    };
+  }
 }
 
+// Export instance for use in other modules
 export const teamStorage = new TeamStorage();
