@@ -162,24 +162,26 @@ export default function ComprehensiveTournamentManager({ teamId }: Comprehensive
             <Trophy className="w-5 h-5 text-purple-500" />
             <CardTitle className="text-lg">{tournament.name}</CardTitle>
           </div>
-          <Badge variant={tournament.type === "daily_divisional_cup" ? "secondary" : "default"}>
-            {tournament.type === "daily_divisional_cup" ? "Daily Cup" : "Mid-Season Classic"}
+          <Badge variant={tournament.type === "DAILY_DIVISIONAL" ? "secondary" : "default"}>
+            {tournament.type === "DAILY_DIVISIONAL" ? "Daily Tournament" : "Mid-Season Cup"}
           </Badge>
         </div>
-        <CardDescription>{tournament.type === "daily_divisional_cup" 
-          ? "Quick single-elimination tournament" 
-          : "Premier seasonal tournament with substantial rewards"
-        }</CardDescription>
+        <CardDescription className="text-gray-600 dark:text-gray-300">
+          {tournament.type === "DAILY_DIVISIONAL" 
+            ? "Quick single-elimination tournament" 
+            : "Premier seasonal tournament with substantial rewards"
+          }
+        </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="grid grid-cols-2 gap-4">
           <div className="flex items-center gap-2">
             <Users className="w-4 h-4 text-gray-500" />
-            <span className="text-sm">Max: {tournament.maxTeams} teams</span>
+            <span className="text-sm text-gray-700 dark:text-gray-300">Max: {tournament.maxTeams} teams</span>
           </div>
           <div className="flex items-center gap-2">
             <Clock className="w-4 h-4 text-gray-500" />
-            <span className="text-sm">
+            <span className="text-sm text-gray-700 dark:text-gray-300">
               {tournament.timeUntilDeadline > 0 
                 ? `${formatTimeRemaining(tournament.timeUntilDeadline)} left`
                 : "Registration closed"
@@ -197,20 +199,20 @@ export default function ComprehensiveTournamentManager({ teamId }: Comprehensive
           {tournament.requiresEntryItem ? (
             <div className="flex items-center gap-2 text-sm">
               <Gift className="w-4 h-4 text-blue-500" />
-              <span>Tournament Entry Item</span>
+              <span className="text-gray-700 dark:text-gray-300">Tournament Entry Item</span>
             </div>
           ) : (
             <div className="space-y-1">
               {tournament.entryFeeCredits && (
                 <div className="flex items-center gap-2 text-sm">
                   <DollarSign className="w-4 h-4 text-green-500" />
-                  <span>{tournament.entryFeeCredits.toLocaleString()}₡ Credits</span>
+                  <span className="text-gray-700 dark:text-gray-300">{tournament.entryFeeCredits.toLocaleString()}₡ Credits</span>
                 </div>
               )}
               {tournament.entryFeeGems && (
                 <div className="flex items-center gap-2 text-sm">
                   <Crown className="w-4 h-4 text-purple-500" />
-                  <span>OR {tournament.entryFeeGems} 💎 Gems</span>
+                  <span className="text-gray-700 dark:text-gray-300">OR {tournament.entryFeeGems} 💎 Gems</span>
                 </div>
               )}
             </div>
@@ -221,24 +223,24 @@ export default function ComprehensiveTournamentManager({ teamId }: Comprehensive
         <div className="grid grid-cols-3 gap-2 text-xs">
           <div className="text-center p-2 bg-yellow-50 dark:bg-yellow-900/20 rounded">
             <AlertTriangle className="w-4 h-4 mx-auto text-yellow-500" />
-            <div className="font-medium mt-1">
-              {tournament.type === "daily_divisional_cup" ? "5%" : "20%"}
+            <div className="font-medium mt-1 text-gray-900 dark:text-gray-100">
+              {tournament.type === "DAILY_DIVISIONAL" ? "5%" : "20%"}
             </div>
-            <div className="text-gray-600">Injury Risk</div>
+            <div className="text-gray-600 dark:text-gray-400">Injury Risk</div>
           </div>
           <div className="text-center p-2 bg-red-50 dark:bg-red-900/20 rounded">
             <Zap className="w-4 h-4 mx-auto text-red-500" />
-            <div className="font-medium mt-1">
-              {tournament.type === "daily_divisional_cup" ? "-10" : "-30"}
+            <div className="font-medium mt-1 text-gray-900 dark:text-gray-100">
+              {tournament.type === "DAILY_DIVISIONAL" ? "-10" : "-30"}
             </div>
-            <div className="text-gray-600">Stamina Cost</div>
+            <div className="text-gray-600 dark:text-gray-400">Stamina Cost</div>
           </div>
           <div className="text-center p-2 bg-green-50 dark:bg-green-900/20 rounded">
             <Heart className="w-4 h-4 mx-auto text-green-500" />
-            <div className="font-medium mt-1">
-              {tournament.type === "daily_divisional_cup" ? "Moderate" : "High"}
+            <div className="font-medium mt-1 text-gray-900 dark:text-gray-100">
+              {tournament.type === "DAILY_DIVISIONAL" ? "Moderate" : "High"}
             </div>
-            <div className="text-gray-600">Progression</div>
+            <div className="text-gray-600 dark:text-gray-400">Progression</div>
           </div>
         </div>
 
