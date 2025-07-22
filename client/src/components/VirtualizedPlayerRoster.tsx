@@ -36,26 +36,31 @@ export const VirtualizedPlayerRoster: React.FC<VirtualizedPlayerRosterProps> = (
       return dateA - dateB;
     });
 
+    // Roster limits: Max 15 total, Max 2 taxi squad, Max 13 main roster
+    const maxTotalRoster = 15;
+    const maxTaxiSquad = 2;
+    const maxMainRoster = maxTotalRoster - maxTaxiSquad; // 13
+    
     // Determine main roster vs taxi squad based on position or isOnTaxi field
     const mainRosterPlayers = sortedPlayers.filter((p, index) => {
       // Use rosterPosition if available, otherwise use index, or check isOnTaxi field
       if (p.rosterPosition !== undefined) {
-        return p.rosterPosition < 13;
+        return p.rosterPosition <= maxMainRoster;
       } else if (p.isOnTaxi !== undefined) {
         return !p.isOnTaxi;
       } else {
-        return index < 12; // First 12 players by creation date
+        return index < maxMainRoster; // First 13 players by creation date
       }
     });
     
     const taxiSquadPlayers = sortedPlayers.filter((p, index) => {
       // Use rosterPosition if available, otherwise use index, or check isOnTaxi field
       if (p.rosterPosition !== undefined) {
-        return p.rosterPosition >= 13;
+        return p.rosterPosition > maxMainRoster;
       } else if (p.isOnTaxi !== undefined) {
         return p.isOnTaxi;
       } else {
-        return index >= 12; // Players 13+ by creation date
+        return index >= maxMainRoster && index < maxTotalRoster; // Players 14-15 by creation date
       }
     });
     
@@ -141,7 +146,7 @@ export const VirtualizedPlayerRoster: React.FC<VirtualizedPlayerRosterProps> = (
         <Tabs value={selectedRole} onValueChange={onRoleChange} className="mb-6">
           <TabsList className="grid w-full grid-cols-5 bg-gray-800">
             <TabsTrigger value="all">
-              All Players ({roleStats.all})
+              Main Roster ({roleStats.all}/13)
             </TabsTrigger>
             <TabsTrigger value="passer">
               Passers ({roleStats.passer})
@@ -153,7 +158,7 @@ export const VirtualizedPlayerRoster: React.FC<VirtualizedPlayerRosterProps> = (
               Blockers ({roleStats.blocker})
             </TabsTrigger>
             <TabsTrigger value="taxi-squad">
-              Taxi Squad ({roleStats.taxiSquad})
+              Taxi Squad ({roleStats.taxiSquad}/2)
             </TabsTrigger>
           </TabsList>
         </Tabs>
@@ -187,10 +192,13 @@ export const VirtualizedPlayerRoster: React.FC<VirtualizedPlayerRosterProps> = (
       {filteredPlayers.length > 0 && (
         <div className="flex flex-wrap gap-2 mt-4">
           <Badge variant="outline" className="text-sm">
-            {filteredPlayers.length} Players
+            Total Roster: {roleStats.all + roleStats.taxiSquad}/15
           </Badge>
           {selectedRole === 'all' && (
             <>
+              <Badge variant="outline" className="text-sm">
+                Main: {roleStats.all}/13
+              </Badge>
               <Badge variant="outline" className="text-sm">
                 {roleStats.passer} Passers
               </Badge>
@@ -200,9 +208,11 @@ export const VirtualizedPlayerRoster: React.FC<VirtualizedPlayerRosterProps> = (
               <Badge variant="outline" className="text-sm">
                 {roleStats.blocker} Blockers
               </Badge>
-              {roleStats.taxiSquad > 0 && (
-                <Badge variant="outline" className="text-sm">
-                  {roleStats.taxiSquad} in Taxi Squad
+            </>
+          )}
+          {selectedRole === 'taxi-squad' && (
+            <Badge variant="outline" className="text-sm">
+              Taxi Squad: {roleStats.taxiSquad}/2
                 </Badge>
               )}
             </>
