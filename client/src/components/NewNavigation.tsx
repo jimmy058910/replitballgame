@@ -142,7 +142,7 @@ export default function NewNavigation() {
               className="flex items-center hover:opacity-80 transition-opacity"
             >
               <img 
-                src="/attached_assets/u6499584598_typographic_esports_logo_the_letters_RR_forged_to_806144fc-a39c-4c7f-9db8-98ef0b066e42_0-removebg-preview_1753204297373.png" 
+                src="/realm-rivalry-logo.png" 
                 alt="Realm Rivalry" 
                 className="h-10 w-auto"
               />
@@ -224,7 +224,7 @@ export default function NewNavigation() {
                   className="flex items-center bg-gray-700 hover:bg-gray-600 px-3 py-2 rounded-lg text-sm font-semibold transition-colors"
                 >
                   <Coins className="h-4 w-4 text-yellow-400 mr-1" />
-                  <span className="text-white">{parseInt(credits || 0).toLocaleString()}</span>
+                  <span className="text-white">{credits.toLocaleString()}</span>
                   <span className="text-yellow-400 ml-1">₡</span>
                 </button>
 
