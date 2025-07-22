@@ -97,15 +97,22 @@ export default function MobileRosterHQ() {
     enabled: !!team?.id,
   });
 
-  // Enhanced player calculations - using rosterPosition instead of slice
+  // Enhanced player calculations - handle missing rosterPosition gracefully
   const activePlayers = players?.filter(p => !p.isOnMarket && !p.isRetired) || [];
   
-  // Sort by rosterPosition to maintain proper order
-  const sortedPlayers = [...activePlayers].sort((a, b) => (a.rosterPosition || 0) - (b.rosterPosition || 0));
+  // Sort by rosterPosition, but handle null/undefined values by putting them first
+  const sortedPlayers = [...activePlayers].sort((a, b) => {
+    const posA = a.rosterPosition || 0;
+    const posB = b.rosterPosition || 0;
+    if (posA === 0 && posB === 0) return 0; // Both unpositioned, maintain order
+    if (posA === 0) return 1; // A is unpositioned, put after B
+    if (posB === 0) return -1; // B is unpositioned, put after A
+    return posA - posB;
+  });
   
-  // Main roster: positions 1-12, Taxi squad: positions 13-15
-  const mainRoster = sortedPlayers.filter(p => (p.rosterPosition || 0) <= 12);
-  const taxiSquad = sortedPlayers.filter(p => (p.rosterPosition || 0) >= 13 && (p.rosterPosition || 0) <= 15);
+  // For now, treat all active players as main roster if rosterPosition isn't set
+  const mainRoster = sortedPlayers.slice(0, 12);
+  const taxiSquad = sortedPlayers.slice(12, 15);
   const injuredPlayers = activePlayers.filter(p => p.injuryStatus !== 'HEALTHY');
   const lowStaminaPlayers = activePlayers.filter(p => (p.dailyStaminaLevel || 0) < 50);
   
@@ -148,7 +155,7 @@ export default function MobileRosterHQ() {
   };
 
   // Show loading state while team or essential data is loading
-  if (teamLoading || playersLoading || !team) {
+  if (teamLoading || playersLoading || !team || !players) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900">
         <div className="container mx-auto px-4 py-8 text-center">
