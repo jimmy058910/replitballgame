@@ -40,6 +40,14 @@ Built as a React + Express web application with PostgreSQL database, using moder
 - **State Management**: Use Zustand for real-time state, TanStack Query for server state
 - **Testing**: Maintain 80% branch coverage with comprehensive unit and integration tests
 
+### Development Standards
+- **TypeScript**: Uses TypeScript throughout for complete type safety
+- **React Patterns**: Modern React with hooks and functional components only
+- **Real-Time Features**: Implements polling and WebSocket support for live updates
+- **Mobile-First Design**: Responsive design approach starting with mobile constraints
+- **Error Handling**: Comprehensive error boundaries and user feedback systems
+- **Performance**: Lazy loading, virtualization, and optimized query patterns
+
 ### Key Features Implemented
 - **Team Management**: Complete roster management with formation system
 - **League System**: 8-division structure with integrated playoffs
@@ -51,11 +59,32 @@ Built as a React + Express web application with PostgreSQL database, using moder
 - **Contract Management**: Advanced contract negotiation system
 - **Injury System**: Detailed injury tracking and recovery mechanics
 
+### Core Database Entities
+- **Users**: Replit Auth integration with profile management
+- **Teams**: 8-division league structure with complete team data
+- **Players**: Advanced attributes, contracts, injuries, and progression systems
+- **Matches**: Detailed game simulation with comprehensive logging
+- **Stadiums**: Multi-tier upgrade systems with revenue calculations
+- **Notifications**: Real-time messaging with deletion capability
+- **Marketplace**: Bidding system with anti-sniping and intelligent pricing
+- **Financial Tracking**: Complete revenue/expense tracking with projections
+
 ## Revenue Model
 - **Realm Pass**: Monthly subscription with gameplay perks
-- **Ad-Supported**: Free gameplay with advertising revenue
+- **Ad-Supported**: Free gameplay with advertising revenue (interstitial at halftime + rewarded video ads)
 - **Gem Purchases**: Premium currency for credits, extra exhibition games, and additional tournament entries
 - **Future**: Cosmetic and customization items
+
+## User Preferences & Game Philosophy
+- **Gameplay Focus**: Prioritize comprehensive gameplay mechanics over visual polish
+- **Feature Implementation**: Prefer complete feature implementation with detailed documentation
+- **Analytics & Statistics**: Values detailed statistics, analytics, and performance tracking
+- **Game Balance**: Emphasizes proper balance and realistic simulation mechanics
+- **Mobile Strategy**: React Native conversion planned for native app store deployment
+- **UI Preferences**: Dark theme UI with mobile-responsive design principles
+- **No Pay-to-Win Policy**: All gameplay-affecting items must be purchasable with Credits (₡), Gems (💎) only for convenience/cosmetics
+- **Documentation Consistency**: Maintain comprehensive game mechanics documentation with exact formulas and system specifications
+- **Game Design Philosophy**: Organic progression systems, balanced economies, realistic player development cycles
 
 ## Current Architecture Status
 
@@ -504,3 +533,32 @@ Built as a React + Express web application with PostgreSQL database, using moder
 
 #### ✅ REVOLUTIONARY MODAL INTERFACE TRANSFORMATION - 4-TAB TO PROGRESSIVE DISCLOSURE DESIGN
 - ✓ **Tab Elimination**: Removed 4-tab layout (Overview, Abilities, Equipment, Game Logs) replaced with single scrollable view
+
+## Technical Implementation Details
+
+### UI/UX Improvements
+- **Notification System**: Uses solid background colors (red, blue, green, yellow) with white text for proper visibility across all themes
+- **Auto Formation**: Enhanced with role requirements validation (minimum 1 passer, 2 runners, 2 blockers) and intelligent positioning
+- **Contract Negotiation**: Fine-grained salary controls with increment options (+/-50, +/-100, +/-500, +/-1K) for precise negotiations
+- **Player Cards**: Stats color-coded (green for high 32+, red for low 18-, white for medium 19-31) with compact mode support for mobile
+- **Store Purchases**: Fixed API request format for proper functionality with dual-currency support (Credits/Gems)
+- **Dashboard Improvements**: Enhanced player tiles with proper power calculations, injury status indicators, and role-specific icons
+
+### Performance Optimizations
+- **Lazy Loading**: All major pages and components lazy-loaded for improved initial load performance
+- **Virtualization**: Large lists (player rosters, marketplace items) use virtualized rendering
+- **Query Caching**: TanStack Query with intelligent cache invalidation and background refresh
+- **WebSocket Integration**: Real-time updates for live matches, notifications, and market changes
+- **Mobile Optimization**: Touch-friendly interfaces with 44px minimum touch targets and gesture support
+
+### Real-Time Features
+- **Live Match Updates**: 30-second polling for active matches with WebSocket fallback
+- **Notification System**: Instant notifications for trades, matches, injuries, and system events
+- **Market Updates**: Real-time bid updates and auction countdown timers
+- **Season Progression**: Daily 3 AM reset system for player progression and league advancement
+
+### Data Architecture
+- **Domain-Driven Design**: Bounded contexts for Team Management, Competition, Marketplace, and Community
+- **Type Safety**: Full TypeScript coverage with Prisma-generated types
+- **API Validation**: Zod schemas for all endpoints with comprehensive error handling
+- **Error Boundaries**: Multiple-level error catching with graceful degradation and user feedback
