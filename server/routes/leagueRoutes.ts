@@ -773,4 +773,51 @@ router.post('/create-additional-teams', isAuthenticated, async (req: Request, re
   }
 });
 
+// League schedule endpoint - frontend calls /api/leagues/{division}/schedule
+router.get('/:division/schedule', isAuthenticated, async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const division = parseInt(req.params.division);
+    if (isNaN(division) || division < 1 || division > 8) {
+      return res.status(400).json({ message: "Invalid division parameter" });
+    }
+
+    // Get teams in this division to filter matches
+    const teamsInDivision = await storage.teams.getTeamsByDivision(division);
+    const teamIds = teamsInDivision.map(team => team.id);
+
+    // Get all league matches involving teams in this division
+    const matches = await prisma.game.findMany({
+      where: {
+        matchType: 'LEAGUE',
+        OR: [
+          { homeTeamId: { in: teamIds } },
+          { awayTeamId: { in: teamIds } }
+        ]
+      },
+      include: {
+        homeTeam: { select: { id: true, name: true } },
+        awayTeam: { select: { id: true, name: true } }
+      },
+      orderBy: { gameDate: 'asc' }
+    });
+
+    // Transform matches for frontend
+    const scheduleMatches = matches.map(match => ({
+      id: match.id,
+      homeTeam: match.homeTeam.name,
+      awayTeam: match.awayTeam.name,
+      homeScore: match.homeScore || 0,
+      awayScore: match.awayScore || 0,
+      status: match.status,
+      gameDate: match.gameDate,
+      matchType: match.matchType
+    }));
+
+    res.json(scheduleMatches);
+  } catch (error) {
+    console.error("Error fetching league schedule:", error);
+    res.status(500).json({ message: "Failed to fetch league schedule" });
+  }
+});
+
 export default router;
