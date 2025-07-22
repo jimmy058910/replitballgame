@@ -82,7 +82,7 @@ export default function MobileRosterHQ() {
     return staffTypeMap[type] || type;
   };
 
-  const { data: team } = useQuery<Team>({
+  const { data: team, isLoading: teamLoading } = useQuery<Team>({
     queryKey: ["/api/teams/my"],
     enabled: isAuthenticated,
   });
@@ -92,7 +92,7 @@ export default function MobileRosterHQ() {
     enabled: !!team?.id,
   });
 
-  const { data: staff } = useQuery<Staff[]>({
+  const { data: staff, isLoading: staffLoading } = useQuery<Staff[]>({
     queryKey: [`/api/teams/${team?.id}/staff`],
     enabled: !!team?.id,
   });
@@ -147,14 +147,20 @@ export default function MobileRosterHQ() {
     setExpandedSection(expandedSection === section ? null : section);
   };
 
-  if (!team) {
+  // Show loading state while team or essential data is loading
+  if (teamLoading || playersLoading || !team) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900">
         <div className="container mx-auto px-4 py-8 text-center">
-          <Card className="bg-gradient-to-r from-red-800 to-red-900 border-2 border-red-400">
+          <Card className="bg-gradient-to-r from-blue-800 to-purple-800 border-2 border-blue-400">
             <CardContent className="p-8">
-              <h1 className="text-4xl font-bold text-white mb-4">🏗️ BUILD YOUR TEAM</h1>
-              <p className="text-xl text-red-200">Create your roster and start your journey to glory</p>
+              <div className="animate-pulse">
+                <h1 className="text-4xl font-bold text-white mb-4">📋 Loading Roster HQ...</h1>
+                <div className="w-16 h-16 bg-blue-400 rounded-full mx-auto animate-spin">
+                  <Users className="w-8 h-8 text-white m-4" />
+                </div>
+                <p className="text-xl text-blue-200 mt-4">Preparing your team management interface</p>
+              </div>
             </CardContent>
           </Card>
         </div>
