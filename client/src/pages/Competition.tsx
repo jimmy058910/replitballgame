@@ -1194,7 +1194,7 @@ export default function Competition() {
                       </div>
                       <div className="grid grid-cols-2 gap-2 text-sm">
                         <div className="text-gray-400">Record:</div>
-                        <div className="text-white">{challengeTeam.wins ?? 0}W - {challengeTeam.losses ?? 0}L</div>
+                        <div className="text-white">{challengeTeam.wins ?? 0}W - {challengeTeam.draws ?? 0}D - {challengeTeam.losses ?? 0}L</div>
                         <div className="text-gray-400">Power:</div>
                         <div className="text-white">{challengeTeam.teamPower ?? 0}</div>
                       </div>

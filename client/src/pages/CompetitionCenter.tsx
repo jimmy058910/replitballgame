@@ -157,7 +157,7 @@ export default function CompetitionCenter() {
                 <div>
                   <p className="text-xs text-gray-400">Record</p>
                   <p className="text-xl font-bold text-green-400">
-                    {team.wins}-{team.draws}-{team.losses}
+                    {team.wins}-{team.draws ?? 0}-{team.losses}
                   </p>
                 </div>
                 <Trophy className="h-5 w-5 text-green-400" />

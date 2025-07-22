@@ -124,7 +124,7 @@ export default function LeagueStandings({ division }: LeagueStandingsProps) {
                         </td>
                         <td className="text-center py-2 text-gray-300">{team.played}</td>
                         <td className="text-center py-2 text-green-400 font-medium">{team.wins}</td>
-                        <td className="text-center py-2 text-yellow-400">{team.draws || 0}</td>
+                        <td className="text-center py-2 text-yellow-400">{team.draws ?? 0}</td>
                         <td className="text-center py-2 text-red-400">{team.losses}</td>
                         <td className={`text-center py-2 font-medium ${
                           team.goalDifference > 0 ? "text-green-400" :
