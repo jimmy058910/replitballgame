@@ -20,7 +20,7 @@ import {
   HelpCircle
 } from "lucide-react";
 import ReferralSystem from "@/components/ReferralSystem";
-import HelpManual from "@/pages/HelpManual";
+import EmbeddedHelpManual from "@/components/EmbeddedHelpManual";
 import Roadmap from "@/components/Roadmap";
 
 interface WorldRankings {
@@ -319,9 +319,9 @@ export default function CommunityPortal() {
                     Complete Game Manual
                   </CardTitle>
                 </CardHeader>
-                <CardContent className="p-0">
-                  <div className="h-[600px] overflow-hidden">
-                    <HelpManual />
+                <CardContent className="p-4">
+                  <div className="h-[600px]">
+                    <EmbeddedHelpManual />
                   </div>
                 </CardContent>
               </Card>

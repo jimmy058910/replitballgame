@@ -1058,7 +1058,7 @@ router.get('/:teamId/finances', isAuthenticated, asyncHandler(async (req: any, r
   if (teamId === "my") {
     team = await storage.teams.getTeamByUserId(userId);
   } else {
-    team = await storage.teams.getTeamById(teamId);
+    team = await storage.teams.getTeamById(parseInt(teamId));
     // Development bypass - skip ownership check for now
     if (!team) {
       throw ErrorCreators.notFound("Team not found");
