@@ -35,6 +35,7 @@ interface Player {
   camaraderieScore: number;
   isOnMarket: boolean;
   isRetired: boolean;
+  rosterPosition?: number;
 }
 
 interface Team {
@@ -66,6 +67,19 @@ export default function MobileRosterHQ() {
   const [activePanel, setActivePanel] = useState<PanelType>('overview');
   const [selectedPlayer, setSelectedPlayer] = useState<Player | null>(null);
   const [expandedSection, setExpandedSection] = useState<string | null>(null);
+
+  // Function to get proper staff type names
+  const getStaffTypeName = (type: string) => {
+    const staffTypeMap: Record<string, string> = {
+      'HEAD_COACH': 'Head Coach',
+      'PASSER_TRAINER': 'Technical Trainer',
+      'RUNNER_TRAINER': 'Speed Trainer',
+      'BLOCKER_TRAINER': 'Strength Trainer',
+      'RECOVERY_SPECIALIST': 'Recovery Specialist',
+      'SCOUT': 'Scout'
+    };
+    return staffTypeMap[type] || type;
+  };
 
   const { data: team } = useQuery<Team>({
     queryKey: ["/api/teams/my"],
@@ -493,11 +507,10 @@ export default function MobileRosterHQ() {
                           <div>
                             <h3 className="font-bold text-white">{member.name}</h3>
                             <Badge variant="outline" className="text-xs text-white border-white/50 mt-1">
-                              {member.type}
+                              {getStaffTypeName(member.type)}
                             </Badge>
                           </div>
                           <div className="text-right">
-                            <div className="text-lg font-bold text-white">Level {member.level}</div>
                             <div className="text-xs text-white/70">Age {member.age}</div>
                           </div>
                         </div>
