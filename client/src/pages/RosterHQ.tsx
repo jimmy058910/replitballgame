@@ -10,9 +10,12 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import UnifiedPlayerCard from "@/components/UnifiedPlayerCard";
 import TacticalFormation from "@/components/TacticalFormation";
 import StaffManagement from "@/components/StaffManagement";
+import PlayerDetailModal from "@/components/PlayerDetailModal";
+import StadiumAtmosphereManager from "@/components/StadiumAtmosphereManager";
+import TeamFinances from "@/components/TeamFinances";
 import { 
   Users, UserPlus, Zap, Heart, DollarSign, Settings,
-  Trophy, Shield, Target, AlertTriangle, Plus
+  Trophy, Shield, Target, AlertTriangle, Plus, Building2, BarChart3
 } from "lucide-react";
 
 // Enhanced interfaces for Roster HQ
@@ -57,7 +60,7 @@ interface Staff {
   teaching: number;
 }
 
-type TabType = 'roster' | 'tactics' | 'staff' | 'chemistry' | 'contracts' | 'medical';
+type TabType = 'roster' | 'tactics' | 'staff' | 'chemistry' | 'contracts' | 'medical' | 'stadium' | 'finances';
 
 export default function RosterHQ() {
   const { isAuthenticated } = useAuth();
@@ -230,6 +233,14 @@ export default function RosterHQ() {
                 <Shield className="h-4 w-4 mr-1" />
                 <span className="hidden sm:inline">Medical</span>
               </TabsTrigger>
+              <TabsTrigger value="stadium" className="touch-target flex-1 min-w-[80px]">
+                <Building2 className="h-4 w-4 mr-1" />
+                <span className="hidden sm:inline">Stadium</span>
+              </TabsTrigger>
+              <TabsTrigger value="finances" className="touch-target flex-1 min-w-[80px]">
+                <BarChart3 className="h-4 w-4 mr-1" />
+                <span className="hidden sm:inline">Finances</span>
+              </TabsTrigger>
             </TabsList>
           </div>
 
@@ -288,7 +299,11 @@ export default function RosterHQ() {
                 ) : (
                   <div className="grid-mobile-cards">
                     {mainRoster.map((player) => (
-                      <div key={player.id} className="mobile-card-interactive">
+                      <div 
+                        key={player.id} 
+                        className="mobile-card-interactive cursor-pointer hover:bg-gray-700 transition-colors"
+                        onClick={() => setSelectedPlayer(player)}
+                      >
                         <div className="flex items-start justify-between mb-2">
                           <div className="flex-1">
                             <h3 className="font-semibold truncate">
@@ -342,7 +357,11 @@ export default function RosterHQ() {
                 <CardContent>
                   <div className="grid-mobile-cards">
                     {taxiSquad.map((player) => (
-                      <div key={player.id} className="mobile-card-interactive opacity-75">
+                      <div 
+                        key={player.id} 
+                        className="mobile-card-interactive opacity-75 cursor-pointer hover:bg-gray-700 transition-colors"
+                        onClick={() => setSelectedPlayer(player)}
+                      >
                         <div className="flex items-start justify-between mb-2">
                           <div className="flex-1">
                             <h3 className="font-semibold truncate">
@@ -447,7 +466,11 @@ export default function RosterHQ() {
                   ) : (
                     <div className="space-y-3">
                       {injuredPlayers.map((player) => (
-                        <div key={player.id} className="mobile-card-interactive">
+                        <div 
+                          key={player.id} 
+                          className="mobile-card-interactive cursor-pointer hover:bg-gray-700 transition-colors"
+                          onClick={() => setSelectedPlayer(player)}
+                        >
                           <div className="flex items-center justify-between">
                             <div>
                               <h3 className="font-semibold">
@@ -470,8 +493,27 @@ export default function RosterHQ() {
             </Card>
           </TabsContent>
 
+          {/* Stadium Tab */}
+          <TabsContent value="stadium" className="space-y-6">
+            <StadiumAtmosphereManager />
+          </TabsContent>
+
+          {/* Finances Tab */}
+          <TabsContent value="finances" className="space-y-6">
+            {team?.id && <TeamFinances teamId={team.id} />}
+          </TabsContent>
+
         </Tabs>
       </div>
+
+      {/* Player Detail Modal */}
+      {selectedPlayer && (
+        <PlayerDetailModal
+          player={selectedPlayer}
+          isOpen={!!selectedPlayer}
+          onClose={() => setSelectedPlayer(null)}
+        />
+      )}
     </div>
   );
 }
