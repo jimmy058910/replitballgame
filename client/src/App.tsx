@@ -33,9 +33,16 @@ import { ContextualHelp } from "@/components/help";
 // Removed LandscapeOrientation - mobile-first design supports vertical mode per UI/UX documents
 import ErrorBoundary from "@/components/ErrorBoundary";
 
+// Direct imports for testing - bypassing lazy loading
+import Dashboard from "@/pages/Dashboard";
+import RosterHQ from "@/pages/RosterHQ";
+
 // New 5-Hub Architecture Components with error handling - Dashboard routes to DramaticTeamHQ
 const LazyDashboard = lazy(() => import("@/pages/Dashboard").catch(() => ({ default: () => <div>Loading Team HQ...</div> })));
-const LazyRosterHQ = lazy(() => import("@/pages/RosterHQ").catch(() => ({ default: () => <div>Loading Roster HQ...</div> })));
+const LazyRosterHQ = lazy(() => import("@/pages/RosterHQ").catch((error) => {
+  console.error('Failed to load RosterHQ:', error);
+  return { default: () => <div>Error loading Roster HQ: {error.message}</div> };
+}));
 const LazyCompetitionCenter = lazy(() => import("@/pages/CompetitionCenter").catch(() => ({ default: () => <div>Loading Competition Center...</div> })));
 const LazyMarketDistrict = lazy(() => import("@/pages/MarketDistrict").catch(() => ({ default: () => <div>Loading Market District...</div> })));
 const LazyCommunityPortal = lazy(() => import("@/pages/CommunityPortal").catch(() => ({ default: () => <div>Loading Community Portal...</div> })));
@@ -63,11 +70,7 @@ function Router() {
               <LazyDashboard />
             </Suspense>
           )} />
-          <Route path="/roster-hq" component={() => (
-            <Suspense fallback={<div className="min-h-screen bg-gray-900 animate-pulse" />}>
-              <LazyRosterHQ />
-            </Suspense>
-          )} />
+          <Route path="/roster-hq" component={RosterHQ} />
           <Route path="/competition" component={() => (
             <Suspense fallback={<div className="min-h-screen bg-gray-900 animate-pulse" />}>
               <LazyCompetitionCenter />

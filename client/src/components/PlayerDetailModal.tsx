@@ -11,7 +11,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { 
   Shield, Shirt, Hand, Star, Trophy, Calendar, FileText, Zap, User, Crown, 
   DollarSign, Trash2, AlertTriangle, Heart, Wrench, ChevronDown, ChevronUp,
-  Activity, Target, Brain, Gauge, TrendingUp, Clock, Pin, Copy, Bug, Sparkles, Award, Boot
+  Activity, Target, Brain, Gauge, TrendingUp, Clock, Pin, Copy, Bug, Sparkles, Award, Footprints
 } from "lucide-react";
 import AbilitiesDisplay from "@/components/AbilitiesDisplay";
 import { PlayerAwards } from "./PlayerAwards";
@@ -283,7 +283,7 @@ export default function PlayerDetailModal({
   const equipmentSlots = [
     { key: "helmet", icon: Shield, label: "Helmet" },
     { key: "chest", icon: Shirt, label: "Chest Armor" },
-    { key: "shoes", icon: Boot, label: "Shoes" },
+    { key: "shoes", icon: Footprints, label: "Shoes" },
     { key: "gloves", icon: Hand, label: "Gloves" },
   ];
 
