@@ -73,7 +73,6 @@ interface Stadium {
 }
 
 export default function DramaticTeamHQ() {
-  console.log("🚀 DRAMATIC TEAM HQ COMPONENT LOADING - REDESIGN ACTIVE!");
   const { isAuthenticated } = useAuth();
   const [expandedSection, setExpandedSection] = useState<string | null>(null);
 
@@ -92,10 +91,19 @@ export default function DramaticTeamHQ() {
     enabled: !!team?.id,
   });
 
-  const { data: stadium } = useQuery<Stadium>({
+  const { data: stadiumData } = useQuery<Stadium>({
     queryKey: [`/api/teams/${team?.id}/stadium`],
     enabled: !!team?.id,
   });
+  
+  const stadium: Stadium = stadiumData || {
+    capacity: 0,
+    concessionsLevel: 0,
+    parkingLevel: 0,
+    vipSuitesLevel: 0,
+    merchandisingLevel: 0,
+    lightingScreensLevel: 0
+  };
 
   // Real data calculations
   const activePlayers = players?.filter(p => p.injuryStatus !== 'RETIRED') || [];
@@ -107,9 +115,15 @@ export default function DramaticTeamHQ() {
                      player.throwing + player.catching + player.kicking) / 6);
   };
 
-  const teamPower = activePlayers.length > 0 
-    ? Math.round(activePlayers.reduce((sum, p) => sum + getPlayerPower(p), 0) / activePlayers.length)
-    : 0;
+  // Calculate team power correctly - average of top 9 players to match Roster HQ
+  const teamPower = players && players.length > 0 ? 
+    Math.round(
+      players
+        .map(p => (p.speed + p.power + p.throwing + p.catching + p.kicking + p.agility) / 6)
+        .sort((a, b) => b - a)
+        .slice(0, 9)
+        .reduce((sum, power) => sum + power, 0) / Math.min(9, players.length)
+    ) : 0;
 
   const toggleSection = (section: string) => {
     setExpandedSection(expandedSection === section ? null : section);
@@ -120,9 +134,8 @@ export default function DramaticTeamHQ() {
       <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900 flex items-center justify-center">
         <Card className="bg-gradient-to-r from-red-800 to-red-900 border-2 border-red-400">
           <CardContent className="p-8 text-center">
-            <h1 className="text-4xl font-bold text-white mb-4">🏗️ DRAMATIC REDESIGN ACTIVE - CREATE YOUR TEAM</h1>
+            <h1 className="text-4xl font-bold text-white mb-4">🏗️ CREATE YOUR TEAM</h1>
             <p className="text-xl text-red-200">Start your journey to championship glory</p>
-            <p className="text-sm text-red-300 mt-2">✅ DramaticTeamHQ Component Successfully Loading</p>
           </CardContent>
         </Card>
       </div>
@@ -133,10 +146,7 @@ export default function DramaticTeamHQ() {
     <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900">
       <div className="container mx-auto px-4 py-6 max-w-6xl">
         
-        {/* 🚨 REDESIGN SUCCESS INDICATOR - REMOVE AFTER CONFIRMATION */}
-        <div className="fixed top-4 right-4 z-50 bg-green-600 text-white px-4 py-2 rounded-lg shadow-lg">
-          ✅ DRAMATIC REDESIGN ACTIVE
-        </div>
+
         
         {/* 🚀 DRAMATIC HERO BANNER WITH REAL TEAM DATA */}
         <Card className="bg-gradient-to-r from-blue-800 via-indigo-800 to-purple-800 border-2 border-blue-400 shadow-2xl mb-6 overflow-hidden">
@@ -328,7 +338,7 @@ export default function DramaticTeamHQ() {
                 </div>
                 <div className="flex justify-between items-center">
                   <span className="text-gray-300">Team Chemistry</span>
-                  <span className="text-2xl font-bold text-teal-400">{team.camaraderie}%</span>
+                  <span className="text-2xl font-bold text-teal-400">{Math.round(team.camaraderie || 50)}%</span>
                 </div>
                 <div className="flex justify-between items-center">
                   <span className="text-gray-300">Fan Loyalty</span>

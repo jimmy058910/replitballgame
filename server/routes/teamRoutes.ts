@@ -1949,4 +1949,38 @@ router.delete('/:teamId/players/:playerId', isAuthenticated, asyncHandler(async 
   });
 }));
 
+// Get team stadium data
+router.get('/:teamId/stadium', isAuthenticated, async (req: any, res: Response, next: NextFunction) => {
+  try {
+    const teamId = parseInt(req.params.teamId);
+    
+    // Get stadium from database
+    const stadium = await prisma.stadium.findFirst({
+      where: { teamId: teamId }
+    });
+    
+    if (!stadium) {
+      // Create default stadium if none exists
+      const newStadium = await prisma.stadium.create({
+        data: {
+          teamId: teamId,
+          capacity: 15000,
+          concessionsLevel: 1,
+          parkingLevel: 1,
+          vipSuitesLevel: 1,
+          merchandisingLevel: 1,
+          lightingScreensLevel: 1
+        }
+      });
+      
+      return res.json(newStadium);
+    }
+    
+    res.json(stadium);
+  } catch (error) {
+    console.error("Error fetching team stadium:", error);
+    next(error);
+  }
+});
+
 export default router;
