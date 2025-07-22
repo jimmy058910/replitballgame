@@ -100,13 +100,13 @@ function TeamOverviewGrid() {
 export default function Dashboard() {
   const { isAuthenticated, isLoading } = useAuth();
 
-  // Enhanced Dashboard with true "Operational Command Center" design per comprehensive UX documents
+  // Enhanced Dashboard with true "Team HQ" design per comprehensive UX documents
   if (!isAuthenticated) {
     return (
       <div className="min-h-screen bg-gray-900">
         <Navigation />
         <div className="p-4 text-center">
-          <p className="text-white">Please log in to access the Command Center.</p>
+          <p className="text-white">Please log in to access the Team HQ.</p>
         </div>
       </div>
     );
@@ -141,9 +141,9 @@ export default function Dashboard() {
       <QuickStatsBar />
       
       <div className="p-4 space-y-6">
-        {/* Command Center Header */}
+        {/* Team HQ Header */}
         <div className="text-center space-y-2">
-          <h1 className="text-3xl font-bold text-white">Command Center</h1>
+          <h1 className="text-3xl font-bold text-white">Team HQ</h1>
           <p className="text-gray-400">Mission control for your Realm Rivalry operations</p>
         </div>
 
