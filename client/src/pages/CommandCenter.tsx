@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Progress } from "@/components/ui/progress";
+import ShareableMoments from "@/components/ShareableMoments";
 import {
   Calendar, Clock, Trophy, Users, Zap, AlertTriangle, 
   TrendingUp, Target, Gamepad2, ChevronRight
@@ -81,6 +82,12 @@ export default function CommandCenter() {
     refetchInterval: 30000, // 30 seconds
   });
 
+  const { data: serverTimeResponse } = useQuery<{data: any}>({
+    queryKey: ["/api/server/time"],
+    refetchInterval: 2 * 60 * 1000, // Update every 2 minutes
+    staleTime: 60 * 1000, // Consider data fresh for 1 minute
+  });
+
   // Generate contextual action items based on seasonal phase
   const getContextualActions = (): ActionItem[] => {
     const actions: ActionItem[] = [];
@@ -141,10 +148,10 @@ export default function CommandCenter() {
   const contextualActions = getContextualActions();
 
   const formatTimeUntilNextGameDay = () => {
-    if (!seasonalData) return "Loading...";
+    if (!serverTimeResponse?.data?.timeUntilNextWindow) return "Loading...";
     
-    // This would integrate with your server time API
-    return "12h 34m"; // Placeholder - integrate with actual server time
+    const { hours, minutes } = serverTimeResponse.data.timeUntilNextWindow;
+    return `${hours || 0}h ${minutes || 0}m`;
   };
 
   if (!team) {
@@ -350,6 +357,13 @@ export default function CommandCenter() {
 
           {/* Right Column - Quick Navigation */}
           <div className="space-y-6">
+            
+            {/* Shareable Moments - Phase 4 Product-Led Growth */}
+            <ShareableMoments 
+              teamId={team.id} 
+              maxMoments={3}
+              showSocialProof={true}
+            />
             
             {/* Hub Quick Access */}
             <Card className="bg-gray-800 border-gray-700">
