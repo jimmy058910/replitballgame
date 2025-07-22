@@ -413,27 +413,6 @@ export default function CommandCenter() {
               </Card>
             )}
 
-            {/* Disabled Features Alert */}
-            {seasonalState.disabledFeatures.length > 0 && (
-              <Card className="bg-gray-800 border-yellow-600">
-                <CardHeader>
-                  <CardTitle className="text-sm flex items-center gap-2">
-                    <AlertTriangle className="h-4 w-4 text-yellow-400" />
-                    Temporarily Unavailable
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-2">
-                    {seasonalState.disabledFeatures.map((feature) => (
-                      <p key={feature} className="text-xs text-gray-400">
-                        • {feature.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}
-                      </p>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
-            )}
-
           </div>
         </div>
       </div>
