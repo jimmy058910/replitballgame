@@ -72,11 +72,6 @@ export default function Roadmap() {
 
   return (
     <div className="max-w-4xl mx-auto space-y-6">
-      <div className="text-center space-y-2">
-        <h2 className="text-3xl font-bold text-white">Development Roadmap</h2>
-        <p className="text-gray-400">What's coming to Realm Rivalry</p>
-      </div>
-
       <Card className="bg-gray-800 border-gray-700">
         <CardHeader>
           <CardTitle className="text-xl text-white">Upcoming Features</CardTitle>
