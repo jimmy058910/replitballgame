@@ -64,7 +64,7 @@ export class TournamentService {
 
   // Mid-Season Cup reward structure (all divisions)
   private getMidSeasonCupRewards(division: number): TournamentConfig["rewards"] {
-    const divisionNames = ["", "Diamond", "Platinum", "Gold", "Silver", "Bronze", "Iron", "Stone", "Copper"];
+    const divisionNames = ["", "Diamond", "Platinum", "Gold", "Silver", "Bronze", "Copper", "Iron", "Stone"];
     const trophyName = `${divisionNames[division]} Mid-Season Cup Trophy`;
     
     const rewardTable: Record<number, TournamentConfig["rewards"]> = {
@@ -188,7 +188,7 @@ export class TournamentService {
     const gameDay = this.getCurrentGameDay();
     const rewards = this.getDailyDivisionTournamentRewards(division);
     
-    const divisionNames = ["", "Diamond", "Platinum", "Gold", "Silver", "Bronze", "Iron", "Stone", "Copper"];
+    const divisionNames = ["", "Diamond", "Platinum", "Gold", "Silver", "Bronze", "Copper", "Iron", "Stone"];
     const tournamentName = `${divisionNames[division]} Daily Division Tournament`;
     
     // Generate tournament ID (Season-Division-GameDay-Sequential format)
@@ -220,7 +220,7 @@ export class TournamentService {
     const gameDay = 7; // Always Day 7
     const rewards = this.getMidSeasonCupRewards(division);
     
-    const divisionNames = ["", "Diamond", "Platinum", "Gold", "Silver", "Bronze", "Iron", "Stone", "Copper"];
+    const divisionNames = ["", "Diamond", "Platinum", "Gold", "Silver", "Bronze", "Copper", "Iron", "Stone"];
     const tournamentName = `${divisionNames[division]} Mid-Season Cup - Season ${season}`;
     
     // Generate tournament ID for Mid-Season Cup (Season-Division-UniqueIdentifier format)
