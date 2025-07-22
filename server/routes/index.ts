@@ -51,6 +51,7 @@ import demoRoutes from "./demoRoutes";
 import ndaRoutes from "./ndaRoutes";
 import worldRoutes from "./worldRoutes";
 import leagueMatchesRoutes from "./leagueMatchesRoutes";
+import teamTrendsRoutes from "./teamTrendsRoutes";
 
 // This function will be called by server/index.ts to set up all routes.
 // It replaces the direct app.use calls that would have been in server/index.ts
@@ -62,6 +63,7 @@ export function registerAllRoutes(app: Express): void {
   // Legacy routes (existing system)
   app.use("/api/auth", authRoutes);
   app.use("/api/teams", teamRoutes); // Note: some routes like /api/teams/division/:division were moved to leagueRoutes
+  app.use("/api/teams", teamTrendsRoutes); // Enhanced team trends for product-led growth data storytelling
   app.use("/api/players", playerRoutes);
   app.use("/api/staff", staffRoutes);
   app.use("/api/leagues", leagueRoutes); // This will also cover /api/teams/division/:division if it's there

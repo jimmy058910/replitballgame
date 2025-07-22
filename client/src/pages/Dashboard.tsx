@@ -165,7 +165,7 @@ export default function Dashboard() {
             </CardHeader>
             <CardContent>
               <Suspense fallback={<div className="h-32 bg-gray-700 rounded animate-pulse" />}>
-                <LeagueStandings />
+                <LeagueStandings division={8} />
               </Suspense>
             </CardContent>
           </Card>

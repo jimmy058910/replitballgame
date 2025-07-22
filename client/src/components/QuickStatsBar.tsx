@@ -3,7 +3,7 @@ import { apiRequest } from "@/lib/queryClient";
 import { useAuth } from "@/hooks/useAuth";
 import { isUnauthorizedError } from "@/lib/authUtils";
 import { Badge } from "@/components/ui/badge";
-import { Clock, Gem, Coins, TrendingUp, Calendar } from "lucide-react";
+import { Clock, Gem, Coins, TrendingUp, TrendingDown, Minus, Calendar, ArrowUp, ArrowDown, ArrowRight, Zap, Star } from "lucide-react";
 
 interface Team {
   id: string;
@@ -12,6 +12,19 @@ interface Team {
   subdivision: string;
   teamPower: number;
   camaraderie: number;
+  wins: number;
+  losses: number;
+  draws: number;
+}
+
+interface TeamTrends {
+  powerTrend: 'up' | 'down' | 'stable';
+  powerChange: number;
+  camaraderieTrend: 'up' | 'down' | 'stable';
+  camaraderieChange: number;
+  formTrend: 'up' | 'down' | 'stable';
+  narrative: string;
+  weeklyHighlight: string;
 }
 
 interface TeamFinances {
@@ -61,6 +74,16 @@ export default function QuickStatsBar() {
     }
   });
 
+  const { data: teamTrends } = useQuery<TeamTrends>({
+    queryKey: ['/api/teams/trends'],
+    queryFn: () => apiRequest('/api/teams/trends'),
+    enabled: isAuthenticated,
+    retry: (failureCount, error) => {
+      if (isUnauthorizedError(error)) return false;
+      return failureCount < 3;
+    }
+  });
+
   if (!isAuthenticated || !team) {
     return null;
   }
@@ -71,6 +94,44 @@ export default function QuickStatsBar() {
       return `Div ${team.division} ${subdivisionName}`;
     }
     return `Division ${team.division}`;
+  };
+
+  const getTrendIcon = (trend: 'up' | 'down' | 'stable', size = 14) => {
+    switch (trend) {
+      case 'up': return <ArrowUp size={size} className="text-green-400" />;
+      case 'down': return <ArrowDown size={size} className="text-red-400" />;
+      case 'stable': return <ArrowRight size={size} className="text-yellow-400" />;
+    }
+  };
+
+  const getPowerNarrative = () => {
+    if (!team || !teamTrends) return "Team Building";
+    
+    const power = team.teamPower;
+    const trend = teamTrends.powerTrend;
+    
+    if (power >= 30 && trend === 'up') return "Elite Dynasty";
+    if (power >= 28 && trend === 'up') return "Championship Push";
+    if (power >= 25) return "Contender Rising";
+    if (power >= 22 && trend === 'up') return "Breakout Season";
+    if (power >= 20) return "Building Momentum";
+    if (trend === 'up') return "Foundation Growing";
+    if (trend === 'down' && power < 18) return "Rebuild Mode";
+    return "Development Phase";
+  };
+
+  const getCamaraderieNarrative = () => {
+    if (!team || !teamTrends) return "Team Chemistry";
+    
+    const camaraderie = team.camaraderie;
+    const trend = teamTrends.camaraderieTrend;
+    
+    if (camaraderie >= 80 && trend === 'up') return "Unbreakable Bond";
+    if (camaraderie >= 70) return "Strong Unity";
+    if (camaraderie >= 60 && trend === 'up') return "Growing Together";
+    if (camaraderie >= 50) return "Team Building";
+    if (trend === 'down') return "Chemistry Issues";
+    return "New Relationships";
   };
 
   const getPhaseColor = (phase: string) => {
@@ -86,7 +147,7 @@ export default function QuickStatsBar() {
   return (
     <div className="bg-gray-800 border-b border-gray-700 px-4 py-2">
       <div className="flex items-center justify-between max-w-7xl mx-auto">
-        {/* Left Section - Financial Stats */}
+        {/* Left Section - Enhanced Financial & Power Stats with Narratives */}
         <div className="flex items-center gap-6">
           <div className="flex items-center gap-2">
             <Coins className="h-4 w-4 text-yellow-400" />
@@ -102,20 +163,61 @@ export default function QuickStatsBar() {
             </span>
           </div>
           
+          {/* Enhanced Power with Trend & Narrative */}
           <div className="flex items-center gap-2">
-            <TrendingUp className="h-4 w-4 text-blue-400" />
-            <span className="text-white font-semibold">
-              {team.teamPower || 0}
-            </span>
-            <span className="text-gray-400 text-sm">Power</span>
+            <div className="flex items-center gap-1">
+              <TrendingUp className="h-4 w-4 text-blue-400" />
+              <span className="text-white font-semibold">
+                {team.teamPower || 0}
+              </span>
+              {teamTrends && getTrendIcon(teamTrends.powerTrend)}
+            </div>
+            <div className="flex flex-col">
+              <span className="text-gray-400 text-xs">Power</span>
+              <Badge variant="outline" className="text-xs px-1 py-0 h-auto border-gray-600 text-gray-300">
+                {getPowerNarrative()}
+              </Badge>
+            </div>
+          </div>
+
+          {/* Enhanced Team Chemistry with Narrative */}
+          <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1">
+              <Star className="h-4 w-4 text-yellow-400" />
+              <span className="text-white font-semibold">
+                {team.camaraderie || 0}
+              </span>
+              {teamTrends && getTrendIcon(teamTrends.camaraderieTrend)}
+            </div>
+            <div className="flex flex-col">
+              <span className="text-gray-400 text-xs">Team Chemistry</span>
+              <Badge variant="outline" className="text-xs px-1 py-0 h-auto border-gray-600 text-gray-300">
+                {getCamaraderieNarrative()}
+              </Badge>
+            </div>
           </div>
         </div>
 
-        {/* Center Section - Team & Division */}
+        {/* Center Section - Team & Enhanced Record Display */}
         <div className="flex items-center gap-4">
           <div className="text-center">
             <p className="text-white font-semibold">{team.name}</p>
             <p className="text-xs text-gray-400">{getDivisionDisplay()}</p>
+          </div>
+          
+          {/* Enhanced Record with Win Rate Narrative */}
+          <div className="flex items-center gap-2">
+            <div className="text-center">
+              <div className="flex items-center gap-2">
+                <span className="text-white font-semibold text-sm">
+                  {team.wins || 0}W-{team.losses || 0}L-{team.draws || 0}D
+                </span>
+                {teamTrends && getTrendIcon(teamTrends.formTrend, 12)}
+              </div>
+              <Badge variant="outline" className="text-xs px-1 py-0 h-auto border-gray-600 text-gray-300 mt-1">
+                {teamTrends?.narrative || 'Building Season'}
+              </Badge>
+            </div>
           </div>
         </div>
 
