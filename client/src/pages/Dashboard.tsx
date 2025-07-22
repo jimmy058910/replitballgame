@@ -10,6 +10,7 @@ import PriorityPanels from "@/components/PriorityPanels";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import LeagueStandings from "@/components/LeagueStandings";
 import ImprovedLiveMatches from "@/components/ImprovedLiveMatches";
+import DramaticTeamHQ from "@/components/DramaticTeamHQ";
 import { apiRequest } from "@/lib/queryClient";
 import { Trophy, Target, Users as UsersIcon, Building2, BarChart3 } from "lucide-react";
 
@@ -101,6 +102,11 @@ function TeamOverviewGrid() {
 
 export default function Dashboard() {
   const { isAuthenticated, isLoading } = useAuth();
+
+  // Show dramatic redesign to demonstrate mobile-first changes
+  if (isAuthenticated) {
+    return <DramaticTeamHQ />;
+  }
 
   // Enhanced Dashboard with true "Team HQ" design per comprehensive UX documents
   if (!isAuthenticated) {
