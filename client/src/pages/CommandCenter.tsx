@@ -227,7 +227,7 @@ export default function CommandCenter() {
                 <div>
                   <p className="text-xs text-gray-400">Credits</p>
                   <p className="text-xl font-bold text-yellow-400">
-                    {parseInt(finances?.credits || 0).toLocaleString()}
+                    {parseInt(String(finances?.credits || 0)).toLocaleString()}
                   </p>
                 </div>
                 <Zap className="h-5 w-5 text-yellow-400" />

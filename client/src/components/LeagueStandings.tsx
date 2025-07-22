@@ -87,7 +87,7 @@ export default function LeagueStandings({ division }: LeagueStandingsProps) {
                   </tr>
                 </thead>
                 <tbody>
-                  {standings.map((team: any, index: number) => {
+                  {standings.map((team: Team, index: number) => {
                     // Highlight the current user's team regardless of position
                     const isPlayerTeam = currentUserTeam && team.id === currentUserTeam.id;
                     const position = index + 1;
@@ -147,7 +147,7 @@ export default function LeagueStandings({ division }: LeagueStandingsProps) {
                         <td className="text-center py-2">
                           {team.form !== 'N/A' && (
                             <div className="flex justify-center space-x-0.5">
-                              {team.form.split('').map((result, idx) => (
+                              {team.form.split('').map((result: string, idx: number) => (
                                 <div 
                                   key={idx}
                                   className={`w-2 h-2 rounded-full ${

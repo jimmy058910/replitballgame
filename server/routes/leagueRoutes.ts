@@ -256,6 +256,52 @@ router.get('/:division/standings', isAuthenticated, async (req: Request, res: Re
   }
 });
 
+// League standings endpoint - frontend calls /api/leagues/{division}/standings
+router.get('/:division/standings', isAuthenticated, async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const division = parseInt(req.params.division);
+    if (isNaN(division) || division < 1 || division > 8) {
+      return res.status(400).json({ message: "Invalid division parameter" });
+    }
+
+    let teamsInDivision = await storage.teams.getTeamsByDivision(division);
+
+    if (teamsInDivision.length === 0) {
+      await createAITeamsForDivision(division);
+      teamsInDivision = await storage.teams.getTeamsByDivision(division);
+    }
+
+    // Process standings data with proper calculations
+    const standings = teamsInDivision.map(team => ({
+      id: team.id.toString(),
+      name: team.name,
+      wins: team.wins || 0,
+      losses: team.losses || 0,
+      draws: team.draws || 0,
+      points: team.points || 0,
+      division: team.division,
+      subdivision: team.subdivision,
+      played: (team.wins || 0) + (team.losses || 0) + (team.draws || 0),
+      goalsFor: team.goalsFor || 0,
+      goalsAgainst: team.goalsAgainst || 0,
+      goalDifference: (team.goalsFor || 0) - (team.goalsAgainst || 0),
+      currentStreak: 0, // Will calculate based on recent matches
+      streakType: 'N/A',
+      form: 'N/A'
+    })).sort((a, b) => {
+      // Sort by points descending, then by goal difference, then by goals for
+      if (b.points !== a.points) return b.points - a.points;
+      if (b.goalDifference !== a.goalDifference) return b.goalDifference - a.goalDifference;
+      return b.goalsFor - a.goalsFor;
+    });
+
+    res.json(standings);
+  } catch (error) {
+    console.error('Error fetching league standings:', error);
+    next(error);
+  }
+});
+
 router.get('/teams/:division', isAuthenticated, async (req: Request, res: Response, next: NextFunction) => {
   try {
     const division = parseInt(req.params.division);

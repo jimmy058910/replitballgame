@@ -150,6 +150,29 @@ router.get('/bracket/:id', isAuthenticated, async (req: any, res: Response, next
   }
 });
 
+// Available tournaments endpoint - frontend calls /api/tournaments/available
+router.get('/available', isAuthenticated, async (req: any, res: Response, next: NextFunction) => {
+  try {
+    const userId = req.user?.claims?.sub;
+    const team = await storage.teams.getTeamByUserId(userId);
+    if (!team || !team.id) return res.json([]);
+    
+    const division = team.division || 8;
+    const openTournaments = await tournamentStorage.getTournamentsByDivision(division, 'open');
+    
+    // Add more details like participant count if needed
+    const tournamentsWithDetails = await Promise.all(openTournaments.map(async t => {
+        const participantCount = await tournamentStorage.getTournamentParticipantCount(t.id);
+        return { ...t, teamsEntered: participantCount };
+    }));
+
+    res.json(tournamentsWithDetails);
+  } catch (error) {
+    console.error("Error fetching available tournaments:", error);
+    next(error);
+  }
+});
+
 router.get('/:division', isAuthenticated, async (req: Request, res: Response, next: NextFunction) => {
   try {
     const division = parseInt(req.params.division);
