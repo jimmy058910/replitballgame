@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import PlayerDetailModal from "@/components/PlayerDetailModal";
 import { 
   Users, UserPlus, Zap, Heart, DollarSign, Settings,
   Trophy, Shield, Target, AlertTriangle, Plus, Building2, BarChart3,
@@ -344,7 +345,7 @@ export default function MobileRosterHQ() {
               <CardTitle className="flex items-center justify-between text-white">
                 <span className="flex items-center">
                   <Users className="w-6 h-6 mr-3 text-blue-400" />
-                  👥 MAIN ROSTER ({mainRoster.length}/13)
+                  👥 MAIN ROSTER ({mainRoster.length} players)
                 </span>
                 <div className="flex items-center space-x-2">
                   <Badge variant="outline" className="border-blue-400 text-blue-400">
@@ -404,12 +405,7 @@ export default function MobileRosterHQ() {
                   ))}
                 </div>
                 
-                <div className="flex justify-center mt-6">
-                  <Button className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 text-lg">
-                    <Plus className="w-5 h-5 mr-2" />
-                    ADD NEW PLAYER
-                  </Button>
-                </div>
+
               </CardContent>
             )}
           </Card>
@@ -531,6 +527,15 @@ export default function MobileRosterHQ() {
           </Card>
         </div>
       </div>
+
+      {/* Player Detail Modal */}
+      {selectedPlayer && (
+        <PlayerDetailModal 
+          isOpen={!!selectedPlayer}
+          onClose={() => setSelectedPlayer(null)}
+          player={selectedPlayer}
+        />
+      )}
     </div>
   );
 }
