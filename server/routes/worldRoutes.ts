@@ -24,12 +24,91 @@ router.get("/global-rankings", isAuthenticated, async (req, res) => {
       
       const trueStrengthRating = Math.round(baseRating + divisionBonus + recordBonus + camaraderieBonus);
       
-      return {
+      // Convert BigInt fields to strings for JSON serialization
+      const serializedTeam = {
         ...team,
         trueStrengthRating,
         winPercentage: Math.round(winPercentage * 100),
         divisionMultiplier
       };
+      
+      // Convert any BigInt fields to strings
+      if (serializedTeam.finances) {
+        serializedTeam.finances = {
+          ...serializedTeam.finances,
+          credits: serializedTeam.finances.credits?.toString() || '0',
+          gems: serializedTeam.finances.gems?.toString() || '0',
+          projectedIncome: serializedTeam.finances.projectedIncome?.toString() || '0',
+          projectedExpenses: serializedTeam.finances.projectedExpenses?.toString() || '0',
+          lastSeasonRevenue: serializedTeam.finances.lastSeasonRevenue?.toString() || '0',
+          lastSeasonExpenses: serializedTeam.finances.lastSeasonExpenses?.toString() || '0',
+          facilitiesMaintenanceCost: serializedTeam.finances.facilitiesMaintenanceCost?.toString() || '0'
+        };
+      }
+      
+      return serializedTeam;
+    });
+    
+    // Sort by True Strength Rating (descending)
+    rankedTeams.sort((a, b) => b.trueStrengthRating - a.trueStrengthRating);
+    
+    // Add global rank
+    const globalRankings = rankedTeams.slice(0, 100).map((team, index) => ({
+      ...team,
+      globalRank: index + 1
+    }));
+    
+    res.json(globalRankings);
+  } catch (error) {
+    console.error("Error fetching global rankings:", error);
+    res.status(500).json({ error: "Failed to fetch global rankings" });
+  }
+});
+
+// Add alias for frontend compatibility
+router.get("/rankings", isAuthenticated, async (req, res) => {
+  // Redirect to the global-rankings endpoint  
+  try {
+    const teams = await storage.teams.getAllTeamsWithStats();
+    
+    // Calculate True Strength Rating for each team
+    const rankedTeams = teams.map(team => {
+      const divisionMultiplier = getDivisionMultiplier(team.division);
+      const winPercentage = team.wins + team.losses + team.draws > 0 
+        ? team.wins / (team.wins + team.losses + team.draws) 
+        : 0;
+      
+      // True Strength Rating Algorithm
+      const baseRating = (team.teamPower || 0) * 10; // Base team power
+      const divisionBonus = divisionMultiplier * 100; // Division difficulty bonus
+      const recordBonus = winPercentage * 200; // Win percentage bonus
+      const camaraderieBonus = (team.teamCamaraderie || 0) * 2; // Team chemistry bonus
+      
+      const trueStrengthRating = Math.round(baseRating + divisionBonus + recordBonus + camaraderieBonus);
+      
+      // Convert BigInt fields to strings for JSON serialization
+      const serializedTeam = {
+        ...team,
+        trueStrengthRating,
+        winPercentage: Math.round(winPercentage * 100),
+        divisionMultiplier
+      };
+      
+      // Convert any BigInt fields to strings
+      if (serializedTeam.finances) {
+        serializedTeam.finances = {
+          ...serializedTeam.finances,
+          credits: serializedTeam.finances.credits?.toString() || '0',
+          gems: serializedTeam.finances.gems?.toString() || '0',
+          projectedIncome: serializedTeam.finances.projectedIncome?.toString() || '0',
+          projectedExpenses: serializedTeam.finances.projectedExpenses?.toString() || '0',
+          lastSeasonRevenue: serializedTeam.finances.lastSeasonRevenue?.toString() || '0',
+          lastSeasonExpenses: serializedTeam.finances.lastSeasonExpenses?.toString() || '0',
+          facilitiesMaintenanceCost: serializedTeam.finances.facilitiesMaintenanceCost?.toString() || '0'
+        };
+      }
+      
+      return serializedTeam;
     });
     
     // Sort by True Strength Rating (descending)
@@ -59,7 +138,7 @@ router.get("/statistics", isAuthenticated, async (req, res) => {
     const totalPlayers = players.length;
     
     // Most powerful teams by division
-    const divisionLeaders = {};
+    const divisionLeaders: { [key: number]: any } = {};
     for (let division = 1; division <= 8; division++) {
       const divisionTeams = teams.filter(t => t.division === division);
       if (divisionTeams.length > 0) {

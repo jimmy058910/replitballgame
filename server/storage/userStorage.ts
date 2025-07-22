@@ -87,6 +87,19 @@ export class UserStorage {
       create: createData,
     });
   }
+
+  async updateUserReferralCode(userId: string, referralCode: string): Promise<UserProfile | null> {
+    // Updates a user's referral code
+    try {
+      return await prisma.userProfile.update({
+        where: { userId: userId },
+        data: { referralCode: referralCode },
+      });
+    } catch (error) {
+      console.error('Error updating referral code:', error);
+      return null;
+    }
+  }
 }
 
 export const userStorage = new UserStorage();

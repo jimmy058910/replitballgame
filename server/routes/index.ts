@@ -54,6 +54,7 @@ import leagueMatchesRoutes from "./leagueMatchesRoutes";
 import teamTrendsRoutes from "./teamTrendsRoutes";
 import dataVisualizationRoutes from "./dataVisualizationRoutes";
 import shareableMomentsRoutes from "./shareableMomentsRoutes";
+import referralRoutes from "./referralRoutes";
 
 // This function will be called by server/index.ts to set up all routes.
 // It replaces the direct app.use calls that would have been in server/index.ts
@@ -72,6 +73,8 @@ export function registerAllRoutes(app: Express): void {
   app.use("/api/matches", matchRoutes);
   app.use("/api/team-matches", leagueMatchesRoutes); // League matches for team recent matches display
   app.use("/api/marketplace", marketplaceRoutes);
+  // Add marketplace stats alias
+  app.use("/api/marketplace", dynamicMarketplaceRoutes);
   app.use("/api/auctions", auctionRoutes);
   app.use("/api/store", storeRoutes);
   app.use("/api/stadium", stadiumRoutes); // Covers /api/stadium and /api/stadium/revenue
@@ -117,6 +120,7 @@ export function registerAllRoutes(app: Express): void {
   app.use("/api/tournament-history", tournamentHistoryRoutes); // Tournament history for completed tournaments
   app.use("/api/demo", demoRoutes); // Demo endpoints using real match simulation
   app.use("/api/nda", ndaRoutes); // NDA acceptance endpoints for pre-alpha testing
+  app.use("/api/referrals", referralRoutes); // User referral system and tracking
   app.use("/api/data-viz", dataVisualizationRoutes); // Phase 3 Product-Led Growth Framework data visualization
   app.use("/api/shareable-moments", shareableMomentsRoutes); // Phase 4 Product-Led Growth Framework shareable moments
 
