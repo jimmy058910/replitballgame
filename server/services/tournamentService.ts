@@ -512,7 +512,7 @@ export class TournamentService {
   }
 
   // Get available tournaments for a team
-  async getAvailableTournaments(teamId: string) {
+  async getAvailableTournaments(teamId: number) {
     const team = await prisma.team.findFirst({
       where: { id: teamId }
     });
@@ -545,7 +545,7 @@ export class TournamentService {
   }
 
   // Register team for tournament
-  async registerForTournament(teamId: string, tournamentId: string, paymentType?: "credits" | "gems" | "both"): Promise<void> {
+  async registerForTournament(teamId: number, tournamentId: string, paymentType?: "credits" | "gems" | "both"): Promise<void> {
     const tournament = await prisma.tournament.findFirst({
       where: { id: tournamentId }
     });

@@ -328,7 +328,7 @@ router.get('/my', isAuthenticated, async (req: any, res: Response, next: NextFun
 router.get('/:id', isAuthenticated, async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { id } = req.params;
-    const team = await storage.teams.getTeamById(id); // Use teamStorage
+    const team = await storage.teams.getTeamById(parseInt(id)); // Use teamStorage
 
     if (!team) {
       return res.status(404).json({ message: "Team not found" });
@@ -347,7 +347,7 @@ router.get('/:id', isAuthenticated, async (req: Request, res: Response, next: Ne
 router.get('/:id/players', isAuthenticated, async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { id } = req.params;
-    const teamPlayers = await storage.players.getPlayersByTeamId(id); // Use playerStorage
+    const teamPlayers = await storage.players.getPlayersByTeamId(parseInt(id)); // Use playerStorage
     res.json(teamPlayers);
   } catch (error) {
     console.error("Error fetching players:", error);
