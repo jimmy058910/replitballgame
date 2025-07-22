@@ -277,19 +277,10 @@ export default function CommunityPortal() {
                       <p className="text-sm text-gray-400">Total Players</p>
                     </div>
                   </div>
-                  <div className="space-y-2 text-sm">
-                    <div className="flex justify-between">
-                      <span className="text-gray-400">Matches Played Today:</span>
-                      <span className="text-white">127</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-400">Active Tournaments:</span>
-                      <span className="text-white">8</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-400">Players Online:</span>
-                      <span className="text-green-400">412</span>
-                    </div>
+                  <div className="text-center py-8 text-gray-400">
+                    <BarChart3 className="h-8 w-8 mx-auto mb-2" />
+                    <p>Live game statistics coming soon</p>
+                    <p className="text-xs mt-1">Real-time data integration in development</p>
                   </div>
                 </CardContent>
               </Card>
@@ -304,28 +295,10 @@ export default function CommunityPortal() {
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <p className="text-gray-300">Legendary achievements in Realm Rivalry history</p>
-                  <div className="space-y-3">
-                    <div className="flex items-center gap-3 p-2 bg-gray-700 rounded">
-                      <Trophy className="h-5 w-5 text-yellow-400" />
-                      <div>
-                        <p className="text-white font-medium">Thunder Hawks</p>
-                        <p className="text-xs text-gray-400">First Perfect Season (Season 1)</p>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-3 p-2 bg-gray-700 rounded">
-                      <Award className="h-5 w-5 text-purple-400" />
-                      <div>
-                        <p className="text-white font-medium">Starwhisper Mystic</p>
-                        <p className="text-xs text-gray-400">Most Career Scores (Season 2)</p>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-3 p-2 bg-gray-700 rounded">
-                      <Crown className="h-5 w-5 text-blue-400" />
-                      <div>
-                        <p className="text-white font-medium">Crimson Blaze</p>
-                        <p className="text-xs text-gray-400">Highest Team Power (2,847)</p>
-                      </div>
-                    </div>
+                  <div className="text-center py-8 text-gray-400">
+                    <Crown className="h-8 w-8 mx-auto mb-2" />
+                    <p>No legendary achievements yet</p>
+                    <p className="text-xs mt-1">Be the first to make history!</p>
                   </div>
                 </CardContent>
               </Card>
