@@ -180,7 +180,273 @@ Built as a React + Express web application with PostgreSQL database, using moder
 - **Race-Specific Equipment**: Thematic gear matching the 5 fantasy races
 - **Consumables**: Recovery items and single-game performance boosters only
 
-### 8. Match Duration & Tournament Rules
+### 8. Economy & Revenue Streams
+**Team Revenue Sources (Per Home Game)**:
+- **Ticket Sales**: ActualAttendance × 25₡
+- **Concessions**: ActualAttendance × 8₡ × ConcessionsLevel
+- **Parking**: (ActualAttendance × 0.3) × 10₡ × ParkingLevel
+- **Apparel Sales**: ActualAttendance × 3₡ × MerchandisingLevel
+- **VIP Suites**: VIPSuitesLevel × 5000₡
+- **Atmosphere Bonus**: Small credit bonus per attendee if FanLoyalty very high
+
+**Stadium Upgrades**:
+- **Capacity Expansion**: Base cost 50,000₡, increases by 25% per level
+- **Concessions Level**: Cost 15,000₡ per level, improves concession revenue multiplier
+- **Parking Level**: Cost 20,000₡ per level, improves parking revenue multiplier
+- **VIP Suites Level**: Cost 75,000₡ per level, adds 5,000₡ flat revenue per game
+- **Merchandising Level**: Cost 12,000₡ per level, improves apparel sales multiplier
+- **Lighting & Screens Level**: Cost 30,000₡ per level, boosts fan loyalty and atmosphere
+
+### 9. Player Skills & Abilities System
+**Tier 1 Skills (Common)** - 500₡:
+- **Quick Release**: +2 Throwing in pressure situations
+- **Sure Hands**: +2 Catching in traffic
+- **Burst Speed**: +3 Speed for first 10 seconds of play
+- **Power Block**: +2 Power when blocking
+- **Steady Legs**: +2 Kicking accuracy
+- **Never Tired**: +5% stamina recovery rate
+- **Team Player**: +3 Leadership in close games
+- **Quick Feet**: +2 Agility when changing direction
+
+**Tier 2 Skills (Uncommon)** - 2,000₡:
+- **Pocket Presence**: +4 Throwing, +2 Agility under pressure
+- **Hands of Stone**: +4 Catching, +1 Power on contact
+- **Breakaway Speed**: +5 Speed when in open field
+- **Bulldozer**: +4 Power, -1 Agility when running
+- **Ice Veins**: +4 Kicking in critical situations
+- **Iron Lungs**: +10% stamina recovery, +2 base stamina
+- **Field General**: +5 Leadership, affects entire team tactics
+- **Elusive**: +4 Agility, +1 Speed when avoiding tackles
+
+**Tier 3 Skills (Rare)** - 8,000₡:
+- **Cannon Arm**: +6 Throwing, +15% long pass accuracy
+- **Magnetic Hands**: +6 Catching, can catch impossible passes
+- **Lightning Speed**: +7 Speed, immunity to speed-reducing effects
+- **Unstoppable Force**: +6 Power, +3 Stamina, breaks through any block
+- **Perfect Accuracy**: +6 Kicking, 95% accuracy regardless of distance
+- **Energizer**: +20% stamina recovery, +5 base stamina
+- **Inspirational**: +7 Leadership, boosts entire team's morale
+- **Untouchable**: +6 Agility, +2 Speed, very difficult to tackle
+
+**Race-Specific Skills**:
+- **Human**: "Adaptability" - Can learn skills 25% faster, +1 to all progression rolls
+- **Sylvan**: "Forest Running" - +3 Speed and Agility on certain field conditions
+- **Gryll**: "Mountain Strength" - +4 Power and immunity to intimidation effects
+- **Lumina**: "Radiant Focus" - +3 Throwing and Leadership in crucial moments
+- **Umbra**: "Shadow Step" - +3 Agility and Speed when avoiding tackles
+
+### 10. Staff System & Effects
+**Head Coach** (Motivation 1-40, Development 1-40):
+- **Team Progression Boost**: BaseChance + (Development × 0.5)%
+- **Camaraderie Effect**: Team camaraderie increases by (Motivation × 0.25) per season
+- **Tactical Bonus**: Formations receive bonus based on coach's combined stats
+
+**Trainers** (Teaching 1-40):
+- **Strength Trainer**: +Teaching bonus to Power and Stamina progression
+- **Speed Trainer**: +Teaching bonus to Speed and Agility progression  
+- **Technical Trainer**: +Teaching bonus to Throwing, Catching, and Kicking progression
+- **Mental Trainer**: +Teaching bonus to Leadership progression
+
+**Recovery Specialist** (Physiology 1-40):
+- **Daily Healing**: Physiology × 0.5 recovery points healed per day for injured players
+- **Stamina Recovery**: +Physiology × 0.25% bonus to daily stamina recovery
+- **Injury Prevention**: Reduces injury probability by Physiology × 0.1% per game
+
+**Scouts** (Talent_Identification 1-40, Potential_Assessment 1-40):
+- **Tryout Quality**: Better scouts reveal higher-potential rookies in tryouts
+- **Market Intelligence**: Reduces "fog of war" on marketplace player evaluations
+- **Hidden Gems**: Higher chance to find undervalued free agents
+
+### 11. Contract & Salary Management
+**Contract Negotiation Factors**:
+- **Base Salary**: (Player Power × 1000) + (Potential × 2000) credits
+- **Contract Length**: 1-5 years, longer contracts offer 10% per year discount
+- **Performance Bonuses**: +500-2000₡ per season based on team/individual performance
+- **Loyalty Discount**: Players with 3+ years on team accept 15% lower salaries
+
+**Salary Cap System**:
+- **Division 1**: 75,000₡ salary cap
+- **Division 2-3**: 65,000₡ salary cap  
+- **Division 4-5**: 55,000₡ salary cap
+- **Division 6-8**: 45,000₡ salary cap
+
+### 12. Match Types & Game Engine
+**League Games** (40 minutes):
+- **Stamina Depletion**: -15% stamina per quarter for main roster players
+- **Tactical Bonuses**: Formation and focus provide +2-5% stat bonuses
+- **Home Field Advantage**: Fan loyalty creates -2 to -5% opponent stat penalties
+- **Division Multipliers**: Higher divisions have +10-25% stat effectiveness
+
+**Exhibition Games** (30 minutes):
+- **Stamina Depletion**: -10% stamina per quarter
+- **Practice Benefits**: Players gain small progression chance regardless of outcome
+- **No Injury Risk**: Exhibition games have 50% reduced injury probability
+
+**Tournament Games**:
+- **Single Elimination**: Sudden death overtime, first score wins
+- **Division Cup**: 8 teams per division, winner promoted to next division
+- **Championship Series**: Top division tournament for ultimate prize
+
+### 13. Injury & Recovery System
+**Injury Probability Formula**:
+`BaseInjuryChance = 2.5% per game`
+`ActualInjuryChance = BaseInjuryChance + (Age - 25) × 0.1% + PowerUsage × 0.05%`
+
+**Injury Types & Recovery**:
+- **Minor Injury** (1-3 days): -10% all stats, needs 5-15 recovery points
+- **Moderate Injury** (4-7 days): -25% all stats, needs 20-40 recovery points
+- **Major Injury** (8-14 days): -50% all stats, needs 50-100 recovery points
+- **Severe Injury** (15-30 days): Cannot play, needs 100-200 recovery points
+
+**Daily Recovery**: Base 2 points + RecoverySpecialist.physiology × 0.5 + consumable bonuses
+
+### 14. Season Cycle & Progression
+**17-Day Season Structure**:
+- **Days 1-15**: Regular season games, 1 game per day
+- **Day 16**: Offseason begins, playoff tournaments, promotion/relegation
+- **Day 17**: New season preparation, player progression, staff contracts, tryouts
+
+**End-of-Season Progression Formula**:
+`ProgressionChance = 15% + (Potential × 3%) + AgeModifier + UsageBonus + TrainerBonus + CoachBonus`
+
+**Daily Progression** (3 AM Reset):
+`DailyProgressionChance = 1% + AgeModifier + RandomEvent`
+- Ages 16-22: +2% bonus
+- Ages 23-28: No modifier
+- Ages 29-34: -1% penalty  
+- Ages 35+: -3% penalty
+
+**Promotion & Relegation**:
+- **Top 2 teams**: Promoted to next higher division
+- **Bottom 2 teams**: Relegated to next lower division
+- **Divisions 1-8**: Full promotion/relegation system
+- **Points System**: 3 points win, 1 point tie, 0 points loss
+
+### 15. Equipment & Consumables Store
+**Equipment Tiers**:
+- **Common** (500-1,500₡): +1-2 stat bonuses
+- **Uncommon** (2,000-5,000₡): +2-3 stat bonuses + special effects
+- **Rare** (8,000-15,000₡): +3-5 stat bonuses + powerful effects
+- **Epic** (20,000-40,000₡): +5-7 stat bonuses + game-changing effects
+- **Legendary** (50,000+₡): +7-10 stat bonuses + unique abilities
+
+**Recovery Consumables**:
+- **Energy Drink** (100₡): +10% stamina recovery for 1 day
+- **Healing Salve** (250₡): +5 injury recovery points
+- **Protein Shake** (200₡): +1 temporary Power for 1 game
+- **Focus Enhancer** (300₡): +2 temporary Throwing/Catching for 1 game
+- **Premium Recovery Kit** (1,000₡): Full stamina + 20 injury recovery points
+
+### 16. Commentary System
+**200+ Dynamic Commentary Prompts**:
+- **Situational**: Based on score differential, time remaining, player performance
+- **Statistical**: References player attributes, team records, historical performance
+- **Narrative**: Creates storylines around player development, team chemistry
+- **Emotional**: Reflects crowd energy, momentum shifts, dramatic moments
+- **Technical**: Explains tactical decisions, formation effects, strategic choices
+
+### 17. Tryout & Recruiting System
+**Tryout Types**:
+- **Basic Tryout** (500₡): 3-5 rookie candidates, ages 16-20, TAP 40-60, potential 0.5-3 stars
+- **Advanced Tryout** (2,000₡): 5-8 rookie candidates, ages 16-20, TAP 60-85, potential 2-5 stars  
+- **Elite Scouting** (5,000₡): 2-3 premium candidates, ages 18-22, TAP 75-95, potential 3.5-5 stars
+
+**Free Agent Market**:
+- **Veteran Pool**: Ages 25-35, varied TAP, immediate availability
+- **Hidden Gems**: Lower-rated players with high potential, requires good scouts
+- **Injury Returns**: Previously injured players at reduced market value
+- **Released Players**: Former team players entering free agency
+
+**Taxi Squad Mechanics**:
+- **Promotion Only**: Players can only be promoted FROM taxi squad during offseason (Days 16-17)
+- **Development Focus**: Taxi squad players get +50% progression chance but cannot play
+- **Cost Efficiency**: Taxi squad players count 50% toward salary cap
+- **Scouting Bonus**: Better scouts reveal taxi squad player potential more accurately
+
+### 18. Team Chemistry (Camaraderie) System
+**Camaraderie Calculation**:
+- **Base Team Score**: Average of all player individual camaraderie scores (1-100)
+- **Season Performance**: +5-15 camaraderie for playoff appearances, championships
+- **Loyalty Bonus**: Players with 2+ years gain +2 camaraderie per additional year
+- **Coach Effect**: Head coach motivation adds (Motivation × 0.25) camaraderie per season
+
+**Camaraderie Effects**:
+- **High Camaraderie (80+)**: +3% all team stats, +10% progression chance, -25% retirement chance
+- **Good Camaraderie (60-79)**: +2% all team stats, +5% progression chance
+- **Average Camaraderie (40-59)**: No bonuses or penalties
+- **Poor Camaraderie (20-39)**: -2% all team stats, -5% progression chance
+- **Terrible Camaraderie (<20)**: -5% all team stats, +50% player trade requests
+
+### 19. Fan Loyalty & Attendance Formula
+**Fan Loyalty Factors** (0-100 scale):
+- **Win Percentage**: Primary factor, +1-2 loyalty per game won
+- **Championships**: +15 loyalty for division title, +25 for overall championship
+- **Stadium Quality**: Lighting & Screens level provides +0.5 loyalty per level
+- **Player Star Power**: High-rated players boost loyalty by +0.1 per power point above 30
+- **Historical Success**: Legacy teams maintain higher baseline loyalty
+
+**Attendance Rate Calculation**:
+`AttendanceRate = (FanLoyalty × 0.6) + (WinStreak × 5%) + (Division Prestige × 10%)`
+`ActualAttendance = StadiumCapacity × AttendanceRate × RandomVariation(0.85-1.15)`
+
+### 20. Tactical System & Field Effects
+**Formation Types**:
+- **Balanced**: +2% all stats, works well with any tactical focus
+- **Offensive**: +5% Throwing/Catching, -2% defensive stats
+- **Defensive**: +5% Power/Leadership, -2% offensive stats  
+- **Speed**: +5% Speed/Agility, -2% Power
+- **Power**: +5% Power/Stamina, -2% Speed/Agility
+
+**Tactical Focus Effects**:
+- **Ball Control**: +3% Catching, +2% Stamina, slower game pace
+- **Quick Strike**: +3% Speed, +2% Throwing, faster game pace
+- **Ground Game**: +3% Power, +2% Agility for runners
+- **Air Attack**: +3% Throwing, +2% Catching for passers
+- **Balanced Attack**: +1% all stats, no specialization
+
+**Home Field Effects**:
+- **Field Size**: Larger fields favor speed, smaller fields favor power
+- **Weather Conditions**: Affect kicking accuracy and throwing precision
+- **Crowd Noise**: High attendance reduces opponent Throwing accuracy by 2-5%
+- **Intimidation Factor**: Fan loyalty above 75 applies -2% to all opponent stats
+
+### 21. Daily Game Advancement System
+**3 AM Daily Reset Actions**:
+1. **Player Daily Progression**: Each player has 1% + age modifier chance to gain +1 random stat
+2. **Stamina Recovery**: All players recover 25% + RecoverySpecialist bonus + equipment bonuses
+3. **Injury Healing**: Injured players heal based on RecoverySpecialist physiology + consumables
+4. **Contract Day Advancement**: Player contract days decrease by 1, expiration warnings sent
+5. **Market Updates**: New free agents appear, auction bid times decrease
+6. **Revenue Collection**: Stadium revenue calculated and added for teams with home games
+7. **Staff Contract Renewals**: Staff contracts expire and require renewal or replacement
+8. **Season Day Progression**: Advance from Day X to Day X+1, trigger end-of-season events on Day 17
+
+**Weekly Events** (Every 7 days):
+- **Rookie Tryouts**: New tryout opportunities become available
+- **Equipment Restock**: Store inventory refreshes with new items
+- **Market Fluctuation**: Free agent prices adjust based on demand
+- **Sponsorship Offers**: Teams receive offers for stadium naming rights and partnerships
+
+### 22. Marketplace Auction Mechanics & Restrictions  
+**Auction Rules**:
+- **Listing Requirements**: Minimum 10 players on roster, maximum 3 active listings per team
+- **Listing Fee**: 2% of starting bid (non-refundable)
+- **Anti-Sniping**: Bids in final 5 minutes extend auction by 5 minutes
+- **Buy-Now Formula**: (Player CAR × 1000) + (Potential × 2000) + Age/Position premiums
+
+**Bidding Restrictions**:
+- **Minimum Increment**: 100₡ for auctions under 5,000₡, 500₡ for higher auctions
+- **Salary Cap Check**: Cannot bid if resulting contract would exceed division salary cap
+- **Roster Space**: Must have open roster spot or player to release
+- **Cooldown Period**: Cannot re-list same player for 24 hours after auction ends
+
+**Market Intelligence** (Scout-Dependent):
+- **Poor Scouts**: Only see basic player info (name, position, age)
+- **Average Scouts**: See current stats but not potential or injury history
+- **Good Scouts**: See stats, potential estimate, and recent injury history
+- **Elite Scouts**: Full player profile including hidden attributes and exact potential
+
+### 23. Match Duration & Tournament Rules
 **Match Durations**:
 - **Exhibition Matches**: 30 minutes (1800 seconds) with 15-minute halves for casual play
 - **League Matches**: 40 minutes (2400 seconds) with 20-minute halves for competitive play
@@ -205,7 +471,7 @@ Built as a React + Express web application with PostgreSQL database, using moder
 
 ### July 22, 2025 - ✅ COMPREHENSIVE DOCUMENTATION UPDATE COMPLETE ✅
 
-#### ✅ REPLIT.MD OVERHAUL - RESOLVED ALL CONFLICTS AND INCONSISTENCIES
+#### ✅ REPLIT.MD OVERHAUL - RESOLVED ALL CONFLICTS AND INCONSISTENCIES  
 - ✓ **Architecture Clarification**: Confirmed 100% Prisma ORM usage, removed all Drizzle references
 - ✓ **Navigation Structure**: Updated to reflect 6-hub structure (Team HQ, Roster HQ, Competition Center, Market District, Community Portal, Legacy Routes)
 - ✓ **Game Mechanics Fixes**: Corrected Power calculation (6 attributes), roster structure (15 max, 2 max taxi), match durations (40min league, 30min exhibition)
@@ -213,6 +479,26 @@ Built as a React + Express web application with PostgreSQL database, using moder
 - ✓ **Production Status**: Clarified current PRODUCTION phase working toward Pre-Alpha with 8-16 users
 - ✓ **Archive Creation**: Moved changes from July 18-21 to replit-archive.md for better document management
 - ✓ **Current Information**: Updated all specifications to reflect accurate game design and user requirements
+
+#### ✅ CRITICAL BACKEND FIXES & COMPREHENSIVE GAME MECHANICS RESTORATION  
+- ✓ **BigInt Serialization Resolution**: Fixed all 38 TypeScript errors in teamStorage.ts with proper string conversion for JSON compatibility
+- ✓ **Server Stability**: Eliminated server crashes, all APIs now operational with proper error handling
+- ✓ **Complete Game Systems Documentation**: Restored comprehensive mechanics including:
+  - **Economy & Revenue**: Stadium upgrades, ticket sales, concessions, parking, VIP suites formulas
+  - **Player Skills**: 24 tiered abilities (Common/Uncommon/Rare) plus race-specific skills
+  - **Staff Effects**: Head coach, trainers, recovery specialists, scouts with detailed attribute impacts
+  - **Contract System**: Salary caps by division, negotiation factors, loyalty discounts
+  - **Match Engine**: League vs exhibition differences, stamina depletion, tactical bonuses
+  - **Injury System**: Probability formulas, recovery types, daily healing calculations
+  - **Season Progression**: 17-day cycle, daily/end-season progression formulas, promotion/relegation
+  - **Equipment Store**: 5 equipment tiers, recovery consumables with costs and effects
+  - **Commentary System**: 200+ dynamic prompts for match simulation
+  - **Recruiting System**: Tryout types, free agent mechanics, taxi squad rules
+  - **Team Chemistry**: Camaraderie calculations and stat bonuses/penalties
+  - **Fan Loyalty**: Attendance formulas, stadium revenue, home field advantages
+  - **Tactical System**: Formation types, focus effects, field size impacts
+  - **Daily Operations**: 3 AM reset actions, weekly events, market updates
+  - **Marketplace**: Auction mechanics, bidding restrictions, scout intelligence levels
 
 ### July 22, 2025 - ✅ PLAYER DETAIL MODAL COMPLETE REDESIGN - MOBILE-FIRST SINGLE-SCROLL INTERFACE IMPLEMENTED ✅
 
