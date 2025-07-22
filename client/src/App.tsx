@@ -33,8 +33,8 @@ import { ContextualHelp } from "@/components/help";
 // Removed LandscapeOrientation - mobile-first design supports vertical mode per UI/UX documents
 import ErrorBoundary from "@/components/ErrorBoundary";
 
-// New 5-Hub Architecture Components with error handling
-const LazyCommandCenter = lazy(() => import("@/pages/CommandCenter").catch(() => ({ default: () => <div>Loading Team HQ...</div> })));
+// New 5-Hub Architecture Components with error handling - Dashboard routes to DramaticTeamHQ
+const LazyDashboard = lazy(() => import("@/pages/Dashboard").catch(() => ({ default: () => <div>Loading Team HQ...</div> })));
 const LazyRosterHQ = lazy(() => import("@/pages/RosterHQ").catch(() => ({ default: () => <div>Loading Roster HQ...</div> })));
 const LazyCompetitionCenter = lazy(() => import("@/pages/CompetitionCenter").catch(() => ({ default: () => <div>Loading Competition Center...</div> })));
 const LazyMarketDistrict = lazy(() => import("@/pages/MarketDistrict").catch(() => ({ default: () => <div>Loading Market District...</div> })));
@@ -52,15 +52,15 @@ function Router() {
         <Route path="/" component={Landing} />
       ) : (
         <>
-          {/* New 5-Hub Architecture with Suspense */}
+          {/* Team HQ Dashboard - Routes to DramaticTeamHQ */}
           <Route path="/" component={() => (
-            <Suspense fallback={<div className="min-h-screen bg-gray-900 animate-pulse" />}>
-              <LazyCommandCenter />
+            <Suspense fallback={<div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900 animate-pulse" />}>
+              <LazyDashboard />
             </Suspense>
           )} />
-          <Route path="/command-center" component={() => (
-            <Suspense fallback={<div className="min-h-screen bg-gray-900 animate-pulse" />}>
-              <LazyCommandCenter />
+          <Route path="/team" component={() => (
+            <Suspense fallback={<div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900 animate-pulse" />}>
+              <LazyDashboard />
             </Suspense>
           )} />
           <Route path="/roster-hq" component={() => (
