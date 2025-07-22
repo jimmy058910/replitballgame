@@ -144,7 +144,7 @@ export default function Dashboard() {
         {/* Team HQ Header */}
         <div className="text-center space-y-2">
           <h1 className="text-3xl font-bold text-white">Team HQ</h1>
-          <p className="text-gray-400">Mission control for your Realm Rivalry operations</p>
+          <p className="text-gray-400">Main headquarters for the Division 8 Oakland Cougars</p>
         </div>
 
         {/* Priority Panels - Core of the Operational Dashboard */}
