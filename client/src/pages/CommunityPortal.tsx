@@ -86,8 +86,8 @@ export default function CommunityPortal() {
 
           {/* Social Hub Tab */}
           <TabsContent value="social" className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              
+            {/* Top Row - Discord and Referral */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               {/* Discord Integration */}
               <Card className="bg-gray-800 border-gray-700">
                 <CardHeader>
@@ -98,21 +98,21 @@ export default function CommunityPortal() {
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <p className="text-gray-300">Join our active community for real-time strategy discussions, tournament updates, and exclusive events.</p>
-                  <div className="flex items-center justify-between">
-                    <div className="text-sm text-gray-400">
-                      <p>1,247 members online</p>
-                      <p>Live tournament discussions</p>
-                    </div>
-                    <Button className="bg-indigo-600 hover:bg-indigo-700">
-                      <ExternalLink className="h-4 w-4 mr-2" />
-                      Join Discord
-                    </Button>
-                  </div>
+                  <Button className="bg-indigo-600 hover:bg-indigo-700 w-full">
+                    <ExternalLink className="h-4 w-4 mr-2" />
+                    Join Discord
+                  </Button>
                 </CardContent>
               </Card>
 
               {/* Referral System */}
-              <ReferralSystem />
+              <div className="lg:col-span-1">
+                <ReferralSystem />
+              </div>
+            </div>
+
+            {/* Bottom Row - Social Media and Redeem Code */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
 
               {/* Social Media Links */}
               <Card className="bg-gray-800 border-gray-700">
