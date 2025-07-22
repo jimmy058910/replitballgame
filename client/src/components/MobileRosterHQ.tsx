@@ -82,10 +82,15 @@ export default function MobileRosterHQ() {
     enabled: !!team?.id,
   });
 
-  // Enhanced player calculations
+  // Enhanced player calculations - using rosterPosition instead of slice
   const activePlayers = players?.filter(p => !p.isOnMarket && !p.isRetired) || [];
-  const mainRoster = activePlayers.slice(0, 13);
-  const taxiSquad = activePlayers.slice(13, 15);
+  
+  // Sort by rosterPosition to maintain proper order
+  const sortedPlayers = [...activePlayers].sort((a, b) => (a.rosterPosition || 0) - (b.rosterPosition || 0));
+  
+  // Main roster: positions 1-12, Taxi squad: positions 13-15
+  const mainRoster = sortedPlayers.filter(p => (p.rosterPosition || 0) <= 12);
+  const taxiSquad = sortedPlayers.filter(p => (p.rosterPosition || 0) >= 13 && (p.rosterPosition || 0) <= 15);
   const injuredPlayers = activePlayers.filter(p => p.injuryStatus !== 'HEALTHY');
   const lowStaminaPlayers = activePlayers.filter(p => (p.dailyStaminaLevel || 0) < 50);
   
