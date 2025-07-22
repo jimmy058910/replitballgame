@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -28,7 +27,6 @@ interface UserData {
 }
 
 export default function ReferralSystem() {
-  const [referralCode, setReferralCode] = useState("");
   const { toast } = useToast();
 
   const { data: referralData } = useQuery<ReferralData>({ // Typed referralData
@@ -59,28 +57,7 @@ export default function ReferralSystem() {
     },
   });
 
-  const claimReferralMutation = useMutation({
-    mutationFn: async (code: string) => {
-      // Corrected apiRequest call
-      await apiRequest("/api/referrals/claim", "POST", { code });
-    },
-    onSuccess: () => {
-      toast({
-        title: "Referral Claimed",
-        description: "Welcome bonus has been added to your account!",
-      });
-      queryClient.invalidateQueries({ queryKey: ["/api/referrals"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/teams/my/finances"] });
-      setReferralCode("");
-    },
-    onError: (error: Error) => {
-      toast({
-        title: "Claim Failed",
-        description: error.message,
-        variant: "destructive",
-      });
-    },
-  });
+
 
   const copyToClipboard = (text: string) => {
     if (text === null) { // Should not happen if called correctly, but good for type safety
@@ -108,105 +85,61 @@ export default function ReferralSystem() {
 
   return (
     <div className="space-y-6">
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {/* My Referral Code */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Share2 className="h-5 w-5" />
-              My Referral Code
-            </CardTitle>
-            <CardDescription>
-              Share your code and earn rewards when friends join
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            {referralData?.myCode ? (
-              <div className="space-y-3">
-                <div className="flex items-center gap-2">
-                  <Input
-                    value={referralData.myCode || ""} // Fallback for null to prevent error with input value
-                    readOnly
-                    className="bg-gray-700 border-gray-600"
-                  />
-                  <Button
-                    size="sm"
-                    onClick={() => {
-                      if (referralData?.myCode) {
-                        copyToClipboard(referralData.myCode);
-                      }
-                    }}
-                    disabled={!referralData?.myCode}
-                    className="shrink-0"
-                  >
-                    <Copy className="h-4 w-4" />
-                  </Button>
-                </div>
-                <Button
-                  onClick={shareReferral}
-                  className="w-full"
-                  variant="outline"
-                  disabled={!referralData?.myCode} // Disable if no code
-                >
-                  <Share2 className="mr-2 h-4 w-4" />
-                  Share with Friends
-                </Button>
-              </div>
-            ) : (
-              <Button
-                onClick={() => generateCodeMutation.mutate()}
-                disabled={generateCodeMutation.isPending}
-                className="w-full"
-              >
-                <Gift className="mr-2 h-4 w-4" />
-                Generate My Code
-              </Button>
-            )}
-          </CardContent>
-        </Card>
-
-        {/* Enter Referral Code */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Gift className="h-5 w-5" />
-              Enter Referral Code
-            </CardTitle>
-            <CardDescription>
-              Got a code from a friend? Enter it here for bonus rewards
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            {referralData?.hasUsedReferral ? (
-              <div className="text-center py-4">
-                <Badge className="bg-green-600 text-white">
-                  Referral Already Used
-                </Badge>
-                <p className="text-sm text-gray-400 mt-2">
-                  You've already claimed a referral bonus
-                </p>
-              </div>
-            ) : (
-              <div className="space-y-3">
+      {/* My Referral Code - Now full width */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Share2 className="h-5 w-5" />
+            My Referral Code
+          </CardTitle>
+          <CardDescription>
+            Share your code and earn rewards when friends join
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          {referralData?.myCode ? (
+            <div className="space-y-3">
+              <div className="flex items-center gap-2">
                 <Input
-                  placeholder="Enter referral code..."
-                  value={referralCode}
-                  onChange={(e) => setReferralCode(e.target.value.toUpperCase())}
+                  value={referralData.myCode || ""} // Fallback for null to prevent error with input value
+                  readOnly
                   className="bg-gray-700 border-gray-600"
                 />
                 <Button
-                  onClick={() => claimReferralMutation.mutate(referralCode)}
-                  disabled={!referralCode || claimReferralMutation.isPending}
-                  className="w-full"
+                  size="sm"
+                  onClick={() => {
+                    if (referralData?.myCode) {
+                      copyToClipboard(referralData.myCode);
+                    }
+                  }}
+                  disabled={!referralData?.myCode}
+                  className="shrink-0"
                 >
-                  <Gift className="mr-2 h-4 w-4" />
-                  Claim Bonus (10,000₡ + 5💎)
+                  <Copy className="h-4 w-4" />
                 </Button>
               </div>
-            )}
-          </CardContent>
-        </Card>
-      </div>
+              <Button
+                onClick={shareReferral}
+                className="w-full"
+                variant="outline"
+                disabled={!referralData?.myCode} // Disable if no code
+              >
+                <Share2 className="mr-2 h-4 w-4" />
+                Share with Friends
+              </Button>
+            </div>
+          ) : (
+            <Button
+              onClick={() => generateCodeMutation.mutate()}
+              disabled={generateCodeMutation.isPending}
+              className="w-full"
+            >
+              <Gift className="mr-2 h-4 w-4" />
+              Generate My Code
+            </Button>
+          )}
+        </CardContent>
+      </Card>
 
       {/* Referral Stats */}
       <Card>
