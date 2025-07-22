@@ -15,7 +15,8 @@ import StadiumAtmosphereManager from "@/components/StadiumAtmosphereManager";
 import TeamFinances from "@/components/TeamFinances";
 import { 
   Users, UserPlus, Zap, Heart, DollarSign, Settings,
-  Trophy, Shield, Target, AlertTriangle, Plus, Building2, BarChart3
+  Trophy, Shield, Target, AlertTriangle, Plus, Building2, BarChart3,
+  TrendingUp, TrendingDown
 } from "lucide-react";
 
 // Enhanced interfaces for Roster HQ
@@ -411,18 +412,20 @@ export default function RosterHQ() {
 
           {/* Chemistry Tab */}
           <TabsContent value="chemistry" className="space-y-6">
+            
+            {/* Team Chemistry Summary */}
             <Card className="bg-gray-800 border-gray-700">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Heart className="h-5 w-5" />
-                  Team Chemistry
+                  Team Chemistry Overview
                 </CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
                   <div className="text-center">
                     <div className="text-4xl font-bold text-teal-400 mb-2">
-                      {(camaraderieSummary as any)?.teamCamaraderie || 'N/A'}
+                      {(camaraderieSummary as any)?.averageCamaraderie ? Math.round((camaraderieSummary as any)?.averageCamaraderie) : 'N/A'}
                     </div>
                     <p className="text-gray-400">Overall Team Chemistry</p>
                   </div>
@@ -430,20 +433,152 @@ export default function RosterHQ() {
                   <div className="grid grid-cols-2 gap-4">
                     <div className="mobile-card-compact text-center">
                       <div className="text-lg font-bold text-green-400">
-                        {(camaraderieSummary as any)?.playersWithHighMorale || 0}
+                        {(camaraderieSummary as any)?.highCamaraderieCount || 0}
                       </div>
-                      <p className="text-xs text-gray-400">High Morale</p>
+                      <p className="text-xs text-gray-400">High Morale (70+)</p>
                     </div>
                     <div className="mobile-card-compact text-center">
                       <div className="text-lg font-bold text-red-400">
-                        {(camaraderieSummary as any)?.playersWithLowMorale || 0}
+                        {(camaraderieSummary as any)?.lowCamaraderieCount || 0}
                       </div>
-                      <p className="text-xs text-gray-400">Low Morale</p>
+                      <p className="text-xs text-gray-400">Low Morale (30-)</p>
                     </div>
                   </div>
                 </div>
               </CardContent>
             </Card>
+
+            {/* Individual Player Chemistry */}
+            <Card className="bg-gray-800 border-gray-700">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Users className="h-5 w-5" />
+                  Individual Player Chemistry
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                {activePlayers.length === 0 ? (
+                  <div className="text-center py-8">
+                    <Heart className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                    <p className="text-gray-400">No active players found</p>
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    {activePlayers
+                      .sort((a, b) => (b.camaraderieScore || 50) - (a.camaraderieScore || 50))
+                      .map((player) => {
+                        const chemistry = player.camaraderieScore || 50;
+                        const getChemistryColor = (score: number) => {
+                          if (score >= 70) return 'text-green-400';
+                          if (score <= 30) return 'text-red-400';
+                          return 'text-yellow-400';
+                        };
+                        const getChemistryStatus = (score: number) => {
+                          if (score >= 85) return 'Excellent';
+                          if (score >= 70) return 'High';
+                          if (score >= 55) return 'Good';
+                          if (score >= 40) return 'Average';
+                          if (score >= 30) return 'Low';
+                          return 'Poor';
+                        };
+
+                        return (
+                          <div 
+                            key={player.id} 
+                            className="mobile-card-interactive cursor-pointer hover:bg-gray-700 transition-colors"
+                            onClick={() => setSelectedPlayer(player)}
+                          >
+                            <div className="flex items-center justify-between">
+                              <div className="flex-1">
+                                <div className="flex items-center gap-3">
+                                  <div className="flex-1">
+                                    <h3 className="font-semibold text-white">
+                                      {player.firstName} {player.lastName}
+                                    </h3>
+                                    <div className="flex items-center gap-2 mt-1">
+                                      <Badge variant="outline" className={`text-xs role-${player.role.toLowerCase()}`}>
+                                        {getRoleIcon(player.role)} {player.role}
+                                      </Badge>
+                                      <span className="text-sm text-gray-400">Age {player.age}</span>
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+                              <div className="text-right">
+                                <div className={`text-2xl font-bold ${getChemistryColor(chemistry)}`}>
+                                  {chemistry}
+                                </div>
+                                <div className="text-xs text-gray-400">
+                                  {getChemistryStatus(chemistry)}
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        );
+                      })}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+            
+            {/* Top & Concern Players */}
+            {((camaraderieSummary as any)?.topPlayers?.length > 0 || (camaraderieSummary as any)?.concernPlayers?.length > 0) && (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                
+                {/* Top Performers */}
+                {(camaraderieSummary as any)?.topPlayers?.length > 0 && (
+                  <Card className="bg-green-900/20 border-green-700/50">
+                    <CardHeader>
+                      <CardTitle className="flex items-center gap-2 text-green-400">
+                        <TrendingUp className="h-4 w-4" />
+                        Top Chemistry ({(camaraderieSummary as any)?.topPlayers?.length})
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="space-y-2">
+                        {(camaraderieSummary as any)?.topPlayers?.slice(0, 3).map((player: any) => (
+                          <div key={player.id} className="flex items-center justify-between text-sm">
+                            <span className="text-gray-300">
+                              {player.firstName} {player.lastName}
+                            </span>
+                            <span className="text-green-400 font-semibold">
+                              {player.camaraderieScore || 50}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    </CardContent>
+                  </Card>
+                )}
+
+                {/* Players of Concern */}
+                {(camaraderieSummary as any)?.concernPlayers?.length > 0 && (
+                  <Card className="bg-red-900/20 border-red-700/50">
+                    <CardHeader>
+                      <CardTitle className="flex items-center gap-2 text-red-400">
+                        <TrendingDown className="h-4 w-4" />
+                        Needs Attention ({(camaraderieSummary as any)?.concernPlayers?.length})
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="space-y-2">
+                        {(camaraderieSummary as any)?.concernPlayers?.slice(0, 3).map((player: any) => (
+                          <div key={player.id} className="flex items-center justify-between text-sm">
+                            <span className="text-gray-300">
+                              {player.firstName} {player.lastName}
+                            </span>
+                            <span className="text-red-400 font-semibold">
+                              {player.camaraderieScore || 50}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    </CardContent>
+                  </Card>
+                )}
+              </div>
+            )}
+
           </TabsContent>
 
           {/* Medical Tab */}
