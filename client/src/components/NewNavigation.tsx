@@ -12,6 +12,7 @@ import {
   Menu, LogOut, Coins, UserPlus, LogIn, Command, 
   Gamepad2, MapPin, TrendingUp
 } from "lucide-react";
+import rrLogo from "@assets/u6499584598_typographic_esports_logo_the_letters_RR_forged_to_806144fc-a39c-4c7f-9db8-98ef0b066e42_0-removebg-preview_1753204297373.png";
 
 // Enhanced interface for team data
 interface Team {
@@ -142,7 +143,7 @@ export default function NewNavigation() {
               className="flex items-center hover:opacity-80 transition-opacity"
             >
               <img 
-                src="/realm-rivalry-logo.png" 
+                src={rrLogo} 
                 alt="Realm Rivalry" 
                 className="h-10 w-auto"
               />
