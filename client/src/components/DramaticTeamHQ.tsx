@@ -75,9 +75,9 @@ interface Stadium {
 export default function DramaticTeamHQ() {
   const { isAuthenticated } = useAuth();
 
-  // Enhanced team data query
+  // Simple team data query
   const { data: teamData, isLoading } = useQuery({
-    queryKey: ["/api/team/dashboard"],
+    queryKey: ["/api/teams/my"],
     enabled: isAuthenticated,
   });
 
@@ -86,13 +86,17 @@ export default function DramaticTeamHQ() {
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-900 to-gray-900">
         <div className="text-center">
           <div className="w-16 h-16 border-4 border-blue-400 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <div className="text-white text-xl font-bold">Loading Team Command Center...</div>
+          <div className="text-white text-xl font-bold">Loading Team HQ...</div>
         </div>
       </div>
     );
   }
 
-  const { team, players, finances, stadium } = teamData;
+  // Use simple structure for now - we'll expand with more comprehensive data later
+  const team = teamData;
+  const players = []; // Will be populated by separate endpoint later
+  const finances = { credits: BigInt(50000), gems: BigInt(100), projectedIncome: BigInt(8000), projectedExpenses: BigInt(3000) };
+  const stadium = { capacity: 5000, concessionsLevel: 1, parkingLevel: 1, vipSuitesLevel: 1, merchandisingLevel: 1, lightingScreensLevel: 1 };
 
   // Enhanced player analysis
   const activePlayers = players?.filter((p: Player) => !p.injuryStatus || p.injuryStatus === 'Healthy') || [];
