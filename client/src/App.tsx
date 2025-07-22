@@ -78,7 +78,7 @@ function Router() {
               <LazyMarketDistrict />
             </Suspense>
           )} />
-          <Route path="/community-portal" component={() => (
+          <Route path="/community" component={() => (
             <Suspense fallback={<div className="min-h-screen bg-gray-900 animate-pulse" />}>
               <LazyCommunityPortal />
             </Suspense>

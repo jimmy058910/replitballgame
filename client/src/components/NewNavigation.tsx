@@ -78,10 +78,10 @@ export default function NewNavigation() {
       badge: undefined
     },
     { 
-      path: "/community-portal", 
+      path: "/community", 
       label: "Community Portal", 
       icon: Globe,
-      id: "community-portal",
+      id: "community",
       description: "Social features & world rankings",
       badge: undefined
     }

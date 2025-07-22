@@ -19,6 +19,7 @@ import {
   Award,
   HelpCircle
 } from "lucide-react";
+import ReferralSystem from "@/components/ReferralSystem";
 
 interface WorldRankings {
   teamPowerRankings: Array<{
@@ -109,34 +110,7 @@ export default function CommunityPortal() {
               </Card>
 
               {/* Referral System */}
-              <Card className="bg-gray-800 border-gray-700">
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2 text-white">
-                    <Gift className="h-5 w-5 text-green-400" />
-                    Referral Rewards
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <p className="text-gray-300">Invite friends and earn exclusive rewards for both you and your referrals.</p>
-                  <div className="space-y-2">
-                    <div className="flex justify-between text-sm">
-                      <span className="text-gray-400">Your Referral Code:</span>
-                      <Badge variant="outline" className="font-mono">RR-USER123</Badge>
-                    </div>
-                    <div className="flex justify-between text-sm">
-                      <span className="text-gray-400">Friends Referred:</span>
-                      <span className="text-white">3</span>
-                    </div>
-                    <div className="flex justify-between text-sm">
-                      <span className="text-gray-400">Rewards Earned:</span>
-                      <span className="text-yellow-400">1,500₡</span>
-                    </div>
-                  </div>
-                  <Button variant="outline" className="w-full">
-                    Share Referral Link
-                  </Button>
-                </CardContent>
-              </Card>
+              <ReferralSystem />
 
               {/* Social Media Links */}
               <Card className="bg-gray-800 border-gray-700">
