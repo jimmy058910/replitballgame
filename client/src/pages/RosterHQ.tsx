@@ -8,7 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import UnifiedPlayerCard from "@/components/UnifiedPlayerCard";
-import TacticalFormation from "@/components/TacticalFormation";
+import TacticalFormationMobile from "@/components/TacticalFormationMobile";
 import StaffManagement from "@/components/StaffManagement";
 import PlayerDetailModal from "@/components/PlayerDetailModal";
 import StadiumAtmosphereManager from "@/components/StadiumAtmosphereManager";
@@ -396,7 +396,7 @@ export default function RosterHQ() {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <TacticalFormation 
+                <TacticalFormationMobile 
                   players={activePlayers || []}
                   onFormationChange={() => {}}
                 />
