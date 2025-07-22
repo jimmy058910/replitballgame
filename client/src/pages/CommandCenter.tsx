@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Progress } from "@/components/ui/progress";
-import ShareableMoments from "@/components/ShareableMoments";
+import CareerHighlights from "@/components/CareerHighlights";
 import {
   Calendar, Clock, Trophy, Users, Zap, AlertTriangle, 
   TrendingUp, Target, Gamepad2, ChevronRight
@@ -358,11 +358,12 @@ export default function CommandCenter() {
           {/* Right Column - Quick Navigation */}
           <div className="space-y-6">
             
-            {/* Shareable Moments - Phase 4 Product-Led Growth */}
-            <ShareableMoments 
+            {/* Career Highlights - Enhanced Achievement System */}
+            <CareerHighlights 
               teamId={team.id} 
-              maxMoments={3}
+              maxHighlights={5}
               showSocialProof={true}
+              variant="compact"
             />
             
             {/* Hub Quick Access */}

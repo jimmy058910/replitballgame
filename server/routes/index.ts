@@ -54,6 +54,7 @@ import leagueMatchesRoutes from "./leagueMatchesRoutes";
 import teamTrendsRoutes from "./teamTrendsRoutes";
 import dataVisualizationRoutes from "./dataVisualizationRoutes";
 import shareableMomentsRoutes from "./shareableMomentsRoutes";
+import careerHighlightsRoutes from "./careerHighlightsRoutes";
 import referralRoutes from "./referralRoutes";
 
 // This function will be called by server/index.ts to set up all routes.
@@ -122,7 +123,8 @@ export function registerAllRoutes(app: Express): void {
   app.use("/api/nda", ndaRoutes); // NDA acceptance endpoints for pre-alpha testing
   app.use("/api/referrals", referralRoutes); // User referral system and tracking
   app.use("/api/data-viz", dataVisualizationRoutes); // Phase 3 Product-Led Growth Framework data visualization
-  app.use("/api/shareable-moments", shareableMomentsRoutes); // Phase 4 Product-Led Growth Framework shareable moments
+  app.use("/api/shareable-moments", shareableMomentsRoutes); // Phase 4 Product-Led Growth Framework shareable moments (legacy)
+  app.use("/api/career-highlights", careerHighlightsRoutes); // Enhanced Career Highlights system with expanded categories
 
   // Reminder: The original server/routes.ts also contained helper functions and Stripe init.
   // Stripe init is now in paymentRoutes.ts.
