@@ -443,7 +443,7 @@ router.get('/overview/:division', isAuthenticated, async (req: any, res: Respons
           rewards: division > 1 ? tournamentService['getDailyDivisionTournamentRewards'](division) : null
         },
         midSeasonCup: {
-          available: gameDay === 6 || gameDay === 7, // Registration Day 6, Tournament Day 7
+          available: true, // Always show Mid-Season Cup
           name: `${divisionName} Mid-Season Cup`,
           description: "Premier seasonal tournament with substantial rewards and trophies",
           entryRequirement: "10,000 Credits OR 20 Gems",
@@ -451,7 +451,7 @@ router.get('/overview/:division', isAuthenticated, async (req: any, res: Respons
           injuryRisk: "Normal (20%)",
           staminaCost: "High (-30 points)",
           progressionBenefit: "High",
-          registrationWindow: gameDay === 6 ? "Registration open today!" : gameDay === 7 ? "Tournament in progress" : "Next registration: Day 6",
+          registrationWindow: gameDay >= 1 && gameDay < 7 ? "Registration open!" : gameDay === 7 ? "Final day - closes at 1PM EDT" : "Registration closed - next season",
           tournamentTime: "1:00 PM EST on Day 7",
           rewards: tournamentService['getMidSeasonCupRewards'](division)
         }
