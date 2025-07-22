@@ -139,9 +139,13 @@ export default function NewNavigation() {
           <div className="flex-shrink-0">
             <button 
               onClick={() => setLocation("/")}
-              className="text-xl font-bold text-white hover:text-blue-400 transition-colors font-orbitron"
+              className="flex items-center hover:opacity-80 transition-opacity"
             >
-              Realm Rivalry
+              <img 
+                src="/attached_assets/u6499584598_typographic_esports_logo_the_letters_RR_forged_to_806144fc-a39c-4c7f-9db8-98ef0b066e42_0-removebg-preview_1753204297373.png" 
+                alt="Realm Rivalry" 
+                className="h-10 w-auto"
+              />
             </button>
           </div>
 
