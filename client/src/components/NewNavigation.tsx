@@ -47,9 +47,9 @@ export default function NewNavigation() {
   const navHubs = [
     { 
       path: "/", 
-      label: "Command Center", 
+      label: "Team HQ", 
       icon: Command, 
-      id: "command-center",
+      id: "team-hq",
       description: "Mission control for daily operations",
       badge: seasonalState.currentPhase === 'PRE_SEASON' ? 'Setup' : undefined
     },
@@ -70,7 +70,7 @@ export default function NewNavigation() {
       badge: seasonalState.currentPhase === 'DIVISION_TOURNAMENT' ? 'Tournament' : undefined
     },
     { 
-      path: "/market-district", 
+      path: "/market", 
       label: "Market District", 
       icon: ShoppingCart,
       id: "market-district",

@@ -50,7 +50,7 @@ Built as a React + Express web application with PostgreSQL database, using moder
 ## Current Architecture Status
 
 ### 5-Hub Mobile-First Interface (July 21, 2025)
-- **Command Center** (/) - Mission control dashboard with seasonal context
+- **Team HQ** (/) - Mission control dashboard with seasonal context
 - **Roster HQ** (/roster-hq) - Complete player and staff management
 - **Competition Center** (/competition) - Leagues, tournaments, live matches
 - **Market District** (/market-district) - Trading, store, inventory, transactions

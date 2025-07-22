@@ -1,7 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/useAuth";
 import { isUnauthorizedError } from "@/lib/authUtils";
-import Navigation from "@/components/Navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -58,7 +57,6 @@ export default function CommunityPortal() {
   if (!isAuthenticated) {
     return (
       <div className="min-h-screen bg-gray-900">
-        <Navigation />
         <div className="p-4 text-center">
           <p className="text-white">Please log in to access the Community Portal.</p>
         </div>
@@ -68,7 +66,6 @@ export default function CommunityPortal() {
 
   return (
     <div className="min-h-screen bg-gray-900">
-      <Navigation />
       
       <div className="p-4 space-y-6">
         {/* Page Header */}

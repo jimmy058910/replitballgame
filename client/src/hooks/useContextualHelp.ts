@@ -12,7 +12,7 @@ type HelpContent = {
 export const helpContent: HelpContent = {
   // Dashboard Help
   dashboard: {
-    overview: "Your command center showing team status, players, finances, and quick actions.",
+    overview: "Your team headquarters showing team status, players, finances, and quick actions.",
     playerRoster: "View your active players with their power ratings and roles. Click any player for details.",
     finances: "Shows your Credits (main currency) and Premium Gems. Credits are earned through matches.",
     serverTime: "Game runs on Eastern Time. Matches scheduled between 5-10 PM ET daily.",

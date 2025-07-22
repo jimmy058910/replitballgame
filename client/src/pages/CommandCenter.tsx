@@ -176,7 +176,7 @@ export default function CommandCenter() {
         <div className="mb-6">
           <div className="flex items-center justify-between mb-4">
             <div>
-              <h1 className="font-orbitron text-2xl font-bold">Command Center</h1>
+              <h1 className="font-orbitron text-2xl font-bold">Team HQ</h1>
               <p className="text-gray-400">Mission control for {team.name}</p>
             </div>
             <Badge variant="outline" className="text-xs">
