@@ -338,57 +338,37 @@ export default function CommunityPortal() {
                 </CardContent>
               </Card>
               
-              {/* Help & Support */}
-              <Card className="bg-gray-800 border-gray-700">
+              {/* Combined Help & Support */}
+              <Card className="bg-gray-800 border-gray-700 xl:col-span-2">
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2 text-white">
                     <HelpCircle className="h-5 w-5 text-green-400" />
                     Help & Support
                   </CardTitle>
+                  <p className="text-gray-300 mt-2">Need assistance? We're here to help!</p>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  <p className="text-gray-300">Need assistance? We're here to help!</p>
-                  <div className="space-y-2">
-                    <Button className="w-full justify-start bg-green-600 hover:bg-green-700">
+                  <p className="text-gray-300">
+                    All support, feature requests, and more can be found on our development Discord server:
+                  </p>
+                  
+                  <div className="space-y-2 max-w-md">
+                    <Button 
+                      className="w-full justify-start bg-indigo-600 hover:bg-indigo-700"
+                      onClick={() => window.open('https://discord.gg/RZssQk42', '_blank')}
+                    >
                       <MessageCircle className="h-4 w-4 mr-2" />
-                      Contact Support
+                      Join Discord Server
                     </Button>
-                    <Button variant="outline" className="w-full justify-start">
+                    <Button 
+                      variant="outline" 
+                      className="w-full justify-start"
+                      onClick={() => window.open('https://trello.com/b/FKTK3BYj/realm-rivalry-bug-tracker', '_blank')}
+                    >
                       <ExternalLink className="h-4 w-4 mr-2" />
                       Bug Reports
                     </Button>
-                    <Button variant="outline" className="w-full justify-start">
-                      <Gift className="h-4 w-4 mr-2" />
-                      Feature Requests
-                    </Button>
                   </div>
-                  <div className="mt-4 p-3 bg-gray-700 rounded">
-                    <p className="text-xs text-gray-400">
-                      Response Time: Within 24 hours<br />
-                      Support Hours: 9AM - 9PM EST
-                    </p>
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* Feedback */}
-              <Card className="bg-gray-800 border-gray-700">
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2 text-white">
-                    <MessageCircle className="h-5 w-5 text-yellow-400" />
-                    Share Feedback
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <p className="text-gray-300">Help us improve Realm Rivalry with your suggestions and feedback.</p>
-                  <div className="space-y-2">
-                    <textarea 
-                      placeholder="Share your thoughts, suggestions, or report issues..."
-                      className="w-full h-24 p-3 bg-gray-700 border-gray-600 rounded text-white placeholder-gray-400 resize-none"
-                    />
-                    <Button className="w-full">Submit Feedback</Button>
-                  </div>
-                  <p className="text-xs text-gray-500">Your feedback helps shape the future of Realm Rivalry!</p>
                 </CardContent>
               </Card>
             </div>
