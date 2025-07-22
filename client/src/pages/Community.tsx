@@ -62,7 +62,69 @@ export default function Community() {
           </TabsContent>
 
           <TabsContent value="help" className="mt-6">
-            <HelpManual />
+            <div className="space-y-6">
+              {/* Help & Support Panel - Now at the top */}
+              <div className="bg-gray-800 rounded-lg border border-gray-700 p-6">
+                <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
+                  <HelpCircle className="h-6 w-6" />
+                  Help & Support
+                </h2>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="bg-gray-700 rounded-lg p-4 hover:bg-gray-600 transition-colors">
+                    <h3 className="font-semibold mb-2">📞 Contact Support</h3>
+                    <p className="text-gray-300 text-sm mb-3">Get help with technical issues, account problems, or gameplay questions.</p>
+                    <button
+                      className="bg-blue-600 hover:bg-blue-700 px-3 py-2 rounded text-sm font-medium transition-colors"
+                      onClick={() => window.open('mailto:support@realmrivalry.com', '_blank')}
+                    >
+                      Email Support
+                    </button>
+                  </div>
+                  
+                  <div className="bg-gray-700 rounded-lg p-4 hover:bg-gray-600 transition-colors">
+                    <h3 className="font-semibold mb-2">💬 Join Discord</h3>
+                    <p className="text-gray-300 text-sm mb-3">Connect with the community, report bugs, and get quick answers from other players.</p>
+                    <button
+                      className="bg-indigo-600 hover:bg-indigo-700 px-3 py-2 rounded text-sm font-medium transition-colors"
+                      onClick={() => window.open('https://discord.gg/realmrivalry', '_blank')}
+                    >
+                      Join Discord
+                    </button>
+                  </div>
+                  
+                  <div className="bg-gray-700 rounded-lg p-4 hover:bg-gray-600 transition-colors">
+                    <h3 className="font-semibold mb-2">🐛 Report Bug</h3>
+                    <p className="text-gray-300 text-sm mb-3">Found a problem? Help us improve the game by reporting issues.</p>
+                    <button
+                      className="bg-red-600 hover:bg-red-700 px-3 py-2 rounded text-sm font-medium transition-colors"
+                      onClick={() => window.open('https://forms.gle/bug-report', '_blank')}
+                    >
+                      Report Issue
+                    </button>
+                  </div>
+                  
+                  <div className="bg-gray-700 rounded-lg p-4 hover:bg-gray-600 transition-colors">
+                    <h3 className="font-semibold mb-2">💡 Feature Request</h3>
+                    <p className="text-gray-300 text-sm mb-3">Have an idea to make the game better? We'd love to hear from you.</p>
+                    <button
+                      className="bg-green-600 hover:bg-green-700 px-3 py-2 rounded text-sm font-medium transition-colors"
+                      onClick={() => window.open('https://forms.gle/feature-request', '_blank')}
+                    >
+                      Suggest Feature
+                    </button>
+                  </div>
+                </div>
+              </div>
+              
+              {/* Complete Game Manual - Now below Help & Support */}
+              <div className="bg-gray-800 rounded-lg border border-gray-700 p-6">
+                <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
+                  <HelpCircle className="h-6 w-6" />
+                  Complete Game Manual
+                </h2>
+                <HelpManual />
+              </div>
+            </div>
           </TabsContent>
         </Tabs>
       </div>
