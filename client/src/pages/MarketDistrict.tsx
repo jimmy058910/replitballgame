@@ -6,7 +6,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { apiRequest } from "@/lib/queryClient";
+import { apiRequest, queryClient } from "@/lib/queryClient";
+import { useMutation } from "@tanstack/react-query";
+import { useToast } from "@/hooks/use-toast";
 import InventoryDisplay from "@/components/InventoryDisplay";
 import PaymentHistory from "@/components/PaymentHistory";
 import { 
@@ -17,18 +19,25 @@ import {
   Package, 
   DollarSign,
   ShoppingCart,
-  BarChart3
+  BarChart3,
+  Crown,
+  Shield,
+  Sword
 } from "lucide-react";
 
 interface StoreItem {
   id: string;
   name: string;
-  description: string;
-  cost: number;
-  costGems?: number;
-  category: string;
-  purchaseLimit: number;
-  purchasedToday: number;
+  description?: string;
+  credits: number;
+  gems?: number;
+  tier: string;
+  raceRestriction?: string;
+  statEffects?: any;
+  slot?: string;
+  purchased: number;
+  dailyLimit: number;
+  canPurchase: boolean;
 }
 
 interface MarketplaceItem {
@@ -51,8 +60,36 @@ interface Transaction {
   gems?: number;
 }
 
+// Helper functions for item display
+function getItemIcon(item: StoreItem) {
+  if (item.slot) {
+    if (item.slot.includes('Helmet') || item.slot.includes('Head')) return '🪖';
+    if (item.slot.includes('Gloves') || item.slot.includes('Hands')) return '🧤';
+    if (item.slot.includes('Boots') || item.slot.includes('Feet')) return '👟';
+    if (item.slot.includes('Armor') || item.slot.includes('Chest')) return '🛡️';
+    if (item.slot.includes('Weapon') || item.slot.includes('Sword')) return '⚔️';
+  }
+  // Consumables
+  if (item.name.toLowerCase().includes('stamina')) return '⚡';
+  if (item.name.toLowerCase().includes('recovery') || item.name.toLowerCase().includes('medical')) return '🩹';
+  if (item.name.toLowerCase().includes('boost') || item.name.toLowerCase().includes('team')) return '🌟';
+  return '📦';
+}
+
+function getTierColor(tier: string) {
+  switch (tier?.toLowerCase()) {
+    case 'legendary': return 'bg-orange-600';
+    case 'epic': return 'bg-purple-600';
+    case 'rare': return 'bg-blue-600';
+    case 'uncommon': return 'bg-green-600';
+    case 'common': 
+    default: return 'bg-gray-600';
+  }
+}
+
 export default function MarketDistrict() {
   const { isAuthenticated } = useAuth();
+  const { toast } = useToast();
 
   // Get team data for inventory and transactions
   const { data: team } = useQuery({
@@ -68,6 +105,12 @@ export default function MarketDistrict() {
     retry: (failureCount, error) => {
       if (isUnauthorizedError(error)) return false;
       return failureCount < 3;
+    },
+    select: (data: any) => {
+      // API returns { dailyItems: [...] } structure
+      const dailyItems = data?.dailyItems || [];
+      console.log('Store items received:', dailyItems.length, dailyItems);
+      return dailyItems;
     }
   });
 
@@ -90,6 +133,57 @@ export default function MarketDistrict() {
       return failureCount < 3;
     }
   });
+
+  // Purchase mutations
+  const purchaseWithGemsMutation = useMutation({
+    mutationFn: (itemId: string) =>
+      apiRequest(`/api/store/purchase/${itemId}`, 'POST', { currency: 'gems' }),
+    onSuccess: (data, itemId) => {
+      const item = storeItems?.find(i => i.id === itemId);
+      toast({
+        title: "Purchase Successful!",
+        description: `You purchased ${item?.name} with gems.`,
+      });
+      queryClient.invalidateQueries({ queryKey: ["/api/teams"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/store/items"] });
+    },
+    onError: () => {
+      toast({
+        title: "Purchase Failed",
+        description: "Not enough gems or item unavailable.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const purchaseWithCreditsMutation = useMutation({
+    mutationFn: (itemId: string) =>
+      apiRequest(`/api/store/purchase/${itemId}`, 'POST', { currency: 'credits' }),
+    onSuccess: (data, itemId) => {
+      const item = storeItems?.find(i => i.id === itemId);
+      toast({
+        title: "Purchase Successful!",
+        description: `You purchased ${item?.name} with credits.`,
+      });
+      queryClient.invalidateQueries({ queryKey: ["/api/teams"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/store/items"] });
+    },
+    onError: () => {
+      toast({
+        title: "Purchase Failed",
+        description: "Not enough credits or item unavailable.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const handlePurchase = (itemId: string, currency: 'credits' | 'gems') => {
+    if (currency === 'gems') {
+      purchaseWithGemsMutation.mutate(itemId);
+    } else {
+      purchaseWithCreditsMutation.mutate(itemId);
+    }
+  };
 
   if (!isAuthenticated) {
     return (
@@ -139,8 +233,11 @@ export default function MarketDistrict() {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2 text-white">
                   <ShoppingCart className="h-5 w-5 text-blue-400" />
-                  Store Items
+                  Daily Rotating Items
                 </CardTitle>
+                <p className="text-sm text-gray-400">
+                  8 items with mixed equipment and consumables, refreshes daily at 3AM EDT
+                </p>
               </CardHeader>
               <CardContent>
                 {storeLoading ? (
@@ -150,30 +247,90 @@ export default function MarketDistrict() {
                     ))}
                   </div>
                 ) : storeItems?.length ? (
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                     {storeItems.map((item) => (
-                      <div key={item.id} className="bg-gray-700 p-4 rounded-lg">
-                        <h4 className="text-white font-semibold">{item.name}</h4>
-                        <p className="text-gray-300 text-sm mb-2">{item.description}</p>
-                        <div className="flex justify-between items-center">
-                          <div className="text-yellow-400 font-bold">
-                            {item.cost}₡
-                            {item.costGems && (
-                              <span className="text-purple-400 ml-2">{item.costGems}💎</span>
+                      <Card key={item.id} className="border-2 hover:border-blue-300 transition-colors bg-gray-700 border-gray-600">
+                        <CardContent className="p-4">
+                          <div className="mb-3">
+                            <div className="flex items-center gap-2 mb-1">
+                              <span className="text-lg">{getItemIcon(item)}</span>
+                              <h4 className="font-medium text-lg text-white">{item.name}</h4>
+                            </div>
+                            <Badge className={`${getTierColor(item.tier)} text-white text-xs`}>
+                              {item.tier?.toUpperCase()}
+                            </Badge>
+                          </div>
+                          
+                          <div className="text-sm text-gray-300 mb-4 space-y-2">
+                            {/* Race Restriction */}
+                            {item.raceRestriction && item.raceRestriction !== 'universal' && (
+                              <p className="text-xs text-purple-400 font-medium">
+                                <strong>Race:</strong> {item.raceRestriction === 'LUMINA' ? 'Lumina' : 
+                                                        item.raceRestriction === 'GRYLL' ? 'Gryll' : 
+                                                        item.raceRestriction === 'SYLVAN' ? 'Sylvan' : 
+                                                        item.raceRestriction === 'UMBRA' ? 'Umbra' : 
+                                                        item.raceRestriction === 'HUMAN' ? 'Human' : 
+                                                        item.raceRestriction.charAt(0).toUpperCase() + item.raceRestriction.slice(1).toLowerCase()} only
+                              </p>
+                            )}
+                            
+                            {/* Equipment Slot */}
+                            {item.slot && (
+                              <p className="text-xs text-blue-400 font-medium">
+                                <strong>Equipment Slot:</strong> {item.slot}
+                              </p>
+                            )}
+
+                            {/* Stat Effects */}
+                            {item.statEffects && Object.keys(item.statEffects).length > 0 && (
+                              <div className="text-xs text-green-400 bg-green-900/20 p-2 rounded">
+                                <strong>Player Benefits:</strong> {Object.entries(item.statEffects).map(([stat, value]: [string, any]) => 
+                                  `${stat === 'stamina' ? 'Stamina' : 
+                                    stat === 'leadership' ? 'Leadership' : 
+                                    stat === 'throwing' ? 'Throwing' : 
+                                    stat === 'power' ? 'Power' : 
+                                    stat === 'agility' ? 'Agility' : 
+                                    stat === 'catching' ? 'Catching' : 
+                                    stat === 'kicking' ? 'Kicking' : 
+                                    stat === 'speed' ? 'Speed' : 
+                                    stat.charAt(0).toUpperCase() + stat.slice(1)} ${value > 0 ? '+' : ''}${value}`
+                                ).join(', ')}
+                              </div>
                             )}
                           </div>
-                          <Badge variant="outline" className="text-xs">
-                            {item.purchasedToday}/{item.purchaseLimit}
-                          </Badge>
-                        </div>
-                        <Button 
-                          size="sm" 
-                          className="w-full mt-2"
-                          disabled={item.purchasedToday >= item.purchaseLimit}
-                        >
-                          Purchase
-                        </Button>
-                      </div>
+                          
+                          {/* Purchase Limit */}
+                          {item.dailyLimit && (
+                            <div className="text-xs text-amber-400 bg-amber-900/20 p-2 rounded mb-3">
+                              <strong>Purchased {item.purchased || 0}/{item.dailyLimit} Today</strong>
+                            </div>
+                          )}
+                          
+                          {/* Purchase Buttons */}
+                          <div className="flex gap-2">
+                            {item.credits && (
+                              <Button 
+                                size="sm" 
+                                className="flex-1"
+                                onClick={() => handlePurchase(item.id, 'credits')}
+                                disabled={purchaseWithCreditsMutation.isPending || !item.canPurchase}
+                              >
+                                {item.canPurchase ? `₡${item.credits.toLocaleString()}` : 'Daily Limit Reached'}
+                              </Button>
+                            )}
+                            {item.gems && (
+                              <Button 
+                                size="sm" 
+                                className={`flex-1 ${item.canPurchase ? 'bg-blue-600 hover:bg-blue-700' : 'bg-gray-400'}`}
+                                onClick={() => handlePurchase(item.id, 'gems')}
+                                disabled={purchaseWithGemsMutation.isPending || !item.canPurchase}
+                              >
+                                {item.canPurchase ? `💎${item.gems}` : 'Daily Limit Reached'}
+                              </Button>
+                            )}
+                          </div>
+                        </CardContent>
+                      </Card>
                     ))}
                   </div>
                 ) : (
