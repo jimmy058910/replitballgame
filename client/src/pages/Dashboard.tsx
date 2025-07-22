@@ -103,13 +103,13 @@ function TeamOverviewGrid() {
 export default function Dashboard() {
   const { isAuthenticated, isLoading } = useAuth();
 
-  // Show mobile-first redesigned Team HQ when authenticated
-  if (isAuthenticated && !isLoading) {
+  // Always show DramaticTeamHQ when authenticated - force mobile-first redesign
+  if (isAuthenticated) {
     return <DramaticTeamHQ />;
   }
 
-  // Enhanced Dashboard with true "Team HQ" design per comprehensive UX documents
-  if (!isAuthenticated) {
+  // Show login prompt when not authenticated
+  if (!isAuthenticated && !isLoading) {
     return (
       <div className="min-h-screen bg-gray-900">
         <Navigation />

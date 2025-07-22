@@ -184,7 +184,7 @@ export default function DramaticTeamHQ() {
                 <div className="text-xs text-blue-200">Low Energy</div>
               </div>
               <div className="text-center">
-                <div className="text-xl font-bold text-purple-400">{Number(finances?.credits || 0n).toLocaleString()}</div>
+                <div className="text-xl font-bold text-purple-400">{Number(finances?.credits || BigInt(0)).toLocaleString()}</div>
                 <div className="text-xs text-blue-200">Credits</div>
               </div>
             </div>
@@ -280,7 +280,7 @@ export default function DramaticTeamHQ() {
               <h3 className="text-lg font-bold text-white mb-1">Market</h3>
               <p className="text-purple-200 text-xs mb-2">Trade & Shop</p>
               <Badge variant="outline" className="text-purple-400 border-purple-400 text-xs">
-                {Number(finances?.credits || 0n).toLocaleString()}₡
+                {Number(finances?.credits || BigInt(0)).toLocaleString()}₡
               </Badge>
             </CardContent>
           </Card>
