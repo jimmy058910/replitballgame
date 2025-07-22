@@ -406,7 +406,7 @@ export default function ComprehensiveTournamentManager({ teamId }: Comprehensive
         <div>
           <h2 className="text-2xl font-bold">Tournament Center</h2>
           <p className="text-gray-600 dark:text-gray-300">
-            Compete in Daily Divisional Cups and Mid-Season Classics for rewards and glory
+            Compete in Daily Divisional Tournament and Mid-Season Cup for rewards and glory
           </p>
         </div>
       </div>
@@ -457,7 +457,7 @@ export default function ComprehensiveTournamentManager({ teamId }: Comprehensive
                     No tournaments are currently available for registration.
                   </p>
                   <p className="text-sm text-gray-500 mt-2">
-                    Check back during registration windows for Daily Cups and Mid-Season Classics.
+                    Check back during registration windows for Daily Divisional Tournament and Mid-Season Cup.
                   </p>
                 </CardContent>
               </Card>

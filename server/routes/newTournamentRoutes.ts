@@ -479,7 +479,7 @@ router.post('/admin/create-daily-cup/:division', isAuthenticated, async (req: an
       return res.status(400).json({ message: "Invalid division for Daily Cup (2-8 only)" });
     }
 
-    const tournamentId = await tournamentService.createDailyCupTournament(division);
+    const tournamentId = await tournamentService.createDailyDivisionTournament(division);
     res.json({ 
       success: true, 
       tournamentId,
