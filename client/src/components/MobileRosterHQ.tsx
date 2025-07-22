@@ -175,7 +175,16 @@ export default function MobileRosterHQ() {
               
               <div className="text-right">
                 <div className="text-blue-400 text-sm font-bold">TEAM POWER</div>
-                <div className="text-white text-3xl font-black">{team.teamPower || 'N/A'}</div>
+                <div className="text-white text-3xl font-black">{
+                  players && players.length > 0 ? 
+                    Math.round(
+                      players
+                        .map(p => (p.speed + p.power + p.throwing + p.catching + p.kicking + p.agility) / 6)
+                        .sort((a, b) => b - a)
+                        .slice(0, 9)
+                        .reduce((sum, power) => sum + power, 0) / Math.min(9, players.length)
+                    ) : 0
+                }</div>
               </div>
             </div>
             
