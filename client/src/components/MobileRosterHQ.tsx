@@ -162,7 +162,7 @@ export default function MobileRosterHQ() {
                 
                 <div>
                   <h1 className="text-4xl font-black text-transparent bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 bg-clip-text">
-                    🏃‍♂️ ROSTER HQ
+                    📋 ROSTER HQ
                   </h1>
                   <div className="flex items-center space-x-3 text-lg text-blue-200 mt-1">
                     <span className="font-semibold">{team.name}</span>
@@ -248,54 +248,55 @@ export default function MobileRosterHQ() {
           </Card>
         )}
 
-        {/* 🎯 POSITION DISTRIBUTION - VISUAL BREAKDOWN */}
+        {/* 📊 POSITION BREAKDOWN CARDS */}
         <Card className="bg-gradient-to-r from-gray-800 to-gray-900 border-2 border-gray-600 mb-6">
           <CardHeader>
-            <CardTitle className="text-white flex items-center">
-              <Target className="w-6 h-6 mr-2 text-blue-400" />
+            <CardTitle className="flex items-center text-white">
+              <Target className="w-6 h-6 mr-3 text-blue-400" />
               📊 POSITION BREAKDOWN
             </CardTitle>
           </CardHeader>
-          <CardContent>
+          <CardContent className="p-4">
             <div className="grid grid-cols-3 gap-4">
+              
               {/* Passers */}
-              <Card className={`bg-gradient-to-br ${getRoleColor('PASSER')} border-blue-400`}>
+              <Card className="bg-gradient-to-br from-blue-600 to-blue-800 border-2 border-blue-500">
                 <CardContent className="p-4 text-center">
                   <div className="text-3xl mb-2">🎯</div>
                   <div className="text-2xl font-bold text-white">{passers.length}</div>
-                  <div className="text-sm text-blue-200">Passers</div>
+                  <div className="text-blue-200 text-sm font-semibold">Passers</div>
                   <div className="text-xs text-blue-300 mt-1">(Min: 3 Required)</div>
                   <Progress 
-                    value={Math.min((passers.length / 3) * 100, 100)} 
-                    className="mt-2 h-2"
+                    value={(passers.length / 3) * 100} 
+                    className="mt-2 h-2 bg-blue-900" 
                   />
                 </CardContent>
               </Card>
 
               {/* Runners */}
-              <Card className={`bg-gradient-to-br ${getRoleColor('RUNNER')} border-green-400`}>
+              <Card className="bg-gradient-to-br from-green-600 to-green-800 border-2 border-green-500">
                 <CardContent className="p-4 text-center">
                   <div className="text-3xl mb-2">⚡</div>
                   <div className="text-2xl font-bold text-white">{runners.length}</div>
-                  <div className="text-sm text-green-200">Runners</div>
+                  <div className="text-green-200 text-sm font-semibold">Runners</div>
                   <div className="text-xs text-green-300 mt-1">(Min: 4 Required)</div>
                   <Progress 
-                    value={Math.min((runners.length / 4) * 100, 100)} 
-                    className="mt-2 h-2"
+                    value={(runners.length / 4) * 100} 
+                    className="mt-2 h-2 bg-green-900" 
                   />
                 </CardContent>
               </Card>
 
               {/* Blockers */}
-              <Card className={`bg-gradient-to-br ${getRoleColor('BLOCKER')} border-orange-400`}>
+              <Card className="bg-gradient-to-br from-orange-600 to-orange-800 border-2 border-orange-500">
                 <CardContent className="p-4 text-center">
                   <div className="text-3xl mb-2">🛡️</div>
                   <div className="text-2xl font-bold text-white">{blockers.length}</div>
-                  <div className="text-sm text-orange-200">Blockers</div>
+                  <div className="text-orange-200 text-sm font-semibold">Blockers</div>
                   <div className="text-xs text-orange-300 mt-1">(Min: 4 Required)</div>
                   <Progress 
-                    value={Math.min((blockers.length / 4) * 100, 100)} 
-                    className="mt-2 h-2"
+                    value={(blockers.length / 4) * 100} 
+                    className="mt-2 h-2 bg-orange-900" 
                   />
                 </CardContent>
               </Card>
@@ -303,9 +304,9 @@ export default function MobileRosterHQ() {
           </CardContent>
         </Card>
 
-        {/* 📱 MOBILE-FIRST PROGRESSIVE DISCLOSURE SECTIONS */}
-        <div className="space-y-4">
-          
+        {/* ROSTER MANAGEMENT PANELS */}
+        <div className="space-y-6">
+
           {/* MAIN ROSTER SECTION */}
           <Card className="bg-gradient-to-r from-blue-800 to-blue-900 border-2 border-blue-400">
             <CardHeader 
@@ -315,11 +316,11 @@ export default function MobileRosterHQ() {
               <CardTitle className="flex items-center justify-between text-white">
                 <span className="flex items-center">
                   <Users className="w-6 h-6 mr-3 text-blue-400" />
-                  🏃‍♂️ MAIN ROSTER ({mainRoster.length}/13)
+                  👥 MAIN ROSTER ({mainRoster.length}/13)
                 </span>
                 <div className="flex items-center space-x-2">
                   <Badge variant="outline" className="border-blue-400 text-blue-400">
-                    CLICK TO {expandedSection === 'roster' ? 'COLLAPSE' : 'EXPAND'}
+                    CLICK TO EXPAND
                   </Badge>
                   {expandedSection === 'roster' ? 
                     <ChevronUp className="w-5 h-5 text-blue-400" /> : 
@@ -331,62 +332,49 @@ export default function MobileRosterHQ() {
             
             {expandedSection === 'roster' && (
               <CardContent className="p-4">
-                {playersLoading ? (
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                    {[...Array(6)].map((_, i) => (
-                      <div key={i} className="h-24 bg-gray-700 rounded animate-pulse" />
-                    ))}
-                  </div>
-                ) : (
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                    {mainRoster.map((player) => (
-                      <Card 
-                        key={player.id}
-                        className={`bg-gradient-to-r ${getRoleColor(player.role)} border-2 cursor-pointer hover:scale-105 transition-all duration-200`}
-                        onClick={() => setSelectedPlayer(player)}
-                      >
-                        <CardContent className="p-4">
-                          <div className="flex items-start justify-between mb-2">
-                            <div className="flex-1">
-                              <h3 className="font-bold text-white truncate">
-                                {player.firstName} {player.lastName}
-                              </h3>
-                              <div className="flex items-center gap-2 mt-1">
-                                <Badge variant="outline" className="text-xs text-white border-white/50">
-                                  {getRoleIcon(player.role)} {player.role}
-                                </Badge>
-                                <span className="text-xs text-white/70">Age {player.age}</span>
-                              </div>
-                            </div>
-                            <div className="text-right">
-                              <div className="text-xl font-bold text-white">
-                                {getPlayerPower(player)}
-                              </div>
-                              <div className="text-xs text-white/70">Power</div>
-                            </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {mainRoster.map((player) => (
+                    <Card 
+                      key={player.id}
+                      className={`bg-gradient-to-r ${getRoleColor(player.role)} border-2 border-white/20 cursor-pointer hover:scale-105 transition-all duration-200`}
+                      onClick={() => setSelectedPlayer(player)}
+                    >
+                      <CardContent className="p-4">
+                        <div className="flex items-start justify-between">
+                          <div className="flex-1">
+                            <h3 className="font-bold text-white text-sm">
+                              {player.firstName} {player.lastName}
+                            </h3>
+                            <Badge variant="outline" className="text-xs text-white border-white/50 mt-1">
+                              {getRoleIcon(player.role)} {player.role}
+                            </Badge>
                           </div>
-
-                          <div className="flex items-center justify-between mt-3">
-                            <div className="flex items-center gap-2">
-                              <div className={`w-2 h-2 rounded-full ${
-                                player.injuryStatus === 'HEALTHY' ? 'bg-green-400' : 'bg-red-400'
-                              }`} />
-                              <span className="text-xs text-white/70">
-                                {player.injuryStatus === 'HEALTHY' ? 'Healthy' : 'Injured'}
-                              </span>
+                          <div className="text-right">
+                            <div className="text-lg font-bold text-white">
+                              {getPlayerPower(player)}
                             </div>
-                            <div className="flex items-center gap-1">
-                              <Zap className="h-3 w-3 text-yellow-400" />
-                              <span className={`text-xs font-semibold ${getStaminaColor(player.dailyStaminaLevel)}`}>
-                                {player.dailyStaminaLevel}%
-                              </span>
-                            </div>
+                            <div className="text-xs text-white/70">Power</div>
                           </div>
-                        </CardContent>
-                      </Card>
-                    ))}
-                  </div>
-                )}
+                        </div>
+                        
+                        <div className="mt-3 flex justify-between text-xs">
+                          <div className="flex items-center gap-1">
+                            <Heart className="h-3 w-3 text-green-400" />
+                            <span className={`font-semibold ${player.injuryStatus === 'HEALTHY' ? 'text-green-400' : 'text-red-400'}`}>
+                              {player.injuryStatus === 'HEALTHY' ? 'Healthy' : 'Injured'}
+                            </span>
+                          </div>
+                          <div className="flex items-center gap-1">
+                            <Zap className="h-3 w-3 text-yellow-400" />
+                            <span className={`text-xs font-semibold ${getStaminaColor(player.dailyStaminaLevel)}`}>
+                              {player.dailyStaminaLevel}%
+                            </span>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
                 
                 <div className="flex justify-center mt-6">
                   <Button className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 text-lg">
@@ -399,63 +387,67 @@ export default function MobileRosterHQ() {
           </Card>
 
           {/* TAXI SQUAD SECTION */}
-          {taxiSquad.length > 0 && (
-            <Card className="bg-gradient-to-r from-purple-800 to-purple-900 border-2 border-purple-400">
-              <CardHeader 
-                className="cursor-pointer select-none"
-                onClick={() => toggleSection('taxi')}
-              >
-                <CardTitle className="flex items-center justify-between text-white">
-                  <span className="flex items-center">
-                    <Users className="w-6 h-6 mr-3 text-purple-400" />
-                    🚌 TAXI SQUAD ({taxiSquad.length}/2)
-                  </span>
-                  <div className="flex items-center space-x-2">
-                    <Badge variant="outline" className="border-purple-400 text-purple-400">
-                      DEVELOPMENT PLAYERS
-                    </Badge>
-                    {expandedSection === 'taxi' ? 
-                      <ChevronUp className="w-5 h-5 text-purple-400" /> : 
-                      <ChevronDown className="w-5 h-5 text-purple-400" />
-                    }
-                  </div>
-                </CardTitle>
-              </CardHeader>
-              
-              {expandedSection === 'taxi' && (
-                <CardContent className="p-4">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {taxiSquad.map((player) => (
-                      <Card 
-                        key={player.id}
-                        className="bg-gradient-to-r from-purple-700 to-purple-800 border-2 border-purple-500 cursor-pointer hover:scale-105 transition-all duration-200"
-                        onClick={() => setSelectedPlayer(player)}
-                      >
-                        <CardContent className="p-4">
-                          <div className="flex items-start justify-between">
-                            <div className="flex-1">
-                              <h3 className="font-bold text-white">
-                                {player.firstName} {player.lastName}
-                              </h3>
-                              <Badge variant="outline" className="text-xs text-white border-white/50 mt-1">
-                                {getRoleIcon(player.role)} {player.role}
-                              </Badge>
-                            </div>
-                            <div className="text-right">
-                              <div className="text-lg font-bold text-white">
-                                {getPlayerPower(player)}
-                              </div>
-                              <div className="text-xs text-white/70">Power</div>
-                            </div>
+          <Card className="bg-gradient-to-r from-purple-800 to-purple-900 border-2 border-purple-400">
+            <CardHeader 
+              className="cursor-pointer select-none"
+              onClick={() => toggleSection('taxi')}
+            >
+              <CardTitle className="flex items-center justify-between text-white">
+                <span className="flex items-center">
+                  <Users className="w-6 h-6 mr-3 text-purple-400" />
+                  🚌 TAXI SQUAD ({taxiSquad.length}/2)
+                </span>
+                <div className="flex items-center space-x-2">
+                  <Badge variant="outline" className="border-purple-400 text-purple-400">
+                    DEVELOPMENT PLAYERS
+                  </Badge>
+                  {expandedSection === 'taxi' ? 
+                    <ChevronUp className="w-5 h-5 text-purple-400" /> : 
+                    <ChevronDown className="w-5 h-5 text-purple-400" />
+                  }
+                </div>
+              </CardTitle>
+            </CardHeader>
+            
+            {expandedSection === 'taxi' && (
+              <CardContent className="p-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {taxiSquad.length > 0 ? taxiSquad.map((player) => (
+                    <Card 
+                      key={player.id}
+                      className="bg-gradient-to-r from-purple-700 to-purple-800 border-2 border-purple-500 cursor-pointer hover:scale-105 transition-all duration-200"
+                      onClick={() => setSelectedPlayer(player)}
+                    >
+                      <CardContent className="p-4">
+                        <div className="flex items-start justify-between">
+                          <div className="flex-1">
+                            <h3 className="font-bold text-white">
+                              {player.firstName} {player.lastName}
+                            </h3>
+                            <Badge variant="outline" className="text-xs text-white border-white/50 mt-1">
+                              {getRoleIcon(player.role)} {player.role}
+                            </Badge>
                           </div>
-                        </CardContent>
-                      </Card>
-                    ))}
-                  </div>
-                </CardContent>
-              )}
-            </Card>
-          )}
+                          <div className="text-right">
+                            <div className="text-lg font-bold text-white">
+                              {getPlayerPower(player)}
+                            </div>
+                            <div className="text-xs text-white/70">Power</div>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  )) : (
+                    <div className="col-span-2 text-center text-white/70 py-8">
+                      <Users className="w-12 h-12 mx-auto mb-4 text-purple-400" />
+                      <p className="text-lg mb-4">No taxi squad players</p>
+                      <p className="text-sm">Players can be promoted from taxi squad during offseason</p>
+                    </div>
+                  )}
+                </div>
+              </CardContent>
+            )}
+          </Card>
 
           {/* STAFF SECTION */}
           <Card className="bg-gradient-to-r from-green-800 to-green-900 border-2 border-green-400">
@@ -466,12 +458,9 @@ export default function MobileRosterHQ() {
               <CardTitle className="flex items-center justify-between text-white">
                 <span className="flex items-center">
                   <UserPlus className="w-6 h-6 mr-3 text-green-400" />
-                  👔 COACHING STAFF ({staff?.length || 0}/4)
+                  👔 COACHING STAFF
                 </span>
                 <div className="flex items-center space-x-2">
-                  <Badge variant="outline" className="border-green-400 text-green-400">
-                    DEVELOPMENT TEAM
-                  </Badge>
                   {expandedSection === 'staff' ? 
                     <ChevronUp className="w-5 h-5 text-green-400" /> : 
                     <ChevronDown className="w-5 h-5 text-green-400" />
@@ -483,7 +472,7 @@ export default function MobileRosterHQ() {
             {expandedSection === 'staff' && (
               <CardContent className="p-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {staff?.map((member) => (
+                  {staff && staff.length > 0 ? staff.map((member) => (
                     <Card key={member.id} className="bg-green-700 border-green-500">
                       <CardContent className="p-4">
                         <div className="flex items-center justify-between">
@@ -500,7 +489,7 @@ export default function MobileRosterHQ() {
                         </div>
                       </CardContent>
                     </Card>
-                  )) || (
+                  )) : (
                     <div className="col-span-2 text-center text-white/70 py-8">
                       <UserPlus className="w-12 h-12 mx-auto mb-4 text-green-400" />
                       <p className="text-lg mb-4">No staff hired yet</p>
@@ -514,17 +503,6 @@ export default function MobileRosterHQ() {
             )}
           </Card>
         </div>
-
-        {/* 🎉 BOTTOM SUCCESS MESSAGE */}
-        <Card className="mt-8 bg-gradient-to-r from-green-800 to-emerald-900 border-2 border-green-400">
-          <CardContent className="p-6 text-center">
-            <div className="text-4xl mb-4">🎉</div>
-            <h2 className="text-3xl font-bold text-white mb-2">ROSTER HQ MOBILE-FIRST REDESIGN COMPLETE!</h2>
-            <p className="text-xl text-green-200">
-              Progressive Disclosure • Touch-Friendly Cards • Visual Status Indicators • Smart Collapsible Sections
-            </p>
-          </CardContent>
-        </Card>
       </div>
     </div>
   );
