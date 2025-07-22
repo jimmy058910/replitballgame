@@ -936,9 +936,9 @@ export default function Competition() {
 
   // Fetch league standings for position calculation
   const { data: rawStandings, isLoading: standingsLoading } = useQuery({
-    queryKey: [`/api/leagues/${team?.division || 8}/standings`],
-    queryFn: () => apiRequest(`/api/leagues/${team?.division || 8}/standings`),
-    enabled: !!team?.division,
+    queryKey: [`/api/leagues/${team?.division}/standings`],
+    queryFn: () => apiRequest(`/api/leagues/${team?.division}/standings`),
+    enabled: !!team && !!team.division,
   });
   const standings = (rawStandings || []) as any[];
 
@@ -953,9 +953,9 @@ export default function Competition() {
   });
 
   const { data: tournaments, isLoading: tournamentsLoading } = useQuery<any[]>({
-    queryKey: ["/api/tournaments"],
-    queryFn: () => apiRequest("/api/tournaments"),
-    enabled: false, // Temporarily disabled - endpoint not implemented
+    queryKey: ["/api/new-tournaments/available"],
+    queryFn: () => apiRequest("/api/new-tournaments/available"),
+    enabled: !!team && !!team.division,
   });
 
   const { data: rawCurrentCycle, isLoading: currentCycleLoading } = useQuery<SeasonalCycle>({

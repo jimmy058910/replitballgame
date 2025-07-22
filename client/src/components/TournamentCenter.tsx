@@ -160,8 +160,8 @@ const TournamentCenter: React.FC<TournamentCenterProps> = ({ teamId }) => {
 
   // Fetch team's tournament history
   const { data: tournamentHistory } = useQuery<TournamentEntry[]>({
-    queryKey: ["/api/tournaments/history", teamId],
-    queryFn: () => apiRequest(`/api/tournaments/history`),
+    queryKey: ["/api/tournament-history"],
+    queryFn: () => apiRequest(`/api/tournament-history`),
     enabled: !!teamId,
   });
 
@@ -181,15 +181,15 @@ const TournamentCenter: React.FC<TournamentCenterProps> = ({ teamId }) => {
 
   // Fetch team's current tournament entries
   const { data: myTournaments } = useQuery({
-    queryKey: ["/api/tournament-status/my-active"],
-    queryFn: () => apiRequest("/api/tournament-status/my-active"),
+    queryKey: ["/api/new-tournaments/my-tournaments"],
+    queryFn: () => apiRequest("/api/new-tournaments/my-tournaments"),
     enabled: !!teamId,
   });
 
   // Check if user is already registered for daily tournament
   const { data: dailyTournamentStatus } = useQuery({
-    queryKey: ["/api/tournament-status/my-active"],
-    queryFn: () => apiRequest("/api/tournament-status/my-active"),
+    queryKey: ["/api/new-tournaments/my-tournaments"],
+    queryFn: () => apiRequest("/api/new-tournaments/my-tournaments"),
     enabled: !!teamId,
   });
 
