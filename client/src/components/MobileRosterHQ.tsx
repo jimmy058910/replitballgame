@@ -617,28 +617,128 @@ export default function MobileRosterHQ() {
             
             {expandedSection === 'staff' && (
               <CardContent className="p-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                   {staff && staff.length > 0 ? staff.map((member) => (
-                    <Card key={member.id} className="bg-green-700 border-green-500">
+                    <Card 
+                      key={member.id} 
+                      className="bg-gradient-to-br from-green-700 to-green-800 border-2 border-green-500 hover:scale-105 transition-all duration-200 cursor-pointer"
+                      onClick={() => {/* Could open staff detail modal */}}
+                    >
                       <CardContent className="p-4">
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <h3 className="font-bold text-white">{member.name}</h3>
-                            <Badge variant="outline" className="text-xs text-white border-white/50 mt-1">
-                              {getStaffTypeName(member.type)}
-                            </Badge>
+                        {/* Staff Avatar & Header */}
+                        <div className="flex items-start justify-between mb-3">
+                          <div className="flex items-center gap-3">
+                            <div className="w-12 h-12 bg-gradient-to-br from-green-400 to-green-600 rounded-full flex items-center justify-center">
+                              <UserPlus className="w-6 h-6 text-white" />
+                            </div>
+                            <div>
+                              <h3 className="font-bold text-white text-sm">{member.name}</h3>
+                              <Badge className="bg-green-600 text-white text-xs">
+                                {getStaffTypeName(member.type)}
+                              </Badge>
+                            </div>
                           </div>
                           <div className="text-right">
-                            <div className="text-xs text-white/70">Age {member.age}</div>
+                            <div className="text-xs text-green-200">Age {member.age}</div>
                           </div>
+                        </div>
+
+                        {/* Contract Information */}
+                        <div className="mb-3 p-2 bg-black/30 rounded">
+                          <div className="flex justify-between text-xs">
+                            <span className="text-white/70">Contract:</span>
+                            <span className="text-green-300 font-semibold">
+                              {(member.level * 1000).toLocaleString()}₡/season
+                            </span>
+                          </div>
+                          <div className="flex justify-between text-xs">
+                            <span className="text-white/70">Years Left:</span>
+                            <span className="text-yellow-300">2 seasons</span>
+                          </div>
+                        </div>
+
+                        {/* Staff Attributes & Effects */}
+                        <div className="space-y-2">
+                          {/* Primary Attribute */}
+                          {member.type === 'HEAD_COACH' && (
+                            <>
+                              <div className="flex justify-between items-center text-xs">
+                                <span className="text-white/70">Motivation:</span>
+                                <span className="text-blue-300 font-semibold">{member.motivation}/40</span>
+                              </div>
+                              <Progress value={(member.motivation / 40) * 100} className="h-1.5 bg-green-900" />
+                              
+                              <div className="flex justify-between items-center text-xs">
+                                <span className="text-white/70">Development:</span>
+                                <span className="text-purple-300 font-semibold">{member.development}/40</span>
+                              </div>
+                              <Progress value={(member.development / 40) * 100} className="h-1.5 bg-green-900" />
+                              
+                              <div className="mt-2 p-1.5 bg-green-900/50 rounded text-xs">
+                                <div className="text-green-200">🎯 Effect:</div>
+                                <div className="text-green-300">+{Math.round(member.motivation * 0.25)}% Team Chemistry</div>
+                              </div>
+                            </>
+                          )}
+
+                          {member.type.includes('TRAINER') && (
+                            <>
+                              <div className="flex justify-between items-center text-xs">
+                                <span className="text-white/70">Teaching:</span>
+                                <span className="text-blue-300 font-semibold">{member.teaching}/40</span>
+                              </div>
+                              <Progress value={(member.teaching / 40) * 100} className="h-1.5 bg-green-900" />
+                              
+                              <div className="mt-2 p-1.5 bg-green-900/50 rounded text-xs">
+                                <div className="text-green-200">💪 Boosts:</div>
+                                <div className="text-green-300">
+                                  {member.type === 'PASSER_TRAINER' && 'Technical Skills'}
+                                  {member.type === 'RUNNER_TRAINER' && 'Speed & Agility'}
+                                  {member.type === 'BLOCKER_TRAINER' && 'Power & Stamina'}
+                                </div>
+                              </div>
+                            </>
+                          )}
+
+                          {member.type === 'RECOVERY_SPECIALIST' && (
+                            <>
+                              <div className="flex justify-between items-center text-xs">
+                                <span className="text-white/70">Physiology:</span>
+                                <span className="text-red-300 font-semibold">{member.physiology}/40</span>
+                              </div>
+                              <Progress value={(member.physiology / 40) * 100} className="h-1.5 bg-green-900" />
+                              
+                              <div className="mt-2 p-1.5 bg-green-900/50 rounded text-xs">
+                                <div className="text-green-200">🏥 Effect:</div>
+                                <div className="text-green-300">+{Math.round(member.physiology * 0.5)} Recovery/day</div>
+                              </div>
+                            </>
+                          )}
+                        </div>
+
+                        {/* Action Buttons */}
+                        <div className="flex gap-2 mt-3">
+                          <Button size="sm" variant="outline" className="flex-1 text-xs border-green-400 text-green-400 hover:bg-green-600 hover:text-white">
+                            Negotiate
+                          </Button>
+                          <Button size="sm" variant="outline" className="flex-1 text-xs border-red-400 text-red-400 hover:bg-red-600 hover:text-white">
+                            Release
+                          </Button>
                         </div>
                       </CardContent>
                     </Card>
                   )) : (
-                    <div className="col-span-2 text-center text-white/70 py-8">
-                      <UserPlus className="w-12 h-12 mx-auto mb-4 text-green-400" />
-                      <p className="text-lg mb-4">No staff hired yet</p>
-                      <Button className="bg-green-600 hover:bg-green-700 text-white">
+                    <div className="col-span-full text-center text-white/70 py-8">
+                      <UserPlus className="w-16 h-16 mx-auto mb-4 text-green-400" />
+                      <h3 className="text-xl font-bold text-white mb-2">No Coaching Staff Hired</h3>
+                      <p className="text-lg mb-4">Build your coaching team to boost player development</p>
+                      <div className="space-y-2 text-sm text-green-300 mb-6">
+                        <div>• Head Coach: Boosts team chemistry and development</div>
+                        <div>• Trainers: Accelerate specific skill progression</div>
+                        <div>• Recovery Specialist: Faster injury healing</div>
+                        <div>• Scouts: Better player evaluation and hidden gems</div>
+                      </div>
+                      <Button className="bg-green-600 hover:bg-green-700 text-white px-6 py-2">
                         HIRE COACHING STAFF
                       </Button>
                     </div>

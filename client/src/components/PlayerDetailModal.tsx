@@ -33,7 +33,7 @@ import {
 } from "@/components/ui/alert-dialog";
 
 interface PlayerDetailModalProps {
-  player: DetailedPlayer | null; // Make player prop explicitly DetailedPlayer or null
+  player: any | null; // Updated to accept any player object
   isOpen: boolean;
   onClose: () => void;
   onContractNegotiate?: (playerId: string) => void;
@@ -60,28 +60,35 @@ const getStatColor = (value: number): string => {
   return "text-red-400";
 };
 
-// Helper function to render star rating
+// Helper function to render improved 5-star rating system
 const renderStarRating = (rating: number): JSX.Element[] => {
   const stars = [];
   const fullStars = Math.floor(rating);
   const hasHalfStar = rating % 1 >= 0.5;
   
+  // Full stars - color based on rating level
+  let starColor = "text-gray-400 fill-gray-400"; // 0-1 stars
+  if (rating >= 4.5) starColor = "text-yellow-400 fill-yellow-400"; // Gold for 4.5-5 stars
+  else if (rating >= 3.5) starColor = "text-purple-400 fill-purple-400"; // Purple for 3.5-4 stars  
+  else if (rating >= 2.5) starColor = "text-blue-400 fill-blue-400"; // Blue for 2.5-3 stars
+  else if (rating >= 1.5) starColor = "text-green-400 fill-green-400"; // Green for 1.5-2 stars
+  
   for (let i = 0; i < fullStars; i++) {
-    stars.push(<Star key={i} className="w-4 h-4 fill-yellow-400 text-yellow-400" />);
+    stars.push(<Star key={i} className={`w-5 h-5 ${starColor}`} />);
   }
   
   if (hasHalfStar) {
     stars.push(
-      <div key="half" className="relative w-4 h-4">
-        <Star className="w-4 h-4 text-yellow-400" />
-        <Star className="w-4 h-4 fill-yellow-400 text-yellow-400 absolute top-0 left-0" style={{ clipPath: 'inset(0 50% 0 0)' }} />
+      <div key="half" className="relative w-5 h-5">
+        <Star className="w-5 h-5 text-gray-400" />
+        <Star className={`w-5 h-5 ${starColor} absolute top-0 left-0`} style={{ clipPath: 'inset(0 50% 0 0)' }} />
       </div>
     );
   }
   
   const emptyStars = 5 - Math.ceil(rating);
   for (let i = 0; i < emptyStars; i++) {
-    stars.push(<Star key={`empty-${i}`} className="w-4 h-4 text-gray-400" />);
+    stars.push(<Star key={`empty-${i}`} className="w-5 h-5 text-gray-400" />);
   }
   
   return stars;
@@ -119,14 +126,20 @@ export default function PlayerDetailModal({
   };
 
   // Fetch player's current equipment
-  const { data: playerEquipment, isLoading: equipmentLoading } = useQuery({
+  const { data: playerEquipment = { equipment: [] }, isLoading: equipmentLoading } = useQuery({
     queryKey: [`/api/equipment/player/${player?.id}`],
     enabled: isOpen && !!player?.id,
   });
 
-  // Fetch team inventory for equipment options
-  const { data: teamInventory, isLoading: inventoryLoading } = useQuery({
+  // Fetch team inventory for equipment options  
+  const { data: teamInventory = [], isLoading: inventoryLoading } = useQuery({
     queryKey: [`/api/inventory/${player?.teamId}`],
+    enabled: isOpen && !!player?.teamId,
+  });
+
+  // Fetch team finances for release calculations
+  const { data: teamFinances = { credits: 0, canRelease: true, releaseFee: 0, teamCredits: 0 }, isLoading: financesLoading } = useQuery({
+    queryKey: [`/api/teams/${player?.teamId}/finances`],
     enabled: isOpen && !!player?.teamId,
   });
 
@@ -322,26 +335,85 @@ export default function PlayerDetailModal({
           <div className="sticky top-0 bg-gray-900 z-10 border-b border-gray-700">
             {/* Header Block */}
             <div className="p-6 pb-4">
-              <div className="flex items-center gap-4 mb-4">
-                <div className="w-16 h-16 bg-gray-600 bg-opacity-20 rounded-full border-2 border-gray-500 flex items-center justify-center">
-                  <User className="w-8 h-8 text-gray-300" />
+              {/* ENHANCED HEADER - ABOVE THE FOLD */}
+              <div className="flex items-center gap-6 mb-6">
+                <div className="w-20 h-20 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-3xl">
+                  {getRaceEmoji(player.race)}
                 </div>
                 <div className="flex-1">
-                  <div className="flex items-center gap-2 mb-2">
-                    <h1 className="text-2xl font-bold">{displayName}</h1>
+                  <div className="flex items-center gap-3 mb-2">
+                    <h1 className="text-3xl font-bold text-white">{displayName}</h1>
                     {player.isCaptain && <Crown className="w-6 h-6 text-yellow-500" />}
                   </div>
-                  <div className="flex items-center gap-2 mb-2">
+                  <div className="flex items-center gap-3 mb-2">
                     <Badge className={`text-sm font-medium ${getRoleColor(playerRole)}`}>
-                      {getRaceEmoji(player.race)} {playerRole.toUpperCase()}
+                      {playerRole.toUpperCase()}
                     </Badge>
-                    <Badge variant="outline" className="text-sm">
-                      {getRaceDisplayName(player.race)}
+                    <Badge variant="outline" className="text-blue-300 border-blue-300">
+                      Age {player.age} • {getRaceDisplayName(player.race)}
                     </Badge>
                   </div>
-                  <div className="text-sm text-gray-400">
-                    Age {player.age} • Team: Oakland Cougars • #{player.id}
+                  
+                  {/* ENHANCED 5-STAR POTENTIAL RATING */}
+                  <div className="flex items-center gap-3 mb-3">
+                    <div className="flex items-center gap-1">
+                      {renderStarRating(player.potentialRating || 2.5)}
+                    </div>
+                    <span className="text-sm text-gray-300">
+                      ({player.potentialRating ? player.potentialRating.toFixed(1) : '2.5'}/5.0 potential)
+                    </span>
                   </div>
+                </div>
+                
+                {/* POWER & CONTRACT */}
+                <div className="text-right">
+                  <div className="text-4xl font-bold text-white">
+                    {overallPower}
+                  </div>
+                  <div className="text-sm text-gray-300">Overall Power</div>
+                  <div className="text-lg text-green-400 mt-1 font-semibold">
+                    ₡{player.contractSalary?.toLocaleString() || '0'}/season
+                  </div>
+                  <div className="text-sm text-yellow-300">
+                    {player.contractLength || 1} years remaining
+                  </div>
+                </div>
+              </div>
+
+              {/* ENHANCED QUICK STATS ROW */}
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6 p-4 bg-black/30 rounded-lg">
+                <div className="text-center">
+                  <div className={`text-2xl ${player.injuryStatus === 'HEALTHY' ? 'text-green-400' : 'text-red-400'}`}>
+                    {player.injuryStatus === 'HEALTHY' ? '💚' : '🚨'}
+                  </div>
+                  <div className="text-sm font-semibold text-white mt-1">
+                    {player.injuryStatus === 'HEALTHY' ? 'Healthy' : 'Injured'}
+                  </div>
+                  <div className="text-xs text-gray-400">Medical Status</div>
+                </div>
+                
+                <div className="text-center">
+                  <div className={`text-2xl font-bold ${getStaminaColor(player.dailyStaminaLevel)}`}>
+                    {player.dailyStaminaLevel}%
+                  </div>
+                  <div className="text-sm font-semibold text-white">Stamina</div>
+                  <div className="text-xs text-gray-400">Energy Level</div>
+                </div>
+                
+                <div className="text-center">
+                  <div className="text-2xl text-purple-400 font-bold">
+                    {player.camaraderieScore || 50}
+                  </div>
+                  <div className="text-sm font-semibold text-white">Chemistry</div>
+                  <div className="text-xs text-gray-400">Team Bond</div>
+                </div>
+                
+                <div className="text-center">
+                  <div className="text-2xl text-blue-400 font-bold">
+                    {player.leadership || 20}
+                  </div>
+                  <div className="text-sm font-semibold text-white">Leadership</div>
+                  <div className="text-xs text-gray-400">Locker Room</div>
                 </div>
               </div>
               
