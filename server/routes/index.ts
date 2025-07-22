@@ -52,6 +52,7 @@ import ndaRoutes from "./ndaRoutes";
 import worldRoutes from "./worldRoutes";
 import leagueMatchesRoutes from "./leagueMatchesRoutes";
 import teamTrendsRoutes from "./teamTrendsRoutes";
+import dataVisualizationRoutes from "./dataVisualizationRoutes";
 
 // This function will be called by server/index.ts to set up all routes.
 // It replaces the direct app.use calls that would have been in server/index.ts
@@ -115,6 +116,7 @@ export function registerAllRoutes(app: Express): void {
   app.use("/api/tournament-history", tournamentHistoryRoutes); // Tournament history for completed tournaments
   app.use("/api/demo", demoRoutes); // Demo endpoints using real match simulation
   app.use("/api/nda", ndaRoutes); // NDA acceptance endpoints for pre-alpha testing
+  app.use("/api/data-viz", dataVisualizationRoutes); // Phase 3 Product-Led Growth Framework data visualization
 
   // Reminder: The original server/routes.ts also contained helper functions and Stripe init.
   // Stripe init is now in paymentRoutes.ts.
