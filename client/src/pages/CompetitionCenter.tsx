@@ -368,7 +368,7 @@ export default function CompetitionCenter() {
 
           {/* League Tab */}
           <TabsContent value="league" className="space-y-6">
-            <LeagueStandings />
+            <LeagueStandings division={team?.division || 8} />
           </TabsContent>
 
           {/* Tournaments Tab */}
