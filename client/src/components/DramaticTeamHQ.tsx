@@ -73,6 +73,7 @@ interface Stadium {
 }
 
 export default function DramaticTeamHQ() {
+  console.log("🚀 DRAMATIC TEAM HQ COMPONENT LOADING - REDESIGN ACTIVE!");
   const { isAuthenticated } = useAuth();
   const [expandedSection, setExpandedSection] = useState<string | null>(null);
 
@@ -119,8 +120,9 @@ export default function DramaticTeamHQ() {
       <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900 flex items-center justify-center">
         <Card className="bg-gradient-to-r from-red-800 to-red-900 border-2 border-red-400">
           <CardContent className="p-8 text-center">
-            <h1 className="text-4xl font-bold text-white mb-4">🏗️ CREATE YOUR TEAM</h1>
+            <h1 className="text-4xl font-bold text-white mb-4">🏗️ DRAMATIC REDESIGN ACTIVE - CREATE YOUR TEAM</h1>
             <p className="text-xl text-red-200">Start your journey to championship glory</p>
+            <p className="text-sm text-red-300 mt-2">✅ DramaticTeamHQ Component Successfully Loading</p>
           </CardContent>
         </Card>
       </div>
@@ -130,6 +132,11 @@ export default function DramaticTeamHQ() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900">
       <div className="container mx-auto px-4 py-6 max-w-6xl">
+        
+        {/* 🚨 REDESIGN SUCCESS INDICATOR - REMOVE AFTER CONFIRMATION */}
+        <div className="fixed top-4 right-4 z-50 bg-green-600 text-white px-4 py-2 rounded-lg shadow-lg">
+          ✅ DRAMATIC REDESIGN ACTIVE
+        </div>
         
         {/* 🚀 DRAMATIC HERO BANNER WITH REAL TEAM DATA */}
         <Card className="bg-gradient-to-r from-blue-800 via-indigo-800 to-purple-800 border-2 border-blue-400 shadow-2xl mb-6 overflow-hidden">
