@@ -73,9 +73,6 @@ export default function Roadmap() {
   return (
     <div className="max-w-4xl mx-auto space-y-6">
       <Card className="bg-gray-800 border-gray-700">
-        <CardHeader>
-          <CardTitle className="text-xl text-white">Upcoming Features</CardTitle>
-        </CardHeader>
         <CardContent>
           <div className="space-y-3">
             {roadmapItems.map((item) => (
