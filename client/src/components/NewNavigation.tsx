@@ -220,7 +220,7 @@ export default function NewNavigation() {
                   className="flex items-center bg-gray-700 hover:bg-gray-600 px-3 py-2 rounded-lg text-sm font-semibold transition-colors"
                 >
                   <Coins className="h-4 w-4 text-yellow-400 mr-1" />
-                  <span className="text-white">{credits.toLocaleString()}</span>
+                  <span className="text-white">{parseInt(credits || 0).toLocaleString()}</span>
                   <span className="text-yellow-400 ml-1">₡</span>
                 </button>
 
