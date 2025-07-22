@@ -37,6 +37,13 @@
   --gold-400: hsl(43, 89%, 70%);
   --gold-500: hsl(38, 92%, 50%);
   --gold-600: hsl(32, 95%, 44%);
+  
+  /* Team HQ Mobile-First Design Variables */
+  --hq-gradient-start: hsl(220, 26%, 14%);
+  --hq-gradient-end: hsl(220, 39%, 11%);
+  --alert-critical: hsl(0, 84%, 60%);
+  --alert-warning: hsl(43, 89%, 60%);
+  --alert-success: hsl(142, 71%, 45%);
 }
 
 /* Utility classes for star rating */
@@ -65,6 +72,122 @@
   --destructive-foreground: hsl(0, 0%, 98%);
   --ring: hsl(240, 4.9%, 83.9%);
   --radius: 0.5rem;
+}
+
+/* Team HQ Mobile-First CSS Utilities */
+@layer components {
+  /* Hero banner gradient backgrounds */
+  .hq-hero-gradient {
+    background: linear-gradient(135deg, var(--hq-gradient-start) 0%, var(--hq-gradient-end) 100%);
+    backdrop-filter: blur(10px);
+  }
+  
+  /* Touch-friendly quick action buttons */
+  .hq-action-btn {
+    min-height: 44px;
+    min-width: 44px;
+    touch-action: manipulation;
+    transition: all 0.2s ease;
+  }
+  
+  .hq-action-btn:active {
+    transform: scale(0.98);
+  }
+  
+  /* Progress bars with consistent styling */
+  .hq-progress-bar {
+    height: 8px;
+    background: var(--secondary);
+    border-radius: 9999px;
+    overflow: hidden;
+  }
+  
+  .hq-progress-fill {
+    height: 100%;
+    background: var(--primary);
+    border-radius: 9999px;
+    transition: width 0.3s ease;
+  }
+  
+  /* Alert severity indicators */
+  .alert-critical {
+    border-left: 4px solid var(--alert-critical);
+    background: color-mix(in srgb, var(--alert-critical) 10%, transparent);
+  }
+  
+  .alert-warning {
+    border-left: 4px solid var(--alert-warning);
+    background: color-mix(in srgb, var(--alert-warning) 10%, transparent);
+  }
+  
+  .alert-success {
+    border-left: 4px solid var(--alert-success);
+    background: color-mix(in srgb, var(--alert-success) 10%, transparent);
+  }
+  
+  /* Mobile-first card layouts */
+  .hq-card-compact {
+    padding: 1rem;
+    border-radius: 0.75rem;
+    background: var(--card);
+    border: 1px solid var(--border);
+  }
+  
+  /* Touch-friendly collapsible sections */
+  .hq-collapsible summary {
+    cursor: pointer;
+    user-select: none;
+    list-style: none;
+    padding: 1rem;
+    border-radius: 0.5rem;
+    background: var(--card);
+    border: 1px solid var(--border);
+    transition: background-color 0.2s ease;
+  }
+  
+  .hq-collapsible summary:hover {
+    background: color-mix(in srgb, var(--card) 90%, var(--primary) 10%);
+  }
+  
+  .hq-collapsible[open] summary {
+    border-bottom-left-radius: 0;
+    border-bottom-right-radius: 0;
+    border-bottom: none;
+  }
+  
+  .hq-collapsible[open] .hq-collapsible-content {
+    border: 1px solid var(--border);
+    border-top: none;
+    border-radius: 0 0 0.5rem 0.5rem;
+    background: var(--card);
+  }
+  
+  /* Responsive text scaling */
+  .hq-title {
+    font-size: clamp(1.5rem, 4vw, 2.25rem);
+    font-weight: 700;
+    line-height: 1.2;
+  }
+  
+  .hq-subtitle {
+    font-size: clamp(0.875rem, 2.5vw, 1rem);
+    opacity: 0.8;
+  }
+  
+  /* Quick access tile animations */
+  .hq-quick-tile {
+    transition: all 0.2s ease;
+    cursor: pointer;
+  }
+  
+  .hq-quick-tile:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  }
+  
+  .hq-quick-tile:active {
+    transform: translateY(0);
+  }
 }
 
 /* Force high contrast for FINAL text - Maximum specificity */

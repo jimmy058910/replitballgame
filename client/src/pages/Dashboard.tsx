@@ -4,12 +4,14 @@ import { useAuth } from "@/hooks/useAuth";
 import { isUnauthorizedError } from "@/lib/authUtils";
 import Navigation from "@/components/Navigation";
 import QuickStatsBar from "@/components/QuickStatsBar";
+import TeamHQHeroBanner from "@/components/TeamHQHeroBanner";
+import PriorityActionsPanel from "@/components/PriorityActionsPanel";
 import PriorityPanels from "@/components/PriorityPanels";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import LeagueStandings from "@/components/LeagueStandings";
 import ImprovedLiveMatches from "@/components/ImprovedLiveMatches";
 import { apiRequest } from "@/lib/queryClient";
-import { Trophy, Target, Users as UsersIcon } from "lucide-react";
+import { Trophy, Target, Users as UsersIcon, Building2, BarChart3 } from "lucide-react";
 
 // Type interfaces for API responses
 interface Team {
@@ -140,66 +142,90 @@ export default function Dashboard() {
       <Navigation />
       <QuickStatsBar />
       
-      <div className="p-4 space-y-6">
-        {/* Team HQ Header */}
-        <div className="text-center space-y-2">
-          <h1 className="text-3xl font-bold text-white">Team HQ</h1>
-          <p className="text-gray-400">Main headquarters for the Division 8 Oakland Cougars</p>
+      <div className="container mx-auto px-4 py-6 space-y-6">
+        {/* Hero Banner - New Team HQ header */}
+        <TeamHQHeroBanner />
+
+        {/* Priority Actions Panel - Critical alerts and next match */}
+        <PriorityActionsPanel />
+
+        {/* Quick Access Tiles - 2x2 grid as specified in redesign guide */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <Card className="hq-quick-tile bg-gradient-to-br from-blue-800 to-blue-900 border-blue-700 hover:from-blue-700 hover:to-blue-800">
+            <CardContent className="p-4 text-center">
+              <UsersIcon className="w-8 h-8 mx-auto text-blue-200 mb-2" />
+              <h3 className="font-semibold text-white">Roster HQ</h3>
+              <p className="text-xs text-blue-200">Manage players</p>
+            </CardContent>
+          </Card>
+          
+          <Card className="hq-quick-tile bg-gradient-to-br from-green-800 to-green-900 border-green-700 hover:from-green-700 hover:to-green-800">
+            <CardContent className="p-4 text-center">
+              <Target className="w-8 h-8 mx-auto text-green-200 mb-2" />
+              <h3 className="font-semibold text-white">Tactics</h3>
+              <p className="text-xs text-green-200">Formation & strategy</p>
+            </CardContent>
+          </Card>
+          
+          <Card className="hq-quick-tile bg-gradient-to-br from-purple-800 to-purple-900 border-purple-700 hover:from-purple-700 hover:to-purple-800">
+            <CardContent className="p-4 text-center">
+              <BarChart3 className="w-8 h-8 mx-auto text-purple-200 mb-2" />
+              <h3 className="font-semibold text-white">Market</h3>
+              <p className="text-xs text-purple-200">Trading & store</p>
+            </CardContent>
+          </Card>
+          
+          <Card className="hq-quick-tile bg-gradient-to-br from-orange-800 to-orange-900 border-orange-700 hover:from-orange-700 hover:to-orange-800">
+            <CardContent className="p-4 text-center">
+              <Building2 className="w-8 h-8 mx-auto text-orange-200 mb-2" />
+              <h3 className="font-semibold text-white">Stadium</h3>
+              <p className="text-xs text-orange-200">Facilities & finance</p>
+            </CardContent>
+          </Card>
         </div>
 
-        {/* Priority Panels - Core of the Operational Dashboard */}
-        <Suspense fallback={<div className="h-32 bg-gray-800 rounded animate-pulse" />}>
-          <PriorityPanels />
-        </Suspense>
-
-        {/* Secondary Information Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Collapsible Snapshot Panels - Collapsed by default on mobile */}
+        <div className="space-y-4">
+          <details className="hq-collapsible">
+            <summary className="hq-action-btn">
+              <span className="flex items-center gap-2">
+                <UsersIcon className="w-5 h-5 text-blue-400" />
+                Mini Roster Snapshot (6 players)
+              </span>
+            </summary>
+            <div className="hq-collapsible-content p-4">
+              <TeamOverviewGrid />
+            </div>
+          </details>
           
-          {/* League Standings Card */}
-          <Card className="bg-gray-800 border-gray-700">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-white">
-                <Trophy className="h-5 w-5 text-yellow-400" />
-                League Standings
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <Suspense fallback={<div className="h-32 bg-gray-700 rounded animate-pulse" />}>
+          <details className="hq-collapsible">
+            <summary className="hq-action-btn">
+              <span className="flex items-center gap-2">
+                <Trophy className="w-5 h-5 text-yellow-400" />
+                Division Standings
+              </span>
+            </summary>
+            <div className="hq-collapsible-content p-4">
+              <Suspense fallback={<div className="h-40 bg-gray-700 rounded animate-pulse" />}>
                 <LeagueStandings division={8} />
               </Suspense>
-            </CardContent>
-          </Card>
-
-          {/* Live Matches Card */}
-          <Card className="bg-gray-800 border-gray-700">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-white">
-                <Target className="h-5 w-5 text-green-400" />
-                Live Activity
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <Suspense fallback={<div className="h-32 bg-gray-700 rounded animate-pulse" />}>
+            </div>
+          </details>
+          
+          <details className="hq-collapsible">
+            <summary className="hq-action-btn">
+              <span className="flex items-center gap-2">
+                <Target className="w-5 h-5 text-green-400" />
+                Live Matches
+              </span>
+            </summary>
+            <div className="hq-collapsible-content p-4">
+              <Suspense fallback={<div className="h-40 bg-gray-700 rounded animate-pulse" />}>
                 <ImprovedLiveMatches />
               </Suspense>
-            </CardContent>
-          </Card>
+            </div>
+          </details>
         </div>
-
-        {/* Team Overview - Compact Summary */}
-        <Card className="bg-gray-800 border-gray-700">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-white">
-              <UsersIcon className="h-5 w-5 text-purple-400" />
-              Team Overview
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <Suspense fallback={<div className="h-20 bg-gray-700 rounded animate-pulse" />}>
-              <TeamOverviewGrid />
-            </Suspense>
-          </CardContent>
-        </Card>
       </div>
     </div>
   );
