@@ -20,6 +20,8 @@ import {
   HelpCircle
 } from "lucide-react";
 import ReferralSystem from "@/components/ReferralSystem";
+import HelpManual from "@/pages/HelpManual";
+import Roadmap from "@/components/Roadmap";
 
 interface WorldRankings {
   teamPowerRankings: Array<{
@@ -307,39 +309,38 @@ export default function CommunityPortal() {
 
           {/* Support Center Tab */}
           <TabsContent value="support" className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
               
               {/* Game Manual */}
               <Card className="bg-gray-800 border-gray-700">
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2 text-white">
                     <BookOpen className="h-5 w-5 text-blue-400" />
-                    Game Manual
+                    Complete Game Manual
                   </CardTitle>
                 </CardHeader>
-                <CardContent className="space-y-4">
-                  <p className="text-gray-300">Comprehensive guides to master every aspect of Realm Rivalry.</p>
-                  <div className="space-y-2">
-                    <Button variant="outline" className="w-full justify-start">
-                      <BookOpen className="h-4 w-4 mr-2" />
-                      Getting Started Guide
-                    </Button>
-                    <Button variant="outline" className="w-full justify-start">
-                      <Users className="h-4 w-4 mr-2" />
-                      Team Management
-                    </Button>
-                    <Button variant="outline" className="w-full justify-start">
-                      <Trophy className="h-4 w-4 mr-2" />
-                      Tournament Strategy
-                    </Button>
-                    <Button variant="outline" className="w-full justify-start">
-                      <BarChart3 className="h-4 w-4 mr-2" />
-                      Advanced Tactics
-                    </Button>
+                <CardContent className="p-0">
+                  <div className="h-[600px] overflow-hidden">
+                    <HelpManual />
                   </div>
                 </CardContent>
               </Card>
 
+              {/* Development Roadmap */}
+              <Card className="bg-gray-800 border-gray-700">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2 text-white">
+                    <BarChart3 className="h-5 w-5 text-purple-400" />
+                    Development Roadmap
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="p-0">
+                  <div className="h-[600px] overflow-y-auto">
+                    <Roadmap />
+                  </div>
+                </CardContent>
+              </Card>
+              
               {/* Help & Support */}
               <Card className="bg-gray-800 border-gray-700">
                 <CardHeader>
@@ -369,45 +370,6 @@ export default function CommunityPortal() {
                       Response Time: Within 24 hours<br />
                       Support Hours: 9AM - 9PM EST
                     </p>
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* Roadmap */}
-              <Card className="bg-gray-800 border-gray-700">
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2 text-white">
-                    <BarChart3 className="h-5 w-5 text-purple-400" />
-                    Development Roadmap
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <p className="text-gray-300">See what's coming next in Realm Rivalry!</p>
-                  <div className="space-y-3">
-                    <div className="p-3 bg-green-900/20 border border-green-700 rounded">
-                      <div className="flex items-center gap-2 mb-1">
-                        <div className="w-2 h-2 bg-green-400 rounded-full"></div>
-                        <span className="text-sm font-medium text-green-400">In Development</span>
-                      </div>
-                      <p className="text-white font-medium">Mobile App</p>
-                      <p className="text-xs text-gray-400">Native iOS and Android applications</p>
-                    </div>
-                    <div className="p-3 bg-blue-900/20 border border-blue-700 rounded">
-                      <div className="flex items-center gap-2 mb-1">
-                        <div className="w-2 h-2 bg-blue-400 rounded-full"></div>
-                        <span className="text-sm font-medium text-blue-400">Planned</span>
-                      </div>
-                      <p className="text-white font-medium">League Expansion</p>
-                      <p className="text-xs text-gray-400">Additional divisions and tournaments</p>
-                    </div>
-                    <div className="p-3 bg-purple-900/20 border border-purple-700 rounded">
-                      <div className="flex items-center gap-2 mb-1">
-                        <div className="w-2 h-2 bg-purple-400 rounded-full"></div>
-                        <span className="text-sm font-medium text-purple-400">Future</span>
-                      </div>
-                      <p className="text-white font-medium">Player Trading Cards</p>
-                      <p className="text-xs text-gray-400">Collectible NFT system</p>
-                    </div>
                   </div>
                 </CardContent>
               </Card>
