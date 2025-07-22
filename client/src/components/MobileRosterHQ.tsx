@@ -154,6 +154,18 @@ export default function MobileRosterHQ() {
     setExpandedSection(expandedSection === section ? null : section);
   };
 
+  // Debug logging to understand what's happening
+  console.log('MobileRosterHQ Debug:', {
+    isAuthenticated,
+    teamLoading,
+    playersLoading,
+    staffLoading,
+    team: team ? { id: team.id, name: team.name } : null,
+    playersCount: players?.length,
+    staffCount: staff?.length,
+    activePlayers: activePlayers?.length
+  });
+
   // Show loading state while team or essential data is loading
   if (teamLoading || playersLoading || !team || !players) {
     return (
@@ -166,7 +178,10 @@ export default function MobileRosterHQ() {
                 <div className="w-16 h-16 bg-blue-400 rounded-full mx-auto animate-spin">
                   <Users className="w-8 h-8 text-white m-4" />
                 </div>
-                <p className="text-xl text-blue-200 mt-4">Preparing your team management interface</p>
+                <p className="text-xl text-blue-200 mt-4">
+                  Debug: teamLoading={String(teamLoading)}, playersLoading={String(playersLoading)}, 
+                  team={team ? 'loaded' : 'null'}, players={players ? `${players.length} found` : 'null'}
+                </p>
               </div>
             </CardContent>
           </Card>
