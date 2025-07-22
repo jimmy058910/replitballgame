@@ -20,7 +20,7 @@ interface Team {
 }
 
 interface TeamFinances {
-  credits: number;
+  credits: number | string;
   gems: number;
   premiumCurrency: number;
   netRevenue: number;
@@ -378,7 +378,7 @@ export default function Market() {
                   <span className="text-white font-medium">Total Credits</span>
                 </div>
                 <div className="text-2xl font-bold text-yellow-300">
-                  ₡{(teamFinances?.credits || team?.credits || 0).toLocaleString()}
+                  ₡{(parseInt(teamFinances?.credits as string) || teamFinances?.credits || team?.credits || 0).toLocaleString()}
                 </div>
               </div>
               <div className="text-center">
@@ -459,7 +459,7 @@ export default function Market() {
                     </p>
                   </div>
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                    {unifiedItems.map((item) => (
+                    {unifiedItems.map((item: any) => (
                       <Card key={item.id} className="border-2 hover:border-blue-300 transition-colors">
                         <CardContent className="p-4">
                           <div className="mb-3">
@@ -497,7 +497,7 @@ export default function Market() {
                             {/* Stat Effects (for equipment) */}
                             {item.statEffects && Object.keys(item.statEffects).length > 0 && (
                               <div className="text-xs text-green-600 dark:text-green-400 bg-green-50 dark:bg-green-900/20 p-2 rounded">
-                                <strong>Player Benefits:</strong> {Object.entries(item.statEffects).map(([stat, value]) => 
+                                <strong>Player Benefits:</strong> {Object.entries(item.statEffects).map(([stat, value]: [string, any]) => 
                                   `${stat === 'stamina' ? 'Stamina' : 
                                     stat === 'leadership' ? 'Leadership' : 
                                     stat === 'throwing' ? 'Throwing' : 
@@ -514,7 +514,7 @@ export default function Market() {
                             {/* Stat Boosts (backup for legacy items) */}
                             {item.statBoosts && Object.keys(item.statBoosts).length > 0 && (
                               <div className="text-xs text-green-600 dark:text-green-400 bg-green-50 dark:bg-green-900/20 p-2 rounded">
-                                <strong>Player Benefits:</strong> {Object.entries(item.statBoosts).map(([stat, value]) => 
+                                <strong>Player Benefits:</strong> {Object.entries(item.statBoosts).map(([stat, value]: [string, any]) => 
                                   `${stat === 'stamina' ? 'Stamina' : 
                                     stat === 'leadership' ? 'Leadership' : 
                                     stat === 'throwing' ? 'Throwing' : 
@@ -545,7 +545,7 @@ export default function Market() {
                                   item.effect.includes('reduce_injury') ? `Reduces Injury ${item.effect.match(/\d+/)?.[0] || '?'} points` :
                                   item.effect.includes('heal_any_injury') ? `Heals Any Injury` :
                                   item.effect.includes('restore_team_stamina') ? `Restores Team Stamina +${item.effect.match(/\d+/)?.[0] || '?'}` :
-                                  item.effect.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())
+                                  item.effect.replace(/_/g, ' ').replace(/\b\w/g, (l: string) => l.toUpperCase())
                                 }
                               </div>
                             )}

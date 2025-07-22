@@ -253,10 +253,6 @@ export default function DynamicMarketplaceManager({ teamId }: { teamId: string }
   return (
     <div className="p-6 space-y-6">
       <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-2xl font-bold">Dynamic Marketplace</h2>
-          <p className="text-gray-600">Advanced auction system with real-time bidding and anti-sniping protection</p>
-        </div>
         <div className="text-right">
           <div className="text-sm text-gray-500">Active Listings</div>
           <div className="text-2xl font-bold">{stats?.totalActiveListings || 0}</div>
