@@ -205,7 +205,7 @@ export default function PlayerDetailModal({
     (player.speed + player.power + player.agility + player.throwing + player.catching + player.kicking) / 6
   ) || 0;
 
-  // Calculate potential rating
+  // Calculate potential rating (out of 5 stars)
   const potential = Math.min(5.0, Number(player.potentialRating) || 3.0);
   const basePotential = potential;
   
@@ -568,11 +568,11 @@ export default function PlayerDetailModal({
                         <div className="space-y-2 text-sm">
                           <div className="flex justify-between">
                             <span>Last 5 Games:</span>
-                            <span>2-3-0 Record</span>
+                            <span>Coming soon...</span>
                           </div>
                           <div className="flex justify-between">
-                            <span>Recent MVP:</span>
-                            <span className="text-yellow-400">July 15th vs Thunder Hawks</span>
+                            <span>MVP Counter:</span>
+                            <span className="text-yellow-400">0 Total MVPs</span>
                           </div>
                           <div className="flex justify-between">
                             <span>Season Stats:</span>
@@ -665,43 +665,15 @@ export default function PlayerDetailModal({
                               <Shirt className="w-4 h-4" />
                               <span className="text-sm">Chest: None</span>
                             </div>
-                          </div>
-                          
-                          {/* Equipment Selection */}
-                          {teamInventory && teamInventory.length > 0 && (
-                            <div className="space-y-2">
-                              <label className="text-sm text-gray-300">Equip Item:</label>
-                              <Select value={selectedEquipmentItem} onValueChange={setSelectedEquipmentItem}>
-                                <SelectTrigger>
-                                  <SelectValue placeholder="Select equipment item" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                  {teamInventory.map((item: any) => (
-                                    <SelectItem key={item.id} value={item.id.toString()}>
-                                      {item.name} ({item.quantity} available)
-                                    </SelectItem>
-                                  ))}
-                                </SelectContent>
-                              </Select>
-                              {selectedEquipmentItem && (
-                                <Button 
-                                  size="sm"
-                                  onClick={() => {
-                                    const item = teamInventory.find((i: any) => i.id.toString() === selectedEquipmentItem);
-                                    if (item) {
-                                      equipItemMutation.mutate({ 
-                                        itemId: item.id, 
-                                        itemName: item.name 
-                                      });
-                                    }
-                                  }}
-                                  disabled={equipItemMutation.isPending}
-                                >
-                                  {equipItemMutation.isPending ? "Equipping..." : "Equip Item"}
-                                </Button>
-                              )}
+                            <div className="flex items-center gap-2 p-2 bg-gray-700 rounded">
+                              <Footprints className="w-4 h-4" />
+                              <span className="text-sm">Shoes: None</span>
                             </div>
-                          )}
+                            <div className="flex items-center gap-2 p-2 bg-gray-700 rounded">
+                              <Hand className="w-4 h-4" />
+                              <span className="text-sm">Gloves: None</span>
+                            </div>
+                          </div>
                         </div>
                       </CardContent>
                     </Card>
