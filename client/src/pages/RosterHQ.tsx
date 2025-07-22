@@ -398,7 +398,7 @@ export default function RosterHQ() {
               </CardHeader>
               <CardContent>
                 <TacticalFormationMobile 
-                  players={activePlayers || []}
+                  players={(activePlayers || []) as any}
                   onFormationChange={() => {}}
                 />
               </CardContent>
@@ -630,7 +630,7 @@ export default function RosterHQ() {
 
           {/* Stadium Tab */}
           <TabsContent value="stadium" className="space-y-6">
-            <StadiumAtmosphereManager />
+            <StadiumAtmosphereManager teamId={team?.id || ''} />
           </TabsContent>
 
           {/* Finances Tab */}

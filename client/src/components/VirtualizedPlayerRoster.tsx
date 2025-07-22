@@ -110,7 +110,7 @@ export const VirtualizedPlayerRoster: React.FC<VirtualizedPlayerRosterProps> = (
       <UnifiedPlayerCard
         key={player.id}
         player={player}
-        variant={variant === 'compact' ? 'marketplace' : 'roster'}
+        variant={variant === 'compact' ? 'dashboard' : 'roster'}
         onClick={() => onPlayerClick?.(player)}
       />
     </div>
@@ -146,7 +146,7 @@ export const VirtualizedPlayerRoster: React.FC<VirtualizedPlayerRosterProps> = (
         <Tabs value={selectedRole} onValueChange={onRoleChange} className="mb-6">
           <TabsList className="grid w-full grid-cols-5 bg-gray-800">
             <TabsTrigger value="all">
-              Main Roster ({roleStats.all}/13)
+              Main Roster ({roleStats.all} Players)
             </TabsTrigger>
             <TabsTrigger value="passer">
               Passers ({roleStats.passer})
@@ -213,9 +213,7 @@ export const VirtualizedPlayerRoster: React.FC<VirtualizedPlayerRosterProps> = (
           {selectedRole === 'taxi-squad' && (
             <Badge variant="outline" className="text-sm">
               Taxi Squad: {roleStats.taxiSquad}/2
-                </Badge>
-              )}
-            </>
+            </Badge>
           )}
         </div>
       )}
