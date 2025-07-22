@@ -69,6 +69,18 @@ export default function MobileRosterHQ() {
   const [selectedPlayer, setSelectedPlayer] = useState<Player | null>(null);
   const [expandedSection, setExpandedSection] = useState<string | null>(null);
 
+  // Function to get racial emoji/icon
+  const getRacialIcon = (race: string) => {
+    const raceIcons: Record<string, string> = {
+      'Human': '👤',
+      'Sylvan': '🍃', 
+      'Gryll': '🪨',
+      'Lumina': '✨',
+      'Umbra': '🌙'
+    };
+    return raceIcons[race] || '👤';
+  };
+
   // Function to get proper staff type names
   const getStaffTypeName = (type: string) => {
     const staffTypeMap: Record<string, string> = {
@@ -278,25 +290,33 @@ export default function MobileRosterHQ() {
               
               <div className="space-y-2">
                 {injuredPlayers.length > 0 && (
-                  <div className="flex items-center justify-between bg-red-800/50 p-3 rounded-lg">
+                  <div className="flex items-center justify-between bg-red-800/50 p-3 rounded-lg hover:bg-red-800/70 transition-colors cursor-pointer"
+                       onClick={() => {
+                         setActivePanel('medical');
+                         setExpandedSection('medical');
+                       }}>
                     <div className="flex items-center">
                       <Shield className="w-5 h-5 mr-2 text-red-400" />
-                      <span className="text-white font-semibold">{injuredPlayers.length} Injured Players</span>
+                      <span className="text-white font-semibold">{injuredPlayers.length} Injured Players - Click to Filter</span>
                     </div>
                     <Button size="sm" className="bg-red-600 hover:bg-red-700 text-white">
-                      HEAL NOW
+                      HEAL ALL
                     </Button>
                   </div>
                 )}
                 
                 {lowStaminaPlayers.length > 0 && (
-                  <div className="flex items-center justify-between bg-yellow-800/50 p-3 rounded-lg">
+                  <div className="flex items-center justify-between bg-yellow-800/50 p-3 rounded-lg hover:bg-yellow-800/70 transition-colors cursor-pointer"
+                       onClick={() => {
+                         setActivePanel('medical');
+                         setExpandedSection('medical');
+                       }}>
                     <div className="flex items-center">
                       <Zap className="w-5 h-5 mr-2 text-yellow-400" />
-                      <span className="text-white font-semibold">{lowStaminaPlayers.length} Low Stamina</span>
+                      <span className="text-white font-semibold">{lowStaminaPlayers.length} Low Energy - Click to Filter</span>
                     </div>
                     <Button size="sm" className="bg-yellow-600 hover:bg-yellow-700 text-white">
-                      REST NOW
+                      RESTORE ALL
                     </Button>
                   </div>
                 )}
@@ -316,13 +336,23 @@ export default function MobileRosterHQ() {
           <CardContent className="p-4">
             <div className="grid grid-cols-3 gap-4">
               
-              {/* Passers */}
-              <Card className="bg-gradient-to-br from-blue-600 to-blue-800 border-2 border-blue-500">
+              {/* Passers - Clickable Filter */}
+              <Card className="bg-gradient-to-br from-blue-600 to-blue-800 border-2 border-blue-500 hover:scale-105 transition-all cursor-pointer"
+                    onClick={() => {
+                      setActivePanel('roster');
+                      setExpandedSection('roster');
+                      // Could add position filter state here
+                    }}>
                 <CardContent className="p-4 text-center">
                   <div className="text-3xl mb-2">🎯</div>
                   <div className="text-2xl font-bold text-white">{passers.length}</div>
                   <div className="text-blue-200 text-sm font-semibold">Passers</div>
                   <div className="text-xs text-blue-300 mt-1">(Min: 3 Required)</div>
+                  {passers.length < 3 && (
+                    <Badge variant="destructive" className="mt-1 text-xs">
+                      Needs {3 - passers.length} More!
+                    </Badge>
+                  )}
                   <Progress 
                     value={(passers.length / 3) * 100} 
                     className="mt-2 h-2 bg-blue-900" 
@@ -330,13 +360,22 @@ export default function MobileRosterHQ() {
                 </CardContent>
               </Card>
 
-              {/* Runners */}
-              <Card className="bg-gradient-to-br from-green-600 to-green-800 border-2 border-green-500">
+              {/* Runners - Clickable Filter */}
+              <Card className="bg-gradient-to-br from-green-600 to-green-800 border-2 border-green-500 hover:scale-105 transition-all cursor-pointer"
+                    onClick={() => {
+                      setActivePanel('roster');
+                      setExpandedSection('roster');
+                    }}>
                 <CardContent className="p-4 text-center">
                   <div className="text-3xl mb-2">⚡</div>
                   <div className="text-2xl font-bold text-white">{runners.length}</div>
                   <div className="text-green-200 text-sm font-semibold">Runners</div>
                   <div className="text-xs text-green-300 mt-1">(Min: 4 Required)</div>
+                  {runners.length < 4 && (
+                    <Badge variant="destructive" className="mt-1 text-xs">
+                      Needs {4 - runners.length} More!
+                    </Badge>
+                  )}
                   <Progress 
                     value={(runners.length / 4) * 100} 
                     className="mt-2 h-2 bg-green-900" 
@@ -344,13 +383,22 @@ export default function MobileRosterHQ() {
                 </CardContent>
               </Card>
 
-              {/* Blockers */}
-              <Card className="bg-gradient-to-br from-orange-600 to-orange-800 border-2 border-orange-500">
+              {/* Blockers - Clickable Filter */}
+              <Card className="bg-gradient-to-br from-orange-600 to-orange-800 border-2 border-orange-500 hover:scale-105 transition-all cursor-pointer"
+                    onClick={() => {
+                      setActivePanel('roster');
+                      setExpandedSection('roster');
+                    }}>
                 <CardContent className="p-4 text-center">
                   <div className="text-3xl mb-2">🛡️</div>
                   <div className="text-2xl font-bold text-white">{blockers.length}</div>
                   <div className="text-orange-200 text-sm font-semibold">Blockers</div>
                   <div className="text-xs text-orange-300 mt-1">(Min: 4 Required)</div>
+                  {blockers.length < 4 && (
+                    <Badge variant="destructive" className="mt-1 text-xs">
+                      Needs {4 - blockers.length} More!
+                    </Badge>
+                  )}
                   <Progress 
                     value={(blockers.length / 4) * 100} 
                     className="mt-2 h-2 bg-orange-900" 
@@ -397,14 +445,22 @@ export default function MobileRosterHQ() {
                       onClick={() => setSelectedPlayer(player)}
                     >
                       <CardContent className="p-4">
-                        <div className="flex items-start justify-between">
+                        <div className="flex items-start justify-between mb-2">
                           <div className="flex-1">
-                            <h3 className="font-bold text-white text-sm">
-                              {player.firstName} {player.lastName}
-                            </h3>
-                            <Badge variant="outline" className="text-xs text-white border-white/50 mt-1">
-                              {getRoleIcon(player.role)} {player.role}
-                            </Badge>
+                            <div className="flex items-center gap-2 mb-1">
+                              <span className="text-lg">{getRacialIcon(player.race || 'Human')}</span>
+                              <h3 className="font-bold text-white text-sm">
+                                {player.firstName} {player.lastName}
+                              </h3>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <Badge variant="outline" className="text-xs text-white border-white/50">
+                                {getRoleIcon(player.role)} {player.role}
+                              </Badge>
+                              <Badge variant="outline" className="text-xs text-blue-300 border-blue-300">
+                                Age {player.age}
+                              </Badge>
+                            </div>
                           </div>
                           <div className="text-right">
                             <div className="text-lg font-bold text-white">
@@ -414,7 +470,24 @@ export default function MobileRosterHQ() {
                           </div>
                         </div>
                         
-                        <div className="mt-3 flex justify-between text-xs">
+                        {/* Contract Information */}
+                        <div className="mb-2 p-2 bg-black/30 rounded">
+                          <div className="flex justify-between text-xs">
+                            <span className="text-white/70">Contract:</span>
+                            <span className="text-green-300 font-semibold">
+                              {Number(player.contractSalary || 0).toLocaleString()}₡/season
+                            </span>
+                          </div>
+                          <div className="flex justify-between text-xs">
+                            <span className="text-white/70">Years Left:</span>
+                            <span className="text-yellow-300">
+                              {player.contractLength || 0} seasons
+                            </span>
+                          </div>
+                        </div>
+                        
+                        {/* Health and Stamina Status */}
+                        <div className="flex justify-between text-xs">
                           <div className="flex items-center gap-1">
                             <Heart className="h-3 w-3 text-green-400" />
                             <span className={`font-semibold ${player.injuryStatus === 'HEALTHY' ? 'text-green-400' : 'text-red-400'}`}>
@@ -471,20 +544,41 @@ export default function MobileRosterHQ() {
                       onClick={() => setSelectedPlayer(player)}
                     >
                       <CardContent className="p-4">
-                        <div className="flex items-start justify-between">
+                        <div className="flex items-start justify-between mb-2">
                           <div className="flex-1">
-                            <h3 className="font-bold text-white">
-                              {player.firstName} {player.lastName}
-                            </h3>
-                            <Badge variant="outline" className="text-xs text-white border-white/50 mt-1">
-                              {getRoleIcon(player.role)} {player.role}
-                            </Badge>
+                            <div className="flex items-center gap-2 mb-1">
+                              <span className="text-lg">{getRacialIcon(player.race || 'Human')}</span>
+                              <h3 className="font-bold text-white text-sm">
+                                {player.firstName} {player.lastName}
+                              </h3>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <Badge variant="outline" className="text-xs text-white border-white/50">
+                                {getRoleIcon(player.role)} {player.role}
+                              </Badge>
+                              <Badge className="bg-purple-600 text-white text-xs">
+                                DEVELOPMENT
+                              </Badge>
+                            </div>
                           </div>
                           <div className="text-right">
                             <div className="text-lg font-bold text-white">
                               {getPlayerPower(player)}
                             </div>
                             <div className="text-xs text-white/70">Power</div>
+                          </div>
+                        </div>
+                        
+                        {/* Enhanced Taxi Squad Info */}
+                        <div className="p-2 bg-purple-900/50 rounded text-xs">
+                          <div className="text-purple-200 mb-1">🚌 Taxi Squad Status</div>
+                          <div className="flex justify-between">
+                            <span className="text-white/70">Promotion Available:</span>
+                            <span className="text-yellow-300">Days 16-17</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-white/70">Development Bonus:</span>
+                            <span className="text-green-300">+50% XP</span>
                           </div>
                         </div>
                       </CardContent>
