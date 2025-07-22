@@ -10,6 +10,7 @@ import { useMutation } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 import InventoryDisplay from "@/components/InventoryDisplay";
 import PaymentHistory from "@/components/PaymentHistory";
+import FinancialCenter from "@/components/FinancialCenter";
 import { 
   Store, 
   Users, 
@@ -204,8 +205,12 @@ export default function MarketDistrict() {
           <p className="text-gray-400">Trading, shopping, and economic center</p>
         </div>
 
-        <Tabs defaultValue="store" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-4 bg-gray-800">
+        <Tabs defaultValue="finances" className="space-y-6">
+          <TabsList className="grid w-full grid-cols-5 bg-gray-800">
+            <TabsTrigger value="finances" className="flex items-center gap-2">
+              <BarChart3 className="h-4 w-4" />
+              Finances
+            </TabsTrigger>
             <TabsTrigger value="store" className="flex items-center gap-2">
               <Store className="h-4 w-4" />
               Store
@@ -223,6 +228,24 @@ export default function MarketDistrict() {
               Transactions
             </TabsTrigger>
           </TabsList>
+
+          {/* Financial Center Tab */}
+          <TabsContent value="finances" className="space-y-4">
+            <Card className="bg-gray-800 border-gray-700">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2 text-white">
+                  <DollarSign className="h-5 w-5 text-green-400" />
+                  Financial Management Center
+                </CardTitle>
+                <p className="text-sm text-gray-400">
+                  Centralized financial dashboard with real-time updates and revenue tracking
+                </p>
+              </CardHeader>
+              <CardContent>
+                {team?.id && <FinancialCenter teamId={team.id} />}
+              </CardContent>
+            </Card>
+          </TabsContent>
 
           {/* Store Tab */}
           <TabsContent value="store" className="space-y-4">

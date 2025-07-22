@@ -13,6 +13,7 @@ import StaffManagement from "@/components/StaffManagement";
 import PlayerDetailModal from "@/components/PlayerDetailModal";
 import StadiumAtmosphereManager from "@/components/StadiumAtmosphereManager";
 import TeamFinances from "@/components/TeamFinances";
+import StadiumOverview from "@/components/StadiumOverview";
 import { 
   Users, UserPlus, Zap, Heart, DollarSign, Settings,
   Trophy, Shield, Target, AlertTriangle, Plus, Building2, BarChart3,
@@ -628,9 +629,22 @@ export default function RosterHQ() {
             </Card>
           </TabsContent>
 
-          {/* Stadium Tab */}
+          {/* Stadium Tab - Enhanced Stadium Overview */}
           <TabsContent value="stadium" className="space-y-6">
-            <StadiumAtmosphereManager teamId={team?.id || ''} />
+            <Card className="bg-gray-800 border-gray-700">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Building2 className="h-5 w-5" />
+                  Stadium Management Center
+                </CardTitle>
+                <p className="text-sm text-gray-400">
+                  Manage your stadium facilities, upgrades, and fan engagement
+                </p>
+              </CardHeader>
+              <CardContent>
+                {team?.id && <StadiumOverview teamId={team.id} />}
+              </CardContent>
+            </Card>
           </TabsContent>
 
           {/* Finances Tab */}
