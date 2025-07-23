@@ -34,18 +34,18 @@ router.get('/:teamId?', isAuthenticated, async (req: Request, res: Response, nex
     if (!teamId) {
       const team = await storage.teams.getTeamByUserId(userProfile.claims.sub);
       if (!team) {
-        return res.status(404).json({ error: 'Team not found' });
+        res.status(404).json({ error: 'Team not found' });
+        return;
       }
       teamId = team.id.toString();
     }
 
     // Simplified team data lookup
-    const team = await storage.prisma.team.findUnique({
-      where: { id: parseInt(teamId) }
-    });
+    const team = await storage.teams.getTeamById(parseInt(teamId));
 
     if (!team) {
-      return res.status(404).json({ error: 'Team not found' });
+      res.status(404).json({ error: 'Team not found' });
+      return;
     }
 
     // Return sample highlights for now - fully functional endpoint
