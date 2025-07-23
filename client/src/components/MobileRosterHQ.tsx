@@ -9,6 +9,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import PlayerDetailModal from "@/components/PlayerDetailModal";
 import StaffNegotiationModal from "@/components/StaffNegotiationModal";
 import StaffReleaseConfirmation from "@/components/StaffReleaseConfirmation";
+import UnifiedTeamHeader from "@/components/UnifiedTeamHeader";
 import { 
   Users, UserPlus, Zap, Heart, DollarSign, Settings,
   Trophy, Shield, Target, AlertTriangle, Plus, Building2, BarChart3,
@@ -137,7 +138,7 @@ export default function MobileRosterHQ() {
   const mainRoster = sortedPlayers.slice(0, 12);
   const taxiSquad = sortedPlayers.slice(12, 15);
   const injuredPlayers = activePlayers.filter(p => p.injuryStatus !== 'HEALTHY');
-  const lowStaminaPlayers = activePlayers.filter(p => (p.dailyStaminaLevel || 0) < 50);
+  const lowStaminaPlayers = activePlayers.filter(p => (p.dailyStaminaLevel || 100) < 50);
   
   // Role distribution
   const passers = activePlayers.filter(p => p.role === 'PASSER');
@@ -227,73 +228,13 @@ export default function MobileRosterHQ() {
     <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900">
       <div className="container mx-auto px-4 py-6 max-w-6xl">
         
-        {/* 🚀 DRAMATIC ROSTER HQ HERO BANNER */}
-        <Card className="bg-gradient-to-r from-blue-800 via-indigo-800 to-purple-800 border-2 border-blue-400 shadow-2xl mb-6 overflow-hidden">
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center space-x-4">
-                <div className="relative">
-                  <div className="w-16 h-16 bg-gradient-to-br from-blue-400 to-purple-500 rounded-full flex items-center justify-center animate-pulse">
-                    <Users className="w-10 h-10 text-white" />
-                  </div>
-                  <div className="absolute -top-1 -right-1 w-5 h-5 bg-green-400 rounded-full flex items-center justify-center">
-                    <span className="text-xs font-bold text-white">{activePlayers.length}</span>
-                  </div>
-                </div>
-                
-                <div>
-                  <h1 className="text-4xl font-black text-transparent bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 bg-clip-text">
-                    📋 ROSTER HQ
-                  </h1>
-                  <div className="flex items-center space-x-3 text-lg text-blue-200 mt-1">
-                    <span className="font-semibold">{team.name}</span>
-                    <Badge variant="outline" className="border-blue-400 text-blue-400">
-                      Division {team.division}
-                    </Badge>
-                  </div>
-                </div>
-              </div>
-              
-              <div className="text-right">
-                <div className="text-blue-400 text-sm font-bold">TEAM POWER</div>
-                <div className="text-white text-3xl font-black">{
-                  players && players.length > 0 ? 
-                    Math.round(
-                      players
-                        .map(p => (p.speed + p.power + p.throwing + p.catching + p.kicking + p.agility) / 6)
-                        .sort((a, b) => b - a)
-                        .slice(0, 9)
-                        .reduce((sum, power) => sum + power, 0) / Math.min(9, players.length)
-                    ) : 0
-                }</div>
-              </div>
-            </div>
-            
-            {/* Quick Status Row */}
-            <div className="grid grid-cols-4 gap-3">
-              <div className="text-center">
-                <div className="text-xl font-bold text-white">{activePlayers.length}/15</div>
-                <div className="text-xs text-blue-200">Active</div>
-              </div>
-              <div className="text-center">
-                <div className={`text-xl font-bold ${injuredPlayers.length > 0 ? 'text-red-400' : 'text-green-400'}`}>
-                  {injuredPlayers.length}
-                </div>
-                <div className="text-xs text-blue-200">Injured</div>
-              </div>
-              <div className="text-center">
-                <div className={`text-xl font-bold ${lowStaminaPlayers.length > 0 ? 'text-yellow-400' : 'text-green-400'}`}>
-                  {lowStaminaPlayers.length}
-                </div>
-                <div className="text-xs text-blue-200">Low Energy</div>
-              </div>
-              <div className="text-center">
-                <div className="text-xl font-bold text-purple-400">{taxiSquad.length}/2</div>
-                <div className="text-xs text-blue-200">Taxi</div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+        {/* 🚀 UNIFIED TEAM HEADER */}
+        <UnifiedTeamHeader
+          title="ROSTER HQ"
+          titleIcon="📋"
+          team={team}
+          players={activePlayers}
+        />
 
         {/* 🚨 CRITICAL ALERTS PANEL */}
         {(injuredPlayers.length > 0 || lowStaminaPlayers.length > 0) && (

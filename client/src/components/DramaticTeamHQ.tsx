@@ -3,6 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/useAuth";
 import { useLocation } from "wouter";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import UnifiedTeamHeader from "@/components/UnifiedTeamHeader";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
@@ -169,11 +170,11 @@ export default function DramaticTeamHQ() {
   const finances = team?.finances || { credits: BigInt(16000), gems: BigInt(50) };
   const stadium = team?.stadium || { capacity: 5000, concessionsLevel: 1, parkingLevel: 1, vipSuitesLevel: 1, merchandisingLevel: 1, lightingScreensLevel: 1 };
 
-  // Enhanced player analysis - fix filtering logic
+  // Enhanced player analysis - use consistent thresholds with unified header
   const allPlayers = players || [];
   const activePlayers = allPlayers.filter((p: any) => p.injuryStatus === 'HEALTHY');
   const injuredPlayers = allPlayers.filter((p: any) => p.injuryStatus !== 'HEALTHY');
-  const lowStaminaPlayers = allPlayers.filter((p: any) => (p.dailyStaminaLevel || 100) < 70);
+  const lowStaminaPlayers = allPlayers.filter((p: any) => (p.dailyStaminaLevel || 100) < 50);
   
   const teamPower = team.teamPower || 0;
 
@@ -201,57 +202,13 @@ export default function DramaticTeamHQ() {
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
       <div className="container mx-auto px-4 py-8 max-w-6xl">
         
-        {/* 🚀 DRAMATIC HERO BANNER - MOBILE-FIRST */}
-        <Card className="bg-gradient-to-r from-purple-900 via-blue-900 to-indigo-900 border-4 border-blue-500 mb-6 overflow-hidden">
-          <CardContent className="p-6">
-            <div className="flex flex-col sm:flex-row items-start justify-between gap-4">
-              <div className="flex-1">
-                <div className="flex items-center mb-2">
-                  <Trophy className="w-8 h-8 mr-3 text-yellow-400" />
-                  <div>
-                    <h1 className="text-3xl font-black text-white mb-1">⚡ {team.name} ⚡</h1>
-                    <div className="flex items-center gap-4">
-                      <Badge className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-3 py-1">
-                        Division {team.division} - Stone {team.subdivision}
-                      </Badge>
-                      <span className="text-blue-200 text-sm font-semibold">Season 0 • Day 9 of 17</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-              
-              <div className="text-right">
-                <div className="text-blue-400 text-sm font-bold">TEAM POWER</div>
-                <div className="text-white text-3xl font-black">{teamPower}</div>
-                <div className="text-blue-200 text-sm">{team.wins}W - {draws}D - {team.losses}L</div>
-              </div>
-            </div>
-            
-            {/* Quick Status Row */}
-            <div className="grid grid-cols-4 gap-3">
-              <div className="text-center">
-                <div className="text-xl font-bold text-white">{allPlayers.length}</div>
-                <div className="text-xs text-blue-200">Players</div>
-              </div>
-              <div className="text-center">
-                <div className={`text-xl font-bold ${injuredPlayers.length > 0 ? 'text-red-400' : 'text-green-400'}`}>
-                  {injuredPlayers.length}
-                </div>
-                <div className="text-xs text-blue-200">Injured</div>
-              </div>
-              <div className="text-center">
-                <div className={`text-xl font-bold ${lowStaminaPlayers.length > 0 ? 'text-yellow-400' : 'text-green-400'}`}>
-                  {lowStaminaPlayers.length}
-                </div>
-                <div className="text-xs text-blue-200">Low Energy</div>
-              </div>
-              <div className="text-center">
-                <div className="text-xl font-bold text-purple-400">{Number(finances?.credits || BigInt(0)).toLocaleString()}</div>
-                <div className="text-xs text-blue-200">Credits</div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+        {/* 🚀 UNIFIED TEAM HEADER */}
+        <UnifiedTeamHeader
+          title="TEAM HQ"
+          titleIcon="⚡"
+          team={team}
+          players={allPlayers}
+        />
 
         {/* 🚨 CRITICAL ALERTS PANEL */}
         {(injuredPlayers.length > 0 || lowStaminaPlayers.length > 0) && (
