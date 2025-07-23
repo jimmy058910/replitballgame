@@ -1,11 +1,12 @@
 import { Router } from "express";
 import { storage } from "../storage";
 import { isAuthenticated } from "../replitAuth";
+import { cacheMiddleware } from "../middleware/cache";
 
 const router = Router();
 
-// Universal Team Power Rankings
-router.get("/global-rankings", isAuthenticated, async (req, res) => {
+// Universal Team Power Rankings with 5-minute cache
+router.get("/global-rankings", cacheMiddleware({ ttl: 300 }), isAuthenticated, async (req, res) => {
   try {
     const teams = await storage.teams.getAllTeamsWithStats();
     

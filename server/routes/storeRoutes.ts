@@ -1,4 +1,5 @@
 import { Router, type Request, type Response, type NextFunction } from "express";
+import { cacheMiddleware } from "../middleware/cache";
 import { storage } from "../storage/index";
 import { teamFinancesStorage } from "../storage/teamFinancesStorage";
 // import { adSystemStorage } from "../storage/adSystemStorage";
@@ -33,8 +34,8 @@ const convertGemsSchema = z.object({
     gemsAmount: z.number().int().min(1, "Must convert at least 1 gem."),
 });
 
-// Store routes - Master Economy v5 Combined 8-item Store System
-router.get('/items', isAuthenticated, async (req: any, res: Response, next: NextFunction) => {
+// Store routes - Master Economy v5 Combined 8-item Store System with 10-minute cache
+router.get('/items', cacheMiddleware({ ttl: 600 }), isAuthenticated, async (req: any, res: Response, next: NextFunction) => {
   try {
     const userId = req.user.claims.sub;
     // Master Economy v5: Return 8-item daily rotation instead of separate stores
@@ -129,7 +130,7 @@ router.get('/gem-exchange-rates', isAuthenticated, async (req: Request, res: Res
 });
 
 // Store categories endpoint - returns all available item categories
-router.get('/categories', async (req: Request, res: Response, next: NextFunction) => {
+router.get('/categories', cacheMiddleware({ ttl: 3600 }), async (req: Request, res: Response, next: NextFunction) => {
   try {
     const categories = {
       equipment: {

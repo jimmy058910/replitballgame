@@ -35,7 +35,6 @@ import ErrorBoundary from "@/components/ErrorBoundary";
 
 // Direct imports for testing - bypassing lazy loading
 import Dashboard from "@/pages/Dashboard";
-import RosterHQ from "@/pages/RosterHQ";
 
 // New 5-Hub Architecture Components with error handling - Dashboard routes to DramaticTeamHQ
 const LazyDashboard = lazy(() => import("@/pages/Dashboard").catch(() => ({ default: () => <div>Loading Team HQ...</div> })));
@@ -70,7 +69,11 @@ function Router() {
               <LazyDashboard />
             </Suspense>
           )} />
-          <Route path="/roster-hq" component={RosterHQ} />
+          <Route path="/roster-hq" component={() => (
+            <Suspense fallback={<div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900/20 to-blue-900/30 animate-pulse flex items-center justify-center"><div className="text-white text-xl">Loading Roster HQ...</div></div>}>
+              <LazyRosterHQ />
+            </Suspense>
+          )} />
           <Route path="/competition" component={() => (
             <Suspense fallback={<div className="min-h-screen bg-gray-900 animate-pulse" />}>
               <LazyCompetitionCenter />

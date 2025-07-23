@@ -244,7 +244,7 @@ export class TeamStorage {
   async createDefaultFinancesForTeam(teamId: number): Promise<void> {
     await prisma.teamFinances.create({
       data: {
-        teamId: teamId,
+        teamId,
         credits: BigInt(50000), // Starting credits
         gems: BigInt(100), // Starting gems
         projectedIncome: BigInt(0),
@@ -259,7 +259,7 @@ export class TeamStorage {
   async createDefaultStadiumForTeam(teamId: number): Promise<void> {
     await prisma.stadium.create({
       data: {
-        teamId: teamId,
+        teamId,
         capacity: 5000, // Starting capacity
         concessionsLevel: 1,
         parkingLevel: 1,
