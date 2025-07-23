@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import { Badge } from './ui/badge';
 import { Button } from './ui/button';
 import { Progress } from './ui/progress';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/tabs';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from './ui/tooltip';
 import { 
   Building, 
   TrendingUp, 
@@ -21,7 +21,16 @@ import {
   Heart,
   AlertTriangle,
   CheckCircle,
-  ChevronRight
+  ChevronRight,
+  Eye,
+  Calculator,
+  Clock,
+  Home,
+  Car,
+  ShoppingBag,
+  Lightbulb,
+  Monitor,
+  Crown
 } from 'lucide-react';
 
 interface StadiumFinancialHubProps {
@@ -50,112 +59,173 @@ interface RevenueBreakdown {
 
 interface UpgradeOption {
   name: string;
+  type: string;
   currentLevel: number;
+  maxLevel: number;
   cost: number;
   effect: string;
-  revenueIncrease: number;
+  revenueIncrease?: number;
+  paybackGames?: number;
 }
+
+interface StadiumAnalytics {
+  fanLoyalty: number;
+  attendanceRate: number;
+  actualAttendance: number;
+  atmosphereBonus: string;
+  dailyUpkeep: number;
+  upgradeOptions: UpgradeOption[];
+  revenueBreakdown: RevenueBreakdown;
+}
+
+// Tier Ladder Component
+const TierLadder: React.FC<{
+  currentLevel: number;
+  maxLevel: number;
+  upgradeType: string;
+  cost: number;
+  effect: string;
+  paybackGames?: number;
+  onUpgrade: () => void;
+}> = ({ currentLevel, maxLevel, upgradeType, cost, effect, paybackGames, onUpgrade }) => {
+  const renderDots = () => {
+    return Array.from({ length: maxLevel }, (_, i) => (
+      <span
+        key={i}
+        className={`inline-block w-3 h-3 rounded-full mx-0.5 ${
+          i < currentLevel 
+            ? 'bg-purple-500 shadow-lg shadow-purple-500/30' 
+            : 'bg-gray-600 border border-gray-500'
+        }`}
+      />
+    ));
+  };
+
+  const getUpgradeIcon = (type: string) => {
+    const iconMap: Record<string, any> = {
+      capacity: Home,
+      concessions: ShoppingBag,
+      parking: Car,
+      vipSuites: Crown,
+      merchandising: ShoppingBag,
+      lighting: Lightbulb
+    };
+    const Icon = iconMap[type] || Building;
+    return <Icon className="w-4 h-4" />;
+  };
+
+  return (
+    <div className="flex items-center justify-between p-3 bg-gray-800/50 border border-gray-700 rounded-lg hover:bg-gray-800/70 transition-colors">
+      <div className="flex items-center gap-3 flex-1">
+        <div className="flex items-center gap-2 min-w-20">
+          {getUpgradeIcon(upgradeType)}
+          <span className="text-sm font-medium text-white capitalize">
+            {upgradeType === 'vipSuites' ? 'VIP' : upgradeType}
+          </span>
+        </div>
+        
+        <div className="flex items-center gap-2">
+          {renderDots()}
+        </div>
+      </div>
+
+      <div className="flex items-center gap-3">
+        <div className="text-right">
+          <div className="text-sm font-medium text-white">₡{cost.toLocaleString()}</div>
+          {paybackGames && (
+            <div className="text-xs text-gray-400">≈ {paybackGames} games</div>
+          )}
+        </div>
+        
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                size="sm"
+                onClick={onUpgrade}
+                disabled={currentLevel >= maxLevel}
+                className="bg-purple-600 hover:bg-purple-700 text-white px-3 py-1 h-8"
+              >
+                Upgrade ▶
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p className="max-w-xs">{effect}</p>
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
+      </div>
+    </div>
+  );
+};
+
+// Radial Gauge Component
+const RadialGauge: React.FC<{
+  value: number;
+  max: number;
+  size?: number;
+  strokeWidth?: number;
+  color?: string;
+  label?: string;
+  showValue?: boolean;
+}> = ({ value, max, size = 80, strokeWidth = 8, color = '#8b5cf6', label, showValue = true }) => {
+  const radius = (size - strokeWidth) / 2;
+  const circumference = radius * 2 * Math.PI;
+  const percentage = Math.min((value / max) * 100, 100);
+  const strokeDasharray = `${(percentage / 100) * circumference} ${circumference}`;
+
+  return (
+    <div className="flex flex-col items-center">
+      <div className="relative" style={{ width: size, height: size }}>
+        <svg width={size} height={size} className="transform -rotate-90">
+          <circle
+            cx={size / 2}
+            cy={size / 2}
+            r={radius}
+            stroke="currentColor"
+            strokeWidth={strokeWidth}
+            fill="transparent"
+            className="text-gray-700"
+          />
+          <circle
+            cx={size / 2}
+            cy={size / 2}
+            r={radius}
+            stroke={color}
+            strokeWidth={strokeWidth}
+            fill="transparent"
+            strokeDasharray={strokeDasharray}
+            strokeLinecap="round"
+            className="transition-all duration-1000 ease-out"
+          />
+        </svg>
+        {showValue && (
+          <div className="absolute inset-0 flex items-center justify-center">
+            <span className="text-lg font-bold text-white">{Math.round(value)}</span>
+          </div>
+        )}
+      </div>
+      {label && (
+        <span className="text-sm text-gray-400 mt-2 text-center max-w-20">{label}</span>
+      )}
+    </div>
+  );
+};
 
 const StadiumFinancialHub: React.FC<StadiumFinancialHubProps> = ({ team, stadium }) => {
   const [selectedUpgrade, setSelectedUpgrade] = useState<UpgradeOption | null>(null);
-  
-  // Calculate fan attendance algorithm
-  const calculateAttendance = (stadium: StadiumData, division: number = 8, fanLoyalty: number = 50, winStreak: number = 0) => {
-    const capacity = stadium?.capacity || 5000;
-    
-    // Division Modifier
-    const divisionModifiers: Record<number, number> = {
-      1: 1.2, 2: 1.1, 3: 1.05, 4: 1.0, 5: 0.95, 6: 0.9, 7: 0.85, 8: 0.8
-    };
-    const divisionMod = divisionModifiers[division] || 0.8;
-    
-    // Fan Loyalty Modifier (0.75x to 1.25x)
-    const loyaltyMod = 0.75 + (fanLoyalty / 100) * 0.5;
-    
-    // Win Streak Modifier
-    let winStreakMod = 1.0;
-    if (winStreak >= 8) winStreakMod = 1.5;
-    else if (winStreak >= 5) winStreakMod = 1.25;
-    else if (winStreak >= 3) winStreakMod = 1.1;
-    
-    const attendance = Math.floor(capacity * divisionMod * loyaltyMod * winStreakMod);
-    return Math.min(attendance, capacity);
-  };
+  const [showUpgradeHistory, setShowUpgradeHistory] = useState(false);
+  const [showROICalculator, setShowROICalculator] = useState(false);
 
-  // Calculate revenue breakdown
-  const calculateRevenue = (stadium: StadiumData, attendance: number): RevenueBreakdown => {
-    const concessionsLevel = stadium?.concessionsLevel || 1;
-    const parkingLevel = stadium?.parkingLevel || 1;
-    const vipSuitesLevel = stadium?.vipSuitesLevel || 0;
-    const merchandisingLevel = stadium?.merchandisingLevel || 1;
-    
-    return {
-      ticketSales: attendance * 25,
-      concessions: attendance * 8 * concessionsLevel,
-      parking: Math.floor(attendance * 0.3) * 10 * parkingLevel,
-      vipSuites: vipSuitesLevel * 5000,
-      apparelSales: attendance * 3 * merchandisingLevel,
-      atmosphereBonus: 0 // TODO: Implement based on fan loyalty
-    };
-  };
+  // Fetch stadium analytics from backend
+  const { data: stadiumAnalytics, isLoading } = useQuery({
+    queryKey: [`/api/stadium-atmosphere/team/${team?.id}/analytics`],
+    enabled: !!team?.id
+  });
 
-  // Get upgrade costs and effects
-  const getUpgradeOptions = (stadium: StadiumData): UpgradeOption[] => {
-    const capacity = stadium?.capacity || 5000;
-    const concessionsLevel = stadium?.concessionsLevel || 1;
-    const parkingLevel = stadium?.parkingLevel || 1;
-    const vipSuitesLevel = stadium?.vipSuitesLevel || 0;
-    const merchandisingLevel = stadium?.merchandisingLevel || 1;
-    const lightingLevel = stadium?.lightingScreensLevel || 1;
-    
-    return [
-      {
-        name: 'Capacity Expansion',
-        currentLevel: Math.floor(capacity / 5000),
-        cost: Math.floor(capacity * 10),
-        effect: '+5,000 seats',
-        revenueIncrease: 5000 * 25 // Base ticket revenue
-      },
-      {
-        name: 'Premium Concessions',
-        currentLevel: concessionsLevel,
-        cost: 30000 * Math.pow(1.5, concessionsLevel - 1),
-        effect: `Level ${concessionsLevel + 1} (+${concessionsLevel + 1}x multiplier)`,
-        revenueIncrease: calculateAttendance(stadium) * 8 // Per game increase
-      },
-      {
-        name: 'Expand Parking',
-        currentLevel: parkingLevel,
-        cost: 25000 * Math.pow(1.5, parkingLevel - 1),
-        effect: `Level ${parkingLevel + 1} (+${parkingLevel + 1}x multiplier)`,
-        revenueIncrease: Math.floor(calculateAttendance(stadium) * 0.3) * 10
-      },
-      {
-        name: 'VIP Suites',
-        currentLevel: vipSuitesLevel,
-        cost: 100000 * Math.pow(2, vipSuitesLevel),
-        effect: '+1 VIP Suite (+₡5,000/game)',
-        revenueIncrease: 5000
-      },
-      {
-        name: 'Merchandising Kiosk',
-        currentLevel: merchandisingLevel,
-        cost: 40000 * Math.pow(1.5, merchandisingLevel - 1),
-        effect: `Level ${merchandisingLevel + 1} (+${merchandisingLevel + 1}x multiplier)`,
-        revenueIncrease: calculateAttendance(stadium) * 3
-      },
-      {
-        name: 'Lighting/Screens',
-        currentLevel: lightingLevel,
-        cost: 60000 * Math.pow(1.8, lightingLevel - 1),
-        effect: `Level ${lightingLevel + 1} (+5% Fan Loyalty/season)`,
-        revenueIncrease: 0 // Indirect through fan loyalty
-      }
-    ];
-  };
-
+  // Calculate mock data for now based on stadium props
   const currentStadium: StadiumData = {
-    capacity: stadium?.capacity || 5000,
+    capacity: stadium?.capacity || 15000,
     concessionsLevel: stadium?.concessionsLevel || 1,
     parkingLevel: stadium?.parkingLevel || 1,
     vipSuitesLevel: stadium?.vipSuitesLevel || 0,
@@ -166,374 +236,349 @@ const StadiumFinancialHub: React.FC<StadiumFinancialHubProps> = ({ team, stadium
 
   const division = team?.division || 8;
   const fanLoyalty = team?.fanLoyalty || 50;
-  const winStreak = 0; // TODO: Get from team data
-
-  const projectedAttendance = calculateAttendance(currentStadium, division, fanLoyalty, winStreak);
-  const revenueBreakdown = calculateRevenue(currentStadium, projectedAttendance);
-  const totalRevenue = Object.values(revenueBreakdown).reduce((sum, val) => sum + val, 0);
-  const upgradeOptions = getUpgradeOptions(currentStadium);
-
-  // Calculate daily maintenance cost (0.2% of total stadium investment)
-  const totalInvestment = (currentStadium.capacity - 5000) * 10 + 
+  
+  // Calculate attendance rate
+  const attendanceRate = Math.min(85, Math.max(35, (fanLoyalty * 0.6) + (division <= 4 ? 15 : 5)));
+  const actualAttendance = Math.floor((currentStadium.capacity * attendanceRate) / 100);
+  
+  // Calculate atmosphere bonus
+  const atmosphereBonus = fanLoyalty > 75 ? '+3% DEF' : fanLoyalty > 50 ? '+2% DEF' : '+1% DEF';
+  
+  // Calculate daily upkeep (0.2% of total stadium value)
+  const stadiumValue = (currentStadium.capacity - 15000) * 10 + 
     (currentStadium.concessionsLevel - 1) * 30000 +
     (currentStadium.parkingLevel - 1) * 25000 +
     currentStadium.vipSuitesLevel * 100000 +
     (currentStadium.merchandisingLevel - 1) * 40000 +
     (currentStadium.lightingScreensLevel - 1) * 60000;
+  const dailyUpkeep = Math.floor(stadiumValue * 0.002) + 1000; // Base 1000₡ minimum
   
-  const dailyMaintenanceCost = Math.floor(totalInvestment * 0.002);
+  // Calculate revenue breakdown
+  const revenueBreakdown: RevenueBreakdown = {
+    ticketSales: actualAttendance * 25,
+    concessions: actualAttendance * 8 * currentStadium.concessionsLevel,
+    parking: Math.floor(actualAttendance * 0.3) * 10 * currentStadium.parkingLevel,
+    vipSuites: currentStadium.vipSuitesLevel * 5000,
+    apparelSales: actualAttendance * 3 * currentStadium.merchandisingLevel,
+    atmosphereBonus: fanLoyalty > 80 ? actualAttendance * 2 : 0
+  };
+  
+  const totalGameRevenue = Object.values(revenueBreakdown).reduce((sum, val) => sum + val, 0);
+  
+  // Upgrade options with proper calculations
+  const upgradeOptions: UpgradeOption[] = [
+    {
+      name: 'Capacity',
+      type: 'capacity',
+      currentLevel: Math.floor(currentStadium.capacity / 5000) - 2, // Adjust for 15k base
+      maxLevel: 5,
+      cost: currentStadium.capacity * 0.6, // 60% of current capacity
+      effect: '+5,000 seats, increased revenue potential',
+      paybackGames: Math.ceil((currentStadium.capacity * 0.6) / (5000 * 25))
+    },
+    {
+      name: 'Concessions',
+      type: 'concessions',
+      currentLevel: currentStadium.concessionsLevel,
+      maxLevel: 5,
+      cost: 8000 * Math.pow(1.5, currentStadium.concessionsLevel),
+      effect: '+2₡ per fan',
+      paybackGames: Math.ceil((8000 * Math.pow(1.5, currentStadium.concessionsLevel)) / (actualAttendance * 2))
+    },
+    {
+      name: 'Parking',
+      type: 'parking',
+      currentLevel: currentStadium.parkingLevel,
+      maxLevel: 5,
+      cost: 6000 * Math.pow(1.4, currentStadium.parkingLevel),
+      effect: '+1₡ per 0.3 fan',
+      paybackGames: Math.ceil((6000 * Math.pow(1.4, currentStadium.parkingLevel)) / (Math.floor(actualAttendance * 0.3) * 1))
+    },
+    {
+      name: 'VIP Suites',
+      type: 'vipSuites',
+      currentLevel: currentStadium.vipSuitesLevel,
+      maxLevel: 5,
+      cost: 50000 * Math.pow(2, currentStadium.vipSuitesLevel),
+      effect: '+₡5,000 / game',
+      paybackGames: Math.ceil((50000 * Math.pow(2, currentStadium.vipSuitesLevel)) / 5000)
+    },
+    {
+      name: 'Merchandise',
+      type: 'merchandising',
+      currentLevel: currentStadium.merchandisingLevel,
+      maxLevel: 5,
+      cost: 7500 * Math.pow(1.3, currentStadium.merchandisingLevel),
+      effect: '+1₡ per fan',
+      paybackGames: Math.ceil((7500 * Math.pow(1.3, currentStadium.merchandisingLevel)) / (actualAttendance * 1))
+    },
+    {
+      name: 'Lighting',
+      type: 'lighting',
+      currentLevel: currentStadium.lightingScreensLevel,
+      maxLevel: 5,
+      cost: 20000 * Math.pow(1.6, currentStadium.lightingScreensLevel),
+      effect: '+5% Loyalty / season',
+      paybackGames: 0 // Long-term benefit
+    }
+  ];
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="text-white">Loading stadium data...</div>
+      </div>
+    );
+  }
 
   return (
-    <div className="space-y-6">
-      {/* Stadium Overview Header */}
-      <Card className="bg-gradient-to-r from-purple-800 to-purple-900 border-2 border-purple-400">
-        <CardHeader>
-          <CardTitle className="flex items-center justify-between text-white">
-            <div className="flex items-center">
-              <Building className="w-6 h-6 mr-3 text-purple-400" />
-              🏟️ {stadium?.name || team?.name + ' Stadium'}
-            </div>
-            <Badge className="bg-purple-600 text-white">
-              Division {division}
-            </Badge>
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="p-4">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
-            <div className="bg-purple-900/50 p-3 rounded-lg">
-              <Users className="w-5 h-5 mx-auto mb-2 text-purple-400" />
-              <div className="text-white/70 text-xs">Capacity</div>
-              <div className="text-white font-bold">
-                {currentStadium.capacity.toLocaleString()}
+    <TooltipProvider>
+      <div className="px-4 py-8 bg-gradient-to-br from-gray-900 via-purple-900/20 to-blue-900/30 min-h-screen">
+        <div className="max-w-6xl mx-auto space-y-6">
+          
+          {/* 1. Above-the-Fold KPI Widgets */}
+          <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+            
+            {/* Capacity Progress Bar */}
+            <Card className="bg-gray-800/90 border-gray-700 col-span-2 md:col-span-1">
+              <CardContent className="p-4">
+                <div className="flex items-center gap-2 mb-2">
+                  <Home className="w-4 h-4 text-purple-400" />
+                  <span className="text-sm font-medium text-white">Capacity</span>
+                </div>
+                <Progress 
+                  value={(currentStadium.capacity / 25000) * 100} 
+                  className="mb-2 h-2" 
+                />
+                <Tooltip>
+                  <TooltipTrigger className="text-xs text-gray-300 cursor-help">
+                    {currentStadium.capacity.toLocaleString()} / 25,000
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>Click to open capacity upgrade options</p>
+                  </TooltipContent>
+                </Tooltip>
+              </CardContent>
+            </Card>
+
+            {/* Fan Loyalty Radial Gauge */}
+            <Card className="bg-gray-800/90 border-gray-700">
+              <CardContent className="p-4 flex flex-col items-center">
+                <div className="flex items-center gap-2 mb-2">
+                  <Heart className="w-4 h-4 text-red-400" />
+                  <span className="text-sm font-medium text-white">Fan Loyalty</span>
+                </div>
+                <RadialGauge 
+                  value={fanLoyalty} 
+                  max={100} 
+                  size={60} 
+                  strokeWidth={6}
+                  color={fanLoyalty > 75 ? '#22c55e' : fanLoyalty > 50 ? '#f59e0b' : '#ef4444'}
+                />
+              </CardContent>
+            </Card>
+
+            {/* Season Avg Attendance */}
+            <Card className="bg-gray-800/90 border-gray-700">
+              <CardContent className="p-4 flex flex-col items-center">
+                <div className="flex items-center gap-2 mb-2">
+                  <Users className="w-4 h-4 text-blue-400" />
+                  <span className="text-sm font-medium text-white">Attendance</span>
+                </div>
+                <RadialGauge 
+                  value={attendanceRate} 
+                  max={100} 
+                  size={60} 
+                  strokeWidth={6}
+                  color={fanLoyalty > 75 ? '#22c55e' : fanLoyalty > 50 ? '#f59e0b' : '#ef4444'}
+                  showValue={false}
+                />
+                <span className="text-xs text-gray-300 mt-1">{attendanceRate}%</span>
+              </CardContent>
+            </Card>
+
+            {/* Daily Upkeep */}
+            <Card className="bg-gray-800/90 border-gray-700">
+              <CardContent className="p-4">
+                <div className="flex items-center gap-2 mb-2">
+                  <DollarSign className="w-4 h-4 text-yellow-400" />
+                  <span className="text-sm font-medium text-white">Daily Upkeep</span>
+                </div>
+                <Tooltip>
+                  <TooltipTrigger>
+                    <Badge variant="destructive" className="bg-red-600/80 text-white">
+                      –₡{dailyUpkeep.toLocaleString()} / day
+                    </Badge>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <div className="space-y-1 text-xs">
+                      <p>Stadium maintenance: ₡{Math.floor(stadiumValue * 0.002).toLocaleString()}</p>
+                      <p>Base operations: ₡1,000</p>
+                      <p>Total daily cost: ₡{dailyUpkeep.toLocaleString()}</p>
+                    </div>
+                  </TooltipContent>
+                </Tooltip>
+              </CardContent>
+            </Card>
+
+            {/* Atmosphere Bonus */}
+            <Card className="bg-gray-800/90 border-gray-700">
+              <CardContent className="p-4">
+                <div className="flex items-center gap-2 mb-2">
+                  <Zap className="w-4 h-4 text-purple-400" />
+                  <span className="text-sm font-medium text-white">Atmosphere</span>
+                </div>
+                <Badge className="bg-purple-600/80 text-white">
+                  {atmosphereBonus}
+                </Badge>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* 2. Facilities & Upgrades - Tier Ladder Components */}
+          <Card className="bg-gray-800/90 border-gray-700">
+            <CardHeader>
+              <CardTitle className="text-white flex items-center gap-2">
+                <Building className="w-5 h-5 text-purple-400" />
+                Facilities & Upgrades
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              {upgradeOptions.map((option) => (
+                <TierLadder
+                  key={option.type}
+                  currentLevel={option.currentLevel}
+                  maxLevel={option.maxLevel}
+                  upgradeType={option.type}
+                  cost={option.cost}
+                  effect={option.effect}
+                  paybackGames={option.paybackGames}
+                  onUpgrade={() => setSelectedUpgrade(option)}
+                />
+              ))}
+            </CardContent>
+          </Card>
+
+          {/* 3. Revenue Breakdown & Attendance Analytics */}
+          <Card className="bg-gray-800/90 border-gray-700">
+            <CardHeader>
+              <CardTitle className="text-white flex items-center gap-2">
+                <BarChart3 className="w-5 h-5 text-green-400" />
+                Revenue Breakdown & Analytics
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="border-b border-gray-600">
+                      <th className="text-left text-gray-300 py-2">Stream</th>
+                      <th className="text-right text-gray-300 py-2">Formula Example</th>
+                      <th className="text-right text-gray-300 py-2">This Season (Est.)</th>
+                      <th className="text-right text-gray-300 py-2">Per Home Game</th>
+                    </tr>
+                  </thead>
+                  <tbody className="space-y-2">
+                    <tr className="border-b border-gray-700/50">
+                      <td className="text-white py-2">Tickets</td>
+                      <td className="text-gray-400 text-right">25₡ × attendance</td>
+                      <td className="text-green-400 text-right font-medium">₡{(revenueBreakdown.ticketSales * 8).toLocaleString()}</td>
+                      <td className="text-white text-right">₡{revenueBreakdown.ticketSales.toLocaleString()}</td>
+                    </tr>
+                    <tr className="border-b border-gray-700/50">
+                      <td className="text-white py-2">Concessions</td>
+                      <td className="text-gray-400 text-right">8₡ × attendance × lvl</td>
+                      <td className="text-green-400 text-right font-medium">₡{(revenueBreakdown.concessions * 8).toLocaleString()}</td>
+                      <td className="text-white text-right">₡{revenueBreakdown.concessions.toLocaleString()}</td>
+                    </tr>
+                    <tr className="border-b border-gray-700/50">
+                      <td className="text-white py-2">Parking</td>
+                      <td className="text-gray-400 text-right">10₡ × (0.3 att) × lvl</td>
+                      <td className="text-green-400 text-right font-medium">₡{(revenueBreakdown.parking * 8).toLocaleString()}</td>
+                      <td className="text-white text-right">₡{revenueBreakdown.parking.toLocaleString()}</td>
+                    </tr>
+                    <tr className="border-b border-gray-700/50">
+                      <td className="text-white py-2">VIP Suites</td>
+                      <td className="text-gray-400 text-right">5,000₡ × suites</td>
+                      <td className="text-green-400 text-right font-medium">₡{(revenueBreakdown.vipSuites * 8).toLocaleString()}</td>
+                      <td className="text-white text-right">₡{revenueBreakdown.vipSuites.toLocaleString()}</td>
+                    </tr>
+                    <tr className="border-b border-gray-700/50">
+                      <td className="text-white py-2">Merchandise</td>
+                      <td className="text-gray-400 text-right">3₡ × attendance × lvl</td>
+                      <td className="text-green-400 text-right font-medium">₡{(revenueBreakdown.apparelSales * 8).toLocaleString()}</td>
+                      <td className="text-white text-right">₡{revenueBreakdown.apparelSales.toLocaleString()}</td>
+                    </tr>
+                    <tr className="border-t-2 border-green-400/50 font-bold">
+                      <td className="text-white py-2">Total</td>
+                      <td className="text-gray-400 text-right"></td>
+                      <td className="text-green-400 text-right text-lg">₡{(totalGameRevenue * 8).toLocaleString()}</td>
+                      <td className="text-green-400 text-right text-lg">₡{totalGameRevenue.toLocaleString()}</td>
+                    </tr>
+                  </tbody>
+                </table>
               </div>
-            </div>
-            <div className="bg-green-900/50 p-3 rounded-lg">
-              <Heart className="w-5 h-5 mx-auto mb-2 text-green-400" />
-              <div className="text-white/70 text-xs">Fan Loyalty</div>
-              <div className="text-white font-bold">{fanLoyalty}%</div>
-            </div>
-            <div className="bg-blue-900/50 p-3 rounded-lg">
-              <TrendingUp className="w-5 h-5 mx-auto mb-2 text-blue-400" />
-              <div className="text-white/70 text-xs">Attendance</div>
-              <div className="text-white font-bold">
-                {projectedAttendance.toLocaleString()}
+
+              {/* Attendance trend placeholder */}
+              <div className="mt-4 p-3 bg-gray-700/50 rounded-lg">
+                <div className="text-xs text-gray-400 mb-2">Last 5 Home Games Attendance Trend</div>
+                <div className="flex items-end gap-2 h-16">
+                  {[68, 72, 65, 74, 70].map((attendance, i) => (
+                    <Tooltip key={i}>
+                      <TooltipTrigger>
+                        <div 
+                          className="bg-blue-500 w-8 rounded-t cursor-help transition-colors hover:bg-blue-400"
+                          style={{ height: `${attendance}%` }}
+                        />
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p>Game {i + 1}: {attendance}% attendance</p>
+                        <p>vs Mock Opponent</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  ))}
+                </div>
               </div>
-            </div>
-            <div className="bg-yellow-900/50 p-3 rounded-lg">
-              <span className="text-xl font-bold text-yellow-400 block text-center mb-2">₡</span>
-              <div className="text-white/70 text-xs">Game Revenue</div>
-              <div className="text-green-400 font-bold">
-                ₡{totalRevenue.toLocaleString()}
-              </div>
+            </CardContent>
+          </Card>
+
+          {/* 4. Action Strip (Sticky Footer on Mobile) */}
+          <div className="fixed bottom-4 left-4 right-4 md:relative md:bottom-auto md:left-auto md:right-auto">
+            <div className="flex gap-2 bg-gray-800/95 backdrop-blur p-3 rounded-lg border border-gray-700 max-w-6xl mx-auto">
+              <Button 
+                variant="outline" 
+                size="sm"
+                onClick={() => setShowUpgradeHistory(true)}
+                className="flex-1 md:flex-initial border-gray-600 text-white hover:bg-gray-700"
+              >
+                <Eye className="w-4 h-4 mr-2" />
+                Upgrade History
+              </Button>
+              <Button 
+                variant="outline" 
+                size="sm"
+                className="flex-1 md:flex-initial border-gray-600 text-white hover:bg-gray-700"
+              >
+                <Clock className="w-4 h-4 mr-2" />
+                Queue (0)
+              </Button>
+              <Button 
+                variant="outline" 
+                size="sm"
+                onClick={() => setShowROICalculator(true)}
+                className="flex-1 md:flex-initial border-gray-600 text-white hover:bg-gray-700"
+              >
+                <Calculator className="w-4 h-4 mr-2" />
+                ROI Calculator
+              </Button>
             </div>
           </div>
-        </CardContent>
-      </Card>
 
-      <Tabs defaultValue="revenue" className="space-y-4">
-        <TabsList className="grid w-full grid-cols-4 bg-slate-800">
-          <TabsTrigger value="revenue" className="text-white">Revenue</TabsTrigger>
-          <TabsTrigger value="upgrades" className="text-white">Upgrades</TabsTrigger>
-          <TabsTrigger value="expenses" className="text-white">Expenses</TabsTrigger>
-          <TabsTrigger value="analytics" className="text-white">Analytics</TabsTrigger>
-        </TabsList>
-
-        {/* REVENUE TAB */}
-        <TabsContent value="revenue" className="space-y-4">
-          {/* Fan Attendance Algorithm */}
-          <Card className="bg-gradient-to-r from-blue-800 to-blue-900 border-2 border-blue-400">
-            <CardHeader>
-              <CardTitle className="flex items-center text-white">
-                <Users className="w-5 h-5 mr-3 text-blue-400" />
-                Fan Attendance Algorithm
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="p-4">
-              <div className="space-y-3">
-                <div className="text-white/90 text-sm">
-                  <strong>Formula:</strong> BaseCapacity × DivisionModifier × FanLoyaltyModifier × WinStreakModifier
-                </div>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-sm">
-                  <div className="bg-blue-900/50 p-2 rounded">
-                    <div className="text-blue-200">Base Capacity</div>
-                    <div className="text-white font-semibold">{currentStadium.capacity.toLocaleString()}</div>
-                  </div>
-                  <div className="bg-blue-900/50 p-2 rounded">
-                    <div className="text-blue-200">Division Mod</div>
-                    <div className="text-white font-semibold">
-                      {((0.8 + (8 - division) * 0.05) || 0.8).toFixed(2)}x
-                    </div>
-                  </div>
-                  <div className="bg-blue-900/50 p-2 rounded">
-                    <div className="text-blue-200">Loyalty Mod</div>
-                    <div className="text-white font-semibold">
-                      {(0.75 + (fanLoyalty / 100) * 0.5).toFixed(2)}x
-                    </div>
-                  </div>
-                  <div className="bg-blue-900/50 p-2 rounded">
-                    <div className="text-blue-200">Win Streak</div>
-                    <div className="text-white font-semibold">1.00x</div>
-                  </div>
-                </div>
-                <div className="bg-green-900/50 p-3 rounded-lg border border-green-400">
-                  <div className="text-green-200 text-sm">Projected Game Attendance</div>
-                  <div className="text-green-400 text-2xl font-bold">
-                    {projectedAttendance.toLocaleString()} fans
-                  </div>
-                  <div className="text-green-200 text-xs">
-                    ({((projectedAttendance / currentStadium.capacity) * 100).toFixed(1)}% capacity)
-                  </div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Income Streams Breakdown */}
-          <Card className="bg-gradient-to-r from-green-800 to-green-900 border-2 border-green-400">
-            <CardHeader>
-              <CardTitle className="flex items-center text-white">
-                <BarChart3 className="w-5 h-5 mr-3 text-green-400" />
-                Income Streams (Per Home Game)
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="p-4">
-              <div className="space-y-3">
-                {[
-                  {
-                    name: 'Ticket Sales',
-                    formula: 'GameAttendance × 25₡',
-                    amount: revenueBreakdown.ticketSales,
-                    icon: <Users className="w-4 h-4" />
-                  },
-                  {
-                    name: 'Concessions',
-                    formula: `GameAttendance × 8₡ × Level ${currentStadium.concessionsLevel}`,
-                    amount: revenueBreakdown.concessions,
-                    icon: <Zap className="w-4 h-4" />
-                  },
-                  {
-                    name: 'Parking',
-                    formula: `(GameAttendance × 0.3) × 10₡ × Level ${currentStadium.parkingLevel}`,
-                    amount: revenueBreakdown.parking,
-                    icon: <Target className="w-4 h-4" />
-                  },
-                  {
-                    name: 'VIP Suites',
-                    formula: `${currentStadium.vipSuitesLevel} Suites × 5,000₡`,
-                    amount: revenueBreakdown.vipSuites,
-                    icon: <Star className="w-4 h-4" />
-                  },
-                  {
-                    name: 'Apparel Sales',
-                    formula: `GameAttendance × 3₡ × Level ${currentStadium.merchandisingLevel}`,
-                    amount: revenueBreakdown.apparelSales,
-                    icon: <Trophy className="w-4 h-4" />
-                  }
-                ].map((stream, index) => (
-                  <div key={index} className="bg-green-900/50 p-3 rounded-lg flex items-center justify-between">
-                    <div className="flex items-center space-x-3">
-                      <div className="text-green-400">{stream.icon}</div>
-                      <div>
-                        <div className="text-white font-semibold">{stream.name}</div>
-                        <div className="text-green-200 text-xs">{stream.formula}</div>
-                      </div>
-                    </div>
-                    <div className="text-green-400 font-bold">
-                      ₡{stream.amount.toLocaleString()}
-                    </div>
-                  </div>
-                ))}
-                
-                <div className="bg-yellow-900/50 p-4 rounded-lg border-2 border-yellow-400">
-                  <div className="flex justify-between items-center">
-                    <div>
-                      <div className="text-yellow-200 font-semibold">Total Game Revenue</div>
-                      <div className="text-yellow-100 text-sm">Per home game day</div>
-                    </div>
-                    <div className="text-yellow-400 text-2xl font-bold">
-                      ₡{totalRevenue.toLocaleString()}
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        {/* UPGRADES TAB */}
-        <TabsContent value="upgrades" className="space-y-4">
-          <Card className="bg-gradient-to-r from-orange-800 to-orange-900 border-2 border-orange-400">
-            <CardHeader>
-              <CardTitle className="flex items-center text-white">
-                <ArrowUp className="w-5 h-5 mr-3 text-orange-400" />
-                Stadium & Facility Upgrades
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="p-4">
-              <div className="space-y-3">
-                {upgradeOptions.map((upgrade, index) => (
-                  <div 
-                    key={index} 
-                    className="bg-orange-900/50 p-4 rounded-lg border border-orange-600 hover:border-orange-400 transition-colors cursor-pointer"
-                    onClick={() => setSelectedUpgrade(upgrade)}
-                  >
-                    <div className="flex justify-between items-start">
-                      <div className="flex-1">
-                        <div className="flex items-center space-x-2 mb-2">
-                          <div className="text-white font-semibold">{upgrade.name}</div>
-                          <Badge className="bg-orange-600 text-white text-xs">
-                            Level {upgrade.currentLevel}
-                          </Badge>
-                        </div>
-                        <div className="text-orange-200 text-sm mb-2">{upgrade.effect}</div>
-                        {upgrade.revenueIncrease > 0 && (
-                          <div className="text-green-400 text-xs flex items-center">
-                            <TrendingUp className="w-3 h-3 mr-1" />
-                            +₡{upgrade.revenueIncrease.toLocaleString()} revenue/game
-                          </div>
-                        )}
-                      </div>
-                      <div className="text-right">
-                        <div className="text-yellow-400 font-bold">
-                          ₡{upgrade.cost.toLocaleString()}
-                        </div>
-                        <Button 
-                          size="sm" 
-                          className="mt-2 bg-orange-600 hover:bg-orange-700 text-white"
-                        >
-                          Upgrade
-                        </Button>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        {/* EXPENSES TAB */}
-        <TabsContent value="expenses" className="space-y-4">
-          <Card className="bg-gradient-to-r from-red-800 to-red-900 border-2 border-red-400">
-            <CardHeader>
-              <CardTitle className="flex items-center text-white">
-                <ArrowDown className="w-5 h-5 mr-3 text-red-400" />
-                Expense Categories
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="p-4">
-              <div className="space-y-4">
-                <div className="bg-red-900/50 p-4 rounded-lg">
-                  <div className="flex justify-between items-center mb-2">
-                    <div className="text-white font-semibold">Facilities Maintenance</div>
-                    <div className="text-red-400 font-bold">₡{dailyMaintenanceCost.toLocaleString()}/day</div>
-                  </div>
-                  <div className="text-red-200 text-sm">
-                    Daily fee of 0.2% of total stadium investment (₡{totalInvestment.toLocaleString()})
-                  </div>
-                  <div className="mt-2">
-                    <Progress 
-                      value={(dailyMaintenanceCost / Math.max(totalRevenue * 0.1, 100)) * 100} 
-                      className="h-2" 
-                    />
-                    <div className="text-red-200 text-xs mt-1">
-                      {((dailyMaintenanceCost / Math.max(totalRevenue, 1)) * 100).toFixed(1)}% of game revenue
-                    </div>
-                  </div>
-                </div>
-
-                <div className="bg-red-900/50 p-4 rounded-lg">
-                  <div className="text-white font-semibold mb-2">Other Expenses</div>
-                  <div className="space-y-2 text-sm">
-                    <div className="flex justify-between text-red-200">
-                      <span>Player & Staff Salaries:</span>
-                      <span>Paid Day 1 each season</span>
-                    </div>
-                    <div className="flex justify-between text-red-200">
-                      <span>Marketplace Listing Fee:</span>
-                      <span>2% of asking price</span>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="bg-gray-900/50 p-4 rounded-lg border border-gray-600">
-                  <div className="flex justify-between items-center">
-                    <div>
-                      <div className="text-white font-semibold">Net Income Projection</div>
-                      <div className="text-gray-300 text-sm">Per game day after maintenance</div>
-                    </div>
-                    <div className={`text-2xl font-bold ${totalRevenue - dailyMaintenanceCost > 0 ? 'text-green-400' : 'text-red-400'}`}>
-                      ₡{(totalRevenue - dailyMaintenanceCost).toLocaleString()}
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        {/* ANALYTICS TAB */}
-        <TabsContent value="analytics" className="space-y-4">
-          <Card className="bg-gradient-to-r from-indigo-800 to-indigo-900 border-2 border-indigo-400">
-            <CardHeader>
-              <CardTitle className="flex items-center text-white">
-                <BarChart3 className="w-5 h-5 mr-3 text-indigo-400" />
-                Stadium Analytics
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="p-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {/* Fan Loyalty Breakdown */}
-                <div className="bg-indigo-900/50 p-4 rounded-lg">
-                  <div className="text-white font-semibold mb-3">Fan Loyalty Factors</div>
-                  <div className="space-y-2 text-sm">
-                    <div className="flex justify-between">
-                      <span className="text-indigo-200">Win Percentage:</span>
-                      <span className="text-white">
-                        {(((team?.wins || 0) / Math.max((team?.wins || 0) + (team?.losses || 0), 1)) * 100).toFixed(1)}%
-                      </span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-indigo-200">Division Prestige:</span>
-                      <span className="text-white">Division {division}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-indigo-200">Stadium Quality:</span>
-                      <span className="text-white">Level {currentStadium.lightingScreensLevel}</span>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Revenue Efficiency */}
-                <div className="bg-indigo-900/50 p-4 rounded-lg">
-                  <div className="text-white font-semibold mb-3">Revenue Efficiency</div>
-                  <div className="space-y-2 text-sm">
-                    <div className="flex justify-between">
-                      <span className="text-indigo-200">Revenue per Fan:</span>
-                      <span className="text-white">
-                        ₡{(totalRevenue / Math.max(projectedAttendance, 1)).toFixed(2)}
-                      </span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-indigo-200">Capacity Utilization:</span>
-                      <span className="text-white">
-                        {((projectedAttendance / currentStadium.capacity) * 100).toFixed(1)}%
-                      </span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-indigo-200">ROI Potential:</span>
-                      <span className="text-green-400">
-                        {totalRevenue > dailyMaintenanceCost ? 'Positive' : 'Break-even'}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-      </Tabs>
-    </div>
+          {/* Spacing for fixed footer on mobile */}
+          <div className="h-20 md:h-0" />
+        </div>
+      </div>
+    </TooltipProvider>
   );
 };
 
