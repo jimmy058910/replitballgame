@@ -170,8 +170,13 @@ export default function DramaticTeamHQ() {
   const exhibitionGamesPlayedToday = exhibitionStats?.gamesPlayedToday || 0;
   const freeExhibitionsRemaining = Math.max(0, 3 - exhibitionGamesPlayedToday);
 
-  // Find next scheduled opponent (placeholder until we have proper schedule API)
-  const nextOpponent = "TBD"; // Will be replaced with real schedule data
+  // Get next scheduled opponent from API
+  const { data: nextOpponentData } = useQuery({
+    queryKey: ['/api/teams/my/next-opponent'],
+    enabled: !!user
+  });
+  
+  const nextOpponent = nextOpponentData?.nextOpponent || "No games scheduled";
 
   // Calculate daily task completion
   const completedTasks = [

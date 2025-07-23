@@ -769,6 +769,57 @@ router.get('/:teamId/formation', isAuthenticated, async (req: any, res: Response
   }
 });
 
+// Get next scheduled opponent for dashboard display
+router.get('/my/next-opponent', isAuthenticated, asyncHandler(async (req: any, res: Response) => {
+  const userId = req.user.claims.sub;
+  const userTeam = await storage.teams.getTeamByUserId(userId);
+  
+  if (!userTeam) {
+    throw ErrorCreators.notFound("Team not found for current user");
+  }
+
+  // Get next scheduled game for this team
+  const nextGame = await prisma.game.findFirst({
+    where: {
+      OR: [
+        { homeTeamId: userTeam.id },
+        { awayTeamId: userTeam.id }
+      ],
+      status: 'SCHEDULED',
+      gameDate: {
+        gte: new Date()
+      }
+    },
+    include: {
+      homeTeam: {
+        select: { name: true }
+      },
+      awayTeam: {
+        select: { name: true }
+      }
+    },
+    orderBy: {
+      gameDate: 'asc'
+    }
+  });
+
+  if (!nextGame) {
+    return res.json({ nextOpponent: "No games scheduled" });
+  }
+
+  // Determine opponent name
+  const isHome = nextGame.homeTeamId === userTeam.id;
+  const opponentName = isHome ? nextGame.awayTeam.name : nextGame.homeTeam.name;
+  const gameDate = nextGame.gameDate;
+
+  res.json({ 
+    nextOpponent: opponentName,
+    gameDate: gameDate,
+    isHome: isHome,
+    matchType: nextGame.matchType
+  });
+}));
+
 // Team inactivity tracking
 router.post('/update-activity', isAuthenticated, async (req: any, res: Response, next: NextFunction) => {
   try {
