@@ -85,7 +85,12 @@ export class TeamStorage {
       include: {
         finances: true,
         stadium: true,
-        players: true,
+        players: {
+          include: {
+            contract: true,
+            skills: { include: { skill: true } }
+          }
+        },
         staff: true
       }
     });
@@ -99,7 +104,12 @@ export class TeamStorage {
       include: {
         finances: true,
         stadium: true,
-        players: true,
+        players: {
+          include: {
+            contract: true,
+            skills: { include: { skill: true } }
+          }
+        },
         staff: true
       }
     });
@@ -112,7 +122,12 @@ export class TeamStorage {
       include: {
         finances: true,
         stadium: true,
-        players: true,
+        players: {
+          include: {
+            contract: true,
+            skills: { include: { skill: true } }
+          }
+        },
         staff: true
       }
     });
