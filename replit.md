@@ -185,11 +185,12 @@ docker push gcr.io/direct-glider-465821-p7/realm-rivalry:latest
 - **Game Design Philosophy**: Organic progression systems, balanced economies, realistic player development cycles
 
 ### Authentication System
-- **Google OAuth 2.0**: Complete integration with Passport.js
-- **Session Storage**: PostgreSQL-backed with express-session
+- **Google OAuth 2.0**: Complete integration with Passport.js (unified across development and production)
+- **Session Storage**: Express-session with secure cookie configuration
 - **Endpoint Compatibility**: `/api/login` and `/api/logout` redirect to Google Auth flows
 - **Production Security**: HTTPS-only, secure cookies, CSRF protection
 - **User Profiles**: Integrated with UserProfile table for team management
+- **System Consistency**: Development and production now use identical authentication flow
 
 ## Current Architecture Status
 
@@ -592,14 +593,17 @@ docker push gcr.io/direct-glider-465821-p7/realm-rivalry:latest
 
 ## Recent Changes
 
-### July 23, 2025 - ✅ SIMPLE AUTHENTICATION ENDPOINT FIX COMPLETE ✅
+### July 23, 2025 - ✅ AUTHENTICATION SYSTEM ALIGNMENT COMPLETE ✅
 
-#### ✅ GOOGLE AUTH ENDPOINT COMPATIBILITY RESTORED - PRODUCTION READY  
-- ✓ **Authentication Issue Resolved**: Fixed "Cannot GET /api/login" error by adding missing `/api/login` and `/api/logout` endpoints
-- ✓ **Keep Existing Google Auth**: Preserved working Google OAuth setup and Google Cloud Run deployment pipeline
-- ✓ **Simple Redirect Solution**: New endpoints redirect to existing Google Auth (`/api/login` → `/auth/google`, `/api/logout` → `/logout`)
-- ✓ **Production Deployment Ready**: Can deploy using existing Google Cloud Run process without secrets changes
-- ✓ **Tested Locally**: Both endpoints confirmed working with proper 302 redirects
+#### ✅ AUTHENTICATION MISMATCH RESOLVED - PRODUCTION READY  
+- ✓ **Root Cause Fixed**: Development server was using Replit Auth while production uses Google OAuth - created authentication endpoint mismatch
+- ✓ **System Alignment**: Changed development server from `setupAuth` (Replit Auth) to `setupGoogleAuth` (Google OAuth) to match production
+- ✓ **Session Management**: Added proper session configuration matching production environment settings
+- ✓ **Endpoint Verification**: All authentication endpoints working correctly:
+  - `/api/login` → 302 redirect to `/auth/google` ✅
+  - `/auth/google` → 302 redirect to Google OAuth with correct client_id ✅
+  - `/api/logout` → 302 redirect to homepage with session clearing ✅
+- ✓ **Production Deployment Ready**: Both development and production now use identical Google OAuth system
 - ✓ **Infrastructure Preserved**: Complete GCP setup maintained (direct-glider-465821-p7 project, realm-rivalry service)
 
 #### ✅ DOCKER BUILD FAILURE FIXED - PRODUCTION DEPLOYMENT READY
