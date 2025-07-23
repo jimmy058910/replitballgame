@@ -349,13 +349,7 @@ export default function CamaraderieManagement({ teamId }: { teamId: string }) {
 
 
 
-      {/* Actionable Quick Features */}
-      <div className="fixed bottom-4 right-4 md:relative md:bottom-auto md:right-auto">
-        <Button className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white shadow-lg">
-          <Heart className="w-4 h-4 mr-2" />
-          Apply Team Boost
-        </Button>
-      </div>
+
 
       {/* Player Detail Modal */}
       {selectedPlayerId && (
