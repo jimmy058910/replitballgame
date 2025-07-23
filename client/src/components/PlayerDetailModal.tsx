@@ -832,22 +832,26 @@ export default function PlayerDetailModal({
               </div>
 
               {/* Footer Actions */}
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-4 border-t border-gray-700">
-                <Button variant="ghost" size="sm" className="flex items-center gap-2">
+              <div className="grid grid-cols-2 gap-2 pt-4 border-t border-gray-700">
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  className="flex items-center gap-2 opacity-50 cursor-not-allowed"
+                  disabled
+                  title="Feature coming soon"
+                >
                   <Pin className="w-4 h-4" />
                   Pin to Roster
                 </Button>
-                <Button variant="ghost" size="sm" className="flex items-center gap-2">
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  className="flex items-center gap-2 opacity-50 cursor-not-allowed"
+                  disabled
+                  title="Feature coming soon"
+                >
                   <Copy className="w-4 h-4" />
                   Compare
-                </Button>
-                <Button variant="ghost" size="sm" className="flex items-center gap-2">
-                  <Sparkles className="w-4 h-4" />
-                  Scout
-                </Button>
-                <Button variant="ghost" size="sm" className="flex items-center gap-2">
-                  <Bug className="w-4 h-4" />
-                  Report
                 </Button>
               </div>
             </div>
