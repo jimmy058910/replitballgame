@@ -216,7 +216,7 @@ export default function ComprehensiveCompetitionCenter() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900/20 to-blue-900/30 text-white pb-20 md:pb-6">
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="container mx-auto px-4 py-8 max-w-6xl">
         
         {/* DRAMATIC MOBILE-FIRST HERO BANNER */}
         <div className="relative overflow-hidden bg-gradient-to-r from-purple-800 via-blue-700 to-cyan-800 rounded-xl p-4 md:p-6 mb-4 shadow-2xl">
@@ -236,7 +236,7 @@ export default function ComprehensiveCompetitionCenter() {
                   Division {team?.division || 8} - {team?.subdivision?.charAt(0).toUpperCase() + team?.subdivision?.slice(1) || 'Eta'}
                 </Badge>
                 <Badge className="bg-yellow-600 text-yellow-100 px-2 py-1">
-                  Season 0 • Day 9/17
+                  Season 0 • Day {seasonData?.currentDay || 10}/17
                 </Badge>
               </div>
             </div>
