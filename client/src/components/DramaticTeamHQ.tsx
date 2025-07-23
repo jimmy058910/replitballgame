@@ -26,7 +26,8 @@ import {
   Coins,
   Award,
   ChevronDown,
-  ChevronUp
+  ChevronUp,
+  Heart
 } from "lucide-react";
 
 // Enhanced interfaces for real data integration
@@ -327,94 +328,169 @@ export default function DramaticTeamHQ() {
 
 
 
-        {/* 📋 DAILY TASKS CHECKLIST */}
-        <Card className="bg-gradient-to-br from-cyan-900 to-blue-900 border-2 border-cyan-600 mb-6">
-          <CardHeader className="pb-2">
-            <CardTitle className="flex items-center justify-between text-white">
-              <div className="flex items-center">
-                <Target className="w-6 h-6 mr-2 text-cyan-400" />
-                Daily Tasks
-              </div>
-              <div className="text-cyan-400 text-sm">{completedTasks}/{totalTasks} Complete</div>
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-2">
-              <div className="flex items-center justify-between text-sm">
+        {/* 🎯 DAILY TASKS & 🏆 CAREER HIGHLIGHTS - SIDE BY SIDE */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+          {/* Daily Tasks Panel */}
+          <Card className="bg-gradient-to-br from-cyan-900 to-blue-900 border-2 border-cyan-600">
+            <CardHeader className="pb-2">
+              <CardTitle className="flex items-center justify-between text-white">
                 <div className="flex items-center">
-                  <div className={`w-4 h-4 ${dailyTasks.checkTeamStatus ? 'bg-green-600' : 'border-2 border-cyan-400'} rounded mr-3 flex items-center justify-center`}>
-                    {dailyTasks.checkTeamStatus && <div className="w-2 h-2 bg-white rounded"></div>}
-                  </div>
-                  <span className={dailyTasks.checkTeamStatus ? "text-white" : "text-gray-400"}>Check Team Status</span>
+                  <Target className="w-6 h-6 mr-2 text-cyan-400" />
+                  Daily Tasks
                 </div>
-                {dailyTasks.checkTeamStatus ? (
-                  <Badge className="bg-green-600 text-white text-xs">✓</Badge>
-                ) : (
-                  <Button size="sm" className="bg-cyan-600 hover:bg-cyan-700 text-white text-xs" onClick={() => setLocation('/roster-hq')}>
-                    View Now
+                <div className="text-cyan-400 text-sm">{completedTasks}/{totalTasks} Complete</div>
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-2">
+                <div className="flex items-center justify-between text-sm">
+                  <div className="flex items-center">
+                    <div className={`w-4 h-4 ${dailyTasks.checkTeamStatus ? 'bg-green-600' : 'border-2 border-cyan-400'} rounded mr-3 flex items-center justify-center`}>
+                      {dailyTasks.checkTeamStatus && <div className="w-2 h-2 bg-white rounded"></div>}
+                    </div>
+                    <span className={dailyTasks.checkTeamStatus ? "text-white" : "text-gray-400"}>Check Team Status</span>
+                  </div>
+                  {dailyTasks.checkTeamStatus ? (
+                    <Badge className="bg-green-600 text-white text-xs">✓</Badge>
+                  ) : (
+                    <Button size="sm" className="bg-cyan-600 hover:bg-cyan-700 text-white text-xs" onClick={() => setLocation('/roster-hq')}>
+                      View Now
+                    </Button>
+                  )}
+                </div>
+                
+                <div className="flex items-center justify-between text-sm">
+                  <div className="flex items-center">
+                    <div className={`w-4 h-4 ${dailyTasks.playExhibitionMatches >= 3 ? 'bg-green-600' : 'border-2 border-cyan-400'} rounded mr-3 flex items-center justify-center`}>
+                      {dailyTasks.playExhibitionMatches >= 3 && <div className="w-2 h-2 bg-white rounded"></div>}
+                    </div>
+                    <span className={dailyTasks.playExhibitionMatches >= 3 ? "text-white" : "text-gray-400"}>Play Exhibition Matches</span>
+                  </div>
+                  <Badge className={`${dailyTasks.playExhibitionMatches >= 3 ? 'bg-green-600' : 'bg-gray-600'} text-white text-xs`}>
+                    {dailyTasks.playExhibitionMatches}/3
+                  </Badge>
+                </div>
+                
+                <div className="flex items-center justify-between text-sm">
+                  <div className="flex items-center">
+                    <div className="w-4 h-4 border-2 border-cyan-400 rounded mr-3"></div>
+                    <span className="text-gray-400">Enter Daily Tournament</span>
+                  </div>
+                  <Button size="sm" className="bg-cyan-600 hover:bg-cyan-700 text-white text-xs">
+                    Enter Now
                   </Button>
-                )}
-              </div>
-              
-              <div className="flex items-center justify-between text-sm">
-                <div className="flex items-center">
-                  <div className={`w-4 h-4 ${dailyTasks.playExhibitionMatches >= 3 ? 'bg-green-600' : 'border-2 border-cyan-400'} rounded mr-3 flex items-center justify-center`}>
-                    {dailyTasks.playExhibitionMatches >= 3 && <div className="w-2 h-2 bg-white rounded"></div>}
+                </div>
+                
+                <div className="flex items-center justify-between text-sm">
+                  <div className="flex items-center">
+                    <div className={`w-4 h-4 ${dailyTasks.watchRewardedAd >= 10 ? 'bg-green-600' : 'border-2 border-cyan-400'} rounded mr-3 flex items-center justify-center`}>
+                      {dailyTasks.watchRewardedAd >= 10 && <div className="w-2 h-2 bg-white rounded"></div>}
+                    </div>
+                    <span className={dailyTasks.watchRewardedAd >= 10 ? "text-white" : "text-gray-400"}>Watch Rewarded Ad</span>
                   </div>
-                  <span className={dailyTasks.playExhibitionMatches >= 3 ? "text-white" : "text-gray-400"}>Play Exhibition Matches</span>
+                  <span className={`text-cyan-400 text-xs ${dailyTasks.watchRewardedAd >= 10 ? 'text-green-400' : ''}`}>
+                    {dailyTasks.watchRewardedAd}/10
+                  </span>
                 </div>
-                <Badge className={`${dailyTasks.playExhibitionMatches >= 3 ? 'bg-green-600' : 'bg-gray-600'} text-white text-xs`}>
-                  {dailyTasks.playExhibitionMatches}/3
-                </Badge>
-              </div>
-              
-              <div className="flex items-center justify-between text-sm">
-                <div className="flex items-center">
-                  <div className="w-4 h-4 border-2 border-cyan-400 rounded mr-3"></div>
-                  <span className="text-gray-400">Enter Daily Tournament</span>
-                </div>
-                <Button size="sm" className="bg-cyan-600 hover:bg-cyan-700 text-white text-xs">
-                  Enter Now
-                </Button>
-              </div>
-              
-              <div className="flex items-center justify-between text-sm">
-                <div className="flex items-center">
-                  <div className={`w-4 h-4 ${dailyTasks.watchRewardedAd >= 10 ? 'bg-green-600' : 'border-2 border-cyan-400'} rounded mr-3 flex items-center justify-center`}>
-                    {dailyTasks.watchRewardedAd >= 10 && <div className="w-2 h-2 bg-white rounded"></div>}
+                
+                <div className="flex items-center justify-between text-sm">
+                  <div className="flex items-center">
+                    <div className="w-4 h-4 border-2 border-cyan-400 rounded mr-3"></div>
+                    <span className="text-gray-400">Review Team Tactics</span>
                   </div>
-                  <span className={dailyTasks.watchRewardedAd >= 10 ? "text-white" : "text-gray-400"}>Watch Rewarded Ad</span>
+                  <Button size="sm" className="bg-cyan-600 hover:bg-cyan-700 text-white text-xs">
+                    Set Now
+                  </Button>
                 </div>
-                <span className={`text-cyan-400 text-xs ${dailyTasks.watchRewardedAd >= 10 ? 'text-green-400' : ''}`}>
-                  {dailyTasks.watchRewardedAd}/10
-                </span>
+                
+                <div className="flex items-center justify-between text-sm">
+                  <div className="flex items-center">
+                    <div className="w-4 h-4 border-2 border-cyan-400 rounded mr-3"></div>
+                    <span className="text-gray-400">Check Market Listings</span>
+                  </div>
+                  <Button size="sm" className="bg-cyan-600 hover:bg-cyan-700 text-white text-xs">
+                    Browse
+                  </Button>
+                </div>
               </div>
               
-              <div className="flex items-center justify-between text-sm">
+              <Progress value={completionPercentage} className="mt-4 h-2" />
+              <div className="text-center text-cyan-200 text-xs mt-2">Daily Progress: {completionPercentage}%</div>
+            </CardContent>
+          </Card>
+
+          {/* Career Highlights Panel */}
+          <Card className="bg-gradient-to-br from-yellow-900 to-orange-900 border-2 border-yellow-600">
+            <CardHeader className="pb-2">
+              <CardTitle className="flex items-center justify-between text-white">
                 <div className="flex items-center">
-                  <div className="w-4 h-4 border-2 border-cyan-400 rounded mr-3"></div>
-                  <span className="text-gray-400">Review Team Tactics</span>
+                  <Trophy className="w-6 h-6 mr-2 text-yellow-400" />
+                  Career Highlights
                 </div>
-                <Button size="sm" className="bg-cyan-600 hover:bg-cyan-700 text-white text-xs">
-                  Set Now
-                </Button>
-              </div>
-              
-              <div className="flex items-center justify-between text-sm">
-                <div className="flex items-center">
-                  <div className="w-4 h-4 border-2 border-cyan-400 rounded mr-3"></div>
-                  <span className="text-gray-400">Check Market Listings</span>
+                <Badge className="bg-yellow-600 text-white text-xs">Season 0</Badge>
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center">
+                    <Award className="w-4 h-4 mr-2 text-blue-400" />
+                    <span className="text-white text-sm">Games Won</span>
+                  </div>
+                  <span className="text-blue-400 font-bold">{team.wins}</span>
                 </div>
-                <Button size="sm" className="bg-cyan-600 hover:bg-cyan-700 text-white text-xs">
-                  Browse
-                </Button>
+                
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center">
+                    <Target className="w-4 h-4 mr-2 text-green-400" />
+                    <span className="text-white text-sm">Win Rate</span>
+                  </div>
+                  <span className="text-green-400 font-bold">
+                    {team.wins + team.losses > 0 ? Math.round((team.wins / (team.wins + team.losses)) * 100) : 0}%
+                  </span>
+                </div>
+                
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center">
+                    <Star className="w-4 h-4 mr-2 text-purple-400" />
+                    <span className="text-white text-sm">Team Power</span>
+                  </div>
+                  <span className="text-purple-400 font-bold">{teamPower}</span>
+                </div>
+                
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center">
+                    <Heart className="w-4 h-4 mr-2 text-pink-400" />
+                    <span className="text-white text-sm">Team Chemistry</span>
+                  </div>
+                  <span className="text-pink-400 font-bold">{Math.round(team.camaraderie || 50)}</span>
+                </div>
+                
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center">
+                    <Users className="w-4 h-4 mr-2 text-cyan-400" />
+                    <span className="text-white text-sm">Total Players</span>
+                  </div>
+                  <span className="text-cyan-400 font-bold">{allPlayers.length}</span>
+                </div>
+
+                {/* Recent Achievement Section */}
+                <div className="mt-4 pt-3 border-t border-gray-600">
+                  <div className="text-xs text-gray-400 mb-2">Recent Achievement</div>
+                  <div className="flex items-center">
+                    <div className="w-8 h-8 bg-gradient-to-r from-yellow-400 to-orange-500 rounded-full flex items-center justify-center mr-3">
+                      <Trophy className="w-4 h-4 text-white" />
+                    </div>
+                    <div>
+                      <div className="text-white text-sm font-semibold">Team Founded</div>
+                      <div className="text-gray-400 text-xs">Welcome to Realm Rivalry!</div>
+                    </div>
+                  </div>
+                </div>
               </div>
-            </div>
-            
-            <Progress value={completionPercentage} className="mt-4 h-2" />
-            <div className="text-center text-cyan-200 text-xs mt-2">Daily Progress: {completionPercentage}%</div>
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
+        </div>
 
         {/* 📊 PERFORMANCE DASHBOARD - MOBILE-OPTIMIZED */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
