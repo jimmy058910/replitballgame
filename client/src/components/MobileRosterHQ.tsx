@@ -163,8 +163,8 @@ export default function MobileRosterHQ() {
     return posA - posB;
   });
 
-  const mainRoster = sortedPlayers.slice(0, 13);
-  const taxiSquad = sortedPlayers.slice(13, 15);
+  const mainRoster = sortedPlayers.slice(0, 12);
+  const taxiSquad = sortedPlayers.slice(12, 15);
   const injuredPlayers = activePlayers.filter(p => p.injuryStatus !== 'HEALTHY');
   const lowStaminaPlayers = activePlayers.filter(p => p.dailyStaminaLevel < 50);
   
@@ -210,9 +210,9 @@ export default function MobileRosterHQ() {
         lowStaminaCount={lowStaminaPlayers.length}
       />
       
-      <div className="container mx-auto px-4 py-6 space-y-6">
+      <div className="container mx-auto px-4 py-6 space-y-6 max-w-7xl">
         {/* Roster Overview Cards */}
-        <div className="grid grid-cols-3 gap-4">
+        <div className="grid grid-cols-3 gap-4 mb-6">
           {/* Passers */}
           <Card className="bg-gradient-to-br from-blue-600 to-blue-800 border-2 border-blue-500">
             <CardContent className="p-4 text-center">
@@ -272,7 +272,7 @@ export default function MobileRosterHQ() {
               ⚙️ Tactics
             </TabsTrigger>
             <TabsTrigger value="camaraderie" className="text-xs font-semibold data-[state=active]:bg-yellow-600 data-[state=active]:text-white">
-              🤝 Team
+              🤝 Camaraderie
             </TabsTrigger>
             <TabsTrigger value="stadium" className="text-xs font-semibold data-[state=active]:bg-purple-600 data-[state=active]:text-white">
               🏟️ Stadium
@@ -283,7 +283,7 @@ export default function MobileRosterHQ() {
           </TabsList>
 
           {/* TAB 1: ROSTER */}
-          <TabsContent value="roster" className="space-y-6">
+          <TabsContent value="roster" className="space-y-6 px-2">
             {/* Main Roster */}
             <Card className="bg-gradient-to-r from-blue-800 to-blue-900 border-2 border-blue-400">
               <CardHeader>
@@ -407,36 +407,199 @@ export default function MobileRosterHQ() {
             )}
           </TabsContent>
 
-          {/* TAB 2: TACTICS - Coming Soon */}
-          <TabsContent value="tactics" className="space-y-6">
+          {/* TAB 2: TACTICS */}
+          <TabsContent value="tactics" className="space-y-6 px-2">
+            {/* Starting Lineup */}
             <Card className="bg-gradient-to-r from-green-800 to-green-900 border-2 border-green-400">
               <CardHeader>
                 <CardTitle className="flex items-center text-white">
                   <Settings className="w-6 h-6 mr-3 text-green-400" />
-                  ⚙️ TACTICS & LINEUP
+                  ⚙️ STARTING LINEUP (6 Required)
                 </CardTitle>
               </CardHeader>
-              <CardContent className="p-8 text-center">
-                <div className="text-6xl mb-4">🚧</div>
-                <h3 className="text-2xl font-bold text-white mb-4">COMING SOON</h3>
-                <p className="text-green-200 mb-6">
-                  Advanced tactical lineup builder with formation management, 
-                  substitution planning, and strategic focus selection.
-                </p>
-                <Badge className="bg-green-600 text-white">
-                  Under Development
-                </Badge>
+              <CardContent className="p-4">
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                  {/* Blocker Slots */}
+                  <div className="bg-purple-900/50 p-4 rounded-lg border-2 border-purple-400">
+                    <div className="text-center mb-2">
+                      <Badge className="bg-purple-600">🛡️ B1 (Blocker)</Badge>
+                    </div>
+                    <div className="h-16 bg-purple-800/30 rounded border-2 border-dashed border-purple-400 flex items-center justify-center text-purple-300 text-sm">
+                      Drop Player Here
+                    </div>
+                  </div>
+                  
+                  <div className="bg-purple-900/50 p-4 rounded-lg border-2 border-purple-400">
+                    <div className="text-center mb-2">
+                      <Badge className="bg-purple-600">🛡️ B2 (Blocker)</Badge>
+                    </div>
+                    <div className="h-16 bg-purple-800/30 rounded border-2 border-dashed border-purple-400 flex items-center justify-center text-purple-300 text-sm">
+                      Drop Player Here
+                    </div>
+                  </div>
+
+                  {/* Runner Slots */}
+                  <div className="bg-green-900/50 p-4 rounded-lg border-2 border-green-400">
+                    <div className="text-center mb-2">
+                      <Badge className="bg-green-600">⚡ R1 (Runner)</Badge>
+                    </div>
+                    <div className="h-16 bg-green-800/30 rounded border-2 border-dashed border-green-400 flex items-center justify-center text-green-300 text-sm">
+                      Drop Player Here
+                    </div>
+                  </div>
+                  
+                  <div className="bg-green-900/50 p-4 rounded-lg border-2 border-green-400">
+                    <div className="text-center mb-2">
+                      <Badge className="bg-green-600">⚡ R2 (Runner)</Badge>
+                    </div>
+                    <div className="h-16 bg-green-800/30 rounded border-2 border-dashed border-green-400 flex items-center justify-center text-green-300 text-sm">
+                      Drop Player Here
+                    </div>
+                  </div>
+
+                  {/* Passer Slot */}
+                  <div className="bg-blue-900/50 p-4 rounded-lg border-2 border-blue-400">
+                    <div className="text-center mb-2">
+                      <Badge className="bg-blue-600">🎯 P (Passer)</Badge>
+                    </div>
+                    <div className="h-16 bg-blue-800/30 rounded border-2 border-dashed border-blue-400 flex items-center justify-center text-blue-300 text-sm">
+                      Drop Player Here
+                    </div>
+                  </div>
+
+                  {/* Flex Slot */}
+                  <div className="bg-yellow-900/50 p-4 rounded-lg border-2 border-yellow-400">
+                    <div className="text-center mb-2">
+                      <Badge className="bg-yellow-600">🌟 FLEX (Any)</Badge>
+                    </div>
+                    <div className="h-16 bg-yellow-800/30 rounded border-2 border-dashed border-yellow-400 flex items-center justify-center text-yellow-300 text-sm">
+                      Drop Player Here
+                    </div>
+                  </div>
+                </div>
               </CardContent>
             </Card>
+
+            {/* Substitution Queues */}
+            <Card className="bg-gradient-to-r from-blue-800 to-blue-900 border-2 border-blue-400">
+              <CardHeader>
+                <CardTitle className="flex items-center text-white">
+                  <Users className="w-6 h-6 mr-3 text-blue-400" />
+                  🔄 SUBSTITUTION QUEUES (3 each)
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="p-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                  {/* Blocker Subs */}
+                  <div className="bg-purple-900/30 p-4 rounded-lg">
+                    <h4 className="font-bold text-purple-200 mb-3 text-center">🛡️ Blocker Subs</h4>
+                    <div className="space-y-2">
+                      {[1, 2, 3].map((num) => (
+                        <div key={`blocker-${num}`} className="h-12 bg-purple-800/20 rounded border border-dashed border-purple-400 flex items-center justify-center text-purple-300 text-xs">
+                          Sub #{num}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Runner Subs */}
+                  <div className="bg-green-900/30 p-4 rounded-lg">
+                    <h4 className="font-bold text-green-200 mb-3 text-center">⚡ Runner Subs</h4>
+                    <div className="space-y-2">
+                      {[1, 2, 3].map((num) => (
+                        <div key={`runner-${num}`} className="h-12 bg-green-800/20 rounded border border-dashed border-green-400 flex items-center justify-center text-green-300 text-xs">
+                          Sub #{num}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Passer Subs */}
+                  <div className="bg-blue-900/30 p-4 rounded-lg">
+                    <h4 className="font-bold text-blue-200 mb-3 text-center">🎯 Passer Subs</h4>
+                    <div className="space-y-2">
+                      {[1, 2, 3].map((num) => (
+                        <div key={`passer-${num}`} className="h-12 bg-blue-800/20 rounded border border-dashed border-blue-400 flex items-center justify-center text-blue-300 text-xs">
+                          Sub #{num}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Flex Subs */}
+                  <div className="bg-yellow-900/30 p-4 rounded-lg">
+                    <h4 className="font-bold text-yellow-200 mb-3 text-center">🌟 Flex Subs</h4>
+                    <div className="space-y-2">
+                      {[1, 2, 3].map((num) => (
+                        <div key={`flex-${num}`} className="h-12 bg-yellow-800/20 rounded border border-dashed border-yellow-400 flex items-center justify-center text-yellow-300 text-xs">
+                          Sub #{num}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Available Players */}
+            <Card className="bg-gradient-to-r from-gray-800 to-gray-900 border-2 border-gray-400">
+              <CardHeader>
+                <CardTitle className="flex items-center text-white">
+                  <Users className="w-6 h-6 mr-3 text-gray-400" />
+                  👥 AVAILABLE PLAYERS
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="p-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                  {mainRoster.map((player) => (
+                    <div 
+                      key={player.id}
+                      className={`bg-gradient-to-r ${getRoleGradient(player.role)} p-3 rounded-lg border border-white/20 cursor-move hover:scale-105 transition-all duration-200`}
+                      draggable="true"
+                    >
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <span className="text-sm">{getRacialIcon(player.race || 'Human')}</span>
+                          <div>
+                            <div className="text-white text-sm font-semibold">
+                              {player.firstName} {player.lastName}
+                            </div>
+                            <Badge variant="outline" className="text-xs text-white border-white/50">
+                              {getRoleIcon(player.role)} {player.role}
+                            </Badge>
+                          </div>
+                        </div>
+                        <div className="text-white font-bold text-sm">
+                          {getPlayerPower(player)}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Save Button */}
+            <div className="sticky bottom-4 bg-green-800/90 backdrop-blur-sm p-4 rounded-lg border-2 border-green-400">
+              <Button 
+                className="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3"
+                disabled={true}
+              >
+                💾 SAVE LINEUP (0/6 starters assigned)
+              </Button>
+              <p className="text-green-200 text-sm text-center mt-2">
+                Drag players to starting positions and substitution queues to enable save
+              </p>
+            </div>
           </TabsContent>
 
           {/* TAB 3: CAMARADERIE */}
-          <TabsContent value="camaraderie" className="space-y-6">
+          <TabsContent value="camaraderie" className="space-y-6 px-2">
             <CamaraderieManagement team={team} players={activePlayers} />
           </TabsContent>
 
           {/* TAB 4: STADIUM */}
-          <TabsContent value="stadium" className="space-y-6">
+          <TabsContent value="stadium" className="space-y-6 px-2">
             <Card className="bg-gradient-to-r from-purple-800 to-purple-900 border-2 border-purple-400">
               <CardHeader>
                 <CardTitle className="flex items-center text-white">
@@ -498,7 +661,7 @@ export default function MobileRosterHQ() {
           </TabsContent>
 
           {/* TAB 5: PERSONNEL */}
-          <TabsContent value="personnel" className="space-y-6">
+          <TabsContent value="personnel" className="space-y-6 px-2">
             <Card className="bg-gradient-to-r from-orange-800 to-orange-900 border-2 border-orange-400">
               <CardHeader>
                 <CardTitle className="flex items-center text-white">
