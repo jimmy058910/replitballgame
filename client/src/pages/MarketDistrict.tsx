@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/useAuth";
 import { isUnauthorizedError } from "@/lib/authUtils";
@@ -5,11 +6,12 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useMutation } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 import InventoryDisplay from "@/components/InventoryDisplay";
-import PaymentHistory from "@/components/PaymentHistory";
+import EnhancedMarketplace from "@/components/EnhancedMarketplace";
 import FinancialCenter from "@/components/FinancialCenter";
 import { 
   Store, 
@@ -22,7 +24,15 @@ import {
   BarChart3,
   Crown,
   Shield,
-  Sword
+  Sword,
+  ChevronDown,
+  Gem,
+  Zap,
+  Trophy,
+  Coins,
+  ArrowRightLeft,
+  Star,
+  Calendar
 } from "lucide-react";
 
 interface StoreItem {
