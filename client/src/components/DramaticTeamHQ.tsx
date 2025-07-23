@@ -140,6 +140,17 @@ export default function DramaticTeamHQ() {
     refetchInterval: 30000, // Refresh every 30 seconds
   });
 
+  // Get next scheduled opponent from API
+  const { data: nextOpponentData } = useQuery<{
+    nextOpponent: string;
+    gameDate?: string;
+    isHome?: boolean;
+    matchType?: string;
+  }>({
+    queryKey: ['/api/teams/my/next-opponent'],
+    enabled: isAuthenticated
+  });
+
   if (isLoading || !teamData) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-900 to-gray-900">
@@ -170,12 +181,7 @@ export default function DramaticTeamHQ() {
   const exhibitionGamesPlayedToday = exhibitionStats?.gamesPlayedToday || 0;
   const freeExhibitionsRemaining = Math.max(0, 3 - exhibitionGamesPlayedToday);
 
-  // Get next scheduled opponent from API
-  const { data: nextOpponentData } = useQuery({
-    queryKey: ['/api/teams/my/next-opponent'],
-    enabled: isAuthenticated
-  });
-  
+  // Extract next opponent data
   const nextOpponent = nextOpponentData?.nextOpponent || "No games scheduled";
 
   // Calculate daily task completion
