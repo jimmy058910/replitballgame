@@ -94,14 +94,12 @@ export default function DramaticTeamHQ() {
     );
   }
 
-  // Use team data from API
+  // Use team data from API - now includes players, finances, stadium data
   const team = teamData;
   const draws = 0; // TODO: Calculate draws when implemented
-  
-  // For now, use realistic fallback data - we'll get real data from separate API calls
-  const players = []; // Will load from separate endpoint
-  const finances = { credits: BigInt(16000), gems: BigInt(50), projectedIncome: BigInt(8000), projectedExpenses: BigInt(3000) };
-  const stadium = { capacity: 5000, concessionsLevel: 1, parkingLevel: 1, vipSuitesLevel: 1, merchandisingLevel: 1, lightingScreensLevel: 1 };
+  const players = teamData.players || [];
+  const finances = teamData.finances || { credits: BigInt(16000), gems: BigInt(50) };
+  const stadium = teamData.stadium || { capacity: 5000, concessionsLevel: 1, parkingLevel: 1, vipSuitesLevel: 1, merchandisingLevel: 1, lightingScreensLevel: 1 };
 
   // Enhanced player analysis
   const activePlayers = players?.filter((p: Player) => !p.injuryStatus || p.injuryStatus === 'Healthy') || [];
@@ -127,7 +125,7 @@ export default function DramaticTeamHQ() {
                       <Badge className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-3 py-1">
                         Division {team.division} - Stone {team.subdivision}
                       </Badge>
-                      <span className="text-blue-200 text-sm font-semibold">Season 0 • Day 7 of 17</span>
+                      <span className="text-blue-200 text-sm font-semibold">Season 0 • Day 9 of 17</span>
                     </div>
                   </div>
                 </div>
@@ -261,7 +259,7 @@ export default function DramaticTeamHQ() {
               <h3 className="text-lg font-bold text-white mb-1">Market</h3>
               <p className="text-purple-200 text-xs mb-2">Trade & Shop</p>
               <Badge variant="outline" className="text-purple-400 border-purple-400 text-xs">
-                {Number(finances?.credits || BigInt(0)).toLocaleString()}₡
+                {Number(finances?.credits || 0).toLocaleString()}₡
               </Badge>
             </CardContent>
           </Card>
