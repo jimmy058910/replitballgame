@@ -60,38 +60,98 @@ const getStatColor = (value: number): string => {
   return "text-red-400";
 };
 
-// Helper function to render improved 5-star rating system
-const renderStarRating = (rating: number): JSX.Element[] => {
+// Enhanced 5-star rating system with baseline gray outlines and color fill
+const renderEnhancedStarRating = (rating: number): JSX.Element => {
   const stars = [];
   const fullStars = Math.floor(rating);
   const hasHalfStar = rating % 1 >= 0.5;
   
-  // Full stars - color based on rating level
-  let starColor = "text-gray-400 fill-gray-400"; // 0-1 stars
-  if (rating >= 4.5) starColor = "text-yellow-400 fill-yellow-400"; // Gold for 4.5-5 stars
-  else if (rating >= 3.5) starColor = "text-purple-400 fill-purple-400"; // Purple for 3.5-4 stars  
-  else if (rating >= 2.5) starColor = "text-blue-400 fill-blue-400"; // Blue for 2.5-3 stars
-  else if (rating >= 1.5) starColor = "text-green-400 fill-green-400"; // Green for 1.5-2 stars
+  // Star color based on rating level
+  let fillColor = "text-gray-400"; // Default for <1.5 stars
+  if (rating >= 4.5) fillColor = "text-yellow-400"; // Gold for 4.5-5★
+  else if (rating >= 3.5) fillColor = "text-purple-400"; // Purple for 3.5-4★
+  else if (rating >= 2.5) fillColor = "text-blue-400"; // Blue for 2.5-3★
+  else if (rating >= 1.5) fillColor = "text-green-400"; // Green for 1.5-2★
   
-  for (let i = 0; i < fullStars; i++) {
-    stars.push(<Star key={i} className={`w-5 h-5 ${starColor}`} />);
+  // Always show 5 star baseline (gray outlines)
+  for (let i = 0; i < 5; i++) {
+    if (i < fullStars) {
+      // Filled star
+      stars.push(
+        <Star 
+          key={i} 
+          className={`w-4 h-4 ${fillColor} fill-current`}
+        />
+      );
+    } else if (i === fullStars && hasHalfStar) {
+      // Half star
+      stars.push(
+        <div key={i} className="relative w-4 h-4">
+          <Star className="w-4 h-4 text-gray-300 absolute" />
+          <Star 
+            className={`w-4 h-4 ${fillColor} fill-current absolute`} 
+            style={{ clipPath: 'inset(0 50% 0 0)' }} 
+          />
+        </div>
+      );
+    } else {
+      // Empty star (gray outline)
+      stars.push(
+        <Star 
+          key={i} 
+          className="w-4 h-4 text-gray-300"
+        />
+      );
+    }
   }
   
-  if (hasHalfStar) {
-    stars.push(
-      <div key="half" className="relative w-5 h-5">
-        <Star className="w-5 h-5 text-gray-400" />
-        <Star className={`w-5 h-5 ${starColor} absolute top-0 left-0`} style={{ clipPath: 'inset(0 50% 0 0)' }} />
+  return (
+    <div className="flex items-center gap-1" title="Scouted potential. Stars refined as player is developed or scouted.">
+      {stars}
+      <span className="text-xs text-muted-foreground ml-1">
+        {rating.toFixed(1)}/5
+      </span>
+    </div>
+  );
+};
+
+// Enhanced stamina donut gauge
+const StaminaGauge = ({ current, max }: { current: number; max: number }) => {
+  const percentage = Math.max(0, Math.min(100, (current / max) * 100));
+  const isLow = percentage < 90;
+  
+  return (
+    <div className="relative w-12 h-12">
+      <svg className="w-12 h-12 transform -rotate-90" viewBox="0 0 36 36">
+        {/* Background circle */}
+        <path
+          d="M18 2.0845
+            a 15.9155 15.9155 0 0 1 0 31.831
+            a 15.9155 15.9155 0 0 1 0 -31.831"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          className="text-gray-600"
+        />
+        {/* Progress circle */}
+        <path
+          d="M18 2.0845
+            a 15.9155 15.9155 0 0 1 0 31.831
+            a 15.9155 15.9155 0 0 1 0 -31.831"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeDasharray={`${percentage}, 100`}
+          className={isLow ? "text-yellow-400" : "text-green-400"}
+        />
+      </svg>
+      <div className="absolute inset-0 flex items-center justify-center">
+        <span className={`text-xs font-bold ${isLow ? "text-yellow-400" : "text-green-400"}`}>
+          {Math.round(percentage)}%
+        </span>
       </div>
-    );
-  }
-  
-  const emptyStars = 5 - Math.ceil(rating);
-  for (let i = 0; i < emptyStars; i++) {
-    stars.push(<Star key={`empty-${i}`} className="w-5 h-5 text-gray-400" />);
-  }
-  
-  return stars;
+    </div>
+  );
 };
 
 export default function PlayerDetailModal({ 
@@ -356,12 +416,7 @@ export default function PlayerDetailModal({
                   
                   {/* ENHANCED 5-STAR POTENTIAL RATING */}
                   <div className="flex items-center gap-3 mb-3">
-                    <div className="flex items-center gap-1">
-                      {renderStarRating(player.potentialRating || 2.5)}
-                    </div>
-                    <span className="text-sm text-gray-300">
-                      ({player.potentialRating ? player.potentialRating.toFixed(1) : '2.5'}/5.0 potential)
-                    </span>
+                    {renderEnhancedStarRating(player.potentialRating || 2.5)}
                   </div>
                 </div>
                 
@@ -417,31 +472,32 @@ export default function PlayerDetailModal({
                 </div>
               </div>
               
-              {/* Quick Action Buttons */}
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+              {/* ENHANCED ACTION BUTTONS - Always Visible */}
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                 <Button 
-                  variant="outline" 
-                  size="sm"
                   onClick={() => setShowContractNegotiation(true)}
-                  className="flex items-center gap-2 min-h-[44px]"
+                  className="bg-green-600 hover:bg-green-700 text-white flex items-center gap-2"
+                  title="Renegotiate contract (will update salary)"
                 >
                   <DollarSign className="w-4 h-4" />
                   Negotiate
                 </Button>
                 
                 <Button 
-                  variant="outline" 
-                  size="sm"
-                  className="flex items-center gap-2 min-h-[44px]"
+                  variant="secondary" 
+                  className="bg-blue-600 hover:bg-blue-700 text-white flex items-center gap-2"
+                  disabled={player.injuryStatus === 'HEALTHY'}
+                  title={player.injuryStatus === 'HEALTHY' ? 'Player is healthy' : 'Use recovery items to heal player'}
                 >
-                  <Heart className="w-4 h-4" />
+                  <Zap className="w-4 h-4" />
                   Heal
                 </Button>
                 
                 <Button 
-                  variant="outline" 
-                  size="sm"
-                  className="flex items-center gap-2 min-h-[44px]"
+                  variant="secondary"
+                  className="bg-purple-600 hover:bg-purple-700 text-white flex items-center gap-2"
+                  onClick={() => toggleSection('equipment')}
+                  title="Manage player equipment"
                 >
                   <Wrench className="w-4 h-4" />
                   Equip
@@ -450,10 +506,10 @@ export default function PlayerDetailModal({
                 <AlertDialog>
                   <AlertDialogTrigger asChild>
                     <Button 
-                      variant="outline" 
-                      size="sm"
-                      disabled={releaseInfoLoading || !releaseInfo?.canRelease}
-                      className="flex items-center gap-2 border-red-500 text-red-500 hover:bg-red-500 hover:text-white min-h-[44px]"
+                      variant="destructive"
+                      className="flex items-center gap-2"
+                      disabled={!releaseInfo?.canRelease}
+                      title={releaseInfo?.canRelease ? `Release player (Fee: ₡${releaseInfo?.releaseFee?.toLocaleString() || 0})` : 'Cannot release player (contract restrictions)'}
                     >
                       <Trash2 className="w-4 h-4" />
                       Release
@@ -461,39 +517,22 @@ export default function PlayerDetailModal({
                   </AlertDialogTrigger>
                   <AlertDialogContent>
                     <AlertDialogHeader>
-                      <AlertDialogTitle className="flex items-center gap-2">
-                        <AlertTriangle className="w-5 h-5 text-red-500" />
-                        Release Player
-                      </AlertDialogTitle>
+                      <AlertDialogTitle>Release {displayName}?</AlertDialogTitle>
                       <AlertDialogDescription>
-                        <div className="space-y-2">
-                          <p>Are you sure you want to release {displayName}?</p>
-                          {releaseInfo && (
-                            <div className="bg-red-50 dark:bg-red-900/20 p-3 rounded-lg">
-                              <p className="font-semibold text-red-700 dark:text-red-300">
-                                Release Fee: ₡{releaseInfo.releaseFee?.toLocaleString() || 0}
-                              </p>
-                              <p className="text-sm text-red-600 dark:text-red-400">
-                                Team Credits: ₡{releaseInfo.teamCredits?.toLocaleString() || 0}
-                              </p>
-                              {releaseInfo.teamCredits < releaseInfo.releaseFee && (
-                                <p className="text-sm text-red-700 dark:text-red-300 font-semibold mt-1">
-                                  Insufficient credits for release!
-                                </p>
-                              )}
-                            </div>
-                          )}
-                          <p className="text-sm text-gray-600 dark:text-gray-400">
-                            This action cannot be undone.
-                          </p>
-                        </div>
+                        This will permanently remove the player from your team.
+                        {releaseInfo?.releaseFee ? ` Release fee: ₡${releaseInfo.releaseFee.toLocaleString()}` : ''}
+                        {releaseInfo?.teamCredits < (releaseInfo?.releaseFee || 0) && (
+                          <div className="text-red-500 font-semibold mt-2">
+                            Insufficient credits for release fee!
+                          </div>
+                        )}
                       </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
                       <AlertDialogCancel>Cancel</AlertDialogCancel>
-                      <AlertDialogAction
+                      <AlertDialogAction 
                         onClick={() => releasePlayerMutation.mutate()}
-                        disabled={releasePlayerMutation.isPending || !releaseInfo?.canRelease || (releaseInfo?.teamCredits < releaseInfo?.releaseFee)}
+                        disabled={releasePlayerMutation.isPending || (releaseInfo?.teamCredits < (releaseInfo?.releaseFee || 0))}
                         className="bg-red-600 hover:bg-red-700"
                       >
                         {releasePlayerMutation.isPending ? "Releasing..." : "Release Player"}
@@ -569,8 +608,7 @@ export default function PlayerDetailModal({
                       {/* Potential Stars */}
                       <div className="flex items-center gap-2 mb-2">
                         <span className="text-sm text-gray-400">Potential:</span>
-                        <div className="flex">{renderStarRating(potential)}</div>
-                        <span className="text-xs text-gray-500">({potential.toFixed(1)})</span>
+                        {renderEnhancedStarRating(potential)}
                       </div>
                     </div>
                     
