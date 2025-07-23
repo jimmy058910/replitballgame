@@ -23,6 +23,14 @@ function serializeTeamData(team: any): any {
   return {
     ...team,
     finances: serializeTeamFinances(team.finances),
+    players: team.players ? team.players.map((player: any) => ({
+      ...player,
+      // Flatten contract information into player object
+      contractSalary: player.contract ? parseInt(player.contract.salary.toString()) : null,
+      contractLength: player.contract ? player.contract.length : null,
+      contractStartDate: player.contract ? player.contract.startDate : null,
+      contractSigningBonus: player.contract ? parseInt(player.contract.signingBonus?.toString() || '0') : null,
+    })) : []
   };
 }
 

@@ -486,8 +486,8 @@ export default function PlayerDetailModal({
                 <Button 
                   variant="secondary" 
                   className="bg-blue-600 hover:bg-blue-700 text-white flex items-center gap-2"
-                  disabled={player.injuryStatus === 'HEALTHY'}
-                  title={player.injuryStatus === 'HEALTHY' ? 'Player is healthy' : 'Use recovery items to heal player'}
+                  disabled={player.injuryStatus === 'HEALTHY' && (player.dailyStaminaLevel || 100) >= 100}
+                  title={(player.injuryStatus === 'HEALTHY' && (player.dailyStaminaLevel || 100) >= 100) ? 'Player is healthy and has full stamina' : 'Use recovery items to heal player or restore stamina'}
                 >
                   <Zap className="w-4 h-4" />
                   Heal
@@ -648,7 +648,9 @@ export default function PlayerDetailModal({
                       <div className="flex items-center gap-2">
                         <Clock className="w-4 h-4 text-yellow-400" />
                         <span className="text-sm">Contract:</span>
-                        <span className="text-sm">₡{((player.speed || 0) * 500).toLocaleString()}/yr × 2 years</span>
+                        <span className="text-sm">
+                          ₡{player.contractSalary?.toLocaleString() || '0'}/season, {player.contractLength || 1} years
+                        </span>
                       </div>
                     </div>
                   </div>
