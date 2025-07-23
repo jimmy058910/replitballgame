@@ -152,6 +152,15 @@ export default function DramaticTeamHQ() {
     enabled: isAuthenticated
   });
 
+  // Get accurate camaraderie data (calculated from player scores)
+  const { data: camaraderieData } = useQuery<{
+    teamCamaraderie: number;
+    status: string;
+  }>({
+    queryKey: ['/api/camaraderie/summary'],
+    enabled: isAuthenticated
+  });
+
   if (isLoading || !teamData) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-900 to-gray-900">
@@ -460,7 +469,7 @@ export default function DramaticTeamHQ() {
                 </div>
                 <div className="flex justify-between items-center">
                   <span className="text-gray-300">Team Camaraderie</span>
-                  <span className="text-2xl font-bold text-teal-400">{Math.round(team.camaraderie || 50)}</span>
+                  <span className="text-2xl font-bold text-teal-400">{Math.round(camaraderieData?.teamCamaraderie || team.camaraderie || 50)}</span>
                 </div>
                 <div className="flex justify-between items-center">
                   <span className="text-gray-300">Fan Loyalty</span>
