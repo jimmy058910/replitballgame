@@ -337,7 +337,7 @@ export default function MobileRosterHQ() {
                           <div className="flex items-center gap-1">
                             <DollarSign className="h-3 w-3 text-green-400" />
                             <span>
-                              Contract ₡{player.contractSalary?.toLocaleString() || '0'}/season, {player.contractLength || 0} seasons left
+                              {player.contractSalary?.toLocaleString() || '0'}₡/season, {player.contractLength || 0} seasons
                             </span>
                           </div>
                         </div>
@@ -700,7 +700,7 @@ export default function MobileRosterHQ() {
                           <div className="flex justify-between text-xs">
                             <span className="text-white/70">Contract:</span>
                             <span className="text-orange-300 font-semibold">
-                              ₡{(member.level * 1000).toLocaleString()}/season, 3 seasons left
+                              {(member.level * 1000).toLocaleString()}₡/season, 3 seasons
                             </span>
                           </div>
                         </div>
