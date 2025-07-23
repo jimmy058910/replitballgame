@@ -431,62 +431,10 @@ export default function DramaticTeamHQ() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="space-y-3">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center">
-                    <Award className="w-4 h-4 mr-2 text-blue-400" />
-                    <span className="text-white text-sm">Games Won</span>
-                  </div>
-                  <span className="text-blue-400 font-bold">{team.wins}</span>
-                </div>
-                
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center">
-                    <Target className="w-4 h-4 mr-2 text-green-400" />
-                    <span className="text-white text-sm">Win Rate</span>
-                  </div>
-                  <span className="text-green-400 font-bold">
-                    {team.wins + team.losses > 0 ? Math.round((team.wins / (team.wins + team.losses)) * 100) : 0}%
-                  </span>
-                </div>
-                
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center">
-                    <Star className="w-4 h-4 mr-2 text-purple-400" />
-                    <span className="text-white text-sm">Team Power</span>
-                  </div>
-                  <span className="text-purple-400 font-bold">{teamPower}</span>
-                </div>
-                
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center">
-                    <Heart className="w-4 h-4 mr-2 text-pink-400" />
-                    <span className="text-white text-sm">Team Chemistry</span>
-                  </div>
-                  <span className="text-pink-400 font-bold">{Math.round(team.camaraderie || 50)}</span>
-                </div>
-                
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center">
-                    <Users className="w-4 h-4 mr-2 text-cyan-400" />
-                    <span className="text-white text-sm">Total Players</span>
-                  </div>
-                  <span className="text-cyan-400 font-bold">{allPlayers.length}</span>
-                </div>
-
-                {/* Recent Achievement Section */}
-                <div className="mt-4 pt-3 border-t border-gray-600">
-                  <div className="text-xs text-gray-400 mb-2">Recent Achievement</div>
-                  <div className="flex items-center">
-                    <div className="w-8 h-8 bg-gradient-to-r from-yellow-400 to-orange-500 rounded-full flex items-center justify-center mr-3">
-                      <Trophy className="w-4 h-4 text-white" />
-                    </div>
-                    <div>
-                      <div className="text-white text-sm font-semibold">Team Founded</div>
-                      <div className="text-gray-400 text-xs">Welcome to Realm Rivalry!</div>
-                    </div>
-                  </div>
-                </div>
+              <div className="text-center py-8">
+                <Trophy className="w-12 h-12 mx-auto mb-4 text-yellow-400 opacity-50" />
+                <p className="text-gray-300 mb-2">No career highlights yet.</p>
+                <p className="text-gray-400 text-sm">Win games and achieve milestones to earn highlights!</p>
               </div>
             </CardContent>
           </Card>
