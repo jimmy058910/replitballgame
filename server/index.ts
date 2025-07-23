@@ -7,7 +7,7 @@ import compression from "compression";
 import cors from "cors";
 import session from 'express-session';
 import passport from 'passport';
-import { setupGoogleAuth } from "./googleAuth"; // Import our new Google Auth setup
+import { setupAuth } from "./replitAuth"; // Import Replit Auth setup
 import { registerAllRoutes } from "./routes/index";
 import { setupVite, serveStatic, log } from "./vite";
 import { requestIdMiddleware } from "./middleware/requestId";
@@ -155,20 +155,8 @@ app.get('/health', (req, res) => {
 });
 
 (async () => {
-  // CRITICAL: Setup session middleware BEFORE Passport
-  app.use(session({
-    secret: process.env.SESSION_SECRET!, // The secret you stored in GCP
-    resave: false,
-    saveUninitialized: false,
-    cookie: { 
-      secure: process.env.NODE_ENV === 'production', // Use secure cookies in production
-      httpOnly: true,
-      maxAge: 24 * 60 * 60 * 1000 // 24 hours
-    }
-  }));
-
-  // Setup Google Auth using Passport
-  setupGoogleAuth(app);
+  // Setup Replit Auth with built-in session management
+  await setupAuth(app);
 
   // Register all modular routes
   registerAllRoutes(app);

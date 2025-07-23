@@ -86,14 +86,23 @@ export async function setupAuth(app: Express) {
     verified(null, user);
   };
 
-  for (const domain of process.env
-    .REPLIT_DOMAINS!.split(",")) {
+  // Register strategies for all domains including localhost for development
+  const domains = process.env.REPLIT_DOMAINS!.split(",");
+  
+  // Add localhost for development mode
+  if (process.env.NODE_ENV === 'development') {
+    domains.push('localhost');
+  }
+  
+  for (const domain of domains) {
     const strategy = new Strategy(
       {
         name: `replitauth:${domain}`,
         config,
         scope: "openid email profile offline_access",
-        callbackURL: `https://${domain}/api/callback`,
+        callbackURL: domain === 'localhost' 
+          ? `http://localhost:5000/api/callback`
+          : `https://${domain}/api/callback`,
       },
       verify,
     );
@@ -104,6 +113,11 @@ export async function setupAuth(app: Express) {
   passport.deserializeUser((user: Express.User, cb) => cb(null, user));
 
   app.get("/api/login", (req, res, next) => {
+    // In development, always redirect to the frontend login page since Replit Auth won't work on localhost
+    if (process.env.NODE_ENV === 'development') {
+      return res.redirect('/?login=requested');
+    }
+    
     passport.authenticate(`replitauth:${req.hostname}`, {
       prompt: "login consent",
       scope: ["openid", "email", "profile", "offline_access"],
@@ -111,6 +125,11 @@ export async function setupAuth(app: Express) {
   });
 
   app.get("/api/callback", (req, res, next) => {
+    // In development, redirect to home since we're using mock auth
+    if (process.env.NODE_ENV === 'development') {
+      return res.redirect('/');
+    }
+    
     passport.authenticate(`replitauth:${req.hostname}`, {
       successReturnToOrRedirect: "/",
       failureRedirect: "/api/login",
@@ -118,6 +137,14 @@ export async function setupAuth(app: Express) {
   });
 
   app.get("/api/logout", (req, res) => {
+    // In development, simply clear session and redirect
+    if (process.env.NODE_ENV === 'development') {
+      req.logout(() => {
+        res.redirect('/');
+      });
+      return;
+    }
+    
     req.logout(() => {
       res.redirect(
         client.buildEndSessionUrl(config, {
