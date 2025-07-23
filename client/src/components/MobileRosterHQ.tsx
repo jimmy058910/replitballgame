@@ -25,6 +25,7 @@ import UnifiedTeamHeader from './UnifiedTeamHeader';
 import PlayerDetailModal from './PlayerDetailModal';
 import CamaraderieManagement from './CamaraderieManagement';
 import StadiumFinancialHub from './StadiumFinancialHub';
+import { useToast } from '../hooks/use-toast';
 
 // Type definitions
 type Player = {
@@ -75,6 +76,7 @@ type TabType = 'roster' | 'tactics' | 'camaraderie' | 'stadium' | 'personnel';
 
 export default function MobileRosterHQ() {
   const { isAuthenticated } = useAuth();
+  const { toast } = useToast();
   const [activeTab, setActiveTab] = useState<TabType>('roster');
   const [selectedPlayer, setSelectedPlayer] = useState<Player | null>(null);
   const [selectedStaff, setSelectedStaff] = useState<Staff | null>(null);
@@ -610,7 +612,7 @@ export default function MobileRosterHQ() {
               <CardHeader>
                 <CardTitle className="flex items-center text-white">
                   <UserCheck className="w-6 h-6 mr-3 text-orange-400" />
-                  👔 PERSONNEL MANAGEMENT
+                  👔 STAFF
                 </CardTitle>
               </CardHeader>
               <CardContent className="p-4">
@@ -638,12 +640,54 @@ export default function MobileRosterHQ() {
                           </div>
                         </div>
 
+                        {/* Staff Attributes */}
+                        <div className="mb-3 p-2 bg-black/30 rounded space-y-1">
+                          <div className="grid grid-cols-2 gap-2 text-xs">
+                            {member.type === 'HEAD_COACH' && (
+                              <>
+                                <div className="flex justify-between">
+                                  <span className="text-white/70">Motivation:</span>
+                                  <span className="text-orange-300">{member.motivation || 0}/40</span>
+                                </div>
+                                <div className="flex justify-between">
+                                  <span className="text-white/70">Development:</span>
+                                  <span className="text-orange-300">{member.development || 0}/40</span>
+                                </div>
+                              </>
+                            )}
+                            {(member.type === 'PASSER_TRAINER' || member.type === 'RUNNER_TRAINER' || member.type === 'BLOCKER_TRAINER') && (
+                              <div className="flex justify-between col-span-2">
+                                <span className="text-white/70">Teaching:</span>
+                                <span className="text-orange-300">{member.teaching || 0}/40</span>
+                              </div>
+                            )}
+                            {member.type === 'RECOVERY_SPECIALIST' && (
+                              <div className="flex justify-between col-span-2">
+                                <span className="text-white/70">Physiology:</span>
+                                <span className="text-orange-300">{member.physiology || 0}/40</span>
+                              </div>
+                            )}
+                            {member.type === 'SCOUT' && (
+                              <>
+                                <div className="flex justify-between">
+                                  <span className="text-white/70">Talent ID:</span>
+                                  <span className="text-orange-300">{member.talentIdentification || 0}/40</span>
+                                </div>
+                                <div className="flex justify-between">
+                                  <span className="text-white/70">Potential:</span>
+                                  <span className="text-orange-300">{member.potentialAssessment || 0}/40</span>
+                                </div>
+                              </>
+                            )}
+                          </div>
+                        </div>
+
                         {/* Contract Information */}
                         <div className="mb-3 p-2 bg-black/30 rounded">
                           <div className="flex justify-between text-xs">
                             <span className="text-white/70">Contract:</span>
                             <span className="text-orange-300 font-semibold">
-                              ₡{(member.level * 1000).toLocaleString()}/season
+                              ₡{(member.level * 1000).toLocaleString()}/season, 3 seasons left
                             </span>
                           </div>
                         </div>
@@ -656,7 +700,11 @@ export default function MobileRosterHQ() {
                             className="flex-1 text-xs border-orange-400 text-orange-400 hover:bg-orange-600 hover:text-white"
                             onClick={(e) => {
                               e.stopPropagation();
-                              handleStaffNegotiate(member);
+                              toast({
+                                title: "Staff Negotiation",
+                                description: `Contract negotiation with ${member.name} will be available in the next update.`,
+                                variant: "default"
+                              });
                             }}
                           >
                             Negotiate
@@ -667,7 +715,11 @@ export default function MobileRosterHQ() {
                             className="flex-1 text-xs border-red-400 text-red-400 hover:bg-red-600 hover:text-white"
                             onClick={(e) => {
                               e.stopPropagation();
-                              handleStaffRelease(member);
+                              toast({
+                                title: "Staff Release",
+                                description: `Releasing ${member.name} will be available in the next update.`,
+                                variant: "default"
+                              });
                             }}
                           >
                             Release
