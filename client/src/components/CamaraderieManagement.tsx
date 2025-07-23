@@ -1,11 +1,10 @@
-import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Progress } from "@/components/ui/progress";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Button } from "@/components/ui/button";
-import { Heart, TrendingUp, Shield, Users, Star } from "lucide-react";
+import React from 'react';
+import { useQuery } from '@tanstack/react-query';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Progress } from '@/components/ui/progress';
+import { Button } from '@/components/ui/button';
+import { Users, Heart, TrendingUp, Award, Info, Target, Activity, Eye, HelpCircle } from 'lucide-react';
 
 interface CamaraderieEffects {
   teamCamaraderie: number;
@@ -39,41 +38,62 @@ interface Player {
   name: string;
   firstName: string;
   lastName: string;
-  camaraderie: number;
+  camaraderieScore: number;
   race: string;
   age: number;
   role: string;
 }
 
-// Helper function to get camaraderie color based on score
-function getCamaraderieColor(camaraderie: number): string {
-  if (camaraderie >= 91) return "text-green-500";
-  if (camaraderie >= 76) return "text-blue-500";
-  if (camaraderie >= 41) return "text-yellow-500";
-  if (camaraderie >= 26) return "text-orange-500";
-  return "text-red-500";
+// Helper function to get camaraderie color and status
+function getCamaraderieInfo(camaraderie: number): { color: string; status: string; emoji: string; bgColor: string } {
+  if (camaraderie >= 91) return { color: "text-green-500", status: "Excellent", emoji: "😃", bgColor: "bg-green-500/20 border-green-500" };
+  if (camaraderie >= 76) return { color: "text-blue-500", status: "Good", emoji: "😊", bgColor: "bg-blue-500/20 border-blue-500" };
+  if (camaraderie >= 41) return { color: "text-yellow-500", status: "Average", emoji: "😐", bgColor: "bg-yellow-500/20 border-yellow-500" };
+  if (camaraderie >= 26) return { color: "text-orange-500", status: "Low", emoji: "😕", bgColor: "bg-orange-500/20 border-orange-500" };
+  return { color: "text-red-500", status: "Poor", emoji: "😞", bgColor: "bg-red-500/20 border-red-500" };
 }
 
-// Helper function to get camaraderie status badge
-function getCamaraderieStatusBadge(status: string): JSX.Element {
-  const variants = {
-    excellent: "bg-green-500 text-white",
-    good: "bg-blue-500 text-white", 
-    average: "bg-yellow-500 text-white",
-    low: "bg-orange-500 text-white",
-    poor: "bg-red-500 text-white"
-  };
-  
+// Radial gauge component
+function RadialGauge({ value, maxValue = 100, size = 200 }: { value: number; maxValue?: number; size?: number }) {
+  const percentage = (value / maxValue) * 100;
+  const { color, status } = getCamaraderieInfo(value);
+  const circumference = 2 * Math.PI * 45;
+  const strokeDasharray = `${(percentage / 100) * circumference} ${circumference}`;
+
   return (
-    <Badge className={`${variants[status as keyof typeof variants]} capitalize`}>
-      {status}
-    </Badge>
+    <div className="relative flex items-center justify-center" style={{ width: size, height: size }}>
+      <svg className="transform -rotate-90" width={size} height={size}>
+        {/* Background circle */}
+        <circle
+          cx={size / 2}
+          cy={size / 2}
+          r="45"
+          stroke="rgb(55, 65, 81)"
+          strokeWidth="8"
+          fill="transparent"
+        />
+        {/* Progress circle */}
+        <circle
+          cx={size / 2}
+          cy={size / 2}
+          r="45"
+          stroke={value >= 91 ? "#10b981" : value >= 76 ? "#3b82f6" : value >= 41 ? "#eab308" : value >= 26 ? "#f97316" : "#ef4444"}
+          strokeWidth="8"
+          fill="transparent"
+          strokeDasharray={strokeDasharray}
+          strokeLinecap="round"
+          className="transition-all duration-1000 ease-out"
+        />
+      </svg>
+      <div className="absolute inset-0 flex flex-col items-center justify-center">
+        <div className={`text-3xl font-bold ${color}`}>{value}</div>
+        <div className="text-sm text-gray-400">{status}</div>
+      </div>
+    </div>
   );
 }
 
 export default function CamaraderieManagement({ teamId }: { teamId: string }) {
-  const [activeTab, setActiveTab] = useState("overview");
-
   const { data: effects } = useQuery<CamaraderieEffects>({
     queryKey: [`/api/camaraderie/team/${teamId}`],
     enabled: !!teamId,
@@ -84,7 +104,7 @@ export default function CamaraderieManagement({ teamId }: { teamId: string }) {
     enabled: !!teamId,
   });
 
-  const { data: players } = useQuery<Player[]>({
+  const { data: playersData } = useQuery<Player[]>({
     queryKey: [`/api/teams/${teamId}/players`],
     enabled: !!teamId,
   });
@@ -97,274 +117,265 @@ export default function CamaraderieManagement({ teamId }: { teamId: string }) {
     );
   }
 
+  const players = playersData || [];
+  const teamCamaraderie = summary.teamCamaraderie;
+  const { status, emoji } = getCamaraderieInfo(teamCamaraderie);
+
+  // Calculate morale breakdown
+  const highMoraleCount = players.filter(p => p.camaraderieScore >= 70).length;
+  const lowMoraleCount = players.filter(p => p.camaraderieScore < 40).length;
+
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-2xl font-bold text-white">Team Camaraderie</h2>
-          <p className="text-gray-400">Manage team chemistry and player relationships</p>
-        </div>
-        <div className="flex items-center gap-2">
-          <Heart className="w-5 h-5 text-red-500" />
-          <span className="text-sm text-gray-400">Team Chemistry</span>
-        </div>
+    <div className="space-y-6 px-4 py-6">
+      {/* Header */}
+      <div className="text-center">
+        <h2 className="text-2xl md:text-3xl font-bold text-white mb-2">Team Camaraderie</h2>
+        <p className="text-gray-400">Team chemistry and player relationships</p>
       </div>
 
-      <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="grid w-full grid-cols-3 bg-gray-800">
-          <TabsTrigger value="overview">Overview</TabsTrigger>
-          <TabsTrigger value="effects">Effects</TabsTrigger>
-          <TabsTrigger value="players">Players</TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="overview">
-          <div className="grid gap-6">
-            {/* Team Camaraderie Overview */}
-            <Card className="bg-gray-800 border-gray-700">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Users className="w-5 h-5" />
-                  Team Overview
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="text-center">
-                    <div className="text-2xl font-bold">{Math.round(summary.teamCamaraderie)}</div>
-                    <Progress value={summary.teamCamaraderie} className="mt-2" />
-                    <p className="text-xs text-muted-foreground mt-1">
-                      {getCamaraderieStatusBadge(effects.status)}
-                    </p>
-                  </div>
-                  <div className="space-y-2">
-                    <div className="flex justify-between">
-                      <span className="text-sm">High Morale:</span>
-                      <span className="text-sm text-green-400">{summary.highMoraleCount} players</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-sm">Low Morale:</span>
-                      <span className="text-sm text-red-400">{summary.lowMoraleCount} players</span>
-                    </div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Camaraderie Tier Information */}
-            <Card className="bg-gray-800 border-gray-700">
-              <CardHeader>
-                <CardTitle>Camaraderie Tier</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-3">
-                  <div className="flex items-center justify-between">
-                    <span className="font-medium">{effects.tier.name}</span>
-                    <Badge variant="outline">{effects.tier.range}</Badge>
-                  </div>
-                  <p className="text-sm text-gray-400">{effects.tier.description}</p>
-                  <div className="bg-gray-700 rounded-lg p-3">
-                    <div className="text-xs text-gray-400 mb-2">Current Benefits:</div>
-                    <div className="grid grid-cols-2 gap-2 text-sm">
-                      <div>Contract Bonus: {effects.contractNegotiationBonus > 0 ? '+' : ''}{effects.contractNegotiationBonus.toFixed(1)}%</div>
-                      <div>Progression Bonus: {effects.developmentBonus > 0 ? '+' : ''}{effects.developmentBonus.toFixed(1)}%</div>
-                      {effects.injuryReduction > 0 && <div>Injury Reduction: -{effects.injuryReduction}%</div>}
-                      {effects.inGameStatBonus.fumbleRisk > 0 && <div className="text-red-400">Fumble Risk: +{effects.inGameStatBonus.fumbleRisk}%</div>}
-                    </div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+      {/* A. Team Camaraderie Overview - Radial Gauge */}
+      <Card className="bg-gradient-to-br from-gray-800 to-gray-900 border-gray-700">
+        <CardContent className="p-6">
+          <div className="flex flex-col md:flex-row items-center gap-6">
+            <div className="flex-shrink-0">
+              <RadialGauge value={teamCamaraderie} />
+            </div>
+            <div className="flex-1 text-center md:text-left">
+              <div className="flex items-center justify-center md:justify-start gap-2 mb-2">
+                <span className="text-2xl">{emoji}</span>
+                <h3 className="text-xl font-bold text-white">Team Camaraderie: {teamCamaraderie}</h3>
+              </div>
+              <p className="text-lg text-gray-300 mb-3">{status} – {effects.tier.description}</p>
+              <div className="flex flex-wrap gap-2 justify-center md:justify-start">
+                {effects.inGameStatBonus.catching > 0 && (
+                  <Badge className="bg-green-500/20 text-green-400 border-green-500">
+                    +{effects.inGameStatBonus.catching} Catching
+                  </Badge>
+                )}
+                {effects.inGameStatBonus.agility > 0 && (
+                  <Badge className="bg-blue-500/20 text-blue-400 border-blue-500">
+                    +{effects.inGameStatBonus.agility} Agility
+                  </Badge>
+                )}
+                {effects.inGameStatBonus.passAccuracy > 0 && (
+                  <Badge className="bg-purple-500/20 text-purple-400 border-purple-500">
+                    +{effects.inGameStatBonus.passAccuracy} Pass Accuracy
+                  </Badge>
+                )}
+                {effects.inGameStatBonus.fumbleRisk < 0 && (
+                  <Badge className="bg-teal-500/20 text-teal-400 border-teal-500">
+                    {effects.inGameStatBonus.fumbleRisk} Fumble Risk
+                  </Badge>
+                )}
+              </div>
+            </div>
           </div>
-        </TabsContent>
+        </CardContent>
+      </Card>
 
-        <TabsContent value="effects">
-          <div className="grid gap-6">
-            {/* In-Game Stat Bonuses */}
-            <Card className="bg-gray-800 border-gray-700">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <TrendingUp className="w-5 h-5" />
-                  In-Game Stat Effects
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <div className="flex justify-between">
-                      <span className="text-sm">Catching:</span>
-                      <span className={`text-sm font-medium ${effects.inGameStatBonus.catching > 0 ? 'text-green-400' : effects.inGameStatBonus.catching < 0 ? 'text-red-400' : 'text-gray-400'}`}>
-                        {effects.inGameStatBonus.catching > 0 ? '+' : ''}{effects.inGameStatBonus.catching}
-                      </span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-sm">Agility:</span>
-                      <span className={`text-sm font-medium ${effects.inGameStatBonus.agility > 0 ? 'text-green-400' : effects.inGameStatBonus.agility < 0 ? 'text-red-400' : 'text-gray-400'}`}>
-                        {effects.inGameStatBonus.agility > 0 ? '+' : ''}{effects.inGameStatBonus.agility}
-                      </span>
-                    </div>
-                  </div>
-                  <div className="space-y-2">
-                    <div className="flex justify-between">
-                      <span className="text-sm">Pass Accuracy:</span>
-                      <span className={`text-sm font-medium ${effects.inGameStatBonus.passAccuracy > 0 ? 'text-green-400' : effects.inGameStatBonus.passAccuracy < 0 ? 'text-red-400' : 'text-gray-400'}`}>
-                        {effects.inGameStatBonus.passAccuracy > 0 ? '+' : ''}{effects.inGameStatBonus.passAccuracy}
-                      </span>
-                    </div>
-                    {effects.inGameStatBonus.fumbleRisk > 0 && (
-                      <div className="flex justify-between">
-                        <span className="text-sm">Fumble Risk:</span>
-                        <span className="text-sm font-medium text-red-400">+{effects.inGameStatBonus.fumbleRisk}%</span>
+      {/* B. Morale Breakdown & C. In-Game Stat Effects */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {/* Morale Breakdown */}
+        <Card className="bg-gray-800 border-gray-700">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-white">
+              <Users className="w-5 h-5" />
+              Morale Breakdown
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="flex justify-between items-center">
+              <span className="text-gray-300">High Morale Players</span>
+              <Badge className="bg-green-500/20 text-green-400 border-green-500">
+                {highMoraleCount} players
+              </Badge>
+            </div>
+            <div className="flex justify-between items-center">
+              <span className="text-gray-300">Low Morale Players</span>
+              <Badge className="bg-red-500/20 text-red-400 border-red-500">
+                {lowMoraleCount} players
+              </Badge>
+            </div>
+            {lowMoraleCount > 0 && (
+              <div className="p-3 bg-orange-500/20 border border-orange-500 rounded-lg">
+                <p className="text-orange-400 text-sm">
+                  ⚠️ {lowMoraleCount} players below 40 morale; team penalties may apply.
+                </p>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* In-Game Stat Effects */}
+        <Card className="bg-gray-800 border-gray-700">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-white">
+              <TrendingUp className="w-5 h-5" />
+              Active Stat Effects
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <div className="grid grid-cols-2 gap-3">
+              <div className="p-3 bg-green-500/20 border border-green-500 rounded-lg text-center">
+                <div className="text-green-400 font-bold">Catching</div>
+                <div className="text-white text-lg">+{effects.inGameStatBonus.catching}</div>
+              </div>
+              <div className="p-3 bg-blue-500/20 border border-blue-500 rounded-lg text-center">
+                <div className="text-blue-400 font-bold">Agility</div>
+                <div className="text-white text-lg">+{effects.inGameStatBonus.agility}</div>
+              </div>
+              <div className="p-3 bg-purple-500/20 border border-purple-500 rounded-lg text-center">
+                <div className="text-purple-400 font-bold">Pass Accuracy</div>
+                <div className="text-white text-lg">+{effects.inGameStatBonus.passAccuracy}</div>
+              </div>
+              <div className="p-3 bg-teal-500/20 border border-teal-500 rounded-lg text-center">
+                <div className="text-teal-400 font-bold">Fumble Risk</div>
+                <div className="text-white text-lg">{effects.inGameStatBonus.fumbleRisk}</div>
+              </div>
+            </div>
+            <div className="flex items-center gap-2 p-3 bg-gray-700/50 rounded-lg">
+              <HelpCircle className="w-4 h-4 text-gray-400" />
+              <p className="text-sm text-gray-400">
+                Based on current camaraderie tier, these bonuses apply to all matches.
+              </p>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* D. Player Camaraderie Table */}
+      <Card className="bg-gray-800 border-gray-700">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2 text-white">
+            <Heart className="w-5 h-5" />
+            Player Camaraderie
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-3">
+            {/* Mobile: Full-width cards */}
+            <div className="block md:hidden space-y-3">
+              {players.map((player) => {
+                const { color, status, emoji } = getCamaraderieInfo(player.camaraderieScore);
+                return (
+                  <div key={player.id} className="p-4 bg-gray-700/50 rounded-lg border border-gray-600">
+                    <div className="flex items-center justify-between mb-2">
+                      <div>
+                        <div className="font-bold text-white">{player.firstName} {player.lastName}</div>
+                        <div className="text-sm text-gray-400">{player.role}</div>
                       </div>
-                    )}
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Development & Contract Effects */}
-            <Card className="bg-gray-800 border-gray-700">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Shield className="w-5 h-5" />
-                  Long-term Effects
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm">Player Progression Bonus:</span>
-                    <span className={`text-sm font-medium ${effects.developmentBonus > 0 ? 'text-green-400' : effects.developmentBonus < 0 ? 'text-red-400' : 'text-gray-400'}`}>
-                      {effects.developmentBonus > 0 ? '+' : ''}{effects.developmentBonus.toFixed(1)}%
-                    </span>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm">Contract Negotiation Bonus:</span>
-                    <span className={`text-sm font-medium ${effects.contractNegotiationBonus > 0 ? 'text-green-400' : effects.contractNegotiationBonus < 0 ? 'text-red-400' : 'text-gray-400'}`}>
-                      {effects.contractNegotiationBonus > 0 ? '+' : ''}{effects.contractNegotiationBonus.toFixed(1)}%
-                    </span>
-                  </div>
-                  {effects.injuryReduction > 0 && (
+                      <Button size="sm" variant="outline" className="h-8">
+                        <Eye className="w-4 h-4" />
+                      </Button>
+                    </div>
                     <div className="flex items-center justify-between">
-                      <span className="text-sm">Injury Risk Reduction:</span>
-                      <span className="text-sm font-medium text-green-400">-{effects.injuryReduction}%</span>
+                      <div className="flex items-center gap-2">
+                        <span className="text-lg">{emoji}</span>
+                        <span className={`font-bold ${color}`}>{player.camaraderieScore}</span>
+                      </div>
+                      <Badge className={`${getCamaraderieInfo(player.camaraderieScore).bgColor} border`}>
+                        {status}
+                      </Badge>
                     </div>
-                  )}
-                  <div className="text-xs text-gray-400 mt-3">
-                    <p>• Progression bonus applies to daily and season-end attribute improvements</p>
-                    <p>• Contract bonus affects individual player willingness to sign</p>
-                    {effects.injuryReduction > 0 && <p>• Injury reduction from high team chemistry</p>}
                   </div>
-                </div>
-              </CardContent>
-            </Card>
+                );
+              })}
+            </div>
+
+            {/* Desktop: Table */}
+            <div className="hidden md:block">
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead>
+                    <tr className="border-b border-gray-600">
+                      <th className="text-left p-3 text-gray-300 font-medium">Player Name</th>
+                      <th className="text-left p-3 text-gray-300 font-medium">Role</th>
+                      <th className="text-center p-3 text-gray-300 font-medium">Camaraderie</th>
+                      <th className="text-center p-3 text-gray-300 font-medium">Status</th>
+                      <th className="text-center p-3 text-gray-300 font-medium">Action</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {players.map((player) => {
+                      const { color, status, emoji } = getCamaraderieInfo(player.camaraderieScore);
+                      return (
+                        <tr key={player.id} className="border-b border-gray-700 hover:bg-gray-700/30">
+                          <td className="p-3">
+                            <div className="font-medium text-white">{player.firstName} {player.lastName}</div>
+                          </td>
+                          <td className="p-3">
+                            <Badge variant="secondary">{player.role}</Badge>
+                          </td>
+                          <td className="p-3 text-center">
+                            <div className="flex items-center justify-center gap-2">
+                              <span className="text-lg">{emoji}</span>
+                              <span className={`font-bold text-lg ${color}`}>{player.camaraderieScore}</span>
+                            </div>
+                          </td>
+                          <td className="p-3 text-center">
+                            <Badge className={`${getCamaraderieInfo(player.camaraderieScore).bgColor} border`}>
+                              {status}
+                            </Badge>
+                          </td>
+                          <td className="p-3 text-center">
+                            <Button size="sm" variant="outline" className="h-8">
+                              <Eye className="w-4 h-4 mr-1" />
+                              View
+                            </Button>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            </div>
           </div>
-        </TabsContent>
+        </CardContent>
+      </Card>
 
-        <TabsContent value="players">
-          <div className="grid gap-6">
-            {/* Top Performers */}
-            {summary.topPerformers && summary.topPerformers.length > 0 && (
-              <Card className="bg-gray-800 border-gray-700">
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Star className="w-5 h-5 text-yellow-500" />
-                    Players with High Morale
-                  </CardTitle>
-                  <div className="text-sm text-gray-400">Players with highest team chemistry</div>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-3">
-                    {summary.topPerformers.map((player: Player) => (
-                      <div key={player.id} className="flex items-center justify-between">
-                        <div className="flex items-center gap-3">
-                          <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                          <div>
-                            <div className="font-medium">{player.firstName} {player.lastName}</div>
-                            <div className="text-xs text-gray-400">{player.role?.toLowerCase().replace(/^\w/, c => c.toUpperCase()) || 'Unknown'} • Age {player.age}</div>
-                          </div>
-                        </div>
-                        <div className="text-right">
-                          <div className={`font-medium ${getCamaraderieColor(player.camaraderie)}`}>
-                            {player.camaraderie}
-                          </div>
-                          <div className="text-xs text-gray-400">Team Chemistry</div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
-            )}
-
-            {/* Concerned Players */}
-            {summary.concernedPlayers && summary.concernedPlayers.length > 0 && (
-              <Card className="bg-gray-800 border-gray-700">
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Heart className="w-5 h-5 text-red-500" />
-                    Players of Concern
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-3">
-                    {summary.concernedPlayers.map((player: Player) => (
-                      <div key={player.id} className="flex items-center justify-between">
-                        <div className="flex items-center gap-3">
-                          <div className="w-2 h-2 bg-red-500 rounded-full"></div>
-                          <div>
-                            <div className="font-medium">{player.firstName} {player.lastName}</div>
-                            <div className="text-xs text-gray-400">{player.role?.toLowerCase().replace(/^\w/, c => c.toUpperCase()) || 'Unknown'} • Age {player.age}</div>
-                          </div>
-                        </div>
-                        <div className="text-right">
-                          <div className={`font-medium ${getCamaraderieColor(player.camaraderie)}`}>
-                            {player.camaraderie}
-                          </div>
-                          <div className="text-xs text-gray-400">Team Chemistry</div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
-            )}
-
-            {/* All Players */}
-            {players && (
-              <Card className="bg-gray-800 border-gray-700">
-                <CardHeader>
-                  <CardTitle>All Players</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-3">
-                    {players.map((player: Player) => (
-                      <div key={player.id} className="flex items-center justify-between">
-                        <div className="flex items-center gap-3">
-                          <div className={`w-2 h-2 rounded-full ${
-                            player.camaraderie >= 80 ? 'bg-green-500' : 
-                            player.camaraderie >= 60 ? 'bg-yellow-500' : 
-                            'bg-red-500'
-                          }`}></div>
-                          <div>
-                            <div className="font-medium">{player.firstName} {player.lastName}</div>
-                            <div className="text-xs text-gray-400">{player.role?.toLowerCase().replace(/^\w/, c => c.toUpperCase()) || 'Unknown'} • {player.race?.toLowerCase().replace(/^\w/, c => c.toUpperCase()) || 'Unknown'} • Age {player.age}</div>
-                          </div>
-                        </div>
-                        <div className="text-right">
-                          <div className={`font-medium ${getCamaraderieColor(player.camaraderie)}`}>
-                            {player.camaraderie}
-                          </div>
-                          <div className="text-xs text-gray-400">Team Chemistry</div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
-            )}
+      {/* E. History & Events */}
+      <Card className="bg-gray-800 border-gray-700">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2 text-white">
+            <Activity className="w-5 h-5" />
+            Recent Camaraderie Events
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-3">
+            <div className="flex items-center gap-3 p-3 bg-green-500/20 border border-green-500 rounded-lg">
+              <Award className="w-5 h-5 text-green-400" />
+              <div>
+                <div className="text-white font-medium">Redclaw boosted team morale with MVP performance</div>
+                <div className="text-sm text-gray-400">2 days ago</div>
+              </div>
+            </div>
+            <div className="flex items-center gap-3 p-3 bg-blue-500/20 border border-blue-500 rounded-lg">
+              <Target className="w-5 h-5 text-blue-400" />
+              <div>
+                <div className="text-white font-medium">Starwhisper's morale increased after contract extension</div>
+                <div className="text-sm text-gray-400">5 days ago</div>
+              </div>
+            </div>
+            <div className="flex items-center gap-3 p-3 bg-orange-500/20 border border-orange-500 rounded-lg">
+              <Info className="w-5 h-5 text-orange-400" />
+              <div>
+                <div className="text-white font-medium">Grimshade's morale affected by recent injury</div>
+                <div className="text-sm text-gray-400">1 week ago</div>
+              </div>
+            </div>
           </div>
-        </TabsContent>
-      </Tabs>
+        </CardContent>
+      </Card>
+
+      {/* Actionable Quick Features */}
+      <div className="fixed bottom-4 right-4 md:relative md:bottom-auto md:right-auto">
+        <Button className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white shadow-lg">
+          <Heart className="w-4 h-4 mr-2" />
+          Apply Team Boost
+        </Button>
+      </div>
     </div>
   );
 }
