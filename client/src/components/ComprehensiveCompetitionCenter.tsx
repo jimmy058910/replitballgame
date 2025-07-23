@@ -180,27 +180,27 @@ export default function ComprehensiveCompetitionCenter() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-900 via-gray-900 to-gray-800 text-white pb-20 md:pb-6">
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900/20 to-blue-900/30 text-white pb-20 md:pb-6">
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
         
-        {/* DRAMATIC HERO BANNER */}
-        <div className="relative overflow-hidden bg-gradient-to-r from-purple-900 via-purple-800 to-blue-900 rounded-2xl p-6 md:p-8 mb-6 shadow-2xl">
-          <div className="absolute inset-0 bg-gradient-to-r from-purple-600/20 to-blue-600/20 backdrop-blur-sm"></div>
+        {/* DRAMATIC MOBILE-FIRST HERO BANNER */}
+        <div className="relative overflow-hidden bg-gradient-to-r from-purple-800 via-blue-700 to-cyan-800 rounded-xl p-4 md:p-6 mb-4 shadow-2xl">
+          <div className="absolute inset-0 bg-gradient-radial from-purple-500/30 via-transparent to-cyan-500/20 backdrop-blur-sm"></div>
           <div className="relative z-10">
-            <div className="flex flex-col md:flex-row md:items-center md:justify-between">
-              <div className="mb-4 md:mb-0">
-                <h1 className="text-4xl md:text-5xl font-black text-white mb-2">
-                  🏆 Competition Center 🏆
+            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+              <div>
+                <h1 className="text-2xl md:text-3xl font-black text-white mb-1">
+                  🏆 Competition Center
                 </h1>
-                <p className="text-xl text-purple-100 font-semibold">
+                <p className="text-sm md:text-base text-purple-100 font-semibold">
                   Compete • Conquer • Claim Glory
                 </p>
               </div>
-              <div className="flex items-center gap-4">
-                <Badge className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-4 py-2 text-lg">
+              <div className="flex items-center gap-2 text-xs md:text-sm">
+                <Badge className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-2 py-1">
                   Division {team?.division || 8} - {team?.subdivision?.charAt(0).toUpperCase() + team?.subdivision?.slice(1) || 'Eta'}
                 </Badge>
-                <Badge className="bg-yellow-600 text-yellow-100 px-3 py-1">
+                <Badge className="bg-yellow-600 text-yellow-100 px-2 py-1">
                   Season 0 • Day 9/17
                 </Badge>
               </div>
@@ -208,94 +208,62 @@ export default function ComprehensiveCompetitionCenter() {
           </div>
         </div>
 
-        {/* CRITICAL ALERTS PANEL */}
-        {seasonData?.phase === 'DIVISION_TOURNAMENT' && (
-          <div className="bg-gradient-to-r from-red-600 to-orange-600 border-2 border-red-400 rounded-xl p-4 mb-6 shadow-xl">
-            <div className="flex items-center gap-3">
-              <div className="w-3 h-3 bg-red-300 rounded-full animate-pulse"></div>
-              <Trophy className="h-6 w-6 text-red-100" />
-              <div>
-                <h3 className="text-xl font-bold text-white">DIVISION TOURNAMENT ACTIVE!</h3>
-                <p className="text-red-100">Compete for championship glory and promotion to higher division</p>
-              </div>
+        {/* PERFORMANCE SUMMARY BAR */}
+        <div className="grid grid-cols-4 gap-2 mb-4">
+          <div className="bg-gradient-to-r from-green-700 to-green-600 rounded-lg p-3 text-center">
+            <div className="text-lg md:text-xl font-black text-white">
+              {team?.wins || 0}-{0}-{team?.losses || 0}
             </div>
+            <p className="text-green-100 text-xs font-semibold uppercase">Record</p>
           </div>
-        )}
-
-        {/* PERFORMANCE DASHBOARD */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-          <Card className="bg-gradient-to-br from-green-700 via-green-800 to-green-900 border-2 border-green-500 transform hover:scale-105 transition-all duration-300 shadow-xl">
-            <CardContent className="p-6 text-center">
-              <Trophy className="w-10 h-10 text-green-300 mx-auto mb-3" />
-              <div className="text-3xl font-black text-green-200 mb-1">
-                {team?.wins || 0}-{0}-{team?.losses || 0}
-              </div>
-              <p className="text-green-300 font-bold uppercase tracking-wide text-sm">Record</p>
-            </CardContent>
-          </Card>
-
-          <Card className="bg-gradient-to-br from-blue-700 via-blue-800 to-blue-900 border-2 border-blue-500 transform hover:scale-105 transition-all duration-300 shadow-xl">
-            <CardContent className="p-6 text-center">
-              <Star className="w-10 h-10 text-blue-300 mx-auto mb-3" />
-              <div className="text-3xl font-black text-blue-200 mb-1">{team?.points || 0}</div>
-              <p className="text-blue-300 font-bold uppercase tracking-wide text-sm">Points</p>
-            </CardContent>
-          </Card>
-
-          <Card className="bg-gradient-to-br from-red-700 via-red-800 to-red-900 border-2 border-red-500 transform hover:scale-105 transition-all duration-300 shadow-xl">
-            <CardContent className="p-6 text-center">
-              <Activity className="w-10 h-10 text-red-300 mx-auto mb-3" />
-              <div className="text-3xl font-black text-red-200 mb-1">{liveMatches?.length || 0}</div>
-              <p className="text-red-300 font-bold uppercase tracking-wide text-sm">Live</p>
-            </CardContent>
-          </Card>
-
-          <Card className="bg-gradient-to-br from-purple-700 via-purple-800 to-purple-900 border-2 border-purple-500 transform hover:scale-105 transition-all duration-300 shadow-xl">
-            <CardContent className="p-6 text-center">
-              <Medal className="w-10 h-10 text-purple-300 mx-auto mb-3" />
-              <div className="text-3xl font-black text-purple-200 mb-1">{tournaments?.length || 0}</div>
-              <p className="text-purple-300 font-bold uppercase tracking-wide text-sm">Tournaments</p>
-            </CardContent>
-          </Card>
+          <div className="bg-gradient-to-r from-blue-700 to-blue-600 rounded-lg p-3 text-center">
+            <div className="text-lg md:text-xl font-black text-white">{team?.points || 0}</div>
+            <p className="text-blue-100 text-xs font-semibold uppercase">Points</p>
+          </div>
+          <div className="bg-gradient-to-r from-red-700 to-red-600 rounded-lg p-3 text-center">
+            <div className="text-lg md:text-xl font-black text-white">{liveMatches?.length || 0}</div>
+            <p className="text-red-100 text-xs font-semibold uppercase">Live</p>
+          </div>
+          <div className="bg-gradient-to-r from-purple-700 to-purple-600 rounded-lg p-3 text-center">
+            <div className="text-lg md:text-xl font-black text-white">{tournaments?.length || 0}</div>
+            <p className="text-purple-100 text-xs font-semibold uppercase">Tournaments</p>
+          </div>
         </div>
 
-        {/* COMPETITION TABS - MOBILE-FIRST STICKY NAVIGATION */}
+        {/* MOBILE-FIRST TAB NAVIGATION */}
         <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as any)}>
           
-          {/* Enhanced Sticky Tab Navigation */}
-          <div className="sticky top-0 z-20 bg-gray-900/95 backdrop-blur-md border-b border-purple-500/30 mb-6 -mx-4 px-4 py-3 shadow-lg">
-            <div className="overflow-x-auto">
-              <TabsList className="inline-flex w-auto min-w-full bg-gradient-to-r from-gray-800 to-gray-700 p-2 rounded-xl border border-purple-500/20">
-                <TabsTrigger 
-                  value="league" 
-                  className="flex-1 min-w-[90px] text-sm font-bold data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-600 data-[state=active]:to-blue-600 data-[state=active]:text-white"
-                >
-                  <Trophy className="h-5 w-5 mr-2" />
-                  League
-                </TabsTrigger>
-                <TabsTrigger 
-                  value="tournaments" 
-                  className="flex-1 min-w-[110px] text-sm font-bold data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-600 data-[state=active]:to-blue-600 data-[state=active]:text-white"
-                >
-                  <Award className="h-5 w-5 mr-2" />
-                  Tournaments
-                </TabsTrigger>
-                <TabsTrigger 
-                  value="exhibitions" 
-                  className="flex-1 min-w-[110px] text-sm font-bold data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-600 data-[state=active]:to-blue-600 data-[state=active]:text-white"
-                >
-                  <Zap className="h-5 w-5 mr-2" />
-                  Exhibitions
-                </TabsTrigger>
-                <TabsTrigger 
-                  value="schedule" 
-                  className="flex-1 min-w-[100px] text-sm font-bold data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-600 data-[state=active]:to-blue-600 data-[state=active]:text-white"
-                >
-                  <Calendar className="h-5 w-5 mr-2" />
-                  Schedule
-                </TabsTrigger>
-              </TabsList>
-            </div>
+          <div className="mb-4">
+            <TabsList className="grid w-full grid-cols-4 bg-gray-800 p-1 rounded-lg border border-gray-600">
+              <TabsTrigger 
+                value="league" 
+                className="text-xs font-semibold data-[state=active]:bg-purple-600 data-[state=active]:text-white"
+              >
+                <Trophy className="h-4 w-4 mr-1" />
+                League
+              </TabsTrigger>
+              <TabsTrigger 
+                value="tournaments" 
+                className="text-xs font-semibold data-[state=active]:bg-purple-600 data-[state=active]:text-white"
+              >
+                <Award className="h-4 w-4 mr-1" />
+                Tournaments
+              </TabsTrigger>
+              <TabsTrigger 
+                value="exhibitions" 
+                className="text-xs font-semibold data-[state=active]:bg-purple-600 data-[state=active]:text-white"
+              >
+                <Zap className="h-4 w-4 mr-1" />
+                Exhibitions
+              </TabsTrigger>
+              <TabsTrigger 
+                value="schedule" 
+                className="text-xs font-semibold data-[state=active]:bg-purple-600 data-[state=active]:text-white"
+              >
+                <Calendar className="h-4 w-4 mr-1" />
+                Schedule
+              </TabsTrigger>
+            </TabsList>
           </div>
 
           {/* LEAGUE TAB - PROGRESSIVE DISCLOSURE DESIGN */}
@@ -594,116 +562,163 @@ export default function ComprehensiveCompetitionCenter() {
 
           </TabsContent>
 
-          {/* EXHIBITIONS TAB */}
-          <TabsContent value="exhibitions" className="space-y-6">
+          {/* EXHIBITIONS TAB - ACCORDION PATTERN */}
+          <TabsContent value="exhibitions" className="space-y-4">
             
-            {/* Exhibition Opportunities */}
-            <Card className="bg-gray-800 border-gray-700">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Zap className="h-5 w-5 text-orange-400" />
-                  Exhibition Opportunities
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="grid md:grid-cols-2 gap-4">
-                  <div className="bg-orange-900/30 p-4 rounded-lg border border-orange-600">
-                    <div className="flex items-center justify-between mb-2">
-                      <h3 className="text-lg font-semibold text-white">Free Exhibitions</h3>
-                      <Badge className="bg-orange-600 text-orange-100">3/3 Remaining</Badge>
-                    </div>
-                    <p className="text-orange-200 text-sm mb-3">Daily allocation resets at 3 AM</p>
-                    <Progress value={100} className="h-2 mb-3" />
-                    <p className="text-xs text-orange-300">Next reset: 23h 45m</p>
-                  </div>
-
-                  <div className="bg-purple-900/30 p-4 rounded-lg border border-purple-600">
-                    <div className="flex items-center justify-between mb-2">
-                      <h3 className="text-lg font-semibold text-white">Extra Tokens</h3>
-                      <Badge className="bg-purple-600 text-purple-100">3 Available</Badge>
-                    </div>
-                    <p className="text-purple-200 text-sm mb-3">Purchase additional exhibition entries</p>
-                    <Button 
-                      size="sm" 
-                      variant="outline" 
-                      className="w-full border-purple-500 text-purple-300 hover:bg-purple-600 hover:text-white"
-                    >
-                      Buy Token - ₡500
-                    </Button>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Exhibition Match Types */}
-            <Card className="bg-gray-800 border-gray-700">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Gamepad2 className="h-5 w-5 text-blue-400" />
-                  Start Exhibition
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  
-                  <div className="bg-blue-900/30 p-4 rounded-lg border border-blue-600">
-                    <div className="flex items-center justify-between mb-3">
-                      <div>
-                        <h3 className="text-lg font-bold text-white">Instant Exhibition</h3>
-                        <p className="text-blue-200 text-sm">Quick match vs. similarly powered team</p>
-                      </div>
-                      <Shield className="w-8 h-8 text-blue-400" />
-                    </div>
+            {/* START EXHIBITION - TOP PANEL */}
+            <Collapsible defaultOpen className="space-y-2">
+              <CollapsibleTrigger className="w-full">
+                <Card className="bg-gradient-to-r from-green-800 via-green-700 to-green-800 border-2 border-green-500/50 hover:border-green-400 transition-all duration-300 shadow-lg">
+                  <CardContent className="p-4">
                     <div className="flex items-center justify-between">
-                      <div className="text-sm text-blue-200">
-                        <p>⚡ 30 minute match</p>
-                        <p>🎯 Balanced matchmaking</p>
+                      <div className="flex items-center gap-3">
+                        <Gamepad2 className="h-6 w-6 text-green-400" />
+                        <div className="text-left">
+                          <h3 className="text-lg font-bold text-white">Start Exhibition</h3>
+                          <p className="text-green-300 text-sm">Quick match • Strategic opponents</p>
+                        </div>
                       </div>
-                      <Button className="bg-blue-600 hover:bg-blue-700">
-                        Start Now
-                      </Button>
+                      <div className="flex items-center gap-2">
+                        <Badge className="bg-green-600 text-green-100">Ready to Play</Badge>
+                        <ChevronDown className="h-5 w-5 text-green-400" />
+                      </div>
                     </div>
-                  </div>
+                  </CardContent>
+                </Card>
+              </CollapsibleTrigger>
+              <CollapsibleContent>
+                <Card className="bg-gray-800/90 border border-gray-600 shadow-xl">
+                  <CardContent className="p-4 space-y-4">
+                    <div className="bg-blue-900/30 p-4 rounded-lg border border-blue-600">
+                      <div className="flex items-center justify-between mb-3">
+                        <div>
+                          <h3 className="text-lg font-bold text-white">Instant Exhibition</h3>
+                          <p className="text-blue-200 text-sm">Quick match vs. similarly powered team</p>
+                        </div>
+                        <Shield className="w-8 h-8 text-blue-400" />
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <div className="text-sm text-blue-200">
+                          <p>⚡ 30 minute match</p>
+                          <p>🎯 Balanced matchmaking</p>
+                        </div>
+                        <Button className="bg-blue-600 hover:bg-blue-700">
+                          Start Now
+                        </Button>
+                      </div>
+                    </div>
 
-                  <div className="bg-green-900/30 p-4 rounded-lg border border-green-600">
-                    <div className="flex items-center justify-between mb-3">
-                      <div>
-                        <h3 className="text-lg font-bold text-white">Choose Opponent</h3>
-                        <p className="text-green-200 text-sm">Browse 6 available opponents</p>
+                    <div className="bg-green-900/30 p-4 rounded-lg border border-green-600">
+                      <div className="flex items-center justify-between mb-3">
+                        <div>
+                          <h3 className="text-lg font-bold text-white">Choose Opponent</h3>
+                          <p className="text-green-200 text-sm">Browse 6 available opponents</p>
+                        </div>
+                        <Users className="w-8 h-8 text-green-400" />
                       </div>
-                      <Users className="w-8 h-8 text-green-400" />
+                      <div className="flex items-center justify-between">
+                        <div className="text-sm text-green-200">
+                          <p>🎯 Strategic matchup selection</p>
+                          <p>📊 View opponent stats</p>
+                        </div>
+                        <Button className="bg-green-600 hover:bg-green-700">
+                          Select Opponent
+                        </Button>
+                      </div>
                     </div>
+                  </CardContent>
+                </Card>
+              </CollapsibleContent>
+            </Collapsible>
+
+            {/* EXHIBITION OPPORTUNITIES */}
+            <Collapsible className="space-y-2">
+              <CollapsibleTrigger className="w-full">
+                <Card className="bg-gradient-to-r from-orange-800 via-orange-700 to-orange-800 border border-orange-500/50 hover:border-orange-400 transition-all duration-300">
+                  <CardContent className="p-4">
                     <div className="flex items-center justify-between">
-                      <div className="text-sm text-green-200">
-                        <p>🎯 Strategic matchup selection</p>
-                        <p>📊 View opponent stats</p>
+                      <div className="flex items-center gap-3">
+                        <Zap className="h-6 w-6 text-orange-400" />
+                        <div className="text-left">
+                          <h3 className="text-lg font-bold text-white">Exhibition Opportunities</h3>
+                          <p className="text-orange-300 text-sm">Free entries • Purchase tokens</p>
+                        </div>
                       </div>
-                      <Button className="bg-green-600 hover:bg-green-700">
-                        Select Opponent
-                      </Button>
+                      <div className="flex items-center gap-2">
+                        <Badge className="bg-orange-600 text-orange-100">3/3 Free</Badge>
+                        <ChevronDown className="h-5 w-5 text-orange-400" />
+                      </div>
                     </div>
-                  </div>
+                  </CardContent>
+                </Card>
+              </CollapsibleTrigger>
+              <CollapsibleContent>
+                <Card className="bg-gray-800/90 border border-gray-600">
+                  <CardContent className="p-4">
+                    <div className="grid md:grid-cols-2 gap-4">
+                      <div className="bg-orange-900/30 p-4 rounded-lg border border-orange-600">
+                        <div className="flex items-center justify-between mb-2">
+                          <h3 className="text-lg font-semibold text-white">Free Exhibitions</h3>
+                          <Badge className="bg-orange-600 text-orange-100">3/3 Remaining</Badge>
+                        </div>
+                        <p className="text-orange-200 text-sm mb-3">Daily allocation resets at 3 AM</p>
+                        <Progress value={100} className="h-2 mb-3" />
+                        <p className="text-xs text-orange-300">Next reset: 23h 45m</p>
+                      </div>
 
-                </div>
-              </CardContent>
-            </Card>
+                      <div className="bg-purple-900/30 p-4 rounded-lg border border-purple-600">
+                        <div className="flex items-center justify-between mb-2">
+                          <h3 className="text-lg font-semibold text-white">Extra Tokens</h3>
+                          <Badge className="bg-purple-600 text-purple-100">3 Available</Badge>
+                        </div>
+                        <p className="text-purple-200 text-sm mb-3">Purchase additional exhibition entries</p>
+                        <Button 
+                          size="sm" 
+                          variant="outline" 
+                          className="w-full border-purple-500 text-purple-300 hover:bg-purple-600 hover:text-white"
+                        >
+                          Buy Token - ₡500
+                        </Button>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </CollapsibleContent>
+            </Collapsible>
 
-            {/* Exhibition History */}
-            <Card className="bg-gray-800 border-gray-700">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Target className="h-5 w-5 text-gray-400" />
-                  Exhibition History
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="text-center py-8">
-                  <Gamepad2 className="h-12 w-12 text-gray-500 mx-auto mb-4" />
-                  <p className="text-gray-400">No exhibition matches yet</p>
-                  <p className="text-gray-500 text-sm">Your exhibition results will appear here</p>
-                </div>
-              </CardContent>
-            </Card>
+            {/* EXHIBITION HISTORY */}
+            <Collapsible className="space-y-2">
+              <CollapsibleTrigger className="w-full">
+                <Card className="bg-gradient-to-r from-gray-800 via-gray-700 to-gray-800 border border-gray-500/50 hover:border-gray-400 transition-all duration-300">
+                  <CardContent className="p-4">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <Target className="h-6 w-6 text-gray-400" />
+                        <div className="text-left">
+                          <h3 className="text-lg font-bold text-white">Exhibition History</h3>
+                          <p className="text-gray-300 text-sm">Past results • Performance tracking</p>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Badge className="bg-gray-600 text-gray-100">0 Matches</Badge>
+                        <ChevronDown className="h-5 w-5 text-gray-400" />
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </CollapsibleTrigger>
+              <CollapsibleContent>
+                <Card className="bg-gray-800/90 border border-gray-600">
+                  <CardContent className="p-6">
+                    <div className="text-center py-8">
+                      <Gamepad2 className="h-12 w-12 text-gray-500 mx-auto mb-4" />
+                      <p className="text-gray-400">No exhibition matches yet</p>
+                      <p className="text-gray-500 text-sm">Your exhibition results will appear here</p>
+                    </div>
+                  </CardContent>
+                </Card>
+              </CollapsibleContent>
+            </Collapsible>
 
           </TabsContent>
 
