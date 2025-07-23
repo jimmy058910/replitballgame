@@ -125,7 +125,7 @@ async function initializeStaticFileServing(app: express.Application) {
   return false;
 }
 
-function setupFallbackRoutes(app: express.Application) {
+function setupFallbackRoutes(app: express.Application): void {
   // Enhanced fallback with system diagnostics
   app.get('*', (req, res) => {
     if (req.path.startsWith('/api/') || req.path.startsWith('/auth/') || req.path === '/health') {
@@ -150,7 +150,7 @@ function setupFallbackRoutes(app: express.Application) {
     
     console.log('📊 Serving fallback page with diagnostics:', JSON.stringify(diagnostics, null, 2));
     
-    res.send(`
+    return res.send(`
       <!DOCTYPE html>
       <html>
         <head>

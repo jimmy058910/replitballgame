@@ -78,4 +78,4 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=10s --retries=3 \
 
 # Start production server
 ENTRYPOINT ["dumb-init", "--"]
-CMD ["npx", "tsx", "server/production-v2.ts"]
+CMD ["npx", "tsx", "server/production-simple.ts"]
