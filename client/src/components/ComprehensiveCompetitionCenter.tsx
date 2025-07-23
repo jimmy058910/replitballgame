@@ -28,7 +28,12 @@ import {
   Flame,
   Medal,
   Activity,
-  Info
+  Info,
+  Globe,
+  ArrowUp,
+  ArrowDown,
+  Eye,
+  ExternalLink
 } from 'lucide-react';
 import UnifiedTeamHeader from './UnifiedTeamHeader';
 
@@ -43,6 +48,19 @@ type Team = {
   draws?: number;
   points: number;
   teamPower?: number;
+  goalsFor?: number;
+  goalsAgainst?: number;
+  goalDifference?: number;
+  gamesPlayed?: number;
+};
+
+type GlobalRanking = {
+  id: string;
+  name: string;
+  division: number;
+  trueStrengthRating: number;
+  globalRank: number;
+  winPercentage: number;
 };
 
 type Match = {
@@ -74,6 +92,18 @@ type Exhibition = {
   availableOpponents?: Team[];
   freeEntriesRemaining: number;
   extraTokens: number;
+};
+
+// Helper function to format match time
+const formatMatchTime = (gameDate: string) => {
+  const date = new Date(gameDate);
+  return date.toLocaleDateString('en-US', { 
+    month: 'short', 
+    day: 'numeric',
+    hour: 'numeric',
+    minute: '2-digit',
+    hour12: true
+  });
 };
 
 export default function ComprehensiveCompetitionCenter() {
@@ -113,6 +143,11 @@ export default function ComprehensiveCompetitionCenter() {
   const { data: standings } = useQuery<Team[]>({
     queryKey: [`/api/leagues/${team?.division || 8}/standings`],
     enabled: !!team?.division,
+  });
+
+  const { data: globalRankings } = useQuery<GlobalRanking[]>({
+    queryKey: ['/api/world/global-rankings'],
+    enabled: isAuthenticated,
   });
 
   const { data: tournaments } = useQuery<Tournament[]>({
@@ -266,71 +301,134 @@ export default function ComprehensiveCompetitionCenter() {
             </TabsList>
           </div>
 
-          {/* LEAGUE TAB - PROGRESSIVE DISCLOSURE DESIGN */}
+          {/* LEAGUE TAB - UNIFIED STANDINGS LAYOUT */}
           <TabsContent value="league" className="space-y-4">
             
-            {/* MY SUBDIVISION STANDINGS - ENHANCED COLLAPSIBLE */}
-            <Collapsible defaultOpen className="space-y-2">
-              <CollapsibleTrigger className="w-full">
-                <Card className="bg-gradient-to-r from-gray-800 via-gray-700 to-gray-800 border-2 border-yellow-500/50 hover:border-yellow-400 transition-all duration-300 shadow-lg">
-                  <CardContent className="p-4">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+              
+              {/* UNIFIED LEAGUE STANDINGS - ENHANCED TABLE */}
+              <div className="lg:col-span-2">
+                <Card className="bg-gray-800/90 border border-gray-600 shadow-xl">
+                  <CardHeader className="pb-4">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-3">
                         <Trophy className="h-6 w-6 text-yellow-400" />
-                        <div className="text-left">
-                          <h3 className="text-lg font-bold text-white">My Subdivision Standings</h3>
-                          <p className="text-yellow-300 text-sm">Division {team?.division || 8} - {team?.subdivision?.charAt(0).toUpperCase() + team?.subdivision?.slice(1) || 'Eta'}</p>
+                        <div>
+                          <CardTitle className="text-xl font-bold text-white">
+                            Division {team?.division || 8} – {team?.subdivision?.charAt(0).toUpperCase() + team?.subdivision?.slice(1) || 'Eta'}
+                          </CardTitle>
+                          <div className="flex items-center gap-4 text-sm text-gray-400 mt-1">
+                            <span className="flex items-center gap-1">
+                              <ArrowUp className="h-3 w-3 text-green-400" />
+                              Promotion ↑
+                            </span>
+                            <span className="flex items-center gap-1">
+                              <ArrowDown className="h-3 w-3 text-red-400" />
+                              Relegation ↓
+                            </span>
+                          </div>
                         </div>
                       </div>
-                      <div className="flex items-center gap-2">
-                        <Badge className="bg-yellow-600 text-yellow-100">
-                          #{standings?.findIndex(s => s.id === team?.id) + 1 || '?'} of 8
-                        </Badge>
-                        <ChevronDown className="h-5 w-5 text-yellow-400" />
-                      </div>
+                      <Badge className="bg-blue-600 text-blue-100">
+                        #{standings?.findIndex(s => s.id === team?.id) + 1 || '?'} of 8
+                      </Badge>
                     </div>
-                  </CardContent>
-                </Card>
-              </CollapsibleTrigger>
-              <CollapsibleContent>
-                <Card className="bg-gray-800/90 border border-gray-600 shadow-xl">
-                  <CardContent className="p-4">
+                  </CardHeader>
+                  <CardContent className="p-0">
                     {standings && standings.length > 0 ? (
-                      <div className="space-y-3">
-                        {standings.map((standingTeam, index) => (
-                          <div 
-                            key={standingTeam.id} 
-                            className={`flex items-center justify-between p-4 rounded-xl transition-all duration-300 ${
-                              standingTeam.id === team?.id 
-                                ? 'bg-gradient-to-r from-blue-600/40 to-purple-600/40 border-2 border-blue-400 shadow-lg' 
-                                : 'bg-gray-700/60 hover:bg-gray-600/70 border border-gray-600'
-                            }`}
-                          >
-                            <div className="flex items-center gap-4">
-                              <div className={`w-10 h-10 rounded-full flex items-center justify-center font-black text-lg ${
-                                index < 2 ? 'bg-gradient-to-r from-green-500 to-green-600 text-green-100' : 
-                                index >= standings.length - 2 ? 'bg-gradient-to-r from-red-500 to-red-600 text-red-100' : 
-                                'bg-gradient-to-r from-gray-500 to-gray-600 text-gray-100'
-                              }`}>
-                                {index + 1}
-                              </div>
-                              <div>
-                                <p className="font-bold text-white text-lg">{standingTeam.name}</p>
-                                <p className="text-sm text-gray-300 font-medium">
-                                  {standingTeam.wins}W - {standingTeam.draws || 0}D - {standingTeam.losses}L
-                                </p>
-                              </div>
-                              {standingTeam.id === team?.id && (
-                                <Badge className="bg-blue-600 text-blue-100 animate-pulse">YOU</Badge>
-                              )}
+                      <>
+                        {/* Mobile-Responsive Table */}
+                        <div className="overflow-x-auto">
+                          <table className="w-full text-sm">
+                            <thead>
+                              <tr className="border-b border-gray-700 bg-gray-900/50">
+                                <th className="text-left p-3 text-gray-300 font-semibold">Pos</th>
+                                <th className="text-left p-3 text-gray-300 font-semibold min-w-[160px]">Team Name</th>
+                                <th className="text-center p-3 text-gray-300 font-semibold hidden sm:table-cell">GP</th>
+                                <th className="text-center p-3 text-gray-300 font-semibold hidden md:table-cell">W</th>
+                                <th className="text-center p-3 text-gray-300 font-semibold hidden md:table-cell">D</th>
+                                <th className="text-center p-3 text-gray-300 font-semibold hidden md:table-cell">L</th>
+                                <th className="text-center p-3 text-gray-300 font-semibold hidden lg:table-cell">TS</th>
+                                <th className="text-center p-3 text-gray-300 font-semibold hidden lg:table-cell">SA</th>
+                                <th className="text-center p-3 text-gray-300 font-semibold hidden sm:table-cell">SD</th>
+                                <th className="text-center p-3 text-gray-300 font-semibold">Pts</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {standings.map((standingTeam, index) => {
+                                const gamesPlayed = (standingTeam.wins || 0) + (standingTeam.losses || 0) + (standingTeam.draws || 0);
+                                const totalScores = standingTeam.goalsFor || 0;
+                                const scoresAgainst = standingTeam.goalsAgainst || 0;
+                                const scoreDifference = totalScores - scoresAgainst;
+                                const isUser = standingTeam.id === team?.id;
+                                const isPromotion = index < 2;
+                                const isRelegation = index >= standings.length - 2;
+                                
+                                return (
+                                  <tr 
+                                    key={standingTeam.id}
+                                    className={`border-b border-gray-700/50 hover:bg-gray-700/30 transition-colors ${
+                                      isUser ? 'bg-blue-900/30 border-blue-500/30' : ''
+                                    }`}
+                                  >
+                                    <td className="p-3">
+                                      <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold ${
+                                        isPromotion ? 'bg-green-600 text-green-100' : 
+                                        isRelegation ? 'bg-red-600 text-red-100' : 
+                                        'bg-gray-600 text-gray-100'
+                                      }`}>
+                                        {index + 1}
+                                      </div>
+                                    </td>
+                                    <td className="p-3">
+                                      <div className="flex items-center gap-2">
+                                        <span className="font-semibold text-white">
+                                          {standingTeam.name}
+                                        </span>
+                                        {isUser && (
+                                          <Badge className="bg-blue-600 text-blue-100 text-xs">YOU</Badge>
+                                        )}
+                                      </div>
+                                    </td>
+                                    <td className="text-center p-3 text-gray-300 hidden sm:table-cell">{gamesPlayed}</td>
+                                    <td className="text-center p-3 text-gray-300 hidden md:table-cell">{standingTeam.wins || 0}</td>
+                                    <td className="text-center p-3 text-gray-300 hidden md:table-cell">{standingTeam.draws || 0}</td>
+                                    <td className="text-center p-3 text-gray-300 hidden md:table-cell">{standingTeam.losses || 0}</td>
+                                    <td className="text-center p-3 text-gray-300 hidden lg:table-cell">{totalScores}</td>
+                                    <td className="text-center p-3 text-gray-300 hidden lg:table-cell">{scoresAgainst}</td>
+                                    <td className={`text-center p-3 font-semibold hidden sm:table-cell ${
+                                      scoreDifference > 0 ? 'text-green-400' : 
+                                      scoreDifference < 0 ? 'text-red-400' : 'text-gray-300'
+                                    }`}>
+                                      {scoreDifference > 0 ? '+' : ''}{scoreDifference}
+                                    </td>
+                                    <td className="text-center p-3">
+                                      <span className="font-bold text-white text-lg">{standingTeam.points || 0}</span>
+                                    </td>
+                                  </tr>
+                                );
+                              })}
+                            </tbody>
+                          </table>
+                        </div>
+                        
+                        {/* Promotion/Relegation Legend */}
+                        <div className="p-4 bg-gray-900/30 border-t border-gray-700">
+                          <div className="flex flex-wrap gap-4 text-xs">
+                            <div className="flex items-center gap-2">
+                              <div className="w-3 h-3 bg-green-600 rounded-full"></div>
+                              <span className="text-green-400">Promotion Zone</span>
                             </div>
-                            <div className="text-right">
-                              <p className="text-2xl font-black text-white">{standingTeam.points}</p>
-                              <p className="text-xs text-gray-400 font-semibold uppercase">pts</p>
+                            <div className="flex items-center gap-2">
+                              <div className="w-3 h-3 bg-red-600 rounded-full"></div>
+                              <span className="text-red-400">Relegation Zone</span>
+                            </div>
+                            <div className="text-gray-400 hidden sm:inline">
+                              GP: Games Played • TS: Total Scores • SA: Scores Against • SD: Score Difference
                             </div>
                           </div>
-                        ))}
-                      </div>
+                        </div>
+                      </>
                     ) : (
                       <div className="text-center py-12">
                         <Trophy className="h-16 w-16 text-gray-500 mx-auto mb-4" />
@@ -339,88 +437,90 @@ export default function ComprehensiveCompetitionCenter() {
                     )}
                   </CardContent>
                 </Card>
-              </CollapsibleContent>
-            </Collapsible>
+              </div>
 
-            {/* NEXT LEAGUE MATCH - DRAMATIC HIGHLIGHT */}
-            {upcomingMatches && upcomingMatches.length > 0 && (
-              <Card className="bg-gradient-to-r from-blue-800 via-blue-700 to-purple-800 border-2 border-blue-400 shadow-2xl">
-                <CardContent className="p-6">
-                  <div className="flex items-center gap-3 mb-4">
-                    <div className="w-3 h-3 bg-blue-300 rounded-full animate-pulse"></div>
-                    <Clock className="h-6 w-6 text-blue-300" />
-                    <h3 className="text-xl font-bold text-white">Next League Match</h3>
-                  </div>
-                  <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-                    <div className="flex-1">
-                      <h4 className="text-3xl font-black text-white mb-2">
-                        🆚 {upcomingMatches[0].homeTeam.id === team?.id ? 
-                            upcomingMatches[0].awayTeam.name : 
-                            upcomingMatches[0].homeTeam.name}
-                      </h4>
-                      <div className="flex items-center gap-4 text-blue-200 text-lg font-semibold">
-                        <span>{upcomingMatches[0].homeTeam.id === team?.id ? '🏠 Home' : '✈️ Away'}</span>
-                        <span>•</span>
-                        <span>{formatMatchTime(upcomingMatches[0].gameDate)}</span>
-                      </div>
+              {/* GLOBAL TEAM RANKING WIDGET */}
+              <div className="space-y-4">
+                <Card className="bg-gradient-to-br from-purple-800/40 via-blue-800/40 to-gray-800 border border-purple-500/50 shadow-xl">
+                  <CardHeader className="pb-3">
+                    <div className="flex items-center gap-3">
+                      <Globe className="h-5 w-5 text-purple-400" />
+                      <CardTitle className="text-lg font-bold text-white">🌐 Global Team Rank</CardTitle>
                     </div>
-                    <Button size="lg" className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-bold py-3 px-6 rounded-xl shadow-lg">
-                      <Play className="h-5 w-5 mr-2" />
-                      View Match
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            )}
-
-            {/* DIVISION PROGRESS - ENHANCED PROGRESS TRACKER */}
-            <Collapsible className="space-y-2">
-              <CollapsibleTrigger className="w-full">
-                <Card className="bg-gradient-to-r from-gray-800 via-gray-700 to-gray-800 border border-green-500/50 hover:border-green-400 transition-all duration-300">
-                  <CardContent className="p-4">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-3">
-                        <TrendingUp className="h-6 w-6 text-green-400" />
-                        <div className="text-left">
-                          <h3 className="text-lg font-bold text-white">Division Progress</h3>
-                          <p className="text-green-300 text-sm">Promotion & Relegation Status</p>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    {globalRankings && team ? (
+                      <>
+                        <div className="text-center">
+                          <div className="text-4xl font-black text-purple-300 mb-1">
+                            #{globalRankings.find(r => r.id === team.id)?.globalRank || '?'}
+                          </div>
+                          <p className="text-gray-400 text-sm">
+                            Out of {globalRankings.length}+ teams worldwide
+                          </p>
                         </div>
+                        <div className="space-y-2">
+                          <div className="flex justify-between text-sm">
+                            <span className="text-gray-300">True Strength</span>
+                            <span className="text-purple-300 font-semibold">
+                              {globalRankings.find(r => r.id === team.id)?.trueStrengthRating || 0}
+                            </span>
+                          </div>
+                          <div className="flex justify-between text-sm">
+                            <span className="text-gray-300">Win Rate</span>
+                            <span className="text-purple-300 font-semibold">
+                              {globalRankings.find(r => r.id === team.id)?.winPercentage || 0}%
+                            </span>
+                          </div>
+                        </div>
+                        <Button 
+                          size="sm" 
+                          variant="outline" 
+                          className="w-full border-purple-500/50 text-purple-300 hover:bg-purple-600/20"
+                        >
+                          <Eye className="h-4 w-4 mr-2" />
+                          View full leaderboards
+                          <ExternalLink className="h-3 w-3 ml-2" />
+                        </Button>
+                      </>
+                    ) : (
+                      <div className="text-center py-4">
+                        <Globe className="h-12 w-12 text-gray-500 mx-auto mb-2" />
+                        <p className="text-gray-400 text-sm">Loading global rankings...</p>
                       </div>
-                      <ChevronDown className="h-5 w-5 text-green-400" />
-                    </div>
+                    )}
                   </CardContent>
                 </Card>
-              </CollapsibleTrigger>
-              <CollapsibleContent>
-                <Card className="bg-gray-800/90 border border-gray-600">
-                  <CardContent className="p-6">
-                    <div className="space-y-6">
-                      <div className="flex justify-between items-center">
-                        <span className="text-gray-300 font-semibold">Current Position</span>
-                        <Badge className="bg-gradient-to-r from-blue-600 to-purple-600 text-white text-lg px-4 py-1">
-                          #{standings?.findIndex(s => s.id === team?.id) + 1 || '?'} of {standings?.length || 8}
-                        </Badge>
+
+                {/* NEXT LEAGUE MATCH COMPACT */}
+                {upcomingMatches && upcomingMatches.length > 0 && (
+                  <Card className="bg-gradient-to-br from-blue-800/40 to-purple-800/40 border border-blue-500/50">
+                    <CardHeader className="pb-3">
+                      <div className="flex items-center gap-2">
+                        <Clock className="h-4 w-4 text-blue-400" />
+                        <CardTitle className="text-sm font-bold text-white">Next Match</CardTitle>
                       </div>
-                      
-                      <div className="space-y-4">
-                        <div className="flex justify-between text-sm">
-                          <span className="text-green-400 font-semibold">🔥 Promotion Zone (Top 2)</span>
-                          <span className="text-green-300">Advance to Division {(team?.division || 8) - 1}</span>
-                        </div>
-                        <Progress 
-                          value={Math.max(0, Math.min(100, ((8 - (standings?.findIndex(s => s.id === team?.id) || 0)) / 8) * 100))} 
-                          className="h-3 bg-gray-700"
-                        />
-                        <div className="flex justify-between text-sm">
-                          <span className="text-red-400 font-semibold">⚠️ Relegation Zone (Bottom 2)</span>
-                          <span className="text-red-300">Drop to Division {(team?.division || 8) + 1}</span>
-                        </div>
+                    </CardHeader>
+                    <CardContent className="space-y-3">
+                      <div>
+                        <p className="font-bold text-white text-base mb-1">
+                          🆚 {upcomingMatches[0].homeTeam.id === team?.id ? 
+                              upcomingMatches[0].awayTeam.name : 
+                              upcomingMatches[0].homeTeam.name}
+                        </p>
+                        <p className="text-blue-200 text-xs">
+                          {upcomingMatches[0].homeTeam.id === team?.id ? '🏠 Home' : '✈️ Away'} • {formatMatchTime(upcomingMatches[0].gameDate)}
+                        </p>
                       </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              </CollapsibleContent>
-            </Collapsible>
+                      <Button size="sm" className="w-full bg-blue-600 hover:bg-blue-700">
+                        <Play className="h-3 w-3 mr-2" />
+                        View Match
+                      </Button>
+                    </CardContent>
+                  </Card>
+                )}
+              </div>
+            </div>
 
           </TabsContent>
 
