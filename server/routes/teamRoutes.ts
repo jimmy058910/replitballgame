@@ -306,6 +306,12 @@ router.post('/', isAuthenticated, asyncHandler(async (req: any, res: Response) =
   });
 }));
 
+// Get all teams (for debugging/admin purposes)
+router.get('/', isAuthenticated, asyncHandler(async (req: any, res: Response) => {
+  const teams = await storage.teams.getAllTeams();
+  res.json(teams);
+}));
+
 router.get('/my', isAuthenticated, async (req: any, res: Response, next: NextFunction) => {
   try {
     const userId = req.user.claims.sub;

@@ -1,12 +1,12 @@
 import { Router } from 'express';
-import { PlayerSkillsService } from '../services/playerSkillsService.js';
-import { isAuthenticated } from '../replitAuth.js';
-import { prisma } from '../db.js';
+import { PlayerSkillsService } from '../services/playerSkillsService';
+import { isAuthenticated } from '../replitAuth';
+import { prisma } from '../db';
 
 const router = Router();
 
 // Get all skills available in the game
-router.get('/skills', isAuthenticated, async (req, res) => {
+router.get('/', isAuthenticated, async (req, res) => {
   try {
     const skills = await PlayerSkillsService.getAllSkills();
     res.json({ skills });

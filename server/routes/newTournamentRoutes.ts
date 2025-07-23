@@ -40,14 +40,14 @@ router.get('/available', isAuthenticated, async (req: any, res: Response, next: 
       division: tournament.division,
       entryFeeCredits: Number(tournament.entryFeeCredits || 0),
       entryFeeGems: tournament.entryFeeGems,
-      requiresEntryItem: tournament.requiresEntryItem,
-      maxTeams: tournament.maxTeams,
-      registrationDeadline: tournament.registrationDeadline,
-      tournamentStartTime: tournament.tournamentStartTime,
-      prizes: tournament.prizes,
-      canRegister: new Date() < tournament.registrationDeadline!,
-      timeUntilDeadline: tournament.registrationDeadline 
-        ? Math.max(0, tournament.registrationDeadline.getTime() - Date.now())
+      requiresEntryItem: false, // Default value
+      maxTeams: 8, // Default division tournament size
+      registrationDeadline: tournament.registrationEndTime,
+      tournamentStartTime: tournament.startTime,
+      prizes: tournament.prizePoolJson,
+      canRegister: new Date() < tournament.registrationEndTime!,
+      timeUntilDeadline: tournament.registrationEndTime 
+        ? Math.max(0, tournament.registrationEndTime.getTime() - Date.now())
         : 0
     }));
 
