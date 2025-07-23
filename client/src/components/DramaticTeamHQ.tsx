@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/useAuth";
 import { useLocation } from "wouter";
@@ -76,6 +76,36 @@ interface Stadium {
 export default function DramaticTeamHQ() {
   const { isAuthenticated } = useAuth();
   const [, setLocation] = useLocation();
+  const [dailyTasks, setDailyTasks] = useState({
+    checkTeamStatus: false,
+    playExhibitionMatches: 0, // Track count (0-3)
+    enterDailyTournament: false,
+    watchRewardedAd: 0, // Track count (0-10)
+    reviewTeamTactics: false,
+    checkMarketListings: false
+  });
+
+  // Check daily task completion from localStorage
+  useEffect(() => {
+    const today = new Date().toDateString();
+    const storedTasks = localStorage.getItem(`dailyTasks_${today}`);
+    
+    if (storedTasks) {
+      setDailyTasks(JSON.parse(storedTasks));
+    }
+
+    // Check if user has visited roster page today
+    const rosterVisit = localStorage.getItem(`rosterVisit_${today}`);
+    if (rosterVisit) {
+      setDailyTasks(prev => ({ ...prev, checkTeamStatus: true }));
+    }
+  }, []);
+
+  // Save daily tasks to localStorage whenever they change
+  useEffect(() => {
+    const today = new Date().toDateString();
+    localStorage.setItem(`dailyTasks_${today}`, JSON.stringify(dailyTasks));
+  }, [dailyTasks]);
 
   // Team data query - use existing working endpoint
   const { data: teamData, isLoading } = useQuery({
@@ -108,6 +138,19 @@ export default function DramaticTeamHQ() {
   const lowStaminaPlayers = allPlayers.filter((p: any) => (p.dailyStaminaLevel || 100) < 70);
   
   const teamPower = team.teamPower || 0;
+
+  // Calculate daily task completion
+  const completedTasks = [
+    dailyTasks.checkTeamStatus,
+    dailyTasks.playExhibitionMatches >= 3,
+    dailyTasks.enterDailyTournament,
+    dailyTasks.watchRewardedAd >= 10,
+    dailyTasks.reviewTeamTactics,
+    dailyTasks.checkMarketListings
+  ].filter(Boolean).length;
+
+  const totalTasks = 6;
+  const completionPercentage = Math.round((completedTasks / totalTasks) * 100);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
@@ -292,29 +335,37 @@ export default function DramaticTeamHQ() {
                 <Target className="w-6 h-6 mr-2 text-cyan-400" />
                 Daily Tasks
               </div>
-              <div className="text-cyan-400 text-sm">3/7 Complete</div>
+              <div className="text-cyan-400 text-sm">{completedTasks}/{totalTasks} Complete</div>
             </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="space-y-2">
               <div className="flex items-center justify-between text-sm">
                 <div className="flex items-center">
-                  <div className="w-4 h-4 bg-green-600 rounded mr-3 flex items-center justify-center">
-                    <div className="w-2 h-2 bg-white rounded"></div>
+                  <div className={`w-4 h-4 ${dailyTasks.checkTeamStatus ? 'bg-green-600' : 'border-2 border-cyan-400'} rounded mr-3 flex items-center justify-center`}>
+                    {dailyTasks.checkTeamStatus && <div className="w-2 h-2 bg-white rounded"></div>}
                   </div>
-                  <span className="text-white">Check Team Status</span>
+                  <span className={dailyTasks.checkTeamStatus ? "text-white" : "text-gray-400"}>Check Team Status</span>
                 </div>
-                <Badge className="bg-green-600 text-white text-xs">✓</Badge>
+                {dailyTasks.checkTeamStatus ? (
+                  <Badge className="bg-green-600 text-white text-xs">✓</Badge>
+                ) : (
+                  <Button size="sm" className="bg-cyan-600 hover:bg-cyan-700 text-white text-xs" onClick={() => setLocation('/roster-hq')}>
+                    View Now
+                  </Button>
+                )}
               </div>
               
               <div className="flex items-center justify-between text-sm">
                 <div className="flex items-center">
-                  <div className="w-4 h-4 bg-green-600 rounded mr-3 flex items-center justify-center">
-                    <div className="w-2 h-2 bg-white rounded"></div>
+                  <div className={`w-4 h-4 ${dailyTasks.playExhibitionMatches >= 3 ? 'bg-green-600' : 'border-2 border-cyan-400'} rounded mr-3 flex items-center justify-center`}>
+                    {dailyTasks.playExhibitionMatches >= 3 && <div className="w-2 h-2 bg-white rounded"></div>}
                   </div>
-                  <span className="text-white">Play Exhibition Match</span>
+                  <span className={dailyTasks.playExhibitionMatches >= 3 ? "text-white" : "text-gray-400"}>Play Exhibition Matches</span>
                 </div>
-                <Badge className="bg-green-600 text-white text-xs">2/3</Badge>
+                <Badge className={`${dailyTasks.playExhibitionMatches >= 3 ? 'bg-green-600' : 'bg-gray-600'} text-white text-xs`}>
+                  {dailyTasks.playExhibitionMatches}/3
+                </Badge>
               </div>
               
               <div className="flex items-center justify-between text-sm">
@@ -329,26 +380,20 @@ export default function DramaticTeamHQ() {
               
               <div className="flex items-center justify-between text-sm">
                 <div className="flex items-center">
-                  <div className="w-4 h-4 border-2 border-cyan-400 rounded mr-3"></div>
-                  <span className="text-gray-400">Watch Rewarded Ad</span>
-                </div>
-                <span className="text-cyan-400 text-xs">0/10</span>
-              </div>
-              
-              <div className="flex items-center justify-between text-sm">
-                <div className="flex items-center">
-                  <div className="w-4 h-4 bg-green-600 rounded mr-3 flex items-center justify-center">
-                    <div className="w-2 h-2 bg-white rounded"></div>
+                  <div className={`w-4 h-4 ${dailyTasks.watchRewardedAd >= 10 ? 'bg-green-600' : 'border-2 border-cyan-400'} rounded mr-3 flex items-center justify-center`}>
+                    {dailyTasks.watchRewardedAd >= 10 && <div className="w-2 h-2 bg-white rounded"></div>}
                   </div>
-                  <span className="text-white">Review Player Stats</span>
+                  <span className={dailyTasks.watchRewardedAd >= 10 ? "text-white" : "text-gray-400"}>Watch Rewarded Ad</span>
                 </div>
-                <Badge className="bg-green-600 text-white text-xs">✓</Badge>
+                <span className={`text-cyan-400 text-xs ${dailyTasks.watchRewardedAd >= 10 ? 'text-green-400' : ''}`}>
+                  {dailyTasks.watchRewardedAd}/10
+                </span>
               </div>
               
               <div className="flex items-center justify-between text-sm">
                 <div className="flex items-center">
                   <div className="w-4 h-4 border-2 border-cyan-400 rounded mr-3"></div>
-                  <span className="text-gray-400">Update Team Tactics</span>
+                  <span className="text-gray-400">Review Team Tactics</span>
                 </div>
                 <Button size="sm" className="bg-cyan-600 hover:bg-cyan-700 text-white text-xs">
                   Set Now
@@ -366,8 +411,8 @@ export default function DramaticTeamHQ() {
               </div>
             </div>
             
-            <Progress value={42} className="mt-4 h-2" />
-            <div className="text-center text-cyan-200 text-xs mt-2">Daily Progress: 42%</div>
+            <Progress value={completionPercentage} className="mt-4 h-2" />
+            <div className="text-center text-cyan-200 text-xs mt-2">Daily Progress: {completionPercentage}%</div>
           </CardContent>
         </Card>
 

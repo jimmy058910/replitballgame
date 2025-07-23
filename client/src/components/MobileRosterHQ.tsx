@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/useAuth";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -108,6 +108,12 @@ export default function MobileRosterHQ() {
     queryKey: [`/api/teams/${team?.id}/staff`],
     enabled: !!team?.id,
   });
+
+  // Mark "Check Team Status" task as completed when visiting roster-hq
+  useEffect(() => {
+    const today = new Date().toDateString();
+    localStorage.setItem(`rosterVisit_${today}`, 'true');
+  }, []);
 
   // Enhanced player calculations - handle missing rosterPosition gracefully
   const activePlayers = players?.filter(p => !p.isOnMarket && !p.isRetired) || [];
@@ -475,13 +481,13 @@ export default function MobileRosterHQ() {
                           <div className="flex justify-between text-xs">
                             <span className="text-white/70">Contract:</span>
                             <span className="text-green-300 font-semibold">
-                              {Number(player.contractSalary || 0).toLocaleString()}₡/season
+                              {Number((player as any).contractSalary || 0).toLocaleString()}₡/season
                             </span>
                           </div>
                           <div className="flex justify-between text-xs">
                             <span className="text-white/70">Years Left:</span>
                             <span className="text-yellow-300">
-                              {player.contractLength || 0} seasons
+                              {(player as any).contractLength || 0} seasons
                             </span>
                           </div>
                         </div>
