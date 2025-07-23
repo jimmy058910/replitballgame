@@ -128,6 +128,41 @@ router.get('/gem-exchange-rates', isAuthenticated, async (req: Request, res: Res
   }
 });
 
+// Store categories endpoint - returns all available item categories
+router.get('/categories', async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const categories = {
+      equipment: {
+        helmet: { name: "Helmets", icon: "helmet", description: "Protective headgear for all races" },
+        armor: { name: "Armor", icon: "shield", description: "Chest protection and body armor" },
+        gloves: { name: "Gloves", icon: "hand", description: "Hand protection and grip enhancement" },
+        footwear: { name: "Footwear", icon: "boot", description: "Speed and agility enhancing footwear" }
+      },
+      consumables: {
+        recovery: { name: "Recovery Items", icon: "heart", description: "Healing and stamina restoration" },
+        performance: { name: "Performance Boosters", icon: "zap", description: "Temporary stat enhancements" },
+        team_boosts: { name: "Team Boosts", icon: "users", description: "Team-wide performance improvements" }
+      },
+      currency: {
+        gems: { name: "Gem Packages", icon: "gem", description: "Premium currency for enhanced gameplay" },
+        subscriptions: { name: "Realm Pass", icon: "crown", description: "Monthly subscription benefits" }
+      },
+      tournament_entries: {
+        exhibition: { name: "Exhibition Matches", icon: "play", description: "Extra practice match opportunities" },
+        tournaments: { name: "Tournament Entries", icon: "trophy", description: "Competitive tournament participation" }
+      }
+    };
+    
+    res.json({
+      success: true,
+      data: categories
+    });
+  } catch (error) {
+    console.error("Error in /api/store/categories endpoint:", error);
+    res.status(500).json({ error: "Failed to fetch store categories" });
+  }
+});
+
 router.post('/exchange-gems', isAuthenticated, async (req: any, res: Response, next: NextFunction) => {
   try {
     const { gemAmount } = req.body;

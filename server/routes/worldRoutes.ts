@@ -69,7 +69,8 @@ router.get("/global-rankings", isAuthenticated, async (req, res) => {
 router.get("/rankings", isAuthenticated, async (req, res) => {
   // Redirect to the global-rankings endpoint  
   try {
-    const teams = await storage.teams.getAllTeamsWithStats();
+    const rankingsData = await storage.teams.getAllTeamsWithStats();
+    const teams = Array.isArray(rankingsData) ? rankingsData : rankingsData.rankings || [];
     
     // Calculate True Strength Rating for each team
     const rankedTeams = teams.map(team => {
