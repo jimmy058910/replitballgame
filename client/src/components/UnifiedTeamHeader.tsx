@@ -79,7 +79,7 @@ export default function UnifiedTeamHeader({ title, titleIcon, team, players, sho
                 </h1>
                 <div className="flex items-center gap-4">
                   <Badge className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-3 py-1">
-                    {divisionDisplay}
+                    Division {team?.division || 8} - {divisionDisplay}
                   </Badge>
                   <span className="text-blue-200 text-sm font-semibold">{seasonInfo}</span>
                 </div>

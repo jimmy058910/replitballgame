@@ -205,6 +205,11 @@ export class TeamStorage {
     return await Promise.all(teams.map(team => serializeTeamData(team)));
   }
 
+  // Alias method for route compatibility
+  async getTeamsByDivisionAndSubdivision(division: number, subdivision?: string): Promise<any[]> {
+    return this.getTeamsInDivision(division, subdivision);
+  }
+
   async updateTeam(teamId: number, updateData: any): Promise<any> {
     const updatedTeam = await prisma.team.update({
       where: { id: teamId },
