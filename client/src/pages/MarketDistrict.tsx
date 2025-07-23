@@ -7,12 +7,17 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { Input } from "@/components/ui/input";
+import { Progress } from "@/components/ui/progress";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useMutation } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 import InventoryDisplay from "@/components/InventoryDisplay";
 import EnhancedMarketplace from "@/components/EnhancedMarketplace";
 import FinancialCenter from "@/components/FinancialCenter";
+import DynamicMarketplaceManager from "@/components/DynamicMarketplaceManager";
+import StadiumOverview from "@/components/StadiumOverview";
+import StadiumAtmosphereManager from "@/components/StadiumAtmosphereManager";
 import { 
   Store, 
   Users, 
@@ -36,7 +41,12 @@ import {
   Plus,
   Play,
   AlertCircle,
-  Building
+  Building,
+  Gamepad2,
+  CreditCard,
+  ExternalLink,
+  Filter,
+  RefreshCw
 } from "lucide-react";
 
 interface StoreItem {
@@ -52,35 +62,54 @@ interface StoreItem {
   purchased: number;
   dailyLimit: number;
   canPurchase: boolean;
+  category?: string;
 }
 
-interface MarketplaceItem {
-  id: string;
-  playerName: string;
-  teamName: string;
-  role: string;
-  power: number;
-  startingBid: number;
-  currentBid?: number;
-  timeRemaining: string;
-}
-
-interface Transaction {
-  id: string;
-  date: string;
-  type: string;
-  item: string;
-  credits?: number;
-  gems?: number;
+interface GemExchangeRate {
+  gems: number;
+  credits: number;
+  ratio: number;
 }
 
 interface GemPackage {
   id: string;
   name: string;
-  price: number;
+  price: number; // USD price
   gems: number;
   bonusGems?: number;
   popular?: boolean;
+  description?: string;
+}
+
+interface RealmPassData {
+  name: string;
+  price: number; // Monthly price in USD
+  monthlyGems: number;
+  benefits: string[];
+  active: boolean;
+}
+
+interface TeamFinancesData {
+  credits: number;
+  gems: number;
+  projectedIncome: number;
+  projectedExpenses: number;
+  lastSeasonRevenue: number;
+  lastSeasonExpenses: number;
+  purchasedExhibitions?: number;
+  purchasedTournamentEntries?: number;
+}
+
+interface ContractData {
+  id: string;
+  playerId: string;
+  playerName: string;
+  role: string;
+  age: number;
+  race: string;
+  salary: number;
+  length: number;
+  yearsRemaining: number;
 }
 
 // Helper functions for item display
@@ -115,12 +144,15 @@ function getTierColor(tier: string) {
 export default function MarketDistrict() {
   const { isAuthenticated } = useAuth();
   const { toast } = useToast();
+  const [gemsToExchange, setGemsToExchange] = useState(1);
+  const [selectedFilter, setSelectedFilter] = useState<string>('all');
+  
+  // Collapsible section state
   const [storeSectionOpen, setStoreSectionOpen] = useState(true);
   const [gemSectionOpen, setGemSectionOpen] = useState(false);
   const [exchangeSectionOpen, setExchangeSectionOpen] = useState(false);
-  const [gemsToExchange, setGemsToExchange] = useState(1);
 
-  // Get team data for inventory and transactions
+  // Get team and financial data
   const { data: team } = useQuery({
     queryKey: ['/api/teams/my'],
     queryFn: () => apiRequest('/api/teams/my'),
@@ -473,31 +505,45 @@ export default function MarketDistrict() {
 
                     {/* Gem Packages Grid */}
                     {gemPackagesLoading ? (
-                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                        {[1, 2, 3].map((i) => (
-                          <div key={i} className="h-24 bg-gray-700 rounded animate-pulse" />
-                        ))}
-                      </div>
-                    ) : gemPackages?.length ? (
-                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                        {gemPackages.map((pkg) => (
-                          <Card key={pkg.id} className={`bg-gray-700 border-gray-600 ${pkg.popular ? 'ring-2 ring-blue-400' : ''}`}>
-                            <CardContent className="p-4">
-                              {pkg.popular && (
-                                <Badge className="mb-2 bg-blue-600 text-white">Most Popular</Badge>
-                              )}
-                              <h4 className="font-bold text-white">{pkg.name}</h4>
-                              <p className="text-blue-400 text-lg font-bold">💎{pkg.gems}{pkg.bonusGems ? ` +${pkg.bonusGems}` : ''}</p>
-                              <Button className="w-full mt-2 bg-blue-600 hover:bg-blue-700">
-                                ${pkg.price}
-                              </Button>
-                            </CardContent>
-                          </Card>
+                      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                        {[1, 2, 3, 4].map((i) => (
+                          <div key={i} className="h-32 bg-gray-700 rounded animate-pulse" />
                         ))}
                       </div>
                     ) : (
-                      <div className="text-center py-4">
-                        <p className="text-gray-400">No gem packages available</p>
+                      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                        {/* Backend-Aligned Gem Packages */}
+                        {[
+                          { id: 'starter', name: 'Starter Pack', price: 4.99, gems: 50, bonusGems: 10, description: 'Perfect for beginners', popular: false },
+                          { id: 'value', name: 'Value Pack', price: 19.99, gems: 300, bonusGems: 50, description: 'Best for regular players', popular: true },
+                          { id: 'premium', name: 'Premium Pack', price: 49.99, gems: 1000, bonusGems: 200, description: 'For serious managers', popular: false },
+                          { id: 'ultimate', name: 'Ultimate Pack', price: 99.99, gems: 2500, bonusGems: 500, description: 'Maximum value bundle', popular: false }
+                        ].map((pkg) => (
+                          <Card key={pkg.id} className={`bg-gray-700 border-gray-600 hover:border-purple-400 transition-all ${pkg.popular ? 'ring-2 ring-yellow-400 border-yellow-400' : ''}`}>
+                            <CardContent className="p-4">
+                              {pkg.popular && (
+                                <Badge className="mb-2 bg-yellow-600 text-black">Most Popular</Badge>
+                              )}
+                              <div className="text-center">
+                                <h4 className="font-bold text-white mb-1">{pkg.name}</h4>
+                                <p className="text-xs text-gray-400 mb-2">{pkg.description}</p>
+                                <div className="text-purple-400 text-xl font-bold mb-1">
+                                  {pkg.gems + (pkg.bonusGems || 0)} 💎
+                                </div>
+                                <p className="text-sm text-gray-300 mb-3">
+                                  {pkg.gems} + {pkg.bonusGems} bonus
+                                </p>
+                                <div className="text-green-400 text-lg font-bold mb-2">
+                                  ${pkg.price}
+                                </div>
+                                <Button className="w-full bg-purple-600 hover:bg-purple-700 text-sm" size="sm">
+                                  <ExternalLink className="h-3 w-3 mr-1" />
+                                  Purchase
+                                </Button>
+                              </div>
+                            </CardContent>
+                          </Card>
+                        ))}
                       </div>
                     )}
                   </CardContent>
@@ -505,7 +551,7 @@ export default function MarketDistrict() {
               </CollapsibleContent>
             </Collapsible>
 
-            {/* Gem Exchange */}
+            {/* Gem Exchange with Backend Rates */}
             <Collapsible open={exchangeSectionOpen} onOpenChange={setExchangeSectionOpen}>
               <CollapsibleTrigger asChild>
                 <Card className="bg-gray-800 border-gray-700 cursor-pointer hover:bg-gray-750 transition-colors">
@@ -522,37 +568,67 @@ export default function MarketDistrict() {
               </CollapsibleTrigger>
               <CollapsibleContent>
                 <Card className="bg-gray-800 border-gray-700">
-                  <CardContent className="p-6">
+                  <CardContent className="p-6 space-y-6">
+                    {/* Backend Exchange Rates Display */}
+                    <div>
+                      <h4 className="text-white font-bold mb-3">Available Exchange Rates</h4>
+                      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                        {[
+                          { gems: 10, credits: 4000, ratio: 400 },
+                          { gems: 50, credits: 22500, ratio: 450 },
+                          { gems: 300, credits: 150000, ratio: 500 },
+                          { gems: 1000, credits: 550000, ratio: 550 }
+                        ].map((rate, index) => (
+                          <Card key={index} className="bg-gray-700 border-gray-600 text-center">
+                            <CardContent className="p-3">
+                              <div className="text-purple-400 font-bold text-sm">{rate.gems} 💎</div>
+                              <ArrowRightLeft className="h-3 w-3 text-gray-400 mx-auto my-1" />
+                              <div className="text-green-400 font-bold text-sm">₡{rate.credits.toLocaleString()}</div>
+                              <div className="text-gray-500 text-xs">1:{rate.ratio}</div>
+                              <Badge className="mt-1 bg-blue-600 text-xs">
+                                {index === 1 ? "Popular" : index === 2 ? "Best Value" : index === 3 ? "Bulk" : "Starter"}
+                              </Badge>
+                            </CardContent>
+                          </Card>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Exchange Interface */}
                     <div className="space-y-4">
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
                         <div>
                           <label className="block text-sm font-medium text-gray-300 mb-2">
                             Gems to Exchange
                           </label>
-                          <input
+                          <Input
                             type="number"
                             min="1"
+                            max={team?.gems || 0}
                             value={gemsToExchange}
-                            onChange={(e) => setGemsToExchange(parseInt(e.target.value) || 1)}
-                            className="w-full bg-gray-700 border border-gray-600 rounded px-3 py-2 text-white"
+                            onChange={(e) => setGemsToExchange(Math.max(1, parseInt(e.target.value) || 1))}
+                            className="bg-gray-700 border-gray-600 text-white"
+                            placeholder="Enter gems"
                           />
+                          <p className="text-xs text-gray-400 mt-1">Available: {team?.gems || 0} 💎</p>
                         </div>
                         <div>
                           <label className="block text-sm font-medium text-gray-300 mb-2">
                             Credits Received
                           </label>
-                          <div className="w-full bg-gray-700 border border-gray-600 rounded px-3 py-2 text-green-400 font-bold">
+                          <div className="bg-gray-700 border border-gray-600 rounded-md p-2 text-green-400 font-bold text-center">
                             ₡{calculateCreditsFromGems(gemsToExchange).toLocaleString()}
                           </div>
+                          <p className="text-xs text-gray-400 mt-1 text-center">Rate: 1:400</p>
                         </div>
+                        <Button 
+                          className="bg-cyan-600 hover:bg-cyan-700"
+                          onClick={() => gemExchangeMutation.mutate(gemsToExchange)}
+                          disabled={gemExchangeMutation.isPending || gemsToExchange <= 0 || (team?.gems || 0) < gemsToExchange}
+                        >
+                          {gemExchangeMutation.isPending ? 'Exchanging...' : 'Exchange'}
+                        </Button>
                       </div>
-                      <Button 
-                        className="w-full bg-cyan-600 hover:bg-cyan-700"
-                        onClick={() => gemExchangeMutation.mutate(gemsToExchange)}
-                        disabled={gemExchangeMutation.isPending}
-                      >
-                        Exchange Gems
-                      </Button>
                     </div>
                   </CardContent>
                 </Card>
