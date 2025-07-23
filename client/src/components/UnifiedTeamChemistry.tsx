@@ -167,7 +167,7 @@ export default function UnifiedTeamChemistry({ teamId }: { teamId: string }) {
                 <div className="text-xs text-gray-400 mb-2">Active Benefits:</div>
                 <div className="grid grid-cols-1 gap-1 text-sm">
                   <div>Contract Bonus: {effects.contractNegotiationBonus > 0 ? '+' : ''}{effects.contractNegotiationBonus.toFixed(1)}%</div>
-                  <div>Development Bonus: {effects.developmentBonus > 0 ? '+' : ''}{effects.developmentBonus.toFixed(1)}%</div>
+                  <div>Progression Bonus: {effects.developmentBonus > 0 ? '+' : ''}{effects.developmentBonus.toFixed(1)}%</div>
                   {effects.injuryReduction > 0 && <div>Injury Reduction: -{effects.injuryReduction}%</div>}
                   {effects.inGameStatBonus.fumbleRisk > 0 && <div className="text-red-400">Fumble Risk: +{effects.inGameStatBonus.fumbleRisk}%</div>}
                 </div>

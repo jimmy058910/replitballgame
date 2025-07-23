@@ -583,8 +583,8 @@ export default function MobileRosterHQ() {
                             <span className="text-yellow-300">Days 16-17</span>
                           </div>
                           <div className="flex justify-between">
-                            <span className="text-white/70">Development Bonus:</span>
-                            <span className="text-green-300">+50% XP</span>
+                            <span className="text-white/70">Development Focus:</span>
+                            <span className="text-green-300">Standard Rate</span>
                           </div>
                         </div>
                       </CardContent>

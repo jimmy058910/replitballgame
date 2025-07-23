@@ -166,7 +166,7 @@ export default function CamaraderieManagement({ teamId }: { teamId: string }) {
                     <div className="text-xs text-gray-400 mb-2">Current Benefits:</div>
                     <div className="grid grid-cols-2 gap-2 text-sm">
                       <div>Contract Bonus: {effects.contractNegotiationBonus > 0 ? '+' : ''}{effects.contractNegotiationBonus.toFixed(1)}%</div>
-                      <div>Development Bonus: {effects.developmentBonus > 0 ? '+' : ''}{effects.developmentBonus.toFixed(1)}%</div>
+                      <div>Progression Bonus: {effects.developmentBonus > 0 ? '+' : ''}{effects.developmentBonus.toFixed(1)}%</div>
                       {effects.injuryReduction > 0 && <div>Injury Reduction: -{effects.injuryReduction}%</div>}
                       {effects.inGameStatBonus.fumbleRisk > 0 && <div className="text-red-400">Fumble Risk: +{effects.inGameStatBonus.fumbleRisk}%</div>}
                     </div>
@@ -232,7 +232,7 @@ export default function CamaraderieManagement({ teamId }: { teamId: string }) {
               <CardContent>
                 <div className="space-y-4">
                   <div className="flex items-center justify-between">
-                    <span className="text-sm">Player Development Bonus:</span>
+                    <span className="text-sm">Player Progression Bonus:</span>
                     <span className={`text-sm font-medium ${effects.developmentBonus > 0 ? 'text-green-400' : effects.developmentBonus < 0 ? 'text-red-400' : 'text-gray-400'}`}>
                       {effects.developmentBonus > 0 ? '+' : ''}{effects.developmentBonus.toFixed(1)}%
                     </span>
@@ -250,7 +250,7 @@ export default function CamaraderieManagement({ teamId }: { teamId: string }) {
                     </div>
                   )}
                   <div className="text-xs text-gray-400 mt-3">
-                    <p>• Development bonus applies to players 23 and under</p>
+                    <p>• Progression bonus applies to daily and season-end attribute improvements</p>
                     <p>• Contract bonus affects individual player willingness to sign</p>
                     {effects.injuryReduction > 0 && <p>• Injury reduction from high team chemistry</p>}
                   </div>
