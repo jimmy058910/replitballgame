@@ -347,40 +347,7 @@ export default function CamaraderieManagement({ teamId }: { teamId: string }) {
         </CardContent>
       </Card>
 
-      {/* E. History & Events */}
-      <Card className="bg-gray-800 border-gray-700">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-white">
-            <Activity className="w-5 h-5" />
-            Recent Camaraderie Events
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-3">
-            <div className="flex items-center gap-3 p-3 bg-green-500/20 border border-green-500 rounded-lg">
-              <Award className="w-5 h-5 text-green-400" />
-              <div>
-                <div className="text-white font-medium">Redclaw boosted team morale with MVP performance</div>
-                <div className="text-sm text-gray-400">2 days ago</div>
-              </div>
-            </div>
-            <div className="flex items-center gap-3 p-3 bg-blue-500/20 border border-blue-500 rounded-lg">
-              <Target className="w-5 h-5 text-blue-400" />
-              <div>
-                <div className="text-white font-medium">Starwhisper's morale increased after contract extension</div>
-                <div className="text-sm text-gray-400">5 days ago</div>
-              </div>
-            </div>
-            <div className="flex items-center gap-3 p-3 bg-orange-500/20 border border-orange-500 rounded-lg">
-              <Info className="w-5 h-5 text-orange-400" />
-              <div>
-                <div className="text-white font-medium">Grimshade's morale affected by recent injury</div>
-                <div className="text-sm text-gray-400">1 week ago</div>
-              </div>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+
 
       {/* Actionable Quick Features */}
       <div className="fixed bottom-4 right-4 md:relative md:bottom-auto md:right-auto">
