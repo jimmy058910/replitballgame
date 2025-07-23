@@ -504,29 +504,7 @@ export default function DramaticTeamHQ() {
           </Card>
         </div>
 
-        {/* 🏆 CAREER HIGHLIGHTS PANEL - MOVED TO BOTTOM */}
-        <Card className="bg-gradient-to-br from-yellow-900 to-amber-900 border-2 border-yellow-600 mt-6">
-          <CardHeader className="pb-2">
-            <CardTitle className="flex items-center justify-between text-white">
-              <div className="flex items-center">
-                <Award className="w-6 h-6 mr-2 text-yellow-400" />
-                Career Highlights
-              </div>
-              <Badge variant="outline" className="text-yellow-400 border-yellow-400">
-                0 Achievements
-              </Badge>
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-3">
-              <div className="text-center py-8">
-                <Trophy className="w-12 h-12 mx-auto text-yellow-400/50 mb-4" />
-                <p className="text-yellow-200/70">No career highlights yet.</p>
-                <p className="text-yellow-200/50 text-sm mt-2">Win games and achieve milestones to earn highlights!</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+
 
       </div>
     </div>
