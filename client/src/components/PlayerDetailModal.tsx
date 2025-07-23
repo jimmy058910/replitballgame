@@ -15,7 +15,7 @@ import {
 } from "lucide-react";
 import AbilitiesDisplay from "@/components/AbilitiesDisplay";
 import { PlayerAwards } from "./PlayerAwards";
-import ContractNegotiation from "./ContractNegotiation";
+import ContractNegotiationRedesigned from "./ContractNegotiationRedesigned";
 import { getPlayerRole, getRaceDisplayName, getRoleColor, getRoleTextColor } from "@shared/playerUtils";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
@@ -855,7 +855,7 @@ export default function PlayerDetailModal({
 
       {/* Contract Negotiation Modal */}
       {showContractNegotiation && player && (
-        <ContractNegotiation
+        <ContractNegotiationRedesigned
           player={player}
           isOpen={showContractNegotiation}
           onClose={() => setShowContractNegotiation(false)}

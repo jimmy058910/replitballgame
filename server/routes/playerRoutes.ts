@@ -4,6 +4,7 @@ import { storage } from "../storage/index"; // Updated import
 import { isAuthenticated } from "../replitAuth";
 import { z } from "zod";
 import { ContractService } from "../services/contractService";
+import { prisma } from "../storage/index";
 
 const router = Router();
 
@@ -72,12 +73,17 @@ router.get('/:playerId/contract-value', isAuthenticated, async (req: any, res: R
       return res.status(404).json({ message: "Player not found on your team or does not exist." });
     }
 
+    // Get current contract to determine salary
+    const currentContract = await prisma.contract.findFirst({
+      where: { playerId: parseInt(playerId), isActive: true }
+    });
+    
     const contractCalc = ContractService.calculateContractValue(player);
     
     res.json({
       playerId: player.id,
       playerName: `${player.firstName} ${player.lastName}`,
-      currentSalary: Number(player.salary) || 0,
+      currentSalary: Number(currentContract?.salary) || 0,
       contractCalc
     });
   } catch (error) {
@@ -142,63 +148,217 @@ router.post('/:playerId/negotiate', isAuthenticated, async (req: any, res: Respo
   }
 });
 
-// Abilities system routes
-router.post('/:id/train-abilities', isAuthenticated, async (req: any, res: Response, next: NextFunction) => {
+/**
+ * GET /api/players/:playerId/contract-negotiation-data
+ * Get comprehensive contract negotiation data for redesigned modal
+ */
+router.get('/:playerId/contract-negotiation-data', isAuthenticated, async (req: any, res: Response, next: NextFunction) => {
   try {
+    const { playerId } = req.params;
     const userId = req.user.claims.sub;
-    const team = await storage.teams.getTeamByUserId(userId); // Use teamStorage
-    if (!team) {
-      return res.status(404).json({ message: "Team not found for current user." });
+    
+    const userTeam = await storage.teams.getTeamByUserId(userId);
+    if (!userTeam) {
+      return res.status(404).json({ message: "Your team was not found." });
     }
 
-    const playerId = req.params.id;
-    const player = await storage.players.getPlayerById(parseInt(playerId)); // Use playerStorage
-
-    if (!player || player.teamId !== team.id) {
-      return res.status(404).json({ message: "Player not found or not owned by your team." });
+    const player = await storage.players.getPlayerById(parseInt(playerId));
+    if (!player || player.teamId !== userTeam.id) {
+      return res.status(404).json({ message: "Player not found on your team." });
     }
 
-    const { rollForAbility } = await import("@shared/abilities");
+    // Get current contract info
+    const currentContract = await prisma.contract.findFirst({
+      where: { playerId: parseInt(playerId), isActive: true }
+    });
 
-    const playerForAbilityRoll = { ...player }; // Spread player data
+    // Calculate contract values using existing service
+    const contractCalc = ContractService.calculateContractValue(player);
+    
+    // Mock current season data - replace with actual season logic
+    const currentSeason = 0; // This should come from your season management system
+    const contractEndsAfterSeason = currentContract ? currentSeason + (currentContract.length || 1) : currentSeason;
+    const nextContractStartsSeason = contractEndsAfterSeason + 1;
 
-    const newAbility = rollForAbility(playerForAbilityRoll as any);
+    // Calculate signing bonus (20% of market value)
+    const signingBonus = Math.round(contractCalc.marketValue * 0.2);
 
-    if (newAbility && newAbility.id) { // Ensure newAbility and its ID exist
-      const currentAbilities = Array.isArray(player.abilities) ? player.abilities :
-                               player.abilities && typeof player.abilities === 'string' ? JSON.parse(player.abilities) : [];
-
-      if (currentAbilities.includes(newAbility.id)) {
-        return res.json({
-          success: false,
-          message: `${player.name} already possesses the ability: ${newAbility.name}. No change.`
-        });
+    res.json({
+      calculation: {
+        baseSalary: contractCalc.baseSalary,
+        marketValue: contractCalc.marketValue,
+        minimumOffer: contractCalc.minimumOffer,
+        signingBonus: signingBonus,
+        salaryRange: {
+          min: contractCalc.minimumOffer,
+          max: Math.round(contractCalc.marketValue * 1.5) // 150% of market value as max
+        },
+        yearsRange: {
+          min: 1,
+          max: 5
+        }
+      },
+      contractInfo: {
+        currentSalary: currentContract?.salary || 0,
+        currentYears: currentContract?.length || 0,
+        currentSeason: currentSeason,
+        contractEndsAfterSeason: contractEndsAfterSeason,
+        nextContractStartsSeason: nextContractStartsSeason
       }
-
-      const updatedAbilities = [...currentAbilities, newAbility.id];
-
-      await storage.players.updatePlayer(parseInt(playerId), { abilities: updatedAbilities as any, updatedAt: new Date() }); // Use playerStorage
-
-      res.json({
-        success: true,
-        newAbilityName: newAbility.name,
-        newAbilityId: newAbility.id,
-        message: `${player.name} has successfully learned the ability: ${newAbility.name}!`
-      });
-    } else {
-      res.json({
-        success: false,
-        message: "Training session completed. No new ability was gained this time."
-      });
-    }
+    });
   } catch (error) {
-    console.error("Error training player abilities:", error);
-    if (error instanceof Error && error.message.includes("Could not resolve")) {
-        console.error("Failed to import @shared/abilities. Ensure the file exists and paths are correct.");
-        return res.status(500).json({ message: "Internal server error: Abilities module not found." });
-    }
+    console.error("Error fetching contract negotiation data:", error);
     next(error);
   }
 });
+
+/**
+ * POST /api/players/:playerId/negotiation-feedback
+ * Get live feedback for contract offer (acceptance probability and player response)
+ */
+router.post('/:playerId/negotiation-feedback', isAuthenticated, async (req: any, res: Response, next: NextFunction) => {
+  try {
+    const { playerId } = req.params;
+    const { salary, years } = req.body;
+    const userId = req.user.claims.sub;
+    
+    const userTeam = await storage.teams.getTeamByUserId(userId);
+    if (!userTeam) {
+      return res.status(404).json({ message: "Your team was not found." });
+    }
+
+    const player = await storage.players.getPlayerById(parseInt(playerId));
+    if (!player || player.teamId !== userTeam.id) {
+      return res.status(404).json({ message: "Player not found on your team." });
+    }
+
+    // Calculate contract values
+    const contractCalc = ContractService.calculateContractValue(player);
+    
+    // Calculate acceptance probability based on offer quality
+    const offerValue = salary * years;
+    const expectedValue = contractCalc.marketValue * years;
+    const offerQuality = offerValue / expectedValue;
+    
+    // Calculate probability with bonuses/penalties
+    let baseProbability = Math.min(100, Math.max(0, (offerQuality - 0.7) * 100));
+    
+    // Add camaraderie bonus
+    const camaraderieBonus = Math.max(0, ((player.camaraderieScore || 50) - 50) * 0.5);
+    baseProbability += camaraderieBonus;
+    
+    // Cap at 95% max probability
+    const acceptanceProbability = Math.min(95, Math.round(baseProbability));
+    
+    // Generate feedback message
+    let playerFeedback = "";
+    let responseType: 'accepting' | 'considering' | 'demanding' | 'rejecting' = 'rejecting';
+    
+    if (acceptanceProbability >= 80) {
+      responseType = 'accepting';
+      playerFeedback = "This offer looks great! I'm ready to sign.";
+    } else if (acceptanceProbability >= 60) {
+      responseType = 'considering';
+      playerFeedback = "This is a fair offer, but I'd like to think it over.";
+    } else if (acceptanceProbability >= 30) {
+      responseType = 'demanding';
+      playerFeedback = "I believe I'm worth more than this. Can we do better?";
+    } else {
+      responseType = 'rejecting';
+      playerFeedback = "This offer is too low for someone of my caliber.";
+    }
+
+    res.json({
+      acceptanceProbability,
+      playerFeedback,
+      responseType
+    });
+  } catch (error) {
+    console.error("Error getting negotiation feedback:", error);
+    next(error);
+  }
+});
+
+/**
+ * POST /api/players/:playerId/negotiate-contract
+ * Submit final contract offer (replaces existing negotiate endpoint for new modal)
+ */
+router.post('/:playerId/negotiate-contract', isAuthenticated, async (req: any, res: Response, next: NextFunction) => {
+  try {
+    const { playerId } = req.params;
+    const { salary, years } = req.body;
+    const userId = req.user.claims.sub;
+    
+    const userTeam = await storage.teams.getTeamByUserId(userId);
+    if (!userTeam) {
+      return res.status(404).json({ message: "Your team was not found." });
+    }
+
+    const player = await storage.players.getPlayerById(parseInt(playerId));
+    if (!player || player.teamId !== userTeam.id) {
+      return res.status(404).json({ message: "Player not found on your team." });
+    }
+
+    // Use existing negotiation service
+    const negotiationResult = await ContractService.negotiatePlayerContract(parseInt(playerId), salary, years);
+
+    if (negotiationResult.accepted) {
+      // Update the player's contract
+      const updatedPlayer = await ContractService.updatePlayerContract(parseInt(playerId), salary, years);
+      
+      // Calculate signing bonus
+      const contractCalc = ContractService.calculateContractValue(player);
+      const signingBonus = Math.round(contractCalc.marketValue * 0.2);
+      
+      // Mock season data
+      const currentSeason = 0;
+      const startSeason = currentSeason + 1;
+      const endSeason = startSeason + years - 1;
+      
+      res.json({
+        accepted: true,
+        startSeason,
+        endSeason,
+        signingBonus,
+        message: negotiationResult.message
+      });
+    } else {
+      res.json({
+        accepted: false,
+        feedback: negotiationResult.message
+      });
+    }
+  } catch (error) {
+    console.error("Error negotiating contract:", error);
+    next(error);
+  }
+});
+
+// Abilities system routes (temporarily disabled - needs schema update)
+// router.post('/:id/train-abilities', isAuthenticated, async (req: any, res: Response, next: NextFunction) => {
+//   try {
+//     const userId = req.user.claims.sub;
+//     const team = await storage.teams.getTeamByUserId(userId);
+//     if (!team) {
+//       return res.status(404).json({ message: "Team not found for current user." });
+//     }
+
+//     const playerId = req.params.id;
+//     const player = await storage.players.getPlayerById(parseInt(playerId));
+
+//     if (!player || player.teamId !== team.id) {
+//       return res.status(404).json({ message: "Player not found or not owned by your team." });
+//     }
+
+//     // Abilities functionality requires schema update to support player abilities
+//     res.json({
+//       success: false,
+//       message: "Ability training system is currently under maintenance."
+//     });
+//   } catch (error) {
+//     console.error("Error training player abilities:", error);
+//     next(error);
+//   }
+// });
 
 export default router;
