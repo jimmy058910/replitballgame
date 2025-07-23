@@ -2056,7 +2056,47 @@ router.delete('/:teamId/players/:playerId', isAuthenticated, asyncHandler(async 
   });
 }));
 
-// Get team stadium data
+// Get current user's team stadium data
+router.get('/stadium', isAuthenticated, async (req: any, res: Response, next: NextFunction) => {
+  try {
+    const userId = req.user.claims.sub;
+    
+    // Get user's team first
+    const team = await storage.teams.getTeamByUserId(userId);
+    if (!team) {
+      return res.status(404).json({ message: "Team not found" });
+    }
+    
+    // Get stadium from database
+    const stadium = await prisma.stadium.findFirst({
+      where: { teamId: team.id }
+    });
+    
+    if (!stadium) {
+      // Create default stadium if none exists
+      const newStadium = await prisma.stadium.create({
+        data: {
+          teamId: team.id,
+          capacity: 15000,
+          concessionsLevel: 1,
+          parkingLevel: 1,
+          vipSuitesLevel: 1,
+          merchandisingLevel: 1,
+          lightingScreensLevel: 1
+        }
+      });
+      
+      return res.json(newStadium);
+    }
+    
+    res.json(stadium);
+  } catch (error) {
+    console.error("Error fetching team stadium:", error);
+    next(error);
+  }
+});
+
+// Get team stadium data by team ID
 router.get('/:teamId/stadium', isAuthenticated, async (req: any, res: Response, next: NextFunction) => {
   try {
     const teamId = parseInt(req.params.teamId);

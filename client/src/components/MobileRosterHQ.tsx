@@ -24,6 +24,7 @@ import {
 import UnifiedTeamHeader from './UnifiedTeamHeader';
 import PlayerDetailModal from './PlayerDetailModal';
 import CamaraderieManagement from './CamaraderieManagement';
+import StadiumFinancialHub from './StadiumFinancialHub';
 
 // Type definitions
 type Player = {
@@ -600,64 +601,7 @@ export default function MobileRosterHQ() {
 
           {/* TAB 4: STADIUM */}
           <TabsContent value="stadium" className="space-y-6 px-2">
-            <Card className="bg-gradient-to-r from-purple-800 to-purple-900 border-2 border-purple-400">
-              <CardHeader>
-                <CardTitle className="flex items-center text-white">
-                  <Building className="w-6 h-6 mr-3 text-purple-400" />
-                  🏟️ STADIUM MANAGEMENT
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="p-4">
-                <div className="space-y-6">
-                  {/* Stadium Info */}
-                  <div className="bg-purple-900/50 p-4 rounded-lg">
-                    <h4 className="font-bold text-purple-200 mb-3">Stadium Overview</h4>
-                    <div className="grid grid-cols-2 gap-4 text-sm">
-                      <div>
-                        <div className="text-white/70">Name:</div>
-                        <div className="text-white font-semibold">
-                          {stadium?.name || team.name + ' Stadium'}
-                        </div>
-                      </div>
-                      <div>
-                        <div className="text-white/70">Capacity:</div>
-                        <div className="text-white font-semibold">
-                          {(stadium?.capacity || 5000).toLocaleString()} seats
-                        </div>
-                      </div>
-                      <div>
-                        <div className="text-white/70">Level:</div>
-                        <div className="text-white font-semibold">
-                          Level {stadium?.level || 1}
-                        </div>
-                      </div>
-                      <div>
-                        <div className="text-white/70">Revenue/Game:</div>
-                        <div className="text-green-400 font-semibold">
-                          ₡{((stadium?.capacity || 5000) * 25).toLocaleString()}
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Upgrade Options */}
-                  <div className="bg-yellow-900/50 p-4 rounded-lg">
-                    <h4 className="font-bold text-yellow-200 mb-3">Available Upgrades</h4>
-                    <div className="space-y-2">
-                      <Button variant="outline" className="w-full text-yellow-200 border-yellow-400 hover:bg-yellow-600">
-                        Expand Capacity
-                      </Button>
-                      <Button variant="outline" className="w-full text-yellow-200 border-yellow-400 hover:bg-yellow-600">
-                        Upgrade Concessions
-                      </Button>
-                      <Button variant="outline" className="w-full text-yellow-200 border-yellow-400 hover:bg-yellow-600">
-                        Add VIP Suites
-                      </Button>
-                    </div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+            <StadiumFinancialHub team={team} stadium={stadium} />
           </TabsContent>
 
           {/* TAB 5: PERSONNEL */}
