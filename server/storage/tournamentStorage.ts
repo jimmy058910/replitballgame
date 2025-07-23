@@ -264,6 +264,13 @@ export class TournamentStorage {
       orderBy: { startTime: 'asc' }
     });
   }
+
+  async getTournamentParticipantCount(tournamentId: number): Promise<number> {
+    const count = await prisma.tournamentEntry.count({
+      where: { tournamentId }
+    });
+    return count;
+  }
 }
 
 export const tournamentStorage = new TournamentStorage();

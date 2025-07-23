@@ -162,11 +162,22 @@ router.get('/available', isAuthenticated, async (req: any, res: Response, next: 
     
     // Add more details like participant count if needed
     const tournamentsWithDetails = await Promise.all(openTournaments.map(async t => {
-        const participantCount = await tournamentStorage.getTournamentParticipantCount(t.id);
+        const participantCount = await prisma.tournamentEntry.count({
+          where: { tournamentId: t.id }
+        });
         return { ...t, teamsEntered: participantCount };
     }));
 
-    res.json(tournamentsWithDetails);
+    // Use custom JSON serializer to handle BigInt values
+    const responseText = JSON.stringify(tournamentsWithDetails, (key, value) => {
+      if (typeof value === 'bigint') {
+        return value.toString();
+      }
+      return value;
+    });
+    
+    res.setHeader('Content-Type', 'application/json');
+    res.send(responseText);
   } catch (error) {
     console.error("Error fetching available tournaments:", error);
     next(error);
@@ -183,11 +194,22 @@ router.get('/:division', isAuthenticated, async (req: Request, res: Response, ne
     const openTournaments = await tournamentStorage.getTournamentsByDivision(division, 'open');
     // Add more details like participant count if needed
     const tournamentsWithDetails = await Promise.all(openTournaments.map(async t => {
-        const participantCount = await tournamentStorage.getTournamentParticipantCount(t.id);
+        const participantCount = await prisma.tournamentEntry.count({
+          where: { tournamentId: t.id }
+        });
         return { ...t, teamsEntered: participantCount };
     }));
 
-    res.json(tournamentsWithDetails);
+    // Use custom JSON serializer to handle BigInt values
+    const responseText = JSON.stringify(tournamentsWithDetails, (key, value) => {
+      if (typeof value === 'bigint') {
+        return value.toString();
+      }
+      return value;
+    });
+    
+    res.setHeader('Content-Type', 'application/json');
+    res.send(responseText);
   } catch (error) {
     console.error("Error fetching tournaments:", error);
     next(error);
@@ -206,10 +228,14 @@ router.post('/:id/enter', isAuthenticated, async (req: any, res: Response, next:
     if (tournament.status !== 'REGISTRATION_OPEN') return res.status(400).json({ message: "Tournament is not open for entries."});
     if (tournament.division !== team.division) return res.status(400).json({ message: "Your team is not in the correct division for this tournament."});
 
-    const participantCount = await tournamentStorage.getTournamentParticipantCount(tournamentId);
+    const participantCount = await prisma.tournamentEntry.count({
+      where: { tournamentId: tournamentId }
+    });
     if (participantCount >= (tournament.maxTeams || 8)) return res.status(400).json({ message: "Tournament is full."});
 
-    const existingEntry = await tournamentStorage.getTournamentEntry(tournamentId, team.id);
+    const existingEntry = await prisma.tournamentEntry.findFirst({
+      where: { tournamentId: tournamentId, teamId: team.id }
+    });
     if(existingEntry) return res.status(400).json({message: "Your team is already entered in this tournament."});
 
     const entryFee = tournament.entryFee || 0;
@@ -238,8 +264,18 @@ router.get('/my-entries', isAuthenticated, async (req: any, res: Response, next:
     const team = await storage.teams.getTeamByUserId(userId);
     if (!team || !team.id) return res.json([]);
 
-    const entries = await tournamentStorage.getEntriesByTeam(team.id);
-    res.json(entries);
+    const entries = await tournamentStorage.getTeamTournamentEntries(team.id);
+    
+    // Use custom JSON serializer to handle BigInt values
+    const responseText = JSON.stringify(entries, (key, value) => {
+      if (typeof value === 'bigint') {
+        return value.toString();
+      }
+      return value;
+    });
+    
+    res.setHeader('Content-Type', 'application/json');
+    res.send(responseText);
   } catch (error) {
     console.error("Error fetching current tournament entries:", error);
     next(error);
