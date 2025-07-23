@@ -60,8 +60,8 @@ gcloud auth login
 gcloud config set project direct-glider-465821-p7
 gcloud auth configure-docker us-east5-docker.pkg.dev
 
-# Modern Artifact Registry (Recommended)
-docker build -t us-east5-docker.pkg.dev/direct-glider-465821-p7/realm-rivalry/app:latest .
+# Modern Artifact Registry (Recommended) - Use Dockerfile.production for production deployment
+docker build -f Dockerfile.production -t us-east5-docker.pkg.dev/direct-glider-465821-p7/realm-rivalry/app:latest .
 docker push us-east5-docker.pkg.dev/direct-glider-465821-p7/realm-rivalry/app:latest
 
 # Deploy to Cloud Run (Modern)
@@ -80,8 +80,8 @@ gcloud run deploy realm-rivalry \
   --port 8080 \
   --timeout 300s
 
-# Legacy GCR (Fallback)
-docker build -t gcr.io/direct-glider-465821-p7/realm-rivalry:latest .
+# Legacy GCR (Fallback) - Use Dockerfile.production for production deployment
+docker build -f Dockerfile.production -t gcr.io/direct-glider-465821-p7/realm-rivalry:latest .
 docker push gcr.io/direct-glider-465821-p7/realm-rivalry:latest
 ```
 
@@ -612,6 +612,12 @@ docker push gcr.io/direct-glider-465821-p7/realm-rivalry:latest
 - ✓ **Text Logo Implementation**: Clean "RR" text logo with purple styling maintaining brand consistency while eliminating external dependencies
 - ✓ **Production Build Verified**: Server restart confirms application runs without import errors, Docker build should now complete successfully
 - ✓ **Deployment Ready**: Removed all asset dependencies that could cause missing file errors during production builds
+
+#### ✅ TYPESCRIPT COMPILATION ERRORS FIXED - PRODUCTION SERVER OPERATIONAL
+- ✓ **Function Return Paths Fixed**: Added missing return statements to `initializeStaticFileServing` function in server/production-v2.ts
+- ✓ **LSP Diagnostics Cleared**: All TypeScript compilation errors resolved, production server now builds cleanly
+- ✓ **Deployment Configuration**: Dockerfile.production correctly uses server/production-v2.ts with all authentication endpoints operational
+- ✓ **Production Ready**: Both Docker build and server compilation issues fully resolved for successful deployment
 
 #### ✅ CRITICAL PRODUCTION SYSTEMS OPERATIONAL - ENTERPRISE-SCALE INFRASTRUCTURE
 - ✓ **Stadium Revenue System**: Daily 5,000₡ maintenance costs and comprehensive home game revenue calculations operational

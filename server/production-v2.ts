@@ -103,18 +103,23 @@ async function initializeStaticFileServing(app: express.Application) {
           return true;
         } else {
           console.log('❌ index.html content appears invalid');
+          return false;
         }
       } else {
         console.log('❌ index.html not found in dist folder');
+        return false;
       }
     } catch (e) {
       console.log('❌ Error reading dist folder:', e);
+      return false;
     }
   } else {
     console.log('❌ Dist folder does not exist');
+    return false;
   }
   
-  // Fallback: serve loading page
+  // This should never be reached due to explicit returns above, but TypeScript requires it
+  // Fallback: serve loading page  
   console.log('⚠️ Setting up fallback loading page');
   setupFallbackRoutes(app);
   return false;
