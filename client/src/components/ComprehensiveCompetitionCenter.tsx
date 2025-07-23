@@ -306,10 +306,8 @@ export default function ComprehensiveCompetitionCenter() {
           {/* LEAGUE TAB - UNIFIED STANDINGS LAYOUT */}
           <TabsContent value="league" className="space-y-4">
             
-            <div className="grid grid-cols-1 lg:grid-cols-4 gap-4">
-              
-              {/* UNIFIED LEAGUE STANDINGS - ENHANCED TABLE */}
-              <div className="lg:col-span-3">
+            {/* UNIFIED LEAGUE STANDINGS - ENHANCED TABLE - FULL WIDTH */}
+            <div>
                 <Card className="bg-gray-800/90 border border-gray-600 shadow-xl">
                   <CardHeader className="pb-4">
                     <div className="flex items-center justify-between">
@@ -439,70 +437,6 @@ export default function ComprehensiveCompetitionCenter() {
                     )}
                   </CardContent>
                 </Card>
-              </div>
-
-              {/* SIDEBAR - NEXT MATCH WIDGET */}
-              <div className="space-y-4">
-                
-                {/* NEXT MATCH PREVIEW */}
-                {upcomingMatches && upcomingMatches.length > 0 && (
-                  <Card className="bg-gradient-to-br from-blue-800 to-blue-600 border border-blue-400 shadow-xl">
-                    <CardHeader className="pb-3">
-                      <CardTitle className="flex items-center gap-2 text-white text-lg">
-                        <Calendar className="h-5 w-5 text-blue-200" />
-                        Next Match
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="text-center">
-                        <div className="text-lg font-bold text-white mb-1">
-                          🆚 {upcomingMatches[0].homeTeam.id === team?.id ? upcomingMatches[0].awayTeam.name : upcomingMatches[0].homeTeam.name}
-                        </div>
-                        <p className="text-blue-100 text-sm">
-                          {upcomingMatches[0].homeTeam.id === team?.id ? '🏠 Home' : '✈️ Away'}
-                        </p>
-                        <p className="text-blue-200 text-xs mt-2">
-                          {formatMatchTime(upcomingMatches[0].gameDate)}
-                        </p>
-                      </div>
-                    </CardContent>
-                  </Card>
-                )}
-
-                {/* LEAGUE QUICK STATS */}
-                <Card className="bg-gradient-to-br from-gray-800 to-gray-600 border border-gray-400 shadow-xl">
-                  <CardHeader className="pb-3">
-                    <CardTitle className="flex items-center gap-2 text-white text-lg">
-                      <Trophy className="h-5 w-5 text-gray-200" />
-                      League Stats
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-2 text-sm">
-                      <div className="flex justify-between">
-                        <span className="text-gray-300">Division Position</span>
-                        <span className="text-white font-semibold">
-                          #{(divisionStandings?.findIndex(t => t.id === team?.id) ?? -1) + 1 || '?'}
-                        </span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-gray-300">Teams in Division</span>
-                        <span className="text-white font-semibold">{divisionStandings?.length || 8}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-gray-300">Points Behind</span>
-                        <span className="text-white font-semibold">
-                          {divisionStandings && divisionStandings.length > 0 
-                            ? Math.max(0, (divisionStandings[0]?.points || 0) - (team?.points || 0))
-                            : 0}
-                        </span>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-
-              </div>
-
             </div>
 
           </TabsContent>
