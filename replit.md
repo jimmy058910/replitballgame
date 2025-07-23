@@ -9,6 +9,80 @@ Built as a React + Express web application with PostgreSQL database, using moder
 **Current Phase**: PRODUCTION (working toward Pre-Alpha with 8-16 handpicked users)
 **Primary Goal**: Achieve working season loop, then transition to pre-Alpha testing phase
 
+## Production Infrastructure & Deployment Pipeline
+
+### Google Cloud Platform Setup
+**GCP Project**: `direct-glider-465821-p7`
+**Production URL**: https://realmrivalry.com
+**Service Account**: `realm-rivalry-runner@direct-glider-465821-p7.iam.gserviceaccount.com`
+
+### Cloud Run Configuration
+- **Service Name**: `realm-rivalry`
+- **Region**: `us-east5`
+- **Container Image**: `gcr.io/direct-glider-465821-p7/realm-rivalry:latest`
+- **Resources**: 2 CPU, 2Gi memory, 100 concurrency, 10 max instances
+- **Port**: 8080 with 300s timeout
+- **Health Check**: Custom endpoint at `/health`
+
+### Secrets Management (GCP Secret Manager)
+- **database-url**: Neon PostgreSQL connection string
+- **session-secret**: Express session signing key
+- **google-client-secret**: Google OAuth client secret
+- **Environment Variables**: NODE_ENV=production, GOOGLE_CLIENT_ID (public)
+
+### Google OAuth Configuration
+- **Client ID**: `108005641993-e642ered12jj7ka6unpqhgjdls92c0u8.apps.googleusercontent.com`
+- **Authorized Domains**: realmrivalry.com, localhost:5000, *.run.app
+- **OAuth URIs**: Configured for both development and production callbacks
+- **Scopes**: profile, email for user authentication
+
+### Database Infrastructure
+- **Provider**: Neon (Serverless PostgreSQL)
+- **Connection**: Pooled connection with SSL required
+- **Schema**: 100% Prisma ORM managed with automated migrations
+- **Backup**: Automated by Neon with point-in-time recovery
+
+### Docker Production Build
+- **Base Image**: node:20-alpine for security and size optimization
+- **Multi-stage**: Production optimized with security hardening
+- **Non-root User**: Runs as nextjs:nodejs (1001:1001) for security
+- **Health Check**: Built-in HTTP health endpoint monitoring
+- **Entry Point**: `npx tsx server/production.ts` with dumb-init
+
+### Deployment Commands (Complete Pipeline)
+```bash
+# Authentication & Project Setup
+gcloud auth login
+gcloud config set project direct-glider-465821-p7
+gcloud auth configure-docker
+
+# Build & Push Container
+docker build -t gcr.io/direct-glider-465821-p7/realm-rivalry:latest .
+docker push gcr.io/direct-glider-465821-p7/realm-rivalry:latest
+
+# Deploy to Cloud Run
+gcloud run deploy realm-rivalry \
+  --image gcr.io/direct-glider-465821-p7/realm-rivalry:latest \
+  --platform managed \
+  --region us-east5 \
+  --allow-unauthenticated \
+  --service-account realm-rivalry-runner@direct-glider-465821-p7.iam.gserviceaccount.com \
+  --set-env-vars NODE_ENV=production,GOOGLE_CLIENT_ID=108005641993-e642ered12jj7ka6unpqhgjdls92c0u8.apps.googleusercontent.com \
+  --set-secrets DATABASE_URL=database-url:latest,SESSION_SECRET=session-secret:latest,GOOGLE_CLIENT_SECRET=google-client-secret:latest \
+  --memory 2Gi \
+  --cpu 2 \
+  --concurrency 100 \
+  --max-instances 10 \
+  --port 8080 \
+  --timeout 300s
+```
+
+### Monitoring & Operations
+- **GCP Logging**: Centralized logs for request tracing and error monitoring
+- **Cloud Run Metrics**: CPU, memory, request latency, and error rate tracking
+- **Health Monitoring**: Automated health checks with restart on failure
+- **Domain Management**: Custom domain configured with automatic HTTPS
+
 ## Project Architecture
 
 ### Frontend (React + Vite)
@@ -21,14 +95,15 @@ Built as a React + Express web application with PostgreSQL database, using moder
 - **Real-time Updates**: WebSocket integration with Zustand stores
 
 ### Backend (Express + Node.js)
-- **Server**: Express with TypeScript
+- **Server**: Express with TypeScript running on Cloud Run
 - **Database**: PostgreSQL with Prisma ORM (100% Prisma syntax only)
-- **Database Infrastructure**: Neon (serverless PostgreSQL) - recommended for production scaling
-- **Authentication**: Replit Auth with OpenID Connect
-- **Session Management**: PostgreSQL-backed sessions
+- **Database Infrastructure**: Neon (serverless PostgreSQL) with production scaling
+- **Authentication**: Google OAuth 2.0 with Passport.js integration
+- **Session Management**: PostgreSQL-backed sessions with express-session
 - **Architecture**: Domain-driven design with bounded contexts
 - **API Validation**: Zod schemas for type-safe API boundaries
 - **Error Handling**: Centralized error management with structured logging
+- **Production Server**: Custom production.ts with security hardening and health checks
 
 ### Code Standards
 - **Database Operations**: Use Prisma Client exclusively - no Drizzle syntax allowed
@@ -47,6 +122,8 @@ Built as a React + Express web application with PostgreSQL database, using moder
 - **Mobile-First Design**: Responsive design approach starting with mobile constraints
 - **Error Handling**: Comprehensive error boundaries and user feedback systems
 - **Performance**: Lazy loading, virtualization, and optimized query patterns
+- **Production Deployment**: Docker + Google Cloud Run with automated CI/CD pipeline
+- **Security**: Non-root containers, secret management, HTTPS enforcement, security headers
 
 ### Key Features Implemented
 - **Team Management**: Complete roster management with formation system
@@ -85,6 +162,13 @@ Built as a React + Express web application with PostgreSQL database, using moder
 - **No Pay-to-Win Policy**: All gameplay-affecting items must be purchasable with Credits (₡), Gems (💎) only for convenience/cosmetics
 - **Documentation Consistency**: Maintain comprehensive game mechanics documentation with exact formulas and system specifications
 - **Game Design Philosophy**: Organic progression systems, balanced economies, realistic player development cycles
+
+### Authentication System
+- **Google OAuth 2.0**: Complete integration with Passport.js
+- **Session Storage**: PostgreSQL-backed with express-session
+- **Endpoint Compatibility**: `/api/login` and `/api/logout` redirect to Google Auth flows
+- **Production Security**: HTTPS-only, secure cookies, CSRF protection
+- **User Profiles**: Integrated with UserProfile table for team management
 
 ## Current Architecture Status
 
@@ -495,6 +579,7 @@ Built as a React + Express web application with PostgreSQL database, using moder
 - ✓ **Simple Redirect Solution**: New endpoints redirect to existing Google Auth (`/api/login` → `/auth/google`, `/api/logout` → `/logout`)
 - ✓ **Production Deployment Ready**: Can deploy using existing Google Cloud Run process without secrets changes
 - ✓ **Tested Locally**: Both endpoints confirmed working with proper 302 redirects
+- ✓ **Infrastructure Preserved**: Complete GCP setup maintained (direct-glider-465821-p7 project, realm-rivalry service)
 
 #### ✅ DOCKER BUILD FAILURE FIXED - PRODUCTION DEPLOYMENT READY
 - ✓ **Root Cause Identified**: Missing logo image import in NewNavigation.tsx causing Vite build failure during Docker production build
