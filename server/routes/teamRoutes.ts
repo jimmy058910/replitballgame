@@ -325,6 +325,43 @@ router.get('/my', isAuthenticated, async (req: any, res: Response, next: NextFun
   }
 });
 
+// Enhanced dashboard endpoint with comprehensive data
+router.get('/my/dashboard', isAuthenticated, async (req: any, res: Response, next: NextFunction) => {
+  try {
+    const userId = req.user.claims.sub;
+    const team = await storage.teams.getTeamByUserId(userId);
+
+    if (!team) {
+      return res.status(404).json({ message: "Team not found" });
+    }
+
+    // Get all related data
+    const [teamPlayers, finances, stadium, staff] = await Promise.all([
+      storage.players.getPlayersByTeamId(team.id),
+      prisma.teamFinances.findFirst({ where: { teamId: team.id } }),
+      prisma.stadium.findFirst({ where: { teamId: team.id } }),
+      storage.staff.getStaffByTeamId(team.id)
+    ]);
+
+    const teamPower = calculateTeamPower(teamPlayers);
+
+    // Calculate draws by checking if there are ties in the game records
+    const draws = 0; // TODO: Calculate from actual game data when draw logic is implemented
+
+    res.json({
+      team: { ...team, teamPower, teamCamaraderie: team.camaraderie },
+      players: teamPlayers,
+      finances: finances || { credits: BigInt(0), gems: BigInt(0) },
+      stadium: stadium || { capacity: 5000, concessionsLevel: 1, parkingLevel: 1, vipSuitesLevel: 1, merchandisingLevel: 1, lightingScreensLevel: 1 },
+      staff,
+      draws
+    });
+  } catch (error) {
+    console.error("Error fetching dashboard data:", error);
+    next(error);
+  }
+});
+
 router.get('/:id', isAuthenticated, async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { id } = req.params;

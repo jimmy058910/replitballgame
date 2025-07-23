@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/useAuth";
+import { useLocation } from "wouter";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -74,8 +75,9 @@ interface Stadium {
 
 export default function DramaticTeamHQ() {
   const { isAuthenticated } = useAuth();
+  const [, setLocation] = useLocation();
 
-  // Simple team data query
+  // Team data query - use existing working endpoint
   const { data: teamData, isLoading } = useQuery({
     queryKey: ["/api/teams/my"],
     enabled: isAuthenticated,
@@ -92,10 +94,13 @@ export default function DramaticTeamHQ() {
     );
   }
 
-  // Use simple structure for now - we'll expand with more comprehensive data later
+  // Use team data from API
   const team = teamData;
-  const players = []; // Will be populated by separate endpoint later
-  const finances = { credits: BigInt(50000), gems: BigInt(100), projectedIncome: BigInt(8000), projectedExpenses: BigInt(3000) };
+  const draws = 0; // TODO: Calculate draws when implemented
+  
+  // For now, use realistic fallback data - we'll get real data from separate API calls
+  const players = []; // Will load from separate endpoint
+  const finances = { credits: BigInt(16000), gems: BigInt(50), projectedIncome: BigInt(8000), projectedExpenses: BigInt(3000) };
   const stadium = { capacity: 5000, concessionsLevel: 1, parkingLevel: 1, vipSuitesLevel: 1, merchandisingLevel: 1, lightingScreensLevel: 1 };
 
   // Enhanced player analysis
@@ -103,10 +108,7 @@ export default function DramaticTeamHQ() {
   const injuredPlayers = players?.filter((p: Player) => p.injuryStatus && p.injuryStatus !== 'Healthy') || [];
   const lowStaminaPlayers = players?.filter((p: Player) => (p.dailyStaminaLevel || 100) < 70) || [];
   
-  const teamPower = activePlayers.length > 0 
-    ? Math.round(activePlayers.reduce((acc: number, p: Player) => 
-        acc + ((p.speed + p.power + p.throwing + p.catching + p.kicking + p.agility) / 6), 0) / activePlayers.length)
-    : 0;
+  const teamPower = team.teamPower || 0;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
@@ -123,7 +125,7 @@ export default function DramaticTeamHQ() {
                     <h1 className="text-3xl font-black text-white mb-1">⚡ {team.name} ⚡</h1>
                     <div className="flex items-center gap-4">
                       <Badge className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-3 py-1">
-                        Division {team.division}{team.subdivision}
+                        Division {team.division} - Stone {team.subdivision}
                       </Badge>
                       <span className="text-blue-200 text-sm font-semibold">Season 0 • Day 7 of 17</span>
                     </div>
@@ -134,7 +136,7 @@ export default function DramaticTeamHQ() {
               <div className="text-right">
                 <div className="text-blue-400 text-sm font-bold">TEAM POWER</div>
                 <div className="text-white text-3xl font-black">{teamPower}</div>
-                <div className="text-blue-200 text-sm">{team.wins}W - {team.losses}L</div>
+                <div className="text-blue-200 text-sm">{team.wins}W - {draws}D - {team.losses}L</div>
               </div>
             </div>
             
@@ -211,7 +213,10 @@ export default function DramaticTeamHQ() {
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
           
           {/* Roster Management */}
-          <Card className="bg-gradient-to-br from-blue-700 to-blue-900 border-2 border-blue-500 hover:scale-105 transition-all duration-200 cursor-pointer">
+          <Card 
+            className="bg-gradient-to-br from-blue-700 to-blue-900 border-2 border-blue-500 hover:scale-105 transition-all duration-200 cursor-pointer"
+            onClick={() => setLocation('/roster-hq')}
+          >
             <CardContent className="p-4 text-center">
               <div className="mb-3">
                 <div className="w-12 h-12 bg-gradient-to-br from-blue-400 to-blue-600 rounded-full flex items-center justify-center mx-auto">
@@ -227,7 +232,10 @@ export default function DramaticTeamHQ() {
           </Card>
 
           {/* Competition Hub */}
-          <Card className="bg-gradient-to-br from-green-700 to-green-900 border-2 border-green-500 hover:scale-105 transition-all duration-200 cursor-pointer">
+          <Card 
+            className="bg-gradient-to-br from-green-700 to-green-900 border-2 border-green-500 hover:scale-105 transition-all duration-200 cursor-pointer"
+            onClick={() => setLocation('/competition')}
+          >
             <CardContent className="p-4 text-center">
               <div className="mb-3">
                 <div className="w-12 h-12 bg-gradient-to-br from-green-400 to-green-600 rounded-full flex items-center justify-center mx-auto">
@@ -237,7 +245,7 @@ export default function DramaticTeamHQ() {
               <h3 className="text-lg font-bold text-white mb-1">Competition</h3>
               <p className="text-green-200 text-xs mb-2">Matches & League</p>
               <Badge variant="outline" className="text-green-400 border-green-400 text-xs">
-                {team.wins}W-{team.losses}L
+                {team.wins}W-{draws}D-{team.losses}L
               </Badge>
             </CardContent>
           </Card>
@@ -284,37 +292,17 @@ export default function DramaticTeamHQ() {
                 Career Highlights
               </div>
               <Badge variant="outline" className="text-yellow-400 border-yellow-400">
-                2 New
+                0 Achievements
               </Badge>
             </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="space-y-3">
-              <div className="flex items-center justify-between bg-yellow-800/30 p-3 rounded-lg">
-                <div className="flex items-center">
-                  <Trophy className="w-5 h-5 mr-3 text-yellow-400" />
-                  <div>
-                    <div className="text-white font-semibold">Division Champion</div>
-                    <div className="text-yellow-200 text-xs">Season 0 - Division 8A</div>
-                  </div>
-                </div>
-                <Badge className="bg-yellow-600 text-white">LEGENDARY</Badge>
+              <div className="text-center py-8">
+                <Trophy className="w-12 h-12 mx-auto text-yellow-400/50 mb-4" />
+                <p className="text-yellow-200/70">No career highlights yet.</p>
+                <p className="text-yellow-200/50 text-sm mt-2">Win games and achieve milestones to earn highlights!</p>
               </div>
-              
-              <div className="flex items-center justify-between bg-purple-800/30 p-3 rounded-lg">
-                <div className="flex items-center">
-                  <Star className="w-5 h-5 mr-3 text-purple-400" />
-                  <div>
-                    <div className="text-white font-semibold">Perfect Season</div>
-                    <div className="text-purple-200 text-xs">15-0 Regular Season</div>
-                  </div>
-                </div>
-                <Badge className="bg-purple-600 text-white">EPIC</Badge>
-              </div>
-              
-              <Button variant="outline" size="sm" className="w-full border-yellow-600 text-yellow-400 hover:bg-yellow-600 hover:text-white">
-                View All Career Highlights <ChevronRight className="w-4 h-4 ml-2" />
-              </Button>
             </div>
           </CardContent>
         </Card>
