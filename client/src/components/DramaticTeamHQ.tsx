@@ -74,6 +74,18 @@ interface Stadium {
   lightingScreensLevel: number;
 }
 
+interface ExhibitionStats {
+  gamesPlayedToday: number;
+  exhibitionEntriesUsedToday: number;
+  totalWins: number;
+  totalLosses: number;
+  totalDraws: number;
+  totalGames: number;
+  winRate: number;
+  chemistryGained: number;
+  rewardsEarned: { credits: number; items: number };
+}
+
 export default function DramaticTeamHQ() {
   const { isAuthenticated } = useAuth();
   const [, setLocation] = useLocation();
@@ -114,6 +126,13 @@ export default function DramaticTeamHQ() {
     enabled: isAuthenticated,
   });
 
+  // Exhibition games played today - fetch real data
+  const { data: exhibitionStats } = useQuery<ExhibitionStats>({
+    queryKey: ["/api/exhibitions/stats"],
+    enabled: isAuthenticated,
+    refetchInterval: 30000, // Refresh every 30 seconds
+  });
+
   if (isLoading || !teamData) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-900 to-gray-900">
@@ -140,10 +159,13 @@ export default function DramaticTeamHQ() {
   
   const teamPower = team.teamPower || 0;
 
+  // Get real exhibition games count from API
+  const exhibitionGamesPlayedToday = exhibitionStats?.gamesPlayedToday || 0;
+
   // Calculate daily task completion
   const completedTasks = [
     dailyTasks.checkTeamStatus,
-    dailyTasks.playExhibitionMatches >= 3,
+    exhibitionGamesPlayedToday >= 3, // Use real data instead of hardcoded
     dailyTasks.enterDailyTournament,
     dailyTasks.watchRewardedAd >= 10,
     dailyTasks.reviewTeamTactics,
@@ -361,13 +383,13 @@ export default function DramaticTeamHQ() {
                 
                 <div className="flex items-center justify-between text-sm">
                   <div className="flex items-center">
-                    <div className={`w-4 h-4 ${dailyTasks.playExhibitionMatches >= 3 ? 'bg-green-600' : 'border-2 border-cyan-400'} rounded mr-3 flex items-center justify-center`}>
-                      {dailyTasks.playExhibitionMatches >= 3 && <div className="w-2 h-2 bg-white rounded"></div>}
+                    <div className={`w-4 h-4 ${exhibitionGamesPlayedToday >= 3 ? 'bg-green-600' : 'border-2 border-cyan-400'} rounded mr-3 flex items-center justify-center`}>
+                      {exhibitionGamesPlayedToday >= 3 && <div className="w-2 h-2 bg-white rounded"></div>}
                     </div>
-                    <span className={dailyTasks.playExhibitionMatches >= 3 ? "text-white" : "text-gray-400"}>Play Exhibition Matches</span>
+                    <span className={exhibitionGamesPlayedToday >= 3 ? "text-white" : "text-gray-400"}>Play Exhibition Matches</span>
                   </div>
-                  <Badge className={`${dailyTasks.playExhibitionMatches >= 3 ? 'bg-green-600' : 'bg-gray-600'} text-white text-xs`}>
-                    {dailyTasks.playExhibitionMatches}/3
+                  <Badge className={`${exhibitionGamesPlayedToday >= 3 ? 'bg-green-600' : 'bg-gray-600'} text-white text-xs`}>
+                    {exhibitionGamesPlayedToday}/3
                   </Badge>
                 </div>
                 
