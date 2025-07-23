@@ -334,6 +334,36 @@ export default function DramaticTeamHQ() {
                 </div>
                 <span className="text-cyan-400 text-xs">0/10</span>
               </div>
+              
+              <div className="flex items-center justify-between text-sm">
+                <div className="flex items-center">
+                  <div className="w-4 h-4 bg-green-600 rounded mr-3 flex items-center justify-center">
+                    <div className="w-2 h-2 bg-white rounded"></div>
+                  </div>
+                  <span className="text-white">Review Player Stats</span>
+                </div>
+                <Badge className="bg-green-600 text-white text-xs">✓</Badge>
+              </div>
+              
+              <div className="flex items-center justify-between text-sm">
+                <div className="flex items-center">
+                  <div className="w-4 h-4 border-2 border-cyan-400 rounded mr-3"></div>
+                  <span className="text-gray-400">Update Team Tactics</span>
+                </div>
+                <Button size="sm" className="bg-cyan-600 hover:bg-cyan-700 text-white text-xs">
+                  Set Now
+                </Button>
+              </div>
+              
+              <div className="flex items-center justify-between text-sm">
+                <div className="flex items-center">
+                  <div className="w-4 h-4 border-2 border-cyan-400 rounded mr-3"></div>
+                  <span className="text-gray-400">Check Market Listings</span>
+                </div>
+                <Button size="sm" className="bg-cyan-600 hover:bg-cyan-700 text-white text-xs">
+                  Browse
+                </Button>
+              </div>
             </div>
             
             <Progress value={42} className="mt-4 h-2" />
