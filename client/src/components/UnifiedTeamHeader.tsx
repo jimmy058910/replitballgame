@@ -4,13 +4,16 @@ import { Badge } from "@/components/ui/badge";
 import { Trophy, Users } from "lucide-react";
 
 interface UnifiedTeamHeaderProps {
-  title: string;
-  titleIcon: string;
+  title?: string;
+  titleIcon?: string;
   team: any;
   players?: any[];
+  showCreditsGems?: boolean;
+  showLowStaminaWarning?: boolean;
+  lowStaminaCount?: number;
 }
 
-export default function UnifiedTeamHeader({ title, titleIcon, team, players }: UnifiedTeamHeaderProps) {
+export default function UnifiedTeamHeader({ title, titleIcon, team, players, showCreditsGems = false, showLowStaminaWarning = false, lowStaminaCount = 0 }: UnifiedTeamHeaderProps) {
   // Fetch current season data for consistent display
   const { data: seasonData } = useQuery({
     queryKey: ['/api/season/current-cycle'],
@@ -38,7 +41,30 @@ export default function UnifiedTeamHeader({ title, titleIcon, team, players }: U
 
   // Get season information
   const seasonInfo = seasonData ? `Season ${seasonData.seasonNumber} • Day ${seasonData.currentDay} of 17` : 'Season 0 • Day 9 of 17';
-  const divisionInfo = team?.subdivision ? `${team.subdivision} eta` : (team?.subdivision || 'eta');
+  
+  // Get proper division name with subdivision
+  const getDivisionNameWithSubdivision = (division: number, subdivision?: string) => {
+    const divisionNames: Record<number, string> = {
+      1: "Diamond", 2: "Platinum", 3: "Gold", 4: "Silver", 
+      5: "Bronze", 6: "Iron", 7: "Steel", 8: "Stone"
+    };
+    
+    const baseName = divisionNames[division] || `Division ${division}`;
+    
+    if (!subdivision || subdivision === "main") {
+      return baseName;
+    }
+    
+    const subdivisionNames: Record<string, string> = {
+      "alpha": "Alpha", "beta": "Beta", "gamma": "Gamma", "delta": "Delta",
+      "epsilon": "Epsilon", "zeta": "Zeta", "eta": "Eta", "theta": "Theta"
+    };
+    
+    const subdivisionName = subdivisionNames[subdivision] || subdivision.charAt(0).toUpperCase() + subdivision.slice(1);
+    return `${baseName} - ${subdivisionName}`;
+  };
+  
+  const divisionDisplay = getDivisionNameWithSubdivision(team?.division || 8, team?.subdivision);
 
   return (
     <Card className="bg-gradient-to-r from-purple-900 via-blue-900 to-indigo-900 border-4 border-blue-500 mb-6 overflow-hidden">
@@ -49,11 +75,11 @@ export default function UnifiedTeamHeader({ title, titleIcon, team, players }: U
               <Trophy className="w-8 h-8 mr-3 text-yellow-400" />
               <div>
                 <h1 className="text-3xl font-black text-white mb-1">
-                  {titleIcon} {team?.name || 'Team Name'} {titleIcon}
+                  {titleIcon || '🏈'} {team?.name || 'Team Name'} {titleIcon || '🏈'}
                 </h1>
                 <div className="flex items-center gap-4">
                   <Badge className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-3 py-1">
-                    Division {team?.division || 8} - Stone {divisionInfo}
+                    {divisionDisplay}
                   </Badge>
                   <span className="text-blue-200 text-sm font-semibold">{seasonInfo}</span>
                 </div>

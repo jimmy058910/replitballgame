@@ -217,7 +217,7 @@ export default function MobileRosterHQ() {
         lowStaminaCount={lowStaminaPlayers.length}
       />
       
-      <div className="container mx-auto px-4 pt-6 pb-6 space-y-6 max-w-7xl">
+      <div className="container mx-auto px-4 py-6 space-y-6 max-w-7xl">
         {/* Roster Overview Cards */}
         <div className="grid grid-cols-3 gap-4 mb-6">
           {/* Passers */}

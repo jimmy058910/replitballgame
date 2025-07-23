@@ -299,7 +299,7 @@ export default function DramaticTeamHQ() {
             <CardContent className="p-4 text-center">
               <div className="mb-3">
                 <div className="w-12 h-12 bg-gradient-to-br from-purple-400 to-purple-600 rounded-full flex items-center justify-center mx-auto">
-                  <DollarSign className="w-6 h-6 text-white" />
+                  <span className="text-2xl font-bold text-white">₡</span>
                 </div>
               </div>
               <h3 className="text-lg font-bold text-white mb-1">Market</h3>

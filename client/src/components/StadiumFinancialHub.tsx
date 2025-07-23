@@ -220,7 +220,7 @@ const StadiumFinancialHub: React.FC<StadiumFinancialHubProps> = ({ team, stadium
               </div>
             </div>
             <div className="bg-yellow-900/50 p-3 rounded-lg">
-              <DollarSign className="w-5 h-5 mx-auto mb-2 text-yellow-400" />
+              <span className="text-xl font-bold text-yellow-400 block text-center mb-2">₡</span>
               <div className="text-white/70 text-xs">Game Revenue</div>
               <div className="text-green-400 font-bold">
                 ₡{totalRevenue.toLocaleString()}
