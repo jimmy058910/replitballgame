@@ -173,7 +173,7 @@ export default function DramaticTeamHQ() {
   // Get next scheduled opponent from API
   const { data: nextOpponentData } = useQuery({
     queryKey: ['/api/teams/my/next-opponent'],
-    enabled: !!user
+    enabled: isAuthenticated
   });
   
   const nextOpponent = nextOpponentData?.nextOpponent || "No games scheduled";
