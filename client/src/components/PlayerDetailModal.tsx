@@ -393,8 +393,8 @@ export default function PlayerDetailModal({
                 </div>
                 
                 <div className="text-center">
-                  <div className={`text-2xl font-bold ${getStaminaColor(player.dailyStaminaLevel)}`}>
-                    {player.dailyStaminaLevel}%
+                  <div className={`text-2xl font-bold ${(player.dailyStaminaLevel || 100) >= 75 ? 'text-green-400' : (player.dailyStaminaLevel || 100) >= 50 ? 'text-yellow-400' : 'text-red-400'}`}>
+                    {player.dailyStaminaLevel || 100}%
                   </div>
                   <div className="text-sm font-semibold text-white">Stamina</div>
                   <div className="text-xs text-gray-400">Energy Level</div>

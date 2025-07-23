@@ -388,7 +388,7 @@ Built as a React + Express web application with PostgreSQL database, using moder
 
 **Taxi Squad Mechanics**:
 - **Promotion Only**: Players can only be promoted FROM taxi squad during offseason (Days 16-17)
-- **Development Focus**: Taxi squad players get +50% progression chance but cannot play
+- **Development Focus**: Taxi squad players develop at standard rates and cannot participate in matches
 - **Cost Efficiency**: Taxi squad players count 50% toward salary cap
 - **Scouting Bonus**: Better scouts reveal taxi squad player potential more accurately
 
