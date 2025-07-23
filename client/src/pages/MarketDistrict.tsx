@@ -76,7 +76,7 @@ interface GemPackage {
   name: string;
   price: number; // USD price
   gems: number;
-  bonusGems?: number;
+  bonus?: number; // bonus gems
   popular?: boolean;
   description?: string;
 }
@@ -187,6 +187,12 @@ export default function MarketDistrict() {
     queryKey: ['/api/store/gem-packages'],
     queryFn: () => apiRequest('/api/store/gem-packages'),
     enabled: isAuthenticated,
+    select: (data: any) => {
+      // API returns {success: true, data: [...]} structure
+      const packages = data?.data || [];
+      console.log('Gem packages received:', packages.length, packages);
+      return packages;
+    }
   });
 
   const { data: transactions, isLoading: transactionsLoading } = useQuery<Transaction[]>({
@@ -490,46 +496,120 @@ export default function MarketDistrict() {
               <CollapsibleContent>
                 <Card className="bg-gray-800 border-gray-700">
                   <CardContent className="p-6 space-y-6">
+                    {/* Gem Packages */}
+                    {gemPackages && gemPackages.length > 0 ? (
+                      <div className="space-y-4">
+                        <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
+                          <Gem className="h-5 w-5 text-blue-400" />
+                          Gem Packages
+                        </h3>
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                          {gemPackages.map((pkg, index) => {
+                            const totalGems = pkg.gems + (pkg.bonus || 0);
+                            const colors = [
+                              'border-green-500/30 bg-green-900/20', // Pouch
+                              'border-blue-500/30 bg-blue-900/20',   // Sack  
+                              'border-purple-500/30 bg-purple-900/20', // Crate
+                              'border-orange-500/30 bg-orange-900/20', // Cart
+                              'border-red-500/30 bg-red-900/20',     // Chest
+                              'border-yellow-500/30 bg-yellow-900/20' // Vault
+                            ];
+                            const textColors = [
+                              'text-green-300', 'text-blue-300', 'text-purple-300', 
+                              'text-orange-300', 'text-red-300', 'text-yellow-300'
+                            ];
+                            const buttonColors = [
+                              'bg-green-600 hover:bg-green-700', 
+                              'bg-blue-600 hover:bg-blue-700',
+                              'bg-purple-600 hover:bg-purple-700',
+                              'bg-orange-600 hover:bg-orange-700',
+                              'bg-red-600 hover:bg-red-700',
+                              'bg-yellow-600 hover:bg-yellow-700'
+                            ];
+                            
+                            return (
+                              <Card key={pkg.id} className={`${colors[index]} border transition-all hover:scale-105`}>
+                                <CardContent className="p-4 text-center">
+                                  <div className="mb-3">
+                                    <Gem className={`h-8 w-8 mx-auto mb-2 ${textColors[index]}`} />
+                                    <h4 className="font-bold text-white">{pkg.name}</h4>
+                                  </div>
+                                  
+                                  <div className="space-y-2 mb-4">
+                                    <div className={`text-2xl font-bold ${textColors[index]}`}>
+                                      ${pkg.price.toFixed(2)}
+                                    </div>
+                                    <div className="text-white">
+                                      💎 {pkg.gems.toLocaleString()}
+                                      {pkg.bonus && pkg.bonus > 0 && (
+                                        <span className={`text-sm ${textColors[index]} font-semibold`}>
+                                          {" "}+ {pkg.bonus.toLocaleString()} bonus
+                                        </span>
+                                      )}
+                                    </div>
+                                    <div className="text-gray-400 text-sm">
+                                      Total: {totalGems.toLocaleString()} gems
+                                    </div>
+                                  </div>
+                                  
+                                  <Button 
+                                    className={`w-full ${buttonColors[index]} text-white font-bold`}
+                                    onClick={() => {
+                                      // Future: integrate with Stripe payment
+                                      toast({
+                                        title: "Payment System",
+                                        description: `${pkg.name} - $${pkg.price.toFixed(2)} payment integration coming soon`,
+                                      });
+                                    }}
+                                  >
+                                    Purchase
+                                  </Button>
+                                </CardContent>
+                              </Card>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="text-center py-4">
+                        <p className="text-gray-400">Loading gem packages...</p>
+                      </div>
+                    )}
+
                     {/* Realm Pass */}
-                    <Card className="bg-gradient-to-r from-yellow-900/30 to-orange-800/30 border-yellow-500/30">
-                      <CardContent className="p-4">
-                        <div className="flex items-center justify-between mb-4">
-                          <div className="flex items-center gap-2">
-                            <Crown className="h-6 w-6 text-yellow-400" />
-                            <div>
-                              <h3 className="text-lg font-bold text-yellow-300">Realm Pass</h3>
-                              <p className="text-sm text-yellow-200">Premium monthly subscription</p>
+                    <div className="border-t border-gray-600 pt-6">
+                      <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
+                        <Crown className="h-5 w-5 text-yellow-400" />
+                        Realm Pass Subscription
+                      </h3>
+                      <Card className="bg-gradient-to-r from-yellow-900/30 to-orange-800/30 border-yellow-500/30">
+                        <CardContent className="p-4">
+                          <div className="flex items-center justify-between mb-4">
+                            <div className="flex items-center gap-2">
+                              <Crown className="h-6 w-6 text-yellow-400" />
+                              <div>
+                                <h4 className="text-lg font-bold text-yellow-300">Realm Pass</h4>
+                                <p className="text-sm text-yellow-200">Premium monthly subscription</p>
+                              </div>
+                            </div>
+                            <div className="text-right">
+                              <p className="text-2xl font-bold text-yellow-300">$9.99</p>
+                              <p className="text-sm text-yellow-200">per month</p>
                             </div>
                           </div>
-                          <div className="text-right">
-                            <p className="text-2xl font-bold text-yellow-300">$9.99</p>
-                            <p className="text-sm text-yellow-200">per month</p>
+                          
+                          <div className="text-sm text-yellow-200 mb-4 space-y-1">
+                            • Monthly gem allowance: 350 💎
+                            • Ad-free experience
+                            • Daily cache rewards
+                            • Priority queue access
                           </div>
-                        </div>
-                        <Button className="w-full bg-yellow-600 hover:bg-yellow-700 text-black font-bold">
-                          Subscribe
-                        </Button>
-                      </CardContent>
-                    </Card>
-
-                    {/* Realm Pass Coming Soon */}
-                    <div className="text-center py-8">
-                      <div className="bg-gradient-to-r from-purple-600/20 to-blue-600/20 rounded-lg p-6 border border-purple-500/30">
-                        <Crown className="h-12 w-12 text-yellow-500 mx-auto mb-3" />
-                        <h4 className="text-white font-bold text-lg mb-2">Realm Pass Premium</h4>
-                        <p className="text-gray-300 mb-4">
-                          Monthly subscription with exclusive perks, bonus gems, and premium features
-                        </p>
-                        <div className="text-sm text-gray-400 mb-4">
-                          • Monthly gem allowance<br/>
-                          • Exclusive cosmetic items<br/>
-                          • Priority queue access<br/>
-                          • Advanced analytics dashboard
-                        </div>
-                        <Badge className="bg-purple-600 text-white px-4 py-1">
-                          Coming Soon
-                        </Badge>
-                      </div>
+                          
+                          <Button className="w-full bg-yellow-600 hover:bg-yellow-700 text-black font-bold">
+                            Subscribe
+                          </Button>
+                        </CardContent>
+                      </Card>
                     </div>
                   </CardContent>
                 </Card>
