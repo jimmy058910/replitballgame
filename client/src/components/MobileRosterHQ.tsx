@@ -48,6 +48,10 @@ type Player = {
   isOnMarket: boolean;
   isRetired: boolean;
   rosterPosition?: number;
+  contractSalary?: number;
+  contractLength?: number;
+  contractStartDate?: string;
+  contractSigningBonus?: number;
 };
 
 type Staff = {
@@ -121,7 +125,7 @@ export default function MobileRosterHQ() {
     const gradients: Record<string, string> = {
       'PASSER': 'from-blue-600 to-blue-800',
       'RUNNER': 'from-green-600 to-green-800',
-      'BLOCKER': 'from-purple-600 to-purple-800'
+      'BLOCKER': 'from-red-600 to-orange-700'
     };
     return gradients[role] || 'from-gray-600 to-gray-800';
   };
@@ -213,7 +217,7 @@ export default function MobileRosterHQ() {
         lowStaminaCount={lowStaminaPlayers.length}
       />
       
-      <div className="container mx-auto px-4 py-6 space-y-6 max-w-7xl">
+      <div className="container mx-auto px-4 pt-6 pb-6 space-y-6 max-w-7xl">
         {/* Roster Overview Cards */}
         <div className="grid grid-cols-3 gap-4 mb-6">
           {/* Passers */}
@@ -249,18 +253,18 @@ export default function MobileRosterHQ() {
           </Card>
 
           {/* Blockers */}
-          <Card className="bg-gradient-to-br from-purple-600 to-purple-800 border-2 border-purple-500">
+          <Card className="bg-gradient-to-br from-red-600 to-orange-700 border-2 border-red-500">
             <CardContent className="p-4 text-center">
               <div className="text-3xl mb-2">🛡️</div>
               <div className="text-2xl font-bold text-white">{blockers.length}</div>
-              <div className="text-purple-200 text-sm font-semibold">Blockers</div>
-              <div className="text-xs text-purple-300 mt-1">(Min: 4 Required)</div>
+              <div className="text-red-200 text-sm font-semibold">Blockers</div>
+              <div className="text-xs text-red-300 mt-1">(Min: 4 Required)</div>
               {blockers.length < 4 && (
                 <Badge variant="destructive" className="mt-1 text-xs">
                   Needs {4 - blockers.length} More!
                 </Badge>
               )}
-              <Progress value={(blockers.length / 4) * 100} className="mt-2 h-2 bg-purple-900" />
+              <Progress value={(blockers.length / 4) * 100} className="mt-2 h-2 bg-red-900" />
             </CardContent>
           </Card>
         </div>
@@ -268,19 +272,19 @@ export default function MobileRosterHQ() {
         {/* Five-Tab Navigation */}
         <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as TabType)} className="w-full">
           <TabsList className="grid w-full grid-cols-5 bg-slate-800/50 border border-slate-600">
-            <TabsTrigger value="roster" className="text-xs font-semibold data-[state=active]:bg-blue-600 data-[state=active]:text-white">
+            <TabsTrigger value="roster" className="text-sm font-semibold data-[state=active]:bg-blue-600 data-[state=active]:text-white py-3">
               👥 Roster
             </TabsTrigger>
-            <TabsTrigger value="tactics" className="text-xs font-semibold data-[state=active]:bg-green-600 data-[state=active]:text-white">
+            <TabsTrigger value="tactics" className="text-sm font-semibold data-[state=active]:bg-green-600 data-[state=active]:text-white py-3">
               ⚙️ Tactics
             </TabsTrigger>
-            <TabsTrigger value="camaraderie" className="text-xs font-semibold data-[state=active]:bg-yellow-600 data-[state=active]:text-white">
+            <TabsTrigger value="camaraderie" className="text-sm font-semibold data-[state=active]:bg-yellow-600 data-[state=active]:text-white py-3">
               🤝 Camaraderie
             </TabsTrigger>
-            <TabsTrigger value="stadium" className="text-xs font-semibold data-[state=active]:bg-purple-600 data-[state=active]:text-white">
+            <TabsTrigger value="stadium" className="text-sm font-semibold data-[state=active]:bg-purple-600 data-[state=active]:text-white py-3">
               🏟️ Stadium
             </TabsTrigger>
-            <TabsTrigger value="personnel" className="text-xs font-semibold data-[state=active]:bg-orange-600 data-[state=active]:text-white">
+            <TabsTrigger value="personnel" className="text-sm font-semibold data-[state=active]:bg-orange-600 data-[state=active]:text-white py-3">
               👔 Staff
             </TabsTrigger>
           </TabsList>
@@ -329,6 +333,16 @@ export default function MobileRosterHQ() {
                           </div>
                         </div>
                         
+                        {/* Contract Information */}
+                        <div className="mb-2 text-xs text-white/80">
+                          <div className="flex items-center gap-1">
+                            <DollarSign className="h-3 w-3 text-green-400" />
+                            <span>
+                              Contract ₡{player.contractSalary?.toLocaleString() || '0'}/season, {player.contractLength || 0} seasons left
+                            </span>
+                          </div>
+                        </div>
+
                         {/* Health and Stamina */}
                         <div className="flex justify-between text-xs">
                           <div className="flex items-center gap-1">
