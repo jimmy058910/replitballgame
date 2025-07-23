@@ -140,7 +140,7 @@ export default function ComprehensiveCompetitionCenter() {
     enabled: !!team?.id,
   });
 
-  const { data: standings } = useQuery<Team[]>({
+  const { data: divisionStandings } = useQuery<Team[]>({
     queryKey: [`/api/leagues/${team?.division || 8}/standings`],
     enabled: !!team?.division,
   });
@@ -332,12 +332,12 @@ export default function ComprehensiveCompetitionCenter() {
                         </div>
                       </div>
                       <Badge className="bg-blue-600 text-blue-100">
-                        #{standings?.findIndex(s => s.id === team?.id) + 1 || '?'} of 8
+                        #{divisionStandings?.findIndex(s => s.id === team?.id) + 1 || '?'} of 8
                       </Badge>
                     </div>
                   </CardHeader>
                   <CardContent className="p-0">
-                    {standings && standings.length > 0 ? (
+                    {divisionStandings && divisionStandings.length > 0 ? (
                       <>
                         {/* Mobile-Responsive Table */}
                         <div className="overflow-x-auto">
@@ -357,14 +357,14 @@ export default function ComprehensiveCompetitionCenter() {
                               </tr>
                             </thead>
                             <tbody>
-                              {standings.map((standingTeam, index) => {
+                              {divisionStandings.map((standingTeam, index) => {
                                 const gamesPlayed = (standingTeam.wins || 0) + (standingTeam.losses || 0) + (standingTeam.draws || 0);
                                 const totalScores = standingTeam.goalsFor || 0;
                                 const scoresAgainst = standingTeam.goalsAgainst || 0;
                                 const scoreDifference = totalScores - scoresAgainst;
                                 const isUser = standingTeam.id === team?.id;
                                 const isPromotion = index < 2;
-                                const isRelegation = index >= standings.length - 2;
+                                const isRelegation = index >= divisionStandings.length - 2;
                                 
                                 return (
                                   <tr 
