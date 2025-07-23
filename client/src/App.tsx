@@ -81,11 +81,6 @@ function Router() {
               <LazyMarketDistrict />
             </Suspense>
           )} />
-          <Route path="/market-district" component={() => (
-            <Suspense fallback={<div className="min-h-screen bg-gray-900 animate-pulse" />}>
-              <LazyMarketDistrict />
-            </Suspense>
-          )} />
           <Route path="/community" component={() => (
             <Suspense fallback={<div className="min-h-screen bg-gray-900 animate-pulse" />}>
               <LazyCommunityPortal />
@@ -93,12 +88,6 @@ function Router() {
           )} />
           
           {/* Legacy routes - maintain for backwards compatibility */}
-          <Route path="/team" component={LazyTeam} />
-          <Route path="/market" component={() => (
-            <Suspense fallback={<div className="min-h-screen bg-gray-900 animate-pulse" />}>
-              <LazyMarketDistrict />
-            </Suspense>
-          )} />
           <Route path="/world" component={LazyWorld} />
           
           {/* Live Match System */}
@@ -107,8 +96,7 @@ function Router() {
           <Route path="/text-match/:matchId" component={LazyLiveMatch} />
           <Route path="/match/:matchId" component={LazyLiveMatch} />
           
-          {/* Community & Social */}
-          <Route path="/community" component={LazyCommunity} />
+
           
           {/* System Management */}
           <Route path="/superuser" component={SuperUser} />
