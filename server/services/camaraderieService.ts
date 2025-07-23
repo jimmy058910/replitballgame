@@ -101,62 +101,65 @@ export class CamaraderieService {
     let catching = 0, agility = 0, passAccuracy = 0, fumbleRisk = 0;
     let injuryReduction = 0;
     
-    if (teamCamaraderie >= 91) {
-      // Excellent (91-100): Maximum bonuses
+    if (teamCamaraderie >= 80) {
+      // Excellent (80-100): +3% all team stats
       status = 'excellent';
       tier = { 
         name: 'Excellent', 
-        range: '91-100', 
-        description: 'Team is in perfect sync!' 
+        range: '80-100', 
+        description: 'Maximum chemistry bonus active.' 
       };
-      catching = 2;
-      agility = 2;
-      passAccuracy = 3; // Significant accuracy boost
+      catching = 3;
+      agility = 3;
+      passAccuracy = 3;
+      fumbleRisk = -2; // Reduced fumble risk
       injuryReduction = 3; // 3% injury reduction
-    } else if (teamCamaraderie >= 76) {
-      // Good (76-90): Solid bonuses
+    } else if (teamCamaraderie >= 60) {
+      // Good (60-79): +2% all team stats
       status = 'good';
       tier = { 
         name: 'Good', 
-        range: '76-90', 
-        description: 'Strong team bonds.' 
+        range: '60-79', 
+        description: 'Strong team bonds boost performance.' 
       };
-      catching = 1;
-      agility = 1;
-      passAccuracy = 1; // Minor accuracy boost
-      injuryReduction = 1.5; // 1.5% injury reduction
-    } else if (teamCamaraderie >= 41) {
-      // Average (41-75): No bonuses or penalties
+      catching = 2;
+      agility = 2;
+      passAccuracy = 2;
+      fumbleRisk = -1; // Slightly reduced fumble risk
+      injuryReduction = 2; // 2% injury reduction
+    } else if (teamCamaraderie >= 40) {
+      // Average (40-59): No bonuses or penalties
       status = 'average';
       tier = { 
         name: 'Average', 
-        range: '41-75', 
+        range: '40-59', 
         description: 'Room for improvement.' 
       };
       // All remain 0 (no bonuses or penalties)
-    } else if (teamCamaraderie >= 26) {
-      // Low (26-40): Minor penalties
+    } else if (teamCamaraderie >= 20) {
+      // Poor (20-39): -2% all team stats
       status = 'low';
       tier = { 
-        name: 'Low', 
-        range: '26-40', 
-        description: 'Some friction in the ranks.' 
-      };
-      catching = -1;
-      agility = -1;
-      passAccuracy = -1; // Minor accuracy penalty
-    } else {
-      // Poor (0-25): Major penalties and fumble risk
-      status = 'poor';
-      tier = { 
         name: 'Poor', 
-        range: '0-25', 
-        description: 'Team spirit is suffering.' 
+        range: '20-39', 
+        description: 'Some friction affecting performance.' 
       };
       catching = -2;
       agility = -2;
-      passAccuracy = -3; // Significant accuracy penalty
-      fumbleRisk = 2; // 2% chance of miscommunication fumbles
+      passAccuracy = -2;
+      fumbleRisk = 1; // Increased fumble risk
+    } else {
+      // Terrible (0-19): -5% all team stats
+      status = 'poor';
+      tier = { 
+        name: 'Terrible', 
+        range: '0-19', 
+        description: 'Team spirit is suffering badly.' 
+      };
+      catching = -5;
+      agility = -5;
+      passAccuracy = -5;
+      fumbleRisk = 3; // High fumble risk
     }
     
     // Enhanced contract negotiation effects using the formula from requirements

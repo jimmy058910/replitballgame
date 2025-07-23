@@ -44,13 +44,13 @@ interface Player {
   role: string;
 }
 
-// Helper function to get camaraderie color and status
+// Helper function to get camaraderie color and status (updated to match new tier system)
 function getCamaraderieInfo(camaraderie: number): { color: string; status: string; emoji: string; bgColor: string } {
-  if (camaraderie >= 91) return { color: "text-green-500", status: "Excellent", emoji: "😃", bgColor: "bg-green-500/20 border-green-500" };
-  if (camaraderie >= 76) return { color: "text-blue-500", status: "Good", emoji: "😊", bgColor: "bg-blue-500/20 border-blue-500" };
-  if (camaraderie >= 41) return { color: "text-yellow-500", status: "Average", emoji: "😐", bgColor: "bg-yellow-500/20 border-yellow-500" };
-  if (camaraderie >= 26) return { color: "text-orange-500", status: "Low", emoji: "😕", bgColor: "bg-orange-500/20 border-orange-500" };
-  return { color: "text-red-500", status: "Poor", emoji: "😞", bgColor: "bg-red-500/20 border-red-500" };
+  if (camaraderie >= 80) return { color: "text-green-500", status: "Excellent", emoji: "😃", bgColor: "bg-green-500/20 border-green-500" };
+  if (camaraderie >= 60) return { color: "text-blue-500", status: "Good", emoji: "😊", bgColor: "bg-blue-500/20 border-blue-500" };
+  if (camaraderie >= 40) return { color: "text-yellow-500", status: "Average", emoji: "😐", bgColor: "bg-yellow-500/20 border-yellow-500" };
+  if (camaraderie >= 20) return { color: "text-orange-500", status: "Poor", emoji: "😕", bgColor: "bg-orange-500/20 border-orange-500" };
+  return { color: "text-red-500", status: "Terrible", emoji: "😞", bgColor: "bg-red-500/20 border-red-500" };
 }
 
 // Radial gauge component
