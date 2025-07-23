@@ -133,6 +133,13 @@ export default function DramaticTeamHQ() {
     refetchInterval: 30000, // Refresh every 30 seconds
   });
 
+  // Upcoming matches - check for next scheduled match
+  const { data: upcomingMatches } = useQuery({
+    queryKey: ["/api/matches/live"],
+    enabled: isAuthenticated,
+    refetchInterval: 30000, // Refresh every 30 seconds
+  });
+
   if (isLoading || !teamData) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-900 to-gray-900">
@@ -161,6 +168,10 @@ export default function DramaticTeamHQ() {
 
   // Get real exhibition games count from API
   const exhibitionGamesPlayedToday = exhibitionStats?.gamesPlayedToday || 0;
+  const freeExhibitionsRemaining = Math.max(0, 3 - exhibitionGamesPlayedToday);
+
+  // Find next scheduled opponent (placeholder until we have proper schedule API)
+  const nextOpponent = "TBD"; // Will be replaced with real schedule data
 
   // Calculate daily task completion
   const completedTasks = [
@@ -340,9 +351,9 @@ export default function DramaticTeamHQ() {
                 </div>
               </div>
               <h3 className="text-lg font-bold text-white mb-1">Schedule</h3>
-              <p className="text-orange-200 text-xs mb-2">Next: vs Thunder Hawks</p>
+              <p className="text-orange-200 text-xs mb-2">Next: vs {nextOpponent}</p>
               <Badge variant="outline" className="text-orange-400 border-orange-400 text-xs">
-                2 Free Exhibitions
+                {freeExhibitionsRemaining} Free Exhibitions
               </Badge>
             </CardContent>
           </Card>
