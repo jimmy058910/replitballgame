@@ -7,6 +7,8 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import PlayerDetailModal from "@/components/PlayerDetailModal";
+import StaffNegotiationModal from "@/components/StaffNegotiationModal";
+import StaffReleaseConfirmation from "@/components/StaffReleaseConfirmation";
 import { 
   Users, UserPlus, Zap, Heart, DollarSign, Settings,
   Trophy, Shield, Target, AlertTriangle, Plus, Building2, BarChart3,
@@ -68,6 +70,9 @@ export default function MobileRosterHQ() {
   const [activePanel, setActivePanel] = useState<PanelType>('overview');
   const [selectedPlayer, setSelectedPlayer] = useState<Player | null>(null);
   const [expandedSection, setExpandedSection] = useState<string | null>(null);
+  const [selectedStaff, setSelectedStaff] = useState<Staff | null>(null);
+  const [showStaffNegotiation, setShowStaffNegotiation] = useState(false);
+  const [showStaffReleaseConfirm, setShowStaffReleaseConfirm] = useState(false);
 
   // Function to get racial emoji/icon
   const getRacialIcon = (race: string) => {
@@ -170,6 +175,16 @@ export default function MobileRosterHQ() {
 
   const toggleSection = (section: string) => {
     setExpandedSection(expandedSection === section ? null : section);
+  };
+
+  const handleStaffNegotiate = (staffMember: Staff) => {
+    setSelectedStaff(staffMember);
+    setShowStaffNegotiation(true);
+  };
+
+  const handleStaffRelease = (staffMember: Staff) => {
+    setSelectedStaff(staffMember);
+    setShowStaffReleaseConfirm(true);
   };
 
   // Debug logging to understand what's happening
@@ -724,10 +739,26 @@ export default function MobileRosterHQ() {
 
                         {/* Action Buttons */}
                         <div className="flex gap-2 mt-3">
-                          <Button size="sm" variant="outline" className="flex-1 text-xs border-green-400 text-green-400 hover:bg-green-600 hover:text-white">
+                          <Button 
+                            size="sm" 
+                            variant="outline" 
+                            className="flex-1 text-xs border-green-400 text-green-400 hover:bg-green-600 hover:text-white"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleStaffNegotiate(member);
+                            }}
+                          >
                             Negotiate
                           </Button>
-                          <Button size="sm" variant="outline" className="flex-1 text-xs border-red-400 text-red-400 hover:bg-red-600 hover:text-white">
+                          <Button 
+                            size="sm" 
+                            variant="outline" 
+                            className="flex-1 text-xs border-red-400 text-red-400 hover:bg-red-600 hover:text-white"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleStaffRelease(member);
+                            }}
+                          >
                             Release
                           </Button>
                         </div>
@@ -764,6 +795,26 @@ export default function MobileRosterHQ() {
           player={selectedPlayer}
         />
       )}
+
+      {/* Staff Negotiation Modal */}
+      <StaffNegotiationModal
+        staff={selectedStaff}
+        isOpen={showStaffNegotiation}
+        onClose={() => {
+          setShowStaffNegotiation(false);
+          setSelectedStaff(null);
+        }}
+      />
+
+      {/* Staff Release Confirmation Modal */}
+      <StaffReleaseConfirmation
+        staff={selectedStaff}
+        isOpen={showStaffReleaseConfirm}
+        onClose={() => {
+          setShowStaffReleaseConfirm(false);
+          setSelectedStaff(null);
+        }}
+      />
     </div>
   );
 }

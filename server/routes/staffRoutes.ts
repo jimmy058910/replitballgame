@@ -113,4 +113,57 @@ router.post('/:staffId/negotiate', isAuthenticated, async (req: any, res: Respon
   }
 });
 
+/**
+ * DELETE /api/staff/:staffId/release
+ * Release a staff member from the team
+ */
+router.delete('/:staffId/release', isAuthenticated, async (req: any, res: Response, next: NextFunction) => {
+  try {
+    const { staffId } = req.params;
+    const userId = req.user.claims.sub;
+    
+    const userTeam = await storage.teams.getTeamByUserId(userId);
+    if (!userTeam) {
+      return res.status(404).json({ message: "Your team was not found." });
+    }
+
+    const staffMember = await storage.staff.getStaffById(staffId);
+    if (!staffMember || staffMember.teamId !== userTeam.id) {
+      return res.status(404).json({ message: "Staff member not found on your team or does not exist." });
+    }
+
+    // Calculate release fee (typically 50% of remaining contract value)
+    const contractCalc = ContractService.calculateContractValue(staffMember);
+    const releaseFee = Math.round(contractCalc.marketValue * 0.5);
+
+    // Check if team has enough credits
+    const teamFinances = await storage.teams.getTeamFinances(userTeam.id);
+    if (!teamFinances || teamFinances.credits < releaseFee) {
+      return res.status(400).json({ 
+        message: `Insufficient credits. Need ${releaseFee.toLocaleString()}₡ to release ${staffMember.name}.`,
+        requiredFee: releaseFee,
+        currentCredits: teamFinances?.credits || 0
+      });
+    }
+
+    // Deduct release fee and delete staff member
+    await storage.teams.updateTeamFinances(userTeam.id, { credits: teamFinances.credits - releaseFee });
+    const released = await storage.staff.deleteStaff(staffId);
+
+    if (!released) {
+      return res.status(500).json({ message: "Failed to release staff member." });
+    }
+
+    res.json({
+      success: true,
+      message: `${staffMember.name} has been released from the team.`,
+      releaseFee,
+      remainingCredits: teamFinances.credits - releaseFee
+    });
+  } catch (error) {
+    console.error("Error releasing staff member:", error);
+    next(error);
+  }
+});
+
 export default router;
