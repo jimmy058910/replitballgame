@@ -434,17 +434,8 @@ export default function MobileRosterHQ() {
                         
                         {/* Contract Information */}
                         <div className="mb-2 p-2 bg-black/30 rounded">
-                          <div className="flex justify-between text-xs">
-                            <span className="text-white/70">Contract:</span>
-                            <span className="text-green-300 font-semibold">
-                              {Number((player as any).contractSalary || 0).toLocaleString()}₡/season
-                            </span>
-                          </div>
-                          <div className="flex justify-between text-xs">
-                            <span className="text-white/70">Years Left:</span>
-                            <span className="text-yellow-300">
-                              {(player as any).contractLength || 0} seasons
-                            </span>
+                          <div className="text-xs text-green-300 font-semibold">
+                            Contract ₡{Number((player as any).contract?.salary || (player as any).contractSalary || 0).toLocaleString()}/season, {(player as any).contract?.length || (player as any).contractLength || 0} seasons
                           </div>
                         </div>
                         

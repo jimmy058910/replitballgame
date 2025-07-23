@@ -384,8 +384,27 @@ router.get('/:id', isAuthenticated, async (req: Request, res: Response, next: Ne
 router.get('/:id/players', isAuthenticated, async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { id } = req.params;
-    const teamPlayers = await storage.players.getPlayersByTeamId(parseInt(id)); // Use playerStorage
-    res.json(teamPlayers);
+    
+    // Get players with contract data included
+    const players = await prisma.player.findMany({
+      where: { teamId: parseInt(id), isOnMarket: false },
+      include: {
+        contract: true,
+        skills: { include: { skill: true } }
+      },
+      orderBy: { createdAt: 'asc' }
+    });
+
+    // Transform the data to include contract info at player level
+    const playersWithContracts = players.map(player => ({
+      ...player,
+      contractSalary: player.contract ? parseInt(player.contract.salary.toString()) : 0,
+      contractLength: player.contract ? player.contract.length : 0,
+      contractStartDate: player.contract ? player.contract.startDate : null,
+      contractSigningBonus: player.contract ? parseInt(player.contract.signingBonus?.toString() || '0') : 0,
+    }));
+
+    res.json(playersWithContracts);
   } catch (error) {
     console.error("Error fetching players:", error);
     next(error);
