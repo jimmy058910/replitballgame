@@ -11,7 +11,7 @@ import {
   Zap, 
   Heart, 
   TrendingUp, 
-  DollarSign, 
+  Coins, 
   UserCheck,
   ChevronUp, 
   ChevronDown,
@@ -123,7 +123,7 @@ export default function MobileRosterHQ() {
 
   const getRoleGradient = (role: string) => {
     const gradients: Record<string, string> = {
-      'PASSER': 'from-blue-600 to-blue-800',
+      'PASSER': 'from-yellow-600 to-yellow-800',
       'RUNNER': 'from-green-600 to-green-800',
       'BLOCKER': 'from-red-600 to-orange-700'
     };
@@ -220,18 +220,18 @@ export default function MobileRosterHQ() {
         {/* Roster Overview Cards */}
         <div className="grid grid-cols-3 gap-4 mb-6">
           {/* Passers */}
-          <Card className="bg-gradient-to-br from-blue-600 to-blue-800 border-2 border-blue-500">
+          <Card className="bg-gradient-to-br from-yellow-600 to-yellow-800 border-2 border-yellow-500">
             <CardContent className="p-4 text-center">
               <div className="text-3xl mb-2">🎯</div>
               <div className="text-2xl font-bold text-white">{passers.length}</div>
-              <div className="text-blue-200 text-sm font-semibold">Passers</div>
-              <div className="text-xs text-blue-300 mt-1">(Min: 3 Required)</div>
+              <div className="text-yellow-200 text-sm font-semibold">Passers</div>
+              <div className="text-xs text-yellow-300 mt-1">(Min: 3 Required)</div>
               {passers.length < 3 && (
                 <Badge variant="destructive" className="mt-1 text-xs">
                   Needs {3 - passers.length} More!
                 </Badge>
               )}
-              <Progress value={(passers.length / 3) * 100} className="mt-2 h-2 bg-blue-900" />
+              <Progress value={(passers.length / 3) * 100} className="mt-2 h-2 bg-yellow-900" />
             </CardContent>
           </Card>
 
@@ -335,9 +335,9 @@ export default function MobileRosterHQ() {
                         {/* Contract Information */}
                         <div className="mb-2 text-xs text-white/80">
                           <div className="flex items-center gap-1">
-                            <DollarSign className="h-3 w-3 text-green-400" />
+                            <Coins className="h-3 w-3 text-green-400" />
                             <span>
-                              {player.contractSalary?.toLocaleString() || '0'}₡/season, {player.contractLength || 0} seasons
+                              ₡{player.contractSalary?.toLocaleString() || '0'}/season, {player.contractLength || 0} seasons
                             </span>
                           </div>
                         </div>
