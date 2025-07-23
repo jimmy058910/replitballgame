@@ -1,10 +1,11 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Button } from '@/components/ui/button';
 import { Users, Heart, TrendingUp, Award, Info, Target, Activity, Eye, HelpCircle } from 'lucide-react';
+import PlayerDetailModal from './PlayerDetailModal';
 
 interface CamaraderieEffects {
   teamCamaraderie: number;
@@ -94,6 +95,8 @@ function RadialGauge({ value, maxValue = 100, size = 200 }: { value: number; max
 }
 
 export default function CamaraderieManagement({ teamId }: { teamId: string }) {
+  const [selectedPlayerId, setSelectedPlayerId] = useState<string | null>(null);
+
   const { data: effects } = useQuery<CamaraderieEffects>({
     queryKey: [`/api/camaraderie/team/${teamId}`],
     enabled: !!teamId,
@@ -264,7 +267,12 @@ export default function CamaraderieManagement({ teamId }: { teamId: string }) {
                         <div className="font-bold text-white">{player.firstName} {player.lastName}</div>
                         <div className="text-sm text-gray-400">{player.role}</div>
                       </div>
-                      <Button size="sm" variant="outline" className="h-8">
+                      <Button 
+                        size="sm" 
+                        variant="outline" 
+                        className="h-8"
+                        onClick={() => setSelectedPlayerId(player.id)}
+                      >
                         <Eye className="w-4 h-4" />
                       </Button>
                     </div>
@@ -318,7 +326,12 @@ export default function CamaraderieManagement({ teamId }: { teamId: string }) {
                             </Badge>
                           </td>
                           <td className="p-3 text-center">
-                            <Button size="sm" variant="outline" className="h-8">
+                            <Button 
+                              size="sm" 
+                              variant="outline" 
+                              className="h-8"
+                              onClick={() => setSelectedPlayerId(player.id)}
+                            >
                               <Eye className="w-4 h-4 mr-1" />
                               View
                             </Button>
@@ -376,6 +389,16 @@ export default function CamaraderieManagement({ teamId }: { teamId: string }) {
           Apply Team Boost
         </Button>
       </div>
+
+      {/* Player Detail Modal */}
+      {selectedPlayerId && (
+        <PlayerDetailModal
+          playerId={selectedPlayerId}
+          teamId={teamId}
+          isOpen={!!selectedPlayerId}
+          onClose={() => setSelectedPlayerId(null)}
+        />
+      )}
     </div>
   );
 }
