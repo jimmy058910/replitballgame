@@ -101,10 +101,11 @@ export default function DramaticTeamHQ() {
   const finances = teamData.finances || { credits: BigInt(16000), gems: BigInt(50) };
   const stadium = teamData.stadium || { capacity: 5000, concessionsLevel: 1, parkingLevel: 1, vipSuitesLevel: 1, merchandisingLevel: 1, lightingScreensLevel: 1 };
 
-  // Enhanced player analysis
-  const activePlayers = players?.filter((p: Player) => !p.injuryStatus || p.injuryStatus === 'Healthy') || [];
-  const injuredPlayers = players?.filter((p: Player) => p.injuryStatus && p.injuryStatus !== 'Healthy') || [];
-  const lowStaminaPlayers = players?.filter((p: Player) => (p.dailyStaminaLevel || 100) < 70) || [];
+  // Enhanced player analysis - fix filtering logic
+  const allPlayers = players || [];
+  const activePlayers = allPlayers.filter((p: any) => p.injuryStatus === 'HEALTHY');
+  const injuredPlayers = allPlayers.filter((p: any) => p.injuryStatus !== 'HEALTHY');
+  const lowStaminaPlayers = allPlayers.filter((p: any) => (p.dailyStaminaLevel || 100) < 70);
   
   const teamPower = team.teamPower || 0;
 
@@ -141,7 +142,7 @@ export default function DramaticTeamHQ() {
             {/* Quick Status Row */}
             <div className="grid grid-cols-4 gap-3">
               <div className="text-center">
-                <div className="text-xl font-bold text-white">{activePlayers.length}</div>
+                <div className="text-xl font-bold text-white">{allPlayers.length}</div>
                 <div className="text-xs text-blue-200">Players</div>
               </div>
               <div className="text-center">
@@ -224,7 +225,7 @@ export default function DramaticTeamHQ() {
               <h3 className="text-lg font-bold text-white mb-1">Roster HQ</h3>
               <p className="text-blue-200 text-xs mb-2">Manage players</p>
               <Badge variant="outline" className="text-blue-400 border-blue-400 text-xs">
-                {activePlayers.length} Players
+                {allPlayers.length} Players
               </Badge>
             </CardContent>
           </Card>
