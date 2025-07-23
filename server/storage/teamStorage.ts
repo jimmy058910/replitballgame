@@ -303,6 +303,12 @@ export class TeamStorage {
       totalPlayers: teams.reduce((sum, team) => sum + team.players.length, 0)
     };
   }
+
+  // Add the missing getAllTeamsWithStats method for world rankings route compatibility
+  async getAllTeamsWithStats(): Promise<any[]> {
+    const rankings = await this.getWorldRankings();
+    return rankings.rankings || [];
+  }
 }
 
 // Export instance for use in other modules
