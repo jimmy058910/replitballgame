@@ -460,7 +460,7 @@ export default function DramaticTeamHQ() {
                 </div>
                 <div className="flex justify-between items-center">
                   <span className="text-gray-300">Team Camaraderie</span>
-                  <span className="text-2xl font-bold text-teal-400">{Math.round(team.camaraderie || 50)}%</span>
+                  <span className="text-2xl font-bold text-teal-400">{Math.round(team.camaraderie || 50)}</span>
                 </div>
                 <div className="flex justify-between items-center">
                   <span className="text-gray-300">Fan Loyalty</span>

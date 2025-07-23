@@ -298,7 +298,7 @@ export default function LineupRosterBoard({ teamId }: LineupRosterBoardProps) {
               <TrendingUp className="h-5 w-5 text-yellow-600" />
               <div>
                 <div className="font-medium text-yellow-800 dark:text-yellow-200">
-                  Current Team Camaraderie: {teamData?.teamCamaraderie || 50}%
+                  Current Team Camaraderie: {teamData?.teamCamaraderie || 50}
                 </div>
                 <div className="text-sm text-yellow-700 dark:text-yellow-300">
                   Higher camaraderie improves tactical effectiveness
