@@ -17,20 +17,40 @@ function serializeTeamFinances(finances: any): any {
 }
 
 // Helper function to serialize full team data including BigInt fields
-function serializeTeamData(team: any): any {
+async function serializeTeamData(team: any): Promise<any> {
   if (!team) return null;
+  
+  // If we have players but no contract data included, fetch it separately
+  let playersWithContracts = team.players || [];
+  
+  if (team.players && team.players.length > 0 && !team.players[0].contract) {
+    // Fetch contracts for all players in this team
+    const playerIds = team.players.map((p: any) => p.id);
+    const contracts = await prisma.contract.findMany({
+      where: { playerId: { in: playerIds } }
+    });
+    
+    // Create a map for quick lookup
+    const contractMap = new Map(contracts.map(c => [c.playerId, c]));
+    
+    // Add contract data to each player
+    playersWithContracts = team.players.map((player: any) => ({
+      ...player,
+      contract: contractMap.get(player.id) || null
+    }));
+  }
   
   return {
     ...team,
     finances: serializeTeamFinances(team.finances),
-    players: team.players ? team.players.map((player: any) => ({
+    players: playersWithContracts.map((player: any) => ({
       ...player,
       // Flatten contract information into player object
-      contractSalary: player.contract ? parseInt(player.contract.salary.toString()) : null,
-      contractLength: player.contract ? player.contract.length : null,
+      contractSalary: player.contract ? parseInt(player.contract.salary.toString()) : 0,
+      contractLength: player.contract ? player.contract.length : 0,
       contractStartDate: player.contract ? player.contract.startDate : null,
-      contractSigningBonus: player.contract ? parseInt(player.contract.signingBonus?.toString() || '0') : null,
-    })) : []
+      contractSigningBonus: player.contract ? parseInt(player.contract.signingBonus?.toString() || '0') : 0,
+    }))
   };
 }
 
@@ -103,7 +123,7 @@ export class TeamStorage {
       }
     });
     
-    return serializeTeamData(team);
+    return await serializeTeamData(team);
   }
 
   async getTeamById(id: number): Promise<any> {
@@ -122,7 +142,7 @@ export class TeamStorage {
       }
     });
     
-    return serializeTeamData(team);
+    return await serializeTeamData(team);
   }
 
   async getAllTeams(): Promise<any[]> {
@@ -140,7 +160,7 @@ export class TeamStorage {
       }
     });
     
-    return teams.map(team => serializeTeamData(team));
+    return await Promise.all(teams.map(team => serializeTeamData(team)));
   }
 
   async getAllTeamsWithBasicInfo(): Promise<any[]> {
@@ -149,28 +169,16 @@ export class TeamStorage {
         finances: true,
         stadium: true,
         players: {
-          select: {
-            id: true,
-            firstName: true,
-            lastName: true,
-            role: true,
-            speed: true,
-            power: true,
-            throwing: true,
-            catching: true,
-            kicking: true,
-            agility: true,
-            staminaAttribute: true, // Using correct field name
-            leadership: true,
-            injuryStatus: true,
-            dailyStaminaLevel: true
+          include: {
+            contract: true,
+            skills: { include: { skill: true } }
           }
         },
         staff: true
       }
     });
     
-    return teams.map(team => serializeTeamData(team));
+    return await Promise.all(teams.map(team => serializeTeamData(team)));
   }
 
   async getTeamsInDivision(division: number, subdivision?: string): Promise<any[]> {
@@ -184,12 +192,17 @@ export class TeamStorage {
       include: {
         finances: true,
         stadium: true,
-        players: true,
+        players: {
+          include: {
+            contract: true,
+            skills: { include: { skill: true } }
+          }
+        },
         staff: true
       }
     });
     
-    return teams.map(team => serializeTeamData(team));
+    return await Promise.all(teams.map(team => serializeTeamData(team)));
   }
 
   async updateTeam(teamId: number, updateData: any): Promise<any> {
@@ -199,12 +212,17 @@ export class TeamStorage {
       include: {
         finances: true,
         stadium: true,
-        players: true,
+        players: {
+          include: {
+            contract: true,
+            skills: { include: { skill: true } }
+          }
+        },
         staff: true
       }
     });
     
-    return serializeTeamData(updatedTeam);
+    return await serializeTeamData(updatedTeam);
   }
 
   async updateTeamRecord(teamId: number, wins: number, losses: number, points: number): Promise<void> {
@@ -275,7 +293,7 @@ export class TeamStorage {
     });
 
     return {
-      rankings: teams.map(team => serializeTeamData(team)),
+      rankings: await Promise.all(teams.map(team => serializeTeamData(team))),
       totalTeams: teams.length,
       totalPlayers: teams.reduce((sum, team) => sum + team.players.length, 0)
     };
