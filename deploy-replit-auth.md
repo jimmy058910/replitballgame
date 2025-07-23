@@ -23,8 +23,8 @@ gcloud config set project $PROJECT_ID
 # Update or create Replit Auth secrets
 echo -n "realmrivalry.com" | gcloud secrets create replit-domains --data-file=-
 
-# Get your REPL_ID from Replit dashboard and replace XXXXX
-echo -n "YOUR_REPL_ID_HERE" | gcloud secrets create repl-id --data-file=-
+# Your REPL_ID (found automatically)
+echo -n "84e7df37-b386-43d5-a4d2-28ef9c3a4ebe" | gcloud secrets create repl-id --data-file=-
 
 # Verify existing secrets
 gcloud secrets list
@@ -74,10 +74,9 @@ gcloud run services describe realm-rivalry \
 
 ## 📋 Next Steps
 1. **Run commands on your local machine** (where you have Docker + gcloud)
-2. **Get your REPL_ID** from Replit dashboard
-3. **Replace YOUR_REPL_ID_HERE** in the commands above
-4. **Execute the deployment commands**
-5. **Test login at https://realmrivalry.com**
+2. **REPL_ID already found**: 84e7df37-b386-43d5-a4d2-28ef9c3a4ebe ✅
+3. **Execute the deployment commands** (all values ready)
+4. **Test login at https://realmrivalry.com**
 
 ## 🔧 Alternative: Quick Manual Fix
 If you want to avoid redeployment, you could temporarily update just the environment variables:
