@@ -260,8 +260,10 @@ export default function ComprehensiveCompetitionCenter() {
             <p className="text-red-100 text-xs font-semibold uppercase">Live</p>
           </div>
           <div className="bg-gradient-to-r from-purple-700 to-purple-600 rounded-lg p-3 text-center">
-            <div className="text-lg md:text-xl font-black text-white">{tournaments?.length || 0}</div>
-            <p className="text-purple-100 text-xs font-semibold uppercase">Tournaments</p>
+            <div className="text-lg md:text-xl font-black text-white">
+              #{globalRankings?.find(r => r.id === team?.id)?.globalRank || '?'}
+            </div>
+            <p className="text-purple-100 text-xs font-semibold uppercase">Global Rank</p>
           </div>
         </div>
 
@@ -304,10 +306,10 @@ export default function ComprehensiveCompetitionCenter() {
           {/* LEAGUE TAB - UNIFIED STANDINGS LAYOUT */}
           <TabsContent value="league" className="space-y-4">
             
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 lg:grid-cols-4 gap-4">
               
               {/* UNIFIED LEAGUE STANDINGS - ENHANCED TABLE */}
-              <div className="lg:col-span-2">
+              <div className="lg:col-span-3">
                 <Card className="bg-gray-800/90 border border-gray-600 shadow-xl">
                   <CardHeader className="pb-4">
                     <div className="flex items-center justify-between">
@@ -439,87 +441,68 @@ export default function ComprehensiveCompetitionCenter() {
                 </Card>
               </div>
 
-              {/* GLOBAL TEAM RANKING WIDGET */}
+              {/* SIDEBAR - NEXT MATCH WIDGET */}
               <div className="space-y-4">
-                <Card className="bg-gradient-to-br from-purple-800/40 via-blue-800/40 to-gray-800 border border-purple-500/50 shadow-xl">
-                  <CardHeader className="pb-3">
-                    <div className="flex items-center gap-3">
-                      <Globe className="h-5 w-5 text-purple-400" />
-                      <CardTitle className="text-lg font-bold text-white">🌐 Global Team Rank</CardTitle>
-                    </div>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    {globalRankings && team ? (
-                      <>
-                        <div className="text-center">
-                          <div className="text-4xl font-black text-purple-300 mb-1">
-                            #{globalRankings.find(r => r.id === team.id)?.globalRank || '?'}
-                          </div>
-                          <p className="text-gray-400 text-sm">
-                            Out of {globalRankings.length}+ teams worldwide
-                          </p>
-                        </div>
-                        <div className="space-y-2">
-                          <div className="flex justify-between text-sm">
-                            <span className="text-gray-300">True Strength</span>
-                            <span className="text-purple-300 font-semibold">
-                              {globalRankings.find(r => r.id === team.id)?.trueStrengthRating || 0}
-                            </span>
-                          </div>
-                          <div className="flex justify-between text-sm">
-                            <span className="text-gray-300">Win Rate</span>
-                            <span className="text-purple-300 font-semibold">
-                              {globalRankings.find(r => r.id === team.id)?.winPercentage || 0}%
-                            </span>
-                          </div>
-                        </div>
-                        <Button 
-                          size="sm" 
-                          variant="outline" 
-                          className="w-full border-purple-500/50 text-purple-300 hover:bg-purple-600/20"
-                        >
-                          <Eye className="h-4 w-4 mr-2" />
-                          View full leaderboards
-                          <ExternalLink className="h-3 w-3 ml-2" />
-                        </Button>
-                      </>
-                    ) : (
-                      <div className="text-center py-4">
-                        <Globe className="h-12 w-12 text-gray-500 mx-auto mb-2" />
-                        <p className="text-gray-400 text-sm">Loading global rankings...</p>
-                      </div>
-                    )}
-                  </CardContent>
-                </Card>
-
-                {/* NEXT LEAGUE MATCH COMPACT */}
+                
+                {/* NEXT MATCH PREVIEW */}
                 {upcomingMatches && upcomingMatches.length > 0 && (
-                  <Card className="bg-gradient-to-br from-blue-800/40 to-purple-800/40 border border-blue-500/50">
+                  <Card className="bg-gradient-to-br from-blue-800 to-blue-600 border border-blue-400 shadow-xl">
                     <CardHeader className="pb-3">
-                      <div className="flex items-center gap-2">
-                        <Clock className="h-4 w-4 text-blue-400" />
-                        <CardTitle className="text-sm font-bold text-white">Next Match</CardTitle>
-                      </div>
+                      <CardTitle className="flex items-center gap-2 text-white text-lg">
+                        <Calendar className="h-5 w-5 text-blue-200" />
+                        Next Match
+                      </CardTitle>
                     </CardHeader>
-                    <CardContent className="space-y-3">
-                      <div>
-                        <p className="font-bold text-white text-base mb-1">
-                          🆚 {upcomingMatches[0].homeTeam.id === team?.id ? 
-                              upcomingMatches[0].awayTeam.name : 
-                              upcomingMatches[0].homeTeam.name}
+                    <CardContent>
+                      <div className="text-center">
+                        <div className="text-lg font-bold text-white mb-1">
+                          🆚 {upcomingMatches[0].homeTeam.id === team?.id ? upcomingMatches[0].awayTeam.name : upcomingMatches[0].homeTeam.name}
+                        </div>
+                        <p className="text-blue-100 text-sm">
+                          {upcomingMatches[0].homeTeam.id === team?.id ? '🏠 Home' : '✈️ Away'}
                         </p>
-                        <p className="text-blue-200 text-xs">
-                          {upcomingMatches[0].homeTeam.id === team?.id ? '🏠 Home' : '✈️ Away'} • {formatMatchTime(upcomingMatches[0].gameDate)}
+                        <p className="text-blue-200 text-xs mt-2">
+                          {formatMatchTime(upcomingMatches[0].gameDate)}
                         </p>
                       </div>
-                      <Button size="sm" className="w-full bg-blue-600 hover:bg-blue-700">
-                        <Play className="h-3 w-3 mr-2" />
-                        View Match
-                      </Button>
                     </CardContent>
                   </Card>
                 )}
+
+                {/* LEAGUE QUICK STATS */}
+                <Card className="bg-gradient-to-br from-gray-800 to-gray-600 border border-gray-400 shadow-xl">
+                  <CardHeader className="pb-3">
+                    <CardTitle className="flex items-center gap-2 text-white text-lg">
+                      <Trophy className="h-5 w-5 text-gray-200" />
+                      League Stats
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-2 text-sm">
+                      <div className="flex justify-between">
+                        <span className="text-gray-300">Division Position</span>
+                        <span className="text-white font-semibold">
+                          #{(divisionStandings?.findIndex(t => t.id === team?.id) ?? -1) + 1 || '?'}
+                        </span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-300">Teams in Division</span>
+                        <span className="text-white font-semibold">{divisionStandings?.length || 8}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-300">Points Behind</span>
+                        <span className="text-white font-semibold">
+                          {divisionStandings && divisionStandings.length > 0 
+                            ? Math.max(0, (divisionStandings[0]?.points || 0) - (team?.points || 0))
+                            : 0}
+                        </span>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+
               </div>
+
             </div>
 
           </TabsContent>
