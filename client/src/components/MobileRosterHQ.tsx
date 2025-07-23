@@ -611,7 +611,7 @@ export default function MobileRosterHQ() {
 
           {/* TAB 3: CAMARADERIE */}
           <TabsContent value="camaraderie" className="space-y-6 px-2">
-            <CamaraderieManagement team={team} players={activePlayers} />
+            <CamaraderieManagement teamId={team?.id?.toString() || ''} />
           </TabsContent>
 
           {/* TAB 4: STADIUM */}
