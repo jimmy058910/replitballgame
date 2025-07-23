@@ -210,14 +210,13 @@ export default function MobileRosterHQ() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900">
-      <UnifiedTeamHeader 
-        team={team} 
-        showCreditsGems={true}
-        showLowStaminaWarning={lowStaminaPlayers.length > 0}
-        lowStaminaCount={lowStaminaPlayers.length}
-      />
-      
-      <div className="container mx-auto px-4 py-6 space-y-6 max-w-7xl">
+      <div className="container mx-auto px-4 py-8 space-y-6 max-w-6xl">
+        <UnifiedTeamHeader 
+          team={team} 
+          showCreditsGems={true}
+          showLowStaminaWarning={lowStaminaPlayers.length > 0}
+          lowStaminaCount={lowStaminaPlayers.length}
+        />
         {/* Roster Overview Cards */}
         <div className="grid grid-cols-3 gap-4 mb-6">
           {/* Passers */}
@@ -756,17 +755,17 @@ export default function MobileRosterHQ() {
             </Card>
           </TabsContent>
         </Tabs>
-      </div>
 
-      {/* Player Detail Modal */}
-      {selectedPlayer && (
-        <PlayerDetailModal
-          player={selectedPlayer}
-          isOpen={!!selectedPlayer}
-          onClose={() => setSelectedPlayer(null)}
-          team={team}
-        />
-      )}
+        {/* Player Detail Modal */}
+        {selectedPlayer && (
+          <PlayerDetailModal
+            player={selectedPlayer}
+            isOpen={!!selectedPlayer}
+            onClose={() => setSelectedPlayer(null)}
+            team={team}
+          />
+        )}
+      </div>
     </div>
   );
 }
