@@ -95,11 +95,11 @@ export default function DramaticTeamHQ() {
   }
 
   // Use team data from API - now includes players, finances, stadium data
-  const team = teamData;
+  const team = teamData as any;
   const draws = 0; // TODO: Calculate draws when implemented
-  const players = teamData.players || [];
-  const finances = teamData.finances || { credits: BigInt(16000), gems: BigInt(50) };
-  const stadium = teamData.stadium || { capacity: 5000, concessionsLevel: 1, parkingLevel: 1, vipSuitesLevel: 1, merchandisingLevel: 1, lightingScreensLevel: 1 };
+  const players = team?.players || [];
+  const finances = team?.finances || { credits: BigInt(16000), gems: BigInt(50) };
+  const stadium = team?.stadium || { capacity: 5000, concessionsLevel: 1, parkingLevel: 1, vipSuitesLevel: 1, merchandisingLevel: 1, lightingScreensLevel: 1 };
 
   // Enhanced player analysis - fix filtering logic
   const allPlayers = players || [];
@@ -282,29 +282,7 @@ export default function DramaticTeamHQ() {
           </Card>
         </div>
 
-        {/* 🏆 CAREER HIGHLIGHTS PANEL */}
-        <Card className="bg-gradient-to-br from-yellow-900 to-amber-900 border-2 border-yellow-600 mb-6">
-          <CardHeader className="pb-2">
-            <CardTitle className="flex items-center justify-between text-white">
-              <div className="flex items-center">
-                <Award className="w-6 h-6 mr-2 text-yellow-400" />
-                Career Highlights
-              </div>
-              <Badge variant="outline" className="text-yellow-400 border-yellow-400">
-                0 Achievements
-              </Badge>
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-3">
-              <div className="text-center py-8">
-                <Trophy className="w-12 h-12 mx-auto text-yellow-400/50 mb-4" />
-                <p className="text-yellow-200/70">No career highlights yet.</p>
-                <p className="text-yellow-200/50 text-sm mt-2">Win games and achieve milestones to earn highlights!</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+
 
         {/* 📋 DAILY TASKS CHECKLIST */}
         <Card className="bg-gradient-to-br from-cyan-900 to-blue-900 border-2 border-cyan-600 mb-6">
@@ -381,7 +359,7 @@ export default function DramaticTeamHQ() {
                   <span className="text-2xl font-bold text-blue-400">{teamPower}</span>
                 </div>
                 <div className="flex justify-between items-center">
-                  <span className="text-gray-300">Team Chemistry</span>
+                  <span className="text-gray-300">Team Camaraderie</span>
                   <span className="text-2xl font-bold text-teal-400">{Math.round(team.camaraderie || 50)}%</span>
                 </div>
                 <div className="flex justify-between items-center">
@@ -426,6 +404,30 @@ export default function DramaticTeamHQ() {
             </CardContent>
           </Card>
         </div>
+
+        {/* 🏆 CAREER HIGHLIGHTS PANEL - MOVED TO BOTTOM */}
+        <Card className="bg-gradient-to-br from-yellow-900 to-amber-900 border-2 border-yellow-600 mt-6">
+          <CardHeader className="pb-2">
+            <CardTitle className="flex items-center justify-between text-white">
+              <div className="flex items-center">
+                <Award className="w-6 h-6 mr-2 text-yellow-400" />
+                Career Highlights
+              </div>
+              <Badge variant="outline" className="text-yellow-400 border-yellow-400">
+                0 Achievements
+              </Badge>
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-3">
+              <div className="text-center py-8">
+                <Trophy className="w-12 h-12 mx-auto text-yellow-400/50 mb-4" />
+                <p className="text-yellow-200/70">No career highlights yet.</p>
+                <p className="text-yellow-200/50 text-sm mt-2">Win games and achieve milestones to earn highlights!</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
 
       </div>
     </div>
