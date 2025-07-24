@@ -364,7 +364,13 @@ export default function TapToAssignTactics({ teamId }: TapToAssignTacticsProps) 
   // Load saved formation data into state - ONLY ONCE to prevent infinite loops
   useEffect(() => {
     if (currentFormation && players.length > 0 && !formationLoaded) {
-      console.log('🔍 Loading saved formation (ONE TIME ONLY):', currentFormation);
+      console.log('🔍 FRONTEND Load Debug - Full formation data:', {
+        currentFormation,
+        hasFlexSubs: !!(currentFormation as any)?.flexSubs,
+        flexSubsLength: (currentFormation as any)?.flexSubs?.length || 0,
+        flexSubsData: (currentFormation as any)?.flexSubs,
+        substitutesLength: (currentFormation as any)?.substitutes?.length || 0
+      });
       
       // Track assigned players to prevent duplicates during loading
       const assignedPlayerIds = new Set<string>();
@@ -519,6 +525,13 @@ export default function TapToAssignTactics({ teamId }: TapToAssignTacticsProps) 
 
       // Save flex subs separately to preserve assignments
       const flexSubs = substitutionQueue.wildcard.filter(Boolean);
+
+      console.log('🔍 FRONTEND Save Debug:', {
+        starters: starters.length,
+        substitutes: substitutes.length,
+        flexSubs: flexSubs.length,
+        flexSubNames: flexSubs.map(p => p.firstName + ' ' + p.lastName)
+      });
 
       return await fetch(`/api/teams/${teamId}/formation`, {
         method: 'POST',

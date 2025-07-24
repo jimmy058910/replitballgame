@@ -676,6 +676,7 @@ router.get('/:teamId/formation', isAuthenticated, async (req: any, res: Response
 
     let starters = [];
     let substitutes = [];
+    let flexSubs = [];
 
     if (formationData && formationData.starters) {
       // Match starter IDs to actual player objects in the saved order
@@ -688,6 +689,14 @@ router.get('/:teamId/formation', isAuthenticated, async (req: any, res: Response
     if (formationData && formationData.substitutes) {
       // Match substitute IDs to actual player objects in the saved order
       substitutes = formationData.substitutes.map((s: any) => {
+        const playerId = s.id || s;
+        return allPlayers.find((player: any) => player.id === playerId);
+      }).filter(Boolean);
+    }
+
+    if (formationData && formationData.flexSubs) {
+      // Match flex sub IDs to actual player objects in the saved order
+      flexSubs = formationData.flexSubs.map((s: any) => {
         const playerId = s.id || s;
         return allPlayers.find((player: any) => player.id === playerId);
       }).filter(Boolean);
@@ -777,20 +786,22 @@ router.get('/:teamId/formation', isAuthenticated, async (req: any, res: Response
       overallRating: Math.round((player.speed + player.power + player.agility + player.throwing + player.catching + player.kicking) / 6)
     }));
 
-    console.log('🔍 Final formation response:', {
+    const enhancedFlexSubs = flexSubs.map((player: any) => ({
+      ...player,
+      overallRating: Math.round((player.speed + player.power + player.agility + player.throwing + player.catching + player.kicking) / 6)
+    }));
+
+    console.log('🔍 GET Formation Debug - Final response:', {
       startersCount: enhancedStarters.length,
       substitutesCount: enhancedSubstitutes.length,
-      finalSubstitutesOrder: enhancedSubstitutes.map((s: any, index: number) => ({
-        index: index,
-        id: s.id,
-        firstName: s.firstName,
-        role: s.role
-      }))
+      flexSubsCount: enhancedFlexSubs.length,
+      flexSubNames: enhancedFlexSubs.map((s: any) => s.firstName + ' ' + s.lastName)
     });
     
     res.json({
       starters: enhancedStarters,
       substitutes: enhancedSubstitutes,
+      flexSubs: enhancedFlexSubs,
       allPlayers: enhancedPlayers, // Return all players for tactical management
       formation_data: formationData
     });
