@@ -244,6 +244,15 @@ const StadiumFinancialHub: React.FC<StadiumFinancialHubProps> = ({ team, stadium
   // Calculate atmosphere bonus
   const atmosphereBonus = fanLoyalty > 75 ? '+3% DEF' : fanLoyalty > 50 ? '+2% DEF' : '+1% DEF';
   
+  // Calculate stadium value based on upgrades
+  const stadiumValue = 100000 + // Base stadium value
+    (currentStadium.capacity - 5000) * 10 + // Capacity investment
+    (currentStadium.concessionsLevel - 1) * 15000 + // Concessions upgrades
+    (currentStadium.parkingLevel - 1) * 20000 + // Parking upgrades
+    currentStadium.vipSuitesLevel * 75000 + // VIP suites
+    (currentStadium.merchandisingLevel - 1) * 12000 + // Merchandising upgrades
+    (currentStadium.lightingScreensLevel - 1) * 30000; // Lighting upgrades
+  
   // Fixed daily upkeep cost as per game specifications
   const dailyUpkeep = 5000; // Fixed maintenance cost per day as documented
   
