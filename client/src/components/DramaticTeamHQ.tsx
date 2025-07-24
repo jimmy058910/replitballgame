@@ -418,7 +418,7 @@ export default function DramaticTeamHQ() {
                 </div>
               </div>
               <h3 className="text-lg font-bold text-white mb-1">Next Match</h3>
-              <p className="text-orange-200 text-xs mb-2">vs {nextOpponent}</p>
+              <p className="text-orange-200 text-xs mb-2">vs {nextOpponent.name}</p>
               <Badge variant="outline" className="text-orange-400 border-orange-400 text-xs">
                 View Schedule
               </Badge>
