@@ -532,6 +532,157 @@ export default function TapToAssignTactics({ teamId }: TapToAssignTacticsProps) 
           </CardContent>
         </Card>
 
+        {/* Substitution Queues */}
+        <Card className="bg-gray-800/50 border-gray-700 mb-6">
+          <CardHeader>
+            <CardTitle className="flex items-center text-white">
+              <RotateCcw className="w-6 h-6 mr-2 text-orange-400" />
+              Substitution Queues (3 each position)
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              
+              {/* Blocker Substitutes */}
+              <div className="bg-purple-900/30 p-4 rounded-lg">
+                <h4 className="font-bold text-purple-200 mb-3 text-center">🛡️ Blocker Subs</h4>
+                <div className="space-y-2">
+                  {[0, 1, 2].map((index) => (
+                    <div 
+                      key={`blocker-sub-${index}`} 
+                      className="h-12 bg-purple-800/20 rounded border border-dashed border-purple-400 flex items-center justify-center text-purple-300 text-xs cursor-pointer hover:border-purple-300"
+                      onClick={() => {
+                        // Handle substitution assignment
+                        toast({
+                          title: "Substitution System",
+                          description: "Substitution management coming soon!",
+                        });
+                      }}
+                    >
+                      {substitutionQueue.blockers[index] ? (
+                        <div className="text-center">
+                          <div className="text-white text-xs font-medium">
+                            {substitutionQueue.blockers[index].firstName} {substitutionQueue.blockers[index].lastName}
+                          </div>
+                          <div className="text-purple-300 text-xs">
+                            PWR: {Math.round((substitutionQueue.blockers[index].speed + substitutionQueue.blockers[index].power + 
+                                            substitutionQueue.blockers[index].throwing + substitutionQueue.blockers[index].catching + 
+                                            substitutionQueue.blockers[index].kicking + substitutionQueue.blockers[index].agility) / 6)}
+                          </div>
+                        </div>
+                      ) : (
+                        <>Sub #{index + 1}</>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Runner Substitutes */}
+              <div className="bg-green-900/30 p-4 rounded-lg">
+                <h4 className="font-bold text-green-200 mb-3 text-center">⚡ Runner Subs</h4>
+                <div className="space-y-2">
+                  {[0, 1, 2].map((index) => (
+                    <div 
+                      key={`runner-sub-${index}`} 
+                      className="h-12 bg-green-800/20 rounded border border-dashed border-green-400 flex items-center justify-center text-green-300 text-xs cursor-pointer hover:border-green-300"
+                      onClick={() => {
+                        toast({
+                          title: "Substitution System",
+                          description: "Substitution management coming soon!",
+                        });
+                      }}
+                    >
+                      {substitutionQueue.runners[index] ? (
+                        <div className="text-center">
+                          <div className="text-white text-xs font-medium">
+                            {substitutionQueue.runners[index].firstName} {substitutionQueue.runners[index].lastName}
+                          </div>
+                          <div className="text-green-300 text-xs">
+                            PWR: {Math.round((substitutionQueue.runners[index].speed + substitutionQueue.runners[index].power + 
+                                            substitutionQueue.runners[index].throwing + substitutionQueue.runners[index].catching + 
+                                            substitutionQueue.runners[index].kicking + substitutionQueue.runners[index].agility) / 6)}
+                          </div>
+                        </div>
+                      ) : (
+                        <>Sub #{index + 1}</>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Passer Substitutes */}
+              <div className="bg-blue-900/30 p-4 rounded-lg">
+                <h4 className="font-bold text-blue-200 mb-3 text-center">🎯 Passer Subs</h4>
+                <div className="space-y-2">
+                  {[0, 1, 2].map((index) => (
+                    <div 
+                      key={`passer-sub-${index}`} 
+                      className="h-12 bg-blue-800/20 rounded border border-dashed border-blue-400 flex items-center justify-center text-blue-300 text-xs cursor-pointer hover:border-blue-300"
+                      onClick={() => {
+                        toast({
+                          title: "Substitution System",
+                          description: "Substitution management coming soon!",
+                        });
+                      }}
+                    >
+                      {substitutionQueue.passers[index] ? (
+                        <div className="text-center">
+                          <div className="text-white text-xs font-medium">
+                            {substitutionQueue.passers[index].firstName} {substitutionQueue.passers[index].lastName}
+                          </div>
+                          <div className="text-blue-300 text-xs">
+                            PWR: {Math.round((substitutionQueue.passers[index].speed + substitutionQueue.passers[index].power + 
+                                            substitutionQueue.passers[index].throwing + substitutionQueue.passers[index].catching + 
+                                            substitutionQueue.passers[index].kicking + substitutionQueue.passers[index].agility) / 6)}
+                          </div>
+                        </div>
+                      ) : (
+                        <>Sub #{index + 1}</>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Wildcard/Flex Substitutes */}
+              <div className="bg-yellow-900/30 p-4 rounded-lg">
+                <h4 className="font-bold text-yellow-200 mb-3 text-center">🌟 Flex Subs</h4>
+                <div className="space-y-2">
+                  {[0, 1, 2].map((index) => (
+                    <div 
+                      key={`wildcard-sub-${index}`} 
+                      className="h-12 bg-yellow-800/20 rounded border border-dashed border-yellow-400 flex items-center justify-center text-yellow-300 text-xs cursor-pointer hover:border-yellow-300"
+                      onClick={() => {
+                        toast({
+                          title: "Substitution System",
+                          description: "Substitution management coming soon!",
+                        });
+                      }}
+                    >
+                      {substitutionQueue.wildcard[index] ? (
+                        <div className="text-center">
+                          <div className="text-white text-xs font-medium">
+                            {substitutionQueue.wildcard[index].firstName} {substitutionQueue.wildcard[index].lastName}
+                          </div>
+                          <div className="text-yellow-300 text-xs">
+                            PWR: {Math.round((substitutionQueue.wildcard[index].speed + substitutionQueue.wildcard[index].power + 
+                                            substitutionQueue.wildcard[index].throwing + substitutionQueue.wildcard[index].catching + 
+                                            substitutionQueue.wildcard[index].kicking + substitutionQueue.wildcard[index].agility) / 6)}
+                          </div>
+                        </div>
+                      ) : (
+                        <>Sub #{index + 1}</>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
         {/* Available Players Quick View */}
         <Card className="bg-gray-800/50 border-gray-700">
           <CardHeader>
