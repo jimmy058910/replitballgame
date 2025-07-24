@@ -677,7 +677,22 @@ docker push gcr.io/direct-glider-465821-p7/realm-rivalry:latest
 - ✓ **Preserved User Requirements**: Players can still be in both position-specific subs AND flex subs as requested
 - ✓ **Production Ready**: Formation persistence now maintains data integrity across page navigation
 
-### July 24, Present Day - ✅ COMPREHENSIVE TACTICS ASSIGNMENT SYSTEM FIXES COMPLETE ✅
+### July 24, Present Day - ✅ FLEX SUBS LOADING & COMPREHENSIVE TACTICS ASSIGNMENT SYSTEM FIXES COMPLETE ✅
+
+#### ✅ CRITICAL FLEX SUBS SAVE/LOAD BUG RESOLVED - PRODUCTION READY
+- ✓ **Root Cause Identified**: Flex subs weren't being saved/loaded separately from position-specific substitutes, causing incorrect assignments on page return
+- ✓ **Frontend Loading Logic Enhanced**: 
+  - Now checks for explicit `flexSubs` field in saved formation data first
+  - Falls back to smart logic if no explicit flexSubs field exists for backwards compatibility
+  - Properly restores exact flex sub assignments when returning to tactics page
+- ✓ **Frontend Save Logic Updated**: 
+  - Now sends `flexSubs` as separate field instead of mixing with regular substitutes
+  - Preserves exact flex sub assignments made by user
+- ✓ **Backend API Enhanced**: 
+  - Added `flexSubs` field handling in formation save endpoint (POST /api/teams/:teamId/formation)
+  - Saves flex subs separately in formation JSON for accurate restoration
+  - Enhanced logging to track flex sub assignments with flexSubsCount
+- ✓ **Data Integrity Preserved**: Formation persistence now maintains exact flex sub assignments across page navigation
 
 #### ✅ TAXI SQUAD FILTERING & DUPLICATE VALIDATION OVERHAUL
 - ✓ **Taxi Squad API Integration**: Now properly excludes taxi squad players using dedicated `/api/teams/${teamId}/taxi-squad` endpoint

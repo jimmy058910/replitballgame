@@ -446,17 +446,20 @@ router.post('/:teamId/formation', isAuthenticated, async (req: any, res: Respons
       }
     }
 
-    const { starters, substitutes, formationData } = req.body;
+    const { starters, substitutes, flexSubs, formationData } = req.body;
 
     // Debug logging for POST route
     console.log('🔍 POST Formation Debug:', {
       requestBody: req.body,
       starters: starters,
       substitutes: substitutes,
+      flexSubs: flexSubs,
       startersType: typeof starters,
       substitutesType: typeof substitutes,
+      flexSubsType: typeof flexSubs,
       startersIsArray: Array.isArray(starters),
-      substitutesIsArray: Array.isArray(substitutes)
+      substitutesIsArray: Array.isArray(substitutes),
+      flexSubsIsArray: Array.isArray(flexSubs)
     });
 
     // Validate that starters and substitutes are arrays
@@ -468,11 +471,16 @@ router.post('/:teamId/formation', isAuthenticated, async (req: any, res: Respons
         console.error('❌ POST Substitutes validation failed:', { substitutes, type: typeof substitutes });
         return res.status(400).json({ message: "Substitutes must be an array" });
     }
+    if (flexSubs && !Array.isArray(flexSubs)) {
+        console.error('❌ POST FlexSubs validation failed:', { flexSubs, type: typeof flexSubs });
+        return res.status(400).json({ message: "FlexSubs must be an array" });
+    }
 
     // Create formation object in the expected database format
     const formation = {
       starters: starters.map((player: any) => ({ id: player.id, role: player.role })),
       substitutes: substitutes.map((player: any) => ({ id: player.id, role: player.role })),
+      flexSubs: flexSubs ? flexSubs.map((player: any) => ({ id: player.id, role: player.role })) : [],
       ...formationData
     };
 
@@ -496,7 +504,8 @@ router.post('/:teamId/formation', isAuthenticated, async (req: any, res: Respons
     console.log('✅ POST Formation saved successfully to Strategy table:', {
       teamId: teamId,
       startersCount: formation.starters.length,
-      substitutesCount: formation.substitutes.length
+      substitutesCount: formation.substitutes.length,
+      flexSubsCount: formation.flexSubs.length
     });
 
     res.json({ success: true, message: "Formation saved successfully" });

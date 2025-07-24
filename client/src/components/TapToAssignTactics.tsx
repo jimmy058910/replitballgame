@@ -457,34 +457,44 @@ export default function TapToAssignTactics({ teamId }: TapToAssignTacticsProps) 
           }
         });
 
-        // Second pass: Load flex subs (allowing position-specific sub players but preventing starter duplicates)
-        (currentFormation as any).substitutes.forEach((savedSub: any) => {
-          if (savedSub && savedSub.id && !assignedPlayerIds.has(savedSub.id)) { // Not a starter
-            const fullPlayer = players.find(player => player.id === savedSub.id);
-            if (fullPlayer) {
-              // Check if already assigned to position-specific subs
-              const isInPositionSubs = [
-                ...newSubQueue.blockers,
-                ...newSubQueue.runners, 
-                ...newSubQueue.passers
-              ].some(p => p?.id === fullPlayer.id);
-              
-              if (isInPositionSubs) {
-                // Allow assignment to flex subs if player is in position-specific subs
-                if (!positionAssignments.has('wildcard')) positionAssignments.set('wildcard', new Set());
-                const wildcardAssigned = positionAssignments.get('wildcard')!;
-                
-                if (!wildcardAssigned.has(fullPlayer.id)) {
-                  const slotIndex = newSubQueue.wildcard.indexOf(null);
-                  if (slotIndex !== -1) {
-                    newSubQueue.wildcard[slotIndex] = fullPlayer;
-                    wildcardAssigned.add(fullPlayer.id);
-                  }
-                }
+        // Second pass: Load flex subs from saved formation data
+        if ((currentFormation as any)?.flexSubs && Array.isArray((currentFormation as any).flexSubs)) {
+          // Load explicit flex sub assignments
+          (currentFormation as any).flexSubs.forEach((savedFlexSub: any, index: number) => {
+            if (savedFlexSub && savedFlexSub.id && index < 3) {
+              const fullPlayer = players.find(player => player.id === savedFlexSub.id);
+              if (fullPlayer && !assignedPlayerIds.has(fullPlayer.id)) { // Not a starter
+                newSubQueue.wildcard[index] = fullPlayer;
               }
             }
-          }
-        });
+          });
+        } else {
+          // Fallback: Try to extract flex subs from substitutes array (if no explicit flexSubs field)
+          const allPositionSpecificSubs = [
+            ...newSubQueue.blockers.filter(Boolean),
+            ...newSubQueue.runners.filter(Boolean),
+            ...newSubQueue.passers.filter(Boolean)
+          ];
+          
+          // Find remaining substitutes not in position-specific subs - these might be flex subs
+          const remainingSubstitutes = (currentFormation as any).substitutes.filter((savedSub: any) => {
+            if (!savedSub || !savedSub.id || assignedPlayerIds.has(savedSub.id)) return false;
+            const fullPlayer = players.find(player => player.id === savedSub.id);
+            if (!fullPlayer) return false;
+            
+            // Check if this player is NOT in position-specific subs
+            const isInPositionSubs = allPositionSpecificSubs.some(p => p.id === fullPlayer.id);
+            return !isInPositionSubs;
+          });
+          
+          // Assign remaining substitutes to flex subs
+          remainingSubstitutes.slice(0, 3).forEach((savedSub: any, index: number) => {
+            const fullPlayer = players.find(player => player.id === savedSub.id);
+            if (fullPlayer) {
+              newSubQueue.wildcard[index] = fullPlayer;
+            }
+          });
+        }
 
         setSubstitutionQueue(newSubQueue);
       }
@@ -505,13 +515,15 @@ export default function TapToAssignTactics({ teamId }: TapToAssignTacticsProps) 
         ...substitutionQueue.blockers.filter(Boolean),
         ...substitutionQueue.runners.filter(Boolean),
         ...substitutionQueue.passers.filter(Boolean),
-        ...substitutionQueue.wildcard.filter(Boolean),
       ];
+
+      // Save flex subs separately to preserve assignments
+      const flexSubs = substitutionQueue.wildcard.filter(Boolean);
 
       return await fetch(`/api/teams/${teamId}/formation`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ starters, substitutes }),
+        body: JSON.stringify({ starters, substitutes, flexSubs }),
       });
     },
     onSuccess: () => {
