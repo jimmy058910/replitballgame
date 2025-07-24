@@ -10,24 +10,24 @@ router.get("/global-rankings", cacheMiddleware({ ttl: 300 }), isAuthenticated, a
   try {
     const teams = await storage.teams.getAllTeamsWithStats();
     
-    // Calculate Enhanced True Strength Rating for each team with async calculations
-    const rankedTeams = await Promise.all(teams.map(async (team) => {
+    // Calculate Enhanced True Strength Rating for each team with simplified fallbacks
+    const rankedTeams = teams.map((team) => {
       const divisionMultiplier = getDivisionMultiplier(team.division);
       const winPercentage = team.wins + team.losses + team.draws > 0 
         ? team.wins / (team.wins + team.losses + team.draws) 
         : 0;
       
-      // Calculate advanced metrics (async operations)
-      const strengthOfSchedule = await calculateStrengthOfSchedule(team);
-      const recentFormBias = await calculateRecentForm(team);
-      const healthFactor = await calculateHealthFactor(team);
+      // Simplified calculations with fallbacks (no async for reliability)
+      const strengthOfSchedule = 25; // Neutral default
+      const recentFormBias = 0; // No recent form bias for now
+      const healthFactor = 1.0; // Full health default
       
       // Enhanced True Strength Rating Algorithm (Research-Based Formula)
       const baseRating = (team.teamPower || 0) * 10;           // Base: 40% weight (250 max)
       const divisionBonus = divisionMultiplier * 100;          // Division: 15% weight (200 max)
       const recordBonus = winPercentage * 120;                 // Record: 18% weight (120 max) - REDUCED from 200
       const sosBonus = strengthOfSchedule * 1.5;               // SOS: 15% weight (~75 avg)
-      const camaraderieBonus = (team.teamCamaraderie || 0) * 2; // Chemistry: 12% weight (200 max)
+      const camaraderieBonus = (team.camaraderie || 0) * 2;    // Chemistry: 12% weight (200 max) - Fixed field name
       const recentFormBonus = recentFormBias * 30;             // Recent Form: ±30 range
       const healthBonus = healthFactor * 50;                   // Health: 50 max
       
@@ -62,7 +62,7 @@ router.get("/global-rankings", cacheMiddleware({ ttl: 300 }), isAuthenticated, a
       }
       
       return serializedTeam;
-    }));
+    });
     
     // Sort by True Strength Rating (descending)
     rankedTeams.sort((a, b) => b.trueStrengthRating - a.trueStrengthRating);

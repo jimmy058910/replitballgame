@@ -181,10 +181,28 @@ export default function ComprehensiveCompetitionCenter() {
     enabled: !!team?.division,
   });
 
-  const { data: globalRankings } = useQuery<GlobalRanking[]>({
+  const { data: globalRankings, isLoading: rankingsLoading, error: rankingsError } = useQuery<GlobalRanking[]>({
     queryKey: ['/api/world/global-rankings'],
     enabled: isAuthenticated,
+    refetchInterval: 5 * 60 * 1000, // Refresh every 5 minutes
   });
+
+  // Add debugging - remove this after fixing
+  React.useEffect(() => {
+    if (globalRankings && team?.id) {
+      console.log('Global Rankings Data:', {
+        totalRankings: globalRankings.length,
+        teamId: team.id,
+        teamIdType: typeof team.id,
+        sampleRanking: globalRankings[0],
+        teamRanking: globalRankings.find(r => r.id === team.id),
+        matchingRankings: globalRankings.filter(r => String(r.id).includes(String(team.id))),
+      });
+    }
+    if (rankingsError) {
+      console.error('Rankings API Error:', rankingsError);
+    }
+  }, [globalRankings, team?.id, rankingsError]);
 
   const { data: tournaments } = useQuery<Tournament[]>({
     queryKey: [`/api/tournaments/available/${team?.division}`],
@@ -363,7 +381,16 @@ export default function ComprehensiveCompetitionCenter() {
           </div>
           <div className="bg-gradient-to-r from-purple-700 to-purple-600 rounded-lg p-3 text-center">
             <div className="text-lg md:text-xl font-black text-white">
-              #{globalRankings?.find(r => r.id === team?.id)?.globalRank || '?'}
+              #{(() => {
+                if (!globalRankings || globalRankings.length === 0) return '?';
+                if (!team?.id) return '?';
+                
+                // Try multiple matching strategies for robustness
+                const teamRanking = globalRankings.find(r => r.id === team.id) || 
+                                  globalRankings.find(r => String(r.id) === String(team.id));
+                
+                return teamRanking?.globalRank || '?';
+              })()}
             </div>
             <p className="text-purple-100 text-xs font-semibold uppercase">Global Rank</p>
           </div>
