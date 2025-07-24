@@ -616,7 +616,7 @@ export default function MarketDistrict() {
                             • Monthly gem allowance: 350 💎
                             • Ad-free experience
                             • Daily cache rewards
-                            • Priority queue access
+                            • Future cosmetic items
                           </div>
                           
                           <Button className="w-full bg-yellow-600 hover:bg-yellow-700 text-black font-bold">
