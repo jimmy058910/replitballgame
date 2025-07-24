@@ -248,6 +248,7 @@ export default function TapToAssignTactics({ teamId }: TapToAssignTacticsProps) 
   const [selectedSlot, setSelectedSlot] = useState<FormationSlot | null>(null);
   const [showPlayerSelector, setShowPlayerSelector] = useState(false);
   const [isMobileView, setIsMobileView] = useState(false);
+  const [formationLoaded, setFormationLoaded] = useState(false);
 
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -322,10 +323,15 @@ export default function TapToAssignTactics({ teamId }: TapToAssignTacticsProps) 
     enabled: !!teamId,
   });
 
-  // Load saved formation data into state
+  // Reset formation loading flag when team changes
   useEffect(() => {
-    if (currentFormation && players.length > 0) {
-      console.log('🔍 Loading saved formation:', currentFormation);
+    setFormationLoaded(false);
+  }, [teamId]);
+
+  // Load saved formation data into state - ONLY ONCE to prevent infinite loops
+  useEffect(() => {
+    if (currentFormation && players.length > 0 && !formationLoaded) {
+      console.log('🔍 Loading saved formation (ONE TIME ONLY):', currentFormation);
       
       // Load starters
       if ((currentFormation as any)?.starters && Array.isArray((currentFormation as any).starters)) {
@@ -384,8 +390,11 @@ export default function TapToAssignTactics({ teamId }: TapToAssignTacticsProps) 
 
         setSubstitutionQueue(newSubQueue);
       }
+      
+      // Mark formation as loaded to prevent infinite loops
+      setFormationLoaded(true);
     }
-  }, [currentFormation, players]);
+  }, [currentFormation, players, formationLoaded]);
 
   // Save formation mutation
   const saveFormationMutation = useMutation({
