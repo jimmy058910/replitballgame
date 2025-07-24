@@ -75,11 +75,7 @@ function Router() {
               <LazyRosterHQ />
             </Suspense>
           )} />
-          <Route path="/roster-hq/tactics" component={() => (
-            <Suspense fallback={<div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900/20 to-blue-900/30 animate-pulse flex items-center justify-center"><div className="text-white text-xl">Loading Tactics...</div></div>}>
-              <LazyTacticsPage />
-            </Suspense>
-          )} />
+
           <Route path="/competition" component={() => (
             <Suspense fallback={<div className="min-h-screen bg-gray-900 animate-pulse" />}>
               <LazyCompetitionCenter />

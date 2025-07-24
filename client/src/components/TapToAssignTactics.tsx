@@ -264,17 +264,22 @@ export default function TapToAssignTactics({ teamId }: TapToAssignTacticsProps) 
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
-  // Fetch team players
+  // Fetch team players (main roster only)
   const { data: rawPlayers = [], isLoading } = useQuery({
     queryKey: [`/api/teams/${teamId}/players`],
     enabled: !!teamId,
   });
 
+  // Fetch taxi squad players to exclude them
+  const { data: taxiSquadPlayers = [] } = useQuery({
+    queryKey: [`/api/teams/${teamId}/taxi-squad`],
+    enabled: !!teamId,
+  });
+
+  const taxiSquadIds = (taxiSquadPlayers as Player[]).map(p => p.id);
+
   const players = (rawPlayers as Player[]).filter(p => {
-    // Exclude taxi squad players (rosterPosition 13+ or isOnTaxi flag)
-    const isOnTaxiSquad = (p as any).rosterPosition >= 13 || (p as any).isOnTaxi === true;
-    
-    return !isOnTaxiSquad && // Exclude taxi squad
+    return !taxiSquadIds.includes(p.id) && // Exclude taxi squad players
            p.injuryStatus !== 'SEVERE_INJURY' && // Exclude severely injured
            p.dailyStaminaLevel > 0; // Exclude completely exhausted
   });
@@ -310,12 +315,19 @@ export default function TapToAssignTactics({ teamId }: TapToAssignTacticsProps) 
       const currentSlotPlayer = substitutionQueue[slot.substitutionPosition][slot.substitutionIndex];
       const currentSlotPlayerId = currentSlotPlayer?.id;
       
-      // For flex subs: allow ANYONE except starters (can be in multiple sub positions)
+      // For flex subs: allow ANYONE except starters, but prevent duplicates within flex subs
       if (slot.substitutionPosition === 'wildcard') {
+        const otherFlexSlotIds = substitutionQueue.wildcard
+          .map((player, index) => index !== slot.substitutionIndex ? player?.id : null)
+          .filter(Boolean);
+        
         return players.filter(p => {
           const isStarter = starterIds.includes(p.id);
+          const isInOtherFlexSlot = otherFlexSlotIds.includes(p.id);
           const isCurrentSlotPlayer = p.id === currentSlotPlayerId;
-          return !isStarter || isCurrentSlotPlayer; // Allow current player to stay assigned
+          
+          // Allow current player to stay, exclude starters and other flex assignments
+          return !isStarter && !isInOtherFlexSlot || isCurrentSlotPlayer;
         });
       }
       
@@ -327,11 +339,12 @@ export default function TapToAssignTactics({ teamId }: TapToAssignTacticsProps) 
       });
     }
 
-    // For starter slots: exclude ALL assigned players + role check
+    // For starter slots: STRICT duplicate prevention - exclude all assigned players INCLUDING current slot
+    const currentSlotPlayerId = slot.player?.id;
     return players.filter(p => {
-      const isAssigned = allAssignedIds.includes(p.id);
+      const isAssignedToOtherSlot = allAssignedIds.includes(p.id) && p.id !== currentSlotPlayerId;
       const roleMatches = slot.requiredRole ? p.role?.toLowerCase() === slot.requiredRole.toLowerCase() : true;
-      return !isAssigned && roleMatches;
+      return !isAssignedToOtherSlot && roleMatches;
     });
   };
 
@@ -489,6 +502,21 @@ export default function TapToAssignTactics({ teamId }: TapToAssignTacticsProps) 
   };
 
   const handleAssignPlayer = (player: Player, slotId: string) => {
+    // STRICT duplicate validation for all assignments
+    const allAssignedIds = getAllAssignedPlayerIds();
+    const currentSlotPlayer = selectedSlot?.player?.id;
+    
+    // Prevent assignment if player is already assigned elsewhere
+    if (player.id !== currentSlotPlayer && allAssignedIds.includes(player.id)) {
+      console.warn('Player already assigned elsewhere, assignment blocked');
+      toast({
+        title: "Assignment Blocked",
+        description: `${player.firstName} ${player.lastName} is already assigned to another position`,
+        variant: "destructive",
+      });
+      return;
+    }
+
     if (selectedSlot?.isSubstitution && selectedSlot.substitutionPosition && selectedSlot.substitutionIndex !== undefined) {
       // Handle substitution assignment
       handleAssignToSubstitution(selectedSlot.substitutionPosition, selectedSlot.substitutionIndex, player);
