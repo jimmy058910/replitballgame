@@ -147,16 +147,16 @@ const getItemIcon = (item: any) => {
   }
   
   // Check by slot first (most reliable for equipment)
-  if (slot === "helmet" || slot === "helm") {
+  if (slot === "helmet" || slot === "helm" || slot === "Helmet") {
     return "🪖";
   }
-  if (slot === "gloves") {
+  if (slot === "gloves" || slot === "Gloves") {
     return "🧤";  
   }
-  if (slot === "shoes" || slot === "boots") {
+  if (slot === "shoes" || slot === "boots" || slot === "Shoes") {
     return "👟";
   }
-  if (slot === "armor" || slot === "chest") {
+  if (slot === "armor" || slot === "chest" || slot === "Chest Armor") {
     return "🛡️";
   }
   
@@ -174,7 +174,7 @@ const getItemIcon = (item: any) => {
       return "🧤";
     }
     if (itemName.includes("boot") || itemName.includes("cleat") || 
-        itemName.includes("tread") || itemName.includes("stride")) {
+        itemName.includes("tread") || itemName.includes("stride") || itemName.includes("greaves")) {
       return "👟";
     }
     if (itemName.includes("armor") || itemName.includes("plate") || 
