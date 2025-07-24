@@ -593,6 +593,18 @@ docker push gcr.io/direct-glider-465821-p7/realm-rivalry:latest
 
 ## Recent Changes
 
+### July 24, 2025 - ✅ EXHIBITION HISTORY DISPLAY BUG FIXED - OPPONENT NAMES NOW CORRECT ✅
+
+#### ✅ CRITICAL EXHIBITION HISTORY DISPLAY BUG RESOLVED
+- ✓ **Root Cause Identified**: Frontend logic in ComprehensiveCompetitionCenter.tsx was incorrectly determining opponent names
+- ✓ **Bug Details**: `match.homeTeam?.name || match.awayTeam?.name` picked first available team name instead of actual opponent
+- ✓ **Result**: Oakland Cougars showed "vs Oakland Cougars" instead of actual opponent names like Shadow Wolves, Fire Titans, etc.
+- ✓ **Database Verification**: Confirmed matches created correctly with different opponents, issue was purely frontend display logic
+- ✓ **Fix Applied**: Updated opponent name logic to properly determine opponent based on home/away status:
+  - If user team is home → opponent is away team
+  - If user team is away → opponent is home team
+- ✓ **Production Ready**: Exhibition History now displays correct opponent names for all matches
+
 ### July 24, 2025 - ✅ ENHANCED GLOBAL RANKINGS ALGORITHM - RESEARCH-BACKED "TRUE STRENGTH RATING" COMPLETE ✅
 
 #### ✅ REVOLUTIONARY GLOBAL RANKINGS FORMULA IMPLEMENTED
