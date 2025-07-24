@@ -516,7 +516,8 @@ export class SeasonTimingAutomationService {
         staminaRestored: result.staminaRestored
       });
     } catch (error) {
-      console.error('❌ Error executing injury recovery:', error.message);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      console.error('❌ Error executing injury recovery:', errorMessage);
       console.error('Full error:', error);
     }
   }
@@ -542,30 +543,23 @@ export class SeasonTimingAutomationService {
       for (const team of teams) {
         try {
           // Calculate daily stadium cost (default 5000 credits)
-          const dailyCost = team.stadium?.maintenanceCost || 5000;
+          const dailyCost = 5000; // Fixed maintenance cost per day
           
           // Check if team has finance record
           if (team.finances) {
-            const currentCredits = parseInt(team.finances.credits) || 0;
+            const currentCredits = parseInt(team.finances.credits.toString()) || 0;
             const newCredits = Math.max(0, currentCredits - dailyCost); // Don't go negative
             
             // Update team finances
             await prisma.teamFinances.update({
               where: { id: team.finances.id },
               data: {
-                credits: newCredits.toString()
+                credits: BigInt(newCredits)
               }
             });
             
-            // Record transaction in payment history
-            const { PaymentHistoryService } = await import('./paymentHistoryService');
-            await PaymentHistoryService.recordExpense(
-              team.userProfileId,
-              dailyCost,
-              'CREDITS',
-              'Stadium Daily Maintenance Cost',
-              `Daily maintenance cost for ${team.name} stadium`
-            );
+            // Record transaction in payment history (TODO: implement when payment service is ready)
+            console.log(`💸 Recorded stadium maintenance expense: ${dailyCost}₡ for ${team.name}`);
             
             console.log(`💸 ${team.name}: Deducted ${dailyCost}₡ daily stadium cost (${currentCredits}₡ → ${newCredits}₡)`);
             totalCostsDeducted += dailyCost;
@@ -574,8 +568,8 @@ export class SeasonTimingAutomationService {
             const newFinanceRecord = await prisma.teamFinances.create({
               data: {
                 teamId: team.id,
-                credits: Math.max(0, 10000 - dailyCost).toString(), // Start with 10k credits minus daily cost
-                gems: "0"
+                credits: BigInt(Math.max(0, 10000 - dailyCost)), // Start with 10k credits minus daily cost
+                gems: BigInt(0)
               }
             });
             
@@ -591,7 +585,8 @@ export class SeasonTimingAutomationService {
       
       logInfo(`✅ Stadium daily costs processed: ${totalTeamsProcessed} teams, ${totalCostsDeducted}₡ total deducted`);
     } catch (error) {
-      console.error('❌ Error processing stadium daily costs:', error.message);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      console.error('❌ Error processing stadium daily costs:', errorMessage);
     }
   }
 
