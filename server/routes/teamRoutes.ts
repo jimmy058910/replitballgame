@@ -12,6 +12,7 @@ import { Race, PlayerRole, InjuryStatus } from "../../generated/prisma";
 import { prisma } from '../db';
 import { getPlayerRole } from "@shared/playerUtils";
 import { formatSubdivisionName, getSubdivisionCapacityInfo } from "@shared/subdivisionUtils";
+import { CamaraderieService } from "../services/camaraderieService";
 // Database operations handled through storage layer
 
 const router = Router();
@@ -323,8 +324,11 @@ router.get('/my', isAuthenticated, async (req: any, res: Response, next: NextFun
 
     const teamPlayers = await storage.players.getPlayersByTeamId(team.id); // Use playerStorage
     const teamPower = calculateTeamPower(teamPlayers);
+    
+    // Calculate real-time camaraderie from player scores instead of using outdated database value
+    const teamCamaraderie = await CamaraderieService.getTeamCamaraderie(team.id.toString());
 
-    res.json({ ...team, teamPower, teamCamaraderie: team.camaraderie });
+    res.json({ ...team, teamPower, teamCamaraderie });
   } catch (error) {
     console.error("Error fetching team:", error);
     next(error);
@@ -350,12 +354,15 @@ router.get('/my/dashboard', isAuthenticated, async (req: any, res: Response, nex
     ]);
 
     const teamPower = calculateTeamPower(teamPlayers);
+    
+    // Calculate real-time camaraderie from player scores instead of using outdated database value
+    const teamCamaraderie = await CamaraderieService.getTeamCamaraderie(team.id.toString());
 
     // Calculate draws by checking if there are ties in the game records
     const draws = 0; // TODO: Calculate from actual game data when draw logic is implemented
 
     res.json({
-      team: { ...team, teamPower, teamCamaraderie: team.camaraderie },
+      team: { ...team, teamPower, teamCamaraderie },
       players: teamPlayers,
       finances: finances || { credits: BigInt(0), gems: BigInt(0) },
       stadium: stadium || { capacity: 5000, concessionsLevel: 1, parkingLevel: 1, vipSuitesLevel: 1, merchandisingLevel: 1, lightingScreensLevel: 1 },
