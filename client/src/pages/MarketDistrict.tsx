@@ -125,7 +125,7 @@ function getItemIcon(item: StoreItem) {
   if (item.slot) {
     if (item.slot.includes('Helmet') || item.slot.includes('Head')) return '🪖';
     if (item.slot.includes('Gloves') || item.slot.includes('Hands')) return '🧤';
-    if (item.slot.includes('Boots') || item.slot.includes('Feet')) return '👟';
+    if (item.slot.includes('Boots') || item.slot.includes('Feet') || item.slot.includes('Shoes') || item.slot.includes('footwear')) return '👟';
     if (item.slot.includes('Armor') || item.slot.includes('Chest')) return '🛡️';
     if (item.slot.includes('Weapon') || item.slot.includes('Sword')) return '⚔️';
   }
@@ -429,10 +429,24 @@ export default function MarketDistrict() {
                                   <span className="text-lg">{getItemIcon(item)}</span>
                                   <h4 className="font-medium text-lg text-white">{item.name}</h4>
                                 </div>
-                                <Badge className={`${getTierColor(item.tier)} text-white text-xs`}>
-                                  {item.tier?.toUpperCase()}
-                                </Badge>
+                                <div className="flex items-center gap-2 mb-2">
+                                  <Badge className={`${getTierColor(item.tier)} text-white text-xs`}>
+                                    {item.tier?.toUpperCase()}
+                                  </Badge>
+                                  {item.slot && (
+                                    <Badge className="bg-gray-600 text-gray-200 text-xs">
+                                      {item.slot}
+                                    </Badge>
+                                  )}
+                                </div>
                               </div>
+                              
+                              {/* Item Description/Effects */}
+                              {item.description && (
+                                <div className="text-xs text-gray-300 bg-gray-800/50 p-2 rounded mb-3 min-h-[3rem] flex items-center">
+                                  <p className="leading-tight">{item.description}</p>
+                                </div>
+                              )}
                               
                               {/* Purchase Limit */}
                               {item.dailyLimit && (
