@@ -1048,6 +1048,10 @@ export default function Market() {
                               <Trophy className="w-6 h-6 text-orange-500" />
                               <span className="font-semibold text-orange-700 dark:text-orange-300">Daily cache rewards</span>
                             </div>
+                            <div className="flex items-center gap-3 p-3 bg-purple-50 dark:bg-purple-900/20 rounded-lg">
+                              <Crown className="w-6 h-6 text-purple-500" />
+                              <span className="font-semibold text-purple-700 dark:text-purple-300">Future cosmetic items</span>
+                            </div>
                           </div>
                         </div>
                       </div>
