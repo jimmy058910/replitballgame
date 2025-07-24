@@ -45,6 +45,7 @@ const LazyRosterHQ = lazy(() => import("@/pages/RosterHQ").catch((error) => {
 const LazyCompetitionCenter = lazy(() => import("@/pages/CompetitionCenter").catch(() => ({ default: () => <div>Loading Competition Center...</div> })));
 const LazyMarketDistrict = lazy(() => import("@/pages/MarketDistrict").catch(() => ({ default: () => <div>Loading Market District...</div> })));
 const LazyCommunityPortal = lazy(() => import("@/pages/CommunityPortal").catch(() => ({ default: () => <div>Loading Community Portal...</div> })));
+const LazyTacticsPage = lazy(() => import("@/pages/TacticsPage").catch(() => ({ default: () => <div>Loading Tactics...</div> })));
 
 function Router() {
   const { isAuthenticated, isLoading } = useAuth();
@@ -72,6 +73,11 @@ function Router() {
           <Route path="/roster-hq" component={() => (
             <Suspense fallback={<div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900/20 to-blue-900/30 animate-pulse flex items-center justify-center"><div className="text-white text-xl">Loading Roster HQ...</div></div>}>
               <LazyRosterHQ />
+            </Suspense>
+          )} />
+          <Route path="/roster-hq/tactics" component={() => (
+            <Suspense fallback={<div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900/20 to-blue-900/30 animate-pulse flex items-center justify-center"><div className="text-white text-xl">Loading Tactics...</div></div>}>
+              <LazyTacticsPage />
             </Suspense>
           )} />
           <Route path="/competition" component={() => (

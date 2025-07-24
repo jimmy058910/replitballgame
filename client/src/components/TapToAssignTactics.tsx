@@ -276,43 +276,59 @@ export default function TapToAssignTactics({ teamId }: TapToAssignTacticsProps) 
     p.dailyStaminaLevel > 0 // Exclude completely exhausted
   );
 
-  // Get available players based on context
-  const assignedPlayerIds = formationSlots
-    .map(slot => slot.player?.id)
-    .filter(Boolean);
+  // Get ALL assigned players - starters AND substitutes to prevent duplicates
+  const getAllAssignedPlayerIds = () => {
+    const starterIds = formationSlots
+      .map(slot => slot.player?.id)
+      .filter(Boolean);
+    
+    const substituteIds = [
+      ...substitutionQueue.blockers,
+      ...substitutionQueue.runners, 
+      ...substitutionQueue.passers,
+      ...substitutionQueue.wildcard
+    ]
+      .map(player => player?.id)
+      .filter(Boolean);
+    
+    return [...starterIds, ...substituteIds];
+  };
 
   const getAvailablePlayersForSlot = (slot: FormationSlot | null) => {
+    const allAssignedIds = getAllAssignedPlayerIds();
+    
     if (!slot) {
-      // Default: exclude only starters
-      return players.filter(p => !assignedPlayerIds.includes(p.id));
+      // Default: exclude ALL assigned players (starters + substitutes)
+      return players.filter(p => !allAssignedIds.includes(p.id));
     }
 
     if (slot.isSubstitution && slot.substitutionPosition && slot.substitutionIndex !== undefined) {
-      // For substitution slots: exclude starters and the current slot's assigned player
+      // For substitution slots: exclude ALL assigned players except current slot's player
       const currentSlotPlayer = substitutionQueue[slot.substitutionPosition][slot.substitutionIndex];
       const currentSlotPlayerId = currentSlotPlayer?.id;
       
-      // For flex subs: allow any non-starter (even if in other substitution positions)
+      // For flex subs: allow any unassigned player (exclude ALL assignments except current slot)
       if (slot.substitutionPosition === 'wildcard') {
-        return players.filter(p => 
-          !assignedPlayerIds.includes(p.id) && 
-          p.id !== currentSlotPlayerId
-        );
+        return players.filter(p => {
+          const isAssignedElsewhere = allAssignedIds.includes(p.id) && p.id !== currentSlotPlayerId;
+          return !isAssignedElsewhere;
+        });
       }
       
-      // For position-specific subs: exclude starters and current slot player
-      return players.filter(p => 
-        !assignedPlayerIds.includes(p.id) && 
-        p.id !== currentSlotPlayerId &&
-        (slot.requiredRole ? p.role?.toLowerCase() === slot.requiredRole.toLowerCase() : true)
-      );
+      // For position-specific subs: exclude all assignments except current slot + role check
+      return players.filter(p => {
+        const isAssignedElsewhere = allAssignedIds.includes(p.id) && p.id !== currentSlotPlayerId;
+        const roleMatches = slot.requiredRole ? p.role?.toLowerCase() === slot.requiredRole.toLowerCase() : true;
+        return !isAssignedElsewhere && roleMatches;
+      });
     }
 
-    // For starter slots: exclude assigned starters and require role match
-    return players.filter(p => 
-      !assignedPlayerIds.includes(p.id) &&
-      (slot.requiredRole ? p.role?.toLowerCase() === slot.requiredRole.toLowerCase() : true)
-    );
+    // For starter slots: exclude ALL assigned players + role check
+    return players.filter(p => {
+      const isAssigned = allAssignedIds.includes(p.id);
+      const roleMatches = slot.requiredRole ? p.role?.toLowerCase() === slot.requiredRole.toLowerCase() : true;
+      return !isAssigned && roleMatches;
+    });
   };
 
   const availablePlayers = getAvailablePlayersForSlot(selectedSlot);
@@ -582,7 +598,7 @@ export default function TapToAssignTactics({ teamId }: TapToAssignTacticsProps) 
                 {slot.isWildcard ? 'Any position' : slot.requiredRole}
               </span>
             </div>
-          ) : (
+          ) : slot.player ? (
             <div>
               <div className="font-bold text-white text-sm mb-1">
                 {slot.player.firstName} {slot.player.lastName}
@@ -606,7 +622,7 @@ export default function TapToAssignTactics({ teamId }: TapToAssignTacticsProps) 
                 </span>
               </div>
             </div>
-          )}
+          ) : null}
         </CardContent>
       </Card>
     );
