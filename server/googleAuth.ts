@@ -51,6 +51,21 @@ export function setupGoogleAuth(app: Express) {
 
   // Define authentication routes.
 
+  // API login route that redirects to Google OAuth
+  app.get('/api/login', (req, res) => {
+    res.redirect('/auth/google');
+  });
+
+  // API logout route
+  app.get('/api/logout', (req, res) => {
+    req.logout((err) => {
+      if (err) {
+        console.error('Logout error:', err);
+      }
+      res.redirect('/');
+    });
+  });
+
   // This route starts the Google authentication process.
   // 'profile' and 'email' are the "scopes" we are requesting from Google.
   app.get('/auth/google', passport.authenticate('google'));
