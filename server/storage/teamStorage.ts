@@ -7,12 +7,15 @@ function serializeTeamFinances(finances: any): any {
   
   return {
     ...finances,
-    credits: finances.credits.toString(),
-    projectedIncome: finances.projectedIncome.toString(),
-    projectedExpenses: finances.projectedExpenses.toString(),
-    lastSeasonRevenue: finances.lastSeasonRevenue.toString(),
-    lastSeasonExpenses: finances.lastSeasonExpenses.toString(),
-    facilitiesMaintenanceCost: finances.facilitiesMaintenanceCost.toString(),
+    credits: finances.credits?.toString() || '0',
+    gems: finances.gems?.toString() || '0',
+    escrowCredits: finances.escrowCredits?.toString() || '0',
+    escrowGems: finances.escrowGems?.toString() || '0',
+    projectedIncome: finances.projectedIncome?.toString() || '0',
+    projectedExpenses: finances.projectedExpenses?.toString() || '0',
+    lastSeasonRevenue: finances.lastSeasonRevenue?.toString() || '0',
+    lastSeasonExpenses: finances.lastSeasonExpenses?.toString() || '0',
+    facilitiesMaintenanceCost: finances.facilitiesMaintenanceCost?.toString() || '0',
   };
 }
 

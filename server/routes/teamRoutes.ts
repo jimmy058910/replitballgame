@@ -328,7 +328,30 @@ router.get('/my', isAuthenticated, async (req: any, res: Response, next: NextFun
     // Calculate real-time camaraderie from player scores instead of using outdated database value
     const teamCamaraderie = await CamaraderieService.getTeamCamaraderie(team.id.toString());
 
-    res.json({ ...team, teamPower, teamCamaraderie });
+    // Serialize any BigInt fields to strings for JSON compatibility
+    const serializedTeam = { 
+      ...team, 
+      teamPower, 
+      teamCamaraderie 
+    };
+
+    // Handle finances BigInt serialization if present
+    if (serializedTeam.finances) {
+      serializedTeam.finances = {
+        ...serializedTeam.finances,
+        credits: serializedTeam.finances.credits?.toString() || '0',
+        gems: serializedTeam.finances.gems?.toString() || '0',
+        escrowCredits: serializedTeam.finances.escrowCredits?.toString() || '0',
+        escrowGems: serializedTeam.finances.escrowGems?.toString() || '0',
+        projectedIncome: serializedTeam.finances.projectedIncome?.toString() || '0',
+        projectedExpenses: serializedTeam.finances.projectedExpenses?.toString() || '0',
+        lastSeasonRevenue: serializedTeam.finances.lastSeasonRevenue?.toString() || '0',
+        lastSeasonExpenses: serializedTeam.finances.lastSeasonExpenses?.toString() || '0',
+        facilitiesMaintenanceCost: serializedTeam.finances.facilitiesMaintenanceCost?.toString() || '0'
+      };
+    }
+
+    res.json(serializedTeam);
   } catch (error) {
     console.error("Error fetching team:", error);
     next(error);
@@ -361,10 +384,24 @@ router.get('/my/dashboard', isAuthenticated, async (req: any, res: Response, nex
     // Calculate draws by checking if there are ties in the game records
     const draws = 0; // TODO: Calculate from actual game data when draw logic is implemented
 
+    // Serialize BigInt fields for JSON compatibility
+    const serializedFinances = finances ? {
+      ...finances,
+      credits: finances.credits.toString(),
+      gems: finances.gems.toString(),
+      escrowCredits: finances.escrowCredits?.toString() || '0',
+      escrowGems: finances.escrowGems?.toString() || '0',
+      projectedIncome: finances.projectedIncome?.toString() || '0',
+      projectedExpenses: finances.projectedExpenses?.toString() || '0',
+      lastSeasonRevenue: finances.lastSeasonRevenue?.toString() || '0',
+      lastSeasonExpenses: finances.lastSeasonExpenses?.toString() || '0',
+      facilitiesMaintenanceCost: finances.facilitiesMaintenanceCost?.toString() || '0'
+    } : { credits: '0', gems: '0', escrowCredits: '0', escrowGems: '0', projectedIncome: '0', projectedExpenses: '0', lastSeasonRevenue: '0', lastSeasonExpenses: '0', facilitiesMaintenanceCost: '0' };
+
     res.json({
       team: { ...team, teamPower, teamCamaraderie },
       players: teamPlayers,
-      finances: finances || { credits: BigInt(0), gems: BigInt(0) },
+      finances: serializedFinances,
       stadium: stadium || { capacity: 5000, concessionsLevel: 1, parkingLevel: 1, vipSuitesLevel: 1, merchandisingLevel: 1, lightingScreensLevel: 1 },
       staff,
       draws
