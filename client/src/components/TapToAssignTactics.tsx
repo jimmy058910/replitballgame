@@ -278,22 +278,46 @@ export default function TapToAssignTactics({ teamId }: TapToAssignTacticsProps) 
     p.dailyStaminaLevel > 0 // Exclude completely exhausted
   );
 
-  // Get available players (not currently assigned to starters or substitutions)
+  // Get available players based on context
   const assignedPlayerIds = formationSlots
     .map(slot => slot.player?.id)
     .filter(Boolean);
 
-  const substitutionPlayerIds = Object.values(substitutionQueue)
-    .flat()
-    .filter(Boolean)
-    .map(player => player?.id)
-    .filter(Boolean);
+  const getAvailablePlayersForSlot = (slot: FormationSlot | null) => {
+    if (!slot) {
+      // Default: exclude only starters
+      return players.filter(p => !assignedPlayerIds.includes(p.id));
+    }
 
-  const allAssignedIds = [...assignedPlayerIds, ...substitutionPlayerIds];
+    if (slot.isSubstitution && slot.substitutionPosition && slot.substitutionIndex !== undefined) {
+      // For substitution slots: exclude starters and the current slot's assigned player
+      const currentSlotPlayer = substitutionQueue[slot.substitutionPosition][slot.substitutionIndex];
+      const currentSlotPlayerId = currentSlotPlayer?.id;
+      
+      // For flex subs: allow any non-starter (even if in other substitution positions)
+      if (slot.substitutionPosition === 'wildcard') {
+        return players.filter(p => 
+          !assignedPlayerIds.includes(p.id) && 
+          p.id !== currentSlotPlayerId
+        );
+      }
+      
+      // For position-specific subs: exclude starters and current slot player
+      return players.filter(p => 
+        !assignedPlayerIds.includes(p.id) && 
+        p.id !== currentSlotPlayerId &&
+        (slot.requiredRole ? p.role === slot.requiredRole : true)
+      );
+    }
 
-  const availablePlayers = players.filter(p => 
-    !allAssignedIds.includes(p.id)
-  );
+    // For starter slots: exclude assigned starters and require role match
+    return players.filter(p => 
+      !assignedPlayerIds.includes(p.id) &&
+      (slot.requiredRole ? p.role === slot.requiredRole : true)
+    );
+  };
+
+  const availablePlayers = getAvailablePlayersForSlot(selectedSlot);
 
   // Fetch current formation
   const { data: currentFormation } = useQuery({
