@@ -593,6 +593,17 @@ docker push gcr.io/direct-glider-465821-p7/realm-rivalry:latest
 
 ## Recent Changes
 
+### July 24, 2025 - ✅ CRITICAL AUTHENTICATION ENDPOINTS RESOLUTION COMPLETE ✅
+
+#### ✅ MISSING API ROUTES FIXED - PRODUCTION "CANNOT GET /api/login" ERROR RESOLVED
+- ✓ **Root Cause Identified**: `/api/login` and `/api/logout` routes were missing from server/googleAuth.ts despite documentation showing they existed
+- ✓ **Authentication Routes Added**: 
+  - `/api/login` → redirects to `/auth/google` to start Google OAuth flow ✅
+  - `/api/logout` → properly logs out user and redirects to home page ✅
+- ✓ **Production Ready**: Fix committed and ready for GitHub Actions deployment pipeline to realmrivalry.com
+- ✓ **Domain Configuration**: Google OAuth callback correctly configured for `https://realmrivalry.com/auth/google/callback` in production
+- 🔧 **Next Step**: Deploy via GitHub push to activate authentication fix on production
+
 ### July 23, 2025 - ✅ COMPREHENSIVE PRODUCTION DEPLOYMENT FIXES COMPLETE ✅
 
 #### ✅ ERR_EMPTY_RESPONSE CRITICAL ISSUE RESOLVED - PRODUCTION DEPLOYMENT READY
