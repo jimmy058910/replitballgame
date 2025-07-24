@@ -311,7 +311,10 @@ export default function DramaticTeamHQ() {
           </Card>
 
           {/* Market District */}
-          <Card className="bg-gradient-to-br from-purple-700 to-purple-900 border-2 border-purple-500 hover:scale-105 transition-all duration-200 cursor-pointer">
+          <Card 
+            className="bg-gradient-to-br from-purple-700 to-purple-900 border-2 border-purple-500 hover:scale-105 transition-all duration-200 cursor-pointer"
+            onClick={() => setLocation('/market')}
+          >
             <CardContent className="p-4 text-center">
               <div className="mb-3">
                 <div className="w-12 h-12 bg-gradient-to-br from-purple-400 to-purple-600 rounded-full flex items-center justify-center mx-auto">
@@ -326,18 +329,21 @@ export default function DramaticTeamHQ() {
             </CardContent>
           </Card>
 
-          {/* Stadium & Schedules - Actionable Info */}
-          <Card className="bg-gradient-to-br from-orange-700 to-red-900 border-2 border-orange-500 hover:scale-105 transition-all duration-200 cursor-pointer">
+          {/* Next Match - High Priority Information */}
+          <Card 
+            className="bg-gradient-to-br from-orange-700 to-red-900 border-2 border-orange-500 hover:scale-105 transition-all duration-200 cursor-pointer"
+            onClick={() => setLocation('/competition')}
+          >
             <CardContent className="p-4 text-center">
               <div className="mb-3">
                 <div className="w-12 h-12 bg-gradient-to-br from-orange-400 to-red-600 rounded-full flex items-center justify-center mx-auto">
                   <Calendar className="w-6 h-6 text-white" />
                 </div>
               </div>
-              <h3 className="text-lg font-bold text-white mb-1">Schedule</h3>
-              <p className="text-orange-200 text-xs mb-2">Next: vs {nextOpponent}</p>
+              <h3 className="text-lg font-bold text-white mb-1">Next Match</h3>
+              <p className="text-orange-200 text-xs mb-2">vs {nextOpponent}</p>
               <Badge variant="outline" className="text-orange-400 border-orange-400 text-xs">
-                {freeExhibitionsRemaining} Free Exhibitions
+                View Schedule
               </Badge>
             </CardContent>
           </Card>
@@ -393,7 +399,11 @@ export default function DramaticTeamHQ() {
                     <div className="w-4 h-4 border-2 border-cyan-400 rounded mr-3"></div>
                     <span className="text-gray-400">Enter Daily Tournament</span>
                   </div>
-                  <Button size="sm" className="bg-cyan-600 hover:bg-cyan-700 text-white text-xs">
+                  <Button 
+                    size="sm" 
+                    className="bg-cyan-600 hover:bg-cyan-700 text-white text-xs"
+                    onClick={() => setLocation('/competition')}
+                  >
                     Enter Now
                   </Button>
                 </div>
@@ -415,7 +425,11 @@ export default function DramaticTeamHQ() {
                     <div className="w-4 h-4 border-2 border-cyan-400 rounded mr-3"></div>
                     <span className="text-gray-400">Review Team Tactics</span>
                   </div>
-                  <Button size="sm" className="bg-cyan-600 hover:bg-cyan-700 text-white text-xs">
+                  <Button 
+                    size="sm" 
+                    className="bg-cyan-600 hover:bg-cyan-700 text-white text-xs"
+                    onClick={() => setLocation('/roster-hq')}
+                  >
                     Set Now
                   </Button>
                 </div>
@@ -425,7 +439,11 @@ export default function DramaticTeamHQ() {
                     <div className="w-4 h-4 border-2 border-cyan-400 rounded mr-3"></div>
                     <span className="text-gray-400">Check Market Listings</span>
                   </div>
-                  <Button size="sm" className="bg-cyan-600 hover:bg-cyan-700 text-white text-xs">
+                  <Button 
+                    size="sm" 
+                    className="bg-cyan-600 hover:bg-cyan-700 text-white text-xs"
+                    onClick={() => setLocation('/market')}
+                  >
                     Browse
                   </Button>
                 </div>
@@ -433,10 +451,26 @@ export default function DramaticTeamHQ() {
               
               <Progress value={completionPercentage} className="mt-4 h-2" />
               <div className="text-center text-cyan-200 text-xs mt-2">Daily Progress: {completionPercentage}%</div>
+              
+              {/* Dynamic Tips Section */}
+              <div className="bg-cyan-800/30 p-3 rounded-lg mt-4">
+                <div className="flex items-center mb-2">
+                  <Activity className="w-4 h-4 mr-2 text-cyan-400" />
+                  <span className="text-cyan-200 font-semibold text-sm">Daily Tip</span>
+                </div>
+                <p className="text-cyan-100 text-xs">
+                  {completionPercentage < 50 
+                    ? "Complete tasks to earn daily rewards and boost team progression!"
+                    : completionPercentage < 80
+                    ? "Great progress! Finish remaining tasks for maximum daily bonus."
+                    : "Outstanding! You've completed most daily objectives."
+                  }
+                </p>
+              </div>
             </CardContent>
           </Card>
 
-          {/* Career Highlights Panel */}
+          {/* Enhanced Career Highlights Panel */}
           <Card className="bg-gradient-to-br from-yellow-900 to-orange-900 border-2 border-yellow-600">
             <CardHeader className="pb-2">
               <CardTitle className="flex items-center justify-between text-white">
@@ -448,74 +482,163 @@ export default function DramaticTeamHQ() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-center py-8">
-                <Trophy className="w-12 h-12 mx-auto mb-4 text-yellow-400 opacity-50" />
-                <p className="text-gray-300 mb-2">No career highlights yet.</p>
-                <p className="text-gray-400 text-sm">Win games and achieve milestones to earn highlights!</p>
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <span className="text-gray-300">Your last trophy:</span>
+                  <span className="text-gray-400">–</span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-gray-300">Championship wins:</span>
+                  <span className="text-yellow-400 font-bold">0</span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-gray-300">Division titles:</span>
+                  <span className="text-yellow-400 font-bold">0</span>
+                </div>
+                <div className="bg-yellow-800/30 p-3 rounded-lg mt-4">
+                  <div className="flex items-center mb-2">
+                    <Star className="w-4 h-4 mr-2 text-yellow-400" />
+                    <span className="text-yellow-200 font-semibold text-sm">Next Milestone</span>
+                  </div>
+                  <p className="text-yellow-100 text-xs">Win 3 consecutive games to earn your first highlight!</p>
+                  <div className="flex items-center mt-2">
+                    <Progress value={Math.min(33, (team.wins || 0) * 33)} className="flex-1 h-1 mr-2" />
+                    <span className="text-yellow-300 text-xs">{Math.min(3, team.wins || 0)}/3</span>
+                  </div>
+                </div>
               </div>
             </CardContent>
           </Card>
         </div>
 
-        {/* 📊 PERFORMANCE DASHBOARD - MOBILE-OPTIMIZED */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+        {/* 📊 UNIFIED FACILITIES & REVENUE DASHBOARD */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
           
-          {/* Team Analytics */}
-          <Card className="bg-gradient-to-br from-gray-800 to-gray-900 border-2 border-gray-600">
+          {/* Unified Facilities & Revenue Panel */}
+          <Card className="lg:col-span-2 bg-gradient-to-br from-gray-800 to-gray-900 border-2 border-gray-600">
             <CardHeader>
-              <CardTitle className="flex items-center text-white">
-                <BarChart3 className="w-6 h-6 mr-2 text-blue-400" />
-                📊 Team Analytics
+              <CardTitle className="flex items-center justify-between text-white">
+                <div className="flex items-center">
+                  <Building2 className="w-6 h-6 mr-2 text-orange-400" />
+                  Facilities & Revenue
+                </div>
+                <Button 
+                  size="sm" 
+                  variant="outline" 
+                  className="border-orange-500 text-orange-300 hover:bg-orange-900/30"
+                  onClick={() => setLocation('/stadium')}
+                >
+                  Manage
+                </Button>
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="space-y-4">
-                <div className="flex justify-between items-center">
-                  <span className="text-gray-300">Team Power</span>
-                  <span className="text-2xl font-bold text-blue-400">{teamPower}</span>
+              <div className="grid grid-cols-2 gap-6">
+                {/* Stadium Facilities */}
+                <div className="space-y-3">
+                  <h4 className="text-white font-semibold mb-3 flex items-center">
+                    <Building2 className="w-4 h-4 mr-1 text-orange-400" />
+                    Facilities
+                  </h4>
+                  <div className="space-y-2">
+                    <div className="flex justify-between items-center">
+                      <span className="text-gray-300 text-sm">Capacity</span>
+                      <span className="text-orange-400 font-bold">{stadium?.capacity?.toLocaleString() || 0}</span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-gray-300 text-sm">Concessions</span>
+                      <span className="text-green-400">Tier {stadium?.concessionsLevel || 1}</span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-gray-300 text-sm">VIP Suites</span>
+                      <span className="text-purple-400">Tier {stadium?.vipSuitesLevel || 1}</span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-gray-300 text-sm">Lighting & Screens</span>
+                      <span className="text-blue-400">Tier {stadium?.lightingScreensLevel || 1}</span>
+                    </div>
+                  </div>
                 </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-gray-300">Team Camaraderie</span>
-                  <span className="text-2xl font-bold text-teal-400">{Math.round(camaraderieData?.teamCamaraderie || team.camaraderie || 50)}</span>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-gray-300">Fan Loyalty</span>
-                  <span className="text-2xl font-bold text-purple-400">{team.fanLoyalty}%</span>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-gray-300">League Points</span>
-                  <span className="text-2xl font-bold text-yellow-400">{team.points}</span>
+
+                {/* Revenue & Analytics */}
+                <div className="space-y-3">
+                  <h4 className="text-white font-semibold mb-3 flex items-center">
+                    <DollarSign className="w-4 h-4 mr-1 text-green-400" />
+                    Performance
+                  </h4>
+                  <div className="space-y-2">
+                    <div className="flex justify-between items-center">
+                      <span className="text-gray-300 text-sm">Team Power</span>
+                      <span className="text-blue-400 font-bold">{teamPower}</span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-gray-300 text-sm">Fan Loyalty</span>
+                      <span className="text-purple-400">{team.fanLoyalty || 50}%</span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-gray-300 text-sm">Projected Revenue</span>
+                      <span className="text-green-400">₡{Number(finances?.projectedIncome || 0).toLocaleString()}</span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-gray-300 text-sm">League Points</span>
+                      <span className="text-yellow-400 font-bold">{team.points || 0}</span>
+                    </div>
+                  </div>
                 </div>
               </div>
             </CardContent>
           </Card>
 
-          {/* Stadium Overview */}
-          <Card className="bg-gradient-to-br from-gray-800 to-gray-900 border-2 border-gray-600">
-            <CardHeader>
+          {/* Quick Actions Sidebar */}
+          <Card className="bg-gradient-to-br from-indigo-900 to-purple-900 border-2 border-indigo-500">
+            <CardHeader className="pb-2">
               <CardTitle className="flex items-center text-white">
-                <Building2 className="w-6 h-6 mr-2 text-orange-400" />
-                🏟️ Stadium Status
+                <Zap className="w-5 h-5 mr-2 text-indigo-400" />
+                Quick Actions
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="space-y-4">
-                <div className="flex justify-between items-center">
-                  <span className="text-gray-300">Capacity</span>
-                  <span className="text-xl font-bold text-orange-400">{stadium?.capacity || 0}</span>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-gray-300">Concessions</span>
-                  <span className="text-xl font-bold text-green-400">Level {stadium?.concessionsLevel || 0}</span>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-gray-300">VIP Suites</span>
-                  <span className="text-xl font-bold text-purple-400">Level {stadium?.vipSuitesLevel || 0}</span>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-gray-300">Lighting</span>
-                  <span className="text-xl font-bold text-blue-400">Level {stadium?.lightingScreensLevel || 0}</span>
-                </div>
+              <div className="space-y-2">
+                <Button 
+                  size="sm" 
+                  className="w-full bg-green-600 hover:bg-green-700 text-white justify-start"
+                  onClick={() => setLocation('/market')}
+                >
+                  <Coins className="w-4 h-4 mr-2" />
+                  Visit Store
+                </Button>
+                <Button 
+                  size="sm" 
+                  className="w-full bg-blue-600 hover:bg-blue-700 text-white justify-start"
+                  onClick={() => setLocation('/competition')}
+                >
+                  <Calendar className="w-4 h-4 mr-2" />
+                  Next Match
+                </Button>
+                <Button 
+                  size="sm" 
+                  className="w-full bg-purple-600 hover:bg-purple-700 text-white justify-start"
+                  onClick={() => setLocation('/market')}
+                >
+                  <TrendingUp className="w-4 h-4 mr-2" />
+                  Player Market
+                </Button>
+                <Button 
+                  size="sm" 
+                  className="w-full bg-yellow-600 hover:bg-yellow-700 text-white justify-start"
+                  onClick={() => setLocation('/community')}
+                >
+                  <Award className="w-4 h-4 mr-2" />
+                  Redeem Code
+                </Button>
+                <Button 
+                  size="sm" 
+                  className="w-full bg-red-600 hover:bg-red-700 text-white justify-start"
+                  onClick={() => setLocation('/roster-hq')}
+                >
+                  <Heart className="w-4 h-4 mr-2" />
+                  Team Health
+                </Button>
               </div>
             </CardContent>
           </Card>
