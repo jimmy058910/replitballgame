@@ -487,7 +487,8 @@ function TournamentsTab() {
                       <p className="text-sm text-gray-400">Division {opponent.division}</p>
                     </div>
                     <div className="text-right">
-                      <div className="text-lg font-bold text-yellow-400">Power: {opponent.teamPower}</div>
+                      <div className="text-lg font-bold text-yellow-400">Power: {opponent.teamPower || opponent.averagePower || 'N/A'}</div>
+                      <div className="text-sm text-blue-400 font-semibold">Global Rank: #{opponent.globalRank || '?'}</div>
                       <div className="text-sm text-gray-400">
                         {opponent.wins}W - {opponent.losses}L - {opponent.draws}D
                       </div>
@@ -894,9 +895,15 @@ function ExhibitionsTab() {
                           Division {opponent.division}
                         </Badge>
                       </div>
-                      <div className="text-center">
-                        <div className="text-gray-400 text-sm">Team Power:</div>
-                        <div className="text-white text-lg font-semibold">{opponent.teamPower || 0}</div>
+                      <div className="space-y-2">
+                        <div className="text-center">
+                          <div className="text-gray-400 text-sm">Team Power:</div>
+                          <div className="text-white text-lg font-semibold">{opponent.teamPower || opponent.averagePower || 'N/A'}</div>
+                        </div>
+                        <div className="text-center">
+                          <div className="text-gray-400 text-sm">Global Rank:</div>
+                          <div className="text-yellow-400 text-md font-semibold">#{opponent.globalRank || '?'}</div>
+                        </div>
                       </div>
                       <Button
                         className="w-full"

@@ -120,16 +120,89 @@ router.get('/available-opponents', isAuthenticated, async (req: any, res: Respon
     const shuffledOpponents = opponents.sort(() => 0.5 - Math.random());
     const selectedOpponents = shuffledOpponents.slice(0, 6);
 
+    // Get global rankings for ranking calculation
+    const allTeams = await storage.teams.getAllTeamsWithStats();
+    
+    // Helper functions for global ranking calculation
+    const getDivisionMultiplier = (division: number) => {
+      const multipliers = [2.0, 1.8, 1.6, 1.4, 1.2, 1.1, 1.0, 0.9];
+      return multipliers[Math.max(0, Math.min(division - 1, multipliers.length - 1))];
+    };
+
+    const calculateSimpleStrengthOfSchedule = (team: any, teams: any[]) => {
+      const divisionTeams = teams.filter(t => t.division === team.division && t.id !== team.id);
+      if (divisionTeams.length === 0) return 20;
+      const avgOpponentPower = divisionTeams.reduce((sum, t) => sum + (t.teamPower || 20), 0) / divisionTeams.length;
+      return Math.min(50, avgOpponentPower);
+    };
+
+    const calculateSimpleRecentForm = (team: any) => {
+      const totalGames = (team.wins || 0) + (team.losses || 0) + (team.draws || 0);
+      if (totalGames === 0) return 0;
+      const winPercentage = (team.wins || 0) / totalGames;
+      const expectedWinRate = team.division <= 4 ? 0.5 : 0.4;
+      return Math.max(-1, Math.min(1, (winPercentage - expectedWinRate) * 2));
+    };
+
+    const calculateSimpleHealthFactor = (team: any) => {
+      const expectedPower = team.division <= 4 ? 28 : 20;
+      const powerRatio = Math.min(1, (team.teamPower || 20) / expectedPower);
+      return Math.max(0.5, powerRatio);
+    };
+
     const opponentsWithDetails = await Promise.all(selectedOpponents.map(async (opponent) => {
         const oppPlayers = await storage.players.getPlayersByTeamId(opponent.id);
         const opponentPower = calculateTeamPower(oppPlayers);
+        
+        // Calculate global ranking using Enhanced True Strength Rating algorithm
+        const divisionMultiplier = getDivisionMultiplier(opponent.division);
+        const winPercentage = opponent.wins + opponent.losses + opponent.draws > 0 
+          ? opponent.wins / (opponent.wins + opponent.losses + opponent.draws) 
+          : 0;
+        
+        const strengthOfSchedule = calculateSimpleStrengthOfSchedule({...opponent, teamPower: opponentPower}, allTeams);
+        const recentFormBias = calculateSimpleRecentForm(opponent);
+        const healthFactor = calculateSimpleHealthFactor({...opponent, teamPower: opponentPower});
+        
+        // Enhanced True Strength Rating Algorithm
+        const baseRating = opponentPower * 10;               // Base: 40% weight (250 max)
+        const divisionBonus = divisionMultiplier * 100;      // Division: 15% weight (200 max)
+        const recordBonus = winPercentage * 120;             // Record: 18% weight (120 max)
+        const sosBonus = strengthOfSchedule * 1.5;           // SOS: 15% weight (~75 avg)
+        const camaraderieBonus = (opponent.camaraderie || 50) * 2; // Chemistry: 12% weight (200 max)
+        const recentFormBonus = recentFormBias * 30;         // Recent Form: ±30 range
+        const healthBonus = healthFactor * 50;               // Health: 50 max
+
+        const trueStrengthRating = baseRating + divisionBonus + recordBonus + sosBonus + camaraderieBonus + recentFormBonus + healthBonus;
+        
+        // Calculate global rank by comparing with all teams
+        const rankedTeams = allTeams.map(t => {
+          const tPlayers = t.players || [];
+          const tPower = tPlayers.length > 0 ? calculateTeamPower(tPlayers) : (t.teamPower || 20);
+          const tDivisionMultiplier = getDivisionMultiplier(t.division);
+          const tWinPercentage = t.wins + t.losses + t.draws > 0 ? t.wins / (t.wins + t.losses + t.draws) : 0;
+          const tSOS = calculateSimpleStrengthOfSchedule({...t, teamPower: tPower}, allTeams);
+          const tRecentForm = calculateSimpleRecentForm(t);
+          const tHealthFactor = calculateSimpleHealthFactor({...t, teamPower: tPower});
+          
+          const tTrueStrength = (tPower * 10) + (tDivisionMultiplier * 100) + (tWinPercentage * 120) + 
+                               (tSOS * 1.5) + ((t.camaraderie || 50) * 2) + (tRecentForm * 30) + (tHealthFactor * 50);
+          
+          return { id: t.id, trueStrengthRating: tTrueStrength };
+        }).sort((a, b) => b.trueStrengthRating - a.trueStrengthRating);
+        
+        const globalRank = rankedTeams.findIndex(t => t.id === opponent.id) + 1;
+        
         return {
             id: opponent.id, 
             name: opponent.name, 
             division: opponent.division,
-            teamPower: opponentPower
+            teamPower: opponentPower,
+            averagePower: opponentPower, // Frontend compatibility
+            globalRank: globalRank
         };
     }));
+    
     res.json(opponentsWithDetails);
   } catch (error) {
     console.error("Error fetching available exhibition opponents:", error);
