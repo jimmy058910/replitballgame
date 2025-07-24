@@ -38,6 +38,7 @@ import {
   ExternalLink
 } from 'lucide-react';
 import UnifiedTeamHeader from './UnifiedTeamHeader';
+import ScheduleView from './ScheduleView';
 
 // Type definitions
 type Team = {
@@ -1070,218 +1071,15 @@ export default function ComprehensiveCompetitionCenter() {
 
           </TabsContent>
 
-          {/* SCHEDULE TAB - ENHANCED DRAMATIC DESIGN */}
-          <TabsContent value="schedule" className="space-y-6">
-            
-            {/* MY TEAM MATCHES - PINNED SECTION */}
-            {upcomingMatches && upcomingMatches.length > 0 && (
-              <Card className="bg-gradient-to-r from-blue-800 via-blue-700 to-purple-800 border-2 border-blue-400 shadow-2xl">
-                <CardHeader className="pb-3">
-                  <CardTitle className="flex items-center gap-2 text-white">
-                    <Star className="h-6 w-6 text-yellow-400" />
-                    My Team Schedule
-                    <Badge className="bg-yellow-600 text-yellow-100 ml-auto">Priority</Badge>
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-3">
-                    {upcomingMatches.slice(0, 3).map((match, index) => (
-                      <div key={match.id} className="bg-white/10 backdrop-blur-sm rounded-lg p-4 border border-white/20">
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-3">
-                            <div className="w-2 h-2 bg-blue-300 rounded-full animate-pulse"></div>
-                            <div>
-                              <h4 className="font-bold text-white text-lg">
-                                🆚 {match.homeTeam.id === team?.id ? match.awayTeam.name : match.homeTeam.name}
-                              </h4>
-                              <p className="text-blue-200 text-sm">
-                                {match.homeTeam.id === team?.id ? '🏠 Home' : '✈️ Away'} • {formatMatchTime(match.gameDate)}
-                              </p>
-                            </div>
-                          </div>
-                          <Badge className="bg-blue-600 text-blue-100">League</Badge>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
-            )}
-
-            {/* UNIFIED CALENDAR - PROGRESSIVE DISCLOSURE */}
-            <Collapsible defaultOpen className="space-y-2">
-              <CollapsibleTrigger className="w-full">
-                <Card className="bg-gradient-to-r from-gray-800 via-gray-700 to-gray-800 border border-cyan-500/50 hover:border-cyan-400 transition-all duration-300">
-                  <CardContent className="p-4">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-3">
-                        <Calendar className="h-6 w-6 text-cyan-400" />
-                        <div className="text-left">
-                          <h3 className="text-lg font-bold text-white">Unified Schedule</h3>
-                          <p className="text-cyan-300 text-sm">All league and tournament matches</p>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <Badge className="bg-cyan-600 text-cyan-100">
-                          Day {seasonData?.currentDay || 1} of 17
-                        </Badge>
-                        <ChevronDown className="h-5 w-5 text-cyan-400" />
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              </CollapsibleTrigger>
-              <CollapsibleContent>
-                <Card className="bg-gray-800/90 border border-gray-600">
-                  <CardContent className="p-6">
-                    <div className="space-y-4">
-                      
-                      {/* UPCOMING DAYS - AUTHENTIC SCHEDULE DATA */}
-                      {[10, 11, 12, 13, 14, 15].map((day) => {
-                        // Determine match type: League games Days 1-14, Division Tournaments Day 15
-                        const matchType = day <= 14 ? 'League' : 'Tournament';
-                        const badgeColor = day <= 14 ? 'bg-blue-600 text-blue-100' : 'bg-purple-600 text-purple-100';
-                        
-                        // Get real matches for this day from schedule data
-                        const dayMatches = dailySchedule?.schedule?.[day.toString()] || [];
-                        const myMatches = dayMatches.filter((match: any) => 
-                          match.homeTeamId === team?.id || match.awayTeamId === team?.id
-                        );
-                        
-                        return (
-                          <div key={day} className="bg-gray-700/50 rounded-lg p-4 border border-gray-600">
-                            <div className="flex items-center justify-between mb-3">
-                              <h4 className="text-lg font-bold text-white">Day {day}</h4>
-                              <Badge variant="outline" className="text-gray-300">
-                                {matchType}
-                              </Badge>
-                            </div>
-                            
-                            {/* Real matches for the day */}
-                            <div className="space-y-2">
-                              {dayMatches.length > 0 ? (
-                                dayMatches.slice(0, 3).map((match: any, index: number) => {
-                                  const isMyMatch = match.homeTeamId === team?.id || match.awayTeamId === team?.id;
-                                  const gameTime = match.gameDate ? 
-                                    new Date(match.gameDate).toLocaleTimeString('en-US', { 
-                                      hour: 'numeric', 
-                                      minute: '2-digit', 
-                                      hour12: true 
-                                    }) : '5:00 PM';
-                                  
-                                  return (
-                                    <div key={index} className={`flex items-center justify-between py-2 px-3 rounded ${
-                                      isMyMatch ? 'bg-blue-900/30 border border-blue-500/50' : 'bg-gray-600/30'
-                                    }`}>
-                                      <div className="flex items-center gap-2">
-                                        <div className={`w-2 h-2 rounded-full ${
-                                          isMyMatch ? 'bg-yellow-400' : day <= 14 ? 'bg-blue-400' : 'bg-purple-400'
-                                        }`}></div>
-                                        <span className="text-gray-300">
-                                          {isMyMatch ? (
-                                            <>🆚 {match.homeTeamId === team?.id ? match.awayTeamName : match.homeTeamName}</>
-                                          ) : (
-                                            `${match.homeTeamName} vs ${match.awayTeamName}`
-                                          )}
-                                        </span>
-                                      </div>
-                                      <div className="flex items-center gap-2">
-                                        <span className="text-xs text-gray-400">{gameTime}</span>
-                                        <Badge className={`text-xs ${badgeColor}`}>
-                                          {day <= 14 ? 'League' : 'Tournament'}
-                                        </Badge>
-                                        {isMyMatch && (
-                                          <Star className="h-3 w-3 text-yellow-400" />
-                                        )}
-                                      </div>
-                                    </div>
-                                  );
-                                })
-                              ) : (
-                                <div className="flex items-center justify-between py-2 px-3 bg-gray-600/30 rounded">
-                                  <div className="flex items-center gap-2">
-                                    <div className={`w-2 h-2 rounded-full ${day <= 14 ? 'bg-blue-400' : 'bg-purple-400'}`}></div>
-                                    <span className="text-gray-400">
-                                      {day <= 14 ? 'League matches scheduled' : 'Division Tournament'}
-                                    </span>
-                                  </div>
-                                  <Badge className={`text-xs ${badgeColor}`}>
-                                    {day <= 14 ? 'League' : 'Tournament'}
-                                  </Badge>
-                                </div>
-                              )}
-                              
-                              {dayMatches.length > 3 && (
-                                <div className="text-center py-2">
-                                  <span className="text-xs text-gray-400">
-                                    +{dayMatches.length - 3} more matches
-                                  </span>
-                                </div>
-                              )}
-                            </div>
-                          </div>
-                        );
-                      })}
-
-                      {/* CORRECTED PLAYOFF SCHEDULE PREVIEW */}
-                      <div className="bg-gradient-to-r from-purple-900/50 to-indigo-900/50 rounded-lg p-4 border border-purple-500/30">
-                        <div className="flex items-center gap-3 mb-3">
-                          <Award className="h-6 w-6 text-purple-400" />
-                          <h4 className="text-lg font-bold text-white">Post-Season Schedule</h4>
-                          <Badge className="bg-purple-600 text-purple-100">Days 15-17</Badge>
-                        </div>
-                        <div className="grid md:grid-cols-3 gap-4">
-                          <div className="bg-purple-800/30 rounded p-3">
-                            <h5 className="font-semibold text-purple-200 mb-2">Day 15 - Division Tournaments</h5>
-                            <p className="text-purple-300 text-sm">Top teams compete for division championships</p>
-                          </div>
-                          <div className="bg-indigo-800/30 rounded p-3">
-                            <h5 className="font-semibold text-indigo-200 mb-2">Day 16 - Offseason</h5>
-                            <p className="text-indigo-300 text-sm">Roster management and player progression</p>
-                          </div>
-                          <div className="bg-cyan-800/30 rounded p-3">
-                            <h5 className="font-semibold text-cyan-200 mb-2">Day 17 - Offseason</h5>
-                            <p className="text-cyan-300 text-sm">Player progression, staff renewals, tryouts</p>
-                          </div>
-                        </div>
-                      </div>
-
-                    </div>
-                  </CardContent>
-                </Card>
-              </CollapsibleContent>
-            </Collapsible>
-
-            {/* MATCH TYPE LEGEND */}
-            <Card className="bg-gray-800 border-gray-700">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-white">
-                  <Info className="h-5 w-5 text-blue-400" />
-                  Match Types
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                  <div className="flex items-center gap-2">
-                    <div className="w-4 h-4 bg-blue-600 rounded"></div>
-                    <span className="text-blue-300 text-sm">League</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <div className="w-4 h-4 bg-green-600 rounded"></div>
-                    <span className="text-green-300 text-sm">Daily Cup</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <div className="w-4 h-4 bg-purple-600 rounded"></div>
-                    <span className="text-purple-300 text-sm">Mid-Season Cup</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <div className="w-4 h-4 bg-gray-600 rounded"></div>
-                    <span className="text-gray-300 text-sm">Exhibition</span>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
+          {/* SCHEDULE TAB - REDESIGNED WITH FILTERS AND DAY-GROUPED LAYOUT */}
+          <TabsContent value="schedule" className="space-y-4">
+            <ScheduleView 
+              team={team}
+              seasonData={seasonData}
+              dailySchedule={dailySchedule}
+              upcomingMatches={upcomingMatches}
+              recentMatches={recentMatches}
+            />
           </TabsContent>
 
         </Tabs>
