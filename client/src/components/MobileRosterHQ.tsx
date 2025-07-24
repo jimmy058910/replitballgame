@@ -6,6 +6,7 @@ import { Badge } from './ui/badge';
 import { Button } from './ui/button';
 import { Progress } from './ui/progress';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/tabs';
+import { Sheet, SheetContent, SheetTrigger } from './ui/sheet';
 import { 
   Users, 
   Zap, 
@@ -19,7 +20,14 @@ import {
   Settings,
   Shield,
   Trophy,
-  Building
+  Building,
+  Activity,
+  FileText,
+  Briefcase,
+  Handshake,
+  Swords,
+  Filter,
+  X
 } from 'lucide-react';
 import UnifiedTeamHeader from './UnifiedTeamHeader';
 import PlayerDetailModal from './PlayerDetailModal';
@@ -85,6 +93,7 @@ type Stadium = {
 };
 
 type TabType = 'roster' | 'tactics' | 'camaraderie' | 'stadium' | 'personnel';
+type RosterView = 'all' | 'medical' | 'contracts';
 
 export default function MobileRosterHQ() {
   const { isAuthenticated } = useAuth();
@@ -92,6 +101,8 @@ export default function MobileRosterHQ() {
   const [activeTab, setActiveTab] = useState<TabType>('roster');
   const [selectedPlayer, setSelectedPlayer] = useState<Player | null>(null);
   const [selectedStaff, setSelectedStaff] = useState<Staff | null>(null);
+  const [rosterView, setRosterView] = useState<RosterView>('all');
+  const [isQuickActionsOpen, setIsQuickActionsOpen] = useState(false);
 
   // Queries
   const { data: team, isLoading: teamLoading } = useQuery<Team>({
@@ -161,6 +172,166 @@ export default function MobileRosterHQ() {
     return names[type] || type.replace('_', ' ');
   };
 
+  // Navigation helper functions
+  const handleQuickAction = (action: string, view?: RosterView, tab?: TabType) => {
+    if (view) {
+      setRosterView(view);
+      const url = new URL(window.location.href);
+      url.searchParams.set('view', view);
+      window.history.pushState({}, '', url.toString());
+    }
+    if (tab) {
+      setActiveTab(tab);
+      const url = new URL(window.location.href);
+      url.searchParams.set('tab', tab);
+      window.history.pushState({}, '', url.toString());
+    }
+    setIsQuickActionsOpen(false);
+  };
+
+  // Quick Actions Sidebar Component
+  const QuickActionsSidebar = ({ className = '' }) => (
+    <div className={`space-y-4 ${className}`}>
+      <div className="mb-6">
+        <h3 className="text-lg font-bold text-white mb-4 flex items-center">
+          <Zap className="w-5 h-5 mr-2 text-yellow-400" />
+          Quick Actions
+        </h3>
+      </div>
+
+      {/* Medical Bay */}
+      <Card 
+        className="bg-gradient-to-r from-red-700/80 to-red-800/80 border-red-500 cursor-pointer hover:scale-105 transition-all duration-200"
+        onClick={() => handleQuickAction('medical', 'medical')}
+      >
+        <CardContent className="p-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <Activity className="w-6 h-6 text-red-400" />
+              <div>
+                <h4 className="font-semibold text-white text-sm">🏥 Medical Bay</h4>
+                <p className="text-red-200 text-xs">Injured: {injuredPlayers.length} • Low Stamina: {lowStaminaPlayers.length}</p>
+              </div>
+            </div>
+            <Badge variant="destructive" className="text-xs">
+              {injuredPlayers.length + lowStaminaPlayers.length}
+            </Badge>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Contract Center */}
+      <Card 
+        className="bg-gradient-to-r from-blue-700/80 to-blue-800/80 border-blue-500 cursor-pointer hover:scale-105 transition-all duration-200"
+        onClick={() => handleQuickAction('contracts', 'contracts')}
+      >
+        <CardContent className="p-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <FileText className="w-6 h-6 text-blue-400" />
+              <div>
+                <h4 className="font-semibold text-white text-sm">📄 Contracts</h4>
+                <p className="text-blue-200 text-xs">Expiring Soon: {expiringContracts.length}</p>
+              </div>
+            </div>
+            <Badge className="bg-blue-600 text-white text-xs">
+              {expiringContracts.length} exp.
+            </Badge>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Staff Management */}
+      <Card 
+        className="bg-gradient-to-r from-orange-700/80 to-orange-800/80 border-orange-500 cursor-pointer hover:scale-105 transition-all duration-200"
+        onClick={() => handleQuickAction('staff', undefined, 'personnel')}
+      >
+        <CardContent className="p-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <Briefcase className="w-6 h-6 text-orange-400" />
+              <div>
+                <h4 className="font-semibold text-white text-sm">👥 Personnel</h4>
+                <p className="text-orange-200 text-xs">Staff: {staff?.length || 0}</p>
+              </div>
+            </div>
+            <Badge className="bg-orange-600 text-white text-xs">
+              {staff?.length || 0}
+            </Badge>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Camaraderie Lab */}
+      <Card 
+        className="bg-gradient-to-r from-yellow-700/80 to-yellow-800/80 border-yellow-500 cursor-pointer hover:scale-105 transition-all duration-200"
+        onClick={() => handleQuickAction('camaraderie', undefined, 'camaraderie')}
+      >
+        <CardContent className="p-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <Handshake className="w-6 h-6 text-yellow-400" />
+              <div>
+                <h4 className="font-semibold text-white text-sm">🤝 Chemistry</h4>
+                <p className="text-yellow-200 text-xs">Team Morale: {team?.camaraderie || 0}/100</p>
+              </div>
+            </div>
+            <Badge className="bg-yellow-600 text-white text-xs">
+              {team?.camaraderie || 0}/100
+            </Badge>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Tactics & Lineup */}
+      <Card 
+        className="bg-gradient-to-r from-green-700/80 to-green-800/80 border-green-500 cursor-pointer hover:scale-105 transition-all duration-200"
+        onClick={() => handleQuickAction('tactics', undefined, 'tactics')}
+      >
+        <CardContent className="p-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <Swords className="w-6 h-6 text-green-400" />
+              <div>
+                <h4 className="font-semibold text-white text-sm">⚔️ Tactics</h4>
+                <p className="text-green-200 text-xs">Formation & Lineup</p>
+              </div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* View Filter Reset */}
+      {rosterView !== 'all' && (
+        <Card 
+          className="bg-gradient-to-r from-gray-700/80 to-gray-800/80 border-gray-500 cursor-pointer hover:scale-105 transition-all duration-200"
+          onClick={() => handleQuickAction('reset', 'all')}
+        >
+          <CardContent className="p-4">
+            <div className="flex items-center justify-center gap-2">
+              <X className="w-4 h-4 text-gray-400" />
+              <span className="text-white text-sm">Show All Players</span>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+    </div>
+  );
+
+  // URL parameter handling
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const view = urlParams.get('view') as RosterView;
+    const tab = urlParams.get('tab') as TabType;
+    
+    if (view && ['all', 'medical', 'contracts'].includes(view)) {
+      setRosterView(view);
+    }
+    if (tab && ['roster', 'tactics', 'camaraderie', 'stadium', 'personnel'].includes(tab)) {
+      setActiveTab(tab);
+    }
+  }, []);
+
   // Mark roster visit for daily tasks
   useEffect(() => {
     const today = new Date().toDateString();
@@ -182,6 +353,33 @@ export default function MobileRosterHQ() {
   const taxiSquad = sortedPlayers.slice(12, 15);
   const injuredPlayers = activePlayers.filter(p => p.injuryStatus !== 'HEALTHY');
   const lowStaminaPlayers = activePlayers.filter(p => p.dailyStaminaLevel < 50);
+  
+  // Contract calculations for Quick Actions
+  const currentDate = new Date();
+  const expiringContracts = activePlayers.filter(p => {
+    if (!p.contractStartDate || !p.contractLength) return false;
+    const contractStart = new Date(p.contractStartDate);
+    const contractEnd = new Date(contractStart);
+    contractEnd.setFullYear(contractStart.getFullYear() + p.contractLength);
+    const daysToExpiry = Math.ceil((contractEnd.getTime() - currentDate.getTime()) / (1000 * 3600 * 24));
+    return daysToExpiry <= 365; // Expiring within a year
+  });
+
+  // Filtered players based on current view
+  const getFilteredPlayers = () => {
+    switch (rosterView) {
+      case 'medical':
+        return [...injuredPlayers, ...lowStaminaPlayers];
+      case 'contracts':
+        return expiringContracts;
+      default:
+        return activePlayers;
+    }
+  };
+
+  const filteredPlayers = getFilteredPlayers();
+  const filteredMainRoster = filteredPlayers.filter((_, index) => index < 12);
+  const filteredTaxiSquad = filteredPlayers.filter((_, index) => index >= 12 && index < 15);
   
   // Role distribution
   const passers = activePlayers.filter(p => p.role === 'PASSER');
@@ -297,139 +495,220 @@ export default function MobileRosterHQ() {
             </TabsTrigger>
           </TabsList>
 
-          {/* TAB 1: ROSTER */}
+          {/* TAB 1: ROSTER WITH QUICK-ACTIONS */}
           <TabsContent value="roster" className="space-y-6 px-2">
-            {/* Main Roster */}
-            <Card className="bg-gradient-to-r from-blue-800 to-blue-900 border-2 border-blue-400">
-              <CardHeader>
-                <CardTitle className="flex items-center text-white">
-                  <Users className="w-6 h-6 mr-3 text-blue-400" />
-                  👥 MAIN ROSTER ({mainRoster.length} players)
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="p-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {mainRoster.map((player) => (
-                    <Card 
-                      key={player.id}
-                      className={`bg-gradient-to-r ${getRoleGradient(player.role)} border-2 border-white/20 cursor-pointer hover:scale-105 transition-all duration-200`}
-                      onClick={() => setSelectedPlayer(player)}
-                    >
-                      <CardContent className="p-4">
-                        <div className="flex items-start justify-between mb-2">
-                          <div className="flex-1">
-                            <div className="flex items-center gap-2 mb-1">
-                              <span className="text-lg">{getRacialIcon(player.race || 'Human')}</span>
-                              <h3 className="font-bold text-white text-sm">
-                                {player.firstName} {player.lastName}
-                              </h3>
-                            </div>
-                            <div className="flex items-center gap-2">
-                              <Badge variant="outline" className="text-xs text-white border-white/50">
-                                {getRoleIcon(player.role)} {player.role}
-                              </Badge>
-                              <Badge variant="outline" className="text-xs text-blue-300 border-blue-300">
-                                Age {player.age}
-                              </Badge>
-                            </div>
-                          </div>
-                          <div className="text-right">
-                            <div className="text-lg font-bold text-white">
-                              {getPlayerPower(player)}
-                            </div>
-                            <div className="text-xs text-white/70">Power</div>
-                          </div>
-                        </div>
-                        
-                        {/* Contract Information */}
-                        <div className="mb-2 text-xs text-white/80">
-                          <div className="flex items-center gap-1">
-                            <Coins className="h-3 w-3 text-green-400" />
-                            <span>
-                              ₡{player.contractSalary?.toLocaleString() || '0'}/season, {player.contractLength || 0} seasons
-                            </span>
-                          </div>
-                        </div>
+            {/* Mobile Quick Actions FAB */}
+            <div className="fixed bottom-6 right-6 z-50 md:hidden">
+              <Sheet open={isQuickActionsOpen} onOpenChange={setIsQuickActionsOpen}>
+                <SheetTrigger asChild>
+                  <Button className="w-14 h-14 rounded-full bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-400 hover:to-orange-400 shadow-lg">
+                    <Zap className="w-6 h-6" />
+                  </Button>
+                </SheetTrigger>
+                <SheetContent side="bottom" className="bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900 border-t-2 border-blue-400">
+                  <QuickActionsSidebar />
+                </SheetContent>
+              </Sheet>
+            </div>
 
-                        {/* Health and Stamina */}
-                        <div className="flex justify-between text-xs">
-                          <div className="flex items-center gap-1">
-                            <Heart className="h-3 w-3 text-green-400" />
-                            <span className={`font-semibold ${player.injuryStatus === 'HEALTHY' ? 'text-green-400' : 'text-red-400'}`}>
-                              {player.injuryStatus === 'HEALTHY' ? 'Healthy' : 'Injured'}
-                            </span>
-                          </div>
-                          <div className="flex items-center gap-1">
-                            <Zap className="h-3 w-3 text-yellow-400" />
-                            <span className={`text-xs font-semibold ${getStaminaColor(player.dailyStaminaLevel)}`}>
-                              {player.dailyStaminaLevel}%
-                            </span>
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
+            {/* Current View Indicator */}
+            {rosterView !== 'all' && (
+              <Card className="bg-gradient-to-r from-purple-700 to-blue-700 border-blue-400">
+                <CardContent className="p-4">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <Filter className="w-5 h-5 text-blue-400" />
+                      <span className="text-white font-semibold">
+                        {rosterView === 'medical' && 'Showing Medical Issues'}
+                        {rosterView === 'contracts' && 'Showing Expiring Contracts'}
+                      </span>
+                    </div>
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={() => handleQuickAction('reset', 'all')}
+                      className="text-white border-white hover:bg-white hover:text-purple-900"
+                    >
+                      <X className="w-4 h-4 mr-1" />
+                      Clear Filter
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Two-Column Layout: 70% Roster Content + 30% Quick Actions Sidebar */}
+            <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+              {/* Left Column: Roster Content (70% on desktop) */}
+              <div className="lg:col-span-3 space-y-6">
+                {/* Main Roster */}
+                <Card className="bg-gradient-to-r from-blue-800 to-blue-900 border-2 border-blue-400">
+                  <CardHeader>
+                    <CardTitle className="flex items-center text-white">
+                      <Users className="w-6 h-6 mr-3 text-blue-400" />
+                      👥 MAIN ROSTER ({rosterView === 'all' ? mainRoster.length : filteredMainRoster.length} players)
+                      {rosterView !== 'all' && (
+                        <Badge className="ml-2 bg-purple-600">Filtered</Badge>
+                      )}
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="p-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-4">
+                      {(rosterView === 'all' ? mainRoster : filteredMainRoster).map((player) => (
+                        <Card 
+                          key={player.id}
+                          className={`bg-gradient-to-r ${getRoleGradient(player.role)} border-2 border-white/20 cursor-pointer hover:scale-105 transition-all duration-200`}
+                          onClick={() => setSelectedPlayer(player)}
+                        >
+                          <CardContent className="p-4">
+                            <div className="flex items-start justify-between mb-2">
+                              <div className="flex-1">
+                                <div className="flex items-center gap-2 mb-1">
+                                  <span className="text-lg">{getRacialIcon(player.race || 'Human')}</span>
+                                  <h3 className="font-bold text-white text-sm">
+                                    {player.firstName} {player.lastName}
+                                  </h3>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                  <Badge variant="outline" className="text-xs text-white border-white/50">
+                                    {getRoleIcon(player.role)} {player.role}
+                                  </Badge>
+                                  <Badge variant="outline" className="text-xs text-blue-300 border-blue-300">
+                                    Age {player.age}
+                                  </Badge>
+                                </div>
+                              </div>
+                              <div className="text-right">
+                                <div className="text-lg font-bold text-white">
+                                  {getPlayerPower(player)}
+                                </div>
+                                <div className="text-xs text-white/70">Power</div>
+                              </div>
+                            </div>
+                            
+                            {/* Contract Information */}
+                            <div className="mb-2 text-xs text-white/80">
+                              <div className="flex items-center gap-1">
+                                <Coins className="h-3 w-3 text-green-400" />
+                                <span>
+                                  ₡{player.contractSalary?.toLocaleString() || '0'}/season, {player.contractLength || 0} seasons
+                                </span>
+                              </div>
+                            </div>
+
+                            {/* Health and Stamina */}
+                            <div className="flex justify-between text-xs">
+                              <div className="flex items-center gap-1">
+                                <Heart className="h-3 w-3 text-green-400" />
+                                <span className={`font-semibold ${player.injuryStatus === 'HEALTHY' ? 'text-green-400' : 'text-red-400'}`}>
+                                  {player.injuryStatus === 'HEALTHY' ? 'Healthy' : 'Injured'}
+                                </span>
+                              </div>
+                              <div className="flex items-center gap-1">
+                                <Zap className="h-3 w-3 text-yellow-400" />
+                                <span className={`text-xs font-semibold ${getStaminaColor(player.dailyStaminaLevel)}`}>
+                                  {player.dailyStaminaLevel}%
+                                </span>
+                              </div>
+                            </div>
+                          </CardContent>
+                        </Card>
                   ))}
                 </div>
               </CardContent>
             </Card>
 
-            {/* Taxi Squad */}
-            {taxiSquad.length > 0 && (
-              <Card className="bg-gradient-to-r from-purple-800 to-purple-900 border-2 border-purple-400">
-                <CardHeader>
-                  <CardTitle className="flex items-center text-white">
-                    <Users className="w-6 h-6 mr-3 text-purple-400" />
-                    🚌 TAXI SQUAD ({taxiSquad.length}/2)
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="p-4">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {taxiSquad.map((player) => (
-                      <Card 
-                        key={player.id}
-                        className="bg-gradient-to-r from-purple-700 to-purple-800 border-2 border-purple-500 cursor-pointer hover:scale-105 transition-all duration-200"
-                        onClick={() => setSelectedPlayer(player)}
+                {/* Taxi Squad */}
+                {((rosterView === 'all' ? taxiSquad : filteredTaxiSquad).length > 0) && (
+                  <Card className="bg-gradient-to-r from-purple-800 to-purple-900 border-2 border-purple-400">
+                    <CardHeader>
+                      <CardTitle className="flex items-center text-white">
+                        <Users className="w-6 h-6 mr-3 text-purple-400" />
+                        🚌 TAXI SQUAD ({rosterView === 'all' ? taxiSquad.length : filteredTaxiSquad.length}/2)
+                        {rosterView !== 'all' && (
+                          <Badge className="ml-2 bg-purple-600">Filtered</Badge>
+                        )}
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="p-4">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        {(rosterView === 'all' ? taxiSquad : filteredTaxiSquad).map((player) => (
+                          <Card 
+                            key={player.id}
+                            className="bg-gradient-to-r from-purple-700 to-purple-800 border-2 border-purple-500 cursor-pointer hover:scale-105 transition-all duration-200"
+                            onClick={() => setSelectedPlayer(player)}
+                          >
+                            <CardContent className="p-4">
+                              <div className="flex items-start justify-between mb-2">
+                                <div className="flex-1">
+                                  <div className="flex items-center gap-2 mb-1">
+                                    <span className="text-lg">{getRacialIcon(player.race || 'Human')}</span>
+                                    <h3 className="font-bold text-white text-sm">
+                                      {player.firstName} {player.lastName}
+                                    </h3>
+                                  </div>
+                                  <div className="flex items-center gap-2">
+                                    <Badge variant="outline" className="text-xs text-white border-white/50">
+                                      {getRoleIcon(player.role)} {player.role}
+                                    </Badge>
+                                    <Badge className="bg-purple-600 text-white text-xs">
+                                      DEVELOPMENT
+                                    </Badge>
+                                  </div>
+                                </div>
+                                <div className="text-right">
+                                  <div className="text-lg font-bold text-white">
+                                    {getPlayerPower(player)}
+                                  </div>
+                                  <div className="text-xs text-white/70">Power</div>
+                                </div>
+                              </div>
+                              
+                              <div className="p-2 bg-purple-900/50 rounded text-xs">
+                                <div className="text-purple-200 mb-1">🚌 Taxi Squad Status</div>
+                                <div className="flex justify-between">
+                                  <span className="text-white/70">Promotion Available:</span>
+                                  <span className="text-yellow-300">Days 16-17</span>
+                                </div>
+                              </div>
+                            </CardContent>
+                          </Card>
+                        ))}
+                      </div>
+                    </CardContent>
+                  </Card>
+                )}
+
+                {/* No Results Message */}
+                {rosterView !== 'all' && filteredMainRoster.length === 0 && filteredTaxiSquad.length === 0 && (
+                  <Card className="bg-gradient-to-r from-gray-700 to-gray-800 border-gray-500">
+                    <CardContent className="p-8 text-center">
+                      <div className="text-gray-400 mb-4">
+                        <Users className="w-12 h-12 mx-auto mb-2" />
+                      </div>
+                      <h3 className="text-white font-semibold mb-2">No Players Found</h3>
+                      <p className="text-gray-300 text-sm mb-4">
+                        {rosterView === 'medical' && 'No players currently have medical issues.'}
+                        {rosterView === 'contracts' && 'No contracts are expiring soon.'}
+                      </p>
+                      <Button 
+                        onClick={() => handleQuickAction('reset', 'all')}
+                        className="bg-blue-600 hover:bg-blue-700"
                       >
-                        <CardContent className="p-4">
-                          <div className="flex items-start justify-between mb-2">
-                            <div className="flex-1">
-                              <div className="flex items-center gap-2 mb-1">
-                                <span className="text-lg">{getRacialIcon(player.race || 'Human')}</span>
-                                <h3 className="font-bold text-white text-sm">
-                                  {player.firstName} {player.lastName}
-                                </h3>
-                              </div>
-                              <div className="flex items-center gap-2">
-                                <Badge variant="outline" className="text-xs text-white border-white/50">
-                                  {getRoleIcon(player.role)} {player.role}
-                                </Badge>
-                                <Badge className="bg-purple-600 text-white text-xs">
-                                  DEVELOPMENT
-                                </Badge>
-                              </div>
-                            </div>
-                            <div className="text-right">
-                              <div className="text-lg font-bold text-white">
-                                {getPlayerPower(player)}
-                              </div>
-                              <div className="text-xs text-white/70">Power</div>
-                            </div>
-                          </div>
-                          
-                          <div className="p-2 bg-purple-900/50 rounded text-xs">
-                            <div className="text-purple-200 mb-1">🚌 Taxi Squad Status</div>
-                            <div className="flex justify-between">
-                              <span className="text-white/70">Promotion Available:</span>
-                              <span className="text-yellow-300">Days 16-17</span>
-                            </div>
-                          </div>
-                        </CardContent>
-                      </Card>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
-            )}
+                        Show All Players
+                      </Button>
+                    </CardContent>
+                  </Card>
+                )}
+              </div>
+
+              {/* Right Column: Quick Actions Sidebar (30% on desktop, hidden on mobile) */}
+              <div className="hidden lg:block">
+                <div className="sticky top-6">
+                  <QuickActionsSidebar />
+                </div>
+              </div>
+            </div>
           </TabsContent>
 
           {/* TAB 2: TACTICS */}
