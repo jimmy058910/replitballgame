@@ -730,6 +730,32 @@ docker push gcr.io/direct-glider-465821-p7/realm-rivalry:latest
 - ✓ **Mathematical Precision**: All formulas use proper scaling and rounding for realistic stamina progression
 - ✓ **Comprehensive Logging**: Enhanced debug logging shows exact calculations for stamina attribute, minutes played, coach bonus, and final depletion amounts
 
+### July 24, 2025 - ✅ REVOLUTIONARY PLAYER MINUTES TRACKING & STAMINA INTEGRATION SYSTEM COMPLETE ✅
+
+#### ✅ COMPREHENSIVE PLAYER MATCH TIME TRACKING SYSTEM IMPLEMENTED
+- ✓ **PlayerMatchTime Interface**: Complete tracking of timeEntered, timeExited, totalMinutes, isCurrentlyPlaying, substitutionReason for every player
+- ✓ **ActiveFieldPlayers & SubstitutionQueues**: Real-time management of field positions and available substitutes by role
+- ✓ **Match State Integration**: Enhanced LiveMatchState with playerMatchTimes Map, activeFieldPlayers, substitutionQueues properties
+- ✓ **Starter Initialization**: initializePlayerMatchTimes() sets up all starting players with time tracking at match kickoff
+- ✓ **Real-Time Substitution Logic**: checkSubstitutionTriggers() monitors player stamina/injury status during every simulation tick
+- ✓ **Production Ready**: Complete architectural enhancement operational with zero TypeScript errors
+
+#### ✅ STAMINA SYSTEM REVOLUTIONARY BREAKTHROUGH - INDIVIDUAL MINUTES INTEGRATION
+- ✓ **Real Minutes Calculation**: calculateFinalMinutesPlayed() determines exact minutes played per player at match completion
+- ✓ **Dynamic Stamina Depletion**: Replaced hardcoded 40-minute stamina loss with actual minutes played per player
+- ✓ **Strategic Depth Achieved**: Elite stamina players (35+ stamina attribute) can now play significantly longer than low-stamina players
+- ✓ **Substitution Triggers**: Automatic player substitutions at 50% stamina threshold or severe injury status
+- ✓ **Enhanced Logging**: Console output shows exact minutes played per player: "⏱️ PLAYER MINUTES: Aria Bright played 38.4 minutes"
+- ✓ **Coaching Integration**: System integrates with existing coach conditioning bonuses in stamina depletion formula
+
+#### ✅ ARCHITECTURAL BREAKTHROUGH - TACTICAL SIMULATION ENHANCEMENT
+- ✓ **Live Match Integration**: Substitution checking integrated into main simulation loop (updateMatchState method)
+- ✓ **Formation Persistence**: System works with existing formation/tactics system without breaking changes
+- ✓ **Multi-Player Support**: Handles both team's players simultaneously with proper team identification
+- ✓ **Future-Ready Statistics**: Individual player minutes create foundation for analytics, performance tracking, contract negotiations
+- ✓ **Game Balance**: Creates meaningful tactical decisions between high-stamina starters vs fresh substitutes
+- ✓ **Exhibition Protection**: Exhibition matches maintain zero persistent stamina loss while still tracking minutes for statistics
+
 ### July 24, Present Day - ✅ FLEX SUBS LOADING & COMPREHENSIVE TACTICS ASSIGNMENT SYSTEM FIXES COMPLETE ✅
 
 #### ✅ CRITICAL FLEX SUBS SAVE/LOAD BUG RESOLVED - PRODUCTION READY

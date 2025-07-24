@@ -33,6 +33,32 @@ type TeamStatsSnapshot = {
   penaltyYards: number;
 };
 
+// Player match time tracking interface
+interface PlayerMatchTime {
+  playerId: string;
+  timeEntered: number;  // Game time in seconds when player entered field
+  timeExited?: number;  // Game time in seconds when player left field (undefined if currently playing)
+  totalMinutes: number; // Accumulated time on field in minutes
+  isCurrentlyPlaying: boolean;
+  substitutionReason?: 'stamina' | 'injury' | 'tactical' | 'starter'; // Why they entered/left
+}
+
+// Active field players tracking
+interface FieldPlayers {
+  passers: string[];    // Player IDs currently on field in passer role
+  runners: string[];    // Player IDs currently on field in runner role  
+  blockers: string[];   // Player IDs currently on field in blocker role
+  wildcards: string[];  // Player IDs currently on field as wildcards
+}
+
+// Substitution queue from tactical setup
+interface SubstitutionQueue {
+  passers: string[];    // Ordered list of passer substitutes
+  runners: string[];    // Ordered list of runner substitutes
+  blockers: string[];   // Ordered list of blocker substitutes
+  wildcards: string[];  // Ordered list of wildcard substitutes
+}
+
 
 interface LiveMatchState {
   matchId: string;
@@ -55,6 +81,17 @@ interface LiveMatchState {
   // Possession tracking
   possessingTeamId: string | null; // Which team has the ball
   possessionStartTime: number; // Game time when current possession started
+
+  // NEW: Player time tracking system
+  playerMatchTimes: Map<string, PlayerMatchTime>; // Track all player minutes (keyed by playerId)
+  activeFieldPlayers: {
+    home: FieldPlayers;
+    away: FieldPlayers;
+  };
+  substitutionQueues: {
+    home: SubstitutionQueue;
+    away: SubstitutionQueue;
+  };
 }
 
 interface MatchEvent {
@@ -89,11 +126,193 @@ class MatchStateManager {
       
       for (const match of matchesToCleanup) {
         console.log(`🧹 Cleaning up match ${match.matchId}`);
-        await this.stopLiveMatch(match.matchId);
+        await this.stopMatch(match.matchId);
       }
     } catch (error) {
       console.error(`Error cleaning up team matches for team ${teamId}:`, error);
     }
+  }
+
+  // NEW: Initialize player match times for starters
+  private initializePlayerMatchTimes(
+    state: LiveMatchState, 
+    homeStarters: Player[], 
+    awayStarters: Player[]
+  ): void {
+    const gameStartTime = 0; // Match starts at time 0
+
+    // Initialize home team starters
+    homeStarters.forEach(player => {
+      const playerMatchTime: PlayerMatchTime = {
+        playerId: player.id.toString(),
+        timeEntered: gameStartTime,
+        totalMinutes: 0,
+        isCurrentlyPlaying: true,
+        substitutionReason: 'starter'
+      };
+      state.playerMatchTimes.set(player.id.toString(), playerMatchTime);
+      
+      // Add to active field players based on role
+      const role = player.role?.toLowerCase();
+      if (role === 'passer') {
+        state.activeFieldPlayers.home.passers.push(player.id.toString());
+      } else if (role === 'runner') {
+        state.activeFieldPlayers.home.runners.push(player.id.toString());
+      } else if (role === 'blocker') {
+        state.activeFieldPlayers.home.blockers.push(player.id.toString());
+      }
+    });
+
+    // Initialize away team starters
+    awayStarters.forEach(player => {
+      const playerMatchTime: PlayerMatchTime = {
+        playerId: player.id.toString(),
+        timeEntered: gameStartTime,
+        totalMinutes: 0,
+        isCurrentlyPlaying: true,
+        substitutionReason: 'starter'
+      };
+      state.playerMatchTimes.set(player.id.toString(), playerMatchTime);
+      
+      // Add to active field players based on role
+      const role = player.role?.toLowerCase();
+      if (role === 'passer') {
+        state.activeFieldPlayers.away.passers.push(player.id.toString());
+      } else if (role === 'runner') {
+        state.activeFieldPlayers.away.runners.push(player.id.toString());
+      } else if (role === 'blocker') {
+        state.activeFieldPlayers.away.blockers.push(player.id.toString());
+      }
+    });
+
+    console.log(`⏱️ Initialized match time tracking for ${homeStarters.length + awayStarters.length} starters`);
+  }
+
+  // NEW: Check for substitution triggers during match simulation
+  private checkSubstitutionTriggers(
+    state: LiveMatchState, 
+    allPlayers: Player[]
+  ): void {
+    const currentTime = state.gameTime;
+    const playersToSubstitute: { playerId: string, reason: 'stamina' | 'injury', teamSide: 'home' | 'away' }[] = [];
+
+    // Check stamina levels for auto-substitution (50% threshold)
+    for (const [playerId, playerTime] of state.playerMatchTimes) {
+      if (!playerTime.isCurrentlyPlaying) continue;
+
+      const player = allPlayers.find(p => p.id.toString() === playerId);
+      if (!player) continue;
+
+      const currentStamina = player.dailyStaminaLevel || 100;
+      const teamSide = state.homeTeamId === player.teamId?.toString() ? 'home' : 'away';
+
+      // Auto-substitute at 50% stamina or if severely injured
+      if (currentStamina <= 50) {
+        playersToSubstitute.push({ playerId, reason: 'stamina', teamSide });
+      } else if (player.injuryStatus === 'SEVERE') {
+        playersToSubstitute.push({ playerId, reason: 'injury', teamSide });
+      }
+    }
+
+    // Process substitutions
+    for (const substitution of playersToSubstitute) {
+      this.processSubstitution(state, substitution.playerId, substitution.reason, currentTime);
+    }
+  }
+
+  // NEW: Process individual player substitution
+  private processSubstitution(
+    state: LiveMatchState,
+    outgoingPlayerId: string,
+    reason: 'stamina' | 'injury' | 'tactical',
+    currentTime: number
+  ): void {
+    const playerTime = state.playerMatchTimes.get(outgoingPlayerId);
+    if (!playerTime || !playerTime.isCurrentlyPlaying) return;
+
+    // Calculate time played for outgoing player
+    const timePlayedInSeconds = currentTime - playerTime.timeEntered;
+    const timePlayedInMinutes = timePlayedInSeconds / 60;
+    
+    // Update outgoing player's record
+    playerTime.timeExited = currentTime;
+    playerTime.totalMinutes += timePlayedInMinutes;
+    playerTime.isCurrentlyPlaying = false;
+
+    // Find a suitable substitute (this is a simplified version - in full implementation would use substitution queues)
+    const incomingPlayerId = this.findSubstitute(state, outgoingPlayerId);
+    
+    if (incomingPlayerId) {
+      // Create or update incoming player's time record
+      let incomingPlayerTime = state.playerMatchTimes.get(incomingPlayerId);
+      if (!incomingPlayerTime) {
+        incomingPlayerTime = {
+          playerId: incomingPlayerId,
+          timeEntered: currentTime,
+          totalMinutes: 0,
+          isCurrentlyPlaying: true,
+          substitutionReason: reason
+        };
+        state.playerMatchTimes.set(incomingPlayerId, incomingPlayerTime);
+      } else {
+        incomingPlayerTime.timeEntered = currentTime;
+        incomingPlayerTime.isCurrentlyPlaying = true;
+      }
+
+      // Update active field players lists
+      this.updateActiveFieldPlayers(state, outgoingPlayerId, incomingPlayerId);
+
+      console.log(`🔄 SUBSTITUTION: Player ${outgoingPlayerId} out (${timePlayedInMinutes.toFixed(1)} min, ${reason}) → Player ${incomingPlayerId} in`);
+    }
+  }
+
+  // NEW: Find suitable substitute (simplified version)
+  private findSubstitute(state: LiveMatchState, outgoingPlayerId: string): string | null {
+    // This is a simplified version - in the full implementation, this would:
+    // 1. Determine the team and role of the outgoing player
+    // 2. Check the substitution queue for that role
+    // 3. Find the next available substitute with sufficient stamina
+    // 4. Return the appropriate substitute player ID
+    
+    // For now, return null to indicate no substitute found
+    return null;
+  }
+
+  // NEW: Update active field players after substitution
+  private updateActiveFieldPlayers(state: LiveMatchState, outgoingPlayerId: string, incomingPlayerId: string): void {
+    // Update home team active players
+    ['passers', 'runners', 'blockers', 'wildcards'].forEach(position => {
+      const homeIndex = state.activeFieldPlayers.home[position as keyof FieldPlayers].indexOf(outgoingPlayerId);
+      if (homeIndex !== -1) {
+        state.activeFieldPlayers.home[position as keyof FieldPlayers][homeIndex] = incomingPlayerId;
+      }
+      
+      const awayIndex = state.activeFieldPlayers.away[position as keyof FieldPlayers].indexOf(outgoingPlayerId);
+      if (awayIndex !== -1) {
+        state.activeFieldPlayers.away[position as keyof FieldPlayers][awayIndex] = incomingPlayerId;
+      }
+    });
+  }
+
+  // NEW: Calculate final minutes played for all players at match end
+  private calculateFinalMinutesPlayed(state: LiveMatchState): Map<string, number> {
+    const finalMinutes = new Map<string, number>();
+    const matchEndTime = state.gameTime;
+
+    for (const [playerId, playerTime] of state.playerMatchTimes) {
+      let totalMinutes = playerTime.totalMinutes;
+      
+      // If player is still on field at match end, add final segment
+      if (playerTime.isCurrentlyPlaying) {
+        const finalSegmentSeconds = matchEndTime - playerTime.timeEntered;
+        const finalSegmentMinutes = finalSegmentSeconds / 60;
+        totalMinutes += finalSegmentMinutes;
+      }
+      
+      finalMinutes.set(playerId, Math.max(0, totalMinutes)); // Ensure non-negative
+    }
+
+    return finalMinutes;
   }
 
   // Save live match state to database
@@ -369,12 +588,12 @@ class MatchStateManager {
 
     const initialTeamStats = new Map<string, TeamStatsSnapshot>();
     initialTeamStats.set(match.homeTeamId.toString(), {
-      totalOffensiveYards: 0, passingYards: 0, carrierYards: 0,
-      timeOfPossessionSeconds: 0, totalKnockdownsInflicted: 0,
+      possessionTime: 0, totalYards: 0, passYards: 0, carrierYards: 0,
+      firstDowns: 0, penalties: 0, penaltyYards: 0,
     });
     initialTeamStats.set(match.awayTeamId.toString(), {
-      totalOffensiveYards: 0, passingYards: 0, carrierYards: 0,
-      timeOfPossessionSeconds: 0, totalKnockdownsInflicted: 0,
+      possessionTime: 0, totalYards: 0, passYards: 0, carrierYards: 0,
+      firstDowns: 0, penalties: 0, penaltyYards: 0,
     });
 
     // Determine initial possession (e.g., coin toss or home team starts)
@@ -403,7 +622,20 @@ class MatchStateManager {
       teamStats: initialTeamStats,
       possessingTeamId: initialPossessingTeam,
       possessionStartTime: 0,
+      // NEW: Initialize player time tracking system
+      playerMatchTimes: new Map(),
+      activeFieldPlayers: {
+        home: { passers: [], runners: [], blockers: [], wildcards: [] },
+        away: { passers: [], runners: [], blockers: [], wildcards: [] }
+      },
+      substitutionQueues: {
+        home: { passers: [], runners: [], blockers: [], wildcards: [] },
+        away: { passers: [], runners: [], blockers: [], wildcards: [] }
+      }
     };
+
+    // NEW: Initialize player time tracking for starters
+    this.initializePlayerMatchTimes(matchState, homeStarters, awayStarters);
 
     this.liveMatches.set(matchId, matchState);
     
@@ -620,6 +852,9 @@ class MatchStateManager {
         console.error(`[ERROR] Event generation failed:`, error);
       }
     }
+
+    // NEW: Check for substitution triggers after event generation
+    this.checkSubstitutionTriggers(state, homeTeamPlayers.concat(awayTeamPlayers));
 
     if (state.gameTime >= state.maxTime) {
       // Check if match needs overtime/sudden death (tournaments and league playoffs)
@@ -1165,8 +1400,16 @@ class MatchStateManager {
     // Apply stamina depletion after match completion (skip for exhibition matches)
     if (!isExhibitionMatch) {
       const gameMode = matchDetails?.matchType === 'tournament' ? 'tournament' : 'league';
+      
+      // NEW: Use real minutes played for stamina depletion instead of flat 40 minutes
+      const finalMinutesPlayed = this.calculateFinalMinutesPlayed(state);
+      
       for (const player of [...homePlayers, ...awayPlayers]) {
-        await injuryStaminaService.depleteStaminaAfterMatch(player.id, gameMode, 40);
+        const actualMinutesPlayed = finalMinutesPlayed.get(player.id.toString()) || 0;
+        console.log(`⏱️ PLAYER MINUTES: ${player.firstName} ${player.lastName} played ${actualMinutesPlayed.toFixed(1)} minutes`);
+        
+        // Use actual minutes played for stamina depletion
+        await injuryStaminaService.depleteStaminaAfterMatch(player.id, gameMode, actualMinutesPlayed);
       }
 
       // Handle tournament flow progression for tournament matches

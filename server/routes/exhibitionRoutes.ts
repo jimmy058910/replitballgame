@@ -109,8 +109,8 @@ router.get('/available-opponents', isAuthenticated, async (req: any, res: Respon
     const team = await storage.teams.getTeamByUserId(userId);
     if (!team || team.division === undefined) return res.status(404).json({ message: "Team or team division not found." });
 
-    const divisionTeams = await storage.teams.getTeamsByDivision(team.division || 1);
-    const opponents = divisionTeams.filter(t => t.id !== team.id && t.userId !== userId);
+    const divisionTeams = await storage.teams.getTeamsInDivision(team.division || 1);
+    const opponents = divisionTeams.filter((t: any) => t.id !== team.id && t.userId !== userId);
 
     if (opponents.length === 0) {
       return res.status(404).json({ message: "No opponents available in your division right now." });
