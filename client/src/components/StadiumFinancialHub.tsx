@@ -22,9 +22,6 @@ import {
   AlertTriangle,
   CheckCircle,
   ChevronRight,
-  Eye,
-  Calculator,
-  Clock,
   Home,
   Car,
   ShoppingBag,
@@ -214,8 +211,6 @@ const RadialGauge: React.FC<{
 
 const StadiumFinancialHub: React.FC<StadiumFinancialHubProps> = ({ team, stadium }) => {
   const [selectedUpgrade, setSelectedUpgrade] = useState<UpgradeOption | null>(null);
-  const [showUpgradeHistory, setShowUpgradeHistory] = useState(false);
-  const [showROICalculator, setShowROICalculator] = useState(false);
 
   // Fetch stadium analytics from backend
   const { data: stadiumAnalytics, isLoading } = useQuery({
@@ -545,40 +540,7 @@ const StadiumFinancialHub: React.FC<StadiumFinancialHubProps> = ({ team, stadium
             </CardContent>
           </Card>
 
-          {/* 4. Action Strip (Sticky Footer on Mobile) */}
-          <div className="fixed bottom-4 left-4 right-4 md:relative md:bottom-auto md:left-auto md:right-auto">
-            <div className="flex gap-2 bg-gray-800/95 backdrop-blur p-3 rounded-lg border border-gray-700 max-w-6xl mx-auto">
-              <Button 
-                variant="outline" 
-                size="sm"
-                onClick={() => setShowUpgradeHistory(true)}
-                className="flex-1 md:flex-initial border-gray-600 text-white hover:bg-gray-700"
-              >
-                <Eye className="w-4 h-4 mr-2" />
-                Upgrade History
-              </Button>
-              <Button 
-                variant="outline" 
-                size="sm"
-                className="flex-1 md:flex-initial border-gray-600 text-white hover:bg-gray-700"
-              >
-                <Clock className="w-4 h-4 mr-2" />
-                Queue (0)
-              </Button>
-              <Button 
-                variant="outline" 
-                size="sm"
-                onClick={() => setShowROICalculator(true)}
-                className="flex-1 md:flex-initial border-gray-600 text-white hover:bg-gray-700"
-              >
-                <Calculator className="w-4 h-4 mr-2" />
-                ROI Calculator
-              </Button>
-            </div>
-          </div>
 
-          {/* Spacing for fixed footer on mobile */}
-          <div className="h-20 md:h-0" />
         </div>
       </div>
     </TooltipProvider>
