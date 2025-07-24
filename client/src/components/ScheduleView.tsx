@@ -329,7 +329,7 @@ export default function ScheduleView({
                           {/* LEFT: Game Day / Time */}
                           <div className="flex items-center gap-3">
                             <div className={`w-3 h-3 rounded-full ${
-                              isMyMatch ? 'bg-yellow-400 animate-pulse' : getMatchTypeIconColor(match.matchType)
+                              isMyMatch ? 'bg-yellow-400 animate-pulse' : getMatchTypeIconColor(match.matchType || 'league')
                             }`}></div>
                             <div className="text-sm">
                               <div className="text-gray-300 font-medium">{gameDate}</div>
@@ -355,8 +355,11 @@ export default function ScheduleView({
                           
                           {/* RIGHT: Badge and Action Button */}
                           <div className="flex items-center gap-2">
-                            <Badge className={`text-xs ${getMatchTypeColor(match.matchType)}`}>
-                              {match.matchType.charAt(0) + match.matchType.slice(1).toLowerCase()}
+                            <Badge className={`text-xs ${getMatchTypeColor(match.matchType || 'league')}`}>
+                              {match.matchType ? 
+                                match.matchType.charAt(0).toUpperCase() + match.matchType.slice(1).toLowerCase() : 
+                                'League'
+                              }
                             </Badge>
                             {isMyMatch && (
                               <>
