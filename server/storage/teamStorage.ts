@@ -127,8 +127,14 @@ export class TeamStorage {
   }
 
   async getTeamById(id: number): Promise<any> {
+    if (!id) {
+      throw new Error('Team ID is required');
+    }
+    
     const team = await prisma.team.findUnique({
-      where: { id: id },
+      where: { 
+        id: Number(id) 
+      },
       include: {
         finances: true,
         stadium: true,
@@ -141,6 +147,10 @@ export class TeamStorage {
         staff: true
       }
     });
+    
+    if (!team) {
+      return null;
+    }
     
     return await serializeTeamData(team);
   }

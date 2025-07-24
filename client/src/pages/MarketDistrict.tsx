@@ -58,6 +58,7 @@ interface StoreItem {
   tier: string;
   raceRestriction?: string;
   statEffects?: any;
+  effect?: string;
   slot?: string;
   purchased: number;
   dailyLimit: number;
@@ -421,7 +422,17 @@ export default function MarketDistrict() {
                       </div>
                     ) : storeItems?.length ? (
                       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                        {storeItems.map((item) => (
+                        {storeItems.map((item) => {
+                          // Debug logging to see item structure
+                          console.log('🔍 MarketDistrict Item Debug:', {
+                            name: item.name,
+                            raceRestriction: item.raceRestriction,
+                            statEffects: item.statEffects,
+                            effect: item.effect,
+                            slot: item.slot,
+                            fullItem: item
+                          });
+                          return (
                           <Card key={item.id} className="border-2 hover:border-blue-300 transition-colors bg-gray-700 border-gray-600">
                             <CardContent className="p-4">
                               <div className="mb-3">
@@ -441,12 +452,49 @@ export default function MarketDistrict() {
                                 </div>
                               </div>
                               
-                              {/* Item Description/Effects */}
-                              {item.description && (
-                                <div className="text-xs text-gray-300 bg-gray-800/50 p-2 rounded mb-3 min-h-[3rem] flex items-center">
-                                  <p className="leading-tight">{item.description}</p>
-                                </div>
-                              )}
+                              {/* Enhanced Item Information - Effects, Stats, Race Restrictions */}
+                              <div className="space-y-2 mb-3">
+                                {/* Item Description */}
+                                {item.description && (
+                                  <div className="text-xs text-gray-300 bg-gray-800/50 p-2 rounded">
+                                    <p className="leading-tight">{item.description}</p>
+                                  </div>
+                                )}
+                                
+                                {/* Race Restriction */}
+                                {item.raceRestriction && (
+                                  <div className="text-xs bg-purple-900/30 border border-purple-500/30 rounded p-2">
+                                    <div className="flex items-center gap-1 text-purple-300">
+                                      <span className="font-semibold">Race:</span>
+                                      <span className="capitalize">{item.raceRestriction.toLowerCase()}</span>
+                                    </div>
+                                  </div>
+                                )}
+                                
+                                {/* Stat Effects */}
+                                {item.statEffects && Object.keys(item.statEffects).length > 0 && (
+                                  <div className="text-xs bg-green-900/30 border border-green-500/30 rounded p-2">
+                                    <div className="font-semibold text-green-300 mb-1">Stat Bonuses:</div>
+                                    <div className="flex flex-wrap gap-1">
+                                      {Object.entries(item.statEffects).map(([stat, value]) => (
+                                        <span key={stat} className="bg-green-700/50 text-green-200 px-2 py-1 rounded text-xs">
+                                          +{value} {stat.charAt(0).toUpperCase() + stat.slice(1)}
+                                        </span>
+                                      ))}
+                                    </div>
+                                  </div>
+                                )}
+                                
+                                {/* Special Effect */}
+                                {item.effect && (
+                                  <div className="text-xs bg-blue-900/30 border border-blue-500/30 rounded p-2">
+                                    <div className="flex items-center gap-1 text-blue-300">
+                                      <span className="font-semibold">Effect:</span>
+                                      <span className="capitalize">{item.effect.replace(/_/g, ' ')}</span>
+                                    </div>
+                                  </div>
+                                )}
+                              </div>
                               
                               {/* Purchase Limit */}
                               {item.dailyLimit && (
@@ -480,7 +528,8 @@ export default function MarketDistrict() {
                               </div>
                             </CardContent>
                           </Card>
-                        ))}
+                          );
+                        })}
                       </div>
                     ) : (
                       <div className="text-center py-8">
