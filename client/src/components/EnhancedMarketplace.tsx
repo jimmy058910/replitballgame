@@ -251,14 +251,14 @@ export default function EnhancedMarketplace() {
                   <div className="mt-4 pt-4 border-t border-gray-600">
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                       <Select
-                        value={filters.role || ''}
-                        onValueChange={(value) => setFilters(prev => ({ ...prev, role: value || undefined }))}
+                        value={filters.role || 'all'}
+                        onValueChange={(value) => setFilters(prev => ({ ...prev, role: value === 'all' ? undefined : value }))}
                       >
                         <SelectTrigger className="bg-gray-700/50 border-gray-600 text-white">
                           <SelectValue placeholder="Role" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="">All Roles</SelectItem>
+                          <SelectItem value="all">All Roles</SelectItem>
                           {ROLES.map(role => (
                             <SelectItem key={role} value={role}>{role}</SelectItem>
                           ))}
@@ -266,14 +266,14 @@ export default function EnhancedMarketplace() {
                       </Select>
 
                       <Select
-                        value={filters.race || ''}
-                        onValueChange={(value) => setFilters(prev => ({ ...prev, race: value || undefined }))}
+                        value={filters.race || 'all'}
+                        onValueChange={(value) => setFilters(prev => ({ ...prev, race: value === 'all' ? undefined : value }))}
                       >
                         <SelectTrigger className="bg-gray-700/50 border-gray-600 text-white">
                           <SelectValue placeholder="Race" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="">All Races</SelectItem>
+                          <SelectItem value="all">All Races</SelectItem>
                           {RACES.map(race => (
                             <SelectItem key={race} value={race}>{race}</SelectItem>
                           ))}
