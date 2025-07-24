@@ -236,8 +236,8 @@ const StadiumFinancialHub: React.FC<StadiumFinancialHubProps> = ({ team, stadium
   const attendanceRate = Math.min(85, Math.max(35, (fanLoyalty * 0.6) + (division <= 4 ? 15 : 5)));
   const actualAttendance = Math.floor((currentStadium.capacity * attendanceRate) / 100);
   
-  // Calculate atmosphere bonus
-  const atmosphereBonus = fanLoyalty > 75 ? '+3% DEF' : fanLoyalty > 50 ? '+2% DEF' : '+1% DEF';
+  // Calculate atmosphere bonus based on fan loyalty with proper game stats
+  const atmosphereBonus = fanLoyalty > 75 ? '+3% Leadership' : fanLoyalty > 50 ? '+2% Catching' : '+1% Agility';
   
   // Calculate stadium value based on upgrades
   const stadiumValue = 100000 + // Base stadium value
@@ -248,8 +248,8 @@ const StadiumFinancialHub: React.FC<StadiumFinancialHubProps> = ({ team, stadium
     (currentStadium.merchandisingLevel - 1) * 12000 + // Merchandising upgrades
     (currentStadium.lightingScreensLevel - 1) * 30000; // Lighting upgrades
   
-  // Fixed daily upkeep cost as per game specifications
-  const dailyUpkeep = 5000; // Fixed maintenance cost per day as documented
+  // Calculate daily upkeep as 0.2% of stadium value per day
+  const dailyUpkeep = Math.floor(stadiumValue * 0.002); // 0.2% of stadium value
   
   // Calculate revenue breakdown
   const revenueBreakdown: RevenueBreakdown = {
@@ -345,12 +345,12 @@ const StadiumFinancialHub: React.FC<StadiumFinancialHubProps> = ({ team, stadium
                   <span className="text-sm font-medium text-white">Capacity</span>
                 </div>
                 <Progress 
-                  value={(currentStadium.capacity / 25000) * 100} 
+                  value={(currentStadium.capacity / 40000) * 100} 
                   className="mb-2 h-2" 
                 />
                 <Tooltip>
                   <TooltipTrigger className="text-xs text-gray-300 cursor-help">
-                    {currentStadium.capacity.toLocaleString()} / 25,000
+                    {currentStadium.capacity.toLocaleString()} / 40,000
                   </TooltipTrigger>
                   <TooltipContent>
                     <p>Click to open capacity upgrade options</p>
