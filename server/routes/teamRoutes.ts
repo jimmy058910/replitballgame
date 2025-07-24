@@ -2110,10 +2110,10 @@ router.get('/stadium', isAuthenticated, async (req: any, res: Response, next: Ne
       const newStadium = await prisma.stadium.create({
         data: {
           teamId: team.id,
-          capacity: 15000,
+          capacity: 5000,
           concessionsLevel: 1,
           parkingLevel: 1,
-          vipSuitesLevel: 1,
+          vipSuitesLevel: 0,
           merchandisingLevel: 1,
           lightingScreensLevel: 1
         }
@@ -2144,10 +2144,10 @@ router.get('/:teamId/stadium', isAuthenticated, async (req: any, res: Response, 
       const newStadium = await prisma.stadium.create({
         data: {
           teamId: teamId,
-          capacity: 15000,
+          capacity: 5000,
           concessionsLevel: 1,
           parkingLevel: 1,
-          vipSuitesLevel: 1,
+          vipSuitesLevel: 0,
           merchandisingLevel: 1,
           lightingScreensLevel: 1
         }

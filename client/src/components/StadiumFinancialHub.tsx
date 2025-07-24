@@ -223,9 +223,9 @@ const StadiumFinancialHub: React.FC<StadiumFinancialHubProps> = ({ team, stadium
     enabled: !!team?.id
   });
 
-  // Calculate mock data for now based on stadium props
+  // Use actual stadium data from props
   const currentStadium: StadiumData = {
-    capacity: stadium?.capacity || 15000,
+    capacity: stadium?.capacity || 5000,
     concessionsLevel: stadium?.concessionsLevel || 1,
     parkingLevel: stadium?.parkingLevel || 1,
     vipSuitesLevel: stadium?.vipSuitesLevel || 0,
@@ -244,14 +244,8 @@ const StadiumFinancialHub: React.FC<StadiumFinancialHubProps> = ({ team, stadium
   // Calculate atmosphere bonus
   const atmosphereBonus = fanLoyalty > 75 ? '+3% DEF' : fanLoyalty > 50 ? '+2% DEF' : '+1% DEF';
   
-  // Calculate daily upkeep (0.2% of total stadium value)
-  const stadiumValue = (currentStadium.capacity - 15000) * 10 + 
-    (currentStadium.concessionsLevel - 1) * 30000 +
-    (currentStadium.parkingLevel - 1) * 25000 +
-    currentStadium.vipSuitesLevel * 100000 +
-    (currentStadium.merchandisingLevel - 1) * 40000 +
-    (currentStadium.lightingScreensLevel - 1) * 60000;
-  const dailyUpkeep = Math.floor(stadiumValue * 0.002) + 1000; // Base 1000₡ minimum
+  // Fixed daily upkeep cost as per game specifications
+  const dailyUpkeep = 5000; // Fixed maintenance cost per day as documented
   
   // Calculate revenue breakdown
   const revenueBreakdown: RevenueBreakdown = {
@@ -270,7 +264,7 @@ const StadiumFinancialHub: React.FC<StadiumFinancialHubProps> = ({ team, stadium
     {
       name: 'Capacity',
       type: 'capacity',
-      currentLevel: Math.floor(currentStadium.capacity / 5000) - 2, // Adjust for 15k base
+      currentLevel: Math.floor(currentStadium.capacity / 5000), // Based on 5k base capacity
       maxLevel: 5,
       cost: currentStadium.capacity * 0.6, // 60% of current capacity
       effect: '+5,000 seats, increased revenue potential',
