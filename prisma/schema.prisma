@@ -126,6 +126,11 @@ model Player {
   dailyItemsUsed              Int                 @default(0)
   careerInjuries              Int                 @default(0)
   gamesPlayedLastSeason       Int                 @default(0)
+  // NEW: Seasonal minutes tracking by match type
+  seasonMinutesLeague         Float               @default(0)
+  seasonMinutesTournament     Float               @default(0) 
+  seasonMinutesExhibition     Float               @default(0)
+  seasonMinutesTotal          Float               @default(0)
   isOnMarket                  Boolean             @default(false)
   isRetired                   Boolean             @default(false)
   MarketplaceListing          MarketplaceListing?
