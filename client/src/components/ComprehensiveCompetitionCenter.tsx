@@ -187,22 +187,7 @@ export default function ComprehensiveCompetitionCenter() {
     refetchInterval: 5 * 60 * 1000, // Refresh every 5 minutes
   });
 
-  // Add debugging - remove this after fixing
-  React.useEffect(() => {
-    if (globalRankings && team?.id) {
-      console.log('Global Rankings Data:', {
-        totalRankings: globalRankings.length,
-        teamId: team.id,
-        teamIdType: typeof team.id,
-        sampleRanking: globalRankings[0],
-        teamRanking: globalRankings.find(r => r.id === team.id),
-        matchingRankings: globalRankings.filter(r => String(r.id).includes(String(team.id))),
-      });
-    }
-    if (rankingsError) {
-      console.error('Rankings API Error:', rankingsError);
-    }
-  }, [globalRankings, team?.id, rankingsError]);
+
 
   const { data: tournaments } = useQuery<Tournament[]>({
     queryKey: [`/api/tournaments/available/${team?.division}`],

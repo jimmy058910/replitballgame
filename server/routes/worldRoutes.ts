@@ -17,10 +17,10 @@ router.get("/global-rankings", cacheMiddleware({ ttl: 300 }), isAuthenticated, a
         ? team.wins / (team.wins + team.losses + team.draws) 
         : 0;
       
-      // Simplified calculations with fallbacks (no async for reliability)
-      const strengthOfSchedule = 25; // Neutral default
-      const recentFormBias = 0; // No recent form bias for now
-      const healthFactor = 1.0; // Full health default
+      // Enhanced calculations with safe fallbacks
+      const strengthOfSchedule = calculateSimpleStrengthOfSchedule(team, teams);
+      const recentFormBias = calculateSimpleRecentForm(team);
+      const healthFactor = calculateSimpleHealthFactor(team);
       
       // Enhanced True Strength Rating Algorithm (Research-Based Formula)
       const baseRating = (team.teamPower || 0) * 10;           // Base: 40% weight (250 max)
@@ -407,6 +407,106 @@ async function calculateHealthFactor(team: any): Promise<number> {
   } catch (error) {
     console.error(`Error calculating health factor for team ${team.id}:`, error);
     return 1.0; // Default full health
+  }
+}
+
+// Simplified Enhanced Calculation Functions (Non-Async for Reliability)
+
+// Calculate Strength of Schedule using division-based opponent strength
+function calculateSimpleStrengthOfSchedule(team: any, allTeams: any[]): number {
+  try {
+    // Find teams in same division/subdivision for opponent estimation
+    const divisionTeams = allTeams.filter(t => 
+      t.division === team.division && t.subdivision === team.subdivision && t.id !== team.id
+    );
+    
+    if (divisionTeams.length === 0) {
+      // Fallback: use division average from all teams in same division
+      const sameDivisionTeams = allTeams.filter(t => t.division === team.division && t.id !== team.id);
+      if (sameDivisionTeams.length === 0) return 25; // Neutral default
+      
+      const avgPower = sameDivisionTeams.reduce((sum, t) => sum + (t.teamPower || 25), 0) / sameDivisionTeams.length;
+      return Math.round(avgPower * 10) / 10;
+    }
+    
+    // Calculate average opponent power from subdivision opponents
+    const avgOpponentPower = divisionTeams.reduce((sum, t) => sum + (t.teamPower || 25), 0) / divisionTeams.length;
+    return Math.round(avgOpponentPower * 10) / 10;
+  } catch (error) {
+    console.error(`Error calculating simple SOS for team ${team.id}:`, error);
+    return 25; // Neutral default
+  }
+}
+
+// Calculate recent form using win percentage trends (no match history needed)
+function calculateSimpleRecentForm(team: any): number {
+  try {
+    const totalGames = (team.wins || 0) + (team.losses || 0) + (team.draws || 0);
+    if (totalGames === 0) return 0;
+    
+    const winPercentage = team.wins / totalGames;
+    const divisionExpectedWinRate = getDivisionExpectedWinRate(team.division);
+    
+    // Recent form bias based on performance vs division expectations
+    const performanceVsExpected = winPercentage - divisionExpectedWinRate;
+    
+    // Apply sample size weighting (more games = more reliable recent form)
+    const sampleWeight = Math.min(totalGames / 10, 1); // Full weight at 10+ games
+    
+    return performanceVsExpected * sampleWeight;
+  } catch (error) {
+    console.error(`Error calculating simple recent form for team ${team.id}:`, error);
+    return 0;
+  }
+}
+
+// Calculate health factor using team power stability (no player injury data needed)
+function calculateSimpleHealthFactor(team: any): number {
+  try {
+    // Use team power as health indicator - lower divisions expected to have lower power
+    const expectedPowerForDivision = getExpectedPowerForDivision(team.division);
+    const actualPower = team.teamPower || expectedPowerForDivision;
+    
+    // Health factor based on power relative to division expectations
+    const powerRatio = actualPower / expectedPowerForDivision;
+    
+    // Normalize to 0.5-1.0 range (50%-100% health)
+    const healthFactor = Math.max(0.5, Math.min(1.0, 0.7 + (powerRatio - 1) * 0.3));
+    
+    return Math.round(healthFactor * 100) / 100;
+  } catch (error) {
+    console.error(`Error calculating simple health factor for team ${team.id}:`, error);
+    return 1.0; // Default full health
+  }
+}
+
+// Helper: Get expected win rate by division
+function getDivisionExpectedWinRate(division: number): number {
+  switch (division) {
+    case 1: return 0.65; // Diamond teams expected to win more
+    case 2: return 0.58; // Platinum
+    case 3: return 0.52; // Gold  
+    case 4: return 0.50; // Silver (neutral)
+    case 5: return 0.48; // Bronze
+    case 6: return 0.42; // Iron
+    case 7: return 0.38; // Stone
+    case 8: return 0.35; // Copper
+    default: return 0.50; // Neutral
+  }
+}
+
+// Helper: Get expected team power by division
+function getExpectedPowerForDivision(division: number): number {
+  switch (division) {
+    case 1: return 32; // Diamond League
+    case 2: return 28; // Platinum
+    case 3: return 26; // Gold
+    case 4: return 24; // Silver
+    case 5: return 22; // Bronze
+    case 6: return 20; // Iron
+    case 7: return 18; // Stone
+    case 8: return 16; // Copper
+    default: return 24; // Default
   }
 }
 
