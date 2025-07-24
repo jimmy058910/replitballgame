@@ -92,7 +92,7 @@ function PlayerSelector({
     
     if (slot.requiredRole) {
       return availablePlayers.filter(p => 
-        p.role.toLowerCase() === slot.requiredRole.toLowerCase()
+        p.role?.toLowerCase() === slot.requiredRole?.toLowerCase()
       );
     }
     
@@ -303,14 +303,14 @@ export default function TapToAssignTactics({ teamId }: TapToAssignTacticsProps) 
       return players.filter(p => 
         !assignedPlayerIds.includes(p.id) && 
         p.id !== currentSlotPlayerId &&
-        (slot.requiredRole ? p.role === slot.requiredRole : true)
+        (slot.requiredRole ? p.role?.toLowerCase() === slot.requiredRole.toLowerCase() : true)
       );
     }
 
     // For starter slots: exclude assigned starters and require role match
     return players.filter(p => 
       !assignedPlayerIds.includes(p.id) &&
-      (slot.requiredRole ? p.role === slot.requiredRole : true)
+      (slot.requiredRole ? p.role?.toLowerCase() === slot.requiredRole.toLowerCase() : true)
     );
   };
 
@@ -328,15 +328,15 @@ export default function TapToAssignTactics({ teamId }: TapToAssignTacticsProps) 
       console.log('🔍 Loading saved formation:', currentFormation);
       
       // Load starters
-      if (currentFormation.starters && Array.isArray(currentFormation.starters)) {
+      if ((currentFormation as any)?.starters && Array.isArray((currentFormation as any).starters)) {
         setFormationSlots(prev => prev.map(slot => {
           // Find a matching player for this slot
-          for (const savedPlayer of currentFormation.starters) {
+          for (const savedPlayer of (currentFormation as any).starters) {
             if (savedPlayer && savedPlayer.id) {
               const fullPlayer = players.find(player => player.id === savedPlayer.id);
               if (fullPlayer) {
                 // Check if this player matches the slot requirements
-                if ((slot.requiredRole && fullPlayer.role === slot.requiredRole) || slot.isWildcard) {
+                if ((slot.requiredRole && fullPlayer.role?.toLowerCase() === slot.requiredRole.toLowerCase()) || slot.isWildcard) {
                   // Make sure this player isn't already assigned to another slot
                   const alreadyAssigned = prev.some(s => s.id !== slot.id && s.player?.id === fullPlayer.id);
                   if (!alreadyAssigned) {
@@ -351,7 +351,7 @@ export default function TapToAssignTactics({ teamId }: TapToAssignTacticsProps) 
       }
 
       // Load substitutes
-      if (currentFormation.substitutes && Array.isArray(currentFormation.substitutes)) {
+      if ((currentFormation as any)?.substitutes && Array.isArray((currentFormation as any).substitutes)) {
         const newSubQueue = {
           blockers: [null, null, null] as (Player | null)[],
           runners: [null, null, null] as (Player | null)[],
@@ -360,18 +360,18 @@ export default function TapToAssignTactics({ teamId }: TapToAssignTacticsProps) 
         };
 
         // Distribute substitutes by role
-        currentFormation.substitutes.forEach((savedSub: any, index: number) => {
+        (currentFormation as any).substitutes.forEach((savedSub: any, index: number) => {
           if (savedSub && savedSub.id) {
             const fullPlayer = players.find(player => player.id === savedSub.id);
             if (fullPlayer) {
-              // Place in appropriate position based on role
-              if (fullPlayer.role === 'blocker' && newSubQueue.blockers.indexOf(null) !== -1) {
+              // Place in appropriate position based on role (case-insensitive)
+              if (fullPlayer.role?.toLowerCase() === 'blocker' && newSubQueue.blockers.indexOf(null) !== -1) {
                 const slotIndex = newSubQueue.blockers.indexOf(null);
                 newSubQueue.blockers[slotIndex] = fullPlayer;
-              } else if (fullPlayer.role === 'runner' && newSubQueue.runners.indexOf(null) !== -1) {
+              } else if (fullPlayer.role?.toLowerCase() === 'runner' && newSubQueue.runners.indexOf(null) !== -1) {
                 const slotIndex = newSubQueue.runners.indexOf(null);
                 newSubQueue.runners[slotIndex] = fullPlayer;
-              } else if (fullPlayer.role === 'passer' && newSubQueue.passers.indexOf(null) !== -1) {
+              } else if (fullPlayer.role?.toLowerCase() === 'passer' && newSubQueue.passers.indexOf(null) !== -1) {
                 const slotIndex = newSubQueue.passers.indexOf(null);
                 newSubQueue.passers[slotIndex] = fullPlayer;
               } else if (newSubQueue.wildcard.indexOf(null) !== -1) {
