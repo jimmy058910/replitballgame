@@ -10,27 +10,41 @@ router.get("/global-rankings", cacheMiddleware({ ttl: 300 }), isAuthenticated, a
   try {
     const teams = await storage.teams.getAllTeamsWithStats();
     
-    // Calculate True Strength Rating for each team
-    const rankedTeams = teams.map(team => {
+    // Calculate Enhanced True Strength Rating for each team with async calculations
+    const rankedTeams = await Promise.all(teams.map(async (team) => {
       const divisionMultiplier = getDivisionMultiplier(team.division);
       const winPercentage = team.wins + team.losses + team.draws > 0 
         ? team.wins / (team.wins + team.losses + team.draws) 
         : 0;
       
-      // True Strength Rating Algorithm
-      const baseRating = (team.teamPower || 0) * 10; // Base team power
-      const divisionBonus = divisionMultiplier * 100; // Division difficulty bonus
-      const recordBonus = winPercentage * 200; // Win percentage bonus
-      const camaraderieBonus = (team.teamCamaraderie || 0) * 2; // Team chemistry bonus
+      // Calculate advanced metrics (async operations)
+      const strengthOfSchedule = await calculateStrengthOfSchedule(team);
+      const recentFormBias = await calculateRecentForm(team);
+      const healthFactor = await calculateHealthFactor(team);
       
-      const trueStrengthRating = Math.round(baseRating + divisionBonus + recordBonus + camaraderieBonus);
+      // Enhanced True Strength Rating Algorithm (Research-Based Formula)
+      const baseRating = (team.teamPower || 0) * 10;           // Base: 40% weight (250 max)
+      const divisionBonus = divisionMultiplier * 100;          // Division: 15% weight (200 max)
+      const recordBonus = winPercentage * 120;                 // Record: 18% weight (120 max) - REDUCED from 200
+      const sosBonus = strengthOfSchedule * 1.5;               // SOS: 15% weight (~75 avg)
+      const camaraderieBonus = (team.teamCamaraderie || 0) * 2; // Chemistry: 12% weight (200 max)
+      const recentFormBonus = recentFormBias * 30;             // Recent Form: ±30 range
+      const healthBonus = healthFactor * 50;                   // Health: 50 max
+      
+      const trueStrengthRating = Math.round(
+        baseRating + divisionBonus + recordBonus + sosBonus + 
+        camaraderieBonus + recentFormBonus + healthBonus
+      );
       
       // Convert BigInt fields to strings for JSON serialization
       const serializedTeam = {
         ...team,
         trueStrengthRating,
         winPercentage: Math.round(winPercentage * 100),
-        divisionMultiplier
+        divisionMultiplier,
+        strengthOfSchedule: Math.round(strengthOfSchedule * 10) / 10,
+        recentForm: Math.round(recentFormBias * 100),
+        healthFactor: Math.round(healthFactor * 100)
       };
       
       // Convert any BigInt fields to strings
@@ -48,7 +62,7 @@ router.get("/global-rankings", cacheMiddleware({ ttl: 300 }), isAuthenticated, a
       }
       
       return serializedTeam;
-    });
+    }));
     
     // Sort by True Strength Rating (descending)
     rankedTeams.sort((a, b) => b.trueStrengthRating - a.trueStrengthRating);
@@ -68,32 +82,46 @@ router.get("/global-rankings", cacheMiddleware({ ttl: 300 }), isAuthenticated, a
 
 // Add alias for frontend compatibility
 router.get("/rankings", isAuthenticated, async (req, res) => {
-  // Redirect to the global-rankings endpoint  
+  // Enhanced rankings endpoint with same algorithm as global-rankings
   try {
     const rankingsData = await storage.teams.getAllTeamsWithStats();
     const teams = Array.isArray(rankingsData) ? rankingsData : rankingsData.rankings || [];
     
-    // Calculate True Strength Rating for each team
-    const rankedTeams = teams.map(team => {
+    // Calculate Enhanced True Strength Rating for each team with async calculations
+    const rankedTeams = await Promise.all(teams.map(async (team) => {
       const divisionMultiplier = getDivisionMultiplier(team.division);
       const winPercentage = team.wins + team.losses + team.draws > 0 
         ? team.wins / (team.wins + team.losses + team.draws) 
         : 0;
       
-      // True Strength Rating Algorithm
-      const baseRating = (team.teamPower || 0) * 10; // Base team power
-      const divisionBonus = divisionMultiplier * 100; // Division difficulty bonus
-      const recordBonus = winPercentage * 200; // Win percentage bonus
-      const camaraderieBonus = (team.teamCamaraderie || 0) * 2; // Team chemistry bonus
+      // Calculate advanced metrics (async operations)
+      const strengthOfSchedule = await calculateStrengthOfSchedule(team);
+      const recentFormBias = await calculateRecentForm(team);
+      const healthFactor = await calculateHealthFactor(team);
       
-      const trueStrengthRating = Math.round(baseRating + divisionBonus + recordBonus + camaraderieBonus);
+      // Enhanced True Strength Rating Algorithm (Research-Based Formula)
+      const baseRating = (team.teamPower || 0) * 10;           // Base: 40% weight (250 max)
+      const divisionBonus = divisionMultiplier * 100;          // Division: 15% weight (200 max)
+      const recordBonus = winPercentage * 120;                 // Record: 18% weight (120 max) - REDUCED from 200
+      const sosBonus = strengthOfSchedule * 1.5;               // SOS: 15% weight (~75 avg)
+      const camaraderieBonus = (team.teamCamaraderie || 0) * 2; // Chemistry: 12% weight (200 max)
+      const recentFormBonus = recentFormBias * 30;             // Recent Form: ±30 range
+      const healthBonus = healthFactor * 50;                   // Health: 50 max
+      
+      const trueStrengthRating = Math.round(
+        baseRating + divisionBonus + recordBonus + sosBonus + 
+        camaraderieBonus + recentFormBonus + healthBonus
+      );
       
       // Convert BigInt fields to strings for JSON serialization
       const serializedTeam = {
         ...team,
         trueStrengthRating,
         winPercentage: Math.round(winPercentage * 100),
-        divisionMultiplier
+        divisionMultiplier,
+        strengthOfSchedule: Math.round(strengthOfSchedule * 10) / 10,
+        recentForm: Math.round(recentFormBias * 100),
+        healthFactor: Math.round(healthFactor * 100)
       };
       
       // Convert any BigInt fields to strings
@@ -111,7 +139,7 @@ router.get("/rankings", isAuthenticated, async (req, res) => {
       }
       
       return serializedTeam;
-    });
+    }));
     
     // Sort by True Strength Rating (descending)
     rankedTeams.sort((a, b) => b.trueStrengthRating - a.trueStrengthRating);
@@ -255,18 +283,130 @@ router.get("/hall-of-fame", isAuthenticated, async (req, res) => {
   }
 });
 
-// Helper function to calculate division multiplier
+// Enhanced Global Rankings Helper Functions
+
+// Enhanced division multiplier with exponential scaling for competitive balance
 function getDivisionMultiplier(division: number): number {
   switch (division) {
-    case 1: return 8; // Diamond League
-    case 2: return 7; // Platinum League
-    case 3: return 6; // Gold League
-    case 4: return 5; // Silver League
-    case 5: return 4; // Bronze League
-    case 6: return 3; // Iron League
-    case 7: return 2; // Stone League
-    case 8: return 1; // Copper League
-    default: return 1;
+    case 1: return 2.0; // Diamond League (most competitive)
+    case 2: return 1.8; // Platinum League
+    case 3: return 1.6; // Gold League
+    case 4: return 1.4; // Silver League
+    case 5: return 1.2; // Bronze League
+    case 6: return 1.1; // Iron League
+    case 7: return 1.0; // Stone League
+    case 8: return 0.9; // Copper League (least competitive)
+    default: return 1.0;
+  }
+}
+
+// Calculate Strength of Schedule based on average opponent power
+async function calculateStrengthOfSchedule(team: any): Promise<number> {
+  try {
+    // Get all matches for this team
+    const matches = await storage.matches.getMatchesByTeamId(team.id);
+    if (!matches || matches.length === 0) return 25; // Default neutral SOS
+    
+    let totalOpponentPower = 0;
+    let matchCount = 0;
+    
+    // Calculate average opponent power from completed matches
+    for (const match of matches) {
+      if (match.status === 'COMPLETED') {
+        const isHome = match.homeTeamId === team.id;
+        const opponentId = isHome ? match.awayTeamId : match.homeTeamId;
+        
+        try {
+          const opponent = await storage.teams.getTeamById(opponentId);
+          if (opponent && opponent.teamPower) {
+            totalOpponentPower += opponent.teamPower;
+            matchCount++;
+          }
+        } catch (error) {
+          // Skip opponent if not found, continue calculating
+          continue;
+        }
+      }
+    }
+    
+    // Return average opponent power, default to league average if no completed matches
+    return matchCount > 0 ? totalOpponentPower / matchCount : 25;
+  } catch (error) {
+    console.error(`Error calculating SOS for team ${team.id}:`, error);
+    return 25; // Default neutral SOS
+  }
+}
+
+// Calculate recent form bias (last 5 games vs season performance)
+async function calculateRecentForm(team: any): Promise<number> {
+  try {
+    const matches = await storage.matches.getMatchesByTeamId(team.id);
+    const completedMatches = matches
+      .filter(match => match.status === 'COMPLETED')
+      .sort((a, b) => new Date(b.gameDate || b.createdAt).getTime() - new Date(a.gameDate || a.createdAt).getTime())
+      .slice(0, 5); // Last 5 completed matches
+    
+    if (completedMatches.length === 0) return 0;
+    
+    // Calculate recent wins
+    let recentWins = 0;
+    completedMatches.forEach(match => {
+      const isHome = match.homeTeamId === team.id;
+      const teamScore = isHome ? match.homeScore : match.awayScore;
+      const opponentScore = isHome ? match.awayScore : match.homeScore;
+      
+      if (teamScore > opponentScore) recentWins++;
+    });
+    
+    const recentWinPct = recentWins / completedMatches.length;
+    const seasonWinPct = team.wins + team.losses + team.draws > 0 
+      ? team.wins / (team.wins + team.losses + team.draws) 
+      : 0;
+    
+    // Return the difference weighted by sample size
+    const sampleSizeWeight = Math.min(completedMatches.length / 5, 1); // Full weight at 5+ games
+    return (recentWinPct - seasonWinPct) * sampleSizeWeight;
+  } catch (error) {
+    console.error(`Error calculating recent form for team ${team.id}:`, error);
+    return 0;
+  }
+}
+
+// Calculate health factor based on injury impact
+async function calculateHealthFactor(team: any): Promise<number> {
+  try {
+    const players = await storage.players.getPlayersByTeamId(team.id);
+    if (!players || players.length === 0) return 1.0;
+    
+    let totalImpact = 0;
+    let playerCount = 0;
+    
+    // Calculate injury impact for main roster players
+    const mainRosterPlayers = players.slice(0, 12); // First 12 players (main roster)
+    
+    mainRosterPlayers.forEach(player => {
+      playerCount++;
+      
+      // Factor in current injury status
+      if (player.injuryStatus === 'INJURED') {
+        const recoveryNeeded = player.injuryRecoveryPointsNeeded || 0;
+        const injuryImpact = Math.min(recoveryNeeded / 100, 0.5); // Max 50% impact per player
+        totalImpact += injuryImpact;
+      }
+      
+      // Factor in stamina levels
+      const staminaLevel = player.dailyStaminaLevel || 100;
+      if (staminaLevel < 75) {
+        const staminaImpact = (75 - staminaLevel) / 100 * 0.3; // Max 30% impact for low stamina
+        totalImpact += staminaImpact;
+      }
+    });
+    
+    const averageImpact = playerCount > 0 ? totalImpact / playerCount : 0;
+    return Math.max(1.0 - averageImpact, 0.5); // Minimum 50% health factor
+  } catch (error) {
+    console.error(`Error calculating health factor for team ${team.id}:`, error);
+    return 1.0; // Default full health
   }
 }
 

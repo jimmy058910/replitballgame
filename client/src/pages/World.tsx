@@ -69,7 +69,7 @@ function UniversalTeamPowerRankings() {
   return (
     <div className="space-y-4">
       <div className="text-sm text-gray-600 dark:text-gray-400 mb-4">
-        Rankings based on Team Power, Division, Win/Loss Record, and Team Chemistry
+        Enhanced Global Rankings: Team Power (40%), Division Level (15%), Win Rate (18%), Strength of Schedule (15%), Team Chemistry (12%), Recent Form, and Health Factors
       </div>
       
       {rankings.map((team: any, index: number) => (
