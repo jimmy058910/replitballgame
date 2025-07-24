@@ -28,8 +28,10 @@ import {
   Award,
   ChevronDown,
   ChevronUp,
-  Heart
+  Heart,
+  Calculator
 } from "lucide-react";
+import { RevenueCalculationsModal } from "./RevenueCalculationsModal";
 
 // Enhanced interfaces for real data integration
 interface Team {
@@ -90,6 +92,7 @@ interface ExhibitionStats {
 export default function DramaticTeamHQ() {
   const { isAuthenticated } = useAuth();
   const [, setLocation] = useLocation();
+  const [showRevenueModal, setShowRevenueModal] = useState(false);
   const [dailyTasks, setDailyTasks] = useState({
     checkTeamStatus: false,
     playExhibitionMatches: 0, // Track count (0-3)
@@ -175,6 +178,11 @@ export default function DramaticTeamHQ() {
   // Use team data from API - now includes players, finances, stadium data
   const team = teamData as any;
   const draws = 0; // TODO: Calculate draws when implemented
+  
+  // Debug stadium data structure
+  console.log('Full team data:', teamData);
+  console.log('Stadium object:', team?.stadium);
+  console.log('VIP Suites Level:', team?.stadium?.vipSuitesLevel);
   const players = team?.players || [];
   const finances = team?.finances || { credits: BigInt(16000), gems: BigInt(50) };
   const stadium = team?.stadium || { capacity: 5000, concessionsLevel: 1, parkingLevel: 1, vipSuitesLevel: 1, merchandisingLevel: 1, lightingScreensLevel: 1 };
@@ -551,7 +559,7 @@ export default function DramaticTeamHQ() {
                     </div>
                     <div className="flex justify-between items-center">
                       <span className="text-gray-300 text-sm">VIP Suites</span>
-                      <span className="text-purple-400">Tier {stadium?.vipSuitesLevel || 1}</span>
+                      <span className="text-purple-400">Tier {stadium?.vipSuitesLevel || 0}</span>
                     </div>
                     <div className="flex justify-between items-center">
                       <span className="text-gray-300 text-sm">Lighting & Screens</span>
@@ -577,7 +585,17 @@ export default function DramaticTeamHQ() {
                     </div>
                     <div className="flex justify-between items-center">
                       <span className="text-gray-300 text-sm">Projected Revenue</span>
-                      <span className="text-green-400">₡{Number(finances?.projectedIncome || 0).toLocaleString()}</span>
+                      <div className="flex items-center">
+                        <span className="text-green-400 mr-2">₡{Number(finances?.projectedIncome || 0).toLocaleString()}</span>
+                        <Button 
+                          size="sm" 
+                          variant="ghost" 
+                          className="p-1 h-6 w-6 text-green-400 hover:text-green-300 hover:bg-green-900/30"
+                          onClick={() => setShowRevenueModal(true)}
+                        >
+                          <Calculator className="w-3 h-3" />
+                        </Button>
+                      </div>
                     </div>
                     <div className="flex justify-between items-center">
                       <span className="text-gray-300 text-sm">League Points</span>
@@ -647,6 +665,14 @@ export default function DramaticTeamHQ() {
 
 
       </div>
+
+      {/* Revenue Calculations Modal */}
+      <RevenueCalculationsModal 
+        isOpen={showRevenueModal}
+        onClose={() => setShowRevenueModal(false)}
+        stadium={stadium}
+        team={team}
+      />
     </div>
   );
 }
