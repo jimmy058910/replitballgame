@@ -154,6 +154,8 @@ export default function DramaticTeamHQ() {
     gameDate?: string;
     isHome?: boolean;
     matchType?: string;
+    division?: number;
+    timeUntil?: string;
   }>({
     queryKey: ['/api/teams/my/next-opponent'],
     enabled: isAuthenticated
@@ -204,7 +206,13 @@ export default function DramaticTeamHQ() {
   const freeExhibitionsRemaining = Math.max(0, 3 - exhibitionGamesPlayedToday);
 
   // Extract next opponent data
-  const nextOpponent = nextOpponentData?.nextOpponent || "No games scheduled";
+  const nextOpponent = {
+    name: nextOpponentData?.nextOpponent || "TBD",
+    homeGame: nextOpponentData?.isHome,
+    division: nextOpponentData?.division || team?.division || "?",
+    timeUntil: nextOpponentData?.timeUntil || "Loading...",
+    matchType: nextOpponentData?.matchType || "League"
+  };
 
   // Calculate daily task completion
   const completedTasks = [
@@ -710,7 +718,7 @@ export default function DramaticTeamHQ() {
                 <div className="space-y-1 text-xs">
                   <div className="flex justify-between">
                     <span className="text-gray-400">Match Type</span>
-                    <span className="text-blue-300">League</span>
+                    <span className="text-blue-300">{nextOpponent.matchType}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-gray-400">Your Record</span>

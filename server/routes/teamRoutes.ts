@@ -896,16 +896,33 @@ router.get('/my/next-opponent', isAuthenticated, asyncHandler(async (req: any, r
     return res.json({ nextOpponent: "No games scheduled" });
   }
 
-  // Determine opponent name
+  // Determine opponent name and calculate time until match
   const isHome = nextGame.homeTeamId === userTeam.id;
   const opponentName = isHome ? nextGame.awayTeam.name : nextGame.homeTeam.name;
   const gameDate = nextGame.gameDate;
+  
+  // Calculate time until match
+  const now = new Date();
+  const timeDiff = gameDate.getTime() - now.getTime();
+  const daysUntil = Math.floor(timeDiff / (1000 * 60 * 60 * 24));
+  const hoursUntil = Math.floor((timeDiff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+  
+  let timeUntil;
+  if (daysUntil > 0) {
+    timeUntil = `${daysUntil}d ${hoursUntil}h`;
+  } else if (hoursUntil > 0) {
+    timeUntil = `${hoursUntil}h`;
+  } else {
+    timeUntil = "Soon";
+  }
 
   res.json({ 
     nextOpponent: opponentName,
     gameDate: gameDate,
     isHome: isHome,
-    matchType: nextGame.matchType
+    matchType: nextGame.matchType || 'League',
+    division: userTeam.division,
+    timeUntil: timeUntil
   });
 }));
 
