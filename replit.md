@@ -662,6 +662,32 @@ docker push gcr.io/direct-glider-465821-p7/realm-rivalry:latest
 - ✓ **Persistent Tactical Setup**: Formation now correctly loads and displays saved starters and substitutes when user returns to page
 - ✓ **Production Ready**: Complete formation persistence functionality operational across page navigation
 
+### July 24, 2025 - ✅ CRITICAL FORMATION LOADING DUPLICATE PREVENTION COMPLETE ✅
+
+#### ✅ FORMATION PERSISTENCE DUPLICATE BUG RESOLVED - PRODUCTION CRITICAL FIX
+- ✓ **Root Cause Identified**: Formation loading logic allowed duplicate player assignments when returning to tactics page
+- ✓ **Critical Issues Fixed**: 
+  - Aria Bright appearing in 3 starter positions (B1, B2, F FLEX)
+  - Aria Vale appearing in multiple Passer Sub slots simultaneously
+- ✓ **Enhanced Loading Logic**: 
+  - Strict duplicate prevention for starter positions using assignedPlayerIds tracking
+  - Position-specific duplicate prevention for substitutes within same category
+  - Maintained flexible assignment allowing position-subs + flex-subs simultaneously
+- ✓ **Smart Assignment Algorithm**: Clear existing assignments first, then distribute players to appropriate slots preventing duplicates
+- ✓ **Preserved User Requirements**: Players can still be in both position-specific subs AND flex subs as requested
+- ✓ **Production Ready**: Formation persistence now maintains data integrity across page navigation
+
+### July 24, Present Day - ✅ COMPREHENSIVE TACTICS ASSIGNMENT SYSTEM FIXES COMPLETE ✅
+
+#### ✅ TAXI SQUAD FILTERING & DUPLICATE VALIDATION OVERHAUL
+- ✓ **Taxi Squad API Integration**: Now properly excludes taxi squad players using dedicated `/api/teams/${teamId}/taxi-squad` endpoint
+- ✓ **Smart Duplicate Logic**: 
+  - Flex subs only block starters and other flex assignments
+  - Position-specific subs prevent all other duplicates
+  - Maintains tactical flexibility while preventing true duplicates
+- ✓ **User Feedback Integration**: Toast notifications inform users when assignments are blocked with clear explanations
+- ✓ **Formation Loading Fix**: Eliminated critical duplicate loading bug that caused same player in multiple positions
+
 ### July 24, 2025 - ✅ UI ICON CLEANUP COMPLETED ✅
 
 #### ✅ EMOJI REMOVAL FROM TEAM HEADERS - USER INTERFACE POLISH

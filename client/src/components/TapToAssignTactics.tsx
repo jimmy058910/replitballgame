@@ -366,30 +366,41 @@ export default function TapToAssignTactics({ teamId }: TapToAssignTacticsProps) 
     if (currentFormation && players.length > 0 && !formationLoaded) {
       console.log('🔍 Loading saved formation (ONE TIME ONLY):', currentFormation);
       
-      // Load starters
+      // Track assigned players to prevent duplicates during loading
+      const assignedPlayerIds = new Set<string>();
+      
+      // Load starters with strict duplicate prevention
       if ((currentFormation as any)?.starters && Array.isArray((currentFormation as any).starters)) {
-        setFormationSlots(prev => prev.map(slot => {
-          // Find a matching player for this slot
+        setFormationSlots(prev => {
+          const newSlots = [...prev];
+          
+          // Clear existing assignments first
+          newSlots.forEach(slot => slot.player = null);
+          
+          // Assign players to appropriate slots, preventing duplicates
           for (const savedPlayer of (currentFormation as any).starters) {
-            if (savedPlayer && savedPlayer.id) {
+            if (savedPlayer && savedPlayer.id && !assignedPlayerIds.has(savedPlayer.id)) {
               const fullPlayer = players.find(player => player.id === savedPlayer.id);
               if (fullPlayer) {
-                // Check if this player matches the slot requirements
-                if ((slot.requiredRole && fullPlayer.role?.toLowerCase() === slot.requiredRole.toLowerCase()) || slot.isWildcard) {
-                  // Make sure this player isn't already assigned to another slot
-                  const alreadyAssigned = prev.some(s => s.id !== slot.id && s.player?.id === fullPlayer.id);
-                  if (!alreadyAssigned) {
-                    return { ...slot, player: fullPlayer };
-                  }
+                // Find the best matching empty slot for this player
+                const matchingSlot = newSlots.find(slot => 
+                  !slot.player && // Slot is empty
+                  ((slot.requiredRole && fullPlayer.role?.toLowerCase() === slot.requiredRole.toLowerCase()) || slot.isWildcard)
+                );
+                
+                if (matchingSlot) {
+                  matchingSlot.player = fullPlayer;
+                  assignedPlayerIds.add(fullPlayer.id);
                 }
               }
             }
           }
-          return slot;
-        }));
+          
+          return newSlots;
+        });
       }
 
-      // Load substitutes
+      // Load substitutes with duplicate prevention
       if ((currentFormation as any)?.substitutes && Array.isArray((currentFormation as any).substitutes)) {
         const newSubQueue = {
           blockers: [null, null, null] as (Player | null)[],
@@ -398,24 +409,78 @@ export default function TapToAssignTactics({ teamId }: TapToAssignTacticsProps) 
           wildcard: [null, null, null] as (Player | null)[]
         };
 
-        // Distribute substitutes by role
-        (currentFormation as any).substitutes.forEach((savedSub: any, index: number) => {
+        // Load substitutes by role with strict duplicate prevention within each category
+        const positionAssignments = new Map<string, Set<string>>(); // Track assignments per position type
+        
+        (currentFormation as any).substitutes.forEach((savedSub: any) => {
           if (savedSub && savedSub.id) {
             const fullPlayer = players.find(player => player.id === savedSub.id);
             if (fullPlayer) {
-              // Place in appropriate position based on role (case-insensitive)
-              if (fullPlayer.role?.toLowerCase() === 'blocker' && newSubQueue.blockers.indexOf(null) !== -1) {
-                const slotIndex = newSubQueue.blockers.indexOf(null);
-                newSubQueue.blockers[slotIndex] = fullPlayer;
-              } else if (fullPlayer.role?.toLowerCase() === 'runner' && newSubQueue.runners.indexOf(null) !== -1) {
-                const slotIndex = newSubQueue.runners.indexOf(null);
-                newSubQueue.runners[slotIndex] = fullPlayer;
-              } else if (fullPlayer.role?.toLowerCase() === 'passer' && newSubQueue.passers.indexOf(null) !== -1) {
-                const slotIndex = newSubQueue.passers.indexOf(null);
-                newSubQueue.passers[slotIndex] = fullPlayer;
-              } else if (newSubQueue.wildcard.indexOf(null) !== -1) {
-                const slotIndex = newSubQueue.wildcard.indexOf(null);
-                newSubQueue.wildcard[slotIndex] = fullPlayer;
+              const role = fullPlayer.role?.toLowerCase();
+              
+              // Assign to position-specific subs first (with duplicate prevention within same position)
+              if (role === 'blocker') {
+                if (!positionAssignments.has('blockers')) positionAssignments.set('blockers', new Set());
+                const blockersAssigned = positionAssignments.get('blockers')!;
+                
+                if (!blockersAssigned.has(fullPlayer.id)) {
+                  const slotIndex = newSubQueue.blockers.indexOf(null);
+                  if (slotIndex !== -1) {
+                    newSubQueue.blockers[slotIndex] = fullPlayer;
+                    blockersAssigned.add(fullPlayer.id);
+                  }
+                }
+              } else if (role === 'runner') {
+                if (!positionAssignments.has('runners')) positionAssignments.set('runners', new Set());
+                const runnersAssigned = positionAssignments.get('runners')!;
+                
+                if (!runnersAssigned.has(fullPlayer.id)) {
+                  const slotIndex = newSubQueue.runners.indexOf(null);
+                  if (slotIndex !== -1) {
+                    newSubQueue.runners[slotIndex] = fullPlayer;
+                    runnersAssigned.add(fullPlayer.id);
+                  }
+                }
+              } else if (role === 'passer') {
+                if (!positionAssignments.has('passers')) positionAssignments.set('passers', new Set());
+                const passersAssigned = positionAssignments.get('passers')!;
+                
+                if (!passersAssigned.has(fullPlayer.id)) {
+                  const slotIndex = newSubQueue.passers.indexOf(null);
+                  if (slotIndex !== -1) {
+                    newSubQueue.passers[slotIndex] = fullPlayer;
+                    passersAssigned.add(fullPlayer.id);
+                  }
+                }
+              }
+            }
+          }
+        });
+
+        // Second pass: Load flex subs (allowing position-specific sub players but preventing starter duplicates)
+        (currentFormation as any).substitutes.forEach((savedSub: any) => {
+          if (savedSub && savedSub.id && !assignedPlayerIds.has(savedSub.id)) { // Not a starter
+            const fullPlayer = players.find(player => player.id === savedSub.id);
+            if (fullPlayer) {
+              // Check if already assigned to position-specific subs
+              const isInPositionSubs = [
+                ...newSubQueue.blockers,
+                ...newSubQueue.runners, 
+                ...newSubQueue.passers
+              ].some(p => p?.id === fullPlayer.id);
+              
+              if (isInPositionSubs) {
+                // Allow assignment to flex subs if player is in position-specific subs
+                if (!positionAssignments.has('wildcard')) positionAssignments.set('wildcard', new Set());
+                const wildcardAssigned = positionAssignments.get('wildcard')!;
+                
+                if (!wildcardAssigned.has(fullPlayer.id)) {
+                  const slotIndex = newSubQueue.wildcard.indexOf(null);
+                  if (slotIndex !== -1) {
+                    newSubQueue.wildcard[slotIndex] = fullPlayer;
+                    wildcardAssigned.add(fullPlayer.id);
+                  }
+                }
               }
             }
           }
