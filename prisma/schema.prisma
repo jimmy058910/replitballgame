@@ -72,6 +72,7 @@ model Team {
   marketplaceListings  MarketplaceListing[] @relation("TeamListings")
   bids                 Bid[]                @relation("TeamBids")
   highBidderOnListings MarketplaceListing[] @relation("HighBidderListings")
+  listingHistory       ListingHistory[]     @relation("ListingHistoryTeam") // Track marketplace actions
   notifications        Notification[]
   tournamentEntries    TournamentEntry[]
   tryoutHistory        TryoutHistory[]
@@ -128,6 +129,7 @@ model Player {
   isOnMarket                  Boolean             @default(false)
   isRetired                   Boolean             @default(false)
   MarketplaceListing          MarketplaceListing?
+  marketValue                 PlayerMarketValue?  // Enhanced market valuation
   camaraderieScore            Float               @default(75.0)
   createdAt                   DateTime            @default(now())
   updatedAt                   DateTime            @updatedAt
@@ -265,8 +267,10 @@ model TeamFinances {
   id                        Int      @id @default(autoincrement())
   teamId                    Int      @unique
   team                      Team     @relation(fields: [teamId], references: [id])
-  credits                   BigInt   @default(50000)
-  gems                      Int      @default(0)
+  credits                   BigInt   @default(50000)   // Available credits for spending
+  gems                      Int      @default(0)       // Available gems for spending
+  escrowCredits             BigInt   @default(0)       // Credits held in escrow for active bids
+  escrowGems                Int      @default(0)       // Gems held in escrow (future use)
   projectedIncome           BigInt   @default(0)
   projectedExpenses         BigInt   @default(0)
   lastSeasonRevenue         BigInt   @default(0)
@@ -376,24 +380,46 @@ enum MatchType {
   PLAYOFF
 }
 
+enum MarketplaceStatus {
+  ACTIVE
+  SOLD
+  EXPIRED
+  CANCELLED
+  BUY_NOW_ONLY // Off-season converted
+}
+
 model MarketplaceListing {
-  id                      Int      @id @default(autoincrement())
-  playerId                Int      @unique
-  player                  Player   @relation(fields: [playerId], references: [id])
+  id                      Int                @id @default(autoincrement())
+  playerId                Int                @unique
+  player                  Player             @relation(fields: [playerId], references: [id])
   sellerTeamId            Int
-  sellerTeam              Team     @relation("TeamListings", fields: [sellerTeamId], references: [id])
+  sellerTeam              Team               @relation("TeamListings", fields: [sellerTeamId], references: [id])
   startBid                BigInt
   buyNowPrice             BigInt?
+  minBuyNowPrice          BigInt             // Server-calculated minimum based on CAR + potential
   currentBid              BigInt?
   currentHighBidderTeamId Int?
-  currentHighBidderTeam   Team?    @relation("HighBidderListings", fields: [currentHighBidderTeamId], references: [id])
+  currentHighBidderTeam   Team?              @relation("HighBidderListings", fields: [currentHighBidderTeamId], references: [id])
   expiryTimestamp         DateTime
-  isActive                Boolean  @default(true)
-  createdAt               DateTime @default(now())
+  originalExpiryTimestamp DateTime           // Track original end time for anti-sniping
+  auctionExtensions       Int                @default(0) // Count extensions for anti-sniping cap
+  listingFee              BigInt             // 3% of buy_now_price, non-refundable
+  marketTaxRate           Float              @default(5.0) // 5% market tax on sales
+  escrowAmount            BigInt             @default(0) // Amount held in escrow for current high bidder
+  listingStatus           MarketplaceStatus  @default(ACTIVE)
+  isOffSeasonConverted    Boolean            @default(false) // Converted to buy-now only during off-season
+  autoDelistAt            DateTime?          // Auto-delist timestamp for off-season
+  isActive                Boolean            @default(true)
+  createdAt               DateTime           @default(now())
+  updatedAt               DateTime           @updatedAt
   bids                    Bid[]
+  history                 ListingHistory[]
 
   @@index([sellerTeamId])
   @@index([isActive, expiryTimestamp])
+  @@index([listingStatus])
+  @@index([isOffSeasonConverted])
+  @@index([autoDelistAt])
 }
 
 model Bid {
@@ -403,11 +429,62 @@ model Bid {
   bidderTeamId Int
   bidderTeam   Team               @relation("TeamBids", fields: [bidderTeamId], references: [id])
   bidAmount    BigInt
+  escrowAmount BigInt             @default(0) // Amount held in escrow for this bid
   isWinningBid Boolean            @default(false)
+  isRefunded   Boolean            @default(false) // Track if escrow was refunded
   placedAt     DateTime           @default(now())
 
   @@index([listingId])
   @@index([bidderTeamId])
+  @@index([isWinningBid])
+  @@index([isRefunded])
+}
+
+model ListingHistory {
+  id          Int                @id @default(autoincrement())
+  listingId   Int
+  listing     MarketplaceListing @relation(fields: [listingId], references: [id])
+  actionType  ListingActionType  // BID_PLACED, BID_OUTBID, EXTENSION, SOLD, EXPIRED, etc.
+  teamId      Int?               // Team that performed the action (nullable for system actions)
+  team        Team?              @relation("ListingHistoryTeam", fields: [teamId], references: [id])
+  amount      BigInt?            // Bid amount or sale price
+  oldValue    BigInt?            // Previous value (for bid updates)
+  newValue    BigInt?            // New value (for bid updates)
+  description String?            // Human-readable description of the action
+  timestamp   DateTime           @default(now())
+
+  @@index([listingId])
+  @@index([teamId])
+  @@index([actionType])
+  @@index([timestamp])
+}
+
+enum ListingActionType {
+  LISTING_CREATED
+  BID_PLACED
+  BID_OUTBID
+  AUCTION_EXTENDED
+  BUY_NOW_PURCHASE
+  AUCTION_WON
+  AUCTION_EXPIRED
+  LISTING_CANCELLED
+  OFF_SEASON_CONVERTED
+  AUTO_DELISTED
+}
+
+model PlayerMarketValue {
+  id           Int      @id @default(autoincrement())
+  playerId     Int      @unique
+  player       Player   @relation(fields: [playerId], references: [id])
+  carRating    Float    // Cached CAR calculation
+  potential    Float    // Cached potential rating  
+  minBuyNow    BigInt   // Cached minimum buy-now price
+  marketValue  BigInt   // Estimated market value based on recent sales
+  lastUpdated  DateTime @updatedAt
+  createdAt    DateTime @default(now())
+
+  @@index([playerId])
+  @@index([lastUpdated])
 }
 
 model Strategy {

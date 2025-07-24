@@ -35,6 +35,7 @@ import agingRoutes from "./agingRoutes";
 import consumableRoutes from "./consumableRoutes";
 import playerSkillsRoutes from "./playerSkillsRoutes";
 import dynamicMarketplaceRoutes from "./dynamicMarketplaceRoutes";
+import enhancedMarketplaceRoutes from "./enhancedMarketplaceRoutes";
 import playerAgingRetirementRoutes from "./playerAgingRetirementRoutes";
 import { dailyProgressionRoutes } from "./dailyProgressionRoutes";
 import stadiumAtmosphereRoutes from "./stadiumAtmosphereRoutes";
@@ -77,6 +78,8 @@ export function registerAllRoutes(app: Express): void {
   app.use("/api/marketplace", marketplaceRoutes);
   // Add marketplace stats alias
   app.use("/api/marketplace", dynamicMarketplaceRoutes);
+  // Enhanced marketplace with anti-sniping and escrow system
+  app.use("/api/enhanced-marketplace", enhancedMarketplaceRoutes);
   app.use("/api/auctions", auctionRoutes);
   app.use("/api/store", storeRoutes);
   app.use("/api/stadium", stadiumRoutes); // Covers /api/stadium and /api/stadium/revenue

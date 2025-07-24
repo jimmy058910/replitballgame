@@ -1,478 +1,646 @@
-import { useState, useEffect } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { apiRequest } from "@/lib/queryClient";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Progress } from "@/components/ui/progress";
-import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { useToast } from "@/hooks/use-toast";
-import { Clock, Gavel, Zap, Star, TrendingUp, Eye, Timer, Users, Target, DollarSign } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
+import React, { useState, useEffect } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Badge } from '@/components/ui/badge';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Progress } from '@/components/ui/progress';
+import { Separator } from '@/components/ui/separator';
+import { 
+  Search, 
+  Filter, 
+  Clock, 
+  Coins, 
+  TrendingUp, 
+  Users, 
+  ShoppingCart,
+  Eye,
+  Hammer,
+  Zap
+} from 'lucide-react';
+import { apiRequest, queryClient } from '@/lib/queryClient';
+import { useToast } from '@/hooks/use-toast';
 
-interface AuctionPlayer {
-  id: string;
-  name: string;
-  race: string;
-  age: number;
-  leadership: number;
-  throwing: number;
-  speed: number;
-  agility: number;
-  power: number;
-  stamina: number;
-  abilities: string[];
-  marketValue: number;
-  auction: {
-    id: string;
-    startingPrice: number;
-    currentBid: number;
-    buyoutPrice?: number;
-    reservePrice?: number;
-    endTime: string;
-    bidsCount: number;
-    auctionType: string;
-    timeRemaining?: number;
+interface MarketplaceListing {
+  id: number;
+  player: {
+    id: number;
+    firstName: string;
+    lastName: string;
+    race: string;
+    age: number;
+    role: string;
+    carRating: number;
+    potentialRating: number;
+    injuryStatus: string;
+    speed: number;
+    power: number;
+    throwing: number;
+    catching: number;
+    kicking: number;
+    agility: number;
+    leadership: number;
+    staminaAttribute: number;
   };
+  sellerTeam: { name: string };
+  currentHighBidderTeam?: { name: string };
+  startBid: string;
+  buyNowPrice?: string;
+  currentBid?: string;
+  listingStatus: string;
+  expiryTimestamp: string;
+  auctionExtensions: number;
+  bidCount: number;
+  timeRemaining: number;
 }
 
+interface FilterOptions {
+  role?: string;
+  race?: string;
+  minAge?: number;
+  maxAge?: number;
+  minPower?: number;
+  maxPower?: number;
+  minPrice?: number;
+  maxPrice?: number;
+  sortBy?: string;
+  sortOrder?: 'asc' | 'desc';
+}
+
+const ROLES = ['PASSER', 'RUNNER', 'BLOCKER'];
+const RACES = ['HUMAN', 'SYLVAN', 'GRYLL', 'LUMINA', 'UMBRA'];
+
 export default function EnhancedMarketplace() {
-  const [selectedAuction, setSelectedAuction] = useState<string | null>(null);
-  const [bidAmount, setBidAmount] = useState<number>(0);
-  const [autoBidMax, setAutoBidMax] = useState<number>(0);
-  const [sortBy, setSortBy] = useState("ending_soon");
-  const [filterBy, setFilterBy] = useState("all");
+  const [currentPage, setCurrentPage] = useState(1);
+  const [filters, setFilters] = useState<FilterOptions>({});
+  const [searchQuery, setSearchQuery] = useState('');
+  const [showFilters, setShowFilters] = useState(false);
   const { toast } = useToast();
-  const queryClient = useQueryClient();
 
-  // Define Team type for useQuery
-  interface TeamData {
-    id: string;
-    name: string;
-    credits?: number;
-    // Add other relevant team properties
-  }
-
-  // Fetch active auctions
-  const { data: auctions, isLoading } = useQuery<AuctionPlayer[]>({ // Typed auctions
-    queryKey: ["/api/auctions/active"],
-    refetchInterval: 5000, // Real-time updates
-  });
-
-  // Fetch user team data
-  const { data: team } = useQuery<TeamData>({ // Typed team
-    queryKey: ["/api/teams/my"],
-  });
-
-  // Create auction mutation
-  const createAuctionMutation = useMutation({
-    mutationFn: async (data: any) => apiRequest("/api/auctions", "POST", data), // Corrected apiRequest
-    onSuccess: () => {
-      toast({
-        title: "Auction Created",
-        description: "Your player has been listed for auction",
+  // Fetch marketplace listings
+  const { data: marketplaceData, isLoading, refetch } = useQuery({
+    queryKey: ['/api/enhanced-marketplace/listings', currentPage, filters, searchQuery],
+    queryFn: () => {
+      const params = new URLSearchParams({
+        page: currentPage.toString(),
+        limit: '20',
+        ...Object.fromEntries(
+          Object.entries(filters).filter(([_, value]) => value !== undefined && value !== '')
+        )
       });
-      queryClient.invalidateQueries({ queryKey: ["/api/auctions/active"] });
+      return apiRequest(`/api/enhanced-marketplace/listings?${params}`);
     },
+    refetchInterval: 30000 // Refresh every 30 seconds
+  });
+
+  // Fetch team dashboard
+  const { data: dashboardData } = useQuery({
+    queryKey: ['/api/enhanced-marketplace/dashboard'],
+    queryFn: () => apiRequest('/api/enhanced-marketplace/dashboard'),
+    refetchInterval: 30000
   });
 
   // Place bid mutation
   const placeBidMutation = useMutation({
-    mutationFn: async ({ auctionId, amount, type }: any) => 
-      apiRequest(`/api/auctions/${auctionId}/bid`, "POST", { bidAmount: amount, bidType: type }), // Corrected apiRequest
+    mutationFn: ({ listingId, bidAmount }: { listingId: number; bidAmount: number }) =>
+      apiRequest(`/api/enhanced-marketplace/listings/${listingId}/bid`, {
+        method: 'POST',
+        body: JSON.stringify({ bidAmount })
+      }),
     onSuccess: () => {
-      toast({
-        title: "Bid Placed",
-        description: "Your bid has been submitted successfully",
-      });
-      queryClient.invalidateQueries({ queryKey: ["/api/auctions/active"] });
-      setBidAmount(0);
-      setSelectedAuction(null);
+      toast({ title: 'Bid placed successfully!' });
+      refetch();
+      queryClient.invalidateQueries({ queryKey: ['/api/enhanced-marketplace/dashboard'] });
     },
+    onError: (error: any) => {
+      toast({
+        title: 'Failed to place bid',
+        description: error.message || 'Unknown error occurred',
+        variant: 'destructive'
+      });
+    }
   });
 
-  // Buyout mutation
-  const buyoutMutation = useMutation({
-    mutationFn: async (auctionId: string) => 
-      apiRequest(`/api/auctions/${auctionId}/buyout`, "POST"), // Corrected apiRequest
+  // Buy now mutation
+  const buyNowMutation = useMutation({
+    mutationFn: (listingId: number) =>
+      apiRequest(`/api/enhanced-marketplace/listings/${listingId}/buy-now`, {
+        method: 'POST'
+      }),
     onSuccess: () => {
-      toast({
-        title: "Player Acquired",
-        description: "Player successfully purchased via buyout",
-      });
-      queryClient.invalidateQueries({ queryKey: ["/api/auctions/active"] });
+      toast({ title: 'Purchase successful!' });
+      refetch();
+      queryClient.invalidateQueries({ queryKey: ['/api/enhanced-marketplace/dashboard'] });
     },
+    onError: (error: any) => {
+      toast({
+        title: 'Failed to purchase',
+        description: error.message || 'Unknown error occurred',
+        variant: 'destructive'
+      });
+    }
   });
 
-  const formatTimeRemaining = (endTime: string) => {
-    const end = new Date(endTime);
-    const now = new Date();
-    const diff = end.getTime() - now.getTime();
+  const formatTimeRemaining = (timeMs: number) => {
+    if (timeMs <= 0) return 'Expired';
     
-    if (diff <= 0) return "Ended";
-    
-    const hours = Math.floor(diff / (1000 * 60 * 60));
-    const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+    const hours = Math.floor(timeMs / (1000 * 60 * 60));
+    const minutes = Math.floor((timeMs % (1000 * 60 * 60)) / (1000 * 60));
     
     if (hours > 0) return `${hours}h ${minutes}m`;
     return `${minutes}m`;
   };
 
-  const getTimeProgress = (endTime: string) => {
-    const end = new Date(endTime);
-    const now = new Date();
-    const start = new Date(end.getTime() - 24 * 60 * 60 * 1000); // Assuming 24h auctions
-    
-    const total = end.getTime() - start.getTime();
-    const elapsed = now.getTime() - start.getTime();
-    
-    return Math.min(100, Math.max(0, (elapsed / total) * 100));
+  const getRaceBadgeColor = (race: string) => {
+    const colors = {
+      HUMAN: 'bg-gray-500',
+      SYLVAN: 'bg-green-500',
+      GRYLL: 'bg-yellow-600',
+      LUMINA: 'bg-blue-500',
+      UMBRA: 'bg-purple-500'
+    };
+    return colors[race as keyof typeof colors] || 'bg-gray-500';
   };
 
-  const getUrgencyColor = (endTime: string) => {
-    const remaining = new Date(endTime).getTime() - new Date().getTime();
-    const hours = remaining / (1000 * 60 * 60);
-    
-    if (hours < 1) return "text-red-500";
-    if (hours < 6) return "text-yellow-500";
-    return "text-green-500";
+  const getRoleBadgeColor = (role: string) => {
+    const colors = {
+      PASSER: 'bg-blue-600',
+      RUNNER: 'bg-orange-600',
+      BLOCKER: 'bg-red-600'
+    };
+    return colors[role as keyof typeof colors] || 'bg-gray-600';
   };
 
-  const sortedAuctions = auctions?.sort((a: AuctionPlayer, b: AuctionPlayer) => {
-    switch (sortBy) {
-      case "ending_soon":
-        return new Date(a.auction.endTime).getTime() - new Date(b.auction.endTime).getTime();
-      case "highest_bid":
-        return b.auction.currentBid - a.auction.currentBid;
-      case "lowest_bid":
-        return a.auction.currentBid - b.auction.currentBid;
-      case "most_popular":
-        return b.auction.bidsCount - a.auction.bidsCount;
-      default:
-        return 0;
-    }
-  }) || [];
+  const handleBidClick = (listingId: number) => {
+    const listing = marketplaceData?.listings.find((l: MarketplaceListing) => l.id === listingId);
+    if (!listing) return;
 
-  const filteredAuctions = sortedAuctions.filter((auction: AuctionPlayer) => {
-    if (filterBy === "all") return true;
-    if (filterBy === "buyout") return auction.auction.buyoutPrice;
-    if (filterBy === "no_reserve") return !auction.auction.reservePrice;
-    if (filterBy === "ending_soon") {
-      const hours = (new Date(auction.auction.endTime).getTime() - new Date().getTime()) / (1000 * 60 * 60);
-      return hours < 2;
+    const currentBid = listing.currentBid ? parseInt(listing.currentBid) : parseInt(listing.startBid);
+    const minBid = currentBid + 100;
+    const bidAmount = prompt(`Enter bid amount (minimum: ₡${minBid.toLocaleString()}):`);
+    
+    if (bidAmount && !isNaN(parseInt(bidAmount))) {
+      placeBidMutation.mutate({ 
+        listingId, 
+        bidAmount: parseInt(bidAmount) 
+      });
     }
-    return true;
-  });
+  };
+
+  const handleBuyNowClick = (listingId: number) => {
+    const listing = marketplaceData?.listings.find((l: MarketplaceListing) => l.id === listingId);
+    if (!listing || !listing.buyNowPrice) return;
+
+    const confirmed = confirm(`Buy now for ₡${parseInt(listing.buyNowPrice).toLocaleString()}?`);
+    if (confirmed) {
+      buyNowMutation.mutate(listingId);
+    }
+  };
 
   return (
-    <div className="space-y-6">
-      {/* Header with Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <Card className="bg-gradient-to-r from-blue-500 to-blue-600 text-white">
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-blue-100">Active Auctions</p>
-                <p className="text-2xl font-bold">{auctions?.length || 0}</p>
-              </div>
-              <Gavel className="h-8 w-8 text-blue-200" />
-            </div>
-          </CardContent>
-        </Card>
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900/20 to-blue-900/30 p-4">
+      <div className="max-w-7xl mx-auto space-y-6">
+        
+        {/* Header */}
+        <div className="text-center">
+          <h1 className="text-3xl md:text-4xl font-bold text-white mb-2">
+            Enhanced Player Marketplace
+          </h1>
+          <p className="text-purple-200">
+            Advanced trading system with anti-sniping protection and escrow security
+          </p>
+        </div>
 
-        <Card className="bg-gradient-to-r from-green-500 to-green-600 text-white">
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-green-100">Ending Soon</p>
-                <p className="text-2xl font-bold">
-                  {filteredAuctions.filter((a: AuctionPlayer) => {
-                    const hours = (new Date(a.auction.endTime).getTime() - new Date().getTime()) / (1000 * 60 * 60);
-                    return hours < 2;
-                  }).length}
-                </p>
-              </div>
-              <Timer className="h-8 w-8 text-green-200" />
-            </div>
-          </CardContent>
-        </Card>
+        <Tabs defaultValue="browse" className="w-full">
+          <TabsList className="grid w-full max-w-md mx-auto grid-cols-3 mb-6">
+            <TabsTrigger value="browse">Browse Players</TabsTrigger>
+            <TabsTrigger value="dashboard">My Activity</TabsTrigger>
+            <TabsTrigger value="create">List Player</TabsTrigger>
+          </TabsList>
 
-        <Card className="bg-gradient-to-r from-purple-500 to-purple-600 text-white">
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-purple-100">Buyout Available</p>
-                <p className="text-2xl font-bold">
-                  {filteredAuctions.filter((a: AuctionPlayer) => a.auction.buyoutPrice).length}
-                </p>
-              </div>
-              <Zap className="h-8 w-8 text-purple-200" />
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="bg-gradient-to-r from-orange-500 to-orange-600 text-white">
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-orange-100">Your Credits</p>
-                <p className="text-2xl font-bold">{team?.credits?.toLocaleString() || 0}</p>
-              </div>
-              <DollarSign className="h-8 w-8 text-orange-200" />
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Filters and Sorting */}
-      <Card>
-        <CardContent className="p-4">
-          <div className="flex flex-wrap items-center justify-between gap-4">
-            <div className="flex items-center space-x-4">
-              <div>
-                <Label htmlFor="sort">Sort by</Label>
-                <Select value={sortBy} onValueChange={setSortBy}>
-                  <SelectTrigger className="w-40">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="ending_soon">Ending Soon</SelectItem>
-                    <SelectItem value="highest_bid">Highest Bid</SelectItem>
-                    <SelectItem value="lowest_bid">Lowest Bid</SelectItem>
-                    <SelectItem value="most_popular">Most Popular</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              
-              <div>
-                <Label htmlFor="filter">Filter</Label>
-                <Select value={filterBy} onValueChange={setFilterBy}>
-                  <SelectTrigger className="w-40">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All Auctions</SelectItem>
-                    <SelectItem value="buyout">Buyout Available</SelectItem>
-                    <SelectItem value="no_reserve">No Reserve</SelectItem>
-                    <SelectItem value="ending_soon">Ending Soon</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-
-            <div className="flex items-center space-x-2">
-              <Users className="h-4 w-4 text-gray-500" />
-              <span className="text-sm text-gray-600">{filteredAuctions.length} players available</span>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Auction Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        <AnimatePresence>
-          {filteredAuctions.map((player: AuctionPlayer) => (
-            <motion.div
-              key={player.id}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20 }}
-              whileHover={{ y: -5 }}
-              transition={{ duration: 0.3 }}
-            >
-              <Card className="overflow-hidden hover:shadow-2xl transition-all duration-300 border-2 hover:border-primary/50">
-                <CardHeader className="pb-2">
-                  <div className="flex items-start justify-between">
-                    <div>
-                      <CardTitle className="text-lg">{player.name}</CardTitle>
-                      <p className="text-sm text-gray-600">{player.race} • Age {player.age}</p>
-                    </div>
-                    <div className="flex flex-col items-end space-y-1">
-                      <Badge variant={player.auction.auctionType === "buyout" ? "secondary" : "default"}>
-                        {player.auction.auctionType === "buyout" ? "Buyout" : "Auction"}
-                      </Badge>
-                      {player.auction.reservePrice && (
-                        <Badge variant="outline" className="text-xs">
-                          Reserve
-                        </Badge>
-                      )}
-                    </div>
+          {/* Browse Players Tab */}
+          <TabsContent value="browse" className="space-y-6">
+            
+            {/* Search and Filter Bar */}
+            <Card className="bg-gray-800/40 border-purple-500/20">
+              <CardContent className="p-4">
+                <div className="flex flex-col md:flex-row gap-4">
+                  <div className="flex-1 relative">
+                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+                    <Input
+                      placeholder="Search players..."
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      className="pl-10 bg-gray-700/50 border-gray-600 text-white placeholder-gray-400"
+                    />
                   </div>
-                </CardHeader>
+                  <Button
+                    variant="outline"
+                    onClick={() => setShowFilters(!showFilters)}
+                    className="border-purple-500/50 text-purple-200 hover:bg-purple-500/10"
+                  >
+                    <Filter className="w-4 h-4 mr-2" />
+                    Filters
+                  </Button>
+                </div>
 
-                <CardContent className="space-y-4">
-                  {/* Player Stats */}
-                  <div className="grid grid-cols-2 gap-2 text-sm">
-                    <div className="flex justify-between">
-                      <span>Speed:</span>
-                      <span className="font-semibold">{player.speed}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span>Power:</span>
-                      <span className="font-semibold">{player.power}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span>Throwing:</span>
-                      <span className="font-semibold">{player.throwing}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span>Agility:</span>
-                      <span className="font-semibold">{player.agility}</span>
-                    </div>
-                  </div>
+                {/* Advanced Filters */}
+                {showFilters && (
+                  <div className="mt-4 pt-4 border-t border-gray-600">
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                      <Select
+                        value={filters.role || ''}
+                        onValueChange={(value) => setFilters(prev => ({ ...prev, role: value || undefined }))}
+                      >
+                        <SelectTrigger className="bg-gray-700/50 border-gray-600 text-white">
+                          <SelectValue placeholder="Role" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="">All Roles</SelectItem>
+                          {ROLES.map(role => (
+                            <SelectItem key={role} value={role}>{role}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
 
-                  {/* Abilities */}
-                  {player.abilities && player.abilities.length > 0 && (
-                    <div>
-                      <p className="text-xs text-gray-600 mb-1">Abilities</p>
-                      <div className="flex flex-wrap gap-1">
-                        {player.abilities.slice(0, 2).map((ability, index) => (
-                          <Badge key={index} variant="outline" className="text-xs">
-                            {ability}
-                          </Badge>
-                        ))}
-                        {player.abilities.length > 2 && (
-                          <Badge variant="outline" className="text-xs">
-                            +{player.abilities.length - 2}
-                          </Badge>
-                        )}
-                      </div>
-                    </div>
-                  )}
+                      <Select
+                        value={filters.race || ''}
+                        onValueChange={(value) => setFilters(prev => ({ ...prev, race: value || undefined }))}
+                      >
+                        <SelectTrigger className="bg-gray-700/50 border-gray-600 text-white">
+                          <SelectValue placeholder="Race" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="">All Races</SelectItem>
+                          {RACES.map(race => (
+                            <SelectItem key={race} value={race}>{race}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
 
-                  {/* Auction Info */}
-                  <div className="space-y-2">
-                    <div className="flex justify-between items-center">
-                      <span className="text-sm text-gray-600">Current Bid:</span>
-                      <span className="font-bold text-green-600">
-                        {player.auction.currentBid.toLocaleString()} credits
-                      </span>
-                    </div>
+                      <Input
+                        placeholder="Min Power"
+                        type="number"
+                        value={filters.minPower || ''}
+                        onChange={(e) => setFilters(prev => ({ 
+                          ...prev, 
+                          minPower: e.target.value ? parseInt(e.target.value) : undefined 
+                        }))}
+                        className="bg-gray-700/50 border-gray-600 text-white placeholder-gray-400"
+                      />
 
-                    {player.auction.buyoutPrice && (
-                      <div className="flex justify-between items-center">
-                        <span className="text-sm text-gray-600">Buyout:</span>
-                        <span className="font-bold text-blue-600">
-                          {player.auction.buyoutPrice.toLocaleString()} credits
-                        </span>
-                      </div>
-                    )}
-
-                    <div className="flex justify-between items-center">
-                      <span className="text-sm text-gray-600">Bids:</span>
-                      <span className="text-sm font-semibold">{player.auction.bidsCount}</span>
-                    </div>
-
-                    {/* Time Remaining */}
-                    <div className="space-y-1">
-                      <div className="flex justify-between items-center">
-                        <span className="text-sm text-gray-600">Time Left:</span>
-                        <span className={`text-sm font-semibold ${getUrgencyColor(player.auction.endTime)}`}>
-                          {formatTimeRemaining(player.auction.endTime)}
-                        </span>
-                      </div>
-                      <Progress 
-                        value={getTimeProgress(player.auction.endTime)} 
-                        className="h-2"
+                      <Input
+                        placeholder="Max Price"
+                        type="number"
+                        value={filters.maxPrice || ''}
+                        onChange={(e) => setFilters(prev => ({ 
+                          ...prev, 
+                          maxPrice: e.target.value ? parseInt(e.target.value) : undefined 
+                        }))}
+                        className="bg-gray-700/50 border-gray-600 text-white placeholder-gray-400"
                       />
                     </div>
                   </div>
+                )}
+              </CardContent>
+            </Card>
 
-                  {/* Action Buttons */}
-                  <div className="flex space-x-2">
-                    <Dialog>
-                      <DialogTrigger asChild>
-                        <Button 
-                          variant="outline" 
-                          className="flex-1 hover:bg-primary hover:text-primary-foreground transition-colors"
-                          onClick={() => setSelectedAuction(player.auction.id)}
-                        >
-                          <Gavel className="h-4 w-4 mr-2" />
-                          Bid
-                        </Button>
-                      </DialogTrigger>
-                      <DialogContent>
-                        <DialogHeader>
-                          <DialogTitle>Place Bid - {player.name}</DialogTitle>
-                        </DialogHeader>
-                        <div className="space-y-4">
-                          <div>
-                            <Label htmlFor="bidAmount">Bid Amount</Label>
-                            <Input
-                              id="bidAmount"
-                              type="number"
-                              value={bidAmount}
-                              onChange={(e) => setBidAmount(Number(e.target.value))}
-                              min={player.auction.currentBid + 1000}
-                              placeholder={`Min: ${(player.auction.currentBid + 1000).toLocaleString()}`}
-                            />
+            {/* Marketplace Grid */}
+            {isLoading ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {[...Array(6)].map((_, i) => (
+                  <Card key={i} className="bg-gray-800/40 border-purple-500/20 animate-pulse">
+                    <CardContent className="p-6">
+                      <div className="space-y-4">
+                        <div className="h-6 bg-gray-700 rounded"></div>
+                        <div className="h-4 bg-gray-700 rounded w-3/4"></div>
+                        <div className="h-20 bg-gray-700 rounded"></div>
+                        <div className="h-10 bg-gray-700 rounded"></div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {marketplaceData?.listings.map((listing: MarketplaceListing) => (
+                  <Card key={listing.id} className="bg-gray-800/40 border-purple-500/20 hover:border-purple-400/40 transition-all duration-200">
+                    <CardHeader className="pb-3">
+                      <div className="flex justify-between items-start">
+                        <div>
+                          <CardTitle className="text-white text-lg">
+                            {listing.player.firstName} {listing.player.lastName}
+                          </CardTitle>
+                          <p className="text-gray-400 text-sm">
+                            Sold by {listing.sellerTeam.name}
+                          </p>
+                        </div>
+                        <div className="text-right">
+                          <div className="text-yellow-400 font-bold">
+                            CAR {listing.player.carRating.toFixed(1)}
                           </div>
-                          
-                          <div>
-                            <Label htmlFor="autoBidMax">Auto-bid Maximum (Optional)</Label>
-                            <Input
-                              id="autoBidMax"
-                              type="number"
-                              value={autoBidMax}
-                              onChange={(e) => setAutoBidMax(Number(e.target.value))}
-                              placeholder="Set maximum for auto-bidding"
-                            />
-                          </div>
-
-                          <div className="flex space-x-2">
-                            <Button
-                              onClick={() => placeBidMutation.mutate({
-                                auctionId: player.auction.id,
-                                amount: bidAmount,
-                                type: autoBidMax > 0 ? "auto" : "standard"
-                              })}
-                              disabled={placeBidMutation.isPending || bidAmount <= player.auction.currentBid}
-                              className="flex-1"
-                            >
-                              Place Bid
-                            </Button>
+                          <div className="text-purple-400 text-sm">
+                            {listing.player.potentialRating.toFixed(1)}★ potential
                           </div>
                         </div>
-                      </DialogContent>
-                    </Dialog>
+                      </div>
+                      
+                      <div className="flex gap-2 mt-2">
+                        <Badge className={`${getRoleBadgeColor(listing.player.role)} text-white text-xs`}>
+                          {listing.player.role}
+                        </Badge>
+                        <Badge className={`${getRaceBadgeColor(listing.player.race)} text-white text-xs`}>
+                          {listing.player.race}
+                        </Badge>
+                        <Badge variant="outline" className="border-gray-500 text-gray-300 text-xs">
+                          Age {listing.player.age}
+                        </Badge>
+                      </div>
+                    </CardHeader>
 
-                    {player.auction.buyoutPrice && (
-                      <Button
-                        onClick={() => buyoutMutation.mutate(player.auction.id)}
-                        disabled={buyoutMutation.isPending}
-                        className="flex-1 bg-blue-600 hover:bg-blue-700"
-                      >
-                        <Zap className="h-4 w-4 mr-2" />
-                        Buyout
-                      </Button>
+                    <CardContent className="space-y-4">
+                      {/* Player Stats Preview */}
+                      <div className="grid grid-cols-3 gap-2 text-xs">
+                        <div className="text-center">
+                          <div className="text-white font-medium">{listing.player.speed}</div>
+                          <div className="text-gray-400">SPD</div>
+                        </div>
+                        <div className="text-center">
+                          <div className="text-white font-medium">{listing.player.power}</div>
+                          <div className="text-gray-400">PWR</div>
+                        </div>
+                        <div className="text-center">
+                          <div className="text-white font-medium">{listing.player.agility}</div>
+                          <div className="text-gray-400">AGI</div>
+                        </div>
+                      </div>
+
+                      <Separator className="bg-gray-600" />
+
+                      {/* Bidding Information */}
+                      <div className="space-y-2">
+                        <div className="flex justify-between items-center">
+                          <span className="text-gray-400 text-sm">Current Bid:</span>
+                          <span className="text-green-400 font-medium">
+                            ₡{parseInt(listing.currentBid || listing.startBid).toLocaleString()}
+                          </span>
+                        </div>
+                        
+                        {listing.buyNowPrice && (
+                          <div className="flex justify-between items-center">
+                            <span className="text-gray-400 text-sm">Buy Now:</span>
+                            <span className="text-yellow-400 font-medium">
+                              ₡{parseInt(listing.buyNowPrice).toLocaleString()}
+                            </span>
+                          </div>
+                        )}
+
+                        <div className="flex justify-between items-center">
+                          <span className="text-gray-400 text-sm">Time Left:</span>
+                          <span className={`font-medium ${listing.timeRemaining < 300000 ? 'text-red-400' : 'text-blue-400'}`}>
+                            {formatTimeRemaining(listing.timeRemaining)}
+                          </span>
+                        </div>
+
+                        {listing.bidCount > 0 && (
+                          <div className="flex justify-between items-center">
+                            <span className="text-gray-400 text-sm">Bids:</span>
+                            <span className="text-purple-400 font-medium">{listing.bidCount}</span>
+                          </div>
+                        )}
+
+                        {listing.auctionExtensions > 0 && (
+                          <div className="text-orange-400 text-xs text-center">
+                            Extended {listing.auctionExtensions} time{listing.auctionExtensions > 1 ? 's' : ''}
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Action Buttons */}
+                      <div className="flex gap-2 pt-2">
+                        <Button
+                          onClick={() => handleBidClick(listing.id)}
+                          disabled={listing.timeRemaining <= 0 || placeBidMutation.isPending}
+                          className="flex-1 bg-blue-600 hover:bg-blue-700 text-white"
+                        >
+                          <Hammer className="w-4 h-4 mr-1" />
+                          Bid
+                        </Button>
+                        
+                        {listing.buyNowPrice && (
+                          <Button
+                            onClick={() => handleBuyNowClick(listing.id)}
+                            disabled={listing.timeRemaining <= 0 || buyNowMutation.isPending}
+                            className="flex-1 bg-yellow-600 hover:bg-yellow-700 text-white"
+                          >
+                            <Zap className="w-4 h-4 mr-1" />
+                            Buy Now
+                          </Button>
+                        )}
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            )}
+
+            {/* Pagination */}
+            {marketplaceData?.pagination && (
+              <div className="flex justify-center items-center gap-4 mt-8">
+                <Button
+                  variant="outline"
+                  onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                  disabled={currentPage === 1}
+                  className="border-purple-500/50 text-purple-200 hover:bg-purple-500/10"
+                >
+                  Previous
+                </Button>
+                
+                <span className="text-white">
+                  Page {currentPage} of {marketplaceData.pagination.totalPages}
+                </span>
+                
+                <Button
+                  variant="outline"
+                  onClick={() => setCurrentPage(prev => prev + 1)}
+                  disabled={currentPage >= marketplaceData.pagination.totalPages}
+                  className="border-purple-500/50 text-purple-200 hover:bg-purple-500/10"
+                >
+                  Next
+                </Button>
+              </div>
+            )}
+          </TabsContent>
+
+          {/* My Activity Tab */}
+          <TabsContent value="dashboard" className="space-y-6">
+            {dashboardData && (
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                
+                {/* My Listings */}
+                <Card className="bg-gray-800/40 border-purple-500/20">
+                  <CardHeader>
+                    <CardTitle className="text-white flex items-center gap-2">
+                      <ShoppingCart className="w-5 h-5" />
+                      My Listings ({dashboardData.myListings.length})
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    {dashboardData.myListings.length === 0 ? (
+                      <p className="text-gray-400 text-center py-8">No active listings</p>
+                    ) : (
+                      dashboardData.myListings.map((listing: any) => (
+                        <div key={listing.id} className="bg-gray-700/30 rounded-lg p-4">
+                          <div className="flex justify-between items-start mb-2">
+                            <div>
+                              <h4 className="text-white font-medium">
+                                {listing.player.firstName} {listing.player.lastName}
+                              </h4>
+                              <p className="text-gray-400 text-sm">
+                                {listing.player.role} • {listing.player.race}
+                              </p>
+                            </div>
+                            <Badge className={listing.bidCount > 0 ? 'bg-green-600' : 'bg-gray-600'}>
+                              {listing.bidCount} bid{listing.bidCount !== 1 ? 's' : ''}
+                            </Badge>
+                          </div>
+                          
+                          <div className="text-sm space-y-1">
+                            <div className="flex justify-between">
+                              <span className="text-gray-400">Current Bid:</span>
+                              <span className="text-green-400">
+                                ₡{parseInt(listing.currentBid || listing.startBid).toLocaleString()}
+                              </span>
+                            </div>
+                            {listing.buyNowPrice && (
+                              <div className="flex justify-between">
+                                <span className="text-gray-400">Buy Now:</span>
+                                <span className="text-yellow-400">
+                                  ₡{parseInt(listing.buyNowPrice).toLocaleString()}
+                                </span>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      ))
                     )}
-                  </div>
-                </CardContent>
-              </Card>
-            </motion.div>
-          ))}
-        </AnimatePresence>
+                  </CardContent>
+                </Card>
+
+                {/* My Bids */}
+                <Card className="bg-gray-800/40 border-purple-500/20">
+                  <CardHeader>
+                    <CardTitle className="text-white flex items-center gap-2">
+                      <Hammer className="w-5 h-5" />
+                      My Active Bids ({dashboardData.myBids.length})
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    {dashboardData.myBids.length === 0 ? (
+                      <p className="text-gray-400 text-center py-8">No active bids</p>
+                    ) : (
+                      dashboardData.myBids.map((bid: any) => (
+                        <div key={bid.id} className="bg-gray-700/30 rounded-lg p-4">
+                          <div className="flex justify-between items-start mb-2">
+                            <div>
+                              <h4 className="text-white font-medium">
+                                {bid.listing.player.firstName} {bid.listing.player.lastName}
+                              </h4>
+                              <p className="text-gray-400 text-sm">
+                                {bid.listing.player.role} • {bid.listing.player.race}
+                              </p>
+                            </div>
+                            <Badge className="bg-blue-600">
+                              Leading
+                            </Badge>
+                          </div>
+                          
+                          <div className="text-sm space-y-1">
+                            <div className="flex justify-between">
+                              <span className="text-gray-400">My Bid:</span>
+                              <span className="text-blue-400">
+                                ₡{parseInt(bid.bidAmount).toLocaleString()}
+                              </span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span className="text-gray-400">Escrowed:</span>
+                              <span className="text-orange-400">
+                                ₡{parseInt(bid.escrowAmount).toLocaleString()}
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+                      ))
+                    )}
+                  </CardContent>
+                </Card>
+
+                {/* Statistics */}
+                <Card className="bg-gray-800/40 border-purple-500/20 lg:col-span-2">
+                  <CardHeader>
+                    <CardTitle className="text-white flex items-center gap-2">
+                      <TrendingUp className="w-5 h-5" />
+                      Marketplace Statistics
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+                      <div className="text-center">
+                        <div className="text-2xl font-bold text-white">{dashboardData.stats.totalListings}</div>
+                        <div className="text-gray-400 text-sm">Total Listings</div>
+                      </div>
+                      <div className="text-center">
+                        <div className="text-2xl font-bold text-white">{dashboardData.stats.totalBids}</div>
+                        <div className="text-gray-400 text-sm">Total Bids</div>
+                      </div>
+                      <div className="text-center">
+                        <div className="text-2xl font-bold text-green-400">{dashboardData.stats.totalSales}</div>
+                        <div className="text-gray-400 text-sm">Players Sold</div>
+                      </div>
+                      <div className="text-center">
+                        <div className="text-2xl font-bold text-blue-400">{dashboardData.stats.totalPurchases}</div>
+                        <div className="text-gray-400 text-sm">Players Bought</div>
+                      </div>
+                      <div className="text-center">
+                        <div className="text-2xl font-bold text-orange-400">
+                          ₡{parseInt(dashboardData.stats.escrowAmount).toLocaleString()}
+                        </div>
+                        <div className="text-gray-400 text-sm">In Escrow</div>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+            )}
+          </TabsContent>
+
+          {/* Create Listing Tab */}
+          <TabsContent value="create" className="space-y-6">
+            <Card className="bg-gray-800/40 border-purple-500/20 max-w-2xl mx-auto">
+              <CardHeader>
+                <CardTitle className="text-white text-center">
+                  Create New Listing
+                </CardTitle>
+                <p className="text-gray-400 text-center">
+                  List your player on the marketplace with advanced auction features
+                </p>
+              </CardHeader>
+              <CardContent>
+                <div className="text-center py-8">
+                  <p className="text-gray-400 mb-4">
+                    Listing creation UI coming soon!
+                  </p>
+                  <p className="text-sm text-gray-500">
+                    Features: Player selection wizard, CAR-based pricing, duration controls, escrow preview
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+        </Tabs>
       </div>
-
-      {isLoading && (
-        <div className="flex justify-center items-center py-12">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
-        </div>
-      )}
-
-      {!isLoading && filteredAuctions.length === 0 && (
-        <Card>
-          <CardContent className="p-12 text-center">
-            <Gavel className="h-16 w-16 mx-auto text-gray-400 mb-4" />
-            <h3 className="text-xl font-semibold mb-2">No Auctions Available</h3>
-            <p className="text-gray-600">Check back later for new player auctions.</p>
-          </CardContent>
-        </Card>
-      )}
     </div>
   );
 }
