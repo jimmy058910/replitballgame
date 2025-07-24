@@ -446,7 +446,7 @@ router.post('/:teamId/formation', isAuthenticated, async (req: any, res: Respons
       }
     }
 
-    const { starters, substitutes, flexSubs, formationData, fieldSize, tacticalFocus } = req.body;
+    const { starters, substitutes, flexSubs, formationData } = req.body;
 
     // Debug logging for POST route
     console.log('🔍 POST Formation Debug:', {
@@ -454,8 +454,6 @@ router.post('/:teamId/formation', isAuthenticated, async (req: any, res: Respons
       starters: starters,
       substitutes: substitutes,
       flexSubs: flexSubs,
-      fieldSize: fieldSize,
-      tacticalFocus: tacticalFocus,
       startersType: typeof starters,
       substitutesType: typeof substitutes,
       flexSubsType: typeof flexSubs,
@@ -483,8 +481,6 @@ router.post('/:teamId/formation', isAuthenticated, async (req: any, res: Respons
       starters: starters.map((player: any) => ({ id: player.id, role: player.role })),
       substitutes: substitutes.map((player: any) => ({ id: player.id, role: player.role })),
       flexSubs: flexSubs ? flexSubs.map((player: any) => ({ id: player.id, role: player.role })) : [],
-      fieldSize: fieldSize || 'standard',
-      tacticalFocus: tacticalFocus || 'balanced',
       ...formationData
     };
 
@@ -509,9 +505,7 @@ router.post('/:teamId/formation', isAuthenticated, async (req: any, res: Respons
       teamId: teamId,
       startersCount: formation.starters.length,
       substitutesCount: formation.substitutes.length,
-      flexSubsCount: formation.flexSubs.length,
-      fieldSize: formation.fieldSize,
-      tacticalFocus: formation.tacticalFocus
+      flexSubsCount: formation.flexSubs.length
     });
 
     res.json({ success: true, message: "Formation saved successfully" });
@@ -809,9 +803,7 @@ router.get('/:teamId/formation', isAuthenticated, async (req: any, res: Response
       substitutes: enhancedSubstitutes,
       flexSubs: enhancedFlexSubs,
       allPlayers: enhancedPlayers, // Return all players for tactical management
-      formation_data: formationData,
-      fieldSize: formationData?.fieldSize || 'standard',
-      tacticalFocus: formationData?.tacticalFocus || 'balanced'
+      formation_data: formationData
     });
   } catch (error) {
     console.error("Error fetching formation:", error);
