@@ -54,9 +54,6 @@ interface FormationSlot {
   isSubstitution?: boolean;
   substitutionPosition?: 'blockers' | 'runners' | 'passers' | 'wildcard';
   substitutionIndex?: number;
-  isSubstitution?: boolean;
-  substitutionPosition?: 'blockers' | 'runners' | 'passers' | 'wildcard';
-  substitutionIndex?: number;
 }
 
 interface SubstitutionQueue {
@@ -325,6 +322,71 @@ export default function TapToAssignTactics({ teamId }: TapToAssignTacticsProps) 
     enabled: !!teamId,
   });
 
+  // Load saved formation data into state
+  useEffect(() => {
+    if (currentFormation && players.length > 0) {
+      console.log('🔍 Loading saved formation:', currentFormation);
+      
+      // Load starters
+      if (currentFormation.starters && Array.isArray(currentFormation.starters)) {
+        setFormationSlots(prev => prev.map(slot => {
+          // Find a matching player for this slot
+          for (const savedPlayer of currentFormation.starters) {
+            if (savedPlayer && savedPlayer.id) {
+              const fullPlayer = players.find(player => player.id === savedPlayer.id);
+              if (fullPlayer) {
+                // Check if this player matches the slot requirements
+                if ((slot.requiredRole && fullPlayer.role === slot.requiredRole) || slot.isWildcard) {
+                  // Make sure this player isn't already assigned to another slot
+                  const alreadyAssigned = prev.some(s => s.id !== slot.id && s.player?.id === fullPlayer.id);
+                  if (!alreadyAssigned) {
+                    return { ...slot, player: fullPlayer };
+                  }
+                }
+              }
+            }
+          }
+          return slot;
+        }));
+      }
+
+      // Load substitutes
+      if (currentFormation.substitutes && Array.isArray(currentFormation.substitutes)) {
+        const newSubQueue = {
+          blockers: [null, null, null] as (Player | null)[],
+          runners: [null, null, null] as (Player | null)[],
+          passers: [null, null, null] as (Player | null)[],
+          wildcard: [null, null, null] as (Player | null)[]
+        };
+
+        // Distribute substitutes by role
+        currentFormation.substitutes.forEach((savedSub: any, index: number) => {
+          if (savedSub && savedSub.id) {
+            const fullPlayer = players.find(player => player.id === savedSub.id);
+            if (fullPlayer) {
+              // Place in appropriate position based on role
+              if (fullPlayer.role === 'blocker' && newSubQueue.blockers.indexOf(null) !== -1) {
+                const slotIndex = newSubQueue.blockers.indexOf(null);
+                newSubQueue.blockers[slotIndex] = fullPlayer;
+              } else if (fullPlayer.role === 'runner' && newSubQueue.runners.indexOf(null) !== -1) {
+                const slotIndex = newSubQueue.runners.indexOf(null);
+                newSubQueue.runners[slotIndex] = fullPlayer;
+              } else if (fullPlayer.role === 'passer' && newSubQueue.passers.indexOf(null) !== -1) {
+                const slotIndex = newSubQueue.passers.indexOf(null);
+                newSubQueue.passers[slotIndex] = fullPlayer;
+              } else if (newSubQueue.wildcard.indexOf(null) !== -1) {
+                const slotIndex = newSubQueue.wildcard.indexOf(null);
+                newSubQueue.wildcard[slotIndex] = fullPlayer;
+              }
+            }
+          }
+        });
+
+        setSubstitutionQueue(newSubQueue);
+      }
+    }
+  }, [currentFormation, players]);
+
   // Save formation mutation
   const saveFormationMutation = useMutation({
     mutationFn: async () => {
@@ -333,10 +395,10 @@ export default function TapToAssignTactics({ teamId }: TapToAssignTacticsProps) 
         .map(slot => slot.player!);
 
       const substitutes = [
-        ...substitutionQueue.blockers,
-        ...substitutionQueue.runners,
-        ...substitutionQueue.passers,
-        ...substitutionQueue.wildcard,
+        ...substitutionQueue.blockers.filter(Boolean),
+        ...substitutionQueue.runners.filter(Boolean),
+        ...substitutionQueue.passers.filter(Boolean),
+        ...substitutionQueue.wildcard.filter(Boolean),
       ];
 
       return await fetch(`/api/teams/${teamId}/formation`, {
