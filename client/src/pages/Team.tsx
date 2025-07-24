@@ -13,7 +13,7 @@ import UnifiedTeamChemistry from "@/components/UnifiedTeamChemistry";
 import Inventory from "@/pages/Inventory";
 import AdvancedTacticalEffectsManager from "@/components/AdvancedTacticalEffectsManager";
 import UnifiedInventoryHub from "@/components/UnifiedInventoryHub";
-import TapToAssignTactics from "@/components/TapToAssignTactics";
+import TacticsLineupHub from "@/components/TacticsLineupHub";
 import TryoutSystem from "@/components/TryoutSystem";
 import StadiumAtmosphereManager from "@/components/StadiumAtmosphereManager";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -362,7 +362,7 @@ export default function TeamPage() {
               </TabsList>
 
               <TabsContent value="lineup">
-                <TapToAssignTactics teamId={team?.id || ''} />
+                <TacticsLineupHub teamId={team?.id || ''} />
               </TabsContent>
 
               <TabsContent value="strategy">
