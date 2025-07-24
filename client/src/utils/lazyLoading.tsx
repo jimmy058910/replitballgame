@@ -82,6 +82,7 @@ export const preloadComponent = (importFunc: () => Promise<{ default: ComponentT
 export const LazyTeam = lazyLoadPage(() => import('../pages/Team'));
 export const LazyCompetition = lazyLoadPage(() => import('../pages/Competition'));
 export const LazyWorld = lazyLoadPage(() => import('../pages/World'));
+export const LazyMarket = lazyLoadPage(() => import('../pages/Market'));
 export const LazyLiveMatch = lazyLoadPage(() => import('../components/LiveMatchPage'));
 export const LazyCommunity = lazyLoadPage(() => import('../pages/Community'));
 export const LazyTournamentStatus = lazyLoadPage(() => import('../pages/TournamentStatus'));

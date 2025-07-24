@@ -207,7 +207,7 @@ export default function NewNavigation() {
 
                 {/* Premium Currency */}
                 <button
-                  onClick={() => setLocation("/market")}
+                  onClick={() => setLocation("/market-district")}
                   className="flex items-center bg-purple-700 hover:bg-purple-600 px-3 py-2 rounded-lg text-sm font-semibold transition-colors"
                 >
                   <Coins className="h-4 w-4 text-purple-300 mr-1" />
@@ -219,7 +219,7 @@ export default function NewNavigation() {
                 
                 {/* Credits */}
                 <button
-                  onClick={() => setLocation("/market")}
+                  onClick={() => setLocation("/market-district")}
                   className="flex items-center bg-gray-700 hover:bg-gray-600 px-3 py-2 rounded-lg text-sm font-semibold transition-colors"
                 >
                   <Coins className="h-4 w-4 text-yellow-400 mr-1" />

@@ -21,6 +21,7 @@ import { lazy, Suspense } from "react";
 // Lazy-loaded components for better performance
 import { 
   LazyTeam,
+  LazyMarket,
   LazyWorld,
   LazyLiveMatch,
   LazyCommunity,
@@ -42,7 +43,7 @@ const LazyRosterHQ = lazy(() => import("@/pages/RosterHQ").catch((error) => {
   return { default: () => <div>Error loading Roster HQ: {error.message}</div> };
 }));
 const LazyCompetitionCenter = lazy(() => import("@/pages/CompetitionCenter").catch(() => ({ default: () => <div>Loading Competition Center...</div> })));
-const LazyMarket = lazy(() => import("@/pages/Market").catch(() => ({ default: () => <div>Loading Market...</div> })));
+const LazyMarketDistrict = lazy(() => import("@/pages/MarketDistrict").catch(() => ({ default: () => <div>Loading Market District...</div> })));
 const LazyCommunityPortal = lazy(() => import("@/pages/CommunityPortal").catch(() => ({ default: () => <div>Loading Community Portal...</div> })));
 
 function Router() {
@@ -80,7 +81,7 @@ function Router() {
           )} />
           <Route path="/market" component={() => (
             <Suspense fallback={<div className="min-h-screen bg-gray-900 animate-pulse" />}>
-              <LazyMarket />
+              <LazyMarketDistrict />
             </Suspense>
           )} />
           <Route path="/community" component={() => (

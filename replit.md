@@ -194,17 +194,17 @@ docker push gcr.io/direct-glider-465821-p7/realm-rivalry:latest
 
 ## Current Architecture Status
 
-### 6-Hub Mobile-First Interface (Updated July 24, 2025)
+### 6-Hub Mobile-First Interface (Updated July 22, 2025)
 - **Team HQ** (/) - Mission control dashboard with seasonal context
 - **Roster HQ** (/roster-hq) - Complete player and staff management  
 - **Competition Center** (/competition) - Leagues, tournaments, live matches
-- **Market** (/market) - Trading, store, inventory, transactions (consolidated from Market District)
+- **Market District** (/market-district) - Trading, store, inventory, transactions
 - **Community Portal** (/community) - Social features, referrals, support, game manual
-- **Legacy Routes** - Maintained for backwards compatibility (/team, /world)
+- **Legacy Routes** - Maintained for backwards compatibility (/team, /market, /world)
 
 ### Navigation Display Structure
 - **Mobile**: "Team / Roster / Competition / Market / Community"
-- **Desktop**: "Team HQ / Roster HQ / Competition Center / Market / Community Portal"
+- **Desktop**: "Team HQ / Roster HQ / Competition Center / Market District / Community Portal"
 
 ### Mobile-First Design Principles
 - Touch targets: minimum 44px (standard), 56px (large actions)
@@ -800,16 +800,6 @@ docker push gcr.io/direct-glider-465821-p7/realm-rivalry:latest
 - ✓ **Compact Information Density**: Maximized screen real estate usage with proper information hierarchy
 - ✓ **Consistent Visual Language**: Purple-blue gradient theme with role-specific color coding throughout
 - ✓ **Performance Status Integration**: Live match tracking, points display, and tournament participation status
-
-### July 24, 2025 - ✅ MARKET CONSOLIDATION COMPLETE - UNIFIED MARKET INTERFACE OPERATIONAL ✅
-
-#### ✅ SINGLE UNIFIED MARKET PAGE IMPLEMENTATION COMPLETE
-- ✓ **Routing Consolidation**: Updated App.tsx to point /market route to Market.tsx component (removed MarketDistrict.tsx reference)
-- ✓ **Navigation Updates**: Updated NewNavigation.tsx currency buttons to route to /market instead of /market-district
-- ✓ **Enhanced Store Features**: Confirmed Market.tsx has all improvements - enhanced getItemIcon function, equipment slot badges, item descriptions
-- ✓ **Realm Pass Enhancement**: Added "Future cosmetic items" text to Realm Pass benefits section for complete feature parity
-- ✓ **Component Cleanup**: Removed MarketDistrict.tsx entirely to eliminate code duplication
-- ✓ **Documentation Update**: Updated replit.md to reflect consolidated /market interface architecture
 
 ### July 24, 2025 - ✅ HARDCODED SCHEDULE DATA FIXED - AUTHENTIC GAME INFORMATION IMPLEMENTED ✅
 
