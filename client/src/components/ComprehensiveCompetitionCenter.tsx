@@ -194,6 +194,44 @@ export default function ComprehensiveCompetitionCenter() {
     enabled: !!team?.division,
   });
 
+  // Tournament-specific queries
+  const { data: availableTournaments } = useQuery({
+    queryKey: ["/api/new-tournaments/available"],
+    enabled: !!team?.id,
+  });
+
+  const { data: myTournaments } = useQuery({
+    queryKey: ["/api/new-tournaments/my-tournaments"],
+    enabled: !!team?.id,
+  });
+
+  // Check if Mid-Season Cup registration deadline has passed (Day 7 at 1PM EDT)
+  const isMidSeasonRegistrationDeadlinePassed = () => {
+    if (!seasonData) return false;
+    
+    const currentDay = seasonData?.currentDay || 0;
+    
+    // Get current Eastern Time
+    const easternTime = new Date().toLocaleString('en-US', { timeZone: 'America/New_York' });
+    const easternDate = new Date(easternTime);
+    const currentHour = easternDate.getHours();
+    
+    // Registration closes after Day 7 at 1PM EDT
+    if (currentDay > 7) return true;
+    if (currentDay === 7 && currentHour >= 13) return true;
+    
+    return false;
+  };
+
+  // Check if user is already registered for tournaments
+  const isRegisteredForDailyTournament = Array.isArray(myTournaments) && myTournaments.some((entry: any) => 
+    entry.type === 'DAILY_DIVISIONAL'
+  );
+
+  const isRegisteredForMidSeasonCup = Array.isArray(myTournaments) && myTournaments.some((entry: any) => 
+    entry.type === 'MID_SEASON_CUP'
+  );
+
   // Exhibition mutations
   const startInstantMatch = useMutation({
     mutationFn: () => apiRequest('/api/exhibitions/instant-match', { method: 'POST' }),
@@ -260,6 +298,52 @@ export default function ComprehensiveCompetitionCenter() {
       toast({
         title: "Purchase Failed",
         description: error.message || "Unable to purchase exhibition token. Check your credits.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Tournament registration mutations
+  const registerDailyTournament = useMutation({
+    mutationFn: () => apiRequest('/api/new-tournaments/daily-tournament/register', 'POST'),
+    onSuccess: () => {
+      toast({
+        title: "Success!",
+        description: "Successfully registered for Daily Division Tournament!",
+      });
+      queryClient.invalidateQueries({ queryKey: ["/api/new-tournaments/my-tournaments"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/new-tournaments/available"] });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Registration Failed",
+        description: error.message || "Unable to register for tournament. Try again later.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const registerMidSeasonCup = useMutation({
+    mutationFn: () => {
+      // Find Mid-Season Cup tournament from available tournaments
+      const midSeasonCup = availableTournaments?.find((t: any) => t.type === 'mid_season_classic');
+      if (!midSeasonCup) {
+        throw new Error('Mid-Season Cup not available');
+      }
+      return apiRequest('/api/new-tournaments/register', 'POST', { tournamentId: midSeasonCup.id });
+    },
+    onSuccess: () => {
+      toast({
+        title: "Success!",
+        description: "Successfully registered for Mid-Season Cup!",
+      });
+      queryClient.invalidateQueries({ queryKey: ["/api/new-tournaments/my-tournaments"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/new-tournaments/available"] });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Registration Failed",
+        description: error.message || "Unable to register for Mid-Season Cup. Check your credits (₡10,000) or gems (💎20).",
         variant: "destructive",
       });
     },
@@ -606,9 +690,22 @@ export default function ComprehensiveCompetitionCenter() {
                         </div>
                       </div>
                       
-                      <Button className="w-full bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white font-bold py-3 rounded-xl shadow-lg">
+                      <Button 
+                        onClick={() => registerDailyTournament.mutate()}
+                        disabled={registerDailyTournament.isPending || isRegisteredForDailyTournament}
+                        className={`w-full font-bold py-3 rounded-xl shadow-lg ${
+                          isRegisteredForDailyTournament 
+                            ? "bg-green-800 hover:bg-green-900 cursor-not-allowed" 
+                            : "bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700"
+                        } text-white`}
+                      >
                         <Trophy className="h-5 w-5 mr-2" />
-                        Enter Tournament
+                        {registerDailyTournament.isPending 
+                          ? "Registering..." 
+                          : isRegisteredForDailyTournament 
+                            ? "✓ Already Registered" 
+                            : "Enter Tournament"
+                        }
                       </Button>
                     </CardContent>
                   </Card>
@@ -639,15 +736,32 @@ export default function ComprehensiveCompetitionCenter() {
                         <div className="text-center">
                           <p className="text-purple-300 text-sm font-semibold mb-1">Entry Cost</p>
                           <div className="bg-purple-900/50 rounded-lg p-3">
-                            <p className="text-purple-200 font-bold text-lg">₡5,000</p>
-                            <p className="text-purple-300 text-sm">or 💎25</p>
+                            <p className="text-purple-200 font-bold text-lg">₡10,000</p>
+                            <p className="text-purple-300 text-sm">or 💎20</p>
                           </div>
                         </div>
                       </div>
                       
-                      <Button className="w-full bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white font-bold py-3 rounded-xl shadow-lg">
+                      <Button 
+                        onClick={() => registerMidSeasonCup.mutate()}
+                        disabled={registerMidSeasonCup.isPending || isRegisteredForMidSeasonCup || isMidSeasonRegistrationDeadlinePassed()}
+                        className={`w-full font-bold py-3 rounded-xl shadow-lg ${
+                          isRegisteredForMidSeasonCup 
+                            ? "bg-purple-800 hover:bg-purple-900 cursor-not-allowed" 
+                            : isMidSeasonRegistrationDeadlinePassed()
+                              ? "bg-gray-700 hover:bg-gray-800 cursor-not-allowed"
+                              : "bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700"
+                        } text-white`}
+                      >
                         <Award className="h-5 w-5 mr-2" />
-                        Register Now
+                        {registerMidSeasonCup.isPending 
+                          ? "Registering..." 
+                          : isRegisteredForMidSeasonCup 
+                            ? "✓ Already Registered" 
+                            : isMidSeasonRegistrationDeadlinePassed()
+                              ? "Registration Closed"
+                              : "Register Now"
+                        }
                       </Button>
                     </CardContent>
                   </Card>
