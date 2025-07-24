@@ -476,23 +476,33 @@ export default function MobileRosterHQ() {
           </Card>
         </div>
 
-        {/* Five-Tab Navigation */}
+        {/* Five-Tab Navigation - Fixed overlapping issue */}
         <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as TabType)} className="w-full">
-          <TabsList className="grid w-full grid-cols-5 bg-slate-800/50 border border-slate-600">
-            <TabsTrigger value="roster" className="text-sm font-semibold data-[state=active]:bg-blue-600 data-[state=active]:text-white py-3">
-              👥 Roster
+          <TabsList className="grid w-full grid-cols-5 bg-slate-800/50 border border-slate-600 gap-0.5">
+            <TabsTrigger value="roster" className="text-xs font-semibold data-[state=active]:bg-blue-600 data-[state=active]:text-white py-2 px-1 flex flex-col items-center">
+              <span className="text-base">👥</span>
+              <span className="hidden sm:inline">Roster</span>
+              <span className="sm:hidden">Roster</span>
             </TabsTrigger>
-            <TabsTrigger value="tactics" className="text-sm font-semibold data-[state=active]:bg-green-600 data-[state=active]:text-white py-3">
-              ⚙️ Tactics
+            <TabsTrigger value="tactics" className="text-xs font-semibold data-[state=active]:bg-green-600 data-[state=active]:text-white py-2 px-1 flex flex-col items-center">
+              <span className="text-base">🎯</span>
+              <span className="hidden sm:inline">Tactics</span>
+              <span className="sm:hidden">Tactics</span>
             </TabsTrigger>
-            <TabsTrigger value="camaraderie" className="text-sm font-semibold data-[state=active]:bg-yellow-600 data-[state=active]:text-white py-3">
-              🤝 Camaraderie
+            <TabsTrigger value="camaraderie" className="text-xs font-semibold data-[state=active]:bg-yellow-600 data-[state=active]:text-white py-2 px-1 flex flex-col items-center">
+              <span className="text-base">🤝</span>
+              <span className="hidden sm:inline">Camaraderie</span>
+              <span className="sm:hidden">Team</span>
             </TabsTrigger>
-            <TabsTrigger value="stadium" className="text-sm font-semibold data-[state=active]:bg-purple-600 data-[state=active]:text-white py-3">
-              🏟️ Stadium
+            <TabsTrigger value="stadium" className="text-xs font-semibold data-[state=active]:bg-purple-600 data-[state=active]:text-white py-2 px-1 flex flex-col items-center">
+              <span className="text-base">🏟️</span>
+              <span className="hidden sm:inline">Stadium</span>
+              <span className="sm:hidden">Stadium</span>
             </TabsTrigger>
-            <TabsTrigger value="personnel" className="text-sm font-semibold data-[state=active]:bg-orange-600 data-[state=active]:text-white py-3">
-              👔 Staff
+            <TabsTrigger value="personnel" className="text-xs font-semibold data-[state=active]:bg-orange-600 data-[state=active]:text-white py-2 px-1 flex flex-col items-center">
+              <span className="text-base">👔</span>
+              <span className="hidden sm:inline">Staff</span>
+              <span className="sm:hidden">Staff</span>
             </TabsTrigger>
           </TabsList>
 
