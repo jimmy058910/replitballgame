@@ -805,7 +805,9 @@ export default function ComprehensiveCompetitionCenter() {
                         </div>
                       </div>
                       <div className="flex items-center gap-2">
-                        <Badge className="bg-cyan-600 text-cyan-100">Day 9 of 17</Badge>
+                        <Badge className="bg-cyan-600 text-cyan-100">
+                          Day {seasonData?.currentDay || 1} of 17
+                        </Badge>
                         <ChevronDown className="h-5 w-5 text-cyan-400" />
                       </div>
                     </div>
@@ -917,8 +919,8 @@ export default function ComprehensiveCompetitionCenter() {
                             <p className="text-purple-300 text-sm">Top teams compete for division championships</p>
                           </div>
                           <div className="bg-indigo-800/30 rounded p-3">
-                            <h5 className="font-semibold text-indigo-200 mb-2">Day 16 - Playoffs</h5>
-                            <p className="text-indigo-300 text-sm">Inter-division championship matches</p>
+                            <h5 className="font-semibold text-indigo-200 mb-2">Day 16 - Offseason</h5>
+                            <p className="text-indigo-300 text-sm">Roster management and player progression</p>
                           </div>
                           <div className="bg-cyan-800/30 rounded p-3">
                             <h5 className="font-semibold text-cyan-200 mb-2">Day 17 - Offseason</h5>

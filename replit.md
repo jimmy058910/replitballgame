@@ -437,9 +437,9 @@ docker push gcr.io/direct-glider-465821-p7/realm-rivalry:latest
 
 ### 14. Season Cycle & Progression
 **17-Day Season Structure**:
-- **Days 1-15**: Regular season games, 1 game per day
-- **Day 16**: Offseason begins, playoff tournaments, promotion/relegation
-- **Day 17**: New season preparation, player progression, staff contracts, tryouts
+- **Days 1-14**: Regular season games, 1 game per day
+- **Day 15**: Division tournaments (post-season elimination)
+- **Days 16-17**: Offseason - player progression, staff contracts, tryouts, roster management
 
 **End-of-Season Progression Formula**:
 `ProgressionChance = 15% + (Potential × 3%) + AgeModifier + UsageBonus + TrainerBonus + CoachBonus`
