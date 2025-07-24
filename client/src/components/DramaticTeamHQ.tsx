@@ -214,7 +214,6 @@ export default function DramaticTeamHQ() {
         {/* 🚀 UNIFIED TEAM HEADER */}
         <UnifiedTeamHeader
           title="TEAM HQ"
-          titleIcon="⚡"
           team={team}
           players={allPlayers}
         />

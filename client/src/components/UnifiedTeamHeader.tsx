@@ -75,7 +75,7 @@ export default function UnifiedTeamHeader({ title, titleIcon, team, players, sho
               <Trophy className="w-8 h-8 mr-3 text-yellow-400" />
               <div>
                 <h1 className="text-3xl font-black text-white mb-1">
-                  {titleIcon || '🏈'} {team?.name || 'Team Name'} {titleIcon || '🏈'}
+                  {team?.name || 'Team Name'}
                 </h1>
                 <div className="flex items-center gap-4">
                   <Badge className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-3 py-1">
