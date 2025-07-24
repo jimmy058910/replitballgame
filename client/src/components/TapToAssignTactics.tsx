@@ -502,19 +502,41 @@ export default function TapToAssignTactics({ teamId }: TapToAssignTacticsProps) 
   };
 
   const handleAssignPlayer = (player: Player, slotId: string) => {
-    // STRICT duplicate validation for all assignments
     const allAssignedIds = getAllAssignedPlayerIds();
+    const starterIds = formationSlots.map(slot => slot.player?.id).filter(Boolean);
     const currentSlotPlayer = selectedSlot?.player?.id;
     
-    // Prevent assignment if player is already assigned elsewhere
+    // Smart duplicate validation based on assignment type
     if (player.id !== currentSlotPlayer && allAssignedIds.includes(player.id)) {
-      console.warn('Player already assigned elsewhere, assignment blocked');
-      toast({
-        title: "Assignment Blocked",
-        description: `${player.firstName} ${player.lastName} is already assigned to another position`,
-        variant: "destructive",
-      });
-      return;
+      
+      if (selectedSlot?.isSubstitution && selectedSlot.substitutionPosition === 'wildcard') {
+        // For flex subs: Only block if assigned to starters or other flex slots
+        const isAssignedToStarter = starterIds.includes(player.id);
+        const otherFlexSlotIds = substitutionQueue.wildcard
+          .map((p, index) => index !== selectedSlot.substitutionIndex ? p?.id : null)
+          .filter(Boolean);
+        const isInOtherFlexSlot = otherFlexSlotIds.includes(player.id);
+        
+        if (isAssignedToStarter || isInOtherFlexSlot) {
+          console.warn('Player assigned to starter or other flex slot, assignment blocked');
+          toast({
+            title: "Assignment Blocked", 
+            description: `${player.firstName} ${player.lastName} is already assigned to a starting position or another flex sub slot`,
+            variant: "destructive",
+          });
+          return;
+        }
+        // Allow assignment to flex if only in position-specific subs
+      } else {
+        // For starters and position-specific subs: Block all duplicates
+        console.warn('Player already assigned elsewhere, assignment blocked');
+        toast({
+          title: "Assignment Blocked",
+          description: `${player.firstName} ${player.lastName} is already assigned to another position`,
+          variant: "destructive",
+        });
+        return;
+      }
     }
 
     if (selectedSlot?.isSubstitution && selectedSlot.substitutionPosition && selectedSlot.substitutionIndex !== undefined) {
