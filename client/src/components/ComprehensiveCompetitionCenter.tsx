@@ -235,7 +235,7 @@ export default function ComprehensiveCompetitionCenter() {
 
   // Exhibition mutations
   const startInstantMatch = useMutation({
-    mutationFn: () => apiRequest('/api/exhibitions/instant-match', { method: 'POST' }),
+    mutationFn: () => apiRequest('/api/exhibitions/instant-match', 'POST'),
     onSuccess: (data) => {
       toast({
         title: "Exhibition Started!",
