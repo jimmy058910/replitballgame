@@ -1,22 +1,19 @@
 import { useState } from "react";
-import { Dialog, DialogContent, DialogHeader } from "@/components/ui/dialog";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
-import { Separator } from "@/components/ui/separator";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { 
-  Shield, Shirt, Hand, Star, Trophy, Calendar, FileText, Zap, User, Crown, 
-  DollarSign, Trash2, AlertTriangle, Heart, Wrench, ChevronDown, ChevronUp,
-  Activity, Target, Brain, Gauge, TrendingUp, Clock, Pin, Copy, Bug, Sparkles, Award, Footprints
+  Heart, Battery, Users, Crown, DollarSign, Trash2, AlertTriangle, 
+  Wrench, ChevronDown, Pin, Copy, Star, Plus, ArrowRight,
+  Activity, Target, Brain, Zap, Shield, Shirt
 } from "lucide-react";
 import AbilitiesDisplay from "@/components/AbilitiesDisplay";
-import { PlayerAwards } from "./PlayerAwards";
 import ContractNegotiationRedesigned from "./ContractNegotiationRedesigned";
-import { getPlayerRole, getRaceDisplayName, getRoleColor, getRoleTextColor } from "@shared/playerUtils";
+import { getPlayerRole, getRaceDisplayName, getRoleColor } from "@shared/playerUtils";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
@@ -33,7 +30,7 @@ import {
 } from "@/components/ui/alert-dialog";
 
 interface PlayerDetailModalProps {
-  player: any | null; // Updated to accept any player object
+  player: any | null;
   isOpen: boolean;
   onClose: () => void;
   onContractNegotiate?: (playerId: string) => void;
@@ -52,137 +49,48 @@ const getRaceEmoji = (race: string): string => {
   return raceEmojis[race?.toLowerCase() as keyof typeof raceEmojis] || '👤';
 };
 
-// Helper function to get stat color based on value
-const getStatColor = (value: number): string => {
-  if (value >= 35) return "text-blue-400";
-  if (value >= 26) return "text-green-400";
-  if (value >= 16) return "text-white";
-  return "text-red-400";
-};
-
-// Enhanced 5-star rating system with baseline gray outlines and color fill
-const renderEnhancedStarRating = (rating: number): JSX.Element => {
+// Enhanced 5-star rating system
+const renderStarRating = (rating: number): JSX.Element => {
   const stars = [];
   const fullStars = Math.floor(rating);
   const hasHalfStar = rating % 1 >= 0.5;
   
-  // Star color based on rating level
-  let fillColor = "text-gray-400"; // Default for <1.5 stars
-  if (rating >= 4.5) fillColor = "text-yellow-400"; // Gold for 4.5-5★
-  else if (rating >= 3.5) fillColor = "text-purple-400"; // Purple for 3.5-4★
-  else if (rating >= 2.5) fillColor = "text-blue-400"; // Blue for 2.5-3★
-  else if (rating >= 1.5) fillColor = "text-green-400"; // Green for 1.5-2★
+  let fillColor = "text-gray-400";
+  if (rating >= 4.5) fillColor = "text-yellow-400";
+  else if (rating >= 3.5) fillColor = "text-purple-400";
+  else if (rating >= 2.5) fillColor = "text-blue-400";
+  else if (rating >= 1.5) fillColor = "text-green-400";
   
-  // Always show 5 star baseline (gray outlines)
   for (let i = 0; i < 5; i++) {
     if (i < fullStars) {
-      // Filled star
-      stars.push(
-        <Star 
-          key={i} 
-          className={`w-4 h-4 ${fillColor} fill-current`}
-        />
-      );
+      stars.push(<Star key={i} className={`w-4 h-4 fill-current ${fillColor}`} />);
     } else if (i === fullStars && hasHalfStar) {
-      // Half star
-      stars.push(
-        <div key={i} className="relative w-4 h-4">
-          <Star className="w-4 h-4 text-gray-300 absolute" />
-          <Star 
-            className={`w-4 h-4 ${fillColor} fill-current absolute`} 
-            style={{ clipPath: 'inset(0 50% 0 0)' }} 
-          />
-        </div>
-      );
+      stars.push(<Star key={i} className={`w-4 h-4 fill-current ${fillColor} opacity-50`} />);
     } else {
-      // Empty star (gray outline)
-      stars.push(
-        <Star 
-          key={i} 
-          className="w-4 h-4 text-gray-300"
-        />
-      );
+      stars.push(<Star key={i} className="w-4 h-4 text-gray-600" />);
     }
   }
   
-  return (
-    <div className="flex items-center gap-1" title="Scouted potential. Stars refined as player is developed or scouted.">
-      {stars}
-      <span className="text-xs text-muted-foreground ml-1">
-        {rating.toFixed(1)}/5
-      </span>
-    </div>
-  );
+  return <div className="flex items-center gap-1">{stars}</div>;
 };
 
-// Enhanced stamina donut gauge
-const StaminaGauge = ({ current, max }: { current: number; max: number }) => {
-  const percentage = Math.max(0, Math.min(100, (current / max) * 100));
-  const isLow = percentage < 90;
-  
-  return (
-    <div className="relative w-12 h-12">
-      <svg className="w-12 h-12 transform -rotate-90" viewBox="0 0 36 36">
-        {/* Background circle */}
-        <path
-          d="M18 2.0845
-            a 15.9155 15.9155 0 0 1 0 31.831
-            a 15.9155 15.9155 0 0 1 0 -31.831"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="2"
-          className="text-gray-600"
-        />
-        {/* Progress circle */}
-        <path
-          d="M18 2.0845
-            a 15.9155 15.9155 0 0 1 0 31.831
-            a 15.9155 15.9155 0 0 1 0 -31.831"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="2"
-          strokeDasharray={`${percentage}, 100`}
-          className={isLow ? "text-yellow-400" : "text-green-400"}
-        />
-      </svg>
-      <div className="absolute inset-0 flex items-center justify-center">
-        <span className={`text-xs font-bold ${isLow ? "text-yellow-400" : "text-green-400"}`}>
-          {Math.round(percentage)}%
-        </span>
-      </div>
-    </div>
-  );
-};
-
-export default function PlayerDetailModal({ 
+function PlayerDetailModal({ 
   player, 
   isOpen, 
   onClose, 
   onContractNegotiate,
   onEquipmentChange 
 }: PlayerDetailModalProps) {
-  // Collapsible sections state
-  const [expandedSections, setExpandedSections] = useState({
-    attributes: false,
-    abilities: false,
-    equipment: false,
-    contract: false,
-    chemistry: false,
-    medical: false,
-    performance: false
-  });
-  
+  // Accordion sections state - only one open at a time
+  const [expandedSection, setExpandedSection] = useState<string | null>(null);
   const [showContractNegotiation, setShowContractNegotiation] = useState(false);
   const [selectedEquipmentItem, setSelectedEquipmentItem] = useState("");
   const queryClient = useQueryClient();
   const { toast } = useToast();
 
-  // Toggle expanded sections
-  const toggleSection = (section: keyof typeof expandedSections) => {
-    setExpandedSections(prev => ({
-      ...prev,
-      [section]: !prev[section]
-    }));
+  // Toggle accordion sections
+  const toggleSection = (section: string) => {
+    setExpandedSection(expandedSection === section ? null : section);
   };
 
   // Fetch player's current equipment
@@ -197,10 +105,10 @@ export default function PlayerDetailModal({
     enabled: isOpen && !!player?.teamId,
   });
 
-  // Fetch team finances for release calculations
-  const { data: teamFinances = { credits: 0, canRelease: true, releaseFee: 0, teamCredits: 0 }, isLoading: financesLoading } = useQuery({
-    queryKey: [`/api/teams/${player?.teamId}/finances`],
-    enabled: isOpen && !!player?.teamId,
+  // Fetch release fee information
+  const { data: releaseInfo = { canRelease: false, releaseFee: 0 }, isLoading: releaseInfoLoading } = useQuery({
+    queryKey: [`/api/teams/${player?.teamId}/players/${player?.id}/release-fee`],
+    enabled: isOpen && !!player?.id && !!player?.teamId,
   });
 
   // Equipment mutation
@@ -234,12 +142,6 @@ export default function PlayerDetailModal({
     }
   });
 
-  // Release fee query
-  const { data: releaseInfo, isLoading: releaseInfoLoading } = useQuery({
-    queryKey: [`/api/teams/${player?.teamId}/players/${player?.id}/release-fee`],
-    enabled: isOpen && !!player?.id && !!player?.teamId,
-  });
-
   // Release player mutation
   const releasePlayerMutation = useMutation({
     mutationFn: async () => {
@@ -253,7 +155,7 @@ export default function PlayerDetailModal({
       }
       toast({
         title: "Player Released",
-        description: "Player has been released from your team.",
+        description: "Player has been released from the team.",
       });
       onClose();
     },
@@ -268,605 +170,425 @@ export default function PlayerDetailModal({
 
   if (!player) return null;
 
-  const playerRole = getPlayerRole(player);
-  const displayName = player.firstName && player.lastName 
-    ? `${player.firstName} ${player.lastName}` 
-    : player.name || "Unknown Player";
+  // Calculate player power (6 main attributes only)
+  const playerPower = Math.round(
+    (player.speed + player.power + player.throwing + player.catching + player.kicking + player.agility) / 6
+  );
 
-  // Calculate overall power (Core Athleticism Rating)
-  const overallPower = Math.round(
-    (player.speed + player.power + player.agility + player.throwing + player.catching + player.kicking) / 6
-  ) || 0;
-
-  // Calculate potential rating (out of 5 stars)
-  const potential = Math.min(5.0, Number(player.potentialRating) || 3.0);
-  const basePotential = potential;
+  // Get health status
+  const healthStatus = player.injuryStatus === 'HEALTHY' ? 'Healthy' : 'Injured';
+  const healthIcon = player.injuryStatus === 'HEALTHY' ? '❤️' : '🚨';
   
-  const getMaxPotential = (currentStat: number) => {
-    // Convert star rating to potential points (each star = 8 potential points)
-    const potentialPoints = basePotential * 8;
-    return Math.min(40, currentStat + Math.floor(potentialPoints * 0.3));
-  };
+  // Get stamina percentage
+  const staminaPercentage = Math.round((player.dailyStaminaLevel || 100));
+  
+  // Get chemistry and leadership values
+  const chemistry = player.camaraderieScore || 0;
+  const leadership = player.leadership || 0;
 
-  // Contract status calculation
-  const contractRemaining = player.contract?.length || 3;
-  const isContractExpiring = contractRemaining <= 1;
-
-  // Mock Head Scout level for scouting accuracy (this would come from team data)
-  const headScoutLevel = 3; // This should be fetched from team staff
-  const scoutingAccuracy = Math.min(100, 40 + (headScoutLevel * 15)); // 40% base + 15% per level
-
-  // Calculate potential display based on scouting accuracy
-  const getPotentialDisplay = () => {
-    if (scoutingAccuracy >= 90) {
-      return `${basePotential.toFixed(1)} Stars`;
-    } else if (scoutingAccuracy >= 70) {
-      const variance = 0.5;
-      return `${(basePotential - variance).toFixed(1)} - ${(basePotential + variance).toFixed(1)} Stars`;
-    } else {
-      const variance = 1.0;
-      return `${Math.max(0, basePotential - variance).toFixed(1)} - ${Math.min(5, basePotential + variance).toFixed(1)} Stars`;
-    }
-  };
-
-  // Get equipped items by slot
-  const getEquippedItemBySlot = (slot: string) => {
-    if (!playerEquipment?.equipment) return null;
-    return playerEquipment.equipment.find((eq: any) => 
-      eq.item.slot === slot.toUpperCase() || 
-      (slot === "helmet" && eq.item.name.toLowerCase().includes("helm"))
-    );
-  };
-
-  // Get eligible equipment items for player
-  const getEligibleEquipment = () => {
-    if (!teamInventory || !Array.isArray(teamInventory)) return [];
-    
-    const raceRequirements = {
-      "Human Tactical Helm": ["HUMAN"],
-      "Gryllstone Plated Helm": ["GRYLL"],
-      "Sylvan Barkwood Circlet": ["SYLVAN"],
-      "Umbral Cowl": ["UMBRA"],
-      "Lumina Radiant Aegis": ["LUMINA"]
-    };
-
-    return teamInventory.filter((item: any) => {
-      if (item.itemType !== "EQUIPMENT" || item.quantity <= 0) return false;
-      
-      const requiredRaces = raceRequirements[item.name as keyof typeof raceRequirements];
-      if (requiredRaces && !requiredRaces.includes(player.race)) return false;
-      
-      return true;
-    });
-  };
-
-  // Get item effect description
-  const getItemEffect = (item: any) => {
-    const effects: Record<string, string> = {
-      "Standard Leather Helmet": "+1 Stamina protection",
-      "Human Tactical Helm": "+4 Leadership, +2 Throwing accuracy",
-      "Gryllstone Plated Helm": "+3 Power, +2 Stamina",
-      "Sylvan Barkwood Circlet": "+4 Agility, +2 Speed",
-      "Umbral Cowl": "+3 Agility, +1 Speed",
-      "Lumina Radiant Aegis": "+1 Leadership",
-    };
-    return effects[item.name] || item.description || "Provides various benefits";
-  };
-
-  const equipmentSlots = [
-    { key: "helmet", icon: Shield, label: "Helmet" },
-    { key: "chest", icon: Shirt, label: "Chest Armor" },
-    { key: "shoes", icon: Footprints, label: "Shoes" },
-    { key: "gloves", icon: Hand, label: "Gloves" },
-  ];
-
-  const getRarityColor = (rarity: string) => {
-    switch (rarity) {
-      case "common": return "text-gray-400 border-gray-400";
-      case "rare": return "text-blue-400 border-blue-400";
-      case "epic": return "text-purple-400 border-purple-400";
-      case "legendary": return "text-yellow-400 border-yellow-400";
-      default: return "text-gray-400 border-gray-400";
-    }
-  };
-
-  // Render single stat bar with new format
-  const renderStatBar = (label: string, current: number) => {
-    const maxPotential = getMaxPotential(current);
-    const percentage = (current / 40) * 100;
-    
-    return (
-      <div className="space-y-2">
-        <div className="flex justify-between items-center">
-          <span className="text-sm font-medium">{label}</span>
-          <span className={`text-sm font-bold ${getStatColor(current)}`}>
-            {current}/{maxPotential}
-          </span>
-        </div>
-        <Progress value={percentage} className="h-2" />
-      </div>
-    );
-  };
+  // Calculate potential rating for stars
+  const potentialRating = player.potentialRating || 2.5;
 
   return (
-    <div>
-      <Dialog open={isOpen} onOpenChange={onClose}>
-        <DialogContent className="max-w-2xl max-h-[95vh] overflow-hidden p-0">
-          <div className="sticky top-0 bg-gray-900 z-10 border-b border-gray-700">
-            {/* Header Block */}
-            <div className="p-6 pb-4">
-              {/* ENHANCED HEADER - ABOVE THE FOLD */}
-              <div className="flex items-center gap-6 mb-6">
-                <div className="w-20 h-20 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-3xl">
-                  {getRaceEmoji(player.race)}
-                </div>
-                <div className="flex-1">
-                  <div className="flex items-center gap-3 mb-2">
-                    <h1 className="text-3xl font-bold text-white">{displayName}</h1>
-                    {player.isCaptain && <Crown className="w-6 h-6 text-yellow-500" />}
-                  </div>
-                  <div className="flex items-center gap-3 mb-2">
-                    <Badge className={`text-sm font-medium ${getRoleColor(playerRole)}`}>
-                      {playerRole.toUpperCase()}
-                    </Badge>
-                    <Badge variant="outline" className="text-blue-300 border-blue-300">
-                      Age {player.age} • {getRaceDisplayName(player.race)}
-                    </Badge>
-                  </div>
-                  
-                  {/* ENHANCED 5-STAR POTENTIAL RATING */}
-                  <div className="flex items-center gap-3 mb-3">
-                    {renderEnhancedStarRating(player.potentialRating || 2.5)}
-                  </div>
-                </div>
-                
-                {/* POWER & CONTRACT */}
-                <div className="text-right">
-                  <div className="text-4xl font-bold text-white">
-                    {overallPower}
-                  </div>
-                  <div className="text-sm text-gray-300">Overall Power</div>
-                  <div className="text-lg text-green-400 mt-1 font-semibold">
-                    ₡{player.contractSalary?.toLocaleString() || '0'}/season
-                  </div>
-                  <div className="text-sm text-yellow-300">
-                    {player.contractLength || 1} years remaining
+    <Dialog open={isOpen} onOpenChange={onClose}>
+      <DialogContent className="max-w-2xl max-h-[90vh] p-0 bg-gray-900 border-gray-700">
+        <ScrollArea className="max-h-[90vh]">
+          <div className="p-6">
+            {/* 1. Header Bar (Always Visible) */}
+            <div className="flex items-center justify-between mb-4 bg-gray-800/50 rounded-lg p-4">
+              <div className="flex items-center gap-3">
+                <div className="text-4xl">{getRaceEmoji(player.race)}</div>
+                <div>
+                  <h2 className="text-xl font-bold text-white">
+                    {player.firstName} {player.lastName}
+                  </h2>
+                  <div className="text-sm text-gray-400">
+                    {getPlayerRole(player.role)} • {getRaceDisplayName(player.race)} • Age {player.age}
                   </div>
                 </div>
               </div>
+              <div className="flex items-center gap-4">
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-blue-400">{playerPower}</div>
+                  <div className="text-xs text-gray-400">Power</div>
+                </div>
+                <div className="flex gap-2">
+                  <Button variant="ghost" size="sm" className="text-yellow-400 hover:text-yellow-300">
+                    <Pin className="w-4 h-4" />
+                  </Button>
+                  <Button variant="ghost" size="sm" className="text-gray-400 hover:text-gray-300">
+                    <Copy className="w-4 h-4" />
+                  </Button>
+                </div>
+              </div>
+            </div>
 
-              {/* ENHANCED QUICK STATS ROW */}
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6 p-4 bg-black/30 rounded-lg">
-                <div className="text-center">
-                  <div className={`text-2xl ${player.injuryStatus === 'HEALTHY' ? 'text-green-400' : 'text-red-400'}`}>
-                    {player.injuryStatus === 'HEALTHY' ? '💚' : '🚨'}
-                  </div>
-                  <div className="text-sm font-semibold text-white mt-1">
-                    {player.injuryStatus === 'HEALTHY' ? 'Healthy' : 'Injured'}
-                  </div>
-                  <div className="text-xs text-gray-400">Medical Status</div>
-                </div>
-                
-                <div className="text-center">
-                  <div className={`text-2xl font-bold ${(player.dailyStaminaLevel || 100) >= 75 ? 'text-green-400' : (player.dailyStaminaLevel || 100) >= 50 ? 'text-yellow-400' : 'text-red-400'}`}>
-                    {player.dailyStaminaLevel || 100}%
-                  </div>
-                  <div className="text-sm font-semibold text-white">Stamina</div>
-                  <div className="text-xs text-gray-400">Energy Level</div>
-                </div>
-                
-                <div className="text-center">
-                  <div className="text-2xl text-purple-400 font-bold">
-                    {player.camaraderieScore || 50}
-                  </div>
-                  <div className="text-sm font-semibold text-white">Chemistry</div>
-                  <div className="text-xs text-gray-400">Team Bond</div>
-                </div>
-                
-                <div className="text-center">
-                  <div className="text-2xl text-blue-400 font-bold">
-                    {player.leadership || 20}
-                  </div>
-                  <div className="text-sm font-semibold text-white">Leadership</div>
-                  <div className="text-xs text-gray-400">Locker Room</div>
-                </div>
+            {/* Contract Summary Line */}
+            <div className="text-center text-sm text-gray-400 mb-4">
+              Contract: ₡{(Number(player.contract?.salary) || 0).toLocaleString()}/season - {player.contract?.length || 1} yrs remaining
+            </div>
+
+            {/* 2. Core Stats Strip */}
+            <div className="grid grid-cols-4 gap-4 mb-4 bg-gray-800/30 rounded-lg p-4">
+              <div className="text-center">
+                <div className="text-lg">{healthIcon}</div>
+                <div className="text-sm font-medium text-white">{healthStatus}</div>
+                <div className="text-xs text-gray-400">Health</div>
               </div>
-              
-              {/* ENHANCED ACTION BUTTONS - Always Visible */}
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+              <div className="text-center">
+                <div className="text-lg">🔋</div>
+                <div className="text-sm font-medium text-white">{staminaPercentage}%</div>
+                <div className="text-xs text-gray-400">Stamina</div>
+              </div>
+              <div className="text-center">
+                <div className="text-lg">🤝</div>
+                <div className="text-sm font-medium text-white">{chemistry}</div>
+                <div className="text-xs text-gray-400">Chemistry</div>
+              </div>
+              <div className="text-center">
+                <div className="text-lg">🏅</div>
+                <div className="text-sm font-medium text-white">{leadership}</div>
+                <div className="text-xs text-gray-400">Leadership</div>
+              </div>
+            </div>
+
+            {/* 3. Action Row (Sticky on Scroll) */}
+            <div className="sticky top-0 z-10 bg-gray-900/95 backdrop-blur-sm p-2 -mx-2 mb-4">
+              <div className="grid grid-cols-4 gap-2">
                 <Button 
                   onClick={() => setShowContractNegotiation(true)}
-                  className="bg-green-600 hover:bg-green-700 text-white flex items-center gap-2"
-                  title="Renegotiate contract (will update salary)"
+                  className="bg-green-600 hover:bg-green-700"
+                  size="sm"
                 >
-                  <DollarSign className="w-4 h-4" />
                   Negotiate
                 </Button>
-                
                 <Button 
-                  variant="secondary" 
-                  className="bg-blue-600 hover:bg-blue-700 text-white flex items-center gap-2"
-                  disabled={player.injuryStatus === 'HEALTHY' && (player.dailyStaminaLevel || 100) >= 100}
-                  title={(player.injuryStatus === 'HEALTHY' && (player.dailyStaminaLevel || 100) >= 100) ? 'Player is healthy and has full stamina' : 'Use recovery items to heal player or restore stamina'}
+                  disabled={player.injuryStatus === 'HEALTHY'}
+                  className="bg-blue-600 hover:bg-blue-700 disabled:opacity-50"
+                  size="sm"
                 >
-                  <Zap className="w-4 h-4" />
                   Heal
                 </Button>
-                
                 <Button 
-                  variant="secondary"
-                  className="bg-purple-600 hover:bg-purple-700 text-white flex items-center gap-2"
                   onClick={() => toggleSection('equipment')}
-                  title="Manage player equipment"
+                  className="bg-purple-600 hover:bg-purple-700"
+                  size="sm"
                 >
-                  <Wrench className="w-4 h-4" />
                   Equip
                 </Button>
-                
                 <AlertDialog>
                   <AlertDialogTrigger asChild>
                     <Button 
                       variant="destructive"
-                      className="flex items-center gap-2"
+                      size="sm"
                       disabled={!releaseInfo?.canRelease}
-                      title={releaseInfo?.canRelease ? `Release player (Fee: ₡${releaseInfo?.releaseFee?.toLocaleString() || 0})` : 'Cannot release player (contract restrictions)'}
                     >
-                      <Trash2 className="w-4 h-4" />
                       Release
                     </Button>
                   </AlertDialogTrigger>
-                  <AlertDialogContent>
+                  <AlertDialogContent className="bg-gray-900 border-gray-700">
                     <AlertDialogHeader>
-                      <AlertDialogTitle>Release {displayName}?</AlertDialogTitle>
-                      <AlertDialogDescription>
-                        This will permanently remove the player from your team.
-                        {releaseInfo?.releaseFee ? ` Release fee: ₡${releaseInfo.releaseFee.toLocaleString()}` : ''}
-                        {releaseInfo?.teamCredits < (releaseInfo?.releaseFee || 0) && (
-                          <div className="text-red-500 font-semibold mt-2">
-                            Insufficient credits for release fee!
-                          </div>
-                        )}
+                      <AlertDialogTitle className="text-white">Release Player</AlertDialogTitle>
+                      <AlertDialogDescription className="text-gray-300">
+                        Are you sure you want to release {player.firstName} {player.lastName}? 
+                        This will cost ₡{releaseInfo?.releaseFee?.toLocaleString() || 0} and cannot be undone.
                       </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
-                      <AlertDialogCancel>Cancel</AlertDialogCancel>
+                      <AlertDialogCancel className="bg-gray-700 text-white hover:bg-gray-600">Cancel</AlertDialogCancel>
                       <AlertDialogAction 
                         onClick={() => releasePlayerMutation.mutate()}
-                        disabled={releasePlayerMutation.isPending || (releaseInfo?.teamCredits < (releaseInfo?.releaseFee || 0))}
                         className="bg-red-600 hover:bg-red-700"
                       >
-                        {releasePlayerMutation.isPending ? "Releasing..." : "Release Player"}
+                        Release Player
                       </AlertDialogAction>
                     </AlertDialogFooter>
                   </AlertDialogContent>
                 </AlertDialog>
               </div>
             </div>
-          </div>
 
-          <ScrollArea className="flex-1 max-h-[calc(95vh-200px)]">
-            <div className="p-6 space-y-6">
-              {/* Summary Section - Mini Player Card View */}
-              <Card className="bg-gray-800 border-gray-700">
-                <CardContent className="p-4">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {/* Power & Key Stats */}
-                    <div>
-                      <div className="flex items-center gap-4 mb-4">
-                        <div className="text-center">
-                          <div className={`text-4xl font-bold ${getStatColor(overallPower)}`}>
-                            {overallPower}
+            {/* 4. Accordion Sections */}
+            <div className="space-y-3">
+              {/* A. Summary & Progress */}
+              <Collapsible 
+                open={expandedSection === 'summary'} 
+                onOpenChange={() => toggleSection('summary')}
+              >
+                <CollapsibleTrigger asChild>
+                  <Button variant="ghost" className="w-full justify-between bg-gray-800/30 hover:bg-gray-700/50 p-4">
+                    <span className="font-medium">Summary & Progress</span>
+                    <ChevronDown className={`w-4 h-4 transition-transform ${expandedSection === 'summary' ? 'rotate-180' : ''}`} />
+                  </Button>
+                </CollapsibleTrigger>
+                <CollapsibleContent>
+                  <Card className="bg-gray-800/20 border-gray-700">
+                    <CardContent className="p-4">
+                      <div className="space-y-4">
+                        <div>
+                          <div className="flex items-center justify-between mb-2">
+                            <span className="text-sm text-gray-400">Potential</span>
+                            <span className="text-sm text-gray-300">{potentialRating.toFixed(1)}/5</span>
                           </div>
-                          <div className="text-xs text-gray-400">Power</div>
+                          {renderStarRating(potentialRating)}
                         </div>
-                        <div className="flex-1 space-y-2">
-                          <div className="flex items-center justify-between">
-                            <span className="text-xs">THR</span>
-                            <div className="flex items-center gap-2">
-                              <div className="w-12 h-1.5 bg-gray-700 rounded-full overflow-hidden">
-                                <div 
-                                  className="h-full bg-blue-400 transition-all" 
-                                  style={{ width: `${Math.min((player.throwing || 0) / 40 * 100, 100)}%` }}
-                                />
-                              </div>
-                              <span className={`text-xs font-medium ${getStatColor(player.throwing || 0)}`}>
-                                {player.throwing || 0}
-                              </span>
+                        <div>
+                          <div className="text-sm text-gray-400 mb-2">Power Breakdown</div>
+                          <div className="grid grid-cols-3 gap-2 text-xs">
+                            <div>
+                              <div className="text-gray-300">Throwing</div>
+                              <Progress value={(player.throwing / 40) * 100} className="h-2" />
+                              <div className="text-gray-400">{player.throwing}/40</div>
                             </div>
-                          </div>
-                          <div className="flex items-center justify-between">
-                            <span className="text-xs">AGI</span>
-                            <div className="flex items-center gap-2">
-                              <div className="w-12 h-1.5 bg-gray-700 rounded-full overflow-hidden">
-                                <div 
-                                  className="h-full bg-green-400 transition-all" 
-                                  style={{ width: `${Math.min((player.agility || 0) / 40 * 100, 100)}%` }}
-                                />
-                              </div>
-                              <span className={`text-xs font-medium ${getStatColor(player.agility || 0)}`}>
-                                {player.agility || 0}
-                              </span>
+                            <div>
+                              <div className="text-gray-300">Agility</div>
+                              <Progress value={(player.agility / 40) * 100} className="h-2" />
+                              <div className="text-gray-400">{player.agility}/40</div>
                             </div>
-                          </div>
-                          <div className="flex items-center justify-between">
-                            <span className="text-xs">SPD</span>
-                            <div className="flex items-center gap-2">
-                              <div className="w-12 h-1.5 bg-gray-700 rounded-full overflow-hidden">
-                                <div 
-                                  className="h-full bg-yellow-400 transition-all" 
-                                  style={{ width: `${Math.min((player.speed || 0) / 40 * 100, 100)}%` }}
-                                />
-                              </div>
-                              <span className={`text-xs font-medium ${getStatColor(player.speed || 0)}`}>
-                                {player.speed || 0}
-                              </span>
+                            <div>
+                              <div className="text-gray-300">Speed</div>
+                              <Progress value={(player.speed / 40) * 100} className="h-2" />
+                              <div className="text-gray-400">{player.speed}/40</div>
                             </div>
                           </div>
                         </div>
                       </div>
-                      
-                      {/* Potential Stars */}
-                      <div className="flex items-center gap-2 mb-2">
-                        <span className="text-sm text-gray-400">Potential:</span>
-                        {renderEnhancedStarRating(potential)}
-                      </div>
-                    </div>
-                    
-                    {/* Status Panel */}
-                    <div className="space-y-3">
-                      <div className="flex items-center gap-2">
-                        <Activity className="w-4 h-4 text-green-400" />
-                        <span className="text-sm">Health:</span>
-                        <Badge variant={player.injuryStatus === 'Healthy' ? 'default' : 'destructive'} className="text-xs">
-                          {player.injuryStatus || 'Healthy'}
-                        </Badge>
-                      </div>
-                      
-                      <div className="flex items-center gap-2">
-                        <Gauge className="w-4 h-4 text-blue-400" />
-                        <span className="text-sm">Stamina:</span>
-                        <div className="flex items-center gap-2 flex-1">
-                          <div className="w-20 h-2 bg-gray-700 rounded-full overflow-hidden">
-                            <div 
-                              className="h-full bg-blue-400 transition-all" 
-                              style={{ width: `${Math.min((player.dailyStaminaLevel || 0), 100)}%` }}
-                            />
-                          </div>
-                          <span className="text-sm">{player.dailyStaminaLevel || 0}%</span>
+                    </CardContent>
+                  </Card>
+                </CollapsibleContent>
+              </Collapsible>
+
+              {/* B. Game Performance */}
+              <Collapsible 
+                open={expandedSection === 'performance'} 
+                onOpenChange={() => toggleSection('performance')}
+              >
+                <CollapsibleTrigger asChild>
+                  <Button variant="ghost" className="w-full justify-between bg-gray-800/30 hover:bg-gray-700/50 p-4">
+                    <span className="font-medium">Game Performance</span>
+                    <ChevronDown className={`w-4 h-4 transition-transform ${expandedSection === 'performance' ? 'rotate-180' : ''}`} />
+                  </Button>
+                </CollapsibleTrigger>
+                <CollapsibleContent>
+                  <Card className="bg-gray-800/20 border-gray-700">
+                    <CardContent className="p-4">
+                      <div className="grid grid-cols-2 gap-4 text-sm">
+                        <div>
+                          <span className="text-gray-400">Season Minutes:</span>
+                          <span className="ml-2 text-white">{player.seasonMinutesTotal || 0}</span>
+                        </div>
+                        <div>
+                          <span className="text-gray-400">Games Played:</span>
+                          <span className="ml-2 text-white">{player.gamesPlayedLastSeason || 0}</span>
+                        </div>
+                        <div>
+                          <span className="text-gray-400">League Minutes:</span>
+                          <span className="ml-2 text-white">{player.seasonMinutesLeague || 0}</span>
+                        </div>
+                        <div>
+                          <span className="text-gray-400">Exhibition Minutes:</span>
+                          <span className="ml-2 text-white">{player.seasonMinutesExhibition || 0}</span>
                         </div>
                       </div>
-                      
-                      <div className="flex items-center gap-2">
-                        <Target className="w-4 h-4 text-purple-400" />
-                        <span className="text-sm">Chemistry:</span>
-                        <span className="text-sm">
-                          {player.camaraderieScore >= 70 ? '🙂' : player.camaraderieScore >= 40 ? '😐' : '😞'}
-                          {' '}{player.camaraderieScore || 50}
-                        </span>
-                      </div>
-                      
-                      <div className="flex items-center gap-2">
-                        <Clock className="w-4 h-4 text-yellow-400" />
-                        <span className="text-sm">Contract:</span>
-                        <span className="text-sm">
-                          ₡{player.contractSalary?.toLocaleString() || '0'}/season, {player.contractLength || 1} years
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
+                    </CardContent>
+                  </Card>
+                </CollapsibleContent>
+              </Collapsible>
 
-              {/* Expandable Sections */}
-              <div className="space-y-2">
-                {/* Game Performance Section */}
-                <Collapsible 
-                  open={expandedSections.performance} 
-                  onOpenChange={() => toggleSection('performance')}
-                >
-                  <CollapsibleTrigger asChild>
-                    <Button variant="ghost" className="w-full justify-between p-4 h-auto hover:bg-gray-800">
-                      <div className="flex items-center gap-2">
-                        <TrendingUp className="w-5 h-5" />
-                        <span className="font-medium">Game Performance</span>
-                      </div>
-                      {expandedSections.performance ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
-                    </Button>
-                  </CollapsibleTrigger>
-                  <CollapsibleContent>
-                    <Card className="bg-gray-800 border-gray-700 mx-4 mb-2">
-                      <CardContent className="p-4">
-                        <div className="text-sm text-gray-400 mb-2">Recent Match Performance</div>
-                        <div className="space-y-2 text-sm">
-                          <div className="flex justify-between">
-                            <span>Last 5 Games:</span>
-                            <span>Coming soon...</span>
-                          </div>
-                          <div className="flex justify-between">
-                            <span>MVP Counter:</span>
-                            <span className="text-yellow-400">0 Total MVPs</span>
-                          </div>
-                          <div className="flex justify-between">
-                            <span>Season Stats:</span>
-                            <span>Coming soon...</span>
-                          </div>
+              {/* C. Attributes */}
+              <Collapsible 
+                open={expandedSection === 'attributes'} 
+                onOpenChange={() => toggleSection('attributes')}
+              >
+                <CollapsibleTrigger asChild>
+                  <Button variant="ghost" className="w-full justify-between bg-gray-800/30 hover:bg-gray-700/50 p-4">
+                    <span className="font-medium">Attributes</span>
+                    <ChevronDown className={`w-4 h-4 transition-transform ${expandedSection === 'attributes' ? 'rotate-180' : ''}`} />
+                  </Button>
+                </CollapsibleTrigger>
+                <CollapsibleContent>
+                  <Card className="bg-gray-800/20 border-gray-700">
+                    <CardContent className="p-4">
+                      <div className="grid grid-cols-2 gap-4 text-sm">
+                        <div className="flex justify-between">
+                          <span className="text-gray-400">Speed</span>
+                          <span className="text-white">{player.speed}/40</span>
                         </div>
-                      </CardContent>
-                    </Card>
-                  </CollapsibleContent>
-                </Collapsible>
-
-                {/* Attributes Section */}
-                <Collapsible 
-                  open={expandedSections.attributes} 
-                  onOpenChange={() => toggleSection('attributes')}
-                >
-                  <CollapsibleTrigger asChild>
-                    <Button variant="ghost" className="w-full justify-between p-4 h-auto hover:bg-gray-800">
-                      <div className="flex items-center gap-2">
-                        <FileText className="w-5 h-5" />
-                        <span className="font-medium">Attributes</span>
+                        <div className="flex justify-between">
+                          <span className="text-gray-400">Power</span>
+                          <span className="text-white">{player.power}/40</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-gray-400">Throwing</span>
+                          <span className="text-white">{player.throwing}/40</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-gray-400">Catching</span>
+                          <span className="text-white">{player.catching}/40</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-gray-400">Kicking</span>
+                          <span className="text-white">{player.kicking}/40</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-gray-400">Stamina</span>
+                          <span className="text-white">{player.staminaAttribute}/40</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-gray-400">Leadership</span>
+                          <span className="text-white">{player.leadership}/40</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-gray-400">Agility</span>
+                          <span className="text-white">{player.agility}/40</span>
+                        </div>
                       </div>
-                      {expandedSections.attributes ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
-                    </Button>
-                  </CollapsibleTrigger>
-                  <CollapsibleContent>
-                    <Card className="bg-gray-800 border-gray-700 mx-4 mb-2">
-                      <CardContent className="p-4 space-y-4">
-                        {renderStatBar("Speed", player.speed || 0)}
-                        {renderStatBar("Power", player.power || 0)}
-                        {renderStatBar("Throwing", player.throwing || 0)}
-                        {renderStatBar("Catching", player.catching || 0)}
-                        {renderStatBar("Kicking", player.kicking || 0)}
-                        {renderStatBar("Stamina", player.staminaAttribute || 0)}
-                        {renderStatBar("Leadership", player.leadership || 0)}
-                        {renderStatBar("Agility", player.agility || 0)}
-                      </CardContent>
-                    </Card>
-                  </CollapsibleContent>
-                </Collapsible>
+                    </CardContent>
+                  </Card>
+                </CollapsibleContent>
+              </Collapsible>
 
-                {/* Abilities & Skills Section */}
-                <Collapsible 
-                  open={expandedSections.abilities} 
-                  onOpenChange={() => toggleSection('abilities')}
-                >
-                  <CollapsibleTrigger asChild>
-                    <Button variant="ghost" className="w-full justify-between p-4 h-auto hover:bg-gray-800">
-                      <div className="flex items-center gap-2">
-                        <Zap className="w-5 h-5" />
-                        <span className="font-medium">Abilities & Skills</span>
-                      </div>
-                      {expandedSections.abilities ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
-                    </Button>
-                  </CollapsibleTrigger>
-                  <CollapsibleContent>
-                    <Card className="bg-gray-800 border-gray-700 mx-4 mb-2">
-                      <CardContent className="p-4">
+              {/* D. Abilities & Skills */}
+              <Collapsible 
+                open={expandedSection === 'abilities'} 
+                onOpenChange={() => toggleSection('abilities')}
+              >
+                <CollapsibleTrigger asChild>
+                  <Button variant="ghost" className="w-full justify-between bg-gray-800/30 hover:bg-gray-700/50 p-4">
+                    <span className="font-medium">Abilities & Skills</span>
+                    <ChevronDown className={`w-4 h-4 transition-transform ${expandedSection === 'abilities' ? 'rotate-180' : ''}`} />
+                  </Button>
+                </CollapsibleTrigger>
+                <CollapsibleContent>
+                  <Card className="bg-gray-800/20 border-gray-700">
+                    <CardContent className="p-4">
+                      {player.abilities && player.abilities.length > 0 ? (
                         <AbilitiesDisplay player={player} />
-                      </CardContent>
-                    </Card>
-                  </CollapsibleContent>
-                </Collapsible>
+                      ) : (
+                        <div className="text-sm text-gray-400 text-center py-4">
+                          No abilities learned. Train or level up to unlock.
+                        </div>
+                      )}
+                    </CardContent>
+                  </Card>
+                </CollapsibleContent>
+              </Collapsible>
 
-                {/* Equipment Section */}
-                <Collapsible 
-                  open={expandedSections.equipment} 
-                  onOpenChange={() => toggleSection('equipment')}
-                >
-                  <CollapsibleTrigger asChild>
-                    <Button variant="ghost" className="w-full justify-between p-4 h-auto hover:bg-gray-800">
-                      <div className="flex items-center gap-2">
-                        <Shield className="w-5 h-5" />
-                        <span className="font-medium">Equipment</span>
+              {/* E. Equipment */}
+              <Collapsible 
+                open={expandedSection === 'equipment'} 
+                onOpenChange={() => toggleSection('equipment')}
+              >
+                <CollapsibleTrigger asChild>
+                  <Button variant="ghost" className="w-full justify-between bg-gray-800/30 hover:bg-gray-700/50 p-4">
+                    <span className="font-medium">Equipment</span>
+                    <ChevronDown className={`w-4 h-4 transition-transform ${expandedSection === 'equipment' ? 'rotate-180' : ''}`} />
+                  </Button>
+                </CollapsibleTrigger>
+                <CollapsibleContent>
+                  <Card className="bg-gray-800/20 border-gray-700">
+                    <CardContent className="p-4">
+                      <div className="mb-4">
+                        <Button className="w-full bg-purple-600 hover:bg-purple-700">
+                          <ArrowRight className="w-4 h-4 mr-2" />
+                          Go to Inventory
+                        </Button>
                       </div>
-                      {expandedSections.equipment ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
-                    </Button>
-                  </CollapsibleTrigger>
-                  <CollapsibleContent>
-                    <Card className="bg-gray-800 border-gray-700 mx-4 mb-2">
-                      <CardContent className="p-4">
-                        <div className="space-y-4">
-                          {/* Equipment Slots */}
-                          <div className="grid grid-cols-2 gap-4">
-                            <div className="flex items-center gap-2 p-2 bg-gray-700 rounded">
-                              <Shield className="w-4 h-4" />
-                              <span className="text-sm">Helmet: None</span>
-                            </div>
-                            <div className="flex items-center gap-2 p-2 bg-gray-700 rounded">
-                              <Shirt className="w-4 h-4" />
-                              <span className="text-sm">Chest: None</span>
-                            </div>
-                            <div className="flex items-center gap-2 p-2 bg-gray-700 rounded">
-                              <Footprints className="w-4 h-4" />
-                              <span className="text-sm">Shoes: None</span>
-                            </div>
-                            <div className="flex items-center gap-2 p-2 bg-gray-700 rounded">
-                              <Hand className="w-4 h-4" />
-                              <span className="text-sm">Gloves: None</span>
-                            </div>
+                      <div className="grid grid-cols-2 gap-4">
+                        {/* Equipment Slots */}
+                        <div className="border border-gray-600 rounded-lg p-4 text-center">
+                          <Shield className="w-6 h-6 mx-auto mb-2 text-gray-400" />
+                          <div className="text-sm text-gray-400">Helmet</div>
+                          <Button variant="ghost" size="sm" className="mt-2">
+                            <Plus className="w-4 h-4" />
+                          </Button>
+                        </div>
+                        <div className="border border-gray-600 rounded-lg p-4 text-center">
+                          <Shirt className="w-6 h-6 mx-auto mb-2 text-gray-400" />
+                          <div className="text-sm text-gray-400">Chest</div>
+                          <Button variant="ghost" size="sm" className="mt-2">
+                            <Plus className="w-4 h-4" />
+                          </Button>
+                        </div>
+                        <div className="border border-gray-600 rounded-lg p-4 text-center">
+                          <div className="w-6 h-6 mx-auto mb-2 text-gray-400">👟</div>
+                          <div className="text-sm text-gray-400">Shoes</div>
+                          <Button variant="ghost" size="sm" className="mt-2">
+                            <Plus className="w-4 h-4" />
+                          </Button>
+                        </div>
+                        <div className="border border-gray-600 rounded-lg p-4 text-center">
+                          <div className="w-6 h-6 mx-auto mb-2 text-gray-400">🧤</div>
+                          <div className="text-sm text-gray-400">Gloves</div>
+                          <Button variant="ghost" size="sm" className="mt-2">
+                            <Plus className="w-4 h-4" />
+                          </Button>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </CollapsibleContent>
+              </Collapsible>
+
+              {/* F. Medical & Recovery */}
+              <Collapsible 
+                open={expandedSection === 'medical'} 
+                onOpenChange={() => toggleSection('medical')}
+              >
+                <CollapsibleTrigger asChild>
+                  <Button variant="ghost" className="w-full justify-between bg-gray-800/30 hover:bg-gray-700/50 p-4">
+                    <span className="font-medium">Medical & Recovery</span>
+                    <ChevronDown className={`w-4 h-4 transition-transform ${expandedSection === 'medical' ? 'rotate-180' : ''}`} />
+                  </Button>
+                </CollapsibleTrigger>
+                <CollapsibleContent>
+                  <Card className="bg-gray-800/20 border-gray-700">
+                    <CardContent className="p-4">
+                      <div className="flex justify-between items-center text-sm">
+                        <div>
+                          <span className="text-gray-400">Health:</span>
+                          <span className="ml-2 text-white">{healthStatus}</span>
+                        </div>
+                        <div>
+                          <span className="text-gray-400">Daily Items Used:</span>
+                          <span className="ml-2 text-white">{player.dailyItemsUsed || 0}/3</span>
+                        </div>
+                        <div>
+                          <span className="text-gray-400">Career Injuries:</span>
+                          <span className="ml-2 text-white">{player.careerInjuries || 0}</span>
+                        </div>
+                      </div>
+                      {player.injuryStatus !== 'HEALTHY' && (
+                        <div className="mt-4 p-3 bg-red-900/20 border border-red-700 rounded-lg">
+                          <div className="text-sm text-red-300">
+                            Recovery: {player.injuryRecoveryPointsCurrent || 0}/{player.injuryRecoveryPointsNeeded || 0} points
                           </div>
                         </div>
-                      </CardContent>
-                    </Card>
-                  </CollapsibleContent>
-                </Collapsible>
-
-                {/* Medical & Recovery Section */}
-                <Collapsible 
-                  open={expandedSections.medical} 
-                  onOpenChange={() => toggleSection('medical')}
-                >
-                  <CollapsibleTrigger asChild>
-                    <Button variant="ghost" className="w-full justify-between p-4 h-auto hover:bg-gray-800">
-                      <div className="flex items-center gap-2">
-                        <Heart className="w-5 h-5" />
-                        <span className="font-medium">Medical & Recovery</span>
-                      </div>
-                      {expandedSections.medical ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
-                    </Button>
-                  </CollapsibleTrigger>
-                  <CollapsibleContent>
-                    <Card className="bg-gray-800 border-gray-700 mx-4 mb-2">
-                      <CardContent className="p-4 space-y-4">
-                        <div className="flex justify-between items-center">
-                          <span className="text-sm">Health Status:</span>
-                          <Badge variant={player.injuryStatus === 'Healthy' ? 'default' : 'destructive'}>
-                            {player.injuryStatus || 'Healthy'}
-                          </Badge>
-                        </div>
-                        
-                        <div className="flex justify-between items-center">
-                          <span className="text-sm">Daily Items Used:</span>
-                          <span className="text-sm">{player.dailyItemsUsed || 0}/3</span>
-                        </div>
-                        
-                        <div className="flex justify-between items-center">
-                          <span className="text-sm">Career Injuries:</span>
-                          <span className="text-sm">{player.careerInjuries || 0}</span>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  </CollapsibleContent>
-                </Collapsible>
-              </div>
-
-              {/* Footer Actions */}
-              <div className="grid grid-cols-2 gap-2 pt-4 border-t border-gray-700">
-                <Button 
-                  variant="ghost" 
-                  size="sm" 
-                  className="flex items-center gap-2 opacity-50 cursor-not-allowed"
-                  disabled
-                  title="Feature coming soon"
-                >
-                  <Pin className="w-4 h-4" />
-                  Pin to Roster
-                </Button>
-                <Button 
-                  variant="ghost" 
-                  size="sm" 
-                  className="flex items-center gap-2 opacity-50 cursor-not-allowed"
-                  disabled
-                  title="Feature coming soon"
-                >
-                  <Copy className="w-4 h-4" />
-                  Compare
-                </Button>
-              </div>
+                      )}
+                    </CardContent>
+                  </Card>
+                </CollapsibleContent>
+              </Collapsible>
             </div>
-          </ScrollArea>
-        </DialogContent>
-      </Dialog>
+          </div>
+        </ScrollArea>
 
-      {/* Contract Negotiation Modal */}
-      {showContractNegotiation && player && (
-        <ContractNegotiationRedesigned
-          player={player}
-          isOpen={showContractNegotiation}
-          onClose={() => setShowContractNegotiation(false)}
-        />
-      )}
-    </div>
+        {/* Contract Negotiation Modal */}
+        {showContractNegotiation && (
+          <ContractNegotiationRedesigned
+            player={player}
+            isOpen={showContractNegotiation}
+            onClose={() => {
+              setShowContractNegotiation(false);
+              if (onContractNegotiate) {
+                onContractNegotiate(player.id.toString());
+              }
+            }}
+          />
+        )}
+      </DialogContent>
+    </Dialog>
   );
 }
+
+export default PlayerDetailModal;
