@@ -593,6 +593,21 @@ docker push gcr.io/direct-glider-465821-p7/realm-rivalry:latest
 
 ## Recent Changes
 
+### July 24, 2025 - ✅ CRITICAL TACTICS LINEUP ASSIGNMENT FIXES COMPLETE ✅
+
+#### ✅ TAXI SQUAD FILTERING BUG RESOLVED
+- ✓ **Root Cause Fixed**: Incorrect filtering logic using `!p.overallRating` instead of proper taxi squad detection
+- ✓ **Proper Logic Implemented**: Now correctly filters using `rosterPosition >= 13` or `isOnTaxi === true`
+- ✓ **Result**: Taxi squad players like Ember Field no longer appear in Available Players section
+- ✓ **Production Ready**: Tactics page now only shows eligible main roster players for assignment
+
+#### ✅ FLEX SUBS ASSIGNMENT LOGIC ENHANCED - MULTIPLE SUBSTITUTE POSITIONS ALLOWED
+- ✓ **User Requirement Met**: Flex Subs now allows ANYONE except starters to be assigned
+- ✓ **Multiple Assignment Support**: Players can now be in both position-specific subs AND Flex Subs simultaneously
+- ✓ **Logic Refined**: Flex Subs only excludes starters, not other substitutes, enabling flexible tactical arrangements
+- ✓ **Assignment Rules**: Starters remain protected from duplicate assignment, while substitutes gain flexibility
+- ✓ **Production Ready**: Enhanced tactical system supports complex substitution strategies
+
 ### July 24, 2025 - ✅ EXHIBITION HISTORY DISPLAY BUG FIXED - OPPONENT NAMES NOW CORRECT ✅
 
 #### ✅ CRITICAL EXHIBITION HISTORY DISPLAY BUG RESOLVED

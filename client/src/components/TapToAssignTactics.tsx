@@ -270,11 +270,14 @@ export default function TapToAssignTactics({ teamId }: TapToAssignTacticsProps) 
     enabled: !!teamId,
   });
 
-  const players = (rawPlayers as Player[]).filter(p => 
-    !p.overallRating && // Exclude taxi squad if marked
-    p.injuryStatus !== 'SEVERE_INJURY' && // Exclude severely injured
-    p.dailyStaminaLevel > 0 // Exclude completely exhausted
-  );
+  const players = (rawPlayers as Player[]).filter(p => {
+    // Exclude taxi squad players (rosterPosition 13+ or isOnTaxi flag)
+    const isOnTaxiSquad = (p as any).rosterPosition >= 13 || (p as any).isOnTaxi === true;
+    
+    return !isOnTaxiSquad && // Exclude taxi squad
+           p.injuryStatus !== 'SEVERE_INJURY' && // Exclude severely injured
+           p.dailyStaminaLevel > 0; // Exclude completely exhausted
+  });
 
   // Get ALL assigned players - starters AND substitutes to prevent duplicates
   const getAllAssignedPlayerIds = () => {
@@ -296,6 +299,7 @@ export default function TapToAssignTactics({ teamId }: TapToAssignTacticsProps) 
 
   const getAvailablePlayersForSlot = (slot: FormationSlot | null) => {
     const allAssignedIds = getAllAssignedPlayerIds();
+    const starterIds = formationSlots.map(slot => slot.player?.id).filter(Boolean);
     
     if (!slot) {
       // Default: exclude ALL assigned players (starters + substitutes)
@@ -303,15 +307,15 @@ export default function TapToAssignTactics({ teamId }: TapToAssignTacticsProps) 
     }
 
     if (slot.isSubstitution && slot.substitutionPosition && slot.substitutionIndex !== undefined) {
-      // For substitution slots: exclude ALL assigned players except current slot's player
       const currentSlotPlayer = substitutionQueue[slot.substitutionPosition][slot.substitutionIndex];
       const currentSlotPlayerId = currentSlotPlayer?.id;
       
-      // For flex subs: allow any unassigned player (exclude ALL assignments except current slot)
+      // For flex subs: allow ANYONE except starters (can be in multiple sub positions)
       if (slot.substitutionPosition === 'wildcard') {
         return players.filter(p => {
-          const isAssignedElsewhere = allAssignedIds.includes(p.id) && p.id !== currentSlotPlayerId;
-          return !isAssignedElsewhere;
+          const isStarter = starterIds.includes(p.id);
+          const isCurrentSlotPlayer = p.id === currentSlotPlayerId;
+          return !isStarter || isCurrentSlotPlayer; // Allow current player to stay assigned
         });
       }
       
