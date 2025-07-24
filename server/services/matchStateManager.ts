@@ -1166,7 +1166,7 @@ class MatchStateManager {
     if (!isExhibitionMatch) {
       const gameMode = matchDetails?.matchType === 'tournament' ? 'tournament' : 'league';
       for (const player of [...homePlayers, ...awayPlayers]) {
-        await injuryStaminaService.depleteStaminaAfterMatch(player.id, gameMode);
+        await injuryStaminaService.depleteStaminaAfterMatch(player.id, gameMode, 40);
       }
 
       // Handle tournament flow progression for tournament matches

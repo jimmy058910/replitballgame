@@ -6,14 +6,15 @@ export interface InjuryStaminaSettings {
   tournamentInjuryChance: number;
   exhibitionInjuryChance: number;
   
-  // Daily stamina depletion by game mode
-  leagueStaminaDepletion: number;
-  tournamentStaminaDepletion: number;
-  exhibitionStaminaDepletion: number;
+  // New unified stamina system constants
+  baseDepletion: number; // Dbase = 20 (unified for league and tournament)
+  maxMinutes: number; // Mmax = 40 (regulation minutes)
+  staminaScalingConstant: number; // K = 0.30 (depletion scaling)
   
   // Recovery settings
   baseInjuryRecovery: number;
-  baseStaminaRecovery: number;
+  baseStaminaRecovery: number; // Rbase = 20
+  recoveryScalingConstant: number; // Kr = 0.20 (recovery scaling)
   
   // Injury recovery thresholds
   minorInjuryRP: number;
@@ -26,12 +27,14 @@ const DEFAULT_SETTINGS: InjuryStaminaSettings = {
   tournamentInjuryChance: 5,
   exhibitionInjuryChance: 15, // Allow injuries during match for realism
   
-  leagueStaminaDepletion: 30,
-  tournamentStaminaDepletion: 10,
-  exhibitionStaminaDepletion: 0, // No persistent daily stamina cost
+  // New unified stamina constants per specification
+  baseDepletion: 20, // Dbase = 20 (unified for both league and tournament)
+  maxMinutes: 40, // Mmax = 40 (regulation minutes for both match types)
+  staminaScalingConstant: 0.30, // K = 0.30 (stamina depletion scaling)
   
   baseInjuryRecovery: 50,
-  baseStaminaRecovery: 20,
+  baseStaminaRecovery: 20, // Rbase = 20 (base daily recovery)
+  recoveryScalingConstant: 0.20, // Kr = 0.20 (recovery scaling)
   
   minorInjuryRP: 100,
   moderateInjuryRP: 300,
@@ -156,51 +159,109 @@ export class InjuryStaminaService {
   }
 
   /**
-   * Deplete daily stamina after a match based on game mode and player's stamina attribute
+   * Calculate stamina depletion using the new unified 40-minute formula
+   * Formula: Loss = [Dbase × (1 - K×S/40)] × (M/Mmax) × (1-Ccoach)
    */
-  async depleteStaminaAfterMatch(playerId: string, gameMode: 'league' | 'tournament' | 'exhibition'): Promise<void> {
+  calculateStaminaDepletion(
+    staminaAttribute: number,
+    minutesPlayed: number,
+    coachBonus: number = 0
+  ): number {
+    const S = staminaAttribute;
+    const M = minutesPlayed;
+    const Mmax = this.settings.maxMinutes; // 40
+    const Dbase = this.settings.baseDepletion; // 20
+    const K = this.settings.staminaScalingConstant; // 0.30
+    const Ccoach = Math.min(0.15, coachBonus); // Cap at 15%
+
+    // Zero minutes = zero loss (DNP protection)
+    if (M <= 0) {
+      return 0;
+    }
+
+    // Calculate stamina scaling factor (1 - K×S/40)
+    const staminaFactor = 1 - (K * S / 40);
+    
+    // Calculate minutes ratio (M/Mmax)
+    const minutesRatio = M / Mmax;
+    
+    // Calculate coach factor (1-Ccoach)
+    const coachFactor = 1 - Ccoach;
+    
+    // Apply formula
+    let loss = Dbase * staminaFactor * minutesRatio * coachFactor;
+    
+    // Apply protected floor of 5 stamina loss minimum (only when M > 0)
+    loss = Math.max(5, loss);
+    
+    return Math.round(loss * 10) / 10; // Round to 1 decimal place
+  }
+
+  /**
+   * Deplete daily stamina after a match using the new unified formula
+   */
+  async depleteStaminaAfterMatch(
+    playerId: string, 
+    gameMode: 'league' | 'tournament' | 'exhibition',
+    minutesPlayed: number = 40 // Default to full match if not specified
+  ): Promise<void> {
     if (gameMode === 'exhibition') {
       return; // No persistent stamina depletion for exhibitions
     }
 
-    // Get current player data including stamina attribute
+    // Get current player data including stamina attribute and team info for coach bonus
     const player = await prisma.player.findUnique({
       where: { id: parseInt(playerId) },
       select: { 
         dailyStaminaLevel: true,
-        staminaAttribute: true
+        staminaAttribute: true,
+        teamId: true
       }
     });
     
-    if (player) {
-      // Calculate base depletion based on game mode
-      let baseDepletion = 0;
-      switch (gameMode) {
-        case 'league':
-          baseDepletion = this.settings.leagueStaminaDepletion;
-          break;
-        case 'tournament':
-          baseDepletion = this.settings.tournamentStaminaDepletion;
-          break;
-      }
-
-      // Apply stamina attribute modifier (higher stamina = less depletion)
-      // Formula: baseDepletion - (staminaAttribute * 0.3)
-      // This gives 6-9 stamina difference for league matches (meaningful but not overpowering)
-      const staminaModifier = (player.staminaAttribute || 10) * 0.3;
-      const actualDepletion = Math.max(5, baseDepletion - staminaModifier); // Minimum 5 stamina loss
-      
-      const newStaminaLevel = Math.max(0, (player.dailyStaminaLevel || 100) - actualDepletion);
-      
-      console.log(`[STAMINA DEPLETION] Player ${playerId}: ${gameMode} match - Base: ${baseDepletion}, Stamina Attr: ${player.staminaAttribute}, Modifier: ${staminaModifier.toFixed(1)}, Actual Depletion: ${actualDepletion.toFixed(1)}, New Level: ${newStaminaLevel}`);
-      
-      await prisma.player.update({
-        where: { id: parseInt(playerId) },
-        data: {
-          dailyStaminaLevel: newStaminaLevel
-        }
-      });
+    if (!player) {
+      console.warn(`Player ${playerId} not found for stamina depletion`);
+      return;
     }
+
+    // Get coach conditioning bonus
+    let coachBonus = 0;
+    if (player.teamId) {
+      const headCoach = await prisma.staff.findFirst({
+        where: { 
+          teamId: player.teamId, 
+          type: 'HEAD_COACH' 
+        },
+        select: { motivation: true, development: true }
+      });
+      
+      if (headCoach) {
+        // Coach bonus calculation: average of motivation and development, scaled to 0-0.15 range
+        const coachEffectiveness = (headCoach.motivation + headCoach.development) / 2;
+        coachBonus = Math.min(0.15, coachEffectiveness / 40 * 0.15); // Scale from 0-40 to 0-0.15
+      }
+    }
+
+    // Calculate stamina loss using new formula
+    const staminaLoss = this.calculateStaminaDepletion(
+      player.staminaAttribute || 20,
+      minutesPlayed,
+      coachBonus
+    );
+    
+    const currentStamina = player.dailyStaminaLevel || 100;
+    const newStaminaLevel = Math.max(0, currentStamina - staminaLoss);
+    
+    console.log(`[NEW STAMINA FORMULA] Player ${playerId}: ${gameMode} match`);
+    console.log(`  - Stamina Attr: ${player.staminaAttribute}, Minutes: ${minutesPlayed}, Coach Bonus: ${(coachBonus * 100).toFixed(1)}%`);
+    console.log(`  - Loss Calculated: ${staminaLoss.toFixed(1)}, New Level: ${newStaminaLevel.toFixed(1)}`);
+    
+    await prisma.player.update({
+      where: { id: parseInt(playerId) },
+      data: {
+        dailyStaminaLevel: newStaminaLevel
+      }
+    });
   }
 
   /**
@@ -349,11 +410,45 @@ export class InjuryStaminaService {
         }
       }
 
-      // Natural stamina recovery (stat-based)
-      const statBonusRecovery = (player.staminaAttribute || 10) * 0.5;
-      const totalRecovery = this.settings.baseStaminaRecovery + statBonusRecovery;
+      // New unified stamina recovery formula: Recovery = Rbase + Kr×S + Ccoach×10
+      const S = player.staminaAttribute || 20;
+      const Rbase = this.settings.baseStaminaRecovery; // 20
+      const Kr = this.settings.recoveryScalingConstant; // 0.20
+      
+      // Get coach conditioning bonus
+      let Ccoach = 0;
+      try {
+        if (player.teamId) {
+          const headCoach = await prisma.staff.findFirst({
+            where: { 
+              teamId: player.teamId, 
+              type: 'HEAD_COACH' 
+            },
+            select: { motivation: true, development: true }
+          });
+          
+          if (headCoach) {
+            // Coach bonus calculation: average of motivation and development, scaled to 0-0.15 range
+            const coachEffectiveness = (headCoach.motivation + headCoach.development) / 2;
+            Ccoach = Math.min(0.15, coachEffectiveness / 40 * 0.15); // Scale from 0-40 to 0-0.15
+          }
+        }
+      } catch (error) {
+        console.error('Error calculating coach stamina recovery bonus:', error);
+      }
+      
+      // Apply new recovery formula: Recovery = Rbase + Kr×S + Ccoach×10
+      const calculatedRecovery = Rbase + (Kr * S) + (Ccoach * 10);
+      
       const currentStamina = player.dailyStaminaLevel ?? 100;
-      updates.dailyStaminaLevel = Math.min(100, currentStamina + totalRecovery);
+      const staminaDeficit = 100 - currentStamina;
+      
+      // Recovery is capped at current deficit (no overheal)
+      const actualRecovery = Math.min(calculatedRecovery, staminaDeficit);
+      
+      if (actualRecovery > 0) {
+        updates.dailyStaminaLevel = Math.min(100, currentStamina + actualRecovery);
+      }
 
       // Apply updates if any changes needed
       if (Object.keys(updates).length > 0) {
@@ -441,18 +536,48 @@ export class InjuryStaminaService {
             playerUpdated = true;
           }
 
-          // Process stamina recovery (now balanced with attribute-based depletion)
+          // Process stamina recovery using new unified formula: Recovery = Rbase + Kr×S + Ccoach×10
           if (player.dailyStaminaLevel < 100) {
-            const baseStaminaRecovery = 20; // Base daily stamina recovery
-            const staminaBonus = (player.staminaAttribute || 10) * 0.2; // Reduced from 0.5 to 0.2 for balance
-            const totalRecovery = baseStaminaRecovery + staminaBonus;
-            const newStamina = Math.min(100, (player.dailyStaminaLevel || 0) + totalRecovery);
-            updateData.dailyStaminaLevel = newStamina;
+            const S = player.staminaAttribute || 20;
+            const Rbase = 20; // Base daily recovery
+            const Kr = 0.20; // Recovery scaling constant
             
-            if (newStamina > player.dailyStaminaLevel) {
-              staminaRestored++;
+            // Get coach conditioning bonus
+            let Ccoach = 0;
+            try {
+              if (player.teamId) {
+                const headCoach = await prisma.staff.findFirst({
+                  where: { 
+                    teamId: player.teamId, 
+                    type: 'HEAD_COACH' 
+                  },
+                  select: { motivation: true, development: true }
+                });
+                
+                if (headCoach) {
+                  const coachEffectiveness = (headCoach.motivation + headCoach.development) / 2;
+                  Ccoach = Math.min(0.15, coachEffectiveness / 40 * 0.15);
+                }
+              }
+            } catch (error) {
+              console.error('Error calculating coach bonus in static recovery:', error);
             }
-            playerUpdated = true;
+            
+            // Apply new recovery formula: Recovery = Rbase + Kr×S + Ccoach×10
+            const calculatedRecovery = Rbase + (Kr * S) + (Ccoach * 10);
+            
+            const currentStamina = player.dailyStaminaLevel || 0;
+            const staminaDeficit = 100 - currentStamina;
+            
+            // Recovery is capped at current deficit (no overheal)
+            const actualRecovery = Math.min(calculatedRecovery, staminaDeficit);
+            
+            if (actualRecovery > 0) {
+              const newStamina = Math.min(100, currentStamina + actualRecovery);
+              updateData.dailyStaminaLevel = newStamina;
+              staminaRestored++;
+              playerUpdated = true;
+            }
           }
 
           // Update player if needed

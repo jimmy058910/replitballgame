@@ -710,6 +710,26 @@ docker push gcr.io/direct-glider-465821-p7/realm-rivalry:latest
 - ✓ **System Alignment**: All team data APIs now use real-time calculated values instead of potentially stale database values
 - ✓ **Production Ready**: Both `/api/teams/my` and `/api/teams/my/dashboard` endpoints updated for data consistency
 
+### July 24, 2025 - ✅ COMPREHENSIVE STAMINA SYSTEM OVERHAUL COMPLETE - REVOLUTIONARY NEW FORMULA IMPLEMENTATION ✅
+
+#### ✅ UNIFIED STAMINA DEPLETION & RECOVERY ALGORITHM FULLY OPERATIONAL
+- ✓ **New Depletion Formula Implemented**: Loss = [Dbase × (1 - K×S/40)] × (M/Mmax) × (1-Ccoach) with complete mathematical integration
+- ✓ **New Recovery Formula Implemented**: Recovery = Rbase + Kr×S + Ccoach×10 with stamina attribute scaling and coach effectiveness bonuses
+- ✓ **Unified Constants Deployed**: Dbase=20, K=0.30, Kr=0.20, Rbase=20, Mmax=40 for both league and tournament games (eliminating previous differentiation)
+- ✓ **Coach Conditioning Integration**: Ccoach ranges 0-0.15 calculated from head coach's motivation and development ratings, affects both depletion reduction and recovery enhancement
+- ✓ **Protected Stamina Floor**: Minimum 5 stamina loss when minutes played > 0, preventing unrealistically low depletion for high-stamina players
+- ✓ **Minutes Played Tracking**: Complete integration with actual minutes played parameter throughout all calling functions
+- ✓ **Backend Integration Completed**: Updated all calls in injuryStaminaRoutes.ts and matchStateManager.ts to include minutes played with 40-minute default
+- ✓ **Production Ready**: Comprehensive stamina system now operational with sophisticated mathematical formulas replacing simple percentage-based depletion
+
+#### ✅ REVOLUTIONARY STAMINA SYSTEM FEATURES OPERATIONAL
+- ✓ **Stamina Attribute Scaling**: Higher stamina attributes (up to 40) provide significant protection against depletion through K×S/40 factor
+- ✓ **Coach Effectiveness Integration**: Head coaches with high motivation + development provide meaningful 0-15% stamina protection and recovery bonuses
+- ✓ **Unified 40-Minute Duration**: Both league and tournament games use exactly 40 minutes, eliminating previous complexity
+- ✓ **Exhibition Protection Maintained**: Exhibition games continue to have zero persistent stamina depletion for risk-free gameplay
+- ✓ **Mathematical Precision**: All formulas use proper scaling and rounding for realistic stamina progression
+- ✓ **Comprehensive Logging**: Enhanced debug logging shows exact calculations for stamina attribute, minutes played, coach bonus, and final depletion amounts
+
 ### July 24, Present Day - ✅ FLEX SUBS LOADING & COMPREHENSIVE TACTICS ASSIGNMENT SYSTEM FIXES COMPLETE ✅
 
 #### ✅ CRITICAL FLEX SUBS SAVE/LOAD BUG RESOLVED - PRODUCTION READY

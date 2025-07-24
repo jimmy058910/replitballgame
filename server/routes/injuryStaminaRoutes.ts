@@ -263,9 +263,9 @@ router.post('/team/:teamId/complete-match', isAuthenticated, async (req: any, re
       select: { id: true }
     });
 
-    // Apply stamina depletion for each player
+    // Apply stamina depletion for each player (assuming full 40-minute match)
     for (const player of teamPlayers) {
-      await injuryStaminaService.depleteStaminaAfterMatch(player.id, gameMode);
+      await injuryStaminaService.depleteStaminaAfterMatch(player.id, gameMode, 40);
     }
 
     res.json({ 
