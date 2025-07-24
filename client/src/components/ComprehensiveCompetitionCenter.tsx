@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '../hooks/useAuth';
+import { useToast } from '../hooks/use-toast';
+import { apiRequest } from '@/lib/queryClient';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import { Badge } from './ui/badge';
 import { Button } from './ui/button';
@@ -109,6 +111,9 @@ const formatMatchTime = (gameDate: string) => {
 export default function ComprehensiveCompetitionCenter() {
   const { isAuthenticated } = useAuth();
   const [activeTab, setActiveTab] = useState<'league' | 'tournaments' | 'exhibitions' | 'schedule'>('league');
+  const [showOpponentSelect, setShowOpponentSelect] = useState(false);
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
 
   // Queries
   const { data: team } = useQuery<Team>({
@@ -123,6 +128,23 @@ export default function ComprehensiveCompetitionCenter() {
 
   const { data: seasonData } = useQuery({
     queryKey: ['/api/season/current-cycle'],
+    enabled: isAuthenticated,
+  });
+
+  // Exhibition-specific queries
+  const { data: exhibitionStats } = useQuery({
+    queryKey: ['/api/exhibitions/stats'],
+    enabled: isAuthenticated && activeTab === 'exhibitions',
+  });
+
+  const { data: exhibitionHistory } = useQuery({
+    queryKey: ['/api/exhibitions/recent'],
+    enabled: isAuthenticated && activeTab === 'exhibitions',
+  });
+
+  const { data: availableOpponents } = useQuery({
+    queryKey: ['/api/exhibitions/available-opponents'],
+    enabled: isAuthenticated && showOpponentSelect,
   });
 
   const { data: liveMatches } = useQuery<Match[]>({
@@ -169,9 +191,75 @@ export default function ComprehensiveCompetitionCenter() {
     enabled: !!team?.division,
   });
 
-  const { data: exhibitions } = useQuery<Exhibition>({
-    queryKey: [`/api/exhibitions/available`],
-    enabled: !!team?.id,
+  // Exhibition mutations
+  const startInstantMatch = useMutation({
+    mutationFn: () => apiRequest('/api/exhibitions/instant-match', { method: 'POST' }),
+    onSuccess: (data) => {
+      toast({
+        title: "Exhibition Started!",
+        description: `Match against ${data.opponentName} is now live!`,
+      });
+      queryClient.invalidateQueries({ queryKey: ['/api/exhibitions/stats'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/matches/live'] });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Exhibition Failed",
+        description: error.message || "Unable to start exhibition match. Try again later.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const challengeOpponent = useMutation({
+    mutationFn: (opponentId: string) => 
+      apiRequest('/api/exhibitions/challenge', { 
+        method: 'POST', 
+        body: { opponentId } 
+      }),
+    onSuccess: (data) => {
+      toast({
+        title: "Exhibition Challenge Started!",
+        description: `Match against ${data.opponentName} is now live!`,
+      });
+      setShowOpponentSelect(false);
+      queryClient.invalidateQueries({ queryKey: ['/api/exhibitions/stats'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/matches/live'] });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Challenge Failed",
+        description: error.message || "Unable to challenge opponent. Try again later.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const buyExhibitionToken = useMutation({
+    mutationFn: () => 
+      apiRequest('/api/store/purchase', { 
+        method: 'POST', 
+        body: { 
+          itemName: 'Exhibition Game Entry',
+          currency: 'credits',
+          cost: 500
+        } 
+      }),
+    onSuccess: () => {
+      toast({
+        title: "Exhibition Token Purchased!",
+        description: "You can now play an additional exhibition match.",
+      });
+      queryClient.invalidateQueries({ queryKey: ['/api/exhibitions/stats'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/teams/my'] });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Purchase Failed",
+        description: error.message || "Unable to purchase exhibition token. Check your credits.",
+        variant: "destructive",
+      });
+    },
   });
 
   // Helper functions
@@ -619,44 +707,86 @@ export default function ComprehensiveCompetitionCenter() {
               </CollapsibleTrigger>
               <CollapsibleContent>
                 <Card className="bg-gray-800/90 border border-gray-600 shadow-xl">
-                  <CardContent className="p-4 space-y-4">
-                    <div className="bg-blue-900/30 p-4 rounded-lg border border-blue-600">
-                      <div className="flex items-center justify-between mb-3">
-                        <div>
-                          <h3 className="text-lg font-bold text-white">Instant Exhibition</h3>
-                          <p className="text-blue-200 text-sm">Quick match vs. similarly powered team</p>
+                  <CardContent className="p-4">
+                    {/* Side-by-side layout for Instant Exhibition and Choose Opponent */}
+                    <div className="grid md:grid-cols-2 gap-4">
+                      <div className="bg-blue-900/30 p-4 rounded-lg border border-blue-600">
+                        <div className="flex items-center justify-between mb-3">
+                          <div>
+                            <h3 className="text-lg font-bold text-white">Instant Exhibition</h3>
+                            <p className="text-blue-200 text-sm">Quick match vs. similarly powered team</p>
+                          </div>
+                          <Shield className="w-8 h-8 text-blue-400" />
                         </div>
-                        <Shield className="w-8 h-8 text-blue-400" />
+                        <div className="space-y-3">
+                          <div className="text-sm text-blue-200">
+                            <p>⚡ 30 minute match</p>
+                            <p>🎯 Balanced matchmaking</p>
+                          </div>
+                          <Button 
+                            className="w-full bg-blue-600 hover:bg-blue-700"
+                            onClick={() => startInstantMatch.mutate()}
+                            disabled={startInstantMatch.isPending}
+                          >
+                            {startInstantMatch.isPending ? 'Starting...' : 'Start Now'}
+                          </Button>
+                        </div>
                       </div>
-                      <div className="flex items-center justify-between">
-                        <div className="text-sm text-blue-200">
-                          <p>⚡ 30 minute match</p>
-                          <p>🎯 Balanced matchmaking</p>
+
+                      <div className="bg-green-900/30 p-4 rounded-lg border border-green-600">
+                        <div className="flex items-center justify-between mb-3">
+                          <div>
+                            <h3 className="text-lg font-bold text-white">Choose Opponent</h3>
+                            <p className="text-green-200 text-sm">Browse available opponents</p>
+                          </div>
+                          <Users className="w-8 h-8 text-green-400" />
                         </div>
-                        <Button className="bg-blue-600 hover:bg-blue-700">
-                          Start Now
-                        </Button>
+                        <div className="space-y-3">
+                          <div className="text-sm text-green-200">
+                            <p>🎯 Strategic matchup selection</p>
+                            <p>📊 View opponent stats</p>
+                          </div>
+                          <Button 
+                            className="w-full bg-green-600 hover:bg-green-700"
+                            onClick={() => setShowOpponentSelect(!showOpponentSelect)}
+                          >
+                            {showOpponentSelect ? 'Hide Opponents' : 'Select Opponent'}
+                          </Button>
+                        </div>
                       </div>
                     </div>
 
-                    <div className="bg-green-900/30 p-4 rounded-lg border border-green-600">
-                      <div className="flex items-center justify-between mb-3">
-                        <div>
-                          <h3 className="text-lg font-bold text-white">Choose Opponent</h3>
-                          <p className="text-green-200 text-sm">Browse 6 available opponents</p>
-                        </div>
-                        <Users className="w-8 h-8 text-green-400" />
-                      </div>
-                      <div className="flex items-center justify-between">
-                        <div className="text-sm text-green-200">
-                          <p>🎯 Strategic matchup selection</p>
-                          <p>📊 View opponent stats</p>
-                        </div>
-                        <Button className="bg-green-600 hover:bg-green-700">
-                          Select Opponent
-                        </Button>
-                      </div>
-                    </div>
+                    {/* Opponent Selection Panel */}
+                    {showOpponentSelect && availableOpponents && (
+                      <Card className="mt-4 bg-gray-900/50 border border-green-500/30">
+                        <CardHeader>
+                          <CardTitle className="text-white flex items-center gap-2">
+                            <Users className="h-5 w-5 text-green-400" />
+                            Available Opponents
+                          </CardTitle>
+                        </CardHeader>
+                        <CardContent className="space-y-3">
+                          {availableOpponents.map((opponent: any) => (
+                            <div key={opponent.id} className="bg-gray-800 p-3 rounded-lg border border-gray-600 flex items-center justify-between">
+                              <div>
+                                <h4 className="font-bold text-white">{opponent.name}</h4>
+                                <p className="text-sm text-gray-300">
+                                  Division {opponent.division} • Power: {opponent.averagePower}
+                                </p>
+                              </div>
+                              <Button
+                                size="sm"
+                                className="bg-green-600 hover:bg-green-700"
+                                onClick={() => challengeOpponent.mutate(opponent.id)}
+                                disabled={challengeOpponent.isPending}
+                              >
+                                {challengeOpponent.isPending ? 'Challenging...' : 'Challenge'}
+                              </Button>
+                            </div>
+                          ))}
+                        </CardContent>
+                      </Card>
+                    )}
                   </CardContent>
                 </Card>
               </CollapsibleContent>
@@ -676,7 +806,9 @@ export default function ComprehensiveCompetitionCenter() {
                         </div>
                       </div>
                       <div className="flex items-center gap-2">
-                        <Badge className="bg-orange-600 text-orange-100">3/3 Free</Badge>
+                        <Badge className="bg-orange-600 text-orange-100">
+                          {exhibitionStats?.freeGamesRemaining || 3}/3 Free
+                        </Badge>
                         <ChevronDown className="h-5 w-5 text-orange-400" />
                       </div>
                     </div>
@@ -690,10 +822,15 @@ export default function ComprehensiveCompetitionCenter() {
                       <div className="bg-orange-900/30 p-4 rounded-lg border border-orange-600">
                         <div className="flex items-center justify-between mb-2">
                           <h3 className="text-lg font-semibold text-white">Free Exhibitions</h3>
-                          <Badge className="bg-orange-600 text-orange-100">3/3 Remaining</Badge>
+                          <Badge className="bg-orange-600 text-orange-100">
+                            {exhibitionStats?.freeGamesRemaining || 3}/3 Remaining
+                          </Badge>
                         </div>
                         <p className="text-orange-200 text-sm mb-3">Daily allocation resets at 3 AM</p>
-                        <Progress value={100} className="h-2 mb-3" />
+                        <Progress 
+                          value={((exhibitionStats?.freeGamesRemaining || 3) / 3) * 100} 
+                          className="h-2 mb-3" 
+                        />
                         <p className="text-xs text-orange-300">Next reset: 23h 45m</p>
                       </div>
 
@@ -707,8 +844,10 @@ export default function ComprehensiveCompetitionCenter() {
                           size="sm" 
                           variant="outline" 
                           className="w-full border-purple-500 text-purple-300 hover:bg-purple-600 hover:text-white"
+                          onClick={() => buyExhibitionToken.mutate()}
+                          disabled={buyExhibitionToken.isPending}
                         >
-                          Buy Token - ₡500
+                          {buyExhibitionToken.isPending ? 'Purchasing...' : 'Buy Token - ₡500'}
                         </Button>
                       </div>
                     </div>
@@ -731,7 +870,9 @@ export default function ComprehensiveCompetitionCenter() {
                         </div>
                       </div>
                       <div className="flex items-center gap-2">
-                        <Badge className="bg-gray-600 text-gray-100">0 Matches</Badge>
+                        <Badge className="bg-gray-600 text-gray-100">
+                          {exhibitionHistory?.length || 0} Matches
+                        </Badge>
                         <ChevronDown className="h-5 w-5 text-gray-400" />
                       </div>
                     </div>
@@ -741,11 +882,51 @@ export default function ComprehensiveCompetitionCenter() {
               <CollapsibleContent>
                 <Card className="bg-gray-800/90 border border-gray-600">
                   <CardContent className="p-6">
-                    <div className="text-center py-8">
-                      <Gamepad2 className="h-12 w-12 text-gray-500 mx-auto mb-4" />
-                      <p className="text-gray-400">No exhibition matches yet</p>
-                      <p className="text-gray-500 text-sm">Your exhibition results will appear here</p>
-                    </div>
+                    {exhibitionHistory && exhibitionHistory.length > 0 ? (
+                      <div className="space-y-3">
+                        {exhibitionHistory.map((match: any) => (
+                          <div key={match.id} className="bg-gray-700/50 p-4 rounded-lg border border-gray-600">
+                            <div className="flex items-center justify-between">
+                              <div>
+                                <h4 className="font-bold text-white">
+                                  vs {match.homeTeam.id === team?.id ? match.awayTeam.name : match.homeTeam.name}
+                                </h4>
+                                <p className="text-sm text-gray-300">
+                                  {new Date(match.gameDate).toLocaleDateString()} • {match.homeTeam.id === team?.id ? 'Home' : 'Away'}
+                                </p>
+                              </div>
+                              <div className="text-right">
+                                {match.status === 'COMPLETED' ? (
+                                  <div>
+                                    <div className="text-lg font-bold text-white">
+                                      {match.homeTeam.id === team?.id ? match.homeScore : match.awayScore} - {match.homeTeam.id === team?.id ? match.awayScore : match.homeScore}
+                                    </div>
+                                    <Badge 
+                                      className={
+                                        (match.homeTeam.id === team?.id ? match.homeScore > match.awayScore : match.awayScore > match.homeScore)
+                                          ? 'bg-green-600 text-green-100'
+                                          : (match.homeScore === match.awayScore ? 'bg-yellow-600 text-yellow-100' : 'bg-red-600 text-red-100')
+                                      }
+                                    >
+                                      {(match.homeTeam.id === team?.id ? match.homeScore > match.awayScore : match.awayScore > match.homeScore) ? 'WIN' : 
+                                       (match.homeScore === match.awayScore ? 'DRAW' : 'LOSS')}
+                                    </Badge>
+                                  </div>
+                                ) : (
+                                  <Badge className="bg-blue-600 text-blue-100">{match.status}</Badge>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="text-center py-8">
+                        <Gamepad2 className="h-12 w-12 text-gray-500 mx-auto mb-4" />
+                        <p className="text-gray-400">No exhibition matches yet</p>
+                        <p className="text-gray-500 text-sm">Your exhibition results will appear here</p>
+                      </div>
+                    )}
                   </CardContent>
                 </Card>
               </CollapsibleContent>
