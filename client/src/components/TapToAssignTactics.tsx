@@ -465,16 +465,39 @@ export default function TapToAssignTactics({ teamId }: TapToAssignTacticsProps) 
 
         // Second pass: Load flex subs from saved formation data
         if ((currentFormation as any)?.flexSubs && Array.isArray((currentFormation as any).flexSubs)) {
+          console.log('✅ FRONTEND Load - Found explicit flexSubs field:', {
+            flexSubsData: (currentFormation as any).flexSubs,
+            count: (currentFormation as any).flexSubs.length
+          });
+          
           // Load explicit flex sub assignments
           (currentFormation as any).flexSubs.forEach((savedFlexSub: any, index: number) => {
             if (savedFlexSub && savedFlexSub.id && index < 3) {
               const fullPlayer = players.find(player => player.id === savedFlexSub.id);
-              if (fullPlayer && !assignedPlayerIds.has(fullPlayer.id)) { // Not a starter
+              const isStarter = assignedPlayerIds.has(fullPlayer?.id || '');
+              
+              console.log(`🔍 FRONTEND Load - Processing flex sub ${index}:`, {
+                savedFlexSub,
+                fullPlayerFound: !!fullPlayer,
+                fullPlayerName: fullPlayer ? `${fullPlayer.firstName} ${fullPlayer.lastName}` : 'N/A',
+                isStarter,
+                assignedPlayerIds: Array.from(assignedPlayerIds)
+              });
+              
+              if (fullPlayer && !isStarter) { // Not a starter
                 newSubQueue.wildcard[index] = fullPlayer;
+                console.log(`✅ FRONTEND Load - Successfully loaded flex sub ${index}: ${fullPlayer.firstName} ${fullPlayer.lastName}`);
+              } else {
+                console.log(`❌ FRONTEND Load - Failed to load flex sub ${index}:`, {
+                  reason: !fullPlayer ? 'Player not found' : 'Player is a starter'
+                });
               }
+            } else {
+              console.log(`⚠️ FRONTEND Load - Skipping invalid flex sub ${index}:`, { savedFlexSub, index });
             }
           });
         } else {
+          console.log('❌ FRONTEND Load - No explicit flexSubs field found, using fallback');
           // Fallback: Try to extract flex subs from substitutes array (if no explicit flexSubs field)
           const allPositionSpecificSubs = [
             ...newSubQueue.blockers.filter(Boolean),
