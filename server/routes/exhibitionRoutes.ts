@@ -637,11 +637,13 @@ router.get('/recent', isAuthenticated, async (req: any, res: Response, next: Nex
       .filter(match => match.matchType === 'EXHIBITION')
       .slice(0, 10);
 
-    // Enhance with opponent team names and determine result
+    // Enhance with complete team information for both home and away teams
     const detailedGames = await Promise.all(recentMatches.map(async (match: any) => {
         const isHome = match.homeTeamId === team.id;
-        const opponentTeamId = isHome ? match.awayTeamId : match.homeTeamId;
-        const opponentTeam = await storage.teams.getTeamById(opponentTeamId);
+        
+        // Fetch both home and away team information
+        const homeTeam = await storage.teams.getTeamById(match.homeTeamId);
+        const awayTeam = await storage.teams.getTeamById(match.awayTeamId);
         
         let result = 'pending';
         let score = '';
@@ -674,11 +676,29 @@ router.get('/recent', isAuthenticated, async (req: any, res: Response, next: Nex
         
         return { 
             id: match.id,
+            homeTeamId: match.homeTeamId,
+            awayTeamId: match.awayTeamId,
+            homeScore: match.homeScore || 0,
+            awayScore: match.awayScore || 0,
+            gameDate: gameDate,
+            status: match.status,
             result: result,
             score: score,
             playedDate: playedDate,
-            opponentName: opponentTeam?.name || 'Unknown Opponent',
-            opponentTeam: { name: opponentTeam?.name || 'Unknown Opponent' }
+            // Include complete team objects for frontend compatibility
+            homeTeam: homeTeam ? { 
+              id: homeTeam.id, 
+              name: homeTeam.name 
+            } : null,
+            awayTeam: awayTeam ? { 
+              id: awayTeam.id, 
+              name: awayTeam.name 
+            } : null,
+            // Legacy fields for backward compatibility
+            opponentName: isHome ? (awayTeam?.name || 'Unknown Opponent') : (homeTeam?.name || 'Unknown Opponent'),
+            opponentTeam: { 
+              name: isHome ? (awayTeam?.name || 'Unknown Opponent') : (homeTeam?.name || 'Unknown Opponent')
+            }
         };
     }));
 
