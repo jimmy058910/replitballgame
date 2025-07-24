@@ -6,7 +6,8 @@ import { Badge } from "./ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "./ui/dialog";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "./ui/sheet";
 import { ScrollArea } from "./ui/scroll-area";
-import TacticalManager from "./TacticalManager";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "./ui/collapsible";
+import { Progress } from "./ui/progress";
 import { useToast } from "@/hooks/use-toast";
 import { 
   Users, 
@@ -20,6 +21,7 @@ import {
   Smartphone, 
   Monitor,
   ChevronRight,
+  ChevronDown,
   RotateCcw,
   Save,
   Activity,
@@ -841,8 +843,7 @@ export default function TapToAssignTactics({ teamId }: TapToAssignTacticsProps) 
           </CardHeader>
         </Card>
 
-        {/* Tactical Settings Integration */}
-        <TacticalManager />
+
 
         {/* Formation Grid */}
         <Card className="bg-gray-800/50 border-gray-700 mb-6">
@@ -1040,6 +1041,133 @@ export default function TapToAssignTactics({ teamId }: TapToAssignTacticsProps) 
               ))}
             </div>
           </CardContent>
+        </Card>
+
+        {/* Field Size and Tactical Focus Side by Side */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+          {/* Field Size Selection */}
+          <Card className="bg-gray-800/50 border-gray-700">
+            <CardHeader>
+              <CardTitle className="flex items-center text-white">
+                <Settings className="w-5 h-5 mr-2 text-blue-400" />
+                Field Size
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-3">
+                {['STANDARD', 'LARGE', 'COMPACT'].map((size) => (
+                  <div 
+                    key={size}
+                    className="p-3 rounded-lg border border-gray-600 bg-gray-700/30 hover:bg-gray-600/50 cursor-pointer transition-colors"
+                  >
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <div className="font-medium text-white">{size}</div>
+                        <div className="text-sm text-gray-400">
+                          {size === 'STANDARD' && 'Balanced gameplay'}
+                          {size === 'LARGE' && 'Favors speed and passing'}
+                          {size === 'COMPACT' && 'Favors power and blocking'}
+                        </div>
+                      </div>
+                      <div className="w-4 h-4 rounded-full border-2 border-blue-400 bg-blue-400"></div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Tactical Focus Selection */}
+          <Card className="bg-gray-800/50 border-gray-700">
+            <CardHeader>
+              <CardTitle className="flex items-center text-white">
+                <Target className="w-5 h-5 mr-2 text-purple-400" />
+                Tactical Focus
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-3">
+                {['BALANCED', 'OFFENSIVE', 'DEFENSIVE'].map((focus) => (
+                  <div 
+                    key={focus}
+                    className="p-3 rounded-lg border border-gray-600 bg-gray-700/30 hover:bg-gray-600/50 cursor-pointer transition-colors"
+                  >
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <div className="font-medium text-white">{focus}</div>
+                        <div className="text-sm text-gray-400">
+                          {focus === 'BALANCED' && 'Even distribution'}
+                          {focus === 'OFFENSIVE' && 'Favor scoring plays'}
+                          {focus === 'DEFENSIVE' && 'Focus on stopping opponents'}
+                        </div>
+                      </div>
+                      <div className="w-4 h-4 rounded-full border-2 border-purple-400 bg-purple-400"></div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Match-Day Tactics Accordion */}
+        <Card className="bg-gray-800/50 border-gray-700 mb-6">
+          <Collapsible>
+            <CollapsibleTrigger asChild>
+              <CardHeader className="cursor-pointer hover:bg-gray-700/30 transition-colors">
+                <CardTitle className="flex items-center justify-between text-white">
+                  <div className="flex items-center">
+                    <Activity className="w-6 h-6 mr-2 text-green-400" />
+                    Match-Day Tactics
+                  </div>
+                  <ChevronRight className="w-5 h-5 text-gray-400" />
+                </CardTitle>
+              </CardHeader>
+            </CollapsibleTrigger>
+            <CollapsibleContent>
+              <CardContent>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {/* Coach Effectiveness */}
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm font-medium text-gray-300">Coach Bonus</span>
+                      <span className="text-white font-bold">+5%</span>
+                    </div>
+                    <Progress value={65} className="h-2 bg-gray-700" />
+                    <p className="text-xs text-gray-400">
+                      Your head coach provides tactical bonuses during matches
+                    </p>
+                  </div>
+
+                  {/* Team Chemistry */}
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm font-medium text-gray-300">Team Chemistry</span>
+                      <span className="text-white font-bold">67%</span>
+                    </div>
+                    <Progress value={67} className="h-2 bg-gray-700" />
+                    <p className="text-xs text-gray-400">
+                      Higher chemistry improves coordination and performance
+                    </p>
+                  </div>
+                </div>
+
+                <div className="mt-6 p-4 bg-blue-900/20 rounded-lg border border-blue-500/30">
+                  <h4 className="font-medium text-blue-200 mb-2">Tactical Effectiveness</h4>
+                  <div className="grid grid-cols-2 gap-4 text-sm">
+                    <div>
+                      <span className="text-gray-400">Field Size Bonus:</span>
+                      <span className="text-white ml-2">+2%</span>
+                    </div>
+                    <div>
+                      <span className="text-gray-400">Focus Bonus:</span>
+                      <span className="text-white ml-2">+3%</span>
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </CollapsibleContent>
+          </Collapsible>
         </Card>
 
         {/* Player Selector Modal/Sheet */}

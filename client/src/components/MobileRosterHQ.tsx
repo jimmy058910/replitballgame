@@ -33,7 +33,7 @@ import UnifiedTeamHeader from './UnifiedTeamHeader';
 import PlayerDetailModal from './PlayerDetailModal';
 import CamaraderieManagement from './CamaraderieManagement';
 import StadiumFinancialHub from './StadiumFinancialHub';
-import StreamlinedTactics from './StreamlinedTactics';
+import TapToAssignTactics from './TapToAssignTactics';
 import { useToast } from '../hooks/use-toast';
 
 // Type definitions
@@ -715,7 +715,7 @@ export default function MobileRosterHQ() {
 
           {/* TAB 2: TACTICS */}
           <TabsContent value="tactics" className="space-y-6 px-2">
-            <StreamlinedTactics teamId={team?.id?.toString() || ''} />
+            <TapToAssignTactics teamId={team?.id?.toString() || ''} />
           </TabsContent>
 
           {/* TAB 3: CAMARADERIE */}
