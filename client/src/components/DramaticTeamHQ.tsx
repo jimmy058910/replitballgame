@@ -29,7 +29,11 @@ import {
   ChevronDown,
   ChevronUp,
   Heart,
-  Calculator
+  Calculator,
+  Store,
+  Play,
+  ShoppingCart,
+  Building
 } from "lucide-react";
 import { RevenueCalculationsModal } from "./RevenueCalculationsModal";
 
@@ -225,6 +229,63 @@ export default function DramaticTeamHQ() {
           team={team}
           players={allPlayers}
         />
+
+        {/* ⚡ STICKY QUICK ACTIONS RIBBON */}
+        <div className="sticky top-0 z-10 mb-6">
+          <Card className="bg-gradient-to-r from-slate-800 to-slate-900 border-slate-600 shadow-lg">
+            <CardContent className="p-3">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                <h2 className="text-sm font-semibold text-slate-300 flex items-center">
+                  <Zap className="w-4 h-4 mr-2 text-yellow-400" />
+                  Quick Actions
+                </h2>
+                <div className="flex flex-wrap gap-1.5 sm:gap-2">
+                  <Button 
+                    size="sm" 
+                    className="bg-green-600 hover:bg-green-700 text-white px-2 py-1.5 h-8 text-xs flex-1 sm:flex-none min-w-0"
+                    onClick={() => setLocation('/market')}
+                  >
+                    <Store className="w-3 h-3 sm:mr-1" />
+                    <span className="hidden sm:inline ml-1">Visit Store</span>
+                  </Button>
+                  <Button 
+                    size="sm" 
+                    className="bg-blue-600 hover:bg-blue-700 text-white px-2 py-1.5 h-8 text-xs flex-1 sm:flex-none min-w-0"
+                    onClick={() => setLocation('/competition')}
+                  >
+                    <Play className="w-3 h-3 sm:mr-1" />
+                    <span className="hidden sm:inline ml-1">Next Match</span>
+                  </Button>
+                  <Button 
+                    size="sm" 
+                    className="bg-red-600 hover:bg-red-700 text-white px-2 py-1.5 h-8 text-xs flex-1 sm:flex-none min-w-0"
+                    onClick={() => setLocation('/roster-hq')}
+                  >
+                    <Activity className="w-3 h-3 sm:mr-1" />
+                    <span className="hidden sm:inline ml-1">Medical Bay</span>
+                  </Button>
+                  <Button 
+                    size="sm" 
+                    className="bg-purple-600 hover:bg-purple-700 text-white px-2 py-1.5 h-8 text-xs flex-1 sm:flex-none min-w-0"
+                    onClick={() => setLocation('/market')}
+                  >
+                    <ShoppingCart className="w-3 h-3 sm:mr-1" />
+                    <span className="hidden sm:inline ml-1">Player Market</span>
+                  </Button>
+                  <Button 
+                    size="sm" 
+                    className="bg-orange-600 hover:bg-orange-700 text-white px-2 py-1.5 h-8 text-xs flex-1 sm:flex-none min-w-0"
+                    onClick={() => setLocation('/competition')}
+                  >
+                    <Building className="w-3 h-3 sm:mr-1" />
+                    <span className="hidden sm:inline ml-1">Upgrade Facilities</span>
+                  </Button>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+          <div className="h-px bg-gradient-to-r from-transparent via-slate-600 to-transparent mt-2 mb-4"></div>
+        </div>
 
         {/* 🚨 CRITICAL ALERTS PANEL */}
         {(injuredPlayers.length > 0 || lowStaminaPlayers.length > 0) && (
@@ -520,10 +581,10 @@ export default function DramaticTeamHQ() {
         </div>
 
         {/* 📊 UNIFIED FACILITIES & REVENUE DASHBOARD */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+        <div className="mb-6">
           
           {/* Unified Facilities & Revenue Panel */}
-          <Card className="lg:col-span-2 bg-gradient-to-br from-gray-800 to-gray-900 border-2 border-gray-600">
+          <Card className="bg-gradient-to-br from-gray-800 to-gray-900 border-2 border-gray-600">
             <CardHeader>
               <CardTitle className="flex items-center justify-between text-white">
                 <div className="flex items-center">
@@ -607,59 +668,7 @@ export default function DramaticTeamHQ() {
             </CardContent>
           </Card>
 
-          {/* Quick Actions Sidebar */}
-          <Card className="bg-gradient-to-br from-indigo-900 to-purple-900 border-2 border-indigo-500">
-            <CardHeader className="pb-2">
-              <CardTitle className="flex items-center text-white">
-                <Zap className="w-5 h-5 mr-2 text-indigo-400" />
-                Quick Actions
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-2">
-                <Button 
-                  size="sm" 
-                  className="w-full bg-green-600 hover:bg-green-700 text-white justify-start"
-                  onClick={() => setLocation('/market')}
-                >
-                  <Coins className="w-4 h-4 mr-2" />
-                  Visit Store
-                </Button>
-                <Button 
-                  size="sm" 
-                  className="w-full bg-blue-600 hover:bg-blue-700 text-white justify-start"
-                  onClick={() => setLocation('/competition')}
-                >
-                  <Calendar className="w-4 h-4 mr-2" />
-                  Next Match
-                </Button>
-                <Button 
-                  size="sm" 
-                  className="w-full bg-purple-600 hover:bg-purple-700 text-white justify-start"
-                  onClick={() => setLocation('/market')}
-                >
-                  <TrendingUp className="w-4 h-4 mr-2" />
-                  Player Market
-                </Button>
-                <Button 
-                  size="sm" 
-                  className="w-full bg-yellow-600 hover:bg-yellow-700 text-white justify-start"
-                  onClick={() => setLocation('/community')}
-                >
-                  <Award className="w-4 h-4 mr-2" />
-                  Redeem Code
-                </Button>
-                <Button 
-                  size="sm" 
-                  className="w-full bg-red-600 hover:bg-red-700 text-white justify-start"
-                  onClick={() => setLocation('/roster-hq')}
-                >
-                  <Heart className="w-4 h-4 mr-2" />
-                  Team Health
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
+
         </div>
 
 
