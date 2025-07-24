@@ -25,7 +25,7 @@ import {
   FileText,
   Briefcase,
   Handshake,
-  Swords,
+  Target,
   Filter,
   X
 } from 'lucide-react';
@@ -83,6 +83,7 @@ type Team = {
   name: string;
   credits: number;
   gems: number;
+  camaraderie: number;
 };
 
 type Stadium = {
@@ -272,7 +273,7 @@ export default function MobileRosterHQ() {
             <div className="flex items-center gap-3">
               <Handshake className="w-6 h-6 text-yellow-400" />
               <div>
-                <h4 className="font-semibold text-white text-sm">🤝 Chemistry</h4>
+                <h4 className="font-semibold text-white text-sm">🤝 Camaraderie</h4>
                 <p className="text-yellow-200 text-xs">Team Morale: {team?.camaraderie || 0}/100</p>
               </div>
             </div>
@@ -291,9 +292,9 @@ export default function MobileRosterHQ() {
         <CardContent className="p-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <Swords className="w-6 h-6 text-green-400" />
+              <Target className="w-6 h-6 text-green-400" />
               <div>
-                <h4 className="font-semibold text-white text-sm">⚔️ Tactics</h4>
+                <h4 className="font-semibold text-white text-sm">🎯 Tactics</h4>
                 <p className="text-green-200 text-xs">Formation & Lineup</p>
               </div>
             </div>
