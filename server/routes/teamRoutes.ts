@@ -2163,4 +2163,134 @@ router.get('/:teamId/stadium', isAuthenticated, async (req: any, res: Response, 
   }
 });
 
+// Add tactical settings endpoints
+
+// Get team tactical setup
+router.get('/:teamId/tactical-setup', isAuthenticated, asyncHandler(async (req: any, res: Response) => {
+  const { teamId } = req.params;
+  const userId = req.user.claims.sub;
+  
+  // Validate team ownership
+  const team = await storage.teams.getTeamByUserId(userId);
+  if (!team || team.id !== parseInt(teamId)) {
+    throw ErrorCreators.forbidden("You do not own this team");
+  }
+
+  // Get current season data for timing checks
+  const currentSeason = await storage.seasons.getCurrentSeason();
+  
+  // Get head coach for tactical bonuses
+  const headCoach = await prisma.staff.findFirst({
+    where: { teamId: team.id, type: 'HEAD_COACH' }
+  });
+
+  // Calculate team camaraderie
+  const teamCamaraderie = await CamaraderieService.getTeamCamaraderie(team.id);
+
+  // Get tactical data
+  const tacticalData = {
+    fieldSize: team.homeField || 'STANDARD',
+    tacticalFocus: team.tacticalFocus || 'BALANCED',
+    coachBonus: headCoach ? Math.round((headCoach.motivation + headCoach.tactics) / 10) : 0,
+    coachEffectiveness: headCoach ? Math.round((headCoach.motivation + headCoach.tactics) / 2) : 0,
+    teamCamaraderie: Math.round(teamCamaraderie),
+    fieldSizeBonus: team.homeField === 'LARGE' ? 3 : team.homeField === 'COMPACT' ? 2 : 1,
+    tacticalFocusBonus: team.tacticalFocus === 'OFFENSIVE' ? 4 : team.tacticalFocus === 'DEFENSIVE' ? 3 : 2,
+    currentDay: currentSeason?.currentDay || 1
+  };
+
+  res.json(tacticalData);
+}));
+
+// Update field size (with timing restrictions)
+router.post('/:teamId/field-size', isAuthenticated, asyncHandler(async (req: any, res: Response) => {
+  const { teamId } = req.params;
+  const { fieldSize } = req.body;
+  const userId = req.user.claims.sub;
+
+  // Validate field size
+  if (!['STANDARD', 'LARGE', 'COMPACT'].includes(fieldSize)) {
+    throw ErrorCreators.validation("Invalid field size. Must be STANDARD, LARGE, or COMPACT");
+  }
+
+  // Validate team ownership
+  const team = await storage.teams.getTeamByUserId(userId);
+  if (!team || team.id !== parseInt(teamId)) {
+    throw ErrorCreators.forbidden("You do not own this team");
+  }
+
+  // Check timing restrictions (Day 15 11PM EDT to Day 1 3PM EDT)
+  const currentSeason = await storage.seasons.getCurrentSeason();
+  const currentDay = currentSeason?.currentDay || 1;
+  const currentHour = new Date().getHours();
+
+  const canChangeFieldSize = (
+    (currentDay === 15 && currentHour >= 23) ||
+    currentDay === 16 || 
+    currentDay === 17 ||
+    (currentDay === 1 && currentHour <= 15)
+  );
+
+  if (!canChangeFieldSize) {
+    throw ErrorCreators.validation("Field size can only be changed from Day 15 (11PM EDT) to Day 1 (3PM EDT)");
+  }
+
+  // Update field size
+  await prisma.team.update({
+    where: { id: team.id },
+    data: { homeField: fieldSize as any }
+  });
+
+  logInfo("Field size updated", {
+    teamId: team.id,
+    fieldSize: fieldSize,
+    currentDay: currentDay,
+    requestId: req.requestId
+  });
+
+  res.json({ 
+    success: true,
+    message: `Field size updated to ${fieldSize}`,
+    fieldSize: fieldSize
+  });
+}));
+
+// Update tactical focus
+router.post('/:teamId/tactical-focus', isAuthenticated, asyncHandler(async (req: any, res: Response) => {
+  const { teamId } = req.params;
+  const { tacticalFocus } = req.body;
+  const userId = req.user.claims.sub;
+
+  // Validate tactical focus
+  if (!['BALANCED', 'OFFENSIVE', 'DEFENSIVE'].includes(tacticalFocus)) {
+    throw ErrorCreators.validation("Invalid tactical focus. Must be BALANCED, OFFENSIVE, or DEFENSIVE");
+  }
+
+  // Validate team ownership
+  const team = await storage.teams.getTeamByUserId(userId);
+  if (!team || team.id !== parseInt(teamId)) {
+    throw ErrorCreators.forbidden("You do not own this team");
+  }
+
+  // Update tactical focus
+  await prisma.team.update({
+    where: { id: team.id },
+    data: { tacticalFocus: tacticalFocus as any }
+  });
+
+  logInfo("Tactical focus updated", {
+    teamId: team.id,
+    tacticalFocus: tacticalFocus,
+    requestId: req.requestId
+  });
+
+  res.json({ 
+    success: true,
+    message: `Tactical focus updated to ${tacticalFocus}`,
+    tacticalFocus: tacticalFocus
+  });
+}));
+
+
+
 export default router;

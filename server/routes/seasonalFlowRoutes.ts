@@ -1,7 +1,9 @@
-import { Router } from 'express';
+import { Router, type Request, type Response } from 'express';
 import { SeasonalFlowService } from '../services/seasonalFlowService';
 import { isAuthenticated } from '../replitAuth';
 import { RBACService } from '../services/rbacService';
+import { asyncHandler } from '../services/errorService';
+import { storage } from '../storage/index';
 
 const router = Router();
 
@@ -483,5 +485,15 @@ router.get('/health', isAuthenticated, async (req, res) => {
     });
   }
 });
+
+// Get current season cycle information
+router.get('/current-cycle', asyncHandler(async (req: Request, res: Response) => {
+  const currentSeason = await storage.seasons.getCurrentSeason();
+  
+  res.json({
+    currentDay: currentSeason?.currentDay || 1,
+    seasonStatus: currentSeason?.status || 'ACTIVE'
+  });
+}));
 
 export default router;

@@ -8,6 +8,7 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "./ui
 import { ScrollArea } from "./ui/scroll-area";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "./ui/collapsible";
 import { Progress } from "./ui/progress";
+import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { 
   Users, 
@@ -81,6 +82,218 @@ interface PlayerSelectorProps {
   availablePlayers: Player[];
   onAssign: (player: Player, slotId: string) => void;
   isMobile: boolean;
+}
+
+// Tactical Settings Content Component
+function TacticalSettingsContent({ teamId }: { teamId: string }) {
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+
+  // Fetch tactical data from backend
+  const { data: tacticalData, isLoading: tacticalLoading } = useQuery({
+    queryKey: [`/api/teams/${teamId}/tactical-setup`],
+    enabled: !!teamId
+  });
+
+  // Fetch current season data to check timing restrictions
+  const { data: seasonData } = useQuery({
+    queryKey: ['/api/seasonal-flow/current-cycle']
+  });
+
+  // Mutations for updating tactical settings
+  const updateFieldSizeMutation = useMutation({
+    mutationFn: async (fieldSize: string) => {
+      return await apiRequest(`/api/teams/${teamId}/field-size`, "POST", { fieldSize });
+    },
+    onSuccess: () => {
+      toast({
+        title: "Field Size Updated",
+        description: "Your field size has been changed successfully."
+      });
+      queryClient.invalidateQueries({ queryKey: [`/api/teams/${teamId}/tactical-setup`] });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Update Failed", 
+        description: error.message || "Could not update field size",
+        variant: "destructive"
+      });
+    }
+  });
+
+  const updateTacticalFocusMutation = useMutation({
+    mutationFn: async (tacticalFocus: string) => {
+      return await apiRequest(`/api/teams/${teamId}/tactical-focus`, "POST", { tacticalFocus });
+    },
+    onSuccess: () => {
+      toast({
+        title: "Tactical Focus Updated",
+        description: "Your tactical focus has been changed successfully."
+      });
+      queryClient.invalidateQueries({ queryKey: [`/api/teams/${teamId}/tactical-setup`] });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Update Failed",
+        description: error.message || "Could not update tactical focus", 
+        variant: "destructive"
+      });
+    }
+  });
+
+  // Check if field size can be changed (Day 15 11PM EDT to Day 1 3PM EDT)
+  const canChangeFieldSize = () => {
+    if (!seasonData) return false;
+    
+    const currentDay = seasonData.currentDay;
+    const currentHour = new Date().getHours();
+    
+    // Day 15 at 11PM EDT (23:00) onwards, or Day 16-17 (offseason), or Day 1 until 3PM EDT (15:00)
+    return (
+      (currentDay === 15 && currentHour >= 23) ||
+      currentDay === 16 || 
+      currentDay === 17 ||
+      (currentDay === 1 && currentHour <= 15)
+    );
+  };
+
+  const fieldSizeOptions = [
+    { value: 'STANDARD', label: 'Standard', description: 'Balanced gameplay' },
+    { value: 'LARGE', label: 'Large', description: 'Favors speed and passing' }, 
+    { value: 'COMPACT', label: 'Compact', description: 'Favors power and blocking' }
+  ];
+
+  const tacticalFocusOptions = [
+    { value: 'BALANCED', label: 'Balanced', description: 'Even distribution' },
+    { value: 'OFFENSIVE', label: 'Offensive', description: 'Favor scoring plays' },
+    { value: 'DEFENSIVE', label: 'Defensive', description: 'Focus on stopping opponents' }
+  ];
+
+  if (tacticalLoading) {
+    return <div className="text-white text-center">Loading tactical settings...</div>;
+  }
+
+  return (
+    <div className="space-y-6">
+      {/* Field Size and Tactical Focus Side by Side */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {/* Field Size Selection */}
+        <div>
+          <h4 className="flex items-center text-white font-medium mb-4">
+            <Settings className="w-5 h-5 mr-2 text-blue-400" />
+            Field Size
+          </h4>
+          {!canChangeFieldSize() && (
+            <div className="mb-3 p-2 bg-yellow-900/20 border border-yellow-500/30 rounded text-yellow-200 text-xs">
+              Field size can only be changed from Day 15 (11PM EDT) to Day 1 (3PM EDT)
+            </div>
+          )}
+          <div className="space-y-2">
+            {fieldSizeOptions.map((option) => (
+              <div 
+                key={option.value}
+                onClick={() => canChangeFieldSize() && updateFieldSizeMutation.mutate(option.value)}
+                className={`p-3 rounded-lg border transition-colors ${
+                  tacticalData?.fieldSize === option.value 
+                    ? 'border-blue-500 bg-blue-900/30' 
+                    : 'border-gray-600 bg-gray-700/30'
+                } ${
+                  canChangeFieldSize() 
+                    ? 'hover:bg-gray-600/50 cursor-pointer' 
+                    : 'opacity-50 cursor-not-allowed'
+                }`}
+              >
+                <div className="flex items-center justify-between">
+                  <div>
+                    <div className="font-medium text-white">{option.label}</div>
+                    <div className="text-sm text-gray-400">{option.description}</div>
+                  </div>
+                  <div className={`w-4 h-4 rounded-full border-2 ${
+                    tacticalData?.fieldSize === option.value 
+                      ? 'border-blue-400 bg-blue-400' 
+                      : 'border-gray-500'
+                  }`}></div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Tactical Focus Selection */}
+        <div>
+          <h4 className="flex items-center text-white font-medium mb-4">
+            <Target className="w-5 h-5 mr-2 text-purple-400" />
+            Tactical Focus
+          </h4>
+          <div className="space-y-2">
+            {tacticalFocusOptions.map((option) => (
+              <div 
+                key={option.value}
+                onClick={() => updateTacticalFocusMutation.mutate(option.value)}
+                className={`p-3 rounded-lg border transition-colors cursor-pointer ${
+                  tacticalData?.tacticalFocus === option.value 
+                    ? 'border-purple-500 bg-purple-900/30' 
+                    : 'border-gray-600 bg-gray-700/30 hover:bg-gray-600/50'
+                }`}
+              >
+                <div className="flex items-center justify-between">
+                  <div>
+                    <div className="font-medium text-white">{option.label}</div>
+                    <div className="text-sm text-gray-400">{option.description}</div>
+                  </div>
+                  <div className={`w-4 h-4 rounded-full border-2 ${
+                    tacticalData?.tacticalFocus === option.value 
+                      ? 'border-purple-400 bg-purple-400' 
+                      : 'border-gray-500'
+                  }`}></div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* Coach Effectiveness and Team Chemistry */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="space-y-4">
+          <div className="flex items-center justify-between">
+            <span className="text-sm font-medium text-gray-300">Coach Bonus</span>
+            <span className="text-white font-bold">+{tacticalData?.coachBonus || 0}%</span>
+          </div>
+          <Progress value={tacticalData?.coachEffectiveness || 0} className="h-2 bg-gray-700" />
+          <p className="text-xs text-gray-400">
+            Your head coach provides tactical bonuses during matches
+          </p>
+        </div>
+
+        <div className="space-y-4">
+          <div className="flex items-center justify-between">
+            <span className="text-sm font-medium text-gray-300">Team Chemistry</span>
+            <span className="text-white font-bold">{tacticalData?.teamCamaraderie || 0}%</span>
+          </div>
+          <Progress value={tacticalData?.teamCamaraderie || 0} className="h-2 bg-gray-700" />
+          <p className="text-xs text-gray-400">
+            Higher chemistry improves coordination and performance
+          </p>
+        </div>
+      </div>
+
+      {/* Tactical Effectiveness */}
+      <div className="p-4 bg-blue-900/20 rounded-lg border border-blue-500/30">
+        <h4 className="font-medium text-blue-200 mb-2">Tactical Effectiveness</h4>
+        <div className="grid grid-cols-2 gap-4 text-sm">
+          <div>
+            <span className="text-gray-400">Field Size Bonus:</span>
+            <span className="text-white ml-2">+{tacticalData?.fieldSizeBonus || 0}%</span>
+          </div>
+          <div>
+            <span className="text-gray-400">Focus Bonus:</span>
+            <span className="text-white ml-2">+{tacticalData?.tacticalFocusBonus || 0}%</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
 }
 
 // Player Selector Component (Mobile/Desktop adaptive)
@@ -1043,72 +1256,7 @@ export default function TapToAssignTactics({ teamId }: TapToAssignTacticsProps) 
           </CardContent>
         </Card>
 
-        {/* Field Size and Tactical Focus Side by Side */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-          {/* Field Size Selection */}
-          <Card className="bg-gray-800/50 border-gray-700">
-            <CardHeader>
-              <CardTitle className="flex items-center text-white">
-                <Settings className="w-5 h-5 mr-2 text-blue-400" />
-                Field Size
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-3">
-                {['STANDARD', 'LARGE', 'COMPACT'].map((size) => (
-                  <div 
-                    key={size}
-                    className="p-3 rounded-lg border border-gray-600 bg-gray-700/30 hover:bg-gray-600/50 cursor-pointer transition-colors"
-                  >
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <div className="font-medium text-white">{size}</div>
-                        <div className="text-sm text-gray-400">
-                          {size === 'STANDARD' && 'Balanced gameplay'}
-                          {size === 'LARGE' && 'Favors speed and passing'}
-                          {size === 'COMPACT' && 'Favors power and blocking'}
-                        </div>
-                      </div>
-                      <div className="w-4 h-4 rounded-full border-2 border-blue-400 bg-blue-400"></div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
 
-          {/* Tactical Focus Selection */}
-          <Card className="bg-gray-800/50 border-gray-700">
-            <CardHeader>
-              <CardTitle className="flex items-center text-white">
-                <Target className="w-5 h-5 mr-2 text-purple-400" />
-                Tactical Focus
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-3">
-                {['BALANCED', 'OFFENSIVE', 'DEFENSIVE'].map((focus) => (
-                  <div 
-                    key={focus}
-                    className="p-3 rounded-lg border border-gray-600 bg-gray-700/30 hover:bg-gray-600/50 cursor-pointer transition-colors"
-                  >
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <div className="font-medium text-white">{focus}</div>
-                        <div className="text-sm text-gray-400">
-                          {focus === 'BALANCED' && 'Even distribution'}
-                          {focus === 'OFFENSIVE' && 'Favor scoring plays'}
-                          {focus === 'DEFENSIVE' && 'Focus on stopping opponents'}
-                        </div>
-                      </div>
-                      <div className="w-4 h-4 rounded-full border-2 border-purple-400 bg-purple-400"></div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-        </div>
 
         {/* Match-Day Tactics Accordion */}
         <Card className="bg-gray-800/50 border-gray-700 mb-6">
@@ -1126,45 +1274,7 @@ export default function TapToAssignTactics({ teamId }: TapToAssignTacticsProps) 
             </CollapsibleTrigger>
             <CollapsibleContent>
               <CardContent>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  {/* Coach Effectiveness */}
-                  <div className="space-y-4">
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm font-medium text-gray-300">Coach Bonus</span>
-                      <span className="text-white font-bold">+5%</span>
-                    </div>
-                    <Progress value={65} className="h-2 bg-gray-700" />
-                    <p className="text-xs text-gray-400">
-                      Your head coach provides tactical bonuses during matches
-                    </p>
-                  </div>
-
-                  {/* Team Chemistry */}
-                  <div className="space-y-4">
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm font-medium text-gray-300">Team Chemistry</span>
-                      <span className="text-white font-bold">67%</span>
-                    </div>
-                    <Progress value={67} className="h-2 bg-gray-700" />
-                    <p className="text-xs text-gray-400">
-                      Higher chemistry improves coordination and performance
-                    </p>
-                  </div>
-                </div>
-
-                <div className="mt-6 p-4 bg-blue-900/20 rounded-lg border border-blue-500/30">
-                  <h4 className="font-medium text-blue-200 mb-2">Tactical Effectiveness</h4>
-                  <div className="grid grid-cols-2 gap-4 text-sm">
-                    <div>
-                      <span className="text-gray-400">Field Size Bonus:</span>
-                      <span className="text-white ml-2">+2%</span>
-                    </div>
-                    <div>
-                      <span className="text-gray-400">Focus Bonus:</span>
-                      <span className="text-white ml-2">+3%</span>
-                    </div>
-                  </div>
-                </div>
+                <TacticalSettingsContent teamId={teamId} />
               </CardContent>
             </CollapsibleContent>
           </Collapsible>
