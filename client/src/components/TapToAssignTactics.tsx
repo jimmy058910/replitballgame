@@ -51,13 +51,19 @@ interface FormationSlot {
   player: Player | null;
   requiredRole?: string;
   isWildcard?: boolean;
+  isSubstitution?: boolean;
+  substitutionPosition?: 'blockers' | 'runners' | 'passers' | 'wildcard';
+  substitutionIndex?: number;
+  isSubstitution?: boolean;
+  substitutionPosition?: 'blockers' | 'runners' | 'passers' | 'wildcard';
+  substitutionIndex?: number;
 }
 
 interface SubstitutionQueue {
-  blockers: Player[];
-  runners: Player[];
-  passers: Player[];
-  wildcard: Player[];
+  blockers: (Player | null)[];
+  runners: (Player | null)[];
+  passers: (Player | null)[];
+  wildcard: (Player | null)[];
 }
 
 interface TapToAssignTacticsProps {
@@ -236,10 +242,10 @@ export default function TapToAssignTactics({ teamId }: TapToAssignTacticsProps) 
   ]);
 
   const [substitutionQueue, setSubstitutionQueue] = useState<SubstitutionQueue>({
-    blockers: [],
-    runners: [],
-    passers: [],
-    wildcard: [],
+    blockers: [null, null, null],
+    runners: [null, null, null],
+    passers: [null, null, null],
+    wildcard: [null, null, null],
   });
 
   const [selectedSlot, setSelectedSlot] = useState<FormationSlot | null>(null);
@@ -272,13 +278,21 @@ export default function TapToAssignTactics({ teamId }: TapToAssignTacticsProps) 
     p.dailyStaminaLevel > 0 // Exclude completely exhausted
   );
 
-  // Get available players (not currently assigned)
+  // Get available players (not currently assigned to starters or substitutions)
   const assignedPlayerIds = formationSlots
     .map(slot => slot.player?.id)
     .filter(Boolean);
 
+  const substitutionPlayerIds = Object.values(substitutionQueue)
+    .flat()
+    .filter(Boolean)
+    .map(player => player?.id)
+    .filter(Boolean);
+
+  const allAssignedIds = [...assignedPlayerIds, ...substitutionPlayerIds];
+
   const availablePlayers = players.filter(p => 
-    !assignedPlayerIds.includes(p.id)
+    !allAssignedIds.includes(p.id)
   );
 
   // Fetch current formation
@@ -335,16 +349,64 @@ export default function TapToAssignTactics({ teamId }: TapToAssignTacticsProps) 
     }
   };
 
+  const handleSubstitutionSlotTap = (position: 'blockers' | 'runners' | 'passers' | 'wildcard', index: number) => {
+    const currentPlayer = substitutionQueue[position][index];
+    
+    if (currentPlayer) {
+      // Remove player from substitution slot
+      handleRemoveFromSubstitution(position, index);
+    } else {
+      // Open player selector for substitution
+      const mockSlot: FormationSlot = {
+        id: `${position}-sub-${index}`,
+        label: `${position.slice(0, -1)} Sub #${index + 1}`,
+        position: `${position[0].toUpperCase()}S${index + 1}`,
+        player: null,
+        requiredRole: position === 'wildcard' ? undefined : position.slice(0, -1), // Remove 's' from end
+        isWildcard: position === 'wildcard',
+        isSubstitution: true,
+        substitutionPosition: position,
+        substitutionIndex: index
+      };
+      setSelectedSlot(mockSlot);
+      setShowPlayerSelector(true);
+    }
+  };
+
   const handleAssignPlayer = (player: Player, slotId: string) => {
-    setFormationSlots(prev => 
-      prev.map(slot => 
-        slot.id === slotId 
-          ? { ...slot, player }
-          : slot
-      )
-    );
+    if (selectedSlot?.isSubstitution && selectedSlot.substitutionPosition && selectedSlot.substitutionIndex !== undefined) {
+      // Handle substitution assignment
+      handleAssignToSubstitution(selectedSlot.substitutionPosition, selectedSlot.substitutionIndex, player);
+    } else {
+      // Handle starter assignment
+      setFormationSlots(prev => 
+        prev.map(slot => 
+          slot.id === slotId 
+            ? { ...slot, player }
+            : slot
+        )
+      );
+    }
     setShowPlayerSelector(false);
     setSelectedSlot(null);
+  };
+
+  const handleAssignToSubstitution = (position: 'blockers' | 'runners' | 'passers' | 'wildcard', index: number, player: Player) => {
+    setSubstitutionQueue(prev => ({
+      ...prev,
+      [position]: prev[position].map((currentPlayer, i) => 
+        i === index ? player : currentPlayer
+      )
+    }));
+  };
+
+  const handleRemoveFromSubstitution = (position: 'blockers' | 'runners' | 'passers' | 'wildcard', index: number) => {
+    setSubstitutionQueue(prev => ({
+      ...prev,
+      [position]: prev[position].map((currentPlayer, i) => 
+        i === index ? null : currentPlayer
+      )
+    }));
   };
 
   const handleRemovePlayer = (slotId: string) => {
@@ -551,13 +613,7 @@ export default function TapToAssignTactics({ teamId }: TapToAssignTacticsProps) 
                     <div 
                       key={`blocker-sub-${index}`} 
                       className="h-12 bg-purple-800/20 rounded border border-dashed border-purple-400 flex items-center justify-center text-purple-300 text-xs cursor-pointer hover:border-purple-300"
-                      onClick={() => {
-                        // Handle substitution assignment
-                        toast({
-                          title: "Substitution System",
-                          description: "Substitution management coming soon!",
-                        });
-                      }}
+                      onClick={() => handleSubstitutionSlotTap('blockers', index)}
                     >
                       {substitutionQueue.blockers[index] ? (
                         <div className="text-center">
@@ -586,12 +642,7 @@ export default function TapToAssignTactics({ teamId }: TapToAssignTacticsProps) 
                     <div 
                       key={`runner-sub-${index}`} 
                       className="h-12 bg-green-800/20 rounded border border-dashed border-green-400 flex items-center justify-center text-green-300 text-xs cursor-pointer hover:border-green-300"
-                      onClick={() => {
-                        toast({
-                          title: "Substitution System",
-                          description: "Substitution management coming soon!",
-                        });
-                      }}
+                      onClick={() => handleSubstitutionSlotTap('runners', index)}
                     >
                       {substitutionQueue.runners[index] ? (
                         <div className="text-center">
@@ -620,12 +671,7 @@ export default function TapToAssignTactics({ teamId }: TapToAssignTacticsProps) 
                     <div 
                       key={`passer-sub-${index}`} 
                       className="h-12 bg-blue-800/20 rounded border border-dashed border-blue-400 flex items-center justify-center text-blue-300 text-xs cursor-pointer hover:border-blue-300"
-                      onClick={() => {
-                        toast({
-                          title: "Substitution System",
-                          description: "Substitution management coming soon!",
-                        });
-                      }}
+                      onClick={() => handleSubstitutionSlotTap('passers', index)}
                     >
                       {substitutionQueue.passers[index] ? (
                         <div className="text-center">
@@ -654,12 +700,7 @@ export default function TapToAssignTactics({ teamId }: TapToAssignTacticsProps) 
                     <div 
                       key={`wildcard-sub-${index}`} 
                       className="h-12 bg-yellow-800/20 rounded border border-dashed border-yellow-400 flex items-center justify-center text-yellow-300 text-xs cursor-pointer hover:border-yellow-300"
-                      onClick={() => {
-                        toast({
-                          title: "Substitution System",
-                          description: "Substitution management coming soon!",
-                        });
-                      }}
+                      onClick={() => handleSubstitutionSlotTap('wildcard', index)}
                     >
                       {substitutionQueue.wildcard[index] ? (
                         <div className="text-center">
