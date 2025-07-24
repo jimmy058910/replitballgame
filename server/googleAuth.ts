@@ -88,18 +88,7 @@ export function setupGoogleAuth(app: Express) {
     }
   });
 
-  // API endpoints that frontend expects
-  app.get('/api/login', (req, res) => {
-    // Redirect to Google Auth
-    res.redirect('/auth/google');
-  });
-
-  app.get('/api/logout', (req, res, next) => {
-    req.logout((err) => {
-      if (err) { return next(err); }
-      res.redirect('/');
-    });
-  });
+  // Removed duplicate routes - they are already defined above
 
   // Legacy route to log out the user.
   app.get('/logout', (req, res, next) => {
