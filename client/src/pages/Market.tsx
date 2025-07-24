@@ -459,8 +459,17 @@ export default function Market() {
                     </p>
                   </div>
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                    {unifiedItems.map((item: any) => (
-                      <Card key={item.id} className="border-2 hover:border-blue-300 transition-colors">
+                    {unifiedItems.map((item: any) => {
+                      // Debug logging to see item structure
+                      console.log('🔍 Market Item Debug:', {
+                        name: item.name,
+                        raceRestriction: item.raceRestriction,
+                        statEffects: item.statEffects,
+                        effect: item.effect,
+                        slot: item.slot
+                      });
+                      return (
+                        <Card key={item.id} className="border-2 hover:border-blue-300 transition-colors">
                         <CardContent className="p-4">
                           <div className="mb-3">
                             <div className="flex items-center gap-2 mb-1">
@@ -473,7 +482,7 @@ export default function Market() {
                           </div>
                           
                           <div className="text-sm text-gray-600 dark:text-gray-400 mb-4 space-y-2">
-                            <p className="text-xs">{item.description}</p>
+                            {item.description && <p className="text-xs">{item.description}</p>}
                             
                             {/* Race Restriction */}
                             {item.raceRestriction && item.raceRestriction !== 'universal' && (
@@ -589,8 +598,9 @@ export default function Market() {
                             )}
                           </div>
                         </CardContent>
-                      </Card>
-                    ))}
+                        </Card>
+                      );
+                    })}
                   </div>
                 </div>
 
