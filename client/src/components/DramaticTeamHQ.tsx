@@ -581,10 +581,10 @@ export default function DramaticTeamHQ() {
         </div>
 
         {/* 📊 UNIFIED FACILITIES & REVENUE DASHBOARD */}
-        <div className="mb-6">
+        <div className="grid grid-cols-1 lg:grid-cols-10 gap-6 mb-6">
           
-          {/* Unified Facilities & Revenue Panel */}
-          <Card className="bg-gradient-to-br from-gray-800 to-gray-900 border-2 border-gray-600">
+          {/* Unified Facilities & Revenue Panel (70%) */}
+          <Card className="lg:col-span-7 bg-gradient-to-br from-gray-800 to-gray-900 border-2 border-gray-600">
             <CardHeader>
               <CardTitle className="flex items-center justify-between text-white">
                 <div className="flex items-center">
@@ -668,6 +668,58 @@ export default function DramaticTeamHQ() {
             </CardContent>
           </Card>
 
+          {/* Next Match Card (30%) */}
+          <Card className="lg:col-span-3 bg-gradient-to-br from-blue-800 to-blue-900 border-2 border-blue-500">
+            <CardHeader className="pb-2">
+              <CardTitle className="flex items-center text-white">
+                <Calendar className="w-5 h-5 mr-2 text-blue-400" />
+                Next Match
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                {/* Opponent Info */}
+                <div className="text-center">
+                  <div className="text-gray-300 text-sm mb-1">vs</div>
+                  <div className="text-white font-bold text-lg mb-2">
+                    {nextOpponent?.name || "TBD"}
+                  </div>
+                  <div className="text-blue-300 text-xs">
+                    {nextOpponent?.homeGame ? "Home" : "Away"} • Division {nextOpponent?.division || "?"}
+                  </div>
+                </div>
+
+                {/* Match Countdown */}
+                <div className="bg-blue-800/50 p-3 rounded-lg text-center">
+                  <div className="text-blue-200 text-xs mb-1">Match in</div>
+                  <div className="text-white font-bold text-sm">
+                    {nextOpponent?.timeUntil || "Loading..."}
+                  </div>
+                </div>
+
+                {/* CTA Button */}
+                <Button 
+                  className="w-full bg-blue-600 hover:bg-blue-700 text-white"
+                  onClick={() => setLocation('/competition')}
+                >
+                  <Play className="w-4 h-4 mr-2" />
+                  View Match
+                </Button>
+
+                {/* Quick Match Info */}
+                <div className="space-y-1 text-xs">
+                  <div className="flex justify-between">
+                    <span className="text-gray-400">Match Type</span>
+                    <span className="text-blue-300">League</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-400">Your Record</span>
+                    <span className="text-white">{team.wins}W-{draws}D-{team.losses}L</span>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
 
         </div>
 
