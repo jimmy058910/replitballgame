@@ -22,6 +22,7 @@ import { sponsorshipStorage, SponsorshipStorage } from './sponsorshipStorage'; /
 // import { adSystemStorage, AdSystemStorage } from './adSystemStorage';
 import { paymentStorage, PaymentStorage } from './paymentStorage';
 import { scoutingStorage, ScoutingStorage } from './scoutingStorage';
+import { consumableStorage, ConsumableStorage } from './consumableStorage';
 
 // Interface combining all storage services, similar to the original IStorage
 // This provides a type for the aggregated storage object.
@@ -66,6 +67,8 @@ export interface IAppStorage {
   payments: PaymentStorage;
   // Scouting
   scouting: ScoutingStorage;
+  // Consumables
+  consumables: ConsumableStorage;
 }
 
 // Aggregated storage object
@@ -90,6 +93,7 @@ export const storage: IAppStorage = {
   // adSystem: adSystemStorage,
   payments: paymentStorage,
   scouting: scoutingStorage,
+  consumables: consumableStorage,
 };
 
 // Example of how it might be used elsewhere:
