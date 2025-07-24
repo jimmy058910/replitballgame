@@ -240,8 +240,12 @@ export default function DramaticTeamHQ() {
                       <Shield className="w-5 h-5 mr-2 text-red-400" />
                       <span className="text-white font-semibold">{injuredPlayers.length} Injured Players</span>
                     </div>
-                    <Button size="sm" className="bg-red-600 hover:bg-red-700 text-white">
-                      HEAL NOW
+                    <Button 
+                      size="sm" 
+                      className="bg-red-600 hover:bg-red-700 text-white"
+                      onClick={() => setLocation('/roster-hq')}
+                    >
+                      HEAL
                     </Button>
                   </div>
                 )}
@@ -252,8 +256,12 @@ export default function DramaticTeamHQ() {
                       <Zap className="w-5 h-5 mr-2 text-yellow-400" />
                       <span className="text-white font-semibold">{lowStaminaPlayers.length} Low Stamina</span>
                     </div>
-                    <Button size="sm" className="bg-yellow-600 hover:bg-yellow-700 text-white">
-                      REST NOW
+                    <Button 
+                      size="sm" 
+                      className="bg-yellow-600 hover:bg-yellow-700 text-white"
+                      onClick={() => setLocation('/roster-hq')}
+                    >
+                      HEAL
                     </Button>
                   </div>
                 )}

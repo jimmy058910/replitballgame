@@ -60,6 +60,13 @@ type Staff = {
   type: string;
   age: number;
   level: number;
+  motivation?: number;
+  development?: number;
+  teaching?: number;
+  physiology?: number;
+  talentIdentification?: number;
+  potentialAssessment?: number;
+  tactics?: number;
 };
 
 type Team = {
@@ -762,7 +769,6 @@ export default function MobileRosterHQ() {
             player={selectedPlayer}
             isOpen={!!selectedPlayer}
             onClose={() => setSelectedPlayer(null)}
-            team={team}
           />
         )}
       </div>
