@@ -884,41 +884,51 @@ export default function ComprehensiveCompetitionCenter() {
                   <CardContent className="p-6">
                     {exhibitionHistory && exhibitionHistory.length > 0 ? (
                       <div className="space-y-3">
-                        {exhibitionHistory.map((match: any) => (
-                          <div key={match.id} className="bg-gray-700/50 p-4 rounded-lg border border-gray-600">
-                            <div className="flex items-center justify-between">
-                              <div>
-                                <h4 className="font-bold text-white">
-                                  vs {match.homeTeam.id === team?.id ? match.awayTeam.name : match.homeTeam.name}
-                                </h4>
-                                <p className="text-sm text-gray-300">
-                                  {new Date(match.gameDate).toLocaleDateString()} • {match.homeTeam.id === team?.id ? 'Home' : 'Away'}
-                                </p>
-                              </div>
-                              <div className="text-right">
-                                {match.status === 'COMPLETED' ? (
-                                  <div>
-                                    <div className="text-lg font-bold text-white">
-                                      {match.homeTeam.id === team?.id ? match.homeScore : match.awayScore} - {match.homeTeam.id === team?.id ? match.awayScore : match.homeScore}
+                        {exhibitionHistory.map((match: any) => {
+                          // Handle cases where team data might be missing
+                          const isUserHome = match.homeTeamId === team?.id;
+                          const opponentName = match.homeTeam?.name || match.awayTeam?.name || 'Unknown Opponent';
+                          const homeScore = match.homeScore || 0;
+                          const awayScore = match.awayScore || 0;
+                          const userScore = isUserHome ? homeScore : awayScore;
+                          const opponentScore = isUserHome ? awayScore : homeScore;
+                          
+                          return (
+                            <div key={match.id} className="bg-gray-700/50 p-4 rounded-lg border border-gray-600">
+                              <div className="flex items-center justify-between">
+                                <div>
+                                  <h4 className="font-bold text-white">
+                                    vs {opponentName}
+                                  </h4>
+                                  <p className="text-sm text-gray-300">
+                                    {match.gameDate ? new Date(match.gameDate).toLocaleDateString() : 'Recent'} • {isUserHome ? 'Home' : 'Away'}
+                                  </p>
+                                </div>
+                                <div className="text-right">
+                                  {match.status === 'COMPLETED' ? (
+                                    <div>
+                                      <div className="text-lg font-bold text-white">
+                                        {userScore} - {opponentScore}
+                                      </div>
+                                      <Badge 
+                                        className={
+                                          userScore > opponentScore
+                                            ? 'bg-green-600 text-green-100'
+                                            : (userScore === opponentScore ? 'bg-yellow-600 text-yellow-100' : 'bg-red-600 text-red-100')
+                                        }
+                                      >
+                                        {userScore > opponentScore ? 'WIN' : 
+                                         (userScore === opponentScore ? 'DRAW' : 'LOSS')}
+                                      </Badge>
                                     </div>
-                                    <Badge 
-                                      className={
-                                        (match.homeTeam.id === team?.id ? match.homeScore > match.awayScore : match.awayScore > match.homeScore)
-                                          ? 'bg-green-600 text-green-100'
-                                          : (match.homeScore === match.awayScore ? 'bg-yellow-600 text-yellow-100' : 'bg-red-600 text-red-100')
-                                      }
-                                    >
-                                      {(match.homeTeam.id === team?.id ? match.homeScore > match.awayScore : match.awayScore > match.homeScore) ? 'WIN' : 
-                                       (match.homeScore === match.awayScore ? 'DRAW' : 'LOSS')}
-                                    </Badge>
-                                  </div>
-                                ) : (
-                                  <Badge className="bg-blue-600 text-blue-100">{match.status}</Badge>
-                                )}
+                                  ) : (
+                                    <Badge className="bg-blue-600 text-blue-100">{match.status}</Badge>
+                                  )}
+                                </div>
                               </div>
                             </div>
-                          </div>
-                        ))}
+                          );
+                        })}
                       </div>
                     ) : (
                       <div className="text-center py-8">
