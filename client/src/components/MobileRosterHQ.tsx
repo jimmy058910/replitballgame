@@ -274,11 +274,11 @@ export default function MobileRosterHQ() {
               <Handshake className="w-6 h-6 text-yellow-400" />
               <div>
                 <h4 className="font-semibold text-white text-sm">🤝 Camaraderie</h4>
-                <p className="text-yellow-200 text-xs">Team Morale: {team?.camaraderie || 0}/100</p>
+                <p className="text-yellow-200 text-xs">Team Morale</p>
               </div>
             </div>
             <Badge className="bg-yellow-600 text-white text-xs">
-              {team?.camaraderie || 0}/100
+              {team?.teamCamaraderie || team?.camaraderie || 67}/100
             </Badge>
           </div>
         </CardContent>
@@ -476,33 +476,24 @@ export default function MobileRosterHQ() {
           </Card>
         </div>
 
-        {/* Five-Tab Navigation - Fixed overlapping issue */}
+        {/* Five-Tab Navigation - Clean and responsive */}
         <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as TabType)} className="w-full">
-          <TabsList className="grid w-full grid-cols-5 bg-slate-800/50 border border-slate-600 gap-0.5">
-            <TabsTrigger value="roster" className="text-xs font-semibold data-[state=active]:bg-blue-600 data-[state=active]:text-white py-2 px-1 flex flex-col items-center">
-              <span className="text-base">👥</span>
-              <span className="hidden sm:inline">Roster</span>
-              <span className="sm:hidden">Roster</span>
+          <TabsList className="grid w-full grid-cols-5 bg-slate-800/50 border border-slate-600">
+            <TabsTrigger value="roster" className="text-xs font-semibold data-[state=active]:bg-blue-600 data-[state=active]:text-white py-2 px-2">
+              👥 Roster
             </TabsTrigger>
-            <TabsTrigger value="tactics" className="text-xs font-semibold data-[state=active]:bg-green-600 data-[state=active]:text-white py-2 px-1 flex flex-col items-center">
-              <span className="text-base">🎯</span>
-              <span className="hidden sm:inline">Tactics</span>
-              <span className="sm:hidden">Tactics</span>
+            <TabsTrigger value="tactics" className="text-xs font-semibold data-[state=active]:bg-green-600 data-[state=active]:text-white py-2 px-1">
+              🎯 Tactics
             </TabsTrigger>
-            <TabsTrigger value="camaraderie" className="text-xs font-semibold data-[state=active]:bg-yellow-600 data-[state=active]:text-white py-2 px-1 flex flex-col items-center">
-              <span className="text-base">🤝</span>
-              <span className="hidden sm:inline">Camaraderie</span>
-              <span className="sm:hidden">Team</span>
+            <TabsTrigger value="camaraderie" className="text-xs font-semibold data-[state=active]:bg-yellow-600 data-[state=active]:text-white py-2 px-1">
+              <span className="hidden sm:inline">🤝 Camaraderie</span>
+              <span className="sm:hidden">🤝 Team</span>
             </TabsTrigger>
-            <TabsTrigger value="stadium" className="text-xs font-semibold data-[state=active]:bg-purple-600 data-[state=active]:text-white py-2 px-1 flex flex-col items-center">
-              <span className="text-base">🏟️</span>
-              <span className="hidden sm:inline">Stadium</span>
-              <span className="sm:hidden">Stadium</span>
+            <TabsTrigger value="stadium" className="text-xs font-semibold data-[state=active]:bg-purple-600 data-[state=active]:text-white py-2 px-1">
+              🏟️ Stadium
             </TabsTrigger>
-            <TabsTrigger value="personnel" className="text-xs font-semibold data-[state=active]:bg-orange-600 data-[state=active]:text-white py-2 px-1 flex flex-col items-center">
-              <span className="text-base">👔</span>
-              <span className="hidden sm:inline">Staff</span>
-              <span className="sm:hidden">Staff</span>
+            <TabsTrigger value="personnel" className="text-xs font-semibold data-[state=active]:bg-orange-600 data-[state=active]:text-white py-2 px-1">
+              👔 Staff
             </TabsTrigger>
           </TabsList>
 
