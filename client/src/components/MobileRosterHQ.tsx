@@ -93,7 +93,7 @@ type Stadium = {
   level: number;
 };
 
-type TabType = 'roster' | 'tactics' | 'camaraderie' | 'stadium' | 'personnel';
+type TabType = 'roster' | 'tactics' | 'camaraderie' | 'stadium' | 'staff';
 type RosterView = 'all' | 'medical' | 'contracts';
 
 export default function MobileRosterHQ() {
@@ -245,14 +245,14 @@ export default function MobileRosterHQ() {
       {/* Staff Management */}
       <Card 
         className="bg-gradient-to-r from-orange-700/80 to-orange-800/80 border-orange-500 cursor-pointer hover:scale-105 transition-all duration-200"
-        onClick={() => handleQuickAction('staff', undefined, 'personnel')}
+        onClick={() => handleQuickAction('staff', undefined, 'staff')}
       >
         <CardContent className="p-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               <Briefcase className="w-6 h-6 text-orange-400" />
               <div>
-                <h4 className="font-semibold text-white text-sm">👥 Personnel</h4>
+                <h4 className="font-semibold text-white text-sm">👥 Staff</h4>
                 <p className="text-orange-200 text-xs">Staff: {staff?.length || 0}</p>
               </div>
             </div>
@@ -328,7 +328,7 @@ export default function MobileRosterHQ() {
     if (view && ['all', 'medical', 'contracts'].includes(view)) {
       setRosterView(view);
     }
-    if (tab && ['roster', 'tactics', 'camaraderie', 'stadium', 'personnel'].includes(tab)) {
+    if (tab && ['roster', 'tactics', 'camaraderie', 'stadium', 'staff'].includes(tab)) {
       setActiveTab(tab);
     }
   }, []);
@@ -492,7 +492,7 @@ export default function MobileRosterHQ() {
             <TabsTrigger value="stadium" className="text-xs font-semibold data-[state=active]:bg-purple-600 data-[state=active]:text-white py-2 px-1">
               🏟️ Stadium
             </TabsTrigger>
-            <TabsTrigger value="personnel" className="text-xs font-semibold data-[state=active]:bg-orange-600 data-[state=active]:text-white py-2 px-1">
+            <TabsTrigger value="staff" className="text-xs font-semibold data-[state=active]:bg-orange-600 data-[state=active]:text-white py-2 px-1">
               👔 Staff
             </TabsTrigger>
           </TabsList>
@@ -728,8 +728,8 @@ export default function MobileRosterHQ() {
             <StadiumFinancialHub team={team} stadium={stadium} />
           </TabsContent>
 
-          {/* TAB 5: PERSONNEL */}
-          <TabsContent value="personnel" className="space-y-6 px-2">
+          {/* TAB 5: STAFF */}
+          <TabsContent value="staff" className="space-y-6 px-2">
             <Card className="bg-gradient-to-r from-orange-800 to-orange-900 border-2 border-orange-400">
               <CardHeader>
                 <CardTitle className="flex items-center text-white">
@@ -852,10 +852,10 @@ export default function MobileRosterHQ() {
                   )) : (
                     <div className="col-span-full text-center text-white/70 py-8">
                       <UserPlus className="w-16 h-16 mx-auto mb-4 text-orange-400" />
-                      <h3 className="text-xl font-bold text-white mb-2">No Personnel Hired</h3>
+                      <h3 className="text-xl font-bold text-white mb-2">No Staff Hired</h3>
                       <p className="text-lg mb-4">Build your coaching team to boost player development</p>
                       <Button className="bg-orange-600 hover:bg-orange-700 text-white px-6 py-2">
-                        HIRE PERSONNEL
+                        HIRE STAFF
                       </Button>
                     </div>
                   )}

@@ -466,9 +466,18 @@ export default function DramaticTeamHQ() {
                     </div>
                     <span className={exhibitionGamesPlayedToday >= 3 ? "text-white" : "text-gray-400"}>Play Exhibition Matches</span>
                   </div>
-                  <Badge className={`${exhibitionGamesPlayedToday >= 3 ? 'bg-green-600' : 'bg-gray-600'} text-white text-xs`}>
-                    {exhibitionGamesPlayedToday}/3
-                  </Badge>
+                  <div className="flex items-center gap-2">
+                    <Badge className={`${exhibitionGamesPlayedToday >= 3 ? 'bg-green-600' : 'bg-gray-600'} text-white text-xs`}>
+                      {exhibitionGamesPlayedToday}/3
+                    </Badge>
+                    <Button 
+                      size="sm" 
+                      className="bg-cyan-600 hover:bg-cyan-700 text-white text-xs"
+                      onClick={() => setLocation('/competition?tab=exhibitions')}
+                    >
+                      Play
+                    </Button>
+                  </div>
                 </div>
                 
                 <div className="flex items-center justify-between text-sm">
@@ -505,7 +514,7 @@ export default function DramaticTeamHQ() {
                   <Button 
                     size="sm" 
                     className="bg-cyan-600 hover:bg-cyan-700 text-white text-xs"
-                    onClick={() => setLocation('/roster-hq')}
+                    onClick={() => setLocation('/roster-hq?tab=tactics')}
                   >
                     Set Now
                   </Button>
@@ -519,7 +528,7 @@ export default function DramaticTeamHQ() {
                   <Button 
                     size="sm" 
                     className="bg-cyan-600 hover:bg-cyan-700 text-white text-xs"
-                    onClick={() => setLocation('/market')}
+                    onClick={() => setLocation('/market?tab=marketplace')}
                   >
                     Browse
                   </Button>
@@ -603,7 +612,7 @@ export default function DramaticTeamHQ() {
                   size="sm" 
                   variant="outline" 
                   className="border-orange-500 text-orange-300 hover:bg-orange-900/30"
-                  onClick={() => setLocation('/stadium')}
+                  onClick={() => setLocation('/roster-hq?tab=stadium')}
                 >
                   Manage
                 </Button>
