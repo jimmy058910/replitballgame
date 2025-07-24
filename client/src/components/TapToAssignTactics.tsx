@@ -6,6 +6,7 @@ import { Badge } from "./ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "./ui/dialog";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "./ui/sheet";
 import { ScrollArea } from "./ui/scroll-area";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { 
   Users, 
@@ -22,7 +23,11 @@ import {
   RotateCcw,
   Save,
   Activity,
-  Crown
+  Crown,
+  Settings,
+  Maximize2,
+  Minimize2,
+  Move
 } from "lucide-react";
 
 interface Player {
@@ -249,6 +254,10 @@ export default function TapToAssignTactics({ teamId }: TapToAssignTacticsProps) 
   const [showPlayerSelector, setShowPlayerSelector] = useState(false);
   const [isMobileView, setIsMobileView] = useState(false);
   const [formationLoaded, setFormationLoaded] = useState(false);
+  
+  // Tactical Settings
+  const [fieldSize, setFieldSize] = useState<string>('standard');
+  const [tacticalFocus, setTacticalFocus] = useState<string>('balanced');
 
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -512,7 +521,7 @@ export default function TapToAssignTactics({ teamId }: TapToAssignTacticsProps) 
             if (!fullPlayer) return false;
             
             // Check if this player is NOT in position-specific subs
-            const isInPositionSubs = allPositionSpecificSubs.some(p => p.id === fullPlayer.id);
+            const isInPositionSubs = allPositionSpecificSubs.some(p => p && p.id === fullPlayer.id);
             return !isInPositionSubs;
           });
           
@@ -526,6 +535,14 @@ export default function TapToAssignTactics({ teamId }: TapToAssignTacticsProps) 
         }
 
         setSubstitutionQueue(newSubQueue);
+      }
+      
+      // Load tactical settings
+      if (currentFormation?.fieldSize) {
+        setFieldSize(currentFormation.fieldSize);
+      }
+      if (currentFormation?.tacticalFocus) {
+        setTacticalFocus(currentFormation.tacticalFocus);
       }
       
       // Mark formation as loaded to prevent infinite loops
@@ -553,13 +570,19 @@ export default function TapToAssignTactics({ teamId }: TapToAssignTacticsProps) 
         starters: starters.length,
         substitutes: substitutes.length,
         flexSubs: flexSubs.length,
-        flexSubNames: flexSubs.map(p => p.firstName + ' ' + p.lastName)
+        flexSubNames: flexSubs.map(p => p ? p.firstName + ' ' + p.lastName : 'Unknown')
       });
 
       return await fetch(`/api/teams/${teamId}/formation`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ starters, substitutes, flexSubs }),
+        body: JSON.stringify({ 
+          starters, 
+          substitutes, 
+          flexSubs,
+          fieldSize,
+          tacticalFocus 
+        }),
       });
     },
     onSuccess: () => {
@@ -830,6 +853,86 @@ export default function TapToAssignTactics({ teamId }: TapToAssignTacticsProps) 
               </div>
             </CardTitle>
           </CardHeader>
+        </Card>
+
+        {/* Tactical Settings */}
+        <Card className="bg-gray-800/50 border-gray-700 mb-6">
+          <CardHeader>
+            <CardTitle className="flex items-center text-white">
+              <Settings className="w-6 h-6 mr-2 text-purple-400" />
+              Tactical Settings
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              
+              {/* Field Size */}
+              <div className="space-y-3">
+                <div className="flex items-center gap-2">
+                  <Maximize2 className="w-5 h-5 text-blue-400" />
+                  <label className="text-white font-medium">Field Size</label>
+                </div>
+                <Select value={fieldSize} onValueChange={setFieldSize}>
+                  <SelectTrigger className="bg-gray-700 border-gray-600 text-white">
+                    <SelectValue placeholder="Select field size" />
+                  </SelectTrigger>
+                  <SelectContent className="bg-gray-700 border-gray-600">
+                    <SelectItem value="small" className="text-white">
+                      Small - Favors Power & Blocking
+                    </SelectItem>
+                    <SelectItem value="standard" className="text-white">
+                      Standard - Balanced Gameplay
+                    </SelectItem>
+                    <SelectItem value="large" className="text-white">
+                      Large - Favors Speed & Agility
+                    </SelectItem>
+                  </SelectContent>
+                </Select>
+                <p className="text-xs text-gray-400">
+                  {fieldSize === 'small' && '🏈 Compact field rewards strength and blocking'}
+                  {fieldSize === 'standard' && '⚖️ Balanced field suits all play styles'}
+                  {fieldSize === 'large' && '💨 Spacious field rewards speed and mobility'}
+                </p>
+              </div>
+
+              {/* Tactical Focus */}
+              <div className="space-y-3">
+                <div className="flex items-center gap-2">
+                  <Target className="w-5 h-5 text-green-400" />
+                  <label className="text-white font-medium">Tactical Focus</label>
+                </div>
+                <Select value={tacticalFocus} onValueChange={setTacticalFocus}>
+                  <SelectTrigger className="bg-gray-700 border-gray-600 text-white">
+                    <SelectValue placeholder="Select tactical focus" />
+                  </SelectTrigger>
+                  <SelectContent className="bg-gray-700 border-gray-600">
+                    <SelectItem value="balanced" className="text-white">
+                      Balanced Attack - +1% All Stats
+                    </SelectItem>
+                    <SelectItem value="ball_control" className="text-white">
+                      Ball Control - +3% Catching, +2% Stamina
+                    </SelectItem>
+                    <SelectItem value="quick_strike" className="text-white">
+                      Quick Strike - +3% Speed, +2% Throwing
+                    </SelectItem>
+                    <SelectItem value="ground_game" className="text-white">
+                      Ground Game - +3% Power, +2% Agility
+                    </SelectItem>
+                    <SelectItem value="air_attack" className="text-white">
+                      Air Attack - +3% Throwing, +2% Catching
+                    </SelectItem>
+                  </SelectContent>
+                </Select>
+                <p className="text-xs text-gray-400">
+                  {tacticalFocus === 'balanced' && '⚖️ Well-rounded approach with slight bonuses across all areas'}
+                  {tacticalFocus === 'ball_control' && '🎯 Possession-focused with enhanced catching and endurance'}
+                  {tacticalFocus === 'quick_strike' && '⚡ Fast-paced offense with speed and passing bonuses'}
+                  {tacticalFocus === 'ground_game' && '💪 Power running with strength and agility emphasis'}
+                  {tacticalFocus === 'air_attack' && '🎯 Passing-focused with throwing and catching bonuses'}
+                </p>
+              </div>
+            </div>
+          </CardContent>
         </Card>
 
         {/* Formation Grid */}
