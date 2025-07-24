@@ -10,6 +10,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/tabs';
 import { Alert, AlertDescription } from './ui/alert';
 import { Progress } from './ui/progress';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from './ui/collapsible';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from './ui/dialog';
 import { 
   Trophy, 
   Award, 
@@ -35,7 +36,9 @@ import {
   ArrowUp,
   ArrowDown,
   Eye,
-  ExternalLink
+  ExternalLink,
+  DollarSign,
+  Building
 } from 'lucide-react';
 import UnifiedTeamHeader from './UnifiedTeamHeader';
 import ScheduleView from './ScheduleView';
@@ -115,6 +118,10 @@ export default function ComprehensiveCompetitionCenter() {
   const [showOpponentSelect, setShowOpponentSelect] = useState(false);
   const queryClient = useQueryClient();
   const { toast } = useToast();
+  
+  // Team Scouting Modal State
+  const [selectedTeamId, setSelectedTeamId] = useState<number | null>(null);
+  const [isScoutingModalOpen, setIsScoutingModalOpen] = useState(false);
 
   // Queries
   const { data: team } = useQuery<Team>({
@@ -188,6 +195,12 @@ export default function ComprehensiveCompetitionCenter() {
     refetchInterval: 5 * 60 * 1000, // Refresh every 5 minutes
   });
 
+  // Selected team scouting data
+  const { data: scoutingData, isLoading: scoutingLoading } = useQuery({
+    queryKey: [`/api/teams/${selectedTeamId}/scouting`],
+    enabled: !!selectedTeamId && isScoutingModalOpen,
+  });
+
 
 
   const { data: tournaments } = useQuery<Tournament[]>({
@@ -232,6 +245,17 @@ export default function ComprehensiveCompetitionCenter() {
   const isRegisteredForMidSeasonCup = Array.isArray(myTournaments) && myTournaments.some((entry: any) => 
     entry.type === 'MID_SEASON_CUP'
   );
+
+  // Team scouting functions
+  const openScoutingModal = (teamId: number) => {
+    setSelectedTeamId(teamId);
+    setIsScoutingModalOpen(true);
+  };
+
+  const closeScoutingModal = () => {
+    setSelectedTeamId(null);
+    setIsScoutingModalOpen(false);
+  };
 
   // Exhibition mutations
   const startInstantMatch = useMutation({
@@ -581,9 +605,18 @@ export default function ComprehensiveCompetitionCenter() {
                                     </td>
                                     <td className="p-3">
                                       <div className="flex items-center gap-2">
-                                        <span className="font-semibold text-white">
-                                          {standingTeam.name}
-                                        </span>
+                                        {!isUser ? (
+                                          <button
+                                            onClick={() => openScoutingModal(standingTeam.id)}
+                                            className="font-semibold text-white hover:text-blue-400 transition-colors cursor-pointer underline decoration-dotted underline-offset-2"
+                                          >
+                                            {standingTeam.name}
+                                          </button>
+                                        ) : (
+                                          <span className="font-semibold text-white">
+                                            {standingTeam.name}
+                                          </span>
+                                        )}
                                         {isUser && (
                                           <Badge className="bg-blue-600 text-blue-100 text-xs">YOU</Badge>
                                         )}
@@ -1083,6 +1116,244 @@ export default function ComprehensiveCompetitionCenter() {
           </TabsContent>
 
         </Tabs>
+
+        {/* TEAM SCOUTING SHEET MODAL */}
+        <Dialog open={isScoutingModalOpen} onOpenChange={setIsScoutingModalOpen}>
+          <DialogContent className="sm:max-w-4xl max-h-[90vh] overflow-y-auto bg-gray-800 border-gray-600">
+            <DialogHeader className="pb-4">
+              <DialogTitle className="text-xl font-bold text-white flex items-center gap-3">
+                {scoutingData && (
+                  <>
+                    <div className="w-10 h-10 bg-gradient-to-r from-purple-600 to-blue-600 rounded-full flex items-center justify-center text-white font-bold">
+                      {scoutingData.team?.name?.charAt(0) || '?'}
+                    </div>
+                    <div>
+                      <div className="text-lg">{scoutingData.team?.name || 'Unknown Team'}</div>
+                      <div className="text-sm text-gray-400 font-normal">
+                        Division {scoutingData.team?.division || '?'} – {scoutingData.team?.subdivision?.charAt(0).toUpperCase() + scoutingData.team?.subdivision?.slice(1) || 'Unknown'} | 
+                        Record {scoutingData.team?.wins || 0}-{scoutingData.team?.draws || 0}-{scoutingData.team?.losses || 0} - Pts {scoutingData.team?.points || 0}
+                      </div>
+                    </div>
+                  </>
+                )}
+              </DialogTitle>
+            </DialogHeader>
+
+            {scoutingLoading ? (
+              <div className="flex items-center justify-center py-12">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white"></div>
+                <span className="ml-3 text-gray-300">Loading team data...</span>
+              </div>
+            ) : scoutingData ? (
+              <div className="space-y-4">
+                
+                {/* TOP SUMMARY BAR */}
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 p-4 bg-gradient-to-r from-purple-800/30 to-blue-800/30 rounded-lg border border-gray-600">
+                  <div className="text-center">
+                    <div className="text-2xl font-black text-white">{scoutingData.teamPower || '?'}</div>
+                    <p className="text-xs text-gray-300 uppercase font-semibold">Team Power</p>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-2xl font-black text-white">#{scoutingData.globalRank || '?'}</div>
+                    <p className="text-xs text-gray-300 uppercase font-semibold">Global Rank</p>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-2xl font-black text-white">{scoutingData.fanLoyalty || 0}</div>
+                    <p className="text-xs text-gray-300 uppercase font-semibold">Fan Loyalty</p>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-2xl font-black text-white">{Math.round((scoutingData.attendanceRate || 0) * 100)}%</div>
+                    <p className="text-xs text-gray-300 uppercase font-semibold">Attendance</p>
+                  </div>
+                </div>
+
+                {/* STARTERS & KEY PLAYERS SECTION */}
+                <Collapsible defaultOpen>
+                  <CollapsibleTrigger className="flex items-center justify-between w-full p-4 bg-gray-700/50 rounded-lg hover:bg-gray-700/70 transition-colors">
+                    <h3 className="text-lg font-bold text-white flex items-center gap-2">
+                      <Users className="h-5 w-5 text-yellow-400" />
+                      Starters & Key Players
+                    </h3>
+                    <ChevronDown className="h-5 w-5 text-gray-400" />
+                  </CollapsibleTrigger>
+                  <CollapsibleContent className="pt-4">
+                    <Card className="bg-gray-700/30 border-gray-600">
+                      <CardContent className="p-4">
+                        {scoutingData.topPlayers && scoutingData.topPlayers.length > 0 ? (
+                          <div className="space-y-3">
+                            {scoutingData.topPlayers.slice(0, 5).map((player: any, index: number) => (
+                              <div key={player.id} className="flex items-center justify-between p-3 bg-gray-800/50 rounded-lg">
+                                <div className="flex items-center gap-3">
+                                  <div className="w-8 h-8 bg-gradient-to-r from-yellow-500 to-orange-500 rounded-full flex items-center justify-center text-white font-bold text-sm">
+                                    {index + 1}
+                                  </div>
+                                  <div>
+                                    <div className="font-semibold text-white">
+                                      {player.firstName} {player.lastName}
+                                    </div>
+                                    <div className="text-sm text-gray-400">
+                                      {player.role} • Age {player.age} • {player.race}
+                                    </div>
+                                  </div>
+                                </div>
+                                <div className="text-right">
+                                  <div className="text-lg font-bold text-white">
+                                    {Math.round(((player.speed + player.power + player.throwing + player.catching + player.kicking + player.agility) / 6) * 10) / 10}
+                                  </div>
+                                  <div className="text-xs text-gray-400">Power</div>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        ) : (
+                          <p className="text-gray-400">No player data available</p>
+                        )}
+                      </CardContent>
+                    </Card>
+                  </CollapsibleContent>
+                </Collapsible>
+
+                {/* TEAM FINANCIALS SECTION */}
+                <Collapsible>
+                  <CollapsibleTrigger className="flex items-center justify-between w-full p-4 bg-gray-700/50 rounded-lg hover:bg-gray-700/70 transition-colors">
+                    <h3 className="text-lg font-bold text-white flex items-center gap-2">
+                      <DollarSign className="h-5 w-5 text-green-400" />
+                      Team Financials
+                    </h3>
+                    <ChevronDown className="h-5 w-5 text-gray-400" />
+                  </CollapsibleTrigger>
+                  <CollapsibleContent className="pt-4">
+                    <Card className="bg-gray-700/30 border-gray-600">
+                      <CardContent className="p-4 space-y-3">
+                        <div className="flex justify-between items-center">
+                          <span className="text-gray-300">Total Salary Expenditure:</span>
+                          <span className="font-bold text-white">₡{(scoutingData.totalSalary || 0).toLocaleString()}/season</span>
+                        </div>
+                        <div className="flex justify-between items-center">
+                          <span className="text-gray-300">Average Salary/Player:</span>
+                          <span className="font-bold text-white">₡{Math.round(((scoutingData.totalSalary || 0) / Math.max(scoutingData.playerCount || 1, 1)) || 0).toLocaleString()}</span>
+                        </div>
+                        {scoutingData.highestContract && (
+                          <div className="flex justify-between items-center">
+                            <span className="text-gray-300">Highest Contract:</span>
+                            <span className="font-bold text-white">
+                              "{scoutingData.highestContract.firstName} {scoutingData.highestContract.lastName}" 
+                              ₡{(scoutingData.highestContract.salary || 0).toLocaleString()}×{scoutingData.highestContract.length || 1} yrs
+                            </span>
+                          </div>
+                        )}
+                      </CardContent>
+                    </Card>
+                  </CollapsibleContent>
+                </Collapsible>
+
+                {/* STADIUM OVERVIEW SECTION */}
+                <Collapsible>
+                  <CollapsibleTrigger className="flex items-center justify-between w-full p-4 bg-gray-700/50 rounded-lg hover:bg-gray-700/70 transition-colors">
+                    <h3 className="text-lg font-bold text-white flex items-center gap-2">
+                      <Building className="h-5 w-5 text-purple-400" />
+                      Stadium Overview
+                    </h3>
+                    <ChevronDown className="h-5 w-5 text-gray-400" />
+                  </CollapsibleTrigger>
+                  <CollapsibleContent className="pt-4">
+                    <Card className="bg-gray-700/30 border-gray-600">
+                      <CardContent className="p-4 space-y-4">
+                        <div>
+                          <div className="flex justify-between items-center mb-2">
+                            <span className="text-gray-300">Capacity:</span>
+                            <span className="font-bold text-white">{(scoutingData.stadium?.capacity || 0).toLocaleString()}</span>
+                          </div>
+                          <Progress 
+                            value={Math.min((scoutingData.stadium?.capacity || 0) / 25000 * 100, 100)} 
+                            className="h-2"
+                          />
+                        </div>
+                        <div className="grid grid-cols-2 gap-4">
+                          <div>
+                            <span className="text-gray-300">Fan Loyalty:</span>
+                            <div className="font-bold text-white">{scoutingData.fanLoyalty || 0}/100</div>
+                          </div>
+                          <div>
+                            <span className="text-gray-300">Attendance Rate:</span>
+                            <div className="font-bold text-white">{Math.round((scoutingData.attendanceRate || 0) * 100)}%</div>
+                          </div>
+                        </div>
+                        <div className="space-y-2">
+                          <h4 className="font-semibold text-white">Facilities Tier:</h4>
+                          <div className="grid grid-cols-1 gap-1 text-sm">
+                            <div className="flex justify-between">
+                              <span className="text-gray-300">Concessions:</span>
+                              <span className="text-white">{'●'.repeat(scoutingData.stadium?.concessionsLevel || 0)}{'○'.repeat(5 - (scoutingData.stadium?.concessionsLevel || 0))} Level {scoutingData.stadium?.concessionsLevel || 0}</span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span className="text-gray-300">VIP Suites:</span>
+                              <span className="text-white">{'●'.repeat(scoutingData.stadium?.vipSuitesLevel || 0)}{'○'.repeat(5 - (scoutingData.stadium?.vipSuitesLevel || 0))} Level {scoutingData.stadium?.vipSuitesLevel || 0}</span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span className="text-gray-300">Lighting:</span>
+                              <span className="text-white">{'●'.repeat(scoutingData.stadium?.lightingScreensLevel || 0)}{'○'.repeat(5 - (scoutingData.stadium?.lightingScreensLevel || 0))} Level {scoutingData.stadium?.lightingScreensLevel || 0}</span>
+                            </div>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </CollapsibleContent>
+                </Collapsible>
+
+                {/* SCOUTING REPORT SECTION */}
+                <Collapsible>
+                  <CollapsibleTrigger className="flex items-center justify-between w-full p-4 bg-gray-700/50 rounded-lg hover:bg-gray-700/70 transition-colors">
+                    <h3 className="text-lg font-bold text-white flex items-center gap-2">
+                      <Target className="h-5 w-5 text-red-400" />
+                      Scouting Report
+                    </h3>
+                    <ChevronDown className="h-5 w-5 text-gray-400" />
+                  </CollapsibleTrigger>
+                  <CollapsibleContent className="pt-4">
+                    <Card className="bg-gray-700/30 border-gray-600">
+                      <CardContent className="p-4 space-y-3">
+                        <div className="flex justify-between items-center">
+                          <span className="text-gray-300">Team Play Style:</span>
+                          <span className="font-bold text-white">{scoutingData.team?.tacticalFocus || 'Balanced'}</span>
+                        </div>
+                        <div className="flex justify-between items-center">
+                          <span className="text-gray-300">Home Field:</span>
+                          <span className="font-bold text-white">{scoutingData.team?.homeField || 'Standard'}</span>
+                        </div>
+                        <div className="flex justify-between items-center">
+                          <span className="text-gray-300">Team Chemistry:</span>
+                          <span className="font-bold text-white">{scoutingData.team?.camaraderie || 0}/100</span>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </CollapsibleContent>
+                </Collapsible>
+
+                {/* ACTION BUTTONS */}
+                <div className="flex gap-3 pt-4">
+                  <Button 
+                    onClick={closeScoutingModal}
+                    className="flex-1 bg-gray-600 hover:bg-gray-700 text-white"
+                  >
+                    Close
+                  </Button>
+                  <Button 
+                    className="bg-blue-600 hover:bg-blue-700 text-white"
+                    disabled
+                  >
+                    Scout Match
+                  </Button>
+                </div>
+
+              </div>
+            ) : (
+              <div className="text-center py-12">
+                <p className="text-gray-400">Failed to load team data</p>
+              </div>
+            )}
+          </DialogContent>
+        </Dialog>
 
       </div>
     </div>

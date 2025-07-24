@@ -2328,6 +2328,108 @@ router.post('/:teamId/tactical-focus', isAuthenticated, asyncHandler(async (req:
   });
 }));
 
+// Get team scouting data (for opponent analysis)
+router.get('/:teamId/scouting', isAuthenticated, async (req: any, res: Response, next: NextFunction) => {
+  try {
+    const teamId = parseInt(req.params.teamId);
+    
+    if (!teamId || isNaN(teamId)) {
+      return res.status(400).json({ error: 'Invalid team ID' });
+    }
+
+    // Get team data
+    const team = await prisma.team.findUnique({
+      where: { id: teamId },
+      include: {
+        finances: true,
+        stadium: true
+      }
+    });
+
+    if (!team) {
+      return res.status(404).json({ error: 'Team not found' });
+    }
+
+    // Get players with contracts
+    const players = await prisma.player.findMany({
+      where: { teamId: teamId },
+      include: {
+        contract: true
+      }
+    });
+
+    // Calculate team metrics
+    const teamPower = players.length > 0 ? 
+      Math.round(players.reduce((sum, p) => sum + ((p.speed + p.power + p.throwing + p.catching + p.kicking + p.agility) / 6), 0) / players.length * 10) / 10 : 0;
+
+    // Get top 5 players by power
+    const topPlayers = players
+      .map(p => ({
+        ...p,
+        powerRating: (p.speed + p.power + p.throwing + p.catching + p.kicking + p.agility) / 6
+      }))
+      .sort((a, b) => b.powerRating - a.powerRating)
+      .slice(0, 5);
+
+    // Calculate financial metrics
+    const totalSalary = players.reduce((sum, p) => sum + (p.contract?.salary || 0), 0);
+    const highestContract = players
+      .filter(p => p.contract)
+      .sort((a, b) => (b.contract?.salary || 0) - (a.contract?.salary || 0))[0];
+
+    // Calculate fan loyalty and attendance (simplified)
+    const fanLoyalty = team.fanLoyalty || 50;
+    const attendanceRate = Math.min(fanLoyalty / 100 * 0.8 + 0.2, 1.0);
+
+    // Get global ranking (simplified)
+    const allTeams = await prisma.team.findMany({
+      select: { id: true, wins: true, losses: true, points: true }
+    });
+    const sortedTeams = allTeams.sort((a, b) => b.points - a.points);
+    const globalRank = sortedTeams.findIndex(t => t.id === teamId) + 1;
+
+    const scoutingData = {
+      team: {
+        id: team.id,
+        name: team.name,
+        division: team.division,
+        subdivision: team.subdivision,
+        wins: team.wins,
+        draws: 0, // Not tracked in current schema
+        losses: team.losses,
+        points: team.points,
+        camaraderie: team.camaraderie,
+        tacticalFocus: team.tacticalFocus,
+        homeField: team.homeField
+      },
+      teamPower,
+      globalRank,
+      fanLoyalty,
+      attendanceRate,
+      topPlayers,
+      totalSalary,
+      playerCount: players.length,
+      highestContract: highestContract ? {
+        firstName: highestContract.firstName,
+        lastName: highestContract.lastName,
+        salary: highestContract.contract?.salary || 0,
+        length: highestContract.contract?.length || 1
+      } : null,
+      stadium: {
+        capacity: team.stadium?.capacity || 15000,
+        concessionsLevel: team.stadium?.concessionsLevel || 1,
+        vipSuitesLevel: team.stadium?.vipSuitesLevel || 1,
+        lightingScreensLevel: team.stadium?.lightingScreensLevel || 1
+      }
+    };
+
+    res.json(scoutingData);
+  } catch (error) {
+    console.error('Error fetching team scouting data:', error);
+    next(error);
+  }
+});
+
 
 
 export default router;
