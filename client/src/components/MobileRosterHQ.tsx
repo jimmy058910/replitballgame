@@ -204,7 +204,7 @@ export default function MobileRosterHQ() {
           <Card className="bg-gradient-to-r from-blue-800 to-purple-800 border-2 border-blue-400">
             <CardContent className="p-8">
               <div className="text-white">
-                <div className="text-6xl mb-4">⚽</div>
+                <div className="w-8 h-8 border-4 border-blue-400 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
                 <h2 className="text-2xl font-bold mb-4">LOADING ROSTER HQ</h2>
                 <p className="text-blue-200">Gathering player and staff information...</p>
               </div>
@@ -220,6 +220,7 @@ export default function MobileRosterHQ() {
       <div className="container mx-auto px-4 py-8 space-y-6 max-w-6xl">
         <UnifiedTeamHeader 
           team={team} 
+          players={activePlayers}
           showCreditsGems={true}
           showLowStaminaWarning={lowStaminaPlayers.length > 0}
           lowStaminaCount={lowStaminaPlayers.length}

@@ -40,7 +40,7 @@ export default function UnifiedTeamHeader({ title, titleIcon, team, players, sho
   );
 
   // Get season information
-  const seasonInfo = seasonData ? `Season ${seasonData.seasonNumber} • Day ${seasonData.currentDay} of 17` : 'Season 0 • Day 9 of 17';
+  const seasonInfo = seasonData ? `Season ${(seasonData as any).seasonNumber || 0} • Day ${(seasonData as any).currentDay || 9} of 17` : 'Season 0 • Day 9 of 17';
   
   // Get proper division name with subdivision
   const getDivisionNameWithSubdivision = (division: number, subdivision?: string) => {
