@@ -258,13 +258,13 @@ export class TeamStorage {
     await prisma.teamFinances.create({
       data: {
         teamId,
-        credits: BigInt(50000), // Starting credits
-        gems: BigInt(100), // Starting gems
-        projectedIncome: BigInt(0),
-        projectedExpenses: BigInt(0),
-        lastSeasonRevenue: BigInt(0),
-        lastSeasonExpenses: BigInt(0),
-        facilitiesMaintenanceCost: BigInt(5000)
+        credits: 50000, // Starting credits
+        gems: 100, // Starting gems
+        projectedIncome: 0,
+        projectedExpenses: 0,
+        lastSeasonRevenue: 0,
+        lastSeasonExpenses: 0,
+        facilitiesMaintenanceCost: 5000
       }
     });
   }
