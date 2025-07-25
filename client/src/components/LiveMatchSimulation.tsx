@@ -253,7 +253,7 @@ export function LiveMatchSimulation({ matchId, team1, team2, initialLiveState, o
     
     // Calculate attendance and capacity
     const attendance = atmosphereData.attendance || 12000;
-    const capacity = atmosphereData.attendance ? Math.floor(atmosphereData.attendance / 0.8) : 15000;
+    const capacity = atmosphereData.attendance ? Math.floor(atmosphereData.attendance / 0.8) : 5000;
     const fanLoyalty = atmosphereData.fanLoyalty || 78;
     const intimidationEffect = atmosphereData.intimidationFactor || Math.floor(fanLoyalty / 20);
     const homeFieldAdvantage = atmosphereData.homeFieldAdvantage || Math.floor(fanLoyalty / 15);

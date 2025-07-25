@@ -405,7 +405,7 @@ export default function EnhancedGameEconomyManager({ teamId }: { teamId: string 
                     <div className="flex items-center justify-between">
                       <div>
                         <div className="text-sm text-gray-600">Stadium Capacity</div>
-                        <div className="text-lg font-bold">{(stadiumData as any)?.data?.capacity?.toLocaleString() || '15,000'}</div>
+                        <div className="text-lg font-bold">{(stadiumData as any)?.data?.capacity?.toLocaleString() || '5,000'}</div>
                       </div>
                       <Building className="w-8 h-8 text-blue-500" />
                     </div>
