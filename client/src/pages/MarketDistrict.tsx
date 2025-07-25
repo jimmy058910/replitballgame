@@ -13,6 +13,7 @@ import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useMutation } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 import InventoryDisplay from "@/components/InventoryDisplay";
+import EnhancedInventoryHub from "@/components/EnhancedInventoryHub";
 import EnhancedMarketplace from "@/components/EnhancedMarketplace";
 import FinancialCenter from "@/components/FinancialCenter";
 import DynamicMarketplaceManager from "@/components/DynamicMarketplaceManager";
@@ -755,17 +756,7 @@ export default function MarketDistrict() {
 
           {/* Inventory Tab */}
           <TabsContent value="inventory" className="space-y-4">
-            <Card className="bg-gray-800 border-gray-700">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-white">
-                  <Package className="h-5 w-5 text-purple-400" />
-                  Team Inventory & Boosts
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                {(team as any)?.id && <InventoryDisplay teamId={(team as any).id} />}
-              </CardContent>
-            </Card>
+            {(team as any)?.id && <EnhancedInventoryHub teamId={(team as any).id} />}
           </TabsContent>
 
           {/* Finances Tab */}
