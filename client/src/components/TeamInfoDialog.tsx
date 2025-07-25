@@ -169,10 +169,7 @@ export default function TeamInfoDialog({ teamId, isOpen, onClose }: TeamInfoDial
     return `${min}-${max}`;
   };
 
-  const getScoutedPlayerName = (player: any): string => {
-    // Always show full names for all teams (CPU/AI and User teams)
-    return `${player.firstName} ${player.lastName}`;
-  };
+
 
   const getPositionColor = (role: string) => {
     switch (role) {
