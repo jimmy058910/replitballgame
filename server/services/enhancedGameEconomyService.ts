@@ -119,32 +119,41 @@ export class EnhancedGameEconomyService {
     // Revenue only applies on home game days
     const multiplier = isHomeGameDay ? 1 : 0;
 
-    // Master Economy attendance calculation
-    // TODO: Get team's actual division, fan loyalty, and win streak from database
-    const division = 4; // Default division for calculation
-    const fanLoyalty = 50; // Default 50% fan loyalty
+    // Master Economy attendance calculation with division scaling
+    const team = await prisma.team.findFirst({
+      where: { id: teamId }
+    });
+    const division = team?.division || 4;
+    const fanLoyalty = team?.fanLoyalty || 50;
     const winStreak = 0; // Default no win streak
     
     const actualAttendance = this.calculateGameAttendance(capacity, division, fanLoyalty, winStreak);
     
+    // Division scaling: Higher divisions have higher per-fan revenue
+    // Division 1-2: ×1.5, Division 3-5: ×1.2, Division 6-7: ×1.1, Division 8: ×1.0
+    let divisionMultiplier = 1.0;
+    if (division <= 2) divisionMultiplier = 1.5;
+    else if (division <= 5) divisionMultiplier = 1.2;
+    else if (division <= 7) divisionMultiplier = 1.1;
+    
     const breakdown = {
-      // Ticket Sales: ActualAttendance × 25₡
-      ticketSales: Math.floor(actualAttendance * 25 * multiplier),
+      // Ticket Sales: ActualAttendance × 25₡ × Division Multiplier
+      ticketSales: Math.floor(actualAttendance * 25 * divisionMultiplier * multiplier),
       
-      // Concessions: ActualAttendance × 8₡ × ConcessionsLevel
-      concessions: Math.floor(actualAttendance * 8 * concessionsLevel * multiplier),
+      // Concessions: ActualAttendance × 8₡ × ConcessionsLevel × Division Multiplier
+      concessions: Math.floor(actualAttendance * 8 * concessionsLevel * divisionMultiplier * multiplier),
       
-      // Parking: (ActualAttendance × 0.3) × 10₡ × ParkingLevel
-      parking: Math.floor(actualAttendance * 0.3 * 10 * parkingLevel * multiplier),
+      // Parking: (ActualAttendance × 0.3) × 10₡ × ParkingLevel × Division Multiplier
+      parking: Math.floor(actualAttendance * 0.3 * 10 * parkingLevel * divisionMultiplier * multiplier),
       
-      // VIP Suites: VIPSuitesLevel × 5000₡
+      // VIP Suites: VIPSuitesLevel × 5000₡ (flat rate, no division scaling)
       vipSuites: Math.floor(vipSuitesLevel * 5000 * multiplier),
       
-      // Apparel Sales: ActualAttendance × 3₡ × MerchandisingLevel
-      apparelSales: Math.floor(actualAttendance * 3 * merchandisingLevel * multiplier),
+      // Apparel Sales: ActualAttendance × 3₡ × MerchandisingLevel × Division Multiplier
+      apparelSales: Math.floor(actualAttendance * 3 * merchandisingLevel * divisionMultiplier * multiplier),
       
       // Atmosphere Bonus: Small credit bonus per attendee if FanLoyalty very high
-      atmosphereBonus: 0 // TODO: Implement based on fan loyalty
+      atmosphereBonus: fanLoyalty > 80 ? Math.floor(actualAttendance * 2 * multiplier) : 0
     };
 
     const totalRevenue = Object.values(breakdown).reduce((sum, val) => sum + val, 0);
@@ -181,28 +190,28 @@ export class EnhancedGameEconomyService {
   static calculateUpgradeCost(upgradeType: string, currentLevel: number, currentCapacity?: number): number {
     switch (upgradeType) {
       case 'capacity':
-        // Current Capacity * 10 ₡ (increases capacity by 5,000)
-        return (currentCapacity || 10000) * 10;
+        // ₡15k for +5k seats (strategic mid-season choice)
+        return 15000;
       
       case 'concessions':
-        // 30,000 ₡ per level
-        return 30000;
+        // ~75% increase for 4-6 game ROI: 30k → 52.5k
+        return 52500 * Math.pow(1.5, currentLevel);
       
       case 'parking':
-        // 25,000 ₡ per level
-        return 25000;
+        // ~75% increase for 4-6 game ROI: 25k → 43.75k
+        return 43750 * Math.pow(1.5, currentLevel);
       
       case 'vip_suites':
-        // Variable increasing cost: 50,000 + (level * 25,000)
-        return 50000 + (currentLevel * 25000);
+        // Keep as prestige capstone: 100k base
+        return 100000 * Math.pow(1.5, currentLevel);
       
       case 'merchandising':
-        // Variable increasing cost: 20,000 + (level * 10,000)
-        return 20000 + (currentLevel * 10000);
+        // ~75% increase for 4-6 game ROI: 20k → 35k base
+        return 35000 * Math.pow(1.5, currentLevel);
       
       case 'lighting':
-        // Variable increasing cost: 40,000 + (level * 20,000)
-        return 40000 + (currentLevel * 20000);
+        // Keep same for loyalty growth: 40k base
+        return 40000 * Math.pow(1.5, currentLevel);
       
       default:
         return 0;

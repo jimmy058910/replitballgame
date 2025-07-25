@@ -248,76 +248,82 @@ const StadiumFinancialHub: React.FC<StadiumFinancialHubProps> = ({ team, stadium
     (currentStadium.merchandisingLevel - 1) * 12000 + // Merchandising upgrades
     (currentStadium.lightingScreensLevel - 1) * 30000; // Lighting upgrades
   
-  // Calculate daily upkeep as 0.2% of stadium value per day
-  const dailyUpkeep = Math.floor(stadiumValue * 0.002); // 0.2% of stadium value
+  // Calculate daily upkeep as 1% of stadium value per day (increased from 0.2%)
+  const dailyUpkeep = Math.floor(stadiumValue * 0.01); // 1.0% of stadium value
   
-  // Calculate revenue breakdown
+  // Calculate revenue breakdown with division scaling
+  // Division 1-2: ×1.5, Division 3-5: ×1.2, Division 6-7: ×1.1, Division 8: ×1.0
+  let divisionMultiplier = 1.0;
+  if (division <= 2) divisionMultiplier = 1.5;
+  else if (division <= 5) divisionMultiplier = 1.2;
+  else if (division <= 7) divisionMultiplier = 1.1;
+  
   const revenueBreakdown: RevenueBreakdown = {
-    ticketSales: actualAttendance * 25,
-    concessions: actualAttendance * 8 * currentStadium.concessionsLevel,
-    parking: Math.floor(actualAttendance * 0.3) * 10 * currentStadium.parkingLevel,
-    vipSuites: currentStadium.vipSuitesLevel * 5000,
-    apparelSales: actualAttendance * 3 * currentStadium.merchandisingLevel,
+    ticketSales: Math.floor(actualAttendance * 25 * divisionMultiplier),
+    concessions: Math.floor(actualAttendance * 8 * currentStadium.concessionsLevel * divisionMultiplier),
+    parking: Math.floor(actualAttendance * 0.3 * 10 * currentStadium.parkingLevel * divisionMultiplier),
+    vipSuites: currentStadium.vipSuitesLevel * 5000, // VIP suites unaffected by division
+    apparelSales: Math.floor(actualAttendance * 3 * currentStadium.merchandisingLevel * divisionMultiplier),
     atmosphereBonus: fanLoyalty > 80 ? actualAttendance * 2 : 0
   };
   
   const totalGameRevenue = Object.values(revenueBreakdown).reduce((sum, val) => sum + val, 0);
   
-  // Upgrade options with proper calculations
+  // Upgrade options with BALANCED COSTS for 4-6 game ROI
   const upgradeOptions: UpgradeOption[] = [
     {
       name: 'Capacity',
       type: 'capacity',
       currentLevel: Math.floor(currentStadium.capacity / 5000), // Based on 5k base capacity
       maxLevel: 5,
-      cost: currentStadium.capacity * 0.6, // 60% of current capacity
+      cost: 15000, // Fixed ₡15k per +5k seats
       effect: '+5,000 seats, increased revenue potential',
-      paybackGames: Math.ceil((currentStadium.capacity * 0.6) / (5000 * 25))
+      paybackGames: Math.ceil(15000 / (5000 * 25))
     },
     {
       name: 'Concessions',
       type: 'concessions',
       currentLevel: currentStadium.concessionsLevel,
       maxLevel: 5,
-      cost: 8000 * Math.pow(1.5, currentStadium.concessionsLevel),
-      effect: '+2₡ per fan',
-      paybackGames: Math.ceil((8000 * Math.pow(1.5, currentStadium.concessionsLevel)) / (actualAttendance * 2))
+      cost: 52500 * Math.pow(1.5, currentStadium.concessionsLevel - 1), // 75% increase from 30k
+      effect: '+8₡ per fan per level',
+      paybackGames: Math.ceil((52500 * Math.pow(1.5, currentStadium.concessionsLevel - 1)) / (actualAttendance * 8))
     },
     {
       name: 'Parking',
       type: 'parking',
       currentLevel: currentStadium.parkingLevel,
       maxLevel: 5,
-      cost: 6000 * Math.pow(1.4, currentStadium.parkingLevel),
-      effect: '+1₡ per 0.3 fan',
-      paybackGames: Math.ceil((6000 * Math.pow(1.4, currentStadium.parkingLevel)) / (Math.floor(actualAttendance * 0.3) * 1))
+      cost: 43750 * Math.pow(1.5, currentStadium.parkingLevel - 1), // 75% increase from 25k
+      effect: '+3₡ per 30% of fans',
+      paybackGames: Math.ceil((43750 * Math.pow(1.5, currentStadium.parkingLevel - 1)) / (Math.floor(actualAttendance * 0.3) * 3))
     },
     {
       name: 'VIP Suites',
       type: 'vipSuites',
       currentLevel: currentStadium.vipSuitesLevel,
       maxLevel: 5,
-      cost: 50000 * Math.pow(2, currentStadium.vipSuitesLevel),
+      cost: 100000 * Math.pow(1.5, currentStadium.vipSuitesLevel), // Keep as prestige capstone
       effect: '+₡5,000 / game',
-      paybackGames: Math.ceil((50000 * Math.pow(2, currentStadium.vipSuitesLevel)) / 5000)
+      paybackGames: Math.ceil((100000 * Math.pow(1.5, currentStadium.vipSuitesLevel)) / 5000)
     },
     {
       name: 'Merchandise',
       type: 'merchandising',
       currentLevel: currentStadium.merchandisingLevel,
       maxLevel: 5,
-      cost: 7500 * Math.pow(1.3, currentStadium.merchandisingLevel),
-      effect: '+1₡ per fan',
-      paybackGames: Math.ceil((7500 * Math.pow(1.3, currentStadium.merchandisingLevel)) / (actualAttendance * 1))
+      cost: 70000 * Math.pow(1.5, currentStadium.merchandisingLevel - 1), // 75% increase from 40k
+      effect: '+3₡ per fan per level',
+      paybackGames: Math.ceil((70000 * Math.pow(1.5, currentStadium.merchandisingLevel - 1)) / (actualAttendance * 3))
     },
     {
       name: 'Lighting',
       type: 'lighting',
       currentLevel: currentStadium.lightingScreensLevel,
       maxLevel: 5,
-      cost: 20000 * Math.pow(1.6, currentStadium.lightingScreensLevel),
-      effect: '+5% Loyalty / season',
-      paybackGames: 0 // Long-term benefit
+      cost: 60000 * Math.pow(1.5, currentStadium.lightingScreensLevel - 1), // Keep at 60k base for loyalty
+      effect: '+0.75 Loyalty per level (was +0.5)',
+      paybackGames: 0 // Long-term benefit through fan loyalty
     }
   ];
 

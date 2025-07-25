@@ -48,19 +48,19 @@ export class StadiumAtmosphereService {
   };
 
   /**
-   * Stadium upgrade costs and effects
+   * Stadium upgrade costs and effects - BALANCED FOR 4-6 GAME ROI
    */
   static readonly UPGRADE_CONFIG = {
-    CAPACITY_COST_MULTIPLIER: 10, // Cost per current capacity for next 5,000 seats
+    CAPACITY_COST_MULTIPLIER: 3, // ₡15k for +5k seats (was 10x)
     CAPACITY_INCREMENT: 5000,
     
     FACILITY_BASE_COSTS: {
-      concessions: 30000,
-      parking: 25000,
-      merchandising: 40000,
-      lighting: 60000,
-      screens: 40000,
-      vipSuites: 100000
+      concessions: 52500,    // ~75% increase: 30k → 52.5k for strategic depth
+      parking: 43750,       // ~75% increase: 25k → 43.75k for strategic depth  
+      merchandising: 70000, // ~75% increase: 40k → 70k for strategic depth
+      lighting: 60000,      // Keep same for loyalty growth
+      screens: 40000,       // Keep same
+      vipSuites: 100000     // Keep as-is - prestige capstone
     },
     
     // Cost increases per level

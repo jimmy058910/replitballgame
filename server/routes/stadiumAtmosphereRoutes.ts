@@ -533,12 +533,12 @@ router.get('/upgrade-costs', isAuthenticated, async (req: any, res) => {
     res.json({
       success: true,
       data: {
-        capacity: (stadium.capacity || 15000) * 10,
-        concessions: 25000 * Math.pow(1.5, (stadium.concessionsLevel || 1) - 1),
-        parking: 20000 * Math.pow(1.5, (stadium.parkingLevel || 1) - 1),
-        vipSuites: 100000 * Math.pow(1.5, (stadium.vipSuitesLevel || 1) - 1),
-        merchandising: 30000 * Math.pow(1.5, (stadium.merchandisingLevel || 1) - 1),
-        lighting: 60000 * Math.pow(1.5, (stadium.lightingLevel || 1) - 1)
+        capacity: 15000, // Fixed ₡15k for +5k seats 
+        concessions: 52500 * Math.pow(1.5, (stadium.concessionsLevel || 1) - 1), // 75% increase
+        parking: 43750 * Math.pow(1.5, (stadium.parkingLevel || 1) - 1), // 75% increase
+        vipSuites: 100000 * Math.pow(1.5, (stadium.vipSuitesLevel || 1) - 1), // Keep as prestige
+        merchandising: 70000 * Math.pow(1.5, (stadium.merchandisingLevel || 1) - 1), // 75% increase
+        lighting: 60000 * Math.pow(1.5, (stadium.lightingLevel || 1) - 1) // Keep same
       }
     });
   } catch (error) {
