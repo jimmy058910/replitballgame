@@ -199,7 +199,10 @@ router.get('/available-opponents', isAuthenticated, async (req: any, res: Respon
             division: opponent.division,
             teamPower: opponentPower,
             averagePower: opponentPower, // Frontend compatibility
-            globalRank: globalRank
+            globalRank: globalRank,
+            wins: opponent.wins || 0,
+            losses: opponent.losses || 0,
+            points: opponent.points || 0
         };
     }));
     

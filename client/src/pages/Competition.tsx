@@ -904,6 +904,12 @@ function ExhibitionsTab() {
                           <div className="text-gray-400 text-sm">Global Rank:</div>
                           <div className="text-yellow-400 text-md font-semibold">#{opponent.globalRank || '?'}</div>
                         </div>
+                        <div className="text-center">
+                          <div className="text-gray-400 text-sm">League Record:</div>
+                          <div className="text-green-400 text-md font-semibold">
+                            {opponent.wins || 0}W-{opponent.losses || 0}L ({opponent.points || 0} pts)
+                          </div>
+                        </div>
                       </div>
                       <Button
                         className="w-full"
