@@ -322,6 +322,31 @@ export class TeamStorage {
     const rankings = await this.getWorldRankings();
     return rankings.rankings || [];
   }
+
+  // Add missing getTeams method for exhibition routes compatibility
+  async getTeams(): Promise<any[]> {
+    return this.getAllTeams();
+  }
+
+  // Add missing getTeamsByDivision method
+  async getTeamsByDivision(division: number): Promise<any[]> {
+    const teams = await prisma.team.findMany({
+      where: { division: division },
+      include: {
+        finances: true,
+        stadium: true,
+        players: {
+          include: {
+            contract: true,
+            skills: { include: { skill: true } }
+          }
+        },
+        staff: true
+      }
+    });
+    
+    return await Promise.all(teams.map(team => serializeTeamData(team)));
+  }
 }
 
 // Export instance for use in other modules
