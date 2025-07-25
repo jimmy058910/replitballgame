@@ -708,7 +708,7 @@ export default function DramaticTeamHQ() {
 
                 {/* Match Countdown */}
                 <div className="bg-blue-800/50 p-3 rounded-lg text-center">
-                  <div className="text-blue-200 text-xs mb-1">Match in</div>
+                  <div className="text-blue-200 text-xs mb-1">Time until Match</div>
                   <div className="text-white font-bold text-sm">
                     {nextOpponent?.timeUntil || "Loading..."}
                   </div>

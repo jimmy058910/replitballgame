@@ -904,16 +904,20 @@ router.get('/my/next-opponent', isAuthenticated, asyncHandler(async (req: any, r
   // Calculate time until match
   const now = new Date();
   const timeDiff = gameDate.getTime() - now.getTime();
-  const daysUntil = Math.floor(timeDiff / (1000 * 60 * 60 * 24));
-  const hoursUntil = Math.floor((timeDiff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+  
+  // Calculate total hours and minutes (not days-based)
+  const totalHours = Math.floor(timeDiff / (1000 * 60 * 60));
+  const totalMinutes = Math.floor((timeDiff % (1000 * 60 * 60)) / (1000 * 60));
   
   let timeUntil;
-  if (daysUntil > 0) {
-    timeUntil = `${daysUntil}d ${hoursUntil}h`;
-  } else if (hoursUntil > 0) {
-    timeUntil = `${hoursUntil}h`;
+  if (timeDiff <= 0) {
+    timeUntil = "Starting soon";
+  } else if (totalHours > 0) {
+    timeUntil = `${totalHours} Hrs, ${totalMinutes} Minutes remaining`;
+  } else if (totalMinutes > 0) {
+    timeUntil = `${totalMinutes} Minutes remaining`;
   } else {
-    timeUntil = "Soon";
+    timeUntil = "Less than 1 minute remaining";
   }
 
   res.json({ 
