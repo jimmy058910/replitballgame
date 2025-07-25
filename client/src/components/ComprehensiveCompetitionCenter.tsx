@@ -229,6 +229,12 @@ export default function ComprehensiveCompetitionCenter() {
     enabled: !!team?.id,
   });
 
+  // Query for tournament history
+  const { data: tournamentHistory = [], isLoading: isHistoryLoading } = useQuery({
+    queryKey: ["/api/new-tournaments/history"],
+    enabled: !!team?.id,
+  });
+
   // Check if Mid-Season Cup registration deadline has passed (Day 7 at 1PM EDT)
   const isMidSeasonRegistrationDeadlinePassed = () => {
     if (!seasonData) return false;
@@ -884,7 +890,7 @@ export default function ComprehensiveCompetitionCenter() {
                         </div>
                       </div>
                       <div className="flex items-center gap-2">
-                        <Badge className="bg-blue-600 text-blue-100">0 Tournaments</Badge>
+                        <Badge className="bg-blue-600 text-blue-100">{tournamentHistory.length} Tournament{tournamentHistory.length !== 1 ? 's' : ''}</Badge>
                         <ChevronDown className="h-5 w-5 text-blue-400" />
                       </div>
                     </div>
@@ -894,12 +900,58 @@ export default function ComprehensiveCompetitionCenter() {
               <CollapsibleContent>
                 <Card className="bg-gray-800/90 border border-gray-600">
                   <CardContent className="p-6">
-                    <div className="text-center py-12">
-                      <Award className="h-16 w-16 text-gray-500 mx-auto mb-4" />
-                      <h4 className="text-xl font-bold text-gray-400 mb-2">No Tournament History Yet</h4>
-                      <p className="text-gray-500 text-lg">Your tournament results will appear here</p>
-                      <p className="text-gray-600 text-sm mt-2">Keep participating to build your championship legacy!</p>
-                    </div>
+                    {isHistoryLoading ? (
+                      <div className="text-center py-12">
+                        <div className="animate-spin h-8 w-8 border-2 border-blue-400 border-t-transparent rounded-full mx-auto mb-4"></div>
+                        <p className="text-gray-400">Loading tournament history...</p>
+                      </div>
+                    ) : tournamentHistory.length === 0 ? (
+                      <div className="text-center py-12">
+                        <Award className="h-16 w-16 text-gray-500 mx-auto mb-4" />
+                        <h4 className="text-xl font-bold text-gray-400 mb-2">No Tournament History Yet</h4>
+                        <p className="text-gray-500 text-lg">Your tournament results will appear here</p>
+                        <p className="text-gray-600 text-sm mt-2">Keep participating to build your championship legacy!</p>
+                      </div>
+                    ) : (
+                      <div className="space-y-4">
+                        {tournamentHistory.map((entry: any, index: number) => (
+                          <div key={entry.id || index} className="bg-gray-700/50 rounded-lg p-4 border border-gray-600">
+                            <div className="flex items-center justify-between mb-2">
+                              <div className="flex items-center gap-3">
+                                <div className="p-2 bg-blue-600/20 rounded-lg">
+                                  <Trophy className="h-5 w-5 text-blue-400" />
+                                </div>
+                                <div>
+                                  <h5 className="font-bold text-white">{entry.tournament?.name || 'Tournament'}</h5>
+                                  <p className="text-sm text-gray-400 capitalize">
+                                    {entry.tournament?.type?.replace('_', ' ').toLowerCase() || 'Unknown Type'}
+                                  </p>
+                                </div>
+                              </div>
+                              <div className="text-right">
+                                <Badge className={`${
+                                  entry.finalRank === 1 ? 'bg-yellow-600 text-yellow-100' :
+                                  entry.finalRank <= 3 ? 'bg-blue-600 text-blue-100' :
+                                  'bg-gray-600 text-gray-100'
+                                }`}>
+                                  {entry.finalRank ? `#${entry.finalRank}` : 'Participated'}
+                                </Badge>
+                              </div>
+                            </div>
+                            <div className="flex items-center justify-between text-sm text-gray-400">
+                              <span>Division {entry.tournament?.division || 'Unknown'}</span>
+                              <span>{entry.registeredAt ? new Date(entry.registeredAt).toLocaleDateString() : 'Date Unknown'}</span>
+                            </div>
+                            {entry.finalRank === 1 && (
+                              <div className="mt-2 flex items-center gap-2 text-yellow-400">
+                                <Medal className="h-4 w-4" />
+                                <span className="text-sm font-semibold">Champion!</span>
+                              </div>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    )}
                   </CardContent>
                 </Card>
               </CollapsibleContent>

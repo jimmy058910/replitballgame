@@ -200,11 +200,11 @@ router.get('/history', isAuthenticated, async (req: any, res: Response, next: Ne
       teamId: Number(entry.teamId),
       tournamentId: entry.tournamentId,
       id: entry.id,
-      tournament: {
+      tournament: entry.tournament ? {
         ...entry.tournament,
-        entryFeeCredits: Number(entry.tournament.entryFeeCredits),
-        entryFeeGems: Number(entry.tournament.entryFeeGems)
-      }
+        entryFeeCredits: Number(entry.tournament.entryFeeCredits || 0),
+        entryFeeGems: Number(entry.tournament.entryFeeGems || 0)
+      } : null
     }));
     
     res.json(serializedHistory);
