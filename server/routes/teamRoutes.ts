@@ -2554,4 +2554,56 @@ router.get('/:teamId/matches/live', isAuthenticated, async (req: Request, res: R
   }
 });
 
+// Get team contracts
+router.get('/:teamId/contracts', isAuthenticated, async (req: any, res: Response, next: NextFunction) => {
+  try {
+    const { teamId } = req.params;
+    const userId = req.user.claims.sub;
+    
+    // Verify team ownership
+    const team = await storage.teams.getTeamByUserId(userId);
+    if (!team || team.id !== parseInt(teamId)) {
+      return res.status(403).json({ message: "You do not own this team" });
+    }
+    
+    // Get contracts for both players and staff on this team
+    const contracts = await prisma.contract.findMany({
+      where: {
+        OR: [
+          { player: { teamId: parseInt(teamId) } },
+          { staff: { teamId: parseInt(teamId) } }
+        ]
+      },
+      include: {
+        player: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            role: true
+          }
+        },
+        staff: {
+          select: {
+            id: true,
+            name: true,
+            type: true
+          }
+        }
+      }
+    });
+    
+    // Convert BigInt salary values to strings for JSON serialization
+    const serializedContracts = contracts.map(contract => ({
+      ...contract,
+      salary: contract.salary.toString()
+    }));
+    
+    res.json(serializedContracts);
+  } catch (error) {
+    console.error("Error fetching team contracts:", error);
+    next(error);
+  }
+});
+
 export default router;

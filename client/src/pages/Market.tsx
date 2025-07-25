@@ -10,7 +10,7 @@ import { ShoppingCart, Coins, Gem, TrendingUp, Building, Trophy, Gift, Star, Cro
 import { useLocation } from 'wouter';
 import TryoutSystem from "@/components/TryoutSystem";
 import DynamicMarketplaceManager from "@/components/DynamicMarketplaceManager";
-import PaymentHistory from "@/components/PaymentHistory";
+import FinancesTab from "@/components/FinancesTab";
 
 // Type interfaces
 interface Team {
@@ -429,7 +429,7 @@ export default function Market() {
             <TabsTrigger value="ads">Ad Rewards</TabsTrigger>
             <TabsTrigger value="gems">Buy Gems</TabsTrigger>
             <TabsTrigger value="realm-pass">Realm Pass</TabsTrigger>
-            <TabsTrigger value="history">Transactions</TabsTrigger>
+            <TabsTrigger value="finances">Finances</TabsTrigger>
           </TabsList>
 
           <TabsContent value="marketplace">
@@ -1082,8 +1082,8 @@ export default function Market() {
             </Card>
           </TabsContent>
 
-          <TabsContent value="history">
-            <PaymentHistory />
+          <TabsContent value="finances">
+            <FinancesTab />
           </TabsContent>
 
           <TabsContent value="exchange">
