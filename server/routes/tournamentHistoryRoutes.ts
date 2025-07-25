@@ -21,7 +21,7 @@ function convertBigIntToString(obj: any): any {
 }
 
 // Tournament history endpoint - completely separate from other tournament routes
-router.get('/', isAuthenticated, async (req: any, res: Response, next: NextFunction) => {
+router.get('/', isAuthenticated, async (req: any, res: Response, next: NextFunction): Promise<void> => {
   try {
     const userId = req.user?.claims?.sub;
     

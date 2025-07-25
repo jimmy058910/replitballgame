@@ -710,7 +710,7 @@ export default function ComprehensiveCompetitionCenter() {
                 </Card>
               </CollapsibleTrigger>
               <CollapsibleContent>
-                <div className="space-y-4">
+                <div className="space-y-4 lg:space-y-0 lg:grid lg:grid-cols-2 lg:gap-4">
                   
                   {/* Daily Division Tournament - ENHANCED */}
                   <Card className="bg-gradient-to-r from-green-800 via-green-700 to-emerald-800 border-2 border-green-400 shadow-2xl">
