@@ -131,8 +131,8 @@ function getItemIcon(item: StoreItem) {
     if (item.slot.includes('Weapon') || item.slot.includes('Sword')) return '⚔️';
   }
   // Consumables
-  if (item.name.toLowerCase().includes('stamina')) return '⚡';
-  if (item.name.toLowerCase().includes('recovery') || item.name.toLowerCase().includes('medical')) return '🩹';
+  if (item.name.toLowerCase().includes('stamina') || item.name.toLowerCase().includes('energy') || item.name.toLowerCase().includes('drink')) return '⚡';
+  if (item.name.toLowerCase().includes('recovery') || item.name.toLowerCase().includes('medical') || item.name.toLowerCase().includes('treatment') || item.name.toLowerCase().includes('heal')) return '🩹';
   if (item.name.toLowerCase().includes('boost') || item.name.toLowerCase().includes('team')) return '🌟';
   if (item.name.toLowerCase().includes('exhibition')) return '🎮';
   if (item.name.toLowerCase().includes('tournament')) return '🏆';
