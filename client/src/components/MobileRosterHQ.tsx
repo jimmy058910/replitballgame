@@ -116,10 +116,16 @@ export default function MobileRosterHQ() {
     enabled: !!team?.id,
   });
 
-  const { data: staff, isLoading: staffLoading } = useQuery<Staff[]>({
-    queryKey: [`/api/teams/${team?.id}/staff`],
+  const { data: staffData, isLoading: staffLoading } = useQuery<{
+    staff: (Staff & { contract?: { salary: number; duration: number; remainingYears: number } | null })[];
+    totalStaffCost: number;
+    totalStaffMembers: number;
+  }>({
+    queryKey: ['/api/staff'],
     enabled: !!team?.id,
   });
+
+  const staff = staffData?.staff || [];
 
   const { data: stadium } = useQuery({
     queryKey: [`/api/teams/${team?.id}/stadium`],
@@ -732,9 +738,17 @@ export default function MobileRosterHQ() {
           <TabsContent value="staff" className="space-y-6 px-2">
             <Card className="bg-gradient-to-r from-orange-800 to-orange-900 border-2 border-orange-400">
               <CardHeader>
-                <CardTitle className="flex items-center text-white">
-                  <UserCheck className="w-6 h-6 mr-3 text-orange-400" />
-                  👔 STAFF
+                <CardTitle className="flex items-center justify-between text-white">
+                  <div className="flex items-center">
+                    <UserCheck className="w-6 h-6 mr-3 text-orange-400" />
+                    👔 STAFF ({staff.length})
+                  </div>
+                  {staffData?.totalStaffCost && (
+                    <div className="text-right">
+                      <div className="text-sm text-orange-300">Total Cost</div>
+                      <div className="font-bold text-lg">₡{staffData.totalStaffCost.toLocaleString()}/season</div>
+                    </div>
+                  )}
                 </CardTitle>
               </CardHeader>
               <CardContent className="p-4">
@@ -809,7 +823,10 @@ export default function MobileRosterHQ() {
                           <div className="flex justify-between text-xs">
                             <span className="text-white/70">Contract:</span>
                             <span className="text-orange-300 font-semibold">
-                              {(member.level * 1000).toLocaleString()}₡/season, 3 seasons
+                              {member.contract ? 
+                                `${member.contract.salary.toLocaleString()}₡/season, ${member.contract.duration} seasons` :
+                                `${(member.level * 1000).toLocaleString()}₡/season, 3 seasons`
+                              }
                             </span>
                           </div>
                         </div>

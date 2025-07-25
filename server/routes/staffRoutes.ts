@@ -12,7 +12,7 @@ const staffContractNegotiationSchema = z.object({
 
 /**
  * GET /api/staff
- * Get all staff for the authenticated user's team
+ * Get all staff for the authenticated user's team with contract information
  */
 router.get('/', isAuthenticated, async (req: any, res: Response, next: NextFunction) => {
   try {
@@ -24,10 +24,53 @@ router.get('/', isAuthenticated, async (req: any, res: Response, next: NextFunct
     }
 
     const staff = await storage.staff.getStaffByTeamId(userTeam.id);
-    res.json(staff);
+    
+    // Get contracts for all staff members
+    const staffWithContracts = await Promise.all(
+      staff.map(async (member) => {
+        try {
+          const contracts = await storage.contracts.getActiveContractsByStaff(member.id);
+          const activeContract = contracts.length > 0 ? contracts[0] : null;
+          
+          return {
+            ...member,
+            contract: activeContract ? {
+              id: activeContract.id,
+              salary: Number(activeContract.salary),
+              duration: activeContract.length,
+              remainingYears: activeContract.length, // Use length as default for remaining years
+              signedDate: activeContract.startDate,
+              expiryDate: activeContract.startDate // Will calculate properly later
+            } : null
+          };
+        } catch (error) {
+          console.error(`Error fetching contract for staff member ${member.id}:`, error);
+          // Return staff member without contract if contract fetch fails
+          return {
+            ...member,
+            contract: null
+          };
+        }
+      })
+    );
+    
+    // Calculate total staff cost
+    const totalStaffCost = staffWithContracts.reduce((total, member) => {
+      if (member.contract && member.contract.salary) {
+        return total + member.contract.salary;
+      }
+      // Fallback to level-based calculation if no contract
+      return total + (member.level * 1000);
+    }, 0);
+    
+    return res.json({
+      staff: staffWithContracts,
+      totalStaffCost,
+      totalStaffMembers: staffWithContracts.length
+    });
   } catch (error) {
     console.error("Error fetching staff:", error);
-    next(error);
+    return next(error);
   }
 });
 
@@ -52,13 +95,13 @@ router.get('/:staffId/contract-value', isAuthenticated, async (req: any, res: Re
 
     const contractCalc = ContractService.calculateContractValue(staffMember);
 
-    res.json({
+    return res.json({
       success: true,
       data: contractCalc
     });
   } catch (error) {
     console.error("Error calculating staff contract value:", error);
-    next(error);
+    return next(error);
   }
 });
 
