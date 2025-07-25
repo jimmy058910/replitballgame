@@ -31,18 +31,58 @@ app.get('/api/health', (req, res) => {
   });
 });
 
-// Initialize authentication and routes synchronously
-async function initializeServer() {
+// CRITICAL: Set up authentication BEFORE wildcard routes
+async function setupAuthenticationSync() {
   try {
-    console.log('🔄 Initializing server...');
+    console.log('🔄 Setting up authentication...');
     
-    // Set up static file serving first
+    // Import and configure session/passport
+    const session = await import('express-session');
+    const passport = await import('passport');
+    
+    app.use(session.default({
+      secret: process.env.SESSION_SECRET || 'default-secret-key',
+      resave: false,
+      saveUninitialized: false,
+      cookie: {
+        secure: process.env.NODE_ENV === 'production',
+        httpOnly: true,
+        maxAge: 24 * 60 * 60 * 1000,
+        sameSite: process.env.NODE_ENV === 'production' ? 'none' as const : 'lax' as const
+      }
+    }));
+    
+    app.use(passport.default.initialize());
+    app.use(passport.default.session());
+    
+    // Set up Google OAuth
+    const { setupGoogleAuth } = await import('./googleAuth');
+    await setupGoogleAuth(app);
+    console.log('✅ Google OAuth setup complete');
+    
+    // Register all API routes
+    const { registerAllRoutes } = await import('./routes/index');
+    registerAllRoutes(app);
+    console.log('✅ API routes registered');
+    
+    return true;
+  } catch (error) {
+    console.error('❌ Authentication setup failed:', error);
+    return false;
+  }
+}
+
+// Initialize static file serving AFTER authentication
+async function initializeStaticServing() {
+  try {
+    console.log('🔄 Setting up static file serving...');
+    
     const distPath = path.resolve('dist');
     if (fs.existsSync(distPath) && fs.existsSync(path.join(distPath, 'index.html'))) {
       console.log('✅ Serving React app from dist/');
       app.use(express.static(distPath));
       
-      // SPA fallback for all non-API routes
+      // SPA fallback for all non-API/auth routes
       app.get('*', (req, res, next) => {
         if (req.path.startsWith('/api/') || req.path.startsWith('/auth/') || req.path === '/health') {
           return next();
@@ -100,61 +140,11 @@ async function initializeServer() {
       });
     }
     
-    // Import and set up authentication
-    const session = await import('express-session');
-    const passport = await import('passport');
-    const { setupGoogleAuth } = await import('./googleAuth');
-    const { registerAllRoutes } = await import('./routes/index');
-    
-    // Session configuration
-    app.use(session.default({
-      secret: process.env.SESSION_SECRET || 'default-secret-key',
-      resave: false,
-      saveUninitialized: false,
-      cookie: {
-        secure: process.env.NODE_ENV === 'production',
-        httpOnly: true,
-        maxAge: 24 * 60 * 60 * 1000,
-        sameSite: process.env.NODE_ENV === 'production' ? 'none' as const : 'lax' as const
-      }
-    }));
-    
-    app.use(passport.default.initialize());
-    app.use(passport.default.session());
-    
-    // Initialize authentication
-    await setupGoogleAuth(app);
-    console.log('✅ Google OAuth initialized');
-    
-    // Register all API routes
-    registerAllRoutes(app);
-    console.log('✅ API routes registered');
-    
-    console.log('🎉 Server initialization complete');
+    console.log('✅ Static file serving setup complete');
     return true;
     
   } catch (error) {
-    console.error('❌ Server initialization failed:', error);
-    console.error('Error details:', error instanceof Error ? error.message : String(error));
-    
-    // Set up basic error fallback
-    app.get('*', (req, res, next) => {
-      if (req.path.startsWith('/api/') || req.path.startsWith('/auth/') || req.path === '/health') {
-        return res.status(500).json({ error: 'Server initialization failed' });
-      }
-      return res.status(500).send(`
-        <html>
-          <body style="font-family: Arial; text-align: center; padding: 2rem;">
-            <h1>🏟️ Realm Rivalry</h1>
-            <h2>Server Error</h2>
-            <p>The server encountered an initialization error.</p>
-            <p><a href="/health">Check Health</a></p>
-            <script>setTimeout(() => window.location.reload(), 60000);</script>
-          </body>
-        </html>
-      `);
-    });
-    
+    console.error('❌ Static serving setup failed:', error);
     return false;
   }
 }
@@ -162,15 +152,22 @@ async function initializeServer() {
 // Create HTTP server
 const server = createServer(app);
 
-// Start server and initialize
+// Start server and initialize in correct order
 server.listen(PORT, '0.0.0.0', async () => {
   console.log(`✅ Server listening on port ${PORT}`);
   console.log(`🏥 Health check: http://0.0.0.0:${PORT}/health`);
   
-  // Initialize everything synchronously
-  const initialized = await initializeServer();
-  if (initialized) {
+  // CRITICAL: Setup authentication FIRST, then static serving
+  const authSetup = await setupAuthenticationSync();
+  if (!authSetup) {
+    console.log('❌ Authentication setup failed - server running with limited functionality');
+    return;
+  }
+  
+  const staticSetup = await initializeStaticServing();
+  if (authSetup && staticSetup) {
     console.log('🚀 Production server fully operational');
+    console.log('🔑 Authentication routes: /api/login, /api/logout, /auth/google');
   } else {
     console.log('⚠️ Server running with limited functionality');
   }

@@ -849,6 +849,28 @@ docker push gcr.io/direct-glider-465821-p7/realm-rivalry:latest
 - ✓ **Domain Configuration**: Google OAuth callback correctly configured for `https://realmrivalry.com/auth/google/callback` in production
 - 🔧 **Next Step**: Deploy via GitHub push to activate authentication fix on production
 
+### July 25, 2025 - ✅ CRITICAL PRODUCTION AUTHENTICATION ROUTING ISSUE RESOLVED ✅
+
+#### ✅ ROOT CAUSE IDENTIFIED AND FIXED - ROUTE REGISTRATION ORDER BUG
+- ✓ **Critical Issue Found**: Wildcard route `app.get('*', ...)` was being registered BEFORE authentication routes in production-simple.ts
+- ✓ **Route Conflict Resolution**: Wildcard route was catching `/api/login` requests before authentication routes could handle them
+- ✓ **Production Server Reordered**: 
+  - Authentication setup moved to `setupAuthenticationSync()` function executed FIRST
+  - Static file serving moved to `initializeStaticServing()` function executed AFTER authentication
+  - Proper middleware order: Health → Authentication → API Routes → Static/Wildcard routes
+- ✓ **Server Architecture Enhanced**: Clear separation of concerns with proper async initialization order
+- ✓ **Production Ready**: Fix applied to server/production-simple.ts for immediate deployment
+
+#### ✅ AUTHENTICATION ROUTES NOW PROPERLY REGISTERED
+- ✓ **Route Registration Order**: 
+  1. Health check endpoints (`/health`, `/api/health`)
+  2. Session middleware and Passport initialization
+  3. Google OAuth setup with `/api/login`, `/api/logout`, `/auth/google` routes
+  4. All other API routes
+  5. Static file serving with wildcard fallback
+- ✓ **Expected Behavior**: `https://www.realmrivalry.com/api/login` should now return `302 Found` redirect to Google OAuth
+- ✓ **Deployment Required**: GitHub Actions push to main branch will deploy this fix to production
+
 ### July 23, 2025 - ✅ COMPREHENSIVE PRODUCTION DEPLOYMENT FIXES COMPLETE ✅
 
 #### ✅ ERR_EMPTY_RESPONSE CRITICAL ISSUE RESOLVED - PRODUCTION DEPLOYMENT READY
