@@ -259,7 +259,7 @@ export default function DramaticTeamHQ() {
                   <Button 
                     size="sm" 
                     className="bg-blue-600 hover:bg-blue-700 text-white px-2 py-1.5 h-8 text-xs flex-1 sm:flex-none min-w-0"
-                    onClick={() => setLocation('/competition')}
+                    onClick={() => setLocation('/competition?tab=schedule')}
                   >
                     <Play className="w-3 h-3 sm:mr-1" />
                     <span className="hidden sm:inline ml-1">Next Match</span>
@@ -267,7 +267,7 @@ export default function DramaticTeamHQ() {
                   <Button 
                     size="sm" 
                     className="bg-red-600 hover:bg-red-700 text-white px-2 py-1.5 h-8 text-xs flex-1 sm:flex-none min-w-0"
-                    onClick={() => setLocation('/roster-hq')}
+                    onClick={() => setLocation('/roster-hq?view=medical')}
                   >
                     <Activity className="w-3 h-3 sm:mr-1" />
                     <span className="hidden sm:inline ml-1">Medical Bay</span>
@@ -283,7 +283,7 @@ export default function DramaticTeamHQ() {
                   <Button 
                     size="sm" 
                     className="bg-orange-600 hover:bg-orange-700 text-white px-2 py-1.5 h-8 text-xs flex-1 sm:flex-none min-w-0"
-                    onClick={() => setLocation('/competition')}
+                    onClick={() => setLocation('/roster-hq?tab=stadium')}
                   >
                     <Building className="w-3 h-3 sm:mr-1" />
                     <span className="hidden sm:inline ml-1">Upgrade Facilities</span>

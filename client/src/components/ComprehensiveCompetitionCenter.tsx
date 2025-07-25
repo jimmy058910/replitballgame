@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '../hooks/useAuth';
 import { useToast } from '../hooks/use-toast';
@@ -118,6 +118,16 @@ export default function ComprehensiveCompetitionCenter() {
   const [showOpponentSelect, setShowOpponentSelect] = useState(false);
   const queryClient = useQueryClient();
   const { toast } = useToast();
+
+  // URL parameter handling for direct tab navigation
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const tab = urlParams.get('tab') as 'league' | 'tournaments' | 'exhibitions' | 'schedule';
+    
+    if (tab && ['league', 'tournaments', 'exhibitions', 'schedule'].includes(tab)) {
+      setActiveTab(tab);
+    }
+  }, []);
   
   // Team Scouting Modal State
   const [selectedTeamId, setSelectedTeamId] = useState<number | null>(null);
