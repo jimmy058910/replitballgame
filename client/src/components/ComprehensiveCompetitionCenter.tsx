@@ -530,38 +530,82 @@ export default function ComprehensiveCompetitionCenter() {
           </div>
         </div>
 
-        {/* PERFORMANCE SUMMARY BAR */}
-        <div className="grid grid-cols-4 gap-2 mb-4">
-          <div className="bg-gradient-to-r from-green-700 to-green-600 rounded-lg p-3 text-center">
-            <div className="text-lg md:text-xl font-black text-white">
-              {team?.wins || 0}-{0}-{team?.losses || 0}
+        {/* UNIFIED PERFORMANCE HEADER BAR */}
+        <Card className="bg-gray-800/90 border-gray-600 mb-4">
+          <CardContent className="p-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-center md:text-left">
+              
+              {/* League Record */}
+              <div className="flex items-center justify-center md:justify-start gap-2">
+                <Trophy className="h-5 w-5 text-green-400" />
+                <div>
+                  <h3 className="text-lg font-bold text-white">
+                    {team?.wins || 0} W – {0} D – {team?.losses || 0} L
+                  </h3>
+                  <p className="text-sm text-green-400 font-medium">League Record</p>
+                </div>
+              </div>
+
+              {/* Standings Position */}
+              <div className="flex items-center justify-center md:justify-start gap-2">
+                <Target className="h-5 w-5 text-blue-400" />
+                <div>
+                  <h3 className="text-lg font-bold text-white">
+                    {(() => {
+                      const position = divisionStandings?.findIndex(s => s.id === team?.id) + 1 || 0;
+                      const positionText = position === 1 ? '1st' : 
+                                         position === 2 ? '2nd' : 
+                                         position === 3 ? '3rd' : 
+                                         position > 0 ? `${position}th` : 'Unranked';
+                      const gamesRemaining = Math.max(0, 14 - ((team?.wins || 0) + (team?.losses || 0)));
+                      return `${positionText} – ${team?.points || 0} Pts – ${gamesRemaining} Games Remain`;
+                    })()}
+                  </h3>
+                  <p className="text-sm text-blue-400 font-medium">Standings</p>
+                </div>
+              </div>
+
+              {/* Global Rank with Percentile */}
+              <div className="flex items-center justify-center md:justify-start gap-2">
+                <Globe className="h-5 w-5 text-purple-400" />
+                <div>
+                  <h3 className="text-lg font-bold text-white">
+                    #{(() => {
+                      if (!globalRankings || globalRankings.length === 0) return '?';
+                      if (!team?.id) return '?';
+                      
+                      const teamRanking = globalRankings.find(r => r.id === team.id) || 
+                                        globalRankings.find(r => String(r.id) === String(team.id));
+                      
+                      const rank = teamRanking?.globalRank || 0;
+                      const totalTeams = globalRankings.length;
+                      const percentile = rank > 0 && totalTeams > 0 ? 
+                        Math.round((1 - (rank - 1) / totalTeams) * 100) : 0;
+                      
+                      return rank || '?';
+                    })()} 
+                    {(() => {
+                      if (!globalRankings || globalRankings.length === 0) return '';
+                      if (!team?.id) return '';
+                      
+                      const teamRanking = globalRankings.find(r => r.id === team.id) || 
+                                        globalRankings.find(r => String(r.id) === String(team.id));
+                      
+                      const rank = teamRanking?.globalRank || 0;
+                      const totalTeams = globalRankings.length;
+                      const percentile = rank > 0 && totalTeams > 0 ? 
+                        Math.round((1 - (rank - 1) / totalTeams) * 100) : 0;
+                      
+                      return percentile > 0 ? ` (Top ${percentile}%)` : '';
+                    })()}
+                  </h3>
+                  <p className="text-sm text-purple-400 font-medium">Global Rank</p>
+                </div>
+              </div>
+
             </div>
-            <p className="text-green-100 text-xs font-semibold uppercase">Record</p>
-          </div>
-          <div className="bg-gradient-to-r from-blue-700 to-blue-600 rounded-lg p-3 text-center">
-            <div className="text-lg md:text-xl font-black text-white">{team?.points || 0}</div>
-            <p className="text-blue-100 text-xs font-semibold uppercase">Points</p>
-          </div>
-          <div className="bg-gradient-to-r from-red-700 to-red-600 rounded-lg p-3 text-center">
-            <div className="text-lg md:text-xl font-black text-white">{liveMatches?.length || 0}</div>
-            <p className="text-red-100 text-xs font-semibold uppercase">Live</p>
-          </div>
-          <div className="bg-gradient-to-r from-purple-700 to-purple-600 rounded-lg p-3 text-center">
-            <div className="text-lg md:text-xl font-black text-white">
-              #{(() => {
-                if (!globalRankings || globalRankings.length === 0) return '?';
-                if (!team?.id) return '?';
-                
-                // Try multiple matching strategies for robustness
-                const teamRanking = globalRankings.find(r => r.id === team.id) || 
-                                  globalRankings.find(r => String(r.id) === String(team.id));
-                
-                return teamRanking?.globalRank || '?';
-              })()}
-            </div>
-            <p className="text-purple-100 text-xs font-semibold uppercase">Global Rank</p>
-          </div>
-        </div>
+          </CardContent>
+        </Card>
 
         {/* MOBILE-FIRST TAB NAVIGATION */}
         <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as any)}>
@@ -573,11 +617,10 @@ export default function ComprehensiveCompetitionCenter() {
                 className="text-xs font-semibold data-[state=active]:bg-red-600 data-[state=active]:text-white relative"
               >
                 <div className="flex items-center gap-1">
-                  <div className="relative">
-                    <Play className="h-4 w-4" />
-                    <div className="absolute -top-1 -right-1 w-2 h-2 bg-red-500 rounded-full animate-ping"></div>
-                  </div>
+                  <Play className="h-4 w-4" />
                   <span className="hidden sm:inline">Live</span>
+                  <span className="sm:hidden">Live</span>
+                  <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse ml-1"></div>
                 </div>
               </TabsTrigger>
               <TabsTrigger 

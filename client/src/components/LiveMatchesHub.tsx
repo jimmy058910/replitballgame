@@ -21,7 +21,8 @@ import {
   ExternalLink,
   Calendar,
   Flame,
-  Gamepad2
+  Gamepad2,
+  Globe
 } from 'lucide-react';
 import { Link } from 'wouter';
 
@@ -146,455 +147,200 @@ export default function LiveMatchesHub({ team }: LiveMatchesHubProps) {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       
-      {/* LIVE MATCHES HEADER WITH STATS */}
-      <div className="bg-gradient-to-r from-red-800 via-red-700 to-red-800 rounded-xl p-4 border-2 border-red-500/50 shadow-xl">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="relative">
-              <Play className="h-8 w-8 text-red-300 animate-pulse" />
-              <div className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full animate-ping"></div>
-            </div>
-            <div>
-              <h2 className="text-2xl font-black text-white">Live Matches</h2>
-              <p className="text-red-200 text-sm">Real-time competition across all leagues</p>
-            </div>
-          </div>
-          <div className="text-right">
-            <div className="text-2xl font-black text-white">{liveMatches.length}</div>
-            <p className="text-red-200 text-xs font-semibold uppercase">Active</p>
-          </div>
-        </div>
-      </div>
-
+      {/* FLATTENED LIVE MATCHES - NO REDUNDANT HEADER */}
       {/* YOUR LIVE MATCHES - HIGHEST PRIORITY */}
       {categorizedMatches.userMatches.length > 0 && (
-        <Collapsible defaultOpen className="space-y-2">
-          <CollapsibleTrigger className="w-full">
-            <Card className="bg-gradient-to-r from-blue-800 via-blue-700 to-blue-800 border-2 border-blue-500/50 hover:border-blue-400 transition-all duration-300">
+        <div className="space-y-3">
+          <h3 className="text-lg font-bold text-white flex items-center gap-2">
+            <Users className="h-5 w-5 text-blue-400" />
+            Your Live Matches
+          </h3>
+          {categorizedMatches.userMatches.map((match, index) => (
+            <Card 
+              key={match.id} 
+              className="bg-gradient-to-r from-blue-800 via-blue-700 to-blue-800 border-2 border-blue-500/50 hover:border-blue-400 transition-all duration-300 cursor-pointer"
+              onClick={() => openMatchDetails(match)}
+            >
               <CardContent className="p-4">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
-                    <Users className="h-6 w-6 text-blue-400" />
-                    <div className="text-left">
-                      <h3 className="text-lg font-bold text-white">Your Live Matches</h3>
-                      <p className="text-blue-300 text-sm">{categorizedMatches.userMatches.length} active</p>
+                    {/* Match Type Badge */}
+                    <Badge className={`${
+                      match.type === 'LEAGUE' ? 'bg-yellow-600 text-yellow-100' :
+                      match.type === 'TOURNAMENT' ? 'bg-purple-600 text-purple-100' :
+                      'bg-green-600 text-green-100'
+                    } font-bold`}>
+                      {match.type === 'LEAGUE' ? '🏆 League' :
+                       match.type === 'TOURNAMENT' ? '🥇 Tournament' :
+                       '🔨 Exhibition'}
+                    </Badge>
+                    <div>
+                      <h4 className="text-white font-bold">
+                        {match.homeTeam.name} vs {match.awayTeam.name}
+                      </h4>
+                      <p className="text-blue-200 text-sm">
+                        {match.homeScore !== undefined && match.awayScore !== undefined ? 
+                          `${match.homeScore} - ${match.awayScore}` : 
+                          'Starting Soon'
+                        }
+                        {match.gameTime && match.maxGameTime && (
+                          <span className="ml-2">• {formatGameTime(match.gameTime)}</span>
+                        )}
+                      </p>
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
-                    <Badge className="bg-blue-600 text-blue-100 animate-pulse">PRIORITY</Badge>
-                    <ChevronDown className="h-5 w-5 text-blue-400" />
+                    <Badge className="bg-red-600 text-red-100 animate-pulse">
+                      <Activity className="h-3 w-3 mr-1" />
+                      LIVE
+                    </Badge>
+                    <ExternalLink className="h-4 w-4 text-blue-300" />
                   </div>
                 </div>
               </CardContent>
             </Card>
-          </CollapsibleTrigger>
-          <CollapsibleContent>
-            <div className="space-y-3">
-              {categorizedMatches.userMatches.map((match) => (
-                <Card key={match.id} className="bg-gradient-to-r from-blue-900/50 to-blue-800/50 border border-blue-600/50 hover:border-blue-500 transition-colors">
-                  <CardContent className="p-4">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-4">
-                        <div className="flex items-center gap-2">
-                          {getMatchTypeIcon(match.type)}
-                          <Badge className={`bg-gradient-to-r ${getMatchTypeColor(match.type)} text-white`}>
-                            {match.type}
-                          </Badge>
-                        </div>
-                        <div>
-                          <div className="font-bold text-white">
-                            {match.homeTeam.name} vs {match.awayTeam.name}
-                          </div>
-                          <div className="text-sm text-blue-300">
-                            {match.gameTime ? formatGameTime(match.gameTime) : 'Starting Soon'} • 
-                            {match.viewers ? ` ${match.viewers} viewers` : ' Live'}
-                          </div>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        {match.homeScore !== undefined && match.awayScore !== undefined && (
-                          <div className="text-xl font-bold text-white">
-                            {match.homeScore} - {match.awayScore}
-                          </div>
+          ))}
+        </div>
+      )}
+
+      {/* ALL OTHER LIVE MATCHES - FLATTENED SINGLE LIST */}
+      {[...categorizedMatches.highPriority, ...categorizedMatches.tournaments, ...categorizedMatches.leagues, ...categorizedMatches.exhibitions].length > 0 && (
+        <div className="space-y-3">
+          <h3 className="text-lg font-bold text-white flex items-center gap-2">
+            <Globe className="h-5 w-5 text-gray-400" />
+            Other Live Matches ({[...categorizedMatches.highPriority, ...categorizedMatches.tournaments, ...categorizedMatches.leagues, ...categorizedMatches.exhibitions].length})
+          </h3>
+          
+          {/* Single flattened list of all other matches */}
+          {[...categorizedMatches.highPriority, ...categorizedMatches.tournaments, ...categorizedMatches.leagues, ...categorizedMatches.exhibitions].map((match, index) => (
+            <Card 
+              key={match.id} 
+              className="bg-gray-800/90 border-gray-600 hover:border-gray-500 transition-all duration-200 cursor-pointer"
+              onClick={() => openMatchDetails(match)}
+            >
+              <CardContent className="p-3">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    {/* Match Type Badge */}
+                    <Badge className={`${
+                      match.type === 'LEAGUE' ? 'bg-yellow-600 text-yellow-100' :
+                      match.type === 'TOURNAMENT' ? 'bg-purple-600 text-purple-100' :
+                      'bg-green-600 text-green-100'
+                    } font-medium text-xs`}>
+                      {match.type === 'LEAGUE' ? '🏆 League' :
+                       match.type === 'TOURNAMENT' ? '🥇 Tournament' :
+                       '🔨 Exhibition'}
+                    </Badge>
+                    <div>
+                      <h4 className="text-white font-semibold text-sm">
+                        {match.homeTeam.name || 'Team A'} vs {match.awayTeam.name || 'Team B'}
+                      </h4>
+                      <p className="text-gray-300 text-xs">
+                        {match.homeScore !== undefined && match.awayScore !== undefined ? 
+                          `${match.homeScore} - ${match.awayScore}` : 
+                          'In Progress'
+                        }
+                        {match.gameTime && match.maxGameTime && (
+                          <span className="ml-2">• {formatGameTime(match.gameTime)}</span>
                         )}
-                        <Link href={`/match/${match.id}`}>
-                          <Button className="bg-red-600 hover:bg-red-700 animate-pulse" size="sm">
-                            <Play className="h-4 w-4 mr-1" />
-                            Watch Live
-                          </Button>
-                        </Link>
-                      </div>
+                        {match.division && (
+                          <span className="ml-2">• Div {match.division}</span>
+                        )}
+                      </p>
                     </div>
-                    {match.gameTime && match.maxGameTime && (
-                      <div className="mt-3">
-                        <Progress 
-                          value={(match.gameTime / match.maxGameTime) * 100} 
-                          className="h-1 bg-blue-900"
-                        />
-                      </div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    {match.viewers && (
+                      <span className="text-xs text-gray-400 flex items-center gap-1">
+                        <Eye className="h-3 w-3" />
+                        {match.viewers}
+                      </span>
                     )}
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          </CollapsibleContent>
-        </Collapsible>
-      )}
-
-      {/* HIGH PRIORITY MATCHES */}
-      {categorizedMatches.highPriority.length > 0 && (
-        <Collapsible className="space-y-2">
-          <CollapsibleTrigger className="w-full">
-            <Card className="bg-gradient-to-r from-red-800 via-red-700 to-red-800 border border-red-600/50 hover:border-red-500 transition-all duration-300">
-              <CardContent className="p-4">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <Flame className="h-6 w-6 text-red-400" />
-                    <div className="text-left">
-                      <h3 className="text-lg font-bold text-white">Featured Matches</h3>
-                      <p className="text-red-300 text-sm">High-stakes competitions</p>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Badge className="bg-red-600 text-red-100">{categorizedMatches.highPriority.length}</Badge>
-                    <ChevronDown className="h-5 w-5 text-red-400" />
+                    <Badge className="bg-red-600 text-red-100 animate-pulse text-xs">
+                      LIVE
+                    </Badge>
                   </div>
                 </div>
               </CardContent>
             </Card>
-          </CollapsibleTrigger>
-          <CollapsibleContent>
-            <div className="grid gap-3">
-              {categorizedMatches.highPriority.map((match) => (
-                <Card key={match.id} className="bg-gray-800/90 border border-red-600/30 hover:border-red-500/50 transition-colors">
-                  <CardContent className="p-3">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-3">
-                        <div className="flex items-center gap-2">
-                          {getMatchTypeIcon(match.type)}
-                          <Badge className={`bg-gradient-to-r ${getMatchTypeColor(match.type)} text-white text-xs`}>
-                            {match.type}
-                          </Badge>
-                        </div>
-                        <div>
-                          <div className="font-semibold text-white text-sm">
-                            {match.homeTeam.name} vs {match.awayTeam.name}
-                          </div>
-                          <div className="text-xs text-gray-400">
-                            {match.tournamentName || `Division ${match.division}`}
-                          </div>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        {match.homeScore !== undefined && match.awayScore !== undefined && (
-                          <div className="text-sm font-bold text-white">
-                            {match.homeScore}-{match.awayScore}
-                          </div>
-                        )}
-                        <Button 
-                          size="sm" 
-                          variant="outline" 
-                          className="border-gray-600 text-gray-300 hover:bg-gray-700 text-xs"
-                          onClick={() => openMatchDetails(match)}
-                        >
-                          <Eye className="h-3 w-3 mr-1" />
-                          View
-                        </Button>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          </CollapsibleContent>
-        </Collapsible>
+          ))}
+        </div>
       )}
 
-      {/* TOURNAMENT MATCHES */}
-      {categorizedMatches.tournaments.length > 0 && (
-        <Collapsible className="space-y-2">
-          <CollapsibleTrigger className="w-full">
-            <Card className="bg-gradient-to-r from-purple-800 to-purple-700 border border-purple-600/50 hover:border-purple-500 transition-all duration-300">
-              <CardContent className="p-4">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <Medal className="h-6 w-6 text-purple-400" />
-                    <div className="text-left">
-                      <h3 className="text-lg font-bold text-white">Tournament Matches</h3>
-                      <p className="text-purple-300 text-sm">Championship brackets in progress</p>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Badge className="bg-purple-600 text-purple-100">{categorizedMatches.tournaments.length}</Badge>
-                    <ChevronDown className="h-5 w-5 text-purple-400" />
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </CollapsibleTrigger>
-          <CollapsibleContent>
-            <div className="grid gap-2">
-              {categorizedMatches.tournaments.slice(0, 5).map((match) => (
-                <Card key={match.id} className="bg-gray-800/90 border border-purple-600/30 hover:border-purple-500/50 transition-colors">
-                  <CardContent className="p-3">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-3">
-                        <Medal className="h-4 w-4 text-purple-400" />
-                        <div>
-                          <div className="font-semibold text-white text-sm">
-                            {match.homeTeam.name} vs {match.awayTeam.name}
-                          </div>
-                          <div className="text-xs text-gray-400">
-                            {match.tournamentName || 'Tournament'}
-                          </div>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        {match.homeScore !== undefined && match.awayScore !== undefined && (
-                          <div className="text-sm font-bold text-white">
-                            {match.homeScore}-{match.awayScore}
-                          </div>
-                        )}
-                        <Button 
-                          size="sm" 
-                          variant="outline" 
-                          className="border-gray-600 text-gray-300 hover:bg-gray-700 text-xs"
-                          onClick={() => openMatchDetails(match)}
-                        >
-                          <Eye className="h-3 w-3 mr-1" />
-                          View
-                        </Button>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-              {categorizedMatches.tournaments.length > 5 && (
-                <div className="text-center pt-2">
-                  <Button variant="outline" size="sm" className="border-purple-600 text-purple-300 hover:bg-purple-900/50">
-                    View All {categorizedMatches.tournaments.length} Tournament Matches
-                  </Button>
-                </div>
-              )}
-            </div>
-          </CollapsibleContent>
-        </Collapsible>
-      )}
-
-      {/* LEAGUE MATCHES */}
-      {categorizedMatches.leagues.length > 0 && (
-        <Collapsible className="space-y-2">
-          <CollapsibleTrigger className="w-full">
-            <Card className="bg-gradient-to-r from-yellow-800 to-orange-700 border border-yellow-600/50 hover:border-yellow-500 transition-all duration-300">
-              <CardContent className="p-4">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <Trophy className="h-6 w-6 text-yellow-400" />
-                    <div className="text-left">
-                      <h3 className="text-lg font-bold text-white">League Matches</h3>
-                      <p className="text-yellow-300 text-sm">Regular season games</p>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Badge className="bg-yellow-600 text-yellow-100">{categorizedMatches.leagues.length}</Badge>
-                    <ChevronDown className="h-5 w-5 text-yellow-400" />
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </CollapsibleTrigger>
-          <CollapsibleContent>
-            <div className="grid gap-2">
-              {categorizedMatches.leagues.slice(0, 8).map((match) => (
-                <Card key={match.id} className="bg-gray-800/90 border border-yellow-600/30 hover:border-yellow-500/50 transition-colors">
-                  <CardContent className="p-3">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-3">
-                        <Trophy className="h-4 w-4 text-yellow-400" />
-                        <div>
-                          <div className="font-semibold text-white text-sm">
-                            {match.homeTeam.name} vs {match.awayTeam.name}
-                          </div>
-                          <div className="text-xs text-gray-400">
-                            Division {match.division}
-                          </div>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        {match.homeScore !== undefined && match.awayScore !== undefined && (
-                          <div className="text-sm font-bold text-white">
-                            {match.homeScore}-{match.awayScore}
-                          </div>
-                        )}
-                        <Button 
-                          size="sm" 
-                          variant="outline" 
-                          className="border-gray-600 text-gray-300 hover:bg-gray-700 text-xs"
-                          onClick={() => openMatchDetails(match)}
-                        >
-                          <Eye className="h-3 w-3 mr-1" />
-                          View
-                        </Button>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-              {categorizedMatches.leagues.length > 8 && (
-                <div className="text-center pt-2">
-                  <Button variant="outline" size="sm" className="border-yellow-600 text-yellow-300 hover:bg-yellow-900/50">
-                    View All {categorizedMatches.leagues.length} League Matches
-                  </Button>
-                </div>
-              )}
-            </div>
-          </CollapsibleContent>
-        </Collapsible>
-      )}
-
-      {/* EXHIBITION MATCHES */}
-      {categorizedMatches.exhibitions.length > 0 && (
-        <Collapsible className="space-y-2">
-          <CollapsibleTrigger className="w-full">
-            <Card className="bg-gradient-to-r from-green-800 to-blue-700 border border-green-600/50 hover:border-green-500 transition-all duration-300">
-              <CardContent className="p-4">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <Zap className="h-6 w-6 text-green-400" />
-                    <div className="text-left">
-                      <h3 className="text-lg font-bold text-white">Exhibition Matches</h3>
-                      <p className="text-green-300 text-sm">Practice and friendly games</p>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Badge className="bg-green-600 text-green-100">{categorizedMatches.exhibitions.length}</Badge>
-                    <ChevronDown className="h-5 w-5 text-green-400" />
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </CollapsibleTrigger>
-          <CollapsibleContent>
-            <div className="grid gap-2">
-              {categorizedMatches.exhibitions.slice(0, 6).map((match) => (
-                <Card key={match.id} className="bg-gray-800/90 border border-green-600/30 hover:border-green-500/50 transition-colors">
-                  <CardContent className="p-3">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-3">
-                        <Zap className="h-4 w-4 text-green-400" />
-                        <div>
-                          <div className="font-semibold text-white text-sm">
-                            {match.homeTeam.name} vs {match.awayTeam.name}
-                          </div>
-                          <div className="text-xs text-gray-400">
-                            Exhibition • Division {match.division}
-                          </div>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        {match.homeScore !== undefined && match.awayScore !== undefined && (
-                          <div className="text-sm font-bold text-white">
-                            {match.homeScore}-{match.awayScore}
-                          </div>
-                        )}
-                        <Button 
-                          size="sm" 
-                          variant="outline" 
-                          className="border-gray-600 text-gray-300 hover:bg-gray-700 text-xs"
-                          onClick={() => openMatchDetails(match)}
-                        >
-                          <Eye className="h-3 w-3 mr-1" />
-                          View
-                        </Button>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-              {categorizedMatches.exhibitions.length > 6 && (
-                <div className="text-center pt-2">
-                  <Button variant="outline" size="sm" className="border-green-600 text-green-300 hover:bg-green-900/50">
-                    View All {categorizedMatches.exhibitions.length} Exhibition Matches
-                  </Button>
-                </div>
-              )}
-            </div>
-          </CollapsibleContent>
-        </Collapsible>
-      )}
-
-      {/* LIVE MATCH DETAILS DRAWER */}
+      {/* MATCH DETAILS DRAWER */}
       <Drawer open={isDrawerOpen} onOpenChange={setIsDrawerOpen}>
-        <DrawerContent className="bg-gray-900 border-gray-700">
-          <DrawerHeader>
+        <DrawerContent className="bg-gray-900 border-gray-700 max-h-[80vh]">
+          <DrawerHeader className="border-b border-gray-700">
             <DrawerTitle className="text-white">
-              {selectedMatch && (
-                <div className="flex items-center gap-3">
-                  {getMatchTypeIcon(selectedMatch.type)}
-                  <span>{selectedMatch.homeTeam.name} vs {selectedMatch.awayTeam.name}</span>
-                </div>
-              )}
+              {selectedMatch && `${selectedMatch.homeTeam.name} vs ${selectedMatch.awayTeam.name}`}
             </DrawerTitle>
             <DrawerDescription className="text-gray-400">
               {selectedMatch && (
-                <div className="flex items-center gap-4">
-                  <Badge className={`bg-gradient-to-r ${getMatchTypeColor(selectedMatch.type)} text-white`}>
-                    {selectedMatch.type}
+                <div className="flex items-center gap-2">
+                  <Badge className={`${
+                    selectedMatch.type === 'LEAGUE' ? 'bg-yellow-600 text-yellow-100' :
+                    selectedMatch.type === 'TOURNAMENT' ? 'bg-purple-600 text-purple-100' :
+                    'bg-green-600 text-green-100'
+                  }`}>
+                    {selectedMatch.type === 'LEAGUE' ? '🏆 League' :
+                     selectedMatch.type === 'TOURNAMENT' ? '🥇 Tournament' :
+                     '🔨 Exhibition'}
                   </Badge>
-                  {selectedMatch.tournamentName && (
-                    <span>{selectedMatch.tournamentName}</span>
-                  )}
-                  {selectedMatch.division && (
-                    <span>Division {selectedMatch.division}</span>
-                  )}
+                  <span>Live Match Details</span>
                 </div>
               )}
             </DrawerDescription>
           </DrawerHeader>
-          {selectedMatch && (
-            <div className="p-6 space-y-4">
-              <div className="grid grid-cols-3 gap-4 text-center">
-                <div>
-                  <div className="text-2xl font-bold text-white">{selectedMatch.homeTeam.name}</div>
-                  <div className="text-4xl font-black text-white mt-2">
-                    {selectedMatch.homeScore ?? '-'}
+          <div className="p-4">
+            {selectedMatch && (
+              <div className="space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="text-center">
+                    <h3 className="text-lg font-bold text-white">{selectedMatch.homeTeam.name}</h3>
+                    <p className="text-gray-400">Home</p>
+                  </div>
+                  <div className="text-center">
+                    <h3 className="text-lg font-bold text-white">{selectedMatch.awayTeam.name}</h3>
+                    <p className="text-gray-400">Away</p>
                   </div>
                 </div>
-                <div className="flex flex-col items-center justify-center">
-                  <div className="text-sm text-gray-400 mb-2">vs</div>
-                  <div className="text-lg font-bold text-white">
-                    {selectedMatch.gameTime ? formatGameTime(selectedMatch.gameTime) : 'Starting Soon'}
+                
+                {selectedMatch.homeScore !== undefined && selectedMatch.awayScore !== undefined && (
+                  <div className="text-center">
+                    <div className="text-3xl font-bold text-white">
+                      {selectedMatch.homeScore} - {selectedMatch.awayScore}
+                    </div>
                   </div>
-                  {selectedMatch.gameTime && selectedMatch.maxGameTime && (
+                )}
+                
+                {selectedMatch.gameTime && selectedMatch.maxGameTime && (
+                  <div className="space-y-2">
+                    <div className="flex justify-between text-sm text-gray-400">
+                      <span>Game Time</span>
+                      <span>{formatGameTime(selectedMatch.gameTime)}</span>
+                    </div>
                     <Progress 
                       value={(selectedMatch.gameTime / selectedMatch.maxGameTime) * 100} 
-                      className="h-2 w-full mt-2"
+                      className="h-2 bg-gray-700"
                     />
-                  )}
-                </div>
-                <div>
-                  <div className="text-2xl font-bold text-white">{selectedMatch.awayTeam.name}</div>
-                  <div className="text-4xl font-black text-white mt-2">
-                    {selectedMatch.awayScore ?? '-'}
+                  </div>
+                )}
+                
+                <div className="grid grid-cols-2 gap-4 text-sm">
+                  <div>
+                    <p className="text-gray-400">Division</p>
+                    <p className="text-white">{selectedMatch.division || 'N/A'}</p>
+                  </div>
+                  <div>
+                    <p className="text-gray-400">Viewers</p>
+                    <p className="text-white">{selectedMatch.viewers || 'N/A'}</p>
                   </div>
                 </div>
               </div>
-              <div className="flex gap-4 justify-center">
-                <Link href={`/match/${selectedMatch.id}`}>
-                  <Button className="bg-red-600 hover:bg-red-700">
-                    <Play className="h-4 w-4 mr-2" />
-                    Watch Live
-                  </Button>
-                </Link>
-                <Button variant="outline" className="border-gray-600 text-gray-300 hover:bg-gray-700">
-                  <Target className="h-4 w-4 mr-2" />
-                  Match Stats
-                </Button>
-              </div>
-            </div>
-          )}
+            )}
+          </div>
         </DrawerContent>
       </Drawer>
 
