@@ -157,19 +157,19 @@ server.listen(PORT, '0.0.0.0', async () => {
   console.log(`✅ Server listening on port ${PORT}`);
   console.log(`🏥 Health check: http://0.0.0.0:${PORT}/health`);
   
-  // CRITICAL: Setup authentication FIRST, then static serving
+  // CRITICAL: Always set up static serving, even if auth fails
   const authSetup = await setupAuthenticationSync();
-  if (!authSetup) {
-    console.log('❌ Authentication setup failed - server running with limited functionality');
-    return;
-  }
-  
   const staticSetup = await initializeStaticServing();
+  
   if (authSetup && staticSetup) {
     console.log('🚀 Production server fully operational');
     console.log('🔑 Authentication routes: /api/login, /api/logout, /auth/google');
+  } else if (!authSetup && staticSetup) {
+    console.log('⚠️ Server running with limited functionality - static files served but authentication disabled');
+  } else if (authSetup && !staticSetup) {
+    console.log('⚠️ Server running with limited functionality - authentication working but static files failed');
   } else {
-    console.log('⚠️ Server running with limited functionality');
+    console.log('❌ Server running in minimal mode - both authentication and static serving failed');
   }
 });
 
