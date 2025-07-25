@@ -122,7 +122,7 @@ export default function MobileRosterHQ() {
   });
 
   const { data: stadium } = useQuery({
-    queryKey: ['/api/teams/stadium'],
+    queryKey: [`/api/teams/${team?.id}/stadium`],
     enabled: !!team?.id
   });
 
