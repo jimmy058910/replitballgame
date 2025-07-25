@@ -42,6 +42,7 @@ import {
 } from 'lucide-react';
 import UnifiedTeamHeader from './UnifiedTeamHeader';
 import ScheduleView from './ScheduleView';
+import LiveMatchesHub from './LiveMatchesHub';
 
 // Type definitions
 type Team = {
@@ -114,7 +115,7 @@ const formatMatchTime = (gameDate: string) => {
 
 export default function ComprehensiveCompetitionCenter() {
   const { isAuthenticated } = useAuth();
-  const [activeTab, setActiveTab] = useState<'league' | 'tournaments' | 'exhibitions' | 'schedule'>('league');
+  const [activeTab, setActiveTab] = useState<'live' | 'league' | 'tournaments' | 'exhibitions' | 'schedule'>('live');
   const [showOpponentSelect, setShowOpponentSelect] = useState(false);
   const queryClient = useQueryClient();
   const { toast } = useToast();
@@ -122,9 +123,9 @@ export default function ComprehensiveCompetitionCenter() {
   // URL parameter handling for direct tab navigation
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
-    const tab = urlParams.get('tab') as 'league' | 'tournaments' | 'exhibitions' | 'schedule';
+    const tab = urlParams.get('tab') as 'live' | 'league' | 'tournaments' | 'exhibitions' | 'schedule';
     
-    if (tab && ['league', 'tournaments', 'exhibitions', 'schedule'].includes(tab)) {
+    if (tab && ['live', 'league', 'tournaments', 'exhibitions', 'schedule'].includes(tab)) {
       setActiveTab(tab);
     }
   }, []);
@@ -566,37 +567,54 @@ export default function ComprehensiveCompetitionCenter() {
         <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as any)}>
           
           <div className="mb-4">
-            <TabsList className="grid w-full grid-cols-4 bg-gray-800 p-1 rounded-lg border border-gray-600">
+            <TabsList className="grid w-full grid-cols-5 bg-gray-800 p-1 rounded-lg border border-gray-600">
+              <TabsTrigger 
+                value="live" 
+                className="text-xs font-semibold data-[state=active]:bg-red-600 data-[state=active]:text-white relative"
+              >
+                <div className="flex items-center gap-1">
+                  <div className="relative">
+                    <Play className="h-4 w-4" />
+                    <div className="absolute -top-1 -right-1 w-2 h-2 bg-red-500 rounded-full animate-ping"></div>
+                  </div>
+                  <span className="hidden sm:inline">Live</span>
+                </div>
+              </TabsTrigger>
               <TabsTrigger 
                 value="league" 
                 className="text-xs font-semibold data-[state=active]:bg-purple-600 data-[state=active]:text-white"
               >
                 <Trophy className="h-4 w-4 mr-1" />
-                League
+                <span className="hidden sm:inline">League</span>
               </TabsTrigger>
               <TabsTrigger 
                 value="tournaments" 
                 className="text-xs font-semibold data-[state=active]:bg-purple-600 data-[state=active]:text-white"
               >
                 <Award className="h-4 w-4 mr-1" />
-                Tournaments
+                <span className="hidden sm:inline">Tournaments</span>
               </TabsTrigger>
               <TabsTrigger 
                 value="exhibitions" 
                 className="text-xs font-semibold data-[state=active]:bg-purple-600 data-[state=active]:text-white"
               >
                 <Zap className="h-4 w-4 mr-1" />
-                Exhibitions
+                <span className="hidden sm:inline">Exhibitions</span>
               </TabsTrigger>
               <TabsTrigger 
                 value="schedule" 
                 className="text-xs font-semibold data-[state=active]:bg-purple-600 data-[state=active]:text-white"
               >
                 <Calendar className="h-4 w-4 mr-1" />
-                Schedule
+                <span className="hidden sm:inline">Schedule</span>
               </TabsTrigger>
             </TabsList>
           </div>
+
+          {/* LIVE MATCHES TAB - COMPREHENSIVE LIVE MATCHES HUB */}
+          <TabsContent value="live" className="space-y-4">
+            <LiveMatchesHub team={team} />
+          </TabsContent>
 
           {/* LEAGUE TAB - UNIFIED STANDINGS LAYOUT */}
           <TabsContent value="league" className="space-y-4">
