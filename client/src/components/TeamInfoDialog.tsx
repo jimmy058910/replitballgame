@@ -4,8 +4,9 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-// import { Progress } from "@/components/ui/progress"; // Not used
-import { Users, Trophy, /* TrendingUp, Star, Shield */ } from "lucide-react"; // TrendingUp, Star, Shield not used
+import { Progress } from "@/components/ui/progress";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { Users, Trophy, TrendingUp, Star, Shield, ChevronDown, DollarSign, Home, Building } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
 import { Team, Player } from "shared/schema";
 
@@ -73,27 +74,98 @@ export default function TeamInfoDialog({ teamId, isOpen, onClose }: TeamInfoDial
     enabled: isOpen,
   });
 
+  // Fetch team finances for salary calculations
+  const { data: teamFinances } = useQuery({
+    queryKey: [`/api/teams/${teamId}/finances`],
+    queryFn: () => apiRequest(`/api/teams/${teamId}/finances`),
+    enabled: !!teamId && isOpen,
+  });
+
+  // Fetch stadium data for facilities overview
+  const { data: stadium } = useQuery({
+    queryKey: [`/api/teams/${teamId}/stadium`],
+    queryFn: () => apiRequest(`/api/teams/${teamId}/stadium`),
+    enabled: !!teamId && isOpen,
+  });
+
+  // Fetch staff data for salary calculations
+  const { data: staff } = useQuery({
+    queryKey: [`/api/teams/${teamId}/staff`],
+    queryFn: () => apiRequest(`/api/teams/${teamId}/staff`),
+    enabled: !!teamId && isOpen,
+  });
+
   // Check if this is an opponent team (not user's team)
   const isOpponentTeam = myTeam?.id !== teamId;
   
   // Basic scouting level - for now we'll use a fixed level, later can be enhanced with staff
   const scoutingLevel: ScoutingLevel = 1; // 1 = basic, 2 = advanced, 3 = elite
 
+  // Calculate team financials (staff + player salaries)
+  const calculateTeamSalaries = () => {
+    let totalPlayerSalaries = 0;
+    let totalStaffSalaries = 0;
+
+    // Sum player salaries - use Contract data if available or fallback to teamFinances
+    if (players) {
+      players.forEach(player => {
+        // Contract data might be in player.contracts array or separate contracts array
+        const salary = player.contract?.salary || player.contracts?.[0]?.salary || 15000; // Default salary fallback
+        totalPlayerSalaries += salary;
+      });
+    }
+
+    // Sum staff salaries - use Contract data if available
+    if (staff) {
+      staff.forEach(staffMember => {
+        // Staff contracts might be structured differently
+        const salary = staffMember.contract?.salary || staffMember.contracts?.[0]?.salary || 8000; // Default staff salary fallback  
+        totalStaffSalaries += salary;
+      });
+    }
+
+    // Use teamFinances data if available for more accurate calculations
+    if (teamFinances) {
+      return {
+        totalPlayerSalaries: teamFinances.playerSalaries || totalPlayerSalaries,
+        totalStaffSalaries: teamFinances.staffSalaries || totalStaffSalaries,
+        totalSalaries: teamFinances.playerSalaries + teamFinances.staffSalaries || totalPlayerSalaries + totalStaffSalaries
+      };
+    }
+
+    return {
+      totalPlayerSalaries,
+      totalStaffSalaries,
+      totalSalaries: totalPlayerSalaries + totalStaffSalaries
+    };
+  };
+
+  // Calculate team camaraderie from player scores
+  const calculateTeamCamaraderie = () => {
+    if (!players || players.length === 0) return 50; // Default fallback
+    
+    const totalCamaraderie = players.reduce((sum, player) => {
+      return sum + (player.camaraderieScore || 50);
+    }, 0);
+    
+    return Math.round(totalCamaraderie / players.length);
+  };
+
   // Scouting functions to show stat ranges instead of exact values for opponents
   const getStatRange = (actualStat: number | null | undefined, currentScoutingLevel: ScoutingLevel): string => {
     const statValue = actualStat ?? 0;
-    if (!isOpponentTeam) return statValue.toString(); // Show exact for own team
+    if (!isOpponentTeam) return statValue.toFixed(1); // Show exact for own team
     
     let variance = 0;
     switch (currentScoutingLevel) {
-      case 1: variance = 6; break;  // ±6 range (e.g., 25 shows as "19-31")
-      case 2: variance = 3; break;  // ±3 range (e.g., 25 shows as "22-28")
-      case 3: variance = 1; break;  // ±1 range (e.g., 25 shows as "24-26")
-      default: variance = 6;
+      case 1: variance = 5; break;  // ±5 range for Power (e.g., 30.8 shows as "26-31")
+      case 2: variance = 3; break;  // ±3 range (e.g., 30.8 shows as "28-34")
+      case 3: variance = 1; break;  // ±1 range (e.g., 30.8 shows as "30-32")
+      default: variance = 5;
     }
     
-    const min = Math.max(1, statValue - variance);
-    const max = Math.min(40, statValue + variance);
+    const min = Math.max(1, Math.floor(statValue - variance));
+    const max = Math.min(40, Math.ceil(statValue + variance));
     return `${min}-${max}`;
   };
 
@@ -116,7 +188,7 @@ export default function TeamInfoDialog({ teamId, isOpen, onClose }: TeamInfoDial
   };
 
   const getPositionLabel = (role: string) => {
-    switch (role) {
+    switch (role?.toUpperCase()) {
       case "PASSER":
         return "Passer";
       case "RUNNER":
@@ -126,6 +198,19 @@ export default function TeamInfoDialog({ teamId, isOpen, onClose }: TeamInfoDial
       default:
         return "Player";
     }
+  };
+
+  const getRaceLabel = (race: string) => {
+    // Proper capitalization: "Lumina" not "LUMINA"
+    if (!race) return "Unknown";
+    return race.charAt(0).toUpperCase() + race.slice(1).toLowerCase();
+  };
+
+  const getScoutedPlayerName = (player: any) => {
+    // For now, show full names - later can be enhanced with scouting levels
+    // With higher scouting levels, could show partial names or pseudonyms
+    if (!player) return "Unknown Player";
+    return `${player.firstName || "Unknown"} ${player.lastName || "Player"}`;
   };
 
   const getRaceColor = (race: string) => {
@@ -146,10 +231,10 @@ export default function TeamInfoDialog({ teamId, isOpen, onClose }: TeamInfoDial
   };
 
   const calculatePlayerPower = (player: any) => {
-    // Calculate CAR (Core Athleticism Rating) as per game mechanics - average of all 8 attributes
-    const totalStats = player.speed + player.power + player.throwing + player.catching + 
-                      player.kicking + (player.staminaAttribute || 0) + (player.leadership || 0) + (player.agility || 0);
-    return Math.round(totalStats / 8);
+    // Calculate CAR (Core Athleticism Rating) as per game mechanics - average of 6 core attributes
+    const totalStats = (player.speed || 0) + (player.power || 0) + (player.throwing || 0) + 
+                      (player.catching || 0) + (player.kicking || 0) + (player.agility || 0);
+    return totalStats / 6; // Use exact calculation for precision
   };
 
   const getStatColor = (stat: number | null | undefined) => {
@@ -160,6 +245,16 @@ export default function TeamInfoDialog({ teamId, isOpen, onClose }: TeamInfoDial
   };
 
   const isLoading = teamInfoLoading || playersLoading || myTeamLoading;
+  
+  // Get top 3 players by power for Key Players section
+  const topPlayers = players 
+    ? [...players]
+        .sort((a, b) => calculatePlayerPower(b) - calculatePlayerPower(a))
+        .slice(0, 3)
+    : [];
+
+  const salaries = calculateTeamSalaries();
+  const teamCamaraderie = calculateTeamCamaraderie();
 
   if (!teamId) return null;
   // Handle errors from queries
@@ -193,126 +288,170 @@ export default function TeamInfoDialog({ teamId, isOpen, onClose }: TeamInfoDial
               <div key={i} className="h-20 bg-gray-700 rounded-lg animate-pulse"></div>
             ))}
           </div>
-        ) : teamInfo ? (
-          <div className="space-y-6">
-            {/* Team Overview */}
-            <Card className="bg-gray-700 border-gray-600">
-              <CardHeader>
-                <CardTitle className="text-white flex items-center gap-2">
-                  <Trophy className="h-5 w-5" />
-                  {teamInfo.name ?? 'Unknown Team'}
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                  <div className="text-center">
-                    <div className="text-2xl font-bold text-green-400">{teamInfo.wins ?? 0}</div>
-                    <div className="text-sm text-gray-400">Wins</div>
-                  </div>
-                  <div className="text-center">
-                    <div className="text-2xl font-bold text-red-400">{teamInfo.losses ?? 0}</div>
-                    <div className="text-sm text-gray-400">Losses</div>
-                  </div>
-                  <div className="text-center">
-                    <div className="text-2xl font-bold text-yellow-400">{teamInfo.draws || 0}</div>
-                    <div className="text-sm text-gray-400">Draws</div>
-                  </div>
-                  <div className="text-center">
-                    <div className="text-2xl font-bold text-blue-400">{teamInfo.points ?? 0}</div>
-                    <div className="text-sm text-gray-400">Points</div>
-                  </div>
-                </div>
-                
-                <div className="flex items-center justify-center gap-4 pt-4 border-t border-gray-600">
-                  <Badge variant="outline" className="text-purple-400 border-purple-400">
-                    {getDivisionNameWithSubdivision(teamInfo.division, teamInfo.subdivision)}
-                  </Badge>
-                  <div className="text-sm text-gray-400">
-                    Team Power: <span className="text-white font-bold">{teamInfo.teamPower ?? "N/A"}</span>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
 
-            {/* Players Roster */}
-            {players && players.length > 0 && (
-              <Card className="bg-gray-700 border-gray-600">
-                <CardHeader>
-                  <CardTitle className="text-white flex items-center gap-2">
-                    <Users className="h-5 w-5" />
-                    Team Roster ({players.length} players)
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {players.map((player: Player) => { // Typed player
+        ) : teamInfo ? (
+          <div className="space-y-4">
+            {/* Team Header with Key Stats */}
+            <div className="text-center space-y-2">
+              <h2 className="text-2xl font-bold text-white flex items-center justify-center gap-2">
+                <Users className="h-6 w-6 text-purple-400" />
+                {teamInfo.name}
+              </h2>
+              <div className="text-sm text-gray-400">
+                {getDivisionNameWithSubdivision(teamInfo.division, teamInfo.subdivision)} | Record {teamInfo.wins}-{teamInfo.losses}-{teamInfo.draws} | Pts {teamInfo.points}
+              </div>
+            </div>
+
+            {/* Top Stats Grid */}
+            <div className="grid grid-cols-4 gap-4 mb-6">
+              <div className="text-center bg-gray-700/50 rounded-lg p-3">
+                <div className="text-xl font-bold text-blue-400">{teamInfo.teamPower || "N/A"}</div>
+                <div className="text-xs text-gray-400 uppercase">Team Power</div>
+              </div>
+              <div className="text-center bg-gray-700/50 rounded-lg p-3">
+                <div className="text-xl font-bold text-yellow-400">#{teamInfo.globalRank || "33"}</div>
+                <div className="text-xs text-gray-400 uppercase">Global Rank</div>
+              </div>
+              <div className="text-center bg-gray-700/50 rounded-lg p-3">
+                <div className="text-xl font-bold text-green-400">{teamInfo.fanLoyalty || "50"}</div>
+                <div className="text-xs text-gray-400 uppercase">Fan Loyalty</div>
+              </div>
+              <div className="text-center bg-gray-700/50 rounded-lg p-3">
+                <div className="text-xl font-bold text-purple-400">60%</div>
+                <div className="text-xs text-gray-400 uppercase">Attendance</div>
+              </div>
+            </div>
+
+            {/* Key Players Section */}
+            <Collapsible defaultOpen className="space-y-2">
+              <CollapsibleTrigger className="flex items-center justify-between w-full p-3 bg-gray-700/50 rounded-lg hover:bg-gray-600/50 transition-colors">
+                <div className="flex items-center gap-2">
+                  <Star className="h-4 w-4 text-yellow-400" />
+                  <span className="font-medium text-white">Key Players</span>
+                </div>
+                <ChevronDown className="h-4 w-4 text-gray-400" />
+              </CollapsibleTrigger>
+              <CollapsibleContent>
+                <Card className="bg-gray-700/30 border-gray-600">
+                  <CardContent className="p-4 space-y-3">
+                    {topPlayers.map((player, index) => {
                       const playerPower = calculatePlayerPower(player);
                       return (
-                        <div key={player.id} className="bg-gray-600 rounded-lg p-4">
-                          <div className="flex items-center justify-between mb-2">
-                            <div>
-                              <div className="font-semibold text-white">
-                                {getScoutedPlayerName(player, scoutingLevel)}
-                              </div>
-                              <div className="text-sm text-gray-400">
-                                Age {player.age ?? 'N/A'} • <span className={getRaceColor(player.race)}>{(player.race?.charAt(0).toUpperCase() ?? '') + (player.race?.slice(1) ?? 'Unknown')}</span>
-                              </div>
+                        <div key={player.id} className="flex items-center justify-between bg-gray-600/50 rounded-lg p-3">
+                          <div className="flex items-center gap-3">
+                            <div className="w-6 h-6 bg-orange-500 rounded-full flex items-center justify-center text-sm font-bold">
+                              {index + 1}
                             </div>
-                            <div className="flex items-center gap-2">
-                              <Badge className={getPositionColor(player.role)}>
-                                {getPositionLabel(player.role)}
-                              </Badge>
-                              <div className="text-right">
-                                <div className="text-sm font-bold text-white">
-                                  {isOpponentTeam ? getStatRange(playerPower, scoutingLevel) : playerPower.toString()}
-                                </div>
-                                <div className="text-xs text-gray-400">Power</div>
+                            <div>
+                              <div className="font-semibold text-white">{getScoutedPlayerName(player)}</div>
+                              <div className="text-sm text-gray-400">
+                                {getPositionLabel(player.role)} • Age {player.age} • {getRaceLabel(player.race)}
                               </div>
                             </div>
                           </div>
-                          
-                          {/* Player Stats */}
-                          <div className="grid grid-cols-5 gap-2 text-xs">
-                            <div className="text-center">
-                              <div className={`font-bold ${getStatColor(player.speed)}`}>
-                                {getStatRange(player.speed, scoutingLevel)}
-                              </div>
-                              <div className="text-gray-400">SPD</div>
+                          <div className="text-right">
+                            <div className="text-lg font-bold text-white">
+                              {isOpponentTeam ? getStatRange(playerPower, scoutingLevel) : playerPower.toFixed(1)}
                             </div>
-                            <div className="text-center">
-                              <div className={`font-bold ${getStatColor(player.power)}`}>
-                                {getStatRange(player.power, scoutingLevel)}
-                              </div>
-                              <div className="text-gray-400">POW</div>
-                            </div>
-                            <div className="text-center">
-                              <div className={`font-bold ${getStatColor(player.throwing)}`}>
-                                {getStatRange(player.throwing, scoutingLevel)}
-                              </div>
-                              <div className="text-gray-400">THR</div>
-                            </div>
-                            <div className="text-center">
-                              <div className={`font-bold ${getStatColor(player.catching)}`}>
-                                {getStatRange(player.catching, scoutingLevel)}
-                              </div>
-                              <div className="text-gray-400">CAT</div>
-                            </div>
-                            <div className="text-center">
-                              <div className={`font-bold ${getStatColor(player.kicking)}`}>
-                                {getStatRange(player.kicking, scoutingLevel)}
-                              </div>
-                              <div className="text-gray-400">KIC</div>
-                            </div>
+                            <div className="text-xs text-gray-400">Power</div>
                           </div>
                         </div>
                       );
                     })}
-                  </div>
-                </CardContent>
-              </Card>
-            )}
+                  </CardContent>
+                </Card>
+              </CollapsibleContent>
+            </Collapsible>
 
-            <div className="flex justify-center">
+            {/* Team Financials Section */}
+            <Collapsible className="space-y-2">
+              <CollapsibleTrigger className="flex items-center justify-between w-full p-3 bg-gray-700/50 rounded-lg hover:bg-gray-600/50 transition-colors">
+                <div className="flex items-center gap-2">
+                  <DollarSign className="h-4 w-4 text-green-400" />
+                  <span className="font-medium text-white">Team Financials</span>
+                </div>
+                <ChevronDown className="h-4 w-4 text-gray-400" />
+              </CollapsibleTrigger>
+              <CollapsibleContent>
+                <Card className="bg-gray-700/30 border-gray-600">
+                  <CardContent className="p-4 space-y-3">
+                    <div className="flex justify-between">
+                      <span className="text-gray-400">Total Salary Expenditure:</span>
+                      <span className="text-white font-semibold">₡{salaries.totalSalaries.toLocaleString()}/season</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-400">Average Salary/Player:</span>
+                      <span className="text-white">₡{players?.length ? Math.round(salaries.totalPlayerSalaries / players.length).toLocaleString() : 0}</span>
+                    </div>
+                  </CardContent>
+                </Card>
+              </CollapsibleContent>
+            </Collapsible>
+
+            {/* Stadium Overview Section */}
+            <Collapsible className="space-y-2">
+              <CollapsibleTrigger className="flex items-center justify-between w-full p-3 bg-gray-700/50 rounded-lg hover:bg-gray-600/50 transition-colors">
+                <div className="flex items-center gap-2">
+                  <Building className="h-4 w-4 text-purple-400" />
+                  <span className="font-medium text-white">Stadium Overview</span>
+                </div>
+                <ChevronDown className="h-4 w-4 text-gray-400" />
+              </CollapsibleTrigger>
+              <CollapsibleContent>
+                <Card className="bg-gray-700/30 border-gray-600">
+                  <CardContent className="p-4 space-y-4">
+                    {/* Capacity and Fan Info */}
+                    <div>
+                      <div className="flex justify-between items-center mb-2">
+                        <span className="text-gray-400">Capacity:</span>
+                        <span className="text-white font-semibold">{stadium?.capacity?.toLocaleString() || "5,000"}</span>
+                      </div>
+                      <Progress value={((stadium?.capacity || 5000) / 40000) * 100} className="h-2 mb-2" />
+                      <div className="grid grid-cols-2 gap-4 text-sm">
+                        <div>
+                          <span className="text-gray-400">Fan Loyalty:</span>
+                          <span className="text-white ml-2">{teamInfo.fanLoyalty || 50}/100</span>
+                        </div>
+                        <div>
+                          <span className="text-gray-400">Attendance Rate:</span>
+                          <span className="text-white ml-2">60%</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Facilities Grid - 3x2 Layout */}
+                    <div className="grid grid-cols-3 gap-3">
+                      <div className="text-center bg-gray-600/50 rounded p-2">
+                        <div className="text-white font-semibold">Concessions</div>
+                        <div className="text-gray-400 text-sm">Level {stadium?.concessionsLevel || 1}</div>
+                      </div>
+                      <div className="text-center bg-gray-600/50 rounded p-2">
+                        <div className="text-white font-semibold">Parking</div>
+                        <div className="text-gray-400 text-sm">Level {stadium?.parkingLevel || 1}</div>
+                      </div>
+                      <div className="text-center bg-gray-600/50 rounded p-2">
+                        <div className="text-white font-semibold">VIP Suites</div>
+                        <div className="text-gray-400 text-sm">Level {stadium?.vipSuitesLevel || 0}</div>
+                      </div>
+                      <div className="text-center bg-gray-600/50 rounded p-2">
+                        <div className="text-white font-semibold">Merchandise</div>
+                        <div className="text-gray-400 text-sm">Level {stadium?.merchandisingLevel || 1}</div>
+                      </div>
+                      <div className="text-center bg-gray-600/50 rounded p-2">
+                        <div className="text-white font-semibold">Lighting</div>
+                        <div className="text-gray-400 text-sm">Level {stadium?.lightingScreensLevel || 1}</div>
+                      </div>
+                      <div className="text-center bg-gray-600/50 rounded p-2">
+                        <div className="text-white font-semibold">Team Camaraderie</div>
+                        <div className="text-white text-sm font-semibold">{teamCamaraderie}/100</div>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </CollapsibleContent>
+            </Collapsible>
+
+            <div className="flex justify-center pt-4">
               <Button onClick={onClose} variant="outline" className="border-gray-600 text-gray-300">
                 Close
               </Button>
