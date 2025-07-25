@@ -170,6 +170,17 @@ export default function EnhancedInventoryHub({ teamId }: EnhancedInventoryHubPro
     return '📦';
   };
 
+  const getItemTypeIcon = (item: InventoryItem): string => {
+    const itemType = item.itemType?.toLowerCase() || '';
+    
+    if (itemType.includes('boost')) return '⚡';
+    if (itemType.includes('consumable')) return '🧪';
+    if (itemType.includes('equipment')) return '🛡️';
+    if (itemType.includes('entry') || itemType.includes('ticket')) return '🎫';
+    if (itemType.includes('trophy')) return '🏆';
+    return '📦';
+  };
+
   // Mutations
   const equipItemMutation = useMutation({
     mutationFn: (itemId: string) => 
@@ -348,21 +359,23 @@ export default function EnhancedInventoryHub({ teamId }: EnhancedInventoryHubPro
                       tabIndex={0}
                       aria-label={`${item.name} - ${item.quantity} available`}
                     >
-                      <CardContent className="p-2 h-full flex flex-col items-center justify-center relative">
+                      <CardContent className="p-1 h-full flex flex-col items-center justify-center relative">
+                        {/* Top-left Item Type Badge */}
+                        <Badge className="absolute top-1 left-1 bg-blue-600 text-white text-xs w-5 h-5 p-0 flex items-center justify-center rounded-md">
+                          {getItemTypeIcon(item)}
+                        </Badge>
+                        
                         {/* Item Icon */}
-                        <div className="text-2xl mb-1">
+                        <div className="text-2xl mb-1 mt-2">
                           {getItemIcon(item)}
                         </div>
                         
-                        {/* Quantity Badge */}
+                        {/* Bottom-right Quantity Badge */}
                         {item.quantity > 1 && (
-                          <Badge className="absolute bottom-1 right-1 bg-gray-900 text-white text-xs min-w-[16px] h-4 p-0 flex items-center justify-center">
+                          <Badge className="absolute bottom-1 right-1 bg-gray-900 text-white text-xs min-w-[18px] h-5 p-0 flex items-center justify-center rounded-md font-medium">
                             {item.quantity}
                           </Badge>
                         )}
-                        
-                        {/* Rarity Indicator */}
-                        <div className={`absolute top-1 left-1 w-2 h-2 rounded-full ${getRarityBadgeColor(item.rarity).replace('bg-', 'bg-').replace(' text-white', '')}`} />
                       </CardContent>
                     </Card>
                   ))}
@@ -378,7 +391,7 @@ export default function EnhancedInventoryHub({ teamId }: EnhancedInventoryHubPro
             <CardHeader className="pb-3">
               <CardTitle className="flex items-center gap-2 text-purple-300">
                 <Activity className="h-5 w-5" />
-                Next League Game Boosts
+                Team Boost Slots
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
@@ -387,35 +400,55 @@ export default function EnhancedInventoryHub({ teamId }: EnhancedInventoryHubPro
                 return (
                   <div
                     key={index}
-                    className={`p-3 rounded-lg border-2 border-dashed ${
+                    className={`p-4 rounded-lg border-2 border-dashed min-h-[80px] relative ${
                       boost 
                         ? "border-purple-500 bg-purple-500/10" 
-                        : "border-gray-600 bg-gray-700/50"
+                        : "border-gray-600 bg-gray-700/50 hover:bg-gray-600/50 cursor-pointer transition-colors"
                     }`}
+                    onClick={() => {
+                      if (!boost) {
+                        // TODO: Open boost selection modal/drawer
+                        toast({
+                          title: "Add Boost",
+                          description: "Boost selection feature coming soon!",
+                        });
+                      }
+                    }}
                   >
+                    <div className="absolute top-2 left-2 text-xs text-gray-400">
+                      Slot {index + 1}/3
+                    </div>
                     {boost ? (
-                      <div>
-                        <h4 className="font-medium text-white text-sm">{boost.itemName}</h4>
+                      <div className="pt-4">
+                        <div className="flex items-center justify-between">
+                          <h4 className="font-medium text-white text-sm">{boost.itemName}</h4>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-6 w-6 p-0 text-gray-400 hover:text-red-400"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              // TODO: Remove boost functionality
+                              toast({
+                                title: "Remove Boost",
+                                description: "Boost removal feature coming soon!",
+                              });
+                            }}
+                          >
+                            <X className="h-3 w-3" />
+                          </Button>
+                        </div>
                         <p className="text-xs text-gray-400 mt-1">{boost.effect}</p>
                       </div>
                     ) : (
-                      <div className="text-center">
+                      <div className="text-center pt-4">
                         <Plus className="h-6 w-6 text-gray-500 mx-auto mb-1" />
-                        <p className="text-xs text-gray-500">Empty Slot</p>
+                        <p className="text-xs text-gray-500 font-medium">+ Add Boost</p>
                       </div>
                     )}
                   </div>
                 );
               })}
-              
-              <Button 
-                variant="outline" 
-                size="sm" 
-                className="w-full mt-4 bg-gray-700 hover:bg-gray-600 text-gray-300 border-gray-600"
-              >
-                <Users className="h-4 w-4 mr-2" />
-                Assign to Players
-              </Button>
             </CardContent>
           </Card>
         </div>
@@ -430,7 +463,7 @@ export default function EnhancedInventoryHub({ teamId }: EnhancedInventoryHubPro
                 <CardTitle className="flex items-center justify-between text-purple-300">
                   <div className="flex items-center gap-2">
                     <Activity className="h-5 w-5" />
-                    Next League Game Boosts
+                    Team Boost Slots
                   </div>
                   <ChevronDown className={`h-5 w-5 transition-transform ${boostsPanelOpen ? 'rotate-180' : ''}`} />
                 </CardTitle>
@@ -445,35 +478,55 @@ export default function EnhancedInventoryHub({ teamId }: EnhancedInventoryHubPro
                   return (
                     <div
                       key={index}
-                      className={`p-3 rounded-lg border-2 border-dashed min-h-[44px] ${
+                      className={`p-4 rounded-lg border-2 border-dashed min-h-[80px] relative ${
                         boost 
                           ? "border-purple-500 bg-purple-500/10" 
-                          : "border-gray-600 bg-gray-700/50"
+                          : "border-gray-600 bg-gray-700/50 hover:bg-gray-600/50 cursor-pointer transition-colors"
                       }`}
+                      onClick={() => {
+                        if (!boost) {
+                          // TODO: Open boost selection modal/drawer
+                          toast({
+                            title: "Add Boost",
+                            description: "Boost selection feature coming soon!",
+                          });
+                        }
+                      }}
                     >
+                      <div className="absolute top-2 left-2 text-xs text-gray-400">
+                        Slot {index + 1}/3
+                      </div>
                       {boost ? (
-                        <div>
-                          <h4 className="font-medium text-white text-sm">{boost.itemName}</h4>
+                        <div className="pt-4">
+                          <div className="flex items-center justify-between">
+                            <h4 className="font-medium text-white text-sm">{boost.itemName}</h4>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="h-6 w-6 p-0 text-gray-400 hover:text-red-400"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                // TODO: Remove boost functionality
+                                toast({
+                                  title: "Remove Boost",
+                                  description: "Boost removal feature coming soon!",
+                                });
+                              }}
+                            >
+                              <X className="h-3 w-3" />
+                            </Button>
+                          </div>
                           <p className="text-xs text-gray-400 mt-1">{boost.effect}</p>
                         </div>
                       ) : (
-                        <div className="text-center">
+                        <div className="text-center pt-4">
                           <Plus className="h-6 w-6 text-gray-500 mx-auto mb-1" />
-                          <p className="text-xs text-gray-500">Empty Slot</p>
+                          <p className="text-xs text-gray-500 font-medium">+ Add Boost</p>
                         </div>
                       )}
                     </div>
                   );
                 })}
-                
-                <Button 
-                  variant="outline" 
-                  size="sm" 
-                  className="w-full mt-4 bg-gray-700 hover:bg-gray-600 text-gray-300 border-gray-600 min-h-[44px]"
-                >
-                  <Users className="h-4 w-4 mr-2" />
-                  Assign to Players
-                </Button>
               </CardContent>
             </Card>
           </CollapsibleContent>

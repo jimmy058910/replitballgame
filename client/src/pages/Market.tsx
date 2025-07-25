@@ -6,11 +6,12 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
-import { ShoppingCart, Coins, Gem, TrendingUp, Building, Trophy, Gift, Star, Crown, CreditCard } from "lucide-react";
+import { ShoppingCart, Coins, Gem, TrendingUp, Building, Trophy, Gift, Star, Crown, CreditCard, Package } from "lucide-react";
 import { useLocation } from 'wouter';
 import TryoutSystem from "@/components/TryoutSystem";
 import DynamicMarketplaceManager from "@/components/DynamicMarketplaceManager";
 import FinancesTab from "@/components/FinancesTab";
+import EnhancedInventoryHub from "@/components/EnhancedInventoryHub";
 
 // Type interfaces
 interface Team {
@@ -423,8 +424,9 @@ export default function Market() {
         </Card>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="grid w-full grid-cols-6">
+          <TabsList className="grid w-full grid-cols-7">
             <TabsTrigger value="marketplace">Player Marketplace</TabsTrigger>
+            <TabsTrigger value="inventory">Inventory</TabsTrigger>
             <TabsTrigger value="store">Store</TabsTrigger>
             <TabsTrigger value="ads">Ad Rewards</TabsTrigger>
             <TabsTrigger value="gems">Buy Gems</TabsTrigger>
@@ -434,6 +436,23 @@ export default function Market() {
 
           <TabsContent value="marketplace">
             <DynamicMarketplaceManager teamId={team?.id} />
+          </TabsContent>
+
+          <TabsContent value="inventory">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Package className="h-5 w-5" />
+                  Team Inventory
+                </CardTitle>
+                <p className="text-sm text-gray-600 dark:text-gray-400">
+                  Manage your equipment, consumables, and boosts
+                </p>
+              </CardHeader>
+              <CardContent>
+                <EnhancedInventoryHub teamId={team?.id} />
+              </CardContent>
+            </Card>
           </TabsContent>
 
 
