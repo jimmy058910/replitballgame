@@ -50,6 +50,41 @@ app.use(compression({
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
+// Global BigInt serialization handling for all JSON responses
+app.use((req: Request, res: Response, next: NextFunction) => {
+  const originalJson = res.json;
+  
+  res.json = function(obj: any) {
+    // Comprehensive BigInt serialization
+    function serializeBigIntValues(value: any): any {
+      if (value === null || value === undefined) return value;
+      
+      if (typeof value === 'bigint') {
+        return value.toString();
+      }
+      
+      if (Array.isArray(value)) {
+        return value.map(serializeBigIntValues);
+      }
+      
+      if (typeof value === 'object') {
+        const serialized: any = {};
+        for (const [key, val] of Object.entries(value)) {
+          serialized[key] = serializeBigIntValues(val);
+        }
+        return serialized;
+      }
+      
+      return value;
+    }
+    
+    const serializedObj = serializeBigIntValues(obj);
+    return originalJson.call(this, serializedObj);
+  };
+  
+  next();
+});
+
 // Add health check endpoint early - critical for Cloud Run  
 app.get('/health', createHealthCheck());
 app.get('/api/health', createHealthCheck());

@@ -1248,6 +1248,8 @@ router.post('/:teamId/tryouts', isAuthenticated, asyncHandler(async (req: any, r
 
 // Team finances endpoint
 router.get('/:teamId/finances', isAuthenticated, asyncHandler(async (req: any, res: Response) => {
+  console.log('[DEBUG] Starting finances endpoint, teamId:', req.params.teamId);
+  
   const userId = req.user.claims.sub;
   const { teamId } = req.params;
 
@@ -1309,20 +1311,60 @@ router.get('/:teamId/finances', isAuthenticated, asyncHandler(async (req: any, r
     totalStaffSalaries = parseInt(String(finances.staffSalaries || '0'));
   }
 
-  // Return finances with calculated values
+  // Return finances with calculated values and proper BigInt serialization
   const facilitiesCost = parseInt(String(finances.facilitiesMaintenanceCost || '0'));
   const projectedIncome = parseInt(String(finances.projectedIncome || '0'));
   const totalExpenses = totalPlayerSalaries + totalStaffSalaries + facilitiesCost;
   
+  // Create response object
   const calculatedFinances = {
-    ...finances,
+    id: finances.id,
+    teamId: finances.teamId,
+    credits: finances.credits,
+    gems: finances.gems,
+    escrowCredits: finances.escrowCredits,
+    escrowGems: finances.escrowGems,
+    projectedIncome: finances.projectedIncome,
+    projectedExpenses: finances.projectedExpenses,
+    lastSeasonRevenue: finances.lastSeasonRevenue,
+    lastSeasonExpenses: finances.lastSeasonExpenses,
+    facilitiesMaintenanceCost: finances.facilitiesMaintenanceCost,
+    createdAt: finances.createdAt,
+    updatedAt: finances.updatedAt,
+    team: finances.team,
+    // Calculated values
     playerSalaries: totalPlayerSalaries,
     staffSalaries: totalStaffSalaries,
     totalExpenses: totalExpenses,
     netIncome: projectedIncome - totalExpenses
   };
 
-  res.json(calculatedFinances);
+  // Comprehensive BigInt serialization utility function
+  function serializeBigIntValues(obj: any): any {
+    if (obj === null || obj === undefined) return obj;
+    
+    if (typeof obj === 'bigint') {
+      return obj.toString();
+    }
+    
+    if (Array.isArray(obj)) {
+      return obj.map(serializeBigIntValues);
+    }
+    
+    if (typeof obj === 'object') {
+      const serialized: any = {};
+      for (const [key, value] of Object.entries(obj)) {
+        serialized[key] = serializeBigIntValues(value);
+      }
+      return serialized;
+    }
+    
+    return obj;
+  }
+
+  // Apply BigInt serialization to the entire response
+  const serializedFinances = serializeBigIntValues(calculatedFinances);
+  res.json(serializedFinances);
 }));
 
 // Taxi Squad endpoints

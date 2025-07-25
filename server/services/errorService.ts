@@ -185,14 +185,40 @@ export function logInfo(message: string, context?: any): void {
 }
 
 // Create standardized error response
+// Comprehensive BigInt serialization utility for error handling
+function serializeBigIntValues(obj: any): any {
+  if (obj === null || obj === undefined) return obj;
+  
+  if (typeof obj === 'bigint') {
+    return obj.toString();
+  }
+  
+  if (Array.isArray(obj)) {
+    return obj.map(serializeBigIntValues);
+  }
+  
+  if (typeof obj === 'object') {
+    const serialized: any = {};
+    for (const [key, value] of Object.entries(obj)) {
+      serialized[key] = serializeBigIntValues(value);
+    }
+    return serialized;
+  }
+  
+  return obj;
+}
+
 export function createErrorResponse(error: AppError, requestId?: string): ErrorResponse {
+  // Sanitize error details to handle BigInt values
+  const sanitizedDetails = isDevelopment && error.details ? serializeBigIntValues(error.details) : undefined;
+  
   return {
     success: false,
     error: {
       type: error.type,
       message: error.message,
       code: error.code,
-      details: isDevelopment ? error.details : undefined,
+      details: sanitizedDetails,
       timestamp: new Date().toISOString(),
       requestId
     }
