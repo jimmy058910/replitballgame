@@ -384,7 +384,7 @@ export default function CommandCenter() {
                     Competition Center
                   </Button>
                 </Link>
-                <Link href="/market-district">
+                <Link href="/market">
                   <Button variant="outline" className="w-full justify-start">
                     <TrendingUp className="h-4 w-4 mr-2" />
                     Market District

@@ -2495,4 +2495,63 @@ router.get('/:teamId/scouting', isAuthenticated, async (req: any, res: Response,
 
 
 
+// User-specific live matches endpoint
+router.get('/:teamId/matches/live', isAuthenticated, async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const { teamId } = req.params;
+    const teamIdNum = parseInt(teamId, 10);
+    
+    if (isNaN(teamIdNum)) {
+      return res.status(400).json({ message: "Invalid team ID" });
+    }
+
+    // Import matchStorage here to avoid circular dependencies
+    const { matchStorage } = await import('../storage/matchStorage');
+
+    // Get live matches involving only the specified team
+    const allLiveMatches = await matchStorage.getLiveMatches();
+    const userTeamMatches = allLiveMatches.filter(match => 
+      match.homeTeamId === teamIdNum || match.awayTeamId === teamIdNum
+    );
+
+    // Transform matches for user team display
+    const transformedMatches = userTeamMatches.map(match => {
+      const matchType = match.tournamentId ? 'TOURNAMENT' : 
+                       match.type === 'exhibition' ? 'EXHIBITION' : 'LEAGUE';
+      
+      return {
+        id: match.id.toString(),
+        type: matchType,
+        status: match.status || 'LIVE',
+        homeTeam: {
+          id: match.homeTeamId.toString(),
+          name: match.homeTeam?.name || 'Unknown Team',
+          logo: null
+        },
+        awayTeam: {
+          id: match.awayTeamId.toString(),
+          name: match.awayTeam?.name || 'Unknown Team',
+          logo: null
+        },
+        homeScore: match.homeScore || 0,
+        awayScore: match.awayScore || 0,
+        gameTime: match.gameTime || 0,
+        maxGameTime: match.maxGameTime || 2400,
+        division: match.homeTeam?.division || match.awayTeam?.division || 8,
+        tournamentName: match.tournament?.name || (matchType === 'TOURNAMENT' ? 'Tournament Match' : null),
+        priority: 'HIGH', // User matches are always high priority
+        userTeamInvolved: true,
+        gameDate: match.gameDate || new Date().toISOString(),
+        estimatedEndTime: null,
+        viewers: Math.floor(Math.random() * 50) + 10
+      };
+    });
+
+    res.json(transformedMatches);
+  } catch (error) {
+    console.error("Error fetching user team live matches:", error);
+    next(error);
+  }
+});
+
 export default router;

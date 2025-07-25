@@ -26,7 +26,7 @@ const routes = [
   },
   { 
     name: 'Market District', 
-    url: '/market-district', 
+    url: '/market', 
     tabs: ['marketplace', 'store', 'inventory', 'transactions'],
     description: 'Trading, store, inventory system'
   },

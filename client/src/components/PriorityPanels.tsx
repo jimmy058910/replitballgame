@@ -406,7 +406,7 @@ export default function PriorityPanels() {
                 Tactics
               </Button>
             </Link>
-            <Link href="/market-district?tab=store">
+            <Link href="/market?tab=store">
               <Button variant="outline" className="w-full text-xs" size="sm">
                 <Trophy className="h-3 w-3 mr-1" />
                 Store
