@@ -1056,7 +1056,17 @@ export default function ComprehensiveCompetitionCenter() {
                       <div className="space-y-3">
                         {exhibitionHistory.map((match: any) => {
                           // Handle cases where team data might be missing
-                          const isUserHome = match.homeTeamId === team?.id;
+                          // Debug log to check types and values
+                          console.log('Home/Away Debug:', {
+                            matchHomeTeamId: match.homeTeamId,
+                            teamId: team?.id,
+                            homeTeamIdType: typeof match.homeTeamId,
+                            teamIdType: typeof team?.id,
+                            strictComparison: match.homeTeamId === team?.id,
+                            looseComparison: match.homeTeamId == team?.id
+                          });
+                          
+                          const isUserHome = Number(match.homeTeamId) === Number(team?.id);
                           const opponentName = isUserHome ? (match.awayTeam?.name || 'Unknown Opponent') : (match.homeTeam?.name || 'Unknown Opponent');
                           const homeScore = match.homeScore || 0;
                           const awayScore = match.awayScore || 0;

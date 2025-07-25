@@ -165,10 +165,10 @@ export default function ScheduleView({
                             <div className="w-2 h-2 bg-blue-300 rounded-full animate-pulse"></div>
                             <div>
                               <h4 className="font-bold text-white text-lg">
-                                🆚 {match.homeTeam.id === team?.id ? match.awayTeam.name : match.homeTeam.name}
+                                🆚 {Number(match.homeTeam.id) === Number(team?.id) ? match.awayTeam.name : match.homeTeam.name}
                               </h4>
                               <p className="text-blue-200 text-sm">
-                                {match.homeTeam.id === team?.id ? '🏠 Home' : '✈️ Away'} • {formatMatchTime(match.gameDate)}
+                                {Number(match.homeTeam.id) === Number(team?.id) ? '🏠 Home' : '✈️ Away'} • {formatMatchTime(match.gameDate)}
                               </p>
                             </div>
                           </div>
@@ -205,10 +205,10 @@ export default function ScheduleView({
                         <Badge className="bg-blue-600 text-blue-100 text-xs">League</Badge>
                       </div>
                       <h4 className="font-bold text-white">
-                        🆚 {match.homeTeam.id === team?.id ? match.awayTeam.name : match.homeTeam.name}
+                        🆚 {Number(match.homeTeam.id) === Number(team?.id) ? match.awayTeam.name : match.homeTeam.name}
                       </h4>
                       <p className="text-blue-200 text-sm">
-                        {match.homeTeam.id === team?.id ? '🏠 Home' : '✈️ Away'}
+                        {Number(match.homeTeam.id) === Number(team?.id) ? '🏠 Home' : '✈️ Away'}
                       </p>
                       <p className="text-blue-300 text-xs">
                         {formatMatchDate(match.gameDate)} • {formatMatchTime(match.gameDate)}
@@ -310,13 +310,13 @@ export default function ScheduleView({
                 ) : filteredMatches.length > 0 ? (
                   <div className="space-y-2">
                     {filteredMatches.map((match, index) => {
-                      const isMyMatch = match.homeTeamId === team?.id || match.awayTeamId === team?.id;
+                      const isMyMatch = Number(match.homeTeamId) === Number(team?.id) || Number(match.awayTeamId) === Number(team?.id);
                       const gameTime = match.gameDate ? formatMatchTime(match.gameDate) : '5:00 PM';
                       const gameDate = match.gameDate ? formatMatchDate(match.gameDate) : 'TBD';
                       
                       // Determine opponent name
                       const opponentName = isMyMatch ? 
-                        (match.homeTeamId === team?.id ? match.awayTeamName : match.homeTeamName) :
+                        (Number(match.homeTeamId) === Number(team?.id) ? match.awayTeamName : match.homeTeamName) :
                         null;
                       
                       return (
@@ -343,7 +343,7 @@ export default function ScheduleView({
                               <div className="font-bold text-white">
                                 🆚 {opponentName}
                                 <div className="text-xs text-blue-300 mt-1">
-                                  {match.homeTeamId === team?.id ? '🏠 Home' : '✈️ Away'}
+                                  {Number(match.homeTeamId) === Number(team?.id) ? '🏠 Home' : '✈️ Away'}
                                 </div>
                               </div>
                             ) : (

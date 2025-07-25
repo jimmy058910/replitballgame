@@ -393,14 +393,9 @@ export class SeasonalFlowService {
         continue;
       }
       
-      // Check if it's past 3:00 PM EDT - if so, skip current day
-      const estNow = getEasternTimeAsDate();
-      const isPast3PM = estNow.getHours() >= 15; // 3:00 PM = 15:00
-      const startDay = isPast3PM ? 7 : 6; // Skip Day 6 if past 3:00 PM EDT
-      
-      // Generate matches for subdivision (Days 6-14 or 7-14)
-      for (let day = startDay; day <= 14; day++) {
-        const dayMatches = this.generateSubdivisionDayMatches(subdivisionTeams, day, startDay);
+      // Generate matches for subdivision (Full Regular Season: Days 1-14)
+      for (let day = 1; day <= this.SEASON_CONFIG.REGULAR_SEASON_DAYS; day++) {
+        const dayMatches = this.generateSubdivisionDayMatches(subdivisionTeams, day, 1);
         
         for (let matchIndex = 0; matchIndex < dayMatches.length; matchIndex++) {
           const match = dayMatches[matchIndex];
