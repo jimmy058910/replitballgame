@@ -2538,12 +2538,13 @@ router.get('/:teamId/matches/live', isAuthenticated, async (req: Request, res: R
         gameTime: match.gameTime || 0,
         maxGameTime: match.maxGameTime || 2400,
         division: match.homeTeam?.division || match.awayTeam?.division || 8,
+        subdivision: match.homeTeam?.subdivision || match.awayTeam?.subdivision || match.league?.name || 'Unknown Subdivision',
         tournamentName: match.tournament?.name || (matchType === 'TOURNAMENT' ? 'Tournament Match' : null),
         priority: 'HIGH', // User matches are always high priority
         userTeamInvolved: true,
         gameDate: match.gameDate || new Date().toISOString(),
         estimatedEndTime: null,
-        viewers: Math.floor(Math.random() * 50) + 10
+        viewers: match.viewers || 0
       };
     });
 

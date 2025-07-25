@@ -79,12 +79,13 @@ router.get('/live', isAuthenticated, async (req: Request, res: Response, next: N
         gameTime: match.gameTime || 0,
         maxGameTime: match.maxGameTime || 2400, // 40 minutes default
         division: match.homeTeam?.division || match.awayTeam?.division || 8,
+        subdivision: match.homeTeam?.subdivision || match.awayTeam?.subdivision || match.league?.name || 'Unknown Subdivision',
         tournamentName: match.tournament?.name || (matchType === 'TOURNAMENT' ? 'Tournament Match' : null),
         priority: priority,
         userTeamInvolved: userTeamInvolved,
         gameDate: match.gameDate || new Date().toISOString(),
         estimatedEndTime: null,
-        viewers: Math.floor(Math.random() * 50) + 10 // Mock viewer count for now
+        viewers: match.viewers || 0 // Mock viewer count for now
       };
     });
 

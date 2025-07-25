@@ -5,7 +5,7 @@ import { Badge } from './ui/badge';
 import { Button } from './ui/button';
 import { Progress } from './ui/progress';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from './ui/collapsible';
-import { Drawer, DrawerContent, DrawerDescription, DrawerHeader, DrawerTitle, DrawerTrigger } from './ui/drawer';
+// Drawer removed - matches now navigate directly to /live-match routes
 import { 
   Play, 
   Clock, 
@@ -38,6 +38,7 @@ type LiveMatch = {
   gameTime?: number; // Time in seconds
   maxGameTime?: number; // Total game duration
   division?: number;
+  subdivision?: string;
   tournamentName?: string;
   priority: 'HIGH' | 'MEDIUM' | 'LOW';
   userTeamInvolved: boolean;
@@ -51,8 +52,7 @@ interface LiveMatchesHubProps {
 }
 
 export default function LiveMatchesHub({ team }: LiveMatchesHubProps) {
-  const [selectedMatch, setSelectedMatch] = useState<LiveMatch | null>(null);
-  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+  // Drawer functionality removed - matches now navigate directly to /live-match routes
 
   // Query for all live matches across the game
   const { data: liveMatches = [], isLoading } = useQuery<LiveMatch[]>({
@@ -102,9 +102,25 @@ export default function LiveMatchesHub({ team }: LiveMatchesHubProps) {
     }
   };
 
-  const openMatchDetails = (match: LiveMatch) => {
-    setSelectedMatch(match);
-    setIsDrawerOpen(true);
+  const formatScoreText = (match: LiveMatch) => {
+    if (match.homeScore !== undefined && match.awayScore !== undefined) {
+      const score = `${match.homeScore}-${match.awayScore}`;
+      const divisionText = match.division ? `Division ${match.division}` : '';
+      const subdivisionText = match.subdivision && match.subdivision !== 'Unknown Subdivision' ? match.subdivision : '';
+      
+      if (match.type === 'TOURNAMENT') {
+        return match.tournamentName ? `${score} - ${match.tournamentName}` : score;
+      }
+      
+      if (divisionText && subdivisionText) {
+        return `${score} - ${divisionText} - ${subdivisionText}`;
+      } else if (divisionText) {
+        return `${score} - ${divisionText}`;
+      }
+      
+      return score;
+    }
+    return 'Starting Soon';
   };
 
   if (isLoading) {
@@ -158,11 +174,10 @@ export default function LiveMatchesHub({ team }: LiveMatchesHubProps) {
             Your Live Matches
           </h3>
           {categorizedMatches.userMatches.map((match, index) => (
-            <Card 
-              key={match.id} 
-              className="bg-gradient-to-r from-blue-800 via-blue-700 to-blue-800 border-2 border-blue-500/50 hover:border-blue-400 transition-all duration-300 cursor-pointer"
-              onClick={() => openMatchDetails(match)}
-            >
+            <Link href={`/live-match/${match.id}`} key={match.id}>
+              <Card 
+                className="bg-gradient-to-r from-blue-800 via-blue-700 to-blue-800 border-2 border-blue-500/50 hover:border-blue-400 transition-all duration-300 cursor-pointer"
+              >
               <CardContent className="p-4">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
@@ -181,10 +196,7 @@ export default function LiveMatchesHub({ team }: LiveMatchesHubProps) {
                         {match.homeTeam.name} vs {match.awayTeam.name}
                       </h4>
                       <p className="text-blue-200 text-sm">
-                        {match.homeScore !== undefined && match.awayScore !== undefined ? 
-                          `${match.homeScore} - ${match.awayScore}` : 
-                          'Starting Soon'
-                        }
+                        {formatScoreText(match)}
                         {match.gameTime && match.maxGameTime && (
                           <span className="ml-2">• {formatGameTime(match.gameTime)}</span>
                         )}
@@ -200,7 +212,8 @@ export default function LiveMatchesHub({ team }: LiveMatchesHubProps) {
                   </div>
                 </div>
               </CardContent>
-            </Card>
+              </Card>
+            </Link>
           ))}
         </div>
       )}
@@ -215,11 +228,10 @@ export default function LiveMatchesHub({ team }: LiveMatchesHubProps) {
           
           {/* Single flattened list of all other matches */}
           {[...categorizedMatches.highPriority, ...categorizedMatches.tournaments, ...categorizedMatches.leagues, ...categorizedMatches.exhibitions].map((match, index) => (
-            <Card 
-              key={match.id} 
-              className="bg-gray-800/90 border-gray-600 hover:border-gray-500 transition-all duration-200 cursor-pointer"
-              onClick={() => openMatchDetails(match)}
-            >
+            <Link href={`/live-match/${match.id}`} key={match.id}>
+              <Card 
+                className="bg-gray-800/90 border-gray-600 hover:border-gray-500 transition-all duration-200 cursor-pointer"
+              >
               <CardContent className="p-3">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
@@ -238,15 +250,9 @@ export default function LiveMatchesHub({ team }: LiveMatchesHubProps) {
                         {match.homeTeam.name || 'Team A'} vs {match.awayTeam.name || 'Team B'}
                       </h4>
                       <p className="text-gray-300 text-xs">
-                        {match.homeScore !== undefined && match.awayScore !== undefined ? 
-                          `${match.homeScore} - ${match.awayScore}` : 
-                          'In Progress'
-                        }
+                        {formatScoreText(match)}
                         {match.gameTime && match.maxGameTime && (
                           <span className="ml-2">• {formatGameTime(match.gameTime)}</span>
-                        )}
-                        {match.division && (
-                          <span className="ml-2">• Div {match.division}</span>
                         )}
                       </p>
                     </div>
@@ -264,85 +270,13 @@ export default function LiveMatchesHub({ team }: LiveMatchesHubProps) {
                   </div>
                 </div>
               </CardContent>
-            </Card>
+              </Card>
+            </Link>
           ))}
         </div>
       )}
 
-      {/* MATCH DETAILS DRAWER */}
-      <Drawer open={isDrawerOpen} onOpenChange={setIsDrawerOpen}>
-        <DrawerContent className="bg-gray-900 border-gray-700 max-h-[80vh]">
-          <DrawerHeader className="border-b border-gray-700">
-            <DrawerTitle className="text-white">
-              {selectedMatch && `${selectedMatch.homeTeam.name} vs ${selectedMatch.awayTeam.name}`}
-            </DrawerTitle>
-            <DrawerDescription className="text-gray-400">
-              {selectedMatch && (
-                <div className="flex items-center gap-2">
-                  <Badge className={`${
-                    selectedMatch.type === 'LEAGUE' ? 'bg-yellow-600 text-yellow-100' :
-                    selectedMatch.type === 'TOURNAMENT' ? 'bg-purple-600 text-purple-100' :
-                    'bg-green-600 text-green-100'
-                  }`}>
-                    {selectedMatch.type === 'LEAGUE' ? '🏆 League' :
-                     selectedMatch.type === 'TOURNAMENT' ? '🥇 Tournament' :
-                     '🔨 Exhibition'}
-                  </Badge>
-                  <span>Live Match Details</span>
-                </div>
-              )}
-            </DrawerDescription>
-          </DrawerHeader>
-          <div className="p-4">
-            {selectedMatch && (
-              <div className="space-y-4">
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="text-center">
-                    <h3 className="text-lg font-bold text-white">{selectedMatch.homeTeam.name}</h3>
-                    <p className="text-gray-400">Home</p>
-                  </div>
-                  <div className="text-center">
-                    <h3 className="text-lg font-bold text-white">{selectedMatch.awayTeam.name}</h3>
-                    <p className="text-gray-400">Away</p>
-                  </div>
-                </div>
-                
-                {selectedMatch.homeScore !== undefined && selectedMatch.awayScore !== undefined && (
-                  <div className="text-center">
-                    <div className="text-3xl font-bold text-white">
-                      {selectedMatch.homeScore} - {selectedMatch.awayScore}
-                    </div>
-                  </div>
-                )}
-                
-                {selectedMatch.gameTime && selectedMatch.maxGameTime && (
-                  <div className="space-y-2">
-                    <div className="flex justify-between text-sm text-gray-400">
-                      <span>Game Time</span>
-                      <span>{formatGameTime(selectedMatch.gameTime)}</span>
-                    </div>
-                    <Progress 
-                      value={(selectedMatch.gameTime / selectedMatch.maxGameTime) * 100} 
-                      className="h-2 bg-gray-700"
-                    />
-                  </div>
-                )}
-                
-                <div className="grid grid-cols-2 gap-4 text-sm">
-                  <div>
-                    <p className="text-gray-400">Division</p>
-                    <p className="text-white">{selectedMatch.division || 'N/A'}</p>
-                  </div>
-                  <div>
-                    <p className="text-gray-400">Viewers</p>
-                    <p className="text-white">{selectedMatch.viewers || 'N/A'}</p>
-                  </div>
-                </div>
-              </div>
-            )}
-          </div>
-        </DrawerContent>
-      </Drawer>
+      {/* Drawer functionality removed - matches now navigate directly to /live-match routes */}
 
     </div>
   );

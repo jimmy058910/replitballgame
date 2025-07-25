@@ -115,7 +115,7 @@ const formatMatchTime = (gameDate: string) => {
 
 export default function ComprehensiveCompetitionCenter() {
   const { isAuthenticated } = useAuth();
-  const [activeTab, setActiveTab] = useState<'live' | 'league' | 'tournaments' | 'exhibitions' | 'schedule'>('live');
+  const [activeTab, setActiveTab] = useState<'live' | 'league' | 'tournaments' | 'exhibitions' | 'schedule'>('league');
   const [showOpponentSelect, setShowOpponentSelect] = useState(false);
   const queryClient = useQueryClient();
   const { toast } = useToast();
@@ -613,17 +613,6 @@ export default function ComprehensiveCompetitionCenter() {
           <div className="mb-4">
             <TabsList className="grid w-full grid-cols-5 bg-gray-800 p-1 rounded-lg border border-gray-600">
               <TabsTrigger 
-                value="live" 
-                className="text-xs font-semibold data-[state=active]:bg-red-600 data-[state=active]:text-white relative"
-              >
-                <div className="flex items-center gap-1">
-                  <Play className="h-4 w-4" />
-                  <span className="hidden sm:inline">Live</span>
-                  <span className="sm:hidden">Live</span>
-                  <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse ml-1"></div>
-                </div>
-              </TabsTrigger>
-              <TabsTrigger 
                 value="league" 
                 className="text-xs font-semibold data-[state=active]:bg-purple-600 data-[state=active]:text-white"
               >
@@ -643,6 +632,17 @@ export default function ComprehensiveCompetitionCenter() {
               >
                 <Zap className="h-4 w-4 mr-1" />
                 <span className="hidden sm:inline">Exhibitions</span>
+              </TabsTrigger>
+              <TabsTrigger 
+                value="live" 
+                className="text-xs font-semibold data-[state=active]:bg-red-600 data-[state=active]:text-white relative"
+              >
+                <div className="flex items-center gap-1">
+                  <Play className="h-4 w-4" />
+                  <span className="hidden sm:inline">Live</span>
+                  <span className="sm:hidden">Live</span>
+                  <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse ml-1"></div>
+                </div>
               </TabsTrigger>
               <TabsTrigger 
                 value="schedule" 
