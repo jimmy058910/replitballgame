@@ -247,6 +247,60 @@ export default function ComprehensiveCompetitionCenter() {
     return false;
   };
 
+  // State for real-time countdown updates
+  const [currentTime, setCurrentTime] = useState(new Date());
+
+  // Update time every minute for countdown
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrentTime(new Date());
+    }, 60000); // Update every minute
+
+    return () => clearInterval(timer);
+  }, []);
+
+  // Dynamic Mid-Season Cup countdown function
+  const getMidSeasonCountdown = () => {
+    if (!seasonData) return "Loading...";
+    
+    const currentDay = seasonData?.currentDay || 0;
+    
+    // If past deadline, show next season message
+    if (isMidSeasonRegistrationDeadlinePassed()) {
+      return "Come back next season!";
+    }
+    
+    // Calculate target deadline: 1PM EDT on Day 7
+    // Assuming season started on July 13, Day 7 would be July 19
+    const seasonStartDate = new Date(seasonData.startDate || '2025-07-13');
+    const targetDate = new Date(seasonStartDate);
+    targetDate.setDate(seasonStartDate.getDate() + 6); // Day 7 (0-indexed: Day 1 = +0, Day 7 = +6)
+    targetDate.setHours(13, 0, 0, 0); // 1PM EDT
+    
+    // Get current time in EDT
+    const now = new Date();
+    const edtOffset = -4 * 60; // EDT is UTC-4 during summer
+    const nowEDT = new Date(now.getTime() + (now.getTimezoneOffset() + edtOffset) * 60000);
+    
+    const timeDiff = targetDate.getTime() - nowEDT.getTime();
+    
+    if (timeDiff <= 0) {
+      return "Registration Closed";
+    }
+    
+    const days = Math.floor(timeDiff / (1000 * 60 * 60 * 24));
+    const hours = Math.floor((timeDiff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+    const minutes = Math.floor((timeDiff % (1000 * 60 * 60)) / (1000 * 60));
+    
+    if (days > 0) {
+      return `${days} day${days !== 1 ? 's' : ''}, ${hours}h`;
+    } else if (hours > 0) {
+      return `${hours}h ${minutes}m`;
+    } else {
+      return `${minutes}m`;
+    }
+  };
+
   // Check if user is already registered for tournaments
   const isRegisteredForDailyTournament = Array.isArray(myTournaments) && myTournaments.some((entry: any) => 
     entry.type === 'DAILY_DIVISIONAL'
@@ -775,7 +829,7 @@ export default function ComprehensiveCompetitionCenter() {
                             </div>
                             <div className="flex items-center gap-2">
                               <Clock className="h-4 w-4 text-purple-400" />
-                              <span className="text-purple-300">Countdown: 2 days</span>
+                              <span className="text-purple-300">Countdown: {getMidSeasonCountdown()}</span>
                             </div>
                           </div>
                         </div>
