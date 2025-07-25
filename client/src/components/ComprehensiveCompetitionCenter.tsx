@@ -340,7 +340,9 @@ export default function ComprehensiveCompetitionCenter() {
 
   // Tournament registration mutations
   const registerDailyTournament = useMutation({
-    mutationFn: () => apiRequest('/api/new-tournaments/daily-tournament/register', 'POST'),
+    mutationFn: () => apiRequest('/api/new-tournaments/daily-tournament/register', 'POST', { 
+      division: Number(teamInfo?.division || 8) 
+    }),
     onSuccess: () => {
       toast({
         title: "Success!",

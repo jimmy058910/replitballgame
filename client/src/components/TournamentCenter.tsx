@@ -228,7 +228,9 @@ const TournamentCenter: React.FC<TournamentCenterProps> = ({ teamId }) => {
   // Daily Tournament registration mutation
   const registerDailyTournamentMutation = useMutation({
     mutationFn: async () => {
-      return await apiRequest(`/api/new-tournaments/daily-tournament/register`, "POST", { division: teamInfo?.division });
+      return await apiRequest(`/api/new-tournaments/daily-tournament/register`, "POST", { 
+        division: Number(teamInfo?.division || 8) 
+      });
     },
     onSuccess: () => {
       toast({
@@ -251,7 +253,10 @@ const TournamentCenter: React.FC<TournamentCenterProps> = ({ teamId }) => {
   // Mid-Season Classic registration mutation
   const registerMidSeasonMutation = useMutation({
     mutationFn: async (paymentType: "credits" | "gems" | "both") => {
-      return await apiRequest(`/api/new-tournaments/mid-season/register`, "POST", { division: teamInfo?.division, paymentType });
+      return await apiRequest(`/api/new-tournaments/mid-season/register`, "POST", { 
+        division: Number(teamInfo?.division || 8), 
+        paymentType 
+      });
     },
     onSuccess: () => {
       toast({
