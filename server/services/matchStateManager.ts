@@ -31,6 +31,11 @@ type TeamStatsSnapshot = {
   firstDowns: number;
   penalties: number;
   penaltyYards: number;
+  timeOfPossessionSeconds?: number;
+  passingYards?: number;
+  totalOffensiveYards?: number;
+  totalKnockdownsInflicted?: number;
+  turnovers?: number;
 };
 
 // Player match time tracking interface
@@ -197,7 +202,7 @@ class MatchStateManager {
     const playersToSubstitute: { playerId: string, reason: 'stamina' | 'injury', teamSide: 'home' | 'away' }[] = [];
 
     // Check stamina levels for auto-substitution (50% threshold)
-    for (const [playerId, playerTime] of state.playerMatchTimes) {
+    for (const [playerId, playerTime] of state.playerMatchTimes.entries()) {
       if (!playerTime.isCurrentlyPlaying) continue;
 
       const player = allPlayers.find(p => p.id.toString() === playerId);
@@ -209,7 +214,7 @@ class MatchStateManager {
       // Auto-substitute at 50% stamina or if severely injured
       if (currentStamina <= 50) {
         playersToSubstitute.push({ playerId, reason: 'stamina', teamSide });
-      } else if (player.injuryStatus === 'SEVERE') {
+      } else if (player.injuryStatus === 'SEVERE' as any) {
         playersToSubstitute.push({ playerId, reason: 'injury', teamSide });
       }
     }
@@ -299,7 +304,7 @@ class MatchStateManager {
     const finalMinutes = new Map<string, number>();
     const matchEndTime = state.gameTime;
 
-    for (const [playerId, playerTime] of state.playerMatchTimes) {
+    for (const [playerId, playerTime] of state.playerMatchTimes.entries()) {
       let totalMinutes = playerTime.totalMinutes;
       
       // If player is still on field at match end, add final segment
@@ -329,10 +334,17 @@ class MatchStateManager {
         teamStatsObj[teamId] = stats;
       });
 
+      // Convert playerMatchTimes Map to object for JSON storage
+      const playerMatchTimesObj: Record<string, PlayerMatchTime> = {};
+      liveState.playerMatchTimes.forEach((time, playerId) => {
+        playerMatchTimesObj[playerId] = time;
+      });
+
       const persistableState = {
         ...liveState,
         playerStats: playerStatsObj,
         teamStats: teamStatsObj,
+        playerMatchTimes: playerMatchTimesObj,
         lastSavedAt: new Date().toISOString()
       };
 
@@ -379,10 +391,19 @@ class MatchStateManager {
         });
       }
 
+      // Convert playerMatchTimes object back to Map
+      const playerMatchTimes = new Map<string, PlayerMatchTime>();
+      if (persistedState.playerMatchTimes) {
+        Object.entries(persistedState.playerMatchTimes).forEach(([playerId, time]) => {
+          playerMatchTimes.set(playerId, time as PlayerMatchTime);
+        });
+      }
+
       const liveState: LiveMatchState = {
         ...persistedState,
         playerStats,
         teamStats,
+        playerMatchTimes,
         startTime: new Date(persistedState.startTime),
         lastUpdateTime: new Date(persistedState.lastUpdateTime || persistedState.startTime),
         gameEvents: persistedState.gameEvents || []
@@ -613,7 +634,7 @@ class MatchStateManager {
       gameEvents: [{
         time: 0,
         type: 'kickoff',
-        description: commentaryService.generateKickoffCommentary(initialPossessingTeam === match.homeTeamId ? 'Home' : 'Away'),
+        description: commentaryService.generateKickoffCommentary(initialPossessingTeam === match.homeTeamId.toString() ? 'Home' : 'Away'),
         teamId: initialPossessingTeam,
         data: { homeTeam: match.homeTeamId, awayTeam: match.awayTeamId }
       }],
@@ -640,9 +661,9 @@ class MatchStateManager {
     this.liveMatches.set(matchId, matchState);
     
     // Set appropriate stamina levels for match type (risk-free for exhibitions)
-    const gameMode = isExhibition ? 'exhibition' : match.matchType === 'tournament' ? 'tournament' : 'league';
+    const gameMode = isExhibition ? 'exhibition' : (match.matchType as any) === 'tournament' ? 'tournament' : 'league';
     for (const player of allPlayers) {
-      await injuryStaminaService.setMatchStartStamina(player.id, gameMode);
+      await injuryStaminaService.setMatchStartStamina(player.id.toString(), gameMode);
     }
     
     // Start the match simulation loop with formation starters
