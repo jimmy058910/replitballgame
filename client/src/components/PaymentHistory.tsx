@@ -27,7 +27,7 @@ import {
   Eye,
   Search
 } from "lucide-react";
-import { format } from "date-fns";
+import { format, isValid, parseISO } from "date-fns";
 
 interface PaymentTransaction {
   id: string;
@@ -60,6 +60,32 @@ interface PaymentSummary {
   totalGemsSpent: number;
   totalSpentUSD: number;
 }
+
+// Helper function to safely format dates
+const safeFormatDate = (dateString: string | null | undefined, formatString: string): string => {
+  if (!dateString) return "N/A";
+  
+  try {
+    // Try parsing as ISO string first
+    let date = parseISO(dateString);
+    
+    // If that fails, try creating a new Date
+    if (!isValid(date)) {
+      date = new Date(dateString);
+    }
+    
+    // Check if the date is valid
+    if (!isValid(date)) {
+      console.warn(`Invalid date format: ${dateString}`);
+      return "Invalid Date";
+    }
+    
+    return format(date, formatString);
+  } catch (error) {
+    console.error(`Error formatting date ${dateString}:`, error);
+    return "Invalid Date";
+  }
+};
 
 export default function PaymentHistory({ className }: PaymentHistoryProps) {
   const [filters, setFilters] = useState({
@@ -315,9 +341,9 @@ export default function PaymentHistory({ className }: PaymentHistoryProps) {
                         <div className="flex items-center gap-2">
                           {getTransactionIcon(transaction)}
                           <div className="text-sm">
-                            {format(new Date(transaction.createdAt), 'MMM dd, yyyy')}
+                            {safeFormatDate(transaction.createdAt, 'MMM dd, yyyy')}
                             <div className="text-xs text-gray-500">
-                              {format(new Date(transaction.createdAt), 'HH:mm')}
+                              {safeFormatDate(transaction.createdAt, 'HH:mm')}
                             </div>
                           </div>
                         </div>

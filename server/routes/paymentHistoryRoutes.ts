@@ -50,7 +50,7 @@ router.get("/team/:teamId", isAuthenticated, asyncHandler(async (req: any, res: 
 
 // Record a new transaction (for system use)
 const recordTransactionSchema = z.object({
-  teamId: z.string().optional(),
+  teamId: z.union([z.string(), z.number()]).optional(),
   transactionType: z.enum(["purchase", "refund", "reward", "admin_grant"]),
   itemType: z.string().optional(),
   itemName: z.string().optional(),
@@ -69,6 +69,7 @@ router.post("/record", isAuthenticated, asyncHandler(async (req: any, res: Respo
   const transaction = await PaymentHistoryService.recordTransaction({
     userId,
     ...transactionData,
+    teamId: transactionData.teamId ? (typeof transactionData.teamId === 'string' ? parseInt(transactionData.teamId) : transactionData.teamId) : undefined,
   });
   
   res.json({ transaction });
@@ -76,7 +77,7 @@ router.post("/record", isAuthenticated, asyncHandler(async (req: any, res: Respo
 
 // Helper endpoint to record item purchases
 const itemPurchaseSchema = z.object({
-  teamId: z.string().optional(),
+  teamId: z.union([z.string(), z.number()]).optional(),
   itemName: z.string(),
   itemType: z.string(),
   creditsSpent: z.number().default(0),

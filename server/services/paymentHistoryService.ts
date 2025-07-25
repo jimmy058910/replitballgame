@@ -72,7 +72,9 @@ export class PaymentHistoryService {
     const serializedTransactions = transactions.map(transaction => ({
       ...transaction,
       creditsAmount: transaction.creditsAmount ? transaction.creditsAmount.toString() : '0',
-      teamId: transaction.teamId ? transaction.teamId.toString() : null,
+      teamId: transaction.teamId ? transaction.teamId : null,
+      createdAt: transaction.createdAt.toISOString(),
+      completedAt: transaction.completedAt ? transaction.completedAt.toISOString() : null,
     }));
     
     return {
@@ -94,7 +96,7 @@ export class PaymentHistoryService {
     const { limit = 50, offset = 0 } = options;
 
     return await prisma.paymentTransaction.findMany({
-      where: { teamId },
+      where: { teamId: parseInt(teamId) },
       orderBy: { createdAt: 'desc' },
       take: limit,
       skip: offset,

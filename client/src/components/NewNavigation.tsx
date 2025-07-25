@@ -74,7 +74,7 @@ export default function NewNavigation() {
       path: "/market", 
       label: "Market District", 
       icon: ShoppingCart,
-      id: "market-district",
+      id: "market",
       description: "Trading, store & transactions",
       badge: undefined
     },
@@ -99,7 +99,7 @@ export default function NewNavigation() {
           const IconComponent = hub.icon;
           const isActive = location === hub.path || 
             (location.startsWith('/team') && hub.id === 'roster-hq') ||
-            (location.startsWith('/market') && hub.id === 'market-district');
+            (location.startsWith('/market') && hub.id === 'market');
           const isHighlighted = seasonalState.navHighlight === hub.id;
           
           return (
@@ -154,7 +154,7 @@ export default function NewNavigation() {
               const IconComponent = hub.icon;
               const isActive = location === hub.path || 
                 (location.startsWith('/team') && hub.id === 'roster-hq') ||
-                (location.startsWith('/market') && hub.id === 'market-district');
+                (location.startsWith('/market') && hub.id === 'market');
               const isHighlighted = seasonalState.navHighlight === hub.id;
               
               return (
