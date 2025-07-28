@@ -10,6 +10,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Progress } from "@/components/ui/progress";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
+import ModernStickyHeader from "@/components/ModernStickyHeader";
 import { 
   Users, 
   Trophy, 
@@ -145,7 +146,9 @@ export default function CommunityPortal() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900/20 to-blue-900/30">
+    <>
+      <ModernStickyHeader />
+      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900/20 to-blue-900/30">
       <div className="p-4 space-y-6">
         {/* Mobile-First Hero Header */}
         <div className="text-center space-y-2">
@@ -679,5 +682,6 @@ export default function CommunityPortal() {
         </Tabs>
       </div>
     </div>
+    </>
   );
 }

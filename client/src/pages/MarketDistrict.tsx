@@ -12,6 +12,7 @@ import { Progress } from "@/components/ui/progress";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useMutation } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
+import ModernStickyHeader from "@/components/ModernStickyHeader";
 import InventoryDisplay from "@/components/InventoryDisplay";
 import EnhancedInventoryHub from "@/components/EnhancedInventoryHub";
 import EnhancedMarketplace from "@/components/EnhancedMarketplace";
@@ -295,7 +296,9 @@ export default function MarketDistrict() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-900">
+    <>
+      <ModernStickyHeader />
+      <div className="min-h-screen bg-gray-900">
       {/* Dramatic Hero Banner */}
       <div className="relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-br from-emerald-600 via-cyan-700 to-blue-800 opacity-90" />
@@ -779,5 +782,6 @@ export default function MarketDistrict() {
         </Tabs>
       </div>
     </div>
+    </>
   );
 }
