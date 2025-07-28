@@ -140,7 +140,7 @@ export default function MobileRosterHQ() {
   });
 
   // Promotions only allowed during offseason (Days 16-17)
-  const isOffseason = seasonCycle?.data?.currentDay >= 16;
+  const isOffseason = seasonCycle?.currentDay >= 16;
 
   // Taxi squad promotion mutation
   const promotePlayerMutation = useMutation({
