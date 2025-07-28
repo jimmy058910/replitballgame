@@ -146,7 +146,7 @@ const ModernStickyHeader: React.FC = () => {
   };
 
   const getNextGameDayCountdown = (): string => {
-    if (!seasonData?.startDate) return "No schedule";
+    if (!seasonData?.startDate) return "Schedule loading...";
     
     const now = serverTime;
     const gameTime = new Date();
@@ -161,9 +161,9 @@ const ModernStickyHeader: React.FC = () => {
     const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
     
     if (hours < 1) {
-      return `${minutes}m to next day`;
+      return `${minutes}m to 1PM`;
     }
-    return `${hours}h ${minutes}m to next day`;
+    return `${hours}h ${minutes}m to 1PM`;
   };
 
   const getNextMatchInfo = (): { text: string; isOffSeason: boolean } => {
@@ -232,6 +232,8 @@ const ModernStickyHeader: React.FC = () => {
   const countdownText = getNextGameDayCountdown();
   const serverTimeDisplay = serverTime.toLocaleTimeString('en-US', { 
     hour12: false, 
+    hour: '2-digit',
+    minute: '2-digit',
     timeZone: 'America/New_York' 
   });
   
