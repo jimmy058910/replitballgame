@@ -165,8 +165,8 @@ function TacticalSettingsContent({ teamId }: { teamId: string }) {
 
   const tacticalFocusOptions = [
     { value: 'BALANCED', label: 'Balanced', description: 'Even distribution' },
-    { value: 'ALL_OUT_ATTACK', label: 'Offensive', description: 'Favor scoring plays' },
-    { value: 'DEFENSIVE_WALL', label: 'Defensive', description: 'Focus on stopping opponents' }
+    { value: 'ALL_OUT_ATTACK', label: 'All-Out Attack', description: 'Favor scoring at all costs' },
+    { value: 'DEFENSIVE_WALL', label: 'Defensive Wall', description: 'Inflict pain and stop opponents' }
   ];
 
   if (tacticalLoading) {
