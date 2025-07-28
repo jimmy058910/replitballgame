@@ -35,6 +35,7 @@ interface PlayerDetailModalProps {
   onClose: () => void;
   onContractNegotiate?: (playerId: string) => void;
   onEquipmentChange?: (playerId: string, slot: string, itemId: string) => void;
+  focusSection?: string;
 }
 
 // Helper function to get race emoji
@@ -79,10 +80,11 @@ function PlayerDetailModal({
   isOpen, 
   onClose, 
   onContractNegotiate,
-  onEquipmentChange 
+  onEquipmentChange,
+  focusSection 
 }: PlayerDetailModalProps) {
   // Accordion sections state - only one open at a time
-  const [expandedSection, setExpandedSection] = useState<string | null>(null);
+  const [expandedSection, setExpandedSection] = useState<string | null>(focusSection || null);
   const [showContractNegotiation, setShowContractNegotiation] = useState(false);
   const [selectedEquipmentItem, setSelectedEquipmentItem] = useState("");
   const queryClient = useQueryClient();
@@ -565,6 +567,87 @@ function PlayerDetailModal({
                           </div>
                         </div>
                       )}
+                    </CardContent>
+                  </Card>
+                </CollapsibleContent>
+              </Collapsible>
+
+              {/* D. Morale & Camaraderie */}
+              <Collapsible 
+                open={expandedSection === 'camaraderie'} 
+                onOpenChange={() => toggleSection('camaraderie')}
+              >
+                <CollapsibleTrigger asChild>
+                  <Button variant="ghost" className="w-full justify-between bg-gray-800/30 hover:bg-gray-700/50 p-4">
+                    <span className="font-medium flex items-center gap-2">
+                      <Heart className="w-4 h-4" />
+                      Morale & Camaraderie
+                    </span>
+                    <ChevronDown className={`w-4 h-4 transition-transform ${expandedSection === 'camaraderie' ? 'rotate-180' : ''}`} />
+                  </Button>
+                </CollapsibleTrigger>
+                <CollapsibleContent>
+                  <Card className="bg-gray-800/20 border-gray-700">
+                    <CardContent className="p-4 space-y-4">
+                      {/* Individual Camaraderie Score */}
+                      <div className="flex items-center justify-between p-3 bg-gray-700/30 rounded-lg">
+                        <div className="flex items-center gap-3">
+                          <div className="text-2xl">
+                            {player.camaraderieScore >= 80 ? '😊' : 
+                             player.camaraderieScore >= 60 ? '😐' : 
+                             player.camaraderieScore >= 40 ? '😟' : '😞'}
+                          </div>
+                          <div>
+                            <div className="font-bold text-white">Individual Camaraderie</div>
+                            <div className="text-sm text-gray-400">Player's team chemistry rating</div>
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <div className="text-2xl font-bold text-blue-400">{player.camaraderieScore || 50}</div>
+                          <div className="text-xs text-gray-400">out of 100</div>
+                        </div>
+                      </div>
+                      
+                      {/* Camaraderie Status & Effects */}
+                      <div className="grid grid-cols-1 gap-3">
+                        <div className="p-3 bg-gray-700/30 rounded-lg">
+                          <div className="text-sm text-gray-400 mb-1">Status</div>
+                          <div className="font-medium text-white">
+                            {player.camaraderieScore >= 80 ? 'Excellent Team Chemistry' :
+                             player.camaraderieScore >= 60 ? 'Good Team Chemistry' :
+                             player.camaraderieScore >= 40 ? 'Average Team Chemistry' : 'Poor Team Chemistry'}
+                          </div>
+                        </div>
+                        
+                        {player.camaraderieScore >= 60 && (
+                          <div className="p-3 bg-green-500/20 border border-green-500 rounded-lg">
+                            <div className="text-sm text-green-400">
+                              ✓ Player benefits from positive team chemistry bonuses
+                            </div>
+                          </div>
+                        )}
+                        
+                        {player.camaraderieScore < 40 && (
+                          <div className="p-3 bg-red-500/20 border border-red-500 rounded-lg">
+                            <div className="text-sm text-red-400">
+                              ⚠️ Low morale may negatively impact performance
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                      
+                      {/* Recent Activity Placeholder */}
+                      <div className="border-t border-gray-600 pt-4">
+                        <div className="text-sm text-gray-400 mb-2">Recent Camaraderie Activity</div>
+                        <div className="space-y-2">
+                          <div className="text-sm text-gray-300 italic">
+                            Camaraderie tracking shows player's relationship with teammates and overall team chemistry.
+                          </div>
+                          <div className="text-xs text-gray-400">
+                            Note: Detailed camaraderie events and match history will be available in future updates.
+                          </div>
+                        </div>
+                      </div>
                     </CardContent>
                   </Card>
                 </CollapsibleContent>

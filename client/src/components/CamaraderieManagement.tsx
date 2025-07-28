@@ -95,7 +95,7 @@ function RadialGauge({ value, maxValue = 100, size = 200 }: { value: number; max
 }
 
 export default function CamaraderieManagement({ teamId }: { teamId: string }) {
-  const [selectedPlayerId, setSelectedPlayerId] = useState<string | null>(null);
+  const [selectedPlayer, setSelectedPlayer] = useState<Player | null>(null);
 
   const { data: effects } = useQuery<CamaraderieEffects>({
     queryKey: [`/api/camaraderie/team/${teamId}`],
@@ -271,7 +271,7 @@ export default function CamaraderieManagement({ teamId }: { teamId: string }) {
                         size="sm" 
                         variant="outline" 
                         className="h-8"
-                        onClick={() => setSelectedPlayerId(player.id)}
+                        onClick={() => setSelectedPlayer(player)}
                       >
                         <Eye className="w-4 h-4" />
                       </Button>
@@ -330,7 +330,7 @@ export default function CamaraderieManagement({ teamId }: { teamId: string }) {
                               size="sm" 
                               variant="outline" 
                               className="h-8"
-                              onClick={() => setSelectedPlayerId(player.id)}
+                              onClick={() => setSelectedPlayer(player)}
                             >
                               <Eye className="w-4 h-4 mr-1" />
                               View
@@ -352,12 +352,12 @@ export default function CamaraderieManagement({ teamId }: { teamId: string }) {
 
 
       {/* Player Detail Modal */}
-      {selectedPlayerId && (
+      {selectedPlayer && (
         <PlayerDetailModal
-          playerId={selectedPlayerId}
-          teamId={teamId}
-          isOpen={!!selectedPlayerId}
-          onClose={() => setSelectedPlayerId(null)}
+          player={selectedPlayer}
+          isOpen={!!selectedPlayer}
+          onClose={() => setSelectedPlayer(null)}
+          focusSection="camaraderie"
         />
       )}
     </div>
