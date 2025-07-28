@@ -30,7 +30,7 @@ import {
   X,
   ArrowUp
 } from 'lucide-react';
-import UnifiedTeamHeader from './UnifiedTeamHeader';
+import ModernStickyHeader from './ModernStickyHeader';
 import PlayerDetailModal from './PlayerDetailModal';
 import CamaraderieManagement from './CamaraderieManagement';
 import StadiumFinancialHub from './StadiumFinancialHub';
@@ -456,14 +456,8 @@ export default function MobileRosterHQ() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900">
-      <div className="container mx-auto px-4 py-8 space-y-6 max-w-6xl">
-        <UnifiedTeamHeader 
-          team={team} 
-          players={activePlayers}
-          showCreditsGems={true}
-          showLowStaminaWarning={lowStaminaPlayers.length > 0}
-          lowStaminaCount={lowStaminaPlayers.length}
-        />
+      <ModernStickyHeader />
+      <div className="container mx-auto px-4 py-8 space-y-6 max-w-6xl mt-8">
         {/* Roster Overview Cards */}
         <div className="grid grid-cols-3 gap-4 mb-6">
           {/* Passers */}

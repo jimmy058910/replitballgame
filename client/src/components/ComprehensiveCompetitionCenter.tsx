@@ -40,7 +40,7 @@ import {
   DollarSign,
   Building
 } from 'lucide-react';
-import UnifiedTeamHeader from './UnifiedTeamHeader';
+import ModernStickyHeader from './ModernStickyHeader';
 import ScheduleView from './ScheduleView';
 import LiveMatchesHub from './LiveMatchesHub';
 
@@ -503,7 +503,8 @@ export default function ComprehensiveCompetitionCenter() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900/20 to-blue-900/30 text-white pb-20 md:pb-6">
-      <div className="container mx-auto px-4 py-8 max-w-6xl">
+      <ModernStickyHeader />
+      <div className="container mx-auto px-4 py-8 max-w-6xl mt-8">
         
         {/* DRAMATIC MOBILE-FIRST HERO BANNER */}
         <div className="relative overflow-hidden bg-gradient-to-r from-purple-800 via-blue-700 to-cyan-800 rounded-xl p-4 md:p-6 mb-4 shadow-2xl">

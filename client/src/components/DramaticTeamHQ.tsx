@@ -3,7 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/useAuth";
 import { useLocation } from "wouter";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import UnifiedTeamHeader from "@/components/UnifiedTeamHeader";
+import ModernStickyHeader from "@/components/ModernStickyHeader";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
@@ -229,14 +229,10 @@ export default function DramaticTeamHQ() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
-      <div className="container mx-auto px-4 py-8 max-w-6xl">
+      <ModernStickyHeader />
+      <div className="container mx-auto px-4 py-8 max-w-6xl mt-8">
         
-        {/* 🚀 UNIFIED TEAM HEADER */}
-        <UnifiedTeamHeader
-          title="TEAM HQ"
-          team={team}
-          players={allPlayers}
-        />
+
 
         {/* ⚡ STICKY QUICK ACTIONS RIBBON */}
         <div className="sticky top-0 z-10 mb-6">
