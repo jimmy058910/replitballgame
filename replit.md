@@ -466,11 +466,24 @@ docker push gcr.io/direct-glider-465821-p7/realm-rivalry:latest
 - **Legendary** (50,000+₡): +7-10 stat bonuses + unique abilities
 
 **Recovery Consumables**:
-- **Energy Drink** (100₡): +10% stamina recovery for 1 day
-- **Healing Salve** (250₡): +5 injury recovery points
-- **Protein Shake** (200₡): +1 temporary Power for 1 game
-- **Focus Enhancer** (300₡): +2 temporary Throwing/Catching for 1 game
-- **Premium Recovery Kit** (1,000₡): Full stamina + 20 injury recovery points
+- **Basic Stamina Drink** (100₡): +10% stamina recovery, +2 stamina for match
+- **Advanced Recovery Serum** (250₡): +15% stamina recovery, +3 stamina, +1 speed  
+- **Medical Kit** (200₡): +5 injury recovery points, 50% injury prevention
+- **Premium Recovery Pack** (500₡): Full stamina restoration, +10 injury recovery points
+
+**Performance Boosters**:
+- **Speed Boost Tonic** (150₡): +3 speed, +2 agility for match
+- **Power Surge Potion** (175₡): +4 power, +2 stamina for match
+- **Champion's Blessing** (400₡): +1 all stats, +2 throwing/catching for match
+- **Focus Enhancer** (300₡): +3 throwing, +2 leadership for match
+
+**Consumables System Rules**:
+- **Match Limits**: 3 consumables per team per league/tournament match (no limits in exhibition)
+- **Daily Limits**: 10 consumables per team, 2 per player, 5 recovery/8 performance max per day
+- **Inventory Limits**: 50 total items, 10 per item type, auto-cleanup of expired items
+- **Expiration**: Basic items 7 days, premium items 14 days, event items 3 days
+- **Effect Stacking**: REPLACEMENT system - same category effects replace (no stacking), cross-category allowed
+- **Server Enforcement**: All limits, stacking rules, and anti-exploit measures server-validated
 
 ### 16. Commentary System
 **200+ Dynamic Commentary Prompts**:
