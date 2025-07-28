@@ -42,7 +42,7 @@ interface CommentaryContext {
 }
 
 export class CommentaryService {
-  private commentaryConfig = configManager.getCommentary();
+  private commentaryConfig = {}; // Commentary config not yet implemented
   
   // Helper Methods
   /**

@@ -1,0 +1,281 @@
+{
+  "version": "1.0.0",
+  "description": "Stadium Facility & Maintenance Economics Configuration",
+  "lastUpdated": "2025-07-28",
+  
+  "stadium_defaults": {
+    "base_capacity": 5000,
+    "max_capacity": 75000,
+    "base_fan_loyalty": 50,
+    "base_maintenance_daily": 5000,
+    "field_size": "standard"
+  },
+  
+  "capacity_expansion": {
+    "description": "Stadium capacity upgrade costs and thresholds",
+    "cost_formula": "base_cost * (capacity_multiplier ^ tier)",
+    "base_cost": 50000,
+    "capacity_multiplier": 1.25,
+    "tiers": [
+      { "capacity": 5000, "cost": 0, "description": "Starting capacity" },
+      { "capacity": 7500, "cost": 125000, "description": "Small expansion" },
+      { "capacity": 10000, "cost": 250000, "description": "Medium stadium" },
+      { "capacity": 15000, "cost": 500000, "description": "Large stadium" },
+      { "capacity": 20000, "cost": 1000000, "description": "Major venue" },
+      { "capacity": 25000, "cost": 1750000, "description": "Regional stadium" },
+      { "capacity": 30000, "cost": 2750000, "description": "Championship venue" },
+      { "capacity": 40000, "cost": 5000000, "description": "Elite stadium" },
+      { "capacity": 50000, "cost": 8500000, "description": "Premier venue" },
+      { "capacity": 75000, "cost": 15000000, "description": "Legendary colosseum" }
+    ]
+  },
+  
+  "facilities": {
+    "concessions": {
+      "name": "Concessions & Food Service",
+      "description": "Food and beverage sales during matches",
+      "max_level": 5,
+      "base_cost": 15000,
+      "cost_multiplier": 1.25,
+      "revenue_per_attendee": 8,
+      "revenue_multiplier_per_level": 0.15,
+      "maintenance_cost_per_level": 200,
+      "roi_category": "medium",
+      "upgrade_costs": [
+        { "level": 1, "cost": 0, "description": "Basic concessions" },
+        { "level": 2, "cost": 15000, "description": "Expanded food options" },
+        { "level": 3, "cost": 25000, "description": "Premium vendors" },
+        { "level": 4, "cost": 40000, "description": "Gourmet dining" },
+        { "level": 5, "cost": 65000, "description": "Elite hospitality" }
+      ]
+    },
+    
+    "parking": {
+      "name": "Parking & Transportation",
+      "description": "Parking fees and fan convenience",
+      "max_level": 5,
+      "base_cost": 20000,
+      "cost_multiplier": 1.20,
+      "revenue_per_attendee": 3,
+      "attendance_multiplier": 0.30,
+      "revenue_multiplier_per_level": 0.10,
+      "maintenance_cost_per_level": 150,
+      "roi_category": "low",
+      "upgrade_costs": [
+        { "level": 1, "cost": 0, "description": "Basic parking lot" },
+        { "level": 2, "cost": 20000, "description": "Paved parking" },
+        { "level": 3, "cost": 35000, "description": "Premium spots" },
+        { "level": 4, "cost": 55000, "description": "Covered parking" },
+        { "level": 5, "cost": 85000, "description": "Parking garage" }
+      ]
+    },
+    
+    "merchandising": {
+      "name": "Team Store & Merchandise",
+      "description": "Team merchandise and apparel sales",
+      "max_level": 5,
+      "base_cost": 12000,
+      "cost_multiplier": 1.30,
+      "revenue_per_attendee": 3,
+      "revenue_multiplier_per_level": 0.12,
+      "maintenance_cost_per_level": 100,
+      "roi_category": "medium",
+      "upgrade_costs": [
+        { "level": 1, "cost": 0, "description": "Basic team store" },
+        { "level": 2, "cost": 12000, "description": "Expanded merchandise" },
+        { "level": 3, "cost": 20000, "description": "Premium apparel" },
+        { "level": 4, "cost": 35000, "description": "Interactive displays" },
+        { "level": 5, "cost": 60000, "description": "Flagship store" }
+      ]
+    },
+    
+    "vip_suites": {
+      "name": "VIP Suites & Premium Seating",
+      "description": "Premium seating and hospitality experiences",
+      "max_level": 3,
+      "base_cost": 75000,
+      "cost_multiplier": 1.50,
+      "flat_revenue_per_level": 5000,
+      "revenue_multiplier_per_level": 0.25,
+      "maintenance_cost_per_level": 1000,
+      "roi_category": "very_high",
+      "upgrade_costs": [
+        { "level": 0, "cost": 0, "description": "No VIP facilities" },
+        { "level": 1, "cost": 75000, "description": "Basic VIP boxes" },
+        { "level": 2, "cost": 150000, "description": "Luxury suites" },
+        { "level": 3, "cost": 300000, "description": "Presidential boxes" }
+      ]
+    },
+    
+    "lighting": {
+      "name": "Stadium Lighting System",
+      "description": "Stadium lighting and visibility enhancement",
+      "max_level": 5,
+      "base_cost": 30000,
+      "cost_multiplier": 1.35,
+      "atmosphere_bonus_per_level": 2,
+      "home_advantage_bonus_per_level": 1,
+      "fan_loyalty_bonus_per_level": 0.5,
+      "maintenance_cost_per_level": 300,
+      "roi_category": "high",
+      "upgrade_costs": [
+        { "level": 1, "cost": 0, "description": "Basic lighting" },
+        { "level": 2, "cost": 30000, "description": "LED upgrade" },
+        { "level": 3, "cost": 50000, "description": "Professional grade" },
+        { "level": 4, "cost": 85000, "description": "Broadcast quality" },
+        { "level": 5, "cost": 140000, "description": "Championship standard" }
+      ]
+    },
+    
+    "screens": {
+      "name": "Video Screens & Sound System",
+      "description": "Stadium video displays and audio systems",
+      "max_level": 4,
+      "base_cost": 40000,
+      "cost_multiplier": 1.40,
+      "atmosphere_bonus_per_level": 3,
+      "fan_loyalty_bonus_per_level": 1,
+      "maintenance_cost_per_level": 500,
+      "roi_category": "medium",
+      "upgrade_costs": [
+        { "level": 1, "cost": 0, "description": "Basic scoreboard" },
+        { "level": 2, "cost": 40000, "description": "Digital displays" },
+        { "level": 3, "cost": 80000, "description": "HD video walls" },
+        { "level": 4, "cost": 160000, "description": "4K immersive experience" }
+      ]
+    },
+    
+    "security": {
+      "name": "Security & Safety Systems",
+      "description": "Safety, crowd management, and security",
+      "max_level": 5,
+      "base_cost": 35000,
+      "cost_multiplier": 1.25,
+      "atmosphere_bonus_per_level": 1,
+      "capacity_bonus_per_level": 2000,
+      "maintenance_cost_per_level": 250,
+      "roi_category": "medium",
+      "upgrade_costs": [
+        { "level": 1, "cost": 0, "description": "Basic security" },
+        { "level": 2, "cost": 35000, "description": "Enhanced monitoring" },
+        { "level": 3, "cost": 60000, "description": "Advanced systems" },
+        { "level": 4, "cost": 95000, "description": "Integrated security" },
+        { "level": 5, "cost": 150000, "description": "Elite protection" }
+      ]
+    }
+  },
+  
+  "maintenance": {
+    "description": "Daily maintenance costs and inflation",
+    "base_daily_cost": 5000,
+    "cost_per_1000_capacity": 500,
+    "facility_maintenance_multiplier": {
+      "concessions": 200,
+      "parking": 150,
+      "merchandising": 100,
+      "vip_suites": 1000,
+      "lighting": 300,
+      "screens": 500,
+      "security": 250
+    },
+    "inflation": {
+      "enabled": true,
+      "annual_rate": 0.03,
+      "max_multiplier": 2.0,
+      "description": "3% annual maintenance cost inflation, capped at 2x base cost"
+    }
+  },
+  
+  "field_effects": {
+    "standard": {
+      "name": "Standard Field",
+      "home_advantage_bonus": 0,
+      "description": "Regulation size field with balanced gameplay"
+    },
+    "large": {
+      "name": "Large Field", 
+      "home_advantage_bonus": 5,
+      "speed_bonus": 2,
+      "description": "Larger field favors speed and endurance players"
+    },
+    "small": {
+      "name": "Small Field",
+      "home_advantage_bonus": 3,
+      "power_bonus": 2,
+      "description": "Compact field favors power plays and quick decisions"  
+    }
+  },
+  
+  "revenue_formulas": {
+    "description": "Per-game revenue calculation formulas",
+    "tickets": {
+      "base_price": 25,
+      "formula": "attendance × base_price",
+      "description": "Fixed ticket price per attendee"
+    },
+    "concessions": {
+      "base_revenue": 8,
+      "formula": "attendance × base_revenue × facility_level",
+      "multiplier_per_level": 0.15,
+      "description": "Food/beverage sales scaled by facility level"
+    },
+    "parking": {
+      "base_revenue": 10,
+      "attendance_factor": 0.30,
+      "formula": "(attendance × attendance_factor) × base_revenue × facility_level",
+      "multiplier_per_level": 0.10,
+      "description": "Parking fees for ~30% of attendees"
+    },
+    "merchandising": {
+      "base_revenue": 3,
+      "formula": "attendance × base_revenue × facility_level",
+      "multiplier_per_level": 0.12,
+      "description": "Apparel and merchandise sales"
+    },
+    "vip_suites": {
+      "flat_revenue": 5000,
+      "formula": "facility_level × flat_revenue",
+      "description": "Fixed premium revenue per VIP suite level"
+    }
+  },
+  
+  "attendance": {
+    "description": "Fan attendance calculation factors",
+    "base_rate": 0.35,
+    "fan_loyalty_factor": 0.60,
+    "win_streak_bonus": 0.05,
+    "division_prestige": {
+      "1": 0.20,
+      "2": 0.15, 
+      "3": 0.12,
+      "4": 0.10,
+      "5": 0.08,
+      "6": 0.05,
+      "7": 0.03,
+      "8": 0.00
+    },
+    "min_attendance_rate": 0.15,
+    "max_attendance_rate": 0.95,
+    "formula": "Math.min(max_rate, Math.max(min_rate, base_rate + (fan_loyalty × loyalty_factor) + win_streak_bonus + division_bonus))"
+  },
+  
+  "economics": {
+    "payback_periods": {
+      "description": "Typical investment payback periods in games",
+      "capacity": "8-12 games",
+      "concessions": "15-20 games", 
+      "parking": "25-35 games",
+      "merchandising": "20-25 games",
+      "vip_suites": "5-8 games",
+      "lighting": "12-18 games",
+      "screens": "20-30 games",
+      "security": "Infrastructure investment"
+    },
+    "roi_categories": {
+      "very_high": "3-6 month payback",
+      "high": "6-12 month payback", 
+      "medium": "12-24 month payback",
+      "low": "24+ month payback or utility value"
+    }
+  }
+}

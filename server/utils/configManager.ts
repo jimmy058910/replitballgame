@@ -1,274 +1,145 @@
 /**
- * Configuration Manager
- * Loads and manages YAML configuration files
- * Provides type-safe access to balance parameters
+ * Configuration Manager for Stadium Systems
+ * Loads and caches configuration from JSON files
  */
 
-import { readFileSync, existsSync } from 'fs';
-import { join } from 'path';
-import * as yaml from 'js-yaml';
+import * as fs from 'fs';
+import * as path from 'path';
 
-interface SimulationConfig {
-  injury_rates: {
-    base_tackle: number;
-    power_tackle_multiplier: number;
-    trainer_reduction: number;
-    morale_factor: number;
-  };
-  stamina: {
-    depletion_rate: number;
-    recovery_multiplier: number;
-    attribute_bonus: number;
-    minimum_loss: number;
-  };
-  contested_balls: {
-    forced_rate: number;
-    unforced_rate: number;
-    recovery_bonus: number;
-  };
-  interceptions: {
-    base_rate: number;
-    coverage_bonus: number;
-    pressure_bonus: number;
-  };
-  power_tackles: {
-    threshold: number;
-    bonus_damage: number;
-    anything_goes_chance: number;
-  };
-}
-
-interface CommentaryConfig {
-  prompt_weights: {
-    neutral: number;
-    race_flavor: number;
-    skill_flavor: number;
-    contextual: number;
-    late_game: number;
-  };
-  race_commentary_chance: number;
-}
-
-interface StadiumConfig {
-  home_field: {
-    base_advantage: number;
-    max_advantage: number;
-    capacity_factor: number;
-    loyalty_multiplier: number;
-  };
-  crowd_effects: {
-    noise_penalty: number;
-    intimidation_bonus: number;
-    morale_boost: number;
-  };
-  atmosphere: {
-    attendance_loyalty_factor: number;
-    max_attendance_rate: number;
-    min_attendance_rate: number;
-  };
-}
-
-interface PlayerProgressionConfig {
-  daily_progression: {
-    base_chance: number;
-    age_modifier: number;
-    usage_bonus: number;
-  };
-  season_progression: {
-    base_chance: number;
-    potential_multiplier: number;
-    trainer_bonus: number;
-  };
-  aging: {
-    decline_start_age: number;
-    decline_rate: number;
-    retirement_age: number;
-  };
-}
-
-interface EconomyConfig {
-  marketplace: {
-    listing_fee: number;
-    max_listings: number;
-    anti_snipe_time: number;
-  };
-  stadium_revenue: {
-    ticket_price: number;
-    concession_multiplier: number;
-    parking_rate: number;
-    parking_price: number;
-  };
-}
-
-export interface GameConfig {
-  simulation: SimulationConfig;
-  commentary: CommentaryConfig;
-  stadium: StadiumConfig;
-  player_progression: PlayerProgressionConfig;
-  economy: EconomyConfig;
-  version: string;
-  last_updated: string;
+interface ConfigCache {
+  [key: string]: any;
 }
 
 class ConfigManager {
-  private config: GameConfig | null = null;
-  private configPath: string;
+  private cache: ConfigCache = {};
+  private configDir: string;
 
-  constructor(configPath: string = 'config/balance.yml') {
-    this.configPath = configPath;
-    this.loadConfig();
+  constructor() {
+    this.configDir = path.join(process.cwd(), 'config');
   }
 
-  private loadConfig(): void {
+  /**
+   * Load configuration from JSON file with caching
+   */
+  private loadConfig(filename: string): any {
+    const cacheKey = filename;
+    
+    if (this.cache[cacheKey]) {
+      return this.cache[cacheKey];
+    }
+
     try {
-      const fullPath = join(process.cwd(), this.configPath);
+      const configPath = path.join(this.configDir, filename);
+      const configData = fs.readFileSync(configPath, 'utf8');
+      const parsedConfig = JSON.parse(configData);
       
-      if (!existsSync(fullPath)) {
-        console.warn(`Config file not found at ${fullPath}, using defaults`);
-        this.config = this.getDefaultConfig();
-        return;
-      }
-
-      const fileContents = readFileSync(fullPath, 'utf8');
-      this.config = yaml.load(fileContents) as GameConfig;
+      // Cache the configuration
+      this.cache[cacheKey] = parsedConfig;
       
-      console.log(`✓ Loaded configuration from ${this.configPath}`);
-      console.log(`  Version: ${this.config.version}`);
-      console.log(`  Last updated: ${this.config.last_updated}`);
+      console.log(`✓ Loaded configuration from ${filename}`);
+      console.log(`  Version: ${parsedConfig.version || 'Unknown'}`);
+      console.log(`  Last updated: ${parsedConfig.lastUpdated || 'Unknown'}`);
       
+      return parsedConfig;
     } catch (error) {
-      console.error(`Error loading config file: ${error}`);
-      this.config = this.getDefaultConfig();
+      console.error(`Failed to load config ${filename}:`, error);
+      throw new Error(`Configuration file ${filename} could not be loaded`);
     }
   }
 
-  private getDefaultConfig(): GameConfig {
-    return {
-      simulation: {
-        injury_rates: {
-          base_tackle: 0.03,
-          power_tackle_multiplier: 1.5,
-          trainer_reduction: 0.15,
-          morale_factor: 0.1
-        },
-        stamina: {
-          depletion_rate: 0.8,
-          recovery_multiplier: 1.2,
-          attribute_bonus: 0.3,
-          minimum_loss: 5
-        },
-        contested_balls: {
-          forced_rate: 0.12,
-          unforced_rate: 0.05,
-          recovery_bonus: 0.2
-        },
-        interceptions: {
-          base_rate: 0.018,
-          coverage_bonus: 0.01,
-          pressure_bonus: 0.005
-        },
-        power_tackles: {
-          threshold: 30,
-          bonus_damage: 0.5,
-          anything_goes_chance: 0.1
-        }
-      },
-      commentary: {
-        prompt_weights: {
-          neutral: 1.0,
-          race_flavor: 0.6,
-          skill_flavor: 0.8,
-          contextual: 1.2,
-          late_game: 1.5
-        },
-        race_commentary_chance: 0.15
-      },
-      stadium: {
-        home_field: {
-          base_advantage: 0.03,
-          max_advantage: 0.09,
-          capacity_factor: 0.0001,
-          loyalty_multiplier: 0.8
-        },
-        crowd_effects: {
-          noise_penalty: 0.02,
-          intimidation_bonus: 0.01,
-          morale_boost: 0.15
-        },
-        atmosphere: {
-          attendance_loyalty_factor: 0.7,
-          max_attendance_rate: 0.95,
-          min_attendance_rate: 0.35
-        }
-      },
-      player_progression: {
-        daily_progression: {
-          base_chance: 0.01,
-          age_modifier: 0.001,
-          usage_bonus: 0.005
-        },
-        season_progression: {
-          base_chance: 0.3,
-          potential_multiplier: 0.1,
-          trainer_bonus: 0.05
-        },
-        aging: {
-          decline_start_age: 31,
-          decline_rate: 0.025,
-          retirement_age: 45
-        }
-      },
-      economy: {
-        marketplace: {
-          listing_fee: 0.02,
-          max_listings: 3,
-          anti_snipe_time: 300
-        },
-        stadium_revenue: {
-          ticket_price: 25,
-          concession_multiplier: 8,
-          parking_rate: 0.3,
-          parking_price: 10
-        }
-      },
-      version: "1.0.0",
-      last_updated: "2025-07-18"
-    };
+  /**
+   * Get stadium configuration
+   */
+  getStadium(): any {
+    return this.loadConfig('stadium_config.json');
   }
 
-  public getConfig(): GameConfig {
-    if (!this.config) {
-      this.loadConfig();
+  /**
+   * Get balance configuration (if exists)
+   */
+  getBalance(): any {
+    try {
+      return this.loadConfig('balance.yml');
+    } catch (error) {
+      console.warn('Balance config not found, using defaults');
+      return {};
     }
-    return this.config!;
   }
 
-  public reloadConfig(): void {
-    this.loadConfig();
+  /**
+   * Reload configuration (clear cache)
+   */
+  reload(): void {
+    this.cache = {};
+    console.log('Configuration cache cleared');
   }
 
-  // Convenience methods for accessing specific config sections
-  public getSimulation(): SimulationConfig {
-    return this.getConfig().simulation;
+  /**
+   * Get specific facility configuration
+   */
+  getFacilityConfig(facilityName: string): any {
+    const stadiumConfig = this.getStadium();
+    return stadiumConfig.facilities?.[facilityName] || null;
   }
 
-  public getCommentary(): CommentaryConfig {
-    return this.getConfig().commentary;
+  /**
+   * Get upgrade cost for facility level
+   */
+  getFacilityUpgradeCost(facilityName: string, currentLevel: number): number {
+    const facilityConfig = this.getFacilityConfig(facilityName);
+    if (!facilityConfig) return 0;
+
+    const nextLevel = currentLevel + 1;
+    if (nextLevel > facilityConfig.max_level) return 0;
+
+    // Check if upgrade_costs array exists
+    if (facilityConfig.upgrade_costs) {
+      const levelCost = facilityConfig.upgrade_costs.find((cost: any) => cost.level === nextLevel);
+      return levelCost?.cost || 0;
+    }
+
+    // Fallback to formula-based calculation
+    const baseCost = facilityConfig.base_cost || 10000;
+    const multiplier = facilityConfig.cost_multiplier || 1.25;
+    return Math.floor(baseCost * Math.pow(multiplier, currentLevel));
   }
 
-  public getStadium(): StadiumConfig {
-    return this.getConfig().stadium;
+  /**
+   * Get maintenance cost calculation
+   */
+  getMaintenanceCost(stadium: any): number {
+    const config = this.getStadium();
+    const maintenanceConfig = config.maintenance;
+
+    let totalCost = maintenanceConfig.base_daily_cost || 5000;
+    
+    // Add capacity-based costs
+    const capacityCost = Math.floor((stadium.capacity || 5000) / 1000) * (maintenanceConfig.cost_per_1000_capacity || 500);
+    totalCost += capacityCost;
+
+    // Add facility-specific maintenance
+    const facilityMultipliers = maintenanceConfig.facility_maintenance_multiplier || {};
+    
+    Object.keys(facilityMultipliers).forEach(facility => {
+      const level = stadium[`${facility}Level`] || 0;
+      const multiplier = facilityMultipliers[facility] || 0;
+      totalCost += level * multiplier;
+    });
+
+    return Math.floor(totalCost);
   }
 
-  public getPlayerProgression(): PlayerProgressionConfig {
-    return this.getConfig().player_progression;
-  }
+  /**
+   * Get capacity expansion cost
+   */
+  getCapacityExpansionCost(currentCapacity: number, targetCapacity: number): number {
+    const config = this.getStadium();
+    const expansionConfig = config.capacity_expansion;
 
-  public getEconomy(): EconomyConfig {
-    return this.getConfig().economy;
+    const targetTier = expansionConfig.tiers.find((tier: any) => tier.capacity === targetCapacity);
+    return targetTier?.cost || 0;
   }
 }
 
 // Export singleton instance
 export const configManager = new ConfigManager();
-export default configManager;

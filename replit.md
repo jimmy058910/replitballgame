@@ -593,6 +593,39 @@ docker push gcr.io/direct-glider-465821-p7/realm-rivalry:latest
 
 ## Recent Changes
 
+### July 28, 2025 - ✅ COMPREHENSIVE STADIUM CONFIGURATION SYSTEM IMPLEMENTED ✅
+
+#### ✅ STADIUM ECONOMICS EXTERNALIZED - CONFIGURATION-DRIVEN ARCHITECTURE COMPLETE
+- ✓ **Stadium Config Created**: Built comprehensive `config/stadium_config.json` with complete facility economics
+  - 7 facilities configured (concessions, parking, merchandising, VIP suites, lighting, screens, security)
+  - 10 capacity expansion tiers (5k → 75k with exact costs)
+  - Per-level upgrade costs, maximum facility caps, ROI categories
+  - Revenue formulas, maintenance economics, attendance calculations
+- ✓ **Configuration Manager Built**: Created `server/utils/configManager.ts` with caching and dynamic loading
+  - Facility upgrade cost calculation: `getFacilityUpgradeCost(facility, currentLevel)`
+  - Maintenance cost calculation: `getMaintenanceCost(stadium)` with capacity and facility-based scaling
+  - Capacity expansion costs: `getCapacityExpansionCost(current, target)`
+- ✓ **System Integration**: Updated `shared/stadiumSystem.ts` to load configuration dynamically
+  - Async configuration loading with fallback to defaults
+  - Updated `getAvailableFacilityUpgrades()` to use config-driven costs and caps
+  - Enhanced facility info with ROI categories and exact upgrade descriptions
+
+#### ✅ EXACT FACILITY ECONOMICS NOW DOCUMENTED
+- ✓ **Upgrade Cost Transparency**: Each facility shows exact costs per level
+  - Concessions: 0₡ → 15k₡ → 25k₡ → 40k₡ → 65k₡ (Max Level 5)
+  - VIP Suites: 0₡ → 75k₡ → 150k₡ → 300k₡ (Max Level 3, Very High ROI)
+  - Parking: 0₡ → 20k₡ → 35k₡ → 55k₡ → 85k₡ (Max Level 5, Low ROI)
+- ✓ **Maintenance Cost Formula**: Base 5k₡ + capacity scaling + facility-specific costs
+- ✓ **Hard Caps Established**: Stadium capacity capped at 75k, facility levels have defined maximums
+- ✓ **Revenue Formulas**: All per-game revenue calculations documented with multipliers
+- ✓ **ROI Categories**: Facilities categorized by payback periods (very_high, high, medium, low)
+
+#### ✅ CONFIGURATION TESTING VERIFIED
+- ✓ **Node.js Loading**: Configuration successfully loads with proper validation
+- ✓ **Facility Data**: 7 facilities configured with upgrade costs, caps, and descriptions
+- ✓ **Capacity Tiers**: 10 expansion tiers from 5k to 75k capacity with exact costs
+- ✓ **System Integration**: Stadium system now uses configuration instead of hardcoded values
+
 ### July 28, 2025 - ✅ CRITICAL STADIUM ATTENDANCE & REVENUE FORMULA CONSOLIDATION COMPLETE ✅
 
 #### ✅ STADIUM ATTENDANCE BUG RESOLVED - CAPACITY OVERFLOW FIXED

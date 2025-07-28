@@ -71,61 +71,59 @@ export interface FacilityInfo {
   atmosphereBonus: number;
 }
 
-// Stadium Configuration Constants
-export const STADIUM_CONFIG = {
-  BASE_CAPACITY: 15000,
+// Stadium Configuration - Loaded from config/stadium_config.json
+let STADIUM_CONFIG: any = null;
+
+/**
+ * Load stadium configuration from JSON file
+ */
+async function loadStadiumConfig() {
+  if (STADIUM_CONFIG) return STADIUM_CONFIG;
+  
+  try {
+    if (typeof require !== 'undefined') {
+      // Node.js environment
+      const fs = require('fs');
+      const path = require('path');
+      const configPath = path.join(process.cwd(), 'config', 'stadium_config.json');
+      const configData = fs.readFileSync(configPath, 'utf8');
+      STADIUM_CONFIG = JSON.parse(configData);
+    } else {
+      // Browser environment - would need to be loaded via API
+      throw new Error('Stadium config must be loaded via API in browser environment');
+    }
+  } catch (error) {
+    console.error('Failed to load stadium config, using defaults:', error);
+    // Fallback to basic configuration
+    STADIUM_CONFIG = {
+      stadium_defaults: { base_capacity: 5000, max_capacity: 75000, base_fan_loyalty: 50 },
+      facilities: {
+        concessions: { max_level: 5, base_cost: 15000, revenue_multiplier_per_level: 0.15 },
+        parking: { max_level: 5, base_cost: 20000, revenue_multiplier_per_level: 0.10 },
+        merchandising: { max_level: 5, base_cost: 12000, revenue_multiplier_per_level: 0.12 },
+        vip_suites: { max_level: 3, base_cost: 75000, flat_revenue_per_level: 5000 },
+        lighting: { max_level: 5, base_cost: 30000, atmosphere_bonus_per_level: 2 },
+        screens: { max_level: 4, base_cost: 40000, atmosphere_bonus_per_level: 3 },
+        security: { max_level: 5, base_cost: 35000, capacity_bonus_per_level: 2000 }
+      }
+    };
+  }
+  
+  return STADIUM_CONFIG;
+}
+
+/**
+ * Get stadium configuration (async)
+ */
+export async function getStadiumConfig() {
+  return await loadStadiumConfig();
+}
+
+// Legacy support - will be deprecated
+export const STADIUM_CONFIG_LEGACY = {
+  BASE_CAPACITY: 5000,
   MAX_CAPACITY: 75000,
   BASE_FAN_LOYALTY: 50,
-  
-  // Facility Level Effects
-  FACILITY_EFFECTS: {
-    concessionsLevel: {
-      revenueMultiplier: 0.15, // 15% per level
-      maxLevel: 5,
-      baseCost: 30000
-    },
-    parkingLevel: {
-      revenueMultiplier: 0.10, // 10% per level
-      maxLevel: 5,
-      baseCost: 25000
-    },
-    merchandisingLevel: {
-      revenueMultiplier: 0.12, // 12% per level
-      maxLevel: 5,
-      baseCost: 40000
-    },
-    vipSuitesLevel: {
-      revenueMultiplier: 0.25, // 25% per level
-      maxLevel: 3,
-      baseCost: 100000
-    },
-    screensLevel: {
-      atmosphereBonus: 3, // +3 per level
-      maxLevel: 4,
-      baseCost: 40000
-    },
-    lightingLevel: {
-      atmosphereBonus: 2, // +2 per level
-      homeAdvantageBonus: 1, // +1 per level
-      maxLevel: 5,
-      baseCost: 60000
-    },
-    securityLevel: {
-      atmosphereBonus: 1, // +1 per level
-      capacityBonus: 2000, // +2000 per level
-      maxLevel: 5,
-      baseCost: 35000
-    }
-  },
-  
-  // Field Size Effects
-  FIELD_SIZE_EFFECTS: {
-    standard: { name: "Standard Field", homeAdvantageBonus: 0, description: "Regulation size field" },
-    large: { name: "Large Field", homeAdvantageBonus: 5, description: "Larger field favors speed and endurance" },
-    small: { name: "Small Field", homeAdvantageBonus: 3, description: "Compact field favors power and quick plays" }
-  },
-  
-  // Revenue Base Rates (per person or flat)
   REVENUE_RATES: {
     ticketSales: 25, // $25 per person
     concessionSales: 8, // $8 per person
@@ -298,12 +296,12 @@ export function calculateGameRevenue(
   
   const attendanceThousands = attendance / 1000;
   
-  // Base revenue calculations
-  let ticketSales = attendance * STADIUM_CONFIG.REVENUE_RATES.ticketSales;
-  let concessionSales = attendance * STADIUM_CONFIG.REVENUE_RATES.concessionSales;
-  let parkingRevenue = (attendance * 0.3) * STADIUM_CONFIG.REVENUE_RATES.parkingRevenue; // 30% of attendees use parking
-  let apparelSales = attendance * STADIUM_CONFIG.REVENUE_RATES.apparelSales;
-  let vipSuiteRevenue = (stadium.vipSuitesLevel || 0) * STADIUM_CONFIG.REVENUE_RATES.vipSuiteRevenue; // Flat 5000 per VIP suite level
+  // Base revenue calculations using legacy rates (will be updated to use async config)
+  let ticketSales = attendance * STADIUM_CONFIG_LEGACY.REVENUE_RATES.ticketSales;
+  let concessionSales = attendance * STADIUM_CONFIG_LEGACY.REVENUE_RATES.concessionSales;
+  let parkingRevenue = (attendance * 0.3) * STADIUM_CONFIG_LEGACY.REVENUE_RATES.parkingRevenue; // 30% of attendees use parking
+  let apparelSales = attendance * STADIUM_CONFIG_LEGACY.REVENUE_RATES.apparelSales;
+  let vipSuiteRevenue = (stadium.vipSuitesLevel || 0) * STADIUM_CONFIG_LEGACY.REVENUE_RATES.vipSuiteRevenue; // Flat 5000 per VIP suite level
   
   // Apply facility bonuses
   concessionSales *= (1 + ((stadium.concessionsLevel || 0) * 0.15));
@@ -331,71 +329,55 @@ export function calculateGameRevenue(
 }
 
 /**
- * Get available facility upgrades for a stadium
+ * Get available facility upgrades for a stadium using configuration
  */
-export function getAvailableFacilityUpgrades(stadium: Stadium): FacilityInfo[] {
+export async function getAvailableFacilityUpgrades(stadium: Stadium): Promise<FacilityInfo[]> {
+  const config = await getStadiumConfig();
   const upgrades: FacilityInfo[] = [];
   
-  const facilities = [
-    { 
-      key: 'concessionsLevel', 
-      name: 'Concessions', 
-      current: stadium.concessionsLevel,
-      description: 'Food and beverage sales'
-    },
-    { 
-      key: 'parkingLevel', 
-      name: 'Parking', 
-      current: stadium.parkingLevel,
-      description: 'Parking capacity and quality'
-    },
-    { 
-      key: 'merchandisingLevel', 
-      name: 'Merchandising', 
-      current: stadium.merchandisingLevel,
-      description: 'Team store and apparel sales'
-    },
-    { 
-      key: 'vipSuitesLevel', 
-      name: 'VIP Suites', 
-      current: stadium.vipSuitesLevel,
-      description: 'Premium seating and hospitality'
-    },
-    { 
-      key: 'screensLevel', 
-      name: 'Video Screens', 
-      current: stadium.screensLevel,
-      description: 'Stadium video and sound systems'
-    },
-    { 
-      key: 'lightingLevel', 
-      name: 'Lighting', 
-      current: stadium.lightingLevel,
-      description: 'Stadium lighting and visibility'
-    },
-    { 
-      key: 'securityLevel', 
-      name: 'Security', 
-      current: stadium.securityLevel,
-      description: 'Safety and crowd management'
-    }
+  const facilityMappings = [
+    { key: 'concessionsLevel', configKey: 'concessions', name: 'Concessions', current: stadium.concessionsLevel },
+    { key: 'parkingLevel', configKey: 'parking', name: 'Parking', current: stadium.parkingLevel },
+    { key: 'merchandisingLevel', configKey: 'merchandising', name: 'Merchandising', current: stadium.merchandisingLevel },
+    { key: 'vipSuitesLevel', configKey: 'vip_suites', name: 'VIP Suites', current: stadium.vipSuitesLevel },
+    { key: 'lightingScreensLevel', configKey: 'screens', name: 'Video Screens', current: stadium.lightingScreensLevel },
+    { key: 'lightingLevel', configKey: 'lighting', name: 'Lighting', current: stadium.lightingLevel },
+    { key: 'securityLevel', configKey: 'security', name: 'Security', current: stadium.securityLevel }
   ];
   
-  facilities.forEach(facility => {
-    const config = STADIUM_CONFIG.FACILITY_EFFECTS[facility.key as keyof typeof STADIUM_CONFIG.FACILITY_EFFECTS];
-    const currentLevel = facility.current || 1;
-    if (currentLevel < config.maxLevel) {
+  facilityMappings.forEach(facility => {
+    const facilityConfig = config.facilities[facility.configKey];
+    if (!facilityConfig) return;
+    
+    const currentLevel = facility.current || (facility.configKey === 'vip_suites' ? 0 : 1);
+    
+    if (currentLevel < facilityConfig.max_level) {
       const nextLevel = currentLevel + 1;
-      const upgradeCost = config.baseCost * Math.pow(1.5, currentLevel);
+      const upgradeCostData = facilityConfig.upgrade_costs?.find((cost: any) => cost.level === nextLevel);
+      const upgradeCost = upgradeCostData?.cost || Math.floor(facilityConfig.base_cost * Math.pow(facilityConfig.cost_multiplier, currentLevel));
       
       upgrades.push({
-        name: `${facility.name} Level ${nextLevel}`,
-        level: nextLevel,
-        maxLevel: config.maxLevel,
-        upgradeCost: Math.floor(upgradeCost),
-        description: facility.description,
-        revenueBonus: (config as any).revenueMultiplier ? (config as any).revenueMultiplier * 100 : 0,
-        atmosphereBonus: (config as any).atmosphereBonus || 0
+        facilityKey: facility.key,
+        name: facilityConfig.name || facility.name,
+        description: facilityConfig.description,
+        currentLevel,
+        maxLevel: facilityConfig.max_level,
+        upgradeCost,
+        canUpgrade: true,
+        effect: upgradeCostData?.description || `Level ${nextLevel} upgrade`,
+        roi: facilityConfig.roi_category || 'medium'
+      });
+    } else {
+      upgrades.push({
+        facilityKey: facility.key,
+        name: facilityConfig.name || facility.name,
+        description: facilityConfig.description,
+        currentLevel,
+        maxLevel: facilityConfig.max_level,
+        upgradeCost: 0,
+        canUpgrade: false,
+        effect: 'Maximum level reached',
+        roi: facilityConfig.roi_category || 'medium'
       });
     }
   });
