@@ -50,6 +50,9 @@ export class SeasonTimingAutomationService {
     this.isRunning = true;
     logInfo('Starting season timing automation system...');
 
+    // CRITICAL FIX: Check for missed daily progressions on startup
+    await this.checkAndExecuteMissedDailyProgressions();
+
     // Schedule daily progression at 3:00 AM EST
     this.scheduleDailyProgression();
     
@@ -845,6 +848,101 @@ export class SeasonTimingAutomationService {
     
     // Convert to UTC Date object for setTimeout
     return targetTime.toDate();
+  }
+
+  /**
+   * CRITICAL STARTUP FIX: Check for missed daily progressions and execute them
+   */
+  private async checkAndExecuteMissedDailyProgressions(): Promise<void> {
+    try {
+      logInfo('🔍 Checking for missed daily progressions on startup...');
+      
+      const currentSeason = await storage.seasons.getCurrentSeason();
+      if (!currentSeason) {
+        logInfo('No current season found - skipping missed progression check');
+        return;
+      }
+
+      // FORCE calculation-based day instead of using database value
+      const calculatedCurrentDay = this.calculateCurrentDayFromDate(currentSeason);
+      const databaseDay = currentSeason.currentDay || 1;
+      
+      logInfo(`Database shows Day ${databaseDay}, calculated current day is Day ${calculatedCurrentDay}`);
+      
+      // If calculated day is ahead of database day, we have missed progressions
+      const missedDays = calculatedCurrentDay - databaseDay;
+      
+      if (missedDays > 0) {
+        logInfo(`🚨 MISSED PROGRESSIONS DETECTED: ${missedDays} day(s) behind. Executing catch-up...`);
+        
+        // Execute daily progressions for each missed day
+        for (let i = 0; i < missedDays; i++) {
+          const executingDay = databaseDay + i + 1;
+          logInfo(`🔄 Executing daily progression for missed Day ${executingDay}...`);
+          
+          try {
+            await this.executeDailyProgression();
+            logInfo(`✅ Daily progression for Day ${executingDay} completed successfully`);
+          } catch (error) {
+            console.error(`❌ Failed to execute daily progression for Day ${executingDay}:`, error);
+            // Continue with other days even if one fails
+          }
+        }
+        
+        // Final database update to ensure we're at the correct day
+        await this.forceUpdateSeasonDay(calculatedCurrentDay);
+        logInfo(`🎯 Catch-up completed - advanced from Day ${databaseDay} to Day ${calculatedCurrentDay}`);
+        
+      } else if (missedDays < 0) {
+        logInfo(`⚠️  Database day ${databaseDay} is ahead of calculated day ${calculatedCurrentDay} - possible clock issue`);
+      } else {
+        logInfo(`✅ No missed progressions - database Day ${databaseDay} matches calculated Day ${calculatedCurrentDay}`);
+      }
+      
+    } catch (error) {
+      console.error('❌ Error during missed progression check:', error);
+    }
+  }
+
+  /**
+   * Force calculation of current day from actual date difference
+   */
+  private calculateCurrentDayFromDate(currentSeason: any): number {
+    const seasonStartDate = new Date(currentSeason.startDate || currentSeason.start_date);
+    const now = new Date();
+    const daysSinceStart = Math.floor((now.getTime() - seasonStartDate.getTime()) / (1000 * 60 * 60 * 24));
+    const currentDayInCycle = (daysSinceStart % 17) + 1;
+    
+    console.log('FORCED calculation debug:', {
+      seasonStartDate: seasonStartDate.toISOString(),
+      now: now.toISOString(),
+      daysSinceStart,
+      currentDayInCycle
+    });
+    
+    return currentDayInCycle;
+  }
+
+  /**
+   * Force update season day to a specific value
+   */
+  private async forceUpdateSeasonDay(newDay: number): Promise<void> {
+    try {
+      const currentSeason = await storage.seasons.getCurrentSeason();
+      if (!currentSeason) {
+        console.error('No current season found for day update');
+        return;
+      }
+      
+      await prisma.season.update({
+        where: { id: currentSeason.id },
+        data: { currentDay: newDay }
+      });
+      
+      logInfo(`Season day FORCE updated to Day ${newDay}`);
+    } catch (error) {
+      console.error('Error force updating season day:', error);
+    }
   }
 
   /**
