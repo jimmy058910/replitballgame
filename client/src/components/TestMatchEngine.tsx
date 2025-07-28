@@ -500,7 +500,10 @@ export function TestMatchEngine({ matchId, team1, team2, onMatchComplete }: Test
               {events.length === 0 ? (
                 <p className="text-muted-foreground text-sm">No events yet...</p>
               ) : (
-                events.slice().reverse().map((event) => {
+                events.slice().reverse().map((event, index) => {
+                  // Create unique key combining timestamp and index to prevent duplicate key warnings
+                  const uniqueKey = `event-${event.timestamp}-${index}-${event.id}`;
+                  
                   // Priority-based styling
                   const getPriorityStyle = (priority: number) => {
                     switch(priority) {
@@ -533,7 +536,7 @@ export function TestMatchEngine({ matchId, team1, team2, onMatchComplete }: Test
                   };
                   
                   return (
-                    <div key={event.id} className={`text-sm p-3 rounded-lg border-l-4 transition-all duration-300 ${getPriorityStyle(event.priority)}`}>
+                    <div key={uniqueKey} className={`text-sm p-3 rounded-lg border-l-4 transition-all duration-300 ${getPriorityStyle(event.priority)}`}>
                       <div className="flex justify-between items-start mb-2">
                         <span className="font-semibold text-gray-700 dark:text-gray-300">{event.timestamp}</span>
                         <div className="flex gap-2">
