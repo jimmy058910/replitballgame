@@ -16,6 +16,7 @@ import ModernStickyHeader from "@/components/ModernStickyHeader";
 import InventoryDisplay from "@/components/InventoryDisplay";
 import EnhancedInventoryHub from "@/components/EnhancedInventoryHub";
 import EnhancedMarketplace from "@/components/EnhancedMarketplace";
+import { EnhancedInventoryTab } from "@/components/EnhancedInventoryTab";
 import FinancialCenter from "@/components/FinancialCenter";
 import DynamicMarketplaceManager from "@/components/DynamicMarketplaceManager";
 import StadiumOverview from "@/components/StadiumOverview";
@@ -759,7 +760,14 @@ export default function MarketDistrict() {
 
           {/* Inventory Tab */}
           <TabsContent value="inventory" className="space-y-4">
-            {(team as any)?.id && <EnhancedInventoryHub teamId={(team as any).id} />}
+            {(team as any)?.id && (
+              <EnhancedInventoryTab teamId={(team as any).id.toString()} />
+            )}
+            {!(team as any)?.id && (
+              <div className="text-center py-8">
+                <p className="text-gray-400">Please log in to access your inventory.</p>
+              </div>
+            )}
           </TabsContent>
 
           {/* Finances Tab */}
