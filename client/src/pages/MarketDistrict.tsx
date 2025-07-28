@@ -17,6 +17,7 @@ import InventoryDisplay from "@/components/InventoryDisplay";
 import EnhancedInventoryHub from "@/components/EnhancedInventoryHub";
 import EnhancedMarketplace from "@/components/EnhancedMarketplace";
 import { EnhancedInventoryTab } from "@/components/EnhancedInventoryTab";
+import { EnhancedFinancesTab } from "@/components/EnhancedFinancesTab";
 import FinancialCenter from "@/components/FinancialCenter";
 import DynamicMarketplaceManager from "@/components/DynamicMarketplaceManager";
 import StadiumOverview from "@/components/StadiumOverview";
@@ -772,20 +773,14 @@ export default function MarketDistrict() {
 
           {/* Finances Tab */}
           <TabsContent value="finances" className="space-y-4">
-            <Card className="bg-gray-800 border-gray-700">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-white">
-                  <DollarSign className="h-5 w-5 text-green-400" />
-                  Financial Management Center
-                </CardTitle>
-                <p className="text-sm text-gray-400">
-                  Comprehensive financial overview with contracts, stadium, and projections
-                </p>
-              </CardHeader>
-              <CardContent>
-                {(team as any)?.id && <FinancialCenter teamId={(team as any).id} />}
-              </CardContent>
-            </Card>
+            {(team as any)?.id && (
+              <EnhancedFinancesTab teamId={(team as any).id.toString()} />
+            )}
+            {!(team as any)?.id && (
+              <div className="text-center py-8">
+                <p className="text-gray-400">Please log in to access financial data.</p>
+              </div>
+            )}
           </TabsContent>
         </Tabs>
       </div>
