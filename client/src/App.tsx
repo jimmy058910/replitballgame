@@ -8,6 +8,7 @@ import NotFound from "@/pages/not-found";
 import Landing from "@/pages/Landing";
 import LogoShowcase from "@/pages/LogoShowcase";
 import SuperUser from "@/pages/SuperUser";
+import TestEnvironment from "@/pages/TestEnvironment";
 import HelpManual from "@/pages/HelpManual";
 import { AdTest } from "@/pages/AdTest";
 import { WebSocketTestPage } from "@/components/WebSocketTestPage";
@@ -104,6 +105,7 @@ function Router() {
           
           {/* System Management */}
           <Route path="/superuser" component={SuperUser} />
+          <Route path="/test-environment" component={TestEnvironment} />
           <Route path="/ad-test" component={AdTest} />
           <Route path="/websocket-test" component={WebSocketTestPage} />
           <Route path="/tournament-status" component={LazyTournamentStatus} />

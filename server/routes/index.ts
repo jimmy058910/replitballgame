@@ -59,6 +59,7 @@ import careerHighlightsRoutes from "./careerHighlightsRoutes";
 import referralRoutes from "./referralRoutes";
 import criticalAlertsRoutes from "./criticalAlertsRoutes";
 import enhancedMatchRoutes from "./enhancedMatchRoutes";
+import testEnvironmentRoutes from "./testEnvironmentRoutes";
 
 // This function will be called by server/index.ts to set up all routes.
 // It replaces the direct app.use calls that would have been in server/index.ts
@@ -132,6 +133,7 @@ export function registerAllRoutes(app: Express): void {
   app.use("/api/shareable-moments", shareableMomentsRoutes); // Phase 4 Product-Led Growth Framework shareable moments (legacy)
   app.use("/api/career-highlights", careerHighlightsRoutes); // Enhanced Career Highlights system with expanded categories
   app.use("/api/alerts", criticalAlertsRoutes); // Team HQ critical alerts system for injuries, stamina, and contracts
+  app.use("/api/test-environment", testEnvironmentRoutes); // Industry-standard test environment for match simulation engine validation
 
   // Reminder: The original server/routes.ts also contained helper functions and Stripe init.
   // Stripe init is now in paymentRoutes.ts.
