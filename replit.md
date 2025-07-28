@@ -593,6 +593,18 @@ docker push gcr.io/direct-glider-465821-p7/realm-rivalry:latest
 
 ## Recent Changes
 
+### July 28, 2025 - ✅ CRITICAL STADIUM MAINTENANCE NEGATIVE BALANCE FIX COMPLETE ✅
+
+#### ✅ STADIUM MAINTENANCE CREDIT DEDUCTION CORRECTED - NEGATIVE BALANCES NOW ALLOWED
+- ✓ **Root Cause Identified**: Stadium maintenance at 3AM EDT was incorrectly using `Math.max(0, currentCredits - dailyCost)` preventing negative balances
+- ✓ **Logic Fixed**: Removed `Math.max(0, ...)` constraint to allow teams to go into negative credit balances during maintenance
+- ✓ **Both Scenarios Updated**: 
+  - Existing finance records: `const newCredits = currentCredits - dailyCost; // Allow negative balances`
+  - New finance records: `credits: BigInt(10000 - dailyCost), // Allow negative balances from start`
+- ✓ **Game Design Compliance**: Teams can now properly accumulate debt from stadium maintenance costs as intended
+- ✓ **TypeScript Errors Fixed**: Resolved BigInt type conversion issues in totalCostsDeducted calculations
+- ✓ **Production Ready**: Daily 3AM EDT maintenance will now correctly deduct 5,000₡ regardless of current balance
+
 ### July 28, 2025 - ✅ TACTICAL FOCUS ENUM MISMATCH & UI LABELS FIXED ✅
 
 #### ✅ CRITICAL TACTICAL FOCUS 500 ERROR RESOLVED - ENUM ALIGNMENT COMPLETE

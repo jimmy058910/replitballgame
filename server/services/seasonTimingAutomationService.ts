@@ -551,7 +551,7 @@ export class SeasonTimingAutomationService {
           // Check if team has finance record
           if (team.finances) {
             const currentCredits = parseInt(team.finances.credits.toString()) || 0;
-            const newCredits = Math.max(0, currentCredits - dailyCost); // Don't go negative
+            const newCredits = currentCredits - dailyCost; // Allow negative balances
             
             // Update team finances
             await prisma.teamFinances.update({
@@ -565,19 +565,19 @@ export class SeasonTimingAutomationService {
             console.log(`💸 Recorded stadium maintenance expense: ${dailyCost}₡ for ${team.name}`);
             
             console.log(`💸 ${team.name}: Deducted ${dailyCost}₡ daily stadium cost (${currentCredits}₡ → ${newCredits}₡)`);
-            totalCostsDeducted += dailyCost;
+            totalCostsDeducted += Number(dailyCost);
           } else {
             // Create finance record if it doesn't exist
             const newFinanceRecord = await prisma.teamFinances.create({
               data: {
                 teamId: team.id,
-                credits: BigInt(Math.max(0, 10000 - dailyCost)), // Start with 10k credits minus daily cost
+                credits: BigInt(10000 - dailyCost), // Start with 10k credits minus daily cost, allow negative
                 gems: BigInt(0)
               }
             });
             
             console.log(`🆕 Created finance record for ${team.name} and deducted ${dailyCost}₡ stadium cost`);
-            totalCostsDeducted += dailyCost;
+            totalCostsDeducted += Number(dailyCost);
           }
           
           totalTeamsProcessed++;
