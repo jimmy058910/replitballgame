@@ -198,7 +198,7 @@ export class SeasonTimingAutomationService {
       }
       
     } catch (error) {
-      console.error('Error during catch-up check:', error.message);
+      console.error('Error during catch-up check:', (error as Error).message);
     }
   }
 
@@ -244,7 +244,7 @@ export class SeasonTimingAutomationService {
       
       logInfo('Daily progression execution completed successfully');
     } catch (error) {
-      console.error('❌ Error during daily progression execution:', error.message);
+      console.error('❌ Error during daily progression execution:', (error as Error).message);
       console.error('Full error:', error);
     }
   }
@@ -304,7 +304,7 @@ export class SeasonTimingAutomationService {
       }
       
     } catch (error) {
-      console.error('Error checking season events:', error.message);
+      console.error('Error checking season events:', (error as Error).message);
     }
   }
 
@@ -323,7 +323,7 @@ export class SeasonTimingAutomationService {
       }
       
     } catch (error) {
-      console.error('Error checking match simulation window:', error.message);
+      console.error('Error checking match simulation window:', (error as Error).message);
     }
   }
 
@@ -346,7 +346,7 @@ export class SeasonTimingAutomationService {
       });
       
     } catch (error) {
-      console.error('Error during season start execution:', error.message, 'Season:', seasonNumber);
+      console.error('Error during season start execution:', (error as Error).message, 'Season:', seasonNumber);
     }
   }
 
@@ -420,7 +420,7 @@ export class SeasonTimingAutomationService {
       logInfo(`Mid-Season Cup started for Season ${seasonNumber}`);
       
     } catch (error) {
-      console.error('Error during Mid-Season Cup execution:', error.message, 'Season:', seasonNumber);
+      console.error('Error during Mid-Season Cup execution:', (error as Error).message, 'Season:', seasonNumber);
     }
   }
 
@@ -435,12 +435,12 @@ export class SeasonTimingAutomationService {
       const bracketResult = await SeasonalFlowService.generatePlayoffBrackets(seasonNumber);
       
       logInfo(`Division tournaments started for Season ${seasonNumber}`, {
-        bracketsGenerated: bracketResult.bracketsGenerated,
-        totalMatches: bracketResult.totalMatches
+        bracketsGenerated: bracketResult.bracketsByLeague.length,
+        totalMatches: bracketResult.totalPlayoffMatches
       });
       
     } catch (error) {
-      console.error('Error during Division tournaments execution:', error.message, 'Season:', seasonNumber);
+      console.error('Error during Division tournaments execution:', (error as Error).message, 'Season:', seasonNumber);
     }
   }
 
@@ -462,7 +462,7 @@ export class SeasonTimingAutomationService {
       });
       
     } catch (error) {
-      console.error('Error during season rollover execution:', error.message, 'Season:', seasonNumber);
+      console.error('Error during season rollover execution:', (error as Error).message, 'Season:', seasonNumber);
     }
   }
 
@@ -655,7 +655,7 @@ export class SeasonTimingAutomationService {
       
       logInfo('✅ Daily limits reset completed successfully');
     } catch (error) {
-      console.error('❌ Error resetting daily limits:', error.message);
+      console.error('❌ Error resetting daily limits:', (error as Error).message);
     }
   }
 
@@ -671,7 +671,7 @@ export class SeasonTimingAutomationService {
       
       logInfo('Division finalization completed');
     } catch (error) {
-      console.error('Error finalizing divisions:', error.message);
+      console.error('Error finalizing divisions:', (error as Error).message);
     }
   }
 
@@ -687,7 +687,7 @@ export class SeasonTimingAutomationService {
       
       logInfo('AI team filling for late signup subdivisions completed');
     } catch (error) {
-      console.error('Error executing AI team filling:', error.message);
+      console.error('Error executing AI team filling:', (error as Error).message);
     }
   }
 
@@ -1032,13 +1032,13 @@ export class SeasonTimingAutomationService {
           // Fill with AI teams if needed
           const { TournamentService } = await import('./tournamentService');
           const tournamentService = new TournamentService();
-          await tournamentService.fillMidSeasonCupWithAI(tournament.id);
+          await tournamentService.fillMidSeasonCupWithAI(tournament.id.toString());
 
           // Update tournament status to start countdown
           await prisma.tournament.update({
             where: { id: tournament.id },
             data: { 
-              status: 'COUNTDOWN',
+              status: 'IN_PROGRESS' as any,
               startTime: new Date(Date.now() + 10 * 60 * 1000) // 10 minutes from now
             }
           });
@@ -1228,8 +1228,10 @@ export class SeasonTimingAutomationService {
       }
 
       // Determine winner and runner-up
-      const winner = finalsMatch.homeScore > finalsMatch.awayScore ? finalsMatch.homeTeam : finalsMatch.awayTeam;
-      const runnerUp = finalsMatch.homeScore > finalsMatch.awayScore ? finalsMatch.awayTeam : finalsMatch.homeTeam;
+      const homeScore = finalsMatch.homeScore || 0;
+      const awayScore = finalsMatch.awayScore || 0;
+      const winner = homeScore > awayScore ? finalsMatch.homeTeam : finalsMatch.awayTeam;
+      const runnerUp = homeScore > awayScore ? finalsMatch.awayTeam : finalsMatch.homeTeam;
 
       // Get tournament details for prize distribution
       const tournament = await prisma.tournament.findUnique({

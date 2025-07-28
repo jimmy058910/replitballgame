@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation } from '@tanstack/react-query';
 import { useAuth } from '../hooks/useAuth';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import { Badge } from './ui/badge';
@@ -27,7 +27,8 @@ import {
   Handshake,
   Target,
   Filter,
-  X
+  X,
+  ArrowUp
 } from 'lucide-react';
 import UnifiedTeamHeader from './UnifiedTeamHeader';
 import PlayerDetailModal from './PlayerDetailModal';
@@ -35,6 +36,7 @@ import CamaraderieManagement from './CamaraderieManagement';
 import StadiumFinancialHub from './StadiumFinancialHub';
 import TapToAssignTactics from './TapToAssignTactics';
 import { useToast } from '../hooks/use-toast';
+import { apiRequest, queryClient } from '../lib/queryClient';
 
 // Type definitions
 type Player = {
@@ -130,6 +132,37 @@ export default function MobileRosterHQ() {
   const { data: stadium } = useQuery({
     queryKey: [`/api/teams/${team?.id}/stadium`],
     enabled: !!team?.id
+  });
+
+  // Get current season cycle to determine if promotions are allowed
+  const { data: seasonCycle } = useQuery({
+    queryKey: ['/api/season/current-cycle'],
+  });
+
+  // Promotions only allowed during offseason (Days 16-17)
+  const isOffseason = seasonCycle?.data?.currentDay >= 16;
+
+  // Taxi squad promotion mutation
+  const promotePlayerMutation = useMutation({
+    mutationFn: async (playerId: string) => {
+      return apiRequest(`/api/teams/${team?.id}/taxi-squad/${playerId}/promote`, "POST");
+    },
+    onSuccess: () => {
+      toast({
+        title: "Player Promoted!",
+        description: "Player has been moved to the main roster with a 3-year contract.",
+      });
+      queryClient.invalidateQueries({ queryKey: [`/api/teams/${team?.id}/players`] });
+      queryClient.invalidateQueries({ queryKey: ["/api/teams/my"] });
+    },
+    onError: (error: any) => {
+      const errorMessage = error?.response?.data?.message || error?.message || "Failed to promote player";
+      toast({
+        title: "Promotion Failed",
+        description: errorMessage,
+        variant: "destructive",
+      });
+    },
   });
 
   // Helper functions
@@ -674,9 +707,38 @@ export default function MobileRosterHQ() {
                               
                               <div className="p-2 bg-purple-900/50 rounded text-xs">
                                 <div className="text-purple-200 mb-1">🚌 Taxi Squad Status</div>
-                                <div className="flex justify-between">
-                                  <span className="text-white/70">Promotion Available:</span>
-                                  <span className="text-yellow-300">Days 16-17</span>
+                                <div className="flex justify-between items-center">
+                                  <div>
+                                    <div className="flex justify-between">
+                                      <span className="text-white/70">Promotion Available:</span>
+                                      <span className="text-yellow-300">Days 16-17</span>
+                                    </div>
+                                    {isOffseason && (
+                                      <div className="text-green-400 text-xs mt-1">
+                                        ✅ Available Now
+                                      </div>
+                                    )}
+                                  </div>
+                                  {isOffseason && (
+                                    <Button
+                                      size="sm"
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        promotePlayerMutation.mutate(player.id);
+                                      }}
+                                      disabled={promotePlayerMutation.isPending}
+                                      className="bg-green-600 hover:bg-green-700 text-white text-xs px-2 py-1 h-6"
+                                    >
+                                      {promotePlayerMutation.isPending ? (
+                                        <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-white"></div>
+                                      ) : (
+                                        <>
+                                          <ArrowUp className="w-3 h-3 mr-1" />
+                                          Promote
+                                        </>
+                                      )}
+                                    </Button>
+                                  )}
                                 </div>
                               </div>
                             </CardContent>
