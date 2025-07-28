@@ -351,7 +351,7 @@ class MatchStateManager {
       await prisma.game.update({
         where: { id: parseInt(matchId) },
         data: {
-          simulationLog: persistableState,
+          simulationLog: persistableState as any,
           homeScore: liveState.homeScore,
           awayScore: liveState.awayScore,
           status: liveState.status === 'live' ? 'IN_PROGRESS' : 
@@ -423,7 +423,7 @@ class MatchStateManager {
       const activeMatches = await prisma.game.findMany({
         where: { 
           status: 'IN_PROGRESS',
-          simulationLog: { not: null }
+          simulationLog: { not: null as any }
         }
       });
 
@@ -1343,7 +1343,7 @@ class MatchStateManager {
               teamStats: teamStatsObj,
               mvpData: finalMVP,
               completed: true
-            }
+            } as any
           }
         });
 
@@ -1370,7 +1370,7 @@ class MatchStateManager {
           state.awayTeamId,
           state.homeScore,
           state.awayScore,
-          matchDetails?.matchType || 'EXHIBITION'
+          (matchDetails?.matchType as any) || 'EXHIBITION'
         );
         console.log(`✨ POST-GAME CAMARADERIE UPDATE: Match ${matchId} - Updated team chemistry for both teams based on ${matchDetails?.matchType || 'EXHIBITION'} result`);
 
@@ -1406,7 +1406,7 @@ class MatchStateManager {
                 events: state.gameEvents.slice(-50),
                 finalScores: { home: state.homeScore, away: state.awayScore },
                 error: `Error persisting stats: ${(error as Error).message}`
-              }
+              } as any
             }
           });
         } else {
@@ -1430,7 +1430,7 @@ class MatchStateManager {
         console.log(`⏱️ PLAYER MINUTES: ${player.firstName} ${player.lastName} played ${actualMinutesPlayed.toFixed(1)} minutes`);
         
         // Use actual minutes played for stamina depletion
-        await injuryStaminaService.depleteStaminaAfterMatch(player.id, gameMode, actualMinutesPlayed);
+        await injuryStaminaService.depleteStaminaAfterMatch(player.id.toString(), gameMode, actualMinutesPlayed);
       }
 
       // Handle tournament flow progression for tournament matches
@@ -1555,7 +1555,7 @@ class MatchStateManager {
           where: { teamId: parseInt(state.awayTeamId) }
         });
         console.log(`👥 Found ${homePlayers.length} home players and ${awayPlayers.length} away players`);
-        await this.completeMatch(parseInt(matchId), state.homeTeamId, state.awayTeamId, homePlayers, awayPlayers);
+        await this.completeMatch(matchId, state.homeTeamId, state.awayTeamId, homePlayers, awayPlayers);
         console.log(`✅ Match ${matchId} completion successful`);
       } catch (error) {
         console.error(`❌ Error completing match ${matchId}:`, error);
@@ -1722,10 +1722,10 @@ class MatchStateManager {
       if (state.lastUpdateTime < cutoff) {
         console.log(`Cleaning up abandoned match: ${matchId}`);
         const homePlayers = await prisma.player.findMany({
-          where: { teamId: state.homeTeamId }
+          where: { teamId: parseInt(state.homeTeamId) }
         });
         const awayPlayers = await prisma.player.findMany({
-          where: { teamId: state.awayTeamId }
+          where: { teamId: parseInt(state.awayTeamId) }
         });
         await this.completeMatch(matchId, state.homeTeamId, state.awayTeamId, homePlayers, awayPlayers);
       }
@@ -1742,7 +1742,7 @@ class MatchStateManager {
         where: {
           teamId: teamId,
           isActive: true,
-          matchType: matchType
+          matchType: matchType as any
         }
       });
 
@@ -1752,7 +1752,7 @@ class MatchStateManager {
           where: {
             teamId: teamId,
             isActive: true,
-            matchType: matchType
+            matchType: matchType as any
           },
           data: {
             isActive: false
@@ -1803,16 +1803,16 @@ class MatchStateManager {
         });
         console.log(`Away team ${awayId} wins, Home team ${homeId} loses`);
       } else {
-        // Draw - award 1 point to each team and increment draws
+        // Draw - award 1 point to each team (no draws field in Team model)
         await prisma.team.update({
           where: { id: homeId },
-          data: { draws: { increment: 1 }, points: { increment: 1 } }
+          data: { points: { increment: 1 } }
         });
         await prisma.team.update({
           where: { id: awayId },
-          data: { draws: { increment: 1 }, points: { increment: 1 } }
+          data: { points: { increment: 1 } }
         });
-        console.log(`Draw between teams ${homeId} and ${awayId} - both teams awarded 1 point and 1 draw`);
+        console.log(`Draw between teams ${homeId} and ${awayId} - both teams awarded 1 point`);
       }
     } catch (error) {
       console.error(`Error updating team records for teams ${homeTeamId} and ${awayTeamId}:`, error);
