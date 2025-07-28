@@ -140,7 +140,23 @@ export class MatchStorage {
       where: whereClause,
       include: {
         league: true,
-        tournament: true
+        tournament: true,
+        homeTeam: {
+          select: {
+            id: true,
+            name: true,
+            division: true,
+            subdivision: true
+          }
+        },
+        awayTeam: {
+          select: {
+            id: true,
+            name: true,
+            division: true,
+            subdivision: true
+          }
+        }
       },
       orderBy: { gameDate: 'desc' }
     });
