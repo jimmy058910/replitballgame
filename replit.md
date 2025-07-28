@@ -681,6 +681,33 @@ docker push gcr.io/direct-glider-465821-p7/realm-rivalry:latest
 - ✓ **Visual Feedback System**: Color-coded chemistry status with emoji indicators and performance impact warnings
 - ✓ **Team Chemistry Integration**: Individual camaraderie scores properly displayed with team-wide chemistry effects
 
+### July 28, 2025 - ✅ COMPREHENSIVE GAME DURATION SYSTEM OVERHAUL COMPLETE ✅
+
+#### ✅ CRITICAL SYSTEM-WIDE GAME DURATION STANDARDIZATION - PRODUCTION READY
+- ✓ **Root Cause Identified**: Multiple hardcoded duration values throughout system (30 min exhibition, 40 min league) causing inconsistencies
+- ✓ **Centralized Server-Side Utility**: Created `server/utils/gameTimeUtils.ts` with complete match type configuration
+  - Exhibition: 30 minutes (1800 seconds)
+  - League: 40 minutes (2400 seconds)
+  - Tournament/Playoff: 40 minutes (2400 seconds) with overtime support
+- ✓ **ES Module Compatibility**: Fixed `__dirname` issue using `import.meta.url` for proper config loading
+- ✓ **Dynamic Stamina Calculations**: Updated `injuryStaminaService.ts` to use match-type-aware duration calculations
+- ✓ **Database Schema Alignment**: Fixed enum comparison issues (InjuryStatus vs 'Healthy') and property name corrections
+- ✓ **Production Ready**: All LSP diagnostics resolved, game config loading properly, server running without errors
+
+#### ✅ COMPREHENSIVE FRONTEND DURATION HARMONIZATION
+- ✓ **Client-Side Utility Created**: `client/src/utils/gameTimeUtils.ts` matching server-side configuration
+- ✓ **EnhancedMatchSimulation.tsx**: Updated hardcoded 1200/1800 values to correct 1800/2400 (Exhibition 30min, League 40min)
+- ✓ **GameSimulationUI.tsx**: Verified correct duration values already implemented
+- ✓ **Shared Timezone Configuration**: Updated `GAME_DURATION_MINUTES` from 20 to 40 for league consistency
+- ✓ **System-Wide Consistency**: All frontend components now use centralized duration utilities
+
+#### ✅ REVOLUTIONARY STAMINA SYSTEM INTEGRATION
+- ✓ **Match-Type Aware Calculations**: `calculateStaminaDepletion()` now accepts `matchType` parameter for dynamic `Mmax` values
+- ✓ **Dynamic Duration Formula**: `Mmax = getGameDurationMinutes(matchType)` replaces hardcoded 40-minute assumption
+- ✓ **Enhanced Stamina Depletion**: Formula `Loss = [Dbase × (1 - K×S/40)] × (M/Mmax) × (1-Ccoach)` now uses correct match duration
+- ✓ **Coach Integration Maintained**: Head coach conditioning bonus system preserved with match-type awareness
+- ✓ **Production Logging**: Enhanced debug output shows exact minutes played per player with match-type context
+
 ### July 28, 2025 - ✅ SEASONAL NAVIGATION HIGHLIGHTING SYSTEM DISABLED ✅
 
 #### ✅ USER REQUEST: REMOVE PERSISTENT YELLOW DOT ON NAVIGATION ITEMS

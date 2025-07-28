@@ -1475,7 +1475,7 @@ export default function EnhancedMatchSimulation({
 }: EnhancedMatchProps) {
   const [gameState, setGameState] = useState<GameState>({
     gameTime: initialLiveState?.gameTime || 0,
-    maxTime: initialLiveState?.maxTime || (isExhibition ? 1200 : 1800),
+    maxTime: initialLiveState?.maxTime || (isExhibition ? 1800 : 2400), // Exhibition: 30min, League: 40min
     currentHalf: initialLiveState?.currentHalf || 1,
     team1Score: initialLiveState?.team1Score || 0,
     team2Score: initialLiveState?.team2Score || 0,
@@ -1829,7 +1829,7 @@ export default function EnhancedMatchSimulation({
   const resetGame = () => {
     setGameState({
       gameTime: 0,
-      maxTime: isExhibition ? 1200 : 1800,
+      maxTime: isExhibition ? 1800 : 2400, // Exhibition: 30min, League: 40min
       currentHalf: 1,
       team1Score: 0,
       team2Score: 0,

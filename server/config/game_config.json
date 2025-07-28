@@ -78,8 +78,19 @@
         "endHour": 22
       },
       "gameDuration": {
-        "totalMinutes": 20,
-        "halfMinutes": 10,
+        "league": {
+          "totalMinutes": 40,
+          "halfMinutes": 20
+        },
+        "tournament": {
+          "totalMinutes": 40,
+          "halfMinutes": 20,
+          "overtimeEnabled": true
+        },
+        "exhibition": {
+          "totalMinutes": 30,
+          "halfMinutes": 15
+        },
         "staggerMinutes": 5
       },
       "timezone": "America/Detroit"

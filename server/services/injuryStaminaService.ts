@@ -1,4 +1,5 @@
 import { prisma } from '../db';
+import { getGameDurationMinutes, type MatchType } from '../utils/gameTimeUtils';
 
 export interface InjuryStaminaSettings {
   // Game mode base injury chances
@@ -8,8 +9,8 @@ export interface InjuryStaminaSettings {
   
   // New unified stamina system constants
   baseDepletion: number; // Dbase = 20 (unified for league and tournament)
-  maxMinutes: number; // Mmax = 40 (regulation minutes)
   staminaScalingConstant: number; // K = 0.30 (depletion scaling)
+  // Note: maxMinutes is now dynamically calculated per match type
   
   // Recovery settings
   baseInjuryRecovery: number;
@@ -29,8 +30,8 @@ const DEFAULT_SETTINGS: InjuryStaminaSettings = {
   
   // New unified stamina constants per specification
   baseDepletion: 20, // Dbase = 20 (unified for both league and tournament)
-  maxMinutes: 40, // Mmax = 40 (regulation minutes for both match types)
   staminaScalingConstant: 0.30, // K = 0.30 (stamina depletion scaling)
+  // Note: maxMinutes now calculated dynamically per match type
   
   baseInjuryRecovery: 50,
   baseStaminaRecovery: 20, // Rbase = 20 (base daily recovery)
@@ -159,17 +160,18 @@ export class InjuryStaminaService {
   }
 
   /**
-   * Calculate stamina depletion using the new unified 40-minute formula
+   * Calculate stamina depletion using the new unified formula with dynamic match duration
    * Formula: Loss = [Dbase × (1 - K×S/40)] × (M/Mmax) × (1-Ccoach)
    */
   calculateStaminaDepletion(
     staminaAttribute: number,
     minutesPlayed: number,
+    matchType: 'league' | 'tournament' | 'exhibition',
     coachBonus: number = 0
   ): number {
     const S = staminaAttribute;
     const M = minutesPlayed;
-    const Mmax = this.settings.maxMinutes; // 40
+    const Mmax = getGameDurationMinutes(matchType as MatchType); // Dynamic based on match type
     const Dbase = this.settings.baseDepletion; // 20
     const K = this.settings.staminaScalingConstant; // 0.30
     const Ccoach = Math.min(0.15, coachBonus); // Cap at 15%
@@ -246,6 +248,7 @@ export class InjuryStaminaService {
     const staminaLoss = this.calculateStaminaDepletion(
       player.staminaAttribute || 20,
       minutesPlayed,
+      gameMode, // Pass match type for dynamic duration calculation
       coachBonus
     );
     
@@ -314,7 +317,7 @@ export class InjuryStaminaService {
     }
 
     // Check if item is appropriate
-    if (itemType === 'injury' && currentPlayer.injuryStatus === 'Healthy') {
+    if (itemType === 'injury' && currentPlayer.injuryStatus === 'HEALTHY') {
       return { success: false, message: "Cannot use injury items on healthy players" };
     }
     
@@ -519,19 +522,20 @@ export class InjuryStaminaService {
           const updateData: any = {};
 
           // Process injury recovery
-          if (player.injuryStatus !== 'HEALTHY' && player.injuryRecoveryPoints !== null) {
+          if (player.injuryStatus !== 'HEALTHY' && player.injuryRecoveryPointsCurrent !== null) {
             const baseRecovery = 50; // Base daily recovery points
-            const newRecoveryPoints = (player.injuryRecoveryPoints || 0) + baseRecovery;
+            const newRecoveryPoints = (player.injuryRecoveryPointsCurrent || 0) + baseRecovery;
 
             // Check if injury is healed
             const requiredRP = InjuryStaminaService.getRequiredRecoveryPoints(player.injuryStatus);
             if (newRecoveryPoints >= requiredRP) {
               updateData.injuryStatus = 'HEALTHY';
-              updateData.injuryRecoveryPoints = null;
+              updateData.injuryRecoveryPointsCurrent = 0;
+              updateData.injuryRecoveryPointsNeeded = 0;
               injuriesHealed++;
               console.log(`[INJURY STAMINA SERVICE] ${player.firstName} ${player.lastName} recovered from ${player.injuryStatus}`);
             } else {
-              updateData.injuryRecoveryPoints = newRecoveryPoints;
+              updateData.injuryRecoveryPointsCurrent = newRecoveryPoints;
             }
             playerUpdated = true;
           }

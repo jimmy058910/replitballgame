@@ -6,6 +6,7 @@ import { injuryStaminaService } from "./injuryStaminaService";
 import { simulateEnhancedMatch } from "./matchSimulation";
 import { log } from "../vite";
 import { PaymentHistoryService } from "./paymentHistoryService";
+import { getGameDurationSeconds, type MatchType } from "../utils/gameTimeUtils";
 
 // Helper type for player stats snapshot
 type PlayerStatsSnapshot = {
@@ -595,7 +596,8 @@ class MatchStateManager {
     });
     console.log(`🔍 STARTER COUNT CHECK: Home has ${homeStarters.length} starters, Away has ${awayStarters.length} starters`);
 
-    const maxTime = isExhibition ? 1800 : 2400; // 30 min exhibition, 40 min league
+    const matchType: MatchType = isExhibition ? 'EXHIBITION' : 'LEAGUE';
+    const maxTime = getGameDurationSeconds(matchType);
 
     const initialPlayerStats = new Map<string, PlayerStatsSnapshot>();
     const allPlayers = [...homeTeamPlayers, ...awayTeamPlayers];

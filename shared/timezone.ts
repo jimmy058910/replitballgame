@@ -6,7 +6,7 @@ export const EASTERN_TIMEZONE = 'America/New_York';
 // League game scheduling window (4PM-10PM Eastern)
 export const LEAGUE_GAME_START_HOUR = 16; // 4PM
 export const LEAGUE_GAME_END_HOUR = 22; // 10PM
-export const GAME_DURATION_MINUTES = 20; // 20 minutes per game
+export const GAME_DURATION_MINUTES = 40; // Default league game duration
 export const STAGGER_MINUTES = 5; // 5 minutes between games for viewing
 
 /**
