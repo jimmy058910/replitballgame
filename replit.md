@@ -593,6 +593,19 @@ docker push gcr.io/direct-glider-465821-p7/realm-rivalry:latest
 
 ## Recent Changes
 
+### July 28, 2025 - ✅ SEASONAL NAVIGATION HIGHLIGHTING SYSTEM DISABLED ✅
+
+#### ✅ USER REQUEST: REMOVE PERSISTENT YELLOW DOT ON NAVIGATION ITEMS
+- ✓ **Root Cause Identified**: Yellow dot on "Roster HQ" was part of seasonal guidance system in useSeasonalUI hook
+- ✓ **Seasonal Highlighting Logic**: System was highlighting navigation items based on season phase:
+  - Day 15 (Tournament): Highlighted "Competition Center"
+  - Day 16 (Off-season): Highlighted "Roster HQ" 
+  - Day 17 (Pre-season): Highlighted "Roster HQ"
+  - Day 7 (Mid-Season Cup): Highlighted "Competition Center"
+- ✓ **Complete Removal Applied**: Modified useSeasonalUI.ts to disable all navHighlight functionality
+- ✓ **All Season Phases Updated**: Set navHighlight to empty string for all phases (pre-season, regular season, tournament, off-season, mid-season cup)
+- ✓ **User Preference Documented**: Navigation highlighting disabled per user request for cleaner UI experience
+
 ### July 25, 2025 - ✅ CRITICAL PAYMENT HISTORY & NAVIGATION FIXES COMPLETE ✅
 
 #### ✅ COMPREHENSIVE PAYMENT HISTORY SYSTEM FIXES - CRITICAL API & DATE ISSUES RESOLVED

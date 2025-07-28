@@ -39,7 +39,7 @@ export function useSeasonalUI() {
         primaryActions: ['view_team'],
         disabledFeatures: [],
         dashboardLayout: 'next_match',
-        navHighlight: 'command-center',
+        navHighlight: '', // Navigation highlighting disabled
         contextualMessage: 'Loading season data...'
       };
     }
@@ -51,7 +51,7 @@ export function useSeasonalUI() {
     let dashboardLayout: SeasonalUIState['dashboardLayout'] = 'next_match';
     let primaryActions: string[] = [];
     let disabledFeatures: string[] = [];
-    let navHighlight = 'command-center';
+    let navHighlight = ''; // Navigation highlighting disabled entirely
     let contextualMessage = '';
 
     if (currentDay === 17 || (currentDay === 1 && seasonalData.phase === 'PRE_SEASON')) {
@@ -60,7 +60,7 @@ export function useSeasonalUI() {
       dashboardLayout = 'new_season';
       primaryActions = ['finalize_roster', 'set_tactics', 'hire_staff'];
       disabledFeatures = ['league_matches', 'tournaments', 'exhibition_games'];
-      navHighlight = 'roster-hq';
+      navHighlight = ''; // Navigation highlighting disabled
       contextualMessage = 'New season preparation phase. Finalize your roster and tactics.';
     } else if (currentDay >= 1 && currentDay <= 14) {
       // Regular season
@@ -68,7 +68,7 @@ export function useSeasonalUI() {
       dashboardLayout = 'next_match';
       primaryActions = ['check_lineup', 'view_next_opponent', 'manage_stamina'];
       disabledFeatures = ['contract_negotiations', 'taxi_promotions'];
-      navHighlight = ''; // Remove persistent highlighting - let users navigate normally
+      navHighlight = ''; // Navigation highlighting disabled
       contextualMessage = 'Regular season is active. Focus on league matches and player development.';
     } else if (currentDay === 15) {
       // Division tournament
@@ -76,7 +76,7 @@ export function useSeasonalUI() {
       dashboardLayout = 'tournament';
       primaryActions = ['view_bracket', 'set_tournament_tactics', 'scout_opponents'];
       disabledFeatures = ['league_matches', 'exhibition_games'];
-      navHighlight = 'competition-center'; // Keep highlight for tournament day
+      navHighlight = ''; // Navigation highlighting disabled
       contextualMessage = 'Division Tournament! Compete for championship glory.';
     } else if (currentDay === 16) {
       // Off-season
@@ -84,7 +84,7 @@ export function useSeasonalUI() {
       dashboardLayout = 'off_season';
       primaryActions = ['negotiate_contracts', 'promote_taxi_squad', 'review_season'];
       disabledFeatures = ['all_matches', 'tournaments'];
-      navHighlight = 'roster-hq';
+      navHighlight = ''; // Navigation highlighting disabled
       contextualMessage = 'Off-season: Contract negotiations and roster management.';
     }
 
@@ -94,7 +94,7 @@ export function useSeasonalUI() {
       phase = 'MID_SEASON_CUP';
       dashboardLayout = 'tournament';
       primaryActions = ['view_cup_bracket', 'prepare_for_cup'];
-      navHighlight = 'competition-center'; // Keep highlight for tournament day
+      navHighlight = ''; // Navigation highlighting disabled
       contextualMessage = 'Mid-Season Cup active! Compete against division rivals.';
     }
 
