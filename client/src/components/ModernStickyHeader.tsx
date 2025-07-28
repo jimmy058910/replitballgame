@@ -1,11 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useLocation } from 'wouter';
 import { useAuth } from '@/hooks/useAuth';
 import { useQuery } from '@tanstack/react-query';
 import { 
   Home, Users, Trophy, ShoppingCart, Globe, MessageCircle, 
   Bell, Menu, X, Coins, Star, Clock, Calendar,
-  ChevronDown, Zap
+  ChevronDown, Zap, Play, Timer
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -36,12 +36,39 @@ interface SeasonData {
   phase: string;
   nextMatchCountdown?: string;
   nextOpponent?: string;
+  startDate?: string;
+}
+
+interface LiveMatch {
+  id: string;
+  status: string;
+  homeTeam: { id: string; name: string };
+  awayTeam: { id: string; name: string };
+  gameTime?: number;
+  matchType: string;
+}
+
+interface UpcomingMatch {
+  id: string;
+  homeTeam: { id: string; name: string };
+  awayTeam: { id: string; name: string };
+  gameDate: string;
+  matchType: string;
 }
 
 const ModernStickyHeader: React.FC = () => {
   const [location, setLocation] = useLocation();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [serverTime, setServerTime] = useState(new Date());
   const { isAuthenticated } = useAuth();
+
+  // Server time update
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setServerTime(new Date());
+    }, 1000);
+    return () => clearInterval(timer);
+  }, []);
 
   // Data queries
   const { data: team } = useQuery<Team>({
@@ -62,6 +89,19 @@ const ModernStickyHeader: React.FC = () => {
   const { data: notifications } = useQuery({
     queryKey: [`/api/teams/${team?.id}/notifications`],
     enabled: !!team?.id && isAuthenticated,
+  });
+
+  // Live match and upcoming match queries
+  const { data: liveMatches } = useQuery<LiveMatch[]>({
+    queryKey: ['/api/matches/live'],
+    enabled: isAuthenticated && !!team?.id,
+    refetchInterval: 5000, // Check every 5 seconds for live matches
+  });
+
+  const { data: upcomingMatches } = useQuery<UpcomingMatch[]>({
+    queryKey: [`/api/teams/${team?.id}/matches/upcoming`],
+    enabled: !!team?.id && isAuthenticated,
+    refetchInterval: 60000, // Check every minute for upcoming matches
   });
 
   // Navigation items
@@ -89,6 +129,88 @@ const ModernStickyHeader: React.FC = () => {
     return names[division] || `Div ${division}`;
   };
 
+  const getEnhancedDivisionDisplay = (division: number, subdivision?: string): string => {
+    const divisionName = getDivisionName(division);
+    
+    if (!subdivision || subdivision === "main") {
+      return `Division ${division} - ${divisionName} - Main`;
+    }
+    
+    const subdivisionNames: Record<string, string> = {
+      "alpha": "Alpha", "beta": "Beta", "gamma": "Gamma", "delta": "Delta",
+      "epsilon": "Epsilon", "zeta": "Zeta", "eta": "Eta", "theta": "Theta"
+    };
+    
+    const subdivisionName = subdivisionNames[subdivision] || subdivision.charAt(0).toUpperCase() + subdivision.slice(1);
+    return `Division ${division} - ${divisionName} - ${subdivisionName}`;
+  };
+
+  const getNextGameDayCountdown = (): string => {
+    if (!seasonData?.startDate) return "No schedule";
+    
+    const now = serverTime;
+    const gameTime = new Date();
+    gameTime.setHours(13, 0, 0, 0); // 1 PM EDT = next game day
+    
+    if (now.getHours() >= 13) {
+      gameTime.setDate(gameTime.getDate() + 1);
+    }
+    
+    const diff = gameTime.getTime() - now.getTime();
+    const hours = Math.floor(diff / (1000 * 60 * 60));
+    const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+    
+    if (hours < 1) {
+      return `${minutes}m to next day`;
+    }
+    return `${hours}h ${minutes}m to next day`;
+  };
+
+  const getNextMatchInfo = (): { text: string; isOffSeason: boolean } => {
+    if (!seasonData) return { text: "Loading...", isOffSeason: false };
+    
+    // If in off-season (Day 16-17)
+    if (seasonData.currentDay >= 16) {
+      return { 
+        text: "Prepare for next season", 
+        isOffSeason: true 
+      };
+    }
+    
+    // Check if user has live match
+    const userLiveMatch = liveMatches?.find(match => 
+      match.homeTeam.id === team?.id?.toString() || match.awayTeam.id === team?.id?.toString()
+    );
+    
+    if (userLiveMatch) {
+      const opponent = userLiveMatch.homeTeam.id === team?.id?.toString() 
+        ? userLiveMatch.awayTeam.name 
+        : userLiveMatch.homeTeam.name;
+      return { text: `LIVE vs ${opponent}`, isOffSeason: false };
+    }
+    
+    // Check next upcoming match
+    const nextMatch = upcomingMatches?.[0];
+    if (nextMatch && nextMatch.matchType === 'LEAGUE') {
+      const opponent = nextMatch.homeTeam.id === team?.id?.toString() 
+        ? nextMatch.awayTeam.name 
+        : nextMatch.homeTeam.name;
+      const gameDate = new Date(nextMatch.gameDate);
+      const today = new Date();
+      const isToday = gameDate.toDateString() === today.toDateString();
+      
+      if (isToday) {
+        return { text: `Today vs ${opponent}`, isOffSeason: false };
+      } else {
+        const diffTime = gameDate.getTime() - today.getTime();
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+        return { text: `${diffDays}d vs ${opponent}`, isOffSeason: false };
+      }
+    }
+    
+    return { text: "No matches scheduled", isOffSeason: false };
+  };
+
   const getSeasonPhase = (): string => {
     if (!seasonData) return 'Off-Season';
     const { currentDay, phase } = seasonData;
@@ -103,6 +225,20 @@ const ModernStickyHeader: React.FC = () => {
   const unreadNotifications = Array.isArray(notifications) ? notifications.filter((n: any) => !n.isRead).length : 0;
   const seasonInfo = seasonData ? `Day ${seasonData.currentDay}/17` : 'Day 9/17';
   const phaseDisplay = getSeasonPhase();
+  
+  // Enhanced display data
+  const enhancedDivisionDisplay = getEnhancedDivisionDisplay(team?.division || 8, team?.subdivision);
+  const nextMatchInfo = getNextMatchInfo();
+  const countdownText = getNextGameDayCountdown();
+  const serverTimeDisplay = serverTime.toLocaleTimeString('en-US', { 
+    hour12: false, 
+    timeZone: 'America/New_York' 
+  });
+  
+  // Check if team has live match
+  const userLiveMatch = liveMatches?.find(match => 
+    match.homeTeam.id === team?.id?.toString() || match.awayTeam.id === team?.id?.toString()
+  );
 
   if (!isAuthenticated) {
     return (
@@ -234,7 +370,7 @@ const ModernStickyHeader: React.FC = () => {
                   </h1>
                   <div className="flex items-center space-x-2 text-sm">
                     <Badge className="bg-purple-600/80 text-purple-100 text-xs px-2 py-0.5">
-                      {getDivisionName(team?.division || 8)}
+                      {enhancedDivisionDisplay}
                     </Badge>
                     <span className="text-purple-200">•</span>
                     <span className="text-purple-200 font-medium">{seasonInfo}</span>
@@ -245,20 +381,74 @@ const ModernStickyHeader: React.FC = () => {
               </div>
             </div>
 
-            {/* Next Match / Live Status */}
-            <div className="hidden md:flex items-center space-x-4">
-              {seasonData?.nextMatchCountdown && (
-                <div className="flex items-center space-x-2 bg-orange-500/20 px-3 py-1.5 rounded-lg border border-orange-500/30">
-                  <Clock className="w-4 h-4 text-orange-400" />
-                  <div className="text-sm">
-                    <span className="text-orange-200 font-medium">Next: </span>
-                    <span className="text-white font-bold">
-                      {seasonData.nextOpponent ? `vs ${seasonData.nextOpponent}` : 'TBD'}
-                    </span>
-                    <span className="text-orange-300 ml-1">{seasonData.nextMatchCountdown}</span>
-                  </div>
-                </div>
+            {/* Enhanced Right Section - Live Match, Next Match, Server Time */}
+            <div className="hidden md:flex items-center space-x-3">
+              
+              {/* LIVE Button - Show when team is actively playing */}
+              {userLiveMatch && (
+                <Button
+                  onClick={() => setLocation("/competition")}
+                  className="bg-red-600 hover:bg-red-700 text-white font-bold px-4 py-2 rounded-lg animate-pulse"
+                >
+                  <Play className="w-4 h-4 mr-2" />
+                  LIVE
+                </Button>
               )}
+
+              {/* Next Match Info */}
+              <div className={`flex items-center space-x-2 px-3 py-1.5 rounded-lg border ${
+                nextMatchInfo.text.includes('LIVE') 
+                  ? 'bg-red-500/20 border-red-500/30' 
+                  : nextMatchInfo.isOffSeason 
+                    ? 'bg-gray-500/20 border-gray-500/30'
+                    : 'bg-orange-500/20 border-orange-500/30'
+              }`}>
+                {nextMatchInfo.text.includes('LIVE') ? (
+                  <Zap className="w-4 h-4 text-red-400 animate-pulse" />
+                ) : nextMatchInfo.isOffSeason ? (
+                  <Calendar className="w-4 h-4 text-gray-400" />
+                ) : (
+                  <Clock className="w-4 h-4 text-orange-400" />
+                )}
+                <div className="text-sm">
+                  <span className={`font-medium ${
+                    nextMatchInfo.text.includes('LIVE') 
+                      ? 'text-red-200' 
+                      : nextMatchInfo.isOffSeason 
+                        ? 'text-gray-200'
+                        : 'text-orange-200'
+                  }`}>
+                    {nextMatchInfo.text.includes('LIVE') ? 'LIVE: ' : 'Next: '}
+                  </span>
+                  <span className="text-white font-bold">{nextMatchInfo.text}</span>
+                </div>
+              </div>
+
+              {/* Server Time & Countdown */}
+              <div className="flex items-center space-x-2 bg-blue-500/20 px-3 py-1.5 rounded-lg border border-blue-500/30">
+                <Timer className="w-4 h-4 text-blue-400" />
+                <div className="text-sm">
+                  <div className="text-blue-200 font-medium">EDT: {serverTimeDisplay}</div>
+                  <div className="text-blue-300 text-xs">{countdownText}</div>
+                </div>
+              </div>
+            </div>
+
+            {/* Mobile - Show simplified version */}
+            <div className="md:hidden flex items-center space-x-2">
+              {userLiveMatch && (
+                <Button
+                  onClick={() => setLocation("/competition")}
+                  size="sm"
+                  className="bg-red-600 hover:bg-red-700 text-white font-bold animate-pulse"
+                >
+                  <Play className="w-3 h-3 mr-1" />
+                  LIVE
+                </Button>
+              )}
+              <div className="text-xs text-blue-200">
+                {serverTimeDisplay}
+              </div>
             </div>
           </div>
         </div>
