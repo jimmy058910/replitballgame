@@ -593,6 +593,31 @@ docker push gcr.io/direct-glider-465821-p7/realm-rivalry:latest
 
 ## Recent Changes
 
+### July 28, 2025 - ✅ COMPREHENSIVE STATISTICS SERVICE REWRITE COMPLETE - EXHIBITION FILTERING IMPLEMENTED ✅
+
+#### ✅ CRITICAL STATS SERVICE DATABASE SCHEMA ALIGNMENT - PRODUCTION READY
+- ✓ **Root Cause Resolved**: StatsService was accessing non-existent `playerMatchStats` and `teamMatchStats` tables causing system failures
+- ✓ **Database Schema Integration**: Completely rewritten to use actual Prisma schema (Game table, Player model, Team model)
+- ✓ **User Requirements Implemented**: Exhibition match stats now entirely excluded from all statistics tracking
+- ✓ **Match Type Filtering**: Only LEAGUE and PLAYOFF (Division Tournament) matches included in meaningful statistics
+- ✓ **TypeScript Errors Eliminated**: All 39+ LSP diagnostics resolved, service now compiles without errors
+- ✓ **Production Architecture**: Service uses proper Prisma queries with include relationships and error handling
+
+#### ✅ STATISTICS FILTERING SYSTEM - USER REQUIREMENTS FULFILLED
+- ✓ **Exhibition Exclusion**: `MEANINGFUL_MATCH_TYPES = ['LEAGUE', 'PLAYOFF']` constant ensures exhibitions never tracked
+- ✓ **Match Type Validation**: `getMatchStatsDisplay()` explicitly rejects exhibition matches with clear error messages
+- ✓ **Player Stats**: `getPlayerStats()` only counts games from meaningful match types, completely ignoring exhibition data
+- ✓ **Team Stats**: `getTeamStats()` calculates scores and game counts exclusively from League and Division Tournament matches
+- ✓ **Future Extensibility**: Structure ready for simulationLog parsing when match-level stats implementation is needed
+
+#### ✅ ARCHITECTURAL COMPLIANCE & SYSTEM STABILITY
+- ✓ **Prisma ORM Consistency**: All database operations use proper Prisma Client methods with type safety
+- ✓ **Error Handling**: Comprehensive error handling with descriptive messages replacing generic ErrorCreators
+- ✓ **Data Integrity**: Season-level player statistics (seasonMinutesLeague, seasonMinutesTournament) properly utilized
+- ✓ **API Compatibility**: All existing API endpoints maintained while fixing underlying database access issues
+- ✓ **Performance Optimization**: Efficient queries using Prisma include relationships for related data
+- ✓ **User Preference Alignment**: Statistics system now matches user's explicit requirement that "exhibition stats should be entirely irrelevant"
+
 ### July 28, 2025 - ✅ CRITICAL STADIUM MAINTENANCE NEGATIVE BALANCE FIX COMPLETE ✅
 
 #### ✅ STADIUM MAINTENANCE CREDIT DEDUCTION CORRECTED - NEGATIVE BALANCES NOW ALLOWED
