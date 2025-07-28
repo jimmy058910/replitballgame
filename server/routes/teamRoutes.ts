@@ -436,8 +436,16 @@ router.get('/:id/players', isAuthenticated, async (req: Request, res: Response, 
     const { id } = req.params;
     
     // Get players with contract data included
+    const teamIdNum = parseInt(id);
+    if (isNaN(teamIdNum)) {
+      return res.status(400).json({ message: "Invalid team ID" });
+    }
+    
     const players = await prisma.player.findMany({
-      where: { teamId: parseInt(id), isOnMarket: false },
+      where: { 
+        teamId: teamIdNum, 
+        isOnMarket: false 
+      },
       include: {
         contract: true,
         skills: { include: { skill: true } }

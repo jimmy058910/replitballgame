@@ -9,6 +9,90 @@ import { prisma } from "../db";
 
 const router = Router();
 
+// Stadium data endpoint for test matches
+router.get('/:matchId/stadium-data', async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const { matchId } = req.params;
+    
+    // For test matches (starting with 'live-test-'), return mock stadium data
+    if (matchId.startsWith('live-test-')) {
+      const mockStadiumData = {
+        capacity: 25000,
+        attendance: 18500,
+        fanLoyalty: 75,
+        atmosphere: 82,
+        revenue: {
+          tickets: 462500,
+          concessions: 148000,
+          parking: 55500,
+          merchandise: 55500,
+          vip: 15000,
+          total: 736500
+        },
+        facilities: {
+          concessions: 3,
+          parking: 2,
+          vip: 3,
+          merchandising: 2,
+          lighting: 4
+        }
+      };
+      
+      return res.json(mockStadiumData);
+    }
+    
+    // For real matches, get actual stadium data from database
+    const match = await prisma.game.findUnique({
+      where: { id: parseInt(matchId) },
+      include: {
+        homeTeam: {
+          include: { stadium: true }
+        }
+      }
+    });
+    
+    if (!match) {
+      return res.status(404).json({ message: "Match not found" });
+    }
+    
+    const stadium = match.homeTeam.stadium;
+    if (!stadium) {
+      return res.status(404).json({ message: "Stadium data not found" });
+    }
+    
+    // Calculate stadium data
+    const stadiumData = {
+      capacity: stadium.capacity,
+      attendance: Math.floor(stadium.capacity * 0.8), // Example calculation
+      fanLoyalty: 75, // This would come from team data
+      atmosphere: 80,
+      revenue: {
+        tickets: stadium.capacity * 25,
+        concessions: stadium.capacity * 8 * stadium.concessionsLevel,
+        parking: Math.floor(stadium.capacity * 0.3) * 10 * stadium.parkingLevel,
+        merchandise: stadium.capacity * 3 * stadium.merchandisingLevel,
+        vip: stadium.vipSuitesLevel * 5000,
+        total: 0 // Will be calculated
+      },
+      facilities: {
+        concessions: stadium.concessionsLevel,
+        parking: stadium.parkingLevel,
+        vip: stadium.vipSuitesLevel,
+        merchandising: stadium.merchandisingLevel,
+        lighting: stadium.lightingScreensLevel
+      }
+    };
+    
+    // Calculate total revenue
+    stadiumData.revenue.total = Object.values(stadiumData.revenue).reduce((sum, val) => sum + val, 0) - stadiumData.revenue.total;
+    
+    res.json(stadiumData);
+  } catch (error) {
+    console.error("Error fetching stadium data:", error);
+    next(error);
+  }
+});
+
 // Utility function to serialize BigInt values to strings
 function serializeBigIntValues(obj: any): any {
   if (obj === null || obj === undefined) return obj;

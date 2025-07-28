@@ -34,6 +34,7 @@ import {
   Globe
 } from 'lucide-react';
 import { EnhancedMatchEngine } from '@/components/EnhancedMatchEngine';
+import { TestMatchEngine } from '@/components/TestMatchEngine';
 
 interface TestSession {
   id: string;
@@ -755,9 +756,8 @@ export default function TestEnvironment() {
 
                     {liveMatchData.matchId && (
                       <div className="border rounded-lg p-2">
-                        <EnhancedMatchEngine
+                        <TestMatchEngine
                           matchId={liveMatchData.matchId}
-                          userId="test-user"
                           team1={liveMatchData.team1}
                           team2={liveMatchData.team2}
                           onMatchComplete={() => {
