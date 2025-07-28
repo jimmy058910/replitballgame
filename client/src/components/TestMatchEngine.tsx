@@ -24,21 +24,36 @@ interface TestMatchState {
   commentary: string;
   possession: 'home' | 'away';
   phase: 'FIRST_HALF' | 'SECOND_HALF' | 'COMPLETED';
-  ballPosition: { x: number; y: number };
-  down: number;
-  yardsToGo: number;
-  fieldPosition: number;
+  orbPosition: { x: number; y: number };
 }
 
 interface TestMatchEvent {
   id: string;
   timestamp: string;
-  type: 'PASS_COMPLETION' | 'RUN_ATTEMPT' | 'TACKLE' | 'SCORE' | 'POSSESSION_CHANGE' | 'TURNOVER';
+  type: 'PASS_ATTEMPT' | 'RUN_ATTEMPT' | 'TACKLE' | 'SCORE' | 'SCRUM' | 'BREAKAWAY';
   description: string;
   team: 'home' | 'away';
   playerName?: string;
-  yards?: number;
+  intensity?: 'low' | 'medium' | 'high';
 }
+
+// API functions to connect with backend commentary system
+const fetchCommentary = async (eventType: string, context: any) => {
+  try {
+    const response = await fetch('/api/commentary/generate', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ eventType, context })
+    });
+    if (response.ok) {
+      const data = await response.json();
+      return data.commentary;
+    }
+  } catch (error) {
+    console.log('Using fallback commentary due to API error:', error);
+  }
+  return null;
+};
 
 export function TestMatchEngine({ matchId, team1, team2, onMatchComplete }: TestMatchEngineProps) {
   const [matchState, setMatchState] = useState<TestMatchState>({
@@ -50,10 +65,7 @@ export function TestMatchEngine({ matchId, team1, team2, onMatchComplete }: Test
     commentary: 'Welcome to the realm of competitive fantasy sports!',
     possession: 'home',
     phase: 'FIRST_HALF',
-    ballPosition: { x: 50, y: 50 },
-    down: 1,
-    yardsToGo: 10,
-    fieldPosition: 50
+    orbPosition: { x: 50, y: 50 }
   });
 
   const [isPlaying, setIsPlaying] = useState(false);
@@ -90,53 +102,53 @@ export function TestMatchEngine({ matchId, team1, team2, onMatchComplete }: Test
           if (newTime === 1200 && prev.phase === 'FIRST_HALF') {
             newState.phase = 'SECOND_HALF';
             newState.commentary = 'Second half underway! Fresh strategies emerge.';
-            newState.ballPosition = { x: 50, y: 50 };
+            newState.orbPosition = { x: 50, y: 50 };
             setEvents(prev => [...prev.slice(-9), {
               id: `event-${newTime}`,
               timestamp: `${Math.floor(newTime/60)}'${newTime%60}"`,
-              type: 'POSSESSION_CHANGE',
-              description: 'Second half begins with renewed intensity',
+              type: 'SCRUM',
+              description: 'Second half underway! Fresh strategies emerge in the dome.',
               team: 'home'
             }]);
           }
 
-          // Generate fantasy sports events every 15-30 seconds
+          // Generate dome sports events every 15-30 seconds
           if (newTime % (15 + Math.random() * 15) < 1) {
             const eventTypes = [
               {
-                type: 'PASS_COMPLETION' as const,
+                type: 'PASS_ATTEMPT' as const,
                 descriptions: [
-                  'completes a precise pass through coverage',
-                  'finds the receiver in stride',
-                  'delivers under pressure for the completion',
-                  'threads the needle with pinpoint accuracy'
+                  'delivers a swift orb pass through the formation',
+                  'finds an opening in defensive coverage',
+                  'threads the orb through the dome with precision',
+                  'executes precise passing under pressure'
                 ]
               },
               {
                 type: 'RUN_ATTEMPT' as const,
                 descriptions: [
-                  'breaks through the line for solid yardage',
-                  'churns forward with determined effort',
-                  'finds a gap and explodes through',
-                  'powers ahead with aggressive running'
+                  'charges forward with the orb through the dome',
+                  'breaks through the defensive wall',
+                  'uses raw speed to evade tacklers',
+                  'powers through the formation with determination'
                 ]
               },
               {
                 type: 'TACKLE' as const,
                 descriptions: [
-                  'brings down the ball carrier with authority',
-                  'makes a crucial defensive stop',
-                  'closes quickly and wraps up for the tackle',
-                  'displays excellent tackling technique'
+                  'brings down the orb carrier with authority',
+                  'executes a crucial defensive stop',
+                  'closes quickly for the tackle in the dome',
+                  'demonstrates excellent defensive technique'
                 ]
               },
               {
-                type: 'POSSESSION_CHANGE' as const,
+                type: 'SCRUM' as const,
                 descriptions: [
-                  'forces a turnover with aggressive defense',
-                  'capitalizes on the miscue',
-                  'creates pressure and forces the mistake',
-                  'takes advantage of the opportunity'
+                  'players converge in a chaotic scrum for possession',
+                  'multiple players battle for orb control',
+                  'a fierce melee erupts around the orb',
+                  'intense competition for possession unfolds'
                 ]
               }
             ];
@@ -145,26 +157,16 @@ export function TestMatchEngine({ matchId, team1, team2, onMatchComplete }: Test
             const team = Math.random() > 0.5 ? 'home' : 'away';
             const teamName = team === 'home' ? (team1?.name || 'Home') : (team2?.name || 'Away');
             const description = eventType.descriptions[Math.floor(Math.random() * eventType.descriptions.length)];
-            const yards = Math.floor(Math.random() * 12) + 3;
+            const intensity = ['low', 'medium', 'high'][Math.floor(Math.random() * 3)] as 'low' | 'medium' | 'high';
             
+            // Use dome-appropriate commentary with proper fantasy sports terminology
             newState.commentary = `${teamName} ${description}`;
             
-            // Update ball position
-            newState.ballPosition = {
-              x: 40 + Math.random() * 20,
-              y: Math.random() * 80 + 10
+            // Update orb position in dome
+            newState.orbPosition = {
+              x: 30 + Math.random() * 40,
+              y: 30 + Math.random() * 40
             };
-            
-            // Update down and distance
-            if (eventType.type === 'PASS_COMPLETION' || eventType.type === 'RUN_ATTEMPT') {
-              if (yards >= newState.yardsToGo) {
-                newState.down = 1;
-                newState.yardsToGo = 10;
-              } else {
-                newState.down = Math.min(newState.down + 1, 4);
-                newState.yardsToGo = Math.max(newState.yardsToGo - yards, 1);
-              }
-            }
             
             setEvents(prev => [...prev.slice(-9), {
               id: `event-${newTime}`,
@@ -172,18 +174,18 @@ export function TestMatchEngine({ matchId, team1, team2, onMatchComplete }: Test
               type: eventType.type,
               description: `${teamName} ${description}`,
               team,
-              yards: eventType.type === 'PASS_COMPLETION' || eventType.type === 'RUN_ATTEMPT' ? yards : undefined
+              intensity
             }]);
           }
 
-          // Random scoring every 3-6 minutes
+          // Random SCORES every 3-6 minutes (proper dome game terminology)
           if (newTime % (180 + Math.random() * 180) < 1) {
             const scorer = Math.random() > 0.5 ? 'home' : 'away';
             const scoringTeam = scorer === 'home' ? (team1?.name || 'Home') : (team2?.name || 'Away');
             
             if (scorer === 'home') {
               newState.homeScore += 1;
-              newState.commentary = `Breakthrough! ${scoringTeam} finds the end zone for the score!`;
+              newState.commentary = `SCORE! ${scoringTeam} achieves victory in the dome arena!`;
               setEvents(prev => [...prev.slice(-9), {
                 id: `score-${newTime}`,
                 timestamp: `${Math.floor(newTime/60)}'${newTime%60}"`,
@@ -193,7 +195,7 @@ export function TestMatchEngine({ matchId, team1, team2, onMatchComplete }: Test
               }]);
             } else {
               newState.awayScore += 1;
-              newState.commentary = `Breakthrough! ${scoringTeam} finds the end zone for the score!`;
+              newState.commentary = `SCORE! ${scoringTeam} achieves victory in the dome arena!`;
               setEvents(prev => [...prev.slice(-9), {
                 id: `score-${newTime}`,
                 timestamp: `${Math.floor(newTime/60)}'${newTime%60}"`,
@@ -203,10 +205,8 @@ export function TestMatchEngine({ matchId, team1, team2, onMatchComplete }: Test
               }]);
             }
             
-            // Reset down and distance after score
-            newState.down = 1;
-            newState.yardsToGo = 10;
-            newState.ballPosition = { x: 50, y: 50 };
+            // Reset orb to center dome after score
+            newState.orbPosition = { x: 50, y: 50 };
           }
 
           return newState;
@@ -244,10 +244,7 @@ export function TestMatchEngine({ matchId, team1, team2, onMatchComplete }: Test
       commentary: 'Welcome to the realm of competitive fantasy sports!',
       possession: 'home',
       phase: 'FIRST_HALF',
-      ballPosition: { x: 50, y: 50 },
-      down: 1,
-      yardsToGo: 10,
-      fieldPosition: 50
+      orbPosition: { x: 50, y: 50 }
     });
     setIsPlaying(false);
     setEvents([]);
@@ -372,8 +369,8 @@ export function TestMatchEngine({ matchId, team1, team2, onMatchComplete }: Test
                       </Badge>
                     </div>
                     <p className="mt-1 text-muted-foreground">{event.description}</p>
-                    {event.yards && (
-                      <p className="text-xs text-blue-600 mt-1">+{event.yards} yards</p>
+                    {event.intensity && (
+                      <p className="text-xs text-amber-600 mt-1 capitalize">{event.intensity} intensity</p>
                     )}
                   </div>
                 ))
@@ -412,69 +409,71 @@ export function TestMatchEngine({ matchId, team1, team2, onMatchComplete }: Test
   );
 }
 
-// 2D Field Visualization Component
+// 2D Dome Visualization Component
 const FieldVisualization: React.FC<{
   homeTeam: any;
   awayTeam: any;
   matchState: TestMatchState;
 }> = ({ homeTeam, awayTeam, matchState }) => {
   return (
-    <div className="relative w-full aspect-[16/9] bg-gradient-to-b from-green-400 to-green-600 rounded-lg overflow-hidden border-2 border-green-300">
-      {/* Field markings */}
+    <div className="relative w-full aspect-[16/9] bg-gradient-to-br from-gray-600 via-gray-700 to-gray-900 rounded-full overflow-hidden border-4 border-gray-500 shadow-2xl">
+      {/* Dome floor pattern */}
       <div className="absolute inset-0">
-        {/* Yard lines */}
-        {[20, 40, 60, 80].map(yard => (
+        {/* Concentric circles for dome floor */}
+        {[30, 50, 70].map(radius => (
           <div 
-            key={yard}
-            className="absolute w-full h-px bg-white/30"
-            style={{ top: `${yard}%` }}
+            key={radius}
+            className="absolute border border-white/20 rounded-full"
+            style={{ 
+              width: `${radius}%`, 
+              height: `${radius}%`,
+              left: `${(100-radius)/2}%`,
+              top: `${(100-radius)/2}%`
+            }}
           />
         ))}
         
-        {/* Sidelines */}
-        <div className="absolute left-0 top-0 w-px h-full bg-white/50" />
-        <div className="absolute right-0 top-0 w-px h-full bg-white/50" />
+        {/* Center dome marker */}
+        <div className="absolute w-4 h-4 bg-white/30 rounded-full border border-white/50 left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2" />
         
-        {/* End zones */}
-        <div className="absolute top-0 left-0 w-full h-[10%] bg-blue-500/20 border-b border-white/30" />
-        <div className="absolute bottom-0 left-0 w-full h-[10%] bg-red-500/20 border-t border-white/30" />
-        
-        {/* Midfield line */}
-        <div className="absolute top-1/2 left-0 w-full h-0.5 bg-white/60" />
+        {/* Score zones (circular areas) */}
+        <div className="absolute w-[20%] h-[20%] bg-blue-500/10 rounded-full border-2 border-blue-400/30 left-[10%] top-[40%]" />
+        <div className="absolute w-[20%] h-[20%] bg-red-500/10 rounded-full border-2 border-red-400/30 right-[10%] top-[40%]" />
       </div>
       
-      {/* Ball position */}
+      {/* Orb position */}
       <div 
-        className="absolute w-2 h-2 bg-yellow-400 rounded-full border border-yellow-600 shadow-lg animate-pulse"
+        className="absolute w-3 h-3 bg-amber-400 rounded-full border-2 border-amber-600 shadow-lg animate-pulse"
         style={{
-          left: `${matchState.ballPosition.x}%`,
-          top: `${matchState.ballPosition.y}%`,
+          left: `${matchState.orbPosition.x}%`,
+          top: `${matchState.orbPosition.y}%`,
           transform: 'translate(-50%, -50%)'
         }}
+        title="Game Orb"
       />
       
-      {/* Home team players (blue) - simulated positions */}
+      {/* Home team players (blue) - 6 players formation */}
       {Array.from({ length: 6 }, (_, i) => (
         <div
           key={`home-${i}`}
           className="absolute w-3 h-3 bg-blue-500 rounded-full border border-blue-700 shadow-sm"
           style={{
-            left: `${20 + Math.random() * 60}%`,
-            top: `${30 + Math.random() * 40}%`,
+            left: `${25 + Math.random() * 50}%`,
+            top: `${25 + Math.random() * 50}%`,
             transform: 'translate(-50%, -50%)'
           }}
           title={`${homeTeam?.name || 'Home'} Player ${i + 1}`}
         />
       ))}
       
-      {/* Away team players (red) - simulated positions */}
+      {/* Away team players (red) - 6 players formation */}
       {Array.from({ length: 6 }, (_, i) => (
         <div
           key={`away-${i}`}
           className="absolute w-3 h-3 bg-red-500 rounded-full border border-red-700 shadow-sm"
           style={{
-            left: `${20 + Math.random() * 60}%`,
-            top: `${30 + Math.random() * 40}%`,
+            left: `${25 + Math.random() * 50}%`,
+            top: `${25 + Math.random() * 50}%`,
             transform: 'translate(-50%, -50%)'
           }}
           title={`${awayTeam?.name || 'Away'} Player ${i + 1}`}
@@ -483,17 +482,17 @@ const FieldVisualization: React.FC<{
       
       {/* Possession indicator */}
       <div className="absolute top-2 left-2 bg-black/50 text-white px-2 py-1 rounded text-xs">
-        {matchState.possession === 'home' ? homeTeam?.name || 'Home' : awayTeam?.name || 'Away'} Ball
+        {matchState.possession === 'home' ? homeTeam?.name || 'Home' : awayTeam?.name || 'Away'} Orb Control
       </div>
       
-      {/* Down and distance */}
+      {/* Game phase indicator */}
       <div className="absolute top-2 right-2 bg-black/50 text-white px-2 py-1 rounded text-xs">
-        {matchState.down}{matchState.down === 1 ? 'st' : matchState.down === 2 ? 'nd' : matchState.down === 3 ? 'rd' : 'th'} & {matchState.yardsToGo}
+        {matchState.phase}
       </div>
       
-      {/* Field position indicator */}
+      {/* Dome environment indicator */}
       <div className="absolute bottom-2 left-2 bg-black/50 text-white px-2 py-1 rounded text-xs">
-        {matchState.fieldPosition} yard line
+        DOME ARENA
       </div>
     </div>
   );
