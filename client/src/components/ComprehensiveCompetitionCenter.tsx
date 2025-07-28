@@ -557,7 +557,24 @@ export default function ComprehensiveCompetitionCenter() {
                                          position === 2 ? '2nd' : 
                                          position === 3 ? '3rd' : 
                                          position > 0 ? `${position}th` : 'Unranked';
-                      const gamesRemaining = Math.max(0, 14 - ((team?.wins || 0) + (team?.losses || 0)));
+                      
+                      // Season-phase aware games remaining calculation
+                      const currentDay = seasonData?.currentDay || 0;
+                      let gamesRemaining = 0;
+                      
+                      if (currentDay >= 1 && currentDay <= 14) {
+                        // Regular season: Calculate based on current day vs games played
+                        const regularSeasonGames = Math.min(currentDay, 14);
+                        const gamesPlayed = (team?.wins || 0) + (team?.losses || 0);
+                        gamesRemaining = Math.max(0, regularSeasonGames - gamesPlayed);
+                      } else if (currentDay === 15) {
+                        // Division playoffs: No regular season games remain
+                        gamesRemaining = 0;
+                      } else if (currentDay >= 16) {
+                        // Offseason: No games remain
+                        gamesRemaining = 0;
+                      }
+                      
                       return `${positionText} – ${team?.points || 0} Pts – ${gamesRemaining} Games Remain`;
                     })()}
                   </h3>
