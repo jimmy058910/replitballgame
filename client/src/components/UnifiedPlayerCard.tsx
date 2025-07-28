@@ -4,6 +4,7 @@ import { Progress } from '@/components/ui/progress';
 import { Button } from '@/components/ui/button';
 import { Crown, Heart, AlertTriangle } from 'lucide-react';
 import { getPlayerRole, getRaceDisplayName, getPlayerDisplayName } from '@shared/playerUtils';
+import { StarRating } from '@/components/StarRating';
 
 interface PlayerCardProps {
   player: any;
@@ -96,24 +97,7 @@ function calculateOverallPower(player: any): number {
   return Math.round(coreStats.reduce((sum, stat) => sum + stat, 0) / coreStats.length);
 }
 
-// Render star rating for potential
-function renderStarRating(potential: number): JSX.Element {
-  const stars = [];
-  const fullStars = Math.floor(potential);
-  const hasHalfStar = potential % 1 >= 0.5;
-
-  for (let i = 0; i < 5; i++) {
-    if (i < fullStars) {
-      stars.push(<span key={i} className="text-yellow-400">★</span>);
-    } else if (i === fullStars && hasHalfStar) {
-      stars.push(<span key={i} className="text-yellow-400">☆</span>);
-    } else {
-      stars.push(<span key={i} className="text-gray-600">☆</span>);
-    }
-  }
-
-  return <div className="flex items-center text-sm">{stars}</div>;
-}
+// Use unified StarRating component instead of custom implementation
 
 export default function UnifiedPlayerCard({ 
   player, 
@@ -214,7 +198,11 @@ export default function UnifiedPlayerCard({
             <div className="flex items-center justify-between mb-3">
               <div className="text-xs text-gray-400">Age {player.age}</div>
               <div className="flex items-center gap-2">
-                {renderStarRating(potential)}
+                <StarRating 
+                  potential={player.potentialRating || 2.5} 
+                  showDecimal={false}
+                  compact={true}
+                />
                 <span className="text-xs text-gray-400">Potential</span>
               </div>
             </div>
@@ -248,7 +236,11 @@ export default function UnifiedPlayerCard({
                     Age {player.age}
                   </div>
                   <div className="flex items-center gap-2">
-                    {renderStarRating(potential)}
+                    <StarRating 
+                      potential={player.potentialRating || 2.5} 
+                      showDecimal={false}
+                      compact={true}
+                    />
                     <span className="text-xs text-gray-400">Potential</span>
                   </div>
                 </div>

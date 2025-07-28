@@ -1,5 +1,6 @@
 import type { Prisma } from "../../generated/prisma";
 import { generateRandomName, getFullName } from "@shared/names";
+import { generatePotential } from "@shared/potentialSystem";
 import gameConfig from "../config/game_config.json";
 
 export function generateRandomPlayer(name: string | null, race: string, teamId: string, position?: string): Prisma.PlayerCreateInput {
@@ -67,27 +68,11 @@ export function generateRandomPlayer(name: string | null, race: string, teamId: 
     baseStats[key as keyof typeof baseStats] = Math.min(40, baseStats[key as keyof typeof baseStats]);
   });
 
-  // Generate individual stat potentials (15-40 range like stats)
-  const generateIndividualPotential = () => 15 + Math.random() * 25; // 15-40 range for individual stat potentials
-  
-  // Generate overall potential stars using original config (0.5-5.0 range)
-  const potentialConfig = gameConfig.gameParameters.playerGeneration.potentialRange;
-  const generateOverallPotential = () => potentialConfig.min + Math.random() * (potentialConfig.max - potentialConfig.min);
-
-  // Calculate overall potential stars based on position and individual potentials
-  const potentials = {
-    speed: generateIndividualPotential(),
-    power: generateIndividualPotential(),
-    throwing: generateIndividualPotential(),
-    catching: generateIndividualPotential(),
-    kicking: generateIndividualPotential(),
-    stamina: generateIndividualPotential(),
-    leadership: generateIndividualPotential(),
-    agility: generateIndividualPotential()
-  };
-  
-  // Use the generated overall potential instead of calculating from individual potentials
-  const overallPotential = generateOverallPotential();
+  // Use unified potential generation system
+  const potentialRating = generatePotential({ 
+    type: 'veteran_pool', // Default to veteran pool for league generation
+    ageModifier: baseAge <= 23 ? 0.2 : (baseAge >= 30 ? -0.3 : 0)
+  });
   
   // Calculate salary based on stats and age using configurable parameters
   const salaryConfig = gameConfig.gameParameters.playerGeneration.salaryMultipliers;
@@ -115,22 +100,13 @@ export function generateRandomPlayer(name: string | null, race: string, teamId: 
     firstName,
     lastName,
     name: fullName,
-    race: originalRace.toLowerCase(), // Store race in lowercase for consistency
+    race: originalRace.toUpperCase() as any, // Store race in uppercase for enum consistency
     role: getPlayerRole(position || "runner"),
     position: position || "runner", // Default to runner if no position specified
     age: baseAge,
     ...baseStats,
     staminaAttribute: baseStats.stamina, // Map stamina to staminaAttribute
-    potentialRating: parseFloat(overallPotential.toFixed(1)),
-    speedPotential: potentials.speed.toString(),
-    powerPotential: potentials.power.toString(),
-    throwingPotential: potentials.throwing.toString(),
-    catchingPotential: potentials.catching.toString(),
-    kickingPotential: potentials.kicking.toString(),
-    staminaPotential: potentials.stamina.toString(),
-    leadershipPotential: potentials.leadership.toString(),
-    agilityPotential: potentials.agility.toString(),
-    overallPotentialStars: overallPotential.toFixed(1),
+    potentialRating: parseFloat(potentialRating.toFixed(1)), // Use unified potential rating
     salary,
     contractValue: salary * 3, // 3 year contract value
     camaraderie: 50, // Initial camaraderie
@@ -181,7 +157,7 @@ export async function processEndOfSeasonSkillProgression(playerId: string): Prom
 
     // Calculate progression chance based on age, potential, and activity
     const baseChance = 0.15; // 15% base chance
-    const potentialModifier = (parseFloat(player.overallPotentialStars) - 2.5) * 0.05;
+    const potentialModifier = ((player.potentialRating || 2.5) - 2.5) * 0.05;
     const ageModifier = player.age <= 23 ? 0.10 : (player.age <= 27 ? 0.05 : -0.05);
     const activityModifier = (player.gamesPlayedLastSeason || 0) >= 8 ? 0.05 : -0.05;
     

@@ -4,9 +4,10 @@ import { apiRequest } from "@/lib/queryClient";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Clock, UserPlus, UserMinus, TrendingUp, Star, StarHalf } from "lucide-react";
+import { Clock, UserPlus, UserMinus, TrendingUp } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import UnifiedPlayerCard from "@/components/UnifiedPlayerCard";
+import { StarRating } from "@/components/StarRating";
 import { getPlayerRole } from "@shared/playerUtils";
 
 interface TaxiSquadManagerProps {
@@ -23,42 +24,7 @@ type TaxiPlayer = Player & {
 };
 
 
-// Calculate potential stars based on total stats
-const getPotentialStars = (player: TaxiPlayer) => {
-  const totalStats = (player.speed ?? 20) + (player.power ?? 20) + (player.throwing ?? 20) +
-                    (player.catching ?? 20) + (player.kicking ?? 20) + (player.agility ?? 20) +
-                    (player.staminaAttribute ?? 20) + (player.leadership ?? 20);
-  
-  // Base potential calculation (young players have more potential)
-  // Player.age is number, so no need for typeof check
-  const ageFactor = player.age != null ? Math.max(0.5, (30 - player.age) / 10) : 1;
-  const statFactor = Math.min(totalStats / 300, 1); // Normalize to 0-1
-  const basePotential = (statFactor * 3.5 + ageFactor * 1.5);
-  
-  return Math.max(0.5, Math.min(5, basePotential));
-};
-
-// Render star rating
-const renderStars = (rating: number) => {
-  const fullStars = Math.floor(rating);
-  const hasHalfStar = rating % 1 >= 0.5;
-  const stars = [];
-  
-  for (let i = 0; i < fullStars; i++) {
-    stars.push(<Star key={i} className="w-3 h-3 fill-yellow-400 text-yellow-400" />);
-  }
-  
-  if (hasHalfStar) {
-    stars.push(<StarHalf key="half" className="w-3 h-3 fill-yellow-400 text-yellow-400" />);
-  }
-  
-  const emptyStars = 5 - fullStars - (hasHalfStar ? 1 : 0);
-  for (let i = 0; i < emptyStars; i++) {
-    stars.push(<Star key={`empty-${i}`} className="w-3 h-3 text-gray-400" />);
-  }
-  
-  return stars;
-};
+// Use actual stored potential rating instead of calculating from stats
 
 export function TaxiSquadManager({ teamId, onNavigateToRecruiting }: TaxiSquadManagerProps) {
   const { toast } = useToast();
@@ -195,7 +161,6 @@ export function TaxiSquadManager({ teamId, onNavigateToRecruiting }: TaxiSquadMa
           <CardContent>
             <div className="grid gap-4">
               {taxiSquadPlayers?.map((player: TaxiPlayer) => { // Typed player and optional chaining
-                const potentialRating = getPotentialStars(player);
                 const playerRole = getPlayerRole(player);
                 const getRaceEmoji = (race: string) => {
                   const raceEmojis: Record<string, string> = { 'human': '👤', 'sylvan': '🌿', 'gryll': '⚒️', 'lumina': '☀️', 'umbra': '🌙' };
@@ -277,12 +242,12 @@ export function TaxiSquadManager({ teamId, onNavigateToRecruiting }: TaxiSquadMa
                       {/* Potential Rating Display */}
                       <div className="text-center mr-4">
                         <div className="text-xs text-gray-400 mb-1">Potential</div>
-                        <div className="flex items-center gap-1 justify-center">
-                          {renderStars(potentialRating)}
-                        </div>
-                        <div className="text-xs text-gray-400 mt-1">
-                          ({potentialRating.toFixed(1)}/5.0)
-                        </div>
+                        <StarRating 
+                          potential={player.potentialRating || 2.5} 
+                          showDecimal={true}
+                          compact={false}
+                          className="justify-center"
+                        />
                       </div>
                       
                       {/* Action Buttons */}
