@@ -188,7 +188,7 @@ export function EnhancedMatchTest() {
                 onChange={(e) => setSelectedMatchId(e.target.value)}
               >
                 <option value="">Select a match...</option>
-                {availableMatches?.map((match: any) => (
+                {((availableMatches as any)?.matches || []).map((match: any) => (
                   <option key={match.id} value={match.id}>
                     {match.homeTeam?.name || 'Home'} vs {match.awayTeam?.name || 'Away'} 
                     ({match.matchType || 'LEAGUE'})

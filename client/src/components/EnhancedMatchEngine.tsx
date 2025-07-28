@@ -69,8 +69,8 @@ interface StadiumData {
 interface MatchEngineProps {
   matchId: string;
   userId: string;
-  team1: any;
-  team2: any;
+  team1?: any;
+  team2?: any;
   initialLiveState?: LiveMatchState;
   onMatchComplete?: (finalState: LiveMatchState) => void;
 }

@@ -29,8 +29,11 @@ import {
   TrendingUp,
   AlertCircle,
   CheckCircle,
-  Clock
+  Clock,
+  Eye,
+  Globe
 } from 'lucide-react';
+import { EnhancedMatchEngine } from '@/components/EnhancedMatchEngine';
 
 interface TestSession {
   id: string;
@@ -63,6 +66,13 @@ interface TestResult {
 
 export default function TestEnvironment() {
   const [selectedSession, setSelectedSession] = useState<string>('');
+  const [liveMatchData, setLiveMatchData] = useState<{
+    team1?: any;
+    team2?: any;
+    matchId?: string;
+    isCreating?: boolean;
+    isWatching?: boolean;
+  }>({});
   const [runningTests, setRunningTests] = useState<boolean>(false);
   const [testProgress, setTestProgress] = useState<number>(0);
   const { toast } = useToast();
@@ -203,9 +213,9 @@ export default function TestEnvironment() {
     runBatchTestMutation.mutate(selectedSession);
   };
 
-  const sessions = sessionsData?.sessions || [];
-  const currentSession = sessionData?.session;
-  const analytics = analyticsData?.analytics;
+  const sessions = (sessionsData as any)?.sessions || [];
+  const currentSession = (sessionData as any)?.session;
+  const analytics = (analyticsData as any)?.analytics;
 
   return (
     <div className="container mx-auto p-6 space-y-6">
@@ -226,11 +236,15 @@ export default function TestEnvironment() {
       </div>
 
       <Tabs defaultValue="sessions" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-4">
+        <TabsList className="grid w-full grid-cols-5">
           <TabsTrigger value="sessions">Test Sessions</TabsTrigger>
           <TabsTrigger value="create">Create Session</TabsTrigger>
           <TabsTrigger value="results">Test Results</TabsTrigger>
           <TabsTrigger value="analytics">Analytics</TabsTrigger>
+          <TabsTrigger value="live" className="flex items-center gap-2">
+            <Eye className="w-4 h-4" />
+            Live Match Simulation
+          </TabsTrigger>
         </TabsList>
 
         {/* Test Sessions Tab */}
@@ -561,6 +575,205 @@ export default function TestEnvironment() {
               </div>
             </CardContent>
           </Card>
+        </TabsContent>
+
+        {/* Live Match Simulation Tab */}
+        <TabsContent value="live" className="space-y-4">
+          <div className="grid gap-4">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Eye className="h-5 w-5 text-green-500" />
+                  Live Match Simulation
+                </CardTitle>
+                <CardDescription>
+                  Create and watch real-time match simulations between test teams with full field visualization
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                {!liveMatchData.isWatching ? (
+                  <div className="space-y-6">
+                    <div className="text-center">
+                      <h3 className="text-lg font-semibold mb-2">Create a Live Test Match</h3>
+                      <p className="text-muted-foreground mb-4">
+                        Select two test teams to create an actual live match simulation that you can watch in real-time
+                      </p>
+                    </div>
+
+                    <div className="grid md:grid-cols-2 gap-4">
+                      {/* Team 1 Selection */}
+                      <Card className="p-4">
+                        <div className="text-center mb-3">
+                          <h4 className="font-medium">Home Team</h4>
+                        </div>
+                        <Button 
+                          variant="outline" 
+                          className="w-full h-16"
+                          onClick={() => {
+                            setLiveMatchData(prev => ({
+                              ...prev,
+                              team1: {
+                                id: 'test-team-1',
+                                name: 'Thunder Hawks',
+                                division: 'Diamond',
+                                power: 28.5
+                              }
+                            }));
+                          }}
+                        >
+                          {liveMatchData.team1 ? (
+                            <div className="text-center">
+                              <div className="font-semibold">{liveMatchData.team1.name}</div>
+                              <div className="text-sm text-muted-foreground">Power: {liveMatchData.team1.power}</div>
+                            </div>
+                          ) : (
+                            <div className="flex items-center gap-2">
+                              <Users className="w-4 h-4" />
+                              Select Home Team
+                            </div>
+                          )}
+                        </Button>
+                      </Card>
+
+                      {/* Team 2 Selection */}
+                      <Card className="p-4">
+                        <div className="text-center mb-3">
+                          <h4 className="font-medium">Away Team</h4>
+                        </div>
+                        <Button 
+                          variant="outline" 
+                          className="w-full h-16"
+                          onClick={() => {
+                            setLiveMatchData(prev => ({
+                              ...prev,
+                              team2: {
+                                id: 'test-team-2',
+                                name: 'Shadow Wolves',
+                                division: 'Diamond',
+                                power: 27.8
+                              }
+                            }));
+                          }}
+                        >
+                          {liveMatchData.team2 ? (
+                            <div className="text-center">
+                              <div className="font-semibold">{liveMatchData.team2.name}</div>
+                              <div className="text-sm text-muted-foreground">Power: {liveMatchData.team2.power}</div>
+                            </div>
+                          ) : (
+                            <div className="flex items-center gap-2">
+                              <Users className="w-4 h-4" />
+                              Select Away Team
+                            </div>
+                          )}
+                        </Button>
+                      </Card>
+                    </div>
+
+                    {/* Match Creation */}
+                    {liveMatchData.team1 && liveMatchData.team2 && (
+                      <div className="text-center space-y-4">
+                        <div className="p-4 bg-muted rounded-lg">
+                          <h4 className="font-semibold mb-2">Match Preview</h4>
+                          <div className="flex items-center justify-center gap-4">
+                            <div className="text-center">
+                              <div className="font-medium">{liveMatchData.team1.name}</div>
+                              <div className="text-sm text-muted-foreground">Power: {liveMatchData.team1.power}</div>
+                            </div>
+                            <div className="text-2xl font-bold text-muted-foreground">VS</div>
+                            <div className="text-center">
+                              <div className="font-medium">{liveMatchData.team2.name}</div>
+                              <div className="text-sm text-muted-foreground">Power: {liveMatchData.team2.power}</div>
+                            </div>
+                          </div>
+                        </div>
+
+                        <Button 
+                          size="lg"
+                          className="flex items-center gap-2"
+                          onClick={async () => {
+                            setLiveMatchData(prev => ({ ...prev, isCreating: true }));
+                            try {
+                              // For demo purposes, create a mock match ID
+                              const mockMatchId = 'live-test-' + Date.now();
+                              
+                              setLiveMatchData(prev => ({
+                                ...prev,
+                                matchId: mockMatchId,
+                                isCreating: false,
+                                isWatching: true
+                              }));
+                              
+                              toast({
+                                title: "Live Match Created!",
+                                description: `${liveMatchData.team1.name} vs ${liveMatchData.team2.name} is ready to start`
+                              });
+                            } catch (error) {
+                              console.error('Failed to create live match:', error);
+                              setLiveMatchData(prev => ({ ...prev, isCreating: false }));
+                              toast({
+                                title: "Match Creation Failed",
+                                description: "Could not create the live match simulation",
+                                variant: "destructive"
+                              });
+                            }
+                          }}
+                          disabled={liveMatchData.isCreating}
+                        >
+                          {liveMatchData.isCreating ? (
+                            <>
+                              <Pause className="w-4 h-4 animate-spin" />
+                              Creating Match...
+                            </>
+                          ) : (
+                            <>
+                              <Play className="w-4 h-4" />
+                              Start Live Match Simulation
+                            </>
+                          )}
+                        </Button>
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  /* Enhanced Match Engine Integration */
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between">
+                      <h3 className="text-lg font-semibold">
+                        Live Match: {liveMatchData.team1?.name} vs {liveMatchData.team2?.name}
+                      </h3>
+                      <Button 
+                        variant="outline"
+                        onClick={() => {
+                          setLiveMatchData({});
+                        }}
+                      >
+                        <RotateCcw className="w-4 h-4 mr-2" />
+                        Back to Setup
+                      </Button>
+                    </div>
+
+                    {liveMatchData.matchId && (
+                      <div className="border rounded-lg p-2">
+                        <EnhancedMatchEngine
+                          matchId={liveMatchData.matchId}
+                          userId="test-user"
+                          team1={liveMatchData.team1}
+                          team2={liveMatchData.team2}
+                          onMatchComplete={() => {
+                            toast({
+                              title: "Match Complete!",
+                              description: "The live simulation has finished"
+                            });
+                          }}
+                        />
+                      </div>
+                    )}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </div>
         </TabsContent>
       </Tabs>
     </div>
