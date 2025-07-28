@@ -2295,7 +2295,7 @@ router.get('/:teamId/tactical-setup', isAuthenticated, asyncHandler(async (req: 
     coachEffectiveness: headCoach ? Math.round((headCoach.motivation + headCoach.tactics) / 2) : 0,
     teamCamaraderie: Math.round(teamCamaraderie),
     fieldSizeBonus: team.homeField === 'LARGE' ? 3 : team.homeField === 'COMPACT' ? 2 : 1,
-    tacticalFocusBonus: team.tacticalFocus === 'OFFENSIVE' ? 4 : team.tacticalFocus === 'DEFENSIVE' ? 3 : 2,
+    tacticalFocusBonus: team.tacticalFocus === 'ALL_OUT_ATTACK' ? 4 : team.tacticalFocus === 'DEFENSIVE_WALL' ? 3 : 2,
     currentDay: currentSeason?.currentDay || 1
   };
 
@@ -2362,8 +2362,8 @@ router.post('/:teamId/tactical-focus', isAuthenticated, asyncHandler(async (req:
   const userId = req.user.claims.sub;
 
   // Validate tactical focus
-  if (!['BALANCED', 'OFFENSIVE', 'DEFENSIVE'].includes(tacticalFocus)) {
-    throw ErrorCreators.validation("Invalid tactical focus. Must be BALANCED, OFFENSIVE, or DEFENSIVE");
+  if (!['BALANCED', 'ALL_OUT_ATTACK', 'DEFENSIVE_WALL'].includes(tacticalFocus)) {
+    throw ErrorCreators.validation("Invalid tactical focus. Must be BALANCED, ALL_OUT_ATTACK, or DEFENSIVE_WALL");
   }
 
   // Validate team ownership

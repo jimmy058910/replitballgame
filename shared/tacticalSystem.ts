@@ -4,7 +4,7 @@
  */
 
 export type FieldSize = "standard" | "large" | "small";
-export type TacticalFocus = "balanced" | "all_out_attack" | "defensive_wall";
+export type TacticalFocus = "BALANCED" | "ALL_OUT_ATTACK" | "DEFENSIVE_WALL";
 export type GameSituation = "winning_big" | "losing_big" | "late_close" | "normal";
 
 export interface TacticalModifiers {
