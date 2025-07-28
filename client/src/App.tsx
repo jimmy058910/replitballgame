@@ -28,7 +28,6 @@ import {
   LazyTournamentStatus
 } from "@/utils/lazyLoading";
 
-import NewNavigation from "@/components/NewNavigation";
 import { ContextualHelp } from "@/components/help";
 // Removed LandscapeOrientation - mobile-first design supports vertical mode per UI/UX documents
 import ErrorBoundary from "@/components/ErrorBoundary";
@@ -127,7 +126,6 @@ function App() {
       <TooltipProvider>
         <ErrorBoundary level="critical">
           <div className="min-h-screen bg-background">
-            <NewNavigation />
             <ErrorBoundary level="page">
               <Router />
             </ErrorBoundary>
