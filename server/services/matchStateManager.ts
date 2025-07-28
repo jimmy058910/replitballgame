@@ -717,6 +717,62 @@ class MatchStateManager {
     }
   }
 
+  // API-compatible async versions for enhanced match routes
+  async pauseMatchAsync(matchId: string): Promise<void> {
+    this.pauseMatch(matchId);
+  }
+
+  async resumeMatchAsync(matchId: string): Promise<void> {
+    this.resumeMatch(matchId);
+  }
+
+  async restartMatch(matchId: string): Promise<void> {
+    const state = this.liveMatches.get(matchId);
+    if (state) {
+      // Reset game state
+      state.gameTime = 0;
+      state.homeScore = 0;
+      state.awayScore = 0;
+      state.status = 'live';
+      state.gameEvents = [];
+      
+      // Clear existing player match times
+      state.playerMatchTimes.clear();
+      
+      // Clear existing intervals
+      const interval = this.matchIntervals.get(matchId);
+      if (interval) {
+        clearInterval(interval);
+        this.matchIntervals.delete(matchId);
+      }
+      
+      // Restart simulation from beginning
+      await this.restartSimulationFromState(matchId);
+      
+      log(`🔄 Match ${matchId} restarted`);
+    }
+  }
+
+  async setMatchSpeed(matchId: string, speed: number): Promise<void> {
+    const state = this.liveMatches.get(matchId);
+    if (state) {
+      // Add speed property to state
+      (state as any).playbackSpeed = speed;
+      
+      // Clear existing interval and restart with new speed
+      const interval = this.matchIntervals.get(matchId);
+      if (interval) {
+        clearInterval(interval);
+        this.matchIntervals.delete(matchId);
+        
+        // Restart simulation with new speed
+        await this.restartSimulationFromState(matchId);
+      }
+      
+      log(`⚡ Match ${matchId} speed set to ${speed}x`);
+    }
+  }
+
   // Restart simulation from existing state
   private async restartSimulationFromState(matchId: string): Promise<void> {
     const state = this.liveMatches.get(matchId);

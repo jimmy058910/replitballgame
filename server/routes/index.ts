@@ -58,6 +58,7 @@ import shareableMomentsRoutes from "./shareableMomentsRoutes";
 import careerHighlightsRoutes from "./careerHighlightsRoutes";
 import referralRoutes from "./referralRoutes";
 import criticalAlertsRoutes from "./criticalAlertsRoutes";
+import enhancedMatchRoutes from "./enhancedMatchRoutes";
 
 // This function will be called by server/index.ts to set up all routes.
 // It replaces the direct app.use calls that would have been in server/index.ts
@@ -74,6 +75,7 @@ export function registerAllRoutes(app: Express): void {
   app.use("/api/staff", staffRoutes);
   app.use("/api/leagues", leagueRoutes); // This will also cover /api/teams/division/:division if it's there
   app.use("/api/matches", matchRoutes);
+  app.use("/api/enhanced-matches", enhancedMatchRoutes); // Enhanced match engine API endpoints
   app.use("/api/team-matches", leagueMatchesRoutes); // League matches for team recent matches display
   app.use("/api/marketplace", marketplaceRoutes);
   // Add marketplace stats alias

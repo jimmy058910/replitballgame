@@ -1,0 +1,629 @@
+import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { useQuery } from '@tanstack/react-query';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Progress } from '@/components/ui/progress';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { Separator } from '@/components/ui/separator';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { 
+  Play, Pause, RotateCcw, Clock, Users, Trophy, Zap, Target, Activity, 
+  Eye, MessageCircle, BarChart3, Settings, DollarSign, 
+  Heart, Shield, Footprints, ChevronLeft, ChevronRight 
+} from 'lucide-react';
+import webSocketManager, { LiveMatchState, MatchEvent, WebSocketCallbacks } from '@/lib/websocket';
+import { useToast } from '@/hooks/use-toast';
+import { apiRequest, queryClient } from '@/lib/queryClient';
+
+// Enhanced interfaces for comprehensive match data
+interface EnhancedPlayer {
+  id: string;
+  firstName: string;
+  lastName: string;
+  role: "PASSER" | "RUNNER" | "BLOCKER";
+  teamId: string;
+  race: string;
+  speed: number;
+  power: number;
+  throwing: number;
+  catching: number;
+  kicking: number;
+  staminaAttribute: number;
+  leadership: number;
+  agility: number;
+  dailyStaminaLevel: number;
+  injuryStatus: string;
+  position?: { x: number; y: number };
+  isActive?: boolean;
+  matchStats?: {
+    minutesPlayed: number;
+    possessions: number;
+    tackles: number;
+    completions: number;
+  };
+}
+
+interface StadiumData {
+  capacity: number;
+  attendance: number;
+  fanLoyalty: number;
+  atmosphere: number;
+  revenue: {
+    tickets: number;
+    concessions: number;
+    parking: number;
+    merchandise: number;
+    vip: number;
+    total: number;
+  };
+  facilities: {
+    concessions: number;
+    parking: number;
+    vip: number;
+    merchandising: number;
+    lighting: number;
+  };
+}
+
+interface MatchEngineProps {
+  matchId: string;
+  userId: string;
+  team1: any;
+  team2: any;
+  initialLiveState?: LiveMatchState;
+  onMatchComplete?: (finalState: LiveMatchState) => void;
+}
+
+// Field Visualization Component
+const FieldVisualization: React.FC<{
+  homeTeam: any;
+  awayTeam: any;
+  homePlayers: EnhancedPlayer[];
+  awayPlayers: EnhancedPlayer[];
+  liveState: LiveMatchState;
+  ballPosition: { x: number; y: number };
+}> = ({ homeTeam, awayTeam, homePlayers, awayPlayers, liveState, ballPosition }) => {
+  return (
+    <div className="relative w-full aspect-[16/9] bg-gradient-to-b from-green-400 to-green-600 rounded-lg overflow-hidden border-2 border-green-300">
+      {/* Field markings */}
+      <div className="absolute inset-0">
+        {/* Yard lines */}
+        {[20, 40, 60, 80].map(yard => (
+          <div 
+            key={yard}
+            className="absolute w-full h-px bg-white/30"
+            style={{ top: `${yard}%` }}
+          />
+        ))}
+        
+        {/* Sidelines */}
+        <div className="absolute left-0 top-0 w-px h-full bg-white/50" />
+        <div className="absolute right-0 top-0 w-px h-full bg-white/50" />
+        
+        {/* End zones */}
+        <div className="absolute top-0 left-0 w-full h-[10%] bg-blue-500/20 border-b border-white/30" />
+        <div className="absolute bottom-0 left-0 w-full h-[10%] bg-red-500/20 border-t border-white/30" />
+        
+        {/* Midfield line */}
+        <div className="absolute top-1/2 left-0 w-full h-0.5 bg-white/60" />
+      </div>
+      
+      {/* Ball position */}
+      <div 
+        className="absolute w-2 h-2 bg-yellow-400 rounded-full border border-yellow-600 shadow-lg animate-pulse"
+        style={{
+          left: `${ballPosition.x}%`,
+          top: `${ballPosition.y}%`,
+          transform: 'translate(-50%, -50%)'
+        }}
+      />
+      
+      {/* Home team players (blue) */}
+      {homePlayers.filter(p => p.isActive).map(player => (
+        <div
+          key={player.id}
+          className="absolute w-3 h-3 bg-blue-500 rounded-full border border-blue-700 shadow-sm"
+          style={{
+            left: `${player.position?.x || Math.random() * 80 + 10}%`,
+            top: `${player.position?.y || Math.random() * 80 + 10}%`,
+            transform: 'translate(-50%, -50%)'
+          }}
+          title={`${player.firstName} ${player.lastName} (${player.role})`}
+        />
+      ))}
+      
+      {/* Away team players (red) */}
+      {awayPlayers.filter(p => p.isActive).map(player => (
+        <div
+          key={player.id}
+          className="absolute w-3 h-3 bg-red-500 rounded-full border border-red-700 shadow-sm"
+          style={{
+            left: `${player.position?.x || Math.random() * 80 + 10}%`,
+            top: `${player.position?.y || Math.random() * 80 + 10}%`,
+            transform: 'translate(-50%, -50%)'
+          }}
+          title={`${player.firstName} ${player.lastName} (${player.role})`}
+        />
+      ))}
+      
+      {/* Possession indicator */}
+      <div className="absolute top-2 left-2 bg-black/50 text-white px-2 py-1 rounded text-xs">
+        {(liveState as any)?.possession === homeTeam?.id ? homeTeam?.name : awayTeam?.name} Ball
+      </div>
+      
+      {/* Down and distance */}
+      <div className="absolute top-2 right-2 bg-black/50 text-white px-2 py-1 rounded text-xs">
+        {(liveState as any)?.down || 1}{(liveState as any)?.down === 1 ? 'st' : (liveState as any)?.down === 2 ? 'nd' : (liveState as any)?.down === 3 ? 'rd' : 'th'} & {(liveState as any)?.yardsToGo || 10}
+      </div>
+    </div>
+  );
+};
+
+// Live Commentary Tab Component
+const LiveCommentaryTab: React.FC<{
+  events: MatchEvent[];
+  autoScroll: boolean;
+  onToggleAutoScroll: () => void;
+}> = ({ events, autoScroll, onToggleAutoScroll }) => {
+  const scrollRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (autoScroll && scrollRef.current) {
+      scrollRef.current.scrollTop = 0;
+    }
+  }, [events, autoScroll]);
+
+  return (
+    <div className="space-y-4">
+      <div className="flex justify-between items-center">
+        <h3 className="font-semibold text-sm">Live Commentary</h3>
+        <Button
+          variant={autoScroll ? "default" : "outline"}
+          size="sm"
+          onClick={onToggleAutoScroll}
+        >
+          Auto-scroll: {autoScroll ? "ON" : "OFF"}
+        </Button>
+      </div>
+      
+      <ScrollArea className="h-48" ref={scrollRef}>
+        <div className="space-y-2">
+          {events.slice(0, 20).map((event, index) => (
+            <div key={index} className="p-2 bg-muted rounded text-sm">
+              <div className="flex justify-between items-start mb-1">
+                <span className="font-mono text-xs text-muted-foreground">
+                  {Math.floor(((event as any).gameTime || 0) / 60)}:{(((event as any).gameTime || 0) % 60).toString().padStart(2, '0')}
+                </span>
+                <Badge variant="outline" className="text-xs">
+                  {event.type}
+                </Badge>
+              </div>
+              <p className="text-sm">{event.description}</p>
+            </div>
+          ))}
+        </div>
+      </ScrollArea>
+    </div>
+  );
+};
+
+// Live Stats Tab Component
+const LiveStatsTab: React.FC<{
+  homeTeam: any;
+  awayTeam: any;
+  liveState: LiveMatchState;
+  enhancedStats: any;
+}> = ({ homeTeam, awayTeam, liveState, enhancedStats }) => {
+  return (
+    <div className="space-y-4">
+      <h3 className="font-semibold text-sm">Match Statistics</h3>
+      
+      {/* Possession */}
+      <div>
+        <div className="flex justify-between text-sm mb-1">
+          <span>Possession</span>
+          <span>{homeTeam?.name} {enhancedStats?.homePossession || 50}% | {enhancedStats?.awayPossession || 50}% {awayTeam?.name}</span>
+        </div>
+        <Progress value={enhancedStats?.homePossession || 50} className="h-2" />
+      </div>
+      
+      {/* Total Yards */}
+      <div className="flex justify-between text-sm">
+        <span>Total Yards</span>
+        <span>{homeTeam?.name} {enhancedStats?.homeYards || 0} | {enhancedStats?.awayYards || 0} {awayTeam?.name}</span>
+      </div>
+      
+      {/* First Downs */}
+      <div className="flex justify-between text-sm">
+        <span>First Downs</span>
+        <span>{homeTeam?.name} {enhancedStats?.homeFirstDowns || 0} | {enhancedStats?.awayFirstDowns || 0} {awayTeam?.name}</span>
+      </div>
+      
+      {/* Turnovers */}
+      <div className="flex justify-between text-sm">
+        <span>Turnovers</span>
+        <span>{homeTeam?.name} {enhancedStats?.homeTurnovers || 0} | {enhancedStats?.awayTurnovers || 0} {awayTeam?.name}</span>
+      </div>
+      
+      <Separator />
+      
+      <Button variant="outline" size="sm" className="w-full">
+        <BarChart3 className="w-4 h-4 mr-2" />
+        Detailed Stats
+      </Button>
+    </div>
+  );
+};
+
+// Stadium Revenue Tab Component  
+const StadiumRevenueTab: React.FC<{
+  stadiumData: StadiumData;
+  matchType: string;
+}> = ({ stadiumData, matchType }) => {
+  return (
+    <div className="space-y-4">
+      <h3 className="font-semibold text-sm">Stadium Revenue (Live)</h3>
+      
+      <div className="grid grid-cols-2 gap-2 text-xs">
+        <div className="bg-muted p-2 rounded">
+          <div className="font-semibold">Attendance</div>
+          <div>{stadiumData?.attendance?.toLocaleString() || 0} / {stadiumData?.capacity?.toLocaleString() || 5000}</div>
+        </div>
+        
+        <div className="bg-muted p-2 rounded">
+          <div className="font-semibold">Atmosphere</div>
+          <div>{stadiumData?.atmosphere || 50}%</div>
+        </div>
+      </div>
+      
+      {matchType === 'LEAGUE' && (
+        <div className="space-y-2">
+          <h4 className="font-semibold text-xs">Live Revenue</h4>
+          <div className="space-y-1 text-xs">
+            <div className="flex justify-between">
+              <span>Tickets:</span>
+              <span>₡{stadiumData?.revenue?.tickets?.toLocaleString() || 0}</span>
+            </div>
+            <div className="flex justify-between">
+              <span>Concessions:</span>
+              <span>₡{stadiumData?.revenue?.concessions?.toLocaleString() || 0}</span>
+            </div>
+            <div className="flex justify-between">
+              <span>Parking:</span>
+              <span>₡{stadiumData?.revenue?.parking?.toLocaleString() || 0}</span>
+            </div>
+            <div className="flex justify-between">
+              <span>Merchandise:</span>
+              <span>₡{stadiumData?.revenue?.merchandise?.toLocaleString() || 0}</span>
+            </div>
+            <div className="flex justify-between">
+              <span>VIP Suites:</span>
+              <span>₡{stadiumData?.revenue?.vip?.toLocaleString() || 0}</span>
+            </div>
+            <Separator />
+            <div className="flex justify-between font-semibold">
+              <span>Total:</span>
+              <span>₡{stadiumData?.revenue?.total?.toLocaleString() || 0}</span>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
+// Main Enhanced Match Engine Component
+export const EnhancedMatchEngine: React.FC<MatchEngineProps> = ({
+  matchId,
+  userId,
+  team1,
+  team2,
+  initialLiveState,
+  onMatchComplete
+}) => {
+  const [liveState, setLiveState] = useState<LiveMatchState | null>(initialLiveState || null);
+  const [events, setEvents] = useState<MatchEvent[]>([]);
+  const [isConnected, setIsConnected] = useState(false);
+  const [isControlling, setIsControlling] = useState(false);
+  const [ballPosition, setBallPosition] = useState({ x: 50, y: 50 });
+  const [activeTab, setActiveTab] = useState("commentary");
+  const [autoScroll, setAutoScroll] = useState(true);
+  const [playbackSpeed, setPlaybackSpeed] = useState(1.0);
+  const { toast } = useToast();
+
+  // Enhanced data queries
+  const { data: homeTeamPlayers } = useQuery({
+    queryKey: [`/api/teams/${team1?.id}/players`],
+    enabled: !!team1?.id
+  });
+
+  const { data: awayTeamPlayers } = useQuery({
+    queryKey: [`/api/teams/${team2?.id}/players`],
+    enabled: !!team2?.id
+  });
+
+  const { data: stadiumData } = useQuery({
+    queryKey: [`/api/matches/${matchId}/stadium-data`],
+    enabled: !!matchId,
+    refetchInterval: 10000
+  });
+
+  const { data: enhancedMatchData } = useQuery({
+    queryKey: [`/api/matches/${matchId}/enhanced-data`],
+    enabled: !!matchId && !!liveState,
+    refetchInterval: 5000
+  });
+
+  // WebSocket connection
+  useEffect(() => {
+    if (!matchId || !userId) return;
+
+    const callbacks: WebSocketCallbacks = {
+      onMatchUpdate: (state: LiveMatchState) => {
+        setLiveState(state);
+        // Update ball position based on field position
+        setBallPosition({
+          x: 50 + (Math.random() - 0.5) * 20,
+          y: ((state as any).fieldPosition || 50) + (Math.random() - 0.5) * 10
+        });
+      },
+      onMatchEvent: (event: MatchEvent) => {
+        setEvents(prev => [event, ...prev]);
+      },
+      onConnectionStateChange: (connected: boolean) => {
+        setIsConnected(connected);
+      }
+    };
+
+    webSocketManager.joinMatch(matchId, callbacks);
+
+    return () => {
+      webSocketManager.disconnect();
+    };
+  }, [matchId, userId]);
+
+  // Match control functions
+  const handlePlayPause = useCallback(async () => {
+    if (!matchId) return;
+    
+    try {
+      setIsControlling(true);
+      const action = (liveState as any)?.isPaused ? 'resume' : 'pause';
+      await apiRequest({
+        method: 'POST',
+        url: `/api/matches/${matchId}/control`,
+        data: { action }
+      });
+      
+      toast({
+        title: action === 'resume' ? "Match Resumed" : "Match Paused",
+        description: `Match ${action}d successfully.`
+      });
+    } catch (error) {
+      toast({
+        title: "Control Failed",
+        description: "Failed to control match playback.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsControlling(false);
+    }
+  }, [matchId, liveState?.isPaused, toast]);
+
+  const handleSpeedChange = useCallback(async (speed: number) => {
+    if (!matchId) return;
+    
+    try {
+      await apiRequest({
+        method: 'POST',
+        url: `/api/matches/${matchId}/speed`,
+        data: { speed }
+      });
+      setPlaybackSpeed(speed);
+    } catch (error) {
+      console.error('Failed to change speed:', error);
+    }
+  }, [matchId]);
+
+  const formatGameTime = (seconds: number) => {
+    const minutes = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${minutes}:${secs.toString().padStart(2, '0')}`;
+  };
+
+  if (!liveState) {
+    return (
+      <Card className="w-full max-w-4xl mx-auto">
+        <CardContent className="flex items-center justify-center h-64">
+          <div className="text-center space-y-4">
+            <Activity className="w-8 h-8 mx-auto animate-spin" />
+            <p>Loading match simulation...</p>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  return (
+    <div className="w-full max-w-6xl mx-auto space-y-4">
+      {/* Enhanced Header */}
+      <Card>
+        <CardHeader className="pb-2">
+          <div className="flex items-center justify-between">
+            {/* Live indicator and teams */}
+            <div className="flex items-center space-x-4">
+              <div className="flex items-center space-x-2">
+                <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse" />
+                <Badge variant="destructive" className="text-xs">LIVE</Badge>
+              </div>
+              
+              <div className="flex items-center space-x-6">
+                <div className="text-center">
+                  <div className="font-bold text-lg">{team1?.name}</div>
+                  <div className="text-3xl font-bold text-blue-600">{liveState.homeScore}</div>
+                </div>
+                
+                <div className="text-center">
+                  <div className="text-sm text-muted-foreground">Game Clock</div>
+                  <div className="font-mono text-xl">{formatGameTime(liveState.gameTime)}</div>
+                  <div className="text-xs text-muted-foreground">
+                    {(liveState as any).period === 1 ? '1st Half' : '2nd Half'}
+                  </div>
+                </div>
+                
+                <div className="text-center">
+                  <div className="font-bold text-lg">{team2?.name}</div>
+                  <div className="text-3xl font-bold text-red-600">{liveState.awayScore}</div>
+                </div>
+              </div>
+            </div>
+            
+            {/* Controls */}
+            <div className="flex items-center space-x-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handlePlayPause}
+                disabled={isControlling}
+              >
+                {(liveState as any).isPaused ? <Play className="w-4 h-4" /> : <Pause className="w-4 h-4" />}
+              </Button>
+              
+              <div className="flex items-center space-x-1">
+                <Button
+                  variant={playbackSpeed === 0.5 ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => handleSpeedChange(0.5)}
+                >
+                  0.5x
+                </Button>
+                <Button
+                  variant={playbackSpeed === 1.0 ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => handleSpeedChange(1.0)}
+                >
+                  1x
+                </Button>
+                <Button
+                  variant={playbackSpeed === 2.0 ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => handleSpeedChange(2.0)}
+                >
+                  2x
+                </Button>
+              </div>
+            </div>
+          </div>
+        </CardHeader>
+      </Card>
+
+      {/* Field Visualization */}
+      <Card>
+        <CardContent className="p-4">
+          <FieldVisualization
+            homeTeam={team1}
+            awayTeam={team2}
+            homePlayers={(homeTeamPlayers as EnhancedPlayer[]) || []}
+            awayPlayers={(awayTeamPlayers as EnhancedPlayer[]) || []}
+            liveState={liveState}
+            ballPosition={ballPosition}
+          />
+        </CardContent>
+      </Card>
+
+      {/* Mobile-First Bottom Panel */}
+      <Card>
+        <CardContent className="p-4">
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+            <TabsList className="grid w-full grid-cols-4">
+              <TabsTrigger value="commentary" className="flex items-center space-x-1">
+                <MessageCircle className="w-4 h-4" />
+                <span className="hidden sm:inline">Commentary</span>
+              </TabsTrigger>
+              <TabsTrigger value="stats" className="flex items-center space-x-1">
+                <BarChart3 className="w-4 h-4" />
+                <span className="hidden sm:inline">Stats</span>
+              </TabsTrigger>
+              <TabsTrigger value="revenue" className="flex items-center space-x-1">
+                <DollarSign className="w-4 h-4" />
+                <span className="hidden sm:inline">Revenue</span>
+              </TabsTrigger>
+              <TabsTrigger value="players" className="flex items-center space-x-1">
+                <Users className="w-4 h-4" />
+                <span className="hidden sm:inline">Players</span>
+              </TabsTrigger>
+            </TabsList>
+            
+            <TabsContent value="commentary" className="mt-4">
+              <LiveCommentaryTab
+                events={events}
+                autoScroll={autoScroll}
+                onToggleAutoScroll={() => setAutoScroll(!autoScroll)}
+              />
+            </TabsContent>
+            
+            <TabsContent value="stats" className="mt-4">
+              <LiveStatsTab
+                homeTeam={team1}
+                awayTeam={team2}
+                liveState={liveState}
+                enhancedStats={enhancedMatchData}
+              />
+            </TabsContent>
+            
+            <TabsContent value="revenue" className="mt-4">
+              <StadiumRevenueTab
+                stadiumData={stadiumData as StadiumData}
+                matchType={(liveState as any).matchType || 'LEAGUE'}
+              />
+            </TabsContent>
+            
+            <TabsContent value="players" className="mt-4">
+              <div className="space-y-4">
+                <h3 className="font-semibold text-sm">Active Players</h3>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <h4 className="text-xs font-semibold mb-2 text-blue-600">{team1?.name}</h4>
+                    <div className="space-y-1">
+                      {(homeTeamPlayers as any[])?.filter((p: any) => p.isActive)?.slice(0, 6)?.map((player: any) => (
+                        <div key={player.id} className="flex justify-between text-xs p-1 bg-blue-50 rounded">
+                          <span>{player.firstName} {player.lastName}</span>
+                          <span className="text-muted-foreground">{player.role}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                  
+                  <div>
+                    <h4 className="text-xs font-semibold mb-2 text-red-600">{team2?.name}</h4>
+                    <div className="space-y-1">
+                      {(awayTeamPlayers as any[])?.filter((p: any) => p.isActive)?.slice(0, 6)?.map((player: any) => (
+                        <div key={player.id} className="flex justify-between text-xs p-1 bg-red-50 rounded">
+                          <span>{player.firstName} {player.lastName}</span>
+                          <span className="text-muted-foreground">{player.role}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </TabsContent>
+          </Tabs>
+        </CardContent>
+      </Card>
+
+      {/* Connection Status */}
+      {!isConnected && (
+        <Card className="border-yellow-200 bg-yellow-50">
+          <CardContent className="flex items-center space-x-2 p-3">
+            <Activity className="w-4 h-4 text-yellow-600 animate-spin" />
+            <span className="text-sm text-yellow-700">Reconnecting to live match...</span>
+          </CardContent>
+        </Card>
+      )}
+    </div>
+  );
+};
+
+export default EnhancedMatchEngine;
