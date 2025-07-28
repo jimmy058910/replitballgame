@@ -188,10 +188,10 @@ export class EconomyDomainService {
         credits: Number(team.finances?.credits || 0),
         gems: Number(team.finances?.gems || 0),
         totalValue: Number(team.finances?.credits || 0) + (Number(team.finances?.gems || 0) * 500),
-        weeklyIncome: 50000, // Base income
+        weeklyIncome: 0, // Calculated dynamically from actual games
         weeklyExpenses: playerSalaries + staffSalaries,
-        stadiumRevenue: team.stadium?.capacity ? team.stadium.capacity * 25 : 0,
-        sponsorshipDeals: 10000,
+        stadiumRevenue: 0, // Calculated from actual home games only
+        sponsorshipDeals: 0, // No hardcoded sponsorships
         playerSalaries,
         staffSalaries,
         maintenanceCosts: 5000

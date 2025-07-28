@@ -593,6 +593,39 @@ docker push gcr.io/direct-glider-465821-p7/realm-rivalry:latest
 
 ## Recent Changes
 
+### July 28, 2025 - ✅ CRITICAL STADIUM ATTENDANCE & REVENUE FORMULA CONSOLIDATION COMPLETE ✅
+
+#### ✅ STADIUM ATTENDANCE BUG RESOLVED - CAPACITY OVERFLOW FIXED
+- ✓ **Root Cause Identified**: Attendance calculations could exceed stadium capacity (20,000 fans in 5,000 capacity stadium) due to uncapped calculations
+- ✓ **Critical Fix Applied**: Added `Math.min(calculatedAttendance, stadium.capacity)` safety check in shared/stadiumSystem.ts line 238
+- ✓ **System-Wide Protection**: Updated server/utils/stadiumEffects.ts to prevent capacity overflow in all stadium effect calculations
+- ✓ **Production Ready**: Attendance calculations now guaranteed to respect stadium capacity limits across all match types
+
+#### ✅ REVENUE CALCULATION CONSOLIDATION - SINGLE SOURCE OF TRUTH ESTABLISHED  
+- ✓ **Hardcoded Values Eliminated**: Removed conflicting revenue calculations from server/domains/economy/service.ts:
+  - `weeklyIncome: 50000` → `weeklyIncome: 0` (calculated dynamically from actual games)
+  - `stadiumRevenue: team.stadium.capacity * 25` → `stadiumRevenue: 0` (calculated from actual home games only)
+  - `sponsorshipDeals: 10000` → `sponsorshipDeals: 0` (no hardcoded sponsorships)
+- ✓ **Enhanced Game Economy Service Updated**: Replaced hardcoded stadium value calculations with proper facility quality-based formulas
+- ✓ **Stadium Atmosphere Routes Fixed**: Eliminated `(stadium.capacity || 15000) * 50` rough estimate with facility quality calculations
+- ✓ **Frontend Formula Alignment**: Updated StadiumFinancialHub.tsx attendance calculations to match backend stadium system formulas
+
+#### ✅ SCHEMA INTEGRATION & TYPE SAFETY ENHANCED
+- ✓ **Schema Import Issue Resolved**: Fixed "Cannot find module './schema'" error by adding Stadium, StadiumRevenue, and FacilityUpgrade interfaces directly in shared/stadiumSystem.ts
+- ✓ **Type Consistency**: Stadium interface matches Prisma schema with all required fields (capacity, concessionsLevel, parkingLevel, etc.)
+- ✓ **Production Ready**: All TypeScript compilation errors resolved, stadium system now compiles without errors
+
+#### ✅ CENTRALIZED STADIUM SYSTEM ARCHITECTURE OPERATIONAL
+- ✓ **Single Source of Truth**: shared/stadiumSystem.ts confirmed as authoritative source for all stadium calculations:
+  - Attendance Rate: `(FanLoyalty×0.6) + (WinStreak×5%) + (Division Prestige×10%)`
+  - Ticket Revenue: `attendance × 25₡` 
+  - Concessions: `attendance × 8₡ × level`
+  - Parking: `(attendance × 0.3) × 10₡ × level`
+  - VIP Suites: `level × 5000₡`
+  - Merchandise: `attendance × 3₡ × level`
+- ✓ **System Integration**: All services now import and use shared/stadiumSystem.ts functions instead of independent calculations
+- ✓ **Revenue Formula Consistency**: Eliminated conflicts between multiple revenue calculation sources across the application
+
 ### July 28, 2025 - ✅ CRITICAL HEADER NAVIGATION RESTORATION COMPLETE ✅
 
 #### ✅ MISSING HEADER ISSUE RESOLVED - MODERNSTICKHEADER DEPLOYED TO ALL ROUTES

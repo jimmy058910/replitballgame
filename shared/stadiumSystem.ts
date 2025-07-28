@@ -3,7 +3,43 @@
  * Implements fan loyalty, revenue calculations, and in-game home field advantage
  */
 
-import type { Stadium, StadiumRevenue, FacilityUpgrade } from './schema';
+// Stadium type definitions (matching Prisma schema)
+export interface Stadium {
+  id?: number;
+  teamId?: number;
+  capacity: number;
+  concessionsLevel?: number;
+  parkingLevel?: number;
+  vipSuitesLevel?: number;
+  merchandisingLevel?: number;
+  lightingScreensLevel?: number;
+  lightingLevel?: number;
+  screensLevel?: number;
+  securityLevel?: number;
+  level?: number;
+  fieldSize?: string;
+  maintenanceCost?: number;
+  fanLoyalty?: number;
+}
+
+export interface StadiumRevenue {
+  ticketSales: number;
+  concessionSales: number;
+  parkingRevenue: number;
+  apparelSales: number;
+  vipSuiteRevenue: number;
+  totalRevenue: number;
+  maintenanceCost: number;
+  netRevenue: number;
+}
+
+export interface FacilityUpgrade {
+  name: string;
+  level: number;
+  maxLevel: number;
+  upgradeCost: number;
+  description: string;
+}
 
 export interface AtmosphereData {
   fanLoyalty: number; // 0-100
@@ -229,7 +265,10 @@ export function calculateAttendance(
   
   // Cap attendance rate
   const attendanceRate = Math.max(0.15, Math.min(0.95, baseRate));
-  const attendance = Math.floor((stadium.capacity || 15000) * attendanceRate);
+  const calculatedAttendance = Math.floor((stadium.capacity || 15000) * attendanceRate);
+  
+  // CRITICAL: Ensure attendance never exceeds stadium capacity
+  const attendance = Math.min(calculatedAttendance, stadium.capacity || 15000);
   
   return { attendance, attendanceRate };
 }

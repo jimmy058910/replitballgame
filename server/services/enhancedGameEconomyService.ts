@@ -1364,14 +1364,12 @@ export class EnhancedGameEconomyService {
       lighting: this.calculateUpgradeCost('lighting', stadium.lightingLevel || 0)
     } : {};
 
-    const stadiumValue = stadium ? (
-      (stadium.capacity || 10000) * 2 +
-      ((stadium.concessionsLevel || 1) * 30000) +
-      ((stadium.parkingLevel || 1) * 25000) +
-      ((stadium.vipSuitesLevel || 0) * 75000) +
-      ((stadium.merchandisingLevel || 1) * 30000) +
-      ((stadium.lightingLevel || 0) * 60000)
-    ) : 0;
+    // Use proper stadium system for value calculation instead of hardcoded multipliers
+    const stadiumValue = stadium ? 
+      await import('../../shared/stadiumSystem').then(({ calculateFacilityQuality }) => {
+        const facilityQuality = calculateFacilityQuality(stadium);
+        return 100000 + (facilityQuality * 5000); // Base value + quality-based enhancement
+      }) : 0;
 
     return {
       finances: {

@@ -35,7 +35,8 @@ export class StadiumEffectsCalculator {
    */
   calculateStadiumEffects(stadium: StadiumData, isHomeTeam: boolean = true): StadiumEffects {
     const attendanceRate = this.calculateAttendanceRate(stadium.fanLoyalty);
-    const actualAttendance = Math.floor(stadium.capacity * attendanceRate);
+    const calculatedAttendance = Math.floor(stadium.capacity * attendanceRate);
+    const actualAttendance = Math.min(calculatedAttendance, stadium.capacity); // Ensure attendance never exceeds capacity
     const crowdDensity = attendanceRate;
     
     const intimidationFactor = this.calculateIntimidationFactor(stadium.fanLoyalty, crowdDensity);

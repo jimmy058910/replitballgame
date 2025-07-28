@@ -339,7 +339,10 @@ router.get('/stadium-data', isAuthenticated, async (req: any, res) => {
         merchandisingLevel: stadium.merchandisingLevel || 1,
         lightingLevel: stadium.lightingLevel || 1,
         fanLoyalty: team.fanLoyalty || 50,
-        totalValue: (stadium.capacity || 15000) * 50, // Rough estimate
+        totalValue: await import('../../shared/stadiumSystem').then(({ calculateFacilityQuality }) => {
+          const facilityQuality = calculateFacilityQuality(stadium);
+          return 100000 + (facilityQuality * 5000); // Proper facility-based valuation
+        }).catch(() => 100000), // Fallback to base value if calculation fails
         maintenanceCost: stadium.maintenanceCost || 5000
       }
     });

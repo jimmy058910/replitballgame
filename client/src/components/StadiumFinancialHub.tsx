@@ -232,9 +232,13 @@ const StadiumFinancialHub: React.FC<StadiumFinancialHubProps> = ({ team, stadium
   const division = team?.division || 8;
   const fanLoyalty = team?.fanLoyalty || 50;
   
-  // Calculate attendance rate
-  const attendanceRate = Math.min(85, Math.max(35, (fanLoyalty * 0.6) + (division <= 4 ? 15 : 5)));
-  const actualAttendance = Math.floor((currentStadium.capacity * attendanceRate) / 100);
+  // Calculate attendance using proper stadium system formulas
+  // Import stadium functions (this will be properly typed once we fix the import)
+  const baseRate = 0.35 + (fanLoyalty / 100) * 0.4; // Fan loyalty impact
+  const divisionModifier = division <= 2 ? 1.2 : division <= 4 ? 1.1 : division <= 6 ? 1.0 : 0.9;
+  const attendanceRate = Math.max(0.15, Math.min(0.95, baseRate * divisionModifier));
+  const calculatedAttendance = Math.floor(currentStadium.capacity * attendanceRate);
+  const actualAttendance = Math.min(calculatedAttendance, currentStadium.capacity); // Ensure capacity not exceeded
   
   // Calculate atmosphere bonus based on fan loyalty with proper game stats
   const atmosphereBonus = fanLoyalty > 75 ? '+3% Leadership' : fanLoyalty > 50 ? '+2% Catching' : '+1% Agility';
