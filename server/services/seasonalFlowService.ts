@@ -1395,22 +1395,32 @@ export class SeasonalFlowService {
     scheduleGenerated: boolean;
     promotionRelegationCompleted: boolean;
     leaguesRebalanced: boolean;
+    awardsDistributed: boolean;
+    prizesDistributed: boolean;
     summary: {
       totalMatches: number;
       totalPromotions: number;
       totalRelegations: number;
       leaguesCreated: number;
+      totalAwards: number;
+      totalPrizeMoney: number;
     };
   }> {
     const newSeason = currentSeason + 1;
     
-    // 1. Process final promotion/relegation
+    // 1. Calculate and distribute end-of-season awards
+    const awardsResult = await this.distributeEndOfSeasonAwards(currentSeason);
+    
+    // 2. Distribute prize money based on final standings
+    const prizesResult = await this.distributePrizeMoney(currentSeason);
+    
+    // 3. Process final promotion/relegation
     const promotionResult = await this.processPromotionRelegation(currentSeason);
     
-    // 2. Rebalance leagues for new season
+    // 4. Rebalance leagues for new season
     const rebalanceResult = await this.rebalanceLeagues(currentSeason);
     
-    // 3. Reset team statistics for new season
+    // 5. Reset team statistics for new season
     await prisma.team.updateMany({
       data: {
         wins: 0,
@@ -1420,7 +1430,7 @@ export class SeasonalFlowService {
       }
     });
     
-    // 4. Generate schedule for new season
+    // 6. Generate schedule for new season
     const scheduleResult = await this.generateSeasonSchedule(newSeason);
     
     return {
@@ -1428,13 +1438,196 @@ export class SeasonalFlowService {
       scheduleGenerated: scheduleResult.matchesGenerated > 0,
       promotionRelegationCompleted: true,
       leaguesRebalanced: rebalanceResult.leaguesRebalanced > 0,
+      awardsDistributed: awardsResult.awardsDistributed,
+      prizesDistributed: prizesResult.prizesDistributed,
       summary: {
         totalMatches: scheduleResult.matchesGenerated,
         totalPromotions: promotionResult.promotions.length,
         totalRelegations: promotionResult.relegations.length,
-        leaguesCreated: rebalanceResult.newLeaguesCreated
+        leaguesCreated: rebalanceResult.newLeaguesCreated,
+        totalAwards: awardsResult.totalAwards,
+        totalPrizeMoney: prizesResult.totalPrizeMoney
       }
     };
+  }
+
+  /**
+   * Distribute end-of-season awards (Player of the Year, Top Scorer, etc.)
+   */
+  static async distributeEndOfSeasonAwards(season: number): Promise<{
+    awardsDistributed: boolean;
+    totalAwards: number;
+    awards: Array<{
+      awardType: string;
+      playerName: string;
+      teamName: string;
+      statValue: number;
+    }>;
+  }> {
+    try {
+      const { awardsService } = await import('./awardsService');
+      
+      // Get season ID
+      const seasonRecord = await prisma.season.findFirst({
+        where: { seasonNumber: season },
+        orderBy: { createdAt: 'desc' }
+      });
+      
+      if (!seasonRecord) {
+        logInfo('Season record not found for awards distribution', { season });
+        return { awardsDistributed: false, totalAwards: 0, awards: [] };
+      }
+
+      // Calculate and award season awards
+      const seasonAwards = await awardsService.calculateSeasonAwards(seasonRecord.id);
+      
+      // Get award details for summary
+      const awards = [];
+      for (const award of seasonAwards) {
+        const player = await prisma.player.findUnique({
+          where: { id: award.playerId },
+          include: { team: true }
+        });
+        
+        if (player) {
+          awards.push({
+            awardType: award.awardType,
+            playerName: `${player.firstName} ${player.lastName}`,
+            teamName: player.team.name,
+            statValue: award.statValue
+          });
+        }
+      }
+
+      logInfo('End-of-season awards distributed', { 
+        season, 
+        totalAwards: seasonAwards.length,
+        awards: awards.map(a => `${a.awardType}: ${a.playerName}`)
+      });
+
+      return {
+        awardsDistributed: true,
+        totalAwards: seasonAwards.length,
+        awards
+      };
+      
+    } catch (error) {
+      console.error('Error distributing end-of-season awards:', error);
+      return { awardsDistributed: false, totalAwards: 0, awards: [] };
+    }
+  }
+
+  /**
+   * Distribute prize money based on final league standings
+   */
+  static async distributePrizeMoney(season: number): Promise<{
+    prizesDistributed: boolean;
+    totalPrizeMoney: number;
+    distributions: Array<{
+      teamName: string;
+      division: number;
+      placement: number;
+      prizeAmount: number;
+      prizeType: string;
+    }>;
+  }> {
+    try {
+      const distributions = [];
+      let totalPrizeMoney = 0;
+
+      // Prize pools by division (credits)
+      const divisionPrizePools = {
+        1: { champion: 50000, runnerUp: 25000, thirdPlace: 15000, fourthPlace: 10000 },
+        2: { champion: 30000, runnerUp: 15000, thirdPlace: 8000, fourthPlace: 5000 },
+        3: { champion: 20000, runnerUp: 10000, thirdPlace: 5000, fourthPlace: 3000 },
+        4: { champion: 15000, runnerUp: 7500, thirdPlace: 4000, fourthPlace: 2500 },
+        5: { champion: 10000, runnerUp: 5000, thirdPlace: 2500, fourthPlace: 1500 },
+        6: { champion: 7500, runnerUp: 3500, thirdPlace: 2000, fourthPlace: 1000 },
+        7: { champion: 5000, runnerUp: 2500, thirdPlace: 1500, fourthPlace: 750 },
+        8: { champion: 3000, runnerUp: 1500, thirdPlace: 1000, fourthPlace: 500 }
+      };
+
+      // Process each division
+      for (let division = 1; division <= this.SEASON_CONFIG.MAX_DIVISION; division++) {
+        const divisionTeams = await prisma.team.findMany({
+          where: { division },
+          orderBy: [
+            { points: 'desc' },
+            { wins: 'desc' },
+            { losses: 'asc' }
+          ],
+          include: { 
+            finances: true 
+          }
+        });
+
+        const prizePool = divisionPrizePools[division];
+        
+        // Award top 4 teams in each division
+        for (let i = 0; i < Math.min(4, divisionTeams.length); i++) {
+          const team = divisionTeams[i];
+          const placement = i + 1;
+          let prizeAmount = 0;
+          let prizeType = '';
+
+          switch (placement) {
+            case 1:
+              prizeAmount = prizePool.champion;
+              prizeType = 'Division Champion';
+              break;
+            case 2:
+              prizeAmount = prizePool.runnerUp;
+              prizeType = 'Division Runner-up';
+              break;
+            case 3:
+              prizeAmount = prizePool.thirdPlace;
+              prizeType = 'Division Third Place';
+              break;
+            case 4:
+              prizeAmount = prizePool.fourthPlace;
+              prizeType = 'Division Fourth Place';
+              break;
+          }
+
+          if (prizeAmount > 0 && team.finances) {
+            // Award prize money
+            const currentCredits = parseInt(team.finances.credits);
+            await prisma.teamFinances.update({
+              where: { teamId: team.id },
+              data: {
+                credits: (currentCredits + prizeAmount).toString()
+              }
+            });
+
+            distributions.push({
+              teamName: team.name,
+              division,
+              placement,
+              prizeAmount,
+              prizeType
+            });
+
+            totalPrizeMoney += prizeAmount;
+          }
+        }
+      }
+
+      logInfo('End-of-season prize money distributed', { 
+        season, 
+        totalPrizeMoney,
+        distributionsCount: distributions.length
+      });
+
+      return {
+        prizesDistributed: true,
+        totalPrizeMoney,
+        distributions
+      };
+      
+    } catch (error) {
+      console.error('Error distributing prize money:', error);
+      return { prizesDistributed: false, totalPrizeMoney: 0, distributions: [] };
+    }
   }
 
   /**
