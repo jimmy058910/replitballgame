@@ -2161,11 +2161,16 @@ router.get('/:teamId/players/:playerId/release-fee', isAuthenticated, asyncHandl
   // Validate release requirements and get release fee
   const validation = await storage.players.validatePlayerReleaseFromMainRoster(parseInt(playerId));
   
+  // Get team finances to show current credits
+  const teamFinances = await prisma.teamFinances.findUnique({
+    where: { teamId: team.id }
+  });
+  
   res.json({
     canRelease: validation.canRelease,
     reason: validation.reason,
     releaseFee: validation.releaseFee || 2500,
-    teamCredits: team.credits
+    teamCredits: teamFinances ? Number(teamFinances.credits) : 0
   });
 }));
 
@@ -2211,15 +2216,26 @@ router.delete('/:teamId/players/:playerId', isAuthenticated, asyncHandler(async 
 
   const releaseFee = validation.releaseFee || 2500;
 
-  // Check if team has enough credits for the release fee
-  if (team.credits < releaseFee) {
-    throw ErrorCreators.validation(`Insufficient credits for release fee. Need ${releaseFee} credits, have ${team.credits}`);
+  // Get team finances to check credits
+  const teamFinances = await prisma.teamFinances.findUnique({
+    where: { teamId: team.id }
+  });
+  
+  if (!teamFinances) {
+    throw ErrorCreators.internal("Team finances not found");
   }
 
-  // Deduct release fee from team credits
-  await prisma.team.update({
-    where: { id: team.id },
-    data: { credits: team.credits - releaseFee }
+  const currentCredits = Number(teamFinances.credits);
+  
+  // Check if team has enough credits for the release fee
+  if (currentCredits < releaseFee) {
+    throw ErrorCreators.validation(`Insufficient credits for release fee. Need ${releaseFee} credits, have ${currentCredits}`);
+  }
+
+  // Deduct release fee from team finances
+  await prisma.teamFinances.update({
+    where: { teamId: team.id },
+    data: { credits: BigInt(currentCredits - releaseFee) }
   });
 
   // Release player
