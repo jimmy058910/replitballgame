@@ -6,8 +6,13 @@ import session from 'express-session';
 import passport from 'passport';
 import compression from 'compression';
 import helmet from 'helmet';
+import { fileURLToPath } from 'url';
 import { setupGoogleAuth } from './googleAuth';
 import { registerAllRoutes } from './routes/index';
+
+// ESM polyfill for __dirname and __filename
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const app = express();
 const port = process.env.PORT ? parseInt(process.env.PORT) : 8080;
