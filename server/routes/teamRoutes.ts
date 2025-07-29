@@ -1591,17 +1591,15 @@ router.post('/:teamId/taxi-squad/:playerId/promote', isAuthenticated, asyncHandl
   }
   
   const rosterPosition = playerIndex + 1;
-  const isOnTaxiSquad = rosterPosition > 12; // Positions 13+ are taxi squad
+  const isOnTaxiSquad = rosterPosition >= 13; // Positions 13+ are taxi squad
   
   if (!isOnTaxiSquad) {
     throw ErrorCreators.validation("Player is not on taxi squad");
   }
 
-  // Check roster space (max 12 main roster players)
-  const mainRosterPlayers = allTeamPlayers.slice(0, 12); // First 12 are main roster
-  
-  if (mainRosterPlayers.length >= 12) {
-    throw ErrorCreators.validation("Main roster is full (maximum 12 players)");
+  // Check total roster space (maximum 15 players total)
+  if (allTeamPlayers.length >= 15) {
+    throw ErrorCreators.validation("Team roster is full (maximum 15 players)");
   }
 
   // Calculate appropriate salary based on player stats and age
@@ -1699,7 +1697,7 @@ router.delete('/:teamId/taxi-squad/:playerId', isAuthenticated, asyncHandler(asy
   }
   
   const rosterPosition = playerIndex + 1;
-  const isOnTaxiSquad = rosterPosition > 12; // Positions 13+ are taxi squad
+  const isOnTaxiSquad = rosterPosition >= 13; // Positions 13+ are taxi squad
   
   if (!isOnTaxiSquad) {
     throw ErrorCreators.validation("Player is not on taxi squad");
