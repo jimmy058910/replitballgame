@@ -58,6 +58,7 @@ import {
   User
 } from 'lucide-react';
 import { apiRequest } from '@/lib/queryClient';
+import PaymentHistory from './PaymentHistory';
 
 interface FinancialData {
   credits: number;
@@ -96,16 +97,7 @@ interface Contract {
   type: 'player' | 'staff';
 }
 
-interface Transaction {
-  id: string;
-  dateTime: string;
-  type: 'income' | 'expense';
-  category: string;
-  description: string;
-  amount: number;
-  balanceAfter: number;
-  currency: 'credits' | 'gems';
-}
+// Transaction interface removed - PaymentHistory has its own transaction types
 
 interface EnhancedFinancesTabProps {
   teamId: string;
@@ -114,10 +106,7 @@ interface EnhancedFinancesTabProps {
 export function EnhancedFinancesTab({ teamId }: EnhancedFinancesTabProps) {
   const [activeSubTab, setActiveSubTab] = useState('overview');
   const [timeframe, setTimeframe] = useState('current');
-  const [searchTerm, setSearchTerm] = useState('');
-  const [transactionFilter, setTransactionFilter] = useState('all');
-  const [selectedTransaction, setSelectedTransaction] = useState<Transaction | null>(null);
-  const [isTransactionDetailOpen, setIsTransactionDetailOpen] = useState(false);
+  // PaymentHistory component handles its own state management
 
   // Get team data from the Market District's team query (should already be loaded)
   const { data: teamFromMarket } = useQuery({
@@ -139,9 +128,7 @@ export function EnhancedFinancesTab({ teamId }: EnhancedFinancesTabProps) {
     enabled: !!teamId
   });
 
-  // For now, create empty transaction data (can be implemented later)
-  const transactions: Transaction[] = [];
-  const transactionsLoading = false;
+  // PaymentHistory component handles its own data fetching
 
   // Map the actual financial data to our expected format
   const rawFinancialData = financialData as any;
@@ -183,7 +170,7 @@ export function EnhancedFinancesTab({ teamId }: EnhancedFinancesTabProps) {
     type: 'player' as const
   })) : [];
 
-  const transactionsList: Transaction[] = [];
+  // Remove transactionsList - PaymentHistory handles this internally
 
   const formatCurrency = (amount: number, currency = 'credits') => {
     const symbol = currency === 'gems' ? '💎' : '₡';
@@ -198,10 +185,7 @@ export function EnhancedFinancesTab({ teamId }: EnhancedFinancesTabProps) {
     return amount >= 0 ? 'bg-green-500' : 'bg-red-500';
   };
 
-  const openTransactionDetail = (transaction: Transaction) => {
-    setSelectedTransaction(transaction);
-    setIsTransactionDetailOpen(true);
-  };
+  // Removed openTransactionDetail - PaymentHistory handles transaction details internally
 
   if (financialLoading || contractsLoading) {
     return (
@@ -463,147 +447,24 @@ export function EnhancedFinancesTab({ teamId }: EnhancedFinancesTabProps) {
         </Card>
       )}
 
-      {/* Transaction Log Sub-Tab */}
+      {/* Transactions Sub-Tab */}
       {activeSubTab === 'transactions' && (
         <div className="space-y-4">
-          {/* Filter & Search Bar */}
-          <Card className="bg-gray-800 border-gray-700">
-            <CardContent className="p-4">
-              <div className="flex flex-col sm:flex-row gap-4">
-                <div className="flex-1 relative">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-                  <Input
-                    placeholder="Search transactions..."
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    className="pl-10 bg-gray-700 border-gray-600 text-white"
-                  />
-                </div>
-                <Select value={transactionFilter} onValueChange={setTransactionFilter}>
-                  <SelectTrigger className="w-48 bg-gray-700 border-gray-600 text-white">
-                    <Filter className="w-4 h-4 mr-2" />
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All Transactions</SelectItem>
-                    <SelectItem value="income">Income</SelectItem>
-                    <SelectItem value="expenses">Expenses</SelectItem>
-                    <SelectItem value="gem_transactions">Gem Transactions</SelectItem>
-                    <SelectItem value="credit_transactions">Credit Transactions</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Transaction Log Table */}
           <Card className="bg-gray-800 border-gray-700">
             <CardHeader>
               <CardTitle className="flex items-center gap-2 text-white">
                 <Clock className="w-5 h-5" />
-                Transaction History
+                Complete Transaction History
               </CardTitle>
             </CardHeader>
             <CardContent>
-              {transactionsLoading ? (
-                <div className="text-center py-8">
-                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mx-auto"></div>
-                </div>
-              ) : (
-                <Table>
-                  <TableHeader>
-                    <TableRow className="border-gray-700">
-                      <TableHead className="text-gray-300">Date & Time</TableHead>
-                      <TableHead className="text-gray-300">Type</TableHead>
-                      <TableHead className="text-gray-300">Category</TableHead>
-                      <TableHead className="text-gray-300">Description</TableHead>
-                      <TableHead className="text-gray-300">Amount</TableHead>
-                      <TableHead className="text-gray-300">Balance After</TableHead>
-                      <TableHead className="text-gray-300">Actions</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {transactionsList.map((transaction) => (
-                      <TableRow 
-                        key={transaction.id} 
-                        className="border-gray-700 hover:bg-gray-700/50 cursor-pointer"
-                        onClick={() => openTransactionDetail(transaction)}
-                      >
-                        <TableCell className="text-gray-300 text-sm">
-                          {new Date(transaction.dateTime).toLocaleString()}
-                        </TableCell>
-                        <TableCell>
-                          <Badge className={transaction.type === 'income' ? 'bg-green-500' : 'bg-red-500'}>
-                            {transaction.type}
-                          </Badge>
-                        </TableCell>
-                        <TableCell className="text-gray-300">{transaction.category}</TableCell>
-                        <TableCell className="text-white max-w-xs truncate">{transaction.description}</TableCell>
-                        <TableCell className={transaction.type === 'income' ? 'text-green-400' : 'text-red-400'}>
-                          {transaction.type === 'income' ? '+' : '−'}{formatCurrency(Math.abs(transaction.amount), transaction.currency)}
-                        </TableCell>
-                        <TableCell className="text-gray-300">{formatCurrency(transaction.balanceAfter, transaction.currency)}</TableCell>
-                        <TableCell>
-                          <Button size="sm" variant="ghost" className="text-blue-400 hover:text-blue-300">
-                            <Eye className="w-4 h-4" />
-                          </Button>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              )}
+              <PaymentHistory className="bg-transparent border-none shadow-none" />
             </CardContent>
           </Card>
         </div>
       )}
 
-      {/* Transaction Detail Sheet */}
-      <Sheet open={isTransactionDetailOpen} onOpenChange={setIsTransactionDetailOpen}>
-        <SheetContent className="bg-gray-900 border-gray-700 w-full sm:max-w-md">
-          {selectedTransaction && (
-            <>
-              <SheetHeader>
-                <SheetTitle className="text-white">Transaction Details</SheetTitle>
-                <SheetDescription className="text-gray-400">
-                  {new Date(selectedTransaction.dateTime).toLocaleString()}
-                </SheetDescription>
-              </SheetHeader>
-              
-              <div className="space-y-6 mt-6">
-                <div>
-                  <h4 className="font-medium text-white mb-2">Type & Category</h4>
-                  <div className="flex gap-2">
-                    <Badge className={selectedTransaction.type === 'income' ? 'bg-green-500' : 'bg-red-500'}>
-                      {selectedTransaction.type}
-                    </Badge>
-                    <Badge variant="outline" className="border-gray-600 text-gray-300">
-                      {selectedTransaction.category}
-                    </Badge>
-                  </div>
-                </div>
-
-                <div>
-                  <h4 className="font-medium text-white mb-2">Description</h4>
-                  <p className="text-gray-300">{selectedTransaction.description}</p>
-                </div>
-
-                <div>
-                  <h4 className="font-medium text-white mb-2">Amount</h4>
-                  <p className={`text-lg font-bold ${selectedTransaction.type === 'income' ? 'text-green-400' : 'text-red-400'}`}>
-                    {selectedTransaction.type === 'income' ? '+' : '−'}{formatCurrency(Math.abs(selectedTransaction.amount), selectedTransaction.currency)}
-                  </p>
-                </div>
-
-                <div>
-                  <h4 className="font-medium text-white mb-2">Balance After</h4>
-                  <p className="text-gray-300">{formatCurrency(selectedTransaction.balanceAfter, selectedTransaction.currency)}</p>
-                </div>
-              </div>
-            </>
-          )}
-        </SheetContent>
-      </Sheet>
+      {/* Transaction Detail Sheet removed - PaymentHistory handles transaction details internally */}
     </div>
   );
 }
