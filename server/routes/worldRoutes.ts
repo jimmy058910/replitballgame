@@ -381,8 +381,9 @@ async function calculateHealthFactor(team: any): Promise<number> {
     let totalImpact = 0;
     let playerCount = 0;
     
-    // Calculate injury impact for main roster players
-    const mainRosterPlayers = players.slice(0, 12); // First 12 players (main roster)
+    // Calculate injury impact for main roster players (flexible 13-15 players)
+    const taxiSquadPlayers = players.slice(13); // Players beyond position 13 are taxi squad
+    const mainRosterPlayers = players.slice(0, players.length - taxiSquadPlayers.length); // Rest are main roster
     
     mainRosterPlayers.forEach(player => {
       playerCount++;

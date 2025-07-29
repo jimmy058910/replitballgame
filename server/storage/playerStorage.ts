@@ -219,22 +219,25 @@ export class PlayerStorage {
         orderBy: { createdAt: 'asc' }
       });
 
-      const mainRosterPlayers = allTeamPlayers.slice(0, 12); // First 12 are main roster
+      // Calculate current roster structure
+      const totalPlayers = allTeamPlayers.length;
+      const taxiSquadPlayers = allTeamPlayers.slice(13); // Players beyond position 13 are taxi squad
+      const mainRosterPlayers = allTeamPlayers.slice(0, Math.min(13, totalPlayers)); // Main roster can be 13-15 players
       
-      console.log(`[PROMOTION DEBUG] Before promotion: ${allTeamPlayers.length} total players, ${mainRosterPlayers.length} on main roster`);
+      console.log(`[PROMOTION DEBUG] Current roster: ${totalPlayers} total players (${mainRosterPlayers.length} main roster, ${taxiSquadPlayers.length} taxi squad)`);
       console.log(`[PROMOTION DEBUG] Promoting player: ${player.firstName} ${player.lastName} (ID: ${player.id})`);
 
-      // Check if main roster has space (must have < 12 players to promote)
-      if (mainRosterPlayers.length >= 12) {
-        console.log(`[PROMOTION DEBUG] Cannot promote - main roster is full (${mainRosterPlayers.length}/12 players)`);
-        throw new Error("Cannot promote player - main roster is full. Please release a main roster player first.");
+      // Check if total roster has space (must have < 15 total players to promote)
+      if (totalPlayers >= 15) {
+        console.log(`[PROMOTION DEBUG] Cannot promote - roster is full (${totalPlayers}/15 players)`);
+        throw new Error("Cannot promote player - roster is full (15/15 players). Please release a player first to make space.");
       }
 
-      // Add promoted player to end of main roster
-      const lastMainRosterPlayer = mainRosterPlayers[mainRosterPlayers.length - 1];
-      const newCreatedAt = new Date(lastMainRosterPlayer.createdAt.getTime() + 60000);
+      // Add promoted player to end of roster (they'll become main roster due to createdAt timestamp)
+      const lastPlayer = allTeamPlayers[allTeamPlayers.length - 1];
+      const newCreatedAt = new Date(lastPlayer.createdAt.getTime() + 60000);
       
-      console.log(`[PROMOTION DEBUG] Adding player to main roster position ${mainRosterPlayers.length + 1}`);
+      console.log(`[PROMOTION DEBUG] Promoting player to roster position ${totalPlayers + 1} (new total: ${totalPlayers + 1})`);
 
       // Update the player's createdAt timestamp to promote them
       const promotedPlayer = await prisma.player.update({

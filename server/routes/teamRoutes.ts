@@ -1600,10 +1600,9 @@ router.post('/:teamId/taxi-squad/:playerId/promote', isAuthenticated, asyncHandl
     throw ErrorCreators.validation("Player is not on taxi squad");
   }
 
-  // Check if main roster has space (must have < 12 players to promote)
-  const mainRosterPlayers = allTeamPlayers.slice(0, 12);
-  if (mainRosterPlayers.length >= 12) {
-    throw ErrorCreators.validation("Cannot promote player - main roster is full (12/12 players). Please release a main roster player first to make space.");
+  // Check if total roster has space (must have < 15 total players to promote)
+  if (allTeamPlayers.length >= 15) {
+    throw ErrorCreators.validation("Cannot promote player - roster is full (15/15 players). Please release a player first to make space.");
   }
 
   // Calculate appropriate salary based on player stats and age
@@ -1773,9 +1772,9 @@ router.get('/:teamId/taxi-squad/debug', isAuthenticated, asyncHandler(async (req
     orderBy: { createdAt: 'asc' }
   });
 
-  // Show taxi squad logic
-  const mainRoster = allPlayers.slice(0, 12);
-  const taxiSquad = allPlayers.slice(12);
+  // Show flexible taxi squad logic (13-15 main roster, 0-2 taxi squad)
+  const taxiSquad = allPlayers.slice(13); // Players beyond position 13 are taxi squad (max 2)
+  const mainRoster = allPlayers.slice(0, allPlayers.length - taxiSquad.length); // Rest are main roster
 
   res.json({
     teamId: team.id,

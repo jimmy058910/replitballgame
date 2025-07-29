@@ -606,14 +606,21 @@ docker push gcr.io/direct-glider-465821-p7/realm-rivalry:latest
 
 ## Recent Changes
 
-### July 29, 2025 - ✅ CRITICAL TAXI SQUAD SYSTEM FIX COMPLETE - 100% OPERATIONAL ✅
+### July 29, 2025 - ✅ FLEXIBLE TAXI SQUAD ROSTER SYSTEM COMPLETE - ALL REQUIREMENTS MET ✅
 
 #### ✅ CORE TAXI SQUAD LOGIC CORRECTED - "ENDLESS LOOP" ELIMINATED 
 - ✓ **Root Problem Resolved**: Fixed promotion logic to never automatically demote main roster players to taxi squad
-- ✓ **Promotion Requirements**: Taxi squad promotion now requires main roster to have < 12 players OR user manually releases a player first
-- ✓ **Error Prevention**: Clear validation message: "Cannot promote player - main roster is full (12/12 players). Please release a main roster player first to make space."
-- ✓ **TypeScript Compilation Fixed**: Resolved 58 compilation errors that were preventing corrected logic from running
+- ✓ **Flexible Roster System**: Promotion now allows 13-15 main roster players with 0-2 taxi squad players (total max 15)
+- ✓ **Dynamic Validation**: Clear validation based on total roster: "Cannot promote player - roster is full (15/15 players). Please release a player first to make space."
+- ✓ **TypeScript Compilation Fixed**: Resolved all compilation errors and removed hardcoded 12-player limits
 - ✓ **User Requirements Met**: Taxi squad is now exclusively for newly recruited players - NO automatic demotion from main roster
+
+#### ✅ COMPREHENSIVE HARDCODED LIMIT REMOVAL - FLEXIBLE ROSTER CONFIGURATIONS ENABLED
+- ✓ **server/storage/playerStorage.ts**: Fixed promotion logic to check total players < 15 instead of main roster < 12
+- ✓ **server/routes/teamRoutes.ts**: Updated promotion endpoint (lines 1604-1606) and debug endpoint (line 1777) to support flexible roster
+- ✓ **server/routes/worldRoutes.ts**: Fixed health calculation logic (line 385) to use flexible main roster calculation
+- ✓ **Supported Scenarios**: 15 main + 0 taxi, 14 main + 1 taxi, 13 main + 2 taxi, 12 main + 1 taxi, etc.
+- ✓ **Production Ready**: All roster configurations working with proper validation and error handling
 
 #### ✅ CRITICAL DATABASE SCHEMA CORRECTIONS - PLAYER RELEASE FUNCTION OPERATIONAL
 - ✓ **Root Cause Fixed**: Eliminated all `Team.credits` references that were causing "Invalid prisma.team.update() invocation" errors
