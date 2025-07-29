@@ -114,11 +114,11 @@ class Game {
     const centerX = this.canvas.width / 2;
     const centerY = this.canvas.height / 2;
     
-    // Home team (left side)
-    for (let i = 0; i < 9; i++) {
-      const angle = (i / 9) * Math.PI * 2;
-      const radius = 80;
-      const x = centerX - 120 + Math.cos(angle) * radius;
+    // Home team (left side) - 6 players in dome formation
+    for (let i = 0; i < 6; i++) {
+      const angle = (i / 6) * Math.PI * 2;
+      const radius = 60;
+      const x = centerX - 100 + Math.cos(angle) * radius;
       const y = centerY + Math.sin(angle) * radius;
       
       this.players.push(new Player(
@@ -127,15 +127,15 @@ class Game {
         25, 25, 25, 
         'Human', 
         '#3b82f6', // Blue
-        i < 3 ? 'Passer' : i < 6 ? 'Runner' : 'Blocker'
+        i < 1 ? 'Passer' : i < 3 ? 'Runner' : 'Blocker'
       ));
     }
     
-    // Away team (right side)
-    for (let i = 0; i < 9; i++) {
-      const angle = (i / 9) * Math.PI * 2;
-      const radius = 80;
-      const x = centerX + 120 + Math.cos(angle) * radius;
+    // Away team (right side) - 6 players in dome formation
+    for (let i = 0; i < 6; i++) {
+      const angle = (i / 6) * Math.PI * 2;
+      const radius = 60;
+      const x = centerX + 100 + Math.cos(angle) * radius;
       const y = centerY + Math.sin(angle) * radius;
       
       this.players.push(new Player(
@@ -144,18 +144,18 @@ class Game {
         25, 25, 25, 
         'Human', 
         '#ef4444', // Red
-        i < 3 ? 'Passer' : i < 6 ? 'Runner' : 'Blocker'
+        i < 1 ? 'Passer' : i < 3 ? 'Runner' : 'Blocker'
       ));
     }
   }
 
   public updateGameData(gameData: GameData) {
-    // Update players from real game data
+    // Update players from real game data - 6 players per team
     if (gameData.homeTeam?.players) {
       this.updateTeamPlayers(gameData.homeTeam.players, '#3b82f6', 0);
     }
     if (gameData.awayTeam?.players) {
-      this.updateTeamPlayers(gameData.awayTeam.players, '#ef4444', 9);
+      this.updateTeamPlayers(gameData.awayTeam.players, '#ef4444', 6);
     }
 
     // Update ball position from game events and process speed control
@@ -198,13 +198,13 @@ class Game {
     const ballX = centerX + (fieldIntensity - 50) * 2;
     this.ball.setPosition(ballX, centerY + (Math.random() - 0.5) * 40);
     
-    // Animate players toward ball with some variation
+    // Animate players toward ball with some variation - 6v6 formation
     this.players.forEach((player, index) => {
       const ballPos = this.ball.getPosition();
       const playerPos = player.getPosition();
-      const isHomeTeam = index < 9;
+      const isHomeTeam = index < 6; // 6 players per team
       
-      // Create formation-based movement
+      // Create formation-based movement for dome sport
       const targetX = ballPos.x + (isHomeTeam ? -60 : 60) + (Math.random() - 0.5) * 80;
       const targetY = ballPos.y + (Math.random() - 0.5) * 60;
       

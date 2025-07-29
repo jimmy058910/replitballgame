@@ -313,7 +313,7 @@ export default function TacticalFormation({ players, savedFormation, onFormation
           <CardContent>
             <div className="flex justify-center">
               <div 
-                className="relative border-4 border-gray-600 bg-green-600 dark:bg-green-800 mx-auto overflow-hidden cursor-pointer"
+                className="relative mx-auto overflow-hidden cursor-pointer"
                 style={{ 
                   width: isMobile ? "100%" : FIELD_WIDTH, 
                   height: FIELD_HEIGHT,
@@ -323,34 +323,75 @@ export default function TacticalFormation({ players, savedFormation, onFormation
                 onDrop={handleDrop}
                 onClick={handleFieldClick}
               >
-                {/* Field markings - Horizontal Layout */}
-                <div className="absolute inset-0">
-                  {/* Field boundaries */}
-                  <div className="absolute top-0 left-0 right-0 h-1 bg-white" />
-                  <div className="absolute bottom-0 left-0 right-0 h-1 bg-white" />
-                  <div className="absolute top-0 bottom-0 left-0 w-1 bg-white" />
-                  <div className="absolute top-0 bottom-0 right-0 w-1 bg-white" />
+                {/* Dome Field Visualization */}
+                <svg 
+                  width="100%" 
+                  height="100%" 
+                  viewBox={`0 0 ${FIELD_WIDTH} ${FIELD_HEIGHT}`}
+                  className="absolute inset-0"
+                >
+                  <defs>
+                    <linearGradient id="domeFieldGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                      <stop offset="0%" stopColor="#1a472a" />
+                      <stop offset="50%" stopColor="#166534" />
+                      <stop offset="100%" stopColor="#134e4a" />
+                    </linearGradient>
+                  </defs>
                   
-                  {/* Center line - divides own/opponent half */}
-                  <div className="absolute top-0 bottom-0 left-1/2 w-1 bg-white transform -translate-x-1/2" />
+                  {/* Dome Field Shape */}
+                  <path
+                    d={`M ${FIELD_HEIGHT/2} 10 
+                        L ${FIELD_WIDTH - FIELD_HEIGHT/2} 10 
+                        A ${FIELD_HEIGHT/2} ${FIELD_HEIGHT/2} 0 0 1 ${FIELD_WIDTH - FIELD_HEIGHT/2} ${FIELD_HEIGHT - 10} 
+                        L ${FIELD_HEIGHT/2} ${FIELD_HEIGHT - 10} 
+                        A ${FIELD_HEIGHT/2} ${FIELD_HEIGHT/2} 0 0 1 ${FIELD_HEIGHT/2} 10 Z`}
+                    fill="url(#domeFieldGradient)"
+                    stroke="#ffffff"
+                    strokeWidth="3"
+                  />
                   
-                  {/* Own Goal Zone (Left side) */}
-                  <div className="absolute top-1/4 bottom-1/4 left-0 w-16 border-2 border-white border-l-0 bg-green-500 bg-opacity-30">
-                    <div className="absolute top-1/3 bottom-1/3 left-0 w-8 border-2 border-white border-l-0 bg-green-400 bg-opacity-50" />
-                  </div>
+                  {/* Center line */}
+                  <line 
+                    x1={FIELD_WIDTH/2} 
+                    y1="20" 
+                    x2={FIELD_WIDTH/2} 
+                    y2={FIELD_HEIGHT - 20} 
+                    stroke="rgba(255,255,255,0.4)" 
+                    strokeWidth="2"
+                  />
                   
-                  {/* Opponent Goal Zone (Right side) - Visual only */}
-                  <div className="absolute top-1/4 bottom-1/4 right-0 w-16 border-2 border-white border-r-0 bg-red-500 bg-opacity-30">
-                    <div className="absolute top-1/3 bottom-1/3 right-0 w-8 border-2 border-white border-r-0 bg-red-400 bg-opacity-50" />
-                  </div>
+                  {/* Center circle */}
+                  <circle 
+                    cx={FIELD_WIDTH/2} 
+                    cy={FIELD_HEIGHT/2} 
+                    r="30" 
+                    fill="none" 
+                    stroke="rgba(255,255,255,0.3)" 
+                    strokeWidth="2"
+                  />
                   
-                  {/* Placement zone indicator (Own half only) */}
-                  <div className="absolute top-2 bottom-2 left-2 w-1/2 border-2 border-blue-400 border-dashed opacity-50" />
+                  {/* Left score zone (oval) */}
+                  <ellipse 
+                    cx={FIELD_HEIGHT/2} 
+                    cy={FIELD_HEIGHT/2} 
+                    rx="25" 
+                    ry="45" 
+                    fill="none" 
+                    stroke="rgba(255,255,255,0.3)" 
+                    strokeWidth="2"
+                  />
                   
-                  {/* Field lines */}
-                  <div className="absolute top-1/4 left-1/4 right-1/4 h-0.5 bg-white opacity-60" />
-                  <div className="absolute bottom-1/4 left-1/4 right-1/4 h-0.5 bg-white opacity-60" />
-                </div>
+                  {/* Right score zone (oval) */}
+                  <ellipse 
+                    cx={FIELD_WIDTH - FIELD_HEIGHT/2} 
+                    cy={FIELD_HEIGHT/2} 
+                    rx="25" 
+                    ry="45" 
+                    fill="none" 
+                    stroke="rgba(255,255,255,0.3)" 
+                    strokeWidth="2"
+                  />
+                </svg>
 
                 {/* No-placement zone overlay */}
                 <div className="absolute top-0 bottom-0 right-0 w-1/2 bg-gray-900 bg-opacity-40 pointer-events-none">
