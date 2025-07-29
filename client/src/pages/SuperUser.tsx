@@ -83,10 +83,10 @@ export default function SuperUser() {
   // Admin promotion mutation
   const promoteToAdminMutation = useMutation({
     mutationFn: () => apiRequest("/api/auth/promote-to-admin", "POST"),
-    onSuccess: (data) => {
+    onSuccess: (data: any) => {
       toast({
         title: "Admin Promotion Successful",
-        description: data.message || "You have been promoted to admin status",
+        description: data?.message || "You have been promoted to admin status",
       });
       queryClient.invalidateQueries({ queryKey: ["/api/auth/admin-status"] });
     },
@@ -102,10 +102,10 @@ export default function SuperUser() {
   // Season management mutations
   const advanceDayMutation = useMutation({
     mutationFn: () => apiRequest("/api/superuser/advance-day", "POST"),
-    onSuccess: (data) => {
+    onSuccess: (data: any) => {
       toast({
         title: "Day Advanced",
-        description: data.message || "Day successfully advanced",
+        description: data?.message || "Day successfully advanced",
       });
       queryClient.invalidateQueries({ queryKey: ["/api/season/current-week"] });
     },
@@ -120,10 +120,10 @@ export default function SuperUser() {
 
   const stopAllGamesMutation = useMutation({
     mutationFn: () => apiRequest("/api/superuser/stop-all-games", "POST"),
-    onSuccess: (data) => {
+    onSuccess: (data: any) => {
       toast({
         title: "All Games Stopped",
-        description: data.message || "All active games have been stopped",
+        description: data?.message || "All active games have been stopped",
       });
       queryClient.invalidateQueries({ queryKey: ["/api/matches/live"] });
     },
@@ -138,10 +138,10 @@ export default function SuperUser() {
 
   const resetSeasonMutation = useMutation({
     mutationFn: () => apiRequest("/api/superuser/reset-season", "POST"),
-    onSuccess: (data) => {
+    onSuccess: (data: any) => {
       toast({
         title: "Season Reset",
-        description: data.message || "Season has been reset to Day 1",
+        description: data?.message || "Season has been reset to Day 1",
       });
       queryClient.invalidateQueries();
     },
@@ -158,7 +158,7 @@ export default function SuperUser() {
   const grantCreditsMutation = useMutation({
     mutationFn: ({ teamId, amount }: { teamId: string; amount: number }) =>
       apiRequest("/api/superuser/grant-credits", "POST", { teamId, amount }),
-    onSuccess: (data) => {
+    onSuccess: (data: any) => {
       toast({
         title: "Credits Granted",
         description: `Successfully granted ${creditsAmount} credits`,
@@ -176,10 +176,10 @@ export default function SuperUser() {
 
   const resetPlayerItemsMutation = useMutation({
     mutationFn: () => apiRequest("/api/superuser/reset-player-daily-items", "POST"),
-    onSuccess: (data) => {
+    onSuccess: (data: any) => {
       toast({
         title: "Player Items Reset",
-        description: data.message || "All player daily items used counters have been reset to 0",
+        description: data?.message || "All player daily items used counters have been reset to 0",
       });
       queryClient.invalidateQueries({ queryKey: ["/api/injury-stamina/team"] });
     },
