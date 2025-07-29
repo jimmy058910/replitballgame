@@ -90,6 +90,31 @@ export function LiveMatchTest() {
     }
   };
 
+  const createDemoMatch = async () => {
+    try {
+      // Create a demo match for live engine testing
+      const response = await fetch('/api/live-matches/demo', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        }
+      });
+
+      if (response.ok) {
+        const demoData = await response.json();
+        setSelectedMatch(demoData.match.id);
+        setLiveMatchStarted(true);
+        console.log('Demo match created and started:', demoData.match.id);
+      } else {
+        const errorData = await response.json();
+        console.error('Failed to create demo match:', errorData.error);
+        alert(errorData.error);
+      }
+    } catch (error) {
+      console.error('Error creating demo match:', error);
+    }
+  };
+
   if (!user) {
     return (
       <div className="min-h-screen bg-gray-900 text-white p-4">
@@ -144,6 +169,12 @@ export function LiveMatchTest() {
           <CardContent>
             <div className="space-y-4">
               <div className="flex gap-4">
+                <Button 
+                  onClick={createDemoMatch}
+                  className="bg-blue-600 hover:bg-blue-700"
+                >
+                  🎮 Start Demo Match (2D Canvas)
+                </Button>
                 <Button 
                   onClick={createTestMatch}
                   className="bg-green-600 hover:bg-green-700"

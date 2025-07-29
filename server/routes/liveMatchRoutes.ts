@@ -42,6 +42,71 @@ router.get('/', async (req, res) => {
 });
 
 /**
+ * Create a demo match for testing
+ * POST /api/live-matches/demo
+ */
+router.post('/demo', async (req, res) => {
+  try {
+    console.log('Creating demo match for live engine testing');
+    
+    // Find a recent match that we can use for demo
+    const recentMatch = await prisma.game.findFirst({
+      where: {
+        matchType: 'EXHIBITION',
+        status: 'COMPLETED'
+      },
+      include: {
+        homeTeam: {
+          include: {
+            players: true,
+            stadium: true,
+            finances: true
+          }
+        },
+        awayTeam: {
+          include: {
+            players: true,
+            stadium: true,
+            finances: true
+          }
+        }
+      },
+      orderBy: {
+        createdAt: 'desc'
+      }
+    });
+
+    if (!recentMatch) {
+      return res.status(404).json({
+        success: false,
+        error: 'No exhibition matches found for demo. Please create an exhibition match first.'
+      });
+    }
+
+    // Start the live match engine with this demo match
+    const liveState = await liveMatchEngine.startMatch(recentMatch.id);
+    
+    res.json({
+      success: true,
+      message: 'Demo match created successfully',
+      match: {
+        id: recentMatch.id,
+        homeTeam: recentMatch.homeTeam?.name,
+        awayTeam: recentMatch.awayTeam?.name,
+        matchType: recentMatch.matchType
+      },
+      liveState
+    });
+  } catch (error) {
+    console.error('Error creating demo match:', error);
+    res.status(500).json({
+      success: false,
+      error: error instanceof Error ? error.message : 'Failed to create demo match'
+    });
+  }
+});
+
+/**
  * Start a live match
  * POST /api/live-matches/:matchId/start
  */
