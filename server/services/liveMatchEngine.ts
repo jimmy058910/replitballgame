@@ -244,13 +244,37 @@ class LiveMatchEngineService implements LiveMatchEngine {
    * Create field formation from team players
    */
   private createFieldFormation(players: any[]): any {
-    const activePlayers = players.filter(p => !p.isRetired && p.injuryStatus === 'Healthy').slice(0, 6);
+    console.log('DEBUG: createFieldFormation called with', players?.length, 'players');
+    console.log('DEBUG: First player:', JSON.stringify(players?.[0], null, 2));
+    
+    // For demo purposes, be more lenient with player selection
+    const activePlayers = players.filter(p => p && !p.isRetired).slice(0, 6);
+    
+    if (activePlayers.length === 0) {
+      console.log('DEBUG: No players passed after filtering. Original players:', players);
+      throw new Error('No healthy players available for match');
+    }
+
+    console.log('DEBUG: Using', activePlayers.length, 'active players for formation');
+
+    // Get players by role with fallbacks
+    const passers = activePlayers.filter(p => p.role === 'Passer');
+    const runners = activePlayers.filter(p => p.role === 'Runner');
+    const blockers = activePlayers.filter(p => p.role === 'Blocker');
+    
+    // Create formation with fallbacks
+    const passer = passers[0] || activePlayers[0];
+    const runner1 = runners[0] || activePlayers[1] || activePlayers[0];
+    const runner2 = runners[1] || activePlayers[2] || activePlayers[0];
+    const blocker1 = blockers[0] || activePlayers[3] || activePlayers[0];
+    const blocker2 = blockers[1] || activePlayers[4] || activePlayers[0];
+    const wildcard = activePlayers[5] || activePlayers[0];
     
     return {
-      passer: this.createFieldPlayer(activePlayers.find(p => p.role === 'Passer') || activePlayers[0]),
-      runners: activePlayers.filter(p => p.role === 'Runner').slice(0, 2).map(p => this.createFieldPlayer(p)),
-      blockers: activePlayers.filter(p => p.role === 'Blocker').slice(0, 2).map(p => this.createFieldPlayer(p)),
-      wildcard: this.createFieldPlayer(activePlayers[activePlayers.length - 1])
+      passer: this.createFieldPlayer(passer),
+      runners: [this.createFieldPlayer(runner1), this.createFieldPlayer(runner2)],
+      blockers: [this.createFieldPlayer(blocker1), this.createFieldPlayer(blocker2)],
+      wildcard: this.createFieldPlayer(wildcard)
     };
   }
 
@@ -258,21 +282,25 @@ class LiveMatchEngineService implements LiveMatchEngine {
    * Create field player from database player
    */
   private createFieldPlayer(player: any): FieldPlayer {
+    if (!player) {
+      throw new Error('Player data is missing');
+    }
+
     return {
       id: player.id,
       name: `${player.firstName} ${player.lastName}`,
       position: { x: Math.random() * 400 + 200, y: Math.random() * 200 + 100 },
-      role: player.role,
+      role: player.role || 'Runner',
       stamina: player.dailyStaminaLevel || 100,
       attributes: {
-        speed: player.speed,
-        power: player.power,
-        throwing: player.throwing,
-        catching: player.catching,
-        agility: player.agility,
-        leadership: player.leadership
+        speed: player.speed || 20,
+        power: player.power || 20,
+        throwing: player.throwing || 20,
+        catching: player.catching || 20,
+        agility: player.agility || 20,
+        leadership: player.leadership || 20
       },
-      race: player.race,
+      race: player.race || 'Human',
       activeBoosts: []
     };
   }

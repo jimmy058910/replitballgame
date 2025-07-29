@@ -49,7 +49,7 @@ router.post('/demo', async (req, res) => {
   try {
     console.log('Creating demo match for live engine testing');
     
-    // Find a recent match that we can use for demo
+    // Find a recent match that we can use for demo (simplified to avoid enum issues)
     const recentMatch = await prisma.game.findFirst({
       where: {
         matchType: 'EXHIBITION',
@@ -80,6 +80,19 @@ router.post('/demo', async (req, res) => {
       return res.status(404).json({
         success: false,
         error: 'No exhibition matches found for demo. Please create an exhibition match first.'
+      });
+    }
+
+    // Verify we have enough players for demo
+    const homePlayers = recentMatch.homeTeam?.players?.length || 0;
+    const awayPlayers = recentMatch.awayTeam?.players?.length || 0;
+    
+    console.log(`Demo: Found ${homePlayers} home players, ${awayPlayers} away players`);
+    
+    if (homePlayers < 3 || awayPlayers < 3) {
+      return res.status(400).json({
+        success: false,
+        error: `Insufficient players for demo. Home: ${homePlayers}, Away: ${awayPlayers}. Need at least 3 per team.`
       });
     }
 
