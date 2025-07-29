@@ -10,6 +10,7 @@ import { Play, Pause, Clock, Users, Trophy, Zap, Target, Activity, Eye } from 'l
 import webSocketManager, { LiveMatchState, MatchEvent, WebSocketCallbacks } from '@/lib/websocket';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest, queryClient } from '@/lib/queryClient';
+import GameCanvas from './GameCanvas';
 
 interface GameSimulationUIProps {
   matchId: string;
@@ -629,7 +630,63 @@ export function GameSimulationUI({ matchId, userId, team1, team2, initialLiveSta
           </CardContent>
         </Card>
 
-        {/* Stadium Atmosphere */}
+        {/* Jules' 2D Match Engine */}
+      <Card>
+        <CardHeader className="pb-4">
+          <CardTitle className="text-lg flex items-center gap-2">
+            <Activity className="h-5 w-5 text-green-500" />
+            2D Match Visualization
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <GameCanvas
+            matchId={matchId}
+            gameData={{
+              homeTeam: { 
+                name: team1?.name || 'Home Team',
+                players: (homeTeamPlayers || []).map((p: any) => ({
+                  id: p.id,
+                  firstName: p.firstName,
+                  lastName: p.lastName,
+                  race: p.race || 'Human',
+                  speed: p.speed || 20,
+                  power: p.power || 20,
+                  agility: p.agility || 20,
+                  role: p.role,
+                  dailyStaminaLevel: p.dailyStaminaLevel || 80
+                }))
+              },
+              awayTeam: { 
+                name: team2?.name || 'Away Team',
+                players: (awayTeamPlayers || []).map((p: any) => ({
+                  id: p.id,
+                  firstName: p.firstName,
+                  lastName: p.lastName,
+                  race: p.race || 'Human',
+                  speed: p.speed || 20,
+                  power: p.power || 20,
+                  agility: p.agility || 20,
+                  role: p.role,
+                  dailyStaminaLevel: p.dailyStaminaLevel || 80
+                }))
+              }
+            }}
+            liveState={{
+              gameTime: liveState?.gameTime || 0,
+              homeScore: liveState?.homeScore || 0,
+              awayScore: liveState?.awayScore || 0,
+              status: liveState?.status || 'SCHEDULED',
+              fieldPosition: liveState?.fieldPosition || 50
+            }}
+            events={liveState?.gameEvents?.slice(-5) || []}
+            width={800}
+            height={500}
+            className="w-full"
+          />
+        </CardContent>
+      </Card>
+
+      {/* Stadium Atmosphere */}
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-lg flex items-center gap-2">
