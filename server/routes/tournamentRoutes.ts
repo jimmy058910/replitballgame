@@ -2,7 +2,7 @@ import { Router, type Request, type Response, type NextFunction } from "express"
 import { storage } from "../storage/index";
 import { teamFinancesStorage } from "../storage/teamFinancesStorage";
 import { tournamentStorage } from "../storage/tournamentStorage";
-import { isAuthenticated } from "../replitAuth";
+import { isAuthenticated } from "../googleAuth";
 import { z } from "zod";
 import { getDivisionName } from "../../shared/divisionUtils";
 import { PrismaClient } from "../../generated/prisma/index";

@@ -1,6 +1,6 @@
 import { Router, type Response, type NextFunction } from "express"; // Added Response, NextFunction
 import { userStorage } from "../storage/userStorage"; // Updated import
-import { isAuthenticated } from "../replitAuth";
+import { isAuthenticated } from "../googleAuth";
 import { RBACService, Permission } from "../services/rbacService";
 
 const router = Router();

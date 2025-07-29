@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { isAuthenticated } from "../replitAuth";
+import { isAuthenticated } from "../googleAuth";
 import { storage } from "../storage";
 import { 
   FIELD_SIZE_CONFIG, 

@@ -1,6 +1,6 @@
 import { Router, type Request, type Response } from 'express';
 import { SeasonalFlowService } from '../services/seasonalFlowService';
-import { isAuthenticated } from '../replitAuth';
+import { isAuthenticated } from '../googleAuth';
 import { RBACService } from '../services/rbacService';
 import { asyncHandler } from '../services/errorService';
 import { storage } from '../storage/index';

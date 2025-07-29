@@ -3,7 +3,7 @@ import { Router, type Request, type Response, type NextFunction } from "express"
 import { storage } from "../storage/index";
 import { teamFinancesStorage } from "../storage/teamFinancesStorage";
 import { itemStorage } from "../storage/itemStorage";
-import { isAuthenticated } from "../replitAuth";
+import { isAuthenticated } from "../googleAuth";
 // import { db } from "../db"; // Direct DB access for items might be replaced by itemStorage calls
 // Schema items handled by itemStorage using Prisma
 // Drizzle operations replaced by Prisma in storage layers

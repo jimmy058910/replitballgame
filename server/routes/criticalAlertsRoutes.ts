@@ -1,6 +1,6 @@
 import express from 'express';
 import { z } from 'zod';
-import { isAuthenticated } from '../replitAuth';
+import { isAuthenticated } from '../googleAuth';
 import { TeamStorage } from '../storage/teamStorage';
 import { PlayerStorage } from '../storage/playerStorage';
 import { StaffStorage } from '../storage/staffStorage';

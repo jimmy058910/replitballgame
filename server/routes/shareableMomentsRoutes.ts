@@ -1,6 +1,6 @@
 import { Router, Request, Response, NextFunction } from "express";
 import { storage } from "../storage";
-import { isAuthenticated } from "../replitAuth";
+import { isAuthenticated } from "../googleAuth";
 
 const router = Router();
 

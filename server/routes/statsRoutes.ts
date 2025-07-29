@@ -1,7 +1,7 @@
 import { Router, Response } from 'express';
 import { StatsService } from '../services/statsService';
 import { asyncHandler } from '../services/errorService';
-import { isAuthenticated } from '../replitAuth';
+import { isAuthenticated } from '../googleAuth';
 
 const router = Router();
 

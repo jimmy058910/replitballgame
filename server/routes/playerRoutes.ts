@@ -1,7 +1,7 @@
 import { Router, type Request, type Response, type NextFunction } from "express";
 // playerStorage imported via storage index // Updated import
 import { storage } from "../storage/index"; // Updated import
-import { isAuthenticated } from "../replitAuth";
+import { isAuthenticated } from "../googleAuth";
 import { z } from "zod";
 import { ContractService } from "../services/contractService";
 import { prisma } from "../storage/index";

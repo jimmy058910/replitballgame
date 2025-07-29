@@ -1,7 +1,7 @@
 import { Router, Request, Response } from 'express';
 import { z } from 'zod';
 import { TeamNameValidator } from '../services/teamNameValidation';
-import { isAuthenticated } from '../replitAuth';
+import { isAuthenticated } from '../googleAuth';
 import { asyncHandler } from '../services/errorService';
 
 const router = Router();

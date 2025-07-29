@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { PlayerAgingRetirementService } from '../services/playerAgingRetirementService';
-import { isAuthenticated } from '../replitAuth';
+import { isAuthenticated } from '../googleAuth';
 import { RBACService } from '../services/rbacService';
 
 const router = Router();

@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { DynamicMarketplaceService } from '../services/dynamicMarketplaceService.js';
-import { isAuthenticated } from '../replitAuth.js';
+import { isAuthenticated } from '../googleAuth';
 import { prisma } from '../db.js';
 
 const router = Router();

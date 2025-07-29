@@ -1,6 +1,6 @@
 import { Router, type Request, type Response, type NextFunction } from "express";
 import { storage } from "../storage"; // Adjusted path
-import { isAuthenticated } from "../replitAuth"; // Adjusted path
+import { isAuthenticated } from "../googleAuth"; // Adjusted path
 import { adSystemStorage } from "../storage/adSystemStorage";
 import { z } from "zod"; // For validation
 

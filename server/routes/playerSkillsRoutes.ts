@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { PlayerSkillsService } from '../services/playerSkillsService';
-import { isAuthenticated } from '../replitAuth';
+import { isAuthenticated } from '../googleAuth';
 import { prisma } from '../db';
 
 const router = Router();

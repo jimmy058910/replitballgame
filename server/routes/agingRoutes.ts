@@ -1,5 +1,5 @@
 import { Router, type Request, type Response, type NextFunction } from "express";
-import { isAuthenticated } from "../replitAuth";
+import { isAuthenticated } from "../googleAuth";
 import { AgingService } from "../services/agingService";
 import { ErrorCreators, asyncHandler, logInfo } from "../services/errorService";
 import { z } from "zod";

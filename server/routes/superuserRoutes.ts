@@ -1,6 +1,6 @@
 import { Router, type Request, type Response, type NextFunction } from "express";
 import { storage } from "../storage";
-import { isAuthenticated } from "../replitAuth";
+import { isAuthenticated } from "../googleAuth";
 import { prisma } from "../db";
 import { generateRandomPlayer as generatePlayerForTeam } from "../services/leagueService";
 import { RBACService, Permission, UserRole } from "../services/rbacService";

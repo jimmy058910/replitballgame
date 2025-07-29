@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { DailyPlayerProgressionService } from '../services/dailyPlayerProgressionService';
-import { isAuthenticated } from '../replitAuth';
+import { isAuthenticated } from '../googleAuth';
 import { RBACService, Permission } from '../services/rbacService';
 
 const router = Router();

@@ -1,7 +1,7 @@
 import { Router, type Request, type Response, type NextFunction } from "express";
 import { storage } from "../storage/index";
 import { teamFinancesStorage } from "../storage/teamFinancesStorage";
-import { isAuthenticated } from "../replitAuth";
+import { isAuthenticated } from "../googleAuth";
 import { generateRandomPlayer } from "../services/leagueService";
 import { z } from "zod";
 import { ErrorCreators, asyncHandler, logInfo } from "../services/errorService";

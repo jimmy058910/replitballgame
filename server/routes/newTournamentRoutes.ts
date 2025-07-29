@@ -1,6 +1,6 @@
 import { Router, type Request, type Response, type NextFunction } from "express";
 import { storage } from "../storage/index";
-import { isAuthenticated } from "../replitAuth";
+import { isAuthenticated } from "../googleAuth";
 import { z } from "zod";
 import { tournamentService } from "../services/tournamentService";
 import { prisma } from "../db";

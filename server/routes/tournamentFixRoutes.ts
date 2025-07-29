@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { prisma } from "../db";
-import { isAuthenticated } from "../replitAuth";
+import { isAuthenticated } from "../googleAuth";
 import { log } from "../vite";
 import { tournamentFlowService } from "../services/tournamentFlowService";
 import { matchStateManager } from "../services/matchStateManager";

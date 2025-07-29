@@ -3,7 +3,7 @@ import { storage } from "../storage/index";
 // playerStorage imported via storage index
 import { matchStorage } from "../storage/matchStorage";
 import { exhibitionGameStorage } from "../storage/exhibitionGameStorage";
-import { isAuthenticated } from "../replitAuth";
+import { isAuthenticated } from "../googleAuth";
 import { matchStateManager } from "../services/matchStateManager";
 import { z } from "zod";
 import { MatchType } from "../../generated/prisma";

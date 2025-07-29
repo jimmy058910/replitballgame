@@ -1,5 +1,5 @@
 import { Router, Request, Response, NextFunction } from 'express';
-import { isAuthenticated } from '../replitAuth';
+import { isAuthenticated } from '../googleAuth';
 import { prisma } from '../db';
 import { Race, PlayerRole, SeasonPhase } from '../../generated/prisma';
 

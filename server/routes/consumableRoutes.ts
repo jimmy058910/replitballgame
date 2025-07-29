@@ -1,6 +1,6 @@
 import { Router, Request, Response } from "express";
 import { consumableStorage } from "../storage/consumableStorage";
-import { isAuthenticated } from "../replitAuth";
+import { isAuthenticated } from "../googleAuth";
 import { asyncHandler } from "../services/errorService";
 import { prisma } from "../db";
 

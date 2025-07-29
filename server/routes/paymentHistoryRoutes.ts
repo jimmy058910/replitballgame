@@ -1,5 +1,5 @@
 import { Router, type Response } from "express";
-import { isAuthenticated } from "../replitAuth";
+import { isAuthenticated } from "../googleAuth";
 import { PaymentHistoryService } from "../services/paymentHistoryService";
 import { ErrorCreators, asyncHandler } from "../services/errorService";
 import { z } from "zod";

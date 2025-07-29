@@ -1,6 +1,6 @@
 import { Router, type Response, type NextFunction } from "express";
 import { userStorage } from "../storage/userStorage";
-import { isAuthenticated } from "../replitAuth";
+import { isAuthenticated } from "../googleAuth";
 import { asyncHandler } from "../services/errorService";
 
 const router = Router();

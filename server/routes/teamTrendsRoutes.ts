@@ -1,5 +1,5 @@
 import { Router, type Request, type Response } from 'express';
-import { isAuthenticated } from '../replitAuth';
+import { isAuthenticated } from '../googleAuth';
 import { asyncHandler } from '../services/errorService';
 import { prisma } from '../db';
 

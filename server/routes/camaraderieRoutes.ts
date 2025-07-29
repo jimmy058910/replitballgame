@@ -1,5 +1,5 @@
 import { Router, type Request, type Response } from "express";
-import { isAuthenticated } from "../replitAuth";
+import { isAuthenticated } from "../googleAuth";
 import { CamaraderieService } from "../services/camaraderieService";
 import { RBACService, Permission } from "../services/rbacService";
 import { ErrorCreators, asyncHandler, logInfo } from "../services/errorService";

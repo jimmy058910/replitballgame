@@ -1,5 +1,5 @@
 import { Router, Response, NextFunction } from 'express';
-import { isAuthenticated } from '../replitAuth';
+import { isAuthenticated } from '../googleAuth';
 import { injuryStaminaService } from '../services/injuryStaminaService';
 import { prisma } from '../db';
 

@@ -4,7 +4,7 @@ import { storage } from "../storage/index";
 // playerStorage imported via storage index
 import { teamFinancesStorage } from "../storage/teamFinancesStorage";
 import { notificationStorage } from "../storage/notificationStorage"; // For notifications
-import { isAuthenticated } from "../replitAuth";
+import { isAuthenticated } from "../googleAuth";
 import { z } from "zod";
 // import { NotificationService } from "../services/notificationService"; // Preferred over direct storage for notifications
 

@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { StadiumAtmosphereService } from '../services/stadiumAtmosphereService';
-import { isAuthenticated } from '../replitAuth';
+import { isAuthenticated } from '../googleAuth';
 import { RBACService } from '../services/rbacService';
 import { prisma } from '../db';
 

@@ -1,82 +1,55 @@
-# Production Dockerfile - optimized for Cloud Run
-FROM node:20-alpine
-
-# Install system dependencies
-RUN apk update && apk upgrade && apk add --no-cache \
-    dumb-init \
-    ca-certificates \
-    curl
+# ---- Stage 1: Build ----
+# This stage builds the React frontend and has all dev dependencies
+FROM node:20-alpine AS builder
 
 WORKDIR /app
 
-# Copy package files
+# Install all dependencies to build the project
 COPY package*.json ./
-
-# Install all dependencies (needed for build)
 RUN npm install
 
-# Copy source code
+# Copy all source code
 COPY . .
 
-# Debug: List copied files and verify structure
-RUN echo "=== BUILD ENVIRONMENT DEBUG ===" && \
-    echo "Current directory: $(pwd)" && \
-    echo "Files in root:" && ls -la && \
-    echo "Files in client:" && ls -la client/ && \
-    echo "Package.json scripts:" && grep -A 5 '"scripts"' package.json
+# Build the React/Vite frontend. This creates the /app/dist folder.
+RUN NODE_ENV=production npm run build
 
-# Verify Vite config exists and has @shared alias
-RUN echo "=== VITE CONFIG VERIFICATION ===" && \
-    cat vite.config.production.ts | grep -A 3 '@shared' || echo "❌ @shared alias missing"
+# Verify the build
+RUN ls -la dist/ && echo "Build verification complete"
 
-# Build the React frontend with enhanced error handling
-RUN echo "=== STARTING REACT BUILD ===" && \
-    NODE_ENV=production npm run build 2>&1 | tee build.log && \
-    echo "=== BUILD COMPLETED ==="
+# ---- Stage 2: Production Runner ----
+# This stage creates the final, slim image
+FROM node:20-alpine
 
-# Comprehensive build verification
-RUN echo "=== BUILD VERIFICATION ===" && \
-    echo "Files after build:" && ls -la && \
-    echo "Contents of dist folder:" && \
-    if [ -d "dist" ]; then \
-        ls -la dist/ && \
-        echo "Dist contents breakdown:" && \
-        find dist/ -type f -name "*.html" -o -name "*.js" -o -name "*.css" | head -10; \
-    else \
-        echo "❌ No dist folder created"; \
-    fi
+# Install dumb-init for proper signal handling
+RUN apk add --no-cache dumb-init curl
 
-# Critical: Verify index.html exists and fail if not
-RUN if [ -f "dist/index.html" ]; then \
-        echo "✅ React build successful - index.html found" && \
-        echo "Index.html size: $(stat -c%s dist/index.html) bytes" && \
-        echo "First 500 chars of index.html:" && \
-        head -c 500 dist/index.html; \
-    else \
-        echo "❌ CRITICAL FAILURE: React build failed - no index.html" && \
-        echo "Build log:" && cat build.log && \
-        echo "Available files:" && find . -name "*.html" 2>/dev/null && \
-        exit 1; \
-    fi
+WORKDIR /app
 
-# Clean up dev dependencies after build
-RUN npm ci --only=production && \
-    npm install tsx
+# Install production-only dependencies + tsx for running TS files
+COPY package*.json ./
+RUN npm ci --only=production && npm install tsx
 
-# Create non-root user
+# Copy built frontend from the 'builder' stage
+COPY --from=builder /app/dist ./dist
+
+# Copy server code from the 'builder' stage
+COPY --from=builder /app/server ./server
+COPY --from=builder /app/shared ./shared
+COPY --from=builder /app/prisma ./prisma
+
+# Create a non-root user for security
 RUN addgroup -g 1001 -S nodejs && \
     adduser -S nextjs -u 1001 && \
     chown -R nextjs:nodejs /app
 
 USER nextjs
 
-# Expose port
 EXPOSE 8080
 
-# Health check (using curl which is available in Alpine)
-HEALTHCHECK --interval=30s --timeout=10s --start-period=10s --retries=3 \
+# Health check
+HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
   CMD curl -f http://localhost:8080/health || exit 1
 
-# Start production server
-ENTRYPOINT ["dumb-init", "--"]
-CMD ["npx", "tsx", "server/production-deployment.ts"]
+# Command to start the production server
+CMD ["dumb-init", "npx", "tsx", "server/production-deployment.ts"]

@@ -1,6 +1,6 @@
 import { Router, type Request, type Response, type NextFunction } from "express";
 import { storage } from "../storage"; // Adjusted path
-import { isAuthenticated } from "../replitAuth"; // Adjusted path
+import { isAuthenticated } from "../googleAuth"; // Adjusted path
 import { randomUUID } from "crypto"; // For demo notifications
 // import { NotificationService } from "../services/notificationService"; // If using service methods here
 

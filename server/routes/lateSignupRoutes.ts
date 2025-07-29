@@ -1,5 +1,5 @@
 import express from 'express';
-import { isAuthenticated } from '../replitAuth';
+import { isAuthenticated } from '../googleAuth';
 import { LateSignupService } from '../services/lateSignupService';
 import { asyncHandler } from '../services/errorService';
 

@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { awardsService } from "../services/awardsService";
-import { isAuthenticated } from "../replitAuth";
+import { isAuthenticated } from "../googleAuth";
 import { asyncHandler } from "../utils/asyncHandler";
 import { requirePermission } from "../utils/rbac";
 
