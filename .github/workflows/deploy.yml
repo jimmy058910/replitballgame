@@ -54,8 +54,8 @@ jobs:
           --timeout 900 \
           --max-instances 10 \
           --allow-unauthenticated \
-          --update-secrets DATABASE_URL=DATABASE_URL:latest \
-          --update-secrets SESSION_SECRET=SESSION_SECRET:latest \
-          --update-secrets GOOGLE_CLIENT_ID=GOOGLE_CLIENT_ID:latest \
-          --update-secrets GOOGLE_CLIENT_SECRET=GOOGLE_CLIENT_SECRET:latest \
-          --set-env-vars NODE_ENV=production
+          --service-account realm-rivalry-runner@$PROJECT_ID.iam.gserviceaccount.com \
+          --update-secrets DATABASE_URL=database-url:latest \
+          --update-secrets SESSION_SECRET=session-secret:latest \
+          --update-secrets GOOGLE_CLIENT_SECRET=google-client-secret:latest \
+          --set-env-vars NODE_ENV=production,GOOGLE_CLIENT_ID=108005641993-e642ered12jj7ka6unpqhgjdls92c0u8.apps.googleusercontent.com
