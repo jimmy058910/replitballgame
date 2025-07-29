@@ -12,7 +12,7 @@ export function setupGoogleAuth(app: Express) {
     clientID: process.env.GOOGLE_CLIENT_ID!,
     clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
     callbackURL: process.env.NODE_ENV === 'production' 
-      ? 'https://realmrivalry.com/auth/google/callback'
+      ? 'https://www.realmrivalry.com/auth/google/callback'
       : '/auth/google/callback',
     scope: ['profile', 'email']
   },
