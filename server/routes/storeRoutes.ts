@@ -392,12 +392,13 @@ router.post('/purchase/:itemId', isAuthenticated, async (req: any, res: Response
       
       storeItem = {
         id: 'exhibition_credit',
-        name: 'Exhibition Match Entry',
+        name: 'Exhibition Game Entry',
         credits: exhibitionPricing.credits || 500,
         gems: exhibitionPricing.gems || 2,
         tier: 'common',
         type: 'entry',
-        statEffects: null
+        statEffects: null,
+        effect: null
       };
     } else {
       // Find the item in enhanced game economy service daily rotation
@@ -510,7 +511,8 @@ router.post('/purchase/:itemId', isAuthenticated, async (req: any, res: Response
     // Add item to appropriate inventory system
     const isConsumable = !storeItem.statEffects && storeItem.effect;
     const isEquipment = storeItem.statEffects && storeItem.slot;
-    const isEntry = storeItem.id && storeItem.id.includes('tournament') || storeItem.id === 'exhibition_match';
+    const isExhibitionEntry = itemId === 'exhibition_credit' || itemId === 'exhibition_gem';
+    const isEntry = (storeItem.id && storeItem.id.includes('tournament')) || storeItem.id === 'exhibition_match' || isExhibitionEntry;
     
     if (isConsumable) {
       // Find or create the Item record first
@@ -580,12 +582,12 @@ router.post('/purchase/:itemId', isAuthenticated, async (req: any, res: Response
           item = await prisma.item.create({
             data: {
               name: storeItem.name,
-              description: storeItem.description || "Store purchased entry",
-              type: 'GAME_ENTRY',
+              description: isExhibitionEntry ? "Allows playing additional exhibition matches beyond the daily limit" : (storeItem.description || "Store purchased entry"),
+              type: isExhibitionEntry ? 'CONSUMABLE_RECOVERY' : 'GAME_ENTRY',
               rarity: (storeItem.tier || "common").toUpperCase() as any,
               creditPrice: storeItem.credits ? BigInt(storeItem.credits) : null,
               gemPrice: storeItem.gems || null,
-              effectValue: {}
+              effectValue: isExhibitionEntry ? { type: 'exhibition_entry' } : {}
             }
           });
         }
