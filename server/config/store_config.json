@@ -47,8 +47,8 @@
     "team_stamina_brew": { "credits": 10000, "gems": 12 },
     "champions_blessing": { "credits": 30000, "gems": 20 },
 
-    "exhibition_match_entry": { "credits": 500, "gems": 2 },
-    "exhibition_credit": { "credits": 500, "gems": 2 },
+    "exhibition_match_entry": { "credits": 1000, "gems": 2 },
+    "exhibition_credit": { "credits": 1000, "gems": 2 },
     "daily_tournament_ticket_div_5_8": { "credits": 500, "gems": 10 },
     "daily_tournament_ticket_div_1_4": { "credits": 1000, "gems": 10 },
     "mid_season_cup_entry_div_5_8": { "credits": 1200, "gems": 8 },
@@ -81,10 +81,10 @@
     }
   },
   "gemExchangeRates": [
-    { "gems": 10, "credits": 4000, "ratio": 400 },
-    { "gems": 50, "credits": 22500, "ratio": 450 },
-    { "gems": 300, "credits": 150000, "ratio": 500 },
-    { "gems": 1000, "credits": 550000, "ratio": 550 }
+    { "gems": 10, "credits": 2000, "ratio": 200 },
+    { "gems": 50, "credits": 11250, "ratio": 225 },
+    { "gems": 300, "credits": 75000, "ratio": 250 },
+    { "gems": 1000, "credits": 275000, "ratio": 275 }
   ],
   "adSystem": {
     "dailyWatchLimit": 10,

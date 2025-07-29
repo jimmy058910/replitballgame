@@ -928,12 +928,12 @@ export default function Market() {
                       <CardTitle className="text-lg">Starter Pack</CardTitle>
                     </CardHeader>
                     <CardContent className="text-center space-y-3">
-                      <div className="text-2xl font-bold text-green-600">₡4,000</div>
+                      <div className="text-2xl font-bold text-green-600">₡2,000</div>
                       <div className="text-lg font-semibold text-gray-700">for 10 💎</div>
-                      <div className="text-sm text-gray-500">Rate: 1:400</div>
+                      <div className="text-sm text-gray-500">Rate: 1:200</div>
                       <Button 
                         className="w-full bg-green-600 hover:bg-green-700"
-                        onClick={() => handleGemExchange(10, 4000)}
+                        onClick={() => handleGemExchange(10, 2000)}
                         disabled={!teamFinances || (teamFinances.gems || 0) < 10}
                       >
                         Exchange
@@ -972,12 +972,12 @@ export default function Market() {
                       <CardTitle className="text-lg">Premium Pack</CardTitle>
                     </CardHeader>
                     <CardContent className="text-center space-y-3">
-                      <div className="text-2xl font-bold text-purple-600">₡150,000</div>
+                      <div className="text-2xl font-bold text-purple-600">₡75,000</div>
                       <div className="text-lg font-semibold text-gray-700">for 300 💎</div>
-                      <div className="text-sm text-gray-500">Rate: 1:500</div>
+                      <div className="text-sm text-gray-500">Rate: 1:250</div>
                       <Button 
                         className="w-full bg-purple-600 hover:bg-purple-700"
-                        onClick={() => handleGemExchange(300, 150000)}
+                        onClick={() => handleGemExchange(300, 75000)}
                         disabled={!teamFinances || (teamFinances.gems || 0) < 300}
                       >
                         Exchange

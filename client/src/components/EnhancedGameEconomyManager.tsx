@@ -698,12 +698,12 @@ export default function EnhancedGameEconomyManager({ teamId }: { teamId: string 
                         <div className="flex justify-between">
                           <span>Credits Received:</span>
                           <span className="font-medium text-green-600">
-                            ₡{(parseInt(exchangeAmount) * (exchangeRates?.creditsPerGem || 500)).toLocaleString()}
+                            ₡{(parseInt(exchangeAmount) * (exchangeRates?.creditsPerGem || 200)).toLocaleString()}
                           </span>
                         </div>
                         <div className="flex justify-between text-sm text-gray-600">
                           <span>Exchange Rate:</span>
-                          <span>₡{exchangeRates?.creditsPerGem || 500} per gem</span>
+                          <span>₡{exchangeRates?.creditsPerGem || 200} per gem</span>
                         </div>
                       </div>
                     )}
@@ -733,7 +733,7 @@ export default function EnhancedGameEconomyManager({ teamId }: { teamId: string 
                     <div className="p-3 border rounded">
                       <div className="flex justify-between">
                         <span className="text-sm text-gray-600">Current Rate:</span>
-                        <span className="font-medium">₡{exchangeRates?.creditsPerGem || 500} per gem</span>
+                        <span className="font-medium">₡{exchangeRates?.creditsPerGem || 200} per gem</span>
                       </div>
                     </div>
                     <div className="p-3 border rounded">

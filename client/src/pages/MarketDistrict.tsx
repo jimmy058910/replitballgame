@@ -257,7 +257,7 @@ export default function MarketDistrict() {
     mutationFn: (gemAmount: number) =>
       apiRequest('/api/store/exchange-gems', 'POST', { gemAmount }),
     onSuccess: (data: any, gemAmount: number) => {
-      const creditsReceived = data?.data?.creditsReceived || (gemAmount * 400);
+      const creditsReceived = data?.data?.creditsReceived || (gemAmount * 200);
       toast({
         title: "Exchange Successful!",
         description: `Exchanged ${gemAmount} gems for ₡${creditsReceived.toLocaleString()}.`,
@@ -279,7 +279,7 @@ export default function MarketDistrict() {
     mutationFn: () => 
       apiRequest('/api/store/purchase/exhibition_credit', 'POST', { 
         currency: 'credits',
-        expectedPrice: 500
+        expectedPrice: 1000
       }),
     onSuccess: () => {
       toast({
@@ -740,10 +740,10 @@ export default function MarketDistrict() {
                       <h4 className="text-white font-bold mb-3">Exchange Gem Packages</h4>
                       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                         {[
-                          { gems: 10, credits: 4000, ratio: 400, label: "Starter" },
-                          { gems: 50, credits: 22500, ratio: 450, label: "Popular" },
-                          { gems: 300, credits: 150000, ratio: 500, label: "Best Value" },
-                          { gems: 1000, credits: 550000, ratio: 550, label: "Bulk" }
+                          { gems: 10, credits: 2000, ratio: 200, label: "Starter" },
+                          { gems: 50, credits: 11250, ratio: 225, label: "Popular" },
+                          { gems: 300, credits: 75000, ratio: 250, label: "Best Value" },
+                          { gems: 1000, credits: 275000, ratio: 275, label: "Bulk" }
                         ].map((rate, index) => (
                           <Card key={index} className="bg-gray-700 border-gray-600 text-center hover:border-cyan-400 transition-colors">
                             <CardContent className="p-3">
