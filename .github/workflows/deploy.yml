@@ -58,4 +58,4 @@ jobs:
           --update-secrets DATABASE_URL=database-url:latest \
           --update-secrets SESSION_SECRET=session-secret:latest \
           --update-secrets GOOGLE_CLIENT_SECRET=google-client-secret:latest \
-          --set-env-vars NODE_ENV=production,GOOGLE_CLIENT_ID=108005641993-e642ered12jj7ka6unpqhgjdls92c0u8.apps.googleusercontent.com
+          --set-env-vars "NODE_ENV=production,GOOGLE_CLIENT_ID=108005641993-e642ered12jj7ka6unpqhgjdls92c0u8.apps.googleusercontent.com"

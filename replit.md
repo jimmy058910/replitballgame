@@ -632,6 +632,14 @@ docker push gcr.io/direct-glider-465821-p7/realm-rivalry:latest
 - ✓ **Route Registration Order Fixed**: setupGoogleAuth() and registerAllRoutes() called BEFORE server starts listening instead of async after
 - ✓ **Production-Development Parity**: Production server now matches development server functionality completely
 
+#### ✅ CRITICAL GITHUB ACTIONS SECRETS & DEPLOYMENT COMMAND FIXES - PRODUCTION PIPELINE OPERATIONAL  
+- ✓ **Secret Name Mismatch Fixed**: Corrected deployment script to use proper Google Cloud secret names (database-url, session-secret, google-client-secret)
+- ✓ **Service Account Integration**: Added realm-rivalry-runner@direct-glider-465821-p7.iam.gserviceaccount.com to deployment configuration
+- ✓ **Environment Variable Syntax**: Fixed --set-env-vars command syntax with proper quoting and comma separation
+- ✓ **Deployment Configuration Enhanced**: Complete Cloud Run deployment command with 2Gi memory, 1 CPU, 900s timeout, 10 max instances
+- ✓ **Production Secrets Pipeline**: DATABASE_URL, SESSION_SECRET, GOOGLE_CLIENT_SECRET properly mapped from Google Cloud Secret Manager
+- ✓ **GitHub Actions Ready**: Complete automated deployment pipeline from GitHub push to Cloud Run production deployment
+
 ### July 29, 2025 - ✅ CRITICAL DAILY LATE SIGNUP AUTOMATION SYSTEM COMPLETE ✅
 
 #### ✅ DAILY LATE SIGNUP PROCESSING IMPLEMENTED - MAJOR AUTOMATION BREAKTHROUGH
