@@ -13,6 +13,7 @@ import { setupVite, serveStatic, log } from "./vite";
 import { requestIdMiddleware } from "./middleware/requestId";
 import { errorHandler, logInfo } from "./services/errorService";
 import { setupWebSocketServer, webSocketService } from "./services/webSocketService";
+import { webSocketManager } from "./websocket/webSocketManager";
 import { matchStateManager } from "./services/matchStateManager";
 import { SeasonTimingAutomationService } from "./services/seasonTimingAutomationService";
 import logger from "./utils/logger";
@@ -236,6 +237,9 @@ app.get('/health', (req, res) => {
 
   // Setup WebSocket server with Socket.IO
   await setupWebSocketServer(io);
+
+  // Initialize the new WebSocket manager for live matches
+  webSocketManager.initialize(httpServer);
 
   // Connect WebSocket service to match state manager
   matchStateManager.setWebSocketService(webSocketService);

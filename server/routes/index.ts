@@ -59,6 +59,7 @@ import careerHighlightsRoutes from "./careerHighlightsRoutes";
 import referralRoutes from "./referralRoutes";
 import criticalAlertsRoutes from "./criticalAlertsRoutes";
 import enhancedMatchRoutes from "./enhancedMatchRoutes";
+import liveMatchRoutes from "./liveMatchRoutes";
 import testEnvironmentRoutes from "./testEnvironmentRoutes";
 
 // This function will be called by server/index.ts to set up all routes.
@@ -77,6 +78,7 @@ export function registerAllRoutes(app: Express): void {
   app.use("/api/leagues", leagueRoutes); // This will also cover /api/teams/division/:division if it's there
   app.use("/api/matches", matchRoutes);
   app.use("/api/enhanced-matches", enhancedMatchRoutes); // Enhanced match engine API endpoints
+  app.use("/api/live-matches", liveMatchRoutes); // Live match engine with WebSocket support
   app.use("/api/team-matches", leagueMatchesRoutes); // League matches for team recent matches display
   app.use("/api/marketplace", marketplaceRoutes);
   // Add marketplace stats alias
