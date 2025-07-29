@@ -1397,6 +1397,7 @@ export class SeasonalFlowService {
     leaguesRebalanced: boolean;
     awardsDistributed: boolean;
     prizesDistributed: boolean;
+    aiTeamsRemoved: boolean;
     summary: {
       totalMatches: number;
       totalPromotions: number;
@@ -1404,6 +1405,8 @@ export class SeasonalFlowService {
       leaguesCreated: number;
       totalAwards: number;
       totalPrizeMoney: number;
+      totalAITeamsDeleted: number;
+      totalAIPlayersDeleted: number;
     };
   }> {
     const newSeason = currentSeason + 1;
@@ -1414,13 +1417,16 @@ export class SeasonalFlowService {
     // 2. Distribute prize money based on final standings
     const prizesResult = await this.distributePrizeMoney(currentSeason);
     
-    // 3. Process final promotion/relegation
+    // 3. Clean up AI teams before promotion/relegation
+    const aiCleanupResult = await this.cleanupAITeams();
+    
+    // 4. Process final promotion/relegation (now with AI teams removed)
     const promotionResult = await this.processPromotionRelegation(currentSeason);
     
-    // 4. Rebalance leagues for new season
+    // 5. Rebalance leagues for new season
     const rebalanceResult = await this.rebalanceLeagues(currentSeason);
     
-    // 5. Reset team statistics for new season
+    // 6. Reset team statistics for new season
     await prisma.team.updateMany({
       data: {
         wins: 0,
@@ -1430,7 +1436,7 @@ export class SeasonalFlowService {
       }
     });
     
-    // 6. Generate schedule for new season
+    // 7. Generate schedule for new season
     const scheduleResult = await this.generateSeasonSchedule(newSeason);
     
     return {
@@ -1440,13 +1446,16 @@ export class SeasonalFlowService {
       leaguesRebalanced: rebalanceResult.leaguesRebalanced > 0,
       awardsDistributed: awardsResult.awardsDistributed,
       prizesDistributed: prizesResult.prizesDistributed,
+      aiTeamsRemoved: aiCleanupResult.aiTeamsRemoved,
       summary: {
         totalMatches: scheduleResult.matchesGenerated,
         totalPromotions: promotionResult.promotions.length,
         totalRelegations: promotionResult.relegations.length,
         leaguesCreated: rebalanceResult.newLeaguesCreated,
         totalAwards: awardsResult.totalAwards,
-        totalPrizeMoney: prizesResult.totalPrizeMoney
+        totalPrizeMoney: prizesResult.totalPrizeMoney,
+        totalAITeamsDeleted: aiCleanupResult.totalAITeamsDeleted,
+        totalAIPlayersDeleted: aiCleanupResult.totalAIPlayersDeleted
       }
     };
   }
@@ -1627,6 +1636,245 @@ export class SeasonalFlowService {
     } catch (error) {
       console.error('Error distributing prize money:', error);
       return { prizesDistributed: false, totalPrizeMoney: 0, distributions: [] };
+    }
+  }
+
+  /**
+   * Clean up AI teams and their associated data
+   */
+  static async cleanupAITeams(): Promise<{
+    aiTeamsRemoved: boolean;
+    totalAITeamsDeleted: number;
+    totalAIPlayersDeleted: number;
+    totalAIUserProfilesDeleted: number;
+  }> {
+    try {
+      logInfo('Starting AI team cleanup...');
+      
+      // Find all AI user profiles (they have userId starting with "ai-user-" or "ai_midseason_")
+      const aiUserProfiles = await prisma.userProfile.findMany({
+        where: {
+          OR: [
+            { userId: { startsWith: 'ai-user-' } },
+            { userId: { startsWith: 'ai_midseason_' } },
+            { email: { contains: '@realm-rivalry.com' } },
+            { email: { contains: '@realmrivalry.ai' } }
+          ]
+        },
+        include: { 
+          Team: {
+            include: {
+              players: true,
+              finances: true,
+              stadium: true
+            }
+          }
+        }
+      });
+
+      let totalAITeamsDeleted = 0;
+      let totalAIPlayersDeleted = 0;
+      let totalAIUserProfilesDeleted = 0;
+
+      logInfo(`Found ${aiUserProfiles.length} AI user profiles to clean up`);
+
+      // Create or find a placeholder team for historical game references
+      let placeholderTeam = await prisma.team.findFirst({
+        where: { name: 'DELETED_AI_TEAM' }
+      });
+      
+      if (!placeholderTeam) {
+        // Create a placeholder user profile first
+        const placeholderUser = await prisma.userProfile.create({
+          data: {
+            userId: 'system-deleted-ai-placeholder',
+            email: 'deleted-ai@system.placeholder',
+            firstName: 'Deleted',
+            lastName: 'AI Team'
+          }
+        });
+        
+        // Create placeholder team
+        placeholderTeam = await prisma.team.create({
+          data: {
+            userProfileId: placeholderUser.id,
+            name: 'DELETED_AI_TEAM',
+            leagueId: 8,
+            division: 8,
+            subdivision: 'system'
+          }
+        });
+        
+        // Create placeholder finances and stadium
+        await prisma.teamFinances.create({
+          data: {
+            teamId: placeholderTeam.id,
+            credits: '0',
+            gems: '0'
+          }
+        });
+        
+        await prisma.stadium.create({
+          data: {
+            teamId: placeholderTeam.id,
+            capacity: 5000
+          }
+        });
+        
+        logInfo(`Created placeholder team ${placeholderTeam.id} for historical game references`);
+      }
+
+      for (const aiProfile of aiUserProfiles) {
+        // Delete all players for each AI team (note: Team is singular in Prisma relation)
+        const teams = Array.isArray(aiProfile.Team) ? aiProfile.Team : [aiProfile.Team].filter(Boolean);
+        for (const team of teams) {
+          // Delete player contracts first
+          await prisma.contract.deleteMany({
+            where: { 
+              playerId: { 
+                in: team.players.map(p => p.id) 
+              } 
+            }
+          });
+          
+          // Delete player skill links
+          await prisma.playerSkillLink.deleteMany({
+            where: { 
+              playerId: { 
+                in: team.players.map(p => p.id) 
+              } 
+            }
+          });
+          
+          // Delete all players
+          const deletedPlayers = await prisma.player.deleteMany({
+            where: { teamId: team.id }
+          });
+          
+          totalAIPlayersDeleted += deletedPlayers.count;
+          
+          // Delete team finances
+          if (team.finances) {
+            await prisma.teamFinances.delete({
+              where: { teamId: team.id }
+            });
+          }
+          
+          // Delete team stadium
+          if (team.stadium) {
+            await prisma.stadium.delete({
+              where: { teamId: team.id }
+            });
+          }
+          
+          // Delete tournament entries for this team
+          await prisma.tournamentEntry.deleteMany({
+            where: { teamId: team.id }
+          });
+          
+          // Delete marketplace listings (using correct field name)
+          await prisma.marketplaceListing.deleteMany({
+            where: { sellerTeamId: team.id }
+          });
+          
+          // Delete any notifications for this team
+          await prisma.notification.deleteMany({
+            where: { teamId: team.id }
+          });
+          
+          // Delete team strategy (tactical formations)
+          await prisma.strategy.deleteMany({
+            where: { teamId: team.id }
+          });
+          
+          // Delete team staff
+          await prisma.staff.deleteMany({
+            where: { teamId: team.id }
+          });
+          
+          // Delete team inventory items
+          await prisma.inventoryItem.deleteMany({
+            where: { teamId: team.id }
+          });
+          
+          // Delete team active boosts
+          await prisma.activeBoost.deleteMany({
+            where: { teamId: team.id }
+          });
+          
+          // Delete team tryout history
+          await prisma.tryoutHistory.deleteMany({
+            where: { teamId: team.id }
+          });
+          
+          // Delete bids where this team was the bidder
+          await prisma.bid.deleteMany({
+            where: { bidderTeamId: team.id }
+          });
+          
+          // Delete listing history for this team
+          await prisma.listingHistory.deleteMany({
+            where: { teamId: team.id }
+          });
+          
+          // Update marketplace listings where this team was the high bidder (set to null)
+          await prisma.marketplaceListing.updateMany({
+            where: { currentHighBidderTeamId: team.id },
+            data: { currentHighBidderTeamId: null, currentBid: null }
+          });
+          
+          // Update historical games to use placeholder team before deleting
+          await prisma.game.updateMany({
+            where: { homeTeamId: team.id },
+            data: { homeTeamId: placeholderTeam.id }
+          });
+          
+          await prisma.game.updateMany({
+            where: { awayTeamId: team.id },
+            data: { awayTeamId: placeholderTeam.id }
+          });
+          
+          logInfo(`Cleaned up team ${team.id} (${team.name}) and its ${team.players.length} players`);
+          totalAIPlayersDeleted += team.players.length;
+        }
+        
+        // Delete all AI teams for this profile
+        if (teams.length > 0) {
+          const deletedTeams = await prisma.team.deleteMany({
+            where: { userProfileId: aiProfile.id }
+          });
+          totalAITeamsDeleted += deletedTeams.count;
+        }
+        
+        // Delete the AI user profile
+        await prisma.userProfile.delete({
+          where: { id: aiProfile.id }
+        });
+        
+        totalAIUserProfilesDeleted++;
+      }
+
+      logInfo('AI team cleanup completed', { 
+        totalAIUserProfilesDeleted,
+        totalAITeamsDeleted,
+        totalAIPlayersDeleted
+      });
+
+      return {
+        aiTeamsRemoved: totalAITeamsDeleted > 0,
+        totalAITeamsDeleted,
+        totalAIPlayersDeleted,
+        totalAIUserProfilesDeleted
+      };
+      
+    } catch (error) {
+      console.error('Error during AI team cleanup:', error);
+      return { 
+        aiTeamsRemoved: false, 
+        totalAITeamsDeleted: 0, 
+        totalAIPlayersDeleted: 0,
+        totalAIUserProfilesDeleted: 0
+      };
     }
   }
 

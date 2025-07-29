@@ -295,6 +295,31 @@ router.post('/season/rollover', isAuthenticated, RBACService.requirePermission('
 });
 
 /**
+ * POST /api/seasonal-flow/cleanup-ai-teams
+ * Test endpoint to clean up AI teams (temporary for debugging)
+ */
+router.post('/cleanup-ai-teams', isAuthenticated, RBACService.requirePermission('manage_leagues'), async (req, res) => {
+  try {
+    console.log('Manual AI cleanup requested...');
+    
+    const result = await SeasonalFlowService.cleanupAITeams();
+    
+    res.json({
+      success: true,
+      data: result,
+      message: `AI cleanup completed! Removed ${result.totalAITeamsDeleted} AI teams and ${result.totalAIPlayersDeleted} AI players`
+    });
+  } catch (error) {
+    console.error('Error executing AI cleanup:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to execute AI cleanup',
+      error: error instanceof Error ? error.message : 'Unknown error'
+    });
+  }
+});
+
+/**
  * GET /api/seasonal-flow/config
  * Get seasonal flow system configuration
  */
