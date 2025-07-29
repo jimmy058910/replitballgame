@@ -1,6 +1,6 @@
 import { Router, type Response, type NextFunction } from 'express';
 import { storage } from '../storage';
-import { isAuthenticated } from '../replitAuth';
+import { isAuthenticated } from '../googleAuth';
 import { z } from 'zod';
 import { ContractService } from '../services/contractService';
 
