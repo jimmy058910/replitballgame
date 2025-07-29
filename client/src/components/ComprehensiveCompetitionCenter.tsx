@@ -374,13 +374,9 @@ export default function ComprehensiveCompetitionCenter() {
 
   const buyExhibitionToken = useMutation({
     mutationFn: () => 
-      apiRequest('/api/store/purchase', { 
-        method: 'POST', 
-        body: { 
-          itemName: 'Exhibition Game Entry',
-          currency: 'credits',
-          cost: 500
-        } 
+      apiRequest('/api/store/purchase/exhibition_credit', 'POST', { 
+        currency: 'credits',
+        expectedPrice: 500
       }),
     onSuccess: () => {
       toast({
