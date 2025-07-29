@@ -3,9 +3,14 @@ import { useParams } from 'wouter';
 import { useAuth } from '@/hooks/useAuth';
 import EnhancedMatchEngine from '@/components/EnhancedMatchEngine';
 
+interface User {
+  userId?: string;
+  id?: string;
+}
+
 export default function LiveMatchPage() {
   const { matchId } = useParams<{ matchId: string }>();
-  const { user } = useAuth();
+  const { user } = useAuth() as { user: User | null };
 
   if (!matchId) {
     return (
@@ -18,11 +23,13 @@ export default function LiveMatchPage() {
     );
   }
 
+  const userId = user?.userId || user?.id || "";
+
   // Use enhanced match engine with 2D Canvas for all live matches
   return (
     <EnhancedMatchEngine 
       matchId={matchId}
-      userId={user?.userId || user?.id || ""}
+      userId={userId}
     />
   );
 }

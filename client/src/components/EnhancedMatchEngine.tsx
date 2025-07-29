@@ -384,6 +384,12 @@ export const EnhancedMatchEngine: React.FC<MatchEngineProps> = ({
   const [playbackSpeed, setPlaybackSpeed] = useState(1.0);
   const { toast } = useToast();
 
+  // Basic match data query - always enabled
+  const { data: basicMatchData, isLoading: matchLoading } = useQuery({
+    queryKey: [`/api/matches/${matchId}`],
+    enabled: !!matchId
+  });
+
   // Enhanced data queries
   const { data: homeTeamPlayers } = useQuery({
     queryKey: [`/api/teams/${team1?.id}/players`],
@@ -403,8 +409,8 @@ export const EnhancedMatchEngine: React.FC<MatchEngineProps> = ({
 
   const { data: enhancedMatchData } = useQuery({
     queryKey: [`/api/matches/${matchId}/enhanced-data`],
-    enabled: !!matchId && !!liveState,
-    refetchInterval: 5000
+    enabled: !!matchId,
+    refetchInterval: basicMatchData?.status === 'COMPLETED' ? 0 : 5000
   });
 
   // WebSocket connection
@@ -498,7 +504,11 @@ export const EnhancedMatchEngine: React.FC<MatchEngineProps> = ({
     return `${minutes}:${secs.toString().padStart(2, '0')}`;
   };
 
-  if (!liveState) {
+  // For completed matches, we don't need live state - show results if we have enhanced data
+  const isCompleted = basicMatchData?.status === 'COMPLETED';
+  const shouldShowResults = liveState || (isCompleted && enhancedMatchData);
+  
+  if (matchLoading || (!shouldShowResults && !isCompleted)) {
     return (
       <Card className="w-full max-w-4xl mx-auto">
         <CardContent className="flex items-center justify-center h-64">
@@ -511,75 +521,119 @@ export const EnhancedMatchEngine: React.FC<MatchEngineProps> = ({
     );
   }
 
+  // If it's a completed match but we don't have enhanced data yet, show loading
+  if (isCompleted && !enhancedMatchData) {
+    return (
+      <Card className="w-full max-w-4xl mx-auto">
+        <CardContent className="flex items-center justify-center h-64">
+          <div className="text-center space-y-4">
+            <Activity className="w-8 h-8 mx-auto animate-spin" />
+            <p>Loading match results...</p>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
   return (
     <div className="w-full max-w-6xl mx-auto space-y-4">
       {/* Enhanced Header */}
       <Card>
         <CardHeader className="pb-2">
           <div className="flex items-center justify-between">
-            {/* Live indicator and teams */}
+            {/* Status indicator and teams */}
             <div className="flex items-center space-x-4">
               <div className="flex items-center space-x-2">
-                <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse" />
-                <Badge variant="destructive" className="text-xs">LIVE</Badge>
+                {isCompleted ? (
+                  <>
+                    <div className="w-2 h-2 bg-gray-500 rounded-full" />
+                    <Badge variant="secondary" className="text-xs">FINAL</Badge>
+                  </>
+                ) : (
+                  <>
+                    <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse" />
+                    <Badge variant="destructive" className="text-xs">LIVE</Badge>
+                  </>
+                )}
               </div>
               
               <div className="flex items-center space-x-6">
                 <div className="text-center">
-                  <div className="font-bold text-lg">{team1?.name}</div>
-                  <div className="text-3xl font-bold text-blue-600">{liveState.homeScore}</div>
-                </div>
-                
-                <div className="text-center">
-                  <div className="text-sm text-muted-foreground">Game Clock</div>
-                  <div className="font-mono text-xl">{formatGameTime(liveState.gameTime)}</div>
-                  <div className="text-xs text-muted-foreground">
-                    {(liveState as any).period === 1 ? '1st Half' : '2nd Half'}
+                  <div className="font-bold text-lg">{team1?.name || enhancedMatchData?.homeTeam?.name}</div>
+                  <div className="text-3xl font-bold text-blue-600">
+                    {isCompleted ? enhancedMatchData?.finalScores?.home : liveState?.homeScore}
                   </div>
                 </div>
                 
                 <div className="text-center">
-                  <div className="font-bold text-lg">{team2?.name}</div>
-                  <div className="text-3xl font-bold text-red-600">{liveState.awayScore}</div>
+                  {isCompleted ? (
+                    <>
+                      <div className="text-sm text-muted-foreground">Final Score</div>
+                      <div className="font-mono text-xl">
+                        {enhancedMatchData?.mvpData?.homeMVP ? (
+                          <div className="text-xs">
+                            MVP: {enhancedMatchData.mvpData.homeMVP.playerName}
+                          </div>
+                        ) : null}
+                      </div>
+                    </>
+                  ) : (
+                    <>
+                      <div className="text-sm text-muted-foreground">Game Clock</div>
+                      <div className="font-mono text-xl">{formatGameTime(liveState?.gameTime || 0)}</div>
+                      <div className="text-xs text-muted-foreground">
+                        {(liveState as any)?.period === 1 ? '1st Half' : '2nd Half'}
+                      </div>
+                    </>
+                  )}
+                </div>
+                
+                <div className="text-center">
+                  <div className="font-bold text-lg">{team2?.name || enhancedMatchData?.awayTeam?.name}</div>
+                  <div className="text-3xl font-bold text-red-600">
+                    {isCompleted ? enhancedMatchData?.finalScores?.away : liveState?.awayScore}
+                  </div>
                 </div>
               </div>
             </div>
             
-            {/* Controls */}
-            <div className="flex items-center space-x-2">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handlePlayPause}
-                disabled={isControlling}
-              >
-                {(liveState as any).isPaused ? <Play className="w-4 h-4" /> : <Pause className="w-4 h-4" />}
-              </Button>
-              
-              <div className="flex items-center space-x-1">
+            {/* Controls - only show for live matches */}
+            {!isCompleted && (
+              <div className="flex items-center space-x-2">
                 <Button
-                  variant={playbackSpeed === 0.5 ? "default" : "outline"}
+                  variant="outline"
                   size="sm"
-                  onClick={() => handleSpeedChange(0.5)}
+                  onClick={handlePlayPause}
+                  disabled={isControlling}
                 >
-                  0.5x
+                  {(liveState as any)?.isPaused ? <Play className="w-4 h-4" /> : <Pause className="w-4 h-4" />}
                 </Button>
-                <Button
-                  variant={playbackSpeed === 1.0 ? "default" : "outline"}
-                  size="sm"
-                  onClick={() => handleSpeedChange(1.0)}
-                >
-                  1x
-                </Button>
-                <Button
-                  variant={playbackSpeed === 2.0 ? "default" : "outline"}
-                  size="sm"
-                  onClick={() => handleSpeedChange(2.0)}
-                >
-                  2x
-                </Button>
+                
+                <div className="flex items-center space-x-1">
+                  <Button
+                    variant={playbackSpeed === 0.5 ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => handleSpeedChange(0.5)}
+                  >
+                    0.5x
+                  </Button>
+                  <Button
+                    variant={playbackSpeed === 1.0 ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => handleSpeedChange(1.0)}
+                  >
+                    1x
+                  </Button>
+                  <Button
+                    variant={playbackSpeed === 2.0 ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => handleSpeedChange(2.0)}
+                  >
+                    2x
+                  </Button>
+                </div>
               </div>
-            </div>
+            )}
           </div>
         </CardHeader>
       </Card>
