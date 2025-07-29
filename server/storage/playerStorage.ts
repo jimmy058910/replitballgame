@@ -107,7 +107,6 @@ export class PlayerStorage {
   }
 
   async getTaxiSquadPlayersByTeamId(teamId: number): Promise<Player[]> {
-    // Get all players for this team, ordered by creation date
     const allPlayers = await prisma.player.findMany({
       where: {
         teamId: parseInt(teamId.toString()),
@@ -121,15 +120,28 @@ export class PlayerStorage {
       orderBy: { createdAt: 'asc' }
     });
 
-    // Taxi squad is only the last 2 players when roster is at maximum (15 players)
-    // Main roster is positions 1-13 (minimum), taxi squad is positions 14-15 (maximum 2 players)
+    // Truly dynamic taxi squad logic:
+    // - Any team can have 0-2 taxi squad players
+    // - Taxi squad = the newest players beyond the minimum main roster (13)
+    // - But teams can also choose to have fewer main roster players if they want
+    
+    // If 13 or fewer players, NO taxi squad (all players are main roster)
     if (allPlayers.length <= 13) {
-      return []; // No taxi squad if 13 or fewer players
+      return [];
     }
     
-    const taxiSquadPlayers = allPlayers.slice(13); // Positions 14+ are taxi squad
+    // If 14 players: 1 taxi squad player (the newest)
+    if (allPlayers.length === 14) {
+      return [allPlayers[allPlayers.length - 1]]; // Last player
+    }
     
-    return taxiSquadPlayers;
+    // If 15 players: 2 taxi squad players (the 2 newest)
+    if (allPlayers.length === 15) {
+      return allPlayers.slice(-2); // Last 2 players
+    }
+    
+    // This shouldn't happen with max 15 roster size, but handle gracefully
+    return allPlayers.slice(-Math.min(2, allPlayers.length - 13));
   }
 
   async getAllPlayersByTeamId(teamId: number): Promise<Player[]> {
@@ -194,8 +206,8 @@ export class PlayerStorage {
   // Taxi Squad specific methods (removed duplicate - using the one above)
 
   async promotePlayerFromTaxiSquad(playerId: number): Promise<Player | null> {
-    // Since taxi squad is determined by roster position based on createdAt,
-    // promotion requires updating the player's createdAt to move them to the main roster (positions 1-13)
+    // Promotes a taxi squad player to main roster by moving them to position 13
+    // This ensures they become the 13th player (last main roster spot)
     try {
       const player = await prisma.player.findUnique({
         where: { id: parseInt(playerId.toString()) }
@@ -214,51 +226,44 @@ export class PlayerStorage {
         orderBy: { createdAt: 'asc' }
       });
 
-      // Find the 13th player (last main roster position according to new logic)
-      const thirteenthPlayer = allTeamPlayers[12]; // 0-indexed, so position 13
+      // Strategy: Move the promoted player to position 13 by placing them 
+      // right before the current 13th player (if exists) or at the end of main roster
+      let targetPosition = 13;
+      let insertBeforePlayer = allTeamPlayers[12]; // 13th player (0-indexed)
+      
+      // If we don't have a 13th player yet, insert before the 12th player
+      if (!insertBeforePlayer && allTeamPlayers.length >= 12) {
+        insertBeforePlayer = allTeamPlayers[11]; // 12th player
+        targetPosition = 12;
+      }
 
-      if (thirteenthPlayer) {
-        // Set the promoted player's createdAt to be 1 minute before the 13th player,
-        // effectively moving them to position 13 (main roster)
-        const newCreatedAt = new Date(thirteenthPlayer.createdAt.getTime() - 60000);
-
-        // Update the player's createdAt timestamp to promote them
-        const promotedPlayer = await prisma.player.update({
-          where: { id: parseInt(playerId.toString()) },
-          data: { 
-            createdAt: newCreatedAt,
-            updatedAt: new Date()
-          },
-          include: {
-            team: { select: { name: true } },
-            contract: true,
-            skills: { include: { skill: true } }
-          }
-        });
-
-        return promotedPlayer;
+      let newCreatedAt;
+      if (insertBeforePlayer) {
+        // Insert 1 minute before the target player
+        newCreatedAt = new Date(insertBeforePlayer.createdAt.getTime() - 60000);
       } else {
-        // Fallback: if there are fewer than 13 players, just move to the earliest position
+        // If roster is very small, just put at the beginning
         const earliestPlayer = allTeamPlayers[0];
-        const newCreatedAt = earliestPlayer 
+        newCreatedAt = earliestPlayer 
           ? new Date(earliestPlayer.createdAt.getTime() - 60000)
           : new Date(Date.now() - 60000);
-
-        const promotedPlayer = await prisma.player.update({
-          where: { id: parseInt(playerId.toString()) },
-          data: { 
-            createdAt: newCreatedAt,
-            updatedAt: new Date()
-          },
-          include: {
-            team: { select: { name: true } },
-            contract: true,
-            skills: { include: { skill: true } }
-          }
-        });
-
-        return promotedPlayer;
       }
+
+      // Update the player's createdAt timestamp to promote them
+      const promotedPlayer = await prisma.player.update({
+        where: { id: parseInt(playerId.toString()) },
+        data: { 
+          createdAt: newCreatedAt,
+          updatedAt: new Date()
+        },
+        include: {
+          team: { select: { name: true } },
+          contract: true,
+          skills: { include: { skill: true } }
+        }
+      });
+
+      return promotedPlayer;
     } catch (error) {
       console.error(`Error promoting player ${playerId}:`, error);
       return null;

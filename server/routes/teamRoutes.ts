@@ -1591,7 +1591,18 @@ router.post('/:teamId/taxi-squad/:playerId/promote', isAuthenticated, asyncHandl
   }
   
   const rosterPosition = playerIndex + 1;
-  const isOnTaxiSquad = allTeamPlayers.length > 13 && rosterPosition >= 14; // Positions 14+ are taxi squad (only when roster > 13)
+  
+  // Dynamic taxi squad logic matching storage layer
+  let isOnTaxiSquad = false;
+  
+  if (allTeamPlayers.length === 14) {
+    // 14 players = 1 taxi squad (position 14)
+    isOnTaxiSquad = rosterPosition === 14;
+  } else if (allTeamPlayers.length === 15) {
+    // 15 players = 2 taxi squad (positions 14-15)
+    isOnTaxiSquad = rosterPosition >= 14;
+  }
+  // 13 or fewer players = no taxi squad
   
   if (!isOnTaxiSquad) {
     throw ErrorCreators.validation("Player is not on taxi squad");
