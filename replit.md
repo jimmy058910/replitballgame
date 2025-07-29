@@ -53,20 +53,41 @@ Built as a React + Express web application with PostgreSQL database, using moder
 - **Performance Optimization**: Compression, production caching, static file optimization
 - **Security Configuration**: Production CORS, domain validation, comprehensive security headers
 
-### Deployment Commands (Complete Pipeline)
+### Complete Deployment Process (Proven Working Method)
+
+#### **Critical Prerequisites - Logger Fix (REQUIRED)**
+Before any deployment, ensure the logger import bug is fixed:
+```bash
+# Fix logger TypeError in 3 critical files (MUST BE DONE FIRST)
+FILES=(
+  "server/services/webSocketService.ts"
+  "server/services/matchStateManager.ts"
+  "server/routes/tournamentFixRoutes.ts"
+)
+
+for file in "${FILES[@]}"; do
+  echo "Fixing $file..."
+  # Remove incorrect line: const logger = createLogger(...)
+  sed -i '/const logger = createLogger/d' "$file"
+  # Change incorrect import to correct one
+  sed -i 's/import createLogger from/import logger from/' "$file"
+done
+```
+
+#### **Manual Deployment Commands (Tested Working)**
 ```bash
 # Authentication & Project Setup
 gcloud auth login
 gcloud config set project direct-glider-465821-p7
 gcloud auth configure-docker us-east5-docker.pkg.dev
 
-# Modern Artifact Registry (Recommended) - Use Dockerfile.production for production deployment
-docker build -f Dockerfile.production -t us-east5-docker.pkg.dev/direct-glider-465821-p7/realm-rivalry/app:latest .
-docker push us-east5-docker.pkg.dev/direct-glider-465821-p7/realm-rivalry/app:latest
+# Build with PROVEN working Dockerfile.production
+docker build -f Dockerfile.production -t us-east5-docker.pkg.dev/direct-glider-465821-p7/realm-rivalry/production:latest .
+docker push us-east5-docker.pkg.dev/direct-glider-465821-p7/realm-rivalry/production:latest
 
-# Deploy to Cloud Run (Modern)
+# Deploy with EXACT working configuration
 gcloud run deploy realm-rivalry \
-  --image us-east5-docker.pkg.dev/direct-glider-465821-p7/realm-rivalry/app:latest \
+  --image us-east5-docker.pkg.dev/direct-glider-465821-p7/realm-rivalry/production:latest \
   --platform managed \
   --region us-east5 \
   --allow-unauthenticated \
@@ -74,23 +95,39 @@ gcloud run deploy realm-rivalry \
   --set-env-vars NODE_ENV=production,GOOGLE_CLIENT_ID=108005641993-e642ered12jj7ka6unpqhgjdls92c0u8.apps.googleusercontent.com \
   --set-secrets DATABASE_URL=database-url:latest,SESSION_SECRET=session-secret:latest,GOOGLE_CLIENT_SECRET=google-client-secret:latest \
   --memory 2Gi \
-  --cpu 2 \
-  --concurrency 100 \
+  --cpu 1 \
+  --concurrency 80 \
   --max-instances 10 \
   --port 8080 \
   --timeout 300s
+```
 
-# Legacy GCR (Fallback) - Use Dockerfile.production for production deployment
-docker build -f Dockerfile.production -t gcr.io/direct-glider-465821-p7/realm-rivalry:latest .
-docker push gcr.io/direct-glider-465821-p7/realm-rivalry:latest
+#### **Automated Script Deployment (Recommended)**
+```bash
+# Use the proven working deployment script
+./deploy-production.sh
 ```
 
 ### CI/CD Pipeline & Automation
-- **GitHub Actions**: Automated deployment pipeline with Workload Identity Federation
-- **Artifact Registry**: Modern container registry (migrated from deprecated gcr.io)
-- **Service Account**: `realm-rivalry-runner@direct-glider-465821-p7.iam.gserviceaccount.com` with proper IAM roles
-- **Automated Deployment**: Push to main branch triggers full production deployment to https://realmrivalry.com
-- **Repository Secrets**: All deployment credentials managed via GitHub repository secrets
+
+#### **GitHub Actions Automated Deployment**
+- **Workflow File**: `.github/workflows/deploy.yml` (fully configured)
+- **Trigger**: Push to `main` branch or manual `workflow_dispatch`
+- **Service Account**: `realm-rivalry-github-runner@direct-glider-465821-p7.iam.gserviceaccount.com`
+- **Workload Identity**: Secure authentication without service account keys
+- **Artifact Registry**: Modern container registry `us-east5-docker.pkg.dev/direct-glider-465821-p7/realm-rivalry`
+
+#### **GitHub Repository Secrets Required**
+No repository secrets needed - authentication via Workload Identity Federation:
+- **Workload Identity Provider**: `projects/108005641993/locations/global/workloadIdentityPools/github-actions-pool/providers/github-actions-provider`
+- **Service Account**: `realm-rivalry-github-runner@direct-glider-465821-p7.iam.gserviceaccount.com`
+
+#### **Automated Deployment Process**
+1. **Code Push**: Push to main branch triggers deployment
+2. **Docker Build**: Uses `Dockerfile.production` with logger fixes
+3. **Container Push**: Pushes to Artifact Registry with SHA tagging
+4. **Cloud Run Deploy**: Automatically deploys with production configuration
+5. **Live URL**: https://realmrivalry.com updated automatically
 
 ### Monitoring & Operations
 - **GCP Logging**: Centralized logs for request tracing and error monitoring
