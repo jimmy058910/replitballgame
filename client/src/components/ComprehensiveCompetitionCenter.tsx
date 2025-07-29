@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '../hooks/useAuth';
 import { useToast } from '../hooks/use-toast';
+import { useLocation } from 'wouter';
 import { apiRequest } from '@/lib/queryClient';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import { Badge } from './ui/badge';
@@ -115,6 +116,7 @@ const formatMatchTime = (gameDate: string) => {
 
 export default function ComprehensiveCompetitionCenter() {
   const { isAuthenticated } = useAuth();
+  const [location] = useLocation();
   const [activeTab, setActiveTab] = useState<'live' | 'league' | 'tournaments' | 'exhibitions' | 'schedule'>('league');
   const [showOpponentSelect, setShowOpponentSelect] = useState(false);
   const queryClient = useQueryClient();
@@ -128,7 +130,7 @@ export default function ComprehensiveCompetitionCenter() {
     if (tab && ['live', 'league', 'tournaments', 'exhibitions', 'schedule'].includes(tab)) {
       setActiveTab(tab);
     }
-  }, []);
+  }, [location]); // Add location dependency to trigger on URL changes
   
   // Team Scouting Modal State
   const [selectedTeamId, setSelectedTeamId] = useState<number | null>(null);
@@ -1190,7 +1192,9 @@ export default function ComprehensiveCompetitionCenter() {
                       <div className="bg-purple-900/30 p-4 rounded-lg border border-purple-600">
                         <div className="flex items-center justify-between mb-2">
                           <h3 className="text-lg font-semibold text-white">Extra Tokens</h3>
-                          <Badge className="bg-purple-600 text-purple-100">3 Available</Badge>
+                          <Badge className="bg-purple-600 text-purple-100">
+                            {exhibitionStats?.extraTokens ?? 0} Available
+                          </Badge>
                         </div>
                         <p className="text-purple-200 text-sm mb-3">Purchase additional exhibition entries</p>
                         <Button 
