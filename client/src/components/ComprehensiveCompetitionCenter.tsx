@@ -116,7 +116,7 @@ const formatMatchTime = (gameDate: string) => {
 
 export default function ComprehensiveCompetitionCenter() {
   const { isAuthenticated } = useAuth();
-  const [location] = useLocation();
+  const [location, setLocation] = useLocation();
   const [activeTab, setActiveTab] = useState<'live' | 'league' | 'tournaments' | 'exhibitions' | 'schedule'>('league');
   const [showOpponentSelect, setShowOpponentSelect] = useState(false);
   const queryClient = useQueryClient();
@@ -130,7 +130,13 @@ export default function ComprehensiveCompetitionCenter() {
     if (tab && ['live', 'league', 'tournaments', 'exhibitions', 'schedule'].includes(tab)) {
       setActiveTab(tab);
     }
-  }, [location]); // Add location dependency to trigger on URL changes
+  }, [location]);
+
+  // Handle tab changes and update URL
+  const handleTabChange = (newTab: 'live' | 'league' | 'tournaments' | 'exhibitions' | 'schedule') => {
+    setActiveTab(newTab);
+    setLocation(`/competition?tab=${newTab}`);
+  };
   
   // Team Scouting Modal State
   const [selectedTeamId, setSelectedTeamId] = useState<number | null>(null);
@@ -624,7 +630,7 @@ export default function ComprehensiveCompetitionCenter() {
         </Card>
 
         {/* MOBILE-FIRST TAB NAVIGATION */}
-        <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as any)}>
+        <Tabs value={activeTab} onValueChange={handleTabChange}>
           
           <div className="mb-4">
             <TabsList className="grid w-full grid-cols-5 bg-gray-800 p-1 rounded-lg border border-gray-600">
