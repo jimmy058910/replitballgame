@@ -1546,8 +1546,17 @@ router.post('/:teamId/taxi-squad/:playerId/promote', isAuthenticated, asyncHandl
   if (teamId === "my") {
     team = await storage.teams.getTeamByUserId(userId);
   } else {
-    team = await storage.teams.getTeamById(teamId);
-    if (!team || team.userId !== userId) {
+    team = await storage.teams.getTeamById(parseInt(teamId));
+    if (!team) {
+      throw ErrorCreators.notFound("Team not found");
+    }
+    
+    // Check team ownership via UserProfile (same as other routes)
+    const userProfile = await prisma.userProfile.findUnique({
+      where: { userId: userId }
+    });
+    
+    if (!userProfile || team.userProfileId !== userProfile.id) {
       throw ErrorCreators.forbidden("You do not own this team");
     }
   }
