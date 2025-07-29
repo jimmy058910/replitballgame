@@ -1,7 +1,7 @@
 import React from 'react';
 import { useParams } from 'wouter';
 import { useAuth } from '@/hooks/useAuth';
-import EnhancedMatchSimulation from '@/components/EnhancedMatchSimulation';
+import EnhancedMatchEngine from '@/components/EnhancedMatchEngine';
 
 export default function LiveMatchPage() {
   const { matchId } = useParams<{ matchId: string }>();
@@ -18,11 +18,11 @@ export default function LiveMatchPage() {
     );
   }
 
-  // Use enhanced match simulation for all live matches
+  // Use enhanced match engine with 2D Canvas for all live matches
   return (
-    <EnhancedMatchSimulation 
-      matchId={parseInt(matchId, 10)}
-      isLiveMatch={true}
+    <EnhancedMatchEngine 
+      matchId={matchId}
+      userId={user?.userId || user?.id || ""}
     />
   );
 }
