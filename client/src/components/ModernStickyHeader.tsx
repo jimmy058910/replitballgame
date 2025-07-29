@@ -389,7 +389,7 @@ const ModernStickyHeader: React.FC = () => {
               {/* LIVE Button - Show when team is actively playing */}
               {userLiveMatch && (
                 <Button
-                  onClick={() => setLocation("/competition")}
+                  onClick={() => setLocation("/competition?tab=live")}
                   className="bg-red-600 hover:bg-red-700 text-white font-bold px-4 py-2 rounded-lg animate-pulse"
                 >
                   <Play className="w-4 h-4 mr-2" />
@@ -440,7 +440,7 @@ const ModernStickyHeader: React.FC = () => {
             <div className="md:hidden flex items-center space-x-2">
               {userLiveMatch && (
                 <Button
-                  onClick={() => setLocation("/competition")}
+                  onClick={() => setLocation("/competition?tab=live")}
                   size="sm"
                   className="bg-red-600 hover:bg-red-700 text-white font-bold animate-pulse"
                 >
