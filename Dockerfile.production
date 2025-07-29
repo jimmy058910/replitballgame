@@ -38,6 +38,9 @@ COPY --from=builder /app/server ./server
 COPY --from=builder /app/shared ./shared
 COPY --from=builder /app/prisma ./prisma
 
+# Copy tsconfig.json for TypeScript path alias resolution
+COPY --from=builder /app/tsconfig.json ./
+
 # Create a non-root user for security
 RUN addgroup -g 1001 -S nodejs && \
     adduser -S nextjs -u 1001 && \
