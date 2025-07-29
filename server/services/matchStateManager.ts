@@ -4,7 +4,12 @@ import type { Game, Player, Stadium, Team } from "../../generated/prisma";
 import { commentaryService } from "./commentaryService";
 import { injuryStaminaService } from "./injuryStaminaService";
 import { simulateEnhancedMatch } from "./matchSimulation";
-import { log } from "../vite";
+// Production-friendly logging
+const log = {
+  info: (...args: any[]) => console.log('[MatchState]', ...args),
+  error: (...args: any[]) => console.error('[MatchState]', ...args),
+  warn: (...args: any[]) => console.warn('[MatchState]', ...args)
+};
 import { PaymentHistoryService } from "./paymentHistoryService";
 import { getGameDurationSeconds, type MatchType } from "../utils/gameTimeUtils";
 
@@ -128,10 +133,10 @@ class MatchStateManager {
       const matchesToCleanup = Array.from(this.liveMatches.values())
         .filter(match => match.homeTeamId === teamId || match.awayTeamId === teamId);
       
-      console.log(`🧹 Found ${matchesToCleanup.length} live matches to clean up for team ${teamId}`);
+      console.log.info(`🧹 Found ${matchesToCleanup.length} live matches to clean up for team ${teamId}`);
       
       for (const match of matchesToCleanup) {
-        console.log(`🧹 Cleaning up match ${match.matchId}`);
+        console.log.info(`🧹 Cleaning up match ${match.matchId}`);
         await this.stopMatch(match.matchId);
       }
     } catch (error) {
@@ -191,7 +196,7 @@ class MatchStateManager {
       }
     });
 
-    console.log(`⏱️ Initialized match time tracking for ${homeStarters.length + awayStarters.length} starters`);
+    console.log.info(`⏱️ Initialized match time tracking for ${homeStarters.length + awayStarters.length} starters`);
   }
 
   // NEW: Check for substitution triggers during match simulation
@@ -268,7 +273,7 @@ class MatchStateManager {
       // Update active field players lists
       this.updateActiveFieldPlayers(state, outgoingPlayerId, incomingPlayerId);
 
-      console.log(`🔄 SUBSTITUTION: Player ${outgoingPlayerId} out (${timePlayedInMinutes.toFixed(1)} min, ${reason}) → Player ${incomingPlayerId} in`);
+      console.log.info(`🔄 SUBSTITUTION: Player ${outgoingPlayerId} out (${timePlayedInMinutes.toFixed(1)} min, ${reason}) → Player ${incomingPlayerId} in`);
     }
   }
 
@@ -410,7 +415,7 @@ class MatchStateManager {
         gameEvents: persistedState.gameEvents || []
       };
 
-      console.log(`🔄 Restored live state for match ${matchId} with ${liveState.gameEvents.length} events`);
+      console.log.info(`🔄 Restored live state for match ${matchId} with ${liveState.gameEvents.length} events`);
       return liveState;
     } catch (error) {
       console.error(`Failed to load live state for match ${matchId}:`, error);
@@ -428,7 +433,7 @@ class MatchStateManager {
         }
       });
 
-      log(`🔄 Attempting to recover ${activeMatches.length} live matches from database`);
+      log.info(`🔄 Attempting to recover ${activeMatches.length} live matches from database`);
 
       for (const match of activeMatches) {
         const liveState = await this.loadLiveStateFromDatabase(match.id.toString());
@@ -453,11 +458,11 @@ class MatchStateManager {
 
           // Resume match simulation with formation starters
           this.startMatchSimulation(match.id.toString(), homeStarters, awayStarters, homeTeamPlayers, awayTeamPlayers);
-          log(`✅ Recovered live match ${match.id} with ${liveState.gameEvents.length} events`);
+          log.info(`✅ Recovered live match ${match.id} with ${liveState.gameEvents.length} events`);
         }
       }
     } catch (error) {
-      log(`❌ Failed to recover live matches: ${error}`);
+      log.info(`❌ Failed to recover live matches: ${error}`);
     }
   }
 
@@ -471,7 +476,7 @@ class MatchStateManager {
       if (strategy && strategy.formationJson) {
         let formationData;
         
-        console.log(`🔍 Raw formation data for team ${teamId}:`, strategy.formationJson, typeof strategy.formationJson);
+        console.log.info(`🔍 Raw formation data for team ${teamId}:`, strategy.formationJson, typeof strategy.formationJson);
         
         // Handle both string and object format
         if (typeof strategy.formationJson === 'string') {
@@ -480,15 +485,15 @@ class MatchStateManager {
           // Already an object (Prisma JSON field)
           formationData = strategy.formationJson;
         } else {
-          console.log(`⚠️ Invalid formation data format for team ${teamId}:`, typeof strategy.formationJson);
+          console.log.info(`⚠️ Invalid formation data format for team ${teamId}:`, typeof strategy.formationJson);
           return null;
         }
         
-        console.log(`🔍 Parsed formation data for team ${teamId}:`, formationData);
+        console.log.info(`🔍 Parsed formation data for team ${teamId}:`, formationData);
         return formationData;
       }
       
-      console.log(`⚠️ No formation data found for team ${teamId}`);
+      console.log.info(`⚠️ No formation data found for team ${teamId}`);
       return null;
     } catch (error) {
       console.error(`Error getting formation for team ${teamId}:`, error);
@@ -500,13 +505,13 @@ class MatchStateManager {
   private applyFormationToPlayers(teamPlayers: Player[], formation: { starters: any[], formation: string } | null): Player[] {
     if (!formation || !formation.starters) {
       // No formation data - use default selection (first 6 players by role)
-      console.log(`🎯 Using default starter selection for team (no formation data)`);
+      console.log.info(`🎯 Using default starter selection for team (no formation data)`);
       return this.selectDefaultStarters(teamPlayers);
     }
 
     // Formation data exists - use the specified starters
-    console.log(`🎯 Using formation starters:`, formation.starters);
-    console.log(`🔍 Available players:`, teamPlayers.map(p => `${p.id}: ${p.firstName} ${p.lastName} (${p.role})`));
+    console.log.info(`🎯 Using formation starters:`, formation.starters);
+    console.log.info(`🔍 Available players:`, teamPlayers.map(p => `${p.id}: ${p.firstName} ${p.lastName} (${p.role})`));
     
     // Handle both formats: array of objects with id property or array of numbers
     const starterIds = formation.starters.map(s => {
@@ -519,24 +524,24 @@ class MatchStateManager {
         return parseInt(s.toString()); // Try to convert whatever it is
       }
     });
-    console.log(`🔍 Formation starter IDs:`, starterIds);
+    console.log.info(`🔍 Formation starter IDs:`, starterIds);
     
     const selectedStarters = teamPlayers.filter(player => {
       const playerIdNum = parseInt(player.id.toString());
       const isSelected = starterIds.includes(playerIdNum);
-      console.log(`🔍 Player ${playerIdNum} (${player.firstName} ${player.lastName}): ${isSelected ? 'SELECTED' : 'not selected'}`);
+      console.log.info(`🔍 Player ${playerIdNum} (${player.firstName} ${player.lastName}): ${isSelected ? 'SELECTED' : 'not selected'}`);
       return isSelected;
     });
     
-    console.log(`🎯 Selected ${selectedStarters.length} starters from formation`);
+    console.log.info(`🎯 Selected ${selectedStarters.length} starters from formation`);
     
     if (selectedStarters.length !== 6) {
       console.warn(`⚠️ Formation has ${selectedStarters.length} starters instead of 6, falling back to default selection`);
-      console.log(`⚠️ Missing starters. Expected: ${starterIds}, Found: ${selectedStarters.map(p => p.id)}`);
+      console.log.info(`⚠️ Missing starters. Expected: ${starterIds}, Found: ${selectedStarters.map(p => p.id)}`);
       return this.selectDefaultStarters(teamPlayers);
     }
     
-    console.log(`✅ Selected formation starters:`, selectedStarters.map(p => `${p.firstName} ${p.lastName} (${p.role})`));
+    console.log.info(`✅ Selected formation starters:`, selectedStarters.map(p => `${p.firstName} ${p.lastName} (${p.role})`));
     return selectedStarters;
   }
 
@@ -553,7 +558,7 @@ class MatchStateManager {
       ...passers.slice(0, 2)
     ];
     
-    console.log(`🎯 Default starters selected:`, starters.map(p => `${p.firstName} ${p.lastName} (${p.role})`));
+    console.log.info(`🎯 Default starters selected:`, starters.map(p => `${p.firstName} ${p.lastName} (${p.role})`));
     return starters;
   }
 
@@ -590,11 +595,11 @@ class MatchStateManager {
     const homeStarters = this.applyFormationToPlayers(homeTeamPlayers, homeFormation);
     const awayStarters = this.applyFormationToPlayers(awayTeamPlayers, awayFormation);
 
-    console.log(`🏟️ Match ${matchId} starters:`, {
+    console.log.info(`🏟️ Match ${matchId} starters:`, {
       home: homeStarters.map(p => `${p.firstName} ${p.lastName} (${p.role})`),
       away: awayStarters.map(p => `${p.firstName} ${p.lastName} (${p.role})`)
     });
-    console.log(`🔍 STARTER COUNT CHECK: Home has ${homeStarters.length} starters, Away has ${awayStarters.length} starters`);
+    console.log.info(`🔍 STARTER COUNT CHECK: Home has ${homeStarters.length} starters, Away has ${awayStarters.length} starters`);
 
     const matchType: MatchType = isExhibition ? 'EXHIBITION' : 'LEAGUE';
     const maxTime = getGameDurationSeconds(matchType);
@@ -700,7 +705,7 @@ class MatchStateManager {
         this.matchIntervals.delete(matchId);
       }
       
-      log(`⏸️ Match ${matchId} paused`);
+      log.info(`⏸️ Match ${matchId} paused`);
     }
   }
 
@@ -713,7 +718,7 @@ class MatchStateManager {
       // Restart simulation
       this.restartSimulationFromState(matchId);
       
-      log(`▶️ Match ${matchId} resumed`);
+      log.info(`▶️ Match ${matchId} resumed`);
     }
   }
 
@@ -749,7 +754,7 @@ class MatchStateManager {
       // Restart simulation from beginning
       await this.restartSimulationFromState(matchId);
       
-      log(`🔄 Match ${matchId} restarted`);
+      log.info(`🔄 Match ${matchId} restarted`);
     }
   }
 
@@ -769,7 +774,7 @@ class MatchStateManager {
         await this.restartSimulationFromState(matchId);
       }
       
-      log(`⚡ Match ${matchId} speed set to ${speed}x`);
+      log.info(`⚡ Match ${matchId} speed set to ${speed}x`);
     }
   }
 
@@ -851,7 +856,7 @@ class MatchStateManager {
         this.startMatchSimulation(matchId, homeStarters, awayStarters, homeTeamPlayers, awayTeamPlayers);
       }
 
-      console.log(`🔄 Restarted match ${matchId} from database with ${liveState.gameEvents.length} events`);
+      console.log.info(`🔄 Restarted match ${matchId} from database with ${liveState.gameEvents.length} events`);
       return liveState;
     } catch (error) {
       console.error(`Failed to restart match ${matchId} from database:`, error);
@@ -918,14 +923,14 @@ class MatchStateManager {
         const enhancedEvent = await this.generateEnhancedMatchEvent(homeStarters, awayStarters, state);
         if (enhancedEvent) {
           state.gameEvents.push(enhancedEvent);
-          console.log(`[DEBUG] Generated event: ${enhancedEvent.type} by ${enhancedEvent.actingPlayerId}`);
+          console.log.info(`[DEBUG] Generated event: ${enhancedEvent.type} by ${enhancedEvent.actingPlayerId}`);
           
           // Broadcast event to WebSocket clients
           if (this.webSocketService) {
             this.webSocketService.broadcastMatchEvent(matchId, enhancedEvent);
           }
         } else {
-          console.log(`[DEBUG] Event generation returned null`);
+          console.log.info(`[DEBUG] Event generation returned null`);
         }
       } catch (error) {
         console.error(`[ERROR] Event generation failed:`, error);
@@ -1165,7 +1170,7 @@ class MatchStateManager {
 
     // Tournament matches need overtime if tied
     if (match.matchType === 'TOURNAMENT_DAILY') {
-      console.log(`🏆 Tournament match ${matchId} is tied ${state.homeScore}-${state.awayScore}, starting sudden death overtime!`);
+      console.log.info(`🏆 Tournament match ${matchId} is tied ${state.homeScore}-${state.awayScore}, starting sudden death overtime!`);
       return true;
     }
 
@@ -1188,7 +1193,7 @@ class MatchStateManager {
     // Extend max time for overtime (unlimited until first score)
     state.maxTime = state.gameTime + 600; // Add 10 minutes max for overtime
     
-    console.log(`⚡ Overtime started for match ${matchId} - sudden death until first score!`);
+    console.log.info(`⚡ Overtime started for match ${matchId} - sudden death until first score!`);
 
     // Broadcast overtime start
     if (this.webSocketService) {
@@ -1214,7 +1219,7 @@ class MatchStateManager {
         data: { winner, finalScore: { home: state.homeScore, away: state.awayScore } }
       });
 
-      console.log(`🏆 Sudden death completed! ${winner} team wins ${state.homeScore}-${state.awayScore}`);
+      console.log.info(`🏆 Sudden death completed! ${winner} team wins ${state.homeScore}-${state.awayScore}`);
       return true;
     }
     
@@ -1407,18 +1412,18 @@ class MatchStateManager {
 
         // Update team records ONLY for league matches (not exhibition or tournament matches)
         if (matchDetails?.matchType === 'LEAGUE') {
-          console.log(`🔥 UPDATING TEAM RECORDS: Match ${matchId} - Home: ${state.homeTeamId} (${state.homeScore}) vs Away: ${state.awayTeamId} (${state.awayScore})`);
+          console.log.info(`🔥 UPDATING TEAM RECORDS: Match ${matchId} - Home: ${state.homeTeamId} (${state.homeScore}) vs Away: ${state.awayTeamId} (${state.awayScore})`);
           await this.updateTeamRecords(parseInt(state.homeTeamId), parseInt(state.awayTeamId), state.homeScore, state.awayScore);
           
           // Process stadium revenue for home team in league matches
           await this.processStadiumRevenue(parseInt(state.homeTeamId), matchId, state);
         } else if (isExhibitionMatch) {
           // Process exhibition rewards
-          console.log(`🎉 PROCESSING EXHIBITION REWARDS: Match ${matchId} - Home: ${state.homeTeamId} (${state.homeScore}) vs Away: ${state.awayTeamId} (${state.awayScore})`);
+          console.log.info(`🎉 PROCESSING EXHIBITION REWARDS: Match ${matchId} - Home: ${state.homeTeamId} (${state.homeScore}) vs Away: ${state.awayTeamId} (${state.awayScore})`);
           await this.awardExhibitionRewards(state.homeTeamId, state.awayTeamId, state.homeScore, state.awayScore);
         } else {
           // Tournament matches - no team record updates, no exhibition rewards
-          console.log(`🏆 TOURNAMENT MATCH COMPLETED: Match ${matchId} - Home: ${state.homeTeamId} (${state.homeScore}) vs Away: ${state.awayTeamId} (${state.awayScore}) - No league standings update`);
+          console.log.info(`🏆 TOURNAMENT MATCH COMPLETED: Match ${matchId} - Home: ${state.homeTeamId} (${state.homeScore}) vs Away: ${state.awayTeamId} (${state.awayScore}) - No league standings update`);
         }
 
         // Update post-game camaraderie for ALL match types
@@ -1430,18 +1435,18 @@ class MatchStateManager {
           state.awayScore,
           (matchDetails?.matchType as any) || 'EXHIBITION'
         );
-        console.log(`✨ POST-GAME CAMARADERIE UPDATE: Match ${matchId} - Updated team chemistry for both teams based on ${matchDetails?.matchType || 'EXHIBITION'} result`);
+        console.log.info(`✨ POST-GAME CAMARADERIE UPDATE: Match ${matchId} - Updated team chemistry for both teams based on ${matchDetails?.matchType || 'EXHIBITION'} result`);
 
         // Clear active boosts for both teams after match completion
         await this.clearActiveBoosts(parseInt(state.homeTeamId), matchDetails?.matchType || 'EXHIBITION');
         await this.clearActiveBoosts(parseInt(state.awayTeamId), matchDetails?.matchType || 'EXHIBITION');
-        console.log(`🧹 ACTIVE BOOSTS CLEARED: Match ${matchId} - Cleared active boosts for both teams after ${matchDetails?.matchType || 'EXHIBITION'} match`);
+        console.log.info(`🧹 ACTIVE BOOSTS CLEARED: Match ${matchId} - Cleared active boosts for both teams after ${matchDetails?.matchType || 'EXHIBITION'} match`);
         
       } else {
         console.warn(`Game ${matchId} not found in database, cannot update completion status`);
       }
 
-      console.log(`Match ${matchId} stats persisted successfully.`);
+      console.log.info(`Match ${matchId} stats persisted successfully.`);
 
     } catch (error) {
       console.error(`Error persisting stats for match ${matchId}:`, error);
@@ -1485,7 +1490,7 @@ class MatchStateManager {
       
       for (const player of [...homePlayers, ...awayPlayers]) {
         const actualMinutesPlayed = finalMinutesPlayed.get(player.id.toString()) || 0;
-        console.log(`⏱️ PLAYER MINUTES: ${player.firstName} ${player.lastName} played ${actualMinutesPlayed.toFixed(1)} minutes`);
+        console.log.info(`⏱️ PLAYER MINUTES: ${player.firstName} ${player.lastName} played ${actualMinutesPlayed.toFixed(1)} minutes`);
         
         // Use actual minutes played for stamina depletion
         await injuryStaminaService.depleteStaminaAfterMatch(player.id.toString(), gameMode, actualMinutesPlayed);
@@ -1496,7 +1501,7 @@ class MatchStateManager {
         try {
           const { UnifiedTournamentAutomation } = await import('./unifiedTournamentAutomation');
           await UnifiedTournamentAutomation.handleMatchCompletion(parseInt(matchId));
-          console.log(`Tournament flow processed for match ${matchId}`);
+          console.log.info(`Tournament flow processed for match ${matchId}`);
         } catch (error) {
           console.error(`Error handling tournament flow for match ${matchId}:`, error);
         }
@@ -1510,7 +1515,7 @@ class MatchStateManager {
     }
 
     this.liveMatches.delete(matchId);
-    console.log(`Match ${matchId} completed with score ${state.homeScore}-${state.awayScore}${isExhibitionMatch ? ' (Exhibition - Risk-Free)' : ''}`);
+    console.log.info(`Match ${matchId} completed with score ${state.homeScore}-${state.awayScore}${isExhibitionMatch ? ' (Exhibition - Risk-Free)' : ''}`);
   }
 
   /**
@@ -1528,7 +1533,7 @@ class MatchStateManager {
       });
 
       if (!homeTeam || !homeTeam.stadium || !homeTeam.finances) {
-        console.log(`⚠️  Stadium revenue: Missing data for team ${homeTeamId}`);
+        console.log.info(`⚠️  Stadium revenue: Missing data for team ${homeTeamId}`);
         return;
       }
 
@@ -1556,7 +1561,7 @@ class MatchStateManager {
         true // is home game
       );
 
-      console.log(`🏟️  Stadium Revenue - ${homeTeam.name}: ${attendance} fans, ${revenue.totalRevenue}₡ total revenue, ${revenue.netRevenue}₡ net (after ${revenue.maintenanceCost}₡ maintenance)`);
+      console.log.info(`🏟️  Stadium Revenue - ${homeTeam.name}: ${attendance} fans, ${revenue.totalRevenue}₡ total revenue, ${revenue.netRevenue}₡ net (after ${revenue.maintenanceCost}₡ maintenance)`);
 
       // Apply revenue to team finances
       const currentCredits = parseInt(homeTeam.finances.credits.toString()) || 0;
@@ -1590,7 +1595,7 @@ class MatchStateManager {
         );
       }
 
-      console.log(`💰 Stadium Revenue Applied: ${homeTeam.name} earned ${revenue.netRevenue}₡ net from home game (${currentCredits}₡ → ${newCredits}₡)`);
+      console.log.info(`💰 Stadium Revenue Applied: ${homeTeam.name} earned ${revenue.netRevenue}₡ net from home game (${currentCredits}₡ → ${newCredits}₡)`);
 
     } catch (error) {
       console.error(`❌ Error processing stadium revenue for team ${homeTeamId}:`, error);
@@ -1598,12 +1603,12 @@ class MatchStateManager {
   }
 
   async stopMatch(matchId: string): Promise<void> {
-    console.log(`🔍 stopMatch called for matchId: ${matchId}`);
+    console.log.info(`🔍 stopMatch called for matchId: ${matchId}`);
     const state = this.liveMatches.get(matchId);
-    console.log(`🎯 Live match state found: ${state ? 'YES' : 'NO'}`);
+    console.log.info(`🎯 Live match state found: ${state ? 'YES' : 'NO'}`);
     
     if (state) {
-      console.log(`🏈 Completing match: ${matchId} between teams ${state.homeTeamId} and ${state.awayTeamId}`);
+      console.log.info(`🏈 Completing match: ${matchId} between teams ${state.homeTeamId} and ${state.awayTeamId}`);
       try {
         // Need to pass all required parameters to completeMatch
         const homePlayers = await prisma.player.findMany({
@@ -1612,9 +1617,9 @@ class MatchStateManager {
         const awayPlayers = await prisma.player.findMany({
           where: { teamId: parseInt(state.awayTeamId) }
         });
-        console.log(`👥 Found ${homePlayers.length} home players and ${awayPlayers.length} away players`);
+        console.log.info(`👥 Found ${homePlayers.length} home players and ${awayPlayers.length} away players`);
         await this.completeMatch(matchId, state.homeTeamId, state.awayTeamId, homePlayers, awayPlayers);
-        console.log(`✅ Match ${matchId} completion successful`);
+        console.log.info(`✅ Match ${matchId} completion successful`);
       } catch (error) {
         console.error(`❌ Error completing match ${matchId}:`, error);
         throw error;
@@ -1654,12 +1659,12 @@ class MatchStateManager {
       }
 
       // Award credits to both teams via their finance records
-      console.log(`🔍 Looking for TeamFinance records: homeTeamId=${homeTeamId}, awayTeamId=${awayTeamId}`);
-      console.log(`🔍 DEBUG: prisma type at award time:`, typeof prisma, !!prisma);
+      console.log.info(`🔍 Looking for TeamFinance records: homeTeamId=${homeTeamId}, awayTeamId=${awayTeamId}`);
+      console.log.info(`🔍 DEBUG: prisma type at award time:`, typeof prisma, !!prisma);
       
       // Import prisma directly to debug import issues
       const { prisma: directPrisma } = await import("../db");
-      console.log(`🔍 DEBUG: directPrisma type:`, typeof directPrisma, !!directPrisma);
+      console.log.info(`🔍 DEBUG: directPrisma type:`, typeof directPrisma, !!directPrisma);
       
       const homeTeamFinance = await directPrisma.teamFinances.findUnique({
         where: { teamId: parseInt(homeTeamId) }
@@ -1669,7 +1674,7 @@ class MatchStateManager {
         where: { teamId: parseInt(awayTeamId) }
       });
       
-      console.log(`💰 Found TeamFinance records: home=${!!homeTeamFinance}, away=${!!awayTeamFinance}`);
+      console.log.info(`💰 Found TeamFinance records: home=${!!homeTeamFinance}, away=${!!awayTeamFinance}`);
 
       if (homeTeamFinance) {
         await directPrisma.teamFinances.update({
@@ -1740,7 +1745,7 @@ class MatchStateManager {
         }
       }
 
-      console.log(`Exhibition rewards awarded: Home Team (${homeScore}): ${homeCredits}₡, Away Team (${awayScore}): ${awayCredits}₡${winningTeamId ? ` + camaraderie boost` : ''}`);
+      console.log.info(`Exhibition rewards awarded: Home Team (${homeScore}): ${homeCredits}₡, Away Team (${awayScore}): ${awayCredits}₡${winningTeamId ? ` + camaraderie boost` : ''}`);
 
     } catch (error) {
       console.error('Error awarding exhibition rewards:', error);
@@ -1762,7 +1767,7 @@ class MatchStateManager {
         }
       });
       
-      console.log(`Exhibition game ${matchId} result recorded: ${homeScore}-${awayScore}`);
+      console.log.info(`Exhibition game ${matchId} result recorded: ${homeScore}-${awayScore}`);
     } catch (error) {
       console.error('Error recording exhibition game result:', error);
     }
@@ -1778,7 +1783,7 @@ class MatchStateManager {
       const state = this.liveMatches.get(matchId);
       if (!state) continue;
       if (state.lastUpdateTime < cutoff) {
-        console.log(`Cleaning up abandoned match: ${matchId}`);
+        console.log.info(`Cleaning up abandoned match: ${matchId}`);
         const homePlayers = await prisma.player.findMany({
           where: { teamId: parseInt(state.homeTeamId) }
         });
@@ -1817,7 +1822,7 @@ class MatchStateManager {
           }
         });
 
-        console.log(`🧹 CLEARED ${activeBoosts.length} active ${matchType} boost(s) for team ${teamId}`);
+        console.log.info(`🧹 CLEARED ${activeBoosts.length} active ${matchType} boost(s) for team ${teamId}`);
       }
     } catch (error) {
       console.error(`Error clearing active boosts for team ${teamId}:`, error);
@@ -1829,13 +1834,13 @@ class MatchStateManager {
    */
   private async updateTeamRecords(homeTeamId: number, awayTeamId: number, homeScore: number, awayScore: number): Promise<void> {
     try {
-      console.log(`🏆 TEAM RECORDS UPDATE: Home Team ${homeTeamId} (${homeScore}) vs Away Team ${awayTeamId} (${awayScore})`);
+      console.log.info(`🏆 TEAM RECORDS UPDATE: Home Team ${homeTeamId} (${homeScore}) vs Away Team ${awayTeamId} (${awayScore})`);
       
       // Convert team IDs to integers if they're strings
       const homeId = typeof homeTeamId === 'string' ? parseInt(homeTeamId) : homeTeamId;
       const awayId = typeof awayTeamId === 'string' ? parseInt(awayTeamId) : awayTeamId;
       
-      console.log(`🔄 Converted IDs: Home ${homeId}, Away ${awayId}`);
+      console.log.info(`🔄 Converted IDs: Home ${homeId}, Away ${awayId}`);
       
       // Determine winner
       if (homeScore > awayScore) {
@@ -1848,7 +1853,7 @@ class MatchStateManager {
           where: { id: awayId },
           data: { losses: { increment: 1 } }
         });
-        console.log(`Home team ${homeId} wins, Away team ${awayId} loses`);
+        console.log.info(`Home team ${homeId} wins, Away team ${awayId} loses`);
       } else if (awayScore > homeScore) {
         // Away team wins
         await prisma.team.update({
@@ -1859,7 +1864,7 @@ class MatchStateManager {
           where: { id: homeId },
           data: { losses: { increment: 1 } }
         });
-        console.log(`Away team ${awayId} wins, Home team ${homeId} loses`);
+        console.log.info(`Away team ${awayId} wins, Home team ${homeId} loses`);
       } else {
         // Draw - award 1 point to each team (no draws field in Team model)
         await prisma.team.update({
@@ -1870,7 +1875,7 @@ class MatchStateManager {
           where: { id: awayId },
           data: { points: { increment: 1 } }
         });
-        console.log(`Draw between teams ${homeId} and ${awayId} - both teams awarded 1 point`);
+        console.log.info(`Draw between teams ${homeId} and ${awayId} - both teams awarded 1 point`);
       }
     } catch (error) {
       console.error(`Error updating team records for teams ${homeTeamId} and ${awayTeamId}:`, error);
