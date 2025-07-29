@@ -1613,20 +1613,18 @@ router.post('/:teamId/taxi-squad/:playerId/promote', isAuthenticated, asyncHandl
   // Promote player and update contract in one operation
   const promotedPlayer = await storage.players.promotePlayerFromTaxiSquad(playerId);
   
-  // Update player with 3-year contract and fix potential cap
-  const cappedPotential = Math.min(5.0, Number(player.overallPotentialStars) || 3.0);
-  const updatedPlayer = await storage.players.updatePlayer(playerId, {
-    contractSeasons: 3, // 3-year contract as requested
-    salary: baseSalary,
-    // Cap potential at 5.0 stars maximum (decimal field expects string)
-    overallPotentialStars: cappedPotential.toFixed(1),
+  // Update player potential rating (contracts are handled separately in Contract table)
+  const cappedPotential = Math.min(5.0, Number(player.potentialRating) || 3.0);
+  const updatedPlayer = await storage.players.updatePlayer(parseInt(playerId), {
+    // Cap potential at 5.0 stars maximum
+    potentialRating: cappedPotential,
     updatedAt: new Date(),
   });
 
   logInfo("Player promoted from taxi squad with 3-year contract", {
     teamId: team.id,
     playerId: playerId,
-    playerName: player.name,
+    playerName: `${player.firstName} ${player.lastName}`,
     contractSeasons: 3,
     salary: baseSalary,
     requestId: req.requestId

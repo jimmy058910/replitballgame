@@ -219,29 +219,28 @@ export class PlayerStorage {
         orderBy: { createdAt: 'asc' }
       });
 
+      console.log(`[PROMOTION DEBUG] Before promotion: ${allTeamPlayers.length} total players`);
+      console.log(`[PROMOTION DEBUG] Promoting player: ${player.firstName} ${player.lastName} (ID: ${player.id})`);
+      console.log(`[PROMOTION DEBUG] Current roster order:`, allTeamPlayers.map((p, i) => `${i+1}. ${p.firstName} ${p.lastName} (ID: ${p.id})`));
 
 
-      // Strategy: Insert the promoted player at position 12 (end of main roster)
-      // This pushes the current 12th player to position 13, naturally reordering the roster
+
+      // FIXED STRATEGY: Simply move the promoted player to be the new 12th player
+      // by setting their createdAt to be just before the current 12th player
       const twelfthPlayer = allTeamPlayers[11]; // Current 12th player (0-indexed)
+      console.log(`[PROMOTION DEBUG] Current 12th player:`, twelfthPlayer ? `${twelfthPlayer.firstName} ${twelfthPlayer.lastName} (ID: ${twelfthPlayer.id})` : 'None');
       
       let newCreatedAt;
       if (twelfthPlayer) {
-        // Insert right after the 11th player (before the 12th player)
-        const eleventhPlayer = allTeamPlayers[10];
-        if (eleventhPlayer) {
-          // Insert between 11th and 12th player
-          const eleventhTime = eleventhPlayer.createdAt.getTime();
-          const twelfthTime = twelfthPlayer.createdAt.getTime();
-          newCreatedAt = new Date(eleventhTime + (twelfthTime - eleventhTime) / 2);
-        } else {
-          // Insert before 12th player
-          newCreatedAt = new Date(twelfthPlayer.createdAt.getTime() - 60000);
-        }
+        // Set promoted player to be just before the current 12th player
+        // This makes the promoted player the new 12th, pushing current 12th to 13th (taxi squad)
+        newCreatedAt = new Date(twelfthPlayer.createdAt.getTime() - 60000);
+        console.log(`[PROMOTION DEBUG] Setting promoted player before 12th player, pushing them to taxi squad`);
       } else {
         // Roster has fewer than 12 players, just append to main roster
         const lastMainRosterPlayer = allTeamPlayers[allTeamPlayers.length - 1];
         newCreatedAt = new Date(lastMainRosterPlayer.createdAt.getTime() + 60000);
+        console.log(`[PROMOTION DEBUG] Roster has < 12 players, appending to main roster`);
       }
 
       // Update the player's createdAt timestamp to promote them
@@ -259,6 +258,7 @@ export class PlayerStorage {
       });
 
 
+      console.log(`[PROMOTION DEBUG] Successfully promoted ${promotedPlayer.firstName} ${promotedPlayer.lastName} to main roster`);
       return promotedPlayer;
     } catch (error) {
       console.error(`Error promoting player ${playerId}:`, error);
