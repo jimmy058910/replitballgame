@@ -75,6 +75,73 @@ export class LateSignupService {
   }
 
   /**
+   * Process daily late signups (Days 1-8) - Create subdivisions and generate schedules
+   * Called daily at 3PM EDT from Days 1-8
+   */
+  static async processDailyLateSignups(currentDay: number): Promise<void> {
+    logInfo(`Starting daily late signup processing for Day ${currentDay}...`);
+    
+    try {
+      // Get all existing late signup subdivisions
+      const existingSubdivisions = await this.getExistingLateSignupSubdivisions();
+      
+      // Check each subdivision and fill with AI if it has teams but isn't full
+      for (const subdivision of existingSubdivisions) {
+        const teams = await storage.teams.getTeamsByDivisionAndSubdivision(8, subdivision.subdivision);
+        
+        if (teams.length > 0 && teams.length < 8) {
+          // Subdivision has teams but isn't full - fill with AI teams
+          const aiTeamsNeeded = 8 - teams.length;
+          logInfo(`Filling ${subdivision.subdivision} with ${aiTeamsNeeded} AI teams`);
+          
+          await this.generateAITeamsForSubdivision(subdivision.subdivision, aiTeamsNeeded);
+          
+          // Generate shortened schedule immediately when subdivision becomes full
+          const allTeams = await storage.teams.getTeamsByDivisionAndSubdivision(8, subdivision.subdivision);
+          await this.generateShortenedSeasonSchedule(subdivision.subdivision, allTeams);
+          
+          logInfo(`Subdivision ${subdivision.subdivision} filled and schedule generated for Days ${currentDay}-14`);
+        }
+      }
+      
+      logInfo(`Daily late signup processing completed for Day ${currentDay}`);
+    } catch (error) {
+      console.error('Error in daily late signup processing:', error);
+    }
+  }
+  
+  /**
+   * Get all existing late signup subdivisions
+   */
+  private static async getExistingLateSignupSubdivisions(): Promise<Array<{ subdivision: string; teamCount: number }>> {
+    const subdivisions = await prisma.team.findMany({
+      where: {
+        division: 8,
+        subdivision: {
+          startsWith: 'late_'
+        }
+      },
+      select: {
+        subdivision: true
+      },
+      distinct: ['subdivision']
+    });
+    
+    const result = [];
+    for (const { subdivision } of subdivisions) {
+      if (subdivision) {
+        const teams = await storage.teams.getTeamsByDivisionAndSubdivision(8, subdivision);
+        result.push({
+          subdivision,
+          teamCount: teams.length
+        });
+      }
+    }
+    
+    return result;
+  }
+
+  /**
    * Fill late signup subdivisions with AI teams if they don't reach 8 teams by Day 9
    */
   static async fillLateSignupSubdivisionsWithAI(): Promise<void> {
@@ -106,7 +173,8 @@ export class LateSignupService {
         await this.generateAITeamsForSubdivision(subdivisionName, teamsToAdd);
         
         // Generate shortened season schedule for this subdivision
-        await this.generateShortenedSeasonSchedule(subdivisionName);
+        const allTeams = await storage.teams.getTeamsByDivisionAndSubdivision(8, subdivisionName);
+        await this.generateShortenedSeasonSchedule(subdivisionName, allTeams);
       }
     }
     
@@ -348,11 +416,9 @@ export class LateSignupService {
       league = await prisma.league.create({
         data: {
           id: leagueId,
-          seasonId: seasonNumber,
+          seasonId: parseInt(seasonNumber.toString()),
           division: 8,
-          subdivision: subdivision,
-          name: `Division 8 Late Signup - ${subdivision.toUpperCase()}`,
-          status: 'active'
+          name: `Division 8 Late Signup - ${subdivision.toUpperCase()}`
         }
       });
     }
@@ -509,13 +575,15 @@ export class LateSignupService {
     let totalLateSignupTeams = 0;
     
     for (const { subdivision } of lateSignupSubdivisions) {
-      const teams = await storage.teams.getTeamsByDivisionAndSubdivision(8, subdivision);
-      activeSubdivisions.push({
-        subdivision,
-        teamCount: teams.length,
-        isComplete: teams.length === 8
-      });
-      totalLateSignupTeams += teams.length;
+      if (subdivision) {
+        const teams = await storage.teams.getTeamsByDivisionAndSubdivision(8, subdivision);
+        activeSubdivisions.push({
+          subdivision,
+          teamCount: teams.length,
+          isComplete: teams.length === 8
+        });
+        totalLateSignupTeams += teams.length;
+      }
     }
     
     return {

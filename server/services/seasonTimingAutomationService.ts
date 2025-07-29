@@ -288,9 +288,10 @@ export class SeasonTimingAutomationService {
         await this.executeMidSeasonCup(seasonNumber);
       }
       
-      // Check for Day 9 AI Team Filling for Late Signup Subdivisions
-      if (currentDayInCycle === 9 && estTime.getHours() === 15 && estTime.getMinutes() === 0) {
-        await this.executeAITeamFilling();
+      // Check for DAILY Late Signup Processing (Day 1-9 at 3PM EDT)
+      // This processes new signups, creates subdivisions, fills with AI teams, and generates shortened schedules
+      if (currentDayInCycle >= 1 && currentDayInCycle <= 9 && estTime.getHours() === 15 && estTime.getMinutes() === 0) {
+        await this.executeDailyLateSignupProcessing(currentDayInCycle);
       }
       
       // Check for Day 15 Division tournaments
@@ -672,6 +673,35 @@ export class SeasonTimingAutomationService {
   }
 
   /**
+   * Execute daily late signup processing (Days 1-9, 3:00 PM EDT)
+   * - Process new signups from last 24 hours
+   * - Create new Division 8 subdivisions as needed
+   * - Fill incomplete subdivisions with AI teams
+   * - Generate shortened schedules immediately when subdivisions reach 8 teams
+   */
+  private async executeDailyLateSignupProcessing(currentDay: number): Promise<void> {
+    try {
+      logInfo(`Executing daily late signup processing for Day ${currentDay}...`);
+      
+      const { LateSignupService } = await import('./lateSignupService');
+      
+      if (currentDay === 9) {
+        // Final day - fill any incomplete subdivisions with AI teams and close signup
+        await LateSignupService.fillLateSignupSubdivisionsWithAI();
+        logInfo('Day 9: Final AI team filling completed - late signup window now CLOSED');
+      } else {
+        // Days 1-8: Process new signups and create subdivisions as needed
+        await LateSignupService.processDailyLateSignups(currentDay);
+        logInfo(`Day ${currentDay}: Daily late signup processing completed`);
+      }
+      
+    } catch (error) {
+      console.error('Error executing daily late signup processing:', (error as Error).message);
+    }
+  }
+
+  /**
+   * @deprecated - Use executeDailyLateSignupProcessing instead
    * Execute AI team filling for late signup subdivisions (Day 9, 3:00 PM EST)
    */
   private async executeAITeamFilling(): Promise<void> {
@@ -679,6 +709,7 @@ export class SeasonTimingAutomationService {
       logInfo('Executing AI team filling for late signup subdivisions...');
       
       // Call the LateSignupService to fill subdivisions with AI teams
+      const { LateSignupService } = await import('./lateSignupService');
       await LateSignupService.fillLateSignupSubdivisionsWithAI();
       
       logInfo('AI team filling for late signup subdivisions completed');
