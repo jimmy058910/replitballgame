@@ -1,7 +1,7 @@
 import React from 'react';
 import { useParams } from 'wouter';
 import { useAuth } from '@/hooks/useAuth';
-import { LiveMatchViewer } from '@/components/LiveMatchViewer';
+import EnhancedMatchSimulation from '@/components/EnhancedMatchSimulation';
 
 export default function LiveMatchPage() {
   const { matchId } = useParams<{ matchId: string }>();
@@ -18,27 +18,11 @@ export default function LiveMatchPage() {
     );
   }
 
-  if (!user?.userId) {
-    console.log('Auth check failed - user:', user);
-    console.log('User ID:', user?.userId);
-    
-    // TEMPORARY: Bypass authentication to debug match loading issues
-    // Use hardcoded userId that we know works
-    const hardcodedUserId = "44010914";
-    console.log('Using hardcoded userId for debugging:', hardcodedUserId);
-    
-    return (
-      <LiveMatchViewer 
-        matchId={matchId} 
-        userId={hardcodedUserId}
-      />
-    );
-  }
-
+  // Use enhanced match simulation for all live matches
   return (
-    <LiveMatchViewer 
-      matchId={matchId} 
-      userId={user.userId} 
+    <EnhancedMatchSimulation 
+      matchId={parseInt(matchId, 10)}
+      isLiveMatch={true}
     />
   );
 }

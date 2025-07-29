@@ -132,9 +132,9 @@ router.get('/live', isAuthenticated, async (req: Request, res: Response, next: N
 
     // Transform matches for comprehensive live hub display
     const transformedMatches = allLiveMatches.map(match => {
-      // Determine match type based on context
+      // Determine match type based on context - fix to use matchType field from database
       const matchType = match.tournamentId ? 'TOURNAMENT' : 
-                       match.type === 'exhibition' ? 'EXHIBITION' : 'LEAGUE';
+                       match.matchType === 'EXHIBITION' ? 'EXHIBITION' : 'LEAGUE';
       
       // Determine priority and user involvement
       const userTeamInvolved = teamId && (match.homeTeamId === teamId || match.awayTeamId === teamId);

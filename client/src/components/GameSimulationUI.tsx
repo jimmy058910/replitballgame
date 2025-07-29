@@ -298,7 +298,10 @@ export function GameSimulationUI({ matchId, userId, team1, team2, initialLiveSta
     // Prioritize authentic API data over match simulation data
     const capacity = apiStadiumData.capacity || enhancedAtmosphereData.capacity || 5000; // Starting stadium capacity is 5,000
     const fanLoyalty = apiAtmosphereData.fanLoyalty || enhancedAtmosphereData.fanLoyalty || 50; // Starting fan loyalty is 50%
-    const attendance = apiAtmosphereData.attendance || enhancedAtmosphereData.attendance || Math.floor(capacity * 0.6); // 60% default attendance
+    const rawAttendance = apiAtmosphereData.attendance || enhancedAtmosphereData.attendance || Math.floor(capacity * 0.6); // 60% default attendance
+    
+    // CRITICAL FIX: Ensure attendance never exceeds stadium capacity (fixes 400% capacity bug)
+    const attendance = Math.min(rawAttendance, capacity);
     
     const intimidationEffect = enhancedAtmosphereData.intimidationFactor || Math.floor(fanLoyalty / 20);
     const homeFieldAdvantage = enhancedAtmosphereData.homeFieldAdvantage || Math.floor(fanLoyalty / 15);
@@ -324,7 +327,7 @@ export function GameSimulationUI({ matchId, userId, team1, team2, initialLiveSta
     console.log('🔍 MVP Debug - Final Event:', finalEvent);
 
     // Check enhanced match data for MVP data first (from the API endpoint)
-    let mvpData = enhancedMatchData?.mvpData || null;
+    let mvpData = (enhancedMatchData as any)?.mvpData || null;
 
     if (finalEvent?.data?.mvp) {
       mvpData = finalEvent.data.mvp;
@@ -332,8 +335,8 @@ export function GameSimulationUI({ matchId, userId, team1, team2, initialLiveSta
     } else if (halftimeEvent?.data?.mvp) {
       mvpData = halftimeEvent.data.mvp;
       console.log('🎯 Using MVP data from halftime event:', mvpData);
-    } else if (enhancedMatchData?.mvpData) {
-      mvpData = enhancedMatchData.mvpData;
+    } else if ((enhancedMatchData as any)?.mvpData) {
+      mvpData = (enhancedMatchData as any).mvpData;
       console.log('🎯 Using MVP data from enhanced match data:', mvpData);
     } else if (enhancedData?.mvpPlayers) {
       mvpData = {
@@ -341,8 +344,8 @@ export function GameSimulationUI({ matchId, userId, team1, team2, initialLiveSta
         awayMVP: { playerName: enhancedData.mvpPlayers.away, score: 100 }
       };
       console.log('🎯 Using MVP data from enhanced data mvpPlayers:', mvpData);
-    } else if (enhancedData?.mvpData) {
-      mvpData = enhancedData.mvpData;
+    } else if ((enhancedData as any)?.mvpData) {
+      mvpData = (enhancedData as any).mvpData;
       console.log('🎯 Using MVP data from enhanced data mvpData:', mvpData);
     }
 
@@ -537,7 +540,7 @@ export function GameSimulationUI({ matchId, userId, team1, team2, initialLiveSta
   }
 
   // Determine correct maxTime based on match type - default to league time (2400) unless exhibition
-  const matchType = initialMatchData?.matchType;
+  const matchType = (initialMatchData as any)?.matchType;
   const defaultMaxTime = matchType === 'EXHIBITION' ? 1800 : 2400; // Exhibition: 30 min, League: 40 min
   
   const gamePhase = getGamePhase(liveState?.gameTime || 0, liveState?.maxTime || defaultMaxTime, liveState?.currentHalf || 1);
@@ -559,9 +562,9 @@ export function GameSimulationUI({ matchId, userId, team1, team2, initialLiveSta
             matchData={{
               homeScore: liveState.homeScore,
               awayScore: liveState.awayScore,
-              matchType: matchData?.matchType
+              matchType: matchType || 'LEAGUE'
             }}
-            gameData={matchData}
+            gameData={initialMatchData || {}}
             liveState={liveState}
             onViewReplay={() => {
               console.log('View Replay clicked');
@@ -663,7 +666,7 @@ export function GameSimulationUI({ matchId, userId, team1, team2, initialLiveSta
             gameData={{
               homeTeam: { 
                 name: team1?.name || 'Home Team',
-                players: (homeTeamPlayers || []).map((p: any) => ({
+                players: Array.isArray(homeTeamPlayers) ? homeTeamPlayers.map((p: any) => ({
                   id: p.id,
                   firstName: p.firstName,
                   lastName: p.lastName,
@@ -673,11 +676,11 @@ export function GameSimulationUI({ matchId, userId, team1, team2, initialLiveSta
                   agility: p.agility || 20,
                   role: p.role,
                   dailyStaminaLevel: p.dailyStaminaLevel || 80
-                }))
+                })) : []
               },
               awayTeam: { 
                 name: team2?.name || 'Away Team',
-                players: (awayTeamPlayers || []).map((p: any) => ({
+                players: Array.isArray(awayTeamPlayers) ? awayTeamPlayers.map((p: any) => ({
                   id: p.id,
                   firstName: p.firstName,
                   lastName: p.lastName,
@@ -687,15 +690,14 @@ export function GameSimulationUI({ matchId, userId, team1, team2, initialLiveSta
                   agility: p.agility || 20,
                   role: p.role,
                   dailyStaminaLevel: p.dailyStaminaLevel || 80
-                }))
+                })) : []
               }
             }}
             liveState={{
               gameTime: liveState?.gameTime || 0,
               homeScore: liveState?.homeScore || 0,
               awayScore: liveState?.awayScore || 0,
-              status: liveState?.status || 'SCHEDULED',
-              fieldPosition: liveState?.fieldPosition || 50
+              status: liveState?.status || 'SCHEDULED'
             }}
             events={liveState?.gameEvents?.slice(-5) || []}
             width={800}
