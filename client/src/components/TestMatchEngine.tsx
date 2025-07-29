@@ -7,6 +7,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { 
   Play, Pause, RotateCcw, Clock, Users, Trophy, Zap, Target, Activity, MessageCircle, BarChart3 
 } from 'lucide-react';
+import GameCanvas from './GameCanvas';
 
 interface TestMatchEngineProps {
   matchId: string;
@@ -400,6 +401,52 @@ export function TestMatchEngine({ matchId, team1, team2, onMatchComplete }: Test
 
   return (
     <div className="space-y-4">
+      {/* Jules' 2D Match Engine Test */}
+      <GameCanvas
+        matchId={matchId}
+        gameData={{
+          homeTeam: { 
+            name: team1?.name || 'Test Home Team',
+            players: Array.from({ length: 9 }, (_, i) => ({
+              id: `home-${i}`,
+              firstName: `Player`,
+              lastName: `${i + 1}`,
+              race: 'Human',
+              speed: 20 + Math.random() * 15,
+              power: 20 + Math.random() * 15,
+              agility: 20 + Math.random() * 15,
+              role: i < 3 ? 'Passer' : i < 6 ? 'Runner' : 'Blocker',
+              dailyStaminaLevel: 80 + Math.random() * 20
+            }))
+          },
+          awayTeam: { 
+            name: team2?.name || 'Test Away Team',
+            players: Array.from({ length: 9 }, (_, i) => ({
+              id: `away-${i}`,
+              firstName: `Player`,
+              lastName: `${i + 10}`,
+              race: 'Human',
+              speed: 20 + Math.random() * 15,
+              power: 20 + Math.random() * 15,
+              agility: 20 + Math.random() * 15,
+              role: i < 3 ? 'Passer' : i < 6 ? 'Runner' : 'Blocker',
+              dailyStaminaLevel: 80 + Math.random() * 20
+            }))
+          }
+        }}
+        liveState={{
+          gameTime: matchState.currentTime,
+          homeScore: matchState.homeScore,
+          awayScore: matchState.awayScore,
+          status: matchState.status,
+          fieldPosition: matchState.orbPosition.x
+        }}
+        events={events.slice(0, 5)}
+        width={800}
+        height={500}
+        className="mb-4"
+      />
+
       {/* Match Header */}
       <Card>
         <CardHeader>

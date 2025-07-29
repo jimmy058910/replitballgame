@@ -15,6 +15,7 @@ import {
 import webSocketManager, { LiveMatchState, MatchEvent, WebSocketCallbacks } from '@/lib/websocket';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest, queryClient } from '@/lib/queryClient';
+import GameCanvas from './GameCanvas';
 
 // Enhanced interfaces for comprehensive match data
 interface EnhancedPlayer {
@@ -371,12 +372,12 @@ export const EnhancedMatchEngine: React.FC<MatchEngineProps> = ({
       onMatchEvent: (event: MatchEvent) => {
         setEvents(prev => [event, ...prev]);
       },
-      onConnectionStateChange: (connected: boolean) => {
+      onConnectionStatus: (connected: boolean) => {
         setIsConnected(connected);
       }
     };
 
-    webSocketManager.joinMatch(matchId, callbacks);
+    webSocketManager.joinMatch(matchId);
 
     return () => {
       webSocketManager.disconnect();
@@ -389,11 +390,11 @@ export const EnhancedMatchEngine: React.FC<MatchEngineProps> = ({
     
     try {
       setIsControlling(true);
-      const action = (liveState as any)?.isPaused ? 'resume' : 'pause';
-      await apiRequest({
+      const action = (liveState as any)?.status === 'paused' ? 'resume' : 'pause';
+      await apiRequest(`/api/matches/${matchId}/control`, {
         method: 'POST',
-        url: `/api/matches/${matchId}/control`,
-        data: { action }
+        body: JSON.stringify({ action }),
+        headers: { 'Content-Type': 'application/json' }
       });
       
       toast({
@@ -409,16 +410,16 @@ export const EnhancedMatchEngine: React.FC<MatchEngineProps> = ({
     } finally {
       setIsControlling(false);
     }
-  }, [matchId, liveState?.isPaused, toast]);
+  }, [matchId, liveState, toast]);
 
   const handleSpeedChange = useCallback(async (speed: number) => {
     if (!matchId) return;
     
     try {
-      await apiRequest({
+      await apiRequest(`/api/matches/${matchId}/speed`, {
         method: 'POST',
-        url: `/api/matches/${matchId}/speed`,
-        data: { speed }
+        body: JSON.stringify({ speed }),
+        headers: { 'Content-Type': 'application/json' }
       });
       setPlaybackSpeed(speed);
     } catch (error) {
@@ -612,6 +613,26 @@ export const EnhancedMatchEngine: React.FC<MatchEngineProps> = ({
           </Tabs>
         </CardContent>
       </Card>
+
+      {/* Jules' 2D Match Engine Integration */}
+      <GameCanvas
+        matchId={matchId}
+        gameData={{
+          homeTeam: { 
+            name: team1?.name, 
+            players: homeTeamPlayers 
+          },
+          awayTeam: { 
+            name: team2?.name, 
+            players: awayTeamPlayers 
+          }
+        }}
+        liveState={liveState}
+        events={events}
+        width={800}
+        height={500}
+        className="mt-4"
+      />
 
       {/* Connection Status */}
       {!isConnected && (
