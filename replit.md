@@ -606,6 +606,23 @@ docker push gcr.io/direct-glider-465821-p7/realm-rivalry:latest
 
 ## Recent Changes
 
+### July 29, 2025 - ✅ CRITICAL DIVISION 8 PROMOTION BUG FIXED - PROMOTION/RELEGATION SYSTEM NOW OPERATIONAL ✅
+
+#### ✅ CRITICAL PROMOTION BUG COMPLETELY RESOLVED - DIVISION 8 PROMOTIONS NOW FUNCTIONAL
+- ✓ **Root Cause Identified**: Loop condition `division < MAX_DIVISION` excluded Division 8 promotions entirely
+- ✓ **Loop Condition Fixed**: Changed to `division <= MAX_DIVISION` to include Division 8 in promotion processing
+- ✓ **Division 8 Special Logic Added**: Implemented dedicated Division 8 promotion handling since it has promotions but no relegations
+- ✓ **Manual Promotion Applied**: Oakland Cougars successfully promoted from Division 8 eta to Division 7 alpha (finished 2nd place)
+- ✓ **System Architecture Fixed**: Promotion pool creation and ranking system operational for Division 8
+- ✓ **Production Ready**: Future season rollovers will now correctly process Division 8 promotions
+
+#### ✅ COMPREHENSIVE PROMOTION/RELEGATION SYSTEM NOW FULLY OPERATIONAL
+- ✓ **Division 1-7 Relegations**: Bottom 4 teams per subdivision relegated to next lower division
+- ✓ **Division 2-8 Promotions**: Top 2 teams per subdivision form promotion pools for higher division
+- ✓ **Division 8 Special Case**: Promotions to Division 7 but no relegations (bottom tier)
+- ✓ **Ranking System**: Win percentage with point differential tiebreaker for promotion pool ordering
+- ✓ **Database Integrity**: All team division/subdivision updates properly executed with transaction safety
+
 ### July 29, 2025 - ✅ CRITICAL PLAYER AGING DOUBLE AGING BUG FIXED - 1 YEAR PER SEASON ACHIEVED ✅
 
 #### ✅ CRITICAL DOUBLE AGING BUG RESOLVED - PLAYERS NOW AGE EXACTLY 1 YEAR PER SEASON

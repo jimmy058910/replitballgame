@@ -1140,46 +1140,48 @@ export class SeasonalFlowService {
    * Step 4: Standardized Cascade for Divisions 3-8
    */
   static async processStandardizedCascade(season: number, promotions: any[], relegations: any[]): Promise<void> {
-    // Process divisions 3-7 (Division 8 has no relegation)
-    for (let division = 3; division < this.SEASON_CONFIG.MAX_DIVISION; division++) {
-      // Relegation: Bottom 4 teams from each subdivision
-      const subdivisions = await prisma.team.groupBy({
-        by: ['subdivision'],
-        where: { division },
-        _count: { id: true }
-      });
-      
+    // Process divisions 3-8 (Division 8 has promotions but no relegations)
+    for (let division = 3; division <= this.SEASON_CONFIG.MAX_DIVISION; division++) {
+      // Relegation: Bottom 4 teams from each subdivision (except Division 8)
       let totalRelegated = 0;
       
-      for (const subdivision of subdivisions) {
-        const subdivisionTeams = await prisma.team.findMany({
-          where: { 
-            division,
-            subdivision: subdivision.subdivision
-          },
-          orderBy: [
-            { points: 'desc' },
-            { wins: 'desc' },
-            { losses: 'asc' }
-          ]
+      if (division < this.SEASON_CONFIG.MAX_DIVISION) {
+        const subdivisions = await prisma.team.groupBy({
+          by: ['subdivision'],
+          where: { division },
+          _count: { id: true }
         });
         
-        // Bottom 4 teams are relegated
-        const relegationZone = subdivisionTeams.slice(-this.SEASON_CONFIG.STANDARD_RELEGATION_PER_SUBDIVISION);
-        
-        for (const team of relegationZone) {
-          await prisma.team.update({
-            where: { id: team.id },
-            data: { division: division + 1 }
+        for (const subdivision of subdivisions) {
+          const subdivisionTeams = await prisma.team.findMany({
+            where: { 
+              division,
+              subdivision: subdivision.subdivision
+            },
+            orderBy: [
+              { points: 'desc' },
+              { wins: 'desc' },
+              { losses: 'asc' }
+            ]
           });
           
-          relegations.push({
-            teamId: team.id,
-            fromDivision: division,
-            toDivision: division + 1
-          });
+          // Bottom 4 teams are relegated
+          const relegationZone = subdivisionTeams.slice(-this.SEASON_CONFIG.STANDARD_RELEGATION_PER_SUBDIVISION);
           
-          totalRelegated++;
+          for (const team of relegationZone) {
+            await prisma.team.update({
+              where: { id: team.id },
+              data: { division: division + 1 }
+            });
+            
+            relegations.push({
+              teamId: team.id,
+              fromDivision: division,
+              toDivision: division + 1
+            });
+            
+            totalRelegated++;
+          }
         }
       }
       
@@ -1201,6 +1203,35 @@ export class SeasonalFlowService {
           });
         }
       }
+    }
+    
+    // Special case: Division 8 promotions to Division 7
+    // Since Division 8 has no relegations, we need to handle its promotions separately
+    const division8PromotionPool = await this.createPromotionPool(this.SEASON_CONFIG.MAX_DIVISION, season);
+    
+    // Promote top 2 teams from each Division 8 subdivision
+    // Calculate how many spots are available in Division 7 based on relegations
+    const division7Subdivisions = await prisma.team.groupBy({
+      by: ['subdivision'],
+      where: { division: 7 },
+      _count: { id: true }
+    });
+    
+    // Each Division 7 subdivision relegated 4 teams, so we have space for promotions
+    const availablePromotionSpots = division7Subdivisions.length * this.SEASON_CONFIG.STANDARD_RELEGATION_PER_SUBDIVISION;
+    const teamsToPromoteFromDiv8 = division8PromotionPool.slice(0, availablePromotionSpots);
+    
+    for (const team of teamsToPromoteFromDiv8) {
+      await prisma.team.update({
+        where: { id: team.id },
+        data: { division: 7 }
+      });
+      
+      promotions.push({
+        teamId: team.id,
+        fromDivision: 8,
+        toDivision: 7
+      });
     }
   }
 
