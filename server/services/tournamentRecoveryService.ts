@@ -1,5 +1,6 @@
 import { prisma } from "../db";
-import { logInfo } from "../logging";
+// import { logInfo } from "../logging"; // Commented out for production
+const logInfo = (message: string) => console.log(`[INFO] ${message}`);
 import { tournamentFlowService } from "./tournamentFlowService";
 
 /**
@@ -33,10 +34,11 @@ export class TournamentRecoveryService {
       // Group matches by round
       const matchesByRound = new Map<number, any[]>();
       scheduledMatches.forEach(match => {
-        if (!matchesByRound.has(match.round)) {
-          matchesByRound.set(match.round, []);
+        const round = match.round || 1; // Default to round 1 if null
+        if (!matchesByRound.has(round)) {
+          matchesByRound.set(round, []);
         }
-        matchesByRound.get(match.round)!.push(match);
+        matchesByRound.get(round)!.push(match);
       });
       
       // Start matches round by round
@@ -86,7 +88,7 @@ export class TournamentRecoveryService {
           });
           
           // Start live simulation
-          await matchStateManager.startLiveMatch(match.id);
+          await matchStateManager.startLiveMatch(match.id.toString());
           logInfo(`Started live simulation for tournament ${tournamentId} round ${round} match ${match.id}`);
           
         } catch (error) {

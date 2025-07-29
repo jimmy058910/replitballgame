@@ -136,7 +136,7 @@ app.get('*', (req, res) => {
   console.log(`📄 Serving React app for route: ${req.path}`);
   console.log(`📄 Index file path: ${indexPath}`);
   
-  res.sendFile(indexPath, (err) => {
+  return res.sendFile(indexPath, (err) => {
     if (err && !res.headersSent) {
       console.error('❌ Error serving index.html:', err);
       res.status(500).send(`

@@ -69,6 +69,11 @@ export interface FacilityInfo {
   description: string;
   revenueBonus: number;
   atmosphereBonus: number;
+  facilityKey?: string;
+  currentLevel?: number;
+  canUpgrade?: boolean;
+  effect?: string;
+  roi?: string;
 }
 
 // Stadium Configuration - Loaded from config/stadium_config.json
