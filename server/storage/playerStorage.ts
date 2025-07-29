@@ -120,28 +120,21 @@ export class PlayerStorage {
       orderBy: { createdAt: 'asc' }
     });
 
-    // Truly dynamic taxi squad logic:
-    // - Any team can have 0-2 taxi squad players
-    // - Taxi squad = the newest players beyond the minimum main roster (13)
-    // - But teams can also choose to have fewer main roster players if they want
+    // Truly flexible taxi squad logic:
+    // - Minimum 12 main roster players (positions 1-12)
+    // - Position 13+ can be taxi squad (maximum 2 taxi squad players)
+    // - Supports: 12+1, 13+0, 14+1, 13+2, 15+0, etc.
     
-    // If 13 or fewer players, NO taxi squad (all players are main roster)
-    if (allPlayers.length <= 13) {
-      return [];
+    if (allPlayers.length <= 12) {
+      return []; // Need at least 12 main roster players
     }
     
-    // If 14 players: 1 taxi squad player (the newest)
-    if (allPlayers.length === 14) {
-      return [allPlayers[allPlayers.length - 1]]; // Last player
-    }
+    // Taxi squad is anyone beyond position 12 (up to 2 players max)
+    const taxiSquadStartIndex = 12; // Position 13 and beyond
+    const taxiSquadPlayers = allPlayers.slice(taxiSquadStartIndex);
     
-    // If 15 players: 2 taxi squad players (the 2 newest)
-    if (allPlayers.length === 15) {
-      return allPlayers.slice(-2); // Last 2 players
-    }
-    
-    // This shouldn't happen with max 15 roster size, but handle gracefully
-    return allPlayers.slice(-Math.min(2, allPlayers.length - 13));
+    // Cap at maximum 2 taxi squad players
+    return taxiSquadPlayers.slice(0, 2);
   }
 
   async getAllPlayersByTeamId(teamId: number): Promise<Player[]> {
