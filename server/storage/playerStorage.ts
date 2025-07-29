@@ -199,8 +199,8 @@ export class PlayerStorage {
   // Taxi Squad specific methods (removed duplicate - using the one above)
 
   async promotePlayerFromTaxiSquad(playerId: number): Promise<Player | null> {
-    // Promotes a taxi squad player to main roster by moving them to position 13
-    // This ensures they become the 13th player (last main roster spot)
+    // Promotes a taxi squad player to MAIN ROSTER by inserting them at position 12
+    // This moves them into the main roster and pushes everyone down naturally
     try {
       const player = await prisma.player.findUnique({
         where: { id: parseInt(playerId.toString()) }
@@ -219,27 +219,29 @@ export class PlayerStorage {
         orderBy: { createdAt: 'asc' }
       });
 
-      // Strategy: Move the promoted player to position 13 by placing them 
-      // right before the current 13th player (if exists) or at the end of main roster
-      let targetPosition = 13;
-      let insertBeforePlayer = allTeamPlayers[12]; // 13th player (0-indexed)
-      
-      // If we don't have a 13th player yet, insert before the 12th player
-      if (!insertBeforePlayer && allTeamPlayers.length >= 12) {
-        insertBeforePlayer = allTeamPlayers[11]; // 12th player
-        targetPosition = 12;
-      }
 
+
+      // Strategy: Insert the promoted player at position 12 (end of main roster)
+      // This pushes the current 12th player to position 13, naturally reordering the roster
+      const twelfthPlayer = allTeamPlayers[11]; // Current 12th player (0-indexed)
+      
       let newCreatedAt;
-      if (insertBeforePlayer) {
-        // Insert 1 minute before the target player
-        newCreatedAt = new Date(insertBeforePlayer.createdAt.getTime() - 60000);
+      if (twelfthPlayer) {
+        // Insert right after the 11th player (before the 12th player)
+        const eleventhPlayer = allTeamPlayers[10];
+        if (eleventhPlayer) {
+          // Insert between 11th and 12th player
+          const eleventhTime = eleventhPlayer.createdAt.getTime();
+          const twelfthTime = twelfthPlayer.createdAt.getTime();
+          newCreatedAt = new Date(eleventhTime + (twelfthTime - eleventhTime) / 2);
+        } else {
+          // Insert before 12th player
+          newCreatedAt = new Date(twelfthPlayer.createdAt.getTime() - 60000);
+        }
       } else {
-        // If roster is very small, just put at the beginning
-        const earliestPlayer = allTeamPlayers[0];
-        newCreatedAt = earliestPlayer 
-          ? new Date(earliestPlayer.createdAt.getTime() - 60000)
-          : new Date(Date.now() - 60000);
+        // Roster has fewer than 12 players, just append to main roster
+        const lastMainRosterPlayer = allTeamPlayers[allTeamPlayers.length - 1];
+        newCreatedAt = new Date(lastMainRosterPlayer.createdAt.getTime() + 60000);
       }
 
       // Update the player's createdAt timestamp to promote them
@@ -255,6 +257,7 @@ export class PlayerStorage {
           skills: { include: { skill: true } }
         }
       });
+
 
       return promotedPlayer;
     } catch (error) {
