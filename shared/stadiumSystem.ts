@@ -81,17 +81,12 @@ async function loadStadiumConfig() {
   if (STADIUM_CONFIG) return STADIUM_CONFIG;
   
   try {
-    if (typeof require !== 'undefined') {
-      // Node.js environment
-      const fs = require('fs');
-      const path = require('path');
-      const configPath = path.join(process.cwd(), 'config', 'stadium_config.json');
-      const configData = fs.readFileSync(configPath, 'utf8');
-      STADIUM_CONFIG = JSON.parse(configData);
-    } else {
-      // Browser environment - would need to be loaded via API
-      throw new Error('Stadium config must be loaded via API in browser environment');
-    }
+    // Node.js environment - use ES module imports
+    const fs = await import('fs');
+    const path = await import('path');
+    const configPath = path.join(process.cwd(), 'config', 'stadium_config.json');
+    const configData = fs.readFileSync(configPath, 'utf8');
+    STADIUM_CONFIG = JSON.parse(configData);
   } catch (error) {
     console.error('Failed to load stadium config, using defaults:', error);
     // Fallback to basic configuration
