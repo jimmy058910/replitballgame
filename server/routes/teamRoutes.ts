@@ -1591,7 +1591,7 @@ router.post('/:teamId/taxi-squad/:playerId/promote', isAuthenticated, asyncHandl
   }
   
   const rosterPosition = playerIndex + 1;
-  const isOnTaxiSquad = rosterPosition >= 13; // Positions 13+ are taxi squad
+  const isOnTaxiSquad = allTeamPlayers.length > 13 && rosterPosition >= 14; // Positions 14+ are taxi squad (only when roster > 13)
   
   if (!isOnTaxiSquad) {
     throw ErrorCreators.validation("Player is not on taxi squad");

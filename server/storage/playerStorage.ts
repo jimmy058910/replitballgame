@@ -121,8 +121,13 @@ export class PlayerStorage {
       orderBy: { createdAt: 'asc' }
     });
 
-    // Return players beyond the first 12 (taxi squad players)
-    const taxiSquadPlayers = allPlayers.slice(12);
+    // Taxi squad is only the last 2 players when roster is at maximum (15 players)
+    // Main roster is positions 1-13 (minimum), taxi squad is positions 14-15 (maximum 2 players)
+    if (allPlayers.length <= 13) {
+      return []; // No taxi squad if 13 or fewer players
+    }
+    
+    const taxiSquadPlayers = allPlayers.slice(13); // Positions 14+ are taxi squad
     
     return taxiSquadPlayers;
   }
@@ -190,7 +195,7 @@ export class PlayerStorage {
 
   async promotePlayerFromTaxiSquad(playerId: number): Promise<Player | null> {
     // Since taxi squad is determined by roster position based on createdAt,
-    // promotion requires updating the player's createdAt to move them earlier in the roster order
+    // promotion requires updating the player's createdAt to move them to the main roster (positions 1-13)
     try {
       const player = await prisma.player.findUnique({
         where: { id: parseInt(playerId.toString()) }
@@ -200,8 +205,8 @@ export class PlayerStorage {
         return null;
       }
 
-      // Get the earliest createdAt timestamp among the team's players
-      const earliestPlayer = await prisma.player.findFirst({
+      // Get all team players to understand current roster structure
+      const allTeamPlayers = await prisma.player.findMany({
         where: {
           teamId: player.teamId,
           isOnMarket: false
@@ -209,27 +214,51 @@ export class PlayerStorage {
         orderBy: { createdAt: 'asc' }
       });
 
-      // Set the promoted player's createdAt to be 1 minute earlier than the earliest,
-      // effectively moving them to position 1 in the roster
-      const newCreatedAt = earliestPlayer 
-        ? new Date(earliestPlayer.createdAt.getTime() - 60000) // 1 minute earlier
-        : new Date(Date.now() - 60000); // fallback to 1 minute ago
+      // Find the 13th player (last main roster position according to new logic)
+      const thirteenthPlayer = allTeamPlayers[12]; // 0-indexed, so position 13
 
-      // Update the player's createdAt timestamp to promote them
-      const promotedPlayer = await prisma.player.update({
-        where: { id: parseInt(playerId.toString()) },
-        data: { 
-          createdAt: newCreatedAt,
-          updatedAt: new Date()
-        },
-        include: {
-          team: { select: { name: true } },
-          contract: true,
-          skills: { include: { skill: true } }
-        }
-      });
+      if (thirteenthPlayer) {
+        // Set the promoted player's createdAt to be 1 minute before the 13th player,
+        // effectively moving them to position 13 (main roster)
+        const newCreatedAt = new Date(thirteenthPlayer.createdAt.getTime() - 60000);
 
-      return promotedPlayer;
+        // Update the player's createdAt timestamp to promote them
+        const promotedPlayer = await prisma.player.update({
+          where: { id: parseInt(playerId.toString()) },
+          data: { 
+            createdAt: newCreatedAt,
+            updatedAt: new Date()
+          },
+          include: {
+            team: { select: { name: true } },
+            contract: true,
+            skills: { include: { skill: true } }
+          }
+        });
+
+        return promotedPlayer;
+      } else {
+        // Fallback: if there are fewer than 13 players, just move to the earliest position
+        const earliestPlayer = allTeamPlayers[0];
+        const newCreatedAt = earliestPlayer 
+          ? new Date(earliestPlayer.createdAt.getTime() - 60000)
+          : new Date(Date.now() - 60000);
+
+        const promotedPlayer = await prisma.player.update({
+          where: { id: parseInt(playerId.toString()) },
+          data: { 
+            createdAt: newCreatedAt,
+            updatedAt: new Date()
+          },
+          include: {
+            team: { select: { name: true } },
+            contract: true,
+            skills: { include: { skill: true } }
+          }
+        });
+
+        return promotedPlayer;
+      }
     } catch (error) {
       console.error(`Error promoting player ${playerId}:`, error);
       return null;
