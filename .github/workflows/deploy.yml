@@ -54,7 +54,7 @@ jobs:
           --timeout 900 \
           --max-instances 10 \
           --allow-unauthenticated \
-          --service-account realm-rivalry-runner@$PROJECT_ID.iam.gserviceaccount.com \
+          --service-account realm-rivalry-github-runner@$PROJECT_ID.iam.gserviceaccount.com \
           --update-secrets DATABASE_URL=database-url:latest \
           --update-secrets SESSION_SECRET=session-secret:latest \
           --update-secrets GOOGLE_CLIENT_SECRET=google-client-secret:latest \
