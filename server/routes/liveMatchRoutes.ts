@@ -20,8 +20,30 @@ const MatchCommandSchema = z.object({
 });
 
 /**
+ * Get available live matches
+ * GET /api/live-matches
+ */
+router.get('/', async (req, res) => {
+  try {
+    // Return currently active live matches
+    const activeMatches = liveMatchEngine.getActiveMatches();
+    
+    res.json({
+      success: true,
+      matches: activeMatches
+    });
+  } catch (error) {
+    console.error('Error getting live matches:', error);
+    res.status(500).json({
+      success: false,
+      error: error instanceof Error ? error.message : 'Failed to get live matches'
+    });
+  }
+});
+
+/**
  * Start a live match
- * POST /api/matches/:matchId/start
+ * POST /api/live-matches/:matchId/start
  */
 router.post('/:matchId/start', async (req, res) => {
   try {

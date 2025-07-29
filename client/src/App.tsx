@@ -12,6 +12,7 @@ import TestEnvironment from "@/pages/TestEnvironment";
 import HelpManual from "@/pages/HelpManual";
 import { AdTest } from "@/pages/AdTest";
 import { WebSocketTestPage } from "@/components/WebSocketTestPage";
+import { LiveMatchTest } from "@/pages/LiveMatchTest";
 // Removed obsolete checkout pages - functionality moved to Market District
 import DomainDemo from "@/pages/DomainDemo";
 import PWAInstallPrompt from "@/components/PWAInstallPrompt";
@@ -108,6 +109,7 @@ function Router() {
           <Route path="/test-environment" component={TestEnvironment} />
           <Route path="/ad-test" component={AdTest} />
           <Route path="/websocket-test" component={WebSocketTestPage} />
+          <Route path="/live-match-test" component={LiveMatchTest} />
           <Route path="/tournament-status" component={LazyTournamentStatus} />
           <Route path="/domain-demo" component={DomainDemo} />
         </>

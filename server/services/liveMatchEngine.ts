@@ -23,6 +23,13 @@ class LiveMatchEngineService implements LiveMatchEngine {
   private simulationSpeed = 1.0; // Default 1x speed
 
   /**
+   * Get all currently active matches
+   */
+  getActiveMatches(): LiveMatchState[] {
+    return Array.from(this.activeMatches.values());
+  }
+
+  /**
    * Start a live match simulation
    */
   async startMatch(matchId: string): Promise<LiveMatchState> {
