@@ -185,34 +185,26 @@ export const RealmRivalry2DMatchEngine: React.FC<MatchEngineProps> = ({
     }
   }, [liveState, visualsEnabled]);
 
-  // Match control functions
-  const handlePlayPause = useCallback(async () => {
-    if (!matchId || !liveState) return;
+  // Automatic speed management based on event priority - no manual controls needed
+  useEffect(() => {
+    if (!liveState || !events.length) return;
     
-    try {
-      const action = liveState.status === 'paused' ? 'resume' : 'pause';
-      await fetch(`/api/matches/${matchId}/control`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ command: action, matchId })
-      });
-      
-      toast({
-        title: action === 'resume' ? "Match Resumed" : "Match Paused",
-        description: `Match ${action}d successfully.`
-      });
-    } catch (error) {
-      toast({
-        title: "Control Failed",
-        description: "Failed to control match playback.",
-        variant: "destructive"
-      });
+    const latestEvent = events[0]; // Most recent event
+    if (latestEvent) {
+      // Update speed based on event priority automatically
+      const priority = latestEvent.priority;
+      if (priority.priority === 1) {
+        setCurrentSpeed(1);
+        setVisualsEnabled(true);
+      } else if (priority.priority === 2) {
+        setCurrentSpeed(2);
+        setVisualsEnabled(true);
+      } else {
+        setCurrentSpeed(4);
+        setVisualsEnabled(false); // Fast forward with visuals off
+      }
     }
-  }, [matchId, liveState, toast]);
-
-  const handleSpeedChange = useCallback((speed: number) => {
-    speedController.current.setManualSpeed(speed);
-  }, []);
+  }, [events, liveState]);
 
   const handleTimelineScrub = useCallback(async (targetTime: number) => {
     if (!matchId) return;
@@ -296,44 +288,23 @@ export const RealmRivalry2DMatchEngine: React.FC<MatchEngineProps> = ({
               </div>
             </div>
 
-            {/* Controls */}
+            {/* Auto Speed Indicator - No Manual Controls */}
             <div className="flex items-center space-x-2">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handlePlayPause}
-                disabled={!isConnected}
-              >
-                {liveState?.status === 'paused' ? (
-                  <Play className="w-4 h-4" />
-                ) : (
-                  <Pause className="w-4 h-4" />
-                )}
-              </Button>
-              
-              {/* Speed Controls */}
-              <div className="flex space-x-1">
-                <Button
-                  variant={currentSpeed === 1 ? "default" : "outline"}
-                  size="sm"
-                  onClick={() => handleSpeedChange(1)}
+              <div className="text-center">
+                <div className="text-xs text-gray-400 mb-1">Playback Speed</div>
+                <Badge 
+                  className={
+                    !visualsEnabled ? "bg-orange-600" :
+                    currentSpeed === 1 ? "bg-red-600" :
+                    currentSpeed === 2 ? "bg-yellow-600" :
+                    "bg-gray-600"
+                  }
                 >
-                  1×
-                </Button>
-                <Button
-                  variant={currentSpeed === 2 ? "default" : "outline"}
-                  size="sm"
-                  onClick={() => handleSpeedChange(2)}
-                >
-                  2×
-                </Button>
-                <Button
-                  variant={!visualsEnabled ? "default" : "outline"}
-                  size="sm"
-                  onClick={() => speedController.current.toggleVisuals()}
-                >
-                  FF
-                </Button>
+                  {!visualsEnabled ? "Fast Forward" :
+                   currentSpeed === 1 ? "1× Critical Play" :
+                   currentSpeed === 2 ? "2× Important Play" :
+                   `${currentSpeed}× Routine Play`}
+                </Badge>
               </div>
             </div>
           </div>
@@ -408,9 +379,19 @@ export const RealmRivalry2DMatchEngine: React.FC<MatchEngineProps> = ({
                     Live Commentary
                   </CardTitle>
                 </CardHeader>
-                <CardContent className="max-h-64 overflow-y-auto space-y-2">
+                <CardContent className="max-h-64 overflow-y-auto space-y-2" style={{
+                  background: '#21212b',
+                  color: '#f4f4fa',
+                  padding: '14px',
+                  borderRadius: '8px',
+                  minHeight: '128px'
+                }}>
                   {events.slice(0, 20).map((event, index) => (
-                    <div key={event.id} className="text-sm p-2 bg-gray-100 dark:bg-gray-800 rounded">
+                    <div key={event.id} className="text-sm p-2 rounded" style={{
+                      background: 'rgba(255, 255, 255, 0.1)',
+                      color: '#f4f4fa',
+                      border: '1px solid rgba(255, 255, 255, 0.2)'
+                    }}>
                       <div className="flex items-center justify-between mb-1">
                         <Badge 
                           className={
@@ -422,11 +403,11 @@ export const RealmRivalry2DMatchEngine: React.FC<MatchEngineProps> = ({
                           {formatTime(event.timestamp)}
                         </Badge>
                       </div>
-                      <div>{event.description}</div>
+                      <div style={{ color: '#f4f4fa' }}>{event.description}</div>
                     </div>
                   ))}
                   {events.length === 0 && (
-                    <div className="text-center text-gray-500 py-4">
+                    <div className="text-center py-4" style={{ color: '#9ca3af' }}>
                       Waiting for match events...
                     </div>
                   )}
@@ -447,13 +428,16 @@ export const RealmRivalry2DMatchEngine: React.FC<MatchEngineProps> = ({
                     <>
                       <div className="space-y-2">
                         <div className="flex justify-between text-sm">
-                          <span>Possession</span>
-                          <span>Home 60% - 40% Away</span>
+                          <span>Score</span>
+                          <span>{liveState.homeScore} - {liveState.awayScore}</span>
                         </div>
-                        <div className="space-y-1">
-                          <div className="w-full bg-gray-200 rounded-full h-2">
-                            <div className="bg-blue-600 h-2 rounded-full" style={{width: '60%'}}></div>
-                          </div>
+                        <div className="flex justify-between text-sm">
+                          <span>Game Time</span>
+                          <span>{formatTime(liveState.gameTime)} / {formatTime(liveState.maxTime)}</span>
+                        </div>
+                        <div className="flex justify-between text-sm">
+                          <span>Half</span>
+                          <span>{liveState.currentHalf}/2</span>
                         </div>
                       </div>
                       
@@ -465,6 +449,14 @@ export const RealmRivalry2DMatchEngine: React.FC<MatchEngineProps> = ({
                         <div>
                           <div className="font-medium">Capacity</div>
                           <div className="text-gray-600">{liveState.facilityLevels?.capacity?.toLocaleString()}</div>
+                        </div>
+                        <div>
+                          <div className="font-medium">Active Events</div>
+                          <div className="text-gray-600">{events.length}</div>
+                        </div>
+                        <div>
+                          <div className="font-medium">Match Status</div>
+                          <div className="text-gray-600 capitalize">{liveState.status}</div>
                         </div>
                       </div>
                     </>
@@ -482,28 +474,38 @@ export const RealmRivalry2DMatchEngine: React.FC<MatchEngineProps> = ({
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-3">
-                  {liveState && liveState.perTickRevenue.length > 0 && (
+                  {liveState && (
                     <>
                       <div className="text-center">
                         <div className="text-lg font-bold text-green-600">
-                          ₡{revenueTracker.current.getTotalRevenue().toLocaleString()}
+                          ₡{liveState.perTickRevenue.length > 0 ? 
+                            liveState.perTickRevenue.reduce((sum, tick) => sum + tick.totalRevenue, 0).toLocaleString() : 
+                            '0'}
                         </div>
-                        <div className="text-xs text-gray-500">Total Revenue</div>
+                        <div className="text-xs text-gray-500">Total Revenue (Server-Calculated)</div>
                       </div>
                       
                       <div className="space-y-2 text-sm">
                         <div className="flex justify-between">
-                          <span>Tickets</span>
-                          <span>₡{revenueTracker.current.getTicketRevenue().toLocaleString()}</span>
+                          <span>Tickets (₡25 × {liveState.attendance?.toLocaleString()})</span>
+                          <span>₡{((liveState.attendance || 0) * 25).toLocaleString()}</span>
                         </div>
                         <div className="flex justify-between">
-                          <span>Concessions</span>
-                          <span>₡{revenueTracker.current.getConcessionRevenue().toLocaleString()}</span>
+                          <span>Concessions (₡8 × Lvl{liveState.facilityLevels?.concessions || 1})</span>
+                          <span>₡{((liveState.attendance || 0) * 8 * (liveState.facilityLevels?.concessions || 1)).toLocaleString()}</span>
                         </div>
                         <div className="flex justify-between">
-                          <span>VIP Suites</span>
-                          <span>₡{revenueTracker.current.getVIPRevenue().toLocaleString()}</span>
+                          <span>VIP Suites (₡5000 × Lvl{liveState.facilityLevels?.vipSuites || 1})</span>
+                          <span>₡{((liveState.facilityLevels?.vipSuites || 1) * 5000).toLocaleString()}</span>
                         </div>
+                        <div className="flex justify-between">
+                          <span>Parking (30% × ₡10 × Lvl{liveState.facilityLevels?.parking || 1})</span>
+                          <span>₡{(Math.floor((liveState.attendance || 0) * 0.3) * 10 * (liveState.facilityLevels?.parking || 1)).toLocaleString()}</span>
+                        </div>
+                      </div>
+                      
+                      <div className="text-xs text-gray-500 border-t pt-2">
+                        Formula: attendance × (₡25 + ₡8×concessions + ₡3×merch) + VIP flat rate + parking
                       </div>
                     </>
                   )}

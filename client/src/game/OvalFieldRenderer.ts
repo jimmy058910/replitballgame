@@ -202,26 +202,65 @@ export class OvalFieldRenderer {
   }
 
   /**
-   * Render the oval dome field
+   * Render the proper dome field with scoring zones and field markings
    */
   private renderField() {
-    // Field background gradient
-    const gradient = this.ctx.createRadialGradient(
-      this.centerX, this.centerY, 0,
-      this.centerX, this.centerY, this.fieldRadius
-    );
-    gradient.addColorStop(0, '#2d5a3d');
-    gradient.addColorStop(1, '#1a3d2e');
-    
-    this.ctx.fillStyle = gradient;
+    // Main field (oval/rounded-rectangle for dome)
+    this.ctx.fillStyle = '#23864c'; // Deep green field
     this.ctx.beginPath();
-    this.ctx.arc(this.centerX, this.centerY, this.fieldRadius, 0, Math.PI * 2);
+    this.ctx.ellipse(this.centerX, this.centerY, this.fieldRadius, this.fieldRadius * 0.6, 0, 0, Math.PI * 2);
     this.ctx.fill();
     
-    // Field border
-    this.ctx.strokeStyle = '#ffffff';
+    // Scoring zones (end zones) with transparency
+    this.ctx.fillStyle = 'rgba(31, 58, 45, 0.7)'; // Darker green with transparency
+    
+    // Left scoring zone
+    this.ctx.fillRect(this.centerX - this.fieldRadius, this.centerY - this.fieldRadius * 0.4, 80, this.fieldRadius * 0.8);
+    
+    // Right scoring zone  
+    this.ctx.fillRect(this.centerX + this.fieldRadius - 80, this.centerY - this.fieldRadius * 0.4, 80, this.fieldRadius * 0.8);
+    
+    // Field border (oval)
+    this.ctx.strokeStyle = '#f8f8f8'; // Off-white lines
     this.ctx.lineWidth = 3;
+    this.ctx.beginPath();
+    this.ctx.ellipse(this.centerX, this.centerY, this.fieldRadius, this.fieldRadius * 0.6, 0, 0, Math.PI * 2);
     this.ctx.stroke();
+    
+    // Midfield line
+    this.ctx.strokeStyle = '#f8f8f8';
+    this.ctx.lineWidth = 2;
+    this.ctx.beginPath();
+    this.ctx.moveTo(this.centerX, this.centerY - this.fieldRadius * 0.6);
+    this.ctx.lineTo(this.centerX, this.centerY + this.fieldRadius * 0.6);
+    this.ctx.stroke();
+    
+    // Center circle with dome scoring area
+    this.ctx.strokeStyle = '#f8f8f8';
+    this.ctx.lineWidth = 2;
+    this.ctx.beginPath();
+    this.ctx.arc(this.centerX, this.centerY, 60, 0, Math.PI * 2);
+    this.ctx.stroke();
+    
+    // Goal markers in scoring zones
+    this.ctx.fillStyle = '#f8f8f8';
+    this.ctx.fillRect(this.centerX - this.fieldRadius + 5, this.centerY - 15, 10, 30);
+    this.ctx.fillRect(this.centerX + this.fieldRadius - 15, this.centerY - 15, 10, 30);
+    
+    // Add field markings - yard/intensity lines
+    this.ctx.strokeStyle = '#f8f8f8';
+    this.ctx.lineWidth = 1;
+    this.ctx.setLineDash([5, 5]);
+    
+    // Quarter lines
+    this.ctx.beginPath();
+    this.ctx.moveTo(this.centerX - this.fieldRadius * 0.5, this.centerY - this.fieldRadius * 0.4);
+    this.ctx.lineTo(this.centerX - this.fieldRadius * 0.5, this.centerY + this.fieldRadius * 0.4);
+    this.ctx.moveTo(this.centerX + this.fieldRadius * 0.5, this.centerY - this.fieldRadius * 0.4);
+    this.ctx.lineTo(this.centerX + this.fieldRadius * 0.5, this.centerY + this.fieldRadius * 0.4);
+    this.ctx.stroke();
+    
+    this.ctx.setLineDash([]);
     
     // Center circle
     this.ctx.strokeStyle = '#ffffff';
