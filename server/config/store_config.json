@@ -47,7 +47,8 @@
     "team_stamina_brew": { "credits": 10000, "gems": 12 },
     "champions_blessing": { "credits": 30000, "gems": 20 },
 
-    "exhibition_match_entry": { "credits": 5000, "gems": 5 },
+    "exhibition_match_entry": { "credits": 500, "gems": 2 },
+    "exhibition_credit": { "credits": 500, "gems": 2 },
     "daily_tournament_ticket_div_5_8": { "credits": 500, "gems": 10 },
     "daily_tournament_ticket_div_1_4": { "credits": 1000, "gems": 10 },
     "mid_season_cup_entry_div_5_8": { "credits": 1200, "gems": 8 },

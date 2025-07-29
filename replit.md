@@ -606,6 +606,24 @@ docker push gcr.io/direct-glider-465821-p7/realm-rivalry:latest
 
 ## Recent Changes
 
+### July 29, 2025 - ✅ EXHIBITION TOKEN PURCHASE SYSTEM COMPLETELY FIXED ✅
+
+#### ✅ CRITICAL EXHIBITION PURCHASE BACKEND FIX - PRODUCTION READY
+- ✓ **Root Cause Resolved**: Exhibition tokens were incorrectly requiring daily rotation availability instead of being permanent purchases
+- ✓ **Special Token Handling**: Added dedicated logic in `/api/store/purchase/:itemId` to handle `exhibition_credit` and `exhibition_gem` as permanent items
+- ✓ **Direct Pricing Integration**: Exhibition tokens now use pricing directly from `store_config.json` (₡500 credits, 💎2 gems) bypassing daily rotation
+- ✓ **Daily Limits Exemption**: Exhibition tokens exempt from rarity-based daily purchase limits, allowing unlimited purchases as intended
+- ✓ **Proper Transaction Recording**: Exhibition purchases recorded with `storeType: "permanent"` for correct categorization
+- ✓ **Unified Pricing Confirmed**: All interfaces (Competition Center, Market District, Legacy Market) now consistently use ₡500 pricing
+- ✓ **Database Integration Verified**: Credit deduction and transaction logging working correctly in production
+- ✓ **Production Testing**: Backend API tested and confirmed working with HTTP 200 success responses
+
+#### ✅ COMPREHENSIVE STORE CONFIGURATION UPDATES
+- ✓ **Store Config Enhanced**: Updated `store_config.json` to include both `exhibition_credit` and `exhibition_match_entry` with unified ₡500/💎2 pricing
+- ✓ **Backend-Frontend Alignment**: Exhibition token IDs properly mapped between frontend calls and backend processing
+- ✓ **Error Prevention**: Added fallback pricing logic and proper error handling for missing configuration scenarios
+- ✓ **TypeScript Health**: All LSP diagnostics resolved, backend compiling cleanly without errors
+
 ### July 29, 2025 - ✅ JULES' 2D MATCH ENGINE COMPLETE INTEGRATION SYSTEM ACHIEVED ✅
 
 #### ✅ COMPREHENSIVE JULES' 2D CANVAS-BASED MATCH ENGINE IMPLEMENTATION - PRODUCTION READY

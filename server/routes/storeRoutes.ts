@@ -378,58 +378,75 @@ router.post('/purchase/:itemId', isAuthenticated, async (req: any, res: Response
     let itemId = req.params.itemId;
     const { currency, expectedPrice } = req.body;
 
-    // Handle special exhibition game item IDs
-    if (itemId === 'exhibition_gem' || itemId === 'exhibition_credit') {
-      itemId = 'exhibition_match_entry';
-    }
-
     const finances = await teamFinancesStorage.getTeamFinances(team.id);
     if (!finances) return res.status(404).json({ message: "Team finances not found." });
 
-    // Find the item in enhanced game economy service daily rotation
-    const dailyItems = EnhancedGameEconomyService.generateDailyRotationStore();
-    const storeItem = dailyItems.find((item: any) => item.id === itemId);
+    let storeItem;
     
-    if (!storeItem) {
-      return res.status(404).json({ message: "Item not found in today's daily rotation." });
+    // Handle special exhibition tokens - always available (bypass daily rotation)
+    if (itemId === 'exhibition_gem' || itemId === 'exhibition_credit') {
+      const exhibitionPricing = storeConfig.itemPrices.exhibition_credit || storeConfig.itemPrices.exhibition_match_entry;
+      if (!exhibitionPricing) {
+        return res.status(404).json({ message: "Exhibition token pricing not configured." });
+      }
+      
+      storeItem = {
+        id: 'exhibition_credit',
+        name: 'Exhibition Match Entry',
+        credits: exhibitionPricing.credits || 500,
+        gems: exhibitionPricing.gems || 2,
+        tier: 'common',
+        type: 'entry',
+        statEffects: null
+      };
+    } else {
+      // Find the item in enhanced game economy service daily rotation
+      const dailyItems = EnhancedGameEconomyService.generateDailyRotationStore();
+      storeItem = dailyItems.find((item: any) => item.id === itemId);
+      
+      if (!storeItem) {
+        return res.status(404).json({ message: "Item not found in today's daily rotation." });
+      }
     }
     
-    // Check daily purchase limits based on rarity tiers
-    const today = new Date();
-    const todayStart = new Date(today.getFullYear(), today.getMonth(), today.getDate());
-    const todayEnd = new Date(today.getFullYear(), today.getMonth(), today.getDate(), 23, 59, 59);
-    
-    const dailyPurchases = await prisma.paymentTransaction.count({
-      where: {
-        userId: userId,
-        itemName: storeItem.name,
-        transactionType: "purchase",
-        status: "completed",
-        createdAt: {
-          gte: todayStart,
-          lte: todayEnd
+    // Check daily purchase limits based on rarity tiers (skip for exhibition tokens)
+    if (itemId !== 'exhibition_credit' && itemId !== 'exhibition_gem') {
+      const today = new Date();
+      const todayStart = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+      const todayEnd = new Date(today.getFullYear(), today.getMonth(), today.getDate(), 23, 59, 59);
+      
+      const dailyPurchases = await prisma.paymentTransaction.count({
+        where: {
+          userId: userId,
+          itemName: storeItem.name,
+          transactionType: "purchase",
+          status: "completed",
+          createdAt: {
+            gte: todayStart,
+            lte: todayEnd
+          }
         }
-      }
-    });
-    
-    // Define purchase limits by rarity
-    const purchaseLimits = {
-      'common': 3,
-      'uncommon': 3,
-      'rare': 2,
-      'epic': 2,
-      'legendary': 1
-    };
-    
-    const itemRarity = storeItem.tier?.toLowerCase() || 'common';
-    const maxPurchases = purchaseLimits[itemRarity] || 1;
-    
-    if (dailyPurchases >= maxPurchases) {
-      return res.status(400).json({ 
-        message: `Daily purchase limit reached for this item. (${dailyPurchases}/${maxPurchases})`,
-        currentPurchases: dailyPurchases,
-        maxPurchases: maxPurchases
       });
+      
+      // Define purchase limits by rarity
+      const purchaseLimits: Record<string, number> = {
+        'common': 3,
+        'uncommon': 3,
+        'rare': 2,
+        'epic': 2,
+        'legendary': 1
+      };
+      
+      const itemRarity = storeItem.tier?.toLowerCase() || 'common';
+      const maxPurchases = purchaseLimits[itemRarity] || 1;
+      
+      if (dailyPurchases >= maxPurchases) {
+        return res.status(400).json({ 
+          message: `Daily purchase limit reached for this item. (${dailyPurchases}/${maxPurchases})`,
+          currentPurchases: dailyPurchases,
+          maxPurchases: maxPurchases
+        });
+      }
     }
     
     // Get price based on currency
@@ -459,10 +476,10 @@ router.post('/purchase/:itemId', isAuthenticated, async (req: any, res: Response
           userId,
           team.id,
           storeItem.name,
-          storeItem.statEffects ? "equipment" : "consumable",
+          storeItem.statEffects ? "equipment" : (storeItem.type === "entry" ? "entry" : "consumable"),
           actualPrice,
           0,
-          { itemId, storeType: "daily_rotation" }
+          { itemId, storeType: (itemId === 'exhibition_credit' || itemId === 'exhibition_gem') ? "permanent" : "daily_rotation" }
         );
     } else if (currency === "gems" || currency === "premium_currency") {
         const currentGems = finances.gems || finances.premiumCurrency || 0;
@@ -481,10 +498,10 @@ router.post('/purchase/:itemId', isAuthenticated, async (req: any, res: Response
           userId,
           team.id,
           storeItem.name,
-          storeItem.statEffects ? "equipment" : "consumable",
+          storeItem.statEffects ? "equipment" : (storeItem.type === "entry" ? "entry" : "consumable"),
           0,
           actualPrice,
-          { itemId, storeType: "daily_rotation" }
+          { itemId, storeType: (itemId === 'exhibition_credit' || itemId === 'exhibition_gem') ? "permanent" : "daily_rotation" }
         );
     } else {
         return res.status(400).json({ message: "Unsupported currency type for this item." });
