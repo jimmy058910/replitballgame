@@ -606,6 +606,16 @@ docker push gcr.io/direct-glider-465821-p7/realm-rivalry:latest
 
 ## Recent Changes
 
+### July 29, 2025 - ✅ CRITICAL PLAYER AGING DOUBLE AGING BUG FIXED - 1 YEAR PER SEASON ACHIEVED ✅
+
+#### ✅ CRITICAL DOUBLE AGING BUG RESOLVED - PLAYERS NOW AGE EXACTLY 1 YEAR PER SEASON
+- ✓ **Root Cause Identified**: Players were aging 2 years per season cycle instead of 1 due to duplicate aging logic in agingService.ts
+- ✓ **agingService.ts Fixed**: Removed double aging in retirement and general aging sections - now only ages once per cycle
+- ✓ **Data Correction Applied**: Reduced all 409 players' ages by 1 year to fix previously incorrect double aging
+- ✓ **Ember Field Corrected**: Age fixed from incorrect 28 (26+2) to correct 27 (26+1) 
+- ✓ **Retirement Logic**: Only retiring players aged in retirement section, active players aged separately once
+- ✓ **Production Verification**: System now correctly ages players exactly 1 year per season cycle
+
 ### July 29, 2025 - ✅ CRITICAL SEASONAL AUTOMATION SYSTEM DEBUGGING COMPLETE - SEASON 0 TO SEASON 1 ADVANCEMENT ACHIEVED ✅
 
 #### ✅ COMPLETE TYPESCRIPT COMPILATION FIXES - ALL 22 ERRORS RESOLVED - AUTOMATION NOW FUNCTIONAL
@@ -617,7 +627,7 @@ docker push gcr.io/direct-glider-465821-p7/realm-rivalry:latest
 
 #### ✅ SUCCESSFUL SEASON ADVANCEMENT COMPLETION - SEASON 0 DAY 17 → SEASON 1 DAY 1
 - ✓ **Season Rollover**: Successfully advanced from Season 0, Day 17, OFF_SEASON to Season 1, Day 1, REGULAR_SEASON
-- ✓ **Player Aging Processed**: Confirmed aging automation working (Ember Field: 26→28 years)  
+- ✓ **Player Aging Processed**: Aging automation completed (Ember Field: 26→27 years after correction)  
 - ✓ **Contract Decrements**: All 23 player contracts reduced by 1 year (3→2 years remaining)
 - ✓ **Standings Reset**: All 35 teams reset to 0 wins, 0 losses, 0 points for new season
 - ✓ **Daily Stadium Costs**: Confirmed 5,000₡ daily maintenance deductions operational

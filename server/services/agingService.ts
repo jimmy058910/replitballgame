@@ -173,7 +173,7 @@ export class AgingService {
       const retirementCalc = this.calculateRetirementChance(player);
       
       if (retirementCalc.willRetire) {
-        // Mark player as retired (can't set teamId to null due to schema constraints)
+        // Mark player as retired and age them to their retirement age
         await prisma.player.update({
           where: { id: player.id },
           data: { 
@@ -222,9 +222,9 @@ export class AgingService {
       }
     }
 
-    // Step 3: Age all players by +1 year (but only during off season)
+    // Step 3: Age all players by +1 year (but only during off season and if not already retired)
     let ageUpdateData: any = {};
-    if (isOffSeason) {
+    if (isOffSeason && !player.isRetired) {
       ageUpdateData.age = player.age + 1;
     }
     
