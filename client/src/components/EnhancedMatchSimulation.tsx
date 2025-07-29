@@ -572,9 +572,9 @@ class EnhancedSimulationEngine {
 
   constructor(gameState: GameState, players: Player[], team1: any, team2: any, tacticalModifiers: any) {
     this.gameState = gameState;
-    this.players = players;
-    this.team1 = team1;
-    this.team2 = team2;
+    this.players = players || [];
+    this.team1 = team1 || { id: null, fieldSize: "Standard", fanLoyalty: 50 };
+    this.team2 = team2 || { id: null, fieldSize: "Standard", fanLoyalty: 50 };
     this.tacticalModifiers = tacticalModifiers;
     this.commentaryEngine = new CommentaryEngine(gameState, players, team1, team2);
   }
@@ -596,6 +596,13 @@ class EnhancedSimulationEngine {
 
   private applyHomeFieldAdvantage(): void {
     const homeTeam = this.team1;
+    
+    // Add null checks for homeTeam
+    if (!homeTeam || !homeTeam.id) {
+      console.warn('Home team data is missing for home field advantage calculation');
+      return;
+    }
+    
     const fieldSize = homeTeam.fieldSize || "Standard";
     
     // Apply field size bonuses to home team players only
@@ -622,6 +629,11 @@ class EnhancedSimulationEngine {
     const intimidationFactor = Math.floor((fanLoyalty * attendanceRate) / 100);
     
     // Apply crowd noise debuff to away team
+    if (!this.team2 || !this.team2.id) {
+      console.warn('Away team data is missing for crowd noise calculation');
+      return;
+    }
+    
     const awayTeamPlayers = this.players.filter(p => p.teamId === this.team2.id);
     const crowdNoiseDebuff = Math.floor(intimidationFactor / 20); // -1 per 20 intimidation points
     

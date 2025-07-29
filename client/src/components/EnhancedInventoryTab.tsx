@@ -500,7 +500,6 @@ export function EnhancedInventoryTab({ teamId }: EnhancedInventoryTabProps) {
               })}
             </div>
           </TooltipProvider>
-          </div>
 
           {filteredAndSortedItems.length === 0 && (
             <div className="text-center py-12">
