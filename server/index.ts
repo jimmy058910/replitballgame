@@ -191,18 +191,36 @@ app.get('/health', (req, res) => {
 });
 
 (async () => {
-  // Setup session management
+  // Setup session management with detailed logging
+  console.log('🔧 Setting up session management...');
   app.use(session({
     secret: process.env.SESSION_SECRET || 'default-secret-key',
     resave: false,
     saveUninitialized: false,
+    name: 'realm-rivalry.sid', // Custom session name
     cookie: {
       secure: process.env.NODE_ENV === 'production',
       httpOnly: true,
-      maxAge: 24 * 60 * 60 * 1000,
+      maxAge: 24 * 60 * 60 * 1000, // 24 hours
       sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax'
+    },
+    // Add session debug logging
+    onHeaders: function(res) {
+      console.log('🔍 Session headers being set...');
     }
   }));
+  
+  // Add session debugging middleware
+  app.use((req, res, next) => {
+    if (req.path.includes('/auth') || req.path.includes('/api/me')) {
+      console.log(`🔍 Session info for ${req.path}:`, {
+        sessionID: req.sessionID,
+        isAuthenticated: req.isAuthenticated ? req.isAuthenticated() : false,
+        user: req.user ? { userId: req.user.userId } : null
+      });
+    }
+    next();
+  });
 
   app.use(passport.initialize());
   app.use(passport.session());

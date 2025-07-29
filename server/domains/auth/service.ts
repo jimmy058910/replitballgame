@@ -51,8 +51,19 @@ export class AuthService {
     try {
       Logger.logInfo('Creating new user profile from Google OAuth', { 
         googleId: googleProfile.id, 
-        email: googleProfile.emails?.[0]?.value 
+        email: googleProfile.emails?.[0]?.value,
+        displayName: googleProfile.displayName,
+        name: googleProfile.name
       });
+
+      // Test database connection first
+      try {
+        await prisma.$connect();
+        Logger.logInfo('Database connection successful for user creation');
+      } catch (dbError) {
+        Logger.logError('Database connection failed during user creation', dbError as Error);
+        throw new Error('Database connection failed');
+      }
 
       const existingUser = await prisma.userProfile.findUnique({
         where: { userId: googleProfile.id }

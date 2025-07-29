@@ -4,7 +4,17 @@ import { Express } from 'express';
 import { AuthService } from './domains/auth/service';
 import { Logger } from './domains/core/logger';
 
-export function setupGoogleAuth(app: Express) {
+export async function setupGoogleAuth(app: Express) {
+  Logger.logInfo('Setting up Google OAuth authentication system');
+  
+  // Test database connection before setting up auth
+  try {
+    const { AuthService } = await import('./domains/auth/service');
+    Logger.logInfo('AuthService imported successfully');
+  } catch (error) {
+    Logger.logError('Failed to import AuthService', error as Error);
+    throw error;
+  }
   // Configure the Google strategy for use by Passport.
   passport.use(new GoogleStrategy({
     clientID: process.env.GOOGLE_CLIENT_ID!,
@@ -77,9 +87,16 @@ export function setupGoogleAuth(app: Express) {
   // It will exchange the code for a profile and call our verify function above.
   app.get('/auth/google/callback', 
     passport.authenticate('google', {
-      successRedirect: '/', // Redirect to the homepage on success
       failureRedirect: '/login' // Redirect to a login page on failure
-    })
+    }),
+    (req, res) => {
+      // Custom success handling with detailed logging
+      Logger.logInfo('OAuth callback successful, redirecting user', { 
+        userId: (req.user as any)?.userId,
+        sessionId: req.sessionID 
+      });
+      res.redirect('/'); // Redirect to the homepage on success
+    }
   );
 
   // A simple route to check if the user is logged in.
@@ -100,6 +117,21 @@ export function setupGoogleAuth(app: Express) {
       res.redirect('/');
     });
   });
+
+  // Add error handling middleware for auth routes
+  app.use('/auth', (error: any, req: any, res: any, next: any) => {
+    Logger.logError('Authentication error occurred', error, { 
+      path: req.path, 
+      method: req.method,
+      sessionId: req.sessionID 
+    });
+    res.status(500).json({ 
+      error: 'Authentication failed', 
+      message: 'Internal server error during authentication'
+    });
+  });
+
+  Logger.logInfo('Google OAuth authentication setup completed');
 }
 
 // Authentication middleware for route protection
