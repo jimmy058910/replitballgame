@@ -63,7 +63,7 @@ export class TournamentRecoveryService {
    */
   private async startMatchesInRound(tournamentId: number, round: number): Promise<void> {
     try {
-      const { matchStateManager } = require('./matchStateManager');
+      const { matchStateManager } = await import('./matchStateManager');
       
       // Get matches for this round
       const matches = await prisma.game.findMany({
