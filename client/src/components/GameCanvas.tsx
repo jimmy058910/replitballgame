@@ -31,8 +31,14 @@ const GameCanvas: React.FC<GameCanvasProps> = ({
   useEffect(() => {
     if (!canvasRef.current) return;
 
-    // Create new game instance
-    gameRef.current = new Game(canvasRef.current, matchId);
+    // Text summary callback for speed control
+    const handleTextSummary = (event: any) => {
+      console.log('Text summary for event:', event);
+      // Could display text summary in UI here
+    };
+
+    // Create new game instance with text summary callback
+    gameRef.current = new Game(canvasRef.current, matchId, handleTextSummary);
 
     return () => {
       if (gameRef.current) {
@@ -49,7 +55,17 @@ const GameCanvas: React.FC<GameCanvasProps> = ({
         homeTeam: gameData?.homeTeam,
         awayTeam: gameData?.awayTeam,
         liveState,
-        events
+        events,
+        stadiumData: {
+          attendance: liveState?.attendance || 15000,
+          capacity: liveState?.stadiumCapacity || 20000,
+          facilities: {
+            vipSuites: liveState?.vipSuites || 0,
+            lighting: liveState?.lighting || 1,
+            concessions: liveState?.concessions || 1
+          },
+          fanLoyalty: liveState?.fanLoyalty || 50
+        }
       });
     }
   }, [gameData, liveState, events]);
@@ -122,6 +138,20 @@ const GameCanvas: React.FC<GameCanvasProps> = ({
                 <div className="text-white text-lg font-semibold">PAUSED</div>
               </div>
             )}
+          </div>
+
+          {/* Speed Control Display */}
+          <div className="flex justify-center">
+            <div className={`px-3 py-1 rounded-full text-xs font-medium ${
+              gameRef.current?.getSpeedController()?.isVisualsStopped ? 
+              'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200' :
+              'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
+            }`}>
+              {gameRef.current?.getSpeedController()?.isVisualsStopped ? 
+                '⏸️ TEXT MODE' : 
+                `▶️ ${gameRef.current?.getSpeedController()?.currentSpeed || 1}x SPEED`
+              }
+            </div>
           </div>
 
           {/* Legend */}

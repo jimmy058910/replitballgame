@@ -36,9 +36,12 @@ class Player {
     this.stamina = stamina;
   }
 
-  public update() {
-    this.x += this.vx;
-    this.y += this.vy;
+  public update(deltaTime: number = 16) {
+    // Apply speed control to movement
+    const timeMultiplier = deltaTime / 16; // Normalize to 60fps baseline
+    
+    this.x += this.vx * timeMultiplier;
+    this.y += this.vy * timeMultiplier;
     
     // Apply friction
     this.vx *= 0.95;

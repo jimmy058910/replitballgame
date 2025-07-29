@@ -11,9 +11,12 @@ class Ball {
     this.y = y;
   }
 
-  public update(canvasWidth: number, canvasHeight: number) {
-    this.x += this.vx;
-    this.y += this.vy;
+  public update(canvasWidth: number, canvasHeight: number, deltaTime: number = 16) {
+    // Apply speed control to movement
+    const timeMultiplier = deltaTime / 16; // Normalize to 60fps baseline
+    
+    this.x += this.vx * timeMultiplier;
+    this.y += this.vy * timeMultiplier;
 
     // Collision with walls (dome boundaries)
     const centerX = canvasWidth / 2;
