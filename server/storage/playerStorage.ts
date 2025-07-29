@@ -199,8 +199,8 @@ export class PlayerStorage {
   // Taxi Squad specific methods (removed duplicate - using the one above)
 
   async promotePlayerFromTaxiSquad(playerId: number): Promise<Player | null> {
-    // Promotes a taxi squad player to MAIN ROSTER by inserting them at position 12
-    // This moves them into the main roster and pushes everyone down naturally
+    // Promotes a taxi squad player to MAIN ROSTER
+    // CRITICAL: Never moves main roster players to taxi squad - taxi squad is for recruited players only
     try {
       const player = await prisma.player.findUnique({
         where: { id: parseInt(playerId.toString()) }
@@ -219,29 +219,22 @@ export class PlayerStorage {
         orderBy: { createdAt: 'asc' }
       });
 
-      console.log(`[PROMOTION DEBUG] Before promotion: ${allTeamPlayers.length} total players`);
-      console.log(`[PROMOTION DEBUG] Promoting player: ${player.firstName} ${player.lastName} (ID: ${player.id})`);
-      console.log(`[PROMOTION DEBUG] Current roster order:`, allTeamPlayers.map((p, i) => `${i+1}. ${p.firstName} ${p.lastName} (ID: ${p.id})`));
-
-
-
-      // FIXED STRATEGY: Simply move the promoted player to be the new 12th player
-      // by setting their createdAt to be just before the current 12th player
-      const twelfthPlayer = allTeamPlayers[11]; // Current 12th player (0-indexed)
-      console.log(`[PROMOTION DEBUG] Current 12th player:`, twelfthPlayer ? `${twelfthPlayer.firstName} ${twelfthPlayer.lastName} (ID: ${twelfthPlayer.id})` : 'None');
+      const mainRosterPlayers = allTeamPlayers.slice(0, 12); // First 12 are main roster
       
-      let newCreatedAt;
-      if (twelfthPlayer) {
-        // Set promoted player to be just before the current 12th player
-        // This makes the promoted player the new 12th, pushing current 12th to 13th (taxi squad)
-        newCreatedAt = new Date(twelfthPlayer.createdAt.getTime() - 60000);
-        console.log(`[PROMOTION DEBUG] Setting promoted player before 12th player, pushing them to taxi squad`);
-      } else {
-        // Roster has fewer than 12 players, just append to main roster
-        const lastMainRosterPlayer = allTeamPlayers[allTeamPlayers.length - 1];
-        newCreatedAt = new Date(lastMainRosterPlayer.createdAt.getTime() + 60000);
-        console.log(`[PROMOTION DEBUG] Roster has < 12 players, appending to main roster`);
+      console.log(`[PROMOTION DEBUG] Before promotion: ${allTeamPlayers.length} total players, ${mainRosterPlayers.length} on main roster`);
+      console.log(`[PROMOTION DEBUG] Promoting player: ${player.firstName} ${player.lastName} (ID: ${player.id})`);
+
+      // Check if main roster has space (must have < 12 players to promote)
+      if (mainRosterPlayers.length >= 12) {
+        console.log(`[PROMOTION DEBUG] Cannot promote - main roster is full (${mainRosterPlayers.length}/12 players)`);
+        throw new Error("Cannot promote player - main roster is full. Please release a main roster player first.");
       }
+
+      // Add promoted player to end of main roster
+      const lastMainRosterPlayer = mainRosterPlayers[mainRosterPlayers.length - 1];
+      const newCreatedAt = new Date(lastMainRosterPlayer.createdAt.getTime() + 60000);
+      
+      console.log(`[PROMOTION DEBUG] Adding player to main roster position ${mainRosterPlayers.length + 1}`);
 
       // Update the player's createdAt timestamp to promote them
       const promotedPlayer = await prisma.player.update({
@@ -256,7 +249,6 @@ export class PlayerStorage {
           skills: { include: { skill: true } }
         }
       });
-
 
       console.log(`[PROMOTION DEBUG] Successfully promoted ${promotedPlayer.firstName} ${promotedPlayer.lastName} to main roster`);
       return promotedPlayer;

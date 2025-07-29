@@ -1600,9 +1600,10 @@ router.post('/:teamId/taxi-squad/:playerId/promote', isAuthenticated, asyncHandl
     throw ErrorCreators.validation("Player is not on taxi squad");
   }
 
-  // Check total roster space (maximum 15 players total)
-  if (allTeamPlayers.length >= 15) {
-    throw ErrorCreators.validation("Team roster is full (maximum 15 players)");
+  // Check if main roster has space (must have < 12 players to promote)
+  const mainRosterPlayers = allTeamPlayers.slice(0, 12);
+  if (mainRosterPlayers.length >= 12) {
+    throw ErrorCreators.validation("Cannot promote player - main roster is full (12/12 players). Please release a main roster player first to make space.");
   }
 
   // Calculate appropriate salary based on player stats and age
@@ -1610,7 +1611,7 @@ router.post('/:teamId/taxi-squad/:playerId/promote', isAuthenticated, asyncHandl
     ((player.speed + player.power + player.throwing + player.catching + player.agility + player.staminaAttribute) / 6) * 1000
   ));
   
-  // Promote player and update contract in one operation
+  // Promote player (this will only succeed if main roster has space)
   const promotedPlayer = await storage.players.promotePlayerFromTaxiSquad(playerId);
   
   // Update player potential rating (contracts are handled separately in Contract table)
