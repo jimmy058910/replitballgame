@@ -6,6 +6,8 @@ import session from 'express-session';
 import passport from 'passport';
 import compression from 'compression';
 import helmet from 'helmet';
+import { setupGoogleAuth } from './googleAuth';
+import { registerAllRoutes } from './routes/index';
 
 const app = express();
 const port = process.env.PORT ? parseInt(process.env.PORT) : 8080;
@@ -58,6 +60,16 @@ app.use(session({
 // Initialize Passport
 app.use(passport.initialize());
 app.use(passport.session());
+
+// Setup Google Authentication BEFORE other routes
+console.log('🔐 Setting up Google authentication...');
+setupGoogleAuth(app);
+console.log('✅ Authentication configured');
+
+// Setup all API routes BEFORE static file serving and SPA fallback
+console.log('🛣️ Registering API routes...');
+registerAllRoutes(app);
+console.log('✅ API routes configured');
 
 // Health check endpoints (CRITICAL for Cloud Run)
 app.get('/health', (req, res) => {
@@ -211,9 +223,7 @@ async function startServer() {
     console.log(`🏥 Health check: http://0.0.0.0:${port}/health`);
     console.log(`🌐 Production URL: https://realmrivalry.com`);
     console.log(`📁 Serving React app from: ${staticPath}`);
-    
-    // After server starts, initialize authentication and routes
-    initializeAuthAndRoutes();
+    console.log('🎉 Full Realm Rivalry production server ready!');
   });
 
   // Graceful shutdown
@@ -234,30 +244,7 @@ async function startServer() {
   });
 }
 
-// Initialize authentication and API routes (async, after server starts)
-async function initializeAuthAndRoutes() {
-  try {
-    console.log('🔄 Initializing authentication and API routes...');
-    
-    // Dynamic imports to avoid blocking server startup
-    const { setupGoogleAuth } = await import('./googleAuth');
-    const { registerAllRoutes } = await import('./routes/index');
-    
-    console.log('🔐 Setting up Google authentication...');
-    await setupGoogleAuth(app);
-    console.log('✅ Authentication configured');
 
-    console.log('🛣️ Registering API routes...');
-    registerAllRoutes(app);
-    console.log('✅ API routes configured');
-    
-    console.log('🎉 Full Realm Rivalry production server ready!');
-    
-  } catch (error) {
-    console.error('❌ Failed to initialize auth/routes (non-fatal):', error);
-    console.log('⚠️ Server running with limited functionality');
-  }
-}
 
 // Start the server
 startServer().catch((error) => {
