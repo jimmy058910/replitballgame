@@ -1,12 +1,7 @@
 import { Server as SocketIOServer, Socket } from "socket.io";
 import { prisma } from "../db";
 import { matchStateManager } from "./matchStateManager";
-// Production-friendly logging
-const log = {
-  info: (...args: any[]) => console.log('[WebSocket]', ...args),
-  error: (...args: any[]) => console.error('[WebSocket]', ...args),
-  warn: (...args: any[]) => console.warn('[WebSocket]', ...args)
-};
+import logger from '../utils/logger';
 
 interface ConnectedUser {
   userId: string;
@@ -25,7 +20,7 @@ class WebSocketService {
 
   setupEventHandlers() {
     this.io.on('connection', (socket: Socket) => {
-      log.info(`🔌 WebSocket client connected: ${socket.id}`);
+      logger.info(`🔌 WebSocket client connected: ${socket.id}`);
 
       // Handle user authentication with improved error handling
       socket.on('authenticate', async (data: { userId: string }) => {
@@ -75,9 +70,9 @@ class WebSocketService {
             message: 'Successfully authenticated' 
           });
 
-          log.info(`✅ User authenticated: ${data.userId} (${socket.id})`);
+          logger.info(`✅ User authenticated: ${data.userId} (${socket.id})`);
         } catch (error) {
-          log.info(`❌ Authentication error: ${error}`);
+          logger.info(`❌ Authentication error: ${error}`);
           socket.emit('error', { 
             message: 'Authentication failed',
             code: 'AUTH_ERROR',
@@ -155,28 +150,28 @@ class WebSocketService {
             spectatorCount: this.matchRooms.get(data.matchId)!.size
           });
 
-          log.info(`🏟️ User ${user.userId} joined match ${data.matchId}`);
-          log.info(`🔍 TESTING: Code execution continuing after join...`);
+          logger.info(`🏟️ User ${user.userId} joined match ${data.matchId}`);
+          logger.info(`🔍 TESTING: Code execution continuing after join...`);
           
           // Send current match state if live
-          log.info(`🔍 BEFORE getLiveMatchState call for match ${data.matchId}`);
+          logger.info(`🔍 BEFORE getLiveMatchState call for match ${data.matchId}`);
           try {
             const liveState = matchStateManager.getLiveMatchState(data.matchId);
-            log.info(`🔍 AFTER getLiveMatchState call - result: ${liveState ? 'FOUND' : 'NOT FOUND'}`);
+            logger.info(`🔍 AFTER getLiveMatchState call - result: ${liveState ? 'FOUND' : 'NOT FOUND'}`);
             if (liveState) {
-              log.info(`🔍 Live state details - GameTime: ${liveState.gameTime}, Score: ${liveState.homeScore}-${liveState.awayScore}`);
+              logger.info(`🔍 Live state details - GameTime: ${liveState.gameTime}, Score: ${liveState.homeScore}-${liveState.awayScore}`);
               const serializedState = this.serializeLiveState(liveState);
-              log.info(`📤 Sending match state to user ${user.userId}`);
+              logger.info(`📤 Sending match state to user ${user.userId}`);
               socket.emit('match_state_update', serializedState);
-              log.info(`✅ Match state sent successfully`);
+              logger.info(`✅ Match state sent successfully`);
             } else {
-              log.info(`⚠️ No live state found for match ${data.matchId}`);
+              logger.info(`⚠️ No live state found for match ${data.matchId}`);
             }
           } catch (error) {
-            log.info(`❌ Error getting live state: ${error}`);
+            logger.info(`❌ Error getting live state: ${error}`);
           }
         } catch (error) {
-          log.info(`❌ Error joining match: ${error}`);
+          logger.info(`❌ Error joining match: ${error}`);
           socket.emit('error', { message: 'Failed to join match' });
         }
       });
@@ -197,7 +192,7 @@ class WebSocketService {
             }
           }
 
-          log.info(`🚪 User ${user.userId} left match ${user.currentMatchId}`);
+          logger.info(`🚪 User ${user.userId} left match ${user.currentMatchId}`);
           user.currentMatchId = undefined;
         }
       });
@@ -256,7 +251,7 @@ class WebSocketService {
               socket.emit('error', { message: 'Unknown match command' });
           }
         } catch (error) {
-          log.info(`❌ Error processing match command: ${error}`);
+          logger.info(`❌ Error processing match command: ${error}`);
           socket.emit('error', { message: 'Failed to process command' });
         }
       });
@@ -277,7 +272,7 @@ class WebSocketService {
           }
           
           this.connectedUsers.delete(socket.id);
-          log.info(`🔌 WebSocket client disconnected: ${socket.id} (${user.userId})`);
+          logger.info(`🔌 WebSocket client disconnected: ${socket.id} (${user.userId})`);
         }
       });
     });
@@ -353,7 +348,7 @@ export async function setupWebSocketServer(io: SocketIOServer): Promise<void> {
   webSocketService = new WebSocketService(io);
   webSocketService.setupEventHandlers();
   
-  log.info(`🚀 WebSocket service initialized`);
+  logger.info(`🚀 WebSocket service initialized`);
 }
 
 export { webSocketService };

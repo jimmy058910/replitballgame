@@ -11,6 +11,9 @@ RUN npm install
 # Copy all source code
 COPY . .
 
+# CRITICAL FIX: Remove the replitAuth.ts file that crashes in production
+RUN rm -f server/replitAuth.ts
+
 # Generate the Prisma Client
 RUN npx prisma generate
 
