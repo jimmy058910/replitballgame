@@ -1,10 +1,8 @@
 import passport from 'passport';
 import { Strategy as GoogleStrategy } from 'passport-google-oauth20';
 import { Express } from 'express';
-
-// This is a placeholder. In a real app, you would fetch the user from your database.
-// For now, we'll just store users in memory.
-const users: Record<string, any> = {};
+import { AuthService } from './domains/auth/service';
+import { Logger } from './domains/core/logger';
 
 export function setupGoogleAuth(app: Express) {
   // Configure the Google strategy for use by Passport.
@@ -16,33 +14,38 @@ export function setupGoogleAuth(app: Express) {
       : '/auth/google/callback',
     scope: ['profile', 'email']
   },
-  (accessToken, refreshToken, profile, done) => {
-    // This function is called when a user successfully authenticates.
-    // 'profile' contains the user's Google profile information.
-    console.log('Google profile:', profile);
-
-    // Here, you would typically find or create a user in your database.
-    // For this example, we'll just save the profile to our in-memory store.
-    users[profile.id] = profile;
-
-    // The 'done' callback signals to Passport that authentication is complete.
-    // The first argument is for an error (null if none), the second is the user object.
-    return done(null, profile);
+  async (accessToken, refreshToken, profile, done) => {
+    try {
+      Logger.logInfo('Google OAuth callback received', { googleId: profile.id });
+      
+      // Create or get existing user profile from database
+      const userProfile = await AuthService.createUserProfile(profile);
+      
+      Logger.logInfo('User authenticated successfully', { userId: userProfile.userId });
+      return done(null, userProfile);
+    } catch (error) {
+      Logger.logError('Google OAuth authentication failed', error as Error, { profileId: profile.id });
+      return done(error, false);
+    }
   }));
 
-  // Configure Passport authenticated session persistence.
-  // In order to restore authentication state across HTTP requests, Passport needs
-  // to serialize users into and deserialize users out of the session.
+  // Configure Passport authenticated session persistence with database integration
   passport.serializeUser((user: any, done) => {
-    // We serialize the user's Google ID into the session.
-    done(null, user.id);
+    // Serialize the user's database userId into the session
+    Logger.logInfo('Serializing user for session', { userId: user.userId });
+    done(null, user.userId);
   });
 
-  passport.deserializeUser((id: string, done) => {
-    // We deserialize the user by finding them in our user store with the ID.
-    // In a real app, you would query your database here.
-    const user = users[id];
-    done(null, user);
+  passport.deserializeUser(async (userId: string, done) => {
+    try {
+      // Deserialize by fetching user from database
+      const user = await AuthService.getUserProfile(userId);
+      Logger.logInfo('User deserialized from session', { userId });
+      done(null, user);
+    } catch (error) {
+      Logger.logError('Failed to deserialize user from session', error as Error, { userId });
+      done(error, false);
+    }
   });
 
   // Initialize Passport and restore authentication state, if any, from the session.

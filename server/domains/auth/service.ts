@@ -17,9 +17,9 @@ export class AuthService {
       return {
         id: Number(user.id),
         userId: user.userId,
-        email: user.email,
-        username: user.username || undefined,
-        avatar: user.avatar || undefined,
+        email: user.email || '',
+        username: user.firstName || undefined,
+        avatar: user.profileImageUrl || undefined,
         isAdmin: user.userId === "44010914",
         createdAt: user.createdAt,
         updatedAt: user.updatedAt
@@ -43,6 +43,49 @@ export class AuthService {
       return this.getUserProfile(userId);
     } catch (error) {
       Logger.logError('Failed to update user profile', error as Error, { userId });
+      throw error;
+    }
+  }
+
+  static async createUserProfile(googleProfile: any): Promise<UserProfile> {
+    try {
+      Logger.logInfo('Creating new user profile from Google OAuth', { 
+        googleId: googleProfile.id, 
+        email: googleProfile.emails?.[0]?.value 
+      });
+
+      const existingUser = await prisma.userProfile.findUnique({
+        where: { userId: googleProfile.id }
+      });
+
+      if (existingUser) {
+        Logger.logInfo('User profile already exists', { userId: googleProfile.id });
+        return this.getUserProfile(googleProfile.id);
+      }
+
+      const newUser = await prisma.userProfile.create({
+        data: {
+          userId: googleProfile.id,
+          email: googleProfile.emails?.[0]?.value || '',
+          firstName: googleProfile.displayName || googleProfile.name?.givenName,
+          profileImageUrl: googleProfile.photos?.[0]?.value
+        }
+      });
+
+      Logger.logInfo('User profile created successfully', { userId: newUser.userId });
+
+      return {
+        id: Number(newUser.id),
+        userId: newUser.userId,
+        email: newUser.email || '',
+        username: newUser.firstName || undefined,
+        avatar: newUser.profileImageUrl || undefined,
+        isAdmin: newUser.userId === "44010914",
+        createdAt: newUser.createdAt,
+        updatedAt: newUser.updatedAt
+      };
+    } catch (error) {
+      Logger.logError('Failed to create user profile', error as Error, { googleProfile });
       throw error;
     }
   }
