@@ -1238,7 +1238,7 @@ export default function TapToAssignTactics({ teamId }: TapToAssignTacticsProps) 
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-2">
-              {availablePlayers.slice(0, 12).map((player) => (
+              {availablePlayers.map((player) => (
                 <div key={player.id} className="text-center p-2 bg-gray-700/50 rounded border">
                   <div className="text-sm font-medium text-white">
                     {player.firstName} {player.lastName}

@@ -389,8 +389,10 @@ export default function MobileRosterHQ() {
     return posA - posB;
   });
 
-  const mainRoster = sortedPlayers.slice(0, 12);
-  const taxiSquad = sortedPlayers.slice(12, 15);
+  // Calculate flexible main roster (13-15 players) and taxi squad (0-2 players)
+  const taxiSquadPlayers = sortedPlayers.slice(13); // Players beyond position 13 are taxi squad (max 2)
+  const mainRoster = sortedPlayers.slice(0, sortedPlayers.length - taxiSquadPlayers.length); // Flexible main roster
+  const taxiSquad = taxiSquadPlayers;
   const injuredPlayers = activePlayers.filter(p => p.injuryStatus !== 'HEALTHY');
   const lowStaminaPlayers = activePlayers.filter(p => p.dailyStaminaLevel < 50);
   
@@ -418,8 +420,18 @@ export default function MobileRosterHQ() {
   };
 
   const filteredPlayers = getFilteredPlayers();
-  const filteredMainRoster = filteredPlayers.filter((_, index) => index < 12);
-  const filteredTaxiSquad = filteredPlayers.filter((_, index) => index >= 12 && index < 15);
+  // Apply flexible roster logic to filtered players
+  const sortedFilteredPlayers = [...filteredPlayers].sort((a, b) => {
+    const posA = a.rosterPosition || 0;
+    const posB = b.rosterPosition || 0;
+    if (posA === 0 && posB === 0) return 0;
+    if (posA === 0) return 1;
+    if (posB === 0) return -1;
+    return posA - posB;
+  });
+  const filteredTaxiSquadPlayers = sortedFilteredPlayers.slice(13);
+  const filteredMainRoster = sortedFilteredPlayers.slice(0, sortedFilteredPlayers.length - filteredTaxiSquadPlayers.length);
+  const filteredTaxiSquad = filteredTaxiSquadPlayers;
   
   // Role distribution
   const passers = activePlayers.filter(p => p.role === 'PASSER');

@@ -47,12 +47,12 @@ export interface SeasonEndCamaraderieUpdate {
 export class CamaraderieService {
   
   /**
-   * Calculate team camaraderie as average of only main roster players (first 12 by creation date, not on market, not retired)
+   * Calculate team camaraderie as average of only main roster players (flexible 13-15 players, excluding taxi squad)
    */
   static async getTeamCamaraderie(teamId: string): Promise<number> {
     try {
-      // Get main roster players only (first 12 by creation date, not on market, not retired)
-      const mainRosterPlayers = await prisma.player.findMany({
+      // Get all players sorted by creation date to determine roster positions
+      const allPlayers = await prisma.player.findMany({
         where: {
           teamId: parseInt(teamId),
           isOnMarket: false,
@@ -60,9 +60,12 @@ export class CamaraderieService {
         },
         orderBy: {
           createdAt: 'asc'
-        },
-        take: 12 // Only take first 12 for main roster
+        }
       });
+
+      // Calculate flexible main roster (positions 1-13, 14, or 15 depending on total roster size)
+      const taxiSquadPlayers = allPlayers.slice(13); // Players beyond position 13 are taxi squad (max 2)
+      const mainRosterPlayers = allPlayers.slice(0, allPlayers.length - taxiSquadPlayers.length);
 
       if (mainRosterPlayers.length === 0) {
         return 50; // Default camaraderie if no players
@@ -75,7 +78,9 @@ export class CamaraderieService {
         teamId,
         teamCamaraderie,
         mainRosterPlayerCount: mainRosterPlayers.length,
-        note: "Only main roster players included (first 12 by creation date)"
+        totalPlayers: allPlayers.length,
+        taxiSquadCount: taxiSquadPlayers.length,
+        note: "Flexible main roster system (13-15 main roster, 0-2 taxi squad)"
       });
       
       return teamCamaraderie;
