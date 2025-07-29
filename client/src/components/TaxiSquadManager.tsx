@@ -10,6 +10,27 @@ import UnifiedPlayerCard from "@/components/UnifiedPlayerCard";
 import { StarRating } from "@/components/StarRating";
 import { getPlayerRole } from "@shared/playerUtils";
 
+// Player type for taxi squad
+interface Player {
+  id: string;
+  firstName: string;
+  lastName: string;
+  race: string;
+  age: number;
+  role: string;
+  speed: number;
+  power: number;
+  throwing: number;
+  catching: number;
+  kicking: number;
+  staminaAttribute: number;
+  leadership: number;
+  agility: number;
+  potentialRating: number;
+  dailyStaminaLevel: number;
+  injuryStatus: string;
+}
+
 interface TaxiSquadManagerProps {
   teamId?: string;
   onNavigateToRecruiting?: () => void;
@@ -37,7 +58,7 @@ export function TaxiSquadManager({ teamId, onNavigateToRecruiting }: TaxiSquadMa
   });
 
   // Get current season cycle to determine if promotions are allowed
-  const { data: seasonCycle } = useQuery({
+  const { data: seasonCycle } = useQuery<{ data?: { currentDay?: number } }>({
     queryKey: ['/api/season/current-cycle'],
   });
 

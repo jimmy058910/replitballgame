@@ -189,19 +189,47 @@ export class PlayerStorage {
   // Taxi Squad specific methods (removed duplicate - using the one above)
 
   async promotePlayerFromTaxiSquad(playerId: number): Promise<Player | null> {
-    // Since taxi squad is determined by roster position (not a database field),
-    // promotion is just getting the player data - the roster position logic
-    // is handled at the route level validation
+    // Since taxi squad is determined by roster position based on createdAt,
+    // promotion requires updating the player's createdAt to move them earlier in the roster order
     try {
       const player = await prisma.player.findUnique({
+        where: { id: parseInt(playerId.toString()) }
+      });
+      
+      if (!player) {
+        return null;
+      }
+
+      // Get the earliest createdAt timestamp among the team's players
+      const earliestPlayer = await prisma.player.findFirst({
+        where: {
+          teamId: player.teamId,
+          isOnMarket: false
+        },
+        orderBy: { createdAt: 'asc' }
+      });
+
+      // Set the promoted player's createdAt to be 1 minute earlier than the earliest,
+      // effectively moving them to position 1 in the roster
+      const newCreatedAt = earliestPlayer 
+        ? new Date(earliestPlayer.createdAt.getTime() - 60000) // 1 minute earlier
+        : new Date(Date.now() - 60000); // fallback to 1 minute ago
+
+      // Update the player's createdAt timestamp to promote them
+      const promotedPlayer = await prisma.player.update({
         where: { id: parseInt(playerId.toString()) },
+        data: { 
+          createdAt: newCreatedAt,
+          updatedAt: new Date()
+        },
         include: {
           team: { select: { name: true } },
           contract: true,
           skills: { include: { skill: true } }
         }
       });
-      return player;
+
+      return promotedPlayer;
     } catch (error) {
       console.error(`Error promoting player ${playerId}:`, error);
       return null;
