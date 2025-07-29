@@ -11,6 +11,9 @@ RUN npm install
 # Copy all source code
 COPY . .
 
+# Generate the Prisma Client
+RUN npx prisma generate
+
 # Build the React/Vite frontend. This creates the /app/dist folder.
 RUN NODE_ENV=production npm run build
 
@@ -40,6 +43,9 @@ COPY --from=builder /app/prisma ./prisma
 
 # Copy tsconfig.json for TypeScript path alias resolution
 COPY --from=builder /app/tsconfig.json ./
+
+# Copy the generated Prisma client code
+COPY --from=builder /app/generated ./generated
 
 # Create a non-root user for security
 RUN addgroup -g 1001 -S nodejs && \
