@@ -612,6 +612,8 @@ docker push gcr.io/direct-glider-465821-p7/realm-rivalry:latest
 - ✓ **Root Cause Identified**: LiveMatchPage.tsx was using old EnhancedMatchSimulation (text commentary) instead of EnhancedMatchEngine (2D Canvas)
 - ✓ **Component Integration Fixed**: Updated LiveMatchPage to import and use EnhancedMatchEngine with Jules' GameCanvas integration
 - ✓ **TypeScript Errors Resolved**: Fixed matchId prop type (string not number) and user property access (user?.userId)
+- ✓ **WebSocket Connection Issue Fixed**: Resolved "WebSocket not connected" error by implementing proper connection flow (connect → authenticate → joinMatch)
+- ✓ **Enhanced Connection Logic**: Updated EnhancedMatchEngine to connect before joining matches with proper error handling and callback management
 - ✓ **Live Match Routes Operational**: /live-match/:matchId now correctly displays Jules' 2D Canvas engine with dome visualization
 - ✓ **Stadium Data Integration**: Live matches now properly fetch and display stadium data with real-time revenue tracking
 - ✓ **WebSocket Integration**: Live match engine properly connects to WebSocket system for real-time match updates

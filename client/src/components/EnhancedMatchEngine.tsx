@@ -377,7 +377,21 @@ export const EnhancedMatchEngine: React.FC<MatchEngineProps> = ({
       }
     };
 
-    webSocketManager.joinMatch(matchId);
+    // Set callbacks first
+    webSocketManager.setCallbacks(callbacks);
+
+    // Connect to WebSocket first, then join match
+    const connectAndJoin = async () => {
+      try {
+        await webSocketManager.connect(userId);
+        await webSocketManager.joinMatch(matchId);
+      } catch (error) {
+        console.error('Failed to connect/join:', error);
+        setIsConnected(false);
+      }
+    };
+
+    connectAndJoin();
 
     return () => {
       webSocketManager.disconnect();

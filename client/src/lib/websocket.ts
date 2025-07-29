@@ -54,6 +54,10 @@ class WebSocketManager {
     this.initializeConnection();
   }
 
+  setCallbacks(callbacks: WebSocketCallbacks) {
+    this.callbacks = { ...this.callbacks, ...callbacks };
+  }
+
   private initializeConnection() {
     const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
     const wsUrl = `${protocol}//${window.location.host}`;
