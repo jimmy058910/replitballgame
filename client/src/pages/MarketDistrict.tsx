@@ -274,6 +274,34 @@ export default function MarketDistrict() {
     },
   });
 
+  // Exhibition purchase mutation
+  const exhibitionPurchaseMutation = useMutation({
+    mutationFn: () => 
+      apiRequest('/api/store/purchase/exhibition_credit', 'POST', { 
+        currency: 'credits',
+        expectedPrice: 500
+      }),
+    onSuccess: () => {
+      toast({
+        title: "Exhibition Token Purchased!",
+        description: "You can now play an additional exhibition match.",
+      });
+      queryClient.invalidateQueries({ queryKey: ['/api/exhibitions/stats'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/teams/my'] });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Purchase Failed",
+        description: error.message || "Unable to purchase exhibition token. Check your credits.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const handleExhibitionPurchase = () => {
+    exhibitionPurchaseMutation.mutate();
+  };
+
   const handlePurchase = (itemId: string, currency: 'credits' | 'gems') => {
     if (currency === 'gems') {
       purchaseWithGemsMutation.mutate(itemId);
@@ -374,8 +402,12 @@ export default function MarketDistrict() {
                       <span className="text-gray-300">Daily limit: 3</span>
                       <span className="text-green-400 font-bold">₡500</span>
                     </div>
-                    <Button className="w-full bg-green-600 hover:bg-green-700">
-                      Buy Additional
+                    <Button 
+                      className="w-full bg-green-600 hover:bg-green-700"
+                      onClick={() => handleExhibitionPurchase()}
+                      disabled={exhibitionPurchaseMutation.isPending}
+                    >
+                      {exhibitionPurchaseMutation.isPending ? 'Purchasing...' : 'Buy Additional'}
                     </Button>
                   </div>
                 </CardContent>

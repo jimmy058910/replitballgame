@@ -654,7 +654,7 @@ export default function Market() {
                               size="sm"
                               onClick={() => handlePurchase('exhibition_match_entry', 'gems')}
                             >
-                              💎10 Gems
+                              💎2 Gems
                             </Button>
                             <Button 
                               className="flex-1" 
@@ -662,7 +662,7 @@ export default function Market() {
                               size="sm"
                               onClick={() => handlePurchase('exhibition_match_entry', 'credits')}
                             >
-                              ₡25,000
+                              ₡500
                             </Button>
                           </div>
                           <p className="text-xs text-gray-500 text-center">Purchased today: 0/3</p>
