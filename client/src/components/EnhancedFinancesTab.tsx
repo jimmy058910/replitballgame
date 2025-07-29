@@ -119,37 +119,42 @@ export function EnhancedFinancesTab({ teamId }: EnhancedFinancesTabProps) {
   const [selectedTransaction, setSelectedTransaction] = useState<Transaction | null>(null);
   const [isTransactionDetailOpen, setIsTransactionDetailOpen] = useState(false);
 
-  // Fetch financial data
+  // Get team data from the Market District's team query (should already be loaded)
+  const { data: teamFromMarket } = useQuery({
+    queryKey: ['/api/teams/my'],
+    enabled: false // Don't fetch again, should use cached data
+  });
+
+  // Fetch team finances
   const { data: financialData, isLoading: financialLoading } = useQuery({
-    queryKey: ['/api/finances', teamId, timeframe],
-    queryFn: () => apiRequest(`/api/finances/${teamId}?timeframe=${timeframe}`),
+    queryKey: ['/api/teams', teamId, 'finances'],
+    queryFn: () => apiRequest(`/api/teams/${teamId}/finances`),
     enabled: !!teamId
   });
 
   // Fetch contracts
-  const { data: contracts, isLoading: contractsLoading } = useQuery({
-    queryKey: ['/api/contracts', teamId],
-    queryFn: () => apiRequest(`/api/contracts/${teamId}`),
+  const { data: contractsData, isLoading: contractsLoading } = useQuery({
+    queryKey: ['/api/teams', teamId, 'contracts'], 
+    queryFn: () => apiRequest(`/api/teams/${teamId}/contracts`),
     enabled: !!teamId
   });
 
-  // Fetch transaction log
-  const { data: transactions, isLoading: transactionsLoading } = useQuery({
-    queryKey: ['/api/transactions', teamId, transactionFilter, searchTerm],
-    queryFn: () => apiRequest(`/api/transactions/${teamId}?filter=${transactionFilter}&search=${searchTerm}`),
-    enabled: !!teamId
-  });
+  // For now, create empty transaction data (can be implemented later)
+  const transactions: Transaction[] = [];
+  const transactionsLoading = false;
 
-  const financial = financialData as FinancialData || {
-    credits: 0,
-    gems: 0,
-    netIncome: 0,
+  // Map the actual financial data to our expected format
+  const rawFinancialData = financialData as any;
+  const financial: FinancialData = {
+    credits: parseInt(rawFinancialData?.credits || '0'),
+    gems: parseInt(rawFinancialData?.gems || '0'),
+    netIncome: rawFinancialData?.netIncome || 0,
     incomeStreams: {
-      ticketSales: 0,
-      concessions: 0,
-      parking: 0,
-      vipSuites: 0,
-      merchandising: 0,
+      ticketSales: rawFinancialData?.ticketSales || 0,
+      concessions: rawFinancialData?.concessions || 0,
+      parking: rawFinancialData?.parking || 0,
+      vipSuites: rawFinancialData?.vipSuites || 0,
+      merchandising: rawFinancialData?.merchandising || 0,
       exhibitionFees: 0,
       tournamentRewards: 0,
       seasonBonuses: 0,
@@ -157,17 +162,28 @@ export function EnhancedFinancesTab({ teamId }: EnhancedFinancesTabProps) {
       miscellaneous: 0
     },
     expenseBreakdown: {
-      playerSalaries: 0,
-      staffSalaries: 0,
+      playerSalaries: rawFinancialData?.playerSalaries || 0,
+      staffSalaries: rawFinancialData?.staffSalaries || 0,
       facilityUpgrades: 0,
       storePurchases: 0,
       marketplaceFees: 0,
-      maintenanceCosts: 0
+      maintenanceCosts: rawFinancialData?.facilitiesMaintenanceCost || 0
     }
   };
 
-  const contractsList = contracts as Contract[] || [];
-  const transactionsList = transactions as Transaction[] || [];
+  // Map contracts data from the API response
+  const contractsList: Contract[] = contractsData?.players ? contractsData.players.map((player: any) => ({
+    id: player.id?.toString() || 'unknown',
+    playerName: `${player.firstName} ${player.lastName}`,
+    staffName: undefined,
+    role: player.role,
+    annualSalary: player.salary || 0,
+    yearsRemaining: player.contractLength || 0,
+    totalCommitment: (player.salary || 0) * (player.contractLength || 0),
+    type: 'player' as const
+  })) : [];
+
+  const transactionsList: Transaction[] = [];
 
   const formatCurrency = (amount: number, currency = 'credits') => {
     const symbol = currency === 'gems' ? '💎' : '₡';
@@ -187,7 +203,7 @@ export function EnhancedFinancesTab({ teamId }: EnhancedFinancesTabProps) {
     setIsTransactionDetailOpen(true);
   };
 
-  if (financialLoading) {
+  if (financialLoading || contractsLoading) {
     return (
       <div className="flex items-center justify-center py-12">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
@@ -204,7 +220,7 @@ export function EnhancedFinancesTab({ teamId }: EnhancedFinancesTabProps) {
             <TabsList className="grid w-full grid-cols-3 bg-gray-800">
               <TabsTrigger value="overview" className="text-sm">Overview</TabsTrigger>
               <TabsTrigger value="contracts" className="text-sm">Contracts</TabsTrigger>
-              <TabsTrigger value="transactions" className="text-sm">Transaction Log</TabsTrigger>
+              <TabsTrigger value="transactions" className="text-sm">Transactions</TabsTrigger>
             </TabsList>
           </Tabs>
 
