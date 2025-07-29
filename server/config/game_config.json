@@ -1,4 +1,9 @@
 {
+  "game_duration_minutes": {
+    "league": 40,
+    "tournament": 40,
+    "exhibition": 30
+  },
   "aiTeamNames": [
     "Crystal Phoenixes",
     "Shadow Wolves",

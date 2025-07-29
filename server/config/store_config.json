@@ -62,6 +62,14 @@
     { "id": "chest_of_gems", "name": "Chest of Gems", "price": 49.99, "gems": 1250, "bonus": 750 },
     { "id": "vault_of_gems", "name": "Vault of Gems", "price": 99.99, "gems": 2500, "bonus": 2000 }
   ],
+  "gem_packages": [
+    { "id": "pouch_of_gems", "name": "Pouch of Gems", "price": 1.99, "gems": 50, "bonus": 0 },
+    { "id": "sack_of_gems", "name": "Sack of Gems", "price": 4.99, "gems": 125, "bonus": 25 },
+    { "id": "crate_of_gems", "name": "Crate of Gems", "price": 9.99, "gems": 250, "bonus": 75 },
+    { "id": "cart_of_gems", "name": "Cart of Gems", "price": 19.99, "gems": 500, "bonus": 200 },
+    { "id": "chest_of_gems", "name": "Chest of Gems", "price": 49.99, "gems": 1250, "bonus": 750 },
+    { "id": "vault_of_gems", "name": "Vault of Gems", "price": 99.99, "gems": 2500, "bonus": 2000 }
+  ],
   "realmPassSubscription": {
     "price": 9.95,
     "monthlyGems": 350,

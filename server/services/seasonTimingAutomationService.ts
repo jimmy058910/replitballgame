@@ -561,7 +561,7 @@ export class SeasonTimingAutomationService {
               }
             });
             
-            // Record transaction in payment history (TODO: implement when payment service is ready)
+            // Stadium maintenance expense recorded in logs
             console.log(`💸 Recorded stadium maintenance expense: ${dailyCost}₡ for ${team.name}`);
             
             console.log(`💸 ${team.name}: Deducted ${dailyCost}₡ daily stadium cost (${currentCredits}₡ → ${newCredits}₡)`);
@@ -805,7 +805,7 @@ export class SeasonTimingAutomationService {
   /**
    * Get current season information
    */
-  private getCurrentSeasonInfo(currentSeason: any): { currentDayInCycle: number; seasonNumber: number } {
+  private getCurrentSeasonInfo(currentSeason: { dayInCycle?: number; day_in_cycle?: number; seasonNumber?: number; season_number?: number }): { currentDayInCycle: number; seasonNumber: number } {
     let currentDayInCycle = 5; // Default fallback
     
     if (currentSeason && typeof currentSeason.currentDay === 'number') {
@@ -907,7 +907,7 @@ export class SeasonTimingAutomationService {
   /**
    * Force calculation of current day from actual date difference
    */
-  private calculateCurrentDayFromDate(currentSeason: any): number {
+  private calculateCurrentDayFromDate(currentSeason: { startDate?: string; start_date?: string }): number {
     const seasonStartDate = new Date(currentSeason.startDate || currentSeason.start_date);
     const now = new Date();
     const daysSinceStart = Math.floor((now.getTime() - seasonStartDate.getTime()) / (1000 * 60 * 60 * 24));
@@ -1038,7 +1038,7 @@ export class SeasonTimingAutomationService {
           await prisma.tournament.update({
             where: { id: tournament.id },
             data: { 
-              status: 'IN_PROGRESS' as any,
+              status: 'IN_PROGRESS',
               startTime: new Date(Date.now() + 10 * 60 * 1000) // 10 minutes from now
             }
           });
@@ -1245,7 +1245,7 @@ export class SeasonTimingAutomationService {
       }
 
       // Distribute prizes
-      const prizePool = tournament.prizePoolJson as any;
+      const prizePool = tournament.prizePoolJson as { champion: any; runnerUp: any };
       
       // Award champion prize
       await this.awardTournamentPrize(winner.id, prizePool.champion);
