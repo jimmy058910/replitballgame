@@ -28,6 +28,12 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 interface PlayerDetailModalProps {
   player: any | null;
@@ -108,7 +114,7 @@ function PlayerDetailModal({
   });
 
   // Fetch release fee information
-  const { data: releaseInfo = { canRelease: false, releaseFee: 0 }, isLoading: releaseInfoLoading } = useQuery({
+  const { data: releaseInfo = { canRelease: false, releaseFee: 0, reason: "" }, isLoading: releaseInfoLoading } = useQuery({
     queryKey: [`/api/teams/${player?.teamId}/players/${player?.id}/release-fee`],
     enabled: isOpen && !!player?.id && !!player?.teamId,
   });
@@ -278,17 +284,21 @@ function PlayerDetailModal({
                 >
                   Equip
                 </Button>
-                <AlertDialog>
-                  <AlertDialogTrigger asChild>
-                    <Button 
-                      variant="destructive"
-                      size="sm"
-                      disabled={!releaseInfo?.canRelease}
-                    >
-                      Release
-                    </Button>
-                  </AlertDialogTrigger>
-                  <AlertDialogContent className="bg-gray-900 border-gray-700">
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <div>
+                        <AlertDialog>
+                          <AlertDialogTrigger asChild>
+                            <Button 
+                              variant="destructive"
+                              size="sm"
+                              disabled={!releaseInfo?.canRelease}
+                            >
+                              Release
+                            </Button>
+                          </AlertDialogTrigger>
+                          <AlertDialogContent className="bg-gray-900 border-gray-700">
                     <AlertDialogHeader>
                       <AlertDialogTitle className="text-white">Release Player</AlertDialogTitle>
                       <AlertDialogDescription className="text-gray-300">
@@ -306,7 +316,16 @@ function PlayerDetailModal({
                       </AlertDialogAction>
                     </AlertDialogFooter>
                   </AlertDialogContent>
-                </AlertDialog>
+                        </AlertDialog>
+                      </div>
+                    </TooltipTrigger>
+                    {!releaseInfo?.canRelease && (
+                      <TooltipContent>
+                        <p>{releaseInfo?.reason || "Cannot release this player"}</p>
+                      </TooltipContent>
+                    )}
+                  </Tooltip>
+                </TooltipProvider>
               </div>
             </div>
 

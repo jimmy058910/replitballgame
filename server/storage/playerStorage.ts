@@ -230,7 +230,10 @@ export class PlayerStorage {
         team: {
           include: {
             players: {
-              where: { isOnMarket: false },
+              where: { 
+                isOnMarket: false,
+                isRetired: false 
+              },
               orderBy: { createdAt: 'asc' }
             }
           }
@@ -243,34 +246,36 @@ export class PlayerStorage {
       return { canRelease: false, reason: "Player or team not found" };
     }
 
-    const mainRosterPlayers = player.team.players.slice(0, 12);
+    // Use proper main roster vs taxi squad detection
+    const mainRosterPlayers = player.team.players.filter(p => !p.isOnTaxi);
+    const taxiSquadPlayers = player.team.players.filter(p => p.isOnTaxi);
     const totalPlayers = player.team.players.length;
 
     // Check minimum player count (cannot go below 12 total players)
     if (totalPlayers <= 12) {
-      return { canRelease: false, reason: "Cannot release players below minimum roster size of 12" };
+      return { canRelease: false, reason: `Cannot release - would leave team with only ${totalPlayers - 1} players (minimum 12 required)` };
     }
 
-    // Check if player is on main roster
-    const isOnMainRoster = mainRosterPlayers.some(p => p.id === playerId);
+    // Check if player is on main roster (not taxi squad)
+    const isOnMainRoster = !player.isOnTaxi;
     if (!isOnMainRoster) {
-      return { canRelease: false, reason: "Player is not on main roster" };
+      return { canRelease: false, reason: "Cannot release taxi squad players from main roster (use taxi squad release instead)" };
     }
 
     // Check position requirements after release
-    const remainingPlayers = mainRosterPlayers.filter(p => p.id !== playerId);
-    const blockerCount = remainingPlayers.filter(p => p.role === 'BLOCKER').length;
-    const runnerCount = remainingPlayers.filter(p => p.role === 'RUNNER').length;
-    const passerCount = remainingPlayers.filter(p => p.role === 'PASSER').length;
+    const remainingMainRosterPlayers = mainRosterPlayers.filter(p => p.id !== playerId);
+    const blockerCount = remainingMainRosterPlayers.filter(p => p.role === 'BLOCKER').length;
+    const runnerCount = remainingMainRosterPlayers.filter(p => p.role === 'RUNNER').length;
+    const passerCount = remainingMainRosterPlayers.filter(p => p.role === 'PASSER').length;
 
     if (blockerCount < 4) {
-      return { canRelease: false, reason: "Cannot release - would leave team with less than 4 Blockers" };
+      return { canRelease: false, reason: `Cannot release - would leave team with only ${blockerCount} Blockers (minimum 4 required)` };
     }
     if (runnerCount < 4) {
-      return { canRelease: false, reason: "Cannot release - would leave team with less than 4 Runners" };
+      return { canRelease: false, reason: `Cannot release - would leave team with only ${runnerCount} Runners (minimum 4 required)` };
     }
     if (passerCount < 3) {
-      return { canRelease: false, reason: "Cannot release - would leave team with less than 3 Passers" };
+      return { canRelease: false, reason: `Cannot release - would leave team with only ${passerCount} Passers (minimum 3 required)` };
     }
 
     // Calculate release fee: remaining salary + 2,500 credits

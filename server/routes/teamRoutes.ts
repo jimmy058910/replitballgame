@@ -2093,7 +2093,7 @@ router.get('/:teamId/players/:playerId/release-fee', isAuthenticated, asyncHandl
   // Find team and validate ownership
   let team;
   if (req.user && req.user.claims) {
-    team = await storage.teams.getTeamByUserProfileId(req.user.claims.sub);
+    team = await storage.teams.getTeamByUserId(req.user.claims.sub);
     if (!team || team.id !== parseInt(teamId)) {
       throw ErrorCreators.forbidden("You do not own this team");
     }
@@ -2104,7 +2104,7 @@ router.get('/:teamId/players/:playerId/release-fee', isAuthenticated, asyncHandl
     }
     
     // Check ownership for non-Replit auth
-    const ownershipTeam = await storage.teams.getTeamByUserProfileId(req.user?.id);
+    const ownershipTeam = await storage.teams.getTeamByUserId(req.user?.id);
     if (!ownershipTeam || ownershipTeam.id !== parseInt(teamId)) {
       throw ErrorCreators.forbidden("You do not own this team");
     }
@@ -2138,7 +2138,7 @@ router.delete('/:teamId/players/:playerId', isAuthenticated, asyncHandler(async 
   // Find team and validate ownership
   let team;
   if (req.user && req.user.claims) {
-    team = await storage.teams.getTeamByUserProfileId(req.user.claims.sub);
+    team = await storage.teams.getTeamByUserId(req.user.claims.sub);
     if (!team || team.id !== parseInt(teamId)) {
       throw ErrorCreators.forbidden("You do not own this team");
     }
@@ -2149,7 +2149,7 @@ router.delete('/:teamId/players/:playerId', isAuthenticated, asyncHandler(async 
     }
     
     // Check ownership for non-Replit auth
-    const ownershipTeam = await storage.teams.getTeamByUserProfileId(req.user?.id);
+    const ownershipTeam = await storage.teams.getTeamByUserId(req.user?.id);
     if (!ownershipTeam || ownershipTeam.id !== parseInt(teamId)) {
       throw ErrorCreators.forbidden("You do not own this team");
     }
