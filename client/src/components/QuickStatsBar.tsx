@@ -65,8 +65,8 @@ export default function QuickStatsBar() {
   });
 
   const { data: seasonalCycle } = useQuery<SeasonalCycle>({
-    queryKey: ['/api/seasonal-flow/current-cycle'],
-    queryFn: () => apiRequest('/api/seasonal-flow/current-cycle'),
+    queryKey: ['/api/season/current-cycle'],
+    queryFn: () => apiRequest('/api/season/current-cycle'),
     enabled: isAuthenticated,
     retry: (failureCount, error) => {
       if (isUnauthorizedError(error)) return false;

@@ -852,11 +852,13 @@ export class SeasonTimingAutomationService {
   }
 
   /**
-   * CRITICAL STARTUP FIX: Check for missed daily progressions and execute them
+   * DISABLED: Check for missed daily progressions and execute them
+   * NOTE: This function was causing incorrect day advancement from Day 1 to Day 17
+   * The calculation-based approach was overriding correct database values
    */
   private async checkAndExecuteMissedDailyProgressions(): Promise<void> {
     try {
-      logInfo('🔍 Checking for missed daily progressions on startup...');
+      logInfo('🔍 Missed progression check DISABLED - trusting database season state');
       
       const currentSeason = await storage.seasons.getCurrentSeason();
       if (!currentSeason) {
@@ -864,41 +866,15 @@ export class SeasonTimingAutomationService {
         return;
       }
 
-      // FORCE calculation-based day instead of using database value
-      const calculatedCurrentDay = this.calculateCurrentDayFromDate(currentSeason);
       const databaseDay = currentSeason.currentDay || 1;
+      logInfo(`✅ Using database Day ${databaseDay} as authoritative source (catch-up logic disabled)`);
       
-      logInfo(`Database shows Day ${databaseDay}, calculated current day is Day ${calculatedCurrentDay}`);
+      // DISABLED: Force calculation-based day logic that was causing incorrect advancement
+      // const calculatedCurrentDay = this.calculateCurrentDayFromDate(currentSeason);
+      // const missedDays = calculatedCurrentDay - databaseDay;
       
-      // If calculated day is ahead of database day, we have missed progressions
-      const missedDays = calculatedCurrentDay - databaseDay;
-      
-      if (missedDays > 0) {
-        logInfo(`🚨 MISSED PROGRESSIONS DETECTED: ${missedDays} day(s) behind. Executing catch-up...`);
-        
-        // Execute daily progressions for each missed day
-        for (let i = 0; i < missedDays; i++) {
-          const executingDay = databaseDay + i + 1;
-          logInfo(`🔄 Executing daily progression for missed Day ${executingDay}...`);
-          
-          try {
-            await this.executeDailyProgression();
-            logInfo(`✅ Daily progression for Day ${executingDay} completed successfully`);
-          } catch (error) {
-            console.error(`❌ Failed to execute daily progression for Day ${executingDay}:`, error);
-            // Continue with other days even if one fails
-          }
-        }
-        
-        // Final database update to ensure we're at the correct day
-        await this.forceUpdateSeasonDay(calculatedCurrentDay);
-        logInfo(`🎯 Catch-up completed - advanced from Day ${databaseDay} to Day ${calculatedCurrentDay}`);
-        
-      } else if (missedDays < 0) {
-        logInfo(`⚠️  Database day ${databaseDay} is ahead of calculated day ${calculatedCurrentDay} - possible clock issue`);
-      } else {
-        logInfo(`✅ No missed progressions - database Day ${databaseDay} matches calculated Day ${calculatedCurrentDay}`);
-      }
+      // Trust the database value instead of calculation-based overrides
+      // This prevents the system from incorrectly advancing Day 1 to Day 17
       
     } catch (error) {
       console.error('❌ Error during missed progression check:', error);
