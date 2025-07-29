@@ -1575,21 +1575,38 @@ router.post('/:teamId/taxi-squad/:playerId/promote', isAuthenticated, asyncHandl
     throw ErrorCreators.forbidden("Player does not belong to your team");
   }
 
-  if (!player.isOnTaxi) {
+  // Get all players to calculate roster positions (same logic as storage layer)
+  const allTeamPlayers = await prisma.player.findMany({
+    where: {
+      teamId: team.id,
+      isOnMarket: false
+    },
+    orderBy: { createdAt: 'asc' } // Same order as storage layer
+  });
+
+  // Calculate roster position based on creation order (same as storage layer)
+  const playerIndex = allTeamPlayers.findIndex(p => p.id === parseInt(playerId));
+  if (playerIndex === -1) {
+    throw ErrorCreators.notFound("Player not found in team roster");
+  }
+  
+  const rosterPosition = playerIndex + 1;
+  const isOnTaxiSquad = rosterPosition > 12; // Positions 13+ are taxi squad
+  
+  if (!isOnTaxiSquad) {
     throw ErrorCreators.validation("Player is not on taxi squad");
   }
 
-  // Check roster space (assuming max 13 main roster players)
-  const mainRosterPlayers = await storage.players.getPlayersByTeamId(team.id);
-  const activeMainRosterPlayers = mainRosterPlayers.filter(p => !p.isOnTaxi);
+  // Check roster space (max 12 main roster players)
+  const mainRosterPlayers = allTeamPlayers.slice(0, 12); // First 12 are main roster
   
-  if (activeMainRosterPlayers.length >= 13) {
-    throw ErrorCreators.validation("Main roster is full (maximum 13 players)");
+  if (mainRosterPlayers.length >= 12) {
+    throw ErrorCreators.validation("Main roster is full (maximum 12 players)");
   }
 
   // Calculate appropriate salary based on player stats and age
   const baseSalary = Math.max(5000, Math.min(50000, 
-    ((player.speed + player.power + player.throwing + player.catching + player.agility + player.stamina) / 6) * 1000
+    ((player.speed + player.power + player.throwing + player.catching + player.agility + player.staminaAttribute) / 6) * 1000
   ));
   
   // Promote player and update contract in one operation
@@ -1666,7 +1683,25 @@ router.delete('/:teamId/taxi-squad/:playerId', isAuthenticated, asyncHandler(asy
     throw ErrorCreators.forbidden("Player does not belong to your team");
   }
 
-  if (!player.isOnTaxi) {
+  // Get all players to calculate roster positions (same logic as storage layer)
+  const allTeamPlayers = await prisma.player.findMany({
+    where: {
+      teamId: team.id,
+      isOnMarket: false
+    },
+    orderBy: { createdAt: 'asc' } // Same order as storage layer
+  });
+
+  // Calculate roster position based on creation order (same as storage layer)
+  const playerIndex = allTeamPlayers.findIndex(p => p.id === parseInt(playerId));
+  if (playerIndex === -1) {
+    throw ErrorCreators.notFound("Player not found in team roster");
+  }
+  
+  const rosterPosition = playerIndex + 1;
+  const isOnTaxiSquad = rosterPosition > 12; // Positions 13+ are taxi squad
+  
+  if (!isOnTaxiSquad) {
     throw ErrorCreators.validation("Player is not on taxi squad");
   }
 

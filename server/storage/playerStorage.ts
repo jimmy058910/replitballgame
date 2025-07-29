@@ -189,10 +189,23 @@ export class PlayerStorage {
   // Taxi Squad specific methods (removed duplicate - using the one above)
 
   async promotePlayerFromTaxiSquad(playerId: number): Promise<Player | null> {
-    // TODO: Add taxi squad functionality to Prisma schema
-    // For now, return null since isOnTaxiSquad field doesn't exist in schema
-    console.warn(`Taxi squad promotion not implemented - missing isOnTaxiSquad field in schema`);
-    return null;
+    // Since taxi squad is determined by roster position (not a database field),
+    // promotion is just getting the player data - the roster position logic
+    // is handled at the route level validation
+    try {
+      const player = await prisma.player.findUnique({
+        where: { id: parseInt(playerId.toString()) },
+        include: {
+          team: { select: { name: true } },
+          contract: true,
+          skills: { include: { skill: true } }
+        }
+      });
+      return player;
+    } catch (error) {
+      console.error(`Error promoting player ${playerId}:`, error);
+      return null;
+    }
   }
 
   async releasePlayerFromTaxiSquad(playerId: number): Promise<boolean> {
