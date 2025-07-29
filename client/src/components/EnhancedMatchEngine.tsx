@@ -76,7 +76,7 @@ interface MatchEngineProps {
   onMatchComplete?: (finalState: LiveMatchState) => void;
 }
 
-// Field Visualization Component
+// Field Visualization Component - Dome Design
 const FieldVisualization: React.FC<{
   homeTeam: any;
   awayTeam: any;
@@ -85,38 +85,89 @@ const FieldVisualization: React.FC<{
   liveState: LiveMatchState;
   ballPosition: { x: number; y: number };
 }> = ({ homeTeam, awayTeam, homePlayers, awayPlayers, liveState, ballPosition }) => {
+  const FIELD_WIDTH = 400;
+  const FIELD_HEIGHT = 200;
+  
   return (
-    <div className="relative w-full aspect-[16/9] bg-gradient-to-b from-green-400 to-green-600 rounded-lg overflow-hidden border-2 border-green-300">
-      {/* Field markings */}
-      <div className="absolute inset-0">
-        {/* Yard lines */}
-        {[20, 40, 60, 80].map(yard => (
-          <div 
-            key={yard}
-            className="absolute w-full h-px bg-white/30"
-            style={{ top: `${yard}%` }}
-          />
-        ))}
+    <div className="relative w-full aspect-[16/9] rounded-lg overflow-hidden border-2 border-gray-300 bg-gray-900">
+      {/* Dome Field Visualization */}
+      <svg 
+        width="100%" 
+        height="100%" 
+        viewBox={`0 0 ${FIELD_WIDTH} ${FIELD_HEIGHT}`}
+        className="absolute inset-0"
+      >
+        <defs>
+          <linearGradient id="domeFieldGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stopColor="#1a472a" />
+            <stop offset="50%" stopColor="#166534" />
+            <stop offset="100%" stopColor="#134e4a" />
+          </linearGradient>
+        </defs>
         
-        {/* Sidelines */}
-        <div className="absolute left-0 top-0 w-px h-full bg-white/50" />
-        <div className="absolute right-0 top-0 w-px h-full bg-white/50" />
+        {/* Dome Field Shape */}
+        <path
+          d={`M ${FIELD_HEIGHT/2} 10 
+              L ${FIELD_WIDTH - FIELD_HEIGHT/2} 10 
+              A ${FIELD_HEIGHT/2} ${FIELD_HEIGHT/2} 0 0 1 ${FIELD_WIDTH - FIELD_HEIGHT/2} ${FIELD_HEIGHT - 10} 
+              L ${FIELD_HEIGHT/2} ${FIELD_HEIGHT - 10} 
+              A ${FIELD_HEIGHT/2} ${FIELD_HEIGHT/2} 0 0 1 ${FIELD_HEIGHT/2} 10 Z`}
+          fill="url(#domeFieldGradient)"
+          stroke="#ffffff"
+          strokeWidth="3"
+        />
         
-        {/* End zones */}
-        <div className="absolute top-0 left-0 w-full h-[10%] bg-blue-500/20 border-b border-white/30" />
-        <div className="absolute bottom-0 left-0 w-full h-[10%] bg-red-500/20 border-t border-white/30" />
+        {/* Center line */}
+        <line 
+          x1={FIELD_WIDTH/2} 
+          y1="20" 
+          x2={FIELD_WIDTH/2} 
+          y2={FIELD_HEIGHT - 20} 
+          stroke="rgba(255,255,255,0.4)" 
+          strokeWidth="2"
+        />
         
-        {/* Midfield line */}
-        <div className="absolute top-1/2 left-0 w-full h-0.5 bg-white/60" />
-      </div>
+        {/* Center circle */}
+        <circle 
+          cx={FIELD_WIDTH/2} 
+          cy={FIELD_HEIGHT/2} 
+          r="30" 
+          fill="none" 
+          stroke="rgba(255,255,255,0.3)" 
+          strokeWidth="2"
+        />
+        
+        {/* Left score zone (oval) */}
+        <ellipse 
+          cx={FIELD_HEIGHT/2} 
+          cy={FIELD_HEIGHT/2} 
+          rx="25" 
+          ry="45" 
+          fill="rgba(59, 130, 246, 0.2)" 
+          stroke="rgba(59, 130, 246, 0.5)" 
+          strokeWidth="2"
+        />
+        
+        {/* Right score zone (oval) */}
+        <ellipse 
+          cx={FIELD_WIDTH - FIELD_HEIGHT/2} 
+          cy={FIELD_HEIGHT/2} 
+          rx="25" 
+          ry="45" 
+          fill="rgba(239, 68, 68, 0.2)" 
+          stroke="rgba(239, 68, 68, 0.5)" 
+          strokeWidth="2"
+        />
+      </svg>
       
-      {/* Ball position */}
+      {/* Orb position */}
       <div 
-        className="absolute w-2 h-2 bg-yellow-400 rounded-full border border-yellow-600 shadow-lg animate-pulse"
+        className="absolute w-3 h-3 bg-amber-400 rounded-full border-2 border-amber-600 shadow-lg"
         style={{
           left: `${ballPosition.x}%`,
           top: `${ballPosition.y}%`,
-          transform: 'translate(-50%, -50%)'
+          transform: 'translate(-50%, -50%)',
+          boxShadow: '0 0 12px rgba(255, 193, 7, 0.6)'
         }}
       />
       
@@ -150,12 +201,12 @@ const FieldVisualization: React.FC<{
       
       {/* Possession indicator */}
       <div className="absolute top-2 left-2 bg-black/50 text-white px-2 py-1 rounded text-xs">
-        {(liveState as any)?.possession === homeTeam?.id ? homeTeam?.name : awayTeam?.name} Ball
+        {(liveState as any)?.possession === homeTeam?.id ? homeTeam?.name : awayTeam?.name} Orb
       </div>
       
-      {/* Down and distance */}
+      {/* Match intensity indicator */}
       <div className="absolute top-2 right-2 bg-black/50 text-white px-2 py-1 rounded text-xs">
-        {(liveState as any)?.down || 1}{(liveState as any)?.down === 1 ? 'st' : (liveState as any)?.down === 2 ? 'nd' : (liveState as any)?.down === 3 ? 'rd' : 'th'} & {(liveState as any)?.yardsToGo || 10}
+        Intensity: {(liveState as any)?.intensity || 'High'}
       </div>
     </div>
   );
