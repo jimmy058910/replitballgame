@@ -11,8 +11,8 @@ COPY package*.json ./
 # Install ONLY express (no other dependencies)
 RUN npm install express
 
-# Copy ONLY the ultra-simple server file
-COPY server-ultra-simple.js ./
+# Copy ONLY the ultra-simple server file (CommonJS)
+COPY server-ultra-simple.cjs ./
 
 # Create dist directory and basic index.html
 RUN mkdir -p dist && echo '<!DOCTYPE html><html><head><title>Realm Rivalry - DEPLOYMENT TEST</title></head><body><h1>🎉 DEPLOYMENT SUCCESSFUL!</h1><p>Ultra-simple server is working!</p></body></html>' > dist/index.html
@@ -28,6 +28,6 @@ USER nextjs
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
   CMD curl -f http://localhost:8080/health || exit 1
 
-CMD ["node", "server-ultra-simple.js"]
+CMD ["node", "server-ultra-simple.cjs"]
 
 EXPOSE 8080

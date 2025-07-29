@@ -1,4 +1,4 @@
-// Ultra-simple server - NO dependencies on any project code
+// Ultra-simple server - NO dependencies on any project code - CommonJS format
 const express = require('express');
 const path = require('path');
 
