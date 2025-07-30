@@ -8,7 +8,7 @@ const router = Router();
 
 // Initialize Stripe
 if (!process.env.STRIPE_SECRET_KEY) {
-  console.error('FATAL ERROR: Missing required Stripe secret: STRIPE_SECRET_KEY');
+  console.warn('⚠️  Stripe secret not configured - payment features disabled for Alpha testing');
   // Potentially throw to prevent app start, or handle gracefully
   // throw new Error('Missing required Stripe secret: STRIPE_SECRET_KEY');
 }
