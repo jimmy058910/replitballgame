@@ -212,7 +212,7 @@ export default function Navigation() {
                       <div className="flex flex-col gap-2 mt-2">
                         <Button
                           variant="outline"
-                          onClick={() => window.location.href = '/api/login'}
+                          onClick={login}
                           className="w-full border-blue-400 text-blue-400 hover:bg-blue-400 hover:text-white"
                         >
                           <LogIn className="h-4 w-4 mr-2" />
@@ -220,7 +220,7 @@ export default function Navigation() {
                         </Button>
                         
                         <Button
-                          onClick={() => window.location.href = '/api/login'}
+                          onClick={login}
                           className="w-full bg-blue-600 hover:bg-blue-700 text-white"
                         >
                           <UserPlus className="h-4 w-4 mr-2" />
@@ -259,7 +259,7 @@ export default function Navigation() {
                     <div className="border-t border-gray-700 pt-4">
                       <Button
                         variant="outline"
-                        onClick={() => window.location.href = '/api/logout'}
+                        onClick={logout}
                         className="w-full text-red-400 border-red-400 hover:bg-red-400 hover:text-white"
                       >
                         <LogOut className="h-4 w-4 mr-2" />
