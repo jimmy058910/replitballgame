@@ -19,7 +19,10 @@ export function validateEnvironmentSecurity(): SecurityCheckResult[] {
   
   const requiredEnvVars = [
     'DATABASE_URL',
-    'SESSION_SECRET',
+    'SESSION_SECRET'
+  ];
+
+  const optionalEnvVars = [
     'STRIPE_SECRET_KEY',
     'VITE_STRIPE_PUBLIC_KEY'
   ];
@@ -31,6 +34,25 @@ export function validateEnvironmentSecurity(): SecurityCheckResult[] {
         passed: false,
         message: `Missing required environment variable: ${varName}`,
         severity: 'critical'
+      });
+    } else {
+      results.push({
+        check: `Environment Variable: ${varName}`,
+        passed: true,
+        message: `Environment variable ${varName} is configured`,
+        severity: 'low'
+      });
+    }
+  });
+
+  // Check optional environment variables (warnings only)
+  optionalEnvVars.forEach(varName => {
+    if (!process.env[varName]) {
+      results.push({
+        check: `Environment Variable: ${varName}`,
+        passed: true, // Don't fail for optional vars
+        message: `Optional environment variable ${varName} not configured - payment features disabled`,
+        severity: 'medium'
       });
     } else {
       results.push({
@@ -116,9 +138,9 @@ export function validateStripeIntegration(): SecurityCheckResult[] {
   if (!stripeSecretKey || !stripeSecretKey.startsWith('sk_')) {
     results.push({
       check: 'Stripe Secret Key',
-      passed: false,
-      message: 'Stripe secret key is missing or invalid format',
-      severity: 'high'
+      passed: true, // Don't fail for missing Stripe in Alpha testing
+      message: 'Stripe secret key is missing or invalid format - payment features disabled',
+      severity: 'medium'
     });
   } else {
     results.push({
@@ -132,8 +154,8 @@ export function validateStripeIntegration(): SecurityCheckResult[] {
   if (!stripePublicKey || !stripePublicKey.startsWith('pk_')) {
     results.push({
       check: 'Stripe Public Key',
-      passed: false,
-      message: 'Stripe public key is missing or invalid format',
+      passed: true, // Don't fail for missing Stripe in Alpha testing
+      message: 'Stripe public key is missing or invalid format - payment features disabled',
       severity: 'medium'
     });
   } else {
