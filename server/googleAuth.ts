@@ -60,11 +60,31 @@ export async function setupGoogleAuth(app: Express) {
 
   // Initialize Passport FIRST before defining routes
   Logger.logInfo('Initializing Passport middleware');
-  console.log('🔧 Adding passport.initialize() middleware...');
-  app.use(passport.initialize());
-  console.log('🔧 Adding passport.session() middleware...');
-  app.use(passport.session());
-  console.log('✅ Passport middleware initialized');
+  console.log('🔧 About to add passport.initialize() middleware...');
+  console.log('🔧 passport object type:', typeof passport);
+  console.log('🔧 passport.initialize type:', typeof passport.initialize);
+  
+  try {
+    const initMiddleware = passport.initialize();
+    console.log('🔧 passport.initialize() created middleware:', typeof initMiddleware);
+    app.use(initMiddleware);
+    console.log('✅ passport.initialize() middleware added successfully');
+  } catch (initError) {
+    console.error('❌ passport.initialize() failed:', initError);
+    throw initError;
+  }
+  
+  try {
+    const sessionMiddleware = passport.session();
+    console.log('🔧 passport.session() created middleware:', typeof sessionMiddleware);
+    app.use(sessionMiddleware);
+    console.log('✅ passport.session() middleware added successfully');
+  } catch (sessionError) {
+    console.error('❌ passport.session() failed:', sessionError);
+    throw sessionError;
+  }
+  
+  console.log('✅ All Passport middleware initialized successfully');
 
   // Define authentication routes AFTER passport initialization
   Logger.logInfo('Registering API authentication routes');

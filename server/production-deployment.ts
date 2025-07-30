@@ -133,7 +133,28 @@ console.log('GOOGLE_CLIENT_SECRET present:', !!process.env.GOOGLE_CLIENT_SECRET)
 console.log('DATABASE_URL present:', !!process.env.DATABASE_URL);
 
 try {
+  console.log('🔄 BEFORE setupGoogleAuth - passport object:', typeof passport);
+  console.log('🔄 BEFORE setupGoogleAuth - app object methods:', Object.getOwnPropertyNames(app).slice(0, 10));
+  
   setupGoogleAuth(app);
+  console.log('✅ setupGoogleAuth completed without throwing error');
+  
+  // CRITICAL: Test passport immediately after setup
+  console.log('🔍 POST-SETUP: Testing passport middleware attachment...');
+  
+  // Create test middleware to verify passport is working
+  app.use('/api/passport-test', (req: any, res, next) => {
+    console.log('🧪 Passport test middleware - req.isAuthenticated:', typeof req.isAuthenticated);
+    console.log('🧪 Passport test middleware - req._passport:', !!req._passport);
+    console.log('🧪 Passport test middleware - req.session:', !!req.session);
+    res.json({
+      passportWorking: typeof req.isAuthenticated === 'function',
+      passportObject: !!req._passport,
+      sessionExists: !!req.session,
+      testTime: new Date().toISOString()
+    });
+  });
+  
   console.log('✅ Authentication middleware configured successfully');
   
   // Success endpoint
@@ -147,8 +168,8 @@ try {
   
 } catch (error) {
   console.error('❌ CRITICAL: Authentication setup failed:', error);
-  console.error('❌ Error message:', error.message);
-  console.error('❌ Stack trace:', error.stack);
+  console.error('❌ Error message:', error?.message);
+  console.error('❌ Stack trace:', error?.stack);
   
   // Error endpoint with detailed info
   app.get('/api/auth-status', (req, res) => {
