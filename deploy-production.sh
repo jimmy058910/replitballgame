@@ -49,7 +49,7 @@ gcloud run deploy realm-rivalry \
   --allow-unauthenticated \
   --service-account realm-rivalry-runner@direct-glider-465821-p7.iam.gserviceaccount.com \
   --set-env-vars NODE_ENV=production,GOOGLE_CLIENT_ID=108005641993-e642ered12jj7ka6unpqhgjdls92c0u8.apps.googleusercontent.com \
-  --set-secrets DATABASE_URL=database-url:latest,SESSION_SECRET=session-secret:latest,GOOGLE_CLIENT_SECRET=google-client-secret:latest \
+  --set-secrets DATABASE_URL=database-url:latest,SESSION_SECRET=session-secret:latest,GOOGLE_CLIENT_SECRET=google-client-secret:latest,STRIPE_SECRET_KEY=stripe-secret-key:latest \
   --memory 2Gi \
   --cpu 1 \
   --concurrency 80 \

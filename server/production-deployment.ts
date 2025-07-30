@@ -9,6 +9,8 @@ import helmet from 'helmet';
 import { fileURLToPath } from 'url';
 import { setupGoogleAuth } from './googleAuth';
 import { registerAllRoutes } from './routes/index';
+import { Firestore } from '@google-cloud/firestore';
+import { FirestoreStore } from '@google-cloud/connect-firestore';
 
 // ESM polyfill for __dirname and __filename
 const __filename = fileURLToPath(import.meta.url);
@@ -49,9 +51,16 @@ app.use(cors(corsOptions));
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
 
-// Session configuration for production (Cloud Run compatible)
-console.log('🔧 Setting up session middleware for Cloud Run...');
+// Production session configuration with Firestore (per analysis recommendation)
+console.log('🔧 Setting up Firestore session store for Cloud Run...');
+
+const sessionStore = new FirestoreStore({
+  dataset: new Firestore(),
+  kind: 'realm-rivalry-sessions',
+});
+
 app.use(session({
+  store: sessionStore, // Use Firestore instead of MemoryStore
   secret: process.env.SESSION_SECRET || 'realm-rivalry-production-secret',
   resave: false,
   saveUninitialized: false,
@@ -59,11 +68,11 @@ app.use(session({
     secure: true, // HTTPS required in production
     httpOnly: true,
     maxAge: 24 * 60 * 60 * 1000, // 24 hours
-    sameSite: 'lax' // Changed from 'none' - more compatible with Cloud Run
+    sameSite: 'lax' // Cloud Run compatible
   },
-  name: 'realm-rivalry.sid' // Explicit session name
+  name: 'realm-rivalry.sid'
 }));
-console.log('✅ Session middleware configured');
+console.log('✅ Firestore session store configured - no more MemoryStore warnings');
 
 // CRITICAL MIDDLEWARE ORDER FIX (per Gemini suggestion)
 // 1. Session middleware is already configured above ✓
