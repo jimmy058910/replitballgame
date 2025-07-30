@@ -74,13 +74,31 @@ console.log('✅ Session middleware configured (using MemoryStore for stability)
 // 3. THEN register all routes that use authentication ✓
 
 console.log('🔐 Setting up Google authentication middleware...');
+
+// Test required environment variables first
+console.log('🔍 Checking authentication environment variables...');
+console.log('GOOGLE_CLIENT_ID present:', !!process.env.GOOGLE_CLIENT_ID);
+console.log('GOOGLE_CLIENT_SECRET present:', !!process.env.GOOGLE_CLIENT_SECRET);
+console.log('DATABASE_URL present:', !!process.env.DATABASE_URL);
+
 try {
   setupGoogleAuth(app);
-  console.log('✅ Authentication middleware configured');
+  console.log('✅ Authentication middleware configured successfully');
 } catch (error) {
   console.error('❌ CRITICAL: Authentication setup failed:', error);
+  console.error('❌ Error message:', error.message);
   console.error('❌ Stack trace:', error.stack);
-  // Don't crash the server, but log the error clearly
+  
+  // Add a test route to help debug
+  app.get('/api/auth-debug', (req, res) => {
+    res.json({
+      error: 'Authentication setup failed',
+      message: error.message,
+      hasGoogleClientId: !!process.env.GOOGLE_CLIENT_ID,
+      hasGoogleClientSecret: !!process.env.GOOGLE_CLIENT_SECRET,
+      hasDatabaseUrl: !!process.env.DATABASE_URL
+    });
+  });
 }
 
 // Verify passport middleware is working
