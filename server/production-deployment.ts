@@ -132,33 +132,34 @@ console.log('GOOGLE_CLIENT_ID present:', !!process.env.GOOGLE_CLIENT_ID);
 console.log('GOOGLE_CLIENT_SECRET present:', !!process.env.GOOGLE_CLIENT_SECRET);
 console.log('DATABASE_URL present:', !!process.env.DATABASE_URL);
 
-try {
-  console.log('🔄 BEFORE setupGoogleAuth - passport object:', typeof passport);
-  console.log('🔄 BEFORE setupGoogleAuth - passport import successful:', !!passport);
-  console.log('🔄 BEFORE setupGoogleAuth - passport.initialize type:', typeof passport?.initialize);
-  console.log('🔄 BEFORE setupGoogleAuth - passport.session type:', typeof passport?.session);
-  console.log('🔄 BEFORE setupGoogleAuth - app object methods:', Object.getOwnPropertyNames(app).slice(0, 10));
-  console.log('🔄 BEFORE setupGoogleAuth - app.use type:', typeof app.use);
-  
-  // Test app.use functionality BEFORE calling setupGoogleAuth
-  const testMiddlewareAdded = [];
-  const originalAppUse = app.use.bind(app);
-  
-  // Wrap app.use to track middleware additions during setupGoogleAuth
-  app.use = function(...args: any[]) {
-    console.log('🔧 TRACKED: app.use called with:', args.length, 'arguments');
-    console.log('🔧 TRACKED: First arg type:', typeof args[0]);
-    console.log('🔧 TRACKED: First arg name:', args[0]?.name || 'unnamed');
-    testMiddlewareAdded.push({
-      args: args.length,
-      type: typeof args[0],
-      name: args[0]?.name || 'unnamed',
-      timestamp: new Date().toISOString()
-    });
-    return originalAppUse(...args);
-  };
-  
-  setupGoogleAuth(app);
+(async () => {
+  try {
+    console.log('🔄 BEFORE setupGoogleAuth - passport object:', typeof passport);
+    console.log('🔄 BEFORE setupGoogleAuth - passport import successful:', !!passport);
+    console.log('🔄 BEFORE setupGoogleAuth - passport.initialize type:', typeof passport?.initialize);
+    console.log('🔄 BEFORE setupGoogleAuth - passport.session type:', typeof passport?.session);
+    console.log('🔄 BEFORE setupGoogleAuth - app object methods:', Object.getOwnPropertyNames(app).slice(0, 10));
+    console.log('🔄 BEFORE setupGoogleAuth - app.use type:', typeof app.use);
+    
+    // Test app.use functionality BEFORE calling setupGoogleAuth
+    const testMiddlewareAdded = [];
+    const originalAppUse = app.use.bind(app);
+    
+    // Wrap app.use to track middleware additions during setupGoogleAuth
+    app.use = function(...args: any[]) {
+      console.log('🔧 TRACKED: app.use called with:', args.length, 'arguments');
+      console.log('🔧 TRACKED: First arg type:', typeof args[0]);
+      console.log('🔧 TRACKED: First arg name:', args[0]?.name || 'unnamed');
+      testMiddlewareAdded.push({
+        args: args.length,
+        type: typeof args[0],
+        name: args[0]?.name || 'unnamed',
+        timestamp: new Date().toISOString()
+      });
+      return originalAppUse(...args);
+    };
+    
+    await setupGoogleAuth(app);
   
   // Restore original app.use
   app.use = originalAppUse;
@@ -212,6 +213,7 @@ try {
     });
   });
 }
+})();
 
 // Verify passport middleware is working
 console.log('🔍 Testing passport middleware...');
