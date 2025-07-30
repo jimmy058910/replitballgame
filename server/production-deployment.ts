@@ -75,8 +75,6 @@ console.log('✅ Authentication configured');
 console.log('🛣️ Registering API routes...');
 registerAllRoutes(app);
 console.log('✅ All API routes registered');
-registerAllRoutes(app);
-console.log('✅ API routes configured');
 
 // Health check endpoints (CRITICAL for Cloud Run)
 app.get('/health', (req, res) => {
