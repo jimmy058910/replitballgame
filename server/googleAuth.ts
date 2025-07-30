@@ -58,26 +58,35 @@ export async function setupGoogleAuth(app: Express) {
     }
   });
 
-  // Initialize Passport and restore authentication state, if any, from the session.
-  app.use(passport.initialize());
-  app.use(passport.session());
-
-  // Define authentication routes.
+  // Define authentication routes FIRST to prevent conflicts
+  Logger.logInfo('Registering API authentication routes');
 
   // API login route that redirects to Google OAuth
   app.get('/api/login', (req, res) => {
+    Logger.logInfo('API login request received, redirecting to Google OAuth', { 
+      requestId: (req as any).requestId,
+      userAgent: req.get('User-Agent')
+    });
     res.redirect('/auth/google');
   });
 
   // API logout route
   app.get('/api/logout', (req, res) => {
+    Logger.logInfo('API logout request received', { 
+      requestId: (req as any).requestId,
+      authenticated: req.isAuthenticated ? req.isAuthenticated() : false
+    });
     req.logout((err) => {
       if (err) {
-        console.error('Logout error:', err);
+        Logger.logError('Logout error occurred', err as Error);
       }
       res.redirect('/');
     });
   });
+
+  // Initialize Passport and restore authentication state, if any, from the session.
+  app.use(passport.initialize());
+  app.use(passport.session());
 
   // This route starts the Google authentication process.
   // 'profile' and 'email' are the "scopes" we are requesting from Google.

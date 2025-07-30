@@ -203,10 +203,6 @@ app.get('/health', (req, res) => {
       httpOnly: true,
       maxAge: 24 * 60 * 60 * 1000, // 24 hours
       sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax'
-    },
-    // Add session debug logging
-    onHeaders: function(res) {
-      console.log('🔍 Session headers being set...');
     }
   }));
   
@@ -216,16 +212,13 @@ app.get('/health', (req, res) => {
       console.log(`🔍 Session info for ${req.path}:`, {
         sessionID: req.sessionID,
         isAuthenticated: req.isAuthenticated ? req.isAuthenticated() : false,
-        user: req.user ? { userId: req.user.userId } : null
+        user: req.user ? { userId: (req.user as any).userId } : null
       });
     }
     next();
   });
 
-  app.use(passport.initialize());
-  app.use(passport.session());
-
-  // Setup Google Auth to match production configuration
+  // Setup Google Auth to match production configuration (this includes passport setup)
   await setupGoogleAuth(app);
 
   // Register all modular routes
