@@ -110,7 +110,7 @@ app.get('/api/debug-routes', (req, res) => {
     extractRoutes(app._router.stack);
     res.json({
       totalRoutes: routes.length,
-      authRoutes: routes.filter(r => r.path.includes('/api/login') || r.path.includes('/auth/google')),
+      authRoutes: routes.filter(r => r.path.includes('/api/auth/login') || r.path.includes('/api/auth/google')),
       apiRoutes: routes.filter(r => r.path.startsWith('/api/')),
       allRoutes: routes,
       timestamp: new Date().toISOString()
@@ -223,7 +223,7 @@ console.log('DATABASE_URL present:', !!process.env.DATABASE_URL);
   
   // Create fallback auth routes if setupGoogleAuth completely failed
   console.log('🔧 Creating fallback auth routes...');
-  app.get('/api/login', (req, res) => {
+  app.get('/api/auth/login', (req, res) => {
     res.status(503).json({
       error: 'Authentication system temporarily unavailable',
       message: 'Database connection issues preventing Google OAuth setup',

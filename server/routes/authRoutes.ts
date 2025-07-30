@@ -2,10 +2,25 @@ import { Router, type Response, type NextFunction } from "express"; // Added Res
 import { userStorage } from "../storage/userStorage"; // Updated import
 import { isAuthenticated } from "../googleAuth";
 import { RBACService, Permission } from "../services/rbacService";
+import passport from 'passport';
 
 const router = Router();
 
-// Auth routes
+// ✅ LOGIN - Initiate Google OAuth
+router.get('/login', passport.authenticate('google', { 
+  scope: ['profile', 'email'] 
+}));
+
+// ✅ GOOGLE OAUTH CALLBACK
+router.get('/google/callback', 
+  passport.authenticate('google', { failureRedirect: '/login' }),
+  (req, res) => {
+    console.log('✅ OAuth callback successful, redirecting to homepage');
+    res.redirect('/'); // Redirect home after successful login
+  }
+);
+
+// ✅ GET USER STATUS - Consolidated from both files
 router.get('/user', isAuthenticated, async (req: any, res: Response, next: NextFunction) => { // Added next
   try {
     // For now, return the user data from the database directly using a known working userId
@@ -111,6 +126,26 @@ router.get("/dev-login", (req: any, res) => {
     authenticated: true,
     note: "Development authentication bypass"
   });
+});
+
+// ✅ LOGOUT 
+router.get('/logout', (req: any, res: Response, next: NextFunction) => {
+  req.logout((err: any) => {
+    if (err) { 
+      console.error('Logout error:', err);
+      return next(err); 
+    }
+    res.redirect('/');
+  });
+});
+
+// ✅ SIMPLE USER CHECK (for /api/me compatibility)
+router.get('/me', isAuthenticated, (req: any, res: Response) => {
+  if (req.user) {
+    res.json(req.user);
+  } else {
+    res.status(401).json({ message: 'You are not authenticated' });
+  }
 });
 
 export default router;

@@ -20,8 +20,8 @@ export async function setupGoogleAuth(app: Express) {
     clientID: process.env.GOOGLE_CLIENT_ID!,
     clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
     callbackURL: process.env.NODE_ENV === 'production' 
-      ? 'https://www.realmrivalry.com/auth/google/callback'
-      : '/auth/google/callback',
+      ? 'https://www.realmrivalry.com/api/auth/google/callback'
+      : '/api/auth/google/callback',
     scope: ['profile', 'email']
   },
   async (accessToken, refreshToken, profile, done) => {
@@ -100,96 +100,8 @@ export async function setupGoogleAuth(app: Express) {
   
   console.log('✅ All Passport middleware initialized successfully');
 
-  // Define authentication routes AFTER passport initialization
-  Logger.logInfo('Registering API authentication routes');
-  console.log('🔧 About to register /api/login route in googleAuth.ts');
-
-  // API login route that redirects to Google OAuth
-  console.log('✅ Registering /api/login route now');
-  app.get('/api/login', (req, res) => {
-    console.log('🎯 /api/login route was called!');
-    Logger.logInfo('API login request received, redirecting to Google OAuth', { 
-      requestId: (req as any).requestId,
-      userAgent: req.get('User-Agent')
-    });
-    res.redirect('/auth/google');
-  });
-  console.log('✅ /api/login route registered successfully');
-
-  // API logout route
-  app.get('/api/logout', (req, res) => {
-    Logger.logInfo('API logout request received', { 
-      requestId: (req as any).requestId,
-      authenticated: req.isAuthenticated ? req.isAuthenticated() : false
-    });
-    req.logout((err) => {
-      if (err) {
-        Logger.logError('Logout error occurred', err as Error);
-      }
-      res.redirect('/');
-    });
-  });
-
-  // This route starts the Google authentication process.
-  // 'profile' and 'email' are the "scopes" we are requesting from Google.
-  app.get('/auth/google', passport.authenticate('google'));
-
-  // This is the callback route that Google redirects to after the user logs in.
-  // It will exchange the code for a profile and call our verify function above.
-  app.get('/auth/google/callback', 
-    passport.authenticate('google', {
-      failureRedirect: '/login' // Redirect to a login page on failure
-    }),
-    (req, res) => {
-      // Custom success handling with detailed logging
-      Logger.logInfo('OAuth callback successful, redirecting user', { 
-        userId: (req.user as any)?.userId,
-        sessionId: req.sessionID 
-      });
-      res.redirect('/'); // Redirect to the homepage on success
-    }
-  );
-
-  // A simple route to check if the user is logged in.
-  app.get('/api/me', (req, res) => {
-    if (req.isAuthenticated()) {
-      res.json(req.user);
-    } else {
-      res.status(401).json({ message: 'You are not authenticated' });
-    }
-  });
-
-  // Frontend compatibility route - matches what useAuth.ts expects
-  app.get('/api/auth/user', (req, res) => {
-    if (req.isAuthenticated()) {
-      res.json(req.user);
-    } else {
-      res.status(401).json({ message: 'You are not authenticated' });
-    }
-  });
-
-  // Removed duplicate routes - they are already defined above
-
-  // Legacy route to log out the user.
-  app.get('/logout', (req, res, next) => {
-    req.logout((err) => {
-      if (err) { return next(err); }
-      res.redirect('/');
-    });
-  });
-
-  // Add error handling middleware for auth routes
-  app.use('/auth', (error: any, req: any, res: any, next: any) => {
-    Logger.logError('Authentication error occurred', error, { 
-      path: req.path, 
-      method: req.method,
-      sessionId: req.sessionID 
-    });
-    res.status(500).json({ 
-      error: 'Authentication failed', 
-      message: 'Internal server error during authentication'
-    });
-  });
+  // ✅ Passport middleware setup complete
+  // All authentication routes are now consolidated in authRoutes.ts
 
   Logger.logInfo('Google OAuth authentication setup completed');
 }

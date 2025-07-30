@@ -271,7 +271,7 @@ export default function NewNavigation() {
                 <Button 
                   variant="ghost" 
                   size="sm"
-                  onClick={() => window.location.href = "/api/logout"}
+                  onClick={() => window.location.href = "/api/auth/logout"}
                   className="hidden lg:flex"
                 >
                   <LogOut className="h-4 w-4" />
@@ -282,7 +282,7 @@ export default function NewNavigation() {
                 <Button 
                   variant="ghost" 
                   size="sm"
-                  onClick={() => window.location.href = "/api/login"}
+                  onClick={() => window.location.href = "/api/auth/login"}
                 >
                   <LogIn className="h-4 w-4 mr-2" />
                   Login
