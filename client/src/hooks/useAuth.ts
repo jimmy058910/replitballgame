@@ -1,14 +1,14 @@
-import { useQuery } from "@tanstack/react-query";
+import { useFirebaseAuth } from './useFirebaseAuth';
 
 export function useAuth() {
-  const { data: user, isLoading } = useQuery({
-    queryKey: ["/api/auth/user"],
-    retry: false,
-  });
+  const { user, loading, error, login, logout, isAuthenticated } = useFirebaseAuth();
 
   return {
     user,
-    isLoading,
-    isAuthenticated: !!user,
+    isLoading: loading,
+    isAuthenticated,
+    login,
+    logout,
+    error
   };
 }

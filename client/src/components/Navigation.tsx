@@ -30,7 +30,7 @@ interface StoreData {
 export default function Navigation() {
   const [location, setLocation] = useLocation();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const { isAuthenticated, isLoading } = useAuth();
+  const { isAuthenticated, isLoading, login, logout } = useAuth();
 
   const { data: team } = useQuery<Team>({
     queryKey: ["/api/teams/my"],
@@ -133,7 +133,7 @@ export default function Navigation() {
                 <Button
                   variant="ghost"
                   size="sm"
-                  onClick={() => window.location.href = '/api/auth/logout'}
+                  onClick={logout}
                   className="hidden sm:flex h-8 px-2 text-xs text-red-400 hover:bg-red-400 hover:text-white"
                 >
                   <LogOut className="h-3 w-3 mr-1" />
@@ -146,7 +146,7 @@ export default function Navigation() {
                 <Button
                   size="sm"
                   variant="ghost"
-                  onClick={() => window.location.href = '/api/auth/login'}
+                  onClick={login}
                   className="hidden sm:flex h-8 px-3 text-xs text-blue-400 hover:bg-blue-400 hover:text-white"
                 >
                   <LogIn className="h-3 w-3 mr-1" />
@@ -156,7 +156,7 @@ export default function Navigation() {
                 <Button
                   size="sm"
                   variant="outline"
-                  onClick={() => window.location.href = '/api/auth/login'}
+                  onClick={login}
                   className="hidden sm:flex h-8 px-3 text-xs border-blue-400 text-blue-400 hover:bg-blue-400 hover:text-white"
                 >
                   <UserPlus className="h-3 w-3 mr-1" />
