@@ -134,6 +134,7 @@ console.log('DATABASE_URL present:', !!process.env.DATABASE_URL);
 
 (async () => {
   try {
+    console.log('🔄 STARTING: Authentication setup with timeout protection...');
     console.log('🔄 BEFORE setupGoogleAuth - passport object:', typeof passport);
     console.log('🔄 BEFORE setupGoogleAuth - passport import successful:', !!passport);
     console.log('🔄 BEFORE setupGoogleAuth - passport.initialize type:', typeof passport?.initialize);
@@ -159,7 +160,14 @@ console.log('DATABASE_URL present:', !!process.env.DATABASE_URL);
       return originalAppUse(...args);
     };
     
-    await setupGoogleAuth(app);
+    // Add timeout protection for database operations
+    console.log('🕐 Setting up authentication with 15 second timeout...');
+    const authSetupPromise = setupGoogleAuth(app);
+    const timeoutPromise = new Promise((_, reject) => {
+      setTimeout(() => reject(new Error('Authentication setup timed out after 15 seconds')), 15000);
+    });
+    
+    await Promise.race([authSetupPromise, timeoutPromise]);
   
   // Restore original app.use
   app.use = originalAppUse;
@@ -204,10 +212,32 @@ console.log('DATABASE_URL present:', !!process.env.DATABASE_URL);
   console.error('❌ Error message:', error?.message);
   console.error('❌ Stack trace:', error?.stack);
   
-  // Register routes anyway to prevent complete failure
-  console.log('🛣️ Registering API routes despite auth failure...');
-  registerAllRoutes(app);
-  console.log('✅ API routes registered despite auth failure');
+  // CRITICAL: Always register routes even if auth fails completely
+  console.log('🛣️ TIMEOUT/ERROR: Registering API routes despite auth failure...');
+  try {
+    registerAllRoutes(app);
+    console.log('✅ API routes registered successfully despite auth failure');
+  } catch (routeError) {
+    console.error('❌ CRITICAL: Route registration also failed:', routeError);
+  }
+  
+  // Create fallback auth routes if setupGoogleAuth completely failed
+  console.log('🔧 Creating fallback auth routes...');
+  app.get('/api/login', (req, res) => {
+    res.status(503).json({
+      error: 'Authentication system temporarily unavailable',
+      message: 'Database connection issues preventing Google OAuth setup',
+      timestamp: new Date().toISOString()
+    });
+  });
+  
+  app.get('/api/auth/user', (req, res) => {
+    res.status(503).json({
+      error: 'Authentication system temporarily unavailable',
+      message: 'Database connection issues preventing user authentication',
+      timestamp: new Date().toISOString()
+    });
+  });
   
   // Error endpoint with detailed info
   app.get('/api/auth-status', (req, res) => {
