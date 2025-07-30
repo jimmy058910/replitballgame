@@ -125,6 +125,15 @@ export async function setupGoogleAuth(app: Express) {
     }
   });
 
+  // Frontend compatibility route - matches what useAuth.ts expects
+  app.get('/api/auth/user', (req, res) => {
+    if (req.isAuthenticated()) {
+      res.json(req.user);
+    } else {
+      res.status(401).json({ message: 'You are not authenticated' });
+    }
+  });
+
   // Removed duplicate routes - they are already defined above
 
   // Legacy route to log out the user.
