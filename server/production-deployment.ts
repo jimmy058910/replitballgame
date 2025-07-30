@@ -73,6 +73,19 @@ console.log('✅ Session middleware configured (using MemoryStore for stability)
 // 2. Now setup passport.initialize() and passport.session() ✓
 // 3. THEN register all routes that use authentication ✓
 
+// DEBUG: Create environment check endpoint BEFORE authentication setup
+app.get('/api/env-check', (req, res) => {
+  res.json({
+    NODE_ENV: process.env.NODE_ENV,
+    hasGoogleClientId: !!process.env.GOOGLE_CLIENT_ID,
+    hasGoogleClientSecret: !!process.env.GOOGLE_CLIENT_SECRET,
+    hasDatabaseUrl: !!process.env.DATABASE_URL,
+    hasSessionSecret: !!process.env.SESSION_SECRET,
+    timestamp: new Date().toISOString(),
+    serverStarted: true
+  });
+});
+
 console.log('🔐 Setting up Google authentication middleware...');
 
 // Test required environment variables first
@@ -84,19 +97,32 @@ console.log('DATABASE_URL present:', !!process.env.DATABASE_URL);
 try {
   setupGoogleAuth(app);
   console.log('✅ Authentication middleware configured successfully');
+  
+  // Success endpoint
+  app.get('/api/auth-status', (req, res) => {
+    res.json({
+      status: 'success',
+      authSetup: 'completed',
+      timestamp: new Date().toISOString()
+    });
+  });
+  
 } catch (error) {
   console.error('❌ CRITICAL: Authentication setup failed:', error);
   console.error('❌ Error message:', error.message);
   console.error('❌ Stack trace:', error.stack);
   
-  // Add a test route to help debug
-  app.get('/api/auth-debug', (req, res) => {
-    res.json({
+  // Error endpoint with detailed info
+  app.get('/api/auth-status', (req, res) => {
+    res.status(500).json({
+      status: 'failed',
       error: 'Authentication setup failed',
       message: error.message,
+      stack: error.stack,
       hasGoogleClientId: !!process.env.GOOGLE_CLIENT_ID,
       hasGoogleClientSecret: !!process.env.GOOGLE_CLIENT_SECRET,
-      hasDatabaseUrl: !!process.env.DATABASE_URL
+      hasDatabaseUrl: !!process.env.DATABASE_URL,
+      timestamp: new Date().toISOString()
     });
   });
 }
