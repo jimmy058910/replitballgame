@@ -201,10 +201,50 @@ app.get('/debug-auth', (req: any, res) => {
   });
 });
 
+// CRITICAL: Test middleware stack BEFORE registering other routes
+console.log('🔍 MIDDLEWARE STACK TEST - Creating test route to verify passport attachment...');
+app.get('/api/middleware-test', (req: any, res) => {
+  const middlewareStack = [];
+  
+  // Walk through the app middleware stack
+  if (app._router && app._router.stack) {
+    app._router.stack.forEach((layer: any, index: number) => {
+      middlewareStack.push({
+        index,
+        name: layer.name || 'anonymous',
+        regexp: layer.regexp.source,
+        handle: typeof layer.handle
+      });
+    });
+  }
+  
+  res.json({
+    passportAttached: typeof req.isAuthenticated === 'function',
+    passportObject: !!req._passport,
+    sessionExists: !!req.session,
+    middlewareCount: middlewareStack.length,
+    middlewareStack,
+    timestamp: new Date().toISOString()
+  });
+});
+
 // Setup all API routes AFTER authentication middleware is ready
 console.log('🛣️ Registering API routes...');
 registerAllRoutes(app);
 console.log('✅ All API routes registered');
+
+// CRITICAL: Test passport AFTER all routes are registered
+console.log('🔍 POST-ROUTE-REGISTRATION: Creating final passport test...');
+app.get('/api/final-passport-test', (req: any, res) => {
+  res.json({
+    postRouteRegistration: true,
+    passportWorking: typeof req.isAuthenticated === 'function',
+    passportObject: !!req._passport,
+    sessionExists: !!req.session,
+    testTime: new Date().toISOString(),
+    warning: 'This test runs AFTER registerAllRoutes - check if routes override passport'
+  });
+});
 
 // Health check endpoints (CRITICAL for Cloud Run)
 app.get('/health', (req, res) => {
