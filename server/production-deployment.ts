@@ -62,11 +62,7 @@ app.use(session({
   }
 }));
 
-// Initialize Passport
-app.use(passport.initialize());
-app.use(passport.session());
-
-// Setup Google Authentication BEFORE other routes
+// Setup Google Authentication BEFORE other routes (Passport initialized inside setupGoogleAuth)
 console.log('🔐 Setting up Google authentication...');
 setupGoogleAuth(app);
 console.log('✅ Authentication configured');

@@ -58,7 +58,12 @@ export async function setupGoogleAuth(app: Express) {
     }
   });
 
-  // Define authentication routes FIRST to prevent conflicts
+  // Initialize Passport FIRST before defining routes
+  Logger.logInfo('Initializing Passport middleware');
+  app.use(passport.initialize());
+  app.use(passport.session());
+
+  // Define authentication routes AFTER passport initialization
   Logger.logInfo('Registering API authentication routes');
 
   // API login route that redirects to Google OAuth
@@ -83,10 +88,6 @@ export async function setupGoogleAuth(app: Express) {
       res.redirect('/');
     });
   });
-
-  // Initialize Passport and restore authentication state, if any, from the session.
-  app.use(passport.initialize());
-  app.use(passport.session());
 
   // This route starts the Google authentication process.
   // 'profile' and 'email' are the "scopes" we are requesting from Google.
