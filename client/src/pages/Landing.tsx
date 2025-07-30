@@ -1,6 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { useAuth } from "@/hooks/useAuth";
 import { 
   AlertCircle, 
   Trophy, 
@@ -17,6 +18,7 @@ import {
 } from "lucide-react";
 
 export default function Landing() {
+  const { login } = useAuth();
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-indigo-900">
@@ -59,7 +61,7 @@ export default function Landing() {
             {/* CTA Buttons */}
             <div className="flex flex-col sm:flex-row gap-4 justify-center mb-12">
               <Button 
-                onClick={() => window.location.href = '/api/login'}
+                onClick={login}
                 className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white px-8 py-4 text-lg font-bold rounded-xl transition-all duration-300 transform hover:scale-105 shadow-2xl"
               >
                 <Crown className="w-5 h-5 mr-2" />
@@ -190,7 +192,7 @@ export default function Landing() {
           
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Button 
-              onClick={() => window.location.href = '/api/login'}
+              onClick={login}
               className="bg-gradient-to-r from-white to-blue-100 hover:from-blue-50 hover:to-blue-200 text-blue-900 px-10 py-4 text-xl font-bold rounded-xl transition-all duration-300 transform hover:scale-105 shadow-2xl"
             >
               <Crown className="w-6 h-6 mr-3" />
