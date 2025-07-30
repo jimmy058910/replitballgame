@@ -100,15 +100,18 @@ try {
     });
   });
 }
+}
 
 // Verify passport middleware is working
 console.log('🔍 Testing passport middleware...');
-app.use('/debug-auth', (req: any, res) => {
+app.get('/debug-auth', (req: any, res) => {
   res.json({
     hasIsAuthenticated: typeof req.isAuthenticated === 'function',
     hasSession: !!req.session,
     sessionID: req.sessionID,
-    passportInitialized: !!req._passport
+    passportInitialized: !!req._passport,
+    deploymentTime: '2025-07-30T03:47:00Z',
+    authSetupAttempted: true
   });
 });
 
