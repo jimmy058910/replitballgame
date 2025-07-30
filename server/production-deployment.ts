@@ -74,6 +74,8 @@ console.log('✅ Authentication configured');
 // Setup all API routes BEFORE static file serving and SPA fallback
 console.log('🛣️ Registering API routes...');
 registerAllRoutes(app);
+console.log('✅ All API routes registered');
+registerAllRoutes(app);
 console.log('✅ API routes configured');
 
 // Health check endpoints (CRITICAL for Cloud Run)
