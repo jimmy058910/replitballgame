@@ -185,6 +185,11 @@ console.log('DATABASE_URL present:', !!process.env.DATABASE_URL);
   
   console.log('✅ Authentication middleware configured successfully');
   
+  // NOW register all other API routes AFTER authentication is ready
+  console.log('🛣️ Registering API routes AFTER authentication setup...');
+  registerAllRoutes(app);
+  console.log('✅ All API routes registered after authentication setup');
+  
   // Success endpoint
   app.get('/api/auth-status', (req, res) => {
     res.json({
@@ -198,6 +203,11 @@ console.log('DATABASE_URL present:', !!process.env.DATABASE_URL);
   console.error('❌ CRITICAL: Authentication setup failed:', error);
   console.error('❌ Error message:', error?.message);
   console.error('❌ Stack trace:', error?.stack);
+  
+  // Register routes anyway to prevent complete failure
+  console.log('🛣️ Registering API routes despite auth failure...');
+  registerAllRoutes(app);
+  console.log('✅ API routes registered despite auth failure');
   
   // Error endpoint with detailed info
   app.get('/api/auth-status', (req, res) => {
@@ -257,10 +267,8 @@ app.get('/api/middleware-test', (req: any, res) => {
   });
 });
 
-// Setup all API routes AFTER authentication middleware is ready
-console.log('🛣️ Registering API routes...');
-registerAllRoutes(app);
-console.log('✅ All API routes registered');
+// API routes are now registered inside the async IIFE above
+// This ensures authentication setup completes BEFORE routes are registered
 
 // CRITICAL: Test passport AFTER all routes are registered
 console.log('🔍 POST-ROUTE-REGISTRATION: Creating final passport test...');
