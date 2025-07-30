@@ -49,7 +49,8 @@ app.use(cors(corsOptions));
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
 
-// Session configuration for production
+// Session configuration for production (Cloud Run compatible)
+console.log('🔧 Setting up session middleware for Cloud Run...');
 app.use(session({
   secret: process.env.SESSION_SECRET || 'realm-rivalry-production-secret',
   resave: false,
@@ -58,9 +59,11 @@ app.use(session({
     secure: true, // HTTPS required in production
     httpOnly: true,
     maxAge: 24 * 60 * 60 * 1000, // 24 hours
-    sameSite: 'none' // Required for cross-origin requests
-  }
+    sameSite: 'lax' // Changed from 'none' - more compatible with Cloud Run
+  },
+  name: 'realm-rivalry.sid' // Explicit session name
 }));
+console.log('✅ Session middleware configured');
 
 // Setup Google Authentication BEFORE other routes (Passport initialized inside setupGoogleAuth)
 console.log('🔐 Setting up Google authentication...');

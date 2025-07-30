@@ -60,8 +60,11 @@ export async function setupGoogleAuth(app: Express) {
 
   // Initialize Passport FIRST before defining routes
   Logger.logInfo('Initializing Passport middleware');
+  console.log('🔧 Adding passport.initialize() middleware...');
   app.use(passport.initialize());
+  console.log('🔧 Adding passport.session() middleware...');
   app.use(passport.session());
+  console.log('✅ Passport middleware initialized');
 
   // Define authentication routes AFTER passport initialization
   Logger.logInfo('Registering API authentication routes');
@@ -150,6 +153,20 @@ export async function setupGoogleAuth(app: Express) {
 
 // Authentication middleware for route protection
 export const isAuthenticated = (req: any, res: any, next: any) => {
+  console.log('🔍 isAuthenticated middleware called', {
+    hasIsAuthenticated: typeof req.isAuthenticated === 'function',
+    hasSession: !!req.session,
+    sessionID: req.sessionID
+  });
+  
+  if (typeof req.isAuthenticated !== 'function') {
+    console.error('❌ req.isAuthenticated is not a function - passport middleware not working');
+    return res.status(500).json({ 
+      error: 'Authentication system error',
+      details: 'Passport middleware not initialized'
+    });
+  }
+  
   if (req.isAuthenticated()) {
     return next();
   }
