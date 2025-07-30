@@ -86,6 +86,44 @@ app.get('/api/env-check', (req, res) => {
   });
 });
 
+// DEBUG: Route debugging endpoint
+app.get('/api/debug-routes', (req, res) => {
+  const routes: any[] = [];
+  function extractRoutes(stack: any, parentPath = '') {
+    stack.forEach((layer: any) => {
+      if (layer.route) {
+        const methods = Object.keys(layer.route.methods);
+        routes.push({
+          path: parentPath + layer.route.path,
+          methods: methods,
+          name: layer.route.stack[0]?.name || 'anonymous'
+        });
+      } else if (layer.name === 'router' && layer.regexp.source !== '^\\/?$') {
+        const match = layer.regexp.source.match(/^\^\\?\/?(.+?)\\\//);
+        const path = match ? '/' + match[1] : '';
+        extractRoutes(layer.handle.stack, parentPath + path);
+      }
+    });
+  }
+  
+  try {
+    extractRoutes(app._router.stack);
+    res.json({
+      totalRoutes: routes.length,
+      authRoutes: routes.filter(r => r.path.includes('/api/login') || r.path.includes('/auth/google')),
+      apiRoutes: routes.filter(r => r.path.startsWith('/api/')),
+      allRoutes: routes,
+      timestamp: new Date().toISOString()
+    });
+  } catch (error) {
+    res.status(500).json({
+      error: 'Failed to extract routes',
+      message: error.message,
+      timestamp: new Date().toISOString()
+    });
+  }
+});
+
 console.log('🔐 Setting up Google authentication middleware...');
 
 // Test required environment variables first
@@ -135,8 +173,10 @@ app.get('/debug-auth', (req: any, res) => {
     hasSession: !!req.session,
     sessionID: req.sessionID,
     passportInitialized: !!req._passport,
-    deploymentTime: '2025-07-30T03:47:00Z',
-    authSetupAttempted: true
+    deploymentTime: new Date().toISOString(),
+    authSetupAttempted: true,
+    requestPath: req.path,
+    requestMethod: req.method
   });
 });
 
