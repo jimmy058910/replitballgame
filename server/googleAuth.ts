@@ -65,22 +65,36 @@ export async function setupGoogleAuth(app: Express) {
   console.log('🔧 passport.initialize type:', typeof passport.initialize);
   
   try {
+    console.log('🔧 CRITICAL: About to call passport.initialize()...');
     const initMiddleware = passport.initialize();
     console.log('🔧 passport.initialize() created middleware:', typeof initMiddleware);
-    app.use(initMiddleware);
+    console.log('🔧 initMiddleware object details:', !!initMiddleware);
+    console.log('🔧 About to call app.use with initMiddleware...');
+    
+    const result = app.use(initMiddleware);
+    console.log('🔧 app.use(initMiddleware) returned:', typeof result);
     console.log('✅ passport.initialize() middleware added successfully');
   } catch (initError) {
     console.error('❌ passport.initialize() failed:', initError);
+    console.error('❌ Error details:', initError?.message);
+    console.error('❌ Error stack:', initError?.stack);
     throw initError;
   }
   
   try {
+    console.log('🔧 CRITICAL: About to call passport.session()...');
     const sessionMiddleware = passport.session();
     console.log('🔧 passport.session() created middleware:', typeof sessionMiddleware);
-    app.use(sessionMiddleware);
+    console.log('🔧 sessionMiddleware object details:', !!sessionMiddleware);
+    console.log('🔧 About to call app.use with sessionMiddleware...');
+    
+    const result = app.use(sessionMiddleware);
+    console.log('🔧 app.use(sessionMiddleware) returned:', typeof result);
     console.log('✅ passport.session() middleware added successfully');
   } catch (sessionError) {
     console.error('❌ passport.session() failed:', sessionError);
+    console.error('❌ Error details:', sessionError?.message);
+    console.error('❌ Error stack:', sessionError?.stack);
     throw sessionError;
   }
   
