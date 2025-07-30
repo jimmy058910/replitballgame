@@ -65,15 +65,19 @@ export async function setupGoogleAuth(app: Express) {
 
   // Define authentication routes AFTER passport initialization
   Logger.logInfo('Registering API authentication routes');
+  console.log('🔧 About to register /api/login route in googleAuth.ts');
 
   // API login route that redirects to Google OAuth
+  console.log('✅ Registering /api/login route now');
   app.get('/api/login', (req, res) => {
+    console.log('🎯 /api/login route was called!');
     Logger.logInfo('API login request received, redirecting to Google OAuth', { 
       requestId: (req as any).requestId,
       userAgent: req.get('User-Agent')
     });
     res.redirect('/auth/google');
   });
+  console.log('✅ /api/login route registered successfully');
 
   // API logout route
   app.get('/api/logout', (req, res) => {

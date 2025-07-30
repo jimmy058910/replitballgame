@@ -67,6 +67,19 @@ console.log('🔐 Setting up Google authentication...');
 setupGoogleAuth(app);
 console.log('✅ Authentication configured');
 
+// Debug: List registered routes
+console.log('🔍 Checking if /api/login route was registered...');
+const router = app._router;
+if (router && router.stack) {
+  const apiRoutes = router.stack
+    .filter((layer: any) => layer.route)
+    .map((layer: any) => `${Object.keys(layer.route.methods)[0].toUpperCase()} ${layer.route.path}`)
+    .filter((route: string) => route.includes('/api/login') || route.includes('/auth/google'));
+  console.log('🛣️ Auth routes found:', apiRoutes);
+} else {
+  console.log('❌ No router found');
+}
+
 // Setup all API routes BEFORE static file serving and SPA fallback
 console.log('🛣️ Registering API routes...');
 registerAllRoutes(app);
