@@ -65,25 +65,27 @@ app.use(session({
 }));
 console.log('✅ Session middleware configured');
 
-// Setup Google Authentication BEFORE other routes (Passport initialized inside setupGoogleAuth)
-console.log('🔐 Setting up Google authentication...');
+// CRITICAL MIDDLEWARE ORDER FIX (per Gemini suggestion)
+// 1. Session middleware is already configured above ✓
+// 2. Now setup passport.initialize() and passport.session() ✓
+// 3. THEN register all routes that use authentication ✓
+
+console.log('🔐 Setting up Google authentication middleware...');
 setupGoogleAuth(app);
-console.log('✅ Authentication configured');
+console.log('✅ Authentication middleware configured');
 
-// Debug: List registered routes
-console.log('🔍 Checking if /api/login route was registered...');
-const router = app._router;
-if (router && router.stack) {
-  const apiRoutes = router.stack
-    .filter((layer: any) => layer.route)
-    .map((layer: any) => `${Object.keys(layer.route.methods)[0].toUpperCase()} ${layer.route.path}`)
-    .filter((route: string) => route.includes('/api/login') || route.includes('/auth/google'));
-  console.log('🛣️ Auth routes found:', apiRoutes);
-} else {
-  console.log('❌ No router found');
-}
+// Verify passport middleware is working
+console.log('🔍 Testing passport middleware...');
+app.use('/debug-auth', (req: any, res) => {
+  res.json({
+    hasIsAuthenticated: typeof req.isAuthenticated === 'function',
+    hasSession: !!req.session,
+    sessionID: req.sessionID,
+    passportInitialized: !!req._passport
+  });
+});
 
-// Setup all API routes BEFORE static file serving and SPA fallback
+// Setup all API routes AFTER authentication middleware is ready
 console.log('🛣️ Registering API routes...');
 registerAllRoutes(app);
 console.log('✅ All API routes registered');
