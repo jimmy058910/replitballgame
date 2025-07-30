@@ -126,7 +126,6 @@ try {
     });
   });
 }
-}
 
 // Verify passport middleware is working
 console.log('🔍 Testing passport middleware...');
