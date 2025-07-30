@@ -74,8 +74,14 @@ console.log('✅ Session middleware configured (using MemoryStore for stability)
 // 3. THEN register all routes that use authentication ✓
 
 console.log('🔐 Setting up Google authentication middleware...');
-setupGoogleAuth(app);
-console.log('✅ Authentication middleware configured');
+try {
+  setupGoogleAuth(app);
+  console.log('✅ Authentication middleware configured');
+} catch (error) {
+  console.error('❌ CRITICAL: Authentication setup failed:', error);
+  console.error('❌ Stack trace:', error.stack);
+  // Don't crash the server, but log the error clearly
+}
 
 // Verify passport middleware is working
 console.log('🔍 Testing passport middleware...');
