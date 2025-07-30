@@ -42,8 +42,10 @@ export const useFirebaseAuth = () => {
 
   const login = async () => {
     try {
+      console.log('🚀 Login button clicked - attempting Firebase auth...');
       setError(null);
       await signInWithGoogle();
+      console.log('✅ signInWithGoogle called successfully');
     } catch (error: any) {
       console.error('❌ Login error:', error);
       setError(error.message);

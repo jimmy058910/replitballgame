@@ -24,6 +24,7 @@ googleProvider.addScope('email');
 
 // Authentication functions
 export const signInWithGoogle = () => {
+  console.log('🔐 Starting Google sign-in with redirect...');
   return signInWithRedirect(auth, googleProvider);
 };
 

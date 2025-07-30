@@ -70,7 +70,10 @@ export default function Landing() {
             {/* Dual CTA Strategy */}
             <div className="flex flex-col sm:flex-row gap-6 justify-center mb-16">
               <Button 
-                onClick={login}
+                onClick={() => {
+                  console.log('🎯 Landing page: Start Your Dynasty button clicked!');
+                  login();
+                }}
                 className="bg-gradient-to-r from-[#ff6b35] to-orange-600 hover:from-orange-600 hover:to-red-600 text-white px-12 py-6 text-xl font-bold rounded-2xl transition-all duration-300 transform hover:scale-105 shadow-2xl hover:shadow-[#ff6b35]/20"
               >
                 <Crown className="w-6 h-6 mr-3" />
@@ -304,7 +307,10 @@ export default function Landing() {
           
           <div className="flex flex-col sm:flex-row gap-6 justify-center mb-12">
             <Button 
-              onClick={login}
+              onClick={() => {
+                console.log('🎯 Landing page: Final CTA Start Your Dynasty button clicked!');
+                login();
+              }}
               className="bg-white hover:bg-gray-100 text-[#ff6b35] px-16 py-6 text-2xl font-bold rounded-2xl transition-all duration-300 transform hover:scale-105 shadow-2xl"
             >
               <Crown className="w-8 h-8 mr-4" />
