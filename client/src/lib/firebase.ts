@@ -26,6 +26,9 @@ export const auth = getAuth(app);
 
 // Set up Google Auth Provider
 const googleProvider = new GoogleAuthProvider();
+googleProvider.setCustomParameters({
+  'client_id': '108005641993-17bnfj23rukv0d27s4t0g11ddh18h2bn.apps.googleusercontent.com'
+});
 googleProvider.addScope('profile');
 googleProvider.addScope('email');
 
