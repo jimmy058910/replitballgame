@@ -12,13 +12,20 @@ export const useFirebaseAuth = () => {
   useEffect(() => {
     const handleRedirectResult = async () => {
       try {
+        console.log('🔄 Checking for redirect result...');
         const result = await getRedirectResult(auth);
         if (result) {
           console.log('✅ Firebase login successful:', result.user.email);
+          console.log('🎯 User should now be authenticated!');
+          setUser(result.user);
+          setLoading(false);
+        } else {
+          console.log('ℹ️ No redirect result (normal for direct page loads)');
         }
       } catch (error: any) {
         console.error('❌ Firebase redirect error:', error);
         setError(error.message);
+        setLoading(false);
       }
     };
 

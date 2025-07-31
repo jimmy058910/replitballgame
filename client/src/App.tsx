@@ -46,11 +46,22 @@ const LazyTacticsPage = lazy(() => import("@/pages/TacticsPage").catch(() => ({ 
 function Router() {
   const { isAuthenticated, isLoading } = useAuth();
 
+  // Debug authentication state
+  console.log('🔍 Router - isAuthenticated:', isAuthenticated, 'isLoading:', isLoading);
+
   return (
     <Switch>
       {/* Help manual accessible to everyone */}
       <Route path="/help" component={HelpManual} />
-      {isLoading || !isAuthenticated ? (
+      {isLoading ? (
+        /* Show loading state while checking authentication */
+        <Route path="/" component={() => (
+          <div className="min-h-screen bg-gradient-to-br from-[#1a1b3e] via-[#1a1b3e] to-slate-900 flex items-center justify-center">
+            <div className="text-white text-2xl">🔄 Checking authentication...</div>
+          </div>
+        )} />
+      ) : !isAuthenticated ? (
+        /* Show landing page only if definitely not authenticated */
         <Route path="/" component={Landing} />
       ) : (
         <>
