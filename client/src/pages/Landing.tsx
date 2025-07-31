@@ -38,9 +38,16 @@ export default function Landing() {
         <div>Authenticated: {isAuthenticated ? '✅' : '❌'}</div>
         <div>User: {user?.email || 'None'}</div>
         <div className="text-xs text-gray-300 mt-2 border-t border-gray-600 pt-2">
-          <div className="font-semibold text-orange-300">🌐 Domain Setup:</div>
-          <div className="break-all">Current: {window.location.hostname}</div>
-          <div className="text-xs mt-1">Add this domain to Firebase Console → Authentication → Settings → Authorized domains</div>
+          <div className="font-semibold text-orange-300">🌐 Domain Setup Required:</div>
+          <div className="break-all bg-gray-800 p-1 rounded">{window.location.hostname}</div>
+          <div className="text-xs mt-1 space-y-1">
+            <div className="font-semibold text-yellow-300">Fix Steps:</div>
+            <div>1. Go to Firebase Console</div>
+            <div>2. Authentication → Settings</div>
+            <div>3. Add domain above to Authorized domains</div>
+            <div className="text-yellow-300">Then try "Start Your Dynasty"</div>
+            <div className="text-blue-300">Or use "Try Popup Login" button</div>
+          </div>
         </div>
       </div>
       
@@ -95,6 +102,19 @@ export default function Landing() {
                 <Crown className="w-6 h-6 mr-3" />
                 Start Your Dynasty
                 <ArrowRight className="w-6 h-6 ml-3" />
+              </Button>
+              
+              {/* Popup Authentication Fallback */}
+              <Button 
+                onClick={() => {
+                  console.log('🪟 Landing page: Popup login button clicked!');
+                  login(true); // Use popup authentication
+                }}
+                variant="outline"
+                className="border-2 border-yellow-400 text-yellow-400 hover:bg-yellow-400/10 px-12 py-6 text-xl font-semibold rounded-2xl transition-all duration-300 backdrop-blur-sm"
+              >
+                <AlertCircle className="w-6 h-6 mr-3" />
+                Try Popup Login
               </Button>
               <Button 
                 variant="outline"

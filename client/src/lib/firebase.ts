@@ -1,5 +1,5 @@
 import { initializeApp } from "firebase/app";
-import { getAuth, signInWithRedirect, GoogleAuthProvider, onAuthStateChanged, signOut } from "firebase/auth";
+import { getAuth, signInWithRedirect, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut } from "firebase/auth";
 
 // ✅ NEW API KEY: Fresh key created and configured
 const firebaseConfig = {
@@ -61,11 +61,38 @@ const testFirebaseConnection = async () => {
   }
 };
 
-// Authentication functions
-export const signInWithGoogle = async () => {
-  console.log('🔐 Starting Google sign-in with redirect...');
+// Authentication functions with popup fallback
+export const signInWithGoogle = async (usePopup = false) => {
+  console.log(`🔐 Starting Google sign-in with ${usePopup ? 'popup' : 'redirect'}...`);
+  console.log('🌐 Current domain:', window.location.hostname);
+  console.log('🔧 Authorized domain needed:', window.location.hostname);
+  
   await testFirebaseConnection();
-  return signInWithRedirect(auth, googleProvider);
+  
+  try {
+    if (usePopup) {
+      console.log('🪟 Using popup authentication...');
+      const result = await signInWithPopup(auth, googleProvider);
+      console.log('✅ Popup authentication successful:', result.user.email);
+      return result;
+    } else {
+      console.log('🔄 Using redirect authentication...');
+      console.log('⚠️ If authentication fails, the domain above needs to be added to Firebase Console → Authentication → Settings → Authorized domains');
+      return signInWithRedirect(auth, googleProvider);
+    }
+  } catch (error: any) {
+    console.error('❌ Authentication error:', error);
+    console.error('❌ Error code:', error.code);
+    
+    if (error.code === 'auth/unauthorized-domain') {
+      console.error('🚨 DOMAIN NOT AUTHORIZED!');
+      console.error('📝 Add this domain to Firebase Console:');
+      console.error(`   Domain to add: ${window.location.hostname}`);
+      console.error('   Path: Authentication → Settings → Authorized domains');
+    }
+    
+    throw error;
+  }
 };
 
 export const logOut = () => {
