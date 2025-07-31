@@ -2,26 +2,19 @@ import { initializeApp } from "firebase/app";
 import { getAuth, signInWithRedirect, GoogleAuthProvider, onAuthStateChanged, signOut } from "firebase/auth";
 
 const firebaseConfig = {
-  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
-  authDomain: `${import.meta.env.VITE_FIREBASE_PROJECT_ID}.firebaseapp.com`,
-  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
-  storageBucket: `${import.meta.env.VITE_FIREBASE_PROJECT_ID}.firebasestorage.app`,
+  apiKey: "AIzaSyCnaxQb4dpuOo70LdbpRiuKIMsETmc18",
+  authDomain: "direct-glider-465821-p7.firebaseapp.com",
+  projectId: "direct-glider-465821-p7",
+  storageBucket: "direct-glider-465821-p7.firebasestorage.app",
   messagingSenderId: "108005641993",
-  appId: import.meta.env.VITE_FIREBASE_APP_ID,
+  appId: "1:108005641993:web:cd17d54a26723d9c278dd8",
   measurementId: "G-FJFXN5RC80"
 };
 
-// Log environment variables (non-blocking)
-console.log('🔧 Environment Variables Check:', {
-  apiKey: import.meta.env.VITE_FIREBASE_API_KEY ? `${import.meta.env.VITE_FIREBASE_API_KEY.substring(0, 15)}...` : '❌ MISSING',
-  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID || '❌ MISSING',
-  appId: import.meta.env.VITE_FIREBASE_APP_ID ? `${import.meta.env.VITE_FIREBASE_APP_ID.substring(0, 20)}...` : '❌ MISSING'
-});
-
-console.log('🔧 Firebase Config Debug:', {
-  apiKey: firebaseConfig.apiKey?.substring(0, 15) + '...',
+console.log('🔧 Firebase Config (Hardcoded):', {
+  apiKey: firebaseConfig.apiKey.substring(0, 15) + '...',
   projectId: firebaseConfig.projectId,
-  appId: firebaseConfig.appId?.substring(0, 20) + '...',
+  appId: firebaseConfig.appId.substring(0, 20) + '...',
   authDomain: firebaseConfig.authDomain
 });
 
