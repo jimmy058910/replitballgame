@@ -65,9 +65,8 @@ router.get('/user', async (req: any, res: Response, next: NextFunction) => {
     // Return success response with user data
     return res.json({ authenticated: true, user });
   } catch (error) {
-    console.error("Error fetching user:", error);
-    // Return success response with error info
-    return res.json({ authenticated: false, user: null, error: String(error) });
+    console.error('Auth user endpoint error:', error);
+    return res.json({ authenticated: false, user: null });
   }
 });
 
@@ -90,7 +89,7 @@ router.get('/admin-status', isAuthenticated, async (req: any, res: Response, nex
     const hasAdminAccess = await RBACService.hasPermission(userId, Permission.GRANT_CREDITS);
     const isAdmin = userRole === 'ADMIN' || userRole === 'SUPER_ADMIN';
     
-    res.json({ 
+    return res.json({ 
       isAdmin,
       hasAdminAccess,
       userRole,
@@ -98,10 +97,10 @@ router.get('/admin-status', isAuthenticated, async (req: any, res: Response, nex
     });
   } catch (error) {
     console.error("Error checking admin status:", error);
-    res.json({ 
+    return res.json({ 
       isAdmin: false,
       hasAdminAccess: false,
-      error: error.message
+      error: String(error)
     });
   }
 });
@@ -126,7 +125,7 @@ router.post('/promote-to-admin', isAuthenticated, async (req: any, res: Response
     });
   } catch (error) {
     console.error("Error promoting user to admin:", error);
-    next(error);
+    return res.status(500).json({ message: "Failed to promote user", error: String(error) });
   }
 });
 

@@ -1,4 +1,4 @@
-name: Deploy to Firebase
+name: Deploy to Google Cloud Run
 
 on:
   push:
@@ -13,29 +13,37 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v4
 
-    - name: Setup Node.js
-      uses: actions/setup-node@v4
-      with:
-        node-version: '20'
-        cache: 'npm'
-
-    - name: Install dependencies
-      run: npm ci
-
-    - name: Build React app
-      run: npm run build
-
-    - name: Install Firebase CLI
-      run: npm install -g firebase-tools
-
     - name: Authenticate with Google Cloud
       uses: google-github-actions/auth@v2
       with:
         credentials_json: ${{ secrets.GOOGLE_SERVICE_ACCOUNT_KEY }}
 
-    - name: Deploy to Firebase
-      run: firebase deploy --project direct-glider-465821-p7
-      env:
-        VITE_FIREBASE_API_KEY: ${{ secrets.VITE_FIREBASE_API_KEY }}
-        VITE_FIREBASE_APP_ID: ${{ secrets.VITE_FIREBASE_APP_ID }}
-        VITE_FIREBASE_PROJECT_ID: ${{ secrets.VITE_FIREBASE_PROJECT_ID }}
+    - name: Configure Docker for Google Cloud
+      run: gcloud auth configure-docker us-east5-docker.pkg.dev
+
+    - name: Build Docker image
+      run: |
+        docker build -f Dockerfile.production -t us-east5-docker.pkg.dev/direct-glider-465821-p7/realm-rivalry/production:${{ github.sha }} .
+        docker tag us-east5-docker.pkg.dev/direct-glider-465821-p7/realm-rivalry/production:${{ github.sha }} us-east5-docker.pkg.dev/direct-glider-465821-p7/realm-rivalry/production:latest
+
+    - name: Push Docker image
+      run: |
+        docker push us-east5-docker.pkg.dev/direct-glider-465821-p7/realm-rivalry/production:${{ github.sha }}
+        docker push us-east5-docker.pkg.dev/direct-glider-465821-p7/realm-rivalry/production:latest
+
+    - name: Deploy to Cloud Run
+      run: |
+        gcloud run deploy realm-rivalry \
+          --image us-east5-docker.pkg.dev/direct-glider-465821-p7/realm-rivalry/production:${{ github.sha }} \
+          --platform managed \
+          --region us-east5 \
+          --allow-unauthenticated \
+          --service-account realm-rivalry-runner@direct-glider-465821-p7.iam.gserviceaccount.com \
+          --set-env-vars NODE_ENV=production,GOOGLE_CLIENT_ID=108005641993-e642ered12jj7ka6unpqhgjdls92c0u8.apps.googleusercontent.com \
+          --set-secrets DATABASE_URL=database-url:latest,SESSION_SECRET=session-secret:latest,GOOGLE_CLIENT_SECRET=google-client-secret:latest \
+          --memory 2Gi \
+          --cpu 1 \
+          --concurrency 80 \
+          --max-instances 10 \
+          --port 8080 \
+          --timeout 300s

@@ -782,18 +782,19 @@ No repository secrets needed - authentication via Workload Identity Federation:
 - ✓ **Production Deployment Strategy**: User prefers Git tab push → GitHub Actions → Google Cloud Run deployment pipeline
 - ✓ **Authentication Status Tracking**: Debug shows `passportInitialized: false` indicating setupGoogleAuth() failure in production
 
-## 🚀 OFFICIAL DEPLOYMENT PIPELINE - FIREBASE HOSTING VIA GITHUB ACTIONS 🚀
+## 🚀 OFFICIAL DEPLOYMENT PIPELINE - GOOGLE CLOUD RUN (FULL-STACK) 🚀
 
-### **PRIMARY DEPLOYMENT METHOD**: Git Push → GitHub Actions → Firebase Hosting
+### **PRIMARY DEPLOYMENT METHOD**: Git Push → GitHub Actions → Google Cloud Run
 **Production URL**: https://realmrivalry.com  
-**Firebase Project**: direct-glider-465821-p7  
-**Workflow File**: `.github/workflows/firebase-deploy.yml`  
+**GCP Project**: direct-glider-465821-p7  
+**Service**: realm-rivalry  
+**Region**: us-east5
 
-#### **Deployment Process**:
+#### **Full-Stack Deployment** (Frontend + Backend):
 1. **Code Push**: Push to `main` branch triggers GitHub Actions
-2. **Build Process**: `npm run build` creates production React build  
-3. **Firebase Deploy**: `firebase deploy` pushes to Firebase hosting
-4. **Live Update**: https://realmrivalry.com serves new code
+2. **Docker Build**: Creates container with React frontend + Express backend
+3. **Cloud Run Deploy**: Deploys complete application with APIs
+4. **Live Update**: https://realmrivalry.com serves both frontend and backend APIs
 
 #### **GitHub Actions Configuration**:
 - **Trigger**: Push to main branch or manual workflow_dispatch
@@ -820,15 +821,27 @@ No repository secrets needed - authentication via Workload Identity Federation:
 - ✓ **Future-Proof Authentication**: Service account method replaces deprecated firebase login:ci tokens
 - ✓ **Developer Experience**: Simple firebase deploy command for manual deployments, automatic GitHub integration
 
-### July 31, 2025 - 🔥 DEPLOYMENT TRIGGER: AUTHENTICATION INFINITE LOOP FIX READY FOR FIREBASE DEPLOY 🔥
+### July 31, 2025 - 🚨 CRITICAL DEPLOYMENT ISSUE: GIT SYNC BLOCKED, AUTHENTICATION FIXES READY 🚨
 
-#### ✅ INFINITE AUTHENTICATION LOOP COMPLETELY RESOLVED - FIREBASE DEPLOYMENT TRIGGER
-- ✓ **Backend Authentication Endpoint Fixed**: `/api/auth/user` now returns `{authenticated: false, user: null}` instead of HTTP errors
-- ✓ **Frontend Hook Updated**: Added proper TypeScript typing and error handling to eliminate infinite polling
-- ✓ **Local Development Validated**: Authentication system working correctly - no more infinite "Checking authentication..." loops
-- ✓ **Production Issue Identified**: realmrivalry.com still running old code with infinite loop bug
-- ✓ **Firebase Deploy Required**: GitHub Actions pipeline needs to deploy commit 0a6507e to production
-- ✓ **Pipeline**: Git Push → GitHub Actions firebase-deploy.yml → Firebase Hosting → realmrivalry.com
+#### ✅ AUTHENTICATION INFINITE LOOP FIXES COMPLETE - TYPESCRIPT ERRORS RESOLVED
+- ✓ **Backend Authentication Endpoint Fixed**: `/api/auth/user` returns `{authenticated: false, user: null}` instead of HTTP errors
+- ✓ **Frontend Hook Updated**: Proper TypeScript typing and error handling to eliminate infinite polling  
+- ✓ **TypeScript Compilation Errors Fixed**: Resolved all LSP diagnostics in authRoutes.ts preventing production deployment
+- ✓ **Production Build Successful**: `npm run build` completed with authentication fixes included
+- ✓ **Local Server Operational**: Authentication system working correctly with Passport middleware initialized
+
+#### ❌ CRITICAL DEPLOYMENT BLOCKER - GIT SYNC ISSUE IN REPLIT
+- ❌ **Git Lock Error**: `Avoid changing .git repository` preventing normal Replit → GitHub workflow
+- ❌ **User's Normal Process Broken**: Cannot commit/push changes from Replit Git interface  
+- ❌ **Production Still Broken**: realmrivalry.com showing infinite loop despite GitHub Actions deployment
+- ❌ **Firebase Deployment Issue**: Previous GitHub Actions deployment ran on old commit without latest fixes
+
+#### 🎯 CRITICAL ARCHITECTURE ISSUE IDENTIFIED: FIREBASE HOSTING vs BACKEND APIS
+- **Root Cause**: Firebase Hosting only serves static files, doesn't run backend Express server
+- **Current State**: React frontend deployed successfully, but `/api/auth/user` endpoints missing
+- **Architecture Fix Required**: Deploy backend APIs using Firebase Functions or return to Google Cloud Run
+- **Frontend Working**: Static React files deployed correctly to realmrivalry.com
+- **Backend Missing**: Authentication endpoints not accessible, causing frontend infinite loop
 
 ### July 30, 2025 - 🎯 CRITICAL ASYNC/AWAIT AUTHENTICATION BUG COMPLETELY RESOLVED - PRODUCTION READY 🎯
 
