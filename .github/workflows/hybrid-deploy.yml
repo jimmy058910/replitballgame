@@ -73,6 +73,18 @@ jobs:
         echo "Backend URL: $BACKEND_URL"
 
     # Deploy Frontend to Firebase
+    - name: Debug Firebase environment variables
+      run: |
+        echo "🔍 Checking Firebase environment variables..."
+        echo "VITE_FIREBASE_API_KEY length: ${#VITE_FIREBASE_API_KEY}"
+        echo "VITE_FIREBASE_PROJECT_ID: $VITE_FIREBASE_PROJECT_ID"
+        echo "VITE_FIREBASE_APP_ID length: ${#VITE_FIREBASE_APP_ID}"
+        echo "VITE_FIREBASE_API_KEY starts with: ${VITE_FIREBASE_API_KEY:0:10}..."
+      env:
+        VITE_FIREBASE_API_KEY: ${{ secrets.VITE_FIREBASE_API_KEY }}
+        VITE_FIREBASE_PROJECT_ID: ${{ secrets.VITE_FIREBASE_PROJECT_ID }}
+        VITE_FIREBASE_APP_ID: ${{ secrets.VITE_FIREBASE_APP_ID }}
+
     - name: Build frontend with backend URL
       run: |
         VITE_API_BASE_URL=${{ steps.backend-url.outputs.url }} npm run build
