@@ -788,7 +788,7 @@ No repository secrets needed - authentication via Workload Identity Federation:
 **Production URL**: https://realmrivalry.com (Firebase Hosting)  
 **Backend APIs**: https://realm-rivalry-backend-108005641993.us-east5.run.app (Google Cloud Run)  
 **Firebase Project**: direct-glider-465821-p7  
-**Workflow File**: `.github/workflows/hybrid-deploy.yml`  
+**Workflow File**: `.github/workflows/hybrid-deploy.yml` (replaces old firebase-deploy.yml)  
 
 #### **Hybrid Architecture Benefits**:
 - **Frontend**: Firebase Hosting solves domain mapping, SSL, and authentication issues
