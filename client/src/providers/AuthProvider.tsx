@@ -25,16 +25,28 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const handleRedirectResult = async () => {
       try {
         console.log('🔍 Checking for OAuth redirect result...');
+        console.log('🔍 Current URL:', window.location.href);
+        console.log('🔍 URL has OAuth params:', window.location.href.includes('code=') || window.location.href.includes('state='));
+        
         const result = await getRedirectResult(auth);
+        console.log('🔍 getRedirectResult returned:', !!result);
+        
         if (result) {
           console.log('🎉 OAuth redirect successful:', result.user.email);
+          console.log('🎉 User UID:', result.user.uid);
+          console.log('🎉 Provider data:', result.providerId);
           setUser(result.user);
           setError(null);
         } else {
-          console.log('🔍 No redirect result found');
+          console.log('🔍 No redirect result found - checking current auth state...');
+          console.log('🔍 Current auth.currentUser:', !!auth.currentUser);
+          if (auth.currentUser) {
+            console.log('🔍 Current user email:', auth.currentUser.email);
+          }
         }
       } catch (error: any) {
         console.error('🚨 OAuth redirect error:', error);
+        console.error('🚨 Error details:', error.code, error.message);
         setError(error.message);
       }
     };
