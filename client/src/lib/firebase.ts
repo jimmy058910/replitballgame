@@ -12,20 +12,22 @@ const firebaseConfig = {
 console.log('🔥 Firebase Config Debug:', {
   hasApiKey: !!firebaseConfig.apiKey,
   apiKeyLength: firebaseConfig.apiKey?.length || 0,
-  apiKeyPrefix: firebaseConfig.apiKey?.substring(0, 10) + '...',
-  apiKeyFull: firebaseConfig.apiKey, // Temporary debug - remove after fixing
+  apiKeyPrefix: firebaseConfig.apiKey?.substring(0, 15),
+  apiKeySuffix: firebaseConfig.apiKey?.substring(-8),
   projectId: firebaseConfig.projectId,
   hasAppId: !!firebaseConfig.appId,
-  appIdFull: firebaseConfig.appId, // Temporary debug - remove after fixing
+  appIdPrefix: firebaseConfig.appId?.substring(0, 15),
   authDomain: firebaseConfig.authDomain,
   environment: import.meta.env.PROD ? 'production' : 'development'
 });
 
-console.log('🔍 Environment Variables Debug:', {
-  VITE_FIREBASE_API_KEY: import.meta.env.VITE_FIREBASE_API_KEY,
+console.log('🔍 Raw Environment Variables:', {
+  VITE_FIREBASE_API_KEY_exists: !!import.meta.env.VITE_FIREBASE_API_KEY,
+  VITE_FIREBASE_API_KEY_length: import.meta.env.VITE_FIREBASE_API_KEY?.length,
   VITE_FIREBASE_PROJECT_ID: import.meta.env.VITE_FIREBASE_PROJECT_ID,
-  VITE_FIREBASE_APP_ID: import.meta.env.VITE_FIREBASE_APP_ID,
-  allEnvVars: Object.keys(import.meta.env)
+  VITE_FIREBASE_APP_ID_exists: !!import.meta.env.VITE_FIREBASE_APP_ID,
+  VITE_FIREBASE_APP_ID_length: import.meta.env.VITE_FIREBASE_APP_ID?.length,
+  totalEnvVars: Object.keys(import.meta.env).length
 });
 
 const app = initializeApp(firebaseConfig);
