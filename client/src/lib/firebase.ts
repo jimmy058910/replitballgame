@@ -11,6 +11,13 @@ const firebaseConfig = {
   measurementId: "G-FJFXN5RC80"
 };
 
+console.log('🔧 Firebase Config Debug:', {
+  apiKey: firebaseConfig.apiKey.substring(0, 15) + '...',
+  projectId: firebaseConfig.projectId,
+  appId: firebaseConfig.appId.substring(0, 20) + '...',
+  authDomain: firebaseConfig.authDomain
+});
+
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
 

@@ -43,11 +43,16 @@ export const useFirebaseAuth = () => {
   const login = async () => {
     try {
       console.log('🚀 Login button clicked - attempting Firebase auth...');
+      console.log('🔧 Current auth domain:', auth.app.options.authDomain);
+      console.log('🔧 Current API key preview:', auth.app.options.apiKey?.substring(0, 15) + '...');
+      console.log('🔧 Current project ID:', auth.app.options.projectId);
       setError(null);
       await signInWithGoogle();
       console.log('✅ signInWithGoogle called successfully');
     } catch (error: any) {
       console.error('❌ Login error:', error);
+      console.error('❌ Error message:', error.message);
+      console.error('❌ Error code:', error.code);
       setError(error.message);
     }
   };
