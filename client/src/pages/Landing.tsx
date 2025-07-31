@@ -24,30 +24,68 @@ import {
 } from "lucide-react";
 
 export default function Landing() {
-  const { login, isAuthenticated, isLoading, user } = useAuth();
+  const { login, isAuthenticated, isLoading, user, error } = useAuth();
   
   // Show debug info directly on the page
   console.log('🔍 Landing page - Auth state:', { isAuthenticated, isLoading, userEmail: user?.email });
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#1a1b3e] via-[#1a1b3e] to-slate-900">
-      {/* Debug Panel - Visible Auth State */}
-      <div className="fixed top-4 right-4 bg-black/80 text-white p-4 rounded-lg text-sm z-50 max-w-sm">
-        <div className="font-bold text-yellow-400">🔍 Auth Debug:</div>
-        <div>Loading: {isLoading ? '✅' : '❌'}</div>
-        <div>Authenticated: {isAuthenticated ? '✅' : '❌'}</div>
-        <div>User: {user?.email || 'None'}</div>
-        <div className="text-xs text-gray-300 mt-2 border-t border-gray-600 pt-2">
-          <div className="font-semibold text-orange-300">🌐 Domain Setup Required:</div>
-          <div className="break-all bg-gray-800 p-1 rounded">{window.location.hostname}</div>
-          <div className="text-xs mt-1 space-y-1">
-            <div className="font-semibold text-yellow-300">Fix Steps:</div>
-            <div>1. Go to Firebase Console</div>
-            <div>2. Authentication → Settings</div>
-            <div>3. Add domain above to Authorized domains</div>
-            <div className="text-yellow-300">Then try "Start Your Dynasty"</div>
-            <div className="text-blue-300">Or use "Try Popup Login" button</div>
+      {/* Enhanced Debug Panel */}
+      <div className="fixed top-4 right-4 bg-black/90 backdrop-blur-sm text-white p-4 rounded-lg text-sm z-50 max-w-sm border border-gray-600 shadow-2xl">
+        <div className="font-bold text-yellow-400 mb-2">🔍 Firebase Auth Status:</div>
+        
+        {/* Authentication Status */}
+        <div className="space-y-1 mb-3">
+          <div className="flex justify-between">
+            <span>Loading:</span>
+            <span className={isLoading ? 'text-yellow-300' : 'text-green-400'}>
+              {isLoading ? '⏳ Loading...' : '✅ Ready'}
+            </span>
           </div>
+          <div className="flex justify-between">
+            <span>Authenticated:</span>
+            <span className={isAuthenticated ? 'text-green-400' : 'text-red-400'}>
+              {isAuthenticated ? '✅ Success' : '❌ No'}
+            </span>
+          </div>
+          {user?.email && (
+            <div className="text-xs bg-green-900/30 p-2 rounded border border-green-500">
+              <span className="text-green-300 font-semibold">✅ Logged in as:</span>
+              <div className="text-green-200">{user.email}</div>
+            </div>
+          )}
+        </div>
+
+        {/* Error Display */}
+        {error && (
+          <div className="mb-3 p-2 bg-red-900/30 border border-red-500 rounded text-red-200 text-xs">
+            <div className="font-semibold text-red-300">❌ Error:</div>
+            <div className="break-words mt-1">{error}</div>
+          </div>
+        )}
+
+        {/* Domain Status */}
+        <div className="text-xs text-gray-300 border-t border-gray-600 pt-2">
+          <div className="font-semibold text-blue-300 mb-1">🌐 Current Domain:</div>
+          <div className="break-all bg-gray-800 p-1 rounded mb-2 text-green-300">
+            {window.location.hostname}
+          </div>
+          
+          {!isAuthenticated && !error && (
+            <div className="space-y-1">
+              <div className="font-semibold text-yellow-300">💡 Try These Options:</div>
+              <div className="text-blue-300">• Click "Start Your Dynasty" (redirect)</div>
+              <div className="text-purple-300">• Click "Try Popup Login" (popup backup)</div>
+              <div className="text-gray-300">• Check browser console for logs</div>
+            </div>
+          )}
+          
+          {isAuthenticated && (
+            <div className="text-green-300 font-semibold p-2 bg-green-900/20 rounded">
+              🎉 Authentication successful! You should be redirected to the dashboard.
+            </div>
+          )}
         </div>
       </div>
       

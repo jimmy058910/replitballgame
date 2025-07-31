@@ -13,37 +13,62 @@ export const useFirebaseAuth = () => {
     const handleRedirectResult = async () => {
       try {
         console.log('🔄 Checking for redirect result...');
+        console.log('🌐 Current URL:', window.location.href);
         console.log('🌐 Current domain:', window.location.hostname);
         console.log('🔧 Auth domain:', auth.app.options.authDomain);
+        console.log('🔧 Firebase project:', auth.app.options.projectId);
+        
+        // Check if this is a redirect from Firebase Auth
+        const urlParams = new URLSearchParams(window.location.search);
+        const hasAuthParams = urlParams.has('code') || urlParams.has('state') || window.location.hash.includes('access_token');
+        console.log('🔍 Has auth params:', hasAuthParams);
         
         const result = await getRedirectResult(auth);
         if (result) {
-          console.log('✅ Firebase login successful:', result.user.email);
-          console.log('🎯 User should now be authenticated!');
+          console.log('✅ Firebase redirect result found!');
+          console.log('✅ User email:', result.user.email);
+          console.log('✅ User uid:', result.user.uid);
+          console.log('✅ User display name:', result.user.displayName);
           setUser(result.user);
+          setError(null); // Clear any previous errors
           setLoading(false);
-          return; // Early return to avoid setting loading to false again
+          
+          // Clear URL parameters to clean up the redirect
+          if (hasAuthParams) {
+            window.history.replaceState({}, document.title, window.location.pathname);
+          }
+          return;
         } else {
-          console.log('ℹ️ No redirect result (normal for direct page loads)');
+          console.log('ℹ️ No redirect result found');
+          if (hasAuthParams) {
+            console.log('⚠️ Found auth params but no redirect result - this might indicate an issue');
+          }
         }
       } catch (error: any) {
         console.error('❌ Firebase redirect error:', error);
         console.error('❌ Error code:', error.code);
-        console.error('❌ Error details:', error);
+        console.error('❌ Error message:', error.message);
+        console.error('❌ Full error:', error);
         
-        // Check for domain authorization issues
+        // Specific error handling
         if (error.code === 'auth/unauthorized-domain') {
-          console.error('🚨 DOMAIN NOT AUTHORIZED! Current domain not in Firebase authorized domains');
-          console.log('🔧 Current domain:', window.location.hostname);
-          console.log('📝 Add this domain to Firebase Console → Authentication → Settings → Authorized domains');
+          console.error('🚨 DOMAIN NOT AUTHORIZED!');
+          setError(`Domain ${window.location.hostname} is not authorized in Firebase. Please add it to Firebase Console → Authentication → Settings → Authorized domains`);
+        } else if (error.code === 'auth/popup-blocked') {
+          console.error('🚨 POPUP BLOCKED - trying alternative method');
+          setError('Popup was blocked. Please allow popups or try the redirect method.');
+        } else {
+          setError(`Authentication error: ${error.message}`);
         }
         
-        setError(error.message);
         setLoading(false);
       }
     };
 
-    handleRedirectResult();
+    // Add a small delay to ensure Firebase is fully initialized
+    const timer = setTimeout(handleRedirectResult, 100);
+    
+    return () => clearTimeout(timer);
   }, []);
 
   // Listen to auth state changes
