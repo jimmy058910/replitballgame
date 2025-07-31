@@ -41,19 +41,17 @@ const testFirebaseConnection = async () => {
     console.log('🧪 API Response status:', response.status);
     
     if (response.status === 400) {
-      console.error('❌ API Key Invalid - Follow these EXACT steps:');
-      console.log('🔧 STEP 1: Go to Google Cloud Console → APIs & Services → Credentials');
-      console.log('🔧 STEP 2: Find API key "AIzaSyCnaxQb4dpuOo70LdbpRiuKIMsETmc18"');
-      console.log('🔧 STEP 3: Click the pencil icon to edit the key');
-      console.log('🔧 STEP 4: Under "Application restrictions" → Select "HTTP referrers"');
-      console.log('🔧 STEP 5: Add these referrers:');
-      console.log('   - https://realmrivalry.com/*');
-      console.log('   - https://*.replit.dev/*');
-      console.log('   - http://localhost:*/*');
-      console.log('🔧 STEP 6: Under "API restrictions" → Select "Restrict key"');
-      console.log('🔧 STEP 7: Select only "Identity Toolkit API"');
-      console.log('🔧 STEP 8: Click SAVE');
-      console.log('🔧 STEP 9: Wait 5 minutes for changes to propagate');
+      console.error('🚨 CURRENT API KEY IS INVALID - CREATE NEW KEY:');
+      console.log('');
+      console.log('🆕 CREATE NEW API KEY:');
+      console.log('1. Go to Google Cloud Console → APIs & Services → Credentials');
+      console.log('2. Click "+ CREATE CREDENTIALS" → "API key"');
+      console.log('3. Copy the new key immediately');
+      console.log('4. Replace the key in client/src/lib/firebase.ts');
+      console.log('5. Leave it unrestricted for testing');
+      console.log('');
+      console.log('🔧 Current invalid key: AIzaSyCnaxQb4dpuOo70LdbpRiuKIMsETmc18');
+      console.log('📝 Replace the apiKey value in firebase.ts with your new key');
     }
     
     const data = await response.text();
