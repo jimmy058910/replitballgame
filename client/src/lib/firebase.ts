@@ -11,6 +11,8 @@ const firebaseConfig = {
 
 console.log('🔥 Firebase Config:', {
   hasApiKey: !!firebaseConfig.apiKey,
+  apiKeyLength: firebaseConfig.apiKey?.length || 0,
+  apiKeyPrefix: firebaseConfig.apiKey?.substring(0, 10) + '...',
   projectId: firebaseConfig.projectId,
   hasAppId: !!firebaseConfig.appId,
   authDomain: firebaseConfig.authDomain
