@@ -20,6 +20,24 @@ router.get('/google/callback',
   }
 );
 
+// ✅ LOGOUT ENDPOINT
+router.post('/logout', (req, res) => {
+  req.logout((err) => {
+    if (err) {
+      console.error('Logout error:', err);
+      return res.status(500).json({ message: 'Logout failed' });  
+    }
+    req.session.destroy((err) => {
+      if (err) {
+        console.error('Session destroy error:', err);
+        return res.status(500).json({ message: 'Session cleanup failed' });
+      }
+      res.clearCookie('connect.sid'); // Clear session cookie
+      res.json({ message: 'Logged out successfully' });
+    });
+  });
+});
+
 // ✅ GET USER STATUS - Consolidated from both files
 router.get('/user', isAuthenticated, async (req: any, res: Response, next: NextFunction) => { // Added next
   try {
