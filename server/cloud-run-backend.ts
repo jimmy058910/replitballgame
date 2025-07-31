@@ -41,6 +41,7 @@ app.use(helmet({
 app.use(cors({
   origin: [
     'https://realmrivalry.com',
+    'https://www.realmrivalry.com',  // Include www version
     'https://direct-glider-465821-p7.web.app',
     'https://direct-glider-465821-p7.firebaseapp.com',
     'http://localhost:5000', // Development
