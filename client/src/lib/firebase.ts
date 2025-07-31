@@ -51,9 +51,33 @@ googleProvider.setCustomParameters({
 googleProvider.addScope('profile');
 googleProvider.addScope('email');
 
+// Test API connection before attempting auth
+const testFirebaseConnection = async () => {
+  try {
+    console.log('🧪 Testing Firebase API connection...');
+    const response = await fetch(`https://identitytoolkit.googleapis.com/v1/projects?key=${firebaseConfig.apiKey}`);
+    console.log('🧪 API Response status:', response.status);
+    
+    if (response.status === 400) {
+      console.error('❌ API Key Invalid - Check Google Cloud Console');
+      console.log('🔧 Troubleshooting steps:');
+      console.log('1. Go to Google Cloud Console → APIs & Services → Credentials');
+      console.log('2. Find your API key and check if it has restrictions');
+      console.log('3. Enable Identity Toolkit API in Google Cloud Console');
+      console.log('4. Make sure billing is enabled on your project');
+    }
+    
+    const data = await response.text();
+    console.log('🧪 Response data:', data.substring(0, 200));
+  } catch (error) {
+    console.error('🧪 Connection test failed:', error);
+  }
+};
+
 // Authentication functions
-export const signInWithGoogle = () => {
+export const signInWithGoogle = async () => {
   console.log('🔐 Starting Google sign-in with redirect...');
+  await testFirebaseConnection();
   return signInWithRedirect(auth, googleProvider);
 };
 
