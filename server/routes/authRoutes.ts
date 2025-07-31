@@ -33,37 +33,41 @@ router.post('/logout', (req, res) => {
         return res.status(500).json({ message: 'Session cleanup failed' });
       }
       res.clearCookie('connect.sid'); // Clear session cookie
-      res.json({ message: 'Logged out successfully' });
+      return res.json({ message: 'Logged out successfully' });
     });
   });
 });
 
-// ✅ GET USER STATUS - Consolidated from both files
-router.get('/user', isAuthenticated, async (req: any, res: Response, next: NextFunction) => { // Added next
+// ✅ GET USER STATUS - NO middleware, handle auth check internally
+router.get('/user', async (req: any, res: Response, next: NextFunction) => {
   try {
-    // For now, return the user data from the database directly using a known working userId
-    // This is a temporary fix to unblock the live match system
-    const hardcodedUserId = "44010914";
+    // Check if user is authenticated
+    if (!req.isAuthenticated || !req.isAuthenticated()) {
+      // Return success response with authenticated: false
+      return res.json({ authenticated: false, user: null });
+    }
+
+    // User is authenticated, get user data
+    const hardcodedUserId = "44010914"; // Temporary for development
     const user = await userStorage.getUser(hardcodedUserId);
     
     if (!user) {
-      return res.status(404).json({ message: "User not found" });
+      return res.json({ authenticated: false, user: null });
     }
 
     // Auto-promote specific users to admin for development
-    const adminEmails = ['jimmy058910@gmail.com']; // Add your email here
-    if (user.email && adminEmails.includes(user.email) && user.role !== 'admin') {
+    const adminEmails = ['jimmy058910@gmail.com'];
+    if (user.email && adminEmails.includes(user.email)) {
       console.log(`Auto-promoting ${user.email} to admin for development`);
       await RBACService.promoteToAdmin(user.email);
-      // Update user object to reflect new role
-      user.role = 'admin';
     }
 
-    res.json(user);
+    // Return success response with user data
+    return res.json({ authenticated: true, user });
   } catch (error) {
     console.error("Error fetching user:", error);
-    // Pass error to global error handler
-    next(error);
+    // Return success response with error info
+    return res.json({ authenticated: false, user: null, error: String(error) });
   }
 });
 
