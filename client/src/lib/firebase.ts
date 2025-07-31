@@ -11,24 +11,12 @@ const firebaseConfig = {
   measurementId: "G-FJFXN5RC80"
 };
 
-// Validate environment variables
-const requiredEnvVars = {
-  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
-  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
-  appId: import.meta.env.VITE_FIREBASE_APP_ID
-};
-
+// Log environment variables (non-blocking)
 console.log('🔧 Environment Variables Check:', {
-  apiKey: requiredEnvVars.apiKey ? `${requiredEnvVars.apiKey.substring(0, 15)}...` : '❌ MISSING',
-  projectId: requiredEnvVars.projectId || '❌ MISSING',
-  appId: requiredEnvVars.appId ? `${requiredEnvVars.appId.substring(0, 20)}...` : '❌ MISSING'
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY ? `${import.meta.env.VITE_FIREBASE_API_KEY.substring(0, 15)}...` : '❌ MISSING',
+  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID || '❌ MISSING',
+  appId: import.meta.env.VITE_FIREBASE_APP_ID ? `${import.meta.env.VITE_FIREBASE_APP_ID.substring(0, 20)}...` : '❌ MISSING'
 });
-
-// Throw error if any required environment variables are missing
-const missingVars = Object.entries(requiredEnvVars).filter(([key, value]) => !value);
-if (missingVars.length > 0) {
-  throw new Error(`Missing required Firebase environment variables: ${missingVars.map(([key]) => `VITE_FIREBASE_${key.toUpperCase()}`).join(', ')}`);
-}
 
 console.log('🔧 Firebase Config Debug:', {
   apiKey: firebaseConfig.apiKey?.substring(0, 15) + '...',
