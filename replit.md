@@ -221,6 +221,7 @@ No repository secrets needed - authentication via Workload Identity Federation:
 - **No Pay-to-Win Policy**: All gameplay-affecting items must be purchasable with Credits (₡), Gems (💎) only for convenience/cosmetics
 - **Documentation Consistency**: Maintain comprehensive game mechanics documentation with exact formulas and system specifications
 - **Game Design Philosophy**: Organic progression systems, balanced economies, realistic player development cycles
+- **Deployment Preference**: Prefers Google Cloud Shell Terminal for all gcloud commands, deployment operations, and Google Cloud Platform management tasks
 
 ### Authentication System
 - **Google OAuth 2.0**: Complete integration with Passport.js (unified across development and production)
