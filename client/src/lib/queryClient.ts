@@ -7,11 +7,20 @@ async function throwIfResNotOk(res: Response) {
   }
 }
 
+// Hybrid architecture API configuration
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 
+  (import.meta.env.PROD 
+    ? 'https://realm-rivalry-backend-108005641993.us-east5.run.app'
+    : 'http://localhost:5000'
+  );
+
 export async function apiRequest<T>(
-  url: string,
+  endpoint: string,
   method: string = "GET",
   data?: unknown | undefined,
 ): Promise<T> {
+  const url = `${API_BASE_URL}${endpoint}`;
+  
   const res = await fetch(url, {
     method,
     headers: data ? { "Content-Type": "application/json" } : {},
@@ -30,7 +39,10 @@ export const getQueryFn: <T>(options: {
 }) => QueryFunction<T> =
   ({ on401: unauthorizedBehavior }) =>
   async ({ queryKey }) => {
-    const res = await fetch(queryKey[0] as string, {
+    const endpoint = queryKey[0] as string;
+    const url = `${API_BASE_URL}${endpoint}`;
+    
+    const res = await fetch(url, {
       credentials: "include",
     });
 

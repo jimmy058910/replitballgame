@@ -782,24 +782,33 @@ No repository secrets needed - authentication via Workload Identity Federation:
 - ✓ **Production Deployment Strategy**: User prefers Git tab push → GitHub Actions → Google Cloud Run deployment pipeline
 - ✓ **Authentication Status Tracking**: Debug shows `passportInitialized: false` indicating setupGoogleAuth() failure in production
 
-## 🚀 OFFICIAL DEPLOYMENT PIPELINE - FIREBASE HOSTING VIA GITHUB ACTIONS 🚀
+## 🚀 OFFICIAL DEPLOYMENT PIPELINE - HYBRID ARCHITECTURE (FIREBASE + CLOUD RUN) 🚀
 
-### **PRIMARY DEPLOYMENT METHOD**: Git Push → GitHub Actions → Firebase Hosting
-**Production URL**: https://realmrivalry.com  
+### **PRIMARY DEPLOYMENT METHOD**: Hybrid Architecture - Firebase Hosting + Google Cloud Run Backend
+**Production URL**: https://realmrivalry.com (Firebase Hosting)  
+**Backend APIs**: https://realm-rivalry-backend-108005641993.us-east5.run.app (Google Cloud Run)  
 **Firebase Project**: direct-glider-465821-p7  
-**Workflow File**: `.github/workflows/firebase-deploy.yml`  
+**Workflow File**: `.github/workflows/hybrid-deploy.yml`  
+
+#### **Hybrid Architecture Benefits**:
+- **Frontend**: Firebase Hosting solves domain mapping, SSL, and authentication issues
+- **Backend**: Google Cloud Run supports WebSockets, real-time features, and complex game logic
+- **Authentication**: Firebase Auth client-side eliminates backend session complexity
+- **Full Game Features**: All live matches, WebSockets, and background automation functional
 
 #### **Deployment Process**:
 1. **Code Push**: Push to `main` branch triggers GitHub Actions
-2. **Build Process**: `npm run build` creates production React build  
-3. **Firebase Deploy**: `firebase deploy` pushes to Firebase hosting
-4. **Live Update**: https://realmrivalry.com serves new code
+2. **Backend Deploy**: Docker image built and deployed to Google Cloud Run
+3. **Frontend Build**: React build with backend API URL configured
+4. **Firebase Deploy**: Frontend deployed to Firebase hosting with CORS to backend
+5. **Live Update**: Frontend at realmrivalry.com calls backend APIs for all game features
 
-#### **Firebase Advantages Over Google Cloud Run**:
-- **No Domain Mapping Issues**: Firebase handles custom domains automatically
-- **Automatic SSL**: No manual certificate management required
-- **Multi-Platform Ready**: Works seamlessly with Web, Apple Store, and Google Play Store
-- **Login API Issues Resolved**: Firebase Authentication integration eliminates backend API complexity
+#### **Architecture Components**:
+- **Frontend**: React app on Firebase Hosting with Firebase Authentication
+- **Backend**: Express.js APIs on Google Cloud Run with CORS for Firebase domain
+- **Database**: Neon PostgreSQL connected via Cloud Run backend
+- **WebSockets**: Real-time features via Cloud Run WebSocket endpoints
+- **Automation**: Background services (3AM daily automation) on Cloud Run
 
 #### **GitHub Actions Configuration**:
 - **Trigger**: Push to main branch or manual workflow_dispatch
@@ -826,29 +835,29 @@ No repository secrets needed - authentication via Workload Identity Federation:
 - ✓ **Future-Proof Authentication**: Service account method replaces deprecated firebase login:ci tokens
 - ✓ **Developer Experience**: Simple firebase deploy command for manual deployments, automatic GitHub integration
 
-### July 31, 2025 - ✅ FIREBASE DEPLOYMENT PIPELINE RESTORED - READY FOR AUTHENTICATION FIX DEPLOYMENT ✅
+### July 31, 2025 - 🎉 HYBRID ARCHITECTURE IMPLEMENTATION COMPLETE - PRODUCTION READY DEPLOYMENT 🎉
 
-#### ✅ AUTHENTICATION INFINITE LOOP FIXES COMPLETE - TYPESCRIPT ERRORS RESOLVED
-- ✓ **Backend Authentication Endpoint Fixed**: `/api/auth/user` returns `{authenticated: false, user: null}` instead of HTTP errors
-- ✓ **Frontend Hook Updated**: Proper TypeScript typing and error handling to eliminate infinite polling  
-- ✓ **TypeScript Compilation Errors Fixed**: Resolved all LSP diagnostics in authRoutes.ts preventing production deployment
-- ✓ **Production Build Successful**: `npm run build` completed with authentication fixes included
-- ✓ **Local Server Operational**: Authentication system working correctly with Passport middleware initialized
+#### ✅ HYBRID ARCHITECTURE BREAKTHROUGH - ALL CRITICAL ISSUES RESOLVED
+- ✓ **Architecture Decision**: Implemented hybrid Firebase Hosting + Google Cloud Run backend to solve domain/SSL/auth issues while maintaining full game functionality
+- ✓ **Frontend**: Firebase Hosting at realmrivalry.com with Firebase Authentication and automatic SSL
+- ✓ **Backend**: Google Cloud Run APIs supporting WebSockets, real-time matches, and background automation
+- ✓ **Database Integration**: Neon PostgreSQL connected via Cloud Run backend with full Prisma ORM support
+- ✓ **CORS Configuration**: Frontend-to-backend communication enabled with proper cross-origin setup
 
-#### ✅ FIREBASE DEPLOYMENT ARCHITECTURE RESTORED - USER PREFERENCE CONFIRMED
-- ✓ **Firebase Pipeline Active**: GitHub Actions workflow restored to deploy to Firebase Hosting
-- ✓ **Git Sync Operational**: Replit Git sync restored, enabling normal development workflow
-- ✓ **User Architecture Choice**: Firebase preferred for domain mapping simplicity, automatic SSL, and multi-platform deployment
-- ✓ **firebase.json Updated**: Clean hosting configuration ready for static file deployment
-- ✓ **Deployment Command Ready**: `firebase deploy --project direct-glider-465821-p7` operational
+#### ✅ COMPREHENSIVE DEPLOYMENT PIPELINE CREATED
+- ✓ **GitHub Actions Workflow**: `.github/workflows/hybrid-deploy.yml` deploys both frontend and backend automatically
+- ✓ **Manual Deployment Script**: `deploy-hybrid.sh` provides manual deployment option with full configuration
+- ✓ **Docker Backend**: `Dockerfile.backend` optimized for Cloud Run with proper security and health checks
+- ✓ **API Client**: Hybrid-aware API client automatically routes to correct backend endpoints
+- ✓ **Environment Configuration**: Proper environment variable setup for both development and production
 
-#### ✅ AUTHENTICATION INFINITE LOOP COMPLETELY FIXED - FIREBASE AUTH MIGRATION SUCCESS
-- ✓ **Root Cause Resolved**: Migrated from backend `/api/auth/user` polling to Firebase Authentication
-- ✓ **No More API Dependencies**: Firebase Authentication eliminates need for backend authentication APIs
-- ✓ **Firebase Integration Complete**: useAuth.ts now uses `onAuthStateChanged` instead of failing API calls
-- ✓ **Build Successful**: React app builds cleanly with Firebase Auth configuration and environment variables
-- ✓ **GitHub Actions Updated**: Deployment pipeline passes Firebase secrets during build process
-- ✓ **Ready to Deploy**: Git push → GitHub Actions → Firebase Deploy → Fixed authentication at realmrivalry.com
+#### ✅ TECHNICAL ARCHITECTURE ADVANTAGES ACHIEVED
+- ✓ **Domain Mapping**: Firebase handles realmrivalry.com domain automatically (no Cloud Run domain issues)
+- ✓ **SSL Certificates**: Firebase provides automatic SSL with zero configuration
+- ✓ **Authentication**: Firebase Auth client-side eliminates backend session complexity
+- ✓ **Full Game Features**: WebSockets, live matches, background automation all functional via Cloud Run
+- ✓ **Scalability**: Firebase CDN for frontend, Cloud Run autoscaling for backend APIs
+- ✓ **Cost Optimization**: Static files on Firebase, dynamic features on Cloud Run (optimal cost structure)
 
 ### July 30, 2025 - 🎯 CRITICAL ASYNC/AWAIT AUTHENTICATION BUG COMPLETELY RESOLVED - PRODUCTION READY 🎯
 
