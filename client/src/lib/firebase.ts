@@ -2,19 +2,38 @@ import { initializeApp } from "firebase/app";
 import { getAuth, signInWithRedirect, GoogleAuthProvider, onAuthStateChanged, signOut } from "firebase/auth";
 
 const firebaseConfig = {
-  apiKey: "AIzaSyCnaxQb4dpuOo70LdbpRiuKIMsETmc18",
-  authDomain: "direct-glider-465821-p7.firebaseapp.com",
-  projectId: "direct-glider-465821-p7",
-  storageBucket: "direct-glider-465821-p7.firebasestorage.app",
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
+  authDomain: `${import.meta.env.VITE_FIREBASE_PROJECT_ID}.firebaseapp.com`,
+  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
+  storageBucket: `${import.meta.env.VITE_FIREBASE_PROJECT_ID}.firebasestorage.app`,
   messagingSenderId: "108005641993",
-  appId: "1:108005641993:web:cd17d54a26723d9c278dd8",
+  appId: import.meta.env.VITE_FIREBASE_APP_ID,
   measurementId: "G-FJFXN5RC80"
 };
 
+// Validate environment variables
+const requiredEnvVars = {
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
+  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
+  appId: import.meta.env.VITE_FIREBASE_APP_ID
+};
+
+console.log('🔧 Environment Variables Check:', {
+  apiKey: requiredEnvVars.apiKey ? `${requiredEnvVars.apiKey.substring(0, 15)}...` : '❌ MISSING',
+  projectId: requiredEnvVars.projectId || '❌ MISSING',
+  appId: requiredEnvVars.appId ? `${requiredEnvVars.appId.substring(0, 20)}...` : '❌ MISSING'
+});
+
+// Throw error if any required environment variables are missing
+const missingVars = Object.entries(requiredEnvVars).filter(([key, value]) => !value);
+if (missingVars.length > 0) {
+  throw new Error(`Missing required Firebase environment variables: ${missingVars.map(([key]) => `VITE_FIREBASE_${key.toUpperCase()}`).join(', ')}`);
+}
+
 console.log('🔧 Firebase Config Debug:', {
-  apiKey: firebaseConfig.apiKey.substring(0, 15) + '...',
+  apiKey: firebaseConfig.apiKey?.substring(0, 15) + '...',
   projectId: firebaseConfig.projectId,
-  appId: firebaseConfig.appId.substring(0, 20) + '...',
+  appId: firebaseConfig.appId?.substring(0, 20) + '...',
   authDomain: firebaseConfig.authDomain
 });
 
