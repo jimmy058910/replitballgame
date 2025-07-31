@@ -4,7 +4,7 @@ import helmet from 'helmet';
 import compression from 'compression';
 import { createServer } from 'http';
 import { WebSocketServer } from 'ws';
-import { webSocketService } from './services/webSocketService';
+// WebSocket functionality will be implemented later
 import logger from './utils/logger';
 
 // Import individual route modules
@@ -12,7 +12,7 @@ import authRoutes from './routes/authRoutes';
 import teamRoutes from './routes/teamRoutes';
 import playerRoutes from './routes/playerRoutes';
 import marketplaceRoutes from './routes/marketplaceRoutes';
-import gameRoutes from './routes/gameRoutes';
+import matchRoutes from './routes/matchRoutes';
 import liveMatchRoutes from './routes/liveMatchRoutes';
 import worldRoutes from './routes/worldRoutes';
 import storeRoutes from './routes/storeRoutes';
@@ -84,11 +84,6 @@ const initializeAuth = async () => {
 const initializeServices = async () => {
   try {
     logger.info('Initializing backend services...');
-    
-    // Initialize WebSocket service
-    webSocketService.initialize();
-    logger.info('WebSocket service initialized');
-    
     logger.info('All backend services initialized successfully');
   } catch (error) {
     logger.error('Failed to initialize services:', error);
@@ -105,7 +100,7 @@ const setupRoutes = () => {
     app.use('/api', teamRoutes);
     app.use('/api', playerRoutes);
     app.use('/api', marketplaceRoutes);
-    app.use('/api', gameRoutes);
+    app.use('/api', matchRoutes);
     app.use('/api', liveMatchRoutes);
     app.use('/api', worldRoutes);
     app.use('/api', storeRoutes);
@@ -130,23 +125,9 @@ const startServer = async () => {
     // Initialize background services
     await initializeServices();
     
-    // Create HTTP server
-    const server = createServer(app);
-    
-    // Initialize WebSocket server
-    const wss = new WebSocketServer({ 
-      server,
-      path: '/ws'
-    });
-    
-    // Initialize WebSocket service with server
-    webSocketService.initializeWithServer(wss);
-    logger.info('WebSocket service initialized');
-    
-    // Start listening
-    server.listen(parseInt(PORT.toString()), '0.0.0.0', () => {
+    // Start listening directly (WebSocket functionality will be added later)
+    app.listen(parseInt(PORT.toString()), '0.0.0.0', () => {
       logger.info(`🚀 Backend server listening on port ${PORT}`);
-      logger.info(`🔗 WebSocket server ready at ws://localhost:${PORT}/ws`);
       logger.info(`📊 Health check available at http://localhost:${PORT}/health`);
       logger.info(`🌐 CORS enabled for Firebase domains`);
     });
