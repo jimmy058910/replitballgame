@@ -83,7 +83,7 @@ jobs:
 
     - name: Deploy to Firebase
       run: |
-        npx firebase deploy --project ${{ env.PROJECT_ID }} --token "${{ secrets.FIREBASE_TOKEN }}"
+        npx firebase deploy --project ${{ env.PROJECT_ID }}
 
     # Test deployment
     - name: Test deployment
