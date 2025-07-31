@@ -9,7 +9,7 @@ import { AdSystem, useAdSystem } from "@/components/AdSystem";
 import { apiRequest } from '@/lib/queryClient';
 import webSocketManager, { LiveMatchState as WSLiveMatchState, MatchEvent, WebSocketCallbacks } from '@/lib/websocket';
 import { useToast } from '@/hooks/use-toast';
-import { useAuth } from '@/hooks/useAuth';
+import { useAuth } from '@/providers/AuthProvider';
 
 interface LiveMatchSimulationProps {
   matchId: string;

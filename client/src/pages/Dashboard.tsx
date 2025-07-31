@@ -1,4 +1,4 @@
-import { useAuth } from "@/hooks/useAuth";
+import { useAuth } from "@/providers/AuthProvider";
 import Navigation from "@/components/Navigation";
 import DramaticTeamHQ from "@/components/DramaticTeamHQ";
 

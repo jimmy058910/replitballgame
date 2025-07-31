@@ -1,4 +1,4 @@
-import { useAuth } from "@/hooks/useAuth";
+import { useAuth } from "@/providers/AuthProvider";
 import NotificationCenter from "@/components/NotificationCenter";
 
 export default function Notifications() {

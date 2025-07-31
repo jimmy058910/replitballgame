@@ -8,7 +8,7 @@ import { Progress } from '@/components/ui/progress';
 import { Separator } from '@/components/ui/separator';
 import { Clock, Users, Trophy, Zap, Shield, Eye, Play } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { useAuth } from '@/hooks/useAuth';
+import { useAuth } from '@/providers/AuthProvider';
 import TournamentBracket from '@/components/TournamentBracket';
 
 interface TournamentStatusData {

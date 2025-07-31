@@ -1,4 +1,4 @@
-import { useAuth } from "@/hooks/useAuth";
+import { useAuth } from "@/providers/AuthProvider";
 import MobileRosterHQ from "@/components/MobileRosterHQ";
 
 export default function RosterHQ() {

@@ -1,4 +1,4 @@
-import { useAuth } from "@/hooks/useAuth";
+import { useAuth } from "@/providers/AuthProvider";
 import { useQuery } from "@tanstack/react-query";
 import InjuryManagement from "@/components/InjuryManagement";
 import { apiRequest } from "@/lib/queryClient"; // Import apiRequest

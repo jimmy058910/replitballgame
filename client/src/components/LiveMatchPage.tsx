@@ -1,6 +1,6 @@
 import React from 'react';
 import { useParams } from 'wouter';
-import { useAuth } from '@/hooks/useAuth';
+import { useAuth } from '@/providers/AuthProvider';
 import EnhancedMatchEngine from '@/components/EnhancedMatchEngine';
 
 interface User {

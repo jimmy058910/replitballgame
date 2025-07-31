@@ -1,7 +1,7 @@
 import { useEffect, useState, startTransition } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "wouter";
-import { useAuth } from "@/hooks/useAuth";
+import { useAuth } from "@/providers/AuthProvider";
 import { useSeasonalUI, getPhaseDisplayName, getPrimaryActionLabel } from "@/hooks/useSeasonalUI";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";

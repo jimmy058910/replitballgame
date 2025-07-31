@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
-import { useAuth } from "@/hooks/useAuth";
+import { useAuth } from "@/providers/AuthProvider";
 import { isUnauthorizedError } from "@/lib/authUtils";
 import { Badge } from "@/components/ui/badge";
 import { Clock, Gem, Coins, TrendingUp, TrendingDown, Minus, Calendar, ArrowUp, ArrowDown, ArrowRight, Zap, Star } from "lucide-react";
