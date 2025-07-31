@@ -1,8 +1,9 @@
 import { initializeApp } from "firebase/app";
 import { getAuth, signInWithRedirect, GoogleAuthProvider, onAuthStateChanged, signOut } from "firebase/auth";
 
+// 🔧 TESTING: If current key doesn't work, replace apiKey with a new one from Google Cloud Console
 const firebaseConfig = {
-  apiKey: "AIzaSyCnaxQb4dpuOo70LdbpRiuKIMsETmc18",
+  apiKey: "AIzaSyCnaxQb4dpuOo70LdbpRiuKIMsETmc18", // ⚠️ Replace this if creating new key
   authDomain: "direct-glider-465821-p7.firebaseapp.com",
   projectId: "direct-glider-465821-p7",
   storageBucket: "direct-glider-465821-p7.firebasestorage.app",
