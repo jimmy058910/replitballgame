@@ -13,17 +13,31 @@ export const useFirebaseAuth = () => {
     const handleRedirectResult = async () => {
       try {
         console.log('🔄 Checking for redirect result...');
+        console.log('🌐 Current domain:', window.location.hostname);
+        console.log('🔧 Auth domain:', auth.app.options.authDomain);
+        
         const result = await getRedirectResult(auth);
         if (result) {
           console.log('✅ Firebase login successful:', result.user.email);
           console.log('🎯 User should now be authenticated!');
           setUser(result.user);
           setLoading(false);
+          return; // Early return to avoid setting loading to false again
         } else {
           console.log('ℹ️ No redirect result (normal for direct page loads)');
         }
       } catch (error: any) {
         console.error('❌ Firebase redirect error:', error);
+        console.error('❌ Error code:', error.code);
+        console.error('❌ Error details:', error);
+        
+        // Check for domain authorization issues
+        if (error.code === 'auth/unauthorized-domain') {
+          console.error('🚨 DOMAIN NOT AUTHORIZED! Current domain not in Firebase authorized domains');
+          console.log('🔧 Current domain:', window.location.hostname);
+          console.log('📝 Add this domain to Firebase Console → Authentication → Settings → Authorized domains');
+        }
+        
         setError(error.message);
         setLoading(false);
       }

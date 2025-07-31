@@ -24,10 +24,26 @@ import {
 } from "lucide-react";
 
 export default function Landing() {
-  const { login } = useAuth();
+  const { login, isAuthenticated, isLoading, user } = useAuth();
+  
+  // Show debug info directly on the page
+  console.log('🔍 Landing page - Auth state:', { isAuthenticated, isLoading, userEmail: user?.email });
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#1a1b3e] via-[#1a1b3e] to-slate-900">
+      {/* Debug Panel - Visible Auth State */}
+      <div className="fixed top-4 right-4 bg-black/80 text-white p-4 rounded-lg text-sm z-50 max-w-sm">
+        <div className="font-bold text-yellow-400">🔍 Auth Debug:</div>
+        <div>Loading: {isLoading ? '✅' : '❌'}</div>
+        <div>Authenticated: {isAuthenticated ? '✅' : '❌'}</div>
+        <div>User: {user?.email || 'None'}</div>
+        <div className="text-xs text-gray-300 mt-2 border-t border-gray-600 pt-2">
+          <div className="font-semibold text-orange-300">🌐 Domain Setup:</div>
+          <div className="break-all">Current: {window.location.hostname}</div>
+          <div className="text-xs mt-1">Add this domain to Firebase Console → Authentication → Settings → Authorized domains</div>
+        </div>
+      </div>
+      
       {/* Hero Section */}
       <div className="relative overflow-hidden min-h-screen flex items-center">
         {/* Dynamic Background Elements */}
