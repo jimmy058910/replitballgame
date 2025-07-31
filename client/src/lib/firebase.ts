@@ -40,12 +40,19 @@ const testFirebaseConnection = async () => {
     console.log('🧪 API Response status:', response.status);
     
     if (response.status === 400) {
-      console.error('❌ API Key Invalid - Check Google Cloud Console');
-      console.log('🔧 Troubleshooting steps:');
-      console.log('1. Go to Google Cloud Console → APIs & Services → Credentials');
-      console.log('2. Find your API key and check if it has restrictions');
-      console.log('3. Enable Identity Toolkit API in Google Cloud Console');
-      console.log('4. Make sure billing is enabled on your project');
+      console.error('❌ API Key Invalid - Follow these EXACT steps:');
+      console.log('🔧 STEP 1: Go to Google Cloud Console → APIs & Services → Credentials');
+      console.log('🔧 STEP 2: Find API key "AIzaSyCnaxQb4dpuOo70LdbpRiuKIMsETmc18"');
+      console.log('🔧 STEP 3: Click the pencil icon to edit the key');
+      console.log('🔧 STEP 4: Under "Application restrictions" → Select "HTTP referrers"');
+      console.log('🔧 STEP 5: Add these referrers:');
+      console.log('   - https://realmrivalry.com/*');
+      console.log('   - https://*.replit.dev/*');
+      console.log('   - http://localhost:*/*');
+      console.log('🔧 STEP 6: Under "API restrictions" → Select "Restrict key"');
+      console.log('🔧 STEP 7: Select only "Identity Toolkit API"');
+      console.log('🔧 STEP 8: Click SAVE');
+      console.log('🔧 STEP 9: Wait 5 minutes for changes to propagate');
     }
     
     const data = await response.text();
