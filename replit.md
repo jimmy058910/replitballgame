@@ -782,6 +782,26 @@ No repository secrets needed - authentication via Workload Identity Federation:
 - ✓ **Production Deployment Strategy**: User prefers Git tab push → GitHub Actions → Google Cloud Run deployment pipeline
 - ✓ **Authentication Status Tracking**: Debug shows `passportInitialized: false` indicating setupGoogleAuth() failure in production
 
+## 🚀 OFFICIAL DEPLOYMENT PIPELINE - FIREBASE HOSTING VIA GITHUB ACTIONS 🚀
+
+### **PRIMARY DEPLOYMENT METHOD**: Git Push → GitHub Actions → Firebase Hosting
+**Production URL**: https://realmrivalry.com  
+**Firebase Project**: direct-glider-465821-p7  
+**Workflow File**: `.github/workflows/firebase-deploy.yml`  
+
+#### **Deployment Process**:
+1. **Code Push**: Push to `main` branch triggers GitHub Actions
+2. **Build Process**: `npm run build` creates production React build  
+3. **Firebase Deploy**: `firebase deploy` pushes to Firebase hosting
+4. **Live Update**: https://realmrivalry.com serves new code
+
+#### **GitHub Actions Configuration**:
+- **Trigger**: Push to main branch or manual workflow_dispatch
+- **Service Account**: firebase-github-deploy@direct-glider-465821-p7.iam.gserviceaccount.com  
+- **Authentication**: GOOGLE_SERVICE_ACCOUNT_KEY in GitHub repository secrets
+- **Build Command**: `npm run build` (React production build)
+- **Deploy Command**: `firebase deploy --project direct-glider-465821-p7`
+
 ### July 30, 2025 - 🎉 FIREBASE DEPLOYMENT PIPELINE COMPLETE - AUTOMATED GITHUB ACTIONS OPERATIONAL 🎉
 
 #### ✅ COMPLETE FIREBASE MIGRATION SUCCESS - PRODUCTION DEPLOYMENT INFRASTRUCTURE READY
@@ -800,14 +820,15 @@ No repository secrets needed - authentication via Workload Identity Federation:
 - ✓ **Future-Proof Authentication**: Service account method replaces deprecated firebase login:ci tokens
 - ✓ **Developer Experience**: Simple firebase deploy command for manual deployments, automatic GitHub integration
 
-### July 31, 2025 - ✅ AUTHENTICATION INFINITE LOOP FIX READY FOR PRODUCTION DEPLOYMENT ✅
+### July 31, 2025 - 🔥 DEPLOYMENT TRIGGER: AUTHENTICATION INFINITE LOOP FIX READY FOR FIREBASE DEPLOY 🔥
 
-#### ✅ INFINITE AUTHENTICATION LOOP COMPLETELY RESOLVED - DEPLOYMENT READY
+#### ✅ INFINITE AUTHENTICATION LOOP COMPLETELY RESOLVED - FIREBASE DEPLOYMENT TRIGGER
 - ✓ **Backend Authentication Endpoint Fixed**: `/api/auth/user` now returns `{authenticated: false, user: null}` instead of HTTP errors
 - ✓ **Frontend Hook Updated**: Added proper TypeScript typing and error handling to eliminate infinite polling
 - ✓ **Local Development Validated**: Authentication system working correctly - no more infinite "Checking authentication..." loops
 - ✓ **Production Issue Identified**: realmrivalry.com still running old code with infinite loop bug
-- ✓ **Deployment Required**: Current fixed code needs to be deployed to production to resolve user-facing issue
+- ✓ **Firebase Deploy Required**: GitHub Actions pipeline needs to deploy commit 0a6507e to production
+- ✓ **Pipeline**: Git Push → GitHub Actions firebase-deploy.yml → Firebase Hosting → realmrivalry.com
 
 ### July 30, 2025 - 🎯 CRITICAL ASYNC/AWAIT AUTHENTICATION BUG COMPLETELY RESOLVED - PRODUCTION READY 🎯
 
