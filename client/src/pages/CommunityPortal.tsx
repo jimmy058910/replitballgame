@@ -149,7 +149,7 @@ export default function CommunityPortal() {
     <>
       <ModernStickyHeader />
       <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900/20 to-blue-900/30">
-      <div className="p-4 space-y-6">
+      <div className="container mx-auto px-4 py-8 space-y-6 max-w-6xl mt-8">
         {/* Mobile-First Hero Header */}
         <div className="text-center space-y-2">
           <h1 className="text-2xl md:text-3xl font-bold text-white">Community Portal</h1>
