@@ -259,7 +259,7 @@ export class TeamStorage {
       data: {
         teamId,
         credits: 50000, // Starting credits
-        gems: 100, // Starting gems
+        gems: 0, // Starting gems (0 per specifications)
         projectedIncome: 0,
         projectedExpenses: 0,
         lastSeasonRevenue: 0,

@@ -614,7 +614,7 @@ export default function MarketDistrict() {
                         <div className="w-8 h-8 border-4 border-blue-400 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
                         <p className="text-gray-400">Loading gem packages...</p>
                       </div>
-                    ) : (gemPackages && gemPackages.length > 0) ? ( ? (
+                    ) : (gemPackages && gemPackages.length > 0) ? (
                       <div className="space-y-4">
                         <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
                           <Gem className="h-5 w-5 text-blue-400" />

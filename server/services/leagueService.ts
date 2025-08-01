@@ -16,7 +16,17 @@ export function generateRandomPlayer(name: string | null, race: string, teamId: 
   const fullName = getFullName(firstName, lastName);
   const ageConfig = gameConfig.gameParameters.playerGeneration.ageRange;
   const statConfig = gameConfig.gameParameters.playerGeneration.statRange;
-  const baseAge = ageConfig.min + Math.floor(Math.random() * (ageConfig.max - ageConfig.min + 1));
+  
+  // For initial team creation, bias towards early 20s (20-32 range, most in early 20s)
+  // Using weighted random: 60% chance for age 20-25, 40% chance for age 26-32
+  let baseAge: number;
+  if (Math.random() < 0.6) {
+    // Early career players (age 20-25)
+    baseAge = 20 + Math.floor(Math.random() * 6);
+  } else {
+    // More experienced players (age 26-32)
+    baseAge = 26 + Math.floor(Math.random() * 7);
+  }
   
   // Generate base attributes using configurable ranges
   const statRange = statConfig.max - statConfig.min;
@@ -68,20 +78,7 @@ export function generateRandomPlayer(name: string | null, race: string, teamId: 
     baseStats[key as keyof typeof baseStats] = Math.min(40, baseStats[key as keyof typeof baseStats]);
   });
 
-  // Use unified potential generation system
-  const potentialRating = generatePotential({ 
-    type: 'veteran_pool', // Default to veteran pool for league generation
-    ageModifier: baseAge <= 23 ? 0.2 : (baseAge >= 30 ? -0.3 : 0)
-  });
-  
-  // Calculate salary based on stats and age using configurable parameters
-  const salaryConfig = gameConfig.gameParameters.playerGeneration.salaryMultipliers;
-  const avgStat = Object.values(baseStats).reduce((a, b) => a + b, 0) / 8;
-  const baseSalary = 1000 + (avgStat * salaryConfig.basePerStat) + (Math.random() * salaryConfig.randomVariance);
-  const ageFactor = baseAge > 25 ? salaryConfig.veteranPenalty : salaryConfig.youngPlayerBonus;
-  const salary = Math.floor(baseSalary * ageFactor);
-
-  // Map position to PlayerRole enum
+  // Map position to PlayerRole enum - define function first
   const getPlayerRole = (position: string) => {
     switch (position) {
       case "passer":
@@ -94,6 +91,42 @@ export function generateRandomPlayer(name: string | null, race: string, teamId: 
         return "RUNNER"; // Default to runner
     }
   };
+
+  // Use unified potential generation system
+  const potentialRating = generatePotential({ 
+    type: 'veteran_pool', // Default to veteran pool for league generation
+    ageModifier: baseAge <= 23 ? 0.2 : (baseAge >= 30 ? -0.3 : 0)
+  });
+  
+  // Calculate salary using dynamic formula based on specifications:
+  // Base Formula: (Total Attributes × 50) + (Potential × 1000) + Random Variance (0-500)
+  const totalAttributes = Object.values(baseStats).reduce((a, b) => a + b, 0);
+  const baseSalary = (totalAttributes * 50) + (potentialRating * 1000) + (Math.random() * 500);
+  
+  // Age Modifiers
+  let ageFactor = 1.0;
+  if (baseAge < 24) {
+    ageFactor = 1.1; // Young players (+10%)
+  } else if (baseAge >= 30) {
+    ageFactor = 0.9; // Veterans (-10%)
+  }
+  
+  // Position Multipliers
+  let positionMultiplier = 1.0;
+  const playerPosition = getPlayerRole(position || 'runner');
+  switch (playerPosition) {
+    case 'PASSER':
+      positionMultiplier = 1.3; // Highest paid
+      break;
+    case 'RUNNER':
+      positionMultiplier = 1.2;
+      break;
+    case 'BLOCKER':
+      positionMultiplier = 1.0; // Base rate
+      break;
+  }
+  
+  const salary = Math.floor(baseSalary * ageFactor * positionMultiplier);
 
   return {
     teamId,
