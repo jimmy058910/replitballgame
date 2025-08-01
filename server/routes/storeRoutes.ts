@@ -40,6 +40,7 @@ router.get('/items', cacheMiddleware({ ttl: 600 }), isAuthenticated, async (req:
     const userId = req.user.claims.sub;
     // Master Economy v5: Return 8-item daily rotation instead of separate stores
     const dailyRotation = EnhancedGameEconomyService.generateDailyRotationStore();
+    console.log('🏪 Daily rotation generated:', dailyRotation.length, 'items');
     
     // Get today's purchase counts for each item
     const today = new Date();
