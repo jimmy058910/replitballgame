@@ -99,10 +99,11 @@ app.get('/api/exhibitions/stats', (req, res) => {
 // Season endpoints
 app.get('/api/season/current-cycle', (req, res) => {
   res.status(200).json({
-    season: 1,
-    cycle: 1,
-    day: 1,
+    seasonNumber: 1,
+    currentDay: 1,
     phase: 'preparation',
+    cycle: 1,
+    startDate: '2025-08-01',
     needsTeamCreation: true
   });
 });

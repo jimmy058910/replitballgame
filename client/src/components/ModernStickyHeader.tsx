@@ -237,10 +237,10 @@ const ModernStickyHeader: React.FC = () => {
     timeZone: 'America/New_York' 
   });
   
-  // Check if team has live match
-  const userLiveMatch = liveMatches?.find(match => 
+  // Check if team has live match (duplicate check - using safe array access)
+  const userLiveMatchCheck = Array.isArray(liveMatches) ? liveMatches.find(match => 
     match.homeTeam.id === team?.id?.toString() || match.awayTeam.id === team?.id?.toString()
-  );
+  ) : null;
 
   if (!isAuthenticated) {
     return (
