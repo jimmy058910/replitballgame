@@ -71,9 +71,16 @@ export default function Landing() {
             {/* Main CTA Section */}
             <div className="flex flex-col sm:flex-row gap-6 justify-center mb-16">
               <Button 
-                onClick={() => {
+                onClick={async () => {
                   console.log('🎯 Landing page: Start Your Dynasty button clicked!');
-                  login();
+                  console.log('🔍 Current domain:', window.location.hostname);
+                  console.log('🔍 Full URL:', window.location.href);
+                  try {
+                    await login();
+                    console.log('🎯 Login function completed successfully');
+                  } catch (error) {
+                    console.error('🚨 Login function failed:', error);
+                  }
                 }}
                 className="bg-gradient-to-r from-[#ff6b35] to-orange-600 hover:from-orange-600 hover:to-red-600 text-white px-12 py-6 text-xl font-bold rounded-2xl transition-all duration-300 transform hover:scale-105 shadow-2xl hover:shadow-[#ff6b35]/20"
               >
