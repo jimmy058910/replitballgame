@@ -55,16 +55,18 @@ app.get('/api/health', (req, res) => {
   res.json({ status: 'healthy', service: 'realm-rivalry-api' });
 });
 
-// Team endpoints - provide basic responses
+// Team endpoints - provide basic responses with 200 status
 app.get('/api/teams/my', (req, res) => {
-  res.status(404).json({ 
+  res.status(200).json({ 
+    team: null,
     message: 'No team found - create your dynasty first',
     needsTeamCreation: true 
   });
 });
 
 app.get('/api/teams/my/next-opponent', (req, res) => {
-  res.status(404).json({ 
+  res.status(200).json({ 
+    opponent: null,
     message: 'No next opponent - create team first',
     needsTeamCreation: true 
   });
@@ -77,7 +79,7 @@ app.get('/api/matches/live', (req, res) => {
 
 // Camaraderie endpoints
 app.get('/api/camaraderie/summary', (req, res) => {
-  res.json({ 
+  res.status(200).json({ 
     totalCamaraderie: 0,
     weeklyChange: 0,
     needsTeamCreation: true
@@ -86,7 +88,7 @@ app.get('/api/camaraderie/summary', (req, res) => {
 
 // Exhibition endpoints
 app.get('/api/exhibitions/stats', (req, res) => {
-  res.json({ 
+  res.status(200).json({ 
     totalExhibitions: 0,
     wins: 0,
     losses: 0,
