@@ -289,114 +289,7 @@ function WorldStatisticsDashboard() {
   );
 }
 
-function HallOfFame() {
-  const { data: hallOfFame, isLoading } = useQuery<any>({
-    queryKey: ["/api/world/hall-of-fame"],
-    refetchInterval: 60000,
-  });
-
-  if (isLoading) {
-    return (
-      <div className="space-y-6">
-        {[...Array(3)].map((_, i) => (
-          <div key={i} className="animate-pulse">
-            <div className="h-48 bg-gray-200 dark:bg-gray-700 rounded-lg"></div>
-          </div>
-        ))}
-      </div>
-    );
-  }
-
-  if (!hallOfFame) {
-    return (
-      <Card>
-        <CardContent className="p-8 text-center">
-          <Award className="h-16 w-16 mx-auto text-gray-400 mb-4" />
-          <p className="text-gray-600 dark:text-gray-400">
-            Hall of Fame records are being compiled...
-          </p>
-        </CardContent>
-      </Card>
-    );
-  }
-
-  return (
-    <div className="space-y-6">
-      {/* Record Holders */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Award className="h-5 w-5" />
-            Record Holders
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            {hallOfFame.achievements.map((achievement: any, index: number) => (
-              <div key={index} className="flex items-center gap-4 p-4 bg-gradient-to-r from-yellow-50 to-yellow-100 dark:from-yellow-900/20 dark:to-yellow-800/20 rounded-lg border border-yellow-200 dark:border-yellow-700">
-                <div className="w-12 h-12 rounded-full bg-yellow-400 flex items-center justify-center">
-                  <Trophy className="h-6 w-6 text-yellow-900" />
-                </div>
-                <div className="flex-1">
-                  <h3 className="font-semibold text-gray-900 dark:text-white">{achievement.title}</h3>
-                  <p className="text-gray-600 dark:text-gray-400">{achievement.description}</p>
-                  <div className="mt-1">
-                    <Badge className={getDivisionColor(achievement.team.division)}>
-                      {getDivisionName(achievement.team.division)}
-                    </Badge>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Recent Tournament Champions */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Crown className="h-5 w-5" />
-            Recent Tournament Champions
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          {hallOfFame.recentChampions.length === 0 ? (
-            <p className="text-gray-600 dark:text-gray-400 text-center py-8">
-              No tournament champions yet. Be the first to win a tournament!
-            </p>
-          ) : (
-            <div className="space-y-3">
-              {hallOfFame.recentChampions.map((champion: any, index: number) => (
-                <div key={champion.id} className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
-                  <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-full bg-yellow-100 dark:bg-yellow-900 flex items-center justify-center">
-                      <Crown className="h-4 w-4 text-yellow-600" />
-                    </div>
-                    <div>
-                      <p className="font-medium">{champion.team?.name}</p>
-                      <p className="text-sm text-gray-600 dark:text-gray-400">
-                        {champion.tournament.name}
-                      </p>
-                    </div>
-                  </div>
-                  <div className="text-right">
-                    <p className="text-sm font-medium text-yellow-600 dark:text-yellow-400">
-                      Champion
-                    </p>
-                    <p className="text-xs text-gray-500 dark:text-gray-400">
-                      {new Date(champion.tournament.completedAt || champion.registeredAt).toLocaleDateString()}
-                    </p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </CardContent>
-      </Card>
-    </div>
-  );
-}
+// Hall of Fame removed - no real backend implementation needed for Alpha
 
 export default function World() {
   const [activeTab, setActiveTab] = useState("rankings");
@@ -410,15 +303,14 @@ export default function World() {
             Global Rankings
           </h1>
           <p className="text-gray-600 dark:text-gray-400 mt-2">
-            Comprehensive rankings, world statistics, and hall of fame across all divisions
+            Comprehensive rankings and world statistics across all divisions
           </p>
         </div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="grid w-full grid-cols-3">
+          <TabsList className="grid w-full grid-cols-2">
             <TabsTrigger value="rankings">Team Rankings</TabsTrigger>
             <TabsTrigger value="statistics">World Statistics</TabsTrigger>
-            <TabsTrigger value="hall-of-fame">Hall of Fame</TabsTrigger>
           </TabsList>
 
           <TabsContent value="rankings">
@@ -440,10 +332,6 @@ export default function World() {
 
           <TabsContent value="statistics">
             <WorldStatisticsDashboard />
-          </TabsContent>
-
-          <TabsContent value="hall-of-fame">
-            <HallOfFame />
           </TabsContent>
         </Tabs>
       </div>

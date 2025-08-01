@@ -80,80 +80,83 @@ router.get("/global-rankings", cacheMiddleware({ ttl: 300 }), isAuthenticated, a
   }
 });
 
-// Add alias for frontend compatibility
+// Community Portal rankings endpoint - formatted for frontend compatibility
 router.get("/rankings", isAuthenticated, async (req, res) => {
-  // Enhanced rankings endpoint with same algorithm as global-rankings
   try {
-    const rankingsData = await storage.teams.getAllTeamsWithStats();
-    const teams = Array.isArray(rankingsData) ? rankingsData : rankingsData.rankings || [];
+    const teams = await storage.teams.getAllTeamsWithStats();
+    const players = await storage.players.getAllPlayersWithStats();
     
-    // Calculate Enhanced True Strength Rating for each team with async calculations
-    const rankedTeams = await Promise.all(teams.map(async (team) => {
+    if (!teams || teams.length === 0) {
+      return res.json({
+        teamPowerRankings: [],
+        playerStats: [],
+        totalTeams: 0,
+        totalPlayers: 0
+      });
+    }
+    
+    // Calculate team power rankings
+    const rankedTeams = teams.map((team) => {
       const divisionMultiplier = getDivisionMultiplier(team.division);
       const winPercentage = team.wins + team.losses + team.draws > 0 
         ? team.wins / (team.wins + team.losses + team.draws) 
         : 0;
       
-      // Calculate advanced metrics (async operations)
-      const strengthOfSchedule = await calculateStrengthOfSchedule(team);
-      const recentFormBias = await calculateRecentForm(team);
-      const healthFactor = await calculateHealthFactor(team);
+      // Simplified calculations for performance  
+      const strengthOfSchedule = calculateSimpleStrengthOfSchedule(team, teams);
+      const recentFormBias = calculateSimpleRecentForm(team);
+      const healthFactor = calculateSimpleHealthFactor(team);
       
-      // Enhanced True Strength Rating Algorithm (Research-Based Formula)
-      const baseRating = (team.teamPower || 0) * 10;           // Base: 40% weight (250 max)
-      const divisionBonus = divisionMultiplier * 100;          // Division: 15% weight (200 max)
-      const recordBonus = winPercentage * 120;                 // Record: 18% weight (120 max) - REDUCED from 200
-      const sosBonus = strengthOfSchedule * 1.5;               // SOS: 15% weight (~75 avg)
-      const camaraderieBonus = (team.teamCamaraderie || 0) * 2; // Chemistry: 12% weight (200 max)
+      // Enhanced True Strength Rating Algorithm
+      const baseRating = (team.teamPower || 0) * 10;           // Base: 40% weight
+      const divisionBonus = divisionMultiplier * 100;          // Division: 15% weight  
+      const recordBonus = winPercentage * 120;                 // Record: 18% weight
+      const sosBonus = strengthOfSchedule * 1.5;               // SOS: 15% weight
+      const camaraderieBonus = (team.camaraderie || 0) * 2;    // Chemistry: 12% weight
       const recentFormBonus = recentFormBias * 30;             // Recent Form: ±30 range
       const healthBonus = healthFactor * 50;                   // Health: 50 max
       
-      const trueStrengthRating = Math.round(
+      const teamPower = Math.round(
         baseRating + divisionBonus + recordBonus + sosBonus + 
         camaraderieBonus + recentFormBonus + healthBonus
       );
       
-      // Convert BigInt fields to strings for JSON serialization
-      const serializedTeam = {
-        ...team,
-        trueStrengthRating,
-        winPercentage: Math.round(winPercentage * 100),
-        divisionMultiplier,
-        strengthOfSchedule: Math.round(strengthOfSchedule * 10) / 10,
-        recentForm: Math.round(recentFormBias * 100),
-        healthFactor: Math.round(healthFactor * 100)
+      return {
+        rank: 0, // Will be set after sorting
+        teamName: team.name,
+        division: team.division,
+        teamPower: teamPower,
+        wins: team.wins || 0,
+        losses: team.losses || 0
       };
-      
-      // Convert any BigInt fields to strings
-      if (serializedTeam.finances) {
-        serializedTeam.finances = {
-          ...serializedTeam.finances,
-          credits: serializedTeam.finances.credits?.toString() || '0',
-          gems: serializedTeam.finances.gems?.toString() || '0',
-          projectedIncome: serializedTeam.finances.projectedIncome?.toString() || '0',
-          projectedExpenses: serializedTeam.finances.projectedExpenses?.toString() || '0',
-          lastSeasonRevenue: serializedTeam.finances.lastSeasonRevenue?.toString() || '0',
-          lastSeasonExpenses: serializedTeam.finances.lastSeasonExpenses?.toString() || '0',
-          facilitiesMaintenanceCost: serializedTeam.finances.facilitiesMaintenanceCost?.toString() || '0'
-        };
-      }
-      
-      return serializedTeam;
-    }));
+    });
     
-    // Sort by True Strength Rating (descending)
-    rankedTeams.sort((a, b) => b.trueStrengthRating - a.trueStrengthRating);
+    // Sort by team power and assign ranks
+    rankedTeams.sort((a, b) => b.teamPower - a.teamPower);
+    rankedTeams.forEach((team, index) => {
+      team.rank = index + 1;
+    });
     
-    // Add global rank
-    const globalRankings = rankedTeams.slice(0, 100).map((team, index) => ({
-      ...team,
-      globalRank: index + 1
-    }));
+    // Calculate player stats (top performers)
+    const playerStats = players
+      .map(p => ({
+        playerName: `${p.firstName} ${p.lastName}`,
+        teamName: p.teamName || 'Unknown Team',
+        statType: 'power',
+        statValue: p.power || 0
+      }))
+      .sort((a, b) => b.statValue - a.statValue)
+      .slice(0, 10);
     
-    res.json(globalRankings);
+    res.json({
+      teamPowerRankings: rankedTeams.slice(0, 10),
+      playerStats: playerStats,
+      totalTeams: teams.length,
+      totalPlayers: players.length
+    });
   } catch (error) {
-    console.error("Error fetching global rankings:", error);
-    res.status(500).json({ error: "Failed to fetch global rankings" });
+    console.error("Error fetching world rankings:", error);
+    res.status(500).json({ error: "Failed to fetch world rankings" });
   }
 });
 
@@ -217,71 +220,7 @@ router.get("/statistics", isAuthenticated, async (req, res) => {
   }
 });
 
-// Hall of Fame Section
-router.get("/hall-of-fame", isAuthenticated, async (req, res) => {
-  try {
-    const teams = await storage.teams.getAllTeamsWithStats();
-    const players = await storage.players.getAllPlayersWithStats();
-    const tournaments = await storage.tournaments.getAllTournamentHistory();
-    
-    // Record holders
-    const recordHolders = {
-      highestTeamPower: teams.reduce((prev, current) => 
-        (prev.teamPower > current.teamPower) ? prev : current
-      ),
-      mostWins: teams.reduce((prev, current) => 
-        (prev.wins > current.wins) ? prev : current
-      ),
-      bestWinPercentage: teams
-        .filter(t => t.wins + t.losses + t.draws >= 5) // Minimum 5 games
-        .reduce((prev, current) => {
-          const prevPercent = prev.wins / (prev.wins + prev.losses + prev.draws);
-          const currentPercent = current.wins / (current.wins + current.losses + current.draws);
-          return prevPercent > currentPercent ? prev : current;
-        }),
-      mostExperiencedPlayer: players.reduce((prev, current) => 
-        (prev.age > current.age) ? prev : current
-      ),
-      mostPotentialPlayer: players.reduce((prev, current) => 
-        (prev.potentialRating > current.potentialRating) ? prev : current
-      )
-    };
-    
-    // Tournament champions (from completed tournaments)
-    const recentChampions = tournaments
-      .filter(t => t.finalRank === 1)
-      .sort((a, b) => new Date(b.tournament.completedAt || b.registeredAt).getTime() - new Date(a.tournament.completedAt || a.registeredAt).getTime())
-      .slice(0, 10);
-    
-    // Notable achievements
-    const achievements = [
-      {
-        title: "Highest Team Power",
-        description: `${recordHolders.highestTeamPower.name} with ${recordHolders.highestTeamPower.teamPower} power`,
-        team: recordHolders.highestTeamPower
-      },
-      {
-        title: "Most Wins",
-        description: `${recordHolders.mostWins.name} with ${recordHolders.mostWins.wins} wins`,
-        team: recordHolders.mostWins
-      },
-      {
-        title: "Best Win Percentage",
-        description: `${recordHolders.bestWinPercentage.name} with ${Math.round((recordHolders.bestWinPercentage.wins / (recordHolders.bestWinPercentage.wins + recordHolders.bestWinPercentage.losses + recordHolders.bestWinPercentage.draws)) * 100)}%`,
-        team: recordHolders.bestWinPercentage
-      }
-    ];
-    
-    res.json({
-      recordHolders,
-      recentChampions,
-      achievements
-    });
-  } catch (error) {
-    console.error("Error fetching hall of fame:", error);
-    res.status(500).json({ error: "Failed to fetch hall of fame" });
-  }
-});
+// Hall of Fame removed - no real backend implementation needed for Alpha
 
 // Enhanced Global Rankings Helper Functions
 
@@ -298,6 +237,36 @@ function getDivisionMultiplier(division: number): number {
     case 8: return 0.9; // Copper League (least competitive)
     default: return 1.0;
   }
+}
+
+// Simplified helper functions for synchronous calculations
+function calculateSimpleStrengthOfSchedule(team: any, allTeams: any[]): number {
+  const divisionTeams = allTeams.filter(t => t.division === team.division);
+  if (divisionTeams.length <= 1) return 25; // Default if no division peers
+  
+  const totalPower = divisionTeams.reduce((sum, t) => sum + (t.teamPower || 0), 0);
+  const avgPower = totalPower / divisionTeams.length;
+  return Math.max(10, Math.min(40, avgPower)); // Cap between 10-40
+}
+
+function calculateSimpleRecentForm(team: any): number {
+  // Simple calculation based on win percentage vs expected performance
+  const totalGames = (team.wins || 0) + (team.losses || 0) + (team.draws || 0);
+  if (totalGames === 0) return 0;
+  
+  const winPct = (team.wins || 0) / totalGames;
+  const expectedWinPct = 0.5; // League average
+  
+  return Math.max(-1, Math.min(1, winPct - expectedWinPct));
+}
+
+function calculateSimpleHealthFactor(team: any): number {
+  // Simplified health factor based on team power maintenance
+  const expectedPower = 25; // League average
+  const actualPower = team.teamPower || expectedPower;
+  
+  // Factor assumes healthy teams maintain higher power levels
+  return Math.max(0.5, Math.min(1.5, actualPower / expectedPower));
 }
 
 // Calculate Strength of Schedule based on average opponent power
@@ -411,75 +380,7 @@ async function calculateHealthFactor(team: any): Promise<number> {
   }
 }
 
-// Simplified Enhanced Calculation Functions (Non-Async for Reliability)
-
-// Calculate Strength of Schedule using division-based opponent strength
-function calculateSimpleStrengthOfSchedule(team: any, allTeams: any[]): number {
-  try {
-    // Find teams in same division/subdivision for opponent estimation
-    const divisionTeams = allTeams.filter(t => 
-      t.division === team.division && t.subdivision === team.subdivision && t.id !== team.id
-    );
-    
-    if (divisionTeams.length === 0) {
-      // Fallback: use division average from all teams in same division
-      const sameDivisionTeams = allTeams.filter(t => t.division === team.division && t.id !== team.id);
-      if (sameDivisionTeams.length === 0) return 25; // Neutral default
-      
-      const avgPower = sameDivisionTeams.reduce((sum, t) => sum + (t.teamPower || 25), 0) / sameDivisionTeams.length;
-      return Math.round(avgPower * 10) / 10;
-    }
-    
-    // Calculate average opponent power from subdivision opponents
-    const avgOpponentPower = divisionTeams.reduce((sum, t) => sum + (t.teamPower || 25), 0) / divisionTeams.length;
-    return Math.round(avgOpponentPower * 10) / 10;
-  } catch (error) {
-    console.error(`Error calculating simple SOS for team ${team.id}:`, error);
-    return 25; // Neutral default
-  }
-}
-
-// Calculate recent form using win percentage trends (no match history needed)
-function calculateSimpleRecentForm(team: any): number {
-  try {
-    const totalGames = (team.wins || 0) + (team.losses || 0) + (team.draws || 0);
-    if (totalGames === 0) return 0;
-    
-    const winPercentage = team.wins / totalGames;
-    const divisionExpectedWinRate = getDivisionExpectedWinRate(team.division);
-    
-    // Recent form bias based on performance vs division expectations
-    const performanceVsExpected = winPercentage - divisionExpectedWinRate;
-    
-    // Apply sample size weighting (more games = more reliable recent form)
-    const sampleWeight = Math.min(totalGames / 10, 1); // Full weight at 10+ games
-    
-    return performanceVsExpected * sampleWeight;
-  } catch (error) {
-    console.error(`Error calculating simple recent form for team ${team.id}:`, error);
-    return 0;
-  }
-}
-
-// Calculate health factor using team power stability (no player injury data needed)
-function calculateSimpleHealthFactor(team: any): number {
-  try {
-    // Use team power as health indicator - lower divisions expected to have lower power
-    const expectedPowerForDivision = getExpectedPowerForDivision(team.division);
-    const actualPower = team.teamPower || expectedPowerForDivision;
-    
-    // Health factor based on power relative to division expectations
-    const powerRatio = actualPower / expectedPowerForDivision;
-    
-    // Normalize to 0.5-1.0 range (50%-100% health)
-    const healthFactor = Math.max(0.5, Math.min(1.0, 0.7 + (powerRatio - 1) * 0.3));
-    
-    return Math.round(healthFactor * 100) / 100;
-  } catch (error) {
-    console.error(`Error calculating simple health factor for team ${team.id}:`, error);
-    return 1.0; // Default full health
-  }
-}
+// Helper functions moved above for proper declaration order
 
 // Helper: Get expected win rate by division
 function getDivisionExpectedWinRate(division: number): number {

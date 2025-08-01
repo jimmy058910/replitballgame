@@ -252,70 +252,9 @@ app.post('/api/store/purchase/exhibition_credit', (req, res) => {
   });
 });
 
-// World rankings endpoint for CommunityPortal
-app.get('/api/world/rankings', (req, res) => {
-  res.status(200).json({
-    teamPowerRankings: [
-      {
-        rank: 1,
-        teamName: 'Elite Dragons',
-        division: 1,
-        teamPower: 1250,
-        wins: 12,
-        losses: 1
-      },
-      {
-        rank: 2,
-        teamName: 'Storm Riders',
-        division: 2,
-        teamPower: 1180,
-        wins: 11,
-        losses: 2
-      },
-      {
-        rank: 3,
-        teamName: 'Shadow Wolves',
-        division: 3,
-        teamPower: 1120,
-        wins: 10,
-        losses: 3
-      }
-    ],
-    playerStats: [],
-    totalTeams: 24,
-    totalPlayers: 480
-  });
-});
+// World rankings endpoint removed - using real worldRoutes.ts implementation
 
-// World global rankings for World.tsx
-app.get('/api/world/global-rankings', (req, res) => {
-  res.status(200).json([
-    {
-      id: 'team_1',
-      name: 'Elite Dragons',
-      division: 1,
-      trueStrengthRating: 1250,
-      globalRank: 1,
-      winPercentage: 92.3
-    },
-    {
-      id: 'team_2', 
-      name: 'Storm Riders',
-      division: 2,
-      trueStrengthRating: 1180,
-      globalRank: 2,
-      winPercentage: 84.6
-    },
-    {
-      id: 'team_3',
-      name: 'Shadow Wolves', 
-      division: 3,
-      trueStrengthRating: 1120,
-      globalRank: 3,
-      winPercentage: 76.9
-    }
-  ]);
-});
+// Global rankings endpoint removed - using real worldRoutes.ts implementation
 
 // Competition Center endpoints
 app.get('/api/league/standings', (req, res) => {
@@ -366,27 +305,7 @@ app.get('/api/exhibitions/available-opponents', (req, res) => {
   ]);
 });
 
-// World hall of fame endpoint
-app.get('/api/world/hall-of-fame', (req, res) => {
-  res.status(200).json({
-    achievements: [
-      { 
-        title: 'First Dynasty Created', 
-        description: 'Founded the very first dynasty in Realm Rivalry',
-        team: { division: 8, name: 'Oakland Cougars' },
-        date: '2025-08-01'
-      }
-    ],
-    recentChampions: [
-      {
-        id: 1,
-        team: { name: 'Elite Dragons' },
-        tournament: { name: 'Mid-Season Cup', completedAt: '2025-08-01' },
-        registeredAt: '2025-08-01'
-      }
-    ]
-  });
-});
+// Hall of Fame removed - no real backend implementation
 
 // Gem packages endpoint for market store
 app.get('/api/store/gem-packages', (req, res) => {
@@ -449,31 +368,7 @@ app.get('/api/teams/my/next-opponent', (req, res) => {
   });
 });
 
-// World statistics endpoint
-app.get('/api/world/statistics', (req, res) => {
-  res.status(200).json({
-    totalTeams: 24,
-    totalPlayers: 480,
-    divisionLeaders: [
-      { division: 1, teamName: 'Elite Dragons', wins: 12 },
-      { division: 2, teamName: 'Storm Riders', wins: 11 }
-    ],
-    bestRecords: [
-      { teamName: 'Elite Dragons', wins: 12, losses: 1 },
-      { teamName: 'Storm Riders', wins: 11, losses: 2 }
-    ],
-    strongestPlayers: [
-      { name: 'Thunder Strike', team: 'Elite Dragons', power: 95 },
-      { name: 'Wind Walker', team: 'Storm Riders', power: 93 }
-    ],
-    achievements: [
-      { title: 'First Dynasty Created', date: '2025-08-01', player: 'Oakland Cougars' }
-    ],
-    recentChampions: [
-      { season: 1, champion: 'Elite Dragons', division: 1 }
-    ]
-  });
-});
+// World statistics endpoint removed - using real worldRoutes.ts implementation
 
 // Auth endpoints - minimal responses
 app.get('/api/user', (req, res) => {

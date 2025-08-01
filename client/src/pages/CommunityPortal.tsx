@@ -363,6 +363,12 @@ export default function CommunityPortal() {
                       <div key={i} className="h-12 bg-gray-700 rounded animate-pulse" />
                     ))}
                   </div>
+                ) : worldRankings?.teamPowerRankings?.length === 0 ? (
+                  <div className="text-center py-8">
+                    <Trophy className="h-12 w-12 mx-auto text-gray-500 mb-3" />
+                    <p className="text-gray-400">No team rankings available yet</p>
+                    <p className="text-sm text-gray-500">Rankings will appear as teams are created and play matches</p>
+                  </div>
                 ) : (
                   <div className="space-y-2">
                     {worldRankings?.teamPowerRankings?.slice(0, 5).map((team) => {
@@ -436,7 +442,13 @@ export default function CommunityPortal() {
                 </div>
                 
                 <div className="space-y-2">
-                  {statsTab === 'scores' && worldRankings?.playerStats?.filter(p => p.statType === 'scores').slice(0, 5).map((player, i) => (
+                  {statsTab === 'scores' && (!worldRankings?.playerStats?.length ? (
+                    <div className="text-center py-6">
+                      <Award className="h-10 w-10 mx-auto text-gray-500 mb-2" />
+                      <p className="text-gray-400">No player statistics available yet</p>
+                    </div>
+                  ) : (
+                    worldRankings?.playerStats?.filter(p => p.statType === 'power').slice(0, 5).map((player, i) => (
                     <div key={i} className="flex items-center justify-between p-3 bg-gray-700 rounded-lg">
                       <div className="flex items-center gap-3">
                         {i === 0 && <Trophy className="h-4 w-4 text-yellow-400" />}
@@ -448,7 +460,7 @@ export default function CommunityPortal() {
                       </div>
                       <span className="text-yellow-400 font-bold text-lg">{player.statValue}</span>
                     </div>
-                  ))}
+                  )))}
                   
                   {(statsTab === 'yards' || statsTab === 'tackles') && (
                     <div className="text-center py-8 text-gray-400">
@@ -508,26 +520,7 @@ export default function CommunityPortal() {
               </CardContent>
             </Card>
 
-            {/* Hall of Fame */}
-            <Card className="bg-gray-800 border-gray-700">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-white">
-                  <Crown className="h-5 w-5 text-yellow-400" />
-                  Hall of Fame
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <p className="text-gray-300">Legendary achievements and career highlights</p>
-                <div className="text-center py-8 text-gray-400">
-                  <div className="border-2 border-dashed border-gray-600 rounded-lg p-6">
-                    <Crown className="h-12 w-12 mx-auto mb-3 text-yellow-600" />
-                    <p className="font-bold text-lg text-gray-300">No legendary achievements yet</p>
-                    <p className="text-sm mt-2">Be the first to make history!</p>
-                    <p className="text-xs mt-1 text-gray-500">Win championships, set records, and achieve greatness</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+            {/* Hall of Fame removed - no real backend implementation needed for Alpha */}
           </TabsContent>
 
           {/* Support Center Tab */}
