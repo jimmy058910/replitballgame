@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation } from "@tanstack/react-query";
 import { useAuth } from "@/providers/AuthProvider";
 import { useLocation } from "wouter";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -36,6 +36,8 @@ import {
   Building
 } from "lucide-react";
 import { RevenueCalculationsModal } from "./RevenueCalculationsModal";
+import { apiRequest, queryClient } from "@/lib/queryClient";
+import { useToast } from "@/hooks/use-toast";
 
 // Enhanced interfaces for real data integration
 interface Team {
@@ -97,6 +99,9 @@ export default function DramaticTeamHQ() {
   const { isAuthenticated } = useAuth();
   const [, setLocation] = useLocation();
   const [showRevenueModal, setShowRevenueModal] = useState(false);
+  const [teamName, setTeamName] = useState('');
+  const [ndaAgreed, setNdaAgreed] = useState(false);
+  const { toast } = useToast();
   const [dailyTasks, setDailyTasks] = useState({
     checkTeamStatus: false,
     playExhibitionMatches: 0, // Track count (0-3)
@@ -170,12 +175,123 @@ export default function DramaticTeamHQ() {
     enabled: isAuthenticated
   });
 
-  if (isLoading || !teamData) {
+  // Team creation mutation
+  const createTeamMutation = useMutation({
+    mutationFn: async ({ teamName, ndaAgreed }: { teamName: string; ndaAgreed: boolean }) => {
+      return apiRequest('/api/teams/create', 'POST', { teamName, ndaAgreed });
+    },
+    onSuccess: (data) => {
+      toast({
+        title: "Dynasty Created!",
+        description: `Welcome to Realm Rivalry, ${data.team.name}!`,
+      });
+      // Refresh team data to show the new team
+      queryClient.invalidateQueries({ queryKey: ["/api/teams/my"] });
+    },
+    onError: (error: any) => {
+      const errorMessage = error?.response?.data?.error || error?.message || "Failed to create dynasty";
+      toast({
+        title: "Creation Failed",
+        description: errorMessage,
+        variant: "destructive",
+      });
+    },
+  });
+
+  if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-900 to-gray-900">
         <div className="text-center">
           <div className="w-16 h-16 border-4 border-blue-400 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
           <div className="text-white text-xl font-bold">Loading Team HQ...</div>
+        </div>
+      </div>
+    );
+  }
+
+  // Handle team creation flow when no team exists
+  if (teamData && (teamData as any).needsTeamCreation) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-gray-900">
+        <ModernStickyHeader />
+        <div className="max-w-4xl mx-auto p-6 pt-24">
+          <Card className="bg-gray-800/90 border-purple-500/30">
+            <CardHeader className="text-center">
+              <CardTitle className="text-3xl font-bold text-white mb-4">
+                🏆 Create Your Dynasty
+              </CardTitle>
+              <p className="text-gray-300 text-lg">
+                Welcome to Realm Rivalry! Ready to build your fantasy sports empire?
+              </p>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <Alert className="bg-blue-900/50 border-blue-500/50">
+                <Trophy className="h-4 w-4" />
+                <AlertDescription className="text-blue-200">
+                  You're about to join the most competitive fantasy sports league in the multiverse. 
+                  Choose your team name wisely - it will represent your dynasty across all seasons!
+                </AlertDescription>
+              </Alert>
+
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-white font-medium mb-2">
+                    Team Name
+                  </label>
+                  <input
+                    type="text"
+                    value={teamName}
+                    onChange={(e) => setTeamName(e.target.value)}
+                    placeholder="Enter your dynasty name..."
+                    className="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:border-purple-500 focus:outline-none"
+                    maxLength={25}
+                  />
+                  <p className="text-gray-400 text-sm mt-1">
+                    Choose carefully - team names cannot be changed after creation
+                  </p>
+                </div>
+
+                <Alert className="bg-yellow-900/50 border-yellow-500/50">
+                  <AlertTriangle className="h-4 w-4" />
+                  <AlertDescription className="text-yellow-200">
+                    <strong>Alpha Testing Agreement:</strong> This is early access software. 
+                    Features may change, and progress could be reset during testing phases.
+                    By continuing, you agree to provide feedback and understand this is a work-in-progress.
+                  </AlertDescription>
+                </Alert>
+
+                <div className="flex items-center space-x-3">
+                  <input 
+                    type="checkbox" 
+                    id="nda-agreement"
+                    checked={ndaAgreed}
+                    onChange={(e) => setNdaAgreed(e.target.checked)}
+                    className="w-4 h-4 text-purple-600 bg-gray-700 border-gray-600 rounded focus:ring-purple-500"
+                  />
+                  <label htmlFor="nda-agreement" className="text-gray-300">
+                    I agree to the Alpha Testing terms and am ready to build my dynasty
+                  </label>
+                </div>
+
+                <Button 
+                  className="w-full bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white font-bold py-4 text-lg"
+                  disabled={!teamName.trim() || !ndaAgreed || createTeamMutation.isPending}
+                  onClick={() => {
+                    if (teamName.trim() && ndaAgreed) {
+                      createTeamMutation.mutate({ teamName: teamName.trim(), ndaAgreed });
+                    }
+                  }}
+                >
+                  <Trophy className="w-5 h-5 mr-2" />
+                  {createTeamMutation.isPending ? 'Creating Dynasty...' : 'Create My Dynasty'}
+                </Button>
+              </div>
+
+              <div className="text-center text-gray-400 text-sm">
+                <p>Once created, you'll be placed in Division 8 and can start building your roster!</p>
+              </div>
+            </CardContent>
+          </Card>
         </div>
       </div>
     );

@@ -138,6 +138,40 @@ app.get('/api/matches/live', (req, res) => {
   });
 });
 
+// Team creation endpoint
+app.post('/api/teams/create', (req, res) => {
+  const { teamName, ndaAgreed } = req.body;
+  
+  if (!teamName || !ndaAgreed) {
+    return res.status(400).json({ 
+      error: 'Team name and NDA agreement required' 
+    });
+  }
+
+  if (teamName.length > 25) {
+    return res.status(400).json({ 
+      error: 'Team name must be 25 characters or less' 
+    });
+  }
+
+  // Simulate team creation success
+  return res.status(201).json({
+    message: 'Dynasty created successfully!',
+    team: {
+      id: 'team_' + Date.now(),
+      name: teamName,
+      division: 8,
+      subdivision: 'late_alpha',
+      wins: 0,
+      losses: 0,
+      points: 0,
+      camaraderie: 50,
+      fanLoyalty: 30
+    },
+    needsTeamCreation: false
+  });
+});
+
 // Auth endpoints - minimal responses
 app.get('/api/user', (req, res) => {
   res.json({ 
