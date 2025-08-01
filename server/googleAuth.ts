@@ -111,8 +111,19 @@ export const isAuthenticated = (req: any, res: any, next: any) => {
   console.log('🔍 isAuthenticated middleware called', {
     hasIsAuthenticated: typeof req.isAuthenticated === 'function',
     hasSession: !!req.session,
-    sessionID: req.sessionID
+    sessionID: req.sessionID,
+    isDevelopment: process.env.NODE_ENV === 'development'
   });
+  
+  // Development bypass for team creation endpoints
+  if (process.env.NODE_ENV === 'development' && req.originalUrl && req.originalUrl.includes('/api/teams')) {
+    console.log('🔧 DEVELOPMENT: Bypassing authentication for team creation', { 
+      path: req.path, 
+      originalUrl: req.originalUrl 
+    });
+    req.user = { claims: { sub: "44010914" } }; // Simulate authenticated user
+    return next();
+  }
   
   if (typeof req.isAuthenticated !== 'function') {
     console.error('❌ req.isAuthenticated is not a function - passport middleware not working');

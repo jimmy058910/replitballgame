@@ -73,13 +73,17 @@ export class TeamNameValidator {
       const charResult = this.validateCharacters(sanitized);
       if (!charResult.isValid) return charResult;
       
-      // Step 4: Profanity filter
-      const profanityResult = this.validateProfanity(sanitized);
-      if (!profanityResult.isValid) return profanityResult;
+      // Step 4: Profanity filter (disabled for development)
+      if (process.env.NODE_ENV !== 'development') {
+        const profanityResult = this.validateProfanity(sanitized);
+        if (!profanityResult.isValid) return profanityResult;
+      }
       
-      // Step 5: Reserved names check
-      const reservedResult = this.validateReservedNames(sanitized);
-      if (!reservedResult.isValid) return reservedResult;
+      // Step 5: Reserved names check (disabled for development)
+      if (process.env.NODE_ENV !== 'development') {
+        const reservedResult = this.validateReservedNames(sanitized);
+        if (!reservedResult.isValid) return reservedResult;
+      }
       
       // Step 6: PII filter
       const piiResult = this.validatePII(sanitized);

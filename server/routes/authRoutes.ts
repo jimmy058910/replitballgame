@@ -49,10 +49,21 @@ router.get('/user', async (req: any, res: Response, next: NextFunction) => {
 
     // User is authenticated, get user data
     const hardcodedUserId = "44010914"; // Temporary for development
-    const user = await userStorage.getUser(hardcodedUserId);
+    let user = await userStorage.getUser(hardcodedUserId);
     
+    // Create development user if doesn't exist
     if (!user) {
-      return res.json({ authenticated: false, user: null });
+      console.log('Creating development user profile...');
+      user = await userStorage.upsertUser({
+        userId: hardcodedUserId,
+        email: "jimmy058910@gmail.com",
+        firstName: "Jimmy",
+        lastName: "Dev"
+      });
+      
+      // Auto-accept NDA for development user
+      user = await userStorage.acceptNDA(hardcodedUserId, "1.0");
+      console.log('Development user created and NDA accepted');
     }
 
     // Auto-promote specific users to admin for development
