@@ -1,12 +1,12 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { onAuthStateChanged, signInWithRedirect, signOut, User, getRedirectResult } from 'firebase/auth';
+import { onAuthStateChanged, signInWithRedirect, signInWithPopup, signOut, User, getRedirectResult } from 'firebase/auth';
 import { auth, googleProvider } from '../lib/firebase';
 
 interface AuthContextType {
   user: User | null;
   isLoading: boolean;
   isAuthenticated: boolean;
-  login: (usePopup?: boolean) => void;
+  login: (usePopup?: boolean) => Promise<void>;
   logout: () => Promise<void>;
   error: string | null;
 }
@@ -73,11 +73,29 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const isAuthenticated = !!user;
 
-  const login = (usePopup?: boolean) => {
+  const login = async (usePopup?: boolean) => {
     console.log('🔥 Starting Firebase Google Auth...');
+    console.log('🔥 Auth method:', usePopup ? 'popup' : 'redirect');
     setIsLoading(true);
     setError(null);
-    signInWithRedirect(auth, googleProvider);
+    
+    try {
+      if (usePopup) {
+        console.log('🪟 Using popup authentication...');
+        const result = await signInWithPopup(auth, googleProvider);
+        console.log('🎉 Popup authentication successful:', result.user.email);
+      } else {
+        console.log('🔄 Using redirect authentication...');
+        await signInWithRedirect(auth, googleProvider);
+        console.log('🔄 Redirect initiated - user should be redirected to Google...');
+      }
+    } catch (error: any) {
+      console.error('🚨 Authentication error:', error);
+      console.error('🚨 Error code:', error.code);
+      console.error('🚨 Error message:', error.message);
+      setError(error.message);
+      setIsLoading(false);
+    }
   };
 
   const logout = async () => {
