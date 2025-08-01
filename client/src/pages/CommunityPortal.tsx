@@ -449,18 +449,19 @@ export default function CommunityPortal() {
                     </div>
                   ) : (
                     worldRankings?.playerStats?.filter(p => p.statType === 'power').slice(0, 5).map((player, i) => (
-                    <div key={i} className="flex items-center justify-between p-3 bg-gray-700 rounded-lg">
-                      <div className="flex items-center gap-3">
-                        {i === 0 && <Trophy className="h-4 w-4 text-yellow-400" />}
-                        <span className="text-sm font-bold text-gray-400">#{i + 1}</span>
-                        <div>
-                          <p className="text-white font-medium">{player.playerName}</p>
-                          <p className="text-xs text-gray-400">{player.teamName}</p>
+                      <div key={i} className="flex items-center justify-between p-3 bg-gray-700 rounded-lg">
+                        <div className="flex items-center gap-3">
+                          {i === 0 && <Trophy className="h-4 w-4 text-yellow-400" />}
+                          <span className="text-sm font-bold text-gray-400">#{i + 1}</span>
+                          <div>
+                            <p className="text-white font-medium">{player.playerName}</p>
+                            <p className="text-xs text-gray-400">{player.teamName}</p>
+                          </div>
                         </div>
+                        <span className="text-yellow-400 font-bold text-lg">{player.statValue}</span>
                       </div>
-                      <span className="text-yellow-400 font-bold text-lg">{player.statValue}</span>
-                    </div>
-                  )))}
+                    ))
+                  ))}
                   
                   {(statsTab === 'yards' || statsTab === 'tackles') && (
                     <div className="text-center py-8 text-gray-400">
