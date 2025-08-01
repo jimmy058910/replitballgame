@@ -138,6 +138,11 @@ export function registerAllRoutes(app: Express): void {
   app.use("/api/alerts", criticalAlertsRoutes); // Team HQ critical alerts system for injuries, stamina, and contracts
   app.use("/api", testRoutes); // Test endpoints for system validation
 
+  // Add missing /api/me endpoint that frontend expects (redirect to auth/user)
+  app.get("/api/me", (req, res) => {
+    // Forward to the actual auth endpoint
+    res.redirect(307, "/api/auth/user");
+  });
 
   // Reminder: The original server/routes.ts also contained helper functions and Stripe init.
   // Stripe init is now in paymentRoutes.ts.

@@ -38,15 +38,17 @@ function calculateTeamPower(players: any[]): number {
 }
 
 const createTeamSchema = z.object({
-  name: z.string().min(1).max(50),
+  teamName: z.string().min(1).max(50), // Frontend sends 'teamName'
+  ndaAgreed: z.boolean().optional()
 });
 
-// Team routes  
-router.post('/', isAuthenticated, asyncHandler(async (req: any, res: Response) => {
+// Team creation handler function (shared between routes)
+const handleTeamCreation = asyncHandler(async (req: any, res: Response) => {
   const userId = req.user.claims.sub;
   
   // Validate input using Zod - errors will be automatically converted by the error handler
-  const { name } = createTeamSchema.parse(req.body);
+  const { teamName, ndaAgreed } = createTeamSchema.parse(req.body);
+  const name = teamName;
 
   // Comprehensive team name validation
   const validationResult = await TeamNameValidator.validateTeamName(name);
@@ -301,11 +303,17 @@ router.post('/', isAuthenticated, asyncHandler(async (req: any, res: Response) =
   });
 
   res.status(201).json({ 
+    message: "Dynasty created successfully!",
+    team: team,
     success: true, 
     data: team,
     isLateSignup: false
   });
-}));
+});
+
+// Team routes - both endpoints use the same handler
+router.post('/', isAuthenticated, handleTeamCreation);
+router.post('/create', isAuthenticated, handleTeamCreation);
 
 // Get all teams (for debugging/admin purposes)
 router.get('/', isAuthenticated, asyncHandler(async (req: any, res: Response) => {
