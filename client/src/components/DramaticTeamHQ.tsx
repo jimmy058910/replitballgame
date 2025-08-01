@@ -214,7 +214,7 @@ export default function DramaticTeamHQ() {
     );
   }
 
-  // Handle team creation flow when no team exists
+  // Handle team creation flow when no team exists - PRODUCTION FIX
   if (!teamData || (teamData as any).needsTeamCreation) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-gray-900">
