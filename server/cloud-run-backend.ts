@@ -2,22 +2,15 @@ import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
 import compression from 'compression';
+import session from 'express-session';
+import passport from 'passport';
 import { createServer } from 'http';
 import { WebSocketServer } from 'ws';
-// WebSocket functionality will be implemented later
+import { setupGoogleAuth } from './googleAuth';
 import logger from './utils/logger';
 
-// Import individual route modules
-import authRoutes from './routes/authRoutes';
-import teamRoutes from './routes/teamRoutes';
-import playerRoutes from './routes/playerRoutes';
-import marketplaceRoutes from './routes/marketplaceRoutes';
-import matchRoutes from './routes/matchRoutes';
-import liveMatchRoutes from './routes/liveMatchRoutes';
-import worldRoutes from './routes/worldRoutes';
-import storeRoutes from './routes/storeRoutes';
-import notificationRoutes from './routes/notificationRoutes';
-import tournamentRoutes from './routes/tournamentRoutes';
+// Import the centralized route registration
+import { registerAllRoutes } from './routes/index';
 
 const app = express();
 const PORT = process.env.PORT || 8080;
@@ -56,6 +49,22 @@ app.use(compression());
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
+// Session configuration for Cloud Run
+app.use(session({
+  secret: process.env.SESSION_SECRET || 'fallback-session-secret-for-cloud-run',
+  resave: false,
+  saveUninitialized: false,
+  cookie: { 
+    secure: process.env.NODE_ENV === 'production',
+    httpOnly: true,
+    maxAge: 24 * 60 * 60 * 1000 // 24 hours
+  }
+}));
+
+// Initialize Passport
+app.use(passport.initialize());
+app.use(passport.session());
+
 // Health check endpoint for Cloud Run
 app.get('/health', (req, res) => {
   res.status(200).json({
@@ -66,18 +75,15 @@ app.get('/health', (req, res) => {
   });
 });
 
-// Initialize Firebase Auth middleware (for token verification)
+// Initialize Google Auth (Passport)
 const initializeAuth = async () => {
   try {
-    logger.info('Setting up Firebase token verification...');
-    // Basic auth middleware - Firebase tokens will be verified client-side
-    app.use('/api', (req, res, next) => {
-      // For now, pass through all requests - Firebase handles auth client-side
-      next();
-    });
-    logger.info('Firebase auth middleware initialized');
+    logger.info('Setting up Google OAuth with Passport...');
+    await setupGoogleAuth();
+    logger.info('Google OAuth initialized successfully');
   } catch (error) {
-    logger.error('Failed to initialize auth middleware:', error);
+    logger.error('Failed to initialize Google OAuth:', error);
+    // Continue without auth for basic API functionality
   }
 };
 
@@ -96,21 +102,16 @@ const setupRoutes = () => {
   try {
     logger.info('Registering API routes...');
     
-    // Register individual route modules
-    app.use('/api', authRoutes);
-    app.use('/api', teamRoutes);
-    app.use('/api', playerRoutes);
-    app.use('/api', marketplaceRoutes);
-    app.use('/api', matchRoutes);
-    app.use('/api', liveMatchRoutes);
-    app.use('/api', worldRoutes);
-    app.use('/api', storeRoutes);
-    app.use('/api', notificationRoutes);
-    app.use('/api', tournamentRoutes);
+    // Use centralized route registration
+    registerAllRoutes(app);
     
     logger.info('All API routes registered successfully');
   } catch (error) {
     logger.error('Failed to register routes:', error);
+    // Add basic fallback routes
+    app.get('/api/health', (req, res) => {
+      res.json({ status: 'API routes failed to load', error: error.message });
+    });
   }
 };
 
