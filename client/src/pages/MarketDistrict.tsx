@@ -347,7 +347,7 @@ export default function MarketDistrict() {
               <div className="mt-6 flex flex-wrap justify-center gap-4 text-sm sm:text-base">
                 <div className="flex items-center gap-2 bg-black/20 backdrop-blur-sm rounded-lg px-4 py-2 border border-white/20">
                   <Coins className="h-5 w-5 text-yellow-400" />
-                  <span className="text-white font-bold">₡{(team as any)?.finances?.credits?.toLocaleString() || (team as any)?.credits?.toLocaleString() || '0'}</span>
+                  <span className="text-white font-bold">₡{((team as any)?.finances?.credits || (team as any)?.credits || 0).toLocaleString()}</span>
                 </div>
                 <div className="flex items-center gap-2 bg-black/20 backdrop-blur-sm rounded-lg px-4 py-2 border border-white/20">
                   <Gem className="h-5 w-5 text-blue-400" />
@@ -516,7 +516,7 @@ export default function MarketDistrict() {
                                     <div className="flex flex-wrap gap-1">
                                       {Object.entries(item.statEffects).map(([stat, value]) => (
                                         <span key={stat} className="bg-green-700/50 text-green-200 px-2 py-1 rounded text-xs">
-                                          +{value} {stat.charAt(0).toUpperCase() + stat.slice(1)}
+                                          +{String(value)} {stat.charAt(0).toUpperCase() + stat.slice(1)}
                                         </span>
                                       ))}
                                     </div>

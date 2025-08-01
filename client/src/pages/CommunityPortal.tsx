@@ -366,7 +366,7 @@ export default function CommunityPortal() {
                 ) : (
                   <div className="space-y-2">
                     {worldRankings?.teamPowerRankings?.slice(0, 5).map((team) => {
-                      const isMyTeam = myTeam?.name === team.teamName;
+                      const isMyTeam = (myTeam as any)?.name === team.teamName;
                       return (
                         <div 
                           key={team.rank} 

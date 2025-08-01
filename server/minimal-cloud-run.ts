@@ -172,6 +172,192 @@ app.post('/api/teams/create', (req, res) => {
   });
 });
 
+// Store endpoints for MarketDistrict
+app.get('/api/store/items', (req, res) => {
+  res.status(200).json({
+    items: [
+      {
+        id: 'energy_drink',
+        name: 'Energy Drink',
+        description: 'Restores 25 stamina instantly',
+        credits: 100,
+        tier: 'common',
+        category: 'consumable',
+        purchased: 0,
+        dailyLimit: 5,
+        canPurchase: true,
+        effect: 'stamina_boost'
+      },
+      {
+        id: 'training_gear',
+        name: 'Training Gear',
+        description: 'Improves training effectiveness',
+        credits: 500,
+        gems: 2,
+        tier: 'rare',
+        category: 'equipment',
+        purchased: 0,
+        dailyLimit: 1,
+        canPurchase: true,
+        statEffects: { strength: 2, speed: 1 }
+      }
+    ]
+  });
+});
+
+app.get('/api/store/gem-packages', (req, res) => {
+  res.status(200).json({
+    gemPackages: [
+      { gems: 10, credits: 4000, popular: false },
+      { gems: 25, credits: 10000, popular: true },
+      { gems: 50, credits: 20000, popular: false },
+      { gems: 100, credits: 40000, popular: false }
+    ]
+  });
+});
+
+app.get('/api/teams/transactions', (req, res) => {
+  res.status(200).json({
+    transactions: []
+  });
+});
+
+app.post('/api/store/exchange-gems', (req, res) => {
+  const { gemAmount } = req.body;
+  res.status(200).json({
+    success: true,
+    message: `Exchanged ${gemAmount} gems for ${gemAmount * 400} credits`,
+    newBalance: { credits: gemAmount * 400, gems: 0 }
+  });
+});
+
+app.post('/api/store/purchase/exhibition_credit', (req, res) => {
+  res.status(200).json({
+    success: true,
+    message: 'Exhibition credit purchased successfully'
+  });
+});
+
+// World rankings endpoint for CommunityPortal
+app.get('/api/world/rankings', (req, res) => {
+  res.status(200).json({
+    teamPowerRankings: [
+      {
+        rank: 1,
+        teamName: 'Elite Dragons',
+        division: 1,
+        teamPower: 1250,
+        wins: 12,
+        losses: 1
+      },
+      {
+        rank: 2,
+        teamName: 'Storm Riders',
+        division: 2,
+        teamPower: 1180,
+        wins: 11,
+        losses: 2
+      },
+      {
+        rank: 3,
+        teamName: 'Shadow Wolves',
+        division: 3,
+        teamPower: 1120,
+        wins: 10,
+        losses: 3
+      }
+    ],
+    playerStats: [],
+    totalTeams: 24,
+    totalPlayers: 480
+  });
+});
+
+// World global rankings for World.tsx
+app.get('/api/world/global-rankings', (req, res) => {
+  res.status(200).json([
+    {
+      id: 'team_1',
+      name: 'Elite Dragons',
+      division: 1,
+      trueStrengthRating: 1250,
+      globalRank: 1,
+      winPercentage: 92.3
+    },
+    {
+      id: 'team_2', 
+      name: 'Storm Riders',
+      division: 2,
+      trueStrengthRating: 1180,
+      globalRank: 2,
+      winPercentage: 84.6
+    },
+    {
+      id: 'team_3',
+      name: 'Shadow Wolves', 
+      division: 3,
+      trueStrengthRating: 1120,
+      globalRank: 3,
+      winPercentage: 76.9
+    }
+  ]);
+});
+
+// Competition Center endpoints
+app.get('/api/league/standings', (req, res) => {
+  res.status(200).json({
+    standings: [
+      {
+        division: 1,
+        teams: [
+          { id: 'team_1', name: 'Elite Dragons', wins: 12, losses: 1, points: 36 }
+        ]
+      }
+    ]
+  });
+});
+
+app.get('/api/matches/schedule', (req, res) => {
+  res.status(200).json({
+    upcomingMatches: [],
+    recentMatches: []
+  });
+});
+
+app.get('/api/tournaments/current', (req, res) => {
+  res.status(200).json({
+    tournaments: []
+  });
+});
+
+// Essential endpoints commonly used
+app.get('/api/camaraderie/summary', (req, res) => {
+  res.status(200).json({
+    teamCamaraderie: 65,
+    status: 'good'
+  });
+});
+
+app.get('/api/season/current-cycle', (req, res) => {
+  res.status(200).json({
+    seasonNumber: 1,
+    currentDay: 5,
+    startDate: '2025-01-01',
+    totalDays: 17
+  });
+});
+
+app.get('/api/teams/my/next-opponent', (req, res) => {
+  res.status(200).json({
+    nextOpponent: 'Storm Riders',
+    gameDate: '2025-08-02',
+    isHome: true,
+    matchType: 'league',
+    division: 2,
+    timeUntil: '1 day'
+  });
+});
+
 // Auth endpoints - minimal responses
 app.get('/api/user', (req, res) => {
   res.json({ 

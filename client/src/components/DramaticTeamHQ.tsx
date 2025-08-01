@@ -180,7 +180,7 @@ export default function DramaticTeamHQ() {
     mutationFn: async ({ teamName, ndaAgreed }: { teamName: string; ndaAgreed: boolean }) => {
       return apiRequest('/api/teams/create', 'POST', { teamName, ndaAgreed });
     },
-    onSuccess: (data) => {
+    onSuccess: (data: any) => {
       toast({
         title: "Dynasty Created!",
         description: `Welcome to Realm Rivalry, ${data.team.name}!`,
