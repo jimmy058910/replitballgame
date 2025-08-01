@@ -96,6 +96,47 @@ app.get('/api/exhibitions/stats', (req, res) => {
   });
 });
 
+// Season endpoints
+app.get('/api/season/current-cycle', (req, res) => {
+  res.status(200).json({
+    season: 1,
+    cycle: 1,
+    day: 1,
+    phase: 'preparation',
+    needsTeamCreation: true
+  });
+});
+
+// Team-specific endpoints
+app.get('/api/teams/:teamId/finances', (req, res) => {
+  res.status(200).json({
+    credits: 0,
+    gems: 0,
+    needsTeamCreation: true
+  });
+});
+
+app.get('/api/teams/:teamId/notifications', (req, res) => {
+  res.status(200).json({
+    notifications: [],
+    unreadCount: 0
+  });
+});
+
+app.get('/api/teams/:teamId/matches/upcoming', (req, res) => {
+  res.status(200).json({
+    upcomingMatches: [],
+    needsTeamCreation: true
+  });
+});
+
+// Matches endpoints  
+app.get('/api/matches/live', (req, res) => {
+  res.status(200).json({
+    liveMatches: []
+  });
+});
+
 // Auth endpoints - minimal responses
 app.get('/api/user', (req, res) => {
   res.json({ 
