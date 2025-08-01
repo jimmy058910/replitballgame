@@ -8,8 +8,8 @@ async function throwIfResNotOk(res: Response) {
 }
 
 // Hybrid architecture API configuration
-// Force correct backend URL - bypassing environment variable issues
-const API_BASE_URL = 'https://realm-rivalry-backend-108005641993.us-east5.run.app';
+// Use relative URLs to go through Firebase Hosting proxy
+const API_BASE_URL = '';
 
 console.log('🔗 QueryClient API Configuration:', {
   baseUrl: API_BASE_URL,

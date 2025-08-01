@@ -1,9 +1,13 @@
-// API configuration for hybrid architecture - FORCE CORRECT URL
-const API_BASE_URL = 'https://realm-rivalry-backend-108005641993.us-east5.run.app';
+// API configuration for hybrid architecture - USE RELATIVE URLS FOR FIREBASE PROXY
+const API_BASE_URL = '';
 
 export const API_CONFIG = {
   BASE_URL: API_BASE_URL,
-  WEBSOCKET_URL: API_BASE_URL.replace('https://', 'wss://').replace('http://', 'ws://') + '/ws'
+  // WebSocket through same domain for Firebase proxy
+  WEBSOCKET_URL: (typeof window !== 'undefined' ? 
+    (window.location.protocol === 'https:' ? 'wss://' : 'ws://') + window.location.host + '/ws'
+    : 'ws://localhost:5000/ws'
+  )
 };
 
 console.log('🔗 API Configuration:', {
