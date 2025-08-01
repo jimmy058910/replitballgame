@@ -8,11 +8,8 @@ async function throwIfResNotOk(res: Response) {
 }
 
 // Hybrid architecture API configuration
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 
-  (import.meta.env.PROD 
-    ? 'https://realm-rivalry-backend-108005641993.us-east5.run.app'
-    : 'http://localhost:5000'
-  );
+// Force correct backend URL - bypassing environment variable issues
+const API_BASE_URL = 'https://realm-rivalry-backend-108005641993.us-east5.run.app';
 
 console.log('🔗 QueryClient API Configuration:', {
   baseUrl: API_BASE_URL,

@@ -1,9 +1,5 @@
-// API configuration for hybrid architecture
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 
-  (import.meta.env.PROD 
-    ? 'https://realm-rivalry-backend-108005641993.us-east5.run.app'
-    : 'http://localhost:5000'
-  );
+// API configuration for hybrid architecture - FORCE CORRECT URL
+const API_BASE_URL = 'https://realm-rivalry-backend-108005641993.us-east5.run.app';
 
 export const API_CONFIG = {
   BASE_URL: API_BASE_URL,
