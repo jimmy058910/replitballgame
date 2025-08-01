@@ -149,12 +149,12 @@ export class SeasonTimingAutomationService {
   }
 
   /**
-   * Schedule match simulation window check every 30 minutes
+   * Schedule match simulation window check every 15 minutes - CORRECTED: Spread across subdivisions
    */
   private scheduleMatchSimulation(): void {
     this.matchSimulationTimer = setInterval(async () => {
       await this.checkMatchSimulationWindow();
-    }, 30 * 60 * 1000); // Check every 30 minutes
+    }, 15 * 60 * 1000); // Check every 15 minutes to spread load across subdivisions
   }
 
   /**
@@ -203,49 +203,52 @@ export class SeasonTimingAutomationService {
   }
 
   /**
-   * Execute daily progression tasks at 3:00 AM EST
+   * Execute daily progression tasks at 3:00 AM EDT
+   * CORRECTED: Only appropriate daily services - aging/retirement only at end of season
    */
   private async executeDailyProgression(): Promise<void> {
     try {
       logInfo('Starting daily progression execution...');
       
-      // ENABLED - Daily progression services for pre-alpha testing
-      console.log('🔄 DEBUG: About to execute daily progression services...');
+      // Get current season to determine if we're at end of season
+      const currentSeason = await storage.seasons.getCurrentSeason();
+      const { currentDayInCycle } = currentSeason ? this.getCurrentSeasonInfo(currentSeason) : { currentDayInCycle: 1 };
+      const isEndOfSeason = currentDayInCycle === 16; // Day 15→16 transition
       
-      // 1. Daily player progression
-      console.log('🔄 DEBUG: Calling executeDailyPlayerProgression...');
-      await this.executeDailyPlayerProgression();
-      console.log('✅ DEBUG: executeDailyPlayerProgression completed');
+      console.log(`🔄 Daily progression for Day ${currentDayInCycle}, End of season: ${isEndOfSeason}`);
       
-      // 2. Aging and retirement processing  
-      console.log('🔄 DEBUG: Calling executeAgingProcessing...');
-      await this.executeAgingProcessing();
-      console.log('✅ DEBUG: executeAgingProcessing completed');
+      // 1. ONLY at end of season: Aging and retirement processing  
+      if (isEndOfSeason) {
+        console.log('🔄 END OF SEASON: Executing aging and retirement...');
+        await this.executeAgingProcessing();
+        console.log('✅ END OF SEASON: Aging and retirement completed');
+      } else {
+        console.log('ℹ️  Aging/retirement skipped - only occurs at end of season (Day 15→16)');
+      }
       
-      // 3. Injury recovery and stamina restoration
-      console.log('🔄 DEBUG: Calling executeInjuryRecovery...');
+      // 2. Injury recovery and stamina restoration (daily during season)
+      console.log('🔄 Executing injury recovery and stamina restoration...');
       await this.executeInjuryRecovery();
-      console.log('✅ DEBUG: executeInjuryRecovery completed');
+      console.log('✅ Injury recovery completed');
       
-      // 4. Process daily stadium costs
-      console.log('🔄 DEBUG: Calling processStadiumDailyCosts...');
-      await this.processStadiumDailyCosts();
-      console.log('✅ DEBUG: processStadiumDailyCosts completed');
+      // 3. Process stadium maintenance costs (CORRECTED: 1% of total investment)
+      console.log('🔄 Processing stadium maintenance costs (1% of investment)...');
+      await this.processStadiumMaintenanceCosts();
+      console.log('✅ Stadium maintenance costs completed');
       
-      // 5. Reset daily limits and counters
-      console.log('🔄 DEBUG: Calling resetDailyLimits...');
-      await this.resetDailyLimits();
-      console.log('✅ DEBUG: resetDailyLimits completed');
+      // 4. Reset daily limits (Ad system only - player items reset after league games)
+      console.log('🔄 Resetting daily ad limits...');
+      await this.resetDailyAdLimits();
+      console.log('✅ Daily ad limits reset completed');
       
-      // 6. Update season day in database (CRITICAL FIX)
-      console.log('🔄 DEBUG: Calling updateSeasonDay...');
+      // 5. Update season day
+      console.log('🔄 Updating season day...');
       await this.updateSeasonDay();
-      console.log('✅ DEBUG: updateSeasonDay completed');
+      console.log('✅ Season day update completed');
       
-      logInfo('Daily progression execution completed successfully');
+      logInfo('✅ Daily progression execution completed successfully');
     } catch (error) {
-      console.error('❌ Error during daily progression execution:', (error as Error).message);
-      console.error('Full error:', error);
+      console.error('❌ Error during daily progression execution:', error instanceof Error ? error.message : 'Unknown error');
     }
   }
 
@@ -283,9 +286,15 @@ export class SeasonTimingAutomationService {
         await this.checkAndGenerateScheduleIfNeeded(seasonNumber);
       }
       
-      // Check for Day 7 Mid-Season Cup
-      if (currentDayInCycle === 7 && estTime.getHours() === 15 && estTime.getMinutes() === 0) {
-        await this.executeMidSeasonCup(seasonNumber);
+      // Check for Day 7 Mid-Season Cup - CORRECTED: Registration closes 1PM, brackets 1PM, starts 1:30-3PM
+      if (currentDayInCycle === 7) {
+        if (estTime.getHours() === 13 && estTime.getMinutes() === 0) {
+          // 1:00 PM EDT - Close registration and generate brackets
+          await this.executeMidSeasonCupRegistrationClose(seasonNumber);
+        } else if (estTime.getHours() === 13 && estTime.getMinutes() === 30) {
+          // 1:30 PM EDT - Start tournament matches
+          await this.executeMidSeasonCupStart(seasonNumber);
+        }
       }
       
       // Check for DAILY Late Signup Processing (Day 1-9 at 3PM EDT)
@@ -312,19 +321,27 @@ export class SeasonTimingAutomationService {
   /**
    * Check if we're in the match simulation window (4:00 PM - 10:00 PM EST)
    */
+  /**
+   * Check if it's during match simulation window and simulate matches
+   * CORRECTED: Spread across subdivisions every 15 minutes to reduce server load
+   */
   private async checkMatchSimulationWindow(): Promise<void> {
     try {
       const now = new Date();
       const estTime = getEasternTimeAsDate();
       const currentHour = estTime.getHours();
+      const currentMinute = estTime.getMinutes();
       
-      // Match simulation window: 4:00 PM - 10:00 PM EST
+      // Match simulation window: 4:00 PM - 10:00 PM EDT
       if (currentHour >= 16 && currentHour <= 22) {
-        await this.simulateScheduledMatches();
+        // Determine which subdivisions to process based on time
+        // Every 15 minutes, process different subdivisions to spread server load
+        const subdivisionCycle = Math.floor(currentMinute / 15); // 0, 1, 2, 3
+        await this.simulateScheduledMatchesForSubdivisions(subdivisionCycle);
       }
       
     } catch (error) {
-      console.error('Error checking match simulation window:', (error as Error).message);
+      console.error('Error checking match simulation window:', error instanceof Error ? error.message : 'Unknown error');
     }
   }
 
@@ -481,7 +498,7 @@ export class SeasonTimingAutomationService {
         progressionEvents: result.totalProgressions
       });
     } catch (error) {
-      console.error('❌ Error executing daily player progression:', error.message);
+      console.error('❌ Error executing daily player progression:', error instanceof Error ? error.message : 'Unknown error');
       console.error('Full error:', error);
     }
   }
@@ -500,7 +517,7 @@ export class SeasonTimingAutomationService {
         retirementsProcessed: result.retirementsProcessed
       });
     } catch (error) {
-      console.error('❌ Error executing aging processing:', error.message);
+      console.error('❌ Error executing aging processing:', error instanceof Error ? error.message : 'Unknown error');
       console.error('Full error:', error);
     }
   }
@@ -527,13 +544,13 @@ export class SeasonTimingAutomationService {
   }
 
   /**
-   * Process daily stadium maintenance costs for all teams
+   * Process stadium maintenance costs - CORRECTED: 1% of total stadium investment value daily
    */
-  private async processStadiumDailyCosts(): Promise<void> {
+  private async processStadiumMaintenanceCosts(): Promise<void> {
     try {
-      logInfo('💰 Processing daily stadium maintenance costs...');
+      logInfo('💰 Processing stadium maintenance costs (1% of total investment value)...');
       
-      // Get all teams with their finance records
+      // Get all teams with their finance and stadium records
       const teams = await prisma.team.findMany({
         include: {
           finances: true,
@@ -546,15 +563,32 @@ export class SeasonTimingAutomationService {
       
       for (const team of teams) {
         try {
-          // Calculate daily stadium cost (default 5000 credits)
-          const dailyCost = 5000; // Fixed maintenance cost per day
+          // Calculate total stadium investment value
+          let totalStadiumInvestment = 100000; // Base stadium value
           
-          // Check if team has finance record
+          if (team.stadium) {
+            // Add capacity costs
+            const capacityLevel = Math.floor(team.stadium.capacity / 5000);
+            if (capacityLevel > 1) {
+              totalStadiumInvestment += (capacityLevel - 1) * 15000; // 15k per 5k seats above base
+            }
+            
+            // Add facility costs
+            totalStadiumInvestment += (team.stadium.concessionsLevel - 1) * 52500;
+            totalStadiumInvestment += (team.stadium.parkingLevel - 1) * 43750;
+            totalStadiumInvestment += team.stadium.vipSuitesLevel * 100000;
+            totalStadiumInvestment += (team.stadium.merchandisingLevel - 1) * 70000;
+            totalStadiumInvestment += (team.stadium.lightingLevel - 1) * 30000;
+          }
+          
+          // Calculate daily maintenance cost: 1% of total investment
+          const dailyCost = Math.floor(totalStadiumInvestment * 0.01);
+          
+          // Update team finances
           if (team.finances) {
-            const currentCredits = parseInt(team.finances.credits.toString()) || 0;
+            const currentCredits = Number(team.finances.credits) || 0;
             const newCredits = currentCredits - dailyCost; // Allow negative balances
             
-            // Update team finances
             await prisma.teamFinances.update({
               where: { id: team.finances.id },
               data: {
@@ -562,46 +596,45 @@ export class SeasonTimingAutomationService {
               }
             });
             
-            // Stadium maintenance expense recorded in logs
-            console.log(`💸 Recorded stadium maintenance expense: ${dailyCost}₡ for ${team.name}`);
-            
-            console.log(`💸 ${team.name}: Deducted ${dailyCost}₡ daily stadium cost (${currentCredits}₡ → ${newCredits}₡)`);
+            console.log(`💸 ${team.name}: Deducted ${dailyCost}₡ maintenance (1% of ${totalStadiumInvestment}₡ investment) (${currentCredits}₡ → ${newCredits}₡)`);
             totalCostsDeducted += dailyCost;
           } else {
             // Create finance record if it doesn't exist
-            const newFinanceRecord = await prisma.teamFinances.create({
+            await prisma.teamFinances.create({
               data: {
                 teamId: team.id,
-                credits: BigInt(10000 - dailyCost), // Start with 10k credits minus daily cost, allow negative
+                credits: BigInt(10000 - dailyCost), // Start with 10k credits minus daily cost
                 gems: BigInt(0)
               }
             });
             
-            console.log(`🆕 Created finance record for ${team.name} and deducted ${dailyCost}₡ stadium cost`);
+            console.log(`🆕 Created finance record for ${team.name} and deducted ${dailyCost}₡ maintenance cost`);
             totalCostsDeducted += dailyCost;
           }
           
           totalTeamsProcessed++;
         } catch (error) {
-          console.error(`❌ Error processing stadium costs for team ${team.name}:`, error);
+          console.error(`❌ Error processing stadium maintenance for team ${team.name}:`, error);
         }
       }
       
-      logInfo(`✅ Stadium daily costs processed: ${totalTeamsProcessed} teams, ${totalCostsDeducted}₡ total deducted`);
+      logInfo(`✅ Stadium maintenance processed: ${totalTeamsProcessed} teams, ${totalCostsDeducted}₡ total deducted`);
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-      console.error('❌ Error processing stadium daily costs:', errorMessage);
+      console.error('❌ Error processing stadium maintenance costs:', error instanceof Error ? error.message : 'Unknown error');
     }
   }
 
   /**
    * Reset daily limits and counters
    */
-  private async resetDailyLimits(): Promise<void> {
+  /**
+   * Reset daily ad limits only - CORRECTED: Player items reset after league games, not daily
+   */
+  private async resetDailyAdLimits(): Promise<void> {
     try {
-      logInfo('🔄 Resetting daily limits and counters...');
+      logInfo('🔄 Resetting daily ad limits only...');
       
-      // 1. Reset ad view counts to 0 for all teams
+      // 1. Reset ad view counts to 0 for all teams (if ad system exists)
       try {
         // Skip adSystem updates - table doesn't exist in current schema
         console.log('ℹ️  AdSystem table not available - skipping ad reset');
@@ -610,49 +643,15 @@ export class SeasonTimingAutomationService {
         console.log('ℹ️  AdSystem table not found - skipping ad reset');
       }
       
-      // 2. Reset player daily items used count to 0 for all players
-      try {
-        const playerUpdateResult = await prisma.player.updateMany({
-          data: {
-            dailyItemsUsed: 0
-          }
-        });
-        logInfo(`✅ Player daily items used reset for ${playerUpdateResult.count} players`);
-      } catch (error) {
-        console.error('❌ Error resetting player daily items used:', error);
-      }
-      
-      // 3. Reset exhibition game tracking
-      // Exhibition games are tracked by counting matches created "today"
-      // Since we're using date-based queries, we need to ensure the timezone calculation is correct
-      // The reset itself is handled by the date-based queries in exhibition routes
+      // 2. Exhibition game limits reset (handled by date-based queries)
       logInfo('✅ Exhibition game limits reset (handled by date-based queries)');
       
-      // 4. Reset any other daily counters
-      try {
-        // Reset tournament entry cooldowns or other daily limitations
-        await prisma.tournamentEntry.updateMany({
-          where: {
-            registeredAt: {
-              lt: new Date(Date.now() - 24 * 60 * 60 * 1000) // Older than 24 hours
-            }
-          },
-          data: {
-            // Reset any daily flags if needed
-          }
-        });
-        logInfo('✅ Tournament entry cooldowns reset');
-      } catch (error) {
-        console.log('ℹ️  Tournament entry reset skipped');
-      }
+      // NOTE: Player item usage resets are now handled after league games completion, not daily
+      console.log('ℹ️  Player item usage limits NOT reset daily - only after league games');
       
-      // 5. Force cache invalidation for exhibition stats
-      // This ensures the frontend gets fresh data after reset
-      logInfo('✅ Cache invalidation triggered for exhibition stats');
-      
-      logInfo('✅ Daily limits reset completed successfully');
+      logInfo('✅ Daily ad limits reset completed successfully');
     } catch (error) {
-      console.error('❌ Error resetting daily limits:', (error as Error).message);
+      console.error('❌ Error resetting daily ad limits:', error instanceof Error ? error.message : 'Unknown error');
     }
   }
 
@@ -719,9 +718,9 @@ export class SeasonTimingAutomationService {
   }
 
   /**
-   * Simulate scheduled matches during the simulation window
+   * Simulate scheduled matches for specific subdivisions - CORRECTED: Spread load across subdivisions
    */
-  private async simulateScheduledMatches(): Promise<void> {
+  private async simulateScheduledMatchesForSubdivisions(subdivisionCycle: number): Promise<void> {
     try {
       const currentSeason = await storage.seasons.getCurrentSeason();
       if (!currentSeason) {
@@ -732,51 +731,201 @@ export class SeasonTimingAutomationService {
       
       // Only simulate during regular season (Days 1-14)
       if (currentDayInCycle >= 1 && currentDayInCycle <= 14) {
-        logInfo(`Simulating scheduled matches for Day ${currentDayInCycle}...`);
+        logInfo(`Processing matches for subdivision cycle ${subdivisionCycle} on Day ${currentDayInCycle}...`);
         
-        // CATCH UP MECHANISM: First, catch up on matches that should have already started
+        // CATCH UP MECHANISM: First, catch up on overdue matches (don't immediately simulate, just start)
         await this.catchUpOnMissedMatches();
         
-        // Then, get scheduled matches that should be starting now (within 30 minutes window)
+        // Get subdivisions to process this cycle (spread load)
+        const subdivisionsToProcess = this.getSubdivisionsForCycle(subdivisionCycle);
+        
+        // Get scheduled matches for these specific subdivisions
         const now = new Date();
         const thirtyMinutesFromNow = new Date(now.getTime() + 30 * 60 * 1000);
-        const scheduledMatches = await prisma.game.findMany({
-          where: {
-            status: 'SCHEDULED',
-            gameDate: {
-              lte: thirtyMinutesFromNow,
-              gte: now // Only matches scheduled for future times
-            }
-          }
-        });
         
-        if (scheduledMatches.length > 0) {
-          logInfo(`Found ${scheduledMatches.length} scheduled matches for simulation`);
-          
-          // Start each scheduled match
-          for (const match of scheduledMatches) {
-            try {
-              await prisma.game.update({
-                where: { id: match.id },
-                data: { 
-                  status: 'IN_PROGRESS',
-                  gameDate: new Date() // Start now
+        for (const subdivision of subdivisionsToProcess) {
+          const scheduledMatches = await prisma.game.findMany({
+            where: {
+              status: 'SCHEDULED',
+              gameDate: {
+                lte: thirtyMinutesFromNow,
+                gte: now
+              },
+              league: {
+                name: {
+                  contains: subdivision // Match subdivision pattern
                 }
-              });
-              
-              // Initialize match state in the match state manager
-              const { matchStateManager } = await import('./matchStateManager');
-              await matchStateManager.startLiveMatch(match.id.toString(), false);
-              logInfo(`Started league match ${match.id} for Day ${currentDayInCycle}`);
-            } catch (error) {
-              console.error(`Error starting match ${match.id}:`, error);
+              }
+            },
+            include: {
+              league: true
+            }
+          });
+          
+          if (scheduledMatches.length > 0) {
+            logInfo(`Found ${scheduledMatches.length} scheduled matches for ${subdivision}`);
+            
+            // Start each scheduled match (don't complete immediately)
+            for (const match of scheduledMatches) {
+              try {
+                await prisma.game.update({
+                  where: { id: match.id },
+                  data: { 
+                    status: 'IN_PROGRESS',
+                    gameDate: new Date() // Start now
+                  }
+                });
+                
+                // Initialize match state in the match state manager (live simulation)
+                const { matchStateManager } = await import('./matchStateManager');
+                await matchStateManager.startLiveMatch(match.id.toString(), false);
+                logInfo(`Started league match ${match.id} for ${subdivision} on Day ${currentDayInCycle}`);
+              } catch (error) {
+                console.error(`Error starting match ${match.id}:`, error);
+              }
             }
           }
         }
       }
       
     } catch (error) {
-      console.error('Error simulating scheduled matches:', error.message);
+      console.error('Error simulating scheduled matches for subdivisions:', error instanceof Error ? error.message : 'Unknown error');
+    }
+  }
+
+  /**
+   * Get subdivisions to process for a specific cycle (spread load across time)
+   */
+  private getSubdivisionsForCycle(cycle: number): string[] {
+    // Cycle 0 (0-14 min): Divisions 1-2 
+    // Cycle 1 (15-29 min): Divisions 3-4
+    // Cycle 2 (30-44 min): Divisions 5-6  
+    // Cycle 3 (45-59 min): Divisions 7-8
+    
+    switch (cycle) {
+      case 0:
+        return ['Division 1', 'Division 2'];
+      case 1:
+        return ['Division 3', 'Division 4'];
+      case 2:
+        return ['Division 5', 'Division 6'];
+      case 3:
+        return ['Division 7', 'Division 8'];
+      default:
+        return []; // Safety fallback
+    }
+  }
+
+  /**
+   * CORRECTED: Mid-Season Cup registration close and bracket generation (Day 7, 1:00 PM EDT)
+   */
+  private async executeMidSeasonCupRegistrationClose(seasonNumber: number): Promise<void> {
+    try {
+      logInfo(`Closing Mid-Season Cup registration and generating brackets for Season ${seasonNumber}...`);
+      
+      // Find all Mid-Season Cup tournaments that are still in registration
+      const tournaments = await prisma.tournament.findMany({
+        where: {
+          type: 'MID_SEASON_CLASSIC',
+          seasonDay: 7,
+          status: 'REGISTRATION_OPEN'
+        },
+        include: {
+          entries: true
+        }
+      });
+
+      for (const tournament of tournaments) {
+        try {
+          // Close registration
+          await prisma.tournament.update({
+            where: { id: tournament.id },
+            data: { 
+              status: 'BRACKETS_GENERATED',
+              registrationDeadline: new Date() // Mark registration as closed
+            }
+          });
+
+          // Fill with AI teams if needed and generate brackets
+          const { TournamentService } = await import('./tournamentService');
+          const tournamentService = new TournamentService();
+          
+          if (tournament.entries.length < tournament.maxParticipants) {
+            await tournamentService.fillMidSeasonCupWithAI(tournament.id.toString());
+          }
+          
+          // Generate initial brackets
+          await tournamentService.generateTournamentBrackets(tournament.id.toString());
+          
+          logInfo(`Mid-Season Cup registration closed and brackets generated for tournament ${tournament.id}`);
+        } catch (error) {
+          console.error(`Failed to close registration for tournament ${tournament.id}:`, error);
+        }
+      }
+      
+    } catch (error) {
+      console.error('Error closing Mid-Season Cup registration:', error instanceof Error ? error.message : 'Unknown error');
+    }
+  }
+
+  /**
+   * CORRECTED: Mid-Season Cup tournament start (Day 7, 1:30 PM EDT)
+   */
+  private async executeMidSeasonCupStart(seasonNumber: number): Promise<void> {
+    try {
+      logInfo(`Starting Mid-Season Cup tournaments for Season ${seasonNumber}...`);
+      
+      // Find all Mid-Season Cup tournaments with brackets generated
+      const tournaments = await prisma.tournament.findMany({
+        where: {
+          type: 'MID_SEASON_CLASSIC',
+          seasonDay: 7,
+          status: 'BRACKETS_GENERATED'
+        }
+      });
+
+      for (const tournament of tournaments) {
+        try {
+          // Start the tournament
+          await prisma.tournament.update({
+            where: { id: tournament.id },
+            data: { 
+              status: 'IN_PROGRESS',
+              startTime: new Date()
+            }
+          });
+
+          // Start first round matches
+          const firstRoundMatches = await prisma.game.findMany({
+            where: {
+              tournamentId: tournament.id,
+              round: 1,
+              status: 'SCHEDULED'
+            }
+          });
+
+          for (const match of firstRoundMatches) {
+            await prisma.game.update({
+              where: { id: match.id },
+              data: { 
+                status: 'IN_PROGRESS',
+                gameDate: new Date()
+              }
+            });
+
+            // Start live simulation
+            const { matchStateManager } = await import('./matchStateManager');
+            await matchStateManager.startLiveMatch(match.id.toString(), false);
+          }
+          
+          logInfo(`Mid-Season Cup tournament ${tournament.id} started with ${firstRoundMatches.length} first round matches`);
+        } catch (error) {
+          console.error(`Failed to start tournament ${tournament.id}:`, error);
+        }
+      }
+      
+    } catch (error) {
+      console.error('Error starting Mid-Season Cup tournaments:', error instanceof Error ? error.message : 'Unknown error');
     }
   }
 

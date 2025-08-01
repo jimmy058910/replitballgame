@@ -157,9 +157,9 @@ export class SeasonalFlowService {
       }
       
       let matches;
-      if (league.division === 1) {
-        // Division 1: 16 teams, 28 games over 14 days (2 per day)
-        matches = await this.generateDivision1Schedule(league.id, leagueTeams, season);
+      if (league.division === 1 || league.division === 2) {
+        // Divisions 1-2: CORRECTED - 112 matches over 14 days (8 per day)
+        matches = await this.generatePremiumDivisionSchedule(league.id, leagueTeams, season);
       } else if (leagueTeams.length > 16) {
         // Large divisions: Create multiple subdivisions of 8 teams each
         matches = await this.generateLargeDivisionSchedule(league.id, leagueTeams, season);
@@ -188,9 +188,9 @@ export class SeasonalFlowService {
   }
 
   /**
-   * Generate Division 1 schedule (16 teams, 2 games per day)
+   * CORRECTED: Generate Premium Division schedule (Divisions 1-2: 112 matches over 14 days)
    */
-  static async generateDivision1Schedule(
+  static async generatePremiumDivisionSchedule(
     leagueId: string, 
     teams: any[], 
     season: number
@@ -198,10 +198,10 @@ export class SeasonalFlowService {
     const matches = [];
     const numTeams = teams.length;
     
-    // Generate round-robin schedule with 2 games per day
+    // CORRECTED: Generate 8 matches per day × 14 days = 112 total matches
     for (let day = 1; day <= this.SEASON_CONFIG.REGULAR_SEASON_DAYS; day++) {
-      // Generate 2 matches for this day
-      const dayMatches = this.generateDayMatches(teams, day, 2);
+      // Generate 8 matches for this day (not 2)
+      const dayMatches = this.generateDayMatches(teams, day, 8);
       
       // Use generateDailyGameTimes for consecutive 15-minute intervals
       const { generateDailyGameTimes } = await import('../../shared/timezone');
@@ -239,11 +239,12 @@ export class SeasonalFlowService {
       });
     }
     
+    logInfo(`Generated ${matches.length} matches for premium division (target: 112)`);
     return matches;
   }
 
   /**
-   * Generate standard subdivision schedule (16 teams, modified round-robin for 14 days)
+   * CORRECTED: Generate standard division schedule (Divisions 3-8: 56 matches over 14 days)
    */
   static async generateStandardSubdivisionSchedule(
     leagueId: string, 
@@ -257,11 +258,11 @@ export class SeasonalFlowService {
       throw new Error(`Standard subdivision must have at least 2 teams`);
     }
     
-    // Modified round-robin: 16 teams, 14 days of matches
-    // Each team plays 14 games over 14 days (not full round-robin)
+    // CORRECTED: Ensure only ONE subdivision per division (Divisions 3-8)
+    // 4 matches per day × 14 days = 56 total matches per division
     
     for (let day = 1; day <= this.SEASON_CONFIG.REGULAR_SEASON_DAYS; day++) {
-      // Generate matches per day based on team count
+      // Generate exactly 4 matches per day (56 total over 14 days)
       const dayMatches = this.generateSubdivisionDayMatches(teams, day, 1);
       
       // Use generateDailyGameTimes for consecutive 15-minute intervals
@@ -299,6 +300,7 @@ export class SeasonalFlowService {
       });
     }
     
+    logInfo(`Generated ${matches.length} matches for standard division (target: 56)`);
     return matches;
   }
 

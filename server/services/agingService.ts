@@ -138,7 +138,7 @@ export class AgingService {
       } catch (error) {
         console.error(`Error processing aging for player ${player.id}:`, error);
         results.push({
-          playerId: player.id,
+          playerId: String(player.id),
           playerName: `${player.firstName} ${player.lastName}`,
           action: 'none',
           details: 'Error during processing'
@@ -183,7 +183,7 @@ export class AgingService {
         });
 
         return {
-          playerId: player.id,
+          playerId: String(player.id),
           playerName,
           action: 'retired',
           details: `Retired at age ${player.age + 1} (${retirementCalc.totalChance}% chance)`
@@ -237,7 +237,7 @@ export class AgingService {
     }
 
     return {
-      playerId: player.id,
+      playerId: String(player.id),
       playerName,
       action: declineDetails ? 'declined' : (isOffSeason ? 'aged' : 'none'),
       details: declineDetails || (isOffSeason ? `Aged to ${player.age + 1}` : 'No aging during regular season')
@@ -248,12 +248,13 @@ export class AgingService {
    * Update career injuries when a player gets injured
    */
   static async incrementCareerInjuries(playerId: string): Promise<void> {
+    const playerIdNumber = Number(playerId);
     const currentPlayer = await prisma.player.findFirst({
-      where: { id: playerId }
+      where: { id: playerIdNumber }
     });
     if (currentPlayer) {
       await prisma.player.update({
-        where: { id: playerId },
+        where: { id: playerIdNumber },
         data: { careerInjuries: (currentPlayer.careerInjuries || 0) + 1 }
       });
     }
@@ -263,12 +264,13 @@ export class AgingService {
    * Update games played this season
    */
   static async incrementGamesPlayed(playerId: string): Promise<void> {
+    const playerIdNumber = Number(playerId);
     const currentPlayer = await prisma.player.findFirst({
-      where: { id: playerId }
+      where: { id: playerIdNumber }
     });
     if (currentPlayer) {
       await prisma.player.update({
-        where: { id: playerId },
+        where: { id: playerIdNumber },
         data: { gamesPlayedLastSeason: (currentPlayer.gamesPlayedLastSeason || 0) + 1 }
       });
     }
