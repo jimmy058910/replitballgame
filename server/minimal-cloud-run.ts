@@ -388,6 +388,39 @@ app.get('/api/world/hall-of-fame', (req, res) => {
   });
 });
 
+// Gem packages endpoint for market store
+app.get('/api/store/gem-packages', (req, res) => {
+  res.status(200).json([
+    {
+      id: 'small_gem_pack',
+      name: 'Small Gem Pack',
+      description: '100 Gems for quick purchases',
+      gems: 100,
+      price: 4.99,
+      currency: 'USD',
+      popular: false
+    },
+    {
+      id: 'medium_gem_pack', 
+      name: 'Medium Gem Pack',
+      description: '350 Gems + 50 bonus gems',
+      gems: 400,
+      price: 14.99,
+      currency: 'USD',
+      popular: true
+    },
+    {
+      id: 'large_gem_pack',
+      name: 'Large Gem Pack', 
+      description: '750 Gems + 150 bonus gems',
+      gems: 900,
+      price: 29.99,
+      currency: 'USD',
+      popular: false
+    }
+  ]);
+});
+
 // Essential endpoints commonly used
 app.get('/api/camaraderie/summary', (req, res) => {
   res.status(200).json({

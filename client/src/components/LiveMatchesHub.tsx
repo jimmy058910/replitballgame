@@ -68,13 +68,14 @@ export default function LiveMatchesHub({ team }: LiveMatchesHubProps) {
     refetchInterval: 3000, // More frequent updates for user matches
   });
 
-  // Categorize matches by type and priority
+  // Categorize matches by type and priority - ensure liveMatches is always an array
+  const safeMatches = Array.isArray(liveMatches) ? liveMatches : [];
   const categorizedMatches = {
-    userMatches: liveMatches.filter(match => match.userTeamInvolved),
-    highPriority: liveMatches.filter(match => match.priority === 'HIGH' && !match.userTeamInvolved),
-    tournaments: liveMatches.filter(match => match.type === 'TOURNAMENT' && !match.userTeamInvolved),
-    leagues: liveMatches.filter(match => match.type === 'LEAGUE' && !match.userTeamInvolved),
-    exhibitions: liveMatches.filter(match => match.type === 'EXHIBITION' && !match.userTeamInvolved),
+    userMatches: safeMatches.filter(match => match.userTeamInvolved),
+    highPriority: safeMatches.filter(match => match.priority === 'HIGH' && !match.userTeamInvolved),
+    tournaments: safeMatches.filter(match => match.type === 'TOURNAMENT' && !match.userTeamInvolved),
+    leagues: safeMatches.filter(match => match.type === 'LEAGUE' && !match.userTeamInvolved),
+    exhibitions: safeMatches.filter(match => match.type === 'EXHIBITION' && !match.userTeamInvolved),
   };
 
   // Helper functions

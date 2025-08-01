@@ -125,6 +125,17 @@ interface ContractData {
   yearsRemaining: number;
 }
 
+interface GemPackage {
+  id: string;
+  name: string;
+  description: string;
+  gems: number;
+  bonus?: number;
+  price: number;
+  currency: string;
+  popular: boolean;
+}
+
 // Helper functions for item display
 function getItemIcon(item: StoreItem) {
   if (item.slot) {
@@ -162,7 +173,7 @@ export default function MarketDistrict() {
   
   // Collapsible section state
   const [storeSectionOpen, setStoreSectionOpen] = useState(true);
-  const [gemSectionOpen, setGemSectionOpen] = useState(false);
+  const [gemSectionOpen, setGemSectionOpen] = useState(true);
   const [exchangeSectionOpen, setExchangeSectionOpen] = useState(false);
 
   // Get team and financial data
@@ -363,7 +374,7 @@ export default function MarketDistrict() {
         </div>
       </div>
 
-      <div className="p-4 space-y-6">
+      <div className="container mx-auto max-w-7xl p-4 space-y-6">
         {/* Main Tabs */}
         <Tabs defaultValue="store" className="space-y-6">
           <TabsList className="grid w-full grid-cols-4 bg-gray-800 h-auto p-1">
