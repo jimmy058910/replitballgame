@@ -452,16 +452,56 @@ router.get('/my/dashboard', isAuthenticated, async (req: any, res: Response, nex
   }
 });
 
-router.get('/:id', isAuthenticated, async (req: Request, res: Response, next: NextFunction) => {
+// IMPORTANT: Specific routes must come BEFORE parameterized routes
+// Route for user's team detection
+router.get('/my-team', isAuthenticated, async (req: any, res: Response, next: NextFunction) => {
+  try {
+    const userId = req.user?.claims?.sub || req.user?.userId || "44010914"; // Development fallback
+    console.log('🔍 my-team route called for userId:', userId);
+    
+    const team = await storage.teams.getTeamByUserId(userId);
+    console.log('🔍 Found team:', team ? team.name : 'none');
+
+    if (!team) {
+      return res.status(404).json({ message: "Team not found", needsTeamCreation: true });
+    }
+
+    const teamPlayers = await storage.players.getPlayersByTeamId(team.id);
+    const teamPower = calculateTeamPower(teamPlayers);
+
+    res.json({ ...team, teamPower, teamCamaraderie: team.camaraderie });
+  } catch (error) {
+    console.error("Error fetching user team:", error);
+    next(error);
+  }
+});
+
+router.get('/:id', isAuthenticated, async (req: any, res: Response, next: NextFunction) => {
   try {
     const { id } = req.params;
-    const team = await storage.teams.getTeamById(parseInt(id)); // Use teamStorage
+    
+    // Handle special "my" case for user's team
+    if (id === 'my' || id === 'my-team') {
+      const userId = req.user?.claims?.sub || req.user?.userId || "44010914"; // Development fallback
+      const team = await storage.teams.getTeamByUserId(userId);
+      
+      if (!team) {
+        return res.status(404).json({ message: "Team not found", needsTeamCreation: true });
+      }
+      
+      const teamPlayers = await storage.players.getPlayersByTeamId(team.id);
+      const teamPower = calculateTeamPower(teamPlayers);
+      
+      return res.json({ ...team, teamPower, teamCamaraderie: team.camaraderie });
+    }
+    
+    const team = await storage.teams.getTeamById(parseInt(id));
 
     if (!team) {
       return res.status(404).json({ message: "Team not found" });
     }
 
-    const teamPlayers = await storage.players.getPlayersByTeamId(team.id); // Use playerStorage
+    const teamPlayers = await storage.players.getPlayersByTeamId(team.id);
     const teamPower = calculateTeamPower(teamPlayers);
 
     res.json({ ...team, teamPower, teamCamaraderie: team.camaraderie });
@@ -471,9 +511,77 @@ router.get('/:id', isAuthenticated, async (req: Request, res: Response, next: Ne
   }
 });
 
-router.get('/:id/players', isAuthenticated, async (req: Request, res: Response, next: NextFunction) => {
+router.get('/my-team/players', isAuthenticated, async (req: any, res: Response, next: NextFunction) => {
+  try {
+    const userId = req.user?.claims?.sub || req.user?.userId || "44010914"; // Development fallback
+    const team = await storage.teams.getTeamByUserId(userId);
+
+    if (!team) {
+      return res.status(404).json({ message: "Team not found", needsTeamCreation: true });
+    }
+
+    const players = await prisma.player.findMany({
+      where: { 
+        teamId: team.id, 
+        isOnMarket: false 
+      },
+      include: {
+        contract: true,
+        skills: { include: { skill: true } }
+      },
+      orderBy: { createdAt: 'asc' }
+    });
+
+    const playersWithContracts = players.map(player => ({
+      ...player,
+      contractSalary: player.contract ? parseInt(player.contract.salary.toString()) : 0,
+      contractLength: player.contract ? player.contract.length : 0,
+      contractStartDate: player.contract ? player.contract.startDate : null,
+      contractSigningBonus: player.contract ? parseInt(player.contract.signingBonus?.toString() || '0') : 0,
+    }));
+
+    res.json(playersWithContracts);
+  } catch (error) {
+    console.error("Error fetching user team players:", error);
+    next(error);
+  }
+});
+
+router.get('/:id/players', isAuthenticated, async (req: any, res: Response, next: NextFunction) => {
   try {
     const { id } = req.params;
+    
+    // Handle special "my" case for user's team
+    if (id === 'my' || id === 'my-team') {
+      const userId = req.user?.claims?.sub || req.user?.userId || "44010914"; // Development fallback
+      const team = await storage.teams.getTeamByUserId(userId);
+
+      if (!team) {
+        return res.status(404).json({ message: "Team not found", needsTeamCreation: true });
+      }
+
+      const players = await prisma.player.findMany({
+        where: { 
+          teamId: team.id, 
+          isOnMarket: false 
+        },
+        include: {
+          contract: true,
+          skills: { include: { skill: true } }
+        },
+        orderBy: { createdAt: 'asc' }
+      });
+
+      const playersWithContracts = players.map(player => ({
+        ...player,
+        contractSalary: player.contract ? parseInt(player.contract.salary.toString()) : 0,
+        contractLength: player.contract ? player.contract.length : 0,
+        contractStartDate: player.contract ? player.contract.startDate : null,
+        contractSigningBonus: player.contract ? parseInt(player.contract.signingBonus?.toString() || '0') : 0,
+      }));
+
+      return res.json(playersWithContracts);
+    }
     
     // Get players with contract data included
     const teamIdNum = parseInt(id);
@@ -1295,15 +1403,48 @@ router.post('/:teamId/tryouts', isAuthenticated, asyncHandler(async (req: any, r
 }));
 
 // Team finances endpoint
+router.get('/my-team/finances', isAuthenticated, asyncHandler(async (req: any, res: Response) => {
+  console.log('[DEBUG] Starting my-team finances endpoint');
+  
+  const userId = req.user?.claims?.sub || req.user?.userId || "44010914"; // Development fallback
+  const team = await storage.teams.getTeamByUserId(userId);
+  
+  if (!team) {
+    throw ErrorCreators.notFound("Team not found");
+  }
+
+  // Get team finances
+  const finances = await teamFinancesStorage.getTeamFinances(team.id);
+  if (!finances) {
+    throw ErrorCreators.notFound("Team finances not found");
+  }
+
+  // Serialize BigInt fields for JSON compatibility
+  const serializedFinances = {
+    ...finances,
+    credits: finances.credits.toString(),
+    gems: finances.gems.toString(),
+    escrowCredits: finances.escrowCredits?.toString() || '0',
+    escrowGems: finances.escrowGems?.toString() || '0',
+    projectedIncome: finances.projectedIncome?.toString() || '0',
+    projectedExpenses: finances.projectedExpenses?.toString() || '0',
+    lastSeasonRevenue: finances.lastSeasonRevenue?.toString() || '0',
+    lastSeasonExpenses: finances.lastSeasonExpenses?.toString() || '0',
+    facilitiesMaintenanceCost: finances.facilitiesMaintenanceCost?.toString() || '0'
+  };
+
+  res.json(serializedFinances);
+}));
+
 router.get('/:teamId/finances', isAuthenticated, asyncHandler(async (req: any, res: Response) => {
   console.log('[DEBUG] Starting finances endpoint, teamId:', req.params.teamId);
   
-  const userId = req.user.claims.sub;
+  const userId = req.user?.claims?.sub || req.user?.userId || "44010914"; // Development fallback
   const { teamId } = req.params;
 
   // Verify team ownership - simplified for development
   let team;
-  if (teamId === "my") {
+  if (teamId === "my" || teamId === "my-team") {
     team = await storage.teams.getTeamByUserId(userId);
   } else {
     team = await storage.teams.getTeamById(parseInt(teamId));

@@ -41,8 +41,11 @@ router.post('/logout', (req, res) => {
 // ✅ GET USER STATUS - NO middleware, handle auth check internally
 router.get('/user', async (req: any, res: Response, next: NextFunction) => {
   try {
-    // Check if user is authenticated
-    if (!req.isAuthenticated || !req.isAuthenticated()) {
+    // Development bypass - always authenticate for development
+    const isDevelopment = process.env.NODE_ENV === 'development';
+    
+    // Check if user is authenticated (with development bypass)
+    if (!isDevelopment && (!req.isAuthenticated || !req.isAuthenticated())) {
       // Return success response with authenticated: false
       return res.json({ authenticated: false, user: null });
     }
@@ -141,23 +144,27 @@ router.post('/promote-to-admin', isAuthenticated, async (req: any, res: Response
 });
 
 // Development bypass endpoint for testing
-router.get("/dev-login", (req: any, res) => {
-  // Mock authentication for development
-  req.user = {
-    claims: {
-      sub: "44010914",
-      email: "jimmy058910@gmail.com",
-      first_name: "Jimmy",
-      last_name: "Moceri"
-    },
-    expires_at: Math.floor(Date.now() / 1000) + 3600 // 1 hour from now
-  };
-  
-  res.json({
-    user: req.user.claims,
-    authenticated: true,
-    note: "Development authentication bypass"
-  });
+router.get("/dev-login", async (req: any, res) => {
+  try {
+    // Create session for development user
+    const hardcodedUserId = "44010914";
+    
+    // Mock passport user structure
+    req.user = {
+      userId: hardcodedUserId,
+      claims: { sub: hardcodedUserId },
+      email: "jimmy058910@gmail.com"
+    };
+    
+    // Set session as authenticated
+    req.session.passport = { user: req.user };
+    
+    console.log('✅ Development login completed for user:', hardcodedUserId);
+    res.json({ success: true, message: "Development login successful", user: req.user });
+  } catch (error) {
+    console.error('Dev login error:', error);
+    res.status(500).json({ error: "Development login failed" });
+  }
 });
 
 // ✅ LOGOUT 
