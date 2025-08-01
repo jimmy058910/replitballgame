@@ -9,8 +9,8 @@ export default defineConfig({
     globals: true,
     environment: "jsdom",
     setupFiles: "./client/src/test/setup.ts",
-    include: ["**/*.{test,spec}.{js,mjs,cjs,ts,mts,cts,jsx,tsx}"],
-    exclude: ["node_modules", "dist", ".replit", "replit.nix"],
+    include: ["tests/**/*.{test,spec}.{ts,tsx}"],
+    exclude: ["node_modules", "dist", ".replit", "replit.nix", ".cache", ".config"],
   },
   resolve: {
     alias: {
