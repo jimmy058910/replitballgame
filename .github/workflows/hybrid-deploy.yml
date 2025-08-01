@@ -50,6 +50,7 @@ jobs:
 
     - name: Deploy backend to Cloud Run
       run: |
+        echo "🚀 Deploying backend to Cloud Run..."
         gcloud run deploy ${{ env.BACKEND_SERVICE }} \
           --image ${{ env.BACKEND_IMAGE }}:latest \
           --platform managed \
@@ -64,13 +65,16 @@ jobs:
           --max-instances 10 \
           --port 8080 \
           --timeout 300s
+        echo "✅ Backend deployment completed"
 
     - name: Get backend URL
       id: backend-url
       run: |
         BACKEND_URL=$(gcloud run services describe ${{ env.BACKEND_SERVICE }} --region=${{ env.REGION }} --format="value(status.url)")
         echo "url=$BACKEND_URL" >> $GITHUB_OUTPUT
-        echo "Backend URL: $BACKEND_URL"
+        echo "🔗 Backend URL retrieved: $BACKEND_URL"
+        echo "🧪 Testing backend health..."
+        curl -f "$BACKEND_URL/health" || echo "⚠️ Backend health check failed"
 
     # Deploy Frontend to Firebase
     - name: Debug Firebase environment variables
@@ -87,7 +91,9 @@ jobs:
 
     - name: Build frontend with backend URL
       run: |
+        echo "🔨 Building frontend with backend URL: ${{ steps.backend-url.outputs.url }}"
         VITE_API_BASE_URL=${{ steps.backend-url.outputs.url }} npm run build
+        echo "✅ Frontend build completed with VITE_API_BASE_URL=${{ steps.backend-url.outputs.url }}"
       env:
         VITE_FIREBASE_API_KEY: ${{ secrets.VITE_FIREBASE_API_KEY }}
         VITE_FIREBASE_PROJECT_ID: ${{ secrets.VITE_FIREBASE_PROJECT_ID }}
@@ -103,9 +109,10 @@ jobs:
     # Test deployment
     - name: Test deployment
       run: |
-        echo "Testing hybrid deployment..."
-        echo "Frontend: $(curl -s -o /dev/null -w "%{http_code}" https://realmrivalry.com)"
-        echo "Backend Health: $(curl -s -o /dev/null -w "%{http_code}" ${{ steps.backend-url.outputs.url }}/health)"
+        echo "🧪 Testing hybrid deployment..."
+        echo "Frontend status: $(curl -s -o /dev/null -w "%{http_code}" https://realmrivalry.com)"
+        echo "Backend health: $(curl -s -o /dev/null -w "%{http_code}" ${{ steps.backend-url.outputs.url }}/health)"
+        echo "Backend API test: $(curl -s -o /dev/null -w "%{http_code}" ${{ steps.backend-url.outputs.url }}/api/health)"
 
     - name: Deployment summary
       run: |
