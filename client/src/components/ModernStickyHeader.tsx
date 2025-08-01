@@ -222,7 +222,7 @@ const ModernStickyHeader: React.FC = () => {
 
   const credits = parseInt(String(finances?.credits || "0"));
   const gems = parseInt(String(finances?.gems || "0"));
-  const unreadNotifications = Array.isArray(notifications?.notifications) ? notifications.notifications.filter((n: any) => !n.isRead).length : 0;
+  const unreadNotifications = (notifications && typeof notifications === 'object' && 'notifications' in notifications && Array.isArray(notifications.notifications)) ? notifications.notifications.filter((n: any) => !n.isRead).length : 0;
   const seasonInfo = seasonData ? `Day ${seasonData.currentDay}/17` : 'Day 9/17';
   const phaseDisplay = getSeasonPhase();
   
@@ -237,8 +237,8 @@ const ModernStickyHeader: React.FC = () => {
     timeZone: 'America/New_York' 
   });
   
-  // Check if team has live match (duplicate check - using safe array access)
-  const userLiveMatchCheck = Array.isArray(liveMatches) ? liveMatches.find(match => 
+  // Check if team has live match - single definition used throughout component
+  const userLiveMatch = Array.isArray(liveMatches) ? liveMatches.find(match => 
     match.homeTeam.id === team?.id?.toString() || match.awayTeam.id === team?.id?.toString()
   ) : null;
 
