@@ -149,21 +149,22 @@ const ModernStickyHeader: React.FC = () => {
     if (!seasonData?.startDate) return "Schedule loading...";
     
     const now = serverTime;
-    const gameTime = new Date();
-    gameTime.setHours(13, 0, 0, 0); // 1 PM EDT = next game day
+    const nextDayCycle = new Date();
+    nextDayCycle.setHours(3, 0, 0, 0); // 3 AM EDT = next day cycle
     
-    if (now.getHours() >= 13) {
-      gameTime.setDate(gameTime.getDate() + 1);
+    // If it's already past 3 AM today, target 3 AM tomorrow
+    if (now.getHours() >= 3) {
+      nextDayCycle.setDate(nextDayCycle.getDate() + 1);
     }
     
-    const diff = gameTime.getTime() - now.getTime();
+    const diff = nextDayCycle.getTime() - now.getTime();
     const hours = Math.floor(diff / (1000 * 60 * 60));
     const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
     
     if (hours < 1) {
-      return `${minutes}m to 1PM`;
+      return `${minutes}m to 3AM`;
     }
-    return `${hours}h ${minutes}m to 1PM`;
+    return `${hours}h ${minutes}m to 3AM`;
   };
 
   const getNextMatchInfo = (): { text: string; isOffSeason: boolean } => {
