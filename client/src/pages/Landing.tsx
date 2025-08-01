@@ -25,69 +25,9 @@ import {
 
 export default function Landing() {
   const { login, isAuthenticated, isLoading, user, error } = useAuth();
-  
-  // Show debug info directly on the page
-  console.log('🔍 Landing page - Auth state:', { isAuthenticated, isLoading, userEmail: user?.email });
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#1a1b3e] via-[#1a1b3e] to-slate-900">
-      {/* Enhanced Debug Panel */}
-      <div className="fixed top-4 right-4 bg-black/90 backdrop-blur-sm text-white p-4 rounded-lg text-sm z-50 max-w-sm border border-gray-600 shadow-2xl">
-        <div className="font-bold text-yellow-400 mb-2">🔍 Firebase Auth Status:</div>
-        
-        {/* Authentication Status */}
-        <div className="space-y-1 mb-3">
-          <div className="flex justify-between">
-            <span>Loading:</span>
-            <span className={isLoading ? 'text-yellow-300' : 'text-green-400'}>
-              {isLoading ? '⏳ Loading...' : '✅ Ready'}
-            </span>
-          </div>
-          <div className="flex justify-between">
-            <span>Authenticated:</span>
-            <span className={isAuthenticated ? 'text-green-400' : 'text-red-400'}>
-              {isAuthenticated ? '✅ Success' : '❌ No'}
-            </span>
-          </div>
-          {user?.email && (
-            <div className="text-xs bg-green-900/30 p-2 rounded border border-green-500">
-              <span className="text-green-300 font-semibold">✅ Logged in as:</span>
-              <div className="text-green-200">{user.email}</div>
-            </div>
-          )}
-        </div>
-
-        {/* Error Display */}
-        {error && (
-          <div className="mb-3 p-2 bg-red-900/30 border border-red-500 rounded text-red-200 text-xs">
-            <div className="font-semibold text-red-300">❌ Error:</div>
-            <div className="break-words mt-1">{error}</div>
-          </div>
-        )}
-
-        {/* Domain Status */}
-        <div className="text-xs text-gray-300 border-t border-gray-600 pt-2">
-          <div className="font-semibold text-blue-300 mb-1">🌐 Current Domain:</div>
-          <div className="break-all bg-gray-800 p-1 rounded mb-2 text-green-300">
-            {window.location.hostname}
-          </div>
-          
-          {!isAuthenticated && !error && (
-            <div className="space-y-1">
-              <div className="font-semibold text-yellow-300">💡 Try These Options:</div>
-              <div className="text-blue-300">• Click "Start Your Dynasty" (redirect)</div>
-              <div className="text-purple-300">• Click "Try Popup Login" (popup backup)</div>
-              <div className="text-gray-300">• Check browser console for logs</div>
-            </div>
-          )}
-          
-          {isAuthenticated && (
-            <div className="text-green-300 font-semibold p-2 bg-green-900/20 rounded">
-              🎉 Authentication successful! You should be redirected to the dashboard.
-            </div>
-          )}
-        </div>
-      </div>
       
       {/* Hero Section */}
       <div className="relative overflow-hidden min-h-screen flex items-center">
@@ -128,7 +68,7 @@ export default function Landing() {
               Command teams of <span className="text-[#ff6b35] font-semibold">Humans</span>, <span className="text-green-400 font-semibold">Sylvans</span>, <span className="text-red-400 font-semibold">Gryll</span>, <span className="text-yellow-400 font-semibold">Lumina</span>, and <span className="text-purple-400 font-semibold">Umbra</span> in the most intense fantasy sports experience ever created. Every decision matters. Every match counts. Every season builds your legacy.
             </p>
 
-            {/* Dual CTA Strategy */}
+            {/* Main CTA Section */}
             <div className="flex flex-col sm:flex-row gap-6 justify-center mb-16">
               <Button 
                 onClick={() => {
@@ -142,18 +82,6 @@ export default function Landing() {
                 <ArrowRight className="w-6 h-6 ml-3" />
               </Button>
               
-              {/* Popup Authentication Fallback */}
-              <Button 
-                onClick={() => {
-                  console.log('🪟 Landing page: Popup login button clicked!');
-                  login(true); // Use popup authentication
-                }}
-                variant="outline"
-                className="border-2 border-yellow-400 text-yellow-400 hover:bg-yellow-400/10 px-12 py-6 text-xl font-semibold rounded-2xl transition-all duration-300 backdrop-blur-sm"
-              >
-                <AlertCircle className="w-6 h-6 mr-3" />
-                Try Popup Login
-              </Button>
               <Button 
                 variant="outline"
                 onClick={() => {
