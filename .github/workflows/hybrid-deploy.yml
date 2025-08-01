@@ -92,7 +92,12 @@ jobs:
     - name: Build frontend with backend URL
       run: |
         echo "🔨 Building frontend with backend URL: ${{ steps.backend-url.outputs.url }}"
-        VITE_API_BASE_URL=${{ steps.backend-url.outputs.url }} npm run build
+        echo "🧹 Cleaning previous build..."
+        rm -rf dist/
+        echo "🔧 Setting VITE_API_BASE_URL=${{ steps.backend-url.outputs.url }}"
+        export VITE_API_BASE_URL=${{ steps.backend-url.outputs.url }}
+        echo "🔍 Verifying environment: VITE_API_BASE_URL=${VITE_API_BASE_URL}"
+        npm run build
         echo "✅ Frontend build completed with VITE_API_BASE_URL=${{ steps.backend-url.outputs.url }}"
       env:
         VITE_FIREBASE_API_KEY: ${{ secrets.VITE_FIREBASE_API_KEY }}
