@@ -36,6 +36,7 @@ import {
   Building
 } from "lucide-react";
 import { RevenueCalculationsModal } from "./RevenueCalculationsModal";
+import { AlphaTestingCheckbox } from "./AlphaTestingTerms";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 
@@ -255,34 +256,10 @@ export default function DramaticTeamHQ() {
                   </p>
                 </div>
 
-                <Alert className="bg-yellow-900/50 border-yellow-500/50">
-                  <AlertTriangle className="h-4 w-4" />
-                  <AlertDescription className="text-yellow-200">
-                    <strong>Alpha Testing Agreement:</strong> This is early access software. 
-                    Features may change, and progress could be reset during testing phases.
-                    Welcome to Realm Rivalry Alpha! By participating, you agree to:
-                    <br />• Test pre-release software with potential bugs and incomplete features
-                    <br />• Provide constructive feedback to help improve the game
-                    <br />• Keep Alpha content confidential until public release  
-                    <br />• Understand that progress may be reset during testing phases
-                    <br />• Report any issues or exploits discovered during play
-                    <br />• Participate respectfully in the Alpha testing community
-                    <br />This Alpha version represents ongoing development - your feedback shapes the final product!
-                  </AlertDescription>
-                </Alert>
-
-                <div className="flex items-center space-x-3">
-                  <input 
-                    type="checkbox" 
-                    id="nda-agreement"
-                    checked={ndaAgreed}
-                    onChange={(e) => setNdaAgreed(e.target.checked)}
-                    className="w-4 h-4 text-purple-600 bg-gray-700 border-gray-600 rounded focus:ring-purple-500"
-                  />
-                  <label htmlFor="nda-agreement" className="text-gray-300">
-                    I agree to the Alpha Testing terms and am ready to build my dynasty
-                  </label>
-                </div>
+                <AlphaTestingCheckbox 
+                  checked={ndaAgreed}
+                  onCheckedChange={setNdaAgreed}
+                />
 
                 <Button 
                   className="w-full bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white font-bold py-4 text-lg"
