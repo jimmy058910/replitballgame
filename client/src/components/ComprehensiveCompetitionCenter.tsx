@@ -153,23 +153,23 @@ export default function ComprehensiveCompetitionCenter() {
     enabled: !!team?.id,
   });
 
-  const { data: seasonData } = useQuery({
+  const { data: seasonData } = useQuery<any>({
     queryKey: ['/api/season/current-cycle'],
     enabled: isAuthenticated,
   });
 
   // Exhibition-specific queries
-  const { data: exhibitionStats } = useQuery({
+  const { data: exhibitionStats } = useQuery<any>({
     queryKey: ['/api/exhibitions/stats'],
     enabled: isAuthenticated && activeTab === 'exhibitions',
   });
 
-  const { data: exhibitionHistory } = useQuery({
+  const { data: exhibitionHistory } = useQuery<any>({
     queryKey: ['/api/exhibitions/recent'],
     enabled: isAuthenticated && activeTab === 'exhibitions',
   });
 
-  const { data: availableOpponents } = useQuery({
+  const { data: availableOpponents } = useQuery<any>({
     queryKey: ['/api/exhibitions/available-opponents'],
     enabled: isAuthenticated && showOpponentSelect,
   });
@@ -190,14 +190,14 @@ export default function ComprehensiveCompetitionCenter() {
   });
 
   // Get daily schedule data for authentic game information
-  const { data: dailySchedule } = useQuery({
+  const { data: dailySchedule } = useQuery<any>({
     queryKey: ["/api/leagues/daily-schedule"],
     refetchInterval: 5 * 60 * 1000, // Update every 5 minutes
     staleTime: 2 * 60 * 1000, // Consider data fresh for 2 minutes
   });
 
   // Get division schedule for detailed match data
-  const { data: divisionSchedule } = useQuery({
+  const { data: divisionSchedule } = useQuery<any>({
     queryKey: [`/api/leagues/${team?.division || 8}/schedule`],
     enabled: !!team?.division,
     refetchInterval: 5 * 60 * 1000,
@@ -215,7 +215,7 @@ export default function ComprehensiveCompetitionCenter() {
   });
 
   // Selected team scouting data
-  const { data: scoutingData, isLoading: scoutingLoading } = useQuery({
+  const { data: scoutingData, isLoading: scoutingLoading } = useQuery<any>({
     queryKey: [`/api/teams/${selectedTeamId}/scouting`],
     enabled: !!selectedTeamId && isScoutingModalOpen,
   });
@@ -228,18 +228,18 @@ export default function ComprehensiveCompetitionCenter() {
   });
 
   // Tournament-specific queries
-  const { data: availableTournaments } = useQuery({
+  const { data: availableTournaments } = useQuery<any>({
     queryKey: ["/api/new-tournaments/available"],
     enabled: !!team?.id,
   });
 
-  const { data: myTournaments } = useQuery({
+  const { data: myTournaments } = useQuery<any>({
     queryKey: ["/api/new-tournaments/my-tournaments"],
     enabled: !!team?.id,
   });
 
   // Query for tournament history
-  const { data: tournamentHistory = [], isLoading: isHistoryLoading } = useQuery({
+  const { data: tournamentHistory = [], isLoading: isHistoryLoading } = useQuery<any>({
     queryKey: ["/api/new-tournaments/history"],
     enabled: !!team?.id,
   });
@@ -339,10 +339,10 @@ export default function ComprehensiveCompetitionCenter() {
   // Exhibition mutations
   const startInstantMatch = useMutation({
     mutationFn: () => apiRequest('/api/exhibitions/instant-match', 'POST'),
-    onSuccess: (data) => {
+    onSuccess: (data: any) => {
       toast({
         title: "Exhibition Started!",
-        description: `Match against ${data.opponentName} is now live!`,
+        description: `Match against ${(data as any)?.opponentName || 'opponent'} is now live!`,
       });
       queryClient.invalidateQueries({ queryKey: ['/api/exhibitions/stats'] });
       queryClient.invalidateQueries({ queryKey: ['/api/matches/live'] });
@@ -358,14 +358,11 @@ export default function ComprehensiveCompetitionCenter() {
 
   const challengeOpponent = useMutation({
     mutationFn: (opponentId: string) => 
-      apiRequest('/api/exhibitions/challenge', { 
-        method: 'POST', 
-        body: { opponentId } 
-      }),
-    onSuccess: (data) => {
+      apiRequest('/api/exhibitions/challenge', 'POST', { opponentId }),
+    onSuccess: (data: any) => {
       toast({
         title: "Exhibition Challenge Started!",
-        description: `Match against ${data.opponentName} is now live!`,
+        description: `Match against ${(data as any)?.opponentName || 'opponent'} is now live!`,
       });
       setShowOpponentSelect(false);
       queryClient.invalidateQueries({ queryKey: ['/api/exhibitions/stats'] });
@@ -525,7 +522,7 @@ export default function ComprehensiveCompetitionCenter() {
               </div>
               <div className="flex items-center gap-2 text-xs md:text-sm">
                 <Badge className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-2 py-1">
-                  Division {team?.division || 8} - {team?.subdivision?.charAt(0).toUpperCase() + team?.subdivision?.slice(1) || 'Eta'}
+                  Division {team?.division || 8} - {team?.subdivision ? team.subdivision.charAt(0).toUpperCase() + team.subdivision.slice(1) : 'Eta'}
                 </Badge>
                 <Badge className="bg-yellow-600 text-yellow-100 px-2 py-1">
                   Season 0 • Day {seasonData?.currentDay || 10}/17
@@ -557,7 +554,7 @@ export default function ComprehensiveCompetitionCenter() {
                 <div>
                   <h3 className="text-lg font-bold text-white">
                     {(() => {
-                      const position = divisionStandings?.findIndex(s => s.id === team?.id) + 1 || 0;
+                      const position = (divisionStandings?.findIndex(s => s.id === team?.id) ?? -1) + 1 || 0;
                       const positionText = position === 1 ? '1st' : 
                                          position === 2 ? '2nd' : 
                                          position === 3 ? '3rd' : 
@@ -630,7 +627,7 @@ export default function ComprehensiveCompetitionCenter() {
         </Card>
 
         {/* MOBILE-FIRST TAB NAVIGATION */}
-        <Tabs value={activeTab} onValueChange={handleTabChange}>
+        <Tabs value={activeTab} onValueChange={(value) => handleTabChange(value as 'live' | 'league' | 'tournaments' | 'exhibitions' | 'schedule')}>
           
           <div className="mb-4">
             <TabsList className="grid w-full grid-cols-5 bg-gray-800 p-1 rounded-lg border border-gray-600">
@@ -693,7 +690,7 @@ export default function ComprehensiveCompetitionCenter() {
                         <Trophy className="h-6 w-6 text-yellow-400" />
                         <div>
                           <CardTitle className="text-xl font-bold text-white">
-                            Division {team?.division || 8} – {team?.subdivision?.charAt(0).toUpperCase() + team?.subdivision?.slice(1) || 'Eta'}
+                            Division {team?.division || 8} – {team?.subdivision ? team.subdivision.charAt(0).toUpperCase() + team.subdivision.slice(1) : 'Eta'}
                           </CardTitle>
                           <div className="flex items-center gap-4 text-sm text-gray-400 mt-1">
                             <span className="flex items-center gap-1">
@@ -708,7 +705,7 @@ export default function ComprehensiveCompetitionCenter() {
                         </div>
                       </div>
                       <Badge className="bg-blue-600 text-blue-100">
-                        #{divisionStandings?.findIndex(s => s.id === team?.id) + 1 || '?'} of 8
+                        #{(divisionStandings?.findIndex(s => s.id === team?.id) ?? -1) + 1 || '?'} of 8
                       </Badge>
                     </div>
                   </CardHeader>
@@ -762,7 +759,7 @@ export default function ComprehensiveCompetitionCenter() {
                                       <div className="flex items-center gap-2">
                                         {!isUser ? (
                                           <button
-                                            onClick={() => openScoutingModal(standingTeam.id)}
+                                            onClick={() => openScoutingModal(Number(standingTeam.id))}
                                             className="font-semibold text-white hover:text-blue-400 transition-colors cursor-pointer underline decoration-dotted underline-offset-2"
                                           >
                                             {standingTeam.name}

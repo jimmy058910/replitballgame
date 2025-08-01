@@ -185,8 +185,12 @@ export default function DramaticTeamHQ() {
         title: "Dynasty Created!",
         description: `Welcome to Realm Rivalry, ${data.team.name}!`,
       });
-      // Refresh team data to show the new team
+      // Clear form
+      setTeamName('');
+      setNdaAgreed(false);
+      // Force refresh team data to show the new team and hide creation form
       queryClient.invalidateQueries({ queryKey: ["/api/teams/my"] });
+      queryClient.refetchQueries({ queryKey: ["/api/teams/my"] });
     },
     onError: (error: any) => {
       const errorMessage = error?.response?.data?.error || error?.message || "Failed to create dynasty";
@@ -256,7 +260,14 @@ export default function DramaticTeamHQ() {
                   <AlertDescription className="text-yellow-200">
                     <strong>Alpha Testing Agreement:</strong> This is early access software. 
                     Features may change, and progress could be reset during testing phases.
-                    By continuing, you agree to provide feedback and understand this is a work-in-progress.
+                    Welcome to Realm Rivalry Alpha! By participating, you agree to:
+                    <br />• Test pre-release software with potential bugs and incomplete features
+                    <br />• Provide constructive feedback to help improve the game
+                    <br />• Keep Alpha content confidential until public release  
+                    <br />• Understand that progress may be reset during testing phases
+                    <br />• Report any issues or exploits discovered during play
+                    <br />• Participate respectfully in the Alpha testing community
+                    <br />This Alpha version represents ongoing development - your feedback shapes the final product!
                   </AlertDescription>
                 </Alert>
 

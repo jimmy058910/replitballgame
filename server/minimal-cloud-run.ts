@@ -55,9 +55,16 @@ app.get('/api/health', (req, res) => {
   res.json({ status: 'healthy', service: 'realm-rivalry-api' });
 });
 
+// Team creation state tracking
+let hasTeam: boolean = false;
+let createdTeam: any = null;
+
 // Team endpoints - provide basic responses with 200 status
 app.get('/api/teams/my', (req, res) => {
-  res.status(200).json({ 
+  if (hasTeam && createdTeam) {
+    return res.status(200).json(createdTeam);
+  }
+  return res.status(200).json({ 
     team: null,
     message: 'No team found - create your dynasty first',
     needsTeamCreation: true 
@@ -154,20 +161,27 @@ app.post('/api/teams/create', (req, res) => {
     });
   }
 
-  // Simulate team creation success
+  // Create team and update global state
+  const newTeam = {
+    id: 'team_' + Date.now(),
+    name: teamName,
+    division: 8,
+    subdivision: 'late_alpha',
+    wins: 0,
+    losses: 0,
+    points: 0,
+    camaraderie: 50,
+    fanLoyalty: 30,
+    credits: 5000,
+    gems: 0
+  };
+
+  hasTeam = true;
+  createdTeam = newTeam;
+
   return res.status(201).json({
     message: 'Dynasty created successfully!',
-    team: {
-      id: 'team_' + Date.now(),
-      name: teamName,
-      division: 8,
-      subdivision: 'late_alpha',
-      wins: 0,
-      losses: 0,
-      points: 0,
-      camaraderie: 50,
-      fanLoyalty: 30
-    },
+    team: newTeam,
     needsTeamCreation: false
   });
 });
@@ -330,6 +344,50 @@ app.get('/api/tournaments/current', (req, res) => {
   });
 });
 
+// Exhibition endpoints 
+app.get('/api/exhibitions/stats', (req, res) => {
+  res.status(200).json({
+    totalExhibitions: 0,
+    wins: 0,
+    losses: 0,
+    freeGamesRemaining: 3,
+    extraTokens: 0
+  });
+});
+
+app.get('/api/exhibitions/recent', (req, res) => {
+  res.status(200).json([]);
+});
+
+app.get('/api/exhibitions/available-opponents', (req, res) => {
+  res.status(200).json([
+    { id: 1, name: 'Storm Riders', division: 2, difficulty: 'medium' },
+    { id: 2, name: 'Thunder Hawks', division: 3, difficulty: 'easy' }
+  ]);
+});
+
+// World hall of fame endpoint
+app.get('/api/world/hall-of-fame', (req, res) => {
+  res.status(200).json({
+    achievements: [
+      { 
+        title: 'First Dynasty Created', 
+        description: 'Founded the very first dynasty in Realm Rivalry',
+        team: { division: 8, name: 'Oakland Cougars' },
+        date: '2025-08-01'
+      }
+    ],
+    recentChampions: [
+      {
+        id: 1,
+        team: { name: 'Elite Dragons' },
+        tournament: { name: 'Mid-Season Cup', completedAt: '2025-08-01' },
+        registeredAt: '2025-08-01'
+      }
+    ]
+  });
+});
+
 // Essential endpoints commonly used
 app.get('/api/camaraderie/summary', (req, res) => {
   res.status(200).json({
@@ -355,6 +413,32 @@ app.get('/api/teams/my/next-opponent', (req, res) => {
     matchType: 'league',
     division: 2,
     timeUntil: '1 day'
+  });
+});
+
+// World statistics endpoint
+app.get('/api/world/statistics', (req, res) => {
+  res.status(200).json({
+    totalTeams: 24,
+    totalPlayers: 480,
+    divisionLeaders: [
+      { division: 1, teamName: 'Elite Dragons', wins: 12 },
+      { division: 2, teamName: 'Storm Riders', wins: 11 }
+    ],
+    bestRecords: [
+      { teamName: 'Elite Dragons', wins: 12, losses: 1 },
+      { teamName: 'Storm Riders', wins: 11, losses: 2 }
+    ],
+    strongestPlayers: [
+      { name: 'Thunder Strike', team: 'Elite Dragons', power: 95 },
+      { name: 'Wind Walker', team: 'Storm Riders', power: 93 }
+    ],
+    achievements: [
+      { title: 'First Dynasty Created', date: '2025-08-01', player: 'Oakland Cougars' }
+    ],
+    recentChampions: [
+      { season: 1, champion: 'Elite Dragons', division: 1 }
+    ]
   });
 });
 

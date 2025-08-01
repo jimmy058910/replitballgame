@@ -36,7 +36,7 @@ function getDivisionColor(division: number): string {
 }
 
 function UniversalTeamPowerRankings() {
-  const { data: rankings, isLoading } = useQuery({
+  const { data: rankings, isLoading } = useQuery<any>({
     queryKey: ["/api/world/global-rankings"],
     refetchInterval: 60000, // Refresh every minute
   });
@@ -131,7 +131,7 @@ function UniversalTeamPowerRankings() {
 }
 
 function WorldStatisticsDashboard() {
-  const { data: statistics, isLoading } = useQuery({
+  const { data: statistics, isLoading } = useQuery<any>({
     queryKey: ["/api/world/statistics"],
     refetchInterval: 60000,
   });
@@ -290,7 +290,7 @@ function WorldStatisticsDashboard() {
 }
 
 function HallOfFame() {
-  const { data: hallOfFame, isLoading } = useQuery({
+  const { data: hallOfFame, isLoading } = useQuery<any>({
     queryKey: ["/api/world/hall-of-fame"],
     refetchInterval: 60000,
   });
