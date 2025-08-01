@@ -204,8 +204,8 @@ export default function MarketDistrict() {
     queryFn: () => apiRequest('/api/store/gem-packages'),
     enabled: isAuthenticated,
     select: (data: any) => {
-      // API returns {success: true, data: [...]} structure
-      const packages = data?.data || [];
+      // API returns array directly from minimal backend
+      const packages = Array.isArray(data) ? data : (data?.data || []);
       console.log('Gem packages received:', packages.length, packages);
       return packages;
     }
@@ -609,7 +609,12 @@ export default function MarketDistrict() {
                 <Card className="bg-gray-800 border-gray-700">
                   <CardContent className="p-6 space-y-6">
                     {/* Gem Packages */}
-                    {gemPackages && gemPackages.length > 0 ? (
+                    {gemPackagesLoading ? (
+                      <div className="text-center py-8">
+                        <div className="w-8 h-8 border-4 border-blue-400 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+                        <p className="text-gray-400">Loading gem packages...</p>
+                      </div>
+                    ) : (gemPackages && gemPackages.length > 0) ? ( ? (
                       <div className="space-y-4">
                         <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
                           <Gem className="h-5 w-5 text-blue-400" />
@@ -683,8 +688,12 @@ export default function MarketDistrict() {
                         </div>
                       </div>
                     ) : (
-                      <div className="text-center py-4">
-                        <p className="text-gray-400">Loading gem packages...</p>
+                      <div className="text-center py-8">
+                        <div className="text-gray-400 mb-4">
+                          <Gem className="w-12 h-12 mx-auto mb-2 opacity-50" />
+                          <p>No gem packages available at this time.</p>
+                          <p className="text-sm mt-2">Check back later for premium offers!</p>
+                        </div>
                       </div>
                     )}
 

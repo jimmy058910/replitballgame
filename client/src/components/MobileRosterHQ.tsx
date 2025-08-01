@@ -378,8 +378,9 @@ export default function MobileRosterHQ() {
     localStorage.setItem(`rosterVisit_${today}`, 'true');
   }, []);
 
-  // Player calculations
-  const activePlayers = players?.filter(p => !p.isOnMarket && !p.isRetired) || [];
+  // Player calculations - safely handle null/undefined players
+  const safePlayersList = Array.isArray(players) ? players : [];
+  const activePlayers = safePlayersList.filter(p => !p.isOnMarket && !p.isRetired);
   const sortedPlayers = [...activePlayers].sort((a, b) => {
     const posA = a.rosterPosition || 0;
     const posB = b.rosterPosition || 0;
@@ -447,17 +448,40 @@ export default function MobileRosterHQ() {
     setSelectedStaff(staff);
   };
 
-  // Loading state
-  if (teamLoading || playersLoading || !team || !players) {
+  // Loading state - fix infinite loading
+  if (teamLoading || playersLoading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900">
-        <div className="container mx-auto px-4 py-8 text-center">
+        <ModernStickyHeader />
+        <div className="container mx-auto px-4 py-8 text-center mt-8">
           <Card className="bg-gradient-to-r from-blue-800 to-purple-800 border-2 border-blue-400">
             <CardContent className="p-8">
               <div className="text-white">
                 <div className="w-8 h-8 border-4 border-blue-400 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
                 <h2 className="text-2xl font-bold mb-4">LOADING ROSTER HQ</h2>
                 <p className="text-blue-200">Gathering player and staff information...</p>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    );
+  }
+
+  // Handle case where team exists but no players yet - still show interface
+  if (!team) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900">
+        <ModernStickyHeader />
+        <div className="container mx-auto px-4 py-8 text-center mt-8">
+          <Card className="bg-gradient-to-r from-red-800 to-orange-800 border-2 border-red-400">
+            <CardContent className="p-8">
+              <div className="text-white">
+                <h2 className="text-2xl font-bold mb-4">TEAM NOT FOUND</h2>
+                <p className="text-red-200 mb-4">Unable to load your team data. Please create a team first.</p>
+                <Button onClick={() => window.location.href = '/'} className="bg-blue-600 hover:bg-blue-700">
+                  Return to Dashboard
+                </Button>
               </div>
             </CardContent>
           </Card>

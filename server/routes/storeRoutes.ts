@@ -100,7 +100,8 @@ router.get('/items', cacheMiddleware({ ttl: 600 }), isAuthenticated, async (req:
 // Master Economy v5 New Endpoints
 router.get('/gem-packages', isAuthenticated, async (req: Request, res: Response, next: NextFunction) => {
   try {
-    res.json({ success: true, data: storeConfig.gemPackages });
+    const gemPackages = storeConfig.storeSections.gemPackages || [];
+    res.json({ success: true, data: gemPackages });
   } catch (error) {
     console.error('Error fetching gem packages:', error);
     next(error);
