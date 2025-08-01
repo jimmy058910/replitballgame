@@ -13,7 +13,9 @@ export const API_CONFIG = {
 console.log('🔗 API Configuration:', {
   baseUrl: API_CONFIG.BASE_URL,
   websocketUrl: API_CONFIG.WEBSOCKET_URL,
-  environment: import.meta.env.PROD ? 'production' : 'development'
+  environment: import.meta.env.PROD ? 'production' : 'development',
+  viteApiBaseUrl: import.meta.env.VITE_API_BASE_URL,
+  prodMode: import.meta.env.PROD
 });
 
 // Enhanced fetch wrapper with proper error handling

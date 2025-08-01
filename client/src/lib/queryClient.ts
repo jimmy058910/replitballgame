@@ -14,6 +14,13 @@ const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ||
     : 'http://localhost:5000'
   );
 
+console.log('🔗 QueryClient API Configuration:', {
+  baseUrl: API_BASE_URL,
+  environment: import.meta.env.PROD ? 'production' : 'development',
+  viteApiBaseUrl: import.meta.env.VITE_API_BASE_URL,
+  prodMode: import.meta.env.PROD
+});
+
 export async function apiRequest<T>(
   endpoint: string,
   method: string = "GET",

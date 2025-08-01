@@ -70,44 +70,20 @@ export default function Landing() {
 
             {/* Main CTA Section */}
             <div className="flex flex-col sm:flex-row gap-6 justify-center mb-16">
-              <div className="flex flex-col gap-4">
-                <Button 
-                  onClick={async () => {
-                    console.log('🎯 Landing page: Start Your Dynasty button clicked!');
-                    console.log('🔍 Current domain:', window.location.hostname);
-                    console.log('🔍 Full URL:', window.location.href);
-                    console.log('🔍 Firebase authDomain from config:', import.meta.env.VITE_FIREBASE_PROJECT_ID + '.firebaseapp.com');
-                    try {
-                      await login(); // Use redirect method
-                      console.log('🎯 Login redirect initiated successfully');
-                    } catch (error) {
-                      console.error('🚨 Login redirect failed:', error);
-                    }
-                  }}
-                  className="bg-gradient-to-r from-[#ff6b35] to-orange-600 hover:from-orange-600 hover:to-red-600 text-white px-12 py-6 text-xl font-bold rounded-2xl transition-all duration-300 transform hover:scale-105 shadow-2xl hover:shadow-[#ff6b35]/20"
-                >
-                  <Crown className="w-6 h-6 mr-3" />
-                  Start Your Dynasty
-                  <ArrowRight className="w-6 h-6 ml-3" />
-                </Button>
-                
-                <Button 
-                  onClick={async () => {
-                    console.log('🪟 Testing popup authentication...');
-                    try {
-                      await login(true); // Use popup method
-                      console.log('🎯 Popup login completed successfully');
-                    } catch (error) {
-                      console.error('🚨 Popup login failed:', error);
-                    }
-                  }}
-                  variant="outline"
-                  className="bg-white/10 backdrop-blur-sm border-white/20 text-white hover:bg-white/20 px-8 py-3 text-sm rounded-xl transition-all duration-300"
-                >
-                  <Crown className="w-4 h-4 mr-2" />
-                  Try Popup Login (Test)
-                </Button>
-              </div>
+              <Button 
+                onClick={async () => {
+                  try {
+                    await login(true); // Use popup method since it works
+                  } catch (error) {
+                    console.error('Login failed:', error);
+                  }
+                }}
+                className="bg-gradient-to-r from-[#ff6b35] to-orange-600 hover:from-orange-600 hover:to-red-600 text-white px-12 py-6 text-xl font-bold rounded-2xl transition-all duration-300 transform hover:scale-105 shadow-2xl hover:shadow-[#ff6b35]/20"
+              >
+                <Crown className="w-6 h-6 mr-3" />
+                Start Your Dynasty
+                <ArrowRight className="w-6 h-6 ml-3" />
+              </Button>
               
               <Button 
                 variant="outline"
