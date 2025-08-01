@@ -223,14 +223,14 @@ router.post('/', isAuthenticated, asyncHandler(async (req: any, res: Response) =
     const position = requiredPositions[i];
     
     try {
-      const playerData = generateRandomPlayer("", race, team.id, position);
+      const playerData = generateRandomPlayer("", race, team.id.toString(), position);
       
       // Extract only the fields that the PlayerStorage expects
       const cleanPlayerData = {
-        teamId: parseInt(playerData.teamId),
+        teamId: team.id,
         firstName: playerData.firstName,
         lastName: playerData.lastName,
-        race: playerData.race.toUpperCase() as Race,
+        race: playerData.race as Race,
         age: playerData.age,
         role: playerData.role as PlayerRole,
         speed: playerData.speed,
@@ -244,7 +244,7 @@ router.post('/', isAuthenticated, asyncHandler(async (req: any, res: Response) =
         potentialRating: playerData.potentialRating,
         dailyStaminaLevel: 100,
         injuryStatus: 'HEALTHY' as InjuryStatus,
-        camaraderieScore: playerData.camaraderie || 75.0,
+        camaraderie: playerData.camaraderie || 75.0,
       };
       
       await storage.players.createPlayer(cleanPlayerData);
@@ -262,13 +262,13 @@ router.post('/', isAuthenticated, asyncHandler(async (req: any, res: Response) =
 
   // Updated staff generation: weaker, more balanced stats and ages 35-75
   const defaultStaff = [
-    { type: 'HEAD_COACH', name: 'Coach Johnson', motivation: 18, development: 15, tactics: 14 },
-    { type: 'RECOVERY_SPECIALIST', name: 'Alex Recovery', physiology: 16 },
-    { type: 'PASSER_TRAINER', name: 'Sarah Passer', teaching: 15 },
-    { type: 'RUNNER_TRAINER', name: 'Mike Runner', teaching: 14 },
-    { type: 'BLOCKER_TRAINER', name: 'Lisa Blocker', teaching: 15 },
-    { type: 'SCOUT', name: 'Emma Talent', talentIdentification: 16, potentialAssessment: 15 },
-    { type: 'SCOUT', name: 'Tony Scout', talentIdentification: 14, potentialAssessment: 15 }
+    { type: 'HEAD_COACH' as const, name: 'Coach Johnson', motivation: 18, development: 15, tactics: 14 },
+    { type: 'RECOVERY_SPECIALIST' as const, name: 'Alex Recovery', physiology: 16 },
+    { type: 'PASSER_TRAINER' as const, name: 'Sarah Passer', teaching: 15 },
+    { type: 'RUNNER_TRAINER' as const, name: 'Mike Runner', teaching: 14 },
+    { type: 'BLOCKER_TRAINER' as const, name: 'Lisa Blocker', teaching: 15 },
+    { type: 'SCOUT' as const, name: 'Emma Talent', talentIdentification: 16, potentialAssessment: 15 },
+    { type: 'SCOUT' as const, name: 'Tony Scout', talentIdentification: 14, potentialAssessment: 15 }
   ];
 
   for (const staffData of defaultStaff) {
