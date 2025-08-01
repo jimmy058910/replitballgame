@@ -26,15 +26,22 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       try {
         console.log('🔍 Checking for OAuth redirect result...');
         console.log('🔍 Current URL:', window.location.href);
+        console.log('🔍 URL protocol:', window.location.protocol);
+        console.log('🔍 URL hostname:', window.location.hostname);
         console.log('🔍 URL has OAuth params:', window.location.href.includes('code=') || window.location.href.includes('state='));
+        console.log('🔍 URL params:', window.location.search);
+        console.log('🔍 URL hash:', window.location.hash);
+        console.log('🔍 Firebase authDomain:', auth.app.options.authDomain);
         
         const result = await getRedirectResult(auth);
         console.log('🔍 getRedirectResult returned:', !!result);
+        console.log('🔍 getRedirectResult details:', result ? 'SUCCESS' : 'NO_RESULT');
         
         if (result) {
           console.log('🎉 OAuth redirect successful:', result.user.email);
           console.log('🎉 User UID:', result.user.uid);
           console.log('🎉 Provider data:', result.providerId);
+          console.log('🎉 User verified:', result.user.emailVerified);
           setUser(result.user);
           setError(null);
         } else {
@@ -42,11 +49,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           console.log('🔍 Current auth.currentUser:', !!auth.currentUser);
           if (auth.currentUser) {
             console.log('🔍 Current user email:', auth.currentUser.email);
+            console.log('🔍 Current user UID:', auth.currentUser.uid);
+            setUser(auth.currentUser);
           }
         }
       } catch (error: any) {
         console.error('🚨 OAuth redirect error:', error);
-        console.error('🚨 Error details:', error.code, error.message);
+        console.error('🚨 Error code:', error.code);
+        console.error('🚨 Error message:', error.message);
+        console.error('🚨 Full error object:', error);
         setError(error.message);
       }
     };
