@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { useAuth } from "@/providers/AuthProvider";
+import { useUnifiedAuth } from "@/hooks/useUnifiedAuth";
 import { isUnauthorizedError } from "@/lib/authUtils";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -60,7 +60,7 @@ interface WorldRankings {
 }
 
 export default function CommunityPortal() {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated } = useUnifiedAuth();
   const { toast } = useToast();
   const [redeemCode, setRedeemCode] = useState("");
   const [isRedeeming, setIsRedeeming] = useState(false);

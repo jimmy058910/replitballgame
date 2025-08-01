@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { useAuth } from "@/providers/AuthProvider";
+import { useUnifiedAuth } from "@/hooks/useUnifiedAuth";
 import { isUnauthorizedError } from "@/lib/authUtils";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -166,7 +166,7 @@ function getTierColor(tier: string) {
 }
 
 export default function MarketDistrict() {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated } = useUnifiedAuth();
   const { toast } = useToast();
   const [gemsToExchange, setGemsToExchange] = useState(1);
   const [selectedFilter, setSelectedFilter] = useState<string>('all');

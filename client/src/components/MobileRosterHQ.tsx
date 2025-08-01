@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useQuery, useMutation } from '@tanstack/react-query';
-import { useAuth } from '../providers/AuthProvider';
+import { useUnifiedAuth } from '../hooks/useUnifiedAuth';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import { Badge } from './ui/badge';
 import { Button } from './ui/button';
@@ -99,7 +99,7 @@ type TabType = 'roster' | 'tactics' | 'camaraderie' | 'stadium' | 'staff';
 type RosterView = 'all' | 'medical' | 'contracts';
 
 export default function MobileRosterHQ() {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated } = useUnifiedAuth();
   const { toast } = useToast();
   const [activeTab, setActiveTab] = useState<TabType>('roster');
   const [selectedPlayer, setSelectedPlayer] = useState<Player | null>(null);

@@ -1,8 +1,8 @@
-import { useAuth } from "@/providers/AuthProvider";
+import { useUnifiedAuth } from "@/hooks/useUnifiedAuth";
 import MobileRosterHQ from "@/components/MobileRosterHQ";
 
 export default function RosterHQ() {
-  const { isAuthenticated, isLoading } = useAuth();
+  const { isAuthenticated, isLoading } = useUnifiedAuth();
 
   console.log('RosterHQ Debug:', { isAuthenticated, isLoading });
 

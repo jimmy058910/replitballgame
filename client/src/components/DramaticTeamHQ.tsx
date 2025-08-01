@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
-import { useAuth } from "@/providers/AuthProvider";
+import { useUnifiedAuth } from "@/hooks/useUnifiedAuth";
 import { useLocation } from "wouter";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import ModernStickyHeader from "@/components/ModernStickyHeader";
@@ -97,7 +97,7 @@ interface ExhibitionStats {
 }
 
 export default function DramaticTeamHQ() {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated } = useUnifiedAuth();
   const [, setLocation] = useLocation();
   const [showRevenueModal, setShowRevenueModal] = useState(false);
   const [teamName, setTeamName] = useState('');

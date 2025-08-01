@@ -1,11 +1,11 @@
-import { useAuth } from "@/providers/AuthProvider";
+import { useUnifiedAuth } from "@/hooks/useUnifiedAuth";
 import Navigation from "@/components/Navigation";
 import DramaticTeamHQ from "@/components/DramaticTeamHQ";
 
 // Dashboard now exclusively uses DramaticTeamHQ component
 
 export default function Dashboard() {
-  const { isAuthenticated, isLoading } = useAuth();
+  const { isAuthenticated, isLoading } = useUnifiedAuth();
 
   // Show loading state while checking authentication
   if (isLoading) {
