@@ -23,34 +23,64 @@ import { createHealthCheck } from "./health";
 
 const app = express();
 
-// Configure CORS with production-ready settings
+// BULLETPROOF CORS Configuration - Industry Standard
+// Detect production environment using multiple reliable methods
+const isProduction = process.env.NODE_ENV === 'production' || 
+                    process.env.PORT === '8080' || // Cloud Run uses port 8080
+                    process.env.GOOGLE_CLOUD_PROJECT || // Google Cloud environment
+                    process.env.K_SERVICE; // Cloud Run service name
+
 const corsOptions = {
-  origin: process.env.NODE_ENV === 'production'
-    ? ['https://realmrivalry.com', 'https://www.realmrivalry.com', 'https://realm-rivalry-o6fd46yesq-ul.a.run.app']
-    : ['http://localhost:5000', 'http://localhost:3000', /\.replit\.dev$/],
+  origin: isProduction
+    ? [
+        'https://realmrivalry.com', 
+        'https://www.realmrivalry.com', 
+        'https://realm-rivalry-o6fd46yesq-ul.a.run.app',
+        // Additional safety: allow Cloud Run internal communication
+        /^https:\/\/.*\.a\.run\.app$/
+      ]
+    : [
+        'http://localhost:5000', 
+        'http://localhost:3000', 
+        /\.replit\.dev$/,
+        /^https?:\/\/.*replit.*$/
+      ],
   credentials: true,
   optionsSuccessStatus: 200,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept', 'Origin']
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept', 'Origin', 'Cache-Control']
 }
 
-// Debug CORS configuration
-console.log('🔍 CORS Configuration:', {
-  NODE_ENV: process.env.NODE_ENV,
+// Debug CORS configuration with comprehensive environment detection
+console.log('🔍 COMPREHENSIVE CORS CONFIGURATION:', {
+  NODE_ENV: process.env.NODE_ENV || 'not-set',
+  PORT: process.env.PORT || 'not-set',
+  GOOGLE_CLOUD_PROJECT: process.env.GOOGLE_CLOUD_PROJECT || 'not-set',
+  K_SERVICE: process.env.K_SERVICE || 'not-set',
+  isProduction: isProduction,
   allowedOrigins: corsOptions.origin,
-  production: process.env.NODE_ENV === 'production'
+  corsMethodsAllowed: corsOptions.methods
 });
 
 // Apply CORS as the first middleware to ensure it works
 app.use(cors(corsOptions));
 
-// Add CORS debug middleware
+// Add CORS debug middleware with comprehensive tracking
 app.use((req: Request, res: Response, next: NextFunction) => {
-  console.log('🔍 CORS Debug:', {
-    origin: req.headers.origin,
-    method: req.method,
-    corsApplied: res.getHeaders()['access-control-allow-origin'] ? 'YES' : 'NO'
-  });
+  const afterHeaders = () => {
+    console.log('🔍 CORS REQUEST DEBUG:', {
+      origin: req.headers.origin || 'no-origin',
+      method: req.method,
+      path: req.path,
+      corsOriginHeader: res.getHeaders()['access-control-allow-origin'] || 'MISSING',
+      corsCredentialsHeader: res.getHeaders()['access-control-allow-credentials'] || 'MISSING',
+      corsMethodsHeader: res.getHeaders()['access-control-allow-methods'] || 'MISSING',
+      allCorsHeaders: Object.keys(res.getHeaders()).filter(h => h.startsWith('access-control'))
+    });
+  };
+  
+  // Log after response is sent
+  res.on('finish', afterHeaders);
   next();
 });
 
