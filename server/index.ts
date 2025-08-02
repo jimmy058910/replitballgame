@@ -218,42 +218,8 @@ app.get('/health', (req, res) => {
     next();
   });
 
-  // Setup Google Auth to match production configuration (this includes passport setup)
-  await setupGoogleAuth(app);
-
-  // Register all modular routes
-  registerAllRoutes(app);
-
-  // Add explicit API route handling to prevent Vite interception
-  app.use('/api/*', (req, res, next) => {
-    console.warn(`Unmatched API route: ${req.method} ${req.originalUrl}`);
-    res.status(404).json({ 
-      error: 'API endpoint not found',
-      path: req.originalUrl,
-      method: req.method
-    });
-  });
-
   // Create HTTP server instance from the Express app
   const httpServer = createServer(app);
-
-  // Create Socket.IO server instance
-  const io = new SocketIOServer(httpServer, {
-    path: '/ws',
-    cors: {
-      origin: "*",
-      methods: ["GET", "POST"]
-    }
-  });
-
-  // Setup WebSocket server with Socket.IO
-  await setupWebSocketServer(io);
-
-  // Initialize the new WebSocket manager for live matches
-  webSocketManager.initialize(httpServer);
-
-  // Connect WebSocket service to match state manager
-  matchStateManager.setWebSocketService(webSocketService);
 
   // Health check endpoint for Cloud Run
   app.get('/health', (req, res) => {
@@ -314,17 +280,17 @@ app.get('/health', (req, res) => {
     console.log(`✅ WebSocket server listening on /ws`);
     console.log(`✅ Health check available at /health`);
     
-    // Initialize background services asynchronously (non-blocking)
+    // Initialize all services asynchronously (non-blocking)
     setImmediate(() => {
-      initializeBackgroundServices().catch(error => {
-        console.error('⚠️ Background initialization failed, but server remains operational:', error);
+      initializeAllServices().catch(error => {
+        console.error('⚠️ Service initialization failed, but server remains operational:', error);
       });
     });
   });
 
-  // Background initialization function - runs asynchronously after server starts
-  async function initializeBackgroundServices() {
-    console.log(`🔄 Starting background initialization...`);
+  // Initialize all services asynchronously after server starts
+  async function initializeAllServices() {
+    console.log(`🔄 Starting service initialization...`);
     
     // Initialize services with timeout and error isolation
     const initWithTimeout = async (name: string, initFn: () => Promise<void>, timeoutMs = 30000) => {
@@ -340,17 +306,52 @@ app.get('/health', (req, res) => {
       }
     };
 
+    // Setup Google Auth (non-blocking)
+    await initWithTimeout('Google Authentication', async () => {
+      await setupGoogleAuth(app);
+    }, 15000);
+
+    // Register routes (non-blocking)
+    await initWithTimeout('Route registration', async () => {
+      registerAllRoutes(app);
+      
+      // Add explicit API route handling to prevent Vite interception
+      app.use('/api/*', (req, res, next) => {
+        console.warn(`Unmatched API route: ${req.method} ${req.originalUrl}`);
+        res.status(404).json({ 
+          error: 'API endpoint not found',
+          path: req.originalUrl,
+          method: req.method
+        });
+      });
+    }, 5000);
+
+    // Setup WebSocket services
+    await initWithTimeout('WebSocket services', async () => {
+      const io = new SocketIOServer(httpServer, {
+        path: '/ws',
+        cors: {
+          origin: "*",
+          methods: ["GET", "POST"]
+        }
+      });
+      
+      await setupWebSocketServer(io);
+      webSocketManager.initialize(httpServer);
+      matchStateManager.setWebSocketService(webSocketService);
+    }, 10000);
+
     // Initialize match state recovery system with timeout
     await initWithTimeout('Match state recovery', async () => {
       await matchStateManager.recoverLiveMatches();
-    });
+    }, 15000);
 
     // Initialize season timing automation system with timeout
     await initWithTimeout('Season timing automation', async () => {
       const seasonTimingService = SeasonTimingAutomationService.getInstance();
       await seasonTimingService.start();
-    });
+    }, 15000);
       
-    console.log(`✅ Background initialization completed`);
+    console.log(`✅ All services initialized`);
   }
 })();
