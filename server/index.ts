@@ -34,7 +34,28 @@ const corsOptions = {
   allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept', 'Origin']
 }
 
+// Debug CORS configuration
+console.log('🔍 CORS Configuration:', {
+  NODE_ENV: process.env.NODE_ENV,
+  allowedOrigins: corsOptions.origin,
+  production: process.env.NODE_ENV === 'production'
+});
+
+// Apply CORS as the first middleware to ensure it works
 app.use(cors(corsOptions));
+
+// Add CORS debug middleware
+app.use((req: Request, res: Response, next: NextFunction) => {
+  console.log('🔍 CORS Debug:', {
+    origin: req.headers.origin,
+    method: req.method,
+    corsApplied: res.getHeaders()['access-control-allow-origin'] ? 'YES' : 'NO'
+  });
+  next();
+});
+
+// Additional CORS preflight handler for complex requests
+app.options('*', cors(corsOptions));
 
 // Enable compression for all responses
 app.use(compression({
