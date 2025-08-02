@@ -4,7 +4,7 @@ hidden = [".config", ".git", "generated-icon.png", "node_modules", "dist"]
 
 [nix]
 channel = "stable-24_05"
-packages = ["jq", "dig", "google-cloud-sdk"]
+packages = ["jq", "dig", "google-cloud-sdk", "postgresql"]
 
 [deployment]
 deploymentTarget = "autoscale"
