@@ -41,19 +41,11 @@ jobs:
 
     - name: Build production image
       run: |
-        if [ "${{ github.event.inputs.deployment_type }}" = "simple" ] || [ "${{ github.event.inputs.deployment_type }}" = "" ]; then
-          echo "Building SIMPLE production image (guaranteed to work)..."
-          docker build \
-            --platform linux/amd64 \
-            -f Dockerfile.simple \
-            -t ${{ env.IMAGE_NAME }}:latest .
-        else
-          echo "Building FULL production image (all features)..."
-          docker build \
-            --platform linux/amd64 \
-            -f Dockerfile.industry-standard \
-            -t ${{ env.IMAGE_NAME }}:latest .
-        fi
+        echo "Building production image with FIXED Dockerfile.backend..."
+        docker build \
+          --platform linux/amd64 \
+          -f Dockerfile.backend \
+          -t ${{ env.IMAGE_NAME }}:latest .
 
     - name: Push image to registry
       run: docker push ${{ env.IMAGE_NAME }}:latest
