@@ -8,7 +8,7 @@ import compression from 'compression';
 import helmet from 'helmet';
 import { fileURLToPath } from 'url';
 import { setupGoogleAuth } from './googleAuth';
-import { registerAllRoutes } from './routes/index';
+// Routes will be imported dynamically to avoid conflicts
 import { errorHandler } from './services/errorService';
 // Firestore imports moved to dynamic import to prevent blocking authentication setup
 
@@ -116,10 +116,10 @@ app.get('/api/debug-routes', (req, res) => {
       allRoutes: routes,
       timestamp: new Date().toISOString()
     });
-  } catch (error) {
+  } catch (error: any) {
     res.status(500).json({
       error: 'Failed to extract routes',
-      message: error.message,
+      message: error?.message || 'Unknown error',
       timestamp: new Date().toISOString()
     });
   }
@@ -144,7 +144,7 @@ console.log('DATABASE_URL present:', !!process.env.DATABASE_URL);
     console.log('🔄 BEFORE setupGoogleAuth - app.use type:', typeof app.use);
     
     // Test app.use functionality BEFORE calling setupGoogleAuth
-    const testMiddlewareAdded = [];
+    const testMiddlewareAdded: any[] = [];
     const originalAppUse = app.use.bind(app);
     
     // Wrap app.use to track middleware additions during setupGoogleAuth
@@ -196,6 +196,7 @@ console.log('DATABASE_URL present:', !!process.env.DATABASE_URL);
   
   // NOW register all other API routes AFTER authentication is ready
   console.log('🛣️ Registering API routes AFTER authentication setup...');
+  const { registerAllRoutes } = await import('./routes/index.js');
   registerAllRoutes(app);
   console.log('✅ All API routes registered after authentication setup');
   
@@ -208,17 +209,18 @@ console.log('DATABASE_URL present:', !!process.env.DATABASE_URL);
     });
   });
   
-} catch (error) {
+} catch (error: any) {
   console.error('❌ CRITICAL: Authentication setup failed:', error);
-  console.error('❌ Error message:', error?.message);
-  console.error('❌ Stack trace:', error?.stack);
+  console.error('❌ Error message:', error?.message || 'Unknown error');
+  console.error('❌ Stack trace:', error?.stack || 'No stack trace');
   
   // CRITICAL: Always register routes even if auth fails completely
   console.log('🛣️ TIMEOUT/ERROR: Registering API routes despite auth failure...');
   try {
+    const { registerAllRoutes } = await import('./routes/index.js');
     registerAllRoutes(app);
     console.log('✅ API routes registered successfully despite auth failure');
-  } catch (routeError) {
+  } catch (routeError: any) {
     console.error('❌ CRITICAL: Route registration also failed:', routeError);
   }
   
@@ -245,8 +247,8 @@ console.log('DATABASE_URL present:', !!process.env.DATABASE_URL);
     res.status(500).json({
       status: 'failed',
       error: 'Authentication setup failed',
-      message: error.message,
-      stack: error.stack,
+      message: error?.message || 'Unknown error',
+      stack: error?.stack || 'No stack trace',
       hasGoogleClientId: !!process.env.GOOGLE_CLIENT_ID,
       hasGoogleClientSecret: !!process.env.GOOGLE_CLIENT_SECRET,
       hasDatabaseUrl: !!process.env.DATABASE_URL,
@@ -274,7 +276,7 @@ app.get('/debug-auth', (req: any, res) => {
 // CRITICAL: Test middleware stack BEFORE registering other routes
 console.log('🔍 MIDDLEWARE STACK TEST - Creating test route to verify passport attachment...');
 app.get('/api/middleware-test', (req: any, res) => {
-  const middlewareStack = [];
+  const middlewareStack: any[] = [];
   
   // Walk through the app middleware stack
   if (app._router && app._router.stack) {
@@ -297,12 +299,6 @@ app.get('/api/middleware-test', (req: any, res) => {
     timestamp: new Date().toISOString()
   });
 });
-
-// Register all application API routes - CRITICAL for functionality
-console.log('🔧 Registering main application API routes...');
-const { registerAllRoutes } = await import('./routes/index');
-registerAllRoutes(app);
-console.log('✅ All application API routes registered successfully');
 
 // Industry-standard error handler for API routes
 app.use(errorHandler);
