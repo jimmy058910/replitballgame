@@ -298,8 +298,11 @@ app.get('/api/middleware-test', (req: any, res) => {
   });
 });
 
-// API routes are now registered inside the async IIFE above
-// This ensures authentication setup completes BEFORE routes are registered
+// Register all application API routes - CRITICAL for functionality
+console.log('🔧 Registering main application API routes...');
+const { registerAllRoutes } = await import('./routes/index');
+registerAllRoutes(app);
+console.log('✅ All application API routes registered successfully');
 
 // Industry-standard error handler for API routes
 app.use(errorHandler);
