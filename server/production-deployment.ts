@@ -9,6 +9,7 @@ import helmet from 'helmet';
 import { fileURLToPath } from 'url';
 import { setupGoogleAuth } from './googleAuth';
 import { registerAllRoutes } from './routes/index';
+import { errorHandler } from './services/errorService';
 // Firestore imports moved to dynamic import to prevent blocking authentication setup
 
 // ESM polyfill for __dirname and __filename
@@ -299,6 +300,9 @@ app.get('/api/middleware-test', (req: any, res) => {
 
 // API routes are now registered inside the async IIFE above
 // This ensures authentication setup completes BEFORE routes are registered
+
+// CRITICAL: Add JSON error handler for API routes
+app.use(errorHandler);
 
 // CRITICAL: Test passport AFTER all routes are registered
 console.log('🔍 POST-ROUTE-REGISTRATION: Creating final passport test...');
