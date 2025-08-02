@@ -4,6 +4,8 @@ import rateLimit from "express-rate-limit";
 import helmet from "helmet";
 import compression from "compression";
 import cors from "cors";
+import { registerAllRoutes } from "./routes/index";
+import { join } from "path";
 
 const app = express();
 const port = process.env.PORT || 8080;
@@ -150,133 +152,10 @@ async function initializeServices() {
       
       console.log('✅ Database connected');
       
-      // Add database routes
-      app.get('/api/db-status', async (req, res) => {
-        try {
-          await prisma.$queryRaw`SELECT 1 as test`;
-          res.json({ status: 'connected', timestamp: new Date().toISOString() });
-        } catch (error) {
-          res.status(500).json({ status: 'error', error: error instanceof Error ? error.message : 'Unknown error' });
-        }
-      });
-
-      // Add essential API routes with graceful error handling
-      app.get('/api/teams/my', async (req, res) => {
-        try {
-          // Look for actual team data
-          const teams = await prisma.team.findMany({ take: 1 });
-          if (teams.length === 0) {
-            res.json({ needsTeamCreation: true });
-          } else {
-            res.json(teams[0]);
-          }
-        } catch (error) {
-          console.error('Error fetching team:', error);
-          res.json({ needsTeamCreation: true }); // Fallback to team creation
-        }
-      });
-
-      app.get('/api/season/current-cycle', async (req, res) => {
-        try {
-          // Get actual season data
-          const season = await prisma.season.findFirst({
-            orderBy: { startDate: 'desc' }
-          });
-          
-          if (season) {
-            res.json({ 
-              currentDay: season.currentDay, 
-              seasonNumber: season.seasonNumber, 
-              phase: season.phase,
-              status: 'active' 
-            });
-          } else {
-            res.json({ 
-              currentDay: 1, 
-              seasonNumber: 1, 
-              phase: 'REGULAR_SEASON',
-              status: 'initializing' 
-            });
-          }
-        } catch (error) {
-          console.error('Error fetching season:', error);
-          res.json({ 
-            currentDay: 1, 
-            seasonNumber: 1, 
-            phase: 'REGULAR_SEASON',
-            status: 'error' 
-          });
-        }
-      });
-
-      app.get('/api/matches/live', async (req, res) => {
-        try {
-          const liveMatches = await prisma.game.findMany({
-            where: { status: 'IN_PROGRESS' },
-            take: 5
-          });
-          res.json(liveMatches);
-        } catch (error) {
-          console.error('Error fetching live matches:', error);
-          res.json([]); // Return empty array on error
-        }
-      });
-
-      app.get('/api/camaraderie/summary', async (req, res) => {
-        try {
-          // Return basic camaraderie data
-          res.json({ teamCamaraderie: 50, status: 'stable' });
-        } catch (error) {
-          console.error('Error fetching camaraderie:', error);
-          res.json({ teamCamaraderie: 0, status: 'unknown' });
-        }
-      });
-
-      app.get('/api/teams/my/next-opponent', async (req, res) => {
-        try {
-          // Look for upcoming matches
-          const upcomingMatch = await prisma.game.findFirst({
-            where: { 
-              status: 'SCHEDULED',
-              gameDate: { gte: new Date() }
-            },
-            orderBy: { gameDate: 'asc' }
-          });
-          
-          if (upcomingMatch) {
-            res.json({ 
-              nextOpponent: 'TBD',
-              gameDate: upcomingMatch.gameDate,
-              matchType: upcomingMatch.matchType 
-            });
-          } else {
-            res.json({ error: 'No next opponent' });
-          }
-        } catch (error) {
-          console.error('Error fetching next opponent:', error);
-          res.json({ error: 'No next opponent' });
-        }
-      });
-
-      app.get('/api/exhibitions/stats', async (req, res) => {
-        try {
-          const exhibitionCount = await prisma.game.count({
-            where: { matchType: 'EXHIBITION' }
-          });
-          
-          res.json({ 
-            totalExhibitions: exhibitionCount,
-            wins: 0,
-            losses: 0,
-            gamesPlayedToday: 0
-          });
-        } catch (error) {
-          console.error('Error fetching exhibition stats:', error);
-          res.json({ totalExhibitions: 0, wins: 0, losses: 0, gamesPlayedToday: 0 });
-        }
-      });
-
-      console.log('✅ Essential API routes initialized');
+      // Register ALL actual routes from the route system
+      console.log('🔄 Registering all API routes...');
+      registerAllRoutes(app);
+      console.log('✅ All API routes registered successfully');
       
     } catch (error) {
       console.error('⚠️ Database initialization failed:', error);
