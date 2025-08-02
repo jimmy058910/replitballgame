@@ -72,5 +72,5 @@ EXPOSE 8080
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
   CMD node -e "require('http').get('http://localhost:8080/health', (res) => process.exit(res.statusCode === 200 ? 0 : 1))"
 
-# Simple, industry standard startup (no complex scripts)
-CMD ["dumb-init", "npx", "tsx", "server/index.ts"]
+# Deploy minimal server first (guaranteed to work)
+CMD ["dumb-init", "npx", "tsx", "server/minimal.ts"]
