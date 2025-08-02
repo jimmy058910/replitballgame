@@ -436,41 +436,55 @@ app.post('/api/teams/create', async (req, res) => {
     
     console.log('🔧 PRODUCTION PRE-ALPHA: Creating team with temporary user', { userId: hardcodedUserId });
     
-    // Import user storage dynamically
-    const { userStorage } = await import('./storage/userStorage');
-    let user = await userStorage.upsertUser({
-      userId: hardcodedUserId,
-      email: "prealpha@testing.com", 
-      firstName: "PreAlpha",
-      lastName: "Tester"
-    });
+    // Import Prisma client directly to avoid schema issues
+    const { PrismaClient } = await import('@prisma/client');
+    const prisma = new PrismaClient();
     
-    // Auto-accept NDA for pre-alpha
-    user = await userStorage.acceptNDA(hardcodedUserId, "1.0");
-    console.log('🔧 Production pre-alpha user created and NDA accepted');
-    
-    // Import team storage and create team
-    const storage = await import('./storage');
-    const teamName = req.body.name || 'Pre-Alpha Dynasty';
-    
-    console.log('🔧 Creating team with name:', teamName);
-    
-    const team = await storage.default.teams.createTeam({
-      userId: hardcodedUserId,
-      name: teamName,
-      division: 8, // Place in Division 8 for new users
-      subdivision: 'alpha', // Special pre-alpha subdivision
-    });
-    
-    console.log('✅ Team created successfully:', team);
-    
-    res.status(201).json({ 
-      message: "Dynasty created successfully!",
-      team: team,
-      success: true, 
-      data: team,
-      isLateSignup: false
-    });
+    try {
+      // Create user directly without NDA acceptance (production schema doesn't have ndaAccepted column)
+      const user = await prisma.userProfile.upsert({
+        where: { userId: hardcodedUserId },
+        update: {
+          email: "prealpha@testing.com",
+          firstName: "PreAlpha", 
+          lastName: "Tester"
+        },
+        create: {
+          userId: hardcodedUserId,
+          email: "prealpha@testing.com",
+          firstName: "PreAlpha",
+          lastName: "Tester"
+        }
+      });
+      
+      console.log('🔧 Production pre-alpha user created:', user.userId);
+      
+      // Import team storage and create team
+      const storage = await import('./storage');
+      const teamName = req.body.name || 'Pre-Alpha Dynasty';
+      
+      console.log('🔧 Creating team with name:', teamName);
+      
+      const team = await storage.default.teams.createTeam({
+        userId: hardcodedUserId,
+        name: teamName,
+        division: 8, // Place in Division 8 for new users
+        subdivision: 'alpha', // Special pre-alpha subdivision
+      });
+      
+      console.log('✅ Team created successfully:', team);
+      
+      res.status(201).json({ 
+        message: "Dynasty created successfully!",
+        team: team,
+        success: true, 
+        data: team,
+        isLateSignup: false
+      });
+      
+    } finally {
+      await prisma.$disconnect();
+    }
     
   } catch (error) {
     console.error('❌ Production team creation error:', error);
