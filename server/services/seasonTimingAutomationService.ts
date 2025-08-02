@@ -373,6 +373,19 @@ export class SeasonTimingAutomationService {
    */
   private async checkAndGenerateScheduleIfNeeded(seasonNumber: number): Promise<void> {
     try {
+      // First, get the actual season ID from the database
+      const season = await prisma.season.findFirst({
+        where: { seasonNumber: seasonNumber },
+        select: { id: true }
+      });
+
+      if (!season) {
+        logInfo(`Season ${seasonNumber} not found in database. Skipping schedule generation.`);
+        return;
+      }
+
+      const seasonId = season.id;
+
       // Check if any games exist for current season
       const existingGames = await prisma.game.count({
         where: {
@@ -389,7 +402,6 @@ export class SeasonTimingAutomationService {
         logInfo(`No league schedule found for Season ${seasonNumber}. Generating schedule...`);
         
         // First, ensure leagues exist for this season
-        const seasonId = `season-${seasonNumber}-2025`;
         const leagueCount = await prisma.league.count({
           where: { seasonId: seasonId }
         });
@@ -399,29 +411,38 @@ export class SeasonTimingAutomationService {
           
           // Create basic league structure for divisions 1-8
           for (let division = 1; division <= 8; division++) {
-            await prisma.league.create({
-              data: {
-                division: division,
-                name: `Division ${division}`,
-                seasonId: seasonId
-              }
-            });
+            try {
+              await prisma.league.create({
+                data: {
+                  division: division,
+                  name: `Division ${division}`,
+                  seasonId: seasonId
+                }
+              });
+            } catch (leagueError) {
+              console.error(`Failed to create league for division ${division}:`, (leagueError as Error).message);
+            }
           }
           
-          logInfo(`Created ${8} leagues for Season ${seasonNumber}`);
+          logInfo(`Created leagues for Season ${seasonNumber}`);
         }
         
-        // Generate complete season schedule
-        const scheduleResult = await SeasonalFlowService.generateSeasonSchedule(seasonNumber);
-        
-        logInfo(`Season ${seasonNumber} schedule generated successfully`, {
-          matchesGenerated: scheduleResult.matchesGenerated,
-          leaguesProcessed: scheduleResult.leaguesProcessed.length
-        });
+        // Generate complete season schedule (wrapped in try-catch)
+        try {
+          const scheduleResult = await SeasonalFlowService.generateSeasonSchedule(seasonNumber);
+          
+          logInfo(`Season ${seasonNumber} schedule generated successfully`, {
+            matchesGenerated: scheduleResult.matchesGenerated,
+            leaguesProcessed: scheduleResult.leaguesProcessed.length
+          });
+        } catch (scheduleError) {
+          console.error(`Failed to generate season schedule for Season ${seasonNumber}:`, (scheduleError as Error).message);
+        }
       }
       
     } catch (error) {
-      console.error(`Error checking/generating schedule for Season ${seasonNumber}:`, error.message);
+      console.error(`Error checking/generating schedule for Season ${seasonNumber}:`, (error as Error).message);
+      // Don't rethrow - allow server to continue starting
     }
   }
 
