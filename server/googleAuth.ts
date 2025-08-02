@@ -70,36 +70,22 @@ export async function setupGoogleAuth(app: Express) {
     }
   });
 
-  // Initialize Passport middleware
-  console.log('🔧 Initializing Passport middleware');
+  // Initialize Passport middleware - MUST be in correct order after session middleware
+  console.log('🔧 Initializing Passport middleware in correct order');
   
   try {
+    // CRITICAL: passport.initialize() MUST come immediately after session middleware
     app.use(passport.initialize());
-    app.use(passport.session());
-    console.log('✅ Passport middleware initialized successfully');
-    console.log('✅ passport.initialize() middleware added successfully');
-  } catch (initError) {
-    console.error('❌ passport.initialize() failed:', initError);
-    console.error('❌ Error details:', (initError as Error)?.message);
-    console.error('❌ Error stack:', (initError as Error)?.stack);
-    throw initError;
-  }
-  
-  try {
-    console.log('🔧 CRITICAL: About to call passport.session()...');
-    const sessionMiddleware = passport.session();
-    console.log('🔧 passport.session() created middleware:', typeof sessionMiddleware);
-    console.log('🔧 sessionMiddleware object details:', !!sessionMiddleware);
-    console.log('🔧 About to call app.use with sessionMiddleware...');
+    console.log('✅ passport.initialize() middleware added');
     
-    const result = app.use(sessionMiddleware);
-    console.log('🔧 app.use(sessionMiddleware) returned:', typeof result);
-    console.log('✅ passport.session() middleware added successfully');
-  } catch (sessionError) {
-    console.error('❌ passport.session() failed:', sessionError);
-    console.error('❌ Error details:', (sessionError as Error)?.message);
-    console.error('❌ Error stack:', (sessionError as Error)?.stack);
-    throw sessionError;
+    // CRITICAL: passport.session() MUST come immediately after passport.initialize()  
+    app.use(passport.session());
+    console.log('✅ passport.session() middleware added');
+    
+    console.log('✅ Passport middleware initialized in correct order');
+  } catch (passportError) {
+    console.error('❌ Passport middleware initialization failed:', passportError);
+    throw passportError;
   }
   
   console.log('✅ All Passport middleware initialized successfully');
@@ -119,15 +105,7 @@ export const isAuthenticated = (req: any, res: any, next: any) => {
     isDevelopment: process.env.NODE_ENV === 'development'
   });
   
-  // Development bypass for pre-alpha testing - bypass ALL authentication
-  if (process.env.NODE_ENV === 'development') {
-    console.log('🔧 DEVELOPMENT: Bypassing authentication for pre-alpha testing', { 
-      path: req.path, 
-      originalUrl: req.originalUrl 
-    });
-    req.user = { claims: { sub: "44010914" } }; // Simulate authenticated user
-    return next();
-  }
+  // REMOVED: Development bypass - fixing root cause instead
   
   if (typeof req.isAuthenticated !== 'function') {
     console.error('❌ req.isAuthenticated is not a function - passport middleware not working');

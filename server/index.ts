@@ -221,18 +221,7 @@ app.get('/health', (req, res) => {
   // Create HTTP server instance from the Express app
   const httpServer = createServer(app);
 
-  // Health check endpoint for Cloud Run
-  app.get('/health', (req, res) => {
-    res.status(200).json({
-      status: 'healthy',
-      timestamp: new Date().toISOString(),
-      uptime: process.uptime(),
-      environment: process.env.NODE_ENV
-    });
-  });
-
-  // Global error handler using centralized error service
-  app.use(errorHandler);
+  // Remove duplicate health endpoint - already defined above
 
   // CRITICAL: Initialize authentication BEFORE registering API routes
   console.log('🔐 Setting up Google OAuth authentication system before API routes...');
@@ -277,6 +266,10 @@ app.get('/health', (req, res) => {
       return res.sendFile(staticPath + '/index.html');
     });
   }
+
+  // CRITICAL: Error handler MUST be last in middleware chain
+  app.use(errorHandler);
+  console.log('✅ Error handler added as final middleware');
 
   const port = process.env.PORT ? parseInt(process.env.PORT) : (process.env.NODE_ENV === 'production' ? 8080 : 5000);
   
