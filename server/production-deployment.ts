@@ -133,60 +133,43 @@ console.log('GOOGLE_CLIENT_ID present:', !!process.env.GOOGLE_CLIENT_ID);
 console.log('GOOGLE_CLIENT_SECRET present:', !!process.env.GOOGLE_CLIENT_SECRET);
 console.log('DATABASE_URL present:', !!process.env.DATABASE_URL);
 
-// SIMPLIFIED PRODUCTION SETUP - Remove complex async/await structure that's failing
+// SIMPLIFIED PRODUCTION SETUP - Ensure authentication completes before routes
 console.log('🔐 Setting up authentication and routes...');
 
 // Import routes function at the top level to avoid dynamic import issues
 import { registerAllRoutes } from './routes/index.js';
 
-// Set up authentication first
-setupGoogleAuth(app)
-  .then(() => {
-    console.log('✅ Authentication setup completed');
+// Use async/await to ensure proper ordering
+(async () => {
+  try {
+    console.log('⏳ Starting authentication setup...');
+    await setupGoogleAuth(app);
+    console.log('✅ Authentication setup completed successfully');
     
-    // Register all routes
-    try {
-      registerAllRoutes(app);
-      console.log('✅ All API routes registered successfully');
-    } catch (routeError) {
-      console.error('❌ Route registration failed:', routeError);
-    }
-  })
-  .catch((authError) => {
-    console.error('❌ Authentication setup failed:', authError);
+    // ONLY register routes AFTER authentication is fully configured
+    console.log('⏳ Registering API routes...');
+    registerAllRoutes(app);
+    console.log('✅ All API routes registered successfully');
     
-    // Still try to register routes even if auth fails
-    try {
-      registerAllRoutes(app);
-      console.log('✅ Routes registered despite auth failure');
-    } catch (routeError) {
-      console.error('❌ Critical: Both auth and routes failed:', routeError);
-    }
-  });
-
-// FALLBACK: Register routes immediately to ensure they work
-console.log('🔧 FALLBACK: Registering routes immediately...');
-try {
-  registerAllRoutes(app);
-  console.log('✅ FALLBACK: Routes registered successfully');
-} catch (fallbackError) {
-  console.error('❌ FALLBACK: Route registration failed:', fallbackError);
-}
-
-// Verify passport middleware is working
-console.log('🔍 Testing passport middleware...');
-app.get('/debug-auth', (req: any, res) => {
-  res.json({
-    hasIsAuthenticated: typeof req.isAuthenticated === 'function',
-    hasSession: !!req.session,
-    sessionID: req.sessionID,
-    passportInitialized: !!req._passport,
-    deploymentTime: new Date().toISOString(),
-    authSetupAttempted: true,
-    requestPath: req.path,
-    requestMethod: req.method
-  });
-});
+  } catch (error) {
+    console.error('❌ Setup failed:', error);
+    
+    // Create minimal fallback routes for critical endpoints
+    app.get('/api/auth/user', (req, res) => {
+      res.status(503).json({
+        error: 'Authentication temporarily unavailable',
+        message: 'Setup in progress'
+      });
+    });
+    
+    app.get('/api/teams/my', (req, res) => {
+      res.status(503).json({
+        error: 'Service temporarily unavailable',
+        message: 'Setup in progress'
+      });
+    });
+  }
+})();
 
 // CRITICAL: Test middleware stack BEFORE registering other routes
 console.log('🔍 MIDDLEWARE STACK TEST - Creating test route to verify passport attachment...');
