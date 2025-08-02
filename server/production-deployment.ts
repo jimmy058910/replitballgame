@@ -301,22 +301,8 @@ app.get('/api/middleware-test', (req: any, res) => {
 // API routes are now registered inside the async IIFE above
 // This ensures authentication setup completes BEFORE routes are registered
 
-// CRITICAL: Add JSON error handler for API routes
-app.use((err: any, req: any, res: any, next: any) => {
-  console.error('Production error:', err);
-  
-  // Always return JSON for API routes
-  if (req.path.startsWith('/api/')) {
-    return res.status(err.status || 500).json({
-      error: err.message || 'Internal Server Error',
-      status: err.status || 500,
-      path: req.path,
-      timestamp: new Date().toISOString()
-    });
-  }
-  
-  next(err);
-});
+// Industry-standard error handler for API routes
+app.use(errorHandler);
 
 // CRITICAL: Test passport AFTER all routes are registered
 console.log('🔍 POST-ROUTE-REGISTRATION: Creating final passport test...');
@@ -379,128 +365,7 @@ app.get('/api/test', (req, res) => {
   });
 });
 
-// CRITICAL: Add missing API endpoints that frontend expects
-app.get('/api/exhibitions/stats', (req, res) => {
-  res.json({
-    gamesPlayedToday: 0,
-    gamesRemainingToday: 3,
-    freeGamesRemaining: 3,
-    exhibitionEntriesUsedToday: 0,
-    entryGamesRemaining: 3,
-    totalGamesAvailable: 6
-  });
-});
-
-app.get('/api/matches/live', (req, res) => {
-  res.json([]);
-});
-
-app.get('/api/camaraderie/summary', (req, res) => {
-  res.json({
-    teamCamaraderie: 50,
-    averagePlayerMorale: 50,
-    highestMorale: 60,
-    lowestMorale: 40
-  });
-});
-
-app.get('/api/teams/my', (req, res) => {
-  res.status(404).json({ 
-    message: "Team not found",
-    needsTeamCreation: true
-  });
-});
-
-app.get('/api/teams/my/next-opponent', (req, res) => {
-  res.status(404).json({ 
-    message: "No upcoming matches - team creation required" 
-  });
-});
-
-app.get('/api/season/current-cycle', (req, res) => {
-  res.json({
-    currentDay: 1,
-    currentPhase: "REGULAR_SEASON", 
-    daysRemaining: 16,
-    seasonNumber: 1
-  });
-});
-
-// CRITICAL: Override team creation routes with production bypass
-app.post('/api/teams/create', async (req, res) => {
-  try {
-    console.log('🔧 PRODUCTION TEAM CREATION: Starting pre-alpha bypass...');
-    
-    // Create temporary user for pre-alpha testing
-    const hardcodedUserId = "prealpha_user_" + Date.now();
-    
-    console.log('🔧 PRODUCTION PRE-ALPHA: Creating team with temporary user', { userId: hardcodedUserId });
-    
-    // Import Prisma client directly to avoid schema issues
-    const { PrismaClient } = await import('@prisma/client');
-    const prisma = new PrismaClient();
-    
-    try {
-      // Create user directly without NDA acceptance (production schema doesn't have ndaAccepted column)
-      const user = await prisma.userProfile.upsert({
-        where: { userId: hardcodedUserId },
-        update: {
-          email: "prealpha@testing.com",
-          firstName: "PreAlpha", 
-          lastName: "Tester"
-        },
-        create: {
-          userId: hardcodedUserId,
-          email: "prealpha@testing.com",
-          firstName: "PreAlpha",
-          lastName: "Tester"
-        }
-      });
-      
-      console.log('🔧 Production pre-alpha user created:', user.userId);
-      
-      // Import team storage and create team
-      const storage = await import('./storage');
-      const teamName = req.body.name || 'Pre-Alpha Dynasty';
-      
-      console.log('🔧 Creating team with name:', teamName);
-      
-      const team = await storage.default.teams.createTeam({
-        userId: hardcodedUserId,
-        name: teamName,
-        division: 8, // Place in Division 8 for new users
-        subdivision: 'alpha', // Special pre-alpha subdivision
-      });
-      
-      console.log('✅ Team created successfully:', team);
-      
-      res.status(201).json({ 
-        message: "Dynasty created successfully!",
-        team: team,
-        success: true, 
-        data: team,
-        isLateSignup: false
-      });
-      
-    } finally {
-      await prisma.$disconnect();
-    }
-    
-  } catch (error) {
-    console.error('❌ Production team creation error:', error);
-    res.status(500).json({
-      error: 'Team creation failed',
-      message: error.message || 'Unknown error',
-      timestamp: new Date().toISOString()
-    });
-  }
-});
-
-// Add fallback for /api/teams/ route as well
-app.post('/api/teams', async (req, res) => {
-  // Redirect to the main team creation handler
-  return app._router.handle({ ...req, url: '/api/teams/create', path: '/api/teams/create' }, res);
-});
+// REMOVED: All bypass endpoints and routes - implementing proper authentication flow
 
 // SPA fallback route - THIS FIXES "Cannot GET /" ERROR
 app.get('*', (req, res) => {

@@ -19,8 +19,9 @@ COPY server/ ./server/
 COPY shared/ ./shared/
 COPY prisma/ ./prisma/
 
-# Generate Prisma client
+# Generate Prisma client and verify
 RUN npx prisma generate
+RUN ls -la generated/
 
 # Production stage
 FROM node:20-alpine AS production
