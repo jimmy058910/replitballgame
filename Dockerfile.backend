@@ -73,7 +73,8 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
   CMD node -e "require('http').get('http://localhost:8080/health', (res) => process.exit(res.statusCode === 200 ? 0 : 1))"
 
 # Create startup script for production optimization
-RUN cat > start.sh << 'EOF'
+RUN cat > start.sh << 'EOF' && \
+    chmod +x start.sh
 #!/bin/sh
 echo "🚀 Starting Realm Rivalry backend server..."
 echo "Environment: ${NODE_ENV:-development}"
@@ -81,8 +82,6 @@ echo "Port: ${PORT:-8080}"
 echo "Using complete production server with all dependencies..."
 exec npx tsx server/index.ts
 EOF
-
-RUN chmod +x start.sh
 
 # Start server with dumb-init
 ENTRYPOINT ["dumb-init", "--"]
