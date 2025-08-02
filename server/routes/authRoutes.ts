@@ -1,6 +1,6 @@
 import { Router, type Response, type NextFunction } from "express"; // Added Response, NextFunction
 import { userStorage } from "../storage/userStorage"; // Updated import
-import { isAuthenticated } from "../googleAuth";
+import { requireAuth } from "../middleware/firebaseAuth";
 import { RBACService, Permission } from "../services/rbacService";
 import passport from 'passport';
 
@@ -89,7 +89,7 @@ router.get('/user', async (req: any, res: Response, next: NextFunction) => {
 });
 
 // Check if user has admin access
-router.get('/admin-status', isAuthenticated, async (req: any, res: Response, next: NextFunction) => {
+router.get('/admin-status', requireAuth, async (req: any, res: Response, next: NextFunction) => {
   try {
     // Handle different authentication structures
     const userId = req.user?.userId || req.user?.claims?.sub || "44010914"; // fallback for development
@@ -124,7 +124,7 @@ router.get('/admin-status', isAuthenticated, async (req: any, res: Response, nex
 });
 
 // Promote self to admin (for testing/setup purposes)
-router.post('/promote-to-admin', isAuthenticated, async (req: any, res: Response, next: NextFunction) => {
+router.post('/promote-to-admin', requireAuth, async (req: any, res: Response, next: NextFunction) => {
   try {
     const userId = req.user.userId;
     const user = await userStorage.getUser(userId);
@@ -183,7 +183,7 @@ router.get('/logout', (req: any, res: Response, next: NextFunction) => {
 });
 
 // ✅ SIMPLE USER CHECK (for /api/me compatibility)
-router.get('/me', isAuthenticated, (req: any, res: Response) => {
+router.get('/me', requireAuth, (req: any, res: Response) => {
   if (req.user) {
     res.json(req.user);
   } else {

@@ -2,19 +2,10 @@ import { Request, Response, NextFunction } from 'express';
 import { UnauthorizedError, ForbiddenError } from '../core/errors';
 import { Logger } from '../core/logger';
 
-// Enhanced authentication middleware with production bypass
+// DEPRECATED - Use server/middleware/firebaseAuth.ts instead
+// This middleware is being replaced with proper Firebase token verification
 export function requireAuth(req: Request, res: Response, next: NextFunction) {
   try {
-    // Production bypass for Firebase auth compatibility
-    if (process.env.NODE_ENV === 'production') {
-      // Set mock user for production to bridge Firebase auth
-      (req as any).user = {
-        userId: "44010914",
-        claims: { sub: "44010914" }
-      };
-      return next();
-    }
-    
     if (!req.isAuthenticated || !req.isAuthenticated()) {
       throw new UnauthorizedError('Authentication required');
     }

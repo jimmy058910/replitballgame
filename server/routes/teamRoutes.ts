@@ -1,7 +1,7 @@
 import { Router, type Request, type Response, type NextFunction } from "express";
 import { storage } from "../storage/index";
 import { teamFinancesStorage } from "../storage/teamFinancesStorage";
-import { isAuthenticated } from "../googleAuth";
+import { requireAuth } from "../middleware/firebaseAuth";
 import { generateRandomPlayer } from "../services/leagueService";
 import { z } from "zod";
 import { ErrorCreators, asyncHandler, logInfo } from "../services/errorService";
@@ -383,12 +383,12 @@ router.post('/', teamCreationHandler);
 router.post('/create', teamCreationHandler);
 
 // Get all teams (for debugging/admin purposes)
-router.get('/', isAuthenticated, asyncHandler(async (req: any, res: Response) => {
+router.get('/', requireAuth, asyncHandler(async (req: any, res: Response) => {
   const teams = await storage.teams.getAllTeams();
   res.json(teams);
 }));
 
-router.get('/my', isAuthenticated, async (req: any, res: Response, next: NextFunction) => {
+router.get('/my', requireAuth, async (req: any, res: Response, next: NextFunction) => {
   try {
     const userId = req.user.claims.sub;
     const team = await storage.teams.getTeamByUserId(userId); // Use teamStorage
@@ -434,7 +434,7 @@ router.get('/my', isAuthenticated, async (req: any, res: Response, next: NextFun
 });
 
 // Enhanced dashboard endpoint with comprehensive data
-router.get('/my/dashboard', isAuthenticated, async (req: any, res: Response, next: NextFunction) => {
+router.get('/my/dashboard', requireAuth, async (req: any, res: Response, next: NextFunction) => {
   try {
     const userId = req.user.claims.sub;
     const team = await storage.teams.getTeamByUserId(userId);
@@ -489,7 +489,7 @@ router.get('/my/dashboard', isAuthenticated, async (req: any, res: Response, nex
 
 // IMPORTANT: Specific routes must come BEFORE parameterized routes
 // Route for user's team detection - using '/my' endpoint that frontend expects
-router.get('/my', isAuthenticated, async (req: any, res: Response, next: NextFunction) => {
+router.get('/my', requireAuth, async (req: any, res: Response, next: NextFunction) => {
   try {
     const userId = req.user?.claims?.sub || req.user?.userId || "44010914"; // Development fallback
     console.log('🔍 /my route called for userId:', userId);
@@ -512,7 +512,7 @@ router.get('/my', isAuthenticated, async (req: any, res: Response, next: NextFun
 });
 
 // Alias route for my-team (backup)
-router.get('/my-team', isAuthenticated, async (req: any, res: Response, next: NextFunction) => {
+router.get('/my-team', requireAuth, async (req: any, res: Response, next: NextFunction) => {
   try {
     const userId = req.user?.claims?.sub || req.user?.userId || "44010914"; // Development fallback
     console.log('🔍 my-team route called for userId:', userId);
@@ -534,7 +534,7 @@ router.get('/my-team', isAuthenticated, async (req: any, res: Response, next: Ne
   }
 });
 
-router.get('/:id', isAuthenticated, async (req: any, res: Response, next: NextFunction) => {
+router.get('/:id', requireAuth, async (req: any, res: Response, next: NextFunction) => {
   try {
     const { id } = req.params;
     
@@ -570,7 +570,7 @@ router.get('/:id', isAuthenticated, async (req: any, res: Response, next: NextFu
 });
 
 // User team players endpoint - frontend compatible
-router.get('/my/players', isAuthenticated, async (req: any, res: Response, next: NextFunction) => {
+router.get('/my/players', requireAuth, async (req: any, res: Response, next: NextFunction) => {
   try {
     const userId = req.user?.claims?.sub || req.user?.userId || "44010914"; // Development fallback
     const team = await storage.teams.getTeamByUserId(userId);
@@ -606,7 +606,7 @@ router.get('/my/players', isAuthenticated, async (req: any, res: Response, next:
   }
 });
 
-router.get('/my-team/players', isAuthenticated, async (req: any, res: Response, next: NextFunction) => {
+router.get('/my-team/players', requireAuth, async (req: any, res: Response, next: NextFunction) => {
   try {
     const userId = req.user?.claims?.sub || req.user?.userId || "44010914"; // Development fallback
     const team = await storage.teams.getTeamByUserId(userId);
@@ -642,7 +642,7 @@ router.get('/my-team/players', isAuthenticated, async (req: any, res: Response, 
   }
 });
 
-router.get('/:id/players', isAuthenticated, async (req: any, res: Response, next: NextFunction) => {
+router.get('/:id/players', requireAuth, async (req: any, res: Response, next: NextFunction) => {
   try {
     const { id } = req.params;
     
@@ -713,7 +713,7 @@ router.get('/:id/players', isAuthenticated, async (req: any, res: Response, next
 });
 
 // Formation saving route
-router.post('/:teamId/formation', isAuthenticated, async (req: any, res: Response, next: NextFunction) => {
+router.post('/:teamId/formation', requireAuth, async (req: any, res: Response, next: NextFunction) => {
   console.log('🚀 POST Formation route hit!');
   try {
     let teamId = req.params.teamId;
@@ -811,7 +811,7 @@ router.post('/:teamId/formation', isAuthenticated, async (req: any, res: Respons
 });
 
 // Formation PUT route for TacticsLineupHub
-router.put('/:teamId/formation', isAuthenticated, async (req: any, res: Response, next: NextFunction) => {
+router.put('/:teamId/formation', requireAuth, async (req: any, res: Response, next: NextFunction) => {
   console.log('🚀 PUT Formation route hit!');
   try {
     let teamId: number;
@@ -903,7 +903,7 @@ router.put('/:teamId/formation', isAuthenticated, async (req: any, res: Response
 });
 
 // Get staff members for a team
-router.get('/:teamId/staff', isAuthenticated, async (req: any, res: Response, next: NextFunction) => {
+router.get('/:teamId/staff', requireAuth, async (req: any, res: Response, next: NextFunction) => {
   try {
     let teamId = parseInt(req.params.teamId);
 
@@ -925,7 +925,7 @@ router.get('/:teamId/staff', isAuthenticated, async (req: any, res: Response, ne
   }
 });
 
-router.get('/:teamId/formation', isAuthenticated, async (req: any, res: Response, next: NextFunction) => {
+router.get('/:teamId/formation', requireAuth, async (req: any, res: Response, next: NextFunction) => {
   try {
     let teamId: number;
 
@@ -1110,7 +1110,7 @@ router.get('/:teamId/formation', isAuthenticated, async (req: any, res: Response
 });
 
 // Get next scheduled opponent for dashboard display
-router.get('/my/next-opponent', isAuthenticated, asyncHandler(async (req: any, res: Response) => {
+router.get('/my/next-opponent', requireAuth, asyncHandler(async (req: any, res: Response) => {
   const userId = req.user.claims.sub;
   const userTeam = await storage.teams.getTeamByUserId(userId);
   
@@ -1182,7 +1182,7 @@ router.get('/my/next-opponent', isAuthenticated, asyncHandler(async (req: any, r
 }));
 
 // Team inactivity tracking
-router.post('/update-activity', isAuthenticated, async (req: any, res: Response, next: NextFunction) => {
+router.post('/update-activity', requireAuth, async (req: any, res: Response, next: NextFunction) => {
   try {
     const userId = req.user.claims.sub;
     const team = await storage.teams.getTeamByUserId(userId); // Use teamStorage
@@ -1369,7 +1369,7 @@ const tryoutSchema = z.object({
   type: z.enum(['basic', 'advanced']),
 });
 
-router.post('/:teamId/tryouts', isAuthenticated, asyncHandler(async (req: any, res: Response) => {
+router.post('/:teamId/tryouts', requireAuth, asyncHandler(async (req: any, res: Response) => {
   const userId = req.user.claims.sub;
   const { teamId } = req.params;
   const { type } = tryoutSchema.parse(req.body);
@@ -1499,7 +1499,7 @@ router.post('/:teamId/tryouts', isAuthenticated, asyncHandler(async (req: any, r
 
 // Team finances endpoint
 // User team finances endpoint - frontend compatible
-router.get('/my/finances', isAuthenticated, asyncHandler(async (req: any, res: Response) => {
+router.get('/my/finances', requireAuth, asyncHandler(async (req: any, res: Response) => {
   console.log('[DEBUG] Starting /my finances endpoint');
   
   const userId = req.user?.claims?.sub || req.user?.userId || "44010914"; // Development fallback
@@ -1532,7 +1532,7 @@ router.get('/my/finances', isAuthenticated, asyncHandler(async (req: any, res: R
   res.json(serializedFinances);
 }));
 
-router.get('/my-team/finances', isAuthenticated, asyncHandler(async (req: any, res: Response) => {
+router.get('/my-team/finances', requireAuth, asyncHandler(async (req: any, res: Response) => {
   console.log('[DEBUG] Starting my-team finances endpoint');
   
   const userId = req.user?.claims?.sub || req.user?.userId || "44010914"; // Development fallback
@@ -1565,7 +1565,7 @@ router.get('/my-team/finances', isAuthenticated, asyncHandler(async (req: any, r
   res.json(serializedFinances);
 }));
 
-router.get('/:teamId/finances', isAuthenticated, asyncHandler(async (req: any, res: Response) => {
+router.get('/:teamId/finances', requireAuth, asyncHandler(async (req: any, res: Response) => {
   console.log('[DEBUG] Starting finances endpoint, teamId:', req.params.teamId);
   
   const userId = req.user?.claims?.sub || req.user?.userId || "44010914"; // Development fallback
@@ -1686,7 +1686,7 @@ router.get('/:teamId/finances', isAuthenticated, asyncHandler(async (req: any, r
 }));
 
 // Taxi Squad endpoints
-router.get('/:teamId/taxi-squad', isAuthenticated, asyncHandler(async (req: any, res: Response) => {
+router.get('/:teamId/taxi-squad', requireAuth, asyncHandler(async (req: any, res: Response) => {
   const userId = req.user.claims.sub;
   const { teamId } = req.params;
 
@@ -1733,7 +1733,7 @@ router.get('/:teamId/taxi-squad', isAuthenticated, asyncHandler(async (req: any,
   res.json(actualTaxiSquadPlayers);
 }));
 
-router.post('/:teamId/taxi-squad/add-candidates', isAuthenticated, asyncHandler(async (req: any, res: Response) => {
+router.post('/:teamId/taxi-squad/add-candidates', requireAuth, asyncHandler(async (req: any, res: Response) => {
   const userId = req.user.claims.sub;
   const { teamId } = req.params;
   const { candidates } = req.body;
@@ -1847,7 +1847,7 @@ router.post('/:teamId/taxi-squad/add-candidates', isAuthenticated, asyncHandler(
   });
 }));
 
-router.post('/:teamId/taxi-squad/:playerId/promote', isAuthenticated, asyncHandler(async (req: any, res: Response) => {
+router.post('/:teamId/taxi-squad/:playerId/promote', requireAuth, asyncHandler(async (req: any, res: Response) => {
   const userId = req.user.claims.sub;
   const { teamId, playerId } = req.params;
 
@@ -1947,7 +1947,7 @@ router.post('/:teamId/taxi-squad/:playerId/promote', isAuthenticated, asyncHandl
   });
 }));
 
-router.delete('/:teamId/taxi-squad/:playerId', isAuthenticated, asyncHandler(async (req: any, res: Response) => {
+router.delete('/:teamId/taxi-squad/:playerId', requireAuth, asyncHandler(async (req: any, res: Response) => {
   const userId = req.user.claims.sub;
   const { teamId, playerId } = req.params;
 
@@ -2038,7 +2038,7 @@ router.delete('/:teamId/taxi-squad/:playerId', isAuthenticated, asyncHandler(asy
 }));
 
 // Debug endpoint to test taxi squad logic
-router.get('/:teamId/taxi-squad/debug', isAuthenticated, asyncHandler(async (req: any, res: Response) => {
+router.get('/:teamId/taxi-squad/debug', requireAuth, asyncHandler(async (req: any, res: Response) => {
   const userId = req.user.claims.sub;
   const { teamId } = req.params;
 
@@ -2096,7 +2096,7 @@ router.get('/:teamId/taxi-squad/debug', isAuthenticated, asyncHandler(async (req
 }));
 
 // Get seasonal data for team (tryout usage tracking)
-router.get('/:teamId/seasonal-data', isAuthenticated, asyncHandler(async (req: any, res: Response) => {
+router.get('/:teamId/seasonal-data', requireAuth, asyncHandler(async (req: any, res: Response) => {
   const userId = req.user.claims.sub;
   const { teamId } = req.params;
 
@@ -2140,7 +2140,7 @@ router.get('/:teamId/seasonal-data', isAuthenticated, asyncHandler(async (req: a
 }));
 
 // Get teams by division endpoint
-router.get('/division/:division', isAuthenticated, asyncHandler(async (req: any, res: Response) => {
+router.get('/division/:division', requireAuth, asyncHandler(async (req: any, res: Response) => {
   const { division } = req.params;
   const divisionNumber = parseInt(division);
   
@@ -2185,7 +2185,7 @@ router.get('/division/:division', isAuthenticated, asyncHandler(async (req: any,
  * GET /api/teams/:teamId/contracts
  * Get all player contracts for a team
  */
-router.get('/:teamId/contracts', isAuthenticated, async (req: any, res: Response, next: NextFunction) => {
+router.get('/:teamId/contracts', requireAuth, async (req: any, res: Response, next: NextFunction) => {
   try {
     const { teamId } = req.params;
     const userId = req.user.claims.sub;
@@ -2249,7 +2249,7 @@ router.get('/:teamId/contracts', isAuthenticated, async (req: any, res: Response
 });
 
 // Apply team boost for next match
-router.post('/:teamId/apply-team-boost', isAuthenticated, asyncHandler(async (req: any, res: Response) => {
+router.post('/:teamId/apply-team-boost', requireAuth, asyncHandler(async (req: any, res: Response) => {
   const userId = req.user.claims.sub;
   const { teamId } = req.params;
   const { itemId, effect } = req.body;
@@ -2348,7 +2348,7 @@ router.post('/:teamId/apply-team-boost', isAuthenticated, asyncHandler(async (re
 }));
 
 // Get active boosts for a team
-router.get("/:teamId/active-boosts", isAuthenticated, asyncHandler(async (req, res) => {
+router.get("/:teamId/active-boosts", requireAuth, asyncHandler(async (req, res) => {
   const userId = req.user.claims.sub;
   const { teamId } = req.params;
 
@@ -2399,7 +2399,7 @@ router.get("/:teamId/active-boosts", isAuthenticated, asyncHandler(async (req, r
 }));
 
 // Delete active boost for a team
-router.delete("/:teamId/active-boosts/:boostId", isAuthenticated, asyncHandler(async (req, res) => {
+router.delete("/:teamId/active-boosts/:boostId", requireAuth, asyncHandler(async (req, res) => {
   const userId = req.user.claims.sub;
   const { teamId, boostId } = req.params;
 
@@ -2434,7 +2434,7 @@ router.delete("/:teamId/active-boosts/:boostId", isAuthenticated, asyncHandler(a
 }));
 
 // Get release fee for player
-router.get('/:teamId/players/:playerId/release-fee', isAuthenticated, asyncHandler(async (req, res) => {
+router.get('/:teamId/players/:playerId/release-fee', requireAuth, asyncHandler(async (req, res) => {
   const { teamId, playerId } = req.params;
 
   // Find team and validate ownership
@@ -2484,7 +2484,7 @@ router.get('/:teamId/players/:playerId/release-fee', isAuthenticated, asyncHandl
 }));
 
 // Release player from main roster (with release fee)
-router.delete('/:teamId/players/:playerId', isAuthenticated, asyncHandler(async (req, res) => {
+router.delete('/:teamId/players/:playerId', requireAuth, asyncHandler(async (req, res) => {
   const { teamId, playerId } = req.params;
 
   // Find team and validate ownership
@@ -2570,7 +2570,7 @@ router.delete('/:teamId/players/:playerId', isAuthenticated, asyncHandler(async 
 }));
 
 // Get current user's team stadium data
-router.get('/stadium', isAuthenticated, async (req: any, res: Response, next: NextFunction) => {
+router.get('/stadium', requireAuth, async (req: any, res: Response, next: NextFunction) => {
   try {
     const userId = req.user.claims.sub;
     
@@ -2610,7 +2610,7 @@ router.get('/stadium', isAuthenticated, async (req: any, res: Response, next: Ne
 });
 
 // Get team stadium data by team ID
-router.get('/:teamId/stadium', isAuthenticated, async (req: any, res: Response, next: NextFunction) => {
+router.get('/:teamId/stadium', requireAuth, async (req: any, res: Response, next: NextFunction) => {
   try {
     const teamId = parseInt(req.params.teamId);
     
@@ -2646,7 +2646,7 @@ router.get('/:teamId/stadium', isAuthenticated, async (req: any, res: Response, 
 // Add tactical settings endpoints
 
 // Get team tactical setup
-router.get('/:teamId/tactical-setup', isAuthenticated, asyncHandler(async (req: any, res: Response) => {
+router.get('/:teamId/tactical-setup', requireAuth, asyncHandler(async (req: any, res: Response) => {
   const { teamId } = req.params;
   const userId = req.user.claims.sub;
   
@@ -2683,7 +2683,7 @@ router.get('/:teamId/tactical-setup', isAuthenticated, asyncHandler(async (req: 
 }));
 
 // Update field size (with timing restrictions)
-router.post('/:teamId/field-size', isAuthenticated, asyncHandler(async (req: any, res: Response) => {
+router.post('/:teamId/field-size', requireAuth, asyncHandler(async (req: any, res: Response) => {
   const { teamId } = req.params;
   const { fieldSize } = req.body;
   const userId = req.user.claims.sub;
@@ -2736,7 +2736,7 @@ router.post('/:teamId/field-size', isAuthenticated, asyncHandler(async (req: any
 }));
 
 // Update tactical focus
-router.post('/:teamId/tactical-focus', isAuthenticated, asyncHandler(async (req: any, res: Response) => {
+router.post('/:teamId/tactical-focus', requireAuth, asyncHandler(async (req: any, res: Response) => {
   const { teamId } = req.params;
   const { tacticalFocus } = req.body;
   const userId = req.user.claims.sub;
@@ -2772,7 +2772,7 @@ router.post('/:teamId/tactical-focus', isAuthenticated, asyncHandler(async (req:
 }));
 
 // Get team scouting data (for opponent analysis)
-router.get('/:teamId/scouting', isAuthenticated, async (req: any, res: Response, next: NextFunction) => {
+router.get('/:teamId/scouting', requireAuth, async (req: any, res: Response, next: NextFunction) => {
   try {
     const teamId = parseInt(req.params.teamId);
     
@@ -2876,7 +2876,7 @@ router.get('/:teamId/scouting', isAuthenticated, async (req: any, res: Response,
 
 
 // User-specific live matches endpoint
-router.get('/:teamId/matches/live', isAuthenticated, async (req: Request, res: Response, next: NextFunction) => {
+router.get('/:teamId/matches/live', requireAuth, async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { teamId } = req.params;
     const teamIdNum = parseInt(teamId, 10);
@@ -2936,7 +2936,7 @@ router.get('/:teamId/matches/live', isAuthenticated, async (req: Request, res: R
 });
 
 // Get team contracts
-router.get('/:teamId/contracts', isAuthenticated, async (req: any, res: Response, next: NextFunction) => {
+router.get('/:teamId/contracts', requireAuth, async (req: any, res: Response, next: NextFunction) => {
   try {
     const { teamId } = req.params;
     const userId = req.user.claims.sub;
