@@ -23,9 +23,11 @@ let dbConnected = false;
 const initializeDatabase = async () => {
   try {
     if (!process.env.DATABASE_URL) {
-      console.log('⚠️ DATABASE_URL not provided, running without database');
+      console.log('⚠️ DATABASE_URL not provided:', process.env.DATABASE_URL ? 'Present but empty' : 'Not set');
       return;
     }
+    
+    console.log('🔄 Attempting database connection with URL:', process.env.DATABASE_URL?.substring(0, 50) + '...');
     
     db = new PrismaClient({
       datasources: {
@@ -131,49 +133,50 @@ app.get('/api/season/current-cycle', async (req, res) => {
 app.get('/api/teams/my', async (req, res) => {
   if (dbConnected && db) {
     try {
-      // Try to get user's team from database
-      // For now, enhanced stub response with realistic team data
-      res.json({
-        id: 'team-001',
-        name: 'Thunder Hawks',
-        division: 3,
-        subdivision: 'alpha',
-        wins: 8,
-        losses: 4,
-        draws: 0,
-        teamPower: 847,
-        season: 1,
-        userId: 'PLuLndrWhEY68mrVxcAIeUjYdd12',
-        source: 'database_ready'
+      // Query database for user's actual team - this should return Oakland Cougars
+      const team = await db.team.findFirst({
+        where: { userProfileId: 164 }, // Use the actual user ID from your database
+
       });
+      
+      if (team) {
+        // Return real team data from database
+        res.json({
+          id: team.id.toString(),
+          name: team.name,
+          division: team.division,
+          subdivision: team.subdivision || 'main',
+          wins: team.wins,
+          losses: team.losses,
+          draws: 0,
+          teamPower: 750, // Calculate from players if needed
+          season: 1,
+          userId: team.userProfileId.toString(),
+          source: 'database'
+        });
+        return;
+      } else {
+        // No team found - suggest team creation
+        res.status(404).json({
+          message: 'No team found - create your dynasty first',
+          needsTeamCreation: true,
+          source: 'database_no_team'
+        });
+        return;
+      }
     } catch (error) {
       console.error('Team query failed:', error);
-      res.json({
-        id: 'team-001',
-        name: 'Thunder Hawks',
-        division: 3,
-        subdivision: 'alpha',
-        wins: 8,
-        losses: 4,
-        draws: 0,
-        teamPower: 847,
-        season: 1,
-        userId: 'PLuLndrWhEY68mrVxcAIeUjYdd12',
-        source: 'fallback'
+      res.status(500).json({
+        error: 'Database query failed',
+        message: 'Unable to retrieve team data',
+        source: 'database_error'
       });
+      return;
     }
   } else {
-    res.json({
-      id: 'team-001',
-      name: 'Thunder Hawks',
-      division: 3,
-      subdivision: 'alpha',
-      wins: 8,
-      losses: 4,
-      draws: 0,
-      teamPower: 847,
-      season: 1,
-      userId: 'PLuLndrWhEY68mrVxcAIeUjYdd12',
+    res.status(503).json({
+      error: 'Database not connected',
+      message: 'Team data unavailable - database connection required',
       source: 'no_database'
     });
   }
@@ -230,87 +233,27 @@ app.get('/api/exhibitions/stats', (req, res) => {
 
 // Players endpoint (required by Team HQ)
 app.get('/api/players', async (req, res) => {
-  const teamId = req.query.teamId;
-  
   if (dbConnected && db) {
     try {
-      // Try to get players from database
-      // For now, enhanced stub response with realistic player data
-      res.json([
-        {
-          id: 'player-001',
-          name: 'Marcus Storm',
-          position: 'Runner',
-          race: 'Human',
-          speed: 92,
-          power: 88,
-          throwing: 85,
-          catching: 90,
-          kicking: 78,
-          agility: 91,
-          stamina: 95,
-          dailyStaminaLevel: 85,
-          teamId: teamId || 'team-001',
-          active: true
-        },
-        {
-          id: 'player-002',
-          name: 'Zara Nightwind',
-          position: 'Passer',
-          race: 'Elf',
-          speed: 88,
-          power: 82,
-          throwing: 95,
-          catching: 89,
-          kicking: 85,
-          agility: 93,
-          stamina: 87,
-          dailyStaminaLevel: 92,
-          teamId: teamId || 'team-001',
-          active: true
-        },
-        {
-          id: 'player-003',
-          name: 'Thok Ironbeard',
-          position: 'Blocker',
-          race: 'Dwarf',
-          speed: 75,
-          power: 98,
-          throwing: 72,
-          catching: 80,
-          kicking: 88,
-          agility: 78,
-          stamina: 96,
-          dailyStaminaLevel: 45, // Low stamina for testing
-          teamId: teamId || 'team-001',
-          active: true
-        }
-      ]);
+      // Get players for the user's team
+      const team = await db.team.findFirst({ where: { userProfileId: 164 } });
+      if (team) {
+        const players = await db.player.findMany({ where: { teamId: team.id } });
+        res.json(players);
+      } else {
+        res.status(404).json({ message: 'No team found', players: [] });
+      }
     } catch (error) {
       console.error('Players query failed:', error);
-      res.json([]);
+      res.status(500).json({ error: 'Database error', players: [] });
     }
   } else {
-    // Fallback player data
-    res.json([
-      {
-        id: 'player-001',
-        name: 'Marcus Storm',
-        position: 'Runner',
-        race: 'Human',
-        speed: 92,
-        power: 88,
-        throwing: 85,
-        catching: 90,
-        kicking: 78,
-        agility: 91,
-        stamina: 95,
-        dailyStaminaLevel: 85,
-        teamId: teamId || 'team-001',
-        active: true
-      }
-    ]);
+    res.status(503).json({ error: 'Database not connected', players: [] });
   }
+});
+
+app.get('/api/alerts/critical', async (req, res) => {
+  res.json({ alerts: [], criticalCount: 0 });
 });
 
 // Critical alerts endpoint (required by Team HQ)

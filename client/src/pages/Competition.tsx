@@ -487,8 +487,8 @@ function TournamentsTab() {
                       <p className="text-sm text-gray-400">Division {opponent.division}</p>
                     </div>
                     <div className="text-right">
-                      <div className="text-lg font-bold text-yellow-400">Power: {opponent.teamPower || opponent.averagePower || 'N/A'}</div>
-                      <div className="text-sm text-blue-400 font-semibold">Global Rank: #{opponent.globalRank || '?'}</div>
+                      <div className="text-lg font-bold text-yellow-400">Power: {opponent.teamPower || 'N/A'}</div>
+                      <div className="text-sm text-blue-400 font-semibold">Global Rank: #{'?'}</div>
                       <div className="text-sm text-gray-400">
                         {opponent.wins}W - {opponent.losses}L - {opponent.draws}D
                       </div>
@@ -979,13 +979,13 @@ export default function Competition() {
   // Type assertion to fix property access issues
   const currentCycle = (rawCurrentCycle || {}) as SeasonalCycle;
 
-  const browseMutation = useMutation({
+  const browseMutation = useMutation<Team[], Error, void>({
     mutationFn: async () => {
       if (!team?.division) {
         toast({ title: "Error", description: "Team division not loaded yet.", variant: "destructive" });
         throw new Error("Team division not loaded yet.");
       }
-      return await apiRequest(`/api/teams/division/${team.division}`, "GET");
+      return await apiRequest(`/api/teams/division/${team.division}`, "GET") as Team[];
     },
     onSuccess: (data: Team[]) => {
       setDivisionTeams(data as Team[]);
