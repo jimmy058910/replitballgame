@@ -44,6 +44,10 @@ const createTeamSchema = z.object({
 
 // Team creation handler function (shared between routes)
 const handleTeamCreation = asyncHandler(async (req: any, res: Response) => {
+  // Safely extract user ID with proper error handling
+  if (!req.user || !req.user.claims || !req.user.claims.sub) {
+    throw ErrorCreators.unauthorized("Authentication required - user session not found");
+  }
   const userId = req.user.claims.sub;
   
   // Validate input using Zod - errors will be automatically converted by the error handler

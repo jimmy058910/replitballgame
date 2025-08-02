@@ -11,17 +11,26 @@ WORKDIR /app
 COPY package*.json ./
 COPY tsconfig*.json ./
 
-# Install dependencies
-RUN npm ci --only=production
+# Install ALL dependencies (including dev dependencies for building)
+RUN npm ci
 
-# Copy source code
+# Copy ALL source code for building
 COPY server/ ./server/
 COPY shared/ ./shared/
 COPY prisma/ ./prisma/
+COPY client/ ./client/
+COPY vite.config.ts ./
+COPY tailwind.config.ts ./
+COPY postcss.config.js ./
 
-# Generate Prisma client and verify
+# Generate Prisma client
 RUN npx prisma generate
-RUN ls -la generated/
+
+# Build the frontend
+RUN npm run build
+
+# Verify build output
+RUN ls -la dist/ || echo "⚠️ No dist folder found"
 
 # Production stage
 FROM node:20-alpine AS production
@@ -42,10 +51,14 @@ COPY --from=builder --chown=backend:nodejs /app/generated ./generated
 COPY --from=builder --chown=backend:nodejs /app/tsconfig.json ./
 COPY --from=builder --chown=backend:nodejs /app/tsconfig.server.json ./
 
-# Copy source code
+# Copy source code and built frontend
 COPY --chown=backend:nodejs server/ ./server/
 COPY --chown=backend:nodejs shared/ ./shared/
 COPY --chown=backend:nodejs prisma/ ./prisma/
+COPY --from=builder --chown=backend:nodejs /app/dist ./dist/
+
+# Verify frontend files exist in production container
+RUN ls -la dist/ && echo "✅ Frontend files copied successfully"
 
 # Switch to non-root user
 USER backend

@@ -39,10 +39,25 @@ jobs:
     - name: Configure Docker authentication
       run: gcloud auth configure-docker us-east5-docker.pkg.dev
 
+    # Build frontend first (required by backend Docker build)
+    - name: Build frontend for Docker inclusion
+      run: |
+        echo "🔨 Building frontend for Docker container..."
+        npm run build
+        echo "✅ Frontend built - files will be copied into Docker container"
+        ls -la dist/
+      env:
+        VITE_FIREBASE_API_KEY: ${{ secrets.VITE_FIREBASE_API_KEY }}
+        VITE_FIREBASE_PROJECT_ID: ${{ secrets.VITE_FIREBASE_PROJECT_ID }}
+        VITE_FIREBASE_APP_ID: ${{ secrets.VITE_FIREBASE_APP_ID }}
+        VITE_API_BASE_URL: https://realm-rivalry-backend-o6fd46yesq-ul.a.run.app
+
     # Deploy Backend to Cloud Run
     - name: Build backend Docker image
       run: |
+        echo "🐳 Building Docker image with frontend files..."
         docker build -f Dockerfile.backend -t ${{ env.BACKEND_IMAGE }}:latest .
+        echo "✅ Docker image built with integrated frontend"
 
     - name: Push backend image to Artifact Registry
       run: |
