@@ -19,6 +19,7 @@ COPY server/ ./server/
 COPY shared/ ./shared/
 COPY prisma/ ./prisma/
 COPY client/ ./client/
+COPY public/ ./public/
 COPY vite.config.ts ./
 COPY vite.config.production.ts ./
 COPY tailwind.config.ts ./
