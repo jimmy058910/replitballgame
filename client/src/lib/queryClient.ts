@@ -72,7 +72,14 @@ export const queryClient = new QueryClient({
       refetchOnMount: true,
       refetchOnReconnect: false,
       staleTime: 5 * 60 * 1000, // 5 minutes
-      retry: false,
+      retry: (failureCount, error) => {
+        // Don't retry 404, 401, or 429 errors
+        if (error.message.includes('404') || error.message.includes('401') || error.message.includes('429')) {
+          return false;
+        }
+        // Retry other errors max 2 times
+        return failureCount < 2;
+      },
       gcTime: 10 * 60 * 1000, // 10 minutes
     },
     mutations: {
