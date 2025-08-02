@@ -263,21 +263,36 @@ app.get('/health', (req, res) => {
     await setupVite(app, httpServer);
   } else {
     // Production static file serving with caching
-    app.use(express.static('dist', {
-      maxAge: '1y', // Cache static assets for 1 year
+    const staticPath = process.cwd() + '/dist';
+    console.log('📁 Serving static files from:', staticPath);
+    
+    app.use(express.static(staticPath, {
+      maxAge: '1d', // Cache static assets for 1 day  
       etag: true,
       lastModified: true,
-      setHeaders: (res, path) => {
-        // Cache HTML files for shorter duration
-        if (path.endsWith('.html')) {
-          res.setHeader('Cache-Control', 'public, max-age=3600'); // 1 hour
+      setHeaders: (res, filePath) => {
+        if (filePath.endsWith('.html')) {
+          res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+        } else if (filePath.match(/\.(js|css|png|jpg|svg|ico)$/)) {
+          res.setHeader('Cache-Control', 'public, max-age=86400');
         }
       }
     }));
-    serveStatic(app);
+    
+    // SPA fallback for production
+    app.get('*', (req, res) => {
+      if (req.path.startsWith('/api/')) {
+        return res.status(404).json({ 
+          error: 'API endpoint not found',
+          path: req.path,
+          method: req.method
+        });
+      }
+      return res.sendFile(staticPath + '/index.html');
+    });
   }
 
-  const port = process.env.PORT ? parseInt(process.env.PORT) : 5000;
+  const port = process.env.PORT ? parseInt(process.env.PORT) : (process.env.NODE_ENV === 'production' ? 8080 : 5000);
   httpServer.listen({
     port,
     host: "0.0.0.0", // Important for Cloud Run

@@ -74,4 +74,4 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
 
 # Start server with dumb-init
 ENTRYPOINT ["dumb-init", "--"]
-CMD ["npx", "tsx", "server/production-deployment.ts"]
+CMD ["npx", "tsx", "server/index.ts"]

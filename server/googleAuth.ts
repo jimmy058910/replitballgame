@@ -5,14 +5,22 @@ import { AuthService } from './domains/auth/service';
 import { Logger } from './domains/core/logger';
 
 export async function setupGoogleAuth(app: Express) {
-  Logger.logInfo('Setting up Google OAuth authentication system');
+  console.log('🔐 Setting up Google OAuth authentication system');
+  
+  // Ensure required environment variables exist
+  if (!process.env.GOOGLE_CLIENT_ID || !process.env.GOOGLE_CLIENT_SECRET) {
+    console.error('❌ Missing required Google OAuth environment variables');
+    console.log('GOOGLE_CLIENT_ID present:', !!process.env.GOOGLE_CLIENT_ID);
+    console.log('GOOGLE_CLIENT_SECRET present:', !!process.env.GOOGLE_CLIENT_SECRET);
+    throw new Error('Missing Google OAuth credentials');
+  }
   
   // Test database connection before setting up auth
   try {
     const { AuthService } = await import('./domains/auth/service');
-    Logger.logInfo('AuthService imported successfully');
+    console.log('✅ AuthService imported successfully');
   } catch (error) {
-    Logger.logError('Failed to import AuthService', error as Error);
+    console.error('❌ Failed to import AuthService:', error);
     throw error;
   }
   // Configure the Google strategy for use by Passport.
@@ -58,26 +66,18 @@ export async function setupGoogleAuth(app: Express) {
     }
   });
 
-  // Initialize Passport FIRST before defining routes
-  Logger.logInfo('Initializing Passport middleware');
-  console.log('🔧 About to add passport.initialize() middleware...');
-  console.log('🔧 passport object type:', typeof passport);
-  console.log('🔧 passport.initialize type:', typeof passport.initialize);
+  // Initialize Passport middleware
+  console.log('🔧 Initializing Passport middleware');
   
   try {
-    console.log('🔧 CRITICAL: About to call passport.initialize()...');
-    const initMiddleware = passport.initialize();
-    console.log('🔧 passport.initialize() created middleware:', typeof initMiddleware);
-    console.log('🔧 initMiddleware object details:', !!initMiddleware);
-    console.log('🔧 About to call app.use with initMiddleware...');
-    
-    const result = app.use(initMiddleware);
-    console.log('🔧 app.use(initMiddleware) returned:', typeof result);
+    app.use(passport.initialize());
+    app.use(passport.session());
+    console.log('✅ Passport middleware initialized successfully');
     console.log('✅ passport.initialize() middleware added successfully');
   } catch (initError) {
     console.error('❌ passport.initialize() failed:', initError);
-    console.error('❌ Error details:', initError?.message);
-    console.error('❌ Error stack:', initError?.stack);
+    console.error('❌ Error details:', (initError as Error)?.message);
+    console.error('❌ Error stack:', (initError as Error)?.stack);
     throw initError;
   }
   
@@ -93,8 +93,8 @@ export async function setupGoogleAuth(app: Express) {
     console.log('✅ passport.session() middleware added successfully');
   } catch (sessionError) {
     console.error('❌ passport.session() failed:', sessionError);
-    console.error('❌ Error details:', sessionError?.message);
-    console.error('❌ Error stack:', sessionError?.stack);
+    console.error('❌ Error details:', (sessionError as Error)?.message);
+    console.error('❌ Error stack:', (sessionError as Error)?.stack);
     throw sessionError;
   }
   
