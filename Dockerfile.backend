@@ -78,8 +78,8 @@ RUN cat > start.sh << 'EOF'
 echo "🚀 Starting Realm Rivalry backend server..."
 echo "Environment: ${NODE_ENV:-development}"
 echo "Port: ${PORT:-8080}"
-echo "Using production-optimized server..."
-exec npx tsx server/production-optimized.ts
+echo "Using complete production server with all dependencies..."
+exec npx tsx server/index.ts
 EOF
 
 RUN chmod +x start.sh
