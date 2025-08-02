@@ -37,40 +37,10 @@ jobs:
     - name: Configure Docker authentication
       run: gcloud auth configure-docker us-east5-docker.pkg.dev
 
-    - name: Create optimized Dockerfile
-      run: |
-        cat > Dockerfile.optimized << 'EOF'
-        FROM node:20-alpine AS builder
-        RUN apk add --no-cache python3 make g++
-        WORKDIR /app
-        COPY package*.json ./
-        COPY tsconfig*.json ./
-        RUN npm ci
-        COPY server/ ./server/
-        COPY shared/ ./shared/
-        COPY prisma/ ./prisma/
-        RUN npx prisma generate
-
-        FROM node:20-alpine AS production
-        RUN apk add --no-cache dumb-init
-        RUN addgroup -g 1001 -S nodejs && adduser -S backend -u 1001
-        WORKDIR /app
-        COPY --from=builder --chown=backend:nodejs /app/node_modules ./node_modules
-        COPY --from=builder --chown=backend:nodejs /app/generated ./generated
-        COPY --from=builder --chown=backend:nodejs /app/tsconfig*.json ./
-        COPY --chown=backend:nodejs server/ ./server/
-        COPY --chown=backend:nodejs shared/ ./shared/
-
-        USER backend
-        EXPOSE 8080
-        ENTRYPOINT ["dumb-init", "--"]
-        CMD ["node", "server/simple-startup.js"]
-        EOF
-
     - name: Build optimized image
       run: |
-        echo "Building production-optimized image..."
-        docker build -f Dockerfile.optimized -t ${{ env.BACKEND_IMAGE }}:optimized .
+        echo "Building production-optimized image using existing Dockerfile.backend..."
+        docker build -f Dockerfile.backend -t ${{ env.BACKEND_IMAGE }}:optimized .
 
     - name: Push optimized image
       run: |

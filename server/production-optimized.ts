@@ -66,14 +66,14 @@ app.get('/api/health', (req, res) => {
 
 // Serve static files in production
 if (process.env.NODE_ENV === 'production') {
-  const path = require('path');
-  const staticPath = path.join(process.cwd(), 'dist');
+  const { join } = await import('path');
+  const staticPath = join(process.cwd(), 'dist');
   
   console.log('📁 Serving static files from:', staticPath);
   
   // Check if dist folder exists
-  const fs = require('fs');
-  if (fs.existsSync(staticPath)) {
+  const { existsSync } = await import('fs');
+  if (existsSync(staticPath)) {
     app.use(express.static(staticPath, {
       maxAge: '1d',
       etag: true,
@@ -90,7 +90,7 @@ if (process.env.NODE_ENV === 'production') {
       if (req.path.startsWith('/api/')) {
         return res.status(404).json({ error: 'API endpoint not found' });
       }
-      return res.sendFile(path.join(staticPath, 'index.html'));
+      return res.sendFile(join(staticPath, 'index.html'));
     });
   } else {
     console.log('⚠️ Static files not found, serving API only');
