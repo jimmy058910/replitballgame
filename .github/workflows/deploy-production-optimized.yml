@@ -1,0 +1,109 @@
+name: Deploy Production Optimized Backend
+
+on:
+  workflow_dispatch:
+
+env:
+  PROJECT_ID: direct-glider-465821-p7
+  REGION: us-east5
+  BACKEND_SERVICE: realm-rivalry-backend
+  BACKEND_IMAGE: us-east5-docker.pkg.dev/direct-glider-465821-p7/realm-rivalry/backend
+
+jobs:
+  deploy-optimized:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+        cache: 'npm'
+
+    - name: Install dependencies
+      run: npm ci
+
+    - name: Authenticate to Google Cloud
+      uses: google-github-actions/auth@v2
+      with:
+        credentials_json: ${{ secrets.GOOGLE_SERVICE_ACCOUNT_KEY }}
+
+    - name: Set up Cloud SDK
+      uses: google-github-actions/setup-gcloud@v2
+
+    - name: Configure Docker authentication
+      run: gcloud auth configure-docker us-east5-docker.pkg.dev
+
+    - name: Create optimized Dockerfile
+      run: |
+        cat > Dockerfile.optimized << 'EOF'
+        FROM node:20-alpine AS builder
+        RUN apk add --no-cache python3 make g++
+        WORKDIR /app
+        COPY package*.json ./
+        COPY tsconfig*.json ./
+        RUN npm ci
+        COPY server/ ./server/
+        COPY shared/ ./shared/
+        COPY prisma/ ./prisma/
+        RUN npx prisma generate
+
+        FROM node:20-alpine AS production
+        RUN apk add --no-cache dumb-init
+        RUN addgroup -g 1001 -S nodejs && adduser -S backend -u 1001
+        WORKDIR /app
+        COPY --from=builder --chown=backend:nodejs /app/node_modules ./node_modules
+        COPY --from=builder --chown=backend:nodejs /app/generated ./generated
+        COPY --from=builder --chown=backend:nodejs /app/tsconfig*.json ./
+        COPY --chown=backend:nodejs server/ ./server/
+        COPY --chown=backend:nodejs shared/ ./shared/
+
+        USER backend
+        EXPOSE 8080
+        ENTRYPOINT ["dumb-init", "--"]
+        CMD ["npx", "tsx", "server/production-optimized.ts"]
+        EOF
+
+    - name: Build optimized image
+      run: |
+        echo "Building production-optimized image..."
+        docker build -f Dockerfile.optimized -t ${{ env.BACKEND_IMAGE }}:optimized .
+
+    - name: Push optimized image
+      run: |
+        docker push ${{ env.BACKEND_IMAGE }}:optimized
+
+    - name: Deploy optimized backend
+      run: |
+        echo "Deploying production-optimized backend..."
+        gcloud run deploy ${{ env.BACKEND_SERVICE }} \
+          --image ${{ env.BACKEND_IMAGE }}:optimized \
+          --platform managed \
+          --region ${{ env.REGION }} \
+          --allow-unauthenticated \
+          --set-env-vars NODE_ENV=production \
+          --set-secrets DATABASE_URL=database-url:latest \
+          --memory 1Gi \
+          --cpu 1 \
+          --concurrency 40 \
+          --max-instances 5 \
+          --port 8080 \
+          --timeout 60s
+
+    - name: Test optimized deployment
+      run: |
+        echo "Getting backend URL..."
+        BACKEND_URL=$(gcloud run services describe ${{ env.BACKEND_SERVICE }} --region=${{ env.REGION }} --format="value(status.url)")
+        echo "Backend URL: $BACKEND_URL"
+        
+        echo "Testing health endpoint..."
+        curl -f "$BACKEND_URL/health"
+        
+        echo "Testing API health..."
+        curl -f "$BACKEND_URL/api/health"
+        
+        echo "✅ Production-optimized deployment successful!"
+        echo "Backend available at: $BACKEND_URL"

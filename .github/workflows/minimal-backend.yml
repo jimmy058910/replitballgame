@@ -45,24 +45,9 @@ jobs:
     - name: Configure Docker authentication
       run: gcloud auth configure-docker us-east5-docker.pkg.dev
 
-    - name: Create minimal Dockerfile
+    - name: Create minimal server file
       run: |
-        cat > Dockerfile.minimal << 'EOF'
-        FROM node:20-alpine
-
-        # Install dumb-init for proper signal handling
-        RUN apk add --no-cache dumb-init
-
-        # Create non-root user
-        RUN addgroup -g 1001 -S nodejs && adduser -S backend -u 1001
-
-        WORKDIR /app
-
-        # Only install express for minimal backend
-        RUN npm init -y && npm install express
-
-        # Create minimal server
-        RUN cat > server.js << 'EOJS'
+        cat > server.js << 'EOF'
         const express = require('express');
         const app = express();
         const port = process.env.PORT || 8080;
@@ -86,7 +71,26 @@ jobs:
         app.listen(port, '0.0.0.0', () => {
           console.log('✅ Minimal server listening on port', port);
         });
-        EOJS
+        EOF
+
+    - name: Create minimal Dockerfile
+      run: |
+        cat > Dockerfile.minimal << 'EOF'
+        FROM node:20-alpine
+
+        # Install dumb-init for proper signal handling
+        RUN apk add --no-cache dumb-init
+
+        # Create non-root user
+        RUN addgroup -g 1001 -S nodejs && adduser -S backend -u 1001
+
+        WORKDIR /app
+
+        # Only install express for minimal backend
+        RUN npm init -y && npm install express
+
+        # Copy server file
+        COPY server.js .
 
         USER backend
         EXPOSE 8080
@@ -212,15 +216,16 @@ jobs:
             if (!prisma) {
               return res.status(503).json({ error: 'Database not connected' });
             }
-            await prisma.$queryRaw`SELECT 1 as test`;
+            await prisma.$queryRaw\`SELECT 1 as test\`;
             res.json({ message: 'Database connection successful' });
           } catch (error) {
-            res.status(500).json({ error: error.message });
+            const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+            res.status(500).json({ error: errorMessage });
           }
         });
 
         // Start server immediately
-        const server = app.listen(port, '0.0.0.0', () => {
+        const server = app.listen(Number(port), '0.0.0.0', () => {
           console.log('✅ Server listening on port', port);
         });
 
