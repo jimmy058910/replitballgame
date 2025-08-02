@@ -119,9 +119,9 @@ export const isAuthenticated = (req: any, res: any, next: any) => {
     isDevelopment: process.env.NODE_ENV === 'development'
   });
   
-  // Development bypass for team creation endpoints
-  if (process.env.NODE_ENV === 'development' && req.originalUrl && req.originalUrl.includes('/api/teams')) {
-    console.log('🔧 DEVELOPMENT: Bypassing authentication for team creation', { 
+  // Development bypass for pre-alpha testing - bypass ALL authentication
+  if (process.env.NODE_ENV === 'development') {
+    console.log('🔧 DEVELOPMENT: Bypassing authentication for pre-alpha testing', { 
       path: req.path, 
       originalUrl: req.originalUrl 
     });

@@ -2987,4 +2987,13 @@ router.get('/:teamId/contracts', isAuthenticated, async (req: any, res: Response
   }
 });
 
+// Test endpoint to verify API routing is working (no auth required)
+router.get('/test', async (req: Request, res: Response) => {
+  res.json({ 
+    message: 'API routing is working correctly!',
+    timestamp: new Date().toISOString(),
+    endpoint: '/api/teams/test'
+  });
+});
+
 export default router;

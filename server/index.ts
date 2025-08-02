@@ -234,6 +234,16 @@ app.get('/health', (req, res) => {
   // Global error handler using centralized error service
   app.use(errorHandler);
 
+  // CRITICAL: Initialize authentication BEFORE registering API routes
+  console.log('🔐 Setting up Google OAuth authentication system before API routes...');
+  await setupGoogleAuth(app);
+  console.log('✅ Authentication system initialized before API routes');
+
+  // CRITICAL FIX: Pre-register API routes after auth setup but before Vite
+  console.log('🔧 Pre-registering API routes before Vite setup...');
+  registerAllRoutes(app);
+  console.log('✅ API routes pre-registered before Vite');
+
   // Vite setup with optimized static file serving
   if (app.get("env") === "development") {
     await setupVite(app, httpServer);
@@ -280,16 +290,16 @@ app.get('/health', (req, res) => {
     console.log(`✅ WebSocket server listening on /ws`);
     console.log(`✅ Health check available at /health`);
     
-    // Initialize all services asynchronously (non-blocking)
+    // Initialize remaining services asynchronously (non-blocking)
     setImmediate(() => {
-      initializeAllServices().catch(error => {
+      initializeRemainingServices().catch(error => {
         console.error('⚠️ Service initialization failed, but server remains operational:', error);
       });
     });
   });
 
-  // Initialize all services asynchronously after server starts
-  async function initializeAllServices() {
+  // Initialize remaining services asynchronously after server starts
+  async function initializeRemainingServices() {
     console.log(`🔄 Starting service initialization...`);
     
     // Initialize services with timeout and error isolation
@@ -306,25 +316,9 @@ app.get('/health', (req, res) => {
       }
     };
 
-    // Setup Google Auth (non-blocking)
-    await initWithTimeout('Google Authentication', async () => {
-      await setupGoogleAuth(app);
-    }, 15000);
+    // Authentication already initialized before API routes - no need to reinitialize
 
-    // Register routes (non-blocking)
-    await initWithTimeout('Route registration', async () => {
-      registerAllRoutes(app);
-      
-      // Add explicit API route handling to prevent Vite interception
-      app.use('/api/*', (req, res, next) => {
-        console.warn(`Unmatched API route: ${req.method} ${req.originalUrl}`);
-        res.status(404).json({ 
-          error: 'API endpoint not found',
-          path: req.originalUrl,
-          method: req.method
-        });
-      });
-    }, 5000);
+    // Routes already pre-registered before Vite - no need to register again
 
     // Setup WebSocket services
     await initWithTimeout('WebSocket services', async () => {

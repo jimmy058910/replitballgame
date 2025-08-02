@@ -67,12 +67,18 @@ import testRoutes from "./testRoutes";
 // It replaces the direct app.use calls that would have been in server/index.ts
 // or the single registerRoutes function from the old server/routes.ts.
 export function registerAllRoutes(app: Express): void {
+  console.log('🔍 [registerAllRoutes] Starting route registration...');
+  
   // Mount domain routes (new architecture)
   app.use("/api/v2", domainRoutes);
+  console.log('🔍 [registerAllRoutes] Registered /api/v2 routes');
   
   // Legacy routes (existing system)
   app.use("/api/auth", authRoutes);
+  console.log('🔍 [registerAllRoutes] Registered /api/auth routes');
+  
   app.use("/api/teams", teamRoutes); // Note: some routes like /api/teams/division/:division were moved to leagueRoutes
+  console.log('🔍 [registerAllRoutes] Registered /api/teams routes');
   app.use("/api/teams", teamTrendsRoutes); // Enhanced team trends for product-led growth data storytelling
   app.use("/api/players", playerRoutes);
   app.use("/api/staff", staffRoutes);
