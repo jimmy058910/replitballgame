@@ -72,6 +72,23 @@ EXPOSE 8080
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
   CMD node -e "require('http').get('http://localhost:8080/health', (res) => process.exit(res.statusCode === 200 ? 0 : 1))"
 
+# Create startup script for production optimization
+RUN cat > start.sh << 'EOF'
+#!/bin/sh
+echo "🚀 Starting Realm Rivalry backend server..."
+echo "Environment: ${NODE_ENV:-development}"
+echo "Port: ${PORT:-8080}"
+if [ "$USE_PRODUCTION_OPTIMIZED" = "true" ]; then
+  echo "Using production-optimized server..."
+  exec npx tsx server/production-optimized.ts
+else
+  echo "Using standard server..."
+  exec npx tsx server/index.ts
+fi
+EOF
+
+RUN chmod +x start.sh
+
 # Start server with dumb-init
 ENTRYPOINT ["dumb-init", "--"]
-CMD ["npx", "tsx", "server/index.ts"]
+CMD ["./start.sh"]

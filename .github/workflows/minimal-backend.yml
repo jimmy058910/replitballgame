@@ -1,0 +1,354 @@
+name: Minimal Backend - Phase 1
+
+on:
+  workflow_dispatch:
+    inputs:
+      deploy_type:
+        description: 'Deployment type'
+        required: true
+        default: 'minimal'
+        type: choice
+        options:
+        - minimal
+        - with-db
+        - full
+
+env:
+  PROJECT_ID: direct-glider-465821-p7
+  REGION: us-east5
+  BACKEND_SERVICE: realm-rivalry-backend
+  BACKEND_IMAGE: us-east5-docker.pkg.dev/direct-glider-465821-p7/realm-rivalry/backend
+
+jobs:
+  minimal-backend:
+    runs-on: ubuntu-latest
+    if: ${{ github.event.inputs.deploy_type == 'minimal' }}
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+        cache: 'npm'
+
+    - name: Authenticate to Google Cloud
+      uses: google-github-actions/auth@v2
+      with:
+        credentials_json: ${{ secrets.GOOGLE_SERVICE_ACCOUNT_KEY }}
+
+    - name: Set up Cloud SDK
+      uses: google-github-actions/setup-gcloud@v2
+
+    - name: Configure Docker authentication
+      run: gcloud auth configure-docker us-east5-docker.pkg.dev
+
+    - name: Create minimal Dockerfile
+      run: |
+        cat > Dockerfile.minimal << 'EOF'
+        FROM node:20-alpine
+
+        # Install dumb-init for proper signal handling
+        RUN apk add --no-cache dumb-init
+
+        # Create non-root user
+        RUN addgroup -g 1001 -S nodejs && adduser -S backend -u 1001
+
+        WORKDIR /app
+
+        # Only install express for minimal backend
+        RUN npm init -y && npm install express
+
+        # Create minimal server
+        RUN cat > server.js << 'EOJS'
+        const express = require('express');
+        const app = express();
+        const port = process.env.PORT || 8080;
+
+        // Health check endpoint
+        app.get('/health', (req, res) => {
+          res.status(200).json({ 
+            status: 'healthy', 
+            timestamp: new Date().toISOString(),
+            uptime: process.uptime(),
+            version: 'minimal-v1'
+          });
+        });
+
+        // Test endpoint
+        app.get('/test', (req, res) => {
+          res.json({ message: 'Minimal backend working!' });
+        });
+
+        // Start server immediately
+        app.listen(port, '0.0.0.0', () => {
+          console.log('✅ Minimal server listening on port', port);
+        });
+        EOJS
+
+        USER backend
+        EXPOSE 8080
+        ENTRYPOINT ["dumb-init", "--"]
+        CMD ["node", "server.js"]
+        EOF
+
+    - name: Build minimal backend image
+      run: |
+        echo "🐳 Building minimal backend image..."
+        docker build -f Dockerfile.minimal -t ${{ env.BACKEND_IMAGE }}:minimal .
+
+    - name: Push minimal image
+      run: |
+        docker push ${{ env.BACKEND_IMAGE }}:minimal
+
+    - name: Deploy minimal backend
+      run: |
+        echo "🚀 Deploying minimal backend..."
+        gcloud run deploy ${{ env.BACKEND_SERVICE }} \
+          --image ${{ env.BACKEND_IMAGE }}:minimal \
+          --platform managed \
+          --region ${{ env.REGION }} \
+          --allow-unauthenticated \
+          --memory 512Mi \
+          --cpu 1 \
+          --concurrency 20 \
+          --max-instances 3 \
+          --port 8080 \
+          --timeout 30s
+
+    - name: Test minimal deployment
+      run: |
+        BACKEND_URL=$(gcloud run services describe ${{ env.BACKEND_SERVICE }} --region=${{ env.REGION }} --format="value(status.url)")
+        echo "Testing: $BACKEND_URL"
+        curl -f "$BACKEND_URL/health"
+        curl -f "$BACKEND_URL/test"
+        echo "✅ Minimal backend deployment successful"
+
+  database-backend:
+    runs-on: ubuntu-latest
+    if: ${{ github.event.inputs.deploy_type == 'with-db' }}
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+        cache: 'npm'
+
+    - name: Install dependencies
+      run: npm ci
+
+    - name: Authenticate to Google Cloud
+      uses: google-github-actions/auth@v2
+      with:
+        credentials_json: ${{ secrets.GOOGLE_SERVICE_ACCOUNT_KEY }}
+
+    - name: Set up Cloud SDK
+      uses: google-github-actions/setup-gcloud@v2
+
+    - name: Configure Docker authentication
+      run: gcloud auth configure-docker us-east5-docker.pkg.dev
+
+    - name: Create database-enabled Dockerfile
+      run: |
+        cat > Dockerfile.database << 'EOF'
+        FROM node:20-alpine AS builder
+        RUN apk add --no-cache python3 make g++
+        WORKDIR /app
+        COPY package*.json ./
+        COPY tsconfig*.json ./
+        RUN npm ci
+        COPY server/ ./server/
+        COPY shared/ ./shared/
+        COPY prisma/ ./prisma/
+        RUN npx prisma generate
+
+        FROM node:20-alpine AS production
+        RUN apk add --no-cache dumb-init
+        RUN addgroup -g 1001 -S nodejs && adduser -S backend -u 1001
+        WORKDIR /app
+        COPY --from=builder --chown=backend:nodejs /app/node_modules ./node_modules
+        COPY --from=builder --chown=backend:nodejs /app/generated ./generated
+        COPY --from=builder --chown=backend:nodejs /app/tsconfig*.json ./
+        COPY --chown=backend:nodejs server/ ./server/
+        COPY --chown=backend:nodejs shared/ ./shared/
+
+        USER backend
+        EXPOSE 8080
+        ENTRYPOINT ["dumb-init", "--"]
+        CMD ["npx", "tsx", "server/minimal-db.ts"]
+        EOF
+
+    - name: Create minimal database server
+      run: |
+        mkdir -p server
+        cat > server/minimal-db.ts << 'EOF'
+        import express from 'express';
+        import { PrismaClient } from '../generated/prisma/index.js';
+
+        const app = express();
+        const port = process.env.PORT || 8080;
+        let prisma: PrismaClient | null = null;
+
+        // Health check - always responds
+        app.get('/health', (req, res) => {
+          res.status(200).json({ 
+            status: 'healthy', 
+            timestamp: new Date().toISOString(),
+            uptime: process.uptime(),
+            version: 'db-v1',
+            database: prisma ? 'connected' : 'disconnected'
+          });
+        });
+
+        // Database test endpoint
+        app.get('/db-test', async (req, res) => {
+          try {
+            if (!prisma) {
+              return res.status(503).json({ error: 'Database not connected' });
+            }
+            await prisma.$queryRaw`SELECT 1 as test`;
+            res.json({ message: 'Database connection successful' });
+          } catch (error) {
+            res.status(500).json({ error: error.message });
+          }
+        });
+
+        // Start server immediately
+        const server = app.listen(port, '0.0.0.0', () => {
+          console.log('✅ Server listening on port', port);
+        });
+
+        // Initialize database asynchronously
+        setImmediate(async () => {
+          try {
+            console.log('🔗 Connecting to database...');
+            prisma = new PrismaClient({
+              datasources: { db: { url: process.env.DATABASE_URL } }
+            });
+            await prisma.$connect();
+            console.log('✅ Database connected');
+          } catch (error) {
+            console.error('⚠️ Database connection failed:', error);
+            // Server continues running without database
+          }
+        });
+
+        // Graceful shutdown
+        process.on('SIGTERM', async () => {
+          console.log('🔄 Graceful shutdown...');
+          server.close();
+          if (prisma) await prisma.$disconnect();
+          process.exit(0);
+        });
+        EOF
+
+    - name: Build database backend image
+      run: |
+        echo "🐳 Building database backend image..."
+        docker build -f Dockerfile.database -t ${{ env.BACKEND_IMAGE }}:db .
+
+    - name: Push database image
+      run: |
+        docker push ${{ env.BACKEND_IMAGE }}:db
+
+    - name: Deploy database backend
+      run: |
+        echo "🚀 Deploying database backend..."
+        gcloud run deploy ${{ env.BACKEND_SERVICE }} \
+          --image ${{ env.BACKEND_IMAGE }}:db \
+          --platform managed \
+          --region ${{ env.REGION }} \
+          --allow-unauthenticated \
+          --set-secrets DATABASE_URL=database-url:latest \
+          --memory 1Gi \
+          --cpu 1 \
+          --concurrency 40 \
+          --max-instances 5 \
+          --port 8080 \
+          --timeout 60s
+
+    - name: Test database deployment
+      run: |
+        BACKEND_URL=$(gcloud run services describe ${{ env.BACKEND_SERVICE }} --region=${{ env.REGION }} --format="value(status.url)")
+        echo "Testing: $BACKEND_URL"
+        curl -f "$BACKEND_URL/health"
+        curl -f "$BACKEND_URL/db-test"
+        echo "✅ Database backend deployment successful"
+
+  full-backend:
+    runs-on: ubuntu-latest
+    if: ${{ github.event.inputs.deploy_type == 'full' }}
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+        cache: 'npm'
+
+    - name: Install dependencies
+      run: npm ci
+
+    - name: Authenticate to Google Cloud
+      uses: google-github-actions/auth@v2
+      with:
+        credentials_json: ${{ secrets.GOOGLE_SERVICE_ACCOUNT_KEY }}
+
+    - name: Set up Cloud SDK
+      uses: google-github-actions/setup-gcloud@v2
+
+    - name: Configure Docker authentication
+      run: gcloud auth configure-docker us-east5-docker.pkg.dev
+
+    - name: Build production frontend
+      run: |
+        echo "🔨 Building production frontend..."
+        npm run build
+      env:
+        VITE_FIREBASE_API_KEY: ${{ secrets.VITE_FIREBASE_API_KEY }}
+        VITE_FIREBASE_PROJECT_ID: ${{ secrets.VITE_FIREBASE_PROJECT_ID }}
+        VITE_FIREBASE_APP_ID: ${{ secrets.VITE_FIREBASE_APP_ID }}
+        VITE_API_BASE_URL: https://realm-rivalry-backend-o6fd46yesq-ul.a.run.app
+
+    - name: Build full backend image
+      run: |
+        echo "🐳 Building full backend image..."
+        docker build -f Dockerfile.backend -t ${{ env.BACKEND_IMAGE }}:latest .
+
+    - name: Push full image
+      run: |
+        docker push ${{ env.BACKEND_IMAGE }}:latest
+
+    - name: Deploy full backend
+      run: |
+        echo "🚀 Deploying full backend..."
+        gcloud run deploy ${{ env.BACKEND_SERVICE }} \
+          --image ${{ env.BACKEND_IMAGE }}:latest \
+          --platform managed \
+          --region ${{ env.REGION }} \
+          --allow-unauthenticated \
+          --service-account realm-rivalry-runner@${{ env.PROJECT_ID }}.iam.gserviceaccount.com \
+          --set-env-vars NODE_ENV=production \
+          --set-secrets DATABASE_URL=database-url:latest,SESSION_SECRET=session-secret:latest,GOOGLE_CLIENT_SECRET=google-client-secret:latest,GOOGLE_CLIENT_ID=GOOGLE_CLIENT_ID:latest \
+          --memory 2Gi \
+          --cpu 1 \
+          --concurrency 80 \
+          --max-instances 10 \
+          --port 8080 \
+          --timeout 300s
+
+    - name: Test full deployment
+      run: |
+        BACKEND_URL=$(gcloud run services describe ${{ env.BACKEND_SERVICE }} --region=${{ env.REGION }} --format="value(status.url)")
+        echo "Testing: $BACKEND_URL"
+        curl -f "$BACKEND_URL/health"
+        echo "✅ Full backend deployment successful"

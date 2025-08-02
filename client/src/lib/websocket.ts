@@ -54,10 +54,6 @@ class WebSocketManager {
     this.initializeConnection();
   }
 
-  setCallbacks(callbacks: WebSocketCallbacks) {
-    this.callbacks = { ...this.callbacks, ...callbacks };
-  }
-
   private initializeConnection() {
     const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
     const wsUrl = `${protocol}//${window.location.host}`;
@@ -68,7 +64,7 @@ class WebSocketManager {
       reconnection: true,
       reconnectionDelay: 1000,
       reconnectionDelayMax: 5000,
-      maxReconnectionAttempts: this.maxReconnectAttempts,
+      reconnectionAttempts: this.maxReconnectAttempts,
       timeout: 10000
     });
 

@@ -1,148 +1,161 @@
-import express from 'express';
-import { createServer } from 'http';
-import cors from 'cors';
-import compression from 'compression';
+import express, { type Request, Response, NextFunction } from "express";
+import { createServer } from "http";
+import rateLimit from "express-rate-limit";
+import helmet from "helmet";
+import compression from "compression";
+import cors from "cors";
 
 const app = express();
-const port = process.env.PORT ? parseInt(process.env.PORT) : 8080;
+const port = process.env.PORT || 8080;
 
-console.log('🚀 Starting optimized production server...');
-console.log('📍 Port:', port);
-console.log('🌍 Environment:', process.env.NODE_ENV);
+console.log('🚀 Starting production-optimized server...');
 
-// IMMEDIATE setup - no async operations
-app.use(cors({
-  origin: ['https://realmrivalry.com', 'https://www.realmrivalry.com', 'https://realm-rivalry-o6fd46yesq-ul.a.run.app'],
-  credentials: true
+// Configure CORS with production settings
+const corsOptions = {
+  origin: process.env.NODE_ENV === 'production'
+    ? ['https://realmrivalry.com', 'https://www.realmrivalry.com']
+    : ['http://localhost:5000', /\.replit\.dev$/],
+  credentials: true,
+  optionsSuccessStatus: 200,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept', 'Origin']
+}
+
+// Apply middleware in production-optimized order
+app.use(helmet({
+  contentSecurityPolicy: false, // Disable for now to avoid blocking issues
+  crossOriginEmbedderPolicy: false
 }));
 
-app.use(compression());
+app.use(cors(corsOptions));
+app.use(compression({ level: 6, threshold: 1024 }));
 app.use(express.json({ limit: '10mb' }));
-app.use(express.urlencoded({ extended: false }));
+app.use(express.urlencoded({ extended: false, limit: '10mb' }));
 
-// CRITICAL: Health check responds immediately
+// Rate limiting for production
+if (process.env.NODE_ENV === 'production') {
+  const limiter = rateLimit({
+    windowMs: 15 * 60 * 1000, // 15 minutes
+    max: 100, // limit each IP to 100 requests per windowMs
+    message: 'Too many requests from this IP'
+  });
+  app.use(limiter);
+}
+
+// Health check endpoint - responds immediately
 app.get('/health', (req, res) => {
   res.status(200).json({ 
-    status: 'ok', 
+    status: 'healthy', 
     timestamp: new Date().toISOString(),
-    environment: process.env.NODE_ENV || 'production'
+    uptime: process.uptime(),
+    version: 'production-optimized',
+    environment: process.env.NODE_ENV || 'development'
   });
 });
 
+// API health check
 app.get('/api/health', (req, res) => {
   res.status(200).json({ 
-    status: 'ok', 
-    timestamp: new Date().toISOString(),
-    environment: process.env.NODE_ENV || 'production'
+    api: 'healthy',
+    services: {
+      database: process.env.DATABASE_URL ? 'configured' : 'not-configured',
+      auth: process.env.GOOGLE_CLIENT_ID ? 'configured' : 'not-configured'
+    }
   });
 });
 
-// Serve static files immediately
-app.use(express.static('dist', {
-  maxAge: '1y',
-  etag: true,
-  lastModified: true,
-  setHeaders: (res, path) => {
-    if (path.endsWith('.html')) {
-      res.setHeader('Cache-Control', 'public, max-age=3600');
+// Serve static files in production
+if (process.env.NODE_ENV === 'production') {
+  const path = require('path');
+  const staticPath = path.join(process.cwd(), 'dist');
+  
+  console.log('📁 Serving static files from:', staticPath);
+  
+  app.use(express.static(staticPath, {
+    maxAge: '1d',
+    etag: true,
+    lastModified: true,
+    setHeaders: (res, filePath) => {
+      if (filePath.endsWith('.html')) {
+        res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+      }
     }
-  }
-}));
+  }));
 
-// Fallback to index.html for SPA routing
-app.get('*', (req, res) => {
-  res.sendFile('index.html', { root: 'dist' });
+  // SPA fallback
+  app.get('*', (req, res) => {
+    res.sendFile(path.join(staticPath, 'index.html'));
+  });
+}
+
+// Global error handler
+app.use((error: Error, req: Request, res: Response, next: NextFunction) => {
+  console.error('Global error:', error);
+  res.status(500).json({ 
+    error: 'Internal server error',
+    message: process.env.NODE_ENV === 'development' ? error.message : 'Server error'
+  });
 });
 
+// Create HTTP server
 const httpServer = createServer(app);
 
-// START SERVER IMMEDIATELY - Cloud Run timeout fix
-httpServer.listen(port, '0.0.0.0', () => {
-  console.log(`✅ Server listening on port ${port}`);
-  console.log(`🏥 Health: http://0.0.0.0:${port}/health`);
-  console.log('🎯 STARTUP COMPLETE - Cloud Run ready');
+// Start server immediately
+httpServer.listen(Number(port), '0.0.0.0', () => {
+  console.log(`✅ Production server listening on port ${port}`);
+  console.log(`✅ Health check available at /health`);
+  console.log(`✅ Environment: ${process.env.NODE_ENV || 'development'}`);
   
-  // Initialize everything else AFTER server is responding
-  setImmediate(async () => {
-    try {
-      console.log('🔄 Background initialization starting...');
-      
-      // Dynamic imports to prevent startup blocking
-      const [
-        { setupGoogleAuth },
-        { registerAllRoutes },
-        { Server: SocketIOServer },
-        session,
-        passport,
-        { setupWebSocketServer, webSocketService },
-        { matchStateManager },
-        { SeasonTimingAutomationService }
-      ] = await Promise.all([
-        import('./googleAuth'),
-        import('./routes/index'),
-        import('socket.io'),
-        import('express-session'),
-        import('passport'),
-        import('./services/webSocketService'),
-        import('./services/matchStateManager'),
-        import('./services/seasonTimingAutomationService')
-      ]);
-
-      // Session middleware
-      app.use(session.default({
-        secret: process.env.SESSION_SECRET || 'fallback-secret',
-        resave: false,
-        saveUninitialized: false,
-        cookie: {
-          secure: process.env.NODE_ENV === 'production',
-          httpOnly: true,
-          maxAge: 24 * 60 * 60 * 1000,
-          sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax'
-        }
-      }));
-
-      app.use(passport.default.initialize());
-      app.use(passport.default.session());
-
-      // Initialize authentication
-      await setupGoogleAuth();
-      console.log('✅ Authentication ready');
-
-      // Register API routes
-      registerAllRoutes(app);
-      console.log('✅ API routes ready');
-
-      // Setup WebSocket
-      const io = new SocketIOServer(httpServer, {
-        path: '/ws',
-        cors: { origin: "*", methods: ["GET", "POST"] }
-      });
-      
-      await setupWebSocketServer(io);
-      matchStateManager.setWebSocketService(webSocketService);
-      console.log('✅ WebSocket ready');
-
-      // Initialize match recovery (non-blocking)
-      matchStateManager.recoverLiveMatches().catch(console.error);
-      console.log('🔄 Match recovery started');
-
-      // Initialize season automation with optimized intervals
-      const seasonService = SeasonTimingAutomationService.getInstance();
-      await seasonService.start();
-      console.log('✅ Season automation ready');
-
-      console.log('🎉 FULL SYSTEM READY');
-      
-    } catch (error) {
-      console.error('❌ Background initialization error:', error);
-      // Don't crash the server - it's already serving health checks
-    }
+  // Initialize services asynchronously (non-blocking)
+  setImmediate(() => {
+    initializeServices().catch(error => {
+      console.error('⚠️ Service initialization failed, but server remains operational:', error);
+    });
   });
 });
+
+// Service initialization function
+async function initializeServices() {
+  console.log('🔄 Starting service initialization...');
+  
+  // Initialize database connection
+  if (process.env.DATABASE_URL) {
+    try {
+      const { PrismaClient } = await import('../generated/prisma/index.js');
+      const prisma = new PrismaClient({
+        datasources: { db: { url: process.env.DATABASE_URL } }
+      });
+      
+      await Promise.race([
+        prisma.$connect(),
+        new Promise((_, reject) => setTimeout(() => reject(new Error('Database connection timeout')), 10000))
+      ]);
+      
+      console.log('✅ Database connected');
+      
+      // Add database routes
+      app.get('/api/db-status', async (req, res) => {
+        try {
+          await prisma.$queryRaw`SELECT 1 as test`;
+          res.json({ status: 'connected', timestamp: new Date().toISOString() });
+        } catch (error) {
+          res.status(500).json({ status: 'error', error: error instanceof Error ? error.message : 'Unknown error' });
+        }
+      });
+      
+    } catch (error) {
+      console.error('⚠️ Database initialization failed:', error);
+    }
+  } else {
+    console.log('📝 Database URL not configured, skipping database initialization');
+  }
+  
+  console.log('✅ Service initialization completed');
+}
 
 // Graceful shutdown
 process.on('SIGTERM', () => {
-  console.log('📴 SIGTERM received, shutting down gracefully');
+  console.log('🔄 Graceful shutdown initiated...');
   httpServer.close(() => {
     console.log('✅ Server closed');
     process.exit(0);
@@ -150,9 +163,11 @@ process.on('SIGTERM', () => {
 });
 
 process.on('SIGINT', () => {
-  console.log('📴 SIGINT received, shutting down gracefully');
+  console.log('🔄 Graceful shutdown initiated...');
   httpServer.close(() => {
     console.log('✅ Server closed');
     process.exit(0);
   });
 });
+
+export default app;
