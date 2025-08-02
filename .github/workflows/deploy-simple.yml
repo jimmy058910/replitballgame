@@ -1,0 +1,52 @@
+name: Deploy Simple Industry Standard
+
+on:
+  workflow_dispatch:
+
+env:
+  PROJECT_ID: direct-glider-465821-p7
+  REGION: us-east5
+  SERVICE_NAME: realm-rivalry-backend
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Authenticate to Google Cloud
+      uses: google-github-actions/auth@v2
+      with:
+        credentials_json: ${{ secrets.GOOGLE_SERVICE_ACCOUNT_KEY }}
+
+    - name: Set up Cloud SDK
+      uses: google-github-actions/setup-gcloud@v2
+
+    - name: Deploy with source-based deployment (Industry Standard)
+      run: |
+        echo "Using industry-standard source-based deployment..."
+        gcloud run deploy ${{ env.SERVICE_NAME }} \
+          --source . \
+          --region ${{ env.REGION }} \
+          --platform managed \
+          --allow-unauthenticated \
+          --set-env-vars NODE_ENV=production \
+          --set-secrets DATABASE_URL=database-url:latest,VITE_FIREBASE_API_KEY=firebase-api-key:latest,VITE_FIREBASE_PROJECT_ID=firebase-project-id:latest,VITE_FIREBASE_APP_ID=firebase-app-id:latest \
+          --memory 1Gi \
+          --cpu 1 \
+          --max-instances 10 \
+          --port 8080 \
+          --timeout 300s
+
+    - name: Test deployment
+      run: |
+        echo "Getting service URL..."
+        SERVICE_URL=$(gcloud run services describe ${{ env.SERVICE_NAME }} --region=${{ env.REGION }} --format="value(status.url)")
+        echo "Service URL: $SERVICE_URL"
+        
+        echo "Testing health endpoint..."
+        curl -f "$SERVICE_URL/health"
+        
+        echo "✅ Industry-standard deployment successful!"
