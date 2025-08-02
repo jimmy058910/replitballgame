@@ -134,28 +134,38 @@ export default function DramaticTeamHQ() {
     localStorage.setItem(`dailyTasks_${today}`, JSON.stringify(dailyTasks));
   }, [dailyTasks]);
 
-  // Team data query - use existing working endpoint
-  const { data: teamData, isLoading } = useQuery({
+  // Team data query with enhanced error handling
+  const { data: teamData, isLoading, error: teamError } = useQuery({
     queryKey: ["/api/teams/my"],
     enabled: isAuthenticated,
+    retry: false,
+    staleTime: 30000,
+    refetchOnWindowFocus: false,
+    refetchInterval: false
   });
 
-  // Exhibition games played today - fetch real data
-  const { data: exhibitionStats } = useQuery<ExhibitionStats>({
+  // Exhibition games with error handling
+  const { data: exhibitionStats, error: exhibitionError } = useQuery<ExhibitionStats>({
     queryKey: ["/api/exhibitions/stats"],
     enabled: isAuthenticated,
-    refetchInterval: 30000, // Refresh every 30 seconds
+    retry: false,
+    staleTime: 60000,
+    refetchOnWindowFocus: false,
+    refetchInterval: false
   });
 
-  // Upcoming matches - check for next scheduled match
-  const { data: upcomingMatches } = useQuery({
+  // Live matches with error handling
+  const { data: upcomingMatches, error: matchesError } = useQuery({
     queryKey: ["/api/matches/live"],
     enabled: isAuthenticated,
-    refetchInterval: 30000, // Refresh every 30 seconds
+    retry: false,
+    staleTime: 30000,
+    refetchOnWindowFocus: false,
+    refetchInterval: false
   });
 
-  // Get next scheduled opponent from API
-  const { data: nextOpponentData } = useQuery<{
+  // Next opponent with error handling
+  const { data: nextOpponentData, error: opponentError } = useQuery<{
     nextOpponent: string;
     gameDate?: string;
     isHome?: boolean;
@@ -164,16 +174,34 @@ export default function DramaticTeamHQ() {
     timeUntil?: string;
   }>({
     queryKey: ['/api/teams/my/next-opponent'],
-    enabled: isAuthenticated
+    enabled: isAuthenticated,
+    retry: false,
+    staleTime: 60000,
+    refetchOnWindowFocus: false,
+    refetchInterval: false
   });
 
-  // Get accurate camaraderie data (calculated from player scores)
-  const { data: camaraderieData } = useQuery<{
+  // Camaraderie data with error handling
+  const { data: camaraderieData, error: camaraderieError } = useQuery<{
     teamCamaraderie: number;
     status: string;
   }>({
     queryKey: ['/api/camaraderie/summary'],
-    enabled: isAuthenticated
+    enabled: isAuthenticated,
+    retry: false,
+    staleTime: 60000,
+    refetchOnWindowFocus: false,
+    refetchInterval: false
+  });
+
+  // Season data with error handling
+  const { data: seasonData, error: seasonError } = useQuery({
+    queryKey: ["/api/season/current-cycle"],
+    enabled: isAuthenticated,
+    retry: false,
+    staleTime: 60000,
+    refetchOnWindowFocus: false,
+    refetchInterval: false
   });
 
   // Team creation mutation
@@ -203,12 +231,35 @@ export default function DramaticTeamHQ() {
     },
   });
 
+  // Enhanced loading and error handling
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-900 to-gray-900">
         <div className="text-center">
           <div className="w-16 h-16 border-4 border-blue-400 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
           <div className="text-white text-xl font-bold">Loading Team HQ...</div>
+          <div className="text-gray-400 text-sm mt-2">Connecting to Realm Rivalry servers...</div>
+        </div>
+      </div>
+    );
+  }
+
+  // Handle critical API errors gracefully
+  if (teamError && (teamError as Error).message?.includes('500')) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-900 to-gray-900">
+        <div className="text-center max-w-md mx-auto p-6">
+          <AlertTriangle className="w-16 h-16 text-yellow-500 mx-auto mb-4" />
+          <div className="text-white text-xl font-bold mb-2">Server Connection Issue</div>
+          <div className="text-gray-400 text-sm mb-4">
+            Having trouble connecting to Realm Rivalry servers. Please wait a moment and refresh the page.
+          </div>
+          <Button 
+            onClick={() => window.location.reload()} 
+            className="bg-blue-600 hover:bg-blue-700"
+          >
+            Refresh Page
+          </Button>
         </div>
       </div>
     );

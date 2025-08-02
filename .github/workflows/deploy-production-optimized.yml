@@ -64,7 +64,7 @@ jobs:
         USER backend
         EXPOSE 8080
         ENTRYPOINT ["dumb-init", "--"]
-        CMD ["npx", "tsx", "server/production-optimized.ts"]
+        CMD ["npx", "tsx", "server/index.ts"]
         EOF
 
     - name: Build optimized image
@@ -84,14 +84,14 @@ jobs:
           --platform managed \
           --region ${{ env.REGION }} \
           --allow-unauthenticated \
-          --set-env-vars NODE_ENV=production \
-          --set-secrets DATABASE_URL=database-url:latest \
-          --memory 1Gi \
-          --cpu 1 \
+          --set-env-vars NODE_ENV=production,SESSION_SECRET=realm-rivalry-session-key-prod \
+          --set-secrets DATABASE_URL=database-url:latest,VITE_FIREBASE_API_KEY=firebase-api-key:latest,VITE_FIREBASE_PROJECT_ID=firebase-project-id:latest,VITE_FIREBASE_APP_ID=firebase-app-id:latest \
+          --memory 2Gi \
+          --cpu 2 \
           --concurrency 40 \
           --max-instances 5 \
           --port 8080 \
-          --timeout 60s
+          --timeout 120s
 
     - name: Test optimized deployment
       run: |
