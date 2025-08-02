@@ -15,13 +15,17 @@ export async function setupGoogleAuth(app: Express) {
     throw new Error('Missing Google OAuth credentials');
   }
   
-  // Test database connection before setting up auth
+  // Test database connection before setting up auth (with timeout)
   try {
-    const { AuthService } = await import('./domains/auth/service');
+    console.log('🔍 Testing AuthService connection...');
+    const authModule = await Promise.race([
+      import('./domains/auth/service'),
+      new Promise((_, reject) => setTimeout(() => reject(new Error('AuthService import timeout')), 10000))
+    ]) as typeof import('./domains/auth/service');
     console.log('✅ AuthService imported successfully');
   } catch (error) {
-    console.error('❌ Failed to import AuthService:', error);
-    throw error;
+    console.error('⚠️ AuthService import failed, continuing with limited auth:', error);
+    // Don't throw - allow server to start even if auth has issues
   }
   // Configure the Google strategy for use by Passport.
   passport.use(new GoogleStrategy({

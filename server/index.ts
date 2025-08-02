@@ -255,6 +255,16 @@ app.get('/health', (req, res) => {
   // Connect WebSocket service to match state manager
   matchStateManager.setWebSocketService(webSocketService);
 
+  // Health check endpoint for Cloud Run
+  app.get('/health', (req, res) => {
+    res.status(200).json({
+      status: 'healthy',
+      timestamp: new Date().toISOString(),
+      uptime: process.uptime(),
+      environment: process.env.NODE_ENV
+    });
+  });
+
   // Global error handler using centralized error service
   app.use(errorHandler);
 
@@ -293,35 +303,54 @@ app.get('/health', (req, res) => {
   }
 
   const port = process.env.PORT ? parseInt(process.env.PORT) : (process.env.NODE_ENV === 'production' ? 8080 : 5000);
+  
+  // Start server immediately - don't wait for background services
   httpServer.listen({
     port,
     host: "0.0.0.0", // Important for Cloud Run
     reusePort: true,
   }, () => {
-    log(`Server listening on port ${port}`);
-    log(`WebSocket server listening on /ws`);
+    console.log(`✅ Server listening on port ${port}`);
+    console.log(`✅ WebSocket server listening on /ws`);
+    console.log(`✅ Health check available at /health`);
     
-    // Do heavy initialization AFTER server is listening
-    initializeBackgroundServices();
+    // Initialize background services asynchronously (non-blocking)
+    setImmediate(() => {
+      initializeBackgroundServices().catch(error => {
+        console.error('⚠️ Background initialization failed, but server remains operational:', error);
+      });
+    });
   });
 
-  // Background initialization function
+  // Background initialization function - runs asynchronously after server starts
   async function initializeBackgroundServices() {
-    try {
-      log(`🔄 Starting background initialization...`);
-      
-      // Initialize match state recovery system
-      log(`🔄 Initializing match state recovery system...`);
-      await matchStateManager.recoverLiveMatches();
+    console.log(`🔄 Starting background initialization...`);
+    
+    // Initialize services with timeout and error isolation
+    const initWithTimeout = async (name: string, initFn: () => Promise<void>, timeoutMs = 30000) => {
+      try {
+        await Promise.race([
+          initFn(),
+          new Promise((_, reject) => setTimeout(() => reject(new Error(`${name} timeout`)), timeoutMs))
+        ]);
+        console.log(`✅ ${name} initialized successfully`);
+      } catch (error) {
+        console.error(`⚠️ ${name} initialization failed:`, error);
+        // Continue with other services even if one fails
+      }
+    };
 
-      // Initialize season timing automation system
-      log(`🔄 Initializing season timing automation system...`);
+    // Initialize match state recovery system with timeout
+    await initWithTimeout('Match state recovery', async () => {
+      await matchStateManager.recoverLiveMatches();
+    });
+
+    // Initialize season timing automation system with timeout
+    await initWithTimeout('Season timing automation', async () => {
       const seasonTimingService = SeasonTimingAutomationService.getInstance();
       await seasonTimingService.start();
+    });
       
-      log(`✅ Background initialization completed`);
-    } catch (error) {
-      console.error('❌ Background initialization failed:', error);
-    }
+    console.log(`✅ Background initialization completed`);
   }
 })();
