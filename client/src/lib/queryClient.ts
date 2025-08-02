@@ -8,8 +8,10 @@ async function throwIfResNotOk(res: Response) {
 }
 
 // Hybrid architecture API configuration
-// Use relative URLs to go through Firebase Hosting proxy
-const API_BASE_URL = '';
+// Production: Direct Cloud Run URL, Development: Relative URLs
+const API_BASE_URL = import.meta.env.PROD 
+  ? 'https://realm-rivalry-backend-o6fd46yesq-ul.a.run.app'
+  : '';
 
 console.log('🔗 QueryClient API Configuration:', {
   baseUrl: API_BASE_URL,
