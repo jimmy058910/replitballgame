@@ -8,7 +8,7 @@ import compression from 'compression';
 import helmet from 'helmet';
 import { fileURLToPath } from 'url';
 import { setupGoogleAuth } from './googleAuth';
-// Routes will be imported dynamically to avoid conflicts
+// Import routes directly for immediate registration
 import { errorHandler } from './services/errorService';
 // Firestore imports moved to dynamic import to prevent blocking authentication setup
 
@@ -133,130 +133,45 @@ console.log('GOOGLE_CLIENT_ID present:', !!process.env.GOOGLE_CLIENT_ID);
 console.log('GOOGLE_CLIENT_SECRET present:', !!process.env.GOOGLE_CLIENT_SECRET);
 console.log('DATABASE_URL present:', !!process.env.DATABASE_URL);
 
-(async () => {
-  try {
-    console.log('🔄 STARTING: Authentication setup with timeout protection...');
-    console.log('🔄 BEFORE setupGoogleAuth - passport object:', typeof passport);
-    console.log('🔄 BEFORE setupGoogleAuth - passport import successful:', !!passport);
-    console.log('🔄 BEFORE setupGoogleAuth - passport.initialize type:', typeof passport?.initialize);
-    console.log('🔄 BEFORE setupGoogleAuth - passport.session type:', typeof passport?.session);
-    console.log('🔄 BEFORE setupGoogleAuth - app object methods:', Object.getOwnPropertyNames(app).slice(0, 10));
-    console.log('🔄 BEFORE setupGoogleAuth - app.use type:', typeof app.use);
+// SIMPLIFIED PRODUCTION SETUP - Remove complex async/await structure that's failing
+console.log('🔐 Setting up authentication and routes...');
+
+// Import routes function at the top level to avoid dynamic import issues
+import { registerAllRoutes } from './routes/index.js';
+
+// Set up authentication first
+setupGoogleAuth(app)
+  .then(() => {
+    console.log('✅ Authentication setup completed');
     
-    // Test app.use functionality BEFORE calling setupGoogleAuth
-    const testMiddlewareAdded: any[] = [];
-    const originalAppUse = app.use.bind(app);
+    // Register all routes
+    try {
+      registerAllRoutes(app);
+      console.log('✅ All API routes registered successfully');
+    } catch (routeError) {
+      console.error('❌ Route registration failed:', routeError);
+    }
+  })
+  .catch((authError) => {
+    console.error('❌ Authentication setup failed:', authError);
     
-    // Wrap app.use to track middleware additions during setupGoogleAuth
-    app.use = function(...args: any[]) {
-      console.log('🔧 TRACKED: app.use called with:', args.length, 'arguments');
-      console.log('🔧 TRACKED: First arg type:', typeof args[0]);
-      console.log('🔧 TRACKED: First arg name:', args[0]?.name || 'unnamed');
-      testMiddlewareAdded.push({
-        args: args.length,
-        type: typeof args[0],
-        name: args[0]?.name || 'unnamed',
-        timestamp: new Date().toISOString()
-      });
-      return originalAppUse(...args);
-    };
-    
-    // Add timeout protection for database operations
-    console.log('🕐 Setting up authentication with 15 second timeout...');
-    const authSetupPromise = setupGoogleAuth(app);
-    const timeoutPromise = new Promise((_, reject) => {
-      setTimeout(() => reject(new Error('Authentication setup timed out after 15 seconds')), 15000);
-    });
-    
-    await Promise.race([authSetupPromise, timeoutPromise]);
-  
-  // Restore original app.use
-  app.use = originalAppUse;
-  
-  console.log('✅ setupGoogleAuth completed without throwing error');
-  console.log('🔍 MIDDLEWARE ADDITIONS DURING SETUP:', JSON.stringify(testMiddlewareAdded, null, 2));
-  
-  // CRITICAL: Test passport immediately after setup
-  console.log('🔍 POST-SETUP: Testing passport middleware attachment...');
-  
-  // Create test middleware to verify passport is working
-  app.use('/api/passport-test', (req: any, res, next) => {
-    console.log('🧪 Passport test middleware - req.isAuthenticated:', typeof req.isAuthenticated);
-    console.log('🧪 Passport test middleware - req._passport:', !!req._passport);
-    console.log('🧪 Passport test middleware - req.session:', !!req.session);
-    res.json({
-      passportWorking: typeof req.isAuthenticated === 'function',
-      passportObject: !!req._passport,
-      sessionExists: !!req.session,
-      testTime: new Date().toISOString()
-    });
+    // Still try to register routes even if auth fails
+    try {
+      registerAllRoutes(app);
+      console.log('✅ Routes registered despite auth failure');
+    } catch (routeError) {
+      console.error('❌ Critical: Both auth and routes failed:', routeError);
+    }
   });
-  
-  console.log('✅ Authentication middleware configured successfully');
-  
-  // NOW register all other API routes AFTER authentication is ready
-  console.log('🛣️ Registering API routes AFTER authentication setup...');
-  const { registerAllRoutes } = await import('./routes/index.js');
+
+// FALLBACK: Register routes immediately to ensure they work
+console.log('🔧 FALLBACK: Registering routes immediately...');
+try {
   registerAllRoutes(app);
-  console.log('✅ All API routes registered after authentication setup');
-  
-  // Success endpoint
-  app.get('/api/auth-status', (req, res) => {
-    res.json({
-      status: 'success',
-      authSetup: 'completed',
-      timestamp: new Date().toISOString()
-    });
-  });
-  
-} catch (error: any) {
-  console.error('❌ CRITICAL: Authentication setup failed:', error);
-  console.error('❌ Error message:', error?.message || 'Unknown error');
-  console.error('❌ Stack trace:', error?.stack || 'No stack trace');
-  
-  // CRITICAL: Always register routes even if auth fails completely
-  console.log('🛣️ TIMEOUT/ERROR: Registering API routes despite auth failure...');
-  try {
-    const { registerAllRoutes } = await import('./routes/index.js');
-    registerAllRoutes(app);
-    console.log('✅ API routes registered successfully despite auth failure');
-  } catch (routeError: any) {
-    console.error('❌ CRITICAL: Route registration also failed:', routeError);
-  }
-  
-  // Create fallback auth routes if setupGoogleAuth completely failed
-  console.log('🔧 Creating fallback auth routes...');
-  app.get('/api/auth/login', (req, res) => {
-    res.status(503).json({
-      error: 'Authentication system temporarily unavailable',
-      message: 'Database connection issues preventing Google OAuth setup',
-      timestamp: new Date().toISOString()
-    });
-  });
-  
-  app.get('/api/auth/user', (req, res) => {
-    res.status(503).json({
-      error: 'Authentication system temporarily unavailable',
-      message: 'Database connection issues preventing user authentication',
-      timestamp: new Date().toISOString()
-    });
-  });
-  
-  // Error endpoint with detailed info
-  app.get('/api/auth-status', (req, res) => {
-    res.status(500).json({
-      status: 'failed',
-      error: 'Authentication setup failed',
-      message: error?.message || 'Unknown error',
-      stack: error?.stack || 'No stack trace',
-      hasGoogleClientId: !!process.env.GOOGLE_CLIENT_ID,
-      hasGoogleClientSecret: !!process.env.GOOGLE_CLIENT_SECRET,
-      hasDatabaseUrl: !!process.env.DATABASE_URL,
-      timestamp: new Date().toISOString()
-    });
-  });
+  console.log('✅ FALLBACK: Routes registered successfully');
+} catch (fallbackError) {
+  console.error('❌ FALLBACK: Route registration failed:', fallbackError);
 }
-})();
 
 // Verify passport middleware is working
 console.log('🔍 Testing passport middleware...');
