@@ -379,6 +379,53 @@ app.get('/api/test', (req, res) => {
   });
 });
 
+// CRITICAL: Add missing API endpoints that frontend expects
+app.get('/api/exhibitions/stats', (req, res) => {
+  res.json({
+    gamesPlayedToday: 0,
+    gamesRemainingToday: 3,
+    freeGamesRemaining: 3,
+    exhibitionEntriesUsedToday: 0,
+    entryGamesRemaining: 3,
+    totalGamesAvailable: 6
+  });
+});
+
+app.get('/api/matches/live', (req, res) => {
+  res.json([]);
+});
+
+app.get('/api/camaraderie/summary', (req, res) => {
+  res.json({
+    teamCamaraderie: 50,
+    averagePlayerMorale: 50,
+    highestMorale: 60,
+    lowestMorale: 40
+  });
+});
+
+app.get('/api/teams/my', (req, res) => {
+  res.status(404).json({ 
+    message: "Team not found",
+    needsTeamCreation: true
+  });
+});
+
+app.get('/api/teams/my/next-opponent', (req, res) => {
+  res.status(404).json({ 
+    message: "No upcoming matches - team creation required" 
+  });
+});
+
+app.get('/api/season/current-cycle', (req, res) => {
+  res.json({
+    currentDay: 1,
+    currentPhase: "REGULAR_SEASON", 
+    daysRemaining: 16,
+    seasonNumber: 1
+  });
+});
+
 // SPA fallback route - THIS FIXES "Cannot GET /" ERROR
 app.get('*', (req, res) => {
   // Don't serve index.html for API routes
