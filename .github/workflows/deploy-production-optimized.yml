@@ -64,7 +64,7 @@ jobs:
         USER backend
         EXPOSE 8080
         ENTRYPOINT ["dumb-init", "--"]
-        CMD ["npx", "tsx", "server/production-optimized.ts"]
+        CMD ["npx", "tsx", "server/ultra-minimal.ts"]
         EOF
 
     - name: Build optimized image
