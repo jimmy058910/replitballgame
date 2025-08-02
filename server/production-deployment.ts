@@ -302,7 +302,21 @@ app.get('/api/middleware-test', (req: any, res) => {
 // This ensures authentication setup completes BEFORE routes are registered
 
 // CRITICAL: Add JSON error handler for API routes
-app.use(errorHandler);
+app.use((err: any, req: any, res: any, next: any) => {
+  console.error('Production error:', err);
+  
+  // Always return JSON for API routes
+  if (req.path.startsWith('/api/')) {
+    return res.status(err.status || 500).json({
+      error: err.message || 'Internal Server Error',
+      status: err.status || 500,
+      path: req.path,
+      timestamp: new Date().toISOString()
+    });
+  }
+  
+  next(err);
+});
 
 // CRITICAL: Test passport AFTER all routes are registered
 console.log('🔍 POST-ROUTE-REGISTRATION: Creating final passport test...');
