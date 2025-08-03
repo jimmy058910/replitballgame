@@ -136,7 +136,12 @@ jobs:
           --min-instances 1 \
           --port 8080 \
           --timeout 300s \
-          --cpu-boost
+          --cpu-boost \
+          --startup-probe-http-path=/health \
+          --startup-probe-initial-delay=10 \
+          --startup-probe-period-seconds=5 \
+          --startup-probe-failure-threshold=12 \
+          --startup-probe-timeout-seconds=5
 
     - name: Wait for Revision Health and Fix Traffic Management
       run: |
