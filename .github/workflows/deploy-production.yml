@@ -106,8 +106,8 @@ jobs:
 
     - name: Deploy to Cloud Run
       run: |
-        echo "Deploying to Cloud Run with industry standard configuration..."
-        echo "🔄 FORCE COMPLETE REFRESH - ensuring latest code deploys"
+        echo "Deploying to Cloud Run with DIRECT traffic routing..."
+        echo "🔄 FORCE COMPLETE REFRESH - ensuring latest code deploys with immediate traffic"
         gcloud run deploy ${{ env.SERVICE_NAME }} \
           --image ${{ env.IMAGE_NAME }}:latest \
           --platform managed \
@@ -122,14 +122,7 @@ jobs:
           --min-instances 1 \
           --port 8080 \
           --timeout 300s \
-          --cpu-boost \
-          --no-traffic \
-          --tag=cors-fix
-
-        echo "🔄 Updating traffic to new revision..."
-        gcloud run services update-traffic ${{ env.SERVICE_NAME }} \
-          --to-tags=cors-fix=100 \
-          --region ${{ env.REGION }}
+          --cpu-boost
 
     - name: Verify deployment
       run: |
@@ -140,9 +133,12 @@ jobs:
         echo "Testing health endpoint..."
         curl -f "$SERVICE_URL/health" || (echo "Health check failed" && exit 1)
         
-        echo "🔍 VERIFYING CORS FIXES DEPLOYED:"
-        echo "Testing environment object in health endpoint..."
-        curl -s "$SERVICE_URL/health" | jq '.environment' || echo "⚠️ Environment object missing"
+        echo "🔍 VERIFYING ENHANCED DEBUGGING DEPLOYED:"
+        echo "Testing deployment verification endpoint..."
+        curl -s "$SERVICE_URL/api/deployment-verification" | jq '.deploymentStatus' || echo "⚠️ Deployment verification endpoint missing"
+        
+        echo "Testing enhanced health endpoint version..."
+        curl -s "$SERVICE_URL/health" | jq '.version' || echo "⚠️ Version missing"
         
         echo "Testing CORS headers..."
         curl -H "Origin: https://www.realmrivalry.com" -D - "$SERVICE_URL/health" | grep -i access-control || echo "⚠️ CORS headers missing"
