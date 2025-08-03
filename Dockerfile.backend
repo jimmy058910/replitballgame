@@ -61,6 +61,12 @@ COPY --from=builder --chown=backend:nodejs /app/shared/ ./shared/
 COPY --from=builder --chown=backend:nodejs /app/prisma/ ./prisma/
 COPY --from=builder --chown=backend:nodejs /app/dist ./dist/
 
+# Copy Vite config files needed by server/vite.ts
+COPY --from=builder --chown=backend:nodejs /app/vite.config.ts ./
+COPY --from=builder --chown=backend:nodejs /app/vite.config.production.ts ./
+COPY --from=builder --chown=backend:nodejs /app/tailwind.config.ts ./
+COPY --from=builder --chown=backend:nodejs /app/postcss.config.js ./
+
 # Verify frontend files exist in production container
 RUN ls -la dist/ && echo "✅ Frontend files copied successfully"
 
@@ -77,5 +83,5 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
 # Set production environment
 ENV NODE_ENV=production
 
-# PRODUCTION STARTUP: Use Node.js directly with enhanced error logging
-CMD ["dumb-init", "sh", "-c", "echo '🚀 Starting server...' && ls -la node_modules/.bin/ | grep tsx && which node && node --version && npx tsx server/index.ts"]
+# PRODUCTION STARTUP: Start server directly (files now available)
+CMD ["dumb-init", "npx", "tsx", "server/index.ts"]

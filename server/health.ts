@@ -29,7 +29,7 @@ export function createHealthCheck() {
         timestamp: new Date().toISOString(),
         uptime: process.uptime(),
         database: 'disconnected', // This will be updated when database is connected
-        version: '6.8.0-CONTAINER-DEBUG-AUG3',
+        version: '6.9.0-VITE-CONFIG-FIX-AUG3',
         environment: environmentData
       };
 
