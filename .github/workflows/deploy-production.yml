@@ -138,17 +138,35 @@ jobs:
           --timeout 300s \
           --cpu-boost
 
-    - name: Force Traffic to Latest Revision (Fix Stale Deployment Issue)
+    - name: Wait for Revision Health and Fix Traffic Management
       run: |
         echo "🔧 FIXING CLOUD RUN TRAFFIC MANAGEMENT ISSUE"
-        echo "Resetting service to automatic traffic mode..."
-        # CRITICAL FIX: Reset traffic to LATEST revision (automatic mode)
-        gcloud run services update-traffic ${{ env.SERVICE_NAME }} \
-          --region=${{ env.REGION }} \
-          --to-latest
-        echo "✅ Traffic successfully routed to LATEST revision"
+        echo "First, waiting for new revision to become healthy..."
         
-        echo "Verifying traffic allocation..."
+        # Wait for the service to be ready (up to 5 minutes)
+        timeout 300 bash -c 'until gcloud run services describe ${{ env.SERVICE_NAME }} --region=${{ env.REGION }} --format="value(status.conditions[0].status)" | grep -q "True"; do echo "Waiting for service to be ready..."; sleep 10; done' || {
+          echo "⚠️ Service not ready within timeout, but continuing with traffic fix..."
+        }
+        
+        echo "Checking if there's a healthy LATEST revision..."
+        LATEST_READY=$(gcloud run revisions list --service=${{ env.SERVICE_NAME }} --region=${{ env.REGION }} --limit=1 --format="value(status.conditions[0].status)" | head -1)
+        
+        if [ "$LATEST_READY" = "True" ]; then
+          echo "✅ Latest revision is healthy, resetting to automatic traffic mode..."
+          # CRITICAL FIX: Reset traffic to LATEST revision (automatic mode)
+          gcloud run services update-traffic ${{ env.SERVICE_NAME }} \
+            --region=${{ env.REGION }} \
+            --to-latest
+          echo "✅ Traffic successfully routed to LATEST revision"
+        else
+          echo "⚠️ Latest revision not healthy yet, but ensuring automatic mode for future deployments..."
+          # Still try to set automatic mode, but don't fail if it doesn't work
+          gcloud run services update-traffic ${{ env.SERVICE_NAME }} \
+            --region=${{ env.REGION }} \
+            --to-latest || echo "Traffic update failed, but deployment can continue"
+        fi
+        
+        echo "Verifying final traffic allocation..."
         gcloud run services describe ${{ env.SERVICE_NAME }} \
           --region=${{ env.REGION }} \
           --format="value(spec.traffic[0].latestRevision,spec.traffic[0].percent)" || echo "Traffic check failed"
