@@ -138,6 +138,21 @@ jobs:
           --timeout 300s \
           --cpu-boost
 
+    - name: Force Traffic to Latest Revision (Fix Stale Deployment Issue)
+      run: |
+        echo "🔧 FIXING CLOUD RUN TRAFFIC MANAGEMENT ISSUE"
+        echo "Resetting service to automatic traffic mode..."
+        # CRITICAL FIX: Reset traffic to LATEST revision (automatic mode)
+        gcloud run services update-traffic ${{ env.SERVICE_NAME }} \
+          --region=${{ env.REGION }} \
+          --to-latest
+        echo "✅ Traffic successfully routed to LATEST revision"
+        
+        echo "Verifying traffic allocation..."
+        gcloud run services describe ${{ env.SERVICE_NAME }} \
+          --region=${{ env.REGION }} \
+          --format="value(spec.traffic[0].latestRevision,spec.traffic[0].percent)" || echo "Traffic check failed"
+
     - name: Verify deployment
       run: |
         echo "Getting service URL..."
