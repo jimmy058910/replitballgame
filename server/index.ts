@@ -62,6 +62,16 @@ console.log('🔍 COMPREHENSIVE CORS CONFIGURATION:', {
   corsMethodsAllowed: corsOptions.methods
 });
 
+// Additional startup debugging
+console.log('🚀 SERVER STARTUP DEBUG:', {
+  nodeVersion: process.version,
+  platform: process.platform,
+  architecture: process.arch,
+  memoryUsage: process.memoryUsage(),
+  currentWorkingDir: process.cwd(),
+  environmentVariablesCount: Object.keys(process.env).length
+});
+
 // Apply CORS as the first middleware to ensure it works
 app.use(cors(corsOptions));
 
