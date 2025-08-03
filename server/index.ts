@@ -75,13 +75,15 @@ console.log('🚀 SERVER STARTUP DEBUG:', {
 // Apply CORS as the first middleware to ensure it works
 app.use(cors(corsOptions));
 
-// IMMEDIATE DEPLOYMENT TEST - This route MUST exist if new code is deployed
-app.get('/DEPLOYMENT_TEST_2025', (req: Request, res: Response) => {
+// NUCLEAR DEPLOYMENT TEST - Unique timestamped endpoint to prove deployment
+app.get('/NUCLEAR_TEST_050630', (req: Request, res: Response) => {
   res.json({
-    SUCCESS: 'NEW_CODE_DEPLOYED_SUCCESSFULLY',
+    NUCLEAR_SUCCESS: 'UNIQUE_TIMESTAMPED_CODE_DEPLOYED',
+    createdAt: '2025-08-03T05:06:30Z',
     timestamp: new Date().toISOString(),
     version: '4.0.0-DEPLOYMENT-CONFIRMED',
-    message: 'This endpoint proves the enhanced code is running in production'
+    uniqueId: 'NUCLEAR-050630-AUG3-2025',
+    message: 'This unique endpoint was created at 05:06:30 UTC and proves new code is deployed'
   });
 });
 
@@ -181,20 +183,7 @@ app.use((req: Request, res: Response, next: NextFunction) => {
 app.get('/health', createHealthCheck());
 app.get('/api/health', createHealthCheck());
 
-// Deployment verification endpoint - confirms enhanced code is running
-app.get('/DEPLOYMENT_TEST_2025', (req, res) => {
-  res.status(200).json({
-    deploymentStatus: 'SUCCESS',
-    message: 'Enhanced code with CORS fixes and comprehensive debugging is now running in production',
-    version: '4.0.0-DEPLOYMENT-CONFIRMED',
-    timestamp: new Date().toISOString(),
-    environment: {
-      NODE_ENV: process.env.NODE_ENV,
-      GOOGLE_CLOUD_PROJECT: process.env.GOOGLE_CLOUD_PROJECT,
-      K_SERVICE: process.env.K_SERVICE
-    }
-  });
-});
+// REMOVED DUPLICATE ENDPOINT - was conflicting with nuclear test above
 
 // Deployment verification API endpoint
 app.get('/api/deployment-verification', (req, res) => {
