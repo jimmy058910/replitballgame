@@ -55,6 +55,7 @@ jobs:
     - name: Deploy to Cloud Run
       run: |
         echo "Deploying to Cloud Run with industry standard configuration..."
+        echo "🔄 FORCE COMPLETE REFRESH - ensuring latest code deploys"
         gcloud run deploy ${{ env.SERVICE_NAME }} \
           --image ${{ env.IMAGE_NAME }}:latest \
           --platform managed \
@@ -69,7 +70,14 @@ jobs:
           --min-instances 1 \
           --port 8080 \
           --timeout 300s \
-          --cpu-boost
+          --cpu-boost \
+          --no-traffic \
+          --tag=cors-fix
+
+        echo "🔄 Updating traffic to new revision..."
+        gcloud run services update-traffic ${{ env.SERVICE_NAME }} \
+          --to-tags=cors-fix=100 \
+          --region ${{ env.REGION }}
 
     - name: Verify deployment
       run: |
