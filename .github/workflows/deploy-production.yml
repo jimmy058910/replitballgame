@@ -31,17 +31,54 @@ jobs:
         fetch-depth: 0
         token: ${{ secrets.GITHUB_TOKEN }}
         
-    - name: Verify latest code
+    - name: Verify latest code and build context
       run: |
-        echo "🔍 VERIFYING DEPLOYMENT USES LATEST CODE"
+        echo "🔍 VERIFYING DEPLOYMENT USES LATEST CODE AND BUILD CONTEXT"
         echo "Current commit: $(git rev-parse HEAD)"
         echo "Latest commit message: $(git log -1 --pretty=format:'%s')"
-        echo "Dockerfile verification:"
+        echo "Git status check:"
+        git status --porcelain || echo "No uncommitted changes"
+        echo ""
+        echo "🔍 DOCKERFILE VERIFICATION:"
         grep -A 3 "Copy source code" Dockerfile.backend || echo "⚠️ Dockerfile pattern not found"
-        echo "Health endpoint verification:"
-        grep "environment:" server/health.ts || echo "⚠️ Environment object not found"
-        echo "CORS verification:"  
-        grep "COMPREHENSIVE CORS" server/index.ts || echo "⚠️ CORS config not found"
+        echo ""
+        echo "🔍 BUILD CONTEXT SOURCE CODE VERIFICATION:"
+        echo "Health endpoint actual content:"
+        grep -A 5 -B 5 "environment:" server/health.ts || echo "⚠️ Environment object not found in build context"
+        echo ""
+        echo "CORS configuration actual content:"  
+        grep -A 10 -B 2 "COMPREHENSIVE CORS" server/index.ts || echo "⚠️ CORS config not found in build context"
+        echo ""
+        echo "🔍 FILE INTEGRITY CHECK:"
+        echo "server/health.ts last modified: $(stat -c %y server/health.ts)"
+        echo "server/index.ts last modified: $(stat -c %y server/index.ts)"
+        echo ""
+        echo "✅ Build context verification complete"
+
+    - name: Ensure latest Git state
+      run: |
+        echo "🔄 ENSURING LATEST GIT STATE FOR BUILD CONTEXT"
+        git fetch origin main
+        git reset --hard origin/main
+        echo "Git head after reset: $(git rev-parse HEAD)"
+        echo "Working directory clean: $(git status --porcelain | wc -l) uncommitted files"
+        
+    - name: Final build context verification
+      run: |
+        echo "🔍 FINAL BUILD CONTEXT VERIFICATION BEFORE DOCKER BUILD"
+        echo "Environment object in server/health.ts:"
+        grep -n "environment:" server/health.ts || echo "❌ CRITICAL: Environment object missing"
+        echo ""
+        echo "CORS config in server/index.ts:"
+        grep -n "COMPREHENSIVE CORS" server/index.ts || echo "❌ CRITICAL: CORS config missing"
+        echo ""
+        if grep -q "environment:" server/health.ts && grep -q "COMPREHENSIVE CORS" server/index.ts; then
+          echo "✅ Build context contains latest source code"
+        else
+          echo "❌ CRITICAL ERROR: Build context missing latest changes"
+          echo "This deployment will fail - stopping here"
+          exit 1
+        fi
 
     - name: Authenticate to Google Cloud
       uses: google-github-actions/auth@v2
