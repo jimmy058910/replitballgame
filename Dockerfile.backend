@@ -53,6 +53,7 @@ COPY --from=builder --chown=backend:nodejs /app/node_modules ./node_modules
 COPY --from=builder --chown=backend:nodejs /app/generated ./generated
 COPY --from=builder --chown=backend:nodejs /app/tsconfig.json ./
 COPY --from=builder --chown=backend:nodejs /app/tsconfig.server.json ./
+COPY --from=builder --chown=backend:nodejs /app/package.json ./
 
 # Copy source code and built frontend (use builder stage for server code)
 COPY --from=builder --chown=backend:nodejs /app/server/ ./server/
@@ -76,5 +77,5 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
 # Set production environment
 ENV NODE_ENV=production
 
-# Run server with tsx (same as development, proven to work)
-CMD ["dumb-init", "npx", "tsx", "server/index.ts"]
+# PRODUCTION STARTUP: Use Node.js directly with enhanced error logging
+CMD ["dumb-init", "sh", "-c", "echo '🚀 Starting server...' && ls -la node_modules/.bin/ | grep tsx && which node && node --version && npx tsx server/index.ts"]
