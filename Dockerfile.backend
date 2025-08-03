@@ -53,10 +53,10 @@ COPY --from=builder --chown=backend:nodejs /app/generated ./generated
 COPY --from=builder --chown=backend:nodejs /app/tsconfig.json ./
 COPY --from=builder --chown=backend:nodejs /app/tsconfig.server.json ./
 
-# Copy source code and built frontend
-COPY --chown=backend:nodejs server/ ./server/
-COPY --chown=backend:nodejs shared/ ./shared/
-COPY --chown=backend:nodejs prisma/ ./prisma/
+# Copy source code and built frontend (use builder stage for server code)
+COPY --from=builder --chown=backend:nodejs /app/server/ ./server/
+COPY --from=builder --chown=backend:nodejs /app/shared/ ./shared/
+COPY --from=builder --chown=backend:nodejs /app/prisma/ ./prisma/
 COPY --from=builder --chown=backend:nodejs /app/dist ./dist/
 
 # Verify frontend files exist in production container
