@@ -28,11 +28,13 @@ COPY postcss.config.js ./
 # Generate Prisma client
 RUN npx prisma generate
 
-# THE CRITICAL FIX: Ensure a clean build every time
-RUN rm -rf dist && npm run build
+# THE CRITICAL FIX: Build both server AND frontend for production
+RUN rm -rf dist && npm run build:all
 
-# Verify build output
+# PRODUCTION RELIABILITY: Verify build output and compiled server exists
 RUN ls -la dist/ || echo "⚠️ No dist folder found"
+RUN ls -la dist/server/ || echo "⚠️ No server folder in dist"
+RUN test -f dist/server/index.js || (echo "❌ CRITICAL: dist/server/index.js not found" && exit 1)
 
 # Production stage
 FROM node:20-alpine AS production
@@ -75,5 +77,5 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
 # Set production environment
 ENV NODE_ENV=production
 
-# Deploy enhanced server with database support (maintains fast startup)
-CMD ["dumb-init", "npx", "tsx", "server/index.ts"]
+# Run compiled JavaScript for production reliability
+CMD ["dumb-init", "node", "dist/server/index.js"]
