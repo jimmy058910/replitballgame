@@ -33,7 +33,16 @@ const databaseUrl = getDatabaseUrl();
 const nodeEnv = process.env.NODE_ENV || 'development';
 const dbHost = databaseUrl.split('@')[1]?.split('/')[0] || 'unknown';
 
+// TEMPORARY DEBUG: Log exact database URL being used
 console.log(`🔗 [${nodeEnv.toUpperCase()}] Connecting to database: ${dbHost}`);
+if (nodeEnv === 'production') {
+  console.log('🔍 PRODUCTION DB DEBUG:');
+  console.log('  - NODE_ENV:', process.env.NODE_ENV);
+  console.log('  - DATABASE_URL_PRODUCTION exists:', !!process.env.DATABASE_URL_PRODUCTION);
+  console.log('  - DATABASE_URL exists:', !!process.env.DATABASE_URL);
+  console.log('  - Using URL pattern:', databaseUrl.substring(0, 50) + '...');
+  console.log('  - Database user:', databaseUrl.split('://')[1]?.split(':')[0] || 'unknown');
+}
 
 export const prisma = globalForPrisma.prisma ?? new PrismaClient({
   datasources: {
