@@ -17,15 +17,7 @@ router.use('/tournaments', tournamentRoutes);
 router.use('/matches', matchRoutes);
 router.use('/economy', economyRoutes);
 
-// Health check endpoint
-router.get('/health', (req: Request, res: Response) => {
-  res.json({
-    success: true,
-    timestamp: new Date().toISOString(),
-    uptime: process.uptime(),
-    environment: process.env.NODE_ENV || 'development'
-  });
-});
+// Health check endpoint removed - using enhanced health endpoint from server/health.ts instead
 
 // Global error handler for domains
 router.use((error: Error, req: Request, res: Response, next: NextFunction) => {
