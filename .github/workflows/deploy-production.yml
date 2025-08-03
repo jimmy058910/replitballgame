@@ -27,6 +27,21 @@ jobs:
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+        token: ${{ secrets.GITHUB_TOKEN }}
+        
+    - name: Verify latest code
+      run: |
+        echo "🔍 VERIFYING DEPLOYMENT USES LATEST CODE"
+        echo "Current commit: $(git rev-parse HEAD)"
+        echo "Latest commit message: $(git log -1 --pretty=format:'%s')"
+        echo "Dockerfile verification:"
+        grep -A 3 "Copy source code" Dockerfile.backend || echo "⚠️ Dockerfile pattern not found"
+        echo "Health endpoint verification:"
+        grep "environment:" server/health.ts || echo "⚠️ Environment object not found"
+        echo "CORS verification:"  
+        grep "COMPREHENSIVE CORS" server/index.ts || echo "⚠️ CORS config not found"
 
     - name: Authenticate to Google Cloud
       uses: google-github-actions/auth@v2
