@@ -119,12 +119,15 @@ jobs:
         # Use commit SHA as image tag to force new deployment
         IMAGE_TAG="${{ github.sha }}"
         echo "Deploying with unique image tag: $IMAGE_TAG"
+        # THE FAILSAFE: Force new instance by changing environment
+        DEPLOY_TIMESTAMP=$(date +%s)
+        echo "Using deployment timestamp: $DEPLOY_TIMESTAMP"
         gcloud run deploy ${{ env.SERVICE_NAME }} \
           --image ${{ env.IMAGE_NAME }}:$IMAGE_TAG \
           --platform managed \
           --region ${{ env.REGION }} \
           --allow-unauthenticated \
-          --set-env-vars NODE_ENV=production \
+          --set-env-vars NODE_ENV=production,DEPLOY_TIMESTAMP=$DEPLOY_TIMESTAMP \
           --set-secrets DATABASE_URL_PRODUCTION=database-url:latest,VITE_FIREBASE_API_KEY=firebase-api-key:latest,VITE_FIREBASE_PROJECT_ID=firebase-project-id:latest,VITE_FIREBASE_APP_ID=firebase-app-id:latest \
           --memory 2Gi \
           --cpu 2 \

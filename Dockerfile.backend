@@ -28,8 +28,8 @@ COPY postcss.config.js ./
 # Generate Prisma client
 RUN npx prisma generate
 
-# Build the frontend
-RUN npm run build
+# THE CRITICAL FIX: Ensure a clean build every time
+RUN rm -rf dist && npm run build
 
 # Verify build output
 RUN ls -la dist/ || echo "⚠️ No dist folder found"
