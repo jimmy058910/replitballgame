@@ -1,4 +1,6 @@
-name: Minimal Backend - Phase 1
+# DISABLED - Conflicting with main deployment pipeline
+# This workflow was creating competing server instances with old versions
+# name: Minimal Backend - Phase 1 (DISABLED)
 
 on:
   workflow_dispatch:
