@@ -106,8 +106,19 @@ jobs:
 
     - name: Deploy to Cloud Run
       run: |
-        echo "Deploying to Cloud Run with DIRECT traffic routing..."
-        echo "🔄 FORCE COMPLETE REFRESH - ensuring latest code deploys with immediate traffic"
+        echo "🔥 NUCLEAR DEPLOYMENT - Delete and recreate service to fix infrastructure issue"
+        echo "This will force complete recreation of Cloud Run service"
+        
+        # Delete existing service to clear any stuck revisions
+        echo "Deleting existing Cloud Run service..."
+        gcloud run services delete ${{ env.SERVICE_NAME }} \
+          --region ${{ env.REGION }} \
+          --quiet || echo "Service deletion failed or service doesn't exist"
+        
+        echo "Waiting 30 seconds for complete cleanup..."
+        sleep 30
+        
+        echo "Creating fresh Cloud Run service with latest code..."
         gcloud run deploy ${{ env.SERVICE_NAME }} \
           --image ${{ env.IMAGE_NAME }}:latest \
           --platform managed \
