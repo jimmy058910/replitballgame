@@ -180,6 +180,33 @@ app.use((req: Request, res: Response, next: NextFunction) => {
 // Add health check endpoint early - critical for Cloud Run  
 app.get('/health', createHealthCheck());
 app.get('/api/health', createHealthCheck());
+
+// Deployment verification endpoint - confirms enhanced code is running
+app.get('/DEPLOYMENT_TEST_2025', (req, res) => {
+  res.status(200).json({
+    deploymentStatus: 'SUCCESS',
+    message: 'Enhanced code with CORS fixes and comprehensive debugging is now running in production',
+    version: '4.0.0-DEPLOYMENT-CONFIRMED',
+    timestamp: new Date().toISOString(),
+    environment: {
+      NODE_ENV: process.env.NODE_ENV,
+      GOOGLE_CLOUD_PROJECT: process.env.GOOGLE_CLOUD_PROJECT,
+      K_SERVICE: process.env.K_SERVICE
+    }
+  });
+});
+
+// Deployment verification API endpoint
+app.get('/api/deployment-verification', (req, res) => {
+  res.status(200).json({
+    deploymentStatus: 'ENHANCED_CODE_CONFIRMED',
+    corsConfigured: true,
+    environmentDebugging: true,
+    version: '4.0.0-DEPLOYMENT-CONFIRMED',
+    timestamp: new Date().toISOString()
+  });
+});
+
 // Remove root route that was blocking Vite frontend serving
 
 // Add request ID middleware early in the chain
@@ -272,14 +299,7 @@ app.use('/api', (req, res, next) => {
   next();
 });
 
-// Add health check endpoint
-app.get('/health', (req, res) => {
-  res.status(200).json({ 
-    status: 'healthy', 
-    timestamp: new Date().toISOString(),
-    uptime: process.uptime()
-  });
-});
+// Health endpoint already registered above with enhanced debugging
 
 (async () => {
   // Setup session management with detailed logging
