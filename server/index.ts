@@ -75,6 +75,26 @@ console.log('🚀 SERVER STARTUP DEBUG:', {
 // Apply CORS as the first middleware to ensure it works
 app.use(cors(corsOptions));
 
+// CRITICAL DEBUG ENDPOINT - Verify code deployment
+app.get('/api/deployment-verification', (req: Request, res: Response) => {
+  res.json({
+    deploymentStatus: 'ENHANCED_DEBUGGING_ACTIVE',
+    timestamp: new Date().toISOString(),
+    buildVersion: '3.0.0-debug-enhanced',
+    environmentDetection: {
+      NODE_ENV: process.env.NODE_ENV || 'missing',
+      PORT: process.env.PORT || 'missing',
+      GOOGLE_CLOUD_PROJECT: process.env.GOOGLE_CLOUD_PROJECT || 'missing',
+      K_SERVICE: process.env.K_SERVICE || 'missing'
+    },
+    corsConfiguration: {
+      isProduction: isProduction,
+      allowedOrigins: corsOptions.origin,
+      methods: corsOptions.methods
+    }
+  });
+});
+
 // Add CORS debug middleware with comprehensive tracking
 app.use((req: Request, res: Response, next: NextFunction) => {
   const afterHeaders = () => {
