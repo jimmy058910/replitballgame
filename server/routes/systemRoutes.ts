@@ -75,26 +75,6 @@ router.get('/time', asyncHandler(async (req: Request, res: Response) => {
   });
 }));
 
-// Health check endpoint
-router.get('/health', asyncHandler(async (req: Request, res: Response) => {
-  const healthStatus = {
-    status: 'healthy',
-    timestamp: new Date().toISOString(),
-    uptime: process.uptime(),
-    memory: process.memoryUsage(),
-    environment: process.env.NODE_ENV || 'development'
-  };
-  
-  logInfo("Health check requested", { 
-    status: healthStatus.status,
-    uptime: healthStatus.uptime,
-    requestId: req.requestId 
-  });
-  
-  res.json({ 
-    success: true,
-    data: healthStatus
-  });
-}));
+// Health check endpoint removed - using main enhanced health endpoint in server/index.ts
 
 export { router as systemRoutes };

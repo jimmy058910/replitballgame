@@ -478,38 +478,7 @@ router.get('/late-signup/stats', isAuthenticated, async (req, res) => {
   }
 });
 
-/**
- * GET /api/seasonal-flow/health
- * Health check for seasonal flow system
- */
-router.get('/health', isAuthenticated, async (req, res) => {
-  try {
-    res.json({
-      success: true,
-      data: {
-        service: 'SeasonalFlowService',
-        status: 'operational',
-        features: [
-          'Schedule Generation',
-          'Standings Management',
-          'Playoff Brackets',
-          'Promotion/Relegation',
-          'League Rebalancing',
-          'Season Rollover',
-          'Progressive Late Signup'
-        ],
-        version: '1.0.0'
-      }
-    });
-  } catch (error) {
-    console.error('Error checking seasonal flow health:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Failed to check seasonal flow health',
-      error: error instanceof Error ? error.message : 'Unknown error'
-    });
-  }
-});
+// Health check endpoint removed - using main enhanced health endpoint in server/index.ts
 
 // Get current season cycle information
 router.get('/current-cycle', asyncHandler(async (req: Request, res: Response) => {

@@ -7,14 +7,7 @@ import { requireAuth } from './middleware';
 
 const router = Router();
 
-// Health check endpoint (public)
-router.get('/health', (req, res) => {
-  res.json({
-    success: true,
-    service: 'auth',
-    timestamp: new Date().toISOString()
-  });
-});
+// Health check endpoint removed - using main enhanced health endpoint in server/index.ts
 
 // Get current user profile (protected)
 router.get('/user', requireAuth, (req, res) => {
