@@ -75,12 +75,22 @@ console.log('🚀 SERVER STARTUP DEBUG:', {
 // Apply CORS as the first middleware to ensure it works
 app.use(cors(corsOptions));
 
+// IMMEDIATE DEPLOYMENT TEST - This route MUST exist if new code is deployed
+app.get('/DEPLOYMENT_TEST_2025', (req: Request, res: Response) => {
+  res.json({
+    SUCCESS: 'NEW_CODE_DEPLOYED_SUCCESSFULLY',
+    timestamp: new Date().toISOString(),
+    version: '4.0.0-DEPLOYMENT-CONFIRMED',
+    message: 'This endpoint proves the enhanced code is running in production'
+  });
+});
+
 // CRITICAL DEBUG ENDPOINT - Verify code deployment
 app.get('/api/deployment-verification', (req: Request, res: Response) => {
   res.json({
     deploymentStatus: 'ENHANCED_DEBUGGING_ACTIVE',
     timestamp: new Date().toISOString(),
-    buildVersion: '3.0.0-debug-enhanced',
+    buildVersion: '4.0.0-DEPLOYMENT-CONFIRMED',
     environmentDetection: {
       NODE_ENV: process.env.NODE_ENV || 'missing',
       PORT: process.env.PORT || 'missing',
