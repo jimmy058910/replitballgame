@@ -95,21 +95,32 @@ jobs:
       run: |
         echo "Building production image with FIXED Dockerfile.backend..."
         echo "🔥 FORCE NO-CACHE BUILD to ensure latest code is used"
+        # Use commit SHA as tag to prevent caching issues
+        IMAGE_TAG="${{ github.sha }}"
+        echo "Using unique image tag: $IMAGE_TAG"
         docker build \
           --no-cache \
           --platform linux/amd64 \
           -f Dockerfile.backend \
+          -t ${{ env.IMAGE_NAME }}:$IMAGE_TAG \
           -t ${{ env.IMAGE_NAME }}:latest .
 
     - name: Push image to registry
-      run: docker push ${{ env.IMAGE_NAME }}:latest
+      run: |
+        IMAGE_TAG="${{ github.sha }}"
+        echo "Pushing both tagged and latest images"
+        docker push ${{ env.IMAGE_NAME }}:$IMAGE_TAG
+        docker push ${{ env.IMAGE_NAME }}:latest
 
     - name: Deploy to Cloud Run
       run: |
         echo "Deploying to Cloud Run with DIRECT traffic routing..."
         echo "🔄 STANDARD DEPLOYMENT - duplicate health endpoint fixed"
+        # Use commit SHA as image tag to force new deployment
+        IMAGE_TAG="${{ github.sha }}"
+        echo "Deploying with unique image tag: $IMAGE_TAG"
         gcloud run deploy ${{ env.SERVICE_NAME }} \
-          --image ${{ env.IMAGE_NAME }}:latest \
+          --image ${{ env.IMAGE_NAME }}:$IMAGE_TAG \
           --platform managed \
           --region ${{ env.REGION }} \
           --allow-unauthenticated \

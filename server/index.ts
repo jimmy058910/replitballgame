@@ -354,15 +354,26 @@ app.use('/api', (req, res, next) => {
       }
     }));
     
-    // SPA fallback for production
+    // SPA fallback for production - CRITICAL FIX: Exclude all API endpoints
     app.get('*', (req, res) => {
-      if (req.path.startsWith('/api/')) {
+      console.log(`🔍 Production fallback route: ${req.method} ${req.path}`);
+      
+      // CRITICAL: Exclude ALL API routes, health checks, and deployment tests
+      if (req.path.startsWith('/api/') || 
+          req.path.startsWith('/health') || 
+          req.path.startsWith('/NUCLEAR_TEST_') ||
+          req.path.startsWith('/DEPLOYMENT_TEST_') ||
+          req.path.startsWith('/ws')) {
+        console.log(`❌ API endpoint not found: ${req.path}`);
         return res.status(404).json({ 
           error: 'API endpoint not found',
           path: req.path,
-          method: req.method
+          method: req.method,
+          note: 'This endpoint should have been handled by API routes registered earlier'
         });
       }
+      
+      console.log(`✅ Serving frontend HTML for: ${req.path}`);
       return res.sendFile(staticPath + '/index.html');
     });
   }
