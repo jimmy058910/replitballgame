@@ -53,6 +53,7 @@ import ndaRoutes from "./ndaRoutes";
 import worldRoutes from "./worldRoutes";
 import leagueMatchesRoutes from "./leagueMatchesRoutes";
 import teamTrendsRoutes from "./teamTrendsRoutes";
+import databaseTestRoutes from "./database-test";
 import dataVisualizationRoutes from "./dataVisualizationRoutes";
 import shareableMomentsRoutes from "./shareableMomentsRoutes";
 import careerHighlightsRoutes from "./careerHighlightsRoutes";
@@ -142,6 +143,7 @@ export function registerAllRoutes(app: Express): void {
   app.use("/api/shareable-moments", shareableMomentsRoutes); // Phase 4 Product-Led Growth Framework shareable moments (legacy)
   app.use("/api/career-highlights", careerHighlightsRoutes); // Enhanced Career Highlights system with expanded categories
   app.use("/api/alerts", criticalAlertsRoutes); // Team HQ critical alerts system for injuries, stamina, and contracts
+  app.use("/api", databaseTestRoutes); // Database connectivity test endpoint
   app.use("/api", testRoutes); // Test endpoints for system validation
 
   // Add missing /api/me endpoint that frontend expects (redirect to auth/user)

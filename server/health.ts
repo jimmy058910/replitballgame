@@ -1,6 +1,31 @@
+import { prisma } from './db';
+
+// Database connection status for health checks
+let lastDatabaseTest: { connected: boolean; error: string | null; timestamp: Date } = {
+  connected: false,
+  error: null,
+  timestamp: new Date()
+};
+
+// Test database connection (used by health check)
+async function testDatabaseConnection() {
+  try {
+    await prisma.$queryRaw`SELECT 1 as test`;
+    lastDatabaseTest = { connected: true, error: null, timestamp: new Date() };
+    return true;
+  } catch (error) {
+    lastDatabaseTest = { 
+      connected: false, 
+      error: error instanceof Error ? error.message : 'Unknown error',
+      timestamp: new Date() 
+    };
+    return false;
+  }
+}
+
 // Simple health check endpoint with environment debugging
 export function createHealthCheck() {
-  return (req: any, res: any) => {
+  return async (req: any, res: any) => {
     try {
       // Debug logging for troubleshooting
       console.log('🔍 HEALTH CHECK DEBUG:', {
@@ -24,12 +49,21 @@ export function createHealthCheck() {
         }
       };
 
+      // Test database connection for health check
+      const dbConnected = await testDatabaseConnection();
+      
       const healthResponse = { 
         status: 'healthy', 
         timestamp: new Date().toISOString(),
         uptime: process.uptime(),
-        database: 'disconnected', // This will be updated when database is connected
-        version: '6.10.0-OAUTH-SECRETS-AUG3',
+        database: dbConnected ? 'connected' : 'disconnected',
+        databaseInfo: {
+          connected: lastDatabaseTest.connected,
+          lastTest: lastDatabaseTest.timestamp,
+          error: lastDatabaseTest.error,
+          testType: 'live-query'
+        },
+        version: '6.12.0-DB-CLIENT-FIX-AUG3',
         environment: environmentData
       };
 

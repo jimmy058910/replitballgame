@@ -59,6 +59,14 @@ let prismaClient: PrismaClient;
 const nodeEnv = process.env.NODE_ENV || 'development';
 let dbHost = 'unknown';
 
+// Database connection status tracking for health checks
+export let databaseStatus = {
+  connected: false,
+  lastTest: null as Date | null,
+  error: null as string | null,
+  host: 'unknown'
+};
+
 try {
   databaseUrl = getDatabaseUrl();
   dbHost = databaseUrl.split('@')[1]?.split('/')[0] || 'unknown';
@@ -122,6 +130,10 @@ try {
   // Perform synchronous connection test
   prismaClient.$queryRaw`SELECT 1 as test`.then((result: any) => {
     console.log('✅ Database connection test successful:', result);
+    databaseStatus.connected = true;
+    databaseStatus.lastTest = new Date();
+    databaseStatus.error = null;
+    databaseStatus.host = dbHost;
     if (nodeEnv === 'production') {
       console.log('🎉 PRODUCTION DATABASE CONNECTION SUCCESS!');
     }
@@ -132,6 +144,10 @@ try {
       errorCode: testError?.code || 'no-code',
       timestamp: new Date().toISOString()
     });
+    databaseStatus.connected = false;
+    databaseStatus.lastTest = new Date();
+    databaseStatus.error = testError instanceof Error ? testError.message : 'Unknown error';
+    databaseStatus.host = dbHost;
     if (nodeEnv === 'production') {
       console.error('💥 PRODUCTION CONNECTION TEST FAILED - This will cause container to fail health checks');
     }
