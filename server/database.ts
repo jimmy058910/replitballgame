@@ -65,15 +65,31 @@ try {
 
   console.log(`🔗 [${nodeEnv.toUpperCase()}] Connecting to database: ${dbHost}`);
 
-  // Create Prisma client with environment-specific database
-  prismaClient = new PrismaClient({
+  // Create Prisma client with Cloud Run + Neon optimized configuration
+  const prismaConfig: any = {
     datasources: {
       db: {
         url: databaseUrl
       }
     },
     log: nodeEnv === 'development' ? ['query', 'info', 'warn', 'error'] : ['error']
-  });
+  };
+
+  // Add Cloud Run specific configuration for production
+  if (nodeEnv === 'production') {
+    console.log('🔧 Applying Cloud Run + Neon optimizations...');
+    
+    // Serverless environment optimizations
+    prismaConfig.engineType = 'library';
+    
+    // Connection pool settings for serverless
+    prismaConfig.datasources.db.url = databaseUrl + (databaseUrl.includes('?') ? '&' : '?') + 
+      'connection_limit=1&pool_timeout=20&connect_timeout=60';
+      
+    console.log('✅ Cloud Run optimizations applied');
+  }
+
+  prismaClient = new PrismaClient(prismaConfig);
 
   console.log('✅ Prisma client created successfully');
 } catch (error) {
