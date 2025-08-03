@@ -29,7 +29,7 @@ export function createHealthCheck() {
         timestamp: new Date().toISOString(),
         uptime: process.uptime(),
         database: 'disconnected', // This will be updated when database is connected
-        version: '6.6.0-PRODUCTION-JS-FIX-AUG3',
+        version: '6.7.0-TSX-PRODUCTION-FIX-AUG3',
         environment: environmentData
       };
 
