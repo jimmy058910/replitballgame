@@ -29,7 +29,7 @@ export function createHealthCheck() {
         timestamp: new Date().toISOString(),
         uptime: process.uptime(),
         database: 'disconnected', // This will be updated when database is connected
-        version: '6.4.0-NEON-CLOUDRUN-FIX-AUG3',
+        version: '6.5.0-CONNECTION-TEST-AUG3',
         environment: environmentData
       };
 
