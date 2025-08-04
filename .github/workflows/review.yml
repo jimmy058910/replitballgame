@@ -1,0 +1,67 @@
+#.github/workflows/review.yml
+# This workflow runs an automated QA check on every pull request.
+
+name: Automated QA Pipeline
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+# These permissions are required for the workflow to function correctly.
+permissions:
+  contents: read          # To check out the code
+  pull-requests: write   # For the AI reviewer to post comments on the PR
+  security-events: write # For Snyk to upload its findings to the Security tab
+
+jobs:
+  virtual-qa-team:
+    runs-on: ubuntu-latest
+    steps:
+      # Step 1: Check out the repository code
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # Fetches all history for a more accurate analysis
+
+      # Step 2: Set up the Node.js environment
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      # --- Software Composition Analysis (SCA) ---
+      - name: Install Snyk CLI
+        run: npm install -g snyk
+
+      - name: Run Snyk SCA Scan
+        # Runs the Snyk test and outputs results to a SARIF file.
+        # The "|| true" ensures the workflow continues even if vulnerabilities are found,
+        # so the AI review can still run.
+        run: snyk test --all-projects --sarif-file-output=snyk.sarif |
+
+| true
+        env:
+          # Use the secret token you created in Step 1
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+
+      - name: Upload Snyk Scan Results to GitHub
+        # This step takes the SARIF file from Snyk and uploads it to the
+        # GitHub Security tab for easy viewing.
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: snyk.sarif
+
+      # --- AI Peer Review ---
+      - name: AI Code Review
+        uses: AleksandrFurmenkovOfficial/ai-code-review@v0.9
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          owner: ${{ github.repository_owner }}
+          repo: ${{ github.event.repository.name }}
+          pr_number: ${{ github.event.pull_request.number }}
+          ai_provider: 'google'
+          google_api_key: ${{ secrets.GOOGLE_API_KEY }}
+          # Use Gemini 1.5 Flash - it's fast, powerful, and cost-effective for this task.
+          google_model: 'gemini-1.5-flash'
+          # Exclude compiled code and dependencies from the review.
+          exclude_paths: 'dist/,node_modules/'
