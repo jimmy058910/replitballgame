@@ -101,7 +101,7 @@ router.get('/my', requireAuth, asyncHandler(async (req: any, res: Response) => {
     };
   }
 
-  res.json(serializedTeam);
+  return res.json(serializedTeam);
 }));
 
 // Get user's next opponent
@@ -117,7 +117,7 @@ router.get('/my/next-opponent', requireAuth, asyncHandler(async (req: any, res: 
   }
 
   // For now, return placeholder until next opponent logic is implemented
-  res.json({ 
+  return res.json({ 
     message: "Next opponent feature coming soon",
     teamId: team.id 
   });
@@ -144,12 +144,26 @@ router.post('/create', requireAuth, asyncHandler(async (req: any, res: Response)
     throw ErrorCreators.conflict("User already has a team");
   }
 
-  // Check NDA acceptance
-  const userStorage = await import('../storage/userStorage');
-  const ndaAccepted = await userStorage.userStorage.checkNDAAcceptance(userId);
-  if (!ndaAccepted) {
+  // Check and record NDA acceptance
+  if (!ndaAgreed) {
     throw ErrorCreators.forbidden("You must accept the Non-Disclosure Agreement to participate in pre-alpha testing");
   }
+  
+  // Ensure user profile exists and accept NDA
+  const userStorage = await import('../storage/userStorage');
+  const userProfile = await userStorage.userStorage.getUser(userId);
+  if (!userProfile) {
+    // Create user profile if it doesn't exist
+    await userStorage.userStorage.upsertUser({
+      userId: userId,
+      email: req.user?.email || null,
+      firstName: req.user?.name?.split(' ')[0] || null,
+      lastName: req.user?.name?.split(' ').slice(1).join(' ') || null
+    });
+  }
+  
+  // Record NDA acceptance
+  await userStorage.userStorage.acceptNDA(userId);
 
   // Create team logic here - using proper interface
   const newTeam = await storage.teams.createTeam({
