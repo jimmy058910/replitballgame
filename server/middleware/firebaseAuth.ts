@@ -1,16 +1,36 @@
 import { Request, Response, NextFunction } from 'express';
 import admin from 'firebase-admin';
 
-// Initialize Firebase Admin SDK
+// Initialize Firebase Admin SDK with enhanced error handling
 if (!admin.apps.length) {
   try {
-    // Initialize with minimal config - uses ADC (Application Default Credentials) in production
-    admin.initializeApp({
-      projectId: process.env.VITE_FIREBASE_PROJECT_ID || 'direct-glider-465821-p7'
+    const projectId = process.env.VITE_FIREBASE_PROJECT_ID || 'direct-glider-465821-p7';
+    
+    // Enhanced initialization for production with explicit project settings
+    const firebaseConfig: any = {
+      projectId: projectId
+    };
+    
+    // In production, ensure Google Cloud Project is set for ADC
+    if (process.env.NODE_ENV === 'production' && !process.env.GOOGLE_CLOUD_PROJECT) {
+      console.log('🔧 Setting GOOGLE_CLOUD_PROJECT for Firebase Admin SDK...');
+      process.env.GOOGLE_CLOUD_PROJECT = projectId;
+    }
+    
+    admin.initializeApp(firebaseConfig);
+    console.log('✅ Firebase Admin SDK initialized successfully', {
+      projectId: projectId,
+      nodeEnv: process.env.NODE_ENV,
+      googleCloudProject: process.env.GOOGLE_CLOUD_PROJECT
     });
-    console.log('✅ Firebase Admin SDK initialized');
   } catch (error) {
-    console.error('❌ Firebase Admin SDK initialization failed:', error);
+    console.error('❌ Firebase Admin SDK initialization failed:', {
+      error: error,
+      projectId: process.env.VITE_FIREBASE_PROJECT_ID,
+      nodeEnv: process.env.NODE_ENV,
+      googleCloudProject: process.env.GOOGLE_CLOUD_PROJECT
+    });
+    throw error; // Throw to prevent server startup with broken auth
   }
 }
 

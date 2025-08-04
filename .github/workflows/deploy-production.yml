@@ -127,7 +127,7 @@ jobs:
           --platform managed \
           --region ${{ env.REGION }} \
           --allow-unauthenticated \
-          --set-env-vars NODE_ENV=production,DEPLOY_TIMESTAMP=$DEPLOY_TIMESTAMP \
+          --set-env-vars NODE_ENV=production,DEPLOY_TIMESTAMP=$DEPLOY_TIMESTAMP,GOOGLE_CLOUD_PROJECT=direct-glider-465821-p7 \
           --set-secrets DATABASE_URL_PRODUCTION=database-url:latest,VITE_FIREBASE_API_KEY=firebase-api-key:latest,VITE_FIREBASE_PROJECT_ID=firebase-project-id:latest,VITE_FIREBASE_APP_ID=firebase-app-id:latest,GOOGLE_CLIENT_ID=google-client-id:latest,GOOGLE_CLIENT_SECRET=google-client-secret:latest \
           --memory 2Gi \
           --cpu 2 \

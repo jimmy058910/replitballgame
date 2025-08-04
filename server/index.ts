@@ -75,6 +75,35 @@ console.log('🚀 SERVER STARTUP DEBUG:', {
 // Apply CORS as the first middleware to ensure it works
 app.use(cors(corsOptions));
 
+// FIREBASE ADMIN SDK DEBUG ENDPOINT - Test authentication system
+app.get('/api/firebase-debug', (req: Request, res: Response) => {
+  try {
+    const admin = require('firebase-admin');
+    const hasApp = admin.apps.length > 0;
+    const app = hasApp ? admin.app() : null;
+    
+    res.json({
+      firebaseAdminStatus: hasApp ? 'initialized' : 'not-initialized',
+      projectId: app?.options?.projectId || 'not-set',
+      timestamp: new Date().toISOString(),
+      version: '6.18.0-FIREBASE-DEBUG-AUG4',
+      environment: {
+        NODE_ENV: process.env.NODE_ENV,
+        GOOGLE_CLOUD_PROJECT: process.env.GOOGLE_CLOUD_PROJECT || 'not-set',
+        VITE_FIREBASE_PROJECT_ID: process.env.VITE_FIREBASE_PROJECT_ID || 'not-set'
+      },
+      message: 'Firebase Admin SDK diagnostic endpoint for authentication debugging'
+    });
+  } catch (error) {
+    res.status(500).json({
+      firebaseAdminStatus: 'error',
+      error: error.message,
+      timestamp: new Date().toISOString(),
+      version: '6.18.0-FIREBASE-DEBUG-AUG4'
+    });
+  }
+});
+
 // NUCLEAR DEPLOYMENT TEST - Unique timestamped endpoint to prove deployment
 app.get('/NUCLEAR_TEST_050630', (req: Request, res: Response) => {
   res.json({
