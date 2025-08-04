@@ -409,51 +409,7 @@ router.get('/', requireAuth, asyncHandler(async (req: any, res: Response) => {
   res.json(teams);
 }));
 
-router.get('/my', requireAuth, async (req: any, res: Response, next: NextFunction): Promise<void> => {
-  try {
-    const userId = req.user.claims.sub;
-    const team = await storage.teams.getTeamByUserId(userId); // Use teamStorage
 
-    if (!team) {
-      res.status(404).json({ message: "Team not found" });
-      return;
-    }
-
-    const teamPlayers = await storage.players.getPlayersByTeamId(team.id); // Use playerStorage
-    const teamPower = calculateTeamPower(teamPlayers);
-    
-    // Calculate real-time camaraderie from player scores instead of using outdated database value
-    const teamCamaraderie = await CamaraderieService.getTeamCamaraderie(team.id.toString());
-
-    // Serialize any BigInt fields to strings for JSON compatibility
-    const serializedTeam = { 
-      ...team, 
-      teamPower, 
-      teamCamaraderie 
-    };
-
-    // Handle finances BigInt serialization if present
-    if (serializedTeam.finances) {
-      serializedTeam.finances = {
-        ...serializedTeam.finances,
-        credits: serializedTeam.finances.credits?.toString() || '0',
-        gems: serializedTeam.finances.gems?.toString() || '0',
-        escrowCredits: serializedTeam.finances.escrowCredits?.toString() || '0',
-        escrowGems: serializedTeam.finances.escrowGems?.toString() || '0',
-        projectedIncome: serializedTeam.finances.projectedIncome?.toString() || '0',
-        projectedExpenses: serializedTeam.finances.projectedExpenses?.toString() || '0',
-        lastSeasonRevenue: serializedTeam.finances.lastSeasonRevenue?.toString() || '0',
-        lastSeasonExpenses: serializedTeam.finances.lastSeasonExpenses?.toString() || '0',
-        facilitiesMaintenanceCost: serializedTeam.finances.facilitiesMaintenanceCost?.toString() || '0'
-      };
-    }
-
-    res.json(serializedTeam);
-  } catch (error) {
-    console.error("Error fetching team:", error);
-    next(error);
-  }
-});
 
 // Enhanced dashboard endpoint with comprehensive data
 router.get('/my/dashboard', requireAuth, async (req: any, res: Response, next: NextFunction) => {
@@ -509,8 +465,7 @@ router.get('/my/dashboard', requireAuth, async (req: any, res: Response, next: N
   }
 });
 
-// IMPORTANT: Specific routes must come BEFORE parameterized routes
-// Route for user's team detection - using '/my' endpoint that frontend expects
+// User's team endpoint - primary route
 router.get('/my', requireAuth, async (req: any, res: Response, next: NextFunction) => {
   try {
     const userId = req.user?.claims?.sub || req.user?.userId || "44010914"; // Development fallback
@@ -525,8 +480,34 @@ router.get('/my', requireAuth, async (req: any, res: Response, next: NextFunctio
 
     const teamPlayers = await storage.players.getPlayersByTeamId(team.id);
     const teamPower = calculateTeamPower(teamPlayers);
+    
+    // Calculate real-time camaraderie from player scores
+    const teamCamaraderie = await CamaraderieService.getTeamCamaraderie(team.id.toString());
 
-    res.json({ ...team, teamPower, teamCamaraderie: team.camaraderie });
+    // Serialize any BigInt fields to strings for JSON compatibility
+    const serializedTeam = { 
+      ...team, 
+      teamPower, 
+      teamCamaraderie 
+    };
+
+    // Handle finances BigInt serialization if present
+    if (serializedTeam.finances) {
+      serializedTeam.finances = {
+        ...serializedTeam.finances,
+        credits: serializedTeam.finances.credits?.toString() || '0',
+        gems: serializedTeam.finances.gems?.toString() || '0',
+        escrowCredits: serializedTeam.finances.escrowCredits?.toString() || '0',
+        escrowGems: serializedTeam.finances.escrowGems?.toString() || '0',
+        projectedIncome: serializedTeam.finances.projectedIncome?.toString() || '0',
+        projectedExpenses: serializedTeam.finances.projectedExpenses?.toString() || '0',
+        lastSeasonRevenue: serializedTeam.finances.lastSeasonRevenue?.toString() || '0',
+        lastSeasonExpenses: serializedTeam.finances.lastSeasonExpenses?.toString() || '0',
+        facilitiesMaintenanceCost: serializedTeam.finances.facilitiesMaintenanceCost?.toString() || '0'
+      };
+    }
+
+    res.json(serializedTeam);
   } catch (error) {
     console.error("Error fetching user team:", error);
     next(error);
