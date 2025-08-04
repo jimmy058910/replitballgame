@@ -151,11 +151,8 @@ router.post('/create', requireAuth, asyncHandler(async (req: any, res: Response)
     throw ErrorCreators.forbidden("You must accept the Non-Disclosure Agreement to participate in pre-alpha testing");
   }
 
-  // Create team logic here - using proper interface
-  const newTeam = await storage.teams.createTeam({
-    name: teamName,
-    userId: userId
-  });
+  // Create team logic here - simplified for immediate functionality
+  const newTeam = await storage.teams.createTeam(userId, teamName);
 
   res.json({
     success: true,
@@ -164,4 +161,4 @@ router.post('/create', requireAuth, asyncHandler(async (req: any, res: Response)
   });
 }));
 
-export default router;
+export { router as teamRoutes };
