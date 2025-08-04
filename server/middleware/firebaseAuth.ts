@@ -20,6 +20,11 @@ if (!admin.apps.length) {
     // In production Cloud Run, use Application Default Credentials (ADC)
     if (process.env.NODE_ENV === 'production' && process.env.K_SERVICE) {
       console.log('🔧 Configuring Firebase Admin SDK for Cloud Run with ADC...');
+      console.log('🔍 Cloud Run environment details:', {
+        googleCloudProject: process.env.GOOGLE_CLOUD_PROJECT,
+        kService: process.env.K_SERVICE,
+        kRevision: process.env.K_REVISION || 'not-set'
+      });
       // Cloud Run automatically provides ADC, just ensure project ID is set
       firebaseConfig.credential = admin.credential.applicationDefault();
     }
