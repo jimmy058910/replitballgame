@@ -382,6 +382,27 @@ const teamCreationHandler = process.env.NODE_ENV === 'development' ?
 router.post('/', teamCreationHandler);
 router.post('/create', teamCreationHandler);
 
+// Firebase Admin SDK configuration test endpoint (no auth required)
+router.get('/firebase-test', asyncHandler(async (req: any, res: Response) => {
+  const admin = await import('firebase-admin');
+  
+  const config = {
+    firebaseAppsCount: admin.apps.length,
+    projectId: admin.apps[0]?.options?.projectId || 'none',
+    hasServiceAccount: !!admin.apps[0]?.options?.credential,
+    nodeEnv: process.env.NODE_ENV,
+    viteFirebaseProjectId: process.env.VITE_FIREBASE_PROJECT_ID,
+    googleCloudProject: process.env.GOOGLE_CLOUD_PROJECT,
+    timestamp: new Date().toISOString()
+  };
+  
+  res.json({
+    success: true,
+    message: 'Firebase Admin SDK Configuration Check',
+    config
+  });
+}));
+
 // Get all teams (for debugging/admin purposes)
 router.get('/', requireAuth, asyncHandler(async (req: any, res: Response) => {
   const teams = await storage.teams.getAllTeams();

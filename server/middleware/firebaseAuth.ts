@@ -1,32 +1,37 @@
 import { Request, Response, NextFunction } from 'express';
 import admin from 'firebase-admin';
 
-// Initialize Firebase Admin SDK with enhanced error handling and ADC configuration
+// Initialize Firebase Admin SDK with enhanced error handling and proper Cloud Run credentials
 if (!admin.apps.length) {
   try {
     const projectId = process.env.VITE_FIREBASE_PROJECT_ID || 'direct-glider-465821-p7';
     
-    // In production, ensure Google Cloud Project is set for ADC
-    if (process.env.NODE_ENV === 'production' && !process.env.GOOGLE_CLOUD_PROJECT) {
-      console.log('🔧 Setting GOOGLE_CLOUD_PROJECT for Firebase Admin SDK...');
-      process.env.GOOGLE_CLOUD_PROJECT = projectId;
-    }
+    console.log('🔥 Initializing Firebase Admin SDK with proper credentials...');
     
-    // Enhanced configuration for Cloud Run with explicit credential handling
+    // Enhanced configuration for different environments
     const firebaseConfig: any = {
       projectId: projectId
     };
     
-    // In production Cloud Run, use Application Default Credentials (ADC)
+    // In production Cloud Run, explicitly use Application Default Credentials
     if (process.env.NODE_ENV === 'production' && process.env.K_SERVICE) {
-      console.log('🔧 Configuring Firebase Admin SDK for Cloud Run with ADC...');
-      console.log('🔍 Cloud Run environment details:', {
+      console.log('🔧 Production Cloud Run: Using Application Default Credentials for Firebase');
+      console.log('🔍 Cloud Run environment:', {
         googleCloudProject: process.env.GOOGLE_CLOUD_PROJECT,
         kService: process.env.K_SERVICE,
-        kRevision: process.env.K_REVISION || 'not-set'
+        kRevision: process.env.K_REVISION || 'not-set',
+        projectId: projectId
       });
-      // Cloud Run automatically provides ADC, just ensure project ID is set
+      
+      // Set GOOGLE_CLOUD_PROJECT if not set (required for ADC)
+      if (!process.env.GOOGLE_CLOUD_PROJECT) {
+        process.env.GOOGLE_CLOUD_PROJECT = projectId;
+      }
+      
+      // Explicitly use Application Default Credentials for Cloud Run
       firebaseConfig.credential = admin.credential.applicationDefault();
+    } else {
+      console.log('🔧 Development: Using project ID only for Firebase');
     }
     
     admin.initializeApp(firebaseConfig);
@@ -95,6 +100,14 @@ export async function verifyFirebaseToken(
     try {
       // Verify the Firebase ID token with enhanced error handling
       const auth = admin.auth();
+      
+      console.log('🔍 Firebase token verification debug:', {
+        tokenPrefix: idToken.substring(0, 50) + '...',
+        tokenLength: idToken.length,
+        projectId: admin.apps[0]?.options?.projectId,
+        timestamp: new Date().toISOString()
+      });
+      
       const decodedToken = await auth.verifyIdToken(idToken);
       
       // Set authenticated user on request
@@ -111,9 +124,15 @@ export async function verifyFirebaseToken(
     } catch (tokenError) {
       console.error('❌ Firebase token verification failed:', {
         error: tokenError instanceof Error ? tokenError.message : 'Unknown error',
+        errorCode: (tokenError as any)?.code || 'unknown',
+        errorStack: process.env.NODE_ENV === 'development' ? (tokenError as any)?.stack : undefined,
         tokenLength: idToken?.length || 0,
         firebaseAppsCount: admin.apps.length,
-        projectId: admin.apps[0]?.options?.projectId || 'unknown'
+        projectId: admin.apps[0]?.options?.projectId || 'unknown',
+        hasCredential: !!(admin.apps[0]?.options?.credential),
+        timestamp: new Date().toISOString(),
+        cloudRun: !!process.env.K_SERVICE,
+        googleCloudProject: process.env.GOOGLE_CLOUD_PROJECT
       });
       res.status(401).json({ 
         error: 'Invalid or expired token',
