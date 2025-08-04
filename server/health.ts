@@ -63,7 +63,7 @@ export function createHealthCheck() {
           error: lastDatabaseTest.error,
           testType: 'live-query'
         },
-        version: '6.16.0-CORRECT-DB-CREDENTIALS-AUG3',
+        version: '6.17.0-DEBUG-PROD-ENV-AUG3',
         environment: environmentData
       };
 
