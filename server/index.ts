@@ -78,22 +78,14 @@ app.use(cors(corsOptions));
 // FIREBASE ADMIN SDK DEBUG ENDPOINT - Test authentication system
 app.get('/api/firebase-debug', (req: Request, res: Response) => {
   try {
-    // Import firebase-admin that's already initialized in middleware
-    const admin = require('firebase-admin');
-    const hasApp = admin.apps.length > 0;
-    const firebaseApp = hasApp ? admin.app() : null;
+    // Import from the same middleware where Firebase is already initialized
+    const { getFirebaseAdminStatus } = require('./middleware/firebaseAuth');
+    const status = getFirebaseAdminStatus();
     
     res.json({
-      firebaseAdminStatus: hasApp ? 'initialized' : 'not-initialized',
-      projectId: firebaseApp?.options?.projectId || 'not-set',
+      ...status,
       timestamp: new Date().toISOString(),
-      version: '6.19.0-FIREBASE-AUTH-FIX-AUG4',
-      environment: {
-        NODE_ENV: process.env.NODE_ENV,
-        GOOGLE_CLOUD_PROJECT: process.env.GOOGLE_CLOUD_PROJECT || 'not-set',
-        VITE_FIREBASE_PROJECT_ID: process.env.VITE_FIREBASE_PROJECT_ID || 'not-set',
-        hasCredentials: !!firebaseApp?.options?.credential
-      },
+      version: '6.21.0-AUTHENTICATION-COMPLETE-FIX-AUG4',
       message: 'Firebase Admin SDK diagnostic endpoint for authentication debugging'
     });
   } catch (error) {
@@ -101,7 +93,7 @@ app.get('/api/firebase-debug', (req: Request, res: Response) => {
       firebaseAdminStatus: 'error',
       error: error instanceof Error ? error.message : 'Unknown error',
       timestamp: new Date().toISOString(),
-      version: '6.19.0-FIREBASE-AUTH-FIX-AUG4'
+      version: '6.21.0-AUTHENTICATION-COMPLETE-FIX-AUG4'
     });
   }
 });

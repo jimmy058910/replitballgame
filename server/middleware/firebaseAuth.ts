@@ -80,26 +80,44 @@ export async function verifyFirebaseToken(
 
     const idToken = authHeader.split('Bearer ')[1];
     
-    // Verify the Firebase ID token
-    const decodedToken = await admin.auth().verifyIdToken(idToken);
+    // Check if Firebase Admin SDK is properly initialized
+    if (!admin.apps.length) {
+      console.error('❌ Firebase Admin SDK not initialized in auth middleware');
+      res.status(500).json({ error: 'Authentication service not initialized' });
+      return;
+    }
     
-    // Set authenticated user on request
-    (req as AuthenticatedRequest).user = {
-      uid: decodedToken.uid,
-      email: decodedToken.email,
-      name: decodedToken.name,
-      userId: decodedToken.uid, // Use Firebase UID as userId
-      claims: { sub: decodedToken.uid }
-    };
+    try {
+      // Verify the Firebase ID token with enhanced error handling
+      const auth = admin.auth();
+      const decodedToken = await auth.verifyIdToken(idToken);
+      
+      // Set authenticated user on request
+      (req as AuthenticatedRequest).user = {
+        uid: decodedToken.uid,
+        email: decodedToken.email,
+        name: decodedToken.name,
+        userId: decodedToken.uid, // Use Firebase UID as userId
+        claims: { sub: decodedToken.uid }
+      };
 
-    console.log('✅ Firebase token verified for user:', decodedToken.uid);
-    next();
+      console.log('✅ Firebase token verified for user:', decodedToken.uid);
+      next();
+    } catch (tokenError) {
+      console.error('❌ Firebase token verification failed:', {
+        error: tokenError instanceof Error ? tokenError.message : 'Unknown error',
+        tokenLength: idToken?.length || 0,
+        firebaseAppsCount: admin.apps.length,
+        projectId: admin.apps[0]?.options?.projectId || 'unknown'
+      });
+      res.status(401).json({ 
+        error: 'Invalid or expired token',
+        details: process.env.NODE_ENV === 'development' ? tokenError : undefined
+      });
+    }
   } catch (error) {
-    console.error('❌ Firebase token verification failed:', error);
-    res.status(401).json({ 
-      error: 'Invalid or expired token',
-      details: process.env.NODE_ENV === 'development' ? error : undefined
-    });
+    console.error('❌ Authentication middleware error:', error);
+    res.status(500).json({ error: 'Authentication service error' });
   }
 }
 
@@ -136,4 +154,49 @@ export function requireAuth(req: Request, res: Response, next: NextFunction): vo
   }
   
   verifyFirebaseToken(req, res, next);
+}
+
+// Export Firebase Admin SDK status for debugging
+export function getFirebaseAdminStatus() {
+  try {
+    const hasApp = admin.apps.length > 0;
+    const firebaseApp = hasApp ? admin.app() : null;
+    
+    // Test if auth service is working
+    let authServiceTest = 'not-tested';
+    try {
+      if (hasApp) {
+        const auth = admin.auth();
+        authServiceTest = 'available';
+      }
+    } catch (authError) {
+      authServiceTest = `auth-error: ${authError instanceof Error ? authError.message : 'unknown'}`;
+    }
+    
+    return {
+      firebaseAdminStatus: hasApp ? 'initialized' : 'not-initialized',
+      projectId: firebaseApp?.options?.projectId || 'not-set',
+      authService: authServiceTest,
+      environment: {
+        NODE_ENV: process.env.NODE_ENV,
+        GOOGLE_CLOUD_PROJECT: process.env.GOOGLE_CLOUD_PROJECT || 'not-set',
+        VITE_FIREBASE_PROJECT_ID: process.env.VITE_FIREBASE_PROJECT_ID || 'not-set',
+        hasCredentials: !!firebaseApp?.options?.credential,
+        K_SERVICE: process.env.K_SERVICE || 'not-set'
+      }
+    };
+  } catch (error) {
+    return {
+      firebaseAdminStatus: 'error',
+      error: error instanceof Error ? error.message : 'Unknown error',
+      authService: 'error',
+      environment: {
+        NODE_ENV: process.env.NODE_ENV,
+        GOOGLE_CLOUD_PROJECT: process.env.GOOGLE_CLOUD_PROJECT || 'not-set',
+        VITE_FIREBASE_PROJECT_ID: process.env.VITE_FIREBASE_PROJECT_ID || 'not-set',
+        hasCredentials: false,
+        K_SERVICE: process.env.K_SERVICE || 'not-set'
+      }
+    };
+  }
 }

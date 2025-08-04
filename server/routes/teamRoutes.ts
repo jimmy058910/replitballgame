@@ -43,7 +43,7 @@ const createTeamSchema = z.object({
 });
 
 // Team creation handler function (shared between routes)
-const handleTeamCreation = asyncHandler(async (req: any, res: Response) => {
+const handleTeamCreation = asyncHandler(async (req: any, res: Response): Promise<void> => {
   // Safely extract user ID with proper error handling
   if (!req.user || !req.user.claims || !req.user.claims.sub) {
     throw ErrorCreators.unauthorized("Authentication required - user session not found");
@@ -250,7 +250,7 @@ const handleTeamCreation = asyncHandler(async (req: any, res: Response) => {
         potentialRating: playerData.potentialRating,
         dailyStaminaLevel: 100,
         injuryStatus: 'HEALTHY' as InjuryStatus,
-        camaraderie: playerData.camaraderie || 75.0,
+        camaraderieScore: playerData.camaraderie || 75.0,
       };
       
       await storage.players.createPlayer(cleanPlayerData);
@@ -316,7 +316,7 @@ const handleTeamCreation = asyncHandler(async (req: any, res: Response) => {
 });
 
 // Development bypass for team creation (remove in production)
-const developmentTeamCreation = asyncHandler(async (req: any, res: Response) => {
+const developmentTeamCreation = asyncHandler(async (req: any, res: Response): Promise<void> => {
   // Simulate authenticated user for development
   const hardcodedUserId = "44010914";
   
@@ -348,7 +348,7 @@ const developmentTeamCreation = asyncHandler(async (req: any, res: Response) => 
 });
 
 // Production authentication bypass for pre-alpha testing
-const productionTeamCreation = asyncHandler(async (req: any, res: Response) => {
+const productionTeamCreation = asyncHandler(async (req: any, res: Response): Promise<void> => {
   // For production pre-alpha testing - bypass authentication requirement
   const hardcodedUserId = "prealpha_user_" + Date.now();
   
@@ -388,7 +388,7 @@ router.get('/', requireAuth, asyncHandler(async (req: any, res: Response) => {
   res.json(teams);
 }));
 
-router.get('/my', requireAuth, async (req: any, res: Response, next: NextFunction) => {
+router.get('/my', requireAuth, async (req: any, res: Response, next: NextFunction): Promise<void> => {
   try {
     const userId = req.user.claims.sub;
     const team = await storage.teams.getTeamByUserId(userId); // Use teamStorage

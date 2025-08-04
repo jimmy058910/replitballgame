@@ -63,7 +63,7 @@ export function createHealthCheck() {
           error: lastDatabaseTest.error,
           testType: 'live-query'
         },
-        version: '6.19.0-FIREBASE-AUTH-FIX-AUG4',
+        version: '6.21.0-AUTHENTICATION-COMPLETE-FIX-AUG4',
         environment: environmentData
       };
 
