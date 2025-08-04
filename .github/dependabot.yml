@@ -1,0 +1,12 @@
+#.github/dependabot.yml
+# Basic Dependabot configuration for a Node.js/npm project
+
+version: 2
+updates:
+  # Enable version updates for npm
+  - package-ecosystem: "npm"
+    # Look for package.json and lock files in the root directory
+    directory: "/"
+    # Check for updates weekly
+    schedule:
+      interval: "weekly"
