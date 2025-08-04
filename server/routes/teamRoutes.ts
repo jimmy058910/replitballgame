@@ -139,8 +139,11 @@ router.post('/create', requireAuth, asyncHandler(async (req: any, res: Response)
   }
 
   // Check if user already has a team
+  console.log('🔍 Checking for existing team for userId:', userId);
   const existingTeam = await storage.teams.getTeamByUserId(userId);
+  console.log('🔍 Existing team found:', existingTeam ? 'YES' : 'NO');
   if (existingTeam) {
+    console.log('🔍 Existing team details:', existingTeam);
     throw ErrorCreators.conflict("User already has a team");
   }
 
@@ -166,10 +169,12 @@ router.post('/create', requireAuth, asyncHandler(async (req: any, res: Response)
   await userStorage.userStorage.acceptNDA(userId);
 
   // Create team logic here - using proper interface
+  console.log('🔍 Creating team for userId:', userId, 'teamName:', teamName);
   const newTeam = await storage.teams.createTeam({
     name: teamName,
     userId: userId
   });
+  console.log('🔍 Team created successfully:', newTeam.id);
 
   res.json({
     success: true,
