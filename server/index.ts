@@ -36,6 +36,8 @@ const corsOptions = {
         'https://realmrivalry.com', 
         'https://www.realmrivalry.com', 
         'https://realm-rivalry-o6fd46yesq-ul.a.run.app',
+        'https://direct-glider-465821-p7.web.app', // Firebase hosting domain
+        'https://direct-glider-465821-p7.firebaseapp.com', // Firebase app domain
         // Additional safety: allow Cloud Run internal communication
         /^https:\/\/.*\.a\.run\.app$/
       ]
