@@ -87,7 +87,7 @@ app.get('/api/firebase-debug', (req: Request, res: Response) => {
     res.json({
       ...status,
       timestamp: new Date().toISOString(),
-      version: '6.21.0-AUTHENTICATION-COMPLETE-FIX-AUG4',
+      version: '6.22.0-CORS-FIREBASE-DOMAINS-AUG4',
       message: 'Firebase Admin SDK diagnostic endpoint for authentication debugging'
     });
   } catch (error) {
@@ -95,7 +95,7 @@ app.get('/api/firebase-debug', (req: Request, res: Response) => {
       firebaseAdminStatus: 'error',
       error: error instanceof Error ? error.message : 'Unknown error',
       timestamp: new Date().toISOString(),
-      version: '6.21.0-AUTHENTICATION-COMPLETE-FIX-AUG4'
+      version: '6.22.0-CORS-FIREBASE-DOMAINS-AUG4'
     });
   }
 });
