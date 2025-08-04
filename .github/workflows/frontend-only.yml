@@ -6,7 +6,7 @@ on:
       backend_url:
         description: 'Backend URL to connect to'
         required: true
-        default: 'https://realm-rivalry-backend-o6fd46yesq-ul.a.run.app'
+        default: 'https://realm-rivalry-backend-108005641993.us-east5.run.app'
 
 env:
   PROJECT_ID: direct-glider-465821-p7

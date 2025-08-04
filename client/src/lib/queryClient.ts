@@ -11,7 +11,7 @@ async function throwIfResNotOk(res: Response) {
 // Hybrid architecture API configuration
 // Production: Direct Cloud Run URL, Development: Relative URLs
 const API_BASE_URL = import.meta.env.PROD 
-  ? 'https://realm-rivalry-backend-o6fd46yesq-ul.a.run.app'
+  ? 'https://realm-rivalry-backend-108005641993.us-east5.run.app'
   : '';
 
 console.log('🔗 QueryClient API Configuration:', {
