@@ -78,11 +78,11 @@ console.log('🚀 SERVER STARTUP DEBUG:', {
 app.use(cors(corsOptions));
 
 // FIREBASE ADMIN SDK DEBUG ENDPOINT - Test authentication system
-app.get('/api/firebase-debug', (req: Request, res: Response) => {
+app.get('/api/firebase-debug', async (req: Request, res: Response) => {
   try {
     // Import from the same middleware where Firebase is already initialized
-    const { getFirebaseAdminStatus } = require('./middleware/firebaseAuth');
-    const status = getFirebaseAdminStatus();
+    const firebaseAuth = await import('./middleware/firebaseAuth');
+    const status = firebaseAuth.getFirebaseAdminStatus();
     
     res.json({
       ...status,
