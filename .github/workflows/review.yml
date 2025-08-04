@@ -1,4 +1,4 @@
-#.github/workflows/review.yml
+# .github/workflows/review.yml
 # This workflow runs an automated QA check on every pull request.
 
 name: Automated QA Pipeline
@@ -37,9 +37,7 @@ jobs:
         # Runs the Snyk test and outputs results to a SARIF file.
         # The "|| true" ensures the workflow continues even if vulnerabilities are found,
         # so the AI review can still run.
-        run: snyk test --all-projects --sarif-file-output=snyk.sarif |
-
-| true
+        run: snyk test --all-projects --sarif-file-output=snyk.sarif || true
         env:
           # Use the secret token you created in Step 1
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
