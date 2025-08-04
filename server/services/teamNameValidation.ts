@@ -1,7 +1,5 @@
-import { PrismaClient } from '../../generated/prisma';
 import { profanity } from '@2toad/profanity';
-
-const prisma = new PrismaClient();
+import { prisma } from '../db';
 
 // Configure the profanity filter
 profanity.addWords([
@@ -265,6 +263,13 @@ export class TeamNameValidator {
       const existingTeam = await prisma.team.findFirst({
         where: whereClause,
         select: { id: true, name: true }
+      });
+      
+      console.log('🔍 Team uniqueness check:', {
+        searchName: name,
+        excludeTeamId,
+        foundExisting: !!existingTeam,
+        existingName: existingTeam?.name
       });
       
       if (existingTeam) {
