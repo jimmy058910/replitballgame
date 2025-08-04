@@ -122,22 +122,11 @@ jobs:
         # THE FAILSAFE: Force new instance by changing environment
         DEPLOY_TIMESTAMP=$(date +%s)
         echo "Using deployment timestamp: $DEPLOY_TIMESTAMP"
-        # Configure Cloud Run service account with Firebase permissions
-        echo "🔧 Ensuring service account has Firebase Admin permissions..."
-        COMPUTE_SA="$(gcloud projects describe direct-glider-465821-p7 --format='value(projectNumber)')-compute@developer.gserviceaccount.com"
-        echo "Default compute service account: $COMPUTE_SA"
-        
-        # Grant Firebase Admin SDK permissions to the default service account
-        gcloud projects add-iam-policy-binding direct-glider-465821-p7 \
-          --member="serviceAccount:$COMPUTE_SA" \
-          --role="roles/firebase.admin" || echo "Firebase admin role may already exist"
-          
         gcloud run deploy ${{ env.SERVICE_NAME }} \
           --image ${{ env.IMAGE_NAME }}:$IMAGE_TAG \
           --platform managed \
           --region ${{ env.REGION }} \
           --allow-unauthenticated \
-          --service-account=$COMPUTE_SA \
           --set-env-vars NODE_ENV=production,DEPLOY_TIMESTAMP=$DEPLOY_TIMESTAMP,GOOGLE_CLOUD_PROJECT=direct-glider-465821-p7 \
           --set-secrets DATABASE_URL_PRODUCTION=database-url:latest,VITE_FIREBASE_API_KEY=firebase-api-key:latest,VITE_FIREBASE_PROJECT_ID=firebase-project-id:latest,VITE_FIREBASE_APP_ID=firebase-app-id:latest,GOOGLE_CLIENT_ID=google-client-id:latest,GOOGLE_CLIENT_SECRET=google-client-secret:latest \
           --memory 2Gi \

@@ -13,9 +13,9 @@ if (!admin.apps.length) {
       projectId: projectId
     };
     
-    // In production Cloud Run, explicitly use Application Default Credentials
+    // In production Cloud Run, use Application Default Credentials
     if (process.env.NODE_ENV === 'production' && process.env.K_SERVICE) {
-      console.log('🔧 Production Cloud Run: Using Application Default Credentials for Firebase');
+      console.log('🔧 Production Cloud Run: Configuring Firebase with Application Default Credentials');
       console.log('🔍 Cloud Run environment:', {
         googleCloudProject: process.env.GOOGLE_CLOUD_PROJECT,
         kService: process.env.K_SERVICE,
@@ -23,28 +23,52 @@ if (!admin.apps.length) {
         projectId: projectId
       });
       
-      // Set GOOGLE_CLOUD_PROJECT if not set (required for ADC)
+      // Set GOOGLE_CLOUD_PROJECT environment variable for ADC
       if (!process.env.GOOGLE_CLOUD_PROJECT) {
         process.env.GOOGLE_CLOUD_PROJECT = projectId;
+        console.log('🔧 Set GOOGLE_CLOUD_PROJECT environment variable for Firebase ADC');
       }
       
-      // Explicitly use Application Default Credentials for Cloud Run
-      firebaseConfig.credential = admin.credential.applicationDefault();
+      try {
+        // Try to use Application Default Credentials
+        firebaseConfig.credential = admin.credential.applicationDefault();
+        console.log('✅ Firebase configured with Application Default Credentials');
+      } catch (credentialError) {
+        console.warn('⚠️ ADC not available, using basic Firebase config:', {
+          error: credentialError instanceof Error ? credentialError.message : 'Unknown error'
+        });
+        // Continue with basic configuration - Cloud Run may still have sufficient permissions
+      }
     } else {
-      console.log('🔧 Development: Using project ID only for Firebase');
+      console.log('🔧 Development: Using basic Firebase configuration');
     }
     
     admin.initializeApp(firebaseConfig);
     
-    // Test Firebase Admin SDK initialization
+    // Test Firebase Admin SDK initialization with detailed logging
     const testAuth = admin.auth();
     console.log('✅ Firebase Admin SDK initialized successfully', {
       projectId: projectId,
       nodeEnv: process.env.NODE_ENV,
       googleCloudProject: process.env.GOOGLE_CLOUD_PROJECT,
       cloudRun: !!process.env.K_SERVICE,
-      authServiceExists: !!testAuth
+      authServiceExists: !!testAuth,
+      hasCredential: !!(admin.apps[0]?.options?.credential),
+      credentialType: admin.apps[0]?.options?.credential?.constructor?.name || 'none'
     });
+    
+    // Test Firebase Auth access with a simple operation (async)
+    testAuth.listUsers(1)
+      .then(() => {
+        console.log('✅ Firebase Auth access confirmed - can perform operations');
+      })
+      .catch((testError) => {
+        console.error('❌ Firebase Auth access test failed:', {
+          error: testError instanceof Error ? testError.message : 'Unknown error',
+          errorCode: (testError as any)?.code,
+          message: 'This may indicate missing Firebase permissions in Cloud Run'
+        });
+      });
   } catch (error) {
     console.error('❌ Firebase Admin SDK initialization failed:', {
       error: error instanceof Error ? error.message : 'Unknown error',
