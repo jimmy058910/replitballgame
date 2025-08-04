@@ -1,15 +1,10 @@
 import { Request, Response, NextFunction } from 'express';
 import admin from 'firebase-admin';
 
-// Initialize Firebase Admin SDK with enhanced error handling
+// Initialize Firebase Admin SDK with enhanced error handling and ADC configuration
 if (!admin.apps.length) {
   try {
     const projectId = process.env.VITE_FIREBASE_PROJECT_ID || 'direct-glider-465821-p7';
-    
-    // Enhanced initialization for production with explicit project settings
-    const firebaseConfig: any = {
-      projectId: projectId
-    };
     
     // In production, ensure Google Cloud Project is set for ADC
     if (process.env.NODE_ENV === 'production' && !process.env.GOOGLE_CLOUD_PROJECT) {
@@ -17,20 +12,42 @@ if (!admin.apps.length) {
       process.env.GOOGLE_CLOUD_PROJECT = projectId;
     }
     
+    // Enhanced configuration for Cloud Run with explicit credential handling
+    const firebaseConfig: any = {
+      projectId: projectId
+    };
+    
+    // In production Cloud Run, use Application Default Credentials (ADC)
+    if (process.env.NODE_ENV === 'production' && process.env.K_SERVICE) {
+      console.log('🔧 Configuring Firebase Admin SDK for Cloud Run with ADC...');
+      // Cloud Run automatically provides ADC, just ensure project ID is set
+      firebaseConfig.credential = admin.credential.applicationDefault();
+    }
+    
     admin.initializeApp(firebaseConfig);
+    
+    // Test Firebase Admin SDK initialization
+    const testAuth = admin.auth();
     console.log('✅ Firebase Admin SDK initialized successfully', {
       projectId: projectId,
       nodeEnv: process.env.NODE_ENV,
-      googleCloudProject: process.env.GOOGLE_CLOUD_PROJECT
+      googleCloudProject: process.env.GOOGLE_CLOUD_PROJECT,
+      cloudRun: !!process.env.K_SERVICE,
+      authServiceExists: !!testAuth
     });
   } catch (error) {
     console.error('❌ Firebase Admin SDK initialization failed:', {
-      error: error,
+      error: error instanceof Error ? error.message : 'Unknown error',
       projectId: process.env.VITE_FIREBASE_PROJECT_ID,
       nodeEnv: process.env.NODE_ENV,
-      googleCloudProject: process.env.GOOGLE_CLOUD_PROJECT
+      googleCloudProject: process.env.GOOGLE_CLOUD_PROJECT,
+      cloudRun: !!process.env.K_SERVICE
     });
-    throw error; // Throw to prevent server startup with broken auth
+    
+    // In development, don't throw - allow server to start with warning
+    if (process.env.NODE_ENV !== 'development') {
+      throw error;
+    }
   }
 }
 
