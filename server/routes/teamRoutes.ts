@@ -250,7 +250,7 @@ const handleTeamCreation = asyncHandler(async (req: any, res: Response): Promise
         potentialRating: playerData.potentialRating,
         dailyStaminaLevel: 100,
         injuryStatus: 'HEALTHY' as InjuryStatus,
-        camaraderieScore: playerData.camaraderie || 75.0,
+        camaraderieScore: 75.0,
       };
       
       await storage.players.createPlayer(cleanPlayerData);
@@ -394,7 +394,8 @@ router.get('/my', requireAuth, async (req: any, res: Response, next: NextFunctio
     const team = await storage.teams.getTeamByUserId(userId); // Use teamStorage
 
     if (!team) {
-      return res.status(404).json({ message: "Team not found" });
+      res.status(404).json({ message: "Team not found" });
+      return;
     }
 
     const teamPlayers = await storage.players.getPlayersByTeamId(team.id); // Use playerStorage
