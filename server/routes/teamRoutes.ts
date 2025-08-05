@@ -5,6 +5,7 @@ import { z } from "zod";
 import { ErrorCreators, asyncHandler } from "../services/errorService";
 import { TeamNameValidator } from "../services/teamNameValidation";
 import { CamaraderieService } from "../services/camaraderieService";
+import { cacheResponse } from "../middleware/cacheMiddleware";
 
 const router = Router();
 

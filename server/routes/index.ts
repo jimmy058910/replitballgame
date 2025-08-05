@@ -63,6 +63,8 @@ import criticalAlertsRoutes from "./criticalAlertsRoutes";
 import enhancedMatchRoutes from "./enhancedMatchRoutes";
 import liveMatchRoutes from "./liveMatchRoutes";
 import testRoutes from "./testRoutes";
+import cacheRoutes from "./cacheRoutes";
+import quickCacheTest from "./quickCacheTest";
 
 
 // This function will be called by server/index.ts to set up all routes.
@@ -147,6 +149,8 @@ export function registerAllRoutes(app: Express): void {
   app.use("/api", databaseTestRoutes); // Database connectivity test endpoint
   app.use("/api", debugEnvRoutes); // Debug environment variables endpoint
   app.use("/api", testRoutes); // Test endpoints for system validation
+  app.use("/api/cache", cacheRoutes); // Cache management and statistics
+  app.use("/api/cache-test", quickCacheTest); // Cache testing and demonstration
 
   // Add missing /api/me endpoint that frontend expects (redirect to auth/user)
   app.get("/api/me", (req, res) => {
