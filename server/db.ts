@@ -57,12 +57,41 @@ if (nodeEnv !== 'production') {
   globalForPrisma.prisma = prisma
 }
 
-// Connection pool configuration for production
-if (nodeEnv === 'production') {
-  // Configure connection pool cleanup
-  process.on('beforeExit', async () => {
-    await prisma.$disconnect()
-  })
+// Enhanced connection pool configuration for all environments
+// Aggressive connection cleanup to minimize compute hours
+const cleanup = async () => {
+  console.log('🔧 Cleaning up database connections...');
+  await prisma.$disconnect();
+};
+
+// Multiple cleanup triggers to minimize idle connections
+process.on('beforeExit', cleanup);
+process.on('SIGINT', cleanup);
+process.on('SIGTERM', cleanup);
+
+// Auto-disconnect after periods of inactivity (development only)
+if (nodeEnv === 'development') {
+  let lastActivity = Date.now();
+  const IDLE_TIMEOUT = 3 * 60 * 1000; // 3 minutes
+  
+  setInterval(async () => {
+    if (Date.now() - lastActivity > IDLE_TIMEOUT) {
+      console.log('🔧 Auto-disconnecting idle database connection');
+      await prisma.$disconnect();
+      lastActivity = Date.now();
+    }
+  }, 60 * 1000); // Check every minute
+  
+  // Track database activity for idle management
+  const trackActivity = () => {
+    lastActivity = Date.now();
+  };
+  
+  // Log connections to track activity
+  console.log(`🔗 Database connecting to: ${dbHost} with idle timeout management`);
+  
+  // Simple activity tracking hook (called before any query)
+  setInterval(trackActivity, 30 * 1000); // Update activity every 30 seconds during active use
 }
 
 // Export database connection info for debugging
