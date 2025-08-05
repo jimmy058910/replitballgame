@@ -175,6 +175,7 @@ router.post('/create', requireAuth, asyncHandler(async (req: any, res: Response)
     userId: userId
   });
   console.log('🔍 Team created successfully:', newTeam.id);
+  console.log('🔍 Team creation complete with players and staff generated');
 
   res.json({
     success: true,

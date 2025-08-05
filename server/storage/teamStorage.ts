@@ -94,6 +94,10 @@ export class TeamStorage {
     await this.createDefaultFinancesForTeam(newTeam.id);
     await this.createDefaultStadiumForTeam(newTeam.id);
 
+    // Generate starter players and staff
+    await this.generateStarterRoster(newTeam.id);
+    await this.generateStarterStaff(newTeam.id);
+
     return newTeam;
   }
 
@@ -267,6 +271,85 @@ export class TeamStorage {
         facilitiesMaintenanceCost: 5000
       }
     });
+  }
+
+  async generateStarterRoster(teamId: number): Promise<void> {
+    // Import the generateRandomPlayer function
+    const { generateRandomPlayer } = await import('../services/leagueService');
+    const { storage } = await import('../storage/index');
+    
+    const races = ["human", "sylvan", "gryll", "lumina", "umbra"];
+    const requiredPositions = [
+      "passer", "passer", "passer",
+      "blocker", "blocker", "blocker", "blocker", 
+      "runner", "runner", "runner", "runner"
+    ];
+    
+    // Add one flexible position
+    const additionalPositions = ["passer", "runner", "blocker"];
+    const position = additionalPositions[Math.floor(Math.random() * additionalPositions.length)];
+    requiredPositions.push(position);
+
+    for (let i = 0; i < 12; i++) {
+      const race = races[Math.floor(Math.random() * races.length)];
+      const position = requiredPositions[i];
+      
+      const playerData = generateRandomPlayer("", race, teamId.toString(), position);
+      
+      const cleanPlayerData = {
+        teamId: teamId,
+        firstName: playerData.firstName,
+        lastName: playerData.lastName,
+        race: playerData.race as any,
+        age: playerData.age,
+        role: playerData.role as any,
+        speed: playerData.speed,
+        power: playerData.power,
+        throwing: playerData.throwing,
+        catching: playerData.catching,
+        kicking: playerData.kicking,
+        staminaAttribute: playerData.staminaAttribute,
+        leadership: playerData.leadership,
+        agility: playerData.agility,
+        potentialRating: playerData.potentialRating,
+        dailyStaminaLevel: 100,
+        injuryStatus: 'HEALTHY' as any,
+        camaraderieScore: playerData.camaraderie || 75.0,
+      };
+      
+      await storage.players.createPlayer(cleanPlayerData);
+    }
+  }
+
+  async generateStarterStaff(teamId: number): Promise<void> {
+    const { storage } = await import('../storage/index');
+    
+    const defaultStaff = [
+      { type: 'HEAD_COACH', name: 'Coach Johnson', motivation: 18, development: 15, tactics: 14 },
+      { type: 'RECOVERY_SPECIALIST', name: 'Alex Recovery', physiology: 16 },
+      { type: 'PASSER_TRAINER', name: 'Sarah Passer', teaching: 15 },
+      { type: 'RUNNER_TRAINER', name: 'Mike Runner', teaching: 14 },
+      { type: 'BLOCKER_TRAINER', name: 'Lisa Blocker', teaching: 15 },
+      { type: 'SCOUT', name: 'Emma Talent', talentIdentification: 16, potentialAssessment: 15 },
+      { type: 'SCOUT', name: 'Tony Scout', talentIdentification: 14, potentialAssessment: 15 }
+    ];
+
+    for (const staffData of defaultStaff) {
+      await storage.staff.createStaff({
+        teamId: teamId,
+        type: staffData.type as any,
+        name: staffData.name,
+        level: 1,
+        motivation: staffData.motivation || 12,
+        development: staffData.development || 12,
+        teaching: staffData.teaching || 12,
+        physiology: staffData.physiology || 12,
+        talentIdentification: staffData.talentIdentification || 12,
+        potentialAssessment: staffData.potentialAssessment || 12,
+        tactics: staffData.tactics || 12,
+        age: 35 + Math.floor(Math.random() * 40)
+      });
+    }
   }
 
   async createDefaultStadiumForTeam(teamId: number): Promise<void> {

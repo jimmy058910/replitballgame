@@ -146,4 +146,116 @@ router.post('/test-team-creation', async (req: Request, res: Response) => {
   }
 });
 
+// Emergency endpoint to populate existing teams with players and staff
+router.post('/populate-existing-team', async (req: Request, res: Response) => {
+  try {
+    const { teamId } = req.body;
+    
+    if (!teamId) {
+      return res.status(400).json({ error: 'teamId is required' });
+    }
+    
+    // Check if team exists
+    const team = await prisma.team.findUnique({ where: { id: parseInt(teamId) } });
+    if (!team) {
+      return res.status(404).json({ error: 'Team not found' });
+    }
+    
+    // Check if team already has players
+    const existingPlayers = await storage.players.getPlayersByTeamId(team.id);
+    const existingStaff = await storage.staff.getStaffByTeamId(team.id);
+    
+    let playersCreated = 0;
+    let staffCreated = 0;
+    
+    // Generate players if none exist
+    if (existingPlayers.length === 0) {
+      const races = ["human", "sylvan", "gryll", "lumina", "umbra"];
+      const requiredPositions = [
+        "passer", "passer", "passer",
+        "blocker", "blocker", "blocker", "blocker", 
+        "runner", "runner", "runner", "runner"
+      ];
+      
+      const additionalPositions = ["passer", "runner", "blocker"];
+      const position = additionalPositions[Math.floor(Math.random() * additionalPositions.length)];
+      requiredPositions.push(position);
+
+      for (let i = 0; i < 12; i++) {
+        const race = races[Math.floor(Math.random() * races.length)];
+        const position = requiredPositions[i];
+        
+        const playerData = generateRandomPlayer("", race, team.id.toString(), position);
+        
+        const cleanPlayerData = {
+          teamId: team.id,
+          firstName: playerData.firstName,
+          lastName: playerData.lastName,
+          race: playerData.race as Race,
+          age: playerData.age,
+          role: playerData.role as PlayerRole,
+          speed: playerData.speed,
+          power: playerData.power,
+          throwing: playerData.throwing,
+          catching: playerData.catching,
+          kicking: playerData.kicking,
+          staminaAttribute: playerData.staminaAttribute,
+          leadership: playerData.leadership,
+          agility: playerData.agility,
+          potentialRating: playerData.potentialRating,
+          dailyStaminaLevel: 100,
+          injuryStatus: 'HEALTHY' as InjuryStatus,
+          camaraderieScore: playerData.camaraderie || 75.0,
+        };
+        
+        await storage.players.createPlayer(cleanPlayerData);
+        playersCreated++;
+      }
+    }
+    
+    // Generate staff if none exist
+    if (existingStaff.length === 0) {
+      const defaultStaff = [
+        { type: 'HEAD_COACH', name: 'Coach Johnson', motivation: 18, development: 15, tactics: 14 },
+        { type: 'RECOVERY_SPECIALIST', name: 'Alex Recovery', physiology: 16 },
+        { type: 'PASSER_TRAINER', name: 'Sarah Passer', teaching: 15 },
+        { type: 'RUNNER_TRAINER', name: 'Mike Runner', teaching: 14 },
+        { type: 'BLOCKER_TRAINER', name: 'Lisa Blocker', teaching: 15 },
+        { type: 'SCOUT', name: 'Emma Talent', talentIdentification: 16, potentialAssessment: 15 },
+        { type: 'SCOUT', name: 'Tony Scout', talentIdentification: 14, potentialAssessment: 15 }
+      ];
+
+      for (const staffData of defaultStaff) {
+        await storage.staff.createStaff({
+          teamId: team.id,
+          type: staffData.type as any,
+          name: staffData.name,
+          level: 1,
+          motivation: staffData.motivation || 12,
+          development: staffData.development || 12,
+          teaching: staffData.teaching || 12,
+          physiology: staffData.physiology || 12,
+          talentIdentification: staffData.talentIdentification || 12,
+          potentialAssessment: staffData.potentialAssessment || 12,
+          tactics: staffData.tactics || 12,
+          age: 35 + Math.floor(Math.random() * 40)
+        });
+        staffCreated++;
+      }
+    }
+    
+    res.json({
+      success: true,
+      team: team.name,
+      playersCreated,
+      staffCreated,
+      message: `Team populated: ${playersCreated} players, ${staffCreated} staff members`
+    });
+    
+  } catch (error) {
+    console.error('Error populating team:', error);
+    res.status(500).json({ error: error instanceof Error ? error.message : 'Unknown error' });
+  }
+});
+
 export default router;
