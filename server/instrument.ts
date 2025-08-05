@@ -36,7 +36,6 @@ Sentry.init({
   }
 });
 
-// Export Sentry for use in Express middleware
-export { Sentry };
+// Sentry is automatically available globally after initialization
 
 console.log('✅ [SENTRY] Backend instrumentation initialized');

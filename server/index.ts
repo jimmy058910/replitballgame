@@ -170,9 +170,8 @@ app.use(compression({
   }
 }));
 
-// Sentry request handler MUST be first middleware
-app.use(Sentry.Handlers.requestHandler());
-app.use(Sentry.Handlers.tracingHandler());
+// Sentry middleware setup - use manual instrumentation for Express
+// Sentry.init() was already called in instrument.ts
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
@@ -416,8 +415,7 @@ app.use('/api', (req, res, next) => {
     });
   }
 
-  // Add Sentry error handler BEFORE custom error handler
-  app.use(Sentry.Handlers.errorHandler());
+  // Sentry error handler is automatically set up by expressIntegration
   
   // CRITICAL: Error handler MUST be last in middleware chain
   app.use(errorHandler);
