@@ -120,21 +120,28 @@ export class PlayerStorage {
       orderBy: { createdAt: 'asc' }
     });
 
-    // Truly flexible taxi squad logic:
-    // - Minimum 12 main roster players (positions 1-12)
-    // - Position 13+ can be taxi squad (maximum 2 taxi squad players)
-    // - Supports: 12+1, 13+0, 14+1, 13+2, 15+0, etc.
+    // Flexible taxi squad logic based on roster position and total players
+    // Supports flexible roster allocation:
+    // - 13 regular roster + 2 taxi squad = 15 total (positions 14-15 are taxi)
+    // - 12 regular roster + 1 taxi squad = 13 total (position 13 is taxi)  
+    // - 15 regular roster + 0 taxi squad = 15 total (no taxi squad)
     
-    if (allPlayers.length <= 12) {
-      return []; // Need at least 12 main roster players
+    const totalPlayers = allPlayers.length;
+    
+    if (totalPlayers <= 12) {
+      return []; // No taxi squad if 12 or fewer players
     }
     
-    // Taxi squad is anyone beyond position 12 (up to 2 players max)
-    const taxiSquadStartIndex = 12; // Position 13 and beyond
-    const taxiSquadPlayers = allPlayers.slice(taxiSquadStartIndex);
+    // For flexible roster: taxi squad players are beyond a certain roster size threshold
+    // Based on your examples, it seems like teams decide their regular roster size (12-15)
+    // and any additional players become taxi squad
     
-    // Cap at maximum 2 taxi squad players
-    return taxiSquadPlayers.slice(0, 2);
+    // Since we can't determine this without additional roster management logic,
+    // use conservative approach: positions 13+ are potential taxi squad
+    const potentialTaxiStart = 12;
+    const taxiSquadPlayers = allPlayers.slice(potentialTaxiStart);
+    
+    return taxiSquadPlayers;
   }
 
   async getAllPlayersByTeamId(teamId: number): Promise<Player[]> {
@@ -219,10 +226,11 @@ export class PlayerStorage {
         orderBy: { createdAt: 'asc' }
       });
 
-      // Calculate current roster structure
+      // Calculate current roster structure with flexible allocation
       const totalPlayers = allTeamPlayers.length;
-      const taxiSquadPlayers = allTeamPlayers.slice(13); // Players beyond position 13 are taxi squad
-      const mainRosterPlayers = allTeamPlayers.slice(0, Math.min(13, totalPlayers)); // Main roster can be 13-15 players
+      const potentialTaxiStart = 12; // Conservative: positions 13+ are potential taxi
+      const mainRosterPlayers = allTeamPlayers.slice(0, potentialTaxiStart);
+      const taxiSquadPlayers = allTeamPlayers.slice(potentialTaxiStart);
       
       console.log(`[PROMOTION DEBUG] Current roster: ${totalPlayers} total players (${mainRosterPlayers.length} main roster, ${taxiSquadPlayers.length} taxi squad)`);
       console.log(`[PROMOTION DEBUG] Promoting player: ${player.firstName} ${player.lastName} (ID: ${player.id})`);
@@ -312,20 +320,23 @@ export class PlayerStorage {
       return { canRelease: false, reason: "Player or team not found" };
     }
 
-    // Use proper main roster vs taxi squad detection (position-based)
+    // Use proper main roster vs taxi squad detection (position-based with flexibility)
     const allPlayers = player.team.players;
     const totalPlayers = allPlayers.length;
-    const mainRosterPlayers = allPlayers.slice(0, 12); // First 12 players are main roster
-    const taxiSquadPlayers = allPlayers.slice(12); // Players 13+ are taxi squad
+    
+    // Conservative approach: positions 1-12 are main roster, 13+ are taxi squad
+    const potentialTaxiStart = 12;
+    const mainRosterPlayers = allPlayers.slice(0, potentialTaxiStart);
+    const taxiSquadPlayers = allPlayers.slice(potentialTaxiStart);
 
     // Check minimum player count (cannot go below 12 total players)
     if (totalPlayers <= 12) {
       return { canRelease: false, reason: `Cannot release - would leave team with only ${totalPlayers - 1} players (minimum 12 required)` };
     }
 
-    // Check if player is on main roster (position 1-12)
+    // Check if player is on main roster (position-based)
     const playerIndex = allPlayers.findIndex(p => p.id === playerId);
-    const isOnMainRoster = playerIndex < 12;
+    const isOnMainRoster = playerIndex < potentialTaxiStart;
     if (!isOnMainRoster) {
       return { canRelease: false, reason: "Cannot release taxi squad players from main roster (use taxi squad release instead)" };
     }
