@@ -1,4 +1,5 @@
 import { PrismaClient } from '../generated/prisma';
+import ConnectionPoolOptimizer from './utils/connectionPoolOptimizer';
 
 const globalForPrisma = globalThis as unknown as {
   prisma: PrismaClient | undefined
@@ -51,7 +52,10 @@ export const prisma = globalForPrisma.prisma ?? new PrismaClient({
     },
   },
   log: nodeEnv === 'development' ? ['query', 'error', 'warn'] : ['error'],
-})
+});
+
+// Initialize aggressive connection optimization
+const optimizer = ConnectionPoolOptimizer.getInstance(prisma);
 
 if (nodeEnv !== 'production') {
   globalForPrisma.prisma = prisma
@@ -69,30 +73,79 @@ process.on('beforeExit', cleanup);
 process.on('SIGINT', cleanup);
 process.on('SIGTERM', cleanup);
 
-// Auto-disconnect after periods of inactivity (development only)
-if (nodeEnv === 'development') {
-  let lastActivity = Date.now();
-  const IDLE_TIMEOUT = 3 * 60 * 1000; // 3 minutes
+// AGGRESSIVE COMPUTE OPTIMIZATION FOR ALL ENVIRONMENTS
+// Implement ultra-aggressive connection management to stay within free tier limits
+const IDLE_TIMEOUT = 90 * 1000; // 90 seconds (was 3 minutes)
+const CHECK_INTERVAL = 30 * 1000; // Check every 30 seconds (was 1 minute)
+let lastActivity = Date.now();
+let autoDisconnectTimer: NodeJS.Timeout | null = null;
+
+// Track database activity for idle management
+const trackActivity = () => {
+  lastActivity = Date.now();
   
-  setInterval(async () => {
-    if (Date.now() - lastActivity > IDLE_TIMEOUT) {
-      console.log('🔧 Auto-disconnecting idle database connection');
+  // Clear existing auto-disconnect timer
+  if (autoDisconnectTimer) {
+    clearTimeout(autoDisconnectTimer);
+  }
+  
+  // Set new auto-disconnect timer
+  autoDisconnectTimer = setTimeout(async () => {
+    console.log('🔧 [COMPUTE-SAVER] Auto-disconnecting idle database connection after 90s');
+    try {
       await prisma.$disconnect();
-      lastActivity = Date.now();
+      console.log('✅ [COMPUTE-SAVER] Database disconnected successfully');
+    } catch (error) {
+      console.log('⚠️ [COMPUTE-SAVER] Disconnect error (connection may already be closed)');
     }
-  }, 60 * 1000); // Check every minute
-  
-  // Track database activity for idle management
-  const trackActivity = () => {
+  }, IDLE_TIMEOUT);
+};
+
+// Aggressive connection monitoring for BOTH development AND production
+console.log(`🔗 [COMPUTE-SAVER] Database connecting to: ${dbHost} with aggressive 90s timeout`);
+
+// Monitor activity every 30 seconds and auto-disconnect
+const activityMonitor = setInterval(() => {
+  const idleTime = Date.now() - lastActivity;
+  if (idleTime > IDLE_TIMEOUT) {
+    console.log(`🔧 [COMPUTE-SAVER] Connection idle for ${Math.round(idleTime/1000)}s - forcing disconnect`);
+    prisma.$disconnect().catch(() => {
+      console.log('⚠️ [COMPUTE-SAVER] Force disconnect completed');
+    });
     lastActivity = Date.now();
-  };
-  
-  // Log connections to track activity
-  console.log(`🔗 Database connecting to: ${dbHost} with idle timeout management`);
-  
-  // Simple activity tracking hook (called before any query)
-  setInterval(trackActivity, 30 * 1000); // Update activity every 30 seconds during active use
-}
+  }
+}, CHECK_INTERVAL);
+
+// Immediate connection cleanup on any process exit
+const immediateCleanup = async () => {
+  console.log('🚨 [COMPUTE-SAVER] Emergency connection cleanup triggered');
+  if (autoDisconnectTimer) clearTimeout(autoDisconnectTimer);
+  if (activityMonitor) clearInterval(activityMonitor);
+  await prisma.$disconnect().catch(() => {});
+};
+
+// Multiple emergency cleanup hooks
+process.on('beforeExit', immediateCleanup);
+process.on('exit', immediateCleanup);
+process.on('SIGINT', immediateCleanup);
+process.on('SIGTERM', immediateCleanup);
+process.on('uncaughtException', immediateCleanup);
+process.on('unhandledRejection', immediateCleanup);
+
+// Wrap Prisma operations to track activity
+const originalQuery = prisma.$queryRaw.bind(prisma);
+const originalExecuteRaw = prisma.$executeRaw.bind(prisma);
+
+// Track all database operations
+(prisma as any).$queryRaw = function(query: any, ...values: any[]) {
+  trackActivity();
+  return originalQuery(query, ...values);
+};
+
+(prisma as any).$executeRaw = function(query: any, ...values: any[]) {
+  trackActivity();
+  return originalExecuteRaw(query, ...values);
+};
 
 // Export database connection info for debugging
 export const databaseInfo = {
