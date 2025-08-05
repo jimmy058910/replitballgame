@@ -132,18 +132,13 @@ export function generateRandomPlayer(name: string | null, race: string, teamId: 
     teamId,
     firstName,
     lastName,
-    name: fullName,
     race: originalRace.toUpperCase() as any, // Store race in uppercase for enum consistency
     role: getPlayerRole(position || "runner"),
-    position: position || "runner", // Default to runner if no position specified
     age: baseAge,
     ...baseStats,
     staminaAttribute: baseStats.stamina, // Map stamina to staminaAttribute
     potentialRating: parseFloat(potentialRating.toFixed(1)), // Use unified potential rating
-    salary,
-    contractValue: salary * 3, // 3 year contract value
-    camaraderie: 50, // Initial camaraderie
-    yearsOnTeam: 0,  // New player, 0 years on team
+    camaraderieScore: 7.5, // Initial camaraderie
   };
 }
 
@@ -183,7 +178,7 @@ export async function processEndOfSeasonSkillProgression(playerId: string): Prom
   const { storage } = await import("../storage/index");
   
   try {
-    const player = await storage.getPlayerById(playerId);
+    const player = await storage.players.getPlayerById(playerId);
     if (!player) {
       throw new Error(`Player with ID ${playerId} not found`);
     }
@@ -224,7 +219,7 @@ export async function processEndOfSeasonSkillProgression(playerId: string): Prom
             const newValue = Math.min(40, currentValue + 1); // Cap at 40
             
             // Update the player's stat
-            await storage.updatePlayer(playerId, {
+            await storage.players.updatePlayer(playerId, {
               [statEntry.stat]: newValue
             });
             
@@ -236,7 +231,7 @@ export async function processEndOfSeasonSkillProgression(playerId: string): Prom
     }
     
     // Reset games played counter for next season
-    await storage.updatePlayer(playerId, {
+    await storage.players.updatePlayer(playerId, {
       gamesPlayedLastSeason: 0
     });
     

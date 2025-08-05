@@ -312,18 +312,20 @@ export class PlayerStorage {
       return { canRelease: false, reason: "Player or team not found" };
     }
 
-    // Use proper main roster vs taxi squad detection
-    const mainRosterPlayers = player.team.players.filter(p => !p.isOnTaxi);
-    const taxiSquadPlayers = player.team.players.filter(p => p.isOnTaxi);
-    const totalPlayers = player.team.players.length;
+    // Use proper main roster vs taxi squad detection (position-based)
+    const allPlayers = player.team.players;
+    const totalPlayers = allPlayers.length;
+    const mainRosterPlayers = allPlayers.slice(0, 12); // First 12 players are main roster
+    const taxiSquadPlayers = allPlayers.slice(12); // Players 13+ are taxi squad
 
     // Check minimum player count (cannot go below 12 total players)
     if (totalPlayers <= 12) {
       return { canRelease: false, reason: `Cannot release - would leave team with only ${totalPlayers - 1} players (minimum 12 required)` };
     }
 
-    // Check if player is on main roster (not taxi squad)
-    const isOnMainRoster = !player.isOnTaxi;
+    // Check if player is on main roster (position 1-12)
+    const playerIndex = allPlayers.findIndex(p => p.id === playerId);
+    const isOnMainRoster = playerIndex < 12;
     if (!isOnMainRoster) {
       return { canRelease: false, reason: "Cannot release taxi squad players from main roster (use taxi squad release instead)" };
     }
