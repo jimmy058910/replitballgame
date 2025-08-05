@@ -387,4 +387,141 @@ router.post('/populate-all-existing-teams', async (req: Request, res: Response) 
   }
 });
 
+// PRODUCTION: Clear user data for fresh team creation testing
+router.post('/clear-user-data', async (req: Request, res: Response) => {
+  try {
+    const { userId } = req.body;
+    
+    if (!userId) {
+      return res.status(400).json({ error: 'userId is required' });
+    }
+    
+    console.log(`🗑️ Clearing all data for user: ${userId}`);
+    
+    // Find user profile
+    const userProfile = await prisma.userProfile.findUnique({
+      where: { userId: userId }
+    });
+    
+    if (!userProfile) {
+      return res.status(404).json({ error: `User profile for ${userId} not found` });
+    }
+    
+    // Find user's team
+    const team = await prisma.team.findFirst({
+      where: { userProfileId: userProfile.id }
+    });
+    
+    let deletedItems = {
+      contracts: 0,
+      players: 0,
+      staff: 0,
+      finances: 0,
+      stadium: 0,
+      team: 0,
+      userProfile: 0
+    };
+    
+    if (team) {
+      console.log(`🗑️ Found team: ${team.name} (ID: ${team.id})`);
+      
+      // Delete in correct order due to foreign key constraints
+      const deletedContracts = await prisma.contract.deleteMany({ 
+        where: { player: { teamId: team.id } } 
+      });
+      deletedItems.contracts = deletedContracts.count;
+      
+      const deletedPlayers = await prisma.player.deleteMany({ 
+        where: { teamId: team.id } 
+      });
+      deletedItems.players = deletedPlayers.count;
+      
+      const deletedStaff = await prisma.staff.deleteMany({ 
+        where: { teamId: team.id } 
+      });
+      deletedItems.staff = deletedStaff.count;
+      
+      const deletedFinances = await prisma.teamFinances.deleteMany({ 
+        where: { teamId: team.id } 
+      });
+      deletedItems.finances = deletedFinances.count;
+      
+      const deletedStadium = await prisma.stadium.deleteMany({ 
+        where: { teamId: team.id } 
+      });
+      deletedItems.stadium = deletedStadium.count;
+      
+      await prisma.team.delete({ where: { id: team.id } });
+      deletedItems.team = 1;
+    }
+    
+    // Delete user profile
+    await prisma.userProfile.delete({ where: { id: userProfile.id } });
+    deletedItems.userProfile = 1;
+    
+    console.log(`✅ User data cleared:`, deletedItems);
+    
+    res.json({
+      success: true,
+      message: `All data cleared for user ${userId}`,
+      deletedItems,
+      instructions: "User can now log in fresh and create a new team with automatic roster generation"
+    });
+    
+  } catch (error) {
+    console.error('Error clearing user data:', error);
+    res.status(500).json({ error: error instanceof Error ? error.message : 'Unknown error' });
+  }
+});
+
+// PRODUCTION: Delete team and all related data for clean testing
+router.post('/delete-team', async (req: Request, res: Response) => {
+  try {
+    const { teamName } = req.body;
+    
+    if (!teamName) {
+      return res.status(400).json({ error: 'teamName is required' });
+    }
+    
+    // Find the team
+    const team = await prisma.team.findFirst({
+      where: { 
+        name: { 
+          contains: teamName,
+          mode: 'insensitive'
+        }
+      }
+    });
+    
+    if (!team) {
+      return res.status(404).json({ error: `Team "${teamName}" not found` });
+    }
+    
+    console.log(`🗑️ Deleting team: ${team.name} (ID: ${team.id})`);
+    
+    // Delete in correct order due to foreign key constraints
+    await prisma.contract.deleteMany({ where: { player: { teamId: team.id } } });
+    await prisma.player.deleteMany({ where: { teamId: team.id } });
+    await prisma.staff.deleteMany({ where: { teamId: team.id } });
+    await prisma.teamFinances.deleteMany({ where: { teamId: team.id } });
+    await prisma.stadium.deleteMany({ where: { teamId: team.id } });
+    await prisma.team.delete({ where: { id: team.id } });
+    
+    console.log(`✅ Team "${team.name}" and all related data deleted`);
+    
+    res.json({
+      success: true,
+      message: `Team "${team.name}" deleted successfully`,
+      deletedTeam: {
+        id: team.id,
+        name: team.name
+      }
+    });
+    
+  } catch (error) {
+    console.error('Error deleting team:', error);
+    res.status(500).json({ error: error instanceof Error ? error.message : 'Unknown error' });
+  }
+});
+
 export default router;
