@@ -83,34 +83,14 @@ export class PlayerStorage {
   }
 
   async getPlayersByTeamId(teamId: number): Promise<Player[]> {
-    // Get all players for this team (including taxi squad)
-    const allPlayers = await prisma.player.findMany({
+    // Get main roster players (contracted players) - excludes taxi squad
+    const mainRosterPlayers = await prisma.player.findMany({
       where: {
         teamId: parseInt(teamId.toString()),
-        isOnMarket: false
-      },
-      include: {
-        team: { select: { name: true } },
-        contract: true,
-        skills: { include: { skill: true } }
-      },
-      orderBy: { createdAt: 'asc' } // Order by creation date for roster position calculation
-    });
-
-    // Add calculated rosterPosition field based on creation order
-    const playersWithPosition = allPlayers.map((player, index) => ({
-      ...player,
-      rosterPosition: index + 1 // Position 1, 2, 3, etc.
-    }));
-
-    return playersWithPosition;
-  }
-
-  async getTaxiSquadPlayersByTeamId(teamId: number): Promise<Player[]> {
-    const allPlayers = await prisma.player.findMany({
-      where: {
-        teamId: parseInt(teamId.toString()),
-        isOnMarket: false
+        isOnMarket: false,
+        contract: {
+          isNot: null // Must have contract = main roster
+        }
       },
       include: {
         team: { select: { name: true } },
@@ -120,27 +100,36 @@ export class PlayerStorage {
       orderBy: { createdAt: 'asc' }
     });
 
-    // Flexible taxi squad logic based on roster position and total players
-    // Supports flexible roster allocation:
-    // - 13 regular roster + 2 taxi squad = 15 total (positions 14-15 are taxi)
-    // - 12 regular roster + 1 taxi squad = 13 total (position 13 is taxi)  
-    // - 15 regular roster + 0 taxi squad = 15 total (no taxi squad)
-    
-    const totalPlayers = allPlayers.length;
-    
-    if (totalPlayers <= 12) {
-      return []; // No taxi squad if 12 or fewer players
-    }
-    
-    // For flexible roster: taxi squad players are beyond a certain roster size threshold
-    // Based on your examples, it seems like teams decide their regular roster size (12-15)
-    // and any additional players become taxi squad
-    
-    // Since we can't determine this without additional roster management logic,
-    // use conservative approach: positions 13+ are potential taxi squad
-    const potentialTaxiStart = 12;
-    const taxiSquadPlayers = allPlayers.slice(potentialTaxiStart);
-    
+    // Add calculated rosterPosition field for main roster
+    const playersWithPosition = mainRosterPlayers.map((player, index) => ({
+      ...player,
+      rosterPosition: index + 1 // Position 1, 2, 3, etc.
+    }));
+
+    return playersWithPosition;
+  }
+
+  async getTaxiSquadPlayersByTeamId(teamId: number): Promise<Player[]> {
+    // Taxi squad players are specifically recruited players without contracts
+    // They are in evaluation period until Day 16/17 for promotion decision
+    const taxiSquadPlayers = await prisma.player.findMany({
+      where: {
+        teamId: parseInt(teamId.toString()),
+        isOnMarket: false,
+        contract: null, // No contract = taxi squad
+        tryoutHistory: {
+          some: {} // Must have been recruited through tryout system
+        }
+      },
+      include: {
+        team: { select: { name: true } },
+        contract: true,
+        skills: { include: { skill: true } },
+        tryoutHistory: true // Include tryout information
+      },
+      orderBy: { createdAt: 'asc' }
+    });
+
     return taxiSquadPlayers;
   }
 
@@ -223,14 +212,17 @@ export class PlayerStorage {
           teamId: player.teamId,
           isOnMarket: false
         },
+        include: {
+          contract: true,
+          tryoutHistory: true
+        },
         orderBy: { createdAt: 'asc' }
       });
 
-      // Calculate current roster structure with flexible allocation
+      // Calculate current roster structure based on contract status
       const totalPlayers = allTeamPlayers.length;
-      const potentialTaxiStart = 12; // Conservative: positions 13+ are potential taxi
-      const mainRosterPlayers = allTeamPlayers.slice(0, potentialTaxiStart);
-      const taxiSquadPlayers = allTeamPlayers.slice(potentialTaxiStart);
+      const mainRosterPlayers = allTeamPlayers.filter(p => p.contract !== null);
+      const taxiSquadPlayers = allTeamPlayers.filter(p => p.contract === null && p.tryoutHistory.length > 0);
       
       console.log(`[PROMOTION DEBUG] Current roster: ${totalPlayers} total players (${mainRosterPlayers.length} main roster, ${taxiSquadPlayers.length} taxi squad)`);
       console.log(`[PROMOTION DEBUG] Promoting player: ${player.firstName} ${player.lastName} (ID: ${player.id})`);
@@ -308,6 +300,10 @@ export class PlayerStorage {
                 isOnMarket: false,
                 isRetired: false 
               },
+              include: {
+                contract: true,
+                tryoutHistory: true
+              },
               orderBy: { createdAt: 'asc' }
             }
           }
@@ -320,23 +316,19 @@ export class PlayerStorage {
       return { canRelease: false, reason: "Player or team not found" };
     }
 
-    // Use proper main roster vs taxi squad detection (position-based with flexibility)
+    // Use proper main roster vs taxi squad detection (contract-based)
     const allPlayers = player.team.players;
     const totalPlayers = allPlayers.length;
-    
-    // Conservative approach: positions 1-12 are main roster, 13+ are taxi squad
-    const potentialTaxiStart = 12;
-    const mainRosterPlayers = allPlayers.slice(0, potentialTaxiStart);
-    const taxiSquadPlayers = allPlayers.slice(potentialTaxiStart);
+    const mainRosterPlayers = allPlayers.filter(p => p.contract !== null);
+    const taxiSquadPlayers = allPlayers.filter(p => p.contract === null);
 
-    // Check minimum player count (cannot go below 12 total players)
-    if (totalPlayers <= 12) {
-      return { canRelease: false, reason: `Cannot release - would leave team with only ${totalPlayers - 1} players (minimum 12 required)` };
+    // Check minimum main roster count (cannot go below 12 contracted players)
+    if (mainRosterPlayers.length <= 12) {
+      return { canRelease: false, reason: `Cannot release - would leave team with only ${mainRosterPlayers.length - 1} main roster players (minimum 12 required)` };
     }
 
-    // Check if player is on main roster (position-based)
-    const playerIndex = allPlayers.findIndex(p => p.id === playerId);
-    const isOnMainRoster = playerIndex < potentialTaxiStart;
+    // Check if player is on main roster (has contract)
+    const isOnMainRoster = player.contract !== null;
     if (!isOnMainRoster) {
       return { canRelease: false, reason: "Cannot release taxi squad players from main roster (use taxi squad release instead)" };
     }
