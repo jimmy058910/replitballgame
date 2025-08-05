@@ -1,5 +1,6 @@
 // CRITICAL: Import Sentry instrumentation FIRST
-import { Sentry } from "./instrument";
+import "./instrument";
+import * as Sentry from "@sentry/node";
 
 import express, { type Request, Response, NextFunction } from "express";
 import { createServer } from "http";
