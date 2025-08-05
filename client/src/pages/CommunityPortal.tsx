@@ -65,6 +65,7 @@ export default function CommunityPortal() {
   const [redeemCode, setRedeemCode] = useState("");
   const [isRedeeming, setIsRedeeming] = useState(false);
   const [statsTab, setStatsTab] = useState("scores");
+  const [showGameManual, setShowGameManual] = useState(false);
 
   const { data: worldRankings, isLoading: rankingsLoading } = useQuery<WorldRankings>({
     queryKey: ['/api/world/rankings'],
@@ -540,7 +541,7 @@ export default function CommunityPortal() {
             </Card>
 
             {/* Game Manual */}
-            <Card className="bg-gray-800 border-gray-700 hover:bg-gray-750 transition-colors cursor-pointer">
+            <Card className="bg-gray-800 border-gray-700">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2 text-white">
                   <BookOpen className="h-5 w-5 text-teal-400" />
@@ -549,22 +550,30 @@ export default function CommunityPortal() {
               </CardHeader>
               <CardContent className="space-y-3">
                 <p className="text-gray-300">All rules, features, and advanced strategy guides</p>
-                <div className="grid grid-cols-2 gap-3">
-                  <div className="p-3 bg-gray-700 rounded-lg">
-                    <p className="text-sm font-medium text-white">Game Mechanics</p>
-                    <p className="text-xs text-gray-400">Player progression, stats, equipment</p>
-                  </div>
-                  <div className="p-3 bg-gray-700 rounded-lg">
-                    <p className="text-sm font-medium text-white">Strategy Guide</p>
-                    <p className="text-xs text-gray-400">Tactics, formations, advanced tips</p>
-                  </div>
-                </div>
-                <Button className="w-full bg-teal-600 hover:bg-teal-700 h-12">
+                <Button 
+                  onClick={() => setShowGameManual(!showGameManual)}
+                  className="w-full bg-teal-600 hover:bg-teal-700 h-12"
+                >
                   <BookOpen className="h-4 w-4 mr-2" />
-                  Open Game Manual
+                  {showGameManual ? 'Close Game Manual' : 'Open Game Manual'}
                 </Button>
               </CardContent>
             </Card>
+
+            {/* Embedded Game Manual */}
+            {showGameManual && (
+              <Card className="bg-gray-800 border-gray-700">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2 text-white">
+                    <BookOpen className="h-5 w-5 text-teal-400" />
+                    Realm Rivalry Game Manual
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="p-0">
+                  <EmbeddedHelpManual />
+                </CardContent>
+              </Card>
+            )}
 
             {/* Report Bug */}
             <Card className="bg-gray-800 border-gray-700 hover:bg-gray-750 transition-colors">
