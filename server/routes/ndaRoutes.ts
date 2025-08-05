@@ -70,7 +70,7 @@ router.get('/status/:userId', asyncHandler(async (req: any, res: Response) => {
     
   } catch (error) {
     console.error("Error retrieving NDA status:", error);
-    res.status(500).json({ message: "Failed to retrieve NDA status" });
+    return res.status(500).json({ message: "Failed to retrieve NDA status" });
   }
 }));
 
@@ -118,7 +118,7 @@ router.get('/accepted-users', asyncHandler(async (req: any, res: Response) => {
     
   } catch (error) {
     console.error("Error retrieving NDA accepted users:", error);
-    res.status(500).json({ message: "Failed to retrieve NDA accepted users" });
+    return res.status(500).json({ message: "Failed to retrieve NDA accepted users" });
   }
 }));
 
