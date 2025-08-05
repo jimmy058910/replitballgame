@@ -211,8 +211,9 @@ app.use((req: Request, res: Response, next: NextFunction) => {
   next();
 });
 
-// Add health check endpoint early - critical for Cloud Run  
+// Add health check endpoints early - critical for Cloud Run  
 app.get('/health', createHealthCheck());
+app.get('/healthz', createHealthCheck()); // Alternative for startup probes
 app.get('/api/health', createHealthCheck());
 
 // REMOVED DUPLICATE ENDPOINT - was conflicting with nuclear test above

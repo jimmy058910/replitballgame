@@ -1,0 +1,193 @@
+name: Blue-Green Deploy (Zero-Downtime)
+
+on:
+  workflow_dispatch:
+    inputs:
+      confirm_blue_green:
+        description: 'Confirm Blue-Green deployment strategy'
+        required: true
+        default: 'yes'
+        type: choice
+        options:
+        - yes
+        - no
+  push:
+    branches: [ main ]
+    paths-ignore:
+      - 'client/**'
+      - '.github/workflows/frontend-only.yml'
+
+env:
+  PROJECT_ID: direct-glider-465821-p7
+  REGION: us-east5
+  SERVICE_NAME: realm-rivalry-backend
+  IMAGE_NAME: us-east5-docker.pkg.dev/direct-glider-465821-p7/realm-rivalry/backend
+
+jobs:
+  blue-green-deploy:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+        token: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Authenticate to Google Cloud
+      uses: google-github-actions/auth@v2
+      with:
+        credentials_json: ${{ secrets.GOOGLE_SERVICE_ACCOUNT_KEY }}
+
+    - name: Set up Cloud SDK
+      uses: google-github-actions/setup-gcloud@v2
+
+    - name: Configure Docker authentication
+      run: gcloud auth configure-docker us-east5-docker.pkg.dev
+
+    # STEP 1: Build with immutable tag (commit SHA)
+    - name: Build Green revision with immutable tag
+      run: |
+        echo "🔨 STEP 1: Building Green revision with immutable tag"
+        COMMIT_SHA="${{ github.sha }}"
+        echo "Using immutable tag: $COMMIT_SHA"
+        
+        docker build \
+          --no-cache \
+          --platform linux/amd64 \
+          -f Dockerfile.backend \
+          -t ${{ env.IMAGE_NAME }}:$COMMIT_SHA \
+          .
+        
+        docker push ${{ env.IMAGE_NAME }}:$COMMIT_SHA
+        echo "✅ Green revision built and pushed: $COMMIT_SHA"
+
+    # STEP 2: Deploy Green revision with NO traffic
+    - name: Deploy Green revision (0% traffic)
+      run: |
+        echo "🚀 STEP 2: Deploying Green revision with 0% traffic"
+        COMMIT_SHA="${{ github.sha }}"
+        
+        gcloud run deploy ${{ env.SERVICE_NAME }} \
+          --image ${{ env.IMAGE_NAME }}:$COMMIT_SHA \
+          --platform managed \
+          --region ${{ env.REGION }} \
+          --allow-unauthenticated \
+          --no-traffic \
+          --tag green-$COMMIT_SHA \
+          --set-env-vars NODE_ENV=production,DEPLOY_TIMESTAMP=$(date +%s),GOOGLE_CLOUD_PROJECT=direct-glider-465821-p7 \
+          --set-secrets DATABASE_URL_PRODUCTION=database-url:latest,VITE_FIREBASE_API_KEY=firebase-api-key:latest,VITE_FIREBASE_PROJECT_ID=firebase-project-id:latest,VITE_FIREBASE_APP_ID=firebase-app-id:latest,GOOGLE_CLIENT_ID=google-client-id:latest,GOOGLE_CLIENT_SECRET=google-client-secret:latest \
+          --memory 2Gi \
+          --cpu 2 \
+          --concurrency 80 \
+          --max-instances 10 \
+          --min-instances 0 \
+          --port 8080 \
+          --timeout 300s \
+          --startup-probe httpGet.path=/healthz,httpGet.port=8080,initialDelaySeconds=10,timeoutSeconds=3,failureThreshold=8,periodSeconds=5
+        
+        echo "✅ Green revision deployed with 0% traffic"
+
+    # STEP 3: Wait for startup probe success
+    - name: Wait for Green revision health check
+      run: |
+        echo "🔍 STEP 3: Waiting for Green revision to pass startup probes"
+        COMMIT_SHA="${{ github.sha }}"
+        GREEN_REVISION="green-$COMMIT_SHA"
+        
+        # Wait up to 3 minutes for the revision to become ready
+        echo "Waiting for Green revision to become healthy..."
+        timeout 180 bash -c "
+          while true; do
+            STATUS=\$(gcloud run revisions describe \$GREEN_REVISION --service=${{ env.SERVICE_NAME }} --region=${{ env.REGION }} --format='value(status.conditions[0].status)' 2>/dev/null || echo 'Unknown')
+            if [ \"\$STATUS\" = \"True\" ]; then
+              echo \"✅ Green revision is healthy and ready\"
+              break
+            fi
+            echo \"Waiting for Green revision... Status: \$STATUS\"
+            sleep 10
+          done
+        " || {
+          echo "❌ Green revision failed to become healthy within timeout"
+          exit 1
+        }
+
+    # STEP 4: Test Green revision
+    - name: Test Green revision
+      run: |
+        echo "🧪 STEP 4: Testing Green revision before traffic promotion"
+        COMMIT_SHA="${{ github.sha }}"
+        GREEN_REVISION="green-$COMMIT_SHA"
+        
+        # Get the Green revision URL
+        GREEN_URL=$(gcloud run revisions describe $GREEN_REVISION --service=${{ env.SERVICE_NAME }} --region=${{ env.REGION }} --format='value(status.url)')
+        echo "Green revision URL: $GREEN_URL"
+        
+        # Test health endpoints
+        echo "Testing /health endpoint..."
+        curl -f "$GREEN_URL/health" || exit 1
+        
+        echo "Testing /healthz endpoint..."
+        curl -f "$GREEN_URL/healthz" || exit 1
+        
+        echo "Testing API endpoint..."
+        curl -f "$GREEN_URL/api/deployment-verification" || exit 1
+        
+        echo "✅ Green revision passed all tests"
+
+    # STEP 5: Atomic traffic promotion
+    - name: Promote Green to Blue (100% traffic)
+      run: |
+        echo "🔄 STEP 5: Promoting Green revision to receive 100% traffic"
+        COMMIT_SHA="${{ github.sha }}"
+        GREEN_REVISION="green-$COMMIT_SHA"
+        
+        # Atomic traffic switch
+        gcloud run services update-traffic ${{ env.SERVICE_NAME }} \
+          --region=${{ env.REGION }} \
+          --to-revisions=$GREEN_REVISION=100
+        
+        echo "✅ Traffic successfully switched to Green revision"
+        echo "Green revision is now Blue (production)"
+
+    # STEP 6: Verify production deployment
+    - name: Verify production deployment
+      run: |
+        echo "✅ STEP 6: Verifying production deployment"
+        
+        # Get production URL
+        SERVICE_URL=$(gcloud run services describe ${{ env.SERVICE_NAME }} --region=${{ env.REGION }} --format="value(status.url)")
+        echo "Production URL: $SERVICE_URL"
+        
+        # Test production endpoints
+        echo "Testing production health..."
+        curl -f "$SERVICE_URL/health" | jq '.status' || exit 1
+        
+        echo "Testing production API..."
+        curl -f "$SERVICE_URL/api/deployment-verification" | jq '.deploymentStatus' || exit 1
+        
+        echo "🎉 Blue-Green deployment completed successfully!"
+        echo "✅ Zero-downtime deployment with full health verification"
+
+    # EMERGENCY ROLLBACK (manual trigger only)
+    - name: Prepare rollback information
+      if: always()
+      run: |
+        echo "📋 ROLLBACK INFORMATION:"
+        echo "If issues occur, use this command to rollback:"
+        echo ""
+        
+        # Get previous revision
+        PREVIOUS_REVISION=$(gcloud run revisions list --service=${{ env.SERVICE_NAME }} --region=${{ env.REGION }} --format='value(REVISION)' --sort-by='~creationTimestamp' --limit=1 --skip=1)
+        
+        if [ -n "$PREVIOUS_REVISION" ]; then
+          echo "gcloud run services update-traffic ${{ env.SERVICE_NAME }} \\"
+          echo "  --region=${{ env.REGION }} \\"
+          echo "  --to-revisions=$PREVIOUS_REVISION=100"
+          echo ""
+          echo "Previous stable revision: $PREVIOUS_REVISION"
+        else
+          echo "No previous revision found for rollback"
+        fi
+        
+        echo "Current deployment commit: ${{ github.sha }}"
