@@ -1,3 +1,6 @@
+// CRITICAL: Import Sentry instrumentation FIRST
+import { Sentry } from "./instrument";
+
 import express, { type Request, Response, NextFunction } from "express";
 import { createServer } from "http";
 import { Server as SocketIOServer } from "socket.io";
@@ -165,6 +168,10 @@ app.use(compression({
     return compression.filter(req, res)
   }
 }));
+
+// Sentry request handler MUST be first middleware
+app.use(Sentry.Handlers.requestHandler());
+app.use(Sentry.Handlers.tracingHandler());
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
@@ -358,6 +365,11 @@ app.use('/api', (req, res, next) => {
   registerAllRoutes(app);
   console.log('✅ API routes pre-registered before Vite');
 
+  // Add Sentry test endpoint
+  app.get("/api/debug-sentry", (req, res) => {
+    throw new Error("Test Sentry error monitoring!");
+  });
+
   // Vite setup with optimized static file serving
   if (app.get("env") === "development") {
     await setupVite(app, httpServer);
@@ -403,6 +415,9 @@ app.use('/api', (req, res, next) => {
     });
   }
 
+  // Add Sentry error handler BEFORE custom error handler
+  app.use(Sentry.Handlers.errorHandler());
+  
   // CRITICAL: Error handler MUST be last in middleware chain
   app.use(errorHandler);
   console.log('✅ Error handler added as final middleware');
