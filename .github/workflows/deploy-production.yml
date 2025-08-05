@@ -1,4 +1,4 @@
-name: Deploy Production (Industry Standard)
+name: Deploy Production (Blue-Green Strategy)
 
 on:
   workflow_dispatch:
@@ -112,65 +112,99 @@ jobs:
         docker push ${{ env.IMAGE_NAME }}:$IMAGE_TAG
         docker push ${{ env.IMAGE_NAME }}:latest
 
-    - name: Deploy to Cloud Run
+    # BLUE-GREEN DEPLOYMENT: Deploy Green revision with 0% traffic
+    - name: Deploy Green revision (0% traffic)
       run: |
-        echo "Deploying to Cloud Run with DIRECT traffic routing..."
-        echo "🔄 STANDARD DEPLOYMENT - duplicate health endpoint fixed"
-        # Use commit SHA as image tag to force new deployment
+        echo "🚀 BLUE-GREEN STEP 1: Deploying Green revision with 0% traffic"
         IMAGE_TAG="${{ github.sha }}"
-        echo "Deploying with unique image tag: $IMAGE_TAG"
-        # THE FAILSAFE: Force new instance by changing environment
         DEPLOY_TIMESTAMP=$(date +%s)
-        echo "Using deployment timestamp: $DEPLOY_TIMESTAMP"
+        
         gcloud run deploy ${{ env.SERVICE_NAME }} \
           --image ${{ env.IMAGE_NAME }}:$IMAGE_TAG \
           --platform managed \
           --region ${{ env.REGION }} \
           --allow-unauthenticated \
+          --no-traffic \
+          --tag green-$IMAGE_TAG \
           --set-env-vars NODE_ENV=production,DEPLOY_TIMESTAMP=$DEPLOY_TIMESTAMP,GOOGLE_CLOUD_PROJECT=direct-glider-465821-p7 \
           --set-secrets DATABASE_URL_PRODUCTION=database-url:latest,VITE_FIREBASE_API_KEY=firebase-api-key:latest,VITE_FIREBASE_PROJECT_ID=firebase-project-id:latest,VITE_FIREBASE_APP_ID=firebase-app-id:latest,GOOGLE_CLIENT_ID=google-client-id:latest,GOOGLE_CLIENT_SECRET=google-client-secret:latest \
           --memory 2Gi \
           --cpu 2 \
           --concurrency 80 \
           --max-instances 10 \
-          --min-instances 1 \
+          --min-instances 0 \
           --port 8080 \
           --timeout 300s \
-          --cpu-boost \
-          --startup-probe httpGet.path=/health,httpGet.port=8080,initialDelaySeconds=10,timeoutSeconds=5,failureThreshold=12,periodSeconds=5
+          --startup-probe httpGet.path=/healthz,httpGet.port=8080,initialDelaySeconds=10,timeoutSeconds=3,failureThreshold=8,periodSeconds=5
+        
+        echo "✅ Green revision deployed with 0% traffic"
 
-    - name: Wait for Revision Health and Fix Traffic Management
+    # Wait for Green revision to become healthy
+    - name: Wait for Green revision health check
       run: |
-        echo "🔧 FIXING CLOUD RUN TRAFFIC MANAGEMENT ISSUE"
-        echo "First, waiting for new revision to become healthy..."
+        echo "🔍 BLUE-GREEN STEP 2: Waiting for Green revision to pass startup probes"
+        IMAGE_TAG="${{ github.sha }}"
+        GREEN_REVISION="green-$IMAGE_TAG"
         
-        # Wait for the service to be ready (up to 5 minutes)
-        timeout 300 bash -c 'until gcloud run services describe ${{ env.SERVICE_NAME }} --region=${{ env.REGION }} --format="value(status.conditions[0].status)" | grep -q "True"; do echo "Waiting for service to be ready..."; sleep 10; done' || {
-          echo "⚠️ Service not ready within timeout, but continuing with traffic fix..."
+        timeout 180 bash -c "
+          while true; do
+            STATUS=\$(gcloud run revisions describe \$GREEN_REVISION --service=${{ env.SERVICE_NAME }} --region=${{ env.REGION }} --format='value(status.conditions[0].status)' 2>/dev/null || echo 'Unknown')
+            if [ \"\$STATUS\" = \"True\" ]; then
+              echo \"✅ Green revision is healthy and ready\"
+              break
+            fi
+            echo \"Waiting for Green revision... Status: \$STATUS\"
+            sleep 10
+          done
+        " || {
+          echo "❌ Green revision failed to become healthy within timeout"
+          exit 1
         }
+
+    # Test Green revision before promoting
+    - name: Test Green revision
+      run: |
+        echo "🧪 BLUE-GREEN STEP 3: Testing Green revision before traffic promotion"
+        IMAGE_TAG="${{ github.sha }}"
+        GREEN_REVISION="green-$IMAGE_TAG"
         
-        echo "Checking if there's a healthy LATEST revision..."
-        LATEST_READY=$(gcloud run revisions list --service=${{ env.SERVICE_NAME }} --region=${{ env.REGION }} --limit=1 --format="value(status.conditions[0].status)" | head -1)
+        GREEN_URL=$(gcloud run revisions describe $GREEN_REVISION --service=${{ env.SERVICE_NAME }} --region=${{ env.REGION }} --format='value(status.url)')
+        echo "Testing Green revision at: $GREEN_URL"
         
-        if [ "$LATEST_READY" = "True" ]; then
-          echo "✅ Latest revision is healthy, resetting to automatic traffic mode..."
-          # CRITICAL FIX: Reset traffic to LATEST revision (automatic mode)
-          gcloud run services update-traffic ${{ env.SERVICE_NAME }} \
-            --region=${{ env.REGION }} \
-            --to-latest
-          echo "✅ Traffic successfully routed to LATEST revision"
-        else
-          echo "⚠️ Latest revision not healthy yet, but ensuring automatic mode for future deployments..."
-          # Still try to set automatic mode, but don't fail if it doesn't work
-          gcloud run services update-traffic ${{ env.SERVICE_NAME }} \
-            --region=${{ env.REGION }} \
-            --to-latest || echo "Traffic update failed, but deployment can continue"
-        fi
+        # Test health endpoints
+        curl -f "$GREEN_URL/health" || exit 1
+        curl -f "$GREEN_URL/healthz" || exit 1
+        curl -f "$GREEN_URL/api/deployment-verification" || exit 1
         
-        echo "Verifying final traffic allocation..."
-        gcloud run services describe ${{ env.SERVICE_NAME }} \
+        echo "✅ Green revision passed all tests"
+
+    # Promote Green to production (Blue)
+    - name: Promote Green to production
+      run: |
+        echo "🔄 BLUE-GREEN STEP 4: Promoting Green revision to receive 100% traffic"
+        IMAGE_TAG="${{ github.sha }}"
+        GREEN_REVISION="green-$IMAGE_TAG"
+        
+        gcloud run services update-traffic ${{ env.SERVICE_NAME }} \
           --region=${{ env.REGION }} \
-          --format="value(spec.traffic[0].latestRevision,spec.traffic[0].percent)" || echo "Traffic check failed"
+          --to-revisions=$GREEN_REVISION=100
+        
+        echo "✅ Traffic successfully switched - Green is now Blue (production)"
+
+    - name: Prepare rollback information
+      run: |
+        echo "📋 EMERGENCY ROLLBACK INFORMATION:"
+        echo "If issues occur, use this command to rollback:"
+        
+        PREVIOUS_REVISION=$(gcloud run revisions list --service=${{ env.SERVICE_NAME }} --region=${{ env.REGION }} --format='value(REVISION)' --sort-by='~creationTimestamp' --limit=1 --skip=1)
+        
+        if [ -n "$PREVIOUS_REVISION" ]; then
+          echo "gcloud run services update-traffic ${{ env.SERVICE_NAME }} \\"
+          echo "  --region=${{ env.REGION }} \\"
+          echo "  --to-revisions=$PREVIOUS_REVISION=100"
+          echo ""
+          echo "Or run: ./scripts/emergency-rollback.sh"
+        fi
 
     - name: Verify deployment
       run: |
@@ -191,6 +225,7 @@ jobs:
         echo "Testing CORS headers..."
         curl -H "Origin: https://www.realmrivalry.com" -D - "$SERVICE_URL/health" | grep -i access-control || echo "⚠️ CORS headers missing"
         
-        echo "✅ Backend deployment successful!"
+        echo "🎉 Blue-Green deployment completed successfully!"
+        echo "✅ Zero-downtime deployment with full health verification"
         echo "Backend available at: $SERVICE_URL"
         echo "Note: Frontend deployed separately via 'Frontend Only - Firebase Deploy' workflow"
