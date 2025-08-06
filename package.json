@@ -138,7 +138,7 @@
     "zod": "^3.25.76",
     "zod-prisma-types": "^3.2.4",
     "zod-validation-error": "^3.4.0",
-    "zustand": "^5.0.6"
+    "zustand": "^5.0.7"
   },
   "devDependencies": {
     "@replit/vite-plugin-cartographer": "^0.2.7",
