@@ -10,7 +10,7 @@ const router = Router();
  * Data Visualization API Routes
  * Support for Phase 3 Product-Led Growth Framework Implementation
  * 
- * Routes:
+ * Routes
  * GET /api/data-viz/team-performance - Team performance metrics
  * GET /api/data-viz/player-distribution - Player race distribution
  * GET /api/data-viz/season-progress - Season-long progress tracking
@@ -56,10 +56,9 @@ router.get('/team-performance', isAuthenticated, async (req: Request, res: Respo
     // Calculate team camaraderie
     const teamCamaraderie = activePlayers.length > 0
       ? Math.round(activePlayers.reduce((sum: number, p: any) => sum + p.camaraderieScore, 0) / activePlayers.length)
-      : 50;
+      : 0;
 
     // Determine trend based on recent performance
-    const totalGames = team.wins + team.losses + team.draws;
     let trend: 'up' | 'down' | 'stable' = 'stable';
     
     if (totalGames > 3) {
@@ -72,7 +71,6 @@ router.get('/team-performance', isAuthenticated, async (req: Request, res: Respo
       teamName: team.name,
       wins: team.wins,
       losses: team.losses,
-      draws: team.draws,
       power: teamPower,
       camaraderie: teamCamaraderie,
       trend
@@ -205,7 +203,7 @@ router.get('/season-progress', isAuthenticated, async (req: Request, res: Respon
 
       const camaraderie = activePlayers.length > 0
         ? Math.round(activePlayers.reduce((sum: number, p: any) => sum + p.camaraderieScore, 0) / activePlayers.length)
-        : 50;
+        : 0;
 
       progressData.push({
         day,
@@ -310,7 +308,6 @@ router.get('/division-standings', isAuthenticated, async (req: Request, res: Res
       points: team.points,
       wins: team.wins,
       losses: team.losses,
-      draws: team.draws,
       goalDifference: team.goalDifference
     }));
 

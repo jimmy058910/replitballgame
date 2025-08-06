@@ -138,7 +138,7 @@ router.get('/content/:version?', asyncHandler(async (req: any, res: Response) =>
         regarding access to the pre-alpha version of Realm Rivalry fantasy sports game.
         
         1. CONFIDENTIAL INFORMATION
-        You acknowledge that all information related to the game, including but not limited to:
+        You acknowledge that all information related to the game, including but not limited to
         - Game mechanics, features, and functionality
         - User interface designs and layouts
         - Performance data and analytics
@@ -146,7 +146,7 @@ router.get('/content/:version?', asyncHandler(async (req: any, res: Response) =>
         - Any bugs, issues, or development discussions
         
         2. NON-DISCLOSURE OBLIGATIONS  
-        You agree to:
+        You agree to
         - Keep all information strictly confidential
         - Not share screenshots, videos, or descriptions publicly
         - Not discuss the game on social media or forums

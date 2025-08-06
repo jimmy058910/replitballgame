@@ -13,9 +13,6 @@ router.get("/global-rankings", cacheMiddleware({ ttl: 300 }), isAuthenticated, a
     // Calculate Enhanced True Strength Rating for each team with simplified fallbacks
     const rankedTeams = teams.map((team) => {
       const divisionMultiplier = getDivisionMultiplier(team.division);
-      const winPercentage = team.wins + team.losses + team.draws > 0 
-        ? team.wins / (team.wins + team.losses + team.draws) 
-        : 0;
       
       // Enhanced calculations with safe fallbacks
       const strengthOfSchedule = calculateSimpleStrengthOfSchedule(team, teams);
@@ -98,9 +95,6 @@ router.get("/rankings", isAuthenticated, async (req, res) => {
     // Calculate team power rankings
     const rankedTeams = teams.map((team) => {
       const divisionMultiplier = getDivisionMultiplier(team.division);
-      const winPercentage = team.wins + team.losses + team.draws > 0 
-        ? team.wins / (team.wins + team.losses + team.draws) 
-        : 0;
       
       // Simplified calculations for performance  
       const strengthOfSchedule = calculateSimpleStrengthOfSchedule(team, teams);
@@ -189,10 +183,8 @@ router.get("/statistics", isAuthenticated, async (req, res) => {
     
     // Best records across all divisions
     const bestRecords = teams
-      .filter(t => t.wins + t.losses + t.draws > 0)
       .map(t => ({
         ...t,
-        winPercentage: t.wins / (t.wins + t.losses + t.draws)
       }))
       .sort((a, b) => b.winPercentage - a.winPercentage)
       .slice(0, 10);
@@ -251,7 +243,6 @@ function calculateSimpleStrengthOfSchedule(team: any, allTeams: any[]): number {
 
 function calculateSimpleRecentForm(team: any): number {
   // Simple calculation based on win percentage vs expected performance
-  const totalGames = (team.wins || 0) + (team.losses || 0) + (team.draws || 0);
   if (totalGames === 0) return 0;
   
   const winPct = (team.wins || 0) / totalGames;
@@ -328,9 +319,6 @@ async function calculateRecentForm(team: any): Promise<number> {
     });
     
     const recentWinPct = recentWins / completedMatches.length;
-    const seasonWinPct = team.wins + team.losses + team.draws > 0 
-      ? team.wins / (team.wins + team.losses + team.draws) 
-      : 0;
     
     // Return the difference weighted by sample size
     const sampleSizeWeight = Math.min(completedMatches.length / 5, 1); // Full weight at 5+ games

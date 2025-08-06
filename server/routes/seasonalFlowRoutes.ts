@@ -440,9 +440,9 @@ router.post('/late-signup', isAuthenticated, async (req, res) => {
       success: true,
       data: result,
       message: result.scheduleGenerated 
-        ? `Team created! Subdivision ${result.subdivision} is full and schedule generated. You can start playing immediately!`
-        : `Team created in subdivision ${result.subdivision}. Waiting for more teams to start season.`
-    });
+        ? `Team created! Subdivision ${result.subdivision} is full and schedule generated. You can start playing immediately!` 
+        : `Team created! You can start playing in subdivision ${result.subdivision}!`
+        });
   } catch (error) {
     console.error('Error processing late signup:', error);
     res.status(500).json({

@@ -47,7 +47,7 @@ router.get('/available', isAuthenticated, async (req: any, res: Response, next: 
       prizes: tournament.prizePoolJson,
       canRegister: new Date() < tournament.registrationEndTime!,
       timeUntilDeadline: tournament.registrationEndTime 
-        ? Math.max(0, tournament.registrationEndTime.getTime() - Date.now())
+        ? Math.max(0, tournament.registrationEndTime.getTime() - Date.now()) 
         : 0
     }));
 

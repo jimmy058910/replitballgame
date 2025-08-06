@@ -57,7 +57,6 @@ router.get('/active', isAuthenticated, async (req: any, res) => {
       division: entry.tournament.division,
       status: entry.tournament.status,
       registrationDeadline: entry.tournament.registrationEndTime,
-      entryTime: entry.registeredAt,
       currentParticipants: 1, // Placeholder - would need to count entries
       // ✅ FIX: Mid-Season Cup should be 16 teams, Daily tournaments are 8 teams
       maxParticipants: entry.tournament.type === 'MID_SEASON_CLASSIC' as any ? 16 : 8,
@@ -148,7 +147,6 @@ router.get('/my-active', isAuthenticated, async (req: any, res) => {
       division: entry.tournament.division,
       status: entry.tournament.status,
       registrationDeadline: entry.tournament.registrationEndTime,
-      entryTime: entry.registeredAt,
       currentParticipants: participantCountMap.get(entry.tournament.id) || 0,
       // ✅ FIX: Mid-Season Cup should be 16 teams, Daily tournaments are 8 teams
       maxParticipants: entry.tournament.type === 'MID_SEASON_CLASSIC' as any ? 16 : 8,
@@ -270,9 +268,9 @@ router.get('/:id/status', isAuthenticated, async (req: any, res) => {
     
     if (isFull && tournament.status === 'REGISTRATION_OPEN') {
       // Tournament is full but hasn't started yet - calculate 10 minute countdown
-      const lastEntryTime = tournament.entries.length > 0 ? 
-        Math.max(...tournament.entries.map(e => new Date(e.registeredAt).getTime())) : 
-        now.getTime();
+      const lastEntryTime = tournament.entries.length > 0 
+        ? Math.max(...tournament.entries.map(e => new Date(e.registeredAt).getTime())) 
+        : now.getTime();
       const startTime = new Date(lastEntryTime + 10 * 60 * 1000); // 10 minutes after last entry
       timeUntilStart = Math.max(0, startTime.getTime() - now.getTime());
       
@@ -286,9 +284,9 @@ router.get('/:id/status', isAuthenticated, async (req: any, res) => {
     } else if (tournament.startTime) {
       const startTime = new Date(tournament.startTime);
       timeUntilStart = Math.max(0, startTime.getTime() - now.getTime());
-      timeUntilStartText = timeUntilStart > 0 ? 
-        `${Math.floor(timeUntilStart / (1000 * 60 * 60))}h ${Math.floor((timeUntilStart % (1000 * 60 * 60)) / (1000 * 60))}m` : 
-        "Starting soon";
+      timeUntilStartText = timeUntilStart > 0 
+        ? `${Math.floor(timeUntilStart / (1000 * 60 * 60))}h ${Math.floor((timeUntilStart % (1000 * 60 * 60)) / (1000 * 60))}m` 
+        : "Starting soon";
     }
 
     // Format participants list
@@ -297,7 +295,6 @@ router.get('/:id/status', isAuthenticated, async (req: any, res) => {
       teamId: entry.teamId.toString(),
       teamName: entry.team?.name || "Unknown Team",
       division: entry.team?.division || 0,
-      entryTime: entry.registeredAt,
       placement: entry.finalRank,
       tournamentId: entry.tournamentId.toString()
     }));
@@ -387,7 +384,6 @@ router.get('/:id/status', isAuthenticated, async (req: any, res) => {
         id: userTeamEntry.id.toString(),
         teamId: userTeamEntry.teamId.toString(),
         tournamentId: userTeamEntry.tournamentId.toString(),
-        entryTime: userTeamEntry.registeredAt,
         placement: userTeamEntry.finalRank
       } : null,
       matches
@@ -871,8 +867,8 @@ router.get('/:tournamentId/matches', async (req, res) => {
       awayTeamScore: match.awayScore || 0,
       gameTime: match.gameDate?.toISOString(),
       winner: match.status === 'COMPLETED' ? (
-        (match.homeScore || 0) > (match.awayScore || 0) ? match.homeTeam.name : 
-        (match.awayScore || 0) > (match.homeScore || 0) ? match.awayTeam.name : null
+        (match.homeScore || 0) > (match.awayScore || 0) ? match.homeTeam.name 
+        : (match.awayScore || 0) > (match.homeScore || 0) ? match.awayTeam.name : null
       ) : null
     }));
 
@@ -966,8 +962,9 @@ async function advanceTournament(tournamentId: number, completedRound: string) {
 
     // Determine winners
     const winners = completedMatches.map(match => {
-      const winnerId = match.homeTeamScore > match.awayTeamScore ? 
-        match.homeTeamId : match.awayTeamId;
+      const winnerId = match.homeTeamScore > match.awayTeamScore ? match.homeTeamId 
+      
+        : match.awayTeamId;
       return { teamId: winnerId, match: match };
     });
 

@@ -69,7 +69,6 @@ router.get('/history', isAuthenticated, async (req: any, res: Response, next: Ne
       creditsWon: entry.finalRank === 1 ? 1500 : entry.finalRank === 2 ? 500 : 0,
       gemsWon: 0,
       trophyWon: entry.finalRank !== null && entry.finalRank >= 1 && entry.finalRank <= 3,
-      entryTime: entry.registeredAt?.toISOString() || entry.registeredAt,
       yourPlacement: entry.finalRank,
       prizeWon: entry.finalRank === 1 ? 1500 : entry.finalRank === 2 ? 500 : 0
     }));

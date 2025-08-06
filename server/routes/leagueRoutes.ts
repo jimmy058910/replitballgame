@@ -53,7 +53,7 @@ async function createAITeamsForDivision(division: number) {
       substitutionOrder: JSON.stringify({})
     });
 
-    // storage.teams.createTeam should handle default finances, but if specific AI finances:
+    // storage.teams.createTeam should handle default finances, but if specific AI finances
     // await teamFinancesStorage.createTeamFinances({ // Use teamFinancesStorage
     //   teamId: team.id,
     //   credits: 50000 + Math.floor(Math.random() * 50000),
@@ -191,7 +191,6 @@ router.get('/:division/standings', isAuthenticated, async (req: Request, res: Re
       // Calculate current streak based on recent form
       const wins = team.wins || 0;
       const losses = team.losses || 0;
-      const draws = team.draws || 0;
       
       // Simple streak calculation based on win/loss ratio
       let streakType = 'N';
@@ -277,11 +276,9 @@ router.get('/:division/standings', isAuthenticated, async (req: Request, res: Re
       name: team.name,
       wins: team.wins || 0,
       losses: team.losses || 0,
-      draws: team.draws || 0,
       points: team.points || 0,
       division: team.division,
       subdivision: team.subdivision,
-      played: (team.wins || 0) + (team.losses || 0) + (team.draws || 0),
       goalsFor: team.goalsFor || 0,
       goalsAgainst: team.goalsAgainst || 0,
       goalDifference: (team.goalsFor || 0) - (team.goalsAgainst || 0),
@@ -359,7 +356,6 @@ router.post('/create-ai-teams', isAuthenticated, async (req: Request, res: Respo
         points: 0,
         teamPower: 60 + Math.floor(Math.random() * 20)
       });
-      const calculatedPoints = (team.wins || 0) * 3 + (team.draws || 0);
       await storage.teams.updateTeam(team.id, { points: calculatedPoints }); // Use teamStorage
 
       // storage.teams.createTeam handles default finances
@@ -370,7 +366,7 @@ router.post('/create-ai-teams', isAuthenticated, async (req: Request, res: Respo
       // });
 
       const races = ["HUMAN", "SYLVAN", "GRYLL", "LUMINA", "UMBRA"];
-      const positions = ["passer", "runner", "blocker"];
+      const positions = ["PASSER", "RUNNER", "BLOCKER"];
       for (let j = 0; j < 12; j++) {
         const race = races[Math.floor(Math.random() * races.length)];
         const position = positions[Math.floor(Math.random() * positions.length)];
@@ -600,9 +596,9 @@ router.post('/fix-team-players/:teamId', isAuthenticated, async (req: Request, r
     
     // Define required position distribution: 3 passers, 4 runners, 5 blockers
     const requiredPositions = [
-      "passer", "passer", "passer", // 3 passers
-      "runner", "runner", "runner", "runner", // 4 runners  
-      "blocker", "blocker", "blocker", "blocker", "blocker" // 5 blockers
+      "PASSER", "PASSER", "PASSER", // 3 passers
+      "RUNNER", "RUNNER", "RUNNER", "RUNNER", // 4 runners  
+      "BLOCKER", "BLOCKER", "BLOCKER", "BLOCKER", "BLOCKER" // 5 blockers
     ];
     
     for (let j = 0; j < 12; j++) {

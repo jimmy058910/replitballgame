@@ -27,6 +27,7 @@ export enum Permission {
   // Admin permissions
   MANAGE_LEAGUES = 'manage_leagues',
   MANAGE_SEASONS = 'manage_seasons',
+  MANAGE_MATCHES = 'manage_matches',
   VIEW_FINANCES = 'view_finances',
   GRANT_CREDITS = 'grant_credits',
   STOP_MATCHES = 'stop_matches',
@@ -62,6 +63,7 @@ const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
     Permission.MANAGE_TOURNAMENTS,
     Permission.MANAGE_LEAGUES,
     Permission.MANAGE_SEASONS,
+    Permission.MANAGE_MATCHES,
     Permission.VIEW_FINANCES,
     Permission.GRANT_CREDITS,
     Permission.STOP_MATCHES

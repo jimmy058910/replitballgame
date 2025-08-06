@@ -55,7 +55,6 @@ router.get('/active', isAuthenticated, async (req: any, res) => {
       division: entry.tournament.division,
       status: entry.tournament.status,
       registrationDeadline: entry.tournament.registrationEndTime,
-      entryTime: entry.registeredAt,
       currentParticipants: 1, // Placeholder - would need to count entries
       maxParticipants: 8, // Standard tournament size
       prizes: entry.tournament.prizePoolJson,
@@ -144,7 +143,6 @@ router.get('/my-active', isAuthenticated, async (req: any, res) => {
           tournamentStartTime: entry.tournament.startTime,
           entryFeeCredits: Number(entry.tournament.entryFeeCredits),
           entryFeeGems: Number(entry.tournament.entryFeeGems),
-          entryTime: entry.registeredAt,
           placement: entry.finalRank,
           participantCount: participantCount,
           maxParticipants: 8,
@@ -219,12 +217,10 @@ router.get('/:tournamentId/status', isAuthenticated, async (req: any, res) => {
         teamId: entry.teamId.toString(),
         teamName: entry.team.name,
         division: entry.team.division,
-        entryTime: entry.registeredAt.toISOString(),
         placement: entry.finalRank ? Number(entry.finalRank) : null
       })),
       userTeamRegistered: !!userEntry,
       userTeamEntry: userEntry ? {
-        entryTime: userEntry.registeredAt.toISOString(),
         placement: userEntry.finalRank ? Number(userEntry.finalRank) : null
       } : null
     };

@@ -90,7 +90,6 @@ router.get('/', isAuthenticated, async (req: any, res: Response, next: NextFunct
         creditsWon: entry.finalRank === 1 ? 1500 : entry.finalRank === 2 ? 500 : 0,
         gemsWon: 0,
         trophyWon: entry.finalRank !== null && entry.finalRank >= 1 && entry.finalRank <= 3,
-        entryTime: entry.registeredAt?.toISOString() || entry.registeredAt
       }));
     
     console.log(`Found ${tournamentEntries.length} tournament entries for team ${team.id} (${team.name}), ${history.length} completed tournaments`);

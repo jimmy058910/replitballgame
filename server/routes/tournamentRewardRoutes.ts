@@ -41,7 +41,7 @@ router.get('/unclaimed', isAuthenticated, async (req: any, res: Response) => {
       if (!tournament.prizePoolJson) continue;
 
       const prizePool = typeof tournament.prizePoolJson === 'string' 
-        ? JSON.parse(tournament.prizePoolJson) 
+        ? JSON.parse(tournament.prizePoolJson)
         : tournament.prizePoolJson;
       let reward = { credits: 0, gems: 0 };
 
@@ -121,7 +121,7 @@ router.post('/claim-all', isAuthenticated, async (req: any, res: Response) => {
       if (!tournament.prizePoolJson) continue;
 
       const prizePool = typeof tournament.prizePoolJson === 'string' 
-        ? JSON.parse(tournament.prizePoolJson) 
+        ? JSON.parse(tournament.prizePoolJson)
         : tournament.prizePoolJson;
       let reward = { credits: 0, gems: 0 };
 

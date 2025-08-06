@@ -122,7 +122,7 @@ router.post('/seed-packages', isAuthenticated, async (req: any, res: Response, n
 // Get available credit packages
 router.get('/packages', isAuthenticated, async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const packages = await storage.payments.getActiveCreditPackages(); // Assumes this fetches only active ones by default
+    const packages = await storage.payments.getActiveCreditPackages(); // Assumes this fetches only active ones by default:
     res.json(packages);
   } catch (error) {
     console.error("Error fetching credit packages:", error);

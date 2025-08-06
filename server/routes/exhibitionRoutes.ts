@@ -138,7 +138,6 @@ router.get('/available-opponents', isAuthenticated, async (req: any, res: Respon
     };
 
     const calculateSimpleRecentForm = (team: any) => {
-      const totalGames = (team.wins || 0) + (team.losses || 0) + (team.draws || 0);
       if (totalGames === 0) return 0;
       const winPercentage = (team.wins || 0) / totalGames;
       const expectedWinRate = team.division <= 4 ? 0.5 : 0.4;
@@ -157,9 +156,6 @@ router.get('/available-opponents', isAuthenticated, async (req: any, res: Respon
         
         // Calculate global ranking using Enhanced True Strength Rating algorithm
         const divisionMultiplier = getDivisionMultiplier(opponent.division);
-        const winPercentage = opponent.wins + opponent.losses + opponent.draws > 0 
-          ? opponent.wins / (opponent.wins + opponent.losses + opponent.draws) 
-          : 0;
         
         const strengthOfSchedule = calculateSimpleStrengthOfSchedule({...opponent, teamPower: opponentPower}, allTeams);
         const recentFormBias = calculateSimpleRecentForm(opponent);
@@ -181,7 +177,6 @@ router.get('/available-opponents', isAuthenticated, async (req: any, res: Respon
           const tPlayers = t.players || [];
           const tPower = tPlayers.length > 0 ? calculateTeamPower(tPlayers) : (t.teamPower || 20);
           const tDivisionMultiplier = getDivisionMultiplier(t.division);
-          const tWinPercentage = t.wins + t.losses + t.draws > 0 ? t.wins / (t.wins + t.losses + t.draws) : 0;
           const tSOS = calculateSimpleStrengthOfSchedule({...t, teamPower: tPower}, allTeams);
           const tRecentForm = calculateSimpleRecentForm(t);
           const tHealthFactor = calculateSimpleHealthFactor({...t, teamPower: tPower});

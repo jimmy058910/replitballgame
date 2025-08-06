@@ -226,7 +226,6 @@ router.get('/storylines', isAuthenticated, asyncHandler(async (req: any, res: Re
     return res.status(404).json({ error: 'Team not found' });
   }
 
-  const totalGames = (team.wins || 0) + (team.losses || 0) + (team.draws || 0);
   const winRate = totalGames > 0 ? (team.wins / totalGames) * 100 : 0;
 
   let storylines = [];

@@ -18,8 +18,8 @@ interface ShareableMoment {
 }
 
 /**
- * GET /api/shareable-moments/:teamId?
- * Returns shareable moments for a team (social proof mechanics)
+ * GET /api/shareable-moments/:teamId? * Returns shareable moments for a team (social proof mechanics)
+      
  */
 router.get('/:teamId?', isAuthenticated, async (req: Request, res: Response, next: NextFunction) => {
   try {

@@ -42,14 +42,14 @@ router.get("/team/:teamId/history", isAuthenticated, asyncHandler(async (req, re
 }));
 
 // Award MVP for a match (admin only)
-router.post("/mvp/:matchId", isAuthenticated, requirePermission("MANAGE_MATCHES"), asyncHandler(async (req, res) => {
+router.post("/mvp/:matchId", isAuthenticated, requirePermission(Permission.MANAGE_MATCHES), asyncHandler(async (req, res) => {
   const { matchId } = req.params;
   const mvpAward = await awardsService.awardMatchMVP(matchId);
   res.json(mvpAward);
 }));
 
 // Calculate season awards (admin only)
-router.post("/season/:seasonId/calculate", isAuthenticated, requirePermission("MANAGE_SEASONS"), asyncHandler(async (req, res) => {
+router.post("/season/:seasonId/calculate", isAuthenticated, requirePermission(Permission.MANAGE_SEASONS), asyncHandler(async (req, res) => {
   const { seasonId } = req.params;
   
   const [seasonAwards, teamAwards] = await Promise.all([
@@ -65,7 +65,7 @@ router.post("/season/:seasonId/calculate", isAuthenticated, requirePermission("M
 }));
 
 // Create team season history (admin only)
-router.post("/team/:teamId/history", isAuthenticated, requirePermission("MANAGE_SEASONS"), asyncHandler(async (req, res) => {
+router.post("/team/:teamId/history", isAuthenticated, requirePermission(Permission.MANAGE_SEASONS), asyncHandler(async (req, res) => {
   const { teamId } = req.params;
   const { seasonId, seasonNumber, divisionId } = req.body;
   

@@ -32,15 +32,15 @@ router.post('/test-team-creation', async (req: Request, res: Response) => {
     });
 
     // 3. Generate players (same logic as teamRoutes.ts)
-    const races = ["human", "sylvan", "gryll", "lumina", "umbra"];
+    const races = ["HUMAN", "SYLVAN", "GRYLL", "LUMINA", "UMBRA"];
     const requiredPositions = [
-      "passer", "passer", "passer",
-      "blocker", "blocker", "blocker", "blocker", 
-      "runner", "runner", "runner", "runner"
+      "PASSER", "PASSER", "PASSER",
+      "BLOCKER", "BLOCKER", "BLOCKER", "BLOCKER", 
+      "RUNNER", "RUNNER", "RUNNER", "RUNNER"
     ];
     
     // Add one flexible position
-    const additionalPositions = ["passer", "runner", "blocker"];
+    const additionalPositions = ["PASSER", "RUNNER", "BLOCKER"];
     const position = additionalPositions[Math.floor(Math.random() * additionalPositions.length)];
     requiredPositions.push(position);
 
@@ -170,14 +170,14 @@ router.post('/populate-existing-team', async (req: Request, res: Response) => {
     
     // Generate players if none exist
     if (existingPlayers.length === 0) {
-      const races = ["human", "sylvan", "gryll", "lumina", "umbra"];
+      const races = ["HUMAN", "SYLVAN", "GRYLL", "LUMINA", "UMBRA"];
       const requiredPositions = [
-        "passer", "passer", "passer",
-        "blocker", "blocker", "blocker", "blocker", 
-        "runner", "runner", "runner", "runner"
+        "PASSER", "PASSER", "PASSER",
+        "BLOCKER", "BLOCKER", "BLOCKER", "BLOCKER", 
+        "RUNNER", "RUNNER", "RUNNER", "RUNNER"
       ];
       
-      const additionalPositions = ["passer", "runner", "blocker"];
+      const additionalPositions = ["PASSER", "RUNNER", "BLOCKER"];
       const position = additionalPositions[Math.floor(Math.random() * additionalPositions.length)];
       requiredPositions.push(position);
 
@@ -290,14 +290,14 @@ router.post('/populate-all-existing-teams', async (req: Request, res: Response) 
       if (!hasPlayers) {
         console.log(`🏃 Generating players for "${team.name}"...`);
         
-        const races = ["human", "sylvan", "gryll", "lumina", "umbra"];
+        const races = ["HUMAN", "SYLVAN", "GRYLL", "LUMINA", "UMBRA"];
         const requiredPositions = [
-          "passer", "passer", "passer",
-          "blocker", "blocker", "blocker", "blocker", 
-          "runner", "runner", "runner", "runner"
+          "PASSER", "PASSER", "PASSER",
+          "BLOCKER", "BLOCKER", "BLOCKER", "BLOCKER", 
+          "RUNNER", "RUNNER", "RUNNER", "RUNNER"
         ];
         
-        const additionalPositions = ["passer", "runner", "blocker"];
+        const additionalPositions = ["PASSER", "RUNNER", "BLOCKER"];
         const position = additionalPositions[Math.floor(Math.random() * additionalPositions.length)];
         requiredPositions.push(position);
 

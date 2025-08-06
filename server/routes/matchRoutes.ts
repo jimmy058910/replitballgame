@@ -134,8 +134,8 @@ router.get('/live', isAuthenticated, async (req: Request, res: Response, next: N
     // Transform matches for comprehensive live hub display
     const transformedMatches = allLiveMatches.map(match => {
       // Determine match type based on context - fix to use matchType field from database
-      const matchType = match.tournamentId ? 'TOURNAMENT' : 
-                       match.matchType === 'EXHIBITION' ? 'EXHIBITION' : 'LEAGUE';
+      const matchType = match.tournamentId ? 'TOURNAMENT' 
+                      : match.matchType === 'EXHIBITION' ? 'EXHIBITION' : 'LEAGUE';
       
       // Determine priority and user involvement
       const userTeamInvolved = teamId && (match.homeTeamId === teamId || match.awayTeamId === teamId);
@@ -162,7 +162,7 @@ router.get('/live', isAuthenticated, async (req: Request, res: Response, next: N
         homeScore: match.homeScore || 0,
         awayScore: match.awayScore || 0,
         gameTime: match.gameTime || 0,
-        maxGameTime: match.maxGameTime || 2400, // 40 minutes default
+        maxGameTime: match.maxGameTime || 2400, // 40 minutes default:
         division: match.homeTeam?.division || match.awayTeam?.division || 8,
         subdivision: match.homeTeam?.subdivision || match.awayTeam?.subdivision || match.league?.name || 'Unknown Subdivision',
         tournamentName: match.tournament?.name || (matchType === 'TOURNAMENT' ? 'Tournament Match' : null),

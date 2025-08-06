@@ -21,8 +21,8 @@ interface CareerHighlight {
 }
 
 /**
- * GET /api/career-highlights/:teamId?
- * Returns career highlights for a team (simplified working version)
+ * GET /api/career-highlights/:teamId? * Returns career highlights for a team (simplified working version)
+      
  */
 router.get('/:teamId?', isAuthenticated, async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {

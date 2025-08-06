@@ -43,13 +43,13 @@ router.get('/team/:teamId/status', isAuthenticated, async (req: any, res: Respon
     const playersWithStatus = teamPlayers.map(player => {
       const isInjured = player.injuryStatus !== 'Healthy';
       const recoveryProgress = isInjured 
-        ? Math.round(((player.injuryRecoveryPointsCurrent || 0) / (player.injuryRecoveryPointsNeeded || 1)) * 100)
-        : 100;
-      
+        ? Math.round(((player.injuryRecoveryPointsCurrent || 0) / (player.injuryRecoveryPointsNeeded || 1)) * 100) 
+        : 0;
+        
       const dailyStamina = player.dailyStaminaLevel || 100;
-      const staminaStatus = dailyStamina >= 75 ? 'Fresh' :
-                           dailyStamina >= 50 ? 'Tired' :
-                           dailyStamina >= 25 ? 'Fatigued' : 'Exhausted';
+      const staminaStatus = dailyStamina >= 75 ? 'Fresh' 
+                         : dailyStamina >= 50 ? 'Tired' 
+                         : dailyStamina >= 25 ? 'Fatigued' : 'Exhausted';
       
       const canPlay = injuryStaminaService.canPlayInCompetitive(player.injuryStatus || 'Healthy');
       const injuryEffects = injuryStaminaService.getInjuryEffects(player.injuryStatus || 'Healthy');
@@ -313,9 +313,9 @@ router.get('/system/stats', isAuthenticated, async (req: any, res: Response, nex
     
     // Calculate average stamina percentage
     const averageStamina = totalPlayers.length > 0 
-      ? totalPlayers.reduce((sum, p) => sum + (p.dailyStaminaLevel ?? 100), 0) / totalPlayers.length 
-      : 0;
-    
+      ? totalPlayers.reduce((sum, p) => sum + (p.dailyStaminaLevel ?? 100), 0) / totalPlayers.length  
+      : 100;
+        
     const stats = {
       totalPlayers: totalPlayers.length,
       injuredPlayers,

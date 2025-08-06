@@ -201,17 +201,17 @@ const handleTeamCreation = asyncHandler(async (req: any, res: Response): Promise
     requestId: req.requestId 
   });
 
-  const races = ["human", "sylvan", "gryll", "lumina", "umbra"];
+  const races = ["HUMAN", "SYLVAN", "GRYLL", "LUMINA", "UMBRA"];
   
   // Updated team composition: 3 Passers, 4 Blockers, 4 Runners, 1 flexible (total 12)
   const requiredPositions = [
-    "passer", "passer", "passer", // 3 passers
-    "blocker", "blocker", "blocker", "blocker", // 4 blockers
-    "runner", "runner", "runner", "runner", // 4 runners
+    "PASSER", "PASSER", "PASSER", // 3 passers
+    "BLOCKER", "BLOCKER", "BLOCKER", "BLOCKER", // 4 blockers
+    "RUNNER", "RUNNER", "RUNNER", "RUNNER", // 4 runners
   ];
   
   // For the remaining 1 player, add flexible position
-  const additionalPositions = ["passer", "runner", "blocker"];
+  const additionalPositions = ["PASSER", "RUNNER", "BLOCKER"];
   for (let i = 0; i < 1; i++) {
     let position = additionalPositions[Math.floor(Math.random() * additionalPositions.length)];
     requiredPositions.push(position);
@@ -376,7 +376,7 @@ const productionTeamCreation = asyncHandler(async (req: any, res: Response): Pro
 
 // Team routes - with production bypass for pre-alpha testing
 const teamCreationHandler = process.env.NODE_ENV === 'development' ? 
-  developmentTeamCreation : 
+  developmentTeamCreation 
   (process.env.NODE_ENV === 'production' ? productionTeamCreation : handleTeamCreation);
 
 router.post('/', teamCreationHandler);
@@ -541,7 +541,7 @@ router.get('/:id', requireAuth, async (req: any, res: Response, next: NextFuncti
   try {
     const { id } = req.params;
     
-    // Handle special "my" case for user's team
+    // Handle special "my" case for user's team:
     if (id === 'my' || id === 'my-team') {
       const userId = req.user?.claims?.sub || req.user?.userId || "44010914"; // Development fallback
       const team = await storage.teams.getTeamByUserId(userId);
@@ -649,7 +649,7 @@ router.get('/:id/players', requireAuth, async (req: any, res: Response, next: Ne
   try {
     const { id } = req.params;
     
-    // Handle special "my" case for user's team
+    // Handle special "my" case for user's team:
     if (id === 'my' || id === 'my-team') {
       const userId = req.user?.claims?.sub || req.user?.userId || "44010914"; // Development fallback
       const team = await storage.teams.getTeamByUserId(userId);
@@ -1207,7 +1207,7 @@ router.post('/update-activity', requireAuth, async (req: any, res: Response, nex
 
 // Generate random tryout candidate
 function generateTryoutCandidate(type: 'basic' | 'advanced'): any {
-  const races = ["human", "sylvan", "gryll", "lumina", "umbra"];
+  const races = ["HUMAN", "SYLVAN", "GRYLL", "LUMINA", "UMBRA"];
   const race = races[Math.floor(Math.random() * races.length)];
   const { firstName, lastName } = generateRandomName(race);
   
@@ -1305,32 +1305,32 @@ function generateTryoutCandidate(type: 'basic' | 'advanced'): any {
   
   // Apply racial modifiers
   switch (race) {
-    case "human":
+    case "HUMAN":
       // Human: +1 to all stats
       Object.keys(stats).forEach(stat => {
         stats[stat as keyof typeof stats] += 1;
       });
       break;
-    case "sylvan":
+    case "SYLVAN":
       // Sylvan: +3 Speed, +4 Agility, -2 Power
       stats.speed += 3;
       stats.agility += 4;
       stats.power -= 2;
       break;
-    case "gryll":
+    case "GRYLL":
       // Gryll: +5 Power, +3 Stamina, -3 Speed, -2 Agility
       stats.power += 5;
       stats.stamina += 3;
       stats.speed -= 3;
       stats.agility -= 2;
       break;
-    case "lumina":
+    case "LUMINA":
       // Lumina: +4 Throwing, +3 Leadership, -1 Stamina
       stats.throwing += 4;
       stats.leadership += 3;
       stats.stamina -= 1;
       break;
-    case "umbra":
+    case "UMBRA":
       // Umbra: +2 Speed, +3 Agility, -3 Power, -1 Leadership
       stats.speed += 2;
       stats.agility += 3;
@@ -1813,7 +1813,7 @@ router.post('/:teamId/taxi-squad/add-candidates', requireAuth, asyncHandler(asyn
         teamId: team.id,
         firstName: candidate.firstName,
         lastName: candidate.lastName,
-        race: candidate.race.toUpperCase(), // Convert to uppercase for Prisma enum
+        race: candidate.race.toUpperCase(), // Convert to uppercase for Prisma enum:
         age: candidate.age,
         role: roleEnum, // Use converted enum value
         speed: candidate.speed,
@@ -2168,7 +2168,6 @@ router.get('/division/:division', requireAuth, asyncHandler(async (req: any, res
         playerCount: players.length,
         wins: team.wins || 0,
         losses: team.losses || 0,
-        draws: team.draws || 0,
         isUserTeam: !!team.userId
       };
     })
@@ -2899,7 +2898,7 @@ router.get('/:teamId/matches/live', requireAuth, async (req: Request, res: Respo
 
     // Transform matches for user team display
     const transformedMatches = userTeamMatches.map(match => {
-      const matchType = match.tournamentId ? 'TOURNAMENT' : 
+      const matchType = match.tournamentId ? 'TOURNAMENT' 
                        match.type === 'exhibition' ? 'EXHIBITION' : 'LEAGUE';
       
       return {

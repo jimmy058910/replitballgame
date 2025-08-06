@@ -30,9 +30,9 @@ router.get('/window', isAuthenticated, asyncHandler(async (req, res) => {
     data: {
       isLateSignupWindow,
       message: isLateSignupWindow 
-        ? "Late signup is currently available (Day 1 3PM - Day 9 3PM)"
-        : "Late signup is not currently available"
-    }
+        ? "Late signup is currently available (Day 1 3PM - Day 9 3PM)" 
+        : "Late signup window is currently closed"
+        }
   });
 }));
 

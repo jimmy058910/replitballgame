@@ -104,8 +104,8 @@ router.get('/admin-status', requireAuth, async (req: any, res: Response, next: N
     
     // Use the correct RBAC methods
     const userRole = await RBACService.getUserRole(userId);
-    const hasAdminAccess = await RBACService.hasPermission(userId, "GRANT_CREDITS");
-    const isAdmin = userRole === 'ADMIN' || userRole === 'SUPER_ADMIN'; // Note: Proper enum comparison
+    const hasAdminAccess = await RBACService.hasPermission(userId, Permission.GRANT_CREDITS);
+    const isAdmin = userRole === UserRole.ADMIN || userRole === UserRole.SUPER_ADMIN;
     
     return res.json({ 
       isAdmin,

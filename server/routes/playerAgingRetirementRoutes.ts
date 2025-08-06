@@ -286,9 +286,9 @@ router.post('/generate-age', isAuthenticated, async (req, res) => {
         age,
         context,
         ageRange: context === 'tryout' 
-          ? `${PlayerAgingRetirementService.AGE_RANGES.TRYOUT_MIN}-${PlayerAgingRetirementService.AGE_RANGES.TRYOUT_MAX}`
-          : `${PlayerAgingRetirementService.AGE_RANGES.FREE_AGENT_MIN}-${PlayerAgingRetirementService.AGE_RANGES.FREE_AGENT_MAX}`
-      }
+          ? `${PlayerAgingRetirementService.AGE_RANGES.TRYOUT_MIN}-${PlayerAgingRetirementService.AGE_RANGES.TRYOUT_MAX}` 
+          : `${PlayerAgingRetirementService.AGE_RANGES.GENERAL_MIN}-${PlayerAgingRetirementService.AGE_RANGES.GENERAL_MAX}`
+        }
     });
   } catch (error) {
     console.error('Error generating player age:', error);

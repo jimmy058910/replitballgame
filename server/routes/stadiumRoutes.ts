@@ -78,7 +78,6 @@ router.get('/', isAuthenticated, async (req: any, res: Response, next: NextFunct
 
     // Calculate stadium atmosphere and fan loyalty
     const facilityQuality = calculateFacilityQuality(stadium);
-    const teamRecord = `${team.wins || 0}-${team.losses || 0}-${team.draws || 0}`;
     const fanLoyalty = calculateFanLoyalty(
       50, // Start with 50 base loyalty 
       teamRecord,
@@ -356,7 +355,6 @@ router.get('/revenue/:teamId', isAuthenticated, async (req: any, res: Response, 
 
     // Calculate revenue for a hypothetical match
     const facilityQuality = calculateFacilityQuality(stadium);
-    const teamRecord = `${team.wins || 0}-${team.losses || 0}-${team.draws || 0}`;
     const fanLoyalty = calculateFanLoyalty(
       50, // Start with 50 base loyalty 
       teamRecord,

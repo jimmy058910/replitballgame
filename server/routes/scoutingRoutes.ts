@@ -41,7 +41,6 @@ function generateScoutingNotes(targetTeam: any, targetPlayers: any[], scoutingLe
   if (!targetTeam) return ["No team data to generate notes."];
 
   notes.push(`${targetTeam.name} currently competes in Division ${targetTeam.division}.`);
-  notes.push(`Record: ${targetTeam.wins || 0}W - ${targetTeam.losses || 0}L - ${targetTeam.draws || 0}D.`);
 
   if (scoutingLevel >= 2 && targetPlayers.length > 0) {
     const avgAge = targetPlayers.reduce((sum, p) => sum + (p.age || 24), 0) / targetPlayers.length;
@@ -112,7 +111,6 @@ router.get("/:teamId/scout", isAuthenticated, async (req: any, res: Response, ne
     ]);
 
     const report = {
-      teamInfo: { id: targetTeam.id, name: targetTeam.name, division: targetTeam.division, wins: targetTeam.wins, losses: targetTeam.losses, draws: targetTeam.draws, points: targetTeam.points, teamPower: scoutingLevel >= 2 ? (targetTeam.teamPower || "Approx. " + calculateTeamPower(targetPlayers)) : "Obscured" },
       scoutingLevel,
       scoutingPower,
       confidence: Math.min(95, 30 + Math.floor(scoutingPower / 2.5)),
