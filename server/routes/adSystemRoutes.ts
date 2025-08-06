@@ -43,12 +43,12 @@ router.post('/view', isAuthenticated, async (req: any, res: Response, next: Next
       const team = await storage.teams.getTeamByUserId(userId);
       if (team) {
         const finances = await storage.teamFinances.getTeamFinances(team.id);
-        if (finances) {
-          if (adData.rewardType === 'credits' && adData.rewardAmount) {
+        if (finances && adData.rewardAmount && adData.rewardAmount > 0) {
+          if (adData.rewardType === 'credits') {
             const currentCredits = BigInt(finances.credits);
             const newCredits = currentCredits + BigInt(adData.rewardAmount);
             await storage.teamFinances.updateTeamFinances(team.id, { credits: newCredits });
-          } else if (adData.rewardType === 'premium_currency' && adData.rewardAmount) {
+          } else if (adData.rewardType === 'premium_currency') {
             const currentGems = finances.gems || 0;
             const newGems = currentGems + adData.rewardAmount;
             await storage.teamFinances.updateTeamFinances(team.id, { gems: newGems });

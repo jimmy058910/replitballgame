@@ -70,7 +70,7 @@ router.get('/player/:playerId/retirement-chance', isAuthenticated, asyncHandler(
   const { playerId } = playerIdSchema.parse(req.params);
   
   const player = await prisma.player.findFirst({
-    where: { id: playerId }
+    where: { id: parseInt(playerId) }
   });
   
   if (!player) {
@@ -103,7 +103,7 @@ router.post('/player/:playerId/simulate-aging', isAuthenticated, asyncHandler(as
   const { playerId } = playerIdSchema.parse(req.params);
   
   const player = await prisma.player.findFirst({
-    where: { id: playerId }
+    where: { id: parseInt(playerId) }
   });
   
   if (!player) {

@@ -98,7 +98,7 @@ export function cacheMiddleware(options: CacheOptions = {}) {
     res.end = function(chunk?: any) {
       if (res.statusCode === 200 && responseData) {
         console.log(`[CACHE SET] ${cacheKey} (TTL: ${ttl}s)`);
-        apiCache.set(cacheKey, responseData, ttl, () => {});
+        apiCache.set(cacheKey, responseData, ttl);
       }
       return originalEnd.call(this, chunk);
     };
