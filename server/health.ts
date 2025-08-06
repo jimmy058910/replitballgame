@@ -1,4 +1,6 @@
-import { prisma } from './db';
+// CRITICAL FIX: Remove database import from health check file
+// This was causing startup probe failures by triggering database connections
+// import { prisma } from './db';
 
 // Database connection status for health checks
 let lastDatabaseTest: { connected: boolean; error: string | null; timestamp: Date } = {
@@ -7,9 +9,11 @@ let lastDatabaseTest: { connected: boolean; error: string | null; timestamp: Dat
   timestamp: new Date()
 };
 
-// Test database connection (used by health check)
+// Test database connection (used by health check) - DYNAMIC IMPORT ONLY
 async function testDatabaseConnection() {
   try {
+    // CRITICAL FIX: Dynamic import to prevent startup database connections
+    const { prisma } = await import('./db');
     await prisma.$queryRaw`SELECT 1 as test`;
     lastDatabaseTest = { connected: true, error: null, timestamp: new Date() };
     return true;
@@ -30,7 +34,7 @@ export function createBasicHealthCheck() {
       status: 'healthy',
       timestamp: new Date().toISOString(),
       uptime: process.uptime(),
-      version: '6.26.0-DYNAMIC-IMPORT-FIX-AUG6',
+      version: '6.27.0-TRUE-DB-INDEPENDENT-HEALTH-AUG6',
       environment: {
         NODE_ENV: process.env.NODE_ENV || 'not-set',
         production: process.env.NODE_ENV === 'production',
@@ -84,7 +88,7 @@ export function createDetailedHealthCheck() {
           error: lastDatabaseTest.error,
           testType: 'live-query'
         },
-        version: '6.26.0-DYNAMIC-IMPORT-FIX-AUG6',
+        version: '6.27.0-TRUE-DB-INDEPENDENT-HEALTH-AUG6',
         environment: environmentData
       };
 
