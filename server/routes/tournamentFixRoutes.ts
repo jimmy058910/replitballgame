@@ -32,9 +32,10 @@ router.post('/start-tournament-matches/:tournamentId', isAuthenticated, async (r
     // Start live simulation for each match
     for (const match of matches) {
       try {
-        await matchStateManager.startLiveMatch(match.id);
+        const { matchStateManager } = await import('../services/matchStateManager');
+        await matchStateManager.startLiveMatch(match.id.toString());
         logger.info(`Started live simulation for match ${match.id}`);
-      } catch (error) {
+      } catch (error: any) {
         console.error(`Error starting match ${match.id}:`, error);
       }
     }

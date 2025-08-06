@@ -191,7 +191,7 @@ router.post('/reset-season', RBACService.requireSuperAdmin(), asyncHandler(async
     data: {
       wins: 0,
       losses: 0,
-      draws: 0,
+      ties: 0,
       points: 0,
       teamPower: 0
     }
@@ -199,8 +199,8 @@ router.post('/reset-season', RBACService.requireSuperAdmin(), asyncHandler(async
 
   // Stop all active matches
   await prisma.game.updateMany({
-    where: { status: 'in_progress' },
-    data: { status: 'cancelled' }
+    where: { status: 'IN_PROGRESS' },
+    data: { status: 'CANCELLED' }
   });
 
   const currentSeason = await storage.seasons.getCurrentSeason();
@@ -226,10 +226,10 @@ router.post('/stop-all-games', RBACService.requirePermission(Permission.STOP_MAT
 
   const result = await prisma.game.updateMany({
     where: { 
-      status: { in: ['in_progress', 'scheduled'] }
+      status: { in: ['IN_PROGRESS', 'SCHEDULED'] }
     },
     data: { 
-      status: 'cancelled',
+      status: 'CANCELLED',
       completedAt: new Date()
     }
   });
@@ -481,8 +481,11 @@ router.post('/start-all-league-games', RBACService.requirePermission(Permission.
 
   for (const match of scheduledMatches) {
     if (match.matchType === 'LEAGUE' || match.leagueId) {
-      // Start match using WebSocket system
-      const startPromise = matchStateManager.startLiveMatch(match.id.toString(), false)
+      // Start match using WebSocket system with dynamic import
+      const startPromise = (async () => {
+        const { matchStateManager } = await import('../services/matchStateManager');
+        return matchStateManager.startLiveMatch(match.id.toString(), false);
+      })()
         .then(() => {
           logInfo("League game started via WebSocket", { matchId: match.id, homeTeamId: match.homeTeamId, awayTeamId: match.awayTeamId });
           return match.id;
@@ -528,6 +531,7 @@ router.post('/test-exhibition-rewards', RBACService.requirePermission(Permission
   });
 
   try {
+    const { matchStateManager } = await import('../services/matchStateManager');
     await matchStateManager.awardExhibitionRewards(homeTeamId, awayTeamId, homeScore, awayScore);
     res.json({ 
       success: true,

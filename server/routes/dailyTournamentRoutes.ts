@@ -96,29 +96,23 @@ router.post("/instant-match", isAuthenticated, async (req: any, res: Response, n
     // Check daily limits
     const todayStart = moment.tz("America/New_York").startOf('day').toDate();
     
-    const tournamentMatchesToday = await db
-      .select()
-      .from(matches)
-      .where(
-        and(
-          eq(matches.matchType, "tournament"),
-          gte(matches.createdAt, todayStart),
-          and(
-            eq(matches.homeTeamId, team.id),
-            eq(matches.awayTeamId, team.id)
-          )
-        )
-      );
+    const tournamentMatchesToday = await prisma.game.findMany({
+      where: {
+        matchType: "tournament",
+        createdAt: { gte: todayStart },
+        OR: [
+          { homeTeamId: team.id },
+          { awayTeamId: team.id }
+        ]
+      }
+    });
 
-    const tournamentEntriesToday = await db
-      .select()
-      .from(tournamentEntries)
-      .where(
-        and(
-          eq(tournamentEntries.teamId, team.id),
-          gte(tournamentEntriesToday.entryTime, todayStart)
-        )
-      );
+    const tournamentEntriesToday = await prisma.tournamentEntry.findMany({
+      where: {
+        teamId: team.id,
+        entryTime: { gte: todayStart }
+      }
+    });
 
     const gamesPlayedToday = tournamentMatchesToday.length;
     const entriesUsedToday = tournamentEntriesToday.length;
@@ -130,10 +124,7 @@ router.post("/instant-match", isAuthenticated, async (req: any, res: Response, n
     }
 
     // Find suitable opponent (prioritize user teams, fallback to AI teams)
-    const availableOpponents = await db
-      .select()
-      .from(teams)
-      .where(eq(teams.division, team.division));
+    const availableOpponents = await storage.teams.getTeamsByDivision(team.division);
 
     const filteredOpponents = availableOpponents.filter(opponent => opponent.id !== team.id);
 
@@ -159,8 +150,9 @@ router.post("/instant-match", isAuthenticated, async (req: any, res: Response, n
       data: matchData
     });
 
-    // Start live match using WebSocket system
+    // Start live match using WebSocket system with dynamic import
     try {
+      const { matchStateManager } = await import('../services/matchStateManager');
       await matchStateManager.startLiveMatch(newMatch.id.toString(), false);
       console.log("Tournament match started via WebSocket", { matchId: newMatch.id, homeTeamId: newMatch.homeTeamId, awayTeamId: newMatch.awayTeamId });
     } catch (error) {
