@@ -48,31 +48,33 @@ jobs:
       run: |
         echo "🔨 STEP 1: Building Green revision with immutable tag"
         COMMIT_SHA="${{ github.sha }}"
-        echo "Using immutable tag: $COMMIT_SHA"
+        SHORT_SHA="${COMMIT_SHA:0:8}"
+        echo "Using immutable tag: $SHORT_SHA"
         
         docker build \
           --no-cache \
           --platform linux/amd64 \
           -f Dockerfile.backend \
-          -t ${{ env.IMAGE_NAME }}:$COMMIT_SHA \
+          -t ${{ env.IMAGE_NAME }}:$SHORT_SHA \
           .
         
-        docker push ${{ env.IMAGE_NAME }}:$COMMIT_SHA
-        echo "✅ Green revision built and pushed: $COMMIT_SHA"
+        docker push ${{ env.IMAGE_NAME }}:$SHORT_SHA
+        echo "✅ Green revision built and pushed: $SHORT_SHA"
 
     # STEP 2: Deploy Green revision with NO traffic
     - name: Deploy Green revision (0% traffic)
       run: |
         echo "🚀 STEP 2: Deploying Green revision with 0% traffic"
         COMMIT_SHA="${{ github.sha }}"
+        SHORT_SHA="${COMMIT_SHA:0:8}"
         
         gcloud run deploy ${{ env.SERVICE_NAME }} \
-          --image ${{ env.IMAGE_NAME }}:$COMMIT_SHA \
+          --image ${{ env.IMAGE_NAME }}:$SHORT_SHA \
           --platform managed \
           --region ${{ env.REGION }} \
           --allow-unauthenticated \
           --no-traffic \
-          --tag green-$COMMIT_SHA \
+          --tag green-$SHORT_SHA \
           --set-env-vars NODE_ENV=production,DEPLOY_TIMESTAMP=$(date +%s),GOOGLE_CLOUD_PROJECT=direct-glider-465821-p7 \
           --set-secrets DATABASE_URL_PRODUCTION=database-url:latest,VITE_FIREBASE_API_KEY=firebase-api-key:latest,VITE_FIREBASE_PROJECT_ID=firebase-project-id:latest,VITE_FIREBASE_APP_ID=firebase-app-id:latest,GOOGLE_CLIENT_ID=google-client-id:latest,GOOGLE_CLIENT_SECRET=google-client-secret:latest \
           --memory 2Gi \
@@ -91,7 +93,8 @@ jobs:
       run: |
         echo "🔍 STEP 3: Waiting for Green revision to pass startup probes"
         COMMIT_SHA="${{ github.sha }}"
-        GREEN_REVISION="green-$COMMIT_SHA"
+        SHORT_SHA="${COMMIT_SHA:0:8}"
+        GREEN_REVISION="green-$SHORT_SHA"
         
         # Wait up to 3 minutes for the revision to become ready
         echo "Waiting for Green revision to become healthy..."
@@ -115,7 +118,8 @@ jobs:
       run: |
         echo "🧪 STEP 4: Testing Green revision before traffic promotion"
         COMMIT_SHA="${{ github.sha }}"
-        GREEN_REVISION="green-$COMMIT_SHA"
+        SHORT_SHA="${COMMIT_SHA:0:8}"
+        GREEN_REVISION="green-$SHORT_SHA"
         
         # Get the Green revision URL
         GREEN_URL=$(gcloud run revisions describe $GREEN_REVISION --service=${{ env.SERVICE_NAME }} --region=${{ env.REGION }} --format='value(status.url)')
@@ -138,7 +142,8 @@ jobs:
       run: |
         echo "🔄 STEP 5: Promoting Green revision to receive 100% traffic"
         COMMIT_SHA="${{ github.sha }}"
-        GREEN_REVISION="green-$COMMIT_SHA"
+        SHORT_SHA="${COMMIT_SHA:0:8}"
+        GREEN_REVISION="green-$SHORT_SHA"
         
         # Atomic traffic switch
         gcloud run services update-traffic ${{ env.SERVICE_NAME }} \
