@@ -229,7 +229,7 @@ const handleTeamCreation = asyncHandler(async (req: any, res: Response): Promise
     const position = requiredPositions[i];
     
     try {
-      const playerData = generateRandomPlayer("", race, team.id.toString(), position);
+      const playerData = generateRandomPlayer("Player", race, team.id.toString(), position);
       
       // Extract only the fields that the PlayerStorage expects
       const cleanPlayerData = {

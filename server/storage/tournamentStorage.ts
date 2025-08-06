@@ -39,7 +39,7 @@ export class TournamentStorage {
       data: {
         name: tournamentData.name,
         type: tournamentData.type,
-        status: tournamentData.status || 'OPEN',
+        status: tournamentData.status || 'REGISTRATION_OPEN' as any,
         division: tournamentData.division,
         season: tournamentData.season,
         gameDay: tournamentData.gameDay,

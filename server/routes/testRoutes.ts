@@ -49,7 +49,7 @@ router.post('/test-team-creation', async (req: Request, res: Response) => {
       const race = races[Math.floor(Math.random() * races.length)];
       const position = requiredPositions[i];
       
-      const playerData = generateRandomPlayer("", race, team.id.toString(), position);
+      const playerData = generateRandomPlayer("Player", race, team.id.toString(), position);
       
       const cleanPlayerData = {
         teamId: team.id,
@@ -185,7 +185,7 @@ router.post('/populate-existing-team', async (req: Request, res: Response) => {
         const race = races[Math.floor(Math.random() * races.length)];
         const position = requiredPositions[i];
         
-        const playerData = generateRandomPlayer("", race, team.id.toString(), position);
+        const playerData = generateRandomPlayer("Player", race, team.id.toString(), position);
         
         const cleanPlayerData = {
           teamId: team.id,
@@ -305,7 +305,7 @@ router.post('/populate-all-existing-teams', async (req: Request, res: Response) 
           const race = races[Math.floor(Math.random() * races.length)];
           const position = requiredPositions[i];
           
-          const playerData = generateRandomPlayer("", race, team.id.toString(), position);
+          const playerData = generateRandomPlayer("Player", race, team.id.toString(), position);
           
           const cleanPlayerData = {
             teamId: team.id,

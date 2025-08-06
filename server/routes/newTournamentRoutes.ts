@@ -424,7 +424,7 @@ router.get('/overview/:division', isAuthenticated, async (req: any, res: Respons
     const gameDay = (daysSinceStart % 17) + 1;
 
     // Check what tournaments are available
-    const divisionNames = ["", "Diamond", "Platinum", "Gold", "Silver", "Bronze", "Copper", "Iron", "Stone"];
+    const divisionNames = ["Champion", "Diamond", "Platinum", "Gold", "Silver", "Bronze", "Copper", "Iron", "Stone"];
     const divisionName = divisionNames[division];
 
     const response = {

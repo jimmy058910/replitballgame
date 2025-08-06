@@ -38,7 +38,7 @@ router.get('/team/:teamId', asyncHandler(async (req: any, res: Response) => {
   
   // Verify user owns the team or has admin access
   const team = await storage.teams.getTeamByUserId(userId);
-  const isAdmin = await RBACService.hasPermission(userId, Permission.VIEW_ALL_TEAMS);
+  const isAdmin = await RBACService.hasPermission(userId, "VIEW_ALL_TEAMS");
   
   if (!team || (team.id !== parseInt(teamId) && !isAdmin)) {
     throw ErrorCreators.forbidden("Cannot access team camaraderie data");
@@ -64,7 +64,7 @@ router.get('/player/:playerId', asyncHandler(async (req: any, res: Response) => 
   }
   
   const team = await storage.teams.getTeamByUserId(userId);
-  const isAdmin = await RBACService.hasPermission(userId, Permission.VIEW_ALL_TEAMS);
+  const isAdmin = await RBACService.hasPermission(userId, "VIEW_ALL_TEAMS");
   
   if (!team || (player.teamId !== team.id && !isAdmin)) {
     throw ErrorCreators.forbidden("Cannot access player camaraderie data");
@@ -93,7 +93,7 @@ router.get('/player/:playerId', asyncHandler(async (req: any, res: Response) => 
  * Admin only
  */
 router.post('/end-of-season/:teamId', 
-  RBACService.requirePermission(Permission.MANAGE_SEASONS), // Note: Updated to match available Permission enum
+  RBACService.requirePermission("MANAGE_SEASONS"), // Note: Updated to match available Permission enum
   asyncHandler(async (req: any, res: Response) => {
     const { teamId } = req.params;
     const userId = req.user.claims.sub;
@@ -157,7 +157,7 @@ router.post('/end-of-season-all',
  * Admin only
  */
 router.post('/increment-years/:teamId',
-  RBACService.requirePermission(Permission.MANAGE_SEASONS),
+  RBACService.requirePermission("MANAGE_SEASONS"),
   asyncHandler(async (req: any, res: Response) => {
     const { teamId } = req.params;
     const userId = req.user.claims.sub;
@@ -220,7 +220,7 @@ router.get('/match-effects/:teamId', asyncHandler(async (req: any, res: Response
   
   // Verify user owns the team or has admin access
   const team = await storage.teams.getTeamByUserId(userId);
-  const isAdmin = await RBACService.hasPermission(userId, Permission.VIEW_ALL_TEAMS);
+  const isAdmin = await RBACService.hasPermission(userId, "VIEW_ALL_TEAMS");
   
   if (!team || (team.id !== teamId && !isAdmin)) {
     throw ErrorCreators.forbidden("Cannot access team match effects");
@@ -247,7 +247,7 @@ router.get('/match-effects/:teamId', asyncHandler(async (req: any, res: Response
  * Admin only - for testing purposes
  */
 router.post('/test-calculation',
-  RBACService.requirePermission(Permission.VIEW_FINANCES),
+  RBACService.requirePermission("VIEW_FINANCES"),
   asyncHandler(async (req: any, res: Response) => {
     const { 
       currentCamaraderie = 50,
@@ -305,8 +305,7 @@ router.post('/test-calculation',
         }
       }
     });
-  })
-);
+  }));
 
 /**
  * Manual post-game camaraderie update (SuperUser testing)
@@ -316,7 +315,7 @@ router.post('/test-post-game', asyncHandler(async (req: any, res: Response) => {
   const userId = req.user.claims.sub;
   
   // Verify admin access
-  const isAdmin = await RBACService.hasPermission(userId, Permission.MANAGE_LEAGUES); // Note: Using MANAGE_LEAGUES instead of SUPERUSER_ACCESS which doesn't exist
+  const isAdmin = await RBACService.hasPermission(userId, "MANAGE_LEAGUES"); // Note: Using MANAGE_LEAGUES instead of SUPERUSER_ACCESS which doesn't exist
   if (!isAdmin) {
     throw ErrorCreators.forbidden("SuperUser access required");
   }

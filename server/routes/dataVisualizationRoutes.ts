@@ -1,5 +1,6 @@
 import { Router, type Request, type Response, type NextFunction } from "express";
 import { storage } from "../storage";
+import { prisma } from "../db";
 import { isAuthenticated } from "../googleAuth";
 import { logInfo } from "../services/errorService";
 
@@ -25,7 +26,7 @@ router.get('/team-performance', isAuthenticated, async (req: Request, res: Respo
     const userProfile = req.user as any;
     
     // Get user's team using Prisma
-    const team = await storage.prisma.team.findFirst({
+    const team = await prisma.team.findFirst({
       where: { userProfileId: userProfile.id }
     });
     if (!team) {
@@ -33,7 +34,7 @@ router.get('/team-performance', isAuthenticated, async (req: Request, res: Respo
     }
 
     // Get team performance data
-    const players = await storage.prisma.player.findMany({
+    const players = await prisma.player.findMany({
       where: { teamId: team.id }
     });
     
@@ -95,7 +96,7 @@ router.get('/player-distribution', isAuthenticated, async (req: Request, res: Re
     const userProfile = req.user as any;
     
     // Get user's team
-    const team = await storage.prisma.team.findFirst({
+    const team = await prisma.team.findFirst({
       where: { userProfileId: userProfile.id }
     });
     if (!team) {
@@ -103,7 +104,7 @@ router.get('/player-distribution', isAuthenticated, async (req: Request, res: Re
     }
 
     // Get active players only
-    const players = await storage.prisma.player.findMany({
+    const players = await prisma.player.findMany({
       where: { teamId: team.id }
     });
     const activePlayers = players.filter((p: any) => !p.isOnMarket && !p.isRetired);
@@ -151,7 +152,7 @@ router.get('/season-progress', isAuthenticated, async (req: Request, res: Respon
     const userProfile = req.user as any;
     
     // Get user's team
-    const team = await storage.prisma.team.findFirst({
+    const team = await prisma.team.findFirst({
       where: { userProfileId: userProfile.id }
     });
     if (!team) {
@@ -163,7 +164,7 @@ router.get('/season-progress', isAuthenticated, async (req: Request, res: Respon
     const currentDay = currentSeason?.currentDay || 9;
 
     // Get team's match history for season progress
-    const matches = await storage.prisma.game.findMany({
+    const matches = await prisma.game.findMany({
       where: { 
         OR: [
           { homeTeamId: team.id },
@@ -191,7 +192,7 @@ router.get('/season-progress', isAuthenticated, async (req: Request, res: Respon
       ).length;
 
       // Get team stats for this point in season
-      const players = await storage.prisma.player.findMany({
+      const players = await prisma.player.findMany({
         where: { teamId: team.id }
       });
       const activePlayers = players.filter((p: any) => !p.isOnMarket && !p.isRetired);
@@ -233,7 +234,7 @@ router.get('/division-standings', isAuthenticated, async (req: Request, res: Res
     const userProfile = req.user as any;
     
     // Get user's team
-    const team = await storage.prisma.team.findFirst({
+    const team = await prisma.team.findFirst({
       where: { userProfileId: userProfile.id }
     });
     if (!team) {
@@ -241,7 +242,7 @@ router.get('/division-standings', isAuthenticated, async (req: Request, res: Res
     }
 
     // Get all teams in same division and subdivision
-    const divisionTeams = await storage.prisma.team.findMany({
+    const divisionTeams = await prisma.team.findMany({
       where: { 
         division: team.division,
         subdivision: team.subdivision 
@@ -251,7 +252,7 @@ router.get('/division-standings', isAuthenticated, async (req: Request, res: Res
     // Calculate standings for each team
     const standingsData = await Promise.all(divisionTeams.map(async (divisionTeam: any, index: number) => {
       // Get matches for standings calculation
-      const matches = await storage.prisma.game.findMany({
+      const matches = await prisma.game.findMany({
         where: { 
           OR: [
             { homeTeamId: divisionTeam.id },

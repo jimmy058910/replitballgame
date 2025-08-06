@@ -731,7 +731,7 @@ router.post('/create-additional-teams', isAuthenticated, async (req: Request, re
         played: 0,
         streakType: "N",
         streakLength: 0,
-        lastFiveGames: ""
+        lastFiveGames: "NNNNN"
       });
       
       // Create players for the team

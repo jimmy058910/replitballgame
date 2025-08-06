@@ -62,7 +62,7 @@ export class PlayerStorage {
         agility: playerData.agility,
         potentialRating: playerData.potentialRating,
         dailyStaminaLevel: playerData.dailyStaminaLevel || 100,
-        injuryStatus: playerData.injuryStatus || InjuryStatus.HEALTHY,
+        injuryStatus: playerData.injuryStatus || 'HEALTHY' as any,
         camaraderieScore: playerData.camaraderieScore || 75.0,
       },
     });

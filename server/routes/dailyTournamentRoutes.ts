@@ -24,7 +24,7 @@ router.get("/stats", isAuthenticated, async (req: any, res: Response, next: Next
     const tournamentMatchesToday = await prisma.game.findMany({
       where: {
         matchType: "TOURNAMENT" as any, // Type assertion for enum compatibility
-        createdAt: { gte: todayStart },
+        entryTime: { gte: todayStart },
         OR: [
           { homeTeamId: team.id },
           { awayTeamId: team.id }
@@ -99,7 +99,7 @@ router.post("/instant-match", isAuthenticated, async (req: any, res: Response, n
     const tournamentMatchesToday = await prisma.game.findMany({
       where: {
         matchType: "TOURNAMENT" as any,
-        createdAt: { gte: todayStart },
+        entryTime: { gte: todayStart },
         OR: [
           { homeTeamId: team.id },
           { awayTeamId: team.id }
@@ -140,8 +140,8 @@ router.post("/instant-match", isAuthenticated, async (req: any, res: Response, n
     const matchData = {
       homeTeamId: isHome ? team.id : opponent.id,
       awayTeamId: isHome ? opponent.id : team.id,
-      matchType: "tournament", // Note: Using string literal for enum comparison
-      status: "in_progress", // Note: Using string literal for enum comparison  
+      matchType: "TOURNAMENT" as any, // Note: Using string literal for enum comparison
+      status: "IN_PROGRESS" as any, // Note: Using string literal for enum comparison  
       gameDay: 9, // Tournament day
       scheduledTime: new Date(),
     } as any; // Type assertion to bypass strict Prisma typing
@@ -171,14 +171,14 @@ router.post("/instant-match", isAuthenticated, async (req: any, res: Response, n
 
       // Consume one tournament entry item using storage abstraction
       const entryItem = entryItems[0];
-      await storage.items.consumeInventoryItem(entryItem.id, 1);
+      await storage.items.removeItemFromTeamInventory(team.id, entryItem.itemId, 1);
 
       // Record tournament entry usage
       await prisma.tournamentEntry.create({
         data: {
-          tournamentId: null, // Daily tournaments don't have formal tournament IDs
+          tournamentId: null as number | undefined, // Daily tournaments don't have formal tournament IDs
           teamId: team.id,
-          entryTime: new Date(),
+          createdAt: new Date(),
         }
       });
     }
@@ -224,8 +224,8 @@ router.post("/challenge-opponent", isAuthenticated, async (req: any, res: Respon
     
     const tournamentMatchesToday = await prisma.game.findMany({
       where: {
-        matchType: "tournament",
-        createdAt: { gte: todayStart },
+        matchType: "TOURNAMENT" as any,
+        entryTime: { gte: todayStart },
         OR: [
           { homeTeamId: team.id },
           { awayTeamId: team.id }
@@ -255,8 +255,8 @@ router.post("/challenge-opponent", isAuthenticated, async (req: any, res: Respon
     const matchData = {
       homeTeamId: isHome ? team.id : opponent.id,
       awayTeamId: isHome ? opponent.id : team.id,
-      matchType: "tournament", // Note: Using string literal for enum comparison
-      status: "in_progress", // Note: Using string literal for enum comparison  
+      matchType: "TOURNAMENT" as any, // Note: Using string literal for enum comparison
+      status: "IN_PROGRESS" as any, // Note: Using string literal for enum comparison  
       gameDay: 9,
       scheduledTime: new Date(),
     } as any; // Type assertion to bypass strict Prisma typing
@@ -285,11 +285,11 @@ router.post("/challenge-opponent", isAuthenticated, async (req: any, res: Respon
 
       // Consume one tournament entry item using storage abstraction
       const entryItem = entryItems[0];
-      await storage.items.consumeInventoryItem(entryItem.id, 1);
+      await storage.items.removeItemFromTeamInventory(team.id, entryItem.itemId, 1);
 
       await prisma.tournamentEntry.create({
         data: {
-          tournamentId: null,
+          tournamentId: null as number | undefined,
           teamId: team.id,
           createdAt: new Date(), // Note: Using createdAt instead of entryTime which doesn't exist in schema
         }
@@ -324,7 +324,7 @@ router.get("/recent", isAuthenticated, async (req: any, res: Response, next: Nex
 
     const recentMatches = await prisma.game.findMany({
       where: {
-        matchType: "tournament",
+        matchType: "TOURNAMENT" as any,
         createdAt: { gte: sevenDaysAgo },
         OR: [
           { homeTeamId: team.id },
@@ -342,13 +342,13 @@ router.get("/recent", isAuthenticated, async (req: any, res: Response, next: Nex
         
         // Determine result
         let result = "pending";
-        if (match.status === "completed") {
+        if (match.status === "COMPLETED" as any) {
           const isHome = match.homeTeamId === team.id;
           const teamScore = isHome ? match.homeScore : match.awayScore;
           const opponentScore = isHome ? match.awayScore : match.homeScore;
           
-          if (teamScore > opponentScore) result = "win";
-          else if (teamScore < opponentScore) result = "loss";
+          if ((teamScore ?? 0) > (opponentScore ?? 0)) result = "win";
+          else if ((teamScore ?? 0) < (opponentScore ?? 0)) result = "loss";
           else result = "draw";
         }
 
@@ -357,10 +357,10 @@ router.get("/recent", isAuthenticated, async (req: any, res: Response, next: Nex
           type: "tournament",
           status: match.status,
           result,
-          score: match.status === "completed" ? `${match.homeScore}-${match.awayScore}` : undefined,
+          score: match.status === "COMPLETED" as any ? `${match.homeScore}-${match.awayScore}` : undefined,
           opponentTeam: opponentTeam ? { name: opponentTeam.name } : { name: "Unknown Team" },
           playedDate: match.createdAt,
-          replayCode: match.replayCode,
+          // replayCode: match.replayCode, // Property doesn't exist in Game schema
         };
       })
     );

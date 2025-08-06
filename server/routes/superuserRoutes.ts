@@ -14,7 +14,7 @@ const router = Router();
 router.use(isAuthenticated);
 
 // Grant credits - Admin permission required
-router.post('/grant-credits', RBACService.requirePermission(Permission.GRANT_CREDITS), asyncHandler(async (req: any, res: Response) => {
+router.post('/grant-credits', RBACService.requirePermission("GRANT_CREDITS"), asyncHandler(async (req: any, res: Response) => {
   const requestId = req.requestId;
   const userId = req.user.claims.sub;
   const { teamId: targetTeamId, credits = 500000, premiumCurrency = 500 } = req.body;
@@ -63,7 +63,7 @@ router.post('/grant-credits', RBACService.requirePermission(Permission.GRANT_CRE
 }));
 
 // Reset player daily items used - Admin permission required
-router.post('/reset-player-daily-items', RBACService.requirePermission(Permission.GRANT_CREDITS), asyncHandler(async (req: any, res: Response) => {
+router.post('/reset-player-daily-items', RBACService.requirePermission("GRANT_CREDITS"), asyncHandler(async (req: any, res: Response) => {
   const requestId = req.requestId;
   const userId = req.user.claims.sub;
   
@@ -84,7 +84,7 @@ router.post('/reset-player-daily-items', RBACService.requirePermission(Permissio
 }));
 
 // Force daily progression execution (for missed 3AM resets)
-router.post('/force-daily-progression', RBACService.requirePermission(Permission.GRANT_CREDITS), asyncHandler(async (req: any, res: Response) => {
+router.post('/force-daily-progression', RBACService.requirePermission("GRANT_CREDITS"), asyncHandler(async (req: any, res: Response) => {
   const requestId = req.requestId;
   const userId = req.user.claims.sub;
   
@@ -117,7 +117,7 @@ router.post('/force-daily-progression', RBACService.requirePermission(Permission
 }));
 
 // Advance day - Admin permission required
-router.post('/advance-day', RBACService.requirePermission(Permission.MANAGE_SEASONS), asyncHandler(async (req: any, res: Response) => {
+router.post('/advance-day', RBACService.requirePermission("MANAGE_SEASONS"), asyncHandler(async (req: any, res: Response) => {
   const requestId = req.requestId;
   const userId = req.user.claims.sub;
   
@@ -165,7 +165,7 @@ router.post('/advance-day', RBACService.requirePermission(Permission.MANAGE_SEAS
 }));
 
 // Start tournament - Admin permission required
-router.post('/start-tournament', RBACService.requirePermission(Permission.MANAGE_TOURNAMENTS), asyncHandler(async (req: any, res: Response) => {
+router.post('/start-tournament', RBACService.requirePermission("MANAGE_TOURNAMENTS"), asyncHandler(async (req: any, res: Response) => {
   const requestId = req.requestId;
   const userId = req.user.claims.sub;
   
@@ -218,7 +218,7 @@ router.post('/reset-season', RBACService.requireSuperAdmin(), asyncHandler(async
 }));
 
 // Stop all games - Admin permission required
-router.post('/stop-all-games', RBACService.requirePermission(Permission.STOP_MATCHES), asyncHandler(async (req: any, res: Response) => {
+router.post('/stop-all-games', RBACService.requirePermission("STOP_MATCHES"), asyncHandler(async (req: any, res: Response) => {
   const requestId = req.requestId;
   const userId = req.user.claims.sub;
   
@@ -273,7 +273,7 @@ router.post('/cleanup-division', RBACService.requireSuperAdmin(), asyncHandler(a
 }));
 
 // Get current cycle info - Admin permission required
-router.get('/season/current-cycle-info', RBACService.requirePermission(Permission.VIEW_FINANCES), asyncHandler(async (req: any, res: Response) => {
+router.get('/season/current-cycle-info', RBACService.requirePermission("VIEW_FINANCES"), asyncHandler(async (req: any, res: Response) => {
   const currentSeason = await storage.seasons.getCurrentSeason();
   if (!currentSeason) {
     throw ErrorCreators.notFound("No active season found");
@@ -304,7 +304,7 @@ router.get('/season/current-cycle-info', RBACService.requirePermission(Permissio
 }));
 
 // Add players to team - Admin permission required
-router.post('/add-players', RBACService.requirePermission(Permission.MANAGE_LEAGUES), asyncHandler(async (req: any, res: Response) => {
+router.post('/add-players', RBACService.requirePermission("MANAGE_LEAGUES"), asyncHandler(async (req: any, res: Response) => {
   const requestId = req.requestId;
   const userId = req.user.claims.sub;
   const { teamId, playerCount = 10 } = req.body;
@@ -335,7 +335,7 @@ router.post('/add-players', RBACService.requirePermission(Permission.MANAGE_LEAG
 }));
 
 // Reset tryout restrictions - Admin permission required for testing
-router.post('/reset-tryout-restrictions', RBACService.requirePermission(Permission.MANAGE_LEAGUES), asyncHandler(async (req: any, res: Response) => {
+router.post('/reset-tryout-restrictions', RBACService.requirePermission("MANAGE_LEAGUES"), asyncHandler(async (req: any, res: Response) => {
   const requestId = req.requestId;
   const userId = req.user.claims.sub;
   
@@ -368,7 +368,7 @@ router.post('/reset-tryout-restrictions', RBACService.requirePermission(Permissi
 }));
 
 // Create league schedule - Admin permission required
-router.post('/create-league-schedule', RBACService.requirePermission(Permission.MANAGE_LEAGUES), asyncHandler(async (req: any, res: Response) => {
+router.post('/create-league-schedule', RBACService.requirePermission("MANAGE_LEAGUES"), asyncHandler(async (req: any, res: Response) => {
   const requestId = req.requestId;
   const userId = req.user.claims.sub;
   
@@ -449,7 +449,7 @@ router.post('/create-league-schedule', RBACService.requirePermission(Permission.
 }));
 
 // Start all scheduled league games - Admin permission required
-router.post('/start-all-league-games', RBACService.requirePermission(Permission.MANAGE_LEAGUES), asyncHandler(async (req: any, res: Response) => {
+router.post('/start-all-league-games', RBACService.requirePermission("MANAGE_LEAGUES"), asyncHandler(async (req: any, res: Response) => {
   const requestId = req.requestId;
   const userId = req.user.claims.sub;
   
@@ -516,7 +516,7 @@ router.post('/start-all-league-games', RBACService.requirePermission(Permission.
 }));
 
 // Test exhibition rewards - Admin permission required
-router.post('/test-exhibition-rewards', RBACService.requirePermission(Permission.GRANT_CREDITS), asyncHandler(async (req: any, res: Response) => {
+router.post('/test-exhibition-rewards', RBACService.requirePermission("GRANT_CREDITS"), asyncHandler(async (req: any, res: Response) => {
   const requestId = req.requestId;
   const userId = req.user.claims.sub;
   const { homeTeamId, awayTeamId, homeScore = 1, awayScore = 1 } = req.body;

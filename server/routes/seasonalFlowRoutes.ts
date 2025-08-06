@@ -42,7 +42,7 @@ router.get('/phase/:gameDay', isAuthenticated, async (req, res) => {
  * POST /api/seasonal-flow/schedule/generate
  * Generate complete season schedule for all leagues
  */
-router.post('/schedule/generate', isAuthenticated, RBACService.requirePermission('manage_leagues'), async (req, res) => {
+router.post('/schedule/generate', isAuthenticated, RBACService.requirePermission('MANAGE_LEAGUES'), async (req, res) => {
   try {
     const { season } = req.body;
     
@@ -74,7 +74,7 @@ router.post('/schedule/generate', isAuthenticated, RBACService.requirePermission
  * POST /api/seasonal-flow/schedule/fix-division
  * Fix league schedule for a specific division using corrected round-robin logic
  */
-router.post('/schedule/fix-division', isAuthenticated, RBACService.requirePermission('manage_leagues'), async (req, res) => {
+router.post('/schedule/fix-division', isAuthenticated, RBACService.requirePermission('MANAGE_LEAGUES'), async (req, res) => {
   try {
     const { division, season } = req.body;
     
@@ -170,7 +170,7 @@ router.get('/standings/:leagueId', isAuthenticated, async (req, res) => {
  * POST /api/seasonal-flow/playoffs/generate
  * Generate playoff brackets for Day 15
  */
-router.post('/playoffs/generate', isAuthenticated, RBACService.requirePermission('manage_leagues'), async (req, res) => {
+router.post('/playoffs/generate', isAuthenticated, RBACService.requirePermission('MANAGE_LEAGUES'), async (req, res) => {
   try {
     const { season } = req.body;
     
@@ -202,7 +202,7 @@ router.post('/playoffs/generate', isAuthenticated, RBACService.requirePermission
  * POST /api/seasonal-flow/promotion-relegation/process
  * Process promotion and relegation after playoffs complete
  */
-router.post('/promotion-relegation/process', isAuthenticated, RBACService.requirePermission('manage_leagues'), async (req, res) => {
+router.post('/promotion-relegation/process', isAuthenticated, RBACService.requirePermission('MANAGE_LEAGUES'), async (req, res) => {
   try {
     const { season } = req.body;
     
@@ -234,7 +234,7 @@ router.post('/promotion-relegation/process', isAuthenticated, RBACService.requir
  * POST /api/seasonal-flow/leagues/rebalance
  * Rebalance leagues after promotion/relegation
  */
-router.post('/leagues/rebalance', isAuthenticated, RBACService.requirePermission('manage_leagues'), async (req, res) => {
+router.post('/leagues/rebalance', isAuthenticated, RBACService.requirePermission('MANAGE_LEAGUES'), async (req, res) => {
   try {
     const { season } = req.body;
     
@@ -266,7 +266,7 @@ router.post('/leagues/rebalance', isAuthenticated, RBACService.requirePermission
  * POST /api/seasonal-flow/season/rollover
  * Execute complete season rollover
  */
-router.post('/season/rollover', isAuthenticated, RBACService.requirePermission('manage_leagues'), async (req, res) => {
+router.post('/season/rollover', isAuthenticated, RBACService.requirePermission('MANAGE_LEAGUES'), async (req, res) => {
   try {
     const { currentSeason } = req.body;
     
@@ -298,7 +298,7 @@ router.post('/season/rollover', isAuthenticated, RBACService.requirePermission('
  * POST /api/seasonal-flow/cleanup-ai-teams
  * Test endpoint to clean up AI teams (temporary for debugging)
  */
-router.post('/cleanup-ai-teams', isAuthenticated, RBACService.requirePermission('manage_leagues'), async (req, res) => {
+router.post('/cleanup-ai-teams', isAuthenticated, RBACService.requirePermission('MANAGE_LEAGUES'), async (req, res) => {
   try {
     console.log('Manual AI cleanup requested...');
     
@@ -363,7 +363,7 @@ router.get('/config', isAuthenticated, async (req, res) => {
  * GET /api/seasonal-flow/schedule/preview/:season
  * Preview schedule generation without creating matches
  */
-router.get('/schedule/preview/:season', isAuthenticated, RBACService.requirePermission('manage_leagues'), async (req, res) => {
+router.get('/schedule/preview/:season', isAuthenticated, RBACService.requirePermission('MANAGE_LEAGUES'), async (req, res) => {
   try {
     const season = parseInt(req.params.season);
     

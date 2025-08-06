@@ -45,7 +45,7 @@ router.get('/history', isAuthenticated, async (req: any, res: Response, next: Ne
       } : null
     })));
 
-    const completedEntries = tournamentEntries.filter(entry => entry.tournament.status === 'COMPLETED');
+    const completedEntries = tournamentEntries.filter(entry => entry.tournament.status === 'COMPLETED' as any);
     console.log(`TOURNAMENT HISTORY DEBUG: Found ${completedEntries.length} completed tournaments`);
     
     const history = completedEntries.map(entry => ({

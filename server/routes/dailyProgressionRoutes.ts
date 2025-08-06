@@ -9,7 +9,7 @@ const router = Router();
  * POST /api/daily-progression/execute
  * Execute daily progression for all players (admin only)
  */
-router.post('/execute', isAuthenticated, RBACService.requirePermission(Permission.MANAGE_LEAGUES), async (req, res) => {
+router.post('/execute', isAuthenticated, RBACService.requirePermission("MANAGE_LEAGUES"), async (req, res) => {
   try {
     console.log('[DAILY PROGRESSION API] Starting manual daily progression execution');
     
@@ -34,7 +34,7 @@ router.post('/execute', isAuthenticated, RBACService.requirePermission(Permissio
  * POST /api/daily-progression/player/:playerId
  * Execute daily progression for a specific player (for testing)
  */
-router.post('/player/:playerId', isAuthenticated, RBACService.requirePermission(Permission.MANAGE_LEAGUES), async (req, res) => {
+router.post('/player/:playerId', isAuthenticated, RBACService.requirePermission("MANAGE_LEAGUES"), async (req, res) => {
   try {
     const { playerId } = req.params;
     
@@ -180,7 +180,7 @@ router.get('/team/:teamId/summary', isAuthenticated, async (req, res) => {
  * POST /api/daily-progression/test-full-day-advancement
  * Test full day advancement system (admin only)
  */
-router.post('/test-full-day-advancement', isAuthenticated, RBACService.requirePermission(Permission.MANAGE_LEAGUES), async (req, res) => {
+router.post('/test-full-day-advancement', isAuthenticated, RBACService.requirePermission("MANAGE_LEAGUES"), async (req, res) => {
   try {
     console.log('[DAILY PROGRESSION TEST] Starting full day advancement test');
     

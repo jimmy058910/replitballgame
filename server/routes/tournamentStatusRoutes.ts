@@ -22,7 +22,7 @@ router.get('/active', isAuthenticated, async (req: any, res) => {
       where: {
         teamId: team.id,
         tournament: {
-          status: { in: ['REGISTRATION_OPEN', 'IN_PROGRESS'] }
+          status: { in: ['REGISTRATION_OPEN' as any, 'IN_PROGRESS' as any] }
         }
       },
       include: {
@@ -60,7 +60,7 @@ router.get('/active', isAuthenticated, async (req: any, res) => {
       entryTime: entry.registeredAt,
       currentParticipants: 1, // Placeholder - would need to count entries
       // ✅ FIX: Mid-Season Cup should be 16 teams, Daily tournaments are 8 teams
-      maxParticipants: entry.tournament.type === 'MID_SEASON_CLASSIC' ? 16 : 8,
+      maxParticipants: entry.tournament.type === 'MID_SEASON_CLASSIC' as any ? 16 : 8,
       prizes: entry.tournament.prizePoolJson,
       placement: entry.finalRank,
       registeredAt: entry.registeredAt,
@@ -101,7 +101,7 @@ router.get('/my-active', isAuthenticated, async (req: any, res) => {
       where: {
         teamId: team.id,
         tournament: {
-          status: { in: ['REGISTRATION_OPEN', 'IN_PROGRESS'] }
+          status: { in: ['REGISTRATION_OPEN' as any, 'IN_PROGRESS' as any] }
         }
       },
       include: {
@@ -151,7 +151,7 @@ router.get('/my-active', isAuthenticated, async (req: any, res) => {
       entryTime: entry.registeredAt,
       currentParticipants: participantCountMap.get(entry.tournament.id) || 0,
       // ✅ FIX: Mid-Season Cup should be 16 teams, Daily tournaments are 8 teams
-      maxParticipants: entry.tournament.type === 'MID_SEASON_CLASSIC' ? 16 : 8,
+      maxParticipants: entry.tournament.type === 'MID_SEASON_CLASSIC' as any ? 16 : 8,
       prizes: entry.tournament.prizePoolJson,
       placement: entry.finalRank,
       registeredAt: entry.registeredAt,
@@ -255,7 +255,7 @@ router.get('/:id/status', isAuthenticated, async (req: any, res) => {
     // Count current participants
     const currentParticipants = tournament.entries.length;
     // ✅ FIX: Mid-Season Cup should be 16 teams, Daily tournaments are 8 teams
-    const maxParticipants = tournament.type === 'MID_SEASON_CLASSIC' ? 16 : 8;
+    const maxParticipants = tournament.type === 'MID_SEASON_CLASSIC' as any ? 16 : 8;
     const spotsRemaining = maxParticipants - currentParticipants;
     const isFull = currentParticipants >= maxParticipants;
 
@@ -447,7 +447,7 @@ router.post('/:id/force-start', isAuthenticated, async (req: any, res) => {
     }
 
     const currentParticipants = tournament.entries.length;
-    const maxParticipants = tournament.type === 'MID_SEASON_CLASSIC' ? 16 : 8;
+    const maxParticipants = tournament.type === 'MID_SEASON_CLASSIC' as any ? 16 : 8;
     const spotsRemaining = maxParticipants - currentParticipants;
 
     if (spotsRemaining <= 0) {
@@ -746,7 +746,7 @@ async function checkAndAdvanceTournament(tournamentId: number) {
       where: {
         tournamentId,
         round: 1,
-        status: 'COMPLETED'
+        status: 'COMPLETED' as any
       }
     });
 
@@ -956,7 +956,7 @@ async function advanceTournament(tournamentId: number, completedRound: string) {
       where: {
         tournamentId: tournamentId,
         round: completedRound,
-        status: 'COMPLETED'
+        status: 'COMPLETED' as any
       },
       include: {
         homeTeam: true,
@@ -1010,7 +1010,7 @@ async function advanceTournament(tournamentId: number, completedRound: string) {
       await prisma.tournament.update({
         where: { id: tournamentId },
         data: {
-          status: 'COMPLETED',
+          status: 'COMPLETED' as any,
           winnerId: winners[0].teamId
         }
       });
