@@ -103,11 +103,11 @@ router.post('/force-start/:tournamentId',
   }),
   async (req, res, next) => {
     try {
-      const tournamentId = parseInt(req.params.tournamentId);
+      const tournamentId = req.params.tournamentId;
       
       Logger.logInfo('Force start tournament requested', {
         tournamentId,
-        adminUserId: req.user.userId
+        adminUserId: req.user?.claims?.sub
       });
       
       // This would integrate with existing tournament flow service

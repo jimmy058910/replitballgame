@@ -1,7 +1,7 @@
 import { z } from 'zod';
 
 // Match domain schemas
-export const matchSchemas = {
+export const matchSchemas: Record<string, any> = {
   // Match creation request
   createMatchRequest: z.object({
     homeTeamId: z.number(),

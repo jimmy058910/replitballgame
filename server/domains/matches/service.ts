@@ -37,7 +37,7 @@ export class MatchDomainService {
       });
 
       Logger.logInfo('Match created successfully', {
-        matchId: match.id,
+        matchId: String(match.id),
         homeTeamId: request.homeTeamId,
         awayTeamId: request.awayTeamId,
         matchType: request.matchType
@@ -78,7 +78,7 @@ export class MatchDomainService {
 
       return this.formatMatchState(match);
     } catch (error) {
-      Logger.logError('Failed to get match', error as Error, { matchId });
+      Logger.logError('Failed to get match', error as Error, { matchId: String(matchId) });
       throw error;
     }
   }
@@ -122,8 +122,7 @@ export class MatchDomainService {
       const match = await prisma.game.update({
         where: { id: matchId },
         data: {
-          status: 'IN_PROGRESS',
-          gameTime: 0
+          status: 'IN_PROGRESS'
         },
         include: {
           homeTeam: {
@@ -144,14 +143,14 @@ export class MatchDomainService {
       });
 
       Logger.logInfo('Match started', {
-        matchId,
-        homeTeamId: match.homeTeamId,
-        awayTeamId: match.awayTeamId
+        matchId: String(matchId),
+        homeTeamId: String(match.homeTeamId),
+        awayTeamId: String(match.awayTeamId)
       });
 
       return this.formatMatchState(match);
     } catch (error) {
-      Logger.logError('Failed to start match', error as Error, { matchId });
+      Logger.logError('Failed to start match', error as Error, { matchId: String(matchId) });
       throw error;
     }
   }
@@ -161,7 +160,6 @@ export class MatchDomainService {
       const match = await prisma.game.update({
         where: { id: matchId },
         data: {
-          ...(update.gameTime !== undefined && { gameTime: update.gameTime }),
           ...(update.homeScore !== undefined && { homeScore: update.homeScore }),
           ...(update.awayScore !== undefined && { awayScore: update.awayScore }),
           ...(update.status && { status: update.status })
@@ -186,7 +184,7 @@ export class MatchDomainService {
 
       return this.formatMatchState(match);
     } catch (error) {
-      Logger.logError('Failed to update match state', error as Error, { matchId, update });
+      Logger.logError('Failed to update match state', error as Error, { matchId: String(matchId), update });
       throw error;
     }
   }

@@ -56,7 +56,7 @@ export class TournamentDomainService {
 
       Logger.logInfo('Tournament registration successful', {
         teamId,
-        tournamentId: tournament.id,
+        tournamentId: String(tournament.id),
         division: request.division
       });
 
@@ -132,7 +132,7 @@ export class TournamentDomainService {
       const tournament = await prisma.tournament.findUnique({
         where: { id: tournamentId },
         include: {
-          participants: {
+          entries: {
             include: {
               team: {
                 select: {
@@ -152,19 +152,19 @@ export class TournamentDomainService {
 
       return {
         id: tournament.id.toString(),
-        tournamentId: Number(tournament.tournamentId || tournament.id),
+        tournamentId: Number(tournament.tournamentId ?? tournament.id ?? 0),
         name: tournament.name,
         type: tournament.type as 'DAILY_DIVISIONAL' | 'MID_SEASON_CLASSIC',
-        division: tournament.division,
+        division: tournament.division ?? 0,
         status: tournament.status as 'REGISTRATION_OPEN' | 'IN_PROGRESS' | 'COMPLETED',
-        participantCount: tournament.participants.length,
+        participantCount: tournament.entries.length,
         maxParticipants: 8,
         startTime: tournament.startTime || undefined,
         registrationEndTime: tournament.registrationEndTime || undefined,
-        participants: tournament.participants.map(p => ({
+        participants: tournament.entries.map(p => ({
           id: Number(p.team.id),
           name: p.team.name,
-          division: p.team.division,
+          division: p.team.division ?? 0,
           registeredAt: p.registeredAt
         })),
         prizes: {

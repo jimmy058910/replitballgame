@@ -79,8 +79,8 @@ router.post('/:matchId/start',
       const match = await MatchDomainService.startMatch(matchId);
       
       Logger.logInfo('Match start requested', {
-        matchId,
-        userId: req.user.userId
+        matchId: String(matchId),
+        userId: req.user?.claims?.sub
       });
       
       res.json({

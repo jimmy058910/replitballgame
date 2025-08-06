@@ -1,0 +1,4 @@
+// Backup of original contractStorage.ts - schema mismatch discovered
+// Original file had 24 compilation errors due to database schema incompatibility
+// This file expects fields like teamId, isActive, expiryDate, contractType
+// But actual Contract schema only has: id, playerId, player, staffId, staff, salary, length, signingBonus, startDate

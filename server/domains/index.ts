@@ -27,7 +27,7 @@ router.use((error: Error, req: Request, res: Response, next: NextFunction) => {
     requestId,
     path: req.path,
     method: req.method,
-    userId: req.user?.userId
+    userId: req.user?.claims?.sub
   });
 
   if (error instanceof AppError) {
