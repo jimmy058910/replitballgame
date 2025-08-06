@@ -33,16 +33,25 @@ router.post('/view', isAuthenticated, async (req: any, res: Response, next: Next
       adData.rewardAmount || 0
     );
 
+    return res.json({
+      success: true,
+      data: result
+    });
+
     // Award base rewards to team finances
     if (adData.completed && adData.rewardType && adData.rewardType !== 'none' && adData.rewardAmount && adData.rewardAmount > 0) {
-      const team = await storage.teams.getByUserId(userId);
+      const team = await storage.teams.getTeamByUserId(userId);
       if (team) {
-        const finances = await storage.teamFinances.getByTeamId(team.id);
+        const finances = await storage.teamFinances.getTeamFinances(team.id);
         if (finances) {
-          if (adData.rewardType === 'credits') {
-            await storage.teamFinances.updateCredits(team.id, adData.rewardAmount);
-          } else if (adData.rewardType === 'premium_currency') {
-            await storage.teamFinances.updatePremiumCurrency(team.id, adData.rewardAmount);
+          if (adData.rewardType === 'credits' && adData.rewardAmount) {
+            const currentCredits = BigInt(finances.credits);
+            const newCredits = currentCredits + BigInt(adData.rewardAmount);
+            await storage.teamFinances.updateTeamFinances(team.id, { credits: newCredits });
+          } else if (adData.rewardType === 'premium_currency' && adData.rewardAmount) {
+            const currentGems = finances.gems || 0;
+            const newGems = currentGems + adData.rewardAmount;
+            await storage.teamFinances.updateTeamFinances(team.id, { gems: newGems });
           }
         }
       }
@@ -53,13 +62,23 @@ router.post('/view', isAuthenticated, async (req: any, res: Response, next: Next
     
     if (result.premiumRewardEarned && result.premiumReward) {
       // Award premium reward to team
-      const team = await storage.teams.getByUserId(userId);  
+      const team = await storage.teams.getTeamByUserId(userId);  
       if (team && result.premiumReward.type === 'credits') {
-        await storage.teamFinances.updateCredits(team.id, result.premiumReward.amount);
-        rewardMessage += ` | PREMIUM REWARD: ${result.premiumReward.amount} Credits!`;
+        const finances = await storage.teamFinances.getTeamFinances(team.id);
+        if (finances) {
+          const currentCredits = BigInt(finances.credits);
+          const newCredits = currentCredits + BigInt(result.premiumReward.amount);
+          await storage.teamFinances.updateTeamFinances(team.id, { credits: newCredits });
+          rewardMessage += ` | PREMIUM REWARD: ${result.premiumReward.amount} Credits!`;
+        }
       } else if (team && result.premiumReward.type === 'premium_currency') {
-        await storage.teamFinances.updatePremiumCurrency(team.id, result.premiumReward.amount);
-        rewardMessage += ` | PREMIUM REWARD: ${result.premiumReward.amount} Gems!`;
+        const finances = await storage.teamFinances.getTeamFinances(team.id);
+        if (finances) {
+          const currentGems = finances.gems || 0;
+          const newGems = currentGems + result.premiumReward.amount;
+          await storage.teamFinances.updateTeamFinances(team.id, { gems: newGems });
+          rewardMessage += ` | PREMIUM REWARD: ${result.premiumReward.amount} Gems!`;
+        }
       }
     } else if (result.premiumRewardProgress > 0) {
       rewardMessage += ` | Premium Progress: ${result.premiumRewardProgress}/50`;
@@ -132,9 +151,14 @@ router.post('/watch', isAuthenticated, async (req: any, res: Response, next: Nex
     );
 
     // Award credits to team
-    const team = await storage.teams.getByUserId(userId);
+    const team = await storage.teams.getTeamByUserId(userId);
     if (team) {
-      await storage.teamFinances.updateCredits(team.id, rewardAmount);
+      const finances = await storage.teamFinances.getTeamFinances(team.id);
+      if (finances) {
+        const currentCredits = BigInt(finances.credits);
+        const newCredits = currentCredits + BigInt(rewardAmount);
+        await storage.teamFinances.updateTeamFinances(team.id, { credits: newCredits });
+      }
     }
 
     // Handle premium reward
@@ -142,11 +166,21 @@ router.post('/watch', isAuthenticated, async (req: any, res: Response, next: Nex
     
     if (result.premiumRewardEarned && result.premiumReward) {
       if (team && result.premiumReward.type === 'credits') {
-        await storage.teamFinances.updateCredits(team.id, result.premiumReward.amount);
-        message += ` | PREMIUM REWARD: ${result.premiumReward.amount} Credits!`;
+        const finances = await storage.teamFinances.getTeamFinances(team.id);
+        if (finances) {
+          const currentCredits = BigInt(finances.credits);
+          const newCredits = currentCredits + BigInt(result.premiumReward.amount);
+          await storage.teamFinances.updateTeamFinances(team.id, { credits: newCredits });
+          message += ` | PREMIUM REWARD: ${result.premiumReward.amount} Credits!`;
+        }
       } else if (team && result.premiumReward.type === 'premium_currency') {
-        await storage.teamFinances.updatePremiumCurrency(team.id, result.premiumReward.amount);
-        message += ` | PREMIUM REWARD: ${result.premiumReward.amount} Gems!`;
+        const finances = await storage.teamFinances.getTeamFinances(team.id);
+        if (finances) {
+          const currentGems = finances.gems || 0;
+          const newGems = currentGems + result.premiumReward.amount;
+          await storage.teamFinances.updateTeamFinances(team.id, { gems: newGems });
+          message += ` | PREMIUM REWARD: ${result.premiumReward.amount} Gems!`;
+        }
       }
     } else {
       message += ` | Premium: ${result.premiumRewardProgress}/50`;

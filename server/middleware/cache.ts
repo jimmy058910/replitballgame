@@ -74,7 +74,7 @@ export function cacheMiddleware(options: CacheOptions = {}) {
     // Generate cache key
     const cacheKey = keyGenerator ? 
       keyGenerator(req) : 
-      `${req.method}:${req.originalUrl}:${req.user?.claims?.sub || 'anonymous'}`;
+      `${req.method}:${req.originalUrl}:${(req.user as any)?.claims?.sub || 'anonymous'}`;
 
     // Try to get from cache
     const cachedData = apiCache.get(cacheKey);
@@ -98,7 +98,7 @@ export function cacheMiddleware(options: CacheOptions = {}) {
     res.end = function(chunk?: any) {
       if (res.statusCode === 200 && responseData) {
         console.log(`[CACHE SET] ${cacheKey} (TTL: ${ttl}s)`);
-        apiCache.set(cacheKey, responseData, ttl);
+        apiCache.set(cacheKey, responseData, ttl, () => {});
       }
       return originalEnd.call(this, chunk);
     };
