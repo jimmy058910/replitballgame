@@ -84,4 +84,4 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
 ENV NODE_ENV=production
 
 # PRODUCTION STARTUP: Cloud Run debugging with comprehensive logging
-CMD ["dumb-init", "sh", "-c", "echo '=== CONTAINER START DEBUG ===' && echo 'NODE_ENV='$NODE_ENV && echo 'PORT='$PORT && echo 'DATABASE_URL_PRODUCTION exists:'$(\[ -n \"$DATABASE_URL_PRODUCTION\" \] && echo 'YES' || echo 'NO') && echo 'Starting Node.js...' && npx tsx server/index.ts"]
+CMD ["dumb-init", "sh", "-c", "echo '=== CONTAINER START DEBUG ===' && echo 'NODE_ENV='$NODE_ENV && echo 'PORT='$PORT && echo 'DATABASE_URL_PRODUCTION exists:'$([ -n \"$DATABASE_URL_PRODUCTION\" ] && echo 'YES' || echo 'NO') && echo 'Starting Node.js...' && exec npx tsx server/index.ts"]
