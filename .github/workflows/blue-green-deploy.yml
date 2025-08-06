@@ -84,7 +84,7 @@ jobs:
           --min-instances 0 \
           --port 8080 \
           --timeout 300s \
-          --startup-probe httpGet.path=/healthz,httpGet.port=8080,initialDelaySeconds=10,timeoutSeconds=3,failureThreshold=8,periodSeconds=5
+          --startup-probe httpGet.path=/healthz,httpGet.port=8080,initialDelaySeconds=30,timeoutSeconds=5,failureThreshold=12,periodSeconds=10
         
         echo "✅ Green revision deployed with 0% traffic"
 
@@ -96,9 +96,9 @@ jobs:
         SHORT_SHA="${COMMIT_SHA:0:8}"
         GREEN_REVISION="green-$SHORT_SHA"
         
-        # Wait up to 3 minutes for the revision to become ready
+        # Wait up to 5 minutes for the revision to become ready (increased for database startup)
         echo "Waiting for Green revision to become healthy..."
-        timeout 180 bash -c "
+        timeout 300 bash -c "
           while true; do
             STATUS=\$(gcloud run revisions describe \$GREEN_REVISION --service=${{ env.SERVICE_NAME }} --region=${{ env.REGION }} --format='value(status.conditions[0].status)' 2>/dev/null || echo 'Unknown')
             if [ \"\$STATUS\" = \"True\" ]; then
