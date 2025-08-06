@@ -24,6 +24,8 @@ env:
 jobs:
   blue-green-deploy:
     runs-on: ubuntu-latest
+    # Skip deployment for Dependabot PRs to prevent build failures
+    if: github.actor != 'dependabot[bot]'
     
     steps:
     - name: Checkout code
