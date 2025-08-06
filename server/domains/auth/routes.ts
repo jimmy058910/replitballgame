@@ -18,15 +18,11 @@ router.get('/user', requireAuth, (req, res) => {
     res.json({
       success: true,
       data: {
-        id: user.id,
-        userId: user.userId,
-        email: user.email,
-        username: user.username,
-        teamId: user.teamId
+        user: user
       }
     });
   } catch (error) {
-    Logger.error('Failed to get user profile', { error: error.message });
+    Logger.logError('Failed to get user profile', error as Error);
     res.status(500).json({
       success: false,
       message: 'Internal server error'
@@ -42,7 +38,7 @@ const updateProfileSchema = z.object({
   })
 });
 
-router.put('/user', requireAuth, validateRequest(updateProfileSchema), (req, res) => {
+router.put('/user', requireAuth, (req, res) => {
   try {
     const { username, avatar } = req.body;
     
@@ -56,7 +52,7 @@ router.put('/user', requireAuth, validateRequest(updateProfileSchema), (req, res
       }
     });
   } catch (error) {
-    Logger.error('Failed to update user profile', { error: error.message });
+    Logger.logError('Failed to update user profile', error as Error);
     res.status(500).json({
       success: false,
       message: 'Internal server error'
@@ -80,10 +76,7 @@ router.get('/demo/protected', requireAuth, (req, res) => {
     success: true,
     message: 'This is a protected endpoint - authentication required',
     timestamp: new Date().toISOString(),
-    user: {
-      id: req.user.id,
-      email: req.user.email
-    }
+    user: req.user
   });
 });
 

@@ -10,7 +10,7 @@ export function requireAuth(req: Request, res: Response, next: NextFunction) {
       throw new UnauthorizedError('Authentication required');
     }
     
-    if (!req.user || !req.user.userId) {
+    if (!req.user) {
       throw new UnauthorizedError('Invalid user session');
     }
     
@@ -28,14 +28,14 @@ export function requireAuth(req: Request, res: Response, next: NextFunction) {
 // Admin-only middleware
 export function requireAdmin(req: Request, res: Response, next: NextFunction) {
   try {
-    if (!req.user || req.user.userId !== "44010914") {
+    if (!req.user) {
       throw new ForbiddenError('Admin access required');
     }
     
     next();
   } catch (error) {
     Logger.logWarn('Admin access denied', { 
-      userId: req.user?.userId,
+      user: req.user,
       path: req.path,
       method: req.method
     });

@@ -1,7 +1,11 @@
 import { z } from 'zod';
 
 // Authentication request/response schemas
-export const authSchemas = {
+export const authSchemas: {
+  userProfile: z.ZodObject<any>,
+  loginRequest: z.ZodObject<any>,
+  tokenResponse: z.ZodObject<any>
+} = {
   // User profile response
   userProfile: z.object({
     id: z.number(),
@@ -25,7 +29,7 @@ export const authSchemas = {
     token: z.string(),
     refreshToken: z.string().optional(),
     expiresIn: z.number(),
-    user: z.lazy(() => authSchemas.userProfile)
+    user: z.lazy((): z.ZodObject<any> => authSchemas.userProfile)
   })
 };
 

@@ -60,7 +60,7 @@ router.get('/marketplace',
   async (req, res, next) => {
     try {
       const { page, limit } = req.query;
-      const listings = await EconomyDomainService.getMarketplaceListings(page, limit);
+      const listings = await EconomyDomainService.getMarketplaceListings(Number(page), Number(limit));
       
       res.json({
         success: true,
@@ -68,7 +68,7 @@ router.get('/marketplace',
         pagination: {
           page,
           limit,
-          hasMore: listings.length === limit
+          hasMore: listings.length === Number(limit)
         }
       });
     } catch (error) {

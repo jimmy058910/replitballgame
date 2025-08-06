@@ -1,5 +1,5 @@
 import { prisma } from '../db';
-import { PrismaClient, Item, InventoryItem } from '../../generated/prisma';
+import { PrismaClient, Item, InventoryItem, $Enums } from '../../generated/prisma';
 
 
 
@@ -7,11 +7,11 @@ export class ItemStorage {
   async createItem(itemData: {
     name: string;
     description: string;
-    type: string;
-    slot?: string;
-    raceRestriction?: string;
+    type: $Enums.ItemType;
+    slot?: $Enums.EquipmentSlot | null;
+    raceRestriction?: $Enums.Race | null;
     statEffects?: any;
-    rarity?: string;
+    rarity?: $Enums.ItemRarity;
     creditPrice?: bigint;
     gemPrice?: number;
     effectValue?: any;
@@ -24,7 +24,7 @@ export class ItemStorage {
         slot: itemData.slot,
         raceRestriction: itemData.raceRestriction,
         statEffects: itemData.statEffects,
-        rarity: itemData.rarity || 'COMMON',
+        rarity: itemData.rarity || $Enums.ItemRarity.COMMON,
         creditPrice: itemData.creditPrice,
         gemPrice: itemData.gemPrice,
         effectValue: itemData.effectValue,
@@ -40,14 +40,14 @@ export class ItemStorage {
     return item;
   }
 
-  async getItemsByType(itemType: string): Promise<Item[]> {
+  async getItemsByType(itemType: $Enums.ItemType): Promise<Item[]> {
     return await prisma.item.findMany({
       where: { type: itemType },
       orderBy: { name: 'asc' }
     });
   }
 
-  async getMarketplaceItems(itemType?: string): Promise<Item[]> {
+  async getMarketplaceItems(itemType?: $Enums.ItemType): Promise<Item[]> {
     return await prisma.item.findMany({
       where: {
         ...(itemType ? { type: itemType } : {}),
@@ -63,7 +63,7 @@ export class ItemStorage {
     });
   }
 
-  async updateItem(id: number, updates: Partial<Item>): Promise<Item | null> {
+  async updateItem(id: number, updates: Omit<Partial<Item>, 'id'>): Promise<Item | null> {
     try {
       const updatedItem = await prisma.item.update({
         where: { id },
@@ -74,37 +74,6 @@ export class ItemStorage {
       console.warn(`Item with ID ${id} not found for update.`);
       return null;
     }
-  }
-
-  async addItemToTeamInventory(
-    teamId: number,
-    itemId: string,
-    name: string,
-    description: string,
-    rarity: string,
-    statBoosts: any,
-    quantity: number
-  ): Promise<void> {
-    // Add item to team inventory
-    await prisma.inventoryItem.create({
-      data: {
-        teamId,
-        itemId,
-        name,
-        description,
-        rarity,
-        statBoosts,
-        quantity,
-        itemType: 'EQUIPMENT'
-      }
-    });
-  }
-
-  async getTeamInventory(teamId: number): Promise<InventoryItem[]> {
-    return await prisma.inventoryItem.findMany({
-      where: { teamId },
-      orderBy: { createdAt: 'desc' }
-    });
   }
 
   async deleteItem(id: number): Promise<boolean> {
@@ -154,7 +123,7 @@ export class ItemStorage {
     }
   }
 
-  async getTeamInventory(teamId: number, itemType?: string): Promise<InventoryItem[]> {
+  async getTeamInventory(teamId: number, itemType?: $Enums.ItemType): Promise<InventoryItem[]> {
     return await prisma.inventoryItem.findMany({
       where: {
         teamId,
@@ -200,7 +169,7 @@ export class ItemStorage {
     }
   }
 
-  async getItemsByRarity(rarity: string): Promise<Item[]> {
+  async getItemsByRarity(rarity: $Enums.ItemRarity): Promise<Item[]> {
     return await prisma.item.findMany({
       where: { rarity },
       orderBy: { name: 'asc' }

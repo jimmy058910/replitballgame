@@ -72,22 +72,9 @@ export class EconomyDomainService {
   static async getMarketplaceListings(page: number = 1, limit: number = 20): Promise<MarketplaceListing[]> {
     try {
       const listings = await prisma.marketplaceListing.findMany({
-        where: { status: 'active' },
-        include: {
-          player: {
-            select: {
-              id: true,
-              firstName: true,
-              lastName: true,
-              position: true,
-              race: true,
-              overall: true,
-              age: true,
-              potential: true
-            }
-          }
-        },
-        orderBy: { endsAt: 'asc' },
+        where: { isActive: true },
+
+        orderBy: { createdAt: 'desc' },
         skip: (page - 1) * limit,
         take: limit
       });
@@ -95,23 +82,14 @@ export class EconomyDomainService {
       return listings.map(listing => ({
         id: Number(listing.id),
         playerId: Number(listing.playerId),
-        teamId: Number(listing.teamId),
-        startingBid: Number(listing.startingBid),
+        teamId: Number(listing.sellerTeamId),
+        startingBid: Number(listing.startBid),
         buyNowPrice: listing.buyNowPrice ? Number(listing.buyNowPrice) : undefined,
-        currentBid: Number(listing.currentBid),
-        highestBidderId: listing.highestBidderId ? Number(listing.highestBidderId) : undefined,
-        endsAt: listing.endsAt,
-        status: listing.status as 'active' | 'sold' | 'expired' | 'cancelled',
-        player: {
-          id: Number(listing.player.id),
-          firstName: listing.player.firstName,
-          lastName: listing.player.lastName,
-          position: listing.player.position,
-          race: listing.player.race,
-          overall: listing.player.overall,
-          age: listing.player.age,
-          potential: listing.player.potential
-        }
+        currentBid: Number(listing.startBid),
+        highestBidderId: undefined,
+        endsAt: listing.autoDelistAt || new Date(),
+        status: listing.isActive ? 'active' : 'expired',
+        playerId: Number(listing.playerId)
       }));
     } catch (error) {
       Logger.logError('Failed to get marketplace listings', error as Error, { page, limit });
@@ -129,7 +107,7 @@ export class EconomyDomainService {
         throw new NotFoundError('Marketplace listing');
       }
 
-      if (listing.currentBid >= request.amount) {
+      if (Number(listing.startBid) >= request.amount) {
         throw new ValidationError('Bid must be higher than current bid');
       }
 

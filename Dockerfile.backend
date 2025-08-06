@@ -28,12 +28,12 @@ COPY postcss.config.js ./
 # Generate Prisma client
 RUN npx prisma generate
 
-# PRODUCTION FIX: Build frontend only, use tsx for server (like development)
-RUN rm -rf dist && npm run build
+# INDUSTRY STANDARD: Compile TypeScript server to JavaScript for production
+RUN rm -rf dist && npm run build:all
 
-# Verify frontend build output
-RUN ls -la dist/ || echo "⚠️ No dist folder found"
-RUN echo "✅ Frontend built successfully, using tsx for server execution"
+# Verify both frontend and server compilation
+RUN ls -la dist/public/ && echo "✅ Frontend compiled successfully"
+RUN ls -la dist/server/ && echo "✅ Server compiled to JavaScript successfully"
 
 # Production stage
 FROM node:20-alpine AS production
@@ -70,8 +70,12 @@ COPY --from=builder --chown=backend:nodejs /app/postcss.config.js ./
 # Verify frontend files exist in production container
 RUN ls -la dist/ && echo "✅ Frontend files copied successfully"
 
-# Switch to non-root user
+# Switch to non-root user for security
 USER backend
+
+# Set production environment
+ENV NODE_ENV=production
+ENV PORT=8080
 
 # Expose port
 EXPOSE 8080
@@ -80,8 +84,5 @@ EXPOSE 8080
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
   CMD node -e "require('http').get('http://localhost:8080/health', (res) => process.exit(res.statusCode === 200 ? 0 : 1))"
 
-# Set production environment
-ENV NODE_ENV=production
-
-# PRODUCTION STARTUP: Cloud Run debugging with comprehensive logging
-CMD ["dumb-init", "sh", "-c", "echo '=== CONTAINER START DEBUG ===' && echo 'NODE_ENV='$NODE_ENV && echo 'PORT='$PORT && echo 'DATABASE_URL_PRODUCTION exists:'$([ -n \"$DATABASE_URL_PRODUCTION\" ] && echo 'YES' || echo 'NO') && echo 'Starting Node.js...' && exec npx tsx server/index.ts"]
+# INDUSTRY STANDARD PRODUCTION: Run compiled JavaScript with proper process management
+CMD ["dumb-init", "node", "dist/server/index.js"]

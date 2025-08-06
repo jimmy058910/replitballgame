@@ -1,8 +1,8 @@
 import { prisma } from '../db';
-import { PrismaClient, Player } from '../../generated/prisma';
+import { PrismaClient, Player, $Enums } from '../../generated/prisma';
 
 export class InjuryStorage {
-  async updatePlayerInjury(playerId: number, injuryStatus: string, recoveryPointsNeeded?: number, recoveryPointsCurrent?: number): Promise<Player | null> {
+  async updatePlayerInjury(playerId: number, injuryStatus: $Enums.InjuryStatus, recoveryPointsNeeded?: number, recoveryPointsCurrent?: number): Promise<Player | null> {
     try {
       const updatedPlayer = await prisma.player.update({
         where: { id: playerId },
@@ -27,7 +27,7 @@ export class InjuryStorage {
       where: {
         teamId,
         injuryStatus: {
-          not: 'Healthy'
+          not: 'HEALTHY'
         }
       },
       include: {
