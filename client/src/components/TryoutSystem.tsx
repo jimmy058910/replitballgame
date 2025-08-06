@@ -9,7 +9,36 @@ import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { Trophy, Users, Clock, Search } from "lucide-react"; // Removed Star, Eye as they are not directly used by TryoutSystem
 import UnifiedPlayerCard from "./UnifiedPlayerCard";
-import { TeamFinances as TeamFinancesData, Scout, Player } from "shared/schema"; // Added Player
+// Define interfaces for tryout system
+interface TeamFinancesData {
+  credits: number;
+  totalRevenue: number;
+  totalExpenses: number;
+}
+
+interface Scout {
+  id: string;
+  name: string;
+  effectiveness: number;
+  isAvailable: boolean;
+}
+
+interface Player {
+  id: string;
+  firstName: string;
+  lastName: string;
+  race: string;
+  role: string;
+  age: number;
+  speed: number;
+  power: number;
+  throwing: number;
+  catching: number;
+  kicking: number;
+  stamina: number;
+  leadership: number;
+  agility: number;
+}
 
 interface ScoutData {
   effectiveness: number;

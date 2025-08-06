@@ -80,18 +80,18 @@ export default function SponsorshipManagement() {
 
   const { data: team, isLoading: teamLoading } = useQuery<TeamData, Error>({
     queryKey: ["/api/teams/my"],
-    queryFn: () => apiRequest("/api/teams/my"),
+    queryFn: () => apiRequest<TeamData>("/api/teams/my"),
   });
 
   const { data: sponsorshipDeals = [], isLoading: dealsLoading } = useQuery<SponsorshipDeal[], Error>({
     queryKey: ["/api/sponsorships", team?.id],
-    queryFn: () => apiRequest(`/api/sponsorships?teamId=${team!.id}`),
+    queryFn: () => apiRequest<SponsorshipDeal[]>(`/api/sponsorships?teamId=${team!.id}`),
     enabled: !!team?.id,
   });
 
   const { data: stadiumRevenue = [], isLoading: revenueLoading } = useQuery<StadiumRevenue[], Error>({
     queryKey: ["/api/stadium/revenue", team?.id],
-    queryFn: () => apiRequest(`/api/stadium/revenue?teamId=${team!.id}`),
+    queryFn: () => apiRequest<StadiumRevenue[]>(`/api/stadium/revenue?teamId=${team!.id}`),
     enabled: !!team?.id,
   });
 

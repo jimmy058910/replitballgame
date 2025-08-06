@@ -18,7 +18,7 @@ export function LiveMatchViewer({ matchId, userId, onMatchComplete }: LiveMatchV
   const { toast } = useToast();
 
   // Fetch initial match data
-  const { data: initialMatchData, error: matchError, isLoading: matchDataLoading } = useQuery({
+  const { data: initialMatchData, error: matchError, isLoading: matchDataLoading } = useQuery<any>({
     queryKey: [`/api/matches/${String(matchId)}`],
     enabled: !!matchId,
     retry: 1,
@@ -60,7 +60,7 @@ export function LiveMatchViewer({ matchId, userId, onMatchComplete }: LiveMatchV
   });
 
   // Fetch enhanced match data
-  const { data: enhancedData, isLoading: enhancedDataLoading, error: enhancedError } = useQuery({
+  const { data: enhancedData, isLoading: enhancedDataLoading, error: enhancedError } = useQuery<any>({
     queryKey: [`/api/matches/${String(matchId)}/enhanced-data`],
     enabled: !!matchId,
     queryFn: async () => {

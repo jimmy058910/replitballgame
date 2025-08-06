@@ -116,7 +116,7 @@ export default function ContractManagement() {
 
   const negotiateContractMutation = useMutation({
     mutationFn: (data: any) =>
-      apiRequest(`/api/contracts/negotiate`, "POST", data),
+      apiRequest<{ success: boolean; message: string }>(`/api/contracts/negotiate`, "POST", data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/contracts"] });
       queryClient.invalidateQueries({ queryKey: ["/api/salary-cap"] });
@@ -130,7 +130,7 @@ export default function ContractManagement() {
 
   const renewContractMutation = useMutation({
     mutationFn: (data: { contractId: string; newTerms: any }) =>
-      apiRequest(`/api/contracts/${data.contractId}/renew`, "POST", data.newTerms),
+      apiRequest<{ success: boolean; message: string }>(`/api/contracts/${data.contractId}/renew`, "POST", data.newTerms),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/contracts"] });
       toast({
@@ -142,7 +142,7 @@ export default function ContractManagement() {
 
   const releasePlayerMutation = useMutation({
     mutationFn: (contractId: string) =>
-      apiRequest(`/api/contracts/${contractId}/release`, "DELETE"),
+      apiRequest<{ success: boolean; message: string }>(`/api/contracts/${contractId}/release`, "DELETE"),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/contracts"] });
       queryClient.invalidateQueries({ queryKey: ["/api/salary-cap"] });

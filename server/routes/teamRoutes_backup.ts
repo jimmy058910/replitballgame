@@ -377,7 +377,7 @@ const productionTeamCreation = asyncHandler(async (req: any, res: Response): Pro
 // Team routes - with production bypass for pre-alpha testing
 const teamCreationHandler = process.env.NODE_ENV === 'development' ? 
   developmentTeamCreation 
-  (process.env.NODE_ENV === 'production' ? productionTeamCreation : handleTeamCreation);
+  : (process.env.NODE_ENV === 'production' ? productionTeamCreation : handleTeamCreation);
 
 router.post('/', teamCreationHandler);
 router.post('/create', teamCreationHandler);
@@ -2899,7 +2899,7 @@ router.get('/:teamId/matches/live', requireAuth, async (req: Request, res: Respo
     // Transform matches for user team display
     const transformedMatches = userTeamMatches.map(match => {
       const matchType = match.tournamentId ? 'TOURNAMENT' 
-                       match.type === 'exhibition' ? 'EXHIBITION' : 'LEAGUE';
+                       : match.type === 'exhibition' ? 'EXHIBITION' : 'LEAGUE';
       
       return {
         id: match.id.toString(),

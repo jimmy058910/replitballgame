@@ -115,21 +115,37 @@ export default function AdvancedTacticalEffectsManager({ teamId }: { teamId: str
   const [selectedTacticalFocus, setSelectedTacticalFocus] = useState<string>('');
 
   // Fetch current tactical setup
-  const { data: currentSetup, isLoading: loadingSetup } = useQuery({
+  const { data: currentSetup, isLoading: loadingSetup } = useQuery<TacticalAnalysis>({
     queryKey: ['/api/tactics/team-tactics'],
     enabled: !!teamId
   });
 
   // Fetch tactical options (field sizes and tactical foci)
-  const { data: tacticalOptions } = useQuery({
+  const { data: tacticalOptions } = useQuery<TacticalOptions>({
     queryKey: ['/api/tactics/tactical-options']
   });
 
   // Fetch effectiveness analysis
-  const { data: tacticalAnalysis } = useQuery({
+  const { data: tacticalAnalysis } = useQuery<TacticalAnalysis>({
     queryKey: ['/api/tactics/tactical-analysis'],
     enabled: !!teamId
   });
+
+  // Define interfaces for tactical data
+  interface TacticalOptions {
+    fieldSizes?: any[];
+    tacticalFoci?: any[];
+  }
+  
+  interface TacticalAnalysis {
+    bestSetup?: any;
+    fieldSize?: string;
+    fieldSizeInfo?: any;
+    canChangeFieldSize?: boolean;
+    tacticalFocus?: string;
+    tacticalFocusInfo?: any;
+    nextFieldChangeWindow?: string;
+  }
 
   // Extract data from responses
   const fieldSizeEffects = tacticalOptions?.fieldSizes;

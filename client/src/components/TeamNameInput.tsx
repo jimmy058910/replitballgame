@@ -38,9 +38,9 @@ export function TeamNameInput({
   const queryClient = useQueryClient();
 
   // Get validation rules
-  const { data: rulesData } = useQuery({
+  const { data: rulesData } = useQuery<any>({
     queryKey: ['/api/team-names/rules'],
-    queryFn: () => apiRequest('/api/team-names/rules')
+    queryFn: () => apiRequest<any>('/api/team-names/rules')
   });
 
   // Validation mutation

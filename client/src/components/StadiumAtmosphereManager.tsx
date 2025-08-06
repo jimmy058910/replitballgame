@@ -109,37 +109,37 @@ export default function StadiumAtmosphereManager({ teamId }: { teamId: string })
   const [selectedUpgrade, setSelectedUpgrade] = useState<string | null>(null);
 
   // Fetch stadium data
-  const { data: stadiumData, isLoading: loadingStadium } = useQuery({
+  const { data: stadiumData, isLoading: loadingStadium } = useQuery<any>({
     queryKey: ['/api/stadium-atmosphere/stadium-data', teamId],
     enabled: !!teamId
   });
 
   // Fetch atmosphere data
-  const { data: atmosphereData, isLoading: loadingAtmosphere } = useQuery({
+  const { data: atmosphereData, isLoading: loadingAtmosphere } = useQuery<any>({
     queryKey: ['/api/stadium-atmosphere/atmosphere-data', teamId],
     enabled: !!teamId
   });
 
   // Fetch revenue breakdown
-  const { data: revenueData } = useQuery({
+  const { data: revenueData } = useQuery<any>({
     queryKey: ['/api/stadium-atmosphere/revenue-breakdown', teamId],
     enabled: !!teamId
   });
 
   // Fetch team power tier
-  const { data: teamPowerTier } = useQuery({
+  const { data: teamPowerTier } = useQuery<any>({
     queryKey: ['/api/stadium-atmosphere/team-power-tier', teamId],
     enabled: !!teamId
   });
 
   // Fetch upgrade costs
-  const { data: upgradeCosts } = useQuery({
+  const { data: upgradeCosts } = useQuery<any>({
     queryKey: ['/api/stadium-atmosphere/upgrade-costs', teamId],
     enabled: !!teamId
   });
 
   // Fetch loyalty factors
-  const { data: loyaltyFactors } = useQuery({
+  const { data: loyaltyFactors } = useQuery<any>({
     queryKey: ['/api/stadium-atmosphere/loyalty-factors', teamId],
     enabled: !!teamId
   });

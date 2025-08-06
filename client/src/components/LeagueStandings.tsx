@@ -30,13 +30,13 @@ export default function LeagueStandings({ division }: LeagueStandingsProps) {
   const [selectedTeamId, setSelectedTeamId] = useState<string | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
 
-  const { data: rawStandings, isLoading } = useQuery({
+  const { data: rawStandings, isLoading } = useQuery<Team[]>({
     queryKey: [`/api/leagues/${division}/standings`],
   });
   const standings = (rawStandings || []) as Team[];
 
   // Get current user's team to properly highlight it in standings
-  const { data: currentUserTeam } = useQuery({
+  const { data: currentUserTeam } = useQuery<any>({
     queryKey: ['/api/teams/my'],
   });
 

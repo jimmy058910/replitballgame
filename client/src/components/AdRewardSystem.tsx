@@ -18,6 +18,12 @@ interface AdStats {
   resetTime?: string;
 }
 
+interface AdRewardResult {
+  success: boolean;
+  message: string;
+  credits?: number;
+}
+
 export function AdRewardSystem() {
   const [adStats, setAdStats] = useState<AdStats | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -26,7 +32,7 @@ export function AdRewardSystem() {
 
   const fetchAdStats = async () => {
     try {
-      const stats = await apiRequest('/api/ads/stats', 'GET');
+      const stats = await apiRequest<AdStats>('/api/ads/stats', 'GET');
       setAdStats(stats);
     } catch (error) {
       console.error('Failed to fetch ad stats:', error);
@@ -66,7 +72,7 @@ export function AdRewardSystem() {
 
       await new Promise(resolve => setTimeout(resolve, adDuration));
 
-      const result = await apiRequest('/api/ads/view', 'POST', {
+      const result = await apiRequest<AdRewardResult>('/api/ads/view', 'POST', {
         adType: 'rewarded_video',
         placement: 'store_bonus',
         rewardType: 'credits',

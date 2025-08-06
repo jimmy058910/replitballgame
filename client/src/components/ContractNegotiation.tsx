@@ -6,11 +6,15 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import type { Player as SharedPlayer } from "shared/schema"; // Assuming PlayerWithRole is based on this
-
-// Define PlayerWithRole if not already globally available or imported
-// For this component, we only need a subset of player properties.
-interface PlayerForContract extends Pick<SharedPlayer, 'id' | 'firstName' | 'lastName' | 'race' | 'age' | 'salary'> {
+// Define player interface for contract negotiations
+interface PlayerForContract {
+  id: string;
+  firstName: string;
+  lastName: string;
+  race: string;
+  age: number;
+  salary?: number;
+  role?: string;
   // Add other fields if used by this component like role, specific stats for negotiation basis etc.
 }
 

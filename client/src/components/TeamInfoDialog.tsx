@@ -8,7 +8,44 @@ import { Progress } from "@/components/ui/progress";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Users, Trophy, TrendingUp, Star, Shield, ChevronDown, DollarSign, Home, Building } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
-import { Team, Player } from "shared/schema";
+// Define interfaces for team info dialog
+interface Team {
+  id: string;
+  name: string;
+  division: number;
+  subdivision?: string;
+  wins: number;
+  losses: number;
+  draws: number;
+  points: number;
+  goalDifference: number;
+  teamPower: number;
+  teamCamaraderie: number;
+  credits: number;
+  userProfileId?: string;
+  logoUrl?: string;
+  fanLoyalty?: number;
+  homeField?: string;
+  tacticalFocus?: string;
+  leagueId?: string;
+}
+
+interface Player {
+  id: string;
+  firstName: string;
+  lastName: string;
+  race: string;
+  role: string;
+  age: number;
+  speed: number;
+  power: number;
+  throwing: number;
+  catching: number;
+  kicking: number;
+  stamina: number;
+  leadership: number;
+  agility: number;
+}
 
 // Helper function to get division name with subdivision
 const getDivisionNameWithSubdivision = (division: number, subdivision?: string) => {
@@ -117,7 +154,7 @@ export default function TeamInfoDialog({ teamId, isOpen, onClose }: TeamInfoDial
 
     // Sum staff salaries - use Contract data if available
     if (staff) {
-      staff.forEach(staffMember => {
+      staff.forEach((staffMember: any) => {
         // Staff contracts might be structured differently
         const salary = staffMember.contract?.salary || staffMember.contracts?.[0]?.salary || 8000; // Default staff salary fallback  
         totalStaffSalaries += salary;

@@ -235,7 +235,7 @@ export default function UnifiedTeamChemistry({ teamId }: { teamId: string }) {
                     <div className="w-2 h-2 bg-green-500 rounded-full"></div>
                     <div>
                       <div className="font-medium">{player.firstName} {player.lastName}</div>
-                      <div className="text-xs text-gray-400">{player.role?.toLowerCase().replace(/^\w/, c => c.toUpperCase()) || 'Unknown'} • Age {player.age}</div>
+                      <div className="text-xs text-gray-400">{player.role?.toLowerCase().replace(/^\w/, (c: string) => c.toUpperCase()) || 'Unknown'} • Age {player.age}</div>
                     </div>
                   </div>
                   <div className="text-right">
@@ -268,7 +268,7 @@ export default function UnifiedTeamChemistry({ teamId }: { teamId: string }) {
                     <div className="w-2 h-2 bg-red-500 rounded-full"></div>
                     <div>
                       <div className="font-medium">{player.firstName} {player.lastName}</div>
-                      <div className="text-xs text-gray-400">{player.role?.toLowerCase().replace(/^\w/, c => c.toUpperCase()) || 'Unknown'} • Age {player.age}</div>
+                      <div className="text-xs text-gray-400">{player.role?.toLowerCase().replace(/^\w/, (c: string) => c.toUpperCase()) || 'Unknown'} • Age {player.age}</div>
                     </div>
                   </div>
                   <div className="text-right">

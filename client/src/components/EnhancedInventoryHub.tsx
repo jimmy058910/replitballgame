@@ -90,11 +90,11 @@ export default function EnhancedInventoryHub({ teamId }: EnhancedInventoryHubPro
   // Filter definitions
   const filterChips = [
     { id: 'all', name: 'All', icon: Package, count: inventory.length },
-    { id: 'equipment', name: 'Equipment', icon: Shield, count: inventory.filter(i => i.itemType?.toLowerCase().includes('equipment')).length },
-    { id: 'consumable', name: 'Consumables', icon: Zap, count: inventory.filter(i => i.itemType?.toLowerCase().includes('consumable')).length },
-    { id: 'boost', name: 'Boosts', icon: Activity, count: inventory.filter(i => i.itemType?.toLowerCase().includes('boost')).length },
-    { id: 'entry', name: 'Entries', icon: Ticket, count: inventory.filter(i => i.itemType?.toLowerCase().includes('entry')).length },
-    { id: 'trophy', name: 'Trophies', icon: Trophy, count: inventory.filter(i => i.itemType?.toLowerCase().includes('trophy')).length },
+    { id: 'equipment', name: 'Equipment', icon: Shield, count: inventory.filter((i: InventoryItem) => i.itemType?.toLowerCase().includes('equipment')).length },
+    { id: 'consumable', name: 'Consumables', icon: Zap, count: inventory.filter((i: InventoryItem) => i.itemType?.toLowerCase().includes('consumable')).length },
+    { id: 'boost', name: 'Boosts', icon: Activity, count: inventory.filter((i: InventoryItem) => i.itemType?.toLowerCase().includes('boost')).length },
+    { id: 'entry', name: 'Entries', icon: Ticket, count: inventory.filter((i: InventoryItem) => i.itemType?.toLowerCase().includes('entry')).length },
+    { id: 'trophy', name: 'Trophies', icon: Trophy, count: inventory.filter((i: InventoryItem) => i.itemType?.toLowerCase().includes('trophy')).length },
   ];
 
   const rarityOptions = ['all', 'common', 'uncommon', 'rare', 'epic', 'legendary'];

@@ -35,14 +35,14 @@ export default function InventoryDisplay({ teamId }: InventoryDisplayProps) {
   const [rarityFilter, setRarityFilter] = useState("all");
   const [slotFilter, setSlotFilter] = useState("all");
 
-  const { data: inventory, isLoading } = useQuery({
+  const { data: inventory, isLoading } = useQuery<InventoryItem[]>({
     queryKey: ['/api/inventory', teamId],
-    queryFn: () => apiRequest(`/api/inventory/${teamId}`),
+    queryFn: () => apiRequest<InventoryItem[]>(`/api/inventory/${teamId}`),
   });
 
-  const { data: trophies } = useQuery({
+  const { data: trophies } = useQuery<any[]>({
     queryKey: ['/api/teams', teamId, 'trophies'],
-    queryFn: () => apiRequest(`/api/teams/${teamId}/trophies`),
+    queryFn: () => apiRequest<any[]>(`/api/teams/${teamId}/trophies`),
   });
 
   const filterItems = (items: InventoryItem[], type: string) => {

@@ -63,9 +63,9 @@ export function MatchStatsOverlay({
   isVisible, 
   position = 'overlay' 
 }: MatchStatsOverlayProps) {
-  const { data: matchStats, isLoading } = useQuery({
+  const { data: matchStats, isLoading } = useQuery<MatchStatsDisplay>({
     queryKey: ['/api/stats/match', matchId],
-    queryFn: () => apiRequest(`/api/stats/match/${matchId}`),
+    queryFn: () => apiRequest<MatchStatsDisplay>(`/api/stats/match/${matchId}`),
     refetchInterval: 10000, // Update every 10 seconds during live match
     enabled: isVisible && !!matchId
   });

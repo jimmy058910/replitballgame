@@ -18,18 +18,36 @@ import {
   Zap
 } from "lucide-react";
 import PlayerCard from "./PlayerCard";
-import type { Team, Player, Match as MatchType, Notification as NotificationType, League as LeagueType } from "@shared/schema"; // Import types
-
-// Define a more specific type for Team data used in this component
-interface DashboardTeam extends Team {
-  players?: Player[];
-  finances?: { credits?: number };
-  season?: number; // Assuming season is part of team data
+// Define types for dashboard data
+interface Player {
+  id: string;
+  firstName: string;
+  lastName: string;
+  race: string;
+  role: string;
+  age: number;
+  speed: number;
+  power: number;
+  throwing: number;
+  catching: number;
+  kicking: number;
+  isOnTaxi?: boolean;
 }
 
-interface DashboardMatch extends MatchType {
-  homeTeam?: { name?: string }; // Optional chaining for nested properties
+interface Team {
+  id: string;
+  name: string;
+  division?: number;
+  players?: Player[];
+  finances?: { credits?: number };
+  season?: number;
+}
+
+interface DashboardMatch {
+  id: string;
+  homeTeam?: { name?: string };
   awayTeam?: { name?: string };
+  status?: string;
 }
 
 
@@ -43,7 +61,7 @@ export default function EnhancedDashboard() {
   const { data: notifications } = useQuery({ queryKey: ["/api/notifications"] });
   const { data: leagues } = useQuery({ queryKey: ["/api/leagues"] });
 
-  const unreadNotifications = notifications?.filter((n) => !n.isRead)?.length || 0;
+  const unreadNotifications = notifications?.filter((n: any) => !n.isRead)?.length || 0;
   const teamPower = team?.players?.reduce((sum: number, p: Player) =>
     sum + (p.speed + p.power + p.throwing + p.catching + p.kicking), 0) || 0;
   

@@ -70,7 +70,7 @@ const getMatchTypeInfo = (matchType: string, tournamentId?: string) => {
 export function ImprovedLiveMatches({ className = "", maxMatches = 5, showTitle = true }: ImprovedLiveMatchesProps) {
   const [, setLocation] = useLocation();
 
-  const { data: rawLiveMatches, isLoading } = useQuery({
+  const { data: rawLiveMatches, isLoading } = useQuery<LiveMatch[]>({
     queryKey: ["/api/matches/live"],
     refetchInterval: 5000,
   });

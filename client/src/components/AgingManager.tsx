@@ -58,12 +58,12 @@ export default function AgingManager() {
   // Get aging statistics
   const { data: agingStats, isLoading: statsLoading } = useQuery<AgingStats>({
     queryKey: ['/api/aging/statistics'],
-    queryFn: () => apiRequest('/api/aging/statistics'),
+    queryFn: () => apiRequest<AgingStats>('/api/aging/statistics'),
   });
 
   // Process end-of-season aging
   const processSeasonAging = useMutation({
-    mutationFn: () => apiRequest('/api/aging/process-season-aging', 'POST'),
+    mutationFn: () => apiRequest<{ success: boolean; message: string }>('/api/aging/process-season-aging', 'POST'),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/aging/statistics'] });
     },
@@ -72,13 +72,13 @@ export default function AgingManager() {
   // Get player aging details
   const { data: playerAging, isLoading: playerLoading, error: playerError } = useQuery<PlayerAgingData>({
     queryKey: ['/api/aging/player', selectedPlayerId, 'retirement-chance'],
-    queryFn: () => apiRequest(`/api/aging/player/${selectedPlayerId}/retirement-chance`),
+    queryFn: () => apiRequest<PlayerAgingData>(`/api/aging/player/${selectedPlayerId}/retirement-chance`),
     enabled: !!selectedPlayerId,
   });
 
   // Simulate player aging
   const simulatePlayerAging = useMutation({
-    mutationFn: (playerId: string) => apiRequest(`/api/aging/player/${playerId}/simulate-aging`, 'POST'),
+    mutationFn: (playerId: string) => apiRequest<{ success: boolean; message: string }>(`/api/aging/player/${playerId}/simulate-aging`, 'POST'),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/aging/statistics'] });
       queryClient.invalidateQueries({ queryKey: ['/api/aging/player', selectedPlayerId, 'retirement-chance'] });

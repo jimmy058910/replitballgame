@@ -9,13 +9,17 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { useToast } from "@/hooks/use-toast";
 import { Bell, X, Clock, Trophy, Users, Target, DollarSign, AlertCircle, CheckCircle, Check } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
-import type { Notification as NotificationType } from "@shared/schema"; // Import shared Notification type
-
-// Local Notification interface can be removed if SharedPlayer is sufficient or adapted
-// For now, we'll use NotificationType from schema for the query.
-// The local 'Notification' interface might be used by a part of the component
-// that expects slightly different structure, or it's redundant.
-// Let's assume for now that the API returns data compatible with NotificationType.
+// Define notification types for the system
+interface NotificationType {
+  id: string;
+  type: string;
+  title: string;
+  message: string;
+  isRead: boolean;
+  createdAt: string;
+  metadata?: any;
+  priority?: 'low' | 'medium' | 'high';
+}
 
 export default function NotificationSystem() {
   const [isOpen, setIsOpen] = useState(false);

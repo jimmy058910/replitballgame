@@ -24,7 +24,7 @@ router.get("/stats", isAuthenticated, async (req: any, res: Response, next: Next
     const tournamentMatchesToday = await prisma.game.findMany({
       where: {
         matchType: "TOURNAMENT" as any, // Type assertion for enum compatibility
-        entryTime: { gte: todayStart },
+        createdAt: { gte: todayStart },
         OR: [
           { homeTeamId: team.id },
           { awayTeamId: team.id }
@@ -99,7 +99,7 @@ router.post("/instant-match", isAuthenticated, async (req: any, res: Response, n
     const tournamentMatchesToday = await prisma.game.findMany({
       where: {
         matchType: "TOURNAMENT" as any,
-        entryTime: { gte: todayStart },
+        createdAt: { gte: todayStart },
         OR: [
           { homeTeamId: team.id },
           { awayTeamId: team.id }
@@ -110,7 +110,7 @@ router.post("/instant-match", isAuthenticated, async (req: any, res: Response, n
     const tournamentEntriesToday = await prisma.tournamentEntry.findMany({
       where: {
         teamId: team.id,
-        entryTime: { gte: todayStart }
+        createdAt: { gte: todayStart }
       }
     });
 
@@ -225,7 +225,7 @@ router.post("/challenge-opponent", isAuthenticated, async (req: any, res: Respon
     const tournamentMatchesToday = await prisma.game.findMany({
       where: {
         matchType: "TOURNAMENT" as any,
-        entryTime: { gte: todayStart },
+        createdAt: { gte: todayStart },
         OR: [
           { homeTeamId: team.id },
           { awayTeamId: team.id }
@@ -236,7 +236,7 @@ router.post("/challenge-opponent", isAuthenticated, async (req: any, res: Respon
     const tournamentEntriesToday = await prisma.tournamentEntry.findMany({
       where: {
         teamId: team.id,
-        entryTime: { gte: todayStart }
+        createdAt: { gte: todayStart }
       }
     });
 

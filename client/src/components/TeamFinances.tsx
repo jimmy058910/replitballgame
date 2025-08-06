@@ -6,7 +6,19 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { TrendingUp, TrendingDown, DollarSign, Users, ShoppingBag, Shirt } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
-import { Team, TeamFinances as TeamFinancesData } from "shared/schema"; // Renamed to avoid conflict
+// Define financial types for this component
+interface Team {
+  id: string;
+  name: string;
+  credits: number;
+}
+
+interface TeamFinancesData {
+  totalRevenue: number;
+  totalExpenses: number;
+  netIncome: number;
+  credits: number;
+}
 
 interface TeamFinancesProps {
   teamId: string;

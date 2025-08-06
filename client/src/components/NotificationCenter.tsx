@@ -19,11 +19,18 @@ import {
 } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import type { Notification as NotificationType } from "@shared/schema"; // Import the shared Notification type
-
-// The local Notification interface can be removed if NotificationType from schema is sufficient
-// If local one is kept, ensure it's compatible or used appropriately.
-// For now, I'll assume NotificationType from schema is the source of truth.
+// Define notification types for this component
+interface NotificationType {
+  id: string;
+  type: string;
+  title: string;
+  message: string;
+  isRead: boolean;
+  createdAt: string;
+  metadata?: any;
+  priority?: 'low' | 'medium' | 'high';
+  actionUrl?: string;
+}
 
 export default function NotificationCenter() {
   const [showResults, setShowResults] = useState<Record<string, boolean>>({});

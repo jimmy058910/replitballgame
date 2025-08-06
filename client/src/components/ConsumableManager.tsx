@@ -79,18 +79,18 @@ export function ConsumableManager({ teamId, onConsumableActivated }: ConsumableM
   const queryClient = useQueryClient();
 
   // Fetch team consumables inventory
-  const { data: rawInventory = [], isLoading: inventoryLoading } = useQuery({
+  const { data: rawInventory = [], isLoading: inventoryLoading } = useQuery<TeamInventory[]>({
     queryKey: [`/api/consumables/team/${teamId}`],
     enabled: !!teamId
   });
-  const inventory = (rawInventory || []) as TeamInventory[];
+  const inventory = (rawInventory || []);
 
   // Fetch league matches for consumable activation
-  const { data: rawLeagueMatches = [] } = useQuery({
+  const { data: rawLeagueMatches = [] } = useQuery<Match[]>({
     queryKey: [`/api/matches/team/${teamId}`],
     enabled: !!teamId
   });
-  const leagueMatches = (rawLeagueMatches || []) as Match[];
+  const leagueMatches = (rawLeagueMatches || []);
 
   // Get upcoming league matches
   const upcomingLeagueMatches = leagueMatches.filter((match: any) => 

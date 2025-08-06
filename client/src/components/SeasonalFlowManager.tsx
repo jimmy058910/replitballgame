@@ -153,17 +153,17 @@ export default function SeasonalFlowManager() {
   const [selectedSeason, setSelectedSeason] = useState<number>(1);
 
   // Fetch current seasonal phase
-  const { data: currentPhase, isLoading: loadingPhase } = useQuery({
+  const { data: currentPhase, isLoading: loadingPhase } = useQuery<any>({
     queryKey: ['/api/seasonal-flow/phase', selectedSeason]
   });
 
   // Fetch seasonal flow configuration
-  const { data: config } = useQuery({
+  const { data: config } = useQuery<any>({
     queryKey: ['/api/seasonal-flow/config']
   });
 
   // Fetch schedule preview
-  const { data: schedulePreview } = useQuery({
+  const { data: schedulePreview } = useQuery<any>({
     queryKey: ['/api/seasonal-flow/schedule/preview', selectedSeason]
   });
 

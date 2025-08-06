@@ -60,6 +60,7 @@ router.get('/team-performance', isAuthenticated, async (req: Request, res: Respo
 
     // Determine trend based on recent performance
     let trend: 'up' | 'down' | 'stable' = 'stable';
+    const totalGames = team.wins + team.losses;
     
     if (totalGames > 3) {
       const winRate = team.wins / totalGames;

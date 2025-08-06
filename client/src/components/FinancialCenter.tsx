@@ -71,23 +71,23 @@ export default function FinancialCenter({ teamId }: FinancialCenterProps) {
   const [selectedSeason, setSelectedSeason] = useState<string>("current");
 
   // Fetch team finances
-  const { data: financesData, isLoading: financesLoading } = useQuery({
+  const { data: financesData, isLoading: financesLoading } = useQuery<FinancialData>({
     queryKey: ['/api/teams', teamId, 'finances'],
-    queryFn: () => apiRequest(`/api/teams/${teamId}/finances`),
+    queryFn: () => apiRequest<FinancialData>(`/api/teams/${teamId}/finances`),
     enabled: !!teamId,
   });
 
   // Fetch revenue breakdown
-  const { data: revenueData } = useQuery({
+  const { data: revenueData } = useQuery<RevenueBreakdown>({
     queryKey: ['/api/stadium-atmosphere/revenue-breakdown'],
-    queryFn: () => apiRequest('/api/stadium-atmosphere/revenue-breakdown'),
+    queryFn: () => apiRequest<RevenueBreakdown>('/api/stadium-atmosphere/revenue-breakdown'),
     enabled: !!teamId,
   });
 
   // Fetch player contracts
-  const { data: contractsData } = useQuery({
+  const { data: contractsData } = useQuery<PlayerContract[]>({
     queryKey: ['/api/teams', teamId, 'contracts'],
-    queryFn: () => apiRequest(`/api/teams/${teamId}/contracts`),
+    queryFn: () => apiRequest<PlayerContract[]>(`/api/teams/${teamId}/contracts`),
     enabled: !!teamId,
   });
 

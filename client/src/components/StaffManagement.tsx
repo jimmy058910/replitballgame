@@ -42,9 +42,9 @@ interface StaffTypeDefinition {
 export default function StaffManagement({ teamId }: StaffManagementProps) {
   const [selectedStaff, setSelectedStaff] = useState<StaffMember | null>(null);
 
-  const { data: rawStaff, isLoading, error } = useQuery({
+  const { data: rawStaff, isLoading, error } = useQuery<StaffMember[]>({
     queryKey: [`/api/teams/${teamId}/staff`],
-    queryFn: () => apiRequest(`/api/teams/${teamId}/staff`),
+    queryFn: () => apiRequest<StaffMember[]>(`/api/teams/${teamId}/staff`),
     enabled: !!teamId,
   });
   const staff = (rawStaff || []) as StaffMember[];

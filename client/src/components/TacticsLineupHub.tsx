@@ -100,7 +100,7 @@ export default function TacticsLineupHub({ teamId }: TacticsLineupHubProps) {
   }, []);
 
   // Fetch team players
-  const { data: rawPlayers = [] } = useQuery({
+  const { data: rawPlayers = [] } = useQuery<Player[]>({
     queryKey: [`/api/teams/${teamId}/players`],
     enabled: !!teamId,
   });

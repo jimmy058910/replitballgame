@@ -66,24 +66,24 @@ export default function UnifiedInventoryHub({ teamId }: UnifiedInventoryHubProps
   const queryClient = useQueryClient();
 
   // Fetch team inventory
-  const { data: rawInventory = [] } = useQuery({
+  const { data: rawInventory = [] } = useQuery<InventoryItem[]>({
     queryKey: [`/api/inventory/${teamId}`],
     enabled: !!teamId,
   });
-  const inventory = (rawInventory || []) as InventoryItem[];
+  const inventory = (rawInventory || []);
 
   // Fetch active boosts for the team
-  const { data: activeBoosts = [] } = useQuery({
+  const { data: activeBoosts = [] } = useQuery<ActiveBoost[]>({
     queryKey: [`/api/teams/${teamId}/active-boosts`],
     enabled: !!teamId,
   });
 
   // Fetch team players for equipment/consumable usage
-  const { data: rawPlayers = [] } = useQuery({
+  const { data: rawPlayers = [] } = useQuery<Player[]>({
     queryKey: [`/api/teams/${teamId}/players`],
     enabled: !!teamId,
   });
-  const players = (rawPlayers || []) as Player[];
+  const players = (rawPlayers || []);
 
   // Filter definitions according to project brief (only count items with quantity > 0)
   const filterOptions = [
@@ -597,7 +597,7 @@ export default function UnifiedInventoryHub({ teamId }: UnifiedInventoryHubProps
                     <div key={boost.id} className="flex items-center justify-between p-2 bg-gray-700 rounded-lg">
                       <div className="flex-1">
                         <div className="text-sm font-medium text-white">
-                          {boost.itemName.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
+                          {boost.itemName.replace(/_/g, ' ').replace(/\b\w/g, (l: string) => l.toUpperCase())}
                         </div>
                         <div className="text-xs text-gray-400">
                           {formatEffectText(boost.effect)}

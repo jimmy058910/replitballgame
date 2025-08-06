@@ -42,21 +42,21 @@ export function InjuryStaminaManager({ teamId }: InjuryStaminaManagerProps) {
   const [selectedPlayer, setSelectedPlayer] = useState<string>("");
 
   // Fetch team injury/stamina status
-  const { data: teamStatus, isLoading } = useQuery({
+  const { data: teamStatus, isLoading } = useQuery<{ players: PlayerInjuryStatus[] }>({
     queryKey: ['/api/injury-stamina/team', teamId, 'status'],
-    queryFn: () => apiRequest(`/api/injury-stamina/team/${teamId}/status`),
+    queryFn: () => apiRequest<{ players: PlayerInjuryStatus[] }>(`/api/injury-stamina/team/${teamId}/status`),
   });
 
   // Fetch system statistics
-  const { data: systemStats } = useQuery({
+  const { data: systemStats } = useQuery<any>({
     queryKey: ['/api/injury-stamina/system/stats'],
-    queryFn: () => apiRequest('/api/injury-stamina/system/stats'),
+    queryFn: () => apiRequest<any>('/api/injury-stamina/system/stats'),
   });
 
   // Fetch team inventory for recovery items
-  const { data: rawInventory } = useQuery({
+  const { data: rawInventory } = useQuery<InventoryItem[]>({
     queryKey: ['/api/inventory', teamId],
-    queryFn: () => apiRequest(`/api/inventory/${teamId}`),
+    queryFn: () => apiRequest<InventoryItem[]>(`/api/inventory/${teamId}`),
     enabled: !!teamId,
   });
   const inventory = (rawInventory || []) as InventoryItem[];

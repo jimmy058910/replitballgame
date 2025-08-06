@@ -81,18 +81,18 @@ export default function PlayerSkillsManager({ teamId }: { teamId: string }) {
   const [selectedPlayer, setSelectedPlayer] = useState<string | null>(null);
 
   // Fetch team summary
-  const { data: teamSummary, isLoading: loadingSummary } = useQuery({
+  const { data: teamSummary, isLoading: loadingSummary } = useQuery<any>({
     queryKey: ['/api/player-skills/team-summary', teamId],
     enabled: !!teamId
   });
 
   // Fetch all available skills
-  const { data: availableSkills } = useQuery({
+  const { data: availableSkills } = useQuery<any[]>({
     queryKey: ['/api/player-skills/available-skills']
   });
 
   // Fetch team players with skills
-  const { data: players, isLoading: loadingPlayers } = useQuery({
+  const { data: players, isLoading: loadingPlayers } = useQuery<any[]>({
     queryKey: ['/api/player-skills/team-players', teamId],
     enabled: !!teamId
   });

@@ -10,10 +10,10 @@ router.post('/match-simulation', async (req, res) => {
     // Create realistic demo players with proper Realm Rivalry attributes
     const homeTeamPlayers: Player[] = [
       {
-        id: '1',
+        id: 1,
         name: 'Alex Thunder',
-        race: 'human',
-        role: 'passer',
+        race: 'HUMAN',
+        role: 'PASSER',
         speed: 28,
         power: 26,
         throwing: 32,
@@ -24,16 +24,16 @@ router.post('/match-simulation', async (req, res) => {
         agility: 25,
         potential: 3.5,
         age: 24,
-        userProfileId: '44010914',
-        teamId: '101',
+        userProfileId: 44010914,
+        teamId: 101,
         createdAt: new Date(),
         updatedAt: new Date()
       },
       {
-        id: '2',
+        id: 2,
         name: 'Mike Blitz',
-        race: 'sylvan',
-        role: 'runner',
+        race: 'SYLVAN',
+        role: 'RUNNER',
         speed: 35,
         power: 23,
         throwing: 18,
@@ -44,16 +44,16 @@ router.post('/match-simulation', async (req, res) => {
         agility: 36,
         potential: 4.0,
         age: 22,
-        userProfileId: '44010914',
-        teamId: '101',
+        userProfileId: 44010914,
+        teamId: 101,
         createdAt: new Date(),
         updatedAt: new Date()
       },
       {
-        id: '3',
+        id: 3,
         name: 'Sarah Strike',
-        race: 'gryll',
-        role: 'blocker',
+        race: 'GRYLL',
+        role: 'BLOCKER',
         speed: 22,
         power: 38,
         throwing: 16,
@@ -64,8 +64,8 @@ router.post('/match-simulation', async (req, res) => {
         agility: 24,
         potential: 3.2,
         age: 26,
-        userProfileId: '44010914',
-        teamId: '101',
+        userProfileId: 44010914,
+        teamId: 101,
         createdAt: new Date(),
         updatedAt: new Date()
       }
@@ -73,10 +73,10 @@ router.post('/match-simulation', async (req, res) => {
 
     const awayTeamPlayers: Player[] = [
       {
-        id: '4',
+        id: 4,
         name: 'Jake Storm',
-        race: 'lumina',
-        role: 'passer',
+        race: 'LUMINA',
+        role: 'PASSER',
         speed: 26,
         power: 24,
         throwing: 34,
@@ -87,16 +87,16 @@ router.post('/match-simulation', async (req, res) => {
         agility: 23,
         potential: 4.2,
         age: 25,
-        userProfileId: '44010914',
-        teamId: '102',
+        userProfileId: 44010914,
+        teamId: 102,
         createdAt: new Date(),
         updatedAt: new Date()
       },
       {
-        id: '5',
+        id: 5,
         name: 'Lisa Bolt',
-        race: 'umbra',
-        role: 'runner',
+        race: 'UMBRA',
+        role: 'RUNNER',
         speed: 31,
         power: 25,
         throwing: 19,
@@ -107,16 +107,16 @@ router.post('/match-simulation', async (req, res) => {
         agility: 33,
         potential: 3.8,
         age: 23,
-        userProfileId: '44010914',
-        teamId: '102',
+        userProfileId: 44010914,
+        teamId: 102,
         createdAt: new Date(),
         updatedAt: new Date()
       },
       {
-        id: '6',
+        id: 6,
         name: 'Tom Wing',
-        race: 'human',
-        role: 'blocker',
+        race: 'HUMAN',
+        role: 'BLOCKER',
         speed: 25,
         power: 35,
         throwing: 17,
@@ -127,8 +127,8 @@ router.post('/match-simulation', async (req, res) => {
         agility: 26,
         potential: 3.6,
         age: 27,
-        userProfileId: '44010914',
-        teamId: '102',
+        userProfileId: 44010914,
+        teamId: 102,
         createdAt: new Date(),
         updatedAt: new Date()
       }
@@ -138,8 +138,8 @@ router.post('/match-simulation', async (req, res) => {
     const result = await simulateEnhancedMatch(
       homeTeamPlayers,
       awayTeamPlayers,
-      '101',
-      '102',
+      101,
+      102,
       undefined, // No stadium for demo
       'exhibition'
     );

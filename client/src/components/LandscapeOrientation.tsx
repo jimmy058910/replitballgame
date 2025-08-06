@@ -31,7 +31,7 @@ export const LandscapeOrientation: React.FC<LandscapeOrientationProps> = ({ chil
     if ('screen' in window && 'orientation' in window.screen) {
       const orientation = window.screen.orientation;
       if ('lock' in orientation) {
-        orientation.lock('landscape').catch((err) => {
+        orientation.lock('landscape').catch((err: any) => {
           console.log('Orientation lock not supported:', err);
         });
       }

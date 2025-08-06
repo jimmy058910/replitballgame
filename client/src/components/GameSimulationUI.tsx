@@ -45,6 +45,24 @@ interface Player {
   leadership: number;
 }
 
+interface AtmosphereData {
+  data?: any;
+}
+
+interface EnhancedMatchData {
+  data?: any;
+}
+
+interface TeamFormation {
+  formationJson: string | object;
+}
+
+interface MatchEvent {
+  type: string;
+  description: string;
+  text?: string;
+}
+
 interface KeyPerformer {
   playerId: string;
   playerName: string;
@@ -72,23 +90,23 @@ export function GameSimulationUI({ matchId, userId, team1, team2, initialLiveSta
   });
 
   // Fetch team players for field display
-  const { data: homeTeamPlayers } = useQuery({
+  const { data: homeTeamPlayers } = useQuery<Player[]>({
     queryKey: [`/api/teams/${team1?.id ? String(team1?.id) : 'unknown'}/players`],
     enabled: !!team1?.id
   });
 
-  const { data: awayTeamPlayers } = useQuery({
+  const { data: awayTeamPlayers } = useQuery<Player[]>({
     queryKey: [`/api/teams/${team2?.id ? String(team2?.id) : 'unknown'}/players`],
     enabled: !!team2?.id
   });
 
   // Fetch formation data to show correct starters
-  const { data: homeFormation } = useQuery({
+  const { data: homeFormation } = useQuery<TeamFormation>({
     queryKey: [`/api/teams/${team1?.id ? String(team1?.id) : 'unknown'}/formation`],
     enabled: !!team1?.id
   });
 
-  const { data: awayFormation } = useQuery({
+  const { data: awayFormation } = useQuery<TeamFormation>({
     queryKey: [`/api/teams/${team2?.id ? String(team2?.id) : 'unknown'}/formation`],
     enabled: !!team2?.id
   });
@@ -101,14 +119,14 @@ export function GameSimulationUI({ matchId, userId, team1, team2, initialLiveSta
   });
 
   // Fetch atmosphere data for the home team
-  const { data: atmosphereData } = useQuery({
+  const { data: atmosphereData } = useQuery<AtmosphereData>({
     queryKey: ['/api/stadium-atmosphere/atmosphere-data'], 
     enabled: !!team1?.id,
     staleTime: 30000 // Atmosphere changes less frequently
   });
 
   // Fetch enhanced match data for MVP and stats - reduced polling when WebSocket connected
-  const { data: enhancedMatchData } = useQuery({
+  const { data: enhancedMatchData } = useQuery<EnhancedMatchData>({
     queryKey: [`/api/matches/${matchId ? String(matchId) : 'unknown'}/enhanced-data`],
     enabled: !!matchId && !!liveState,
     refetchInterval: isConnected ? 15000 : 5000, // Less frequent when WebSocket connected

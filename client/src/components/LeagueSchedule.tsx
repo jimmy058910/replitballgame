@@ -36,7 +36,7 @@ export default function LeagueSchedule() {
     enabled: true,
   });
 
-  const { data: userTeam } = useQuery({
+  const { data: userTeam } = useQuery<any>({
     queryKey: ["/api/teams/my"],
     refetchInterval: 5 * 60 * 1000, // Update every 5 minutes
     staleTime: 2 * 60 * 1000, // Consider data fresh for 2 minutes
