@@ -14,17 +14,20 @@ export class AuctionStorage {
 
     const newAuction = await prisma.marketplaceListing.create({
       data: {
-        teamId: auctionData.teamId,
+        sellerTeamId: auctionData.teamId,
         playerId: auctionData.playerId,
-        startingBid: auctionData.startingBid,
+        startBid: auctionData.startingBid,
         currentBid: auctionData.startingBid,
         buyNowPrice: auctionData.buyNowPrice,
-        endTime,
+        expiryTimestamp: endTime,
+        originalExpiryTimestamp: endTime,
+        listingFee: BigInt(0), // Calculate based on buyNowPrice * 0.03
+        minBuyNowPrice: auctionData.startingBid * BigInt(2), // Default minimum
         isActive: true,
       },
       include: {
         player: { select: { firstName: true, lastName: true, race: true } },
-        team: { select: { name: true } },
+        sellerTeam: { select: { name: true } },
         bids: {
           include: {
             bidderTeam: { select: { name: true } }
@@ -41,7 +44,7 @@ export class AuctionStorage {
       where: { id },
       include: {
         player: { select: { firstName: true, lastName: true, race: true } },
-        team: { select: { name: true } },
+        sellerTeam: { select: { name: true } },
         bids: {
           include: {
             bidderTeam: { select: { name: true } }
@@ -58,7 +61,7 @@ export class AuctionStorage {
       where: { isActive: true },
       include: {
         player: { select: { firstName: true, lastName: true, race: true } },
-        team: { select: { name: true } },
+        sellerTeam: { select: { name: true } },
         bids: {
           include: {
             bidderTeam: { select: { name: true } }
@@ -77,12 +80,12 @@ export class AuctionStorage {
       where: { sellerTeamId: teamId },
       include: {
         player: { select: { firstName: true, lastName: true, race: true } },
-        team: { select: { name: true } },
+        sellerTeam: { select: { name: true } },
         bids: {
           include: {
-            team: { select: { name: true } }
+            bidderTeam: { select: { name: true } }
           },
-          orderBy: { amount: 'desc' }
+          orderBy: { bidAmount: 'desc' }
         }
       },
       orderBy: { createdAt: 'desc' }
@@ -97,12 +100,12 @@ export class AuctionStorage {
       },
       include: {
         player: { select: { firstName: true, lastName: true, race: true } },
-        team: { select: { name: true } },
+        sellerTeam: { select: { name: true } },
         bids: {
           include: {
-            team: { select: { name: true } }
+            bidderTeam: { select: { name: true } }
           },
-          orderBy: { amount: 'desc' }
+          orderBy: { bidAmount: 'desc' }
         }
       },
       orderBy: { createdAt: 'desc' }
@@ -116,12 +119,12 @@ export class AuctionStorage {
         data: updates,
         include: {
           player: { select: { firstName: true, lastName: true, race: true } },
-          team: { select: { name: true } },
+          sellerTeam: { select: { name: true } },
           bids: {
             include: {
-              team: { select: { name: true } }
+              bidderTeam: { select: { name: true } }
             },
-            orderBy: { amount: 'desc' }
+            orderBy: { bidAmount: 'desc' }
           }
         }
       });
@@ -149,7 +152,7 @@ export class AuctionStorage {
             player: { select: { firstName: true, lastName: true } }
           }
         },
-        team: { select: { name: true } }
+        bidderTeam: { select: { name: true } }
       }
     });
     
@@ -208,12 +211,12 @@ export class AuctionStorage {
       },
       include: {
         player: { select: { firstName: true, lastName: true, race: true } },
-        team: { select: { name: true } },
+        sellerTeam: { select: { name: true } },
         bids: {
           include: {
-            team: { select: { name: true } }
+            bidderTeam: { select: { name: true } }
           },
-          orderBy: { amount: 'desc' }
+          orderBy: { bidAmount: 'desc' }
         }
       }
     });

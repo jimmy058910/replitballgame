@@ -1,7 +1,8 @@
 import * as client from "openid-client";
-import { Strategy, type VerifyFunction } from "openid-client";
-
 import passport from "passport";
+import type { AuthenticateCallback } from "passport";
+const { Strategy } = require("openid-client/passport");
+
 import session from "express-session";
 import type { Express, RequestHandler } from "express";
 import memoize from "memoizee";
@@ -76,14 +77,14 @@ export async function setupAuth(app: Express) {
 
   const config = await getOidcConfig();
 
-  const verify: VerifyFunction = async (
+  const verify = async (
     tokens: client.TokenEndpointResponse & client.TokenEndpointResponseHelpers,
-    verified: passport.AuthenticateCallback
+    verified: AuthenticateCallback
   ) => {
     const user = {}; // This will be populated on req.user by passport
     updateUserSession(user, tokens);
     await upsertUser(tokens.claims());
-    verified(null, user);
+    verified(null, { ...user, claims: tokens.claims() });
   };
 
   // Register strategies for all domains including localhost for development
