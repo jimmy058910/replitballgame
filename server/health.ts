@@ -23,19 +23,40 @@ async function testDatabaseConnection() {
   }
 }
 
-// Simple health check endpoint with environment debugging
-export function createHealthCheck() {
+// Basic health check for startup probes (no database dependency)
+export function createBasicHealthCheck() {
+  return (req: any, res: any) => {
+    res.status(200).json({
+      status: 'healthy',
+      timestamp: new Date().toISOString(),
+      uptime: process.uptime(),
+      version: '6.24.0-STARTUP-PROBE-FIX-AUG6',
+      environment: {
+        NODE_ENV: process.env.NODE_ENV || 'not-set',
+        production: process.env.NODE_ENV === 'production',
+        port: process.env.PORT || 5000,
+        cloudRun: {
+          GOOGLE_CLOUD_PROJECT: process.env.GOOGLE_CLOUD_PROJECT || 'not-set',
+          K_SERVICE: process.env.K_SERVICE || 'not-set',
+          K_REVISION: process.env.K_REVISION || 'not-set'
+        }
+      }
+    });
+  };
+}
+
+// Comprehensive health check with database testing (for detailed monitoring)
+export function createDetailedHealthCheck() {
   return async (req: any, res: any) => {
     try {
       // Debug logging for troubleshooting
-      console.log('🔍 HEALTH CHECK DEBUG:', {
+      console.log('🔍 DETAILED HEALTH CHECK DEBUG:', {
         NODE_ENV: process.env.NODE_ENV,
         PORT: process.env.PORT,
         GOOGLE_CLOUD_PROJECT: process.env.GOOGLE_CLOUD_PROJECT,
         K_SERVICE: process.env.K_SERVICE,
-        allEnvKeys: Object.keys(process.env).filter(k => 
-          k.includes('NODE') || k.includes('PORT') || k.includes('GOOGLE') || k.includes('K_')
-        )
+        DATABASE_URL_PRODUCTION_EXISTS: !!process.env.DATABASE_URL_PRODUCTION,
+        DATABASE_URL_EXISTS: !!process.env.DATABASE_URL
       });
 
       const environmentData = {
@@ -49,7 +70,7 @@ export function createHealthCheck() {
         }
       };
 
-      // Test database connection for health check
+      // Test database connection for detailed health check
       const dbConnected = await testDatabaseConnection();
       
       const healthResponse = { 
@@ -63,14 +84,14 @@ export function createHealthCheck() {
           error: lastDatabaseTest.error,
           testType: 'live-query'
         },
-        version: '6.23.0-CORS-FIREBASE-DEPLOYMENT-AUG4',
+        version: '6.24.0-STARTUP-PROBE-FIX-AUG6',
         environment: environmentData
       };
 
-      console.log('🔍 HEALTH RESPONSE:', JSON.stringify(healthResponse, null, 2));
+      console.log('🔍 DETAILED HEALTH RESPONSE:', JSON.stringify(healthResponse, null, 2));
       res.status(200).json(healthResponse);
     } catch (error) {
-      console.error('❌ HEALTH CHECK ERROR:', error);
+      console.error('❌ DETAILED HEALTH CHECK ERROR:', error);
       res.status(500).json({
         status: 'error',
         timestamp: new Date().toISOString(),
@@ -79,4 +100,9 @@ export function createHealthCheck() {
       });
     }
   };
+}
+
+// Legacy health check function (kept for backward compatibility)
+export function createHealthCheck() {
+  return createBasicHealthCheck();
 }

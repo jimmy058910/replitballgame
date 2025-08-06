@@ -23,7 +23,7 @@ import { SeasonTimingAutomationService } from "./services/seasonTimingAutomation
 import logger from "./utils/logger";
 import { validateOrigin } from "./utils/security";
 import { sanitizeInputMiddleware, securityHeadersMiddleware } from "./middleware/security";
-import { createHealthCheck } from "./health";
+import { createHealthCheck, createBasicHealthCheck, createDetailedHealthCheck } from "./health";
 
 const app = express();
 
@@ -211,10 +211,10 @@ app.use((req: Request, res: Response, next: NextFunction) => {
   next();
 });
 
-// Add health check endpoints early - critical for Cloud Run  
-app.get('/health', createHealthCheck());
-app.get('/healthz', createHealthCheck()); // Alternative for startup probes
-app.get('/api/health', createHealthCheck());
+// Add health check endpoints early - critical for Cloud Run startup probes
+app.get('/health', createBasicHealthCheck()); // Simple health for startup probes
+app.get('/healthz', createBasicHealthCheck()); // Cloud Run startup probe endpoint  
+app.get('/api/health', createDetailedHealthCheck()); // Detailed health with database info
 
 // REMOVED DUPLICATE ENDPOINT - was conflicting with nuclear test above
 
