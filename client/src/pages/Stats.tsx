@@ -295,8 +295,6 @@ export default function Stats() {
                   <div className="text-center py-8">Loading player statistics...</div>
                 )}
 
-                // @ts-expect-error TS2322
-                {/* @ts-expect-error TS2322 */}
                 {playerStats && (
                   <StatsDisplay playerStats={playerStats as any} showAverages={true} />
                 )}
@@ -329,7 +327,6 @@ export default function Stats() {
                   <div className="text-center py-8">Loading team statistics...</div>
                 )}
 
-                {/* @ts-expect-error TS2322 */}
                 {teamStats && (
                   <StatsDisplay teamStats={teamStats as any} showAverages={true} />
                 )}

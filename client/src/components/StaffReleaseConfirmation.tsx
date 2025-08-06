@@ -106,9 +106,7 @@ export default function StaffReleaseConfirmation({ staff, isOpen, onClose }: Sta
             <p className="text-gray-300 text-sm">Age {staff.age} • Level {staff.level}</p>
           </div>
 
-          // @ts-expect-error TS2322
           {/* Release Fee Warning */}
-          {/* @ts-expect-error TS2322 */}
           <Alert className="border-2 border-yellow-400 bg-yellow-900/30">
             <DollarSign className="h-4 w-4 text-yellow-400" />
             <AlertDescription className="text-white">
@@ -138,10 +136,7 @@ export default function StaffReleaseConfirmation({ staff, isOpen, onClose }: Sta
             </div>
           )}
 
-          // @ts-expect-error TS2322
-
           {/* Consequences Warning */}
-          {/* @ts-expect-error TS2322 */}
           <Alert className="border-2 border-red-400 bg-red-900/30">
             <AlertTriangle className="h-4 w-4 text-red-400" />
             <AlertDescription className="text-white">
