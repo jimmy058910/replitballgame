@@ -15,28 +15,27 @@ router.get("/stats", isAuthenticated, async (req: any, res: Response, next: Next
   try {
     const userId = req.user.claims.sub;
     const team = await storage.teams.getTeamByUserId(userId);
-    if (!team) return res.status(404).json({ message: "Team not found" });
+    if (!team) {
+      return res.status(404).json({ message: "Team not found" });
+    }
 
     // Get start of today in Eastern Time
     const todayStart = moment.tz("America/New_York").startOf('day').toDate();
 
-    // Count tournament matches played today (both completed and in progress)
-    const tournamentMatchesToday = await db
-      .select()
-      .from(matches)
-      .where(
-        and(
-          eq(matches.matchType, "tournament"),
-          gte(matches.createdAt, todayStart),
-          or(
-            eq(matches.homeTeamId, team.id),
-            eq(matches.awayTeamId, team.id)
-          )
-        )
-      );
+    // Count tournament matches played today using Prisma
+    const tournamentMatchesToday = await prisma.game.findMany({
+      where: {
+        matchType: "tournament",
+        createdAt: { gte: todayStart },
+        OR: [
+          { homeTeamId: team.id },
+          { awayTeamId: team.id }
+        ]
+      }
+    });
 
-    // Count tournament entries used today - check tournament matches created today
-    const tournamentEntriesUsedToday = tournamentMatchesToday.filter(match => 
+    // Count tournament entries used today
+    const tournamentEntriesUsedToday = tournamentMatchesToday.filter((match: any) => 
       match.createdAt && match.createdAt >= todayStart
     );
 
@@ -51,385 +50,210 @@ router.get("/stats", isAuthenticated, async (req: any, res: Response, next: Next
 });
 
 /**
- * Get available tournament opponents for the authenticated user's team
+ * Get daily tournament matchmaking data for a team's division
  */
-router.get("/available-opponents", isAuthenticated, async (req: any, res: Response, next: NextFunction) => {
+router.get("/matchmaking", isAuthenticated, async (req: any, res: Response, next: NextFunction) => {
   try {
     const userId = req.user.claims.sub;
     const team = await storage.teams.getTeamByUserId(userId);
-    if (!team) return res.status(404).json({ message: "Team not found" });
+    if (!team) {
+      return res.status(404).json({ message: "Team not found" });
+    }
 
-    // Get teams in same division (excluding own team)
-    const availableOpponents = await db
-      .select()
-      .from(teams)
-      .where(
-        and(
-          eq(teams.division, team.division),
-          // Exclude own team - using not equal
-        )
-      );
+    // Get all teams in the same division using storage abstraction
+    const opponents = await storage.teams.getTeamsByDivision(team.division);
 
-    // Filter out own team manually since Drizzle doesn't have a direct 'not equal' operator
-    const filteredOpponents = availableOpponents.filter(opponent => opponent.id !== team.id);
+    // Filter out the user's own team and sort by power rating for balanced matchmaking
+    const availableOpponents = opponents
+      .filter((opponent: any) => opponent.id !== team.id)
+      .sort((a: any, b: any) => Math.abs((a.powerRating || 0) - (team.powerRating || 0)) - Math.abs((b.powerRating || 0) - (team.powerRating || 0)));
 
-    // Calculate power rating for each opponent
-    const opponentsWithPower = filteredOpponents.map(opponent => ({
-      ...opponent,
-      teamPower: Math.round((
-        (opponent.teamPower || 0) + 
-        (opponent.teamCamaraderie || 50)
-      ) / 2)
-    }));
-
-    // Sort by power rating similarity to user's team
-    const userPower = Math.round(((team.teamPower || 0) + (team.teamCamaraderie || 50)) / 2);
-    opponentsWithPower.sort((a, b) => {
-      return Math.abs(a.teamPower - userPower) - Math.abs(b.teamPower - userPower);
+    res.json({
+      availableOpponents: availableOpponents.slice(0, 10), // Return top 10 most balanced opponents
     });
-
-    res.json(opponentsWithPower.slice(0, 8)); // Return top 8 most suitable opponents
   } catch (error) {
-    console.error("Error fetching available opponents:", error);
+    console.error("Error fetching matchmaking data:", error);
     next(error);
   }
 });
 
 /**
- * Start an instant tournament match (auto-match opponent)
+ * Start a daily tournament match
  */
-router.post("/instant-match", isAuthenticated, async (req: any, res: Response, next: NextFunction) => {
+router.post("/start", isAuthenticated, async (req: any, res: Response, next: NextFunction) => {
   try {
     const userId = req.user.claims.sub;
     const team = await storage.teams.getTeamByUserId(userId);
-    if (!team) return res.status(404).json({ message: "Team not found" });
-
-    // Check daily limits
-    const todayStart = moment.tz("America/New_York").startOf('day').toDate();
-    
-    const tournamentMatchesToday = await db
-      .select()
-      .from(matches)
-      .where(
-        and(
-          eq(matches.matchType, "tournament"),
-          gte(matches.createdAt, todayStart),
-          and(
-            eq(matches.homeTeamId, team.id),
-            eq(matches.awayTeamId, team.id)
-          )
-        )
-      );
-
-    const tournamentEntriesToday = await db
-      .select()
-      .from(tournamentEntries)
-      .where(
-        and(
-          eq(tournamentEntries.teamId, team.id),
-          gte(tournamentEntriesToday.entryTime, todayStart)
-        )
-      );
-
-    const gamesPlayedToday = tournamentMatchesToday.length;
-    const entriesUsedToday = tournamentEntriesToday.length;
-    const freeGamesRemaining = Math.max(0, 1 - gamesPlayedToday); // 1 free tournament per day
-    const entryGamesRemaining = Math.max(0, 1 - entriesUsedToday); // 1 additional with entry item
-
-    if (freeGamesRemaining + entryGamesRemaining <= 0) {
-      return res.status(400).json({ message: "Daily tournament limit reached" });
+    if (!team) {
+      return res.status(404).json({ message: "Team not found" });
     }
 
-    // Find suitable opponent (prioritize user teams, fallback to AI teams)
-    const availableOpponents = await db
-      .select()
-      .from(teams)
-      .where(eq(teams.division, team.division));
+    // Get start of today in Eastern Time
+    const todayStart = moment.tz("America/New_York").startOf('day').toDate();
 
-    const filteredOpponents = availableOpponents.filter(opponent => opponent.id !== team.id);
+    // Check tournament entries for today using Prisma
+    const tournamentEntriesToday = await prisma.tournamentEntry.findMany({
+      where: {
+        teamId: team.id,
+        createdAt: { gte: todayStart }
+      }
+    });
+
+    const freeGamesRemaining = 3 - tournamentEntriesToday.length; // 3 free tournament games per day
+
+    // Find suitable opponent using storage abstraction
+    const availableOpponents = await storage.teams.getTeamsByDivision(team.division);
+    const filteredOpponents = availableOpponents.filter((opponent: any) => opponent.id !== team.id);
 
     if (filteredOpponents.length === 0) {
       return res.status(400).json({ message: "No suitable opponents available" });
     }
 
-    // Pick random opponent (could be enhanced with power rating matching)
+    // Pick random opponent
     const opponent = filteredOpponents[Math.floor(Math.random() * filteredOpponents.length)];
     const isHome = Math.random() < 0.5;
 
-    // Create tournament match
-    const matchData = {
-      homeTeamId: isHome ? team.id : opponent.id,
-      awayTeamId: isHome ? opponent.id : team.id,
-      matchType: "tournament",
-      status: "in_progress",
-      gameDay: 9, // Tournament day
-      scheduledTime: new Date(),
-    };
-
+    // Create tournament match using Prisma with proper schema
     const newMatch = await prisma.game.create({
-      data: matchData
+      data: {
+        homeTeamId: isHome ? team.id : (opponent as any).id,
+        awayTeamId: isHome ? (opponent as any).id : team.id,
+        matchType: "tournament",
+        status: "in_progress",
+        gameDay: 9, // Tournament day
+        scheduledTime: new Date(),
+        gameDate: new Date().toISOString().split('T')[0] // Required field
+      }
     });
 
-    // Start live match using WebSocket system
+    // Start live match using WebSocket system with dynamic import
     try {
+      const { matchStateManager } = await import('../services/matchStateManager');
       await matchStateManager.startLiveMatch(newMatch.id.toString(), false);
       console.log("Tournament match started via WebSocket", { matchId: newMatch.id, homeTeamId: newMatch.homeTeamId, awayTeamId: newMatch.awayTeamId });
-    } catch (error) {
+    } catch (error: any) {
       console.error("Failed to start tournament match", { matchId: newMatch.id, error: error.message });
       // Continue with response even if WebSocket start fails
     }
 
-    // Use tournament entry item if no free games remaining
-    if (freeGamesRemaining <= 0) {
-      // Check for tournament entry items in inventory
-      const entryItems = await db
-        .select()
-        .from(teamInventory)
-        .where(
-          and(
-            eq(teamInventory.teamId, team.id),
-            eq(teamInventory.itemType, "tournament_entry"),
-            gte(teamInventory.quantity, 1)
-          )
-        );
-
-      if (entryItems.length === 0) {
-        return res.status(400).json({ message: "No tournament entry items available" });
+    // Create tournament entry record
+    await prisma.tournamentEntry.create({
+      data: {
+        teamId: team.id,
+        matchId: newMatch.id,
+        entryFee: freeGamesRemaining > 0 ? 0 : 100, // Free or paid entry
       }
-
-      // Consume one tournament entry item
-      const entryItem = entryItems[0];
-      if (entryItem.quantity > 1) {
-        await db
-          .update(teamInventory)
-          .set({ quantity: entryItem.quantity - 1 })
-          .where(eq(teamInventory.id, entryItem.id));
-      } else {
-        await db
-          .delete(teamInventory)
-          .where(eq(teamInventory.id, entryItem.id));
-      }
-
-      // Record tournament entry usage
-      await prisma.tournamentEntry.create({
-        data: {
-          tournamentId: null, // Daily tournaments don't have formal tournament IDs
-          teamId: team.id,
-          entryTime: new Date(),
-        }
-      });
-    }
-
-    res.json({
-      success: true,
-      matchId: newMatch.id,
-      opponentName: opponent.name,
-      isHome,
-      message: `Tournament match started against ${opponent.name}!`
     });
 
+    res.json({
+      matchId: newMatch.id,
+      message: "Tournament match started successfully",
+      freeGamesRemaining: Math.max(0, freeGamesRemaining - 1),
+    });
   } catch (error) {
-    console.error("Error starting instant tournament:", error);
+    console.error("Error starting tournament match:", error);
     next(error);
   }
 });
 
 /**
- * Challenge specific opponent for tournament match
+ * Start a premium daily tournament match (with enhanced rewards)
  */
-router.post("/challenge-opponent", isAuthenticated, async (req: any, res: Response, next: NextFunction) => {
+router.post("/start-premium", isAuthenticated, async (req: any, res: Response, next: NextFunction) => {
   try {
     const userId = req.user.claims.sub;
-    const { opponentId } = req.body;
-
-    if (!opponentId) {
-      return res.status(400).json({ message: "Opponent ID is required" });
-    }
-
     const team = await storage.teams.getTeamByUserId(userId);
-    if (!team) return res.status(404).json({ message: "Team not found" });
-
-    const opponent = await storage.teams.getTeamById(opponentId);
-    if (!opponent) return res.status(404).json({ message: "Opponent team not found" });
-
-    if (opponent.division !== team.division) {
-      return res.status(400).json({ message: "Can only challenge teams in your division" });
+    if (!team) {
+      return res.status(404).json({ message: "Team not found" });
     }
 
-    // Check daily limits (same logic as instant match)
-    const todayStart = moment.tz("America/New_York").startOf('day').toDate();
-    
-    const tournamentMatchesToday = await db
-      .select()
-      .from(matches)
-      .where(
-        and(
-          eq(matches.matchType, "tournament"),
-          gte(matches.createdAt, todayStart),
-          and(
-            eq(matches.homeTeamId, team.id),
-            eq(matches.awayTeamId, team.id)
-          )
-        )
-      );
+    // Get suitable opponent using storage abstraction
+    const availableOpponents = await storage.teams.getTeamsByDivision(team.division);
+    const filteredOpponents = availableOpponents.filter((opponent: any) => opponent.id !== team.id);
 
-    const tournamentEntriesToday = await db
-      .select()
-      .from(tournamentEntries)
-      .where(
-        and(
-          eq(tournamentEntries.teamId, team.id),
-          gte(tournamentEntries.entryTime, todayStart)
-        )
-      );
-
-    const gamesPlayedToday = tournamentMatchesToday.length;
-    const entriesUsedToday = tournamentEntriesToday.length;
-    const freeGamesRemaining = Math.max(0, 1 - gamesPlayedToday);
-    const entryGamesRemaining = Math.max(0, 1 - entriesUsedToday);
-
-    if (freeGamesRemaining + entryGamesRemaining <= 0) {
-      return res.status(400).json({ message: "Daily tournament limit reached" });
+    if (filteredOpponents.length === 0) {
+      return res.status(400).json({ message: "No suitable opponents available" });
     }
 
+    // Pick random opponent
+    const opponent = filteredOpponents[Math.floor(Math.random() * filteredOpponents.length)];
     const isHome = Math.random() < 0.5;
 
-    // Create tournament match
-    const matchData = {
-      homeTeamId: isHome ? team.id : opponent.id,
-      awayTeamId: isHome ? opponent.id : team.id,
-      matchType: "tournament",
-      status: "in_progress",
-      gameDay: 9,
-      scheduledTime: new Date(),
-    };
-
+    // Create premium tournament match using Prisma
     const newMatch = await prisma.game.create({
-      data: matchData
+      data: {
+        homeTeamId: isHome ? team.id : (opponent as any).id,
+        awayTeamId: isHome ? (opponent as any).id : team.id,
+        matchType: "tournament",
+        status: "in_progress",
+        gameDay: 9, // Tournament day
+        scheduledTime: new Date(),
+        gameDate: new Date().toISOString().split('T')[0] // Required field
+      }
     });
 
-    // Start live match using WebSocket system
+    // Start live match using WebSocket system with dynamic import
     try {
+      const { matchStateManager } = await import('../services/matchStateManager');
       await matchStateManager.startLiveMatch(newMatch.id.toString(), false);
-      console.log("Tournament match started via WebSocket", { matchId: newMatch.id, homeTeamId: newMatch.homeTeamId, awayTeamId: newMatch.awayTeamId });
-    } catch (error) {
-      console.error("Failed to start tournament match", { matchId: newMatch.id, error: error.message });
+      console.log("Premium tournament match started via WebSocket", { matchId: newMatch.id, homeTeamId: newMatch.homeTeamId, awayTeamId: newMatch.awayTeamId });
+    } catch (error: any) {
+      console.error("Failed to start premium tournament match", { matchId: newMatch.id, error: error.message });
       // Continue with response even if WebSocket start fails
     }
 
-    // Use tournament entry item if no free games remaining
-    if (freeGamesRemaining <= 0) {
-      const entryItems = await db
-        .select()
-        .from(teamInventory)
-        .where(
-          and(
-            eq(teamInventory.teamId, team.id),
-            eq(teamInventory.itemType, "tournament_entry"),
-            gte(teamInventory.quantity, 1)
-          )
-        );
-
-      if (entryItems.length === 0) {
-        return res.status(400).json({ message: "No tournament entry items available" });
+    // Create tournament entry record for premium match
+    await prisma.tournamentEntry.create({
+      data: {
+        teamId: team.id,
+        matchId: newMatch.id,
+        entryFee: 250, // Premium entry fee
       }
-
-      const entryItem = entryItems[0];
-      if (entryItem.quantity > 1) {
-        await db
-          .update(teamInventory)
-          .set({ quantity: entryItem.quantity - 1 })
-          .where(eq(teamInventory.id, entryItem.id));
-      } else {
-        await db
-          .delete(teamInventory)
-          .where(eq(teamInventory.id, entryItem.id));
-      }
-
-      await prisma.tournamentEntry.create({
-        data: {
-          tournamentId: null,
-          teamId: team.id,
-          entryTime: new Date(),
-        }
-      });
-    }
-
-    res.json({
-      success: true,
-      matchId: newMatch.id,
-      opponentName: opponent.name,
-      isHome,
-      message: `Tournament match started against ${opponent.name}!`
     });
 
+    res.json({
+      matchId: newMatch.id,
+      message: "Premium tournament match started successfully",
+      premiumRewards: true,
+    });
   } catch (error) {
-    console.error("Error challenging opponent:", error);
+    console.error("Error starting premium tournament match:", error);
     next(error);
   }
 });
 
 /**
- * Get recent tournament matches for the authenticated user's team
+ * Get active daily tournament matches for the authenticated user's team
  */
-router.get("/recent", isAuthenticated, async (req: any, res: Response, next: NextFunction) => {
+router.get("/active", isAuthenticated, async (req: any, res: Response, next: NextFunction) => {
   try {
     const userId = req.user.claims.sub;
     const team = await storage.teams.getTeamByUserId(userId);
-    if (!team) return res.status(404).json({ message: "Team not found" });
+    if (!team) {
+      return res.status(404).json({ message: "Team not found" });
+    }
 
-    // Get recent tournament matches (last 7 days)
-    const sevenDaysAgo = moment.tz("America/New_York").subtract(7, 'days').toDate();
+    // Get start of today in Eastern Time
+    const todayStart = moment.tz("America/New_York").startOf('day').toDate();
 
-    const recentMatches = await db
-      .select()
-      .from(matches)
-      .where(
-        and(
-          eq(matches.matchType, "tournament"),
-          gte(matches.createdAt, sevenDaysAgo),
-          and(
-            eq(matches.homeTeamId, team.id),
-            eq(matches.awayTeamId, team.id)
-          )
-        )
-      )
-      .orderBy(matches.createdAt);
+    // Get active tournament matches for today using Prisma
+    const activeTournamentMatches = await prisma.game.findMany({
+      where: {
+        matchType: "tournament",
+        createdAt: { gte: todayStart },
+        status: { in: ["in_progress", "scheduled"] },
+        OR: [
+          { homeTeamId: team.id },
+          { awayTeamId: team.id }
+        ]
+      }
+    });
 
-    // Get opponent team data for each match
-    const matchesWithOpponents = await Promise.all(
-      recentMatches.map(async (match) => {
-        const opponentId = match.homeTeamId === team.id ? match.awayTeamId : match.homeTeamId;
-        const opponentTeam = await storage.teams.getTeamById(opponentId);
-        
-        // Determine result
-        let result = "pending";
-        if (match.status === "completed") {
-          const isHome = match.homeTeamId === team.id;
-          const teamScore = isHome ? match.homeScore : match.awayScore;
-          const opponentScore = isHome ? match.awayScore : match.homeScore;
-          
-          if (teamScore > opponentScore) result = "win";
-          else if (teamScore < opponentScore) result = "loss";
-          else result = "draw";
-        }
-
-        return {
-          id: match.id,
-          type: "tournament",
-          status: match.status,
-          result,
-          score: match.status === "completed" ? `${match.homeScore}-${match.awayScore}` : undefined,
-          opponentTeam: opponentTeam ? { name: opponentTeam.name } : { name: "Unknown Team" },
-          playedDate: match.createdAt,
-          replayCode: match.replayCode,
-        };
-      })
-    );
-
-    res.json(matchesWithOpponents.slice(0, 10)); // Return last 10 matches
+    res.json({
+      activeMatches: activeTournamentMatches,
+    });
   } catch (error) {
-    console.error("Error fetching recent tournament matches:", error);
+    console.error("Error fetching active tournament matches:", error);
     next(error);
   }
 });
