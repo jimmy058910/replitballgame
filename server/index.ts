@@ -425,14 +425,13 @@ app.use('/api', (req, res, next) => {
 
   const port = process.env.PORT ? parseInt(process.env.PORT) : (process.env.NODE_ENV === 'production' ? 8080 : 5000);
   
-  // Start server immediately - don't wait for background services
+  // ARCHITECTURAL FIX: Start server IMMEDIATELY with instant health checks
   httpServer.listen({
     port,
     host: "0.0.0.0", // Important for Cloud Run
     reusePort: true,
   }, () => {
     console.log(`✅ Server listening on port ${port}`);
-    console.log(`✅ WebSocket server listening on /ws`);
     console.log(`✅ Health check available at /health`);
     console.log(`✅ Cloud Run startup probe endpoint: /healthz`);
     
@@ -449,14 +448,12 @@ app.use('/api', (req, res, next) => {
       });
     }
     
-    // CRITICAL FIX: Delay service initialization to allow startup probes to pass
-    console.log('⏱️ Delaying service initialization for 3 minutes to allow startup probes to pass');
-    setTimeout(() => {
-      console.log('🚀 Starting delayed service initialization after startup probe window');
-      initializeRemainingServices().catch(error => {
-        console.error('⚠️ Service initialization failed, but server remains operational:', error);
-      });
-    }, 3 * 60 * 1000); // 3 minutes delay
+    // ARCHITECTURAL FIX: Initialize services IMMEDIATELY in background
+    // No delay - let startup probes pass while services initialize
+    console.log('🚀 Starting immediate background service initialization');
+    initializeRemainingServices().catch(error => {
+      console.error('⚠️ Service initialization failed, but server remains operational:', error);
+    });
   });
 
   // Initialize remaining services asynchronously after server starts

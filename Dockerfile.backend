@@ -83,5 +83,5 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
 # Set production environment
 ENV NODE_ENV=production
 
-# PRODUCTION STARTUP: Enhanced startup for Cloud Run debugging
-CMD ["dumb-init", "sh", "-c", "echo 'Starting Realm Rivalry backend...' && echo 'NODE_ENV='$NODE_ENV && echo 'PORT='$PORT && npx tsx server/index.ts"]
+# PRODUCTION STARTUP: Optimized startup for Cloud Run
+CMD ["dumb-init", "npx", "tsx", "server/index.ts"]
