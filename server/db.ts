@@ -73,16 +73,34 @@ process.on('beforeExit', cleanup);
 process.on('SIGINT', cleanup);
 process.on('SIGTERM', cleanup);
 
-// AGGRESSIVE COMPUTE OPTIMIZATION FOR ALL ENVIRONMENTS
+// AGGRESSIVE COMPUTE OPTIMIZATION WITH STARTUP GRACE PERIOD
 // Implement ultra-aggressive connection management to stay within free tier limits
+// BUT allow proper startup time for containers
 const IDLE_TIMEOUT = 90 * 1000; // 90 seconds (was 3 minutes)
 const CHECK_INTERVAL = 30 * 1000; // Check every 30 seconds (was 1 minute)
+const STARTUP_GRACE_PERIOD = 5 * 60 * 1000; // 5 minutes for container startup
+const startupTime = Date.now();
 let lastActivity = Date.now();
 let autoDisconnectTimer: NodeJS.Timeout | null = null;
+let optimizationEnabled = false;
 
-// Track database activity for idle management
+// Track database activity for idle management (with startup grace period)
 const trackActivity = () => {
   lastActivity = Date.now();
+  
+  // Only enable optimization after startup grace period
+  const timeSinceStartup = Date.now() - startupTime;
+  if (timeSinceStartup < STARTUP_GRACE_PERIOD) {
+    if (!optimizationEnabled) {
+      console.log(`🔧 [COMPUTE-SAVER] Startup grace period active (${Math.round((STARTUP_GRACE_PERIOD - timeSinceStartup) / 1000)}s remaining)`);
+    }
+    return; // Skip optimization during startup
+  }
+  
+  if (!optimizationEnabled) {
+    optimizationEnabled = true;
+    console.log('🔧 [COMPUTE-SAVER] Startup grace period ended - enabling aggressive optimization');
+  }
   
   // Clear existing auto-disconnect timer
   if (autoDisconnectTimer) {
@@ -101,11 +119,18 @@ const trackActivity = () => {
   }, IDLE_TIMEOUT);
 };
 
-// Aggressive connection monitoring for BOTH development AND production
-console.log(`🔗 [COMPUTE-SAVER] Database connecting to: ${dbHost} with aggressive 90s timeout`);
+// Aggressive connection monitoring with startup grace period
+console.log(`🔗 [COMPUTE-SAVER] Database connecting to: ${dbHost} with 5-min startup grace period`);
 
-// Monitor activity every 30 seconds and auto-disconnect
+// Monitor activity every 30 seconds and auto-disconnect (after grace period)
 const activityMonitor = setInterval(() => {
+  const timeSinceStartup = Date.now() - startupTime;
+  
+  // Skip optimization during startup grace period
+  if (timeSinceStartup < STARTUP_GRACE_PERIOD) {
+    return;
+  }
+  
   const idleTime = Date.now() - lastActivity;
   if (idleTime > IDLE_TIMEOUT) {
     console.log(`🔧 [COMPUTE-SAVER] Connection idle for ${Math.round(idleTime/1000)}s - forcing disconnect`);
