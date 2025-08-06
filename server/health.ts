@@ -30,7 +30,7 @@ export function createBasicHealthCheck() {
       status: 'healthy',
       timestamp: new Date().toISOString(),
       uptime: process.uptime(),
-      version: '6.25.0-NUCLEAR-STARTUP-FIX-AUG6',
+      version: '6.26.0-DYNAMIC-IMPORT-FIX-AUG6',
       environment: {
         NODE_ENV: process.env.NODE_ENV || 'not-set',
         production: process.env.NODE_ENV === 'production',
@@ -84,7 +84,7 @@ export function createDetailedHealthCheck() {
           error: lastDatabaseTest.error,
           testType: 'live-query'
         },
-        version: '6.25.0-NUCLEAR-STARTUP-FIX-AUG6',
+        version: '6.26.0-DYNAMIC-IMPORT-FIX-AUG6',
         environment: environmentData
       };
 

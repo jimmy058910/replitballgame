@@ -4,7 +4,8 @@ import { storage } from "../storage/index";
 import { matchStorage } from "../storage/matchStorage";
 import { exhibitionGameStorage } from "../storage/exhibitionGameStorage";
 import { isAuthenticated } from "../googleAuth";
-import { matchStateManager } from "../services/matchStateManager";
+// CRITICAL FIX: Dynamic import to prevent startup database connections
+// import { matchStateManager } from "../services/matchStateManager";
 import { z } from "zod";
 import { MatchType } from "../../generated/prisma";
 import { prisma } from "../db";

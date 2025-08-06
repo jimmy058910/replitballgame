@@ -3,7 +3,8 @@ import { storage } from "../storage/index";
 import { isAuthenticated } from "../googleAuth";
 import { prisma } from "../db";
 import moment from "moment-timezone";
-import { matchStateManager } from "../services/matchStateManager";
+// CRITICAL FIX: Dynamic import to prevent startup database connections
+// import { matchStateManager } from "../services/matchStateManager";
 
 const router = Router();
 

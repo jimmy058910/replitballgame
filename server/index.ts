@@ -18,8 +18,9 @@ import { requestIdMiddleware } from "./middleware/requestId";
 import { errorHandler, logInfo } from "./services/errorService";
 import { setupWebSocketServer, webSocketService } from "./services/webSocketService";
 import { webSocketManager } from "./websocket/webSocketManager";
-import { matchStateManager } from "./services/matchStateManager";
-import { SeasonTimingAutomationService } from "./services/seasonTimingAutomationService";
+// CRITICAL FIX: Remove database service imports - they cause startup crashes
+// import { matchStateManager } from "./services/matchStateManager"; 
+// import { SeasonTimingAutomationService } from "./services/seasonTimingAutomationService";
 import logger from "./utils/logger";
 import { validateOrigin } from "./utils/security";
 import { sanitizeInputMiddleware, securityHeadersMiddleware } from "./middleware/security";
@@ -478,16 +479,21 @@ app.use('/api', (req, res, next) => {
       
       await setupWebSocketServer(io);
       webSocketManager.initialize(httpServer);
+      
+      // CRITICAL FIX: Dynamic import for database services
+      const { matchStateManager } = await import('./services/matchStateManager');
       matchStateManager.setWebSocketService(webSocketService);
     }, 10000);
 
-    // Initialize match state recovery system with timeout
+    // Initialize match state recovery system with timeout (DYNAMIC IMPORT)
     await initWithTimeout('Match state recovery', async () => {
+      const { matchStateManager } = await import('./services/matchStateManager');
       await matchStateManager.recoverLiveMatches();
     }, 15000);
 
-    // Initialize season timing automation system with timeout
+    // Initialize season timing automation system with timeout (DYNAMIC IMPORT)
     await initWithTimeout('Season timing automation', async () => {
+      const { SeasonTimingAutomationService } = await import('./services/seasonTimingAutomationService');
       const seasonTimingService = SeasonTimingAutomationService.getInstance();
       await seasonTimingService.start();
     }, 15000);

@@ -4,7 +4,8 @@ import { storage } from "../storage/index";
 // playerStorage imported via storage index
 import { isAuthenticated } from "../googleAuth";
 import { simulateEnhancedMatch as fullMatchSimulation } from "../services/matchSimulation";
-import { matchStateManager } from "../services/matchStateManager";
+// CRITICAL FIX: Dynamic import to prevent startup database connections  
+// import { matchStateManager } from "../services/matchStateManager";
 import { prisma } from "../db";
 
 const router = Router();

@@ -1,6 +1,7 @@
 import { Server as SocketIOServer, Socket } from "socket.io";
 import { prisma } from "../db";
-import { matchStateManager } from "./matchStateManager";
+// CRITICAL FIX: Dynamic import to prevent startup database connections
+// import { matchStateManager } from "./matchStateManager";
 import logger from '../utils/logger';
 
 interface ConnectedUser {

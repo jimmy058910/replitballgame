@@ -5,7 +5,8 @@ import { prisma } from "../db";
 import { generateRandomPlayer as generatePlayerForTeam } from "../services/leagueService";
 import { RBACService, Permission, UserRole } from "../services/rbacService";
 import { ErrorCreators, asyncHandler, logInfo, logError } from "../services/errorService";
-import { matchStateManager } from "../services/matchStateManager";
+// CRITICAL FIX: Dynamic import to prevent startup database connections
+// import { matchStateManager } from "../services/matchStateManager";
 
 const router = Router();
 

@@ -3,7 +3,8 @@ import { prisma } from "../db";
 import { isAuthenticated } from "../googleAuth";
 import logger from '../utils/logger';
 import { tournamentFlowService } from "../services/tournamentFlowService";
-import { matchStateManager } from "../services/matchStateManager";
+// CRITICAL FIX: Dynamic import to prevent startup database connections
+// import { matchStateManager } from "../services/matchStateManager";
 
 const router = Router();
 
