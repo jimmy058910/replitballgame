@@ -78,7 +78,7 @@ process.on('SIGTERM', cleanup);
 // BUT allow proper startup time for containers
 const IDLE_TIMEOUT = 90 * 1000; // 90 seconds (was 3 minutes)
 const CHECK_INTERVAL = 30 * 1000; // Check every 30 seconds (was 1 minute)
-const STARTUP_GRACE_PERIOD = 5 * 60 * 1000; // 5 minutes for container startup
+const STARTUP_GRACE_PERIOD = 10 * 60 * 1000; // 10 minutes - extended for Cloud Run startup for container startup
 const startupTime = Date.now();
 let lastActivity = Date.now();
 let autoDisconnectTimer: NodeJS.Timeout | null = null;
@@ -120,7 +120,7 @@ const trackActivity = () => {
 };
 
 // Aggressive connection monitoring with startup grace period
-console.log(`🔗 [COMPUTE-SAVER] Database connecting to: ${dbHost} with 5-min startup grace period`);
+console.log(`🔗 [COMPUTE-SAVER] Database connecting to: ${dbHost} with 10-min startup grace period`);
 
 // Monitor activity every 30 seconds and auto-disconnect (after grace period)
 const activityMonitor = setInterval(() => {

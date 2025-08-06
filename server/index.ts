@@ -434,12 +434,14 @@ app.use('/api', (req, res, next) => {
     console.log(`✅ WebSocket server listening on /ws`);
     console.log(`✅ Health check available at /health`);
     
-    // Initialize remaining services asynchronously (non-blocking)
-    setImmediate(() => {
+    // CRITICAL FIX: Delay service initialization to allow startup probes to pass
+    console.log('⏱️ Delaying service initialization for 3 minutes to allow startup probes to pass');
+    setTimeout(() => {
+      console.log('🚀 Starting delayed service initialization after startup probe window');
       initializeRemainingServices().catch(error => {
         console.error('⚠️ Service initialization failed, but server remains operational:', error);
       });
-    });
+    }, 3 * 60 * 1000); // 3 minutes delay
   });
 
   // Initialize remaining services asynchronously after server starts
