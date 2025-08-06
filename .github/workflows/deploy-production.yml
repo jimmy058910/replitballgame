@@ -11,8 +11,8 @@ on:
         options:
         - simple
         - full
-  push:
-    branches: [ main ]
+  # push:
+  #   branches: [ main ]  # DISABLED - Using blue-green-deploy.yml as primary
 
 env:
   PROJECT_ID: direct-glider-465821-p7

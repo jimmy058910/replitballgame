@@ -1,8 +1,8 @@
 name: Hybrid Deployment - Firebase + Cloud Run
 
 on:
-  push:
-    branches: [ main ]
+  # push:
+  #   branches: [ main ]  # DISABLED - Using blue-green-deploy.yml as primary
   workflow_dispatch:
 
 env:

@@ -13,9 +13,7 @@ on:
         - no
   push:
     branches: [ main ]
-    paths-ignore:
-      - 'client/**'
-      - '.github/workflows/frontend-only.yml'
+    # Removed paths-ignore to ensure all changes trigger deployment
 
 env:
   PROJECT_ID: direct-glider-465821-p7
