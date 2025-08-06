@@ -3,7 +3,6 @@
  * Sanitizes user inputs to prevent cross-site scripting attacks
  */
 import createDOMPurify from 'dompurify';
-// @ts-expect-error TS7016
 import { JSDOM } from 'jsdom';
 
 const window = new JSDOM('').window;

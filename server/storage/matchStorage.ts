@@ -113,7 +113,6 @@ export class MatchStorage {
     try {
       const updatedMatch = await prisma.game.update({
         where: { id },
-        // @ts-expect-error TS2322
         data: updates,
         include: {
           league: true,

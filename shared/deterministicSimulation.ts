@@ -180,7 +180,6 @@ export class SimulationContext {
   // Export state for testing
   exportState(): {
     seed: number;
-    // @ts-expect-error TS2683
     eventLog: typeof this.eventLog;
   } {
     return {
@@ -218,7 +217,6 @@ export const DeterministicSimulation = {
     testFunction: (context: SimulationContext) => any,
     iterations: number = 10
   ): boolean {
-    // @ts-expect-error TS7034
     const results = [];
     
     for (let i = 0; i < iterations; i++) {
@@ -228,7 +226,6 @@ export const DeterministicSimulation = {
     }
 
     // Check if all results are identical
-    // @ts-expect-error TS7005
     return results.every(result => result === results[0]);
   }
 };

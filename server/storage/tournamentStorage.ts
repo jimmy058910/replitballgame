@@ -156,7 +156,6 @@ export class TournamentStorage {
     try {
       const updatedTournament = await prisma.tournament.update({
         where: { id },
-        // @ts-expect-error TS2322
         data: updates,
         include: {
           entries: {
@@ -184,7 +183,7 @@ export class TournamentStorage {
       data: {
         tournamentId: entryData.tournamentId,
         teamId: entryData.teamId,
-        // @ts-expect-error TS2353
+
         prizeWon: entryData.prizeWon || BigInt(0),
         placement: entryData.placement || 0,
       },
@@ -203,7 +202,6 @@ export class TournamentStorage {
         tournament: { select: { name: true } },
         team: { select: { name: true } }
       },
-      // @ts-expect-error TS2353
       orderBy: { entryTime: 'asc' }
     });
   }

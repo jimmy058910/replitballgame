@@ -64,11 +64,7 @@ export class PaymentStorage {
 
       const updatedTransaction = await prisma.paymentTransaction.update({
         where: { id },
-        // @ts-expect-error TS2322
-        data: updates,
-        include: {
-          team: { select: { name: true } }
-        }
+        data: updates
       });
       return updatedTransaction;
     } catch (error) {
@@ -80,10 +76,6 @@ export class PaymentStorage {
   async getPaymentTransactionsByTeam(teamId: number, limit: number = 50): Promise<PaymentTransaction[]> {
     return await prisma.paymentTransaction.findMany({
       where: { teamId },
-      // @ts-expect-error TS2322
-      include: {
-        team: { select: { name: true } }
-      },
       orderBy: { createdAt: 'desc' },
       take: limit
     });

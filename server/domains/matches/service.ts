@@ -8,15 +8,14 @@ export class MatchDomainService {
     try {
       const match = await prisma.game.create({
         data: {
-          homeTeamId: BigInt(request.homeTeamId),
-          awayTeamId: BigInt(request.awayTeamId),
+          homeTeamId: request.homeTeamId,
+          awayTeamId: request.awayTeamId,
           homeScore: 0,
           awayScore: 0,
-          gameTime: 0,
           status: 'SCHEDULED',
           matchType: request.matchType,
           gameDate: request.scheduledTime || new Date(),
-          ...(request.tournamentId && { tournamentId: BigInt(request.tournamentId) })
+          ...(request.tournamentId && { tournamentId: request.tournamentId })
         },
         include: {
           homeTeam: {
