@@ -16,28 +16,26 @@ router.get('/critical', isAuthenticated, async (req, res) => {
     const user = (req as any).user;
     
     // Get user's team
-    const teams = await teamStorage.getTeamsByUser(user.id);
-    if (!teams.length) {
+    const team = await teamStorage.getTeamByUserId(user.id);
+    if (!team) {
       return res.status(404).json({ error: 'Team not found' });
     }
     
-    const team = teams[0];
-    
     // Get all active players
-    const players = await playerStorage.getPlayersByTeam(team.id);
-    const activePlayers = players.filter(p => !p.isOnMarket && !p.isRetired);
+    const players = await playerStorage.getPlayersByTeamId(team.id);
+    const activePlayers = players.filter((p: any) => !p.isOnMarket && !p.isRetired);
     
     // Count critical issues
-    const injuries = activePlayers.filter(p => 
+    const injuries = activePlayers.filter((p: any) => 
       p.injuryStatus && p.injuryStatus !== 'HEALTHY'
     ).length;
     
-    const lowStamina = activePlayers.filter(p => 
+    const lowStamina = activePlayers.filter((p: any) => 
       (p.dailyStaminaLevel || 0) < 50
     ).length;
     
     // Get staff for contract analysis (simplified for now)
-    const staff = await staffStorage.getStaffByTeam(team.id);
+    const staff = await staffStorage.getStaffByTeamId(team.id); // Fixed method name
     const expiringContracts = 0; // TODO: Implement contract expiration logic
     
     // Get next match information (simplified for now)
@@ -64,19 +62,18 @@ router.get('/detailed', isAuthenticated, async (req, res) => {
   try {
     const user = (req as any).user;
     
-    const teams = await teamStorage.getTeamsByUser(user.id);
-    if (!teams.length) {
+    const team = await teamStorage.getTeamByUserId(user.id); // Fix: Use correct method name
+    if (!team) {
       return res.status(404).json({ error: 'Team not found' });
     }
     
-    const team = teams[0];
-    const players = await playerStorage.getPlayersByTeam(team.id);
-    const activePlayers = players.filter(p => !p.isOnMarket && !p.isRetired);
+    const players = await playerStorage.getPlayersByTeamId(team.id); // Fix: Use correct method name
+    const activePlayers = players.filter((p: any) => !p.isOnMarket && !p.isRetired); // Fix: Add type annotation
     
     // Detailed breakdowns
     const injuredPlayers = activePlayers
-      .filter(p => p.injuryStatus && p.injuryStatus !== 'HEALTHY')
-      .map(p => ({
+      .filter((p: any) => p.injuryStatus && p.injuryStatus !== 'HEALTHY') // Fix: Add type annotation
+      .map((p: any) => ({ // Fix: Add type annotation
         id: p.id,
         name: `${p.firstName} ${p.lastName}`,
         injury: p.injuryStatus,
@@ -85,8 +82,8 @@ router.get('/detailed', isAuthenticated, async (req, res) => {
       }));
       
     const lowStaminaPlayers = activePlayers
-      .filter(p => (p.dailyStaminaLevel || 0) < 50)
-      .map(p => ({
+      .filter((p: any) => (p.dailyStaminaLevel || 0) < 50) // Fix: Add type annotation
+      .map((p: any) => ({ // Fix: Add type annotation
         id: p.id,
         name: `${p.firstName} ${p.lastName}`,
         stamina: p.dailyStaminaLevel || 0,

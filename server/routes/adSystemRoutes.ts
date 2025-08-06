@@ -33,68 +33,11 @@ router.post('/view', isAuthenticated, async (req: any, res: Response, next: Next
       adData.rewardAmount || 0
     );
 
+    // Note: All ad reward processing now handled by adSystemStorage.processAdWatch()
+    
     return res.json({
       success: true,
       data: result
-    });
-
-    // Award base rewards to team finances
-    if (adData.completed && adData.rewardType && adData.rewardType !== 'none' && adData.rewardAmount && adData.rewardAmount > 0) {
-      const team = await storage.teams.getTeamByUserId(userId);
-      if (team) {
-        const finances = await storage.teamFinances.getTeamFinances(team.id);
-        if (finances && adData.rewardAmount && adData.rewardAmount > 0) {
-          if (adData.rewardType === 'credits') {
-            const currentCredits = BigInt(finances.credits);
-            const newCredits = currentCredits + BigInt(adData.rewardAmount);
-            await storage.teamFinances.updateTeamFinances(team.id, { credits: newCredits });
-          } else if (adData.rewardType === 'premium_currency') {
-            const currentGems = finances.gems || 0;
-            const newGems = currentGems + adData.rewardAmount;
-            await storage.teamFinances.updateTeamFinances(team.id, { gems: newGems });
-          }
-        }
-      }
-    }
-
-    // Prepare response with enhanced tracking data
-    let rewardMessage = `Ad completed! Daily: ${result.dailyCount}/20`;
-    
-    if (result.premiumRewardEarned && result.premiumReward) {
-      // Award premium reward to team
-      const team = await storage.teams.getTeamByUserId(userId);  
-      if (team && result.premiumReward.type === 'credits') {
-        const finances = await storage.teamFinances.getTeamFinances(team.id);
-        if (finances) {
-          const currentCredits = BigInt(finances.credits);
-          const newCredits = currentCredits + BigInt(result.premiumReward.amount);
-          await storage.teamFinances.updateTeamFinances(team.id, { credits: newCredits });
-          rewardMessage += ` | PREMIUM REWARD: ${result.premiumReward.amount} Credits!`;
-        }
-      } else if (team && result.premiumReward.type === 'premium_currency') {
-        const finances = await storage.teamFinances.getTeamFinances(team.id);
-        if (finances) {
-          const currentGems = finances.gems || 0;
-          const newGems = currentGems + result.premiumReward.amount;
-          await storage.teamFinances.updateTeamFinances(team.id, { gems: newGems });
-          rewardMessage += ` | PREMIUM REWARD: ${result.premiumReward.amount} Gems!`;
-        }
-      }
-    } else if (result.premiumRewardProgress > 0) {
-      rewardMessage += ` | Premium Progress: ${result.premiumRewardProgress}/50`;
-    }
-
-    res.status(201).json({ 
-      success: true, 
-      adViewId: result.adView.id, 
-      message: rewardMessage,
-      tracking: {
-        dailyCount: result.dailyCount,
-        totalCount: result.totalCount,
-        premiumProgress: result.premiumRewardProgress,
-        premiumRewardEarned: result.premiumRewardEarned,
-        premiumReward: result.premiumReward
-      }
     });
   } catch (error) {
     console.error('Error processing ad view:', error);

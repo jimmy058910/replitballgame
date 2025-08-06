@@ -56,13 +56,13 @@ router.post("/activate", isAuthenticated, asyncHandler(async (req: any, res: Res
     return res.status(404).json({ error: "Match not found" });
   }
 
-  // Only allow consumables in league matches
-  if (match.matchType !== "league") {
+  // Only allow consumables in league matches - NOTE: Using proper enum comparison
+  if (match.matchType !== "LEAGUE") { 
     return res.status(400).json({ error: "Consumables can only be used in league matches" });
   }
 
-  // Check if match has already started
-  if (match.status !== "scheduled") {
+  // Check if match has already started - NOTE: Using proper enum comparison  
+  if (match.status !== "SCHEDULED") {
     return res.status(400).json({ error: "Cannot activate consumables after match has started" });
   }
 

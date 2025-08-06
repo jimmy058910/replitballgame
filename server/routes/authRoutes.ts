@@ -1,7 +1,7 @@
 import { Router, type Response, type NextFunction } from "express"; // Added Response, NextFunction
 import { userStorage } from "../storage/userStorage"; // Updated import
 import { requireAuth } from "../middleware/firebaseAuth";
-import { RBACService, Permission } from "../services/rbacService";
+import { RBACService, Permission, UserRole } from "../services/rbacService"; // Add UserRole import
 import passport from 'passport';
 
 const router = Router();
@@ -105,7 +105,7 @@ router.get('/admin-status', requireAuth, async (req: any, res: Response, next: N
     // Use the correct RBAC methods
     const userRole = await RBACService.getUserRole(userId);
     const hasAdminAccess = await RBACService.hasPermission(userId, Permission.GRANT_CREDITS);
-    const isAdmin = userRole === 'ADMIN' || userRole === 'SUPER_ADMIN';
+    const isAdmin = userRole === UserRole.ADMIN || userRole === UserRole.SUPER_ADMIN; // Note: Proper enum comparison
     
     return res.json({ 
       isAdmin,

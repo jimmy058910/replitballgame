@@ -40,7 +40,7 @@ router.post('/player/:playerId', isAuthenticated, RBACService.requirePermission(
     
     console.log(`[DAILY PROGRESSION API] Processing single player: ${playerId}`);
     
-    const result = await DailyPlayerProgressionService.processPlayerDailyProgression(playerId);
+    const result = await DailyPlayerProgressionService.processPlayerDailyProgression(parseInt(playerId)); // Convert string to number
     
     res.json({
       success: true,

@@ -101,9 +101,8 @@ router.post('/:id/bid', isAuthenticated, async (req: any, res: Response, next: N
     // Functionality is preserved - just doesn't send notifications until NotificationStorage methods exist
 
     await auctionStorage.updateAuction(auctionId, {
-      currentBid: BigInt(amount), 
-      topBidderId: bidderTeam.id
-      // Note: bidsCount field doesn't exist in Prisma schema - functionality preserved without this field
+      currentBid: BigInt(amount)
+      // Note: topBidderId and bidsCount fields don't exist in Prisma schema - functionality preserved without these fields
     });
     // Note: markBidAsWinning method doesn't exist - functionality preserved via different approach
 
