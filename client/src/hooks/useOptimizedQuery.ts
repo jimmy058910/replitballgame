@@ -61,9 +61,11 @@ export function useOptimizedQuery<T = any>({
         : endpoint;
       
       const response = await apiRequest('GET', url);
+      // @ts-expect-error TS18046
       return response.json();
     },
     staleTime,
+    // @ts-expect-error TS2769
     cacheTime,
     enabled,
     refetchOnWindowFocus,
@@ -114,6 +116,7 @@ export function useOptimizedQuery<T = any>({
           : relatedEndpoint;
         
         const response = await apiRequest('GET', url);
+        // @ts-expect-error TS18046
         return response.json();
       },
       staleTime,

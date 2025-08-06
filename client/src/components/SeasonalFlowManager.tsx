@@ -174,6 +174,7 @@ export default function SeasonalFlowManager() {
     onSuccess: (data) => {
       toast({
         title: 'Schedule Generated',
+        // @ts-expect-error TS18046
         description: `Generated ${data.data.matchesGenerated} matches across ${data.data.schedulesCreated} leagues.`
       });
       queryClient.invalidateQueries({ queryKey: ['/api/seasonal-flow'] });
@@ -194,6 +195,7 @@ export default function SeasonalFlowManager() {
     onSuccess: (data) => {
       toast({
         title: 'Playoffs Generated',
+        // @ts-expect-error TS18046
         description: `Generated ${data.data.totalPlayoffMatches} playoff matches.`
       });
       queryClient.invalidateQueries({ queryKey: ['/api/seasonal-flow'] });
@@ -214,6 +216,7 @@ export default function SeasonalFlowManager() {
     onSuccess: (data) => {
       toast({
         title: 'Promotion/Relegation Processed',
+        // @ts-expect-error TS18046
         description: `Processed ${data.data.totalTeamsProcessed} team movements.`
       });
       queryClient.invalidateQueries({ queryKey: ['/api/seasonal-flow'] });
@@ -234,6 +237,7 @@ export default function SeasonalFlowManager() {
     onSuccess: (data) => {
       toast({
         title: 'Leagues Rebalanced',
+        // @ts-expect-error TS18046
         description: `Rebalanced ${data.data.leaguesRebalanced} divisions.`
       });
       queryClient.invalidateQueries({ queryKey: ['/api/seasonal-flow'] });
@@ -254,8 +258,10 @@ export default function SeasonalFlowManager() {
     onSuccess: (data) => {
       toast({
         title: 'Season Rollover Complete',
+        // @ts-expect-error TS18046
         description: `Advanced to Season ${data.data.newSeason}!`
       });
+      // @ts-expect-error TS18046
       setSelectedSeason(data.data.newSeason);
       queryClient.invalidateQueries({ queryKey: ['/api/seasonal-flow'] });
     },

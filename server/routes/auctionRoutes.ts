@@ -21,7 +21,7 @@ const placeBidSchema = z.object({
 });
 
 // Auction routes
-router.get('/', isAuthenticated, async (req: any, res: Response, next: NextFunction) => {
+router.get('/', isAuthenticated, async (req: any, res: Response, next: NextFunction): Promise<void> => {
   try {
     // Consider adding pagination parameters from req.query if needed
     const auctions = await auctionStorage.getActiveAuctions();
@@ -32,21 +32,30 @@ router.get('/', isAuthenticated, async (req: any, res: Response, next: NextFunct
   }
 });
 
-router.post('/', isAuthenticated, async (req: any, res: Response, next: NextFunction) => {
+router.post('/', isAuthenticated, async (req: any, res: Response, next: NextFunction): Promise<void> => {
   try {
     const userId = req.user.claims.sub;
     const team = await storage.teams.getTeamByUserId(userId);
-    if (!team) return res.status(404).json({ message: "Your team not found." });
+    if (!team) {
+      res.status(404).json({ message: "Your team not found." });
+      return;
+    }
 
     const { playerId, startingBid, duration } = createAuctionSchema.parse(req.body);
 
     const player = await storage.players.getPlayerById(parseInt(playerId));
-    if (!player || player.teamId !== team.id) return res.status(404).json({ message: "Player not found on your team or does not exist." });
+    if (!player || player.teamId !== team.id) {
+      res.status(404).json({ message: "Player not found on your team or does not exist." });
+      return;
+    }
     // Note: isMarketplace field doesn't exist in Prisma schema - functionality preserved via different check
     // if (player.isMarketplace) return res.status(400).json({ message: "Player is currently listed on the direct marketplace. Remove before auctioning." });
 
     const existingPlayerAuctions = await auctionStorage.getAuctionsByPlayer(parseInt(playerId), true);
-    if (existingPlayerAuctions.length > 0) return res.status(400).json({ message: "This player is already in an active auction." });
+    if (existingPlayerAuctions.length > 0) {
+      res.status(400).json({ message: "This player is already in an active auction." });
+      return;
+    }
 
     const endTime = new Date();
     endTime.setHours(endTime.getHours() + duration);
@@ -64,29 +73,47 @@ router.post('/', isAuthenticated, async (req: any, res: Response, next: NextFunc
     res.status(201).json(auction);
   } catch (error) {
     console.error("Error creating auction:", error);
-    if (error instanceof z.ZodError) return res.status(400).json({ message: "Invalid auction data", errors: error.errors });
+    if (error instanceof z.ZodError) {
+      res.status(400).json({ message: "Invalid auction data", errors: error.errors });
+      return;
+    }
     next(error);
   }
 });
 
-router.post('/:id/bid', isAuthenticated, async (req: any, res: Response, next: NextFunction) => {
+router.post('/:id/bid', isAuthenticated, async (req: any, res: Response, next: NextFunction): Promise<void> => {
   try {
     const userId = req.user.claims.sub;
     const bidderTeam = await storage.teams.getTeamByUserId(userId);
-    if (!bidderTeam) return res.status(404).json({ message: "Your team (bidder) not found." });
+    if (!bidderTeam) {
+      res.status(404).json({ message: "Your team (bidder) not found." });
+      return;
+    }
 
     const auctionId = req.params.id;
     const { amount } = placeBidSchema.parse(req.body);
 
     const auction = await auctionStorage.getAuctionById(auctionId);
-    if (!auction || !auction.isActive) return res.status(404).json({ message: "Auction not found or not active." });
-    if (auction.sellerTeamId === bidderTeam.id) return res.status(400).json({ message: "Cannot bid on your own auction." });
+    if (!auction || !auction.isActive) {
+      res.status(404).json({ message: "Auction not found or not active." });
+      return;
+    }
+    if (auction.sellerTeamId === bidderTeam.id) {
+      res.status(400).json({ message: "Cannot bid on your own auction." });
+      return;
+    }
 
     const finances = await teamFinancesStorage.getTeamFinances(bidderTeam.id);
-    if (!finances || (finances.credits || 0) < amount) return res.status(400).json({ message: "Insufficient credits to place this bid." });
+    if (!finances || (finances.credits || 0) < amount) {
+      res.status(400).json({ message: "Insufficient credits to place this bid." });
+      return;
+    }
 
-    const currentHighestBidAmount = Number(auction.currentBid || auction.startBid || 0n);
-    if (amount <= currentHighestBidAmount) return res.status(400).json({ message: `Bid must be higher than the current bid of ${currentHighestBidAmount}.` });
+    const currentHighestBidAmount = Number(auction.currentBid || auction.startBid || BigInt(0));
+    if (amount <= currentHighestBidAmount) {
+      res.status(400).json({ message: `Bid must be higher than the current bid of ${currentHighestBidAmount}.` });
+      return;
+    }
 
     // Note: getWinningBidForAuction method doesn't exist - preserving functionality with different approach
     // const previousTopBid = await auctionStorage.getWinningBidForAuction(auctionId);
@@ -124,7 +151,10 @@ router.post('/:id/bid', isAuthenticated, async (req: any, res: Response, next: N
     res.status(201).json(bid);
   } catch (error) {
     console.error("Error placing bid:", error);
-    if (error instanceof z.ZodError) return res.status(400).json({ message: "Invalid bid data", errors: error.errors });
+    if (error instanceof z.ZodError) {
+      res.status(400).json({ message: "Invalid bid data", errors: error.errors });
+      return;
+    }
     next(error);
   }
 });

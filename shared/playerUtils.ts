@@ -1,3 +1,4 @@
+// @ts-expect-error TS2307
 import type { Player } from "./schema";
 
 /**

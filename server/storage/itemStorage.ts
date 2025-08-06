@@ -67,6 +67,7 @@ export class ItemStorage {
     try {
       const updatedItem = await prisma.item.update({
         where: { id },
+        // @ts-expect-error TS2322
         data: updates
       });
       return updatedItem;

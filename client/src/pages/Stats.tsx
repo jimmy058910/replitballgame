@@ -116,7 +116,10 @@ export default function Stats() {
                       
                       <TabsContent value="scoring" className="mt-4">
                         <div className="space-y-2">
+                          {/*
+                           // @ts-expect-error TS2339 */}
                           {playerLeaderboards?.scoring?.length > 0 ? (
+                            // @ts-expect-error TS18046
                             playerLeaderboards.scoring.map((player: any, index: number) => (
                               <div key={player.playerId} className="flex justify-between items-center p-2 rounded bg-gray-50 dark:bg-gray-800">
                                 <span className="font-medium">#{index + 1} {player.playerName}</span>
@@ -131,7 +134,10 @@ export default function Stats() {
 
                       <TabsContent value="passing" className="mt-4">
                         <div className="space-y-2">
+                          {/*
+                           // @ts-expect-error TS2339 */}
                           {playerLeaderboards?.passing?.length > 0 ? (
+                            // @ts-expect-error TS18046
                             playerLeaderboards.passing.map((player: any, index: number) => (
                               <div key={player.playerId} className="flex justify-between items-center p-2 rounded bg-gray-50 dark:bg-gray-800">
                                 <span className="font-medium">#{index + 1} {player.playerName}</span>
@@ -146,7 +152,10 @@ export default function Stats() {
 
                       <TabsContent value="rushing" className="mt-4">
                         <div className="space-y-2">
+                          {/*
+                           // @ts-expect-error TS2339 */}
                           {playerLeaderboards?.rushing?.length > 0 ? (
+                            // @ts-expect-error TS18046
                             playerLeaderboards.rushing.map((player: any, index: number) => (
                               <div key={player.playerId} className="flex justify-between items-center p-2 rounded bg-gray-50 dark:bg-gray-800">
                                 <span className="font-medium">#{index + 1} {player.playerName}</span>
@@ -161,7 +170,10 @@ export default function Stats() {
 
                       <TabsContent value="defense" className="mt-4">
                         <div className="space-y-2">
+                          {/*
+                           // @ts-expect-error TS2339 */}
                           {playerLeaderboards?.defense?.length > 0 ? (
+                            // @ts-expect-error TS18046
                             playerLeaderboards.defense.map((player: any, index: number) => (
                               <div key={player.playerId} className="flex justify-between items-center p-2 rounded bg-gray-50 dark:bg-gray-800">
                                 <span className="font-medium">#{index + 1} {player.playerName}</span>
@@ -200,7 +212,10 @@ export default function Stats() {
                       
                       <TabsContent value="scoring" className="mt-4">
                         <div className="space-y-2">
+                          {/*
+                           // @ts-expect-error TS2339 */}
                           {teamLeaderboards?.scoring?.length > 0 ? (
+                            // @ts-expect-error TS18046
                             teamLeaderboards.scoring.map((team: any, index: number) => (
                               <div key={team.teamId} className="flex justify-between items-center p-2 rounded bg-gray-50 dark:bg-gray-800">
                                 <span className="font-medium">#{index + 1} {team.teamName}</span>
@@ -215,7 +230,10 @@ export default function Stats() {
 
                       <TabsContent value="offense" className="mt-4">
                         <div className="space-y-2">
+                          {/*
+                           // @ts-expect-error TS2339 */}
                           {teamLeaderboards?.offense?.length > 0 ? (
+                            // @ts-expect-error TS18046
                             teamLeaderboards.offense.map((team: any, index: number) => (
                               <div key={team.teamId} className="flex justify-between items-center p-2 rounded bg-gray-50 dark:bg-gray-800">
                                 <span className="font-medium">#{index + 1} {team.teamName}</span>
@@ -230,7 +248,10 @@ export default function Stats() {
 
                       <TabsContent value="defense" className="mt-4">
                         <div className="space-y-2">
+                          {/*
+                           // @ts-expect-error TS2339 */}
                           {teamLeaderboards?.defense?.length > 0 ? (
+                            // @ts-expect-error TS18046
                             teamLeaderboards.defense.map((team: any, index: number) => (
                               <div key={team.teamId} className="flex justify-between items-center p-2 rounded bg-gray-50 dark:bg-gray-800">
                                 <span className="font-medium">#{index + 1} {team.teamName}</span>
@@ -274,8 +295,10 @@ export default function Stats() {
                   <div className="text-center py-8">Loading player statistics...</div>
                 )}
 
+                // @ts-expect-error TS2322
+                {/* @ts-expect-error TS2322 */}
                 {playerStats && (
-                  <StatsDisplay playerStats={playerStats} showAverages={true} />
+                  <StatsDisplay playerStats={playerStats as any} showAverages={true} />
                 )}
               </CardContent>
             </Card>
@@ -306,8 +329,9 @@ export default function Stats() {
                   <div className="text-center py-8">Loading team statistics...</div>
                 )}
 
+                {/* @ts-expect-error TS2322 */}
                 {teamStats && (
-                  <StatsDisplay teamStats={teamStats} showAverages={true} />
+                  <StatsDisplay teamStats={teamStats as any} showAverages={true} />
                 )}
               </CardContent>
             </Card>

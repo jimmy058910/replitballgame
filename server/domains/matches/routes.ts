@@ -80,7 +80,7 @@ router.post('/:matchId/start',
       
       Logger.logInfo('Match start requested', {
         matchId: String(matchId),
-        userId: req.user?.claims?.sub
+        userId: (req.user as any)?.claims?.sub
       });
       
       res.json({

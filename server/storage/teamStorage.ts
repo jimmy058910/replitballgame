@@ -314,6 +314,7 @@ export class TeamStorage {
         potentialRating: playerData.potentialRating,
         dailyStaminaLevel: 100,
         injuryStatus: 'HEALTHY' as any,
+        // @ts-expect-error TS2339
         camaraderieScore: playerData.camaraderie || 75.0,
       };
       

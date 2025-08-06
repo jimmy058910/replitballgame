@@ -9,7 +9,7 @@ import logger from '../utils/logger';
  * Admin authentication middleware
  * Restricts access to admin users only
  */
-export function adminAuth(req: Request, res: Response, next: NextFunction) {
+export function adminAuth(req: Request, res: Response, next: NextFunction): void {
   try {
     // Check if user is authenticated
     if (!req.isAuthenticated || !req.isAuthenticated()) {
@@ -20,10 +20,11 @@ export function adminAuth(req: Request, res: Response, next: NextFunction) {
         requestId: (req as any).requestId
       });
 
-      return res.status(401).json({
+      res.status(401).json({
         error: 'Authentication required',
         message: 'Admin access requires authentication'
       });
+      return;
     }
 
     // Check if user has admin privileges
@@ -39,10 +40,11 @@ export function adminAuth(req: Request, res: Response, next: NextFunction) {
         requestId: (req as any).requestId
       });
 
-      return res.status(403).json({
+      res.status(403).json({
         error: 'Insufficient permissions',
         message: 'Admin access required'
       });
+      return;
     }
 
     // Log successful admin access
@@ -53,6 +55,7 @@ export function adminAuth(req: Request, res: Response, next: NextFunction) {
       requestId: (req as any).requestId
     });
 
+    // User is authorized
     next();
   } catch (error) {
     logger.error('Admin authentication error', {
@@ -62,9 +65,10 @@ export function adminAuth(req: Request, res: Response, next: NextFunction) {
       path: req.path
     });
 
-    return res.status(500).json({
+    res.status(500).json({
       error: 'Authentication error',
       message: 'Unable to verify admin permissions'
     });
+    return;
   }
 }

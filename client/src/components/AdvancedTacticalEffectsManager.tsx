@@ -145,12 +145,14 @@ export default function AdvancedTacticalEffectsManager({ teamId }: { teamId: str
     tacticalFocus?: string;
     tacticalFocusInfo?: any;
     nextFieldChangeWindow?: string;
+    matchEffects?: any;
   }
 
   // Extract data from responses
   const fieldSizeEffects = tacticalOptions?.fieldSizes;
   const tacticalFocusEffects = tacticalOptions?.tacticalFoci;
   const effectiveness = tacticalAnalysis?.bestSetup;
+  const matchEffects = tacticalAnalysis?.matchEffects;
 
   // Update field size mutation
   const updateFieldSizeMutation = useMutation({
@@ -395,7 +397,7 @@ export default function AdvancedTacticalEffectsManager({ teamId }: { teamId: str
                     <span className="font-medium">{currentSetup?.fieldSize || 'Standard'} Field</span>
                   </div>
                   <p className="text-sm text-gray-600">
-                    {fieldSizeEffects?.[currentSetup?.fieldSize]?.description || 'Balanced field configuration'}
+                    {(fieldSizeEffects && currentSetup?.fieldSize) ? (fieldSizeEffects as any)[currentSetup.fieldSize]?.description : 'Balanced field configuration'}
                   </p>
                 </div>
                 <div className="p-4 border rounded-lg">
@@ -404,7 +406,7 @@ export default function AdvancedTacticalEffectsManager({ teamId }: { teamId: str
                     <span className="font-medium">{currentSetup?.tacticalFocus || 'Balanced'}</span>
                   </div>
                   <p className="text-sm text-gray-600">
-                    {tacticalFocusEffects?.[currentSetup?.tacticalFocus]?.description || 'Balanced approach'}
+                    {(tacticalFocusEffects && currentSetup?.tacticalFocus) ? (tacticalFocusEffects as any)[currentSetup.tacticalFocus]?.description : 'Balanced approach'}
                   </p>
                 </div>
                 <div className="p-4 border rounded-lg">
@@ -636,8 +638,8 @@ export default function AdvancedTacticalEffectsManager({ teamId }: { teamId: str
                           <span className="text-sm text-gray-600 capitalize">
                             {modifier.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase())}:
                           </span>
-                          <span className={`text-sm font-medium ${getEffectColor(value)}`}>
-                            {value > 0 ? '+' : ''}{(value * 100).toFixed(0)}%
+                          <span className={`text-sm font-medium ${getEffectColor(Number(value))}`}>
+                            {Number(value) > 0 ? '+' : ''}{(Number(value) * 100).toFixed(0)}%
                           </span>
                         </div>
                       ))}

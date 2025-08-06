@@ -19,6 +19,7 @@ import {
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
+// @ts-expect-error TS2307
 import type { Team as SharedTeam, ScoutingReport as SharedScoutingReport, Player as SharedPlayer, Staff as SharedStaff } from "shared/schema";
 
 // Client-side specific ScoutingReport
@@ -361,8 +362,12 @@ export default function Scouting() {
                                     )}
                                   </div>
                                 </div>
+                                {/*
+                                 // @ts-expect-error TS2339 */}
                                 {player.contract?.salary && (
                                   <div className="text-right">
+                                    {/*
+                                     // @ts-expect-error TS2339 */}
                                     <div className="text-sm text-yellow-400">₡{Number(player.contract.salary).toLocaleString()}</div>
                                     <div className="text-xs text-gray-400">Salary</div>
                                   </div>

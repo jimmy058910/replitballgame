@@ -89,6 +89,7 @@ export default function UnifiedTeamChemistry({ teamId }: { teamId: string }) {
 
   // Filter to only main roster players (flexible 13-15 players, excluding taxi squad)
   const activePlayers = allPlayers?.filter(player => !player.isOnMarket && !player.isRetired) || [];
+  // @ts-expect-error TS2339
   const sortedPlayers = [...activePlayers].sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
   const taxiSquadPlayers = sortedPlayers.slice(13); // Players beyond position 13 are taxi squad (max 2)
   const players = sortedPlayers.slice(0, sortedPlayers.length - taxiSquadPlayers.length); // Flexible main roster

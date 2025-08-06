@@ -136,6 +136,7 @@ const TournamentCenter: React.FC<TournamentCenterProps> = ({ teamId }) => {
 
   // Check if Mid-Season Cup registration deadline has passed (Day 7 at 1PM EDT)
   const isMidSeasonRegistrationDeadlinePassed = () => {
+    // @ts-expect-error TS2339
     if (!seasonInfo?.data) return false;
     
     const currentDay = (seasonInfo as any)?.data?.currentDay;

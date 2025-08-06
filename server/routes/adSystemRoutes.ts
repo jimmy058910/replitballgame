@@ -19,7 +19,7 @@ const adViewSchema = z.object({
 
 
 // Ad System Routes
-router.post('/view', isAuthenticated, async (req: any, res: Response, next: NextFunction) => {
+router.post('/view', isAuthenticated, async (req: any, res: Response, next: NextFunction): Promise<any> => {
   try {
     const userId = req.user.claims.sub;
     const adData = adViewSchema.parse(req.body);
@@ -49,7 +49,7 @@ router.post('/view', isAuthenticated, async (req: any, res: Response, next: Next
 });
 
 // Get user ad statistics with enhanced tracking
-router.get('/stats', isAuthenticated, async (req: any, res: Response, next: NextFunction) => {
+router.get('/stats', isAuthenticated, async (req: any, res: Response, next: NextFunction): Promise<any> => {
   try {
     const userId = req.user.claims.sub;
     const stats = await adSystemStorage.getUserAdStats(userId);
@@ -70,7 +70,7 @@ router.get('/stats', isAuthenticated, async (req: any, res: Response, next: Next
 });
 
 // Manual ad watch endpoint (for additional watch button)
-router.post('/watch', isAuthenticated, async (req: any, res: Response, next: NextFunction) => {
+router.post('/watch', isAuthenticated, async (req: any, res: Response, next: NextFunction): Promise<any> => {
   try {
     const userId = req.user.claims.sub;
     

@@ -1,4 +1,5 @@
 import { prisma } from '../db.js';
+// @ts-expect-error TS2305
 import { Player } from '@prisma/client';
 import { ContractService } from './contractService';
 

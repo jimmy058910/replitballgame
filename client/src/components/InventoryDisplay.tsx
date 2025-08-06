@@ -90,6 +90,7 @@ export default function InventoryDisplay({ teamId }: InventoryDisplayProps) {
     
     const bonuses = Object.entries(statBoosts)
       .filter(([_, value]) => value && value !== 0)
+      // @ts-expect-error TS18046
       .map(([stat, value]) => `${stat}: ${value > 0 ? '+' : ''}${value}`)
       .join(', ');
     

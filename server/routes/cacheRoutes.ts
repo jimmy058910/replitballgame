@@ -29,7 +29,7 @@ router.get('/stats', asyncHandler(async (req: any, res: Response) => {
 }));
 
 // Clear specific cache types
-router.delete('/clear/:type', asyncHandler(async (req: any, res: Response) => {
+router.delete('/clear/:type', asyncHandler(async (req: any, res: Response): Promise<void> => {
   const { type } = req.params;
   let cleared = 0;
   
@@ -56,10 +56,11 @@ router.delete('/clear/:type', asyncHandler(async (req: any, res: Response) => {
       break;
       
     default:
-      return res.status(400).json({ 
+      res.status(400).json({ 
         success: false, 
         message: 'Invalid cache type. Use: users, teams, players, or all' 
       });
+      return;
   }
   
   res.json({

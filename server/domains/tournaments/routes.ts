@@ -107,7 +107,7 @@ router.post('/force-start/:tournamentId',
       
       Logger.logInfo('Force start tournament requested', {
         tournamentId,
-        adminUserId: req.user?.claims?.sub
+        adminUserId: (req.user as any)?.claims?.sub
       });
       
       // This would integrate with existing tournament flow service

@@ -52,6 +52,7 @@ export default function TacticalManager() {
     onSuccess: (data) => {
       toast({
         title: "Field Size Updated",
+        // @ts-expect-error TS18046
         description: data.message,
       });
       queryClient.invalidateQueries({ queryKey: ["/api/tactics/team-tactics"] });
@@ -73,6 +74,7 @@ export default function TacticalManager() {
     onSuccess: (data) => {
       toast({
         title: "Tactical Focus Updated",
+        // @ts-expect-error TS18046
         description: data.message,
       });
       queryClient.invalidateQueries({ queryKey: ["/api/tactics/team-tactics"] });

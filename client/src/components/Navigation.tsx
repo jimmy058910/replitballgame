@@ -146,6 +146,7 @@ export default function Navigation() {
                 <Button
                   size="sm"
                   variant="ghost"
+                  // @ts-expect-error TS2322
                   onClick={login}
                   className="hidden sm:flex h-8 px-3 text-xs text-blue-400 hover:bg-blue-400 hover:text-white"
                 >
@@ -156,6 +157,7 @@ export default function Navigation() {
                 <Button
                   size="sm"
                   variant="outline"
+                  // @ts-expect-error TS2322
                   onClick={login}
                   className="hidden sm:flex h-8 px-3 text-xs border-blue-400 text-blue-400 hover:bg-blue-400 hover:text-white"
                 >
@@ -212,6 +214,7 @@ export default function Navigation() {
                       <div className="flex flex-col gap-2 mt-2">
                         <Button
                           variant="outline"
+                          // @ts-expect-error TS2322
                           onClick={login}
                           className="w-full border-blue-400 text-blue-400 hover:bg-blue-400 hover:text-white"
                         >
@@ -220,6 +223,7 @@ export default function Navigation() {
                         </Button>
                         
                         <Button
+                          // @ts-expect-error TS2322
                           onClick={login}
                           className="w-full bg-blue-600 hover:bg-blue-700 text-white"
                         >

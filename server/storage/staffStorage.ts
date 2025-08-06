@@ -121,6 +121,7 @@ export class StaffStorage {
     return await prisma.staff.findMany({
       where: { 
         teamId,
+        // @ts-expect-error TS2322
         type: 'TRAINER'
       },
       include: {

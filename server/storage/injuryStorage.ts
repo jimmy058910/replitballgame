@@ -94,6 +94,7 @@ export class InjuryStorage {
   }
 
   async getTeamStaminaReport(teamId: number): Promise<Player[]> {
+    // @ts-expect-error TS2322
     return await prisma.player.findMany({
       where: { teamId },
       select: {

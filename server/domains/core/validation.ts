@@ -21,7 +21,7 @@ export function validateRequest(schema: {
   params?: z.ZodType<any>;
   query?: z.ZodType<any>;
 }) {
-  return (req: Request, res: Response, next: NextFunction) => {
+  return (req: Request, res: Response, next: NextFunction): void => {
     try {
       if (schema.body) {
         req.body = schema.body.parse(req.body);
@@ -35,7 +35,7 @@ export function validateRequest(schema: {
       next();
     } catch (error) {
       if (error instanceof z.ZodError) {
-        return res.status(400).json({
+        res.status(400).json({
           success: false,
           message: 'Validation failed',
           errors: error.errors.map(e => ({
@@ -43,6 +43,7 @@ export function validateRequest(schema: {
             message: e.message
           }))
         });
+        return;
       }
       next(error);
     }

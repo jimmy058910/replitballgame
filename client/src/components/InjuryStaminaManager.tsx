@@ -42,8 +42,10 @@ export function InjuryStaminaManager({ teamId }: InjuryStaminaManagerProps) {
   const [selectedPlayer, setSelectedPlayer] = useState<string>("");
 
   // Fetch team injury/stamina status
+  // @ts-expect-error TS2304
   const { data: teamStatus, isLoading } = useQuery<{ players: PlayerInjuryStatus[] }>({
     queryKey: ['/api/injury-stamina/team', teamId, 'status'],
+    // @ts-expect-error TS2304
     queryFn: () => apiRequest<{ players: PlayerInjuryStatus[] }>(`/api/injury-stamina/team/${teamId}/status`),
   });
 

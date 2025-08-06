@@ -38,18 +38,20 @@ if (!admin.apps.length) {
   }
 }
 
-export const requireAuth = async (req: any, res: Response, next: NextFunction) => {
+export const requireAuth = async (req: any, res: Response, next: NextFunction): Promise<void> => {
   try {
     const authHeader = req.headers.authorization;
     
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      return res.status(401).json({ message: 'Authentication required' });
+      res.status(401).json({ message: 'Authentication required' });
+      return;
     }
 
     const token = authHeader.split(' ')[1];
     
     if (!token) {
-      return res.status(401).json({ message: 'Authentication required' });
+      res.status(401).json({ message: 'Authentication required' });
+      return;
     }
 
     try {
@@ -68,11 +70,13 @@ export const requireAuth = async (req: any, res: Response, next: NextFunction) =
         code: tokenError.code
       });
       
-      return res.status(401).json({ error: 'Invalid or expired token' });
+      res.status(401).json({ error: 'Invalid or expired token' });
+      return;
     }
   } catch (error) {
     console.error('🔒 Authentication middleware error:', error);
-    return res.status(500).json({ error: 'Authentication system error' });
+    res.status(500).json({ error: 'Authentication system error' });
+    return;
   }
 };
 

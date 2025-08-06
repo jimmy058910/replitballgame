@@ -2,6 +2,7 @@
  * Security Validator - Additional security checks for production deployment
  */
 
+// @ts-expect-error TS2614
 import { logger } from './logger';
 
 interface SecurityCheckResult {

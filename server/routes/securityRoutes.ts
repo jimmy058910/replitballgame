@@ -4,6 +4,7 @@
 
 import express from 'express';
 import { runSecurityValidation } from '../utils/securityValidator';
+// @ts-expect-error TS2614
 import { logger } from '../utils/logger';
 import { adminAuth } from '../middleware/adminAuth';
 

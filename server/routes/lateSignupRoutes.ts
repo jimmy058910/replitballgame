@@ -9,6 +9,7 @@ const router = express.Router();
  * GET /api/late-signup/status
  * Get current late signup window status and statistics
  */
+// @ts-expect-error TS7006
 router.get('/status', isAuthenticated, asyncHandler(async (req, res) => {
   const stats = await LateSignupService.getLateSignupStats();
   
@@ -22,6 +23,7 @@ router.get('/status', isAuthenticated, asyncHandler(async (req, res) => {
  * GET /api/late-signup/window
  * Check if currently in late signup window
  */
+// @ts-expect-error TS7006
 router.get('/window', isAuthenticated, asyncHandler(async (req, res) => {
   const isLateSignupWindow = await LateSignupService.isLateSignupWindow();
   

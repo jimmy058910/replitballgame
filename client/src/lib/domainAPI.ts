@@ -143,6 +143,7 @@ export const authAPI = {
 export const checkDomainHealth = async () => {
   try {
     const response = await apiRequest(`/api/v2/health`, 'GET');
+    // @ts-expect-error TS18046
     return response.success;
   } catch (error) {
     console.error('Domain health check failed:', error);

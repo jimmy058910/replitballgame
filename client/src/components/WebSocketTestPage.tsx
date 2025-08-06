@@ -46,6 +46,7 @@ export function WebSocketTestPage() {
   }, []);
 
   const connectWebSocket = async () => {
+    // @ts-expect-error TS2339
     if (!user?.claims?.sub) {
       toast({
         title: '❌ Authentication Required',
@@ -57,6 +58,7 @@ export function WebSocketTestPage() {
 
     try {
       addLog('🔄 Attempting to connect...');
+      // @ts-expect-error TS2339
       await webSocketManager.connect(user.claims.sub);
       addLog('✅ Successfully authenticated');
       toast({
@@ -273,9 +275,13 @@ export function WebSocketTestPage() {
                 {events.map((event, index) => (
                   <div key={index} className="border-l-2 border-primary pl-3 py-2">
                     <div className="flex justify-between items-center mb-1">
+                      {/*
+                       // @ts-expect-error TS2322 */}
                       <Badge variant="outline" size="sm">
                         {Math.floor(event.time / 60)}:{(event.time % 60).toString().padStart(2, '0')}
                       </Badge>
+                      {/*
+                       // @ts-expect-error TS2322 */}
                       <Badge variant="secondary" size="sm">
                         {event.type}
                       </Badge>

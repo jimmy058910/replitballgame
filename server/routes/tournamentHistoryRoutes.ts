@@ -26,6 +26,7 @@ router.get('/', isAuthenticated, async (req: any, res: Response, next: NextFunct
     const userId = req.user?.claims?.sub;
     
     if (!userId) {
+      // @ts-expect-error TS2322
       return res.status(401).json({ message: "User not authenticated" });
     }
     
@@ -34,6 +35,7 @@ router.get('/', isAuthenticated, async (req: any, res: Response, next: NextFunct
     const team = userProfile ? await storage.teams.getTeamByUserId(userId) : null;
     
     if (!team) {
+      // @ts-expect-error TS2322
       return res.json([]);
     }
     

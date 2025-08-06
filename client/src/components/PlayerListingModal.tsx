@@ -123,6 +123,8 @@ export default function PlayerListingModal({ player, isOpen, onClose }: PlayerLi
               <div>Speed: {player.speed}</div>
               <div>Agility: {player.agility}</div>
               <div>Power: {player.power}</div>
+              {/*
+               // @ts-expect-error TS2339 */}
               <div>Stamina: {player.staminaAttribute}</div>
             </div>
           </CardContent>

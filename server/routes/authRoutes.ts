@@ -21,16 +21,18 @@ router.get('/google/callback',
 );
 
 // ✅ LOGOUT ENDPOINT
-router.post('/logout', (req, res) => {
+router.post('/logout', (req, res): void => {
   req.logout((err) => {
     if (err) {
       console.error('Logout error:', err);
-      return res.status(500).json({ message: 'Logout failed' });  
+      res.status(500).json({ message: 'Logout failed' });
+      return;  
     }
     req.session.destroy((err) => {
       if (err) {
         console.error('Session destroy error:', err);
-        return res.status(500).json({ message: 'Session cleanup failed' });
+        res.status(500).json({ message: 'Session cleanup failed' });
+        return;
       }
       res.clearCookie('connect.sid'); // Clear session cookie
       return res.json({ message: 'Logged out successfully' });
@@ -124,13 +126,14 @@ router.get('/admin-status', requireAuth, async (req: any, res: Response, next: N
 });
 
 // Promote self to admin (for testing/setup purposes)
-router.post('/promote-to-admin', requireAuth, async (req: any, res: Response, next: NextFunction) => {
+router.post('/promote-to-admin', requireAuth, async (req: any, res: Response, next: NextFunction): Promise<void> => {
   try {
     const userId = req.user.userId;
     const user = await userStorage.getUser(userId);
     
     if (!user || !user.email) {
-      return res.status(404).json({ message: "User not found or missing email" });
+      res.status(404).json({ message: "User not found or missing email" });
+      return;
     }
 
     // Use the RBAC service to promote user to admin
@@ -143,7 +146,8 @@ router.post('/promote-to-admin', requireAuth, async (req: any, res: Response, ne
     });
   } catch (error) {
     console.error("Error promoting user to admin:", error);
-    return res.status(500).json({ message: "Failed to promote user", error: String(error) });
+    res.status(500).json({ message: "Failed to promote user", error: String(error) });
+    return;
   }
 });
 

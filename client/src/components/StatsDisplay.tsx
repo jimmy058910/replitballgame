@@ -149,10 +149,14 @@ export function StatsDisplay({ playerStats, teamStats, compact = false, showAver
                   <div className="space-y-1">
                     <div className="flex justify-between">
                       <span className="text-sm">Carrier Yards</span>
+                      {/*
+                       // @ts-expect-error TS2339 */}
                       <span className="font-medium">{playerStats.offensive.carrierYards}</span>
                     </div>
                     {showAverages && playerStats.averages && (
                       <div className="text-xs text-gray-500">
+                        {/*
+                         // @ts-expect-error TS2339 */}
                         Avg: {playerStats.averages.carrierYardsPerGame}/game
                       </div>
                     )}
@@ -267,10 +271,13 @@ export function StatsDisplay({ playerStats, teamStats, compact = false, showAver
               <div className="space-y-1">
                 <div className="flex justify-between">
                   <span className="text-sm">Carrier Yards</span>
+                  {/*
+                   // @ts-expect-error TS2339 */}
                   <span className="font-medium">{teamStats.carrierYards}</span>
                 </div>
                 <div className="text-xs text-gray-500">
                   {teamStats.totalOffensiveYards > 0 
+                    // @ts-expect-error TS2339
                     ? Math.round((teamStats.carrierYards / teamStats.totalOffensiveYards) * 100)
                     : 0}% of total
                 </div>

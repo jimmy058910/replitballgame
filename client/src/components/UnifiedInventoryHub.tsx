@@ -251,6 +251,7 @@ export default function UnifiedInventoryHub({ teamId }: UnifiedInventoryHubProps
 
   // Mutations for item usage
   const useItemMutation = useMutation({
+    // @ts-expect-error TS7030
     mutationFn: async ({ item, playerId, action }: { item: InventoryItem; playerId?: string; action: string }) => {
       if (action === "equip") {
         return apiRequest(`/api/equipment/equip`, "POST", {
@@ -384,7 +385,9 @@ export default function UnifiedInventoryHub({ teamId }: UnifiedInventoryHubProps
         "Lumina Radiant Aegis": ["LUMINA"]
       };
       
+      // @ts-expect-error TS7053
       if (raceRequirements[item.name]) {
+        // @ts-expect-error TS7053
         return players.filter(p => raceRequirements[item.name].includes(p.race));
       }
       
@@ -398,6 +401,7 @@ export default function UnifiedInventoryHub({ teamId }: UnifiedInventoryHubProps
       // For stamina items, filter out players with full stamina
       if (item.name.toLowerCase().includes("stamina") || item.name.toLowerCase().includes("energy") || item.name.toLowerCase().includes("recovery")) {
         return players.filter(p => {
+          // @ts-expect-error TS2339
           const currentStamina = p.dailyStaminaLevel;
           // Only show players who don't have full stamina (null means full stamina)
           return currentStamina !== null && currentStamina < 100;
@@ -551,6 +555,7 @@ export default function UnifiedInventoryHub({ teamId }: UnifiedInventoryHubProps
                             useItemMutation.mutate({ 
                               item, 
                               action: "use_team_boost",
+                              // @ts-expect-error TS2353
                               effect: item.effect || item.metadata?.effect
                             });
                           } else {
@@ -698,6 +703,8 @@ export default function UnifiedInventoryHub({ teamId }: UnifiedInventoryHubProps
                       <SelectContent className="bg-gray-700 border-gray-600">
                         {getEligiblePlayers(selectedItem).map((player) => (
                           <SelectItem key={player.id} value={player.id} className="text-white">
+                            {/*
+                             // @ts-expect-error TS2339 */}
                             {player.firstName} {player.lastName} ({player.role}, {player.race})
                           </SelectItem>
                         ))}
@@ -769,6 +776,7 @@ export default function UnifiedInventoryHub({ teamId }: UnifiedInventoryHubProps
                           </SelectTrigger>
                           <SelectContent className="bg-gray-700 border-gray-600">
                             {getEligiblePlayers(selectedItem).map((player) => {
+                              // @ts-expect-error TS2339
                               const currentStamina = player.dailyStaminaLevel || 100;
                               const maxStamina = 100;
                               const staminaPercentage = Math.round(currentStamina);

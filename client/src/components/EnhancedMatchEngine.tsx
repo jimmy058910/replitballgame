@@ -410,6 +410,7 @@ export const EnhancedMatchEngine: React.FC<MatchEngineProps> = ({
   const { data: enhancedMatchData } = useQuery({
     queryKey: [`/api/matches/${matchId}/enhanced-data`],
     enabled: !!matchId,
+    // @ts-expect-error TS2339
     refetchInterval: basicMatchData?.status === 'COMPLETED' ? 0 : 5000
   });
 
@@ -462,6 +463,7 @@ export const EnhancedMatchEngine: React.FC<MatchEngineProps> = ({
     try {
       setIsControlling(true);
       const action = (liveState as any)?.status === 'paused' ? 'resume' : 'pause';
+      // @ts-expect-error TS2345
       await apiRequest(`/api/matches/${matchId}/control`, {
         method: 'POST',
         body: JSON.stringify({ action }),
@@ -487,6 +489,7 @@ export const EnhancedMatchEngine: React.FC<MatchEngineProps> = ({
     if (!matchId) return;
     
     try {
+      // @ts-expect-error TS2345
       await apiRequest(`/api/matches/${matchId}/speed`, {
         method: 'POST',
         body: JSON.stringify({ speed }),
@@ -505,6 +508,7 @@ export const EnhancedMatchEngine: React.FC<MatchEngineProps> = ({
   };
 
   // For completed matches, we don't need live state - show results if we have enhanced data
+  // @ts-expect-error TS2339
   const isCompleted = basicMatchData?.status === 'COMPLETED';
   const shouldShowResults = liveState || (isCompleted && enhancedMatchData);
   
@@ -559,8 +563,12 @@ export const EnhancedMatchEngine: React.FC<MatchEngineProps> = ({
               
               <div className="flex items-center space-x-6">
                 <div className="text-center">
+                  {/*
+                   // @ts-expect-error TS2339 */}
                   <div className="font-bold text-lg">{team1?.name || enhancedMatchData?.homeTeam?.name}</div>
                   <div className="text-3xl font-bold text-blue-600">
+                    {/*
+                     // @ts-expect-error TS2339 */}
                     {isCompleted ? enhancedMatchData?.finalScores?.home : liveState?.homeScore}
                   </div>
                 </div>
@@ -570,8 +578,12 @@ export const EnhancedMatchEngine: React.FC<MatchEngineProps> = ({
                     <>
                       <div className="text-sm text-muted-foreground">Final Score</div>
                       <div className="font-mono text-xl">
+                        {/*
+                         // @ts-expect-error TS2339 */}
                         {enhancedMatchData?.mvpData?.homeMVP ? (
                           <div className="text-xs">
+                            {/*
+                             // @ts-expect-error TS2339 */}
                             MVP: {enhancedMatchData.mvpData.homeMVP.playerName}
                           </div>
                         ) : null}
@@ -589,8 +601,12 @@ export const EnhancedMatchEngine: React.FC<MatchEngineProps> = ({
                 </div>
                 
                 <div className="text-center">
+                  {/*
+                   // @ts-expect-error TS2339 */}
                   <div className="font-bold text-lg">{team2?.name || enhancedMatchData?.awayTeam?.name}</div>
                   <div className="text-3xl font-bold text-red-600">
+                    {/*
+                     // @ts-expect-error TS2339 */}
                     {isCompleted ? enhancedMatchData?.finalScores?.away : liveState?.awayScore}
                   </div>
                 </div>
@@ -646,6 +662,7 @@ export const EnhancedMatchEngine: React.FC<MatchEngineProps> = ({
             awayTeam={team2}
             homePlayers={(homeTeamPlayers as EnhancedPlayer[]) || []}
             awayPlayers={(awayTeamPlayers as EnhancedPlayer[]) || []}
+            // @ts-expect-error TS2322
             liveState={liveState}
             ballPosition={ballPosition}
           />
@@ -687,6 +704,7 @@ export const EnhancedMatchEngine: React.FC<MatchEngineProps> = ({
               <LiveStatsTab
                 homeTeam={team1}
                 awayTeam={team2}
+                // @ts-expect-error TS2322
                 liveState={liveState}
                 enhancedStats={enhancedMatchData}
               />

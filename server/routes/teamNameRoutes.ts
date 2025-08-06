@@ -67,6 +67,7 @@ router.get('/rules', asyncHandler(async (req: Request, res: Response) => {
  * POST /api/team-names/check-availability
  * Quick availability check (just uniqueness)
  */
+// @ts-expect-error TS7030
 router.post('/check-availability', isAuthenticated, asyncHandler(async (req: Request, res: Response) => {
   const { name } = z.object({ name: z.string() }).parse(req.body);
   

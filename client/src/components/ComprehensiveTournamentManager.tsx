@@ -162,12 +162,12 @@ export default function ComprehensiveTournamentManager({ teamId }: Comprehensive
             <Trophy className="w-5 h-5 text-purple-500" />
             <CardTitle className="text-lg">{tournament.name}</CardTitle>
           </div>
-          <Badge variant={tournament.type === "DAILY_DIVISIONAL" ? "secondary" : "default"}>
-            {tournament.type === "DAILY_DIVISIONAL" ? "Daily Tournament" : "Mid-Season Cup"}
+          <Badge variant={tournament.type === "daily_divisional_cup" ? "secondary" : "default"}>
+            {tournament.type === "daily_divisional_cup" ? "Daily Tournament" : "Mid-Season Cup"}
           </Badge>
         </div>
         <CardDescription className="text-gray-600 dark:text-gray-300">
-          {tournament.type === "DAILY_DIVISIONAL" 
+          {tournament.type === "daily_divisional_cup" 
             ? "Quick single-elimination tournament" 
             : "Premier seasonal tournament with substantial rewards"
           }
@@ -224,21 +224,21 @@ export default function ComprehensiveTournamentManager({ teamId }: Comprehensive
           <div className="text-center p-2 bg-yellow-50 dark:bg-yellow-900/20 rounded">
             <AlertTriangle className="w-4 h-4 mx-auto text-yellow-500" />
             <div className="font-medium mt-1 text-gray-900 dark:text-gray-100">
-              {tournament.type === "DAILY_DIVISIONAL" ? "5%" : "20%"}
+              {tournament.type === "daily_divisional_cup" ? "5%" : "20%"}
             </div>
             <div className="text-gray-600 dark:text-gray-400">Injury Risk</div>
           </div>
           <div className="text-center p-2 bg-red-50 dark:bg-red-900/20 rounded">
             <Zap className="w-4 h-4 mx-auto text-red-500" />
             <div className="font-medium mt-1 text-gray-900 dark:text-gray-100">
-              {tournament.type === "DAILY_DIVISIONAL" ? "-10" : "-30"}
+              {tournament.type === "daily_divisional_cup" ? "-10" : "-30"}
             </div>
             <div className="text-gray-600 dark:text-gray-400">Stamina Cost</div>
           </div>
           <div className="text-center p-2 bg-green-50 dark:bg-green-900/20 rounded">
             <Heart className="w-4 h-4 mx-auto text-green-500" />
             <div className="font-medium mt-1 text-gray-900 dark:text-gray-100">
-              {tournament.type === "DAILY_DIVISIONAL" ? "Moderate" : "High"}
+              {tournament.type === "daily_divisional_cup" ? "Moderate" : "High"}
             </div>
             <div className="text-gray-600 dark:text-gray-400">Progression</div>
           </div>

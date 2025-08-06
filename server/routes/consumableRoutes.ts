@@ -7,12 +7,13 @@ import { prisma } from "../db";
 const router = Router();
 
 // Get team's consumable inventory
-router.get("/team/:teamId", isAuthenticated, asyncHandler(async (req: any, res: Response) => {
+router.get("/team/:teamId", isAuthenticated, asyncHandler(async (req: any, res: Response): Promise<void> => {
   const { teamId } = req.params;
   const userId = req.user?.claims?.sub;
 
   if (!userId) {
-    return res.status(401).json({ error: "Unauthorized" });
+    res.status(401).json({ error: "Unauthorized" });
+    return;
   }
 
   const consumables = await consumableStorage.getTeamAvailableConsumables(parseInt(teamId));
@@ -20,12 +21,13 @@ router.get("/team/:teamId", isAuthenticated, asyncHandler(async (req: any, res: 
 }));
 
 // Get consumables activated for a specific match
-router.get("/match/:matchId/team/:teamId", isAuthenticated, asyncHandler(async (req: any, res: Response) => {
+router.get("/match/:matchId/team/:teamId", isAuthenticated, asyncHandler(async (req: any, res: Response): Promise<void> => {
   const { matchId, teamId } = req.params;
   const userId = req.user?.claims?.sub;
 
   if (!userId) {
-    return res.status(401).json({ error: "Unauthorized" });
+    res.status(401).json({ error: "Unauthorized" });
+    return;
   }
 
   const consumables = await consumableStorage.getMatchConsumables(parseInt(matchId), parseInt(teamId));
@@ -39,12 +41,13 @@ router.get("/match/:matchId/team/:teamId", isAuthenticated, asyncHandler(async (
 }));
 
 // Activate a consumable for a match
-router.post("/activate", isAuthenticated, asyncHandler(async (req: any, res: Response) => {
+router.post("/activate", isAuthenticated, asyncHandler(async (req: any, res: Response): Promise<void> => {
   const { matchId, teamId, consumableId, consumableName, effectType, effectData } = req.body;
   const userId = req.user?.claims?.sub;
 
   if (!userId) {
-    return res.status(401).json({ error: "Unauthorized" });
+    res.status(401).json({ error: "Unauthorized" });
+    return;
   }
 
   // Validate that this is a league match
@@ -53,17 +56,20 @@ router.post("/activate", isAuthenticated, asyncHandler(async (req: any, res: Res
   });
 
   if (!match) {
-    return res.status(404).json({ error: "Match not found" });
+    res.status(404).json({ error: "Match not found" });
+    return;
   }
 
   // Only allow consumables in league matches - NOTE: Using proper enum comparison
   if (match.matchType !== "LEAGUE" as any) { 
-    return res.status(400).json({ error: "Consumables can only be used in league matches" });
+    res.status(400).json({ error: "Consumables can only be used in league matches" });
+    return;
   }
 
   // Check if match has already started - NOTE: Using proper enum comparison  
   if (match.status !== "SCHEDULED" as any) {
-    return res.status(400).json({ error: "Cannot activate consumables after match has started" });
+    res.status(400).json({ error: "Cannot activate consumables after match has started" });
+    return;
   }
 
   const result = await consumableStorage.activateConsumable(
@@ -83,12 +89,13 @@ router.post("/activate", isAuthenticated, asyncHandler(async (req: any, res: Res
 }));
 
 // Deactivate a consumable (remove from match)
-router.delete("/:consumableId/team/:teamId", isAuthenticated, asyncHandler(async (req: any, res: Response) => {
+router.delete("/:consumableId/team/:teamId", isAuthenticated, asyncHandler(async (req: any, res: Response): Promise<void> => {
   const { consumableId, teamId } = req.params;
   const userId = req.user?.claims?.sub;
 
   if (!userId) {
-    return res.status(401).json({ error: "Unauthorized" });
+    res.status(401).json({ error: "Unauthorized" });
+    return;
   }
 
   const success = await consumableStorage.deactivateConsumable(consumableId, teamId);
@@ -101,12 +108,13 @@ router.delete("/:consumableId/team/:teamId", isAuthenticated, asyncHandler(async
 }));
 
 // Get all consumables for a match (for match simulation)
-router.get("/match/:matchId/all", isAuthenticated, asyncHandler(async (req: any, res: Response) => {
+router.get("/match/:matchId/all", isAuthenticated, asyncHandler(async (req: any, res: Response): Promise<void> => {
   const { matchId } = req.params;
   const userId = req.user?.claims?.sub;
 
   if (!userId) {
-    return res.status(401).json({ error: "Unauthorized" });
+    res.status(401).json({ error: "Unauthorized" });
+    return;
   }
 
   const consumables = await consumableStorage.getAllMatchConsumables(parseInt(matchId));
@@ -114,12 +122,13 @@ router.get("/match/:matchId/all", isAuthenticated, asyncHandler(async (req: any,
 }));
 
 // Mark consumables as used after match completion (internal endpoint)
-router.post("/match/:matchId/mark-used", isAuthenticated, asyncHandler(async (req: any, res: Response) => {
+router.post("/match/:matchId/mark-used", isAuthenticated, asyncHandler(async (req: any, res: Response): Promise<void> => {
   const { matchId } = req.params;
   const userId = req.user?.claims?.sub;
 
   if (!userId) {
-    return res.status(401).json({ error: "Unauthorized" });
+    res.status(401).json({ error: "Unauthorized" });
+    return;
   }
 
   await consumableStorage.markConsumablesAsUsed(parseInt(matchId));

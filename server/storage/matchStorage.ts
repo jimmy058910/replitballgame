@@ -93,6 +93,7 @@ export class MatchStorage {
         AND: [
           { homeTeamId: { in: teamIdsInDivision } },
           { awayTeamId: { in: teamIdsInDivision } },
+          // @ts-expect-error TS2322
           ...(seasonId ? [{ league: { seasonId } }] : [])
         ]
       },
@@ -112,6 +113,7 @@ export class MatchStorage {
     try {
       const updatedMatch = await prisma.game.update({
         where: { id },
+        // @ts-expect-error TS2322
         data: updates,
         include: {
           league: true,

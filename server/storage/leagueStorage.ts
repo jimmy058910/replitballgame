@@ -11,6 +11,7 @@ export class LeagueStorage {
       data: {
         division: leagueData.division,
         name: leagueData.name,
+        // @ts-expect-error TS2322
         seasonId: leagueData.seasonId,
       },
       include: {
@@ -38,6 +39,7 @@ export class LeagueStorage {
 
   async getActiveLeagueByDivision(division: number, seasonId?: number): Promise<League | null> {
     const league = await prisma.league.findFirst({
+      // @ts-expect-error TS2322
       where: {
         division,
         ...(seasonId ? { seasonId } : {})

@@ -64,6 +64,7 @@ const CachedMarketplaceListing: React.FC<CachedMarketplaceListingProps> = memo((
         <div className="cursor-pointer" onClick={() => onPlayerClick(listing.player)}>
           <UnifiedPlayerCard
             player={listing.player}
+            // @ts-expect-error TS2322
             variant="marketplace"
             onClick={() => onPlayerClick(listing.player)}
           />

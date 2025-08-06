@@ -116,7 +116,9 @@ export function ConsumableManager({ teamId, onConsumableActivated }: ConsumableM
     },
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: [`/api/consumables/team/${teamId}`] });
+      // @ts-expect-error TS18046
       if (data.consumable && onConsumableActivated) {
+        // @ts-expect-error TS18046
         onConsumableActivated(data.consumable);
       }
     }

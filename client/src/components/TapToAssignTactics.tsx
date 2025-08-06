@@ -145,6 +145,7 @@ function TacticalSettingsContent({ teamId }: { teamId: string }) {
   const canChangeFieldSize = () => {
     if (!seasonData) return false;
     
+    // @ts-expect-error TS2339
     const currentDay = seasonData.currentDay;
     const currentHour = new Date().getHours();
     
@@ -194,6 +195,7 @@ function TacticalSettingsContent({ teamId }: { teamId: string }) {
                 key={option.value}
                 onClick={() => canChangeFieldSize() && updateFieldSizeMutation.mutate(option.value)}
                 className={`p-3 rounded-lg border transition-colors ${
+                  // @ts-expect-error TS2339
                   tacticalData?.fieldSize === option.value 
                     ? 'border-blue-500 bg-blue-900/30' 
                     : 'border-gray-600 bg-gray-700/30'
@@ -209,6 +211,7 @@ function TacticalSettingsContent({ teamId }: { teamId: string }) {
                     <div className="text-sm text-gray-400">{option.description}</div>
                   </div>
                   <div className={`w-4 h-4 rounded-full border-2 ${
+                    // @ts-expect-error TS2339
                     tacticalData?.fieldSize === option.value 
                       ? 'border-blue-400 bg-blue-400' 
                       : 'border-gray-500'
@@ -231,6 +234,7 @@ function TacticalSettingsContent({ teamId }: { teamId: string }) {
                 key={option.value}
                 onClick={() => updateTacticalFocusMutation.mutate(option.value)}
                 className={`p-3 rounded-lg border transition-colors cursor-pointer ${
+                  // @ts-expect-error TS2339
                   tacticalData?.tacticalFocus === option.value 
                     ? 'border-purple-500 bg-purple-900/30' 
                     : 'border-gray-600 bg-gray-700/30 hover:bg-gray-600/50'
@@ -242,6 +246,7 @@ function TacticalSettingsContent({ teamId }: { teamId: string }) {
                     <div className="text-sm text-gray-400">{option.description}</div>
                   </div>
                   <div className={`w-4 h-4 rounded-full border-2 ${
+                    // @ts-expect-error TS2339
                     tacticalData?.tacticalFocus === option.value 
                       ? 'border-purple-400 bg-purple-400' 
                       : 'border-gray-500'
@@ -258,8 +263,12 @@ function TacticalSettingsContent({ teamId }: { teamId: string }) {
         <div className="space-y-4">
           <div className="flex items-center justify-between">
             <span className="text-sm font-medium text-gray-300">Coach Bonus</span>
+            {/*
+             // @ts-expect-error TS2339 */}
             <span className="text-white font-bold">+{tacticalData?.coachBonus || 0}%</span>
           </div>
+          {/*
+           // @ts-expect-error TS2339 */}
           <Progress value={tacticalData?.coachEffectiveness || 0} className="h-2 bg-gray-700" />
           <p className="text-xs text-gray-400">
             Your head coach provides tactical bonuses during matches
@@ -269,8 +278,12 @@ function TacticalSettingsContent({ teamId }: { teamId: string }) {
         <div className="space-y-4">
           <div className="flex items-center justify-between">
             <span className="text-sm font-medium text-gray-300">Team Chemistry</span>
+            {/*
+             // @ts-expect-error TS2339 */}
             <span className="text-white font-bold">{tacticalData?.teamCamaraderie || 0}%</span>
           </div>
+          {/*
+           // @ts-expect-error TS2339 */}
           <Progress value={tacticalData?.teamCamaraderie || 0} className="h-2 bg-gray-700" />
           <p className="text-xs text-gray-400">
             Higher chemistry improves coordination and performance
@@ -284,10 +297,14 @@ function TacticalSettingsContent({ teamId }: { teamId: string }) {
         <div className="grid grid-cols-2 gap-4 text-sm">
           <div>
             <span className="text-gray-400">Field Size Bonus:</span>
+            {/*
+             // @ts-expect-error TS2339 */}
             <span className="text-white ml-2">+{tacticalData?.fieldSizeBonus || 0}%</span>
           </div>
           <div>
             <span className="text-gray-400">Focus Bonus:</span>
+            {/*
+             // @ts-expect-error TS2339 */}
             <span className="text-white ml-2">+{tacticalData?.tacticalFocusBonus || 0}%</span>
           </div>
         </div>

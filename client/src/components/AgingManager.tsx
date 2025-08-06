@@ -376,33 +376,33 @@ export default function AgingManager() {
                 {processSeasonAging.isPending ? 'Processing...' : 'Process End-of-Season Aging'}
               </Button>
 
-              {processSeasonAging.data && (
+              {processSeasonAging.data && processSeasonAging.data.success && (
                 <div className="space-y-4">
                   <h3 className="font-semibold">Processing Results</h3>
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                     <div className="text-center p-3 border rounded-md">
-                      <div className="text-2xl font-bold">{processSeasonAging.data.totalProcessed}</div>
+                      <div className="text-2xl font-bold">{(processSeasonAging.data as any).totalProcessed || 0}</div>
                       <div className="text-sm text-muted-foreground">Total Processed</div>
                     </div>
                     <div className="text-center p-3 border rounded-md">
-                      <div className="text-2xl font-bold text-red-600">{processSeasonAging.data.retired}</div>
+                      <div className="text-2xl font-bold text-red-600">{(processSeasonAging.data as any).retired || 0}</div>
                       <div className="text-sm text-muted-foreground">Retired</div>
                     </div>
                     <div className="text-center p-3 border rounded-md">
-                      <div className="text-2xl font-bold text-yellow-600">{processSeasonAging.data.declined}</div>
+                      <div className="text-2xl font-bold text-yellow-600">{(processSeasonAging.data as any).declined || 0}</div>
                       <div className="text-sm text-muted-foreground">Declined</div>
                     </div>
                     <div className="text-center p-3 border rounded-md">
-                      <div className="text-2xl font-bold text-green-600">{processSeasonAging.data.aged}</div>
+                      <div className="text-2xl font-bold text-green-600">{(processSeasonAging.data as any).aged || 0}</div>
                       <div className="text-sm text-muted-foreground">Aged Normally</div>
                     </div>
                   </div>
 
-                  {processSeasonAging.data.retiredPlayers?.length > 0 && (
+                  {(processSeasonAging.data as any).retiredPlayers?.length > 0 && (
                     <div>
                       <h4 className="font-semibold mb-2">Retired Players</h4>
                       <div className="space-y-2">
-                        {processSeasonAging.data.retiredPlayers.map((player: any, index: number) => (
+                        {(processSeasonAging.data as any).retiredPlayers.map((player: any, index: number) => (
                           <div key={index} className="flex justify-between items-center p-2 border rounded">
                             <span>{player.name}</span>
                             <Badge variant="destructive">Retired</Badge>
@@ -412,11 +412,11 @@ export default function AgingManager() {
                     </div>
                   )}
 
-                  {processSeasonAging.data.declinedPlayers?.length > 0 && (
+                  {(processSeasonAging.data as any).declinedPlayers?.length > 0 && (
                     <div>
                       <h4 className="font-semibold mb-2">Players with Stat Decline</h4>
                       <div className="space-y-2">
-                        {processSeasonAging.data.declinedPlayers.map((player: any, index: number) => (
+                        {(processSeasonAging.data as any).declinedPlayers.map((player: any, index: number) => (
                           <div key={index} className="flex justify-between items-center p-2 border rounded">
                             <span>{player.name}</span>
                             <Badge variant="secondary">Declined</Badge>

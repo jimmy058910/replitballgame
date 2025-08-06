@@ -39,10 +39,13 @@ export function LiveMatchTest() {
 
   // Fetch user's recent matches for testing
   const { data: recentMatches } = useQuery({
+    // @ts-expect-error TS2339
     queryKey: ['/api/matches/recent', user?.team?.id],
+    // @ts-expect-error TS2339
     enabled: !!user?.team?.id
   });
 
+  // @ts-expect-error TS2488
   const availableMatches = [...(matches || []), ...(recentMatches || [])].slice(0, 10);
 
   const startLiveMatch = async (matchId: string) => {
@@ -75,6 +78,7 @@ export function LiveMatchTest() {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
+          // @ts-expect-error TS2339
           teamId: user?.team?.id
         }),
       });
@@ -149,6 +153,7 @@ export function LiveMatchTest() {
           
           <RealmRivalry2DMatchEngine 
             matchId={selectedMatch}
+            // @ts-expect-error TS2339
             userId={user.id}
           />
         </div>

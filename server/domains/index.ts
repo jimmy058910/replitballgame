@@ -20,18 +20,19 @@ router.use('/economy', economyRoutes);
 // Health check endpoint removed - using enhanced health endpoint from server/health.ts instead
 
 // Global error handler for domains
-router.use((error: Error, req: Request, res: Response, next: NextFunction) => {
+router.use((error: Error, req: Request, res: Response, next: NextFunction): void => {
   const requestId = req.headers['x-request-id'] as string;
   
   Logger.logError('Domain error occurred', error, {
     requestId,
     path: req.path,
     method: req.method,
-    userId: req.user?.claims?.sub
+    userId: (req.user as any)?.claims?.sub
   });
 
   if (error instanceof AppError) {
-    return res.status(error.statusCode).json(createErrorResponse(error, requestId));
+    res.status(error.statusCode).json(createErrorResponse(error, requestId));
+    return;
   }
 
   // Unknown error - don't expose to client

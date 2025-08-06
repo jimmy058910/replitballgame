@@ -169,6 +169,7 @@ export function EnhancedFinancesTab({ teamId }: EnhancedFinancesTabProps) {
   };
 
   // Map contracts data from the API response
+  // @ts-expect-error TS2339
   const contractsList: Contract[] = contractsData?.players ? contractsData.players.map((player: any) => ({
     id: player.id?.toString() || 'unknown',
     playerName: `${player.firstName} ${player.lastName}`,

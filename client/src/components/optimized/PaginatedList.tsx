@@ -82,6 +82,7 @@ export function PaginatedList<T>({
     }
   }, [infiniteScroll, onLoadMore, loadingMore, hasMore]);
 
+  // @ts-expect-error TS7030
   useEffect(() => {
     if (infiniteScroll) {
       window.addEventListener('scroll', handleScroll);

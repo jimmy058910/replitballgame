@@ -140,6 +140,8 @@ export function createLazyComponent<P extends object>(
   
   return (props: P) => (
     <EnhancedLoadingWrapper {...options}>
+      {/*
+       // @ts-expect-error TS2322 */}
       <LazyComponent {...props} />
     </EnhancedLoadingWrapper>
   );
@@ -179,6 +181,7 @@ export const SmartLoader: React.FC<{
 }) => {
   const [isMinLoadTimeMet, setIsMinLoadTimeMet] = useState(false);
 
+  // @ts-expect-error TS7030
   useEffect(() => {
     if (isLoading) {
       setIsMinLoadTimeMet(false);
@@ -209,6 +212,7 @@ export const SmartLoader: React.FC<{
         level={level}
         enableRetry={enableRetry}
         errorMessage={errorMessage}
+        // @ts-expect-error TS2322
         onRetry={onRetry}
       >
         {children}

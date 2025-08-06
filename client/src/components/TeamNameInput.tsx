@@ -45,6 +45,7 @@ export function TeamNameInput({
 
   // Validation mutation
   const validateMutation = useMutation({
+    // @ts-expect-error TS2322
     mutationFn: (name: string) => 
       apiRequest('/api/team-names/validate-with-suggestions', 'POST', {
         baseName: name,

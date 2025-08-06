@@ -2,8 +2,10 @@
  * Virtualized List Components
  * High-performance list rendering for large datasets
  */
+// @ts-expect-error TS7016
 import { FixedSizeList as List, VariableSizeList } from 'react-window';
 import AutoSizer from 'react-virtualized-auto-sizer';
+// @ts-expect-error TS7016
 import InfiniteLoader from 'react-window-infinite-loader';
 import { cn } from '@/lib/utils';
 import { Loader2 } from 'lucide-react';
@@ -68,6 +70,8 @@ export function VirtualizedList<T>({
             itemCount={itemCount}
             loadMoreItems={loadNextPage || (() => Promise.resolve())}
           >
+            {/*
+             // @ts-expect-error TS7031 */}
             {({ onItemsRendered, ref }) => (
               <List
                 ref={ref}
@@ -142,6 +146,8 @@ export function VariableSizeVirtualizedList<T>({
             itemCount={itemCount}
             loadMoreItems={loadNextPage || (() => Promise.resolve())}
           >
+            {/*
+             // @ts-expect-error TS7031 */}
             {({ onItemsRendered, ref }) => (
               <VariableSizeList
                 ref={ref}

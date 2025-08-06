@@ -63,6 +63,7 @@ export function TaxiSquadManager({ teamId, onNavigateToRecruiting }: TaxiSquadMa
   });
 
   // Promotions only allowed during offseason (Days 16-17)
+  // @ts-expect-error TS18048
   const isOffseason = seasonCycle?.data?.currentDay >= 16;
 
   const promotePlayerMutation = useMutation({

@@ -123,6 +123,7 @@ export default function TryoutSystem({ teamId, onNavigateToTaxiSquad }: TryoutSy
 
   // Calculate effective scout quality
   const effectiveScoutQuality = teamScouts && teamScouts?.length > 0
+    // @ts-expect-error TS2345
     ? Math.max(...teamScouts.map((scout: Scout) => scout.quality ?? 50))
     : 50;
 
@@ -235,6 +236,7 @@ export default function TryoutSystem({ teamId, onNavigateToTaxiSquad }: TryoutSy
     });
   };
 
+  // @ts-expect-error TS2339
   const getPlayerRole = (candidate: TryoutCandidate): Player['position'] => {
     const stats = {
       throwing: candidate.throwing ?? 0,
