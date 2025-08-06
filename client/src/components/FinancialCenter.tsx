@@ -140,15 +140,15 @@ export default function FinancialCenter({ teamId }: FinancialCenterProps) {
   };
 
   const revenue: RevenueBreakdown = {
-    ticketSales: revenueData?.data?.ticketSales || 0,
-    concessions: revenueData?.data?.concessions || 0,
-    parking: revenueData?.data?.parking || 0,
-    vipSuites: revenueData?.data?.vipSuites || 0,
-    apparel: revenueData?.data?.apparel || 0,
-    total: revenueData?.data?.totalRevenue || 0,
+    ticketSales: revenueData?.ticketSales || 0,
+    concessions: revenueData?.concessions || 0,
+    parking: revenueData?.parking || 0,
+    vipSuites: revenueData?.vipSuites || 0,
+    apparel: revenueData?.apparel || 0,
+    total: revenueData?.total || 0,
   };
 
-  const contracts: PlayerContract[] = contractsData?.contracts || [];
+  const contracts: PlayerContract[] = contractsData || [];
 
   // Calculate budget health
   const budgetHealth = finances.totalExpenses > 0 

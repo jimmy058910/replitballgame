@@ -144,7 +144,7 @@ export default function TacticsLineupHub({ teamId }: TacticsLineupHubProps) {
     
     const passerScore = (player.throwing + player.leadership) / 2;
     const runnerScore = (player.speed + player.agility) / 2;
-    const blockerScore = (player.power + player.staminaAttribute) / 2;
+    const blockerScore = (player.power + (player.stamina || 50)) / 2;
     
     if (passerScore >= runnerScore && passerScore >= blockerScore) {
       return "passer";
@@ -348,16 +348,16 @@ export default function TacticsLineupHub({ teamId }: TacticsLineupHubProps) {
     const numericId = parseInt(id);
     
     // Check available players
-    let player = availablePlayers.find(p => p.id === numericId);
+    let player = availablePlayers.find(p => String(p.id) === id || p.id === numericId);
     if (player) return player;
     
     // Check starters
-    const starterSlot = starterSlots.find(slot => slot.player?.id === numericId);
+    const starterSlot = starterSlots.find(slot => slot.player?.id === numericId || String(slot.player?.id) === id);
     if (starterSlot?.player) return starterSlot.player as Player;
     
     // Check substitutes
     const allSubs = [...substitutes.blockers, ...substitutes.runners, ...substitutes.passers];
-    player = allSubs.find(p => p.id === numericId);
+    player = allSubs.find(p => String(p.id) === id || p.id === numericId);
     if (player) return player;
     
     return null;
