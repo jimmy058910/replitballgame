@@ -30,22 +30,62 @@ async function testDatabaseConnection() {
 // Basic health check for startup probes (no database dependency)
 export function createBasicHealthCheck() {
   return (req: any, res: any) => {
-    res.status(200).json({
-      status: 'healthy',
-      timestamp: new Date().toISOString(),
-      uptime: process.uptime(),
-      version: '6.27.0-TRUE-DB-INDEPENDENT-HEALTH-AUG6',
-      environment: {
-        NODE_ENV: process.env.NODE_ENV || 'not-set',
-        production: process.env.NODE_ENV === 'production',
-        port: process.env.PORT || 5000,
-        cloudRun: {
-          GOOGLE_CLOUD_PROJECT: process.env.GOOGLE_CLOUD_PROJECT || 'not-set',
-          K_SERVICE: process.env.K_SERVICE || 'not-set',
-          K_REVISION: process.env.K_REVISION || 'not-set'
+    try {
+      // CLOUD RUN DEBUGGING: Enhanced health check with environment investigation
+      const healthData = {
+        status: 'healthy',
+        timestamp: new Date().toISOString(),
+        uptime: process.uptime(),
+        version: '6.28.0-CLOUD-RUN-DEBUG-AUG6',
+        environment: {
+          NODE_ENV: process.env.NODE_ENV || 'not-set',
+          PORT: process.env.PORT || 'not-set',
+          production: process.env.NODE_ENV === 'production',
+          cloudRun: {
+            GOOGLE_CLOUD_PROJECT: process.env.GOOGLE_CLOUD_PROJECT || 'not-set',
+            K_SERVICE: process.env.K_SERVICE || 'not-set',
+            K_REVISION: process.env.K_REVISION || 'not-set',
+            // Check critical secrets without exposing values
+            secrets: {
+              DATABASE_URL_PRODUCTION: !!process.env.DATABASE_URL_PRODUCTION,
+              VITE_FIREBASE_API_KEY: !!process.env.VITE_FIREBASE_API_KEY,
+              VITE_FIREBASE_PROJECT_ID: !!process.env.VITE_FIREBASE_PROJECT_ID,
+              GOOGLE_CLIENT_ID: !!process.env.GOOGLE_CLIENT_ID,
+              GOOGLE_CLIENT_SECRET: !!process.env.GOOGLE_CLIENT_SECRET
+            }
+          }
+        },
+        server: {
+          process: {
+            pid: process.pid,
+            platform: process.platform,
+            nodeVersion: process.version,
+            memoryUsage: process.memoryUsage()
+          }
         }
+      };
+
+      // Log health check for Cloud Run debugging
+      if (process.env.NODE_ENV === 'production') {
+        console.log('🔍 CLOUD RUN HEALTH CHECK:', JSON.stringify(healthData, null, 2));
       }
-    });
+      
+      // Set headers for Cloud Run
+      res.set({
+        'Content-Type': 'application/json',
+        'Cache-Control': 'no-cache, no-store, must-revalidate'
+      });
+      
+      res.status(200).json(healthData);
+    } catch (error) {
+      console.error('❌ HEALTH CHECK ERROR:', error);
+      res.status(500).json({
+        status: 'error',
+        timestamp: new Date().toISOString(),
+        error: error instanceof Error ? error.message : 'Unknown error',
+        version: '6.28.0-CLOUD-RUN-DEBUG-AUG6'
+      });
+    }
   };
 }
 

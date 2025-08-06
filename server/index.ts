@@ -434,6 +434,20 @@ app.use('/api', (req, res, next) => {
     console.log(`✅ Server listening on port ${port}`);
     console.log(`✅ WebSocket server listening on /ws`);
     console.log(`✅ Health check available at /health`);
+    console.log(`✅ Cloud Run startup probe endpoint: /healthz`);
+    
+    // CRITICAL: Log server binding info for Cloud Run debugging
+    if (process.env.NODE_ENV === 'production') {
+      console.log('🔍 CLOUD RUN SERVER DEBUG:', {
+        bindingHost: '0.0.0.0',
+        bindingPort: port,
+        expectedProbePort: 8080,
+        actualPort: port,
+        portMatch: port === 8080,
+        environmentPORT: process.env.PORT,
+        processUptime: process.uptime()
+      });
+    }
     
     // CRITICAL FIX: Delay service initialization to allow startup probes to pass
     console.log('⏱️ Delaying service initialization for 3 minutes to allow startup probes to pass');

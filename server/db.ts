@@ -170,8 +170,8 @@ const trackActivity = () => {
   }, IDLE_TIMEOUT);
 };
 
-// Aggressive connection monitoring with startup grace period
-console.log(`🔗 [COMPUTE-SAVER] Database connecting to: ${dbHost} with 10-min startup grace period`);
+// Aggressive connection monitoring with startup grace period - now lazy loaded
+console.log(`🔗 [COMPUTE-SAVER] Database connection monitoring initialized with 10-min startup grace period`);
 
 // Monitor activity every 30 seconds and auto-disconnect (after grace period)
 const activityMonitor = setInterval(() => {
@@ -223,12 +223,19 @@ const originalExecuteRaw = prisma.$executeRaw.bind(prisma);
   return originalExecuteRaw(query, ...values);
 };
 
-// Export database connection info for debugging
+// Export database connection info for debugging (lazy loaded)
 export const databaseInfo = {
-  environment: nodeEnv,
-  host: dbHost,
-  isDevelopment: nodeEnv !== 'production',
-  isProduction: nodeEnv === 'production'
+  get environment() { return process.env.NODE_ENV || 'development'; },
+  get host() { 
+    try {
+      const url = _databaseUrl || getDatabaseUrlLazy();
+      return url.split('@')[1]?.split('/')[0] || 'unknown';
+    } catch {
+      return 'not-connected';
+    }
+  },
+  get isDevelopment() { return (process.env.NODE_ENV || 'development') !== 'production'; },
+  get isProduction() { return (process.env.NODE_ENV || 'development') === 'production'; }
 };
 
 // Legacy export for backward compatibility during transition
