@@ -169,17 +169,17 @@ export class TournamentDomainService {
         })),
         prizes: {
           champion: {
-            credits: tournament.division <= 4 ? 10000 : 5000,
-            gems: tournament.division <= 4 ? 20 : 10
+            credits: (tournament.division || 0) <= 4 ? 10000 : 5000,
+            gems: (tournament.division || 0) <= 4 ? 20 : 10
           },
           runnerUp: {
-            credits: tournament.division <= 4 ? 5000 : 2500,
-            gems: tournament.division <= 4 ? 10 : 5
+            credits: (tournament.division || 0) <= 4 ? 5000 : 2500,
+            gems: (tournament.division || 0) <= 4 ? 10 : 5
           }
         }
       };
     } catch (error) {
-      Logger.logError('Failed to get tournament status', error as Error, { tournamentId });
+      Logger.logError('Failed to get tournament status', error as Error, { tournamentId: tournamentId.toString() });
       throw error;
     }
   }

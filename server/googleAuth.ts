@@ -44,7 +44,7 @@ export async function setupGoogleAuth(app: Express) {
       const userProfile = await AuthService.createUserProfile(profile);
       
       Logger.logInfo('User authenticated successfully', { userId: userProfile.userId });
-      return done(null, userProfile);
+      return done(null, { ...userProfile, claims: profile });
     } catch (error) {
       Logger.logError('Google OAuth authentication failed', error as Error, { profileId: profile.id });
       return done(error, false);
@@ -63,7 +63,7 @@ export async function setupGoogleAuth(app: Express) {
       // Deserialize by fetching user from database
       const user = await AuthService.getUserProfile(userId);
       Logger.logInfo('User deserialized from session', { userId });
-      done(null, user);
+      done(null, user ? { ...user, claims: user } : null);
     } catch (error) {
       Logger.logError('Failed to deserialize user from session', error as Error, { userId });
       done(error, false);

@@ -19,7 +19,7 @@ export class CachedPlayerStorage {
     
     return await memoryCache.getOrSet(
       cacheKey,
-      () => storage.getPlayersByTeam(teamId),
+      () => storage.players.getPlayersByTeamId(teamId),
       this.PLAYERS_TTL
     );
   }
@@ -32,7 +32,7 @@ export class CachedPlayerStorage {
     
     return await memoryCache.getOrSet(
       cacheKey,
-      () => storage.getPlayer(playerId),
+      () => storage.players.getPlayerById(playerId),
       this.PLAYER_TTL
     );
   }
@@ -41,7 +41,11 @@ export class CachedPlayerStorage {
    * Update player and invalidate cache
    */
   async updatePlayer(playerId: number, updateData: any): Promise<Player> {
-    const player = await storage.updatePlayer(playerId, updateData);
+    const player = await storage.players.updatePlayer(playerId, updateData);
+    
+    if (!player) {
+      throw new Error(`Player with ID ${playerId} not found`);
+    }
     
     // Invalidate player and team cache
     memoryCache.delete(`player:${playerId}`);

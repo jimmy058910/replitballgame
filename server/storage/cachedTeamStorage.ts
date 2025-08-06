@@ -6,6 +6,7 @@
 import { storage } from './index';
 import { memoryCache } from '../utils/memoryCache';
 import type { Team } from '../../generated/prisma';
+import { prisma } from '../db';
 
 export class CachedTeamStorage {
   // Cache TTL configurations
@@ -20,7 +21,7 @@ export class CachedTeamStorage {
     
     return await memoryCache.getOrSet(
       cacheKey,
-      () => storage.getTeam(teamId),
+      () => storage.teams.getTeamById(teamId),
       this.TEAM_DATA_TTL
     );
   }
@@ -33,7 +34,15 @@ export class CachedTeamStorage {
     
     return await memoryCache.getOrSet(
       cacheKey,
-      () => storage.getUserTeam(userProfileId),
+      async () => {
+        // Convert userProfileId to userId string first
+        const userProfile = await prisma.userProfile.findUnique({
+          where: { id: userProfileId },
+          select: { userId: true }
+        });
+        if (!userProfile) return null;
+        return storage.teams.getTeamByUserId(userProfile.userId);
+      },
       this.USER_TEAM_TTL
     );
   }
@@ -42,7 +51,7 @@ export class CachedTeamStorage {
    * Create team and invalidate cache
    */
   async createTeam(teamData: any): Promise<Team> {
-    const team = await storage.createTeam(teamData);
+    const team = await storage.teams.createTeam(teamData);
     
     // Invalidate user's team cache
     memoryCache.delete(`user-team:${teamData.userProfileId}`);
@@ -55,7 +64,7 @@ export class CachedTeamStorage {
    * Delete team and invalidate cache
    */
   async deleteTeam(teamId: number): Promise<void> {
-    await storage.deleteTeam(teamId);
+    await storage.teams.deleteTeam(teamId);
     
     // Invalidate all related cache entries
     memoryCache.delete(`team:${teamId}`);
@@ -70,7 +79,7 @@ export class CachedTeamStorage {
    * Update team and invalidate cache
    */
   async updateTeam(teamId: number, updateData: any): Promise<Team> {
-    const team = await storage.updateTeam(teamId, updateData);
+    const team = await storage.teams.updateTeam(teamId, updateData);
     
     // Invalidate team cache
     memoryCache.delete(`team:${teamId}`);

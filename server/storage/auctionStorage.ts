@@ -27,9 +27,9 @@ export class AuctionStorage {
         team: { select: { name: true } },
         bids: {
           include: {
-            team: { select: { name: true } }
+            bidderTeam: { select: { name: true } }
           },
-          orderBy: { amount: 'desc' }
+          orderBy: { bidAmount: 'desc' }
         }
       }
     });
@@ -44,9 +44,9 @@ export class AuctionStorage {
         team: { select: { name: true } },
         bids: {
           include: {
-            team: { select: { name: true } }
+            bidderTeam: { select: { name: true } }
           },
-          orderBy: { amount: 'desc' }
+          orderBy: { bidAmount: 'desc' }
         }
       }
     });
@@ -61,12 +61,12 @@ export class AuctionStorage {
         team: { select: { name: true } },
         bids: {
           include: {
-            team: { select: { name: true } }
+            bidderTeam: { select: { name: true } }
           },
-          orderBy: { amount: 'desc' }
+          orderBy: { bidAmount: 'desc' }
         }
       },
-      orderBy: { endTime: 'desc' },
+      orderBy: { expiryTimestamp: 'desc' },
       take: limit,
       skip: offset
     });
@@ -74,7 +74,7 @@ export class AuctionStorage {
 
   async getAuctionsBySeller(teamId: number): Promise<MarketplaceListing[]> {
     return await prisma.marketplaceListing.findMany({
-      where: { teamId },
+      where: { sellerTeamId: teamId },
       include: {
         player: { select: { firstName: true, lastName: true, race: true } },
         team: { select: { name: true } },
@@ -140,8 +140,8 @@ export class AuctionStorage {
     const newBid = await prisma.bid.create({
       data: {
         listingId: bidData.listingId,
-        teamId: bidData.teamId,
-        amount: bidData.amount,
+        bidderTeamId: bidData.teamId,
+        bidAmount: bidData.amount,
       },
       include: {
         listing: {
@@ -158,7 +158,7 @@ export class AuctionStorage {
       where: { id: bidData.listingId },
       data: { 
         currentBid: bidData.amount,
-        highBidderId: bidData.teamId
+        currentHighBidderTeamId: bidData.teamId
       }
     });
 
@@ -174,37 +174,37 @@ export class AuctionStorage {
             player: { select: { firstName: true, lastName: true } }
           }
         },
-        team: { select: { name: true } }
+        bidderTeam: { select: { name: true } }
       },
-      orderBy: { amount: 'desc' }
+      orderBy: { bidAmount: 'desc' }
     });
   }
 
   async getBidsByTeam(teamId: number): Promise<Bid[]> {
     return await prisma.bid.findMany({
-      where: { teamId },
+      where: { bidderTeamId: teamId },
       include: {
         listing: {
           include: {
             player: { select: { firstName: true, lastName: true } }
           }
         },
-        team: { select: { name: true } }
+        bidderTeam: { select: { name: true } }
       },
-      orderBy: { createdAt: 'desc' }
+      orderBy: { placedAt: 'desc' }
     });
   }
 
   async closeAuction(id: number): Promise<MarketplaceListing | null> {
-    return await this.updateAuction(id, { isActive: false });
+    return await this.updateAuction(id, { listingStatus: 'SOLD' });
   }
 
   async getExpiredAuctions(): Promise<MarketplaceListing[]> {
     const now = new Date();
     return await prisma.marketplaceListing.findMany({
       where: {
-        isActive: true,
-        endTime: { lte: now }
+        listingStatus: 'ACTIVE',
+        expiryTimestamp: { lte: now }
       },
       include: {
         player: { select: { firstName: true, lastName: true, race: true } },

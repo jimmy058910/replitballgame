@@ -3,7 +3,7 @@
  */
 
 import { Request, Response, NextFunction } from 'express';
-import { logger } from '../utils/logger';
+import logger from '../utils/logger';
 
 /**
  * Admin authentication middleware
@@ -62,7 +62,7 @@ export function adminAuth(req: Request, res: Response, next: NextFunction) {
       path: req.path
     });
 
-    res.status(500).json({
+    return res.status(500).json({
       error: 'Authentication error',
       message: 'Unable to verify admin permissions'
     });
