@@ -29,7 +29,6 @@ export class NotificationStorage {
     try {
       return await prisma.notification.update({
         where: { id: notificationId },
-        // @ts-expect-error TS2353
         data: { isRead: true, updatedAt: new Date() }, // Assuming you might want an updatedAt field
       });
     } catch (error) {
@@ -49,7 +48,6 @@ export class NotificationStorage {
         teamId: teamId, 
         isRead: false 
       },
-      // @ts-expect-error TS2353
       data: { isRead: true, updatedAt: new Date() },
     });
   }

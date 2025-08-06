@@ -6,7 +6,6 @@ import { prisma } from '../db';
 const router = Router();
 
 // Team Trends API for Product-Led Growth Data Storytelling
-// @ts-expect-error TS7030
 router.get('/trends', isAuthenticated, asyncHandler(async (req: any, res: Response) => {
   const userId = req.user.claims.sub;
   
@@ -27,7 +26,6 @@ router.get('/trends', isAuthenticated, asyncHandler(async (req: any, res: Respon
       include: {
         _count: {
           select: {
-            // @ts-expect-error TS2353
             homeGames: { where: { status: 'COMPLETED' } },
             awayGames: { where: { status: 'COMPLETED' } }
           }
@@ -51,15 +49,12 @@ router.get('/trends', isAuthenticated, asyncHandler(async (req: any, res: Respon
       orderBy: { createdAt: 'desc' },
       take: 5,
       include: {
-        // @ts-expect-error TS2353
         homeTeam: { select: { id: true, teamPower: true, camaraderie: true } },
-        // @ts-expect-error TS2353
         awayTeam: { select: { id: true, teamPower: true, camaraderie: true } }
       }
     });
 
     // Get historical team data (simulate trend by analyzing recent performance)
-    // @ts-expect-error TS2339
     const totalGames = team._count.homeGames + team._count.awayGames;
     const winRate = totalGames > 0 ? (team.wins / totalGames) * 100 : 0;
     
@@ -67,11 +62,9 @@ router.get('/trends', isAuthenticated, asyncHandler(async (req: any, res: Respon
     let powerTrend: 'up' | 'down' | 'stable' = 'stable';
     let powerChange = 0;
     
-    // @ts-expect-error TS2339
     if (team.teamPower >= 25) {
       powerTrend = 'up';
       powerChange = Math.random() * 2 + 1; // 1-3 point increase
-    // @ts-expect-error TS2339
     } else if (team.teamPower < 18) {
       powerTrend = 'down';
       powerChange = -(Math.random() * 1.5 + 0.5); // 0.5-2 point decrease
@@ -144,7 +137,6 @@ router.get('/trends', isAuthenticated, asyncHandler(async (req: any, res: Respon
 }));
 
 // Player Spotlight API for narrative-driven content
-// @ts-expect-error TS7030
 router.get('/player-spotlight', isAuthenticated, asyncHandler(async (req: any, res: Response) => {
   const userId = req.user.claims.sub;
   
@@ -215,7 +207,6 @@ router.get('/player-spotlight', isAuthenticated, asyncHandler(async (req: any, r
 }));
 
 // Team Storylines API for compelling narrative content
-// @ts-expect-error TS7030
 router.get('/storylines', isAuthenticated, asyncHandler(async (req: any, res: Response) => {
   const userId = req.user.claims.sub;
   
@@ -235,13 +226,11 @@ router.get('/storylines', isAuthenticated, asyncHandler(async (req: any, res: Re
     return res.status(404).json({ error: 'Team not found' });
   }
 
-  // @ts-expect-error TS2304
   const winRate = totalGames > 0 ? (team.wins / totalGames) * 100 : 0;
 
   let storylines = [];
 
   // Create compelling storylines based on team performance
-  // @ts-expect-error TS2304
   if (winRate > 75 && totalGames >= 3) {
     storylines.push({
       title: "Championship Contender",
@@ -251,7 +240,6 @@ router.get('/storylines', isAuthenticated, asyncHandler(async (req: any, res: Re
       actionable: true,
       linkTo: '/competition'
     });
-  // @ts-expect-error TS2304
   } else if (winRate < 25 && totalGames >= 3) {
     storylines.push({
       title: "Rebuilding Phase",
@@ -261,7 +249,6 @@ router.get('/storylines', isAuthenticated, asyncHandler(async (req: any, res: Re
       actionable: true,
       linkTo: '/roster-hq'
     });
-  // @ts-expect-error TS2304
   } else if (totalGames < 3) {
     storylines.push({
       title: "Season Launch",

@@ -53,7 +53,6 @@ router.get('/listings', async (req, res) => {
  * POST /api/enhanced-marketplace/listings
  * Create a new marketplace listing
  */
-// @ts-expect-error TS7030
 router.post('/listings', isAuthenticated, async (req: any, res) => {
   try {
     const userId = req.user.claims.sub;
@@ -104,7 +103,6 @@ router.post('/listings', isAuthenticated, async (req: any, res) => {
  * POST /api/enhanced-marketplace/listings/:listingId/bid
  * Place a bid on a listing
  */
-// @ts-expect-error TS7030
 router.post('/listings/:listingId/bid', isAuthenticated, async (req: any, res) => {
   try {
     const userId = req.user.claims.sub;
@@ -155,7 +153,6 @@ router.post('/listings/:listingId/bid', isAuthenticated, async (req: any, res) =
  * POST /api/enhanced-marketplace/listings/:listingId/buy-now
  * Buy now a listing instantly
  */
-// @ts-expect-error TS7030
 router.post('/listings/:listingId/buy-now', isAuthenticated, async (req: any, res) => {
   try {
     const userId = req.user.claims.sub;
@@ -186,7 +183,6 @@ router.post('/listings/:listingId/buy-now', isAuthenticated, async (req: any, re
  * GET /api/enhanced-marketplace/dashboard
  * Get team's marketplace dashboard
  */
-// @ts-expect-error TS7030
 router.get('/dashboard', isAuthenticated, async (req: any, res) => {
   try {
     const userId = req.user.claims.sub;
@@ -277,7 +273,6 @@ router.get('/listings/:listingId/history', async (req, res) => {
  * GET /api/enhanced-marketplace/player/:playerId/valuation
  * Get player market valuation
  */
-// @ts-expect-error TS7030
 router.get('/player/:playerId/valuation', async (req, res) => {
   try {
     const playerId = parseInt(req.params.playerId);

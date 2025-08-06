@@ -201,7 +201,6 @@ export class ComprehensivePlayerProgressionService {
 
     // 2. Potential Modifier
     const potentialRating = Math.round(player.potentialRating * 2); // Convert to 10-point scale
-    // @ts-expect-error TS7053
     const potentialModifier = this.CONFIG.POTENTIAL_MODIFIERS[Math.min(10, Math.max(1, potentialRating))] || 5;
     chance += potentialModifier;
 
@@ -259,7 +258,6 @@ export class ComprehensivePlayerProgressionService {
     }
 
     // Trainer bonuses by attribute group
-    // @ts-expect-error TS2367
     const trainers = team.staff.filter((s: Staff) => s.type === 'TRAINER');
     for (const trainer of trainers) {
       const trainerBonus = (trainer.teaching || 20) * 0.15; // 0.15% per teaching point
@@ -294,11 +292,8 @@ export class ComprehensivePlayerProgressionService {
    */
   private static getInjuryModifier(player: Player): number {
     switch (player.injuryStatus) {
-      // @ts-expect-error TS2678
       case 'MINOR': return -5;
-      // @ts-expect-error TS2678
       case 'MODERATE': return -15;
-      // @ts-expect-error TS2678
       case 'SEVERE': return -100; // Effectively prevents progression
       default: return 0;
     }

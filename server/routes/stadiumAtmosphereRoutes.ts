@@ -82,7 +82,6 @@ router.get('/team/:teamId/revenue', isAuthenticated, async (req, res) => {
  * POST /api/stadium-atmosphere/team/:teamId/loyalty/calculate
  * Calculate end-of-season loyalty for a team
  */
-// @ts-expect-error TS2345
 router.post('/team/:teamId/loyalty/calculate', isAuthenticated, RBACService.requirePermission('manage_teams'), async (req, res) => {
   try {
     const { teamId } = req.params;
@@ -115,7 +114,6 @@ router.post('/team/:teamId/loyalty/calculate', isAuthenticated, RBACService.requ
  * POST /api/stadium-atmosphere/league/loyalty/process
  * Process league-wide end-of-season loyalty updates
  */
-// @ts-expect-error TS2345
 router.post('/league/loyalty/process', isAuthenticated, RBACService.requirePermission('manage_leagues'), async (req, res) => {
   try {
     const { season } = req.body;
@@ -210,7 +208,6 @@ router.get('/player/:playerId/car', isAuthenticated, async (req, res) => {
  * GET /api/stadium-atmosphere/power-tier/:teamPower
  * Get team power tier information
  */
-// @ts-expect-error TS7030
 router.get('/power-tier/:teamPower', isAuthenticated, async (req, res) => {
   try {
     const teamPower = parseInt(req.params.teamPower);
@@ -242,7 +239,6 @@ router.get('/power-tier/:teamPower', isAuthenticated, async (req, res) => {
  * POST /api/stadium-atmosphere/apply-crowd-debuff
  * Apply crowd noise debuff to away team players
  */
-// @ts-expect-error TS7030
 router.post('/apply-crowd-debuff', isAuthenticated, async (req, res) => {
   try {
     const { awayPlayers, crowdNoiseDebuff } = req.body;
@@ -278,7 +274,6 @@ router.post('/apply-crowd-debuff', isAuthenticated, async (req, res) => {
  * GET /api/stadium-atmosphere/stadium-data
  * Get stadium data for current user's team
  */
-// @ts-expect-error TS7030
 router.get('/stadium-data', isAuthenticated, async (req: any, res) => {
   try {
     const userId = req.user.claims.sub;
@@ -316,7 +311,6 @@ router.get('/stadium-data', isAuthenticated, async (req: any, res) => {
       const newStadium = await prisma.stadium.create({
         data: {
         teamId: team.id,
-        // @ts-expect-error TS2353
         name: `${team.name} Stadium`,
         level: 1,
         capacity: 15000,
@@ -343,14 +337,12 @@ router.get('/stadium-data', isAuthenticated, async (req: any, res) => {
         parkingLevel: stadium.parkingLevel || 1,
         vipSuitesLevel: stadium.vipSuitesLevel || 1,
         merchandisingLevel: stadium.merchandisingLevel || 1,
-        // @ts-expect-error TS2339
         lightingLevel: stadium.lightingLevel || 1,
         fanLoyalty: team.fanLoyalty || 50,
         totalValue: await import('../../shared/stadiumSystem').then(({ calculateFacilityQuality }) => {
           const facilityQuality = calculateFacilityQuality(stadium);
           return 100000 + (facilityQuality * 5000); // Proper facility-based valuation
         }).catch(() => 100000), // Fallback to base value if calculation fails
-        // @ts-expect-error TS2339
         maintenanceCost: stadium.maintenanceCost || 5000
       }
     });
@@ -368,7 +360,6 @@ router.get('/stadium-data', isAuthenticated, async (req: any, res) => {
  * GET /api/stadium-atmosphere/atmosphere-data
  * Get atmosphere data for current user's team
  */
-// @ts-expect-error TS7030
 router.get('/atmosphere-data', isAuthenticated, async (req: any, res) => {
   try {
     const userId = req.user.claims.sub;
@@ -433,7 +424,6 @@ router.get('/atmosphere-data', isAuthenticated, async (req: any, res) => {
  * GET /api/stadium-atmosphere/revenue-breakdown
  * Get revenue breakdown for current user's team
  */
-// @ts-expect-error TS7030
 router.get('/revenue-breakdown', isAuthenticated, async (req: any, res) => {
   try {
     const userId = req.user.claims.sub;
@@ -488,7 +478,6 @@ router.get('/revenue-breakdown', isAuthenticated, async (req: any, res) => {
  * GET /api/stadium-atmosphere/upgrade-costs
  * Get upgrade costs for current user's team
  */
-// @ts-expect-error TS7030
 router.get('/upgrade-costs', isAuthenticated, async (req: any, res) => {
   try {
     const userId = req.user.claims.sub;
@@ -526,7 +515,6 @@ router.get('/upgrade-costs', isAuthenticated, async (req: any, res) => {
       const newStadium = await prisma.stadium.create({
         data: {
         teamId: team.id,
-        // @ts-expect-error TS2353
         name: `${team.name} Stadium`,
         level: 1,
         capacity: 15000,
@@ -553,7 +541,6 @@ router.get('/upgrade-costs', isAuthenticated, async (req: any, res) => {
         parking: 43750 * Math.pow(1.5, (stadium.parkingLevel || 1) - 1), // 75% increase
         vipSuites: 100000 * Math.pow(1.5, (stadium.vipSuitesLevel || 1) - 1), // Keep as prestige
         merchandising: 70000 * Math.pow(1.5, (stadium.merchandisingLevel || 1) - 1), // 75% increase
-        // @ts-expect-error TS2339
         lighting: 60000 * Math.pow(1.5, (stadium.lightingLevel || 1) - 1) // Keep same
       }
     });
@@ -571,7 +558,6 @@ router.get('/upgrade-costs', isAuthenticated, async (req: any, res) => {
  * GET /api/stadium-atmosphere/loyalty-factors
  * Get loyalty factors for current user's team
  */
-// @ts-expect-error TS7030
 router.get('/loyalty-factors', isAuthenticated, async (req: any, res) => {
   try {
     const userId = req.user.claims.sub;
@@ -624,7 +610,6 @@ router.get('/loyalty-factors', isAuthenticated, async (req: any, res) => {
  * GET /api/stadium-atmosphere/team-power-tier
  * Get team power tier for current user's team
  */
-// @ts-expect-error TS7030
 router.get('/team-power-tier', isAuthenticated, async (req: any, res) => {
   try {
     const userId = req.user.claims.sub;
@@ -653,7 +638,6 @@ router.get('/team-power-tier', isAuthenticated, async (req: any, res) => {
     }
     
     // Simple team power tier calculation
-    // @ts-expect-error TS2339
     const teamPower = team.teamPower || 15;
     let tier = 1;
     if (teamPower >= 31) tier = 5;

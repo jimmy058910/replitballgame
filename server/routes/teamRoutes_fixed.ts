@@ -55,7 +55,6 @@ router.get('/firebase-test', asyncHandler(async (req: any, res: Response) => {
 }));
 
 // Get user's team - PRIMARY ROUTE
-// @ts-expect-error TS7030
 router.get('/my', requireAuth, asyncHandler(async (req: any, res: Response) => {
   const userId = req.user?.claims?.sub;
   if (!userId) {
@@ -106,7 +105,6 @@ router.get('/my', requireAuth, asyncHandler(async (req: any, res: Response) => {
 }));
 
 // Get user's next opponent
-// @ts-expect-error TS7030
 router.get('/my/next-opponent', requireAuth, asyncHandler(async (req: any, res: Response) => {
   const userId = req.user?.claims?.sub;
   if (!userId) {
@@ -154,7 +152,6 @@ router.post('/create', requireAuth, asyncHandler(async (req: any, res: Response)
   }
 
   // Create team logic here - simplified for immediate functionality
-  // @ts-expect-error TS2554
   const newTeam = await storage.teams.createTeam(userId, teamName);
 
   res.json({

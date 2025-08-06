@@ -68,9 +68,7 @@ router.post('/equip', isAuthenticated, asyncHandler(async (req: any, res: Respon
     "Lumina Radiant Aegis": ["LUMINA"]
   };
 
-  // @ts-expect-error TS7053
   if (raceRequirements[itemName] && !raceRequirements[itemName].includes(player.race)) {
-    // @ts-expect-error TS7053
     throw ErrorCreators.forbidden(`${itemName} can only be equipped by ${raceRequirements[itemName].join(", ")} race players`);
   }
 
@@ -106,16 +104,11 @@ router.post('/equip', isAuthenticated, asyncHandler(async (req: any, res: Respon
     item = await prisma.item.create({
       data: {
         name: itemName,
-        // @ts-expect-error TS2339
         description: inventoryItem.description,
-        // @ts-expect-error TS2339
         type: inventoryItem.itemType,
         slot: itemName.toLowerCase().includes('helmet') || itemName.toLowerCase().includes('helm') ? 'HELMET' : 'ARMOR',
-        // @ts-expect-error TS7053
         raceRestriction: raceRestrictionMap[itemName] || null,
-        // @ts-expect-error TS2339
         rarity: inventoryItem.rarity?.toUpperCase() || 'COMMON',
-        // @ts-expect-error TS2339
         statEffects: inventoryItem.metadata || {}
       }
     });

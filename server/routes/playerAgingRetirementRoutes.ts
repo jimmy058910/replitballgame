@@ -32,7 +32,6 @@ router.get('/player/:playerId/stats', isAuthenticated, async (req, res) => {
  * POST /api/player-aging/player/:playerId/simulate
  * Simulate aging for a player over multiple seasons (testing only)
  */
-// @ts-expect-error TS2345
 router.post('/player/:playerId/simulate', isAuthenticated, RBACService.requirePermission('manage_leagues'), async (req, res) => {
   try {
     const { playerId } = req.params;
@@ -68,7 +67,6 @@ router.post('/player/:playerId/simulate', isAuthenticated, RBACService.requirePe
  * POST /api/player-aging/team/:teamId/process-development
  * Process end-of-season development for a team
  */
-// @ts-expect-error TS2345
 router.post('/team/:teamId/process-development', isAuthenticated, RBACService.requirePermission('manage_leagues'), async (req, res) => {
   try {
     const { teamId } = req.params;
@@ -100,7 +98,6 @@ router.post('/team/:teamId/process-development', isAuthenticated, RBACService.re
  * POST /api/player-aging/league/process-development
  * Process end-of-season development for entire league
  */
-// @ts-expect-error TS2345
 router.post('/league/process-development', isAuthenticated, RBACService.requirePermission('manage_leagues'), async (req, res) => {
   try {
     const { season } = req.body;
@@ -131,7 +128,6 @@ router.post('/league/process-development', isAuthenticated, RBACService.requireP
  * POST /api/player-aging/player/:playerId/force-retirement
  * Force retire a player (admin only)
  */
-// @ts-expect-error TS2345
 router.post('/player/:playerId/force-retirement', isAuthenticated, RBACService.requirePermission('manage_leagues'), async (req, res) => {
   try {
     const { playerId } = req.params;
@@ -202,7 +198,6 @@ router.get('/player/:playerId/progression-chance', isAuthenticated, async (req, 
  * GET /api/player-aging/player/:playerId/retirement-chance
  * Calculate retirement chance for a player
  */
-// @ts-expect-error TS7030
 router.get('/player/:playerId/retirement-chance', isAuthenticated, async (req, res) => {
   try {
     const { playerId } = req.params;
@@ -272,7 +267,6 @@ router.get('/config', isAuthenticated, async (req, res) => {
  * POST /api/player-aging/generate-age
  * Generate appropriate age for player context
  */
-// @ts-expect-error TS7030
 router.post('/generate-age', isAuthenticated, async (req, res) => {
   try {
     const { context = 'general' } = req.body;
@@ -293,7 +287,6 @@ router.post('/generate-age', isAuthenticated, async (req, res) => {
         context,
         ageRange: context === 'tryout' 
           ? `${PlayerAgingRetirementService.AGE_RANGES.TRYOUT_MIN}-${PlayerAgingRetirementService.AGE_RANGES.TRYOUT_MAX}` 
-          // @ts-expect-error TS2339
           : `${PlayerAgingRetirementService.AGE_RANGES.GENERAL_MIN}-${PlayerAgingRetirementService.AGE_RANGES.GENERAL_MAX}`
         }
     });

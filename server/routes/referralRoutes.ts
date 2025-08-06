@@ -5,7 +5,6 @@ import { storage } from "../storage";
 const router = Router();
 
 // Get referral data for the authenticated user
-// @ts-expect-error TS7030
 router.get("/", isAuthenticated, async (req: any, res) => {
   try {
     const userId = req.user.claims.sub;
@@ -36,7 +35,6 @@ router.get("/", isAuthenticated, async (req: any, res) => {
 });
 
 // Generate or refresh referral code
-// @ts-expect-error TS7030
 router.post("/generate-code", isAuthenticated, async (req: any, res) => {
   try {
     const userId = req.user.claims.sub;

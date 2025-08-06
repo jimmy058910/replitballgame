@@ -11,7 +11,6 @@ import { prisma } from "../db";
 const router = Router();
 
 // Stadium data endpoint for test matches
-// @ts-expect-error TS7030
 router.get('/:matchId/stadium-data', async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { matchId } = req.params;
@@ -144,7 +143,6 @@ router.get('/live', isAuthenticated, async (req: Request, res: Response, next: N
       let priority = 'MEDIUM';
       if (userTeamInvolved) priority = 'HIGH';
       else if (matchType === 'TOURNAMENT') priority = 'HIGH';
-      // @ts-expect-error TS2551
       else if (match.homeTeam?.division <= 2 || match.awayTeam?.division <= 2) priority = 'HIGH';
       
       return {
@@ -153,33 +151,25 @@ router.get('/live', isAuthenticated, async (req: Request, res: Response, next: N
         status: match.status || 'LIVE',
         homeTeam: {
           id: match.homeTeamId.toString(),
-          // @ts-expect-error TS2551
           name: match.homeTeam?.name || 'Unknown Team',
           logo: null
         },
         awayTeam: {
           id: match.awayTeamId.toString(),
-          // @ts-expect-error TS2551
           name: match.awayTeam?.name || 'Unknown Team',
           logo: null
         },
         homeScore: match.homeScore || 0,
         awayScore: match.awayScore || 0,
-        // @ts-expect-error TS2339
         gameTime: match.gameTime || 0,
-        // @ts-expect-error TS2339
         maxGameTime: match.maxGameTime || 2400, // 40 minutes default:
-        // @ts-expect-error TS2551
         division: match.homeTeam?.division || match.awayTeam?.division || 8,
-        // @ts-expect-error TS2551
         subdivision: match.homeTeam?.subdivision || match.awayTeam?.subdivision || match.league?.name || 'Unknown Subdivision',
-        // @ts-expect-error TS2551
         tournamentName: match.tournament?.name || (matchType === 'TOURNAMENT' ? 'Tournament Match' : null),
         priority: priority,
         userTeamInvolved: userTeamInvolved,
         gameDate: match.gameDate || new Date().toISOString(),
         estimatedEndTime: null,
-        // @ts-expect-error TS2339
         viewers: match.viewers || 0 // Mock viewer count for now
       };
     });
@@ -194,7 +184,6 @@ router.get('/live', isAuthenticated, async (req: Request, res: Response, next: N
 
 
 
-// @ts-expect-error TS7030
 router.get('/:matchId', isAuthenticated, async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { matchId } = req.params;
@@ -228,7 +217,6 @@ router.get('/:matchId', isAuthenticated, async (req: Request, res: Response, nex
     })) : null;
 
     if (match.status === 'IN_PROGRESS') {
-      // @ts-expect-error TS2304
       const liveState = await matchStateManager.syncMatchState(matchIdNum);
       if (liveState) {
         const responseData = {
@@ -301,7 +289,6 @@ router.get('/:matchId/debug', async (req: Request, res: Response, next: NextFunc
     });
   } catch (error) {
     console.error("Debug endpoint error:", error);
-    // @ts-expect-error TS18046
     res.status(500).json({ error: error.message });
   }
 });
@@ -318,7 +305,6 @@ router.post('/start/:matchId', async (req: Request, res: Response) => {
     const { matchId } = req.params;
     console.log(`Manual match start requested for match ${matchId}`);
     
-    // @ts-expect-error TS2304
     const result = await matchStateManager.startLiveMatch(matchId);
     
     res.json({ 
@@ -336,7 +322,6 @@ router.post('/start/:matchId', async (req: Request, res: Response) => {
     console.error(`Error starting match ${req.params.matchId}:`, error);
     res.status(500).json({ 
       success: false, 
-      // @ts-expect-error TS18046
       error: error.message 
     });
   }
@@ -357,13 +342,11 @@ router.get('/debug/:matchId', async (req: Request, res: Response) => {
     });
   } catch (error) {
     console.error("Debug endpoint error:", error);
-    // @ts-expect-error TS18046
     res.status(500).json({ error: error.message });
   }
 });
 
 // Enhanced match data endpoint for real-time simulation data (auth disabled due to middleware hanging issue)
-// @ts-expect-error TS7030
 router.get('/:matchId/enhanced-data', async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { matchId } = req.params;
@@ -443,19 +426,13 @@ router.get('/:matchId/enhanced-data', async (req: Request, res: Response, next: 
           if (!player) continue;
           
           // Calculate MVP score: scores*10 + tackles*3 + passes*2 + catches*2 + yards*0.1
-          // @ts-expect-error TS18046
           const mvpScore = (stats.scores || 0) * 10 + 
-                          // @ts-expect-error TS18046
                           (stats.tackles || 0) * 3 + 
-                          // @ts-expect-error TS18046
                           (stats.passesCompleted || 0) * 2 + 
-                          // @ts-expect-error TS18046
                           (stats.catches || 0) * 2 + 
-                          // @ts-expect-error TS18046
                           ((stats.carrierYards || 0) + (stats.passingYards || 0) + (stats.receivingYards || 0)) * 0.1;
           
           console.log(`Player ${player.firstName} ${player.lastName} MVP score: ${mvpScore}`
-                    // @ts-expect-error TS18046
                     + ` (scores: ${stats.scores}, tackles: ${stats.tackles}, passes: ${stats.passesCompleted}, catches: ${stats.catches})`);
           
           // Check if this player belongs to home or away team
@@ -542,17 +519,13 @@ router.get('/:matchId/enhanced-data', async (req: Request, res: Response, next: 
     console.log(`Sending enhanced data response for match ${matchId}`);
     res.json(enhancedData);
   } catch (error) {
-    // @ts-expect-error TS2304
     console.error(`Error fetching enhanced match data for ${matchId}:`, error);
-    // @ts-expect-error TS18046
     console.error("Error stack:", error.stack);
-    // @ts-expect-error TS18046
     return res.status(500).json({ message: "Internal server error", error: error.message });
   }
 });
 
 // Old enhanced-data endpoint (to be removed later)
-// @ts-expect-error TS7030
 router.get('/:matchId/enhanced-data-old', isAuthenticated, async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { matchId } = req.params;
@@ -573,7 +546,6 @@ router.get('/:matchId/enhanced-data-old', isAuthenticated, async (req: Request, 
     console.log(`Match ${matchId} found, status: ${match.status}`);
 
     // Get live match state if available
-    // @ts-expect-error TS2304
     const liveState = await matchStateManager.getLiveMatchState(matchId);
     
     console.log(`Live state found: ${liveState ? 'YES' : 'NO'}`);
@@ -721,9 +693,7 @@ router.get('/:matchId/enhanced-data-old', isAuthenticated, async (req: Request, 
 
     // Get player stats from live state
     const playerStats = {};
-    // @ts-expect-error TS7006
     liveState.playerStats.forEach((stats, playerId) => {
-      // @ts-expect-error TS7053
       playerStats[playerId] = {
         scores: stats.scores,
         passingAttempts: stats.passingAttempts,
@@ -828,11 +798,8 @@ router.get('/:matchId/enhanced-data-old', isAuthenticated, async (req: Request, 
     console.log(`Sending enhanced data response for match ${matchId}`);
     res.json(enhancedData);
   } catch (error) {
-    // @ts-expect-error TS2304
     console.error(`Error fetching enhanced match data for ${matchId}:`, error);
-    // @ts-expect-error TS18046
     console.error("Error stack:", error.stack);
-    // @ts-expect-error TS18046
     return res.status(500).json({ message: "Internal server error", error: error.message });
   }
 });
@@ -846,7 +813,6 @@ router.post('/:matchId/complete-now', isAuthenticated, async (req: any, res: Res
     console.log(`🔍 Force completing match ${matchId}`);
     
     // First, stop the match state manager
-    // @ts-expect-error TS2304
     await matchStateManager.stopMatch(matchId);
     
     // Then, directly update the database to ensure completion
@@ -854,7 +820,6 @@ router.post('/:matchId/complete-now', isAuthenticated, async (req: any, res: Res
       status: 'COMPLETED',
       homeScore: 0,
       awayScore: 0,
-      // @ts-expect-error TS2353
       completedAt: new Date(),
       gameData: {
         events: [],
@@ -882,11 +847,9 @@ router.get('/team/:teamId', isAuthenticated, async (req: Request, res: Response,
   }
 });
 
-// @ts-expect-error TS7030
 router.post('/:id/simulate', isAuthenticated, async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { id } = req.params;
-    // @ts-expect-error TS2345
     const match = await matchStorage.getMatchById(id); // Use matchStorage
 
     if (!match) return res.status(404).json({ message: "Match not found" });
@@ -901,10 +864,8 @@ router.post('/:id/simulate', isAuthenticated, async (req: Request, res: Response
         return res.status(400).json({ message: "One or both teams do not have enough players to simulate." });
     }
 
-    // @ts-expect-error TS2554
     const result = await fullMatchSimulation(homeTeamPlayers, awayTeamPlayers);
 
-    // @ts-expect-error TS2345
     await matchStorage.updateMatch(id, { // Use matchStorage
       homeScore: result.homeScore, awayScore: result.awayScore,
       status: "completed", gameData: result.gameData as any,
@@ -924,7 +885,6 @@ router.get('/:matchId/simulation', (req, res) => {
   res.status(410).json({ message: "This match simulation endpoint is deprecated. Use text-based match viewing." });
 });
 
-// @ts-expect-error TS7030
 router.post('/:matchId/simulate-play', isAuthenticated, async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { matchId } = req.params;
@@ -944,31 +904,24 @@ router.post('/:matchId/simulate-play', isAuthenticated, async (req: Request, res
     const generateEventDescription = (type: string, playerName: string) => `[${type.toUpperCase()}] ${playerName} attempts a ${type}.`;
     const event = {
       id: `event-${Date.now()}`, type: randomEventType, playerId: randomPlayer.id,
-      // @ts-expect-error TS2339
       playerName: randomPlayer.name, playerRace: randomPlayer.race,
-      // @ts-expect-error TS2339
       description: generateEventDescription(randomEventType, randomPlayer.name), timestamp: Date.now(),
     };
 
-    // @ts-expect-error TS2551
     let { homeScore = 0, awayScore = 0, gameTime = 0, currentHalf = 1, status } = match.gameData as any || {};
     gameTime += (10 * speed);
     if (randomEventType === 'score') { if (Math.random() < 0.5) homeScore++; else awayScore++; }
 
-    // @ts-expect-error TS2367
     const maxTime = match.matchType === 'exhibition' ? 1200 : 1800;
     if (gameTime >= maxTime) { status = 'completed'; }
     else if (gameTime >= maxTime / 2 && currentHalf === 1) { currentHalf = 2; }
 
     const updatedGameData = {
-        // @ts-expect-error TS2551
         ...(match.gameData as any || {}),
-        // @ts-expect-error TS2551
         events: [...((match.gameData as any)?.events || []), event].slice(-20),
         homeScore, awayScore, gameTime, currentHalf, status
     };
 
-    // @ts-expect-error TS2345
     await matchStorage.updateMatch(matchId, { // Use matchStorage
       homeScore, awayScore, status,
       gameData: updatedGameData, lastPlay: event.description,
@@ -983,13 +936,11 @@ router.post('/:matchId/simulate-play', isAuthenticated, async (req: Request, res
 router.post('/:matchId/reset', isAuthenticated, async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { matchId } = req.params;
-    // @ts-expect-error TS2345
     await matchStorage.updateMatch(matchId, { // Use matchStorage
       homeScore: 0, awayScore: 0, status: 'scheduled',
       gameData: { events: [], homeScore: 0, awayScore: 0, gameTime: 0, currentHalf: 1, status: 'scheduled' },
       lastPlay: null, completedAt: null,
     });
-    // @ts-expect-error TS2304
     matchStateManager.stopMatch(matchId);
     res.json({ message: "Match reset successfully" });
   } catch (error) {
@@ -998,7 +949,6 @@ router.post('/:matchId/reset', isAuthenticated, async (req: Request, res: Respon
   }
 });
 
-// @ts-expect-error TS7030
 router.patch('/:id/complete', isAuthenticated, async (req: any, res: Response, next: NextFunction) => {
   try {
     const { id } = req.params;
@@ -1011,7 +961,6 @@ router.patch('/:id/complete', isAuthenticated, async (req: any, res: Response, n
     if (!match) return res.status(404).json({ message: "Match not found" });
 
     const updatedMatch = await matchStorage.updateMatch(id, { // Use matchStorage
-      // @ts-expect-error TS2820
       status: "completed", homeScore, awayScore,
       completedAt: new Date(),
     });
@@ -1024,7 +973,6 @@ router.patch('/:id/complete', isAuthenticated, async (req: any, res: Response, n
 });
 
 // Get next league game for a team
-// @ts-expect-error TS7030
 router.get('/next-league-game/:teamId', isAuthenticated, async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { teamId } = req.params;
@@ -1040,7 +988,6 @@ router.get('/next-league-game/:teamId', isAuthenticated, async (req: Request, re
     
     // Filter for league games (non-exhibition, non-tournament)
     const nextLeagueGame = upcomingMatches.find(match => 
-      // @ts-expect-error TS2367
       match.matchType === 'league' || match.matchType === 'regular_season'
     );
 
@@ -1049,10 +996,8 @@ router.get('/next-league-game/:teamId', isAuthenticated, async (req: Request, re
     }
 
     // Get team names for the match
-    // @ts-expect-error TS2339
     const homeTeamName = nextLeagueGame.homeTeamName || 
       (await storage.teams.getTeamById(nextLeagueGame.homeTeamId))?.name || "Home Team";
-    // @ts-expect-error TS2339
     const awayTeamName = nextLeagueGame.awayTeamName || 
       (await storage.teams.getTeamById(nextLeagueGame.awayTeamId))?.name || "Away Team";
 
@@ -1071,7 +1016,6 @@ router.get('/next-league-game/:teamId', isAuthenticated, async (req: Request, re
 });
 
 // Create exhibition match endpoint
-// @ts-expect-error TS7030
 router.post('/exhibition/instant', isAuthenticated, async (req: any, res: Response, next: NextFunction) => {
   try {
     const { opponentTeamId } = req.body;
@@ -1099,7 +1043,6 @@ router.post('/exhibition/instant', isAuthenticated, async (req: any, res: Respon
     });
     
     // Start live match simulation
-    // @ts-expect-error TS2304
     await matchStateManager.startLiveMatch(newMatch.id.toString(), true);
     
     res.json({ 
@@ -1114,7 +1057,6 @@ router.post('/exhibition/instant', isAuthenticated, async (req: any, res: Respon
 });
 
 // Match sync endpoint for testing persistence
-// @ts-expect-error TS7030
 router.get('/:matchId/sync', isAuthenticated, async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { matchId } = req.params;
@@ -1123,7 +1065,6 @@ router.get('/:matchId/sync', isAuthenticated, async (req: Request, res: Response
       return res.status(400).json({ message: "Invalid match ID" });
     }
     
-    // @ts-expect-error TS2304
     const state = await matchStateManager.syncMatchState(matchIdNum);
     if (state) {
       res.json(state);

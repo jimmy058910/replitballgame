@@ -81,7 +81,6 @@ class TournamentFlowServiceImpl implements TournamentFlowService {
           });
 
           // Start live simulation
-          // @ts-expect-error TS2345
           await matchStateManager.startLiveMatch(match.id);
           logInfo(`Started live simulation for tournament ${tournamentId} round ${roundNumber} match ${match.id}`);
           
@@ -173,7 +172,6 @@ class TournamentFlowServiceImpl implements TournamentFlowService {
       await this.applyPostMatchEffects(match.homeTeamId, match.awayTeamId);
 
       // Check if round is complete and advance if necessary
-      // @ts-expect-error TS2345
       await this.checkAndAdvanceRound(match.tournamentId, match.round);
       
       logInfo(`Tournament match ${matchId} completed - checked for round advancement`);
@@ -210,7 +208,6 @@ class TournamentFlowServiceImpl implements TournamentFlowService {
           newInjuryStatus = 'MINOR_INJURY';
           newRecoveryPoints = Math.floor(Math.random() * 7) + 3; // 3-10 days recovery
         } else if (injuryRisk < 2) { // 2% major injury chance
-          // @ts-expect-error TS2820
           newInjuryStatus = 'MAJOR_INJURY';
           newRecoveryPoints = Math.floor(Math.random() * 14) + 7; // 7-21 days recovery
         }
@@ -330,7 +327,7 @@ class TournamentFlowServiceImpl implements TournamentFlowService {
       const runnerUp = (finalsMatch.homeScore || 0) > (finalsMatch.awayScore || 0) ? finalsMatch.awayTeam : finalsMatch.homeTeam;
 
       // Get tournament details for prize calculation
-      const tournament = await prisma.tournament.findUnique({
+      const tournament = await prisma.tournamentEntries[0].findUnique({
         where: { id: tournamentId },
         include: { entries: true }
       });
@@ -357,7 +354,6 @@ class TournamentFlowServiceImpl implements TournamentFlowService {
           7: { champion: { credits: 2500, gems: 0 }, runnerUp: { credits: 1000, gems: 0 } },
           8: { champion: { credits: 1500, gems: 0 }, runnerUp: { credits: 500, gems: 0 } }
         };
-        // @ts-expect-error TS2538
         const rewards = rewardTable[tournament.division] || rewardTable[8];
         championPrize = rewards.champion;
         runnerUpPrize = rewards.runnerUp;
@@ -368,11 +364,10 @@ class TournamentFlowServiceImpl implements TournamentFlowService {
       await this.awardTournamentPrize(runnerUp.id, runnerUpPrize);
 
       // Update tournament status to COMPLETED
-      await prisma.tournament.update({
+      await prisma.tournamentEntries[0].update({
         where: { id: tournamentId },
         data: {
           status: 'COMPLETED',
-          // @ts-expect-error TS2353
           completedAt: new Date()
         }
       });

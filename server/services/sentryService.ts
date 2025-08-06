@@ -4,7 +4,6 @@
  */
 
 import * as Sentry from "@sentry/node";
-// @ts-expect-error TS2724
 import { ProfilingIntegration } from "@sentry/profiling-node";
 
 export class SentryService {
@@ -65,7 +64,6 @@ export class SentryService {
    * Get Sentry request handler middleware
    */
   static getRequestHandler() {
-    // @ts-expect-error TS2339
     return Sentry.Handlers.requestHandler();
   }
 
@@ -73,7 +71,6 @@ export class SentryService {
    * Get Sentry tracing handler middleware
    */
   static getTracingHandler() {
-    // @ts-expect-error TS2339
     return Sentry.Handlers.tracingHandler();
   }
 
@@ -81,7 +78,6 @@ export class SentryService {
    * Get Sentry error handler middleware
    */
   static getErrorHandler() {
-    // @ts-expect-error TS2339
     return Sentry.Handlers.errorHandler();
   }
 

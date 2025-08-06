@@ -82,7 +82,7 @@ export class RBACService {
     try {
       // Check the UserProfile table first, then fall back to users table
       const userProfile = await prisma.userProfile.findUnique({
-        where: { userId: userId },
+        where: { userProfileId: userId },
         select: { userId: true, email: true }
       });
       
@@ -94,7 +94,6 @@ export class RBACService {
       // Check if user has been promoted to admin (for now, hardcode admin emails)
       const adminEmails = ['jimmy058910@gmail.com']; // Add more admin emails as needed
       
-      // @ts-expect-error TS2345
       if (adminEmails.includes(userProfile.email)) {
         logInfo("User granted admin access via email whitelist", { userId, email: userProfile.email });
         return UserRole.ADMIN;
@@ -102,7 +101,6 @@ export class RBACService {
       
       return UserRole.USER;
     } catch (error) {
-      // @ts-expect-error TS18046
       logInfo("Failed to fetch user role, defaulting to USER", { userId, error: error.message });
       return UserRole.USER;
     }
@@ -166,7 +164,6 @@ export class RBACService {
   /**
    * Promote user to admin by email (for setup/testing)
    */
-  // @ts-expect-error TS2393
   static async promoteToAdmin(email: string): Promise<void> {
     const userProfile = await prisma.userProfile.findUnique({
       where: { email: email }
@@ -264,7 +261,6 @@ export class RBACService {
       // TODO: Add role field to UserProfile table to support role system
       logInfo("Role initialization skipped - need to add role field to UserProfile table");
     } catch (error) {
-      // @ts-expect-error TS18046
       logInfo("Failed to initialize default roles", { error: error.message });
     }
   }
@@ -272,7 +268,6 @@ export class RBACService {
   /**
    * Promote specific users to admin (one-time setup)
    */
-  // @ts-expect-error TS2393
   static async promoteToAdmin(userEmail: string): Promise<void> {
     try {
       // TODO: Add role field to UserProfile table to support admin promotion

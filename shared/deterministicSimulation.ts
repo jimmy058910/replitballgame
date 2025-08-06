@@ -217,7 +217,7 @@ export const DeterministicSimulation = {
     testFunction: (context: SimulationContext) => any,
     iterations: number = 10
   ): boolean {
-    const results = [];
+    const results: string[] = [];
     
     for (let i = 0; i < iterations; i++) {
       const context = new SimulationContext(seed);
@@ -226,6 +226,6 @@ export const DeterministicSimulation = {
     }
 
     // Check if all results are identical
-    return results.every(result => result === results[0]);
+    return results.every((result: string) => result === results[0]);
   }
 };

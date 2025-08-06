@@ -100,8 +100,7 @@ export function cacheMiddleware(options: CacheOptions = {}) {
         console.log(`[CACHE SET] ${cacheKey} (TTL: ${ttl}s)`);
         apiCache.set(cacheKey, responseData, ttl); // Fixed: Remove unnecessary callback parameter
       }
-      // @ts-expect-error TS2554
-      return originalEnd.call(this, chunk); // Fix TypeScript argument count issue - use correct signature
+      return originalEnd.call(this, chunk, 'utf8'); // Fix TypeScript argument count issue - provide encoding parameter
     };
 
     next();

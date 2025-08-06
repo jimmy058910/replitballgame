@@ -108,10 +108,8 @@ router.post('/force-daily-progression', RBACService.requirePermission(Permission
     });
   } catch (error) {
     console.error('❌ SUPERUSER: Daily progression failed:', error);
-    // @ts-expect-error TS2345
     logError("Daily progression execution failed", { error, requestId });
     res.status(500).json({ 
-      // @ts-expect-error TS18046
       error: error.message, 
       details: 'Daily progression execution failed'
     });
@@ -149,7 +147,6 @@ router.post('/advance-day', RBACService.requirePermission(Permission.MANAGE_SEAS
     
     await storage.seasons.updateSeason(currentSeason.id, { status: "completed", endDate: new Date() });
     await storage.seasons.createSeason({
-      // @ts-expect-error TS2353
       yearInput: newSeasonYear,
       status: "active",
       startDate: newStartDate,
@@ -194,7 +191,6 @@ router.post('/reset-season', RBACService.requireSuperAdmin(), asyncHandler(async
     data: {
       wins: 0,
       losses: 0,
-      // @ts-expect-error TS2353
       ties: 0,
       points: 0,
       teamPower: 0
@@ -222,7 +218,6 @@ router.post('/reset-season', RBACService.requireSuperAdmin(), asyncHandler(async
 }));
 
 // Stop all games - Admin permission required
-// @ts-expect-error TS2345
 router.post('/stop-all-games', RBACService.requirePermission("STOP_MATCHES"), asyncHandler(async (req: any, res: Response) => {
   const requestId = req.requestId;
   const userId = req.user.claims.sub;
@@ -235,7 +230,6 @@ router.post('/stop-all-games', RBACService.requirePermission("STOP_MATCHES"), as
     },
     data: { 
       status: 'CANCELLED',
-      // @ts-expect-error TS2353
       completedAt: new Date()
     }
   });
@@ -329,7 +323,6 @@ router.post('/add-players', RBACService.requirePermission(Permission.MANAGE_LEAG
   const newPlayers = [];
   for (let i = 0; i < playerCount; i++) {
     const player = generatePlayerForTeam(teamId, "HUMAN", "Passer", "25");
-    // @ts-expect-error TS2345
     await storage.players.createPlayer(player);
     newPlayers.push(player);
   }
@@ -437,7 +430,6 @@ router.post('/create-league-schedule', RBACService.requirePermission(Permission.
             scheduledTime: new Date()
           };
           
-          // @ts-expect-error TS2345
           await storage.matches.createMatch(matchData);
           scheduledMatches++;
         }
@@ -499,7 +491,6 @@ router.post('/start-all-league-games', RBACService.requirePermission(Permission.
           return match.id;
         })
         .catch(error => {
-          // @ts-expect-error TS2345
           logError("Failed to start league game", { matchId: match.id, error: error.message });
           throw error;
         });

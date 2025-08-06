@@ -93,7 +93,6 @@ export class MatchStorage {
         AND: [
           { homeTeamId: { in: teamIdsInDivision } },
           { awayTeamId: { in: teamIdsInDivision } },
-          // @ts-expect-error TS2322
           ...(seasonId ? [{ league: { seasonId } }] : [])
         ]
       },
@@ -109,11 +108,13 @@ export class MatchStorage {
     return divisionMatches;
   }
 
-  async updateMatch(id: number, updates: Partial<Game>): Promise<Game | null> {
+  async updateMatch(id: number, updates: any): Promise<Game | null> {
     try {
+      // Remove 'id' from updates to avoid Prisma constraint conflicts
+      const { id: _, ...updateData } = updates;
       const updatedMatch = await prisma.game.update({
         where: { id },
-        data: updates,
+        data: updateData,
         include: {
           league: true,
           tournament: true

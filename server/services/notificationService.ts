@@ -14,7 +14,6 @@ export class NotificationService {
       return await prisma.notification.create({
         data: {
           teamId: data.teamId,
-          // @ts-expect-error TS2322
           type: data.type,
           message: data.message,
           linkTo: data.linkTo || null,

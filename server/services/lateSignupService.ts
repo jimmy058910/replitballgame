@@ -200,7 +200,6 @@ export class LateSignupService {
         // Create AI team
         const aiTeam = await storage.teams.createTeam({
           name: uniqueTeamName,
-          // @ts-expect-error TS2353
           description: 'AI Generated Team',
           userProfileId: 'AI_USER_PROFILE', // Special AI user profile
           division: 8,
@@ -209,7 +208,6 @@ export class LateSignupService {
         });
         
         // Generate players for AI team
-        // @ts-expect-error TS2345
         await this.generateAIPlayersForTeam(aiTeam.id);
         
         logInfo(`Created AI team: ${uniqueTeamName} in ${subdivisionName}`);
@@ -244,11 +242,8 @@ export class LateSignupService {
       try {
         await storage.players.createPlayer({
           name: `${playerName} ${Math.floor(Math.random() * 900) + 100}`,
-          // @ts-expect-error TS2322
           teamId: teamId,
-          // @ts-expect-error TS2322
           race: race,
-          // @ts-expect-error TS2322
           role: role,
           age: Math.floor(Math.random() * 10) + 20, // 20-30 years old
           speed: Math.floor(Math.random() * 15) + 10, // 10-25
@@ -273,7 +268,6 @@ export class LateSignupService {
   /**
    * Generate shortened season schedule for a late signup subdivision
    */
-  // @ts-expect-error TS2393
   private static async generateShortenedSeasonSchedule(subdivisionName: string): Promise<void> {
     const teams = await storage.teams.getTeamsByDivisionAndSubdivision(8, subdivisionName);
     
@@ -316,7 +310,6 @@ export class LateSignupService {
     // Create matches in database
     for (const match of matches) {
       try {
-        // @ts-expect-error TS2345
         await storage.matches.createMatch(match);
       } catch (error) {
         console.error(`Failed to create match for ${subdivisionName}:`, error);
@@ -393,7 +386,6 @@ export class LateSignupService {
    * Generate shortened season schedule for late signup subdivision
    * Called immediately when subdivision reaches 8 teams
    */
-  // @ts-expect-error TS2393
   static async generateShortenedSeasonSchedule(
     subdivision: string,
     teams: any[]
@@ -416,7 +408,6 @@ export class LateSignupService {
     
     // Check if league already exists
     const existingLeague = await prisma.league.findUnique({
-      // @ts-expect-error TS2322
       where: { id: leagueId }
     });
     
@@ -424,9 +415,7 @@ export class LateSignupService {
     if (!league) {
       league = await prisma.league.create({
         data: {
-          // @ts-expect-error TS2322
           id: leagueId,
-          // @ts-expect-error TS2322
           seasonId: parseInt(seasonNumber.toString()),
           division: 8,
           name: `Division 8 Late Signup - ${subdivision.toUpperCase()}`
@@ -436,7 +425,6 @@ export class LateSignupService {
     
     // Generate shortened schedule
     const matches = await this.generateShortenedMatches(
-      // @ts-expect-error TS2345
       league.id,
       teams,
       seasonNumber,
@@ -465,11 +453,9 @@ export class LateSignupService {
     startDay: number,
     remainingDays: number
   ): Promise<any[]> {
-    // @ts-expect-error TS7034
     const matches = [];
     const numTeams = teams.length;
     
-    // @ts-expect-error TS7005
     if (numTeams < 2) return matches;
     
     // Track which teams have been scheduled for each day
@@ -510,7 +496,6 @@ export class LateSignupService {
             data: {
               homeTeamId: homeTeam.id,
               awayTeamId: awayTeam.id,
-              // @ts-expect-error TS2322
               leagueId: leagueId,
               season: season,
               day: day,

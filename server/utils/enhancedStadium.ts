@@ -41,11 +41,8 @@ export class EnhancedStadiumSystem {
     const stadiumData: StadiumData = {
       capacity: stadium?.capacity || 15000,
       fanLoyalty,
-      // @ts-expect-error TS2339
       lightingLevel: stadium?.lightingLevel || 1,
-      // @ts-expect-error TS2339
       screenLevel: stadium?.screenLevel || 1,
-      // @ts-expect-error TS2551
       concessionLevel: stadium?.concessionLevel || 1,
       parkingLevel: stadium?.parkingLevel || 1,
       vipSuitesLevel: stadium?.vipSuitesLevel || 1,
@@ -111,7 +108,6 @@ export class EnhancedStadiumSystem {
   calculateMatchRevenue(effects: EnhancedStadiumEffects, stadium: Stadium | null): number {
     if (!stadium) return 0;
 
-    // @ts-expect-error TS2339
     const config = configManager.getEconomy().stadium_revenue;
     const attendance = effects.actualAttendance;
     
@@ -119,7 +115,6 @@ export class EnhancedStadiumSystem {
     let revenue = attendance * config.ticket_price;
     
     // Concession revenue
-    // @ts-expect-error TS2551
     revenue += attendance * config.concession_multiplier * (stadium.concessionLevel || 1);
     
     // Parking revenue

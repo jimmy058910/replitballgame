@@ -200,7 +200,6 @@ export class CamaraderieService {
       // Get current player data
       const player = await prisma.player.findFirst({
         where: {
-          // @ts-expect-error TS2322
           id: playerId
         },
         select: {
@@ -295,13 +294,11 @@ export class CamaraderieService {
       // Get team performance data
       const team = await prisma.team.findFirst({
         where: {
-          // @ts-expect-error TS2322
           id: teamId
         },
         select: {
           wins: true,
           losses: true,
-          // @ts-expect-error TS2353
           draws: true
         }
       });
@@ -311,23 +308,19 @@ export class CamaraderieService {
       }
       
       // Calculate win percentage
-      // @ts-expect-error TS2339
       const totalGames = (team.wins || 0) + (team.losses || 0) + (team.draws || 0);
       const winPercentage = totalGames > 0 ? (team.wins || 0) / totalGames : 0;
       
       // Get head coach leadership (using coachingRating)
       const headCoach = await prisma.staff.findFirst({
         where: {
-          // @ts-expect-error TS2322
           teamId: teamId
         },
         select: {
-          // @ts-expect-error TS2353
           coachingRating: true
         }
       });
       
-      // @ts-expect-error TS2339
       const headCoachLeadership = headCoach?.coachingRating || 20; // Default coaching rating
       
       // Determine if team won championship (placeholder - would need tournament/playoff data)
@@ -336,7 +329,6 @@ export class CamaraderieService {
       // Get all players on the team
       const players = await prisma.player.findMany({
         where: {
-          // @ts-expect-error TS2322
           teamId: teamId
         },
         select: {
@@ -348,7 +340,6 @@ export class CamaraderieService {
       const updates: SeasonEndCamaraderieUpdate[] = [];
       for (const player of players) {
         const update = await this.updatePlayerCamaraderieEndOfSeason(
-          // @ts-expect-error TS2345
           player.id,
           { winPercentage, wonChampionship },
           headCoachLeadership
@@ -426,7 +417,6 @@ export class CamaraderieService {
   /**
    * Get comprehensive camaraderie summary for a team
    */
-  // @ts-expect-error TS2393
   static async getCamaraderieSummary(teamId: string): Promise<{
     teamId: string;
     teamName: string;
@@ -441,7 +431,6 @@ export class CamaraderieService {
     try {
       // Get team information
       const team = await prisma.team.findFirst({
-        // @ts-expect-error TS2322
         where: { id: teamId },
         select: { 
           id: true, 
@@ -456,7 +445,6 @@ export class CamaraderieService {
       // Get only main roster players (first 12 by creation date, not on market, not retired)
       const players = await prisma.player.findMany({
         where: { 
-          // @ts-expect-error TS2322
           teamId: teamId,
           isOnMarket: false,
           isRetired: false
@@ -503,7 +491,6 @@ export class CamaraderieService {
       return {
         teamId,
         teamName: team.name,
-        // @ts-expect-error TS2353
         teamCamaraderie: Math.round(averageCamaraderie),
         playerCount,
         highMoraleCount: highCamaraderieCount,
@@ -525,7 +512,6 @@ export class CamaraderieService {
   /**
    * Get progression bonus for a team based on camaraderie
    */
-  // @ts-expect-error TS2393
   static async getProgressionBonus(teamId: string): Promise<number> {
     const effects = await this.getCamaraderieEffects(teamId);
     return effects.developmentBonus;
@@ -534,7 +520,6 @@ export class CamaraderieService {
   /**
    * Get injury reduction for a team based on camaraderie
    */
-  // @ts-expect-error TS2393
   static async getInjuryReduction(teamId: string): Promise<number> {
     const effects = await this.getCamaraderieEffects(teamId);
     return effects.injuryReduction;
@@ -543,13 +528,10 @@ export class CamaraderieService {
   /**
    * Increment years on team for all players in a team
    */
-  // @ts-expect-error TS2393
   static async incrementYearsOnTeam(teamId: string): Promise<void> {
     try {
       await prisma.player.updateMany({
-        // @ts-expect-error TS2322
         where: { teamId: teamId },
-        // @ts-expect-error TS2353
         data: { yearsOnTeam: { increment: 1 } }
       });
         
@@ -584,7 +566,6 @@ export class CamaraderieService {
    * Check if team qualifies for development bonus
    * @deprecated Use getPlayerProgressionBonus instead for age-specific bonuses
    */
-  // @ts-expect-error TS2393
   static async getProgressionBonus(teamId: string): Promise<number> {
     const effects = await this.getCamaraderieEffects(teamId);
     return effects.developmentBonus;
@@ -593,7 +574,6 @@ export class CamaraderieService {
   /**
    * Get injury risk reduction for high-camaraderie teams
    */
-  // @ts-expect-error TS2393
   static async getInjuryReduction(teamId: string): Promise<number> {
     const effects = await this.getCamaraderieEffects(teamId);
     return effects.injuryReduction;
@@ -602,13 +582,11 @@ export class CamaraderieService {
   /**
    * Increment years on team for all players (called during season transitions)
    */
-  // @ts-expect-error TS2393
   static async incrementYearsOnTeam(teamId: string): Promise<void> {
     try {
       await prisma.player.updateMany({
         where: { teamId: parseInt(teamId) },
         data: { 
-          // @ts-expect-error TS2353
           yearsOnTeam: { increment: 1 }
         }
       });
@@ -626,7 +604,6 @@ export class CamaraderieService {
   /**
    * Get camaraderie summary for team management UI
    */
-  // @ts-expect-error TS2393
   static async getCamaraderieSummary(teamId: string): Promise<{
     teamCamaraderie: number;
     status: string;

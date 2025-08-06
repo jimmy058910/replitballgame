@@ -29,7 +29,7 @@ export class TournamentMatchService {
   static async generateTournamentMatches(tournamentId: string): Promise<TournamentMatch[]> {
     try {
       // Get tournament and participants
-      const tournament = await prisma.tournament.findUnique({
+      const tournament = await prisma.tournamentEntries[0].findUnique({
         where: { id: parseInt(tournamentId) },
         include: {
           entries: {
@@ -132,10 +132,8 @@ export class TournamentMatchService {
       const allMatches = [...quarterfinalMatches, ...semifinalMatches, finalMatch];
 
       // Store matches in database
-      // @ts-expect-error TS2345
       await this.storeTournamentMatches(parseInt(tournamentId), allMatches);
 
-      // @ts-expect-error TS2322
       return allMatches;
     } catch (error) {
       console.error('Error generating tournament matches:', error);

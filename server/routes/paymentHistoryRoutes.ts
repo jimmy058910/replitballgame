@@ -69,7 +69,6 @@ router.post("/record", isAuthenticated, asyncHandler(async (req: any, res: Respo
   const transaction = await PaymentHistoryService.recordTransaction({
     userId,
     ...transactionData,
-    // @ts-expect-error TS2322
     teamId: transactionData.teamId ? (typeof transactionData.teamId === 'string' ? parseInt(transactionData.teamId) : transactionData.teamId) : undefined,
   });
   
@@ -92,7 +91,6 @@ router.post("/purchase", isAuthenticated, asyncHandler(async (req: any, res: Res
   
   const transaction = await PaymentHistoryService.recordItemPurchase(
     userId,
-    // @ts-expect-error TS2345
     purchaseData.teamId || null,
     purchaseData.itemName,
     purchaseData.itemType,

@@ -8,7 +8,6 @@ const router = express.Router();
 /**
  * Get recent league matches for the authenticated user's team
  */
-// @ts-expect-error TS7030
 router.get('/', isAuthenticated, async (req: any, res, next) => {
   try {
     const userId = req.user.claims.sub;
@@ -55,9 +54,7 @@ router.get('/', isAuthenticated, async (req: any, res, next) => {
           const teamScore = isHome ? match.homeScore : match.awayScore;
           const opponentScore = isHome ? match.awayScore : match.homeScore;
           
-          // @ts-expect-error TS18047
           if (teamScore > opponentScore) result = "win";
-          // @ts-expect-error TS18047
           else if (teamScore < opponentScore) result = "loss";
           else result = "draw";
         } else if (match.status === "IN_PROGRESS") {
@@ -73,7 +70,6 @@ router.get('/', isAuthenticated, async (req: any, res, next) => {
           awayTeamId: match.awayTeamId,
           homeScore: match.homeScore,
           awayScore: match.awayScore,
-          // @ts-expect-error TS2339
           completedAt: match.completedAt,
           createdAt: match.createdAt,
           gameDate: match.gameDate,

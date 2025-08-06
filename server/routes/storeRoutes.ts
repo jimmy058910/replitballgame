@@ -71,7 +71,6 @@ router.get('/items', cacheMiddleware({ ttl: 600 }), isAuthenticated, async (req:
       });
       
       const itemRarity = item.tier?.toLowerCase() || 'common';
-      // @ts-expect-error TS7053
       const maxPurchases = purchaseLimits[itemRarity] || 1;
       
       return {
@@ -167,7 +166,6 @@ router.get('/categories', cacheMiddleware({ ttl: 3600 }), async (req: Request, r
   }
 });
 
-// @ts-expect-error TS7030
 router.post('/exchange-gems', isAuthenticated, async (req: any, res: Response, next: NextFunction) => {
   try {
     const { gemAmount } = req.body;
@@ -185,7 +183,6 @@ router.post('/exchange-gems', isAuthenticated, async (req: any, res: Response, n
       return res.status(404).json({ success: false, error: 'Team not found' });
     }
 
-    // @ts-expect-error TS2345
     const result = await EnhancedGameEconomyService.exchangeGemsForCredits(team.id, gemAmount);
     
     if (result.success) {
@@ -256,13 +253,11 @@ router.get('/', isAuthenticated, async (req: Request, res: Response, next: NextF
   }
 });
 
-// @ts-expect-error TS7030
 router.get('/ads', isAuthenticated, async (req: any, res: Response, next: NextFunction) => {
   try {
     const userId = req.user.claims.sub;
     
     // Check if adSystem exists
-    // @ts-expect-error TS2339
     if (!storage.adSystem) {
       console.error("adSystem storage not available");
       return res.json({
@@ -290,7 +285,6 @@ router.get('/ads', isAuthenticated, async (req: any, res: Response, next: NextFu
   }
 });
 
-// @ts-expect-error TS7030
 router.post('/watch-ad', isAuthenticated, async (req: any, res: Response, next: NextFunction) => {
   try {
     const userId = req.user.claims.sub;
@@ -377,7 +371,6 @@ router.post('/watch-ad', isAuthenticated, async (req: any, res: Response, next: 
   }
 });
 
-// @ts-expect-error TS7030
 router.post('/purchase/:itemId', isAuthenticated, async (req: any, res: Response, next: NextFunction) => {
   try {
     const userId = req.user.claims.sub;
@@ -621,7 +614,6 @@ router.post('/purchase/:itemId', isAuthenticated, async (req: any, res: Response
 });
 
 
-// @ts-expect-error TS7030
 router.post('/convert-gems', isAuthenticated, async (req: any, res: Response, next: NextFunction) => {
   try {
     const userId = req.user.claims.sub;
@@ -654,7 +646,6 @@ router.post('/convert-gems', isAuthenticated, async (req: any, res: Response, ne
 });
 
 // Premium Box eligibility check
-// @ts-expect-error TS7030
 router.get('/premium-box/eligibility', isAuthenticated, async (req: any, res: Response, next: NextFunction) => {
   try {
     const userId = req.user.claims.sub;
@@ -671,7 +662,6 @@ router.get('/premium-box/eligibility', isAuthenticated, async (req: any, res: Re
 });
 
 // Open Premium Box
-// @ts-expect-error TS7030
 router.post('/premium-box/open', isAuthenticated, async (req: any, res: Response, next: NextFunction) => {
   try {
     const userId = req.user.claims.sub;

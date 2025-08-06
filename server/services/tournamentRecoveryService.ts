@@ -109,7 +109,7 @@ export class TournamentRecoveryService {
       logInfo('Checking for stuck tournaments...');
       
       // Find tournaments that are IN_PROGRESS but have scheduled matches
-      const stuckTournaments = await prisma.tournament.findMany({
+      const stuckTournaments = await prisma.tournamentEntries[0].findMany({
         where: {
           status: 'IN_PROGRESS'
         },

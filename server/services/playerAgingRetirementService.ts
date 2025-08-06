@@ -98,7 +98,6 @@ export class PlayerAgingRetirementService {
         const trainers = await prisma.staff.findMany({
           where: {
             teamId: player.teamId,
-            // @ts-expect-error TS2353
             position: { contains: 'TRAINER' }
           }
         });
@@ -107,21 +106,15 @@ export class PlayerAgingRetirementService {
         let relevantTrainerRating = 0;
         if (this.DEVELOPMENT_CONFIG.PHYSICAL_STATS.includes(statName)) {
           // Physical stats improved by Physical Trainer
-          // @ts-expect-error TS2367
           const physicalTrainer = trainers.find(t => t.type === 'trainer' && t.physicalRating);
-          // @ts-expect-error TS2339
           relevantTrainerRating = physicalTrainer?.physicalRating || 0;
         } else if (['throwing', 'catching'].includes(statName)) {
           // Passing stats improved by Offensive Trainer  
-          // @ts-expect-error TS2367
           const offensiveTrainer = trainers.find(t => t.type === 'trainer' && t.offenseRating);
-          // @ts-expect-error TS2339
           relevantTrainerRating = offensiveTrainer?.offenseRating || 0;
         } else if (['leadership', 'kicking'].includes(statName)) {
           // Mental/special stats improved by Defensive Trainer
-          // @ts-expect-error TS2367
           const defensiveTrainer = trainers.find(t => t.type === 'trainer' && t.defenseRating);
-          // @ts-expect-error TS2339
           relevantTrainerRating = defensiveTrainer?.defenseRating || 0;
         }
         
@@ -199,7 +192,6 @@ export class PlayerAgingRetirementService {
     milestones: Array<{ type: string; description: string }>;
   }> {
     const player = await prisma.player.findFirst({
-      // @ts-expect-error TS2322
       where: { id: playerId }
     });
     if (!player) {
@@ -231,7 +223,6 @@ export class PlayerAgingRetirementService {
       const newValue = success ? Math.min(statCap, currentValue + 1) : currentValue;
       
       // Record development history
-      // @ts-expect-error TS2304
       const developmentRecord: InsertPlayerDevelopmentHistory = {
         playerId,
         season,
@@ -244,10 +235,8 @@ export class PlayerAgingRetirementService {
         success,
         ageAtTime: player.age || 20,
         gamesPlayedLastSeason,
-        // @ts-expect-error TS2339
         potentialAtTime: typeof player.overallPotentialStars === 'number' ? player.overallPotentialStars : parseFloat(player.overallPotentialStars) || 0
       };
-      // @ts-expect-error TS2339
       await prisma.playerDevelopmentHistory.create({
         data: developmentRecord
       });
@@ -263,7 +252,6 @@ export class PlayerAgingRetirementService {
         
         // Update player stat
         await prisma.player.update({
-          // @ts-expect-error TS2322
           where: { id: playerId },
           data: { [statName]: newValue }
         });
@@ -298,7 +286,6 @@ export class PlayerAgingRetirementService {
     declines: Array<{ stat: string; oldValue: number; newValue: number; chance: number; roll: number }>;
   }> {
     const player = await prisma.player.findFirst({
-      // @ts-expect-error TS2322
       where: { id: playerId }
     });
     if (!player) {
@@ -328,7 +315,6 @@ export class PlayerAgingRetirementService {
       const newValue = Math.max(1, currentValue - 1);
       
       // Record decline
-      // @ts-expect-error TS2304
       const declineRecord: InsertPlayerDevelopmentHistory = {
         playerId,
         season,
@@ -341,17 +327,14 @@ export class PlayerAgingRetirementService {
         success: true,
         ageAtTime: age,
         gamesPlayedLastSeason: 0,
-        // @ts-expect-error TS2339
         potentialAtTime: typeof player.overallPotentialStars === 'number' ? player.overallPotentialStars : parseFloat(player.overallPotentialStars) || 0
       };
-      // @ts-expect-error TS2339
       await prisma.playerDevelopmentHistory.create({
         data: declineRecord
       });
       
       // Update player stat
       await prisma.player.update({
-        // @ts-expect-error TS2322
         where: { id: playerId },
         data: { [selectedStat]: newValue }
       });
@@ -381,7 +364,6 @@ export class PlayerAgingRetirementService {
     reason?: string;
   }> {
     const player = await prisma.player.findFirst({
-      // @ts-expect-error TS2322
       where: { id: playerId }
     });
     if (!player) {
@@ -421,7 +403,6 @@ export class PlayerAgingRetirementService {
     }
     
     // Record retirement attempt
-    // @ts-expect-error TS2304
     const retirementRecord: InsertPlayerDevelopmentHistory = {
       playerId,
       season,
@@ -434,10 +415,8 @@ export class PlayerAgingRetirementService {
       success: retired,
       ageAtTime: age,
       gamesPlayedLastSeason,
-      // @ts-expect-error TS2339
       potentialAtTime: typeof player.overallPotentialStars === 'number' ? player.overallPotentialStars : parseFloat(player.overallPotentialStars) || 0
     };
-    // @ts-expect-error TS2339
     await prisma.playerDevelopmentHistory.create({
       data: retirementRecord
     });
@@ -455,13 +434,11 @@ export class PlayerAgingRetirementService {
    */
   static async retirePlayer(playerId: string, season: number, reason: string): Promise<void> {
     const player = await prisma.player.findFirst({
-      // @ts-expect-error TS2322
       where: { id: playerId }
     });
     if (!player) return;
     
     // Create retirement milestone
-    // @ts-expect-error TS2339
     await prisma.playerCareerMilestone.create({
       data: {
         playerId,
@@ -477,7 +454,6 @@ export class PlayerAgingRetirementService {
           catching: player.catching,
           kicking: player.kicking,
           leadership: player.leadership,
-          // @ts-expect-error TS2339
           stamina: player.stamina,
           careerInjuries: player.careerInjuries,
           gamesPlayedLastSeason: player.gamesPlayedLastSeason
@@ -488,10 +464,8 @@ export class PlayerAgingRetirementService {
     
     // Remove player from team (retirement)
     await prisma.player.update({
-      // @ts-expect-error TS2322
       where: { id: playerId },
       data: { 
-        // @ts-expect-error TS2322
         teamId: null // Remove from team
       }
     });
@@ -511,7 +485,6 @@ export class PlayerAgingRetirementService {
     milestones: Array<{ playerId: string; playerName: string; type: string; description: string }>;
   }> {
     const teamPlayers = await prisma.player.findMany({
-      // @ts-expect-error TS2322
       where: { teamId: teamId }
     });
 
@@ -527,7 +500,6 @@ export class PlayerAgingRetirementService {
       try {
         // 1. Process progression
         const progression = await this.processPlayerProgression(
-          // @ts-expect-error TS2345
           player.id,
           season,
           player.gamesPlayedLastSeason || 0
@@ -537,7 +509,6 @@ export class PlayerAgingRetirementService {
         
         // Add progression milestones
         progression.milestones.forEach(milestone => {
-          // @ts-expect-error TS2345
           results.milestones.push({
             playerId: player.id,
             playerName: `${player.firstName} ${player.lastName}`,
@@ -547,15 +518,12 @@ export class PlayerAgingRetirementService {
         });
 
         // 2. Process decline (if not retired)
-        // @ts-expect-error TS2345
         const decline = await this.processPlayerDecline(player.id, season);
         results.declines += decline.declines.length;
 
         // 3. Process retirement check (if not retired)
-        // @ts-expect-error TS2345
         const retirement = await this.processRetirementCheck(player.id, season);
         if (retirement.retired) {
-          // @ts-expect-error TS2345
           results.retirements.push({
             playerId: player.id,
             playerName: `${player.firstName} ${player.lastName}`,
@@ -595,7 +563,6 @@ export class PlayerAgingRetirementService {
     const allActivePlayers = await prisma.player.findMany({
       where: {
         teamId: {
-          // @ts-expect-error TS2322
           not: null
         }
       }
@@ -613,9 +580,7 @@ export class PlayerAgingRetirementService {
     // Group players by team
     const playersByTeam = allActivePlayers.reduce((acc, player) => {
       if (player.teamId) {
-        // @ts-expect-error TS7053
         if (!acc[player.teamId]) acc[player.teamId] = [];
-        // @ts-expect-error TS7053
         acc[player.teamId].push(player);
       }
       return acc;
@@ -634,7 +599,6 @@ export class PlayerAgingRetirementService {
         // Count retirements by reason
         teamResults.retirements.forEach(retirement => {
           const reason = retirement.reason || 'unknown';
-          // @ts-expect-error TS7053
           results.retirementsByReason[reason] = (results.retirementsByReason[reason] || 0) + 1;
         });
         
@@ -673,28 +637,22 @@ export class PlayerAgingRetirementService {
     developmentHistory: any[];
     careerMilestones: any[];
   }> {
-    // @ts-expect-error TS2339
     const history = await prisma.playerDevelopmentHistory.findMany({
       where: { playerId }
     });
 
-    // @ts-expect-error TS2339
     const milestones = await prisma.playerCareerMilestone.findMany({
       where: { playerId }
     });
 
-    // @ts-expect-error TS7006
     const progressions = history.filter(h => h.developmentType === 'progression' && h.success);
-    // @ts-expect-error TS7006
     const declines = history.filter(h => h.developmentType === 'decline' && h.success);
 
-    // @ts-expect-error TS7006
     const progressionsByAge = progressions.reduce((acc, p) => {
       acc[p.ageAtTime] = (acc[p.ageAtTime] || 0) + 1;
       return acc;
     }, {});
 
-    // @ts-expect-error TS7006
     const declinesByAge = declines.reduce((acc, d) => {
       acc[d.ageAtTime] = (acc[d.ageAtTime] || 0) + 1;
       return acc;
@@ -725,7 +683,6 @@ export class PlayerAgingRetirementService {
     retirementAge?: number;
   }> {
     const startingPlayer = await prisma.player.findFirst({
-      // @ts-expect-error TS2322
       where: { id: playerId }
     });
     if (!startingPlayer) {
@@ -741,7 +698,6 @@ export class PlayerAgingRetirementService {
       catching: startingPlayer.catching,
       kicking: startingPlayer.kicking,
       leadership: startingPlayer.leadership,
-      // @ts-expect-error TS2339
       stamina: startingPlayer.stamina
     };
 
@@ -769,7 +725,6 @@ export class PlayerAgingRetirementService {
 
       // Age increment
       await prisma.player.update({
-        // @ts-expect-error TS2322
         where: { id: playerId },
         data: {
           age: (startingPlayer.age || 20) + season,
@@ -779,7 +734,6 @@ export class PlayerAgingRetirementService {
     }
 
     const endingPlayer = await prisma.player.findFirst({
-      // @ts-expect-error TS2322
       where: { id: playerId }
     });
     
@@ -794,7 +748,6 @@ export class PlayerAgingRetirementService {
         catching: endingPlayer?.catching,
         kicking: endingPlayer?.kicking,
         leadership: endingPlayer?.leadership,
-        // @ts-expect-error TS2339
         stamina: endingPlayer?.stamina
       },
       developmentSummary: {

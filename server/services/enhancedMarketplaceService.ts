@@ -451,7 +451,6 @@ export class EnhancedMarketplaceService {
         where: { teamId },
         data: {
           credits: {
-            // @ts-expect-error TS2322
             decrement: listing.buyNowPrice
           }
         }

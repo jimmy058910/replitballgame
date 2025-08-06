@@ -106,7 +106,6 @@ export async function simulateEnhancedMatch(
   // Initialize player stats
   [...homeTeamPlayers, ...awayTeamPlayers].forEach(player => {
     playerStats[player.id] = {
-      // @ts-expect-error TS2322
       playerId: player.id,
       scores: 0,
       passingAttempts: 0,
@@ -222,7 +221,6 @@ export async function simulateEnhancedMatch(
       finalStats: {
         possession: { home: homeStats.possession, away: awayStats.possession },
         passes: { home: homeStats.passes, away: awayStats.passes },
-        // @ts-expect-error TS2353
         interceptions: { home: homeStats.interceptions, away: awayStats.interceptions },
         rushing: { home: homeStats.rushing, away: awayStats.rushing },
         tackles: { home: homeStats.tackles, away: awayStats.tackles },
@@ -248,19 +246,14 @@ function calculateTeamStrength(players: Player[]): number {
   return players.reduce((total, player) => {
     const avgStats = (
       (player.speed || 0) + (player.power || 0) + (player.throwing || 0) +
-      // @ts-expect-error TS2339
       (player.catching || 0) + (player.stamina || 0) + (player.agility || 0)
     ) / 6;
     
     let bonus = 1;
     switch (player.race) {
-      // @ts-expect-error TS2678
       case "sylvan": bonus = 1.1; break;
-      // @ts-expect-error TS2678
       case "gryll": bonus = 1.05; break;
-      // @ts-expect-error TS2678
       case "lumina": bonus = 1.08; break;
-      // @ts-expect-error TS2678
       case "umbra": bonus = 1.07; break;
       default: bonus = 1.03; // human
     }
@@ -310,29 +303,24 @@ function generateMatchEvent(
     let passSuccessChance = 0.6 + camaraderieEffect;
     if (rng.next() < passSuccessChance) {
       eventType = "pass_complete";
-      // @ts-expect-error TS2339
       description = `${randomPlayer.name} (${randomPlayer.race}) completes a precise pass!`;
       if (rng.next() < (0.15 + Math.max(0, camaraderieEffect))) {
         eventType = "score";
-        // @ts-expect-error TS2339
         description = `TOUCHDOWN! ${randomPlayer.name} (${randomPlayer.race}) connects for a score!`;
       }
     } else {
       if (rng.next() < (0.5 + Math.max(0, -camaraderieEffect * 2))) {
         eventType = "pass_inaccurate";
-        // @ts-expect-error TS2339
         description = `${randomPlayer.name} (${randomPlayer.race})'s pass is off target due to miscommunication!`;
       } else {
         eventType = "interception";
         const defendingPlayers = isHomeTeamEvent ? awayTeamPlayers : homeTeamPlayers;
         const interceptor = defendingPlayers.length > 0 ? rng.choice(defendingPlayers) : { name: "Defender", race: "Unknown" };
-        // @ts-expect-error TS2339
         description = `${interceptor.name} (${interceptor.race}) intercepts the pass!`;
         return {
           time: Math.floor(time),
           type: eventType,
           description,
-          // @ts-expect-error TS2339
           player: interceptor.name,
           team: isHomeTeamEvent ? "away" : "home"
         };
@@ -342,29 +330,24 @@ function generateMatchEvent(
     let runSuccessChance = 0.5 + camaraderieEffect * 0.5;
     if (Math.random() < runSuccessChance) {
       eventType = "run_positive";
-      // @ts-expect-error TS2339
       description = `${randomPlayer.name} (${randomPlayer.race}) finds a gap and gains yards!`;
       if (Math.random() < (0.1 + Math.max(0, camaraderieEffect * 0.5))) {
         eventType = "score";
-        // @ts-expect-error TS2339
         description = `SCORE! ${randomPlayer.name} (${randomPlayer.race}) breaks free for a touchdown!`;
       }
     } else {
       eventType = "run_stuffed";
-      // @ts-expect-error TS2339
       description = `${randomPlayer.name} (${randomPlayer.race}) is stopped at the line of scrimmage.`;
     }
   } else if (eventType === "defensive_play") {
     const defendingPlayers = isHomeTeamEvent ? awayTeamPlayers : homeTeamPlayers;
     const defender = defendingPlayers.length > 0 ? defendingPlayers[Math.floor(Math.random() * defendingPlayers.length)] : { name: "Defender", race: "Unknown" };
     eventType = "tackle";
-    // @ts-expect-error TS2339
     description = `${defender.name} (${defender.race}) makes a solid tackle!`;
      return {
         time: Math.floor(time),
         type: eventType,
         description,
-        // @ts-expect-error TS2339
         player: defender.name,
         team: isHomeTeamEvent ? "away" : "home"
       };
@@ -373,7 +356,6 @@ function generateMatchEvent(
   if (eventType === "pass_complete" && actingTeamCamaraderie < 35) {
     if (Math.random() < 0.15) {
         eventType = "catch_failed";
-        // @ts-expect-error TS2339
         description = `${randomPlayer.name} (${randomPlayer.race}) fails to secure the catch despite a good pass! Player camaraderie: ${actingTeamCamaraderie}`;
     }
   }
@@ -390,15 +372,12 @@ function generateMatchEvent(
     if (Math.random() < baseInjuryChance) {
       const originalDescription = description;
       eventType = "injury";
-      // @ts-expect-error TS2339
       description = `${randomPlayer.name} (${randomPlayer.race}) is injured after the play! Original event: ${originalDescription}`;
-      // @ts-expect-error TS2339
       console.log(`Player ${randomPlayer.name} injured. Team Camaraderie: ${actingTeamCamaraderie}, Injury Chance: ${baseInjuryChance}`);
       return {
         time: Math.floor(time),
         type: eventType,
         description,
-        // @ts-expect-error TS2339
         player: randomPlayer.name,
         team: actingTeam,
       };
@@ -409,7 +388,6 @@ function generateMatchEvent(
     time: Math.floor(time),
     type: eventType,
     description,
-    // @ts-expect-error TS2339
     player: randomPlayer.name,
     team: actingTeam,
   };
@@ -419,7 +397,6 @@ function generateMatchEvent(
 
 function calculateAtmosphereEffects(stadium: Stadium | undefined, homeTeamId: string, awayTeamId: string): AtmosphereEffects {
   const baseAttendance = stadium?.capacity || 15000;
-  // @ts-expect-error TS2339
   const fanLoyalty = stadium?.fanLoyalty || 65;
   const attendance = Math.floor(baseAttendance * (fanLoyalty / 100));
   
@@ -433,7 +410,6 @@ function calculateAtmosphereEffects(stadium: Stadium | undefined, homeTeamId: st
   const intimidationFactor = Math.min(5, Math.floor(crowdNoise / 2) + Math.floor(homeFieldAdvantage / 2));
   
   // Field size effects
-  // @ts-expect-error TS2339
   const fieldSize = stadium?.fieldSize || 'Standard';
   
   return {
@@ -517,16 +493,13 @@ async function initializeEnhancedPlayers(
   
   // Pre-fetch equipment effects for all players
   const equipmentPromises = playerIds.map(async (playerId) => {
-    // @ts-expect-error TS2345
     const effects = await getPlayerEquipmentEffects(playerId);
-    // @ts-expect-error TS2345
     equipmentEffectsCache.set(playerId, effects);
   });
   
   // Pre-fetch consumable effects for all players by team
   const consumablePromises = players.map(async (player) => {
     const cacheKey = `${player.teamId}-${player.id}`;
-    // @ts-expect-error TS2345
     const effects = await getActiveMatchConsumables(player.teamId, player.id);
     consumableEffectsCache.set(cacheKey, effects);
   });
@@ -535,7 +508,6 @@ async function initializeEnhancedPlayers(
   const staffPromises = uniqueTeamIds.flatMap(teamId => 
     uniqueRoles.map(async (role) => {
       const cacheKey = `${teamId}-${role}`;
-      // @ts-expect-error TS2345
       const effects = await getStaffEffectsForPlayer(teamId, role);
       staffEffectsCache.set(cacheKey, effects);
     })
@@ -561,13 +533,11 @@ async function initializeEnhancedPlayers(
     const raceEffects = getRaceEffects(player.race || 'human');
     
     // Get cached effects
-    // @ts-expect-error TS2345
     const equipmentEffects = equipmentEffectsCache.get(player.id) || {};
     const consumableEffects = consumableEffectsCache.get(`${player.teamId}-${player.id}`) || {};
     const staffEffects = staffEffectsCache.get(`${player.teamId}-${player.role}`) || {};
     
     // Initialize current stamina
-    // @ts-expect-error TS2339
     let currentStamina = player.stamina || 100;
     
     // Apply stamina effects based on daily stamina level
@@ -695,7 +665,6 @@ async function getPlayerEquipmentEffects(playerId: string): Promise<Record<strin
     
     // Get all equipment for the player
     const playerEquipment = await prisma.playerEquipment.findMany({
-      // @ts-expect-error TS2322
       where: { playerId: playerId },
       include: {
         item: true
@@ -704,9 +673,7 @@ async function getPlayerEquipmentEffects(playerId: string): Promise<Record<strin
     
     // Apply stat bonuses from each equipped item
     for (const equipment of playerEquipment) {
-      // @ts-expect-error TS2339
       if (equipment.item?.statBoosts) {
-        // @ts-expect-error TS2339
         const statBoosts = equipment.item.statBoosts as any;
         Object.entries(statBoosts).forEach(([stat, boost]) => {
           if (typeof boost === 'number') {
@@ -821,7 +788,6 @@ async function getActiveMatchConsumables(teamId: string, playerId: string): Prom
     const { prisma } = await import('../db');
     
     // Get active consumables from team inventory instead of non-existent matchConsumable table
-    // @ts-expect-error TS2339
     const activeConsumables = await prisma.teamConsumable.findMany({
       where: {
         teamId: parseInt(teamId),
@@ -946,7 +912,6 @@ function calculateEnhancedTeamStrength(
       throwing: (player.throwing || 0) + (player.raceEffects.throwing || 0),
       catching: (player.catching || 0) + (player.raceEffects.catching || 0),
       kicking: (player.kicking || 0) + (player.raceEffects.kicking || 0),
-      // @ts-expect-error TS2339
       stamina: (player.stamina || 0) + (player.raceEffects.stamina || 0),
       agility: (player.agility || 0) + (player.raceEffects.agility || 0),
       leadership: (player.leadership || 0) + (player.raceEffects.leadership || 0)
@@ -1071,7 +1036,6 @@ async function generateEnhancedMatchEvent(
 }
 
 function determineActionType(player: EnhancedPlayer, tacticalEffects: TacticalEffects, gamePhase: string): string {
-  // @ts-expect-error TS2339
   const role = player.tacticalRole || 'Runner';
   const isHomeTeam = tacticalEffects.homeTeamFocus !== undefined;
   const tacticalFocus = isHomeTeam ? tacticalEffects.homeTeamFocus : tacticalEffects.awayTeamFocus;
@@ -1230,7 +1194,6 @@ function generatePassEvent(
       const interceptor = defendingPlayers[Math.floor(Math.random() * defendingPlayers.length)];
       if (interceptor) {
         const interceptorStats = playerStats[interceptor.id];
-        // @ts-expect-error TS2339
         interceptorStats.interceptionsCaught++;
         
         return {
@@ -1621,12 +1584,10 @@ function applyStaminaEffects(homeTeamPlayers: EnhancedPlayer[], awayTeamPlayers:
     player.currentStamina = Math.max(0, player.currentStamina - staminaDrain);
     
     // Apply race-specific stamina effects
-    // @ts-expect-error TS2367
     if (player.race === 'sylvan' && player.skills.includes('Photosynthesis')) {
       player.currentStamina = Math.min(100, player.currentStamina + 0.3);
     }
     
-    // @ts-expect-error TS2367
     if (player.race === 'lumina' && player.skills.includes('Healing Light')) {
       player.currentStamina = Math.min(100, player.currentStamina + 0.2);
     }
@@ -1652,7 +1613,6 @@ function findMVPPlayers(
                      (stats.passesCompleted || 0) * 2 + 
                      (stats.rushingYards || 0) * 0.1 + 
                      (stats.tackles || 0) * 3 + 
-                     // @ts-expect-error TS2339
                      (stats.interceptionsCaught || 0) * 5 + 
                      (stats.clutchPlays || 0) * 8;
     
@@ -1671,7 +1631,6 @@ function findMVPPlayers(
                      (stats.passesCompleted || 0) * 2 + 
                      (stats.rushingYards || 0) * 0.1 + 
                      (stats.tackles || 0) * 3 + 
-                     // @ts-expect-error TS2339
                      (stats.interceptionsCaught || 0) * 5 + 
                      (stats.clutchPlays || 0) * 8;
     

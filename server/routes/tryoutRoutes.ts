@@ -92,7 +92,6 @@ router.get('/candidates', isAuthenticated, async (req: Request, res: Response, n
 });
 
 // Conduct tryout (with seasonal restrictions)
-// @ts-expect-error TS7030
 router.post('/:teamId/conduct', isAuthenticated, async (req: any, res: Response, next: NextFunction) => {
   try {
     const { teamId } = req.params;
@@ -171,13 +170,11 @@ router.post('/:teamId/conduct', isAuthenticated, async (req: any, res: Response,
     await prisma.teamFinances.update({
       where: { id: teamFinances.id },
       data: {
-        // @ts-expect-error TS2322
         credits: (BigInt(teamFinances.credits) - BigInt(cost)).toString()
       }
     });
 
     // Store tryout candidates for taxi squad - DON'T add to main roster yet
-    // @ts-expect-error TS7006
     const candidates = selectedPlayers.map(playerData => {
       // Map role string to PlayerRole enum
       let roleEnum: PlayerRole;

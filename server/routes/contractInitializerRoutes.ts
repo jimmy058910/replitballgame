@@ -8,7 +8,6 @@ const router = Router();
  * POST /api/contracts/initialize-team/:teamId
  * Assigns initial contracts to all players on a team who don't have active contracts
  */
-// @ts-expect-error TS7030
 router.post('/initialize-team/:teamId', isAuthenticated, async (req: any, res: Response, next: NextFunction) => {
   try {
     const { teamId } = req.params;

@@ -23,7 +23,6 @@ const midSeasonRegisterSchema = z.object({
 });
 
 // Get available tournaments for team's division
-// @ts-expect-error TS7030
 router.get('/available', isAuthenticated, async (req: any, res: Response, next: NextFunction) => {
   try {
     const userId = req.user.claims.sub;
@@ -60,7 +59,6 @@ router.get('/available', isAuthenticated, async (req: any, res: Response, next: 
 });
 
 // Register for tournament
-// @ts-expect-error TS7030
 router.post('/register', isAuthenticated, async (req: any, res: Response, next: NextFunction) => {
   try {
     const userId = req.user.claims.sub;
@@ -91,7 +89,6 @@ router.post('/register', isAuthenticated, async (req: any, res: Response, next: 
 });
 
 // Register for Daily Divisional Tournament (on-demand creation)
-// @ts-expect-error TS7030
 router.post('/daily-tournament/register', isAuthenticated, async (req: any, res: Response, next: NextFunction) => {
   try {
     const userId = req.user.claims.sub;
@@ -123,7 +120,6 @@ router.post('/daily-tournament/register', isAuthenticated, async (req: any, res:
 });
 
 // Register for Mid-Season Cup (on-demand creation)
-// @ts-expect-error TS7030
 router.post('/mid-season/register', isAuthenticated, async (req: any, res: Response, next: NextFunction) => {
   try {
     const userId = req.user.claims.sub;
@@ -156,7 +152,6 @@ router.post('/mid-season/register', isAuthenticated, async (req: any, res: Respo
 });
 
 // Get team's registered tournaments
-// @ts-expect-error TS7030
 router.get('/my-tournaments', isAuthenticated, async (req: any, res: Response, next: NextFunction) => {
   try {
     const userId = req.user.claims.sub;
@@ -165,7 +160,6 @@ router.get('/my-tournaments', isAuthenticated, async (req: any, res: Response, n
 
     const teamTournaments = await tournamentService.getTeamTournaments(team.id);
     
-    // @ts-expect-error TS2339
     const formattedTournaments = teamTournaments.map(({ tournament, entry }) => ({
       id: tournament.id,
       name: tournament.name,
@@ -193,7 +187,6 @@ router.get('/my-tournaments', isAuthenticated, async (req: any, res: Response, n
 });
 
 // Get tournament history
-// @ts-expect-error TS7030
 router.get('/history', isAuthenticated, async (req: any, res: Response, next: NextFunction) => {
   try {
     const userId = req.user.claims.sub;
@@ -204,18 +197,12 @@ router.get('/history', isAuthenticated, async (req: any, res: Response, next: Ne
     // Convert BigInt fields to numbers for JSON serialization
     const serializedHistory = history.map(entry => ({
       ...entry,
-      // @ts-expect-error TS2339
       teamId: Number(entry.teamId),
-      // @ts-expect-error TS2339
       tournamentId: entry.tournamentId,
       id: entry.id,
-      // @ts-expect-error TS2339
       tournament: entry.tournament ? {
-        // @ts-expect-error TS2339
         ...entry.tournament,
-        // @ts-expect-error TS2339
         entryFeeCredits: Number(entry.tournament.entryFeeCredits || 0),
-        // @ts-expect-error TS2339
         entryFeeGems: Number(entry.tournament.entryFeeGems || 0)
       } : null
     }));
@@ -228,7 +215,6 @@ router.get('/history', isAuthenticated, async (req: any, res: Response, next: Ne
 });
 
 // Get tournament statistics
-// @ts-expect-error TS7030
 router.get('/stats', isAuthenticated, async (req: any, res: Response, next: NextFunction) => {
   try {
     const userId = req.user.claims.sub;
@@ -244,7 +230,6 @@ router.get('/stats', isAuthenticated, async (req: any, res: Response, next: Next
 });
 
 // Get team's current tournament entries
-// @ts-expect-error TS7030
 router.get('/team/:teamId', isAuthenticated, async (req: any, res: Response, next: NextFunction) => {
   try {
     const { teamId } = req.params;
@@ -305,7 +290,6 @@ router.get('/team/:teamId', isAuthenticated, async (req: any, res: Response, nex
 });
 
 // Get team's tournament history
-// @ts-expect-error TS7030
 router.get('/team/:teamId/history', isAuthenticated, async (req: any, res: Response, next: NextFunction) => {
   try {
     const { teamId } = req.params;
@@ -370,7 +354,6 @@ router.get('/team/:teamId/history', isAuthenticated, async (req: any, res: Respo
 });
 
 // Get tournament details by ID
-// @ts-expect-error TS7030
 router.get('/:tournamentId', isAuthenticated, async (req: any, res: Response, next: NextFunction) => {
   try {
     const { tournamentId } = req.params;
@@ -391,31 +374,24 @@ router.get('/:tournamentId', isAuthenticated, async (req: any, res: Response, ne
           select: { name: true }
         }
       },
-      // @ts-expect-error TS2353
       orderBy: { entryTime: 'asc' }
     });
 
     // Format participants for frontend compatibility
     const formattedParticipants = participants.map(entry => ({
       teamId: entry.teamId,
-      // @ts-expect-error TS2339
       teamName: entry.team.name,
-      // @ts-expect-error TS2339
       entryTime: entry.entryTime,
-      // @ts-expect-error TS2339
       placement: entry.placement,
-      // @ts-expect-error TS2339
       eliminated: entry.eliminated
     }));
 
-    // @ts-expect-error TS2339
     const maxTeams = tournament.maxTeams || 16;
     const tournamentDetails = {
       ...tournament,
       participants: formattedParticipants,
       participantCount: formattedParticipants.length,
       spotsRemaining: maxTeams - formattedParticipants.length,
-      // @ts-expect-error TS2551
       canStillJoin: new Date() < tournament.registrationDeadline! && formattedParticipants.length < maxTeams
     };
 
@@ -427,7 +403,6 @@ router.get('/:tournamentId', isAuthenticated, async (req: any, res: Response, ne
 });
 
 // Get tournament overview (shows both types available for team's division)
-// @ts-expect-error TS7030
 router.get('/overview/:division', isAuthenticated, async (req: any, res: Response, next: NextFunction) => {
   try {
     const division = parseInt(req.params.division);
@@ -495,7 +470,6 @@ router.get('/overview/:division', isAuthenticated, async (req: any, res: Respons
 });
 
 // Admin endpoint to create tournaments (for testing and management)
-// @ts-expect-error TS7030
 router.post('/admin/create-daily-cup/:division', isAuthenticated, async (req: any, res: Response, next: NextFunction) => {
   try {
     // Check admin permissions (simplified for now)
@@ -522,7 +496,6 @@ router.post('/admin/create-daily-cup/:division', isAuthenticated, async (req: an
 });
 
 // Admin endpoint to create Mid-Season Cup
-// @ts-expect-error TS7030
 router.post('/admin/create-mid-season/:division', isAuthenticated, async (req: any, res: Response, next: NextFunction) => {
   try {
     // Check admin permissions (simplified for now)

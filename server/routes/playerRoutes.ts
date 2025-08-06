@@ -17,7 +17,6 @@ const contractNegotiationSchema = z.object({
  * GET /api/players
  * Get all players for the authenticated user's team
  */
-// @ts-expect-error TS7030
 router.get('/', isAuthenticated, async (req: any, res: Response, next: NextFunction) => {
   try {
     const userId = req.user.claims.sub;
@@ -39,7 +38,6 @@ router.get('/', isAuthenticated, async (req: any, res: Response, next: NextFunct
  * GET /api/players/:playerId
  * Get player details including active contract
  */
-// @ts-expect-error TS7030
 router.get('/:playerId', isAuthenticated, async (req: any, res: Response, next: NextFunction) => {
   try {
     const { playerId } = req.params;
@@ -60,7 +58,6 @@ router.get('/:playerId', isAuthenticated, async (req: any, res: Response, next: 
  * GET /api/players/:playerId/contract-value
  * Get contract value calculation for a player using Universal Value Formula
  */
-// @ts-expect-error TS7030
 router.get('/:playerId/contract-value', isAuthenticated, async (req: any, res: Response, next: NextFunction) => {
   try {
     const { playerId } = req.params;
@@ -78,7 +75,6 @@ router.get('/:playerId/contract-value', isAuthenticated, async (req: any, res: R
 
     // Get current contract to determine salary
     const currentContract = await prisma.contract.findFirst({
-      // @ts-expect-error TS2353
       where: { playerId: parseInt(playerId), isActive: true }
     });
     
@@ -105,7 +101,6 @@ router.get('/:playerId/contract-value', isAuthenticated, async (req: any, res: R
  * POST /api/players/:playerId/negotiate
  * Negotiate a contract with a player using the Universal Value Formula system
  */
-// @ts-expect-error TS7030
 router.post('/:playerId/negotiate', isAuthenticated, async (req: any, res: Response, next: NextFunction) => {
   try {
     const { playerId } = req.params;
@@ -157,7 +152,6 @@ router.post('/:playerId/negotiate', isAuthenticated, async (req: any, res: Respo
  * GET /api/players/:playerId/contract-negotiation-data
  * Get comprehensive contract negotiation data for redesigned modal
  */
-// @ts-expect-error TS7030
 router.get('/:playerId/contract-negotiation-data', isAuthenticated, async (req: any, res: Response, next: NextFunction) => {
   try {
     const { playerId } = req.params;
@@ -175,7 +169,6 @@ router.get('/:playerId/contract-negotiation-data', isAuthenticated, async (req: 
 
     // Get current contract info
     const currentContract = await prisma.contract.findFirst({
-      // @ts-expect-error TS2353
       where: { playerId: parseInt(playerId), isActive: true }
     });
 
@@ -223,7 +216,6 @@ router.get('/:playerId/contract-negotiation-data', isAuthenticated, async (req: 
  * POST /api/players/:playerId/negotiation-feedback
  * Get live feedback for contract offer (acceptance probability and player response)
  */
-// @ts-expect-error TS7030
 router.post('/:playerId/negotiation-feedback', isAuthenticated, async (req: any, res: Response, next: NextFunction) => {
   try {
     const { playerId } = req.params;
@@ -291,7 +283,6 @@ router.post('/:playerId/negotiation-feedback', isAuthenticated, async (req: any,
  * POST /api/players/:playerId/negotiate-contract
  * Submit final contract offer (replaces existing negotiate endpoint for new modal)
  */
-// @ts-expect-error TS7030
 router.post('/:playerId/negotiate-contract', isAuthenticated, async (req: any, res: Response, next: NextFunction) => {
   try {
     const { playerId } = req.params;

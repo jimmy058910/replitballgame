@@ -6,7 +6,7 @@ import { PaymentHistoryService } from "./paymentHistoryService";
 export interface TournamentReward {
   credits: number;
   gems: number;
-  trophy?: string;
+  trophy?: number;
 }
 
 export interface TournamentConfig {
@@ -209,10 +209,8 @@ export class TournamentService {
     };
 
     const created = await prisma.tournament.create({
-      // @ts-expect-error TS2322
       data: tournament
     });
-    // @ts-expect-error TS2322
     return created.id;
   }
 
@@ -243,17 +241,14 @@ export class TournamentService {
     };
 
     const created = await prisma.tournament.create({
-      // @ts-expect-error TS2322
       data: tournament
     });
-    // @ts-expect-error TS2322
     return created.id;
   }
 
   // Fill Mid-Season Cup with AI teams if needed at 1PM on Day 7
-  async fillMidSeasonCupWithAI(tournamentId: string): Promise<void> {
+  async fillMidSeasonCupWithAI(tournamentId: number): Promise<void> {
     const tournament = await prisma.tournament.findUnique({
-      // @ts-expect-error TS2322
       where: { id: tournamentId },
       include: { entries: true }
     });
@@ -262,7 +257,6 @@ export class TournamentService {
       return;
     }
 
-    // @ts-expect-error TS2339
     const currentEntries = tournament.entries.length;
     const maxParticipants = 16;
     const spotsToFill = Math.min(maxParticipants - currentEntries, maxParticipants);
@@ -272,14 +266,12 @@ export class TournamentService {
     }
 
     // Get existing participating team IDs
-    // @ts-expect-error TS2339
     const existingTeamIds = tournament.entries.map(entry => entry.teamId);
 
     // Find AI teams in the same division that aren't already participating
-    const aiTeams = await prisma.team.findMany({
+    const aiTeams = await prisma.tournamentEntry.team.findMany({
       where: {
         division: tournament.division,
-        // @ts-expect-error TS2353
         isAI: true,
         id: {
           notIn: existingTeamIds
@@ -291,14 +283,12 @@ export class TournamentService {
     // If we don't have enough AI teams, create them
     if (aiTeams.length < spotsToFill) {
       const teamsToCreate = spotsToFill - aiTeams.length;
-      // @ts-expect-error TS2345
       await this.createAITeamsForMidSeasonCup(tournament.division, teamsToCreate);
 
       // Re-fetch AI teams after creation
-      const newAiTeams = await prisma.team.findMany({
+      const newAiTeams = await prisma.tournamentEntry.team.findMany({
         where: {
           division: tournament.division,
-          // @ts-expect-error TS2353
           isAI: true,
           id: {
             notIn: existingTeamIds
@@ -309,7 +299,7 @@ export class TournamentService {
 
       // Create tournament entries for AI teams
       const aiEntries = newAiTeams.map(team => ({
-        tournamentId: parseInt(tournamentId),
+        tournamentId: Number(tournamentId),
         teamId: team.id,
         registeredAt: new Date()
       }));
@@ -322,7 +312,7 @@ export class TournamentService {
     } else {
       // Create tournament entries for existing AI teams
       const aiEntries = aiTeams.map(team => ({
-        tournamentId: parseInt(tournamentId),
+        tournamentId: Number(tournamentId),
         teamId: team.id,
         registeredAt: new Date()
       }));
@@ -353,26 +343,24 @@ export class TournamentService {
       
       try {
         // Create AI user profile
-        const aiUser = await prisma.userProfile.create({
+        const aiUser = await prisma.tournamentEntry.userProfileProfile.create({
           data: {
-            userId: `ai_midseason_${Date.now()}_${i}`,
+            userProfileId: `ai_midseason_${Date.now()}_${i}`,
             email: `ai_midseason_${Date.now()}_${i}@realmrivalry.ai`,
             firstName: "AI",
             lastName: "Coach",
-            // @ts-expect-error TS2353
             displayName: `AI Coach ${i + 1}`,
             isAI: true
           }
         });
 
         // Create AI team
-        const aiTeam = await prisma.team.create({
+        const aiTeam = await prisma.tournamentEntry.team.create({
           data: {
             name: teamName,
             userProfileId: aiUser.id,
             division: division,
             subdivision: "main",
-            // @ts-expect-error TS2353
             isAI: true,
             wins: Math.floor(Math.random() * 3),
             losses: Math.floor(Math.random() * 3),
@@ -383,7 +371,7 @@ export class TournamentService {
         });
 
         // Create team finances
-        await prisma.teamFinances.create({
+        await prisma.tournamentEntry.teamFinances.create({
           data: {
             teamId: aiTeam.id,
             credits: BigInt(50000 + Math.floor(Math.random() * 50000)),
@@ -392,7 +380,7 @@ export class TournamentService {
         });
 
         // Create team stadium
-        await prisma.stadium.create({
+        await prisma.tournamentEntry.stadium.create({
           data: {
             teamId: aiTeam.id,
             capacity: 15000,
@@ -400,7 +388,6 @@ export class TournamentService {
             parkingLevel: 1,
             vipSuitesLevel: 1,
             merchandisingLevel: 1,
-            // @ts-expect-error TS2353
             lightingLevel: 1,
             screensLevel: 1,
             fanLoyalty: 50 + Math.floor(Math.random() * 30)
@@ -414,7 +401,7 @@ export class TournamentService {
           const firstName = this.generateRandomName(race.toLowerCase()).firstName;
           const lastName = this.generateRandomName(race.toLowerCase()).lastName;
 
-          await prisma.player.create({
+          await prisma.tournamentEntry.player.create({
             data: {
               teamId: aiTeam.id,
               firstName,
@@ -427,7 +414,6 @@ export class TournamentService {
               throwing: 20 + Math.floor(Math.random() * 15),
               catching: 20 + Math.floor(Math.random() * 15),
               kicking: 20 + Math.floor(Math.random() * 15),
-              // @ts-expect-error TS2353
               stamina: 20 + Math.floor(Math.random() * 15),
               leadership: 20 + Math.floor(Math.random() * 15),
               agility: 20 + Math.floor(Math.random() * 15),
@@ -448,7 +434,7 @@ export class TournamentService {
   }
 
   // Generate random name for AI players
-  generateRandomName(race: string): { firstName: string; lastName: string } {
+  generateRandomName(race: number): { firstName: number; lastName: number } {
     const names = {
       human: {
         first: ["Alex", "Jordan", "Taylor", "Morgan", "Casey", "Riley", "Jamie", "Drew", "Sage", "Quinn"],
@@ -527,7 +513,7 @@ export class TournamentService {
 
   // Get available tournaments for a team
   async getAvailableTournaments(teamId: number) {
-    const team = await prisma.team.findFirst({
+    const team = await prisma.tournamentEntry.team.findFirst({
       where: { id: teamId }
     });
     if (!team) throw new Error("Team not found");
@@ -553,22 +539,21 @@ export class TournamentService {
       select: { tournamentId: true }
     });
 
-    const registeredTournamentIds = new Set(existingEntries.map(e => e.tournamentId));
+    const registeredTournamentIds = new Set(existingEntries.map(e => e.tournamentEntryId));
 
     return availableTournaments.filter(t => !registeredTournamentIds.has(t.id));
   }
 
   // Register team for tournament
-  async registerForTournament(teamId: number, tournamentId: string, paymentType?: "credits" | "gems" | "both"): Promise<void> {
+  async registerForTournament(teamId: number, tournamentId: number, paymentType?: "credits" | "gems" | "both"): Promise<void> {
     const tournament = await prisma.tournament.findFirst({
-      // @ts-expect-error TS2322
       where: { id: tournamentId }
     });
     if (!tournament) throw new Error("Tournament not found");
 
-    const team = await prisma.team.findFirst({
+    const team = await prisma.tournamentEntry.team.findFirst({
       where: { id: teamId },
-      include: { finances: true }
+      include: { userProfile: true }
     });
     if (!team) throw new Error("Team not found");
 
@@ -583,13 +568,12 @@ export class TournamentService {
     }
 
     // Check entry requirements
-    if (tournament.entryFeeItemId) {
+    if (tournament.id) {
       // Daily Division Tournament - requires Tournament Entry item
-      // @ts-expect-error TS2339
-      const entryItems = await prisma.teamInventory.findMany({
+      const entryItems = await prisma.tournamentEntry.findMany({
         where: {
           teamId: teamId,
-          itemId: tournament.entryFeeItemId,
+          itemId: tournament.id,
           quantity: { gte: 1 }
         }
       });
@@ -601,27 +585,24 @@ export class TournamentService {
       // Consume entry item
       const entryItem = entryItems[0];
       if ((entryItem.quantity || 0) > 1) {
-        // @ts-expect-error TS2339
-        await prisma.teamInventory.update({
+        await prisma.tournamentEntry.update({
           where: { id: entryItem.id },
           data: { quantity: (entryItem.quantity || 0) - 1 }
         });
       } else {
-        // @ts-expect-error TS2339
-        await prisma.teamInventory.delete({
+        await prisma.tournamentEntry.delete({
           where: { id: entryItem.id }
         });
       }
 
       // Log Daily Division Tournament entry item consumption
-      const teamWithUser = await prisma.team.findUnique({
+      const teamWithUser = await prisma.tournamentEntry.team.findUnique({
         where: { id: teamId },
-        include: { user: true }
+        include: { userProfile: true }
       });
-      if (teamWithUser?.user) {
+      if (teamWithUser?.userProfile) {
         await PaymentHistoryService.recordItemPurchase(
-          // @ts-expect-error TS2345
-          teamWithUser.user.id,
+          teamWithUser.userProfile.id,
           teamId,
           "Daily Division Tournament Entry",
           0,
@@ -632,8 +613,8 @@ export class TournamentService {
       // Mid-Season Cup - requires credits, gems, or both
       const entryFeeCredits = tournament.entryFeeCredits || 0;
       const entryFeeGems = tournament.entryFeeGems || 0;
-      const teamCredits = Number(team.finances?.credits || 0);
-      const teamGems = team.finances?.gems || 0;
+      const teamCredits = Number(team?.credits || 0);
+      const teamGems = team?.gems || 0;
       
       if (paymentType === "both") {
         // Require BOTH credits and gems
@@ -641,43 +622,35 @@ export class TournamentService {
           throw new Error("Insufficient credits AND gems for entry fee");
         }
         // Charge both
-        await prisma.teamFinances.update({
-          // @ts-expect-error TS2345
-          where: { teamId: parseInt(teamId) },
+        await prisma.tournamentEntry.teamFinances.update({
+          where: { teamId: Number(teamId) },
           data: { 
-            // @ts-expect-error TS2365
             credits: teamCredits - entryFeeCredits,
             gems: teamGems - entryFeeGems 
           }
         });
       } else if (paymentType === "credits" && teamCredits >= entryFeeCredits) {
         // Pay with credits only
-        await prisma.teamFinances.update({
-          // @ts-expect-error TS2345
-          where: { teamId: parseInt(teamId) },
-          // @ts-expect-error TS2365
+        await prisma.tournamentEntry.teamFinances.update({
+          where: { teamId: Number(teamId) },
           data: { credits: teamCredits - entryFeeCredits }
         });
       } else if (paymentType === "gems" && teamGems >= entryFeeGems) {
         // Pay with gems only
-        await prisma.teamFinances.update({
-          // @ts-expect-error TS2345
-          where: { teamId: parseInt(teamId) },
+        await prisma.tournamentEntry.teamFinances.update({
+          where: { teamId: Number(teamId) },
           data: { gems: teamGems - entryFeeGems }
         });
       } else {
         // Legacy: try credits first, then gems (backwards compatibility)
         if (teamCredits >= entryFeeCredits) {
-          await prisma.teamFinances.update({
-            // @ts-expect-error TS2345
-            where: { teamId: parseInt(teamId) },
-            // @ts-expect-error TS2365
+          await prisma.tournamentEntry.teamFinances.update({
+            where: { teamId: Number(teamId) },
             data: { credits: teamCredits - entryFeeCredits }
           });
         } else if (teamGems >= entryFeeGems) {
-          await prisma.teamFinances.update({
-            // @ts-expect-error TS2345
-            where: { teamId: parseInt(teamId) },
+          await prisma.tournamentEntry.teamFinances.update({
+            where: { teamId: Number(teamId) },
             data: { gems: teamGems - entryFeeGems }
           });
         } else {
@@ -689,7 +662,6 @@ export class TournamentService {
     // Check if team is already registered
     const existingEntry = await prisma.tournamentEntry.findFirst({
       where: {
-        // @ts-expect-error TS2322
         tournamentId,
         teamId
       }
@@ -702,7 +674,6 @@ export class TournamentService {
     // Create tournament entry
     await prisma.tournamentEntry.create({
       data: {
-        // @ts-expect-error TS2322
         tournamentId,
         teamId,
         registeredAt: new Date()
@@ -711,7 +682,6 @@ export class TournamentService {
 
     // Check if tournament is now full and start countdown if needed
     const entriesCount = await prisma.tournamentEntry.count({
-      // @ts-expect-error TS2322
       where: { tournamentId }
     });
 
@@ -719,7 +689,6 @@ export class TournamentService {
       // Tournament is full, start 10-minute countdown
       try {
         const { tournamentFlowService } = await import('./tournamentFlowService');
-        // @ts-expect-error TS2345
         tournamentFlowService.startTournamentCountdown(tournamentId);
         console.log(`Tournament ${tournamentId} is full - started 10-minute countdown`);
       } catch (error) {
@@ -729,9 +698,8 @@ export class TournamentService {
   }
 
   // Get tournaments a team is registered for
-  async getTeamTournaments(teamId: string) {
+  async getTeamTournaments(teamId: number) {
     const entries = await prisma.tournamentEntry.findMany({
-      // @ts-expect-error TS2322
       where: { teamId },
       include: { tournament: true },
       orderBy: { registeredAt: 'desc' }
@@ -741,10 +709,9 @@ export class TournamentService {
   }
 
   // Get tournament history for a team
-  async getTournamentHistory(teamId: string) {
+  async getTournamentHistory(teamId: number) {
     const completedTournaments = await prisma.tournamentEntry.findMany({
       where: {
-        // @ts-expect-error TS2322
         teamId,
         tournament: { status: "COMPLETED" }
       },
@@ -752,43 +719,32 @@ export class TournamentService {
       orderBy: { tournament: { startTime: 'desc' } }
     });
 
-    // @ts-expect-error TS2339
     return completedTournaments.map(({ tournament, ...entry }) => ({
       id: tournament.id,
       name: tournament.name,
       type: tournament.type,
       division: tournament.division,
       season: tournament.season,
-      // @ts-expect-error TS2339
-      placement: entry.placement,
-      // @ts-expect-error TS2339
-      creditsWon: entry.creditsWon || 0,
-      // @ts-expect-error TS2339
-      gemsWon: entry.gemsWon || 0,
-      // @ts-expect-error TS2339
-      trophyWon: entry.trophyWon,
+      placement: entry.finalRank,
+      creditsWon: entry.finalRank || 0,
+      gemsWon: entry.finalRank || 0,
+      trophyWon: null,
       completedAt: tournament.completedAt
     }));
   }
 
   // Get tournament statistics for a team
-  async getTournamentStats(teamId: string) {
+  async getTournamentStats(teamId: number) {
     const entries = await prisma.tournamentEntry.findMany({
-      // @ts-expect-error TS2322
       where: { teamId: teamId }
     });
 
     const totalTournaments = entries.length;
-    // @ts-expect-error TS2339
-    const wins = entries.filter(e => e.placement === 1).length;
-    // @ts-expect-error TS2339
-    const runnerUps = entries.filter(e => e.placement === 2).length;
-    // @ts-expect-error TS2339
-    const totalCreditsWon = entries.reduce((sum, e) => sum + (e.creditsWon || 0), 0);
-    // @ts-expect-error TS2339
-    const totalGemsWon = entries.reduce((sum, e) => sum + (e.gemsWon || 0), 0);
-    // @ts-expect-error TS2339
-    const trophiesWon = entries.filter(e => e.trophyWon).length;
+    const wins = entries.filter(e => e.finalRank === 1).length;
+    const runnerUps = entries.filter(e => e.finalRank === 2).length;
+    const totalCreditsWon = entries.reduce((sum, e) => sum + (e || 0), 0);
+    const totalGemsWon = entries.reduce((sum, e) => sum + (e || 0), 0);
+    const trophiesWon = entries.filter(e => e).length;
 
     return {
       totalTournaments,
@@ -801,14 +757,13 @@ export class TournamentService {
     };
   }
 
-  async createOrJoinDailyTournament(teamId: string, division: number): Promise<string> {
+  async createOrJoinDailyTournament(teamId: number, division: number): Promise<string> {
     const gameDay = this.getCurrentGameDay();
     const season = this.getCurrentSeason();
 
     // ✅ FIX: Only check for active Daily tournaments, not Mid-Season Cups
     const existingActiveEntry = await prisma.tournamentEntry.findFirst({
       where: {
-        // @ts-expect-error TS2322
         teamId,
         tournament: {
           type: "DAILY_DIVISIONAL", // Only check Daily tournaments
@@ -829,8 +784,7 @@ export class TournamentService {
     });
 
     if (existingActiveEntry) {
-      // @ts-expect-error TS2551
-      throw new Error(`You are already registered for ${existingActiveEntry.tournament.name} (Daily Division Tournament). Please wait for your current Daily tournament to complete before registering for another.`);
+      throw new Error(`You are already registered for ${existingActiveEntry.entries[0].name} (Daily Division Tournament). Please wait for your current Daily tournament to complete before registering for another.`);
     }
 
     // Check if tournament already exists for this division/day
@@ -844,11 +798,10 @@ export class TournamentService {
       take: 1
     });
 
-    let tournamentId: string;
+    let tournamentId: number;
 
     if (existingTournament.length > 0) {
       // Tournament exists, join it
-      // @ts-expect-error TS2322
       tournamentId = existingTournament[0].id;
     } else {
       // Create new tournament
@@ -856,19 +809,17 @@ export class TournamentService {
     }
 
     // Register the team (this will check for entry items and handle payments)
-    // @ts-expect-error TS2345
     await this.registerForTournament(teamId, tournamentId);
 
     return tournamentId;
   }
 
-  async createOrJoinMidSeasonCup(teamId: string, division: number, paymentType: "credits" | "gems" | "both"): Promise<string> {
+  async createOrJoinMidSeasonCup(teamId: number, division: number, paymentType: "credits" | "gems" | "both"): Promise<string> {
     const season = this.getCurrentSeason();
 
     // ✅ FIX: Only check for active Mid-Season Cups, not Daily tournaments
     const existingMidSeasonEntry = await prisma.tournamentEntry.findFirst({
       where: {
-        // @ts-expect-error TS2322
         teamId,
         tournament: {
           type: "MID_SEASON_CLASSIC", // Only check for Mid-Season Cup, not Daily Division Tournament
@@ -889,8 +840,7 @@ export class TournamentService {
     });
 
     if (existingMidSeasonEntry) {
-      // @ts-expect-error TS2551
-      throw new Error(`You are already registered for ${existingMidSeasonEntry.tournament.name} (Mid-Season Cup). Please wait for your current Mid-Season tournament to complete before registering for another.`);
+      throw new Error(`You are already registered for ${existingMidSeasonEntry.entries[0].name} (Mid-Season Cup). Please wait for your current Mid-Season tournament to complete before registering for another.`);
     }
 
     // Check if tournament already exists for this division
@@ -904,11 +854,10 @@ export class TournamentService {
       take: 1
     });
 
-    let tournamentId: string;
+    let tournamentId: number;
 
     if (existingTournament.length > 0) {
       // Tournament exists, join it
-      // @ts-expect-error TS2322
       tournamentId = existingTournament[0].id;
     } else {
       // Create new tournament - use createMidSeasonCup for proper implementation
@@ -916,40 +865,34 @@ export class TournamentService {
     }
 
     // Handle payment based on user choice
-    const team = await prisma.team.findFirst({
-      // @ts-expect-error TS2322
+    const team = await prisma.tournamentEntry.team.findFirst({
       where: { id: teamId },
-      include: { finances: true }
+      include: { userProfile: true }
     });
     if (!team) {
       throw new Error("Team not found");
     }
 
-    // @ts-expect-error TS2339
-    const teamCredits = Number(team.finances?.credits || 0);
-    // @ts-expect-error TS2339
-    const teamGems = team.finances?.gems || 0;
+    const teamCredits = Number(team?.credits || 0);
+    const teamGems = team?.gems || 0;
 
     if (paymentType === "credits") {
       if (teamCredits < 10000) {
         throw new Error("Insufficient credits for Mid-Season Cup entry (10,000₡ required)");
       }
-      await prisma.teamFinances.update({
-        where: { teamId: parseInt(teamId) },
+      await prisma.tournamentEntry.teamFinances.update({
+        where: { teamId: Number(teamId) },
         data: { credits: teamCredits - 10000 }
       });
 
       // Log Mid-Season Cup entry fee transaction
-      const teamWithUser = await prisma.team.findUnique({
-        // @ts-expect-error TS2322
+      const teamWithUser = await prisma.tournamentEntry.team.findUnique({
         where: { id: teamId },
-        include: { user: true }
+        include: { userProfile: true }
       });
-      // @ts-expect-error TS2339
-      if (teamWithUser?.user) {
+      if (teamWithUser?.userProfile) {
         await PaymentHistoryService.recordItemPurchase(
-          // @ts-expect-error TS2339
-          teamWithUser.user.id,
+          teamWithUser.userProfile.id,
           teamId,
           "Mid-Season Cup Entry (Credits)",
           "TOURNAMENT_ENTRY",
@@ -961,22 +904,19 @@ export class TournamentService {
       if (teamGems < 20) {
         throw new Error("Insufficient gems for Mid-Season Cup entry (20💎 required)");
       }
-      await prisma.teamFinances.update({
-        where: { teamId: parseInt(teamId) },
+      await prisma.tournamentEntry.teamFinances.update({
+        where: { teamId: Number(teamId) },
         data: { gems: teamGems - 20 }
       });
 
       // Log Mid-Season Cup entry fee transaction
-      const teamWithUser = await prisma.team.findUnique({
-        // @ts-expect-error TS2322
+      const teamWithUser = await prisma.tournamentEntry.team.findUnique({
         where: { id: teamId },
-        include: { user: true }
+        include: { userProfile: true }
       });
-      // @ts-expect-error TS2339
-      if (teamWithUser?.user) {
+      if (teamWithUser?.userProfile) {
         await PaymentHistoryService.recordItemPurchase(
-          // @ts-expect-error TS2339
-          teamWithUser.user.id,
+          teamWithUser.userProfile.id,
           teamId,
           "Mid-Season Cup Entry (Gems)",
           "TOURNAMENT_ENTRY",
@@ -988,8 +928,8 @@ export class TournamentService {
       if (teamCredits < 10000 || teamGems < 20) {
         throw new Error("Insufficient credits AND gems for Mid-Season Cup entry (10,000₡ AND 20💎 required)");
       }
-      await prisma.teamFinances.update({
-        where: { teamId: parseInt(teamId) },
+      await prisma.tournamentEntry.teamFinances.update({
+        where: { teamId: Number(teamId) },
         data: { 
           credits: teamCredits - 10000,
           gems: teamGems - 20
@@ -997,16 +937,13 @@ export class TournamentService {
       });
 
       // Log Mid-Season Cup entry fee transaction
-      const teamWithUser = await prisma.team.findUnique({
-        // @ts-expect-error TS2322
+      const teamWithUser = await prisma.tournamentEntry.team.findUnique({
         where: { id: teamId },
-        include: { user: true }
+        include: { userProfile: true }
       });
-      // @ts-expect-error TS2339
-      if (teamWithUser?.user) {
+      if (teamWithUser?.userProfile) {
         await PaymentHistoryService.recordItemPurchase(
-          // @ts-expect-error TS2339
-          teamWithUser.user.id,
+          teamWithUser.userProfile.id,
           teamId,
           "Mid-Season Cup Entry (Credits + Gems)",
           "TOURNAMENT_ENTRY",
@@ -1019,9 +956,7 @@ export class TournamentService {
     // Create tournament entry directly (payment already handled above)
     await prisma.tournamentEntry.create({
       data: {
-        // @ts-expect-error TS2322
         tournamentId,
-        // @ts-expect-error TS2322
         teamId,
         registeredAt: new Date()
       }
@@ -1029,7 +964,6 @@ export class TournamentService {
 
     // Check if tournament is now full and start countdown if needed
     const entriesCount = await prisma.tournamentEntry.count({
-      // @ts-expect-error TS2322
       where: { tournamentId }
     });
 
@@ -1037,7 +971,6 @@ export class TournamentService {
       // Tournament is full, start 10-minute countdown
       try {
         const { tournamentFlowService } = await import('./tournamentFlowService');
-        // @ts-expect-error TS2345
         tournamentFlowService.startTournamentCountdown(tournamentId);
         console.log(`Tournament ${tournamentId} is full - started 10-minute countdown`);
       } catch (error) {
@@ -1049,9 +982,9 @@ export class TournamentService {
   }
 
   // Fill tournament with AI teams
-  async fillTournamentWithAI(tournamentId: string, spotsToFill: number): Promise<void> {
+  async fillTournamentWithAI(tournamentId: number, spotsToFill: number): Promise<void> {
     const tournament = await prisma.tournament.findUnique({
-      where: { id: parseInt(tournamentId) },
+      where: { id: Number(tournamentId) },
       include: {
         entries: {
           include: {
@@ -1069,7 +1002,7 @@ export class TournamentService {
     const participatingTeamIds = tournament.entries.map(entry => entry.teamId);
 
     // Get available AI teams for this division (excluding already participating teams)
-    const aiTeams = await prisma.team.findMany({
+    const aiTeams = await prisma.tournamentEntry.team.findMany({
       where: {
         division: tournament.division,
         id: {
@@ -1081,7 +1014,7 @@ export class TournamentService {
 
     // Create tournament entries for AI teams
     const aiEntries = aiTeams.map(team => ({
-      tournamentId: parseInt(tournamentId),
+      tournamentId: Number(tournamentId),
       teamId: team.id,
       registeredAt: new Date()
     }));
@@ -1093,14 +1026,14 @@ export class TournamentService {
 
       // Check if tournament is now full and start countdown if needed
       const entriesCount = await prisma.tournamentEntry.count({
-        where: { tournamentId: parseInt(tournamentId) }
+        where: { tournamentId: Number(tournamentId) }
       });
 
       if (entriesCount >= 8) {
         // Tournament is full, start 10-minute countdown
         try {
           const { tournamentFlowService } = await import('./tournamentFlowService');
-          tournamentFlowService.startTournamentCountdown(parseInt(tournamentId));
+          tournamentFlowService.startTournamentCountdown(Number(tournamentId));
           console.log(`Tournament ${tournamentId} is full (AI filled) - started 10-minute countdown`);
         } catch (error) {
           console.error(`Error starting tournament countdown for tournament ${tournamentId}:`, error);
@@ -1151,7 +1084,7 @@ export class TournamentService {
         
         if (timeSinceFullMs >= tenMinutesMs) {
           // Tournament is full and 10 minutes have passed - start it
-          await this.startTournament(tournament.id.toString());
+          await this.startTournament(tournament.id);
           console.log(`Auto-started tournament ${tournament.id} (${tournament.name}) - 10 minutes elapsed since full`);
         }
         continue;
@@ -1162,17 +1095,17 @@ export class TournamentService {
         // Fill with AI teams and start
         const spotsToFill = maxParticipants - currentParticipants;
         if (spotsToFill > 0) {
-          await this.fillTournamentWithAI(tournament.id.toString(), spotsToFill);
+          await this.fillTournamentWithAI(tournament.id, spotsToFill);
         }
-        await this.startTournament(tournament.id.toString());
+        await this.startTournament(tournament.id);
         console.log(`Auto-started tournament ${tournament.id} (${tournament.name}) - registration deadline passed`);
       }
     }
   }
 
   // Start a tournament
-  async startTournament(tournamentId: string): Promise<void> {
-    const id = parseInt(tournamentId);
+  async startTournament(tournamentId: number): Promise<void> {
+    const id = Number(tournamentId);
     await prisma.tournament.update({
       where: { id },
       data: {
@@ -1228,12 +1161,12 @@ export class TournamentService {
 
     let round1Matches = [];
     let startingRound = 1;
-    let matchType = "TOURNAMENT_DAILY";
+    let matchType = "LEAGUE";
 
     if (tournament.type === 'MID_SEASON_CLASSIC') {
       // Mid-Season Cup: 16 teams -> Round of 16 (8 matches), round = 1
       startingRound = 1; // Round of 16
-      matchType = "TOURNAMENT_DAILY"; // Keep same match type
+      matchType = "LEAGUE"; // Keep same match type
       
       for (let i = 0; i < 8; i++) {
         const homeTeam = shuffledTeams[i * 2];
@@ -1245,7 +1178,6 @@ export class TournamentService {
             homeTeamId: homeTeam.id,
             awayTeamId: awayTeam.id,
             gameDate: new Date(Date.now() + 5 * 60 * 1000), // 5 minutes from now
-            // @ts-expect-error TS2322
             matchType: matchType,
             round: startingRound, // ROUND OF 16 = 1
             status: "SCHEDULED"
@@ -1269,7 +1201,6 @@ export class TournamentService {
             homeTeamId: homeTeam.id,
             awayTeamId: awayTeam.id,
             gameDate: new Date(Date.now() + 5 * 60 * 1000), // 5 minutes from now
-            // @ts-expect-error TS2322
             matchType: matchType,
             round: startingRound, // QUARTERFINALS = 1
             status: "SCHEDULED"
@@ -1306,8 +1237,7 @@ export class TournamentService {
     });
 
     const winners = completedMatches.map(match => {
-      // @ts-expect-error TS2551
-      return match.homeTeamScore > match.awayTeamScore ? match.homeTeam : match.awayTeam;
+      return match.homeScore > match.awayScore ? match.homeTeam : match.awayTeam;
     });
 
     // Create next round matches based on completed round
@@ -1320,7 +1250,7 @@ export class TournamentService {
             homeTeamId: winners[i * 2].id,
             awayTeamId: winners[i * 2 + 1].id,
             gameDate: new Date(Date.now() + 10 * 60 * 1000), // 10 minutes from now
-            matchType: "TOURNAMENT_DAILY",
+            matchType: "LEAGUE",
             round: 2, // SEMIFINALS = 2
             status: "SCHEDULED"
           }
@@ -1334,7 +1264,7 @@ export class TournamentService {
           homeTeamId: winners[0].id,
           awayTeamId: winners[1].id,
           gameDate: new Date(Date.now() + 10 * 60 * 1000), // 10 minutes from now
-          matchType: "TOURNAMENT_DAILY",
+          matchType: "LEAGUE",
           round: 3, // FINALS = 3
           status: "SCHEDULED"
         }

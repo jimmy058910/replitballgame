@@ -74,12 +74,10 @@ export class PaymentHistoryService {
       creditsAmount: transaction.creditsAmount ? transaction.creditsAmount.toString() : '0',
       teamId: transaction.teamId ? transaction.teamId : null,
       createdAt: transaction.createdAt.toISOString(),
-      // @ts-expect-error TS2339
       completedAt: transaction.completedAt ? transaction.completedAt.toISOString() : null,
     }));
     
     return {
-      // @ts-expect-error TS2322
       transactions: serializedTransactions,
       total: Number(totalCount) || 0,
     };
@@ -192,7 +190,6 @@ export class PaymentHistoryService {
   ): Promise<PaymentTransaction> {
     return this.recordTransaction({
       userId,
-      // @ts-expect-error TS2322
       teamId: typeof teamId === 'string' ? parseInt(teamId) : teamId,
       transactionType: "purchase",
       itemType,
@@ -216,7 +213,6 @@ export class PaymentHistoryService {
   ): Promise<PaymentTransaction> {
     return this.recordTransaction({
       userId,
-      // @ts-expect-error TS2322
       teamId: typeof teamId === 'string' ? parseInt(teamId) : teamId,
       transactionType: "admin_grant",
       itemType: creditsGranted > 0 ? "credits" : "gems",
@@ -239,7 +235,6 @@ export class PaymentHistoryService {
   ): Promise<PaymentTransaction> {
     return this.recordTransaction({
       userId,
-      // @ts-expect-error TS2322
       teamId: typeof teamId === 'string' ? parseInt(teamId) : teamId,
       transactionType: "reward",
       itemType: creditsEarned > 0 ? "credits" : "gems",

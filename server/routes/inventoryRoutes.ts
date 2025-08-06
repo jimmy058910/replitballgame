@@ -5,7 +5,6 @@ import { isAuthenticated } from "../googleAuth";
 const router = Router();
 
 // Get user's team inventory (root route)
-// @ts-expect-error TS7030
 router.get('/', isAuthenticated, async (req: any, res: Response, next: NextFunction) => {
   try {
     const userId = req.user?.claims?.sub;
@@ -47,7 +46,6 @@ router.get('/', isAuthenticated, async (req: any, res: Response, next: NextFunct
       slot: invItem.item.slot?.toLowerCase(), // Add slot field for equipment
       raceRestriction: invItem.item.raceRestriction, // Add race restriction
       statBoosts: invItem.item.statEffects, // Add stat effects for equipment
-      // @ts-expect-error TS2339
       effect: invItem.item.effect, // Add effect for consumables
       metadata: invItem.item.effectValue || {}
     }));
@@ -60,7 +58,6 @@ router.get('/', isAuthenticated, async (req: any, res: Response, next: NextFunct
 });
 
 // Get team inventory
-// @ts-expect-error TS7030
 router.get('/:teamId', isAuthenticated, async (req: any, res: Response, next: NextFunction) => {
   try {
     let teamId = req.params.teamId;
@@ -106,7 +103,6 @@ router.get('/:teamId', isAuthenticated, async (req: any, res: Response, next: Ne
       slot: invItem.item.slot?.toLowerCase(), // Add slot field for equipment
       raceRestriction: invItem.item.raceRestriction, // Add race restriction
       statBoosts: invItem.item.statEffects, // Add stat effects for equipment
-      // @ts-expect-error TS2339
       effect: invItem.item.effect, // Add effect for consumables
       metadata: invItem.item.effectValue || {}
     }));
@@ -119,7 +115,6 @@ router.get('/:teamId', isAuthenticated, async (req: any, res: Response, next: Ne
 });
 
 // Use inventory item
-// @ts-expect-error TS7030
 router.post('/:teamId/use-item', isAuthenticated, async (req: any, res: Response, next: NextFunction) => {
   try {
     let teamId = req.params.teamId;

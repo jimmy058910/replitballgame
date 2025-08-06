@@ -21,12 +21,9 @@ export class TournamentBracketValidator {
 
       const rounds = new Map<number, any[]>();
       for (const match of allMatches) {
-        // @ts-expect-error TS2345
         if (!rounds.has(match.round)) {
-          // @ts-expect-error TS2345
           rounds.set(match.round, []);
         }
-        // @ts-expect-error TS2345
         rounds.get(match.round)?.push(match);
       }
 
@@ -82,12 +79,9 @@ export class TournamentBracketValidator {
 
       const rounds = new Map<number, any[]>();
       for (const match of allMatches) {
-        // @ts-expect-error TS2345
         if (!rounds.has(match.round)) {
-          // @ts-expect-error TS2345
           rounds.set(match.round, []);
         }
-        // @ts-expect-error TS2345
         rounds.get(match.round)?.push(match);
       }
 
@@ -144,7 +138,6 @@ export class TournamentBracketValidator {
 
           if (correctMatches.length > 0) {
             await prisma.game.createMany({
-              // @ts-expect-error TS2322
               data: correctMatches
             });
             console.log(`✅ Fixed ${correctMatches.length} matches for round ${round + 1}`);

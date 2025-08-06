@@ -41,7 +41,6 @@ export class UnifiedTournamentAutomation {
           });
 
           // Start live simulation
-          // @ts-expect-error TS2345
           await matchStateManager.startLiveMatch(match.id);
           console.log(`Started live simulation for tournament match ${match.id}`);
           
@@ -147,11 +146,8 @@ export class UnifiedTournamentAutomation {
 
       // Determine winners (with detailed logging)
       const winners = completedMatches.map(match => {
-        // @ts-expect-error TS18047
         const winnerId = match.homeScore > match.awayScore ? match.homeTeamId : match.awayTeamId;
-        // @ts-expect-error TS18047
         const loserId = match.homeScore > match.awayScore ? match.awayTeamId : match.homeTeamId;
-        // @ts-expect-error TS18047
         console.log(`Match ${match.id}: Team ${winnerId} (${match.homeScore > match.awayScore ? 'home' : 'away'}) beat Team ${loserId} (${match.homeScore}-${match.awayScore})`);
         return winnerId;
       });
@@ -182,7 +178,6 @@ export class UnifiedTournamentAutomation {
       // Insert matches
       if (nextRoundMatches.length > 0) {
         await prisma.game.createMany({
-          // @ts-expect-error TS2322
           data: nextRoundMatches
         });
         
@@ -201,7 +196,7 @@ export class UnifiedTournamentAutomation {
     
     try {
       // Get tournament to determine type and find finals round
-      const tournament = await prisma.tournament.findUnique({
+      const tournament = await prisma.tournamentEntries[0].findUnique({
         where: { id: tournamentId }
       });
 
@@ -222,10 +217,8 @@ export class UnifiedTournamentAutomation {
       if (!finalsMatch) return;
 
       // Determine champion and runner-up
-      // @ts-expect-error TS18047
       const championTeamId = finalsMatch.homeScore > finalsMatch.awayScore ? 
         finalsMatch.homeTeamId : finalsMatch.awayTeamId;
-      // @ts-expect-error TS18047
       const runnerUpTeamId = finalsMatch.homeScore > finalsMatch.awayScore ? 
         finalsMatch.awayTeamId : finalsMatch.homeTeamId;
 
@@ -252,7 +245,6 @@ export class UnifiedTournamentAutomation {
         if (!existingThirdPlaceGame) {
           // Create 3rd place playoff game
           const semifinalLosers = semifinalsMatches.map(match => 
-            // @ts-expect-error TS18047
             match.homeScore > match.awayScore ? match.awayTeamId : match.homeTeamId
           );
 
@@ -295,7 +287,6 @@ export class UnifiedTournamentAutomation {
       // 3rd place - Semifinals losers
       let rank = 3;
       for (const match of semifinalsMatches) {
-        // @ts-expect-error TS18047
         const loserId = match.homeScore > match.awayScore ? match.awayTeamId : match.homeTeamId;
         if (!finalRanks.has(loserId)) {
           finalRanks.set(loserId, rank);
@@ -306,7 +297,6 @@ export class UnifiedTournamentAutomation {
       // 5th place - Quarterfinals losers
       rank = 5;
       for (const match of quarterfinalsMatches) {
-        // @ts-expect-error TS18047
         const loserId = match.homeScore > match.awayScore ? match.awayTeamId : match.homeTeamId;
         if (!finalRanks.has(loserId)) {
           finalRanks.set(loserId, rank);
@@ -330,7 +320,7 @@ export class UnifiedTournamentAutomation {
       console.log(`Tournament ${tournamentId} completed! Champion: Team ${championTeamId}, Runner-up: Team ${runnerUpTeamId}`);
 
       // Update tournament status
-      await prisma.tournament.update({
+      await prisma.tournamentEntries[0].update({
         where: { id: tournamentId },
         data: {
           status: 'COMPLETED'
@@ -362,7 +352,6 @@ export class UnifiedTournamentAutomation {
       console.log(`Tournament match ${matchId} completed - checking round progression`);
       
       // Check if round is complete and advance
-      // @ts-expect-error TS2345
       await this.checkRoundCompletion(match.tournamentId, match.round);
     } catch (error) {
       console.error(`Error handling tournament match completion:`, error);

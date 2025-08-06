@@ -69,7 +69,6 @@ router.post('/test-team-creation', async (req: Request, res: Response) => {
         potentialRating: playerData.potentialRating,
         dailyStaminaLevel: 100,
         injuryStatus: 'HEALTHY' as InjuryStatus,
-        // @ts-expect-error TS2339
         camaraderie: playerData.camaraderie || 75.0,
       };
       
@@ -148,7 +147,6 @@ router.post('/test-team-creation', async (req: Request, res: Response) => {
 });
 
 // PRODUCTION: Populate existing teams that were created before roster generation
-// @ts-expect-error TS7030
 router.post('/populate-existing-team', async (req: Request, res: Response) => {
   try {
     const { teamId } = req.body;
@@ -207,7 +205,6 @@ router.post('/populate-existing-team', async (req: Request, res: Response) => {
           potentialRating: playerData.potentialRating,
           dailyStaminaLevel: 100,
           injuryStatus: 'HEALTHY' as InjuryStatus,
-          // @ts-expect-error TS2339
           camaraderieScore: playerData.camaraderie || 75.0,
         };
         
@@ -328,7 +325,6 @@ router.post('/populate-all-existing-teams', async (req: Request, res: Response) 
             potentialRating: playerData.potentialRating,
             dailyStaminaLevel: 100,
             injuryStatus: 'HEALTHY' as InjuryStatus,
-            // @ts-expect-error TS2339
             camaraderieScore: playerData.camaraderie || 75.0,
           };
           
@@ -392,7 +388,6 @@ router.post('/populate-all-existing-teams', async (req: Request, res: Response) 
 });
 
 // PRODUCTION: Clear user data for fresh team creation testing
-// @ts-expect-error TS7030
 router.post('/clear-user-data', async (req: Request, res: Response) => {
   try {
     const { userId } = req.body;
@@ -480,7 +475,6 @@ router.post('/clear-user-data', async (req: Request, res: Response) => {
 });
 
 // PRODUCTION: Delete team and all related data for clean testing
-// @ts-expect-error TS7030
 router.post('/delete-team', async (req: Request, res: Response) => {
   try {
     const { teamName } = req.body;

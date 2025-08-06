@@ -22,7 +22,6 @@ router.get("/global-rankings", cacheMiddleware({ ttl: 300 }), isAuthenticated, a
       // Enhanced True Strength Rating Algorithm (Research-Based Formula)
       const baseRating = (team.teamPower || 0) * 10;           // Base: 40% weight (250 max)
       const divisionBonus = divisionMultiplier * 100;          // Division: 15% weight (200 max)
-      // @ts-expect-error TS2304
       const recordBonus = winPercentage * 120;                 // Record: 18% weight (120 max) - REDUCED from 200
       const sosBonus = strengthOfSchedule * 1.5;               // SOS: 15% weight (~75 avg)
       const camaraderieBonus = (team.camaraderie || 0) * 2;    // Chemistry: 12% weight (200 max) - Fixed field name
@@ -38,7 +37,6 @@ router.get("/global-rankings", cacheMiddleware({ ttl: 300 }), isAuthenticated, a
       const serializedTeam = {
         ...team,
         trueStrengthRating,
-        // @ts-expect-error TS2304
         winPercentage: Math.round(winPercentage * 100),
         divisionMultiplier,
         strengthOfSchedule: Math.round(strengthOfSchedule * 10) / 10,
@@ -80,7 +78,6 @@ router.get("/global-rankings", cacheMiddleware({ ttl: 300 }), isAuthenticated, a
 });
 
 // Community Portal rankings endpoint - formatted for frontend compatibility
-// @ts-expect-error TS7030
 router.get("/rankings", isAuthenticated, async (req, res) => {
   try {
     const teams = await storage.teams.getAllTeamsWithStats();
@@ -107,7 +104,6 @@ router.get("/rankings", isAuthenticated, async (req, res) => {
       // Enhanced True Strength Rating Algorithm
       const baseRating = (team.teamPower || 0) * 10;           // Base: 40% weight
       const divisionBonus = divisionMultiplier * 100;          // Division: 15% weight  
-      // @ts-expect-error TS2304
       const recordBonus = winPercentage * 120;                 // Record: 18% weight
       const sosBonus = strengthOfSchedule * 1.5;               // SOS: 15% weight
       const camaraderieBonus = (team.camaraderie || 0) * 2;    // Chemistry: 12% weight
@@ -247,10 +243,8 @@ function calculateSimpleStrengthOfSchedule(team: any, allTeams: any[]): number {
 
 function calculateSimpleRecentForm(team: any): number {
   // Simple calculation based on win percentage vs expected performance
-  // @ts-expect-error TS2304
   if (totalGames === 0) return 0;
   
-  // @ts-expect-error TS2304
   const winPct = (team.wins || 0) / totalGames;
   const expectedWinPct = 0.5; // League average
   
@@ -321,7 +315,6 @@ async function calculateRecentForm(team: any): Promise<number> {
       const teamScore = isHome ? match.homeScore : match.awayScore;
       const opponentScore = isHome ? match.awayScore : match.homeScore;
       
-      // @ts-expect-error TS18047
       if (teamScore > opponentScore) recentWins++;
     });
     
@@ -329,7 +322,6 @@ async function calculateRecentForm(team: any): Promise<number> {
     
     // Return the difference weighted by sample size
     const sampleSizeWeight = Math.min(completedMatches.length / 5, 1); // Full weight at 5+ games
-    // @ts-expect-error TS2304
     return (recentWinPct - seasonWinPct) * sampleSizeWeight;
   } catch (error) {
     console.error(`Error calculating recent form for team ${team.id}:`, error);
@@ -354,7 +346,6 @@ async function calculateHealthFactor(team: any): Promise<number> {
       playerCount++;
       
       // Factor in current injury status
-      // @ts-expect-error TS2367
       if (player.injuryStatus === 'INJURED') {
         const recoveryNeeded = player.injuryRecoveryPointsNeeded || 0;
         const injuryImpact = Math.min(recoveryNeeded / 100, 0.5); // Max 50% impact per player

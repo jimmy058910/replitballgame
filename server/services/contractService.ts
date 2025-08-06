@@ -200,7 +200,6 @@ export class ContractService {
     offerSalary: number
   ): Promise<NegotiationResult> {
     const staffMember = await prisma.staff.findUnique({
-      // @ts-expect-error TS2322
       where: { id: staffId }
     });
     
@@ -343,7 +342,6 @@ export class ContractService {
     // Update team finances with new staff salary totals
     if (updatedStaff) {
       const { storage } = await import("../storage");
-      // @ts-expect-error TS2345
       await storage.teamFinances.recalculateAndSaveStaffSalaries(parseInt(staffMember.teamId));
     }
     

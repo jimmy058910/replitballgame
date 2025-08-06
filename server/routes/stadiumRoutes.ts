@@ -15,7 +15,6 @@ import {
 const router = Router();
 
 // Get stadium data for authenticated user
-// @ts-expect-error TS7030
 router.get('/', isAuthenticated, async (req: any, res: Response, next: NextFunction) => {
   try {
     const userId = req.user.claims.sub;
@@ -53,7 +52,6 @@ router.get('/', isAuthenticated, async (req: any, res: Response, next: NextFunct
       const newStadium = await prisma.stadium.create({
         data: {
         teamId: team.id,
-        // @ts-expect-error TS2353
         name: `${team.name} Stadium`,
         level: 1,
         capacity: 15000,
@@ -76,14 +74,12 @@ router.get('/', isAuthenticated, async (req: any, res: Response, next: NextFunct
     const availableUpgrades = getAvailableFacilityUpgrades(stadium);
     
     // Get stadium events (last 10) - use empty array if no events table
-    // @ts-expect-error TS7034
     const events = []; // Placeholder until stadiumEvent table is implemented
 
     // Calculate stadium atmosphere and fan loyalty
     const facilityQuality = calculateFacilityQuality(stadium);
     const fanLoyalty = calculateFanLoyalty(
       50, // Start with 50 base loyalty 
-      // @ts-expect-error TS2304
       teamRecord,
       facilityQuality,
       0, // winStreak
@@ -97,7 +93,6 @@ router.get('/', isAuthenticated, async (req: any, res: Response, next: NextFunct
       data: {
         stadium,
         availableUpgrades,
-        // @ts-expect-error TS7005
         events,
         atmosphere: {
           fanLoyalty,
@@ -119,7 +114,6 @@ const upgradeSchema = z.object({
   upgradeLevel: z.number().int().min(1).max(5)
 });
 
-// @ts-expect-error TS7030
 router.post('/upgrade', isAuthenticated, async (req: any, res: Response, next: NextFunction) => {
   try {
     const userId = req.user.claims.sub;
@@ -161,7 +155,6 @@ router.post('/upgrade', isAuthenticated, async (req: any, res: Response, next: N
     }
 
     // Get team finances
-    // @ts-expect-error TS2551
     const finances = await prisma.teamFinance.findFirst({
       where: { teamId: team.id }
     });
@@ -175,7 +168,6 @@ router.post('/upgrade', isAuthenticated, async (req: any, res: Response, next: N
 
     // Get available upgrades and find the specific one
     const availableUpgrades = getAvailableFacilityUpgrades(stadium);
-    // @ts-expect-error TS2339
     const upgrade = availableUpgrades.find(u => 
       u.name.toLowerCase().includes(facilityType.toLowerCase()) && 
       u.level === upgradeLevel
@@ -210,7 +202,6 @@ router.post('/upgrade', isAuthenticated, async (req: any, res: Response, next: N
     });
 
     // Deduct credits
-    // @ts-expect-error TS2551
     await prisma.teamFinance.update({
       where: { teamId: team.id },
       data: { 
@@ -241,7 +232,6 @@ const fieldSizeSchema = z.object({
   fieldSize: z.enum(["standard", "large", "small"]) 
 });
 
-// @ts-expect-error TS7030
 router.post('/field-size', isAuthenticated, async (req: any, res: Response, next: NextFunction) => {
   try {
     const userId = req.user.claims.sub;
@@ -283,7 +273,6 @@ router.post('/field-size', isAuthenticated, async (req: any, res: Response, next
     }
 
     // Get team finances
-    // @ts-expect-error TS2551
     const finances = await prisma.teamFinance.findFirst({
       where: { teamId: team.id }
     });
@@ -306,12 +295,10 @@ router.post('/field-size', isAuthenticated, async (req: any, res: Response, next
     // Update stadium field size
     await prisma.stadium.update({
       where: { id: stadium.id },
-      // @ts-expect-error TS2353
       data: { fieldSize, updatedAt: new Date() }
     });
 
     // Deduct credits
-    // @ts-expect-error TS2551
     await prisma.teamFinance.update({
       where: { teamId: team.id },
       data: { 
@@ -338,7 +325,6 @@ router.post('/field-size', isAuthenticated, async (req: any, res: Response, next
 });
 
 // Revenue calculation route
-// @ts-expect-error TS7030
 router.get('/revenue/:teamId', isAuthenticated, async (req: any, res: Response, next: NextFunction) => {
   try {
     const teamId = req.params.teamId;
@@ -371,7 +357,6 @@ router.get('/revenue/:teamId', isAuthenticated, async (req: any, res: Response, 
     const facilityQuality = calculateFacilityQuality(stadium);
     const fanLoyalty = calculateFanLoyalty(
       50, // Start with 50 base loyalty 
-      // @ts-expect-error TS2304
       teamRecord,
       facilityQuality,
       0, // winStreak

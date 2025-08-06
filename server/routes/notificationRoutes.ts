@@ -7,7 +7,6 @@ import { randomUUID } from "crypto"; // For demo notifications
 const router = Router();
 
 // Notification routes
-// @ts-expect-error TS7030
 router.get('/', isAuthenticated, async (req: any, res: Response, next: NextFunction) => {
   try {
     const userId = req.user.claims.sub;
@@ -26,7 +25,6 @@ router.get('/', isAuthenticated, async (req: any, res: Response, next: NextFunct
   }
 });
 
-// @ts-expect-error TS7030
 router.patch('/:id/read', isAuthenticated, async (req: any, res: Response, next: NextFunction) => {
   try {
     const notificationId = parseInt(req.params.id);
@@ -43,7 +41,6 @@ router.patch('/:id/read', isAuthenticated, async (req: any, res: Response, next:
   }
 });
 
-// @ts-expect-error TS7030
 router.patch('/mark-all-read', isAuthenticated, async (req: any, res: Response, next: NextFunction) => {
   try {
     const userId = req.user.claims.sub;
@@ -62,7 +59,6 @@ router.patch('/mark-all-read', isAuthenticated, async (req: any, res: Response, 
   }
 });
 
-// @ts-expect-error TS7030
 router.delete('/:id', isAuthenticated, async (req: any, res: Response, next: NextFunction) => {
   try {
     const notificationId = parseInt(req.params.id);
@@ -75,7 +71,6 @@ router.delete('/:id', isAuthenticated, async (req: any, res: Response, next: Nex
     // const notification = await storage.getNotificationByIdAndUser(notificationId, userId);
     // if (!notification) return res.status(404).json({ message: "Notification not found or not yours." });
 
-    // @ts-expect-error TS2551
     await storage.notifications.deleteNotification(notificationId);
     res.json({ success: true, message: "Notification deleted." });
   } catch (error) {
@@ -87,7 +82,6 @@ router.delete('/:id', isAuthenticated, async (req: any, res: Response, next: Nex
 router.delete('/delete-all', isAuthenticated, async (req: any, res: Response, next: NextFunction) => {
   try {
     const userId = req.user.claims.sub;
-    // @ts-expect-error TS2551
     await storage.notifications.deleteAllUserNotifications(userId);
     res.json({ success: true, message: "All notifications for the user have been deleted." });
   } catch (error) {
@@ -127,7 +121,6 @@ router.post('/demo', isAuthenticated, async (req: any, res: Response, next: Next
       await storage.notifications.createNotification({
         id: randomUUID(),
         userId,
-        // @ts-expect-error TS2322
         type: notif.type,
         title: notif.title,
         message: notif.message,

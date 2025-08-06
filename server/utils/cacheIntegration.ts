@@ -47,9 +47,7 @@ export function clearRelatedCache(pattern: string): void {
   let cleared = 0;
   
   for (const key of keys) {
-    // @ts-expect-error TS18046
     if (key.includes(pattern)) {
-      // @ts-expect-error TS2345
       simpleCache.delete(key);
       cleared++;
     }

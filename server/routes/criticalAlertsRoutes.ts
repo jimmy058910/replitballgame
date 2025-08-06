@@ -11,7 +11,6 @@ const playerStorage = new PlayerStorage();
 const staffStorage = new StaffStorage();
 
 // API endpoint for critical alerts as specified in redesign guide
-// @ts-expect-error TS7030
 router.get('/critical', isAuthenticated, async (req, res) => {
   try {
     const user = (req as any).user;
@@ -59,7 +58,6 @@ router.get('/critical', isAuthenticated, async (req, res) => {
 });
 
 // Detailed alerts breakdown
-// @ts-expect-error TS7030
 router.get('/detailed', isAuthenticated, async (req, res) => {
   try {
     const user = (req as any).user;

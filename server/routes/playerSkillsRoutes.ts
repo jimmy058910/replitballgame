@@ -17,7 +17,6 @@ router.get('/', isAuthenticated, async (req, res) => {
 });
 
 // Get a specific skill by ID
-// @ts-expect-error TS7030
 router.get('/skills/:skillId', isAuthenticated, async (req, res) => {
   try {
     const skillId = parseInt(req.params.skillId);
@@ -135,10 +134,8 @@ router.post('/player/:playerId/upgrade/:skillId', isAuthenticated, async (req, r
 });
 
 // Process end-of-season skill progression for user's team
-// @ts-expect-error TS7030
 router.post('/team/season-progression', isAuthenticated, async (req, res) => {
   try {
-    // @ts-expect-error TS2339
     const userId = req.user?.claims?.sub;
     if (!userId) {
       return res.status(401).json({ error: 'User not authenticated' });
@@ -146,14 +143,12 @@ router.post('/team/season-progression', isAuthenticated, async (req, res) => {
 
     // Get user's team
     const team = await prisma.team.findFirst({
-      // @ts-expect-error TS2561
       where: { userId: userId }
     });
     if (!team) {
       return res.status(404).json({ error: 'Team not found' });
     }
 
-    // @ts-expect-error TS2345
     const results = await PlayerSkillsService.processSeasonSkillProgression(team.id);
     
     res.json({
@@ -167,10 +162,8 @@ router.post('/team/season-progression', isAuthenticated, async (req, res) => {
 });
 
 // Get skill progression summary for user's team
-// @ts-expect-error TS7030
 router.get('/team/progression-summary', isAuthenticated, async (req, res) => {
   try {
-    // @ts-expect-error TS2339
     const userId = req.user?.claims?.sub;
     if (!userId) {
       return res.status(401).json({ error: 'User not authenticated' });
@@ -178,7 +171,6 @@ router.get('/team/progression-summary', isAuthenticated, async (req, res) => {
 
     // Get user's team
     const team = await prisma.team.findFirst({
-      // @ts-expect-error TS2561
       where: { userId: userId }
     });
     if (!team) {
@@ -192,10 +184,8 @@ router.get('/team/progression-summary', isAuthenticated, async (req, res) => {
     
     const summary = [];
     for (const player of teamPlayers) {
-      // @ts-expect-error TS2345
       const skillCount = await PlayerSkillsService.getPlayerSkillCount(player.id);
       const skillUpChance = PlayerSkillsService.calculateSkillUpChance(player);
-      // @ts-expect-error TS2345
       const eligibleSkills = await PlayerSkillsService.getEligibleSkills(player.id);
       
       summary.push({

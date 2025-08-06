@@ -3,7 +3,6 @@ import { PrismaClient, Tournament, TournamentEntry } from '../../generated/prism
 
 export class TournamentStorage {
   async getAllTournamentHistory(): Promise<any[]> {
-    // @ts-expect-error TS2339
     const history = await prisma.tournamentRegistration.findMany({
       include: {
         tournament: true,
@@ -39,7 +38,6 @@ export class TournamentStorage {
     const newTournament = await prisma.tournament.create({
       data: {
         name: tournamentData.name,
-        // @ts-expect-error TS2322
         type: tournamentData.type,
         status: tournamentData.status || 'REGISTRATION_OPEN' as any,
         division: tournamentData.division,
@@ -49,7 +47,6 @@ export class TournamentStorage {
         entryFeeGems: tournamentData.entryFeeGems || 0,
         requiresEntryItem: tournamentData.requiresEntryItem || false,
         registrationDeadline: tournamentData.registrationDeadline,
-        // @ts-expect-error TS2322
         startTime: tournamentData.startTime,
         maxParticipants: tournamentData.maxParticipants || 16,
       },
@@ -152,11 +149,13 @@ export class TournamentStorage {
     });
   }
 
-  async updateTournament(id: number, updates: Partial<Tournament>): Promise<Tournament | null> {
+  async updateTournament(id: number, updates: any): Promise<Tournament | null> {
     try {
+      // Remove 'id' from updates to avoid Prisma constraint conflicts
+      const { id: _, ...updateData } = updates;
       const updatedTournament = await prisma.tournament.update({
         where: { id },
-        data: updates,
+        data: updateData,
         include: {
           entries: {
             include: {
@@ -176,16 +175,11 @@ export class TournamentStorage {
   async createTournamentEntry(entryData: {
     tournamentId: number;
     teamId: number;
-    prizeWon?: bigint;
-    placement?: number;
   }): Promise<TournamentEntry> {
     const newEntry = await prisma.tournamentEntry.create({
       data: {
         tournamentId: entryData.tournamentId,
         teamId: entryData.teamId,
-
-        prizeWon: entryData.prizeWon || BigInt(0),
-        placement: entryData.placement || 0,
       },
       include: {
         tournament: { select: { name: true } },
@@ -202,7 +196,7 @@ export class TournamentStorage {
         tournament: { select: { name: true } },
         team: { select: { name: true } }
       },
-      orderBy: { entryTime: 'asc' }
+      orderBy: { createdAt: 'asc' }
     });
   }
 
@@ -213,16 +207,17 @@ export class TournamentStorage {
         tournament: { select: { name: true, type: true } },
         team: { select: { name: true } }
       },
-      // @ts-expect-error TS2353
-      orderBy: { entryTime: 'desc' }
+      orderBy: { createdAt: 'desc' }
     });
   }
 
-  async updateTournamentEntry(id: number, updates: Partial<TournamentEntry>): Promise<TournamentEntry | null> {
+  async updateTournamentEntry(id: number, updates: any): Promise<TournamentEntry | null> {
     try {
+      // Remove 'id' from updates to avoid Prisma constraint conflicts
+      const { id: _, ...updateData } = updates;
       const updatedEntry = await prisma.tournamentEntry.update({
         where: { id },
-        data: updates,
+        data: updateData,
         include: {
           tournament: { select: { name: true } },
           team: { select: { name: true } }
@@ -258,7 +253,6 @@ export class TournamentStorage {
 
     return await prisma.tournament.findMany({
       where: {
-        // @ts-expect-error TS2322
         status: 'OPEN',
         NOT: {
           id: { in: excludedTournamentIds }

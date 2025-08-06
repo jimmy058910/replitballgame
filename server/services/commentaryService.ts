@@ -110,7 +110,6 @@ export class CommentaryService {
   }
 
   // Enhanced Event Commentary using Comprehensive Database
-  // @ts-expect-error TS2393
   generateEventCommentary(event: any, player: any, context: CommentaryContext): string {
     const playerName = this.getPlayerDisplayName(player);
     const race = (player.race || 'human').toUpperCase();
@@ -155,7 +154,6 @@ export class CommentaryService {
     }
     
     // Use weighted selection instead of fixed percentage
-    // @ts-expect-error TS2339
     const weights = this.commentaryConfig.prompt_weights;
     const commentaryOptions = [
       {
@@ -381,7 +379,6 @@ export class CommentaryService {
   }
 
   // 1. Game State & Flow Commentary
-  // @ts-expect-error TS2393
   generatePreGameCommentary(homeTeam: Team, awayTeam: Team, homeFieldSize?: string, tacticalFocus?: string): string {
     const homeTeamName = homeTeam.name;
     const awayTeamName = awayTeam.name;
@@ -400,7 +397,6 @@ export class CommentaryService {
     return preGameCommentary[Math.floor(Math.random() * preGameCommentary.length)];
   }
 
-  // @ts-expect-error TS2393
   generateMidGameFlowCommentary(context: CommentaryContext): string {
     const midGameCommentary = [
       "We're seeing a real midfield battle unfold. The ball has changed hands multiple times in the last minute alone.",
@@ -417,7 +413,6 @@ export class CommentaryService {
     return midGameCommentary[Math.floor(Math.random() * midGameCommentary.length)];
   }
 
-  // @ts-expect-error TS2393
   generateUrgencyCommentary(context: CommentaryContext): string {
     const timeRemaining = context.maxTime - context.gameTime;
     const minutesLeft = Math.floor(timeRemaining / 60);
@@ -622,7 +617,6 @@ export class CommentaryService {
       return pocketCommentary[Math.floor(Math.random() * pocketCommentary.length)];
     }
 
-    // @ts-expect-error TS18048
     if (skill === "Deadeye" && completion && yards && yards > 10) {
       const deadeyeCommentary = [
         `A frozen rope from ${passerName}! He threads the needle between two defenders to hit ${receiverName} in stride! That's a 'Deadeye' pass if I've ever seen one.`,
@@ -633,7 +627,6 @@ export class CommentaryService {
     }
 
     if (completion) {
-      // @ts-expect-error TS18048
       if (yards && yards > 20) {
         // Deep Passes
         const deepCommentary = [
@@ -703,7 +696,6 @@ export class CommentaryService {
     return standardTackleCommentary[Math.floor(Math.random() * standardTackleCommentary.length)];
   }
 
-  // @ts-expect-error TS2393
   generatePassDefenseCommentary(defender: Player, passer: Player): string {
     const defenderName = this.getPlayerDisplayName(defender);
     const passerName = this.getPlayerDisplayName(passer);
@@ -719,7 +711,6 @@ export class CommentaryService {
   }
 
   // 6. Contextual & Atmospheric Commentary
-  // @ts-expect-error TS2393
   generateInjuryCommentary(player: Player, severity: 'minor' | 'moderate' | 'severe'): string {
     const playerName = this.getPlayerDisplayName(player);
     
@@ -731,7 +722,6 @@ export class CommentaryService {
     return injuryCommentary[Math.floor(Math.random() * injuryCommentary.length)];
   }
 
-  // @ts-expect-error TS2393
   generateFatigueCommentary(player: Player, action: 'run' | 'pass'): string {
     const playerName = this.getPlayerDisplayName(player);
     
@@ -752,7 +742,6 @@ export class CommentaryService {
     }
   }
 
-  // @ts-expect-error TS2393
   generateAtmosphereCommentary(context: CommentaryContext): string {
     if (context.intimidationFactor && context.intimidationFactor > 70) {
       const atmosphereCommentary = [
@@ -765,7 +754,6 @@ export class CommentaryService {
     return "";
   }
 
-  // @ts-expect-error TS2393
   generateCamaraderieCommentary(teamCamaraderie: number, isPositive: boolean): string {
     if (isPositive && teamCamaraderie > 75) {
       const positiveCommentary = [
@@ -833,7 +821,6 @@ export class CommentaryService {
     return knockdownCommentary[Math.floor(Math.random() * knockdownCommentary.length)];
   }
   
-  // @ts-expect-error TS2393
   generatePassDefenseCommentary(passer: Player, defender: Player): string {
     const passerName = this.getPlayerDisplayName(passer);
     const defenderName = this.getPlayerDisplayName(defender);
@@ -914,7 +901,6 @@ export class CommentaryService {
   }
 
   // Main commentary generator that selects appropriate commentary based on event type
-  // @ts-expect-error TS2393
   generateEventCommentary(
     eventType: string,
     players: { acting?: Player; target?: Player; defensive?: Player },
@@ -952,7 +938,6 @@ export class CommentaryService {
         );
         
       case 'interception':
-        // @ts-expect-error TS2551
         return this.generateInterceptionCommentary(
           players.defensive!,
           players.acting!
@@ -986,7 +971,6 @@ export class CommentaryService {
   }
 
   // Additional methods for comprehensive commentary
-  // @ts-expect-error TS2393
   generatePreGameCommentary(homeTeam: Team, awayTeam: Team, homeStrategy: string, awayStrategy: string): string {
     const homeTeamName = homeTeam.name;
     const awayTeamName = awayTeam.name;
@@ -1005,7 +989,6 @@ export class CommentaryService {
       .replace(/'Competitive'/g, `'${awayTeamPower}'`);
   }
 
-  // @ts-expect-error TS2393
   generateMidGameFlowCommentary(teamName?: string): string {
     const commentary = [...fantasyCommentaryDatabase.midGameFlow];
     
@@ -1013,7 +996,6 @@ export class CommentaryService {
     return selectedCommentary.replace(/{teamName}/g, teamName || 'the team');
   }
 
-  // @ts-expect-error TS2393
   generateUrgencyCommentary(playerName?: string, teamName?: string): string {
     const commentary = [...fantasyCommentaryDatabase.urgencyClockManagement];
     
@@ -1023,7 +1005,6 @@ export class CommentaryService {
       .replace(/{teamName}/g, teamName || 'the team');
   }
 
-  // @ts-expect-error TS2393
   generateInjuryCommentary(playerName: string, severity: string): string {
     const commentary = [...fantasyCommentaryDatabase.injury];
     
@@ -1033,7 +1014,6 @@ export class CommentaryService {
       .replace(/{severity}/g, severity);
   }
 
-  // @ts-expect-error TS2393
   generateFatigueCommentary(playerName: string, tacklerName?: string): string {
     const commentary = [...fantasyCommentaryDatabase.fatigue];
     
@@ -1043,7 +1023,6 @@ export class CommentaryService {
       .replace(/{tacklerName}/g, tacklerName || 'the defense');
   }
 
-  // @ts-expect-error TS2393
   generateAtmosphereCommentary(): string {
     const commentary = [...fantasyCommentaryDatabase.atmosphere];
     
@@ -1051,7 +1030,6 @@ export class CommentaryService {
     return selectedCommentary;
   }
 
-  // @ts-expect-error TS2393
   generateCamaraderieCommentary(playerName: string, teammateName?: string): string {
     const commentary = [...fantasyCommentaryDatabase.camaraderie];
     

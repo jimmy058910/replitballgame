@@ -28,7 +28,6 @@ router.get('/:teamId?', isAuthenticated, async (req: Request, res: Response, nex
     
     // If no teamId provided, get user's team
     if (!teamId) {
-      // @ts-expect-error TS2339
       const team = await storage.prisma.team.findFirst({
         where: { userProfileId: userProfile.id }
       });
@@ -39,7 +38,6 @@ router.get('/:teamId?', isAuthenticated, async (req: Request, res: Response, nex
     }
 
     // Get team data with stats
-    // @ts-expect-error TS2339
     const team = await storage.prisma.team.findUnique({
       where: { id: teamId },
       include: {
@@ -56,7 +54,6 @@ router.get('/:teamId?', isAuthenticated, async (req: Request, res: Response, nex
     }
 
     // Get recent match history for victory moments
-    // @ts-expect-error TS2339
     const recentMatches = await storage.prisma.game.findMany({
       where: {
         OR: [

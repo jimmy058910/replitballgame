@@ -88,7 +88,6 @@ export class StatsService {
       const meaningfulGames = await prisma.game.findMany({
         where: {
           matchType: {
-            // @ts-expect-error TS2322
             in: MEANINGFUL_MATCH_TYPES
           },
           status: 'COMPLETED',
@@ -173,7 +172,6 @@ export class StatsService {
       const meaningfulGames = await prisma.game.findMany({
         where: {
           matchType: {
-            // @ts-expect-error TS2322
             in: MEANINGFUL_MATCH_TYPES
           },
           status: 'COMPLETED',
