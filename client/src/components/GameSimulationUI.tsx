@@ -508,9 +508,7 @@ export function GameSimulationUI({ matchId, userId, team1, team2, initialLiveSta
       return players?.slice(0, 6) || [];
     };
 
-    // @ts-expect-error TS2345
     const homeFieldPlayers = getFormationPlayers(homeTeamPlayers, homeFormation, 'Home');
-    // @ts-expect-error TS2345
     const awayFieldPlayers = getFormationPlayers(awayTeamPlayers, awayFormation, 'Away');
     
     return {

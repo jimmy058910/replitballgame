@@ -662,7 +662,6 @@ export const EnhancedMatchEngine: React.FC<MatchEngineProps> = ({
             awayTeam={team2}
             homePlayers={(homeTeamPlayers as EnhancedPlayer[]) || []}
             awayPlayers={(awayTeamPlayers as EnhancedPlayer[]) || []}
-            // @ts-expect-error TS2322
             liveState={liveState}
             ballPosition={ballPosition}
           />
@@ -704,7 +703,6 @@ export const EnhancedMatchEngine: React.FC<MatchEngineProps> = ({
               <LiveStatsTab
                 homeTeam={team1}
                 awayTeam={team2}
-                // @ts-expect-error TS2322
                 liveState={liveState}
                 enhancedStats={enhancedMatchData}
               />

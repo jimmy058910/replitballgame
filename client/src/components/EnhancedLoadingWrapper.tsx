@@ -181,7 +181,6 @@ export const SmartLoader: React.FC<{
 }) => {
   const [isMinLoadTimeMet, setIsMinLoadTimeMet] = useState(false);
 
-  // @ts-expect-error TS7030
   useEffect(() => {
     if (isLoading) {
       setIsMinLoadTimeMet(false);

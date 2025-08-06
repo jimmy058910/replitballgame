@@ -487,8 +487,6 @@ export default function EnhancedMarketplace() {
 
           {/* My Activity Tab */}
           <TabsContent value="dashboard" className="space-y-6">
-            {/*
-             // @ts-expect-error TS2322 */}
             {dashboardData && (
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 
