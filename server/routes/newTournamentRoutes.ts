@@ -358,37 +358,41 @@ router.get('/:tournamentId', isAuthenticated, async (req: any, res: Response, ne
   try {
     const { tournamentId } = req.params;
     
-    const [tournament] = await db
-      .select()
-      .from(tournaments)
-      .where(eq(tournaments.id, tournamentId))
-      .limit(1);
+    const tournament = await prisma.tournament.findUnique({
+      where: { id: parseInt(tournamentId) }
+    });
 
     if (!tournament) {
       return res.status(404).json({ message: "Tournament not found" });
     }
 
-    // Get participants
-    const participants = await db
-      .select({
-        teamId: tournamentEntries.teamId,
-        teamName: teams.name,
-        entryTime: tournamentEntries.entryTime,
-        placement: tournamentEntries.placement,
-        eliminated: tournamentEntries.eliminated
-      })
-      .from(tournamentEntries)
-      .innerJoin(teams, eq(tournamentEntries.teamId, teams.id))
-      .where(eq(tournamentEntries.tournamentId, tournamentId))
-      .orderBy(asc(tournamentEntries.entryTime));
+    // Get participants with team details
+    const participants = await prisma.tournamentEntry.findMany({
+      where: { tournamentId: parseInt(tournamentId) },
+      include: {
+        team: {
+          select: { name: true }
+        }
+      },
+      orderBy: { entryTime: 'asc' }
+    });
+
+    // Format participants for frontend compatibility
+    const formattedParticipants = participants.map(entry => ({
+      teamId: entry.teamId,
+      teamName: entry.team.name,
+      entryTime: entry.entryTime,
+      placement: entry.placement,
+      eliminated: entry.eliminated
+    }));
 
     const maxTeams = tournament.maxTeams || 16;
     const tournamentDetails = {
       ...tournament,
-      participants,
-      participantCount: participants.length,
-      spotsRemaining: maxTeams - participants.length,
-      canStillJoin: new Date() < tournament.registrationDeadline! && participants.length < maxTeams
+      participants: formattedParticipants,
+      participantCount: formattedParticipants.length,
+      spotsRemaining: maxTeams - formattedParticipants.length,
+      canStillJoin: new Date() < tournament.registrationDeadline! && formattedParticipants.length < maxTeams
     };
 
     res.json(tournamentDetails);
