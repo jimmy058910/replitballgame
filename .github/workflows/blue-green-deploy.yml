@@ -96,7 +96,7 @@ jobs:
         SHORT_SHA="${COMMIT_SHA:0:8}"
         GREEN_REVISION="green-$SHORT_SHA"
         
-        # Wait up to 5 minutes for the revision to become ready (increased for database startup)
+        # Wait up to 5 minutes for the revision to become ready with enhanced debugging
         echo "Waiting for Green revision to become healthy..."
         timeout 300 bash -c "
           while true; do
@@ -106,10 +106,21 @@ jobs:
               break
             fi
             echo \"Waiting for Green revision... Status: \$STATUS\"
+            
+            # Get detailed failure information
+            echo \"🔍 Checking revision details:\"
+            gcloud run revisions describe \$GREEN_REVISION --service=${{ env.SERVICE_NAME }} --region=${{ env.REGION }} --format='value(status.conditions[0].message)' 2>/dev/null || echo 'No message available'
+            
+            # Check container logs for debugging
+            echo \"📋 Recent container logs:\"
+            gcloud logs read --limit=10 --filter=\"resource.type=cloud_run_revision AND resource.labels.service_name=${{ env.SERVICE_NAME }} AND resource.labels.revision_name=\$GREEN_REVISION\" --format=\"value(textPayload)\" 2>/dev/null | head -5 || echo 'No logs available yet'
+            
             sleep 10
           done
         " || {
           echo "❌ Green revision failed to become healthy within timeout"
+          echo "📋 Final container logs:"
+          gcloud logs read --limit=20 --filter=\"resource.type=cloud_run_revision AND resource.labels.service_name=${{ env.SERVICE_NAME }} AND resource.labels.revision_name=\$GREEN_REVISION\" --format=\"value(textPayload)\" 2>/dev/null || echo 'No logs available'
           exit 1
         }
 

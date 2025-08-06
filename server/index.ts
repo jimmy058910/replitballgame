@@ -425,32 +425,84 @@ app.use('/api', (req, res, next) => {
 
   const port = process.env.PORT ? parseInt(process.env.PORT) : (process.env.NODE_ENV === 'production' ? 8080 : 5000);
   
-  // ARCHITECTURAL FIX: Start server IMMEDIATELY with instant health checks
+  // COMPREHENSIVE CLOUD RUN DEBUGGING: Enhanced error handling and logging
+  console.log('🔍 ATTEMPTING TO BIND SERVER:', {
+    host: '0.0.0.0',
+    port: port,
+    environment: process.env.NODE_ENV,
+    processId: process.pid,
+    platform: process.platform,
+    nodeVersion: process.version
+  });
+
+  httpServer.on('error', (error: any) => {
+    console.error('❌ CRITICAL SERVER ERROR:', error);
+    console.error('Server failed to start. Error details:', {
+      code: error.code,
+      errno: error.errno,
+      syscall: error.syscall,
+      address: error.address,
+      port: error.port,
+      message: error.message,
+      name: error.name
+    });
+    process.exit(1);
+  });
+
   httpServer.listen({
     port,
     host: "0.0.0.0", // Important for Cloud Run
     reusePort: true,
   }, () => {
-    console.log(`✅ Server listening on port ${port}`);
+    console.log(`✅ SERVER SUCCESSFULLY BOUND TO PORT ${port}`);
     console.log(`✅ Health check available at /health`);
     console.log(`✅ Cloud Run startup probe endpoint: /healthz`);
     
-    // CRITICAL: Log server binding info for Cloud Run debugging
+    // CRITICAL: Enhanced Cloud Run debugging
     if (process.env.NODE_ENV === 'production') {
-      console.log('🔍 CLOUD RUN SERVER DEBUG:', {
-        bindingHost: '0.0.0.0',
-        bindingPort: port,
-        expectedProbePort: 8080,
-        actualPort: port,
-        portMatch: port === 8080,
-        environmentPORT: process.env.PORT,
-        processUptime: process.uptime()
+      console.log('🔍 COMPREHENSIVE CLOUD RUN DEBUG:', {
+        server: {
+          bindingHost: '0.0.0.0',
+          bindingPort: port,
+          actualPort: port,
+          portMatch: port === 8080,
+          listening: true
+        },
+        environment: {
+          NODE_ENV: process.env.NODE_ENV,
+          PORT: process.env.PORT,
+          GOOGLE_CLOUD_PROJECT: process.env.GOOGLE_CLOUD_PROJECT,
+          K_SERVICE: process.env.K_SERVICE,
+          K_REVISION: process.env.K_REVISION
+        },
+        secrets: {
+          DATABASE_URL_PRODUCTION: !!process.env.DATABASE_URL_PRODUCTION,
+          VITE_FIREBASE_API_KEY: !!process.env.VITE_FIREBASE_API_KEY,
+          VITE_FIREBASE_PROJECT_ID: !!process.env.VITE_FIREBASE_PROJECT_ID,
+          GOOGLE_CLIENT_ID: !!process.env.GOOGLE_CLIENT_ID,
+          GOOGLE_CLIENT_SECRET: !!process.env.GOOGLE_CLIENT_SECRET
+        },
+        process: {
+          pid: process.pid,
+          uptime: process.uptime(),
+          memoryUsage: process.memoryUsage()
+        }
       });
     }
     
-    // ARCHITECTURAL FIX: Initialize services IMMEDIATELY in background
-    // No delay - let startup probes pass while services initialize
-    console.log('🚀 Starting immediate background service initialization');
+    // Test health endpoint immediately after binding
+    console.log('🔍 TESTING HEALTH ENDPOINT IMMEDIATELY...');
+    setTimeout(() => {
+      const http = require('http');
+      const testReq = http.get(`http://localhost:${port}/healthz`, (res: any) => {
+        console.log(`✅ HEALTH ENDPOINT TEST: Status ${res.statusCode}`);
+      }).on('error', (err: any) => {
+        console.error('❌ HEALTH ENDPOINT TEST FAILED:', err.message);
+      });
+    }, 1000);
+    
+    // Initialize services in background
+    console.log('🚀 Starting background service initialization');
     initializeRemainingServices().catch(error => {
       console.error('⚠️ Service initialization failed, but server remains operational:', error);
     });

@@ -65,9 +65,10 @@ export function createBasicHealthCheck() {
         }
       };
 
-      // Log health check for Cloud Run debugging
+      // Log every health check for Cloud Run debugging
       if (process.env.NODE_ENV === 'production') {
-        console.log('🔍 CLOUD RUN HEALTH CHECK:', JSON.stringify(healthData, null, 2));
+        console.log('🔍 HEALTH CHECK REQUEST RECEIVED');
+        console.log('🔍 HEALTH CHECK RESPONSE:', JSON.stringify(healthData, null, 2));
       }
       
       // Set headers for Cloud Run
