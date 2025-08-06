@@ -29,43 +29,94 @@ function getDatabaseUrl(): string {
   }
 }
 
-// Get environment-specific database URL
-const databaseUrl = getDatabaseUrl();
-const nodeEnv = process.env.NODE_ENV || 'development';
-const dbHost = databaseUrl.split('@')[1]?.split('/')[0] || 'unknown';
+// CRITICAL FIX: Make database connection completely lazy to prevent startup crashes
+let _databaseUrl: string | null = null;
+let _prismaClient: PrismaClient | null = null;
 
-// TEMPORARY DEBUG: Log exact database URL being used
-console.log(`🔗 [${nodeEnv.toUpperCase()}] Connecting to database: ${dbHost}`);
-if (nodeEnv === 'production') {
-  console.log('🔍 PRODUCTION DB DEBUG:');
-  console.log('  - NODE_ENV:', process.env.NODE_ENV);
-  console.log('  - DATABASE_URL_PRODUCTION exists:', !!process.env.DATABASE_URL_PRODUCTION);
-  console.log('  - DATABASE_URL exists:', !!process.env.DATABASE_URL);
-  console.log('  - Using URL pattern:', databaseUrl.substring(0, 50) + '...');
-  console.log('  - Database user:', databaseUrl.split('://')[1]?.split(':')[0] || 'unknown');
+function getDatabaseUrlLazy(): string {
+  if (_databaseUrl) return _databaseUrl;
+  
+  const nodeEnv = process.env.NODE_ENV || 'development';
+  
+  if (nodeEnv === 'production') {
+    // Production database (live website)
+    const prodUrl = process.env.DATABASE_URL_PRODUCTION || process.env.DATABASE_URL;
+    if (!prodUrl) {
+      console.error('❌ CRITICAL: Production database URL not configured (DATABASE_URL_PRODUCTION or DATABASE_URL)');
+      throw new Error('Production database URL not configured (DATABASE_URL_PRODUCTION or DATABASE_URL)');
+    }
+    _databaseUrl = prodUrl;
+    return prodUrl;
+  } else {
+    // Development database (testing in Replit)
+    const devUrl = process.env.DATABASE_URL_DEVELOPMENT || process.env.DATABASE_URL;
+    if (!devUrl) {
+      console.error('❌ CRITICAL: Development database URL not configured (DATABASE_URL_DEVELOPMENT or DATABASE_URL)');
+      throw new Error('Development database URL not configured (DATABASE_URL_DEVELOPMENT or DATABASE_URL)');
+    }
+    _databaseUrl = devUrl;
+    return devUrl;
+  }
 }
 
-export const prisma = globalForPrisma.prisma ?? new PrismaClient({
-  datasources: {
-    db: {
-      url: databaseUrl,
-    },
-  },
-  log: nodeEnv === 'development' ? ['query', 'error', 'warn'] : ['error'],
+function createPrismaClientLazy(): PrismaClient {
+  if (_prismaClient) return _prismaClient;
+  
+  try {
+    const databaseUrl = getDatabaseUrlLazy();
+    const nodeEnv = process.env.NODE_ENV || 'development';
+    const dbHost = databaseUrl.split('@')[1]?.split('/')[0] || 'unknown';
+    
+    // Log database connection info ONLY when actually connecting
+    console.log(`🔗 [${nodeEnv.toUpperCase()}] Connecting to database: ${dbHost}`);
+    if (nodeEnv === 'production') {
+      console.log('🔍 PRODUCTION DB DEBUG:');
+      console.log('  - NODE_ENV:', process.env.NODE_ENV);
+      console.log('  - DATABASE_URL_PRODUCTION exists:', !!process.env.DATABASE_URL_PRODUCTION);
+      console.log('  - DATABASE_URL exists:', !!process.env.DATABASE_URL);
+      console.log('  - Using URL pattern:', databaseUrl.substring(0, 50) + '...');
+      console.log('  - Database user:', databaseUrl.split('://')[1]?.split(':')[0] || 'unknown');
+    }
+
+    _prismaClient = new PrismaClient({
+      datasources: {
+        db: {
+          url: databaseUrl,
+        },
+      },
+      log: nodeEnv === 'development' ? ['query', 'error', 'warn'] : ['error'],
+    });
+    
+    // Initialize aggressive connection optimization
+    const optimizer = ConnectionPoolOptimizer.getInstance(_prismaClient);
+    
+    return _prismaClient;
+  } catch (error) {
+    console.error('❌ CRITICAL: Failed to create Prisma client:', error);
+    throw error;
+  }
+}
+
+// CRITICAL FIX: Export a getter function instead of direct client
+export const prisma = new Proxy({} as PrismaClient, {
+  get(target, prop, receiver) {
+    const client = globalForPrisma.prisma ?? createPrismaClientLazy();
+    if (globalForPrisma.prisma !== client) {
+      globalForPrisma.prisma = client;
+    }
+    return Reflect.get(client, prop, receiver);
+  }
 });
 
-// Initialize aggressive connection optimization
-const optimizer = ConnectionPoolOptimizer.getInstance(prisma);
+// Connection optimization is now handled in createPrismaClientLazy()
 
-if (nodeEnv !== 'production') {
-  globalForPrisma.prisma = prisma
-}
-
-// Enhanced connection pool configuration for all environments
-// Aggressive connection cleanup to minimize compute hours
+// Cleanup handlers remain the same
 const cleanup = async () => {
   console.log('🔧 Cleaning up database connections...');
-  await prisma.$disconnect();
+  if (_prismaClient) {
+    await _prismaClient.$disconnect();
+    _prismaClient = null;
+  }
 };
 
 // Multiple cleanup triggers to minimize idle connections
