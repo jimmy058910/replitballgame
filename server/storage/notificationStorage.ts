@@ -29,7 +29,7 @@ export class NotificationStorage {
     try {
       return await prisma.notification.update({
         where: { id: notificationId },
-        data: { isRead: true, updatedAt: new Date() }, // Assuming you might want an updatedAt field
+        data: { isRead: true }, // updatedAt not in schema yet
       });
     } catch (error) {
       // P2025: Record to update not found
@@ -48,7 +48,7 @@ export class NotificationStorage {
         teamId: teamId, 
         isRead: false 
       },
-      data: { isRead: true, updatedAt: new Date() },
+      data: { isRead: true }, // updatedAt not in schema yet
     });
   }
 

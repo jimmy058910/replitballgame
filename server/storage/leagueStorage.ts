@@ -11,7 +11,7 @@ export class LeagueStorage {
       data: {
         division: leagueData.division,
         name: leagueData.name,
-        seasonId: leagueData.seasonId,
+        seasonId: leagueData.seasonId.toString(),
       },
       include: {
         teams: true,
@@ -40,7 +40,7 @@ export class LeagueStorage {
     const league = await prisma.league.findFirst({
       where: {
         division,
-        ...(seasonId ? { seasonId } : {})
+        ...(seasonId ? { seasonId: seasonId.toString() } : {})
       },
       include: {
         teams: true,

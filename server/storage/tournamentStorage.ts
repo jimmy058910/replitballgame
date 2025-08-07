@@ -3,7 +3,7 @@ import { PrismaClient, Tournament, TournamentEntry } from '../../generated/prism
 
 export class TournamentStorage {
   async getAllTournamentHistory(): Promise<any[]> {
-    const history = await prisma.tournamentRegistration.findMany({
+    const history = await prisma.tournamentEntry.findMany({
       include: {
         tournament: true,
         team: {
@@ -38,16 +38,16 @@ export class TournamentStorage {
     const newTournament = await prisma.tournament.create({
       data: {
         name: tournamentData.name,
-        type: tournamentData.type,
-        status: tournamentData.status || 'REGISTRATION_OPEN' as any,
+        type: tournamentData.type as any,
+        status: tournamentData.status as any || 'REGISTRATION_OPEN' as any,
         division: tournamentData.division,
-        season: tournamentData.season,
-        gameDay: tournamentData.gameDay,
+        // season: tournamentData.season, // Not in schema yet
+        // gameDay: tournamentData.gameDay, // Not in schema yet
         entryFeeCredits: tournamentData.entryFeeCredits || BigInt(0),
         entryFeeGems: tournamentData.entryFeeGems || 0,
         requiresEntryItem: tournamentData.requiresEntryItem || false,
         registrationDeadline: tournamentData.registrationDeadline,
-        startTime: tournamentData.startTime,
+        startTime: tournamentData.startTime || new Date(),
         maxParticipants: tournamentData.maxParticipants || 16,
       },
       include: {
@@ -196,7 +196,7 @@ export class TournamentStorage {
         tournament: { select: { name: true } },
         team: { select: { name: true } }
       },
-      orderBy: { createdAt: 'asc' }
+      orderBy: { registeredAt: 'asc' }
     });
   }
 
@@ -207,7 +207,7 @@ export class TournamentStorage {
         tournament: { select: { name: true, type: true } },
         team: { select: { name: true } }
       },
-      orderBy: { createdAt: 'desc' }
+      orderBy: { registeredAt: 'desc' }
     });
   }
 
@@ -253,7 +253,7 @@ export class TournamentStorage {
 
     return await prisma.tournament.findMany({
       where: {
-        status: 'OPEN',
+        status: 'REGISTRATION_OPEN' as any,
         NOT: {
           id: { in: excludedTournamentIds }
         }

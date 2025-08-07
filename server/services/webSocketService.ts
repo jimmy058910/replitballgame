@@ -37,7 +37,7 @@ class WebSocketService {
           // Verify user exists in database with timeout
           const userProfile = await Promise.race([
             prisma.userProfile.findFirst({
-              where: { id: data.userId }
+              where: { id: Number(data.userId) }
             }),
             new Promise((_, reject) => 
               setTimeout(() => reject(new Error('Database timeout')), 5000)
@@ -104,12 +104,19 @@ class WebSocketService {
 
           const match = await Promise.race([
             prisma.game.findUnique({
-              where: { id: parseInt(data.matchId) }
+              where: { id: parseInt(data.matchId) },
+              select: {
+                id: true,
+                homeTeamId: true,
+                awayTeamId: true,
+                status: true,
+                simulationLog: true
+              }
             }),
             new Promise((_, reject) => 
               setTimeout(() => reject(new Error('Database timeout')), 5000)
             )
-          ]);
+          ]) as any;
 
           if (!match) {
             socket.emit('error', { message: 'Match not found' });
@@ -118,16 +125,16 @@ class WebSocketService {
 
           // Verify user has access to this match (owns one of the teams or is admin)
           const userProfile = await prisma.userProfile.findFirst({
-            where: { userProfileId: user.userId }
+            where: { id: Number(user.userId) }
           });
 
           const userTeam = await prisma.team.findFirst({
             where: { userProfileId: userProfile?.id }
           });
 
-          const hasAccess = userTeam?.id === match.homeTeamId || 
-                           userTeam?.id === match.awayTeamId ||
-                           match.status === 'IN_PROGRESS'; // Allow spectating live matches
+          const hasAccess = userTeam?.id === match?.homeTeamId || 
+                           userTeam?.id === match?.awayTeamId ||
+                           match?.status === 'IN_PROGRESS'; // Allow spectating live matches
 
           if (!hasAccess) {
             socket.emit('error', { message: 'Access denied to this match' });
@@ -157,6 +164,8 @@ class WebSocketService {
           // Send current match state if live
           logger.info(`🔍 BEFORE getLiveMatchState call for match ${data.matchId}`);
           try {
+            // Dynamic import to prevent startup database connections
+            const { matchStateManager } = await import('./matchStateManager');
             const liveState = matchStateManager.getLiveMatchState(data.matchId);
             logger.info(`🔍 AFTER getLiveMatchState call - result: ${liveState ? 'FOUND' : 'NOT FOUND'}`);
             if (liveState) {
@@ -218,14 +227,14 @@ class WebSocketService {
           }
 
           const userProfile = await prisma.userProfile.findFirst({
-            where: { userProfileId: user.userId }
+            where: { id: Number(user.userId) }
           });
 
           const userTeam = await prisma.team.findFirst({
             where: { userProfileId: userProfile?.id }
           });
 
-          const isOwner = userTeam?.id === match.homeTeamId || userTeam?.id === match.awayTeamId;
+          const isOwner = userTeam?.id === match?.homeTeamId || userTeam?.id === match?.awayTeamId;
           if (!isOwner) {
             socket.emit('error', { message: 'Only team owners can control matches' });
             return;
@@ -234,17 +243,20 @@ class WebSocketService {
           // Process match commands
           switch (data.command) {
             case 'start_match':
-              await matchStateManager.startLiveMatch(data.matchId, data.params?.isExhibition || false);
+              const { matchStateManager: startManager } = await import('./matchStateManager');
+              await startManager.startLiveMatch(data.matchId, data.params?.isExhibition || false);
               this.broadcastToMatch(data.matchId, 'match_started', { matchId: data.matchId });
               break;
             
             case 'pause_match':
-              matchStateManager.pauseMatch(data.matchId);
+              const { matchStateManager: pauseManager } = await import('./matchStateManager');
+              pauseManager.pauseMatch(data.matchId);
               this.broadcastToMatch(data.matchId, 'match_paused', { matchId: data.matchId });
               break;
             
             case 'resume_match':
-              matchStateManager.resumeMatch(data.matchId);
+              const { matchStateManager: resumeManager } = await import('./matchStateManager');
+              resumeManager.resumeMatch(data.matchId);
               this.broadcastToMatch(data.matchId, 'match_resumed', { matchId: data.matchId });
               break;
             
@@ -313,7 +325,7 @@ class WebSocketService {
     // Convert playerStats Map to object
     if (liveState.playerStats instanceof Map) {
       const playerStatsObj: Record<string, any> = {};
-      liveState.playerStats.forEach((stats, playerId) => {
+      liveState.playerStats.forEach((stats: any, playerId: any) => {
         playerStatsObj[playerId] = stats;
       });
       serialized.playerStats = playerStatsObj;
@@ -322,7 +334,7 @@ class WebSocketService {
     // Convert teamStats Map to object
     if (liveState.teamStats instanceof Map) {
       const teamStatsObj: Record<string, any> = {};
-      liveState.teamStats.forEach((stats, teamId) => {
+      liveState.teamStats.forEach((stats: any, teamId: any) => {
         teamStatsObj[teamId] = stats;
       });
       serialized.teamStats = teamStatsObj;

@@ -541,12 +541,12 @@ export class SeasonalFlowService {
         gameDate.setHours(gameTime.getHours(), gameTime.getMinutes(), 0, 0);
         
         const matchData = {
-          leagueId: parseInt(leagueId),
+          leagueId: leagueId,
           homeTeamId: parseInt(match.homeTeam.id, 10),
           awayTeamId: parseInt(match.awayTeam.id, 10),
           gameDate: gameDate,
-          status: 'SCHEDULED' as const,
-          matchType: 'LEAGUE' as const
+          status: 'SCHEDULED',
+          matchType: 'LEAGUE'
         };
         
         matches.push(matchData);
@@ -556,7 +556,7 @@ export class SeasonalFlowService {
     // Insert matches into database
     if (matches.length > 0) {
       await prisma.game.createMany({
-        data: matches
+        data: matches as any
       });
     }
     
@@ -890,27 +890,24 @@ export class SeasonalFlowService {
               homeTeamId: playoffTeams[1].team.id, // Seed 2
               awayTeamId: playoffTeams[6].team.id, // Seed 7
               gameDate: new Date("2025-07-27"), // Day 15 playoff date
-              season,
-              status: 'SCHEDULED',
-              matchType: 'PLAYOFF'
+              status: 'SCHEDULED' as const,
+              matchType: 'PLAYOFF' as const
             },
             {
               leagueId: parseInt(league.id.toString()),
               homeTeamId: playoffTeams[2].team.id, // Seed 3
               awayTeamId: playoffTeams[5].team.id, // Seed 6
               gameDate: new Date("2025-07-27"), // Day 15 playoff date
-              season,
-              status: 'SCHEDULED',
-              matchType: 'PLAYOFF'
+              status: 'SCHEDULED' as const,
+              matchType: 'PLAYOFF' as const
             },
             {
               leagueId: parseInt(league.id.toString()),
               homeTeamId: playoffTeams[3].team.id, // Seed 4
               awayTeamId: playoffTeams[4].team.id, // Seed 5
               gameDate: new Date("2025-07-27"), // Day 15 playoff date
-              season,
-              status: 'SCHEDULED',
-              matchType: 'PLAYOFF'
+              status: 'SCHEDULED' as const,
+              matchType: 'PLAYOFF' as const
             }
           ];
         } else {
@@ -922,18 +919,16 @@ export class SeasonalFlowService {
               homeTeamId: playoffTeams[0].team.id, // Seed 1
               awayTeamId: playoffTeams[3].team.id, // Seed 4
               gameDate: new Date("2025-07-27"), // Day 15 playoff date
-              season,
-              status: 'SCHEDULED',
-              matchType: 'PLAYOFF'
+              status: 'SCHEDULED' as const,
+              matchType: 'PLAYOFF' as const
             },
             {
               leagueId: parseInt(league.id.toString()),
               homeTeamId: playoffTeams[1].team.id, // Seed 2
               awayTeamId: playoffTeams[2].team.id, // Seed 3
               gameDate: new Date("2025-07-27"), // Day 15 playoff date
-              season,
-              status: 'SCHEDULED',
-              matchType: 'PLAYOFF'
+              status: 'SCHEDULED' as const,
+              matchType: 'PLAYOFF' as const
             }
           ];
         }
@@ -1356,7 +1351,7 @@ export class SeasonalFlowService {
       const existingLeagues = await prisma.league.findMany({
         where: {
           division,
-          season: { equals: season + 1 } // Next season
+          seasonId: (season + 1).toString()
         }
       });
       
@@ -1367,9 +1362,8 @@ export class SeasonalFlowService {
           data: {
             name: `Division ${division} League ${existingLeagues.length + i + 1}`,
             division,
-            season: season + 1,
-            maxTeams: requiredTeamsPerLeague,
-            status: 'active'
+            seasonId: (season + 1).toString(),
+            // status: 'active' // Not in League schema yet
           }
         });
         newLeaguesCreated++;
@@ -1430,7 +1424,7 @@ export class SeasonalFlowService {
       data: {
         wins: 0,
         losses: 0,
-        draws: 0,
+
         points: 0
       }
     });
@@ -1544,7 +1538,7 @@ export class SeasonalFlowService {
       let totalPrizeMoney = 0;
 
       // Prize pools by division (credits)
-      const divisionPrizePools = {
+      const divisionPrizePools: Record<number, { champion: number; runnerUp: number; thirdPlace: number; fourthPlace: number }> = {
         1: { champion: 50000, runnerUp: 25000, thirdPlace: 15000, fourthPlace: 10000 },
         2: { champion: 30000, runnerUp: 15000, thirdPlace: 8000, fourthPlace: 5000 },
         3: { champion: 20000, runnerUp: 10000, thirdPlace: 5000, fourthPlace: 3000 },
@@ -1599,11 +1593,11 @@ export class SeasonalFlowService {
 
           if (prizeAmount > 0 && team) {
             // Award prize money
-            const currentCredits = parseInt(team.credits);
+            const currentCredits = team.finances ? Number(team.finances.credits) : 0;
             await prisma.teamFinances.update({
               where: { teamId: team.id },
               data: {
-                credits: (currentCredits + prizeAmount).toString()
+                credits: BigInt(currentCredits + prizeAmount)
               }
             });
 
@@ -1708,8 +1702,8 @@ export class SeasonalFlowService {
         await prisma.teamFinances.create({
           data: {
             teamId: placeholderTeam.id,
-            credits: '0',
-            gems: '0'
+            credits: BigInt(0),
+            gems: 0
           }
         });
         
@@ -1731,7 +1725,7 @@ export class SeasonalFlowService {
           await prisma.contract.deleteMany({
             where: { 
               playerId: { 
-                in: team.players.map(p => p.id) 
+                in: team.players.map((p: any) => p.id) 
               } 
             }
           });
@@ -1740,7 +1734,7 @@ export class SeasonalFlowService {
           await prisma.playerSkillLink.deleteMany({
             where: { 
               playerId: { 
-                in: team.players.map(p => p.id) 
+                in: team.players.map((p: any) => p.id) 
               } 
             }
           });

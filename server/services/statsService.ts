@@ -88,7 +88,7 @@ export class StatsService {
       const meaningfulGames = await prisma.game.findMany({
         where: {
           matchType: {
-            in: MEANINGFUL_MATCH_TYPES
+            in: ['LEAGUE', 'PLAYOFF']
           },
           status: 'COMPLETED',
           OR: [
@@ -172,7 +172,7 @@ export class StatsService {
       const meaningfulGames = await prisma.game.findMany({
         where: {
           matchType: {
-            in: MEANINGFUL_MATCH_TYPES
+            in: ['LEAGUE', 'PLAYOFF']
           },
           status: 'COMPLETED',
           OR: [

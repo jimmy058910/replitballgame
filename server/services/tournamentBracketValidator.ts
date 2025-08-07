@@ -21,10 +21,11 @@ export class TournamentBracketValidator {
 
       const rounds = new Map<number, any[]>();
       for (const match of allMatches) {
-        if (!rounds.has(match.round)) {
-          rounds.set(match.round, []);
+        const roundNum = match.round || 1;
+        if (!rounds.has(roundNum)) {
+          rounds.set(roundNum, []);
         }
-        rounds.get(match.round)?.push(match);
+        rounds.get(roundNum)?.push(match);
       }
 
       // Validate each round progression
@@ -79,10 +80,11 @@ export class TournamentBracketValidator {
 
       const rounds = new Map<number, any[]>();
       for (const match of allMatches) {
-        if (!rounds.has(match.round)) {
-          rounds.set(match.round, []);
+        const roundNum = match.round || 1;
+        if (!rounds.has(roundNum)) {
+          rounds.set(roundNum, []);
         }
-        rounds.get(match.round)?.push(match);
+        rounds.get(roundNum)?.push(match);
       }
 
       // Fix each round progression
@@ -128,10 +130,10 @@ export class TournamentBracketValidator {
                 awayTeamId: winners[i + 1],
                 homeScore: 0,
                 awayScore: 0,
-                status: 'SCHEDULED',
+                status: 'SCHEDULED' as const,
                 round: round + 1,
                 gameDate: new Date(),
-                matchType: 'TOURNAMENT_DAILY'
+                matchType: 'PLAYOFF' as const
               });
             }
           }

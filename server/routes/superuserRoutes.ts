@@ -320,7 +320,7 @@ router.post('/add-players', RBACService.requirePermission(Permission.MANAGE_LEAG
 
   const newPlayers = [];
   for (let i = 0; i < playerCount; i++) {
-    const player = generatePlayerForTeam(teamId as any, "HUMAN", "PASSER");
+    const player = generatePlayerForTeam(teamId, "HUMAN", "PASSER");
     await storage.players.createPlayer(player);
     newPlayers.push(player);
   }

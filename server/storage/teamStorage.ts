@@ -49,7 +49,7 @@ async function serializeTeamData(team: any): Promise<any> {
     players: playersWithContracts.map((player: any) => ({
       ...player,
       // Flatten contract information into player object
-      contractSalary: player.contract ? parseInt(player.contract.salary.toString()) : 0,
+      contractSalary: player.contract ? Number(player.contract.salary.toString()) : 0,
       contractLength: player.contract ? player.contract.length : 0,
       contractStartDate: player.contract ? player.contract.startDate : null,
       contractSigningBonus: player.contract ? parseInt(player.contract.signingBonus?.toString() || '0') : 0,
@@ -314,7 +314,7 @@ export class TeamStorage {
         potentialRating: playerData.potentialRating,
         dailyStaminaLevel: 100,
         injuryStatus: 'HEALTHY' as any,
-        camaraderieScore: playerData.camaraderie || 75.0,
+        camaraderieScore: playerData.camaraderieScore || 75.0,
       };
       
       await storage.players.createPlayer(cleanPlayerData);

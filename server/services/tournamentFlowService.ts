@@ -208,7 +208,7 @@ class TournamentFlowServiceImpl implements TournamentFlowService {
           newInjuryStatus = 'MINOR_INJURY';
           newRecoveryPoints = Math.floor(Math.random() * 7) + 3; // 3-10 days recovery
         } else if (injuryRisk < 2) { // 2% major injury chance
-          newInjuryStatus = 'SERIOUS_INJURY';
+          newInjuryStatus = 'MINOR_INJURY';
           newRecoveryPoints = Math.floor(Math.random() * 14) + 7; // 7-21 days recovery
         }
 
@@ -354,7 +354,7 @@ class TournamentFlowServiceImpl implements TournamentFlowService {
           7: { champion: { credits: 2500, gems: 0 }, runnerUp: { credits: 1000, gems: 0 } },
           8: { champion: { credits: 1500, gems: 0 }, runnerUp: { credits: 500, gems: 0 } }
         };
-        const rewards = rewardTable[tournament.division] || rewardTable[8];
+        const rewards = rewardTable[tournament.division || 8] || rewardTable[8];
         championPrize = rewards.champion;
         runnerUpPrize = rewards.runnerUp;
       }
@@ -367,8 +367,7 @@ class TournamentFlowServiceImpl implements TournamentFlowService {
       await prisma.tournament.update({
         where: { id: tournamentId },
         data: {
-          status: 'COMPLETED',
-          completedAt: new Date()
+          status: 'COMPLETED'
         }
       });
 

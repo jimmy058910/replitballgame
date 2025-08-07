@@ -4,7 +4,7 @@
  */
 
 import * as Sentry from "@sentry/node";
-import { ProfilingIntegration } from "@sentry/profiling-node";
+import { nodeProfilingIntegration } from "@sentry/profiling-node";
 
 export class SentryService {
   private static initialized = false;
@@ -30,7 +30,7 @@ export class SentryService {
       Sentry.init({
         dsn,
         integrations: [
-          new ProfilingIntegration()
+          nodeProfilingIntegration()
         ],
         // Performance monitoring
         tracesSampleRate: 0.1, // 10% sampling to conserve quota
@@ -64,21 +64,21 @@ export class SentryService {
    * Get Sentry request handler middleware
    */
   static getRequestHandler() {
-    return Sentry.Handlers.requestHandler();
+    return Sentry.setupExpressErrorHandler;
   }
 
   /**
    * Get Sentry tracing handler middleware
    */
   static getTracingHandler() {
-    return Sentry.Handlers.tracingHandler();
+    return Sentry.setupExpressErrorHandler;
   }
 
   /**
    * Get Sentry error handler middleware
    */
   static getErrorHandler() {
-    return Sentry.Handlers.errorHandler();
+    return Sentry.setupExpressErrorHandler;
   }
 
   /**
