@@ -692,7 +692,7 @@ router.post('/create-additional-teams', isAuthenticated, async (req: Request, re
         const playerData = generateRandomPlayer(
             firstName,
             lastName,
-            race.toLowerCase()
+            race.toLowerCase() as any
         );
         await storage.players.createPlayer({
             ...playerData,

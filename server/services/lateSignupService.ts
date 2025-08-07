@@ -251,7 +251,7 @@ export class LateSignupService {
           throwing: Math.floor(Math.random() * 15) + 10,
           catching: Math.floor(Math.random() * 15) + 10,
           kicking: Math.floor(Math.random() * 15) + 10,
-          staminaAttribute: Math.floor(Math.random() * 15) + 10,
+          stamina: Math.floor(Math.random() * 15) + 10,
           leadership: Math.floor(Math.random() * 15) + 10,
           agility: Math.floor(Math.random() * 15) + 10,
           injuryStatus: 'HEALTHY',

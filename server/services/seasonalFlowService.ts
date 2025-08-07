@@ -1,3 +1,4 @@
+import { GameStatus, MatchType, PrismaClient, Team, TournamentStatus } from '@prisma/client';
 import { prisma } from '../db';
 import { logInfo } from './errorService';
 import { EASTERN_TIMEZONE, getEasternTimeAsDate } from '../../shared/timezone';
@@ -91,7 +92,7 @@ export class SeasonalFlowService {
     try {
       // Get team info
       const team = await prisma.team.findUnique({
-        where: { id: teamId },
+        where: { id: parseInt(teamId, 10) },
         include: { league: true }
       });
 
@@ -102,7 +103,7 @@ export class SeasonalFlowService {
       // Check if team is in a tournament (Division playoffs)
       const tournamentEntries = await prisma.tournamentEntry.findMany({
         where: {
-          teamId: teamId,
+          teamId: parseInt(teamId, 10),
           tournament: {
             tournamentType: 'DIVISION_PLAYOFFS'
           }

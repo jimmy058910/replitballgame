@@ -32,7 +32,6 @@ export interface Team {
 
 export interface Player {
   id: number;
-  name: string;
   firstName: string;
   lastName: string;
   race: string;
@@ -42,7 +41,6 @@ export interface Player {
   catching: number;
   kicking: number;
   agility?: number;
-  staminaAttribute?: number;
   stamina?: number;
   leadership?: number;
   role?: string;

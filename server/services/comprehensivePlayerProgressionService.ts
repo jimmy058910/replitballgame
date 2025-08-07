@@ -46,7 +46,7 @@ export class ComprehensivePlayerProgressionService {
     PHYSICAL_STATS: ['speed', 'agility', 'power'],
     
     // All core attributes
-    CORE_ATTRIBUTES: ['speed', 'agility', 'power', 'throwing', 'catching', 'kicking', 'leadership', 'staminaAttribute'],
+    CORE_ATTRIBUTES: ['speed', 'agility', 'power', 'throwing', 'catching', 'kicking', 'leadership', 'stamina'],
     
     // Age-related decline
     DECLINE_BASE_RATE: 2.5, // (age - 30) * 2.5%
@@ -263,7 +263,7 @@ export class ComprehensivePlayerProgressionService {
       const trainerBonus = (trainer.teaching || 20) * 0.15; // 0.15% per teaching point
       
       // Apply trainer bonus based on attribute type (simplified grouping)
-      if (['power', 'staminaAttribute'].includes(attribute)) {
+      if (['power', 'stamina'].includes(attribute)) {
         modifier += trainerBonus; // Strength trainer
       } else if (['speed', 'agility'].includes(attribute)) {
         modifier += trainerBonus; // Speed trainer

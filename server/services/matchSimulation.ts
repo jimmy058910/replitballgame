@@ -246,15 +246,15 @@ function calculateTeamStrength(players: Player[]): number {
   return players.reduce((total, player) => {
     const avgStats = (
       (player.speed || 0) + (player.power || 0) + (player.throwing || 0) +
-      (player.catching || 0) + (player.stamina || 0) + (player.agility || 0)
+      (player.catching || 0) + (player.staminaAttribute || 0) + (player.agility || 0)
     ) / 6;
     
     let bonus = 1;
     switch (player.race) {
-      case "sylvan": bonus = 1.1; break;
-      case "gryll": bonus = 1.05; break;
-      case "lumina": bonus = 1.08; break;
-      case "umbra": bonus = 1.07; break;
+      case "SYLVAN": bonus = 1.1; break;
+      case "GRYLL": bonus = 1.05; break;
+      case "LUMINA": bonus = 1.08; break;
+      case "UMBRA": bonus = 1.07; break;
       default: bonus = 1.03; // human
     }
     
@@ -303,25 +303,25 @@ function generateMatchEvent(
     let passSuccessChance = 0.6 + camaraderieEffect;
     if (rng.next() < passSuccessChance) {
       eventType = "pass_complete";
-      description = `${randomPlayer.name} (${randomPlayer.race}) completes a precise pass!`;
+      description = `${randomPlayer.firstName} ${randomPlayer.lastName} (${randomPlayer.race}) completes a precise pass!`;
       if (rng.next() < (0.15 + Math.max(0, camaraderieEffect))) {
         eventType = "score";
-        description = `TOUCHDOWN! ${randomPlayer.name} (${randomPlayer.race}) connects for a score!`;
+        description = `TOUCHDOWN! ${randomPlayer.firstName} ${randomPlayer.lastName} (${randomPlayer.race}) connects for a score!`;
       }
     } else {
       if (rng.next() < (0.5 + Math.max(0, -camaraderieEffect * 2))) {
         eventType = "pass_inaccurate";
-        description = `${randomPlayer.name} (${randomPlayer.race})'s pass is off target due to miscommunication!`;
+        description = `${randomPlayer.firstName} ${randomPlayer.lastName} (${randomPlayer.race})'s pass is off target due to miscommunication!`;
       } else {
         eventType = "interception";
         const defendingPlayers = isHomeTeamEvent ? awayTeamPlayers : homeTeamPlayers;
-        const interceptor = defendingPlayers.length > 0 ? rng.choice(defendingPlayers) : { name: "Defender", race: "Unknown" };
-        description = `${interceptor.name} (${interceptor.race}) intercepts the pass!`;
+        const interceptor = defendingPlayers.length > 0 ? rng.choice(defendingPlayers) : { firstName: "Unknown", lastName: "Defender", race: "Unknown" };
+        description = `${interceptor.firstName} ${interceptor.lastName} (${interceptor.race}) intercepts the pass!`;
         return {
           time: Math.floor(time),
           type: eventType,
           description,
-          player: interceptor.name,
+          player: `${interceptor.firstName} ${interceptor.lastName}`,
           team: isHomeTeamEvent ? "away" : "home"
         };
       }
@@ -330,25 +330,25 @@ function generateMatchEvent(
     let runSuccessChance = 0.5 + camaraderieEffect * 0.5;
     if (Math.random() < runSuccessChance) {
       eventType = "run_positive";
-      description = `${randomPlayer.name} (${randomPlayer.race}) finds a gap and gains yards!`;
+      description = `${randomPlayer.firstName} ${randomPlayer.lastName} (${randomPlayer.race}) finds a gap and gains yards!`;
       if (Math.random() < (0.1 + Math.max(0, camaraderieEffect * 0.5))) {
         eventType = "score";
-        description = `SCORE! ${randomPlayer.name} (${randomPlayer.race}) breaks free for a touchdown!`;
+        description = `SCORE! ${randomPlayer.firstName} ${randomPlayer.lastName} (${randomPlayer.race}) breaks free for a touchdown!`;
       }
     } else {
       eventType = "run_stuffed";
-      description = `${randomPlayer.name} (${randomPlayer.race}) is stopped at the line of scrimmage.`;
+      description = `${randomPlayer.firstName} ${randomPlayer.lastName} (${randomPlayer.race}) is stopped at the line of scrimmage.`;
     }
   } else if (eventType === "defensive_play") {
     const defendingPlayers = isHomeTeamEvent ? awayTeamPlayers : homeTeamPlayers;
-    const defender = defendingPlayers.length > 0 ? defendingPlayers[Math.floor(Math.random() * defendingPlayers.length)] : { name: "Defender", race: "Unknown" };
+    const defender = defendingPlayers.length > 0 ? defendingPlayers[Math.floor(Math.random() * defendingPlayers.length)] : { firstName: "Unknown", lastName: "Defender", race: "Unknown" };
     eventType = "tackle";
-    description = `${defender.name} (${defender.race}) makes a solid tackle!`;
+    description = `${defender.firstName} ${defender.lastName} (${defender.race}) makes a solid tackle!`;
      return {
         time: Math.floor(time),
         type: eventType,
         description,
-        player: defender.name,
+        player: `${defender.firstName} ${defender.lastName}`,
         team: isHomeTeamEvent ? "away" : "home"
       };
   }
@@ -356,7 +356,7 @@ function generateMatchEvent(
   if (eventType === "pass_complete" && actingTeamCamaraderie < 35) {
     if (Math.random() < 0.15) {
         eventType = "catch_failed";
-        description = `${randomPlayer.name} (${randomPlayer.race}) fails to secure the catch despite a good pass! Player camaraderie: ${actingTeamCamaraderie}`;
+        description = `${randomPlayer.firstName} ${randomPlayer.lastName} (${randomPlayer.race}) fails to secure the catch despite a good pass! Player camaraderie: ${actingTeamCamaraderie}`;
     }
   }
 
@@ -372,13 +372,13 @@ function generateMatchEvent(
     if (Math.random() < baseInjuryChance) {
       const originalDescription = description;
       eventType = "injury";
-      description = `${randomPlayer.name} (${randomPlayer.race}) is injured after the play! Original event: ${originalDescription}`;
-      console.log(`Player ${randomPlayer.name} injured. Team Camaraderie: ${actingTeamCamaraderie}, Injury Chance: ${baseInjuryChance}`);
+      description = `${randomPlayer.firstName} ${randomPlayer.lastName} (${randomPlayer.race}) is injured after the play! Original event: ${originalDescription}`;
+      console.log(`Player ${randomPlayer.firstName} ${randomPlayer.lastName} injured. Team Camaraderie: ${actingTeamCamaraderie}, Injury Chance: ${baseInjuryChance}`);
       return {
         time: Math.floor(time),
         type: eventType,
         description,
-        player: randomPlayer.name,
+        player: `${randomPlayer.firstName} ${randomPlayer.lastName}`,
         team: actingTeam,
       };
     }
@@ -388,7 +388,7 @@ function generateMatchEvent(
     time: Math.floor(time),
     type: eventType,
     description,
-    player: randomPlayer.name,
+    player: `${randomPlayer.firstName} ${randomPlayer.lastName}`,
     team: actingTeam,
   };
 }
@@ -397,7 +397,7 @@ function generateMatchEvent(
 
 function calculateAtmosphereEffects(stadium: Stadium | undefined, homeTeamId: string, awayTeamId: string): AtmosphereEffects {
   const baseAttendance = stadium?.capacity || 15000;
-  const fanLoyalty = stadium?.fanLoyalty || 65;
+  const fanLoyalty = 65; // TODO: Add fanLoyalty to Stadium model
   const attendance = Math.floor(baseAttendance * (fanLoyalty / 100));
   
   // Home field advantage calculation
@@ -409,8 +409,8 @@ function calculateAtmosphereEffects(stadium: Stadium | undefined, homeTeamId: st
   // Intimidation factor for away team
   const intimidationFactor = Math.min(5, Math.floor(crowdNoise / 2) + Math.floor(homeFieldAdvantage / 2));
   
-  // Field size effects
-  const fieldSize = stadium?.fieldSize || 'Standard';
+  // Field size effects  
+  const fieldSize = 'Standard'; // TODO: Add fieldSize to Stadium model
   
   return {
     homeFieldAdvantage,
@@ -538,7 +538,7 @@ async function initializeEnhancedPlayers(
     const staffEffects = staffEffectsCache.get(`${player.teamId}-${player.role}`) || {};
     
     // Initialize current stamina
-    let currentStamina = player.stamina || 100;
+    let currentStamina = player.staminaAttribute || 100;
     
     // Apply stamina effects based on daily stamina level
     if (player.dailyStaminaLevel !== undefined) {
@@ -613,7 +613,7 @@ function getRaceEffects(race: string): Record<string, number> {
   const effects: Record<string, number> = {};
   
   switch (race.toLowerCase()) {
-    case 'sylvan':
+    case 'SYLVAN':
       effects.speed = 3;
       effects.agility = 4;
       effects.power = -2;
@@ -665,7 +665,7 @@ async function getPlayerEquipmentEffects(playerId: string): Promise<Record<strin
     
     // Get all equipment for the player
     const playerEquipment = await prisma.playerEquipment.findMany({
-      where: { playerId: playerId },
+      where: { playerId: parseInt(playerId) },
       include: {
         item: true
       }
@@ -675,7 +675,7 @@ async function getPlayerEquipmentEffects(playerId: string): Promise<Record<strin
     for (const equipment of playerEquipment) {
       if (equipment.item?.statBoosts) {
         const statBoosts = equipment.item.statBoosts as any;
-        Object.entries(statBoosts).forEach(([stat, boost]) => {
+        Object.entries(statBoosts).forEach(([stat, boost]: [string, any]) => {
           if (typeof boost === 'number') {
             effects[stat] = (effects[stat] || 0) + boost;
           }
@@ -788,7 +788,7 @@ async function getActiveMatchConsumables(teamId: string, playerId: string): Prom
     const { prisma } = await import('../db');
     
     // Get active consumables from team inventory instead of non-existent matchConsumable table
-    const activeConsumables = await prisma.teamConsumable.findMany({
+    const activeConsumables = await prisma.consumableItem.findMany({
       where: {
         teamId: parseInt(teamId),
         isActive: true
@@ -804,7 +804,7 @@ async function getActiveMatchConsumables(teamId: string, playerId: string): Prom
       const effectData = item.statEffects as any;
       
       if (effectData?.statBoosts) {
-        Object.entries(effectData.statBoosts).forEach(([stat, boost]) => {
+        Object.entries(effectData.statBoosts).forEach(([stat, boost]: [string, any]) => {
           if (typeof boost === 'number') {
             effects[stat] = (effects[stat] || 0) + boost;
           }
@@ -825,7 +825,7 @@ async function getActiveMatchConsumables(teamId: string, playerId: string): Prom
         case 'CONSUMABLE_PERFORMANCE':
           // Apply temporary performance boosts
           if (effectData?.statBoosts) {
-            Object.entries(effectData.statBoosts).forEach(([stat, boost]) => {
+            Object.entries(effectData.statBoosts).forEach(([stat, boost]: [string, any]) => {
               if (typeof boost === 'number') {
                 effects[stat] = (effects[stat] || 0) + boost;
               }
@@ -862,7 +862,7 @@ function calculateInterconnectedEffects(
   
   // 2. Staff effectiveness enhanced by high camaraderie
   const camaraderieMultiplier = teamCamaraderie >= 76 ? 1.25 : teamCamaraderie >= 51 ? 1.1 : 1.0;
-  Object.entries(staffEffects).forEach(([stat, value]) => {
+  Object.entries(staffEffects).forEach(([stat, value]: [string, any]) => {
     if (typeof value === 'number') {
       const enhancedValue = Math.floor(value * camaraderieMultiplier);
       effects[`enhanced_${stat}`] = enhancedValue - value; // Only the bonus portion
@@ -1584,11 +1584,11 @@ function applyStaminaEffects(homeTeamPlayers: EnhancedPlayer[], awayTeamPlayers:
     player.currentStamina = Math.max(0, player.currentStamina - staminaDrain);
     
     // Apply race-specific stamina effects
-    if (player.race === 'sylvan' && player.skills.includes('Photosynthesis')) {
+    if (player.race === 'SYLVAN' && player.skills.includes('Photosynthesis')) {
       player.currentStamina = Math.min(100, player.currentStamina + 0.3);
     }
     
-    if (player.race === 'lumina' && player.skills.includes('Healing Light')) {
+    if (player.race === 'LUMINA' && player.skills.includes('Healing Light')) {
       player.currentStamina = Math.min(100, player.currentStamina + 0.2);
     }
   });
@@ -1613,7 +1613,7 @@ function findMVPPlayers(
                      (stats.passesCompleted || 0) * 2 + 
                      (stats.rushingYards || 0) * 0.1 + 
                      (stats.tackles || 0) * 3 + 
-                     (stats.interceptionsCaught || 0) * 5 + 
+                     (stats.interceptions || 0) * 5 + 
                      (stats.clutchPlays || 0) * 8;
     
     if (mvpScore > homeHighScore) {
@@ -1631,7 +1631,7 @@ function findMVPPlayers(
                      (stats.passesCompleted || 0) * 2 + 
                      (stats.rushingYards || 0) * 0.1 + 
                      (stats.tackles || 0) * 3 + 
-                     (stats.interceptionsCaught || 0) * 5 + 
+                     (stats.interceptions || 0) * 5 + 
                      (stats.clutchPlays || 0) * 8;
     
     if (mvpScore > awayHighScore) {

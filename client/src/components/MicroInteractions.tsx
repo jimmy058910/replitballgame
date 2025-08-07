@@ -155,7 +155,6 @@ export const SuccessOverlay = ({ show, onComplete }: {
   show: boolean;
   onComplete?: () => void;
 }) => {
-  // @ts-expect-error TS7030
   useEffect(() => {
     if (show) {
       const timer = setTimeout(() => onComplete?.(), 2000);

@@ -662,7 +662,7 @@ export const EnhancedMatchEngine: React.FC<MatchEngineProps> = ({
             awayTeam={team2}
             homePlayers={(homeTeamPlayers as EnhancedPlayer[]) || []}
             awayPlayers={(awayTeamPlayers as EnhancedPlayer[]) || []}
-            liveState={liveState}
+            liveState={liveState!}
             ballPosition={ballPosition}
           />
         </CardContent>
@@ -703,7 +703,7 @@ export const EnhancedMatchEngine: React.FC<MatchEngineProps> = ({
               <LiveStatsTab
                 homeTeam={team1}
                 awayTeam={team2}
-                liveState={liveState}
+                liveState={liveState!}
                 enhancedStats={enhancedMatchData}
               />
             </TabsContent>

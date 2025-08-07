@@ -251,7 +251,6 @@ export default function UnifiedInventoryHub({ teamId }: UnifiedInventoryHubProps
 
   // Mutations for item usage
   const useItemMutation = useMutation({
-    // @ts-expect-error TS7030
     mutationFn: async ({ item, playerId, action }: { item: InventoryItem; playerId?: string; action: string }) => {
       if (action === "equip") {
         return apiRequest(`/api/equipment/equip`, "POST", {

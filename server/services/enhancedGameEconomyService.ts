@@ -1092,7 +1092,7 @@ export class EnhancedGameEconomyService {
    */
   static getStoreItems(category?: string) {
     if (category) {
-      return (this.STORE_ITEMS as any)[category] || [];
+      return (this.STORE_ITEMS as Record<string, any>)[category] || [];
     }
     return this.STORE_ITEMS;
   }
@@ -1243,7 +1243,7 @@ export class EnhancedGameEconomyService {
     rewardType: 'champion' | 'runnerUp' | 'regularWinner' | 'promotion'
   ): Promise<{ success: boolean; rewards?: { credits: number; gems: number }; error?: string }> {
     try {
-      const divisionRewards = (this.DIVISION_REWARDS as any)[division];
+      const divisionRewards = (this.DIVISION_REWARDS as Record<number, any>)[division];
       if (!divisionRewards) {
         return { success: false, error: 'Invalid division' };
       }

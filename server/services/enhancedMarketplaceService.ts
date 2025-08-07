@@ -680,7 +680,7 @@ export class EnhancedMarketplaceService {
             kicking: true,
             agility: true,
             leadership: true,
-            staminaAttribute: true,
+            stamina: true,
             potentialRating: true,
             injuryStatus: true,
             camaraderieScore: true

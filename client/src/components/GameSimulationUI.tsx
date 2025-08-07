@@ -508,8 +508,8 @@ export function GameSimulationUI({ matchId, userId, team1, team2, initialLiveSta
       return players?.slice(0, 6) || [];
     };
 
-    const homeFieldPlayers = getFormationPlayers(homeTeamPlayers, homeFormation, 'Home');
-    const awayFieldPlayers = getFormationPlayers(awayTeamPlayers, awayFormation, 'Away');
+    const homeFieldPlayers = getFormationPlayers(homeTeamPlayers || [], homeFormation, 'Home');
+    const awayFieldPlayers = getFormationPlayers(awayTeamPlayers || [], awayFormation, 'Away');
     
     return {
       home: homeFieldPlayers.map((player: Player) => ({

@@ -139,7 +139,7 @@ export function logError(error: Error | AppError, req?: Request, additionalConte
       url: req.url,
       userAgent: req.get('User-Agent'),
       ip: req.ip,
-      userId: (req as any).user?.claims?.sub || undefined
+      userId: (req as any)?.user?.claims?.sub || undefined
     } : undefined,
     context: Object.keys(sanitizedContext).length > 0 ? sanitizedContext : undefined
   };

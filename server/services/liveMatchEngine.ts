@@ -23,9 +23,9 @@ class LiveMatchEngineService implements LiveMatchEngine {
   private simulationSpeed = 1.0; // Default 1x speed
 
   /**
-   * Get all currently active matches
+   * Get all currently active matches as LiveMatchState objects
    */
-  getActiveMatches(): LiveMatchState[] {
+  getActiveLiveMatches(): LiveMatchState[] {
     return Array.from(this.activeMatches.values());
   }
 
@@ -38,20 +38,18 @@ class LiveMatchEngineService implements LiveMatchEngine {
 
       // Fetch match data from database
       const match = await prisma.game.findUnique({
-        where: { id: matchId },
+        where: { id: parseInt(matchId) },
         include: {
           homeTeam: {
             include: {
               players: true,
-              stadium: true,
-              finances: true
+              stadium: true
             }
           },
           awayTeam: {
             include: {
               players: true,
-              stadium: true,
-              finances: true
+              stadium: true
             }
           }
         }
@@ -68,8 +66,8 @@ class LiveMatchEngineService implements LiveMatchEngine {
       // Initialize live match state
       const liveState: LiveMatchState = {
         matchId,
-        homeTeamId: match.homeTeamId,
-        awayTeamId: match.awayTeamId,
+        homeTeamId: match.homeTeamId.toString(),
+        awayTeamId: match.awayTeamId.toString(),
         status: 'preparing',
         gameTime: 0,
         maxTime: 2400, // 40 minutes (2400 seconds)
@@ -104,7 +102,7 @@ class LiveMatchEngineService implements LiveMatchEngine {
       this.initializePlayerStats(liveState, match.homeTeam.players, match.awayTeam.players);
 
       // Initialize team stats
-      this.initializeTeamStats(liveState, match.homeTeamId, match.awayTeamId);
+      this.initializeTeamStats(liveState, match.homeTeamId.toString(), match.awayTeamId.toString());
 
       // Store active match
       this.activeMatches.set(matchId, liveState);
@@ -430,7 +428,7 @@ class LiveMatchEngineService implements LiveMatchEngine {
     const eventChance = Math.random();
     
     if (eventChance < 0.05) { // 5% chance per tick
-      const eventTypes = [
+      const eventTypes: string[] = [
         MATCH_EVENT_TYPES.PASS_ATTEMPT,
         MATCH_EVENT_TYPES.SCRUM,
         MATCH_EVENT_TYPES.ROUTINE_PLAY,
@@ -442,7 +440,7 @@ class LiveMatchEngineService implements LiveMatchEngine {
         eventTypes.push(MATCH_EVENT_TYPES.SCORE);
       }
       
-      const eventType = eventTypes[Math.floor(Math.random() * eventTypes.length)];
+      const eventType: string = eventTypes[Math.floor(Math.random() * eventTypes.length)];
       
       // Handle scoring
       if (eventType === MATCH_EVENT_TYPES.SCORE) {

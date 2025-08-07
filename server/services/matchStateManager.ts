@@ -590,11 +590,11 @@ class MatchStateManager {
     const homeStarters = this.applyFormationToPlayers(homeTeamPlayers, homeFormation);
     const awayStarters = this.applyFormationToPlayers(awayTeamPlayers, awayFormation);
 
-    console.logger.info(`🏟️ Match ${matchId} starters:`, {
+    logger.info(`🏟️ Match ${matchId} starters:`, {
       home: homeStarters.map(p => `${p.firstName} ${p.lastName} (${p.role})`),
       away: awayStarters.map(p => `${p.firstName} ${p.lastName} (${p.role})`)
     });
-    console.logger.info(`🔍 STARTER COUNT CHECK: Home has ${homeStarters.length} starters, Away has ${awayStarters.length} starters`);
+    logger.info(`🔍 STARTER COUNT CHECK: Home has ${homeStarters.length} starters, Away has ${awayStarters.length} starters`);
 
     const matchType: MatchType = isExhibition ? 'EXHIBITION' : 'LEAGUE';
     const maxTime = getGameDurationSeconds(matchType);
@@ -851,7 +851,7 @@ class MatchStateManager {
         this.startMatchSimulation(matchId, homeStarters, awayStarters, homeTeamPlayers, awayTeamPlayers);
       }
 
-      console.logger.info(`🔄 Restarted match ${matchId} from database with ${liveState.gameEvents.length} events`);
+      logger.info(`🔄 Restarted match ${matchId} from database with ${liveState.gameEvents.length} events`);
       return liveState;
     } catch (error) {
       console.error(`Failed to restart match ${matchId} from database:`, error);
@@ -918,14 +918,14 @@ class MatchStateManager {
         const enhancedEvent = await this.generateEnhancedMatchEvent(homeStarters, awayStarters, state);
         if (enhancedEvent) {
           state.gameEvents.push(enhancedEvent);
-          console.logger.info(`[DEBUG] Generated event: ${enhancedEvent.type} by ${enhancedEvent.actingPlayerId}`);
+          logger.info(`[DEBUG] Generated event: ${enhancedEvent.type} by ${enhancedEvent.actingPlayerId}`);
           
           // Broadcast event to WebSocket clients
           if (this.webSocketService) {
             this.webSocketService.broadcastMatchEvent(matchId, enhancedEvent);
           }
         } else {
-          console.logger.info(`[DEBUG] Event generation returned null`);
+          logger.info(`[DEBUG] Event generation returned null`);
         }
       } catch (error) {
         console.error(`[ERROR] Event generation failed:`, error);
@@ -1165,7 +1165,7 @@ class MatchStateManager {
 
     // Tournament matches need overtime if tied
     if (match.matchType === 'TOURNAMENT_DAILY') {
-      console.logger.info(`🏆 Tournament match ${matchId} is tied ${state.homeScore}-${state.awayScore}, starting sudden death overtime!`);
+      logger.info(`🏆 Tournament match ${matchId} is tied ${state.homeScore}-${state.awayScore}, starting sudden death overtime!`);
       return true;
     }
 
@@ -1188,7 +1188,7 @@ class MatchStateManager {
     // Extend max time for overtime (unlimited until first score)
     state.maxTime = state.gameTime + 600; // Add 10 minutes max for overtime
     
-    console.logger.info(`⚡ Overtime started for match ${matchId} - sudden death until first score!`);
+    logger.info(`⚡ Overtime started for match ${matchId} - sudden death until first score!`);
 
     // Broadcast overtime start
     if (this.webSocketService) {
@@ -1214,7 +1214,7 @@ class MatchStateManager {
         data: { winner, finalScore: { home: state.homeScore, away: state.awayScore } }
       });
 
-      console.logger.info(`🏆 Sudden death completed! ${winner} team wins ${state.homeScore}-${state.awayScore}`);
+      logger.info(`🏆 Sudden death completed! ${winner} team wins ${state.homeScore}-${state.awayScore}`);
       return true;
     }
     
@@ -1407,18 +1407,18 @@ class MatchStateManager {
 
         // Update team records ONLY for league matches (not exhibition or tournament matches)
         if (matchDetails?.matchType === 'LEAGUE') {
-          console.logger.info(`🔥 UPDATING TEAM RECORDS: Match ${matchId} - Home: ${state.homeTeamId} (${state.homeScore}) vs Away: ${state.awayTeamId} (${state.awayScore})`);
+          logger.info(`🔥 UPDATING TEAM RECORDS: Match ${matchId} - Home: ${state.homeTeamId} (${state.homeScore}) vs Away: ${state.awayTeamId} (${state.awayScore})`);
           await this.updateTeamRecords(parseInt(state.homeTeamId), parseInt(state.awayTeamId), state.homeScore, state.awayScore);
           
           // Process stadium revenue for home team in league matches
           await this.processStadiumRevenue(parseInt(state.homeTeamId), matchId, state);
         } else if (isExhibitionMatch) {
           // Process exhibition rewards
-          console.logger.info(`🎉 PROCESSING EXHIBITION REWARDS: Match ${matchId} - Home: ${state.homeTeamId} (${state.homeScore}) vs Away: ${state.awayTeamId} (${state.awayScore})`);
+          logger.info(`🎉 PROCESSING EXHIBITION REWARDS: Match ${matchId} - Home: ${state.homeTeamId} (${state.homeScore}) vs Away: ${state.awayTeamId} (${state.awayScore})`);
           await this.awardExhibitionRewards(state.homeTeamId, state.awayTeamId, state.homeScore, state.awayScore);
         } else {
           // Tournament matches - no team record updates, no exhibition rewards
-          console.logger.info(`🏆 TOURNAMENT MATCH COMPLETED: Match ${matchId} - Home: ${state.homeTeamId} (${state.homeScore}) vs Away: ${state.awayTeamId} (${state.awayScore}) - No league standings update`);
+          logger.info(`🏆 TOURNAMENT MATCH COMPLETED: Match ${matchId} - Home: ${state.homeTeamId} (${state.homeScore}) vs Away: ${state.awayTeamId} (${state.awayScore}) - No league standings update`);
         }
 
         // Update post-game camaraderie for ALL match types
@@ -1430,18 +1430,18 @@ class MatchStateManager {
           state.awayScore,
           (matchDetails?.matchType as any) || 'EXHIBITION'
         );
-        console.logger.info(`✨ POST-GAME CAMARADERIE UPDATE: Match ${matchId} - Updated team chemistry for both teams based on ${matchDetails?.matchType || 'EXHIBITION'} result`);
+        logger.info(`✨ POST-GAME CAMARADERIE UPDATE: Match ${matchId} - Updated team chemistry for both teams based on ${matchDetails?.matchType || 'EXHIBITION'} result`);
 
         // Clear active boosts for both teams after match completion
         await this.clearActiveBoosts(parseInt(state.homeTeamId), matchDetails?.matchType || 'EXHIBITION');
         await this.clearActiveBoosts(parseInt(state.awayTeamId), matchDetails?.matchType || 'EXHIBITION');
-        console.logger.info(`🧹 ACTIVE BOOSTS CLEARED: Match ${matchId} - Cleared active boosts for both teams after ${matchDetails?.matchType || 'EXHIBITION'} match`);
+        logger.info(`🧹 ACTIVE BOOSTS CLEARED: Match ${matchId} - Cleared active boosts for both teams after ${matchDetails?.matchType || 'EXHIBITION'} match`);
         
       } else {
         console.warn(`Game ${matchId} not found in database, cannot update completion status`);
       }
 
-      console.logger.info(`Match ${matchId} stats persisted successfully.`);
+      logger.info(`Match ${matchId} stats persisted successfully.`);
 
     } catch (error) {
       console.error(`Error persisting stats for match ${matchId}:`, error);
@@ -1485,7 +1485,7 @@ class MatchStateManager {
       
       for (const player of [...homePlayers, ...awayPlayers]) {
         const actualMinutesPlayed = finalMinutesPlayed.get(player.id.toString()) || 0;
-        console.logger.info(`⏱️ PLAYER MINUTES: ${player.firstName} ${player.lastName} played ${actualMinutesPlayed.toFixed(1)} minutes`);
+        logger.info(`⏱️ PLAYER MINUTES: ${player.firstName} ${player.lastName} played ${actualMinutesPlayed.toFixed(1)} minutes`);
         
         // Use actual minutes played for stamina depletion
         await injuryStaminaService.depleteStaminaAfterMatch(player.id.toString(), gameMode, actualMinutesPlayed);
@@ -1496,7 +1496,7 @@ class MatchStateManager {
         try {
           const { UnifiedTournamentAutomation } = await import('./unifiedTournamentAutomation');
           await UnifiedTournamentAutomation.handleMatchCompletion(parseInt(matchId));
-          console.logger.info(`Tournament flow processed for match ${matchId}`);
+          logger.info(`Tournament flow processed for match ${matchId}`);
         } catch (error) {
           console.error(`Error handling tournament flow for match ${matchId}:`, error);
         }
@@ -1510,7 +1510,7 @@ class MatchStateManager {
     }
 
     this.liveMatches.delete(matchId);
-    console.logger.info(`Match ${matchId} completed with score ${state.homeScore}-${state.awayScore}${isExhibitionMatch ? ' (Exhibition - Risk-Free)' : ''}`);
+    logger.info(`Match ${matchId} completed with score ${state.homeScore}-${state.awayScore}${isExhibitionMatch ? ' (Exhibition - Risk-Free)' : ''}`);
   }
 
   /**
@@ -1528,7 +1528,7 @@ class MatchStateManager {
       });
 
       if (!homeTeam || !homeTeam.stadium || !homeTeam) {
-        console.logger.info(`⚠️  Stadium revenue: Missing data for team ${homeTeamId}`);
+        logger.info(`⚠️  Stadium revenue: Missing data for team ${homeTeamId}`);
         return;
       }
 
@@ -1556,7 +1556,7 @@ class MatchStateManager {
         true // is home game
       );
 
-      console.logger.info(`🏟️  Stadium Revenue - ${homeTeam.name}: ${attendance} fans, ${revenue.totalRevenue}₡ total revenue, ${revenue.netRevenue}₡ net (after ${revenue.maintenanceCost}₡ maintenance)`);
+      logger.info(`🏟️  Stadium Revenue - ${homeTeam.name}: ${attendance} fans, ${revenue.totalRevenue}₡ total revenue, ${revenue.netRevenue}₡ net (after ${revenue.maintenanceCost}₡ maintenance)`);
 
       // Apply revenue to team finances  
       const currentCredits = parseInt(((homeTeam.finances as any)?.credits || 0).toString()) || 0;
@@ -1654,12 +1654,12 @@ class MatchStateManager {
       }
 
       // Award credits to both teams via their finance records
-      console.logger.info(`🔍 Looking for TeamFinance records: homeTeamId=${homeTeamId}, awayTeamId=${awayTeamId}`);
-      console.logger.info(`🔍 DEBUG: prisma type at award time:`, typeof prisma, !!prisma);
+      logger.info(`🔍 Looking for TeamFinance records: homeTeamId=${homeTeamId}, awayTeamId=${awayTeamId}`);
+      logger.info(`🔍 DEBUG: prisma type at award time:`, typeof prisma, !!prisma);
       
       // Import prisma directly to debug import issues
       const { prisma: directPrisma } = await import("../db");
-      console.logger.info(`🔍 DEBUG: directPrisma type:`, typeof directPrisma, !!directPrisma);
+      logger.info(`🔍 DEBUG: directPrisma type:`, typeof directPrisma, !!directPrisma);
       
       const homeTeamFinance = await directPrisma.teamFinances.findUnique({
         where: { teamId: parseInt(homeTeamId) }
@@ -1669,7 +1669,7 @@ class MatchStateManager {
         where: { teamId: parseInt(awayTeamId) }
       });
       
-      console.logger.info(`💰 Found TeamFinance records: home=${!!homeTeamFinance}, away=${!!awayTeamFinance}`);
+      logger.info(`💰 Found TeamFinance records: home=${!!homeTeamFinance}, away=${!!awayTeamFinance}`);
 
       if (homeTeamFinance) {
         await directPrisma.teamFinances.update({
@@ -1740,7 +1740,7 @@ class MatchStateManager {
         }
       }
 
-      console.logger.info(`Exhibition rewards awarded: Home Team (${homeScore}): ${homeCredits}₡, Away Team (${awayScore}): ${awayCredits}₡${winningTeamId ? ` + camaraderie boost` : ''}`);
+      logger.info(`Exhibition rewards awarded: Home Team (${homeScore}): ${homeCredits}₡, Away Team (${awayScore}): ${awayCredits}₡${winningTeamId ? ` + camaraderie boost` : ''}`);
 
     } catch (error) {
       console.error('Error awarding exhibition rewards:', error);
@@ -1762,7 +1762,7 @@ class MatchStateManager {
         }
       });
       
-      console.logger.info(`Exhibition game ${matchId} result recorded: ${homeScore}-${awayScore}`);
+      logger.info(`Exhibition game ${matchId} result recorded: ${homeScore}-${awayScore}`);
     } catch (error) {
       console.error('Error recording exhibition game result:', error);
     }
@@ -1778,7 +1778,7 @@ class MatchStateManager {
       const state = this.liveMatches.get(matchId);
       if (!state) continue;
       if (state.lastUpdateTime < cutoff) {
-        console.logger.info(`Cleaning up abandoned match: ${matchId}`);
+        logger.info(`Cleaning up abandoned match: ${matchId}`);
         const homePlayers = await prisma.player.findMany({
           where: { teamId: parseInt(state.homeTeamId) }
         });
@@ -1817,7 +1817,7 @@ class MatchStateManager {
           }
         });
 
-        console.logger.info(`🧹 CLEARED ${activeBoosts.length} active ${matchType} boost(s) for team ${teamId}`);
+        logger.info(`🧹 CLEARED ${activeBoosts.length} active ${matchType} boost(s) for team ${teamId}`);
       }
     } catch (error) {
       console.error(`Error clearing active boosts for team ${teamId}:`, error);
@@ -1829,13 +1829,13 @@ class MatchStateManager {
    */
   private async updateTeamRecords(homeTeamId: number, awayTeamId: number, homeScore: number, awayScore: number): Promise<void> {
     try {
-      console.logger.info(`🏆 TEAM RECORDS UPDATE: Home Team ${homeTeamId} (${homeScore}) vs Away Team ${awayTeamId} (${awayScore})`);
+      logger.info(`🏆 TEAM RECORDS UPDATE: Home Team ${homeTeamId} (${homeScore}) vs Away Team ${awayTeamId} (${awayScore})`);
       
       // Convert team IDs to integers if they're strings
       const homeId = typeof homeTeamId === 'string' ? parseInt(homeTeamId) : homeTeamId;
       const awayId = typeof awayTeamId === 'string' ? parseInt(awayTeamId) : awayTeamId;
       
-      console.logger.info(`🔄 Converted IDs: Home ${homeId}, Away ${awayId}`);
+      logger.info(`🔄 Converted IDs: Home ${homeId}, Away ${awayId}`);
       
       // Determine winner
       if (homeScore > awayScore) {
@@ -1848,7 +1848,7 @@ class MatchStateManager {
           where: { id: awayId },
           data: { losses: { increment: 1 } }
         });
-        console.logger.info(`Home team ${homeId} wins, Away team ${awayId} loses`);
+        logger.info(`Home team ${homeId} wins, Away team ${awayId} loses`);
       } else if (awayScore > homeScore) {
         // Away team wins
         await prisma.team.update({
@@ -1859,7 +1859,7 @@ class MatchStateManager {
           where: { id: homeId },
           data: { losses: { increment: 1 } }
         });
-        console.logger.info(`Away team ${awayId} wins, Home team ${homeId} loses`);
+        logger.info(`Away team ${awayId} wins, Home team ${homeId} loses`);
       } else {
         // Draw - award 1 point to each team (no draws field in Team model)
         await prisma.team.update({
@@ -1870,7 +1870,7 @@ class MatchStateManager {
           where: { id: awayId },
           data: { points: { increment: 1 } }
         });
-        console.logger.info(`Draw between teams ${homeId} and ${awayId} - both teams awarded 1 point`);
+        logger.info(`Draw between teams ${homeId} and ${awayId} - both teams awarded 1 point`);
       }
     } catch (error) {
       console.error(`Error updating team records for teams ${homeTeamId} and ${awayTeamId}:`, error);

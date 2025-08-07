@@ -149,7 +149,7 @@ export class InjuryStaminaService {
     await prisma.player.update({
       where: { id: parseInt(playerId) },
       data: {
-        injuryStatus: injuryStatus as any,
+        injuryStatus: injuryStatus as 'HEALTHY' | 'MINOR_INJURY' | 'MODERATE_INJURY' | 'SEVERE_INJURY',
         injuryRecoveryPointsNeeded: recoveryPoints,
         injuryRecoveryPointsCurrent: 0,
         careerInjuries: {
@@ -164,12 +164,12 @@ export class InjuryStaminaService {
    * Formula: Loss = [Dbase × (1 - K×S/40)] × (M/Mmax) × (1-Ccoach)
    */
   calculateStaminaDepletion(
-    staminaAttribute: number,
+    stamina: number,
     minutesPlayed: number,
     matchType: 'league' | 'tournament' | 'exhibition',
     coachBonus: number = 0
   ): number {
-    const S = staminaAttribute;
+    const S = stamina;
     const M = minutesPlayed;
     const Mmax = getGameDurationMinutes(matchType as MatchType); // Dynamic based on match type
     const Dbase = this.settings.baseDepletion; // 20

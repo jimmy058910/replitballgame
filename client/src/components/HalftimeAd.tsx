@@ -39,7 +39,6 @@ export function HalftimeAd({ onAdCompleted, onAdSkipped, onContinueGame, isVisib
   const [showSkipOption, setShowSkipOption] = useState(false);
   const { toast } = useToast();
 
-  // @ts-expect-error TS7030
   React.useEffect(() => {
     if (isVisible) {
       // Show skip option after 5 seconds
