@@ -2,6 +2,15 @@
 import "./instrument";
 import * as Sentry from "@sentry/node";
 
+// CLOUD RUN LOGGING: Add immediate logging for container startup debugging
+console.log(`🚀 STARTING APPLICATION CONTAINER - PID: ${process.pid}`);
+console.log(`🔍 Environment: ${process.env.NODE_ENV || 'development'}`);
+console.log(`🔍 Port: ${process.env.PORT || 'NOT_SET'}`);
+console.log(`🔍 Platform: ${process.platform}, Node: ${process.version}`);
+console.log(`🔍 Memory: ${JSON.stringify(process.memoryUsage())}`);
+console.log(`🔍 Working Directory: ${process.cwd()}`);
+console.log(`⏰ Container startup timestamp: ${new Date().toISOString()}`);
+
 import express, { type Request, Response, NextFunction } from "express";
 import { createServer } from "http";
 import http from "http";
@@ -572,4 +581,38 @@ app.use('/api', (req, res, next) => {
       
     console.log(`✅ All services initialized`);
   }
+
+  // CRITICAL CLOUD RUN FIX: Add proper SIGTERM handling for graceful shutdown
+  process.on('SIGTERM', () => {
+    console.log('🔄 SIGTERM received, shutting down gracefully...');
+    httpServer.close(() => {
+      console.log('✅ HTTP server closed');
+      process.exit(0);
+    });
+    
+    // Force shutdown after 10 seconds
+    setTimeout(() => {
+      console.error('❌ Forced shutdown due to timeout');
+      process.exit(1);
+    }, 10000);
+  });
+
+  process.on('SIGINT', () => {
+    console.log('🔄 SIGINT received, shutting down gracefully...');
+    httpServer.close(() => {
+      console.log('✅ HTTP server closed');
+      process.exit(0);
+    });
+  });
+
+  // Handle uncaught exceptions to prevent container crashes
+  process.on('uncaughtException', (error) => {
+    console.error('❌ Uncaught Exception:', error);
+    // Log but don't exit - let Cloud Run handle it
+  });
+
+  process.on('unhandledRejection', (reason, promise) => {
+    console.error('❌ Unhandled Rejection at:', promise, 'reason:', reason);
+    // Log but don't exit - let Cloud Run handle it
+  });
 })();
