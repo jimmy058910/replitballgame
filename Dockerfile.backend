@@ -76,15 +76,16 @@ USER backend
 
 # CRITICAL CLOUD RUN FIXES: Environment and network configuration
 ENV NODE_ENV=production
-ENV PORT=8080
 ENV HOST=0.0.0.0
+# DO NOT hardcode PORT - Cloud Run sets it dynamically
 
-# Expose port
+# Expose default port (Cloud Run will override with PORT env var)
 EXPOSE 8080
 
-# Health check
-HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
-  CMD node -e "require('http').get('http://localhost:8080/health', (res) => process.exit(res.statusCode === 200 ? 0 : 1))"
+# Health check (disabled for Cloud Run - uses startup probes instead)
+# HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+#   CMD node -e "require('http').get('http://localhost:8080/health', (res) => process.exit(res.statusCode === 200 ? 0 : 1))"
 
-# CRITICAL CONTAINER STARTUP FIX: Verify files and run compiled JavaScript
-CMD ["dumb-init", "sh", "-c", "echo '🚀 CLOUD RUN CONTAINER STARTING...' && echo '📁 Verifying compiled server files:' && ls -la /app/dist/server/ && echo '🔍 Verifying entry point exists:' && test -f /app/dist/server/index.js && echo '✅ Entry point exists' && echo '🔍 Starting Node.js ES Module server...' && exec node --experimental-modules /app/dist/server/index.js"]
+# CRITICAL CONTAINER STARTUP FIX: Direct node invocation for proper signal handling
+# ES modules work automatically with "type": "module" in package.json
+CMD ["dumb-init", "node", "dist/server/index.js"]
