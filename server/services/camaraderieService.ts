@@ -502,7 +502,7 @@ export class CamaraderieService {
 
   
   /**
-   * Get progression bonus based on camaraderie
+   * Get progression bonus based on camaraderie level
    */
   static getProgressionBonus(camaraderie: number): number {
     if (camaraderie >= 80) return 3;
