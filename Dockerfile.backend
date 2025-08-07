@@ -1,5 +1,5 @@
-# Multi-stage build for Cloud Run backend
-FROM node:20-alpine AS builder
+# Multi-stage build for Cloud Run backend (CRITICAL: Force AMD64 architecture)
+FROM --platform=linux/amd64 node:20-alpine AS builder
 
 # Install build dependencies
 RUN apk add --no-cache python3 make g++
@@ -36,8 +36,8 @@ RUN rm -rf dist && npm run build:all
 RUN ls -la dist/public/ && echo "✅ Frontend compiled successfully"
 RUN ls -la dist/server/ && echo "✅ Server compiled to JavaScript successfully"
 
-# Production stage
-FROM node:20-alpine AS production
+# Production stage (CRITICAL: Force AMD64 architecture)
+FROM --platform=linux/amd64 node:20-alpine AS production
 
 # Install dumb-init for proper signal handling
 RUN apk add --no-cache dumb-init
@@ -56,12 +56,11 @@ COPY --from=builder --chown=backend:nodejs /app/tsconfig.json ./
 COPY --from=builder --chown=backend:nodejs /app/tsconfig.server.json ./
 COPY --from=builder --chown=backend:nodejs /app/package.json ./
 
-# Copy source code and built frontend (use builder stage for server code)
-COPY --from=builder --chown=backend:nodejs /app/server/ ./server/
+# CRITICAL FIX: Copy COMPILED JavaScript, not TypeScript source
+COPY --from=builder --chown=backend:nodejs /app/dist ./dist/
 COPY --from=builder --chown=backend:nodejs /app/shared/ ./shared/
 COPY --from=builder --chown=backend:nodejs /app/prisma/ ./prisma/
 COPY --from=builder --chown=backend:nodejs /app/types/ ./types/
-COPY --from=builder --chown=backend:nodejs /app/dist ./dist/
 
 # Copy Vite config files needed by server/vite.ts
 COPY --from=builder --chown=backend:nodejs /app/vite.config.ts ./
@@ -87,5 +86,5 @@ EXPOSE 8080
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
   CMD node -e "require('http').get('http://localhost:8080/health', (res) => process.exit(res.statusCode === 200 ? 0 : 1))"
 
-# COMPREHENSIVE CLOUD RUN FIX: Enhanced startup verification and logging
-CMD ["dumb-init", "sh", "-c", "echo '🚀 CLOUD RUN CONTAINER STARTING...' && echo '📁 Verifying compiled server files:' && ls -la /app/dist/server/ && echo '🔍 Starting Node.js server with comprehensive logging...' && exec node /app/dist/server/index.js"]
+# CRITICAL CONTAINER STARTUP FIX: Verify files and run compiled JavaScript
+CMD ["dumb-init", "sh", "-c", "echo '🚀 CLOUD RUN CONTAINER STARTING...' && echo '📁 Verifying compiled server files:' && ls -la /app/dist/server/ && echo '🔍 Verifying entry point exists:' && test -f /app/dist/server/index.js && echo '✅ Entry point exists' && echo '🔍 Starting Node.js ES Module server...' && exec node --experimental-modules /app/dist/server/index.js"]

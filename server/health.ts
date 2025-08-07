@@ -36,7 +36,7 @@ export function createBasicHealthCheck() {
         status: 'healthy',
         timestamp: new Date().toISOString(),
         uptime: process.uptime(),
-        version: '6.29.0-STARTUP-PROBE-FIX-AUG7',
+        version: '6.30.0-CONTAINER-STARTUP-FIX-AUG7',
         environment: {
           NODE_ENV: process.env.NODE_ENV || 'not-set',
           PORT: process.env.PORT || 'not-set',
@@ -95,7 +95,7 @@ export function createBasicHealthCheck() {
         status: 'error',
         timestamp: new Date().toISOString(),
         error: error instanceof Error ? error.message : 'Unknown error',
-        version: '6.29.0-STARTUP-PROBE-FIX-AUG7'
+        version: '6.30.0-CONTAINER-STARTUP-FIX-AUG7'
       });
     }
   };
