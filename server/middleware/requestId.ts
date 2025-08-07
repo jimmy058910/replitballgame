@@ -1,14 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import { nanoid } from 'nanoid';
 
-// Extend Request interface to include requestId
-declare global {
-  namespace Express {
-    interface Request {
-      requestId: string;
-    }
-  }
-}
+// Request ID interface now defined centrally in types/express/index.d.ts
 
 // Middleware to add unique request ID to each request
 export function requestIdMiddleware(req: Request, res: Response, next: NextFunction): void {

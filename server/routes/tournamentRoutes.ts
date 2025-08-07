@@ -16,7 +16,7 @@ const enterTournamentParamsSchema = z.object({
 });
 
 // History route must come BEFORE the :division route to avoid conflicts
-router.get('/history', isAuthenticated, async (req: any, res: Response, next: NextFunction) => {
+router.get('/history', isAuthenticated, async (req: Request, res: Response, next: NextFunction) => {
   try {
     const userId = req.user?.claims?.sub;
     const team = await storage.teams.getTeamByUserId(userId);

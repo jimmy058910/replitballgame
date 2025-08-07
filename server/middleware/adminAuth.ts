@@ -17,7 +17,7 @@ export function adminAuth(req: Request, res: Response, next: NextFunction): void
         ip: req.ip,
         path: req.path,
         userAgent: req.get('User-Agent'),
-        requestId: (req as any).requestId
+        requestId: req.requestId
       });
 
       res.status(401).json({
@@ -28,7 +28,7 @@ export function adminAuth(req: Request, res: Response, next: NextFunction): void
     }
 
     // Check if user has admin privileges
-    const userId = (req as any).user?.claims?.sub;
+    const userId = req.user?.claims?.sub;
     const adminUsers = ['44010914']; // Admin user IDs
     
     if (!userId || !adminUsers.includes(userId)) {
@@ -37,7 +37,7 @@ export function adminAuth(req: Request, res: Response, next: NextFunction): void
         ip: req.ip,
         path: req.path,
         userAgent: req.get('User-Agent'),
-        requestId: (req as any).requestId
+        requestId: req.requestId
       });
 
       res.status(403).json({
@@ -52,7 +52,7 @@ export function adminAuth(req: Request, res: Response, next: NextFunction): void
       userId,
       ip: req.ip,
       path: req.path,
-      requestId: (req as any).requestId
+      requestId: req.requestId
     });
 
     // User is authorized
@@ -60,7 +60,7 @@ export function adminAuth(req: Request, res: Response, next: NextFunction): void
   } catch (error) {
     logger.error('Admin authentication error', {
       error: error instanceof Error ? error.message : 'Unknown error',
-      requestId: (req as any).requestId,
+      requestId: req.requestId,
       ip: req.ip,
       path: req.path
     });

@@ -1,4 +1,4 @@
-import { Router, type Response, type NextFunction } from "express"; // Added Response, NextFunction
+import { Router, type Request, type Response, type NextFunction } from "express"; // Added Request, Response, NextFunction
 import { userStorage } from "../storage/userStorage"; // Updated import
 import { requireAuth } from "../middleware/firebaseAuth";
 import { RBACService, Permission, UserRole } from "../services/rbacService"; // Add UserRole import
@@ -41,7 +41,7 @@ router.post('/logout', (req, res): void => {
 });
 
 // ✅ GET USER STATUS - NO middleware, handle auth check internally
-router.get('/user', async (req: any, res: Response, next: NextFunction) => {
+router.get('/user', async (req: Request, res: Response, next: NextFunction) => {
   try {
     // Development bypass - always authenticate for development
     const isDevelopment = process.env.NODE_ENV === 'development';
