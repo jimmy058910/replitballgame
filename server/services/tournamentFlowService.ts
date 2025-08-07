@@ -81,7 +81,7 @@ class TournamentFlowServiceImpl implements TournamentFlowService {
           });
 
           // Start live simulation
-          await matchStateManager.startLiveMatch(match.id);
+          await matchStateManager.startLiveMatch(match.id.toString());
           logInfo(`Started live simulation for tournament ${tournamentId} round ${roundNumber} match ${match.id}`);
           
           return match.id;
@@ -172,7 +172,7 @@ class TournamentFlowServiceImpl implements TournamentFlowService {
       await this.applyPostMatchEffects(match.homeTeamId, match.awayTeamId);
 
       // Check if round is complete and advance if necessary
-      await this.checkAndAdvanceRound(match.tournamentId, match.round);
+      await this.checkAndAdvanceRound(match.tournamentId, match.round || 1);
       
       logInfo(`Tournament match ${matchId} completed - checked for round advancement`);
     } catch (error) {
@@ -208,7 +208,7 @@ class TournamentFlowServiceImpl implements TournamentFlowService {
           newInjuryStatus = 'MINOR_INJURY';
           newRecoveryPoints = Math.floor(Math.random() * 7) + 3; // 3-10 days recovery
         } else if (injuryRisk < 2) { // 2% major injury chance
-          newInjuryStatus = 'MAJOR_INJURY';
+          newInjuryStatus = 'SERIOUS_INJURY';
           newRecoveryPoints = Math.floor(Math.random() * 14) + 7; // 7-21 days recovery
         }
 
@@ -327,7 +327,7 @@ class TournamentFlowServiceImpl implements TournamentFlowService {
       const runnerUp = (finalsMatch.homeScore || 0) > (finalsMatch.awayScore || 0) ? finalsMatch.awayTeam : finalsMatch.homeTeam;
 
       // Get tournament details for prize calculation
-      const tournament = await prisma.tournamentEntries[0].findUnique({
+      const tournament = await prisma.tournament.findUnique({
         where: { id: tournamentId },
         include: { entries: true }
       });
@@ -364,7 +364,7 @@ class TournamentFlowServiceImpl implements TournamentFlowService {
       await this.awardTournamentPrize(runnerUp.id, runnerUpPrize);
 
       // Update tournament status to COMPLETED
-      await prisma.tournamentEntries[0].update({
+      await prisma.tournament.update({
         where: { id: tournamentId },
         data: {
           status: 'COMPLETED',

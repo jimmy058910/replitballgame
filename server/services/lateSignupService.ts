@@ -407,15 +407,14 @@ export class LateSignupService {
     
     // Check if league already exists
     const existingLeague = await prisma.league.findUnique({
-      where: { id: leagueId }
+      where: { id: parseInt(leagueId, 10) }
     });
     
     let league = existingLeague;
     if (!league) {
       league = await prisma.league.create({
         data: {
-          id: leagueId,
-          seasonId: parseInt(seasonNumber.toString(), 10),
+          seasonId: seasonNumber.toString(),
           division: 8,
           name: `Division 8 Late Signup - ${subdivision.toUpperCase()}`
         }

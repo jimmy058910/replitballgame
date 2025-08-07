@@ -79,7 +79,7 @@ router.get('/user', async (req: any, res: Response, next: NextFunction) => {
     const adminEmails = ['jimmy058910@gmail.com'];
     if (user.email && adminEmails.includes(user.email)) {
       console.log(`Auto-promoting ${user.email} to admin for development`);
-      await RBACService.promoteToAdmin(user.email);
+      await RBACService.promoteUserToAdmin(user.email);
     }
 
     // Return success response with user data
@@ -137,7 +137,7 @@ router.post('/promote-to-admin', requireAuth, async (req: any, res: Response, ne
     }
 
     // Use the RBAC service to promote user to admin
-    await RBACService.promoteToAdmin(user.email);
+    await RBACService.promoteUserToAdmin(user.email);
     
     res.json({ 
       success: true, 

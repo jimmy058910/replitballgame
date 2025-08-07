@@ -533,7 +533,7 @@ async function initializeEnhancedPlayers(
     const raceEffects = getRaceEffects(player.race || 'human');
     
     // Get cached effects
-    const equipmentEffects = equipmentEffectsCache.get(player.id) || {};
+    const equipmentEffects = equipmentEffectsCache.get(player.id.toString()) || {};
     const consumableEffects = consumableEffectsCache.get(`${player.teamId}-${player.id}`) || {};
     const staffEffects = staffEffectsCache.get(`${player.teamId?.toString()}-${player.role}`) || {};
     
@@ -1048,17 +1048,17 @@ function determineActionType(player: EnhancedPlayer, tacticalEffects: TacticalEf
   let kickChance = 0.05;
   let defenseChance = 0.25;
   
-  if (role === 'Passer') {
+  if (role === 'PASSER') {
     passChance = 0.55;
     runChance = 0.2;
     kickChance = 0.1;
     defenseChance = 0.15;
-  } else if (role === 'Runner') {
+  } else if (role === 'RUNNER') {
     passChance = 0.2;
     runChance = 0.6;
     kickChance = 0.05;
     defenseChance = 0.15;
-  } else if (role === 'Blocker') {
+  } else if (role === 'BLOCKER') {
     passChance = 0.1;
     runChance = 0.3;
     kickChance = 0.05;
@@ -1543,7 +1543,7 @@ async function generateEnhancedCommentary(
   };
   
   // Use the commentary service for enhanced commentary
-  return commentaryService.generateEventCommentary(event, player, context);
+  return commentaryService.generateDefenseCommentary(player as any, event as any, context as any);
 }
 
 function updateStatistics(
@@ -1615,7 +1615,7 @@ function findMVPPlayers(
                      (stats.passesCompleted || 0) * 2 + 
                      (stats.rushingYards || 0) * 0.1 + 
                      (stats.tackles || 0) * 3 + 
-                     (stats.interceptions || 0) * 5 + 
+                     (stats.knockdownsInflicted || 0) * 5 + 
                      (stats.clutchPlays || 0) * 8;
     
     if (mvpScore > homeHighScore) {
@@ -1633,7 +1633,7 @@ function findMVPPlayers(
                      (stats.passesCompleted || 0) * 2 + 
                      (stats.rushingYards || 0) * 0.1 + 
                      (stats.tackles || 0) * 3 + 
-                     (stats.interceptions || 0) * 5 + 
+                     (stats.knockdownsInflicted || 0) * 5 + 
                      (stats.clutchPlays || 0) * 8;
     
     if (mvpScore > awayHighScore) {

@@ -109,7 +109,7 @@ export class SeasonalFlowService {
         where: {
           teamId: parseInt(teamId, 10),
           tournament: {
-            type: 'TOURNAMENT_DIVISIONAL'
+            type: 'DAILY_DIVISIONAL'
           }
         },
         include: {
@@ -117,10 +117,7 @@ export class SeasonalFlowService {
         }
       });
 
-      return tournamentEntries.some(entry => 
-        entry.tournament?.status === 'IN_PROGRESS' || 
-        entry.tournament?.status === 'COMPLETED'
-      );
+      return tournamentEntries.length > 0;
     } catch (error) {
       console.error('Error checking team playoff status:', error);
       return false;
@@ -224,13 +221,12 @@ export class SeasonalFlowService {
         gameDate.setHours(gameTime.getHours(), gameTime.getMinutes(), 0, 0);
         
         const matchData = {
-          leagueId,
+          leagueId: parseInt(leagueId),
           homeTeamId: parseInt(match.homeTeam.id, 10),
           awayTeamId: parseInt(match.awayTeam.id, 10),
           gameDate: gameDate,
-          season,
-          status: 'SCHEDULED',
-          matchType: 'LEAGUE'
+          status: 'SCHEDULED' as const,
+          matchType: 'LEAGUE' as const
         };
         
         matches.push(matchData);
@@ -286,12 +282,12 @@ export class SeasonalFlowService {
         gameDate.setHours(gameTime.getHours(), gameTime.getMinutes(), 0, 0);
         
         const matchData = {
-          leagueId,
+          leagueId: parseInt(leagueId),
           homeTeamId: parseInt(match.homeTeam.id, 10),
           awayTeamId: parseInt(match.awayTeam.id, 10),
           gameDate: gameDate,
-          status: 'SCHEDULED',
-          matchType: 'LEAGUE'
+          status: 'SCHEDULED' as const,
+          matchType: 'LEAGUE' as const
         };
         
         matches.push(matchData);
@@ -313,8 +309,8 @@ export class SeasonalFlowService {
    * Generate matches for a subdivision day (8 teams = 4 games per day)
    * Simple pairing system ensuring each team plays exactly once per day
    */
-  static generateSubdivisionDayMatches(teams: any[], day: number, seasonStartDay: number = 1): any[] {
-    const matches = [];
+  static generateSubdivisionDayMatches(teams: any[], day: number, seasonStartDay: number = 1): Array<{homeTeam: any, awayTeam: any}> {
+    const matches: Array<{homeTeam: any, awayTeam: any}> = [];
     const numTeams = teams.length;
     
     if (numTeams < 2) return matches;
@@ -422,12 +418,12 @@ export class SeasonalFlowService {
           gameDate.setHours(gameTime.getHours(), gameTime.getMinutes(), 0, 0);
           
           const matchData = {
-            leagueId,
+            leagueId: parseInt(leagueId),
             homeTeamId: parseInt(match.homeTeam.id, 10),
             awayTeamId: parseInt(match.awayTeam.id, 10),
             gameDate: gameDate,
-            status: 'SCHEDULED',
-            matchType: 'LEAGUE'
+            status: 'SCHEDULED' as const,
+            matchType: 'LEAGUE' as const
           };
           
           matches.push(matchData);
@@ -484,7 +480,7 @@ export class SeasonalFlowService {
     console.log(`📊 Found ${teams.length} teams in Division ${division}`);
     
     // Generate schedule using the corrected large division logic
-    const matches = await this.generateLargeDivisionSchedule(league.id, teams, season);
+    const matches = await this.generateLargeDivisionSchedule(league.id.toString(), teams, season);
     
     // Group results by subdivision for reporting
     const subdivisionMap = new Map<string, any[]>();
@@ -517,8 +513,8 @@ export class SeasonalFlowService {
     leagueId: string, 
     teams: any[], 
     season: number
-  ): Promise<any[]> {
-    const matches = [];
+  ): Promise<Array<{leagueId: string, homeTeamId: number, awayTeamId: number, gameDate: Date, status: string, matchType: string}>> {
+    const matches: Array<{leagueId: string, homeTeamId: number, awayTeamId: number, gameDate: Date, status: string, matchType: string}> = [];
     const numTeams = teams.length;
     
     if (numTeams < 2) {
@@ -545,12 +541,12 @@ export class SeasonalFlowService {
         gameDate.setHours(gameTime.getHours(), gameTime.getMinutes(), 0, 0);
         
         const matchData = {
-          leagueId,
-          homeTeamId: match.homeTeam.id,
-          awayTeamId: match.awayTeam.id,
+          leagueId: parseInt(leagueId),
+          homeTeamId: parseInt(match.homeTeam.id, 10),
+          awayTeamId: parseInt(match.awayTeam.id, 10),
           gameDate: gameDate,
-          status: 'SCHEDULED',
-          matchType: 'LEAGUE'
+          status: 'SCHEDULED' as const,
+          matchType: 'LEAGUE' as const
         };
         
         matches.push(matchData);
@@ -857,14 +853,14 @@ export class SeasonalFlowService {
     totalPlayoffMatches: number;
   }> {
     const allLeagues = await prisma.league.findMany({
-      where: { seasonId: season }
+      where: { seasonId: `season-${season}-2025` }
     });
     
     const bracketsByLeague = [];
     let totalPlayoffMatches = 0;
     
     for (const league of allLeagues) {
-      const standings = await this.getFinalStandings(league.id, season);
+      const standings = await this.getFinalStandings(league.id.toString(), season);
       const division = league.division;
       
       // Determine qualifier count based on division
@@ -872,7 +868,7 @@ export class SeasonalFlowService {
         ? this.SEASON_CONFIG.DIVISION_1_TOURNAMENT_QUALIFIERS 
         : this.SEASON_CONFIG.STANDARD_TOURNAMENT_QUALIFIERS;
       
-      const playoffTeams = standings.finalStandings.slice(0, qualifierCount);
+      const playoffTeams = standings.standings.slice(0, qualifierCount);
       
       if (playoffTeams.length >= qualifierCount) {
         let playoffMatches = [];
@@ -882,40 +878,39 @@ export class SeasonalFlowService {
           // Quarterfinals: 1v8, 2v7, 3v6, 4v5
           playoffMatches = [
             {
-              leagueId: league.id,
-              homeTeamId: playoffTeams[0].id, // Seed 1
-              awayTeamId: playoffTeams[7].id, // Seed 8
-              gameDay: this.SEASON_CONFIG.PLAYOFF_DAY,
-              season,
-              status: 'scheduled',
-              matchType: 'playoff_quarterfinal'
+              leagueId: parseInt(league.id.toString()),
+              homeTeamId: playoffTeams[0].team.id, // Seed 1
+              awayTeamId: playoffTeams[7].team.id, // Seed 8
+              gameDate: new Date("2025-07-27"), // Day 15 playoff date
+              status: 'SCHEDULED' as const,
+              matchType: 'PLAYOFF' as const
             },
             {
-              leagueId: league.id,
-              homeTeamId: playoffTeams[1].id, // Seed 2
-              awayTeamId: playoffTeams[6].id, // Seed 7
-              gameDay: this.SEASON_CONFIG.PLAYOFF_DAY,
+              leagueId: parseInt(league.id.toString()),
+              homeTeamId: playoffTeams[1].team.id, // Seed 2
+              awayTeamId: playoffTeams[6].team.id, // Seed 7
+              gameDate: new Date("2025-07-27"), // Day 15 playoff date
               season,
-              status: 'scheduled',
-              matchType: 'playoff_quarterfinal'
+              status: 'SCHEDULED',
+              matchType: 'PLAYOFF'
             },
             {
-              leagueId: league.id,
-              homeTeamId: playoffTeams[2].id, // Seed 3
-              awayTeamId: playoffTeams[5].id, // Seed 6
-              gameDay: this.SEASON_CONFIG.PLAYOFF_DAY,
+              leagueId: parseInt(league.id.toString()),
+              homeTeamId: playoffTeams[2].team.id, // Seed 3
+              awayTeamId: playoffTeams[5].team.id, // Seed 6
+              gameDate: new Date("2025-07-27"), // Day 15 playoff date
               season,
-              status: 'scheduled',
-              matchType: 'playoff_quarterfinal'
+              status: 'SCHEDULED',
+              matchType: 'PLAYOFF'
             },
             {
-              leagueId: league.id,
-              homeTeamId: playoffTeams[3].id, // Seed 4
-              awayTeamId: playoffTeams[4].id, // Seed 5
-              gameDay: this.SEASON_CONFIG.PLAYOFF_DAY,
+              leagueId: parseInt(league.id.toString()),
+              homeTeamId: playoffTeams[3].team.id, // Seed 4
+              awayTeamId: playoffTeams[4].team.id, // Seed 5
+              gameDate: new Date("2025-07-27"), // Day 15 playoff date
               season,
-              status: 'scheduled',
-              matchType: 'playoff_quarterfinal'
+              status: 'SCHEDULED',
+              matchType: 'PLAYOFF'
             }
           ];
         } else {
@@ -923,22 +918,22 @@ export class SeasonalFlowService {
           // Semifinals: 1v4, 2v3
           playoffMatches = [
             {
-              leagueId: league.id,
-              homeTeamId: playoffTeams[0].id, // Seed 1
-              awayTeamId: playoffTeams[3].id, // Seed 4
-              gameDay: this.SEASON_CONFIG.PLAYOFF_DAY,
+              leagueId: parseInt(league.id.toString()),
+              homeTeamId: playoffTeams[0].team.id, // Seed 1
+              awayTeamId: playoffTeams[3].team.id, // Seed 4
+              gameDate: new Date("2025-07-27"), // Day 15 playoff date
               season,
-              status: 'scheduled',
-              matchType: 'playoff_semifinal'
+              status: 'SCHEDULED',
+              matchType: 'PLAYOFF'
             },
             {
-              leagueId: league.id,
-              homeTeamId: playoffTeams[1].id, // Seed 2
-              awayTeamId: playoffTeams[2].id, // Seed 3
-              gameDay: this.SEASON_CONFIG.PLAYOFF_DAY,
+              leagueId: parseInt(league.id.toString()),
+              homeTeamId: playoffTeams[1].team.id, // Seed 2
+              awayTeamId: playoffTeams[2].team.id, // Seed 3
+              gameDate: new Date("2025-07-27"), // Day 15 playoff date
               season,
-              status: 'scheduled',
-              matchType: 'playoff_semifinal'
+              status: 'SCHEDULED',
+              matchType: 'PLAYOFF'
             }
           ];
         }
@@ -949,7 +944,7 @@ export class SeasonalFlowService {
         });
         
         bracketsByLeague.push({
-          leagueId: league.id,
+          leagueId: league.id.toString(),
           division: league.division,
           playoffMatches,
           qualifierCount
@@ -974,8 +969,8 @@ export class SeasonalFlowService {
     relegations: Array<{ teamId: string; fromDivision: number; toDivision: number }>;
     totalTeamsProcessed: number;
   }> {
-    const promotions = [];
-    const relegations = [];
+    const promotions: Array<{ teamId: string; fromDivision: number; toDivision: number }> = [];
+    const relegations: Array<{ teamId: string; fromDivision: number; toDivision: number }> = [];
     
     // Step 1: Division 1 Relegation (The Great Filter)
     // Bottom 6 teams (11th-16th place) are relegated to Division 2
@@ -1274,8 +1269,8 @@ export class SeasonalFlowService {
     
     // Sort promotion pool by win percentage and point differential
     return promotionPool.sort((a, b) => {
-      const aWinPct = (a.wins || 0) / Math.max(1, (a.wins || 0) + (a.losses || 0) + (a.draws || 0));
-      const bWinPct = (b.wins || 0) / Math.max(1, (b.wins || 0) + (b.losses || 0) + (b.draws || 0));
+      const aWinPct = (a.wins || 0) / Math.max(1, (a.wins || 0) + (a.losses || 0));
+      const bWinPct = (b.wins || 0) / Math.max(1, (b.wins || 0) + (b.losses || 0));
       
       if (bWinPct !== aWinPct) {
         return bWinPct - aWinPct;
@@ -1317,9 +1312,9 @@ export class SeasonalFlowService {
       
       if (team) {
         champions.push({
-          teamId: winnerId,
+          teamId: winnerId.toString(),
           division: team.division || this.SEASON_CONFIG.MAX_DIVISION,
-          leagueId: match.leagueId || ''
+          leagueId: (match.leagueId || 0).toString()
         });
       }
     }
@@ -1361,7 +1356,7 @@ export class SeasonalFlowService {
       const existingLeagues = await prisma.league.findMany({
         where: {
           division,
-          season: season + 1 // Next season
+          season: { equals: season + 1 } // Next season
         }
       });
       

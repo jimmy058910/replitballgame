@@ -866,7 +866,7 @@ router.get('/:tournamentId/matches', async (req, res) => {
 
     res.json(transformedMatches);
   } catch (error) {
-    res.status(500).json({ message: 'Failed to fetch tournament matches', error: error.message });
+    res.status(500).json({ message: 'Failed to fetch tournament matches', error: error instanceof Error ? error.message : 'Unknown error' });
   }
 });
 
@@ -913,7 +913,7 @@ router.post('/:tournamentId/simulate-round', isAuthenticated, async (req: any, r
         });
 
         // Start live simulation
-        await matchStateManager.startLiveMatch(match.id);
+        await matchStateManager.startLiveMatch(match.id.toString());
         console.log(`Started live simulation for tournament match ${match.id}`);
         
         return match.id;
@@ -932,7 +932,7 @@ router.post('/:tournamentId/simulate-round', isAuthenticated, async (req: any, r
     });
   } catch (error) {
     console.error("Error starting tournament round:", error);
-    res.status(500).json({ message: "Failed to start tournament round", error: error.message });
+    res.status(500).json({ message: "Failed to start tournament round", error: error instanceof Error ? error.message : 'Unknown error' });
   }
 });
 
@@ -943,7 +943,7 @@ async function advanceTournament(tournamentId: number, completedRound: string) {
     const completedMatches = await prisma.game.findMany({
       where: {
         tournamentId: tournamentId,
-        round: completedRound,
+        round: parseInt(completedRound) || null,
         status: 'COMPLETED' as any
       },
       include: {
@@ -954,9 +954,7 @@ async function advanceTournament(tournamentId: number, completedRound: string) {
 
     // Determine winners
     const winners = completedMatches.map(match => {
-      const winnerId = match.homeTeamScore > match.awayTeamScore ? match.homeTeamId 
-      
-        : match.awayTeamId;
+      const winnerId = (match.homeScore || 0) > (match.awayScore || 0) ? match.homeTeamId : match.awayTeamId;
       return { teamId: winnerId, match: match };
     });
 
@@ -975,7 +973,7 @@ async function advanceTournament(tournamentId: number, completedRound: string) {
             awayTeamId: match.awayTeamId,
             gameDate: new Date(),
             status: 'SCHEDULED',
-            round: 'SEMIFINALS',
+            round: 2, // SEMIFINALS
             matchType: 'TOURNAMENT_DAILY',
             tournamentId: tournamentId
           }
@@ -989,7 +987,7 @@ async function advanceTournament(tournamentId: number, completedRound: string) {
           awayTeamId: winners[1].teamId,
           gameDate: new Date(),
           status: 'SCHEDULED',
-          round: 'FINALS',
+          round: 3, // FINALS
           matchType: 'TOURNAMENT_DAILY',
           tournamentId: tournamentId
         }
@@ -1034,7 +1032,7 @@ router.post('/:id/test-advancement', isAuthenticated, async (req: any, res) => {
     
   } catch (error) {
     console.error("Error testing tournament advancement:", error);
-    res.status(500).json({ message: "Internal server error", error: error.message });
+    res.status(500).json({ message: "Internal server error", error: error instanceof Error ? error.message : 'Unknown error' });
   }
 });
 
@@ -1053,7 +1051,7 @@ router.post('/start-live-match', isAuthenticated, async (req: any, res) => {
     const { matchStateManager } = await import('../services/matchStateManager');
     
     // Start the live match
-    await matchStateManager.startLiveMatch(parseInt(matchId));
+    await matchStateManager.startLiveMatch(matchId.toString());
     
     res.json({ 
       success: true, 
@@ -1062,7 +1060,7 @@ router.post('/start-live-match', isAuthenticated, async (req: any, res) => {
     
   } catch (error) {
     console.error("Error starting live match:", error);
-    res.status(500).json({ message: "Internal server error", error: error.message });
+    res.status(500).json({ message: "Internal server error", error: error instanceof Error ? error.message : 'Unknown error' });
   }
 });
 

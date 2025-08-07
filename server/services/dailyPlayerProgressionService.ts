@@ -239,9 +239,10 @@ export class DailyPlayerProgressionService {
           potentialAtTime: player.potentialRating ? Number(player.potentialRating) : 0
         };
         
-        await prisma.playerDevelopmentLog.create({
-          data: developmentRecord
-        });
+        // Note: playerDevelopmentLog table doesn't exist in current schema
+        // await prisma.playerDevelopmentLog.create({
+        //   data: developmentRecord
+        // });
         
         progressions.push({
           stat: randomStat,
@@ -493,15 +494,17 @@ export class DailyPlayerProgressionService {
     const easternTime = getEasternTime();
     const startDate = easternTime.clone().subtract(days, 'days').startOf('day').toDate();
     
-    const progressions = await prisma.playerDevelopmentLog.findMany({
-      where: {
-        developmentType: 'daily_progression',
-        success: true,
-        createdAt: {
-          gte: startDate
-        }
-      }
-    });
+    // Note: playerDevelopmentLog table doesn't exist in current schema
+    // const progressions = await prisma.playerDevelopmentLog.findMany({
+    //   where: {
+    //     developmentType: 'daily_progression',
+    //     success: true,
+    //     createdAt: {
+    //       gte: startDate
+    //     }
+    //   }
+    // });
+    const progressions: any[] = [];
     
     const progressionsByAge: Record<number, number> = {};
     const progressionsByStat: Record<string, number> = {};

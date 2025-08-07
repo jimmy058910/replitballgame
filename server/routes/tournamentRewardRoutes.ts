@@ -154,14 +154,14 @@ router.post('/claim-all', isAuthenticated, async (req: any, res: Response) => {
       return res.status(404).json({ message: 'Team finances not found' });
     }
 
-    const currentCredits = parseInt(teamFinances.credits);
-    const currentGems = parseInt(teamFinances.gems);
+    const currentCredits = Number(teamFinances.credits);
+    const currentGems = teamFinances.gems;
 
     await prisma.teamFinances.update({
       where: { teamId: userTeam.id },
       data: {
-        credits: (currentCredits + totalCredits).toString(),
-        gems: (currentGems + totalGems).toString()
+        credits: BigInt(currentCredits + totalCredits),
+        gems: currentGems + totalGems
       }
     });
 
@@ -186,20 +186,28 @@ router.post('/claim-all', isAuthenticated, async (req: any, res: Response) => {
       
       if (totalCredits > 0) {
         await PaymentHistoryService.recordTransaction({
-          userId: userTeam.userProfileId,
-          creditsChange: totalCredits,
+          userId: userTeam.userProfileId.toString(),
+          teamId: userTeam.id,
           transactionType: 'reward',
           itemName: 'Tournament Rewards',
+          itemType: 'reward',
+          creditsAmount: BigInt(totalCredits),
+          gemsAmount: 0,
+          status: 'completed',
           metadata: { claimedRewards }
         });
       }
 
       if (totalGems > 0) {
         await PaymentHistoryService.recordTransaction({
-          userId: userTeam.userProfileId,
-          gemsChange: totalGems,
+          userId: userTeam.userProfileId.toString(),
+          teamId: userTeam.id,
           transactionType: 'reward',
           itemName: 'Tournament Rewards',
+          itemType: 'reward',
+          creditsAmount: BigInt(0),
+          gemsAmount: totalGems,
+          status: 'completed',
           metadata: { claimedRewards }
         });
       }

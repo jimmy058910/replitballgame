@@ -47,7 +47,7 @@ export function clearRelatedCache(pattern: string): void {
   let cleared = 0;
   
   for (const key of keys) {
-    if (key.includes(pattern)) {
+    if (String(key).includes(pattern)) {
       simpleCache.delete(key);
       cleared++;
     }

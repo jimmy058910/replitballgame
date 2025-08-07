@@ -1542,10 +1542,10 @@ class MatchStateManager {
       
       const { attendance } = calculateAttendance(
         stadium,
-        fanLoyalty,
+        Number(fanLoyalty),
         opponentQuality,
-        0, // not important game (0 = false)
-        'good' // weather
+        0, // not important game (numeric value)
+        1 // weather (numeric value)
       );
 
       // Calculate comprehensive revenue

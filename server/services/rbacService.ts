@@ -82,7 +82,7 @@ export class RBACService {
     try {
       // Check the UserProfile table first, then fall back to users table
       const userProfile = await prisma.userProfile.findUnique({
-        where: { userProfileId: userId },
+        where: { userId: userId },
         select: { userId: true, email: true }
       });
       
@@ -94,14 +94,14 @@ export class RBACService {
       // Check if user has been promoted to admin (for now, hardcode admin emails)
       const adminEmails = ['jimmy058910@gmail.com']; // Add more admin emails as needed
       
-      if (adminEmails.includes(userProfile.email)) {
+      if (userProfile.email && adminEmails.includes(userProfile.email)) {
         logInfo("User granted admin access via email whitelist", { userId, email: userProfile.email });
         return UserRole.ADMIN;
       }
       
       return UserRole.USER;
     } catch (error) {
-      logInfo("Failed to fetch user role, defaulting to USER", { userId, error: error.message });
+      logInfo("Failed to fetch user role, defaulting to USER", { userId, error: (error as Error).message });
       return UserRole.USER;
     }
   }
@@ -162,9 +162,9 @@ export class RBACService {
   }
 
   /**
-   * Promote user to admin by email (for setup/testing)
+   * Promote user to admin by email (legacy method - renamed to avoid duplicate)
    */
-  static async promoteToAdmin(email: string): Promise<void> {
+  static async promoteUserToAdmin(email: string): Promise<void> {
     const userProfile = await prisma.userProfile.findUnique({
       where: { email: email }
     });
@@ -261,14 +261,14 @@ export class RBACService {
       // TODO: Add role field to UserProfile table to support role system
       logInfo("Role initialization skipped - need to add role field to UserProfile table");
     } catch (error) {
-      logInfo("Failed to initialize default roles", { error: error.message });
+      logInfo("Failed to initialize default roles", { error: (error as Error).message });
     }
   }
   
   /**
-   * Promote specific users to admin (one-time setup)
+   * Promote specific users to admin (one-time setup) - renamed to avoid duplicate
    */
-  static async promoteToAdmin(userEmail: string): Promise<void> {
+  static async promoteSpecificUserToAdmin(userEmail: string): Promise<void> {
     try {
       // TODO: Add role field to UserProfile table to support admin promotion
       logInfo("Admin promotion skipped - need to add role field to UserProfile table", { 

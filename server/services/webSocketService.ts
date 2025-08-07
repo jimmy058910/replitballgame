@@ -37,7 +37,7 @@ class WebSocketService {
           // Verify user exists in database with timeout
           const userProfile = await Promise.race([
             prisma.userProfile.findFirst({
-              where: { userProfileId: data.userId }
+              where: { id: data.userId }
             }),
             new Promise((_, reject) => 
               setTimeout(() => reject(new Error('Database timeout')), 5000)

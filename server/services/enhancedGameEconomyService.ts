@@ -228,10 +228,10 @@ export class EnhancedGameEconomyService {
   ): Promise<{ success: boolean; cost?: number; error?: string; newLevel?: number }> {
     try {
       const stadium = await prisma.stadium.findFirst({
-        where: { teamId: teamId }
+        where: { teamId: parseInt(teamId) }
       });
       const teamFinance = await prisma.teamFinances.findFirst({
-        where: { teamId: teamId }
+        where: { teamId: parseInt(teamId) }
       });
 
       if (!stadium || !teamFinance) {
@@ -244,7 +244,7 @@ export class EnhancedGameEconomyService {
 
       switch (upgradeType) {
         case 'capacity':
-          cost = this.calculateUpgradeCost('capacity', 0, stadium.capacity ?? 10000);
+          cost = this.calculateUpgradeCost('capacity', stadium.capacity ?? 10000);
           updateData.capacity = (stadium.capacity || 10000) + 5000;
           newLevel = updateData.capacity;
           break;
@@ -331,7 +331,7 @@ export class EnhancedGameEconomyService {
     fanLoyalty: number, // 0-100%
     winStreak: number
   ): number {
-    const divisionModifier = this.DIVISION_MODIFIERS[division] || 1.0;
+    const divisionModifier = this.DIVISION_MODIFIERS[division as keyof typeof this.DIVISION_MODIFIERS] || 1.0;
     const fanLoyaltyModifier = Math.min(1.25, Math.max(0.75, 0.75 + (fanLoyalty * 0.005))); // 0.75x to 1.25x
     
     let winStreakModifier = 1.0;
@@ -772,9 +772,9 @@ export class EnhancedGameEconomyService {
   }
 
   /**
-   * Award division-based rewards
+   * Award division-based rewards (legacy method - renamed to avoid duplicate)
    */
-  static async awardDivisionRewards(
+  static async awardLegacyDivisionRewards(
     teamId: string,
     rewardType: 'daily_tournament' | 'mid_season_cup' | 'league_playoff' | 'individual_award',
     division: number,
@@ -786,16 +786,16 @@ export class EnhancedGameEconomyService {
       switch (rewardType) {
         case 'daily_tournament':
           const divisionGroup = division <= 4 ? 'divisions_1_4' : 'divisions_5_8';
-          rewards = this.DAILY_TOURNAMENT_REWARDS[divisionGroup][placement];
+          rewards = (this.DAILY_TOURNAMENT_REWARDS as any)[divisionGroup]?.[placement];
           break;
         case 'mid_season_cup':
-          rewards = this.MID_SEASON_CUP_REWARDS[`div_${division}`]?.[placement];
+          rewards = (this.MID_SEASON_CUP_REWARDS as any)[`div_${division}`]?.[placement];
           break;
         case 'league_playoff':
-          rewards = this.LEAGUE_PLAYOFF_REWARDS[`div_${division}`]?.[placement];
+          rewards = (this.LEAGUE_PLAYOFF_REWARDS as any)[`div_${division}`]?.[placement];
           break;
         case 'individual_award':
-          rewards = this.INDIVIDUAL_AWARDS[placement]?.[`div_${division}`];
+          rewards = (this.INDIVIDUAL_AWARDS as any)[placement]?.[`div_${division}`];
           break;
       }
       
@@ -811,7 +811,7 @@ export class EnhancedGameEconomyService {
         if (teamFinance) {
           await prisma.teamFinances.update({
             where: { teamId: parseInt(teamId, 10) },
-            data: { credits: Number(teamFinance.credits || 0) + rewards.credits }
+            data: { credits: BigInt(Number(teamFinance.credits || 0) + rewards.credits) }
           });
         }
       }
@@ -888,9 +888,9 @@ export class EnhancedGameEconomyService {
   }
 
   /**
-   * Get comprehensive team economy status
+   * Get comprehensive team economy status (legacy method - renamed to avoid duplicate)
    */
-  static async getTeamEconomyStatus(teamId: string): Promise<{
+  static async getLegacyTeamEconomyStatus(teamId: string): Promise<{
     finances: any;
     dailyRevenue: number;
     dailyMaintenance: number;
@@ -964,7 +964,7 @@ export class EnhancedGameEconomyService {
     try {
       // Get team's ad watching progress (assuming we track this somewhere)
       const teamFinance = await prisma.teamFinances.findFirst({
-        where: { teamId: teamId }
+        where: { teamId: parseInt(teamId, 10) }
       });
       
       // For now, we'll assume there's a field to track ads watched
@@ -1099,7 +1099,7 @@ export class EnhancedGameEconomyService {
       legendary: 2
     };
     
-    const selectedItems = [];
+    const selectedItems: any[] = [];
     
     // Select 8 items with weighted probability
     for (let i = 0; i < 8; i++) {
@@ -1323,7 +1323,7 @@ export class EnhancedGameEconomyService {
 
     return {
       finances: {
-        credits: teamFinance?.credits || 0,
+        credits: Number(teamFinance?.credits || 0),
         // gems: team?.gems || 0  // gems property doesn't exist in Team schema
         gems: 0  // TODO: implement gems in TeamFinances schema
       },

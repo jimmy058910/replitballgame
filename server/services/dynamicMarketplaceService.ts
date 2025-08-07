@@ -477,8 +477,8 @@ export class DynamicMarketplaceService {
         await this.completeAuction(
           listing.id,
           listing.currentHighBidderTeamId,
-          Number(listing.currentBid || 0),
-          sellerAmount,
+          Number(listing.currentBid || BigInt(0)),
+          Number(sellerAmount),
           false
         );
         

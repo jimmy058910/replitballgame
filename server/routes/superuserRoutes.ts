@@ -109,7 +109,7 @@ router.post('/force-daily-progression', RBACService.requirePermission(Permission
   } catch (error) {
     console.error('❌ SUPERUSER: Daily progression failed:', error);
     const err = error instanceof Error ? error : new Error(String(error));
-    logError(err, { context: err.message, requestId });
+    logError(err, requestId);
     res.status(500).json({ 
       error: err.message, 
       details: 'Daily progression execution failed'
@@ -313,14 +313,14 @@ router.post('/add-players', RBACService.requirePermission(Permission.MANAGE_LEAG
 
   logInfo("Admin adding players to team", { adminUserId: userId, teamId, playerCount, requestId });
 
-  const team = await storage.teams.getTeamById(teamId);
+  const team = await storage.teams.getTeamById(teamId.toString());
   if (!team) {
     throw ErrorCreators.notFound("Team not found");
   }
 
   const newPlayers = [];
   for (let i = 0; i < playerCount; i++) {
-    const player = generatePlayerForTeam(parseInt(teamId), "HUMAN", "Passer");
+    const player = generatePlayerForTeam(teamId as any, "HUMAN", "PASSER");
     await storage.players.createPlayer(player);
     newPlayers.push(player);
   }
@@ -422,12 +422,12 @@ router.post('/create-league-schedule', RBACService.requirePermission(Permission.
             homeTeamId: homeTeam.id,
             awayTeamId: awayTeam.id,
             gameDate: new Date(),
-            status: 'SCHEDULED',
-            matchType: 'LEAGUE',
+            status: 'SCHEDULED' as const,
+            matchType: 'LEAGUE' as const,
             leagueId: parseInt(`1${division}`),
           };
           
-          await storage.matches.createGame(matchData);
+          await prisma.game.create({ data: matchData });
           scheduledMatches++;
         }
       }
@@ -489,7 +489,7 @@ router.post('/start-all-league-games', RBACService.requirePermission(Permission.
         })
         .catch(error => {
           const err = error instanceof Error ? error : new Error(String(error));
-          logError(err, { context: err.message, matchId: match.id });
+          logError(err, undefined, { message: err.message, matchId: match.id });
           throw error;
         });
       

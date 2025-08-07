@@ -43,7 +43,7 @@ export class ContractService {
       const player = individual as Player;
       // Players: Sum of all 8 attributes * 50₡ (updated for database schema)
       attributeSum = player.speed + player.power + player.throwing + player.catching + 
-                    player.kicking + player.stamina + player.leadership + player.agility;
+                    player.kicking + player.leadership + player.agility;
       attributeValue = attributeSum * 50;
     } else {
       const staffMember = individual as Staff;

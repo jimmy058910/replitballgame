@@ -1,9 +1,10 @@
 import { prisma } from "../db";
 import { randomUUID } from "crypto";
+import { NotificationType } from "../../generated/prisma";
 
 export interface NotificationData {
   teamId: number;
-  type: string;
+  type: NotificationType;
   message: string;
   linkTo?: string;
 }

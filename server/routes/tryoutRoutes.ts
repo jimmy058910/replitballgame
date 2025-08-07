@@ -170,12 +170,12 @@ router.post('/:teamId/conduct', isAuthenticated, async (req: any, res: Response,
     await prisma.teamFinances.update({
       where: { id: teamFinances.id },
       data: {
-        credits: (BigInt(teamFinances.credits) - BigInt(cost)).toString()
+        credits: BigInt(BigInt(teamFinances.credits) - BigInt(cost))
       }
     });
 
     // Store tryout candidates for taxi squad - DON'T add to main roster yet
-    const candidates = selectedPlayers.map(playerData => {
+    const candidates = selectedPlayers.map((playerData: any) => {
       // Map role string to PlayerRole enum
       let roleEnum: PlayerRole;
       const roleString = playerData.role.toLowerCase();

@@ -451,7 +451,7 @@ export class EnhancedMarketplaceService {
         where: { teamId },
         data: {
           credits: {
-            decrement: listing.buyNowPrice
+            decrement: listing.buyNowPrice || BigInt(0)
           }
         }
       });
@@ -680,7 +680,6 @@ export class EnhancedMarketplaceService {
             kicking: true,
             agility: true,
             leadership: true,
-            stamina: true,
             potentialRating: true,
             injuryStatus: true,
             camaraderieScore: true

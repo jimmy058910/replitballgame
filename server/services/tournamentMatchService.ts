@@ -29,7 +29,7 @@ export class TournamentMatchService {
   static async generateTournamentMatches(tournamentId: string): Promise<TournamentMatch[]> {
     try {
       // Get tournament and participants
-      const tournament = await prisma.tournamentEntries[0].findUnique({
+      const tournament = await prisma.tournament.findUnique({
         where: { id: parseInt(tournamentId) },
         include: {
           entries: {
@@ -57,7 +57,7 @@ export class TournamentMatchService {
       }
 
       // Seed teams based on registration order
-      const seededTeams = tournament.entries.map((entry, index) => ({
+      const seededTeams = tournament.entries.map((entry: any, index: number) => ({
         id: entry.teamId,
         name: entry.team?.name || 'Unknown Team',
         seed: index + 1

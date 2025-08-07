@@ -40,7 +40,7 @@ export class PlayerSkillsService {
   static async getEligibleSkills(playerId: string): Promise<any[]> {
     // Get player data
     const player = await prisma.player.findFirst({
-      where: { id: playerId }
+      where: { id: parseInt(playerId) }
     });
     if (!player) return [];
 
@@ -48,8 +48,8 @@ export class PlayerSkillsService {
     const allSkills = await prisma.skill.findMany();
 
     // Get player's current skills
-    const currentPlayerSkills = await prisma.playerSkill.findMany({
-      where: { playerId: playerId },
+    const currentPlayerSkills = await prisma.playerSkillLink.findMany({
+      where: { playerId: parseInt(playerId) },
       select: { skillId: true }
     });
 
@@ -66,8 +66,8 @@ export class PlayerSkillsService {
    * Get all skills a player currently has with their tiers
    */
   static async getPlayerSkills(playerId: string): Promise<any[]> {
-    const result = await prisma.playerSkill.findMany({
-      where: { playerId: playerId },
+    const result = await prisma.playerSkillLink.findMany({
+      where: { playerId: parseInt(playerId) },
       include: {
         skill: true
       }
@@ -78,19 +78,11 @@ export class PlayerSkillsService {
       skillId: ps.skillId,
       currentTier: ps.currentTier,
       acquiredAt: ps.acquiredAt,
-      lastUpgraded: ps.lastUpgraded,
       name: ps.skill.name,
       description: ps.skill.description,
       type: ps.skill.type,
       category: ps.skill.category,
-      tier1Effect: ps.skill.tier1Effect,
-      tier2Effect: ps.skill.tier2Effect,
-      tier3Effect: ps.skill.tier3Effect,
-      tier4Effect: ps.skill.tier4Effect,
-      tier1StatBonus: ps.skill.tier1StatBonus,
-      tier2StatBonus: ps.skill.tier2StatBonus,
-      tier3StatBonus: ps.skill.tier3StatBonus,
-      tier4StatBonus: ps.skill.tier4StatBonus
+      tiers: ps.skill.tiers
     }));
   }
 
@@ -98,8 +90,8 @@ export class PlayerSkillsService {
    * Count how many skills a player currently has
    */
   static async getPlayerSkillCount(playerId: string): Promise<number> {
-    const result = await prisma.playerSkill.count({
-      where: { playerId: playerId }
+    const result = await prisma.playerSkillLink.count({
+      where: { playerId: parseInt(playerId) }
     });
 
     return result || 0;
@@ -111,9 +103,9 @@ export class PlayerSkillsService {
   static async acquireSkill(playerId: string, skillId: number): Promise<boolean> {
     try {
       // Check if player already has this skill
-      const existing = await prisma.playerSkill.findFirst({
+      const existing = await prisma.playerSkillLink.findFirst({
         where: {
-          playerId: playerId,
+          playerId: parseInt(playerId),
           skillId: skillId
         }
       });
@@ -129,9 +121,9 @@ export class PlayerSkillsService {
       }
 
       // Add the skill at Tier 1
-      await prisma.playerSkill.create({
+      await prisma.playerSkillLink.create({
         data: {
-          playerId,
+          playerId: parseInt(playerId),
           skillId,
           currentTier: 1,
           acquiredAt: new Date(),
@@ -151,9 +143,9 @@ export class PlayerSkillsService {
   static async upgradeSkill(playerId: string, skillId: number): Promise<boolean> {
     try {
       // Get current skill data
-      const currentSkill = await prisma.playerSkill.findFirst({
+      const currentSkill = await prisma.playerSkillLink.findFirst({
         where: {
-          playerId: playerId,
+          playerId: parseInt(playerId),
           skillId: skillId
         }
       });
@@ -163,11 +155,10 @@ export class PlayerSkillsService {
       }
 
       // Upgrade to next tier
-      await prisma.playerSkill.update({
+      await prisma.playerSkillLink.update({
         where: { id: currentSkill.id },
         data: {
           currentTier: currentSkill.currentTier + 1,
-          lastUpgraded: new Date(),
         }
       });
 
@@ -261,7 +252,7 @@ export class PlayerSkillsService {
   }> {
     // Get all players on the team
     const teamPlayers = await prisma.player.findMany({
-      where: { teamId }
+      where: { teamId: parseInt(teamId) }
     });
 
     const results = [];
@@ -273,7 +264,7 @@ export class PlayerSkillsService {
       const success = rolled < skillUpChance;
 
       const result = {
-        playerId: player.id,
+        playerId: player.id.toString(),
         playerName: `${player.firstName} ${player.lastName}`,
         skillUpChance,
         rolled,
@@ -281,7 +272,7 @@ export class PlayerSkillsService {
       };
 
       if (success) {
-        const skillUpResult = await this.processSkillUpEvent(player.id);
+        const skillUpResult = await this.processSkillUpEvent(player.id.toString());
         if (skillUpResult.success) {
           skillUpsOccurred++;
           Object.assign(result, {

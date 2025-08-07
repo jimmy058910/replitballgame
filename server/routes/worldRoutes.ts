@@ -105,6 +105,7 @@ router.get("/rankings", isAuthenticated, async (req, res) => {
       // Enhanced True Strength Rating Algorithm
       const baseRating = (team.teamPower || 0) * 10;           // Base: 40% weight
       const divisionBonus = divisionMultiplier * 100;          // Division: 15% weight  
+      const winPercentage = (team.wins || 0) / ((team.wins || 0) + (team.losses || 0) || 1);
       const recordBonus = winPercentage * 120;                 // Record: 18% weight
       const sosBonus = strengthOfSchedule * 1.5;               // SOS: 15% weight
       const camaraderieBonus = (team.camaraderie || 0) * 2;    // Chemistry: 12% weight
@@ -317,7 +318,7 @@ async function calculateRecentForm(team: any): Promise<number> {
       const teamScore = isHome ? match.homeScore : match.awayScore;
       const opponentScore = isHome ? match.awayScore : match.homeScore;
       
-      if (teamScore > opponentScore) recentWins++;
+      if ((teamScore || 0) > (opponentScore || 0)) recentWins++;
     });
     
     const recentWinPct = recentWins / completedMatches.length;

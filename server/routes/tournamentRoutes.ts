@@ -64,7 +64,7 @@ router.get('/history', isAuthenticated, async (req: any, res: Response, next: Ne
         status: entry.tournament.status,
         division: entry.tournament.division,
         seasonDay: entry.tournament.seasonDay,
-        gameDay: entry.tournament.gameDay
+        gameDay: entry.tournament.seasonDay
       },
       creditsWon: entry.finalRank === 1 ? 1500 : entry.finalRank === 2 ? 500 : 0,
       gemsWon: 0,
@@ -228,12 +228,12 @@ router.post('/:id/enter', isAuthenticated, async (req: any, res: Response, next:
     if (tournament.division !== team.division) return res.status(400).json({ message: "Your team is not in the correct division for this tournament."});
 
     const participantCount = await prisma.tournamentEntry.count({
-      where: { tournamentId: tournamentId }
+      where: { tournamentId: parseInt(tournamentId) }
     });
-    if (participantCount >= (tournament.maxTeams || 8)) return res.status(400).json({ message: "Tournament is full."});
+    if (participantCount >= 8) return res.status(400).json({ message: "Tournament is full."});
 
     const existingEntry = await prisma.tournamentEntry.findFirst({
-      where: { tournamentId: tournamentId, teamId: team.id }
+      where: { tournamentId: parseInt(tournamentId), teamId: team.id }
     });
     if(existingEntry) return res.status(400).json({message: "Your team is already entered in this tournament."});
 

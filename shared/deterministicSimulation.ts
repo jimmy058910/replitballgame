@@ -178,7 +178,7 @@ export class SimulationContext {
   }
 
   // Export state for testing
-  exportState(this: SimulationContext): {
+  exportState(): {
     seed: number;
     eventLog: typeof this.eventLog;
   } {
