@@ -9,7 +9,9 @@ const router = express.Router();
  * GET /api/late-signup/status
  * Get current late signup window status and statistics
  */
-router.get('/status', isAuthenticated, asyncHandler(async (req, res) => {
+import { Request, Response } from 'express';
+
+router.get('/status', isAuthenticated, asyncHandler(async (req: Request, res: Response) => {
   const stats = await LateSignupService.getLateSignupStats();
   
   res.json({
@@ -22,7 +24,7 @@ router.get('/status', isAuthenticated, asyncHandler(async (req, res) => {
  * GET /api/late-signup/window
  * Check if currently in late signup window
  */
-router.get('/window', isAuthenticated, asyncHandler(async (req, res) => {
+router.get('/window', isAuthenticated, asyncHandler(async (req: Request, res: Response) => {
   const isLateSignupWindow = await LateSignupService.isLateSignupWindow();
   
   res.json({

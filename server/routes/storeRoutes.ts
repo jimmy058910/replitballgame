@@ -71,7 +71,7 @@ router.get('/items', cacheMiddleware({ ttl: 600 }), isAuthenticated, async (req:
       });
       
       const itemRarity = item.tier?.toLowerCase() || 'common';
-      const maxPurchases = purchaseLimits[itemRarity] || 1;
+      const maxPurchases = (purchaseLimits as any)[itemRarity] || 1;
       
       return {
         ...item,
@@ -183,7 +183,7 @@ router.post('/exchange-gems', isAuthenticated, async (req: any, res: Response, n
       return res.status(404).json({ success: false, error: 'Team not found' });
     }
 
-    const result = await EnhancedGameEconomyService.exchangeGemsForCredits(team.id, gemAmount);
+    const result = await EnhancedGameEconomyService.exchangeGemsForCredits(team.id.toString(), gemAmount);
     
     if (result.success) {
       res.json({ success: true, data: { creditsReceived: result.creditsReceived } });
@@ -258,7 +258,7 @@ router.get('/ads', isAuthenticated, async (req: any, res: Response, next: NextFu
     const userId = req.user.claims.sub;
     
     // Check if adSystem exists
-    if (!storage.adSystem) {
+    if (!storage.adView) {
       console.error("adSystem storage not available");
       return res.json({
         adsWatchedToday: 0,

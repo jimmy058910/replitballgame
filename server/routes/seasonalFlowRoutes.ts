@@ -113,7 +113,7 @@ router.post('/schedule/fix-division', isAuthenticated, RBACService.requirePermis
  * PUT /api/seasonal-flow/standings/update/:matchId
  * Update league standings after a match is completed
  */
-router.put('/standings/update/:matchId', isAuthenticated, RBACService.requirePermission('manage_matches'), async (req, res) => {
+router.put('/standings/update/:matchId', isAuthenticated, RBACService.requirePermission('MANAGE_MATCHES'), async (req, res) => {
   try {
     const { matchId } = req.params;
     
@@ -342,9 +342,9 @@ router.get('/config', isAuthenticated, async (req, res) => {
           loss: `${SeasonalFlowService.SEASON_CONFIG.POINTS_LOSS} points`
         },
         promotionRelegation: {
-          playoffQualifiers: SeasonalFlowService.SEASON_CONFIG.PLAYOFF_QUALIFIERS,
-          division1Relegation: SeasonalFlowService.SEASON_CONFIG.DIVISION_1_RELEGATION,
-          standardRelegation: SeasonalFlowService.SEASON_CONFIG.STANDARD_RELEGATION,
+          playoffQualifiers: (SeasonalFlowService.SEASON_CONFIG as any).PLAYOFF_QUALIFIERS,
+          division1Relegation: (SeasonalFlowService.SEASON_CONFIG as any).DIVISION_1_RELEGATION,
+          standardRelegation: (SeasonalFlowService.SEASON_CONFIG as any).STANDARD_RELEGATION,
           onlyChampionsPromote: true
         }
       }
@@ -388,7 +388,7 @@ router.get('/schedule/preview/:season', isAuthenticated, RBACService.requirePerm
             totalDays: SeasonalFlowService.SEASON_CONFIG.REGULAR_SEASON_DAYS
           },
           standardDivisions: {
-            teams: SeasonalFlowService.SEASON_CONFIG.STANDARD_LEAGUE_TEAMS,
+            teams: (SeasonalFlowService.SEASON_CONFIG as any).STANDARD_LEAGUE_TEAMS,
             gamesPerTeam: 14,
             gamesPerDay: 1,
             totalDays: SeasonalFlowService.SEASON_CONFIG.REGULAR_SEASON_DAYS,
@@ -416,10 +416,10 @@ router.get('/schedule/preview/:season', isAuthenticated, RBACService.requirePerm
  * POST /api/seasonal-flow/late-signup
  * Handle progressive late signup team creation
  */
-router.post('/late-signup', isAuthenticated, async (req, res) => {
+router.post('/late-signup', isAuthenticated, async (req: any, res) => {
   try {
     const { teamName } = req.body;
-    const userId = req.user.id;
+    const userId = req.user.claims.sub;
     
     if (!teamName || typeof teamName !== 'string') {
       return res.status(400).json({

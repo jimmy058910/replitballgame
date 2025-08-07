@@ -56,7 +56,7 @@ router.get('/current-week', isAuthenticated, async (req: Request, res: Response,
     let season = "Season 0";
     
     if (currentSeason) {
-      week = Math.ceil(currentSeason.currentDay / 7) || 1; // Simple week calculation
+      week = Math.ceil((currentSeason.currentDay || 1) / 7) || 1; // Simple week calculation
       season = `Season ${currentSeason.seasonNumber || 0}`;
     }
     
@@ -171,7 +171,7 @@ router.get('/current-cycle', isAuthenticated, async (req: Request, res: Response
 router.get('/champions', isAuthenticated, async (req: Request, res: Response, next: NextFunction) => {
   try {
     // For now, return empty array as championship history isn't implemented yet
-    const history = [];
+    const history: any[] = [];
     res.json(history);
   } catch (error) {
     console.error("Error fetching championship history:", error);
@@ -190,7 +190,7 @@ router.get('/playoffs/:division', isAuthenticated, async (req: Request, res: Res
       return res.json([]); // No active season, no playoffs
     }
     // For now, return empty array as playoffs aren't fully implemented
-    const playoffsData = [];
+    const playoffsData: any[] = [];
     res.json(playoffsData);
   } catch (error) {
     console.error("Error fetching playoffs:", error);
@@ -247,11 +247,11 @@ router.get('/salary-cap/:teamId', isAuthenticated, async (req: any, res: Respons
     const { prisma } = await import('../db');
     
     const team = await prisma.team.findUnique({
-      where: { id: teamId },
+      where: { id: parseInt(teamId) },
       include: {
         players: {
           include: {
-            contracts: {
+            contract: {
               where: {
                 OR: [
                   { startDate: { lte: new Date() } },
@@ -270,13 +270,13 @@ router.get('/salary-cap/:teamId', isAuthenticated, async (req: any, res: Respons
       return res.status(404).json({ message: "Team not found." });
     }
     
-    const totalSalary = team.players.reduce((sum, player) => {
-      const latestContract = player.contracts[0];
+    const totalSalary = team.players.reduce((sum, player: any) => {
+      const latestContract = player.contract[0];
       return sum + (latestContract?.salary || 0);
     }, 0);
     
     // Division-based salary cap
-    const capLimit = team.division <= 3 ? 65000 : 45000;
+    const capLimit = (team.division ?? 8) <= 3 ? 65000 : 45000;
     
     const capInfo = {
       teamId,
@@ -302,7 +302,7 @@ router.post('/contracts/negotiate', isAuthenticated, async (req: any, res: Respo
     const { playerId, salary, duration } = contractNegotiationSchema.omit({teamId: true}).parse(req.body);
 
     const { prisma } = await import('../db');
-    const player = await prisma.player.findUnique({ where: { id: playerId } });
+    const player = await prisma.player.findUnique({ where: { id: parseInt(playerId) } });
     if(!player || player.teamId !== userTeam.id) {
         return res.status(403).json({ message: "Player not on your team or does not exist." });
     }
@@ -310,9 +310,9 @@ router.post('/contracts/negotiate', isAuthenticated, async (req: any, res: Respo
     // Create new contract
     const contract = await prisma.contract.create({
       data: {
-        playerId,
-        salary,
-        length: duration,
+        playerId: parseInt(playerId),
+        salary: salary.toString(),
+        length: duration.toString(),
         startDate: new Date()
       }
     });
@@ -334,7 +334,7 @@ router.get('/sponsorships/:teamId', isAuthenticated, async (req: any, res: Respo
   try {
     const { teamId } = req.params;
     // For now, return empty array as sponsorships aren't implemented yet
-    const sponsorships = [];
+    const sponsorships: any[] = [];
     res.json(sponsorships);
   } catch (error) {
     console.error("Error fetching team sponsorships:", error);

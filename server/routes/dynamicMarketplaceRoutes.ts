@@ -1,4 +1,4 @@
-import { Router } from 'express';
+import { Router, Request, Response } from 'express';
 import { DynamicMarketplaceService } from '../services/dynamicMarketplaceService.js';
 import { isAuthenticated } from '../googleAuth';
 import { prisma } from '../db.js';
@@ -6,7 +6,7 @@ import { prisma } from '../db.js';
 const router = Router();
 
 // Get active marketplace listings
-router.get('/listings', isAuthenticated, async (req: any, res) => {
+router.get('/listings', isAuthenticated, async (req: Request, res: Response) => {
   try {
     const limit = parseInt(req.query.limit as string) || 50;
     const offset = parseInt(req.query.offset as string) || 0;
@@ -21,7 +21,7 @@ router.get('/listings', isAuthenticated, async (req: any, res) => {
 });
 
 // Get specific listing details with bid history
-router.get('/listings/:listingId', isAuthenticated, async (req: any, res) => {
+router.get('/listings/:listingId', isAuthenticated, async (req: Request, res: Response) => {
   try {
     const listingId = parseInt(req.params.listingId);
     const listing = await DynamicMarketplaceService.getListingDetails(listingId);
@@ -38,23 +38,26 @@ router.get('/listings/:listingId', isAuthenticated, async (req: any, res) => {
 });
 
 // Get user's team listings
-router.get('/my-listings', isAuthenticated, async (req: any, res) => {
+router.get('/my-listings', isAuthenticated, async (req: Request, res: Response) => {
   try {
-    const userId = req.user.claims.sub;
+    if (!req.user) {
+      return res.status(401).send({ success: false, message: 'Unauthorized' });
+    }
+    const userId = (req.user as any).claims.sub;
     if (!userId) {
       return res.status(401).json({ error: 'User not authenticated' });
     }
 
     // Get user's team via userProfile lookup
-    const userProfile = await prisma.userProfile.findFirst({
-      where: { userProfileId: userProfile.id }
+    const userProfileData = await prisma.userProfile.findFirst({
+      where: { id: (req.user as any).claims.sub }
     });
-    if (!userProfile) {
+    if (!userProfileData) {
       return res.status(404).json({ error: 'User profile not found' });
     }
 
     const team = await prisma.team.findFirst({
-      where: { userProfileId: userProfile.id }
+      where: { userProfileId: userProfileData.id }
     });
     if (!team) {
       return res.status(404).json({ error: 'Team not found' });
@@ -70,9 +73,12 @@ router.get('/my-listings', isAuthenticated, async (req: any, res) => {
 });
 
 // List a player for auction
-router.post('/list-player', isAuthenticated, async (req: any, res) => {
+router.post('/list-player', isAuthenticated, async (req: Request, res: Response) => {
   try {
-    const userId = req.user.claims.sub;
+    if (!req.user) {
+      return res.status(401).send({ success: false, message: 'Unauthorized' });
+    }
+    const userId = (req.user as any).claims.sub;
     if (!userId) {
       return res.status(401).json({ error: 'User not authenticated' });
     }
@@ -94,15 +100,15 @@ router.post('/list-player', isAuthenticated, async (req: any, res) => {
     }
 
     // Get user's team via userProfile lookup
-    const userProfile = await prisma.userProfile.findFirst({
-      where: { userProfileId: userProfile.id }
+    const userProfileData = await prisma.userProfile.findFirst({
+      where: { id: (req.user as any).claims.sub }
     });
-    if (!userProfile) {
+    if (!userProfileData) {
       return res.status(404).json({ error: 'User profile not found' });
     }
 
     const team = await prisma.team.findFirst({
-      where: { userProfileId: userProfile.id }
+      where: { userProfileId: userProfileData.id }
     });
     if (!team) {
       return res.status(404).json({ error: 'Team not found' });
@@ -135,9 +141,12 @@ router.post('/list-player', isAuthenticated, async (req: any, res) => {
 });
 
 // Place a bid on a listing
-router.post('/listings/:listingId/bid', isAuthenticated, async (req: any, res) => {
+router.post('/listings/:listingId/bid', isAuthenticated, async (req: Request, res: Response) => {
   try {
-    const userId = req.user.claims.sub;
+    if (!req.user) {
+      return res.status(401).send({ success: false, message: 'Unauthorized' });
+    }
+    const userId = (req.user as any).claims.sub;
     if (!userId) {
       return res.status(401).json({ error: 'User not authenticated' });
     }
@@ -150,15 +159,15 @@ router.post('/listings/:listingId/bid', isAuthenticated, async (req: any, res) =
     }
 
     // Get user's team via userProfile lookup
-    const userProfile = await prisma.userProfile.findFirst({
-      where: { userProfileId: userProfile.id }
+    const userProfileData = await prisma.userProfile.findFirst({
+      where: { id: (req.user as any).claims.sub }
     });
-    if (!userProfile) {
+    if (!userProfileData) {
       return res.status(404).json({ error: 'User profile not found' });
     }
 
     const team = await prisma.team.findFirst({
-      where: { userProfileId: userProfile.id }
+      where: { userProfileId: userProfileData.id }
     });
     if (!team) {
       return res.status(404).json({ error: 'Team not found' });
@@ -189,9 +198,12 @@ router.post('/listings/:listingId/bid', isAuthenticated, async (req: any, res) =
 });
 
 // Buy now - instant purchase
-router.post('/listings/:listingId/buy-now', isAuthenticated, async (req: any, res) => {
+router.post('/listings/:listingId/buy-now', isAuthenticated, async (req: Request, res: Response) => {
   try {
-    const userId = req.user.claims.sub;
+    if (!req.user) {
+      return res.status(401).send({ success: false, message: 'Unauthorized' });
+    }
+    const userId = (req.user as any).claims.sub;
     if (!userId) {
       return res.status(401).json({ error: 'User not authenticated' });
     }
@@ -199,8 +211,14 @@ router.post('/listings/:listingId/buy-now', isAuthenticated, async (req: any, re
     const listingId = parseInt(req.params.listingId);
 
     // Get user's team
+    const userProfileData = await prisma.userProfile.findFirst({
+      where: { id: (req.user as any).claims.sub }
+    });
+    if (!userProfileData) {
+      return res.status(404).json({ error: 'User profile not found' });
+    }
     const team = await prisma.team.findFirst({
-      where: { userProfileId: userProfile.id }
+      where: { userProfileId: userProfileData.id }
     });
     if (!team) {
       return res.status(404).json({ error: 'Team not found' });
@@ -226,12 +244,12 @@ router.post('/listings/:listingId/buy-now', isAuthenticated, async (req: any, re
 });
 
 // Calculate minimum buy-now price for a player (helper endpoint)
-router.get('/calculate-min-price/:playerId', isAuthenticated, async (req: any, res) => {
+router.get('/calculate-min-price/:playerId', isAuthenticated, async (req: Request, res: Response) => {
   try {
     const { playerId } = req.params;
     
     const player = await prisma.player.findFirst({
-      where: { id: playerId }
+      where: { id: parseInt(playerId) }
     });
     
     if (!player) {
@@ -248,23 +266,32 @@ router.get('/calculate-min-price/:playerId', isAuthenticated, async (req: any, r
 });
 
 // Get team's marketplace stats
-router.get('/team-stats', isAuthenticated, async (req: any, res) => {
+router.get('/team-stats', isAuthenticated, async (req: Request, res: Response) => {
   try {
-    const userId = req.user.claims.sub;
+    if (!req.user) {
+      return res.status(401).send({ success: false, message: 'Unauthorized' });
+    }
+    const userId = (req.user as any).claims.sub;
     if (!userId) {
       return res.status(401).json({ error: 'User not authenticated' });
     }
 
     // Get user's team
+    const userProfileData = await prisma.userProfile.findFirst({
+        where: { id: (req.user as any).claims.sub }
+    });
+    if (!userProfileData) {
+        return res.status(404).json({ error: 'User profile not found' });
+    }
     const team = await prisma.team.findFirst({
-      where: { userProfileId: userProfile.id }
+      where: { userProfileId: userProfileData.id }
     });
     if (!team) {
       return res.status(404).json({ error: 'Team not found' });
     }
 
-    const activeListings = await DynamicMarketplaceService.getTeamActiveListings(team.id);
-    const playerCount = await DynamicMarketplaceService.getTeamPlayerCount(team.id);
+    const activeListings = await DynamicMarketplaceService.getTeamActiveListings(team.id.toString());
+    const playerCount = await DynamicMarketplaceService.getTeamPlayerCount(team.id.toString());
     
     res.json({
       activeListings,
@@ -280,7 +307,7 @@ router.get('/team-stats', isAuthenticated, async (req: any, res) => {
 });
 
 // Get general marketplace statistics
-router.get('/stats', isAuthenticated, async (req: any, res) => {
+router.get('/stats', isAuthenticated, async (req: Request, res: Response) => {
   try {
     const stats = await DynamicMarketplaceService.getMarketplaceStats();
     res.json(stats);
@@ -291,29 +318,32 @@ router.get('/stats', isAuthenticated, async (req: any, res) => {
 });
 
 // Get user's bids
-router.get('/my-bids', isAuthenticated, async (req: any, res) => {
+router.get('/my-bids', isAuthenticated, async (req: Request, res: Response) => {
   try {
-    const userId = req.user.claims.sub;
+    if (!req.user) {
+      return res.status(401).send({ success: false, message: 'Unauthorized' });
+    }
+    const userId = (req.user as any).claims.sub;
     if (!userId) {
       return res.status(401).json({ error: 'User not authenticated' });
     }
 
     // Get user's team via userProfile lookup
-    const userProfile = await prisma.userProfile.findFirst({
-      where: { userProfileId: userProfile.id }
+    const userProfileData = await prisma.userProfile.findFirst({
+      where: { id: (req.user as any).claims.sub }
     });
-    if (!userProfile) {
+    if (!userProfileData) {
       return res.status(404).json({ error: 'User profile not found' });
     }
 
     const team = await prisma.team.findFirst({
-      where: { userProfileId: userProfile.id }
+      where: { userProfileId: userProfileData.id }
     });
     if (!team) {
       return res.status(404).json({ error: 'Team not found' });
     }
 
-    const bids = await DynamicMarketplaceService.getUserBids(team.id);
+    const bids = await DynamicMarketplaceService.getUserBids(team.id.toString());
     res.json({ bids });
   } catch (error) {
     console.error('Error fetching user bids:', error);
@@ -322,7 +352,7 @@ router.get('/my-bids', isAuthenticated, async (req: any, res) => {
 });
 
 // Admin endpoint: Process expired auctions
-router.post('/admin/process-expired', isAuthenticated, async (req: any, res) => {
+router.post('/admin/process-expired', isAuthenticated, async (req: Request, res: Response) => {
   try {
     // Add admin permission check here if needed
     const results = await DynamicMarketplaceService.processExpiredAuctions();

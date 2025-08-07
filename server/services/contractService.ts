@@ -196,7 +196,7 @@ export class ContractService {
    * Handle staff contract negotiation (simpler than players)
    */
   static async negotiateStaffContract(
-    staffId: string, 
+    staffId: number,
     offerSalary: number
   ): Promise<NegotiationResult> {
     const staffMember = await prisma.staff.findUnique({
@@ -320,19 +320,19 @@ export class ContractService {
    * Update staff contract after successful negotiation
    */
   static async updateStaffContract(
-    staffId: string, 
+    staffId: number,
     salary: number
   ): Promise<Staff | null> {
     // Get staff info first
     const staffMember = await prisma.staff.findUnique({
-      where: { id: parseInt(staffId) }
+      where: { id: staffId }
     });
     if (!staffMember) {
       throw new Error("Staff member not found");
     }
 
     const updatedStaff = await prisma.staff.update({
-      where: { id: parseInt(staffId) },
+      where: { id: staffId },
       data: {
         level: Math.floor(salary / 1000), // Convert salary to level for storage
         updatedAt: new Date()
@@ -342,7 +342,7 @@ export class ContractService {
     // Update team finances with new staff salary totals
     if (updatedStaff) {
       const { storage } = await import("../storage");
-      await storage.teamFinances.recalculateAndSaveStaffSalaries(parseInt(staffMember.teamId));
+      await storage.teamFinances.recalculateAndSaveStaffSalaries(staffMember.teamId);
     }
     
     return updatedStaff || null;

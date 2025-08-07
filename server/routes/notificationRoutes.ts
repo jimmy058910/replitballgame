@@ -71,7 +71,7 @@ router.delete('/:id', isAuthenticated, async (req: any, res: Response, next: Nex
     // const notification = await storage.getNotificationByIdAndUser(notificationId, userId);
     // if (!notification) return res.status(404).json({ message: "Notification not found or not yours." });
 
-    await storage.notifications.deleteNotification(notificationId);
+    await storage.notifications.delete({ where: { id: notificationId } });
     res.json({ success: true, message: "Notification deleted." });
   } catch (error) {
     console.error("Error deleting notification:", error);
@@ -82,7 +82,7 @@ router.delete('/:id', isAuthenticated, async (req: any, res: Response, next: Nex
 router.delete('/delete-all', isAuthenticated, async (req: any, res: Response, next: NextFunction) => {
   try {
     const userId = req.user.claims.sub;
-    await storage.notifications.deleteAllUserNotifications(userId);
+    await storage.notifications.deleteMany({ where: { userId: userId } });
     res.json({ success: true, message: "All notifications for the user have been deleted." });
   } catch (error) {
     console.error("Error deleting all notifications for user:", error);
@@ -118,10 +118,11 @@ router.post('/demo', isAuthenticated, async (req: any, res: Response, next: Next
 
     let createdCount = 0;
     for (const notif of demoNotifications) {
-      await storage.notifications.createNotification({
+      await storage.notifications.create({
+        data: {
         id: randomUUID(),
         userId,
-        type: notif.type,
+        type: notif.type as any,
         title: notif.title,
         message: notif.message,
         priority: notif.priority as "low" | "medium" | "high", // Cast priority
@@ -129,6 +130,7 @@ router.post('/demo', isAuthenticated, async (req: any, res: Response, next: Next
         metadata: notif.metadata || null,
         isRead: false,
         createdAt: new Date(Date.now() - Math.random() * 1000 * 60 * 60), // Random time in last hour
+        }
       });
       createdCount++;
     }

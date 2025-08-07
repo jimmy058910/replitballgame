@@ -201,7 +201,7 @@ export class ComprehensivePlayerProgressionService {
 
     // 2. Potential Modifier
     const potentialRating = Math.round(player.potentialRating * 2); // Convert to 10-point scale
-    const potentialModifier = this.CONFIG.POTENTIAL_MODIFIERS[Math.min(10, Math.max(1, potentialRating))] || 5;
+    const potentialModifier = (this.CONFIG.POTENTIAL_MODIFIERS as any)[Math.min(10, Math.max(1, potentialRating))] || 5;
     chance += potentialModifier;
 
     // 3. Staff Modifier
@@ -258,7 +258,7 @@ export class ComprehensivePlayerProgressionService {
     }
 
     // Trainer bonuses by attribute group
-    const trainers = team.staff.filter((s: Staff) => s.type === 'TRAINER');
+    const trainers = team.staff.filter((s: Staff) => s.type.includes('TRAINER'));
     for (const trainer of trainers) {
       const trainerBonus = (trainer.teaching || 20) * 0.15; // 0.15% per teaching point
       
@@ -292,9 +292,9 @@ export class ComprehensivePlayerProgressionService {
    */
   private static getInjuryModifier(player: Player): number {
     switch (player.injuryStatus) {
-      case 'MINOR': return -5;
-      case 'MODERATE': return -15;
-      case 'SEVERE': return -100; // Effectively prevents progression
+      case 'MINOR_INJURY': return -5;
+      case 'MODERATE_INJURY': return -15;
+      case 'SEVERE_INJURY': return -100; // Effectively prevents progression
       default: return 0;
     }
   }

@@ -236,10 +236,10 @@ export class DailyPlayerProgressionService {
           success: true,
           ageAtTime: player.age || 20,
           gamesPlayedLastSeason: 0, // Daily system doesn't use this
-          potentialAtTime: player.overallPotentialStars ? Number(player.overallPotentialStars) : 0
+          potentialAtTime: player.potentialRating ? Number(player.potentialRating) : 0
         };
         
-        await prisma.playerDevelopmentHistory.create({
+        await prisma.playerDevelopmentLog.create({
           data: developmentRecord
         });
         
@@ -399,8 +399,8 @@ export class DailyPlayerProgressionService {
       
       // Apply equipment stat bonuses to progression
       for (const equipment of playerEquipment) {
-        if (equipment.item?.statBoosts) {
-          const statBoosts = equipment.item.statBoosts as any;
+        if (equipment.item?.statEffects) {
+          const statBoosts = equipment.item.statEffects as any;
           
           // If equipment boosts this specific stat, provide progression bonus
           if (statBoosts[statName]) {
@@ -493,7 +493,7 @@ export class DailyPlayerProgressionService {
     const easternTime = getEasternTime();
     const startDate = easternTime.clone().subtract(days, 'days').startOf('day').toDate();
     
-    const progressions = await prisma.playerDevelopmentHistory.findMany({
+    const progressions = await prisma.playerDevelopmentLog.findMany({
       where: {
         developmentType: 'daily_progression',
         success: true,

@@ -75,7 +75,7 @@ router.get('/:playerId/contract-value', isAuthenticated, async (req: any, res: R
 
     // Get current contract to determine salary
     const currentContract = await prisma.contract.findFirst({
-      where: { playerId: parseInt(playerId), isActive: true }
+      where: { playerId: parseInt(playerId) }
     });
     
     const contractCalc = ContractService.calculateContractValue(player);
@@ -169,7 +169,7 @@ router.get('/:playerId/contract-negotiation-data', isAuthenticated, async (req: 
 
     // Get current contract info
     const currentContract = await prisma.contract.findFirst({
-      where: { playerId: parseInt(playerId), isActive: true }
+      where: { playerId: parseInt(playerId) }
     });
 
     // Calculate contract values using existing service

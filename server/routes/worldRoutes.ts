@@ -18,6 +18,7 @@ router.get("/global-rankings", cacheMiddleware({ ttl: 300 }), isAuthenticated, a
       const strengthOfSchedule = calculateSimpleStrengthOfSchedule(team, teams);
       const recentFormBias = calculateSimpleRecentForm(team);
       const healthFactor = calculateSimpleHealthFactor(team);
+      const winPercentage = (team.wins || 0) / ((team.wins || 0) + (team.losses || 0) + (team.draws || 0) || 1);
       
       // Enhanced True Strength Rating Algorithm (Research-Based Formula)
       const baseRating = (team.teamPower || 0) * 10;           // Base: 40% weight (250 max)
@@ -243,6 +244,7 @@ function calculateSimpleStrengthOfSchedule(team: any, allTeams: any[]): number {
 
 function calculateSimpleRecentForm(team: any): number {
   // Simple calculation based on win percentage vs expected performance
+  const totalGames = (team.wins || 0) + (team.losses || 0) + (team.draws || 0);
   if (totalGames === 0) return 0;
   
   const winPct = (team.wins || 0) / totalGames;
@@ -319,6 +321,7 @@ async function calculateRecentForm(team: any): Promise<number> {
     });
     
     const recentWinPct = recentWins / completedMatches.length;
+    const seasonWinPct = (team.wins || 0) / ((team.wins || 0) + (team.losses || 0) + (team.draws || 0) || 1);
     
     // Return the difference weighted by sample size
     const sampleSizeWeight = Math.min(completedMatches.length / 5, 1); // Full weight at 5+ games
@@ -346,7 +349,7 @@ async function calculateHealthFactor(team: any): Promise<number> {
       playerCount++;
       
       // Factor in current injury status
-      if (player.injuryStatus === 'INJURED') {
+      if (player.injuryStatus !== 'HEALTHY') {
         const recoveryNeeded = player.injuryRecoveryPointsNeeded || 0;
         const injuryImpact = Math.min(recoveryNeeded / 100, 0.5); // Max 50% impact per player
         totalImpact += injuryImpact;

@@ -194,7 +194,7 @@ export class AdvancedTacticalEffectsService {
 
     // Get field effects (only for home team) - using homeField instead of non-existent fieldSize
     const fieldSize = isHomeTeam ? (team.homeField || 'STANDARD') : 'STANDARD';
-    const fieldEffects = this.FIELD_SIZE_EFFECTS[fieldSize];
+    const fieldEffects = (this.FIELD_SIZE_EFFECTS as any)[fieldSize];
 
     // Get tactical focus effects
     const tacticalFocus = team.tacticalFocus || 'Balanced';
@@ -319,7 +319,7 @@ export class AdvancedTacticalEffectsService {
 
       await prisma.team.update({
         where: { id: parseInt(teamId) },
-        data: { homeField: fieldSize }
+        data: { homeField: fieldSize as any }
       });
 
       return { success: true };
@@ -339,7 +339,7 @@ export class AdvancedTacticalEffectsService {
     try {
       await prisma.team.update({
         where: { id: parseInt(teamId) },
-        data: { tacticalFocus }
+        data: { tacticalFocus: tacticalFocus as any }
       });
 
       return { success: true };
@@ -380,8 +380,8 @@ export class AdvancedTacticalEffectsService {
     return {
       fieldSize,
       tacticalFocus,
-      fieldEffects: this.FIELD_SIZE_EFFECTS[fieldSize],
-      tacticalEffects: this.TACTICAL_FOCUS_EFFECTS[tacticalFocus],
+      fieldEffects: (this.FIELD_SIZE_EFFECTS as any)[fieldSize],
+      tacticalEffects: (this.TACTICAL_FOCUS_EFFECTS as any)[tacticalFocus],
       coachTacticsRating: headCoach[0]?.tactics || 50,
       teamCamaraderie: team.camaraderie || 50
     };
@@ -401,8 +401,8 @@ export class AdvancedTacticalEffectsService {
     weaknesses: string[];
     recommendations: string[];
   } {
-    const fieldEffects = this.FIELD_SIZE_EFFECTS[fieldSize];
-    const tacticalEffects = this.TACTICAL_FOCUS_EFFECTS[tacticalFocus];
+    const fieldEffects = (this.FIELD_SIZE_EFFECTS as any)[fieldSize];
+    const tacticalEffects = (this.TACTICAL_FOCUS_EFFECTS as any)[tacticalFocus];
     
     const strengths: string[] = [];
     const weaknesses: string[] = [];

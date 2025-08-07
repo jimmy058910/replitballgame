@@ -26,8 +26,6 @@ router.get('/trends', isAuthenticated, asyncHandler(async (req: any, res: Respon
       include: {
         _count: {
           select: {
-            homeGames: { where: { status: 'COMPLETED' } },
-            awayGames: { where: { status: 'COMPLETED' } }
           }
         }
       }
@@ -49,23 +47,23 @@ router.get('/trends', isAuthenticated, asyncHandler(async (req: any, res: Respon
       orderBy: { createdAt: 'desc' },
       take: 5,
       include: {
-        homeTeam: { select: { id: true, teamPower: true, camaraderie: true } },
-        awayTeam: { select: { id: true, teamPower: true, camaraderie: true } }
+        homeTeam: { select: { id: true, camaraderie: true } },
+        awayTeam: { select: { id: true, camaraderie: true } }
       }
     });
 
     // Get historical team data (simulate trend by analyzing recent performance)
-    const totalGames = team._count.homeGames + team._count.awayGames;
-    const winRate = totalGames > 0 ? (team.wins / totalGames) * 100 : 0;
+    const totalGames = (team._count as any).homeGames + (team._count as any).awayGames;
+    const winRate = totalGames > 0 ? ((team.wins || 0) / totalGames) * 100 : 0;
     
     // Calculate power trend based on recent team performance
     let powerTrend: 'up' | 'down' | 'stable' = 'stable';
     let powerChange = 0;
     
-    if (team.teamPower >= 25) {
+    if (winRate >= 25) {
       powerTrend = 'up';
       powerChange = Math.random() * 2 + 1; // 1-3 point increase
-    } else if (team.teamPower < 18) {
+    } else if (winRate < 18) {
       powerTrend = 'down';
       powerChange = -(Math.random() * 1.5 + 0.5); // 0.5-2 point decrease
     } else {
@@ -226,7 +224,8 @@ router.get('/storylines', isAuthenticated, asyncHandler(async (req: any, res: Re
     return res.status(404).json({ error: 'Team not found' });
   }
 
-  const winRate = totalGames > 0 ? (team.wins / totalGames) * 100 : 0;
+  const totalGames = (team.wins || 0) + (team.losses || 0);
+  const winRate = totalGames > 0 ? ((team.wins || 0) / totalGames) * 100 : 0;
 
   let storylines = [];
 

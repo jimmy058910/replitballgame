@@ -26,7 +26,8 @@ router.get('/', isAuthenticated, async (req: any, res: Response, next: NextFunct
     const userId = req.user?.claims?.sub;
     
     if (!userId) {
-      return res.status(401).json({ message: "User not authenticated" });
+      res.status(401).json({ message: "User not authenticated" });
+      return;
     }
     
     // Get user's team using existing storage
@@ -34,7 +35,8 @@ router.get('/', isAuthenticated, async (req: any, res: Response, next: NextFunct
     const team = userProfile ? await storage.teams.getTeamByUserId(userId) : null;
     
     if (!team) {
-      return res.json([]);
+      res.json([]);
+      return;
     }
     
     // Get tournament entries for the team using Prisma directly

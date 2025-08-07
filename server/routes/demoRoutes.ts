@@ -1,6 +1,6 @@
 import express from 'express';
 import { simulateEnhancedMatch } from '../services/matchSimulation';
-import { Player } from '../../generated/prisma';
+import { Player } from '../../shared/types/api';
 
 const router = express.Router();
 
@@ -8,7 +8,7 @@ const router = express.Router();
 router.post('/match-simulation', async (req, res) => {
   try {
     // Create realistic demo players with proper Realm Rivalry attributes
-    const homeTeamPlayers: Player[] = [
+    const homeTeamPlayers: Partial<Player>[] = [
       {
         id: 1,
         firstName: 'Alex',
@@ -23,11 +23,8 @@ router.post('/match-simulation', async (req, res) => {
         staminaAttribute: 30,
         leadership: 29,
         agility: 25,
-        potentialRating: 3.5,
         age: 24,
         teamId: 101,
-        createdAt: new Date(),
-        updatedAt: new Date(),
         dailyStaminaLevel: 100,
         injuryStatus: 'HEALTHY',
         injuryRecoveryPointsNeeded: 0,
@@ -55,11 +52,8 @@ router.post('/match-simulation', async (req, res) => {
         staminaAttribute: 28,
         leadership: 22,
         agility: 36,
-        potentialRating: 4.0,
         age: 22,
         teamId: 101,
-        createdAt: new Date(),
-        updatedAt: new Date(),
         dailyStaminaLevel: 100,
         injuryStatus: 'HEALTHY',
         injuryRecoveryPointsNeeded: 0,
@@ -72,12 +66,6 @@ router.post('/match-simulation', async (req, res) => {
         isOnMarket: false,
         isRetired: false,
         camaraderieScore: 75,
-        dailyItemsUsed: 0,
-        careerInjuries: 0,
-        gamesPlayedLastSeason: 0,
-        seasonMinutesLeague: 0,
-        seasonMinutesTournament: 0,
-        seasonMinutesExhibition: 0,
       },
       {
         id: 3,
@@ -93,11 +81,8 @@ router.post('/match-simulation', async (req, res) => {
         staminaAttribute: 35,
         leadership: 28,
         agility: 24,
-        potentialRating: 3.2,
         age: 26,
         teamId: 101,
-        createdAt: new Date(),
-        updatedAt: new Date(),
         dailyStaminaLevel: 100,
         injuryStatus: 'HEALTHY',
         injuryRecoveryPointsNeeded: 0,
@@ -110,16 +95,10 @@ router.post('/match-simulation', async (req, res) => {
         isOnMarket: false,
         isRetired: false,
         camaraderieScore: 75,
-        dailyItemsUsed: 0,
-        careerInjuries: 0,
-        gamesPlayedLastSeason: 0,
-        seasonMinutesLeague: 0,
-        seasonMinutesTournament: 0,
-        seasonMinutesExhibition: 0,
       }
     ];
 
-    const awayTeamPlayers: Player[] = [
+    const awayTeamPlayers: Partial<Player>[] = [
       {
         id: 4,
         firstName: 'Jake',
@@ -134,11 +113,8 @@ router.post('/match-simulation', async (req, res) => {
         staminaAttribute: 27,
         leadership: 32,
         agility: 23,
-        potentialRating: 4.2,
         age: 25,
         teamId: 102,
-        createdAt: new Date(),
-        updatedAt: new Date(),
         dailyStaminaLevel: 100,
         injuryStatus: 'HEALTHY',
         injuryRecoveryPointsNeeded: 0,
@@ -151,12 +127,6 @@ router.post('/match-simulation', async (req, res) => {
         isOnMarket: false,
         isRetired: false,
         camaraderieScore: 75,
-        dailyItemsUsed: 0,
-        careerInjuries: 0,
-        gamesPlayedLastSeason: 0,
-        seasonMinutesLeague: 0,
-        seasonMinutesTournament: 0,
-        seasonMinutesExhibition: 0,
       },
       {
         id: 5,
@@ -172,11 +142,8 @@ router.post('/match-simulation', async (req, res) => {
         staminaAttribute: 26,
         leadership: 20,
         agility: 33,
-        potentialRating: 3.8,
         age: 23,
         teamId: 102,
-        createdAt: new Date(),
-        updatedAt: new Date(),
         dailyStaminaLevel: 100,
         injuryStatus: 'HEALTHY',
         injuryRecoveryPointsNeeded: 0,
@@ -189,12 +156,6 @@ router.post('/match-simulation', async (req, res) => {
         isOnMarket: false,
         isRetired: false,
         camaraderieScore: 75,
-        dailyItemsUsed: 0,
-        careerInjuries: 0,
-        gamesPlayedLastSeason: 0,
-        seasonMinutesLeague: 0,
-        seasonMinutesTournament: 0,
-        seasonMinutesExhibition: 0,
       },
       {
         id: 6,
@@ -210,11 +171,8 @@ router.post('/match-simulation', async (req, res) => {
         staminaAttribute: 33,
         leadership: 30,
         agility: 26,
-        potentialRating: 3.6,
         age: 27,
         teamId: 102,
-        createdAt: new Date(),
-        updatedAt: new Date(),
         dailyStaminaLevel: 100,
         injuryStatus: 'HEALTHY',
         injuryRecoveryPointsNeeded: 0,
@@ -227,19 +185,13 @@ router.post('/match-simulation', async (req, res) => {
         isOnMarket: false,
         isRetired: false,
         camaraderieScore: 75,
-        dailyItemsUsed: 0,
-        careerInjuries: 0,
-        gamesPlayedLastSeason: 0,
-        seasonMinutesLeague: 0,
-        seasonMinutesTournament: 0,
-        seasonMinutesExhibition: 0,
       }
     ];
 
     // Use the real match simulation system
     const result = await simulateEnhancedMatch(
-      homeTeamPlayers,
-      awayTeamPlayers,
+      homeTeamPlayers as any,
+      awayTeamPlayers as any,
       '101',
       '102',
       undefined, // No stadium for demo

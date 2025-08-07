@@ -1,6 +1,7 @@
 import { prisma } from '../db';
 import { storage } from '../storage';
 import { logInfo } from './errorService';
+import { Race, PlayerRole } from '../../generated/prisma';
 
 /**
  * Late Signup Service
@@ -200,11 +201,9 @@ export class LateSignupService {
         // Create AI team
         const aiTeam = await storage.teams.createTeam({
           name: uniqueTeamName,
-          description: 'AI Generated Team',
           userProfileId: 'AI_USER_PROFILE', // Special AI user profile
           division: 8,
           subdivision: subdivisionName,
-          isAI: true
         });
         
         // Generate players for AI team
@@ -220,7 +219,7 @@ export class LateSignupService {
   /**
    * Generate AI players for a team
    */
-  private static async generateAIPlayersForTeam(teamId: string): Promise<void> {
+  private static async generateAIPlayersForTeam(teamId: number): Promise<void> {
     const playerRoles = [
       'PASSER', 'PASSER', 'PASSER', // 3 Passers
       'RUNNER', 'RUNNER', 'RUNNER', 'RUNNER', // 4 Runners
@@ -241,10 +240,11 @@ export class LateSignupService {
       
       try {
         await storage.players.createPlayer({
-          name: `${playerName} ${Math.floor(Math.random() * 900) + 100}`,
+          firstName: playerName.split(' ')[0],
+          lastName: playerName.split(' ')[1],
           teamId: teamId,
-          race: race,
-          role: role,
+          race: race as Race,
+          role: role as PlayerRole,
           age: Math.floor(Math.random() * 10) + 20, // 20-30 years old
           speed: Math.floor(Math.random() * 15) + 10, // 10-25
           power: Math.floor(Math.random() * 15) + 10,
@@ -254,10 +254,8 @@ export class LateSignupService {
           staminaAttribute: Math.floor(Math.random() * 15) + 10,
           leadership: Math.floor(Math.random() * 15) + 10,
           agility: Math.floor(Math.random() * 15) + 10,
-          potential: Math.floor(Math.random() * 3) + 2, // 2-5 potential
           injuryStatus: 'HEALTHY',
           dailyStaminaLevel: 100,
-          isAI: true
         });
       } catch (error) {
         console.error(`Failed to create AI player for team ${teamId}:`, error);
@@ -268,8 +266,8 @@ export class LateSignupService {
   /**
    * Generate shortened season schedule for a late signup subdivision
    */
-  private static async generateShortenedSeasonSchedule(subdivisionName: string): Promise<void> {
-    const teams = await storage.teams.getTeamsByDivisionAndSubdivision(8, subdivisionName);
+  private static async generateShortenedSeasonSchedule(subdivisionName: string, teamsInSubdivision: any[]): Promise<void> {
+    const teams = teamsInSubdivision;
     
     if (teams.length !== 8) {
       logInfo(`Cannot generate schedule for ${subdivisionName} - has ${teams.length} teams instead of 8`);
@@ -285,7 +283,7 @@ export class LateSignupService {
     if (remainingDays <= 0) return;
     
     // Generate round-robin schedule for remaining days
-    const matches = [];
+    const matches: any[] = [];
     const matchesPerDay = Math.floor(remainingDays / 3); // Spread matches over remaining days
     
     for (let i = 0; i < teams.length; i++) {
@@ -298,10 +296,10 @@ export class LateSignupService {
           homeTeamId: teams[i].id,
           awayTeamId: teams[j].id,
           gameDate: gameDate,
-          seasonId: currentSeason.id,
+          leagueId: currentSeason.id,
           division: 8,
           subdivision: subdivisionName,
-          gameType: 'LEAGUE',
+          matchType: 'LEAGUE',
           status: 'SCHEDULED'
         });
       }
@@ -343,7 +341,7 @@ export class LateSignupService {
     
     // Create the team in Division 8 late signup subdivision
     const team = await storage.teams.createTeam({
-      userId: teamData.userId,
+      userProfileId: teamData.userId,
       name: teamData.name,
       division: 8,
       subdivision: subdivision,
@@ -416,7 +414,7 @@ export class LateSignupService {
       league = await prisma.league.create({
         data: {
           id: leagueId,
-          seasonId: parseInt(seasonNumber.toString()),
+          seasonId: seasonNumber,
           division: 8,
           name: `Division 8 Late Signup - ${subdivision.toUpperCase()}`
         }
@@ -447,13 +445,13 @@ export class LateSignupService {
    * Generate shortened match schedule - ONE GAME PER TEAM PER DAY
    */
   private static async generateShortenedMatches(
-    leagueId: string,
+    leagueId: number,
     teams: any[],
     season: number,
     startDay: number,
     remainingDays: number
   ): Promise<any[]> {
-    const matches = [];
+    const matches: any[] = [];
     const numTeams = teams.length;
     
     if (numTeams < 2) return matches;
@@ -497,11 +495,9 @@ export class LateSignupService {
               homeTeamId: homeTeam.id,
               awayTeamId: awayTeam.id,
               leagueId: leagueId,
-              season: season,
-              day: day,
               gameDate: await this.calculateGameDate(day),
               status: 'SCHEDULED',
-              gameType: 'LEAGUE'
+              matchType: 'LEAGUE'
             }
           });
           
@@ -574,7 +570,7 @@ export class LateSignupService {
     const activeSubdivisions = [];
     let totalLateSignupTeams = 0;
     
-    for (const { subdivision } of lateSignupSubdivisions) {
+    for (const { subdivision } of subdivisions) {
       if (subdivision) {
         const teams = await storage.teams.getTeamsByDivisionAndSubdivision(8, subdivision);
         activeSubdivisions.push({

@@ -82,10 +82,10 @@ router.get("/:teamId/scout", isAuthenticated, async (req: any, res: Response, ne
     const userId = req.user.claims.sub; // User performing the scout
     const { teamId: targetTeamId } = req.params; // Team being scouted
 
-    const userTeam = await storage.getTeamByUserId(userId);
+    const userTeam = await storage.teams.getTeamByUserId(userId);
     if (!userTeam) return res.status(404).json({ message: "Your team not found to initiate scouting." });
 
-    const targetTeam = await storage.getTeamById(targetTeamId);
+    const targetTeam = await storage.teams.getTeamById(parseInt(targetTeamId));
     if (!targetTeam) return res.status(404).json({ message: "Target team for scouting not found." });
 
     // Simulate scouting cost or check if already scouted recently
@@ -96,26 +96,26 @@ router.get("/:teamId/scout", isAuthenticated, async (req: any, res: Response, ne
     // }
     // await storage.updateTeamFinances(userTeam.id, { credits: (finances.credits || 0) - scoutingCost });
 
-    const userStaff = await storage.getStaffByTeamId(userTeam.id);
-    const scouts = userStaff.filter(s => s.type === 'head_scout' || s.type === 'recruiting_scout' || s.type === 'scout');
-    let scoutingPower = scouts.reduce((sum, s) => sum + (s.scoutingRating || 0), 0);
+    const userStaff = await storage.staff.getStaffByTeamId(userTeam.id);
+    const scouts = userStaff.filter((s: any) => s.type === 'head_scout' || s.type === 'recruiting_scout' || s.type === 'scout');
+    let scoutingPower = scouts.reduce((sum: any, s: any) => sum + (s.scoutingRating || 0), 0);
     scoutingPower = Math.max(10, scoutingPower); // Minimum scouting power
 
     const scoutingLevel = scoutingPower >= 150 ? 4 : scoutingPower >= 100 ? 3 : scoutingPower >= 50 ? 2 : 1;
 
     const [targetPlayers, targetStaffList, targetFinances, targetStadiumInfo] = await Promise.all([
-      storage.getPlayersByTeamId(targetTeamId),
-      storage.getStaffByTeamId(targetTeamId),
-      storage.getTeamFinances(targetTeamId),
-      storage.getTeamStadium(targetTeamId)
+      storage.players.getPlayersByTeamId(parseInt(targetTeamId)),
+      storage.staff.getStaffByTeamId(parseInt(targetTeamId)),
+      storage.teamFinances.getTeamFinances(parseInt(targetTeamId)),
+      storage.stadium.findUnique({ where: { teamId: parseInt(targetTeamId) } })
     ]);
 
     const report = {
       scoutingLevel,
       scoutingPower,
       confidence: Math.min(95, 30 + Math.floor(scoutingPower / 2.5)),
-      stadium: targetStadiumInfo ? { name: targetStadiumInfo.name, capacity: scoutingLevel >= 2 ? targetStadiumInfo.capacity : "Unknown", level: scoutingLevel >= 3 ? targetStadiumInfo.level : "Unknown" } : null,
-      players: targetPlayers.map(p => ({
+      stadium: targetStadiumInfo ? { name: (targetStadiumInfo as any).name, capacity: scoutingLevel >= 2 ? (targetStadiumInfo as any).capacity : "Unknown", level: scoutingLevel >= 3 ? (targetStadiumInfo as any).level : "Unknown" } : null,
+      players: targetPlayers.map((p: any) => ({
         id: p.id, firstName: p.firstName, lastName: p.lastName, race: p.race, age: scoutingLevel >= 1 ? p.age : "?", position: p.position,
         stats: scoutingLevel >= 2 ? {
           speed: getStatRange(p.speed, 8, scoutingLevel), power: getStatRange(p.power, 8, scoutingLevel), throwing: getStatRange(p.throwing, 8, scoutingLevel),
@@ -125,7 +125,7 @@ router.get("/:teamId/scout", isAuthenticated, async (req: any, res: Response, ne
         salary: scoutingLevel >= 3 ? getSalaryRange(p.salary, scoutingLevel) : "Confidential",
         abilities: scoutingLevel >= 4 && p.abilities ? (JSON.parse(p.abilities as string || "[]")) : (scoutingLevel >=3 ? "Some abilities known" : "Unknown"),
       })),
-      staff: targetStaffList.map(s => ({
+      staff: targetStaffList.map((s: any) => ({
         name: s.name, type: s.type, level: scoutingLevel >= 2 ? s.level : "?",
         salary: scoutingLevel >= 3 ? getSalaryRange(s.salary, scoutingLevel) : "Confidential",
         ratings: scoutingLevel >= 4 ? { offense: s.offenseRating, defense: s.defenseRating, /* ... other ratings */ } : "Specific Ratings Obscured",
@@ -144,7 +144,7 @@ router.get("/:teamId/scout", isAuthenticated, async (req: any, res: Response, ne
 router.get("/scoutable-teams", isAuthenticated, async (req: any, res: Response, next: NextFunction) => {
   try {
     const userId = req.user.claims.sub;
-    const userTeam = await storage.getTeamByUserId(userId);
+    const userTeam = await storage.teams.getTeamByUserId(userId);
     if (!userTeam) return res.status(404).json({ message: "Your team not found." });
 
     const userDivision = userTeam.division || 8;
@@ -155,10 +155,10 @@ router.get("/scoutable-teams", isAuthenticated, async (req: any, res: Response, 
     ]);
 
     const scoutableTeamsPromises = Array.from(scoutableDivisionsSet).map(async (div) => {
-      const divisionTeams = await storage.getTeamsByDivision(div);
+      const divisionTeams = await storage.teams.getTeamsByDivision(div);
       return divisionTeams
-        .filter(t => t.id !== userTeam.id) // Exclude user's own team
-        .map(t => ({
+        .filter((t: any) => t.id !== userTeam.id) // Exclude user's own team
+        .map((t: any) => ({
           id: t.id, name: t.name, division: t.division, teamPower: t.teamPower || 0,
           // Cost could be dynamic based on division difference, team rep, etc.
           scoutingCost: Math.abs(div - userDivision) * 500 + 500 // Example: 500 for same div, 1000 for adjacent

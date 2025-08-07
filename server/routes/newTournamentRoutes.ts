@@ -29,7 +29,7 @@ router.get('/available', isAuthenticated, async (req: any, res: Response, next: 
     const team = await storage.teams.getTeamByUserId(userId);
     if (!team) return res.status(404).json({ message: "Team not found" });
 
-    const availableTournaments = await tournamentService.getAvailableTournaments(team.id);
+    const availableTournaments = await tournamentService.getAvailableTournaments(team.id.toString());
     
     // Format tournaments with additional info
     const formattedTournaments = availableTournaments.map(tournament => ({
@@ -160,23 +160,23 @@ router.get('/my-tournaments', isAuthenticated, async (req: any, res: Response, n
 
     const teamTournaments = await tournamentService.getTeamTournaments(team.id);
     
-    const formattedTournaments = teamTournaments.map(({ tournament, entry }) => ({
+    const formattedTournaments = teamTournaments.map(({ tournament, entry }: any) => ({
       id: tournament.id,
       name: tournament.name,
       tournamentId: tournament.tournamentId,
       type: tournament.type,
       division: tournament.division,
       status: tournament.status,
-      registrationDeadline: tournament.registrationDeadline,
-      tournamentStartTime: tournament.tournamentStartTime,
+      registrationDeadline: tournament.registrationEndTime,
+      tournamentStartTime: tournament.startTime,
       entryTime: entry.registeredAt,
       placement: entry.finalRank,
       creditsWon: 0,
       gemsWon: 0,
       trophyWon: false,
-      isUpcoming: tournament.status === "open",
-      isActive: tournament.status === "in_progress",
-      isCompleted: tournament.status === "completed"
+      isUpcoming: tournament.status === "REGISTRATION_OPEN",
+      isActive: tournament.status === "IN_PROGRESS",
+      isCompleted: tournament.status === "COMPLETED"
     }));
 
     res.json(formattedTournaments);
@@ -195,7 +195,7 @@ router.get('/history', isAuthenticated, async (req: any, res: Response, next: Ne
 
     const history = await tournamentService.getTournamentHistory(team.id);
     // Convert BigInt fields to numbers for JSON serialization
-    const serializedHistory = history.map(entry => ({
+    const serializedHistory = history.map((entry: any) => ({
       ...entry,
       teamId: Number(entry.teamId),
       tournamentId: entry.tournamentId,
@@ -374,25 +374,25 @@ router.get('/:tournamentId', isAuthenticated, async (req: any, res: Response, ne
           select: { name: true }
         }
       },
-      orderBy: { entryTime: 'asc' }
+      orderBy: { registeredAt: 'asc' }
     });
 
     // Format participants for frontend compatibility
-    const formattedParticipants = participants.map(entry => ({
+    const formattedParticipants = participants.map((entry: any) => ({
       teamId: entry.teamId,
       teamName: entry.team.name,
-      entryTime: entry.entryTime,
-      placement: entry.placement,
-      eliminated: entry.eliminated
+      entryTime: entry.registeredAt,
+      placement: entry.finalRank,
+      eliminated: false
     }));
 
-    const maxTeams = tournament.maxTeams || 16;
+    const maxTeams = (tournament as any).maxTeams || 16;
     const tournamentDetails = {
       ...tournament,
       participants: formattedParticipants,
       participantCount: formattedParticipants.length,
       spotsRemaining: maxTeams - formattedParticipants.length,
-      canStillJoin: new Date() < tournament.registrationDeadline! && formattedParticipants.length < maxTeams
+      canStillJoin: new Date() < (tournament as any).registrationEndTime! && formattedParticipants.length < maxTeams
     };
 
     res.json(tournamentDetails);

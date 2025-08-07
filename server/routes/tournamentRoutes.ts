@@ -222,7 +222,7 @@ router.post('/:id/enter', isAuthenticated, async (req: any, res: Response, next:
     const team = await storage.teams.getTeamByUserId(userId);
     if (!team || !team.id) return res.status(404).json({ message: "Team not found." });
 
-    const tournament = await tournamentStorage.getTournamentById(tournamentId);
+    const tournament = await tournamentStorage.getTournamentById(parseInt(tournamentId));
     if (!tournament) return res.status(404).json({ message: "Tournament not found." });
     if (tournament.status !== 'REGISTRATION_OPEN') return res.status(400).json({ message: "Tournament is not open for entries."});
     if (tournament.division !== team.division) return res.status(400).json({ message: "Your team is not in the correct division for this tournament."});
@@ -237,17 +237,17 @@ router.post('/:id/enter', isAuthenticated, async (req: any, res: Response, next:
     });
     if(existingEntry) return res.status(400).json({message: "Your team is already entered in this tournament."});
 
-    const entryFee = tournament.entryFee || 0;
+    const entryFee = tournament.entryFeeCredits || 0;
     const finances = await teamFinancesStorage.getTeamFinances(team.id);
     if (!finances || (finances.credits || 0) < entryFee) {
       return res.status(400).json({ message: `Insufficient credits. Entry fee: ${entryFee}` });
     }
 
     if (team.name !== "Macomb Cougars" && entryFee > 0) { // Macomb Cougars bypass fee for testing
-        await teamFinancesStorage.updateTeamFinances(team.id, { credits: (finances.credits || 0) - entryFee });
+        await teamFinancesStorage.updateTeamFinances(team.id, { credits: (finances.credits || 0) - BigInt(entryFee) });
     }
 
-    await tournamentStorage.createTournamentEntry({ tournamentId, teamId: team.id });
+    await tournamentStorage.createTournamentEntry({ tournamentId: parseInt(tournamentId), teamId: team.id });
 
     res.json({ success: true, message: "Tournament entry successful. Fee deducted (if applicable)." });
   } catch (error) {

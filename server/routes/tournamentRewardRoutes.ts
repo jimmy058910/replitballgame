@@ -146,7 +146,7 @@ router.post('/claim-all', isAuthenticated, async (req: any, res: Response) => {
     }
 
     // Update team finances
-    const teamFinances = await prisma.teamFinance.findUnique({
+    const teamFinances = await prisma.teamFinances.findUnique({
       where: { teamId: userTeam.id }
     });
 
@@ -185,23 +185,23 @@ router.post('/claim-all', isAuthenticated, async (req: any, res: Response) => {
       const { PaymentHistoryService } = await import('../services/paymentHistoryService');
       
       if (totalCredits > 0) {
-        await PaymentHistoryService.recordRevenue(
-          userTeam.userProfileId,
-          totalCredits,
-          'CREDITS',
-          'Tournament Rewards Claimed',
-          `Claimed rewards from ${claimedRewards.length} tournaments: ${claimedRewards.map(r => `${r.tournamentName} (${r.credits}₡)`).join(', ')}`
-        );
+        await PaymentHistoryService.recordTransaction({
+          userId: userTeam.userProfileId,
+          creditsChange: totalCredits,
+          transactionType: 'reward',
+          itemName: 'Tournament Rewards',
+          metadata: { claimedRewards }
+        });
       }
 
       if (totalGems > 0) {
-        await PaymentHistoryService.recordRevenue(
-          userTeam.userProfileId,
-          totalGems,
-          'GEMS',
-          'Tournament Rewards Claimed',
-          `Claimed gem rewards from ${claimedRewards.length} tournaments: ${claimedRewards.map(r => `${r.tournamentName} (${r.gems}💎)`).join(', ')}`
-        );
+        await PaymentHistoryService.recordTransaction({
+          userId: userTeam.userProfileId,
+          gemsChange: totalGems,
+          transactionType: 'reward',
+          itemName: 'Tournament Rewards',
+          metadata: { claimedRewards }
+        });
       }
     }
 

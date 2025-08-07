@@ -69,7 +69,7 @@ router.post('/test-team-creation', async (req: Request, res: Response) => {
         potentialRating: playerData.potentialRating,
         dailyStaminaLevel: 100,
         injuryStatus: 'HEALTHY' as InjuryStatus,
-        camaraderie: playerData.camaraderie || 75.0,
+        camaraderieScore: playerData.camaraderieScore || 75.0,
       };
       
       const createdPlayer = await storage.players.createPlayer(cleanPlayerData);

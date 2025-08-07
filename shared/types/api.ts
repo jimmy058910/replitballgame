@@ -30,6 +30,39 @@ export interface Team {
   updatedAt?: string;
 }
 
+export interface Player {
+  id: number;
+  name: string;
+  firstName: string;
+  lastName: string;
+  race: string;
+  speed: number;
+  power: number;
+  throwing: number;
+  catching: number;
+  kicking: number;
+  agility?: number;
+  staminaAttribute?: number;
+  stamina?: number;
+  leadership?: number;
+  role?: string;
+  rosterPosition?: number;
+  salary?: number;
+  age?: number;
+  experience?: number;
+  marketValue?: number;
+  contractLength?: number;
+  isInjured?: boolean;
+  injuryType?: string;
+  injuryWeeks?: number;
+  morale?: number;
+  form?: number;
+  potential?: number;
+  nationality?: string;
+  height?: number;
+  weight?: number;
+}
+
 // Store and Market types
 export interface StoreItem {
   id: string;

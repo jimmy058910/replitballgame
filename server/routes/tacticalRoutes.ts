@@ -56,8 +56,8 @@ router.get("/team-tactics", isAuthenticated, async (req: any, res) => {
     const currentDay = SeasonalFlowService.getCurrentDay();
     const canChangeField = canChangeFieldSize(currentDay);
     
-    const fieldSize = (team.homeField || "standard").toLowerCase() as any;
-    const tacticalFocus = (team.tacticalFocus || "balanced").toLowerCase() as any;
+    const fieldSize = (team.homeField || "STANDARD").toLowerCase() as any;
+    const tacticalFocus = (team.tacticalFocus || "BALANCED").toLowerCase() as any;
     
     // Get proper team camaraderie using the service (filters active roster players only)
     const teamCamaraderie = await CamaraderieService.getTeamCamaraderie(team.id.toString());
@@ -68,7 +68,7 @@ router.get("/team-tactics", isAuthenticated, async (req: any, res) => {
       canChangeFieldSize: canChangeField,
       fieldSizeInfo: getFieldSizeInfo(fieldSize),
       tacticalFocusInfo: getTacticalFocusInfo(tacticalFocus),
-      headCoachTactics: headCoach?.motivationRating || headCoach?.coachingRating || 50,
+      headCoachTactics: headCoach?.motivation || headCoach?.tactics || 50,
       teamCamaraderie: teamCamaraderie,
     };
 
@@ -78,7 +78,7 @@ router.get("/team-tactics", isAuthenticated, async (req: any, res) => {
         fieldSize,
         tacticalFocus,
         camaraderie: teamCamaraderie,
-        headCoachTactics: headCoach?.motivationRating || headCoach?.coachingRating || 50,
+        headCoachTactics: headCoach?.motivation || headCoach?.tactics || 50,
         isHomeTeam: true,
       },
       players,
@@ -207,7 +207,7 @@ router.get("/tactical-analysis", isAuthenticated, async (req: any, res) => {
             fieldSize: fieldSize as any,
             tacticalFocus: tacticalFocus as any,
             camaraderie: teamCamaraderie,
-            headCoachTactics: headCoach?.motivationRating || headCoach?.coachingRating || 50,
+            headCoachTactics: headCoach?.motivation || headCoach?.tactics || 50,
             isHomeTeam: true,
           },
           players,

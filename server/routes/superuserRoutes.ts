@@ -145,11 +145,14 @@ router.post('/advance-day', RBACService.requirePermission(Permission.MANAGE_SEAS
     const newSeasonYear = (currentSeason.year || new Date().getFullYear()) + 1;
     const newSeasonName = `Season ${newSeasonYear}`;
     
-    await storage.seasons.updateSeason(currentSeason.id, { status: "completed", endDate: new Date() });
-    await storage.seasons.createSeason({
-      yearInput: newSeasonYear,
-      status: "active",
+    await storage.seasons.update({ where: { id: currentSeason.id }, data: { status: "COMPLETED", endDate: new Date() } });
+    await storage.seasons.create({
+      data: {
+      year: newSeasonYear,
+      status: "ACTIVE",
       startDate: newStartDate,
+      name: `Season ${newSeasonYear}`
+      }
     });
     
     message = `New season started: ${newSeasonName}`;
@@ -191,9 +194,7 @@ router.post('/reset-season', RBACService.requireSuperAdmin(), asyncHandler(async
     data: {
       wins: 0,
       losses: 0,
-      ties: 0,
       points: 0,
-      teamPower: 0
     }
   });
 
@@ -218,7 +219,7 @@ router.post('/reset-season', RBACService.requireSuperAdmin(), asyncHandler(async
 }));
 
 // Stop all games - Admin permission required
-router.post('/stop-all-games', RBACService.requirePermission("STOP_MATCHES"), asyncHandler(async (req: any, res: Response) => {
+router.post('/stop-all-games', RBACService.requirePermission(Permission.MANAGE_MATCHES), asyncHandler(async (req: any, res: Response) => {
   const requestId = req.requestId;
   const userId = req.user.claims.sub;
   
@@ -230,7 +231,6 @@ router.post('/stop-all-games', RBACService.requirePermission("STOP_MATCHES"), as
     },
     data: { 
       status: 'CANCELLED',
-      completedAt: new Date()
     }
   });
 
@@ -322,8 +322,8 @@ router.post('/add-players', RBACService.requirePermission(Permission.MANAGE_LEAG
 
   const newPlayers = [];
   for (let i = 0; i < playerCount; i++) {
-    const player = generatePlayerForTeam(teamId, "HUMAN", "Passer", "25");
-    await storage.players.createPlayer(player);
+    const player = generatePlayerForTeam(teamId, "HUMAN", "Passer");
+    await storage.players.create(player);
     newPlayers.push(player);
   }
 
@@ -423,14 +423,13 @@ router.post('/create-league-schedule', RBACService.requirePermission(Permission.
           const matchData = {
             homeTeamId: homeTeam.id,
             awayTeamId: awayTeam.id,
-            gameDay: currentDayInCycle,
-            status: 'scheduled',
-            matchType: 'league',
-            leagueId: `league-division-${division}`,
-            scheduledTime: new Date()
+            gameDate: new Date(),
+            status: 'SCHEDULED',
+            matchType: 'LEAGUE',
+            leagueId: parseInt(`1${division}`),
           };
           
-          await storage.matches.createMatch(matchData);
+          await storage.matches.create(matchData);
           scheduledMatches++;
         }
       }
@@ -532,7 +531,7 @@ router.post('/test-exhibition-rewards', RBACService.requirePermission(Permission
 
   try {
     const { matchStateManager } = await import('../services/matchStateManager');
-    await matchStateManager.awardExhibitionRewards(homeTeamId, awayTeamId, homeScore, awayScore);
+    await matchStateManager.awardExhibitionRewards(parseInt(homeTeamId), parseInt(awayTeamId), homeScore, awayScore);
     res.json({ 
       success: true,
       message: `Exhibition rewards processed for teams ${homeTeamId} and ${awayTeamId}`,

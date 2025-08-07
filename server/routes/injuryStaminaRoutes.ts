@@ -41,7 +41,7 @@ router.get('/team/:teamId/status', isAuthenticated, async (req: any, res: Respon
 
     // Calculate recovery estimates and status summaries
     const playersWithStatus = teamPlayers.map(player => {
-      const isInjured = player.injuryStatus !== 'Healthy';
+      const isInjured = player.injuryStatus !== 'HEALTHY';
       const recoveryProgress = isInjured 
         ? Math.round(((player.injuryRecoveryPointsCurrent || 0) / (player.injuryRecoveryPointsNeeded || 1)) * 100) 
         : 0;
@@ -212,15 +212,16 @@ router.post('/team/:teamId/prepare-match', isAuthenticated, async (req: any, res
 
     // Verify team ownership
     const team = await prisma.team.findFirst({
-      where: { id: teamId }
+      where: { id: parseInt(teamId) },
+      include: { user: true }
     });
-    if (!team || team.userId !== userId) {
+    if (!team || team.user.userId !== userId) {
       return res.status(403).json({ message: "Unauthorized access to team" });
     }
 
     // Get all team players
     const teamPlayers = await prisma.player.findMany({
-      where: { teamId: teamId },
+      where: { teamId: parseInt(teamId) },
       select: { id: true }
     });
 
@@ -251,15 +252,16 @@ router.post('/team/:teamId/complete-match', isAuthenticated, async (req: any, re
 
     // Verify team ownership
     const team = await prisma.team.findFirst({
-      where: { id: teamId }
+      where: { id: parseInt(teamId) },
+      include: { user: true }
     });
-    if (!team || team.userId !== userId) {
+    if (!team || team.user.userId !== userId) {
       return res.status(403).json({ message: "Unauthorized access to team" });
     }
 
     // Get all team players
     const teamPlayers = await prisma.player.findMany({
-      where: { teamId: teamId },
+      where: { teamId: parseInt(teamId) },
       select: { id: true }
     });
 
@@ -308,7 +310,7 @@ router.get('/system/stats', isAuthenticated, async (req: any, res: Response, nex
     // Get overall system statistics
     const totalPlayers = await prisma.player.findMany();
     
-    const injuredPlayers = totalPlayers.filter(p => p.injuryStatus !== 'Healthy').length;
+    const injuredPlayers = totalPlayers.filter(p => p.injuryStatus !== 'HEALTHY').length;
     const healthyPlayers = totalPlayers.length - injuredPlayers;
     
     // Calculate average stamina percentage
@@ -325,9 +327,9 @@ router.get('/system/stats', isAuthenticated, async (req: any, res: Response, nex
       playersUsedItemsToday: totalPlayers.filter(p => (p.dailyItemsUsed ?? 0) > 0).length,
       
       injuryBreakdown: {
-        minor: totalPlayers.filter(p => p.injuryStatus === 'Minor Injury').length,
-        moderate: totalPlayers.filter(p => p.injuryStatus === 'Moderate Injury').length,
-        severe: totalPlayers.filter(p => p.injuryStatus === 'Severe Injury').length
+        minor: totalPlayers.filter(p => p.injuryStatus === 'MINOR_INJURY').length,
+        moderate: totalPlayers.filter(p => p.injuryStatus === 'MODERATE_INJURY').length,
+        severe: totalPlayers.filter(p => p.injuryStatus === 'SEVERE_INJURY').length
       },
       
       staminaBreakdown: {

@@ -46,7 +46,7 @@ router.get('/', isAuthenticated, async (req: any, res: Response, next: NextFunct
       slot: invItem.item.slot?.toLowerCase(), // Add slot field for equipment
       raceRestriction: invItem.item.raceRestriction, // Add race restriction
       statBoosts: invItem.item.statEffects, // Add stat effects for equipment
-      effect: invItem.item.effect, // Add effect for consumables
+      effect: invItem.item.effectValue, // Add effect for consumables
       metadata: invItem.item.effectValue || {}
     }));
 
@@ -65,8 +65,14 @@ router.get('/:teamId', isAuthenticated, async (req: any, res: Response, next: Ne
     // Handle "my" team ID
     if (teamId === "my") {
       const userId = req.user?.claims?.sub;
+      const userProfile = await prisma.userProfile.findFirst({
+        where: { userId: userId }
+      });
+      if (!userProfile) {
+        return res.status(404).json({ error: "User profile not found" });
+      }
       const team = await prisma.team.findFirst({
-        where: { user: { userId: userId } }
+        where: { userProfileId: userProfile.id }
       });
       if (!team) {
         return res.status(404).json({ error: "Team not found for current user" });
@@ -103,7 +109,7 @@ router.get('/:teamId', isAuthenticated, async (req: any, res: Response, next: Ne
       slot: invItem.item.slot?.toLowerCase(), // Add slot field for equipment
       raceRestriction: invItem.item.raceRestriction, // Add race restriction
       statBoosts: invItem.item.statEffects, // Add stat effects for equipment
-      effect: invItem.item.effect, // Add effect for consumables
+      effect: invItem.item.effectValue, // Add effect for consumables
       metadata: invItem.item.effectValue || {}
     }));
 
@@ -123,8 +129,14 @@ router.post('/:teamId/use-item', isAuthenticated, async (req: any, res: Response
     // Handle "my" team ID
     if (teamId === "my") {
       const userId = req.user?.claims?.sub;
+      const userProfile = await prisma.userProfile.findFirst({
+        where: { userId: userId }
+      });
+      if (!userProfile) {
+        return res.status(404).json({ error: "User profile not found" });
+      }
       const team = await prisma.team.findFirst({
-        where: { user: { userId: userId } }
+        where: { userProfileId: userProfile.id }
       });
       if (!team) {
         return res.status(404).json({ error: "Team not found for current user" });

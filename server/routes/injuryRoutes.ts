@@ -47,7 +47,7 @@ router.get('/team/:teamId', isAuthenticated, async (req: any, res: Response, nex
     // TODO: Validate teamId format if necessary (e.g., UUID)
     // Optional: Check if user has permission to view this team's injuries
 
-    const teamPlayers = await storage.players.getPlayersByTeamId(teamId);
+    const teamPlayers = await storage.players.getPlayersByTeamId(parseInt(teamId));
     if (teamPlayers.length === 0) {
         return res.json([]); // No players, so no injuries
     }
@@ -55,15 +55,15 @@ router.get('/team/:teamId', isAuthenticated, async (req: any, res: Response, nex
     const allInjuries = [];
     for (const player of teamPlayers) {
       const playerInjuries = await storage.injuries.getPlayerInjuries(player.id); // Fetches all, active or not
-      allInjuries.push(...playerInjuries.map(injury => ({
+      allInjuries.push(...playerInjuries.map((injury: any) => ({
         ...injury,
         player: { // Attach basic player info for context
           id: player.id,
-          name: player.name,
+          name: `${player.firstName} ${player.lastName}`,
           firstName: player.firstName,
           lastName: player.lastName,
           race: player.race,
-          position: player.position
+          position: player.role
         }
       })));
     }
@@ -90,14 +90,16 @@ router.post('/', isAuthenticated, async (req: any, res: Response, next: NextFunc
     //     return res.status(403).json({ message: "Forbidden: Cannot create injury for player not on your team." });
     // }
 
-    const newInjury = await storage.injuries.createInjury({
-      ...injuryData,
-      remainingTime: injuryData.recoveryTime, // Initially, remaining time is full recovery time
-      isActive: true,
-      injuredAt: new Date(),
-      // expectedRecovery: new Date(Date.now() + injuryData.recoveryTime * 24 * 60 * 60 * 1000),
-      // statImpact: injuryData.statImpact || {} // Default to empty object
-    });
+    const newInjury = await storage.injuries.create({
+      data: {
+        ...injuryData,
+        remainingTime: injuryData.recoveryTime, // Initially, remaining time is full recovery time
+        isActive: true,
+        injuredAt: new Date(),
+        // expectedRecovery: new Date(Date.now() + injuryData.recoveryTime * 24 * 60 * 60 * 1000),
+        // statImpact: injuryData.statImpact || {} // Default to empty object
+      }
+    } as any);
 
     // Send notification (example, actual NotificationService might have more specific methods)
     // const team = await storage.getTeamById(player.teamId);
@@ -128,7 +130,7 @@ router.patch('/:injuryId/treatment', isAuthenticated, async (req: any, res: Resp
     const { injuryId } = req.params;
     const treatmentData = treatmentSchema.parse(req.body);
 
-    const injury = await storage.injuries.getInjuryById(injuryId); // Assuming storage has getInjuryById
+    const injury = await storage.injuries.findUnique({ where: { id: injuryId } }); // Assuming storage has getInjuryById
     if (!injury) {
         return res.status(404).json({ message: "Injury record not found." });
     }
@@ -148,11 +150,14 @@ router.patch('/:injuryId/treatment', isAuthenticated, async (req: any, res: Resp
         remainingTime = Math.max(0, remainingTime - Math.floor(injury.recoveryTime * 0.05)); // 5% reduction
     }
 
-    const updatedInjury = await storage.injuries.updateInjury(injuryId, {
-      // treatmentType: treatmentData.treatmentType, // Store last treatment type
-      recoveryProgress,
-      remainingTime,
-      isActive: remainingTime > 0, // Injury becomes inactive if remaining time is 0
+    const updatedInjury = await storage.injuries.update({
+      where: { id: injuryId },
+      data: {
+        // treatmentType: treatmentData.treatmentType, // Store last treatment type
+        recoveryProgress,
+        remainingTime,
+        isActive: remainingTime > 0, // Injury becomes inactive if remaining time is 0
+      }
     });
     res.json(updatedInjury);
   } catch (error) {
@@ -190,11 +195,14 @@ router.post('/medical-staff', isAuthenticated, async (req: any, res: Response, n
     }
 
     const staffDataFromRequest = medicalStaffSchema.omit({ teamId: true }).parse(req.body);
-    const newStaffMember = await storage.staff.createStaff({
-      ...staffDataFromRequest,
-      teamId: team.id, // Assign to user's team
-      // id: undefined, // Handled by DB or storage
-    });
+    const newStaffMember = await storage.staff.create({
+      data: {
+        ...staffDataFromRequest,
+        teamId: team.id, // Assign to user's team
+        type: 'DOCTOR',
+        // id: undefined, // Handled by DB or storage
+      }
+    } as any);
     res.status(201).json(newStaffMember);
   } catch (error) {
     console.error("Error hiring medical staff:", error);
@@ -213,8 +221,8 @@ router.get('/conditioning/:teamId', isAuthenticated, async (req: any, res: Respo
     // TODO: storage.getPlayerConditioningByTeam(teamId) needs to be implemented
     // This might involve fetching all players of a team and their conditioning stats.
     // For now, returning a placeholder.
-    const playersOnTeam = await storage.getPlayersByTeamId(teamId);
-    const conditioningData = playersOnTeam.map(p => ({
+    const playersOnTeam = await storage.players.getPlayersByTeamId(parseInt(teamId));
+    const conditioningData = playersOnTeam.map((p: any) => ({
         playerId: p.id,
         playerName: p.name,
         fitnessLevel: p.stamina, // Example mapping
@@ -241,7 +249,10 @@ router.patch('/conditioning/:playerId', isAuthenticated, async (req: any, res: R
 
     // TODO: storage.updatePlayerConditioning(playerId, updates) or storage.updatePlayer(playerId, { stamina: updates.fitnessLevel ... })
     // For now, mocking the update.
-    const updatedPlayer = await storage.updatePlayer(playerId, { stamina: updates.fitnessLevel }); // Example update
+    const updatedPlayer = await storage.players.update({
+      where: { id: parseInt(playerId) },
+      data: { staminaAttribute: updates.fitnessLevel }
+    }); // Example update
 
     res.json(updatedPlayer);
   } catch (error) {

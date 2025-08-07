@@ -69,7 +69,7 @@ router.post("/record", isAuthenticated, asyncHandler(async (req: any, res: Respo
   const transaction = await PaymentHistoryService.recordTransaction({
     userId,
     ...transactionData,
-    teamId: transactionData.teamId ? (typeof transactionData.teamId === 'string' ? parseInt(transactionData.teamId) : transactionData.teamId) : undefined,
+    teamId: transactionData.teamId ? (typeof transactionData.teamId === 'string' ? parseInt(transactionData.teamId) : transactionData.teamId) : 0,
   });
   
   res.json({ transaction });
@@ -91,7 +91,7 @@ router.post("/purchase", isAuthenticated, asyncHandler(async (req: any, res: Res
   
   const transaction = await PaymentHistoryService.recordItemPurchase(
     userId,
-    purchaseData.teamId || null,
+    purchaseData.teamId ? purchaseData.teamId.toString() : null,
     purchaseData.itemName,
     purchaseData.itemType,
     purchaseData.creditsSpent,

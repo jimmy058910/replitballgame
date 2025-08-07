@@ -52,6 +52,9 @@ router.post('/equip', isAuthenticated, asyncHandler(async (req: any, res: Respon
       id: itemId,
       teamId: team.id,
       quantity: { gt: 0 }
+    },
+    include: {
+      item: true
     }
   });
 
@@ -60,7 +63,7 @@ router.post('/equip', isAuthenticated, asyncHandler(async (req: any, res: Respon
   }
 
   // Check race requirements for equipment
-  const raceRequirements = {
+  const raceRequirements: { [key: string]: string[] } = {
     "Human Tactical Helm": ["HUMAN"],
     "Gryllstone Plated Helm": ["GRYLL"],
     "Sylvan Barkwood Circlet": ["SYLVAN"],
@@ -104,12 +107,12 @@ router.post('/equip', isAuthenticated, asyncHandler(async (req: any, res: Respon
     item = await prisma.item.create({
       data: {
         name: itemName,
-        description: inventoryItem.description,
-        type: inventoryItem.itemType,
+        description: inventoryItem.item.description,
+        type: inventoryItem.item.type,
         slot: itemName.toLowerCase().includes('helmet') || itemName.toLowerCase().includes('helm') ? 'HELMET' : 'ARMOR',
-        raceRestriction: raceRestrictionMap[itemName] || null,
-        rarity: inventoryItem.rarity?.toUpperCase() || 'COMMON',
-        statEffects: inventoryItem.metadata || {}
+        raceRestriction: raceRestrictionMap[itemName as keyof typeof raceRestrictionMap] || null,
+        rarity: (inventoryItem.item.rarity?.toUpperCase() as any) || 'COMMON',
+        statEffects: inventoryItem.item.statEffects || {}
       }
     });
   }

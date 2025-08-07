@@ -28,18 +28,18 @@ router.get('/:teamId?', isAuthenticated, async (req: Request, res: Response, nex
     
     // If no teamId provided, get user's team
     if (!teamId) {
-      const team = await storage.prisma.team.findFirst({
+      const team = await prisma.team.findFirst({
         where: { userProfileId: userProfile.id }
       });
       if (!team) {
         return res.status(404).json({ error: 'Team not found' });
       }
-      teamId = team.id;
+      teamId = team.id.toString();
     }
 
     // Get team data with stats
-    const team = await storage.prisma.team.findUnique({
-      where: { id: teamId },
+    const team = await prisma.team.findUnique({
+      where: { id: parseInt(teamId) },
       include: {
         players: {
           where: { isRetired: false, isOnMarket: false }
@@ -54,11 +54,11 @@ router.get('/:teamId?', isAuthenticated, async (req: Request, res: Response, nex
     }
 
     // Get recent match history for victory moments
-    const recentMatches = await storage.prisma.game.findMany({
+    const recentMatches = await prisma.game.findMany({
       where: {
         OR: [
-          { homeTeamId: teamId },
-          { awayTeamId: teamId }
+          { homeTeamId: parseInt(teamId) },
+          { awayTeamId: parseInt(teamId) }
         ],
         status: 'COMPLETED',
         createdAt: {
@@ -186,7 +186,7 @@ router.get('/:teamId?', isAuthenticated, async (req: Request, res: Response, nex
     // Win streak detection (recent matches)
     let currentStreak = 0;
     for (const match of recentMatches) {
-      const isHome = match.homeTeamId === teamId;
+      const isHome = match.homeTeamId === parseInt(teamId);
       const teamScore = isHome ? match.homeScore : match.awayScore;
       const opponentScore = isHome ? match.awayScore : match.homeScore;
       

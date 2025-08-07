@@ -300,7 +300,7 @@ router.get('/:id/status', isAuthenticated, async (req: any, res) => {
     }));
 
     // Get tournament matches if tournament is in progress
-    let matches = [];
+    let matches: any[] = [];
     if (tournament.status === 'IN_PROGRESS') {
       const rawMatches = await prisma.game.findMany({
         where: { tournamentId: tournament.id },
@@ -340,16 +340,8 @@ router.get('/:id/status', isAuthenticated, async (req: any, res) => {
         // Ensure scores are properly included
         homeScore: match.homeScore ?? 0,
         awayScore: match.awayScore ?? 0,
-        homeTeam: teamMap.get(match.homeTeamId) ? {
-          id: teamMap.get(match.homeTeamId).id.toString(),
-          name: teamMap.get(match.homeTeamId).name,
-          division: teamMap.get(match.homeTeamId).division
-        } : null,
-        awayTeam: teamMap.get(match.awayTeamId) ? {
-          id: teamMap.get(match.awayTeamId).id.toString(),
-          name: teamMap.get(match.awayTeamId).name,
-          division: teamMap.get(match.awayTeamId).division
-        } : null,
+        homeTeam: teamMap.get(match.homeTeamId) ?? null,
+        awayTeam: teamMap.get(match.awayTeamId) ?? null,
         tournament: match.tournament ? {
           ...match.tournament,
           id: match.tournament.id.toString(),
@@ -607,7 +599,7 @@ router.post('/:id/matches/simulate-round', isAuthenticated, async (req: any, res
         });
 
         // Start live simulation
-        await matchStateManager.startLiveMatch(match.id);
+        await matchStateManager.startLiveMatch(match.id.toString());
         console.log(`Started live simulation for tournament match ${match.id}`);
         
         return match.id;
@@ -1008,7 +1000,6 @@ async function advanceTournament(tournamentId: number, completedRound: string) {
         where: { id: tournamentId },
         data: {
           status: 'COMPLETED' as any,
-          winnerId: winners[0].teamId
         }
       });
     }
@@ -1062,7 +1053,7 @@ router.post('/start-live-match', isAuthenticated, async (req: any, res) => {
     const { matchStateManager } = await import('../services/matchStateManager');
     
     // Start the live match
-    await matchStateManager.startLiveMatch(matchId.toString());
+    await matchStateManager.startLiveMatch(parseInt(matchId));
     
     res.json({ 
       success: true, 

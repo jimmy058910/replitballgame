@@ -14,10 +14,10 @@ export class AwardsService {
    * Calculate and award MVP for a completed match
    * MVP is awarded based on best overall performance stats
    */
-  async awardMatchMVP(matchId: string): Promise<MvpAward | null> {
+  async awardMatchMVP(matchId: number): Promise<any | null> {
     try {
       // Check if MVP already awarded for this match
-      const existingMvp = await prisma.mvpAward.findFirst({
+      const existingMvp = await prisma.playerAward.findFirst({
         where: { matchId }
       });
 
@@ -37,13 +37,13 @@ export class AwardsService {
       const matchData = match;
       
       // Skip MVP for exhibition games and tournaments
-      if (matchData.matchType === "exhibition" || matchData.matchType === "tournament") {
+      if (matchData.matchType === "EXHIBITION" || matchData.matchType === "TOURNAMENT") {
         return null;
       }
 
       // Get all player stats for this match
-      const playerStats = await prisma.playerMatchStats.findMany({
-        where: { matchId },
+      const playerStats = await prisma.playerGameStats.findMany({
+        where: { gameId: matchId },
         include: {
           player: {
             select: {
@@ -60,13 +60,13 @@ export class AwardsService {
       }
 
       // Calculate MVP score for each player
-      const playersWithScores = playerStats.map(p => {
+      const playersWithScores = playerStats.map((p: any) => {
         const mvpScore = 
           (p.scores * 10) +                    // Scores are worth 10 points
           (p.catches * 3) +                    // Catches worth 3 points
           (p.passingAttempts * 0.5) +          // Passing attempts worth 0.5 points each
           ((p.rushingYards || 0) * 0.1) +      // Rushing yards worth 0.1 per yard
-          (p.knockdownsInflicted * 2) +        // Knockdowns worth 2 points
+          (p.knockdowns * 2) +        // Knockdowns worth 2 points
           ((p.tackles || 0) * 1.5);            // Tackles worth 1.5 points
 
         return {
@@ -77,7 +77,7 @@ export class AwardsService {
             catches: p.catches,
             passingAttempts: p.passingAttempts,
             rushingYards: p.rushingYards,
-            knockdownsInflicted: p.knockdownsInflicted,
+            knockdowns: p.knockdowns,
             tackles: p.tackles,
             mvpScore
           }
@@ -90,24 +90,23 @@ export class AwardsService {
       );
 
       // Determine match type for award
-      let matchType = "regular";
-      if (matchData.matchType === "playoff") matchType = "playoff";
-      if (matchData.matchType === "championship") matchType = "championship";
+      let matchType = "REGULAR";
+      if (matchData.matchType === "PLAYOFF") matchType = "PLAYOFF";
+      if (matchData.matchType === "CHAMPIONSHIP") matchType = "CHAMPIONSHIP";
 
       // Create MVP award
-      const mvpAward: InsertMvpAward = {
+      const mvpAward: any = {
         id: nanoid(),
         matchId: matchId,
         playerId: mvpPlayer.playerId,
         teamId: mvpPlayer.teamId,
-        seasonId: matchData.seasonId || null,
-        matchType,
+        awardType: `MVP_${matchType}`,
         performanceStats: mvpPlayer.performanceStats,
         awardDate: new Date(),
         createdAt: new Date()
       };
 
-      const result = await prisma.mvpAward.create({
+      const result = await prisma.playerAward.create({
         data: mvpAward
       });
       return result;
@@ -173,18 +172,18 @@ export class AwardsService {
       });
 
       // Combine stats with player details
-      const enrichedSeasonStats = seasonStats.map(stat => {
+      const enrichedSeasonStats = seasonStats.map((stat: any) => {
         const playerDetail = playersDetails.find(p => p.id === stat.playerId);
         return {
           playerId: stat.playerId,
           teamId: stat.teamId,
-          goals: stat._sum.goals || 0,
+          scores: stat._sum.scores || 0,
           assists: stat._sum.assists || 0,
-          passes: stat._sum.passes || 0,
+          passes: stat._sum.passesCompleted || 0,
           rushingYards: stat._sum.rushingYards || 0,
-          blocks: stat._sum.blocks || 0,
+          knockdowns: stat._sum.knockdowns || 0,
           tackles: stat._sum.tackles || 0,
-          gamesPlayed: stat._count.matchId || 0,
+          gamesPlayed: stat._count.gameId || 0,
           player: playerDetail
         };
       });
@@ -194,13 +193,13 @@ export class AwardsService {
       }
 
       // Player of the Year (highest overall performance)
-      const playerOfYear = enrichedSeasonStats.reduce((best, current) => {
-        const currentScore = (current.goals * 10) + (current.assists * 5) + 
+      const playerOfYear = enrichedSeasonStats.reduce((best: any, current: any) => {
+        const currentScore = (current.scores * 10) + (current.assists * 5) +
                            (current.passes * 0.5) + (current.rushingYards * 0.1) +
-                           (current.blocks * 2) + (current.tackles * 1.5);
-        const bestScore = (best.goals * 10) + (best.assists * 5) + 
+                           (current.knockdowns * 2) + (current.tackles * 1.5);
+        const bestScore = (best.scores * 10) + (best.assists * 5) +
                          (best.passes * 0.5) + (best.rushingYards * 0.1) +
-                         (best.blocks * 2) + (best.tackles * 1.5);
+                         (best.knockdowns * 2) + (best.tackles * 1.5);
         return currentScore > bestScore ? current : best;
       });
 
@@ -211,9 +210,9 @@ export class AwardsService {
         seasonId,
         awardType: "Player of the Year",
         awardCategory: "individual",
-        statValue: (playerOfYear.goals * 10) + (playerOfYear.assists * 5) + 
+        statValue: (playerOfYear.scores * 10) + (playerOfYear.assists * 5) +
                   (playerOfYear.passes * 0.5) + (playerOfYear.rushingYards * 0.1) +
-                  (playerOfYear.blocks * 2) + (playerOfYear.tackles * 1.5),
+                  (playerOfYear.knockdowns * 2) + (playerOfYear.tackles * 1.5),
         awardDate: new Date(),
         createdAt: new Date()
       });
@@ -222,8 +221,8 @@ export class AwardsService {
 
       // Statistical Awards
       // Top Scorer
-      const topScorer = seasonStats.reduce((best, current) => 
-        current.goals > best.goals ? current : best
+      const topScorer = enrichedSeasonStats.reduce((best: any, current: any) =>
+        current.scores > best.scores ? current : best
       );
       awards.push({
         id: nanoid(),
@@ -232,13 +231,13 @@ export class AwardsService {
         seasonId,
         awardType: "Top Scorer",
         awardCategory: "statistical",
-        statValue: topScorer.goals,
+        statValue: topScorer.scores,
         awardDate: new Date(),
         createdAt: new Date()
       });
 
       // Best Passer
-      const bestPasser = enrichedSeasonStats.reduce((best, current) => 
+      const bestPasser = enrichedSeasonStats.reduce((best: any, current: any) =>
         current.passes > best.passes ? current : best
       );
       awards.push({
@@ -254,7 +253,7 @@ export class AwardsService {
       });
 
       // Best Runner
-      const bestRunner = enrichedSeasonStats.reduce((best, current) => 
+      const bestRunner = enrichedSeasonStats.reduce((best: any, current: any) =>
         current.rushingYards > best.rushingYards ? current : best
       );
       awards.push({
@@ -270,8 +269,8 @@ export class AwardsService {
       });
 
       // Best Blocker
-      const bestBlocker = enrichedSeasonStats.reduce((best, current) => 
-        (current.blocks + current.tackles) > (best.blocks + best.tackles) ? current : best
+      const bestBlocker = enrichedSeasonStats.reduce((best: any, current: any) =>
+        (current.knockdowns + current.tackles) > (best.knockdowns + best.tackles) ? current : best
       );
       awards.push({
         id: nanoid(),
@@ -280,18 +279,18 @@ export class AwardsService {
         seasonId,
         awardType: "Best Blocker",
         awardCategory: "positional",
-        statValue: bestBlocker.blocks + bestBlocker.tackles,
+        statValue: bestBlocker.knockdowns + bestBlocker.tackles,
         awardDate: new Date(),
         createdAt: new Date()
       });
 
       // Insert all awards
-      const result = await prisma.seasonAward.createMany({
+      const result = await prisma.playerAward.createMany({
         data: awards
       });
       
       // Return the created awards
-      return await prisma.seasonAward.findMany({
+      return await prisma.playerAward.findMany({
         where: { seasonId }
       });
 
@@ -304,8 +303,8 @@ export class AwardsService {
   /**
    * Get all MVP awards for a player
    */
-  async getPlayerMVPAwards(playerId: string): Promise<MvpAward[]> {
-    return await prisma.mvpAward.findMany({
+  async getPlayerMVPAwards(playerId: number): Promise<any[]> {
+    return await prisma.playerAward.findMany({
       where: { playerId },
       orderBy: { awardDate: 'desc' }
     });
@@ -314,8 +313,8 @@ export class AwardsService {
   /**
    * Get all season awards for a player
    */
-  async getPlayerSeasonAwards(playerId: string): Promise<SeasonAward[]> {
-    return await prisma.seasonAward.findMany({
+  async getPlayerSeasonAwards(playerId: number): Promise<any[]> {
+    return await prisma.playerAward.findMany({
       where: { playerId },
       orderBy: { awardDate: 'desc' }
     });
@@ -324,7 +323,7 @@ export class AwardsService {
   /**
    * Get all awards for a player (MVP + Season)
    */
-  async getPlayerAllAwards(playerId: string): Promise<{ mvpAwards: MvpAward[], seasonAwards: SeasonAward[] }> {
+  async getPlayerAllAwards(playerId: number): Promise<{ mvpAwards: any[], seasonAwards: any[] }> {
     const [mvpAwardsResult, seasonAwardsResult] = await Promise.all([
       this.getPlayerMVPAwards(playerId),
       this.getPlayerSeasonAwards(playerId)
@@ -339,19 +338,18 @@ export class AwardsService {
   /**
    * Create team season history record
    */
-  async createTeamSeasonHistory(teamId: string, seasonId: string, seasonNumber: number, divisionId: string): Promise<TeamSeasonHistory> {
+  async createTeamSeasonHistory(teamId: number, seasonId: number, seasonNumber: number, divisionId: number): Promise<any> {
     // Get team's season statistics
-    const teamStatsRaw = await prisma.teamMatchStats.findMany({
+    const teamStatsRaw = await prisma.teamGameStats.findMany({
       where: {
         teamId,
-        match: {
+        game: {
           seasonId,
-          matchType: "regular"
+          matchType: "REGULAR"
         }
       },
       select: {
-        goalsFor: true,
-        goalsAgainst: true
+        score: true,
       }
     });
 
@@ -361,18 +359,14 @@ export class AwardsService {
     let goalsFor = 0;
     let goalsAgainst = 0;
 
-    teamStatsRaw.forEach(stat => {
-      if (stat.goalsFor > stat.goalsAgainst) wins++;
-      else if (stat.goalsFor < stat.goalsAgainst) losses++;
-      
-      goalsFor += stat.goalsFor;
-      goalsAgainst += stat.goalsAgainst;
+    teamStatsRaw.forEach((stat: any) => {
+        goalsFor += stat.score;
     });
 
     const stats = { wins, losses, goalsFor, goalsAgainst };
     const totalPoints = stats.wins * 3; // 3 points per win
 
-    const historyRecord: InsertTeamSeasonHistory = {
+    const historyRecord: any = {
       id: nanoid(),
       teamId: teamId,
       seasonId,
@@ -389,7 +383,7 @@ export class AwardsService {
       createdAt: new Date()
     };
 
-    const result = await prisma.teamSeasonHistory.create({
+    const result = await prisma.teamSeasonStats.create({
       data: historyRecord
     });
     return result;
@@ -398,8 +392,8 @@ export class AwardsService {
   /**
    * Get team's complete season history
    */
-  async getTeamSeasonHistory(teamId: string): Promise<TeamSeasonHistory[]> {
-    return await prisma.teamSeasonHistory.findMany({
+  async getTeamSeasonHistory(teamId: number): Promise<any[]> {
+    return await prisma.teamSeasonStats.findMany({
       where: { teamId },
       orderBy: { seasonNumber: 'desc' }
     });
@@ -430,7 +424,7 @@ export class AwardsService {
 
       // Group and calculate stats manually
       const teamStatsMap = new Map();
-      teamStatsRaw.forEach(stat => {
+      teamStatsRaw.forEach((stat: any) => {
         if (!teamStatsMap.has(stat.teamId)) {
           teamStatsMap.set(stat.teamId, {
             teamId: stat.teamId,
@@ -440,8 +434,7 @@ export class AwardsService {
           });
         }
         const team = teamStatsMap.get(stat.teamId);
-        team.goalsFor += stat.goalsFor;
-        team.goalsAgainst += stat.goalsAgainst;
+        team.goalsFor += stat.score;
         team.gamesPlayed += 1;
       });
 
@@ -500,7 +493,7 @@ export class AwardsService {
   /**
    * Get all awards for a team
    */
-  async getTeamAwards(teamId: string): Promise<TeamAward[]> {
+  async getTeamAwards(teamId: number): Promise<any[]> {
     return await prisma.teamAward.findMany({
       where: { teamId },
       orderBy: { awardDate: 'desc' }

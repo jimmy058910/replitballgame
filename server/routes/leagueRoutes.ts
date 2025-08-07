@@ -45,12 +45,6 @@ async function createAITeamsForDivision(division: number) {
       userId: aiUser.userId,
       division: division,
       subdivision: "main", // AI teams default to main subdivision
-      wins: Math.floor(Math.random() * 5),
-      losses: Math.floor(Math.random() * 5),
-      draws: Math.floor(Math.random() * 2),
-      points: Math.floor(Math.random() * 15),
-      formation: JSON.stringify({ starters: [], substitutes: [] }),
-      substitutionOrder: JSON.stringify({})
     });
 
     // storage.teams.createTeam should handle default finances, but if specific AI finances
@@ -101,17 +95,16 @@ async function createAITeamsForDivision(division: number) {
       const nameData = generateRandomName(playerRace.toLowerCase());
       const position = requiredPositions[j];
 
+      const { firstName, lastName } = generateRandomName(playerRace.toLowerCase());
       const playerData = generateRandomPlayer(
-        `${nameData.firstName} ${nameData.lastName}`,
-        playerRace.toLowerCase(),
-        team.id
+        firstName,
+        lastName,
+        playerRace.toLowerCase()
       );
-
-      await storage.players.createPlayer({ // Use playerStorage
+      await storage.players.createPlayer({
         ...playerData,
-        position: position,
-        abilities: JSON.stringify([])
-      });
+        teamId: team.id,
+      } as any);
     }
   }
 }
@@ -191,6 +184,7 @@ router.get('/:division/standings', isAuthenticated, async (req: Request, res: Re
       // Calculate current streak based on recent form
       const wins = team.wins || 0;
       const losses = team.losses || 0;
+      const draws = team.draws || 0;
       
       // Simple streak calculation based on win/loss ratio
       let streakType = 'N';
@@ -255,49 +249,6 @@ router.get('/:division/standings', isAuthenticated, async (req: Request, res: Re
   }
 });
 
-// League standings endpoint - frontend calls /api/leagues/{division}/standings
-router.get('/:division/standings', isAuthenticated, async (req: Request, res: Response, next: NextFunction) => {
-  try {
-    const division = parseInt(req.params.division);
-    if (isNaN(division) || division < 1 || division > 8) {
-      return res.status(400).json({ message: "Invalid division parameter" });
-    }
-
-    let teamsInDivision = await storage.teams.getTeamsByDivision(division);
-
-    if (teamsInDivision.length === 0) {
-      await createAITeamsForDivision(division);
-      teamsInDivision = await storage.teams.getTeamsByDivision(division);
-    }
-
-    // Process standings data with proper calculations
-    const standings = teamsInDivision.map(team => ({
-      id: team.id.toString(),
-      name: team.name,
-      wins: team.wins || 0,
-      losses: team.losses || 0,
-      points: team.points || 0,
-      division: team.division,
-      subdivision: team.subdivision,
-      goalsFor: team.goalsFor || 0,
-      goalsAgainst: team.goalsAgainst || 0,
-      goalDifference: (team.goalsFor || 0) - (team.goalsAgainst || 0),
-      currentStreak: 0, // Will calculate based on recent matches
-      streakType: 'N/A',
-      form: 'N/A'
-    })).sort((a, b) => {
-      // Sort by points descending, then by goal difference, then by goals for
-      if (b.points !== a.points) return b.points - a.points;
-      if (b.goalDifference !== a.goalDifference) return b.goalDifference - a.goalDifference;
-      return b.goalsFor - a.goalsFor;
-    });
-
-    res.json(standings);
-  } catch (error) {
-    console.error('Error fetching league standings:', error);
-    next(error);
-  }
-});
 
 router.get('/teams/:division', isAuthenticated, async (req: Request, res: Response, next: NextFunction) => {
   try {
@@ -350,13 +301,7 @@ router.post('/create-ai-teams', isAuthenticated, async (req: Request, res: Respo
         name: teamName,
         userId: aiUser.userId,
         division: division,
-        wins: Math.floor(Math.random() * 5),
-        losses: Math.floor(Math.random() * 5),
-        draws: Math.floor(Math.random() * 2),
-        points: 0,
-        teamPower: 60 + Math.floor(Math.random() * 20)
       });
-      await storage.teams.updateTeam(team.id, { points: calculatedPoints }); // Use teamStorage
 
       // storage.teams.createTeam handles default finances
       // await teamFinancesStorage.createTeamFinances({ // Use teamFinancesStorage
@@ -371,7 +316,16 @@ router.post('/create-ai-teams', isAuthenticated, async (req: Request, res: Respo
         const race = races[Math.floor(Math.random() * races.length)];
         const position = positions[Math.floor(Math.random() * positions.length)];
         // Generate proper names instead of "AI Player" 
-        await storage.players.createPlayer(generateRandomPlayer(null, race, team.id, position)); // null name triggers race-appropriate name generation
+        const { firstName, lastName } = generateRandomName(race.toLowerCase());
+        const playerData = generateRandomPlayer(
+            firstName,
+            lastName,
+            race.toLowerCase()
+        );
+        await storage.players.createPlayer({
+            ...playerData,
+            teamId: team.id,
+        } as any);
       }
       createdTeams.push(team);
     }
@@ -451,8 +405,11 @@ router.get('/daily-schedule', isAuthenticated, async (req: Request, res: Respons
     }
 
     // Get user's team to determine their subdivision
+    if (!req.user) {
+      return res.status(401).json({ message: "Authentication required" });
+    }
     const userTeam = await prisma.team.findFirst({
-      where: { userProfileId: req.user.id },
+      where: { userProfileId: req.user.claims.sub },
       select: { id: true, division: true, subdivision: true }
     });
 
@@ -461,7 +418,7 @@ router.get('/daily-schedule', isAuthenticated, async (req: Request, res: Respons
     }
 
     // Get all matches for the user's division and subdivision
-    const divisionMatches = await matchStorage.getMatchesByDivision(userTeam.division);
+    const divisionMatches = await matchStorage.getMatchesByDivision(userTeam.division as any);
     
     // ✅ CRITICAL FIX: Filter out exhibition games - only show league games
     const leagueMatches = divisionMatches.filter(match => match.matchType === 'LEAGUE');
@@ -494,14 +451,14 @@ router.get('/daily-schedule', isAuthenticated, async (req: Request, res: Respons
 
 
     // Look up team names for all matches
-    const teamIds = new Set();
+    const teamIds = new Set<number>();
     allMatches.forEach(match => {
-      if (match.homeTeamId) teamIds.add(match.homeTeamId);
-      if (match.awayTeamId) teamIds.add(match.awayTeamId);
+      if (match.homeTeamId) teamIds.add(Number(match.homeTeamId));
+      if (match.awayTeamId) teamIds.add(Number(match.awayTeamId));
     });
 
     const teams = await prisma.team.findMany({
-      where: { id: { in: Array.from(teamIds) } },
+      where: { id: { in: [...teamIds] } },
       select: { id: true, name: true }
     });
 
@@ -527,7 +484,7 @@ router.get('/daily-schedule', isAuthenticated, async (req: Request, res: Respons
           
           return gameDayInCycle === day;
         }
-        return match.gameDay === day;
+        return false;
       });
 
       if (dayMatches.length > 0) {
@@ -580,13 +537,13 @@ router.post('/fix-team-players/:teamId', isAuthenticated, async (req: Request, r
     const { teamId } = req.params;
     
     // Get team info
-    const team = await storage.teams.getTeamById(teamId);
+    const team = await storage.teams.getTeamById(Number(teamId));
     if (!team) {
       return res.status(404).json({ message: "Team not found" });
     }
     
     // Check if team already has players
-    const existingPlayers = await storage.players.getPlayersByTeamId(teamId);
+    const existingPlayers = await storage.players.getPlayersByTeamId(Number(teamId));
     if (existingPlayers.length > 0) {
       return res.status(400).json({ message: "Team already has players" });
     }
@@ -605,8 +562,17 @@ router.post('/fix-team-players/:teamId', isAuthenticated, async (req: Request, r
       const race = races[Math.floor(Math.random() * races.length)];
       const position = requiredPositions[j];
       
-      // Generate proper names instead of "AI Player" 
-      await storage.players.createPlayer(generateRandomPlayer(null, race, team.id, position));
+      // Generate proper names instead of "AI Player"
+      const { firstName, lastName } = generateRandomName(race.toLowerCase());
+      const playerData = generateRandomPlayer(
+        firstName,
+        lastName,
+        race.toLowerCase()
+      );
+      await storage.players.createPlayer({
+        ...playerData,
+        teamId: team.id,
+      } as any);
     }
     
     res.json({ message: `Added 12 players to team ${team.name}` });
@@ -623,13 +589,13 @@ router.post('/update-subdivision/:teamId', isAuthenticated, async (req: Request,
     const { subdivision } = req.body;
     
     // Get team info
-    const team = await storage.teams.getTeamById(teamId);
+    const team = await storage.teams.getTeamById(Number(teamId));
     if (!team) {
       return res.status(404).json({ message: "Team not found" });
     }
     
     // Update subdivision
-    await storage.teams.updateTeam(teamId, { subdivision });
+    await storage.teams.updateTeam(Number(teamId), { subdivision });
     
     res.json({ message: `Updated team ${team.name} subdivision to ${subdivision}` });
   } catch (error) {
@@ -644,13 +610,13 @@ router.post('/fix-existing-players/:teamId', isAuthenticated, async (req: Reques
     const { teamId } = req.params;
     
     // Get team info
-    const team = await storage.teams.getTeamById(teamId);
+    const team = await storage.teams.getTeamById(Number(teamId));
     if (!team) {
       return res.status(404).json({ message: "Team not found" });
     }
     
     // Get existing players
-    const players = await storage.players.getPlayersByTeamId(teamId);
+    const players = await storage.players.getPlayersByTeamId(Number(teamId));
     if (players.length === 0) {
       return res.status(400).json({ message: "No players found for this team" });
     }
@@ -677,8 +643,8 @@ router.post('/fix-existing-players/:teamId', isAuthenticated, async (req: Reques
       await storage.players.updatePlayer(player.id, {
         firstName,
         lastName,
-        race,
-        role: position
+        race: race as any,
+        role: position as any,
       });
     }
     
@@ -707,27 +673,13 @@ router.post('/create-additional-teams', isAuthenticated, async (req: Request, re
         email: `ai_${teamName.replace(/\s+/g, '_').toLowerCase()}_${Date.now()}@realmrivalry.ai`,
         firstName: "AI",
         lastName: "Team",
-        displayName: teamName,
-        avatarUrl: null,
-        createdAt: new Date(),
-        updatedAt: new Date()
       });
       
       const newTeam = await storage.teams.createTeam({
-        userProfileId: aiUser.id,
+        userId: aiUser.userId,
         name: teamName,
         division: 8,
         subdivision: targetSubdivision,
-        wins: 0,
-        losses: 0,
-        draws: 0,
-        points: 0,
-        goalFor: 0,
-        goalAgainst: 0,
-        played: 0,
-        streakType: "N",
-        streakLength: 0,
-        lastFiveGames: "NNNNN"
       });
       
       // Create players for the team
@@ -737,28 +689,15 @@ router.post('/create-additional-teams', isAuthenticated, async (req: Request, re
         const race = races[Math.floor(Math.random() * races.length)];
         const position = positions[j];
         const { firstName, lastName } = generateRandomName(race.toLowerCase());
-        
+        const playerData = generateRandomPlayer(
+            firstName,
+            lastName,
+            race.toLowerCase()
+        );
         await storage.players.createPlayer({
-          teamId: newTeam.id,
-          firstName,
-          lastName,
-          race,
-          role: position,
-          age: 16 + Math.floor(Math.random() * 19),
-          speedAttribute: 15 + Math.floor(Math.random() * 15),
-          powerAttribute: 15 + Math.floor(Math.random() * 15),
-          throwingAttribute: 15 + Math.floor(Math.random() * 15),
-          catchingAttribute: 15 + Math.floor(Math.random() * 15),
-          kickingAttribute: 15 + Math.floor(Math.random() * 15),
-          staminaAttribute: 15 + Math.floor(Math.random() * 15),
-          leadershipAttribute: 15 + Math.floor(Math.random() * 15),
-          agilityAttribute: 15 + Math.floor(Math.random() * 15),
-          potentialRating: 1 + Math.floor(Math.random() * 4),
-          injuryStatus: "HEALTHY",
-          currentStamina: 100,
-          maxStamina: 100,
-          camaraderie: 50
-        });
+            ...playerData,
+            teamId: newTeam.id,
+        } as any);
       }
     }
     

@@ -52,18 +52,14 @@ router.get('/', isAuthenticated, async (req: any, res: Response, next: NextFunct
       const newStadium = await prisma.stadium.create({
         data: {
         teamId: team.id,
-        name: `${team.name} Stadium`,
         level: 1,
         capacity: 15000,
-        fieldSize: 'standard',
-        lightingLevel: 1,
+        fieldSize: 'STANDARD',
+        lightingScreensLevel: 1,
         concessionsLevel: 1,
         parkingLevel: 1,
         merchandisingLevel: 1,
         vipSuitesLevel: 1,
-        screensLevel: 1,
-        securityLevel: 1,
-        maintenanceCost: 5000
         }
       });
       
@@ -74,13 +70,13 @@ router.get('/', isAuthenticated, async (req: any, res: Response, next: NextFunct
     const availableUpgrades = getAvailableFacilityUpgrades(stadium);
     
     // Get stadium events (last 10) - use empty array if no events table
-    const events = []; // Placeholder until stadiumEvent table is implemented
+    const events: any[] = []; // Placeholder until stadiumEvent table is implemented
 
     // Calculate stadium atmosphere and fan loyalty
     const facilityQuality = calculateFacilityQuality(stadium);
     const fanLoyalty = calculateFanLoyalty(
       50, // Start with 50 base loyalty 
-      teamRecord,
+      { wins: team.wins || 0, losses: team.losses || 0, draws: team.draws || 0 },
       facilityQuality,
       0, // winStreak
       50 // Assume mid-season performance for now
@@ -155,7 +151,7 @@ router.post('/upgrade', isAuthenticated, async (req: any, res: Response, next: N
     }
 
     // Get team finances
-    const finances = await prisma.teamFinance.findFirst({
+    const finances = await prisma.teamFinances.findFirst({
       where: { teamId: team.id }
     });
 
@@ -202,7 +198,7 @@ router.post('/upgrade', isAuthenticated, async (req: any, res: Response, next: N
     });
 
     // Deduct credits
-    await prisma.teamFinance.update({
+    await prisma.teamFinances.update({
       where: { teamId: team.id },
       data: { 
         credits: (finances.credits || 0) - upgrade.upgradeCost 
@@ -273,7 +269,7 @@ router.post('/field-size', isAuthenticated, async (req: any, res: Response, next
     }
 
     // Get team finances
-    const finances = await prisma.teamFinance.findFirst({
+    const finances = await prisma.teamFinances.findFirst({
       where: { teamId: team.id }
     });
 
@@ -295,11 +291,11 @@ router.post('/field-size', isAuthenticated, async (req: any, res: Response, next
     // Update stadium field size
     await prisma.stadium.update({
       where: { id: stadium.id },
-      data: { fieldSize, updatedAt: new Date() }
+      data: { fieldSize: fieldSize as any, updatedAt: new Date() }
     });
 
     // Deduct credits
-    await prisma.teamFinance.update({
+    await prisma.teamFinances.update({
       where: { teamId: team.id },
       data: { 
         credits: (finances.credits || 0) - changeCost 
@@ -357,7 +353,7 @@ router.get('/revenue/:teamId', isAuthenticated, async (req: any, res: Response, 
     const facilityQuality = calculateFacilityQuality(stadium);
     const fanLoyalty = calculateFanLoyalty(
       50, // Start with 50 base loyalty 
-      teamRecord,
+      { wins: team.wins || 0, losses: team.losses || 0, draws: team.draws || 0 },
       facilityQuality,
       0, // winStreak
       50 // Assume mid-season performance for now

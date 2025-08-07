@@ -180,8 +180,8 @@ router.delete('/:staffId/release', isAuthenticated, async (req: any, res: Respon
     const releaseFee = Math.round(contractCalc.marketValue * 0.5);
 
     // Check if team has enough credits
-    const teamFinances = await storage.teams.getTeamFinances(userTeam.id);
-    if (!teamFinances || teamFinances.credits < releaseFee) {
+    const teamFinances = await storage.teamFinances.findUnique({ where: { teamId: userTeam.id } });
+    if (!teamFinances || (teamFinances.credits as any) < releaseFee) {
       return res.status(400).json({ 
         message: `Insufficient credits. Need ${releaseFee.toLocaleString()}₡ to release ${staffMember.name}.`,
         requiredFee: releaseFee,
@@ -190,8 +190,8 @@ router.delete('/:staffId/release', isAuthenticated, async (req: any, res: Respon
     }
 
     // Deduct release fee and delete staff member
-    await storage.teams.updateTeamFinances(userTeam.id, { credits: teamFinances.credits - releaseFee });
-    const released = await storage.staff.deleteStaff(staffId);
+    await storage.teamFinances.update({ where: { teamId: userTeam.id }, data: { credits: (teamFinances.credits as any) - releaseFee } });
+    const released = await storage.staff.deleteStaff(parseInt(staffId));
 
     if (!released) {
       return res.status(500).json({ message: "Failed to release staff member." });

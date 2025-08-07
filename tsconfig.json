@@ -1,5 +1,5 @@
 {
-  "include": ["client/src/**/*", "shared/**/*", "server/**/*"],
+  "include": ["client/src/**/*", "shared/**/*", "server/**/*", "types/**/*"],
   "exclude": ["node_modules", "build", "dist", "**/*.test.ts", "**/*_backup.ts"],
   "compilerOptions": {
     "incremental": true,
@@ -7,7 +7,7 @@
     "noEmit": true,
     "target": "ES2015",
     "module": "ESNext",
-    "strict": false,
+    "strict": true,
     "lib": ["esnext", "dom", "dom.iterable"],
     "jsx": "preserve",
     "esModuleInterop": true,
@@ -15,13 +15,13 @@
     "allowImportingTsExtensions": true,
     "moduleResolution": "bundler",
     "baseUrl": ".",
-    "types": ["node", "vite/client"],
+    "types": ["node"],
     "paths": {
+      "vite/client": ["./node_modules/vite/client.d.ts"],
       "@/*": ["./client/src/*"],
       "@shared/*": ["./shared/*"]
     },
-    // Enhanced TypeScript settings for better error detection  
-    "noImplicitAny": false,
+    // Enhanced TypeScript settings for better error detection
     "noImplicitReturns": false,
     "noFallthroughCasesInSwitch": true,
     "downlevelIteration": true

@@ -13,7 +13,7 @@ if (!process.env.STRIPE_SECRET_KEY) {
   // throw new Error('Missing required Stripe secret: STRIPE_SECRET_KEY');
 }
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || "sk_test_fallbackkeyifnotset", {
-  apiVersion: "2025-05-28.basil", // Ensure this matches your Stripe API version
+  apiVersion: "2024-04-10", // Ensure this matches your Stripe API version
 });
 const STRIPE_WEBHOOK_SECRET = process.env.STRIPE_WEBHOOK_SECRET;
 
@@ -37,20 +37,29 @@ router.post('/webhook', express.raw({type: 'application/json'}), async (req: Req
       
       // Update payment transaction status
       try {
-        await storage.payments.updatePaymentTransactionByStripeId(paymentIntent.id, {
-          status: 'completed',
-          completedAt: new Date().toISOString()
-        });
+        const transaction = await storage.payments.findFirst({ where: { stripePaymentIntentId: paymentIntent.id } });
+        if (transaction) {
+          await storage.payments.update({
+            where: { id: transaction.id },
+            data: {
+              status: 'completed',
+              completedAt: new Date().toISOString()
+            }
+          });
+        }
         
         // Add gems/credits to user account
         const metadata = paymentIntent.metadata;
         if (metadata.realmRivalryUserId) {
-          if (metadata.creditsAmount) {
-            await storage.users.addCredits(metadata.realmRivalryUserId, parseInt(metadata.creditsAmount));
-          }
-          if (metadata.gemsAmount) {
-            await storage.users.addGems(metadata.realmRivalryUserId, parseInt(metadata.gemsAmount));
-          }
+            const user = await storage.users.findUnique({ where: { id: metadata.realmRivalryUserId } });
+            if (user) {
+                if (metadata.creditsAmount) {
+                    await storage.users.update({ where: { id: user.id }, data: { credits: (user.credits || 0) + parseInt(metadata.creditsAmount) } });
+                }
+                if (metadata.gemsAmount) {
+                    await storage.users.update({ where: { id: user.id }, data: { gems: (user.gems || 0) + parseInt(metadata.gemsAmount) } });
+                }
+            }
         }
       } catch (error) {
         console.error('Error processing successful payment:', error);
@@ -63,10 +72,16 @@ router.post('/webhook', express.raw({type: 'application/json'}), async (req: Req
       
       // Update payment transaction status
       try {
-        await storage.payments.updatePaymentTransactionByStripeId(failedPayment.id, {
-          status: 'failed',
-          failedAt: new Date().toISOString()
-        });
+        const transaction = await storage.payments.findFirst({ where: { stripePaymentIntentId: failedPayment.id } });
+        if (transaction) {
+            await storage.payments.update({
+                where: { id: transaction.id },
+                data: {
+                    status: 'failed',
+                    failedAt: new Date().toISOString()
+                }
+            });
+        }
       } catch (error) {
         console.error('Error processing failed payment:', error);
       }
@@ -104,12 +119,12 @@ router.post('/seed-packages', isAuthenticated, async (req: any, res: Response, n
       { name: "Pro Pack", description: "For serious competitors", credits: 35000, price: 1999, bonusCredits: 8000, isActive: true, popularTag: false, discountPercent: 0 },
       { name: "Elite Pack", description: "Maximum value for champions", credits: 75000, price: 3999, bonusCredits: 20000, isActive: true, popularTag: false, discountPercent: 0 }
     ];
-    const existingPackages = await storage.payments.getAllCreditPackages();
+    const existingPackages = await storage.creditPackage.findMany();
     const packagesToCreate = defaultPackages.filter(dp => !existingPackages.find((ep: any) => ep.name === dp.name));
 
     const createdPackages = [];
     for (const packageData of packagesToCreate) {
-      const pkg = await storage.payments.createCreditPackage(packageData);
+      const pkg = await storage.creditPackage.create({ data: packageData as any });
       createdPackages.push(pkg);
     }
     res.status(201).json({ message: `Seeded ${createdPackages.length} new credit packages. ${existingPackages.length} already existed.`, packages: createdPackages });
@@ -122,7 +137,7 @@ router.post('/seed-packages', isAuthenticated, async (req: any, res: Response, n
 // Get available credit packages
 router.get('/packages', isAuthenticated, async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const packages = await storage.payments.getActiveCreditPackages(); // Assumes this fetches only active ones by default:
+    const packages = await storage.creditPackage.findMany({ where: { isActive: true } }); // Assumes this fetches only active ones by default:
     res.json(packages);
   } catch (error) {
     console.error("Error fetching credit packages:", error);
@@ -136,15 +151,15 @@ router.post("/create-payment-intent", isAuthenticated, async (req: any, res: Res
     const userId = req.user.claims.sub;
     const { packageId } = createPaymentIntentSchema.parse(req.body);
 
-    const creditPackage = await storage.payments.getCreditPackageById(packageId);
+    const creditPackage = await storage.creditPackage.findUnique({ where: { id: parseInt(packageId) } });
     if (!creditPackage || !creditPackage.isActive) {
       return res.status(404).json({ message: "Credit package not found or not active." });
     }
 
-    const user = await storage.users.getUser(userId);
+    const user = await storage.users.findUnique({ where: { id: userId } });
     if (!user) return res.status(404).json({ message: "User not found." });
 
-    let stripeCustomerId = user.stripeCustomerId;
+    let stripeCustomerId = (user as any).stripeCustomerId;
     if (!stripeCustomerId) {
       const customer = await stripe.customers.create({
         email: user.email || undefined, // Stripe might require email
@@ -152,7 +167,7 @@ router.post("/create-payment-intent", isAuthenticated, async (req: any, res: Res
         metadata: { realmRivalryUserId: userId }
       });
       stripeCustomerId = customer.id;
-      await storage.users.upsertUser({ id: userId, stripeCustomerId }); // Save customer ID
+      await storage.users.upsert({ where: { id: userId }, create: { id: userId, stripeCustomerId }, update: { stripeCustomerId } }); // Save customer ID
     }
 
     const paymentIntent = await stripe.paymentIntents.create({
@@ -169,7 +184,8 @@ router.post("/create-payment-intent", isAuthenticated, async (req: any, res: Res
       automatic_payment_methods: { enabled: true },
     });
 
-    await storage.payments.createPaymentTransaction({
+    await storage.paymentTransaction.create({
+        data: {
       userId: userId,
       stripePaymentIntentId: paymentIntent.id,
       stripeCustomerId: stripeCustomerId, // Store for reference
@@ -181,6 +197,7 @@ router.post("/create-payment-intent", isAuthenticated, async (req: any, res: Res
       itemType: "credits",
       itemName: creditPackage.name,
       paymentMethod: "stripe",
+        }
     });
 
     res.json({
@@ -219,14 +236,14 @@ router.post("/purchase-gems", isAuthenticated, async (req: any, res: Response, n
       return res.status(404).json({ message: "Gem package not found." });
     }
 
-    const user = await storage.users.getUser(userId);
+    const user = await storage.users.findUnique({ where: { id: userId } });
     if (!user) return res.status(404).json({ message: "User not found." });
 
-    let stripeCustomerId = user.stripeCustomerId;
+    let stripeCustomerId = (user as any).stripeCustomerId;
     if (!stripeCustomerId) {
       const customer = await stripe.customers.create({ email: user.email || undefined, metadata: { realmRivalryUserId: userId } });
       stripeCustomerId = customer.id;
-      await storage.users.upsertUser({ id: userId, stripeCustomerId });
+      await storage.users.upsert({ where: { id: userId }, create: { id: userId, stripeCustomerId }, update: { stripeCustomerId } });
     }
 
     const paymentIntent = await stripe.paymentIntents.create({
@@ -243,11 +260,12 @@ router.post("/purchase-gems", isAuthenticated, async (req: any, res: Response, n
       automatic_payment_methods: { enabled: true },
     });
 
-    await storage.payments.createPaymentTransaction({
+    await storage.paymentTransaction.create({
+        data: {
       userId: userId,
       stripePaymentIntentId: paymentIntent.id,
       stripeCustomerId: stripeCustomerId,
-      amount: gemPackage.price,
+      amount: BigInt(gemPackage.price),
       gemsChange: gemPackage.gems + gemPackage.bonus, // Store granted gems
       status: "pending",
       currency: "usd",
@@ -255,6 +273,7 @@ router.post("/purchase-gems", isAuthenticated, async (req: any, res: Response, n
       itemType: "gems",
       itemName: gemPackage.name,
       paymentMethod: "stripe",
+        }
     });
 
     res.json({
@@ -282,10 +301,10 @@ router.post("/create-subscription", isAuthenticated, async (req: any, res: Respo
     const storeConfig = await import("../config/store_config.json", { assert: { type: "json" } });
     const realmPassConfig = storeConfig.default.realmPassSubscription;
     
-    const user = await storage.users.getUser(userId);
+    const user = await storage.users.findUnique({ where: { id: userId } });
     if (!user) return res.status(404).json({ message: "User not found." });
 
-    let stripeCustomerId = user.stripeCustomerId;
+    let stripeCustomerId = (user as any).stripeCustomerId;
     if (!stripeCustomerId) {
       const customer = await stripe.customers.create({
         email: user.email || undefined,
@@ -293,7 +312,7 @@ router.post("/create-subscription", isAuthenticated, async (req: any, res: Respo
         metadata: { realmRivalryUserId: userId }
       });
       stripeCustomerId = customer.id;
-      await storage.users.upsertUser({ id: userId, stripeCustomerId });
+      await storage.users.upsert({ where: { id: userId }, create: { id: userId, stripeCustomerId }, update: { stripeCustomerId } });
     }
 
     // For one-time payment (monthly Realm Pass)
@@ -310,11 +329,12 @@ router.post("/create-subscription", isAuthenticated, async (req: any, res: Respo
       automatic_payment_methods: { enabled: true },
     });
 
-    await storage.payments.createPaymentTransaction({
+    await storage.paymentTransaction.create({
+        data: {
       userId: userId,
       stripePaymentIntentId: paymentIntent.id,
       stripeCustomerId: stripeCustomerId,
-      amount: Math.round(realmPassConfig.price * 100),
+      amount: BigInt(Math.round(realmPassConfig.price * 100)),
       gemsChange: realmPassConfig.monthlyGems,
       status: "pending",
       currency: "usd",
@@ -322,6 +342,7 @@ router.post("/create-subscription", isAuthenticated, async (req: any, res: Respo
       itemType: "subscription",
       itemName: "Realm Pass - Monthly",
       paymentMethod: "stripe",
+        }
     });
 
     res.json({
@@ -364,7 +385,7 @@ router.post("/webhook", express.raw({type: 'application/json'}), async (req: Req
     console.log(`PaymentIntent ${paymentIntent.id} succeeded.`);
 
     try {
-      const transaction = await storage.payments.getPaymentTransactionByStripeIntentId(paymentIntent.id);
+      const transaction = await storage.paymentTransaction.findFirst({ where: { stripePaymentIntentId: paymentIntent.id } });
       if (!transaction) {
         console.error(`Transaction not found in DB for successful PaymentIntent: ${paymentIntent.id}`);
         return res.status(404).json({ message: "Transaction not found for PI, but Stripe payment succeeded." });
@@ -374,29 +395,32 @@ router.post("/webhook", express.raw({type: 'application/json'}), async (req: Req
         return res.json({ received: true, message: "Already processed." });
       }
 
-      await storage.payments.updatePaymentTransaction(transaction.id, {
+      await storage.paymentTransaction.update({
+        where: { id: transaction.id },
+        data: {
         status: "completed",
         completedAt: new Date(),
-        receiptUrl: paymentIntent.latest_charge ? (paymentIntent.latest_charge as any).receipt_url : null,
+        metadata: { receiptUrl: paymentIntent.latest_charge ? (paymentIntent.latest_charge as any).receipt_url : null },
         paymentMethod: paymentIntent.payment_method_types?.[0] || 'unknown',
+        }
       });
 
-      const user = await storage.users.getUser(transaction.userId);
+      const user = await storage.users.findUnique({ where: { id: transaction.userId } });
       if (user) {
-        const team = await storage.teams.getTeamByUserId(user.id);
+        const team = await storage.teams.findFirst({ where: { userProfileId: user.id } });
         if (team) {
-          const finances = await storage.teamFinances.getTeamFinances(team.id);
+          const finances = await storage.teamFinances.findUnique({ where: { teamId: team.id } });
           if (finances) {
             const updates: Partial<typeof finances> = {};
-            if (transaction.creditsChange && transaction.creditsChange > 0) {
-                updates.credits = (finances.credits || 0) + transaction.creditsChange;
+            if (transaction.creditsAmount && transaction.creditsAmount > 0) {
+                updates.credits = (finances.credits || 0) + transaction.creditsAmount;
             }
-            if (transaction.gemsChange && transaction.gemsChange > 0) {
-                updates.gems = (finances.gems || 0) + transaction.gemsChange;
+            if (transaction.gemsAmount && transaction.gemsAmount > 0) {
+                updates.gems = (finances.gems || 0) + transaction.gemsAmount;
             }
             if (Object.keys(updates).length > 0) {
-                await storage.teamFinances.updateTeamFinances(team.id, updates);
-                console.log(`User ${transaction.userId} (Team ${team.id}) granted resources for transaction ${transaction.id}: ${transaction.creditsChange || 0} credits, ${transaction.gemsChange || 0} gems`);
+                await storage.teamFinances.update({ where: { teamId: team.id }, data: updates });
+                console.log(`User ${transaction.userId} (Team ${team.id}) granted resources for transaction ${transaction.id}: ${transaction.creditsAmount || 0} credits, ${transaction.gemsAmount || 0} gems`);
             }
           }
         }
@@ -409,11 +433,14 @@ router.post("/webhook", express.raw({type: 'application/json'}), async (req: Req
     const paymentIntent = event.data.object as Stripe.PaymentIntent;
     console.log(`PaymentIntent ${paymentIntent.id} failed.`);
     try {
-        const transaction = await storage.payments.getPaymentTransactionByStripeIntentId(paymentIntent.id);
+        const transaction = await storage.paymentTransaction.findFirst({ where: { stripePaymentIntentId: paymentIntent.id } });
         if (transaction && transaction.status !== 'failed') {
-             await storage.payments.updatePaymentTransaction(transaction.id, {
+             await storage.paymentTransaction.update({
+                where: { id: transaction.id },
+                data: {
                 status: "failed",
-                failureReason: paymentIntent.last_payment_error?.message || "Unknown Stripe failure",
+                metadata: { failureReason: paymentIntent.last_payment_error?.message || "Unknown Stripe failure" },
+                }
             });
         }
     } catch (dbError) {
@@ -429,7 +456,7 @@ router.post("/webhook", express.raw({type: 'application/json'}), async (req: Req
 router.get('/history', isAuthenticated, async (req: any, res: Response, next: NextFunction) => {
   try {
     const userId = req.user.claims.sub;
-    const history = await storage.payments.getUserPaymentHistory(userId);
+    const history = await storage.paymentTransaction.findMany({ where: { userId: userId } });
     res.json(history);
   } catch (error) {
     console.error("Error fetching payment history:", error);

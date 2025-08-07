@@ -143,7 +143,7 @@ router.get('/live', isAuthenticated, async (req: Request, res: Response, next: N
       let priority = 'MEDIUM';
       if (userTeamInvolved) priority = 'HIGH';
       else if (matchType === 'TOURNAMENT') priority = 'HIGH';
-      else if (match.homeTeam?.division <= 2 || match.awayTeam?.division <= 2) priority = 'HIGH';
+      else if ((match as any).homeTeam?.division <= 2 || (match as any).awayTeam?.division <= 2) priority = 'HIGH';
       
       return {
         id: match.id.toString(),
@@ -151,26 +151,26 @@ router.get('/live', isAuthenticated, async (req: Request, res: Response, next: N
         status: match.status || 'LIVE',
         homeTeam: {
           id: match.homeTeamId.toString(),
-          name: match.homeTeam?.name || 'Unknown Team',
+          name: (match as any).homeTeam?.name || 'Unknown Team',
           logo: null
         },
         awayTeam: {
           id: match.awayTeamId.toString(),
-          name: match.awayTeam?.name || 'Unknown Team',
+          name: (match as any).awayTeam?.name || 'Unknown Team',
           logo: null
         },
         homeScore: match.homeScore || 0,
         awayScore: match.awayScore || 0,
-        gameTime: match.gameTime || 0,
-        maxGameTime: match.maxGameTime || 2400, // 40 minutes default:
-        division: match.homeTeam?.division || match.awayTeam?.division || 8,
-        subdivision: match.homeTeam?.subdivision || match.awayTeam?.subdivision || match.league?.name || 'Unknown Subdivision',
-        tournamentName: match.tournament?.name || (matchType === 'TOURNAMENT' ? 'Tournament Match' : null),
+        gameTime: (match as any).gameTime || 0,
+        maxGameTime: (match as any).maxGameTime || 2400, // 40 minutes default:
+        division: (match as any).homeTeam?.division || (match as any).awayTeam?.division || 8,
+        subdivision: (match as any).homeTeam?.subdivision || (match as any).awayTeam?.subdivision || (match as any).league?.name || 'Unknown Subdivision',
+        tournamentName: (match as any).tournament?.name || (matchType === 'TOURNAMENT' ? 'Tournament Match' : null),
         priority: priority,
         userTeamInvolved: userTeamInvolved,
         gameDate: match.gameDate || new Date().toISOString(),
         estimatedEndTime: null,
-        viewers: match.viewers || 0 // Mock viewer count for now
+        viewers: (match as any).viewers || 0 // Mock viewer count for now
       };
     });
 
@@ -217,6 +217,7 @@ router.get('/:matchId', isAuthenticated, async (req: Request, res: Response, nex
     })) : null;
 
     if (match.status === 'IN_PROGRESS') {
+        const { matchStateManager } = await import('../services/matchStateManager');
       const liveState = await matchStateManager.syncMatchState(matchIdNum);
       if (liveState) {
         const responseData = {
@@ -305,7 +306,8 @@ router.post('/start/:matchId', async (req: Request, res: Response) => {
     const { matchId } = req.params;
     console.log(`Manual match start requested for match ${matchId}`);
     
-    const result = await matchStateManager.startLiveMatch(matchId);
+    const { matchStateManager } = await import('../services/matchStateManager');
+    const result = await matchStateManager.startLiveMatch(parseInt(matchId));
     
     res.json({ 
       success: true, 
@@ -322,7 +324,7 @@ router.post('/start/:matchId', async (req: Request, res: Response) => {
     console.error(`Error starting match ${req.params.matchId}:`, error);
     res.status(500).json({ 
       success: false, 
-      error: error.message 
+      error: (error as any).message
     });
   }
 });
@@ -520,8 +522,8 @@ router.get('/:matchId/enhanced-data', async (req: Request, res: Response, next: 
     res.json(enhancedData);
   } catch (error) {
     console.error(`Error fetching enhanced match data for ${matchId}:`, error);
-    console.error("Error stack:", error.stack);
-    return res.status(500).json({ message: "Internal server error", error: error.message });
+    console.error("Error stack:", (error as any).stack);
+    return res.status(500).json({ message: "Internal server error", error: (error as any).message });
   }
 });
 
@@ -546,7 +548,8 @@ router.get('/:matchId/enhanced-data-old', isAuthenticated, async (req: Request, 
     console.log(`Match ${matchId} found, status: ${match.status}`);
 
     // Get live match state if available
-    const liveState = await matchStateManager.getLiveMatchState(matchId);
+    const { matchStateManager } = await import('../services/matchStateManager');
+    const liveState = await matchStateManager.getLiveMatchState(parseInt(matchId));
     
     console.log(`Live state found: ${liveState ? 'YES' : 'NO'}`);
     console.log(`Match status: ${match.status}`);
@@ -734,10 +737,10 @@ router.get('/:matchId/enhanced-data-old', isAuthenticated, async (req: Request, 
             if (!player) continue;
             
             // Calculate MVP score: scores * 10 + passing yards * 0.1 + carrier yards * 0.2 + tackles * 2
-            const mvpScore = (stats.scores * 10) + 
-                            (stats.passingYards * 0.1) + 
-                            (stats.carrierYards * 0.2) + 
-                            (stats.tackles * 2);
+            const mvpScore = ((stats as any).scores * 10) +
+                            ((stats as any).passingYards * 0.1) +
+                            ((stats as any).carrierYards * 0.2) +
+                            ((stats as any).tackles * 2);
             
             console.log(`Player ${playerId} (${player.firstName} ${player.lastName}): team ${player.teamId}, MVP score: ${mvpScore}`);
             
@@ -799,8 +802,8 @@ router.get('/:matchId/enhanced-data-old', isAuthenticated, async (req: Request, 
     res.json(enhancedData);
   } catch (error) {
     console.error(`Error fetching enhanced match data for ${matchId}:`, error);
-    console.error("Error stack:", error.stack);
-    return res.status(500).json({ message: "Internal server error", error: error.message });
+    console.error("Error stack:", (error as any).stack);
+    return res.status(500).json({ message: "Internal server error", error: (error as any).message });
   }
 });
 
@@ -813,6 +816,7 @@ router.post('/:matchId/complete-now', isAuthenticated, async (req: any, res: Res
     console.log(`🔍 Force completing match ${matchId}`);
     
     // First, stop the match state manager
+    const { matchStateManager } = await import('../services/matchStateManager');
     await matchStateManager.stopMatch(matchId);
     
     // Then, directly update the database to ensure completion
@@ -850,7 +854,7 @@ router.get('/team/:teamId', isAuthenticated, async (req: Request, res: Response,
 router.post('/:id/simulate', isAuthenticated, async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { id } = req.params;
-    const match = await matchStorage.getMatchById(id); // Use matchStorage
+    const match = await matchStorage.getMatchById(parseInt(id)); // Use matchStorage
 
     if (!match) return res.status(404).json({ message: "Match not found" });
 
@@ -864,11 +868,12 @@ router.post('/:id/simulate', isAuthenticated, async (req: Request, res: Response
         return res.status(400).json({ message: "One or both teams do not have enough players to simulate." });
     }
 
-    const result = await fullMatchSimulation(homeTeamPlayers, awayTeamPlayers);
+    const result = await fullMatchSimulation(homeTeamPlayers as any, awayTeamPlayers as any, homeTeam.id.toString(), awayTeam.id.toString());
 
-    await matchStorage.updateMatch(id, { // Use matchStorage
+    await matchStorage.updateMatch(parseInt(id), { // Use matchStorage
       homeScore: result.homeScore, awayScore: result.awayScore,
-      status: "completed", gameData: result.gameData as any,
+      status: "COMPLETED",
+      simulationLog: result.gameData as any,
       completedAt: new Date(),
     });
     res.json(result);
@@ -899,32 +904,32 @@ router.post('/:matchId/simulate-play', isAuthenticated, async (req: Request, res
     const homePlayers = await storage.players.getPlayersByTeamId(match.homeTeamId); // Use playerStorage
     const awayPlayers = await storage.players.getPlayersByTeamId(match.awayTeamId); // Use playerStorage
     const allPlayers = [...homePlayers, ...awayPlayers];
-    const randomPlayer = allPlayers.length > 0 ? allPlayers[Math.floor(Math.random() * allPlayers.length)] : { name: "Player", race: "Unknown", id: "unknown" };
+    const randomPlayer = allPlayers.length > 0 ? allPlayers[Math.floor(Math.random() * allPlayers.length)] : { firstName: "Player", lastName: "", race: "Unknown", id: "unknown" };
 
     const generateEventDescription = (type: string, playerName: string) => `[${type.toUpperCase()}] ${playerName} attempts a ${type}.`;
     const event = {
       id: `event-${Date.now()}`, type: randomEventType, playerId: randomPlayer.id,
-      playerName: randomPlayer.name, playerRace: randomPlayer.race,
-      description: generateEventDescription(randomEventType, randomPlayer.name), timestamp: Date.now(),
+      playerName: `${randomPlayer.firstName} ${randomPlayer.lastName}`, playerRace: randomPlayer.race,
+      description: generateEventDescription(randomEventType, `${randomPlayer.firstName} ${randomPlayer.lastName}`), timestamp: Date.now(),
     };
 
-    let { homeScore = 0, awayScore = 0, gameTime = 0, currentHalf = 1, status } = match.gameData as any || {};
+    let { homeScore = 0, awayScore = 0, gameTime = 0, currentHalf = 1, status } = (match as any).simulationLog as any || {};
     gameTime += (10 * speed);
     if (randomEventType === 'score') { if (Math.random() < 0.5) homeScore++; else awayScore++; }
 
-    const maxTime = match.matchType === 'exhibition' ? 1200 : 1800;
-    if (gameTime >= maxTime) { status = 'completed'; }
+    const maxTime = match.matchType === 'EXHIBITION' ? 1200 : 1800;
+    if (gameTime >= maxTime) { status = 'COMPLETED'; }
     else if (gameTime >= maxTime / 2 && currentHalf === 1) { currentHalf = 2; }
 
     const updatedGameData = {
-        ...(match.gameData as any || {}),
-        events: [...((match.gameData as any)?.events || []), event].slice(-20),
+        ...((match as any).simulationLog as any || {}),
+        events: [...(((match as any).simulationLog as any)?.events || []), event].slice(-20),
         homeScore, awayScore, gameTime, currentHalf, status
     };
 
-    await matchStorage.updateMatch(matchId, { // Use matchStorage
+    await matchStorage.updateMatch(parseInt(matchId), { // Use matchStorage
       homeScore, awayScore, status,
-      gameData: updatedGameData, lastPlay: event.description,
+      simulationLog: updatedGameData,
     });
     res.json({ events: [event], matchUpdate: { homeScore, awayScore, gameTime, currentHalf, status }});
   } catch (error) {
@@ -936,12 +941,13 @@ router.post('/:matchId/simulate-play', isAuthenticated, async (req: Request, res
 router.post('/:matchId/reset', isAuthenticated, async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { matchId } = req.params;
-    await matchStorage.updateMatch(matchId, { // Use matchStorage
-      homeScore: 0, awayScore: 0, status: 'scheduled',
-      gameData: { events: [], homeScore: 0, awayScore: 0, gameTime: 0, currentHalf: 1, status: 'scheduled' },
-      lastPlay: null, completedAt: null,
+    await matchStorage.updateMatch(parseInt(matchId), { // Use matchStorage
+      homeScore: 0, awayScore: 0, status: 'SCHEDULED',
+      simulationLog: { events: [], homeScore: 0, awayScore: 0, gameTime: 0, currentHalf: 1, status: 'scheduled' },
+      completedAt: null,
     });
-    matchStateManager.stopMatch(matchId);
+    const { matchStateManager } = await import('../services/matchStateManager');
+    matchStateManager.stopMatch(parseInt(matchId));
     res.json({ message: "Match reset successfully" });
   } catch (error) {
     console.error("Error resetting match:", error);
@@ -957,11 +963,11 @@ router.patch('/:id/complete', isAuthenticated, async (req: any, res: Response, n
         return res.status(400).json({ message: "Invalid score format." });
     }
 
-    const match = await matchStorage.getMatchById(id); // Use matchStorage
+    const match = await matchStorage.getMatchById(parseInt(id)); // Use matchStorage
     if (!match) return res.status(404).json({ message: "Match not found" });
 
-    const updatedMatch = await matchStorage.updateMatch(id, { // Use matchStorage
-      status: "completed", homeScore, awayScore,
+    const updatedMatch = await matchStorage.updateMatch(parseInt(id), { // Use matchStorage
+      status: "COMPLETED", homeScore, awayScore,
       completedAt: new Date(),
     });
     // TODO: Notification logic
@@ -988,7 +994,7 @@ router.get('/next-league-game/:teamId', isAuthenticated, async (req: Request, re
     
     // Filter for league games (non-exhibition, non-tournament)
     const nextLeagueGame = upcomingMatches.find(match => 
-      match.matchType === 'league' || match.matchType === 'regular_season'
+      match.matchType === 'LEAGUE'
     );
 
     if (!nextLeagueGame) {
@@ -996,9 +1002,9 @@ router.get('/next-league-game/:teamId', isAuthenticated, async (req: Request, re
     }
 
     // Get team names for the match
-    const homeTeamName = nextLeagueGame.homeTeamName || 
+    const homeTeamName = (nextLeagueGame as any).homeTeamName ||
       (await storage.teams.getTeamById(nextLeagueGame.homeTeamId))?.name || "Home Team";
-    const awayTeamName = nextLeagueGame.awayTeamName || 
+    const awayTeamName = (nextLeagueGame as any).awayTeamName ||
       (await storage.teams.getTeamById(nextLeagueGame.awayTeamId))?.name || "Away Team";
 
     const enhancedMatch = {
@@ -1043,7 +1049,8 @@ router.post('/exhibition/instant', isAuthenticated, async (req: any, res: Respon
     });
     
     // Start live match simulation
-    await matchStateManager.startLiveMatch(newMatch.id.toString(), true);
+    const { matchStateManager } = await import('../services/matchStateManager');
+    await matchStateManager.startLiveMatch(newMatch.id, true);
     
     res.json({ 
       message: "Exhibition match created successfully",
@@ -1065,6 +1072,7 @@ router.get('/:matchId/sync', isAuthenticated, async (req: Request, res: Response
       return res.status(400).json({ message: "Invalid match ID" });
     }
     
+    const { matchStateManager } = await import('../services/matchStateManager');
     const state = await matchStateManager.syncMatchState(matchIdNum);
     if (state) {
       res.json(state);

@@ -5,9 +5,9 @@
 
 import { Router } from 'express';
 import { z } from 'zod';
+import { prisma } from '../db';
 import { liveMatchEngine } from '../services/liveMatchEngine';
 import { webSocketManager } from '../websocket/webSocketManager';
-import { MatchCommand } from '../../shared/types/LiveMatchState';
 
 const router = Router();
 

@@ -1,9 +1,9 @@
-import type { Prisma } from "../../generated/prisma";
+import type { Player, Prisma } from "../../generated/prisma";
 import { generateRandomName, getFullName } from "@shared/names";
 import { generatePotential } from "@shared/potentialSystem";
 import gameConfig from "../config/game_config.json";
 
-export function generateRandomPlayer(name: string | null, race: string, teamId: string, position?: string): Prisma.PlayerCreateInput {
+export function generateRandomPlayer(name: string | null, race: string, teamId: number, position?: string): Omit<Player, 'id' | 'createdAt' | 'updatedAt' | 'teamId'> & { teamId: number } {
   // Convert race to lowercase for switch statement, but store original for return
   const originalRace = race;
   const lowerRace = race.toLowerCase();
@@ -129,7 +129,11 @@ export function generateRandomPlayer(name: string | null, race: string, teamId: 
   const salary = Math.floor(baseSalary * ageFactor * positionMultiplier);
 
   return {
-    teamId,
+    team: {
+      connect: {
+        id: teamId
+      }
+    },
     firstName,
     lastName,
     race: originalRace.toUpperCase() as any, // Store race in uppercase for enum consistency
@@ -139,7 +143,7 @@ export function generateRandomPlayer(name: string | null, race: string, teamId: 
     staminaAttribute: baseStats.stamina, // Map stamina to staminaAttribute
     potentialRating: parseFloat(potentialRating.toFixed(1)), // Use unified potential rating
     camaraderieScore: 7.5, // Initial camaraderie
-  };
+  } as any;
 }
 
 export function calculatePlayerValue(player: any): number {
@@ -173,7 +177,7 @@ export function calculatePlayerValue(player: any): number {
   return Math.floor(baseValue * ageFactor);
 }
 
-export async function processEndOfSeasonSkillProgression(playerId: string): Promise<void> {
+export async function processEndOfSeasonSkillProgression(playerId: number): Promise<void> {
   // Import storage after function definition to avoid circular dependency
   const { storage } = await import("../storage/index");
   
@@ -187,7 +191,7 @@ export async function processEndOfSeasonSkillProgression(playerId: string): Prom
     const baseChance = 0.15; // 15% base chance
     const potentialModifier = ((player.potentialRating || 2.5) - 2.5) * 0.05;
     const ageModifier = player.age <= 23 ? 0.10 : (player.age <= 27 ? 0.05 : -0.05);
-    const activityModifier = (player.gamesPlayedLastSeason || 0) >= 8 ? 0.05 : -0.05;
+    const activityModifier = 0;
     
     const progressionChance = Math.max(0, baseChance + potentialModifier + ageModifier + activityModifier);
     
@@ -197,7 +201,7 @@ export async function processEndOfSeasonSkillProgression(playerId: string): Prom
       const eligibleStats = ['speed', 'power', 'throwing', 'catching', 'kicking', 'stamina', 'leadership', 'agility'];
       const statWeights = eligibleStats.map(stat => {
         const currentValue = player[stat as keyof typeof player] as number;
-        const potential = parseFloat(player[`${stat}Potential` as keyof typeof player] as string || "25");
+        const potential = 25;
         
         // Higher potential and lower current value = higher chance to improve
         const potentialGap = Math.max(0, potential - currentValue);
@@ -223,7 +227,7 @@ export async function processEndOfSeasonSkillProgression(playerId: string): Prom
               [statEntry.stat]: newValue
             });
             
-            console.log(`Player ${player.name} improved ${statEntry.stat} from ${currentValue} to ${newValue}`);
+            console.log(`Player ${player.firstName} ${player.lastName} improved ${statEntry.stat} from ${currentValue} to ${newValue}`);
             break;
           }
         }
@@ -232,7 +236,6 @@ export async function processEndOfSeasonSkillProgression(playerId: string): Prom
     
     // Reset games played counter for next season
     await storage.players.updatePlayer(playerId, {
-      gamesPlayedLastSeason: 0
     });
     
   } catch (error) {

@@ -66,8 +66,8 @@ export class DynamicMarketplaceService {
    * List a player for auction
    */
   static async listPlayer(
-    teamId: string,
-    playerId: string,
+    teamId: number,
+    playerId: number,
     startBid: number,
     durationHours: number,
     buyNowPrice?: number
@@ -80,8 +80,8 @@ export class DynamicMarketplaceService {
       // Validation 1: Check if player belongs to team
       const player = await prisma.player.findFirst({
         where: {
-          id: parseInt(playerId),
-          teamId: parseInt(teamId)
+          id: playerId,
+          teamId: teamId
         }
       });
 
@@ -91,12 +91,12 @@ export class DynamicMarketplaceService {
 
       // Validation 1.5: Check if player is a taxi squad member (beyond main 12-player roster)
       const teamPlayers = await prisma.player.findMany({
-        where: { teamId: parseInt(teamId) },
+        where: { teamId: teamId },
         orderBy: { id: 'asc' } // Consistent ordering - first 12 are main roster
       });
 
       // Find player's position in roster (0-indexed)
-      const playerIndex = teamPlayers.findIndex(p => p.id === parseInt(playerId));
+      const playerIndex = teamPlayers.findIndex(p => p.id === playerId);
       const isTaxiSquadPlayer = playerIndex >= 12; // Players at index 12+ are taxi squad
 
       if (isTaxiSquadPlayer) {
@@ -104,13 +104,13 @@ export class DynamicMarketplaceService {
       }
 
       // Validation 2: Check team has > 10 players
-      const playerCount = await this.getTeamPlayerCount(teamId);
+      const playerCount = await this.getTeamPlayerCount(teamId.toString());
       if (playerCount <= 10) {
         return { success: false, error: 'Cannot list player - must maintain at least 10 players on roster' };
       }
 
       // Validation 3: Check team has < 3 active listings
-      const activeListings = await this.getTeamActiveListings(teamId);
+      const activeListings = await this.getTeamActiveListings(teamId.toString());
       if (activeListings >= 3) {
         return { success: false, error: 'Cannot list player - maximum 3 active listings allowed' };
       }
@@ -134,10 +134,10 @@ export class DynamicMarketplaceService {
       // Calculate listing fee and check team can afford it
       const listingFee = this.calculateListingFee(startBid);
       const teamFinance = await prisma.teamFinances.findFirst({
-        where: { teamId: parseInt(teamId) }
+        where: { teamId: teamId }
       });
 
-      if (!teamFinance || (parseInt(teamFinance.credits.toString()) ?? 0) < listingFee) {
+      if (!teamFinance || (teamFinance.credits ?? 0) < listingFee) {
         return { success: false, error: 'Insufficient credits for listing fee' };
       }
 
@@ -146,8 +146,8 @@ export class DynamicMarketplaceService {
 
       // Deduct listing fee
       await prisma.teamFinances.update({
-        where: { teamId: parseInt(teamId) },
-        data: { credits: BigInt((parseInt(teamFinance.credits.toString()) ?? 0) - listingFee) }
+        where: { teamId: teamId },
+        data: { credits: (teamFinance.credits ?? 0) - BigInt(listingFee) }
       });
 
       // Create listing
@@ -155,11 +155,11 @@ export class DynamicMarketplaceService {
         data: {
           playerId,
           sellerTeamId: teamId,
-          startBid,
-          buyNowPrice,
-          currentBid: startBid,
+          startBid: BigInt(startBid),
+          buyNowPrice: buyNowPrice ? BigInt(buyNowPrice) : null,
+          currentBid: BigInt(startBid),
           expiryTimestamp,
-          listingFee,
+          listingFee: BigInt(listingFee),
         },
         select: { id: true }
       });
@@ -179,7 +179,7 @@ export class DynamicMarketplaceService {
    * Place a bid on a listing
    */
   static async placeBid(
-    teamId: string,
+    teamId: number,
     listingId: number,
     bidAmount: number
   ): Promise<{
@@ -207,7 +207,7 @@ export class DynamicMarketplaceService {
       }
 
       // Check if bid is higher than current bid
-      if (bidAmount <= listing.currentBid) {
+      if (bidAmount <= Number(listing.currentBid)) {
         return { success: false, error: `Bid must be higher than current bid of ${listing.currentBid}` };
       }
 
@@ -221,7 +221,7 @@ export class DynamicMarketplaceService {
         where: { teamId }
       });
 
-      if (!teamFinance || (parseInt(teamFinance.credits.toString()) ?? 0) < bidAmount) {
+      if (!teamFinance || (teamFinance.credits ?? 0) < bidAmount) {
         return { success: false, error: 'Insufficient credits for bid' };
       }
 
@@ -231,19 +231,19 @@ export class DynamicMarketplaceService {
       }
 
       // Create new escrow for this bid
-      await prisma.marketplaceEscrow.create({
+      await prisma.escrow.create({
         data: {
           teamId,
           listingId,
-          escrowAmount: bidAmount,
-          escrowType: 'bid',
+          amount: BigInt(bidAmount),
+          type: 'BID',
         }
       });
 
       // Deduct credits from bidder (escrow)
       await prisma.teamFinances.update({
-        where: { teamId: parseInt(teamId) },
-        data: { credits: BigInt((parseInt(teamFinance.credits.toString()) ?? 0) - bidAmount) }
+        where: { teamId: teamId },
+        data: { credits: (teamFinance.credits ?? 0) - BigInt(bidAmount) }
       });
 
       // Anti-sniping: Check if bid is in final 5 minutes
@@ -258,7 +258,7 @@ export class DynamicMarketplaceService {
         await prisma.marketplaceListing.update({
           where: { id: listingId },
           data: { 
-            auctionExtensions: listing.auctionExtensions + 1,
+            auctionExtensions: (listing.auctionExtensions || 0) + 1,
             expiryTimestamp: newExpiryTime
           }
         });
@@ -268,17 +268,17 @@ export class DynamicMarketplaceService {
       await prisma.marketplaceListing.update({
         where: { id: listingId },
         data: {
-          currentBid: bidAmount,
+          currentBid: BigInt(bidAmount),
           currentHighBidderTeamId: teamId,
         }
       });
 
       // Record bid
-      await prisma.marketplaceBid.create({
+      await prisma.bid.create({
         data: {
           listingId,
           bidderTeamId: teamId,
-          bidAmount,
+          bidAmount: BigInt(bidAmount),
         }
       });
 
@@ -298,7 +298,7 @@ export class DynamicMarketplaceService {
    * Buy now - instant purchase
    */
   static async buyNow(
-    teamId: string,
+    teamId: number,
     listingId: number
   ): Promise<{
     success: boolean;
@@ -338,11 +338,11 @@ export class DynamicMarketplaceService {
       }
 
       // Calculate market tax (5% default)
-      const taxAmount = Math.floor(listing.buyNowPrice * (listing.marketTax / 100));
-      const sellerAmount = listing.buyNowPrice - taxAmount;
+      const taxAmount = Number(listing.buyNowPrice) * 0.05;
+      const sellerAmount = Number(listing.buyNowPrice) - taxAmount;
 
       // Process the transaction
-      await this.completeAuction(listingId, teamId, listing.buyNowPrice, sellerAmount, true);
+      await this.completeAuction(listingId, teamId, Number(listing.buyNowPrice), sellerAmount, true);
 
       return { 
         success: true, 
@@ -360,7 +360,7 @@ export class DynamicMarketplaceService {
    */
   static async completeAuction(
     listingId: number,
-    winnerTeamId: string,
+    winnerTeamId: number,
     finalPrice: number,
     sellerAmount: number,
     isBuyNow: boolean = false
@@ -385,7 +385,7 @@ export class DynamicMarketplaceService {
     if (sellerFinance) {
       await prisma.teamFinances.update({
         where: { teamId: listing.sellerTeamId },
-        data: { credits: (sellerFinance.credits ?? 0) + sellerAmount }
+        data: { credits: (sellerFinance.credits ?? 0) + BigInt(sellerAmount) }
       });
     }
 
@@ -401,7 +401,7 @@ export class DynamicMarketplaceService {
       if (buyerFinance) {
         await prisma.teamFinances.update({
           where: { teamId: winnerTeamId },
-          data: { credits: (buyerFinance.credits ?? 0) - finalPrice }
+          data: { credits: (buyerFinance.credits ?? 0) - BigInt(finalPrice) }
         });
       }
     }
@@ -416,23 +416,22 @@ export class DynamicMarketplaceService {
       where: { id: listingId },
       data: { 
         isActive: false,
-        completedAt: new Date()
       }
     });
 
     // Mark all bids as inactive
-    await prisma.marketplaceBid.updateMany({
+    await prisma.bid.updateMany({
       where: { listingId },
-      data: { isActive: false }
+      data: { isWinningBid: false }
     });
   }
 
   /**
    * Release escrow for a team
    */
-  static async releaseEscrow(teamId: string, listingId: number): Promise<void> {
+  static async releaseEscrow(teamId: number, listingId: number): Promise<void> {
     // Get active escrow
-    const escrow = await prisma.marketplaceEscrow.findFirst({
+    const escrow = await prisma.escrow.findFirst({
       where: {
         teamId,
         listingId,
@@ -444,22 +443,21 @@ export class DynamicMarketplaceService {
 
     // Return credits to team
     const teamFinance = await prisma.teamFinances.findFirst({
-      where: { teamId: parseInt(teamId) }
+      where: { teamId: teamId }
     });
 
     if (teamFinance) {
       await prisma.teamFinances.update({
-        where: { teamId: parseInt(teamId) },
-        data: { credits: BigInt((parseInt(teamFinance.credits.toString()) ?? 0) + escrow.escrowAmount) }
+        where: { teamId: teamId },
+        data: { credits: (teamFinance.credits ?? 0) + escrow.amount }
       });
     }
 
     // Mark escrow as released
-    await prisma.marketplaceEscrow.update({
+    await prisma.escrow.update({
       where: { id: escrow.id },
       data: { 
         isReleased: true,
-        releasedAt: new Date()
       }
     });
   }

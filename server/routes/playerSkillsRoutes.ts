@@ -143,13 +143,13 @@ router.post('/team/season-progression', isAuthenticated, async (req, res) => {
 
     // Get user's team
     const team = await prisma.team.findFirst({
-      where: { userId: userId }
+      where: { userProfileId: userId }
     });
     if (!team) {
       return res.status(404).json({ error: 'Team not found' });
     }
 
-    const results = await PlayerSkillsService.processSeasonSkillProgression(team.id);
+    const results = await PlayerSkillsService.processSeasonSkillProgression(team.id.toString());
     
     res.json({
       message: 'Season skill progression completed',
@@ -171,7 +171,7 @@ router.get('/team/progression-summary', isAuthenticated, async (req, res) => {
 
     // Get user's team
     const team = await prisma.team.findFirst({
-      where: { userId: userId }
+      where: { userProfileId: userId }
     });
     if (!team) {
       return res.status(404).json({ error: 'Team not found' });
@@ -184,9 +184,9 @@ router.get('/team/progression-summary', isAuthenticated, async (req, res) => {
     
     const summary = [];
     for (const player of teamPlayers) {
-      const skillCount = await PlayerSkillsService.getPlayerSkillCount(player.id);
+      const skillCount = await PlayerSkillsService.getPlayerSkillCount(player.id.toString());
       const skillUpChance = PlayerSkillsService.calculateSkillUpChance(player);
-      const eligibleSkills = await PlayerSkillsService.getEligibleSkills(player.id);
+      const eligibleSkills = await PlayerSkillsService.getEligibleSkills(player.id.toString());
       
       summary.push({
         playerId: player.id,

@@ -82,7 +82,7 @@ router.get('/team/:teamId/revenue', isAuthenticated, async (req, res) => {
  * POST /api/stadium-atmosphere/team/:teamId/loyalty/calculate
  * Calculate end-of-season loyalty for a team
  */
-router.post('/team/:teamId/loyalty/calculate', isAuthenticated, RBACService.requirePermission('manage_teams'), async (req, res) => {
+router.post('/team/:teamId/loyalty/calculate', isAuthenticated, RBACService.requirePermission('MANAGE_TEAMS'), async (req, res) => {
   try {
     const { teamId } = req.params;
     const { season } = req.body;
@@ -114,7 +114,7 @@ router.post('/team/:teamId/loyalty/calculate', isAuthenticated, RBACService.requ
  * POST /api/stadium-atmosphere/league/loyalty/process
  * Process league-wide end-of-season loyalty updates
  */
-router.post('/league/loyalty/process', isAuthenticated, RBACService.requirePermission('manage_leagues'), async (req, res) => {
+router.post('/league/loyalty/process', isAuthenticated, RBACService.requirePermission('MANAGE_LEAGUES'), async (req, res) => {
   try {
     const { season } = req.body;
     
@@ -311,18 +311,14 @@ router.get('/stadium-data', isAuthenticated, async (req: any, res) => {
       const newStadium = await prisma.stadium.create({
         data: {
         teamId: team.id,
-        name: `${team.name} Stadium`,
         level: 1,
         capacity: 15000,
-        fieldSize: 'standard',
-        lightingLevel: 1,
+        fieldSize: 'STANDARD',
+        lightingScreensLevel: 1,
         concessionsLevel: 1,
         parkingLevel: 1,
         merchandisingLevel: 1,
         vipSuitesLevel: 1,
-        screensLevel: 1,
-        securityLevel: 1,
-        maintenanceCost: 5000
         }
       });
       
@@ -337,13 +333,13 @@ router.get('/stadium-data', isAuthenticated, async (req: any, res) => {
         parkingLevel: stadium.parkingLevel || 1,
         vipSuitesLevel: stadium.vipSuitesLevel || 1,
         merchandisingLevel: stadium.merchandisingLevel || 1,
-        lightingLevel: stadium.lightingLevel || 1,
+        lightingLevel: stadium.lightingScreensLevel || 1,
         fanLoyalty: team.fanLoyalty || 50,
         totalValue: await import('../../shared/stadiumSystem').then(({ calculateFacilityQuality }) => {
           const facilityQuality = calculateFacilityQuality(stadium);
           return 100000 + (facilityQuality * 5000); // Proper facility-based valuation
         }).catch(() => 100000), // Fallback to base value if calculation fails
-        maintenanceCost: stadium.maintenanceCost || 5000
+        maintenanceCost: 5000
       }
     });
   } catch (error) {
@@ -515,18 +511,14 @@ router.get('/upgrade-costs', isAuthenticated, async (req: any, res) => {
       const newStadium = await prisma.stadium.create({
         data: {
         teamId: team.id,
-        name: `${team.name} Stadium`,
         level: 1,
         capacity: 15000,
-        fieldSize: 'standard',
-        lightingLevel: 1,
+        fieldSize: 'STANDARD',
+        lightingScreensLevel: 1,
         concessionsLevel: 1,
         parkingLevel: 1,
         merchandisingLevel: 1,
         vipSuitesLevel: 1,
-        screensLevel: 1,
-        securityLevel: 1,
-        maintenanceCost: 5000
         }
       });
       
@@ -638,7 +630,7 @@ router.get('/team-power-tier', isAuthenticated, async (req: any, res) => {
     }
     
     // Simple team power tier calculation
-    const teamPower = team.teamPower || 15;
+    const teamPower = 15;
     let tier = 1;
     if (teamPower >= 31) tier = 5;
     else if (teamPower >= 26) tier = 4;

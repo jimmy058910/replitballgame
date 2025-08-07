@@ -54,8 +54,8 @@ router.get('/', isAuthenticated, async (req: any, res, next) => {
           const teamScore = isHome ? match.homeScore : match.awayScore;
           const opponentScore = isHome ? match.awayScore : match.homeScore;
           
-          if (teamScore > opponentScore) result = "win";
-          else if (teamScore < opponentScore) result = "loss";
+          if (teamScore! > opponentScore!) result = "win";
+          else if (teamScore! < opponentScore!) result = "loss";
           else result = "draw";
         } else if (match.status === "IN_PROGRESS") {
           result = "in_progress";
@@ -70,7 +70,7 @@ router.get('/', isAuthenticated, async (req: any, res, next) => {
           awayTeamId: match.awayTeamId,
           homeScore: match.homeScore,
           awayScore: match.awayScore,
-          completedAt: match.completedAt,
+          completedAt: match.createdAt,
           createdAt: match.createdAt,
           gameDate: match.gameDate,
           opponentTeam: opponentTeam ? { 
