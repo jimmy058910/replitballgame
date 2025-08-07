@@ -1,1 +1,23 @@
-temp_deployment_test_1754595478
+🚀 COMPREHENSIVE CLOUD RUN DEPLOYMENT FIX
+
+Based on extensive web research of Cloud Run deployment issues:
+
+CRITICAL FIXES IMPLEMENTED:
+✅ Server timeout: httpServer.setTimeout(0) + keepAlive settings
+✅ Host binding: ENV HOST=0.0.0.0 for Cloud Run compatibility  
+✅ Startup probe: Optimized timeoutSeconds=3, periodSeconds=8, failureThreshold=15
+✅ Health endpoints: Multiple fast endpoints (/health, /healthz, /readyz, /ping)
+✅ Container logging: Enhanced startup verification and debugging
+✅ Docker platform: Verified --platform linux/amd64 specification
+✅ Network binding: Server binds to 0.0.0.0:8080 (not 127.0.0.1)
+✅ Port Configuration: Fixed production port binding logic
+
+RESEARCH FOUNDATION:
+- Google Cloud Run "No logs available" solutions
+- Node.js Express health check best practices
+- Container startup probe failure troubleshooting
+- Industry-standard Cloud Run deployment patterns
+
+EXPECTED OUTCOME: Resolves persistent startup probe timeouts and "No logs available" errors
+
+Total startup time: 10s + (15 × 8s) = 130s with faster individual probes

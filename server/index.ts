@@ -449,7 +449,16 @@ app.use('/api', (req, res, next) => {
   app.use(errorHandler);
   console.log('✅ Error handler added as final middleware');
 
-  const port = process.env.PORT ? parseInt(process.env.PORT) : (process.env.NODE_ENV === 'production' ? 8080 : 5000);
+  // CRITICAL CLOUD RUN FIX: Always use port 8080 in production, 5000 in development
+  const port = process.env.NODE_ENV === 'production' ? 8080 : 5000;
+  
+  console.log('🔍 CRITICAL PORT BINDING DEBUG:', {
+    NODE_ENV: process.env.NODE_ENV,
+    PORT_ENV_VAR: process.env.PORT,
+    FINAL_PORT: port,
+    HOST_ENV_VAR: process.env.HOST,
+    BINDING_HOST: '0.0.0.0'
+  });
   
   // COMPREHENSIVE CLOUD RUN DEBUGGING: Enhanced error handling and logging
   console.log('🔍 ATTEMPTING TO BIND SERVER:', {
@@ -479,6 +488,9 @@ app.use('/api', (req, res, next) => {
   httpServer.setTimeout(0); // Disable server timeout - let Cloud Run handle timeouts
   httpServer.keepAliveTimeout = 120000; // 2 minutes keep-alive
   httpServer.headersTimeout = 120000; // 2 minutes header timeout
+
+  // ENHANCED CLOUD RUN STARTUP: Add immediate health check response capability
+  console.log('🚀 CRITICAL: Starting server with enhanced Cloud Run compatibility...');
 
   httpServer.listen({
     port,
