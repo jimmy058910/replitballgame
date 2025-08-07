@@ -41,9 +41,9 @@ export class EnhancedStadiumSystem {
     const stadiumData: StadiumData = {
       capacity: stadium?.capacity || 15000,
       fanLoyalty,
-      lightingLevel: stadium?.lightingLevel || 1,
-      screenLevel: stadium?.screenLevel || 1,
-      concessionLevel: stadium?.concessionLevel || 1,
+      lightingLevel: stadium?.lightingScreensLevel || 1,
+      screenLevel: stadium?.lightingScreensLevel || 1,
+      concessionLevel: stadium?.concessionsLevel || 1,
       parkingLevel: stadium?.parkingLevel || 1,
       vipSuitesLevel: stadium?.vipSuitesLevel || 1,
       merchandisingLevel: stadium?.merchandisingLevel || 1,
@@ -108,14 +108,19 @@ export class EnhancedStadiumSystem {
   calculateMatchRevenue(effects: EnhancedStadiumEffects, stadium: Stadium | null): number {
     if (!stadium) return 0;
 
-    const config = configManager.getEconomy().stadium_revenue;
+    const config = configManager.getStadium().economy?.stadium_revenue || {
+      ticket_price: 25,
+      concession_multiplier: 0.8,
+      parking_rate: 0.3,
+      parking_price: 15
+    };
     const attendance = effects.actualAttendance;
     
     // Base ticket revenue
     let revenue = attendance * config.ticket_price;
     
     // Concession revenue
-    revenue += attendance * config.concession_multiplier * (stadium.concessionLevel || 1);
+    revenue += attendance * config.concession_multiplier * (stadium.concessionsLevel || 1);
     
     // Parking revenue
     revenue += (attendance * config.parking_rate) * config.parking_price * (stadium.parkingLevel || 1);

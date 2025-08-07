@@ -2,7 +2,7 @@
  * Security Validator - Additional security checks for production deployment
  */
 
-import { logger } from './logger';
+import logger from './logger';
 
 interface SecurityCheckResult {
   check: string;
