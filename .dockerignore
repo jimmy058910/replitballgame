@@ -1,0 +1,42 @@
+# Development files
+node_modules
+npm-debug.log*
+.env.local
+.env.development
+
+# Build outputs (will be created in container)
+dist
+build
+
+# Version control
+.git
+.gitignore
+
+# Documentation
+*.md
+docs/
+
+# Tests
+tests/
+*.test.*
+*.spec.*
+
+# Development tools
+.vscode
+.idea
+
+# Temporary files
+tmp/
+logs/
+*.log
+
+# OS generated files
+.DS_Store
+Thumbs.db
+
+# Replit specific
+.replit
+replit.nix
+
+# Attached assets (not needed for deployment)
+attached_assets/

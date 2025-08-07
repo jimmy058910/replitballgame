@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+  <defs>
+    <linearGradient id="teamGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#3B82F6;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#1D4ED8;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  
+  <!-- Team formation diagram -->
+  <g transform="translate(32, 32)">
+    <!-- Team formation circle -->
+    <circle cx="0" cy="0" r="22" fill="none" stroke="url(#teamGradient)" stroke-width="2" opacity="0.3"/>
+    
+    <!-- Player positions -->
+    <circle cx="0" cy="-15" r="3" fill="#3B82F6"/>
+    <circle cx="-10" cy="-8" r="3" fill="#3B82F6"/>
+    <circle cx="10" cy="-8" r="3" fill="#3B82F6"/>
+    <circle cx="-15" cy="0" r="3" fill="#3B82F6"/>
+    <circle cx="15" cy="0" r="3" fill="#3B82F6"/>
+    <circle cx="-10" cy="8" r="3" fill="#3B82F6"/>
+    <circle cx="10" cy="8" r="3" fill="#3B82F6"/>
+    <circle cx="0" cy="15" r="3" fill="#3B82F6"/>
+    
+    <!-- Central captain -->
+    <circle cx="0" cy="0" r="4" fill="url(#teamGradient)"/>
+    <circle cx="0" cy="0" r="2" fill="#FFFFFF"/>
+    
+    <!-- Connection lines -->
+    <path d="M0 -15 L0 -4" stroke="#3B82F6" stroke-width="1" opacity="0.5"/>
+    <path d="M-10 -8 L-2 -2" stroke="#3B82F6" stroke-width="1" opacity="0.5"/>
+    <path d="M10 -8 L2 -2" stroke="#3B82F6" stroke-width="1" opacity="0.5"/>
+    <path d="M-15 0 L-4 0" stroke="#3B82F6" stroke-width="1" opacity="0.5"/>
+    <path d="M15 0 L4 0" stroke="#3B82F6" stroke-width="1" opacity="0.5"/>
+  </g>
+</svg>

@@ -1,0 +1,56 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+  <defs>
+    <linearGradient id="multiRaceGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#10B981;stop-opacity:1" />
+      <stop offset="25%" style="stop-color:#FCD34D;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#8B5CF6;stop-opacity:1" />
+      <stop offset="75%" style="stop-color:#6B7280;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#94A3B8;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  
+  <!-- Multiple race symbols arranged in a circle -->
+  <g transform="translate(32, 32)">
+    <!-- Center circle -->
+    <circle cx="0" cy="0" r="24" fill="none" stroke="url(#multiRaceGradient)" stroke-width="3" opacity="0.3"/>
+    
+    <!-- Human symbol (top) -->
+    <g transform="translate(0, -18)">
+      <circle cx="0" cy="0" r="3" fill="#94A3B8"/>
+      <rect x="-2" y="3" width="4" height="6" rx="1" fill="#94A3B8"/>
+    </g>
+    
+    <!-- Sylvan symbol (top right) -->
+    <g transform="translate(13, -13)">
+      <path d="M0 -2 Q-2 -4 0 -6 Q2 -4 0 -2" fill="#10B981"/>
+      <path d="M0 -2 L0 4" stroke="#10B981" stroke-width="1.5"/>
+      <path d="M-2 2 L2 2" stroke="#10B981" stroke-width="1"/>
+    </g>
+    
+    <!-- Gryll symbol (right) -->
+    <g transform="translate(18, 0)">
+      <polygon points="0,-3 -2,0 0,3 2,0" fill="#6B7280"/>
+      <rect x="-1" y="-1" width="2" height="2" fill="#4B5563"/>
+    </g>
+    
+    <!-- Lumina symbol (bottom right) -->
+    <g transform="translate(13, 13)">
+      <circle cx="0" cy="0" r="3" fill="#FCD34D"/>
+      <path d="M0 -5 L0 5" stroke="#FCD34D" stroke-width="1"/>
+      <path d="M-5 0 L5 0" stroke="#FCD34D" stroke-width="1"/>
+      <path d="M-3 -3 L3 3" stroke="#FCD34D" stroke-width="0.5"/>
+      <path d="M3 -3 L-3 3" stroke="#FCD34D" stroke-width="0.5"/>
+    </g>
+    
+    <!-- Umbra symbol (bottom left) -->
+    <g transform="translate(-13, 13)">
+      <circle cx="0" cy="0" r="3" fill="#8B5CF6" opacity="0.8"/>
+      <path d="M-4 -2 Q0 -4 4 -2" fill="#5B21B6" opacity="0.6"/>
+      <path d="M-4 2 Q0 4 4 2" fill="#5B21B6" opacity="0.6"/>
+    </g>
+    
+    <!-- Unity symbol in center -->
+    <circle cx="0" cy="0" r="4" fill="url(#multiRaceGradient)" opacity="0.8"/>
+    <circle cx="0" cy="0" r="2" fill="#FFFFFF"/>
+  </g>
+</svg>

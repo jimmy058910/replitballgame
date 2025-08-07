@@ -1,0 +1,43 @@
+<svg viewBox="0 0 400 120" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="modernGrad3" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#10B981;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#3B82F6;stop-opacity:1" />
+    </linearGradient>
+    <radialGradient id="centerGlow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" style="stop-color:#FFFFFF;stop-opacity:0.3" />
+      <stop offset="100%" style="stop-color:#FFFFFF;stop-opacity:0" />
+    </radialGradient>
+  </defs>
+  
+  <!-- Circular Tech Design -->
+  <g transform="translate(60, 60)">
+    <circle cx="0" cy="0" r="40" fill="url(#modernGrad3)" opacity="0.2"/>
+    <circle cx="0" cy="0" r="30" fill="none" stroke="url(#modernGrad3)" stroke-width="2"/>
+    <circle cx="0" cy="0" r="20" fill="none" stroke="url(#modernGrad3)" stroke-width="1" opacity="0.5"/>
+    
+    <!-- Central Core -->
+    <circle cx="0" cy="0" r="8" fill="url(#modernGrad3)"/>
+    <circle cx="0" cy="0" r="8" fill="url(#centerGlow)"/>
+    
+    <!-- Orbital Elements -->
+    <g stroke="url(#modernGrad3)" fill="url(#modernGrad3)">
+      <circle cx="0" cy="-25" r="3"/>
+      <circle cx="22" cy="12" r="3"/>
+      <circle cx="-22" cy="12" r="3"/>
+      <circle cx="18" cy="-18" r="2"/>
+      <circle cx="-18" cy="-18" r="2"/>
+    </g>
+  </g>
+  
+  <!-- Modern Typography -->
+  <text x="130" y="35" font-family="Arial, sans-serif" font-size="26" font-weight="300" fill="#1F2937">
+    REALM
+  </text>
+  <text x="130" y="65" font-family="Arial, sans-serif" font-size="26" font-weight="700" fill="url(#modernGrad3)">
+    RIVALRY
+  </text>
+  <text x="130" y="85" font-family="Arial, sans-serif" font-size="10" fill="#6B7280" letter-spacing="1px">
+    NEXT-GEN FANTASY SPORTS
+  </text>
+</svg>

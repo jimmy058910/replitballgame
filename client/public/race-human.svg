@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80 80" width="80" height="80">
+  <defs>
+    <linearGradient id="humanGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#94A3B8;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#64748B;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  
+  <!-- Human figure -->
+  <g transform="translate(40, 40)">
+    <!-- Head -->
+    <circle cx="0" cy="-20" r="12" fill="url(#humanGradient)" stroke="#E2E8F0" stroke-width="1"/>
+    <!-- Body -->
+    <rect x="-8" y="-8" width="16" height="20" rx="3" fill="url(#humanGradient)" stroke="#E2E8F0" stroke-width="1"/>
+    <!-- Arms -->
+    <rect x="-18" y="-5" width="8" height="15" rx="2" fill="url(#humanGradient)" stroke="#E2E8F0" stroke-width="1"/>
+    <rect x="10" y="-5" width="8" height="15" rx="2" fill="url(#humanGradient)" stroke="#E2E8F0" stroke-width="1"/>
+    <!-- Legs -->
+    <rect x="-6" y="12" width="5" height="18" rx="2" fill="url(#humanGradient)" stroke="#E2E8F0" stroke-width="1"/>
+    <rect x="1" y="12" width="5" height="18" rx="2" fill="url(#humanGradient)" stroke="#E2E8F0" stroke-width="1"/>
+    
+    <!-- Equipment/armor details -->
+    <rect x="-6" y="-6" width="12" height="3" fill="#F1F5F9" opacity="0.8"/>
+    <circle cx="0" cy="-18" r="2" fill="#F1F5F9"/>
+  </g>
+</svg>

@@ -1,0 +1,83 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 120" width="400" height="120">
+  <defs>
+    <linearGradient id="crystalGradient4" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#06B6D4;stop-opacity:1" />
+      <stop offset="33%" style="stop-color:#8B5CF6;stop-opacity:1" />
+      <stop offset="66%" style="stop-color:#EC4899;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#06B6D4;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="textGradient4" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#DBEAFE;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#93C5FD;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#3B82F6;stop-opacity:1" />
+    </linearGradient>
+    <filter id="crystal">
+      <feGaussianBlur stdDeviation="2" result="coloredBlur"/>
+      <feDropShadow dx="2" dy="2" stdDeviation="3" flood-color="#06B6D4" flood-opacity="0.5"/>
+      <feMerge> 
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+  
+  <!-- Background -->
+  <rect width="400" height="120" fill="#0C1426" rx="8"/>
+  
+  <!-- Crystalline structure design -->
+  <g transform="translate(60, 60)">
+    <!-- Main crystal formation -->
+    <g filter="url(#crystal)">
+      <!-- Central large crystal -->
+      <polygon points="0,-35 -12,-20 -8,0 8,0 12,-20" fill="url(#crystalGradient4)" opacity="0.9"/>
+      
+      <!-- Left crystal cluster -->
+      <polygon points="-25,-15 -35,-5 -30,10 -20,5 -15,-10" fill="url(#crystalGradient4)" opacity="0.7"/>
+      <polygon points="-15,-10 -25,0 -20,15 -10,10 -5,-5" fill="url(#crystalGradient4)" opacity="0.8"/>
+      
+      <!-- Right crystal cluster -->
+      <polygon points="25,-15 35,-5 30,10 20,5 15,-10" fill="url(#crystalGradient4)" opacity="0.7"/>
+      <polygon points="15,-10 25,0 20,15 10,10 5,-5" fill="url(#crystalGradient4)" opacity="0.8"/>
+      
+      <!-- Smaller accent crystals -->
+      <polygon points="-40,-25 -45,-15 -40,-5 -35,-15" fill="#06B6D4" opacity="0.6"/>
+      <polygon points="40,-25 45,-15 40,-5 35,-15" fill="#06B6D4" opacity="0.6"/>
+      <polygon points="-35,20 -40,30 -35,40 -30,30" fill="#8B5CF6" opacity="0.6"/>
+      <polygon points="35,20 40,30 35,40 30,30" fill="#8B5CF6" opacity="0.6"/>
+    </g>
+    
+    <!-- Energy connections -->
+    <path d="M-25 -10 Q0 -25 25 -10" stroke="url(#crystalGradient4)" stroke-width="2" fill="none" opacity="0.7"/>
+    <path d="M-20 15 Q0 5 20 15" stroke="url(#crystalGradient4)" stroke-width="2" fill="none" opacity="0.7"/>
+    
+    <!-- Central power core -->
+    <circle cx="0" cy="-5" r="8" fill="url(#crystalGradient4)" opacity="0.4"/>
+    <circle cx="0" cy="-5" r="4" fill="#FFFFFF" opacity="0.8"/>
+  </g>
+  
+  <!-- Futuristic text -->
+  <text x="140" y="45" font-family="Orbitron, monospace" font-size="30" font-weight="700" 
+        fill="url(#textGradient4)" filter="url(#crystal)">REALM</text>
+  <text x="140" y="78" font-family="Orbitron, monospace" font-size="30" font-weight="700" 
+        fill="url(#textGradient4)" filter="url(#crystal)">RIVALRY</text>
+  
+  <!-- Tech subtitle -->
+  <text x="140" y="100" font-family="Arial, sans-serif" font-size="11" 
+        fill="#7DD3FC" opacity="0.9">NEXUS OF INFINITE WORLDS</text>
+        
+  <!-- Floating data particles -->
+  <g opacity="0.6">
+    <rect x="310" y="15" width="2" height="2" fill="#06B6D4" transform="rotate(45 311 16)"/>
+    <rect x="330" y="25" width="2" height="2" fill="#8B5CF6" transform="rotate(45 331 26)"/>
+    <rect x="350" y="20" width="2" height="2" fill="#EC4899" transform="rotate(45 351 21)"/>
+    <rect x="370" y="30" width="2" height="2" fill="#06B6D4" transform="rotate(45 371 31)"/>
+    
+    <rect x="320" y="85" width="2" height="2" fill="#8B5CF6" transform="rotate(45 321 86)"/>
+    <rect x="340" y="95" width="2" height="2" fill="#06B6D4" transform="rotate(45 341 96)"/>
+    <rect x="360" y="90" width="2" height="2" fill="#EC4899" transform="rotate(45 361 91)"/>
+    <rect x="380" y="100" width="2" height="2" fill="#06B6D4" transform="rotate(45 381 101)"/>
+  </g>
+  
+  <!-- Geometric accent lines -->
+  <path d="M320 60 L380 60" stroke="url(#crystalGradient4)" stroke-width="1" opacity="0.5"/>
+  <path d="M340 40 L360 80" stroke="url(#crystalGradient4)" stroke-width="1" opacity="0.3"/>
+</svg>

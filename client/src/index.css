@@ -1,0 +1,580 @@
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Inter:wght@300;400;500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --background: hsl(240, 10%, 3.9%);
+  --foreground: hsl(0, 0%, 98%);
+  --muted: hsl(240, 3.7%, 15.9%);
+  --muted-foreground: hsl(240, 5%, 64.9%);
+  --popover: hsl(240, 10%, 3.9%);
+  --popover-foreground: hsl(0, 0%, 98%);
+  --card: hsl(240, 10%, 3.9%);
+  --card-foreground: hsl(0, 0%, 98%);
+  --border: hsl(240, 3.7%, 15.9%);
+  --input: hsl(240, 3.7%, 15.9%);
+  --primary: hsl(207, 90%, 54%);
+  --primary-foreground: hsl(211, 100%, 99%);
+  --secondary: hsl(240, 3.7%, 15.9%);
+  --secondary-foreground: hsl(0, 0%, 98%);
+  --accent: hsl(240, 3.7%, 15.9%);
+  --accent-foreground: hsl(0, 0%, 98%);
+  --destructive: hsl(0, 84.2%, 60.2%);
+  --destructive-foreground: hsl(60, 9.1%, 97.8%);
+  --ring: hsl(240, 5%, 64.9%);
+  --radius: 0.5rem;
+  
+  /* Fantasy race colors */
+  --race-human: hsl(200, 12%, 55%);
+  --race-sylvan: hsl(142, 71%, 45%);
+  --race-gryll: hsl(200, 7%, 28%);
+  --race-lumina: hsl(45, 100%, 50%);
+  --race-umbra: hsl(253, 53%, 37%);
+  
+  /* Gold colors */
+  --gold-400: hsl(43, 89%, 70%);
+  --gold-500: hsl(38, 92%, 50%);
+  --gold-600: hsl(32, 95%, 44%);
+  
+  /* Team HQ Mobile-First Design Variables */
+  --hq-gradient-start: hsl(220, 26%, 14%);
+  --hq-gradient-end: hsl(220, 39%, 11%);
+  --alert-critical: hsl(0, 84%, 60%);
+  --alert-warning: hsl(43, 89%, 60%);
+  --alert-success: hsl(142, 71%, 45%);
+}
+
+/* Utility classes for star rating */
+.clip-path-left-half {
+  clip-path: polygon(0 0, 50% 0, 50% 100%, 0 100%);
+}
+
+.dark {
+  --background: hsl(240, 10%, 3.9%);
+  --foreground: hsl(0, 0%, 98%);
+  --muted: hsl(240, 3.7%, 15.9%);
+  --muted-foreground: hsl(240, 5%, 64.9%);
+  --popover: hsl(240, 10%, 3.9%);
+  --popover-foreground: hsl(0, 0%, 98%);
+  --card: hsl(240, 10%, 3.9%);
+  --card-foreground: hsl(0, 0%, 98%);
+  --border: hsl(240, 3.7%, 15.9%);
+  --input: hsl(240, 3.7%, 15.9%);
+  --primary: hsl(207, 90%, 54%);
+  --primary-foreground: hsl(211, 100%, 99%);
+  --secondary: hsl(240, 3.7%, 15.9%);
+  --secondary-foreground: hsl(0, 0%, 98%);
+  --accent: hsl(240, 3.7%, 15.9%);
+  --accent-foreground: hsl(0, 0%, 98%);
+  --destructive: hsl(0, 62.8%, 30.6%);
+  --destructive-foreground: hsl(0, 0%, 98%);
+  --ring: hsl(240, 4.9%, 83.9%);
+  --radius: 0.5rem;
+}
+
+/* Team HQ Mobile-First CSS Utilities */
+@layer components {
+  /* Hero banner gradient backgrounds */
+  .hq-hero-gradient {
+    background: linear-gradient(135deg, var(--hq-gradient-start) 0%, var(--hq-gradient-end) 100%);
+    backdrop-filter: blur(10px);
+  }
+  
+  /* Touch-friendly quick action buttons */
+  .hq-action-btn {
+    min-height: 44px;
+    min-width: 44px;
+    touch-action: manipulation;
+    transition: all 0.2s ease;
+  }
+  
+  .hq-action-btn:active {
+    transform: scale(0.98);
+  }
+  
+  /* Progress bars with consistent styling */
+  .hq-progress-bar {
+    height: 8px;
+    background: var(--secondary);
+    border-radius: 9999px;
+    overflow: hidden;
+  }
+  
+  .hq-progress-fill {
+    height: 100%;
+    background: var(--primary);
+    border-radius: 9999px;
+    transition: width 0.3s ease;
+  }
+  
+  /* Alert severity indicators */
+  .alert-critical {
+    border-left: 4px solid var(--alert-critical);
+    background: color-mix(in srgb, var(--alert-critical) 10%, transparent);
+  }
+  
+  .alert-warning {
+    border-left: 4px solid var(--alert-warning);
+    background: color-mix(in srgb, var(--alert-warning) 10%, transparent);
+  }
+  
+  .alert-success {
+    border-left: 4px solid var(--alert-success);
+    background: color-mix(in srgb, var(--alert-success) 10%, transparent);
+  }
+  
+  /* Mobile-first card layouts */
+  .hq-card-compact {
+    padding: 1rem;
+    border-radius: 0.75rem;
+    background: var(--card);
+    border: 1px solid var(--border);
+  }
+  
+  /* Touch-friendly collapsible sections */
+  .hq-collapsible summary {
+    cursor: pointer;
+    user-select: none;
+    list-style: none;
+    padding: 1rem;
+    border-radius: 0.5rem;
+    background: var(--card);
+    border: 1px solid var(--border);
+    transition: background-color 0.2s ease;
+  }
+  
+  .hq-collapsible summary:hover {
+    background: color-mix(in srgb, var(--card) 90%, var(--primary) 10%);
+  }
+  
+  .hq-collapsible[open] summary {
+    border-bottom-left-radius: 0;
+    border-bottom-right-radius: 0;
+    border-bottom: none;
+  }
+  
+  .hq-collapsible[open] .hq-collapsible-content {
+    border: 1px solid var(--border);
+    border-top: none;
+    border-radius: 0 0 0.5rem 0.5rem;
+    background: var(--card);
+  }
+  
+  /* Responsive text scaling */
+  .hq-title {
+    font-size: clamp(1.5rem, 4vw, 2.25rem);
+    font-weight: 700;
+    line-height: 1.2;
+  }
+  
+  .hq-subtitle {
+    font-size: clamp(0.875rem, 2.5vw, 1rem);
+    opacity: 0.8;
+  }
+  
+  /* Quick access tile animations */
+  .hq-quick-tile {
+    transition: all 0.2s ease;
+    cursor: pointer;
+  }
+  
+  .hq-quick-tile:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  }
+  
+  .hq-quick-tile:active {
+    transform: translateY(0);
+  }
+}
+
+/* Force high contrast for FINAL text - Maximum specificity */
+div.final-text-override,
+.final-text-override {
+  color: #000000 !important;
+  font-weight: 900 !important;
+  opacity: 1 !important;
+  text-shadow: none !important;
+  background-color: transparent !important;
+  font-size: inherit !important;
+}
+
+.dark div.final-text-override,
+.dark .final-text-override {
+  color: #ffffff !important;
+}
+
+/* Extra specific selector for league schedule FINAL text */
+[class*="text-sm"] + .final-text-override,
+div[class*="min-w"] .final-text-override {
+  color: #000000 !important;
+  font-weight: 900 !important;
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply font-inter antialiased bg-gray-900 text-gray-100;
+    /* Prevent zoom on mobile */
+    -webkit-text-size-adjust: 100%;
+    -ms-text-size-adjust: 100%;
+    /* Prevent overscroll */
+    overscroll-behavior: none;
+  }
+  
+  .font-orbitron {
+    font-family: 'Orbitron', monospace;
+  }
+  
+  .font-inter {
+    font-family: 'Inter', sans-serif;
+  }
+}
+
+@layer utilities {
+  /* Race-specific colors */
+  .text-race-human { color: var(--race-human); }
+  .text-race-sylvan { color: var(--race-sylvan); }
+  .text-race-gryll { color: var(--race-gryll); }
+  .text-race-lumina { color: var(--race-lumina); }
+  .text-race-umbra { color: var(--race-umbra); }
+  
+  .bg-race-human { background-color: var(--race-human); }
+  .bg-race-sylvan { background-color: var(--race-sylvan); }
+
+  /* Mobile-First Touch Target Standards */
+  .touch-target {
+    min-height: 44px;
+    min-width: 44px;
+  }
+
+  .touch-target-large {
+    min-height: 56px;
+    min-width: 56px;
+  }
+
+  /* Enhanced Mobile Card Layouts */
+  .mobile-card {
+    @apply bg-gray-800 border border-gray-700 rounded-lg p-4 shadow-sm;
+  }
+
+  .mobile-card-compact {
+    @apply bg-gray-800 border border-gray-700 rounded-lg p-3 shadow-sm;
+  }
+
+  .mobile-card-interactive {
+    @apply bg-gray-800 border border-gray-700 rounded-lg p-4 shadow-sm transition-all duration-200 hover:bg-gray-700 hover:border-gray-600 active:scale-[0.98];
+  }
+
+  /* Hub-Specific Gradients */
+  .hub-command-center {
+    @apply bg-gradient-to-br from-blue-900 to-indigo-900;
+  }
+
+  .hub-roster-hq {
+    @apply bg-gradient-to-br from-green-900 to-emerald-900;
+  }
+
+  .hub-competition {
+    @apply bg-gradient-to-br from-orange-900 to-amber-900;
+  }
+
+  .hub-market {
+    @apply bg-gradient-to-br from-purple-900 to-violet-900;
+  }
+
+  .hub-community {
+    @apply bg-gradient-to-br from-teal-900 to-cyan-900;
+  }
+
+  /* Enhanced Typography Scale */
+  .text-hero {
+    font-size: clamp(1.75rem, 4vw, 3rem);
+    line-height: 1.1;
+    font-weight: 900;
+  }
+
+  .text-section-title {
+    font-size: clamp(1.25rem, 3vw, 1.875rem);
+    line-height: 1.2;
+    font-weight: 700;
+  }
+
+  .text-card-title {
+    font-size: clamp(1rem, 2.5vw, 1.25rem);
+    line-height: 1.3;
+    font-weight: 600;
+  }
+
+  /* Responsive Grid Systems */
+  .grid-mobile-cards {
+    @apply grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4;
+  }
+
+  .grid-dashboard {
+    @apply grid grid-cols-1 lg:grid-cols-3 gap-6;
+  }
+
+  .grid-stats {
+    @apply grid grid-cols-2 md:grid-cols-4 gap-4;
+  }
+
+  /* Enhanced Loading States */
+  .skeleton {
+    @apply animate-pulse bg-gray-700 rounded;
+  }
+
+  .skeleton-text {
+    @apply skeleton h-4 w-full;
+  }
+
+  .skeleton-title {
+    @apply skeleton h-6 w-3/4;
+  }
+
+  .skeleton-card {
+    @apply skeleton h-32 w-full;
+  }
+
+  /* Status Indicators */
+  .status-active {
+    @apply bg-green-600 text-green-100;
+  }
+
+  .status-inactive {
+    @apply bg-gray-600 text-gray-100;
+  }
+
+  .status-warning {
+    @apply bg-yellow-600 text-yellow-100;
+  }
+
+  .status-danger {
+    @apply bg-red-600 text-red-100;
+  }
+
+  /* Player Role Colors */
+  .role-passer {
+    @apply text-blue-400 bg-blue-400/10 border-blue-400/30;
+  }
+
+  .role-runner {
+    @apply text-green-400 bg-green-400/10 border-green-400/30;
+  }
+
+  .role-blocker {
+    @apply text-orange-400 bg-orange-400/10 border-orange-400/30;
+  }
+
+  /* Performance Optimization */
+  .will-change-transform {
+    will-change: transform;
+  }
+
+  .will-change-auto {
+    will-change: auto;
+  }
+
+  /* Scroll Behavior */
+  .scroll-smooth {
+    scroll-behavior: smooth;
+  }
+
+  /* Safe Area Insets for Mobile */
+  .safe-area-inset {
+    padding-top: env(safe-area-inset-top);
+    padding-bottom: env(safe-area-inset-bottom);
+    padding-left: env(safe-area-inset-left);
+    padding-right: env(safe-area-inset-right);
+  }
+
+  .safe-area-bottom {
+    padding-bottom: max(1.5rem, env(safe-area-inset-bottom));
+  }
+  .bg-race-gryll { background-color: var(--race-gryll); }
+  .bg-race-lumina { background-color: var(--race-lumina); }
+  .bg-race-umbra { background-color: var(--race-umbra); }
+  
+  .border-race-human { border-color: var(--race-human); }
+  .border-race-sylvan { border-color: var(--race-sylvan); }
+  .border-race-gryll { border-color: var(--race-gryll); }
+  .border-race-lumina { border-color: var(--race-lumina); }
+  .border-race-umbra { border-color: var(--race-umbra); }
+  
+  /* Gold colors */
+  .text-gold-400 { color: var(--gold-400); }
+  .text-gold-500 { color: var(--gold-500); }
+  .text-gold-600 { color: var(--gold-600); }
+  
+  .bg-gold-400 { background-color: var(--gold-400); }
+  .bg-gold-500 { background-color: var(--gold-500); }
+  .bg-gold-600 { background-color: var(--gold-600); }
+  
+  .border-gold-400 { border-color: var(--gold-400); }
+  .border-gold-500 { border-color: var(--gold-500); }
+  .border-gold-600 { border-color: var(--gold-600); }
+  
+  /* Hover states for race colors */
+  .hover\:bg-race-human:hover { background-color: var(--race-human); }
+  .hover\:bg-race-sylvan:hover { background-color: var(--race-sylvan); }
+  .hover\:bg-race-gryll:hover { background-color: var(--race-gryll); }
+  .hover\:bg-race-lumina:hover { background-color: var(--race-lumina); }
+  .hover\:bg-race-umbra:hover { background-color: var(--race-umbra); }
+  
+  .hover\:border-race-human:hover { border-color: var(--race-human); }
+  .hover\:border-race-sylvan:hover { border-color: var(--race-sylvan); }
+  .hover\:border-race-gryll:hover { border-color: var(--race-gryll); }
+  .hover\:border-race-lumina:hover { border-color: var(--race-lumina); }
+  .hover\:border-race-umbra:hover { border-color: var(--race-umbra); }
+  
+  /* Custom animations */
+  .animate-pulse-slow {
+    animation: pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  }
+  
+  /* Gradient backgrounds */
+  .bg-gradient-fantasy {
+    background: linear-gradient(135deg, hsl(240, 10%, 3.9%) 0%, hsl(240, 8%, 5%) 50%, hsl(240, 10%, 3.9%) 100%);
+  }
+  
+  /* Field styling */
+  .field-gradient {
+    background: linear-gradient(90deg, #166534 0%, #15803d 50%, #166534 100%);
+  }
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: hsl(240, 3.7%, 15.9%);
+}
+
+::-webkit-scrollbar-thumb {
+  background: hsl(240, 5%, 34%);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: hsl(240, 5%, 44%);
+}
+
+/* Icon styling */
+.fas, .far, .fab {
+  font-family: "Font Awesome 6 Free", "Font Awesome 6 Pro", "Font Awesome 6 Brands";
+}
+
+/* Landscape-only orientation styles for mobile gaming */
+.landscape-only {
+  display: block;
+}
+
+.portrait-warning {
+  display: none;
+}
+
+/* Mobile portrait mode warning overlay */
+@media screen and (max-width: 768px) and (orientation: portrait) {
+  .landscape-only {
+    display: none !important;
+  }
+  
+  .portrait-warning {
+    display: flex !important;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0, 0, 0, 0.95);
+    backdrop-filter: blur(8px);
+    z-index: 9999;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    text-align: center;
+    padding: 2rem;
+  }
+  
+  .portrait-warning .rotate-icon {
+    font-size: 4rem;
+    margin-bottom: 1rem;
+    animation: rotate 2s ease-in-out infinite;
+  }
+  
+  .portrait-warning h2 {
+    font-size: 1.5rem;
+    margin-bottom: 1rem;
+    color: #60a5fa;
+  }
+  
+  .portrait-warning p {
+    font-size: 1rem;
+    opacity: 0.8;
+  }
+}
+
+@keyframes rotate {
+  0% { transform: rotate(0deg); }
+  25% { transform: rotate(90deg); }
+  50% { transform: rotate(90deg); }
+  75% { transform: rotate(0deg); }
+  100% { transform: rotate(0deg); }
+}
+
+/* Mobile landscape optimizations */
+@media screen and (max-width: 768px) and (orientation: landscape) {
+  body {
+    /* Remove default margins on mobile landscape */
+    margin: 0;
+    padding: 0;
+    /* Ensure full viewport usage */
+    width: 100vw;
+    height: 100vh;
+    overflow-x: hidden;
+  }
+  
+  /* Optimize navigation for landscape */
+  nav {
+    height: 48px !important;
+    padding: 0 1rem !important;
+  }
+  
+  /* Reduce padding for landscape mobile */
+  .container {
+    padding-left: 1rem !important;
+    padding-right: 1rem !important;
+  }
+  
+  /* Optimize text sizing for landscape */
+  .text-xl {
+    font-size: 1.125rem !important;
+  }
+  
+  .text-2xl {
+    font-size: 1.25rem !important;
+  }
+  
+  /* Optimize card spacing for landscape */
+  .space-y-4 > * + * {
+    margin-top: 0.75rem !important;
+  }
+  
+  .space-y-6 > * + * {
+    margin-top: 1rem !important;
+  }
+  
+  /* Optimize button sizing for landscape */
+  .btn {
+    padding: 0.5rem 1rem !important;
+    font-size: 0.875rem !important;
+  }
+}

@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80 80" width="80" height="80">
+  <defs>
+    <linearGradient id="gryllGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#6B7280;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#374151;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  
+  <!-- Gryll figure -->
+  <g transform="translate(40, 40)">
+    <!-- Head with rocky texture -->
+    <circle cx="0" cy="-20" r="14" fill="url(#gryllGradient)" stroke="#9CA3AF" stroke-width="2"/>
+    <!-- Rocky protrusions -->
+    <polygon points="-10,-25 -8,-30 -6,-25" fill="#4B5563"/>
+    <polygon points="6,-25 8,-30 10,-25" fill="#4B5563"/>
+    <polygon points="0,-32 2,-35 4,-30" fill="#4B5563"/>
+    
+    <!-- Body - broader and more muscular -->
+    <rect x="-10" y="-8" width="20" height="22" rx="4" fill="url(#gryllGradient)" stroke="#9CA3AF" stroke-width="2"/>
+    
+    <!-- Arms - thick and powerful -->
+    <rect x="-22" y="-5" width="10" height="18" rx="3" fill="url(#gryllGradient)" stroke="#9CA3AF" stroke-width="2"/>
+    <rect x="12" y="-5" width="10" height="18" rx="3" fill="url(#gryllGradient)" stroke="#9CA3AF" stroke-width="2"/>
+    
+    <!-- Legs - sturdy -->
+    <rect x="-7" y="14" width="6" height="18" rx="2" fill="url(#gryllGradient)" stroke="#9CA3AF" stroke-width="2"/>
+    <rect x="1" y="14" width="6" height="18" rx="2" fill="url(#gryllGradient)" stroke="#9CA3AF" stroke-width="2"/>
+    
+    <!-- Mining equipment and rocky details -->
+    <rect x="-6" y="-4" width="12" height="4" fill="#6B7280" stroke="#4B5563" stroke-width="1"/>
+    <circle cx="-3" cy="2" r="1.5" fill="#4B5563"/>
+    <circle cx="3" cy="5" r="1.5" fill="#4B5563"/>
+    <polygon points="-15,-2 -12,2 -18,2" fill="#4B5563"/>
+    
+    <!-- Eyes -->
+    <circle cx="-4" cy="-20" r="2" fill="#F87171"/>
+    <circle cx="4" cy="-20" r="2" fill="#F87171"/>
+  </g>
+</svg>

@@ -1,0 +1,61 @@
+name: Deploy to Cloud Run
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+env:
+  PROJECT_ID: direct-glider-465821-p7
+  SERVICE: realm-rivalry
+  REGION: us-east5
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+
+    - name: Authenticate to Google Cloud
+      uses: google-github-actions/auth@v2
+      with:
+        workload_identity_provider: projects/108005641993/locations/global/workloadIdentityPools/github-actions-pool/providers/github-actions-provider
+        service_account: realm-rivalry-github-runner@direct-glider-465821-p7.iam.gserviceaccount.com
+
+    - name: Setup Google Cloud CLI
+      uses: google-github-actions/setup-gcloud@v2
+
+    - name: Configure Docker for Artifact Registry
+      run: gcloud auth configure-docker us-east5-docker.pkg.dev
+
+    - name: Build Docker image
+      run: |
+        docker build -f Dockerfile.production -t us-east5-docker.pkg.dev/$PROJECT_ID/$SERVICE/$SERVICE:$GITHUB_SHA .
+        docker tag us-east5-docker.pkg.dev/$PROJECT_ID/$SERVICE/$SERVICE:$GITHUB_SHA us-east5-docker.pkg.dev/$PROJECT_ID/$SERVICE/$SERVICE:latest
+
+    - name: Push Docker image
+      run: |
+        docker push us-east5-docker.pkg.dev/$PROJECT_ID/$SERVICE/$SERVICE:$GITHUB_SHA
+        docker push us-east5-docker.pkg.dev/$PROJECT_ID/$SERVICE/$SERVICE:latest
+
+    - name: Deploy to Cloud Run
+      run: |
+        gcloud run deploy $SERVICE \
+          --image us-east5-docker.pkg.dev/$PROJECT_ID/$SERVICE/$SERVICE:$GITHUB_SHA \
+          --platform managed \
+          --region $REGION \
+          --port 8080 \
+          --memory 2Gi \
+          --cpu 1 \
+          --timeout 900 \
+          --max-instances 10 \
+          --allow-unauthenticated \
+          --service-account realm-rivalry-github-runner@$PROJECT_ID.iam.gserviceaccount.com \
+          --update-secrets DATABASE_URL=database-url:latest \
+          --update-secrets SESSION_SECRET=session-secret:latest \
+          --update-secrets GOOGLE_CLIENT_SECRET=google-client-secret:latest \
+          --set-env-vars "NODE_ENV=production,GOOGLE_CLIENT_ID=108005641993-e642ered12jj7ka6unpqhgjdls92c0u8.apps.googleusercontent.com"

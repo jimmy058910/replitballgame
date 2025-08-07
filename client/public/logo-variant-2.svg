@@ -1,0 +1,87 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 120" width="400" height="120">
+  <defs>
+    <linearGradient id="mysticGradient2" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#8B5CF6;stop-opacity:1" />
+      <stop offset="25%" style="stop-color:#EC4899;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#F59E0B;stop-opacity:1" />
+      <stop offset="75%" style="stop-color:#10B981;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#3B82F6;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="textGradient2" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#C4B5FD;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#8B5CF6;stop-opacity:1" />
+    </linearGradient>
+    <filter id="mysticGlow">
+      <feGaussianBlur stdDeviation="4" result="coloredBlur"/>
+      <feMerge> 
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+  
+  <!-- Background -->
+  <rect width="400" height="120" fill="#0F0F23" rx="8"/>
+  
+  <!-- Mystical portal/realm gate -->
+  <g transform="translate(60, 60)">
+    <!-- Outer ring with race elements -->
+    <circle cx="0" cy="0" r="35" fill="none" stroke="url(#mysticGradient2)" stroke-width="4" filter="url(#mysticGlow)"/>
+    <circle cx="0" cy="0" r="28" fill="none" stroke="url(#mysticGradient2)" stroke-width="2" opacity="0.6"/>
+    
+    <!-- Five race symbols around the ring -->
+    <!-- Human (top) -->
+    <g transform="translate(0, -30)">
+      <circle cx="0" cy="0" r="4" fill="#94A3B8"/>
+      <rect x="-2" y="4" width="4" height="6" rx="1" fill="#94A3B8"/>
+    </g>
+    
+    <!-- Sylvan (top right) -->
+    <g transform="translate(21, -21) rotate(72)">
+      <path d="M0 -3 Q-2 -5 0 -7 Q2 -5 0 -3" fill="#10B981"/>
+      <path d="M0 -3 L0 5" stroke="#10B981" stroke-width="2"/>
+    </g>
+    
+    <!-- Gryll (bottom right) -->
+    <g transform="translate(21, 21) rotate(144)">
+      <polygon points="0,-4 -3,0 0,4 3,0" fill="#6B7280"/>
+      <rect x="-1.5" y="-1.5" width="3" height="3" fill="#4B5563"/>
+    </g>
+    
+    <!-- Lumina (bottom left) -->
+    <g transform="translate(-21, 21) rotate(216)">
+      <circle cx="0" cy="0" r="4" fill="#FCD34D"/>
+      <path d="M0 -6 L0 6" stroke="#FCD34D" stroke-width="1"/>
+      <path d="M-6 0 L6 0" stroke="#FCD34D" stroke-width="1"/>
+    </g>
+    
+    <!-- Umbra (top left) -->
+    <g transform="translate(-21, -21) rotate(288)">
+      <circle cx="0" cy="0" r="4" fill="#8B5CF6" opacity="0.8"/>
+      <path d="M-5 -2 Q0 -4 5 -2" fill="#5B21B6" opacity="0.6"/>
+    </g>
+    
+    <!-- Central realm symbol -->
+    <circle cx="0" cy="0" r="12" fill="url(#mysticGradient2)" opacity="0.3"/>
+    <polygon points="0,-8 3,-2 9,-2 4,2 6,8 0,4 -6,8 -4,2 -9,-2 -3,-2" fill="url(#mysticGradient2)" filter="url(#mysticGlow)"/>
+  </g>
+  
+  <!-- Stylized text with magical effect -->
+  <text x="140" y="45" font-family="Orbitron, monospace" font-size="28" font-weight="800" 
+        fill="url(#textGradient2)" filter="url(#mysticGlow)">REALM</text>
+  <text x="140" y="78" font-family="Orbitron, monospace" font-size="28" font-weight="800" 
+        fill="url(#textGradient2)" filter="url(#mysticGlow)">RIVALRY</text>
+  
+  <!-- Subtitle -->
+  <text x="140" y="100" font-family="Arial, sans-serif" font-size="11" 
+        fill="#A78BFA" opacity="0.9">MULTI-DIMENSIONAL COMPETITION</text>
+        
+  <!-- Floating mystical elements -->
+  <circle cx="320" cy="20" r="3" fill="#8B5CF6" opacity="0.7" filter="url(#mysticGlow)"/>
+  <circle cx="350" cy="35" r="2" fill="#EC4899" opacity="0.7" filter="url(#mysticGlow)"/>
+  <circle cx="370" cy="15" r="2.5" fill="#10B981" opacity="0.7" filter="url(#mysticGlow)"/>
+  
+  <circle cx="310" cy="100" r="2.5" fill="#F59E0B" opacity="0.7" filter="url(#mysticGlow)"/>
+  <circle cx="340" cy="90" r="3" fill="#3B82F6" opacity="0.7" filter="url(#mysticGlow)"/>
+  <circle cx="365" cy="105" r="2" fill="#8B5CF6" opacity="0.7" filter="url(#mysticGlow)"/>
+</svg>

@@ -1,0 +1,24 @@
+name: Auto Push on Merge
+
+on:
+  push:
+    branches: [ jules-testing-merges ]
+  workflow_dispatch:
+
+jobs:
+  auto-merge-and-push:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push'
+    
+    steps:
+    - uses: actions/checkout@v3
+      with:
+        fetch-depth: 0
+        
+    - name: Auto merge to main
+      run: |
+        git config --global user.name "GitHub Actions Bot"
+        git config --global user.email "actions@github.com"
+        git checkout main
+        git merge jules-testing-merges --no-ff -m "Auto-merge from jules-testing-merges"
+        git push origin main
