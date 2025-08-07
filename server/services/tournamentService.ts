@@ -203,7 +203,7 @@ export class TournamentService {
       entryFeeCredits: BigInt(0),
       entryFeeGems: 0,
       status: "REGISTRATION_OPEN" as const,
-      prizePoolJson: rewards,
+      prizePoolJson: rewards as any,
       registrationEndTime: moment.tz("America/New_York").add(60, 'minutes').toDate(), // 60 minutes after creation
       startTime: moment.tz("America/New_York").add(60, 'minutes').toDate(),
     };
@@ -235,7 +235,7 @@ export class TournamentService {
       entryFeeCredits: BigInt(10000),
       entryFeeGems: 20,
       status: "REGISTRATION_OPEN" as const,
-      prizePoolJson: rewards,
+      prizePoolJson: rewards as any,
       registrationEndTime: moment.tz("America/New_York").endOf('day').toDate(), // End of Day 6
       startTime: moment.tz("America/New_York").add(1, 'day').hour(13).minute(0).toDate() // 1 PM EST Day 7
     };

@@ -4,7 +4,7 @@ import { storage } from "../storage/index";
 import { teamFinancesStorage } from "../storage/teamFinancesStorage";
 import { itemStorage } from "../storage/itemStorage";
 import { isAuthenticated } from "../googleAuth";
-import { ItemType } from "@prisma/client";
+import { ItemType } from "../db";
 
 // Schema items handled by itemStorage using Prisma
 // Drizzle operations replaced by Prisma in storage layers
