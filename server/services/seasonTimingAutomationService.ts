@@ -599,7 +599,7 @@ export class SeasonTimingAutomationService {
             totalStadiumInvestment += (team.stadium.parkingLevel - 1) * 43750;
             totalStadiumInvestment += team.stadium.vipSuitesLevel * 100000;
             totalStadiumInvestment += (team.stadium.merchandisingLevel - 1) * 70000;
-            totalStadiumInvestment += (team.stadium.lightingLevel - 1) * 30000;
+            totalStadiumInvestment += (team.stadium.lightingScreensLevel - 1) * 30000;
           }
           
           // Calculate daily maintenance cost: 1% of total investment
@@ -613,7 +613,7 @@ export class SeasonTimingAutomationService {
             await prisma.teamFinances.update({
               where: { id: team.finances.id },
               data: {
-                credits: BigInt(newCredits)
+                credits: BigInt(Math.max(0, newCredits))
               }
             });
             
@@ -845,7 +845,7 @@ export class SeasonTimingAutomationService {
       logInfo(`Closing Mid-Season Cup registration and generating brackets for Season ${seasonNumber}...`);
       
       // Find all Mid-Season Cup tournaments that are still in registration
-      const tournaments = await prisma.tournamentEntries[0].findMany({
+      const tournaments = await prisma.tournamentEntry.findMany({
         where: {
           type: 'MID_SEASON_CLASSIC',
           seasonDay: 7,
@@ -859,7 +859,7 @@ export class SeasonTimingAutomationService {
       for (const tournament of tournaments) {
         try {
           // Close registration
-          await prisma.tournamentEntries[0].update({
+          await prisma.tournamentEntry.update({
             where: { id: tournament.id },
             data: { 
               status: 'BRACKETS_GENERATED',
@@ -876,11 +876,11 @@ export class SeasonTimingAutomationService {
           }
           
           // Generate initial brackets
-          await tournamentService.generateTournamentBrackets(tournament.id.toString());
+          await tournamentService.generateTournamentMatches(tournament.id.toString());
           
           logInfo(`Mid-Season Cup registration closed and brackets generated for tournament ${tournament.id}`);
         } catch (error) {
-          console.error(`Failed to close registration for tournament ${tournament.id}:`, error);
+          console.error(`Failed to close registration for tournament ${tournament.id}:`, error as Error);
         }
       }
       
@@ -897,7 +897,7 @@ export class SeasonTimingAutomationService {
       logInfo(`Starting Mid-Season Cup tournaments for Season ${seasonNumber}...`);
       
       // Find all Mid-Season Cup tournaments with brackets generated
-      const tournaments = await prisma.tournamentEntries[0].findMany({
+      const tournaments = await prisma.tournamentEntry.findMany({
         where: {
           type: 'MID_SEASON_CLASSIC',
           seasonDay: 7,
@@ -908,7 +908,7 @@ export class SeasonTimingAutomationService {
       for (const tournament of tournaments) {
         try {
           // Start the tournament
-          await prisma.tournamentEntries[0].update({
+          await prisma.tournamentEntry.update({
             where: { id: tournament.id },
             data: { 
               status: 'IN_PROGRESS',
@@ -1174,7 +1174,7 @@ export class SeasonTimingAutomationService {
       
       logInfo('Tournament auto-start check completed');
     } catch (error) {
-      console.error('Error during tournament auto-start check:', error.message);
+      console.error('Error during tournament auto-start check:', (error as Error).message);
     }
   }
 
@@ -1193,7 +1193,7 @@ export class SeasonTimingAutomationService {
 
     try {
       // Find Mid-Season Cup tournaments that are still in registration for Day 7
-      const midSeasonTournaments = await prisma.tournamentEntries[0].findMany({
+      const midSeasonTournaments = await prisma.tournamentEntry.findMany({
         where: {
           type: 'MID_SEASON_CLASSIC',
           seasonDay: 7,
@@ -1214,7 +1214,7 @@ export class SeasonTimingAutomationService {
           await tournamentService.fillMidSeasonCupWithAI(tournament.id.toString());
 
           // Update tournament status to start countdown
-          await prisma.tournamentEntries[0].update({
+          await prisma.tournamentEntry.update({
             where: { id: tournament.id },
             data: { 
               status: 'IN_PROGRESS',
@@ -1248,7 +1248,7 @@ export class SeasonTimingAutomationService {
   private async checkTournamentAdvancement(): Promise<void> {
     try {
       // Get all tournaments in progress
-      const inProgressTournaments = await prisma.tournamentEntries[0].findMany({
+      const inProgressTournaments = await prisma.tournamentEntry.findMany({
         where: {
           status: "IN_PROGRESS"
         }
@@ -1258,7 +1258,7 @@ export class SeasonTimingAutomationService {
         await this.advanceTournamentIfNeeded(tournament.id);
       }
     } catch (error) {
-      console.error('Error checking tournament advancement:', error.message);
+      console.error('Error checking tournament advancement:', (error as Error).message);
     }
   }
 
@@ -1370,7 +1370,7 @@ export class SeasonTimingAutomationService {
         // Initialize match state in the match state manager
         try {
           const { matchStateManager } = await import('./matchStateManager');
-          await matchStateManager.startLiveMatch(match.id);
+          await matchStateManager.startLiveMatch(match.id.toString());
           logInfo(`Started tournament match ${match.id} for round ${round}`);
         } catch (error) {
           console.error(`Error initializing match state for match ${match.id}:`, error);
@@ -1413,7 +1413,7 @@ export class SeasonTimingAutomationService {
       const runnerUp = homeScore > awayScore ? finalsMatch.awayTeam : finalsMatch.homeTeam;
 
       // Get tournament details for prize distribution
-      const tournament = await prisma.tournamentEntries[0].findUnique({
+      const tournament = await prisma.tournamentEntry.findUnique({
         where: { id: tournamentId },
         include: { entries: true }
       });
@@ -1433,7 +1433,7 @@ export class SeasonTimingAutomationService {
       await this.awardTournamentPrize(runnerUp.id, prizePool.runnerUp);
 
       // Update tournament status to completed
-      await prisma.tournamentEntries[0].update({
+      await prisma.tournamentEntry.update({
         where: { id: tournamentId },
         data: {
           status: 'COMPLETED',
@@ -1460,7 +1460,7 @@ export class SeasonTimingAutomationService {
 
       logInfo(`Tournament ${tournamentId} completed. Winner: ${winner.name}, Runner-up: ${runnerUp.name}`);
     } catch (error) {
-      console.error(`Error completing tournament ${tournamentId}:`, error.message);
+      console.error(`Error completing tournament ${tournamentId}:`, (error as Error).message);
     }
   }
 

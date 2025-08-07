@@ -1,4 +1,4 @@
-import { GameStatus, MatchType, Team, TournamentStatus, TournamentType } from '../db';
+import { GameStatus, MatchType, TournamentStatus, TournamentType } from '../db';
 import { PrismaClient } from '@prisma/client';
 import { prisma } from '../db';
 import { logInfo } from './errorService';
@@ -106,7 +106,7 @@ export class SeasonalFlowService {
         where: {
           teamId: parseInt(teamId, 10),
           tournament: {
-            tournamentType: 'DIVISION_PLAYOFFS'
+            type: 'TOURNAMENT_PLAYOFF'
           }
         },
         include: {
@@ -623,10 +623,10 @@ export class SeasonalFlowService {
   }> {
     // Get match details
     const matchData = await prisma.game.findUnique({
-      where: { id: matchId }
+      where: { id: parseInt(matchId, 10) }
     });
     
-    if (!matchData || matchData.status !== 'completed') {
+    if (!matchData || matchData.status !== 'COMPLETED') {
       throw new Error('Match not found or not completed');
     }
     const homeScore = matchData.homeScore || 0;
@@ -702,7 +702,7 @@ export class SeasonalFlowService {
   }> {
     // Get league info
     const league = await prisma.league.findUnique({
-      where: { id: leagueId }
+      where: { id: parseInt(leagueId, 10) }
     });
     
     if (!league) {
@@ -766,7 +766,7 @@ export class SeasonalFlowService {
     // This would need to aggregate match data for each team
     // For now, return basic team data - can be enhanced with actual match statistics
     const league = await prisma.league.findUnique({
-      where: { id: leagueId }
+      where: { id: parseInt(leagueId, 10) }
     });
     
     if (!league) return [];
@@ -781,7 +781,7 @@ export class SeasonalFlowService {
         where: {
           homeTeamId: team.id,
           season,
-          status: 'completed'
+          status: 'COMPLETED'
         }
       });
       
@@ -789,7 +789,7 @@ export class SeasonalFlowService {
         where: {
           awayTeamId: team.id,
           season,
-          status: 'completed'
+          status: 'COMPLETED'
         }
       });
       
@@ -1299,8 +1299,8 @@ export class SeasonalFlowService {
     const championshipMatches = await prisma.game.findMany({
       where: {
         season,
-        matchType: 'playoff_championship',
-        status: 'completed'
+        matchType: 'PLAYOFF',
+        status: 'COMPLETED'
       }
     });
     
@@ -1656,11 +1656,11 @@ export class SeasonalFlowService {
       logInfo('Starting AI team cleanup...');
       
       // Find all AI user profiles (they have userId starting with "ai-user-" or "ai_midseason_")
-      const aiUserProfiles = await prisma.userProfileProfile.findMany({
+      const aiUserProfiles = await prisma.userProfile.findMany({
         where: {
           OR: [
-            { userProfileId: { startsWith: 'ai-user-' } },
-            { userProfileId: { startsWith: 'ai_midseason_' } },
+            { userId: { startsWith: 'ai-user-' } },
+            { userId: { startsWith: 'ai_midseason_' } },
             { email: { contains: '@realm-rivalry.com' } },
             { email: { contains: '@realmrivalry.ai' } }
           ]
@@ -1689,9 +1689,9 @@ export class SeasonalFlowService {
       
       if (!placeholderTeam) {
         // Create a placeholder user profile first
-        const placeholderUser = await prisma.userProfileProfile.create({
+        const placeholderUser = await prisma.userProfile.create({
           data: {
-            userProfileId: 'system-deleted-ai-placeholder',
+            userId: 'system-deleted-ai-placeholder',
             email: 'deleted-ai@system.placeholder',
             firstName: 'Deleted',
             lastName: 'AI Team'
@@ -1851,7 +1851,7 @@ export class SeasonalFlowService {
         }
         
         // Delete the AI user profile
-        await prisma.userProfileProfile.delete({
+        await prisma.userProfile.delete({
           where: { id: aiProfile.id }
         });
         

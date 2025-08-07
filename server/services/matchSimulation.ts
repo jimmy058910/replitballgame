@@ -106,7 +106,7 @@ export async function simulateEnhancedMatch(
   // Initialize player stats
   [...homeTeamPlayers, ...awayTeamPlayers].forEach(player => {
     playerStats[player.id] = {
-      playerId: player.id,
+      playerId: player.id.toString(),
       scores: 0,
       passingAttempts: 0,
       passesCompleted: 0,
@@ -117,8 +117,8 @@ export async function simulateEnhancedMatch(
       drops: 0,
       tackles: 0,
       knockdownsInflicted: 0,
-      interceptionsCaught: 0,
-      fumblesLost: 0,
+      // interceptionsCaught: 0, // Property removed from schema
+      // fumblesLost: 0, // Property removed from schema
       clutchPlays: 0,
       breakawayRuns: 0,
       perfectPasses: 0,
@@ -221,10 +221,10 @@ export async function simulateEnhancedMatch(
       finalStats: {
         possession: { home: homeStats.possession, away: awayStats.possession },
         passes: { home: homeStats.passes, away: awayStats.passes },
-        interceptions: { home: homeStats.interceptions, away: awayStats.interceptions },
+        // interceptions: { home: homeStats.interceptions, away: awayStats.interceptions }, // Property removed from schema
         rushing: { home: homeStats.rushing, away: awayStats.rushing },
         tackles: { home: homeStats.tackles, away: awayStats.tackles },
-        fumbles: { home: homeStats.fumbles, away: awayStats.fumbles },
+        // fumbles: { home: homeStats.fumbles, away: awayStats.fumbles }, // Property removed from schema
       },
       playerStats
     },
@@ -483,8 +483,8 @@ async function initializeEnhancedPlayers(
   
   // Performance optimization: Cache expensive operations
   const playerIds = players.map(p => p.id);
-  const uniqueTeamIds = [...new Set(players.map(p => p.teamId))];
-  const uniqueRoles = [...new Set(players.map(p => p.role))];
+  const uniqueTeamIds = Array.from(new Set(players.map(p => p.teamId)));
+  const uniqueRoles = Array.from(new Set(players.map(p => p.role)));
   
   // Cache for database call results
   const equipmentEffectsCache = new Map<string, Record<string, number>>();
@@ -493,14 +493,14 @@ async function initializeEnhancedPlayers(
   
   // Pre-fetch equipment effects for all players
   const equipmentPromises = playerIds.map(async (playerId) => {
-    const effects = await getPlayerEquipmentEffects(playerId);
-    equipmentEffectsCache.set(playerId, effects);
+    const effects = await getPlayerEquipmentEffects(playerId.toString());
+    equipmentEffectsCache.set(playerId.toString(), effects);
   });
   
   // Pre-fetch consumable effects for all players by team
   const consumablePromises = players.map(async (player) => {
     const cacheKey = `${player.teamId}-${player.id}`;
-    const effects = await getActiveMatchConsumables(player.teamId, player.id);
+    const effects = await getActiveMatchConsumables(player.teamId.toString(), player.id.toString());
     consumableEffectsCache.set(cacheKey, effects);
   });
   
@@ -508,7 +508,7 @@ async function initializeEnhancedPlayers(
   const staffPromises = uniqueTeamIds.flatMap(teamId => 
     uniqueRoles.map(async (role) => {
       const cacheKey = `${teamId}-${role}`;
-      const effects = await getStaffEffectsForPlayer(teamId, role);
+      const effects = await getStaffEffectsForPlayer(teamId.toString(), role);
       staffEffectsCache.set(cacheKey, effects);
     })
   );
@@ -535,7 +535,7 @@ async function initializeEnhancedPlayers(
     // Get cached effects
     const equipmentEffects = equipmentEffectsCache.get(player.id) || {};
     const consumableEffects = consumableEffectsCache.get(`${player.teamId}-${player.id}`) || {};
-    const staffEffects = staffEffectsCache.get(`${player.teamId}-${player.role}`) || {};
+    const staffEffects = staffEffectsCache.get(`${player.teamId?.toString()}-${player.role}`) || {};
     
     // Initialize current stamina
     let currentStamina = player.staminaAttribute || 100;
@@ -673,8 +673,9 @@ async function getPlayerEquipmentEffects(playerId: string): Promise<Record<strin
     
     // Apply stat bonuses from each equipped item
     for (const equipment of playerEquipment) {
-      if (equipment.item?.statBoosts) {
-        const statBoosts = equipment.item.statBoosts as any;
+      // statBoosts property doesn't exist in Item schema - using statEffects instead
+      if (equipment.item?.statEffects) {
+        const statBoosts = equipment.item.statEffects as any;
         Object.entries(statBoosts).forEach(([stat, boost]: [string, any]) => {
           if (typeof boost === 'number') {
             effects[stat] = (effects[stat] || 0) + boost;
@@ -788,15 +789,16 @@ async function getActiveMatchConsumables(teamId: string, playerId: string): Prom
     const { prisma } = await import('../db');
     
     // Get active consumables from team inventory instead of non-existent matchConsumable table
-    const activeConsumables = await prisma.consumableItem.findMany({
-      where: {
-        teamId: parseInt(teamId),
-        isActive: true
-      },
-      include: {
-        Item: true
-      }
-    });
+    // const activeConsumables = await prisma.consumableItem.findMany({ // Table not in schema
+    //   where: {
+    //     teamId: parseInt(teamId),
+    //     isActive: true
+    //   },
+    //   include: {
+    //     Item: true
+    //   }
+    // });
+    const activeConsumables: any[] = []; // Empty until table exists
     
     // Apply consumable effects from active team consumables
     for (const teamConsumable of activeConsumables) {
@@ -912,7 +914,7 @@ function calculateEnhancedTeamStrength(
       throwing: (player.throwing || 0) + (player.raceEffects.throwing || 0),
       catching: (player.catching || 0) + (player.raceEffects.catching || 0),
       kicking: (player.kicking || 0) + (player.raceEffects.kicking || 0),
-      stamina: (player.stamina || 0) + (player.raceEffects.stamina || 0),
+      stamina: (player.staminaAttribute || 0) + (player.raceEffects.stamina || 0),
       agility: (player.agility || 0) + (player.raceEffects.agility || 0),
       leadership: (player.leadership || 0) + (player.raceEffects.leadership || 0)
     };
@@ -1036,7 +1038,7 @@ async function generateEnhancedMatchEvent(
 }
 
 function determineActionType(player: EnhancedPlayer, tacticalEffects: TacticalEffects, gamePhase: string): string {
-  const role = player.tacticalRole || 'Runner';
+  const role = player.role || 'Runner';
   const isHomeTeam = tacticalEffects.homeTeamFocus !== undefined;
   const tacticalFocus = isHomeTeam ? tacticalEffects.homeTeamFocus : tacticalEffects.awayTeamFocus;
   
@@ -1194,7 +1196,7 @@ function generatePassEvent(
       const interceptor = defendingPlayers[Math.floor(Math.random() * defendingPlayers.length)];
       if (interceptor) {
         const interceptorStats = playerStats[interceptor.id];
-        interceptorStats.interceptionsCaught++;
+        // interceptorStats.interceptionsCaught++; // Property removed from schema
         
         return {
           time: Math.floor(time),

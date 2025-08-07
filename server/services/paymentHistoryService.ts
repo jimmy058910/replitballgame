@@ -74,11 +74,12 @@ export class PaymentHistoryService {
       creditsAmount: transaction.creditsAmount ? transaction.creditsAmount.toString() : '0',
       teamId: transaction.teamId ? transaction.teamId : null,
       createdAt: transaction.createdAt.toISOString(),
-      completedAt: transaction.completedAt ? transaction.completedAt.toISOString() : null,
+      // completedAt property doesn't exist in PaymentTransaction schema
+      // completedAt: transaction.completedAt ? transaction.completedAt.toISOString() : null,
     }));
     
     return {
-      transactions: serializedTransactions,
+      transactions: serializedTransactions as any,
       total: Number(totalCount) || 0,
     };
   }
@@ -96,7 +97,7 @@ export class PaymentHistoryService {
     const { limit = 50, offset = 0 } = options;
 
     return await prisma.paymentTransaction.findMany({
-      where: { teamId: parseInt(teamId) },
+      where: { teamId: parseInt(teamId, 10) },
       orderBy: { createdAt: 'desc' },
       take: limit,
       skip: offset,
@@ -190,7 +191,7 @@ export class PaymentHistoryService {
   ): Promise<PaymentTransaction> {
     return this.recordTransaction({
       userId,
-      teamId: typeof teamId === 'string' ? parseInt(teamId) : teamId,
+      teamId: typeof teamId === 'string' ? parseInt(teamId, 10) : (teamId || 0),
       transactionType: "purchase",
       itemType,
       itemName,
@@ -213,7 +214,7 @@ export class PaymentHistoryService {
   ): Promise<PaymentTransaction> {
     return this.recordTransaction({
       userId,
-      teamId: typeof teamId === 'string' ? parseInt(teamId) : teamId,
+      teamId: typeof teamId === 'string' ? parseInt(teamId, 10) : (teamId || 0),
       transactionType: "admin_grant",
       itemType: creditsGranted > 0 ? "credits" : "gems",
       itemName: reason,
@@ -235,7 +236,7 @@ export class PaymentHistoryService {
   ): Promise<PaymentTransaction> {
     return this.recordTransaction({
       userId,
-      teamId: typeof teamId === 'string' ? parseInt(teamId) : teamId,
+      teamId: typeof teamId === 'string' ? parseInt(teamId, 10) : (teamId || 0),
       transactionType: "reward",
       itemType: creditsEarned > 0 ? "credits" : "gems",
       itemName: `${rewardType} Reward`,

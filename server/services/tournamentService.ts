@@ -105,7 +105,7 @@ export class TournamentService {
         semifinalist: { credits: 2500, gems: 0 }
       },
       8: { // Stone
-        champion: { credits: 15000, gems: 5, trophy: trophyName },
+        champion: { credits: 15000, gems: 5 }, // trophy: trophyName - type mismatch
         runnerUp: { credits: 6000, gems: 0 },
         semifinalist: { credits: 2000, gems: 0 }
       }

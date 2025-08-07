@@ -523,19 +523,7 @@ export class CommentaryService {
     return standardTackleCommentary[Math.floor(Math.random() * standardTackleCommentary.length)];
   }
 
-  generatePassDefenseCommentary(defender: Player, passer: Player): string {
-    const defenderName = this.getPlayerDisplayName(defender);
-    const passerName = this.getPlayerDisplayName(passer);
-
-    const passDefenseCommentary = [
-      `The pass is broken up! ${defenderName} read the play perfectly and stepped in front of the receiver!`,
-      `What a play! ${defenderName} makes a diving pass breakup!`,
-      `Great coverage by ${defenderName}! The pass falls incomplete.`,
-      `${defenderName} shows great awareness, jumping the route to break up the pass!`,
-      `${passerName}'s pass is defended by ${defenderName}! Solid coverage!`
-    ];
-    return passDefenseCommentary[Math.floor(Math.random() * passDefenseCommentary.length)];
-  }
+  // Duplicate function removed - already defined above
 
   // 6. Contextual & Atmospheric Commentary
   generateInjuryCommentary(player: Player, severity: 'minor' | 'moderate' | 'severe'): string {
@@ -648,20 +636,7 @@ export class CommentaryService {
     return knockdownCommentary[Math.floor(Math.random() * knockdownCommentary.length)];
   }
   
-  generatePassDefenseCommentary(passer: Player, defender: Player): string {
-    const passerName = this.getPlayerDisplayName(passer);
-    const defenderName = this.getPlayerDisplayName(defender);
-    
-    const passDefenseCommentary = [
-      `${passerName}'s pass defended by ${defenderName}. Incomplete.`,
-      `Great defensive play by ${defenderName} to break up the pass!`,
-      `${defenderName} gets a hand on it! The pass falls incomplete.`,
-      `${passerName} couldn't find his target thanks to ${defenderName}'s coverage!`,
-      `Excellent defense by ${defenderName} to disrupt the play!`
-    ];
-    
-    return passDefenseCommentary[Math.floor(Math.random() * passDefenseCommentary.length)];
-  }
+  // Second duplicate function removed - using first implementation
   
   generateIncompletePassCommentary(passer: Player): string {
     const passerName = this.getPlayerDisplayName(passer);

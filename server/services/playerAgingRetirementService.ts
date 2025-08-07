@@ -1,4 +1,4 @@
-import { prisma } from '../db.js';
+import { prisma } from '../db';
 
 export class PlayerAgingRetirementService {
 
@@ -98,7 +98,7 @@ export class PlayerAgingRetirementService {
         const trainers = await prisma.staff.findMany({
           where: {
             teamId: player.teamId,
-            type: { contains: 'TRAINER' }
+            type: 'PHYSICAL_TRAINER'
           }
         });
         
@@ -485,7 +485,7 @@ export class PlayerAgingRetirementService {
     milestones: Array<{ playerId: string; playerName: string; type: string; description: string }>;
   }> {
     const teamPlayers = await prisma.player.findMany({
-      where: { teamId: teamId }
+      where: { teamId: parseInt(teamId, 10) }
     });
 
     const results = {
@@ -725,7 +725,7 @@ export class PlayerAgingRetirementService {
 
       // Age increment
       await prisma.player.update({
-        where: { id: playerId },
+        where: { id: parseInt(playerId, 10) },
         data: {
           age: (startingPlayer.age || 20) + season,
           gamesPlayedLastSeason: 0
@@ -734,7 +734,7 @@ export class PlayerAgingRetirementService {
     }
 
     const endingPlayer = await prisma.player.findFirst({
-      where: { id: playerId }
+      where: { id: parseInt(playerId, 10) }
     });
     
     return {
@@ -748,7 +748,7 @@ export class PlayerAgingRetirementService {
         catching: endingPlayer?.catching,
         kicking: endingPlayer?.kicking,
         leadership: endingPlayer?.leadership,
-        stamina: endingPlayer?.stamina
+        // stamina: endingPlayer?.stamina // Property removed from schema
       },
       developmentSummary: {
         totalProgressions,

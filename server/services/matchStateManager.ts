@@ -471,7 +471,7 @@ class MatchStateManager {
       if (strategy && strategy.formationJson) {
         let formationData;
         
-        logger.info(`🔍 Raw formation data for team ${teamId}:`, strategy.formationJson, typeof strategy.formationJson);
+        logger.info(`🔍 Raw formation data for team ${teamId}: ${JSON.stringify(strategy.formationJson)} (type: ${typeof strategy.formationJson})`);
         
         // Handle both string and object format
         if (typeof strategy.formationJson === 'string') {
@@ -886,7 +886,7 @@ class MatchStateManager {
     if (state.possessingTeamId) {
       const teamStats = state.teamStats.get(state.possessingTeamId);
       if (teamStats) {
-        teamStats.timeOfPossessionSeconds += gameTimeIncrement;
+        teamStats.timeOfPossessionSeconds = (teamStats.timeOfPossessionSeconds || 0) + gameTimeIncrement;
       }
     }
 
@@ -1014,8 +1014,8 @@ class MatchStateManager {
           // Update team stats
           const teamStats = state.teamStats.get(activePlayer.teamId.toString());
           if (teamStats) {
-            teamStats.passingYards += passYards;
-            teamStats.totalOffensiveYards += passYards;
+            teamStats.passingYards = (teamStats.passingYards || 0) + passYards;
+            teamStats.totalOffensiveYards = (teamStats.totalOffensiveYards || 0) + passYards;
           }
           event = {
             time: state.gameTime,
@@ -1051,8 +1051,8 @@ class MatchStateManager {
         // Update team stats
         const teamStats = state.teamStats.get(activePlayer.teamId.toString());
         if (teamStats) {
-          teamStats.carrierYards += runYards;
-          teamStats.totalOffensiveYards += runYards;
+          teamStats.carrierYards = (teamStats.carrierYards || 0) + runYards;
+          teamStats.totalOffensiveYards = (teamStats.totalOffensiveYards || 0) + runYards;
         }
         event = {
           time: state.gameTime,
@@ -1073,7 +1073,7 @@ class MatchStateManager {
         // Update team stats for defensive play
         const tackleTeamStats = state.teamStats.get(activePlayer.teamId.toString());
         if (tackleTeamStats) {
-          tackleTeamStats.totalKnockdownsInflicted += 1;
+          tackleTeamStats.totalKnockdownsInflicted = (tackleTeamStats.totalKnockdownsInflicted || 0) + 1;
         }
         
         event = {
@@ -1246,7 +1246,7 @@ class MatchStateManager {
       return { homeMVP, awayMVP };
     }
     
-    for (const [playerId, stats] of state.playerStats.tournamentEntries()) {
+    for (const [playerId, stats] of state.playerStats.entries()) {
       const player = [...homePlayers, ...awayPlayers].find(p => p.id.toString() === playerId);
       if (!player) continue;
       
@@ -1351,7 +1351,7 @@ class MatchStateManager {
       const playerStatsObj: Record<string, any> = {};
       const teamStatsObj: Record<string, any> = {};
 
-      for (const [playerId, pStats] of state.playerStats.tournamentEntries()) {
+      for (const [playerId, pStats] of state.playerStats.entries()) {
         playerStatsObj[playerId] = pStats;
 
         // Update basic player stats (skip for exhibition matches to maintain risk-free gameplay)
@@ -1373,7 +1373,7 @@ class MatchStateManager {
         }
       }
 
-      for (const [teamId, tStats] of state.teamStats.tournamentEntries()) {
+      for (const [teamId, tStats] of state.teamStats.entries()) {
         teamStatsObj[teamId] = tStats;
       }
 
@@ -1478,7 +1478,7 @@ class MatchStateManager {
 
     // Apply stamina depletion after match completion (skip for exhibition matches)
     if (!isExhibitionMatch) {
-      const gameMode = matchDetails?.matchType === 'tournament' ? 'tournament' : 'league';
+      const gameMode = (matchDetails?.matchType as string) === 'tournament' ? 'tournament' : 'league';
       
       // NEW: Use real minutes played for stamina depletion instead of flat 40 minutes
       const finalMinutesPlayed = this.calculateFinalMinutesPlayed(state);
@@ -1537,14 +1537,14 @@ class MatchStateManager {
 
       // Calculate attendance based on stadium capacity and fan loyalty
       const stadium = homeTeam.stadium;
-      const fanLoyalty = (homeTeam as any).fanLoyalty || 50;
+      const fanLoyalty = Number((homeTeam as any).fanLoyalty) || 50;
       const opponentQuality = 70; // Default opponent quality
       
       const { attendance } = calculateAttendance(
         stadium,
         fanLoyalty,
         opponentQuality,
-        false, // not important game
+        0, // not important game (0 = false)
         'good' // weather
       );
 
@@ -1655,11 +1655,11 @@ class MatchStateManager {
 
       // Award credits to both teams via their finance records
       logger.info(`🔍 Looking for TeamFinance records: homeTeamId=${homeTeamId}, awayTeamId=${awayTeamId}`);
-      logger.info(`🔍 DEBUG: prisma type at award time:`, typeof prisma, !!prisma);
+      logger.info(`🔍 DEBUG: prisma type at award time: ${typeof prisma}, exists: ${!!prisma}`);
       
       // Import prisma directly to debug import issues
       const { prisma: directPrisma } = await import("../db");
-      logger.info(`🔍 DEBUG: directPrisma type:`, typeof directPrisma, !!directPrisma);
+      logger.info(`🔍 DEBUG: directPrisma type: ${typeof directPrisma}, exists: ${!!directPrisma}`);
       
       const homeTeamFinance = await directPrisma.teamFinances.findUnique({
         where: { teamId: parseInt(homeTeamId) }
@@ -1683,12 +1683,11 @@ class MatchStateManager {
 
         // Log exhibition reward transaction for home team
         const homeTeam = await directPrisma.team.findUnique({
-          where: { id: parseInt(homeTeamId) },
-          include: { userProfile: true }
+          where: { id: parseInt(homeTeamId) }
         });
-        if (homeTeam?.userProfile) {
+        if (homeTeam?.userProfileId) {
           await PaymentHistoryService.recordReward(
-            homeTeam.userProfile.userProfileId,
+            homeTeam.userProfileId.toString(),
             homeTeamId,
             `Exhibition ${homeScore > awayScore ? 'Win' : homeScore === awayScore ? 'Tie' : 'Loss'}`,
             homeCredits,
@@ -1709,12 +1708,11 @@ class MatchStateManager {
 
         // Log exhibition reward transaction for away team
         const awayTeam = await directPrisma.team.findUnique({
-          where: { id: parseInt(awayTeamId) },
-          include: { userProfile: true }
+          where: { id: parseInt(awayTeamId) }
         });
-        if (awayTeam?.userProfile) {
+        if (awayTeam?.userProfileId) {
           await PaymentHistoryService.recordReward(
-            awayTeam.userProfile.userProfileId,
+            awayTeam.userProfileId.toString(),
             awayTeamId,
             `Exhibition ${awayScore > homeScore ? 'Win' : awayScore === homeScore ? 'Tie' : 'Loss'}`,
             awayCredits,

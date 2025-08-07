@@ -122,10 +122,10 @@ export class StadiumAtmosphereService {
     // Form modifier - check last 3 games of season
     const lastThreeGames = await prisma.game.findMany({
       where: {
-        season,
-        status: 'completed'
+        // season, // Property doesn't exist in schema
+        status: 'COMPLETED'
       },
-      orderBy: { gameDay: 'desc' },
+      orderBy: { createdAt: 'desc' },
       take: 3
     });
     
@@ -133,22 +133,22 @@ export class StadiumAtmosphereService {
     
     // Facility bonus from stadium upgrades
     const facilityBonus = Math.floor(
-      ((stadium.lightingLevel || 0) + (stadium.screensLevel || 0)) / 2
+      (stadium.lightingScreensLevel || 0) / 2
     );
     
     // Championship bonus (would need playoff results)
-    // For now, implement as team finishing in top position of their division
-    const championshipBonus = team.position === 1 ? this.LOYALTY_CONFIG.CHAMPIONSHIP_BONUS : 0;
+    // For now, implement as team with high wins
+    const championshipBonus = (team.wins || 0) > 10 ? this.LOYALTY_CONFIG.CHAMPIONSHIP_BONUS : 0;
     
     const newLoyalty = Math.max(0, Math.min(100, 
       oldLoyalty + performanceModifier + formModifier + facilityBonus + championshipBonus
     ));
     
     // Update team's fan loyalty
-    await db
-      .update(teams)
-      .set({ fanLoyalty: newLoyalty })
-      .where(eq(teams.id, teamId));
+    await prisma.team.update({
+      where: { id: parseInt(teamId) },
+      data: { fanLoyalty: newLoyalty }
+    });
     
     return {
       oldLoyalty,
@@ -240,20 +240,20 @@ export class StadiumAtmosphereService {
     // Get recent completed matches for this team
     const recentMatches = await prisma.game.findMany({
       where: {
-        status: 'completed',
+        status: 'COMPLETED',
         OR: [
-          { homeTeamId: teamId },
-          { awayTeamId: teamId }
+          { homeTeamId: parseInt(teamId) },
+          { awayTeamId: parseInt(teamId) }
         ]
       },
-      orderBy: { gameDay: 'desc' },
+      orderBy: { createdAt: 'desc' },
       take: 10 // Look at last 10 games max
     });
     
     let consecutiveWins = 0;
     for (const match of recentMatches) {
-      const isHomeTeam = match.homeTeamId === teamId;
-      const isAwayTeam = match.awayTeamId === teamId;
+      const isHomeTeam = match.homeTeamId === parseInt(teamId);
+      const isAwayTeam = match.awayTeamId === parseInt(teamId);
       const won = (isHomeTeam && match.homeScore! > match.awayScore!) || 
                   (isAwayTeam && match.awayScore! > match.homeScore!);
       
@@ -436,11 +436,11 @@ export class StadiumAtmosphereService {
     let totalChange = 0;
     
     for (const team of allTeams) {
-      const result = await this.calculateEndOfSeasonLoyalty(team.id, season);
+      const result = await this.calculateEndOfSeasonLoyalty(team.id.toString(), season);
       const change = result.newLoyalty - result.oldLoyalty;
       
       loyaltyUpdates.push({
-        teamId: team.id,
+        teamId: team.id.toString(),
         teamName: team.name,
         oldLoyalty: result.oldLoyalty,
         newLoyalty: result.newLoyalty,
@@ -492,7 +492,7 @@ export class StadiumAtmosphereService {
     
     const atmosphere = await this.calculateMatchdayAtmosphere(teamId);
     const revenue = await this.calculateHomeGameRevenue(teamId);
-    const powerTier = this.getTeamPowerTier(team.teamPower || 0);
+    const powerTier = this.getTeamPowerTier((team.wins || 0) * 10);
     
     // Calculate upgrade options
     const upgradeOptions = [
@@ -510,21 +510,21 @@ export class StadiumAtmosphereService {
       },
       {
         type: 'parking',
-        currentLevel: stadium[0].parkingLevel || 1,
-        upgradeCost: this.calculateUpgradeCost('parking', stadium[0].parkingLevel || 1),
+        currentLevel: stadium.parkingLevel || 1,
+        upgradeCost: this.calculateUpgradeCost('parking', stadium.parkingLevel || 1),
         effect: `Increases parking revenue per attendee`
       },
       {
         type: 'lighting',
-        currentLevel: stadium[0].lightingLevel || 1,
-        upgradeCost: this.calculateUpgradeCost('lighting', stadium[0].lightingLevel || 1),
+        currentLevel: stadium.lightingScreensLevel || 1,
+        upgradeCost: this.calculateUpgradeCost('lighting', stadium.lightingScreensLevel || 1),
         effect: `+0.5 fan loyalty per season (combined with screens)`
       }
     ];
     
     return {
       currentStats: {
-        fanLoyalty: team[0].fanLoyalty || 50,
+        fanLoyalty: team.fanLoyalty || 50,
         estimatedAttendance: atmosphere.actualAttendance,
         intimidationFactor: atmosphere.intimidationFactor,
         powerTier
