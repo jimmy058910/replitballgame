@@ -1,13 +1,11 @@
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-import * as express from 'express';
-
-declare global {
-  namespace Express {
-    export interface User {
-      claims: any; // Using 'any' temporarily as openid-client UserClaims was problematic
-      access_token?: string;
-      refresh_token?: string;
-      expires_at?: number;
-    }
+// Express module augmentation for proper TypeScript support in all environments
+declare namespace Express {
+  export interface User {
+    claims: any; // Firebase DecodedIdToken claims or auth profile
+    uid?: string; // Firebase UID (when using Firebase auth)
+    email?: string;
+    access_token?: string;
+    refresh_token?: string;
+    expires_at?: number;
   }
 }
