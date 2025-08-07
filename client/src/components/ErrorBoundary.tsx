@@ -7,6 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { AlertTriangle, RefreshCw, Home, Bug } from 'lucide-react';
+import * as Sentry from '@sentry/react';
 
 interface Props {
   children: ReactNode;
@@ -49,7 +50,15 @@ export class ErrorBoundary extends Component<Props, State> {
   }
 
   componentDidCatch(error: Error, errorInfo: ErrorInfo) {
-    console.error('ErrorBoundary caught an error:', error, errorInfo);
+    Sentry.captureException(error, {
+      tags: { component: 'ErrorBoundary' },
+      contexts: { 
+        errorInfo: {
+          componentStack: errorInfo.componentStack
+        }
+      },
+      level: 'error'
+    });
     
     // Log error details for debugging
     this.logError(error, errorInfo);
@@ -78,11 +87,17 @@ export class ErrorBoundary extends Component<Props, State> {
 
     // In development, log to console
     if (process.env.NODE_ENV === 'development') {
-      console.group('🚨 Error Boundary');
-      console.error('Error:', error);
-      console.error('Error Info:', errorInfo);
-      console.error('Full Error Data:', errorData);
-      console.groupEnd();
+      Sentry.addBreadcrumb({
+        message: 'ErrorBoundary caught error (development)',
+        category: 'error',
+        level: 'error',
+        data: {
+          errorMessage: error.message,
+          componentStack: errorInfo.componentStack.substring(0, 1000),
+          url: window.location.href,
+          timestamp: errorData.timestamp
+        }
+      });
     }
 
     // In production, send to error tracking service
@@ -94,7 +109,7 @@ export class ErrorBoundary extends Component<Props, State> {
 
   private handleRetry = () => {
     if (this.state.retryCount >= 3) {
-      console.warn('Max retry attempts reached');
+      Sentry.captureMessage('Max retry attempts reached', 'warning');
       return;
     }
 

@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Play, Gift, Clock, AlertCircle } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import UnityAdsService from '@/services/UnityAdsService';
+import * as Sentry from '@sentry/react';
 
 interface AdIntegrationProps {
   onAdWatched?: (reward: number) => void;
@@ -29,9 +30,13 @@ export function AdIntegration({ onAdWatched }: AdIntegrationProps) {
       
       if (success) {
         setUnityAdsReady(true);
-        console.log('Unity Ads initialized successfully');
+        Sentry.addBreadcrumb({
+          message: 'Unity Ads initialized successfully',
+          category: 'ads',
+          level: 'info'
+        });
       } else {
-        console.error('Unity Ads initialization failed');
+        Sentry.captureMessage('Unity Ads initialization failed', 'warning');
         toast({
           title: "Ad System Notice",
           description: "Unity Ads not available. Using simulation mode.",
@@ -39,7 +44,9 @@ export function AdIntegration({ onAdWatched }: AdIntegrationProps) {
         });
       }
     } catch (error) {
-      console.error('Error initializing Unity Ads:', error);
+      Sentry.captureException(error, {
+        tags: { component: 'AdIntegration', action: 'initialize' }
+      });
       toast({
         title: "Ad System Notice", 
         description: "Unity Ads not available. Using simulation mode.",
@@ -56,7 +63,9 @@ export function AdIntegration({ onAdWatched }: AdIntegrationProps) {
       const data = await response.json();
       setAdsWatchedToday(data.adsWatchedToday || 0);
     } catch (error) {
-      console.error('Error fetching ad status:', error);
+      Sentry.captureException(error, {
+        tags: { component: 'AdIntegration', action: 'fetch_status' }
+      });
     }
   };
 
@@ -73,7 +82,12 @@ export function AdIntegration({ onAdWatched }: AdIntegrationProps) {
           
           if (adResult.state === 'COMPLETED') {
             // Unity ad completed successfully
-            console.log('Unity Ads - Video completed successfully');
+            Sentry.addBreadcrumb({
+              message: 'Unity Ads video completed successfully',
+              category: 'ads',
+              level: 'info',
+              data: { placementId: adResult.placementId }
+            });
           } else if (adResult.state === 'SKIPPED') {
             toast({
               title: "Ad Skipped",
@@ -85,7 +99,9 @@ export function AdIntegration({ onAdWatched }: AdIntegrationProps) {
             throw new Error('Unity ad failed or was not completed');
           }
         } catch (unityError) {
-          console.error('Unity Ads error:', unityError);
+          Sentry.captureException(unityError, {
+            tags: { component: 'AdIntegration', action: 'show_ad' }
+          });
           // Fall back to simulation
           adResult = null;
         }
@@ -93,7 +109,11 @@ export function AdIntegration({ onAdWatched }: AdIntegrationProps) {
 
       // Fallback to simulation if Unity Ads not available
       if (!adResult) {
-        console.log('Using ad simulation mode');
+        Sentry.addBreadcrumb({
+          message: 'Using ad simulation mode - Unity Ads unavailable',
+          category: 'ads',
+          level: 'info'
+        });
         await new Promise(resolve => setTimeout(resolve, 15000)); // 15 second simulation
         adResult = { state: 'COMPLETED', placementId: 'simulation' };
       }
@@ -133,7 +153,9 @@ export function AdIntegration({ onAdWatched }: AdIntegrationProps) {
         }
       }
     } catch (error) {
-      console.error('Error watching ad:', error);
+      Sentry.captureException(error, {
+        tags: { component: 'AdIntegration', action: 'watch_ad' }
+      });
       toast({
         title: "Ad Error",
         description: "Something went wrong. Please try again.",
@@ -241,7 +263,9 @@ export function DisplayAd({
       try {
         (window.adsbygoogle = window.adsbygoogle || []).push({});
       } catch (error) {
-        console.error('AdSense error:', error);
+        Sentry.captureException(error, {
+          tags: { component: 'DisplayAd', service: 'AdSense' }
+        });
       }
     }
   }, []);

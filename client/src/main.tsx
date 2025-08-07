@@ -17,14 +17,25 @@ Sentry.init({
   environment: import.meta.env.MODE || 'development',
   beforeSend(event) {
     if (import.meta.env.MODE === 'development') {
-      console.log('🔍 [SENTRY] Frontend error:', event.exception?.values?.[0]?.value);
-      return null; // Skip in development
+      // In development, we still capture but add debugging breadcrumb
+      Sentry.addBreadcrumb({
+        message: 'Sentry error captured in development',
+        category: 'debug',
+        level: 'info',
+        data: { errorValue: event.exception?.values?.[0]?.value }
+      });
+      return null; // Skip sending to Sentry in development
     }
     return event;
   }
 });
 
-console.log('✅ [SENTRY] Frontend error monitoring initialized');
+Sentry.addBreadcrumb({
+  message: 'Frontend error monitoring initialized',
+  category: 'system',
+  level: 'info',
+  data: { environment: import.meta.env.MODE }
+});
 
 import { createRoot } from "react-dom/client";
 import App from "./App";
