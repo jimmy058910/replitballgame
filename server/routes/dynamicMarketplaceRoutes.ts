@@ -115,7 +115,7 @@ router.post('/list-player', isAuthenticated, async (req: Request, res: Response)
     }
 
     const result = await DynamicMarketplaceService.listPlayer(
-      team.id.toString(),
+      team.id,
       parseInt(playerId, 10),
       startBid,
       durationHours,
@@ -151,7 +151,7 @@ router.post('/listings/:listingId/bid', isAuthenticated, async (req: Request, re
       return res.status(401).json({ error: 'User not authenticated' });
     }
 
-    const listingId = parseInt(req.params.listingId);
+    const listingId = parseInt(req.params.listingId, 10);
     const { bidAmount } = req.body;
 
     if (!bidAmount || bidAmount < 1) {
@@ -174,8 +174,8 @@ router.post('/listings/:listingId/bid', isAuthenticated, async (req: Request, re
     }
 
     const result = await DynamicMarketplaceService.placeBid(
-      team.id.toString(),
-      parseInt(listingId.toString(), 10),
+      team.id,
+      listingId,
       bidAmount
     );
 
@@ -208,7 +208,7 @@ router.post('/listings/:listingId/buy-now', isAuthenticated, async (req: Request
       return res.status(401).json({ error: 'User not authenticated' });
     }
 
-    const listingId = parseInt(req.params.listingId);
+    const listingId = parseInt(req.params.listingId, 10);
 
     // Get user's team
     const userProfileData = await prisma.userProfile.findFirst({
@@ -224,7 +224,7 @@ router.post('/listings/:listingId/buy-now', isAuthenticated, async (req: Request
       return res.status(404).json({ error: 'Team not found' });
     }
 
-    const result = await DynamicMarketplaceService.buyNow(team.id.toString(), parseInt(listingId.toString(), 10));
+    const result = await DynamicMarketplaceService.buyNow(team.id, listingId);
 
     if (result.success) {
       res.json({
