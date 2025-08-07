@@ -295,7 +295,7 @@ export default function Stats() {
                   <div className="text-center py-8">Loading player statistics...</div>
                 )}
 
-                {playerStats && (
+                {(playerStats as any) && (
                   <StatsDisplay playerStats={playerStats as any} showAverages={true} />
                 )}
               </CardContent>
@@ -327,7 +327,7 @@ export default function Stats() {
                   <div className="text-center py-8">Loading team statistics...</div>
                 )}
 
-                {teamStats && (
+                {(teamStats as any) && (
                   <StatsDisplay teamStats={teamStats as any} showAverages={true} />
                 )}
               </CardContent>

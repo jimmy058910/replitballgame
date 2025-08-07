@@ -428,7 +428,6 @@ export default function TournamentStatus() {
 
 
   // Auto-refresh logic
-  // @ts-expect-error TS7030
   useEffect(() => {
     if (selectedTournament) {
       const interval = setInterval(() => {

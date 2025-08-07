@@ -116,7 +116,7 @@ router.post('/list-player', isAuthenticated, async (req: Request, res: Response)
 
     const result = await DynamicMarketplaceService.listPlayer(
       team.id.toString(),
-      playerId,
+      parseInt(playerId, 10),
       startBid,
       durationHours,
       buyNowPrice
@@ -175,7 +175,7 @@ router.post('/listings/:listingId/bid', isAuthenticated, async (req: Request, re
 
     const result = await DynamicMarketplaceService.placeBid(
       team.id.toString(),
-      listingId,
+      parseInt(listingId.toString(), 10),
       bidAmount
     );
 
@@ -224,7 +224,7 @@ router.post('/listings/:listingId/buy-now', isAuthenticated, async (req: Request
       return res.status(404).json({ error: 'Team not found' });
     }
 
-    const result = await DynamicMarketplaceService.buyNow(team.id.toString(), listingId);
+    const result = await DynamicMarketplaceService.buyNow(team.id.toString(), parseInt(listingId.toString(), 10));
 
     if (result.success) {
       res.json({
@@ -249,7 +249,7 @@ router.get('/calculate-min-price/:playerId', isAuthenticated, async (req: Reques
     const { playerId } = req.params;
     
     const player = await prisma.player.findFirst({
-      where: { id: parseInt(playerId) }
+      where: { id: parseInt(playerId, 10) }
     });
     
     if (!player) {

@@ -110,7 +110,7 @@ export default function StaffReleaseConfirmation({ staff, isOpen, onClose }: Sta
           <Alert className="border-2 border-yellow-400 bg-yellow-900/30">
             <DollarSign className="h-4 w-4 text-yellow-400" />
             <AlertDescription className="text-white">
-              <strong>Release Fee:</strong> Approximately {estimatedReleaseFee.toLocaleString()}₡
+              <strong>Release Fee:</strong> Approximately {(estimatedReleaseFee as number).toLocaleString()}₡
               <br />
               <span className="text-yellow-300 text-sm">
                 (50% of current market value will be deducted from team credits)
@@ -119,7 +119,7 @@ export default function StaffReleaseConfirmation({ staff, isOpen, onClose }: Sta
           </Alert>
 
           {/* Current Credits */}
-          {teamData && (
+          {(teamData as any) && (
             <div className="bg-black/30 p-3 rounded border border-gray-500">
               <div className="flex items-center justify-between">
                 <span className="text-gray-300">Current Credits:</span>

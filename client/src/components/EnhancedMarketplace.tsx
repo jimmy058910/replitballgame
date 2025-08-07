@@ -487,7 +487,7 @@ export default function EnhancedMarketplace() {
 
           {/* My Activity Tab */}
           <TabsContent value="dashboard" className="space-y-6">
-            {dashboardData && (
+            {(dashboardData as any) && (
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 
                 {/* My Listings */}

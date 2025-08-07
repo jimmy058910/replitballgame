@@ -358,7 +358,7 @@ export default function MarketDistrict() {
             </p>
             
             {/* Financial Summary Bar */}
-            {team && (
+            {(team as any) && (
               <div className="mt-6 flex flex-wrap justify-center gap-4 text-sm sm:text-base">
                 <div className="flex items-center gap-2 bg-black/20 backdrop-blur-sm rounded-lg px-4 py-2 border border-white/20">
                   <Coins className="h-5 w-5 text-yellow-400" />
