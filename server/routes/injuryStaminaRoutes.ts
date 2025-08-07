@@ -227,7 +227,7 @@ router.post('/team/:teamId/prepare-match', isAuthenticated, async (req: any, res
 
     // Set match start stamina for each player
     for (const player of teamPlayers) {
-      await injuryStaminaService.setMatchStartStamina(player.id, gameMode);
+      await injuryStaminaService.setMatchStartStamina(player.id.toString(), gameMode);
     }
 
     res.json({ 
@@ -267,7 +267,7 @@ router.post('/team/:teamId/complete-match', isAuthenticated, async (req: any, re
 
     // Apply stamina depletion for each player (assuming full 40-minute match)
     for (const player of teamPlayers) {
-      await injuryStaminaService.depleteStaminaAfterMatch(player.id, gameMode, 40);
+      await injuryStaminaService.depleteStaminaAfterMatch(player.id.toString(), gameMode, 40);
     }
 
     res.json({ 

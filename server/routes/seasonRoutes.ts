@@ -255,7 +255,7 @@ router.get('/salary-cap/:teamId', isAuthenticated, async (req: any, res: Respons
               where: {
                 OR: [
                   { startDate: { lte: new Date() } },
-                  { startDate: null }
+                  { startDate: { equals: null } }
                 ]
               },
               orderBy: { startDate: 'desc' },
@@ -270,10 +270,10 @@ router.get('/salary-cap/:teamId', isAuthenticated, async (req: any, res: Respons
       return res.status(404).json({ message: "Team not found." });
     }
     
-    const totalSalary = team.players.reduce((sum, player: any) => {
+    const totalSalary = team.players?.reduce((sum: number, player: any) => {
       const latestContract = player.contract[0];
       return sum + (latestContract?.salary || 0);
-    }, 0);
+    }, 0) || 0;
     
     // Division-based salary cap
     const capLimit = (team.division ?? 8) <= 3 ? 65000 : 45000;
@@ -311,8 +311,8 @@ router.post('/contracts/negotiate', isAuthenticated, async (req: any, res: Respo
     const contract = await prisma.contract.create({
       data: {
         playerId: parseInt(playerId),
-        salary: salary.toString(),
-        length: duration.toString(),
+        salary: salary,
+        length: duration,
         startDate: new Date()
       }
     });

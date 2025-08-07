@@ -67,7 +67,7 @@ router.post('/register', isAuthenticated, async (req: any, res: Response, next: 
 
     const { tournamentId } = registerTournamentSchema.parse(req.body);
 
-    await tournamentService.registerForTournament(team.id, tournamentId);
+    await tournamentService.registerForTournament(team.id, parseInt(tournamentId.toString()));
 
     res.json({ 
       success: true, 

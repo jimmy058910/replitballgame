@@ -290,7 +290,7 @@ router.get('/:matchId/debug', async (req: Request, res: Response, next: NextFunc
     });
   } catch (error) {
     console.error("Debug endpoint error:", error);
-    res.status(500).json({ error: error.message });
+    res.status(500).json({ error: (error as Error).message });
   }
 });
 
@@ -344,7 +344,7 @@ router.get('/debug/:matchId', async (req: Request, res: Response) => {
     });
   } catch (error) {
     console.error("Debug endpoint error:", error);
-    res.status(500).json({ error: error.message });
+    res.status(500).json({ error: (error as Error).message });
   }
 });
 
@@ -521,7 +521,7 @@ router.get('/:matchId/enhanced-data', async (req: Request, res: Response, next: 
     console.log(`Sending enhanced data response for match ${matchId}`);
     res.json(enhancedData);
   } catch (error) {
-    console.error(`Error fetching enhanced match data for ${matchId}:`, error);
+    console.error(`Error fetching enhanced match data for ${req.params.matchId}:`, error);
     console.error("Error stack:", (error as any).stack);
     return res.status(500).json({ message: "Internal server error", error: (error as any).message });
   }
@@ -801,7 +801,7 @@ router.get('/:matchId/enhanced-data-old', isAuthenticated, async (req: Request, 
     console.log(`Sending enhanced data response for match ${matchId}`);
     res.json(enhancedData);
   } catch (error) {
-    console.error(`Error fetching enhanced match data for ${matchId}:`, error);
+    console.error(`Error fetching enhanced match data for ${req.params.matchId}:`, error);
     console.error("Error stack:", (error as any).stack);
     return res.status(500).json({ message: "Internal server error", error: (error as any).message });
   }

@@ -3,6 +3,7 @@ import { isAuthenticated } from '../googleAuth';
 import { prisma } from '../db';
 import { ErrorCreators, asyncHandler } from '../services/errorService';
 
+
 const router = Router();
 
 /**
@@ -110,7 +111,7 @@ router.post('/equip', isAuthenticated, asyncHandler(async (req: any, res: Respon
         description: inventoryItem.item.description,
         type: inventoryItem.item.type,
         slot: itemName.toLowerCase().includes('helmet') || itemName.toLowerCase().includes('helm') ? 'HELMET' : 'ARMOR',
-        raceRestriction: raceRestrictionMap[itemName as keyof typeof raceRestrictionMap] || null,
+        raceRestriction: (raceRestrictionMap[itemName as keyof typeof raceRestrictionMap] as any) || null,
         rarity: (inventoryItem.item.rarity?.toUpperCase() as any) || 'COMMON',
         statEffects: inventoryItem.item.statEffects || {}
       }

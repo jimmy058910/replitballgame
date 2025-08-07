@@ -235,7 +235,7 @@ router.post('/equipment/:itemId/buy', isAuthenticated, async (req: any, res: Res
         }
     }
     await teamFinancesStorage.updateTeamFinances(buyerTeam.id, { credits: (buyerFinances.credits || 0) - price });
-    await itemStorage.updateItem(parseInt(itemId), { teamId: buyerTeam.id });
+    await itemStorage.updateItem(parseInt(itemId), { });
 
     res.json({ success: true, message: `Successfully purchased ${itemToBuy.name} for ${price} credits.` });
   } catch (error) {

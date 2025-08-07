@@ -1,5 +1,6 @@
 import { Router, type Request, type Response, type NextFunction } from "express";
 import { storage } from "../storage"; // Adjusted path
+import { prisma } from "../db";
 import { isAuthenticated } from "../googleAuth"; // Adjusted path
 import { randomUUID } from "crypto"; // For demo notifications
 // import { NotificationService } from "../services/notificationService"; // If using service methods here
@@ -71,7 +72,7 @@ router.delete('/:id', isAuthenticated, async (req: any, res: Response, next: Nex
     // const notification = await storage.getNotificationByIdAndUser(notificationId, userId);
     // if (!notification) return res.status(404).json({ message: "Notification not found or not yours." });
 
-    await storage.notifications.delete({ where: { id: notificationId } });
+    await prisma.notification.delete({ where: { id: notificationId } });
     res.json({ success: true, message: "Notification deleted." });
   } catch (error) {
     console.error("Error deleting notification:", error);
@@ -82,7 +83,7 @@ router.delete('/:id', isAuthenticated, async (req: any, res: Response, next: Nex
 router.delete('/delete-all', isAuthenticated, async (req: any, res: Response, next: NextFunction) => {
   try {
     const userId = req.user.claims.sub;
-    await storage.notifications.deleteMany({ where: { userId: userId } });
+    await prisma.notification.deleteMany({ where: { teamId: userId } });
     res.json({ success: true, message: "All notifications for the user have been deleted." });
   } catch (error) {
     console.error("Error deleting all notifications for user:", error);
@@ -118,18 +119,13 @@ router.post('/demo', isAuthenticated, async (req: any, res: Response, next: Next
 
     let createdCount = 0;
     for (const notif of demoNotifications) {
-      await storage.notifications.create({
+      await prisma.notification.create({
         data: {
-        id: randomUUID(),
-        userId,
-        type: notif.type as any,
-        title: notif.title,
+        teamId: team?.id || 1,
+        type: "SYSTEM_MESSAGE",
         message: notif.message,
-        priority: notif.priority as "low" | "medium" | "high", // Cast priority
-        actionUrl: notif.actionUrl || null,
-        metadata: notif.metadata || null,
+        linkTo: notif.actionUrl || null,
         isRead: false,
-        createdAt: new Date(Date.now() - Math.random() * 1000 * 60 * 60), // Random time in last hour
         }
       });
       createdCount++;

@@ -97,7 +97,7 @@ router.post('/demo', async (req, res) => {
     }
 
     // Start the live match engine with this demo match
-    const liveState = await liveMatchEngine.startMatch(recentMatch.id);
+    const liveState = await liveMatchEngine.startMatch(recentMatch.id.toString());
     
     res.json({
       success: true,

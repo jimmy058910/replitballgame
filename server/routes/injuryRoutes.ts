@@ -2,6 +2,7 @@ import { Router, type Request, type Response, type NextFunction } from "express"
 import { storage } from "../storage"; // Adjusted path
 import { isAuthenticated } from "../googleAuth"; // Adjusted path
 import { z } from "zod"; // For validation
+import { prisma } from "../db";
 // import { NotificationService } from "../services/notificationService"; // If needed for injury notifications
 
 const router = Router();
@@ -79,7 +80,7 @@ router.post('/', isAuthenticated, async (req: any, res: Response, next: NextFunc
   try {
     const injuryData = createInjurySchema.parse(req.body);
 
-    const player = await storage.players.getPlayerById(injuryData.playerId);
+    const player = await storage.players.getPlayerById(parseInt(injuryData.playerId.toString()));
     if (!player || !player.teamId) { // Ensure player exists and belongs to a team
       return res.status(404).json({ message: "Player not found or not assigned to a team." });
     }
@@ -90,16 +91,14 @@ router.post('/', isAuthenticated, async (req: any, res: Response, next: NextFunc
     //     return res.status(403).json({ message: "Forbidden: Cannot create injury for player not on your team." });
     // }
 
-    const newInjury = await storage.injuries.create({
+    const newInjury = await prisma.player.update({
+      where: { id: parseInt(injuryData.playerId.toString()) },
       data: {
-        ...injuryData,
-        remainingTime: injuryData.recoveryTime, // Initially, remaining time is full recovery time
-        isActive: true,
-        injuredAt: new Date(),
-        // expectedRecovery: new Date(Date.now() + injuryData.recoveryTime * 24 * 60 * 60 * 1000),
-        // statImpact: injuryData.statImpact || {} // Default to empty object
+        injuryStatus: 'MINOR_INJURY',
+        injuryRecoveryPointsNeeded: injuryData.recoveryTime || 100,
+        injuryRecoveryPointsCurrent: 0,
       }
-    } as any);
+    });
 
     // Send notification (example, actual NotificationService might have more specific methods)
     // const team = await storage.getTeamById(player.teamId);
@@ -130,33 +129,29 @@ router.patch('/:injuryId/treatment', isAuthenticated, async (req: any, res: Resp
     const { injuryId } = req.params;
     const treatmentData = treatmentSchema.parse(req.body);
 
-    const injury = await storage.injuries.findUnique({ where: { id: injuryId } }); // Assuming storage has getInjuryById
+    const injury = await prisma.player.findUnique({ where: { id: parseInt(injuryId) } });
     if (!injury) {
         return res.status(404).json({ message: "Injury record not found." });
     }
     // Optional: Check ownership or permissions to treat this injury
 
-    // Example treatment logic: reduce remainingTime or improve recoveryProgress
+    // Example treatment logic: improve recovery progress
     // This is highly game-specific.
-    let recoveryProgress = injury.recoveryProgress || 0;
-    let remainingTime = injury.remainingTime || 0;
+    let recoveryProgress = injury.injuryRecoveryPointsCurrent || 0;
+    const recoveryNeeded = injury.injuryRecoveryPointsNeeded || 100;
 
     // Simulate treatment effect
     if (treatmentData.treatmentType === "Advanced Therapy") {
-        recoveryProgress = Math.min(100, recoveryProgress + 25);
-        remainingTime = Math.max(0, remainingTime - Math.floor(injury.recoveryTime * 0.20)); // 20% reduction
+        recoveryProgress = Math.min(recoveryNeeded, recoveryProgress + 25);
     } else {
-        recoveryProgress = Math.min(100, recoveryProgress + 10);
-        remainingTime = Math.max(0, remainingTime - Math.floor(injury.recoveryTime * 0.05)); // 5% reduction
+        recoveryProgress = Math.min(recoveryNeeded, recoveryProgress + 10);
     }
 
-    const updatedInjury = await storage.injuries.update({
+    const updatedInjury = await prisma.player.update({
       where: { id: injuryId },
       data: {
-        // treatmentType: treatmentData.treatmentType, // Store last treatment type
-        recoveryProgress,
-        remainingTime,
-        isActive: remainingTime > 0, // Injury becomes inactive if remaining time is 0
+        injuryRecoveryPointsCurrent: recoveryProgress,
+        injuryStatus: recoveryProgress >= recoveryNeeded ? 'HEALTHY' : injury.injuryStatus,
       }
     });
     res.json(updatedInjury);
@@ -195,7 +190,7 @@ router.post('/medical-staff', isAuthenticated, async (req: any, res: Response, n
     }
 
     const staffDataFromRequest = medicalStaffSchema.omit({ teamId: true }).parse(req.body);
-    const newStaffMember = await storage.staff.create({
+    const newStaffMember = await prisma.staff.create({
       data: {
         ...staffDataFromRequest,
         teamId: team.id, // Assign to user's team
@@ -249,7 +244,7 @@ router.patch('/conditioning/:playerId', isAuthenticated, async (req: any, res: R
 
     // TODO: storage.updatePlayerConditioning(playerId, updates) or storage.updatePlayer(playerId, { stamina: updates.fitnessLevel ... })
     // For now, mocking the update.
-    const updatedPlayer = await storage.players.update({
+    const updatedPlayer = await prisma.player.update({
       where: { id: parseInt(playerId) },
       data: { staminaAttribute: updates.fitnessLevel }
     }); // Example update

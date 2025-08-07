@@ -1,6 +1,7 @@
 import { Router, type Request, type Response, type NextFunction } from "express";
 import { storage } from "../storage"; // Adjusted path
 import { isAuthenticated } from "../googleAuth"; // Adjusted path
+import { prisma } from "../db";
 // import { z } from "zod"; // For validation if needed
 
 const router = Router();
@@ -107,7 +108,7 @@ router.get("/:teamId/scout", isAuthenticated, async (req: any, res: Response, ne
       storage.players.getPlayersByTeamId(parseInt(targetTeamId)),
       storage.staff.getStaffByTeamId(parseInt(targetTeamId)),
       storage.teamFinances.getTeamFinances(parseInt(targetTeamId)),
-      storage.stadium.findUnique({ where: { teamId: parseInt(targetTeamId) } })
+      prisma.stadium.findUnique({ where: { teamId: parseInt(targetTeamId) } })
     ]);
 
     const report = {

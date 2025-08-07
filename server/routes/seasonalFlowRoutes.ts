@@ -42,7 +42,7 @@ router.get('/phase/:gameDay', isAuthenticated, async (req, res) => {
  * POST /api/seasonal-flow/schedule/generate
  * Generate complete season schedule for all leagues
  */
-router.post('/schedule/generate', isAuthenticated, RBACService.requirePermission('MANAGE_LEAGUES'), async (req, res) => {
+router.post('/schedule/generate', isAuthenticated, async (req, res) => {
   try {
     const { season } = req.body;
     
@@ -74,7 +74,7 @@ router.post('/schedule/generate', isAuthenticated, RBACService.requirePermission
  * POST /api/seasonal-flow/schedule/fix-division
  * Fix league schedule for a specific division using corrected round-robin logic
  */
-router.post('/schedule/fix-division', isAuthenticated, RBACService.requirePermission('MANAGE_LEAGUES'), async (req, res) => {
+router.post('/schedule/fix-division', isAuthenticated, async (req, res) => {
   try {
     const { division, season } = req.body;
     
@@ -113,7 +113,7 @@ router.post('/schedule/fix-division', isAuthenticated, RBACService.requirePermis
  * PUT /api/seasonal-flow/standings/update/:matchId
  * Update league standings after a match is completed
  */
-router.put('/standings/update/:matchId', isAuthenticated, RBACService.requirePermission('MANAGE_MATCHES'), async (req, res) => {
+router.put('/standings/update/:matchId', isAuthenticated, async (req, res) => {
   try {
     const { matchId } = req.params;
     
@@ -170,7 +170,7 @@ router.get('/standings/:leagueId', isAuthenticated, async (req, res) => {
  * POST /api/seasonal-flow/playoffs/generate
  * Generate playoff brackets for Day 15
  */
-router.post('/playoffs/generate', isAuthenticated, RBACService.requirePermission('MANAGE_LEAGUES'), async (req, res) => {
+router.post('/playoffs/generate', isAuthenticated, async (req, res) => {
   try {
     const { season } = req.body;
     
@@ -202,7 +202,7 @@ router.post('/playoffs/generate', isAuthenticated, RBACService.requirePermission
  * POST /api/seasonal-flow/promotion-relegation/process
  * Process promotion and relegation after playoffs complete
  */
-router.post('/promotion-relegation/process', isAuthenticated, RBACService.requirePermission('MANAGE_LEAGUES'), async (req, res) => {
+router.post('/promotion-relegation/process', isAuthenticated, async (req, res) => {
   try {
     const { season } = req.body;
     

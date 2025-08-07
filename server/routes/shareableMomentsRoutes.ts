@@ -1,6 +1,7 @@
 import { Router, Request, Response, NextFunction } from "express";
 import { storage } from "../storage";
 import { isAuthenticated } from "../googleAuth";
+import { prisma } from "../db";
 
 const router = Router();
 
@@ -171,7 +172,7 @@ router.get('/:teamId?', isAuthenticated, async (req: Request, res: Response, nex
       }
 
       shareableMoments.push({
-        id: `achievement-credits-${Math.floor(teamCredits / 10000)}`,
+        id: `achievement-credits-${Math.floor(Number(teamCredits) / 10000)}`,
         type: 'achievement',
         title,
         description: `Built a financially strong franchise`,
@@ -190,7 +191,7 @@ router.get('/:teamId?', isAuthenticated, async (req: Request, res: Response, nex
       const teamScore = isHome ? match.homeScore : match.awayScore;
       const opponentScore = isHome ? match.awayScore : match.homeScore;
       
-      if (teamScore > opponentScore) {
+      if (teamScore !== null && opponentScore !== null && teamScore > opponentScore) {
         currentStreak++;
       } else {
         break;

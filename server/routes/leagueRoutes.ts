@@ -97,9 +97,10 @@ async function createAITeamsForDivision(division: number) {
 
       const { firstName, lastName } = generateRandomName(playerRace.toLowerCase());
       const playerData = generateRandomPlayer(
-        firstName,
-        lastName,
-        playerRace.toLowerCase()
+        `${firstName} ${lastName}`,
+        playerRace.toLowerCase(),
+        team.id,
+        position
       );
       await storage.players.createPlayer({
         ...playerData,
@@ -318,9 +319,10 @@ router.post('/create-ai-teams', isAuthenticated, async (req: Request, res: Respo
         // Generate proper names instead of "AI Player" 
         const { firstName, lastName } = generateRandomName(race.toLowerCase());
         const playerData = generateRandomPlayer(
-            firstName,
-            lastName,
-            race.toLowerCase()
+            `${firstName} ${lastName}`,
+            race.toLowerCase(),
+            team.id,
+            position
         );
         await storage.players.createPlayer({
             ...playerData,
@@ -565,9 +567,10 @@ router.post('/fix-team-players/:teamId', isAuthenticated, async (req: Request, r
       // Generate proper names instead of "AI Player"
       const { firstName, lastName } = generateRandomName(race.toLowerCase());
       const playerData = generateRandomPlayer(
-        firstName,
-        lastName,
-        race.toLowerCase()
+        `${firstName} ${lastName}`,
+        race.toLowerCase(),
+        team.id,
+        position
       );
       await storage.players.createPlayer({
         ...playerData,

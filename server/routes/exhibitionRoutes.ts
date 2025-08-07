@@ -339,7 +339,7 @@ router.post('/instant', isAuthenticated, async (req: any, res: Response, next: N
     });
 
     const { matchStateManager } = await import('../services/matchStateManager');
-    const liveMatchState = await matchStateManager.startLiveMatch(match.id, true);
+    const liveMatchState = await matchStateManager.startLiveMatch(match.id.toString(), true);
 
     // No need to create duplicate exhibition record - the match already exists in Game table
 
@@ -438,7 +438,7 @@ router.post('/challenge', isAuthenticated, async (req: any, res: Response, next:
       gameDate: new Date(),
     });
 
-    const liveMatchState = await matchStateManager.startLiveMatch(match.id, true);
+    const liveMatchState = await matchStateManager.startLiveMatch(match.id.toString(), true);
     
     // No need to create duplicate exhibition record - the match already exists in Game table
 
@@ -605,7 +605,7 @@ router.post('/instant-match', isAuthenticated, async (req: any, res: Response, n
     let liveMatchState;
     try {
       const { matchStateManager } = await import('../services/matchStateManager');
-      liveMatchState = await matchStateManager.startLiveMatch(match.id, true);
+      liveMatchState = await matchStateManager.startLiveMatch(match.id.toString(), true);
     } catch (error) {
       console.error(`Failed to start exhibition match ${match.id}, cleaning up:`, error);
       // Clean up the failed match to prevent SCHEDULED exhibitions
@@ -680,7 +680,7 @@ router.post('/challenge-opponent', isAuthenticated, async (req: any, res: Respon
     let liveMatchState;
     try {
       const { matchStateManager } = await import('../services/matchStateManager');
-      liveMatchState = await matchStateManager.startLiveMatch(match.id, true);
+      liveMatchState = await matchStateManager.startLiveMatch(match.id.toString(), true);
     } catch (error) {
       console.error(`Failed to start exhibition match ${match.id}, cleaning up:`, error);
       // Clean up the failed match to prevent SCHEDULED exhibitions

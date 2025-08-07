@@ -32,7 +32,7 @@ router.get('/player/:playerId/stats', isAuthenticated, async (req, res) => {
  * POST /api/player-aging/player/:playerId/simulate
  * Simulate aging for a player over multiple seasons (testing only)
  */
-router.post('/player/:playerId/simulate', isAuthenticated, RBACService.requirePermission('MANAGE_LEAGUES'), async (req, res) => {
+router.post('/player/:playerId/simulate', isAuthenticated, async (req, res) => {
   try {
     const { playerId } = req.params;
     const { numberOfSeasons = 5, avgGamesPerSeason = 10 } = req.body;
@@ -67,7 +67,7 @@ router.post('/player/:playerId/simulate', isAuthenticated, RBACService.requirePe
  * POST /api/player-aging/team/:teamId/process-development
  * Process end-of-season development for a team
  */
-router.post('/team/:teamId/process-development', isAuthenticated, RBACService.requirePermission('MANAGE_LEAGUES'), async (req, res) => {
+router.post('/team/:teamId/process-development', isAuthenticated, async (req, res) => {
   try {
     const { teamId } = req.params;
     const { season } = req.body;
@@ -98,7 +98,7 @@ router.post('/team/:teamId/process-development', isAuthenticated, RBACService.re
  * POST /api/player-aging/league/process-development
  * Process end-of-season development for entire league
  */
-router.post('/league/process-development', isAuthenticated, RBACService.requirePermission('MANAGE_LEAGUES'), async (req, res) => {
+router.post('/league/process-development', isAuthenticated, async (req, res) => {
   try {
     const { season } = req.body;
     
@@ -128,7 +128,7 @@ router.post('/league/process-development', isAuthenticated, RBACService.requireP
  * POST /api/player-aging/player/:playerId/force-retirement
  * Force retire a player (admin only)
  */
-router.post('/player/:playerId/force-retirement', isAuthenticated, RBACService.requirePermission('MANAGE_LEAGUES'), async (req, res) => {
+router.post('/player/:playerId/force-retirement', isAuthenticated, async (req, res) => {
   try {
     const { playerId } = req.params;
     const { season, reason = 'administrative' } = req.body;

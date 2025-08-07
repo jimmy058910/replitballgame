@@ -390,7 +390,6 @@ export class TournamentService {
             vipSuitesLevel: 1,
             merchandisingLevel: 1,
             lightingScreensLevel: 1,
-            screensLevel: 1,
             fanLoyalty: 50 + Math.floor(Math.random() * 30)
           }
         });
@@ -399,7 +398,7 @@ export class TournamentService {
         for (let j = 0; j < 12; j++) {
           const race = races[Math.floor(Math.random() * races.length)];
           const position = positions[j];
-          const { firstName, lastName } = this.generateRandomName(race.toLowerCase());
+          const { firstName, lastName } = this.generateRandomName(race);
 
           await prisma.player.create({
             data: {
@@ -431,7 +430,7 @@ export class TournamentService {
   }
 
   // Generate random name for AI players
-  generateRandomName(race: number): { firstName: number; lastName: number } {
+  generateRandomName(race: string): { firstName: string; lastName: string } {
     const names = {
       human: {
         first: ["Alex", "Jordan", "Taylor", "Morgan", "Casey", "Riley", "Jamie", "Drew", "Sage", "Quinn"],
@@ -455,7 +454,7 @@ export class TournamentService {
       }
     };
 
-    const raceNames = names[race as keyof typeof names] || names.human;
+    const raceNames = names[race.toLowerCase() as keyof typeof names] || names.human;
     const firstName = raceNames.first[Math.floor(Math.random() * raceNames.first.length)];
     const lastName = raceNames.last[Math.floor(Math.random() * raceNames.last.length)];
 

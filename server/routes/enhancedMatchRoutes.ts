@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import { prisma } from '../db';
 import { calculateGameRevenue, calculateAttendance } from '../../shared/stadiumSystem';
-import { LiveMatchState } from '../../shared/types/live-match-state';
+// LiveMatchState type import removed - not needed for this endpoint
 
 const router = Router();
 
@@ -32,16 +32,20 @@ router.get('/matches/:matchId/stadium-data', async (req, res) => {
     }
 
     // Calculate attendance and revenue
-    const actualAttendance = calculateAttendance(
+    const attendanceData = calculateAttendance(
       stadium,
-      match.homeTeam.fanLoyalty,
-      match.homeTeam,
+      match.homeTeam.fanLoyalty || 50,
+      match.homeTeam.division || 8,
+      0, // winStreak - defaulting to 0
+      50, // opponentQuality - defaulting to average
+      false, // isImportantGame
+      'good' // weather
     );
 
     // Calculate stadium revenue for league matches only
     const revenue =
       match.matchType === 'LEAGUE'
-        ? calculateGameRevenue(stadium, actualAttendance, match.homeTeam)
+        ? calculateGameRevenue(stadium, attendanceData.attendance, match.homeTeam.fanLoyalty || 50)
         : {
             tickets: 0,
             concessions: 0,
@@ -53,7 +57,7 @@ router.get('/matches/:matchId/stadium-data', async (req, res) => {
 
     const stadiumData = {
       capacity: stadium.capacity,
-      attendance: actualAttendance,
+      attendance: attendanceData.attendance,
       fanLoyalty: match.homeTeam.fanLoyalty || 50,
       atmosphere: Math.min(100, (match.homeTeam.fanLoyalty || 50) + (stadium.lightingScreensLevel * 5)),
       revenue,

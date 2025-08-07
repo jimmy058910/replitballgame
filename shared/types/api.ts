@@ -59,6 +59,12 @@ export interface Player {
   nationality?: string;
   height?: number;
   weight?: number;
+  gamesPlayedLastSeason?: number;
+  seasonMinutesLeague?: number;
+  seasonMinutesTotal?: number;
+  isOnMarket?: boolean;
+  isRetired?: boolean;
+  camaraderieScore?: number;
 }
 
 // Store and Market types
