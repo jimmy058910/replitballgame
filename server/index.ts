@@ -375,10 +375,15 @@ app.use('/api', (req, res, next) => {
 
   // Remove duplicate health endpoint - already defined above
 
-  // CRITICAL: Initialize authentication BEFORE registering API routes
+  // CRITICAL: Initialize authentication BEFORE registering API routes (with error handling)
   console.log('🔐 Setting up Google OAuth authentication system before API routes...');
-  await setupGoogleAuth(app);
-  console.log('✅ Authentication system initialized before API routes');
+  try {
+    await setupGoogleAuth(app);
+    console.log('✅ Authentication system initialized before API routes');
+  } catch (error) {
+    console.error('⚠️ Authentication setup failed, continuing with basic setup:', error);
+    // Continue startup even if auth setup fails to prevent container startup blocking
+  }
 
   // CRITICAL FIX: Pre-register API routes after auth setup but before Vite
   console.log('🔧 Pre-registering API routes before Vite setup...');
@@ -543,11 +548,13 @@ app.use('/api', (req, res, next) => {
       });
     }, 1000);
     
-    // Initialize services in background
+    // Initialize services in background (delayed to ensure startup probes pass first)
     console.log('🚀 Starting background service initialization');
-    initializeRemainingServices().catch(error => {
-      console.error('⚠️ Service initialization failed, but server remains operational:', error);
-    });
+    setTimeout(() => {
+      initializeRemainingServices().catch(error => {
+        console.error('⚠️ Service initialization failed, but server remains operational:', error);
+      });
+    }, 3000); // Delay background services to let startup probes succeed first
   });
 
   // Initialize remaining services asynchronously after server starts
