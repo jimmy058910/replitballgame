@@ -14,7 +14,8 @@ import session from 'express-session';
 import passport from 'passport';
 import { setupGoogleAuth } from "./googleAuth"; // Import Google Auth setup
 import { registerAllRoutes } from "./routes/index";
-import { setupVite, serveStatic, log } from "./vite";
+// PRODUCTION FIX: Use dynamic imports to avoid loading Vite in production
+// import { setupVite, serveStatic, log } from "./vite"; // Moved to dynamic import below
 import { requestIdMiddleware } from "./middleware/requestId";
 import { errorHandler, logInfo } from "./services/errorService";
 import { setupWebSocketServer, webSocketService } from "./services/webSocketService";
@@ -373,13 +374,19 @@ app.use('/api', (req, res, next) => {
     throw new Error("Test Sentry error monitoring!");
   });
 
-  // Vite setup with optimized static file serving
-  if (app.get("env") === "development") {
+  // PRODUCTION FIX: Dynamic imports and correct file paths
+  const isProduction = process.env.NODE_ENV === 'production';
+  console.log(`🔍 Environment mode: ${isProduction ? 'PRODUCTION' : 'DEVELOPMENT'}`);
+  
+  if (!isProduction) {
+    console.log('🔧 Loading Vite dev server...');
+    const { setupVite } = await import("./vite");
     await setupVite(app, httpServer);
+    console.log('✅ Vite dev server started');
   } else {
-    // Production static file serving with caching
-    const staticPath = process.cwd() + '/dist';
-    console.log('📁 Serving static files from:', staticPath);
+    // PRODUCTION: Serve pre-built static files
+    const staticPath = '/app/dist/public'; // Correct Docker container path
+    console.log('📁 PRODUCTION: Serving static files from:', staticPath);
     
     app.use(express.static(staticPath, {
       maxAge: '1d', // Cache static assets for 1 day  
@@ -394,9 +401,9 @@ app.use('/api', (req, res, next) => {
       }
     }));
     
-    // SPA fallback for production - CRITICAL FIX: Exclude all API endpoints
+    // PRODUCTION: SPA fallback - serve index.html for client-side routing
     app.get('*', (req, res) => {
-      console.log(`🔍 Production fallback route: ${req.method} ${req.path}`);
+      console.log(`🔍 PRODUCTION fallback route: ${req.method} ${req.path}`);
       
       // CRITICAL: Exclude ALL API routes, health checks, and deployment tests
       if (req.path.startsWith('/api/') || 
@@ -413,8 +420,10 @@ app.use('/api', (req, res, next) => {
         });
       }
       
-      console.log(`✅ Serving frontend HTML for: ${req.path}`);
-      return res.sendFile(staticPath + '/index.html');
+      // Serve index.html for client-side routing
+      const indexPath = '/app/dist/public/index.html';
+      console.log(`📄 PRODUCTION: Serving index.html from: ${indexPath} for route: ${req.path}`);
+      res.sendFile(indexPath);
     });
   }
 
